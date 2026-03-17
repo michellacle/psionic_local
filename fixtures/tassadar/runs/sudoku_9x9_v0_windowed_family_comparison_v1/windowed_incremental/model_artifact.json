@@ -1,0 +1,148 @@
+{
+  "artifact_id": "tassadar-executor-transformer-sudoku-9x9-windowed-v0.model_artifact",
+  "run_id": "tassadar-executor-transformer-sudoku-9x9-windowed-v1",
+  "descriptor": {
+    "model": {
+      "model_id": "tassadar-executor-transformer-sudoku-9x9-windowed-v0",
+      "family": "tassadar_executor_windowed_transformer",
+      "revision": "v0"
+    },
+    "executor_family": "wasm_trace_executor",
+    "profile": {
+      "profile_id": "tassadar.wasm.sudoku_9x9_search.v1",
+      "allowed_opcodes": [
+        "i32_const",
+        "local_get",
+        "local_set",
+        "i32_add",
+        "i32_sub",
+        "i32_mul",
+        "i32_load",
+        "i32_store",
+        "br_if",
+        "output",
+        "return"
+      ],
+      "max_locals": 8,
+      "max_memory_slots": 192,
+      "max_program_len": 12288,
+      "max_steps": 1048576,
+      "branch_mode": "br_if_non_zero",
+      "host_output_opcode": true
+    },
+    "trace_abi": {
+      "abi_id": "tassadar.trace.v1",
+      "schema_version": 1,
+      "profile_id": "tassadar.wasm.sudoku_9x9_search.v1",
+      "append_only": true,
+      "includes_stack_snapshots": true,
+      "includes_local_snapshots": true,
+      "includes_memory_snapshots": true
+    },
+    "supported_decode_modes": [
+      "reference_linear",
+      "hull_cache"
+    ],
+    "attention_mode": "hard_max_lookup",
+    "attention_geometry": {
+      "constrained_lookup_head_dim": 2,
+      "hull_cache_eligible": true
+    },
+    "claim_boundary": "greedy_decode_unvalidated",
+    "long_trace_contract": "incremental_decode_window",
+    "config": {
+      "vocab_size": 303,
+      "max_sequence_tokens": 524288,
+      "embedding_dim": 16,
+      "context_offsets": [
+        1,
+        2,
+        4,
+        8,
+        16,
+        32
+      ],
+      "constrained_lookup_head_dim": 2
+    },
+    "weights": {
+      "format": "ProgrammaticFixture",
+      "source": "Fixture",
+      "quantization": "none",
+      "digest": "34e72d066aa6849df9106f3c156b14ac0989a9bd98e9b9c2aee19f446af74c68",
+      "tensors": [
+        {
+          "name": "head_offsets",
+          "shape": {
+            "dims": [
+              6
+            ]
+          },
+          "dtype": "F32",
+          "quantization": "none"
+        },
+        {
+          "name": "output_bias",
+          "shape": {
+            "dims": [
+              303
+            ]
+          },
+          "dtype": "F32",
+          "quantization": "none"
+        },
+        {
+          "name": "output_projection",
+          "shape": {
+            "dims": [
+              112,
+              303
+            ]
+          },
+          "dtype": "F32",
+          "quantization": "none"
+        },
+        {
+          "name": "position_embeddings",
+          "shape": {
+            "dims": [
+              524288,
+              16
+            ]
+          },
+          "dtype": "F32",
+          "quantization": "none"
+        },
+        {
+          "name": "token_embeddings",
+          "shape": {
+            "dims": [
+              303,
+              16
+            ]
+          },
+          "dtype": "F32",
+          "quantization": "none"
+        }
+      ],
+      "artifacts": []
+    }
+  },
+  "training_report_digest": "f29b5ec37eecefc99f63a499028399572e121eb1bbf7c5794987a7c6961e2f39",
+  "checkpoint_manifest": {
+    "stream_id": "checkpoint://tassadar-executor-transformer-sudoku-9x9-windowed-v1.checkpoint.epoch_0004",
+    "manifest_digest": "f4b8b885e6343ec1a96e481cb4ea39ab2368c60505547a5ce25bb2e53bf8461f",
+    "subject": "checkpoint",
+    "object_digest": "5a2ec8f7d1c54c6145c5ae4d18156970a9f6b5f6bd5824898a5364a2ac65f65e",
+    "total_bytes": 589942,
+    "chunk_count": 145,
+    "chunk_bytes": 4096,
+    "encoding": "raw_binary",
+    "provenance_digest": "e15e64a118cc3b70ef69088bddeb41206e31dbd9ac5772b1116293487ee338be",
+    "checkpoint_binding": {
+      "checkpoint_family": "train.tassadar.executor_transformer",
+      "checkpoint_ref": "checkpoint://tassadar-executor-transformer-sudoku-9x9-windowed-v1.checkpoint.epoch_0004",
+      "step": 1
+    }
+  },
+  "artifact_digest": "67ed7aa987feaa3621110b3583cef809312c0e10b1334d93a9bae79d0288a44d"
+}

@@ -310,16 +310,26 @@ Current posture:
   `fixtures/tassadar/runs/sudoku_9x9_v0_reference_run_v0`:
   `crates/psionic-train/examples/tassadar_sudoku_9x9_reference_run.rs`
   now replays the first bounded learned 9x9 run with the explicit
-  `incremental_decode_window` teacher-forced strategy bound into the training
-  manifest, persists `sequence_fit_report.json`, `postmortem.json`, and
-  `next_run_plan.json`, and keeps the claim boundary honest by showing that
-  full 9x9 traces still do not fit the current `524288`-token model context
-  (`4891222` to `5335309` total tokens, overflow `4366934` to `4811021`),
-  so the run only covers the first `512` target tokens; within that bounded
-  window the selected checkpoint stays red (`10000` bps first-target,
-  `5938` bps first-32, `0/1` exact validation traces), and the companion
+  `incremental_decode_window` teacher-forced strategy and
+  `incremental_decode_window` long-trace family contract bound into the
+  training manifest, persists `sequence_fit_report.json`, `postmortem.json`,
+  and `next_run_plan.json`, and keeps the claim boundary honest by showing
+  that full 9x9 traces still do not fit the current `524288`-token model
+  context (`4891222` to `5335309` total tokens, overflow `4366934` to
+  `4811021`), so the run only covers the first `512` target tokens; within
+  that bounded window the selected checkpoint stays red (`10000` bps
+  first-target, `5938` bps first-32, `0/1` exact validation traces), and the
+  companion
   audit is
   `docs/audits/2026-03-16-tassadar-phase-16-9x9-reference-run-audit.md`
+- the first same-corpus 9x9 flat-prefix-vs-windowed learned comparison now
+  also exists at
+  `fixtures/tassadar/runs/sudoku_9x9_v0_windowed_family_comparison_v1`; it
+  keeps the exactness claim bounded by showing both families still land at
+  `5938` bps first-32 and `0/1` exact validation traces on the first `512`
+  target tokens, while making the long-trace contract difference explicit by
+  dropping estimated live bytes from `109715076` on the flat-prefix family to
+  `1459452` on the windowed family under the same corpus and checkpoint stage
 - the post-Phase-15 boundary-adapter follow-on now also exists in
   `psionic-models`, `psionic-eval`, `psionic-research`, `docs/audits/`, and
   nine preserved bounded artifact roots at

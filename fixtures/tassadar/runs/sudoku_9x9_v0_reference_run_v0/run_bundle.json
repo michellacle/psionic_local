@@ -1,26 +1,28 @@
 {
   "schema_version": 1,
   "run_id": "tassadar-executor-transformer-sudoku-9x9-reference-run-v0",
+  "claim_class": "learned_bounded",
   "trainable_surface": "output_head_only",
   "dataset_version": "scale-v0",
   "dataset_storage_key": "oa.tassadar.sudoku_9x9.sequence@scale-v0",
   "dataset_digest": "62ff118b9980cccc0bfeb49fa86fc9b2703846e6a344c5207ad44a704d7a172a",
   "tokenizer_digest": "f4134f46b2722a420ccb7f72a34e3b45e17a7a03b8a2c24084e1792f7e324bed",
   "vocabulary_digest": "185385130aab45df19fa68f2bbfe7510517831834b1345bc3cc09559de52b42e",
-  "training_manifest_digest": "5e3c32b9228879c1858fad9ec8769b90a48d924e5dc076748bbcbb15f9f3ee88",
-  "trained_model_descriptor_digest": "cfbb5edb8f889e92f13d7bfe1e735b9f5fa4ea48b7e08310f59a3bb68d18ce78",
+  "training_manifest_digest": "e2875fb95869913f765edfa4daaf2a170da870c769914169b9dd78d56e242215",
+  "trained_model_descriptor_digest": "86368bf3b94c61317a63f531c689e771c867fef7b2acf0f619f1c99840e7056d",
   "trained_weight_digest": "34e72d066aa6849df9106f3c156b14ac0989a9bd98e9b9c2aee19f446af74c68",
-  "training_report_digest": "23e93f1bd2a350669e263ded4d7ed69fc5eee6e7fb1c5e79507997db80f57ebe",
+  "training_report_digest": "8a3679523d52d07a53d00a9ed0dd87b4109b8223381ad7a218a509afac0ac544",
   "boundary_exactness_report_digest": "a3920a79a60bd0d367102342fb3bebd14d086c1d0b3a0a007fe8abbe860a6ec7",
   "divergence_histogram_report_digest": "c078414f599c7c22738ba54eb1e68f15f4f9f6e5c5ef851b01183661406a8364",
   "first_token_confusion_report_digest": "f3de5f97d79c6f698881bef787c767be38724d03a2857e6fc1264d2979fc7eac",
+  "structural_supervision_report_digest": "77d725c94842a2965a32f12da9aede2eb52bf87b0a3b035208b7635fba04b623",
   "checkpoint_leaderboard_report_digest": "7eebaec873731cace51a18c09c421d436a840b0f1424c63dd8ce5dc7ef32231b",
-  "exactness_curve_report_digest": "9be5d61c1797617495c658f3cf3a56285f596151a20c2c5ae9d9b31379f5e1ac",
-  "failure_samples_report_digest": "4f9e723b35cdde0f97b6cb006b5667be84561220694e9dc23fe601918e1a3c2c",
-  "exact_trace_samples_report_digest": "6fb8b404b3983e5f5d91f7f71ffa1084dbf8d55b6571926f5cfc51612a4b1d0d",
-  "sequence_fit_report_digest": "52a905a173672ec49b4c9e8152034696e52535308558810e1652478db888c65d",
-  "checkpoint_artifact_digest": "d336afd0e3c98b6464c4f0db515492853fd77484bba0c197c00402850346b1b5",
-  "model_artifact_digest": "306eacd59c3afc5da1e233517ba09e6549b9228aafc6e74b51527b1b154f82e5",
+  "exactness_curve_report_digest": "6a2e2da4e185c41aab92651784e5ce487688475d0cc3a0f7aeaf5fc09e482b36",
+  "failure_samples_report_digest": "547ce5730bedc034d764890e755d369c69628bbef323bf5695bffd897b7311f7",
+  "exact_trace_samples_report_digest": "e6f502e9aeea27caa751105b07ae8aab672e29bd3ac4833c51bb77a046357f9c",
+  "sequence_fit_report_digest": "1c793e52f255c9b86e4c8ac34bc300e3a9454ade3535de078724d95707da0991",
+  "checkpoint_artifact_digest": "57ee854a66c6e27820a093d1ab930cbd024ea6df56998c4a28556a1e1ec51659",
+  "model_artifact_digest": "9ed7825d16073757bb5feeede690ab02014d4d829fc3942c96cfe18a264c15ba",
   "artifacts": [
     {
       "artifact_kind": "tassadar_boundary_exactness_report",
@@ -30,7 +32,7 @@
     {
       "artifact_kind": "tassadar_checkpoint_artifact",
       "artifact_ref": "checkpoint_artifact.json",
-      "artifact_digest": "c1993227feb83ee509ff39246435a1d8b31ca21a31130e0b049e5c5a96230b13"
+      "artifact_digest": "012a43836231c31460c675b336b2b872a6233c2857c9b544117c468cc489b8ea"
     },
     {
       "artifact_kind": "tassadar_checkpoint_leaderboard",
@@ -40,12 +42,12 @@
     {
       "artifact_kind": "tassadar_checkpoint_manifest",
       "artifact_ref": "checkpoint_manifest.json",
-      "artifact_digest": "486504adc15b5030262feff84909fd10776e18a69bac5bec26e45ef69596b766"
+      "artifact_digest": "522af0b801bc5510ca7ad15273b7f70a7aa3fa52817891c315801a48ca2c6c5a"
     },
     {
       "artifact_kind": "tassadar_checkpoint_state",
       "artifact_ref": "checkpoint_state.json",
-      "artifact_digest": "e4bae21d96e819636d18a1f9a88a2020f40ea679d048691759f701857d7da4c8"
+      "artifact_digest": "98ee5c2694031eaef050922145b501c816c5a1de21b09f3188dd066c6b4dd959"
     },
     {
       "artifact_kind": "tassadar_divergence_histogram_report",
@@ -55,17 +57,17 @@
     {
       "artifact_kind": "tassadar_exact_trace_samples",
       "artifact_ref": "exact_trace_samples.json",
-      "artifact_digest": "f7950cb9598b788cce5d7a7f6889eae03823e30233eeb7a9d15ab1bbd8a37691"
+      "artifact_digest": "49d8ab4573734c80d32022250e60fc1fb5a696b0fc01e10687d98565db29b498"
     },
     {
       "artifact_kind": "tassadar_exactness_curve",
       "artifact_ref": "exactness_curve.json",
-      "artifact_digest": "a38841a7404e9a0bc811c198a2fd83d98b7b4c028cc9d5d12d4c1a74f30e2379"
+      "artifact_digest": "a6240f4eb471993a34878e641f2ccffbbca891b7f9476a58c550b3f32a6969f0"
     },
     {
       "artifact_kind": "tassadar_failure_samples",
       "artifact_ref": "failure_samples.json",
-      "artifact_digest": "d4ff6268dc803926e0790b0394e75dd24491a99fb3157c17a452cb4bf8e7d687"
+      "artifact_digest": "613e578018b90335db9871be6ded5f66021a78cacc4ea9dd6a3726e790c3e638"
     },
     {
       "artifact_kind": "tassadar_first_token_confusion_report",
@@ -75,43 +77,48 @@
     {
       "artifact_kind": "tassadar_model_artifact",
       "artifact_ref": "model_artifact.json",
-      "artifact_digest": "b1cfc23a24f0f9f54384acdd50fe4d7584e8720543a387172468f82e10e2de06"
+      "artifact_digest": "c4e5d9ce3fc6054a083ad80e643b1c3624c40f536c06c3f9e025a3205fa2c478"
     },
     {
       "artifact_kind": "tassadar_sudoku_9x9_next_run_plan",
       "artifact_ref": "next_run_plan.json",
-      "artifact_digest": "8b497419c0f03e3edf09896c92c19d50b6ffe124b001448e8dfac066f34ee6b4"
+      "artifact_digest": "ffd8acb381e45aad3d9a23ba1ce4ed94dbfa7e59f9b0e42693323f2a85e5b607"
     },
     {
       "artifact_kind": "tassadar_sudoku_9x9_postmortem",
       "artifact_ref": "postmortem.json",
-      "artifact_digest": "5295601517437ed60b2fbfc5d97c3cb3fd47ed2dde1f9198a540c054038e1680"
+      "artifact_digest": "f6017af9d315f3258007068ccac64acb214362d6915d8c2e4ce6c500cf0764b5"
     },
     {
       "artifact_kind": "tassadar_sequence_fit_report",
       "artifact_ref": "sequence_fit_report.json",
-      "artifact_digest": "e6e2eb195c88521bc2c173aacbaef3e4b57f971263b5f79969014404ad0d3252"
+      "artifact_digest": "027f9744eaa6a5423a96badd0bdfd00155be6d6ce962cd3b8c848eaf9a8f7127"
+    },
+    {
+      "artifact_kind": "tassadar_structural_supervision_report",
+      "artifact_ref": "structural_supervision_report.json",
+      "artifact_digest": "15a66f6728788a078adb8d9577d2e079de5e433aa31d3bddada6478478b01e22"
     },
     {
       "artifact_kind": "tassadar_trace_divergence_report",
       "artifact_ref": "trace_divergence_report.json",
-      "artifact_digest": "78032211ae991c1449a202d0f392d174a930da2ed1340bea8cdf843727da3d18"
+      "artifact_digest": "810ba4c74a0dbc52a600e5b0bfc4918c0b790423841b25e5029bff5a2bdfa0e8"
     },
     {
       "artifact_kind": "tassadar_training_manifest",
       "artifact_ref": "training_manifest.json",
-      "artifact_digest": "a8af51cd16acf12c5b4b3de0efc9da45cecfeb8cee5e7da77c8608fe69f443e4"
+      "artifact_digest": "daf4544cfe3c8c4ccd3ebd7e58fadd830321f8af2db11db25845b11a40b93ae1"
     },
     {
       "artifact_kind": "tassadar_training_report",
       "artifact_ref": "training_report.json",
-      "artifact_digest": "800a9a21e05267bc9d1b7d30304a82063aa6ba57881ce2bd1e2fa11972765621"
+      "artifact_digest": "5beb085b50cb3f08e9235becf3ef1a9aca58b38a7c52d17a77a355c2d9efe613"
     },
     {
       "artifact_kind": "tassadar_training_telemetry",
       "artifact_ref": "training_telemetry.json",
-      "artifact_digest": "54a481e86371d53560280a24899727939b5276eba9c8b00e5d8eeec1a4aaa513"
+      "artifact_digest": "fd0eea91502e5ba214f631bce73090123aa85313d26f7173deb06059c3c616b6"
     }
   ],
-  "bundle_digest": "bad4d17c918fb418427957b8350769c7944e90be5dd1fdff73b7dff1350a62a2"
+  "bundle_digest": "42d766b6ea1fefb48a65a17b647751d7cbc6d84241cafa3b3f1bb4cd841af65c"
 }

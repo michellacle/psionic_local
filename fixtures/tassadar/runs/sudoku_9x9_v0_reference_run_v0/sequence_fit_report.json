@@ -2,10 +2,11 @@
   "run_id": "tassadar-executor-transformer-sudoku-9x9-reference-run-v0",
   "dataset_storage_key": "oa.tassadar.sudoku_9x9.sequence@scale-v0",
   "dataset_digest": "62ff118b9980cccc0bfeb49fa86fc9b2703846e6a344c5207ad44a704d7a172a",
-  "model_id": "tassadar-executor-transformer-sudoku-9x9-v0",
-  "trained_model_descriptor_digest": "cfbb5edb8f889e92f13d7bfe1e735b9f5fa4ea48b7e08310f59a3bb68d18ce78",
+  "model_id": "tassadar-executor-transformer-sudoku-9x9-windowed-v0",
+  "trained_model_descriptor_digest": "86368bf3b94c61317a63f531c689e771c867fef7b2acf0f619f1c99840e7056d",
   "trainable_surface": "output_head_only",
   "teacher_forced_training_strategy": "incremental_decode_window",
+  "long_trace_contract": "incremental_decode_window",
   "vocab_size": 303,
   "hidden_width": 112,
   "model_max_sequence_tokens": 524288,
@@ -62,7 +63,7 @@
   "artifact_file_sizes": [
     {
       "artifact_ref": "checkpoint_state.json",
-      "size_bytes": 589943
+      "size_bytes": 589952
     },
     {
       "artifact_ref": "exactness_curve.json",
@@ -74,19 +75,19 @@
     },
     {
       "artifact_ref": "training_report.json",
-      "size_bytes": 18820
+      "size_bytes": 18876
     },
     {
       "artifact_ref": "run_bundle.json",
-      "size_bytes": 5112
+      "size_bytes": 5488
     },
     {
       "artifact_ref": "training_manifest.json",
-      "size_bytes": 4042
+      "size_bytes": 5266
     },
     {
       "artifact_ref": "model_artifact.json",
-      "size_bytes": 4040
+      "size_bytes": 4123
     },
     {
       "artifact_ref": "failure_samples.json",
@@ -103,6 +104,10 @@
     {
       "artifact_ref": "checkpoint_leaderboard.json",
       "size_bytes": 2263
+    },
+    {
+      "artifact_ref": "structural_supervision_report.json",
+      "size_bytes": 2024
     },
     {
       "artifact_ref": "checkpoint_artifact.json",
@@ -130,5 +135,5 @@
     "full 9x9 sequences exceed the current model context by 4366934 to 4811021 tokens",
     "the run therefore only validates the first 512 target tokens per case"
   ],
-  "report_digest": "52a905a173672ec49b4c9e8152034696e52535308558810e1652478db888c65d"
+  "report_digest": "1c793e52f255c9b86e4c8ac34bc300e3a9454ade3535de078724d95707da0991"
 }

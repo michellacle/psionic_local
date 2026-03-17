@@ -1,0 +1,30 @@
+{
+  "run_id": "tassadar-executor-transformer-sudoku-9x9-windowed-v1",
+  "basis_postmortem_digest": "966f18acfd601751eca4cb117a0f760bf08570ea6a400f4ec78c5d6e30ead422",
+  "actions": [
+    {
+      "action_id": "later_window_truth",
+      "summary": "Add later-prefix or suffix-window eval artifacts instead of pretending the first bounded window says enough about the full 9x9 trace.",
+      "success_criteria": [
+        "Persist at least one non-zero-offset target window report.",
+        "Keep every window report explicit about which target slice it covers."
+      ]
+    },
+    {
+      "action_id": "context_or_model_change",
+      "summary": "Either increase the learned lane context budget or adopt an explicitly windowed long-trace training/eval regime beyond the first 512 tokens.",
+      "success_criteria": [
+        "Full 9x9 prompt-plus-target fit becomes truthful, or later windows are covered by explicit machine-readable reports.",
+        "No artifact implies full-trace 9x9 exactness before that fit exists."
+      ]
+    },
+    {
+      "action_id": "keep_phase_claim_partial",
+      "summary": "Keep the 9x9 learned lane in a partial state until bounded windows are exact and the full-trace fit problem is solved honestly.",
+      "success_criteria": [
+        "Audit language continues to say `9x9 only partially fit and remains blocked` until the blocker is actually removed."
+      ]
+    }
+  ],
+  "plan_digest": "e8a390e52a91494b485e22a852065de56e2096bc9c06fa1837d1ed4dac4586a8"
+}

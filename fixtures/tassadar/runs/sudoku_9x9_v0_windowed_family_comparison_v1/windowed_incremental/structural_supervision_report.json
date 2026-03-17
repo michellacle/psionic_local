@@ -1,0 +1,77 @@
+{
+  "dataset_storage_key": "oa.tassadar.sudoku_9x9.sequence@scale-v0",
+  "dataset_digest": "62ff118b9980cccc0bfeb49fa86fc9b2703846e6a344c5207ad44a704d7a172a",
+  "split": "validation",
+  "claim_boundary": "greedy_decode_unvalidated",
+  "aggregate_metrics": [
+    {
+      "family": "instruction_pointer",
+      "target_token_count": 10,
+      "matched_token_count": 7,
+      "exactness_bps": 7000
+    },
+    {
+      "family": "branch_outcome",
+      "target_token_count": 0,
+      "matched_token_count": 0,
+      "exactness_bps": 0
+    },
+    {
+      "family": "stack_delta",
+      "target_token_count": 12,
+      "matched_token_count": 7,
+      "exactness_bps": 5833
+    },
+    {
+      "family": "memory_diff",
+      "target_token_count": 0,
+      "matched_token_count": 0,
+      "exactness_bps": 0
+    },
+    {
+      "family": "workload_specific_state",
+      "target_token_count": 0,
+      "matched_token_count": 0,
+      "exactness_bps": 0
+    }
+  ],
+  "case_reports": [
+    {
+      "sequence_id": "tassadar.sequence.sudoku_9x9_validation_a",
+      "case_id": "sudoku_9x9_validation_a",
+      "metrics": [
+        {
+          "family": "instruction_pointer",
+          "target_token_count": 10,
+          "matched_token_count": 7,
+          "exactness_bps": 7000
+        },
+        {
+          "family": "branch_outcome",
+          "target_token_count": 0,
+          "matched_token_count": 0,
+          "exactness_bps": 0
+        },
+        {
+          "family": "stack_delta",
+          "target_token_count": 12,
+          "matched_token_count": 7,
+          "exactness_bps": 5833
+        },
+        {
+          "family": "memory_diff",
+          "target_token_count": 0,
+          "matched_token_count": 0,
+          "exactness_bps": 0
+        },
+        {
+          "family": "workload_specific_state",
+          "target_token_count": 0,
+          "matched_token_count": 0,
+          "exactness_bps": 0
+        }
+      ]
+    }
+  ],
+  "report_digest": "77d725c94842a2965a32f12da9aede2eb52bf87b0a3b035208b7635fba04b623"
+}

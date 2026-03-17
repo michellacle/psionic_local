@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "run_id": "tassadar-executor-transformer-sudoku-9x9-windowed-v1",
+  "claim_class": "learned_bounded",
+  "trainable_surface": "output_head_only",
+  "dataset_version": "scale-v0",
+  "dataset_storage_key": "oa.tassadar.sudoku_9x9.sequence@scale-v0",
+  "dataset_digest": "62ff118b9980cccc0bfeb49fa86fc9b2703846e6a344c5207ad44a704d7a172a",
+  "tokenizer_digest": "f4134f46b2722a420ccb7f72a34e3b45e17a7a03b8a2c24084e1792f7e324bed",
+  "vocabulary_digest": "185385130aab45df19fa68f2bbfe7510517831834b1345bc3cc09559de52b42e",
+  "training_manifest_digest": "e2875fb95869913f765edfa4daaf2a170da870c769914169b9dd78d56e242215",
+  "trained_model_descriptor_digest": "86368bf3b94c61317a63f531c689e771c867fef7b2acf0f619f1c99840e7056d",
+  "trained_weight_digest": "34e72d066aa6849df9106f3c156b14ac0989a9bd98e9b9c2aee19f446af74c68",
+  "training_report_digest": "f29b5ec37eecefc99f63a499028399572e121eb1bbf7c5794987a7c6961e2f39",
+  "boundary_exactness_report_digest": "a3920a79a60bd0d367102342fb3bebd14d086c1d0b3a0a007fe8abbe860a6ec7",
+  "divergence_histogram_report_digest": "c078414f599c7c22738ba54eb1e68f15f4f9f6e5c5ef851b01183661406a8364",
+  "first_token_confusion_report_digest": "f3de5f97d79c6f698881bef787c767be38724d03a2857e6fc1264d2979fc7eac",
+  "structural_supervision_report_digest": "77d725c94842a2965a32f12da9aede2eb52bf87b0a3b035208b7635fba04b623",
+  "checkpoint_leaderboard_report_digest": "ee361cad9c9235532365eac8fe3ee94ea8917907e3f022b431339fd24541a5cf",
+  "exactness_curve_report_digest": "c0e2088b95581eff525412c7e3fee0e5f48f98766ed106038e3c365486364614",
+  "failure_samples_report_digest": "5f22ad0b3541fbed0a56e38c6abb0b3b67b285f55890a5fa5d8722329e5865b5",
+  "exact_trace_samples_report_digest": "d2fd676a385321f5c26dd49355837b86031d65e1d5461930a7c970ec7264c0ec",
+  "sequence_fit_report_digest": "34b2ffc8a2ee3b97cc2f6dd3dc683384f4c4fba4c78ef04cedd9560920c0d570",
+  "checkpoint_artifact_digest": "af9ea12bb5f034ce1479f31a9571ca87a02384127100d5e5b59554f8bff5198d",
+  "model_artifact_digest": "67ed7aa987feaa3621110b3583cef809312c0e10b1334d93a9bae79d0288a44d",
+  "artifacts": [
+    {
+      "artifact_kind": "tassadar_boundary_exactness_report",
+      "artifact_ref": "boundary_exactness_report.json",
+      "artifact_digest": "5187139b4c36cac9d3b9b6958bf7e65bd6d04cf1079ac10520c9d2a85030abe7"
+    },
+    {
+      "artifact_kind": "tassadar_checkpoint_artifact",
+      "artifact_ref": "checkpoint_artifact.json",
+      "artifact_digest": "cbefa276d3b9eb6737e242d291bfd9bbf809965a7a5cc7b71e0bf057bee00f37"
+    },
+    {
+      "artifact_kind": "tassadar_checkpoint_leaderboard",
+      "artifact_ref": "checkpoint_leaderboard.json",
+      "artifact_digest": "02ee8f22cc2e1d8e36146bbfee7bdfcccffa68a9887d0821266949217e45c324"
+    },
+    {
+      "artifact_kind": "tassadar_checkpoint_manifest",
+      "artifact_ref": "checkpoint_manifest.json",
+      "artifact_digest": "e06391bd0a07fd6295bd2be963b27de5ccca683cfec80f413ba7aad99b20f1ee"
+    },
+    {
+      "artifact_kind": "tassadar_checkpoint_state",
+      "artifact_ref": "checkpoint_state.json",
+      "artifact_digest": "d793386f639570e95c8aa8a72ded147e5b2afff5ee74df2d13970d8afe48e5c5"
+    },
+    {
+      "artifact_kind": "tassadar_divergence_histogram_report",
+      "artifact_ref": "divergence_histogram.json",
+      "artifact_digest": "0ffe22e52e2ff737cceb8a478f6d91560869da9b40bc4eed051e8e9891bbf0d0"
+    },
+    {
+      "artifact_kind": "tassadar_exact_trace_samples",
+      "artifact_ref": "exact_trace_samples.json",
+      "artifact_digest": "014b5af5ce17fe7825159b9a7d1e2b9e30b64f4da7e80ccce4805633eea71b99"
+    },
+    {
+      "artifact_kind": "tassadar_exactness_curve",
+      "artifact_ref": "exactness_curve.json",
+      "artifact_digest": "2a3aee2ae242b217a14c1af938cbd2c000cc14f4691911d7db84ee555805de17"
+    },
+    {
+      "artifact_kind": "tassadar_failure_samples",
+      "artifact_ref": "failure_samples.json",
+      "artifact_digest": "a28e82c92bf2c9a3ce6cfa0cc97ef55558697dd6c6273bd7aed26d0fecd02bd4"
+    },
+    {
+      "artifact_kind": "tassadar_first_token_confusion_report",
+      "artifact_ref": "first_token_confusion_report.json",
+      "artifact_digest": "f2e1959dd372b27d79cc0182707b4f9d070e4a9a7df3081676924d06ee0deaab"
+    },
+    {
+      "artifact_kind": "tassadar_model_artifact",
+      "artifact_ref": "model_artifact.json",
+      "artifact_digest": "b69b6c961321483e87e45c0ad0e94bc2cf32b9127a808ba660a059f53a9236b3"
+    },
+    {
+      "artifact_kind": "tassadar_sudoku_9x9_next_run_plan",
+      "artifact_ref": "next_run_plan.json",
+      "artifact_digest": "2c9827140908ffa81371085a6c282aa0f476fddb7408ba96407aad041c9299e9"
+    },
+    {
+      "artifact_kind": "tassadar_sudoku_9x9_postmortem",
+      "artifact_ref": "postmortem.json",
+      "artifact_digest": "6e22f7891e857ba9491021c3259a6c0f5f92570019f559ee7598a5b44812d8f0"
+    },
+    {
+      "artifact_kind": "tassadar_sequence_fit_report",
+      "artifact_ref": "sequence_fit_report.json",
+      "artifact_digest": "6e60649c9fa5871fa88a3ab9410eeb7e0cad87102ec7ff194e2103f3795f340d"
+    },
+    {
+      "artifact_kind": "tassadar_structural_supervision_report",
+      "artifact_ref": "structural_supervision_report.json",
+      "artifact_digest": "15a66f6728788a078adb8d9577d2e079de5e433aa31d3bddada6478478b01e22"
+    },
+    {
+      "artifact_kind": "tassadar_trace_divergence_report",
+      "artifact_ref": "trace_divergence_report.json",
+      "artifact_digest": "e9ad0d7e066c5350e8ef2bfc01b7f1a7762226e3a38d1431fb32fc0cc7fc2c1f"
+    },
+    {
+      "artifact_kind": "tassadar_training_manifest",
+      "artifact_ref": "training_manifest.json",
+      "artifact_digest": "daf4544cfe3c8c4ccd3ebd7e58fadd830321f8af2db11db25845b11a40b93ae1"
+    },
+    {
+      "artifact_kind": "tassadar_training_report",
+      "artifact_ref": "training_report.json",
+      "artifact_digest": "be5448036018d6261b516f6b73f4c3489cf26a33a21ed651c8b956be45900e11"
+    },
+    {
+      "artifact_kind": "tassadar_training_telemetry",
+      "artifact_ref": "training_telemetry.json",
+      "artifact_digest": "0e76d27d790684f9a8849742b72d072636c536476dbe9b5b3c2b23ee428112a0"
+    }
+  ],
+  "bundle_digest": "684b8a3910d8f0fdaf4fedfdea3fb66639e7e623caed49aef93c92fabec4a451"
+}

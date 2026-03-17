@@ -2,7 +2,10 @@ use std::{collections::BTreeMap, fs, path::Path};
 
 use psionic_data::TassadarSequenceSplit;
 use psionic_eval::{TassadarSequenceEvalError, build_tassadar_sudoku_9x9_sequence_dataset};
-use psionic_models::{TassadarExecutorTrainableSurface, TassadarExecutorTransformer};
+use psionic_models::{
+    TassadarExecutorLongTraceContract, TassadarExecutorTrainableSurface,
+    TassadarExecutorTransformer,
+};
 use psionic_runtime::tassadar_sudoku_9x9_corpus;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use sha2::{Digest, Sha256};
@@ -142,6 +145,7 @@ impl TassadarExecutorSudoku9x9ScalePlan {
                 trainable_surface: TassadarExecutorTrainableSurface::OutputHeadOnly,
                 teacher_forced_training_strategy:
                     crate::TassadarExecutorTeacherForcedTrainingStrategy::FullForwardWindow,
+                long_trace_contract: TassadarExecutorLongTraceContract::FlatPrefixFullForward,
                 structural_supervision:
                     crate::TassadarExecutorStructuralSupervisionConfig::next_token_only(),
                 curriculum_stages: Vec::new(),

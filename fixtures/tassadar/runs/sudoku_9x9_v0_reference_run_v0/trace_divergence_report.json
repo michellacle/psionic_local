@@ -2,8 +2,8 @@
   "run_id": "tassadar-executor-transformer-sudoku-9x9-reference-run-v0",
   "dataset_storage_key": "oa.tassadar.sudoku_9x9.sequence@scale-v0",
   "dataset_digest": "62ff118b9980cccc0bfeb49fa86fc9b2703846e6a344c5207ad44a704d7a172a",
-  "trained_model_descriptor_digest": "cfbb5edb8f889e92f13d7bfe1e735b9f5fa4ea48b7e08310f59a3bb68d18ce78",
-  "checkpoint_manifest_digest": "8de00f09d079443182e6f714b8e5eba36cce547d70a7f1502793eaa7dd98f361",
+  "trained_model_descriptor_digest": "86368bf3b94c61317a63f531c689e771c867fef7b2acf0f619f1c99840e7056d",
+  "checkpoint_manifest_digest": "391cbda1996ab6b182ab13c3de3b087f6017faf8a91eb9262219776dd5bef087",
   "case_reports": [
     {
       "sequence_id": "tassadar.sequence.sudoku_9x9_train_a",
@@ -70,5 +70,5 @@
       "predicted_target_digest": "105e6212f1855a8e6b732ef9a694ffbabbf18e4cc0599b9e2bb6ae8817ebb2bd"
     }
   ],
-  "report_digest": "f8161886939ea7955f3b8fd92003c87f470b7f54ae8c9e710311f7df9ed7ee86"
+  "report_digest": "b7d8eaf79f7a5740514cfd174f0d2b46f720983a25d58b3be013edf1ee0db736"
 }

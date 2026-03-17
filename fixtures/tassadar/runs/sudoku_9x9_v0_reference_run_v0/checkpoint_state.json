@@ -1,10 +1,10 @@
 {
   "checkpoint_id": "tassadar-executor-transformer-sudoku-9x9-reference-run-v0.checkpoint.epoch_0004",
   "run_id": "tassadar-executor-transformer-sudoku-9x9-reference-run-v0",
-  "base_model_id": "tassadar-executor-transformer-sudoku-9x9-v0",
-  "trained_model_descriptor_digest": "cfbb5edb8f889e92f13d7bfe1e735b9f5fa4ea48b7e08310f59a3bb68d18ce78",
+  "base_model_id": "tassadar-executor-transformer-sudoku-9x9-windowed-v0",
+  "trained_model_descriptor_digest": "86368bf3b94c61317a63f531c689e771c867fef7b2acf0f619f1c99840e7056d",
   "trained_weight_digest": "34e72d066aa6849df9106f3c156b14ac0989a9bd98e9b9c2aee19f446af74c68",
-  "training_manifest_digest": "5e3c32b9228879c1858fad9ec8769b90a48d924e5dc076748bbcbb15f9f3ee88",
+  "training_manifest_digest": "e2875fb95869913f765edfa4daaf2a170da870c769914169b9dd78d56e242215",
   "trainable_surface": "output_head_only",
   "output_projection_digest": "e422bd5e97d9ee52c866dcfd65319a5ab9e05e7969738c173c06cd4ad3da3bdd",
   "output_bias_digest": "6755b854f9b2f2390b22c2411a6a37980951df6554edf8f42fae912ec175b746",
@@ -34251,5 +34251,5 @@
     -0.0008166538,
     -0.0008120618
   ],
-  "state_digest": "ddba08bcccda8253acc4f4c388863f9b5ab811ef4e606f6ec0710d165e31a99d"
+  "state_digest": "4dac7b413764dfb89d1c9984b44d0e81b313f7113d2b4d0583b3788bf28f9252"
 }

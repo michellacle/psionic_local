@@ -1,6 +1,6 @@
 {
   "run_id": "tassadar-executor-transformer-sudoku-9x9-reference-run-v0",
-  "basis_postmortem_digest": "8c33106144decc3b42a1f880426970b85916bb39e8325f5404dd4bb9c3761f71",
+  "basis_postmortem_digest": "3f32875df3a24e62a8ea13d591e6577a7aa2368a3c79bb302f5d7a7640b6d875",
   "actions": [
     {
       "action_id": "later_window_truth",
@@ -26,5 +26,5 @@
       ]
     }
   ],
-  "plan_digest": "66d32ccd6f62599f4950bc6409abc81f50b1d132c0e83da8fa254fa90cd958cc"
+  "plan_digest": "8018e3352680f35c3c66c0927eb3d65e854458df324748939b66b5e356b73c90"
 }

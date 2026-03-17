@@ -21,7 +21,8 @@ use psionic_eval::{
     build_tassadar_executor_structural_supervision_report, build_tassadar_sequence_dataset,
 };
 use psionic_models::{
-    TassadarExecutorTrainableSurface, TassadarExecutorTransformer,
+    TassadarExecutorLongTraceContract, TassadarExecutorTrainableSurface,
+    TassadarExecutorTransformer,
     TassadarExecutorTransformerDescriptor, TassadarExecutorTransformerError,
 };
 use psionic_runtime::TassadarClaimClass;
@@ -258,15 +259,27 @@ impl TassadarExecutorCheckpointState {
             TassadarExecutorTransformer::MODEL_ID => {
                 TassadarExecutorTransformer::sudoku_v0_with_surface(self.trainable_surface)
             }
+            TassadarExecutorTransformer::WINDOWED_MODEL_ID => {
+                TassadarExecutorTransformer::sudoku_v0_windowed_with_surface(
+                    self.trainable_surface,
+                )
+            }
             TassadarExecutorTransformer::SUDOKU_9X9_MODEL_ID => {
                 TassadarExecutorTransformer::sudoku_9x9_with_surface(self.trainable_surface)
+            }
+            TassadarExecutorTransformer::WINDOWED_SUDOKU_9X9_MODEL_ID => {
+                TassadarExecutorTransformer::sudoku_9x9_windowed_with_surface(
+                    self.trainable_surface,
+                )
             }
             actual => {
                 return Err(TassadarExecutorRunError::UnexpectedBaseModel {
                     expected: format!(
-                        "{}/{}",
+                        "{}/{}/{}/{}",
                         TassadarExecutorTransformer::MODEL_ID,
-                        TassadarExecutorTransformer::SUDOKU_9X9_MODEL_ID
+                        TassadarExecutorTransformer::WINDOWED_MODEL_ID,
+                        TassadarExecutorTransformer::SUDOKU_9X9_MODEL_ID,
+                        TassadarExecutorTransformer::WINDOWED_SUDOKU_9X9_MODEL_ID
                     ),
                     actual: actual.to_string(),
                 });
@@ -702,6 +715,7 @@ pub fn tassadar_executor_promotion_run_config() -> TassadarExecutorTrainingConfi
             TassadarExecutorTrainableSurface::OutputHeadEmbeddingsAndSmallLearnedMixer,
         teacher_forced_training_strategy:
             crate::TassadarExecutorTeacherForcedTrainingStrategy::FullForwardWindow,
+        long_trace_contract: TassadarExecutorLongTraceContract::FlatPrefixFullForward,
         structural_supervision: crate::TassadarExecutorStructuralSupervisionConfig::next_token_only(),
         curriculum_stages: vec![
             crate::TassadarExecutorCurriculumStage::new("prompt_to_first_token", Some(1), 1),
@@ -742,6 +756,7 @@ pub fn tassadar_executor_promotion_v2_run_config() -> TassadarExecutorTrainingCo
             TassadarExecutorTrainableSurface::OutputHeadEmbeddingsAndSmallLearnedMixer,
         teacher_forced_training_strategy:
             crate::TassadarExecutorTeacherForcedTrainingStrategy::FullForwardWindow,
+        long_trace_contract: TassadarExecutorLongTraceContract::FlatPrefixFullForward,
         structural_supervision: crate::TassadarExecutorStructuralSupervisionConfig::next_token_only(),
         curriculum_stages: vec![
             crate::TassadarExecutorCurriculumStage::new("prompt_to_first_token", Some(1), 1),
@@ -828,6 +843,7 @@ fn execute_tassadar_training_run_with_options(
         config.dataset_version.as_str(),
         config.trainable_surface,
         config.teacher_forced_training_strategy,
+        config.long_trace_contract,
         config.structural_supervision.clone(),
     )?;
     emit_tassadar_progress(format!(

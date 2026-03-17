@@ -1,0 +1,170 @@
+{
+  "run_id": "tassadar-executor-transformer-sudoku-9x9-flat-prefix-v1",
+  "dataset_storage_key": "oa.tassadar.sudoku_9x9.sequence@scale-v0",
+  "dataset_digest": "62ff118b9980cccc0bfeb49fa86fc9b2703846e6a344c5207ad44a704d7a172a",
+  "trained_model_descriptor_digest": "cfbb5edb8f889e92f13d7bfe1e735b9f5fa4ea48b7e08310f59a3bb68d18ce78",
+  "checkpoint_manifest_digest": "6ff81a9c3ea2d7f0fbee2bab3dd127453f6602382c05518365bfafe96997ba14",
+  "samples": [
+    {
+      "case_id": "sudoku_9x9_train_b",
+      "split": "train",
+      "first_divergence_index": 1,
+      "target_token_exactness_bps": 8047,
+      "final_output_match": false,
+      "halt_match": false,
+      "reference_window_token_ids": [
+        7,
+        12,
+        47,
+        47,
+        47,
+        47
+      ],
+      "predicted_window_token_ids": [
+        7,
+        47,
+        47,
+        47,
+        47,
+        47
+      ],
+      "reference_window_tokens": [
+        "<step>",
+        "<step_index>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>"
+      ],
+      "predicted_window_tokens": [
+        "<step>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>"
+      ]
+    },
+    {
+      "case_id": "sudoku_9x9_train_a",
+      "split": "train",
+      "first_divergence_index": 1,
+      "target_token_exactness_bps": 8086,
+      "final_output_match": false,
+      "halt_match": false,
+      "reference_window_token_ids": [
+        7,
+        12,
+        47,
+        47,
+        47,
+        47
+      ],
+      "predicted_window_token_ids": [
+        7,
+        47,
+        47,
+        47,
+        47,
+        47
+      ],
+      "reference_window_tokens": [
+        "<step>",
+        "<step_index>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>"
+      ],
+      "predicted_window_tokens": [
+        "<step>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>"
+      ]
+    },
+    {
+      "case_id": "sudoku_9x9_test_a",
+      "split": "test",
+      "first_divergence_index": 1,
+      "target_token_exactness_bps": 8125,
+      "final_output_match": false,
+      "halt_match": false,
+      "reference_window_token_ids": [
+        7,
+        12,
+        47,
+        47,
+        47,
+        47
+      ],
+      "predicted_window_token_ids": [
+        7,
+        47,
+        47,
+        47,
+        47,
+        47
+      ],
+      "reference_window_tokens": [
+        "<step>",
+        "<step_index>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>"
+      ],
+      "predicted_window_tokens": [
+        "<step>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>"
+      ]
+    },
+    {
+      "case_id": "sudoku_9x9_validation_a",
+      "split": "validation",
+      "first_divergence_index": 1,
+      "target_token_exactness_bps": 8125,
+      "final_output_match": false,
+      "halt_match": false,
+      "reference_window_token_ids": [
+        7,
+        12,
+        47,
+        47,
+        47,
+        47
+      ],
+      "predicted_window_token_ids": [
+        7,
+        47,
+        47,
+        47,
+        47,
+        47
+      ],
+      "reference_window_tokens": [
+        "<step>",
+        "<step_index>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>"
+      ],
+      "predicted_window_tokens": [
+        "<step>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>"
+      ]
+    }
+  ],
+  "report_digest": "c712c643a2fabefe5a0033355c907a56a2e9c00197d55a53572109be4c5fdfcb"
+}

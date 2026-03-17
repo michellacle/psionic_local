@@ -22,6 +22,27 @@ pub enum TassadarExecutorTransformerClaimBoundary {
     GreedyDecodeUnvalidated,
 }
 
+/// Explicit long-trace contract for one learned executor family.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TassadarExecutorLongTraceContract {
+    /// The family expects one flat growing prefix per supervised window.
+    FlatPrefixFullForward,
+    /// The family is evaluated and trained through incremental bounded windows.
+    IncrementalDecodeWindow,
+}
+
+impl TassadarExecutorLongTraceContract {
+    /// Returns a stable label for reports and model identity.
+    #[must_use]
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::FlatPrefixFullForward => "flat_prefix_full_forward",
+            Self::IncrementalDecodeWindow => "incremental_decode_window",
+        }
+    }
+}
+
 /// Stable trainable-surface selector for the lookup-style executor family.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -83,6 +104,14 @@ fn default_trainable_surface() -> TassadarExecutorTrainableSurface {
 
 fn trainable_surface_is_output_head_only(surface: &TassadarExecutorTrainableSurface) -> bool {
     *surface == TassadarExecutorTrainableSurface::OutputHeadOnly
+}
+
+fn default_long_trace_contract() -> TassadarExecutorLongTraceContract {
+    TassadarExecutorLongTraceContract::FlatPrefixFullForward
+}
+
+fn long_trace_contract_is_flat_prefix(contract: &TassadarExecutorLongTraceContract) -> bool {
+    *contract == TassadarExecutorLongTraceContract::FlatPrefixFullForward
 }
 
 /// Explicit config for the first trainable neural executor family.
@@ -151,6 +180,12 @@ pub struct TassadarExecutorTransformerDescriptor {
     pub attention_geometry: TassadarAttentionGeometryContract,
     /// Explicit claim boundary.
     pub claim_boundary: TassadarExecutorTransformerClaimBoundary,
+    /// Explicit long-trace contract for this family.
+    #[serde(
+        default = "default_long_trace_contract",
+        skip_serializing_if = "long_trace_contract_is_flat_prefix"
+    )]
+    pub long_trace_contract: TassadarExecutorLongTraceContract,
     /// Active trainable surface carried by the descriptor.
     #[serde(
         default = "default_trainable_surface",
@@ -530,8 +565,15 @@ impl TassadarExecutorTransformer {
     pub const MODEL_ID: &str = "tassadar-executor-transformer-sudoku-v0-v0";
     /// Stable model identifier for the first 9x9 Sudoku-class executor family.
     pub const SUDOKU_9X9_MODEL_ID: &str = "tassadar-executor-transformer-sudoku-9x9-v0";
+    /// Stable model identifier for the first windowed Sudoku-v0 executor family.
+    pub const WINDOWED_MODEL_ID: &str = "tassadar-executor-transformer-sudoku-v0-windowed-v0";
+    /// Stable model identifier for the first windowed 9x9 executor family.
+    pub const WINDOWED_SUDOKU_9X9_MODEL_ID: &str =
+        "tassadar-executor-transformer-sudoku-9x9-windowed-v0";
     /// Stable model family label.
     pub const MODEL_FAMILY: &str = "tassadar_executor_transformer";
+    /// Stable model family label for explicit windowed replay.
+    pub const WINDOWED_MODEL_FAMILY: &str = "tassadar_executor_windowed_transformer";
 
     /// Creates the canonical small Sudoku-v0 executor transformer.
     #[must_use]
@@ -542,11 +584,40 @@ impl TassadarExecutorTransformer {
     /// Creates the canonical small Sudoku-v0 executor transformer for one surface.
     #[must_use]
     pub fn sudoku_v0_with_surface(trainable_surface: TassadarExecutorTrainableSurface) -> Self {
+        Self::sudoku_v0_with_surface_and_contract(
+            trainable_surface,
+            TassadarExecutorLongTraceContract::FlatPrefixFullForward,
+        )
+    }
+
+    /// Creates the canonical small Sudoku-v0 windowed executor transformer for one surface.
+    #[must_use]
+    pub fn sudoku_v0_windowed_with_surface(
+        trainable_surface: TassadarExecutorTrainableSurface,
+    ) -> Self {
+        Self::sudoku_v0_with_surface_and_contract(
+            trainable_surface,
+            TassadarExecutorLongTraceContract::IncrementalDecodeWindow,
+        )
+    }
+
+    fn sudoku_v0_with_surface_and_contract(
+        trainable_surface: TassadarExecutorTrainableSurface,
+        long_trace_contract: TassadarExecutorLongTraceContract,
+    ) -> Self {
         let tokenizer = TassadarTraceTokenizer::new();
         let config = TassadarExecutorTransformerConfig::sudoku_v0(&tokenizer);
         let weights = TassadarExecutorTransformerWeightBundle::new(&config, trainable_surface);
+        let (model_id, model_family) = match long_trace_contract {
+            TassadarExecutorLongTraceContract::FlatPrefixFullForward => {
+                (Self::MODEL_ID, Self::MODEL_FAMILY)
+            }
+            TassadarExecutorLongTraceContract::IncrementalDecodeWindow => {
+                (Self::WINDOWED_MODEL_ID, Self::WINDOWED_MODEL_FAMILY)
+            }
+        };
         let descriptor = TassadarExecutorTransformerDescriptor {
-            model: ModelDescriptor::new(Self::MODEL_ID, Self::MODEL_FAMILY, "v0"),
+            model: ModelDescriptor::new(model_id, model_family, "v0"),
             executor_family: TassadarExecutorFamily::WasmTraceExecutor,
             profile: TassadarWasmProfile::sudoku_v0_search_v1(),
             trace_abi: TassadarTraceAbi::sudoku_v0_search_v1(),
@@ -560,6 +631,7 @@ impl TassadarExecutorTransformer {
                 hull_cache_eligible: true,
             },
             claim_boundary: TassadarExecutorTransformerClaimBoundary::NextTokenOnly,
+            long_trace_contract,
             trainable_surface,
             config,
             weights: weights.metadata().clone(),
@@ -580,11 +652,43 @@ impl TassadarExecutorTransformer {
     /// Creates the first 9x9 Sudoku-class executor transformer for one surface.
     #[must_use]
     pub fn sudoku_9x9_with_surface(trainable_surface: TassadarExecutorTrainableSurface) -> Self {
+        Self::sudoku_9x9_with_surface_and_contract(
+            trainable_surface,
+            TassadarExecutorLongTraceContract::FlatPrefixFullForward,
+        )
+    }
+
+    /// Creates the first explicit 9x9 windowed executor transformer for one surface.
+    #[must_use]
+    pub fn sudoku_9x9_windowed_with_surface(
+        trainable_surface: TassadarExecutorTrainableSurface,
+    ) -> Self {
+        Self::sudoku_9x9_with_surface_and_contract(
+            trainable_surface,
+            TassadarExecutorLongTraceContract::IncrementalDecodeWindow,
+        )
+    }
+
+    fn sudoku_9x9_with_surface_and_contract(
+        trainable_surface: TassadarExecutorTrainableSurface,
+        long_trace_contract: TassadarExecutorLongTraceContract,
+    ) -> Self {
         let tokenizer = TassadarTraceTokenizer::new();
         let config = TassadarExecutorTransformerConfig::sudoku_9x9(&tokenizer);
         let weights = TassadarExecutorTransformerWeightBundle::new(&config, trainable_surface);
+        let (model_id, model_family) = match long_trace_contract {
+            TassadarExecutorLongTraceContract::FlatPrefixFullForward => {
+                (Self::SUDOKU_9X9_MODEL_ID, Self::MODEL_FAMILY)
+            }
+            TassadarExecutorLongTraceContract::IncrementalDecodeWindow => {
+                (
+                    Self::WINDOWED_SUDOKU_9X9_MODEL_ID,
+                    Self::WINDOWED_MODEL_FAMILY,
+                )
+            }
+        };
         let descriptor = TassadarExecutorTransformerDescriptor {
-            model: ModelDescriptor::new(Self::SUDOKU_9X9_MODEL_ID, Self::MODEL_FAMILY, "v0"),
+            model: ModelDescriptor::new(model_id, model_family, "v0"),
             executor_family: TassadarExecutorFamily::WasmTraceExecutor,
             profile: TassadarWasmProfile::sudoku_9x9_search_v1(),
             trace_abi: TassadarTraceAbi::sudoku_9x9_search_v1(),
@@ -598,6 +702,7 @@ impl TassadarExecutorTransformer {
                 hull_cache_eligible: true,
             },
             claim_boundary: TassadarExecutorTransformerClaimBoundary::NextTokenOnly,
+            long_trace_contract,
             trainable_surface,
             config,
             weights: weights.metadata().clone(),
@@ -1224,8 +1329,9 @@ mod tests {
     use crate::{TassadarTraceTokenizer, TokenSequence, TokenizerBoundary};
 
     use super::{
-        TassadarExecutorTransformer, TassadarExecutorTransformerClaimBoundary,
-        TassadarExecutorTransformerConfig, TassadarExecutorTransformerDecodeRefusal,
+        TassadarExecutorLongTraceContract, TassadarExecutorTransformer,
+        TassadarExecutorTransformerClaimBoundary, TassadarExecutorTransformerConfig,
+        TassadarExecutorTransformerDecodeRefusal,
     };
 
     #[test]
@@ -1247,6 +1353,10 @@ mod tests {
             TassadarExecutorTransformerClaimBoundary::NextTokenOnly
         );
         assert_eq!(
+            descriptor.long_trace_contract,
+            TassadarExecutorLongTraceContract::FlatPrefixFullForward
+        );
+        assert_eq!(
             descriptor.supported_decode_modes,
             vec![
                 TassadarExecutorDecodeMode::ReferenceLinear,
@@ -1264,6 +1374,10 @@ mod tests {
             descriptor.model.model_id,
             TassadarExecutorTransformer::SUDOKU_9X9_MODEL_ID
         );
+        assert_eq!(
+            descriptor.long_trace_contract,
+            TassadarExecutorLongTraceContract::FlatPrefixFullForward
+        );
         assert_eq!(descriptor.config.constrained_lookup_head_dim, 2);
         assert!(descriptor.config.max_sequence_tokens >= 524_288);
         assert_eq!(
@@ -1273,6 +1387,28 @@ mod tests {
                 TassadarExecutorDecodeMode::HullCache
             ]
         );
+    }
+
+    #[test]
+    fn sudoku_9x9_windowed_executor_transformer_descriptor_is_explicit_about_long_trace_contract() {
+        let model = TassadarExecutorTransformer::sudoku_9x9_windowed_with_surface(
+            crate::TassadarExecutorTrainableSurface::OutputHeadOnly,
+        );
+        let descriptor = model.descriptor();
+
+        assert_eq!(
+            descriptor.model.model_id,
+            TassadarExecutorTransformer::WINDOWED_SUDOKU_9X9_MODEL_ID
+        );
+        assert_eq!(
+            descriptor.model.family,
+            TassadarExecutorTransformer::WINDOWED_MODEL_FAMILY
+        );
+        assert_eq!(
+            descriptor.long_trace_contract,
+            TassadarExecutorLongTraceContract::IncrementalDecodeWindow
+        );
+        assert!(descriptor.config.max_sequence_tokens >= 524_288);
     }
 
     #[test]

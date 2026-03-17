@@ -63,6 +63,7 @@ mod tassadar_executor_run;
 mod tassadar_executor_scale_plan;
 mod tassadar_executor_telemetry;
 mod tassadar_executor_training;
+mod tassadar_executor_windowed_family_comparison;
 mod tassadar_sequence;
 mod worker_protocol;
 
@@ -109,6 +110,7 @@ pub use tassadar_executor_run::*;
 pub use tassadar_executor_scale_plan::*;
 pub use tassadar_executor_telemetry::*;
 pub use tassadar_executor_training::*;
+pub use tassadar_executor_windowed_family_comparison::*;
 pub use tassadar_sequence::*;
 pub use worker_protocol::*;
 

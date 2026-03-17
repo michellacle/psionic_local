@@ -6,7 +6,8 @@ use psionic_eval::{
     TassadarSequenceEvalError, TassadarSequenceWorkload, build_tassadar_sequence_dataset,
 };
 use psionic_models::{
-    TassadarExecutorTrainableSurface, TassadarStructuralSupervisionCoverage,
+    TassadarExecutorLongTraceContract, TassadarExecutorTrainableSurface,
+    TassadarStructuralSupervisionCoverage,
     TassadarTraceTokenizer, TokenId,
 };
 use serde::{Deserialize, Serialize};
@@ -19,6 +20,10 @@ use crate::{
 
 fn default_structural_supervision_config() -> TassadarExecutorStructuralSupervisionConfig {
     TassadarExecutorStructuralSupervisionConfig::next_token_only()
+}
+
+fn default_long_trace_contract() -> TassadarExecutorLongTraceContract {
+    TassadarExecutorLongTraceContract::FlatPrefixFullForward
 }
 
 /// Frozen train/eval packing contract for the tokenized Sudoku-v0 executor corpus.
@@ -41,6 +46,12 @@ pub struct TassadarSequenceTrainingManifest {
         skip_serializing_if = "teacher_forced_training_strategy_is_full_forward_window"
     )]
     pub teacher_forced_training_strategy: TassadarExecutorTeacherForcedTrainingStrategy,
+    /// Explicit long-trace contract bound to this manifest.
+    #[serde(
+        default = "default_long_trace_contract",
+        skip_serializing_if = "long_trace_contract_is_flat_prefix"
+    )]
+    pub long_trace_contract: TassadarExecutorLongTraceContract,
     /// Explicit structural-supervision weighting profile frozen into the run.
     #[serde(
         default = "default_structural_supervision_config",
@@ -68,6 +79,7 @@ impl TassadarSequenceTrainingManifest {
         vocabulary_digest: &str,
         trainable_surface: TassadarExecutorTrainableSurface,
         teacher_forced_training_strategy: TassadarExecutorTeacherForcedTrainingStrategy,
+        long_trace_contract: TassadarExecutorLongTraceContract,
         structural_supervision: TassadarExecutorStructuralSupervisionConfig,
         structural_supervision_inventory: TassadarSequenceStructuralSupervisionInventory,
         packing_policy: DatasetPackingPolicy,
@@ -82,6 +94,7 @@ impl TassadarSequenceTrainingManifest {
             vocabulary_digest: vocabulary_digest.to_string(),
             trainable_surface,
             teacher_forced_training_strategy,
+            long_trace_contract,
             structural_supervision,
             structural_supervision_inventory,
             packing_policy,
@@ -121,6 +134,10 @@ fn teacher_forced_training_strategy_is_full_forward_window(
     *strategy == TassadarExecutorTeacherForcedTrainingStrategy::FullForwardWindow
 }
 
+fn long_trace_contract_is_flat_prefix(contract: &TassadarExecutorLongTraceContract) -> bool {
+    *contract == TassadarExecutorLongTraceContract::FlatPrefixFullForward
+}
+
 fn structural_supervision_config_is_next_token_only(
     config: &TassadarExecutorStructuralSupervisionConfig,
 ) -> bool {
@@ -155,6 +172,7 @@ pub fn build_tassadar_sequence_training_manifest(
     version: &str,
     trainable_surface: TassadarExecutorTrainableSurface,
     teacher_forced_training_strategy: TassadarExecutorTeacherForcedTrainingStrategy,
+    long_trace_contract: TassadarExecutorLongTraceContract,
     structural_supervision: TassadarExecutorStructuralSupervisionConfig,
 ) -> Result<TassadarSequenceTrainingManifest, TassadarSequenceTrainingError> {
     let bundle = build_tassadar_sequence_dataset(workload, version)?;
@@ -184,6 +202,7 @@ pub fn build_tassadar_sequence_training_manifest(
         bundle.vocabulary_digest.as_str(),
         trainable_surface,
         teacher_forced_training_strategy,
+        long_trace_contract,
         structural_supervision,
         structural_supervision_inventory,
         packing_policy,
@@ -202,6 +221,7 @@ pub fn build_tassadar_sudoku_v0_sequence_training_manifest(
         version,
         TassadarExecutorTrainableSurface::OutputHeadOnly,
         TassadarExecutorTeacherForcedTrainingStrategy::FullForwardWindow,
+        TassadarExecutorLongTraceContract::FlatPrefixFullForward,
         TassadarExecutorStructuralSupervisionConfig::next_token_only(),
     )
 }
@@ -215,6 +235,7 @@ pub fn build_tassadar_sudoku_9x9_sequence_training_manifest(
         version,
         TassadarExecutorTrainableSurface::OutputHeadOnly,
         TassadarExecutorTeacherForcedTrainingStrategy::FullForwardWindow,
+        TassadarExecutorLongTraceContract::FlatPrefixFullForward,
         TassadarExecutorStructuralSupervisionConfig::next_token_only(),
     )
 }

@@ -1,0 +1,32 @@
+{
+  "run_id": "tassadar-executor-transformer-sudoku-9x9-flat-prefix-v1",
+  "dataset_storage_key": "oa.tassadar.sudoku_9x9.sequence@scale-v0",
+  "sequence_fit_report_digest": "1480cd2908d10d450c61223db6a250e1527dcc0204ce55fad06cfe763e4d5c66",
+  "divergence_report_digest": "03035bdd1c2a7ea775b605558ba7e9e3682240e91845c2a85cd39af210a61aea",
+  "findings": [
+    {
+      "finding_id": "full_sequence_exceeds_context",
+      "summary": "The full 9x9 traces are too long for the current learned lane: the longest sequence is 5335309 tokens against a 524288-token model context.",
+      "supporting_artifacts": [
+        "sequence_fit_report.json"
+      ]
+    },
+    {
+      "finding_id": "bounded_prefix_only",
+      "summary": "This run is only an early-prefix truth run: all exactness and divergence artifacts are bounded to the first 512 target tokens.",
+      "supporting_artifacts": [
+        "sequence_fit_report.json",
+        "training_report.json"
+      ]
+    },
+    {
+      "finding_id": "bounded_prefix_still_inexact",
+      "summary": "Even on that bounded window, validation is still red: first-target exactness is 10000 bps, first-32 exactness is 5938 bps, and exact traces are 0/1.",
+      "supporting_artifacts": [
+        "training_report.json",
+        "trace_divergence_report.json"
+      ]
+    }
+  ],
+  "report_digest": "bd09ec6a07408e7c1be8d5c97e994c50b41bbffd0dfcbc8757ace3e381372fd2"
+}

@@ -2,10 +2,10 @@
   "run_id": "tassadar-executor-transformer-sudoku-9x9-reference-run-v0",
   "dataset_storage_key": "oa.tassadar.sudoku_9x9.sequence@scale-v0",
   "dataset_digest": "62ff118b9980cccc0bfeb49fa86fc9b2703846e6a344c5207ad44a704d7a172a",
-  "training_manifest_digest": "5e3c32b9228879c1858fad9ec8769b90a48d924e5dc076748bbcbb15f9f3ee88",
-  "trained_model_descriptor_digest": "cfbb5edb8f889e92f13d7bfe1e735b9f5fa4ea48b7e08310f59a3bb68d18ce78",
+  "training_manifest_digest": "e2875fb95869913f765edfa4daaf2a170da870c769914169b9dd78d56e242215",
+  "trained_model_descriptor_digest": "86368bf3b94c61317a63f531c689e771c867fef7b2acf0f619f1c99840e7056d",
   "trained_weight_digest": "34e72d066aa6849df9106f3c156b14ac0989a9bd98e9b9c2aee19f446af74c68",
-  "checkpoint_manifest_digest": "8de00f09d079443182e6f714b8e5eba36cce547d70a7f1502793eaa7dd98f361",
+  "checkpoint_manifest_digest": "391cbda1996ab6b182ab13c3de3b087f6017faf8a91eb9262219776dd5bef087",
   "step_reports": [
     {
       "global_step_index": 0,
@@ -100,5 +100,5 @@
       "target_token_count": 1024
     }
   ],
-  "report_digest": "e86df0f8f45d5305bb12eeb99e2c0d2c75e01a9515263d5f7b7d1f390a29dd1a"
+  "report_digest": "b947bcd0ea0c79282c908882189540ef64b10b25e356c587147b76b53dbaa1ca"
 }

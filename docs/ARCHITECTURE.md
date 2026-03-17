@@ -378,15 +378,26 @@ The current scope is:
   replay path and the committed bundle
   `fixtures/tassadar/runs/sudoku_9x9_v0_reference_run_v0`; the learned lane
   now records an explicit `incremental_decode_window` teacher-forced strategy
-  in the training manifest, persists `sequence_fit_report.json`,
-  `postmortem.json`, and `next_run_plan.json`, and keeps the claim boundary
-  exact by showing that full 9x9 traces still exceed the current
-  `524288`-token model context (`4891222` to `5335309` total tokens,
-  overflow `4366934` to `4811021`), so the run is only a bounded first-`512`
-  target-token learned lane; on that bounded window the selected checkpoint is
-  still red (`10000` bps first-target, `5938` bps first-32, `0/1` exact
-  validation traces), so the honest Phase 16 statement is “9x9 only partially
-  fit and remains blocked” rather than 9x9 learned-lane success
+  and `incremental_decode_window` long-trace family contract in the training
+  manifest, persists `sequence_fit_report.json`, `postmortem.json`, and
+  `next_run_plan.json`, and keeps the claim boundary exact by showing that
+  full 9x9 traces still exceed the current `524288`-token model context
+  (`4891222` to `5335309` total tokens, overflow `4366934` to `4811021`), so
+  the run is only a bounded first-`512` target-token learned lane; on that
+  bounded window the selected checkpoint is still red (`10000` bps
+  first-target, `5938` bps first-32, `0/1` exact validation traces), so the
+  honest Phase 16 statement is “9x9 only partially fit and remains blocked”
+  rather than 9x9 learned-lane success
+- landed explicit 9x9 long-trace family comparison: `psionic-train` now also
+  materializes `fixtures/tassadar/runs/sudoku_9x9_v0_windowed_family_comparison_v1`,
+  which keeps the learned claim bounded while making the family split explicit:
+  the flat-prefix family stays
+  `tassadar-executor-transformer-sudoku-9x9-v0`, the windowed family stays
+  `tassadar-executor-transformer-sudoku-9x9-windowed-v0`, both remain at
+  `5938` bps first-32 and `0/1` exact validation traces on the first `512`
+  target tokens, but the declared live-state contract drops from
+  `109715076` bytes on the flat-prefix family to `1459452` bytes on the
+  windowed family under the same corpus and fit facts
 - landed trained-executor Phase 15B follow-on bar: the same executor-attention
   family now also carries a bounded relative-target output-bias adapter in
   `psionic-models`, the preserved destructive boundary-first output-head

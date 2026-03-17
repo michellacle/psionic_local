@@ -1,0 +1,139 @@
+{
+  "run_id": "tassadar-executor-transformer-sudoku-9x9-flat-prefix-v1",
+  "dataset_storage_key": "oa.tassadar.sudoku_9x9.sequence@scale-v0",
+  "dataset_digest": "62ff118b9980cccc0bfeb49fa86fc9b2703846e6a344c5207ad44a704d7a172a",
+  "model_id": "tassadar-executor-transformer-sudoku-9x9-v0",
+  "trained_model_descriptor_digest": "cfbb5edb8f889e92f13d7bfe1e735b9f5fa4ea48b7e08310f59a3bb68d18ce78",
+  "trainable_surface": "output_head_only",
+  "teacher_forced_training_strategy": "full_forward_window",
+  "long_trace_contract": "flat_prefix_full_forward",
+  "vocab_size": 303,
+  "hidden_width": 112,
+  "model_max_sequence_tokens": 524288,
+  "prompt_token_count_min": 51536,
+  "prompt_token_count_max": 51536,
+  "target_token_count_min": 4839686,
+  "target_token_count_max": 5283773,
+  "total_token_count_min": 4891222,
+  "total_token_count_max": 5335309,
+  "full_sequence_fits_model_context": false,
+  "full_sequence_context_overflow_min": 4366934,
+  "full_sequence_context_overflow_max": 4811021,
+  "stage_fits": [
+    {
+      "stage_id": "prompt_to_first_token",
+      "target_token_cap": 1,
+      "max_total_tokens": 51537,
+      "fits_model_context": true,
+      "context_headroom_tokens": 472751
+    },
+    {
+      "stage_id": "prompt_to_first_8_tokens",
+      "target_token_cap": 8,
+      "max_total_tokens": 51544,
+      "fits_model_context": true,
+      "context_headroom_tokens": 472744
+    },
+    {
+      "stage_id": "prompt_to_first_32_tokens",
+      "target_token_cap": 32,
+      "max_total_tokens": 51568,
+      "fits_model_context": true,
+      "context_headroom_tokens": 472720
+    },
+    {
+      "stage_id": "prompt_to_first_128_tokens",
+      "target_token_cap": 128,
+      "max_total_tokens": 51664,
+      "fits_model_context": true,
+      "context_headroom_tokens": 472624
+    },
+    {
+      "stage_id": "full_trace_supervision",
+      "target_token_cap": 512,
+      "max_total_tokens": 52048,
+      "fits_model_context": true,
+      "context_headroom_tokens": 472240
+    }
+  ],
+  "eval_target_token_cap": 512,
+  "estimated_full_forward_buffer_bytes_max": 11246829264,
+  "estimated_bounded_forward_buffer_bytes_max": 109715076,
+  "estimated_incremental_decode_live_bytes_max": 1459452,
+  "artifact_file_sizes": [
+    {
+      "artifact_ref": "checkpoint_state.json",
+      "size_bytes": 589939
+    },
+    {
+      "artifact_ref": "exactness_curve.json",
+      "size_bytes": 340249
+    },
+    {
+      "artifact_ref": "checkpoint_manifest.json",
+      "size_bytes": 24853
+    },
+    {
+      "artifact_ref": "training_report.json",
+      "size_bytes": 18727
+    },
+    {
+      "artifact_ref": "run_bundle.json",
+      "size_bytes": 5486
+    },
+    {
+      "artifact_ref": "training_manifest.json",
+      "size_bytes": 5145
+    },
+    {
+      "artifact_ref": "model_artifact.json",
+      "size_bytes": 4034
+    },
+    {
+      "artifact_ref": "failure_samples.json",
+      "size_bytes": 3681
+    },
+    {
+      "artifact_ref": "training_telemetry.json",
+      "size_bytes": 3310
+    },
+    {
+      "artifact_ref": "trace_divergence_report.json",
+      "size_bytes": 3294
+    },
+    {
+      "artifact_ref": "checkpoint_leaderboard.json",
+      "size_bytes": 2253
+    },
+    {
+      "artifact_ref": "structural_supervision_report.json",
+      "size_bytes": 2024
+    },
+    {
+      "artifact_ref": "checkpoint_artifact.json",
+      "size_bytes": 1404
+    },
+    {
+      "artifact_ref": "boundary_exactness_report.json",
+      "size_bytes": 827
+    },
+    {
+      "artifact_ref": "exact_trace_samples.json",
+      "size_bytes": 570
+    },
+    {
+      "artifact_ref": "divergence_histogram.json",
+      "size_bytes": 391
+    },
+    {
+      "artifact_ref": "first_token_confusion_report.json",
+      "size_bytes": 329
+    }
+  ],
+  "outcome_statement": "9x9 only partially fit and remains blocked",
+  "blocking_reasons": [
+    "full 9x9 sequences exceed the current model context by 4366934 to 4811021 tokens",
+    "the run therefore only validates the first 512 target tokens per case"
+  ],
+  "report_digest": "1480cd2908d10d450c61223db6a250e1527dcc0204ce55fad06cfe763e4d5c66"
+}

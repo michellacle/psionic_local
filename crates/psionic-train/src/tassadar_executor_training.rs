@@ -8,7 +8,8 @@ use psionic_eval::{
     TassadarExecutorLinearBenchmarkReport, TassadarSequenceEvalError, TassadarSequenceWorkload,
 };
 use psionic_models::{
-    TassadarExecutorTrainableSurface, TassadarExecutorTransformer,
+    TassadarExecutorLongTraceContract, TassadarExecutorTrainableSurface,
+    TassadarExecutorTransformer,
     TassadarExecutorTransformerError, TokenId, TokenSequence,
     TassadarStructuralSupervisionFamily, TassadarTraceTokenizer,
 };
@@ -41,6 +42,10 @@ fn default_teacher_forced_training_strategy() -> TassadarExecutorTeacherForcedTr
     TassadarExecutorTeacherForcedTrainingStrategy::FullForwardWindow
 }
 
+fn default_long_trace_contract() -> TassadarExecutorLongTraceContract {
+    TassadarExecutorLongTraceContract::FlatPrefixFullForward
+}
+
 fn default_structural_supervision_config() -> TassadarExecutorStructuralSupervisionConfig {
     TassadarExecutorStructuralSupervisionConfig::next_token_only()
 }
@@ -69,6 +74,10 @@ fn teacher_forced_training_strategy_is_full_forward_window(
     strategy: &TassadarExecutorTeacherForcedTrainingStrategy,
 ) -> bool {
     *strategy == TassadarExecutorTeacherForcedTrainingStrategy::FullForwardWindow
+}
+
+fn long_trace_contract_is_flat_prefix(contract: &TassadarExecutorLongTraceContract) -> bool {
+    *contract == TassadarExecutorLongTraceContract::FlatPrefixFullForward
 }
 
 fn structural_supervision_config_is_next_token_only(
@@ -288,6 +297,12 @@ pub struct TassadarExecutorTrainingConfig {
         skip_serializing_if = "teacher_forced_training_strategy_is_full_forward_window"
     )]
     pub teacher_forced_training_strategy: TassadarExecutorTeacherForcedTrainingStrategy,
+    /// Explicit long-trace family contract for the run.
+    #[serde(
+        default = "default_long_trace_contract",
+        skip_serializing_if = "long_trace_contract_is_flat_prefix"
+    )]
+    pub long_trace_contract: TassadarExecutorLongTraceContract,
     /// Explicit structural-supervision weighting profile for the run.
     #[serde(
         default = "default_structural_supervision_config",
@@ -321,6 +336,7 @@ impl TassadarExecutorTrainingConfig {
             trainable_surface: TassadarExecutorTrainableSurface::OutputHeadOnly,
             teacher_forced_training_strategy:
                 TassadarExecutorTeacherForcedTrainingStrategy::FullForwardWindow,
+            long_trace_contract: TassadarExecutorLongTraceContract::FlatPrefixFullForward,
             structural_supervision: TassadarExecutorStructuralSupervisionConfig::next_token_only(),
             curriculum_stages: Vec::new(),
             validate_every_epoch: true,
@@ -343,6 +359,7 @@ impl TassadarExecutorTrainingConfig {
             trainable_surface: TassadarExecutorTrainableSurface::OutputHeadOnly,
             teacher_forced_training_strategy:
                 TassadarExecutorTeacherForcedTrainingStrategy::FullForwardWindow,
+            long_trace_contract: TassadarExecutorLongTraceContract::FlatPrefixFullForward,
             structural_supervision: TassadarExecutorStructuralSupervisionConfig::next_token_only(),
             curriculum_stages: vec![
                 TassadarExecutorCurriculumStage::new("prompt_to_first_token", Some(1), 1),
@@ -372,6 +389,7 @@ impl TassadarExecutorTrainingConfig {
             trainable_surface: TassadarExecutorTrainableSurface::OutputHeadOnly,
             teacher_forced_training_strategy:
                 TassadarExecutorTeacherForcedTrainingStrategy::FullForwardWindow,
+            long_trace_contract: TassadarExecutorLongTraceContract::FlatPrefixFullForward,
             structural_supervision: TassadarExecutorStructuralSupervisionConfig::next_token_only(),
             curriculum_stages: Vec::new(),
             validate_every_epoch: true,
@@ -386,6 +404,16 @@ impl TassadarExecutorTrainingConfig {
         trainable_surface: TassadarExecutorTrainableSurface,
     ) -> Self {
         self.trainable_surface = trainable_surface;
+        self
+    }
+
+    /// Overrides the long-trace contract while preserving the rest of the config.
+    #[must_use]
+    pub const fn with_long_trace_contract(
+        mut self,
+        long_trace_contract: TassadarExecutorLongTraceContract,
+    ) -> Self {
+        self.long_trace_contract = long_trace_contract;
         self
     }
 
@@ -589,15 +617,28 @@ pub fn train_tassadar_executor_transformer(
         config.dataset_version.as_str(),
         config.trainable_surface,
         config.teacher_forced_training_strategy,
+        config.long_trace_contract,
         config.structural_supervision.clone(),
     )?;
     let tokenizer = TassadarTraceTokenizer::new();
-    let mut current_model = match config.workload {
-        TassadarSequenceWorkload::SudokuV0 => {
-            TassadarExecutorTransformer::sudoku_v0_with_surface(config.trainable_surface)
-        }
-        TassadarSequenceWorkload::Sudoku9x9 => {
-            TassadarExecutorTransformer::sudoku_9x9_with_surface(config.trainable_surface)
+    let mut current_model = match (config.workload, config.long_trace_contract) {
+        (
+            TassadarSequenceWorkload::SudokuV0,
+            TassadarExecutorLongTraceContract::FlatPrefixFullForward,
+        ) => TassadarExecutorTransformer::sudoku_v0_with_surface(config.trainable_surface),
+        (
+            TassadarSequenceWorkload::SudokuV0,
+            TassadarExecutorLongTraceContract::IncrementalDecodeWindow,
+        ) => TassadarExecutorTransformer::sudoku_v0_windowed_with_surface(config.trainable_surface),
+        (
+            TassadarSequenceWorkload::Sudoku9x9,
+            TassadarExecutorLongTraceContract::FlatPrefixFullForward,
+        ) => TassadarExecutorTransformer::sudoku_9x9_with_surface(config.trainable_surface),
+        (
+            TassadarSequenceWorkload::Sudoku9x9,
+            TassadarExecutorLongTraceContract::IncrementalDecodeWindow,
+        ) => {
+            TassadarExecutorTransformer::sudoku_9x9_windowed_with_surface(config.trainable_surface)
         }
     };
     let examples_by_id = bundle

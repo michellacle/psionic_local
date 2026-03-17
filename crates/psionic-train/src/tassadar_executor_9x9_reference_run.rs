@@ -1,7 +1,10 @@
 use std::{collections::BTreeMap, fs, path::Path};
 
 use psionic_eval::{EvalArtifact, TassadarSequenceEvalError, build_tassadar_sequence_dataset};
-use psionic_models::{TassadarExecutorTrainableSurface, TassadarExecutorTransformer};
+use psionic_models::{
+    TassadarExecutorLongTraceContract, TassadarExecutorTrainableSurface,
+    TassadarExecutorTransformer,
+};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use sha2::{Digest, Sha256};
 use thiserror::Error;
@@ -74,6 +77,8 @@ pub struct TassadarExecutorSequenceFitReport {
     pub trainable_surface: TassadarExecutorTrainableSurface,
     /// Explicit teacher-forced strategy used by the run.
     pub teacher_forced_training_strategy: TassadarExecutorTeacherForcedTrainingStrategy,
+    /// Explicit long-trace family contract used by the run.
+    pub long_trace_contract: TassadarExecutorLongTraceContract,
     /// Vocabulary size for the learned lane.
     pub vocab_size: u32,
     /// Hidden width for one decode step.
@@ -128,7 +133,16 @@ impl TassadarExecutorSequenceFitReport {
         let dataset_bundle =
             build_tassadar_sequence_dataset(config.workload, config.dataset_version.as_str())
                 .map_err(TassadarSudoku9x9ReferenceRunError::SequenceEval)?;
-        let model = TassadarExecutorTransformer::sudoku_9x9_with_surface(config.trainable_surface);
+        let model = match config.long_trace_contract {
+            TassadarExecutorLongTraceContract::FlatPrefixFullForward => {
+                TassadarExecutorTransformer::sudoku_9x9_with_surface(config.trainable_surface)
+            }
+            TassadarExecutorLongTraceContract::IncrementalDecodeWindow => {
+                TassadarExecutorTransformer::sudoku_9x9_windowed_with_surface(
+                    config.trainable_surface,
+                )
+            }
+        };
         let prompt_token_count_min = dataset_bundle
             .dataset
             .examples
@@ -250,6 +264,7 @@ impl TassadarExecutorSequenceFitReport {
             trained_model_descriptor_digest: run_bundle.trained_model_descriptor_digest.clone(),
             trainable_surface: config.trainable_surface,
             teacher_forced_training_strategy: config.teacher_forced_training_strategy,
+            long_trace_contract: config.long_trace_contract,
             vocab_size: model.descriptor().config.vocab_size as u32,
             hidden_width: model.descriptor().config.hidden_width() as u32,
             model_max_sequence_tokens,
@@ -495,6 +510,7 @@ pub fn tassadar_executor_sudoku_9x9_reference_run_config() -> TassadarExecutorTr
         trainable_surface: TassadarExecutorTrainableSurface::OutputHeadOnly,
         teacher_forced_training_strategy:
             TassadarExecutorTeacherForcedTrainingStrategy::IncrementalDecodeWindow,
+        long_trace_contract: TassadarExecutorLongTraceContract::IncrementalDecodeWindow,
         structural_supervision: crate::TassadarExecutorStructuralSupervisionConfig::next_token_only(),
         curriculum_stages: vec![
             crate::TassadarExecutorCurriculumStage::new("prompt_to_first_token", Some(1), 1),

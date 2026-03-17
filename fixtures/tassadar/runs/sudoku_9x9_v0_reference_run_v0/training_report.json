@@ -9,6 +9,7 @@
     "max_eval_target_tokens_per_example": 512,
     "trainable_surface": "output_head_only",
     "teacher_forced_training_strategy": "incremental_decode_window",
+    "long_trace_contract": "incremental_decode_window",
     "curriculum_stages": [
       {
         "stage_id": "prompt_to_first_token",
@@ -34,8 +35,8 @@
     "validate_every_epoch": true,
     "select_best_checkpoint_by_boundary": true
   },
-  "training_manifest_digest": "5e3c32b9228879c1858fad9ec8769b90a48d924e5dc076748bbcbb15f9f3ee88",
-  "trained_model_descriptor_digest": "cfbb5edb8f889e92f13d7bfe1e735b9f5fa4ea48b7e08310f59a3bb68d18ce78",
+  "training_manifest_digest": "e2875fb95869913f765edfa4daaf2a170da870c769914169b9dd78d56e242215",
+  "trained_model_descriptor_digest": "86368bf3b94c61317a63f531c689e771c867fef7b2acf0f619f1c99840e7056d",
   "trained_weight_digest": "34e72d066aa6849df9106f3c156b14ac0989a9bd98e9b9c2aee19f446af74c68",
   "best_checkpoint_id": "tassadar-executor-transformer-sudoku-9x9-reference-run-v0.checkpoint.epoch_0004",
   "checkpoint_selection_basis": "boundary_metrics_lexicographic_v1",
@@ -469,5 +470,5 @@
       }
     ]
   },
-  "report_digest": "23e93f1bd2a350669e263ded4d7ed69fc5eee6e7fb1c5e79507997db80f57ebe"
+  "report_digest": "8a3679523d52d07a53d00a9ed0dd87b4109b8223381ad7a218a509afac0ac544"
 }
