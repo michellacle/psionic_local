@@ -27,8 +27,8 @@ use psionic_runtime::{
     QuantizedActivationFingerprintAdapter, SandboxExecutionCapabilityProfile,
     SandboxExecutionEvidence, SandboxExecutionExitKind, SandboxExecutionRequestIdentity,
     ServedArtifactIdentity, SettlementLinkageInput, SignedClusterEvidenceBundle,
-    ValidationMatrixReference, validation_reference_for_served_product,
-    validation_reference_for_text_generation_model,
+    TassadarTraceArtifact, TassadarTraceDiffReport, ValidationMatrixReference,
+    validation_reference_for_served_product, validation_reference_for_text_generation_model,
 };
 use psionic_serve::{
     AdapterServingBinding, DecoderModelDescriptor, EMBEDDINGS_PRODUCT_ID, EmbeddingModelDescriptor,
@@ -51,6 +51,74 @@ pub const BACKEND_FAMILY: &str = "psionic";
 
 /// Stable provider-facing product identifier for bounded sandbox execution.
 pub const SANDBOX_EXECUTION_PRODUCT_ID: &str = "psionic.sandbox_execution";
+
+/// Provider-facing receipt for one persisted Tassadar trace artifact.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarTraceArtifactReceipt {
+    /// Stable artifact identifier.
+    pub artifact_id: String,
+    /// Stable artifact digest.
+    pub artifact_digest: String,
+    /// Stable trace ABI identifier.
+    pub trace_abi_id: String,
+    /// Stable trace ABI schema version.
+    pub trace_abi_version: u16,
+    /// Stable trace digest.
+    pub trace_digest: String,
+    /// Stable behavior digest.
+    pub behavior_digest: String,
+    /// Stable runner identifier.
+    pub runner_id: String,
+    /// Number of emitted steps.
+    pub step_count: u64,
+}
+
+impl TassadarTraceArtifactReceipt {
+    /// Builds one provider-facing receipt from a canonical Tassadar trace artifact.
+    #[must_use]
+    pub fn from_trace_artifact(artifact: &TassadarTraceArtifact) -> Self {
+        Self {
+            artifact_id: artifact.artifact_id.clone(),
+            artifact_digest: artifact.artifact_digest.clone(),
+            trace_abi_id: artifact.trace_abi_id.clone(),
+            trace_abi_version: artifact.trace_abi_version,
+            trace_digest: artifact.trace_digest.clone(),
+            behavior_digest: artifact.behavior_digest.clone(),
+            runner_id: artifact.runner_id.clone(),
+            step_count: artifact.step_count,
+        }
+    }
+}
+
+/// Provider-facing receipt for one canonical Tassadar trace comparison.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarTraceDiffReceipt {
+    /// Stable digest of the expected trace stream.
+    pub expected_trace_digest: String,
+    /// Stable digest of the actual trace stream.
+    pub actual_trace_digest: String,
+    /// Whether the compared traces matched exactly.
+    pub exact_match: bool,
+    /// First differing step index when a mismatch exists.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub first_divergence_step_index: Option<usize>,
+    /// Number of typed mismatch entries recorded in the comparison.
+    pub diff_entry_count: usize,
+}
+
+impl TassadarTraceDiffReceipt {
+    /// Builds one provider-facing receipt from a canonical Tassadar trace diff report.
+    #[must_use]
+    pub fn from_trace_diff(report: &TassadarTraceDiffReport) -> Self {
+        Self {
+            expected_trace_digest: report.expected_trace_digest.clone(),
+            actual_trace_digest: report.actual_trace_digest.clone(),
+            exact_match: report.exact_match,
+            first_divergence_step_index: report.first_divergence_step_index,
+            diff_entry_count: report.entries.len(),
+        }
+    }
+}
 
 /// Stable provider-facing summary of the weight bundle backing a served model.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -2759,7 +2827,7 @@ mod tests {
         RuntimeTransitionEvent, RuntimeTransitionKind, SandboxExecutionCapabilityProfile,
         SandboxExecutionEvidence, SandboxExecutionExit, SandboxExecutionExitKind,
         SandboxExecutionRequestIdentity, SandboxExecutionResourceSummary,
-        ServedProductBackendPolicy, ValidationCoverage,
+        ServedProductBackendPolicy, TassadarTraceArtifact, ValidationCoverage,
     };
     use psionic_serve::{
         AdapterArtifactFormat, AdapterArtifactIdentity, AdapterArtifactKind, AdapterResidencyMode,
@@ -2780,9 +2848,9 @@ mod tests {
     use super::{
         CapabilityEnvelope, ComputeMarketSupplyViolationCode, ExecutionReceipt, KvCacheMode,
         LocalRuntimeObservabilityEnvelope, ProviderReadiness, ReceiptStatus,
-        SandboxExecutionCapabilityEnvelope, SandboxExecutionReceipt,
-        TextGenerationCapabilityEnvelope, TextGenerationReceipt, WeightBundleEvidence,
-        cache_invalidation_policy, compute_market_supply_refusal_diagnostic,
+        SandboxExecutionCapabilityEnvelope, SandboxExecutionReceipt, TassadarTraceArtifactReceipt,
+        TassadarTraceDiffReceipt, TextGenerationCapabilityEnvelope, TextGenerationReceipt,
+        WeightBundleEvidence, cache_invalidation_policy, compute_market_supply_refusal_diagnostic,
         default_compute_market_supply_policy, digest_embedding_request, digest_generation_request,
         digest_sandbox_execution_request, evaluate_compute_market_supply,
         served_artifact_identity_for_decoder_model,
@@ -7828,5 +7896,47 @@ mod tests {
             }),
             nvidia_metadata: None,
         }
+    }
+
+    #[test]
+    fn tassadar_trace_artifact_receipt_round_trips_relevant_fields() {
+        let case = psionic_runtime::tassadar_validation_corpus()
+            .into_iter()
+            .next()
+            .expect("validation corpus");
+        let execution = psionic_runtime::TassadarCpuReferenceRunner::new()
+            .execute(&case.program)
+            .expect("case should run");
+        let artifact = TassadarTraceArtifact::from_execution("tassadar.provider.trace", &execution);
+        let receipt = TassadarTraceArtifactReceipt::from_trace_artifact(&artifact);
+
+        assert_eq!(receipt.artifact_id, artifact.artifact_id);
+        assert_eq!(receipt.artifact_digest, artifact.artifact_digest);
+        assert_eq!(receipt.trace_digest, artifact.trace_digest);
+        assert_eq!(receipt.behavior_digest, artifact.behavior_digest);
+        assert_eq!(receipt.step_count, artifact.step_count);
+    }
+
+    #[test]
+    fn tassadar_trace_diff_receipt_reports_first_divergence() {
+        let case = psionic_runtime::tassadar_validation_corpus()
+            .into_iter()
+            .next()
+            .expect("validation corpus");
+        let execution = psionic_runtime::TassadarCpuReferenceRunner::new()
+            .execute(&case.program)
+            .expect("case should run");
+        let mut divergent = execution.clone();
+        divergent.steps[0].next_pc = divergent.steps[0].next_pc.saturating_add(1);
+
+        let report =
+            psionic_runtime::TassadarTraceDiffReport::from_executions(&execution, &divergent);
+        let receipt = TassadarTraceDiffReceipt::from_trace_diff(&report);
+
+        assert!(!receipt.exact_match);
+        assert_eq!(receipt.first_divergence_step_index, Some(0));
+        assert_eq!(receipt.diff_entry_count, 1);
+        assert_eq!(receipt.expected_trace_digest, execution.trace_digest());
+        assert_eq!(receipt.actual_trace_digest, divergent.trace_digest());
     }
 }

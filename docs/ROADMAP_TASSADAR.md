@@ -137,6 +137,9 @@ More specifically:
 - `psionic-research` owns bounded architecture, compile-to-weights, and
   long-trace comparison families without widening product claims by itself
 
+Public issue mirror note: repo-facing closure notes for the externally filed
+`TAS-*` Tassadar issues live in `docs/ROADMAP_TASSADAR_TAS_SYNC.md`.
+
 ## Why This Roadmap Exists
 
 The repo already has a real Tassadar lane, but it does not yet have a separate
