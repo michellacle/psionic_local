@@ -58,6 +58,53 @@
   `implemented`, `implemented_early`, `partial`,
   `partial_outside_psionic`, and `planned`.
 
+## Worktree Hygiene
+
+- Start every task by checking `git status --short --branch`.
+- If the checkout already contains unrelated changes, do not run broad
+  formatters, artifact-generating examples, or repo-wide update commands in
+  that checkout.
+- When the current checkout is dirty or shared with other in-flight work, use a
+  fresh `git worktree` from current `origin/main` for the task instead of
+  mixing changes together.
+- Never clean a dirty tree by resetting, discarding, or reverting changes you
+  did not make. Isolate your work instead.
+- Before commit or push, the worktree used for the change must contain only the
+  intended task files.
+
+## Formatting Discipline
+
+- Formatting changes are allowed and expected, but they must stay scoped to the
+  files intentionally edited for the task unless the user explicitly asks for a
+  broader formatting sweep.
+- Do not run workspace-wide `cargo fmt` from a dirty or shared checkout.
+- Prefer formatting only the Rust files you edited.
+- After running formatting, inspect `git diff --stat` or `git status --short`.
+  If unrelated files changed, revert those incidental formatting changes before
+  continuing.
+- If a task genuinely requires a broad formatting pass, land that as a
+  dedicated clean change, not mixed into unrelated code or artifact updates.
+
+## Artifact-Generating Commands
+
+- Treat `cargo run`, example binaries, report writers, fixture generators, and
+  repo-local scripts that write under `fixtures/`, `docs/`, or report paths as
+  artifact-generating commands.
+- Before running one of those commands, assume it may rewrite more files than
+  the immediate code edit.
+- Prefer running artifact-generating commands in an isolated clean worktree.
+- If generated artifacts are part of the task, review them and commit them in
+  the same change as the code or doc update that requires them.
+- If generated artifacts are not part of the task, do not leave them behind as
+  worktree dirt.
+
+## Push Gate
+
+- Before finalizing a task, run `git status --short --branch`.
+- Do not commit or push from a checkout that still contains unrelated dirt.
+- If the main checkout is dirty but the task still needs to land, finish the
+  work from a clean worktree and leave the unrelated checkout untouched.
+
 ## Extraction Notes
 
 - Some Psionic docs still mention historical `openagents` files or scripts that
