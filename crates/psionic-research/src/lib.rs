@@ -12,9 +12,10 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use thiserror::Error;
 
-mod runner;
 #[cfg(feature = "burn-import")]
 mod attnres_burn_import;
+mod attnres_residual_comparison;
+mod runner;
 mod tassadar_acceptance;
 mod tassadar_architecture_comparison;
 mod tassadar_attention_promotion;
@@ -26,6 +27,7 @@ mod tassadar_surface_ablation;
 
 #[cfg(feature = "burn-import")]
 pub use attnres_burn_import::*;
+pub use attnres_residual_comparison::*;
 pub use runner::*;
 pub use tassadar_acceptance::*;
 pub use tassadar_architecture_comparison::*;

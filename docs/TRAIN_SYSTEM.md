@@ -242,6 +242,12 @@ That now includes one intentionally narrow AttnRes reference-training answer:
 - `psionic-eval::evaluate_attnres_training_shift(...)` now gives the same lane
   a held-out machine-readable loss and routing-delta report, making it visible
   whether training changed the routing story in addition to the token loss
+- the optional follow-on surfaces now stay on that same shared truth rather
+  than growing a parallel AttnRes engine: `psionic-research` can run a bounded
+  residual-vs-AttnRes comparison bundle over the committed tiny corpus and
+  benchmark cases, while `psionic-serve` can expose the trained or seeded
+  reference family through a local text-generation contract that emits the same
+  routing diagnostics snapshots per decode step
 - the claim remains intentionally narrow: this is a tiny CPU-reference
   next-token lane for the first AttnRes consumer, not a claim that generic
   AttnRes training, backend acceleration, or product-facing training UX is done

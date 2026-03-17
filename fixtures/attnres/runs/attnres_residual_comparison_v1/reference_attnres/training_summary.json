@@ -1,0 +1,67 @@
+{
+  "run_summary": {
+    "run_id": "attnres-residual-compare-reference_attnres",
+    "checkpoint_family": "research.attnres.residual_vs_attnres",
+    "completed_steps": 6,
+    "budget": {
+      "max_steps": 6,
+      "steps_per_window": 1,
+      "windows_per_cadence": 1
+    },
+    "budget_reached": true,
+    "final_parameter_norms_l2": {
+      "layers.0.attn_res.pseudo_query": 0.0,
+      "layers.0.mlp_res.pseudo_query": 0.32083023,
+      "layers.1.attn_res.pseudo_query": 0.27504838,
+      "layers.1.mlp_res.pseudo_query": 0.3705614,
+      "lm_head.bias": 0.89446104,
+      "lm_head.weight": 2.3030274
+    },
+    "last_receipt_id": "attnres-residual-compare-reference_attnres-step-6"
+  },
+  "initial_training_mean_loss": 2.0905843,
+  "final_training_mean_loss": 1.1270633,
+  "training_loss_delta": -0.963521,
+  "held_out_eval": {
+    "eval_ref": "benchmark://openagents/psionic/attnres/tiny_training_held_out",
+    "baseline_descriptor_digest": "db9349d8404d401e64df47e5b902a48f637dfa4503f22e890e5f2daf1fc0646e",
+    "trained_descriptor_digest": "b752406dd2bd5f95288b3375b09f702c419ac666073e7df3e57ea5346e33148f",
+    "baseline_mean_loss": 2.0065928,
+    "trained_mean_loss": 1.990668,
+    "mean_loss_delta": -0.015924692,
+    "mean_routing_l2_delta": 0.6231334,
+    "improved_case_count": 1,
+    "cases": [
+      {
+        "sample_id": "held-1",
+        "input_token_count": 3,
+        "target_token": 5,
+        "baseline_loss": 1.9870467,
+        "trained_loss": 1.7562109,
+        "baseline_target_probability": 0.13709973,
+        "trained_target_probability": 0.17269799,
+        "baseline_predicted_token": 4,
+        "trained_predicted_token": 3,
+        "routing_l2_delta": 0.6683006,
+        "baseline_routing_digest": "1822701e54083d270be7db97f33b1712c1c23171681583b18e834a3dc8c14dbc",
+        "trained_routing_digest": "4675d028c94b5d21c65319dc5221b91ccaec39759ce3f1775006293032bf5e35"
+      },
+      {
+        "sample_id": "held-2",
+        "input_token_count": 3,
+        "target_token": 6,
+        "baseline_loss": 2.026139,
+        "trained_loss": 2.225125,
+        "baseline_target_probability": 0.13184358,
+        "trained_target_probability": 0.10805389,
+        "baseline_predicted_token": 4,
+        "trained_predicted_token": 4,
+        "routing_l2_delta": 0.5779662,
+        "baseline_routing_digest": "1822701e54083d270be7db97f33b1712c1c23171681583b18e834a3dc8c14dbc",
+        "trained_routing_digest": "5b94ff3ca372305367686caff1cd6735f9a6031e3ee5731cb6cee4d3302396a0"
+      }
+    ]
+  },
+  "initial_checkpoint_manifest_digest": "4b8d572f4cebd8a10b9a1feef686d5619dd76b74c602c965eb5191ac1795345e",
+  "final_checkpoint_manifest_digest": "31fb7baffeec1e3a63920a7ecb13b40fb69669efe529771663118dbc7cef96de"
+}

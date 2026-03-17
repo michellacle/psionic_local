@@ -16,6 +16,7 @@
     )
 )]
 
+mod attnres;
 mod conformance;
 mod gguf;
 mod gpt_oss;
@@ -27,6 +28,7 @@ use std::{
     time::{Instant, SystemTime, UNIX_EPOCH},
 };
 
+pub use attnres::*;
 pub use conformance::*;
 pub use gguf::*;
 pub use gpt_oss::*;

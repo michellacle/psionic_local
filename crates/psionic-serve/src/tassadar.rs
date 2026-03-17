@@ -7,8 +7,8 @@ use psionic_runtime::{
     TassadarExecutionEvidenceBundle, TassadarExecutionRefusal, TassadarExecutorDecodeMode,
     TassadarExecutorExecutionReport, TassadarExecutorSelectionDiagnostic, TassadarProgramArtifact,
     TassadarRuntimeCapabilityReport, TassadarTraceEvent, TassadarTraceStep,
-    tassadar_wasm_profile_for_id,
     build_tassadar_execution_evidence_bundle, execute_tassadar_executor_request,
+    tassadar_wasm_profile_for_id,
 };
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -508,7 +508,11 @@ pub struct TassadarPlannerRoutingBudget {
 impl TassadarPlannerRoutingBudget {
     /// Creates one explicit routing budget.
     #[must_use]
-    pub fn new(max_program_len: usize, max_trace_steps: usize, max_environment_refs: usize) -> Self {
+    pub fn new(
+        max_program_len: usize,
+        max_trace_steps: usize,
+        max_environment_refs: usize,
+    ) -> Self {
         Self {
             max_program_len,
             max_trace_steps,
@@ -797,7 +801,9 @@ impl TassadarPlannerRoutingDecision {
         }
 
         let planner_request_digest = request.stable_digest();
-        let effective_decode_mode = selection.as_ref().and_then(|value| value.effective_decode_mode);
+        let effective_decode_mode = selection
+            .as_ref()
+            .and_then(|value| value.effective_decode_mode);
         let routing_digest = stable_digest(
             b"tassadar_planner_routing_decision|",
             &RoutingDigestInput {
@@ -927,10 +933,7 @@ impl LocalTassadarPlannerRouter {
 
     /// Replaces the backing local executor service.
     #[must_use]
-    pub fn with_executor_service(
-        mut self,
-        executor_service: LocalTassadarExecutorService,
-    ) -> Self {
+    pub fn with_executor_service(mut self, executor_service: LocalTassadarExecutorService) -> Self {
         self.executor_service = executor_service;
         self
     }
@@ -947,7 +950,8 @@ impl LocalTassadarPlannerRouter {
             Ok(preflight) => preflight,
             Err(TassadarExecutorServiceError::UnknownModel { model_id }) => {
                 let capability = TassadarRuntimeCapabilityReport::current();
-                let detail = format!("planner requested unknown Tassadar executor model `{model_id}`");
+                let detail =
+                    format!("planner requested unknown Tassadar executor model `{model_id}`");
                 return Ok(self.policy_terminal_outcome(
                     request,
                     Some(executor_request_digest),
@@ -961,8 +965,9 @@ impl LocalTassadarPlannerRouter {
             }
             Err(TassadarExecutorServiceError::UnsupportedProduct { product_id }) => {
                 let capability = TassadarRuntimeCapabilityReport::current();
-                let detail =
-                    format!("planner delegated to unsupported Tassadar executor product `{product_id}`");
+                let detail = format!(
+                    "planner delegated to unsupported Tassadar executor product `{product_id}`"
+                );
                 return Ok(self.policy_terminal_outcome(
                     request,
                     Some(executor_request_digest),
@@ -1005,7 +1010,12 @@ impl LocalTassadarPlannerRouter {
             ));
         }
 
-        let program_len = request.subproblem.program_artifact.validated_program.instructions.len();
+        let program_len = request
+            .subproblem
+            .program_artifact
+            .validated_program
+            .instructions
+            .len();
         if program_len > request.routing_budget.max_program_len {
             return Ok(self.policy_terminal_outcome(
                 request,
@@ -1022,7 +1032,8 @@ impl LocalTassadarPlannerRouter {
             ));
         }
 
-        let conservative_trace_steps = route_trace_step_budget(&request.subproblem.program_artifact);
+        let conservative_trace_steps =
+            route_trace_step_budget(&request.subproblem.program_artifact);
         if conservative_trace_steps > request.routing_budget.max_trace_steps {
             return Ok(self.policy_terminal_outcome(
                 request,
@@ -1168,7 +1179,8 @@ impl LocalTassadarPlannerRouter {
             )),
             Err(TassadarExecutorServiceError::UnknownModel { model_id }) => {
                 let capability = TassadarRuntimeCapabilityReport::current();
-                let detail = format!("planner requested unknown Tassadar executor model `{model_id}`");
+                let detail =
+                    format!("planner requested unknown Tassadar executor model `{model_id}`");
                 Ok(self.policy_terminal_outcome(
                     request,
                     Some(executor_request_digest),
@@ -1182,8 +1194,9 @@ impl LocalTassadarPlannerRouter {
             }
             Err(TassadarExecutorServiceError::UnsupportedProduct { product_id }) => {
                 let capability = TassadarRuntimeCapabilityReport::current();
-                let detail =
-                    format!("planner delegated to unsupported Tassadar executor product `{product_id}`");
+                let detail = format!(
+                    "planner delegated to unsupported Tassadar executor product `{product_id}`"
+                );
                 Ok(self.policy_terminal_outcome(
                     request,
                     Some(executor_request_digest),
@@ -1232,7 +1245,10 @@ impl LocalTassadarPlannerRouter {
         request: &TassadarPlannerRoutingRequest,
     ) -> TassadarExecutorRequest {
         let mut executor_request = TassadarExecutorRequest::new(
-            format!("{}::{}", request.request_id, request.subproblem.subproblem_id),
+            format!(
+                "{}::{}",
+                request.request_id, request.subproblem.subproblem_id
+            ),
             request.subproblem.program_artifact.clone(),
             request.subproblem.requested_decode_mode,
         )
@@ -1256,7 +1272,9 @@ impl LocalTassadarPlannerRouter {
     ) -> TassadarPlannerRoutingOutcome {
         let route_state = match request.routing_policy.fallback_policy {
             TassadarPlannerFallbackPolicy::Refuse => TassadarPlannerRouteState::Refused,
-            TassadarPlannerFallbackPolicy::PlannerSummary => TassadarPlannerRouteState::PlannerFallback,
+            TassadarPlannerFallbackPolicy::PlannerSummary => {
+                TassadarPlannerRouteState::PlannerFallback
+            }
         };
         let routing_decision = TassadarPlannerRoutingDecision::new(
             request,
@@ -1290,18 +1308,18 @@ impl LocalTassadarPlannerRouter {
 }
 
 fn route_trace_step_budget(program_artifact: &TassadarProgramArtifact) -> usize {
-    tassadar_wasm_profile_for_id(program_artifact.wasm_profile_id.as_str())
-        .map_or_else(
-            || program_artifact.validated_program.instructions.len(),
-            |profile| profile.max_steps,
-        )
+    tassadar_wasm_profile_for_id(program_artifact.wasm_profile_id.as_str()).map_or_else(
+        || program_artifact.validated_program.instructions.len(),
+        |profile| profile.max_steps,
+    )
 }
 
 fn stable_digest<T>(prefix: &[u8], value: &T) -> String
 where
     T: Serialize,
 {
-    let encoded = serde_json::to_vec(value).expect("Tassadar planner routing value should serialize");
+    let encoded =
+        serde_json::to_vec(value).expect("Tassadar planner routing value should serialize");
     let mut hasher = Sha256::new();
     hasher.update(prefix);
     hasher.update(encoded);
@@ -1355,7 +1373,6 @@ fn stream_events_for_outcome(
 
 #[cfg(test)]
 mod tests {
-    use psionic_models::TassadarExecutorFixture;
     use super::{
         EXECUTOR_TRACE_PRODUCT_ID, LocalTassadarExecutorService, LocalTassadarPlannerRouter,
         PLANNER_EXECUTOR_ROUTE_PRODUCT_ID, TassadarExecutorOutcome, TassadarExecutorRequest,
@@ -1364,6 +1381,7 @@ mod tests {
         TassadarPlannerRouteReason, TassadarPlannerRouterError, TassadarPlannerRoutingBudget,
         TassadarPlannerRoutingOutcome, TassadarPlannerRoutingPolicy, TassadarPlannerRoutingRequest,
     };
+    use psionic_models::TassadarExecutorFixture;
     use psionic_runtime::{
         TassadarExecutorDecodeMode, TassadarInstruction, TassadarProgram, TassadarProgramArtifact,
         TassadarTraceAbi, TassadarWasmProfile, tassadar_validation_corpus,
@@ -1540,7 +1558,9 @@ mod tests {
         let router = LocalTassadarPlannerRouter::new();
         let request = planner_request_for_case("locals_add");
 
-        let outcome = router.route(&request).expect("planner route should succeed");
+        let outcome = router
+            .route(&request)
+            .expect("planner route should succeed");
         match outcome {
             TassadarPlannerRoutingOutcome::Completed { response } => {
                 assert_eq!(
@@ -1553,7 +1573,11 @@ mod tests {
                 );
                 assert_eq!(response.executor_response.final_outputs(), &[12]);
                 assert_eq!(
-                    response.executor_response.evidence_bundle.proof_bundle.product_id,
+                    response
+                        .executor_response
+                        .evidence_bundle
+                        .proof_bundle
+                        .product_id,
                     EXECUTOR_TRACE_PRODUCT_ID
                 );
                 assert_eq!(
@@ -1570,7 +1594,8 @@ mod tests {
     #[test]
     fn planner_router_can_return_typed_fallback_when_policy_disallows_runtime_decode_fallback() {
         let router = LocalTassadarPlannerRouter::new().with_executor_service(
-            LocalTassadarExecutorService::new().with_fixture(TassadarExecutorFixture::core_i32_v2()),
+            LocalTassadarExecutorService::new()
+                .with_fixture(TassadarExecutorFixture::core_i32_v2()),
         );
         let request = TassadarPlannerRoutingRequest::new(
             "planner-request-sparse-fallback",
@@ -1591,7 +1616,7 @@ mod tests {
         let request = TassadarPlannerRoutingRequest {
             subproblem: request
                 .subproblem
-                .with_requested_model_id(TassadarExecutorFixture::ARTICLE_CLASS_MODEL_ID),
+                .with_requested_model_id(TassadarExecutorFixture::ARTICLE_I32_COMPUTE_MODEL_ID),
             routing_policy: TassadarPlannerRoutingPolicy {
                 allow_runtime_decode_fallback: false,
                 ..request.routing_policy
@@ -1599,18 +1624,22 @@ mod tests {
             ..request
         };
 
-        let outcome = router.route(&request).expect("planner route should be typed");
+        let outcome = router
+            .route(&request)
+            .expect("planner route should be typed");
         match outcome {
             TassadarPlannerRoutingOutcome::Fallback { fallback } => {
                 assert_eq!(
                     fallback.routing_decision.route_reason,
                     Some(TassadarPlannerRouteReason::ExecutorDecodeFallbackDisallowed)
                 );
-                assert!(fallback
-                    .routing_decision
-                    .selection
-                    .as_ref()
-                    .is_some_and(|selection| selection.is_fallback()));
+                assert!(
+                    fallback
+                        .routing_decision
+                        .selection
+                        .as_ref()
+                        .is_some_and(|selection| selection.is_fallback())
+                );
                 assert!(fallback.fallback_summary.contains("disallowed"));
             }
             other => panic!("expected typed fallback, got {other:?}"),
@@ -1620,11 +1649,12 @@ mod tests {
     #[test]
     fn planner_router_refuses_when_program_exceeds_budget() {
         let router = LocalTassadarPlannerRouter::new();
-        let request = planner_request_for_case("memory_roundtrip").with_routing_budget(
-            TassadarPlannerRoutingBudget::new(4, 512, 8),
-        );
+        let request = planner_request_for_case("memory_roundtrip")
+            .with_routing_budget(TassadarPlannerRoutingBudget::new(4, 512, 8));
 
-        let outcome = router.route(&request).expect("planner route should be typed");
+        let outcome = router
+            .route(&request)
+            .expect("planner route should be typed");
         match outcome {
             TassadarPlannerRoutingOutcome::Refused { refusal } => {
                 assert_eq!(

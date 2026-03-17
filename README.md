@@ -611,7 +611,8 @@ Current posture:
 - `psionic-models`: reusable model families, metadata, tokenizer hooks, and
   model-loading seams.
 - `psionic-serve`: served compute contracts for chat, responses, embeddings,
-  scheduling, structured output, tool calling, and adapter-backed execution.
+  scheduling, structured output, tool calling, adapter-backed execution, and
+  the bounded local AttnRes text-generation surface.
 - `psionic-router`: multi-model routing, worker inventory, policy filters,
   warm/cache-aware placement, and served-fleet reliability controls.
 - `psionic-provider`: provider-facing capability, readiness, and receipt types
@@ -638,8 +639,9 @@ Current posture:
   compatibility boundaries, optional Apple draft-model distillation, and the
   bounded `Tassadar` small-executor training lane.
 - `psionic-research`: typed experiment specs, bounded run manifests, result
-  summaries, promotion records, and the `Tassadar` executor-variant research
-  family with machine-readable sweep records for hillclimb/research loops.
+  summaries, promotion records, the AttnRes residual-vs-AttnRes comparison
+  bundle, and the `Tassadar` executor-variant research family with
+  machine-readable sweep records for hillclimb/research loops.
 
 ### Support Tree
 

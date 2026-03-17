@@ -1,0 +1,137 @@
+{
+  "batch_size": 1,
+  "sequence_length": 3,
+  "hidden_size": 8,
+  "final_completed_blocks": 2,
+  "final_partial_block_present": true,
+  "sublayers": [
+    {
+      "sublayer_index": 0,
+      "transformer_layer_index": 0,
+      "kind": "attention",
+      "starts_new_block_before": false,
+      "completed_blocks_before": 1,
+      "completed_blocks_after": 1,
+      "partial_block_present_before": false,
+      "partial_block_present_after": true,
+      "source_shape": [
+        1,
+        1,
+        3
+      ],
+      "source_logits": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "routing_weights": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "query_norm": 0.0
+    },
+    {
+      "sublayer_index": 1,
+      "transformer_layer_index": 0,
+      "kind": "feed_forward",
+      "starts_new_block_before": false,
+      "completed_blocks_before": 1,
+      "completed_blocks_after": 1,
+      "partial_block_present_before": true,
+      "partial_block_present_after": true,
+      "source_shape": [
+        2,
+        1,
+        3
+      ],
+      "source_logits": [
+        -0.24945728,
+        -0.3081706,
+        0.23327479,
+        0.20187485,
+        -0.5834574,
+        -0.5142757
+      ],
+      "routing_weights": [
+        0.38904408,
+        0.5683903,
+        0.6786447,
+        0.6109559,
+        0.43160963,
+        0.32135528
+      ],
+      "query_norm": 0.32083023
+    },
+    {
+      "sublayer_index": 2,
+      "transformer_layer_index": 1,
+      "kind": "attention",
+      "starts_new_block_before": true,
+      "completed_blocks_before": 1,
+      "completed_blocks_after": 2,
+      "partial_block_present_before": true,
+      "partial_block_present_after": true,
+      "source_shape": [
+        2,
+        1,
+        3
+      ],
+      "source_logits": [
+        0.116332754,
+        0.5231512,
+        0.55257833,
+        -0.19841301,
+        0.007856097,
+        -0.06945175
+      ],
+      "routing_weights": [
+        0.5780432,
+        0.62604696,
+        0.65068007,
+        0.42195678,
+        0.37395304,
+        0.34931988
+      ],
+      "query_norm": 0.27504838
+    },
+    {
+      "sublayer_index": 3,
+      "transformer_layer_index": 1,
+      "kind": "feed_forward",
+      "starts_new_block_before": false,
+      "completed_blocks_before": 2,
+      "completed_blocks_after": 2,
+      "partial_block_present_before": true,
+      "partial_block_present_after": true,
+      "source_shape": [
+        3,
+        1,
+        3
+      ],
+      "source_logits": [
+        -0.093379036,
+        -0.25787225,
+        -0.5309955,
+        -0.42594495,
+        -0.27519673,
+        -0.030240197,
+        0.80218726,
+        0.73681563,
+        0.6077131
+      ],
+      "routing_weights": [
+        0.24004973,
+        0.2133695,
+        0.17322916,
+        0.17213519,
+        0.20970485,
+        0.28582242,
+        0.5878151,
+        0.57692564,
+        0.54094845
+      ],
+      "query_norm": 0.3705614
+    }
+  ]
+}

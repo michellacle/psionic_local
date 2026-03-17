@@ -1,0 +1,106 @@
+{
+  "comparison_ref": "research://openagents/psionic/attnres/residual_vs_attnres/v1",
+  "training_dataset_digest": "3480a1c8cee75d1db5c1ce750b0dcc69c5293a0bffb426b64d5a8d3587d12ff6",
+  "held_out_dataset_digest": "9e1c3c8590a1cf51dbd57e317ea885e5443dda6eed23adee71e91199fa2a9c92",
+  "diagnostics_sample_id": "held-1",
+  "benchmark_ref": "benchmark://openagents/psionic/attnres/reference_two_phase_parity",
+  "parity_budget": {
+    "hidden": {
+      "expectation": "numerical",
+      "numeric": {
+        "max_abs_delta": 0.00001,
+        "max_rel_delta": 0.00001
+      },
+      "min_cosine_similarity": 0.99999
+    },
+    "logits": {
+      "expectation": "numerical",
+      "numeric": {
+        "max_abs_delta": 0.00001,
+        "max_rel_delta": 0.00001
+      },
+      "max_top_token_rank_drift": 0
+    }
+  },
+  "variants": [
+    {
+      "variant": {
+        "variant_id": "mean_residual",
+        "label": "Mean residual baseline (1 block)",
+        "kind": "mean_residual",
+        "num_blocks": 1
+      },
+      "variant_directory": "mean_residual",
+      "training_summary_file": "training_summary.json",
+      "training_summary_digest": "e4c90523493fb22f390ed6e35171f1efbd51b62211371d95aead47cfb1a98f2b",
+      "benchmark_receipt_file": "two_phase_benchmark_receipt.json",
+      "benchmark_receipt_digest": "0e1b1f388e4b74e4f85df6c6dc3ffa375f4bc36e4f07fd4e9613a7c7f602d676",
+      "diagnostics_file": "routing_diagnostics.json",
+      "diagnostics_digest": "3d527da8bd7ad9deab93fade8c8f633ad0e850389911ff5f167f33b3628a1651",
+      "model_descriptor_digest": "72937537c721b660212fc59d7dd83a4f72aa7d023f6dea4dc268ad95237edc66",
+      "model_weight_digest": "cdb2701d50a2c89069eb7ca01bd4dd54cd0a00694f74e0fbefc9ec4e1078c7e4",
+      "boundary_count": 0,
+      "mean_query_norm": 0.23022944,
+      "training_loss_delta": -1.1148251,
+      "held_out_mean_loss": 1.7512283,
+      "held_out_mean_loss_delta": -0.34838986,
+      "held_out_improved_case_count": 2,
+      "held_out_mean_routing_l2_delta": 0.5944695,
+      "standard_logit_tokens_per_second": 3667,
+      "two_phase_logit_tokens_per_second": 3667
+    },
+    {
+      "variant": {
+        "variant_id": "reference_attnres",
+        "label": "Reference AttnRes (2 blocks)",
+        "kind": "reference_attn_res",
+        "num_blocks": 2
+      },
+      "variant_directory": "reference_attnres",
+      "training_summary_file": "training_summary.json",
+      "training_summary_digest": "0a3203fda97a0c6a151ae6722719241e5fbbe049ef3cbf2c53148d89722195d1",
+      "benchmark_receipt_file": "two_phase_benchmark_receipt.json",
+      "benchmark_receipt_digest": "89bdd3eabdccdd47025b133c08099e7955dd549e023ae90219e980c576b6818c",
+      "diagnostics_file": "routing_diagnostics.json",
+      "diagnostics_digest": "635c502ca59ad3203b1ab29c122f321456ca4276665c2ea27cad4b4889eba907",
+      "model_descriptor_digest": "b752406dd2bd5f95288b3375b09f702c419ac666073e7df3e57ea5346e33148f",
+      "model_weight_digest": "a96395f6f3be19a44315e579b556a2953aa29263b9b05d5a5ebaec9458b6499a",
+      "boundary_count": 1,
+      "mean_query_norm": 0.24160999,
+      "training_loss_delta": -0.963521,
+      "held_out_mean_loss": 1.990668,
+      "held_out_mean_loss_delta": -0.015924692,
+      "held_out_improved_case_count": 1,
+      "held_out_mean_routing_l2_delta": 0.6231334,
+      "standard_logit_tokens_per_second": 3667,
+      "two_phase_logit_tokens_per_second": 3667
+    },
+    {
+      "variant": {
+        "variant_id": "full_attnres",
+        "label": "Full AttnRes (4 blocks)",
+        "kind": "full_attn_res",
+        "num_blocks": 4
+      },
+      "variant_directory": "full_attnres",
+      "training_summary_file": "training_summary.json",
+      "training_summary_digest": "c4f82744a4bcea0c0d2e3a6b8b05fde9cb816e7debbd7a9c5503147ba571efaf",
+      "benchmark_receipt_file": "two_phase_benchmark_receipt.json",
+      "benchmark_receipt_digest": "4d9e44cc0b610cb294ef0dd78b3f09bcdf5991a88bdaa76157611dbcabff87e7",
+      "diagnostics_file": "routing_diagnostics.json",
+      "diagnostics_digest": "8de44aea6bedaeb0dcc93339412190a2b58d32e1dc2924a117d1ae9d491c4148",
+      "model_descriptor_digest": "225021e039305005fa67031346a47782b79b3e73707fb37dc8e8618e85af2f27",
+      "model_weight_digest": "6a1ba6e5e72e85b81cbc57162635456857da637b13546951f1fd1885fea68db1",
+      "boundary_count": 3,
+      "mean_query_norm": 0.26832694,
+      "training_loss_delta": -1.1743817,
+      "held_out_mean_loss": 1.74282,
+      "held_out_mean_loss_delta": -0.35104775,
+      "held_out_improved_case_count": 2,
+      "held_out_mean_routing_l2_delta": 0.5734581,
+      "standard_logit_tokens_per_second": 3667,
+      "two_phase_logit_tokens_per_second": 3667
+    }
+  ],
+  "best_variant_id": "full_attnres"
+}
