@@ -224,6 +224,16 @@ That now includes one intentionally narrow AttnRes reference-training answer:
   CPU-reference AttnRes family over a repo-owned tiny next-token corpus without
   Burn, using stable named parameter groups for the routing pseudo-query and
   LM-head tensors rather than positional optimizer state
+- `psionic-train::AttnResTinyTrainingCorpus::reference()` now exposes that
+  canonical tiny next-token corpus directly to repo-local consumers instead of
+  forcing app code to duplicate sample construction
+- `psionic-train::AttnResTinyTrainingRunner` plus
+  `AttnResTinyTrainingUpdate` now expose the same bounded lane as a
+  renderer-neutral stepwise contract, carrying per-step receipts, checkpoint
+  refs, current diagnostics, and current loss/routing metrics so desktop or
+  operator surfaces can pace the run without recreating AttnRes training math;
+  the existing whole-run helper remains available as the convenience layer on
+  top of that runner
 - checkpoint export is Psionic-native and explicit: the lane persists
   safetensors parameter payloads plus a JSON manifest carrying config, base
   descriptor digest, dataset digests, checkpoint refs, and parent-checkpoint

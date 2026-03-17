@@ -8,8 +8,8 @@ use psionic_eval::{
     AttnResTrainingEvalError, AttnResTrainingEvalReport, evaluate_attnres_training_shift,
 };
 use psionic_models::{
-    AttnResConfig, AttnResCpuReferenceModel, AttnResExecutionError, AttnResModelError,
-    AttnResNextTokenSample, AttnResParameterVector,
+    AttnResConfig, AttnResCpuReferenceModel, AttnResDiagnosticsSnapshot, AttnResExecutionError,
+    AttnResModelError, AttnResNextTokenSample, AttnResParameterVector, TokenSequence,
 };
 use psionic_runtime::TrainingCheckpointReference;
 use safetensors::{Dtype as SafeTensorsDType, SafeTensors, serialize, tensor::TensorView};
@@ -40,6 +40,19 @@ pub struct AttnResTinyTrainingCorpus {
 }
 
 impl AttnResTinyTrainingCorpus {
+    /// Returns the canonical fixture-backed tiny-training corpus.
+    pub fn reference() -> Result<Self, AttnResTinyTrainingError> {
+        let corpus = serde_json::from_str(include_str!(
+            "../../../fixtures/attnres/tiny_training_cases.json"
+        ))
+        .map_err(|error| AttnResTinyTrainingError::Serialization {
+            context: "attnres reference corpus load",
+            message: error.to_string(),
+        })?;
+        validate_corpus(&corpus)?;
+        Ok(corpus)
+    }
+
     /// Returns a stable digest over the training split.
     #[must_use]
     pub fn training_digest(&self) -> String {
@@ -280,6 +293,77 @@ pub struct AttnResTinyTrainingOutcome {
     pub summary: AttnResTinyTrainingSummary,
 }
 
+/// Lifecycle status for the stepwise AttnRes tiny-training runner.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum AttnResTinyTrainingLifecycleStatus {
+    /// Runner seeded a baseline model and is ready for the first step.
+    Starting,
+    /// Runner applied at least one step and can continue.
+    Running,
+    /// Runner exhausted its fixed budget and produced the final stepped state.
+    Completed,
+}
+
+/// One renderer-neutral live update from the AttnRes tiny-training runner.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct AttnResTinyTrainingUpdate {
+    /// Stable run identifier.
+    pub run_id: String,
+    /// Current lifecycle status.
+    pub lifecycle: AttnResTinyTrainingLifecycleStatus,
+    /// Current completed step count.
+    pub current_global_step: u64,
+    /// Fixed-budget upper bound for the run.
+    pub max_steps: u64,
+    /// Current mean training loss across the training split.
+    pub current_training_mean_loss: f32,
+    /// Current mean held-out loss across the held-out split.
+    pub current_held_out_mean_loss: f32,
+    /// Current mean held-out routing delta from the baseline model.
+    pub current_held_out_mean_routing_l2_delta: f32,
+    /// Current number of held-out cases whose loss improved.
+    pub current_held_out_improved_case_count: u32,
+    /// Stable sample identifier used for live diagnostics.
+    pub inspection_sample_id: String,
+    /// Input tokens used for live diagnostics.
+    pub inspection_tokens: TokenSequence,
+    /// Current routing diagnostics from the stepped model.
+    pub diagnostics: AttnResDiagnosticsSnapshot,
+    /// Step metrics for the most recently applied step when one exists.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub step_metrics: Option<AttnResTinyTrainingStepMetrics>,
+    /// Receipt for the most recently applied step when one exists.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub step_receipt: Option<TrainingStepReceipt>,
+    /// Current checkpoint reference for the stepped model state.
+    pub checkpoint: TrainingCheckpointReference,
+    /// Optional operator-facing note for this update.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub note: Option<String>,
+}
+
+/// Stepwise in-memory runner for the bounded AttnRes tiny-training lane.
+#[derive(Debug)]
+pub struct AttnResTinyTrainingRunner {
+    corpus: AttnResTinyTrainingCorpus,
+    config: AttnResTinyTrainingConfig,
+    initial_model: AttnResCpuReferenceModel,
+    current_model: AttnResCpuReferenceModel,
+    inspection_sample: AttnResNextTokenSample,
+    run: FixedBudgetTrainingRun,
+    trainable_parameter_ids: Vec<String>,
+    step_receipts: Vec<TrainingStepReceipt>,
+    step_metrics: Vec<AttnResTinyTrainingStepMetrics>,
+    initial_checkpoint: AttnResTinyTrainingCheckpointArtifact,
+    latest_checkpoint: AttnResTinyTrainingCheckpointArtifact,
+    initial_training_mean_loss: f32,
+    current_training_mean_loss: f32,
+    current_held_out_eval: AttnResTrainingEvalReport,
+    current_diagnostics: AttnResDiagnosticsSnapshot,
+    latest_note: Option<String>,
+}
+
 /// Bounded AttnRes tiny-training failure.
 #[derive(Debug, Error, PartialEq)]
 pub enum AttnResTinyTrainingError {
@@ -313,6 +397,15 @@ pub enum AttnResTinyTrainingError {
     MissingParameterGroup { group_id: String },
     #[error("attnres tiny training group `{group_id}` is not dense f32")]
     NonDenseGroup { group_id: String },
+    #[error("attnres tiny training runner `{run_id}` already completed")]
+    AlreadyCompleted { run_id: String },
+    #[error(
+        "attnres tiny training runner ended early: completed {completed_steps} of {max_steps} steps"
+    )]
+    IncompleteRun {
+        completed_steps: u64,
+        max_steps: u64,
+    },
     #[error("{context}: {message}")]
     Serialization {
         context: &'static str,
@@ -328,118 +421,225 @@ pub enum AttnResTinyTrainingError {
     Eval(#[from] AttnResTrainingEvalError),
 }
 
+impl AttnResTinyTrainingRunner {
+    /// Seeds one stepwise runner over the bounded AttnRes tiny-training lane.
+    pub fn new(
+        corpus: &AttnResTinyTrainingCorpus,
+        config: &AttnResTinyTrainingConfig,
+    ) -> Result<Self, AttnResTinyTrainingError> {
+        config.validate()?;
+        validate_corpus(corpus)?;
+
+        let initial_model = AttnResCpuReferenceModel::seeded(
+            config.model_id.clone(),
+            config.model_revision.clone(),
+            corpus.config.clone(),
+        )?;
+        let trainable_parameters = initial_model
+            .weights()
+            .parameter_vectors()
+            .into_iter()
+            .filter(|parameter| {
+                parameter.parameter_id.ends_with(".pseudo_query")
+                    || parameter.parameter_id == "lm_head.weight"
+                    || parameter.parameter_id == "lm_head.bias"
+            })
+            .collect::<Vec<_>>();
+        let trainable_parameter_ids = trainable_parameters
+            .iter()
+            .map(|parameter| parameter.parameter_id.clone())
+            .collect::<Vec<_>>();
+        let run = FixedBudgetTrainingRun::new(
+            config.run_id.clone(),
+            config.checkpoint_family.clone(),
+            config.budget,
+            build_training_groups(
+                trainable_parameters.as_slice(),
+                &config.routing_optimizer,
+                &config.head_optimizer,
+            )?,
+        )?;
+        let initial_checkpoint = export_checkpoint(
+            &initial_model,
+            &run,
+            trainable_parameter_ids.as_slice(),
+            corpus,
+            config,
+            0,
+            None,
+            None,
+        )?;
+        let initial_training_mean_loss = mean_loss(&initial_model, &corpus.training_samples)?;
+        let inspection_sample = inspection_sample(corpus)?.clone();
+        let current_held_out_eval = evaluate_attnres_training_shift(
+            &initial_model,
+            &initial_model,
+            &corpus.held_out_samples,
+        )?;
+        let current_diagnostics = inspection_diagnostics(&initial_model, &inspection_sample)?;
+        let latest_note = Some(format!(
+            "seeded {} with inspection sample {}",
+            config.run_id, inspection_sample.sample_id
+        ));
+        Ok(Self {
+            corpus: corpus.clone(),
+            config: config.clone(),
+            initial_model: initial_model.clone(),
+            current_model: initial_model,
+            inspection_sample,
+            run,
+            trainable_parameter_ids,
+            step_receipts: Vec::new(),
+            step_metrics: Vec::new(),
+            initial_checkpoint: initial_checkpoint.clone(),
+            latest_checkpoint: initial_checkpoint,
+            initial_training_mean_loss,
+            current_training_mean_loss: initial_training_mean_loss,
+            current_held_out_eval,
+            current_diagnostics,
+            latest_note,
+        })
+    }
+
+    /// Returns whether the fixed-budget run already reached completion.
+    #[must_use]
+    pub fn is_complete(&self) -> bool {
+        self.run.completed_steps() >= self.config.budget.max_steps
+    }
+
+    /// Returns the current renderer-neutral live update.
+    #[must_use]
+    pub fn current_update(&self) -> AttnResTinyTrainingUpdate {
+        AttnResTinyTrainingUpdate {
+            run_id: self.config.run_id.clone(),
+            lifecycle: if self.is_complete() {
+                AttnResTinyTrainingLifecycleStatus::Completed
+            } else if self.run.completed_steps() == 0 {
+                AttnResTinyTrainingLifecycleStatus::Starting
+            } else {
+                AttnResTinyTrainingLifecycleStatus::Running
+            },
+            current_global_step: self.run.completed_steps(),
+            max_steps: self.config.budget.max_steps,
+            current_training_mean_loss: self.current_training_mean_loss,
+            current_held_out_mean_loss: self.current_held_out_eval.trained_mean_loss,
+            current_held_out_mean_routing_l2_delta: self
+                .current_held_out_eval
+                .mean_routing_l2_delta,
+            current_held_out_improved_case_count: self.current_held_out_eval.improved_case_count,
+            inspection_sample_id: self.inspection_sample.sample_id.clone(),
+            inspection_tokens: self.inspection_sample.input_tokens.clone(),
+            diagnostics: self.current_diagnostics.clone(),
+            step_metrics: self.step_metrics.last().cloned(),
+            step_receipt: self.step_receipts.last().cloned(),
+            checkpoint: self.latest_checkpoint.checkpoint.clone(),
+            note: self.latest_note.clone(),
+        }
+    }
+
+    /// Advances the run by exactly one trainer step and returns the new update.
+    pub fn step(&mut self) -> Result<AttnResTinyTrainingUpdate, AttnResTinyTrainingError> {
+        if self.is_complete() {
+            return Err(AttnResTinyTrainingError::AlreadyCompleted {
+                run_id: self.config.run_id.clone(),
+            });
+        }
+        let step_index = self.run.completed_steps();
+        let sample =
+            &self.corpus.training_samples[step_index as usize % self.corpus.training_samples.len()];
+        let batch = build_gradient_batch(
+            &self.initial_model,
+            &self.run,
+            &self.current_model,
+            sample,
+            self.config.finite_difference_epsilon,
+        )?;
+        let started_at_ms = self
+            .config
+            .started_at_ms
+            .saturating_add(step_index.saturating_mul(self.config.step_duration_ms));
+        let finished_at_ms = started_at_ms.saturating_add(self.config.step_duration_ms);
+        let receipt =
+            self.run
+                .apply_step(TrainingStepInput::new(batch, started_at_ms, finished_at_ms))?;
+        self.current_model = materialize_model(&self.initial_model, &self.run)?;
+        self.current_training_mean_loss =
+            mean_loss(&self.current_model, &self.corpus.training_samples)?;
+        self.current_held_out_eval = evaluate_attnres_training_shift(
+            &self.initial_model,
+            &self.current_model,
+            &self.corpus.held_out_samples,
+        )?;
+        self.current_diagnostics =
+            inspection_diagnostics(&self.current_model, &self.inspection_sample)?;
+        let step_metrics = AttnResTinyTrainingStepMetrics {
+            receipt_id: receipt.receipt_id.clone(),
+            global_step: receipt.schedule.global_step,
+            training_mean_loss: self.current_training_mean_loss,
+            held_out_mean_loss: self.current_held_out_eval.trained_mean_loss,
+            held_out_mean_routing_l2_delta: self.current_held_out_eval.mean_routing_l2_delta,
+            held_out_improved_case_count: self.current_held_out_eval.improved_case_count,
+        };
+        let checkpoint = export_checkpoint(
+            &self.initial_model,
+            &self.run,
+            self.trainable_parameter_ids.as_slice(),
+            &self.corpus,
+            &self.config,
+            self.run.completed_steps(),
+            Some(&self.latest_checkpoint),
+            Some(&receipt),
+        )?;
+        self.step_receipts.push(receipt);
+        self.step_metrics.push(step_metrics);
+        self.latest_checkpoint = checkpoint;
+        self.latest_note = Some(format!(
+            "applied step {} of {}",
+            self.run.completed_steps(),
+            self.config.budget.max_steps
+        ));
+        Ok(self.current_update())
+    }
+
+    /// Consumes a completed runner and emits the stable whole-run outcome.
+    pub fn into_outcome(self) -> Result<AttnResTinyTrainingOutcome, AttnResTinyTrainingError> {
+        if !self.is_complete() {
+            return Err(AttnResTinyTrainingError::IncompleteRun {
+                completed_steps: self.run.completed_steps(),
+                max_steps: self.config.budget.max_steps,
+            });
+        }
+        let summary = AttnResTinyTrainingSummary {
+            run_summary: self.run.summary(),
+            initial_training_mean_loss: self.initial_training_mean_loss,
+            final_training_mean_loss: self.current_training_mean_loss,
+            training_loss_delta: self.current_training_mean_loss - self.initial_training_mean_loss,
+            held_out_eval: self.current_held_out_eval,
+            initial_checkpoint_manifest_digest: self.initial_checkpoint.manifest.stable_digest(),
+            final_checkpoint_manifest_digest: self.latest_checkpoint.manifest.stable_digest(),
+        };
+        Ok(AttnResTinyTrainingOutcome {
+            initial_model: self.initial_model,
+            trained_model: self.current_model,
+            step_receipts: self.step_receipts,
+            step_metrics: self.step_metrics,
+            initial_checkpoint: self.initial_checkpoint,
+            final_checkpoint: self.latest_checkpoint,
+            summary,
+        })
+    }
+}
+
 /// Runs the bounded AttnRes tiny-training lane end to end.
 pub fn train_attnres_tiny_next_token(
     corpus: &AttnResTinyTrainingCorpus,
     config: &AttnResTinyTrainingConfig,
 ) -> Result<AttnResTinyTrainingOutcome, AttnResTinyTrainingError> {
-    config.validate()?;
-    validate_corpus(corpus)?;
-
-    let initial_model = AttnResCpuReferenceModel::seeded(
-        config.model_id.clone(),
-        config.model_revision.clone(),
-        corpus.config.clone(),
-    )?;
-    let trainable_parameters = initial_model
-        .weights()
-        .parameter_vectors()
-        .into_iter()
-        .filter(|parameter| {
-            parameter.parameter_id.ends_with(".pseudo_query")
-                || parameter.parameter_id == "lm_head.weight"
-                || parameter.parameter_id == "lm_head.bias"
-        })
-        .collect::<Vec<_>>();
-    let mut run = FixedBudgetTrainingRun::new(
-        config.run_id.clone(),
-        config.checkpoint_family.clone(),
-        config.budget,
-        build_training_groups(
-            trainable_parameters.as_slice(),
-            &config.routing_optimizer,
-            &config.head_optimizer,
-        )?,
-    )?;
-
-    let initial_checkpoint = export_checkpoint(
-        &initial_model,
-        &run,
-        &trainable_parameters,
-        corpus,
-        config,
-        0,
-        None,
-        None,
-    )?;
-    let initial_training_mean_loss = mean_loss(&initial_model, &corpus.training_samples)?;
-    let mut step_receipts = Vec::new();
-    let mut step_metrics = Vec::new();
-
-    for step_idx in 0..config.budget.max_steps {
-        let sample = &corpus.training_samples[step_idx as usize % corpus.training_samples.len()];
-        let current_model = materialize_model(&initial_model, &run)?;
-        let batch = build_gradient_batch(
-            &initial_model,
-            &run,
-            &current_model,
-            sample,
-            config.finite_difference_epsilon,
-        )?;
-        let started_at_ms = config.started_at_ms + step_idx * config.step_duration_ms;
-        let finished_at_ms = started_at_ms + config.step_duration_ms;
-        let receipt =
-            run.apply_step(TrainingStepInput::new(batch, started_at_ms, finished_at_ms))?;
-        let stepped_model = materialize_model(&initial_model, &run)?;
-        let held_out_eval = evaluate_attnres_training_shift(
-            &initial_model,
-            &stepped_model,
-            &corpus.held_out_samples,
-        )?;
-        step_metrics.push(AttnResTinyTrainingStepMetrics {
-            receipt_id: receipt.receipt_id.clone(),
-            global_step: receipt.schedule.global_step,
-            training_mean_loss: mean_loss(&stepped_model, &corpus.training_samples)?,
-            held_out_mean_loss: held_out_eval.trained_mean_loss,
-            held_out_mean_routing_l2_delta: held_out_eval.mean_routing_l2_delta,
-            held_out_improved_case_count: held_out_eval.improved_case_count,
-        });
-        step_receipts.push(receipt);
+    let mut runner = AttnResTinyTrainingRunner::new(corpus, config)?;
+    while !runner.is_complete() {
+        runner.step()?;
     }
-
-    let trained_model = materialize_model(&initial_model, &run)?;
-    let held_out_eval =
-        evaluate_attnres_training_shift(&initial_model, &trained_model, &corpus.held_out_samples)?;
-    let final_checkpoint = export_checkpoint(
-        &initial_model,
-        &run,
-        &trainable_parameters,
-        corpus,
-        config,
-        run.completed_steps(),
-        Some(&initial_checkpoint),
-        step_receipts.last(),
-    )?;
-    let final_training_mean_loss = mean_loss(&trained_model, &corpus.training_samples)?;
-    let summary = AttnResTinyTrainingSummary {
-        run_summary: run.summary(),
-        initial_training_mean_loss,
-        final_training_mean_loss,
-        training_loss_delta: final_training_mean_loss - initial_training_mean_loss,
-        held_out_eval,
-        initial_checkpoint_manifest_digest: initial_checkpoint.manifest.stable_digest(),
-        final_checkpoint_manifest_digest: final_checkpoint.manifest.stable_digest(),
-    };
-
-    Ok(AttnResTinyTrainingOutcome {
-        initial_model,
-        trained_model,
-        step_receipts,
-        step_metrics,
-        initial_checkpoint,
-        final_checkpoint,
-        summary,
-    })
+    runner.into_outcome()
 }
 
 /// Restores one AttnRes model from a persisted tiny-training checkpoint.
@@ -499,6 +699,26 @@ fn validate_corpus(corpus: &AttnResTinyTrainingCorpus) -> Result<(), AttnResTiny
         }
     }
     Ok(())
+}
+
+fn inspection_sample(
+    corpus: &AttnResTinyTrainingCorpus,
+) -> Result<&AttnResNextTokenSample, AttnResTinyTrainingError> {
+    corpus
+        .held_out_samples
+        .first()
+        .or_else(|| corpus.training_samples.first())
+        .ok_or(AttnResTinyTrainingError::EmptyTrainingSamples)
+}
+
+fn inspection_diagnostics(
+    model: &AttnResCpuReferenceModel,
+    sample: &AttnResNextTokenSample,
+) -> Result<AttnResDiagnosticsSnapshot, AttnResTinyTrainingError> {
+    model
+        .forward_hidden_with_diagnostics(std::slice::from_ref(&sample.input_tokens))
+        .map(|(_, diagnostics)| diagnostics)
+        .map_err(Into::into)
 }
 
 fn build_training_groups(
@@ -717,7 +937,7 @@ fn last_position_slice(tensor: &psionic_models::AttnResTensor3) -> Vec<f32> {
 fn export_checkpoint(
     initial_model: &AttnResCpuReferenceModel,
     run: &FixedBudgetTrainingRun,
-    trainable_parameters: &[AttnResParameterVector],
+    parameter_ids: &[String],
     corpus: &AttnResTinyTrainingCorpus,
     config: &AttnResTinyTrainingConfig,
     step: u64,
@@ -725,11 +945,7 @@ fn export_checkpoint(
     receipt: Option<&TrainingStepReceipt>,
 ) -> Result<AttnResTinyTrainingCheckpointArtifact, AttnResTinyTrainingError> {
     let checkpoint_ref = format!("{}:step:{}", config.run_id, step);
-    let parameter_ids = trainable_parameters
-        .iter()
-        .map(|parameter| parameter.parameter_id.clone())
-        .collect::<Vec<_>>();
-    let weights_bytes = export_checkpoint_weights(run, parameter_ids.as_slice())?;
+    let weights_bytes = export_checkpoint_weights(run, parameter_ids)?;
     let manifest = AttnResTinyTrainingCheckpointManifest {
         schema_version: 1,
         checkpoint_ref: checkpoint_ref.clone(),
@@ -747,7 +963,7 @@ fn export_checkpoint(
         ),
         training_dataset_digest: corpus.training_digest(),
         held_out_dataset_digest: corpus.held_out_digest(),
-        parameter_ids: parameter_ids.clone(),
+        parameter_ids: parameter_ids.to_vec(),
         parent_checkpoint_ref: parent.map(|checkpoint| checkpoint.manifest.checkpoint_ref.clone()),
         parent_manifest_digest: parent.map(|checkpoint| checkpoint.manifest.stable_digest()),
         step_receipt_id: receipt.map(|receipt| receipt.receipt_id.clone()),
@@ -922,39 +1138,86 @@ fn serialization_error(context: &'static str, error: impl ToString) -> AttnResTi
 mod tests {
     use std::error::Error;
 
-    use serde::Deserialize;
-
     use super::{
-        AttnResTinyTrainingConfig, AttnResTinyTrainingCorpus, restore_attnres_tiny_checkpoint,
-        train_attnres_tiny_next_token,
+        AttnResTinyTrainingConfig, AttnResTinyTrainingCorpus, AttnResTinyTrainingLifecycleStatus,
+        AttnResTinyTrainingRunner, restore_attnres_tiny_checkpoint, train_attnres_tiny_next_token,
     };
 
-    #[derive(Debug, Deserialize)]
-    struct TinyTrainingFixture {
-        description: String,
-        config: psionic_models::AttnResConfig,
-        training_samples: Vec<psionic_models::AttnResNextTokenSample>,
-        held_out_samples: Vec<psionic_models::AttnResNextTokenSample>,
+    #[test]
+    fn reference_corpus_loads_fixture() -> Result<(), Box<dyn Error>> {
+        let corpus = AttnResTinyTrainingCorpus::reference()?;
+        assert!(!corpus.training_samples.is_empty());
+        assert!(!corpus.held_out_samples.is_empty());
+        Ok(())
+    }
+
+    #[test]
+    fn attnres_runner_exposes_starting_update_and_steps_to_completion() -> Result<(), Box<dyn Error>>
+    {
+        let corpus = AttnResTinyTrainingCorpus::reference()?;
+        let config = AttnResTinyTrainingConfig::reference()?;
+        let mut runner = AttnResTinyTrainingRunner::new(&corpus, &config)?;
+        let initial = runner.current_update();
+        assert_eq!(
+            initial.lifecycle,
+            AttnResTinyTrainingLifecycleStatus::Starting
+        );
+        assert_eq!(initial.current_global_step, 0);
+        assert!(initial.step_metrics.is_none());
+        assert_eq!(initial.checkpoint.step, Some(0));
+
+        let mut last = initial;
+        while !runner.is_complete() {
+            last = runner.step()?;
+        }
+
+        assert_eq!(
+            last.lifecycle,
+            AttnResTinyTrainingLifecycleStatus::Completed
+        );
+        assert_eq!(last.current_global_step, config.budget.max_steps);
+        assert_eq!(
+            last.step_metrics
+                .as_ref()
+                .map(|metrics| metrics.global_step),
+            Some(config.budget.max_steps)
+        );
+        assert_eq!(last.checkpoint.step, Some(config.budget.max_steps));
+
+        let outcome = runner.into_outcome()?;
+        assert_eq!(outcome.step_metrics.len() as u64, config.budget.max_steps);
+        assert!(
+            outcome.summary.final_training_mean_loss < outcome.summary.initial_training_mean_loss
+        );
+        assert!(outcome.summary.held_out_eval.mean_routing_l2_delta > 0.0);
+        Ok(())
+    }
+
+    #[test]
+    fn whole_run_api_stays_layered_on_runner() -> Result<(), Box<dyn Error>> {
+        let corpus = AttnResTinyTrainingCorpus::reference()?;
+        let config = AttnResTinyTrainingConfig::reference()?;
+        let whole_run = train_attnres_tiny_next_token(&corpus, &config)?;
+        let mut runner = AttnResTinyTrainingRunner::new(&corpus, &config)?;
+        while !runner.is_complete() {
+            runner.step()?;
+        }
+        let stepped = runner.into_outcome()?;
+        assert_eq!(stepped.step_metrics, whole_run.step_metrics);
+        assert_eq!(stepped.summary, whole_run.summary);
+        assert_eq!(
+            stepped.final_checkpoint.manifest,
+            whole_run.final_checkpoint.manifest
+        );
+        Ok(())
     }
 
     #[test]
     fn attnres_tiny_training_runs_end_to_end_and_restores_checkpoint() -> Result<(), Box<dyn Error>>
     {
-        let fixture: TinyTrainingFixture = serde_json::from_str(include_str!(
-            "../../../fixtures/attnres/tiny_training_cases.json"
-        ))?;
-        let corpus = AttnResTinyTrainingCorpus {
-            description: fixture.description,
-            config: fixture.config,
-            training_samples: fixture.training_samples,
-            held_out_samples: fixture.held_out_samples,
-        };
+        let corpus = AttnResTinyTrainingCorpus::reference()?;
         let config = AttnResTinyTrainingConfig::reference()?;
         let outcome = train_attnres_tiny_next_token(&corpus, &config)?;
-        assert!(
-            outcome.summary.final_training_mean_loss < outcome.summary.initial_training_mean_loss
-        );
-        assert!(outcome.summary.held_out_eval.mean_routing_l2_delta > 0.0);
         let restored = restore_attnres_tiny_checkpoint(
             &outcome.final_checkpoint.manifest,
             &outcome.final_checkpoint.weights_artifact.bytes,
