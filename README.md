@@ -59,6 +59,9 @@ exists in this repository.
 Psionic now has an implemented-early executor-class reference lane codenamed
 `Tassadar`.
 
+Tassadar is based on Percepta's
+[Can LLMs Be Computers?](https://www.percepta.ai/blog/can-llms-be-computers).
+
 Current posture:
 
 - it lives under `crates/psionic-*`, not in app code and not in kernel or
