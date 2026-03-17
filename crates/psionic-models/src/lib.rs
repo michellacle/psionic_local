@@ -1,5 +1,6 @@
 //! Model abstractions for Psionic.
 
+mod attnres;
 mod fixtures;
 mod harmony;
 mod runtime_tokenizer;
@@ -28,6 +29,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use thiserror::Error;
 
+pub use attnres::*;
 pub use fixtures::*;
 pub use harmony::*;
 pub use runtime_tokenizer::*;
