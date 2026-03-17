@@ -9,7 +9,8 @@
 > `PMLX-504` / `#3862`, `PMLX-505` / `#3863`, and
 > `PMLX-506` / `#3864`, `PMLX-507` / `#3865`,
 > `PMLX-601` / `#3866`, `PMLX-602` / `#3867`,
-> `PMLX-603` / `#3868`, and `PMLX-604` / `#3869`,
+> `PMLX-603` / `#3868`, `PMLX-604` / `#3869`, and
+> `PMLX-605` / `#3870`,
 > after reviewing `ROADMAP.md`, `ARCHITECTURE.md`,
 > `FRAMEWORK_CORE_ACCEPTANCE_MATRIX.md`, `TRAIN_SYSTEM.md`,
 > `MLX_COMPATIBILITY_SCOPE.md`, `MLX_ACCEPTANCE_MATRIX.md`,
@@ -554,7 +555,7 @@ MLX claims honest.
 | `PMLX-602` / [#3867](https://github.com/OpenAgentsInc/openagents/issues/3867) | done (2026-03-16) | `Psionic MLX: close Metal backend coverage for the declared MLX-class surface` | `psionic-array` now exposes fallible `ArrayContext::metal()` / `metal_seeded()` constructors backed by the selected runtime Metal device, routes bounded dense `constant` / `add` / `matmul` graphs through `psionic-backend-metal` with real receipt device and stream identity, and refuses broader view/cast/reduction materialization explicitly instead of silently claiming Metal closure. |
 | `PMLX-603` / [#3868](https://github.com/OpenAgentsInc/openagents/issues/3868) | done (2026-03-16) | `Psionic MLX: close CUDA backend coverage for the declared MLX-class surface` | `psionic-array` now exposes fallible `ArrayContext::cuda()` / `cuda_seeded()` constructors backed by the selected runtime CUDA device, routes bounded dense `constant` / `add` / `matmul` graphs through `psionic-backend-cuda` with real receipt device and stream identity, keeps the public CUDA numerics contract explicitly bounded to dense `f32`, and leaves broader distributed/backend parity claims to the remaining backend-closure issues. |
 | `PMLX-604` | done (2026-03-17) | `Psionic MLX: add advanced operator-family closure for linalg, fft, fast kernels, and attention helpers` | `psionic-ir` now exposes a bounded advanced operator-family program layer with `GraphBuilder::linalg_gram_matrix(...)`, `signal_naive_dft(...)`, and `attention_rotary_residual_block(...)`, machine-readable `AdvancedOperatorProgramMatrixReport` evidence, and explicit refusal posture for distribution and special-function families that still lack the required primitives, so MLX-facing claims can point at reusable seeded coverage instead of hand-waving advanced math breadth. |
-| `PMLX-605` | planned | `Psionic MLX: port the upstream MLX C++ and Python test categories into the parity harness` | Build the real evidence base for bounded compatibility by porting or mirroring the highest-value upstream test families. |
+| `PMLX-605` | done (2026-03-17) | `Psionic MLX: port the upstream MLX C++ and Python test categories into the parity harness` | `psionic-compat` now upgrades the imported `array_core`, `ops_numeric`, and `device_eval_memory` families from tracked placeholders to seeded parity-harness passes, pointing at the bounded `psionic-array` CPU-reference coverage report, availability-aware Metal/CUDA hooks, and repo-local runner scripts so the MLX test-family evidence base is runnable instead of implied. |
 | `PMLX-606` | planned | `Psionic MLX: add an optional MLX naming facade and module-layout compatibility crate` | Only after native closure is real, add a thin compatibility shell that helps MLX users map concepts and API names without claiming full upstream closure. |
 | `PMLX-607` | planned | `Psionic MLX: add optional Python, C, or Swift binding layers above the Rust-native core` | Bindings are explicitly late-surface work and must depend on the native substrate rather than freezing a Python-first architecture into the core. |
 | `PMLX-608` | planned | `Psionic MLX: publish an MLX-to-Psionic migration guide, example suite, and bounded compatibility matrix` | Finish the adoption story with examples, migration steps, and explicit supported, convertible, and unsupported tables. |
@@ -662,7 +663,7 @@ track in parallel.
 - `PMLX-602` done 2026-03-16
 - `PMLX-603` done 2026-03-16
 - `PMLX-604` done 2026-03-17
-- `PMLX-605`
+- `PMLX-605` done 2026-03-17
 
 ### Phase 8: close the package and service ecosystem above the native substrate
 

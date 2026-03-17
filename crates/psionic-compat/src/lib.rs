@@ -1171,7 +1171,7 @@ pub fn builtin_mlx_acceptance_matrix_report() -> MlxAcceptanceMatrixReport {
                 "CPU reference, Metal, and CUDA backends honestly cover the declared MLX surface, the parity harness carries the upstream MLX test families, and any compatibility or binding shells stay explicitly bounded.",
             ),
             current_repo_truth: String::from(
-                "Psionic has real backend-specific substrate, the first MLX version window contract, one machine-readable CPU-reference coverage report in psionic-array over imported array_core, ops_numeric, and device_eval_memory families, bounded public Metal and CUDA array-execution slices through ArrayContext::metal and ArrayContext::cuda for dense constant/add/matmul graphs on the selected runtime device while keeping accelerator numerics explicitly dense-f32, and a bounded advanced operator-family evidence layer in psionic-ir over reusable linalg gram-matrix, signal Fourier-projection, and rotary-attention residual programs with explicit refusal posture for still-missing distribution and special-function families; distributed backend-family capability mapping remains explicit in psionic-distributed, and broader MLX-class backend closure, parity-harness evidence, or compatibility-shell boundaries still do not exist above that substrate.",
+                "Psionic has real backend-specific substrate, the first MLX version window contract, one machine-readable CPU-reference coverage report in psionic-array over imported array_core, ops_numeric, and device_eval_memory families, seeded parity-harness passes over those same imported families in psionic-compat, bounded public Metal and CUDA array-execution slices through ArrayContext::metal and ArrayContext::cuda for dense constant/add/matmul graphs on the selected runtime device while keeping accelerator numerics explicitly dense-f32, and a bounded advanced operator-family evidence layer in psionic-ir over reusable linalg gram-matrix, signal Fourier-projection, and rotary-attention residual programs with explicit refusal posture for still-missing distribution and special-function families; distributed backend-family capability mapping remains explicit in psionic-distributed, and broader MLX-class backend closure or compatibility-shell boundaries still do not exist above that substrate.",
             ),
             boundary_note: String::from(
                 "Do not claim bounded MLX backend or compatibility closure from one backend lane, one demo, or one local checkout until the declared categories have parity evidence and explicit shell boundaries.",
@@ -1195,8 +1195,11 @@ pub fn builtin_mlx_parity_harness_report() -> MlxParityHarnessReport {
                 String::from("python/tests/test_bf16.py"),
                 String::from("python/tests/test_double.py"),
             ],
-            current_outcome: MlxParityHarnessOutcome::Unsupported,
+            current_outcome: MlxParityHarnessOutcome::Pass,
             psionic_hook_commands: vec![
+                String::from(
+                    "scripts/release/check-psionic-mlx-cpu-reference-coverage.sh --only array_core",
+                ),
                 String::from(
                     "cargo test -p psionic-array tests::public_lazy_array_surface_builds_graph_backed_arithmetic -- --exact --nocapture",
                 ),
@@ -1213,6 +1216,9 @@ pub fn builtin_mlx_parity_harness_report() -> MlxParityHarnessReport {
                     "cargo test -p psionic-array tests::public_lazy_array_tree_utilities_preserve_structure_and_refuse_bad_unflatten -- --exact --nocapture",
                 ),
                 String::from(
+                    "cargo test -p psionic-array tests::mlx_cpu_reference_coverage_report_tracks_seeded_supported_and_refused_cases -- --exact --nocapture",
+                ),
+                String::from(
                     "cargo test -p psionic-array tests::public_lazy_array_metal_eval_refuses_ops_outside_bounded_surface_when_hardware_available -- --exact --nocapture",
                 ),
                 String::from(
@@ -1220,10 +1226,10 @@ pub fn builtin_mlx_parity_harness_report() -> MlxParityHarnessReport {
                 ),
             ],
             summary: String::from(
-                "The upstream array-core family is still tracked as unsupported for parity-harness purposes, but psionic-array now also publishes a bounded CPU-reference coverage report over flatten, expand_dims, squeeze, slice, select, concat, and transpose cases plus bounded Metal and CUDA lanes that refuse reshape-backed view materialization explicitly outside the current dense execution slice.",
+                "The upstream array-core family now has a seeded parity-harness pass through psionic-array's bounded CPU-reference coverage over flatten, expand_dims, squeeze, slice, select, concat, and transpose cases, plus availability-aware Metal and CUDA refusal coverage outside the current dense execution slice.",
             ),
             boundary_note: String::from(
-                "A bounded CPU-reference coverage contract and explicit Metal/CUDA refusal contracts now exist for representative array-core cases, but that is still not the same thing as a full upstream MLX array-core parity port.",
+                "This is a bounded seeded array-core pass over named view and refusal cases, not proof of full upstream MLX array-core storage, dtype, or layout parity.",
             ),
         },
         MlxParityHarnessFamily {
@@ -1240,8 +1246,11 @@ pub fn builtin_mlx_parity_harness_report() -> MlxParityHarnessReport {
                 String::from("python/tests/test_einsum.py"),
                 String::from("python/tests/test_random.py"),
             ],
-            current_outcome: MlxParityHarnessOutcome::Unsupported,
+            current_outcome: MlxParityHarnessOutcome::Pass,
             psionic_hook_commands: vec![
+                String::from(
+                    "scripts/release/check-psionic-mlx-cpu-reference-coverage.sh --only ops_numeric",
+                ),
                 String::from(
                     "cargo test -p psionic-array tests::public_lazy_array_surface_builds_graph_backed_arithmetic -- --exact --nocapture",
                 ),
@@ -1255,6 +1264,9 @@ pub fn builtin_mlx_parity_harness_report() -> MlxParityHarnessReport {
                     "cargo test -p psionic-array tests::public_lazy_array_host_interop_and_item_access_stay_explicit -- --exact --nocapture",
                 ),
                 String::from(
+                    "cargo test -p psionic-array tests::mlx_cpu_reference_coverage_report_tracks_seeded_supported_and_refused_cases -- --exact --nocapture",
+                ),
+                String::from(
                     "cargo test -p psionic-array tests::public_lazy_array_metal_eval_executes_bounded_dense_surface_when_hardware_available -- --exact --nocapture",
                 ),
                 String::from(
@@ -1262,10 +1274,10 @@ pub fn builtin_mlx_parity_harness_report() -> MlxParityHarnessReport {
                 ),
             ],
             summary: String::from(
-                "The numeric-op and creation families remain tracked but unsupported for parity-harness purposes even though psionic-array now also publishes a bounded CPU-reference coverage report over dense add/mul/matmul, axis-aware sum, seeded random-plus-cast, helper creation families, and typed refusal for incompatible dense matmul shapes, plus bounded actual Metal and CUDA dense add/matmul execution paths on the selected runtime device.",
+                "The upstream numeric-op and creation family now has a seeded parity-harness pass through psionic-array's bounded CPU-reference coverage over dense add, mul, matmul, axis-aware sum, seeded random-plus-cast, helper creation families, and typed refusal for incompatible dense matmul shapes, plus bounded actual Metal and CUDA dense add/matmul execution paths on the selected runtime device.",
             ),
             boundary_note: String::from(
-                "A bounded CPU-reference numeric contract plus explicit Metal and CUDA dense execution slices now exist, but that is still not the same thing as a seeded upstream MLX numeric parity family.",
+                "This is a bounded seeded numeric-family pass over named dense and refusal cases, not proof of full upstream MLX numeric breadth, arg-reduce coverage, einsum closure, or broad dtype parity.",
             ),
         },
         MlxParityHarnessFamily {
@@ -1281,8 +1293,11 @@ pub fn builtin_mlx_parity_harness_report() -> MlxParityHarnessReport {
                 String::from("python/tests/test_eval.py"),
                 String::from("python/tests/test_memory.py"),
             ],
-            current_outcome: MlxParityHarnessOutcome::Unsupported,
+            current_outcome: MlxParityHarnessOutcome::Pass,
             psionic_hook_commands: vec![
+                String::from(
+                    "scripts/release/check-psionic-mlx-cpu-reference-coverage.sh --only device_eval_memory",
+                ),
                 String::from(
                     "cargo test -p psionic-array tests::public_lazy_array_device_handles_preserve_unified_memory_truth -- --exact --nocapture",
                 ),
@@ -1302,6 +1317,9 @@ pub fn builtin_mlx_parity_harness_report() -> MlxParityHarnessReport {
                     "cargo test -p psionic-array tests::public_lazy_array_backend_debug_capture_emits_receipt_logs_and_artifact -- --exact --nocapture",
                 ),
                 String::from(
+                    "cargo test -p psionic-array tests::mlx_cpu_reference_coverage_report_tracks_seeded_supported_and_refused_cases -- --exact --nocapture",
+                ),
+                String::from(
                     "cargo test -p psionic-array tests::public_lazy_array_metal_constructor_reports_runtime_availability -- --exact --nocapture",
                 ),
                 String::from(
@@ -1315,10 +1333,10 @@ pub fn builtin_mlx_parity_harness_report() -> MlxParityHarnessReport {
                 ),
             ],
             summary: String::from(
-                "Device, eval, scheduler, and memory families remain named and unsupported for parity-harness purposes even though psionic-array now also publishes a bounded CPU-reference coverage report over explicit eval, async-eval wait, cache counters, backend-debug capture receipts, and typed refusal for unsupported capture formats above the reference eval path, plus availability-aware Metal and CUDA constructor and eval receipts that preserve selected device and explicit stream identity on the bounded dense surface.",
+                "The upstream device/eval/memory family now has a seeded parity-harness pass through psionic-array's bounded CPU-reference coverage over explicit eval, async-eval wait, cache counters, backend-debug capture receipts, and typed refusal for unsupported capture formats above the reference eval path, plus availability-aware Metal and CUDA constructor and eval receipts that preserve selected device and explicit stream identity on the bounded dense surface.",
             ),
             boundary_note: String::from(
-                "A bounded CPU-reference eval/memory contract plus explicit Metal and CUDA receipt paths now exist, but that is still not the same thing as MLX-class allocator, scheduler, vendor-native profiler capture, or runtime-memory parity.",
+                "This is a bounded seeded device/eval/memory pass over named eval, observability, and refusal cases, not proof of MLX-class allocator, scheduler, vendor-native profiler capture, or full runtime-memory parity.",
             ),
         },
         MlxParityHarnessFamily {
@@ -2311,6 +2329,26 @@ mod tests {
         assert_eq!(autograd.current_outcome, MlxParityHarnessOutcome::Pass);
         assert!(!autograd.psionic_hook_commands.is_empty());
 
+        let array_core = report
+            .families
+            .iter()
+            .find(|family| family.family_id == "array_core")
+            .expect("missing array_core family");
+        assert_eq!(array_core.current_outcome, MlxParityHarnessOutcome::Pass);
+        assert!(array_core.psionic_hook_commands.iter().any(|hook| {
+            hook.contains("check-psionic-mlx-cpu-reference-coverage.sh --only array_core")
+        }));
+
+        let ops_numeric = report
+            .families
+            .iter()
+            .find(|family| family.family_id == "ops_numeric")
+            .expect("missing ops_numeric family");
+        assert_eq!(ops_numeric.current_outcome, MlxParityHarnessOutcome::Pass);
+        assert!(ops_numeric.psionic_hook_commands.iter().any(|hook| {
+            hook.contains("check-psionic-mlx-cpu-reference-coverage.sh --only ops_numeric")
+        }));
+
         let vmap = report
             .families
             .iter()
@@ -2343,7 +2381,12 @@ mod tests {
             .iter()
             .find(|family| family.family_id == "device_eval_memory")
             .expect("missing device/eval/memory family");
-        assert_eq!(eval.current_outcome, MlxParityHarnessOutcome::Unsupported);
+        assert_eq!(eval.current_outcome, MlxParityHarnessOutcome::Pass);
+        assert!(eval.psionic_hook_commands.iter().any(|hook| {
+            hook.contains(
+                "check-psionic-mlx-cpu-reference-coverage.sh --only device_eval_memory",
+            )
+        }));
         assert!(!eval.psionic_hook_commands.is_empty());
 
         let nn = report

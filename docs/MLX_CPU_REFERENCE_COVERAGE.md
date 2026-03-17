@@ -72,11 +72,12 @@ work:
 
 - Metal and CUDA coverage should now widen above a named CPU oracle instead of
   hand-waving from one backend demo
-- the later parity-harness port in `PMLX-605` can now consume an existing
+- the parity-harness closeout in `PMLX-605` now consumes this existing
   CPU-reference contract instead of inventing one at the same time
 
 The sequencing rule remains:
 
 - close CPU reference truth first
 - then widen Metal and CUDA truth
-- then port broader upstream MLX test families into the parity harness
+- then let the parity harness consume that oracle for imported `array_core`,
+  `ops_numeric`, and `device_eval_memory` families before widening further
