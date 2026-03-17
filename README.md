@@ -536,6 +536,9 @@ Current posture:
   Face cache workflow package above `psionic-catalog` and `psionic-mlx-lm`.
 - `psionic-mlx-serve`: bounded MLX-style text-serving package that resolves
   MLX model references and boots the shared OpenAI-compatible Psionic server.
+- `psionic-mlx-vlm`: bounded MLX-style multimodal package with processor
+  registries, image/audio/video request shapes, and served-request planning
+  over the shared text-serving lane.
 
 ### Backend And Platform Lanes
 
@@ -699,6 +702,10 @@ Implemented now:
   `psionic-mlx-catalog` and `psionic-serve`, with machine-readable bootstrap
   reports plus package-owned `plan`/`serve` CLIs for `/v1/chat/completions`
   and `/v1/responses`.
+- `psionic-mlx-vlm` bounded MLX-style multimodal package with builtin
+  processor registries for `llava`, `qwen2_vl`, and `omni`-class families,
+  OpenAI-compatible image/audio/video request shapes, digest-bound attachment
+  receipts, and text-serving request plans over the shared server.
 - CPU baseline plus a first Metal-backed `psionic.embeddings` lane.
 - generic CPU GGUF decoder execution for GPT-OSS plus representative Llama,
   Qwen, and Mistral families through one Psionic-owned runtime surface.
@@ -973,6 +980,10 @@ For canonical current-state detail, use `docs/ARCHITECTURE.md` and
   canonical bounded text-serving spec for `psionic-mlx-serve`, including
   MLX-style model-reference resolution, bootstrap reports, and response-state
   posture over the shared Psionic OpenAI-compatible server.
+- **[docs/MLX_VLM_PACKAGE.md](docs/MLX_VLM_PACKAGE.md)** —
+  canonical bounded multimodal package spec for `psionic-mlx-vlm`, including
+  builtin processor registries, prompt projection, attachment receipts, and
+  served-request planning for image/audio/video inputs.
 - **[docs/INFERENCE_ENGINE.md](docs/INFERENCE_ENGINE.md)** — canonical
   inference-engine completion criteria and current boundaries.
 - **[docs/TRAIN_SYSTEM.md](docs/TRAIN_SYSTEM.md)** — canonical training
