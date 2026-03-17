@@ -3466,6 +3466,7 @@ dependencies = [
 name = "psionic-compiler"
 version = "0.1.1"
 dependencies = [
+ "hex",
  "psionic-core",
  "psionic-ir",
  "psionic-runtime",
@@ -3578,6 +3579,7 @@ dependencies = [
  "hex",
  "psionic-core",
  "serde",
+ "serde_json",
  "sha2",
  "thiserror 2.0.18",
 ]
@@ -3730,6 +3732,7 @@ dependencies = [
  "openai-harmony",
  "psionic-catalog",
  "psionic-core",
+ "psionic-ir",
  "psionic-runtime",
  "safetensors",
  "serde",

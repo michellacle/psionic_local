@@ -611,6 +611,15 @@ The current scope is:
   compiled-weight suite artifacts for `program_compiled` candidates, and the
   machine-readable direct-vs-compiled comparison report at
   `fixtures/tassadar/reports/tassadar_program_to_weights_benchmark_suite.json`
+- landed bounded symbolic compiler-target follow-on: `psionic-ir` now owns a
+  public straight-line `TassadarSymbolicProgram` contract with textual
+  parsing, validation, direct symbolic evaluation, seeded arithmetic/parity/memory
+  examples, and explicit lowering-opcode requirements, `psionic-compiler` now
+  lowers that bounded IR into concrete `TassadarProgram` instances with typed
+  profile/opcode/local-budget refusal, and `psionic-models` now exposes the
+  model-facing symbolic example suite under the explicit
+  `compiled_bounded_exactness` claim class instead of leaving the
+  "paper idea to runtime" gap implicit
 - landed Phase 9D bar: typed learned-plus-compiled and learned-circuit
   research in `psionic-research`, with explicit research-line,
   instruction-set, execution-proxy, claim-boundary, and proof-expectation

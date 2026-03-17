@@ -1,6 +1,7 @@
 //! Canonical graph and plan representation for Psionic.
 
 mod autodiff;
+mod tassadar_symbolic;
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -14,6 +15,7 @@ use sha2::{Digest, Sha256};
 use thiserror::Error;
 
 pub use autodiff::*;
+pub use tassadar_symbolic::*;
 
 /// Human-readable crate ownership summary.
 pub const CRATE_ROLE: &str = "canonical graph, autodiff, and execution plan types";

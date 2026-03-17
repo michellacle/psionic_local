@@ -18,6 +18,7 @@ fancy-regex = "0.16.2"
 hex = { workspace = true }
 psionic-catalog = { path = "../psionic-catalog" }
 psionic-core = { path = "../psionic-core" }
+psionic-ir = { path = "../psionic-ir" }
 openai-harmony = "0.0.8"
 psionic-runtime = { path = "../psionic-runtime" }
 safetensors = { workspace = true }

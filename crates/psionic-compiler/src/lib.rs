@@ -1,5 +1,7 @@
 //! Lowering and scheduling boundaries for Psionic.
 
+mod tassadar_symbolic;
+
 use std::collections::{BTreeMap, BTreeSet};
 
 use psionic_core::{
@@ -21,6 +23,8 @@ use psionic_runtime::{
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use thiserror::Error;
+
+pub use tassadar_symbolic::*;
 
 /// Human-readable crate ownership summary.
 pub const CRATE_ROLE: &str = "compiler and scheduling interfaces";
