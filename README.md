@@ -128,6 +128,12 @@ Current posture:
   that compares SparseTopK against the same article workload set and keeps
   `BranchHeavyKernel`, `LongLoopKernel`, and `SudokuClass` explicitly
   fallback-only under the current validation contract
+- its Phase 8C decode-scaling report now also exists in `psionic-eval`, with
+  the committed report at
+  `fixtures/tassadar/reports/tassadar_decode_scaling_report.json` that tracks
+  trace-artifact growth, throughput, CPU-gap, and direct-vs-fallback posture
+  across shared linear, branch-heavy, and long-loop synthetic families instead
+  of relying on one headline fast-path number
 - the first trained-executor follow-on bar now also exists in
   `psionic-runtime` and `psionic-models`: a dedicated
   `tassadar.wasm.sudoku_v0_search.v1` profile plus a real 4x4 backtracking

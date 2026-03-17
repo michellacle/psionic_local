@@ -202,6 +202,12 @@ The current scope is:
   article workload set while keeping branch-heavy, long-loop, and Sudoku
   search workloads explicit as fallback-only under the current validation
   contract
+- landed Phase 8C bar: one decode-scaling report now exists in `psionic-eval`
+  at `fixtures/tassadar/reports/tassadar_decode_scaling_report.json`,
+  comparing requested reference-linear, HullCache, and SparseTopK execution on
+  shared synthetic trace-length families while recording trace-artifact growth
+  and direct-vs-fallback posture so the fast-path scaling story is tied to
+  exactness and compatibility truth instead of a single throughput screenshot
 - landed trained-executor Phase 1 follow-on bar: a dedicated
   `tassadar.wasm.sudoku_v0_search.v1` profile now exists with a real 4x4
   backtracking Sudoku program representation on the CPU reference lane, while

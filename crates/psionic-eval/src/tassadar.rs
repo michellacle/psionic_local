@@ -9,14 +9,15 @@ use psionic_environments::{
 };
 use psionic_models::{TassadarExecutorContractError, TassadarExecutorFixture};
 use psionic_runtime::{
-    build_tassadar_execution_evidence_bundle, run_tassadar_exact_equivalence,
-    tassadar_article_class_corpus, tassadar_hungarian_v0_corpus, tassadar_sudoku_v0_corpus,
-    tassadar_validation_corpus, TassadarCpuReferenceRunner, TassadarExecutionRefusal,
-    TassadarExecutorDecodeMode, TassadarExecutorSelectionReason, TassadarExecutorSelectionState,
-    TassadarFixtureRunner, TassadarHullCacheRunner, TassadarHungarianV0CorpusCase,
+    build_tassadar_execution_evidence_bundle, diagnose_tassadar_executor_request,
+    run_tassadar_exact_equivalence, tassadar_article_class_corpus, tassadar_hungarian_v0_corpus,
+    tassadar_sudoku_v0_corpus, tassadar_trace_abi_for_profile_id, tassadar_validation_corpus,
+    TassadarCpuReferenceRunner, TassadarExecutionRefusal, TassadarExecutorDecodeMode,
+    TassadarExecutorSelectionReason, TassadarExecutorSelectionState, TassadarFixtureRunner,
+    TassadarHullCacheRunner, TassadarHungarianV0CorpusCase, TassadarInstruction, TassadarProgram,
     TassadarProgramArtifact, TassadarProgramArtifactError, TassadarSparseTopKRunner,
-    TassadarSudokuV0CorpusCase, TassadarSudokuV0CorpusSplit, TassadarTraceAbi, TassadarWasmProfile,
-    TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF,
+    TassadarSudokuV0CorpusCase, TassadarSudokuV0CorpusSplit, TassadarTraceAbi,
+    TassadarTraceArtifact, TassadarWasmProfile, TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
@@ -78,6 +79,9 @@ pub const TASSADAR_HULL_CACHE_CLOSURE_REPORT_REF: &str =
 /// Canonical machine-readable output path for the SparseTopK comparison report.
 pub const TASSADAR_SPARSE_TOP_K_COMPARISON_REPORT_REF: &str =
     "fixtures/tassadar/reports/tassadar_sparse_top_k_comparison_report.json";
+/// Canonical machine-readable output path for the decode-scaling report.
+pub const TASSADAR_DECODE_SCALING_REPORT_REF: &str =
+    "fixtures/tassadar/reports/tassadar_decode_scaling_report.json";
 
 const TASSADAR_OUTPUT_EXACTNESS_METRIC_ID: &str = "tassadar.final_output_exactness_bps";
 const TASSADAR_STEP_EXACTNESS_METRIC_ID: &str = "tassadar.step_exactness_bps";
@@ -97,6 +101,7 @@ const TASSADAR_TRACE_STEP_COUNT_METRIC_ID: &str = "tassadar.trace_step_count";
 const TASSADAR_WORKLOAD_CAPABILITY_MATRIX_SCHEMA_VERSION: u16 = 1;
 const TASSADAR_HULL_CACHE_CLOSURE_SCHEMA_VERSION: u16 = 1;
 const TASSADAR_SPARSE_TOP_K_COMPARISON_SCHEMA_VERSION: u16 = 1;
+const TASSADAR_DECODE_SCALING_SCHEMA_VERSION: u16 = 1;
 
 /// One packaged Tassadar Phase 3 suite.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -325,6 +330,113 @@ pub struct TassadarSparseTopKComparisonReport {
     pub report_digest: String,
 }
 
+/// One trace-length scaling regime inside one synthetic workload family.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct TassadarDecodeScalingRegimeReport {
+    /// Stable regime identifier inside one workload family.
+    pub regime_id: String,
+    /// Short summary of the synthetic program shape.
+    pub summary: String,
+    /// Stable synthetic program identifier.
+    pub program_id: String,
+    /// Wasm profile targeted by the synthetic program.
+    pub profile_id: String,
+    /// Stable length-parameter field name for this family.
+    pub length_parameter_name: String,
+    /// Stable length-parameter value.
+    pub length_parameter_value: u64,
+    /// Program instruction count.
+    pub instruction_count: usize,
+    /// Exact trace-step count.
+    pub trace_step_count: u64,
+    /// Serialized trace-artifact byte count used as the current memory-growth proxy.
+    pub trace_artifact_bytes: u64,
+    /// Average serialized trace-artifact bytes per step.
+    pub trace_artifact_bytes_per_step: f64,
+    /// Maximum observed stack depth during execution.
+    pub max_stack_depth: usize,
+    /// Declared memory-slot count for the program.
+    pub memory_slot_count: usize,
+    /// CPU-reference throughput.
+    pub cpu_reference_steps_per_second: f64,
+    /// Reference-linear throughput.
+    pub reference_linear_steps_per_second: f64,
+    /// Effective HullCache-request throughput.
+    pub hull_cache_steps_per_second: f64,
+    /// Speedup ratio of the HullCache request over reference-linear execution.
+    pub hull_cache_speedup_over_reference_linear: f64,
+    /// Remaining CPU gap ratio for the HullCache request.
+    pub hull_cache_remaining_gap_vs_cpu_reference: f64,
+    /// HullCache-request selection state.
+    pub hull_cache_selection_state: TassadarExecutorSelectionState,
+    /// Stable fallback reason for the HullCache request when one exists.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hull_cache_selection_reason: Option<TassadarExecutorSelectionReason>,
+    /// Effective decode mode after HullCache request resolution.
+    pub hull_cache_effective_decode_mode: TassadarExecutorDecodeMode,
+    /// Effective SparseTopK-request throughput.
+    pub sparse_top_k_steps_per_second: f64,
+    /// Speedup ratio of the SparseTopK request over reference-linear execution.
+    pub sparse_top_k_speedup_over_reference_linear: f64,
+    /// Remaining CPU gap ratio for the SparseTopK request.
+    pub sparse_top_k_remaining_gap_vs_cpu_reference: f64,
+    /// SparseTopK-request selection state.
+    pub sparse_top_k_selection_state: TassadarExecutorSelectionState,
+    /// Stable fallback reason for the SparseTopK request when one exists.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sparse_top_k_selection_reason: Option<TassadarExecutorSelectionReason>,
+    /// Effective decode mode after SparseTopK request resolution.
+    pub sparse_top_k_effective_decode_mode: TassadarExecutorDecodeMode,
+    /// Whether traces matched across CPU, linear, hull, and sparse requests.
+    pub trace_digest_equal: bool,
+    /// Whether outputs matched across CPU, linear, hull, and sparse requests.
+    pub outputs_equal: bool,
+    /// Whether halt reasons matched across CPU, linear, hull, and sparse requests.
+    pub halt_equal: bool,
+    /// Aggregate exactness score in basis points.
+    pub exactness_bps: u32,
+    /// CPU-reference behavior digest.
+    pub cpu_behavior_digest: String,
+    /// Reference-linear behavior digest.
+    pub reference_linear_behavior_digest: String,
+    /// HullCache-request behavior digest.
+    pub hull_cache_behavior_digest: String,
+    /// SparseTopK-request behavior digest.
+    pub sparse_top_k_behavior_digest: String,
+}
+
+/// One synthetic workload family in the decode-scaling report.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct TassadarDecodeScalingFamilyReport {
+    /// Stable family identifier.
+    pub family_id: String,
+    /// Short family summary.
+    pub summary: String,
+    /// Stable length-parameter field name shared across the family.
+    pub length_parameter_name: String,
+    /// Plain-language claim boundary for the family.
+    pub claim_boundary: String,
+    /// Ordered scaling regimes for the family.
+    pub regimes: Vec<TassadarDecodeScalingRegimeReport>,
+}
+
+/// Machine-readable decode-scaling report across the current active decode modes.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct TassadarDecodeScalingReport {
+    /// Stable schema version.
+    pub schema_version: u16,
+    /// Ordered artifact anchors used to build the report.
+    pub generated_from_artifacts: Vec<String>,
+    /// Stable memory-growth metric recorded in each regime.
+    pub memory_growth_metric: String,
+    /// Ordered synthetic workload families.
+    pub families: Vec<TassadarDecodeScalingFamilyReport>,
+    /// Plain-language boundary for the full scaling report.
+    pub claim_boundary: String,
+    /// Stable digest over the full report.
+    pub report_digest: String,
+}
+
 /// Tassadar benchmark build or execution failure.
 #[derive(Debug, Error)]
 pub enum TassadarBenchmarkError {
@@ -393,6 +505,33 @@ pub enum TassadarSparseTopKComparisonError {
     /// JSON parsing or serialization failed.
     #[error(transparent)]
     Json(#[from] serde_json::Error),
+}
+
+/// Decode-scaling report build or persistence failure.
+#[derive(Debug, Error)]
+pub enum TassadarDecodeScalingReportError {
+    /// Underlying filesystem read/write failed.
+    #[error(transparent)]
+    Io(#[from] std::io::Error),
+    /// JSON parsing or serialization failed.
+    #[error(transparent)]
+    Json(#[from] serde_json::Error),
+    /// Runtime execution refused one synthetic program directly.
+    #[error(transparent)]
+    ExecutionRefusal(#[from] TassadarExecutionRefusal),
+    /// Runtime execution or benchmarking refused one synthetic program.
+    #[error(transparent)]
+    Benchmark(#[from] TassadarBenchmarkError),
+    /// One decode request unexpectedly resolved without an executable mode.
+    #[error(
+        "decode-scaling request for program `{program_id}` and mode `{requested_decode_mode:?}` resolved without an effective decode mode"
+    )]
+    MissingEffectiveDecodeMode {
+        /// Program identifier.
+        program_id: String,
+        /// Requested decode mode.
+        requested_decode_mode: TassadarExecutorDecodeMode,
+    },
 }
 
 /// Builds the packaged Phase 3 suite for the current Tassadar validation corpus.
@@ -2610,6 +2749,479 @@ pub fn write_tassadar_sparse_top_k_comparison_report(
     Ok(report)
 }
 
+fn decode_scaling_profile() -> TassadarWasmProfile {
+    TassadarWasmProfile::article_i32_compute_v1()
+}
+
+fn build_linear_memory_accumulator_program(element_count: usize) -> TassadarProgram {
+    let profile = decode_scaling_profile();
+    let mut instructions = vec![
+        TassadarInstruction::I32Const { value: 0 },
+        TassadarInstruction::LocalSet { local: 0 },
+    ];
+    for slot in 0..element_count {
+        instructions.push(TassadarInstruction::I32Load { slot: slot as u8 });
+        instructions.push(TassadarInstruction::LocalGet { local: 0 });
+        instructions.push(TassadarInstruction::I32Add);
+        instructions.push(TassadarInstruction::LocalSet { local: 0 });
+    }
+    instructions.push(TassadarInstruction::LocalGet { local: 0 });
+    instructions.push(TassadarInstruction::Output);
+    instructions.push(TassadarInstruction::Return);
+    TassadarProgram::new(
+        format!("tassadar.scaling.linear_memory_accumulator.e{element_count}.v1"),
+        &profile,
+        1,
+        element_count,
+        instructions,
+    )
+    .with_initial_memory((1..=element_count as i32).collect())
+}
+
+fn build_forward_branch_ladder_program(branch_count: usize) -> TassadarProgram {
+    let profile = decode_scaling_profile();
+    let mut instructions = vec![
+        TassadarInstruction::I32Const { value: 0 },
+        TassadarInstruction::LocalSet { local: 0 },
+    ];
+    let mut initial_memory = Vec::with_capacity(branch_count);
+
+    for branch_index in 0..branch_count {
+        initial_memory.push(i32::from(branch_index % 2 == 0));
+        let false_value = 11 + (branch_index as i32 * 4);
+        let true_value = 7 + (branch_index as i32 * 4);
+
+        instructions.push(TassadarInstruction::I32Load {
+            slot: branch_index as u8,
+        });
+        let select_true_pc = instructions.len();
+        instructions.push(TassadarInstruction::BrIf { target_pc: 0 });
+        instructions.push(TassadarInstruction::I32Const { value: false_value });
+        instructions.push(TassadarInstruction::LocalGet { local: 0 });
+        instructions.push(TassadarInstruction::I32Add);
+        instructions.push(TassadarInstruction::LocalSet { local: 0 });
+        instructions.push(TassadarInstruction::I32Const { value: 1 });
+        let skip_true_pc = instructions.len();
+        instructions.push(TassadarInstruction::BrIf { target_pc: 0 });
+
+        let true_target_pc = instructions.len() as u16;
+        instructions.push(TassadarInstruction::I32Const { value: true_value });
+        instructions.push(TassadarInstruction::LocalGet { local: 0 });
+        instructions.push(TassadarInstruction::I32Add);
+        instructions.push(TassadarInstruction::LocalSet { local: 0 });
+
+        let after_target_pc = instructions.len() as u16;
+        if let TassadarInstruction::BrIf { target_pc } = &mut instructions[select_true_pc] {
+            *target_pc = true_target_pc;
+        }
+        if let TassadarInstruction::BrIf { target_pc } = &mut instructions[skip_true_pc] {
+            *target_pc = after_target_pc;
+        }
+    }
+
+    instructions.push(TassadarInstruction::LocalGet { local: 0 });
+    instructions.push(TassadarInstruction::Output);
+    instructions.push(TassadarInstruction::Return);
+
+    TassadarProgram::new(
+        format!("tassadar.scaling.forward_branch_ladder.b{branch_count}.v1"),
+        &profile,
+        1,
+        branch_count,
+        instructions,
+    )
+    .with_initial_memory(initial_memory)
+}
+
+fn build_backward_branch_loop_program(iteration_count: i32) -> TassadarProgram {
+    let profile = decode_scaling_profile();
+    TassadarProgram::new(
+        format!("tassadar.scaling.backward_branch_loop.i{iteration_count}.v1"),
+        &profile,
+        1,
+        0,
+        vec![
+            TassadarInstruction::I32Const {
+                value: iteration_count,
+            },
+            TassadarInstruction::LocalSet { local: 0 },
+            TassadarInstruction::LocalGet { local: 0 },
+            TassadarInstruction::BrIf { target_pc: 7 },
+            TassadarInstruction::I32Const { value: 0 },
+            TassadarInstruction::Output,
+            TassadarInstruction::Return,
+            TassadarInstruction::LocalGet { local: 0 },
+            TassadarInstruction::I32Const { value: 1 },
+            TassadarInstruction::I32Sub,
+            TassadarInstruction::LocalSet { local: 0 },
+            TassadarInstruction::I32Const { value: 1 },
+            TassadarInstruction::BrIf { target_pc: 2 },
+        ],
+    )
+}
+
+fn benchmark_decode_mode_steps_per_second(
+    program: &TassadarProgram,
+    trace_steps: u64,
+    requested_decode_mode: TassadarExecutorDecodeMode,
+    reference_linear_steps_per_second: f64,
+    cached_hull_cache_steps_per_second: Option<f64>,
+    cached_sparse_top_k_steps_per_second: Option<f64>,
+) -> Result<
+    (
+        TassadarExecutorSelectionState,
+        Option<TassadarExecutorSelectionReason>,
+        TassadarExecutorDecodeMode,
+        f64,
+    ),
+    TassadarDecodeScalingReportError,
+> {
+    let trace_abi =
+        tassadar_trace_abi_for_profile_id(program.profile_id.as_str()).ok_or_else(|| {
+            TassadarDecodeScalingReportError::Benchmark(TassadarBenchmarkError::ExecutionRefusal(
+                TassadarExecutionRefusal::ProfileMismatch {
+                    expected: String::from("one of the supported Tassadar Wasm profiles"),
+                    actual: program.profile_id.clone(),
+                },
+            ))
+        })?;
+    let selection = diagnose_tassadar_executor_request(
+        program,
+        requested_decode_mode,
+        trace_abi.schema_version,
+        Some(&[
+            TassadarExecutorDecodeMode::ReferenceLinear,
+            TassadarExecutorDecodeMode::HullCache,
+            TassadarExecutorDecodeMode::SparseTopK,
+        ]),
+    );
+    let effective_decode_mode = selection.effective_decode_mode.ok_or(
+        TassadarDecodeScalingReportError::MissingEffectiveDecodeMode {
+            program_id: program.program_id.clone(),
+            requested_decode_mode,
+        },
+    )?;
+
+    let steps_per_second = match effective_decode_mode {
+        TassadarExecutorDecodeMode::ReferenceLinear => reference_linear_steps_per_second,
+        TassadarExecutorDecodeMode::HullCache => {
+            if let Some(cached) = cached_hull_cache_steps_per_second {
+                cached
+            } else {
+                let hull_cache_runner = TassadarHullCacheRunner::for_program(program)?;
+                benchmark_scaling_runner_steps_per_second(trace_steps, || {
+                    hull_cache_runner.execute(program)
+                })?
+            }
+        }
+        TassadarExecutorDecodeMode::SparseTopK => {
+            if let Some(cached) = cached_sparse_top_k_steps_per_second {
+                cached
+            } else {
+                let sparse_top_k_runner = TassadarSparseTopKRunner::for_program(program)?;
+                benchmark_scaling_runner_steps_per_second(trace_steps, || {
+                    sparse_top_k_runner.execute(program)
+                })?
+            }
+        }
+    };
+
+    Ok((
+        selection.selection_state,
+        selection.selection_reason,
+        effective_decode_mode,
+        steps_per_second,
+    ))
+}
+
+fn build_decode_scaling_regime(
+    regime_id: impl Into<String>,
+    summary: impl Into<String>,
+    length_parameter_name: &str,
+    length_parameter_value: u64,
+    program: TassadarProgram,
+) -> Result<TassadarDecodeScalingRegimeReport, TassadarDecodeScalingReportError> {
+    let cpu_runner = TassadarCpuReferenceRunner::for_program(&program)?;
+    let reference_linear_runner = TassadarFixtureRunner::for_program(&program)?;
+    let equivalence_report = run_tassadar_exact_equivalence(&program)?;
+    let reference_execution = &equivalence_report.reference_linear;
+    let trace_step_count = reference_execution.steps.len() as u64;
+    let cpu_reference_steps_per_second =
+        benchmark_scaling_runner_steps_per_second(trace_step_count, || {
+            cpu_runner.execute(&program)
+        })?;
+    let reference_linear_steps_per_second =
+        benchmark_scaling_runner_steps_per_second(trace_step_count, || {
+            reference_linear_runner.execute(&program)
+        })?;
+
+    let hull_cache_runner = TassadarHullCacheRunner::for_program(&program)?;
+    let hull_cache_direct_steps_per_second =
+        benchmark_scaling_runner_steps_per_second(trace_step_count, || {
+            hull_cache_runner.execute(&program)
+        })
+        .ok();
+
+    let sparse_top_k_runner = TassadarSparseTopKRunner::for_program(&program)?;
+    let sparse_top_k_direct_steps_per_second =
+        benchmark_scaling_runner_steps_per_second(trace_step_count, || {
+            sparse_top_k_runner.execute(&program)
+        })
+        .ok();
+
+    let (
+        hull_cache_selection_state,
+        hull_cache_selection_reason,
+        hull_cache_effective_decode_mode,
+        hull_cache_steps_per_second,
+    ) = benchmark_decode_mode_steps_per_second(
+        &program,
+        trace_step_count,
+        TassadarExecutorDecodeMode::HullCache,
+        reference_linear_steps_per_second,
+        hull_cache_direct_steps_per_second,
+        sparse_top_k_direct_steps_per_second,
+    )?;
+    let (
+        sparse_top_k_selection_state,
+        sparse_top_k_selection_reason,
+        sparse_top_k_effective_decode_mode,
+        sparse_top_k_steps_per_second,
+    ) = benchmark_decode_mode_steps_per_second(
+        &program,
+        trace_step_count,
+        TassadarExecutorDecodeMode::SparseTopK,
+        reference_linear_steps_per_second,
+        hull_cache_direct_steps_per_second,
+        sparse_top_k_direct_steps_per_second,
+    )?;
+
+    let trace_digest_equal = equivalence_report.trace_digest_equal();
+    let outputs_equal = equivalence_report.outputs_equal();
+    let halt_equal = equivalence_report.halt_equal();
+    let exactness_bps =
+        (u32::from(trace_digest_equal) + u32::from(outputs_equal) + u32::from(halt_equal)) * 10_000
+            / 3;
+    let hull_cache_speedup_over_reference_linear =
+        round_metric(hull_cache_steps_per_second / reference_linear_steps_per_second.max(1e-9));
+    let hull_cache_remaining_gap_vs_cpu_reference =
+        round_metric(cpu_reference_steps_per_second / hull_cache_steps_per_second.max(1e-9));
+    let sparse_top_k_speedup_over_reference_linear =
+        round_metric(sparse_top_k_steps_per_second / reference_linear_steps_per_second.max(1e-9));
+    let sparse_top_k_remaining_gap_vs_cpu_reference =
+        round_metric(cpu_reference_steps_per_second / sparse_top_k_steps_per_second.max(1e-9));
+
+    let trace_artifact = TassadarTraceArtifact::from_execution(
+        format!("tassadar://artifact/decode_scaling/{}", program.program_id),
+        &equivalence_report.cpu_reference,
+    );
+    let trace_artifact_bytes = serde_json::to_vec(&trace_artifact)?.len() as u64;
+    let trace_artifact_bytes_per_step =
+        round_metric(trace_artifact_bytes as f64 / trace_step_count.max(1) as f64);
+    let max_stack_depth = equivalence_report
+        .cpu_reference
+        .steps
+        .iter()
+        .map(|step| step.stack_before.len().max(step.stack_after.len()))
+        .max()
+        .unwrap_or(0);
+
+    Ok(TassadarDecodeScalingRegimeReport {
+        regime_id: regime_id.into(),
+        summary: summary.into(),
+        program_id: program.program_id.clone(),
+        profile_id: program.profile_id.clone(),
+        length_parameter_name: String::from(length_parameter_name),
+        length_parameter_value,
+        instruction_count: program.instructions.len(),
+        trace_step_count,
+        trace_artifact_bytes,
+        trace_artifact_bytes_per_step,
+        max_stack_depth,
+        memory_slot_count: program.memory_slots,
+        cpu_reference_steps_per_second: round_metric(cpu_reference_steps_per_second),
+        reference_linear_steps_per_second: round_metric(reference_linear_steps_per_second),
+        hull_cache_steps_per_second: round_metric(hull_cache_steps_per_second),
+        hull_cache_speedup_over_reference_linear,
+        hull_cache_remaining_gap_vs_cpu_reference,
+        hull_cache_selection_state,
+        hull_cache_selection_reason,
+        hull_cache_effective_decode_mode,
+        sparse_top_k_steps_per_second: round_metric(sparse_top_k_steps_per_second),
+        sparse_top_k_speedup_over_reference_linear,
+        sparse_top_k_remaining_gap_vs_cpu_reference,
+        sparse_top_k_selection_state,
+        sparse_top_k_selection_reason,
+        sparse_top_k_effective_decode_mode,
+        trace_digest_equal,
+        outputs_equal,
+        halt_equal,
+        exactness_bps,
+        cpu_behavior_digest: equivalence_report.cpu_reference.behavior_digest(),
+        reference_linear_behavior_digest: equivalence_report.reference_linear.behavior_digest(),
+        hull_cache_behavior_digest: equivalence_report.hull_cache.behavior_digest(),
+        sparse_top_k_behavior_digest: equivalence_report.sparse_top_k.behavior_digest(),
+    })
+}
+
+/// Builds the machine-readable decode-scaling report across the current active
+/// Tassadar decode modes.
+pub fn build_tassadar_decode_scaling_report(
+) -> Result<TassadarDecodeScalingReport, TassadarDecodeScalingReportError> {
+    let _article_benchmark_report: Value = read_repo_json(
+        TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF,
+    )
+    .map_err(|error| match error {
+        TassadarWorkloadCapabilityMatrixError::Io(error) => {
+            TassadarDecodeScalingReportError::Io(error)
+        }
+        TassadarWorkloadCapabilityMatrixError::Json(error) => {
+            TassadarDecodeScalingReportError::Json(error)
+        }
+        TassadarWorkloadCapabilityMatrixError::MissingWorkloadTarget { .. } => {
+            unreachable!("repo JSON reads do not synthesize workload-target errors")
+        }
+    })?;
+    let _hull_cache_closure_report: Value = read_repo_json(TASSADAR_HULL_CACHE_CLOSURE_REPORT_REF)
+        .map_err(|error| match error {
+            TassadarWorkloadCapabilityMatrixError::Io(error) => {
+                TassadarDecodeScalingReportError::Io(error)
+            }
+            TassadarWorkloadCapabilityMatrixError::Json(error) => {
+                TassadarDecodeScalingReportError::Json(error)
+            }
+            TassadarWorkloadCapabilityMatrixError::MissingWorkloadTarget { .. } => {
+                unreachable!("repo JSON reads do not synthesize workload-target errors")
+            }
+        })?;
+    let _sparse_top_k_comparison_report: Value = read_repo_json(
+        TASSADAR_SPARSE_TOP_K_COMPARISON_REPORT_REF,
+    )
+    .map_err(|error| match error {
+        TassadarWorkloadCapabilityMatrixError::Io(error) => {
+            TassadarDecodeScalingReportError::Io(error)
+        }
+        TassadarWorkloadCapabilityMatrixError::Json(error) => {
+            TassadarDecodeScalingReportError::Json(error)
+        }
+        TassadarWorkloadCapabilityMatrixError::MissingWorkloadTarget { .. } => {
+            unreachable!("repo JSON reads do not synthesize workload-target errors")
+        }
+    })?;
+
+    let families = vec![
+        TassadarDecodeScalingFamilyReport {
+            family_id: String::from("linear_memory_accumulator"),
+            summary: String::from(
+                "acyclic load-add accumulation family that stays inside the current SparseTopK validation ceiling while growing trace and trace-artifact size",
+            ),
+            length_parameter_name: String::from("element_count"),
+            claim_boundary: String::from(
+                "all current decode modes stay direct on this bounded straight-line family because the instruction count remains within the sparse validated subset",
+            ),
+            regimes: [4usize, 10, 14]
+                .into_iter()
+                .map(|element_count| {
+                    build_decode_scaling_regime(
+                        format!("element_count_{element_count}"),
+                        format!(
+                            "accumulate the first {element_count} memory slots into one output"
+                        ),
+                        "element_count",
+                        element_count as u64,
+                        build_linear_memory_accumulator_program(element_count),
+                    )
+                })
+                .collect::<Result<Vec<_>, _>>()?,
+        },
+        TassadarDecodeScalingFamilyReport {
+            family_id: String::from("forward_branch_ladder"),
+            summary: String::from(
+                "acyclic forward-branch family that keeps HullCache direct as control-flow width grows while SparseTopK eventually falls back on its validated instruction ceiling",
+            ),
+            length_parameter_name: String::from("branch_count"),
+            claim_boundary: String::from(
+                "HullCache stays direct on this acyclic branch family, but SparseTopK becomes fallback-only once the ladder exceeds its current 64-instruction validation limit",
+            ),
+            regimes: [2usize, 8, 16]
+                .into_iter()
+                .map(|branch_count| {
+                    build_decode_scaling_regime(
+                        format!("branch_count_{branch_count}"),
+                        format!(
+                            "evaluate {branch_count} forward branch pivots with alternating taken and untaken lanes"
+                        ),
+                        "branch_count",
+                        branch_count as u64,
+                        build_forward_branch_ladder_program(branch_count),
+                    )
+                })
+                .collect::<Result<Vec<_>, _>>()?,
+        },
+        TassadarDecodeScalingFamilyReport {
+            family_id: String::from("backward_branch_loop"),
+            summary: String::from(
+                "long-horizon decrement-loop family that makes the current fallback-only control-flow boundary explicit as trace length approaches the article-profile step ceiling",
+            ),
+            length_parameter_name: String::from("iteration_count"),
+            claim_boundary: String::from(
+                "backward-branch programs remain explicit fallback-only on the current HullCache and SparseTopK surfaces, so this family records truthful long-horizon scaling under fallback instead of pretending direct fast-path closure",
+            ),
+            regimes: [255i32, 1_023, 2_047]
+                .into_iter()
+                .map(|iteration_count| {
+                    build_decode_scaling_regime(
+                        format!("iteration_count_{iteration_count}"),
+                        format!(
+                            "count down from {iteration_count} through one backward-branch loop before halting"
+                        ),
+                        "iteration_count",
+                        iteration_count as u64,
+                        build_backward_branch_loop_program(iteration_count),
+                    )
+                })
+                .collect::<Result<Vec<_>, _>>()?,
+        },
+    ];
+
+    let mut report = TassadarDecodeScalingReport {
+        schema_version: TASSADAR_DECODE_SCALING_SCHEMA_VERSION,
+        generated_from_artifacts: vec![
+            String::from(TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF),
+            String::from(TASSADAR_HULL_CACHE_CLOSURE_REPORT_REF),
+            String::from(TASSADAR_SPARSE_TOP_K_COMPARISON_REPORT_REF),
+        ],
+        memory_growth_metric: String::from("serialized_trace_artifact_bytes"),
+        families,
+        claim_boundary: String::from(
+            "this scaling report compares the current requested decode modes on shared synthetic workload families, records trace-artifact bytes as the current deterministic memory-growth proxy, and keeps direct-vs-fallback posture explicit instead of pretending that every long-horizon trace is inside the fast-path subset",
+        ),
+        report_digest: String::new(),
+    };
+    report.report_digest = stable_serialized_digest(b"tassadar_decode_scaling_report|", &report);
+    Ok(report)
+}
+
+/// Returns the canonical absolute path for the decode-scaling report.
+#[must_use]
+pub fn tassadar_decode_scaling_report_path() -> std::path::PathBuf {
+    eval_repo_root().join(TASSADAR_DECODE_SCALING_REPORT_REF)
+}
+
+/// Writes the canonical decode-scaling report.
+pub fn write_tassadar_decode_scaling_report(
+    output_path: impl AsRef<std::path::Path>,
+) -> Result<TassadarDecodeScalingReport, TassadarDecodeScalingReportError> {
+    let output_path = output_path.as_ref();
+    if let Some(parent) = output_path.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+    let report = build_tassadar_decode_scaling_report()?;
+    let bytes = serde_json::to_vec_pretty(&report)?;
+    std::fs::write(output_path, bytes)?;
+    Ok(report)
+}
+
 fn stable_corpus_digest(artifacts: &[TassadarProgramArtifact]) -> String {
     let mut hasher = sha2::Sha256::new();
     hasher.update(b"tassadar_corpus|");
@@ -2650,6 +3262,31 @@ where
         total_steps = total_steps.saturating_add(normalized_steps);
         let elapsed = started.elapsed().as_secs_f64();
         if run_count >= minimum_runs && (total_steps >= target_steps || elapsed >= 0.050) {
+            return Ok(throughput_steps_per_second(total_steps, elapsed));
+        }
+    }
+}
+
+fn benchmark_scaling_runner_steps_per_second<F>(
+    steps_per_run: u64,
+    mut runner: F,
+) -> Result<f64, TassadarBenchmarkError>
+where
+    F: FnMut() -> Result<psionic_runtime::TassadarExecution, TassadarExecutionRefusal>,
+{
+    let normalized_steps = steps_per_run.max(1);
+    let target_steps = normalized_steps.saturating_mul(16).max(1_024);
+    let minimum_runs = 1u64;
+    let started = Instant::now();
+    let mut run_count = 0u64;
+    let mut total_steps = 0u64;
+
+    loop {
+        runner()?;
+        run_count += 1;
+        total_steps = total_steps.saturating_add(normalized_steps);
+        let elapsed = started.elapsed().as_secs_f64();
+        if run_count >= minimum_runs && (total_steps >= target_steps || elapsed >= 0.020) {
             return Ok(throughput_steps_per_second(total_steps, elapsed));
         }
     }
@@ -2718,6 +3355,138 @@ fn build_case_artifacts(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::OnceLock;
+
+    fn cached_decode_scaling_report() -> &'static TassadarDecodeScalingReport {
+        static REPORT: OnceLock<TassadarDecodeScalingReport> = OnceLock::new();
+        REPORT.get_or_init(|| {
+            build_tassadar_decode_scaling_report().expect("decode-scaling report should build")
+        })
+    }
+
+    fn assert_decode_scaling_report_matches_stable_shape(
+        expected: &TassadarDecodeScalingReport,
+        actual: &TassadarDecodeScalingReport,
+    ) {
+        assert_eq!(actual.schema_version, expected.schema_version);
+        assert_eq!(
+            actual.generated_from_artifacts,
+            expected.generated_from_artifacts
+        );
+        assert_eq!(actual.memory_growth_metric, expected.memory_growth_metric);
+        assert_eq!(actual.claim_boundary, expected.claim_boundary);
+        assert_eq!(actual.families.len(), expected.families.len());
+
+        for (actual_family, expected_family) in actual.families.iter().zip(expected.families.iter())
+        {
+            assert_eq!(actual_family.family_id, expected_family.family_id);
+            assert_eq!(actual_family.summary, expected_family.summary);
+            assert_eq!(
+                actual_family.length_parameter_name,
+                expected_family.length_parameter_name
+            );
+            assert_eq!(actual_family.claim_boundary, expected_family.claim_boundary);
+            assert_eq!(actual_family.regimes.len(), expected_family.regimes.len());
+
+            for (actual_regime, expected_regime) in actual_family
+                .regimes
+                .iter()
+                .zip(expected_family.regimes.iter())
+            {
+                assert_eq!(actual_regime.regime_id, expected_regime.regime_id);
+                assert_eq!(actual_regime.summary, expected_regime.summary);
+                assert_eq!(actual_regime.program_id, expected_regime.program_id);
+                assert_eq!(actual_regime.profile_id, expected_regime.profile_id);
+                assert_eq!(
+                    actual_regime.length_parameter_name,
+                    expected_regime.length_parameter_name
+                );
+                assert_eq!(
+                    actual_regime.length_parameter_value,
+                    expected_regime.length_parameter_value
+                );
+                assert_eq!(
+                    actual_regime.instruction_count,
+                    expected_regime.instruction_count
+                );
+                assert_eq!(
+                    actual_regime.trace_step_count,
+                    expected_regime.trace_step_count
+                );
+                assert_eq!(
+                    actual_regime.trace_artifact_bytes,
+                    expected_regime.trace_artifact_bytes
+                );
+                assert_eq!(
+                    actual_regime.trace_artifact_bytes_per_step,
+                    expected_regime.trace_artifact_bytes_per_step
+                );
+                assert_eq!(
+                    actual_regime.max_stack_depth,
+                    expected_regime.max_stack_depth
+                );
+                assert_eq!(
+                    actual_regime.memory_slot_count,
+                    expected_regime.memory_slot_count
+                );
+                assert_eq!(
+                    actual_regime.hull_cache_selection_state,
+                    expected_regime.hull_cache_selection_state
+                );
+                assert_eq!(
+                    actual_regime.hull_cache_selection_reason,
+                    expected_regime.hull_cache_selection_reason
+                );
+                assert_eq!(
+                    actual_regime.hull_cache_effective_decode_mode,
+                    expected_regime.hull_cache_effective_decode_mode
+                );
+                assert_eq!(
+                    actual_regime.sparse_top_k_selection_state,
+                    expected_regime.sparse_top_k_selection_state
+                );
+                assert_eq!(
+                    actual_regime.sparse_top_k_selection_reason,
+                    expected_regime.sparse_top_k_selection_reason
+                );
+                assert_eq!(
+                    actual_regime.sparse_top_k_effective_decode_mode,
+                    expected_regime.sparse_top_k_effective_decode_mode
+                );
+                assert_eq!(
+                    actual_regime.trace_digest_equal,
+                    expected_regime.trace_digest_equal
+                );
+                assert_eq!(actual_regime.outputs_equal, expected_regime.outputs_equal);
+                assert_eq!(actual_regime.halt_equal, expected_regime.halt_equal);
+                assert_eq!(actual_regime.exactness_bps, expected_regime.exactness_bps);
+                assert_eq!(
+                    actual_regime.cpu_behavior_digest,
+                    expected_regime.cpu_behavior_digest
+                );
+                assert_eq!(
+                    actual_regime.reference_linear_behavior_digest,
+                    expected_regime.reference_linear_behavior_digest
+                );
+                assert_eq!(
+                    actual_regime.hull_cache_behavior_digest,
+                    expected_regime.hull_cache_behavior_digest
+                );
+                assert_eq!(
+                    actual_regime.sparse_top_k_behavior_digest,
+                    expected_regime.sparse_top_k_behavior_digest
+                );
+                assert!(actual_regime.cpu_reference_steps_per_second > 0.0);
+                assert!(actual_regime.reference_linear_steps_per_second > 0.0);
+                assert!(actual_regime.hull_cache_steps_per_second > 0.0);
+                assert!(actual_regime.sparse_top_k_steps_per_second > 0.0);
+                assert!(actual_regime.hull_cache_speedup_over_reference_linear >= 1.0);
+                assert!(actual_regime.sparse_top_k_speedup_over_reference_linear >= 1.0);
+                assert!(actual_regime.hull_cache_remaining_gap_vs_cpu_reference >= 1.0);
+                assert!(actual_regime.sparse_top_k_remaining_gap_vs_cpu_reference >= 1.0);
+            }
+        }
+    }
 
     #[test]
     fn tassadar_reference_fixture_suite_builds_package_and_environment_contracts(
@@ -3275,6 +4044,124 @@ mod tests {
         let bytes = std::fs::read(&report_path)?;
         let persisted: Value = serde_json::from_slice(&bytes)?;
         assert_eq!(persisted, serde_json::to_value(&report)?);
+        std::fs::remove_file(&report_path)?;
+        std::fs::remove_dir(&temp_dir)?;
+        Ok(())
+    }
+
+    #[test]
+    fn tassadar_decode_scaling_report_tracks_direct_and_fallback_regimes(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let report = cached_decode_scaling_report();
+        assert_eq!(
+            report.schema_version,
+            TASSADAR_DECODE_SCALING_SCHEMA_VERSION
+        );
+
+        let linear_family = report
+            .families
+            .iter()
+            .find(|family| family.family_id == "linear_memory_accumulator")
+            .expect("linear accumulator family");
+        assert!(linear_family.regimes.windows(2).all(|window| {
+            window[0].trace_step_count < window[1].trace_step_count
+                && window[0].trace_artifact_bytes < window[1].trace_artifact_bytes
+        }));
+        assert!(linear_family.regimes.iter().all(|regime| {
+            regime.hull_cache_selection_state == TassadarExecutorSelectionState::Direct
+                && regime.hull_cache_effective_decode_mode == TassadarExecutorDecodeMode::HullCache
+                && regime.sparse_top_k_selection_state == TassadarExecutorSelectionState::Direct
+                && regime.sparse_top_k_effective_decode_mode
+                    == TassadarExecutorDecodeMode::SparseTopK
+                && regime.exactness_bps == 10_000
+        }));
+
+        let branch_family = report
+            .families
+            .iter()
+            .find(|family| family.family_id == "forward_branch_ladder")
+            .expect("forward branch family");
+        let last_branch_regime = branch_family.regimes.last().expect("branch regime");
+        assert_eq!(
+            last_branch_regime.hull_cache_selection_state,
+            TassadarExecutorSelectionState::Direct
+        );
+        assert_eq!(
+            last_branch_regime.hull_cache_effective_decode_mode,
+            TassadarExecutorDecodeMode::HullCache
+        );
+        assert_eq!(
+            last_branch_regime.sparse_top_k_selection_state,
+            TassadarExecutorSelectionState::Fallback
+        );
+        assert_eq!(
+            last_branch_regime.sparse_top_k_selection_reason,
+            Some(TassadarExecutorSelectionReason::SparseTopKValidationUnsupported)
+        );
+        assert_eq!(
+            last_branch_regime.sparse_top_k_effective_decode_mode,
+            TassadarExecutorDecodeMode::ReferenceLinear
+        );
+
+        let loop_family = report
+            .families
+            .iter()
+            .find(|family| family.family_id == "backward_branch_loop")
+            .expect("backward loop family");
+        assert!(loop_family.regimes.iter().all(|regime| {
+            regime.hull_cache_selection_state == TassadarExecutorSelectionState::Fallback
+                && regime.hull_cache_selection_reason
+                    == Some(TassadarExecutorSelectionReason::HullCacheControlFlowUnsupported)
+                && regime.hull_cache_effective_decode_mode
+                    == TassadarExecutorDecodeMode::ReferenceLinear
+                && regime.sparse_top_k_selection_state == TassadarExecutorSelectionState::Fallback
+                && regime.sparse_top_k_selection_reason
+                    == Some(TassadarExecutorSelectionReason::SparseTopKValidationUnsupported)
+                && regime.sparse_top_k_effective_decode_mode
+                    == TassadarExecutorDecodeMode::ReferenceLinear
+                && regime.exactness_bps == 10_000
+        }));
+        assert_eq!(
+            loop_family
+                .regimes
+                .last()
+                .expect("largest loop regime")
+                .trace_step_count,
+            16_383
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn tassadar_decode_scaling_report_matches_committed_truth(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let bytes = std::fs::read(
+            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .join("..")
+                .join("..")
+                .join(TASSADAR_DECODE_SCALING_REPORT_REF),
+        )?;
+        let persisted: TassadarDecodeScalingReport = serde_json::from_slice(&bytes)?;
+        assert_decode_scaling_report_matches_stable_shape(
+            cached_decode_scaling_report(),
+            &persisted,
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn write_tassadar_decode_scaling_report_persists_current_truth(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let temp_dir = std::env::temp_dir().join(format!(
+            "psionic-tassadar-eval-decode-scaling-{}",
+            std::process::id()
+        ));
+        std::fs::create_dir_all(&temp_dir)?;
+        let report_path = temp_dir.join("tassadar_decode_scaling_report.json");
+        let report = write_tassadar_decode_scaling_report(&report_path)?;
+        let bytes = std::fs::read(&report_path)?;
+        let persisted: TassadarDecodeScalingReport = serde_json::from_slice(&bytes)?;
+        assert_decode_scaling_report_matches_stable_shape(&report, &persisted);
         std::fs::remove_file(&report_path)?;
         std::fs::remove_dir(&temp_dir)?;
         Ok(())
