@@ -1,0 +1,147 @@
+{
+  "artifact_id": "tassadar-executor-transformer-sudoku-9x9-v0.model_artifact",
+  "run_id": "tassadar-executor-transformer-sudoku-9x9-reference-run-v0",
+  "descriptor": {
+    "model": {
+      "model_id": "tassadar-executor-transformer-sudoku-9x9-v0",
+      "family": "tassadar_executor_transformer",
+      "revision": "v0"
+    },
+    "executor_family": "wasm_trace_executor",
+    "profile": {
+      "profile_id": "tassadar.wasm.sudoku_9x9_search.v1",
+      "allowed_opcodes": [
+        "i32_const",
+        "local_get",
+        "local_set",
+        "i32_add",
+        "i32_sub",
+        "i32_mul",
+        "i32_load",
+        "i32_store",
+        "br_if",
+        "output",
+        "return"
+      ],
+      "max_locals": 8,
+      "max_memory_slots": 192,
+      "max_program_len": 12288,
+      "max_steps": 1048576,
+      "branch_mode": "br_if_non_zero",
+      "host_output_opcode": true
+    },
+    "trace_abi": {
+      "abi_id": "tassadar.trace.v1",
+      "schema_version": 1,
+      "profile_id": "tassadar.wasm.sudoku_9x9_search.v1",
+      "append_only": true,
+      "includes_stack_snapshots": true,
+      "includes_local_snapshots": true,
+      "includes_memory_snapshots": true
+    },
+    "supported_decode_modes": [
+      "reference_linear",
+      "hull_cache"
+    ],
+    "attention_mode": "hard_max_lookup",
+    "attention_geometry": {
+      "constrained_lookup_head_dim": 2,
+      "hull_cache_eligible": true
+    },
+    "claim_boundary": "greedy_decode_unvalidated",
+    "config": {
+      "vocab_size": 303,
+      "max_sequence_tokens": 524288,
+      "embedding_dim": 16,
+      "context_offsets": [
+        1,
+        2,
+        4,
+        8,
+        16,
+        32
+      ],
+      "constrained_lookup_head_dim": 2
+    },
+    "weights": {
+      "format": "ProgrammaticFixture",
+      "source": "Fixture",
+      "quantization": "none",
+      "digest": "34e72d066aa6849df9106f3c156b14ac0989a9bd98e9b9c2aee19f446af74c68",
+      "tensors": [
+        {
+          "name": "head_offsets",
+          "shape": {
+            "dims": [
+              6
+            ]
+          },
+          "dtype": "F32",
+          "quantization": "none"
+        },
+        {
+          "name": "output_bias",
+          "shape": {
+            "dims": [
+              303
+            ]
+          },
+          "dtype": "F32",
+          "quantization": "none"
+        },
+        {
+          "name": "output_projection",
+          "shape": {
+            "dims": [
+              112,
+              303
+            ]
+          },
+          "dtype": "F32",
+          "quantization": "none"
+        },
+        {
+          "name": "position_embeddings",
+          "shape": {
+            "dims": [
+              524288,
+              16
+            ]
+          },
+          "dtype": "F32",
+          "quantization": "none"
+        },
+        {
+          "name": "token_embeddings",
+          "shape": {
+            "dims": [
+              303,
+              16
+            ]
+          },
+          "dtype": "F32",
+          "quantization": "none"
+        }
+      ],
+      "artifacts": []
+    }
+  },
+  "training_report_digest": "23e93f1bd2a350669e263ded4d7ed69fc5eee6e7fb1c5e79507997db80f57ebe",
+  "checkpoint_manifest": {
+    "stream_id": "checkpoint://tassadar-executor-transformer-sudoku-9x9-reference-run-v0.checkpoint.epoch_0004",
+    "manifest_digest": "8de00f09d079443182e6f714b8e5eba36cce547d70a7f1502793eaa7dd98f361",
+    "subject": "checkpoint",
+    "object_digest": "b55fa36dcbf0a771a23ecfe4079ce166552ece4b2269c973224a77d7fa30d06c",
+    "total_bytes": 589943,
+    "chunk_count": 145,
+    "chunk_bytes": 4096,
+    "encoding": "raw_binary",
+    "provenance_digest": "ddba08bcccda8253acc4f4c388863f9b5ab811ef4e606f6ec0710d165e31a99d",
+    "checkpoint_binding": {
+      "checkpoint_family": "train.tassadar.executor_transformer",
+      "checkpoint_ref": "checkpoint://tassadar-executor-transformer-sudoku-9x9-reference-run-v0.checkpoint.epoch_0004",
+      "step": 1
+    }
+  },
+  "artifact_digest": "306eacd59c3afc5da1e233517ba09e6549b9228aafc6e74b51527b1b154f82e5"
+}

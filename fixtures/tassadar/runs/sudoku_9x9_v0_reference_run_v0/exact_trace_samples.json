@@ -1,0 +1,10 @@
+{
+  "run_id": "tassadar-executor-transformer-sudoku-9x9-reference-run-v0",
+  "dataset_storage_key": "oa.tassadar.sudoku_9x9.sequence@scale-v0",
+  "dataset_digest": "62ff118b9980cccc0bfeb49fa86fc9b2703846e6a344c5207ad44a704d7a172a",
+  "trained_model_descriptor_digest": "cfbb5edb8f889e92f13d7bfe1e735b9f5fa4ea48b7e08310f59a3bb68d18ce78",
+  "checkpoint_manifest_digest": "8de00f09d079443182e6f714b8e5eba36cce547d70a7f1502793eaa7dd98f361",
+  "exact_trace_case_count": 0,
+  "samples": [],
+  "report_digest": "6fb8b404b3983e5f5d91f7f71ffa1084dbf8d55b6571926f5cfc51612a4b1d0d"
+}

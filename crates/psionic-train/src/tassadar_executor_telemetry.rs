@@ -462,10 +462,16 @@ pub fn augment_tassadar_training_run_with_telemetry(
         output_dir.join(TRAINING_REPORT_FILE),
         "tassadar_training_report",
     )?;
-    let _benchmark_report: TassadarExecutorLinearBenchmarkReport = read_json(
-        output_dir.join(LINEAR_BENCHMARK_REPORT_FILE),
-        "tassadar_linear_benchmark_report",
-    )?;
+    let _benchmark_report = output_dir
+        .join(LINEAR_BENCHMARK_REPORT_FILE)
+        .exists()
+        .then(|| {
+            read_json::<TassadarExecutorLinearBenchmarkReport>(
+                output_dir.join(LINEAR_BENCHMARK_REPORT_FILE),
+                "tassadar_linear_benchmark_report",
+            )
+        })
+        .transpose()?;
     let checkpoint_state: TassadarExecutorCheckpointState = read_json(
         output_dir.join(CHECKPOINT_STATE_FILE),
         "tassadar_checkpoint_state",
@@ -490,7 +496,14 @@ pub fn augment_tassadar_training_run_with_telemetry(
         .dataset
         .examples
         .iter()
-        .map(|example| analyze_example(&model, &tokenizer, example))
+        .map(|example| {
+            analyze_example(
+                &model,
+                &tokenizer,
+                example,
+                training_report.config.max_eval_target_tokens_per_example,
+            )
+        })
         .collect::<Result<Vec<_>, TassadarExecutorTelemetryError>>()?;
     let checkpoint_manifest_digest = checkpoint_manifest.stable_digest();
 
@@ -802,6 +815,7 @@ fn analyze_example(
     model: &TassadarExecutorTransformer,
     tokenizer: &TassadarTraceTokenizer,
     example: &TassadarSequenceExample,
+    target_token_cap: Option<usize>,
 ) -> Result<ExampleAnalysis, TassadarExecutorTelemetryError> {
     let prompt_len = example.metadata.prompt_token_count as usize;
     let prompt = TokenSequence::new(
@@ -810,7 +824,10 @@ fn analyze_example(
             .map(|token| TokenId(*token))
             .collect::<Vec<_>>(),
     );
-    let reference_target = example.token_ids[prompt_len..]
+    let evaluated_target_len = target_token_cap
+        .unwrap_or(example.metadata.target_token_count as usize)
+        .min(example.metadata.target_token_count as usize);
+    let reference_target = example.token_ids[prompt_len..prompt_len + evaluated_target_len]
         .iter()
         .map(|token| TokenId(*token))
         .collect::<Vec<_>>();

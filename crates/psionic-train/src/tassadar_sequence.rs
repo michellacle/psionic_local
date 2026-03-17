@@ -10,6 +10,8 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use thiserror::Error;
 
+use crate::TassadarExecutorTeacherForcedTrainingStrategy;
+
 /// Frozen train/eval packing contract for the tokenized Sudoku-v0 executor corpus.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TassadarSequenceTrainingManifest {
@@ -24,6 +26,12 @@ pub struct TassadarSequenceTrainingManifest {
     /// Active trainable surface for the run that materialized this manifest.
     #[serde(default = "default_trainable_surface")]
     pub trainable_surface: TassadarExecutorTrainableSurface,
+    /// Explicit teacher-forced strategy bound to this manifest.
+    #[serde(
+        default = "default_teacher_forced_training_strategy",
+        skip_serializing_if = "teacher_forced_training_strategy_is_full_forward_window"
+    )]
+    pub teacher_forced_training_strategy: TassadarExecutorTeacherForcedTrainingStrategy,
     /// Shared packing policy used for the first training run.
     pub packing_policy: DatasetPackingPolicy,
     /// Packed train split.
@@ -42,6 +50,7 @@ impl TassadarSequenceTrainingManifest {
         tokenizer_digest: &str,
         vocabulary_digest: &str,
         trainable_surface: TassadarExecutorTrainableSurface,
+        teacher_forced_training_strategy: TassadarExecutorTeacherForcedTrainingStrategy,
         packing_policy: DatasetPackingPolicy,
         train_plan: DatasetPackingPlan,
         validation_plan: DatasetPackingPlan,
@@ -53,6 +62,7 @@ impl TassadarSequenceTrainingManifest {
             tokenizer_digest: tokenizer_digest.to_string(),
             vocabulary_digest: vocabulary_digest.to_string(),
             trainable_surface,
+            teacher_forced_training_strategy,
             packing_policy,
             train_plan,
             validation_plan,
@@ -80,11 +90,22 @@ fn default_trainable_surface() -> TassadarExecutorTrainableSurface {
     TassadarExecutorTrainableSurface::OutputHeadOnly
 }
 
+fn default_teacher_forced_training_strategy() -> TassadarExecutorTeacherForcedTrainingStrategy {
+    TassadarExecutorTeacherForcedTrainingStrategy::FullForwardWindow
+}
+
+fn teacher_forced_training_strategy_is_full_forward_window(
+    strategy: &TassadarExecutorTeacherForcedTrainingStrategy,
+) -> bool {
+    *strategy == TassadarExecutorTeacherForcedTrainingStrategy::FullForwardWindow
+}
+
 /// Builds the frozen sequence dataset plus generic packing plans for one Tassadar workload.
 pub fn build_tassadar_sequence_training_manifest(
     workload: TassadarSequenceWorkload,
     version: &str,
     trainable_surface: TassadarExecutorTrainableSurface,
+    teacher_forced_training_strategy: TassadarExecutorTeacherForcedTrainingStrategy,
 ) -> Result<TassadarSequenceTrainingManifest, TassadarSequenceTrainingError> {
     let bundle = build_tassadar_sequence_dataset(workload, version)?;
     let dataset = bundle.dataset;
@@ -109,6 +130,7 @@ pub fn build_tassadar_sequence_training_manifest(
         bundle.tokenizer_digest.stable_digest().as_str(),
         bundle.vocabulary_digest.as_str(),
         trainable_surface,
+        teacher_forced_training_strategy,
         packing_policy,
         train_plan,
         validation_plan,
@@ -124,6 +146,7 @@ pub fn build_tassadar_sudoku_v0_sequence_training_manifest(
         TassadarSequenceWorkload::SudokuV0,
         version,
         TassadarExecutorTrainableSurface::OutputHeadOnly,
+        TassadarExecutorTeacherForcedTrainingStrategy::FullForwardWindow,
     )
 }
 
@@ -135,6 +158,7 @@ pub fn build_tassadar_sudoku_9x9_sequence_training_manifest(
         TassadarSequenceWorkload::Sudoku9x9,
         version,
         TassadarExecutorTrainableSurface::OutputHeadOnly,
+        TassadarExecutorTeacherForcedTrainingStrategy::FullForwardWindow,
     )
 }
 

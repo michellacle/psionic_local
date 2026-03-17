@@ -320,6 +320,20 @@ The current scope is:
   `0` exact bounded traces, and still loses the preserved lookup baseline on
   the open 4x4 promotion metric, so the claim boundary remains
   `research_windowed_decode_only` rather than learned-lane success
+- landed trained-executor Phase 16 follow-on bar: `psionic-train` now owns the
+  canonical `crates/psionic-train/examples/tassadar_sudoku_9x9_reference_run.rs`
+  replay path and the committed bundle
+  `fixtures/tassadar/runs/sudoku_9x9_v0_reference_run_v0`; the learned lane
+  now records an explicit `incremental_decode_window` teacher-forced strategy
+  in the training manifest, persists `sequence_fit_report.json`,
+  `postmortem.json`, and `next_run_plan.json`, and keeps the claim boundary
+  exact by showing that full 9x9 traces still exceed the current
+  `524288`-token model context (`4891222` to `5335309` total tokens,
+  overflow `4366934` to `4811021`), so the run is only a bounded first-`512`
+  target-token learned lane; on that bounded window the selected checkpoint is
+  still red (`10000` bps first-target, `5938` bps first-32, `0/1` exact
+  validation traces), so the honest Phase 16 statement is “9x9 only partially
+  fit and remains blocked” rather than 9x9 learned-lane success
 - landed trained-executor Phase 15B follow-on bar: the same executor-attention
   family now also carries a bounded relative-target output-bias adapter in
   `psionic-models`, the preserved destructive boundary-first output-head

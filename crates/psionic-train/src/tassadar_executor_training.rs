@@ -36,6 +36,10 @@ fn default_trainable_surface() -> TassadarExecutorTrainableSurface {
     TassadarExecutorTrainableSurface::OutputHeadOnly
 }
 
+fn default_teacher_forced_training_strategy() -> TassadarExecutorTeacherForcedTrainingStrategy {
+    TassadarExecutorTeacherForcedTrainingStrategy::FullForwardWindow
+}
+
 fn tassadar_progress_updates_enabled() -> bool {
     match env::var("OPENAGENTS_TASSADAR_PROGRESS") {
         Ok(value) => {
@@ -54,6 +58,12 @@ fn emit_tassadar_progress(message: impl AsRef<str>) {
 
 fn stage_prefix_mode_is_teacher_forced(mode: &TassadarExecutorStagePrefixMode) -> bool {
     *mode == TassadarExecutorStagePrefixMode::TeacherForced
+}
+
+fn teacher_forced_training_strategy_is_full_forward_window(
+    strategy: &TassadarExecutorTeacherForcedTrainingStrategy,
+) -> bool {
+    *strategy == TassadarExecutorTeacherForcedTrainingStrategy::FullForwardWindow
 }
 
 /// Prefix construction mode for one curriculum stage.
@@ -80,6 +90,33 @@ impl TassadarExecutorStagePrefixMode {
 impl Default for TassadarExecutorStagePrefixMode {
     fn default() -> Self {
         Self::TeacherForced
+    }
+}
+
+/// Explicit strategy for teacher-forced long-trace supervision.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TassadarExecutorTeacherForcedTrainingStrategy {
+    /// Materialize one full prompt-plus-window forward pass before supervising the target window.
+    FullForwardWindow,
+    /// Reuse incremental decode state and feed the reference token back at each supervised step.
+    IncrementalDecodeWindow,
+}
+
+impl TassadarExecutorTeacherForcedTrainingStrategy {
+    /// Returns a stable label for reports and audits.
+    #[must_use]
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::FullForwardWindow => "full_forward_window",
+            Self::IncrementalDecodeWindow => "incremental_decode_window",
+        }
+    }
+}
+
+impl Default for TassadarExecutorTeacherForcedTrainingStrategy {
+    fn default() -> Self {
+        Self::FullForwardWindow
     }
 }
 
@@ -159,6 +196,12 @@ pub struct TassadarExecutorTrainingConfig {
     /// Active trainable surface for the run.
     #[serde(default = "default_trainable_surface")]
     pub trainable_surface: TassadarExecutorTrainableSurface,
+    /// Explicit strategy for teacher-forced long-trace supervision.
+    #[serde(
+        default = "default_teacher_forced_training_strategy",
+        skip_serializing_if = "teacher_forced_training_strategy_is_full_forward_window"
+    )]
+    pub teacher_forced_training_strategy: TassadarExecutorTeacherForcedTrainingStrategy,
     /// Optional boundary curriculum preceding the terminal full-trace stage.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub curriculum_stages: Vec<TassadarExecutorCurriculumStage>,
@@ -184,6 +227,8 @@ impl TassadarExecutorTrainingConfig {
             max_eval_target_tokens_per_example: None,
             terminal_stage_learning_rate_scale: None,
             trainable_surface: TassadarExecutorTrainableSurface::OutputHeadOnly,
+            teacher_forced_training_strategy:
+                TassadarExecutorTeacherForcedTrainingStrategy::FullForwardWindow,
             curriculum_stages: Vec::new(),
             validate_every_epoch: true,
             select_best_checkpoint_by_boundary: true,
@@ -203,6 +248,8 @@ impl TassadarExecutorTrainingConfig {
             max_eval_target_tokens_per_example: None,
             terminal_stage_learning_rate_scale: None,
             trainable_surface: TassadarExecutorTrainableSurface::OutputHeadOnly,
+            teacher_forced_training_strategy:
+                TassadarExecutorTeacherForcedTrainingStrategy::FullForwardWindow,
             curriculum_stages: vec![
                 TassadarExecutorCurriculumStage::new("prompt_to_first_token", Some(1), 1),
                 TassadarExecutorCurriculumStage::new("prompt_to_first_2_tokens", Some(2), 1),
@@ -229,6 +276,8 @@ impl TassadarExecutorTrainingConfig {
             max_eval_target_tokens_per_example: Some(8),
             terminal_stage_learning_rate_scale: None,
             trainable_surface: TassadarExecutorTrainableSurface::OutputHeadOnly,
+            teacher_forced_training_strategy:
+                TassadarExecutorTeacherForcedTrainingStrategy::FullForwardWindow,
             curriculum_stages: Vec::new(),
             validate_every_epoch: true,
             select_best_checkpoint_by_boundary: true,
@@ -245,7 +294,7 @@ impl TassadarExecutorTrainingConfig {
         self
     }
 
-    fn resolved_stages(&self) -> Vec<TassadarExecutorCurriculumStage> {
+    pub(crate) fn resolved_stages(&self) -> Vec<TassadarExecutorCurriculumStage> {
         let mut stages = self.curriculum_stages.clone();
         stages.push(
             TassadarExecutorCurriculumStage::new(
@@ -444,6 +493,7 @@ pub fn train_tassadar_executor_transformer(
         config.workload,
         config.dataset_version.as_str(),
         config.trainable_surface,
+        config.teacher_forced_training_strategy,
     )?;
     let mut current_model = match config.workload {
         TassadarSequenceWorkload::SudokuV0 => {
@@ -622,6 +672,7 @@ pub fn train_tassadar_executor_transformer(
                             &current_model,
                             example,
                             &stage,
+                            config.teacher_forced_training_strategy,
                             projection_grad.as_mut_slice(),
                             bias_grad.as_mut_slice(),
                             token_embedding_grad.as_deref_mut(),
@@ -1003,6 +1054,7 @@ fn accumulate_sequence_gradients(
     current_model: &TassadarExecutorTransformer,
     example: &TassadarSequenceExample,
     stage: &TassadarExecutorCurriculumStage,
+    teacher_forced_training_strategy: TassadarExecutorTeacherForcedTrainingStrategy,
     projection_grad: &mut [f32],
     bias_grad: &mut [f32],
     token_embedding_grad: Option<&mut [f32]>,
@@ -1016,6 +1068,7 @@ fn accumulate_sequence_gradients(
                 current_model,
                 example,
                 stage,
+                teacher_forced_training_strategy,
                 projection_grad,
                 bias_grad,
                 token_embedding_grad,
@@ -1044,6 +1097,7 @@ fn accumulate_teacher_forced_sequence_gradients(
     current_model: &TassadarExecutorTransformer,
     example: &TassadarSequenceExample,
     stage: &TassadarExecutorCurriculumStage,
+    teacher_forced_training_strategy: TassadarExecutorTeacherForcedTrainingStrategy,
     projection_grad: &mut [f32],
     bias_grad: &mut [f32],
     mut token_embedding_grad: Option<&mut [f32]>,
@@ -1051,6 +1105,21 @@ fn accumulate_teacher_forced_sequence_gradients(
     mut mixer_projection_grad: Option<&mut [f32]>,
     mut mixer_bias_grad: Option<&mut [f32]>,
 ) -> Result<(f32, u32), TassadarExecutorTrainingError> {
+    if teacher_forced_training_strategy
+        == TassadarExecutorTeacherForcedTrainingStrategy::IncrementalDecodeWindow
+    {
+        return accumulate_teacher_forced_incremental_sequence_gradients(
+            current_model,
+            example,
+            stage,
+            projection_grad,
+            bias_grad,
+            token_embedding_grad,
+            position_embedding_grad,
+            mixer_projection_grad,
+            mixer_bias_grad,
+        );
+    }
     let max_target = stage
         .max_train_target_tokens_per_example
         .unwrap_or(example.metadata.target_token_count as usize)
@@ -1083,6 +1152,57 @@ fn accumulate_teacher_forced_sequence_gradients(
             mixer_bias_grad.as_deref_mut(),
         );
         target_token_count = target_token_count.saturating_add(1);
+    }
+    Ok((total_loss, target_token_count))
+}
+
+fn accumulate_teacher_forced_incremental_sequence_gradients(
+    current_model: &TassadarExecutorTransformer,
+    example: &TassadarSequenceExample,
+    stage: &TassadarExecutorCurriculumStage,
+    projection_grad: &mut [f32],
+    bias_grad: &mut [f32],
+    mut token_embedding_grad: Option<&mut [f32]>,
+    mut position_embedding_grad: Option<&mut [f32]>,
+    mut mixer_projection_grad: Option<&mut [f32]>,
+    mut mixer_bias_grad: Option<&mut [f32]>,
+) -> Result<(f32, u32), TassadarExecutorTrainingError> {
+    let prompt_token_count = example.metadata.prompt_token_count as usize;
+    let max_target = stage
+        .max_train_target_tokens_per_example
+        .unwrap_or(example.metadata.target_token_count as usize)
+        .min(example.metadata.target_token_count as usize);
+    let prompt = TokenSequence::new(
+        example.token_ids[..prompt_token_count]
+            .iter()
+            .map(|token| TokenId(*token))
+            .collect::<Vec<_>>(),
+    );
+    let reference_target = example.token_ids[prompt_token_count..prompt_token_count + max_target]
+        .iter()
+        .map(|token| TokenId(*token))
+        .collect::<Vec<_>>();
+    let mut state = current_model.start_decode(prompt)?;
+    let mut total_loss = 0.0_f32;
+    let mut target_token_count = 0_u32;
+    for target_token in reference_target {
+        let step = current_model.decode_step(&state)?;
+        total_loss += accumulate_step_gradients(
+            current_model,
+            step.hidden_state.as_slice(),
+            step.source_hidden_state.as_slice(),
+            &step.step_context,
+            step.logits.as_slice(),
+            target_token,
+            projection_grad,
+            bias_grad,
+            token_embedding_grad.as_deref_mut(),
+            position_embedding_grad.as_deref_mut(),
+            mixer_projection_grad.as_deref_mut(),
+            mixer_bias_grad.as_deref_mut(),
+        );
+        target_token_count = target_token_count.saturating_add(1);
+        current_model.push_decoded_token(&mut state, target_token)?;
     }
     Ok((total_loss, target_token_count))
 }
@@ -1309,7 +1429,10 @@ where
 mod tests {
     use psionic_eval::TassadarSequenceWorkload;
 
-    use super::{TassadarExecutorTrainingConfig, train_tassadar_executor_transformer};
+    use super::{
+        TassadarExecutorTeacherForcedTrainingStrategy, TassadarExecutorTrainingConfig,
+        train_tassadar_executor_transformer,
+    };
 
     #[test]
     fn next_token_training_runs_against_frozen_sudoku_v0_sequence_manifest()
@@ -1353,5 +1476,25 @@ mod tests {
         assert_eq!(stages[5].max_train_target_tokens_per_example, Some(32));
         assert_eq!(stages[6].stage_id, "full_trace_supervision");
         assert!(stages[6].max_train_target_tokens_per_example.is_none());
+    }
+
+    #[test]
+    fn incremental_decode_strategy_runs_against_frozen_sudoku_9x9_sequence_manifest()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let mut config = TassadarExecutorTrainingConfig::sudoku_9x9_scale_smoke();
+        config.teacher_forced_training_strategy =
+            TassadarExecutorTeacherForcedTrainingStrategy::IncrementalDecodeWindow;
+
+        let outcome = train_tassadar_executor_transformer(&config)?;
+
+        assert_eq!(
+            outcome.report.config.teacher_forced_training_strategy,
+            TassadarExecutorTeacherForcedTrainingStrategy::IncrementalDecodeWindow
+        );
+        assert_eq!(
+            outcome.report.config.workload,
+            TassadarSequenceWorkload::Sudoku9x9
+        );
+        Ok(())
     }
 }

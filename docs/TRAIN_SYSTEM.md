@@ -378,6 +378,23 @@ That now includes one intentionally narrow executor-training answer:
   than the lookup baseline (`10000` / `6563` bps, `32000` target tok/s, direct
   hull decode), so this phase is a research-family landing rather than a
   promotion or parity result
+- the Phase 16 first honest 9x9 run now also exists beside that baseline:
+  `psionic-train` now owns the canonical
+  `crates/psionic-train/examples/tassadar_sudoku_9x9_reference_run.rs`
+  replay path plus the committed bundle
+  `fixtures/tassadar/runs/sudoku_9x9_v0_reference_run_v0`; the learned lane
+  now records an explicit `incremental_decode_window` teacher-forced strategy
+  in the training manifest, persists `sequence_fit_report.json`,
+  `postmortem.json`, and `next_run_plan.json`, and keeps the claim boundary
+  honest by stating exactly what the artifacts prove: full 9x9 traces do not
+  fit the current `524288`-token model context (`4891222` to `5335309`
+  total tokens, overflow `4366934` to `4811021`), so this run only evaluates
+  the first `512` target tokens; on that bounded window the selected
+  checkpoint reaches `10000` bps first-target exactness but only `5938` bps
+  first-32 exactness and `0/1` exact validation traces, so the correct audit
+  statement remains “9x9 only partially fit and remains blocked”; the
+  companion note is
+  `docs/audits/2026-03-16-tassadar-phase-16-9x9-reference-run-audit.md`
 - the post-Phase-15 trained-attention follow-on now also exists beside that
   seeded comparison: `psionic-research` now runs a bounded attention-family
   output-head training loop and persists its artifacts under

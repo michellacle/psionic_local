@@ -254,6 +254,21 @@ Current posture:
   exact bounded traces, and still loses the lookup baseline on the specific
   gate that matters, so this is a truthful research follow-on rather than a
   learned-lane promotion result
+- the Phase 16 first honest 9x9 run now also exists in `psionic-train`,
+  `docs/audits/`, and the canonical bundle
+  `fixtures/tassadar/runs/sudoku_9x9_v0_reference_run_v0`:
+  `crates/psionic-train/examples/tassadar_sudoku_9x9_reference_run.rs`
+  now replays the first bounded learned 9x9 run with the explicit
+  `incremental_decode_window` teacher-forced strategy bound into the training
+  manifest, persists `sequence_fit_report.json`, `postmortem.json`, and
+  `next_run_plan.json`, and keeps the claim boundary honest by showing that
+  full 9x9 traces still do not fit the current `524288`-token model context
+  (`4891222` to `5335309` total tokens, overflow `4366934` to `4811021`),
+  so the run only covers the first `512` target tokens; within that bounded
+  window the selected checkpoint stays red (`10000` bps first-target,
+  `5938` bps first-32, `0/1` exact validation traces), and the companion
+  audit is
+  `docs/audits/2026-03-16-tassadar-phase-16-9x9-reference-run-audit.md`
 - the post-Phase-15 boundary-adapter follow-on now also exists in
   `psionic-models`, `psionic-eval`, `psionic-research`, `docs/audits/`, and
   nine preserved bounded artifact roots at

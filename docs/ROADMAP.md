@@ -912,7 +912,13 @@ is tracked under the post-audit umbrella
   landed as a bounded research candidate; does not close the Phase 14 gate
 - Phase 16 persist and review the first honest 9x9 run:
   [#3816](https://github.com/OpenAgentsInc/openagents/issues/3816)
-  the learned 4x4 promotion gate is now green, so this dependency is unblocked
+  landed as the bounded 9x9 reference bundle at
+  `fixtures/tassadar/runs/sudoku_9x9_v0_reference_run_v0`, with
+  `sequence_fit_report.json`, `postmortem.json`, and `next_run_plan.json`;
+  the artifacts keep the claim boundary explicit by saying full 9x9 traces do
+  not fit the current `524288`-token learned-lane context, so the run only
+  covers the first `512` target tokens and remains in the
+  “9x9 only partially fit and remains blocked” state
 - Phase 17 add a bounded proof-oriented / compile-to-weights executor lane:
   [#3817](https://github.com/OpenAgentsInc/openagents/issues/3817)
   landed as the bounded compiled/proof-backed Sudoku-v0 lane at

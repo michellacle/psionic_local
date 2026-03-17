@@ -404,7 +404,8 @@ pub struct TassadarExecutorModelArtifact {
     /// Training report digest backing this artifact.
     pub training_report_digest: String,
     /// Linear benchmark report digest backing this artifact.
-    pub linear_benchmark_report_digest: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub linear_benchmark_report_digest: Option<String>,
     /// Checkpoint manifest backing the artifact.
     pub checkpoint_manifest: DatastreamManifestRef,
     /// Stable artifact digest.
@@ -416,7 +417,7 @@ impl TassadarExecutorModelArtifact {
         run_id: &str,
         model: &TassadarExecutorTransformer,
         training_report: &TassadarExecutorTrainingReport,
-        benchmark_report: &TassadarExecutorLinearBenchmarkReport,
+        benchmark_report: Option<&TassadarExecutorLinearBenchmarkReport>,
         checkpoint_manifest: &DatastreamManifest,
     ) -> Self {
         let mut artifact = Self {
@@ -424,10 +425,9 @@ impl TassadarExecutorModelArtifact {
             run_id: run_id.to_string(),
             descriptor: model.descriptor().clone(),
             training_report_digest: training_report.report_digest.clone(),
-            linear_benchmark_report_digest: stable_digest(
-                b"psionic_tassadar_executor_linear_benchmark_report|",
-                benchmark_report,
-            ),
+            linear_benchmark_report_digest: benchmark_report.map(|report| {
+                stable_digest(b"psionic_tassadar_executor_linear_benchmark_report|", report)
+            }),
             checkpoint_manifest: checkpoint_manifest.manifest_ref(),
             artifact_digest: String::new(),
         };
@@ -466,7 +466,8 @@ pub struct TassadarExecutorReferenceRunBundle {
     /// Persisted training report digest.
     pub training_report_digest: String,
     /// Persisted benchmark report digest.
-    pub linear_benchmark_report_digest: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub linear_benchmark_report_digest: Option<String>,
     /// Persisted boundary exactness report digest when available.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub boundary_exactness_report_digest: Option<String>,
@@ -491,6 +492,9 @@ pub struct TassadarExecutorReferenceRunBundle {
     /// Persisted exact-trace-sample report digest when available.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exact_trace_samples_report_digest: Option<String>,
+    /// Persisted sequence-fit report digest when available.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sequence_fit_report_digest: Option<String>,
     /// Persisted promotion-gate report digest when available.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub promotion_gate_report_digest: Option<String>,
@@ -512,7 +516,7 @@ impl TassadarExecutorReferenceRunBundle {
         config: &TassadarExecutorTrainingConfig,
         training_manifest: &TassadarSequenceTrainingManifest,
         training_report: &TassadarExecutorTrainingReport,
-        benchmark_report: &TassadarExecutorLinearBenchmarkReport,
+        benchmark_report: Option<&TassadarExecutorLinearBenchmarkReport>,
         boundary_exactness_report: Option<&TassadarExecutorBoundaryExactnessReport>,
         divergence_histogram_report: Option<&TassadarExecutorDivergenceHistogramReport>,
         first_token_confusion_report: Option<&TassadarExecutorFirstTokenConfusionReport>,
@@ -520,10 +524,8 @@ impl TassadarExecutorReferenceRunBundle {
         model_artifact: &TassadarExecutorModelArtifact,
         artifacts: Vec<EvalArtifact>,
     ) -> Self {
-        let benchmark_digest = stable_digest(
-            b"psionic_tassadar_executor_linear_benchmark_report|",
-            benchmark_report,
-        );
+        let benchmark_digest = benchmark_report
+            .map(|report| stable_digest(b"psionic_tassadar_executor_linear_benchmark_report|", report));
         let mut bundle = Self {
             schema_version: TASSADAR_EXECUTOR_REFERENCE_RUN_SCHEMA_VERSION,
             run_id: config.run_id.clone(),
@@ -554,6 +556,7 @@ impl TassadarExecutorReferenceRunBundle {
             failure_samples_report_digest: None,
             best_checkpoint_manifest_digest: None,
             exact_trace_samples_report_digest: None,
+            sequence_fit_report_digest: None,
             promotion_gate_report_digest: None,
             neural_hull_benchmark_report_digest: None,
             checkpoint_artifact_digest: checkpoint_artifact.artifact_digest.clone(),
@@ -666,6 +669,7 @@ pub fn tassadar_executor_promotion_run_config() -> TassadarExecutorTrainingConfi
         terminal_stage_learning_rate_scale: Some(0.005),
         trainable_surface:
             TassadarExecutorTrainableSurface::OutputHeadEmbeddingsAndSmallLearnedMixer,
+        teacher_forced_training_strategy: crate::TassadarExecutorTeacherForcedTrainingStrategy::FullForwardWindow,
         curriculum_stages: vec![
             crate::TassadarExecutorCurriculumStage::new("prompt_to_first_token", Some(1), 1),
             crate::TassadarExecutorCurriculumStage::new("prompt_to_first_2_tokens", Some(2), 1),
@@ -703,6 +707,7 @@ pub fn tassadar_executor_promotion_v2_run_config() -> TassadarExecutorTrainingCo
         terminal_stage_learning_rate_scale: Some(0.0025),
         trainable_surface:
             TassadarExecutorTrainableSurface::OutputHeadEmbeddingsAndSmallLearnedMixer,
+        teacher_forced_training_strategy: crate::TassadarExecutorTeacherForcedTrainingStrategy::FullForwardWindow,
         curriculum_stages: vec![
             crate::TassadarExecutorCurriculumStage::new("prompt_to_first_token", Some(1), 1),
             crate::TassadarExecutorCurriculumStage::new("prompt_to_first_2_tokens", Some(2), 1),
@@ -744,9 +749,26 @@ pub fn execute_tassadar_training_run(
     config: &TassadarExecutorTrainingConfig,
     benchmark_split_filter: Option<TassadarSequenceSplit>,
 ) -> Result<TassadarExecutorReferenceRunBundle, TassadarExecutorRunError> {
+    execute_tassadar_training_run_with_options(output_dir, config, benchmark_split_filter, true)
+}
+
+/// Executes one persisted Tassadar training run while intentionally skipping the linear benchmark.
+pub fn execute_tassadar_training_run_without_benchmark(
+    output_dir: &Path,
+    config: &TassadarExecutorTrainingConfig,
+) -> Result<TassadarExecutorReferenceRunBundle, TassadarExecutorRunError> {
+    execute_tassadar_training_run_with_options(output_dir, config, None, false)
+}
+
+fn execute_tassadar_training_run_with_options(
+    output_dir: &Path,
+    config: &TassadarExecutorTrainingConfig,
+    benchmark_split_filter: Option<TassadarSequenceSplit>,
+    write_linear_benchmark_report: bool,
+) -> Result<TassadarExecutorReferenceRunBundle, TassadarExecutorRunError> {
     let run_started_at = Instant::now();
     emit_tassadar_progress(format!(
-        "tassadar_progress phase=run_prepare run={} output_dir={} workload={} surface={} dataset={} benchmark_split={} elapsed_ms=0",
+        "tassadar_progress phase=run_prepare run={} output_dir={} workload={} surface={} dataset={} benchmark_split={} benchmark_enabled={} elapsed_ms=0",
         config.run_id,
         output_dir.display(),
         config.workload.dataset_ref(),
@@ -755,6 +777,7 @@ pub fn execute_tassadar_training_run(
         benchmark_split_filter
             .map(|split| split.as_str().to_string())
             .unwrap_or_else(|| String::from("all")),
+        write_linear_benchmark_report,
     ));
     fs::create_dir_all(output_dir).map_err(|error| TassadarExecutorRunError::CreateDir {
         path: output_dir.display().to_string(),
@@ -765,6 +788,7 @@ pub fn execute_tassadar_training_run(
         config.workload,
         config.dataset_version.as_str(),
         config.trainable_surface,
+        config.teacher_forced_training_strategy,
     )?;
     emit_tassadar_progress(format!(
         "tassadar_progress phase=manifest_ready run={} manifest_digest={} dataset_storage_key={} train_batches={} elapsed_ms={}",
@@ -787,34 +811,44 @@ pub fn execute_tassadar_training_run(
     let dataset_bundle =
         build_tassadar_sequence_dataset(config.workload, config.dataset_version.as_str())
             .map_err(TassadarExecutorTrainingError::from)?;
-    emit_tassadar_progress(format!(
-        "tassadar_progress phase=benchmark_start run={} benchmark_split={} eval_examples={} elapsed_ms={}",
-        config.run_id,
-        benchmark_split_filter
-            .map(|split| split.as_str().to_string())
-            .unwrap_or_else(|| String::from("all")),
-        dataset_bundle.dataset.examples.len(),
-        run_started_at.elapsed().as_millis(),
-    ));
-    let benchmark_report = benchmark_tassadar_executor_linear_decode(
-        &outcome.model,
-        &dataset_bundle.dataset,
-        benchmark_split_filter,
-    )
-    .map_err(TassadarExecutorTrainingError::from)?;
-    emit_tassadar_progress(format!(
-        "tassadar_progress phase=benchmark_complete run={} decode_mode={} neural_tok_s={} cpu_tok_s={} exact_cases={} elapsed_ms={}",
-        config.run_id,
-        benchmark_report.decode_mode,
-        benchmark_report.neural_tokens_per_second,
-        benchmark_report.cpu_tokens_per_second,
-        benchmark_report
-            .case_reports
-            .iter()
-            .filter(|case| case.exact_trace_match)
-            .count(),
-        run_started_at.elapsed().as_millis(),
-    ));
+    let benchmark_report = if write_linear_benchmark_report {
+        emit_tassadar_progress(format!(
+            "tassadar_progress phase=benchmark_start run={} benchmark_split={} eval_examples={} elapsed_ms={}",
+            config.run_id,
+            benchmark_split_filter
+                .map(|split| split.as_str().to_string())
+                .unwrap_or_else(|| String::from("all")),
+            dataset_bundle.dataset.examples.len(),
+            run_started_at.elapsed().as_millis(),
+        ));
+        let report = benchmark_tassadar_executor_linear_decode(
+            &outcome.model,
+            &dataset_bundle.dataset,
+            benchmark_split_filter,
+        )
+        .map_err(TassadarExecutorTrainingError::from)?;
+        emit_tassadar_progress(format!(
+            "tassadar_progress phase=benchmark_complete run={} decode_mode={} neural_tok_s={} cpu_tok_s={} exact_cases={} elapsed_ms={}",
+            config.run_id,
+            report.decode_mode,
+            report.neural_tokens_per_second,
+            report.cpu_tokens_per_second,
+            report
+                .case_reports
+                .iter()
+                .filter(|case| case.exact_trace_match)
+                .count(),
+            run_started_at.elapsed().as_millis(),
+        ));
+        Some(report)
+    } else {
+        emit_tassadar_progress(format!(
+            "tassadar_progress phase=benchmark_skipped run={} reason=disabled_for_run_contract elapsed_ms={}",
+            config.run_id,
+            run_started_at.elapsed().as_millis(),
+        ));
+        None
+    };
     let boundary_exactness_report =
         build_tassadar_executor_boundary_exactness_report(&outcome.report.evaluation);
     let divergence_histogram_report =
@@ -855,7 +889,7 @@ pub fn execute_tassadar_training_run(
         config.run_id.as_str(),
         &outcome.model,
         &outcome.report,
-        &benchmark_report,
+        benchmark_report.as_ref(),
         &checkpoint_manifest,
     );
 
@@ -881,12 +915,14 @@ pub fn execute_tassadar_training_run(
         "tassadar_training_report",
         &outcome.report,
     )?);
-    artifacts.push(write_json_artifact(
-        output_dir,
-        LINEAR_BENCHMARK_REPORT_FILE,
-        "tassadar_linear_benchmark_report",
-        &benchmark_report,
-    )?);
+    if let Some(benchmark_report) = benchmark_report.as_ref() {
+        artifacts.push(write_json_artifact(
+            output_dir,
+            LINEAR_BENCHMARK_REPORT_FILE,
+            "tassadar_linear_benchmark_report",
+            benchmark_report,
+        )?);
+    }
     artifacts.push(write_json_artifact(
         output_dir,
         TASSADAR_EXECUTOR_BOUNDARY_EXACTNESS_REPORT_FILE,
@@ -943,7 +979,7 @@ pub fn execute_tassadar_training_run(
         config,
         &training_manifest,
         &outcome.report,
-        &benchmark_report,
+        benchmark_report.as_ref(),
         Some(&boundary_exactness_report),
         Some(&divergence_histogram_report),
         Some(&first_token_confusion_report),

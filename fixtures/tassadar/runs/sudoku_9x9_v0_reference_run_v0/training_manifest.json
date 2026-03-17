@@ -1,0 +1,116 @@
+{
+  "dataset_storage_key": "oa.tassadar.sudoku_9x9.sequence@scale-v0",
+  "dataset_digest": "62ff118b9980cccc0bfeb49fa86fc9b2703846e6a344c5207ad44a704d7a172a",
+  "tokenizer_digest": "f4134f46b2722a420ccb7f72a34e3b45e17a7a03b8a2c24084e1792f7e324bed",
+  "vocabulary_digest": "185385130aab45df19fa68f2bbfe7510517831834b1345bc3cc09559de52b42e",
+  "trainable_surface": "output_head_only",
+  "teacher_forced_training_strategy": "incremental_decode_window",
+  "packing_policy": {
+    "packing_mode": "batch_by_token_budget",
+    "max_row_tokens": 5335309,
+    "max_batch_tokens": 21341236,
+    "max_rows_per_batch": 4,
+    "overlong_sequence_posture": "refuse"
+  },
+  "train_plan": {
+    "policy_digest": "675939f7d74ec15e453b0f2b84ff44d2519cb6e6b2389a4688c3decb9e1940bd",
+    "packing_mode": "batch_by_token_budget",
+    "batches": [
+      {
+        "batch_id": "6bde7bac28708c1af7cd5f1f867b8eab2702e40b2466632264683d2bb0468d4a",
+        "rows": [
+          {
+            "row_id": "3af5285cc22f2e1aa11b35e1affb26d65ccdd58167e78eb8e5348395cce45a6c",
+            "source_sequences": [
+              {
+                "sequence_id": "tassadar.sequence.sudoku_9x9_train_a",
+                "shard_key": "train-000",
+                "sequence_index": 0,
+                "token_count": 4918195
+              }
+            ],
+            "token_count": 4918195,
+            "padded_token_count": 4918195
+          },
+          {
+            "row_id": "5590f724d407332288439624005dcef4265eff0018930a196fb8a1c82218c013",
+            "source_sequences": [
+              {
+                "sequence_id": "tassadar.sequence.sudoku_9x9_train_b",
+                "shard_key": "train-000",
+                "sequence_index": 1,
+                "token_count": 4926687
+              }
+            ],
+            "token_count": 4926687,
+            "padded_token_count": 4926687
+          }
+        ],
+        "token_count": 9844882,
+        "padded_token_count": 9844882,
+        "fill_bps": 4613
+      }
+    ],
+    "total_source_sequences": 2,
+    "total_source_tokens": 9844882
+  },
+  "validation_plan": {
+    "policy_digest": "675939f7d74ec15e453b0f2b84ff44d2519cb6e6b2389a4688c3decb9e1940bd",
+    "packing_mode": "batch_by_token_budget",
+    "batches": [
+      {
+        "batch_id": "a2db2140336957a0c0b480662a1c20bc6647e06382a957d08195865d50ac24f1",
+        "rows": [
+          {
+            "row_id": "808b55cd1163e440f55f0ee2a590cb94a7bbf95de0eecfc47b89cc92426baf77",
+            "source_sequences": [
+              {
+                "sequence_id": "tassadar.sequence.sudoku_9x9_validation_a",
+                "shard_key": "validation-000",
+                "sequence_index": 0,
+                "token_count": 5335309
+              }
+            ],
+            "token_count": 5335309,
+            "padded_token_count": 5335309
+          }
+        ],
+        "token_count": 5335309,
+        "padded_token_count": 5335309,
+        "fill_bps": 2500
+      }
+    ],
+    "total_source_sequences": 1,
+    "total_source_tokens": 5335309
+  },
+  "test_plan": {
+    "policy_digest": "675939f7d74ec15e453b0f2b84ff44d2519cb6e6b2389a4688c3decb9e1940bd",
+    "packing_mode": "batch_by_token_budget",
+    "batches": [
+      {
+        "batch_id": "dfed558e100fd14ec9d85814784559d30c661033d5fa5c57c4e67f23476c76cc",
+        "rows": [
+          {
+            "row_id": "915731c30c30a6e0da9658e0712bc8b19a1cd7bc0c1183b5af62206a3f86176c",
+            "source_sequences": [
+              {
+                "sequence_id": "tassadar.sequence.sudoku_9x9_test_a",
+                "shard_key": "test-000",
+                "sequence_index": 0,
+                "token_count": 4891222
+              }
+            ],
+            "token_count": 4891222,
+            "padded_token_count": 4891222
+          }
+        ],
+        "token_count": 4891222,
+        "padded_token_count": 4891222,
+        "fill_bps": 2291
+      }
+    ],
+    "total_source_sequences": 1,
+    "total_source_tokens": 4891222
+  },
+  "manifest_digest": "5e3c32b9228879c1858fad9ec8769b90a48d924e5dc076748bbcbb15f9f3ee88"
+}
