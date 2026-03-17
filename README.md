@@ -1055,6 +1055,9 @@ For canonical current-state detail, use `docs/ARCHITECTURE.md` and
   canonical bounded benchmark-package spec for `psionic-mlx-bench`,
   including suite manifests, text/served provider adapters, multimodal
   projection, and repeated benchmark receipts above `psionic-eval`.
+- **[docs/MLX_ECOSYSTEM_GUIDE.md](docs/MLX_ECOSYSTEM_GUIDE.md)** —
+  package-facing CLI and fixture guide for the bounded MLX ecosystem in this
+  repo, covering text, multimodal, audio, serving, recipes, and evaluation.
 - **[docs/INFERENCE_ENGINE.md](docs/INFERENCE_ENGINE.md)** — canonical
   inference-engine completion criteria and current boundaries.
 - **[docs/TRAIN_SYSTEM.md](docs/TRAIN_SYSTEM.md)** — canonical training

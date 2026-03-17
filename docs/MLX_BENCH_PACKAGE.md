@@ -53,6 +53,17 @@ Both adapters return the same provider-response contract, which carries output
 text or structured data, token accounting, timer facts, final-state digests,
 execution-strategy facts, and optional artifacts.
 
+## CLI
+
+`psionic-mlx-bench` now exposes a fixture-driven CLI for the package layer:
+
+- `psionic-mlx-bench build-suite`
+- `psionic-mlx-bench run-text-fixture`
+- `psionic-mlx-bench run-served-fixture`
+
+Those commands are intended for package examples, local or private harnesses,
+and migration guidance. They are not a promise of hosted benchmark authority.
+
 ## Multimodal Posture
 
 Multimodal benchmark cases stay bounded to prompt projection.

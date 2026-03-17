@@ -1,0 +1,76 @@
+{
+  "benchmark_key": {
+    "benchmark_ref": "benchmark://mlx/example-text",
+    "version": "2026.03.17"
+  },
+  "display_name": "MLX Example Text Benchmark",
+  "environment": {
+    "environment_ref": "env.psionic.mlx.openbench",
+    "version": "2026.03.17"
+  },
+  "repeat_count": 1,
+  "aggregation": "median_score",
+  "verification_policy": {
+    "require_timer_integrity": true,
+    "require_token_accounting": true,
+    "require_final_state_capture": true,
+    "require_execution_strategy": true
+  },
+  "cases": [
+    {
+      "case_id": "example-1",
+      "input": {
+        "kind": "text",
+        "request": {
+          "request_id": "example-1",
+          "messages": [
+            {
+              "role": "user",
+              "content": "What is 2 + 2?"
+            }
+          ],
+          "options": {
+            "max_output_tokens": 8,
+            "context_overflow_policy": "refuse",
+            "decode_strategy": "greedy"
+          }
+        }
+      },
+      "expectation": {
+        "kind": "exact_text",
+        "expected_text": "4"
+      }
+    },
+    {
+      "case_id": "example-2",
+      "input": {
+        "kind": "text",
+        "request": {
+          "request_id": "example-2",
+          "messages": [
+            {
+              "role": "system",
+              "content": "Answer in one sentence."
+            },
+            {
+              "role": "user",
+              "content": "What matters about replay-safe inference?"
+            }
+          ],
+          "options": {
+            "max_output_tokens": 32,
+            "context_overflow_policy": "refuse",
+            "decode_strategy": "greedy"
+          }
+        }
+      },
+      "expectation": {
+        "kind": "contains_all",
+        "required_fragments": [
+          "receipts",
+          "refusals"
+        ]
+      }
+    }
+  ]
+}

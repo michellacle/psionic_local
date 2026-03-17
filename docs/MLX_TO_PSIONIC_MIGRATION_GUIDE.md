@@ -1,9 +1,9 @@
 # Psionic MLX To Psionic Migration Guide
 
-> Status: canonical `PMLX-608` / `#3873` reference record, updated 2026-03-17
-> after landing the bounded MLX naming facade, C ABI, migration examples, and
-> adoption guide in `psionic-mlx-compat`, `psionic-mlx-capi`, and
-> `psionic-compat`.
+> Status: canonical MLX migration guide, updated 2026-03-17 after landing the
+> bounded MLX naming facade, C ABI, migration examples, package-facing
+> ecosystem guide, and evaluation CLI in `psionic-mlx-compat`,
+> `psionic-mlx-capi`, `psionic-mlx-bench`, and `psionic-compat`.
 
 This guide closes the bounded MLX adoption story for Psionic.
 
@@ -47,13 +47,13 @@ entrypoint.
 | `mlxfn_interop` | bounded `.mlxfn` import/export shell exists above native `.psifn` | `psionic-function-io` or `psionic-mlx-compat::io` |
 | `mlx_naming_facade_and_bindings` | bounded MLX-like naming shell and one C ABI binding layer exist | `psionic-mlx-compat`, `psionic-mlx-capi` |
 | `public_mlx_distributed_api` | bounded distributed group, collective, launch, tensor-parallel, and FSDP helper surface is real | `psionic-distributed` or `psionic-mlx-compat::distributed` |
+| `mlx_package_ecosystem` | bounded package CLIs, fixtures, and guides now exist for text, multimodal, audio, serving, recipes, and evaluation | `docs/MLX_ECOSYSTEM_GUIDE.md` plus the `psionic-mlx-*` package CLIs |
 
 ### Convertible Today
 
 | Surface | Current truth | Primary entrypoint |
 | --- | --- | --- |
 | `portable_model_io_bridge` | safetensors manifests and GGUF import can carry bounded migration paths, but this is not native MLX artifact parity | `psionic-array-io`, `psionic-function-io`, `psionic-models` |
-| `mlx_package_ecosystem` | `psionic-mlx-lm`, `psionic-mlx-catalog`, `psionic-mlx-serve`, `psionic-mlx-vlm`, `psionic-mlx-audio`, `psionic-mlx-recipes`, `psionic-mlx-workflows`, and `psionic-mlx-bench` now provide bounded local text-runtime, catalog, OpenAI-compatible text-serving, multimodal request-planning, audio synthesis/codec workflows, MLX-style training-recipe planning, deterministic synthetic dataset bundles, reward/judge helper plans, adapter merge/export artifacts, a local publish snapshot, and benchmark-suite/provider-adapter receipts above `psionic-eval`, but the full examples/guides layer remains later work | `psionic-mlx-lm`, `psionic-mlx-catalog`, `psionic-mlx-serve`, `psionic-mlx-vlm`, `psionic-mlx-audio`, `psionic-mlx-recipes`, `psionic-mlx-workflows`, `psionic-mlx-bench`, `docs/MLX_LM_PACKAGE.md`, `docs/MLX_MODEL_CATALOG.md`, `docs/MLX_TEXT_SERVE.md`, `docs/MLX_VLM_PACKAGE.md`, `docs/MLX_AUDIO_PACKAGE.md`, `docs/MLX_RECIPE_PACKAGE.md`, `docs/MLX_WORKFLOW_PACKAGE.md`, `docs/MLX_BENCH_PACKAGE.md` |
 
 ## Common Translation Map
 
@@ -77,7 +77,12 @@ Run the migration examples from the repo root:
 cargo run -p psionic-mlx-compat --example mlx_array_facade_walkthrough
 cargo run -p psionic-mlx-compat --example mlx_native_drop_down
 cargo run -p psionic-mlx-capi --example mlx_capi_eval_request
+cargo run -p psionic-mlx-bench --bin psionic-mlx-bench -- \
+  build-suite --spec-json fixtures/mlx_examples/benchmark_suite.json
 ```
+
+For the package-facing CLI walkthrough across text, multimodal, audio,
+serving, recipes, and evaluation, use `docs/MLX_ECOSYSTEM_GUIDE.md`.
 
 What each example demonstrates:
 

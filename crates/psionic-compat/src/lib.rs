@@ -1873,9 +1873,9 @@ pub fn builtin_mlx_compatibility_matrix_report() -> MlxCompatibilityMatrixReport
         },
         MlxCompatibilityMatrixEntry {
             surface_id: String::from("mlx_package_ecosystem"),
-            matrix_status: MlxCompatibilityMatrixStatus::Convertible,
+            matrix_status: MlxCompatibilityMatrixStatus::Supported,
             summary: String::from(
-                "Bounded local MLX-style text, catalog, text-serving, multimodal, audio, recipe, workflow, and benchmark packages now exist in `psionic-mlx-lm`, `psionic-mlx-catalog`, `psionic-mlx-serve`, `psionic-mlx-vlm`, `psionic-mlx-audio`, `psionic-mlx-recipes`, `psionic-mlx-workflows`, and `psionic-mlx-bench`, but the full ecosystem examples/guides layer remains later work.",
+                "Bounded local MLX-style text, catalog, text-serving, multimodal, audio, recipe, workflow, and benchmark packages now exist in `psionic-mlx-lm`, `psionic-mlx-catalog`, `psionic-mlx-serve`, `psionic-mlx-vlm`, `psionic-mlx-audio`, `psionic-mlx-recipes`, `psionic-mlx-workflows`, and `psionic-mlx-bench`, and the repo now ships the package-facing CLI and fixture guide in `docs/MLX_ECOSYSTEM_GUIDE.md`.",
             ),
             evidence_refs: vec![
                 String::from("crates/psionic-mlx-lm"),
@@ -1894,6 +1894,10 @@ pub fn builtin_mlx_compatibility_matrix_report() -> MlxCompatibilityMatrixReport
                 String::from("docs/MLX_RECIPE_PACKAGE.md"),
                 String::from("docs/MLX_WORKFLOW_PACKAGE.md"),
                 String::from("docs/MLX_BENCH_PACKAGE.md"),
+                String::from("docs/MLX_ECOSYSTEM_GUIDE.md"),
+                String::from("fixtures/mlx_examples/benchmark_suite.json"),
+                String::from("fixtures/mlx_examples/benchmark_responses.json"),
+                String::from("fixtures/mlx_examples/vlm_messages.json"),
                 String::from("cargo test -p psionic-mlx-lm --lib --tests"),
                 String::from("cargo test -p psionic-mlx-catalog --lib --tests"),
                 String::from("cargo test -p psionic-mlx-serve --lib --tests"),
@@ -1902,10 +1906,17 @@ pub fn builtin_mlx_compatibility_matrix_report() -> MlxCompatibilityMatrixReport
                 String::from("cargo test -p psionic-mlx-recipes --lib --tests"),
                 String::from("cargo test -p psionic-mlx-workflows --lib --tests"),
                 String::from("cargo test -p psionic-mlx-bench --lib --tests"),
+                String::from("cargo test -p psionic-mlx-bench --bin psionic-mlx-bench"),
+                String::from(
+                    "cargo run -p psionic-mlx-bench --bin psionic-mlx-bench -- build-suite --spec-json fixtures/mlx_examples/benchmark_suite.json",
+                ),
+                String::from(
+                    "cargo run -p psionic-mlx-bench --bin psionic-mlx-bench -- run-text-fixture --spec-json fixtures/mlx_examples/benchmark_suite.json --responses-json fixtures/mlx_examples/benchmark_responses.json",
+                ),
             ],
-            blocking_issue_refs: vec![String::from("PMLX-709 (#3882)")],
+            blocking_issue_refs: Vec::new(),
             boundary_note: String::from(
-                "The first local text, catalog, text-serving, multimodal, audio, recipe, workflow, and benchmark packages are real, but they do not imply the full examples/guides layer.",
+                "The current examples and guides are package-facing CLI walkthroughs and fixture-driven local harnesses; they do not imply app-owned demos or hosted benchmark authority.",
             ),
         },
     ])
@@ -2606,13 +2617,14 @@ mod tests {
             .expect("missing MLX package ecosystem row");
         assert_eq!(
             ecosystem.matrix_status,
-            MlxCompatibilityMatrixStatus::Convertible
+            MlxCompatibilityMatrixStatus::Supported
         );
         assert!(ecosystem.summary.contains("psionic-mlx-lm"));
         assert!(ecosystem.summary.contains("psionic-mlx-catalog"));
         assert!(ecosystem.summary.contains("psionic-mlx-recipes"));
         assert!(ecosystem.summary.contains("psionic-mlx-workflows"));
         assert!(ecosystem.summary.contains("psionic-mlx-bench"));
+        assert!(ecosystem.summary.contains("MLX_ECOSYSTEM_GUIDE"));
         assert!(
             ecosystem
                 .blocking_issue_refs

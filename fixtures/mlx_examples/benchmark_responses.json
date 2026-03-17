@@ -1,0 +1,32 @@
+{
+  "responses": [
+    {
+      "request_id": "example-1",
+      "response": {
+        "output_text": "4",
+        "input_tokens": 8,
+        "output_tokens": 1,
+        "elapsed_ms": 4,
+        "execution_strategy": {
+          "strategy_label": "fixture_local",
+          "runtime_family": "psionic_serve",
+          "scheduler_posture": "direct"
+        }
+      }
+    },
+    {
+      "request_id": "example-2",
+      "response": {
+        "output_text": "Replay-safe inference keeps receipts and explicit refusals visible.",
+        "input_tokens": 11,
+        "output_tokens": 8,
+        "elapsed_ms": 7,
+        "execution_strategy": {
+          "strategy_label": "fixture_local",
+          "runtime_family": "psionic_serve",
+          "scheduler_posture": "direct"
+        }
+      }
+    }
+  ]
+}

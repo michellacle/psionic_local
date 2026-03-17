@@ -1,0 +1,21 @@
+[
+  {
+    "role": "user",
+    "content": [
+      {
+        "type": "input_text",
+        "text": "Describe the image in one sentence."
+      },
+      {
+        "type": "input_image",
+        "image": {
+          "source": {
+            "kind": "data_url",
+            "data_url": "data:image/png;base64,AAAA"
+          },
+          "mime_type": "image/png"
+        }
+      }
+    ]
+  }
+]
