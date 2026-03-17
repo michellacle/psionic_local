@@ -20,8 +20,8 @@
 > local MLX ecosystem checkout at `~/code/ivanf`.
 >
 > This is the lane-specific roadmap for building an MLX-class framework surface
-> inside `crates/psionic/*`. It is intentionally narrower than
-> `crates/psionic/docs/ROADMAP.md`: it is about the MLX-shaped array,
+> inside `crates/psionic-*`. It is intentionally narrower than
+> `docs/ROADMAP.md`: it is about the MLX-shaped array,
 > transform, module, export, distributed-semantics, and package-ecosystem
 > program in Rust, not the whole Psionic library roadmap.
 
@@ -36,26 +36,26 @@ Choose the reference that owns the layer being changed:
 - start with `~/code/mlx` for array semantics, lazy evaluation, function
   transforms, compile behavior, export behavior, distributed helper semantics,
   module trees, optimizer APIs, memory-management behavior, and upstream tests
-- start with `crates/psionic/docs/ROADMAP.md` for the canonical full-program
+- start with `docs/ROADMAP.md` for the canonical full-program
   owner split and dependency order
-- start with `crates/psionic/docs/ARCHITECTURE.md` for Psionic-wide runtime,
+- start with `docs/ARCHITECTURE.md` for Psionic-wide runtime,
   artifact, receipt, cluster, sandbox, and security truth that MLX work must
   not bypass
-- start with `crates/psionic/docs/FRAMEWORK_CORE_ACCEPTANCE_MATRIX.md` for the
+- start with `docs/FRAMEWORK_CORE_ACCEPTANCE_MATRIX.md` for the
   CPU-reference-first acceptance discipline
-- start with `crates/psionic/docs/TRAIN_SYSTEM.md` for reusable optimizer,
+- start with `docs/TRAIN_SYSTEM.md` for reusable optimizer,
   checkpoint, and distributed-train substrate that MLX-class framework surfaces
   should reuse rather than bypass
-- start with `crates/psionic/docs/MLX_COMPATIBILITY_SCOPE.md` for the canonical
+- start with `docs/MLX_COMPATIBILITY_SCOPE.md` for the canonical
   bounded upstream MLX version window and the required distinction between
   `MLX-class` and `MLX-compatible` language
-- start with `crates/psionic/docs/MLX_ACCEPTANCE_MATRIX.md` for the canonical
+- start with `docs/MLX_ACCEPTANCE_MATRIX.md` for the canonical
   MLX-lane closure categories and the machine-readable acceptance report
   contract
-- start with `crates/psionic/docs/MLX_PARITY_HARNESS.md` for the canonical
+- start with `docs/MLX_PARITY_HARNESS.md` for the canonical
   seeded upstream MLX test families and the repo-owned parity-harness report
   contract
-- start with `crates/psionic/docs/MLX_COMPATIBILITY_MATRIX.md` for the
+- start with `docs/MLX_COMPATIBILITY_MATRIX.md` for the
   canonical supported/convertible/unsupported adoption matrix above the frozen
   MLX oracle window
 - start with `../../../docs/audits/2026-03-16-mlx-full-rust-port-into-psionic-audit.md`
@@ -142,7 +142,7 @@ move ownership boundaries out of `docs/OWNERSHIP.md`.
 
 This roadmap must continue to respect `docs/OWNERSHIP.md`:
 
-- `crates/psionic/*` owns the reusable MLX-class array, transform, module,
+- `crates/psionic-*` owns the reusable MLX-class array, transform, module,
   export, distributed, backend, and parity-harness surfaces
 - `apps/*` remain responsible for product UX and product control flows
 - kernel and Nexus remain authority owners, not framework-execution owners
@@ -283,7 +283,7 @@ The right implication is:
 
 - keep the framework-native port first
 - then add the package and service layer that makes the MLX lane actually
-  usable as an ecosystem inside `crates/psionic/*`
+  usable as an ecosystem inside `crates/psionic-*`
 
 ## Success Bar
 
@@ -588,7 +588,7 @@ ecosystem inside Psionic rather than only as a low-level framework port.
 | `PMLX-706` | planned | `Psionic MLX: add a training-recipe layer for LoRA, DoRA, QLoRA, and preference or RL methods above psionic-train` | Build ergonomic MLX-class recipe APIs and CLIs on top of `psionic-train` for SFT, LoRA or DoRA or QLoRA, DPO or CPO or ORPO, GRPO-family methods, online DPO or XPO, PPO, and related bounded methods without creating a second trainer architecture outside Psionic. |
 | `PMLX-707` | planned | `Psionic MLX: add synthetic-data, judge or reward-model, adapter-merge, and publish workflows` | Add synthetic SFT and preference dataset generation, reward or judge model training helpers, adapter merge or export, GGUF or Hugging Face publish pipeline, and lineage-bound dataset or output manifests so recipe work produces reusable artifacts rather than notebook-only side effects. |
 | `PMLX-708` | planned | `Psionic MLX: add an openbench-class evaluation and benchmark package for local MLX-class providers` | Build the benchmark and eval package plus provider adapter layer that makes local MLX-text, multimodal, and served lanes easy to score across standardized tasks and local or private eval suites while reusing `psionic-eval` and receipt truth. |
-| `PMLX-709` | planned | `Psionic MLX: publish ecosystem CLIs, examples, and migration guides without leaking product UX into app code` | Ship the package-facing CLI and example layer for text, multimodal, audio, serving, training recipes, and evaluation so the MLX lane is usable as an ecosystem in this repo, while keeping Gradio demos, desktop pickers, and product UX out of `crates/psionic/*`. |
+| `PMLX-709` | planned | `Psionic MLX: publish ecosystem CLIs, examples, and migration guides without leaking product UX into app code` | Ship the package-facing CLI and example layer for text, multimodal, audio, serving, training recipes, and evaluation so the MLX lane is usable as an ecosystem in this repo, while keeping Gradio demos, desktop pickers, and product UX out of `crates/psionic-*`. |
 
 ## Current Execution Order
 

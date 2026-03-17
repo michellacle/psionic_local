@@ -5,7 +5,7 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 Usage:
-  crates/psionic/scripts/benchmark-cluster-gates.sh [--json-out DIR]
+  scripts/benchmark-cluster-gates.sh [--json-out DIR]
 
 Defaults:
   benchmark receipt JSON: disabled
@@ -25,7 +25,7 @@ EOF
 }
 
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
-REPO_ROOT=$(cd -- "$SCRIPT_DIR/../../.." && pwd)
+REPO_ROOT=$(cd -- "$SCRIPT_DIR/.." && pwd)
 JSON_OUT=
 RECEIPT_IDS=(
   whole_request_scheduler

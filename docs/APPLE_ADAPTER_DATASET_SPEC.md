@@ -17,9 +17,9 @@ The external Apple repos remain reference inputs only.
 ## Authority
 
 - This doc is the canonical repo-owned Apple adapter dataset spec.
-- `crates/psionic/fixtures/apple_adapter/datasets/` is the canonical fixture
+- `fixtures/apple_adapter/datasets/` is the canonical fixture
   corpus for positive and negative dataset examples.
-- `crates/psionic/docs/TRAIN_SYSTEM.md` remains the canonical train-system
+- `docs/TRAIN_SYSTEM.md` remains the canonical train-system
   architecture doc; this doc only freezes the Apple-specific data shape.
 
 ## Source Inputs Used To Freeze This Spec
@@ -28,8 +28,8 @@ The external Apple repos remain reference inputs only.
 - `/Users/christopherdavid/code/adapter_training_toolkit_v26_0_0/examples/data.py`
 - `/Users/christopherdavid/code/adapter_training_toolkit_v26_0_0/examples/messages.py`
 - `/Users/christopherdavid/code/adapter_training_toolkit_v26_0_0/examples/utils.py`
-- `crates/psionic/psionic-data/src/lib.rs`
-- `crates/psionic/psionic-apple-fm/src/contract.rs`
+- `crates/psionic-data/src/lib.rs`
+- `crates/psionic-apple-fm/src/contract.rs`
 
 ## Canonical Record Shape
 
@@ -160,7 +160,7 @@ That overlay is where the repo should freeze:
 
 The first such corpus now lives under:
 
-- `crates/psionic/fixtures/apple_adapter/datasets/psionic_architecture_explainer/`
+- `fixtures/apple_adapter/datasets/psionic_architecture_explainer/`
 
 The raw JSONL files remain the canonical Apple-style training records. The
 curation overlay adds OpenAgents review and provenance semantics on top of
@@ -170,22 +170,22 @@ those rows.
 
 Positive fixtures:
 
-- `crates/psionic/fixtures/apple_adapter/datasets/minimal_sft_train.jsonl`
-- `crates/psionic/fixtures/apple_adapter/datasets/schema_free_guided_generation_train.jsonl`
-- `crates/psionic/fixtures/apple_adapter/datasets/guided_generation_with_schema_train.jsonl`
-- `crates/psionic/fixtures/apple_adapter/datasets/tool_calling_train.jsonl`
-- `crates/psionic/fixtures/apple_adapter/datasets/psionic_architecture_explainer/train.jsonl`
-- `crates/psionic/fixtures/apple_adapter/datasets/psionic_architecture_explainer/held_out.jsonl`
-- `crates/psionic/fixtures/apple_adapter/datasets/psionic_architecture_explainer/benchmark.jsonl`
-- `crates/psionic/fixtures/apple_adapter/datasets/psionic_architecture_explainer/corpus_manifest.json`
+- `fixtures/apple_adapter/datasets/minimal_sft_train.jsonl`
+- `fixtures/apple_adapter/datasets/schema_free_guided_generation_train.jsonl`
+- `fixtures/apple_adapter/datasets/guided_generation_with_schema_train.jsonl`
+- `fixtures/apple_adapter/datasets/tool_calling_train.jsonl`
+- `fixtures/apple_adapter/datasets/psionic_architecture_explainer/train.jsonl`
+- `fixtures/apple_adapter/datasets/psionic_architecture_explainer/held_out.jsonl`
+- `fixtures/apple_adapter/datasets/psionic_architecture_explainer/benchmark.jsonl`
+- `fixtures/apple_adapter/datasets/psionic_architecture_explainer/corpus_manifest.json`
 
 Negative fixtures:
 
-- `crates/psionic/fixtures/apple_adapter/datasets/invalid_system_not_first.jsonl`
-- `crates/psionic/fixtures/apple_adapter/datasets/invalid_assistant_not_last.jsonl`
-- `crates/psionic/fixtures/apple_adapter/datasets/invalid_duplicate_roles.jsonl`
-- `crates/psionic/fixtures/apple_adapter/datasets/invalid_missing_response_schema.jsonl`
-- `crates/psionic/fixtures/apple_adapter/datasets/invalid_tool_definition.jsonl`
+- `fixtures/apple_adapter/datasets/invalid_system_not_first.jsonl`
+- `fixtures/apple_adapter/datasets/invalid_assistant_not_last.jsonl`
+- `fixtures/apple_adapter/datasets/invalid_duplicate_roles.jsonl`
+- `fixtures/apple_adapter/datasets/invalid_missing_response_schema.jsonl`
+- `fixtures/apple_adapter/datasets/invalid_tool_definition.jsonl`
 
 ## Non-Goals
 

@@ -4,7 +4,7 @@
 > widening `scripts/release/check-psionic-framework-core-acceptance.sh` from a
 > representative runner into the full PLIB-107 broad-coverage gate with a
 > machine-readable JSON report contract in
-> `crates/psionic/docs/framework_core_acceptance_report.schema.json`.
+> `docs/framework_core_acceptance_report.schema.json`.
 
 Psionic can now make several higher-level claims:
 
@@ -17,7 +17,7 @@ close to Tinygrad-class ML framework completion on the actual framework core.
 
 This document defines that narrower bar.
 
-It is about `crates/psionic/*` only. It does not widen MVP product scope in
+It is about `crates/psionic-*` only. It does not widen MVP product scope in
 `docs/MVP.md`, and it does not move ownership boundaries out of
 `docs/OWNERSHIP.md`.
 
@@ -55,7 +55,7 @@ The runner is intentionally honest about remaining boundaries:
 - it prints explicit refusal or implemented-early notes when a category is real
   but still intentionally bounded
 - it can emit a machine-readable JSON report whose shape is fixed by
-  `crates/psionic/docs/framework_core_acceptance_report.schema.json`
+  `docs/framework_core_acceptance_report.schema.json`
 - it does not treat serving or train acceptance as a substitute for
   framework-core closure
 

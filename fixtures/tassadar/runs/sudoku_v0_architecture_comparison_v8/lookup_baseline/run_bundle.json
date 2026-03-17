@@ -10,7 +10,7 @@
   "target_token_cap": 32,
   "family_report_file": "family_report.json",
   "model_descriptor_file": "model_descriptor.json",
-  "source_artifact_ref": "crates/psionic/fixtures/tassadar/runs/sudoku_v0_trainable_surface_ablation_v1/output_head_embeddings_and_small_learned_mixer/run_bundle.json",
+  "source_artifact_ref": "fixtures/tassadar/runs/sudoku_v0_trainable_surface_ablation_v1/output_head_embeddings_and_small_learned_mixer/run_bundle.json",
   "family_report_digest": "1da0175dcbf904d5b309df9ee038bb51212b60e6fd9b1037ae436a8cd4c3b206",
   "bundle_digest": "62f5d6696971f468ef3e3ab14cb46d212e5f4b43fb1d6760ea4ac19953a31674"
 }

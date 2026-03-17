@@ -2,9 +2,9 @@
 
 > Status: canonical `PSI-281` / `#3586` reference record, updated 2026-03-16
 > after landing the typed distributed-optimizer layer in
-> `crates/psionic/psionic-train/src/distributed_optimizer.rs` and the bounded
+> `crates/psionic-train/src/distributed_optimizer.rs` and the bounded
 > public `fsdp_apply_gradients` helper in
-> `crates/psionic/psionic-distributed/src/lib.rs`.
+> `crates/psionic-distributed/src/lib.rs`.
 
 This document records the first explicit distributed-optimizer contract for the
 Psionic train stack.

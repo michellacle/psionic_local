@@ -97,7 +97,7 @@ claim.
 - `cargo test -p psionic-backend-metal`
 - `cargo test -p psionic-serve --test metal_embeddings_parity --test metal_model_backed_embeddings --test metal_text_generation_parity --test metal_model_backed_text_generation`
 - `cargo test -p psionic-serve gpt_oss::tests::metal_gpt_oss_service_matches_cpu_reference_on_synthetic_fixture -- --nocapture`
-- `crates/psionic/scripts/benchmark-gpt-oss-vs-llama.sh --psionic-backend metal --json-out <dir>`
+- `scripts/benchmark-gpt-oss-vs-llama.sh --psionic-backend metal --json-out <dir>`
 
 ### Linux NVIDIA host
 

@@ -35,8 +35,8 @@ paths.
 
 ### Psionic
 
-- `crates/psionic/docs/METAL_GPT_OSS_UNIFIED_PLAN.md`
-- `crates/psionic/psionic-serve/src/gpt_oss.rs`
+- `docs/METAL_GPT_OSS_UNIFIED_PLAN.md`
+- `crates/psionic-serve/src/gpt_oss.rs`
 - GitHub issues `#3262`, `#3269`, `#3285`, and `#3286`
 
 ### `llama.cpp`

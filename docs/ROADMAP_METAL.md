@@ -8,8 +8,8 @@
 > `79803bb28`.
 >
 > This is the live roadmap for the native Apple Silicon Metal GPT-OSS lane in
-> `crates/psionic/*`. It is intentionally narrower than
-> `crates/psionic/docs/ROADMAP.md`: it is about making Metal truthful,
+> `crates/psionic-*`. It is intentionally narrower than
+> `docs/ROADMAP.md`: it is about making Metal truthful,
 > correct, and fast enough to stand on its own, not about the full Psionic
 > replacement program.
 
@@ -55,16 +55,16 @@ roadmap is about the real OpenAI-MoE path.
 
 This roadmap must continue to respect `docs/OWNERSHIP.md`:
 
-- `crates/psionic/*` owns model loading, runtime policy, backend lowering,
+- `crates/psionic-*` owns model loading, runtime policy, backend lowering,
   execution, serving, conformance, validation, and benchmark truth
 - `apps/autopilot-desktop` owns the local inference pane, app-level runtime
   controls, provider UX, and any workbench or product-facing orchestration
 - Metal roadmap work must not move app-specific UI behavior into
-  `crates/psionic/*`
+  `crates/psionic-*`
 
 ## Why This Roadmap Exists
 
-`crates/psionic/docs/ROADMAP.md` already tracks the full Psionic program, but
+`docs/ROADMAP.md` already tracks the full Psionic program, but
 the Metal GPT-OSS lane now has its own concrete issue queue and its own
 reference lessons.
 
@@ -156,9 +156,9 @@ on both architecture and correctness.
 
 This roadmap explicitly adopts the conclusions from:
 
-- `crates/psionic/docs/METAL_GPT_OSS_LLAMA_CPP_LESSONS.md`
-- `crates/psionic/docs/METAL_GPT_OSS_MLX_LM_LESSONS.md`
-- `crates/psionic/docs/METAL_GPT_OSS_GPT_OSS_LESSONS.md`
+- `docs/METAL_GPT_OSS_LLAMA_CPP_LESSONS.md`
+- `docs/METAL_GPT_OSS_MLX_LM_LESSONS.md`
+- `docs/METAL_GPT_OSS_GPT_OSS_LESSONS.md`
 
 ### `llama.cpp`: performance and architecture truth
 
@@ -353,7 +353,7 @@ Paused state for the next Metal session:
 - the working `main` checkpoint now includes a first ids-driven grouped
   expert-down path for Metal GPT-OSS, mirroring the next honest direction that
   unlocked the NVIDIA lane later in
-  `crates/psionic/docs/ROADMAP.md`
+  `docs/ROADMAP.md`
 - `psionic-backend-metal` now exposes `expert_matvec_f32_ids` for grouped
   per-selected-input expert projection in both `Q8_0` and `MXFP4`
 - the planned native-Metal GPT-OSS decode path now uses one grouped expert-down
@@ -445,6 +445,6 @@ not be pulled ahead of the current blocker queue.
   right prompt and decode runtime shapes
 - filing a long tail of speculative kernel issues before the current four-issue
   blocker queue is resolved
-- moving UI/workbench logic from `apps/autopilot-desktop` into `crates/psionic/*`
+- moving UI/workbench logic from `apps/autopilot-desktop` into `crates/psionic-*`
 - treating `llama.cpp`, `gpt-oss`, or `mlx-lm` as acceptable execution
   shortcuts instead of reference implementations

@@ -5,8 +5,8 @@ program-identity drift.
 
 The gate lives in:
 
-- `crates/psionic/psionic-compiler/tests/process_replay.rs`
-- `crates/psionic/psionic-compiler/tests/fixtures/`
+- `crates/psionic-compiler/tests/process_replay.rs`
+- `crates/psionic-compiler/tests/fixtures/`
 - `scripts/lint/psionic-compiler-replay-gate.sh`
 
 ## What It Checks
@@ -66,5 +66,5 @@ start hiding the drift.
 
 For the bounded symbolic-shape, fake-tensor, and compiler-hygiene parity slice
 that now sits alongside replay, use
-`crates/psionic/docs/COMPILER_HYGIENE_PARITY_MATRIX.md` and
+`docs/COMPILER_HYGIENE_PARITY_MATRIX.md` and
 `scripts/release/check-psionic-compiler-hygiene-parity.sh`.

@@ -1,4 +1,5 @@
 # Large regenerated checkpoint blobs intentionally kept out of git history.
+/target/
 fixtures/tassadar/runs/sudoku_v0_attention_boundary_v3/checkpoint_state.json
 fixtures/tassadar/runs/sudoku_v0_attention_boundary_v4/checkpoint_state.json
 fixtures/tassadar/runs/sudoku_v0_attention_boundary_v5/checkpoint_state.json

@@ -4,7 +4,7 @@
 
 Exo’s “core cluster” idea is not just “run inference on multiple machines.” It is a cohesive distributed-systems design: automatic peer discovery, a topology- and resource-aware cluster state, a master-election mechanism for unstable networks, and an event-sourcing replication model where a single “writer” orders events and every node folds the ordered event stream into a convergent shared state. Exo’s README frames the user-facing goal as “connect all your devices into an AI cluster,” enabling models larger than a single device and scaling performance with more devices, including explicit attention to RDMA-over-Thunderbolt setups and topology-aware sharding.
 
-Psionic already has a surprisingly compatible foundation for cluster integration: it explicitly models device inventory qualifiers, supports multi-device execution topology plans (single-device, replicated, layer-sharded, tensor-sharded), and uses stable digests for topology identity—concepts that map directly to “cluster placement” and “truthful capability/receipt reporting” needs. The most leverage comes from porting Exo’s cluster-control substrate (network discovery + pubsub, master election, ordered event log + catchup, topology model + placement heuristics) into a new Rust crate layer within `crates/psionic/*`, and then wiring that to existing Psionic provider and serving surfaces rather than grafting Exo’s Python runner stack into OpenAgents.
+Psionic already has a surprisingly compatible foundation for cluster integration: it explicitly models device inventory qualifiers, supports multi-device execution topology plans (single-device, replicated, layer-sharded, tensor-sharded), and uses stable digests for topology identity—concepts that map directly to “cluster placement” and “truthful capability/receipt reporting” needs. The most leverage comes from porting Exo’s cluster-control substrate (network discovery + pubsub, master election, ordered event log + catchup, topology model + placement heuristics) into a new Rust crate layer within `crates/psionic-*`, and then wiring that to existing Psionic provider and serving surfaces rather than grafting Exo’s Python runner stack into OpenAgents.
 
 Licensing aligns for code adaptation: Exo is Apache License 2.0, and OpenAgents is also Apache License 2.0.
 
@@ -89,7 +89,7 @@ Psionic’s codebase already has the abstractions you want before trying to add 
 
 ### Psionic’s crate decomposition and “engine-first” posture
 
-The `crates/psionic/` README describes Psionic as the “native Rust compute engine for OpenAgents,” and lists sub-crates such as `psionic-core`, `psionic-ir`, `psionic-compiler`, `psionic-runtime`, `psionic-models`, `psionic-serve`, and backend crates. This separation matters: the cluster layer should live in `crates/psionic/*` (engine substrate) and expose library-first APIs, rather than becoming entangled with desktop orchestration.
+The repo `README.md` describes Psionic as the “native Rust compute engine for OpenAgents,” and lists sub-crates such as `psionic-core`, `psionic-ir`, `psionic-compiler`, `psionic-runtime`, `psionic-models`, `psionic-serve`, and backend crates. This separation matters: the cluster layer should live in `crates/psionic-*` (engine substrate) and expose library-first APIs, rather than becoming entangled with desktop orchestration.
 
 ### Multi-device topology plans already exist in `psionic-runtime`
 
@@ -138,7 +138,7 @@ If the goal is “integrate the core cluster idea,” the highest-value parts to
 
 This section proposes a concrete way to integrate Exo’s core cluster idea into Psionic while respecting Psionic’s crate boundaries and staying Rust-first.
 
-### Add a `psionic-cluster` control-plane crate in `crates/psionic/`
+### Add a `psionic-cluster` control-plane crate in `crates/`
 
 `psionic-cluster` would implement:
 

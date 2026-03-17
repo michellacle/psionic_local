@@ -2,7 +2,7 @@
 
 > Status: canonical `PLIB-207` / `#3722` reference record, updated 2026-03-16
 > after landing the first seeded Rust-native optimizer parity matrix in
-> `crates/psionic/psionic-train/src/optimizer.rs`.
+> `crates/psionic-train/src/optimizer.rs`.
 
 This document records the first bounded optimizer parity artifact for
 Psionic's semantics layer.

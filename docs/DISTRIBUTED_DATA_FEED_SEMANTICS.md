@@ -2,7 +2,7 @@
 
 > Status: canonical `PLIB-219` / `#3734` reference record, updated 2026-03-16
 > after landing the first bounded distributed data-feed report in
-> `crates/psionic/psionic-data/src/lib.rs`.
+> `crates/psionic-data/src/lib.rs`.
 
 This document records the current bounded distributed and sharded data-feed
 surface for Psionic.

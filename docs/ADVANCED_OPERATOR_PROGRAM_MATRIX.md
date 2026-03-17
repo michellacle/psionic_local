@@ -2,7 +2,7 @@
 
 > Status: canonical `PLIB-220` / `#3735` reference record, updated 2026-03-16
 > after landing the first bounded advanced operator-program matrix in
-> `crates/psionic/psionic-ir/src/lib.rs`.
+> `crates/psionic-ir/src/lib.rs`.
 
 This document records the current bounded advanced operator-family program
 surface for Psionic.

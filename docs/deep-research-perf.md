@@ -42,7 +42,7 @@ Where possible, report each run with the “receipt” metrics the code already 
 
 ### High-level component view
 
-From the current hot path (`crates/psionic/psionic-serve/src/gpt_oss.rs`) and the issue’s framing, Psionic’s GPT-OSS runtime for CUDA has these major layers:
+From the current hot path (`crates/psionic-serve/src/gpt_oss.rs`) and the issue’s framing, Psionic’s GPT-OSS runtime for CUDA has these major layers:
 
 - A **text-generation service** that implements `TextGenerationExecutor` and funnels requests into `run_cuda_generation_request`. citeturn9view0turn9view1  
 - A **model registry + session store + shared prefix store** to reuse state across requests. citeturn41view3turn40view9  
@@ -238,22 +238,22 @@ Below are exact GitHub line-anchored links (as requested). They are provided in 
 
 ```text
 # Psionic GPT-OSS CUDA request loop + host/cuda KV cache + per-token forward:
-https://github.com/OpenAgentsInc/openagents/blob/main/crates/psionic/psionic-serve/src/gpt_oss.rs#L3808-L3927
+https://github.com/OpenAgentsInc/openagents/blob/main/crates/psionic-serve/src/gpt_oss.rs#L3808-L3927
 
 # Psionic ensure_cuda_decode_step_plan (plan acquisition + cache hit/miss):
-https://github.com/OpenAgentsInc/openagents/blob/main/crates/psionic/psionic-serve/src/gpt_oss.rs#L3450-L3502
+https://github.com/OpenAgentsInc/openagents/blob/main/crates/psionic-serve/src/gpt_oss.rs#L3450-L3502
 
 # Issue #3249 benchmark statement + required architectural changes:
 https://github.com/OpenAgentsInc/openagents/issues/3249#L202-L267
 
 # Psionic CUDA backend: CudaGraphExec and launch API:
-https://github.com/OpenAgentsInc/openagents/blob/main/crates/psionic/psionic-backend-cuda/src/lib.rs#L2417-L2473
+https://github.com/OpenAgentsInc/openagents/blob/main/crates/psionic-backend-cuda/src/lib.rs#L2417-L2473
 
 # Psionic CUDA backend: CudaSubmission struct (explicit ops, capture flag):
-https://github.com/OpenAgentsInc/openagents/blob/main/crates/psionic/psionic-backend-cuda/src/lib.rs#L3062-L3074
+https://github.com/OpenAgentsInc/openagents/blob/main/crates/psionic-backend-cuda/src/lib.rs#L3062-L3074
 
 # Psionic CUDA kernels: quant blocks + transformer primitive kernels (argmax/rmsnorm/rope/attention):
-https://github.com/OpenAgentsInc/openagents/blob/main/crates/psionic/psionic-backend-cuda/src/kernels/quantized_matvec.cu#L2387-L3469
+https://github.com/OpenAgentsInc/openagents/blob/main/crates/psionic-backend-cuda/src/kernels/quantized_matvec.cu#L2387-L3469
 
 # llama.cpp GPT-OSS OpenAI-MoE graph order (openai-moe-iswa):
 https://github.com/ggml-org/llama.cpp/blob/master/src/models/openai-moe-iswa.cpp#L500-L685
@@ -303,7 +303,7 @@ Several of the recommended directions are no longer hypothetical.
 
 4. Benchmark decomposition and evidence got better.
    The repo now has a repeatable benchmark script at
-   `crates/psionic/scripts/benchmark-gpt-oss-vs-llama.sh`, plus request-level
+   `scripts/benchmark-gpt-oss-vs-llama.sh`, plus request-level
    receipts and JSON outputs that make kernel-launch count, bytes moved, and
    reuse behavior inspectable instead of guessed.
 

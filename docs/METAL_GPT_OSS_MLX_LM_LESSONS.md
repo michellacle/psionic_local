@@ -24,7 +24,7 @@ the tracked Apple machine, while also producing malformed repetitive output on
 the benchmark contract.
 
 `llama.cpp` remains the main architecture reference for the long-term Metal
-backend shape, and `crates/psionic/docs/METAL_GPT_OSS_UNIFIED_PLAN.md` already
+backend shape, and `docs/METAL_GPT_OSS_UNIFIED_PLAN.md` already
 captures that. However, `mlx-lm` is also worth studying because it is another
 Apple-local inference stack that gets a number of important serving choices
 right:
@@ -44,8 +44,8 @@ The main question for Psionic is not "should we become MLX?" It is:
 
 ### Psionic
 
-- `crates/psionic/docs/METAL_GPT_OSS_UNIFIED_PLAN.md`
-- `crates/psionic/psionic-serve/src/gpt_oss.rs`
+- `docs/METAL_GPT_OSS_UNIFIED_PLAN.md`
+- `crates/psionic-serve/src/gpt_oss.rs`
 - GitHub issues `#3262`, `#3269`, `#3285`, and `#3286`
 
 ### `mlx-lm`

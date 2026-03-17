@@ -61,13 +61,13 @@ It intentionally does not commit full rendered prompt outputs.
    source files.
 2. Re-check template-name and stop-default mappings against the Ollama
    template files above.
-3. Update the fixture constants in `crates/psionic/psionic-models/src/fixtures.rs`.
+3. Update the fixture constants in `crates/psionic-models/src/fixtures.rs`.
 4. If a raw template changed, update its digest and any exact rendered prompt
    cases that rely on it.
 5. Run:
    - `cargo test -p psionic-models -p psionic-serve`
    - `scripts/lint/ownership-boundary-check.sh`
-6. Update `crates/psionic/docs/ROADMAP.md` after the issue lands, commit that
+6. Update `docs/ROADMAP.md` after the issue lands, commit that
    roadmap refresh, and push it as a separate follow-up commit per the roadmap
    instructions.
 

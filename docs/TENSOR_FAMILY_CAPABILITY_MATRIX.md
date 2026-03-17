@@ -3,7 +3,7 @@
 > Status: canonical `PLIB-210` / `#3725` reference record, updated 2026-03-16
 > after landing the first machine-readable capability and refusal matrix for
 > dense, sparse, nested, masked, and storage-aware tensor families in
-> `crates/psionic/psionic-ir/src/lib.rs`.
+> `crates/psionic-ir/src/lib.rs`.
 
 This document records the current bounded tensor-family semantics surface for
 Psionic.

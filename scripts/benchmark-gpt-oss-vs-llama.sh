@@ -5,7 +5,7 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 Usage:
-  crates/psionic/scripts/benchmark-gpt-oss-vs-llama.sh [--server SERVER] [--model PATH] [--psionic-bin PATH] [--psionic-backend BACKEND] [--psionic-metal-mode MODE] [--llama-bin PATH] [--host HOST] [--port PORT] [--ctx N] [--ngl N] [--max-tokens N] [--startup-timeout-seconds N] [--request-timeout-seconds N] [--json-out DIR]
+  scripts/benchmark-gpt-oss-vs-llama.sh [--server SERVER] [--model PATH] [--psionic-bin PATH] [--psionic-backend BACKEND] [--psionic-metal-mode MODE] [--llama-bin PATH] [--host HOST] [--port PORT] [--ctx N] [--ngl N] [--max-tokens N] [--startup-timeout-seconds N] [--request-timeout-seconds N] [--json-out DIR]
 
 Defaults:
   macOS model:           /Users/christopherdavid/models/gpt-oss/gpt-oss-20b-mxfp4.gguf
@@ -37,7 +37,7 @@ EOF
 }
 
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
-REPO_ROOT=$(cd -- "$SCRIPT_DIR/../../.." && pwd)
+REPO_ROOT=$(cd -- "$SCRIPT_DIR/.." && pwd)
 PLATFORM=$(uname -s)
 
 if [[ "$PLATFORM" == "Darwin" ]]; then

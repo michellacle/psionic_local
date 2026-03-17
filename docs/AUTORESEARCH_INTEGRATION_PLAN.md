@@ -1,12 +1,12 @@
 # Rust-Native Research Loop Plan For OpenAgents
 
 > Status: updated 2026-03-09 after reviewing `docs/MVP.md`,
-> `docs/OWNERSHIP.md`, `crates/psionic/docs/ROADMAP.md`,
-> `crates/psionic/docs/CONFORMANCE_AND_EVIDENCE_CONTRACT.md`,
+> `docs/OWNERSHIP.md`, `docs/ROADMAP.md`,
+> `docs/CONFORMANCE_AND_EVIDENCE_CONTRACT.md`,
 > `docs/pylon/PYLON_SANDBOX_CONTRACT.md`,
-> `crates/psionic/psionic-runtime/src/lib.rs`,
-> `crates/psionic/psionic-provider/src/lib.rs`,
-> `crates/psionic/psionic-sandbox/src/lib.rs`,
+> `crates/psionic-runtime/src/lib.rs`,
+> `crates/psionic-provider/src/lib.rs`,
+> `crates/psionic-sandbox/src/lib.rs`,
 > `crates/openagents-provider-substrate/src/sandbox.rs`, and the local
 > `~/code/autoresearch` tree as inspiration only.
 
@@ -51,7 +51,7 @@ That keeps the responsibilities honest and aligned with `docs/OWNERSHIP.md`.
 OpenAgents should implement an autoresearch-style loop as a Rust system that:
 
 - uses Autopilot as the loop controller
-- uses new `crates/psionic/*` training/eval crates for the actual model work
+- uses new `crates/psionic-*` training/eval crates for the actual model work
 - uses bounded `sandbox_execution` jobs to run compiled Rust runners under
   explicit profiles
 - promotes winning artifacts back through `psionic-catalog`, `psionic-models`,
@@ -144,7 +144,7 @@ Recommended new crates:
   - split declarations
   - local blob-backed training corpora
 
-These crates would be reusable engine substrate, so they fit `crates/psionic/*`
+These crates would be reusable engine substrate, so they fit `crates/psionic-*`
 better than app crates do.
 
 ### Existing Psionic crates stay in the loop
@@ -212,10 +212,10 @@ The runner should accept a typed spec and emit typed outputs.
 
 This fits the existing substrate in:
 
-- [psionic-sandbox/src/lib.rs](/Users/christopherdavid/code/openagents/crates/psionic/psionic-sandbox/src/lib.rs)
-- [sandbox.rs](/Users/christopherdavid/code/openagents/crates/openagents-provider-substrate/src/sandbox.rs)
-- [psionic-runtime/src/lib.rs](/Users/christopherdavid/code/openagents/crates/psionic/psionic-runtime/src/lib.rs)
-- [psionic-provider/src/lib.rs](/Users/christopherdavid/code/openagents/crates/psionic/psionic-provider/src/lib.rs)
+- [psionic-sandbox/src/lib.rs](../crates/psionic-sandbox/src/lib.rs)
+- `openagents/crates/openagents-provider-substrate/src/sandbox.rs`
+- [psionic-runtime/src/lib.rs](../crates/psionic-runtime/src/lib.rs)
+- [psionic-provider/src/lib.rs](../crates/psionic-provider/src/lib.rs)
 
 Important consequence:
 
@@ -313,7 +313,7 @@ Those are controller responsibilities.
 | Concern | Right owner | Notes |
 | --- | --- | --- |
 | Research policy, frontier advancement, workspace state | `apps/autopilot-desktop` | Product workflow |
-| Typed experiment specs and run manifests | new `crates/psionic/*` research crate | Reusable substrate |
+| Typed experiment specs and run manifests | new `crates/psionic-*` research crate | Reusable substrate |
 | Training loop, checkpointing, optimizer state | `psionic-train` plus `psionic-ir` | Reusable engine work |
 | Held-out evaluation suites and score contracts | `psionic-eval` plus `psionic-environments` | Reusable truth |
 | Bounded execution profile and receipts | `psionic-runtime` + `psionic-provider` + provider substrate | Already shaped for this |

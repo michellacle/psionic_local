@@ -2,7 +2,7 @@
 
 > Status: canonical `PLIB-215` / `#3730` reference record, updated 2026-03-16
 > after landing the first bounded quantization capability report in
-> `crates/psionic/psionic-core/src/lib.rs`.
+> `crates/psionic-core/src/lib.rs`.
 
 This document records the current bounded quantization semantics surface for
 Psionic above raw file-format decode.

@@ -47,7 +47,7 @@ scripts/release/check-psionic-mlx-cpu-reference-coverage.sh --only ops_numeric -
 ```
 
 The report schema lives at
-`crates/psionic/docs/mlx_cpu_reference_coverage_report.schema.json`.
+`docs/mlx_cpu_reference_coverage_report.schema.json`.
 
 ## Frozen Oracle Window
 

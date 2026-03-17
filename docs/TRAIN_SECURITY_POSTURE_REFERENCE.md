@@ -2,7 +2,7 @@
 
 > Status: canonical `PSI-284` / `#3589` reference record, updated 2026-03-14
 > after landing the train security posture layer in
-> `crates/psionic/psionic-train/src/security_posture.rs`.
+> `crates/psionic-train/src/security_posture.rs`.
 
 This document records the first explicit train-security contract for rollout
 submission inside Psionic.

@@ -2,11 +2,11 @@
 
 > Status: canonical `#3661` runbook, added 2026-03-15 after reviewing
 > `docs/MVP.md`, `docs/OWNERSHIP.md`,
-> `crates/psionic/docs/TRAIN_SYSTEM.md`,
-> `crates/psionic/docs/CLUSTER_VALIDATION_RUNBOOK.md`,
-> `crates/psionic/docs/ROADMAP_CLUSTER.md`,
-> `crates/psionic/psionic-train/src/adapter_cluster.rs`, and
-> `crates/psionic/psionic-train/src/adapter_reference_program.rs`.
+> `docs/TRAIN_SYSTEM.md`,
+> `docs/CLUSTER_VALIDATION_RUNBOOK.md`,
+> `docs/ROADMAP_CLUSTER.md`,
+> `crates/psionic-train/src/adapter_cluster.rs`, and
+> `crates/psionic-train/src/adapter_reference_program.rs`.
 
 This runbook is the operator guide for the first truthful multi-device
 clustered attempt around the `Psionic architecture explainer` adapter path.
@@ -394,9 +394,9 @@ Stop the clustered attempt and fall back to single-host truth when:
 
 ## Related References
 
-- `crates/psionic/docs/TRAIN_SYSTEM.md`
-- `crates/psionic/docs/CLUSTER_VALIDATION_RUNBOOK.md`
-- `crates/psionic/docs/ROADMAP_CLUSTER.md`
+- `docs/TRAIN_SYSTEM.md`
+- `docs/CLUSTER_VALIDATION_RUNBOOK.md`
+- `docs/ROADMAP_CLUSTER.md`
 - `scripts/release/check-psionic-decentralized-adapter-reference-program.sh`
-- `crates/psionic/psionic-train/src/adapter_cluster.rs`
-- `crates/psionic/psionic-train/src/adapter_reference_program.rs`
+- `crates/psionic-train/src/adapter_cluster.rs`
+- `crates/psionic-train/src/adapter_reference_program.rs`

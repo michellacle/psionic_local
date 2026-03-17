@@ -15,7 +15,7 @@
 > Scope note: this is a Psionic-owned longer-horizon inference and serving
 > specification. It does not change the current MVP product authority in
 > `docs/MVP.md`, and it does not move app or marketplace ownership into
-> `crates/psionic/*`.
+> `crates/psionic-*`.
 
 ## Canonical Status And Review Rule
 
@@ -84,7 +84,7 @@ explicit here in one place:
   - the NVIDIA 120B throughput queue
 - the owner split by crate family and serving layer
 - the explicit non-goals that keep Psionic Rust-native and keep product or
-  market authority out of `crates/psionic/*`
+  market authority out of `crates/psionic-*`
 - the dependency-ordered completion matrix from `PSI-232` through `PSI-258`
 - the final definition of done for the full Rust-native inference stack
 
@@ -94,11 +94,11 @@ validation implementation work.
 
 ## Related Docs
 
-- `crates/psionic/docs/ROADMAP.md`
-- `crates/psionic/docs/ROADMAP_CLUSTER.md`
-- `crates/psionic/docs/CONFORMANCE_AND_EVIDENCE_CONTRACT.md`
-- `crates/psionic/docs/INFERENCE_ENGINE.md`
-- `crates/psionic/docs/METAL_GPT_OSS_LLAMA_CPP_LESSONS.md`
+- `docs/ROADMAP.md`
+- `docs/ROADMAP_CLUSTER.md`
+- `docs/CONFORMANCE_AND_EVIDENCE_CONTRACT.md`
+- `docs/INFERENCE_ENGINE.md`
+- `docs/METAL_GPT_OSS_LLAMA_CPP_LESSONS.md`
 - `docs/audits/2026-03-13-rust-inference-engine-gap-audit.md`
 - `docs/audits/2026-03-13-llama-vllm-sglang-lessons-for-psionic-audit.md`
 
@@ -150,20 +150,20 @@ Why these matter here:
 
 The integration must preserve these boundaries:
 
-- Psionic remains Rust-first and library-first inside `crates/psionic/*`
+- Psionic remains Rust-first and library-first inside `crates/psionic-*`
 - Psionic must not take a required Python runtime dependency for the shipped
   engine, scheduler, or gateway path
 - `llama.cpp`, `vLLM`, and `SGLang` remain reference repos and behavior oracles,
   not hidden production backends
 - capability, evidence, cache, topology, and routing truth must remain explicit
   and machine-checkable
-- `crates/psionic/*` may own reusable inference, routing, and structured
+- `crates/psionic-*` may own reusable inference, routing, and structured
   serving substrate, but must not own:
   - app UX
   - wallet flows
   - compute-market settlement or procurement authority
   - final collateral, claim, or adjudication authority
-- any future gateway or router crate under `crates/psionic/*` must be an
+- any future gateway or router crate under `crates/psionic-*` must be an
   execution and serving control plane, not a product shell and not a market
   authority
 
@@ -180,11 +180,11 @@ Read the sources in this order:
 
 Primary authority for what is already implemented:
 
-- `crates/psionic/README.md`
-- `crates/psionic/docs/ROADMAP.md`
-- `crates/psionic/docs/ROADMAP_CLUSTER.md`
-- `crates/psionic/docs/CONFORMANCE_AND_EVIDENCE_CONTRACT.md`
-- current crate code under `crates/psionic/*`
+- `README.md`
+- `docs/ROADMAP.md`
+- `docs/ROADMAP_CLUSTER.md`
+- `docs/CONFORMANCE_AND_EVIDENCE_CONTRACT.md`
+- current crate code under `crates/psionic-*`
 
 ### 2. `llama.cpp`
 
@@ -290,7 +290,7 @@ The following is already meaningfully adapted:
 - Psionic-owned CUDA GPT-OSS kernels and a validated local server path
 - local-server framing and direct comparison discipline against `llama.cpp`
 - ongoing Metal lesson capture in
-  `crates/psionic/docs/METAL_GPT_OSS_LLAMA_CPP_LESSONS.md`
+  `docs/METAL_GPT_OSS_LLAMA_CPP_LESSONS.md`
 
 The following `llama.cpp` lessons are not fully adapted yet:
 

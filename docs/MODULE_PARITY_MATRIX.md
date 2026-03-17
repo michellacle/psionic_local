@@ -2,7 +2,7 @@
 
 > Status: canonical `PLIB-206` / `#3721` reference record, updated 2026-03-16
 > after landing the first seeded Rust-native module parity matrix in
-> `crates/psionic/psionic-nn/src/lib.rs`.
+> `crates/psionic-nn/src/lib.rs`.
 
 This document records the first bounded module parity artifact for Psionic's
 semantics layer.

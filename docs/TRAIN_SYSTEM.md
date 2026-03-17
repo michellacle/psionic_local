@@ -4,21 +4,21 @@
 > `docs/OWNERSHIP.md`,
 > `docs/audits/2026-03-13-intellect-lessons-for-psionic-train-audit.md`,
 > `docs/audits/2026-03-14-covenant-code-lessons-for-psionic-train-audit.md`,
-> `crates/psionic/README.md`,
-> `crates/psionic/docs/ARCHITECTURE.md`,
-> `crates/psionic/docs/AUTORESEARCH_INTEGRATION_PLAN.md`,
+> `README.md`,
+> `docs/ARCHITECTURE.md`,
+> `docs/AUTORESEARCH_INTEGRATION_PLAN.md`,
 > `docs/kernel/compute-training-authority.md`,
 > `docs/headless-compute.md`,
-> `crates/psionic/psionic-runtime/src/lib.rs`,
-> `crates/psionic/psionic-datastream/src/lib.rs`,
-> `crates/psionic/psionic-collectives/src/lib.rs`,
-> `crates/psionic/psionic-distributed/src/lib.rs`,
-> `crates/psionic/psionic-train/src/lib.rs`,
-> `crates/psionic/psionic-environments/src/lib.rs`,
-> `crates/psionic/psionic-eval/src/lib.rs`,
-> `crates/psionic/psionic-adapters/src/lib.rs`,
-> `crates/psionic/psionic-data/src/lib.rs`, and
-> `crates/psionic/psionic-sandbox/src/lib.rs`,
+> `crates/psionic-runtime/src/lib.rs`,
+> `crates/psionic-datastream/src/lib.rs`,
+> `crates/psionic-collectives/src/lib.rs`,
+> `crates/psionic-distributed/src/lib.rs`,
+> `crates/psionic-train/src/lib.rs`,
+> `crates/psionic-environments/src/lib.rs`,
+> `crates/psionic-eval/src/lib.rs`,
+> `crates/psionic-adapters/src/lib.rs`,
+> `crates/psionic-data/src/lib.rs`, and
+> `crates/psionic-sandbox/src/lib.rs`,
 > `apps/autopilot-desktop/src/desktop_control.rs`, and
 > `apps/autopilot-desktop/src/bin/autopilotctl.rs`, plus the recently closed
 > train-adjacent issue backlog through `#3643` and the decentralized adapter
@@ -54,10 +54,10 @@ transport behavior.
 Apple-specific adapter work is no longer only later-family planning. The repo
 now owns a canonical spec-and-fixture baseline for it in:
 
-- `crates/psionic/docs/APPLE_ADAPTER_DATASET_SPEC.md`
-- `crates/psionic/docs/APPLE_FMADAPTER_PACKAGE_SPEC.md`
-- `crates/psionic/docs/APPLE_ADAPTER_LINEAGE_SPEC.md`
-- `crates/psionic/fixtures/apple_adapter/`
+- `docs/APPLE_ADAPTER_DATASET_SPEC.md`
+- `docs/APPLE_FMADAPTER_PACKAGE_SPEC.md`
+- `docs/APPLE_ADAPTER_LINEAGE_SPEC.md`
+- `fixtures/apple_adapter/`
 
 and now also has:
 
@@ -69,19 +69,19 @@ and now also has:
 
 ## Doc Authority
 
-- `crates/psionic/docs/TRAIN_SYSTEM.md` is the canonical training subsystem
+- `docs/TRAIN_SYSTEM.md` is the canonical training subsystem
   spec.
-- `crates/psionic/docs/ARCHITECTURE.md` is the canonical Psionic-wide system
+- `docs/ARCHITECTURE.md` is the canonical Psionic-wide system
   spec that defines the lower execution substrate this doc builds on.
-- `crates/psionic/docs/FRAMEWORK_CORE_ACCEPTANCE_MATRIX.md` is the canonical
+- `docs/FRAMEWORK_CORE_ACCEPTANCE_MATRIX.md` is the canonical
   framework-core acceptance split; train acceptance must not be used as a
   substitute for framework-core parity claims.
-- `crates/psionic/docs/ARCHITECTURE_EXPLAINER_CLUSTER_BRINGUP_RUNBOOK.md` is
+- `docs/ARCHITECTURE_EXPLAINER_CLUSTER_BRINGUP_RUNBOOK.md` is
   the canonical operator guide for the first truthful multi-device clustered
   attempt around the `Psionic architecture explainer` path.
-- `crates/psionic/docs/APPLE_ADAPTER_DATASET_SPEC.md`,
-  `crates/psionic/docs/APPLE_FMADAPTER_PACKAGE_SPEC.md`, and
-  `crates/psionic/docs/APPLE_ADAPTER_LINEAGE_SPEC.md` are the canonical
+- `docs/APPLE_ADAPTER_DATASET_SPEC.md`,
+  `docs/APPLE_FMADAPTER_PACKAGE_SPEC.md`, and
+  `docs/APPLE_ADAPTER_LINEAGE_SPEC.md` are the canonical
   Apple-adapter reference docs for dataset shape, package inventory, and
   lineage metadata.
 - `docs/audits/2026-03-13-intellect-lessons-for-psionic-train-audit.md` is
@@ -101,8 +101,8 @@ This doc uses the canonical status vocabulary defined in `ARCHITECTURE.md`:
 
 The Psionic train system is not one crate.
 
-It is the Rust-native training-class execution stack inside `crates/psionic/`
-that should eventually own:
+It is the Rust-native training-class execution stack inside this standalone
+`psionic` workspace that should eventually own:
 
 - training-session truth
 - elastic membership and recovery
@@ -259,7 +259,7 @@ That now includes one intentionally narrow executor-training answer:
   `psionic-train` can execute a canonical Sudoku-v0 reference run and persist
   the frozen training manifest, training report, linear benchmark report,
   checkpoint payload plus checkpoint manifest, and trained-model artifact under
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_reference_run_v0`; the
+  `fixtures/tassadar/runs/sudoku_v0_reference_run_v0`; the
   current committed run is intentionally recorded as low exactness
   (`validation_exact_trace_case_count = 0/2`, aggregate target exactness
   `15` bps), which makes it useful as a real learning baseline rather than as
@@ -296,7 +296,7 @@ That now includes one intentionally narrow executor-training answer:
   plus training manifest, `psionic-models` carries the matching 9x9
   executor-transformer descriptor, and `psionic-train` commits a machine-
   readable `scale_plan.json` fixture under
-  `crates/psionic/fixtures/tassadar/runs/sudoku_9x9_scale_plan_v0`; the same
+  `fixtures/tassadar/runs/sudoku_9x9_scale_plan_v0`; the same
   plan keeps the promotion gate explicit, so Phase 11 now means “real 9x9
   workload and curriculum path exist” rather than “the 9x9 trained executor is
   already good”
@@ -305,7 +305,7 @@ That now includes one intentionally narrow executor-training answer:
   first-divergence and confusion reports, `psionic-train` now supports an
   explicit boundary curriculum with per-epoch validation and boundary-ranked
   checkpoint selection, and the resulting follow-on run bundle at
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_boundary_v1` records that
+  `fixtures/tassadar/runs/sudoku_v0_boundary_v1` records that
   the selected checkpoint clears the token-0 boundary (`10000` bps
   first-target exactness, no token-0 confusions, divergence bucket moved to
   target index `1`) while still failing the later gates (`5000` bps first-32
@@ -318,7 +318,7 @@ That now includes one intentionally narrow executor-training answer:
   output head plus token and position embeddings, or those plus one small
   learned residual mixer; and `psionic-research` now materializes a
   same-corpus ablation root at
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_trainable_surface_ablation_v1`
+  `fixtures/tassadar/runs/sudoku_v0_trainable_surface_ablation_v1`
   with a machine-readable `trainable_surface_ablation.json`; that report keeps
   `output_head_only` as the preserved baseline and recommends only
   `output_head_embeddings_and_small_learned_mixer`, which improves the
@@ -330,7 +330,7 @@ That now includes one intentionally narrow executor-training answer:
   `psionic-train` can execute the canonical promotion config, stream live
   stage/epoch/batch/validation/checkpoint progress while it runs, and persist
   `best_checkpoint_manifest.json` plus `promotion_gate_report.json` under
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_promotion_v1`; the selected
+  `fixtures/tassadar/runs/sudoku_v0_promotion_v1`; the selected
   checkpoint is still `epoch_0006` from `prompt_to_first_16_tokens` with
   `10000` bps first-target exactness, `7500` bps first-8 exactness,
   `6875` bps first-32 exactness, and `0/2` exact validation traces, so the
@@ -338,7 +338,7 @@ That now includes one intentionally narrow executor-training answer:
   `docs/audits/2026-03-16-tassadar-phase-14-blocker-audit.md`
 - the Phase 14 teacher-forced continuation now also exists beside that
   baseline: `psionic-train` can execute the separate preserved config under
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_promotion_v2`, keeping the
+  `fixtures/tassadar/runs/sudoku_v0_promotion_v2`, keeping the
   same lookup-family surface and Phase 14 gate while removing greedy-rollout
   refinement and extending teacher-forced 16-/32-token supervision; the
   resulting selected checkpoint `epoch_0008` reproduces but does not beat the
@@ -354,7 +354,7 @@ That now includes one intentionally narrow executor-training answer:
   attention, fixed 2D head geometry, explicit per-layer semantics, and hull
   fallback to reference-linear decode; `psionic-eval` and `psionic-research`
   now materialize a same-corpus comparison root at
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v1`
+  `fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v1`
   with `architecture_comparison_report.json` plus per-family run bundles
   against the preserved Phase 13 lookup baseline; the committed report keeps
   the claim boundary honest by showing the new family is closer to the article
@@ -366,9 +366,9 @@ That now includes one intentionally narrow executor-training answer:
 - the post-Phase-15 trained-attention follow-on now also exists beside that
   seeded comparison: `psionic-research` now runs a bounded attention-family
   output-head training loop and persists its artifacts under
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_training_v1`,
+  `fixtures/tassadar/runs/sudoku_v0_attention_training_v1`,
   while a trained-family comparison is now preserved under
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v2`;
+  `fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v2`;
   the resulting artifacts show real learning progress off the seeded
   attention-family floor (`6563` bps aggregate and first-32 exactness instead
   of `0`), but they also show the same remaining blocker plainly: the trained
@@ -379,22 +379,22 @@ That now includes one intentionally narrow executor-training answer:
   trained attention floor: `psionic-models` now carries a bounded
   relative-target output-bias adapter, `psionic-research` now preserves the
   failed output-head-only boundary attempt under
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v1`,
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v1`,
   the improved adapter-backed run under
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v2`, and
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v2`, and
   the later hidden-state projection-adapter follow-ons under
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v3` and
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v4`, the
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v3` and
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v4`, the
   newer previous-token-conditioned transition-adapter follow-on under
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v5`, the
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v5`, the
   later joint transition+projection fine-tune under
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v6`, the
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v6`, the
   later trace-schema and per-position saturation runs under
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v7`,
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v8`, and
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v9`, and
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v7`,
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v8`, and
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v9`, and
   the current same-corpus comparison under
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v11`;
+  `fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v11`;
   the accepted `boundary_v2` run keeps the token-0 fix without destroying the
   bounded suffix (`10000` bps first-target, `7500` bps first-8, `6875` bps
   first-32), the later `boundary_v3` / `boundary_v4` follow-ons prove the
@@ -415,7 +415,7 @@ That now includes one intentionally narrow executor-training answer:
   compatibility/refusal reports for the real Sudoku-v0 corpus under the
   workload family id `tassadar.wasm.sudoku_v0_search.v1.compiled_executor`,
   and `psionic-research` now persists the canonical bundle root at
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_compiled_executor_v0`; the
+  `fixtures/tassadar/runs/sudoku_v0_compiled_executor_v0`; the
   committed artifacts prove only a bounded compiled/proof-backed lane on the
   matched corpus (`8/8` exact trace matches against CPU reference and `32/32`
   exact refusal matches), with explicit `eval_only` posture, so this does not
@@ -428,7 +428,7 @@ That now includes one intentionally narrow executor-training answer:
   package plus machine-readable compiled exactness/refusal and learned-vs-
   compiled lane-status reports, and `psionic-research` now persists the
   canonical bundle root at
-  `crates/psionic/fixtures/tassadar/runs/hungarian_v0_compiled_executor_v0`;
+  `fixtures/tassadar/runs/hungarian_v0_compiled_executor_v0`;
   the committed artifacts prove only a bounded Hungarian-class workload
   contract plus an exact compiled/proof-backed lane on the matched corpus
   (`8/8` exact trace matches and `32/32` exact refusal matches), so this does
@@ -525,7 +525,7 @@ On 2026-03-15, GitHub issue `#3664` added the canonical parity and acceptance
 program for this boundary:
 
 - `scripts/release/check-psionic-apple-export-parity.sh`
-- `crates/psionic/fixtures/apple_adapter/TOOLKIT_ORACLE_RECIPE.md`
+- `fixtures/apple_adapter/TOOLKIT_ORACLE_RECIPE.md`
 
 The train system must not treat package write success as equivalent to runtime
 load success.
@@ -611,7 +611,7 @@ The new claim is:
 
 That widening step is now no longer only planned. `psionic-train` also owns a
 first bounded non-Apple execution backend in
-`crates/psionic/psionic-train/src/open_adapter.rs`. The implemented reference
+`crates/psionic-train/src/open_adapter.rs`. The implemented reference
 target is intentionally narrow and explicit:
 
 - admissible model family: `gpt_oss.decoder_lm_head_lora`
@@ -627,7 +627,7 @@ multi-node open-backend trainer claim.
 
 That contract layer is no longer only planned. `psionic-train` now owns a
 typed adapter-window state machine in
-`crates/psionic/psionic-train/src/adapter_window.rs` that can represent one
+`crates/psionic-train/src/adapter_window.rs` that can represent one
 window end to end with typed receipts for:
 
 - assignment
@@ -646,7 +646,7 @@ work in the later issue set.
 
 The next control-plane layer is now implemented too. `psionic-train` also owns
 an adapter cluster coordinator in
-`crates/psionic/psionic-train/src/adapter_cluster.rs` that mirrors live
+`crates/psionic-train/src/adapter_cluster.rs` that mirrors live
 `psionic-cluster` membership and telemetry into adapter contributor eligibility,
 derives deterministic contributor ranking from readiness plus capability facts,
 and plans typed adapter windows with inspectable contributor-set revisions and
@@ -654,7 +654,7 @@ assignment seeds. The new reference harness proves membership churn can evict
 or replace contributors for later windows without collapsing the whole run.
 
 The worker-facing side of that program is also now real in
-`crates/psionic/psionic-train/src/adapter_worker_protocol.rs`. The crate now
+`crates/psionic-train/src/adapter_worker_protocol.rs`. The crate now
 owns typed adapter-worker sessions, heartbeats, progress snapshots, assignment
 claims, assignment acknowledgements, submission receipts, claim expiry, and
 claim supersession on top of one active adapter window. Those transcripts bind
@@ -664,7 +664,7 @@ superseded, unauthorized, or mismatched submissions can be refused with
 machine-legible outcomes instead of ad hoc local strings.
 
 The artifact-staging layer is now real as well in
-`crates/psionic/psionic-train/src/adapter_artifact_storage.rs`. That module
+`crates/psionic-train/src/adapter_artifact_storage.rs`. That module
 derives adapter-package datastream manifests from contribution payloads,
 enforces manifest-digest and chunk-digest replay safety across resumable upload
 sessions, registers completed contribution artifacts through the generic train
@@ -676,7 +676,7 @@ advancing state, and the latest promoted checkpoint for a window can be
 restored deterministically.
 
 The provenance-security layer is now implemented too in
-`crates/psionic/psionic-train/src/adapter_submission_security.rs`. The crate
+`crates/psionic-train/src/adapter_submission_security.rs`. The crate
 now owns signed adapter-manifest envelopes that bind assignment digest, claim
 digest, worker id, session id, auth subject, trust class, target policy
 revision, target checkpoint pointer, upload expectation, upload reference, and
@@ -687,7 +687,7 @@ checks surface typed reject or quarantine receipts for later validator and
 aggregation stages.
 
 The validator-owned adapter review layer is now implemented in
-`crates/psionic/psionic-train/src/adapter_validation.rs`. That module consumes
+`crates/psionic-train/src/adapter_validation.rs`. That module consumes
 submission receipts, staged artifacts, signed provenance bundles, and security
 receipts; samples contributions for validator replay; emits typed
 `accepted`/`quarantined`/`rejected`/`replay_required` verdicts; writes the
@@ -699,7 +699,7 @@ Apple-format windows can require runtime smoke before promotion-ready status is
 true.
 
 The first real aggregation-and-promotion path is now implemented in
-`crates/psionic/psionic-train/src/adapter_aggregation.rs`. The crate now owns a
+`crates/psionic-train/src/adapter_aggregation.rs`. The crate now owns a
 deterministic first rule for accepted adapter contributions,
 `weighted_manifest_digest_merge_v1`, which preserves accepted artifact,
 validator, security, provenance, and aggregation-weight lineage; emits a typed
@@ -829,7 +829,7 @@ Until every row above is true, the honest repo claim remains:
 
 On 2026-03-15, GitHub issue `#3648` added the first repo-owned QA and
 reference-program layer for this workload family in
-`crates/psionic/psionic-train/src/adapter_reference_program.rs`.
+`crates/psionic-train/src/adapter_reference_program.rs`.
 
 That layer now makes the following acceptance proof explicit:
 
@@ -853,7 +853,7 @@ rows from the acceptance matrix above still remain separate closure steps.
 On 2026-03-15, GitHub issue `#3661` added the first concrete operator runbook
 for the clustered follow-on:
 
-- `crates/psionic/docs/ARCHITECTURE_EXPLAINER_CLUSTER_BRINGUP_RUNBOOK.md`
+- `docs/ARCHITECTURE_EXPLAINER_CLUSTER_BRINGUP_RUNBOOK.md`
 
 That runbook is intentionally narrow and explicit about posture:
 
@@ -1980,7 +1980,7 @@ gradient logic.
 
 The canonical runbook and harness are now:
 
-- `crates/psionic/docs/TRAINING_CORE_FIXED_BUDGET_REFERENCE.md`
+- `docs/TRAINING_CORE_FIXED_BUDGET_REFERENCE.md`
 - `scripts/release/check-psionic-training-core.sh`
 
 The current step path is intentionally an explicit-gradient reference loop over
@@ -2049,7 +2049,7 @@ Added `psionic-train` RL-facing contracts for:
 
 The canonical runbook and harness are now:
 
-- `crates/psionic/docs/ROLLOUT_ARTIFACT_POLICY_LINEAGE_REFERENCE.md`
+- `docs/ROLLOUT_ARTIFACT_POLICY_LINEAGE_REFERENCE.md`
 - `scripts/release/check-psionic-rl-rollout-artifacts.sh`
 
 This issue makes rollout payloads, trainer-batch assembly, and policy lineage
@@ -2070,7 +2070,7 @@ Added the `psionic-environments` crate for:
 
 The canonical runbook and harness are now:
 
-- `crates/psionic/docs/ENVIRONMENT_ABI_REFERENCE.md`
+- `docs/ENVIRONMENT_ABI_REFERENCE.md`
 - `scripts/release/check-psionic-environment-abi.sh`
 
 Kernel and Nexus still own registry and authority truth. This issue lands the
@@ -2103,7 +2103,7 @@ Added the `psionic-data` crate for:
 
 The canonical runbook and harness are now:
 
-- `crates/psionic/docs/DATASET_TOKENIZER_PACKING_REFERENCE.md`
+- `docs/DATASET_TOKENIZER_PACKING_REFERENCE.md`
 - `scripts/release/check-psionic-data-contracts.sh`
 
 This issue keeps byte movement in `psionic-datastream` but makes data lineage,
@@ -2128,7 +2128,7 @@ on top of that same Apple dataset contract for the `Psionic architecture
 explainer` target:
 
 - curated `train`, `held_out`, and `benchmark` JSONL splits under
-  `crates/psionic/fixtures/apple_adapter/datasets/psionic_architecture_explainer/`
+  `fixtures/apple_adapter/datasets/psionic_architecture_explainer/`
 - a repo-owned curation manifest that tags every split-local sample with task
   family, expected behavior, review posture, and source provenance
 - machine-checkable split-leakage validation so benchmark rows remain distinct
@@ -2172,7 +2172,7 @@ Added the `psionic-eval` crate for:
 
 The canonical runbook and harness are now:
 
-- `crates/psionic/docs/EVAL_RUNTIME_REFERENCE.md`
+- `docs/EVAL_RUNTIME_REFERENCE.md`
 - `scripts/release/check-psionic-eval-runtime.sh`
 
 Kernel and Nexus still own canonical eval-run authority truth. This issue lands
@@ -2249,7 +2249,7 @@ that same Rust-only Apple reference lane:
   - `cargo run -p autopilot-desktop --bin apple_architecture_explainer_acceptance_harness -- ...`
   - `scripts/release/check-psionic-apple-architecture-explainer-acceptance.sh`
 - the current frozen manifest for that acceptance lane is now:
-  - `crates/psionic/fixtures/apple_adapter/experiments/psionic_architecture_explainer_acceptance_reference_v2.json`
+  - `fixtures/apple_adapter/experiments/psionic_architecture_explainer_acceptance_reference_v2.json`
 - the harness always writes a machine-readable acceptance receipt with:
   - top-level `acceptance_passed`
   - stage-specific reports for `overfit_non_zero` and `standard`
@@ -2512,7 +2512,7 @@ Added run-graph contracts inside `psionic-train` for:
 
 The canonical runbook and harness are now:
 
-- `crates/psionic/docs/TRAIN_RUN_GRAPH_REFERENCE.md`
+- `docs/TRAIN_RUN_GRAPH_REFERENCE.md`
 - `scripts/release/check-psionic-train-run-graph.sh`
 
 This issue makes the run graph and participant lifecycle explicit typed Psionic
@@ -2540,7 +2540,7 @@ for:
 
 The canonical runbook and harness are now:
 
-- `crates/psionic/docs/TRAIN_CHECKPOINT_RECOVERY_REFERENCE.md`
+- `docs/TRAIN_CHECKPOINT_RECOVERY_REFERENCE.md`
 - `scripts/release/check-psionic-train-checkpoint-recovery.sh`
 
 This issue turns checkpoint recovery from implicit latest-checkpoint heuristics
@@ -2570,7 +2570,7 @@ for:
 
 The canonical runbook and harness are now:
 
-- `crates/psionic/docs/COLLECTIVE_SYNC_POLICY_REFERENCE.md`
+- `docs/COLLECTIVE_SYNC_POLICY_REFERENCE.md`
 - `scripts/release/check-psionic-collective-sync.sh`
 
 This issue makes collective sync cadence explicit Psionic truth instead of a
@@ -2599,7 +2599,7 @@ Added policy-weight broadcast contracts inside `psionic-datastream` for:
 
 The canonical runbook and harness are now:
 
-- `crates/psionic/docs/POLICY_WEIGHT_BROADCAST_REFERENCE.md`
+- `docs/POLICY_WEIGHT_BROADCAST_REFERENCE.md`
 - `scripts/release/check-psionic-policy-weight-broadcast.sh`
 
 This issue makes the heavy artifact plane versus lightweight control plane
@@ -2628,7 +2628,7 @@ Added the first orchestrator module inside `psionic-train` for:
 
 The canonical runbook and harness are now:
 
-- `crates/psionic/docs/TRAIN_ORCHESTRATOR_REFERENCE.md`
+- `docs/TRAIN_ORCHESTRATOR_REFERENCE.md`
 - `scripts/release/check-psionic-train-orchestrator.sh`
 
 This issue makes the orchestrator a first-class Psionic control plane instead
@@ -2655,7 +2655,7 @@ Added bounded rollout-admission contracts inside `psionic-train` for:
 
 The canonical runbook and harness are now:
 
-- `crates/psionic/docs/TRAIN_OFF_POLICY_BUDGET_REFERENCE.md`
+- `docs/TRAIN_OFF_POLICY_BUDGET_REFERENCE.md`
 - `scripts/release/check-psionic-train-off-policy-budget.sh`
 
 This issue makes stale-rollout accounting first-class train control-plane truth
@@ -2684,7 +2684,7 @@ Added rollout-worker protocol contracts inside `psionic-train` for:
 
 The canonical runbook and harness are now:
 
-- `crates/psionic/docs/TRAIN_ROLLOUT_WORKER_PROTOCOL_REFERENCE.md`
+- `docs/TRAIN_ROLLOUT_WORKER_PROTOCOL_REFERENCE.md`
 - `scripts/release/check-psionic-train-rollout-worker-protocol.sh`
 
 This issue makes rollout-worker coordination a first-class typed protocol
@@ -2713,7 +2713,7 @@ Added rollout-validation contracts inside `psionic-train` for:
 
 The canonical runbook and harness are now:
 
-- `crates/psionic/docs/TRAIN_ROLLOUT_VALIDATION_REFERENCE.md`
+- `docs/TRAIN_ROLLOUT_VALIDATION_REFERENCE.md`
 - `scripts/release/check-psionic-train-rollout-validation.sh`
 
 This issue makes validator-ready rollout integrity first-class typed Psionic
@@ -2740,7 +2740,7 @@ Added package-shape contracts inside `psionic-environments` for:
 
 The canonical runbook and harness are now:
 
-- `crates/psionic/docs/ENVIRONMENT_PACKAGE_CONTRACT_REFERENCE.md`
+- `docs/ENVIRONMENT_PACKAGE_CONTRACT_REFERENCE.md`
 - `scripts/release/check-psionic-environment-package-contract.sh`
 
 This issue makes environment packages composable across training, eval, and
@@ -2765,7 +2765,7 @@ Added the first Psionic-native registry and composition layer inside
 
 The canonical runbook and harness are now:
 
-- `crates/psionic/docs/ENVIRONMENT_REGISTRY_REFERENCE.md`
+- `docs/ENVIRONMENT_REGISTRY_REFERENCE.md`
 - `scripts/release/check-psionic-environment-registry.sh`
 
 This issue removes the need for bespoke environment-mix glue in the
@@ -2793,7 +2793,7 @@ Added the first RL-throughput sandbox control plane inside `psionic-sandbox`:
 
 The canonical runbook and harness are now:
 
-- `crates/psionic/docs/SANDBOX_RL_THROUGHPUT_REFERENCE.md`
+- `docs/SANDBOX_RL_THROUGHPUT_REFERENCE.md`
 - `scripts/release/check-psionic-sandbox-rl-throughput.sh`
 
 This issue makes the sandbox layer usable for RL-style short-lived environment
@@ -2816,7 +2816,7 @@ Added the first multi-stage train-program layer inside `psionic-train`:
 
 The canonical runbook and harness are now:
 
-- `crates/psionic/docs/TRAIN_STAGE_PROGRAM_REFERENCE.md`
+- `docs/TRAIN_STAGE_PROGRAM_REFERENCE.md`
 - `scripts/release/check-psionic-train-stage-program.sh`
 
 This issue makes stage sequencing first-class Psionic truth instead of operator
@@ -2837,7 +2837,7 @@ Added the first train-side curriculum controller inside `psionic-train`:
 
 The canonical runbook and harness are now:
 
-- `crates/psionic/docs/TRAIN_CURRICULUM_REFERENCE.md`
+- `docs/TRAIN_CURRICULUM_REFERENCE.md`
 - `scripts/release/check-psionic-train-curriculum.sh`
 
 This issue makes training-sample selection inspectable and reproducible.
@@ -2860,7 +2860,7 @@ Added the first train-safety controller inside `psionic-train`:
 
 The canonical runbook and harness are now:
 
-- `crates/psionic/docs/TRAIN_STABILITY_REFERENCE.md`
+- `docs/TRAIN_STABILITY_REFERENCE.md`
 - `scripts/release/check-psionic-train-stability.sh`
 
 This issue makes halt/quarantine policy machine-legible. Broader operator
@@ -3154,7 +3154,7 @@ The new contract makes these storage seams explicit:
 
 The canonical runbook and harness are now:
 
-- `crates/psionic/docs/TRAIN_ARTIFACT_STORAGE_REFERENCE.md`
+- `docs/TRAIN_ARTIFACT_STORAGE_REFERENCE.md`
 - `scripts/release/check-psionic-train-artifact-storage.sh`
 
 This issue makes train artifact retention part of typed Psionic truth instead
@@ -3182,7 +3182,7 @@ The new contract makes these operator seams explicit:
 
 The canonical runbook and harness are now:
 
-- `crates/psionic/docs/TRAIN_SCHEDULING_ACCOUNTING_REFERENCE.md`
+- `docs/TRAIN_SCHEDULING_ACCOUNTING_REFERENCE.md`
 - `scripts/release/check-psionic-train-scheduling-accounting.sh`
 
 This issue makes train-side operator economics first-class typed Psionic truth.
@@ -3208,7 +3208,7 @@ The new contract makes these reliability seams explicit:
 
 The canonical runbook and harness are now:
 
-- `crates/psionic/docs/TRAIN_RELIABILITY_REFERENCE.md`
+- `docs/TRAIN_RELIABILITY_REFERENCE.md`
 - `scripts/release/check-psionic-train-reliability.sh`
 
 This issue makes reliability claims a machine-checkable suite instead of a
@@ -3235,7 +3235,7 @@ The new benchmark contract makes these production thresholds explicit:
 
 The canonical runbook and harness are now:
 
-- `crates/psionic/docs/TRAIN_BENCHMARK_ACCEPTANCE_REFERENCE.md`
+- `docs/TRAIN_BENCHMARK_ACCEPTANCE_REFERENCE.md`
 - `scripts/release/check-psionic-train-benchmark-acceptance.sh`
 
 This issue closes the last train-system gap called out at the end of the issue

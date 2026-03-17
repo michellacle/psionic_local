@@ -41,7 +41,7 @@ scripts/release/check-psionic-mlx-acceptance-matrix.sh --only nn-optimizer --onl
 ```
 
 The report schema lives at
-`crates/psionic/docs/mlx_acceptance_matrix_report.schema.json`.
+`docs/mlx_acceptance_matrix_report.schema.json`.
 
 ## Current Posture
 

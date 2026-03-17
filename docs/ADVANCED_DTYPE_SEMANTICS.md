@@ -2,7 +2,7 @@
 
 > Status: canonical `PLIB-211` / `#3726` reference record, updated 2026-03-16
 > after landing the first bounded advanced-dtype semantics report in
-> `crates/psionic/psionic-core/src/lib.rs`.
+> `crates/psionic-core/src/lib.rs`.
 
 This document records the current bounded advanced-dtype semantics surface for
 Psionic.

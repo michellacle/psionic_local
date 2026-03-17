@@ -60,8 +60,8 @@
 > the current GitHub queue rather than local placeholders.
 >
 > This is the live roadmap for truthful Psionic cluster support in
-> `crates/psionic/*`. It is intentionally narrower than
-> `crates/psionic/docs/ROADMAP.md`: it is about making cluster control,
+> `crates/psionic-*`. It is intentionally narrower than
+> `docs/ROADMAP.md`: it is about making cluster control,
 > placement, scheduling, and later multi-node execution honest and
 > machine-checkable, not about the full Psionic replacement program.
 
@@ -82,9 +82,9 @@ Choose the reference that owns the layer being changed:
 - start with `~/code/llama.cpp` and `~/code/gpt-oss` for backend-specific
   distributed execution truth, model eligibility constraints, and the exact
   local GPT-OSS execution lane that cluster work must not overclaim
-- start with `crates/psionic/docs/ROADMAP.md` for local-runtime readiness,
+- start with `docs/ROADMAP.md` for local-runtime readiness,
   capability/evidence surfaces, and the current CUDA execution gate
-- start with `crates/psionic/docs/ROADMAP_METAL.md` for the current Apple
+- start with `docs/ROADMAP_METAL.md` for the current Apple
   refusal boundary; do not treat Metal as cluster-eligible just because generic
   Metal substrate exists
 
@@ -99,7 +99,7 @@ owned end to end.
 Make Psionic's own cluster support truthful enough to become a real OpenAgents
 execution surface:
 
-- cluster control lives in `crates/psionic/*`, not app glue
+- cluster control lives in `crates/psionic-*`, not app glue
 - cluster identity, membership, topology, placement, and scheduling are
   explicit and replayable
 - the first shipped cluster scope is a trusted same-network LAN cluster with
@@ -121,18 +121,18 @@ can prove what topology was promised, selected, and delivered.
 
 This roadmap must continue to respect `docs/OWNERSHIP.md`:
 
-- `crates/psionic/*` owns reusable cluster identity, transport, ordered state,
+- `crates/psionic-*` owns reusable cluster identity, transport, ordered state,
   topology, placement, scheduling, evidence, and execution truth
 - `apps/autopilot-desktop` owns app-level cluster controls, UX, onboarding,
   status presentation, and product orchestration
 - `crates/wgpui*` must not absorb Psionic cluster business logic
 - cluster work must not move wallet, payout, mission, or app-pane behavior into
-  `crates/psionic/*`
+  `crates/psionic-*`
 
 ## Why This Roadmap Exists
 
-`crates/psionic/docs/ROADMAP.md` already tracks the full Psionic program, and
-`crates/psionic/docs/EXO_UNIFIED_INTEGRATION_PLAN.md` already captures the full
+`docs/ROADMAP.md` already tracks the full Psionic program, and
+`docs/EXO_UNIFIED_INTEGRATION_PLAN.md` already captures the full
 cluster design shape. What is still missing is a roadmap-style, dependency-
 ordered cluster queue that matches the format used by the main and Metal
 roadmaps.
@@ -316,7 +316,7 @@ on:
     restart/rejoin transport test, fault-injected recovery/scheduling/
     replication/sharding coverage, a release benchmark gate script for cluster
     planners, and an operator runbook in
-    `crates/psionic/docs/CLUSTER_VALIDATION_RUNBOOK.md`
+    `docs/CLUSTER_VALIDATION_RUNBOOK.md`
 - `PSI-197` / [#3306](https://github.com/OpenAgentsInc/openagents/issues/3306)
   - landed in `d424ab1cf`
   - `psionic-cluster` now exposes machine-checkable trust posture via
@@ -440,10 +440,10 @@ That means the next cluster work is not "make sharding happen somehow." It is:
 
 This roadmap explicitly adopts the conclusions from:
 
-- `crates/psionic/docs/EXO_UNIFIED_INTEGRATION_PLAN.md`
+- `docs/EXO_UNIFIED_INTEGRATION_PLAN.md`
 - `../../../docs/audits/2026-03-09-psionic-exo-cluster-integration-audit.md`
-- `crates/psionic/docs/ROADMAP.md`
-- `crates/psionic/docs/ROADMAP_METAL.md`
+- `docs/ROADMAP.md`
+- `docs/ROADMAP_METAL.md`
 
 ### Exo: control-plane truth, not runtime substitution
 
@@ -1005,7 +1005,7 @@ true:
 
 ## Non-Goals
 
-- making Exo a required runtime dependency for `crates/psionic/*`
+- making Exo a required runtime dependency for `crates/psionic-*`
 - proxying or delegating cluster execution through Exo and calling that
   Psionic cluster support
 - treating Nostr, relays, or Nexus as the cluster control plane
@@ -1018,4 +1018,4 @@ true:
 - reopening local model loading, tokenizer, or artifact-format truth as if
   cluster work replaced the shipped Psionic loader/runtime substrate
 - moving app UX or pane orchestration from `apps/autopilot-desktop` into
-  `crates/psionic/*`
+  `crates/psionic-*`

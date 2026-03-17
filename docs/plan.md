@@ -458,19 +458,19 @@ Its public docs also show it is “not 1.0 yet” and encourage install-from-sou
 
 Recommended internal structure:
 
-* `crates/psionic/README.md`
-* `crates/psionic/docs/`
-* `crates/psionic/psionic-core/`
-* `crates/psionic/psionic-ir/`
-* `crates/psionic/psionic-compiler/`
-* `crates/psionic/psionic-runtime/`
-* `crates/psionic/psionic-models/`
-* `crates/psionic/psionic-serve/`
-* `crates/psionic/psionic-provider/`
-* `crates/psionic/psionic-backend-cpu/`
-* `crates/psionic/psionic-backend-metal/`
-* `crates/psionic/psionic-backend-amd-kfd/`
-* `crates/psionic/psionic-backend-amd-userspace/`
+* `README.md`
+* `docs/`
+* `crates/psionic-core/`
+* `crates/psionic-ir/`
+* `crates/psionic-compiler/`
+* `crates/psionic-runtime/`
+* `crates/psionic-models/`
+* `crates/psionic-serve/`
+* `crates/psionic-provider/`
+* `crates/psionic-backend-cpu/`
+* `crates/psionic-backend-metal/`
+* `crates/psionic-backend-amd-kfd/`
+* `crates/psionic-backend-amd-userspace/`
 * optional later:
 
   * `psionic-backend-cuda`
@@ -916,19 +916,19 @@ Everything must live under `crates/psionic/`.
 
 Create this subtree structure:
 
-- crates/psionic/README.md
-- crates/psionic/docs/
-- crates/psionic/psionic-core/
-- crates/psionic/psionic-ir/
-- crates/psionic/psionic-compiler/
-- crates/psionic/psionic-runtime/
-- crates/psionic/psionic-models/
-- crates/psionic/psionic-serve/
-- crates/psionic/psionic-provider/
-- crates/psionic/psionic-backend-cpu/
-- crates/psionic/psionic-backend-metal/
-- crates/psionic/psionic-backend-amd-kfd/
-- crates/psionic/psionic-backend-amd-userspace/
+- README.md
+- docs/
+- crates/psionic-core/
+- crates/psionic-ir/
+- crates/psionic-compiler/
+- crates/psionic-runtime/
+- crates/psionic-models/
+- crates/psionic-serve/
+- crates/psionic-provider/
+- crates/psionic-backend-cpu/
+- crates/psionic-backend-metal/
+- crates/psionic-backend-amd-kfd/
+- crates/psionic-backend-amd-userspace/
 
 Optional later backends should not be created unless needed now:
 - psionic-backend-cuda
@@ -1031,24 +1031,24 @@ Design constraints
 
 Required docs to create
 
-- `crates/psionic/README.md`
+- `README.md`
   - what Psionic is
   - what it is not
   - crate map
   - design principles
-- `crates/psionic/docs/ARCHITECTURE.md`
+- `docs/ARCHITECTURE.md`
   - layering
   - crate boundaries
   - dependency direction
-- `crates/psionic/docs/BACKENDS.md`
+- `docs/BACKENDS.md`
   - backend model
   - CPU / Metal / AMD KFD / AMD userspace
-- `crates/psionic/docs/INFERENCE_ENGINE.md`
+- `docs/INFERENCE_ENGINE.md`
   - what “inference-ready” means
   - text generation requirements
   - embeddings requirements
   - KV cache requirements
-- `crates/psionic/docs/PROVIDER_INTEGRATION.md`
+- `docs/PROVIDER_INTEGRATION.md`
   - capability envelopes
   - receipts / delivery evidence
   - mapping to Pylon and Autopilot

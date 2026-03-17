@@ -1,7 +1,7 @@
 # exo Audit And Integration Plan For Psionic
 
 > Status: drafted 2026-03-08 after reviewing the current
-> `crates/psionic/docs/ROADMAP.md` plus the local `~/code/exo` source tree,
+> `docs/ROADMAP.md` plus the local `~/code/exo` source tree,
 > including `README.md`, `docs/architecture.md`, `docs/api.md`,
 > `src/exo/main.py`, `src/exo/master/*`, `src/exo/worker/*`,
 > `src/exo/worker/engines/mlx/*`, `rust/networking/*`,
@@ -325,7 +325,7 @@ In plain terms:
 What that means concretely:
 
 - do not shell out from Psionic to `exo`
-- do not make Python or MLX a required dependency for `crates/psionic/*`
+- do not make Python or MLX a required dependency for `crates/psionic-*`
 - do not use `exo` as the source of truth for GGUF layouts, NVIDIA kernels, or
   backend capability claims
 - do use `exo` as a reference for cluster semantics, Harmony parser fixtures,
@@ -463,7 +463,7 @@ Do not:
 
 - block `PSI-179` through `PSI-183` on any deep `exo` integration work
 - proxy Psionic execution through `exo` runners to claim Epic G is done
-- make MLX, Python 3.13, or Apple-first assumptions leak into `crates/psionic/*`
+- make MLX, Python 3.13, or Apple-first assumptions leak into `crates/psionic-*`
 - replace `llama.cpp` as the primary GPT-OSS/Harmony/NVIDIA behavior oracle
   with `exo`
 - treat `exo`'s current cluster event model as automatically sufficient for

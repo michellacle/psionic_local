@@ -2,7 +2,7 @@
 
 > Status: canonical `PLIB-216` / `#3731` reference record, updated 2026-03-16
 > after landing bounded public `checkpoint` and `vmap` capability alongside the original
-> program-transform matrix in `crates/psionic/psionic-ir/src/lib.rs`.
+> program-transform matrix in `crates/psionic-ir/src/lib.rs`.
 
 This document records the current bounded program-transform semantics surface
 for Psionic.

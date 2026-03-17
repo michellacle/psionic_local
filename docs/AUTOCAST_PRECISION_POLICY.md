@@ -2,7 +2,7 @@
 
 > Status: canonical `PLIB-213` / `#3728` reference record, updated 2026-03-16
 > after landing the first bounded autocast-style precision-policy matrix in
-> `crates/psionic/psionic-core/src/lib.rs`.
+> `crates/psionic-core/src/lib.rs`.
 
 This document records the current bounded autocast semantics surface for
 Psionic.

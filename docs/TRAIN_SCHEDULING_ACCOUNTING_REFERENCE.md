@@ -2,7 +2,7 @@
 
 > Status: canonical `PSI-286` / `#3591` reference record, updated 2026-03-14
 > after landing the train scheduling/accounting layer in
-> `crates/psionic/psionic-train/src/scheduling_accounting.rs`.
+> `crates/psionic-train/src/scheduling_accounting.rs`.
 
 This document records the first explicit scheduling, preemption, and
 cost-attribution contract for train workloads inside Psionic.

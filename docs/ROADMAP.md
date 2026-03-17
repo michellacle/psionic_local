@@ -1,13 +1,13 @@
 # Psionic Full Library Roadmap
 
 > Status: rewritten 2026-03-15 after reviewing `docs/MVP.md`,
-> `docs/OWNERSHIP.md`, `crates/psionic/README.md`,
-> `crates/psionic/docs/ARCHITECTURE.md`,
-> `crates/psionic/docs/FRAMEWORK_CORE_ACCEPTANCE_MATRIX.md`,
-> `crates/psionic/docs/TRAIN_SYSTEM.md`,
-> `crates/psionic/docs/ROADMAP_CLUSTER.md`,
-> `crates/psionic/docs/ROADMAP_FM.md`,
-> `crates/psionic/docs/ROADMAP_METAL.md`, and the recent audits:
+> `docs/OWNERSHIP.md`, `README.md`,
+> `docs/ARCHITECTURE.md`,
+> `docs/FRAMEWORK_CORE_ACCEPTANCE_MATRIX.md`,
+> `docs/TRAIN_SYSTEM.md`,
+> `docs/ROADMAP_CLUSTER.md`,
+> `docs/ROADMAP_FM.md`,
+> `docs/ROADMAP_METAL.md`, and the recent audits:
 > `docs/audits/2026-03-14-tinygrad-parity-target-for-psionic-audit.md`,
 > `docs/audits/2026-03-15-tinygrad-test-suite-port-audit.md`,
 > `docs/audits/2026-03-15-pytorch-test-suite-port-audit.md`,
@@ -16,7 +16,7 @@
 > and
 > `docs/audits/2026-03-15-psionic-tinygrad-philosophy-pytorch-drop-in-audit.md`.
 >
-> This is now the canonical full-library roadmap for `crates/psionic/*`.
+> This is now the canonical full-library roadmap for `crates/psionic-*`.
 > `ROADMAP_CLUSTER.md`, `ROADMAP_FM.md`, `ROADMAP_METAL.md`, and
 > `ROADMAP_MLX.md` remain useful lane-specific references, but they are no
 > longer the canonical answer to "what is the Psionic program overall?"
@@ -68,13 +68,13 @@ So this roadmap now answers the broader question:
 
 ## Relationship To Product Scope
 
-This roadmap does not widen active product MVP scope in [docs/MVP.md](/Users/christopherdavid/code/openagents/docs/MVP.md).
+This roadmap does not widen active product MVP scope in `openagents/docs/MVP.md`.
 
 It is a library and engine roadmap.
 
-Per [docs/OWNERSHIP.md](/Users/christopherdavid/code/openagents/docs/OWNERSHIP.md):
+Per `openagents/docs/OWNERSHIP.md`:
 
-- `crates/psionic/*` owns reusable execution substrate
+- `crates/psionic-*` owns reusable execution substrate
 - `apps/*` own product behavior and UX
 - kernel and Nexus own authority truth, not runtime execution engines
 
@@ -82,7 +82,7 @@ Nothing in this roadmap should be read as permission to move app logic,
 wallet/payout logic, or authority logic into Psionic crates.
 
 That includes the `Tassadar` executor-class reference lane. It is a
-library/runtime program inside `crates/psionic/*`, not a product-scope change
+library/runtime program inside `crates/psionic-*`, not a product-scope change
 to the current desktop/provider MVP.
 
 ## Objective
@@ -126,7 +126,7 @@ These are not goals of this roadmap:
 - distributed training breadth before single-host training semantics are honest
 - every legacy artifact or deployment path from the PyTorch ecosystem
 - every domain library in the broader PyTorch ecosystem
-- product-specific routing, wallet, payout, or UX logic inside `crates/psionic/*`
+- product-specific routing, wallet, payout, or UX logic inside `crates/psionic-*`
 - host-specific throughput wins treated as equivalent to full-library progress
 - ambiguous claims that imply upstream PyTorch closure when the implementation
   is only `PyTorch-credible` or `PyTorch-compatible` in a bounded sense
@@ -301,8 +301,8 @@ All PyTorch-derived parity matrices and credibility claims must target an
 explicit bounded upstream version window, not an unversioned idea of PyTorch.
 
 The canonical machine-readable truth source for the current posture now lives
-in `crates/psionic/psionic-compat` as `SemanticsClaimReport` and is documented
-in `crates/psionic/docs/SEMANTICS_CLAIM_REPORT.md`.
+in `crates/psionic-compat` as `SemanticsClaimReport` and is documented
+in `docs/SEMANTICS_CLAIM_REPORT.md`.
 
 ### Claim 5: `PyTorch-compatible`
 
@@ -376,7 +376,7 @@ Psionic already has real foundations.
 
 ### Framework-core foundations already present
 
-Per [crates/psionic/docs/FRAMEWORK_CORE_ACCEPTANCE_MATRIX.md](/Users/christopherdavid/code/openagents/crates/psionic/docs/FRAMEWORK_CORE_ACCEPTANCE_MATRIX.md),
+Per [docs/FRAMEWORK_CORE_ACCEPTANCE_MATRIX.md](FRAMEWORK_CORE_ACCEPTANCE_MATRIX.md),
 Psionic already has implemented-early substrate for:
 
 - tensor metadata and layout semantics
@@ -391,7 +391,7 @@ That is real, but still not broad framework completion.
 
 ### Serving and model-runtime foundations already present
 
-Per [crates/psionic/README.md](/Users/christopherdavid/code/openagents/crates/psionic/README.md),
+Per [README.md](../README.md),
 the repo already has:
 
 - reusable model descriptors and loaders
@@ -492,7 +492,7 @@ It is a cross-epic lane that depends on:
 
 Its declared scope is:
 
-- owner: `crates/psionic/*`
+- owner: `crates/psionic-*`
 - first target: WebAssembly-first executor semantics
 - landed Phase 1 bar: CPU reference fixture and exact parity harness
 - landed Phase 2 bar: digest-bound program artifacts and explicit
@@ -553,7 +553,7 @@ Its declared scope is:
 - landed trained-executor Phase 7 bar from the post-audit issue spine:
   `psionic-train` now executes and persists the first Psionic-only Sudoku-v0
   reference run, with a committed run bundle at
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_reference_run_v0`
+  `fixtures/tassadar/runs/sudoku_v0_reference_run_v0`
   containing the frozen training manifest, training report, linear benchmark
   report, checkpoint state plus checkpoint manifest, and trained-model
   artifact; the recorded outcome is intentionally still weak (`0/2`
@@ -590,7 +590,7 @@ Its declared scope is:
   `psionic-train` now freeze that workload into a tokenized sequence dataset
   plus training manifest, `psionic-models` now carries a matching 9x9
   executor-transformer descriptor, and `psionic-train` now commits
-  `crates/psionic/fixtures/tassadar/runs/sudoku_9x9_scale_plan_v0/scale_plan.json`;
+  `fixtures/tassadar/runs/sudoku_9x9_scale_plan_v0/scale_plan.json`;
   that scale plan records the actual 4x4 promotion gate as still closed, so
   the repo now has the real 9x9 workload and curriculum path without
   collapsing into fake “9x9 already works” reporting
@@ -599,7 +599,7 @@ Its declared scope is:
   first-token-confusion reports, `psionic-train` now supports a boundary
   curriculum with per-epoch validation and explicit checkpoint ranking by
   boundary metrics, and the committed follow-on run bundle at
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_boundary_v1` records the
+  `fixtures/tassadar/runs/sudoku_v0_boundary_v1` records the
   first honest improvement after the reality audit: the selected checkpoint
   clears token-0 divergence on the 4x4 validation lane (`10000` bps
   first-target exactness, divergence histogram bucket at target index `1`,
@@ -612,7 +612,7 @@ Its declared scope is:
   manifests, checkpoints, and run bundles while supporting controlled updates
   over the output head, embeddings, and one small residual mixer, and
   `psionic-research` now materializes a same-corpus ablation root at
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_trainable_surface_ablation_v1`
+  `fixtures/tassadar/runs/sudoku_v0_trainable_surface_ablation_v1`
   plus a machine-readable `trainable_surface_ablation.json`; that ablation
   keeps `output_head_only` as the preserved baseline and finds that only
   `output_head_embeddings_and_small_learned_mixer` materially improves the
@@ -626,7 +626,7 @@ Its declared scope is:
   attention, fixed 2D head geometry, explicit per-layer semantics, and honest
   hull fallback, while `psionic-eval` and `psionic-research` now materialize a
   bounded same-corpus comparison root at
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v1`
+  `fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v1`
   with `architecture_comparison_report.json` plus per-family run bundles; the
   committed report keeps the claim boundary explicit by showing the new family
   is architecturally closer to the article but still materially worse on the
@@ -637,8 +637,8 @@ Its declared scope is:
 - landed trained-executor Phase 15A follow-on bar:
   `psionic-research` now owns a bounded attention-family training loop and a
   second same-corpus comparison root at
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_training_v1` and
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v2`;
+  `fixtures/tassadar/runs/sudoku_v0_attention_training_v1` and
+  `fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v2`;
   the trained attention family now improves materially over the seeded Phase
   15 candidate on bounded suffix accuracy (`6563` bps aggregate and first-32
   exactness instead of `0`), but it still fails the first-token boundary (`0`
@@ -648,22 +648,22 @@ Its declared scope is:
   `psionic-models` now carries a bounded relative-target output-bias adapter,
   `psionic-research` now preserves the failed output-head-only boundary attempt
   under
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v1`, the
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v1`, the
   improved adapter-backed run under
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v2`, and
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v2`, and
   the later hidden-state projection-adapter follow-ons under
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v3` and
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v4`, the
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v3` and
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v4`, the
   newer transition-adapter follow-on under
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v5`, the
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v5`, the
   later joint-adapter fine-tune under
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v6`, the
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v6`, the
   later trace-schema and per-position saturation runs under
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v7`,
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v8`, and
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v9`, and
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v7`,
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v8`, and
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v9`, and
   the current same-corpus comparison under
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v11`;
+  `fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v11`;
   those artifacts keep extending the first attention-family bounded correctness
   win over the preserved lookup baseline, and the latest pair now records
   `10000` bps first-target, `8750` bps first-8, `7188` bps first-32 versus
@@ -681,7 +681,7 @@ Its declared scope is:
   `compiled_executor_exactness_report.json` plus
   `compiled_executor_compatibility_report.json` for the real Sudoku-v0 corpus,
   and `psionic-research` now writes the canonical bundle root at
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_compiled_executor_v0` with
+  `fixtures/tassadar/runs/sudoku_v0_compiled_executor_v0` with
   per-case deployment bundles and a top-level `run_bundle.json`; the committed
   artifacts keep the claim boundary honest by proving only a bounded
   compiled/proof-backed lane on matched Sudoku-v0 programs (`8/8` exact trace
@@ -695,7 +695,7 @@ Its declared scope is:
   `compiled_executor_compatibility_report.json`, and
   `hungarian_lane_status_report.json`, and `psionic-research` now writes the
   canonical bundle root at
-  `crates/psionic/fixtures/tassadar/runs/hungarian_v0_compiled_executor_v0`
+  `fixtures/tassadar/runs/hungarian_v0_compiled_executor_v0`
   with the benchmark/environment contracts plus eight per-case deployment
   bundles; the committed artifacts keep the claim boundary honest by proving
   only a bounded Hungarian-class workload contract and a matched exact
@@ -902,7 +902,7 @@ is tracked under the post-audit umbrella
 - Phase 14 produce the first exact 4x4 validation trace:
   [#3814](https://github.com/OpenAgentsInc/openagents/issues/3814)
   canonical promotion tooling and the repo bundle now exist at
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_promotion_v1`, but the gate
+  `fixtures/tassadar/runs/sudoku_v0_promotion_v1`, but the gate
   remains red: the promotion bundle itself is still `10000` bps first-target,
   `6875` bps first-32, and `0` exact validation traces, while the latest
   bounded attention-family follow-on reaches `10000` / `8750` / `7188` over
@@ -915,14 +915,14 @@ is tracked under the post-audit umbrella
 - Phase 17 add a bounded proof-oriented / compile-to-weights executor lane:
   [#3817](https://github.com/OpenAgentsInc/openagents/issues/3817)
   landed as the bounded compiled/proof-backed Sudoku-v0 lane at
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_compiled_executor_v0`
+  `fixtures/tassadar/runs/sudoku_v0_compiled_executor_v0`
   with `8/8` exact trace matches and `32/32` exact refusal matches; this is
   intentionally `eval_only` and independent of the still-blocked learned-lane
   Phase 14/16 path
 - Phase 18 land the real Hungarian-class benchmark and exact result:
   [#3818](https://github.com/OpenAgentsInc/openagents/issues/3818)
   landed as the bounded Hungarian-v0 benchmark-plus-compiled lane at
-  `crates/psionic/fixtures/tassadar/runs/hungarian_v0_compiled_executor_v0`
+  `fixtures/tassadar/runs/hungarian_v0_compiled_executor_v0`
   with a real benchmark package, `8/8` exact compiled trace matches,
   `32/32` exact refusal matches, and an explicit learned-lane status of
   `not_done`; this remains `eval_only` and does not imply article parity
@@ -990,7 +990,7 @@ Master issue:
 | `PLIB-104` / [#3706](https://github.com/OpenAgentsInc/openagents/issues/3706) | done (2026-03-16) | `psionic-ir::autodiff` now makes the gradient support matrix explicit, regression-tests the full current primitive-family surface across reshape/view/concat/axis-reduction paths, and refuses every current backend-extension family through stable typed labels instead of one generic fallback. |
 | `PLIB-105` / [#3707](https://github.com/OpenAgentsInc/openagents/issues/3707) | done (2026-03-16) | `psionic-compiler` now exposes a first-class compiler contract with explicit schedule formation, fusion policy, alias-aware memory planning, plan-cache identity, and cold-vs-warm compile-cache evidence; replay fixtures now snapshot those compiler artifacts instead of only the lowered plan digest. |
 | `PLIB-106` / [#3708](https://github.com/OpenAgentsInc/openagents/issues/3708) | done (2026-03-16) | `psionic-runtime::local_multi_device` now exposes explicit `LocalShardingPolicy` contracts with stable digest, version, partition-mode, collective-boundary, and evidence-only outcome posture; `LocalMultiDeviceRefusalReason` now gives one stable refusal taxonomy across contract validation and runner-level topology gaps; local execution reports now carry policy identity; and the framework-core runner now checks policy serialization plus policy/refusal-path coverage instead of only one happy-path tensor-sharded run. |
-| `PLIB-107` / [#3709](https://github.com/OpenAgentsInc/openagents/issues/3709) | done (2026-03-16) | `scripts/release/check-psionic-framework-core-acceptance.sh` now executes the full documented hook set across tensor semantics, autodiff, model/state IO, compiler realize, memory/cache, replay identity, and local multi-device categories; it emits a machine-readable JSON report matching `crates/psionic/docs/framework_core_acceptance_report.schema.json`; and the gate now includes explicit replay-fixture and refusal-path coverage instead of one representative proof per category. |
+| `PLIB-107` / [#3709](https://github.com/OpenAgentsInc/openagents/issues/3709) | done (2026-03-16) | `scripts/release/check-psionic-framework-core-acceptance.sh` now executes the full documented hook set across tensor semantics, autodiff, model/state IO, compiler realize, memory/cache, replay identity, and local multi-device categories; it emits a machine-readable JSON report matching `docs/framework_core_acceptance_report.schema.json`; and the gate now includes explicit replay-fixture and refusal-path coverage instead of one representative proof per category. |
 | `PLIB-108` / [#3710](https://github.com/OpenAgentsInc/openagents/issues/3710) | done (2026-03-16) | `psionic-core` now owns the canonical `PsionicRefusal` taxonomy; `psionic-ir`, `psionic-runtime`, `psionic-runtime::local_multi_device`, and `psionic-sandbox` now expose adapter methods into that shared type for unsupported op, unsupported gradient, unsupported layout, unsupported backend capability, serialization incompatibility, sandbox policy denial, and topology mismatch boundaries. |
 | `PLIB-109` / [#3711](https://github.com/OpenAgentsInc/openagents/issues/3711) | done (2026-03-16) | `psionic-core` now owns typed dtype-class, quantized-logical-storage, layout storage-span, and alias/view-semantic contracts; `psionic-runtime` now exposes a backend-visible `BufferStorageContract`; and the CPU reference backend preserves storage identity across dense views and allocator reuse while refusing to treat pooled alias views as owned dense buffers. |
 | `PLIB-110` / [#3712](https://github.com/OpenAgentsInc/openagents/issues/3712) | done (2026-03-16) | `psionic-runtime` now owns a serializable determinism contract with explicit mode and deterministic-algorithm posture, replayable generator state, checkpoint snapshots, and stable local-device plus distributed-rank derivation; `TokenSampler` can now resume from exported generator state so seeded execution survives replay and checkpoint restore instead of living only in one transient sampler instance. |

@@ -10,7 +10,7 @@
   "target_token_cap": 32,
   "family_report_file": "family_report.json",
   "model_descriptor_file": "model_descriptor.json",
-  "source_artifact_ref": "crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v5/run_bundle.json",
+  "source_artifact_ref": "fixtures/tassadar/runs/sudoku_v0_attention_boundary_v5/run_bundle.json",
   "family_report_digest": "e09c79745497e21dfe2ab041e69a52976de20777a9b79fad54cfa1b9a4cc17ed",
   "bundle_digest": "7e09f98c691ee4836fbd3c7b5b27bf742c7e90a3ff51b4e1c26b479ee4a98e9f"
 }

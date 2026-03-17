@@ -2,7 +2,7 @@
 
 > Status: canonical `PLIB-205` / `#3720` reference record, updated 2026-03-16
 > after landing the first seeded Rust-native operator parity matrix in
-> `crates/psionic/psionic-ir/src/lib.rs`.
+> `crates/psionic-ir/src/lib.rs`.
 
 This document records the first bounded operator parity artifact for Psionic's
 semantics layer.

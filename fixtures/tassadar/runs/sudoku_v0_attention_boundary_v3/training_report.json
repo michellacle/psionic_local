@@ -62,8 +62,8 @@
         "early_token_loss_scale": 1.25
       }
     ],
-    "initial_checkpoint_state_ref": "crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v2/checkpoint_state.json",
-    "initial_run_bundle_ref": "crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v2/run_bundle.json",
+    "initial_checkpoint_state_ref": "fixtures/tassadar/runs/sudoku_v0_attention_boundary_v2/checkpoint_state.json",
+    "initial_run_bundle_ref": "fixtures/tassadar/runs/sudoku_v0_attention_boundary_v2/run_bundle.json",
     "train_output_head": false,
     "train_relative_target_output_bias": false,
     "train_relative_target_output_projection": true

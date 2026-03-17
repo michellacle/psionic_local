@@ -4,7 +4,7 @@ This document records the default backend parity policy introduced by
 `PSI-119`.
 
 The source of truth for the reusable policy lives in
-`crates/psionic/psionic-runtime/src/parity.rs` as `BackendParityPolicy`.
+`crates/psionic-runtime/src/parity.rs` as `BackendParityPolicy`.
 
 ## Reference Rule
 
@@ -84,10 +84,10 @@ This prevents two opposite mistakes:
 
 The policy is wired into:
 
-- `crates/psionic/psionic-serve/tests/metal_embeddings_parity.rs`
-- `crates/psionic/psionic-serve/tests/metal_text_generation_parity.rs`
-- `crates/psionic/psionic-serve/src/conformance.rs` embed comparisons
-- `crates/psionic/psionic-backend-metal/src/lib.rs` policy documentation tests
+- `crates/psionic-serve/tests/metal_embeddings_parity.rs`
+- `crates/psionic-serve/tests/metal_text_generation_parity.rs`
+- `crates/psionic-serve/src/conformance.rs` embed comparisons
+- `crates/psionic-backend-metal/src/lib.rs` policy documentation tests
 
 Future backend parity work (`PSI-131`, `PSI-146`, `PSI-153`, `PSI-156`) should
 reuse this policy instead of introducing local constants.

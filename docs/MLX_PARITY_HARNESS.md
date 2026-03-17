@@ -49,7 +49,7 @@ scripts/release/check-psionic-mlx-parity-harness.sh --only compile --only export
 ```
 
 The report schema lives at
-`crates/psionic/docs/mlx_parity_harness_report.schema.json`.
+`docs/mlx_parity_harness_report.schema.json`.
 
 ## Frozen Oracle Window
 

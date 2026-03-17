@@ -9,7 +9,7 @@
 > `apps/autopilot-desktop/src/input/actions.rs`,
 > `apps/autopilot-desktop/src/app_state.rs`, and
 > `docs/plans/mission-control-pane.md`, plus
-> `docs/headless-compute.md` and `crates/psionic/docs/TRAIN_SYSTEM.md`.
+> `docs/headless-compute.md` and `docs/TRAIN_SYSTEM.md`.
 >
 > This is the live roadmap for the Apple Foundation Models lane. For the MVP,
 > `Mac = Apple Foundation Models via our Swift bridge`, `NVIDIA = Psionic
@@ -50,7 +50,7 @@ reference only unless there is an explicit instruction to restore code.
 Build a Psionic-owned Apple Foundation Models lane that is truthful enough to
 ship as the macOS local-model story:
 
-- `crates/psionic/*` provides the reusable Rust API and runtime truth for Apple
+- `crates/psionic-*` provides the reusable Rust API and runtime truth for Apple
   FM
 - our Swift bridge remains the direct execution substrate for Apple's
   Foundation Models framework
@@ -79,7 +79,7 @@ This roadmap is not:
 - a plan to keep Apple FM as only a thin OpenAI-compatible
   `/v1/chat/completions` sidecar
 - a plan to move app-specific process supervision or pane behavior into
-  `crates/psionic/*`
+  `crates/psionic-*`
 - a promise that MVP requires direct pure-Rust invocation of the Apple
   framework without Swift; the near-term execution substrate can and should
   stay our Swift bridge
@@ -88,7 +88,7 @@ This roadmap is not:
 
 This roadmap must continue to respect `docs/OWNERSHIP.md`:
 
-- `crates/psionic/*` owns reusable Apple FM API contracts, typed client
+- `crates/psionic-*` owns reusable Apple FM API contracts, typed client
   surface, model/session semantics, transcript/schema/tool types, streaming
   semantics, option validation, error taxonomy, and conformance tests
 - `swift/foundation-bridge/` owns the direct calls into Apple's Foundation
@@ -164,7 +164,7 @@ Apple training or a complete training market.
 
 What shipped:
 
-- `crates/psionic/psionic-apple-fm` exists as the reusable Psionic crate for
+- `crates/psionic-apple-fm` exists as the reusable Psionic crate for
   the currently retained Apple FM bridge contract and client
 - the current bridge request/response models moved out of
   `apps/autopilot-desktop` and into reusable Psionic-owned contract types
@@ -173,7 +173,7 @@ What shipped:
 - `apps/autopilot-desktop/src/apple_fm_bridge.rs` now consumes the shared
   Psionic Apple FM client instead of owning duplicate ad hoc JSON transport
   shapes
-- `crates/psionic/docs/FM_API_COVERAGE_MATRIX.md` exists as the living
+- `docs/FM_API_COVERAGE_MATRIX.md` exists as the living
   conformance matrix mapping the exported Python SDK surface and behavior
   families to the Rust/Psionic roadmap
 - `psionic-apple-fm` now exposes typed `SystemLanguageModel`-equivalent Rust
@@ -417,7 +417,7 @@ number ordering and not whichever missing endpoint looks easiest.
 
 Required outcome:
 
-- a dedicated Psionic Apple FM crate exists under `crates/psionic/*`
+- a dedicated Psionic Apple FM crate exists under `crates/psionic-*`
 - the crate exposes a stable Rust-first API shape for the Apple FM lane
 - every exported Python SDK symbol is mapped into a Rust conformance matrix
 

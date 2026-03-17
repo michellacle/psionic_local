@@ -2,7 +2,7 @@
 
 > Status: canonical `PSI-287` / `#3592` reference record, updated 2026-03-14
 > after landing the train reliability suite in
-> `crates/psionic/psionic-train/src/reliability.rs`.
+> `crates/psionic-train/src/reliability.rs`.
 
 This document records the first explicit chaos and failure-injection suite for
 train workloads inside Psionic.

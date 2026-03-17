@@ -7,9 +7,9 @@ compiler/runtime boundaries, backend truth, artifact staging, cluster and
 sandbox execution, serving interfaces, adapter packaging, evaluation, research,
 and the early training substrate.
 
-It intentionally lives under `crates/psionic/` so the engine can evolve without
-bleeding product behavior into `apps/*` or authority logic into kernel and
-Nexus surfaces.
+It intentionally lives in this standalone `psionic` workspace so the engine can
+evolve without bleeding product behavior into `apps/*` or authority logic into
+kernel and Nexus surfaces.
 
 ## Doc Authority
 
@@ -54,7 +54,7 @@ Psionic now has an implemented-early executor-class reference lane codenamed
 
 Current posture:
 
-- it lives under `crates/psionic/*`, not in app code and not in kernel or
+- it lives under `crates/psionic-*`, not in app code and not in kernel or
   Nexus authority
 - it is WebAssembly-first and CPU-reference-first
 - it is intended to give larger reasoning systems inner exact-computation
@@ -123,11 +123,11 @@ Current posture:
   explicit decode-mode identity, explicit no-KV-cache prefix-recompute identity,
   and per-case exactness facts instead of only aggregate scores
 - the seventh trained-executor follow-on bar now also exists in
-  `psionic-train` and `crates/psionic/fixtures/tassadar/runs/`: the first
+  `psionic-train` and `fixtures/tassadar/runs/`: the first
   Psionic-only Sudoku-v0 reference run now persists a frozen training
   manifest, training report, linear benchmark report, checkpoint state plus
   checkpoint manifest, and a trained-model artifact bundle under
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_reference_run_v0`; the
+  `fixtures/tassadar/runs/sudoku_v0_reference_run_v0`; the
   current run is intentionally honest about still being weak
   (`validation_exact_trace_case_count = 0/2`, aggregate target exactness
   `15` bps), so this is a reproducible first-run artifact lane rather than a
@@ -162,14 +162,14 @@ Current posture:
   Sudoku-class corpus, a tokenized 9x9 sequence dataset plus frozen training
   manifest, a bounded 9x9 smoke-training config, and a committed
   `scale_plan.json` fixture under
-  `crates/psionic/fixtures/tassadar/runs/sudoku_9x9_scale_plan_v0`; that plan
+  `fixtures/tassadar/runs/sudoku_9x9_scale_plan_v0`; that plan
   keeps Phase 11 honest by recording the current 4x4 gate as still closed
   (`0/2` validation first-target exact cases, `0/2` exact-trace cases) while
   still making the real 9x9 workload and curriculum plan explicit
 - the twelfth trained-executor follow-on bar from the post-audit issue spine
   now also exists in `psionic-eval`, `psionic-train`, `docs/audits/`, and a
   new committed follow-on run bundle at
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_boundary_v1`: the learned
+  `fixtures/tassadar/runs/sudoku_v0_boundary_v1`: the learned
   4x4 lane now emits first-target / first-8 / first-32 boundary metrics,
   divergence histograms, first-token confusion, and a checkpoint leaderboard,
   and the boundary-curriculum run clears the token-0 failure at the selected
@@ -180,7 +180,7 @@ Current posture:
 - the thirteenth trained-executor follow-on bar from the post-audit issue
   spine now also exists in `psionic-models`, `psionic-train`,
   `psionic-research`, `docs/audits/`, and a new same-corpus ablation root at
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_trainable_surface_ablation_v1`:
+  `fixtures/tassadar/runs/sudoku_v0_trainable_surface_ablation_v1`:
   the lookup-family executor now records a stable trainable surface in model
   descriptors, training manifests, checkpoints, and run bundles, and
   `psionic-research` now persists a machine-readable
@@ -194,7 +194,7 @@ Current posture:
 - the fourteenth trained-executor follow-on bar from the post-audit issue
   spine now also exists in `psionic-train`, `docs/audits/`, `scripts/`, and a
   canonical promotion bundle at
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_promotion_v1`: long Phase 14
+  `fixtures/tassadar/runs/sudoku_v0_promotion_v1`: long Phase 14
   runs now emit live stage/epoch/batch/validation/checkpoint progress, the repo
   now persists `best_checkpoint_manifest.json` plus
   `promotion_gate_report.json`, and the canonical promotion run records the
@@ -206,7 +206,7 @@ Current posture:
 - the fifteenth trained-executor follow-on bar from the post-audit issue spine
   now also exists in `psionic-models`, `psionic-eval`, `psionic-research`,
   `docs/audits/`, and a new bounded same-corpus comparison root at
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v1`:
+  `fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v1`:
   `psionic-models` now carries a separate layered causal-attention
   `TassadarExecutorAttentionTransformer` family with explicit 2D head geometry,
   per-layer semantics, and truthful hull fallback, while `psionic-research`
@@ -219,8 +219,8 @@ Current posture:
   research-family landing rather than a promotion or parity claim
 - the post-Phase-15 trained-attention follow-on now also exists in
   `psionic-research`, `docs/audits/`, and two new bounded artifact roots at
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_training_v1` and
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v2`:
+  `fixtures/tassadar/runs/sudoku_v0_attention_training_v1` and
+  `fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v2`:
   the attention family now has a real output-head training loop plus a
   preserved same-corpus comparison against the lookup baseline; the trained
   attention checkpoint materially improves over the seeded Phase 15 candidate
@@ -232,16 +232,16 @@ Current posture:
 - the post-Phase-15 boundary-adapter follow-on now also exists in
   `psionic-models`, `psionic-eval`, `psionic-research`, `docs/audits/`, and
   nine preserved bounded artifact roots at
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v1`,
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v2`, and
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v3`,
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v4`,
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v5`,
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v6`,
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v7`,
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v8`,
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v9`, and
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v11`:
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v1`,
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v2`, and
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v3`,
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v4`,
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v5`,
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v6`,
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v7`,
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v8`,
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v9`, and
+  `fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v11`:
   the executor-attention family now carries both a bounded relative-target
   output-bias adapter, a bounded hidden-state-conditioned relative-target
   output projection adapter, a bounded previous-token-conditioned transition
@@ -268,7 +268,7 @@ Current posture:
 - the separate post-audit Phase 17 bar now also exists in `psionic-models`,
   `psionic-eval`, `psionic-research`, `docs/audits/`, and a canonical bounded
   compiled-lane bundle at
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_compiled_executor_v0`:
+  `fixtures/tassadar/runs/sudoku_v0_compiled_executor_v0`:
   `psionic-models` now exposes a typed `TassadarCompiledProgramExecutor`
   compile-evidence bundle, `psionic-eval` now emits machine-readable exactness
   and compatibility/refusal reports for the real Sudoku-v0 corpus, and
@@ -282,7 +282,7 @@ Current posture:
 - the separate post-audit Phase 18 bar now also exists in `psionic-runtime`,
   `psionic-models`, `psionic-eval`, `psionic-research`, `docs/audits/`, and a
   canonical bounded benchmark-plus-compiled bundle at
-  `crates/psionic/fixtures/tassadar/runs/hungarian_v0_compiled_executor_v0`:
+  `fixtures/tassadar/runs/hungarian_v0_compiled_executor_v0`:
   `psionic-runtime` now carries a real bounded `tassadar.wasm.hungarian_v0_matching.v1`
   min-cost matching program family over 4x4 cost matrices, `psionic-eval` now
   emits a real Hungarian-v0 benchmark package plus machine-readable compiled
@@ -984,4 +984,4 @@ For canonical current-state detail, use `docs/ARCHITECTURE.md` and
 - **[docs/FM_BRIDGE_CONSIDERATIONS.md](docs/FM_BRIDGE_CONSIDERATIONS.md)** — Apple Foundation Models bridge: architecture, binary discovery, build, run, test, shipping, and user requirements in full detail.
 - **[docs/ACTIVATION_FINGERPRINT_PROOFS.md](docs/ACTIVATION_FINGERPRINT_PROOFS.md)** — activation-fingerprint proof posture, embeddings-first artifact generation, and benchmark semantics.
 - **[docs/ROADMAP_FM.md](docs/ROADMAP_FM.md)** — Apple FM lane roadmap and API coverage.
-- Other planning and reference docs live under `crates/psionic/docs/`.
+- Other planning and reference docs live under `docs/`.

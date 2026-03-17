@@ -10,7 +10,7 @@
   "target_token_cap": 32,
   "family_report_file": "family_report.json",
   "model_descriptor_file": "model_descriptor.json",
-  "source_artifact_ref": "crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_training_v1/run_bundle.json",
+  "source_artifact_ref": "fixtures/tassadar/runs/sudoku_v0_attention_training_v1/run_bundle.json",
   "family_report_digest": "7cac3844a5b240e00db06977a845831ceaa9079b0dba4d3cc4d5bf6c33952c83",
   "bundle_digest": "b2fe71cc2bd1f9cafa94bd2a94aee71b8f99d759fa065039adc8f6d3e4bcb798"
 }

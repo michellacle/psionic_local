@@ -21,13 +21,13 @@
     },
     {
       "source_id": "train_system",
-      "path": "crates/psionic/docs/TRAIN_SYSTEM.md",
+      "path": "docs/TRAIN_SYSTEM.md",
       "source_kind": "canonical_doc",
       "summary": "Current train-system truth, implemented-vs-planned answers, and Apple-lane scope."
     },
     {
       "source_id": "architecture",
-      "path": "crates/psionic/docs/ARCHITECTURE.md",
+      "path": "docs/ARCHITECTURE.md",
       "source_kind": "canonical_doc",
       "summary": "Psionic-wide substrate and authority boundaries."
     },

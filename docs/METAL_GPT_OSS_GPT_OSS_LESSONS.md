@@ -40,7 +40,7 @@ For Psionic, that means the `gpt-oss` Metal path matters most for:
 
 ### Psionic
 
-- `crates/psionic/docs/METAL_GPT_OSS_UNIFIED_PLAN.md`
+- `docs/METAL_GPT_OSS_UNIFIED_PLAN.md`
 - GitHub issues `#3262`, `#3269`, `#3285`, and `#3286`
 
 ### `gpt-oss`

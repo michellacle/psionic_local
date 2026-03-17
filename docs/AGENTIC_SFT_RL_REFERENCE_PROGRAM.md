@@ -22,7 +22,7 @@ the ownership-boundary guard.
 ## Contract Surface
 
 The pilot is implemented as typed library surface in
-`crates/psionic/psionic-train/src/reference_program.rs`.
+`crates/psionic-train/src/reference_program.rs`.
 
 The canonical entrypoints are:
 

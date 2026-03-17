@@ -2,7 +2,7 @@
 
 > Status: canonical `PSI-283` / `#3588` reference record, updated 2026-03-14
 > after landing the deterministic replay and reproducibility layer in
-> `crates/psionic/psionic-train/src/replay_truth.rs`.
+> `crates/psionic-train/src/replay_truth.rs`.
 
 This document records the first explicit replay-truth contract for the Psionic
 train stack.

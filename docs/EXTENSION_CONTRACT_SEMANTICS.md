@@ -2,7 +2,7 @@
 
 > Status: canonical `PLIB-217` / `#3732` reference record, updated 2026-03-16
 > after landing the first bounded extension-contract report in
-> `crates/psionic/psionic-ir/src/lib.rs`.
+> `crates/psionic-ir/src/lib.rs`.
 
 This document records the current bounded extension-contract semantics surface
 for Psionic.

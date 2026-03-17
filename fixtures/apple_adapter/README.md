@@ -31,6 +31,6 @@ tests a stable corpus to validate against.
 
 ## Canonical docs
 
-- `crates/psionic/docs/APPLE_ADAPTER_DATASET_SPEC.md`
-- `crates/psionic/docs/APPLE_FMADAPTER_PACKAGE_SPEC.md`
-- `crates/psionic/docs/APPLE_ADAPTER_LINEAGE_SPEC.md`
+- `docs/APPLE_ADAPTER_DATASET_SPEC.md`
+- `docs/APPLE_FMADAPTER_PACKAGE_SPEC.md`
+- `docs/APPLE_ADAPTER_LINEAGE_SPEC.md`

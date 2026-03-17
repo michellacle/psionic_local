@@ -19,8 +19,8 @@ scripts/release/check-psionic-network-execution-identity.sh
 
 Two previously planned Psionic-wide contracts now exist:
 
-- `RuntimeManifest` in `crates/psionic/psionic-runtime/src/proof.rs`
-- `SessionClaimsBundle` in `crates/psionic/psionic-net/src/lib.rs`
+- `RuntimeManifest` in `crates/psionic-runtime/src/proof.rs`
+- `SessionClaimsBundle` in `crates/psionic-net/src/lib.rs`
 
 Together they make the network lane say, in typed form:
 

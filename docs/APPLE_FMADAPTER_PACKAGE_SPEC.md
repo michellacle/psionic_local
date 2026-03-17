@@ -20,7 +20,7 @@ package family.
 ## Authority
 
 - This doc is the canonical repo-owned `.fmadapter` package-layout spec.
-- `crates/psionic/fixtures/apple_adapter/packages/` is the canonical fixture
+- `fixtures/apple_adapter/packages/` is the canonical fixture
   corpus for positive and negative package-shape tests.
 - The external Apple exporter remains reference material only.
 
@@ -29,7 +29,7 @@ package family.
 - `/Users/christopherdavid/code/adapter_training_toolkit_v26_0_0/export/constants.py`
 - `/Users/christopherdavid/code/adapter_training_toolkit_v26_0_0/export/export_fmadapter.py`
 - `/Users/christopherdavid/code/adapter_training_toolkit_v26_0_0/export/export_utils.py`
-- `crates/psionic/psionic-adapters/src/lib.rs`
+- `crates/psionic-adapters/src/lib.rs`
 
 ## Canonical Package Root
 
@@ -156,19 +156,19 @@ rather than collapsing everything into generic IO failure.
 
 Positive fixtures:
 
-- `crates/psionic/fixtures/apple_adapter/packages/minimal_chat_adapter.fmadapter/`
-- `crates/psionic/fixtures/apple_adapter/packages/draft_chat_adapter.fmadapter/`
+- `fixtures/apple_adapter/packages/minimal_chat_adapter.fmadapter/`
+- `fixtures/apple_adapter/packages/draft_chat_adapter.fmadapter/`
 
 Expectation sidecars:
 
-- `crates/psionic/fixtures/apple_adapter/packages/minimal_chat_adapter.expected.json`
-- `crates/psionic/fixtures/apple_adapter/packages/draft_chat_adapter.expected.json`
+- `fixtures/apple_adapter/packages/minimal_chat_adapter.expected.json`
+- `fixtures/apple_adapter/packages/draft_chat_adapter.expected.json`
 
 Negative fixtures:
 
-- `crates/psionic/fixtures/apple_adapter/packages/invalid_missing_metadata.fmadapter/`
-- `crates/psionic/fixtures/apple_adapter/packages/invalid_bad_base_signature.fmadapter/`
-- `crates/psionic/fixtures/apple_adapter/packages/invalid_draft_pairing.fmadapter/`
+- `fixtures/apple_adapter/packages/invalid_missing_metadata.fmadapter/`
+- `fixtures/apple_adapter/packages/invalid_bad_base_signature.fmadapter/`
+- `fixtures/apple_adapter/packages/invalid_draft_pairing.fmadapter/`
 
 The payload files in these fixtures are intentionally small placeholder blobs so
 the repo can freeze package inventory, metadata shape, and digest behavior
@@ -178,5 +178,5 @@ without checking in heavyweight Apple-exported binaries.
 
 - This doc is not the execution authority for the draft-model lane; the
   repo-owned reference distillation path now lives in
-  `crates/psionic/psionic-train/src/apple_adapter.rs`.
+  `crates/psionic-train/src/apple_adapter.rs`.
 - This doc does not let product docs market adapter hosting or training yet.

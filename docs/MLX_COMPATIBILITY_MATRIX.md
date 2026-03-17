@@ -43,7 +43,7 @@ scripts/release/check-psionic-mlx-compatibility-matrix.sh --only graph_first_fun
 ```
 
 The report schema lives at
-`crates/psionic/docs/mlx_compatibility_matrix_report.schema.json`.
+`docs/mlx_compatibility_matrix_report.schema.json`.
 
 ## Frozen Oracle Window
 

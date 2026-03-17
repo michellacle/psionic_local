@@ -21,7 +21,7 @@
     },
     "schema_path": {
       "type": "string",
-      "const": "crates/psionic/docs/mlx_cpu_reference_coverage_report.schema.json"
+      "const": "docs/mlx_cpu_reference_coverage_report.schema.json"
     },
     "runner": {
       "type": "string",

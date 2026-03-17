@@ -22,7 +22,7 @@ to the Rust/Psionic roadmap.
 Legend:
 
 - `landed` = implemented on `main`
-- `planned` = explicitly queued in `crates/psionic/docs/ROADMAP_FM.md`
+- `planned` = explicitly queued in `docs/ROADMAP_FM.md`
 - `n/a` = truly not applicable in Rust; avoid using this unless the difference
   is real and documented
 
@@ -94,7 +94,7 @@ Legend:
 The following is explicitly landed by `FM-1` through `FM-9` and should remain the
 starting point for later issues:
 
-- `crates/psionic/psionic-apple-fm` exists as the reusable crate for the Apple
+- `crates/psionic-apple-fm` exists as the reusable crate for the Apple
   FM bridge contract and client
 - the current bridge request/response types are reusable Psionic-owned types
 - the current bridge has a reusable blocking client in Psionic

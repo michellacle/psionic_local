@@ -11,7 +11,7 @@
 
 ## Why This Doc Exists
 
-`crates/psionic/docs/ROADMAP.md` now captures a large amount of real GPT-OSS
+`docs/ROADMAP.md` now captures a large amount of real GPT-OSS
 parity work on NVIDIA. The main lesson from that work is that the remaining gap
 to `llama.cpp` is not one isolated kernel or one host copy. The bigger win comes
 from matching the whole production path:
@@ -29,14 +29,14 @@ second Metal-only ad-hoc GPT-OSS runtime that later needs to be replaced.
 
 ### Psionic
 
-- `crates/psionic/docs/ROADMAP.md`
-- `crates/psionic/docs/HARDWARE_VALIDATION_MATRIX.md`
-- `crates/psionic/docs/EXO_UNIFIED_INTEGRATION_PLAN.md`
-- `crates/psionic/psionic-backend-metal/src/lib.rs`
-- `crates/psionic/psionic-backend-cuda/src/lib.rs`
-- `crates/psionic/psionic-serve/src/gpt_oss.rs`
-- `crates/psionic/psionic-serve/src/lib.rs`
-- `crates/psionic/psionic-serve/tests/metal_text_generation_parity.rs`
+- `docs/ROADMAP.md`
+- `docs/HARDWARE_VALIDATION_MATRIX.md`
+- `docs/EXO_UNIFIED_INTEGRATION_PLAN.md`
+- `crates/psionic-backend-metal/src/lib.rs`
+- `crates/psionic-backend-cuda/src/lib.rs`
+- `crates/psionic-serve/src/gpt_oss.rs`
+- `crates/psionic-serve/src/lib.rs`
+- `crates/psionic-serve/tests/metal_text_generation_parity.rs`
 - GitHub issue `#3249` and its 2026-03-09 checkpoint comments
 
 ### `llama.cpp`
@@ -164,7 +164,7 @@ The Metal plan should aim for the following steady-state shape.
 ### 1. Shared GPT-OSS graph contract
 
 Psionic should have one reusable GPT-OSS graph/runtime contract owned in
-`crates/psionic/*`, not one CUDA-specific step engine and then a second Metal
+`crates/psionic-*`, not one CUDA-specific step engine and then a second Metal
 copy. The high-level node ordering should stay aligned with the OpenAI-MoE graph
 already mirrored from `openai-moe-iswa.cpp`:
 

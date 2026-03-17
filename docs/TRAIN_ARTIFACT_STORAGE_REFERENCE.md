@@ -2,7 +2,7 @@
 
 > Status: canonical `PSI-285` / `#3590` reference record, updated 2026-03-14
 > after landing the train artifact-storage layer in
-> `crates/psionic/psionic-train/src/artifact_storage.rs`.
+> `crates/psionic-train/src/artifact_storage.rs`.
 
 This document records the first explicit storage-lifecycle contract for train
 artifacts inside Psionic.

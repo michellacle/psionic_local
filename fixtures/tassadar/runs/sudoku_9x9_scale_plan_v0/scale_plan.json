@@ -1,5 +1,5 @@
 {
-  "baseline_reference_run_dir": "crates/psionic/fixtures/tassadar/runs/sudoku_v0_reference_run_v0",
+  "baseline_reference_run_dir": "fixtures/tassadar/runs/sudoku_v0_reference_run_v0",
   "baseline_gate": {
     "baseline_run_id": "tassadar-executor-transformer-sudoku-v0-reference-run-v0",
     "baseline_dataset_storage_key": "oa.tassadar.sudoku_v0.sequence@train-v0",

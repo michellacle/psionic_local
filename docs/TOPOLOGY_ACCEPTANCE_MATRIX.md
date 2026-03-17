@@ -11,7 +11,7 @@ It is intentionally narrower than `ROADMAP.md`: it does not widen Psionic's
 claims. It states exactly which local and clustered topology classes are
 currently supported, which are explicitly refused, and which remain unsupported.
 
-This matrix is about `crates/psionic/*` only. It does not change MVP product
+This matrix is about `crates/psionic-*` only. It does not change MVP product
 authority in `docs/MVP.md`, and it does not move product, wallet, or market
 authority out of the owners defined in `docs/OWNERSHIP.md`.
 

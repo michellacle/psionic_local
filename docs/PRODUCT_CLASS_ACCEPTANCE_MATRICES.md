@@ -17,7 +17,7 @@ This document splits Psionic acceptance into three explicit categories, names
 the supported envelopes and refusal boundaries for each one, and points at the
 canonical runner for each category.
 
-This is a `crates/psionic/*` authority document only. It does not widen current
+This is a `crates/psionic-*` authority document only. It does not widen current
 MVP product scope in `docs/MVP.md`, and it does not move ownership boundaries
 out of `docs/OWNERSHIP.md`.
 
@@ -125,8 +125,8 @@ surface correctness is the same thing as throughput closure.
 
 - `TOPOLOGY_ACCEPTANCE_MATRIX.md`
 - `CLUSTER_VALIDATION_RUNBOOK.md`
-- `crates/psionic/scripts/benchmark-gpt-oss-vs-llama.sh`
-- `crates/psionic/scripts/benchmark-cluster-gates.sh`
+- `scripts/benchmark-gpt-oss-vs-llama.sh`
+- `scripts/benchmark-cluster-gates.sh`
 
 ### Green means
 

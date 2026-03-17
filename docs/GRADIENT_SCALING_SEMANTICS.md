@@ -2,7 +2,7 @@
 
 > Status: canonical `PLIB-214` / `#3729` reference record, updated 2026-03-16
 > after landing the first bounded train-class gradient-scaling report in
-> `crates/psionic/psionic-train/src/mixed_precision.rs`.
+> `crates/psionic-train/src/mixed_precision.rs`.
 
 This document records the current bounded gradient-scaling semantics surface
 for Psionic.

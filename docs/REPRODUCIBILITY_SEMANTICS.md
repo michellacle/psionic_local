@@ -2,7 +2,7 @@
 
 > Status: canonical `PLIB-212` / `#3727` reference record, updated 2026-03-16
 > after landing the first framework-wide reproducibility semantics report in
-> `crates/psionic/psionic-train/src/replay_truth.rs`.
+> `crates/psionic-train/src/replay_truth.rs`.
 
 This document records the current bounded reproducibility semantics surface for
 Psionic.

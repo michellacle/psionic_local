@@ -22,7 +22,7 @@ Psionic-owned reusable runtime behavior plus the app-owned adapter seam.
 
 `PSI-117` should produce a repeatable harness that can run the same scenarios
 against the current Ollama-backed path and the Psionic path and compare results.
-See `crates/psionic/docs/CONFORMANCE_HARNESS.md` for the concrete harness/report
+See `docs/CONFORMANCE_HARNESS.md` for the concrete harness/report
 shape that landed for this contract.
 
 The harness must cover:

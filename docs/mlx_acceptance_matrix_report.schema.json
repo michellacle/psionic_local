@@ -20,7 +20,7 @@
     },
     "schema_path": {
       "type": "string",
-      "const": "crates/psionic/docs/mlx_acceptance_matrix_report.schema.json"
+      "const": "docs/mlx_acceptance_matrix_report.schema.json"
     },
     "runner": {
       "type": "string",

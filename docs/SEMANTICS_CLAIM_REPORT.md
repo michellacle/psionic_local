@@ -2,7 +2,7 @@
 
 > Status: canonical `PLIB-209` / `#3724` reference record, updated 2026-03-16
 > after adding bounded export and deployment evidence from `PLIB-221` /
-> `#3736` into `crates/psionic/psionic-compat/src/lib.rs`.
+> `#3736` into `crates/psionic-compat/src/lib.rs`.
 
 This document records the current honest claim boundary for Psionic's
 PyTorch-facing semantics layer.

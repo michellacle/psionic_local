@@ -3,7 +3,7 @@
 > Status: canonical `PLIB-208` / `#3723` reference record, updated 2026-03-16
 > after widening the seeded symbolic-shape, fake-tensor, and
 > compiler-hygiene parity matrix in
-> `crates/psionic/psionic-compiler/src/lib.rs`.
+> `crates/psionic-compiler/src/lib.rs`.
 
 This document records the first bounded compiler-hygiene parity artifact for
 Psionic's semantics layer.

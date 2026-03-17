@@ -2,7 +2,7 @@
 
 > Status: canonical `PSI-288` / `#3593` reference record, updated 2026-03-14
 > after landing the quantitative train acceptance suite in
-> `crates/psionic/psionic-train/src/benchmarking.rs`.
+> `crates/psionic-train/src/benchmarking.rs`.
 
 This document records the first typed performance acceptance layer for Psionic
 train workloads.

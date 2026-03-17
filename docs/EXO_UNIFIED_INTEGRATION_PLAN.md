@@ -21,7 +21,7 @@ truthful, Rust-native cluster execution substrate for OpenAgents.
 The target end state is:
 
 - Psionic keeps model, runtime, backend, capability, and evidence truth in
-  `crates/psionic/*`
+  `crates/psionic-*`
 - Psionic gains a Rust-native cluster control plane inspired by Exo's architecture
 - Psionic can do cluster-aware placement and scheduling first, then replicated and
   sharded execution when the backend substrate is ready
@@ -67,7 +67,7 @@ The integration must preserve these boundaries:
 
 - Psionic remains Rust-first and library-first
 - Psionic does not take a required Python, MLX, or Exo runtime dependency inside
-  `crates/psionic/*`
+  `crates/psionic-*`
 - Psionic-owned execution must remain the shipped path for inference and evidence
 - Exo may inform semantics, but it must not become the hidden backend
 - clustered execution must be as machine-checkable as today's local Psionic runtime
@@ -1004,7 +1004,7 @@ For GPT-OSS today, that gate means:
 
 Do not:
 
-- make Exo a required runtime dependency for `crates/psionic/*`
+- make Exo a required runtime dependency for `crates/psionic-*`
 - proxy Psionic execution through Exo and call that integration complete
 - widen cluster capability claims before the corresponding evidence surfaces
   exist
@@ -1022,13 +1022,13 @@ Do not:
 - erase Exo's useful Apple placement semantics by collapsing communication mode,
   topology fit, and model sharding eligibility into a single "Metal capable"
   boolean
-- add cluster complexity to app code when the substrate belongs in `crates/psionic/*`
+- add cluster complexity to app code when the substrate belongs in `crates/psionic-*`
 
 ## Deliverables Checklist
 
 Full integration of the Exo recommendations requires all of these deliverables:
 
-- unified Exo docs set in `crates/psionic/docs`
+- unified Exo docs set in `docs/`
 - Psionic-owned Exo-derived parser and planner tests
 - `psionic-cluster` crate
 - secure cluster transport and membership

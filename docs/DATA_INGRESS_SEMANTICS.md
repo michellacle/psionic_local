@@ -2,7 +2,7 @@
 
 > Status: canonical `PLIB-218` / `#3733` reference record, updated 2026-03-16
 > after landing the first bounded data-ingress report in
-> `crates/psionic/psionic-data/src/lib.rs`.
+> `crates/psionic-data/src/lib.rs`.
 
 This document records the current bounded reusable data-ingress semantics
 surface for Psionic.
@@ -52,4 +52,4 @@ The point of this issue is to make local data ingress a reusable library
 contract that later distributed feed work can extend honestly.
 
 The distributed follow-on now lives in
-`crates/psionic/docs/DISTRIBUTED_DATA_FEED_SEMANTICS.md`.
+`docs/DISTRIBUTED_DATA_FEED_SEMANTICS.md`.

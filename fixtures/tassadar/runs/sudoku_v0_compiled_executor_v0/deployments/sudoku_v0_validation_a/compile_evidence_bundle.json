@@ -17,7 +17,7 @@
     },
     "validation": {
       "matrix_id": "psionic.minimum_hardware_validation.v1",
-      "documentation_path": "crates/psionic/docs/HARDWARE_VALIDATION_MATRIX.md",
+      "documentation_path": "docs/HARDWARE_VALIDATION_MATRIX.md",
       "claim_id": "tassadar.executor_trace.phase4",
       "coverage": "not_yet_validated"
     },
@@ -39173,7 +39173,7 @@
     "reference_runner_id": "tassadar.fixture_runner.v1",
     "validation": {
       "matrix_id": "psionic.minimum_hardware_validation.v1",
-      "documentation_path": "crates/psionic/docs/HARDWARE_VALIDATION_MATRIX.md",
+      "documentation_path": "docs/HARDWARE_VALIDATION_MATRIX.md",
       "claim_id": "tassadar.executor_trace.phase4",
       "coverage": "not_yet_validated"
     },
@@ -39203,7 +39203,7 @@
     },
     "validation": {
       "matrix_id": "psionic.minimum_hardware_validation.v1",
-      "documentation_path": "crates/psionic/docs/HARDWARE_VALIDATION_MATRIX.md",
+      "documentation_path": "docs/HARDWARE_VALIDATION_MATRIX.md",
       "claim_id": "tassadar.executor_trace.phase4",
       "coverage": "not_yet_validated"
     },

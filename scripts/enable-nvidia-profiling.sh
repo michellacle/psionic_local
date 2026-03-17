@@ -8,9 +8,9 @@ OPTION_LINE="options nvidia NVreg_RestrictProfilingToAdminUsers=0"
 usage() {
   cat <<'EOF'
 Usage:
-  crates/psionic/scripts/enable-nvidia-profiling.sh enable
-  crates/psionic/scripts/enable-nvidia-profiling.sh disable
-  crates/psionic/scripts/enable-nvidia-profiling.sh status
+  scripts/enable-nvidia-profiling.sh enable
+  scripts/enable-nvidia-profiling.sh disable
+  scripts/enable-nvidia-profiling.sh status
 
 Commands:
   enable   Allow non-root Nsight/NCU profiling after reboot.
@@ -44,7 +44,7 @@ EOF
   sudo mkinitcpio -P
   echo "Enabled non-admin NVIDIA profiling."
   echo "Reboot required. After reboot, run:"
-  echo "  crates/psionic/scripts/enable-nvidia-profiling.sh status"
+  echo "  scripts/enable-nvidia-profiling.sh status"
 }
 
 disable() {
@@ -52,7 +52,7 @@ disable() {
   sudo mkinitcpio -P
   echo "Removed the NVIDIA profiling override."
   echo "Reboot required. After reboot, run:"
-  echo "  crates/psionic/scripts/enable-nvidia-profiling.sh status"
+  echo "  scripts/enable-nvidia-profiling.sh status"
 }
 
 main() {

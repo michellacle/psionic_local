@@ -1,19 +1,19 @@
 # Psionic System Spec
 
 > Status: updated 2026-03-16 after reviewing `docs/MVP.md`,
-> `docs/OWNERSHIP.md`, `crates/psionic/README.md`,
-> `crates/psionic/docs/TRAIN_SYSTEM.md`,
+> `docs/OWNERSHIP.md`, `README.md`,
+> `docs/TRAIN_SYSTEM.md`,
 > `docs/audits/2026-03-14-covenant-code-lessons-for-psionic-train-audit.md`,
-> `crates/psionic/docs/INFERENCE_ENGINE.md`,
-> `crates/psionic/psionic-array/src/lib.rs`,
-> `crates/psionic/psionic-runtime/src/lib.rs`,
-> `crates/psionic/psionic-cluster/src/lib.rs`,
-> `crates/psionic/psionic-datastream/src/lib.rs`,
-> `crates/psionic/psionic-sandbox/src/lib.rs`,
-> `crates/psionic/psionic-collectives/src/lib.rs`,
-> `crates/psionic/psionic-train/src/lib.rs`, and
-> `crates/psionic/psionic-adapters/src/lib.rs`,
-> `crates/psionic/psionic-distributed/src/lib.rs`, plus the current open and
+> `docs/INFERENCE_ENGINE.md`,
+> `crates/psionic-array/src/lib.rs`,
+> `crates/psionic-runtime/src/lib.rs`,
+> `crates/psionic-cluster/src/lib.rs`,
+> `crates/psionic-datastream/src/lib.rs`,
+> `crates/psionic-sandbox/src/lib.rs`,
+> `crates/psionic-collectives/src/lib.rs`,
+> `crates/psionic-train/src/lib.rs`, and
+> `crates/psionic-adapters/src/lib.rs`,
+> `crates/psionic-distributed/src/lib.rs`, plus the current open and
 > recently closed issue backlog through `#3868`.
 
 ## Why This Doc Exists
@@ -34,16 +34,16 @@ This document is the canonical system spec for Psionic as a whole. It answers:
 
 This doc should be read together with:
 
-- `crates/psionic/docs/FRAMEWORK_CORE_ACCEPTANCE_MATRIX.md`
+- `docs/FRAMEWORK_CORE_ACCEPTANCE_MATRIX.md`
   - framework-core completion bar for tensor, compiler, IO, replay, and local
     multi-device behavior, distinct from serving or train product acceptance,
     with a machine-readable runner artifact defined by
-    `crates/psionic/docs/framework_core_acceptance_report.schema.json`
-- `crates/psionic/docs/TRAIN_SYSTEM.md`
+    `docs/framework_core_acceptance_report.schema.json`
+- `docs/TRAIN_SYSTEM.md`
   - deep subsystem spec for training-class execution
-- `crates/psionic/docs/INFERENCE_ENGINE.md`
+- `docs/INFERENCE_ENGINE.md`
   - narrower completion criteria for inference-engine behavior
-- `crates/psionic/docs/LLAMA_VLLM_SGLANG_INFERENCE_SPEC.md`
+- `docs/LLAMA_VLLM_SGLANG_INFERENCE_SPEC.md`
   - inference-completion plan and issue program
 
 The Psionic Train system builds on Psionic runtime, cluster, datastream,
@@ -51,10 +51,10 @@ sandbox, and collective layers defined in this document.
 
 ## Doc Authority
 
-- `crates/psionic/README.md` is the entrypoint and map.
-- `crates/psionic/docs/ARCHITECTURE.md` is the canonical Psionic-wide system
+- `README.md` is the entrypoint and map.
+- `docs/ARCHITECTURE.md` is the canonical Psionic-wide system
   spec.
-- `crates/psionic/docs/TRAIN_SYSTEM.md` is the canonical training subsystem
+- `docs/TRAIN_SYSTEM.md` is the canonical training subsystem
   spec.
 - research audits explain why the system should move in a given direction, but
   they are not the authoritative current-state spec.
@@ -142,7 +142,7 @@ Psionic now has an implemented-early executor-class reference lane codenamed
 
 The current scope is:
 
-- owner: `crates/psionic/*`
+- owner: `crates/psionic-*`
 - first target: WebAssembly-first executor semantics
 - landed Phase 1 bar: CPU reference fixture plus exact parity harness
 - landed Phase 2 bar: digest-bound program artifacts plus explicit
@@ -204,7 +204,7 @@ The current scope is:
 - landed trained-executor Phase 7 follow-on bar: `psionic-train` now exposes a
   persisted first-run surface for the Sudoku-v0 neural executor lane, and the
   repo now carries one canonical run bundle at
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_reference_run_v0` with the
+  `fixtures/tassadar/runs/sudoku_v0_reference_run_v0` with the
   frozen training manifest, training report, linear benchmark report,
   checkpoint payload plus manifest, and trained-model artifact; the recorded
   run remains explicitly low-exactness (`0/2` validation exact-trace cases,
@@ -241,7 +241,7 @@ The current scope is:
   workload into a tokenized sequence dataset plus training manifest,
   `psionic-models` now carries a matching 9x9 executor-transformer descriptor,
   and `psionic-train` now commits a machine-readable
-  `crates/psionic/fixtures/tassadar/runs/sudoku_9x9_scale_plan_v0/scale_plan.json`
+  `fixtures/tassadar/runs/sudoku_9x9_scale_plan_v0/scale_plan.json`
   that keeps the promotion gate explicit: the real 9x9 workload is in-tree,
   but 4x4 first-target and short-trace exactness are still blocking honest 9x9
   promotion
@@ -250,7 +250,7 @@ The current scope is:
   first-token-confusion reports, `psionic-train` now supports an explicit
   boundary curriculum with per-epoch validation and boundary-ranked checkpoint
   selection, and the committed follow-on run bundle at
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_boundary_v1` records the
+  `fixtures/tassadar/runs/sudoku_v0_boundary_v1` records the
   first honest post-audit boundary improvement (`10000` bps first-target
   exactness, divergence moved to target index `1`) while still failing the
   later gates (`5000` bps first-32 exactness, `0/2` exact traces)
@@ -259,13 +259,13 @@ The current scope is:
   checkpoints, and run bundles, `psionic-train` now supports controlled output
   head / embedding / small-mixer surfaces, and `psionic-research` now commits a
   same-corpus ablation root at
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_trainable_surface_ablation_v1`
+  `fixtures/tassadar/runs/sudoku_v0_trainable_surface_ablation_v1`
   where only `output_head_embeddings_and_small_learned_mixer` materially beats
   the preserved baseline (`3750` bps first-8 exactness, `5625` bps first-32
   exactness) while still leaving `0/2` exact traces
 - landed trained-executor Phase 14 follow-on bar: `psionic-train` now owns a
   canonical learned-lane promotion bundle at
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_promotion_v1`, explicit
+  `fixtures/tassadar/runs/sudoku_v0_promotion_v1`, explicit
   `best_checkpoint_manifest.json` plus `promotion_gate_report.json` artifacts,
   and live stage/epoch/batch/validation/checkpoint progress while long runs are
   executing; the canonical promotion result remains explicitly below the bar at
@@ -275,7 +275,7 @@ The current scope is:
   green
 - landed trained-executor Phase 14A follow-on bar: `psionic-train` now also
   preserves a separate teacher-forced continuation bundle at
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_promotion_v2`; that run
+  `fixtures/tassadar/runs/sudoku_v0_promotion_v2`; that run
   proves schedule-only churn on the current lookup family does not beat the
   canonical ceiling, because its selected checkpoint `epoch_0008` exactly
   reproduces the same gate result (`10000` bps first-target, `7500` bps
@@ -287,7 +287,7 @@ The current scope is:
   full-prefix causal hard-max attention, fixed 2D head geometry, explicit
   per-layer semantics, and truthful hull fallback, while `psionic-eval` and
   `psionic-research` now persist a bounded same-corpus comparison root at
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v1`;
+  `fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v1`;
   the resulting report keeps the claim boundary explicit by showing the new
   family is architecturally closer to the article but still worse than the
   preserved lookup baseline on the bounded 4x4 window (`0` bps first-target /
@@ -297,8 +297,8 @@ The current scope is:
 - landed trained-executor Phase 15A follow-on bar: `psionic-research` now also
   owns a bounded attention-family training loop plus a preserved trained-family
   comparison root at
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_training_v1` and
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v2`;
+  `fixtures/tassadar/runs/sudoku_v0_attention_training_v1` and
+  `fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v2`;
   the resulting artifacts prove the executor-attention family is no longer just
   a seeded architectural candidate because it now trains off the `0`-bps floor
   to `6563` bps aggregate / first-32 exactness on the bounded window, but it
@@ -310,22 +310,22 @@ The current scope is:
   family now also carries a bounded relative-target output-bias adapter in
   `psionic-models`, the preserved destructive boundary-first output-head
   attempt now lives at
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v1`, the
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v1`, the
   improved adapter-backed run now lives at
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v2`, and
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v2`, and
   the later projection-adapter follow-ons now live at
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v3` and
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v4`, the
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v3` and
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v4`, the
   newer transition-adapter follow-on now lives at
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v5`, the
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v5`, the
   later joint-adapter fine-tune now lives at
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v6`, the
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v6`, the
   later trace-schema and per-position saturation runs now live at
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v7`,
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v8`, and
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v9`, and
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v7`,
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v8`, and
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v9`, and
   the current same-corpus comparison now lives at
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v11`;
+  `fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v11`;
   those artifacts keep improving the first executor-attention boundary surface
   over the lookup baseline, and the latest bounded pair now records
   `10000` bps first-target, `8750` bps first-8, and `7188` bps first-32
@@ -342,7 +342,7 @@ The current scope is:
   compatibility/refusal reports for the real Sudoku-v0 corpus under
   `tassadar.wasm.sudoku_v0_search.v1.compiled_executor`, and
   `psionic-research` now materializes the canonical bundle root at
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_compiled_executor_v0`; the
+  `fixtures/tassadar/runs/sudoku_v0_compiled_executor_v0`; the
   committed artifacts prove an exact bounded compiled/proof-backed lane on the
   matched corpus (`8/8` exact trace matches against CPU reference and `32/32`
   exact refusal matches on mismatched artifacts) while keeping the serving and
@@ -355,7 +355,7 @@ The current scope is:
   Hungarian-v0 benchmark package together with compiled exactness,
   compatibility/refusal, and learned-vs-compiled lane-status reports, and
   `psionic-research` now materializes the canonical bundle root at
-  `crates/psionic/fixtures/tassadar/runs/hungarian_v0_compiled_executor_v0`;
+  `fixtures/tassadar/runs/hungarian_v0_compiled_executor_v0`;
   the committed artifacts prove a bounded Hungarian-class workload contract
   plus an exact compiled/proof-backed lane on that matched corpus (`8/8`
   exact trace matches against CPU reference and `32/32` exact refusal
@@ -577,7 +577,7 @@ under exactly these final crate names.
 ### Dependency Direction
 
 - lower crates must not depend on higher product-facing crates
-- no crate in `crates/psionic/` may path-depend on `apps/*`
+- no crate in `crates/psionic-*` may path-depend on `apps/*`
 - reusable engine crates must not own app workflows or market authority
 - `psionic-provider` is the boundary adapter, not a place to hide app logic
 
@@ -1008,13 +1008,13 @@ here, not as a disconnected parallel stack.
 
 ## Companion Subsystem Specs
 
-- `crates/psionic/docs/TRAIN_SYSTEM.md`
+- `docs/TRAIN_SYSTEM.md`
   - deep specification for the training subsystem
-- `crates/psionic/docs/INFERENCE_ENGINE.md`
+- `docs/INFERENCE_ENGINE.md`
   - narrow inference completion criteria
-- `crates/psionic/docs/LLAMA_VLLM_SGLANG_INFERENCE_SPEC.md`
+- `docs/LLAMA_VLLM_SGLANG_INFERENCE_SPEC.md`
   - detailed inference build-out and issue plan
-- `crates/psionic/docs/COMPILER_REPLAY_REFERENCE.md`
+- `docs/COMPILER_REPLAY_REFERENCE.md`
   - compiler replay-fixture policy and validation entrypoints
 
 ## Review Checklist

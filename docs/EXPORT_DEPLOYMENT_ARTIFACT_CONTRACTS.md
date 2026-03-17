@@ -2,11 +2,11 @@
 
 > Status: canonical `PLIB-221` / `#3736` reference record, updated 2026-03-16
 > after landing the first bounded exportable-graph and deployment-artifact
-> contracts in `crates/psionic/psionic-ir/src/lib.rs` and
-> `crates/psionic/psionic-compiler/src/lib.rs`, and after landing the first
+> contracts in `crates/psionic-ir/src/lib.rs` and
+> `crates/psionic-compiler/src/lib.rs`, and after landing the first
 > native `.psifn` function-artifact layer in
-> `crates/psionic/psionic-function-io/src/lib.rs`, plus the bounded `.mlxfn`
-> compatibility layer in `crates/psionic/psionic-function-io/src/mlxfn.rs`.
+> `crates/psionic-function-io/src/lib.rs`, plus the bounded `.mlxfn`
+> compatibility layer in `crates/psionic-function-io/src/mlxfn.rs`.
 
 This document records the current bounded export and deployment surface for
 Psionic.

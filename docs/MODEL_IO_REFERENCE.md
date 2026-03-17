@@ -3,7 +3,7 @@
 > Status: canonical `PSI-282` / `#3587` plus `PLIB-204` / `#3719` reference
 > record, updated 2026-03-16 after landing the typed model-IO portability and
 > compatibility-boundary layer in
-> `crates/psionic/psionic-train/src/model_io.rs`.
+> `crates/psionic-train/src/model_io.rs`.
 
 This document records the first explicit Rust-native model-IO contract for the
 Psionic train stack.

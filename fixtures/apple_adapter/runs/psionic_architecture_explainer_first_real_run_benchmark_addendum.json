@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "run_id": "psionic-architecture-explainer-first-real-run-1773636619824",
-  "source_report_path": "crates/psionic/fixtures/apple_adapter/runs/psionic_architecture_explainer_first_real_run_report.json",
+  "source_report_path": "fixtures/apple_adapter/runs/psionic_architecture_explainer_first_real_run_report.json",
   "host": {
     "model_name": "MacBook Pro",
     "model_identifier": "Mac14,10",

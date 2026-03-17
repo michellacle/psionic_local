@@ -105,7 +105,7 @@ What these cover:
 ## Fault-Injection Coverage
 
 `cluster_validation_matrix` uses the shared test fixture in
-`crates/psionic/psionic-cluster/tests/support/mod.rs`.
+`crates/psionic-cluster/tests/support/mod.rs`.
 
 The fault seam currently covers:
 
@@ -380,13 +380,13 @@ Run the release benchmark gate before claiming cluster planner performance is
 still within the expected envelope:
 
 ```bash
-crates/psionic/scripts/benchmark-cluster-gates.sh
+scripts/benchmark-cluster-gates.sh
 ```
 
 To persist benchmark receipts:
 
 ```bash
-crates/psionic/scripts/benchmark-cluster-gates.sh --json-out /tmp/psionic-cluster-bench
+scripts/benchmark-cluster-gates.sh --json-out /tmp/psionic-cluster-bench
 ```
 
 Stable receipt artifacts written into that directory:
@@ -422,7 +422,7 @@ recording why.
 Use this sequence before claiming that cluster planner performance is backed by
 typed benchmark receipts rather than by ad hoc timing notes:
 
-1. Run `crates/psionic/scripts/benchmark-cluster-gates.sh --json-out /tmp/psionic-cluster-bench`.
+1. Run `scripts/benchmark-cluster-gates.sh --json-out /tmp/psionic-cluster-bench`.
 2. Confirm the script reports `benchmark_receipt_json_out=/tmp/psionic-cluster-bench`.
 3. Confirm the directory contains `whole_request_scheduler.json`, `recovery_catchup.json`, `replicated_serving.json`, `pipeline_sharded_planner.json`, `layer_sharded_planner.json`, and `tensor_sharded_planner.json`.
 4. Inspect one receipt directly, for example `sed -n '1,80p' /tmp/psionic-cluster-bench/whole_request_scheduler.json`, and confirm it includes `schema_version`, the matching `benchmark_id`, and `outcome: "passed"`.

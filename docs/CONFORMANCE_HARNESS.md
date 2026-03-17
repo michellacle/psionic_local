@@ -3,7 +3,7 @@
 This document describes the reusable Ollama-to-Psionic conformance harness added by
 `PSI-117`.
 
-The implementation lives in `crates/psionic/psionic-serve/src/conformance.rs` and stays
+The implementation lives in `crates/psionic-serve/src/conformance.rs` and stays
 inside the reusable serve layer. It does not require app/UI participation.
 
 ## What It Covers

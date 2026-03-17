@@ -15,9 +15,9 @@ and provider-substrate work can converge on one field set.
 ## Authority
 
 - This doc is the canonical Apple adapter lineage reference.
-- `crates/psionic/fixtures/apple_adapter/lineage/` is the canonical fixture
+- `fixtures/apple_adapter/lineage/` is the canonical fixture
   corpus for expected lineage payloads.
-- `crates/psionic/docs/TRAIN_SYSTEM.md` remains the canonical train-system
+- `docs/TRAIN_SYSTEM.md` remains the canonical train-system
   architecture doc; this doc freezes Apple-specific metadata fields.
 
 ## Required Lineage Fields
@@ -134,11 +134,11 @@ the app publishes acceptance.
 
 Positive lineage fixture:
 
-- `crates/psionic/fixtures/apple_adapter/lineage/training_metadata_v1.json`
+- `fixtures/apple_adapter/lineage/training_metadata_v1.json`
 
 Negative lineage fixture:
 
-- `crates/psionic/fixtures/apple_adapter/lineage/training_metadata_missing_tokenizer.json`
+- `fixtures/apple_adapter/lineage/training_metadata_missing_tokenizer.json`
 
 ## Non-Goals
 

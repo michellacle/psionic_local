@@ -2,7 +2,7 @@
 
 > Status: canonical `PMLX-002` / `#3830` reference record, updated 2026-03-16
 > after freezing the initial upstream MLX version window and claim-language
-> contract in `crates/psionic/psionic-compat/src/lib.rs`.
+> contract in `crates/psionic-compat/src/lib.rs`.
 
 This document records the current honest claim boundary for Psionic's MLX lane.
 
@@ -44,7 +44,7 @@ claim window beyond the bounded `v0.31.x` release family.
 
 `MLX-class` means:
 
-- a Rust-native Psionic-owned framework surface inside `crates/psionic/*`
+- a Rust-native Psionic-owned framework surface inside `crates/psionic-*`
 - parity or adoption claims tied to the frozen upstream window above
 - reuse of Psionic runtime, compiler, train, artifact, receipt, and refusal
   truth instead of bypassing them through wrappers or sidecars
