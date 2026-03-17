@@ -1,0 +1,55 @@
+# Tassadar Roadmap-To-Artifact Index
+
+This document is a compact artifact index for the currently landed,
+artifact-bearing Tassadar phases.
+
+It is subordinate to:
+
+- `README.md`
+- `docs/ROADMAP_TASSADAR.md`
+- `docs/ROADMAP.md`
+- `docs/ARCHITECTURE.md`
+
+It does not replace the roadmap text. It exists so contributors can answer a
+much narrower question quickly:
+
+> for one landed Tassadar phase, which committed root, audit, validator, and
+> claim boundary should I cite?
+
+## Current Artifact Index
+
+| Phase | Canonical artifact root | Supporting audit | Primary validator | Current claim boundary |
+| --- | --- | --- | --- | --- |
+| `PTAS-003` acceptance gate | `fixtures/tassadar/reports/tassadar_acceptance_report.json` | none; machine-readable report is the current canonical review artifact | `scripts/check-tassadar-acceptance.sh` | one repo-owned claim gate: `research_only`, `compiled_exact`, and `learned_bounded` are green today; article-class and final article closure remain red |
+| trained-executor Phase 7 reference run | `fixtures/tassadar/runs/sudoku_v0_reference_run_v0` | `docs/audits/2026-03-16-tassadar-first-run-postmortem.md` | `cargo run -p psionic-train --example tassadar_reference_training_run` | first bounded learned reference run only; weak exactness is preserved as evidence rather than hidden |
+| trained-executor Phase 8 telemetry | `fixtures/tassadar/runs/sudoku_v0_reference_run_v0` | `docs/audits/2026-03-16-tassadar-first-run-postmortem.md` | `cargo run -p psionic-train --example tassadar_reference_training_telemetry` | telemetry and failure analysis for the same bounded run; not a stronger claim than Phase 7 |
+| trained-executor Phase 9 postmortem and next plan | `fixtures/tassadar/runs/sudoku_v0_reference_run_v0` | `docs/audits/2026-03-16-tassadar-first-run-postmortem.md` | `cargo run -p psionic-train --example tassadar_reference_training_postmortem` | artifact-backed diagnosis and next-step planning only; no claim widening |
+| trained-executor Phase 10 hull benchmark | `fixtures/tassadar/runs/sudoku_v0_reference_run_v0` | `fixtures/tassadar/reports/tassadar_acceptance_report.json` | `cargo run -p psionic-train --example tassadar_reference_training_hull_benchmark` | bounded fast-path equivalence on declared Sudoku-v0 benchmark windows; not full-task exactness and not article parity |
+| trained-executor Phase 11 9x9 scale plan | `fixtures/tassadar/runs/sudoku_9x9_scale_plan_v0` | `docs/audits/2026-03-16-tassadar-first-run-postmortem.md` | `cargo run -p psionic-train --example tassadar_sudoku_9x9_scale_plan` | real 9x9 workload planning and scale facts only; does not claim learned 9x9 success |
+| trained-executor Phase 12 boundary run | `fixtures/tassadar/runs/sudoku_v0_boundary_v1` | `docs/audits/2026-03-16-tassadar-phase-12-boundary-audit.md` | `cargo run -p psionic-train --example tassadar_boundary_training_run` | first-token boundary is fixed on 4x4 validation, but promotion remains red and exact traces remain `0/2` |
+| trained-executor Phase 13 trainable-surface ablation | `fixtures/tassadar/runs/sudoku_v0_trainable_surface_ablation_v1` | `docs/audits/2026-03-16-tassadar-phase-13-trainable-surface-audit.md` | `cargo run -p psionic-research --example tassadar_trainable_surface_ablation` | same-corpus surface comparison only; identifies the next surface without implying gate closure |
+| trained-executor Phase 14 promotion gate | `fixtures/tassadar/runs/sudoku_v0_promotion_v3` | `docs/audits/2026-03-16-tassadar-phase-14-blocker-audit.md`, `docs/audits/2026-03-16-tassadar-promotion-v2-teacher-forced-audit.md`, `docs/audits/2026-03-16-tassadar-phase-14-promotion-green-audit.md` | `cargo run -p psionic-research --example tassadar_executor_attention_promotion_run`; `scripts/check-tassadar-4x4-promotion-gate.sh fixtures/tassadar/runs/sudoku_v0_promotion_v3` | green learned 4x4 promotion bundle only; bounded learned lane, not article-class learned execution |
+| trained-executor Phase 15 architecture comparison | `fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v1` | none | `cargo run -p psionic-research --example tassadar_executor_architecture_comparison` | bounded research comparison between lookup and attention families; does not close the promotion gate |
+| trained-executor Phase 15A trained attention follow-on | `fixtures/tassadar/runs/sudoku_v0_attention_training_v1` and `fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v2` | none | `cargo run -p psionic-research --example tassadar_executor_attention_training` | attention-family training improvement under the same bounded 4x4 contract; still below promotion |
+| trained-executor Phase 15B attention boundary saturation | `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v9` and `fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v11` | none | `cargo run -p psionic-research --example tassadar_executor_architecture_comparison_boundary_attention` | research-only attention family with real first-token progress but still no exact validation traces; preserved as `research_only` |
+| trained-executor Phase 16 honest 9x9 reference run | `fixtures/tassadar/runs/sudoku_9x9_v0_reference_run_v0` | `docs/audits/2026-03-16-tassadar-phase-16-9x9-reference-run-audit.md` | `cargo run -p psionic-train --example tassadar_sudoku_9x9_reference_run` | bounded learned 9x9 partial only; the committed fit report says full 9x9 traces do not fit the current learned context |
+| trained-executor Phase 17 compiled Sudoku executor lane | `fixtures/tassadar/runs/sudoku_v0_compiled_executor_v0` | `fixtures/tassadar/reports/tassadar_acceptance_report.json` | `cargo run -p psionic-research --example tassadar_compiled_executor_bundle` | bounded compiled/proof-backed Sudoku-v0 exactness on the matched corpus with `eval_only` posture; not arbitrary-program or article-class closure |
+| trained-executor Phase 18 compiled Hungarian executor lane | `fixtures/tassadar/runs/hungarian_v0_compiled_executor_v0` | `fixtures/tassadar/reports/tassadar_acceptance_report.json` | `cargo run -p psionic-research --example tassadar_hungarian_compiled_executor_bundle` | bounded compiled/proof-backed Hungarian-v0 exactness on the matched corpus with explicit learned-lane non-closure and `eval_only` posture |
+
+## Preserved Negative-Evidence Roots
+
+These roots should stay citeable as negative evidence rather than being erased:
+
+| Root | Why it still matters | Primary checker |
+| --- | --- | --- |
+| `fixtures/tassadar/runs/sudoku_v0_promotion_v1` | first preserved red learned promotion attempt | `cargo run -p psionic-train --example tassadar_promotion_gate_check -- fixtures/tassadar/runs/sudoku_v0_promotion_v1` |
+| `fixtures/tassadar/runs/sudoku_v0_promotion_v2` | second preserved red learned promotion attempt | `cargo run -p psionic-train --example tassadar_promotion_gate_check -- fixtures/tassadar/runs/sudoku_v0_promotion_v2` |
+
+## Use Rules
+
+- cite `docs/ROADMAP_TASSADAR.md` for dependency order, goals, and open work
+- cite this index when the question is “which exact root, audit, and command
+  should I use for the landed phase?”
+- cite `fixtures/tassadar/reports/tassadar_acceptance_report.json` and
+  `scripts/check-tassadar-acceptance.sh` whenever the question is about what
+  current claim language is still allowed

@@ -346,7 +346,7 @@ oscillating between bounded research wins and implied article parity.
 | `PTAS-001` | implemented | Write the lane-specific Tassadar roadmap. This document closes that issue. |
 | `PTAS-002` | implemented | Freeze the Tassadar claim vocabulary: `compiled_exact`, `compiled_article_class`, `learned_bounded`, `learned_article_class`, and `research_only`. This document now defines the vocabulary and transition rules, and persisted bundles now carry `claim_class`. |
 | `PTAS-003` | implemented | The repo now has a machine-readable Tassadar acceptance report at `fixtures/tassadar/reports/tassadar_acceptance_report.json`, a repo-owned checker command at `scripts/check-tassadar-acceptance.sh`, and explicit green/red mapping from acceptance fields to allowed claim language. |
-| `PTAS-004` | planned | Add one compact roadmap-to-artifact index tying each Tassadar phase to canonical fixture roots, audits, and validation commands. |
+| `PTAS-004` | implemented | The compact artifact index now lives at `docs/ROADMAP_TASSADAR_INDEX.md`, mapping the landed artifact-bearing Tassadar phases to their canonical roots, audits, validators, and current claim boundaries. |
 
 ## Epic 1: Wasm Substrate Closure
 
