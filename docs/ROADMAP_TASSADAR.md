@@ -552,7 +552,7 @@ compiled, learned, and planner-owned layers into one vague claim.
 
 | ID | Status | Work |
 | --- | --- | --- |
-| `PTAS-601` | partial | Widen the current program-specialized compiled-weight lane beyond today's bounded Sudoku and Hungarian corpora. |
+| `PTAS-601` | implemented | The widening is already landed through `fixtures/tassadar/runs/compiled_kernel_suite_v0`, which preserves source-program, compiled-weight, runtime-contract, and proof lineage across bounded arithmetic, memory-update, forward-branch, and backward-loop families under the article i32 profile. `docs/audits/2026-03-17-tassadar-compiled-weight-widening-audit.md` now records that this closes the widening bar without pretending to be arbitrary-program compile-to-weights closure. |
 | `PTAS-602` | planned | Add a generalized program-to-weights benchmark suite that compares direct tokenized execution against compiled-weight deployment on the same Wasm workloads. |
 | `PTAS-603` | planned | Add a served article-workload executor session surface that emits readable-log, token-trace, proof, and benchmark identities without pretending to be ordinary tool use. |
 | `PTAS-604` | planned | Add planner-owned hybrid workflows where larger reasoning systems route exact compute spans into Tassadar while preserving routing, proof, and refusal truth. |
