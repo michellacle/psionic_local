@@ -491,6 +491,10 @@ Current posture:
   checker command at `scripts/check-tassadar-acceptance.sh`; that report keeps
   current bounded compiled, bounded learned, research-only, bounded fast-path,
   and still-red article-class truth explicit in one place
+- the repo now also carries the final article-parity closeout audit at
+  `docs/audits/2026-03-17-tassadar-article-parity-closeout-audit.md`; it is
+  explicitly subordinate to the acceptance report and remains red until the
+  learned article-class lane turns green
 - the repo now also carries one machine-readable Tassadar Wasm
   instruction-coverage report at
   `fixtures/tassadar/reports/tassadar_wasm_instruction_coverage_report.json`,

@@ -604,6 +604,10 @@ The current scope is:
   compiled, learned, and research bundles carry `claim_class`, while
   `claim_boundary`, `boundary_label`, and `serve_posture` keep the tighter
   executable and serving limits explicit
+- the final article-parity closeout audit now exists at
+  `docs/audits/2026-03-17-tassadar-article-parity-closeout-audit.md`; it is
+  explicitly subordinate to `fixtures/tassadar/reports/tassadar_acceptance_report.json`
+  and currently stays red because the learned article-class bar is still red
 - landed crate surfaces:
   - `psionic-runtime::tassadar`
   - `psionic-models::TassadarExecutorFixture`
