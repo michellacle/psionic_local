@@ -1311,6 +1311,10 @@ The tree now has Psionic-native execution crates for:
 - held-out eval runs, benchmark packages, repeat-run aggregation, and local
   validator simulation in `psionic-eval`
 - one repo-owned Apple adapter training execution lane in `psionic-train`
+- one bounded MLX workflow package in `psionic-mlx-workflows` for
+  deterministic synthetic SFT/preference dataset bundles, reward/judge helper
+  plans, adapter merge/export artifacts, and a local safetensors-backed
+  publish snapshot
 
 The tree also has broader OpenAgents support for:
 
@@ -1333,8 +1337,10 @@ So the accurate reading is:
   training-run, and accepted-outcome records
 - provider and market surfaces now expose one narrow Apple training and
   adapter-hosting projection on top of that authority truth
-- synthetic-data still remains `partial_outside_psionic` because there is no
-  Psionic-native generation runtime yet
+- synthetic-data lifecycle still remains `partial_outside_psionic` because
+  there is no Psionic-native long-running generation/runtime authority path
+  yet, even though `psionic-mlx-workflows` now owns one bounded local dataset
+  materialization package above the shared data/train substrate
 
 ## What Psionic Can Honestly Claim Today
 
