@@ -379,6 +379,17 @@ Current posture:
   per-position bias, then aggressive per-position gain still left all
   `32/32` checkpoints on the exact same red validation signature before the
   separate green `promotion_v3` continuation cleared the gate
+- the first four-family same-corpus learned baseline comparison now also
+  exists at `fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v12`:
+  it compares hull-specialized lookup, direct sparse-top-k lookup, hybrid
+  attention, and recurrent/windowed lookup on the same bounded Sudoku-v0
+  validation window while keeping every family explicitly comparison-only; all
+  four seeded trainable families remain red at `0` bps first-target,
+  first-8, and first-32 exactness, the recurrent family changes the declared
+  long-trace contract from `flat_prefix_full_forward` to
+  `incremental_decode_window`, and the hybrid attention family keeps its fit
+  cliff explicit with `0/2` full-sequence fit cases under the current
+  `512`-token bound
 - the separate post-audit Phase 17 bar now also exists in `psionic-models`,
   `psionic-eval`, `psionic-research`, `docs/audits/`, and a canonical bounded
   compiled-lane bundle at

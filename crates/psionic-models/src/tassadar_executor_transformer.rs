@@ -3,6 +3,7 @@ use psionic_runtime::{TassadarExecutorDecodeMode, TassadarTraceAbi, TassadarWasm
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use thiserror::Error;
+use std::cmp::Reverse;
 
 use crate::{
     ModelDescriptor, TassadarTraceTokenizer, TokenId, TokenSequence, TokenizerBoundary,
@@ -186,6 +187,10 @@ pub struct TassadarExecutorTransformerDescriptor {
         skip_serializing_if = "long_trace_contract_is_flat_prefix"
     )]
     pub long_trace_contract: TassadarExecutorLongTraceContract,
+    /// Optional direct SparseTopK decode budget for families that advertise a
+    /// sparse baseline directly instead of falling back to reference-linear.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sparse_top_k: Option<u16>,
     /// Active trainable surface carried by the descriptor.
     #[serde(
         default = "default_trainable_surface",
@@ -570,10 +575,14 @@ impl TassadarExecutorTransformer {
     /// Stable model identifier for the first windowed 9x9 executor family.
     pub const WINDOWED_SUDOKU_9X9_MODEL_ID: &str =
         "tassadar-executor-transformer-sudoku-9x9-windowed-v0";
+    /// Stable model identifier for the first direct sparse Sudoku-v0 executor family.
+    pub const SPARSE_MODEL_ID: &str = "tassadar-executor-transformer-sudoku-v0-sparse-v0";
     /// Stable model family label.
     pub const MODEL_FAMILY: &str = "tassadar_executor_transformer";
     /// Stable model family label for explicit windowed replay.
     pub const WINDOWED_MODEL_FAMILY: &str = "tassadar_executor_windowed_transformer";
+    /// Stable model family label for the direct sparse baseline.
+    pub const SPARSE_MODEL_FAMILY: &str = "tassadar_executor_sparse_transformer";
 
     /// Creates the canonical small Sudoku-v0 executor transformer.
     #[must_use]
@@ -599,6 +608,43 @@ impl TassadarExecutorTransformer {
             trainable_surface,
             TassadarExecutorLongTraceContract::IncrementalDecodeWindow,
         )
+    }
+
+    /// Creates the canonical small Sudoku-v0 direct sparse-top-k baseline for
+    /// one trainable surface.
+    #[must_use]
+    pub fn sudoku_v0_sparse_with_surface(
+        trainable_surface: TassadarExecutorTrainableSurface,
+    ) -> Self {
+        let tokenizer = TassadarTraceTokenizer::new();
+        let config = TassadarExecutorTransformerConfig::sudoku_v0(&tokenizer);
+        let weights = TassadarExecutorTransformerWeightBundle::new(&config, trainable_surface);
+        let descriptor = TassadarExecutorTransformerDescriptor {
+            model: ModelDescriptor::new(Self::SPARSE_MODEL_ID, Self::SPARSE_MODEL_FAMILY, "v0"),
+            executor_family: TassadarExecutorFamily::WasmTraceExecutor,
+            profile: TassadarWasmProfile::sudoku_v0_search_v1(),
+            trace_abi: TassadarTraceAbi::sudoku_v0_search_v1(),
+            supported_decode_modes: vec![
+                TassadarExecutorDecodeMode::ReferenceLinear,
+                TassadarExecutorDecodeMode::SparseTopK,
+            ],
+            attention_mode: TassadarExecutorAttentionMode::HardMaxLookup,
+            attention_geometry: TassadarAttentionGeometryContract {
+                constrained_lookup_head_dim: Some(config.constrained_lookup_head_dim),
+                hull_cache_eligible: false,
+            },
+            claim_boundary: TassadarExecutorTransformerClaimBoundary::NextTokenOnly,
+            long_trace_contract: TassadarExecutorLongTraceContract::FlatPrefixFullForward,
+            sparse_top_k: Some(4),
+            trainable_surface,
+            config,
+            weights: weights.metadata().clone(),
+        };
+        Self {
+            descriptor,
+            tokenizer,
+            weights,
+        }
     }
 
     fn sudoku_v0_with_surface_and_contract(
@@ -632,6 +678,7 @@ impl TassadarExecutorTransformer {
             },
             claim_boundary: TassadarExecutorTransformerClaimBoundary::NextTokenOnly,
             long_trace_contract,
+            sparse_top_k: None,
             trainable_surface,
             config,
             weights: weights.metadata().clone(),
@@ -680,12 +727,10 @@ impl TassadarExecutorTransformer {
             TassadarExecutorLongTraceContract::FlatPrefixFullForward => {
                 (Self::SUDOKU_9X9_MODEL_ID, Self::MODEL_FAMILY)
             }
-            TassadarExecutorLongTraceContract::IncrementalDecodeWindow => {
-                (
-                    Self::WINDOWED_SUDOKU_9X9_MODEL_ID,
-                    Self::WINDOWED_MODEL_FAMILY,
-                )
-            }
+            TassadarExecutorLongTraceContract::IncrementalDecodeWindow => (
+                Self::WINDOWED_SUDOKU_9X9_MODEL_ID,
+                Self::WINDOWED_MODEL_FAMILY,
+            ),
         };
         let descriptor = TassadarExecutorTransformerDescriptor {
             model: ModelDescriptor::new(model_id, model_family, "v0"),
@@ -703,6 +748,7 @@ impl TassadarExecutorTransformer {
             },
             claim_boundary: TassadarExecutorTransformerClaimBoundary::NextTokenOnly,
             long_trace_contract,
+            sparse_top_k: None,
             trainable_surface,
             config,
             weights: weights.metadata().clone(),
@@ -1089,7 +1135,9 @@ impl TassadarExecutorTransformer {
             TassadarExecutorDecodeMode::HullCache => {
                 self.hull_kv_lookup(kv_points, target_position)
             }
-            TassadarExecutorDecodeMode::SparseTopK => None,
+            TassadarExecutorDecodeMode::SparseTopK => {
+                self.sparse_top_k_lookup(kv_points, target_position)
+            }
         };
         matched
             .map(|point| point.token_id)
@@ -1131,6 +1179,18 @@ impl TassadarExecutorTransformer {
             }
         }
         kv_points.get(low)
+    }
+
+    fn sparse_top_k_lookup<'a>(
+        &self,
+        kv_points: &'a [TassadarExecutorTransformerKvPoint],
+        target_position: usize,
+    ) -> Option<&'a TassadarExecutorTransformerKvPoint> {
+        let sparse_top_k = usize::from(self.descriptor.sparse_top_k.unwrap_or(1).max(1));
+        let mut ranked = kv_points.iter().collect::<Vec<_>>();
+        ranked.sort_by_key(|point| Reverse(Self::lookup_score(point, target_position)));
+        ranked.truncate(sparse_top_k.min(ranked.len()));
+        ranked.into_iter().max_by_key(|point| Self::lookup_score(point, target_position))
     }
 
     fn lookup_score(point: &TassadarExecutorTransformerKvPoint, target_position: usize) -> i128 {
@@ -1329,7 +1389,8 @@ mod tests {
     use crate::{TassadarTraceTokenizer, TokenSequence, TokenizerBoundary};
 
     use super::{
-        TassadarExecutorLongTraceContract, TassadarExecutorTransformer,
+        TassadarExecutorLongTraceContract, TassadarExecutorTrainableSurface,
+        TassadarExecutorTransformer,
         TassadarExecutorTransformerClaimBoundary, TassadarExecutorTransformerConfig,
         TassadarExecutorTransformerDecodeRefusal,
     };
@@ -1523,6 +1584,21 @@ mod tests {
     }
 
     #[test]
+    fn sudoku_v0_sparse_executor_transformer_surfaces_direct_sparse_decode_selection() {
+        let model = TassadarExecutorTransformer::sudoku_v0_sparse_with_surface(
+            TassadarExecutorTrainableSurface::OutputHeadEmbeddingsAndSmallLearnedMixer,
+        );
+
+        let direct = model.select_decode_mode(TassadarExecutorDecodeMode::SparseTopK);
+        assert_eq!(
+            direct.effective_decode_mode,
+            Some(TassadarExecutorDecodeMode::SparseTopK)
+        );
+        assert_eq!(direct.fallback_decode_mode, None);
+        assert_eq!(model.descriptor().sparse_top_k, Some(4));
+    }
+
+    #[test]
     fn hull_decode_matches_linear_decode_over_real_model_kv_points()
     -> Result<(), Box<dyn std::error::Error>> {
         let tokenizer = TassadarTraceTokenizer::new();
@@ -1550,6 +1626,45 @@ mod tests {
                 TassadarExecutorDecodeMode::ReferenceLinear
             )?,
             model.greedy_next_token_for_mode(&hull_state, TassadarExecutorDecodeMode::HullCache)?
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn sparse_decode_matches_linear_decode_over_real_model_kv_points()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let tokenizer = TassadarTraceTokenizer::new();
+        let model = TassadarExecutorTransformer::sudoku_v0_sparse_with_surface(
+            TassadarExecutorTrainableSurface::OutputHeadEmbeddingsAndSmallLearnedMixer,
+        );
+        let encoded = tokenizer.encode("<program> <locals> <memory> <trace>");
+        let prompt = TokenSequence::new(
+            std::iter::once(tokenizer.vocabulary().bos_id())
+                .chain(encoded.as_slice().iter().copied())
+                .collect::<Vec<_>>(),
+        );
+        let linear_state = model.start_decode(prompt.clone())?;
+        let sparse_state = model.start_decode(prompt)?;
+
+        let linear_logits = model.next_token_logits_for_mode(
+            &linear_state,
+            TassadarExecutorDecodeMode::ReferenceLinear,
+        )?;
+        let sparse_logits = model.next_token_logits_for_mode(
+            &sparse_state,
+            TassadarExecutorDecodeMode::SparseTopK,
+        )?;
+
+        assert_eq!(linear_logits, sparse_logits);
+        assert_eq!(
+            model.greedy_next_token_for_mode(
+                &linear_state,
+                TassadarExecutorDecodeMode::ReferenceLinear
+            )?,
+            model.greedy_next_token_for_mode(
+                &sparse_state,
+                TassadarExecutorDecodeMode::SparseTopK
+            )?
         );
         Ok(())
     }

@@ -1,0 +1,13 @@
+{
+  "family_kind": "hull_specialized_lookup",
+  "run_id": "tassadar-executor-baseline-hull_specialized_lookup-v1",
+  "run_directory": "hull_specialized_lookup",
+  "model_id": "tassadar-executor-transformer-sudoku-v0-v0",
+  "model_descriptor_digest": "4560641a9b4b4f6e4707e13de6715b4ed4b8640eabb3f25d66716e0d0a000404",
+  "trained_weight_digest": "034ffa9054599708d6aa195354a43d857405d6656e3b16df9af57f34c0b9d1cd",
+  "claim_boundary": "next_token_only",
+  "family_report_file": "family_report.json",
+  "model_descriptor_file": "model_descriptor.json",
+  "family_report_digest": "cb20a0d6d4fccea1901a27c6e1118320392ad16e24b7d840dbbe1831be6a297f",
+  "bundle_digest": "67942edd7077eb429399ca1a1ee5e4330bc0daebc85959904096dbea8dca428c"
+}

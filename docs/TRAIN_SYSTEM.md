@@ -524,6 +524,16 @@ That now includes one intentionally narrow executor-training answer:
   later `boundary_v7` / `boundary_v8` / `boundary_v9` saturation set preserves
   the last red attention-family ceiling before the green `promotion_v3`
   continuation
+- the learned-family follow-on comparison now also exists under
+  `fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v12`; it keeps the
+  same bounded Sudoku-v0 workload contract but widens the compared family set
+  to hull-specialized lookup, direct sparse-top-k lookup, hybrid attention,
+  and recurrent/windowed lookup, with per-family fit/exactness reports plus
+  model descriptors and run bundles; the committed `v12` comparison remains
+  honestly red and comparison-only, with all four seeded families at `0` bps
+  first-target / first-8 / first-32 exactness, the recurrent family changing
+  the long-trace contract explicitly, and the hybrid attention family fitting
+  `0/2` full shared sequences under its `512`-token cap
 - the separate Phase 17 compiled lane now also exists beside that learned
   stack: `psionic-models` now exposes a bounded typed
   `TassadarCompiledProgramExecutor` with compile-evidence bundles,

@@ -441,6 +441,20 @@ The current scope is:
   reproduces that ceiling rather than beating it, and the later trace-schema /
   per-position saturation set proves the current bounded adapter family is
   saturated rather than merely under-tuned
+- landed trained-executor Phase 16D follow-on bar: `psionic-models` now
+  exposes a direct sparse-top-k lookup baseline beside the existing
+  hull-specialized and windowed lookup families, `psionic-eval` now emits a
+  four-family same-corpus learned baseline comparison, and `psionic-research`
+  now persists the canonical root at
+  `fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v12`; the
+  committed artifacts compare hull-specialized lookup, sparse lookup, hybrid
+  attention, and recurrent/windowed lookup on the same bounded Sudoku-v0
+  validation window while keeping the result honestly red and comparison-only:
+  all four seeded trainable families stay at `0` bps first-target, first-8,
+  and first-32 exactness, the recurrent family changes the long-trace
+  contract from `flat_prefix_full_forward` to `incremental_decode_window`,
+  and the hybrid attention family keeps its full-sequence fit cliff explicit
+  with `0/2` shared cases fitting under the current `512`-token bound
 - landed trained-executor Phase 17 follow-on bar: `psionic-models` now carries
   a bounded typed `TassadarCompiledProgramExecutor` surface with persisted
   compile-evidence bundles, `psionic-eval` now emits exactness and

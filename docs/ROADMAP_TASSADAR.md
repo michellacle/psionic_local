@@ -197,6 +197,12 @@ The current strongest committed artifacts are:
     exactly while shrinking max total tokens from `5335309` to `52969` on 9x9
     Sudoku and from `11532454` to `22050` on article-sized Hungarian-10x10;
     the sequential CPU trace remains the only full-trace authority
+- `fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v12`
+  - four-family same-corpus learned baseline comparison now exists for
+    hull-specialized lookup, sparse lookup, hybrid attention, and
+    recurrent/windowed lookup; it keeps every family comparison-only and red,
+    while making the recurrent long-trace contract change and the hybrid
+    family fit cliff explicit on the shared Sudoku-v0 validation workload
 - `fixtures/tassadar/runs/sudoku_9x9_v0_compiled_executor_v0`
   - exact compiled/proof-backed 9x9 Sudoku lane now exists on the matched 9x9 corpus
 - `fixtures/tassadar/runs/sudoku_v0_compiled_executor_v0`
@@ -488,7 +494,7 @@ compiled-lane truth.
 | `PTAS-402` | implemented | Add recurrent or windowed executor families that can carry long-horizon state without pretending a flat growing prefix is the only honest option. |
 | `PTAS-403` | implemented | Add parallel or wavefront trace families for Sudoku and Hungarian-class workloads and compare them against sequential CPU-style traces. |
 | `PTAS-404` | implemented | Add later-window and suffix-focused eval artifacts so learned long-trace progress is visible after the first bounded prefix. |
-| `PTAS-405` | planned | Compare hull-specialized learned architectures against trainable sparse, hybrid, and recurrent baselines under the same artifact contract. |
+| `PTAS-405` | implemented | Compare hull-specialized learned architectures against trainable sparse, hybrid, and recurrent baselines under the same artifact contract. |
 
 ## Epic 5: Learned Long-Trace Closure
 

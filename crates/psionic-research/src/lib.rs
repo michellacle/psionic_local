@@ -18,11 +18,12 @@ mod attnres_residual_comparison;
 mod runner;
 mod tassadar_acceptance;
 mod tassadar_architecture_comparison;
+mod tassadar_baseline_comparison;
 mod tassadar_attention_promotion;
 mod tassadar_attention_training;
 mod tassadar_compiled_article_closure;
-mod tassadar_compiled_kernel_suite_bundle;
 mod tassadar_compiled_executor_bundle;
+mod tassadar_compiled_kernel_suite_bundle;
 mod tassadar_hungarian_10x10_compiled_executor_bundle;
 mod tassadar_hungarian_compiled_executor_bundle;
 mod tassadar_sudoku_9x9_compiled_executor_bundle;
@@ -35,11 +36,12 @@ pub use attnres_residual_comparison::*;
 pub use runner::*;
 pub use tassadar_acceptance::*;
 pub use tassadar_architecture_comparison::*;
+pub use tassadar_baseline_comparison::*;
 pub use tassadar_attention_promotion::*;
 pub use tassadar_attention_training::*;
 pub use tassadar_compiled_article_closure::*;
-pub use tassadar_compiled_kernel_suite_bundle::*;
 pub use tassadar_compiled_executor_bundle::*;
+pub use tassadar_compiled_kernel_suite_bundle::*;
 pub use tassadar_hungarian_10x10_compiled_executor_bundle::*;
 pub use tassadar_hungarian_compiled_executor_bundle::*;
 pub use tassadar_sudoku_9x9_compiled_executor_bundle::*;
@@ -2126,10 +2128,12 @@ mod tests {
             vec![String::from("peak_memory_bytes")]
         );
         assert_eq!(evaluation.per_metric.len(), 2);
-        assert!(evaluation
-            .per_metric
-            .iter()
-            .any(|metric| !metric.hard_gate_passed));
+        assert!(
+            evaluation
+                .per_metric
+                .iter()
+                .any(|metric| !metric.hard_gate_passed)
+        );
     }
 
     #[test]
@@ -2298,9 +2302,11 @@ mod tests {
         );
         assert!(!blocked.promotable);
         assert_eq!(blocked.decision, PromotionDecision::Blocked);
-        assert!(blocked
-            .reasons
-            .contains(&PromotionReasonCode::BetterNumberOnly));
+        assert!(
+            blocked
+                .reasons
+                .contains(&PromotionReasonCode::BetterNumberOnly)
+        );
     }
 
     #[test]

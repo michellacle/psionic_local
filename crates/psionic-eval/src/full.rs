@@ -16,12 +16,14 @@ mod attnres;
 mod attnres_training;
 #[path = "tassadar.rs"]
 mod tassadar;
-#[path = "tassadar_compiled_kernel_suite.rs"]
-mod tassadar_compiled_kernel_suite;
 #[path = "tassadar_compiled_executor.rs"]
 mod tassadar_compiled_executor;
+#[path = "tassadar_compiled_kernel_suite.rs"]
+mod tassadar_compiled_kernel_suite;
 #[path = "tassadar_executor_architecture_comparison.rs"]
 mod tassadar_executor_architecture_comparison;
+#[path = "tassadar_executor_baseline_comparison.rs"]
+mod tassadar_executor_baseline_comparison;
 #[path = "tassadar_executor_benchmark.rs"]
 mod tassadar_executor_benchmark;
 #[path = "tassadar_executor_eval.rs"]
@@ -55,9 +57,10 @@ pub use apple_adapter_benchmark::*;
 pub use attnres::*;
 pub use attnres_training::*;
 pub use tassadar::*;
-pub use tassadar_compiled_kernel_suite::*;
 pub use tassadar_compiled_executor::*;
+pub use tassadar_compiled_kernel_suite::*;
 pub use tassadar_executor_architecture_comparison::*;
+pub use tassadar_executor_baseline_comparison::*;
 pub use tassadar_executor_benchmark::*;
 pub use tassadar_executor_eval::*;
 pub use tassadar_executor_hull_benchmark::*;
@@ -1854,8 +1857,8 @@ mod tests {
     }
 
     #[test]
-    fn eval_sample_from_environment_summary_is_machine_legible(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn eval_sample_from_environment_summary_is_machine_legible()
+    -> Result<(), Box<dyn std::error::Error>> {
         let package = eval_environment();
         let summary = scored_summary("session-1", "task-1", 8_600, true)?;
         let sample = EvalSampleRecord::from_environment_summary(
@@ -1879,8 +1882,8 @@ mod tests {
     }
 
     #[test]
-    fn eval_run_finalizes_summary_and_preserves_online_offline_parity(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn eval_run_finalizes_summary_and_preserves_online_offline_parity()
+    -> Result<(), Box<dyn std::error::Error>> {
         let package = eval_environment();
         let offline_sample = EvalSampleRecord::from_environment_summary(
             "sample-offline",
@@ -1945,8 +1948,8 @@ mod tests {
     }
 
     #[test]
-    fn benchmark_package_supports_repeat_aggregation_and_operator_simulation(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn benchmark_package_supports_repeat_aggregation_and_operator_simulation()
+    -> Result<(), Box<dyn std::error::Error>> {
         let package = eval_environment();
         let benchmark_package = BenchmarkPackage::new(
             BenchmarkPackageKey::new("benchmark://openagents/math/basic", "2026.03.14"),
@@ -2025,8 +2028,8 @@ mod tests {
     }
 
     #[test]
-    fn benchmark_policy_refuses_missing_verification_facts(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn benchmark_policy_refuses_missing_verification_facts()
+    -> Result<(), Box<dyn std::error::Error>> {
         let package = eval_environment();
         let benchmark_package = BenchmarkPackage::new(
             BenchmarkPackageKey::new("benchmark://openagents/math/basic", "2026.03.14"),

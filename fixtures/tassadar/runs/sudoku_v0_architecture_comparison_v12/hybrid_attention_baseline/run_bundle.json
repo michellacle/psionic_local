@@ -1,0 +1,13 @@
+{
+  "family_kind": "hybrid_attention_baseline",
+  "run_id": "tassadar-executor-baseline-hybrid_attention_baseline-v1",
+  "run_directory": "hybrid_attention_baseline",
+  "model_id": "tassadar-executor-attention-transformer-sudoku-v0-v0",
+  "model_descriptor_digest": "9f818edf2cadd77dced24d3407d4d00b4c0b0e82382d7df79fc4f2b4f23ba4ed",
+  "trained_weight_digest": "05d469968bbf23802e6124586edfc7db3e2840bfc833ab11c274a7ad375b0da4",
+  "claim_boundary": "research_windowed_decode_only",
+  "family_report_file": "family_report.json",
+  "model_descriptor_file": "model_descriptor.json",
+  "family_report_digest": "32fac9aca800acee2c0df3970cb650ac0c0fedcadf61a201cdf99091505b40fe",
+  "bundle_digest": "1376f31547752a58a68060962a8027773b106684d0532f3635909de95c45f524"
+}

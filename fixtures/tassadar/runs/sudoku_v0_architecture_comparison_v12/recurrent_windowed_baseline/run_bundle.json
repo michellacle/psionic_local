@@ -1,0 +1,13 @@
+{
+  "family_kind": "recurrent_windowed_baseline",
+  "run_id": "tassadar-executor-baseline-recurrent_windowed_baseline-v1",
+  "run_directory": "recurrent_windowed_baseline",
+  "model_id": "tassadar-executor-transformer-sudoku-v0-windowed-v0",
+  "model_descriptor_digest": "01277017531f428a7edf69f9a539bcf39ac891ee013ccd43abe30a870307695a",
+  "trained_weight_digest": "034ffa9054599708d6aa195354a43d857405d6656e3b16df9af57f34c0b9d1cd",
+  "claim_boundary": "next_token_only",
+  "family_report_file": "family_report.json",
+  "model_descriptor_file": "model_descriptor.json",
+  "family_report_digest": "28a9ed35b6c94ab375536c95a06b6271e0afe0950e200a744e47a4ece15367cb",
+  "bundle_digest": "e053cc2d1ac5d4e3fb15ece740a38d53e572282d4efc77d0e8ff0757485c354e"
+}

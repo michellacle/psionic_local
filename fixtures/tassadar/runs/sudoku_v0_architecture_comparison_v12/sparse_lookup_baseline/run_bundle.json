@@ -1,0 +1,13 @@
+{
+  "family_kind": "sparse_lookup_baseline",
+  "run_id": "tassadar-executor-baseline-sparse_lookup_baseline-v1",
+  "run_directory": "sparse_lookup_baseline",
+  "model_id": "tassadar-executor-transformer-sudoku-v0-sparse-v0",
+  "model_descriptor_digest": "696f4e391037f5a0e6c62e634911dad99b4745b3836479e724b7e8fa6704e3cc",
+  "trained_weight_digest": "034ffa9054599708d6aa195354a43d857405d6656e3b16df9af57f34c0b9d1cd",
+  "claim_boundary": "next_token_only",
+  "family_report_file": "family_report.json",
+  "model_descriptor_file": "model_descriptor.json",
+  "family_report_digest": "cd1712c3f49b7c5f86d77c4699303c3b9f443d69c4451cf7f6234efb333bf089",
+  "bundle_digest": "77661a1f8a7922c5cd087444d30c0607c2f3d55c7179b72909f5346a6d32fd89"
+}
