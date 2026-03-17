@@ -93,6 +93,10 @@ Current posture:
   refusal responses, trace-step streaming, final output extraction helpers, and
   served evidence bundles that preserve decode selection, trace proof, and
   runtime-manifest lineage
+- its article-session serving follow-on now also exists in `psionic-serve`,
+  with the specialized `psionic.article_executor_session` contract bound to the
+  canonical article corpus, plus committed direct/fallback/refused session
+  evidence at `fixtures/tassadar/reports/tassadar_article_executor_session_artifact.json`
 - its Phase 7B widened executor envelope now exists in `psionic-runtime`,
   `psionic-models`, and `psionic-eval`, with the widened `core_i32_v2`
   profile, the dedicated article-shaped `tassadar.wasm.article_i32_compute.v1`
@@ -512,6 +516,12 @@ Current posture:
   explicit `psionic.planner_executor_route` contract, executor preflight,
   replay-stable routing decisions, typed completed/fallback/refused outcomes,
   and planner-visible policy, budget, proof, selection, and refusal truth
+- its Phase 9A article-workload serving follow-on now also exists in
+  `psionic-serve`, with a specialized `psionic.article_executor_session`
+  surface that resolves canonical article workloads by case id, preserves
+  benchmark and proof identity across the serving boundary, and emits derived
+  readable-log plus symbolic token-trace views without pretending the session
+  is ordinary tool use
 - its Phase 9B bounded executor-training lane now exists in `psionic-train`,
   with a small-model Tassadar trainer over package-backed supervision, a
   fixed-budget train receipt, proof-aware exactness comparison against the

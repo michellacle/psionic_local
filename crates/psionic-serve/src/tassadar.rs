@@ -2,13 +2,16 @@ use std::collections::{BTreeMap, VecDeque};
 
 use psionic_models::{
     TassadarExecutorContractError, TassadarExecutorFixture, TassadarExecutorModelDescriptor,
+    TassadarTraceTokenizer,
 };
 use psionic_runtime::{
-    TassadarExecutionEvidenceBundle, TassadarExecutionRefusal, TassadarExecutorDecodeMode,
-    TassadarExecutorExecutionReport, TassadarExecutorSelectionDiagnostic, TassadarProgramArtifact,
-    TassadarRuntimeCapabilityReport, TassadarTraceEvent, TassadarTraceStep,
+    TASSADAR_ARTICLE_CLASS_BENCHMARK_ENVIRONMENT_REF, TASSADAR_ARTICLE_CLASS_BENCHMARK_REF,
+    TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF, TassadarExecution, TassadarExecutionEvidenceBundle,
+    TassadarExecutionRefusal, TassadarExecutorDecodeMode, TassadarExecutorExecutionReport,
+    TassadarExecutorSelectionDiagnostic, TassadarInstruction, TassadarProgramArtifact,
+    TassadarRuntimeCapabilityReport, TassadarTraceEvent, TassadarTraceStep, TassadarValidationCase,
     build_tassadar_execution_evidence_bundle, execute_tassadar_executor_request,
-    tassadar_wasm_profile_for_id,
+    tassadar_article_class_corpus, tassadar_trace_abi_for_profile_id, tassadar_wasm_profile_for_id,
 };
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -19,6 +22,15 @@ pub const EXECUTOR_TRACE_PRODUCT_ID: &str = "psionic.executor_trace";
 
 /// Dedicated planner-owned routing product for exact executor delegation.
 pub const PLANNER_EXECUTOR_ROUTE_PRODUCT_ID: &str = "psionic.planner_executor_route";
+/// Dedicated served product identifier for article-class Tassadar sessions.
+pub const ARTICLE_EXECUTOR_SESSION_PRODUCT_ID: &str = "psionic.article_executor_session";
+/// Canonical acceptance artifact for the article-session serving surface.
+pub const TASSADAR_ARTICLE_EXECUTOR_SESSION_ARTIFACT_REF: &str =
+    "fixtures/tassadar/reports/tassadar_article_executor_session_artifact.json";
+
+const ARTICLE_EXECUTOR_READABLE_LOG_MAX_LINES: usize = 96;
+const ARTICLE_EXECUTOR_TOKEN_TRACE_MAX_TOKENS: usize = 256;
+const ARTICLE_EXECUTOR_TOKEN_TRACE_CHUNK_SIZE: usize = 32;
 
 /// Explicit request contract for the served Tassadar executor lane.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -481,6 +493,574 @@ impl LocalTassadarExecutorService {
                 },
             },
         }
+    }
+}
+
+/// Canonical benchmark/workload identity for one article-class Tassadar case.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarArticleBenchmarkIdentity {
+    /// Stable benchmark ref for the article-class suite.
+    pub benchmark_ref: String,
+    /// Stable benchmark environment ref for the article-class suite.
+    pub benchmark_environment_ref: String,
+    /// Canonical committed benchmark report anchor.
+    pub benchmark_report_ref: String,
+    /// Stable workload family label.
+    pub workload_family: String,
+    /// Stable case identifier inside the article-class suite.
+    pub case_id: String,
+    /// Short case summary.
+    pub case_summary: String,
+    /// Stable program identifier for the selected workload.
+    pub program_id: String,
+    /// Stable Wasm profile identifier for the selected workload.
+    pub wasm_profile_id: String,
+    /// Digest of the validated program selected for the session.
+    pub validated_program_digest: String,
+}
+
+impl TassadarArticleBenchmarkIdentity {
+    fn for_case(case: &TassadarValidationCase, artifact: &TassadarProgramArtifact) -> Self {
+        Self {
+            benchmark_ref: String::from(TASSADAR_ARTICLE_CLASS_BENCHMARK_REF),
+            benchmark_environment_ref: String::from(
+                TASSADAR_ARTICLE_CLASS_BENCHMARK_ENVIRONMENT_REF,
+            ),
+            benchmark_report_ref: String::from(TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF),
+            workload_family: String::from(article_workload_family(case.case_id.as_str())),
+            case_id: case.case_id.clone(),
+            case_summary: case.summary.clone(),
+            program_id: case.program.program_id.clone(),
+            wasm_profile_id: case.program.profile_id.clone(),
+            validated_program_digest: artifact.validated_program_digest.clone(),
+        }
+    }
+}
+
+/// Proof and trace identity that survives the article-session serving boundary.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarArticleProofIdentity {
+    /// Underlying exact executor product that realized the compute span.
+    pub executor_product_id: String,
+    /// Stable trace artifact identifier.
+    pub trace_artifact_id: String,
+    /// Stable trace artifact digest.
+    pub trace_artifact_digest: String,
+    /// Stable trace digest.
+    pub trace_digest: String,
+    /// Stable trace-proof artifact identifier.
+    pub trace_proof_id: String,
+    /// Stable trace-proof digest.
+    pub trace_proof_digest: String,
+    /// Stable validated-program artifact digest.
+    pub program_artifact_digest: String,
+    /// Stable runtime-manifest identity digest.
+    pub runtime_manifest_identity_digest: String,
+    /// Stable runtime-manifest digest.
+    pub runtime_manifest_digest: String,
+    /// Stable proof-bundle request digest.
+    pub proof_bundle_request_digest: String,
+    /// Stable proof-bundle model id when one exists.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub proof_bundle_model_id: Option<String>,
+}
+
+impl TassadarArticleProofIdentity {
+    fn from_response(response: &TassadarExecutorResponse) -> Self {
+        Self {
+            executor_product_id: response.evidence_bundle.proof_bundle.product_id.clone(),
+            trace_artifact_id: response.evidence_bundle.trace_artifact.artifact_id.clone(),
+            trace_artifact_digest: response.evidence_bundle.trace_artifact.artifact_digest.clone(),
+            trace_digest: response.evidence_bundle.trace_artifact.trace_digest.clone(),
+            trace_proof_id: response.evidence_bundle.trace_proof.proof_artifact_id.clone(),
+            trace_proof_digest: response.evidence_bundle.trace_proof.proof_digest.clone(),
+            program_artifact_digest: response
+                .evidence_bundle
+                .trace_proof
+                .program_artifact_digest
+                .clone(),
+            runtime_manifest_identity_digest: response
+                .evidence_bundle
+                .runtime_manifest
+                .identity_digest
+                .clone(),
+            runtime_manifest_digest: response
+                .evidence_bundle
+                .runtime_manifest
+                .manifest_digest
+                .clone(),
+            proof_bundle_request_digest: response.evidence_bundle.proof_bundle.request_digest.clone(),
+            proof_bundle_model_id: response.evidence_bundle.proof_bundle.model_id.clone(),
+        }
+    }
+}
+
+/// Derived readable-log view over one article-class executor session.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarArticleReadableLogExcerpt {
+    /// Maximum retained line count for the derived view.
+    pub max_lines: usize,
+    /// Total line count before truncation.
+    pub total_line_count: usize,
+    /// Whether the derived view was truncated.
+    pub truncated: bool,
+    /// Derived readable-log lines.
+    pub lines: Vec<String>,
+    /// Plain-language posture describing how the view relates to machine truth.
+    pub derivation_posture: String,
+}
+
+/// Derived symbolic token-trace view over one article-class executor session.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarArticleTokenTraceExcerpt {
+    /// Maximum retained token count for the derived view.
+    pub max_tokens: usize,
+    /// Total token count before truncation.
+    pub total_token_count: usize,
+    /// Prompt/target boundary inside the symbolic token stream.
+    pub prompt_token_count: usize,
+    /// Whether the derived view was truncated.
+    pub truncated: bool,
+    /// Stable tokenizer digest for the derived symbolic view.
+    pub tokenizer_digest: String,
+    /// Derived symbolic token strings.
+    pub tokens: Vec<String>,
+    /// Plain-language posture describing how the view relates to machine truth.
+    pub derivation_posture: String,
+}
+
+/// Specialized request for one canonical article-class Tassadar session.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarArticleExecutorSessionRequest {
+    /// Stable request identifier.
+    pub request_id: String,
+    /// Product identifier. Must be `psionic.article_executor_session`.
+    pub product_id: String,
+    /// Stable article-class case identifier.
+    pub article_case_id: String,
+    /// Optional explicit executor model id.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub requested_model_id: Option<String>,
+    /// Requested decode mode for the exact executor path.
+    pub requested_decode_mode: TassadarExecutorDecodeMode,
+    /// Ordered environment refs carried into lineage in addition to the canonical benchmark ref.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub environment_refs: Vec<String>,
+}
+
+impl TassadarArticleExecutorSessionRequest {
+    /// Creates a new article-class executor session request.
+    #[must_use]
+    pub fn new(
+        request_id: impl Into<String>,
+        article_case_id: impl Into<String>,
+        requested_decode_mode: TassadarExecutorDecodeMode,
+    ) -> Self {
+        Self {
+            request_id: request_id.into(),
+            product_id: String::from(ARTICLE_EXECUTOR_SESSION_PRODUCT_ID),
+            article_case_id: article_case_id.into(),
+            requested_model_id: None,
+            requested_decode_mode,
+            environment_refs: Vec::new(),
+        }
+    }
+
+    /// Pins execution to one explicit executor model.
+    #[must_use]
+    pub fn with_requested_model_id(mut self, requested_model_id: impl Into<String>) -> Self {
+        self.requested_model_id = Some(requested_model_id.into());
+        self
+    }
+
+    /// Carries extra environment refs into the served evidence bundle.
+    #[must_use]
+    pub fn with_environment_refs(mut self, mut environment_refs: Vec<String>) -> Self {
+        environment_refs.sort();
+        environment_refs.dedup();
+        self.environment_refs = environment_refs;
+        self
+    }
+
+    /// Returns a stable digest for the article-session request.
+    #[must_use]
+    pub fn stable_digest(&self) -> String {
+        stable_digest(b"tassadar_article_executor_session_request|", self)
+    }
+}
+
+/// Typed refusal response for article-session requests.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarArticleExecutorSessionRefusalResponse {
+    /// Stable request identifier.
+    pub request_id: String,
+    /// Product identifier.
+    pub product_id: String,
+    /// Canonical benchmark/workload identity when the case was resolved.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub benchmark_identity: Option<TassadarArticleBenchmarkIdentity>,
+    /// Served executor model descriptor when one was resolved.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub model_descriptor: Option<TassadarExecutorModelDescriptor>,
+    /// Runtime capability report visible to the caller.
+    pub runtime_capability: TassadarRuntimeCapabilityReport,
+    /// Contract error when model/program pairing failed before selection.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub contract_error: Option<TassadarExecutorContractError>,
+    /// Runtime selection diagnostic when one was available.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub selection: Option<TassadarExecutorSelectionDiagnostic>,
+    /// Human-readable refusal detail.
+    pub detail: String,
+}
+
+/// Completed served article session carrying benchmark, proof, and derived views.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarArticleExecutorSessionResponse {
+    /// Stable request identifier.
+    pub request_id: String,
+    /// Product identifier.
+    pub product_id: String,
+    /// Canonical benchmark/workload identity.
+    pub benchmark_identity: TassadarArticleBenchmarkIdentity,
+    /// Proof identity preserved across the serving boundary.
+    pub proof_identity: TassadarArticleProofIdentity,
+    /// Underlying exact executor response.
+    pub executor_response: TassadarExecutorResponse,
+    /// Derived readable-log view over the canonical trace.
+    pub readable_log: TassadarArticleReadableLogExcerpt,
+    /// Derived symbolic token-trace view over the canonical trace.
+    pub token_trace: TassadarArticleTokenTraceExcerpt,
+}
+
+impl TassadarArticleExecutorSessionResponse {
+    /// Returns the final scalar outputs emitted by the execution.
+    #[must_use]
+    pub fn final_outputs(&self) -> &[i32] {
+        self.executor_response.final_outputs()
+    }
+}
+
+/// Served outcome for one article-session request.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "status", rename_all = "snake_case")]
+pub enum TassadarArticleExecutorSessionOutcome {
+    /// The article session completed through the Psionic-owned executor lane.
+    Completed {
+        /// Completed article-session response.
+        response: TassadarArticleExecutorSessionResponse,
+    },
+    /// The article session refused the request explicitly.
+    Refused {
+        /// Typed refusal response.
+        refusal: TassadarArticleExecutorSessionRefusalResponse,
+    },
+}
+
+/// Benchmark identity event emitted by the article-session stream.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarArticleBenchmarkIdentityEvent {
+    /// Canonical article benchmark/workload identity.
+    pub benchmark_identity: TassadarArticleBenchmarkIdentity,
+}
+
+/// Proof identity event emitted by the article-session stream.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarArticleProofIdentityEvent {
+    /// Preserved proof identity for the completed exact executor span.
+    pub proof_identity: TassadarArticleProofIdentity,
+}
+
+/// Readable-log event emitted by the article-session stream.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarArticleReadableLogLineEvent {
+    /// Zero-based readable-log line index within the derived excerpt.
+    pub line_index: usize,
+    /// One derived readable-log line.
+    pub line: String,
+}
+
+/// Token-trace event emitted by the article-session stream.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarArticleTokenTraceChunkEvent {
+    /// Zero-based chunk index.
+    pub chunk_index: usize,
+    /// Prompt/target boundary in the underlying symbolic token stream.
+    pub prompt_token_count: usize,
+    /// Total token count before truncation.
+    pub total_token_count: usize,
+    /// Whether the underlying symbolic view was truncated.
+    pub truncated: bool,
+    /// Ordered symbolic tokens in this chunk.
+    pub tokens: Vec<String>,
+}
+
+/// Terminal event emitted by the article-session stream.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarArticleExecutorSessionTerminalEvent {
+    /// Final served outcome.
+    pub outcome: TassadarArticleExecutorSessionOutcome,
+}
+
+/// Typed event emitted by the pull-driven article-session stream.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum TassadarArticleExecutorSessionStreamEvent {
+    /// Canonical benchmark/workload identity for the session.
+    BenchmarkIdentity {
+        /// Benchmark identity payload.
+        benchmark_identity: TassadarArticleBenchmarkIdentityEvent,
+    },
+    /// Runtime capability surfaced before execution.
+    Capability {
+        /// Runtime capability report visible to the caller.
+        runtime_capability: TassadarRuntimeCapabilityReport,
+    },
+    /// Decode-selection diagnostic surfaced before derived trace views.
+    Selection {
+        /// Direct/fallback/refused selection diagnostic.
+        selection: TassadarExecutorSelectionDiagnostic,
+    },
+    /// Proof identity surfaced for completed sessions.
+    ProofIdentity {
+        /// Proof identity payload.
+        proof_identity: TassadarArticleProofIdentityEvent,
+    },
+    /// One derived readable-log line.
+    ReadableLogLine {
+        /// Readable-log line payload.
+        readable_log_line: TassadarArticleReadableLogLineEvent,
+    },
+    /// One symbolic token-trace chunk.
+    TokenTraceChunk {
+        /// Token-trace chunk payload.
+        token_trace_chunk: TassadarArticleTokenTraceChunkEvent,
+    },
+    /// One emitted output value.
+    Output {
+        /// Output event payload.
+        output: TassadarExecutorOutputEvent,
+    },
+    /// Terminal completion or refusal.
+    Terminal {
+        /// Terminal payload.
+        terminal: TassadarArticleExecutorSessionTerminalEvent,
+    },
+}
+
+/// Product-validation error for the article-session serving surface.
+#[derive(Clone, Debug, Error, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum TassadarArticleExecutorSessionServiceError {
+    /// The request targeted a different served product family.
+    #[error("unsupported Tassadar article-session product `{product_id}`")]
+    UnsupportedProduct {
+        /// Product identifier supplied by the caller.
+        product_id: String,
+    },
+}
+
+/// Pull-driven local stream for explicit article-session products.
+#[derive(Clone, Debug, Default)]
+pub struct LocalTassadarArticleExecutorSessionStream {
+    events: VecDeque<TassadarArticleExecutorSessionStreamEvent>,
+}
+
+impl LocalTassadarArticleExecutorSessionStream {
+    fn from_events(events: Vec<TassadarArticleExecutorSessionStreamEvent>) -> Self {
+        Self {
+            events: VecDeque::from(events),
+        }
+    }
+
+    /// Returns the next typed stream event.
+    pub fn next_event(&mut self) -> Option<TassadarArticleExecutorSessionStreamEvent> {
+        self.events.pop_front()
+    }
+}
+
+/// Local reference implementation of the article-workload session surface.
+#[derive(Clone, Debug)]
+pub struct LocalTassadarArticleExecutorSessionService {
+    executor_service: LocalTassadarExecutorService,
+}
+
+impl Default for LocalTassadarArticleExecutorSessionService {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl LocalTassadarArticleExecutorSessionService {
+    /// Creates the default in-process article-session service.
+    #[must_use]
+    pub fn new() -> Self {
+        Self {
+            executor_service: LocalTassadarExecutorService::new()
+                .with_fixture(TassadarExecutorFixture::article_i32_compute_v1()),
+        }
+    }
+
+    /// Replaces the backing executor service.
+    #[must_use]
+    pub fn with_executor_service(mut self, executor_service: LocalTassadarExecutorService) -> Self {
+        self.executor_service = executor_service;
+        self
+    }
+
+    /// Executes one article-class session through the specialized serving surface.
+    pub fn execute(
+        &self,
+        request: &TassadarArticleExecutorSessionRequest,
+    ) -> Result<TassadarArticleExecutorSessionOutcome, TassadarArticleExecutorSessionServiceError>
+    {
+        self.validate_product(request)?;
+        let runtime_capability = TassadarRuntimeCapabilityReport::current();
+        let Some(case) = article_case_by_id(request.article_case_id.as_str()) else {
+            return Ok(TassadarArticleExecutorSessionOutcome::Refused {
+                refusal: TassadarArticleExecutorSessionRefusalResponse {
+                    request_id: request.request_id.clone(),
+                    product_id: request.product_id.clone(),
+                    benchmark_identity: None,
+                    model_descriptor: None,
+                    runtime_capability,
+                    contract_error: None,
+                    selection: None,
+                    detail: format!(
+                        "article workload `{}` is not present in the canonical Tassadar article corpus",
+                        request.article_case_id
+                    ),
+                },
+            });
+        };
+
+        let executor_request = self.executor_request_for(request, &case);
+        let benchmark_identity =
+            TassadarArticleBenchmarkIdentity::for_case(&case, &executor_request.program_artifact);
+
+        match self.executor_service.execute(&executor_request) {
+            Ok(TassadarExecutorOutcome::Completed { response }) => {
+                let proof_identity = TassadarArticleProofIdentity::from_response(&response);
+                let readable_log = build_article_readable_log_excerpt(&case, &response.execution_report.execution);
+                let token_trace = build_article_token_trace_excerpt(
+                    &case,
+                    &response.execution_report.execution,
+                );
+                Ok(TassadarArticleExecutorSessionOutcome::Completed {
+                    response: TassadarArticleExecutorSessionResponse {
+                        request_id: request.request_id.clone(),
+                        product_id: request.product_id.clone(),
+                        benchmark_identity,
+                        proof_identity,
+                        executor_response: response,
+                        readable_log,
+                        token_trace,
+                    },
+                })
+            }
+            Ok(TassadarExecutorOutcome::Refused { refusal }) => {
+                Ok(TassadarArticleExecutorSessionOutcome::Refused {
+                    refusal: TassadarArticleExecutorSessionRefusalResponse {
+                        request_id: request.request_id.clone(),
+                        product_id: request.product_id.clone(),
+                        benchmark_identity: Some(benchmark_identity),
+                        model_descriptor: Some(refusal.model_descriptor),
+                        runtime_capability: refusal.runtime_capability,
+                        contract_error: refusal.contract_error,
+                        selection: refusal.selection,
+                        detail: refusal.detail,
+                    },
+                })
+            }
+            Err(TassadarExecutorServiceError::UnknownModel { model_id }) => {
+                Ok(TassadarArticleExecutorSessionOutcome::Refused {
+                    refusal: TassadarArticleExecutorSessionRefusalResponse {
+                        request_id: request.request_id.clone(),
+                        product_id: request.product_id.clone(),
+                        benchmark_identity: Some(benchmark_identity),
+                        model_descriptor: None,
+                        runtime_capability,
+                        contract_error: None,
+                        selection: None,
+                        detail: format!("unknown Tassadar executor model `{model_id}`"),
+                    },
+                })
+            }
+            Err(TassadarExecutorServiceError::UnsupportedProduct { product_id }) => Err(
+                TassadarArticleExecutorSessionServiceError::UnsupportedProduct { product_id },
+            ),
+            Err(TassadarExecutorServiceError::ExecutionRefusal(refusal)) => {
+                Ok(TassadarArticleExecutorSessionOutcome::Refused {
+                    refusal: TassadarArticleExecutorSessionRefusalResponse {
+                        request_id: request.request_id.clone(),
+                        product_id: request.product_id.clone(),
+                        benchmark_identity: Some(benchmark_identity),
+                        model_descriptor: None,
+                        runtime_capability,
+                        contract_error: None,
+                        selection: None,
+                        detail: refusal.to_string(),
+                    },
+                })
+            }
+        }
+    }
+
+    /// Starts a pull-driven article-session stream.
+    pub fn execute_stream(
+        &self,
+        request: &TassadarArticleExecutorSessionRequest,
+    ) -> Result<LocalTassadarArticleExecutorSessionStream, TassadarArticleExecutorSessionServiceError>
+    {
+        let outcome = self.execute(request)?;
+        Ok(LocalTassadarArticleExecutorSessionStream::from_events(
+            article_stream_events_for_outcome(&outcome),
+        ))
+    }
+
+    fn validate_product(
+        &self,
+        request: &TassadarArticleExecutorSessionRequest,
+    ) -> Result<(), TassadarArticleExecutorSessionServiceError> {
+        if request.product_id == ARTICLE_EXECUTOR_SESSION_PRODUCT_ID {
+            Ok(())
+        } else {
+            Err(TassadarArticleExecutorSessionServiceError::UnsupportedProduct {
+                product_id: request.product_id.clone(),
+            })
+        }
+    }
+
+    fn executor_request_for(
+        &self,
+        request: &TassadarArticleExecutorSessionRequest,
+        case: &TassadarValidationCase,
+    ) -> TassadarExecutorRequest {
+        let profile = tassadar_wasm_profile_for_id(case.program.profile_id.as_str())
+            .expect("canonical article case should use a supported profile");
+        let trace_abi = tassadar_trace_abi_for_profile_id(case.program.profile_id.as_str())
+            .expect("canonical article case should use a supported trace ABI");
+        let artifact = TassadarProgramArtifact::fixture_reference(
+            format!("artifact://tassadar/article_session/{}", case.case_id),
+            &profile,
+            &trace_abi,
+            case.program.clone(),
+        )
+        .expect("canonical article case should assemble into a program artifact");
+        TassadarExecutorRequest::new(
+            request.request_id.clone(),
+            artifact,
+            request.requested_decode_mode,
+        )
+        .with_requested_model_id(
+            request
+                .requested_model_id
+                .clone()
+                .unwrap_or_else(|| String::from(TassadarExecutorFixture::ARTICLE_I32_COMPUTE_MODEL_ID)),
+        )
+        .with_environment_refs(merge_article_environment_refs(
+            request.environment_refs.as_slice(),
+        ))
     }
 }
 
@@ -1326,6 +1906,243 @@ where
     hex::encode(hasher.finalize())
 }
 
+fn article_case_by_id(case_id: &str) -> Option<TassadarValidationCase> {
+    tassadar_article_class_corpus()
+        .into_iter()
+        .find(|case| case.case_id == case_id)
+}
+
+fn article_workload_family(case_id: &str) -> &'static str {
+    match case_id {
+        "micro_wasm_kernel" => "MicroWasmKernel",
+        "branch_heavy_kernel" => "BranchHeavyKernel",
+        "memory_heavy_kernel" => "MemoryHeavyKernel",
+        "long_loop_kernel" => "LongLoopKernel",
+        value if value.starts_with("sudoku_") => "SudokuClass",
+        value if value.starts_with("hungarian_") => "HungarianMatching",
+        _ => "ArticleWorkload",
+    }
+}
+
+fn merge_article_environment_refs(environment_refs: &[String]) -> Vec<String> {
+    let mut merged = environment_refs.to_vec();
+    merged.push(String::from(TASSADAR_ARTICLE_CLASS_BENCHMARK_ENVIRONMENT_REF));
+    merged.sort();
+    merged.dedup();
+    merged
+}
+
+fn build_article_readable_log_excerpt(
+    case: &TassadarValidationCase,
+    execution: &TassadarExecution,
+) -> TassadarArticleReadableLogExcerpt {
+    let mut lines = Vec::with_capacity(execution.steps.len().saturating_add(8));
+    lines.push(format!(
+        "benchmark_ref={}",
+        TASSADAR_ARTICLE_CLASS_BENCHMARK_REF
+    ));
+    lines.push(format!("workload_family={}", article_workload_family(case.case_id.as_str())));
+    lines.push(format!("case_id={}", case.case_id));
+    lines.push(format!("program_id={}", execution.program_id));
+    lines.push(format!("runner_id={}", execution.runner_id));
+    for step in &execution.steps {
+        lines.push(format!(
+            "step={} pc={}->{} instr={} event={}",
+            step.step_index,
+            step.pc,
+            step.next_pc,
+            format_instruction(&step.instruction),
+            format_event(&step.event)
+        ));
+    }
+    lines.push(format!("halt={:?}", execution.halt_reason));
+    lines.push(format!("outputs={:?}", execution.outputs));
+
+    let total_line_count = lines.len();
+    let truncated = total_line_count > ARTICLE_EXECUTOR_READABLE_LOG_MAX_LINES;
+    let lines = if truncated {
+        let retained = ARTICLE_EXECUTOR_READABLE_LOG_MAX_LINES.saturating_sub(1);
+        let mut excerpt = lines.into_iter().take(retained).collect::<Vec<_>>();
+        excerpt.push(format!(
+            "... truncated {} additional lines; canonical machine truth remains bound to trace_digest={}",
+            total_line_count.saturating_sub(retained),
+            execution.trace_digest()
+        ));
+        excerpt
+    } else {
+        lines
+    };
+
+    TassadarArticleReadableLogExcerpt {
+        max_lines: ARTICLE_EXECUTOR_READABLE_LOG_MAX_LINES,
+        total_line_count,
+        truncated,
+        lines,
+        derivation_posture: String::from(
+            "readable log lines are derived, non-authoritative views over the canonical append-only trace and may be truncated without changing machine truth",
+        ),
+    }
+}
+
+fn build_article_token_trace_excerpt(
+    case: &TassadarValidationCase,
+    execution: &TassadarExecution,
+) -> TassadarArticleTokenTraceExcerpt {
+    let tokenizer = TassadarTraceTokenizer::new();
+    let tokenized = tokenizer.tokenize_program_and_execution(&case.program, execution);
+    let decoded = tokenizer.decode_symbolic(&tokenized);
+    let prompt_token_count = decoded.prompt_token_count;
+    let total_token_count = decoded.tokens.len();
+    let truncated = total_token_count > ARTICLE_EXECUTOR_TOKEN_TRACE_MAX_TOKENS;
+    let tokens = if truncated {
+        decoded
+            .tokens
+            .into_iter()
+            .take(ARTICLE_EXECUTOR_TOKEN_TRACE_MAX_TOKENS)
+            .collect()
+    } else {
+        decoded.tokens
+    };
+    TassadarArticleTokenTraceExcerpt {
+        max_tokens: ARTICLE_EXECUTOR_TOKEN_TRACE_MAX_TOKENS,
+        total_token_count,
+        prompt_token_count,
+        truncated,
+        tokenizer_digest: tokenizer.stable_digest(),
+        tokens,
+        derivation_posture: String::from(
+            "symbolic token traces are deterministic derivations of the canonical append-only trace artifact and may be truncated for serving without changing proof or benchmark identity",
+        ),
+    }
+}
+
+fn article_stream_events_for_outcome(
+    outcome: &TassadarArticleExecutorSessionOutcome,
+) -> Vec<TassadarArticleExecutorSessionStreamEvent> {
+    let runtime_capability = match outcome {
+        TassadarArticleExecutorSessionOutcome::Completed { response } => {
+            response.executor_response.runtime_capability.clone()
+        }
+        TassadarArticleExecutorSessionOutcome::Refused { refusal } => {
+            refusal.runtime_capability.clone()
+        }
+    };
+    let mut events = Vec::new();
+    match outcome {
+        TassadarArticleExecutorSessionOutcome::Completed { response } => {
+            events.push(TassadarArticleExecutorSessionStreamEvent::BenchmarkIdentity {
+                benchmark_identity: TassadarArticleBenchmarkIdentityEvent {
+                    benchmark_identity: response.benchmark_identity.clone(),
+                },
+            });
+            events.push(TassadarArticleExecutorSessionStreamEvent::Capability { runtime_capability });
+            events.push(TassadarArticleExecutorSessionStreamEvent::Selection {
+                selection: response.executor_response.execution_report.selection.clone(),
+            });
+            events.push(TassadarArticleExecutorSessionStreamEvent::ProofIdentity {
+                proof_identity: TassadarArticleProofIdentityEvent {
+                    proof_identity: response.proof_identity.clone(),
+                },
+            });
+            for (line_index, line) in response.readable_log.lines.iter().enumerate() {
+                events.push(TassadarArticleExecutorSessionStreamEvent::ReadableLogLine {
+                    readable_log_line: TassadarArticleReadableLogLineEvent {
+                        line_index,
+                        line: line.clone(),
+                    },
+                });
+            }
+            for (chunk_index, chunk) in response
+                .token_trace
+                .tokens
+                .chunks(ARTICLE_EXECUTOR_TOKEN_TRACE_CHUNK_SIZE)
+                .enumerate()
+            {
+                events.push(TassadarArticleExecutorSessionStreamEvent::TokenTraceChunk {
+                    token_trace_chunk: TassadarArticleTokenTraceChunkEvent {
+                        chunk_index,
+                        prompt_token_count: response.token_trace.prompt_token_count,
+                        total_token_count: response.token_trace.total_token_count,
+                        truncated: response.token_trace.truncated,
+                        tokens: chunk.to_vec(),
+                    },
+                });
+            }
+            for (ordinal, value) in response.final_outputs().iter().enumerate() {
+                events.push(TassadarArticleExecutorSessionStreamEvent::Output {
+                    output: TassadarExecutorOutputEvent {
+                        ordinal,
+                        value: *value,
+                    },
+                });
+            }
+        }
+        TassadarArticleExecutorSessionOutcome::Refused { refusal } => {
+            if let Some(benchmark_identity) = refusal.benchmark_identity.clone() {
+                events.push(TassadarArticleExecutorSessionStreamEvent::BenchmarkIdentity {
+                    benchmark_identity: TassadarArticleBenchmarkIdentityEvent { benchmark_identity },
+                });
+            }
+            events.push(TassadarArticleExecutorSessionStreamEvent::Capability { runtime_capability });
+            if let Some(selection) = refusal.selection.clone() {
+                events.push(TassadarArticleExecutorSessionStreamEvent::Selection { selection });
+            }
+        }
+    }
+    events.push(TassadarArticleExecutorSessionStreamEvent::Terminal {
+        terminal: TassadarArticleExecutorSessionTerminalEvent {
+            outcome: outcome.clone(),
+        },
+    });
+    events
+}
+
+fn format_instruction(instruction: &TassadarInstruction) -> String {
+    match instruction {
+        TassadarInstruction::I32Const { value } => format!("i32.const {value}"),
+        TassadarInstruction::LocalGet { local } => format!("local.get {local}"),
+        TassadarInstruction::LocalSet { local } => format!("local.set {local}"),
+        TassadarInstruction::I32Add => String::from("i32.add"),
+        TassadarInstruction::I32Sub => String::from("i32.sub"),
+        TassadarInstruction::I32Mul => String::from("i32.mul"),
+        TassadarInstruction::I32Lt => String::from("i32.lt"),
+        TassadarInstruction::I32Load { slot } => format!("i32.load {slot}"),
+        TassadarInstruction::I32Store { slot } => format!("i32.store {slot}"),
+        TassadarInstruction::BrIf { target_pc } => format!("br_if {target_pc}"),
+        TassadarInstruction::Output => String::from("output"),
+        TassadarInstruction::Return => String::from("return"),
+    }
+}
+
+fn format_event(event: &TassadarTraceEvent) -> String {
+    match event {
+        TassadarTraceEvent::ConstPush { value } => format!("const_push value={value}"),
+        TassadarTraceEvent::LocalGet { local, value } => {
+            format!("local_get local={local} value={value}")
+        }
+        TassadarTraceEvent::LocalSet { local, value } => {
+            format!("local_set local={local} value={value}")
+        }
+        TassadarTraceEvent::BinaryOp {
+            op,
+            left,
+            right,
+            result,
+        } => format!("binary_{op:?} left={left} right={right} result={result}"),
+        TassadarTraceEvent::Load { slot, value } => format!("load slot={slot} value={value}"),
+        TassadarTraceEvent::Store { slot, value } => format!("store slot={slot} value={value}"),
+        TassadarTraceEvent::Branch {
+            condition,
+            taken,
+            target_pc,
+        } => format!(
+            "branch condition={condition} taken={taken} target_pc={target_pc}"
+        ),
+        TassadarTraceEvent::Output { value } => format!("output value={value}"),
+        TassadarTraceEvent::Return => String::from("return"),
+    }
+}
+
 fn stream_events_for_outcome(
     fixture: &TassadarExecutorFixture,
     outcome: TassadarExecutorOutcome,
@@ -1374,9 +2191,13 @@ fn stream_events_for_outcome(
 #[cfg(test)]
 mod tests {
     use super::{
-        EXECUTOR_TRACE_PRODUCT_ID, LocalTassadarExecutorService, LocalTassadarPlannerRouter,
-        PLANNER_EXECUTOR_ROUTE_PRODUCT_ID, TassadarExecutorOutcome, TassadarExecutorRequest,
-        TassadarExecutorServiceError, TassadarExecutorStreamEvent,
+        ARTICLE_EXECUTOR_SESSION_PRODUCT_ID, EXECUTOR_TRACE_PRODUCT_ID,
+        LocalTassadarArticleExecutorSessionService, LocalTassadarExecutorService,
+        LocalTassadarPlannerRouter, PLANNER_EXECUTOR_ROUTE_PRODUCT_ID,
+        TassadarArticleExecutorSessionOutcome, TassadarArticleExecutorSessionRequest,
+        TassadarArticleExecutorSessionServiceError, TassadarArticleExecutorSessionStreamEvent,
+        TassadarExecutorOutcome, TassadarExecutorRequest, TassadarExecutorServiceError,
+        TassadarExecutorStreamEvent,
         TassadarPlannerExecutorSubproblem, TassadarPlannerFallbackPolicy,
         TassadarPlannerRouteReason, TassadarPlannerRouterError, TassadarPlannerRoutingBudget,
         TassadarPlannerRoutingOutcome, TassadarPlannerRoutingPolicy, TassadarPlannerRoutingRequest,
@@ -1384,7 +2205,8 @@ mod tests {
     use psionic_models::TassadarExecutorFixture;
     use psionic_runtime::{
         TassadarExecutorDecodeMode, TassadarInstruction, TassadarProgram, TassadarProgramArtifact,
-        TassadarTraceAbi, TassadarWasmProfile, tassadar_validation_corpus,
+        TassadarTraceAbi, TassadarWasmProfile, tassadar_article_class_corpus,
+        tassadar_validation_corpus,
     };
 
     fn request_for_case(case_id: &str) -> TassadarExecutorRequest {
@@ -1407,6 +2229,158 @@ mod tests {
             TassadarExecutorDecodeMode::HullCache,
         )
         .with_environment_refs(vec![String::from("env.openagents.tassadar.benchmark")])
+    }
+
+    fn article_request_for_case(
+        case_id: &str,
+        requested_decode_mode: TassadarExecutorDecodeMode,
+    ) -> TassadarArticleExecutorSessionRequest {
+        TassadarArticleExecutorSessionRequest::new(
+            format!("article-request-{case_id}-{requested_decode_mode:?}"),
+            case_id,
+            requested_decode_mode,
+        )
+    }
+
+    #[test]
+    fn article_session_executes_completed_request_with_benchmark_and_proof_identity() {
+        let service = LocalTassadarArticleExecutorSessionService::new();
+        let request = article_request_for_case(
+            "memory_heavy_kernel",
+            TassadarExecutorDecodeMode::HullCache,
+        );
+        let expected_outputs = tassadar_article_class_corpus()
+            .into_iter()
+            .find(|case| case.case_id == "memory_heavy_kernel")
+            .expect("article case should exist")
+            .expected_outputs;
+
+        let outcome = service.execute(&request).expect("request should be typed");
+        match outcome {
+            TassadarArticleExecutorSessionOutcome::Completed { response } => {
+                assert_eq!(response.product_id, ARTICLE_EXECUTOR_SESSION_PRODUCT_ID);
+                assert_eq!(response.benchmark_identity.case_id, "memory_heavy_kernel");
+                assert_eq!(
+                    response.benchmark_identity.workload_family,
+                    "MemoryHeavyKernel"
+                );
+                assert_eq!(
+                    response.proof_identity.executor_product_id,
+                    EXECUTOR_TRACE_PRODUCT_ID
+                );
+                assert_eq!(response.final_outputs(), expected_outputs.as_slice());
+                assert_eq!(
+                    response
+                        .executor_response
+                        .execution_report
+                        .selection
+                        .effective_decode_mode,
+                    Some(TassadarExecutorDecodeMode::HullCache)
+                );
+                assert!(!response.readable_log.lines.is_empty());
+                assert!(!response.token_trace.tokens.is_empty());
+            }
+            other => panic!("expected completed article session, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn article_session_stream_surfaces_benchmark_proof_log_trace_and_terminal() {
+        let service = LocalTassadarArticleExecutorSessionService::new();
+        let request = article_request_for_case(
+            "memory_heavy_kernel",
+            TassadarExecutorDecodeMode::HullCache,
+        );
+        let mut stream = service
+            .execute_stream(&request)
+            .expect("stream should be created");
+
+        let mut saw_benchmark = false;
+        let mut saw_proof = false;
+        let mut saw_log = false;
+        let mut saw_token_trace = false;
+        let mut saw_terminal = false;
+        while let Some(event) = stream.next_event() {
+            match event {
+                TassadarArticleExecutorSessionStreamEvent::BenchmarkIdentity { .. } => {
+                    saw_benchmark = true
+                }
+                TassadarArticleExecutorSessionStreamEvent::ProofIdentity { .. } => saw_proof = true,
+                TassadarArticleExecutorSessionStreamEvent::ReadableLogLine { .. } => saw_log = true,
+                TassadarArticleExecutorSessionStreamEvent::TokenTraceChunk { .. } => {
+                    saw_token_trace = true
+                }
+                TassadarArticleExecutorSessionStreamEvent::Terminal { .. } => {
+                    saw_terminal = true;
+                    break;
+                }
+                TassadarArticleExecutorSessionStreamEvent::Capability { .. }
+                | TassadarArticleExecutorSessionStreamEvent::Selection { .. }
+                | TassadarArticleExecutorSessionStreamEvent::Output { .. } => {}
+            }
+        }
+
+        assert!(saw_benchmark);
+        assert!(saw_proof);
+        assert!(saw_log);
+        assert!(saw_token_trace);
+        assert!(saw_terminal);
+    }
+
+    #[test]
+    fn article_session_preserves_fallback_truth_for_unsupported_fast_path_workloads() {
+        let service = LocalTassadarArticleExecutorSessionService::new();
+        let request = article_request_for_case(
+            "branch_heavy_kernel",
+            TassadarExecutorDecodeMode::SparseTopK,
+        );
+
+        let outcome = service.execute(&request).expect("request should be typed");
+        match outcome {
+            TassadarArticleExecutorSessionOutcome::Completed { response } => {
+                let selection = &response.executor_response.execution_report.selection;
+                assert!(selection.is_fallback());
+                assert_eq!(
+                    selection.effective_decode_mode,
+                    Some(TassadarExecutorDecodeMode::ReferenceLinear)
+                );
+            }
+            other => panic!("expected completed fallback article session, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn article_session_refuses_non_article_workloads_explicitly() {
+        let service = LocalTassadarArticleExecutorSessionService::new();
+        let request =
+            article_request_for_case("locals_add", TassadarExecutorDecodeMode::ReferenceLinear);
+
+        let outcome = service.execute(&request).expect("request should be typed");
+        match outcome {
+            TassadarArticleExecutorSessionOutcome::Refused { refusal } => {
+                assert!(refusal.benchmark_identity.is_none());
+                assert!(refusal.detail.contains("canonical Tassadar article corpus"));
+            }
+            other => panic!("expected refusal, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn article_session_rejects_non_article_product_id() {
+        let service = LocalTassadarArticleExecutorSessionService::new();
+        let mut request =
+            article_request_for_case("memory_heavy_kernel", TassadarExecutorDecodeMode::HullCache);
+        request.product_id = String::from("psionic.text_generation");
+
+        let error = service
+            .execute(&request)
+            .expect_err("wrong article-session product should fail before execution");
+        assert_eq!(
+            error,
+            TassadarArticleExecutorSessionServiceError::UnsupportedProduct {
+                product_id: String::from("psionic.text_generation"),
+            }
+        );
     }
 
     #[test]
@@ -1616,7 +2590,7 @@ mod tests {
         let request = TassadarPlannerRoutingRequest {
             subproblem: request
                 .subproblem
-                .with_requested_model_id(TassadarExecutorFixture::ARTICLE_I32_COMPUTE_MODEL_ID),
+                .with_requested_model_id(TassadarExecutorFixture::CORE_I32_V2_MODEL_ID),
             routing_policy: TassadarPlannerRoutingPolicy {
                 allow_runtime_decode_fallback: false,
                 ..request.routing_policy

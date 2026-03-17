@@ -897,6 +897,12 @@ pub fn tassadar_trace_abi_for_profile_id(profile_id: &str) -> Option<TassadarTra
 /// Canonical machine-readable output path for the Wasm instruction-coverage report.
 pub const TASSADAR_WASM_INSTRUCTION_COVERAGE_REPORT_REF: &str =
     "fixtures/tassadar/reports/tassadar_wasm_instruction_coverage_report.json";
+/// Stable benchmark ref for the widened article-class suite.
+pub const TASSADAR_ARTICLE_CLASS_BENCHMARK_REF: &str =
+    "benchmark://openagents/tassadar/article_class/reference_fixture";
+/// Stable environment ref for the widened article-class benchmark package.
+pub const TASSADAR_ARTICLE_CLASS_BENCHMARK_ENVIRONMENT_REF: &str =
+    "env.openagents.tassadar.article_class.benchmark";
 /// Canonical machine-readable output path for the article-class benchmark report.
 pub const TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF: &str =
     "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json";
