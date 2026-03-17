@@ -1,15 +1,17 @@
 # Psionic
 
-Psionic is the reusable Rust-native compute execution subtree for OpenAgents.
+Psionic is a reusable Rust-native machine learning systems workspace.
 
-It owns the machine-facing side of the stack: tensor and graph contracts,
-compiler/runtime boundaries, backend truth, artifact staging, cluster and
-sandbox execution, serving interfaces, adapter packaging, evaluation, research,
-and the early training substrate.
+Its aim is to rebuild core ML infrastructure that is usually spread across
+Python and C++ stacks such as PyTorch into a coherent Rust crate family:
+tensor and graph contracts, compiler/runtime boundaries, backend truth,
+artifact staging, cluster and sandbox execution, serving interfaces, adapter
+packaging, evaluation, research, and the early training substrate.
 
-It intentionally lives in this standalone `psionic` workspace so the engine can
-evolve without bleeding product behavior, operator UX, or settlement authority
-into the reusable execution substrate.
+OpenAgents uses Psionic as one downstream compute substrate, but the project is
+intentionally broader than OpenAgents. It is meant to be useful to anyone who
+wants a Rust-first foundation for local and decentralized inference, training,
+clustered execution, and machine-legible execution truth.
 
 ## Doc Authority
 
@@ -30,8 +32,8 @@ exists in this repository.
 
 ## What Psionic is
 
-- The reusable execution substrate beneath OpenAgents provider and compute
-  products.
+- A reusable Rust-native ML infrastructure layer that OpenAgents uses as one
+  downstream compute substrate.
 - A Rust-native crate family for framework core, backends, transport,
   clustered execution, serving, adapters, data, eval, training, and research.
 - The source of machine-legible execution truth: manifests, receipts, routing
