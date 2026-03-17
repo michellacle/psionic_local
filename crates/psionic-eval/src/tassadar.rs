@@ -75,6 +75,9 @@ pub const TASSADAR_WORKLOAD_CAPABILITY_MATRIX_REPORT_REF: &str =
 /// Canonical machine-readable output path for the widened HullCache closure report.
 pub const TASSADAR_HULL_CACHE_CLOSURE_REPORT_REF: &str =
     "fixtures/tassadar/reports/tassadar_hull_cache_closure_report.json";
+/// Canonical machine-readable output path for the SparseTopK comparison report.
+pub const TASSADAR_SPARSE_TOP_K_COMPARISON_REPORT_REF: &str =
+    "fixtures/tassadar/reports/tassadar_sparse_top_k_comparison_report.json";
 
 const TASSADAR_OUTPUT_EXACTNESS_METRIC_ID: &str = "tassadar.final_output_exactness_bps";
 const TASSADAR_STEP_EXACTNESS_METRIC_ID: &str = "tassadar.step_exactness_bps";
@@ -93,6 +96,7 @@ const TASSADAR_SPARSE_TOP_K_CPU_GAP_METRIC_ID: &str =
 const TASSADAR_TRACE_STEP_COUNT_METRIC_ID: &str = "tassadar.trace_step_count";
 const TASSADAR_WORKLOAD_CAPABILITY_MATRIX_SCHEMA_VERSION: u16 = 1;
 const TASSADAR_HULL_CACHE_CLOSURE_SCHEMA_VERSION: u16 = 1;
+const TASSADAR_SPARSE_TOP_K_COMPARISON_SCHEMA_VERSION: u16 = 1;
 
 /// One packaged Tassadar Phase 3 suite.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -283,6 +287,44 @@ pub struct TassadarHullCacheClosureReport {
     pub report_digest: String,
 }
 
+/// One workload-family summary in the SparseTopK comparison report.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct TassadarSparseTopKWorkloadSummary {
+    /// Stable workload target for the summary.
+    pub workload_target: TassadarWorkloadTarget,
+    /// Current SparseTopK posture on the workload family.
+    pub posture: TassadarCapabilityPosture,
+    /// Number of cases that stayed direct on SparseTopK.
+    pub direct_case_count: usize,
+    /// Number of cases that fell back away from SparseTopK.
+    pub fallback_case_count: usize,
+    /// Average SparseTopK speedup over reference-linear execution.
+    pub average_speedup_over_reference_linear: f64,
+    /// Average remaining CPU gap ratio.
+    pub average_remaining_gap_vs_cpu_reference: f64,
+    /// Average speed ratio of SparseTopK relative to HullCache on the same cases.
+    pub average_sparse_vs_hull_speed_ratio: f64,
+    /// Aggregated typed fallback reasons for the workload family.
+    pub fallback_reason_counts: BTreeMap<String, u64>,
+    /// Stable artifact ref anchoring the summary.
+    pub artifact_ref: String,
+}
+
+/// Machine-readable SparseTopK comparison report.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct TassadarSparseTopKComparisonReport {
+    /// Stable schema version.
+    pub schema_version: u16,
+    /// Direct exact workload families currently inside SparseTopK support.
+    pub exact_workloads: Vec<TassadarSparseTopKWorkloadSummary>,
+    /// Workload families that remain fallback-only outside direct SparseTopK support.
+    pub fallback_only_workloads: Vec<TassadarSparseTopKWorkloadSummary>,
+    /// Plain-language boundary statement for the current SparseTopK comparison.
+    pub claim_boundary: String,
+    /// Stable digest over the report.
+    pub report_digest: String,
+}
+
 /// Tassadar benchmark build or execution failure.
 #[derive(Debug, Error)]
 pub enum TassadarBenchmarkError {
@@ -334,6 +376,17 @@ pub enum TassadarWorkloadCapabilityMatrixError {
 /// HullCache closure report build or persistence failure.
 #[derive(Debug, Error)]
 pub enum TassadarHullCacheClosureError {
+    /// Underlying filesystem read/write failed.
+    #[error(transparent)]
+    Io(#[from] std::io::Error),
+    /// JSON parsing or serialization failed.
+    #[error(transparent)]
+    Json(#[from] serde_json::Error),
+}
+
+/// SparseTopK comparison report build or persistence failure.
+#[derive(Debug, Error)]
+pub enum TassadarSparseTopKComparisonError {
     /// Underlying filesystem read/write failed.
     #[error(transparent)]
     Io(#[from] std::io::Error),
@@ -2422,6 +2475,141 @@ pub fn write_tassadar_hull_cache_closure_report(
     Ok(report)
 }
 
+fn build_sparse_top_k_workload_summary(
+    benchmark_report: &TassadarBenchmarkReport,
+    workload_target: TassadarWorkloadTarget,
+) -> Option<TassadarSparseTopKWorkloadSummary> {
+    let cases = benchmark_report
+        .case_reports
+        .iter()
+        .filter(|case| case.workload_target == workload_target)
+        .collect::<Vec<_>>();
+    if cases.is_empty() {
+        return None;
+    }
+    let direct_case_count = cases
+        .iter()
+        .filter(|case| case.sparse_top_k_selection_state == TassadarExecutorSelectionState::Direct)
+        .count();
+    let fallback_case_count = cases.len().saturating_sub(direct_case_count);
+    let posture = if fallback_case_count == 0 {
+        TassadarCapabilityPosture::Exact
+    } else {
+        TassadarCapabilityPosture::FallbackOnly
+    };
+    let average_speedup_over_reference_linear = round_metric(
+        cases
+            .iter()
+            .map(|case| case.sparse_top_k_speedup_over_reference_linear)
+            .sum::<f64>()
+            / cases.len() as f64,
+    );
+    let average_remaining_gap_vs_cpu_reference = round_metric(
+        cases
+            .iter()
+            .map(|case| case.sparse_top_k_remaining_gap_vs_cpu_reference)
+            .sum::<f64>()
+            / cases.len() as f64,
+    );
+    let average_sparse_vs_hull_speed_ratio = round_metric(
+        cases
+            .iter()
+            .map(|case| {
+                case.sparse_top_k_steps_per_second / case.hull_cache_steps_per_second.max(1e-9)
+            })
+            .sum::<f64>()
+            / cases.len() as f64,
+    );
+    let mut fallback_reason_counts = BTreeMap::new();
+    for case in cases
+        .iter()
+        .filter_map(|case| case.sparse_top_k_selection_reason)
+    {
+        let key = serde_json::to_string(&case)
+            .unwrap_or_else(|_| String::from("\"unknown_selection_reason\""))
+            .trim_matches('"')
+            .to_string();
+        *fallback_reason_counts.entry(key).or_insert(0) += 1;
+    }
+    Some(TassadarSparseTopKWorkloadSummary {
+        workload_target,
+        posture,
+        direct_case_count,
+        fallback_case_count,
+        average_speedup_over_reference_linear,
+        average_remaining_gap_vs_cpu_reference,
+        average_sparse_vs_hull_speed_ratio,
+        fallback_reason_counts,
+        artifact_ref: String::from(TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF),
+    })
+}
+
+/// Builds the SparseTopK comparison report from the committed article-class
+/// benchmark artifact.
+pub fn build_tassadar_sparse_top_k_comparison_report(
+) -> Result<TassadarSparseTopKComparisonReport, TassadarSparseTopKComparisonError> {
+    let benchmark_report =
+        read_repo_json::<TassadarBenchmarkReport>(TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF)
+            .map_err(|error| match error {
+                TassadarWorkloadCapabilityMatrixError::Io(error) => {
+                    TassadarSparseTopKComparisonError::Io(error)
+                }
+                TassadarWorkloadCapabilityMatrixError::Json(error) => {
+                    TassadarSparseTopKComparisonError::Json(error)
+                }
+                TassadarWorkloadCapabilityMatrixError::MissingWorkloadTarget { .. } => {
+                    unreachable!("benchmark report read cannot surface missing workload-target")
+                }
+            })?;
+    let summaries = [
+        TassadarWorkloadTarget::MicroWasmKernel,
+        TassadarWorkloadTarget::BranchHeavyKernel,
+        TassadarWorkloadTarget::MemoryHeavyKernel,
+        TassadarWorkloadTarget::LongLoopKernel,
+        TassadarWorkloadTarget::SudokuClass,
+        TassadarWorkloadTarget::HungarianMatching,
+    ]
+    .into_iter()
+    .filter_map(|workload_target| {
+        build_sparse_top_k_workload_summary(&benchmark_report, workload_target)
+    })
+    .collect::<Vec<_>>();
+    let (exact_workloads, fallback_only_workloads): (Vec<_>, Vec<_>) = summaries
+        .into_iter()
+        .partition(|summary| summary.posture == TassadarCapabilityPosture::Exact);
+    let mut report = TassadarSparseTopKComparisonReport {
+        schema_version: TASSADAR_SPARSE_TOP_K_COMPARISON_SCHEMA_VERSION,
+        exact_workloads,
+        fallback_only_workloads,
+        claim_boundary: String::from(
+            "SparseTopK now has an artifact-backed one-for-one comparison against reference-linear and HullCache on the shared article workload set; branch-heavy, long-loop, and Sudoku search workloads remain explicit fallback-only families under the current validation contract",
+        ),
+        report_digest: String::new(),
+    };
+    report.report_digest = stable_serialized_digest(b"tassadar_sparse_top_k_comparison|", &report);
+    Ok(report)
+}
+
+/// Returns the canonical absolute path for the SparseTopK comparison report.
+#[must_use]
+pub fn tassadar_sparse_top_k_comparison_report_path() -> std::path::PathBuf {
+    eval_repo_root().join(TASSADAR_SPARSE_TOP_K_COMPARISON_REPORT_REF)
+}
+
+/// Writes the canonical SparseTopK comparison report.
+pub fn write_tassadar_sparse_top_k_comparison_report(
+    output_path: impl AsRef<std::path::Path>,
+) -> Result<TassadarSparseTopKComparisonReport, TassadarSparseTopKComparisonError> {
+    let output_path = output_path.as_ref();
+    if let Some(parent) = output_path.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+    let report = build_tassadar_sparse_top_k_comparison_report()?;
+    let bytes = serde_json::to_vec_pretty(&report)?;
+    std::fs::write(output_path, bytes)?;
+    Ok(report)
+}
+
 fn stable_corpus_digest(artifacts: &[TassadarProgramArtifact]) -> String {
     let mut hasher = sha2::Sha256::new();
     hasher.update(b"tassadar_corpus|");
@@ -3017,6 +3205,73 @@ mod tests {
         std::fs::create_dir_all(&temp_dir)?;
         let report_path = temp_dir.join("tassadar_hull_cache_closure_report.json");
         let report = write_tassadar_hull_cache_closure_report(&report_path)?;
+        let bytes = std::fs::read(&report_path)?;
+        let persisted: Value = serde_json::from_slice(&bytes)?;
+        assert_eq!(persisted, serde_json::to_value(&report)?);
+        std::fs::remove_file(&report_path)?;
+        std::fs::remove_dir(&temp_dir)?;
+        Ok(())
+    }
+
+    #[test]
+    fn tassadar_sparse_top_k_comparison_report_tracks_direct_and_fallback_families(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let report = build_tassadar_sparse_top_k_comparison_report()?;
+        assert!(report.exact_workloads.iter().any(|row| {
+            row.workload_target == TassadarWorkloadTarget::MicroWasmKernel
+                && row.direct_case_count == 1
+                && row.fallback_case_count == 0
+        }));
+        assert!(report.exact_workloads.iter().any(|row| {
+            row.workload_target == TassadarWorkloadTarget::MemoryHeavyKernel
+                && row.direct_case_count == 1
+                && row.fallback_case_count == 0
+        }));
+        assert!(report.exact_workloads.iter().any(|row| {
+            row.workload_target == TassadarWorkloadTarget::HungarianMatching
+                && row.direct_case_count == 1
+                && row.fallback_case_count == 0
+        }));
+        assert!(report.fallback_only_workloads.iter().any(|row| {
+            row.workload_target == TassadarWorkloadTarget::BranchHeavyKernel
+                && row.fallback_case_count == 1
+        }));
+        assert!(report.fallback_only_workloads.iter().any(|row| {
+            row.workload_target == TassadarWorkloadTarget::LongLoopKernel
+                && row.fallback_case_count == 1
+        }));
+        assert!(report.fallback_only_workloads.iter().any(|row| {
+            row.workload_target == TassadarWorkloadTarget::SudokuClass
+                && row.fallback_case_count == 8
+        }));
+        Ok(())
+    }
+
+    #[test]
+    fn tassadar_sparse_top_k_comparison_report_matches_committed_truth(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let report = build_tassadar_sparse_top_k_comparison_report()?;
+        let bytes = std::fs::read(
+            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .join("..")
+                .join("..")
+                .join(TASSADAR_SPARSE_TOP_K_COMPARISON_REPORT_REF),
+        )?;
+        let persisted: Value = serde_json::from_slice(&bytes)?;
+        assert_eq!(persisted, serde_json::to_value(&report)?);
+        Ok(())
+    }
+
+    #[test]
+    fn write_tassadar_sparse_top_k_comparison_report_persists_current_truth(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let temp_dir = std::env::temp_dir().join(format!(
+            "psionic-tassadar-eval-sparse-top-k-comparison-{}",
+            std::process::id()
+        ));
+        std::fs::create_dir_all(&temp_dir)?;
+        let report_path = temp_dir.join("tassadar_sparse_top_k_comparison_report.json");
+        let report = write_tassadar_sparse_top_k_comparison_report(&report_path)?;
         let bytes = std::fs::read(&report_path)?;
         let persisted: Value = serde_json::from_slice(&bytes)?;
         assert_eq!(persisted, serde_json::to_value(&report)?);

@@ -195,6 +195,13 @@ The current scope is:
   memory-heavy, and bounded Hungarian families while keeping long-loop and
   Sudoku search workloads explicit as fallback-only under the current
   control-flow contract
+- landed Phase 8B bar: one SparseTopK comparison report now exists in
+  `psionic-eval` at
+  `fixtures/tassadar/reports/tassadar_sparse_top_k_comparison_report.json`,
+  comparing SparseTopK against reference-linear and HullCache on the shared
+  article workload set while keeping branch-heavy, long-loop, and Sudoku
+  search workloads explicit as fallback-only under the current validation
+  contract
 - landed trained-executor Phase 1 follow-on bar: a dedicated
   `tassadar.wasm.sudoku_v0_search.v1` profile now exists with a real 4x4
   backtracking Sudoku program representation on the CPU reference lane, while

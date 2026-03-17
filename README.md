@@ -122,6 +122,12 @@ Current posture:
   `MicroWasmKernel`, `BranchHeavyKernel`, `MemoryHeavyKernel`, and bounded
   `HungarianMatching`, while keeping `LongLoopKernel` and `SudokuClass`
   explicitly fallback-only
+- its Phase 8B `SparseTopK` comparison report now also exists in
+  `psionic-eval`, with the committed report at
+  `fixtures/tassadar/reports/tassadar_sparse_top_k_comparison_report.json`
+  that compares SparseTopK against the same article workload set and keeps
+  `BranchHeavyKernel`, `LongLoopKernel`, and `SudokuClass` explicitly
+  fallback-only under the current validation contract
 - the first trained-executor follow-on bar now also exists in
   `psionic-runtime` and `psionic-models`: a dedicated
   `tassadar.wasm.sudoku_v0_search.v1` profile plus a real 4x4 backtracking

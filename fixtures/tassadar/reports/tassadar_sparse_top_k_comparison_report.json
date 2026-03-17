@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "exact_workloads": [
+    {
+      "workload_target": "micro_wasm_kernel",
+      "posture": "exact",
+      "direct_case_count": 1,
+      "fallback_case_count": 0,
+      "average_speedup_over_reference_linear": 7.954369401445,
+      "average_remaining_gap_vs_cpu_reference": 1.151715250938,
+      "average_sparse_vs_hull_speed_ratio": 0.98069130526,
+      "fallback_reason_counts": {},
+      "artifact_ref": "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+    },
+    {
+      "workload_target": "memory_heavy_kernel",
+      "posture": "exact",
+      "direct_case_count": 1,
+      "fallback_case_count": 0,
+      "average_speedup_over_reference_linear": 3.356037884722,
+      "average_remaining_gap_vs_cpu_reference": 2.167278829558,
+      "average_sparse_vs_hull_speed_ratio": 0.909852440807,
+      "fallback_reason_counts": {},
+      "artifact_ref": "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+    },
+    {
+      "workload_target": "hungarian_matching",
+      "posture": "exact",
+      "direct_case_count": 1,
+      "fallback_case_count": 0,
+      "average_speedup_over_reference_linear": 3.678748293462,
+      "average_remaining_gap_vs_cpu_reference": 1.102225968593,
+      "average_sparse_vs_hull_speed_ratio": 0.977808493885,
+      "fallback_reason_counts": {},
+      "artifact_ref": "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+    }
+  ],
+  "fallback_only_workloads": [
+    {
+      "workload_target": "branch_heavy_kernel",
+      "posture": "fallback_only",
+      "direct_case_count": 0,
+      "fallback_case_count": 1,
+      "average_speedup_over_reference_linear": 1.307070161428,
+      "average_remaining_gap_vs_cpu_reference": 9.766568282698,
+      "average_sparse_vs_hull_speed_ratio": 0.120649775578,
+      "fallback_reason_counts": {
+        "sparse_top_k_validation_unsupported": 1
+      },
+      "artifact_ref": "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+    },
+    {
+      "workload_target": "long_loop_kernel",
+      "posture": "fallback_only",
+      "direct_case_count": 0,
+      "fallback_case_count": 1,
+      "average_speedup_over_reference_linear": 1.000543192875,
+      "average_remaining_gap_vs_cpu_reference": 3603.27129634692,
+      "average_sparse_vs_hull_speed_ratio": 1.002168815823,
+      "fallback_reason_counts": {
+        "sparse_top_k_validation_unsupported": 1
+      },
+      "artifact_ref": "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+    },
+    {
+      "workload_target": "sudoku_class",
+      "posture": "fallback_only",
+      "direct_case_count": 0,
+      "fallback_case_count": 8,
+      "average_speedup_over_reference_linear": 1.001731176496,
+      "average_remaining_gap_vs_cpu_reference": 151.575502633868,
+      "average_sparse_vs_hull_speed_ratio": 0.993493909151,
+      "fallback_reason_counts": {
+        "sparse_top_k_validation_unsupported": 8
+      },
+      "artifact_ref": "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+    }
+  ],
+  "claim_boundary": "SparseTopK now has an artifact-backed one-for-one comparison against reference-linear and HullCache on the shared article workload set; branch-heavy, long-loop, and Sudoku search workloads remain explicit fallback-only families under the current validation contract",
+  "report_digest": "1bfa96ae078f17cc3020b033dca847c4ee5745437e13d8a14909583915f40209"
+}
