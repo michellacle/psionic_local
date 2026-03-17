@@ -1,6 +1,6 @@
 # Psionic
 
-Psionic is a reusable Rust-native machine learning systems workspace.
+Psionic is a Rust-native ML stack.
 
 Its aim is to rebuild core ML infrastructure that is usually spread across
 Python and C++ stacks such as PyTorch into a coherent Rust crate family:
