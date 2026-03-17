@@ -315,13 +315,19 @@ mod tests {
             .expect("missing naming facade row");
         assert_eq!(
             naming.matrix_status,
-            reports::MlxCompatibilityMatrixStatus::Convertible
+            reports::MlxCompatibilityMatrixStatus::Supported
         );
         assert!(
             naming
                 .blocking_issue_refs
                 .iter()
                 .all(|issue| !issue.contains("PMLX-606"))
+        );
+        assert!(
+            naming
+                .blocking_issue_refs
+                .iter()
+                .all(|issue| !issue.contains("PMLX-607"))
         );
         assert!(
             naming

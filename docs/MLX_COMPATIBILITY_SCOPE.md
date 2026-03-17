@@ -60,10 +60,11 @@ claim window beyond the bounded `v0.31.x` release family.
   closure
 
 The first bounded example of that later shell now exists in
-`crates/psionic-mlx-compat`: it is a thin naming and module-layout facade over
-supported Psionic-native array, transform, `nn`, optimizer, `.mlxfn`, and
-distributed surfaces, not a second execution path or a claim of MLX-identical
-signatures.
+`crates/psionic-mlx-compat`, and the first optional binding layer now exists in
+`crates/psionic-mlx-capi`: together they provide a thin naming/module-layout
+facade plus one C ABI over supported Psionic-native array, transform, `nn`,
+optimizer, `.mlxfn`, and distributed surfaces, not a second execution path or
+a claim of MLX-identical signatures.
 
 ## Forbidden Shortcuts
 

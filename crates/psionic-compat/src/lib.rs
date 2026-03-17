@@ -1829,9 +1829,9 @@ pub fn builtin_mlx_compatibility_matrix_report() -> MlxCompatibilityMatrixReport
         },
         MlxCompatibilityMatrixEntry {
             surface_id: String::from("mlx_naming_facade_and_bindings"),
-            matrix_status: MlxCompatibilityMatrixStatus::Convertible,
+            matrix_status: MlxCompatibilityMatrixStatus::Supported,
             summary: String::from(
-                "The optional psionic-mlx-compat crate now exposes a bounded MLX-like module layout and naming facade over supported Psionic-native core, transform, nn, optimizer, io, and distributed surfaces, but Python/C/Swift bindings and broader migration guidance remain later work.",
+                "The optional psionic-mlx-compat and psionic-mlx-capi crates now expose a bounded MLX-like naming facade plus one C ABI binding layer over supported Psionic-native core, transform, nn, optimizer, io, distributed, and compatibility-report surfaces, while broader migration guidance remains later work.",
             ),
             evidence_refs: vec![
                 String::from("psionic-mlx-compat::core::Context"),
@@ -1840,13 +1840,13 @@ pub fn builtin_mlx_compatibility_matrix_report() -> MlxCompatibilityMatrixReport
                 String::from("psionic-mlx-compat::transforms"),
                 String::from("psionic-mlx-compat::io"),
                 String::from("psionic-mlx-compat::distributed"),
+                String::from("psionic-mlx-capi::psionic_mlx_capi_eval_json"),
+                String::from("psionic-mlx-capi::psionic_mlx_capi_compatibility_scope_json"),
+                String::from("psionic-mlx-capi::psionic_mlx_capi_compatibility_matrix_json"),
             ],
-            blocking_issue_refs: vec![
-                String::from("PMLX-607 (#3872)"),
-                String::from("PMLX-608 (#3873)"),
-            ],
+            blocking_issue_refs: vec![String::from("PMLX-608 (#3873)")],
             boundary_note: String::from(
-                "This facade is a thin name and module shim over existing Psionic-native surfaces; it does not imply MLX-identical signatures, missing native semantics, or any Python, C, or Swift binding layer.",
+                "The current binding surface is a thin C ABI over the existing Psionic-native facade with JSON requests and responses for bounded dense array eval and compatibility reports; it does not imply MLX-identical signatures, a broad handle-based runtime API, or dedicated Python or Swift packages.",
             ),
         },
         MlxCompatibilityMatrixEntry {
@@ -2553,13 +2553,19 @@ mod tests {
             .expect("missing naming facade row");
         assert_eq!(
             naming.matrix_status,
-            MlxCompatibilityMatrixStatus::Convertible
+            MlxCompatibilityMatrixStatus::Supported
         );
         assert!(
             naming
                 .blocking_issue_refs
                 .iter()
                 .all(|issue| !issue.contains("PMLX-606"))
+        );
+        assert!(
+            naming
+                .blocking_issue_refs
+                .iter()
+                .all(|issue| !issue.contains("PMLX-607"))
         );
         assert!(
             naming

@@ -10,7 +10,8 @@
 > `PMLX-506` / `#3864`, `PMLX-507` / `#3865`,
 > `PMLX-601` / `#3866`, `PMLX-602` / `#3867`,
 > `PMLX-603` / `#3868`, `PMLX-604` / `#3869`, and
-> `PMLX-605` / `#3870`, and `PMLX-606` / `#3871`,
+> `PMLX-605` / `#3870`, `PMLX-606` / `#3871`, and
+> `PMLX-607` / `#3872`,
 > after reviewing `ROADMAP.md`, `ARCHITECTURE.md`,
 > `FRAMEWORK_CORE_ACCEPTANCE_MATRIX.md`, `TRAIN_SYSTEM.md`,
 > `MLX_COMPATIBILITY_SCOPE.md`, `MLX_ACCEPTANCE_MATRIX.md`,
@@ -557,7 +558,7 @@ MLX claims honest.
 | `PMLX-604` | done (2026-03-17) | `Psionic MLX: add advanced operator-family closure for linalg, fft, fast kernels, and attention helpers` | `psionic-ir` now exposes a bounded advanced operator-family program layer with `GraphBuilder::linalg_gram_matrix(...)`, `signal_naive_dft(...)`, and `attention_rotary_residual_block(...)`, machine-readable `AdvancedOperatorProgramMatrixReport` evidence, and explicit refusal posture for distribution and special-function families that still lack the required primitives, so MLX-facing claims can point at reusable seeded coverage instead of hand-waving advanced math breadth. |
 | `PMLX-605` | done (2026-03-17) | `Psionic MLX: port the upstream MLX C++ and Python test categories into the parity harness` | `psionic-compat` now upgrades the imported `array_core`, `ops_numeric`, and `device_eval_memory` families from tracked placeholders to seeded parity-harness passes, pointing at the bounded `psionic-array` CPU-reference coverage report, availability-aware Metal/CUDA hooks, and repo-local runner scripts so the MLX test-family evidence base is runnable instead of implied. |
 | `PMLX-606` | done (2026-03-17) | `Psionic MLX: add an optional MLX naming facade and module-layout compatibility crate` | `psionic-mlx-compat` now exposes an optional bounded MLX-like module layout over the supported Psionic-native array, transform, `nn`, optimizer, `.mlxfn`, distributed, and report surfaces, including a thin `core::Context` wrapper and explicit compatibility-report access, while still keeping bindings and broader migration guidance for `PMLX-607` and `PMLX-608`. |
-| `PMLX-607` | planned | `Psionic MLX: add optional Python, C, or Swift binding layers above the Rust-native core` | Bindings are explicitly late-surface work and must depend on the native substrate rather than freezing a Python-first architecture into the core. |
+| `PMLX-607` | done (2026-03-17) | `Psionic MLX: add optional Python, C, or Swift binding layers above the Rust-native core` | `psionic-mlx-capi` now exposes a bounded C ABI over `psionic-mlx-compat`, including owned JSON exports for the compatibility reports and one JSON-driven dense-array eval bridge over the native core facade, so later Python or Swift consumers can bind through a real optional surface without pushing any Python-first architecture into the core. |
 | `PMLX-608` | planned | `Psionic MLX: publish an MLX-to-Psionic migration guide, example suite, and bounded compatibility matrix` | Finish the adoption story with examples, migration steps, and explicit supported, convertible, and unsupported tables. |
 
 ## Epic 7: Ecosystem Packages And Service Surfaces
@@ -680,7 +681,7 @@ track in parallel.
 ### Phase 9: only then add bounded compatibility shells, bindings, and migration facades
 
 - `PMLX-606` done 2026-03-17
-- `PMLX-607`
+- `PMLX-607` done 2026-03-17
 - `PMLX-608`
 
 ## Roadmap Rules

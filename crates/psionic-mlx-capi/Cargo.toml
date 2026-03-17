@@ -1,0 +1,21 @@
+[package]
+name = "psionic-mlx-capi"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+publish.workspace = true
+description = "Optional bounded C ABI over psionic-mlx-compat"
+
+[lints]
+workspace = true
+
+[lib]
+path = "src/lib.rs"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+psionic-core = { path = "../psionic-core" }
+psionic-mlx-compat = { path = "../psionic-mlx-compat" }
+serde = { workspace = true }
+serde_json = { workspace = true }

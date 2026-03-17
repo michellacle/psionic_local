@@ -3583,6 +3583,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "psionic-mlx-capi"
+version = "0.1.1"
+dependencies = [
+ "psionic-core",
+ "psionic-mlx-compat",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "psionic-mlx-compat"
 version = "0.1.1"
 dependencies = [
