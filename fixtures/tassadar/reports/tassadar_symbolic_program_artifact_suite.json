@@ -1,0 +1,205 @@
+{
+  "schema_version": 1,
+  "suite_id": "tassadar.symbolic_program_artifact_suite.v0",
+  "report_ref": "fixtures/tassadar/reports/tassadar_symbolic_program_artifact_suite.json",
+  "regeneration_commands": [
+    "cargo run -p psionic-research --example tassadar_symbolic_program_artifact_suite",
+    "cargo test -p psionic-research symbolic_program_artifact_suite_matches_committed_truth -- --nocapture"
+  ],
+  "total_case_count": 5,
+  "covered_workload_families": [
+    "addition",
+    "finite_state",
+    "memory",
+    "parity",
+    "simple_stack_machine"
+  ],
+  "required_workload_families": [
+    "addition",
+    "parity",
+    "finite_state",
+    "simple_stack_machine"
+  ],
+  "required_family_coverage_complete": true,
+  "case_reports": [
+    {
+      "case_id": "addition_pair",
+      "workload_family_id": "addition",
+      "summary": "straight-line bounded addition over two memory-backed inputs",
+      "symbolic_program_id": "tassadar.symbolic.addition_pair.v1",
+      "symbolic_program_digest": "becd9626a21730b3ba09d4db2c499b49dc0e1e973bab0df96b737cf4fa5c232d",
+      "bundle_id": "tassadar.symbolic.addition_pair.v1.symbolic_bundle.8cdd826e17b6.v1",
+      "bundle_digest": "9b78eb27287c8111983de5a5b3d72e9558f8b0000756623282112b585ae36da1",
+      "artifact_id": "tassadar.symbolic.addition_pair.v1.symbolic_artifact.8cdd826e17b6.v1",
+      "artifact_digest": "684959948e20a745206c7dee18fa75041f51e74366193257b86e624317d7bb3b",
+      "source_kind": "symbolic_program",
+      "compiler_family": "tassadar_symbolic_lowering",
+      "compiler_version": "v1",
+      "target_profile_id": "tassadar.wasm.article_i32_compute.v1",
+      "validated_instruction_count": 7,
+      "memory_slots": 2,
+      "local_count": 1,
+      "required_lowering_opcodes": [
+        "i32.load",
+        "local.get",
+        "local.set",
+        "i32.add",
+        "output",
+        "return"
+      ],
+      "expected_outputs": [
+        42
+      ],
+      "expected_final_memory": [
+        19,
+        23
+      ]
+    },
+    {
+      "case_id": "parity_two_bits",
+      "workload_family_id": "parity",
+      "summary": "two-bit parity over a bounded symbolic arithmetic/comparison subset",
+      "symbolic_program_id": "tassadar.symbolic.parity_two_bits.v1",
+      "symbolic_program_digest": "0154932a8fb3ab87c0bbbacdd070042fc365f9213b9f972d082dfa91f7fd127d",
+      "bundle_id": "tassadar.symbolic.parity_two_bits.v1.symbolic_bundle.1a3c3b18b22e.v1",
+      "bundle_digest": "8c91890c2a723e2e4aa6e764a27c3946ab1975fea5719fbcc5771d379313c19c",
+      "artifact_id": "tassadar.symbolic.parity_two_bits.v1.symbolic_artifact.1a3c3b18b22e.v1",
+      "artifact_digest": "e3e05d6a21723f8c047643a4991f8ea50dcbf06028278dbf46c69111b4f38533",
+      "source_kind": "symbolic_program",
+      "compiler_family": "tassadar_symbolic_lowering",
+      "compiler_version": "v1",
+      "target_profile_id": "tassadar.wasm.article_i32_compute.v1",
+      "validated_instruction_count": 19,
+      "memory_slots": 2,
+      "local_count": 4,
+      "required_lowering_opcodes": [
+        "i32.const",
+        "i32.load",
+        "local.get",
+        "local.set",
+        "i32.add",
+        "i32.sub",
+        "i32.lt",
+        "output",
+        "return"
+      ],
+      "expected_outputs": [
+        1
+      ],
+      "expected_final_memory": [
+        1,
+        0
+      ]
+    },
+    {
+      "case_id": "memory_accumulator",
+      "workload_family_id": "memory",
+      "summary": "bounded memory read-write accumulator over one seeded constant cell",
+      "symbolic_program_id": "tassadar.symbolic.memory_accumulator.v1",
+      "symbolic_program_digest": "4bd6ebcfac7e4beacac5fde051c9926e6aa4fbd82f22c690dc6d79d769ff7222",
+      "bundle_id": "tassadar.symbolic.memory_accumulator.v1.symbolic_bundle.06de40b371be.v1",
+      "bundle_digest": "a35579c87af80577aea622b474416a035afd16dbf2b4ee15ecf092a049a6fe6c",
+      "artifact_id": "tassadar.symbolic.memory_accumulator.v1.symbolic_artifact.06de40b371be.v1",
+      "artifact_digest": "f65e7acf8dd68f884d9179df6f7dfedce2a59b78f94722e5e8f3fd60c412b480",
+      "source_kind": "symbolic_program",
+      "compiler_family": "tassadar_symbolic_lowering",
+      "compiler_version": "v1",
+      "target_profile_id": "tassadar.wasm.article_i32_compute.v1",
+      "validated_instruction_count": 9,
+      "memory_slots": 3,
+      "local_count": 1,
+      "required_lowering_opcodes": [
+        "i32.load",
+        "i32.store",
+        "local.get",
+        "local.set",
+        "i32.add",
+        "output",
+        "return"
+      ],
+      "expected_outputs": [
+        17
+      ],
+      "expected_final_memory": [
+        7,
+        0,
+        17
+      ]
+    },
+    {
+      "case_id": "finite_state_counter",
+      "workload_family_id": "finite_state",
+      "summary": "bounded finite-state counter transition with explicit state update",
+      "symbolic_program_id": "tassadar.symbolic.finite_state_counter.v1",
+      "symbolic_program_digest": "4049786b7d3eda87ea6637bd18cbee6c1c518e43649ace0e66a70a45755b9823",
+      "bundle_id": "tassadar.symbolic.finite_state_counter.v1.symbolic_bundle.18fc8cc3520f.v1",
+      "bundle_digest": "1c8f834d1b27ddf0f8bdf3a3f8d396aad7323ba19294e4cd0178ce7a75b38950",
+      "artifact_id": "tassadar.symbolic.finite_state_counter.v1.symbolic_artifact.18fc8cc3520f.v1",
+      "artifact_digest": "c81c25e2c11e15c828f66601b3516c211461020e0c9155f4986eae0f4d76e6b0",
+      "source_kind": "symbolic_program",
+      "compiler_family": "tassadar_symbolic_lowering",
+      "compiler_version": "v1",
+      "target_profile_id": "tassadar.wasm.article_i32_compute.v1",
+      "validated_instruction_count": 13,
+      "memory_slots": 1,
+      "local_count": 2,
+      "required_lowering_opcodes": [
+        "i32.const",
+        "i32.load",
+        "i32.store",
+        "local.get",
+        "local.set",
+        "i32.add",
+        "i32.lt",
+        "output",
+        "return"
+      ],
+      "expected_outputs": [
+        2
+      ],
+      "expected_final_memory": [
+        2
+      ]
+    },
+    {
+      "case_id": "stack_machine_add_step",
+      "workload_family_id": "simple_stack_machine",
+      "summary": "bounded stack-machine add step over the top two stack cells",
+      "symbolic_program_id": "tassadar.symbolic.stack_machine_add_step.v1",
+      "symbolic_program_digest": "84272f5124d12167261fb30251ebe160ba47f62b8debffdb3a960fb3c634dea4",
+      "bundle_id": "tassadar.symbolic.stack_machine_add_step.v1.symbolic_bundle.ae7ede8bcb66.v1",
+      "bundle_digest": "930708f923a64e03de151683e02f7f75115d1f626673702dbd011cf6df0102a5",
+      "artifact_id": "tassadar.symbolic.stack_machine_add_step.v1.symbolic_artifact.ae7ede8bcb66.v1",
+      "artifact_digest": "9b827d309b0d6ab2d3cb68fb721e2c8a1b2e0723cdf9f099cf75e5776ab891cc",
+      "source_kind": "symbolic_program",
+      "compiler_family": "tassadar_symbolic_lowering",
+      "compiler_version": "v1",
+      "target_profile_id": "tassadar.wasm.article_i32_compute.v1",
+      "validated_instruction_count": 17,
+      "memory_slots": 3,
+      "local_count": 2,
+      "required_lowering_opcodes": [
+        "i32.const",
+        "i32.load",
+        "i32.store",
+        "local.get",
+        "local.set",
+        "i32.add",
+        "i32.sub",
+        "output",
+        "return"
+      ],
+      "expected_outputs": [
+        12
+      ],
+      "expected_final_memory": [
+        12,
+        0,
+        1
+      ]
+    }
+  ],
+  "claim_class": "compiled_bounded_exactness",
+  "claim_boundary": "this suite freezes the first public program-to-artifact compiler lane for bounded straight-line symbolic programs only; it proves digest-bound runtime artifacts plus explicit expected execution manifests on seeded addition, parity, finite-state, memory, and simple stack-machine cases, and does not imply arbitrary Wasm or learned generalization",
+  "report_digest": "84e8431b072c2d68052d3134a3a443d49d5abe8be90b4acf9e4adc8d762a6610"
+}

@@ -53,7 +53,7 @@ mod tests {
         let suite = tassadar_symbolic_program_suite();
         assert_eq!(suite.language_id, "tassadar.symbolic_executor_ir.v1");
         assert_eq!(suite.claim_class, "compiled_bounded_exactness");
-        assert_eq!(suite.programs.len(), 3);
+        assert_eq!(suite.programs.len(), 5);
 
         let encoded = serde_json::to_value(&suite).expect("suite should serialize");
         let case_ids = encoded["programs"]
@@ -64,7 +64,13 @@ mod tests {
             .collect::<Vec<_>>();
         assert_eq!(
             case_ids,
-            vec!["addition_pair", "parity_two_bits", "memory_accumulator"]
+            vec![
+                "addition_pair",
+                "parity_two_bits",
+                "memory_accumulator",
+                "finite_state_counter",
+                "stack_machine_add_step",
+            ]
         );
     }
 

@@ -793,6 +793,20 @@ pub fn tassadar_symbolic_program_examples() -> Vec<TassadarSymbolicProgramExampl
             input_assignments(&[("value", 7)]),
             "bounded straight-line symbolic lowering covers explicit memory-slot reads and writes on the declared subset only; it does not imply wider memory-model closure",
         ),
+        (
+            "finite_state_counter",
+            "bounded finite-state counter transition with explicit state update",
+            FINITE_STATE_COUNTER_PROGRAM,
+            input_assignments(&[("state", 1)]),
+            "bounded straight-line symbolic lowering covers one explicit finite-state transition over declared state slots only; it does not imply general automata closure, loops, or arbitrary control flow",
+        ),
+        (
+            "stack_machine_add_step",
+            "bounded stack-machine add step over the top two stack cells",
+            STACK_MACHINE_ADD_STEP_PROGRAM,
+            input_assignments(&[("stack_top", 5), ("stack_next", 7), ("stack_pointer", 2)]),
+            "bounded straight-line symbolic lowering covers one explicit stack-machine step over declared stack cells only; it does not imply general subroutine, recursion, or arbitrary stack semantics",
+        ),
     ];
 
     cases
@@ -851,6 +865,32 @@ init slot(2) = 10
 let total = add(value, slot(2))
 store slot(2) = total
 output total
+"#;
+
+const FINITE_STATE_COUNTER_PROGRAM: &str = r#"
+program tassadar.symbolic.finite_state_counter.v1
+profile tassadar.wasm.article_i32_compute.v1
+memory_slots 1
+input state = slot(0)
+let can_advance = lt(state, const(2))
+let next_state = add(state, can_advance)
+store slot(0) = next_state
+output next_state
+"#;
+
+const STACK_MACHINE_ADD_STEP_PROGRAM: &str = r#"
+program tassadar.symbolic.stack_machine_add_step.v1
+profile tassadar.wasm.article_i32_compute.v1
+memory_slots 3
+input stack_top = slot(0)
+input stack_next = slot(1)
+input stack_pointer = slot(2)
+let summed = add(stack_top, stack_next)
+let next_stack_pointer = sub(stack_pointer, const(1))
+store slot(0) = summed
+store slot(1) = const(0)
+store slot(2) = next_stack_pointer
+output summed
 "#;
 
 fn input_assignments(pairs: &[(&str, i32)]) -> BTreeMap<String, i32> {
@@ -1169,7 +1209,7 @@ mod tests {
     #[test]
     fn symbolic_program_examples_parse_and_evaluate() {
         let examples = tassadar_symbolic_program_examples();
-        assert_eq!(examples.len(), 3);
+        assert_eq!(examples.len(), 5);
 
         for example in examples {
             assert_eq!(

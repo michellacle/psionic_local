@@ -2154,6 +2154,8 @@ impl TassadarProgram {
 pub enum TassadarProgramSourceKind {
     /// Hand-authored fixture or reference program checked into the repo.
     Fixture,
+    /// Lowered from the bounded symbolic compiler-target IR.
+    SymbolicProgram,
     /// Lowered from a C source file.
     CSource,
     /// Lowered from Rust or a Rust-adjacent source program.
@@ -10607,6 +10609,20 @@ mod tests {
             artifact.opcode_vocabulary_digest,
             profile.opcode_vocabulary_digest()
         );
+    }
+
+    #[test]
+    fn program_source_identity_supports_symbolic_program_kind() {
+        let source_identity = TassadarProgramSourceIdentity::new(
+            TassadarProgramSourceKind::SymbolicProgram,
+            "tassadar.symbolic.counter.v1",
+            "sha256:symbolic-program",
+        );
+        let encoded =
+            serde_json::to_value(&source_identity).expect("source identity should serialize");
+        assert_eq!(encoded["source_kind"], "symbolic_program");
+        assert_eq!(encoded["source_name"], "tassadar.symbolic.counter.v1");
+        assert_eq!(encoded["source_digest"], "sha256:symbolic-program");
     }
 
     #[test]
