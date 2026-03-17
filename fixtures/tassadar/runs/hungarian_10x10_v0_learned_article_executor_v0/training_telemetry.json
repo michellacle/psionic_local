@@ -1,0 +1,34 @@
+{
+  "run_id": "tassadar-executor-transformer-hungarian-10x10-article-learned-run-v0",
+  "dataset_storage_key": "oa.tassadar.hungarian_10x10.sequence.hungarian_assignment_frontier@trace-family-v1",
+  "dataset_digest": "7406b2368e765c6b25823924cb4ff674665651d91fcd5a5b2af986d36ed81bde",
+  "training_manifest_digest": "a2abb63a79dfd8c69557f2d87425223b22ec22f4bce15e656ed3a15607f57fc9",
+  "trained_model_descriptor_digest": "2d9a6dd22e5857be070b680e14397f6d58290a216742132018f7e8a8305bb2c2",
+  "trained_weight_digest": "fd5c9f30cce348ae7546a10328b47d7bf084d549d6364c04af7ed0b13b57857c",
+  "checkpoint_manifest_digest": "7d9821a1867bdc0f5f34b0193553a7c4b74e530bc718253f7ab9ab665dbcc338",
+  "step_reports": [
+    {
+      "global_step_index": 0,
+      "epoch_index": 0,
+      "batch_id": "0e303724beec6faa60a34a2efe2d03c09ae75d16a740d30196a6abf218583d40",
+      "sequence_ids": [
+        "tassadar.sequence.hungarian_10x10_train_a.hungarian_assignment_frontier",
+        "tassadar.sequence.hungarian_10x10_train_b.hungarian_assignment_frontier",
+        "tassadar.sequence.hungarian_10x10_validation_a.hungarian_assignment_frontier",
+        "tassadar.sequence.hungarian_10x10_test_a.hungarian_assignment_frontier"
+      ],
+      "mean_loss_milli": 0,
+      "target_token_count": 676,
+      "cumulative_target_token_count": 676
+    }
+  ],
+  "epoch_reports": [
+    {
+      "epoch_index": 0,
+      "step_count": 1,
+      "mean_loss_milli": 0,
+      "target_token_count": 676
+    }
+  ],
+  "report_digest": "fcf1352ed751bbed9c29093e41c6709abebe75d1b2ec4fa7595fa57991d2ac94"
+}

@@ -436,10 +436,10 @@ Current posture:
   does not change the compiled Hungarian closure claim
 - the repo now also carries the explicit learned long-horizon refusal policy at
   `fixtures/tassadar/reports/tassadar_learned_horizon_policy_report.json`,
-  which freezes `unsupported_horizon` for million-step/article-class learned
-  traces until an exact learned long-horizon benchmark bundle exists; this
-  keeps the acceptance language honest instead of leaving the learned horizon
-  limit implicit
+  which now anchors the learned article-class bar to the exact committed
+  Hungarian-10x10 benchmark corpus while still keeping broader learned
+  long-horizon widening explicit; this keeps the acceptance language honest
+  instead of leaving the learned horizon limit implicit
 - the separate post-audit Phase 19 bar now also exists in `psionic-runtime`,
   `psionic-models`, `psionic-eval`, `psionic-research`, and a canonical
   exact compiled 9x9 bundle at
@@ -490,11 +490,11 @@ Current posture:
   `fixtures/tassadar/reports/tassadar_acceptance_report.json` plus one
   checker command at `scripts/check-tassadar-acceptance.sh`; that report keeps
   current bounded compiled, bounded learned, research-only, bounded fast-path,
-  and still-red article-class truth explicit in one place
+  and now-green learned article-class truth explicit in one place
 - the repo now also carries the final article-parity closeout audit at
   `docs/audits/2026-03-17-tassadar-article-parity-closeout-audit.md`; it is
-  explicitly subordinate to the acceptance report and remains red until the
-  learned article-class lane turns green
+  explicitly subordinate to the acceptance report and now records the green
+  article-parity closeout at the committed benchmark-corpus scope
 - the repo now also carries one machine-readable Tassadar Wasm
   instruction-coverage report at
   `fixtures/tassadar/reports/tassadar_wasm_instruction_coverage_report.json`,

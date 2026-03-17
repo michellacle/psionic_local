@@ -1,0 +1,22 @@
+{
+  "dataset_storage_key": "oa.tassadar.hungarian_10x10.sequence.hungarian_assignment_frontier@trace-family-v1",
+  "dataset_digest": "7406b2368e765c6b25823924cb4ff674665651d91fcd5a5b2af986d36ed81bde",
+  "split": "validation",
+  "claim_boundary": "greedy_decode_unvalidated",
+  "aggregate_target_token_exactness_bps": 10000,
+  "first_target_exactness_bps": 10000,
+  "first_8_token_exactness_bps": 10000,
+  "first_32_token_exactness_bps": 10000,
+  "exact_trace_case_count": 1,
+  "case_reports": [
+    {
+      "sequence_id": "tassadar.sequence.hungarian_10x10_validation_a.hungarian_assignment_frontier",
+      "case_id": "hungarian_10x10_validation_a",
+      "first_target_exactness_bps": 10000,
+      "first_8_token_exactness_bps": 10000,
+      "first_32_token_exactness_bps": 10000,
+      "exact_trace_match": true
+    }
+  ],
+  "report_digest": "f16993d1545cffa1f353150447507d887f701c4aa3b3b47c3c680a91a226139d"
+}

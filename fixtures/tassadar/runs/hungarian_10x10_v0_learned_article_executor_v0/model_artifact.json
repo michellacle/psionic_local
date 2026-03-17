@@ -1,0 +1,216 @@
+{
+  "artifact_id": "tassadar-executor-transformer-hungarian-10x10-v0.model_artifact",
+  "run_id": "tassadar-executor-transformer-hungarian-10x10-article-learned-run-v0",
+  "descriptor": {
+    "model": {
+      "model_id": "tassadar-executor-transformer-hungarian-10x10-v0",
+      "family": "tassadar_executor_transformer",
+      "revision": "v0"
+    },
+    "executor_family": "wasm_trace_executor",
+    "profile": {
+      "profile_id": "tassadar.wasm.hungarian_10x10_matching.v1",
+      "allowed_opcodes": [
+        "i32_const",
+        "local_get",
+        "local_set",
+        "i32_add",
+        "i32_sub",
+        "i32_mul",
+        "i32_lt",
+        "i32_load",
+        "i32_store",
+        "br_if",
+        "output",
+        "return"
+      ],
+      "max_locals": 16,
+      "max_memory_slots": 64,
+      "max_program_len": 8192,
+      "max_steps": 262144,
+      "branch_mode": "br_if_non_zero",
+      "host_output_opcode": true
+    },
+    "trace_abi": {
+      "abi_id": "tassadar.trace.v1",
+      "schema_version": 1,
+      "profile_id": "tassadar.wasm.hungarian_10x10_matching.v1",
+      "append_only": true,
+      "includes_stack_snapshots": true,
+      "includes_local_snapshots": true,
+      "includes_memory_snapshots": true
+    },
+    "supported_decode_modes": [
+      "reference_linear",
+      "hull_cache"
+    ],
+    "attention_mode": "hard_max_lookup",
+    "attention_geometry": {
+      "constrained_lookup_head_dim": 2,
+      "hull_cache_eligible": true
+    },
+    "claim_boundary": "greedy_decode_unvalidated",
+    "trainable_surface": "output_head_embeddings_and_small_learned_mixer",
+    "config": {
+      "vocab_size": 303,
+      "max_sequence_tokens": 262144,
+      "embedding_dim": 32,
+      "context_offsets": [
+        1,
+        2,
+        4,
+        8,
+        16,
+        32,
+        64
+      ],
+      "constrained_lookup_head_dim": 2,
+      "prompt_summary_bucket_count": 4096
+    },
+    "weights": {
+      "format": "ProgrammaticFixture",
+      "source": "Fixture",
+      "quantization": "none",
+      "digest": "fd5c9f30cce348ae7546a10328b47d7bf084d549d6364c04af7ed0b13b57857c",
+      "tensors": [
+        {
+          "name": "head_offsets",
+          "shape": {
+            "dims": [
+              7
+            ]
+          },
+          "dtype": "F32",
+          "quantization": "none"
+        },
+        {
+          "name": "output_bias",
+          "shape": {
+            "dims": [
+              303
+            ]
+          },
+          "dtype": "F32",
+          "quantization": "none"
+        },
+        {
+          "name": "output_projection",
+          "shape": {
+            "dims": [
+              288,
+              303
+            ]
+          },
+          "dtype": "F32",
+          "quantization": "none"
+        },
+        {
+          "name": "position_embeddings",
+          "shape": {
+            "dims": [
+              262144,
+              32
+            ]
+          },
+          "dtype": "F32",
+          "quantization": "none"
+        },
+        {
+          "name": "prompt_summary_embeddings",
+          "shape": {
+            "dims": [
+              4096,
+              32
+            ]
+          },
+          "dtype": "F32",
+          "quantization": "none"
+        },
+        {
+          "name": "prompt_summary_target_output_bias_row_keys",
+          "shape": {
+            "dims": [
+              676,
+              2
+            ]
+          },
+          "dtype": "F32",
+          "quantization": "none"
+        },
+        {
+          "name": "prompt_summary_target_output_bias_row_values",
+          "shape": {
+            "dims": [
+              676,
+              303
+            ]
+          },
+          "dtype": "F32",
+          "quantization": "none"
+        },
+        {
+          "name": "relative_target_trace_schema_output_bias",
+          "shape": {
+            "dims": [
+              17,
+              303
+            ]
+          },
+          "dtype": "F32",
+          "quantization": "none"
+        },
+        {
+          "name": "small_learned_mixer_bias",
+          "shape": {
+            "dims": [
+              288
+            ]
+          },
+          "dtype": "F32",
+          "quantization": "none"
+        },
+        {
+          "name": "small_learned_mixer_projection",
+          "shape": {
+            "dims": [
+              288,
+              288
+            ]
+          },
+          "dtype": "F32",
+          "quantization": "none"
+        },
+        {
+          "name": "token_embeddings",
+          "shape": {
+            "dims": [
+              303,
+              32
+            ]
+          },
+          "dtype": "F32",
+          "quantization": "none"
+        }
+      ],
+      "artifacts": []
+    }
+  },
+  "training_report_digest": "3afb1a9bfc417838df81cf73fad82e4fe4f360e05d0600b82ffe70ce22479aa7",
+  "checkpoint_manifest": {
+    "stream_id": "checkpoint://tassadar-executor-transformer-hungarian-10x10-article-learned-run-v0.checkpoint.epoch_0000",
+    "manifest_digest": "7d9821a1867bdc0f5f34b0193553a7c4b74e530bc718253f7ab9ab665dbcc338",
+    "subject": "checkpoint",
+    "object_digest": "a12940636ec1d747e7075d275346ad327dd3814f2839a2538a5b78141e0345e4",
+    "total_bytes": 25687727,
+    "chunk_count": 6272,
+    "chunk_bytes": 4096,
+    "encoding": "raw_binary",
+    "provenance_digest": "a6d0194d64438109e160a0f4221fe61453805021fc2fc63c3f56b14c766264ae",
+    "checkpoint_binding": {
+      "checkpoint_family": "train.tassadar.executor_transformer",
+      "checkpoint_ref": "checkpoint://tassadar-executor-transformer-hungarian-10x10-article-learned-run-v0.checkpoint.epoch_0000",
+      "step": 1
+    }
+  },
+  "artifact_digest": "87cb22b9cc02e955d54529405986fcc4ba47bb12073243836891e653c7c6f7fc"
+}

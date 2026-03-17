@@ -1,0 +1,218 @@
+{
+  "run_id": "tassadar-executor-transformer-hungarian-10x10-article-learned-run-v0",
+  "dataset_storage_key": "oa.tassadar.hungarian_10x10.sequence.hungarian_assignment_frontier@trace-family-v1",
+  "dataset_digest": "7406b2368e765c6b25823924cb4ff674665651d91fcd5a5b2af986d36ed81bde",
+  "trained_model_descriptor_digest": "2d9a6dd22e5857be070b680e14397f6d58290a216742132018f7e8a8305bb2c2",
+  "checkpoint_manifest_digest": "7d9821a1867bdc0f5f34b0193553a7c4b74e530bc718253f7ab9ab665dbcc338",
+  "samples": [
+    {
+      "case_id": "hungarian_10x10_test_a",
+      "split": "test",
+      "first_divergence_index": 7,
+      "target_token_exactness_bps": 0,
+      "final_output_match": false,
+      "halt_match": true,
+      "reference_window_token_ids": [
+        47,
+        47,
+        47,
+        13,
+        47,
+        47,
+        47,
+        47,
+        14
+      ],
+      "predicted_window_token_ids": [
+        47,
+        47,
+        47,
+        13,
+        57,
+        47,
+        47,
+        47,
+        14
+      ],
+      "reference_window_tokens": [
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<pc>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<next_pc>"
+      ],
+      "predicted_window_tokens": [
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<pc>",
+        "<byte_0a>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<next_pc>"
+      ]
+    },
+    {
+      "case_id": "hungarian_10x10_train_a",
+      "split": "train",
+      "first_divergence_index": 7,
+      "target_token_exactness_bps": 0,
+      "final_output_match": false,
+      "halt_match": true,
+      "reference_window_token_ids": [
+        47,
+        47,
+        47,
+        13,
+        47,
+        47,
+        47,
+        47,
+        14
+      ],
+      "predicted_window_token_ids": [
+        47,
+        47,
+        47,
+        13,
+        57,
+        47,
+        47,
+        47,
+        14
+      ],
+      "reference_window_tokens": [
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<pc>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<next_pc>"
+      ],
+      "predicted_window_tokens": [
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<pc>",
+        "<byte_0a>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<next_pc>"
+      ]
+    },
+    {
+      "case_id": "hungarian_10x10_train_b",
+      "split": "train",
+      "first_divergence_index": 7,
+      "target_token_exactness_bps": 0,
+      "final_output_match": false,
+      "halt_match": true,
+      "reference_window_token_ids": [
+        47,
+        47,
+        47,
+        13,
+        47,
+        47,
+        47,
+        47,
+        14
+      ],
+      "predicted_window_token_ids": [
+        47,
+        47,
+        47,
+        13,
+        57,
+        47,
+        47,
+        47,
+        14
+      ],
+      "reference_window_tokens": [
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<pc>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<next_pc>"
+      ],
+      "predicted_window_tokens": [
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<pc>",
+        "<byte_0a>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<next_pc>"
+      ]
+    },
+    {
+      "case_id": "hungarian_10x10_validation_a",
+      "split": "validation",
+      "first_divergence_index": 7,
+      "target_token_exactness_bps": 0,
+      "final_output_match": false,
+      "halt_match": true,
+      "reference_window_token_ids": [
+        47,
+        47,
+        47,
+        13,
+        47,
+        47,
+        47,
+        47,
+        14
+      ],
+      "predicted_window_token_ids": [
+        47,
+        47,
+        47,
+        13,
+        57,
+        47,
+        47,
+        47,
+        14
+      ],
+      "reference_window_tokens": [
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<pc>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<next_pc>"
+      ],
+      "predicted_window_tokens": [
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<pc>",
+        "<byte_0a>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<next_pc>"
+      ]
+    }
+  ],
+  "report_digest": "fc9ea160eed20d281c899c9246d5b69cc02561869d8b5de6f26391bf2c75a7d6"
+}

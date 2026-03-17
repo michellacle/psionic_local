@@ -1,0 +1,77 @@
+{
+  "dataset_storage_key": "oa.tassadar.hungarian_10x10.sequence.hungarian_assignment_frontier@trace-family-v1",
+  "dataset_digest": "7406b2368e765c6b25823924cb4ff674665651d91fcd5a5b2af986d36ed81bde",
+  "split": "validation",
+  "claim_boundary": "greedy_decode_unvalidated",
+  "aggregate_metrics": [
+    {
+      "family": "instruction_pointer",
+      "target_token_count": 10,
+      "matched_token_count": 10,
+      "exactness_bps": 10000
+    },
+    {
+      "family": "branch_outcome",
+      "target_token_count": 0,
+      "matched_token_count": 0,
+      "exactness_bps": 0
+    },
+    {
+      "family": "stack_delta",
+      "target_token_count": 12,
+      "matched_token_count": 12,
+      "exactness_bps": 10000
+    },
+    {
+      "family": "memory_diff",
+      "target_token_count": 0,
+      "matched_token_count": 0,
+      "exactness_bps": 0
+    },
+    {
+      "family": "workload_specific_state",
+      "target_token_count": 0,
+      "matched_token_count": 0,
+      "exactness_bps": 0
+    }
+  ],
+  "case_reports": [
+    {
+      "sequence_id": "tassadar.sequence.hungarian_10x10_validation_a.hungarian_assignment_frontier",
+      "case_id": "hungarian_10x10_validation_a",
+      "metrics": [
+        {
+          "family": "instruction_pointer",
+          "target_token_count": 10,
+          "matched_token_count": 10,
+          "exactness_bps": 10000
+        },
+        {
+          "family": "branch_outcome",
+          "target_token_count": 0,
+          "matched_token_count": 0,
+          "exactness_bps": 0
+        },
+        {
+          "family": "stack_delta",
+          "target_token_count": 12,
+          "matched_token_count": 12,
+          "exactness_bps": 10000
+        },
+        {
+          "family": "memory_diff",
+          "target_token_count": 0,
+          "matched_token_count": 0,
+          "exactness_bps": 0
+        },
+        {
+          "family": "workload_specific_state",
+          "target_token_count": 0,
+          "matched_token_count": 0,
+          "exactness_bps": 0
+        }
+      ]
+    }
+  ],
+  "report_digest": "5c16ce75544b1b32ed75fc8ce38ff870c0e2cf2f5b4c1cbfd0274d6a1df31272"
+}

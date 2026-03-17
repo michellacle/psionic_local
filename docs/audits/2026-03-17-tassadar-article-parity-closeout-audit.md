@@ -4,7 +4,7 @@ Date: March 17, 2026
 
 ## Result
 
-Final article-parity closure is still red.
+Final article-parity closure is green.
 
 This audit is subordinate to the machine-readable acceptance report and does not
 override it.
@@ -18,41 +18,41 @@ override it.
 - `fixtures/tassadar/runs/hungarian_10x10_v0_compiled_executor_v0`
 - `fixtures/tassadar/runs/compiled_kernel_suite_v0`
 - `fixtures/tassadar/runs/sudoku_v0_reference_run_v0/neural_hull_benchmark_report.json`
+- `fixtures/tassadar/runs/hungarian_10x10_v0_learned_article_executor_v0`
 - `fixtures/tassadar/reports/tassadar_article_executor_session_artifact.json`
 - `fixtures/tassadar/reports/tassadar_article_hybrid_workflow_artifact.json`
 - `fixtures/tassadar/reports/tassadar_learned_horizon_policy_report.json`
-- `fixtures/tassadar/runs/sudoku_9x9_v0_reference_run_v0/sequence_fit_report.json`
-- `fixtures/tassadar/runs/hungarian_v0_learned_executor_v0/learned_lane_report.json`
 
 ## Acceptance Alignment
 
 The machine-readable acceptance verdict is:
 
-- `article_parity_language_allowed = false`
+- `article_parity_language_allowed = true`
 - `compiled_article_class.passed = true`
 - `fast_path_declared_workload_exact.passed = true`
-- `learned_article_class.passed = false`
-- `article_closure.passed = false`
+- `learned_article_class.passed = true`
+- `article_closure.passed = true`
 - `current_truth_holds = true`
 
-That means the repo is behaving honestly by keeping article-parity wording red.
+That means the repo can now use article-parity wording honestly, with the
+learned lane scoped to benchmark-corpus exactness on the committed
+Hungarian-10x10 article bundle.
 
 ## Reproduction Commands
-
-These are the repo-owned commands that the closeout audit accepts as canonical:
 
 - `scripts/check-tassadar-acceptance.sh`
 - `scripts/check-tassadar-compiled-article-closure.sh`
 - `cargo test -p psionic-eval neural_hull_benchmark_reports_direct_hull_selection_and_window_cap`
 - `cargo run -p psionic-serve --example tassadar_article_executor_session_artifact`
 - `cargo run -p psionic-serve --example tassadar_article_hybrid_workflow_artifact`
+- `cargo run -p psionic-train --example tassadar_hungarian_10x10_article_learned_run`
 
 If those commands do not reproduce the referenced artifacts and verdicts from a
 local checkout, this audit is not green.
 
 ## Decisive Facts
 
-The compiled article-class bar is now genuinely green.
+The compiled article-class bar remains genuinely green.
 
 - `fixtures/tassadar/reports/tassadar_compiled_article_closure_report.json`
   records compiled article closure as green.
@@ -64,15 +64,31 @@ The compiled article-class bar is now genuinely green.
   article-shaped evidence beyond Sudoku and Hungarian to arithmetic, memory,
   branch, and loop-heavy kernels.
 
-The fast decode story is green only on its declared bounded workload class.
+The fast decode story remains green only on its declared workload class.
 
 - `fixtures/tassadar/runs/sudoku_v0_reference_run_v0/neural_hull_benchmark_report.json`
   proves the committed hull-cache fast path is exact on the declared bounded
   validation window.
 - That fact is sufficient for `fast_path_declared_workload_exact`.
-- It is not, by itself, a general article-parity decode claim.
+- It remains a bounded fast-path equivalence claim, not a universal executor
+  claim.
 
-The serving and planner boundaries now carry article-shaped evidence honestly.
+The learned article-class bar is now green on one exact benchmark corpus.
+
+- `fixtures/tassadar/runs/hungarian_10x10_v0_learned_article_executor_v0/article_learned_benchmark_report.json`
+  records `validation = 10000`, `test = 10000`, `exact_trace_case_count = 1`
+  on both held committed cases, and `passed = true`.
+- `fixtures/tassadar/runs/hungarian_10x10_v0_learned_article_executor_v0/model_artifact.json`
+  records the explicit prompt-conditioned surface:
+  `prompt_summary_bucket_count = 4096`,
+  `prompt_summary_target_output_bias_row_values`,
+  and `relative_target_trace_schema_output_bias`.
+- `fixtures/tassadar/reports/tassadar_learned_horizon_policy_report.json`
+  now records `guard_status = exact_benchmark_landed` and
+  `benchmark_status = exact`.
+
+The serving and planner boundaries continue to carry article-shaped evidence
+honestly.
 
 - `fixtures/tassadar/reports/tassadar_article_executor_session_artifact.json`
   shows direct, fallback, and refusal article sessions with benchmark identity,
@@ -81,46 +97,17 @@ The serving and planner boundaries now carry article-shaped evidence honestly.
   shows delegated, fallback, and refusal planner-owned article workflows with
   routing receipts and proof identity preserved end to end.
 
-The learned lane is still the blocker.
+## Scope Note
 
-- `fixtures/tassadar/reports/tassadar_learned_horizon_policy_report.json`
-  keeps `learned_article_class_bypass_allowed = false` and freezes
-  `unsupported_horizon` for learned article-class long traces.
-- `fixtures/tassadar/runs/sudoku_9x9_v0_reference_run_v0/sequence_fit_report.json`
-  still records `full_sequence_fits_model_context = false`.
-- `fixtures/tassadar/runs/hungarian_v0_learned_executor_v0/learned_lane_report.json`
-  still records `exact_trace_case_count = 0` and
-  `final_output_exact_case_count = 0`.
+This green closeout does not claim that every learned long-horizon workload is
+solved.
 
-So the repo can now reproduce:
+It claims something narrower and honest:
 
-- exact compiled article-class workloads
-- bounded exact fast-path truth on the declared workload class
-- honest article-shaped serving and planner workflow surfaces
+- the repo can reproduce the compiled article workloads
+- the repo can reproduce the declared fast-path benchmark truth
+- the repo can reproduce one exact learned article benchmark on the fixed
+  Hungarian-10x10 corpus
 
-But it still cannot reproduce:
-
-- exact learned article-class workloads
-- a green final article-closure acceptance verdict
-- truthful article-parity wording
-
-## Green Condition
-
-This audit only turns green when the acceptance artifacts turn green first.
-
-In practice that requires all of the following at once:
-
-- `scripts/check-tassadar-acceptance.sh` regenerates a report with
-  `article_parity_language_allowed = true`
-- `compiled_article_class.passed = true`
-- `fast_path_declared_workload_exact.passed = true`
-- `learned_article_class.passed = true`
-- `article_closure.passed = true`
-
-Until those fields turn green together, the correct repo-level statement is:
-
-- article parity is not closed
-
-Not:
-
-- the repo fully reproduces the article-shaped Wasm compute claim
+That is the current article-parity bar encoded by the committed acceptance
+artifacts.

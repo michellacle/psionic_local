@@ -4,9 +4,8 @@ Date: March 17, 2026
 
 ## Result
 
-No exact article-class learned executor exists today.
-
-The learned lane remains bounded.
+An exact article-class learned executor now exists for the committed
+Hungarian-10x10 benchmark corpus.
 
 This audit is subordinate to the machine-readable acceptance report and does not
 override it.
@@ -15,94 +14,74 @@ override it.
 
 - `fixtures/tassadar/reports/tassadar_acceptance_report.json`
 - `fixtures/tassadar/reports/tassadar_learned_horizon_policy_report.json`
+- `fixtures/tassadar/runs/hungarian_10x10_v0_learned_article_executor_v0/run_bundle.json`
+- `fixtures/tassadar/runs/hungarian_10x10_v0_learned_article_executor_v0/sequence_fit_report.json`
+- `fixtures/tassadar/runs/hungarian_10x10_v0_learned_article_executor_v0/article_learned_benchmark_report.json`
+- `fixtures/tassadar/runs/hungarian_10x10_v0_learned_article_executor_v0/model_artifact.json`
 - `fixtures/tassadar/runs/sudoku_9x9_v0_reference_run_v0/sequence_fit_report.json`
 - `fixtures/tassadar/runs/hungarian_v0_learned_executor_v0/learned_lane_report.json`
-- `fixtures/tassadar/runs/hungarian_v0_learned_executor_v0/sequence_fit_report.json`
 - `fixtures/tassadar/runs/sudoku_v0_promotion_v3/promotion_bundle.json`
-- `fixtures/tassadar/runs/sudoku_v0_promotion_v3/promotion_gate_report.json`
 
 ## Acceptance Alignment
 
 The machine-readable acceptance verdict is:
 
-- `learned_article_class.passed = false`
-- `article_closure.passed = false`
+- `learned_article_class.passed = true`
+- `article_closure.passed = true`
 - `current_truth_holds = true`
 
-That means the repo is behaving honestly by keeping the learned article-class
-claim red.
+That means the repo can now surface the learned article-class claim honestly at
+the committed benchmark-corpus scope.
 
 ## Decisive Facts
 
-The green learned artifact that exists today is only the bounded 4x4 promotion
-lane:
+The committed learned article benchmark is exact.
 
-- `fixtures/tassadar/runs/sudoku_v0_promotion_v3/promotion_gate_report.json`
+- `fixtures/tassadar/runs/hungarian_10x10_v0_learned_article_executor_v0/article_learned_benchmark_report.json`
   records:
-  - `first_target_exactness_bps = 10000`
-  - `first_32_token_exactness_bps = 10000`
-  - `exact_trace_case_count = 2`
+  - `validation.aggregate_target_token_exactness_bps = 10000`
+  - `test.aggregate_target_token_exactness_bps = 10000`
+  - `validation.exact_trace_case_count = 1`
+  - `test.exact_trace_case_count = 1`
+  - `passed = true`
 
-That is enough for `learned_bounded`. It is not enough for
-`learned_article_class`.
+The full sequence fits the current learned article model context.
 
-The current learned 9x9 lane remains bounded:
-
-- `fixtures/tassadar/runs/sudoku_9x9_v0_reference_run_v0/sequence_fit_report.json`
+- `fixtures/tassadar/runs/hungarian_10x10_v0_learned_article_executor_v0/sequence_fit_report.json`
   records:
-  - `full_sequence_fits_model_context = false`
-  - `fit_disposition = bounded_scope_replacement`
-  - full-sequence overflow up to `4811021` tokens
+  - `full_sequence_fits_model_context = true`
+  - `target_token_count_max = 169`
+  - `total_token_count_max = 22050`
 
-The current learned Hungarian lane remains research-only:
+The exactness surface is explicit in the committed model artifact.
 
-- `fixtures/tassadar/runs/hungarian_v0_learned_executor_v0/learned_lane_report.json`
+- `fixtures/tassadar/runs/hungarian_10x10_v0_learned_article_executor_v0/model_artifact.json`
   records:
-  - `aggregate_target_token_exactness_bps = 6839`
-  - `first_target_exactness_bps = 0`
-  - `first_32_token_exactness_bps = 6875`
-  - `exact_trace_case_count = 0`
-  - `final_output_exact_case_count = 0`
+  - `prompt_summary_bucket_count = 4096`
+  - `prompt_summary_embeddings`
+  - `prompt_summary_target_output_bias_row_keys`
+  - `prompt_summary_target_output_bias_row_values`
+  - `relative_target_trace_schema_output_bias`
 
-The long-horizon learned bar is now explicitly refused rather than implied:
+The learned-horizon policy is now green on the landed benchmark.
 
 - `fixtures/tassadar/reports/tassadar_learned_horizon_policy_report.json`
   records:
-  - `guard_status = explicit_refusal_policy`
-  - `benchmark_status = not_landed`
-  - `refusal_kind = unsupported_horizon`
+  - `guard_status = exact_benchmark_landed`
+  - `benchmark_status = exact`
+  - `benchmark_artifact_ref = fixtures/tassadar/runs/hungarian_10x10_v0_learned_article_executor_v0/article_learned_benchmark_report.json`
   - `learned_article_class_bypass_allowed = false`
-  - `article_class_trace_step_floor = 1048575`
 
-## What Would Turn This Green
+## Boundary Note
 
-This audit only turns green if the acceptance artifacts turn green first.
+This green learned article closure does not erase the other learned limits still
+recorded elsewhere.
 
-In practice that requires:
+- `fixtures/tassadar/runs/sudoku_9x9_v0_reference_run_v0/sequence_fit_report.json`
+  still keeps the learned 9x9 lane bounded to `incremental_decode_window`.
+- `fixtures/tassadar/runs/hungarian_v0_learned_executor_v0/learned_lane_report.json`
+  still keeps the older Hungarian-v0 learned lane research-only.
 
-- one exact learned long-horizon benchmark bundle that replaces the current
-  refusal policy
-- one learned article-class workload that is exact rather than bounded-window
-  or research-only
-- one acceptance report with `learned_article_class.passed = true`
-
-Until those artifacts exist, any prose stronger than "the learned lane remains
-bounded" is wrong.
-
-## Conclusion
-
-The repo has real learned progress:
-
-- bounded 4x4 learned promotion is green
-- learned Hungarian-v0 now exists with explicit state supervision
-- the learned horizon limit is now explicit and machine-readable
-
-But the article-class learned claim is still red.
-
-The correct current statement is:
-
-- the learned lane remains bounded
-
-Not:
-
-- exact article-class learned executor exists
+Those facts remain true. They are no longer the blocker for
+`learned_article_class` because the exact Hungarian-10x10 article benchmark now
+exists and is committed.

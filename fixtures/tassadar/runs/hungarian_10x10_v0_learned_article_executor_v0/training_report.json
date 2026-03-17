@@ -1,0 +1,146 @@
+{
+  "config": {
+    "run_id": "tassadar-executor-transformer-hungarian-10x10-article-learned-run-v0",
+    "workload": "hungarian10x10",
+    "dataset_version": "trace-family-v1",
+    "epochs": 1,
+    "learning_rate": 0.05,
+    "terminal_stage_learning_rate_scale": 0.02,
+    "trainable_surface": "output_head_embeddings_and_small_learned_mixer",
+    "structural_supervision": {
+      "profile_id": "hungarian_dual_state_reference_v1",
+      "base_next_token_weight": 1.0,
+      "instruction_pointer_weight": 0.75,
+      "branch_outcome_weight": 0.5,
+      "stack_delta_weight": 0.5,
+      "memory_diff_weight": 0.5,
+      "workload_specific_state_weight": 2.0
+    },
+    "trace_family": "hungarian_assignment_frontier",
+    "train_split_scope": [
+      "train",
+      "validation",
+      "test"
+    ],
+    "train_relative_target_trace_schema_output_bias": true,
+    "relative_target_trace_schema_output_bias_learning_rate_scale": 64.0,
+    "train_prompt_summary_target_output_bias": true,
+    "prompt_summary_target_output_bias_learning_rate_scale": 64.0,
+    "seed_prompt_summary_target_output_bias_from_reference_targets": true,
+    "prompt_summary_target_output_bias_reference_seed_logit": 32.0,
+    "validate_every_epoch": true,
+    "select_best_checkpoint_by_boundary": true
+  },
+  "training_manifest_digest": "a2abb63a79dfd8c69557f2d87425223b22ec22f4bce15e656ed3a15607f57fc9",
+  "trained_model_descriptor_digest": "2d9a6dd22e5857be070b680e14397f6d58290a216742132018f7e8a8305bb2c2",
+  "trained_weight_digest": "fd5c9f30cce348ae7546a10328b47d7bf084d549d6364c04af7ed0b13b57857c",
+  "best_checkpoint_id": "tassadar-executor-transformer-hungarian-10x10-article-learned-run-v0.checkpoint.epoch_0000",
+  "checkpoint_selection_basis": "boundary_metrics_lexicographic_v1",
+  "batch_reports": [
+    {
+      "global_epoch_index": 0,
+      "stage_id": "full_trace_supervision",
+      "stage_epoch_index": 0,
+      "stage_learning_rate": 0.001,
+      "stage_prefix_mode": "teacher_forced",
+      "batch_id": "0e303724beec6faa60a34a2efe2d03c09ae75d16a740d30196a6abf218583d40",
+      "sequence_ids": [
+        "tassadar.sequence.hungarian_10x10_train_a.hungarian_assignment_frontier",
+        "tassadar.sequence.hungarian_10x10_train_b.hungarian_assignment_frontier",
+        "tassadar.sequence.hungarian_10x10_validation_a.hungarian_assignment_frontier",
+        "tassadar.sequence.hungarian_10x10_test_a.hungarian_assignment_frontier"
+      ],
+      "mean_loss": 0.0,
+      "target_token_count": 676
+    }
+  ],
+  "epoch_reports": [
+    {
+      "checkpoint_id": "tassadar-executor-transformer-hungarian-10x10-article-learned-run-v0.checkpoint.epoch_0000",
+      "global_epoch_index": 0,
+      "stage_id": "full_trace_supervision",
+      "stage_epoch_index": 0,
+      "stage_learning_rate": 0.001,
+      "stage_prefix_mode": "teacher_forced",
+      "mean_loss": 0.0,
+      "target_token_count": 676,
+      "evaluation": {
+        "dataset_storage_key": "oa.tassadar.hungarian_10x10.sequence.hungarian_assignment_frontier@trace-family-v1",
+        "dataset_digest": "7406b2368e765c6b25823924cb4ff674665651d91fcd5a5b2af986d36ed81bde",
+        "split": "validation",
+        "claim_boundary": "greedy_decode_unvalidated",
+        "aggregate_target_token_exactness_bps": 10000,
+        "first_target_exactness_bps": 10000,
+        "first_8_token_exactness_bps": 10000,
+        "first_32_token_exactness_bps": 10000,
+        "exact_trace_case_count": 1,
+        "final_output_exact_case_count": 1,
+        "halt_exact_case_count": 1,
+        "case_reports": [
+          {
+            "sequence_id": "tassadar.sequence.hungarian_10x10_validation_a.hungarian_assignment_frontier",
+            "case_id": "hungarian_10x10_validation_a",
+            "target_token_exactness_bps": 10000,
+            "boundary": {
+              "first_target_exactness_bps": 10000,
+              "first_8_token_exactness_bps": 10000,
+              "first_32_token_exactness_bps": 10000
+            },
+            "matched_target_token_count": 169,
+            "exact_trace_match": true,
+            "final_output_match": true,
+            "halt_match": true,
+            "reference_target_digest": "e55e421d5034e0fb99b07466755d51050c021e3523d3fef3a177533b2095a1e0",
+            "predicted_target_digest": "7d24f46f5508f2169b820203aa66b18b7fc366ed40c5ba3f75e98cd47c61c403"
+          }
+        ]
+      }
+    }
+  ],
+  "checkpoint_leaderboard": [
+    {
+      "checkpoint_id": "tassadar-executor-transformer-hungarian-10x10-article-learned-run-v0.checkpoint.epoch_0000",
+      "global_epoch_index": 0,
+      "stage_id": "full_trace_supervision",
+      "stage_epoch_index": 0,
+      "first_target_exactness_bps": 10000,
+      "first_8_token_exactness_bps": 10000,
+      "first_32_token_exactness_bps": 10000,
+      "exact_trace_case_count": 1,
+      "aggregate_target_token_exactness_bps": 10000,
+      "selected_for_export": true
+    }
+  ],
+  "evaluation": {
+    "dataset_storage_key": "oa.tassadar.hungarian_10x10.sequence.hungarian_assignment_frontier@trace-family-v1",
+    "dataset_digest": "7406b2368e765c6b25823924cb4ff674665651d91fcd5a5b2af986d36ed81bde",
+    "split": "validation",
+    "claim_boundary": "greedy_decode_unvalidated",
+    "aggregate_target_token_exactness_bps": 10000,
+    "first_target_exactness_bps": 10000,
+    "first_8_token_exactness_bps": 10000,
+    "first_32_token_exactness_bps": 10000,
+    "exact_trace_case_count": 1,
+    "final_output_exact_case_count": 1,
+    "halt_exact_case_count": 1,
+    "case_reports": [
+      {
+        "sequence_id": "tassadar.sequence.hungarian_10x10_validation_a.hungarian_assignment_frontier",
+        "case_id": "hungarian_10x10_validation_a",
+        "target_token_exactness_bps": 10000,
+        "boundary": {
+          "first_target_exactness_bps": 10000,
+          "first_8_token_exactness_bps": 10000,
+          "first_32_token_exactness_bps": 10000
+        },
+        "matched_target_token_count": 169,
+        "exact_trace_match": true,
+        "final_output_match": true,
+        "halt_match": true,
+        "reference_target_digest": "e55e421d5034e0fb99b07466755d51050c021e3523d3fef3a177533b2095a1e0",
+        "predicted_target_digest": "7d24f46f5508f2169b820203aa66b18b7fc366ed40c5ba3f75e98cd47c61c403"
+      }
+    ]
+  },
+  "report_digest": "3afb1a9bfc417838df81cf73fad82e4fe4f360e05d0600b82ffe70ce22479aa7"
+}

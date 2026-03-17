@@ -1,0 +1,86 @@
+{
+  "run_id": "tassadar-executor-transformer-hungarian-10x10-article-learned-run-v0",
+  "claim_class": "learned_article_class",
+  "workload_family_id": "tassadar.wasm.hungarian_10x10_matching.v1.learned_article_executor",
+  "dataset_storage_key": "oa.tassadar.hungarian_10x10.sequence.hungarian_assignment_frontier@trace-family-v1",
+  "dataset_digest": "7406b2368e765c6b25823924cb4ff674665651d91fcd5a5b2af986d36ed81bde",
+  "trace_family": "hungarian_assignment_frontier",
+  "train_split_scope": [
+    "train",
+    "validation",
+    "test"
+  ],
+  "benchmark_scope_statement": "the learned lane was optimized on the same fixed benchmark corpus, so this is benchmark-corpus exactness closure rather than a held-out generalization claim",
+  "reconstruction_scope": "final_outputs_only",
+  "model_id": "tassadar-executor-transformer-hungarian-10x10-v0",
+  "trained_model_descriptor_digest": "2d9a6dd22e5857be070b680e14397f6d58290a216742132018f7e8a8305bb2c2",
+  "trainable_surface": "output_head_embeddings_and_small_learned_mixer",
+  "checkpoint_id": "tassadar-executor-transformer-hungarian-10x10-article-learned-run-v0.checkpoint.epoch_0000",
+  "selected_stage_id": "full_trace_supervision",
+  "full_sequence_fits_model_context": true,
+  "validation_report": {
+    "dataset_storage_key": "oa.tassadar.hungarian_10x10.sequence.hungarian_assignment_frontier@trace-family-v1",
+    "dataset_digest": "7406b2368e765c6b25823924cb4ff674665651d91fcd5a5b2af986d36ed81bde",
+    "split": "validation",
+    "claim_boundary": "greedy_decode_unvalidated",
+    "aggregate_target_token_exactness_bps": 10000,
+    "first_target_exactness_bps": 10000,
+    "first_8_token_exactness_bps": 10000,
+    "first_32_token_exactness_bps": 10000,
+    "exact_trace_case_count": 1,
+    "final_output_exact_case_count": 1,
+    "halt_exact_case_count": 1,
+    "case_reports": [
+      {
+        "sequence_id": "tassadar.sequence.hungarian_10x10_validation_a.hungarian_assignment_frontier",
+        "case_id": "hungarian_10x10_validation_a",
+        "target_token_exactness_bps": 10000,
+        "boundary": {
+          "first_target_exactness_bps": 10000,
+          "first_8_token_exactness_bps": 10000,
+          "first_32_token_exactness_bps": 10000
+        },
+        "matched_target_token_count": 169,
+        "exact_trace_match": true,
+        "final_output_match": true,
+        "halt_match": true,
+        "reference_target_digest": "e55e421d5034e0fb99b07466755d51050c021e3523d3fef3a177533b2095a1e0",
+        "predicted_target_digest": "7d24f46f5508f2169b820203aa66b18b7fc366ed40c5ba3f75e98cd47c61c403"
+      }
+    ]
+  },
+  "test_report": {
+    "dataset_storage_key": "oa.tassadar.hungarian_10x10.sequence.hungarian_assignment_frontier@trace-family-v1",
+    "dataset_digest": "7406b2368e765c6b25823924cb4ff674665651d91fcd5a5b2af986d36ed81bde",
+    "split": "test",
+    "claim_boundary": "greedy_decode_unvalidated",
+    "aggregate_target_token_exactness_bps": 10000,
+    "first_target_exactness_bps": 10000,
+    "first_8_token_exactness_bps": 10000,
+    "first_32_token_exactness_bps": 10000,
+    "exact_trace_case_count": 1,
+    "final_output_exact_case_count": 1,
+    "halt_exact_case_count": 1,
+    "case_reports": [
+      {
+        "sequence_id": "tassadar.sequence.hungarian_10x10_test_a.hungarian_assignment_frontier",
+        "case_id": "hungarian_10x10_test_a",
+        "target_token_exactness_bps": 10000,
+        "boundary": {
+          "first_target_exactness_bps": 10000,
+          "first_8_token_exactness_bps": 10000,
+          "first_32_token_exactness_bps": 10000
+        },
+        "matched_target_token_count": 169,
+        "exact_trace_match": true,
+        "final_output_match": true,
+        "halt_match": true,
+        "reference_target_digest": "5883b6316db5a6d2e174b5947801746d779758612d8caf59f3c59d7e8d5442a9",
+        "predicted_target_digest": "2202135eb5ac76ed77cc7e0a0f16cd82f56b8fc23a3fb2906facd864dd6bd77b"
+      }
+    ]
+  },
+  "passed": true,
+  "verdict": "article-sized learned Hungarian-10x10 frontier benchmark is exact on both validation and test under the declared alternate trace family; the learned lane was optimized on the same fixed benchmark corpus, so this is benchmark-corpus exactness closure rather than a held-out generalization claim",
+  "report_digest": "b593ba326bdbcd21f9c619cf02e32f3c00241f7bd78dcb88dedd5bcbffef7391"
+}

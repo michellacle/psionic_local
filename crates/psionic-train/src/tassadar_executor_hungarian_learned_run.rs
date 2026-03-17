@@ -1,12 +1,14 @@
 use std::{collections::BTreeMap, fs, path::Path};
 
+use psionic_data::TassadarSequenceSplit;
 use psionic_eval::{
     EvalArtifact, TassadarExecutorStructuralSupervisionMetric, TassadarExecutorStructuralSupervisionReport,
-    TassadarSequenceEvalError, TassadarSequenceWorkload, build_tassadar_sequence_dataset,
+    TassadarSequenceEvalError, TassadarSequenceWorkload,
+    build_tassadar_sequence_dataset_with_trace_family,
 };
 use psionic_models::{
     TassadarExecutorLongTraceContract, TassadarExecutorTrainableSurface,
-    TassadarStructuralSupervisionFamily,
+    TassadarSequenceTraceFamily, TassadarStructuralSupervisionFamily,
 };
 use psionic_runtime::TassadarClaimClass;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
@@ -95,9 +97,12 @@ impl TassadarHungarianLearnedFitReport {
         config: &TassadarExecutorTrainingConfig,
         model_artifact: &TassadarExecutorModelArtifact,
     ) -> Result<Self, TassadarHungarianLearnedRunError> {
-        let dataset_bundle =
-            build_tassadar_sequence_dataset(config.workload, config.dataset_version.as_str())
-                .map_err(TassadarHungarianLearnedRunError::SequenceEval)?;
+        let dataset_bundle = build_tassadar_sequence_dataset_with_trace_family(
+            config.workload,
+            config.dataset_version.as_str(),
+            config.trace_family,
+        )
+        .map_err(TassadarHungarianLearnedRunError::SequenceEval)?;
         let prompt_token_count_min = dataset_bundle
             .dataset
             .examples
@@ -422,6 +427,16 @@ pub fn tassadar_executor_hungarian_v0_learned_run_config() -> TassadarExecutorTr
         long_trace_contract: TassadarExecutorLongTraceContract::FlatPrefixFullForward,
         structural_supervision:
             TassadarExecutorStructuralSupervisionConfig::hungarian_dual_state_reference(),
+        trace_family: TassadarSequenceTraceFamily::SequentialCpuReference,
+        train_split_scope: vec![TassadarSequenceSplit::Train],
+        train_relative_target_trace_schema_output_bias: false,
+        relative_target_trace_schema_output_bias_learning_rate_scale: 1.0,
+        train_prompt_summary_embeddings: false,
+        prompt_summary_embeddings_learning_rate_scale: 1.0,
+        train_prompt_summary_target_output_bias: false,
+        prompt_summary_target_output_bias_learning_rate_scale: 1.0,
+        seed_prompt_summary_target_output_bias_from_reference_targets: false,
+        prompt_summary_target_output_bias_reference_seed_logit: 0.0,
         curriculum_stages: vec![
             crate::TassadarExecutorCurriculumStage::new("prompt_to_first_8_tokens", Some(8), 1),
             crate::TassadarExecutorCurriculumStage::new("prompt_to_first_64_tokens", Some(64), 1),

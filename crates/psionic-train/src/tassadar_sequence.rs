@@ -1,3 +1,5 @@
+use std::collections::BTreeSet;
+
 use psionic_data::{
     DatasetPackingMode, DatasetPackingPlan, DatasetPackingPolicy, TassadarSequenceDatasetContract,
     TassadarSequenceDatasetError, TassadarSequenceSplit,
@@ -29,6 +31,14 @@ fn default_long_trace_contract() -> TassadarExecutorLongTraceContract {
 
 fn default_trace_family() -> TassadarSequenceTraceFamily {
     TassadarSequenceTraceFamily::SequentialCpuReference
+}
+
+fn default_train_split_scope() -> Vec<TassadarSequenceSplit> {
+    vec![TassadarSequenceSplit::Train]
+}
+
+fn train_split_scope_is_train_only(scope: &[TassadarSequenceSplit]) -> bool {
+    scope == [TassadarSequenceSplit::Train]
 }
 
 /// Frozen train/eval packing contract for the tokenized Sudoku-v0 executor corpus.
@@ -63,6 +73,12 @@ pub struct TassadarSequenceTrainingManifest {
         skip_serializing_if = "trace_family_is_sequential_cpu_reference"
     )]
     pub trace_family: TassadarSequenceTraceFamily,
+    /// Dataset splits presented to the trainer as optimization data.
+    #[serde(
+        default = "default_train_split_scope",
+        skip_serializing_if = "train_split_scope_is_train_only"
+    )]
+    pub train_split_scope: Vec<TassadarSequenceSplit>,
     /// Explicit structural-supervision weighting profile frozen into the run.
     #[serde(
         default = "default_structural_supervision_config",
@@ -92,6 +108,7 @@ impl TassadarSequenceTrainingManifest {
         teacher_forced_training_strategy: TassadarExecutorTeacherForcedTrainingStrategy,
         long_trace_contract: TassadarExecutorLongTraceContract,
         trace_family: TassadarSequenceTraceFamily,
+        train_split_scope: Vec<TassadarSequenceSplit>,
         structural_supervision: TassadarExecutorStructuralSupervisionConfig,
         structural_supervision_inventory: TassadarSequenceStructuralSupervisionInventory,
         packing_policy: DatasetPackingPolicy,
@@ -108,6 +125,7 @@ impl TassadarSequenceTrainingManifest {
             teacher_forced_training_strategy,
             long_trace_contract,
             trace_family,
+            train_split_scope,
             structural_supervision,
             structural_supervision_inventory,
             packing_policy,
@@ -223,9 +241,53 @@ pub fn build_tassadar_sequence_training_manifest_with_trace_family(
     )
 }
 
+/// Builds one frozen sequence dataset plus generic packing plans for a specific trace family and
+/// explicit train split scope.
+pub fn build_tassadar_sequence_training_manifest_with_trace_family_and_train_split_scope(
+    workload: TassadarSequenceWorkload,
+    version: &str,
+    trace_family: TassadarSequenceTraceFamily,
+    train_split_scope: &[TassadarSequenceSplit],
+    trainable_surface: TassadarExecutorTrainableSurface,
+    teacher_forced_training_strategy: TassadarExecutorTeacherForcedTrainingStrategy,
+    long_trace_contract: TassadarExecutorLongTraceContract,
+    structural_supervision: TassadarExecutorStructuralSupervisionConfig,
+) -> Result<TassadarSequenceTrainingManifest, TassadarSequenceTrainingError> {
+    let bundle =
+        build_tassadar_sequence_dataset_with_trace_family(workload, version, trace_family)?;
+    build_tassadar_sequence_training_manifest_from_bundle_with_train_split_scope(
+        &bundle,
+        train_split_scope,
+        trainable_surface,
+        teacher_forced_training_strategy,
+        long_trace_contract,
+        structural_supervision,
+    )
+}
+
 /// Builds one frozen sequence training manifest from a pre-built dataset bundle.
 pub fn build_tassadar_sequence_training_manifest_from_bundle(
     bundle: &TassadarSequenceDatasetBundle,
+    trainable_surface: TassadarExecutorTrainableSurface,
+    teacher_forced_training_strategy: TassadarExecutorTeacherForcedTrainingStrategy,
+    long_trace_contract: TassadarExecutorLongTraceContract,
+    structural_supervision: TassadarExecutorStructuralSupervisionConfig,
+) -> Result<TassadarSequenceTrainingManifest, TassadarSequenceTrainingError> {
+    build_tassadar_sequence_training_manifest_from_bundle_with_train_split_scope(
+        bundle,
+        default_train_split_scope().as_slice(),
+        trainable_surface,
+        teacher_forced_training_strategy,
+        long_trace_contract,
+        structural_supervision,
+    )
+}
+
+/// Builds one frozen sequence training manifest from a pre-built dataset bundle and explicit
+/// train split scope.
+pub fn build_tassadar_sequence_training_manifest_from_bundle_with_train_split_scope(
+    bundle: &TassadarSequenceDatasetBundle,
+    train_split_scope: &[TassadarSequenceSplit],
     trainable_surface: TassadarExecutorTrainableSurface,
     teacher_forced_training_strategy: TassadarExecutorTeacherForcedTrainingStrategy,
     long_trace_contract: TassadarExecutorLongTraceContract,
@@ -245,7 +307,9 @@ pub fn build_tassadar_sequence_training_manifest_from_bundle(
         max_tokens.saturating_mul(4).max(1),
         4,
     );
-    let train_plan = dataset.packing_plan(TassadarSequenceSplit::Train, &packing_policy)?;
+    let train_plan = packing_policy
+        .plan(combined_train_sequence_descriptors(dataset, train_split_scope).as_slice())
+        .map_err(TassadarSequenceDatasetError::from)?;
     let validation_plan =
         dataset.packing_plan(TassadarSequenceSplit::Validation, &packing_policy)?;
     let test_plan = dataset.packing_plan(TassadarSequenceSplit::Test, &packing_policy)?;
@@ -259,6 +323,7 @@ pub fn build_tassadar_sequence_training_manifest_from_bundle(
         teacher_forced_training_strategy,
         long_trace_contract,
         bundle.trace_family,
+        normalize_train_split_scope(train_split_scope),
         structural_supervision,
         structural_supervision_inventory,
         packing_policy,
@@ -266,6 +331,37 @@ pub fn build_tassadar_sequence_training_manifest_from_bundle(
         validation_plan,
         test_plan,
     ))
+}
+
+fn normalize_train_split_scope(train_split_scope: &[TassadarSequenceSplit]) -> Vec<TassadarSequenceSplit> {
+    let mut normalized = Vec::new();
+    let mut seen = BTreeSet::new();
+    for split in train_split_scope.iter().copied() {
+        if seen.insert(split) {
+            normalized.push(split);
+        }
+    }
+    if normalized.is_empty() {
+        default_train_split_scope()
+    } else {
+        normalized
+    }
+}
+
+fn combined_train_sequence_descriptors(
+    dataset: &TassadarSequenceDatasetContract,
+    train_split_scope: &[TassadarSequenceSplit],
+) -> Vec<psionic_data::DatasetSequenceDescriptor> {
+    let mut descriptors = Vec::new();
+    let mut seen = BTreeSet::new();
+    for split in normalize_train_split_scope(train_split_scope) {
+        for descriptor in dataset.sequence_descriptors(split) {
+            if seen.insert(descriptor.sequence_id.clone()) {
+                descriptors.push(descriptor);
+            }
+        }
+    }
+    descriptors
 }
 
 /// Builds the frozen sequence dataset plus generic packing plans for the 4x4 training run.

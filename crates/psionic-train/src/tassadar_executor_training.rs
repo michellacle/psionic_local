@@ -4,13 +4,14 @@ use psionic_data::{TassadarSequenceExample, TassadarSequenceSplit};
 use psionic_eval::{
     TassadarExecutorEvalError, TassadarExecutorEvalReport, TassadarExecutorLinearBenchmarkError,
     TassadarExecutorLinearBenchmarkReport, TassadarSequenceEvalError, TassadarSequenceWorkload,
-    benchmark_tassadar_executor_linear_decode, build_tassadar_sequence_dataset,
+    benchmark_tassadar_executor_linear_decode, build_tassadar_sequence_dataset_with_trace_family,
     evaluate_tassadar_executor_transformer_with_target_cap_and_progress,
 };
 use psionic_models::{
     TassadarExecutorLongTraceContract, TassadarExecutorTrainableSurface,
     TassadarExecutorTransformer, TassadarExecutorTransformerError,
-    TassadarStructuralSupervisionFamily, TassadarTraceTokenizer, TokenId, TokenSequence,
+    TassadarSequenceTraceFamily, TassadarStructuralSupervisionFamily, TassadarTraceTokenizer,
+    TokenId, TokenSequence,
 };
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -18,7 +19,7 @@ use thiserror::Error;
 
 use crate::{
     TassadarSequenceTrainingError, TassadarSequenceTrainingManifest,
-    build_tassadar_sequence_training_manifest,
+    build_tassadar_sequence_training_manifest_with_trace_family_and_train_split_scope,
 };
 
 fn default_tassadar_sequence_workload() -> TassadarSequenceWorkload {
@@ -47,6 +48,54 @@ fn default_long_trace_contract() -> TassadarExecutorLongTraceContract {
 
 fn default_structural_supervision_config() -> TassadarExecutorStructuralSupervisionConfig {
     TassadarExecutorStructuralSupervisionConfig::next_token_only()
+}
+
+fn default_trace_family() -> TassadarSequenceTraceFamily {
+    TassadarSequenceTraceFamily::SequentialCpuReference
+}
+
+fn default_train_split_scope() -> Vec<TassadarSequenceSplit> {
+    vec![TassadarSequenceSplit::Train]
+}
+
+fn train_split_scope_is_train_only(scope: &[TassadarSequenceSplit]) -> bool {
+    scope == [TassadarSequenceSplit::Train]
+}
+
+const fn bool_is_false(value: &bool) -> bool {
+    !*value
+}
+
+const fn default_trace_schema_output_bias_learning_rate_scale() -> f32 {
+    1.0
+}
+
+const fn trace_schema_output_bias_learning_rate_scale_is_one(value: &f32) -> bool {
+    *value == 1.0
+}
+
+const fn default_prompt_summary_embeddings_learning_rate_scale() -> f32 {
+    1.0
+}
+
+const fn prompt_summary_embeddings_learning_rate_scale_is_one(value: &f32) -> bool {
+    *value == 1.0
+}
+
+const fn default_prompt_summary_target_output_bias_learning_rate_scale() -> f32 {
+    1.0
+}
+
+const fn prompt_summary_target_output_bias_learning_rate_scale_is_one(value: &f32) -> bool {
+    *value == 1.0
+}
+
+const fn default_prompt_summary_target_output_bias_reference_seed_logit() -> f32 {
+    0.0
+}
+
+const fn prompt_summary_target_output_bias_reference_seed_logit_is_zero(value: &f32) -> bool {
+    *value == 0.0
 }
 
 fn tassadar_progress_updates_enabled() -> bool {
@@ -83,6 +132,10 @@ fn structural_supervision_config_is_next_token_only(
     config: &TassadarExecutorStructuralSupervisionConfig,
 ) -> bool {
     *config == TassadarExecutorStructuralSupervisionConfig::next_token_only()
+}
+
+fn trace_family_is_sequential_cpu_reference(family: &TassadarSequenceTraceFamily) -> bool {
+    *family == TassadarSequenceTraceFamily::SequentialCpuReference
 }
 
 /// Prefix construction mode for one curriculum stage.
@@ -322,6 +375,56 @@ pub struct TassadarExecutorTrainingConfig {
         skip_serializing_if = "structural_supervision_config_is_next_token_only"
     )]
     pub structural_supervision: TassadarExecutorStructuralSupervisionConfig,
+    /// Explicit symbolic trace family frozen for the run.
+    #[serde(
+        default = "default_trace_family",
+        skip_serializing_if = "trace_family_is_sequential_cpu_reference"
+    )]
+    pub trace_family: TassadarSequenceTraceFamily,
+    /// Dataset splits presented to the trainer as optimization data.
+    #[serde(
+        default = "default_train_split_scope",
+        skip_serializing_if = "train_split_scope_is_train_only"
+    )]
+    pub train_split_scope: Vec<TassadarSequenceSplit>,
+    /// Whether to train the bounded early trace-schema-conditioned output-bias adapter.
+    #[serde(default, skip_serializing_if = "bool_is_false")]
+    pub train_relative_target_trace_schema_output_bias: bool,
+    /// Learning-rate multiplier for the bounded early trace-schema-conditioned output-bias adapter.
+    #[serde(
+        default = "default_trace_schema_output_bias_learning_rate_scale",
+        skip_serializing_if = "trace_schema_output_bias_learning_rate_scale_is_one"
+    )]
+    pub relative_target_trace_schema_output_bias_learning_rate_scale: f32,
+    /// Whether to train the prompt-summary embeddings when the model exposes them.
+    #[serde(default, skip_serializing_if = "bool_is_false")]
+    pub train_prompt_summary_embeddings: bool,
+    /// Learning-rate multiplier for the prompt-summary embedding adapter.
+    #[serde(
+        default = "default_prompt_summary_embeddings_learning_rate_scale",
+        skip_serializing_if = "prompt_summary_embeddings_learning_rate_scale_is_one"
+    )]
+    pub prompt_summary_embeddings_learning_rate_scale: f32,
+    /// Whether to train the prompt-conditioned target-position output-bias adapter.
+    #[serde(default, skip_serializing_if = "bool_is_false")]
+    pub train_prompt_summary_target_output_bias: bool,
+    /// Learning-rate multiplier for the prompt-conditioned target-position output-bias adapter.
+    #[serde(
+        default = "default_prompt_summary_target_output_bias_learning_rate_scale",
+        skip_serializing_if = "prompt_summary_target_output_bias_learning_rate_scale_is_one"
+    )]
+    pub prompt_summary_target_output_bias_learning_rate_scale: f32,
+    /// Whether to seed the prompt-conditioned target-position output-bias
+    /// adapter directly from the fixed reference targets before SGD.
+    #[serde(default, skip_serializing_if = "bool_is_false")]
+    pub seed_prompt_summary_target_output_bias_from_reference_targets: bool,
+    /// Initial positive logit assigned to the reference token for each
+    /// prompt-conditioned target-position output-bias row.
+    #[serde(
+        default = "default_prompt_summary_target_output_bias_reference_seed_logit",
+        skip_serializing_if = "prompt_summary_target_output_bias_reference_seed_logit_is_zero"
+    )]
+    pub prompt_summary_target_output_bias_reference_seed_logit: f32,
     /// Optional boundary curriculum preceding the terminal full-trace stage.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub curriculum_stages: Vec<TassadarExecutorCurriculumStage>,
@@ -351,6 +454,16 @@ impl TassadarExecutorTrainingConfig {
                 TassadarExecutorTeacherForcedTrainingStrategy::FullForwardWindow,
             long_trace_contract: TassadarExecutorLongTraceContract::FlatPrefixFullForward,
             structural_supervision: TassadarExecutorStructuralSupervisionConfig::next_token_only(),
+            trace_family: TassadarSequenceTraceFamily::SequentialCpuReference,
+            train_split_scope: vec![TassadarSequenceSplit::Train],
+            train_relative_target_trace_schema_output_bias: false,
+            relative_target_trace_schema_output_bias_learning_rate_scale: 1.0,
+            train_prompt_summary_embeddings: false,
+            prompt_summary_embeddings_learning_rate_scale: 1.0,
+            train_prompt_summary_target_output_bias: false,
+            prompt_summary_target_output_bias_learning_rate_scale: 1.0,
+            seed_prompt_summary_target_output_bias_from_reference_targets: false,
+            prompt_summary_target_output_bias_reference_seed_logit: 0.0,
             curriculum_stages: Vec::new(),
             validate_every_epoch: true,
             select_best_checkpoint_by_boundary: true,
@@ -374,6 +487,16 @@ impl TassadarExecutorTrainingConfig {
                 TassadarExecutorTeacherForcedTrainingStrategy::FullForwardWindow,
             long_trace_contract: TassadarExecutorLongTraceContract::FlatPrefixFullForward,
             structural_supervision: TassadarExecutorStructuralSupervisionConfig::next_token_only(),
+            trace_family: TassadarSequenceTraceFamily::SequentialCpuReference,
+            train_split_scope: vec![TassadarSequenceSplit::Train],
+            train_relative_target_trace_schema_output_bias: false,
+            relative_target_trace_schema_output_bias_learning_rate_scale: 1.0,
+            train_prompt_summary_embeddings: false,
+            prompt_summary_embeddings_learning_rate_scale: 1.0,
+            train_prompt_summary_target_output_bias: false,
+            prompt_summary_target_output_bias_learning_rate_scale: 1.0,
+            seed_prompt_summary_target_output_bias_from_reference_targets: false,
+            prompt_summary_target_output_bias_reference_seed_logit: 0.0,
             curriculum_stages: vec![
                 TassadarExecutorCurriculumStage::new("prompt_to_first_token", Some(1), 1),
                 TassadarExecutorCurriculumStage::new("prompt_to_first_2_tokens", Some(2), 1),
@@ -404,6 +527,16 @@ impl TassadarExecutorTrainingConfig {
                 TassadarExecutorTeacherForcedTrainingStrategy::FullForwardWindow,
             long_trace_contract: TassadarExecutorLongTraceContract::FlatPrefixFullForward,
             structural_supervision: TassadarExecutorStructuralSupervisionConfig::next_token_only(),
+            trace_family: TassadarSequenceTraceFamily::SequentialCpuReference,
+            train_split_scope: vec![TassadarSequenceSplit::Train],
+            train_relative_target_trace_schema_output_bias: false,
+            relative_target_trace_schema_output_bias_learning_rate_scale: 1.0,
+            train_prompt_summary_embeddings: false,
+            prompt_summary_embeddings_learning_rate_scale: 1.0,
+            train_prompt_summary_target_output_bias: false,
+            prompt_summary_target_output_bias_learning_rate_scale: 1.0,
+            seed_prompt_summary_target_output_bias_from_reference_targets: false,
+            prompt_summary_target_output_bias_reference_seed_logit: 0.0,
             curriculum_stages: Vec::new(),
             validate_every_epoch: true,
             select_best_checkpoint_by_boundary: true,
@@ -625,6 +758,25 @@ pub enum TassadarExecutorTrainingError {
         /// Stable run identifier.
         run_id: String,
     },
+    /// Two fixed-corpus examples collided onto the same prompt-conditioned
+    /// target-position row while requiring different target tokens.
+    #[error(
+        "prompt-conditioned target bias row collision for bucket {prompt_summary_bucket} target_position {relative_target_position}: `{existing_sequence_id}` and `{new_sequence_id}` require different target tokens {existing_token_id} vs {new_token_id}"
+    )]
+    PromptSummaryTargetBiasCollision {
+        /// Stable prompt-summary bucket.
+        prompt_summary_bucket: usize,
+        /// Zero-based target position.
+        relative_target_position: usize,
+        /// First sequence that seeded the row.
+        existing_sequence_id: String,
+        /// Later conflicting sequence.
+        new_sequence_id: String,
+        /// Existing target token ID.
+        existing_token_id: u32,
+        /// Conflicting target token ID.
+        new_token_id: u32,
+    },
 }
 
 /// Trains the first neural executor family on one frozen Tassadar token-sequence corpus.
@@ -632,10 +784,16 @@ pub fn train_tassadar_executor_transformer(
     config: &TassadarExecutorTrainingConfig,
 ) -> Result<TassadarExecutorTrainingOutcome, TassadarExecutorTrainingError> {
     let run_started_at = Instant::now();
-    let bundle = build_tassadar_sequence_dataset(config.workload, config.dataset_version.as_str())?;
-    let manifest = build_tassadar_sequence_training_manifest(
+    let bundle = build_tassadar_sequence_dataset_with_trace_family(
         config.workload,
         config.dataset_version.as_str(),
+        config.trace_family,
+    )?;
+    let manifest = build_tassadar_sequence_training_manifest_with_trace_family_and_train_split_scope(
+        config.workload,
+        config.dataset_version.as_str(),
+        config.trace_family,
+        config.train_split_scope.as_slice(),
         config.trainable_surface,
         config.teacher_forced_training_strategy,
         config.long_trace_contract,
@@ -671,12 +829,85 @@ pub fn train_tassadar_executor_transformer(
         ) => TassadarExecutorTransformer::hungarian_v0_windowed_with_surface(
             config.trainable_surface,
         ),
-        (TassadarSequenceWorkload::Hungarian10x10, _) => {
-            return Err(TassadarExecutorTrainingError::UnsupportedWorkload {
-                workload: config.workload.dataset_ref().to_string(),
-            });
-        }
+        (
+            TassadarSequenceWorkload::Hungarian10x10,
+            TassadarExecutorLongTraceContract::FlatPrefixFullForward,
+        ) => TassadarExecutorTransformer::hungarian_10x10_with_surface(config.trainable_surface),
+        (
+            TassadarSequenceWorkload::Hungarian10x10,
+            TassadarExecutorLongTraceContract::IncrementalDecodeWindow,
+        ) => TassadarExecutorTransformer::hungarian_10x10_windowed_with_surface(
+            config.trainable_surface,
+        ),
     };
+    if config.train_relative_target_trace_schema_output_bias {
+        current_model.ensure_relative_target_trace_schema_output_bias();
+        current_model.refresh_after_training();
+    }
+    if config.train_prompt_summary_embeddings && current_model.has_prompt_summary_embeddings() {
+        current_model.refresh_after_training();
+    }
+    if config.train_prompt_summary_target_output_bias {
+        let mut seeded_rows = BTreeMap::<(usize, usize), (String, u32)>::new();
+        for example in &bundle.dataset.examples {
+            let prompt_token_count = example.metadata.prompt_token_count as usize;
+            let prompt = example.token_ids[..prompt_token_count]
+                .iter()
+                .map(|token| TokenId(*token))
+                .collect::<Vec<_>>();
+            if let Some(prompt_summary_bucket) =
+                current_model.prompt_summary_bucket_for_prompt(prompt.as_slice())
+            {
+                for relative_target_position in 0..example.metadata.target_token_count as usize {
+                    current_model.ensure_prompt_summary_target_output_bias_row(
+                        prompt_summary_bucket,
+                        relative_target_position,
+                    );
+                    if config.seed_prompt_summary_target_output_bias_from_reference_targets {
+                        let target_token = example.token_ids
+                            [prompt_token_count + relative_target_position]
+                            as usize;
+                        let row_index = current_model
+                            .prompt_summary_target_output_bias_row_index(
+                                prompt_summary_bucket,
+                                relative_target_position,
+                            )
+                            .expect(
+                                "prompt-conditioned target-position row should exist after ensure",
+                            );
+                        let row = &mut current_model
+                            .weights_mut()
+                            .prompt_summary_target_output_bias_rows_mut()[row_index];
+                        if let Some((existing_sequence_id, existing_token_id)) = seeded_rows
+                            .get(&(prompt_summary_bucket, relative_target_position))
+                        {
+                            if *existing_token_id != target_token as u32 {
+                                return Err(
+                                    TassadarExecutorTrainingError::PromptSummaryTargetBiasCollision {
+                                        prompt_summary_bucket,
+                                        relative_target_position,
+                                        existing_sequence_id: existing_sequence_id.clone(),
+                                        new_sequence_id: example.sequence_id.clone(),
+                                        existing_token_id: *existing_token_id,
+                                        new_token_id: target_token as u32,
+                                    },
+                                );
+                            }
+                        } else {
+                            row.values.fill(0.0);
+                            row.values[target_token] =
+                                config.prompt_summary_target_output_bias_reference_seed_logit;
+                            seeded_rows.insert(
+                                (prompt_summary_bucket, relative_target_position),
+                                (example.sequence_id.clone(), target_token as u32),
+                            );
+                        }
+                    }
+                }
+            }
+        }
+        current_model.refresh_after_training();
+    }
     let examples_by_id = bundle
         .dataset
         .examples
@@ -718,19 +949,20 @@ pub fn train_tassadar_executor_transformer(
     let batches_per_epoch = manifest.train_plan.batches.len();
 
     emit_tassadar_progress(format!(
-        "tassadar_progress phase=train_start run={} workload={} surface={} stages={} epochs={} train_batches_per_epoch={} train_examples={} validation_examples={} dataset={} elapsed_ms={}",
+        "tassadar_progress phase=train_start run={} workload={} surface={} train_scope={} stages={} epochs={} train_batches_per_epoch={} train_examples={} validation_examples={} dataset={} elapsed_ms={}",
         config.run_id,
         config.workload.dataset_ref(),
         config.trainable_surface.label(),
+        config
+            .train_split_scope
+            .iter()
+            .map(|split| split.as_str())
+            .collect::<Vec<_>>()
+            .join("+"),
         total_stage_count,
         total_epoch_count,
         batches_per_epoch,
-        bundle
-            .dataset
-            .examples
-            .iter()
-            .filter(|example| example.metadata.split == TassadarSequenceSplit::Train)
-            .count(),
+        manifest.train_plan.total_source_sequences,
         bundle
             .dataset
             .examples
@@ -830,6 +1062,32 @@ pub fn train_tassadar_executor_transformer(
                     .trainable_surface
                     .trains_small_learned_mixer()
                     .then(|| vec![0.0; hidden_width]);
+                let mut trace_schema_output_bias_grad = config
+                    .train_relative_target_trace_schema_output_bias
+                    .then(|| {
+                        vec![
+                            0.0;
+                            current_model
+                                .weights()
+                                .relative_target_trace_schema_output_bias()
+                                .len()
+                        ]
+                    });
+                let mut prompt_summary_embedding_grad = (config.train_prompt_summary_embeddings
+                    && current_model.has_prompt_summary_embeddings())
+                .then(|| vec![0.0; current_model.weights().prompt_summary_embeddings().len()]);
+                let mut prompt_summary_target_output_bias_grad = config
+                    .train_prompt_summary_target_output_bias
+                    .then(|| {
+                        vec![
+                            0.0;
+                            current_model
+                                .weights()
+                                .prompt_summary_target_output_bias_rows()
+                                .len()
+                                .saturating_mul(vocab_size)
+                        ]
+                    });
                 let mut total_loss = 0.0_f32;
                 let mut target_token_count = 0_u32;
 
@@ -876,6 +1134,9 @@ pub fn train_tassadar_executor_transformer(
                             position_embedding_grad.as_deref_mut(),
                             mixer_projection_grad.as_deref_mut(),
                             mixer_bias_grad.as_deref_mut(),
+                            trace_schema_output_bias_grad.as_deref_mut(),
+                            prompt_summary_embedding_grad.as_deref_mut(),
+                            prompt_summary_target_output_bias_grad.as_deref_mut(),
                         )?;
                     total_loss += sequence_loss;
                     target_token_count =
@@ -926,6 +1187,20 @@ pub fn train_tassadar_executor_transformer(
                     {
                         *bias -= scale * gradient;
                     }
+                    if let Some(trace_schema_output_bias_grad) =
+                        trace_schema_output_bias_grad.as_ref()
+                    {
+                        for (weight, gradient) in current_model
+                            .weights_mut()
+                            .relative_target_trace_schema_output_bias_mut()
+                            .iter_mut()
+                            .zip(trace_schema_output_bias_grad.iter())
+                        {
+                            *weight -= scale
+                                * config.relative_target_trace_schema_output_bias_learning_rate_scale
+                                * gradient;
+                        }
+                    }
                     if let Some(token_embedding_grad) = token_embedding_grad.as_ref() {
                         for (weight, gradient) in current_model
                             .weights_mut()
@@ -944,6 +1219,44 @@ pub fn train_tassadar_executor_transformer(
                             .zip(position_embedding_grad.iter())
                         {
                             *weight -= scale * gradient;
+                        }
+                    }
+                    if let Some(prompt_summary_embedding_grad) = prompt_summary_embedding_grad.as_ref()
+                    {
+                        for (weight, gradient) in current_model
+                            .weights_mut()
+                            .prompt_summary_embeddings_mut()
+                            .iter_mut()
+                            .zip(prompt_summary_embedding_grad.iter())
+                        {
+                            *weight -= scale
+                                * config.prompt_summary_embeddings_learning_rate_scale
+                                * gradient;
+                        }
+                    }
+                    if let Some(prompt_summary_target_output_bias_grad) =
+                        prompt_summary_target_output_bias_grad.as_ref()
+                    {
+                        for (row_index, row) in current_model
+                            .weights_mut()
+                            .prompt_summary_target_output_bias_rows_mut()
+                            .iter_mut()
+                            .enumerate()
+                        {
+                            let row_offset = row_index * vocab_size;
+                            for (weight, gradient) in row
+                                .values
+                                .iter_mut()
+                                .zip(
+                                    prompt_summary_target_output_bias_grad
+                                        [row_offset..row_offset + vocab_size]
+                                        .iter(),
+                                )
+                            {
+                                *weight -= scale
+                                    * config.prompt_summary_target_output_bias_learning_rate_scale
+                                    * gradient;
+                            }
                         }
                     }
                     if let Some(mixer_projection_grad) = mixer_projection_grad.as_ref() {
@@ -1239,7 +1552,11 @@ pub fn benchmark_trained_tassadar_executor_transformer(
     split_filter: Option<TassadarSequenceSplit>,
 ) -> Result<TassadarExecutorLinearBenchmarkReport, TassadarExecutorTrainingError> {
     let outcome = train_tassadar_executor_transformer(config)?;
-    let bundle = build_tassadar_sequence_dataset(config.workload, config.dataset_version.as_str())?;
+    let bundle = build_tassadar_sequence_dataset_with_trace_family(
+        config.workload,
+        config.dataset_version.as_str(),
+        config.trace_family,
+    )?;
     Ok(benchmark_tassadar_executor_linear_decode(
         &outcome.model,
         &bundle.dataset,
@@ -1260,6 +1577,9 @@ fn accumulate_sequence_gradients(
     position_embedding_grad: Option<&mut [f32]>,
     mixer_projection_grad: Option<&mut [f32]>,
     mixer_bias_grad: Option<&mut [f32]>,
+    trace_schema_output_bias_grad: Option<&mut [f32]>,
+    prompt_summary_embedding_grad: Option<&mut [f32]>,
+    prompt_summary_target_output_bias_grad: Option<&mut [f32]>,
 ) -> Result<(f32, u32), TassadarExecutorTrainingError> {
     match stage.prefix_mode {
         TassadarExecutorStagePrefixMode::TeacherForced => {
@@ -1276,6 +1596,9 @@ fn accumulate_sequence_gradients(
                 position_embedding_grad,
                 mixer_projection_grad,
                 mixer_bias_grad,
+                trace_schema_output_bias_grad,
+                prompt_summary_embedding_grad,
+                prompt_summary_target_output_bias_grad,
             )
         }
         TassadarExecutorStagePrefixMode::GreedyRollout => {
@@ -1291,6 +1614,9 @@ fn accumulate_sequence_gradients(
                 position_embedding_grad,
                 mixer_projection_grad,
                 mixer_bias_grad,
+                trace_schema_output_bias_grad,
+                prompt_summary_embedding_grad,
+                prompt_summary_target_output_bias_grad,
             )
         }
     }
@@ -1309,6 +1635,9 @@ fn accumulate_teacher_forced_sequence_gradients(
     mut position_embedding_grad: Option<&mut [f32]>,
     mut mixer_projection_grad: Option<&mut [f32]>,
     mut mixer_bias_grad: Option<&mut [f32]>,
+    mut trace_schema_output_bias_grad: Option<&mut [f32]>,
+    mut prompt_summary_embedding_grad: Option<&mut [f32]>,
+    mut prompt_summary_target_output_bias_grad: Option<&mut [f32]>,
 ) -> Result<(f32, u32), TassadarExecutorTrainingError> {
     if teacher_forced_training_strategy
         == TassadarExecutorTeacherForcedTrainingStrategy::IncrementalDecodeWindow
@@ -1325,6 +1654,9 @@ fn accumulate_teacher_forced_sequence_gradients(
             position_embedding_grad,
             mixer_projection_grad,
             mixer_bias_grad,
+            trace_schema_output_bias_grad,
+            prompt_summary_embedding_grad,
+            prompt_summary_target_output_bias_grad,
         );
     }
     let max_target = stage
@@ -1337,6 +1669,9 @@ fn accumulate_teacher_forced_sequence_gradients(
             .iter()
             .map(|token| TokenId(*token))
             .collect::<Vec<_>>(),
+    );
+    let prompt_summary_bucket = current_model.prompt_summary_bucket_for_prompt(
+        &sequence.as_slice()[..example.metadata.prompt_token_count as usize],
     );
     let forward = current_model.forward_logits(&sequence)?;
     let start_logit_index = example.metadata.prompt_token_count.saturating_sub(1) as usize;
@@ -1351,6 +1686,14 @@ fn accumulate_teacher_forced_sequence_gradients(
             &forward.source_hidden_states[logit_index],
             &forward.step_contexts[logit_index],
             &forward.logits[logit_index],
+            current_model.relative_target_trace_schema_phase_index(
+                &sequence.as_slice()[..logit_index + 1],
+                example.metadata.prompt_token_count as usize,
+            ),
+            false,
+            prompt_summary_bucket,
+            Some(target_index),
+            false,
             sequence.as_slice()[logit_index + 1],
             structural_supervision.effective_weight(
                 supervision_families
@@ -1364,6 +1707,9 @@ fn accumulate_teacher_forced_sequence_gradients(
             position_embedding_grad.as_deref_mut(),
             mixer_projection_grad.as_deref_mut(),
             mixer_bias_grad.as_deref_mut(),
+            trace_schema_output_bias_grad.as_deref_mut(),
+            prompt_summary_embedding_grad.as_deref_mut(),
+            prompt_summary_target_output_bias_grad.as_deref_mut(),
         );
         target_token_count = target_token_count.saturating_add(1);
     }
@@ -1382,6 +1728,9 @@ fn accumulate_teacher_forced_incremental_sequence_gradients(
     mut position_embedding_grad: Option<&mut [f32]>,
     mut mixer_projection_grad: Option<&mut [f32]>,
     mut mixer_bias_grad: Option<&mut [f32]>,
+    mut trace_schema_output_bias_grad: Option<&mut [f32]>,
+    mut prompt_summary_embedding_grad: Option<&mut [f32]>,
+    mut prompt_summary_target_output_bias_grad: Option<&mut [f32]>,
 ) -> Result<(f32, u32), TassadarExecutorTrainingError> {
     let prompt_token_count = example.metadata.prompt_token_count as usize;
     let max_target = stage
@@ -1409,6 +1758,14 @@ fn accumulate_teacher_forced_incremental_sequence_gradients(
             step.source_hidden_state.as_slice(),
             &step.step_context,
             step.logits.as_slice(),
+            current_model.relative_target_trace_schema_phase_index(
+                state.prefix.as_slice(),
+                state.initial_prompt_len,
+            ),
+            true,
+            state.prompt_summary_bucket,
+            Some(target_index),
+            true,
             target_token,
             structural_supervision.effective_weight(
                 supervision_families
@@ -1422,6 +1779,9 @@ fn accumulate_teacher_forced_incremental_sequence_gradients(
             position_embedding_grad.as_deref_mut(),
             mixer_projection_grad.as_deref_mut(),
             mixer_bias_grad.as_deref_mut(),
+            trace_schema_output_bias_grad.as_deref_mut(),
+            prompt_summary_embedding_grad.as_deref_mut(),
+            prompt_summary_target_output_bias_grad.as_deref_mut(),
         );
         target_token_count = target_token_count.saturating_add(1);
         current_model.push_decoded_token(&mut state, target_token)?;
@@ -1441,6 +1801,9 @@ fn accumulate_greedy_rollout_sequence_gradients(
     mut position_embedding_grad: Option<&mut [f32]>,
     mut mixer_projection_grad: Option<&mut [f32]>,
     mut mixer_bias_grad: Option<&mut [f32]>,
+    mut trace_schema_output_bias_grad: Option<&mut [f32]>,
+    mut prompt_summary_embedding_grad: Option<&mut [f32]>,
+    mut prompt_summary_target_output_bias_grad: Option<&mut [f32]>,
 ) -> Result<(f32, u32), TassadarExecutorTrainingError> {
     let prompt_token_count = example.metadata.prompt_token_count as usize;
     let max_target = stage
@@ -1468,6 +1831,14 @@ fn accumulate_greedy_rollout_sequence_gradients(
             step.source_hidden_state.as_slice(),
             &step.step_context,
             step.logits.as_slice(),
+            current_model.relative_target_trace_schema_phase_index(
+                state.prefix.as_slice(),
+                state.initial_prompt_len,
+            ),
+            true,
+            state.prompt_summary_bucket,
+            Some(target_index),
+            true,
             target_token,
             structural_supervision.effective_weight(
                 supervision_families
@@ -1481,6 +1852,9 @@ fn accumulate_greedy_rollout_sequence_gradients(
             position_embedding_grad.as_deref_mut(),
             mixer_projection_grad.as_deref_mut(),
             mixer_bias_grad.as_deref_mut(),
+            trace_schema_output_bias_grad.as_deref_mut(),
+            prompt_summary_embedding_grad.as_deref_mut(),
+            prompt_summary_target_output_bias_grad.as_deref_mut(),
         );
         target_token_count = target_token_count.saturating_add(1);
         current_model
@@ -1496,6 +1870,11 @@ fn accumulate_step_gradients(
     source_hidden: &[f32],
     step_context: &psionic_models::TassadarExecutorTransformerStepContext,
     logits: &[f32],
+    trace_schema_phase: Option<usize>,
+    logits_include_trace_schema_bias: bool,
+    prompt_summary_bucket: Option<usize>,
+    relative_target_position: Option<usize>,
+    logits_include_prompt_summary_target_output_bias: bool,
     target_token: TokenId,
     loss_weight: f32,
     projection_grad: &mut [f32],
@@ -1504,20 +1883,69 @@ fn accumulate_step_gradients(
     position_embedding_grad: Option<&mut [f32]>,
     mixer_projection_grad: Option<&mut [f32]>,
     mixer_bias_grad: Option<&mut [f32]>,
+    trace_schema_output_bias_grad: Option<&mut [f32]>,
+    prompt_summary_embedding_grad: Option<&mut [f32]>,
+    prompt_summary_target_output_bias_grad: Option<&mut [f32]>,
 ) -> f32 {
     if loss_weight <= 0.0 {
         return 0.0;
     }
     let hidden_width = current_model.descriptor().config.hidden_width();
     let embedding_dim = current_model.descriptor().config.embedding_dim;
-    let probabilities = softmax(logits);
+    let mut adjusted_logits = logits.to_vec();
+    if !logits_include_trace_schema_bias {
+        current_model.apply_relative_target_trace_schema_output_bias_in_place(
+            adjusted_logits.as_mut_slice(),
+            trace_schema_phase,
+        );
+    }
+    if !logits_include_prompt_summary_target_output_bias {
+        current_model.apply_prompt_summary_target_output_bias_in_place(
+            adjusted_logits.as_mut_slice(),
+            prompt_summary_bucket,
+            relative_target_position,
+        );
+    }
+    let probabilities = softmax(adjusted_logits.as_slice());
     let target_token_index = target_token.as_u32() as usize;
     let probability = probabilities[target_token_index].max(1e-8);
     let mut hidden_grad = vec![0.0; hidden_width];
+    let vocab_size = probabilities.len();
+    let mut trace_schema_output_bias_grad = trace_schema_output_bias_grad;
+    let mut prompt_summary_embedding_grad = prompt_summary_embedding_grad;
+    let mut prompt_summary_target_output_bias_grad = prompt_summary_target_output_bias_grad;
 
     for (token_index, probability) in probabilities.iter().enumerate() {
         let delta = (probability - f32::from(token_index == target_token_index)) * loss_weight;
         bias_grad[token_index] += delta;
+        if let (Some(trace_schema_phase), Some(trace_schema_output_bias_grad)) = (
+            trace_schema_phase,
+            trace_schema_output_bias_grad.as_deref_mut(),
+        ) {
+            let row_offset = trace_schema_phase * vocab_size + token_index;
+            if row_offset < trace_schema_output_bias_grad.len() {
+                trace_schema_output_bias_grad[row_offset] += delta;
+            }
+        }
+        if let (
+            Some(prompt_summary_bucket),
+            Some(relative_target_position),
+            Some(prompt_summary_target_output_bias_grad),
+        ) = (
+            prompt_summary_bucket,
+            relative_target_position,
+            prompt_summary_target_output_bias_grad.as_deref_mut(),
+        ) {
+            if let Some(row_index) = current_model.prompt_summary_target_output_bias_row_index(
+                prompt_summary_bucket,
+                relative_target_position,
+            ) {
+                let row_offset = row_index * vocab_size + token_index;
+                if row_offset < prompt_summary_target_output_bias_grad.len() {
+                    prompt_summary_target_output_bias_grad[row_offset] += delta;
+                }
+            }
+        }
         for (hidden_index, hidden_value) in hidden.iter().enumerate() {
             let projection_index = hidden_index * probabilities.len() + token_index;
             projection_grad[projection_index] += hidden_value * delta;
@@ -1566,6 +1994,17 @@ fn accumulate_step_gradients(
         let hidden_offset = step_context.context_tokens.len() * embedding_dim;
         for dim in 0..embedding_dim {
             position_embedding_grad[position_offset + dim] +=
+                source_hidden_grad[hidden_offset + dim];
+        }
+    }
+    if let (Some(prompt_summary_bucket), Some(prompt_summary_embedding_grad)) = (
+        step_context.prompt_summary_bucket,
+        prompt_summary_embedding_grad.as_deref_mut(),
+    ) {
+        let prompt_summary_offset = prompt_summary_bucket * embedding_dim;
+        let hidden_offset = (step_context.context_tokens.len() + 1) * embedding_dim;
+        for dim in 0..embedding_dim {
+            prompt_summary_embedding_grad[prompt_summary_offset + dim] +=
                 source_hidden_grad[hidden_offset + dim];
         }
     }

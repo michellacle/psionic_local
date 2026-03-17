@@ -607,7 +607,8 @@ The current scope is:
 - the final article-parity closeout audit now exists at
   `docs/audits/2026-03-17-tassadar-article-parity-closeout-audit.md`; it is
   explicitly subordinate to `fixtures/tassadar/reports/tassadar_acceptance_report.json`
-  and currently stays red because the learned article-class bar is still red
+  and now records the green article-parity closeout at the committed
+  benchmark-corpus scope
 - landed crate surfaces:
   - `psionic-runtime::tassadar`
   - `psionic-models::TassadarExecutorFixture`

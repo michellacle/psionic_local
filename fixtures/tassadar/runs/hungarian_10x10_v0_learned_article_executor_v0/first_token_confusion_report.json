@@ -1,0 +1,8 @@
+{
+  "dataset_storage_key": "oa.tassadar.hungarian_10x10.sequence.hungarian_assignment_frontier@trace-family-v1",
+  "dataset_digest": "7406b2368e765c6b25823924cb4ff674665651d91fcd5a5b2af986d36ed81bde",
+  "split": "validation",
+  "token_zero_divergence_case_count": 0,
+  "entries": [],
+  "report_digest": "a1ff318dc3ea1bfbb4ce5f8a03be67fdc420a53878798d1f1bd9797017041ac6"
+}

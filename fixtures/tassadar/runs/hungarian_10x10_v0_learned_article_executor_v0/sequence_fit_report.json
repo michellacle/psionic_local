@@ -1,0 +1,33 @@
+{
+  "run_id": "tassadar-executor-transformer-hungarian-10x10-article-learned-run-v0",
+  "dataset_storage_key": "oa.tassadar.hungarian_10x10.sequence.hungarian_assignment_frontier@trace-family-v1",
+  "dataset_digest": "7406b2368e765c6b25823924cb4ff674665651d91fcd5a5b2af986d36ed81bde",
+  "model_id": "tassadar-executor-transformer-hungarian-10x10-v0",
+  "trained_model_descriptor_digest": "2d9a6dd22e5857be070b680e14397f6d58290a216742132018f7e8a8305bb2c2",
+  "trainable_surface": "output_head_embeddings_and_small_learned_mixer",
+  "teacher_forced_training_strategy": "full_forward_window",
+  "long_trace_contract": "flat_prefix_full_forward",
+  "trace_family": "hungarian_assignment_frontier",
+  "vocab_size": 303,
+  "hidden_width": 288,
+  "model_max_sequence_tokens": 262144,
+  "prompt_token_count_min": 21881,
+  "prompt_token_count_max": 21881,
+  "target_token_count_min": 169,
+  "target_token_count_max": 169,
+  "total_token_count_min": 22050,
+  "total_token_count_max": 22050,
+  "full_sequence_fits_model_context": true,
+  "full_sequence_context_headroom_min": 240094,
+  "full_sequence_context_headroom_max": 240094,
+  "stage_fits": [
+    {
+      "stage_id": "full_trace_supervision",
+      "target_token_cap": 169,
+      "max_total_tokens": 22050,
+      "fits_model_context": true,
+      "context_headroom_tokens": 240094
+    }
+  ],
+  "report_digest": "d73a5cc5c66515cb2fc2ccc7a5bf5abda6adf7a58b074b2c102a38e5396b0395"
+}

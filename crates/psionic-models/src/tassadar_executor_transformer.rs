@@ -128,6 +128,12 @@ pub struct TassadarExecutorTransformerConfig {
     pub context_offsets: Vec<usize>,
     /// Constrained lookup head dimension carried as a geometry claim.
     pub constrained_lookup_head_dim: usize,
+    /// Optional prompt-summary embedding buckets for prompt-conditioned learned adapters.
+    #[serde(
+        default,
+        skip_serializing_if = "prompt_summary_bucket_count_is_zero"
+    )]
+    pub prompt_summary_bucket_count: usize,
 }
 
 impl TassadarExecutorTransformerConfig {
@@ -140,6 +146,7 @@ impl TassadarExecutorTransformerConfig {
             embedding_dim: 16,
             context_offsets: vec![1, 2, 4, 8, 16],
             constrained_lookup_head_dim: 2,
+            prompt_summary_bucket_count: 0,
         }
     }
 
@@ -152,6 +159,7 @@ impl TassadarExecutorTransformerConfig {
             embedding_dim: 16,
             context_offsets: vec![1, 2, 4, 8, 16, 32],
             constrained_lookup_head_dim: 2,
+            prompt_summary_bucket_count: 0,
         }
     }
 
@@ -164,14 +172,33 @@ impl TassadarExecutorTransformerConfig {
             embedding_dim: 16,
             context_offsets: vec![1, 2, 4, 8, 16, 32],
             constrained_lookup_head_dim: 2,
+            prompt_summary_bucket_count: 0,
+        }
+    }
+
+    /// Returns the article-sized Hungarian-10x10 config.
+    #[must_use]
+    pub fn hungarian_10x10(tokenizer: &TassadarTraceTokenizer) -> Self {
+        Self {
+            vocab_size: tokenizer.vocabulary().len(),
+            max_sequence_tokens: 262_144,
+            embedding_dim: 32,
+            context_offsets: vec![1, 2, 4, 8, 16, 32, 64],
+            constrained_lookup_head_dim: 2,
+            prompt_summary_bucket_count: 4096,
         }
     }
 
     /// Returns the hidden-state width emitted by the fixed lookup heads plus position state.
     #[must_use]
     pub fn hidden_width(&self) -> usize {
-        self.embedding_dim * (self.context_offsets.len() + 1)
+        let prompt_summary_slots = usize::from(self.prompt_summary_bucket_count > 0);
+        self.embedding_dim * (self.context_offsets.len() + 1 + prompt_summary_slots)
     }
+}
+
+fn prompt_summary_bucket_count_is_zero(count: &usize) -> bool {
+    *count == 0
 }
 
 /// Explicit descriptor for the first real neural executor family.
@@ -231,9 +258,86 @@ pub struct TassadarExecutorTransformerWeightBundle {
     position_embeddings: Vec<f32>,
     output_projection: Vec<f32>,
     output_bias: Vec<f32>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    prompt_summary_embeddings: Vec<f32>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    prompt_summary_target_output_bias_rows: Vec<TassadarPromptSummaryTargetOutputBiasRow>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    relative_target_trace_schema_output_bias: Vec<f32>,
     small_learned_mixer_projection: Vec<f32>,
     small_learned_mixer_bias: Vec<f32>,
     head_offsets: Vec<f32>,
+}
+
+/// One prompt-conditioned target-position output-bias override row.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct TassadarPromptSummaryTargetOutputBiasRow {
+    /// Stable prompt-summary bucket selected from the prompt prefix.
+    pub prompt_summary_bucket: u32,
+    /// Zero-based target position after the prompt boundary.
+    pub relative_target_position: u32,
+    /// Vocabulary-sized bias row for that prompt and target position.
+    pub values: Vec<f32>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum TassadarEarlyTraceSchemaPhase {
+    ExpectStep,
+    ExpectStepIndex,
+    ExpectStepIndexByte0,
+    ExpectStepIndexByte1,
+    ExpectStepIndexByte2,
+    ExpectStepIndexByte3,
+    ExpectPc,
+    ExpectPcByte0,
+    ExpectPcByte1,
+    ExpectPcByte2,
+    ExpectPcByte3,
+    ExpectNextPc,
+    ExpectNextPcByte0,
+    ExpectNextPcByte1,
+    ExpectNextPcByte2,
+    ExpectNextPcByte3,
+    ExpectInstruction,
+}
+
+impl TassadarEarlyTraceSchemaPhase {
+    const COUNT: usize = 17;
+
+    const fn index(self) -> usize {
+        match self {
+            Self::ExpectStep => 0,
+            Self::ExpectStepIndex => 1,
+            Self::ExpectStepIndexByte0 => 2,
+            Self::ExpectStepIndexByte1 => 3,
+            Self::ExpectStepIndexByte2 => 4,
+            Self::ExpectStepIndexByte3 => 5,
+            Self::ExpectPc => 6,
+            Self::ExpectPcByte0 => 7,
+            Self::ExpectPcByte1 => 8,
+            Self::ExpectPcByte2 => 9,
+            Self::ExpectPcByte3 => 10,
+            Self::ExpectNextPc => 11,
+            Self::ExpectNextPcByte0 => 12,
+            Self::ExpectNextPcByte1 => 13,
+            Self::ExpectNextPcByte2 => 14,
+            Self::ExpectNextPcByte3 => 15,
+            Self::ExpectInstruction => 16,
+        }
+    }
+}
+
+fn flatten_prompt_summary_target_output_bias_rows(
+    rows: &[TassadarPromptSummaryTargetOutputBiasRow],
+) -> (Vec<f32>, Vec<f32>) {
+    let mut keys = Vec::with_capacity(rows.len().saturating_mul(2));
+    let mut values = Vec::new();
+    for row in rows {
+        keys.push(row.prompt_summary_bucket as f32);
+        keys.push(row.relative_target_position as f32);
+        values.extend_from_slice(row.values.as_slice());
+    }
+    (keys, values)
 }
 
 impl TassadarExecutorTransformerWeightBundle {
@@ -257,6 +361,10 @@ impl TassadarExecutorTransformerWeightBundle {
             0.08,
         );
         let output_bias = vec![0.0; config.vocab_size];
+        let prompt_summary_embeddings =
+            vec![0.0; config.prompt_summary_bucket_count * config.embedding_dim];
+        let prompt_summary_target_output_bias_rows = Vec::new();
+        let relative_target_trace_schema_output_bias = Vec::new();
         let small_learned_mixer_projection =
             vec![0.0; config.hidden_width() * config.hidden_width()];
         let small_learned_mixer_bias = vec![0.0; config.hidden_width()];
@@ -265,6 +373,12 @@ impl TassadarExecutorTransformerWeightBundle {
             .iter()
             .map(|offset| *offset as f32)
             .collect::<Vec<_>>();
+        let prompt_summary_target_output_bias_tensors =
+            (!prompt_summary_target_output_bias_rows.is_empty()).then(|| {
+                flatten_prompt_summary_target_output_bias_rows(
+                    &prompt_summary_target_output_bias_rows,
+                )
+            });
 
         let mut entries = vec![
             (
@@ -308,6 +422,49 @@ impl TassadarExecutorTransformerWeightBundle {
                 head_offsets.as_slice(),
             ),
         ];
+        if !prompt_summary_embeddings.is_empty() {
+            entries.push((
+                WeightTensorMetadata::new(
+                    "prompt_summary_embeddings",
+                    Shape::new(vec![config.prompt_summary_bucket_count, config.embedding_dim]),
+                    DType::F32,
+                ),
+                prompt_summary_embeddings.as_slice(),
+            ));
+        }
+        if let Some((keys, values)) = prompt_summary_target_output_bias_tensors.as_ref() {
+            entries.extend([
+                (
+                    WeightTensorMetadata::new(
+                        "prompt_summary_target_output_bias_row_keys",
+                        Shape::new(vec![prompt_summary_target_output_bias_rows.len(), 2]),
+                        DType::F32,
+                    ),
+                    keys.as_slice(),
+                ),
+                (
+                    WeightTensorMetadata::new(
+                        "prompt_summary_target_output_bias_row_values",
+                        Shape::new(vec![
+                            prompt_summary_target_output_bias_rows.len(),
+                            config.vocab_size,
+                        ]),
+                        DType::F32,
+                    ),
+                    values.as_slice(),
+                ),
+            ]);
+        }
+        if !relative_target_trace_schema_output_bias.is_empty() {
+            entries.push((
+                WeightTensorMetadata::new(
+                    "relative_target_trace_schema_output_bias",
+                    Shape::new(vec![TassadarEarlyTraceSchemaPhase::COUNT, config.vocab_size]),
+                    DType::F32,
+                ),
+                relative_target_trace_schema_output_bias.as_slice(),
+            ));
+        }
         if trainable_surface.trains_small_learned_mixer() {
             entries.extend([
                 (
@@ -335,6 +492,9 @@ impl TassadarExecutorTransformerWeightBundle {
             position_embeddings,
             output_projection,
             output_bias,
+            prompt_summary_embeddings,
+            prompt_summary_target_output_bias_rows,
+            relative_target_trace_schema_output_bias,
             small_learned_mixer_projection,
             small_learned_mixer_bias,
             head_offsets,
@@ -389,6 +549,41 @@ impl TassadarExecutorTransformerWeightBundle {
     #[must_use]
     pub fn output_bias(&self) -> &[f32] {
         &self.output_bias
+    }
+
+    /// Returns mutable prompt-summary embeddings for prompt-conditioned adapters.
+    pub fn prompt_summary_embeddings_mut(&mut self) -> &mut [f32] {
+        &mut self.prompt_summary_embeddings
+    }
+
+    /// Returns the prompt-summary embeddings.
+    #[must_use]
+    pub fn prompt_summary_embeddings(&self) -> &[f32] {
+        &self.prompt_summary_embeddings
+    }
+
+    /// Returns mutable prompt-conditioned target-position output-bias rows.
+    pub fn prompt_summary_target_output_bias_rows_mut(
+        &mut self,
+    ) -> &mut Vec<TassadarPromptSummaryTargetOutputBiasRow> {
+        &mut self.prompt_summary_target_output_bias_rows
+    }
+
+    /// Returns the prompt-conditioned target-position output-bias rows.
+    #[must_use]
+    pub fn prompt_summary_target_output_bias_rows(&self) -> &[TassadarPromptSummaryTargetOutputBiasRow] {
+        &self.prompt_summary_target_output_bias_rows
+    }
+
+    /// Returns mutable trace-schema-conditioned output-bias adapter weights.
+    pub fn relative_target_trace_schema_output_bias_mut(&mut self) -> &mut [f32] {
+        &mut self.relative_target_trace_schema_output_bias
+    }
+
+    /// Returns the trace-schema-conditioned output-bias adapter weights.
+    #[must_use]
+    pub fn relative_target_trace_schema_output_bias(&self) -> &[f32] {
+        &self.relative_target_trace_schema_output_bias
     }
 
     /// Returns mutable residual-mixer projection weights for later training updates.
@@ -460,6 +655,55 @@ impl TassadarExecutorTransformerWeightBundle {
                 self.head_offsets.as_slice(),
             ),
         ];
+        if !self.prompt_summary_embeddings.is_empty() {
+            entries.push((
+                WeightTensorMetadata::new(
+                    "prompt_summary_embeddings",
+                    Shape::new(vec![config.prompt_summary_bucket_count, config.embedding_dim]),
+                    DType::F32,
+                ),
+                self.prompt_summary_embeddings.as_slice(),
+            ));
+        }
+        let prompt_summary_target_output_bias_tensors =
+            (!self.prompt_summary_target_output_bias_rows.is_empty()).then(|| {
+                flatten_prompt_summary_target_output_bias_rows(
+                    &self.prompt_summary_target_output_bias_rows,
+                )
+            });
+        if let Some((keys, values)) = prompt_summary_target_output_bias_tensors.as_ref() {
+            entries.extend([
+                (
+                    WeightTensorMetadata::new(
+                        "prompt_summary_target_output_bias_row_keys",
+                        Shape::new(vec![self.prompt_summary_target_output_bias_rows.len(), 2]),
+                        DType::F32,
+                    ),
+                    keys.as_slice(),
+                ),
+                (
+                    WeightTensorMetadata::new(
+                        "prompt_summary_target_output_bias_row_values",
+                        Shape::new(vec![
+                            self.prompt_summary_target_output_bias_rows.len(),
+                            config.vocab_size,
+                        ]),
+                        DType::F32,
+                    ),
+                    values.as_slice(),
+                ),
+            ]);
+        }
+        if !self.relative_target_trace_schema_output_bias.is_empty() {
+            entries.push((
+                WeightTensorMetadata::new(
+                    "relative_target_trace_schema_output_bias",
+                    Shape::new(vec![TassadarEarlyTraceSchemaPhase::COUNT, config.vocab_size]),
+                    DType::F32,
+                ),
+                self.relative_target_trace_schema_output_bias.as_slice(),
+            ));
+        }
         if trainable_surface.trains_small_learned_mixer() {
             entries.extend([
                 (
@@ -504,6 +748,9 @@ pub struct TassadarExecutorTransformerStepContext {
     pub context_tokens: Vec<TokenId>,
     /// Position index used for the position embedding.
     pub position: u32,
+    /// Prompt-summary bucket used for prompt-conditioned learned adapters.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub prompt_summary_bucket: Option<usize>,
 }
 
 /// Decode refusal for the neural executor family.
@@ -550,6 +797,12 @@ pub struct TassadarExecutorTransformerKvPoint {
 pub struct TassadarExecutorTransformerDecodeState {
     /// Prefix tokens visible to the next decode step.
     pub prefix: TokenSequence,
+    /// Prompt-token count used to detect bounded early target schema phases.
+    #[serde(default)]
+    pub initial_prompt_len: usize,
+    /// Prompt-summary bucket used for prompt-conditioned learned adapters.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub prompt_summary_bucket: Option<usize>,
     /// Next decode position.
     pub next_position: usize,
     /// Explicit KV points visible to the next decode step.
@@ -584,6 +837,9 @@ impl TassadarExecutorTransformer {
     pub const SUDOKU_9X9_MODEL_ID: &str = "tassadar-executor-transformer-sudoku-9x9-v0";
     /// Stable model identifier for the first Hungarian-v0 executor family.
     pub const HUNGARIAN_V0_MODEL_ID: &str = "tassadar-executor-transformer-hungarian-v0-v0";
+    /// Stable model identifier for the first Hungarian-10x10 executor family.
+    pub const HUNGARIAN_10X10_MODEL_ID: &str =
+        "tassadar-executor-transformer-hungarian-10x10-v0";
     /// Stable model identifier for the first windowed Sudoku-v0 executor family.
     pub const WINDOWED_MODEL_ID: &str = "tassadar-executor-transformer-sudoku-v0-windowed-v0";
     /// Stable model identifier for the first windowed 9x9 executor family.
@@ -592,6 +848,9 @@ impl TassadarExecutorTransformer {
     /// Stable model identifier for the first windowed Hungarian-v0 executor family.
     pub const WINDOWED_HUNGARIAN_V0_MODEL_ID: &str =
         "tassadar-executor-transformer-hungarian-v0-windowed-v0";
+    /// Stable model identifier for the first windowed Hungarian-10x10 executor family.
+    pub const WINDOWED_HUNGARIAN_10X10_MODEL_ID: &str =
+        "tassadar-executor-transformer-hungarian-10x10-windowed-v0";
     /// Stable model identifier for the first direct sparse Sudoku-v0 executor family.
     pub const SPARSE_MODEL_ID: &str = "tassadar-executor-transformer-sudoku-v0-sparse-v0";
     /// Stable model family label.
@@ -805,6 +1064,34 @@ impl TassadarExecutorTransformer {
         )
     }
 
+    /// Creates the first article-sized Hungarian-10x10 executor transformer.
+    #[must_use]
+    pub fn hungarian_10x10() -> Self {
+        Self::hungarian_10x10_with_surface(TassadarExecutorTrainableSurface::OutputHeadOnly)
+    }
+
+    /// Creates the first article-sized Hungarian-10x10 executor transformer for one surface.
+    #[must_use]
+    pub fn hungarian_10x10_with_surface(
+        trainable_surface: TassadarExecutorTrainableSurface,
+    ) -> Self {
+        Self::hungarian_10x10_with_surface_and_contract(
+            trainable_surface,
+            TassadarExecutorLongTraceContract::FlatPrefixFullForward,
+        )
+    }
+
+    /// Creates the first explicit windowed Hungarian-10x10 executor transformer for one surface.
+    #[must_use]
+    pub fn hungarian_10x10_windowed_with_surface(
+        trainable_surface: TassadarExecutorTrainableSurface,
+    ) -> Self {
+        Self::hungarian_10x10_with_surface_and_contract(
+            trainable_surface,
+            TassadarExecutorLongTraceContract::IncrementalDecodeWindow,
+        )
+    }
+
     fn hungarian_v0_with_surface_and_contract(
         trainable_surface: TassadarExecutorTrainableSurface,
         long_trace_contract: TassadarExecutorLongTraceContract,
@@ -849,6 +1136,50 @@ impl TassadarExecutorTransformer {
         }
     }
 
+    fn hungarian_10x10_with_surface_and_contract(
+        trainable_surface: TassadarExecutorTrainableSurface,
+        long_trace_contract: TassadarExecutorLongTraceContract,
+    ) -> Self {
+        let tokenizer = TassadarTraceTokenizer::new();
+        let config = TassadarExecutorTransformerConfig::hungarian_10x10(&tokenizer);
+        let weights = TassadarExecutorTransformerWeightBundle::new(&config, trainable_surface);
+        let (model_id, model_family) = match long_trace_contract {
+            TassadarExecutorLongTraceContract::FlatPrefixFullForward => {
+                (Self::HUNGARIAN_10X10_MODEL_ID, Self::MODEL_FAMILY)
+            }
+            TassadarExecutorLongTraceContract::IncrementalDecodeWindow => (
+                Self::WINDOWED_HUNGARIAN_10X10_MODEL_ID,
+                Self::WINDOWED_MODEL_FAMILY,
+            ),
+        };
+        let descriptor = TassadarExecutorTransformerDescriptor {
+            model: ModelDescriptor::new(model_id, model_family, "v0"),
+            executor_family: TassadarExecutorFamily::WasmTraceExecutor,
+            profile: TassadarWasmProfile::hungarian_10x10_matching_v1(),
+            trace_abi: TassadarTraceAbi::hungarian_10x10_matching_v1(),
+            supported_decode_modes: vec![
+                TassadarExecutorDecodeMode::ReferenceLinear,
+                TassadarExecutorDecodeMode::HullCache,
+            ],
+            attention_mode: TassadarExecutorAttentionMode::HardMaxLookup,
+            attention_geometry: TassadarAttentionGeometryContract {
+                constrained_lookup_head_dim: Some(config.constrained_lookup_head_dim),
+                hull_cache_eligible: true,
+            },
+            claim_boundary: TassadarExecutorTransformerClaimBoundary::NextTokenOnly,
+            long_trace_contract,
+            sparse_top_k: None,
+            trainable_surface,
+            config,
+            weights: weights.metadata().clone(),
+        };
+        Self {
+            descriptor,
+            tokenizer,
+            weights,
+        }
+    }
+
     /// Returns the public descriptor.
     #[must_use]
     pub fn descriptor(&self) -> &TassadarExecutorTransformerDescriptor {
@@ -870,6 +1201,86 @@ impl TassadarExecutorTransformer {
     #[must_use]
     pub fn weights(&self) -> &TassadarExecutorTransformerWeightBundle {
         &self.weights
+    }
+
+    /// Enables the bounded early trace-schema output-bias adapter when absent.
+    pub fn ensure_relative_target_trace_schema_output_bias(&mut self) {
+        if !self.weights.relative_target_trace_schema_output_bias.is_empty() {
+            return;
+        }
+        self.weights.relative_target_trace_schema_output_bias =
+            vec![0.0; TassadarEarlyTraceSchemaPhase::COUNT * self.descriptor.config.vocab_size];
+    }
+
+    /// Returns whether prompt-summary embeddings are configured for this model.
+    #[must_use]
+    pub fn has_prompt_summary_embeddings(&self) -> bool {
+        self.descriptor.config.prompt_summary_bucket_count > 0
+            && !self.weights.prompt_summary_embeddings.is_empty()
+    }
+
+    /// Returns the prompt-summary bucket for one prompt prefix.
+    #[must_use]
+    pub fn prompt_summary_bucket_for_prompt(&self, prompt: &[TokenId]) -> Option<usize> {
+        let bucket_count = self.descriptor.config.prompt_summary_bucket_count;
+        if bucket_count == 0 {
+            return None;
+        }
+        let mut hasher = Sha256::new();
+        hasher.update(b"psionic_tassadar_prompt_summary_bucket|");
+        for token in prompt {
+            hasher.update(token.as_u32().to_le_bytes());
+        }
+        let digest = hasher.finalize();
+        let mut bucket_seed = [0_u8; 8];
+        bucket_seed.copy_from_slice(&digest[..8]);
+        Some((u64::from_le_bytes(bucket_seed) % bucket_count as u64) as usize)
+    }
+
+    /// Ensures one prompt-conditioned target-position output-bias row exists.
+    pub fn ensure_prompt_summary_target_output_bias_row(
+        &mut self,
+        prompt_summary_bucket: usize,
+        relative_target_position: usize,
+    ) {
+        if self
+            .prompt_summary_target_output_bias_row_index(prompt_summary_bucket, relative_target_position)
+            .is_some()
+        {
+            return;
+        }
+        self.weights
+            .prompt_summary_target_output_bias_rows_mut()
+            .push(TassadarPromptSummaryTargetOutputBiasRow {
+                prompt_summary_bucket: prompt_summary_bucket as u32,
+                relative_target_position: relative_target_position as u32,
+                values: vec![0.0; self.descriptor.config.vocab_size],
+            });
+    }
+
+    /// Returns the row index for one prompt-conditioned target-position output-bias row.
+    #[must_use]
+    pub fn prompt_summary_target_output_bias_row_index(
+        &self,
+        prompt_summary_bucket: usize,
+        relative_target_position: usize,
+    ) -> Option<usize> {
+        self.weights
+            .prompt_summary_target_output_bias_rows()
+            .iter()
+            .position(|row| {
+                row.prompt_summary_bucket as usize == prompt_summary_bucket
+                    && row.relative_target_position as usize == relative_target_position
+            })
+    }
+
+    /// Returns whether the bounded early trace-schema adapter has any non-zero trained signal.
+    #[must_use]
+    pub fn has_relative_target_trace_schema_output_bias_signal(&self) -> bool {
+        self.weights
+            .relative_target_trace_schema_output_bias
+            .iter()
+            .any(|value| value.abs() > 1e-6)
     }
 
     /// Returns the active trainable surface.
@@ -972,9 +1383,12 @@ impl TassadarExecutorTransformer {
         let mut source_hidden_states = Vec::new();
         let mut logits = Vec::new();
         let mut step_contexts = Vec::new();
+        let prompt_summary_bucket = self
+            .infer_initial_prompt_len(sequence.as_slice())
+            .and_then(|prompt_len| self.prompt_summary_bucket_for_prompt(&sequence.as_slice()[..prompt_len]));
         for position in 1..sequence.len() {
             let prefix = &sequence.as_slice()[..position];
-            let step_context = self.step_context(prefix, position)?;
+            let step_context = self.step_context(prefix, position, prompt_summary_bucket)?;
             let source_hidden_state = self.hidden_state_from_step_context(&step_context)?;
             let hidden_state = self.apply_small_learned_mixer(source_hidden_state.as_slice())?;
             let step_logits = self.project_logits(hidden_state.as_slice())?;
@@ -1003,6 +1417,8 @@ impl TassadarExecutorTransformer {
             });
         }
         Ok(TassadarExecutorTransformerDecodeState {
+            initial_prompt_len: prompt.len(),
+            prompt_summary_bucket: self.prompt_summary_bucket_for_prompt(prompt.as_slice()),
             next_position: prompt.len(),
             kv_points: prompt
                 .as_slice()
@@ -1093,7 +1509,19 @@ impl TassadarExecutorTransformer {
         let step_context = self.step_context_from_decode_state(state, effective_decode_mode)?;
         let source_hidden_state = self.hidden_state_from_step_context(&step_context)?;
         let hidden_state = self.apply_small_learned_mixer(source_hidden_state.as_slice())?;
-        let logits = self.project_logits(hidden_state.as_slice())?;
+        let mut logits = self.project_logits(hidden_state.as_slice())?;
+        self.apply_relative_target_trace_schema_output_bias_in_place(
+            logits.as_mut_slice(),
+            self.relative_target_trace_schema_phase_index(
+                state.prefix.as_slice(),
+                state.initial_prompt_len,
+            ),
+        );
+        self.apply_prompt_summary_target_output_bias_in_place(
+            logits.as_mut_slice(),
+            state.prompt_summary_bucket,
+            Some(state.prefix.len().saturating_sub(state.initial_prompt_len)),
+        );
         Ok(TassadarExecutorTransformerDecodeStep {
             source_hidden_state,
             hidden_state,
@@ -1114,6 +1542,7 @@ impl TassadarExecutorTransformer {
         &self,
         prefix: &[TokenId],
         position: usize,
+        prompt_summary_bucket: Option<usize>,
     ) -> Result<TassadarExecutorTransformerStepContext, TassadarExecutorTransformerError> {
         if position >= self.descriptor.config.max_sequence_tokens {
             return Err(TassadarExecutorTransformerError::SequenceTooLong {
@@ -1137,6 +1566,7 @@ impl TassadarExecutorTransformer {
         Ok(TassadarExecutorTransformerStepContext {
             context_tokens,
             position: position as u32,
+            prompt_summary_bucket,
         })
     }
 
@@ -1165,6 +1595,7 @@ impl TassadarExecutorTransformer {
         Ok(TassadarExecutorTransformerStepContext {
             context_tokens,
             position: state.next_position as u32,
+            prompt_summary_bucket: state.prompt_summary_bucket,
         })
     }
 
@@ -1178,6 +1609,9 @@ impl TassadarExecutorTransformer {
             hidden.extend_from_slice(self.token_embedding(*token)?);
         }
         hidden.extend_from_slice(self.position_embedding(step_context.position as usize));
+        if let Some(prompt_summary_bucket) = step_context.prompt_summary_bucket {
+            hidden.extend_from_slice(self.prompt_summary_embedding(prompt_summary_bucket)?);
+        }
         Ok(hidden)
     }
 
@@ -1310,11 +1744,39 @@ impl TassadarExecutorTransformer {
         Ok(&self.weights.token_embeddings[start..start + width])
     }
 
+    fn prompt_summary_embedding(
+        &self,
+        prompt_summary_bucket: usize,
+    ) -> Result<&[f32], TassadarExecutorTransformerError> {
+        let bucket_count = self.descriptor.config.prompt_summary_bucket_count;
+        if bucket_count == 0 || self.weights.prompt_summary_embeddings.is_empty() {
+            return Ok(&[]);
+        }
+        if prompt_summary_bucket >= bucket_count {
+            return Err(TassadarExecutorTransformerError::WeightLengthMismatch {
+                tensor: String::from("prompt_summary_embedding_bucket"),
+                expected: bucket_count,
+                actual: prompt_summary_bucket,
+            });
+        }
+        let width = self.descriptor.config.embedding_dim;
+        let start = prompt_summary_bucket * width;
+        Ok(&self.weights.prompt_summary_embeddings[start..start + width])
+    }
+
     fn position_embedding(&self, position: usize) -> &[f32] {
         let width = self.descriptor.config.embedding_dim;
         let clamped = position.min(self.descriptor.config.max_sequence_tokens - 1);
         let start = clamped * width;
         &self.weights.position_embeddings[start..start + width]
+    }
+
+    fn infer_initial_prompt_len(&self, sequence: &[TokenId]) -> Option<usize> {
+        let trace_token = self.token_id("<trace>");
+        sequence
+            .iter()
+            .position(|token| *token == trace_token)
+            .map(|index| index + 1)
     }
 
     fn project_logits(
@@ -1339,6 +1801,225 @@ impl TassadarExecutorTransformer {
             *logit = value;
         }
         Ok(logits)
+    }
+
+    /// Applies the bounded trace-schema-conditioned output-bias adapter to one logit slice.
+    pub fn apply_relative_target_trace_schema_output_bias_in_place(
+        &self,
+        logits: &mut [f32],
+        trace_schema_phase: Option<usize>,
+    ) {
+        let Some(trace_schema_phase) = trace_schema_phase else {
+            return;
+        };
+        let vocab_size = self.descriptor.config.vocab_size;
+        if logits.len() != vocab_size
+            || trace_schema_phase >= TassadarEarlyTraceSchemaPhase::COUNT
+            || self.weights.relative_target_trace_schema_output_bias.is_empty()
+        {
+            return;
+        }
+        let row_start = trace_schema_phase * vocab_size;
+        let row = &self.weights.relative_target_trace_schema_output_bias
+            [row_start..row_start + vocab_size];
+        for (logit, bias) in logits.iter_mut().zip(row.iter()) {
+            *logit += *bias;
+        }
+    }
+
+    /// Applies the prompt-conditioned target-position output-bias adapter to one logit slice.
+    pub fn apply_prompt_summary_target_output_bias_in_place(
+        &self,
+        logits: &mut [f32],
+        prompt_summary_bucket: Option<usize>,
+        relative_target_position: Option<usize>,
+    ) {
+        let (Some(prompt_summary_bucket), Some(relative_target_position)) =
+            (prompt_summary_bucket, relative_target_position)
+        else {
+            return;
+        };
+        if logits.len() != self.descriptor.config.vocab_size {
+            return;
+        }
+        let Some(row_index) = self.prompt_summary_target_output_bias_row_index(
+            prompt_summary_bucket,
+            relative_target_position,
+        ) else {
+            return;
+        };
+        let row = &self.weights.prompt_summary_target_output_bias_rows()[row_index].values;
+        for (logit, bias) in logits.iter_mut().zip(row.iter()) {
+            *logit += *bias;
+        }
+    }
+
+    /// Returns the bounded early trace-schema phase index for the current decoded prefix.
+    #[must_use]
+    pub fn relative_target_trace_schema_phase_index(
+        &self,
+        prefix: &[TokenId],
+        initial_prompt_len: usize,
+    ) -> Option<usize> {
+        self.relative_target_trace_schema_phase(prefix, initial_prompt_len)
+            .map(TassadarEarlyTraceSchemaPhase::index)
+    }
+
+    fn relative_target_trace_schema_phase(
+        &self,
+        prefix: &[TokenId],
+        initial_prompt_len: usize,
+    ) -> Option<TassadarEarlyTraceSchemaPhase> {
+        if prefix.len() < initial_prompt_len || initial_prompt_len == 0 {
+            return None;
+        }
+        let target_prefix = &prefix[initial_prompt_len..];
+        let trace_token = self.token_id("<trace>");
+        if target_prefix.is_empty() {
+            return (prefix.last().copied() == Some(trace_token))
+                .then_some(TassadarEarlyTraceSchemaPhase::ExpectStep);
+        }
+
+        let step_token = self.token_id("<step>");
+        let step_index_token = self.token_id("<step_index>");
+        let pc_token = self.token_id("<pc>");
+        let next_pc_token = self.token_id("<next_pc>");
+        let (byte_token_start, byte_token_end) = self.byte_token_bounds();
+        let is_byte = |token: TokenId| {
+            let raw = token.as_u32();
+            raw >= byte_token_start && raw <= byte_token_end
+        };
+        let all_bytes = |tokens: &[TokenId]| tokens.iter().copied().all(is_byte);
+
+        match target_prefix.len() {
+            1 if target_prefix[0] == step_token => Some(TassadarEarlyTraceSchemaPhase::ExpectStepIndex),
+            2 if target_prefix[0] == step_token && target_prefix[1] == step_index_token => {
+                Some(TassadarEarlyTraceSchemaPhase::ExpectStepIndexByte0)
+            }
+            3 if target_prefix[0] == step_token
+                && target_prefix[1] == step_index_token
+                && all_bytes(&target_prefix[2..3]) =>
+            {
+                Some(TassadarEarlyTraceSchemaPhase::ExpectStepIndexByte1)
+            }
+            4 if target_prefix[0] == step_token
+                && target_prefix[1] == step_index_token
+                && all_bytes(&target_prefix[2..4]) =>
+            {
+                Some(TassadarEarlyTraceSchemaPhase::ExpectStepIndexByte2)
+            }
+            5 if target_prefix[0] == step_token
+                && target_prefix[1] == step_index_token
+                && all_bytes(&target_prefix[2..5]) =>
+            {
+                Some(TassadarEarlyTraceSchemaPhase::ExpectStepIndexByte3)
+            }
+            6 if target_prefix[0] == step_token
+                && target_prefix[1] == step_index_token
+                && all_bytes(&target_prefix[2..6]) =>
+            {
+                Some(TassadarEarlyTraceSchemaPhase::ExpectPc)
+            }
+            7 if target_prefix[0] == step_token
+                && target_prefix[1] == step_index_token
+                && all_bytes(&target_prefix[2..6])
+                && target_prefix[6] == pc_token =>
+            {
+                Some(TassadarEarlyTraceSchemaPhase::ExpectPcByte0)
+            }
+            8 if target_prefix[0] == step_token
+                && target_prefix[1] == step_index_token
+                && all_bytes(&target_prefix[2..6])
+                && target_prefix[6] == pc_token
+                && all_bytes(&target_prefix[7..8]) =>
+            {
+                Some(TassadarEarlyTraceSchemaPhase::ExpectPcByte1)
+            }
+            9 if target_prefix[0] == step_token
+                && target_prefix[1] == step_index_token
+                && all_bytes(&target_prefix[2..6])
+                && target_prefix[6] == pc_token
+                && all_bytes(&target_prefix[7..9]) =>
+            {
+                Some(TassadarEarlyTraceSchemaPhase::ExpectPcByte2)
+            }
+            10 if target_prefix[0] == step_token
+                && target_prefix[1] == step_index_token
+                && all_bytes(&target_prefix[2..6])
+                && target_prefix[6] == pc_token
+                && all_bytes(&target_prefix[7..10]) =>
+            {
+                Some(TassadarEarlyTraceSchemaPhase::ExpectPcByte3)
+            }
+            11 if target_prefix[0] == step_token
+                && target_prefix[1] == step_index_token
+                && all_bytes(&target_prefix[2..6])
+                && target_prefix[6] == pc_token
+                && all_bytes(&target_prefix[7..11]) =>
+            {
+                Some(TassadarEarlyTraceSchemaPhase::ExpectNextPc)
+            }
+            12 if target_prefix[0] == step_token
+                && target_prefix[1] == step_index_token
+                && all_bytes(&target_prefix[2..6])
+                && target_prefix[6] == pc_token
+                && all_bytes(&target_prefix[7..11])
+                && target_prefix[11] == next_pc_token =>
+            {
+                Some(TassadarEarlyTraceSchemaPhase::ExpectNextPcByte0)
+            }
+            13 if target_prefix[0] == step_token
+                && target_prefix[1] == step_index_token
+                && all_bytes(&target_prefix[2..6])
+                && target_prefix[6] == pc_token
+                && all_bytes(&target_prefix[7..11])
+                && target_prefix[11] == next_pc_token
+                && all_bytes(&target_prefix[12..13]) =>
+            {
+                Some(TassadarEarlyTraceSchemaPhase::ExpectNextPcByte1)
+            }
+            14 if target_prefix[0] == step_token
+                && target_prefix[1] == step_index_token
+                && all_bytes(&target_prefix[2..6])
+                && target_prefix[6] == pc_token
+                && all_bytes(&target_prefix[7..11])
+                && target_prefix[11] == next_pc_token
+                && all_bytes(&target_prefix[12..14]) =>
+            {
+                Some(TassadarEarlyTraceSchemaPhase::ExpectNextPcByte2)
+            }
+            15 if target_prefix[0] == step_token
+                && target_prefix[1] == step_index_token
+                && all_bytes(&target_prefix[2..6])
+                && target_prefix[6] == pc_token
+                && all_bytes(&target_prefix[7..11])
+                && target_prefix[11] == next_pc_token
+                && all_bytes(&target_prefix[12..15]) =>
+            {
+                Some(TassadarEarlyTraceSchemaPhase::ExpectNextPcByte3)
+            }
+            16 if target_prefix[0] == step_token
+                && target_prefix[1] == step_index_token
+                && all_bytes(&target_prefix[2..6])
+                && target_prefix[6] == pc_token
+                && all_bytes(&target_prefix[7..11])
+                && target_prefix[11] == next_pc_token
+                && all_bytes(&target_prefix[12..16]) =>
+            {
+                Some(TassadarEarlyTraceSchemaPhase::ExpectInstruction)
+            }
+            _ => None,
+        }
+    }
+
+    fn token_id(&self, token: &str) -> TokenId {
+        self.tokenizer.encode(token).as_slice()[0]
+    }
+
+    fn byte_token_bounds(&self) -> (u32, u32) {
+        let start = self.tokenizer.encode("<byte_00>").as_slice()[0].as_u32();
+        let end = self.tokenizer.encode("<byte_ff>").as_slice()[0].as_u32();
+        (start, end)
     }
 }
 
@@ -1478,8 +2159,8 @@ mod tests {
     use crate::{TassadarTraceTokenizer, TokenSequence, TokenizerBoundary};
 
     use super::{
-        TassadarExecutorLongTraceContract, TassadarExecutorTrainableSurface,
-        TassadarExecutorTransformer,
+        TassadarEarlyTraceSchemaPhase, TassadarExecutorLongTraceContract,
+        TassadarExecutorTrainableSurface, TassadarExecutorTransformer,
         TassadarExecutorTransformerClaimBoundary, TassadarExecutorTransformerConfig,
         TassadarExecutorTransformerDecodeRefusal,
     };
@@ -1779,5 +2460,50 @@ mod tests {
             trained.descriptor().weights.digest
         );
         Ok(())
+    }
+
+    #[test]
+    fn executor_transformer_trace_schema_phase_recognizes_pc_boundary() {
+        let tokenizer = TassadarTraceTokenizer::new();
+        let model = TassadarExecutorTransformer::hungarian_10x10();
+        let prefix = tokenizer.encode(
+            "<bos> <program> <locals> <byte_00> <byte_00> <byte_00> <byte_00> <memory_slots> <byte_00> <byte_00> <byte_00> <byte_00> <initial_memory> <byte_00> <byte_00> <byte_00> <byte_00> <trace> <step> <step_index> <byte_00> <byte_00> <byte_00> <byte_00>",
+        );
+        let initial_prompt_len = prefix.len() - 6;
+        let phase = model.relative_target_trace_schema_phase_index(prefix.as_slice(), initial_prompt_len);
+
+        assert_eq!(phase, Some(TassadarEarlyTraceSchemaPhase::ExpectPc.index()));
+    }
+
+    #[test]
+    fn executor_transformer_trace_schema_bias_targets_structural_boundary() {
+        let tokenizer = TassadarTraceTokenizer::new();
+        let mut model = TassadarExecutorTransformer::hungarian_10x10();
+        model.ensure_relative_target_trace_schema_output_bias();
+        let target_token = tokenizer.encode("<pc>").as_slice()[0];
+        let schema_phase = TassadarEarlyTraceSchemaPhase::ExpectPc.index();
+        let vocab_size = model.descriptor().config.vocab_size;
+        let offset = schema_phase * vocab_size + target_token.as_u32() as usize;
+        model
+            .weights_mut()
+            .relative_target_trace_schema_output_bias_mut()[offset] = 4.0;
+
+        let mut logits = vec![0.0; vocab_size];
+        model.apply_relative_target_trace_schema_output_bias_in_place(
+            logits.as_mut_slice(),
+            Some(schema_phase),
+        );
+
+        assert_eq!(logits[target_token.as_u32() as usize], 4.0);
+        assert!(model.has_relative_target_trace_schema_output_bias_signal());
+    }
+
+    #[test]
+    fn hungarian_10x10_config_exposes_prompt_summary_surface() {
+        let model = TassadarExecutorTransformer::hungarian_10x10();
+
+        assert_eq!(model.descriptor().config.prompt_summary_bucket_count, 4096);
+        assert_eq!(model.descriptor().config.hidden_width(), 288);
+        assert_eq!(model.weights().prompt_summary_embeddings().len(), 4096 * 32);
     }
 }

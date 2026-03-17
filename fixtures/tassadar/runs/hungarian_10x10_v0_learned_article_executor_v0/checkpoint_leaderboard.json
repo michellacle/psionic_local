@@ -1,0 +1,14 @@
+[
+  {
+    "checkpoint_id": "tassadar-executor-transformer-hungarian-10x10-article-learned-run-v0.checkpoint.epoch_0000",
+    "global_epoch_index": 0,
+    "stage_id": "full_trace_supervision",
+    "stage_epoch_index": 0,
+    "first_target_exactness_bps": 10000,
+    "first_8_token_exactness_bps": 10000,
+    "first_32_token_exactness_bps": 10000,
+    "exact_trace_case_count": 1,
+    "aggregate_target_token_exactness_bps": 10000,
+    "selected_for_export": true
+  }
+]

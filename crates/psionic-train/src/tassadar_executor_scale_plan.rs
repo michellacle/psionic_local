@@ -4,7 +4,7 @@ use psionic_data::TassadarSequenceSplit;
 use psionic_eval::{TassadarSequenceEvalError, build_tassadar_sudoku_9x9_sequence_dataset};
 use psionic_models::{
     TassadarExecutorLongTraceContract, TassadarExecutorTrainableSurface,
-    TassadarExecutorTransformer,
+    TassadarExecutorTransformer, TassadarSequenceTraceFamily,
 };
 use psionic_runtime::tassadar_sudoku_9x9_corpus;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
@@ -148,6 +148,16 @@ impl TassadarExecutorSudoku9x9ScalePlan {
                 long_trace_contract: TassadarExecutorLongTraceContract::FlatPrefixFullForward,
                 structural_supervision:
                     crate::TassadarExecutorStructuralSupervisionConfig::next_token_only(),
+                trace_family: TassadarSequenceTraceFamily::SequentialCpuReference,
+                train_split_scope: vec![TassadarSequenceSplit::Train],
+                train_relative_target_trace_schema_output_bias: false,
+                relative_target_trace_schema_output_bias_learning_rate_scale: 1.0,
+                train_prompt_summary_embeddings: false,
+                prompt_summary_embeddings_learning_rate_scale: 1.0,
+                train_prompt_summary_target_output_bias: false,
+                prompt_summary_target_output_bias_learning_rate_scale: 1.0,
+                seed_prompt_summary_target_output_bias_from_reference_targets: false,
+                prompt_summary_target_output_bias_reference_seed_logit: 0.0,
                 curriculum_stages: Vec::new(),
                 validate_every_epoch: true,
                 select_best_checkpoint_by_boundary: true,
@@ -473,7 +483,7 @@ mod tests {
     use std::{fs, path::Path};
 
     use psionic_data::TassadarSequenceSplit;
-    use psionic_models::TassadarExecutorTrainableSurface;
+    use psionic_models::{TassadarExecutorTrainableSurface, TassadarSequenceTraceFamily};
     use psionic_runtime::TassadarClaimClass;
     use tempfile::tempdir;
 
@@ -494,6 +504,7 @@ mod tests {
             run_id: String::from("tassadar-executor-transformer-sudoku-v0-reference-run-v0"),
             claim_class: TassadarClaimClass::LearnedBounded,
             trainable_surface: TassadarExecutorTrainableSurface::OutputHeadOnly,
+            trace_family: TassadarSequenceTraceFamily::SequentialCpuReference,
             dataset_version: String::from("train-v0"),
             dataset_storage_key: String::from("oa.tassadar.sudoku_v0.sequence@train-v0"),
             dataset_digest: String::from("dataset-digest"),

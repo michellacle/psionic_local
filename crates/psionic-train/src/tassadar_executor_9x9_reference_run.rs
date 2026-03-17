@@ -1,13 +1,14 @@
 use std::{collections::BTreeMap, fs, path::Path};
 
+use psionic_data::TassadarSequenceSplit;
 use psionic_eval::{
     EvalArtifact, TassadarExecutorEvalWindowSpec, TassadarExecutorWindowedEvalReport,
-    TassadarSequenceEvalError, build_tassadar_sequence_dataset,
+    TassadarSequenceEvalError, build_tassadar_sequence_dataset_with_trace_family,
     evaluate_tassadar_executor_transformer_with_window,
 };
 use psionic_models::{
     TassadarExecutorLongTraceContract, TassadarExecutorTrainableSurface,
-    TassadarExecutorTransformer,
+    TassadarExecutorTransformer, TassadarSequenceTraceFamily,
 };
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use sha2::{Digest, Sha256};
@@ -162,9 +163,12 @@ impl TassadarExecutorSequenceFitReport {
         run_bundle: &TassadarExecutorReferenceRunBundle,
         config: &TassadarExecutorTrainingConfig,
     ) -> Result<Self, TassadarSudoku9x9ReferenceRunError> {
-        let dataset_bundle =
-            build_tassadar_sequence_dataset(config.workload, config.dataset_version.as_str())
-                .map_err(TassadarSudoku9x9ReferenceRunError::SequenceEval)?;
+        let dataset_bundle = build_tassadar_sequence_dataset_with_trace_family(
+            config.workload,
+            config.dataset_version.as_str(),
+            config.trace_family,
+        )
+        .map_err(TassadarSudoku9x9ReferenceRunError::SequenceEval)?;
         let model = match config.long_trace_contract {
             TassadarExecutorLongTraceContract::FlatPrefixFullForward => {
                 TassadarExecutorTransformer::sudoku_9x9_with_surface(config.trainable_surface)
@@ -451,9 +455,12 @@ impl TassadarSudoku9x9LaterWindowExactnessReport {
         model: &TassadarExecutorTransformer,
         config: &TassadarExecutorTrainingConfig,
     ) -> Result<Self, TassadarSudoku9x9ReferenceRunError> {
-        let dataset_bundle =
-            build_tassadar_sequence_dataset(config.workload, config.dataset_version.as_str())
-                .map_err(TassadarSudoku9x9ReferenceRunError::SequenceEval)?;
+        let dataset_bundle = build_tassadar_sequence_dataset_with_trace_family(
+            config.workload,
+            config.dataset_version.as_str(),
+            config.trace_family,
+        )
+        .map_err(TassadarSudoku9x9ReferenceRunError::SequenceEval)?;
         let early_prefix_window = evaluate_tassadar_executor_transformer_with_window(
             model,
             &dataset_bundle.dataset,
@@ -870,6 +877,16 @@ pub fn tassadar_executor_sudoku_9x9_reference_run_config() -> TassadarExecutorTr
         long_trace_contract: TassadarExecutorLongTraceContract::IncrementalDecodeWindow,
         structural_supervision: crate::TassadarExecutorStructuralSupervisionConfig::next_token_only(
         ),
+        trace_family: TassadarSequenceTraceFamily::SequentialCpuReference,
+        train_split_scope: vec![TassadarSequenceSplit::Train],
+        train_relative_target_trace_schema_output_bias: false,
+        relative_target_trace_schema_output_bias_learning_rate_scale: 1.0,
+        train_prompt_summary_embeddings: false,
+        prompt_summary_embeddings_learning_rate_scale: 1.0,
+        train_prompt_summary_target_output_bias: false,
+        prompt_summary_target_output_bias_learning_rate_scale: 1.0,
+        seed_prompt_summary_target_output_bias_from_reference_targets: false,
+        prompt_summary_target_output_bias_reference_seed_logit: 0.0,
         curriculum_stages: vec![
             crate::TassadarExecutorCurriculumStage::new("prompt_to_first_token", Some(1), 1),
             crate::TassadarExecutorCurriculumStage::new("prompt_to_first_8_tokens", Some(8), 1),

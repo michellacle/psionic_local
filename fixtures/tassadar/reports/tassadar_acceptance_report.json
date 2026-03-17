@@ -7,12 +7,11 @@
     "research_only",
     "compiled_exact",
     "learned_bounded",
-    "compiled_article_class"
-  ],
-  "disallowed_claim_classes": [
+    "compiled_article_class",
     "learned_article_class"
   ],
-  "article_parity_language_allowed": false,
+  "disallowed_claim_classes": [],
+  "article_parity_language_allowed": true,
   "research_only": {
     "verdict_id": "research_only",
     "passed": true,
@@ -180,46 +179,42 @@
   },
   "learned_article_class": {
     "verdict_id": "learned_article_class",
-    "passed": false,
-    "detail": "Learned article-class closure is still red: the committed learned long-horizon policy now freezes an explicit `unsupported_horizon` refusal for million-step/article-class learned traces, the 9x9 learned lane remains bounded to explicit incremental windows, and the learned Hungarian lane remains research-only.",
+    "passed": true,
+    "detail": "The learned lane now clears the article-class bar on the fixed Hungarian-10x10 benchmark corpus with exact validation and test traces.",
     "validation_commands": [
       "scripts/check-tassadar-acceptance.sh"
     ],
     "evidence": [
       {
-        "label": "bounded learned promotion bundle",
-        "artifact_ref": "fixtures/tassadar/runs/sudoku_v0_promotion_v3/promotion_bundle.json",
-        "digest": "7c87d98bc50b2563a45bd71b24f47625837f1611bb3285af2d9e13300f2139bf"
+        "label": "learned article run bundle",
+        "artifact_ref": "fixtures/tassadar/runs/hungarian_10x10_v0_learned_article_executor_v0/run_bundle.json",
+        "digest": "90bf40d068ee2b6d3fc22089a625fa2fdcafb183cfab93360066ace2cd8d9069"
       },
       {
-        "label": "learned 9x9 fit report",
-        "artifact_ref": "fixtures/tassadar/runs/sudoku_9x9_v0_reference_run_v0/sequence_fit_report.json",
-        "digest": "46941cb172330e8d10f7e7560756a1beb3d5e68759c50396b56116faa8390ac6"
+        "label": "learned article fit report",
+        "artifact_ref": "fixtures/tassadar/runs/hungarian_10x10_v0_learned_article_executor_v0/sequence_fit_report.json",
+        "digest": "d73a5cc5c66515cb2fc2ccc7a5bf5abda6adf7a58b074b2c102a38e5396b0395"
+      },
+      {
+        "label": "learned article benchmark report",
+        "artifact_ref": "fixtures/tassadar/runs/hungarian_10x10_v0_learned_article_executor_v0/article_learned_benchmark_report.json",
+        "digest": "b593ba326bdbcd21f9c619cf02e32f3c00241f7bd78dcb88dedd5bcbffef7391"
       },
       {
         "label": "learned long-horizon policy report",
         "artifact_ref": "fixtures/tassadar/reports/tassadar_learned_horizon_policy_report.json",
-        "digest": "9b8bece6a6677b4016ec5a457b645ddd46f89dd5e152f0d48aa64537fa897f59"
+        "digest": "91c706b8602658d738acb637b3d6657591c89a7dd8e894388dd95121b8de379e"
       }
-    ],
-    "missing_evidence": [
-      "replace bounded learned 9x9 windowed evidence with one exact article-class learned workload",
-      "promote a learned Hungarian-class workload beyond research-only exactness",
-      "replace the explicit learned long-horizon refusal policy with one exact learned benchmark bundle"
     ]
   },
   "article_closure": {
     "verdict_id": "article_closure",
-    "passed": false,
-    "detail": "Final article-parity closure remains red: the compiled article-class bar is now green, but the learned lane still remains bounded and the repo cannot yet make full article-parity claims.",
+    "passed": true,
+    "detail": "The repo can now reproduce the article-shaped Wasm compute claim from local artifacts and commands: compiled article workloads are exact, the declared fast path is exact on its workload class, and the learned Hungarian-10x10 article benchmark is exact on the fixed benchmark corpus.",
     "validation_commands": [
       "scripts/check-tassadar-acceptance.sh"
-    ],
-    "missing_evidence": [
-      "learned-lane article-class workloads must turn green",
-      "fast decode truth must stay explicit on its exact workload class"
     ]
   },
   "current_truth_holds": true,
-  "report_digest": "49881ed99154633a41107d7d4127afbf6f9a50ba6298dbd01077618fa0b857f5"
+  "report_digest": "88f414ee51cdf5272907e1c379fc59d6d2e47e6d4bfda7b4f399a141fc0a04d0"
 }

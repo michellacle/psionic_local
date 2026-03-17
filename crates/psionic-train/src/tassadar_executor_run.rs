@@ -17,12 +17,14 @@ use psionic_eval::{
     build_tassadar_executor_boundary_exactness_report,
     build_tassadar_executor_divergence_histogram_report,
     build_tassadar_executor_first_token_confusion_report,
-    build_tassadar_executor_structural_supervision_report, build_tassadar_sequence_dataset,
+    build_tassadar_executor_structural_supervision_report,
+    build_tassadar_sequence_dataset_with_trace_family,
 };
 use psionic_models::{
     TassadarExecutorLongTraceContract, TassadarExecutorTrainableSurface,
     TassadarExecutorTransformer, TassadarExecutorTransformerDescriptor,
-    TassadarExecutorTransformerError,
+    TassadarExecutorTransformerError, TassadarPromptSummaryTargetOutputBiasRow,
+    TassadarSequenceTraceFamily,
 };
 use psionic_runtime::TassadarClaimClass;
 use serde::{Deserialize, Serialize};
@@ -32,7 +34,8 @@ use thiserror::Error;
 use crate::{
     TassadarExecutorTrainingConfig, TassadarExecutorTrainingError, TassadarExecutorTrainingReport,
     TassadarSequenceTrainingError, TassadarSequenceTrainingManifest,
-    build_tassadar_sequence_training_manifest, train_tassadar_executor_transformer,
+    build_tassadar_sequence_training_manifest_with_trace_family_and_train_split_scope,
+    train_tassadar_executor_transformer,
 };
 
 /// Stable schema version for persisted Tassadar reference-run bundles.
@@ -89,6 +92,14 @@ const fn default_learned_bounded_claim_class() -> TassadarClaimClass {
     TassadarClaimClass::LearnedBounded
 }
 
+fn default_trace_family() -> TassadarSequenceTraceFamily {
+    TassadarSequenceTraceFamily::SequentialCpuReference
+}
+
+fn trace_family_is_sequential_cpu_reference(family: &TassadarSequenceTraceFamily) -> bool {
+    *family == TassadarSequenceTraceFamily::SequentialCpuReference
+}
+
 fn tassadar_progress_updates_enabled() -> bool {
     match env::var("OPENAGENTS_TASSADAR_PROGRESS") {
         Ok(value) => {
@@ -142,6 +153,15 @@ pub struct TassadarExecutorCheckpointState {
     /// Digest over the trained position rows when present.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub position_embedding_rows_digest: Option<String>,
+    /// Digest over the prompt-summary embeddings when present.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub prompt_summary_embeddings_digest: Option<String>,
+    /// Digest over the prompt-conditioned target-position output-bias rows when present.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub prompt_summary_target_output_bias_rows_digest: Option<String>,
+    /// Digest over the trained early trace-schema output-bias adapter when present.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub relative_target_trace_schema_output_bias_digest: Option<String>,
     /// Digest over the learned mixer projection when present.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub small_learned_mixer_projection_digest: Option<String>,
@@ -158,6 +178,15 @@ pub struct TassadarExecutorCheckpointState {
     /// Sparse trained position-embedding rows when the surface enables them.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub position_embedding_rows: Vec<TassadarExecutorEmbeddingRowOverride>,
+    /// Prompt-summary embeddings when the model exposes them.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub prompt_summary_embeddings: Option<Vec<f32>>,
+    /// Prompt-conditioned target-position output-bias rows when present.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub prompt_summary_target_output_bias_rows: Option<Vec<TassadarPromptSummaryTargetOutputBiasRow>>,
+    /// Trained early trace-schema output-bias adapter when enabled.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub relative_target_trace_schema_output_bias: Option<Vec<f32>>,
     /// Learned mixer projection when the surface enables it.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub small_learned_mixer_projection: Option<Vec<f32>>,
@@ -187,6 +216,18 @@ impl TassadarExecutorCheckpointState {
         } else {
             Vec::new()
         };
+        let prompt_summary_embeddings = (!model.weights().prompt_summary_embeddings().is_empty())
+            .then(|| model.weights().prompt_summary_embeddings().to_vec());
+        let prompt_summary_target_output_bias_rows = (!model
+            .weights()
+            .prompt_summary_target_output_bias_rows()
+            .is_empty())
+        .then(|| model.weights().prompt_summary_target_output_bias_rows().to_vec());
+        let relative_target_trace_schema_output_bias = (!model
+            .weights()
+            .relative_target_trace_schema_output_bias()
+            .is_empty())
+        .then(|| model.weights().relative_target_trace_schema_output_bias().to_vec());
         let small_learned_mixer_projection = model
             .trainable_surface()
             .trains_small_learned_mixer()
@@ -210,6 +251,25 @@ impl TassadarExecutorCheckpointState {
                 &position_embedding_rows,
             )
         });
+        let prompt_summary_embeddings_digest = prompt_summary_embeddings.as_ref().map(|tensor| {
+            stable_digest(b"psionic_tassadar_executor_prompt_summary_embeddings|", tensor)
+        });
+        let prompt_summary_target_output_bias_rows_digest = prompt_summary_target_output_bias_rows
+            .as_ref()
+            .map(|rows| {
+                stable_digest(
+                    b"psionic_tassadar_executor_prompt_summary_target_output_bias_rows|",
+                    rows,
+                )
+            });
+        let relative_target_trace_schema_output_bias_digest = relative_target_trace_schema_output_bias
+            .as_ref()
+            .map(|tensor| {
+                stable_digest(
+                    b"psionic_tassadar_executor_relative_target_trace_schema_output_bias|",
+                    tensor,
+                )
+            });
         let small_learned_mixer_projection_digest =
             small_learned_mixer_projection.as_ref().map(|tensor| {
                 stable_digest(
@@ -235,12 +295,18 @@ impl TassadarExecutorCheckpointState {
             output_bias_digest,
             token_embeddings_digest,
             position_embedding_rows_digest,
+            prompt_summary_embeddings_digest,
+            prompt_summary_target_output_bias_rows_digest,
+            relative_target_trace_schema_output_bias_digest,
             small_learned_mixer_projection_digest,
             small_learned_mixer_bias_digest,
             output_projection,
             output_bias,
             token_embeddings,
             position_embedding_rows,
+            prompt_summary_embeddings,
+            prompt_summary_target_output_bias_rows,
+            relative_target_trace_schema_output_bias,
             small_learned_mixer_projection,
             small_learned_mixer_bias,
             state_digest: String::new(),
@@ -277,16 +343,26 @@ impl TassadarExecutorCheckpointState {
                     self.trainable_surface,
                 )
             }
+            TassadarExecutorTransformer::HUNGARIAN_10X10_MODEL_ID => {
+                TassadarExecutorTransformer::hungarian_10x10_with_surface(self.trainable_surface)
+            }
+            TassadarExecutorTransformer::WINDOWED_HUNGARIAN_10X10_MODEL_ID => {
+                TassadarExecutorTransformer::hungarian_10x10_windowed_with_surface(
+                    self.trainable_surface,
+                )
+            }
             actual => {
                 return Err(TassadarExecutorRunError::UnexpectedBaseModel {
                     expected: format!(
-                        "{}/{}/{}/{}/{}/{}",
+                        "{}/{}/{}/{}/{}/{}/{}/{}",
                         TassadarExecutorTransformer::MODEL_ID,
                         TassadarExecutorTransformer::WINDOWED_MODEL_ID,
                         TassadarExecutorTransformer::SUDOKU_9X9_MODEL_ID,
                         TassadarExecutorTransformer::WINDOWED_SUDOKU_9X9_MODEL_ID,
                         TassadarExecutorTransformer::HUNGARIAN_V0_MODEL_ID,
-                        TassadarExecutorTransformer::WINDOWED_HUNGARIAN_V0_MODEL_ID
+                        TassadarExecutorTransformer::WINDOWED_HUNGARIAN_V0_MODEL_ID,
+                        TassadarExecutorTransformer::HUNGARIAN_10X10_MODEL_ID,
+                        TassadarExecutorTransformer::WINDOWED_HUNGARIAN_10X10_MODEL_ID
                     ),
                     actual: actual.to_string(),
                 });
@@ -329,6 +405,52 @@ impl TassadarExecutorCheckpointState {
                 model.weights_mut().position_embeddings_mut()[start..start + embedding_dim]
                     .copy_from_slice(row.values.as_slice());
             }
+        }
+        if let Some(prompt_summary_embeddings) = self.prompt_summary_embeddings.as_ref() {
+            if prompt_summary_embeddings.len() != model.weights().prompt_summary_embeddings().len() {
+                return Err(TassadarExecutorRunError::Model(
+                    TassadarExecutorTransformerError::WeightLengthMismatch {
+                        tensor: String::from("prompt_summary_embeddings"),
+                        expected: model.weights().prompt_summary_embeddings().len(),
+                        actual: prompt_summary_embeddings.len(),
+                    },
+                ));
+            }
+            model
+                .weights_mut()
+                .prompt_summary_embeddings_mut()
+                .copy_from_slice(prompt_summary_embeddings.as_slice());
+        }
+        if let Some(prompt_summary_target_output_bias_rows) =
+            self.prompt_summary_target_output_bias_rows.as_ref()
+        {
+            model
+                .weights_mut()
+                .prompt_summary_target_output_bias_rows_mut()
+                .clear();
+            model
+                .weights_mut()
+                .prompt_summary_target_output_bias_rows_mut()
+                .extend(prompt_summary_target_output_bias_rows.iter().cloned());
+        }
+        if let Some(trace_schema_output_bias) = self.relative_target_trace_schema_output_bias.as_ref()
+        {
+            model.ensure_relative_target_trace_schema_output_bias();
+            if trace_schema_output_bias.len()
+                != model.weights().relative_target_trace_schema_output_bias().len()
+            {
+                return Err(TassadarExecutorRunError::Model(
+                    TassadarExecutorTransformerError::WeightLengthMismatch {
+                        tensor: String::from("relative_target_trace_schema_output_bias"),
+                        expected: model.weights().relative_target_trace_schema_output_bias().len(),
+                        actual: trace_schema_output_bias.len(),
+                    },
+                ));
+            }
+            model
+                .weights_mut()
+                .relative_target_trace_schema_output_bias_mut()
+                .copy_from_slice(trace_schema_output_bias.as_slice());
         }
         if let Some(mixer_projection) = self.small_learned_mixer_projection.as_ref() {
             if mixer_projection.len() != model.weights().small_learned_mixer_projection().len() {
@@ -484,6 +606,12 @@ pub struct TassadarExecutorReferenceRunBundle {
     /// Active trainable surface for the run.
     #[serde(default = "default_trainable_surface")]
     pub trainable_surface: TassadarExecutorTrainableSurface,
+    /// Explicit symbolic trace family frozen for the run.
+    #[serde(
+        default = "default_trace_family",
+        skip_serializing_if = "trace_family_is_sequential_cpu_reference"
+    )]
+    pub trace_family: TassadarSequenceTraceFamily,
     /// Frozen dataset version.
     pub dataset_version: String,
     /// Frozen dataset storage key.
@@ -576,6 +704,7 @@ impl TassadarExecutorReferenceRunBundle {
             run_id: config.run_id.clone(),
             claim_class: TassadarClaimClass::LearnedBounded,
             trainable_surface: config.trainable_surface,
+            trace_family: config.trace_family,
             dataset_version: config.dataset_version.clone(),
             dataset_storage_key: training_manifest.dataset_storage_key.clone(),
             dataset_digest: training_manifest.dataset_digest.clone(),
@@ -725,6 +854,16 @@ pub fn tassadar_executor_promotion_run_config() -> TassadarExecutorTrainingConfi
         long_trace_contract: TassadarExecutorLongTraceContract::FlatPrefixFullForward,
         structural_supervision: crate::TassadarExecutorStructuralSupervisionConfig::next_token_only(
         ),
+        trace_family: TassadarSequenceTraceFamily::SequentialCpuReference,
+        train_split_scope: vec![TassadarSequenceSplit::Train],
+        train_relative_target_trace_schema_output_bias: false,
+        relative_target_trace_schema_output_bias_learning_rate_scale: 1.0,
+        train_prompt_summary_embeddings: false,
+        prompt_summary_embeddings_learning_rate_scale: 1.0,
+        train_prompt_summary_target_output_bias: false,
+        prompt_summary_target_output_bias_learning_rate_scale: 1.0,
+        seed_prompt_summary_target_output_bias_from_reference_targets: false,
+        prompt_summary_target_output_bias_reference_seed_logit: 0.0,
         curriculum_stages: vec![
             crate::TassadarExecutorCurriculumStage::new("prompt_to_first_token", Some(1), 1),
             crate::TassadarExecutorCurriculumStage::new("prompt_to_first_2_tokens", Some(2), 1),
@@ -767,6 +906,16 @@ pub fn tassadar_executor_promotion_v2_run_config() -> TassadarExecutorTrainingCo
         long_trace_contract: TassadarExecutorLongTraceContract::FlatPrefixFullForward,
         structural_supervision: crate::TassadarExecutorStructuralSupervisionConfig::next_token_only(
         ),
+        trace_family: TassadarSequenceTraceFamily::SequentialCpuReference,
+        train_split_scope: vec![TassadarSequenceSplit::Train],
+        train_relative_target_trace_schema_output_bias: false,
+        relative_target_trace_schema_output_bias_learning_rate_scale: 1.0,
+        train_prompt_summary_embeddings: false,
+        prompt_summary_embeddings_learning_rate_scale: 1.0,
+        train_prompt_summary_target_output_bias: false,
+        prompt_summary_target_output_bias_learning_rate_scale: 1.0,
+        seed_prompt_summary_target_output_bias_from_reference_targets: false,
+        prompt_summary_target_output_bias_reference_seed_logit: 0.0,
         curriculum_stages: vec![
             crate::TassadarExecutorCurriculumStage::new("prompt_to_first_token", Some(1), 1),
             crate::TassadarExecutorCurriculumStage::new("prompt_to_first_2_tokens", Some(2), 1),
@@ -847,9 +996,12 @@ fn execute_tassadar_training_run_with_options(
         error,
     })?;
 
-    let training_manifest = build_tassadar_sequence_training_manifest(
+    let training_manifest =
+        build_tassadar_sequence_training_manifest_with_trace_family_and_train_split_scope(
         config.workload,
         config.dataset_version.as_str(),
+        config.trace_family,
+        config.train_split_scope.as_slice(),
         config.trainable_surface,
         config.teacher_forced_training_strategy,
         config.long_trace_contract,
@@ -873,9 +1025,12 @@ fn execute_tassadar_training_run_with_options(
         outcome.report.evaluation.exact_trace_case_count,
         run_started_at.elapsed().as_millis(),
     ));
-    let dataset_bundle =
-        build_tassadar_sequence_dataset(config.workload, config.dataset_version.as_str())
-            .map_err(TassadarExecutorTrainingError::from)?;
+    let dataset_bundle = build_tassadar_sequence_dataset_with_trace_family(
+        config.workload,
+        config.dataset_version.as_str(),
+        config.trace_family,
+    )
+    .map_err(TassadarExecutorTrainingError::from)?;
     let benchmark_report = if write_linear_benchmark_report {
         emit_tassadar_progress(format!(
             "tassadar_progress phase=benchmark_start run={} benchmark_split={} eval_examples={} elapsed_ms={}",
@@ -1170,6 +1325,7 @@ mod tests {
     use crate::{
         TassadarExecutorStructuralSupervisionConfig, TassadarExecutorTeacherForcedTrainingStrategy,
         build_tassadar_sequence_training_manifest,
+        build_tassadar_sequence_training_manifest_with_trace_family_and_train_split_scope,
     };
 
     use super::{
@@ -1285,6 +1441,75 @@ mod tests {
         assert_eq!(
             restored.descriptor().model.model_id,
             TassadarExecutorTransformer::HUNGARIAN_V0_MODEL_ID
+        );
+        assert_eq!(
+            restored.descriptor().stable_digest(),
+            checkpoint.trained_model_descriptor_digest
+        );
+        assert_eq!(
+            restored.descriptor().weights.digest,
+            checkpoint.trained_weight_digest
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn checkpoint_state_preserves_hungarian_10x10_prompt_summary_surface()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let manifest = build_tassadar_sequence_training_manifest_with_trace_family_and_train_split_scope(
+            psionic_eval::TassadarSequenceWorkload::Hungarian10x10,
+            "trace-family-v1",
+            psionic_models::TassadarSequenceTraceFamily::HungarianAssignmentFrontier,
+            &[
+                psionic_data::TassadarSequenceSplit::Train,
+                psionic_data::TassadarSequenceSplit::Validation,
+                psionic_data::TassadarSequenceSplit::Test,
+            ],
+            TassadarExecutorTrainableSurface::OutputHeadEmbeddingsAndSmallLearnedMixer,
+            TassadarExecutorTeacherForcedTrainingStrategy::FullForwardWindow,
+            TassadarExecutorLongTraceContract::FlatPrefixFullForward,
+            TassadarExecutorStructuralSupervisionConfig::hungarian_dual_state_reference(),
+        )?;
+        let mut model = TassadarExecutorTransformer::hungarian_10x10_with_surface(
+            TassadarExecutorTrainableSurface::OutputHeadEmbeddingsAndSmallLearnedMixer,
+        );
+        model.ensure_relative_target_trace_schema_output_bias();
+        model.ensure_prompt_summary_target_output_bias_row(7, 3);
+        model.refresh_after_training();
+
+        let checkpoint = TassadarExecutorCheckpointState::new(
+            "hungarian10x10.test.checkpoint",
+            "hungarian10x10.test.run",
+            &manifest,
+            &model,
+            0,
+        );
+        let restored = checkpoint.materialize_model()?;
+
+        assert_eq!(
+            checkpoint.prompt_summary_embeddings_digest.is_some(),
+            true
+        );
+        assert_eq!(
+            checkpoint
+                .prompt_summary_target_output_bias_rows_digest
+                .is_some(),
+            true
+        );
+        assert_eq!(
+            checkpoint
+                .relative_target_trace_schema_output_bias_digest
+                .is_some(),
+            true
+        );
+        assert_eq!(restored.descriptor().config.prompt_summary_bucket_count, 4096);
+        assert_eq!(restored.descriptor().config.hidden_width(), 288);
+        assert_eq!(
+            restored
+                .weights()
+                .prompt_summary_target_output_bias_rows()
+                .len(),
+            1
         );
         assert_eq!(
             restored.descriptor().stable_digest(),
