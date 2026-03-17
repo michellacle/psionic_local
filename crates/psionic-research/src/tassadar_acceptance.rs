@@ -411,14 +411,13 @@ fn build_compiled_exact_verdict() -> Result<TassadarAcceptanceVerdict, TassadarA
         && hungarian_compatibility.matched_refusal_rate_bps == 10_000
         && hungarian_compatibility.matched_refusal_check_count
             == hungarian_compatibility.total_check_count
-        && hungarian_lane_status.compiled_lane_status == TassadarHungarianLaneClaimStatus::Exact
-        && hungarian_lane_status.learned_lane_status == TassadarHungarianLaneClaimStatus::NotDone;
+        && hungarian_lane_status.compiled_lane_status == TassadarHungarianLaneClaimStatus::Exact;
 
     Ok(TassadarAcceptanceVerdict::new(
         "compiled_exact",
         passed,
         if passed {
-            "The bounded compiled/proof-backed Sudoku-v0 and Hungarian-v0 lanes are exact on their matched corpora and preserve exact refusal truth; this remains bounded compiled exactness, not article-class closure."
+            "The bounded compiled/proof-backed Sudoku-v0 and Hungarian-v0 lanes are exact on their matched corpora and preserve exact refusal truth; any learned Hungarian posture remains a separate lane-status fact rather than part of this compiled exactness claim."
         } else {
             "One of the bounded compiled/proof-backed corpora no longer clears exactness or refusal truth on the committed reports."
         },

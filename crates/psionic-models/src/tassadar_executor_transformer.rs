@@ -155,6 +155,18 @@ impl TassadarExecutorTransformerConfig {
         }
     }
 
+    /// Returns the canonical bounded Hungarian-v0 config.
+    #[must_use]
+    pub fn hungarian_v0(tokenizer: &TassadarTraceTokenizer) -> Self {
+        Self {
+            vocab_size: tokenizer.vocabulary().len(),
+            max_sequence_tokens: 262_144,
+            embedding_dim: 16,
+            context_offsets: vec![1, 2, 4, 8, 16, 32],
+            constrained_lookup_head_dim: 2,
+        }
+    }
+
     /// Returns the hidden-state width emitted by the fixed lookup heads plus position state.
     #[must_use]
     pub fn hidden_width(&self) -> usize {
@@ -570,11 +582,16 @@ impl TassadarExecutorTransformer {
     pub const MODEL_ID: &str = "tassadar-executor-transformer-sudoku-v0-v0";
     /// Stable model identifier for the first 9x9 Sudoku-class executor family.
     pub const SUDOKU_9X9_MODEL_ID: &str = "tassadar-executor-transformer-sudoku-9x9-v0";
+    /// Stable model identifier for the first Hungarian-v0 executor family.
+    pub const HUNGARIAN_V0_MODEL_ID: &str = "tassadar-executor-transformer-hungarian-v0-v0";
     /// Stable model identifier for the first windowed Sudoku-v0 executor family.
     pub const WINDOWED_MODEL_ID: &str = "tassadar-executor-transformer-sudoku-v0-windowed-v0";
     /// Stable model identifier for the first windowed 9x9 executor family.
     pub const WINDOWED_SUDOKU_9X9_MODEL_ID: &str =
         "tassadar-executor-transformer-sudoku-9x9-windowed-v0";
+    /// Stable model identifier for the first windowed Hungarian-v0 executor family.
+    pub const WINDOWED_HUNGARIAN_V0_MODEL_ID: &str =
+        "tassadar-executor-transformer-hungarian-v0-windowed-v0";
     /// Stable model identifier for the first direct sparse Sudoku-v0 executor family.
     pub const SPARSE_MODEL_ID: &str = "tassadar-executor-transformer-sudoku-v0-sparse-v0";
     /// Stable model family label.
@@ -737,6 +754,78 @@ impl TassadarExecutorTransformer {
             executor_family: TassadarExecutorFamily::WasmTraceExecutor,
             profile: TassadarWasmProfile::sudoku_9x9_search_v1(),
             trace_abi: TassadarTraceAbi::sudoku_9x9_search_v1(),
+            supported_decode_modes: vec![
+                TassadarExecutorDecodeMode::ReferenceLinear,
+                TassadarExecutorDecodeMode::HullCache,
+            ],
+            attention_mode: TassadarExecutorAttentionMode::HardMaxLookup,
+            attention_geometry: TassadarAttentionGeometryContract {
+                constrained_lookup_head_dim: Some(config.constrained_lookup_head_dim),
+                hull_cache_eligible: true,
+            },
+            claim_boundary: TassadarExecutorTransformerClaimBoundary::NextTokenOnly,
+            long_trace_contract,
+            sparse_top_k: None,
+            trainable_surface,
+            config,
+            weights: weights.metadata().clone(),
+        };
+        Self {
+            descriptor,
+            tokenizer,
+            weights,
+        }
+    }
+
+    /// Creates the first bounded Hungarian-v0 executor transformer.
+    #[must_use]
+    pub fn hungarian_v0() -> Self {
+        Self::hungarian_v0_with_surface(TassadarExecutorTrainableSurface::OutputHeadOnly)
+    }
+
+    /// Creates the first bounded Hungarian-v0 executor transformer for one surface.
+    #[must_use]
+    pub fn hungarian_v0_with_surface(
+        trainable_surface: TassadarExecutorTrainableSurface,
+    ) -> Self {
+        Self::hungarian_v0_with_surface_and_contract(
+            trainable_surface,
+            TassadarExecutorLongTraceContract::FlatPrefixFullForward,
+        )
+    }
+
+    /// Creates the first explicit Hungarian-v0 windowed executor transformer for one surface.
+    #[must_use]
+    pub fn hungarian_v0_windowed_with_surface(
+        trainable_surface: TassadarExecutorTrainableSurface,
+    ) -> Self {
+        Self::hungarian_v0_with_surface_and_contract(
+            trainable_surface,
+            TassadarExecutorLongTraceContract::IncrementalDecodeWindow,
+        )
+    }
+
+    fn hungarian_v0_with_surface_and_contract(
+        trainable_surface: TassadarExecutorTrainableSurface,
+        long_trace_contract: TassadarExecutorLongTraceContract,
+    ) -> Self {
+        let tokenizer = TassadarTraceTokenizer::new();
+        let config = TassadarExecutorTransformerConfig::hungarian_v0(&tokenizer);
+        let weights = TassadarExecutorTransformerWeightBundle::new(&config, trainable_surface);
+        let (model_id, model_family) = match long_trace_contract {
+            TassadarExecutorLongTraceContract::FlatPrefixFullForward => {
+                (Self::HUNGARIAN_V0_MODEL_ID, Self::MODEL_FAMILY)
+            }
+            TassadarExecutorLongTraceContract::IncrementalDecodeWindow => (
+                Self::WINDOWED_HUNGARIAN_V0_MODEL_ID,
+                Self::WINDOWED_MODEL_FAMILY,
+            ),
+        };
+        let descriptor = TassadarExecutorTransformerDescriptor {
+            model: ModelDescriptor::new(model_id, model_family, "v0"),
+            executor_family: TassadarExecutorFamily::WasmTraceExecutor,
+            profile: TassadarWasmProfile::hungarian_v0_matching_v1(),
+            trace_abi: TassadarTraceAbi::hungarian_v0_matching_v1(),
             supported_decode_modes: vec![
                 TassadarExecutorDecodeMode::ReferenceLinear,
                 TassadarExecutorDecodeMode::HullCache,

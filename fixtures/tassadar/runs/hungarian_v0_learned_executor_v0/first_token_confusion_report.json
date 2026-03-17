@@ -1,0 +1,14 @@
+{
+  "dataset_storage_key": "oa.tassadar.hungarian_v0.sequence@v0",
+  "dataset_digest": "e09afca3a7886d6ee7c97df21ce82fe61de770849b8e3c4ebc0cfbe10aa20a4b",
+  "split": "validation",
+  "token_zero_divergence_case_count": 2,
+  "entries": [
+    {
+      "reference_token": "<step>",
+      "predicted_token": "<byte_00>",
+      "case_count": 2
+    }
+  ],
+  "report_digest": "52b7ae2a6aacc735e7b9d13a68c878acb0860db7a01829f98f197d8bee06114c"
+}

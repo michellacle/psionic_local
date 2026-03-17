@@ -11,10 +11,9 @@ use psionic_datastream::{
 };
 use psionic_eval::{
     EvalArtifact, TassadarExecutorBoundaryExactnessReport,
-    TassadarExecutorDivergenceHistogramReport, TassadarExecutorFirstTokenConfusionReport,
-    TassadarExecutorEvalError, TassadarExecutorLinearBenchmarkReport,
-    TassadarExecutorStructuralSupervisionReport,
-    benchmark_tassadar_executor_linear_decode,
+    TassadarExecutorDivergenceHistogramReport, TassadarExecutorEvalError,
+    TassadarExecutorFirstTokenConfusionReport, TassadarExecutorLinearBenchmarkReport,
+    TassadarExecutorStructuralSupervisionReport, benchmark_tassadar_executor_linear_decode,
     build_tassadar_executor_boundary_exactness_report,
     build_tassadar_executor_divergence_histogram_report,
     build_tassadar_executor_first_token_confusion_report,
@@ -22,8 +21,8 @@ use psionic_eval::{
 };
 use psionic_models::{
     TassadarExecutorLongTraceContract, TassadarExecutorTrainableSurface,
-    TassadarExecutorTransformer,
-    TassadarExecutorTransformerDescriptor, TassadarExecutorTransformerError,
+    TassadarExecutorTransformer, TassadarExecutorTransformerDescriptor,
+    TassadarExecutorTransformerError,
 };
 use psionic_runtime::TassadarClaimClass;
 use serde::{Deserialize, Serialize};
@@ -260,9 +259,7 @@ impl TassadarExecutorCheckpointState {
                 TassadarExecutorTransformer::sudoku_v0_with_surface(self.trainable_surface)
             }
             TassadarExecutorTransformer::WINDOWED_MODEL_ID => {
-                TassadarExecutorTransformer::sudoku_v0_windowed_with_surface(
-                    self.trainable_surface,
-                )
+                TassadarExecutorTransformer::sudoku_v0_windowed_with_surface(self.trainable_surface)
             }
             TassadarExecutorTransformer::SUDOKU_9X9_MODEL_ID => {
                 TassadarExecutorTransformer::sudoku_9x9_with_surface(self.trainable_surface)
@@ -272,14 +269,24 @@ impl TassadarExecutorCheckpointState {
                     self.trainable_surface,
                 )
             }
+            TassadarExecutorTransformer::HUNGARIAN_V0_MODEL_ID => {
+                TassadarExecutorTransformer::hungarian_v0_with_surface(self.trainable_surface)
+            }
+            TassadarExecutorTransformer::WINDOWED_HUNGARIAN_V0_MODEL_ID => {
+                TassadarExecutorTransformer::hungarian_v0_windowed_with_surface(
+                    self.trainable_surface,
+                )
+            }
             actual => {
                 return Err(TassadarExecutorRunError::UnexpectedBaseModel {
                     expected: format!(
-                        "{}/{}/{}/{}",
+                        "{}/{}/{}/{}/{}/{}",
                         TassadarExecutorTransformer::MODEL_ID,
                         TassadarExecutorTransformer::WINDOWED_MODEL_ID,
                         TassadarExecutorTransformer::SUDOKU_9X9_MODEL_ID,
-                        TassadarExecutorTransformer::WINDOWED_SUDOKU_9X9_MODEL_ID
+                        TassadarExecutorTransformer::WINDOWED_SUDOKU_9X9_MODEL_ID,
+                        TassadarExecutorTransformer::HUNGARIAN_V0_MODEL_ID,
+                        TassadarExecutorTransformer::WINDOWED_HUNGARIAN_V0_MODEL_ID
                     ),
                     actual: actual.to_string(),
                 });
@@ -716,7 +723,8 @@ pub fn tassadar_executor_promotion_run_config() -> TassadarExecutorTrainingConfi
         teacher_forced_training_strategy:
             crate::TassadarExecutorTeacherForcedTrainingStrategy::FullForwardWindow,
         long_trace_contract: TassadarExecutorLongTraceContract::FlatPrefixFullForward,
-        structural_supervision: crate::TassadarExecutorStructuralSupervisionConfig::next_token_only(),
+        structural_supervision: crate::TassadarExecutorStructuralSupervisionConfig::next_token_only(
+        ),
         curriculum_stages: vec![
             crate::TassadarExecutorCurriculumStage::new("prompt_to_first_token", Some(1), 1),
             crate::TassadarExecutorCurriculumStage::new("prompt_to_first_2_tokens", Some(2), 1),
@@ -757,7 +765,8 @@ pub fn tassadar_executor_promotion_v2_run_config() -> TassadarExecutorTrainingCo
         teacher_forced_training_strategy:
             crate::TassadarExecutorTeacherForcedTrainingStrategy::FullForwardWindow,
         long_trace_contract: TassadarExecutorLongTraceContract::FlatPrefixFullForward,
-        structural_supervision: crate::TassadarExecutorStructuralSupervisionConfig::next_token_only(),
+        structural_supervision: crate::TassadarExecutorStructuralSupervisionConfig::next_token_only(
+        ),
         curriculum_stages: vec![
             crate::TassadarExecutorCurriculumStage::new("prompt_to_first_token", Some(1), 1),
             crate::TassadarExecutorCurriculumStage::new("prompt_to_first_2_tokens", Some(2), 1),
@@ -1151,8 +1160,17 @@ where
 mod tests {
     use std::fs;
 
+    use psionic_models::{
+        TassadarExecutorLongTraceContract, TassadarExecutorTrainableSurface,
+        TassadarExecutorTransformer,
+    };
     use psionic_runtime::TassadarClaimClass;
     use tempfile::tempdir;
+
+    use crate::{
+        TassadarExecutorStructuralSupervisionConfig, TassadarExecutorTeacherForcedTrainingStrategy,
+        build_tassadar_sequence_training_manifest,
+    };
 
     use super::{
         CHECKPOINT_STATE_FILE, MODEL_ARTIFACT_FILE, RUN_BUNDLE_FILE,
@@ -1238,6 +1256,44 @@ mod tests {
         assert!(bundle.first_token_confusion_report_digest.is_some());
         assert!(bundle.structural_supervision_report_digest.is_some());
         assert!(bundle.checkpoint_leaderboard_report_digest.is_some());
+        Ok(())
+    }
+
+    #[test]
+    fn checkpoint_state_materializes_hungarian_executor_family()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let manifest = build_tassadar_sequence_training_manifest(
+            psionic_eval::TassadarSequenceWorkload::HungarianV0,
+            "v0",
+            TassadarExecutorTrainableSurface::OutputHeadOnly,
+            TassadarExecutorTeacherForcedTrainingStrategy::FullForwardWindow,
+            TassadarExecutorLongTraceContract::FlatPrefixFullForward,
+            TassadarExecutorStructuralSupervisionConfig::hungarian_dual_state_reference(),
+        )?;
+        let mut model = TassadarExecutorTransformer::hungarian_v0();
+        model.refresh_after_training();
+        let checkpoint = TassadarExecutorCheckpointState::new(
+            "hungarian.test.checkpoint",
+            "hungarian.test.run",
+            &manifest,
+            &model,
+            0,
+        );
+
+        let restored = checkpoint.materialize_model()?;
+
+        assert_eq!(
+            restored.descriptor().model.model_id,
+            TassadarExecutorTransformer::HUNGARIAN_V0_MODEL_ID
+        );
+        assert_eq!(
+            restored.descriptor().stable_digest(),
+            checkpoint.trained_model_descriptor_digest
+        );
+        assert_eq!(
+            restored.descriptor().weights.digest,
+            checkpoint.trained_weight_digest
+        );
         Ok(())
     }
 }

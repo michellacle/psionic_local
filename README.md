@@ -421,6 +421,15 @@ Current posture:
   matches, `32/32` exact refusal matches, `eval_only` posture), not learned
   Hungarian execution, not general Hungarian solver parity, and not article
   parity
+- the separate learned Hungarian-v0 research lane now also exists in
+  `psionic-models`, `psionic-train`, and the canonical bundle root
+  `fixtures/tassadar/runs/hungarian_v0_learned_executor_v0`: the learned lane
+  now carries explicit dual-state supervision plus token/state/final-result
+  receipts, and the selected checkpoint keeps those boundaries honest
+  (`aggregate=6839`, `first_target=0`, `first_32=6875`, `exact_traces=0`,
+  `final_outputs=0`, `workload_specific_state=7568`, full sequences fit the
+  current model window), so this is a bounded research-only learned lane and
+  does not change the compiled Hungarian closure claim
 - the separate post-audit Phase 19 bar now also exists in `psionic-runtime`,
   `psionic-models`, `psionic-eval`, `psionic-research`, and a canonical
   exact compiled 9x9 bundle at

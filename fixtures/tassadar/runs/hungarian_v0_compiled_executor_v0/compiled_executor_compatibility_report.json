@@ -1,6 +1,6 @@
 {
   "workload_family_id": "tassadar.wasm.hungarian_v0_matching.v1.compiled_executor",
-  "compiled_suite_artifact_digest": "dfe16aca902fcdcd153c4b3a9743a4ce7f4f6fbb933f33f1c3b890a038dc1cbf",
+  "compiled_suite_artifact_digest": "74a9ec7bf794bd981497c18dfe88f3f9421f97323e7eddcff689def3b7c4da1b",
   "total_check_count": 32,
   "matched_refusal_check_count": 32,
   "matched_refusal_rate_bps": 10000,
@@ -262,5 +262,5 @@
       "detail": "compiled program descriptor contract failed: program artifact is internally inconsistent: validated program digest mismatch: expected `a6247906b37a1f25b72439f315a3d41de20dc7a312b73735a2b4f12434fc274a`, actual `bogus_program_digest`"
     }
   ],
-  "report_digest": "fd49bf4dd82362798eab9c86696d37f16cf4cdf7b2e0f848681a6b4c29a7829a"
+  "report_digest": "f176234c85645c5bcd1b5d5fda22ab84c14af2ffb61d609297a99d8c3523f8aa"
 }

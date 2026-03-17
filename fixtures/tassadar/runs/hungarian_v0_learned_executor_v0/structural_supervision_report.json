@@ -1,0 +1,113 @@
+{
+  "dataset_storage_key": "oa.tassadar.hungarian_v0.sequence@v0",
+  "dataset_digest": "e09afca3a7886d6ee7c97df21ce82fe61de770849b8e3c4ebc0cfbe10aa20a4b",
+  "split": "validation",
+  "claim_boundary": "greedy_decode_unvalidated",
+  "aggregate_metrics": [
+    {
+      "family": "instruction_pointer",
+      "target_token_count": 7420,
+      "matched_token_count": 3648,
+      "exactness_bps": 4916
+    },
+    {
+      "family": "branch_outcome",
+      "target_token_count": 870,
+      "matched_token_count": 513,
+      "exactness_bps": 5897
+    },
+    {
+      "family": "stack_delta",
+      "target_token_count": 8904,
+      "matched_token_count": 4816,
+      "exactness_bps": 5409
+    },
+    {
+      "family": "memory_diff",
+      "target_token_count": 455,
+      "matched_token_count": 329,
+      "exactness_bps": 7231
+    },
+    {
+      "family": "workload_specific_state",
+      "target_token_count": 3108,
+      "matched_token_count": 2352,
+      "exactness_bps": 7568
+    }
+  ],
+  "case_reports": [
+    {
+      "sequence_id": "tassadar.sequence.hungarian_v0_validation_a.sequential_cpu_reference",
+      "case_id": "hungarian_v0_validation_a",
+      "metrics": [
+        {
+          "family": "instruction_pointer",
+          "target_token_count": 3750,
+          "matched_token_count": 1848,
+          "exactness_bps": 4928
+        },
+        {
+          "family": "branch_outcome",
+          "target_token_count": 430,
+          "matched_token_count": 253,
+          "exactness_bps": 5884
+        },
+        {
+          "family": "stack_delta",
+          "target_token_count": 4500,
+          "matched_token_count": 2436,
+          "exactness_bps": 5413
+        },
+        {
+          "family": "memory_diff",
+          "target_token_count": 260,
+          "matched_token_count": 188,
+          "exactness_bps": 7231
+        },
+        {
+          "family": "workload_specific_state",
+          "target_token_count": 1580,
+          "matched_token_count": 1196,
+          "exactness_bps": 7570
+        }
+      ]
+    },
+    {
+      "sequence_id": "tassadar.sequence.hungarian_v0_validation_b.sequential_cpu_reference",
+      "case_id": "hungarian_v0_validation_b",
+      "metrics": [
+        {
+          "family": "instruction_pointer",
+          "target_token_count": 3670,
+          "matched_token_count": 1800,
+          "exactness_bps": 4905
+        },
+        {
+          "family": "branch_outcome",
+          "target_token_count": 440,
+          "matched_token_count": 260,
+          "exactness_bps": 5909
+        },
+        {
+          "family": "stack_delta",
+          "target_token_count": 4404,
+          "matched_token_count": 2380,
+          "exactness_bps": 5404
+        },
+        {
+          "family": "memory_diff",
+          "target_token_count": 195,
+          "matched_token_count": 141,
+          "exactness_bps": 7231
+        },
+        {
+          "family": "workload_specific_state",
+          "target_token_count": 1528,
+          "matched_token_count": 1156,
+          "exactness_bps": 7565
+        }
+      ]
+    }
+  ],
+  "report_digest": "c8ea4693aee647a4ef5cff692f5250fc050e9bd1c92c74ea79e04d387798394e"
+}

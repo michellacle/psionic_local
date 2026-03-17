@@ -1,0 +1,25 @@
+{
+  "checkpoint_id": "tassadar-executor-transformer-hungarian-v0-learned-run-v0.checkpoint.epoch_0002",
+  "checkpoint_family": "train.tassadar.executor_transformer",
+  "checkpoint_ref": "checkpoint://tassadar-executor-transformer-hungarian-v0-learned-run-v0.checkpoint.epoch_0002",
+  "checkpoint_state_file": "checkpoint_state.json",
+  "checkpoint_manifest": {
+    "stream_id": "checkpoint://tassadar-executor-transformer-hungarian-v0-learned-run-v0.checkpoint.epoch_0002",
+    "manifest_digest": "0e4e06b015ab9149276ac85a77364aca559c0c5bec377d0190aaec8c4839d00f",
+    "subject": "checkpoint",
+    "object_digest": "f08a283b0752a194d752fe86b4d5b8f90a68905266a3f6c88cad0590c1fc132f",
+    "total_bytes": 589948,
+    "chunk_count": 145,
+    "chunk_bytes": 4096,
+    "encoding": "raw_binary",
+    "provenance_digest": "c531d71c4d2e4136faddcd411bbbc58de81f4e6fc86f75fbb0df819593529c26",
+    "checkpoint_binding": {
+      "checkpoint_family": "train.tassadar.executor_transformer",
+      "checkpoint_ref": "checkpoint://tassadar-executor-transformer-hungarian-v0-learned-run-v0.checkpoint.epoch_0002",
+      "step": 1
+    }
+  },
+  "trained_model_descriptor_digest": "461ebf015580bbae8997f6a2c40bbcf6bee4dfa04c652905ab125bd081f926d4",
+  "trained_weight_digest": "a4ddf5504b3917c89d1983de47ad6db1fdfda12fc680136f8a6aa7177645b8e9",
+  "artifact_digest": "ba36e15f18bd234c6defb5d1c2e1b132107c169cf34ef18cccf10eb6d5a3ea56"
+}

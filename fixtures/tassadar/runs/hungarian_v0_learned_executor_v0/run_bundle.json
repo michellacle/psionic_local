@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "run_id": "tassadar-executor-transformer-hungarian-v0-learned-run-v0",
+  "claim_class": "learned_bounded",
+  "trainable_surface": "output_head_only",
+  "dataset_version": "v0",
+  "dataset_storage_key": "oa.tassadar.hungarian_v0.sequence@v0",
+  "dataset_digest": "e09afca3a7886d6ee7c97df21ce82fe61de770849b8e3c4ebc0cfbe10aa20a4b",
+  "tokenizer_digest": "f4134f46b2722a420ccb7f72a34e3b45e17a7a03b8a2c24084e1792f7e324bed",
+  "vocabulary_digest": "185385130aab45df19fa68f2bbfe7510517831834b1345bc3cc09559de52b42e",
+  "training_manifest_digest": "25c4e7f021541c7aaf07a7c91c2412a936458d9df76eacdb7f5d9f072446f614",
+  "trained_model_descriptor_digest": "461ebf015580bbae8997f6a2c40bbcf6bee4dfa04c652905ab125bd081f926d4",
+  "trained_weight_digest": "a4ddf5504b3917c89d1983de47ad6db1fdfda12fc680136f8a6aa7177645b8e9",
+  "training_report_digest": "63e3c63b3a302f85375e2b30d0abfbe4aa0521a7982a5ec1c62885addf917d56",
+  "boundary_exactness_report_digest": "693d8465187343daaf9d3fddc4dd43e2208ec4c525828c36090618980b75f306",
+  "divergence_histogram_report_digest": "13bd8f41c5fc1c1a36eeef08c8ba276dab5dbb17ce709745f24eb68ea5c38939",
+  "first_token_confusion_report_digest": "52b7ae2a6aacc735e7b9d13a68c878acb0860db7a01829f98f197d8bee06114c",
+  "structural_supervision_report_digest": "c8ea4693aee647a4ef5cff692f5250fc050e9bd1c92c74ea79e04d387798394e",
+  "checkpoint_leaderboard_report_digest": "622877c2a1627f6fbaae92489d3e21e5defc120a426fd0c9790c7c91f4a9f133",
+  "exactness_curve_report_digest": "e6b659ab816870580c3d85f4ca1df3d849e22a19ef030759d250dacf1d66d271",
+  "failure_samples_report_digest": "b47c3ad3a9f3cfe14c785eb03cc0f3c6255f7e86db8b8f38074201654879cf9b",
+  "exact_trace_samples_report_digest": "1180b608445f7ad413f315bcd586140d1d05f4f2accdb90b02d318369c8fb0d8",
+  "sequence_fit_report_digest": "bbd1eb96ac4547e854a27c2f00d289b3205921f1efe3851057205117087103e6",
+  "checkpoint_artifact_digest": "ba36e15f18bd234c6defb5d1c2e1b132107c169cf34ef18cccf10eb6d5a3ea56",
+  "model_artifact_digest": "30da915cb75508ea35f9a736ad453463341a28fb59829a519aedde68be34ef16",
+  "artifacts": [
+    {
+      "artifact_kind": "tassadar_boundary_exactness_report",
+      "artifact_ref": "boundary_exactness_report.json",
+      "artifact_digest": "977cfcbfdcc91dd3aeead6329dc2348e5748afde4f81d25cc8512ad031f5a75d"
+    },
+    {
+      "artifact_kind": "tassadar_checkpoint_artifact",
+      "artifact_ref": "checkpoint_artifact.json",
+      "artifact_digest": "d616e6dddc66a2b9cb145470dd559fe1b5fe87d0c003cc7493ee04ba54b3babb"
+    },
+    {
+      "artifact_kind": "tassadar_checkpoint_leaderboard",
+      "artifact_ref": "checkpoint_leaderboard.json",
+      "artifact_digest": "d5f1bb908f7a1269db58016ff3ff4bcb7a0b8651a84dbdb1c89b9ec080d13ca3"
+    },
+    {
+      "artifact_kind": "tassadar_checkpoint_manifest",
+      "artifact_ref": "checkpoint_manifest.json",
+      "artifact_digest": "951f9721aa3625fbb30c3dffd054a58476b71c5a63c29817f56b546601cc90aa"
+    },
+    {
+      "artifact_kind": "tassadar_checkpoint_state",
+      "artifact_ref": "checkpoint_state.json",
+      "artifact_digest": "d069e277845470ae0d41c241c86a976252e6b16a17e630d94aa1b031f9cdbdc1"
+    },
+    {
+      "artifact_kind": "tassadar_divergence_histogram_report",
+      "artifact_ref": "divergence_histogram.json",
+      "artifact_digest": "16e69a33ac4358b44b056674f7d2b08bb3f012c37bf83edfa04b4fdda44c76f2"
+    },
+    {
+      "artifact_kind": "tassadar_exact_trace_samples",
+      "artifact_ref": "exact_trace_samples.json",
+      "artifact_digest": "03495243500b77b8f8d36bc3033582fe988e70a488892635d9e11272bbc66a0e"
+    },
+    {
+      "artifact_kind": "tassadar_exactness_curve",
+      "artifact_ref": "exactness_curve.json",
+      "artifact_digest": "e060039203ef631d33020cbca0dcd35a772234552b3ef5b2f18e01c3e4021520"
+    },
+    {
+      "artifact_kind": "tassadar_failure_samples",
+      "artifact_ref": "failure_samples.json",
+      "artifact_digest": "e02424474f3ac642069899fcbb80f1d039f4b895f8b22b5ad4f336ebaa534ae7"
+    },
+    {
+      "artifact_kind": "tassadar_first_token_confusion_report",
+      "artifact_ref": "first_token_confusion_report.json",
+      "artifact_digest": "5b63145d7766cf11bf82b2d6cf62f776c676e62eb9eab1df9e4d5f3b041e46db"
+    },
+    {
+      "artifact_kind": "tassadar_hungarian_learned_lane_report",
+      "artifact_ref": "learned_lane_report.json",
+      "artifact_digest": "b96717d72be6a8b04a7d1153ff63a737dcc02f006a36b9f4fb1c5c8a6d8450c4"
+    },
+    {
+      "artifact_kind": "tassadar_model_artifact",
+      "artifact_ref": "model_artifact.json",
+      "artifact_digest": "356cdadadee8fd48a6e7d2932847b5e87270b656accde6642bc8af3de7d5f9ac"
+    },
+    {
+      "artifact_kind": "tassadar_hungarian_learned_fit_report",
+      "artifact_ref": "sequence_fit_report.json",
+      "artifact_digest": "17446e199604e399d24e4a345b899d7b48acdcc66843232cb5753e4839496509"
+    },
+    {
+      "artifact_kind": "tassadar_structural_supervision_report",
+      "artifact_ref": "structural_supervision_report.json",
+      "artifact_digest": "95bfe4649120e2cb2e8bd1f620ae6cede0e1bc7bfe6e1af2ab2b1419c6ac5048"
+    },
+    {
+      "artifact_kind": "tassadar_trace_divergence_report",
+      "artifact_ref": "trace_divergence_report.json",
+      "artifact_digest": "9b54d4c30c509b656bae9eca4b0303be71fde22a4606c78ff40218298c8a5146"
+    },
+    {
+      "artifact_kind": "tassadar_training_manifest",
+      "artifact_ref": "training_manifest.json",
+      "artifact_digest": "f5fd9cc9ae1a590264e77670661ec469d2a26308cd779fb58d6549ab32868e81"
+    },
+    {
+      "artifact_kind": "tassadar_training_report",
+      "artifact_ref": "training_report.json",
+      "artifact_digest": "3b67439c24f2aa2f9b666d2541bc6a37f9f2f4c2bab975dd1309edb46d5dd885"
+    },
+    {
+      "artifact_kind": "tassadar_training_telemetry",
+      "artifact_ref": "training_telemetry.json",
+      "artifact_digest": "a48de40f3ee9fb433f53b8ddafb8f1703dbc65f951c77af34c006d23cfaabe96"
+    }
+  ],
+  "bundle_digest": "d410a3e9d88de60baad093ad25436004dbb9b4163333ec6a6bfd1e787e21f113"
+}

@@ -1,8 +1,8 @@
 {
   "workload_family_id": "tassadar.wasm.hungarian_v0_matching.v1.compiled_executor",
-  "learned_lane_status": "not_done",
-  "learned_lane_detail": "no learned Hungarian-v0 executor lane exists yet; Phase 14 remains blocked on Sudoku",
+  "learned_lane_status": "research_only",
+  "learned_lane_detail": "bounded learned Hungarian-v0 executor lane now exists in fixtures/tassadar/runs/hungarian_v0_learned_executor_v0 with explicit dual-state supervision and separate token/state/final-result receipts; it remains research-only because the selected checkpoint is still red (`aggregate=6839`, `first_target=0`, `first_32=6875`, `exact_traces=0`, `final_outputs=0`, `workload_specific_state=7568`)",
   "compiled_lane_status": "exact",
   "compiled_lane_detail": "bounded compiled/proof-backed Hungarian-v0 lane is exact on the matched corpus",
-  "report_digest": "55e7ca9f4d1ca9c26095f3988410f111c72b1a9084779781311bbbdb7011bd8a"
+  "report_digest": "570d13d576bbeca75cd84386d6b68cebff47b40ab2e068894de433f0e34f0eb1"
 }

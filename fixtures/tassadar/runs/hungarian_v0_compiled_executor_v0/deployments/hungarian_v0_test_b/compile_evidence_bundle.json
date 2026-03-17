@@ -68,8 +68,8 @@
       }
     ],
     "claims_profile_id": "tassadar.executor_trace.proof.v1",
-    "identity_digest": "dc8e75c90e61aa8b0c6d33b822f2bb7c3728b45944dc84beb8a8d9e1302cc0d8",
-    "manifest_digest": "929905e9d7928b0d8ebb4026fcb481ba9a574e179f3494b4061471867e40c1ca"
+    "identity_digest": "b208399a5f294789a0f9a90a2c2b34a6cb7029040c79940deb5e7835cef03cd4",
+    "manifest_digest": "c4362895fb7cf02fd1e91938c069439b4ccaeceb70308afcc15a67c5fb307c70"
   },
   "trace_artifact": {
     "schema_version": 1,
@@ -16549,7 +16549,7 @@
   "trace_proof": {
     "schema_version": 1,
     "proof_artifact_id": "tassadar://trace_proof/compile-hungarian_v0_test_b.compiled_executor/ca9af6f1e9cb7d432bff46980f3e47c513c85cc31b30ef4da007b7af4ba53640",
-    "proof_digest": "99b7b2721b2600c4b15e51210ad9cb0ac81ddd2aefaaef12fc79f5c0ae726598",
+    "proof_digest": "e126ae4a8ef5ade7ab0a3f4093689ae61171d3978ef9bc6fd5feb82766cc3982",
     "trace_artifact_ref": "tassadar://trace/compile-hungarian_v0_test_b.compiled_executor/ca9af6f1e9cb7d432bff46980f3e47c513c85cc31b30ef4da007b7af4ba53640",
     "trace_artifact_digest": "660665537c13d165fff5dbe193e8a46ba40b3c81f9a48625c9851867fbc60225",
     "trace_digest": "ca9af6f1e9cb7d432bff46980f3e47c513c85cc31b30ef4da007b7af4ba53640",
@@ -16567,8 +16567,8 @@
       "claim_id": "tassadar.executor_trace.phase4",
       "coverage": "not_yet_validated"
     },
-    "runtime_manifest_identity_digest": "dc8e75c90e61aa8b0c6d33b822f2bb7c3728b45944dc84beb8a8d9e1302cc0d8",
-    "runtime_manifest_digest": "929905e9d7928b0d8ebb4026fcb481ba9a574e179f3494b4061471867e40c1ca"
+    "runtime_manifest_identity_digest": "b208399a5f294789a0f9a90a2c2b34a6cb7029040c79940deb5e7835cef03cd4",
+    "runtime_manifest_digest": "c4362895fb7cf02fd1e91938c069439b4ccaeceb70308afcc15a67c5fb307c70"
   },
   "proof_bundle": {
     "schema_version": 1,
@@ -16604,7 +16604,7 @@
       ],
       "output_artifact_digests": [
         "660665537c13d165fff5dbe193e8a46ba40b3c81f9a48625c9851867fbc60225",
-        "99b7b2721b2600c4b15e51210ad9cb0ac81ddd2aefaaef12fc79f5c0ae726598"
+        "e126ae4a8ef5ade7ab0a3f4093689ae61171d3978ef9bc6fd5feb82766cc3982"
       ]
     },
     "activation_fingerprint_posture": "unavailable"

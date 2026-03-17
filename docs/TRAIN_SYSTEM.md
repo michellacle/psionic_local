@@ -565,6 +565,15 @@ That now includes one intentionally narrow executor-training answer:
   (`8/8` exact trace matches and `32/32` exact refusal matches), so this does
   not make the learned lane green by association and does not justify article-
   parity language
+- the separate learned Hungarian-v0 lane now also exists with explicit
+  dual-state supervision at
+  `fixtures/tassadar/runs/hungarian_v0_learned_executor_v0`; the train-side
+  bundle persists exactness-curve, failure-sample, structural-supervision,
+  and fit artifacts and keeps token/state/final-result exactness separate
+  (`aggregate=6839`, `first_target=0`, `first_32=6875`, `final_outputs=0`,
+  `workload_specific_state=7568`), so the honest posture is `research_only`
+  even though the full Hungarian-v0 traces fit the current learned model
+  window
 - `psionic-research` can now use that bounded trained-small receipt as an
   explicit comparator inside the learned-plus-compiled and learned-circuit
   Tassadar research family, but that does not expand the train-side claim

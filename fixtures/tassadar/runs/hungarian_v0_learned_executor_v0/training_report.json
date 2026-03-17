@@ -1,0 +1,520 @@
+{
+  "config": {
+    "run_id": "tassadar-executor-transformer-hungarian-v0-learned-run-v0",
+    "workload": "hungarian_v0",
+    "dataset_version": "v0",
+    "epochs": 1,
+    "learning_rate": 0.05,
+    "trainable_surface": "output_head_only",
+    "structural_supervision": {
+      "profile_id": "hungarian_dual_state_reference_v1",
+      "base_next_token_weight": 1.0,
+      "instruction_pointer_weight": 0.75,
+      "branch_outcome_weight": 0.5,
+      "stack_delta_weight": 0.5,
+      "memory_diff_weight": 0.5,
+      "workload_specific_state_weight": 2.0
+    },
+    "curriculum_stages": [
+      {
+        "stage_id": "prompt_to_first_8_tokens",
+        "max_train_target_tokens_per_example": 8,
+        "epochs": 1
+      },
+      {
+        "stage_id": "prompt_to_first_64_tokens",
+        "max_train_target_tokens_per_example": 64,
+        "epochs": 1
+      },
+      {
+        "stage_id": "full_trace_supervision",
+        "epochs": 1
+      }
+    ],
+    "validate_every_epoch": true,
+    "select_best_checkpoint_by_boundary": true
+  },
+  "training_manifest_digest": "25c4e7f021541c7aaf07a7c91c2412a936458d9df76eacdb7f5d9f072446f614",
+  "trained_model_descriptor_digest": "461ebf015580bbae8997f6a2c40bbcf6bee4dfa04c652905ab125bd081f926d4",
+  "trained_weight_digest": "a4ddf5504b3917c89d1983de47ad6db1fdfda12fc680136f8a6aa7177645b8e9",
+  "best_checkpoint_id": "tassadar-executor-transformer-hungarian-v0-learned-run-v0.checkpoint.epoch_0002",
+  "checkpoint_selection_basis": "boundary_metrics_lexicographic_v1",
+  "batch_reports": [
+    {
+      "global_epoch_index": 0,
+      "stage_id": "prompt_to_first_8_tokens",
+      "stage_epoch_index": 0,
+      "stage_max_train_target_tokens_per_example": 8,
+      "stage_learning_rate": 0.05,
+      "stage_prefix_mode": "teacher_forced",
+      "batch_id": "a3fc2a00293947027cdf972ae4a07fe8dd154aebbef2a80bb04e520e27d6d2f4",
+      "sequence_ids": [
+        "tassadar.sequence.hungarian_v0_train_a.sequential_cpu_reference",
+        "tassadar.sequence.hungarian_v0_train_b.sequential_cpu_reference",
+        "tassadar.sequence.hungarian_v0_train_c.sequential_cpu_reference",
+        "tassadar.sequence.hungarian_v0_train_d.sequential_cpu_reference"
+      ],
+      "mean_loss": 6.76249,
+      "target_token_count": 32
+    },
+    {
+      "global_epoch_index": 1,
+      "stage_id": "prompt_to_first_64_tokens",
+      "stage_epoch_index": 0,
+      "stage_max_train_target_tokens_per_example": 64,
+      "stage_learning_rate": 0.05,
+      "stage_prefix_mode": "teacher_forced",
+      "batch_id": "a3fc2a00293947027cdf972ae4a07fe8dd154aebbef2a80bb04e520e27d6d2f4",
+      "sequence_ids": [
+        "tassadar.sequence.hungarian_v0_train_a.sequential_cpu_reference",
+        "tassadar.sequence.hungarian_v0_train_b.sequential_cpu_reference",
+        "tassadar.sequence.hungarian_v0_train_c.sequential_cpu_reference",
+        "tassadar.sequence.hungarian_v0_train_d.sequential_cpu_reference"
+      ],
+      "mean_loss": 7.559528,
+      "target_token_count": 256
+    },
+    {
+      "global_epoch_index": 2,
+      "stage_id": "full_trace_supervision",
+      "stage_epoch_index": 0,
+      "stage_learning_rate": 0.05,
+      "stage_prefix_mode": "teacher_forced",
+      "batch_id": "a3fc2a00293947027cdf972ae4a07fe8dd154aebbef2a80bb04e520e27d6d2f4",
+      "sequence_ids": [
+        "tassadar.sequence.hungarian_v0_train_a.sequential_cpu_reference",
+        "tassadar.sequence.hungarian_v0_train_b.sequential_cpu_reference",
+        "tassadar.sequence.hungarian_v0_train_c.sequential_cpu_reference",
+        "tassadar.sequence.hungarian_v0_train_d.sequential_cpu_reference"
+      ],
+      "mean_loss": 6.475867,
+      "target_token_count": 219844
+    },
+    {
+      "global_epoch_index": 3,
+      "stage_id": "full_trace_supervision",
+      "stage_epoch_index": 0,
+      "stage_learning_rate": 0.05,
+      "stage_prefix_mode": "teacher_forced",
+      "batch_id": "a3fc2a00293947027cdf972ae4a07fe8dd154aebbef2a80bb04e520e27d6d2f4",
+      "sequence_ids": [
+        "tassadar.sequence.hungarian_v0_train_a.sequential_cpu_reference",
+        "tassadar.sequence.hungarian_v0_train_b.sequential_cpu_reference",
+        "tassadar.sequence.hungarian_v0_train_c.sequential_cpu_reference",
+        "tassadar.sequence.hungarian_v0_train_d.sequential_cpu_reference"
+      ],
+      "mean_loss": 6.436208,
+      "target_token_count": 219844
+    }
+  ],
+  "epoch_reports": [
+    {
+      "checkpoint_id": "tassadar-executor-transformer-hungarian-v0-learned-run-v0.checkpoint.epoch_0000",
+      "global_epoch_index": 0,
+      "stage_id": "prompt_to_first_8_tokens",
+      "stage_epoch_index": 0,
+      "stage_max_train_target_tokens_per_example": 8,
+      "stage_learning_rate": 0.05,
+      "stage_prefix_mode": "teacher_forced",
+      "mean_loss": 6.76249,
+      "target_token_count": 32,
+      "evaluation": {
+        "dataset_storage_key": "oa.tassadar.hungarian_v0.sequence@v0",
+        "dataset_digest": "e09afca3a7886d6ee7c97df21ce82fe61de770849b8e3c4ebc0cfbe10aa20a4b",
+        "split": "validation",
+        "claim_boundary": "greedy_decode_unvalidated",
+        "aggregate_target_token_exactness_bps": 170,
+        "first_target_exactness_bps": 0,
+        "first_8_token_exactness_bps": 1250,
+        "first_32_token_exactness_bps": 1563,
+        "exact_trace_case_count": 0,
+        "final_output_exact_case_count": 0,
+        "halt_exact_case_count": 0,
+        "case_reports": [
+          {
+            "sequence_id": "tassadar.sequence.hungarian_v0_validation_a.sequential_cpu_reference",
+            "case_id": "hungarian_v0_validation_a",
+            "target_token_exactness_bps": 171,
+            "boundary": {
+              "first_target_exactness_bps": 0,
+              "first_8_token_exactness_bps": 1250,
+              "first_32_token_exactness_bps": 1563
+            },
+            "matched_target_token_count": 0,
+            "first_divergence_index": 0,
+            "reference_divergence_token": "<step>",
+            "predicted_divergence_token": "<byte_1b>",
+            "exact_trace_match": false,
+            "final_output_match": false,
+            "halt_match": false,
+            "reference_target_digest": "57823c4ee2d3d75d2baabf559221a9d972bfea15698ee4e7e7ff6d54c772f5e1",
+            "predicted_target_digest": "1b9bef3967a0fe0602dd810018e6fb460da52bbdafac9effbc74dba036beef4d",
+            "failures": [
+              "exact_trace_mismatch",
+              "final_output_mismatch",
+              "halt_mismatch"
+            ]
+          },
+          {
+            "sequence_id": "tassadar.sequence.hungarian_v0_validation_b.sequential_cpu_reference",
+            "case_id": "hungarian_v0_validation_b",
+            "target_token_exactness_bps": 169,
+            "boundary": {
+              "first_target_exactness_bps": 0,
+              "first_8_token_exactness_bps": 1250,
+              "first_32_token_exactness_bps": 1563
+            },
+            "matched_target_token_count": 0,
+            "first_divergence_index": 0,
+            "reference_divergence_token": "<step>",
+            "predicted_divergence_token": "<byte_1b>",
+            "exact_trace_match": false,
+            "final_output_match": false,
+            "halt_match": false,
+            "reference_target_digest": "a1a425c899b0523c47cebdaa9638303610e7c48bdac7051dc4c213a728993b7e",
+            "predicted_target_digest": "3aa0e3626c47c260c90f177f5c8fd0bab5aeb236e623dfa240d0e671a02df31b",
+            "failures": [
+              "exact_trace_mismatch",
+              "final_output_mismatch",
+              "halt_mismatch"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "checkpoint_id": "tassadar-executor-transformer-hungarian-v0-learned-run-v0.checkpoint.epoch_0001",
+      "global_epoch_index": 1,
+      "stage_id": "prompt_to_first_64_tokens",
+      "stage_epoch_index": 0,
+      "stage_max_train_target_tokens_per_example": 64,
+      "stage_learning_rate": 0.05,
+      "stage_prefix_mode": "teacher_forced",
+      "mean_loss": 7.559528,
+      "target_token_count": 256,
+      "evaluation": {
+        "dataset_storage_key": "oa.tassadar.hungarian_v0.sequence@v0",
+        "dataset_digest": "e09afca3a7886d6ee7c97df21ce82fe61de770849b8e3c4ebc0cfbe10aa20a4b",
+        "split": "validation",
+        "claim_boundary": "greedy_decode_unvalidated",
+        "aggregate_target_token_exactness_bps": 6398,
+        "first_target_exactness_bps": 0,
+        "first_8_token_exactness_bps": 6250,
+        "first_32_token_exactness_bps": 6875,
+        "exact_trace_case_count": 0,
+        "final_output_exact_case_count": 0,
+        "halt_exact_case_count": 0,
+        "case_reports": [
+          {
+            "sequence_id": "tassadar.sequence.hungarian_v0_validation_a.sequential_cpu_reference",
+            "case_id": "hungarian_v0_validation_a",
+            "target_token_exactness_bps": 6401,
+            "boundary": {
+              "first_target_exactness_bps": 0,
+              "first_8_token_exactness_bps": 6250,
+              "first_32_token_exactness_bps": 6875
+            },
+            "matched_target_token_count": 0,
+            "first_divergence_index": 0,
+            "reference_divergence_token": "<step>",
+            "predicted_divergence_token": "<byte_1b>",
+            "exact_trace_match": false,
+            "final_output_match": false,
+            "halt_match": false,
+            "reference_target_digest": "57823c4ee2d3d75d2baabf559221a9d972bfea15698ee4e7e7ff6d54c772f5e1",
+            "predicted_target_digest": "10ebf4f5b6315242bc0a1c401fb5c03be6c30aa314407191b723cbc9c4713f1f",
+            "failures": [
+              "exact_trace_mismatch",
+              "final_output_mismatch",
+              "halt_mismatch"
+            ]
+          },
+          {
+            "sequence_id": "tassadar.sequence.hungarian_v0_validation_b.sequential_cpu_reference",
+            "case_id": "hungarian_v0_validation_b",
+            "target_token_exactness_bps": 6396,
+            "boundary": {
+              "first_target_exactness_bps": 0,
+              "first_8_token_exactness_bps": 6250,
+              "first_32_token_exactness_bps": 6875
+            },
+            "matched_target_token_count": 0,
+            "first_divergence_index": 0,
+            "reference_divergence_token": "<step>",
+            "predicted_divergence_token": "<byte_1b>",
+            "exact_trace_match": false,
+            "final_output_match": false,
+            "halt_match": false,
+            "reference_target_digest": "a1a425c899b0523c47cebdaa9638303610e7c48bdac7051dc4c213a728993b7e",
+            "predicted_target_digest": "d73e75c61cca069c2e7001d376a1148d620ed780abdb405ce59fb5b450b497c6",
+            "failures": [
+              "exact_trace_mismatch",
+              "final_output_mismatch",
+              "halt_mismatch"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "checkpoint_id": "tassadar-executor-transformer-hungarian-v0-learned-run-v0.checkpoint.epoch_0002",
+      "global_epoch_index": 2,
+      "stage_id": "full_trace_supervision",
+      "stage_epoch_index": 0,
+      "stage_learning_rate": 0.05,
+      "stage_prefix_mode": "teacher_forced",
+      "mean_loss": 6.475867,
+      "target_token_count": 219844,
+      "evaluation": {
+        "dataset_storage_key": "oa.tassadar.hungarian_v0.sequence@v0",
+        "dataset_digest": "e09afca3a7886d6ee7c97df21ce82fe61de770849b8e3c4ebc0cfbe10aa20a4b",
+        "split": "validation",
+        "claim_boundary": "greedy_decode_unvalidated",
+        "aggregate_target_token_exactness_bps": 6839,
+        "first_target_exactness_bps": 0,
+        "first_8_token_exactness_bps": 6250,
+        "first_32_token_exactness_bps": 6875,
+        "exact_trace_case_count": 0,
+        "final_output_exact_case_count": 0,
+        "halt_exact_case_count": 0,
+        "case_reports": [
+          {
+            "sequence_id": "tassadar.sequence.hungarian_v0_validation_a.sequential_cpu_reference",
+            "case_id": "hungarian_v0_validation_a",
+            "target_token_exactness_bps": 6840,
+            "boundary": {
+              "first_target_exactness_bps": 0,
+              "first_8_token_exactness_bps": 6250,
+              "first_32_token_exactness_bps": 6875
+            },
+            "matched_target_token_count": 0,
+            "first_divergence_index": 0,
+            "reference_divergence_token": "<step>",
+            "predicted_divergence_token": "<byte_00>",
+            "exact_trace_match": false,
+            "final_output_match": false,
+            "halt_match": false,
+            "reference_target_digest": "57823c4ee2d3d75d2baabf559221a9d972bfea15698ee4e7e7ff6d54c772f5e1",
+            "predicted_target_digest": "ecc49a0717e55bf3737be9855e224f669c77c3ff8bc4e3dacb1012a33c50fb5e",
+            "failures": [
+              "exact_trace_mismatch",
+              "final_output_mismatch",
+              "halt_mismatch"
+            ]
+          },
+          {
+            "sequence_id": "tassadar.sequence.hungarian_v0_validation_b.sequential_cpu_reference",
+            "case_id": "hungarian_v0_validation_b",
+            "target_token_exactness_bps": 6839,
+            "boundary": {
+              "first_target_exactness_bps": 0,
+              "first_8_token_exactness_bps": 6250,
+              "first_32_token_exactness_bps": 6875
+            },
+            "matched_target_token_count": 0,
+            "first_divergence_index": 0,
+            "reference_divergence_token": "<step>",
+            "predicted_divergence_token": "<byte_00>",
+            "exact_trace_match": false,
+            "final_output_match": false,
+            "halt_match": false,
+            "reference_target_digest": "a1a425c899b0523c47cebdaa9638303610e7c48bdac7051dc4c213a728993b7e",
+            "predicted_target_digest": "6e115954035b44a7bb7e955205a639ac5a9497eaefefbfbc40ea8f4c34f5418c",
+            "failures": [
+              "exact_trace_mismatch",
+              "final_output_mismatch",
+              "halt_mismatch"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "checkpoint_id": "tassadar-executor-transformer-hungarian-v0-learned-run-v0.checkpoint.epoch_0003",
+      "global_epoch_index": 3,
+      "stage_id": "full_trace_supervision",
+      "stage_epoch_index": 0,
+      "stage_learning_rate": 0.05,
+      "stage_prefix_mode": "teacher_forced",
+      "mean_loss": 6.436208,
+      "target_token_count": 219844,
+      "evaluation": {
+        "dataset_storage_key": "oa.tassadar.hungarian_v0.sequence@v0",
+        "dataset_digest": "e09afca3a7886d6ee7c97df21ce82fe61de770849b8e3c4ebc0cfbe10aa20a4b",
+        "split": "validation",
+        "claim_boundary": "greedy_decode_unvalidated",
+        "aggregate_target_token_exactness_bps": 6839,
+        "first_target_exactness_bps": 0,
+        "first_8_token_exactness_bps": 6250,
+        "first_32_token_exactness_bps": 6875,
+        "exact_trace_case_count": 0,
+        "final_output_exact_case_count": 0,
+        "halt_exact_case_count": 0,
+        "case_reports": [
+          {
+            "sequence_id": "tassadar.sequence.hungarian_v0_validation_a.sequential_cpu_reference",
+            "case_id": "hungarian_v0_validation_a",
+            "target_token_exactness_bps": 6840,
+            "boundary": {
+              "first_target_exactness_bps": 0,
+              "first_8_token_exactness_bps": 6250,
+              "first_32_token_exactness_bps": 6875
+            },
+            "matched_target_token_count": 0,
+            "first_divergence_index": 0,
+            "reference_divergence_token": "<step>",
+            "predicted_divergence_token": "<byte_00>",
+            "exact_trace_match": false,
+            "final_output_match": false,
+            "halt_match": false,
+            "reference_target_digest": "57823c4ee2d3d75d2baabf559221a9d972bfea15698ee4e7e7ff6d54c772f5e1",
+            "predicted_target_digest": "a979d8497a7657f104dae39ed4996463ea1a79c69cad5793f2338464ee4ee004",
+            "failures": [
+              "exact_trace_mismatch",
+              "final_output_mismatch",
+              "halt_mismatch"
+            ]
+          },
+          {
+            "sequence_id": "tassadar.sequence.hungarian_v0_validation_b.sequential_cpu_reference",
+            "case_id": "hungarian_v0_validation_b",
+            "target_token_exactness_bps": 6839,
+            "boundary": {
+              "first_target_exactness_bps": 0,
+              "first_8_token_exactness_bps": 6250,
+              "first_32_token_exactness_bps": 6875
+            },
+            "matched_target_token_count": 0,
+            "first_divergence_index": 0,
+            "reference_divergence_token": "<step>",
+            "predicted_divergence_token": "<byte_00>",
+            "exact_trace_match": false,
+            "final_output_match": false,
+            "halt_match": false,
+            "reference_target_digest": "a1a425c899b0523c47cebdaa9638303610e7c48bdac7051dc4c213a728993b7e",
+            "predicted_target_digest": "cefc7bbd1af1b33fc707818034d64e956ed11040b202017e95880a4753841ca4",
+            "failures": [
+              "exact_trace_mismatch",
+              "final_output_mismatch",
+              "halt_mismatch"
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "checkpoint_leaderboard": [
+    {
+      "checkpoint_id": "tassadar-executor-transformer-hungarian-v0-learned-run-v0.checkpoint.epoch_0002",
+      "global_epoch_index": 2,
+      "stage_id": "full_trace_supervision",
+      "stage_epoch_index": 0,
+      "first_target_exactness_bps": 0,
+      "first_8_token_exactness_bps": 6250,
+      "first_32_token_exactness_bps": 6875,
+      "exact_trace_case_count": 0,
+      "aggregate_target_token_exactness_bps": 6839,
+      "selected_for_export": true
+    },
+    {
+      "checkpoint_id": "tassadar-executor-transformer-hungarian-v0-learned-run-v0.checkpoint.epoch_0003",
+      "global_epoch_index": 3,
+      "stage_id": "full_trace_supervision",
+      "stage_epoch_index": 0,
+      "first_target_exactness_bps": 0,
+      "first_8_token_exactness_bps": 6250,
+      "first_32_token_exactness_bps": 6875,
+      "exact_trace_case_count": 0,
+      "aggregate_target_token_exactness_bps": 6839,
+      "selected_for_export": false
+    },
+    {
+      "checkpoint_id": "tassadar-executor-transformer-hungarian-v0-learned-run-v0.checkpoint.epoch_0001",
+      "global_epoch_index": 1,
+      "stage_id": "prompt_to_first_64_tokens",
+      "stage_epoch_index": 0,
+      "first_target_exactness_bps": 0,
+      "first_8_token_exactness_bps": 6250,
+      "first_32_token_exactness_bps": 6875,
+      "exact_trace_case_count": 0,
+      "aggregate_target_token_exactness_bps": 6398,
+      "selected_for_export": false
+    },
+    {
+      "checkpoint_id": "tassadar-executor-transformer-hungarian-v0-learned-run-v0.checkpoint.epoch_0000",
+      "global_epoch_index": 0,
+      "stage_id": "prompt_to_first_8_tokens",
+      "stage_epoch_index": 0,
+      "first_target_exactness_bps": 0,
+      "first_8_token_exactness_bps": 1250,
+      "first_32_token_exactness_bps": 1563,
+      "exact_trace_case_count": 0,
+      "aggregate_target_token_exactness_bps": 170,
+      "selected_for_export": false
+    }
+  ],
+  "evaluation": {
+    "dataset_storage_key": "oa.tassadar.hungarian_v0.sequence@v0",
+    "dataset_digest": "e09afca3a7886d6ee7c97df21ce82fe61de770849b8e3c4ebc0cfbe10aa20a4b",
+    "split": "validation",
+    "claim_boundary": "greedy_decode_unvalidated",
+    "aggregate_target_token_exactness_bps": 6839,
+    "first_target_exactness_bps": 0,
+    "first_8_token_exactness_bps": 6250,
+    "first_32_token_exactness_bps": 6875,
+    "exact_trace_case_count": 0,
+    "final_output_exact_case_count": 0,
+    "halt_exact_case_count": 0,
+    "case_reports": [
+      {
+        "sequence_id": "tassadar.sequence.hungarian_v0_validation_a.sequential_cpu_reference",
+        "case_id": "hungarian_v0_validation_a",
+        "target_token_exactness_bps": 6840,
+        "boundary": {
+          "first_target_exactness_bps": 0,
+          "first_8_token_exactness_bps": 6250,
+          "first_32_token_exactness_bps": 6875
+        },
+        "matched_target_token_count": 0,
+        "first_divergence_index": 0,
+        "reference_divergence_token": "<step>",
+        "predicted_divergence_token": "<byte_00>",
+        "exact_trace_match": false,
+        "final_output_match": false,
+        "halt_match": false,
+        "reference_target_digest": "57823c4ee2d3d75d2baabf559221a9d972bfea15698ee4e7e7ff6d54c772f5e1",
+        "predicted_target_digest": "ecc49a0717e55bf3737be9855e224f669c77c3ff8bc4e3dacb1012a33c50fb5e",
+        "failures": [
+          "exact_trace_mismatch",
+          "final_output_mismatch",
+          "halt_mismatch"
+        ]
+      },
+      {
+        "sequence_id": "tassadar.sequence.hungarian_v0_validation_b.sequential_cpu_reference",
+        "case_id": "hungarian_v0_validation_b",
+        "target_token_exactness_bps": 6839,
+        "boundary": {
+          "first_target_exactness_bps": 0,
+          "first_8_token_exactness_bps": 6250,
+          "first_32_token_exactness_bps": 6875
+        },
+        "matched_target_token_count": 0,
+        "first_divergence_index": 0,
+        "reference_divergence_token": "<step>",
+        "predicted_divergence_token": "<byte_00>",
+        "exact_trace_match": false,
+        "final_output_match": false,
+        "halt_match": false,
+        "reference_target_digest": "a1a425c899b0523c47cebdaa9638303610e7c48bdac7051dc4c213a728993b7e",
+        "predicted_target_digest": "6e115954035b44a7bb7e955205a639ac5a9497eaefefbfbc40ea8f4c34f5418c",
+        "failures": [
+          "exact_trace_mismatch",
+          "final_output_mismatch",
+          "halt_mismatch"
+        ]
+      }
+    ]
+  },
+  "report_digest": "63e3c63b3a302f85375e2b30d0abfbe4aa0521a7982a5ec1c62885addf917d56"
+}

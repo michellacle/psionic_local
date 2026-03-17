@@ -1,0 +1,298 @@
+{
+  "run_id": "tassadar-executor-transformer-hungarian-v0-learned-run-v0",
+  "dataset_storage_key": "oa.tassadar.hungarian_v0.sequence@v0",
+  "dataset_digest": "e09afca3a7886d6ee7c97df21ce82fe61de770849b8e3c4ebc0cfbe10aa20a4b",
+  "trained_model_descriptor_digest": "461ebf015580bbae8997f6a2c40bbcf6bee4dfa04c652905ab125bd081f926d4",
+  "checkpoint_manifest_digest": "0e4e06b015ab9149276ac85a77364aca559c0c5bec377d0190aaec8c4839d00f",
+  "samples": [
+    {
+      "case_id": "hungarian_v0_train_c",
+      "split": "train",
+      "first_divergence_index": 0,
+      "target_token_exactness_bps": 6836,
+      "final_output_match": false,
+      "halt_match": false,
+      "reference_window_token_ids": [
+        7,
+        12,
+        47,
+        47,
+        47
+      ],
+      "predicted_window_token_ids": [
+        47,
+        274,
+        47,
+        47,
+        47
+      ],
+      "reference_window_tokens": [
+        "<step>",
+        "<step_index>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>"
+      ],
+      "predicted_window_tokens": [
+        "<byte_00>",
+        "<byte_e3>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>"
+      ]
+    },
+    {
+      "case_id": "hungarian_v0_validation_b",
+      "split": "validation",
+      "first_divergence_index": 0,
+      "target_token_exactness_bps": 6839,
+      "final_output_match": false,
+      "halt_match": false,
+      "reference_window_token_ids": [
+        7,
+        12,
+        47,
+        47,
+        47
+      ],
+      "predicted_window_token_ids": [
+        47,
+        274,
+        47,
+        47,
+        47
+      ],
+      "reference_window_tokens": [
+        "<step>",
+        "<step_index>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>"
+      ],
+      "predicted_window_tokens": [
+        "<byte_00>",
+        "<byte_e3>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>"
+      ]
+    },
+    {
+      "case_id": "hungarian_v0_train_b",
+      "split": "train",
+      "first_divergence_index": 0,
+      "target_token_exactness_bps": 6840,
+      "final_output_match": false,
+      "halt_match": false,
+      "reference_window_token_ids": [
+        7,
+        12,
+        47,
+        47,
+        47
+      ],
+      "predicted_window_token_ids": [
+        47,
+        274,
+        47,
+        47,
+        47
+      ],
+      "reference_window_tokens": [
+        "<step>",
+        "<step_index>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>"
+      ],
+      "predicted_window_tokens": [
+        "<byte_00>",
+        "<byte_e3>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>"
+      ]
+    },
+    {
+      "case_id": "hungarian_v0_validation_a",
+      "split": "validation",
+      "first_divergence_index": 0,
+      "target_token_exactness_bps": 6840,
+      "final_output_match": false,
+      "halt_match": false,
+      "reference_window_token_ids": [
+        7,
+        12,
+        47,
+        47,
+        47
+      ],
+      "predicted_window_token_ids": [
+        47,
+        274,
+        47,
+        47,
+        47
+      ],
+      "reference_window_tokens": [
+        "<step>",
+        "<step_index>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>"
+      ],
+      "predicted_window_tokens": [
+        "<byte_00>",
+        "<byte_e3>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>"
+      ]
+    },
+    {
+      "case_id": "hungarian_v0_test_a",
+      "split": "test",
+      "first_divergence_index": 0,
+      "target_token_exactness_bps": 6842,
+      "final_output_match": false,
+      "halt_match": false,
+      "reference_window_token_ids": [
+        7,
+        12,
+        47,
+        47,
+        47
+      ],
+      "predicted_window_token_ids": [
+        47,
+        274,
+        47,
+        47,
+        47
+      ],
+      "reference_window_tokens": [
+        "<step>",
+        "<step_index>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>"
+      ],
+      "predicted_window_tokens": [
+        "<byte_00>",
+        "<byte_e3>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>"
+      ]
+    },
+    {
+      "case_id": "hungarian_v0_test_b",
+      "split": "test",
+      "first_divergence_index": 0,
+      "target_token_exactness_bps": 6842,
+      "final_output_match": false,
+      "halt_match": false,
+      "reference_window_token_ids": [
+        7,
+        12,
+        47,
+        47,
+        47
+      ],
+      "predicted_window_token_ids": [
+        47,
+        274,
+        47,
+        47,
+        47
+      ],
+      "reference_window_tokens": [
+        "<step>",
+        "<step_index>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>"
+      ],
+      "predicted_window_tokens": [
+        "<byte_00>",
+        "<byte_e3>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>"
+      ]
+    },
+    {
+      "case_id": "hungarian_v0_train_a",
+      "split": "train",
+      "first_divergence_index": 0,
+      "target_token_exactness_bps": 6842,
+      "final_output_match": false,
+      "halt_match": false,
+      "reference_window_token_ids": [
+        7,
+        12,
+        47,
+        47,
+        47
+      ],
+      "predicted_window_token_ids": [
+        47,
+        274,
+        47,
+        47,
+        47
+      ],
+      "reference_window_tokens": [
+        "<step>",
+        "<step_index>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>"
+      ],
+      "predicted_window_tokens": [
+        "<byte_00>",
+        "<byte_e3>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>"
+      ]
+    },
+    {
+      "case_id": "hungarian_v0_train_d",
+      "split": "train",
+      "first_divergence_index": 0,
+      "target_token_exactness_bps": 6842,
+      "final_output_match": false,
+      "halt_match": false,
+      "reference_window_token_ids": [
+        7,
+        12,
+        47,
+        47,
+        47
+      ],
+      "predicted_window_token_ids": [
+        47,
+        274,
+        47,
+        47,
+        47
+      ],
+      "reference_window_tokens": [
+        "<step>",
+        "<step_index>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>"
+      ],
+      "predicted_window_tokens": [
+        "<byte_00>",
+        "<byte_e3>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>"
+      ]
+    }
+  ],
+  "report_digest": "b47c3ad3a9f3cfe14c785eb03cc0f3c6255f7e86db8b8f38074201654879cf9b"
+}

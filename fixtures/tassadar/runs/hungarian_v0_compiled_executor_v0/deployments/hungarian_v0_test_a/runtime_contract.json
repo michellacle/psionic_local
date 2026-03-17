@@ -1,6 +1,6 @@
 {
   "contract_id": "hungarian_v0_test_a.compiled_executor.runtime_contract",
-  "contract_digest": "e52c0bce3d77bbdb86d1de6c209ea9cf714c7e6bd815399bf9ecd7b5ac0159c6",
+  "contract_digest": "e6d394ba624167915a6e2fb3f568c7f615e33259b081288c7c6244bb29b8b1b2",
   "deployment_kind": "program_specialized",
   "model_descriptor_digest": "e648f5543c0ced2fcf9330aa35b0183a43671fbfcb732ba8c68afb1a63239cb7",
   "program_artifact_digest": "b4c95da9f00329d6ed979cd6587871f32c7bb14fb699262bd335a7cb6106f731",
@@ -16,6 +16,6 @@
   "wasm_profile_id": "tassadar.wasm.hungarian_v0_matching.v1",
   "trace_abi_id": "tassadar.trace.v1",
   "trace_abi_version": 1,
-  "compile_runtime_manifest_digest": "ffdd3bda04b8023e15e7e936df13ab6eaab254d2936d9919c1d39cfaffbcf152",
-  "compile_execution_proof_bundle_digest": "1f70b759e4da9fe607d1e41cefc91a047c3efa5f2a37e89df09f9d46ebf4c92d"
+  "compile_runtime_manifest_digest": "2d0d3e096dd6e6c2dc56988e329f72f91eb4056fb1951e0fd514e1e1e7fa57b9",
+  "compile_execution_proof_bundle_digest": "aac220680abf179c1ac7a20a95b319e3664890b52990e309e8524b1ca2a74c31"
 }

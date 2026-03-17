@@ -485,6 +485,15 @@ The current scope is:
   matches) while keeping the serving and claim boundary explicit (`eval_only`,
   not a learned Hungarian lane, not arbitrary dimension/program closure, and
   not article parity)
+- landed learned Hungarian-v0 follow-on bar: `psionic-models` now exposes a
+  workload-specific learned Hungarian transformer family, `psionic-train`
+  now emits the canonical bounded learned bundle at
+  `fixtures/tassadar/runs/hungarian_v0_learned_executor_v0`, and the
+  persisted artifacts separate token exactness, dual-state exactness, and
+  final-result exactness; the selected checkpoint remains research-only rather
+  than promoted (`aggregate=6839`, `first_target=0`, `first_32=6875`,
+  `exact_traces=0`, `final_outputs=0`, `workload_specific_state=7568`) even
+  though full traces fit the current learned model window
 - landed trained-executor Phase 19 follow-on bar: `psionic-runtime` and
   `psionic-models` now carry an exact compiled 9x9 Sudoku search deployment
   lane, `psionic-eval` now emits benchmark/environment, exactness, refusal,

@@ -187,6 +187,20 @@ impl TassadarExecutorStructuralSupervisionConfig {
         }
     }
 
+    /// Returns the bounded Hungarian workload-specific supervision profile.
+    #[must_use]
+    pub fn hungarian_dual_state_reference() -> Self {
+        Self {
+            profile_id: String::from("hungarian_dual_state_reference_v1"),
+            base_next_token_weight: 1.0,
+            instruction_pointer_weight: 0.75,
+            branch_outcome_weight: 0.5,
+            stack_delta_weight: 0.5,
+            memory_diff_weight: 0.5,
+            workload_specific_state_weight: 2.0,
+        }
+    }
+
     /// Returns the total loss weight for one target token family set.
     #[must_use]
     pub fn effective_weight(&self, families: &[TassadarStructuralSupervisionFamily]) -> f32 {
@@ -647,7 +661,17 @@ pub fn train_tassadar_executor_transformer(
         ) => {
             TassadarExecutorTransformer::sudoku_9x9_windowed_with_surface(config.trainable_surface)
         }
-        (TassadarSequenceWorkload::HungarianV0 | TassadarSequenceWorkload::Hungarian10x10, _) => {
+        (
+            TassadarSequenceWorkload::HungarianV0,
+            TassadarExecutorLongTraceContract::FlatPrefixFullForward,
+        ) => TassadarExecutorTransformer::hungarian_v0_with_surface(config.trainable_surface),
+        (
+            TassadarSequenceWorkload::HungarianV0,
+            TassadarExecutorLongTraceContract::IncrementalDecodeWindow,
+        ) => TassadarExecutorTransformer::hungarian_v0_windowed_with_surface(
+            config.trainable_surface,
+        ),
+        (TassadarSequenceWorkload::Hungarian10x10, _) => {
             return Err(TassadarExecutorTrainingError::UnsupportedWorkload {
                 workload: config.workload.dataset_ref().to_string(),
             });

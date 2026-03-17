@@ -283,9 +283,9 @@ impl TassadarHungarianLaneStatusReport {
             workload_family_id: String::from(
                 TASSADAR_HUNGARIAN_COMPILED_EXECUTOR_WORKLOAD_FAMILY_ID,
             ),
-            learned_lane_status: TassadarHungarianLaneClaimStatus::NotDone,
+            learned_lane_status: TassadarHungarianLaneClaimStatus::ResearchOnly,
             learned_lane_detail: String::from(
-                "no learned Hungarian-v0 executor lane exists yet; Phase 14 remains blocked on Sudoku",
+                "bounded learned Hungarian-v0 executor lane now exists in fixtures/tassadar/runs/hungarian_v0_learned_executor_v0 with explicit dual-state supervision and separate token/state/final-result receipts; it remains research-only because the selected checkpoint is still red (`aggregate=6839`, `first_target=0`, `first_32=6875`, `exact_traces=0`, `final_outputs=0`, `workload_specific_state=7568`)",
             ),
             compiled_lane_status: TassadarHungarianLaneClaimStatus::Exact,
             compiled_lane_detail: String::from(
@@ -641,7 +641,7 @@ mod tests {
 
         assert_eq!(
             report.learned_lane_status,
-            super::TassadarHungarianLaneClaimStatus::NotDone
+            super::TassadarHungarianLaneClaimStatus::ResearchOnly
         );
         assert_eq!(
             report.compiled_lane_status,

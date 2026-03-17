@@ -1,0 +1,148 @@
+{
+  "artifact_id": "tassadar-executor-transformer-hungarian-v0-v0.model_artifact",
+  "run_id": "tassadar-executor-transformer-hungarian-v0-learned-run-v0",
+  "descriptor": {
+    "model": {
+      "model_id": "tassadar-executor-transformer-hungarian-v0-v0",
+      "family": "tassadar_executor_transformer",
+      "revision": "v0"
+    },
+    "executor_family": "wasm_trace_executor",
+    "profile": {
+      "profile_id": "tassadar.wasm.hungarian_v0_matching.v1",
+      "allowed_opcodes": [
+        "i32_const",
+        "local_get",
+        "local_set",
+        "i32_add",
+        "i32_sub",
+        "i32_mul",
+        "i32_lt",
+        "i32_load",
+        "i32_store",
+        "br_if",
+        "output",
+        "return"
+      ],
+      "max_locals": 8,
+      "max_memory_slots": 32,
+      "max_program_len": 2048,
+      "max_steps": 32768,
+      "branch_mode": "br_if_non_zero",
+      "host_output_opcode": true
+    },
+    "trace_abi": {
+      "abi_id": "tassadar.trace.v1",
+      "schema_version": 1,
+      "profile_id": "tassadar.wasm.hungarian_v0_matching.v1",
+      "append_only": true,
+      "includes_stack_snapshots": true,
+      "includes_local_snapshots": true,
+      "includes_memory_snapshots": true
+    },
+    "supported_decode_modes": [
+      "reference_linear",
+      "hull_cache"
+    ],
+    "attention_mode": "hard_max_lookup",
+    "attention_geometry": {
+      "constrained_lookup_head_dim": 2,
+      "hull_cache_eligible": true
+    },
+    "claim_boundary": "greedy_decode_unvalidated",
+    "config": {
+      "vocab_size": 303,
+      "max_sequence_tokens": 262144,
+      "embedding_dim": 16,
+      "context_offsets": [
+        1,
+        2,
+        4,
+        8,
+        16,
+        32
+      ],
+      "constrained_lookup_head_dim": 2
+    },
+    "weights": {
+      "format": "ProgrammaticFixture",
+      "source": "Fixture",
+      "quantization": "none",
+      "digest": "a4ddf5504b3917c89d1983de47ad6db1fdfda12fc680136f8a6aa7177645b8e9",
+      "tensors": [
+        {
+          "name": "head_offsets",
+          "shape": {
+            "dims": [
+              6
+            ]
+          },
+          "dtype": "F32",
+          "quantization": "none"
+        },
+        {
+          "name": "output_bias",
+          "shape": {
+            "dims": [
+              303
+            ]
+          },
+          "dtype": "F32",
+          "quantization": "none"
+        },
+        {
+          "name": "output_projection",
+          "shape": {
+            "dims": [
+              112,
+              303
+            ]
+          },
+          "dtype": "F32",
+          "quantization": "none"
+        },
+        {
+          "name": "position_embeddings",
+          "shape": {
+            "dims": [
+              262144,
+              16
+            ]
+          },
+          "dtype": "F32",
+          "quantization": "none"
+        },
+        {
+          "name": "token_embeddings",
+          "shape": {
+            "dims": [
+              303,
+              16
+            ]
+          },
+          "dtype": "F32",
+          "quantization": "none"
+        }
+      ],
+      "artifacts": []
+    }
+  },
+  "training_report_digest": "63e3c63b3a302f85375e2b30d0abfbe4aa0521a7982a5ec1c62885addf917d56",
+  "checkpoint_manifest": {
+    "stream_id": "checkpoint://tassadar-executor-transformer-hungarian-v0-learned-run-v0.checkpoint.epoch_0002",
+    "manifest_digest": "0e4e06b015ab9149276ac85a77364aca559c0c5bec377d0190aaec8c4839d00f",
+    "subject": "checkpoint",
+    "object_digest": "f08a283b0752a194d752fe86b4d5b8f90a68905266a3f6c88cad0590c1fc132f",
+    "total_bytes": 589948,
+    "chunk_count": 145,
+    "chunk_bytes": 4096,
+    "encoding": "raw_binary",
+    "provenance_digest": "c531d71c4d2e4136faddcd411bbbc58de81f4e6fc86f75fbb0df819593529c26",
+    "checkpoint_binding": {
+      "checkpoint_family": "train.tassadar.executor_transformer",
+      "checkpoint_ref": "checkpoint://tassadar-executor-transformer-hungarian-v0-learned-run-v0.checkpoint.epoch_0002",
+      "step": 1
+    }
+  },
+  "artifact_digest": "30da915cb75508ea35f9a736ad453463341a28fb59829a519aedde68be34ef16"
+}

@@ -63,6 +63,21 @@ const EVENT_RETURN: &str = "<event_return>";
 const HALT_RETURNED: &str = "<halt_returned>";
 const HALT_FELL_OFF_END: &str = "<halt_fell_off_end>";
 
+const HUNGARIAN_V0_LOCAL_COUNT: u32 = 1;
+const HUNGARIAN_V0_DIM: usize = 4;
+const HUNGARIAN_V0_MEMORY_SLOTS: u32 = 21;
+const HUNGARIAN_V0_OUTPUT_SLOT_BASE: usize = 16;
+const HUNGARIAN_V0_BEST_COST_SLOT: usize = 20;
+const HUNGARIAN_10X10_LOCAL_COUNT: u32 = 3;
+const HUNGARIAN_10X10_MEMORY_SLOTS: u32 = 41;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum TassadarWorkloadSpecificSupervisionScope {
+    None,
+    HungarianV0,
+    Hungarian10x10,
+}
+
 /// Explicit symbolic target family for one tokenized Tassadar sequence dataset.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -569,6 +584,8 @@ impl TassadarTraceTokenizer {
         prompt_token_count: usize,
     ) -> Vec<Vec<TassadarStructuralSupervisionFamily>> {
         let mut families = vec![Vec::new(); tokens.len().saturating_sub(prompt_token_count)];
+        let workload_scope =
+            self.detect_workload_specific_supervision_scope(tokens, prompt_token_count);
         let mut index = prompt_token_count;
         let halt_token = self.token_id(HALT_TOKEN);
         let eos_token = self.vocabulary.eos_id();
@@ -625,12 +642,19 @@ impl TassadarTraceTokenizer {
                 FIELD_STACK_AFTER,
                 &mut families,
             );
-            index = self.consume_i32_list(tokens, index, FIELD_LOCALS_AFTER);
+            index = self.consume_locals_after_list(
+                tokens,
+                prompt_token_count,
+                index,
+                workload_scope,
+                &mut families,
+            );
             index = self.consume_memory_after_list(
                 tokens,
                 prompt_token_count,
                 index,
                 memory_write_slot.1,
+                workload_scope,
                 &mut families,
             );
         }
@@ -1013,12 +1037,45 @@ impl TassadarTraceTokenizer {
             .min(tokens.len())
     }
 
+    fn consume_locals_after_list(
+        &self,
+        tokens: &[TokenId],
+        prompt_token_count: usize,
+        index: usize,
+        workload_scope: TassadarWorkloadSpecificSupervisionScope,
+        families: &mut [Vec<TassadarStructuralSupervisionFamily>],
+    ) -> usize {
+        if index.saturating_add(6) > tokens.len()
+            || tokens[index] != self.token_id(FIELD_LOCALS_AFTER)
+            || tokens[index + 1] != self.token_id(LIST_TOKEN)
+        {
+            return index.saturating_add(1);
+        }
+        let value_count = self.parse_u32(tokens, index + 2).unwrap_or(0) as usize;
+        let marked_value_count = match workload_scope {
+            TassadarWorkloadSpecificSupervisionScope::None => 0,
+            TassadarWorkloadSpecificSupervisionScope::HungarianV0 => value_count.min(1),
+            TassadarWorkloadSpecificSupervisionScope::Hungarian10x10 => value_count.min(3),
+        };
+        if marked_value_count > 0 {
+            self.mark_target_range(
+                prompt_token_count,
+                index.saturating_add(6),
+                marked_value_count.saturating_mul(4),
+                TassadarStructuralSupervisionFamily::WorkloadSpecificState,
+                families,
+            );
+        }
+        self.consume_i32_list(tokens, index, FIELD_LOCALS_AFTER)
+    }
+
     fn consume_memory_after_list(
         &self,
         tokens: &[TokenId],
         prompt_token_count: usize,
         index: usize,
         memory_write_slot: Option<usize>,
+        workload_scope: TassadarWorkloadSpecificSupervisionScope,
         families: &mut [Vec<TassadarStructuralSupervisionFamily>],
     ) -> usize {
         if index.saturating_add(6) > tokens.len()
@@ -1040,12 +1097,74 @@ impl TassadarTraceTokenizer {
                     TassadarStructuralSupervisionFamily::MemoryDiff,
                     families,
                 );
+                if self.is_workload_specific_memory_slot(workload_scope, slot, value_count) {
+                    self.mark_target_range(
+                        prompt_token_count,
+                        value_start,
+                        4,
+                        TassadarStructuralSupervisionFamily::WorkloadSpecificState,
+                        families,
+                    );
+                }
             }
         }
         index
             .saturating_add(6)
             .saturating_add(value_count.saturating_mul(4))
             .min(tokens.len())
+    }
+
+    fn detect_workload_specific_supervision_scope(
+        &self,
+        tokens: &[TokenId],
+        prompt_token_count: usize,
+    ) -> TassadarWorkloadSpecificSupervisionScope {
+        if prompt_token_count < 17
+            || tokens.first().copied() != Some(self.vocabulary.bos_id())
+            || tokens.get(1).copied() != Some(self.token_id(PROGRAM_TOKEN))
+            || tokens.get(2).copied() != Some(self.token_id(FIELD_LOCALS))
+            || tokens.get(7).copied() != Some(self.token_id(FIELD_MEMORY_SLOTS))
+            || tokens.get(12).copied() != Some(self.token_id(FIELD_INITIAL_MEMORY))
+        {
+            return TassadarWorkloadSpecificSupervisionScope::None;
+        }
+        let local_count = self.parse_u32(tokens, 3);
+        let memory_slots = self.parse_u32(tokens, 8);
+        let initial_memory_len = self.parse_u32(tokens, 13);
+        match (local_count, memory_slots, initial_memory_len) {
+            (
+                Some(HUNGARIAN_V0_LOCAL_COUNT),
+                Some(HUNGARIAN_V0_MEMORY_SLOTS),
+                Some(HUNGARIAN_V0_MEMORY_SLOTS),
+            ) => TassadarWorkloadSpecificSupervisionScope::HungarianV0,
+            (
+                Some(HUNGARIAN_10X10_LOCAL_COUNT),
+                Some(HUNGARIAN_10X10_MEMORY_SLOTS),
+                Some(HUNGARIAN_10X10_MEMORY_SLOTS),
+            ) => TassadarWorkloadSpecificSupervisionScope::Hungarian10x10,
+            _ => TassadarWorkloadSpecificSupervisionScope::None,
+        }
+    }
+
+    fn is_workload_specific_memory_slot(
+        &self,
+        workload_scope: TassadarWorkloadSpecificSupervisionScope,
+        slot: usize,
+        value_count: usize,
+    ) -> bool {
+        if slot >= value_count {
+            return false;
+        }
+        match workload_scope {
+            TassadarWorkloadSpecificSupervisionScope::None => false,
+            TassadarWorkloadSpecificSupervisionScope::HungarianV0 => {
+                slot == HUNGARIAN_V0_BEST_COST_SLOT
+                    || (HUNGARIAN_V0_OUTPUT_SLOT_BASE
+                        ..HUNGARIAN_V0_OUTPUT_SLOT_BASE + HUNGARIAN_V0_DIM)
+                        .contains(&slot)
+            }
+            TassadarWorkloadSpecificSupervisionScope::Hungarian10x10 => true,
+        }
     }
 
     fn parse_u32(&self, tokens: &[TokenId], start: usize) -> Option<u32> {
@@ -1202,8 +1321,8 @@ struct ParsedWavefrontStep {
 mod tests {
     use crate::TokenizerBoundary;
     use psionic_runtime::{
-        TassadarCpuReferenceRunner, tassadar_hungarian_10x10_corpus, tassadar_sudoku_9x9_corpus,
-        tassadar_sudoku_v0_corpus,
+        TassadarCpuReferenceRunner, tassadar_hungarian_10x10_corpus,
+        tassadar_hungarian_v0_corpus, tassadar_sudoku_9x9_corpus, tassadar_sudoku_v0_corpus,
     };
 
     use super::{
@@ -1267,6 +1386,31 @@ mod tests {
             coverage.workload_specific_state_token_count,
             TassadarStructuralSupervisionCoverage::default().workload_specific_state_token_count
         );
+        Ok(())
+    }
+
+    #[test]
+    fn tokenizer_derives_workload_specific_supervision_for_hungarian_trace()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let tokenizer = TassadarTraceTokenizer::new();
+        let case = tassadar_hungarian_v0_corpus()
+            .into_iter()
+            .next()
+            .expect("hungarian corpus should not be empty");
+        let execution = TassadarCpuReferenceRunner::for_program(&case.validation_case.program)?
+            .execute(&case.validation_case.program)?;
+        let tokenized =
+            tokenizer.tokenize_program_and_execution(&case.validation_case.program, &execution);
+        let coverage = tokenizer.summarize_target_structural_supervision(
+            tokenized.sequence.as_slice(),
+            tokenized.prompt_token_count,
+        );
+
+        assert_eq!(
+            coverage.total_target_token_count,
+            tokenized.target_token_count as u32
+        );
+        assert!(coverage.workload_specific_state_token_count > 0);
         Ok(())
     }
 

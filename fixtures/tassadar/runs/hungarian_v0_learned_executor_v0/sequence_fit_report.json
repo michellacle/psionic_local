@@ -1,0 +1,53 @@
+{
+  "run_id": "tassadar-executor-transformer-hungarian-v0-learned-run-v0",
+  "dataset_storage_key": "oa.tassadar.hungarian_v0.sequence@v0",
+  "dataset_digest": "e09afca3a7886d6ee7c97df21ce82fe61de770849b8e3c4ebc0cfbe10aa20a4b",
+  "model_id": "tassadar-executor-transformer-hungarian-v0-v0",
+  "trained_model_descriptor_digest": "461ebf015580bbae8997f6a2c40bbcf6bee4dfa04c652905ab125bd081f926d4",
+  "trainable_surface": "output_head_only",
+  "teacher_forced_training_strategy": "full_forward_window",
+  "long_trace_contract": "flat_prefix_full_forward",
+  "vocab_size": 303,
+  "hidden_width": 112,
+  "model_max_sequence_tokens": 262144,
+  "prompt_token_count_min": 2603,
+  "prompt_token_count_max": 2603,
+  "target_token_count_min": 53806,
+  "target_token_count_max": 56116,
+  "total_token_count_min": 56409,
+  "total_token_count_max": 58719,
+  "full_sequence_fits_model_context": true,
+  "full_sequence_context_headroom_min": 203425,
+  "full_sequence_context_headroom_max": 205735,
+  "stage_fits": [
+    {
+      "stage_id": "prompt_to_first_8_tokens",
+      "target_token_cap": 8,
+      "max_total_tokens": 2611,
+      "fits_model_context": true,
+      "context_headroom_tokens": 259533
+    },
+    {
+      "stage_id": "prompt_to_first_64_tokens",
+      "target_token_cap": 64,
+      "max_total_tokens": 2667,
+      "fits_model_context": true,
+      "context_headroom_tokens": 259477
+    },
+    {
+      "stage_id": "full_trace_supervision",
+      "target_token_cap": 56116,
+      "max_total_tokens": 58719,
+      "fits_model_context": true,
+      "context_headroom_tokens": 203425
+    },
+    {
+      "stage_id": "full_trace_supervision",
+      "target_token_cap": 56116,
+      "max_total_tokens": 58719,
+      "fits_model_context": true,
+      "context_headroom_tokens": 203425
+    }
+  ],
+  "report_digest": "bbd1eb96ac4547e854a27c2f00d289b3205921f1efe3851057205117087103e6"
+}

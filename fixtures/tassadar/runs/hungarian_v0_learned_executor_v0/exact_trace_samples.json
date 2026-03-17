@@ -1,0 +1,10 @@
+{
+  "run_id": "tassadar-executor-transformer-hungarian-v0-learned-run-v0",
+  "dataset_storage_key": "oa.tassadar.hungarian_v0.sequence@v0",
+  "dataset_digest": "e09afca3a7886d6ee7c97df21ce82fe61de770849b8e3c4ebc0cfbe10aa20a4b",
+  "trained_model_descriptor_digest": "461ebf015580bbae8997f6a2c40bbcf6bee4dfa04c652905ab125bd081f926d4",
+  "checkpoint_manifest_digest": "0e4e06b015ab9149276ac85a77364aca559c0c5bec377d0190aaec8c4839d00f",
+  "exact_trace_case_count": 0,
+  "samples": [],
+  "report_digest": "1180b608445f7ad413f315bcd586140d1d05f4f2accdb90b02d318369c8fb0d8"
+}
