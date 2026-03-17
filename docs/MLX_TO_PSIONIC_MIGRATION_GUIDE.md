@@ -53,7 +53,7 @@ entrypoint.
 | Surface | Current truth | Primary entrypoint |
 | --- | --- | --- |
 | `portable_model_io_bridge` | safetensors manifests and GGUF import can carry bounded migration paths, but this is not native MLX artifact parity | `psionic-array-io`, `psionic-function-io`, `psionic-models` |
-| `mlx_package_ecosystem` | `psionic-mlx-lm` now provides one bounded local GGUF text package and CLI, but remote catalogs, OpenAI-compatible serving, multimodal/audio packages, recipe layers, and benchmark packages remain later work | `psionic-mlx-lm`, `docs/MLX_LM_PACKAGE.md` |
+| `mlx_package_ecosystem` | `psionic-mlx-lm` and `psionic-mlx-catalog` now provide bounded local text-runtime and catalog workflows for GGUF paths, Ollama model ids, and local Hugging Face cache snapshots, but served text APIs, multimodal/audio packages, recipe layers, and benchmark packages remain later work | `psionic-mlx-lm`, `psionic-mlx-catalog`, `docs/MLX_LM_PACKAGE.md`, `docs/MLX_MODEL_CATALOG.md` |
 
 ## Common Translation Map
 
@@ -113,5 +113,5 @@ cargo run -p psionic-compat --example mlx_compatibility_matrix_report
 - Do not call the facade or C ABI MLX-identical.
 - Do not imply Python package parity from the current C ABI.
 - Do not treat portable weight IO as proof of native MLX module compatibility.
-- Do not imply the package ecosystem is done because `PMLX-701` landed; `PMLX-702` through `PMLX-709` still bound the remaining ecosystem work.
+- Do not imply the package ecosystem is done because `PMLX-701` and `PMLX-702` landed; `PMLX-703` through `PMLX-709` still bound the remaining ecosystem work.
 - Do not hide typed refusal or bounded backend support behind optimistic fallback prose.

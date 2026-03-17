@@ -1875,15 +1875,17 @@ pub fn builtin_mlx_compatibility_matrix_report() -> MlxCompatibilityMatrixReport
             surface_id: String::from("mlx_package_ecosystem"),
             matrix_status: MlxCompatibilityMatrixStatus::Convertible,
             summary: String::from(
-                "A first bounded local MLX-lm text package now exists in `psionic-mlx-lm`, but remote catalogs, served text APIs, multimodal/audio packages, recipe layers, and benchmark packages remain later ecosystem work.",
+                "Bounded local MLX-style text and catalog packages now exist in `psionic-mlx-lm` and `psionic-mlx-catalog`, but served text APIs, multimodal/audio packages, recipe layers, synthetic/publish workflows, and benchmark packages remain later ecosystem work.",
             ),
             evidence_refs: vec![
                 String::from("crates/psionic-mlx-lm"),
+                String::from("crates/psionic-mlx-catalog"),
                 String::from("docs/MLX_LM_PACKAGE.md"),
+                String::from("docs/MLX_MODEL_CATALOG.md"),
                 String::from("cargo test -p psionic-mlx-lm --lib --tests"),
+                String::from("cargo test -p psionic-mlx-catalog --lib --tests"),
             ],
             blocking_issue_refs: vec![
-                String::from("PMLX-702 (#3875)"),
                 String::from("PMLX-703 (#3876)"),
                 String::from("PMLX-704 (#3877)"),
                 String::from("PMLX-705 (#3878)"),
@@ -1893,7 +1895,7 @@ pub fn builtin_mlx_compatibility_matrix_report() -> MlxCompatibilityMatrixReport
                 String::from("PMLX-709 (#3882)"),
             ],
             boundary_note: String::from(
-                "The first local text package is real, but it does not imply remote registry support, OpenAI-compatible serving, multimodal/audio closure, training recipes, synthetic/publish workflows, or benchmark-package completion.",
+                "The first local text package and catalog layer are real, but they do not imply OpenAI-compatible serving, multimodal/audio closure, training recipes, synthetic/publish workflows, or benchmark-package completion.",
             ),
         },
     ])
@@ -2597,11 +2599,18 @@ mod tests {
             MlxCompatibilityMatrixStatus::Convertible
         );
         assert!(ecosystem.summary.contains("psionic-mlx-lm"));
+        assert!(ecosystem.summary.contains("psionic-mlx-catalog"));
         assert!(
             ecosystem
                 .blocking_issue_refs
                 .iter()
                 .all(|issue| !issue.contains("PMLX-701"))
+        );
+        assert!(
+            ecosystem
+                .blocking_issue_refs
+                .iter()
+                .all(|issue| !issue.contains("PMLX-702"))
         );
 
         let filtered = report.filter_to_surfaces(&[

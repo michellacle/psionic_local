@@ -26,11 +26,12 @@ CLI boundary.
 
 - local GGUF paths only
 - package-owned CLI only
-- no remote registry, Hugging Face cache, or architecture-registry workflow yet
+- catalog, Hugging Face cache, and architecture-registry workflows now live in
+  `psionic-mlx-catalog`
 - no OpenAI-compatible HTTP surface in this crate
 - no notebook/UI shell
 
-Those later surfaces belong to `PMLX-702` through `PMLX-709`.
+Those later surfaces belong to `PMLX-703` through `PMLX-709`.
 
 ## Library Surface
 

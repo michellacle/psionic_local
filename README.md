@@ -524,6 +524,10 @@ Current posture:
   local-multi-device truth, and canonical execution-proof bundles.
 - `psionic-catalog`: local blob, artifact, and model-catalog substrate used by
   model and serving layers.
+- `psionic-mlx-lm`: bounded local MLX-style text package and CLI above the
+  native GGUF runtime.
+- `psionic-mlx-catalog`: bounded MLX-style model-catalog and local Hugging
+  Face cache workflow package above `psionic-catalog` and `psionic-mlx-lm`.
 
 ### Backend And Platform Lanes
 
@@ -679,6 +683,10 @@ Implemented now:
 
 - `psionic-catalog` local blob and artifact-catalog substrate for model and
   runtime-facing assets.
+- `psionic-mlx-lm` bounded local GGUF text package and CLI above that native
+  substrate.
+- `psionic-mlx-catalog` bounded model-id, Ollama, and local Hugging Face cache
+  resolution/reporting layer above the same substrate.
 - CPU baseline plus a first Metal-backed `psionic.embeddings` lane.
 - generic CPU GGUF decoder execution for GPT-OSS plus representative Llama,
   Qwen, and Mistral families through one Psionic-owned runtime surface.
@@ -946,6 +954,9 @@ For canonical current-state detail, use `docs/ARCHITECTURE.md` and
 - **[docs/MLX_LM_PACKAGE.md](docs/MLX_LM_PACKAGE.md)** —
   canonical first-package spec for the bounded local `psionic-mlx-lm` text
   package, CLI, and prompt-cache artifact contract.
+- **[docs/MLX_MODEL_CATALOG.md](docs/MLX_MODEL_CATALOG.md)** —
+  canonical bounded model-catalog spec for `psionic-mlx-catalog`, including
+  local Ollama/Hugging Face cache resolution and remote-metadata trust policy.
 - **[docs/INFERENCE_ENGINE.md](docs/INFERENCE_ENGINE.md)** — canonical
   inference-engine completion criteria and current boundaries.
 - **[docs/TRAIN_SYSTEM.md](docs/TRAIN_SYSTEM.md)** — canonical training
