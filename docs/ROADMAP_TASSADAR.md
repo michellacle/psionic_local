@@ -369,7 +369,7 @@ them internally" target.
 
 | ID | Status | Work |
 | --- | --- | --- |
-| `PTAS-101` | partial | Widen the Wasm profile set from today's bounded Sudoku and Hungarian profiles to an article-shaped executor profile with explicit instruction-coverage reporting. |
+| `PTAS-101` | implemented | The repo now has the dedicated article-shaped `tassadar.wasm.article_i32_compute.v1` profile, aligned model/eval artifacts for the mixed workload suite, and a machine-readable Wasm instruction-coverage report at `fixtures/tassadar/reports/tassadar_wasm_instruction_coverage_report.json` with typed unsupported-opcode refusal examples. |
 | `PTAS-102` | planned | Add a canonical C/C++ to Wasm compile receipt path, including toolchain identity, source digest, output digest, and compile refusal reasons. |
 | `PTAS-103` | partial | Extend benchmark and fixture coverage to branch-heavy, memory-heavy, and million-step kernel families rather than only the current bounded corpora. |
 | `PTAS-104` | planned | Add a trace ABI/versioning decision for long-horizon execution that keeps readable logs, token traces, and proof-bearing machine truth aligned. |

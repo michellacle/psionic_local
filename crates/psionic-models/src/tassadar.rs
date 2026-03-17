@@ -1,11 +1,11 @@
 use psionic_core::{DType, QuantizationMode, Shape};
 use psionic_runtime::{
+    build_tassadar_execution_evidence_bundle, diagnose_tassadar_executor_request,
+    execute_tassadar_executor_request, tassadar_runtime_capability_report,
     TassadarExecutionEvidenceBundle, TassadarExecutorDecodeMode, TassadarExecutorExecutionReport,
     TassadarExecutorSelectionDiagnostic, TassadarFixtureWeights as RuntimeTassadarFixtureWeights,
     TassadarProgram, TassadarProgramArtifact, TassadarRuntimeCapabilityReport, TassadarTraceAbi,
-    TassadarWasmProfile, build_tassadar_execution_evidence_bundle,
-    diagnose_tassadar_executor_request, execute_tassadar_executor_request,
-    tassadar_runtime_capability_report,
+    TassadarWasmProfile,
 };
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -374,8 +374,10 @@ impl Default for TassadarExecutorFixture {
 impl TassadarExecutorFixture {
     /// Stable model identifier for the Phase 1 fixture.
     pub const MODEL_ID: &str = "tassadar-executor-fixture-v0";
-    /// Stable model identifier for the widened article-class fixture.
-    pub const ARTICLE_CLASS_MODEL_ID: &str = "tassadar-executor-article-class-v0";
+    /// Stable model identifier for the widened core-i32-v2 fixture.
+    pub const CORE_I32_V2_MODEL_ID: &str = "tassadar-executor-core-i32-v2-v0";
+    /// Stable model identifier for the article-shaped mixed-workload fixture.
+    pub const ARTICLE_I32_COMPUTE_MODEL_ID: &str = "tassadar-executor-article-i32-compute-v0";
     /// Stable model identifier for the honest Sudoku-v0 search fixture.
     pub const SUDOKU_V0_SEARCH_MODEL_ID: &str = "tassadar-executor-sudoku-v0-search-v0";
     /// Stable model identifier for the honest Hungarian-v0 matching fixture.
@@ -407,7 +409,21 @@ impl TassadarExecutorFixture {
         let trace_abi = TassadarTraceAbi::core_i32_v2();
         let runtime_weights = RuntimeTassadarFixtureWeights::core_i32_v2();
         Self::from_parts(
-            Self::ARTICLE_CLASS_MODEL_ID,
+            Self::CORE_I32_V2_MODEL_ID,
+            profile,
+            trace_abi,
+            runtime_weights,
+        )
+    }
+
+    /// Creates the article-shaped mixed-workload executor fixture.
+    #[must_use]
+    pub fn article_i32_compute_v1() -> Self {
+        let profile = TassadarWasmProfile::article_i32_compute_v1();
+        let trace_abi = TassadarTraceAbi::article_i32_compute_v1();
+        let runtime_weights = RuntimeTassadarFixtureWeights::article_i32_compute_v1();
+        Self::from_parts(
+            Self::ARTICLE_I32_COMPUTE_MODEL_ID,
             profile,
             trace_abi,
             runtime_weights,
@@ -465,6 +481,9 @@ impl TassadarExecutorFixture {
             }
             value if value == TassadarWasmProfile::core_i32_v2().profile_id => {
                 Some(Self::core_i32_v2())
+            }
+            value if value == TassadarWasmProfile::article_i32_compute_v1().profile_id => {
+                Some(Self::article_i32_compute_v1())
             }
             value if value == TassadarWasmProfile::sudoku_v0_search_v1().profile_id => {
                 Some(Self::sudoku_v0_search_v1())
@@ -1484,9 +1503,9 @@ struct CompiledWeightArtifactEncoding<'a> {
 #[cfg(test)]
 mod tests {
     use psionic_runtime::{
-        TassadarExecutorDecodeMode, TassadarFixtureRunner, TassadarProgramArtifact,
-        TassadarTraceAbi, run_tassadar_exact_parity, tassadar_article_class_corpus,
-        tassadar_sudoku_v0_search_program, tassadar_validation_corpus,
+        run_tassadar_exact_parity, tassadar_article_class_corpus,
+        tassadar_sudoku_v0_search_program, tassadar_validation_corpus, TassadarExecutorDecodeMode,
+        TassadarFixtureRunner, TassadarProgramArtifact, TassadarTraceAbi,
     };
 
     use super::{
@@ -1586,7 +1605,7 @@ mod tests {
 
     #[test]
     fn tassadar_article_class_fixture_aligns_with_runtime_article_corpus() {
-        let fixture = TassadarExecutorFixture::sudoku_v0_search_v1();
+        let fixture = TassadarExecutorFixture::article_i32_compute_v1();
         let runner = TassadarFixtureRunner::for_profile(fixture.descriptor().profile.clone())
             .expect("article-class fixture runner");
         assert_eq!(
@@ -1598,6 +1617,10 @@ mod tests {
             fixture.runtime_weights().profile_id
         );
         for case in tassadar_article_class_corpus() {
+            assert_eq!(
+                case.program.profile_id,
+                fixture.descriptor().profile.profile_id
+            );
             let execution = runner.execute(&case.program).expect("case should run");
             assert_eq!(
                 execution.outputs, case.expected_outputs,
@@ -1898,13 +1921,11 @@ mod tests {
             execution.execution_report.execution.outputs,
             expected.outputs
         );
-        assert!(
-            !execution
-                .evidence_bundle
-                .trace_proof
-                .proof_digest
-                .is_empty()
-        );
+        assert!(!execution
+            .evidence_bundle
+            .trace_proof
+            .proof_digest
+            .is_empty());
         assert_eq!(
             execution
                 .evidence_bundle

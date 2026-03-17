@@ -9,17 +9,16 @@ use psionic_environments::{
 };
 use psionic_models::{TassadarExecutorContractError, TassadarExecutorFixture};
 use psionic_runtime::{
-    TassadarCpuReferenceRunner, TassadarExecutionRefusal, TassadarExecutorDecodeMode,
-    TassadarExecutorSelectionReason, TassadarExecutorSelectionState, TassadarFixtureRunner,
-    TassadarHullCacheRunner, TassadarHungarianV0CorpusCase, TassadarProgramArtifact,
-    TassadarProgramArtifactError, TassadarSparseTopKRunner, TassadarSudokuV0CorpusCase,
-    TassadarSudokuV0CorpusSplit, TassadarTraceAbi, TassadarWasmProfile,
     build_tassadar_execution_evidence_bundle, run_tassadar_exact_equivalence,
     tassadar_article_class_corpus, tassadar_hungarian_v0_corpus, tassadar_sudoku_v0_corpus,
-    tassadar_validation_corpus,
+    tassadar_validation_corpus, TassadarCpuReferenceRunner, TassadarExecutionRefusal,
+    TassadarExecutorDecodeMode, TassadarExecutorSelectionReason, TassadarExecutorSelectionState,
+    TassadarFixtureRunner, TassadarHullCacheRunner, TassadarHungarianV0CorpusCase,
+    TassadarProgramArtifact, TassadarProgramArtifactError, TassadarSparseTopKRunner,
+    TassadarSudokuV0CorpusCase, TassadarSudokuV0CorpusSplit, TassadarTraceAbi, TassadarWasmProfile,
 };
 use serde::{Deserialize, Serialize};
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 use sha2::Digest;
 use thiserror::Error;
 
@@ -643,7 +642,7 @@ pub fn run_tassadar_article_class_benchmark(
         });
     }
 
-    let fixture = TassadarExecutorFixture::sudoku_v0_search_v1();
+    let fixture = TassadarExecutorFixture::article_i32_compute_v1();
     let descriptor = fixture.descriptor();
     let model_descriptor_digest = descriptor.stable_digest();
     let runtime_capability = fixture.runtime_capability_report();
@@ -1237,8 +1236,8 @@ fn build_tassadar_benchmark_package(
 pub fn tassadar_article_class_program_artifacts(
     version: &str,
 ) -> Result<Vec<TassadarProgramArtifact>, TassadarBenchmarkError> {
-    let profile = TassadarWasmProfile::sudoku_v0_search_v1();
-    let trace_abi = TassadarTraceAbi::sudoku_v0_search_v1();
+    let profile = TassadarWasmProfile::article_i32_compute_v1();
+    let trace_abi = TassadarTraceAbi::article_i32_compute_v1();
     tassadar_article_class_corpus()
         .into_iter()
         .map(|case| {
@@ -1261,8 +1260,8 @@ fn build_tassadar_article_class_environment_bundle(
     artifacts: &[TassadarProgramArtifact],
     corpus_digest: &str,
 ) -> Result<TassadarEnvironmentBundle, TassadarBenchmarkError> {
-    let profile = TassadarWasmProfile::sudoku_v0_search_v1();
-    let trace_abi = TassadarTraceAbi::sudoku_v0_search_v1();
+    let profile = TassadarWasmProfile::article_i32_compute_v1();
+    let trace_abi = TassadarTraceAbi::article_i32_compute_v1();
     let dataset = DatasetKey::new(TASSADAR_ARTICLE_CLASS_DATASET_REF, version);
     TassadarEnvironmentSpec {
         version: String::from(version),
@@ -1850,8 +1849,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn tassadar_reference_fixture_suite_builds_package_and_environment_contracts()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn tassadar_reference_fixture_suite_builds_package_and_environment_contracts(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let suite = build_tassadar_reference_fixture_suite("2026.03.15")?;
         assert_eq!(suite.artifacts.len(), 3);
         assert_eq!(suite.benchmark_package.cases.len(), 3);
@@ -1883,49 +1882,37 @@ mod tests {
     }
 
     #[test]
-    fn tassadar_reference_fixture_benchmark_is_exact_on_current_validation_corpus()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn tassadar_reference_fixture_benchmark_is_exact_on_current_validation_corpus(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let report = run_tassadar_reference_fixture_benchmark("2026.03.15")?;
         assert_eq!(report.aggregate_summary.round_count, 1);
         assert_eq!(report.aggregate_summary.aggregate_score_bps, Some(10_000));
         assert_eq!(report.aggregate_summary.aggregate_pass_rate_bps, 10_000);
         assert_eq!(report.eval_run.status, crate::EvalRunStatus::Finalized);
-        assert!(
-            report
-                .case_reports
-                .iter()
-                .all(|case| case.status == EvalSampleStatus::Passed)
-        );
-        assert!(
-            report
-                .case_reports
-                .iter()
-                .all(|case| case.cpu_reference_steps_per_second > 0.0)
-        );
-        assert!(
-            report
-                .case_reports
-                .iter()
-                .all(|case| case.reference_linear_steps_per_second > 0.0)
-        );
-        assert!(
-            report
-                .case_reports
-                .iter()
-                .all(|case| case.hull_cache_steps_per_second > 0.0)
-        );
-        assert!(
-            report
-                .case_reports
-                .iter()
-                .all(|case| case.sparse_top_k_steps_per_second > 0.0)
-        );
-        assert!(
-            report
-                .case_reports
-                .iter()
-                .all(|case| case.hull_cache_speedup_over_reference_linear > 1.0)
-        );
+        assert!(report
+            .case_reports
+            .iter()
+            .all(|case| case.status == EvalSampleStatus::Passed));
+        assert!(report
+            .case_reports
+            .iter()
+            .all(|case| case.cpu_reference_steps_per_second > 0.0));
+        assert!(report
+            .case_reports
+            .iter()
+            .all(|case| case.reference_linear_steps_per_second > 0.0));
+        assert!(report
+            .case_reports
+            .iter()
+            .all(|case| case.hull_cache_steps_per_second > 0.0));
+        assert!(report
+            .case_reports
+            .iter()
+            .all(|case| case.sparse_top_k_steps_per_second > 0.0));
+        assert!(report
+            .case_reports
+            .iter()
+            .all(|case| case.hull_cache_speedup_over_reference_linear > 1.0));
         assert!(report.case_reports.iter().all(|case| {
             case.sparse_top_k_selection_state == TassadarExecutorSelectionState::Direct
                 && case.sparse_top_k_selection_reason.is_none()
@@ -1939,12 +1926,10 @@ mod tests {
                 && case.selection_reason.is_none()
                 && !case.used_decode_fallback
         }));
-        assert!(
-            report
-                .case_reports
-                .iter()
-                .all(|case| case.trace_digest_equal)
-        );
+        assert!(report
+            .case_reports
+            .iter()
+            .all(|case| case.trace_digest_equal));
         assert!(report.case_reports.iter().all(|case| case.outputs_equal));
         assert!(report.case_reports.iter().all(|case| case.halt_equal));
         assert!(report.eval_run.samples.iter().all(|sample| {
@@ -1971,19 +1956,17 @@ mod tests {
                 .iter()
                 .any(|artifact| artifact.artifact_kind == "tassadar_selection_diagnostic.json")
         }));
-        assert!(
-            report
-                .eval_run
-                .run_artifacts
-                .iter()
-                .any(|artifact| { artifact.artifact_kind == "tassadar_runtime_capability.json" })
-        );
+        assert!(report
+            .eval_run
+            .run_artifacts
+            .iter()
+            .any(|artifact| { artifact.artifact_kind == "tassadar_runtime_capability.json" }));
         Ok(())
     }
 
     #[test]
-    fn tassadar_article_class_suite_builds_package_and_environment_contracts()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn tassadar_article_class_suite_builds_package_and_environment_contracts(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let suite = build_tassadar_article_class_suite("2026.03.16")?;
         let sudoku_v0_corpus = tassadar_sudoku_v0_corpus();
         assert_eq!(suite.artifacts.len(), sudoku_v0_corpus.len() + 2);
@@ -2005,7 +1988,7 @@ mod tests {
         );
         assert_eq!(
             suite.environment_bundle.program_binding.wasm_profile_id,
-            TassadarWasmProfile::sudoku_v0_search_v1().profile_id
+            TassadarWasmProfile::article_i32_compute_v1().profile_id
         );
         assert_eq!(
             suite.benchmark_package.metadata["tassadar.sudoku_v0_train_case_ids"]
@@ -2029,19 +2012,17 @@ mod tests {
     }
 
     #[test]
-    fn tassadar_article_class_benchmark_is_exact_on_widened_corpus()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn tassadar_article_class_benchmark_is_exact_on_widened_corpus(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let report = run_tassadar_article_class_benchmark("2026.03.16")?;
         assert_eq!(report.aggregate_summary.round_count, 1);
         assert_eq!(report.aggregate_summary.aggregate_score_bps, Some(10_000));
         assert_eq!(report.aggregate_summary.aggregate_pass_rate_bps, 10_000);
         assert_eq!(report.eval_run.status, crate::EvalRunStatus::Finalized);
-        assert!(
-            report
-                .case_reports
-                .iter()
-                .all(|case| case.status == EvalSampleStatus::Passed)
-        );
+        assert!(report
+            .case_reports
+            .iter()
+            .all(|case| case.status == EvalSampleStatus::Passed));
         assert_eq!(
             report
                 .case_reports
@@ -2115,38 +2096,28 @@ mod tests {
                 _ => {}
             }
         }
-        assert!(
-            report
-                .case_reports
-                .iter()
-                .all(|case| case.trace_digest_equal)
-        );
+        assert!(report
+            .case_reports
+            .iter()
+            .all(|case| case.trace_digest_equal));
         assert!(report.case_reports.iter().all(|case| case.outputs_equal));
         assert!(report.case_reports.iter().all(|case| case.halt_equal));
-        assert!(
-            report
-                .case_reports
-                .iter()
-                .all(|case| case.cpu_reference_steps_per_second > 0.0)
-        );
-        assert!(
-            report
-                .case_reports
-                .iter()
-                .all(|case| case.reference_linear_steps_per_second > 0.0)
-        );
-        assert!(
-            report
-                .case_reports
-                .iter()
-                .all(|case| case.hull_cache_steps_per_second > 0.0)
-        );
-        assert!(
-            report
-                .case_reports
-                .iter()
-                .all(|case| case.sparse_top_k_steps_per_second > 0.0)
-        );
+        assert!(report
+            .case_reports
+            .iter()
+            .all(|case| case.cpu_reference_steps_per_second > 0.0));
+        assert!(report
+            .case_reports
+            .iter()
+            .all(|case| case.reference_linear_steps_per_second > 0.0));
+        assert!(report
+            .case_reports
+            .iter()
+            .all(|case| case.hull_cache_steps_per_second > 0.0));
+        assert!(report
+            .case_reports
+            .iter()
+            .all(|case| case.sparse_top_k_steps_per_second > 0.0));
         Ok(())
     }
 }

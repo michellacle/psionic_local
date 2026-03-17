@@ -175,13 +175,7 @@ impl TassadarRuntimeCapabilityReport {
             supports_executor_trace: true,
             supports_hull_decode: true,
             supports_sparse_top_k_decode: true,
-            supported_wasm_profiles: vec![
-                String::from(TassadarWasmProfileId::CoreI32V1.as_str()),
-                String::from(TassadarWasmProfileId::CoreI32V2.as_str()),
-                String::from(TassadarWasmProfileId::SudokuV0SearchV1.as_str()),
-                String::from(TassadarWasmProfileId::HungarianV0MatchingV1.as_str()),
-                String::from(TassadarWasmProfileId::Sudoku9x9SearchV1.as_str()),
-            ],
+            supported_wasm_profiles: supported_wasm_profile_ids(),
             supported_attention_modes: vec![
                 TassadarRuntimeAttentionMode::ReferenceLinear,
                 TassadarRuntimeAttentionMode::HardMaxHull,
@@ -292,6 +286,8 @@ pub enum TassadarWasmProfileId {
     CoreI32V1,
     /// Widened i32-only profile for article-class exact executor benchmarks.
     CoreI32V2,
+    /// General article-shaped i32 profile spanning the current micro, Sudoku, and matching suite.
+    ArticleI32ComputeV1,
     /// Larger i32-only profile for real 4x4 Sudoku-v0 search programs.
     SudokuV0SearchV1,
     /// Comparison-capable i32-only profile for bounded 4x4 matching programs.
@@ -307,6 +303,7 @@ impl TassadarWasmProfileId {
         match self {
             Self::CoreI32V1 => "tassadar.wasm.core_i32.v1",
             Self::CoreI32V2 => "tassadar.wasm.core_i32.v2",
+            Self::ArticleI32ComputeV1 => "tassadar.wasm.article_i32_compute.v1",
             Self::SudokuV0SearchV1 => "tassadar.wasm.sudoku_v0_search.v1",
             Self::HungarianV0MatchingV1 => "tassadar.wasm.hungarian_v0_matching.v1",
             Self::Sudoku9x9SearchV1 => "tassadar.wasm.sudoku_9x9_search.v1",
@@ -353,6 +350,22 @@ pub enum TassadarOpcode {
 }
 
 impl TassadarOpcode {
+    /// Stable opcode ordering for the current article-shaped i32 profile.
+    pub const ARTICLE_I32_V1: [Self; 12] = [
+        Self::I32Const,
+        Self::LocalGet,
+        Self::LocalSet,
+        Self::I32Add,
+        Self::I32Sub,
+        Self::I32Mul,
+        Self::I32Lt,
+        Self::I32Load,
+        Self::I32Store,
+        Self::BrIf,
+        Self::Output,
+        Self::Return,
+    ];
+
     /// Stable opcode ordering used by fixtures and metadata digests.
     pub const ALL: [Self; 11] = [
         Self::I32Const,
@@ -369,20 +382,7 @@ impl TassadarOpcode {
     ];
 
     /// Stable opcode ordering for the bounded Hungarian matching profile.
-    pub const HUNGARIAN_V0: [Self; 12] = [
-        Self::I32Const,
-        Self::LocalGet,
-        Self::LocalSet,
-        Self::I32Add,
-        Self::I32Sub,
-        Self::I32Mul,
-        Self::I32Lt,
-        Self::I32Load,
-        Self::I32Store,
-        Self::BrIf,
-        Self::Output,
-        Self::Return,
-    ];
+    pub const HUNGARIAN_V0: [Self; 12] = Self::ARTICLE_I32_V1;
 
     /// Returns the stable opcode mnemonic.
     #[must_use]
@@ -582,6 +582,22 @@ impl TassadarWasmProfile {
         }
     }
 
+    /// Returns the current article-shaped i32 profile used for the mixed
+    /// article-class benchmark suite.
+    #[must_use]
+    pub fn article_i32_compute_v1() -> Self {
+        Self {
+            profile_id: String::from(TassadarWasmProfileId::ArticleI32ComputeV1.as_str()),
+            allowed_opcodes: TassadarOpcode::ARTICLE_I32_V1.to_vec(),
+            max_locals: 16,
+            max_memory_slots: 64,
+            max_program_len: 4_096,
+            max_steps: 131_072,
+            branch_mode: TassadarBranchMode::BrIfNonZero,
+            host_output_opcode: true,
+        }
+    }
+
     /// Returns the larger search-oriented profile used for honest 4x4 Sudoku-v0 programs.
     #[must_use]
     pub fn sudoku_v0_search_v1() -> Self {
@@ -602,7 +618,7 @@ impl TassadarWasmProfile {
     pub fn hungarian_v0_matching_v1() -> Self {
         Self {
             profile_id: String::from(TassadarWasmProfileId::HungarianV0MatchingV1.as_str()),
-            allowed_opcodes: TassadarOpcode::HUNGARIAN_V0.to_vec(),
+            allowed_opcodes: TassadarOpcode::ARTICLE_I32_V1.to_vec(),
             max_locals: 8,
             max_memory_slots: 32,
             max_program_len: 2_048,
@@ -665,6 +681,9 @@ pub fn tassadar_wasm_profile_for_id(profile_id: &str) -> Option<TassadarWasmProf
         value if value == TassadarWasmProfileId::CoreI32V2.as_str() => {
             Some(TassadarWasmProfile::core_i32_v2())
         }
+        value if value == TassadarWasmProfileId::ArticleI32ComputeV1.as_str() => {
+            Some(TassadarWasmProfile::article_i32_compute_v1())
+        }
         value if value == TassadarWasmProfileId::SudokuV0SearchV1.as_str() => {
             Some(TassadarWasmProfile::sudoku_v0_search_v1())
         }
@@ -719,6 +738,20 @@ impl TassadarTraceAbi {
             abi_id: String::from("tassadar.trace.v1"),
             schema_version: TASSADAR_TRACE_ABI_VERSION,
             profile_id: String::from(TassadarWasmProfileId::CoreI32V2.as_str()),
+            append_only: true,
+            includes_stack_snapshots: true,
+            includes_local_snapshots: true,
+            includes_memory_snapshots: true,
+        }
+    }
+
+    /// Returns the trace ABI for the current article-shaped i32 profile.
+    #[must_use]
+    pub fn article_i32_compute_v1() -> Self {
+        Self {
+            abi_id: String::from("tassadar.trace.v1"),
+            schema_version: TASSADAR_TRACE_ABI_VERSION,
+            profile_id: String::from(TassadarWasmProfileId::ArticleI32ComputeV1.as_str()),
             append_only: true,
             includes_stack_snapshots: true,
             includes_local_snapshots: true,
@@ -804,6 +837,9 @@ pub fn tassadar_trace_abi_for_profile_id(profile_id: &str) -> Option<TassadarTra
         value if value == TassadarWasmProfileId::CoreI32V2.as_str() => {
             Some(TassadarTraceAbi::core_i32_v2())
         }
+        value if value == TassadarWasmProfileId::ArticleI32ComputeV1.as_str() => {
+            Some(TassadarTraceAbi::article_i32_compute_v1())
+        }
         value if value == TassadarWasmProfileId::SudokuV0SearchV1.as_str() => {
             Some(TassadarTraceAbi::sudoku_v0_search_v1())
         }
@@ -815,6 +851,184 @@ pub fn tassadar_trace_abi_for_profile_id(profile_id: &str) -> Option<TassadarTra
         }
         _ => None,
     }
+}
+
+/// Canonical machine-readable output path for the Wasm instruction-coverage report.
+pub const TASSADAR_WASM_INSTRUCTION_COVERAGE_REPORT_REF: &str =
+    "fixtures/tassadar/reports/tassadar_wasm_instruction_coverage_report.json";
+
+/// One coverage row for one supported Tassadar Wasm profile.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarWasmProfileCoverage {
+    /// Stable profile identifier.
+    pub profile_id: String,
+    /// Stable opcode-vocabulary digest.
+    pub opcode_vocabulary_digest: String,
+    /// Supported opcode set.
+    pub supported_opcodes: Vec<TassadarOpcode>,
+    /// Unsupported opcode set relative to the current article-shaped i32 coverage vocabulary.
+    pub unsupported_opcodes: Vec<TassadarOpcode>,
+    /// Maximum supported locals.
+    pub max_locals: usize,
+    /// Maximum supported memory slots.
+    pub max_memory_slots: usize,
+    /// Maximum supported program length.
+    pub max_program_len: usize,
+    /// Maximum supported step count.
+    pub max_steps: usize,
+    /// Whether this profile is the current article-shaped mixed-workload profile.
+    pub article_profile: bool,
+    /// Current committed case ids that exercise this profile.
+    pub current_case_ids: Vec<String>,
+    /// Current committed workload families that exercise this profile.
+    pub current_workload_targets: Vec<String>,
+    /// Plain-language claim boundary for this profile.
+    pub claim_boundary: String,
+}
+
+/// One typed refusal example proving that unsupported instructions remain explicit.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarWasmCoverageRefusalExample {
+    /// Stable profile identifier used for the probe.
+    pub profile_id: String,
+    /// Stable probe program identifier.
+    pub probe_program_id: String,
+    /// Opcode requested by the probe.
+    pub attempted_opcode: TassadarOpcode,
+    /// Typed refusal observed from the runtime validator.
+    pub refusal: TassadarExecutionRefusal,
+}
+
+/// Machine-readable instruction/profile coverage report for the current
+/// Tassadar Wasm profile set.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarWasmInstructionCoverageReport {
+    /// Runtime backend advertising the profile set.
+    pub runtime_backend: String,
+    /// Stable coverage-opcode universe for the current article-shaped i32 executor vocabulary.
+    pub coverage_opcode_universe: Vec<TassadarOpcode>,
+    /// Stable profile identifier for the current article-shaped mixed-workload profile.
+    pub article_profile_id: String,
+    /// Ordered profile coverage rows.
+    pub profiles: Vec<TassadarWasmProfileCoverage>,
+    /// Typed refusal examples showing unsupported instructions stay explicit.
+    pub refusal_examples: Vec<TassadarWasmCoverageRefusalExample>,
+    /// Plain-language note keeping the report honest.
+    pub outcome_statement: String,
+    /// Stable report digest.
+    pub report_digest: String,
+}
+
+impl TassadarWasmInstructionCoverageReport {
+    fn new(
+        profiles: Vec<TassadarWasmProfileCoverage>,
+        refusal_examples: Vec<TassadarWasmCoverageRefusalExample>,
+    ) -> Self {
+        let mut report = Self {
+            runtime_backend: String::from(TASSADAR_RUNTIME_BACKEND_ID),
+            coverage_opcode_universe: TassadarOpcode::ARTICLE_I32_V1.to_vec(),
+            article_profile_id: String::from(TassadarWasmProfileId::ArticleI32ComputeV1.as_str()),
+            profiles,
+            refusal_examples,
+            outcome_statement: String::from(
+                "coverage is explicit over the current Tassadar i32 executor vocabulary only; unsupported opcodes still refuse by profile and this is not arbitrary Wasm closure",
+            ),
+            report_digest: String::new(),
+        };
+        report.report_digest = hex::encode(Sha256::digest(
+            serde_json::to_vec(&report).unwrap_or_default(),
+        ));
+        report
+    }
+}
+
+fn runtime_repo_root() -> std::path::PathBuf {
+    std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("..")
+        .join("..")
+}
+
+/// Returns the canonical absolute path for the Wasm instruction-coverage report.
+#[must_use]
+pub fn tassadar_wasm_instruction_coverage_report_path() -> std::path::PathBuf {
+    runtime_repo_root().join(TASSADAR_WASM_INSTRUCTION_COVERAGE_REPORT_REF)
+}
+
+/// Writes the canonical machine-readable Wasm instruction/profile coverage report.
+pub fn write_tassadar_wasm_instruction_coverage_report(
+    output_path: impl AsRef<std::path::Path>,
+) -> Result<TassadarWasmInstructionCoverageReport, std::io::Error> {
+    let output_path = output_path.as_ref();
+    if let Some(parent) = output_path.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+    let report = tassadar_wasm_instruction_coverage_report();
+    let bytes = serde_json::to_vec_pretty(&report)
+        .expect("Tassadar Wasm instruction coverage report should serialize");
+    std::fs::write(output_path, bytes)?;
+    Ok(report)
+}
+
+/// Returns the current supported Wasm profiles in canonical reporting order.
+#[must_use]
+pub fn tassadar_supported_wasm_profiles() -> Vec<TassadarWasmProfile> {
+    vec![
+        TassadarWasmProfile::core_i32_v1(),
+        TassadarWasmProfile::core_i32_v2(),
+        TassadarWasmProfile::article_i32_compute_v1(),
+        TassadarWasmProfile::sudoku_v0_search_v1(),
+        TassadarWasmProfile::hungarian_v0_matching_v1(),
+        TassadarWasmProfile::sudoku_9x9_search_v1(),
+    ]
+}
+
+fn supported_wasm_profile_ids() -> Vec<String> {
+    tassadar_supported_wasm_profiles()
+        .into_iter()
+        .map(|profile| profile.profile_id)
+        .collect()
+}
+
+fn supported_wasm_profile_ids_csv() -> String {
+    supported_wasm_profile_ids().join(", ")
+}
+
+/// Returns the current machine-readable Wasm instruction/profile coverage report.
+#[must_use]
+pub fn tassadar_wasm_instruction_coverage_report() -> TassadarWasmInstructionCoverageReport {
+    let coverage_universe = TassadarOpcode::ARTICLE_I32_V1.to_vec();
+    let profile_case_map = profile_case_map();
+    let profiles = tassadar_supported_wasm_profiles()
+        .into_iter()
+        .map(|profile| {
+            let current_case_ids = profile_case_map
+                .get(profile.profile_id.as_str())
+                .map_or_else(Vec::new, |case_ids| case_ids.clone());
+            let current_workload_targets =
+                workload_targets_for_profile(profile.profile_id.as_str());
+            TassadarWasmProfileCoverage {
+                profile_id: profile.profile_id.clone(),
+                opcode_vocabulary_digest: profile.opcode_vocabulary_digest(),
+                supported_opcodes: profile.allowed_opcodes.clone(),
+                unsupported_opcodes: coverage_universe
+                    .iter()
+                    .copied()
+                    .filter(|opcode| !profile.supports(*opcode))
+                    .collect(),
+                max_locals: profile.max_locals,
+                max_memory_slots: profile.max_memory_slots,
+                max_program_len: profile.max_program_len,
+                max_steps: profile.max_steps,
+                article_profile: profile.profile_id
+                    == TassadarWasmProfileId::ArticleI32ComputeV1.as_str(),
+                current_case_ids,
+                current_workload_targets,
+                claim_boundary: claim_boundary_for_profile(profile.profile_id.as_str()),
+            }
+        })
+        .collect();
+    let refusal_examples = unsupported_instruction_refusal_examples();
+    TassadarWasmInstructionCoverageReport::new(profiles, refusal_examples)
 }
 
 /// One validated instruction in the narrow WebAssembly-first profile.
@@ -1497,6 +1711,16 @@ impl TassadarFixtureWeights {
         }
     }
 
+    /// Returns the current article-shaped i32 handcrafted fixture table.
+    #[must_use]
+    pub fn article_i32_compute_v1() -> Self {
+        Self {
+            profile_id: String::from(TassadarWasmProfileId::ArticleI32ComputeV1.as_str()),
+            trace_abi_id: String::from("tassadar.trace.v1"),
+            opcode_rules: Self::hungarian_v0_matching_v1().opcode_rules,
+        }
+    }
+
     /// Returns the larger search-profile handcrafted fixture table.
     #[must_use]
     pub fn sudoku_v0_search_v1() -> Self {
@@ -1562,6 +1786,9 @@ pub fn tassadar_fixture_weights_for_profile_id(profile_id: &str) -> Option<Tassa
         }
         value if value == TassadarWasmProfileId::CoreI32V2.as_str() => {
             Some(TassadarFixtureWeights::core_i32_v2())
+        }
+        value if value == TassadarWasmProfileId::ArticleI32ComputeV1.as_str() => {
+            Some(TassadarFixtureWeights::article_i32_compute_v1())
         }
         value if value == TassadarWasmProfileId::SudokuV0SearchV1.as_str() => {
             Some(TassadarFixtureWeights::sudoku_v0_search_v1())
@@ -2355,20 +2582,12 @@ impl TassadarCpuReferenceRunner {
     pub fn for_program(program: &TassadarProgram) -> Result<Self, TassadarExecutionRefusal> {
         let Some(profile) = tassadar_wasm_profile_for_id(program.profile_id.as_str()) else {
             return Err(TassadarExecutionRefusal::ProfileMismatch {
-                expected: format!(
-                    "{}, {}",
-                    TassadarWasmProfileId::CoreI32V1.as_str(),
-                    TassadarWasmProfileId::CoreI32V2.as_str()
-                ),
+                expected: supported_wasm_profile_ids_csv(),
                 actual: program.profile_id.clone(),
             });
         };
         Self::for_profile(profile).ok_or(TassadarExecutionRefusal::ProfileMismatch {
-            expected: format!(
-                "{}, {}",
-                TassadarWasmProfileId::CoreI32V1.as_str(),
-                TassadarWasmProfileId::CoreI32V2.as_str()
-            ),
+            expected: supported_wasm_profile_ids_csv(),
             actual: program.profile_id.clone(),
         })
     }
@@ -2423,20 +2642,12 @@ impl TassadarFixtureRunner {
     pub fn for_program(program: &TassadarProgram) -> Result<Self, TassadarExecutionRefusal> {
         let Some(profile) = tassadar_wasm_profile_for_id(program.profile_id.as_str()) else {
             return Err(TassadarExecutionRefusal::ProfileMismatch {
-                expected: format!(
-                    "{}, {}",
-                    TassadarWasmProfileId::CoreI32V1.as_str(),
-                    TassadarWasmProfileId::CoreI32V2.as_str()
-                ),
+                expected: supported_wasm_profile_ids_csv(),
                 actual: program.profile_id.clone(),
             });
         };
         Self::for_profile(profile).ok_or(TassadarExecutionRefusal::ProfileMismatch {
-            expected: format!(
-                "{}, {}",
-                TassadarWasmProfileId::CoreI32V1.as_str(),
-                TassadarWasmProfileId::CoreI32V2.as_str()
-            ),
+            expected: supported_wasm_profile_ids_csv(),
             actual: program.profile_id.clone(),
         })
     }
@@ -2497,20 +2708,12 @@ impl TassadarHullCacheRunner {
     pub fn for_program(program: &TassadarProgram) -> Result<Self, TassadarExecutionRefusal> {
         let Some(profile) = tassadar_wasm_profile_for_id(program.profile_id.as_str()) else {
             return Err(TassadarExecutionRefusal::ProfileMismatch {
-                expected: format!(
-                    "{}, {}",
-                    TassadarWasmProfileId::CoreI32V1.as_str(),
-                    TassadarWasmProfileId::CoreI32V2.as_str()
-                ),
+                expected: supported_wasm_profile_ids_csv(),
                 actual: program.profile_id.clone(),
             });
         };
         Self::for_profile(profile).ok_or(TassadarExecutionRefusal::ProfileMismatch {
-            expected: format!(
-                "{}, {}",
-                TassadarWasmProfileId::CoreI32V1.as_str(),
-                TassadarWasmProfileId::CoreI32V2.as_str()
-            ),
+            expected: supported_wasm_profile_ids_csv(),
             actual: program.profile_id.clone(),
         })
     }
@@ -2577,20 +2780,12 @@ impl TassadarSparseTopKRunner {
     pub fn for_program(program: &TassadarProgram) -> Result<Self, TassadarExecutionRefusal> {
         let Some(profile) = tassadar_wasm_profile_for_id(program.profile_id.as_str()) else {
             return Err(TassadarExecutionRefusal::ProfileMismatch {
-                expected: format!(
-                    "{}, {}",
-                    TassadarWasmProfileId::CoreI32V1.as_str(),
-                    TassadarWasmProfileId::CoreI32V2.as_str()
-                ),
+                expected: supported_wasm_profile_ids_csv(),
                 actual: program.profile_id.clone(),
             });
         };
         Self::for_profile(profile).ok_or(TassadarExecutionRefusal::ProfileMismatch {
-            expected: format!(
-                "{}, {}",
-                TassadarWasmProfileId::CoreI32V1.as_str(),
-                TassadarWasmProfileId::CoreI32V2.as_str()
-            ),
+            expected: supported_wasm_profile_ids_csv(),
             actual: program.profile_id.clone(),
         })
     }
@@ -3716,11 +3911,9 @@ fn build_tassadar_sudoku_search_program(
     let given_offset = cell_count;
     let memory_slots = cell_count * 2;
     debug_assert_eq!(cell_count, puzzle_cells.len());
-    debug_assert!(
-        puzzle_cells
-            .iter()
-            .all(|value| (0..=max_value).contains(value))
-    );
+    debug_assert!(puzzle_cells
+        .iter()
+        .all(|value| (0..=max_value).contains(value)));
 
     let mut initial_memory = vec![0; memory_slots];
     for (index, value) in puzzle_cells.iter().copied().enumerate() {
@@ -3942,11 +4135,12 @@ pub fn tassadar_validation_corpus() -> Vec<TassadarValidationCase> {
 #[must_use]
 pub fn tassadar_article_class_corpus() -> Vec<TassadarValidationCase> {
     let mut cases = vec![micro_wasm_kernel_case()];
-    cases.extend(
-        tassadar_sudoku_v0_corpus()
-            .into_iter()
-            .map(|case| case.validation_case),
-    );
+    cases.extend(tassadar_sudoku_v0_corpus().into_iter().map(|case| {
+        rewrite_validation_case_profile(
+            case.validation_case,
+            &TassadarWasmProfile::article_i32_compute_v1(),
+        )
+    }));
     cases.push(hungarian_matching_case());
     cases
 }
@@ -3972,6 +4166,131 @@ fn computed_validation_case(
         expected_trace: execution.steps,
         expected_outputs,
     }
+}
+
+fn rewrite_validation_case_profile(
+    case: TassadarValidationCase,
+    profile: &TassadarWasmProfile,
+) -> TassadarValidationCase {
+    computed_validation_case(
+        case.case_id,
+        case.summary,
+        TassadarProgram::new(
+            case.program.program_id,
+            profile,
+            case.program.local_count,
+            case.program.memory_slots,
+            case.program.instructions,
+        )
+        .with_initial_memory(case.program.initial_memory),
+        case.expected_outputs,
+    )
+}
+
+fn claim_boundary_for_profile(profile_id: &str) -> String {
+    match profile_id {
+        value if value == TassadarWasmProfileId::CoreI32V1.as_str() => {
+            String::from("phase-1 narrow i32 fixture profile only")
+        }
+        value if value == TassadarWasmProfileId::CoreI32V2.as_str() => String::from(
+            "widened core i32 benchmark profile with bounded resources and no comparison opcode",
+        ),
+        value if value == TassadarWasmProfileId::ArticleI32ComputeV1.as_str() => String::from(
+            "current article-shaped mixed-workload i32 profile for the committed article-class benchmark suite; still only the enumerated opcodes",
+        ),
+        value if value == TassadarWasmProfileId::SudokuV0SearchV1.as_str() => {
+            String::from("bounded real 4x4 Sudoku-v0 search profile")
+        }
+        value if value == TassadarWasmProfileId::HungarianV0MatchingV1.as_str() => {
+            String::from("bounded 4x4 Hungarian matching profile")
+        }
+        value if value == TassadarWasmProfileId::Sudoku9x9SearchV1.as_str() => {
+            String::from("bounded real 9x9 Sudoku search profile")
+        }
+        _ => String::from("unknown profile"),
+    }
+}
+
+fn profile_case_map() -> BTreeMap<String, Vec<String>> {
+    let mut map = BTreeMap::new();
+    for case in tassadar_validation_corpus() {
+        map.entry(case.program.profile_id)
+            .or_insert_with(Vec::new)
+            .push(case.case_id);
+    }
+    for case in tassadar_article_class_corpus() {
+        map.entry(case.program.profile_id)
+            .or_insert_with(Vec::new)
+            .push(case.case_id);
+    }
+    for case in tassadar_sudoku_9x9_corpus() {
+        map.entry(case.validation_case.program.profile_id)
+            .or_insert_with(Vec::new)
+            .push(case.validation_case.case_id);
+    }
+    for case in tassadar_hungarian_v0_corpus() {
+        map.entry(case.validation_case.program.profile_id)
+            .or_insert_with(Vec::new)
+            .push(case.validation_case.case_id);
+    }
+    for case_ids in map.values_mut() {
+        case_ids.sort();
+        case_ids.dedup();
+    }
+    map
+}
+
+fn workload_targets_for_profile(profile_id: &str) -> Vec<String> {
+    match profile_id {
+        value if value == TassadarWasmProfileId::CoreI32V1.as_str() => {
+            vec![String::from("validation_microprograms")]
+        }
+        value if value == TassadarWasmProfileId::CoreI32V2.as_str() => Vec::new(),
+        value if value == TassadarWasmProfileId::ArticleI32ComputeV1.as_str() => vec![
+            String::from("micro_wasm_kernel"),
+            String::from("sudoku_class"),
+            String::from("hungarian_matching"),
+        ],
+        value if value == TassadarWasmProfileId::SudokuV0SearchV1.as_str() => {
+            vec![String::from("sudoku_v0_search")]
+        }
+        value if value == TassadarWasmProfileId::HungarianV0MatchingV1.as_str() => {
+            vec![String::from("hungarian_v0_matching")]
+        }
+        value if value == TassadarWasmProfileId::Sudoku9x9SearchV1.as_str() => {
+            vec![String::from("sudoku_9x9_search")]
+        }
+        _ => Vec::new(),
+    }
+}
+
+fn unsupported_instruction_refusal_examples() -> Vec<TassadarWasmCoverageRefusalExample> {
+    [
+        TassadarWasmProfile::core_i32_v1(),
+        TassadarWasmProfile::core_i32_v2(),
+        TassadarWasmProfile::sudoku_v0_search_v1(),
+        TassadarWasmProfile::sudoku_9x9_search_v1(),
+    ]
+    .into_iter()
+    .map(|profile| {
+        let probe_program = TassadarProgram::new(
+            format!("{}.unsupported_i32_lt_probe", profile.profile_id),
+            &profile,
+            0,
+            0,
+            vec![TassadarInstruction::I32Lt, TassadarInstruction::Return],
+        );
+        let refusal = probe_program
+            .validate_against(&profile)
+            .expect_err("lt probe should refuse on profiles without comparison coverage");
+        TassadarWasmCoverageRefusalExample {
+            profile_id: profile.profile_id,
+            probe_program_id: probe_program.program_id,
+            attempted_opcode: TassadarOpcode::I32Lt,
+            refusal,
+        }
+    })
+    .collect()
 }
 
 fn execute_program_direct(
@@ -5298,7 +5617,7 @@ fn branch_guard_case() -> TassadarValidationCase {
 }
 
 fn micro_wasm_kernel_case() -> TassadarValidationCase {
-    let profile = TassadarWasmProfile::sudoku_v0_search_v1();
+    let profile = TassadarWasmProfile::article_i32_compute_v1();
     computed_validation_case(
         "micro_wasm_kernel",
         "unrolled weighted-sum and checksum micro-kernel over memory-backed inputs",
@@ -5365,10 +5684,10 @@ fn micro_wasm_kernel_case() -> TassadarValidationCase {
 }
 
 fn hungarian_matching_case() -> TassadarValidationCase {
-    let profile = TassadarWasmProfile::sudoku_v0_search_v1();
+    let profile = TassadarWasmProfile::article_i32_compute_v1();
     computed_validation_case(
         "hungarian_matching",
-        "tiny fixed 2x2 matching instance with branch-selected winning assignment and exact cost",
+        "tiny fixed 2x2 matching instance with comparison-selected winning assignment and exact cost",
         TassadarProgram::new(
             "tassadar.hungarian_matching.v2",
             &profile,
@@ -5385,7 +5704,7 @@ fn hungarian_matching_case() -> TassadarValidationCase {
                 TassadarInstruction::LocalSet { local: 1 },
                 TassadarInstruction::LocalGet { local: 1 },
                 TassadarInstruction::LocalGet { local: 0 },
-                TassadarInstruction::I32Sub,
+                TassadarInstruction::I32Lt,
                 TassadarInstruction::BrIf { target_pc: 17 },
                 TassadarInstruction::LocalGet { local: 0 },
                 TassadarInstruction::Output,
@@ -5598,20 +5917,45 @@ mod tests {
     use crate::TassadarClaimClass;
 
     use super::{
-        TASSADAR_FIXTURE_RUNNER_ID, TASSADAR_RUNTIME_BACKEND_ID, TassadarCompilerToolchainIdentity,
-        TassadarCpuReferenceRunner, TassadarExecutionRefusal, TassadarExecutorDecodeMode,
-        TassadarExecutorSelectionReason, TassadarExecutorSelectionState, TassadarFixtureRunner,
-        TassadarHullCacheRunner, TassadarInstruction, TassadarProgram, TassadarProgramArtifact,
-        TassadarProgramArtifactError, TassadarProgramSourceIdentity, TassadarProgramSourceKind,
-        TassadarSparseTopKRunner, TassadarSudokuV0CorpusSplit, TassadarTraceAbi,
-        TassadarTraceEvent, TassadarWasmProfile, TassadarWasmProfileId,
         build_tassadar_execution_evidence_bundle, diagnose_tassadar_executor_request,
         execute_tassadar_executor_request, replay_tassadar_execution,
         run_tassadar_exact_equivalence, run_tassadar_exact_parity, tassadar_article_class_corpus,
         tassadar_runtime_capability_report, tassadar_sudoku_9x9_corpus,
         tassadar_sudoku_9x9_search_program, tassadar_sudoku_v0_corpus,
-        tassadar_sudoku_v0_search_program, tassadar_validation_corpus,
+        tassadar_sudoku_v0_search_program, tassadar_supported_wasm_profiles,
+        tassadar_validation_corpus, tassadar_wasm_instruction_coverage_report,
+        write_tassadar_wasm_instruction_coverage_report, TassadarCompilerToolchainIdentity,
+        TassadarCpuReferenceRunner, TassadarExecutionRefusal, TassadarExecutorDecodeMode,
+        TassadarExecutorSelectionReason, TassadarExecutorSelectionState, TassadarFixtureRunner,
+        TassadarHullCacheRunner, TassadarInstruction, TassadarProgram, TassadarProgramArtifact,
+        TassadarProgramArtifactError, TassadarProgramSourceIdentity, TassadarProgramSourceKind,
+        TassadarSparseTopKRunner, TassadarSudokuV0CorpusSplit, TassadarTraceAbi,
+        TassadarTraceEvent, TassadarWasmInstructionCoverageReport, TassadarWasmProfile,
+        TassadarWasmProfileId, TASSADAR_FIXTURE_RUNNER_ID, TASSADAR_RUNTIME_BACKEND_ID,
+        TASSADAR_WASM_INSTRUCTION_COVERAGE_REPORT_REF,
     };
+
+    fn read_repo_json<T: serde::de::DeserializeOwned>(
+        relative_path: &str,
+        artifact_kind: &str,
+    ) -> T {
+        let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("..")
+            .join(relative_path);
+        let bytes = std::fs::read(&path).unwrap_or_else(|error| {
+            panic!(
+                "failed to read {artifact_kind} `{}`: {error}",
+                path.display()
+            )
+        });
+        serde_json::from_slice(&bytes).unwrap_or_else(|error| {
+            panic!(
+                "failed to deserialize {artifact_kind} `{}`: {error}",
+                path.display()
+            )
+        })
+    }
 
     #[test]
     fn cpu_reference_runner_matches_exact_trace_fixtures() {
@@ -5707,12 +6051,10 @@ mod tests {
         assert!(capability.supports_hull_decode);
         assert_eq!(
             capability.supported_wasm_profiles,
-            vec![
-                String::from(TassadarWasmProfile::core_i32_v1().profile_id),
-                String::from(TassadarWasmProfile::core_i32_v2().profile_id),
-                String::from(TassadarWasmProfile::sudoku_v0_search_v1().profile_id),
-                String::from(TassadarWasmProfile::sudoku_9x9_search_v1().profile_id),
-            ]
+            tassadar_supported_wasm_profiles()
+                .into_iter()
+                .map(|profile| profile.profile_id)
+                .collect::<Vec<_>>()
         );
         assert_eq!(capability.validated_trace_abi_versions, vec![1]);
         assert_eq!(
@@ -5731,7 +6073,7 @@ mod tests {
         for case in tassadar_article_class_corpus() {
             assert_eq!(
                 case.program.profile_id,
-                TassadarWasmProfileId::SudokuV0SearchV1.as_str()
+                TassadarWasmProfileId::ArticleI32ComputeV1.as_str()
             );
             TassadarCpuReferenceRunner::for_program(&case.program)
                 .expect("article-class CPU runner should resolve");
@@ -5742,6 +6084,58 @@ mod tests {
             TassadarSparseTopKRunner::for_program(&case.program)
                 .expect("article-class sparse runner should resolve");
         }
+    }
+
+    #[test]
+    fn tassadar_wasm_instruction_coverage_report_matches_committed_truth() {
+        let report = tassadar_wasm_instruction_coverage_report();
+        assert_eq!(
+            report.article_profile_id,
+            TassadarWasmProfileId::ArticleI32ComputeV1.as_str()
+        );
+        assert_eq!(
+            report.profiles.len(),
+            tassadar_supported_wasm_profiles().len()
+        );
+        assert!(report.profiles.iter().any(|profile| {
+            profile.profile_id == TassadarWasmProfileId::ArticleI32ComputeV1.as_str()
+                && profile.article_profile
+                && profile
+                    .current_case_ids
+                    .contains(&String::from("hungarian_matching"))
+                && profile
+                    .current_case_ids
+                    .contains(&String::from("micro_wasm_kernel"))
+        }));
+        assert!(report.refusal_examples.iter().all(|example| matches!(
+            example.refusal,
+            TassadarExecutionRefusal::UnsupportedOpcode { .. }
+        )));
+
+        let persisted: TassadarWasmInstructionCoverageReport =
+            read_repo_json::<TassadarWasmInstructionCoverageReport>(
+                TASSADAR_WASM_INSTRUCTION_COVERAGE_REPORT_REF,
+                "tassadar_wasm_instruction_coverage_report",
+            );
+        assert_eq!(persisted, report);
+    }
+
+    #[test]
+    fn write_tassadar_wasm_instruction_coverage_report_persists_current_truth() {
+        let temp_dir = std::env::temp_dir().join(format!(
+            "psionic-tassadar-runtime-test-{}",
+            std::process::id()
+        ));
+        std::fs::create_dir_all(&temp_dir).expect("temp dir should create");
+        let report_path = temp_dir.join("tassadar_wasm_instruction_coverage_report.json");
+        let report = write_tassadar_wasm_instruction_coverage_report(&report_path)
+            .expect("coverage report should write");
+        let bytes = std::fs::read(&report_path).expect("coverage report should persist");
+        let persisted: TassadarWasmInstructionCoverageReport =
+            serde_json::from_slice(&bytes).expect("persisted report should deserialize");
+        assert_eq!(persisted, report);
+        std::fs::remove_file(&report_path).expect("temp report should be removable");
+        std::fs::remove_dir(&temp_dir).expect("temp dir should be removable");
     }
 
     #[test]
@@ -5769,16 +6163,12 @@ mod tests {
                 .count(),
             2
         );
-        assert!(
-            corpus
-                .iter()
-                .all(|case| !case.validation_case.expected_trace.is_empty())
-        );
-        assert!(
-            corpus
-                .iter()
-                .all(|case| case.validation_case.expected_outputs.len() == 16)
-        );
+        assert!(corpus
+            .iter()
+            .all(|case| !case.validation_case.expected_trace.is_empty()));
+        assert!(corpus
+            .iter()
+            .all(|case| case.validation_case.expected_outputs.len() == 16));
     }
 
     #[test]
@@ -5806,16 +6196,12 @@ mod tests {
                 .count(),
             1
         );
-        assert!(
-            corpus
-                .iter()
-                .all(|case| !case.validation_case.expected_trace.is_empty())
-        );
-        assert!(
-            corpus
-                .iter()
-                .all(|case| case.validation_case.expected_outputs.len() == 81)
-        );
+        assert!(corpus
+            .iter()
+            .all(|case| !case.validation_case.expected_trace.is_empty()));
+        assert!(corpus
+            .iter()
+            .all(|case| case.validation_case.expected_outputs.len() == 81));
     }
 
     #[test]
@@ -6457,29 +6843,17 @@ mod tests {
 
     #[test]
     fn tassadar_claim_class_transitions_preserve_lane_separation() {
-        assert!(
-            TassadarClaimClass::ResearchOnly
-                .allows_transition_to(TassadarClaimClass::CompiledExact)
-        );
-        assert!(
-            TassadarClaimClass::ResearchOnly
-                .allows_transition_to(TassadarClaimClass::LearnedBounded)
-        );
-        assert!(
-            TassadarClaimClass::CompiledExact
-                .allows_transition_to(TassadarClaimClass::CompiledArticleClass)
-        );
-        assert!(
-            TassadarClaimClass::LearnedBounded
-                .allows_transition_to(TassadarClaimClass::LearnedArticleClass)
-        );
-        assert!(
-            !TassadarClaimClass::CompiledExact
-                .allows_transition_to(TassadarClaimClass::LearnedArticleClass)
-        );
-        assert!(
-            !TassadarClaimClass::LearnedBounded
-                .allows_transition_to(TassadarClaimClass::CompiledArticleClass)
-        );
+        assert!(TassadarClaimClass::ResearchOnly
+            .allows_transition_to(TassadarClaimClass::CompiledExact));
+        assert!(TassadarClaimClass::ResearchOnly
+            .allows_transition_to(TassadarClaimClass::LearnedBounded));
+        assert!(TassadarClaimClass::CompiledExact
+            .allows_transition_to(TassadarClaimClass::CompiledArticleClass));
+        assert!(TassadarClaimClass::LearnedBounded
+            .allows_transition_to(TassadarClaimClass::LearnedArticleClass));
+        assert!(!TassadarClaimClass::CompiledExact
+            .allows_transition_to(TassadarClaimClass::LearnedArticleClass));
+        assert!(!TassadarClaimClass::LearnedBounded
+            .allows_transition_to(TassadarClaimClass::CompiledArticleClass));
     }
 }

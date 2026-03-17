@@ -94,9 +94,11 @@ Current posture:
   served evidence bundles that preserve decode selection, trace proof, and
   runtime-manifest lineage
 - its Phase 7B widened executor envelope now exists in `psionic-runtime`,
-  `psionic-models`, and `psionic-eval`, with the `core_i32_v2` Wasm profile,
-  profile-aware runner construction, and article-class exact benchmark
-  coverage for `MicroWasmKernel`, `SudokuClass`, and `HungarianMatching`
+  `psionic-models`, and `psionic-eval`, with the widened `core_i32_v2`
+  profile, the dedicated article-shaped `tassadar.wasm.article_i32_compute.v1`
+  profile, profile-aware runner construction, and article-class exact
+  benchmark coverage for `MicroWasmKernel`, `SudokuClass`, and
+  `HungarianMatching`
 - the first trained-executor follow-on bar now also exists in
   `psionic-runtime` and `psionic-models`: a dedicated
   `tassadar.wasm.sudoku_v0_search.v1` profile plus a real 4x4 backtracking
@@ -343,6 +345,13 @@ Current posture:
   checker command at `scripts/check-tassadar-acceptance.sh`; that report keeps
   current bounded compiled, bounded learned, research-only, bounded fast-path,
   and still-red article-class truth explicit in one place
+- the repo now also carries one machine-readable Tassadar Wasm
+  instruction-coverage report at
+  `fixtures/tassadar/reports/tassadar_wasm_instruction_coverage_report.json`,
+  emitted by `cargo run -p psionic-runtime --example tassadar_wasm_instruction_coverage_report`;
+  it inventories the supported `tassadar.wasm.*` profiles, the current
+  article-shaped opcode universe, explicit workload/case coverage, and typed
+  refusal examples for unsupported opcodes
 - its Phase 8A research family now exists in `psionic-research`, with a typed
   executor-variant family, benchmark/proof/lineage-backed bounded runs, and
   machine-readable sweep records for reproducible same-contract comparisons
@@ -1034,4 +1043,7 @@ For canonical current-state detail, use `docs/ARCHITECTURE.md` and
   `fixtures/tassadar/reports/tassadar_acceptance_report.json` are the canonical
   live checker and machine-readable acceptance artifact for current Tassadar
   claim truth.
+- `fixtures/tassadar/reports/tassadar_wasm_instruction_coverage_report.json`
+  is the canonical machine-readable Tassadar Wasm profile/instruction coverage
+  artifact.
 - Other planning and reference docs live under `docs/`.

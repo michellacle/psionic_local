@@ -1,0 +1,271 @@
+{
+  "runtime_backend": "cpu",
+  "coverage_opcode_universe": [
+    "i32_const",
+    "local_get",
+    "local_set",
+    "i32_add",
+    "i32_sub",
+    "i32_mul",
+    "i32_lt",
+    "i32_load",
+    "i32_store",
+    "br_if",
+    "output",
+    "return"
+  ],
+  "article_profile_id": "tassadar.wasm.article_i32_compute.v1",
+  "profiles": [
+    {
+      "profile_id": "tassadar.wasm.core_i32.v1",
+      "opcode_vocabulary_digest": "3530d6538cc1df0197cc2e9f4e44a8d6ab37dafd690871e0c8f8efe6db2f7a9c",
+      "supported_opcodes": [
+        "i32_const",
+        "local_get",
+        "local_set",
+        "i32_add",
+        "i32_sub",
+        "i32_mul",
+        "i32_load",
+        "i32_store",
+        "br_if",
+        "output",
+        "return"
+      ],
+      "unsupported_opcodes": [
+        "i32_lt"
+      ],
+      "max_locals": 4,
+      "max_memory_slots": 8,
+      "max_program_len": 32,
+      "max_steps": 128,
+      "article_profile": false,
+      "current_case_ids": [
+        "branch_guard",
+        "locals_add",
+        "memory_roundtrip"
+      ],
+      "current_workload_targets": [
+        "validation_microprograms"
+      ],
+      "claim_boundary": "phase-1 narrow i32 fixture profile only"
+    },
+    {
+      "profile_id": "tassadar.wasm.core_i32.v2",
+      "opcode_vocabulary_digest": "3a618f0090e21ca2b37ccc9ed4e2f6de766f7d89c2f4fc0ec0d5746ae327200d",
+      "supported_opcodes": [
+        "i32_const",
+        "local_get",
+        "local_set",
+        "i32_add",
+        "i32_sub",
+        "i32_mul",
+        "i32_load",
+        "i32_store",
+        "br_if",
+        "output",
+        "return"
+      ],
+      "unsupported_opcodes": [
+        "i32_lt"
+      ],
+      "max_locals": 8,
+      "max_memory_slots": 16,
+      "max_program_len": 128,
+      "max_steps": 512,
+      "article_profile": false,
+      "current_case_ids": [],
+      "current_workload_targets": [],
+      "claim_boundary": "widened core i32 benchmark profile with bounded resources and no comparison opcode"
+    },
+    {
+      "profile_id": "tassadar.wasm.article_i32_compute.v1",
+      "opcode_vocabulary_digest": "b458516f694c301a7b209bb6e710dfc4b7c2756a107738dd38a8fdc8b2dcd64c",
+      "supported_opcodes": [
+        "i32_const",
+        "local_get",
+        "local_set",
+        "i32_add",
+        "i32_sub",
+        "i32_mul",
+        "i32_lt",
+        "i32_load",
+        "i32_store",
+        "br_if",
+        "output",
+        "return"
+      ],
+      "unsupported_opcodes": [],
+      "max_locals": 16,
+      "max_memory_slots": 64,
+      "max_program_len": 4096,
+      "max_steps": 131072,
+      "article_profile": true,
+      "current_case_ids": [
+        "hungarian_matching",
+        "micro_wasm_kernel",
+        "sudoku_v0_test_a",
+        "sudoku_v0_test_b",
+        "sudoku_v0_train_a",
+        "sudoku_v0_train_b",
+        "sudoku_v0_train_c",
+        "sudoku_v0_train_d",
+        "sudoku_v0_validation_a",
+        "sudoku_v0_validation_b"
+      ],
+      "current_workload_targets": [
+        "micro_wasm_kernel",
+        "sudoku_class",
+        "hungarian_matching"
+      ],
+      "claim_boundary": "current article-shaped mixed-workload i32 profile for the committed article-class benchmark suite; still only the enumerated opcodes"
+    },
+    {
+      "profile_id": "tassadar.wasm.sudoku_v0_search.v1",
+      "opcode_vocabulary_digest": "f79c21dd35347258bc7407c77defc5a34633617a729514fbb1051e5582c42165",
+      "supported_opcodes": [
+        "i32_const",
+        "local_get",
+        "local_set",
+        "i32_add",
+        "i32_sub",
+        "i32_mul",
+        "i32_load",
+        "i32_store",
+        "br_if",
+        "output",
+        "return"
+      ],
+      "unsupported_opcodes": [
+        "i32_lt"
+      ],
+      "max_locals": 8,
+      "max_memory_slots": 32,
+      "max_program_len": 2048,
+      "max_steps": 32768,
+      "article_profile": false,
+      "current_case_ids": [],
+      "current_workload_targets": [
+        "sudoku_v0_search"
+      ],
+      "claim_boundary": "bounded real 4x4 Sudoku-v0 search profile"
+    },
+    {
+      "profile_id": "tassadar.wasm.hungarian_v0_matching.v1",
+      "opcode_vocabulary_digest": "d5e25ad6eb4babedc6c611ee2a1d9a374022a56c38b685e7df22b5c41b10b55e",
+      "supported_opcodes": [
+        "i32_const",
+        "local_get",
+        "local_set",
+        "i32_add",
+        "i32_sub",
+        "i32_mul",
+        "i32_lt",
+        "i32_load",
+        "i32_store",
+        "br_if",
+        "output",
+        "return"
+      ],
+      "unsupported_opcodes": [],
+      "max_locals": 8,
+      "max_memory_slots": 32,
+      "max_program_len": 2048,
+      "max_steps": 32768,
+      "article_profile": false,
+      "current_case_ids": [
+        "hungarian_v0_test_a",
+        "hungarian_v0_test_b",
+        "hungarian_v0_train_a",
+        "hungarian_v0_train_b",
+        "hungarian_v0_train_c",
+        "hungarian_v0_train_d",
+        "hungarian_v0_validation_a",
+        "hungarian_v0_validation_b"
+      ],
+      "current_workload_targets": [
+        "hungarian_v0_matching"
+      ],
+      "claim_boundary": "bounded 4x4 Hungarian matching profile"
+    },
+    {
+      "profile_id": "tassadar.wasm.sudoku_9x9_search.v1",
+      "opcode_vocabulary_digest": "fccf524b9721679331d2d0ac3d1e15f9bd0e5f17ffbdd6cbf62658e1ca735aed",
+      "supported_opcodes": [
+        "i32_const",
+        "local_get",
+        "local_set",
+        "i32_add",
+        "i32_sub",
+        "i32_mul",
+        "i32_load",
+        "i32_store",
+        "br_if",
+        "output",
+        "return"
+      ],
+      "unsupported_opcodes": [
+        "i32_lt"
+      ],
+      "max_locals": 8,
+      "max_memory_slots": 192,
+      "max_program_len": 12288,
+      "max_steps": 1048576,
+      "article_profile": false,
+      "current_case_ids": [
+        "sudoku_9x9_test_a",
+        "sudoku_9x9_train_a",
+        "sudoku_9x9_train_b",
+        "sudoku_9x9_validation_a"
+      ],
+      "current_workload_targets": [
+        "sudoku_9x9_search"
+      ],
+      "claim_boundary": "bounded real 9x9 Sudoku search profile"
+    }
+  ],
+  "refusal_examples": [
+    {
+      "profile_id": "tassadar.wasm.core_i32.v1",
+      "probe_program_id": "tassadar.wasm.core_i32.v1.unsupported_i32_lt_probe",
+      "attempted_opcode": "i32_lt",
+      "refusal": {
+        "kind": "unsupported_opcode",
+        "pc": 0,
+        "opcode": "i32_lt"
+      }
+    },
+    {
+      "profile_id": "tassadar.wasm.core_i32.v2",
+      "probe_program_id": "tassadar.wasm.core_i32.v2.unsupported_i32_lt_probe",
+      "attempted_opcode": "i32_lt",
+      "refusal": {
+        "kind": "unsupported_opcode",
+        "pc": 0,
+        "opcode": "i32_lt"
+      }
+    },
+    {
+      "profile_id": "tassadar.wasm.sudoku_v0_search.v1",
+      "probe_program_id": "tassadar.wasm.sudoku_v0_search.v1.unsupported_i32_lt_probe",
+      "attempted_opcode": "i32_lt",
+      "refusal": {
+        "kind": "unsupported_opcode",
+        "pc": 0,
+        "opcode": "i32_lt"
+      }
+    },
+    {
+      "profile_id": "tassadar.wasm.sudoku_9x9_search.v1",
+      "probe_program_id": "tassadar.wasm.sudoku_9x9_search.v1.unsupported_i32_lt_probe",
+      "attempted_opcode": "i32_lt",
+      "refusal": {
+        "kind": "unsupported_opcode",
+        "pc": 0,
+        "opcode": "i32_lt"
+      }
+    }
+  ],
+  "outcome_statement": "coverage is explicit over the current Tassadar i32 executor vocabulary only; unsupported opcodes still refuse by profile and this is not arbitrary Wasm closure",
+  "report_digest": "916b5f1e63fe9a5a3310399da645259eda1e82963821ad32cfff55b7ed38ffb6"
+}
