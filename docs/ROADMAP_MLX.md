@@ -11,7 +11,8 @@
 > `PMLX-601` / `#3866`, `PMLX-602` / `#3867`,
 > `PMLX-603` / `#3868`, `PMLX-604` / `#3869`, and
 > `PMLX-605` / `#3870`, `PMLX-606` / `#3871`, and
-> `PMLX-607` / `#3872`, plus `PMLX-701` / `#14`, and `PMLX-702` / `#15`,
+> `PMLX-607` / `#3872`, plus `PMLX-701` / `#14`, `PMLX-702` / `#15`, and
+> `PMLX-703` / `#16`,
 > after reviewing `ROADMAP.md`, `ARCHITECTURE.md`,
 > `FRAMEWORK_CORE_ACCEPTANCE_MATRIX.md`, `TRAIN_SYSTEM.md`,
 > `MLX_COMPATIBILITY_SCOPE.md`, `MLX_ACCEPTANCE_MATRIX.md`,
@@ -584,7 +585,7 @@ ecosystem inside Psionic rather than only as a low-level framework port.
 | --- | --- | --- | --- |
 | `PMLX-701` | done (2026-03-17) | `Psionic MLX: add an mlx-lm-class text package with load, generate, stream, batch, and prompt-cache workflows` | `psionic-mlx-lm` now provides the first bounded local GGUF text package and CLI above the native framework core, including load reports, chat rendering, generate/stream/batch workflows, explicit prefix-cache and context-overflow request controls, and persisted prompt-cache artifacts. |
 | `PMLX-702` | done (2026-03-17) | `Psionic MLX: build model-catalog, Hugging Face cache, and architecture-registry workflows for MLX-class packages` | `psionic-mlx-catalog` now resolves local GGUF paths, local Ollama model ids, and local `hf:<owner>/<repo>` cache snapshots, carries a builtin architecture registry plus conversion-entrypoint reporting, keeps remote processor/template metadata trust or refusal explicit, and can hand direct GGUF sources to `psionic-mlx-lm` without inventing a second loader path. |
-| `PMLX-703` | planned | `Psionic MLX: expose an OpenAI-compatible text-serving surface with tool calling, structured output, logprobs, and prefix caching` | Build a reusable served text lane in `psionic-serve` with chat or responses endpoints, streaming and non-streaming behavior, tool-call extraction, JSON-schema or guided-output posture, logprobs, stop-sequence handling, model hot-load or unload, reasoning-content extraction, and prefix-cache reuse. |
+| `PMLX-703` | done (2026-03-17) | `Psionic MLX: expose an OpenAI-compatible text-serving surface with tool calling, structured output, logprobs, and prefix caching` | `psionic-mlx-serve` now resolves MLX-style model references through `psionic-mlx-catalog` and boots the shared `psionic-serve` OpenAI-compatible server with machine-readable bootstrap reports, explicit response-state storage selection, `/v1/chat/completions` plus `/v1/responses` support, streaming/non-streaming behavior, tool calling, structured output, logprobs, stop handling, reasoning-parser reporting, and honest current lifecycle truth (`load_status = loaded`, `warm/unload not implemented`). |
 | `PMLX-704` | planned | `Psionic MLX: add a multimodal package and served surface for image, audio, and video inputs` | Land the `mlx-vlm` analogue above `psionic-models` and `psionic-serve`, including processor registries, multimodal prompt shaping, OpenAI-compatible image or audio request shapes, and bounded model-family coverage for VLM and omni models. |
 | `PMLX-705` | planned | `Psionic MLX: add an audio package for TTS, speech-to-speech, codecs, and speech model IO` | Add the `mlx-audio` analogue for reusable audio generation and codec models, keeping UI shells out of Psionic while supporting library, CLI, and server surfaces, streaming audio outputs, quantized checkpoints, and honest voice or reference-conditioning posture. |
 | `PMLX-706` | planned | `Psionic MLX: add a training-recipe layer for LoRA, DoRA, QLoRA, and preference or RL methods above psionic-train` | Build ergonomic MLX-class recipe APIs and CLIs on top of `psionic-train` for SFT, LoRA or DoRA or QLoRA, DPO or CPO or ORPO, GRPO-family methods, online DPO or XPO, PPO, and related bounded methods without creating a second trainer architecture outside Psionic. |
@@ -670,7 +671,7 @@ track in parallel.
 
 - `PMLX-701` done 2026-03-17
 - `PMLX-702` done 2026-03-17
-- `PMLX-703`
+- `PMLX-703` done 2026-03-17
 - `PMLX-704`
 - `PMLX-705`
 - `PMLX-706`

@@ -28,10 +28,10 @@ CLI boundary.
 - package-owned CLI only
 - catalog, Hugging Face cache, and architecture-registry workflows now live in
   `psionic-mlx-catalog`
-- no OpenAI-compatible HTTP surface in this crate
+- OpenAI-compatible HTTP serving now lives in `psionic-mlx-serve`
 - no notebook/UI shell
 
-Those later surfaces belong to `PMLX-703` through `PMLX-709`.
+Those later surfaces belong to `PMLX-704` through `PMLX-709`.
 
 ## Library Surface
 

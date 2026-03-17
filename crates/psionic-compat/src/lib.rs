@@ -1875,18 +1875,20 @@ pub fn builtin_mlx_compatibility_matrix_report() -> MlxCompatibilityMatrixReport
             surface_id: String::from("mlx_package_ecosystem"),
             matrix_status: MlxCompatibilityMatrixStatus::Convertible,
             summary: String::from(
-                "Bounded local MLX-style text and catalog packages now exist in `psionic-mlx-lm` and `psionic-mlx-catalog`, but served text APIs, multimodal/audio packages, recipe layers, synthetic/publish workflows, and benchmark packages remain later ecosystem work.",
+                "Bounded local MLX-style text, catalog, and text-serving packages now exist in `psionic-mlx-lm`, `psionic-mlx-catalog`, and `psionic-mlx-serve`, but multimodal/audio packages, recipe layers, synthetic/publish workflows, and benchmark packages remain later ecosystem work.",
             ),
             evidence_refs: vec![
                 String::from("crates/psionic-mlx-lm"),
                 String::from("crates/psionic-mlx-catalog"),
+                String::from("crates/psionic-mlx-serve"),
                 String::from("docs/MLX_LM_PACKAGE.md"),
                 String::from("docs/MLX_MODEL_CATALOG.md"),
+                String::from("docs/MLX_TEXT_SERVE.md"),
                 String::from("cargo test -p psionic-mlx-lm --lib --tests"),
                 String::from("cargo test -p psionic-mlx-catalog --lib --tests"),
+                String::from("cargo test -p psionic-mlx-serve --lib --tests"),
             ],
             blocking_issue_refs: vec![
-                String::from("PMLX-703 (#3876)"),
                 String::from("PMLX-704 (#3877)"),
                 String::from("PMLX-705 (#3878)"),
                 String::from("PMLX-706 (#3879)"),
@@ -1895,7 +1897,7 @@ pub fn builtin_mlx_compatibility_matrix_report() -> MlxCompatibilityMatrixReport
                 String::from("PMLX-709 (#3882)"),
             ],
             boundary_note: String::from(
-                "The first local text package and catalog layer are real, but they do not imply OpenAI-compatible serving, multimodal/audio closure, training recipes, synthetic/publish workflows, or benchmark-package completion.",
+                "The first local text, catalog, and text-serving packages are real, but they do not imply multimodal/audio closure, training recipes, synthetic/publish workflows, or benchmark-package completion.",
             ),
         },
     ])
@@ -2605,6 +2607,12 @@ mod tests {
                 .blocking_issue_refs
                 .iter()
                 .all(|issue| !issue.contains("PMLX-701"))
+        );
+        assert!(
+            ecosystem
+                .blocking_issue_refs
+                .iter()
+                .all(|issue| !issue.contains("PMLX-703"))
         );
         assert!(
             ecosystem

@@ -534,6 +534,8 @@ Current posture:
   native GGUF runtime.
 - `psionic-mlx-catalog`: bounded MLX-style model-catalog and local Hugging
   Face cache workflow package above `psionic-catalog` and `psionic-mlx-lm`.
+- `psionic-mlx-serve`: bounded MLX-style text-serving package that resolves
+  MLX model references and boots the shared OpenAI-compatible Psionic server.
 
 ### Backend And Platform Lanes
 
@@ -693,6 +695,10 @@ Implemented now:
   substrate.
 - `psionic-mlx-catalog` bounded model-id, Ollama, and local Hugging Face cache
   resolution/reporting layer above the same substrate.
+- `psionic-mlx-serve` bounded MLX-style text-serving package over
+  `psionic-mlx-catalog` and `psionic-serve`, with machine-readable bootstrap
+  reports plus package-owned `plan`/`serve` CLIs for `/v1/chat/completions`
+  and `/v1/responses`.
 - CPU baseline plus a first Metal-backed `psionic.embeddings` lane.
 - generic CPU GGUF decoder execution for GPT-OSS plus representative Llama,
   Qwen, and Mistral families through one Psionic-owned runtime surface.
@@ -963,6 +969,10 @@ For canonical current-state detail, use `docs/ARCHITECTURE.md` and
 - **[docs/MLX_MODEL_CATALOG.md](docs/MLX_MODEL_CATALOG.md)** —
   canonical bounded model-catalog spec for `psionic-mlx-catalog`, including
   local Ollama/Hugging Face cache resolution and remote-metadata trust policy.
+- **[docs/MLX_TEXT_SERVE.md](docs/MLX_TEXT_SERVE.md)** —
+  canonical bounded text-serving spec for `psionic-mlx-serve`, including
+  MLX-style model-reference resolution, bootstrap reports, and response-state
+  posture over the shared Psionic OpenAI-compatible server.
 - **[docs/INFERENCE_ENGINE.md](docs/INFERENCE_ENGINE.md)** — canonical
   inference-engine completion criteria and current boundaries.
 - **[docs/TRAIN_SYSTEM.md](docs/TRAIN_SYSTEM.md)** — canonical training
