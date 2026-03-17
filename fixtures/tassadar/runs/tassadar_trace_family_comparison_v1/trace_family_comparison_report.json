@@ -132,7 +132,7 @@
         "dataset_storage_key": "oa.tassadar.hungarian_v0.sequence@trace-family-v1",
         "dataset_digest": "8b07909f21fe1eb2cb0f580f312435f33577414ac9f59e68fcda412748aa0142",
         "dataset_manifest_digest": "6ab37abe2e4df3633782fb0a48a3b11310b5e34d0e32467db974cfec36244ab5",
-        "training_manifest_digest": "261dffe050f13f2c9594ddce6788b51e417bd98138470427b0818962ff9565f6",
+        "training_manifest_digest": "350e2cddeff990bb882ba84e8853522a4d78aac74d0898372f035c703c968d7e",
         "example_count": 8,
         "train_example_count": 4,
         "validation_example_count": 2,
@@ -192,7 +192,7 @@
         "dataset_storage_key": "oa.tassadar.hungarian_10x10.sequence@trace-family-v1",
         "dataset_digest": "a5cea8fd7460f6da4d4996cabfc34d760b854e5f0af9e7fcda5c699f5e429e97",
         "dataset_manifest_digest": "520d00f15d94ac498ef7ba6e582c90a1a87a3faa75d6fe684cc4a16e86bc4756",
-        "training_manifest_digest": "abd37180cf02d6953741a4214f35bd3f09502571b5f23249bfe55b2aceb1a87a",
+        "training_manifest_digest": "ba77a97c54a96a0c6696db4e1fa06156b9808964c83cdb46c4c5f62efe99b68e",
         "example_count": 4,
         "train_example_count": 2,
         "validation_example_count": 1,
@@ -244,5 +244,5 @@
     }
   ],
   "summary": "Sequential-vs-wavefront research comparison is now artifact-backed across 4 workloads at context_limit=524288: alternate families preserve final-output exactness on all cases and improve fit on 2 workload groups while the sequential CPU trace remains the only full-trace authority.",
-  "report_digest": "81c92abefbfb3f8c088306ae85653c3306c2943c416bded84130882be73864c6"
+  "report_digest": "4ad08076a9fde5c47951463a57a653cbcd6adfdf71d2591db2ad5abda844e051"
 }

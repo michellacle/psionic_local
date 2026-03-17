@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "comparison_id": "tassadar.parallel_trace_variants.v0",
+  "report_ref": "fixtures/tassadar/reports/tassadar_trace_family_variant_report.json",
+  "comparison_output_ref": "fixtures/tassadar/runs/tassadar_trace_family_comparison_v1",
+  "comparison_report_ref": "fixtures/tassadar/runs/tassadar_trace_family_comparison_v1/trace_family_comparison_report.json",
+  "comparison_report_digest": "4ad08076a9fde5c47951463a57a653cbcd6adfdf71d2591db2ad5abda844e051",
+  "regeneration_commands": [
+    "cargo run -p psionic-research --example tassadar_trace_family_comparison",
+    "cargo test -p psionic-research trace_family_variant_report_matches_committed_truth -- --nocapture"
+  ],
+  "trace_family_set_ref": "trace-family-set://openagents/tassadar/sequence_variants",
+  "trace_family_set_version": "trace-family-v1",
+  "trace_family_set_digest": "834d2ab6c6762a5ca521c33781ea3c4867f0744080c3a65e0754c5929c8620c2",
+  "dataset_version": "trace-family-v1",
+  "current_model_context_limit": 524288,
+  "workload_deltas": [
+    {
+      "workload": "oa.tassadar.sudoku_v0.sequence",
+      "sequential_trace_family": "sequential_cpu_reference",
+      "alternate_trace_family": "sudoku_diagonal_wavefront",
+      "sequential_max_total_tokens": 210138,
+      "alternate_max_total_tokens": 5241,
+      "max_total_token_reduction_bps": 9750,
+      "sequential_fit_cases": 8,
+      "alternate_fit_cases": 8,
+      "fit_case_delta": 0,
+      "alternate_matches_final_output_exactness": true
+    },
+    {
+      "workload": "oa.tassadar.sudoku_9x9.sequence",
+      "sequential_trace_family": "sequential_cpu_reference",
+      "alternate_trace_family": "sudoku_diagonal_wavefront",
+      "sequential_max_total_tokens": 5335309,
+      "alternate_max_total_tokens": 52969,
+      "max_total_token_reduction_bps": 9900,
+      "sequential_fit_cases": 0,
+      "alternate_fit_cases": 4,
+      "fit_case_delta": 4,
+      "alternate_matches_final_output_exactness": true
+    },
+    {
+      "workload": "oa.tassadar.hungarian_v0.sequence",
+      "sequential_trace_family": "sequential_cpu_reference",
+      "alternate_trace_family": "hungarian_assignment_frontier",
+      "sequential_max_total_tokens": 58719,
+      "alternate_max_total_tokens": 2700,
+      "max_total_token_reduction_bps": 9540,
+      "sequential_fit_cases": 8,
+      "alternate_fit_cases": 8,
+      "fit_case_delta": 0,
+      "alternate_matches_final_output_exactness": true
+    },
+    {
+      "workload": "oa.tassadar.hungarian_10x10.sequence",
+      "sequential_trace_family": "sequential_cpu_reference",
+      "alternate_trace_family": "hungarian_assignment_frontier",
+      "sequential_max_total_tokens": 11532454,
+      "alternate_max_total_tokens": 22050,
+      "max_total_token_reduction_bps": 9980,
+      "sequential_fit_cases": 0,
+      "alternate_fit_cases": 4,
+      "fit_case_delta": 4,
+      "alternate_matches_final_output_exactness": true
+    }
+  ],
+  "alternate_fit_win_workload_count": 2,
+  "alternate_final_output_exact_workload_count": 4,
+  "claim_class": "learned_bounded_success",
+  "claim_boundary": "this report compares sequential CPU-style targets against alternate wavefront or frontier target families on the seeded Sudoku and Hungarian corpora only; alternate families are still research-only final-output targets and not full CPU-trace authority or served-lane capability claims",
+  "summary": "Public parallel-trace-variant report now freezes 4 same-corpus Tassadar workload comparisons at context_limit=524288: alternate families preserve final outputs on 4/4 workloads, improve context fit on 2 workloads, and remain explicitly research-only target families while the sequential CPU trace stays the only full authority.",
+  "report_digest": "4fe676eba04abf1230f96e7ee65807cd292602a885fb4f8c9a415e9d34335b66"
+}

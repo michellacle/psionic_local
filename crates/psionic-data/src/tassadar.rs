@@ -17,6 +17,8 @@ pub const TASSADAR_SEQUENCE_DATASET_ABI_VERSION: &str = "psionic.tassadar.sequen
 /// Stable ABI version for Tassadar benchmark-package-set contracts.
 pub const TASSADAR_BENCHMARK_PACKAGE_SET_ABI_VERSION: &str =
     "psionic.tassadar.benchmark_package_set.v1";
+/// Stable ABI version for Tassadar trace-family-set contracts.
+pub const TASSADAR_TRACE_FAMILY_SET_ABI_VERSION: &str = "psionic.tassadar.trace_family_set.v1";
 
 /// Benchmark-family taxonomy for the public Tassadar package set.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -334,6 +336,250 @@ pub enum TassadarBenchmarkPackageSetError {
         family: TassadarBenchmarkFamily,
         /// Repeated case id.
         case_id: String,
+    },
+}
+
+/// Topology classification for one public Tassadar trace family.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TassadarTraceFamilyTopology {
+    /// Canonical CPU-style append-only trace authority.
+    SequentialCpuReference,
+    /// Parallel or wavefront-style target family.
+    ParallelWavefront,
+    /// Parallel frontier-style target family.
+    ParallelFrontier,
+}
+
+/// Honest reconstruction scope admitted by one public Tassadar trace family.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TassadarTraceFamilyAuthorityScope {
+    /// Full CPU-trace reconstruction is preserved.
+    FullCpuTrace,
+    /// Only final outputs are preserved exactly.
+    FinalOutputsOnly,
+}
+
+/// One workload currently bound to one public Tassadar trace family.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarTraceFamilyWorkloadBinding {
+    /// Stable workload or dataset reference.
+    pub workload_ref: String,
+    /// Honest claim boundary currently attached to this workload/family pairing.
+    pub claim_boundary: String,
+}
+
+impl TassadarTraceFamilyWorkloadBinding {
+    fn validate(&self, family_label: &str) -> Result<(), TassadarTraceFamilySetError> {
+        if self.workload_ref.trim().is_empty() {
+            return Err(TassadarTraceFamilySetError::MissingWorkloadRef {
+                family_label: family_label.to_string(),
+            });
+        }
+        if self.claim_boundary.trim().is_empty() {
+            return Err(TassadarTraceFamilySetError::MissingWorkloadClaimBoundary {
+                family_label: family_label.to_string(),
+                workload_ref: self.workload_ref.clone(),
+            });
+        }
+        Ok(())
+    }
+}
+
+/// Public contract for one comparable Tassadar trace family.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarTraceFamilyContract {
+    /// Stable trace-family label.
+    pub family_label: String,
+    /// High-level topology for the family.
+    pub topology: TassadarTraceFamilyTopology,
+    /// Human-readable family summary.
+    pub summary: String,
+    /// Optional dataset suffix used when this family materializes alternate targets.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub dataset_suffix: Option<String>,
+    /// Honest reconstruction scope for the family.
+    pub authority_scope: TassadarTraceFamilyAuthorityScope,
+    /// Workloads currently covered by this family.
+    pub workloads: Vec<TassadarTraceFamilyWorkloadBinding>,
+}
+
+impl TassadarTraceFamilyContract {
+    fn validate(&self) -> Result<(), TassadarTraceFamilySetError> {
+        if self.family_label.trim().is_empty() {
+            return Err(TassadarTraceFamilySetError::MissingFamilyLabel);
+        }
+        if self.summary.trim().is_empty() {
+            return Err(TassadarTraceFamilySetError::MissingFamilySummary {
+                family_label: self.family_label.clone(),
+            });
+        }
+        if self
+            .dataset_suffix
+            .as_ref()
+            .is_some_and(|suffix| suffix.trim().is_empty())
+        {
+            return Err(TassadarTraceFamilySetError::EmptyDatasetSuffix {
+                family_label: self.family_label.clone(),
+            });
+        }
+        if self.workloads.is_empty() {
+            return Err(TassadarTraceFamilySetError::MissingWorkloads {
+                family_label: self.family_label.clone(),
+            });
+        }
+
+        let mut seen_workloads = BTreeSet::new();
+        for workload in &self.workloads {
+            workload.validate(self.family_label.as_str())?;
+            if !seen_workloads.insert(workload.workload_ref.clone()) {
+                return Err(TassadarTraceFamilySetError::DuplicateWorkloadRef {
+                    family_label: self.family_label.clone(),
+                    workload_ref: workload.workload_ref.clone(),
+                });
+            }
+        }
+
+        Ok(())
+    }
+}
+
+/// Public package-set contract for comparable Tassadar trace families.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarTraceFamilySetContract {
+    /// Stable ABI version.
+    pub abi_version: String,
+    /// Stable trace-family-set reference.
+    pub trace_family_set_ref: String,
+    /// Immutable set version.
+    pub version: String,
+    /// Public trace families in the set.
+    pub families: Vec<TassadarTraceFamilyContract>,
+}
+
+impl TassadarTraceFamilySetContract {
+    /// Creates and validates a comparable trace-family-set contract.
+    pub fn new(
+        trace_family_set_ref: impl Into<String>,
+        version: impl Into<String>,
+        families: Vec<TassadarTraceFamilyContract>,
+    ) -> Result<Self, TassadarTraceFamilySetError> {
+        let contract = Self {
+            abi_version: String::from(TASSADAR_TRACE_FAMILY_SET_ABI_VERSION),
+            trace_family_set_ref: trace_family_set_ref.into(),
+            version: version.into(),
+            families,
+        };
+        contract.validate()?;
+        Ok(contract)
+    }
+
+    /// Validates the contract.
+    pub fn validate(&self) -> Result<(), TassadarTraceFamilySetError> {
+        if self.abi_version != TASSADAR_TRACE_FAMILY_SET_ABI_VERSION {
+            return Err(TassadarTraceFamilySetError::UnsupportedAbiVersion {
+                abi_version: self.abi_version.clone(),
+            });
+        }
+        if self.trace_family_set_ref.trim().is_empty() {
+            return Err(TassadarTraceFamilySetError::MissingTraceFamilySetRef);
+        }
+        if self.version.trim().is_empty() {
+            return Err(TassadarTraceFamilySetError::MissingTraceFamilySetVersion);
+        }
+        if self.families.is_empty() {
+            return Err(TassadarTraceFamilySetError::MissingFamilies);
+        }
+
+        let mut seen_family_labels = BTreeSet::new();
+        for family in &self.families {
+            family.validate()?;
+            if !seen_family_labels.insert(family.family_label.clone()) {
+                return Err(TassadarTraceFamilySetError::DuplicateFamilyLabel {
+                    family_label: family.family_label.clone(),
+                });
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Returns a stable digest over the contract.
+    #[must_use]
+    pub fn stable_digest(&self) -> String {
+        stable_digest(b"psionic_tassadar_trace_family_set_contract|", self)
+    }
+}
+
+/// Trace-family-set validation failure.
+#[derive(Clone, Debug, Error, PartialEq, Eq)]
+pub enum TassadarTraceFamilySetError {
+    /// Unsupported ABI version.
+    #[error("unsupported Tassadar trace family set ABI version `{abi_version}`")]
+    UnsupportedAbiVersion {
+        /// Observed ABI version.
+        abi_version: String,
+    },
+    /// Missing trace-family-set ref.
+    #[error("Tassadar trace family set is missing `trace_family_set_ref`")]
+    MissingTraceFamilySetRef,
+    /// Missing version.
+    #[error("Tassadar trace family set is missing `version`")]
+    MissingTraceFamilySetVersion,
+    /// No families were declared.
+    #[error("Tassadar trace family set must contain at least one family contract")]
+    MissingFamilies,
+    /// Missing family label.
+    #[error("Tassadar trace family contract is missing `family_label`")]
+    MissingFamilyLabel,
+    /// Missing family summary.
+    #[error("Tassadar trace family `{family_label}` is missing `summary`")]
+    MissingFamilySummary {
+        /// Family label.
+        family_label: String,
+    },
+    /// Empty dataset suffix.
+    #[error("Tassadar trace family `{family_label}` contains an empty `dataset_suffix`")]
+    EmptyDatasetSuffix {
+        /// Family label.
+        family_label: String,
+    },
+    /// Family has no workloads.
+    #[error("Tassadar trace family `{family_label}` must declare at least one workload")]
+    MissingWorkloads {
+        /// Family label.
+        family_label: String,
+    },
+    /// One workload ref was missing.
+    #[error("Tassadar trace family `{family_label}` contains an empty `workload_ref`")]
+    MissingWorkloadRef {
+        /// Family label.
+        family_label: String,
+    },
+    /// One workload claim boundary was missing.
+    #[error(
+        "Tassadar trace family `{family_label}` is missing `claim_boundary` for workload `{workload_ref}`"
+    )]
+    MissingWorkloadClaimBoundary {
+        /// Family label.
+        family_label: String,
+        /// Workload reference.
+        workload_ref: String,
+    },
+    /// One family label repeated.
+    #[error("Tassadar trace family set repeated family `{family_label}`")]
+    DuplicateFamilyLabel {
+        /// Repeated family label.
+        family_label: String,
+    },
+    /// One workload ref repeated inside a family.
+    #[error("Tassadar trace family `{family_label}` repeated workload `{workload_ref}`")]
+    DuplicateWorkloadRef {
+        /// Family label.
+        family_label: String,
+        /// Repeated workload reference.
+        workload_ref: String,
     },
 }
 
@@ -853,8 +1099,10 @@ mod tests {
         TassadarBenchmarkAxis, TassadarBenchmarkFamily, TassadarBenchmarkFamilyContract,
         TassadarBenchmarkPackageBinding, TassadarBenchmarkPackageSetContract,
         TassadarSequenceDatasetContract, TassadarSequenceExample, TassadarSequenceExampleMetadata,
-        TassadarSequenceSplit, TASSADAR_BENCHMARK_PACKAGE_SET_ABI_VERSION,
-        TASSADAR_SEQUENCE_DATASET_ABI_VERSION,
+        TassadarSequenceSplit, TassadarTraceFamilyAuthorityScope, TassadarTraceFamilyContract,
+        TassadarTraceFamilySetContract, TassadarTraceFamilyTopology,
+        TassadarTraceFamilyWorkloadBinding, TASSADAR_BENCHMARK_PACKAGE_SET_ABI_VERSION,
+        TASSADAR_SEQUENCE_DATASET_ABI_VERSION, TASSADAR_TRACE_FAMILY_SET_ABI_VERSION,
     };
     use crate::{DatasetKey, TokenizerDigest, TokenizerFamily};
 
@@ -992,6 +1240,59 @@ mod tests {
             contract.abi_version,
             TASSADAR_BENCHMARK_PACKAGE_SET_ABI_VERSION
         );
+        assert_eq!(contract.families.len(), 2);
+        assert!(!contract.stable_digest().is_empty());
+    }
+
+    #[test]
+    fn trace_family_set_contract_is_machine_legible() {
+        let contract = TassadarTraceFamilySetContract::new(
+            "trace-family-set://openagents/tassadar/sequence_variants",
+            "trace-family-v1",
+            vec![
+                TassadarTraceFamilyContract {
+                    family_label: String::from("sequential_cpu_reference"),
+                    topology: TassadarTraceFamilyTopology::SequentialCpuReference,
+                    summary: String::from(
+                        "canonical CPU-style append-only authority trace for seeded Tassadar sequence workloads",
+                    ),
+                    dataset_suffix: None,
+                    authority_scope: TassadarTraceFamilyAuthorityScope::FullCpuTrace,
+                    workloads: vec![
+                        TassadarTraceFamilyWorkloadBinding {
+                            workload_ref: String::from("oa.tassadar.sudoku_v0.sequence"),
+                            claim_boundary: String::from("learned_bounded"),
+                        },
+                        TassadarTraceFamilyWorkloadBinding {
+                            workload_ref: String::from("oa.tassadar.sudoku_9x9.sequence"),
+                            claim_boundary: String::from("learned_bounded"),
+                        },
+                    ],
+                },
+                TassadarTraceFamilyContract {
+                    family_label: String::from("sudoku_diagonal_wavefront"),
+                    topology: TassadarTraceFamilyTopology::ParallelWavefront,
+                    summary: String::from(
+                        "research-only anti-diagonal Sudoku wavefront target family",
+                    ),
+                    dataset_suffix: Some(String::from("sudoku_diagonal_wavefront")),
+                    authority_scope: TassadarTraceFamilyAuthorityScope::FinalOutputsOnly,
+                    workloads: vec![
+                        TassadarTraceFamilyWorkloadBinding {
+                            workload_ref: String::from("oa.tassadar.sudoku_v0.sequence"),
+                            claim_boundary: String::from("research_only"),
+                        },
+                        TassadarTraceFamilyWorkloadBinding {
+                            workload_ref: String::from("oa.tassadar.sudoku_9x9.sequence"),
+                            claim_boundary: String::from("research_only"),
+                        },
+                    ],
+                },
+            ],
+        )
+        .expect("trace family set should build");
+
+        assert_eq!(contract.abi_version, TASSADAR_TRACE_FAMILY_SET_ABI_VERSION);
         assert_eq!(contract.families.len(), 2);
         assert!(!contract.stable_digest().is_empty());
     }

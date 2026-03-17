@@ -418,7 +418,8 @@ The current scope is:
   `109715076` bytes on the flat-prefix family to `1459452` bytes on the
   windowed family under the same corpus and fit facts
 - landed research-only sequential-vs-wavefront trace-family comparison:
-  `psionic-train` now also materializes
+  `psionic-data` now publishes a comparable public trace-family-set contract,
+  `psionic-train` now materializes and reproducibly rechecks
   `fixtures/tassadar/runs/tassadar_trace_family_comparison_v1`, which keeps
   the sequential CPU trace as the only full execution authority while proving
   that alternate target families can preserve final outputs exactly on the
@@ -426,7 +427,9 @@ The current scope is:
   `5335309` to `52969` on 9x9 and the parallel Hungarian assignment frontier
   drops max total tokens from `11532454` to `22050` on 10x10, with all
   alternate families staying at `10000` bps final-output exactness under
-  explicit `research_only` claim boundaries
+  explicit `research_only` claim boundaries, and `psionic-research` now
+  freezes the repo-facing variant summary at
+  `fixtures/tassadar/reports/tassadar_trace_family_variant_report.json`
 - landed trained-executor Phase 15B follow-on bar: the same executor-attention
   family now also carries a bounded relative-target output-bias adapter in
   `psionic-models`, the preserved destructive boundary-first output-head

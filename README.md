@@ -359,7 +359,10 @@ Current posture:
   the anti-diagonal wavefront family, and article-sized 10x10 Hungarian drops
   from `11532454` to `22050`, with all alternate families staying at
   `10000` bps final-output exactness and the sequential family remaining the
-  only full CPU-trace authority
+  only full CPU-trace authority; `psionic-data` now also publishes the
+  comparable trace-family set contract for those sequence variants and
+  `psionic-research` now freezes the repo-facing summary at
+  `fixtures/tassadar/reports/tassadar_trace_family_variant_report.json`
 - the post-Phase-15 boundary-adapter follow-on now also exists in
   `psionic-models`, `psionic-eval`, `psionic-research`, `docs/audits/`, and
   nine preserved bounded artifact roots at

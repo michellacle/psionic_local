@@ -14,7 +14,7 @@
         "branch_outcome_token_count": 1760,
         "stack_delta_token_count": 17616,
         "memory_diff_token_count": 780,
-        "workload_specific_state_token_count": 0
+        "workload_specific_state_token_count": 6112
       }
     },
     "validation": {
@@ -26,7 +26,7 @@
         "branch_outcome_token_count": 870,
         "stack_delta_token_count": 8904,
         "memory_diff_token_count": 455,
-        "workload_specific_state_token_count": 0
+        "workload_specific_state_token_count": 3108
       }
     },
     "test": {
@@ -38,7 +38,7 @@
         "branch_outcome_token_count": 880,
         "stack_delta_token_count": 8808,
         "memory_diff_token_count": 390,
-        "workload_specific_state_token_count": 0
+        "workload_specific_state_token_count": 3056
       }
     }
   },
@@ -201,5 +201,5 @@
     "total_source_sequences": 2,
     "total_source_tokens": 115128
   },
-  "manifest_digest": "261dffe050f13f2c9594ddce6788b51e417bd98138470427b0818962ff9565f6"
+  "manifest_digest": "350e2cddeff990bb882ba84e8853522a4d78aac74d0898372f035c703c968d7e"
 }

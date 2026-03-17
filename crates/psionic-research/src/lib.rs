@@ -32,6 +32,7 @@ mod tassadar_sudoku_9x9_compiled_executor_bundle;
 mod tassadar_supervision_ablation;
 mod tassadar_subroutine_library_ablation;
 mod tassadar_surface_ablation;
+mod tassadar_trace_family_comparison;
 
 #[cfg(feature = "burn-import")]
 pub use attnres_burn_import::*;
@@ -53,6 +54,7 @@ pub use tassadar_sudoku_9x9_compiled_executor_bundle::*;
 pub use tassadar_supervision_ablation::*;
 pub use tassadar_subroutine_library_ablation::*;
 pub use tassadar_surface_ablation::*;
+pub use tassadar_trace_family_comparison::*;
 
 /// Human-readable crate ownership summary.
 pub const CRATE_ROLE: &str =

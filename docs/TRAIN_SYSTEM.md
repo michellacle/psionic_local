@@ -492,7 +492,10 @@ That now includes one intentionally narrow executor-training answer:
   wavefront family, while article-sized 10x10 Hungarian drops from
   `11532454` to `22050` on the parallel assignment frontier, and all of those
   alternate families remain `research_only` even though they preserve
-  `10000` bps final-output exactness
+  `10000` bps final-output exactness; the same lane now also carries a public
+  comparable trace-family-set contract in `psionic-data`, a reproducible
+  committed-truth check in `psionic-train`, and a repo-facing summary report
+  at `fixtures/tassadar/reports/tassadar_trace_family_variant_report.json`
 - the learned-structure supervision follow-on now also exists beside that same
   bounded lane: `psionic-models` now derives structural target families for
   instruction pointer, branch outcome, stack delta, memory diff, and

@@ -1,13 +1,13 @@
-use std::{
-    collections::BTreeMap,
-    fs,
-    path::{Path, PathBuf},
-};
+use std::{collections::BTreeMap, fs, path::Path};
 
-use psionic_data::TassadarSequenceSplit;
+use psionic_data::{
+    TassadarSequenceSplit, TassadarTraceFamilyAuthorityScope, TassadarTraceFamilyContract,
+    TassadarTraceFamilySetContract, TassadarTraceFamilySetError, TassadarTraceFamilyTopology,
+    TassadarTraceFamilyWorkloadBinding,
+};
 use psionic_eval::{
-    TassadarSequenceDatasetBundle, TassadarSequenceEvalError, TassadarSequenceWorkload,
-    build_tassadar_sequence_dataset_with_trace_family,
+    build_tassadar_sequence_dataset_with_trace_family, TassadarSequenceDatasetBundle,
+    TassadarSequenceEvalError, TassadarSequenceWorkload,
 };
 use psionic_models::{
     TassadarExecutorLongTraceContract, TassadarExecutorTrainableSurface,
@@ -22,15 +22,19 @@ use sha2::{Digest, Sha256};
 use thiserror::Error;
 
 use crate::{
+    build_tassadar_sequence_training_manifest_from_bundle,
     TassadarExecutorStructuralSupervisionConfig, TassadarExecutorTeacherForcedTrainingStrategy,
     TassadarSequenceTrainingError, TassadarSequenceTrainingManifest,
-    build_tassadar_sequence_training_manifest_from_bundle,
 };
 
 const DATASET_MANIFEST_FILE: &str = "dataset_manifest.json";
 const TRAINING_MANIFEST_FILE: &str = "training_manifest.json";
-const TRACE_FAMILY_DATASET_VERSION: &str = "trace-family-v1";
+/// Shared dataset version used by the canonical same-corpus trace-family comparison.
+pub const TASSADAR_TRACE_FAMILY_COMPARISON_DATASET_VERSION: &str = "trace-family-v1";
 const CURRENT_LEARNED_MODEL_CONTEXT_LIMIT: u32 = 524_288;
+/// Stable public trace-family-set reference for the seeded sequence comparison families.
+pub const TASSADAR_TRACE_FAMILY_SET_REF: &str =
+    "trace-family-set://openagents/tassadar/sequence_variants";
 
 /// Canonical output root for the first sequential-vs-wavefront research comparison.
 pub const TASSADAR_TRACE_FAMILY_COMPARISON_OUTPUT_DIR: &str =
@@ -38,6 +42,9 @@ pub const TASSADAR_TRACE_FAMILY_COMPARISON_OUTPUT_DIR: &str =
 /// Canonical machine-readable report for the first sequential-vs-wavefront comparison.
 pub const TASSADAR_TRACE_FAMILY_COMPARISON_REPORT_FILE: &str =
     "trace_family_comparison_report.json";
+/// Canonical repo-relative report path for the first sequential-vs-wavefront comparison.
+pub const TASSADAR_TRACE_FAMILY_COMPARISON_REPORT_REF: &str =
+    "fixtures/tassadar/runs/tassadar_trace_family_comparison_v1/trace_family_comparison_report.json";
 
 /// One persisted dataset-family summary inside the comparison root.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -155,9 +162,111 @@ pub enum TassadarTraceFamilyComparisonError {
     },
 }
 
+/// Builds the current comparable public trace-family set for seeded Tassadar sequence workloads.
+pub fn build_tassadar_trace_family_set_contract(
+) -> Result<TassadarTraceFamilySetContract, TassadarTraceFamilySetError> {
+    TassadarTraceFamilySetContract::new(
+        TASSADAR_TRACE_FAMILY_SET_REF,
+        TASSADAR_TRACE_FAMILY_COMPARISON_DATASET_VERSION,
+        vec![
+            TassadarTraceFamilyContract {
+                family_label: String::from(
+                    TassadarSequenceTraceFamily::SequentialCpuReference.label(),
+                ),
+                topology: TassadarTraceFamilyTopology::SequentialCpuReference,
+                summary: String::from(
+                    "canonical CPU-style append-only authority trace used to freeze seeded Tassadar sequence workloads before any research-only alternate target compression",
+                ),
+                dataset_suffix: None,
+                authority_scope: TassadarTraceFamilyAuthorityScope::FullCpuTrace,
+                workloads: [
+                    TassadarSequenceWorkload::SudokuV0,
+                    TassadarSequenceWorkload::Sudoku9x9,
+                    TassadarSequenceWorkload::HungarianV0,
+                    TassadarSequenceWorkload::Hungarian10x10,
+                ]
+                .into_iter()
+                .map(|workload| TassadarTraceFamilyWorkloadBinding {
+                    workload_ref: workload.dataset_ref().to_string(),
+                    claim_boundary: trace_family_claim_boundary(
+                        workload,
+                        TassadarSequenceTraceFamily::SequentialCpuReference,
+                    )
+                    .to_string(),
+                })
+                .collect(),
+            },
+            TassadarTraceFamilyContract {
+                family_label: String::from(
+                    TassadarSequenceTraceFamily::SudokuDiagonalWavefront.label(),
+                ),
+                topology: TassadarTraceFamilyTopology::ParallelWavefront,
+                summary: String::from(
+                    "research-only anti-diagonal Sudoku wavefront target family that preserves final solved outputs but not the full CPU trace",
+                ),
+                dataset_suffix: TassadarSequenceTraceFamily::SudokuDiagonalWavefront
+                    .dataset_suffix()
+                    .map(String::from),
+                authority_scope: TassadarTraceFamilyAuthorityScope::FinalOutputsOnly,
+                workloads: [
+                    TassadarSequenceWorkload::SudokuV0,
+                    TassadarSequenceWorkload::Sudoku9x9,
+                ]
+                .into_iter()
+                .map(|workload| TassadarTraceFamilyWorkloadBinding {
+                    workload_ref: workload.dataset_ref().to_string(),
+                    claim_boundary: trace_family_claim_boundary(
+                        workload,
+                        TassadarSequenceTraceFamily::SudokuDiagonalWavefront,
+                    )
+                    .to_string(),
+                })
+                .collect(),
+            },
+            TassadarTraceFamilyContract {
+                family_label: String::from(
+                    TassadarSequenceTraceFamily::HungarianAssignmentFrontier.label(),
+                ),
+                topology: TassadarTraceFamilyTopology::ParallelFrontier,
+                summary: String::from(
+                    "research-only parallel Hungarian assignment frontier that preserves final assignments and costs but not the full CPU trace",
+                ),
+                dataset_suffix: TassadarSequenceTraceFamily::HungarianAssignmentFrontier
+                    .dataset_suffix()
+                    .map(String::from),
+                authority_scope: TassadarTraceFamilyAuthorityScope::FinalOutputsOnly,
+                workloads: [
+                    TassadarSequenceWorkload::HungarianV0,
+                    TassadarSequenceWorkload::Hungarian10x10,
+                ]
+                .into_iter()
+                .map(|workload| TassadarTraceFamilyWorkloadBinding {
+                    workload_ref: workload.dataset_ref().to_string(),
+                    claim_boundary: trace_family_claim_boundary(
+                        workload,
+                        TassadarSequenceTraceFamily::HungarianAssignmentFrontier,
+                    )
+                    .to_string(),
+                })
+                .collect(),
+            },
+        ],
+    )
+}
+
 /// Executes the first honest sequential-vs-wavefront comparison and writes the report.
 pub fn execute_tassadar_trace_family_comparison(
     output_dir: &Path,
+) -> Result<TassadarTraceFamilyComparisonReport, TassadarTraceFamilyComparisonError> {
+    execute_tassadar_trace_family_comparison_with_output_ref(
+        output_dir,
+        Path::new(TASSADAR_TRACE_FAMILY_COMPARISON_OUTPUT_DIR),
+    )
+}
+
+fn execute_tassadar_trace_family_comparison_with_output_ref(
+    output_dir: &Path,
+    output_ref: &Path,
 ) -> Result<TassadarTraceFamilyComparisonReport, TassadarTraceFamilyComparisonError> {
     fs::create_dir_all(output_dir).map_err(|error| TassadarTraceFamilyComparisonError::Write {
         path: output_dir.display().to_string(),
@@ -171,11 +280,11 @@ pub fn execute_tassadar_trace_family_comparison(
         TassadarSequenceWorkload::Hungarian10x10,
     ]
     .into_iter()
-    .map(|workload| build_workload_comparison(output_dir, workload))
+    .map(|workload| build_workload_comparison(output_dir, output_ref, workload))
     .collect::<Result<Vec<_>, _>>()?;
 
     let mut report = TassadarTraceFamilyComparisonReport {
-        dataset_version: String::from(TRACE_FAMILY_DATASET_VERSION),
+        dataset_version: String::from(TASSADAR_TRACE_FAMILY_COMPARISON_DATASET_VERSION),
         current_model_context_limit: CURRENT_LEARNED_MODEL_CONTEXT_LIMIT,
         workload_comparisons,
         summary: String::new(),
@@ -211,6 +320,7 @@ pub fn execute_tassadar_trace_family_comparison(
 
 fn build_workload_comparison(
     output_dir: &Path,
+    output_ref: &Path,
     workload: TassadarSequenceWorkload,
 ) -> Result<TassadarTraceFamilyWorkloadComparison, TassadarTraceFamilyComparisonError> {
     let alternate_trace_family = match workload {
@@ -222,18 +332,22 @@ fn build_workload_comparison(
         }
     };
     let workload_dir = output_dir.join(workload_directory_label(workload));
+    let workload_ref = output_ref.join(workload_directory_label(workload));
     let sequential_dir =
         workload_dir.join(TassadarSequenceTraceFamily::SequentialCpuReference.label());
+    let sequential_ref =
+        workload_ref.join(TassadarSequenceTraceFamily::SequentialCpuReference.label());
     let alternate_dir = workload_dir.join(alternate_trace_family.label());
+    let alternate_ref = workload_ref.join(alternate_trace_family.label());
 
     let sequential_bundle = build_tassadar_sequence_dataset_with_trace_family(
         workload,
-        TRACE_FAMILY_DATASET_VERSION,
+        TASSADAR_TRACE_FAMILY_COMPARISON_DATASET_VERSION,
         TassadarSequenceTraceFamily::SequentialCpuReference,
     )?;
     let alternate_bundle = build_tassadar_sequence_dataset_with_trace_family(
         workload,
-        TRACE_FAMILY_DATASET_VERSION,
+        TASSADAR_TRACE_FAMILY_COMPARISON_DATASET_VERSION,
         alternate_trace_family,
     )?;
     let sequential_manifest = build_trace_family_training_manifest(&sequential_bundle)?;
@@ -244,12 +358,14 @@ fn build_workload_comparison(
         &sequential_bundle,
         &sequential_manifest,
         &sequential_dir,
+        &sequential_ref,
     )?;
     let alternate_summary = persist_and_summarize_family(
         workload,
         &alternate_bundle,
         &alternate_manifest,
         &alternate_dir,
+        &alternate_ref,
     )?;
 
     let alternate_reduces_max_total_tokens =
@@ -296,6 +412,7 @@ fn persist_and_summarize_family(
     bundle: &TassadarSequenceDatasetBundle,
     training_manifest: &TassadarSequenceTrainingManifest,
     family_dir: &Path,
+    family_ref: &Path,
 ) -> Result<TassadarTraceFamilyDatasetSummary, TassadarTraceFamilyComparisonError> {
     fs::create_dir_all(family_dir).map_err(|error| TassadarTraceFamilyComparisonError::Write {
         path: family_dir.display().to_string(),
@@ -318,12 +435,8 @@ fn persist_and_summarize_family(
         workload,
         bundle,
         training_manifest,
-        dataset_manifest_path
-            .strip_prefix(repo_root())
-            .unwrap_or(&dataset_manifest_path),
-        training_manifest_path
-            .strip_prefix(repo_root())
-            .unwrap_or(&training_manifest_path),
+        &family_ref.join(DATASET_MANIFEST_FILE),
+        &family_ref.join(TRAINING_MANIFEST_FILE),
     )
 }
 
@@ -550,14 +663,6 @@ fn write_json(
     })
 }
 
-fn repo_root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(Path::parent)
-        .expect("workspace root should exist")
-        .to_path_buf()
-}
-
 fn stable_digest<T>(prefix: &[u8], value: &T) -> String
 where
     T: Serialize,
@@ -572,9 +677,32 @@ where
 
 #[cfg(test)]
 mod tests {
+    use std::path::{Path, PathBuf};
+
+    use serde::de::DeserializeOwned;
+
     use super::{
-        TASSADAR_TRACE_FAMILY_COMPARISON_OUTPUT_DIR, execute_tassadar_trace_family_comparison,
+        build_tassadar_trace_family_set_contract, execute_tassadar_trace_family_comparison,
+        execute_tassadar_trace_family_comparison_with_output_ref,
+        TassadarTraceFamilyComparisonReport, TASSADAR_TRACE_FAMILY_COMPARISON_OUTPUT_DIR,
+        TASSADAR_TRACE_FAMILY_COMPARISON_REPORT_REF,
     };
+
+    fn repo_root() -> PathBuf {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../..")
+            .canonicalize()
+            .unwrap_or_else(|_| PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
+    }
+
+    fn read_repo_json<T>(repo_relative_path: &str) -> Result<T, Box<dyn std::error::Error>>
+    where
+        T: DeserializeOwned,
+    {
+        let path = repo_root().join(repo_relative_path);
+        let bytes = std::fs::read(path)?;
+        Ok(serde_json::from_slice(&bytes)?)
+    }
 
     #[test]
     fn trace_family_comparison_preserves_output_exactness() -> Result<(), Box<dyn std::error::Error>>
@@ -583,13 +711,34 @@ mod tests {
         let report = execute_tassadar_trace_family_comparison(temp_dir.path())?;
 
         assert_eq!(report.workload_comparisons.len(), 4);
-        assert!(
-            report
-                .workload_comparisons
-                .iter()
-                .all(|comparison| comparison.alternate_matches_final_output_exactness)
-        );
+        assert!(report
+            .workload_comparisons
+            .iter()
+            .all(|comparison| comparison.alternate_matches_final_output_exactness));
         assert!(TASSADAR_TRACE_FAMILY_COMPARISON_OUTPUT_DIR.contains("trace_family_comparison"));
+        Ok(())
+    }
+
+    #[test]
+    fn trace_family_comparison_contract_is_machine_legible(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let contract = build_tassadar_trace_family_set_contract()?;
+        assert_eq!(contract.families.len(), 3);
+        assert!(!contract.stable_digest().is_empty());
+        Ok(())
+    }
+
+    #[test]
+    fn trace_family_comparison_report_matches_committed_truth(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let temp_dir = tempfile::tempdir()?;
+        let report = execute_tassadar_trace_family_comparison_with_output_ref(
+            temp_dir.path(),
+            Path::new(TASSADAR_TRACE_FAMILY_COMPARISON_OUTPUT_DIR),
+        )?;
+        let persisted: TassadarTraceFamilyComparisonReport =
+            read_repo_json(TASSADAR_TRACE_FAMILY_COMPARISON_REPORT_REF)?;
+        assert_eq!(persisted, report);
         Ok(())
     }
 }
