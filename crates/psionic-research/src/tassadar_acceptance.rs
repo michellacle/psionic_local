@@ -957,7 +957,6 @@ fn build_learned_article_class_verdict()
                 String::from(
                     "replace the explicit learned long-horizon refusal policy with one exact learned benchmark bundle",
                 ),
-                String::from("PTAS-505 learned article-closure audit"),
             ]
         },
     ))

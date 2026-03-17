@@ -205,8 +205,7 @@
     "missing_evidence": [
       "replace bounded learned 9x9 windowed evidence with one exact article-class learned workload",
       "promote a learned Hungarian-class workload beyond research-only exactness",
-      "replace the explicit learned long-horizon refusal policy with one exact learned benchmark bundle",
-      "PTAS-505 learned article-closure audit"
+      "replace the explicit learned long-horizon refusal policy with one exact learned benchmark bundle"
     ]
   },
   "article_closure": {
@@ -222,5 +221,5 @@
     ]
   },
   "current_truth_holds": true,
-  "report_digest": "91a305db9c252c1ceb36691fab1e2a288e72f87fa55a8dc656beeabf7d11a1fa"
+  "report_digest": "49881ed99154633a41107d7d4127afbf6f9a50ba6298dbd01077618fa0b857f5"
 }
