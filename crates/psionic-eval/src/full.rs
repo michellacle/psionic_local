@@ -10,6 +10,8 @@
 mod apple_adapter;
 #[path = "apple_adapter_benchmark.rs"]
 mod apple_adapter_benchmark;
+#[path = "attnres.rs"]
+mod attnres;
 #[path = "tassadar.rs"]
 mod tassadar;
 #[path = "tassadar_compiled_executor.rs"]
@@ -42,6 +44,7 @@ use thiserror::Error;
 
 pub use apple_adapter::*;
 pub use apple_adapter_benchmark::*;
+pub use attnres::*;
 pub use tassadar::*;
 pub use tassadar_compiled_executor::*;
 pub use tassadar_executor_architecture_comparison::*;

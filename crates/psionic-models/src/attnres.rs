@@ -2037,6 +2037,39 @@ mod tests {
     }
 
     #[test]
+    fn routing_weights_sum_to_one_over_depth() -> Result<(), Box<dyn Error>> {
+        let blocks = vec![
+            AttnResTensor3::from_nested(vec![vec![
+                vec![1.0, 2.0, 3.0, 4.0],
+                vec![2.0, 3.0, 4.0, 5.0],
+            ]])?,
+            AttnResTensor3::from_nested(vec![vec![
+                vec![4.0, 3.0, 2.0, 1.0],
+                vec![5.0, 4.0, 3.0, 2.0],
+            ]])?,
+        ];
+        let partial = AttnResTensor3::from_nested(vec![vec![
+            vec![0.5, 0.25, -0.25, -0.5],
+            vec![0.25, 0.5, -0.5, -0.25],
+        ]])?;
+        let mut weights = AttnResOpWeights::new(4);
+        weights.pseudo_query = vec![0.25, -0.5, 0.75, -1.0];
+
+        let (_, routing) = attn_res_forward(&weights, &blocks, Some(&partial), 1e-6);
+        for batch in 0..1 {
+            for position in 0..2 {
+                let mut sum = 0.0f32;
+                for source_index in 0..routing.source_count {
+                    let index = (source_index + batch * routing.source_count) * 2 + position;
+                    sum += routing.routing_weights[index];
+                }
+                assert!((sum - 1.0).abs() < 1.0e-6);
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
     fn block_boundary_fixture_matches_attn_sublayer_boundaries() -> Result<(), Box<dyn Error>> {
         let fixture: BlockStateFixture = serde_json::from_str(include_str!(
             "../../../fixtures/attnres/block_state_tracking.json"
@@ -2072,6 +2105,27 @@ mod tests {
             .ok_or("missing sublayer 3 diagnostic")?;
         assert_eq!(boundary.kind, AttnResSublayerKind::FeedForward);
         assert!(boundary.starts_new_block_before);
+        Ok(())
+    }
+
+    #[test]
+    fn full_attnres_splits_every_sublayer_after_the_first() -> Result<(), Box<dyn Error>> {
+        let config = AttnResConfig::new(8, 4, 4)
+            .with_num_heads(2)
+            .with_vocab_size(32);
+        let model = AttnResCpuReferenceModel::seeded("attnres-full", "v0", config)?;
+        let embeddings = AttnResTensor3::from_nested(vec![vec![
+            vec![0.1, 0.2, 0.3, 0.4, -0.1, -0.2, -0.3, -0.4],
+            vec![0.2, 0.3, 0.4, 0.5, -0.2, -0.3, -0.4, -0.5],
+        ]])?;
+        let (_, diagnostics) = model.forward_hidden_from_embeddings_with_diagnostics(embeddings)?;
+        let boundary_indices = diagnostics
+            .sublayers
+            .iter()
+            .filter(|snapshot| snapshot.starts_new_block_before)
+            .map(|snapshot| snapshot.sublayer_index)
+            .collect::<Vec<_>>();
+        assert_eq!(boundary_indices, vec![1, 2, 3]);
         Ok(())
     }
 
