@@ -24,9 +24,14 @@ pub const EXECUTOR_TRACE_PRODUCT_ID: &str = "psionic.executor_trace";
 pub const PLANNER_EXECUTOR_ROUTE_PRODUCT_ID: &str = "psionic.planner_executor_route";
 /// Dedicated served product identifier for article-class Tassadar sessions.
 pub const ARTICLE_EXECUTOR_SESSION_PRODUCT_ID: &str = "psionic.article_executor_session";
+/// Dedicated planner-owned hybrid workflow product for article-class compute spans.
+pub const ARTICLE_HYBRID_WORKFLOW_PRODUCT_ID: &str = "psionic.article_hybrid_workflow";
 /// Canonical acceptance artifact for the article-session serving surface.
 pub const TASSADAR_ARTICLE_EXECUTOR_SESSION_ARTIFACT_REF: &str =
     "fixtures/tassadar/reports/tassadar_article_executor_session_artifact.json";
+/// Canonical acceptance artifact for the article hybrid-workflow surface.
+pub const TASSADAR_ARTICLE_HYBRID_WORKFLOW_ARTIFACT_REF: &str =
+    "fixtures/tassadar/reports/tassadar_article_hybrid_workflow_artifact.json";
 
 const ARTICLE_EXECUTOR_READABLE_LOG_MAX_LINES: usize = 96;
 const ARTICLE_EXECUTOR_TOKEN_TRACE_MAX_TOKENS: usize = 256;
@@ -1887,6 +1892,333 @@ impl LocalTassadarPlannerRouter {
     }
 }
 
+/// Specialized planner-owned request for one article-class exact workflow.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarArticleHybridWorkflowRequest {
+    /// Stable workflow request identifier.
+    pub request_id: String,
+    /// Product identifier. Must be `psionic.article_hybrid_workflow`.
+    pub product_id: String,
+    /// Stable planner session identifier.
+    pub planner_session_id: String,
+    /// Planner model identifier initiating the workflow.
+    pub planner_model_id: String,
+    /// Stable workflow step identifier.
+    pub workflow_step_id: String,
+    /// Human-readable planner objective for the exact compute span.
+    pub objective: String,
+    /// Stable canonical article-case identifier.
+    pub article_case_id: String,
+    /// Optional explicit executor model id.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub requested_model_id: Option<String>,
+    /// Requested decode mode for the exact executor path.
+    pub requested_decode_mode: TassadarExecutorDecodeMode,
+    /// Planner routing policy for the exact compute span.
+    pub routing_policy: TassadarPlannerRoutingPolicy,
+    /// Planner routing budget for the exact compute span.
+    pub routing_budget: TassadarPlannerRoutingBudget,
+    /// Ordered environment refs carried into executor lineage in addition to the canonical benchmark ref.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub environment_refs: Vec<String>,
+}
+
+impl TassadarArticleHybridWorkflowRequest {
+    /// Creates one article-class hybrid workflow request.
+    #[must_use]
+    pub fn new(
+        request_id: impl Into<String>,
+        planner_session_id: impl Into<String>,
+        planner_model_id: impl Into<String>,
+        workflow_step_id: impl Into<String>,
+        objective: impl Into<String>,
+        article_case_id: impl Into<String>,
+        requested_decode_mode: TassadarExecutorDecodeMode,
+    ) -> Self {
+        Self {
+            request_id: request_id.into(),
+            product_id: String::from(ARTICLE_HYBRID_WORKFLOW_PRODUCT_ID),
+            planner_session_id: planner_session_id.into(),
+            planner_model_id: planner_model_id.into(),
+            workflow_step_id: workflow_step_id.into(),
+            objective: objective.into(),
+            article_case_id: article_case_id.into(),
+            requested_model_id: None,
+            requested_decode_mode,
+            routing_policy: TassadarPlannerRoutingPolicy::default(),
+            routing_budget: TassadarPlannerRoutingBudget::new(4_096, 131_072, 8),
+            environment_refs: Vec::new(),
+        }
+    }
+
+    /// Pins execution to one explicit executor model.
+    #[must_use]
+    pub fn with_requested_model_id(mut self, requested_model_id: impl Into<String>) -> Self {
+        self.requested_model_id = Some(requested_model_id.into());
+        self
+    }
+
+    /// Replaces the routing policy.
+    #[must_use]
+    pub fn with_routing_policy(mut self, routing_policy: TassadarPlannerRoutingPolicy) -> Self {
+        self.routing_policy = routing_policy;
+        self
+    }
+
+    /// Replaces the routing budget.
+    #[must_use]
+    pub fn with_routing_budget(mut self, routing_budget: TassadarPlannerRoutingBudget) -> Self {
+        self.routing_budget = routing_budget;
+        self
+    }
+
+    /// Carries extra environment refs into the executor lineage.
+    #[must_use]
+    pub fn with_environment_refs(mut self, mut environment_refs: Vec<String>) -> Self {
+        environment_refs.sort();
+        environment_refs.dedup();
+        self.environment_refs = environment_refs;
+        self
+    }
+
+    /// Returns a stable digest over the hybrid workflow request.
+    #[must_use]
+    pub fn stable_digest(&self) -> String {
+        stable_digest(b"tassadar_article_hybrid_workflow_request|", self)
+    }
+}
+
+/// Completed article-class hybrid workflow response.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarArticleHybridWorkflowCompletedResponse {
+    /// Stable workflow request identifier.
+    pub request_id: String,
+    /// Product identifier.
+    pub product_id: String,
+    /// Canonical benchmark/workload identity.
+    pub benchmark_identity: TassadarArticleBenchmarkIdentity,
+    /// Proof identity preserved across the workflow boundary.
+    pub proof_identity: TassadarArticleProofIdentity,
+    /// Underlying planner-owned completed response.
+    pub planner_response: TassadarPlannerCompletedResponse,
+}
+
+/// Fallback article-class hybrid workflow response.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarArticleHybridWorkflowFallbackResponse {
+    /// Stable workflow request identifier.
+    pub request_id: String,
+    /// Product identifier.
+    pub product_id: String,
+    /// Canonical benchmark/workload identity when the case was resolved.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub benchmark_identity: Option<TassadarArticleBenchmarkIdentity>,
+    /// Underlying planner fallback response.
+    pub planner_fallback: TassadarPlannerFallbackResponse,
+}
+
+/// Refusal article-class hybrid workflow response.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarArticleHybridWorkflowRefusalResponse {
+    /// Stable workflow request identifier.
+    pub request_id: String,
+    /// Product identifier.
+    pub product_id: String,
+    /// Canonical benchmark/workload identity when the case was resolved.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub benchmark_identity: Option<TassadarArticleBenchmarkIdentity>,
+    /// Underlying planner refusal response when routing reached the planner layer.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub planner_refusal: Option<TassadarPlannerRefusalResponse>,
+    /// Human-readable refusal detail.
+    pub detail: String,
+}
+
+/// Outcome for one article-class hybrid workflow request.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "status", rename_all = "snake_case")]
+pub enum TassadarArticleHybridWorkflowOutcome {
+    /// The workflow delegated successfully into the exact executor lane.
+    Completed {
+        /// Completed workflow response.
+        response: TassadarArticleHybridWorkflowCompletedResponse,
+    },
+    /// The workflow returned a typed planner fallback.
+    Fallback {
+        /// Typed workflow fallback.
+        fallback: TassadarArticleHybridWorkflowFallbackResponse,
+    },
+    /// The workflow refused the request explicitly.
+    Refused {
+        /// Typed workflow refusal.
+        refusal: TassadarArticleHybridWorkflowRefusalResponse,
+    },
+}
+
+/// Product-validation error for the article hybrid-workflow surface.
+#[derive(Clone, Debug, Error, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum TassadarArticleHybridWorkflowServiceError {
+    /// The request targeted a different product family.
+    #[error("unsupported Tassadar article hybrid-workflow product `{product_id}`")]
+    UnsupportedProduct {
+        /// Product identifier supplied by the caller.
+        product_id: String,
+    },
+}
+
+/// Local article-class hybrid workflow service above the generic planner route.
+#[derive(Clone, Debug)]
+pub struct LocalTassadarArticleHybridWorkflowService {
+    planner_router: LocalTassadarPlannerRouter,
+}
+
+impl Default for LocalTassadarArticleHybridWorkflowService {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl LocalTassadarArticleHybridWorkflowService {
+    /// Creates the default local article hybrid-workflow service.
+    #[must_use]
+    pub fn new() -> Self {
+        let executor_service = LocalTassadarExecutorService::new()
+            .with_fixture(TassadarExecutorFixture::article_i32_compute_v1());
+        Self {
+            planner_router: LocalTassadarPlannerRouter::new()
+                .with_executor_service(executor_service),
+        }
+    }
+
+    /// Replaces the backing planner router.
+    #[must_use]
+    pub fn with_planner_router(mut self, planner_router: LocalTassadarPlannerRouter) -> Self {
+        self.planner_router = planner_router;
+        self
+    }
+
+    /// Executes one article-class hybrid workflow.
+    pub fn execute(
+        &self,
+        request: &TassadarArticleHybridWorkflowRequest,
+    ) -> Result<TassadarArticleHybridWorkflowOutcome, TassadarArticleHybridWorkflowServiceError>
+    {
+        self.validate_product(request)?;
+        let Some(case) = article_case_by_id(request.article_case_id.as_str()) else {
+            return Ok(TassadarArticleHybridWorkflowOutcome::Refused {
+                refusal: TassadarArticleHybridWorkflowRefusalResponse {
+                    request_id: request.request_id.clone(),
+                    product_id: request.product_id.clone(),
+                    benchmark_identity: None,
+                    planner_refusal: None,
+                    detail: format!(
+                        "article workflow case `{}` is not present in the canonical Tassadar article corpus",
+                        request.article_case_id
+                    ),
+                },
+            });
+        };
+
+        let planner_request = self.planner_request_for(request, &case);
+        let benchmark_identity =
+            TassadarArticleBenchmarkIdentity::for_case(&case, &planner_request.subproblem.program_artifact);
+        match self.planner_router.route(&planner_request) {
+            Ok(TassadarPlannerRoutingOutcome::Completed { response }) => {
+                let proof_identity =
+                    TassadarArticleProofIdentity::from_response(&response.executor_response);
+                Ok(TassadarArticleHybridWorkflowOutcome::Completed {
+                    response: TassadarArticleHybridWorkflowCompletedResponse {
+                        request_id: request.request_id.clone(),
+                        product_id: request.product_id.clone(),
+                        benchmark_identity,
+                        proof_identity,
+                        planner_response: response,
+                    },
+                })
+            }
+            Ok(TassadarPlannerRoutingOutcome::Fallback { fallback }) => {
+                Ok(TassadarArticleHybridWorkflowOutcome::Fallback {
+                    fallback: TassadarArticleHybridWorkflowFallbackResponse {
+                        request_id: request.request_id.clone(),
+                        product_id: request.product_id.clone(),
+                        benchmark_identity: Some(benchmark_identity),
+                        planner_fallback: fallback,
+                    },
+                })
+            }
+            Ok(TassadarPlannerRoutingOutcome::Refused { refusal }) => {
+                Ok(TassadarArticleHybridWorkflowOutcome::Refused {
+                    refusal: TassadarArticleHybridWorkflowRefusalResponse {
+                        request_id: request.request_id.clone(),
+                        product_id: request.product_id.clone(),
+                        benchmark_identity: Some(benchmark_identity),
+                        detail: refusal.detail.clone(),
+                        planner_refusal: Some(refusal),
+                    },
+                })
+            }
+            Err(TassadarPlannerRouterError::UnsupportedProduct { product_id }) => Err(
+                TassadarArticleHybridWorkflowServiceError::UnsupportedProduct { product_id },
+            ),
+        }
+    }
+
+    fn validate_product(
+        &self,
+        request: &TassadarArticleHybridWorkflowRequest,
+    ) -> Result<(), TassadarArticleHybridWorkflowServiceError> {
+        if request.product_id == ARTICLE_HYBRID_WORKFLOW_PRODUCT_ID {
+            Ok(())
+        } else {
+            Err(TassadarArticleHybridWorkflowServiceError::UnsupportedProduct {
+                product_id: request.product_id.clone(),
+            })
+        }
+    }
+
+    fn planner_request_for(
+        &self,
+        request: &TassadarArticleHybridWorkflowRequest,
+        case: &TassadarValidationCase,
+    ) -> TassadarPlannerRoutingRequest {
+        let profile = tassadar_wasm_profile_for_id(case.program.profile_id.as_str())
+            .expect("canonical article case should use a supported profile");
+        let trace_abi = tassadar_trace_abi_for_profile_id(case.program.profile_id.as_str())
+            .expect("canonical article case should use a supported trace ABI");
+        let artifact = TassadarProgramArtifact::fixture_reference(
+            format!("artifact://tassadar/article_workflow/{}", case.case_id),
+            &profile,
+            &trace_abi,
+            case.program.clone(),
+        )
+        .expect("canonical article case should assemble into a program artifact");
+        let mut subproblem = TassadarPlannerExecutorSubproblem::new(
+            request.workflow_step_id.clone(),
+            request.objective.clone(),
+            artifact,
+            request.requested_decode_mode,
+        )
+        .with_environment_refs(merge_article_environment_refs(
+            request.environment_refs.as_slice(),
+        ));
+        if let Some(requested_model_id) = request.requested_model_id.as_deref() {
+            subproblem = subproblem.with_requested_model_id(requested_model_id);
+        } else {
+            subproblem = subproblem
+                .with_requested_model_id(TassadarExecutorFixture::ARTICLE_I32_COMPUTE_MODEL_ID);
+        }
+        TassadarPlannerRoutingRequest::new(
+            request.request_id.clone(),
+            request.planner_session_id.clone(),
+            request.planner_model_id.clone(),
+            subproblem,
+        )
+        .with_routing_policy(request.routing_policy.clone())
+        .with_routing_budget(request.routing_budget.clone())
+    }
+}
+
 fn route_trace_step_budget(program_artifact: &TassadarProgramArtifact) -> usize {
     tassadar_wasm_profile_for_id(program_artifact.wasm_profile_id.as_str()).map_or_else(
         || program_artifact.validated_program.instructions.len(),
@@ -2191,9 +2523,12 @@ fn stream_events_for_outcome(
 #[cfg(test)]
 mod tests {
     use super::{
-        ARTICLE_EXECUTOR_SESSION_PRODUCT_ID, EXECUTOR_TRACE_PRODUCT_ID,
-        LocalTassadarArticleExecutorSessionService, LocalTassadarExecutorService,
+        ARTICLE_EXECUTOR_SESSION_PRODUCT_ID, ARTICLE_HYBRID_WORKFLOW_PRODUCT_ID,
+        EXECUTOR_TRACE_PRODUCT_ID, LocalTassadarArticleExecutorSessionService,
+        LocalTassadarArticleHybridWorkflowService, LocalTassadarExecutorService,
         LocalTassadarPlannerRouter, PLANNER_EXECUTOR_ROUTE_PRODUCT_ID,
+        TassadarArticleHybridWorkflowOutcome, TassadarArticleHybridWorkflowRequest,
+        TassadarArticleHybridWorkflowServiceError,
         TassadarArticleExecutorSessionOutcome, TassadarArticleExecutorSessionRequest,
         TassadarArticleExecutorSessionServiceError, TassadarArticleExecutorSessionStreamEvent,
         TassadarExecutorOutcome, TassadarExecutorRequest, TassadarExecutorServiceError,
@@ -2237,6 +2572,21 @@ mod tests {
     ) -> TassadarArticleExecutorSessionRequest {
         TassadarArticleExecutorSessionRequest::new(
             format!("article-request-{case_id}-{requested_decode_mode:?}"),
+            case_id,
+            requested_decode_mode,
+        )
+    }
+
+    fn article_workflow_request_for_case(
+        case_id: &str,
+        requested_decode_mode: TassadarExecutorDecodeMode,
+    ) -> TassadarArticleHybridWorkflowRequest {
+        TassadarArticleHybridWorkflowRequest::new(
+            format!("article-workflow-request-{case_id}-{requested_decode_mode:?}"),
+            "planner-session-article-alpha",
+            "planner-article-fixture-v0",
+            format!("workflow-step-{case_id}"),
+            "delegate exact article workload into Tassadar",
             case_id,
             requested_decode_mode,
         )
@@ -2378,6 +2728,131 @@ mod tests {
         assert_eq!(
             error,
             TassadarArticleExecutorSessionServiceError::UnsupportedProduct {
+                product_id: String::from("psionic.text_generation"),
+            }
+        );
+    }
+
+    #[test]
+    fn article_hybrid_workflow_delegates_completed_request_with_routing_and_proof_identity() {
+        let service = LocalTassadarArticleHybridWorkflowService::new();
+        let request = article_workflow_request_for_case(
+            "memory_heavy_kernel",
+            TassadarExecutorDecodeMode::HullCache,
+        );
+
+        let outcome = service.execute(&request).expect("request should be typed");
+        match outcome {
+            TassadarArticleHybridWorkflowOutcome::Completed { response } => {
+                assert_eq!(response.product_id, ARTICLE_HYBRID_WORKFLOW_PRODUCT_ID);
+                assert_eq!(response.benchmark_identity.case_id, "memory_heavy_kernel");
+                assert_eq!(
+                    response.proof_identity.executor_product_id,
+                    EXECUTOR_TRACE_PRODUCT_ID
+                );
+                assert_eq!(
+                    response
+                        .planner_response
+                        .routing_decision
+                        .planner_product_id,
+                    PLANNER_EXECUTOR_ROUTE_PRODUCT_ID
+                );
+                assert_eq!(
+                    response
+                        .planner_response
+                        .routing_decision
+                        .route_state,
+                    super::TassadarPlannerRouteState::Delegated
+                );
+            }
+            other => panic!("expected completed hybrid workflow, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn article_hybrid_workflow_preserves_typed_planner_fallback() {
+        let service = LocalTassadarArticleHybridWorkflowService::new();
+        let request = article_workflow_request_for_case(
+            "branch_heavy_kernel",
+            TassadarExecutorDecodeMode::SparseTopK,
+        )
+        .with_routing_policy(
+            TassadarPlannerRoutingPolicy::exact_executor_default()
+                .with_fallback_policy(TassadarPlannerFallbackPolicy::PlannerSummary),
+        );
+        let request = TassadarArticleHybridWorkflowRequest {
+            routing_policy: TassadarPlannerRoutingPolicy {
+                allow_runtime_decode_fallback: false,
+                ..request.routing_policy
+            },
+            ..request
+        };
+
+        let outcome = service.execute(&request).expect("request should be typed");
+        match outcome {
+            TassadarArticleHybridWorkflowOutcome::Fallback { fallback } => {
+                assert_eq!(
+                    fallback
+                        .benchmark_identity
+                        .as_ref()
+                        .map(|identity| identity.case_id.as_str()),
+                    Some("branch_heavy_kernel")
+                );
+                assert_eq!(
+                    fallback.planner_fallback.routing_decision.route_reason,
+                    Some(TassadarPlannerRouteReason::ExecutorDecodeFallbackDisallowed)
+                );
+            }
+            other => panic!("expected workflow fallback, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn article_hybrid_workflow_preserves_typed_planner_refusal() {
+        let service = LocalTassadarArticleHybridWorkflowService::new();
+        let request = article_workflow_request_for_case(
+            "memory_heavy_kernel",
+            TassadarExecutorDecodeMode::HullCache,
+        )
+        .with_routing_budget(TassadarPlannerRoutingBudget::new(1, 32, 8));
+
+        let outcome = service.execute(&request).expect("request should be typed");
+        match outcome {
+            TassadarArticleHybridWorkflowOutcome::Refused { refusal } => {
+                assert_eq!(
+                    refusal
+                        .benchmark_identity
+                        .as_ref()
+                        .map(|identity| identity.case_id.as_str()),
+                    Some("memory_heavy_kernel")
+                );
+                assert_eq!(
+                    refusal
+                        .planner_refusal
+                        .as_ref()
+                        .and_then(|planner_refusal| planner_refusal.routing_decision.route_reason),
+                    Some(TassadarPlannerRouteReason::ProgramLengthBudgetExceeded)
+                );
+            }
+            other => panic!("expected workflow refusal, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn article_hybrid_workflow_rejects_non_hybrid_product_id() {
+        let service = LocalTassadarArticleHybridWorkflowService::new();
+        let mut request = article_workflow_request_for_case(
+            "memory_heavy_kernel",
+            TassadarExecutorDecodeMode::HullCache,
+        );
+        request.product_id = String::from("psionic.text_generation");
+
+        let error = service
+            .execute(&request)
+            .expect_err("wrong hybrid-workflow product should fail before execution");
+        assert_eq!(
+            error,
+            TassadarArticleHybridWorkflowServiceError::UnsupportedProduct {
                 product_id: String::from("psionic.text_generation"),
             }
         );

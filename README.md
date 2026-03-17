@@ -516,6 +516,11 @@ Current posture:
   explicit `psionic.planner_executor_route` contract, executor preflight,
   replay-stable routing decisions, typed completed/fallback/refused outcomes,
   and planner-visible policy, budget, proof, selection, and refusal truth
+- its article-hybrid workflow follow-on now also exists in `psionic-serve`,
+  with the specialized `psionic.article_hybrid_workflow` contract bound to
+  canonical article cases, preserved benchmark identity plus routing/proof
+  receipts, and the committed artifact
+  `fixtures/tassadar/reports/tassadar_article_hybrid_workflow_artifact.json`
 - its Phase 9A article-workload serving follow-on now also exists in
   `psionic-serve`, with a specialized `psionic.article_executor_session`
   surface that resolves canonical article workloads by case id, preserves
