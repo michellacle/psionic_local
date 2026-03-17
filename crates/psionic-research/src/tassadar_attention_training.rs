@@ -1250,9 +1250,9 @@ where
 
 fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../..")
+        .join("../..")
         .canonicalize()
-        .unwrap_or_else(|_| PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../.."))
+        .unwrap_or_else(|_| PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
 }
 
 fn stable_digest<T>(prefix: &[u8], value: &T) -> String
@@ -1282,8 +1282,16 @@ mod tests {
     use super::{
         TASSADAR_EXECUTOR_ATTENTION_RUN_BUNDLE_FILE,
         TASSADAR_EXECUTOR_ATTENTION_TRAINING_REPORT_FILE, TassadarExecutorAttentionTrainingConfig,
-        run_tassadar_executor_attention_training, train_tassadar_executor_attention_windowed,
+        repo_root, run_tassadar_executor_attention_training,
+        train_tassadar_executor_attention_windowed,
     };
+
+    #[test]
+    fn attention_training_repo_root_points_at_extracted_workspace_root() {
+        let root = repo_root();
+        assert!(root.join("Cargo.toml").exists());
+        assert!(root.join("fixtures/tassadar").exists());
+    }
 
     #[test]
     fn attention_training_reduces_loss_and_writes_bundle() -> Result<(), Box<dyn std::error::Error>>

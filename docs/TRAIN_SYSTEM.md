@@ -326,15 +326,17 @@ That now includes one intentionally narrow executor-training answer:
   exactness while still leaving `0/2` exact validation traces and the first
   divergence bucket at target index `1`; the companion human-readable audit is
   `docs/audits/2026-03-16-tassadar-phase-13-trainable-surface-audit.md`
-- the Phase 14 promotion-truth run now also exists above that baseline:
+- the preserved red Phase 14 promotion-truth run now also exists above that baseline:
   `psionic-train` can execute the canonical promotion config, stream live
   stage/epoch/batch/validation/checkpoint progress while it runs, and persist
   `best_checkpoint_manifest.json` plus `promotion_gate_report.json` under
-  `fixtures/tassadar/runs/sudoku_v0_promotion_v1`; the selected
-  checkpoint is still `epoch_0006` from `prompt_to_first_16_tokens` with
+  `fixtures/tassadar/runs/sudoku_v0_promotion_v1`; the repo also carries a
+  standalone `scripts/check-tassadar-4x4-promotion-gate.sh` checker that
+  revalidates persisted gate reports; that selected
+  checkpoint stayed at `epoch_0006` from `prompt_to_first_16_tokens` with
   `10000` bps first-target exactness, `7500` bps first-8 exactness,
-  `6875` bps first-32 exactness, and `0/2` exact validation traces, so the
-  promotion gate remains red and the companion human-readable audit is
+  `6875` bps first-32 exactness, and `0/2` exact validation traces, so that
+  bundle remains preserved blocker evidence and the companion human-readable audit is
   `docs/audits/2026-03-16-tassadar-phase-14-blocker-audit.md`
 - the Phase 14 teacher-forced continuation now also exists beside that
   baseline: `psionic-train` can execute the separate preserved config under
@@ -345,9 +347,22 @@ That now includes one intentionally narrow executor-training answer:
   prior best (`10000` bps first-target, `7500` bps first-8, `6875` bps
   first-32, `0/2` exact traces), and later 32-token epochs still regress, so
   that bundle closes the “maybe this was just a schedule problem” question
-  without pretending the learned 4x4 gate is any closer to green; the
+  without pretending the learned 4x4 gate was any closer to green at the time; the
   companion audit is
   `docs/audits/2026-03-16-tassadar-promotion-v2-teacher-forced-audit.md`
+- the learned 4x4 promotion gate is now green in
+  `fixtures/tassadar/runs/sudoku_v0_promotion_v3`: `psionic-research` can now
+  replay the bootstrap-plus-promotion attention continuation via
+  `crates/psionic-research/examples/tassadar_executor_attention_promotion_run.rs`,
+  persist `best_checkpoint_manifest.json`, `exactness_curve.json`,
+  `failure_samples.json`, `exact_trace_samples.json`, and
+  `promotion_gate_report.json` at the final run root, and keep the bootstrap
+  checkpoint it used under `bootstrap_pc_boundary`; the selected checkpoint is
+  `epoch_0015` from `prompt_to_first_32_tokens` with `10000` bps first-target
+  exactness, `10000` bps first-8 exactness, `10000` bps first-32 exactness,
+  and `2/2` exact validation traces, so the learned 4x4 lane is now
+  promotable and the companion audit is
+  `docs/audits/2026-03-16-tassadar-phase-14-promotion-green-audit.md`
 - the Phase 15 executor-attention comparison now also exists beside that
   baseline: `psionic-models` now carries a distinct bounded
   `TassadarExecutorAttentionTransformer` family with layered causal hard-max
@@ -403,11 +418,9 @@ That now includes one intentionally narrow executor-training answer:
   that blocker deeper into the trace (`10000` bps first-target, `8750` bps
   first-8, `7188` bps first-32), while the later `boundary_v6` / `v8`
   joint-adapter fine-tune reproduces but does not beat that ceiling and the
-  later `boundary_v7` / `boundary_v8` / `boundary_v9` saturation set proves
-  the current bounded adapter family is stuck on the exact same validation
-  signature; the promotion gate is still red, though, because exact validation
-  traces remain `0/2` and the learned lane still first diverges at token `6`
-  by predicting `<byte_00>` where the reference requires `<pc>`
+  later `boundary_v7` / `boundary_v8` / `boundary_v9` saturation set preserves
+  the last red attention-family ceiling before the green `promotion_v3`
+  continuation
 - the separate Phase 17 compiled lane now also exists beside that learned
   stack: `psionic-models` now exposes a bounded typed
   `TassadarCompiledProgramExecutor` with compile-evidence bundles,

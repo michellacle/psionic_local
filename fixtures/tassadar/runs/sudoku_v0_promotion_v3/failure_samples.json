@@ -1,0 +1,9 @@
+{
+  "run_id": "tassadar-executor-attention-sudoku-v0-promotion-v3",
+  "dataset_storage_key": "oa.tassadar.sudoku_v0.sequence@train-v0",
+  "dataset_digest": "e71f1538d567d65656a2ca4a5ea6db6cdb444e9bfd80244347e691bba894a2af",
+  "trained_model_descriptor_digest": "ba6a2d2221393a7e707cf70a3108b5daad340f71c9fd95a06db9a854f9cf4f5d",
+  "checkpoint_state_digest": "eb4f8acb722173f7e920419090d5e9551f8dd7667c93e140900a395ddb35453e",
+  "samples": [],
+  "report_digest": "ce0c01528932e9f4dc7e501588470680684ce715f5ea70b61b9e453c3f53dcf2"
+}

@@ -1,0 +1,57 @@
+{
+  "family_kind": "executor_attention_candidate",
+  "model_id": "tassadar-executor-attention-transformer-sudoku-v0-v0",
+  "model_descriptor_digest": "ba6a2d2221393a7e707cf70a3108b5daad340f71c9fd95a06db9a854f9cf4f5d",
+  "trained_weight_digest": "bdd47f6e32ac06e725bc401012905b3bddf261510d305db135d5527759258634",
+  "claim_boundary": "research_windowed_decode_only",
+  "attention_mode": "layered_causal_hard_max_lookup",
+  "layer_count": 7,
+  "head_count": 18,
+  "head_dim": 2,
+  "prompt_window_token_cap": 256,
+  "target_token_cap": 32,
+  "article_fidelity_summary": "layered full-prefix causal 2D-head hard-max attention plus bounded relative-target hidden-state-conditioned, previous-token-conditioned, and trace-schema-conditioned logit adapters, still only as a research windowed lane with hull fallback",
+  "correctness": {
+    "aggregate_target_token_exactness_bps": 10000,
+    "first_target_exactness_bps": 10000,
+    "first_8_token_exactness_bps": 10000,
+    "first_32_token_exactness_bps": 10000,
+    "exact_trace_case_count": 2
+  },
+  "speed": {
+    "decode_mode": "reference_linear",
+    "neural_tokens_per_second": 1362,
+    "cpu_tokens_per_second": 32000
+  },
+  "requested_hull_decode": {
+    "requested_decode_mode": "hull_cache",
+    "effective_decode_mode": "reference_linear",
+    "fallback_decode_mode": "reference_linear",
+    "hull_decode_posture": "fallback_to_reference_linear"
+  },
+  "case_reports": [
+    {
+      "sequence_id": "tassadar.sequence.sudoku_v0_validation_a",
+      "case_id": "sudoku_v0_validation_a",
+      "target_token_count": 32,
+      "target_token_exactness_bps": 10000,
+      "first_target_exactness_bps": 10000,
+      "first_8_token_exactness_bps": 10000,
+      "first_32_token_exactness_bps": 10000,
+      "matched_target_token_count": 32,
+      "exact_trace_match": true
+    },
+    {
+      "sequence_id": "tassadar.sequence.sudoku_v0_validation_b",
+      "case_id": "sudoku_v0_validation_b",
+      "target_token_count": 32,
+      "target_token_exactness_bps": 10000,
+      "first_target_exactness_bps": 10000,
+      "first_8_token_exactness_bps": 10000,
+      "first_32_token_exactness_bps": 10000,
+      "matched_target_token_count": 32,
+      "exact_trace_match": true
+    }
+  ],
+  "report_digest": "f513e7efbd3e1e38c1a441cce96353dea4fb413f461e0a990d39cbb56c089bdc"
+}

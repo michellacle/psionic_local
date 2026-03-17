@@ -203,16 +203,31 @@ Current posture:
   recommendation rather than a promotion claim
 - the fourteenth trained-executor follow-on bar from the post-audit issue
   spine now also exists in `psionic-train`, `docs/audits/`, `scripts/`, and a
-  canonical promotion bundle at
+  preserved red promotion bundle at
   `fixtures/tassadar/runs/sudoku_v0_promotion_v1`: long Phase 14
   runs now emit live stage/epoch/batch/validation/checkpoint progress, the repo
   now persists `best_checkpoint_manifest.json` plus
-  `promotion_gate_report.json`, and the canonical promotion run records the
-  current honest ceiling at checkpoint `epoch_0006`
+  `promotion_gate_report.json`, the repo-owned
+  `scripts/check-tassadar-4x4-promotion-gate.sh` checker revalidates persisted
+  gate reports, and the original lookup-family promotion run recorded the
+  first honest gate baseline at checkpoint `epoch_0006`
   (`10000` bps first-target, `7500` bps first-8, `6875` bps first-32,
-  `0/2` exact validation traces); the gate therefore remains red, so this
-  phase lands as promotion-truth tooling and blocker evidence rather than an
-  exact learned-trace result
+  `0/2` exact validation traces); that bundle remains preserved blocker
+  evidence rather than an exact learned-trace result
+- the learned 4x4 promotion gate is now green in
+  `psionic-research`, `psionic-train`, `docs/audits/`, and the canonical
+  bundle `fixtures/tassadar/runs/sudoku_v0_promotion_v3`:
+  `crates/psionic-research/examples/tassadar_executor_attention_promotion_run.rs`
+  now replays the bootstrap-plus-promotion attention continuation in-repo,
+  persists `best_checkpoint_manifest.json`, `exactness_curve.json`,
+  `failure_samples.json`, `exact_trace_samples.json`, and
+  `promotion_gate_report.json`, and the repo-owned
+  `scripts/check-tassadar-4x4-promotion-gate.sh` checker revalidates that
+  bundle as passed at checkpoint `epoch_0015`
+  (`10000` bps first-target, `10000` bps first-8, `10000` bps first-32,
+  `2/2` exact validation traces); the learned 4x4 lane is therefore now
+  promotable and the companion audit is
+  `docs/audits/2026-03-16-tassadar-phase-14-promotion-green-audit.md`
 - the fifteenth trained-executor follow-on bar from the post-audit issue spine
   now also exists in `psionic-models`, `psionic-eval`, `psionic-research`,
   `docs/audits/`, and a new bounded same-corpus comparison root at
@@ -270,11 +285,9 @@ Current posture:
   preserves but does not beat that ceiling, and the later `boundary_v7` /
   `boundary_v8` / `boundary_v9` saturation set plus
   `architecture_comparison_v11` prove that adding trace-schema bias, then
-  per-position bias, then aggressive per-position gain still leaves all
-  `32/32` checkpoints on the exact same validation signature; the promotion
-  gate therefore stays red: exact validation traces remain `0/2`, and the
-  first divergence is still token `6` where the reference requires `<pc>` and
-  the model predicts `<byte_00>`
+  per-position bias, then aggressive per-position gain still left all
+  `32/32` checkpoints on the exact same red validation signature before the
+  separate green `promotion_v3` continuation cleared the gate
 - the separate post-audit Phase 17 bar now also exists in `psionic-models`,
   `psionic-eval`, `psionic-research`, `docs/audits/`, and a canonical bounded
   compiled-lane bundle at

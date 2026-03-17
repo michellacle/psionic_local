@@ -416,7 +416,10 @@ where
 }
 
 fn repo_root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../..")
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .canonicalize()
+        .unwrap_or_else(|_| PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
 }
 
 #[cfg(test)]
@@ -424,6 +427,7 @@ mod tests {
     use tempfile::tempdir;
 
     use super::{
+        repo_root,
         TASSADAR_EXECUTOR_ARCHITECTURE_COMPARISON_BOUNDARY_ATTENTION_OUTPUT_DIR,
         TASSADAR_EXECUTOR_ARCHITECTURE_COMPARISON_REPORT_FILE,
         TASSADAR_EXECUTOR_ARCHITECTURE_COMPARISON_TRAINED_ATTENTION_OUTPUT_DIR,
@@ -431,6 +435,13 @@ mod tests {
         run_tassadar_executor_architecture_comparison_with_boundary_attention,
         run_tassadar_executor_architecture_comparison_with_trained_attention,
     };
+
+    #[test]
+    fn architecture_comparison_repo_root_points_at_extracted_workspace_root() {
+        let root = repo_root();
+        assert!(root.join("Cargo.toml").exists());
+        assert!(root.join("fixtures/tassadar").exists());
+    }
 
     #[test]
     fn architecture_comparison_writes_both_family_bundles_and_top_level_report()

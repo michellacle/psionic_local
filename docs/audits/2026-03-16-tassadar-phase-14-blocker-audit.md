@@ -4,9 +4,9 @@ Date: March 16, 2026
 
 ## Scope
 
-This note records the honest state of `#3814` after running the canonical Phase
+This note records the honest state of `#7` after running the canonical Phase
 14 promotion bundle in-tree under
-[crates/psionic/fixtures/tassadar/runs/sudoku_v0_promotion_v1](/home/christopherdavid/code/openagents/crates/psionic/fixtures/tassadar/runs/sudoku_v0_promotion_v1).
+`fixtures/tassadar/runs/sudoku_v0_promotion_v1`.
 
 The Phase 14 acceptance gate is:
 
@@ -27,14 +27,14 @@ The Phase 14 substrate is now real in the repo rather than scratch-only:
   - `exactness_curve.json`
   - `failure_samples.json`
 - canonical promotion example
-  - [tassadar_promotion_training_run.rs](/home/christopherdavid/code/openagents/crates/psionic/psionic-train/examples/tassadar_promotion_training_run.rs)
+  - `crates/psionic-train/examples/tassadar_promotion_training_run.rs`
 - machine-readable promotion gate script
-  - [check-psionic-tassadar-4x4-promotion-gate.sh](/home/christopherdavid/code/openagents/scripts/release/check-psionic-tassadar-4x4-promotion-gate.sh)
+  - `scripts/check-tassadar-4x4-promotion-gate.sh`
 - stage-local learning-rate and prefix-mode control
   - `teacher_forced`
   - `greedy_rollout`
 - decode-step training support in the lookup family
-  - [tassadar_executor_transformer.rs](/home/christopherdavid/code/openagents/crates/psionic/psionic-models/src/tassadar_executor_transformer.rs)
+  - `crates/psionic-models/src/tassadar_executor_transformer.rs`
 - live run-progress output from the trainer and promotion wrapper
   - stage start
   - epoch start
@@ -59,7 +59,7 @@ The canonical run was executed directly in the repo:
 - command:
   - `cargo run -p psionic-train --example tassadar_promotion_training_run`
 - output root:
-  - [sudoku_v0_promotion_v1](/home/christopherdavid/code/openagents/crates/psionic/fixtures/tassadar/runs/sudoku_v0_promotion_v1)
+  - `fixtures/tassadar/runs/sudoku_v0_promotion_v1`
 - final bundle digest:
   - `61d72a53c709545feaf777b6bd075c98a34db6680902b7f7ab13047dcb0acec6`
 - wall-clock time:
@@ -81,7 +81,7 @@ The selected checkpoint and gate outcome are:
 
 The gate report is:
 
-- [promotion_gate_report.json](/home/christopherdavid/code/openagents/crates/psionic/fixtures/tassadar/runs/sudoku_v0_promotion_v1/promotion_gate_report.json)
+- `fixtures/tassadar/runs/sudoku_v0_promotion_v1/promotion_gate_report.json`
 - `passed = false`
 - failed thresholds:
   - `first_32_token_exactness_bps = 6875`
@@ -89,8 +89,9 @@ The gate report is:
 
 The selector and leaderboard artifacts agree on that winner:
 
-- [best_checkpoint_manifest.json](/home/christopherdavid/code/openagents/crates/psionic/fixtures/tassadar/runs/sudoku_v0_promotion_v1/best_checkpoint_manifest.json)
-- [checkpoint_leaderboard.json](/home/christopherdavid/code/openagents/crates/psionic/fixtures/tassadar/runs/sudoku_v0_promotion_v1/checkpoint_leaderboard.json)
+- `fixtures/tassadar/runs/sudoku_v0_promotion_v1/best_checkpoint_manifest.json`
+- `checkpoint_leaderboard.json`
+  - `fixtures/tassadar/runs/sudoku_v0_promotion_v1/checkpoint_leaderboard.json`
 
 ## What The Live Progress Logs Taught Us
 
@@ -134,12 +135,15 @@ The stable remaining failure is still:
 
 That pattern is visible in:
 
-- [divergence_histogram.json](/home/christopherdavid/code/openagents/crates/psionic/fixtures/tassadar/runs/sudoku_v0_promotion_v1/divergence_histogram.json)
+- `divergence_histogram.json`
+  - `fixtures/tassadar/runs/sudoku_v0_promotion_v1/divergence_histogram.json`
   - validation bucket: `first_divergence_index = 1`, `case_count = 2`
-- [failure_samples.json](/home/christopherdavid/code/openagents/crates/psionic/fixtures/tassadar/runs/sudoku_v0_promotion_v1/failure_samples.json)
+- `failure_samples.json`
+  - `fixtures/tassadar/runs/sudoku_v0_promotion_v1/failure_samples.json`
   - every persisted sample window shows `<step>` predicted where the reference
     wants `<step_index>`
-- [boundary_exactness_report.json](/home/christopherdavid/code/openagents/crates/psionic/fixtures/tassadar/runs/sudoku_v0_promotion_v1/boundary_exactness_report.json)
+- `boundary_exactness_report.json`
+  - `fixtures/tassadar/runs/sudoku_v0_promotion_v1/boundary_exactness_report.json`
 
 ## What Was Tried
 
@@ -162,7 +166,7 @@ The best result is still the same ceiling seen in the strongest scratch runs:
 
 ## Conclusion
 
-As of March 16, 2026, `#3814` is not honestly closable.
+As of March 16, 2026, `#7` is not honestly closable.
 
 What is real:
 
@@ -186,26 +190,26 @@ The next honest dependency is stronger work on the post-Phase-15 path:
 
 - keep the current lookup-family promotion bundle as the weak baseline
 - keep the separate teacher-forced continuation bundle at
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_promotion_v2` as additional
+  `fixtures/tassadar/runs/sudoku_v0_promotion_v2` as additional
   negative evidence that schedule-only churn does not beat the current ceiling
 - use the separate executor-attention family only with same-corpus comparisons;
   the trained-attention floor under
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_training_v1`, the
+  `fixtures/tassadar/runs/sudoku_v0_attention_training_v1`, the
   rejected boundary-output-head run under
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v1`, and
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v1`, and
   the improved boundary-adapter run under
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v2`, and
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v2`, and
   the later hidden-state projection-adapter follow-ons under
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v3` and
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v4`, and
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v3` and
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v4`, and
   the later transition-adapter follow-on under
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v5`, and
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v5`, and
   the later joint-adapter fine-tune under
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v6`
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v6`
   together show real progress over the seeded Phase 15 candidate and still beat
   the preserved lookup baseline on the bounded comparison windows via
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v6`
-  and `crates/psionic/fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v7`
+  `fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v6`
+  and `fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v7`
   plus the later `v8` repeat, but the gate is still not cleared because the
   best learned attention artifact now sits at `10000` bps first-target,
   `8750` bps first-8, `7188` bps first-32, `0/2` exact validation traces, and
@@ -215,10 +219,10 @@ The next honest dependency is stronger work on the post-Phase-15 path:
   transition+projection fine-tune reproduces that ceiling rather than beating
   it
 - keep the later structural-adapter saturation evidence under
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v7`,
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v8`,
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_attention_boundary_v9`, and
-  `crates/psionic/fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v11`;
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v7`,
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v8`,
+  `fixtures/tassadar/runs/sudoku_v0_attention_boundary_v9`, and
+  `fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v11`;
   those artifacts show that adding a trace-schema-conditioned adapter, then a
   per-position adapter, then a high-gain per-position adapter still leaves all
   `32/32` checkpoints on the exact same validation signature (`token 6`,

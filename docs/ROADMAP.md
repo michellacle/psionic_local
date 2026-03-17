@@ -901,17 +901,18 @@ is tracked under the post-audit umbrella
   [#3813](https://github.com/OpenAgentsInc/openagents/issues/3813)
 - Phase 14 produce the first exact 4x4 validation trace:
   [#3814](https://github.com/OpenAgentsInc/openagents/issues/3814)
-  canonical promotion tooling and the repo bundle now exist at
-  `fixtures/tassadar/runs/sudoku_v0_promotion_v1`, but the gate
-  remains red: the promotion bundle itself is still `10000` bps first-target,
-  `6875` bps first-32, and `0` exact validation traces, while the latest
-  bounded attention-family follow-on reaches `10000` / `8750` / `7188` over
-  first-target / first-8 / first-32 and still leaves `0` exact traces
+  the preserved red lookup-family bundles remain at
+  `fixtures/tassadar/runs/sudoku_v0_promotion_v1` and
+  `fixtures/tassadar/runs/sudoku_v0_promotion_v2`, while the canonical green
+  learned bundle now lives at `fixtures/tassadar/runs/sudoku_v0_promotion_v3`
+  and clears the gate at `10000` bps first-target, `10000` bps first-32, and
+  `2` exact validation traces
 - Phase 15 add a true executor-attention candidate family:
   [#3815](https://github.com/OpenAgentsInc/openagents/issues/3815)
   landed as a bounded research candidate; does not close the Phase 14 gate
 - Phase 16 persist and review the first honest 9x9 run:
   [#3816](https://github.com/OpenAgentsInc/openagents/issues/3816)
+  the learned 4x4 promotion gate is now green, so this dependency is unblocked
 - Phase 17 add a bounded proof-oriented / compile-to-weights executor lane:
   [#3817](https://github.com/OpenAgentsInc/openagents/issues/3817)
   landed as the bounded compiled/proof-backed Sudoku-v0 lane at

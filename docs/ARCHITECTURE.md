@@ -264,15 +264,17 @@ The current scope is:
   the preserved baseline (`3750` bps first-8 exactness, `5625` bps first-32
   exactness) while still leaving `0/2` exact traces
 - landed trained-executor Phase 14 follow-on bar: `psionic-train` now owns a
-  canonical learned-lane promotion bundle at
+  preserved red learned-lane promotion bundle at
   `fixtures/tassadar/runs/sudoku_v0_promotion_v1`, explicit
   `best_checkpoint_manifest.json` plus `promotion_gate_report.json` artifacts,
-  and live stage/epoch/batch/validation/checkpoint progress while long runs are
-  executing; the canonical promotion result remains explicitly below the bar at
+  a repo-owned `scripts/check-tassadar-4x4-promotion-gate.sh` checker for
+  revalidating persisted gate reports, and live
+  stage/epoch/batch/validation/checkpoint progress while long runs are
+  executing; that original lookup-family promotion result remained explicitly
+  below the bar at
   checkpoint `epoch_0006` (`10000` bps first-target, `7500` bps first-8,
-  `6875` bps first-32, `0/2` exact validation traces), so this phase closes
-  the “promotion tooling exists” gap without pretending the learned 4x4 gate is
-  green
+  `6875` bps first-32, `0/2` exact validation traces), so that bundle closes
+  the “promotion tooling exists” gap and remains preserved blocker evidence
 - landed trained-executor Phase 14A follow-on bar: `psionic-train` now also
   preserves a separate teacher-forced continuation bundle at
   `fixtures/tassadar/runs/sudoku_v0_promotion_v2`; that run
@@ -282,6 +284,18 @@ The current scope is:
   first-8, `6875` bps first-32, `0/2` exact validation traces) before later
   32-token epochs regress again, so the next honest move is model/architecture
   change rather than more schedule tuning
+- landed trained-executor Phase 14B closure: `psionic-research` now owns the
+  canonical learned-lane promotion runner in
+  `crates/psionic-research/examples/tassadar_executor_attention_promotion_run.rs`,
+  the extracted-workspace checkpoint/bootstrap pathing is fixed, and the green
+  learned bundle now lives at `fixtures/tassadar/runs/sudoku_v0_promotion_v3`
+  with a bootstrap seed under `bootstrap_pc_boundary`; the selected checkpoint
+  `epoch_0015` from `prompt_to_first_32_tokens` now clears the full gate
+  (`10000` bps first-target, `10000` bps first-8, `10000` bps first-32,
+  `2/2` exact validation traces), `exact_trace_samples.json` captures both
+  validation cases, `failure_samples.json` is empty, and the repo-owned gate
+  checker revalidates the stored report as passed, so the learned 4x4 lane is
+  now promotable and Phase 16 is no longer blocked on Phase 14
 - landed trained-executor Phase 15 follow-on bar: `psionic-models` now carries
   a separate bounded `TassadarExecutorAttentionTransformer` family with layered
   full-prefix causal hard-max attention, fixed 2D head geometry, explicit

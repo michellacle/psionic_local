@@ -19,11 +19,11 @@ It did not.
 
 The preserved bundle root is:
 
-- `crates/psionic/fixtures/tassadar/runs/sudoku_v0_promotion_v2`
+- `fixtures/tassadar/runs/sudoku_v0_promotion_v2`
 
 The decisive artifact is:
 
-- `crates/psionic/fixtures/tassadar/runs/sudoku_v0_promotion_v2/promotion_gate_report.json`
+- `fixtures/tassadar/runs/sudoku_v0_promotion_v2/promotion_gate_report.json`
 
 The run kept the same lookup-family surface as `promotion_v1`:
 
@@ -69,7 +69,7 @@ not beat it.
 ## What The Learning Curve Showed
 
 The checkpoint curve in
-`crates/psionic/fixtures/tassadar/runs/sudoku_v0_promotion_v2/exactness_curve.json`
+`fixtures/tassadar/runs/sudoku_v0_promotion_v2/exactness_curve.json`
 shows:
 
 - `prompt_to_first_token` through `prompt_to_first_4_tokens`
@@ -140,7 +140,7 @@ What is now justified:
 
 What is not justified:
 
-- closing `#3814`
+- closing `#7`
 - promoting 9x9
 - promoting Hungarian
 - implying article fidelity

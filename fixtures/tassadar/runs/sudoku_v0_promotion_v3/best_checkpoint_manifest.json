@@ -1,0 +1,19 @@
+{
+  "run_id": "tassadar-executor-attention-sudoku-v0-promotion-v3",
+  "trainable_surface": "executor_attention_candidate.relative_target_output_bias_plus_trace_schema_bias",
+  "checkpoint_id": "tassadar-executor-attention-sudoku-v0-promotion-v3.checkpoint.epoch_0015",
+  "checkpoint_family": "tassadar_executor_attention_checkpoint_state",
+  "checkpoint_ref": "checkpoint_state://tassadar-executor-attention-sudoku-v0-promotion-v3.checkpoint.epoch_0015",
+  "selection_basis": "attention_validation_correctness_rank_then_mean_loss",
+  "selected_stage_id": "prompt_to_first_32_tokens",
+  "global_epoch_index": 15,
+  "first_target_exactness_bps": 10000,
+  "first_32_token_exactness_bps": 10000,
+  "exact_trace_case_count": 2,
+  "checkpoint_artifact_ref": "checkpoint_state.json",
+  "model_artifact_ref": "model_descriptor.json",
+  "exactness_curve_ref": "exactness_curve.json",
+  "failure_samples_ref": "failure_samples.json",
+  "exact_trace_samples_ref": "exact_trace_samples.json",
+  "report_digest": "63f98e598d0dfc50086acb7d4c8d7a2a2e654fceef8b7f07e66b7f7989ae57da"
+}

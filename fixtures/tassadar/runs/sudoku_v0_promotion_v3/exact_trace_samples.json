@@ -1,0 +1,103 @@
+{
+  "run_id": "tassadar-executor-attention-sudoku-v0-promotion-v3",
+  "dataset_storage_key": "oa.tassadar.sudoku_v0.sequence@train-v0",
+  "dataset_digest": "e71f1538d567d65656a2ca4a5ea6db6cdb444e9bfd80244347e691bba894a2af",
+  "trained_model_descriptor_digest": "ba6a2d2221393a7e707cf70a3108b5daad340f71c9fd95a06db9a854f9cf4f5d",
+  "checkpoint_state_digest": "eb4f8acb722173f7e920419090d5e9551f8dd7667c93e140900a395ddb35453e",
+  "exact_trace_case_count": 2,
+  "samples": [
+    {
+      "sequence_id": "tassadar.sequence.sudoku_v0_validation_a",
+      "case_id": "sudoku_v0_validation_a",
+      "split": "validation",
+      "prompt_token_count": 256,
+      "target_token_count": 32,
+      "final_output_values": [
+        1,
+        2,
+        3,
+        4,
+        3,
+        4,
+        1,
+        2,
+        2,
+        1,
+        4,
+        3,
+        4,
+        3,
+        2,
+        1
+      ],
+      "target_digest": "aafe3ccdeeeef51fb7b7e0ba2fdb7e5aae6e8390a05c24770dc1b865fc9376a5",
+      "target_prefix_tokens": [
+        "<step>",
+        "<step_index>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<pc>",
+        "<byte_00>"
+      ],
+      "target_suffix_tokens": [
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<stack_before>",
+        "<list>"
+      ]
+    },
+    {
+      "sequence_id": "tassadar.sequence.sudoku_v0_validation_b",
+      "case_id": "sudoku_v0_validation_b",
+      "split": "validation",
+      "prompt_token_count": 256,
+      "target_token_count": 32,
+      "final_output_values": [
+        2,
+        1,
+        4,
+        3,
+        3,
+        4,
+        1,
+        2,
+        1,
+        2,
+        3,
+        4,
+        4,
+        3,
+        2,
+        1
+      ],
+      "target_digest": "aafe3ccdeeeef51fb7b7e0ba2fdb7e5aae6e8390a05c24770dc1b865fc9376a5",
+      "target_prefix_tokens": [
+        "<step>",
+        "<step_index>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<pc>",
+        "<byte_00>"
+      ],
+      "target_suffix_tokens": [
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<byte_00>",
+        "<stack_before>",
+        "<list>"
+      ]
+    }
+  ],
+  "report_digest": "1cc8de32e5654032ac2969185ed9de40edb7dfe1fc1cbeb6adb472645efc6b44"
+}

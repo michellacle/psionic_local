@@ -1,0 +1,16 @@
+{
+  "run_id": "tassadar-executor-attention-sudoku-v0-promotion-v3",
+  "model_id": "tassadar-executor-attention-transformer-sudoku-v0-v0",
+  "output_dir": "fixtures/tassadar/runs/sudoku_v0_promotion_v3",
+  "bootstrap_run_bundle_ref": "fixtures/tassadar/runs/sudoku_v0_promotion_v3/bootstrap_pc_boundary/run_bundle.json",
+  "training_report_file": "training_report.json",
+  "family_report_file": "family_report.json",
+  "checkpoint_state_file": "checkpoint_state.json",
+  "model_descriptor_file": "model_descriptor.json",
+  "best_checkpoint_manifest_file": "best_checkpoint_manifest.json",
+  "exactness_curve_file": "exactness_curve.json",
+  "failure_samples_file": "failure_samples.json",
+  "exact_trace_samples_file": "exact_trace_samples.json",
+  "promotion_gate_report_file": "promotion_gate_report.json",
+  "bundle_digest": "f150953249b79996ccdcf0135fe0003f1daa8596086d2f3af5ea1fa3f2facce8"
+}
