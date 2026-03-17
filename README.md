@@ -8,8 +8,8 @@ sandbox execution, serving interfaces, adapter packaging, evaluation, research,
 and the early training substrate.
 
 It intentionally lives in this standalone `psionic` workspace so the engine can
-evolve without bleeding product behavior into `apps/*` or authority logic into
-kernel and Nexus surfaces.
+evolve without bleeding product behavior, operator UX, or settlement authority
+into the reusable execution substrate.
 
 ## Doc Authority
 
@@ -22,6 +22,11 @@ kernel and Nexus surfaces.
 - `docs/TRAIN_SYSTEM.md` is the canonical training subsystem spec.
 - research audits explain direction and rationale, but they are not the
   authoritative current-state spec.
+
+This repo was extracted from the larger `openagents` tree. Some deeper docs and
+audits still reference historical parent-repo paths or app-owned surfaces that
+do not ship here; treat those as external or historical context unless the file
+exists in this repository.
 
 ## What Psionic is
 
@@ -38,11 +43,11 @@ kernel and Nexus surfaces.
 
 ## What Psionic is not
 
-- Not `apps/autopilot-desktop`, Mission Control, wallet/payout logic, or
-  buyer/provider product orchestration.
-- Not kernel/Nexus authority for compute-market truth, settlement, or accepted
+- Not desktop UX, wallet or payout logic, or buyer/provider product
+  orchestration.
+- Not external authority for compute-market truth, settlement, or accepted
   outcomes.
-- Not a shortcut around `docs/OWNERSHIP.md`.
+- Not a shortcut around crate boundaries or the canonical specs in `docs/`.
 - Not a claim that every backend, model family, serving topology, or
   training-class lane is fully productized.
 - Not a hidden Python control plane disguised as Rust crates.
@@ -321,7 +326,8 @@ Current posture:
   claim boundaries machine-legible
 - it is not current MVP compute-market product scope
 - it is not a claim that Psionic is replacing native CPU execution
-- its landed Phase 0/1/2/3/4/5/6/7A/7B/8A/8B/9A/9B/9C/9D issue spine is tracked in
+- its landed Phase 0/1/2/3/4/5/6/7A/7B/8A/8B/9A/9B/9C/9D issue spine was first
+  tracked in the original `openagents` backlog:
   [#3743](https://github.com/OpenAgentsInc/openagents/issues/3743) and
   [#3744](https://github.com/OpenAgentsInc/openagents/issues/3744) and
   [#3745](https://github.com/OpenAgentsInc/openagents/issues/3745) and
@@ -529,62 +535,56 @@ backend parity or fully generalized distributed training.
 
 ### Apple Foundation Models Status
 
-The Apple Foundation Models lane now has two distinct pieces that need to be
-described separately:
+The Apple Foundation Models lane in this standalone repo has two distinct
+pieces:
 
-- the Swift bridge plus `psionic-apple-fm` runtime surface
-- the repo-owned Apple adapter training/export path in `psionic-train`
+- the Rust-side contract and client surface in `psionic-apple-fm`
+- the repo-owned Apple adapter package, train, eval, and fixture lanes in
+  `psionic-adapters`, `psionic-train`, `psionic-eval`, and
+  `fixtures/apple_adapter/`
 
-The bridge side is real and usable today for inference-time integration. The
-Swift sidecar exposes health, model availability, sessions, structured output,
-tool use, streaming, adapter inventory, adapter load/unload, and
-session/request-level adapter binding. That is the path the desktop app and
-`autopilotctl apple-fm ...` use to talk to Apple's runtime.
+What ships here today:
 
-The training side is also real now, but it is not "the bridge trains models"
-and it is not a claim that Apple exposes a repo-controlled training API. The
-current repo-owned training path imports Apple adapter JSONL data through
-`psionic-data`, binds it to the Apple train/eval environment package family in
-`psionic-environments`, runs a fixed-budget adapter-only SFT loop in
-`psionic-train`, exports a valid `.fmadapter` through `psionic-adapters`, and
-can then load that package back into the bridge for local runtime smoke.
+- `psionic-apple-fm` defines the Rust client, request/response contracts,
+  structured-output helpers, transcript/tool types, and error surface for an
+  Apple FM bridge
+- `psionic-adapters` can parse, validate, write, and bind Apple
+  `.fmadapter` packages
+- `psionic-train` owns a bounded adapter-only Apple training/export lane
+- `psionic-eval` and `fixtures/apple_adapter/` own benchmark/eval fixtures and
+  reference reports for that lane
 
-In concrete terms, yes: the repo can now train LoRA-style Apple adapter
-patches today. The honest current scope is:
+What does not ship here:
+
+- the Swift bridge implementation itself
+- app-owned bridge supervision or packaging
+- `autopilotctl` operator flows
+- the old release harnesses that lived in the parent `openagents` repo
+
+In concrete terms, this repo can train and export LoRA-style Apple adapter
+packages and can evaluate them against repo-owned fixtures, but loading those
+packages into a live Apple runtime still depends on external bridge and
+operator tooling outside this repository.
+
+The honest current scope is:
 
 - frozen-base, adapter-only training over explicit low-rank parameter groups
 - `f32` reference precision only
-- graph-level checkpoint transforms exist in `psionic-ir`, but activation checkpointing remains disabled in the shipped Apple reference lane
-- held-out eval plus bridge-backed runtime-smoke validation before acceptance
-- app-owned operator flow through `autopilotctl training launch`,
-  `autopilotctl training export`, `autopilotctl training accept`, and
-  `autopilotctl apple-fm load|attach`
-
-The benchmark-usefulness claim is narrower than the export/runtime claim. The
-canonical gate for "is this adapter actually useful?" is
-`scripts/release/check-psionic-apple-architecture-explainer-acceptance.sh`, not
-`autopilotctl training accept` by itself. The latest live acceptance harness
-receipt on 2026-03-16 passed the weak overfit stage at `520` score bps,
-`1428` pass-rate bps, and `1` improved case, but the standard stage remained
-rejected at `571` score bps, `1428` pass-rate bps, and `1` improved case. The
-current truthful claim is therefore:
-
-- the Rust-only Apple lane can train, export, load, and runtime-smoke valid
-  `.fmadapter` packages
-- the same lane can clear the weak overfit non-zero gate
-- the standard benchmark-useful gate is still red
-- export validity, runtime smoke, and authority acceptance do not by
-  themselves prove benchmark-useful quality
+- graph-level checkpoint transforms exist in `psionic-ir`, but activation
+  checkpointing remains disabled in the shipped Apple reference lane
+- held-out eval and package/runtime contract validation are repo-owned here
+- benchmark-useful quality remains a separate claim from package validity or
+  export success
 
 What this does not mean is "full distributed Apple training is done." The
-current Apple lane reuses the repo's data, environment, eval, optimizer,
-autodiff, run-summary, and authority substrate, but it does not yet execute
-through real `psionic-cluster` multi-node training, collective-backed
-parameter exchange, sharded optimizer state, or production multi-device
-training kernels. Those cluster/distributed-training contracts already exist as
-Psionic substrate and are intended to be reused later for broader training
-lanes, but the current Apple adapter path is still a narrow single-host
-reference execution lane.
+current Apple lane reuses the repo's data, environment, eval, optimizer, and
+autodiff substrate, but it does not yet execute through real
+`psionic-cluster` multi-node training, collective-backed parameter exchange,
+sharded optimizer state, or production multi-device training kernels. Those
+cluster and distributed-training contracts already exist as Psionic substrate
+and are intended to be reused later for broader training lanes, but the
+current Apple adapter path is still a narrow single-host reference execution
+lane.
 
 Implemented now:
 
