@@ -467,6 +467,17 @@ The current scope is:
   closure on the matched corpus while keeping the boundary explicit
   (`eval_only`, article-sized matching closure on the larger matching profile,
   not learned Hungarian execution, and not full compiled article parity)
+- landed generic compiled kernel-suite follow-on bar: `psionic-eval` and
+  `psionic-research` now materialize the canonical bundle root at
+  `fixtures/tassadar/runs/compiled_kernel_suite_v0`, covering bounded
+  arithmetic, memory-update, forward-branch, and backward-loop families under
+  `tassadar.wasm.article_i32_compute.v1`; the committed artifacts now carry
+  benchmark/environment, exactness, refusal, claim-boundary, exactness-vs-trace-length
+  scaling, and proof-bearing per-regime deployment evidence for that suite,
+  proving exact compiled/proof-backed kernel closure across those four
+  families while keeping the boundary explicit (`eval_only`, generic kernel
+  evidence only, not arbitrary-program closure, and not full compiled article
+  parity)
 - landed Phase 8A bar: typed `psionic-research` executor-variant family with
   benchmark/proof/lineage-backed bounded runs and machine-readable sweep
   records for reproducible same-contract candidate comparison

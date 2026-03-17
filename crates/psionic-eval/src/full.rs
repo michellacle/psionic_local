@@ -16,6 +16,8 @@ mod attnres;
 mod attnres_training;
 #[path = "tassadar.rs"]
 mod tassadar;
+#[path = "tassadar_compiled_kernel_suite.rs"]
+mod tassadar_compiled_kernel_suite;
 #[path = "tassadar_compiled_executor.rs"]
 mod tassadar_compiled_executor;
 #[path = "tassadar_executor_architecture_comparison.rs"]
@@ -53,6 +55,7 @@ pub use apple_adapter_benchmark::*;
 pub use attnres::*;
 pub use attnres_training::*;
 pub use tassadar::*;
+pub use tassadar_compiled_kernel_suite::*;
 pub use tassadar_compiled_executor::*;
 pub use tassadar_executor_architecture_comparison::*;
 pub use tassadar_executor_benchmark::*;

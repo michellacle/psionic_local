@@ -1,0 +1,3261 @@
+{
+  "runtime_manifest": {
+    "schema_version": 1,
+    "manifest_id": "tassadar-runtime-manifest-compile-arithmetic_kernel_ops_32.compiled_executor",
+    "runtime_identity": {
+      "runtime_backend": "cpu",
+      "backend_toolchain": {
+        "effective_backend": "cpu",
+        "toolchain_version": "tassadar.fixture_runner.v1",
+        "compiled_backend_features": [
+          "tassadar_executor",
+          "tassadar.decode.reference_linear.v1",
+          "tassadar.wasm.article_i32_compute.v1"
+        ],
+        "probe_state": "compiled_only"
+      }
+    },
+    "validation": {
+      "matrix_id": "psionic.minimum_hardware_validation.v1",
+      "documentation_path": "docs/HARDWARE_VALIDATION_MATRIX.md",
+      "claim_id": "tassadar.executor_trace.phase4",
+      "coverage": "not_yet_validated"
+    },
+    "environment_refs": [
+      "compiled://arithmetic_kernel_ops_32.compiled_executor"
+    ],
+    "artifact_bindings": [
+      {
+        "kind": "program_artifact",
+        "reference": "arithmetic_kernel_ops_32.compiled_program_artifact",
+        "digest": "d56e60e96d4bd40d753a0c472252dad4f2be8e34cabf034cd2a4360bc88cb90c"
+      },
+      {
+        "kind": "model_descriptor",
+        "reference": "tassadar-executor-article-i32-compute-v0-compiled-tassadar.compiled_kernel_suite.arithmetic.ops_32.v1",
+        "digest": "083375bd57121edd5c1f913651e730f6fdefb4633cf143d3b09ac71937e7b6c6"
+      },
+      {
+        "kind": "execution_trace",
+        "reference": "tassadar://trace/compile-arithmetic_kernel_ops_32.compiled_executor/05fa12aa4342f813c5e7a6a7a5eeed2785c11e1fa384eb3aadd90c79a65534e0",
+        "digest": "d4a3dac09176c8016ce058cf0ee9ae4d91471ceac20627870489018f01a1bf57"
+      }
+    ],
+    "static_config_bindings": [
+      {
+        "key": "tassadar.cache_algorithm",
+        "value_digest": "f16de0a458b2dc634c95bfda87c00d81df8ce129f63233cdcc30f7480ad179ff"
+      },
+      {
+        "key": "tassadar.compile_toolchain_digest",
+        "value_digest": "e0776cf34748b2c2be3a007fa9bc5fc10504e65efd4d338875299dacac2a0aab"
+      },
+      {
+        "key": "tassadar.decode_mode",
+        "value_digest": "a24bbf8f0463cdb68b8a0989d969dec5c3258f318ebf05729eb05485b0f281f2"
+      },
+      {
+        "key": "tassadar.program_digest",
+        "value_digest": "7ded0b23517f4c9b440b752002a0157c9b7ded87bde9bebd0f265a1843c8312d"
+      },
+      {
+        "key": "tassadar.reference_runner",
+        "value_digest": "e0c7cc93027f98a2ca1a06f8e049ff88e80265603c581d22db0ded1f1c44fbff"
+      },
+      {
+        "key": "tassadar.source_program_digest",
+        "value_digest": "6591c1b2068596b5866db2a9c8f9df175e6d3e73e724b42e9cacc1216ea715ee"
+      }
+    ],
+    "claims_profile_id": "tassadar.executor_trace.proof.v1",
+    "identity_digest": "71bee8960487e4f598a3687a6faaef3369eafb4a2f0d8096635c87c46a07fe42",
+    "manifest_digest": "851d710772a42f9483dd18e4c7f6640032a72b13e31a35f34f9e1c420ce60a37"
+  },
+  "trace_artifact": {
+    "schema_version": 1,
+    "artifact_id": "tassadar://trace/compile-arithmetic_kernel_ops_32.compiled_executor/05fa12aa4342f813c5e7a6a7a5eeed2785c11e1fa384eb3aadd90c79a65534e0",
+    "artifact_digest": "d4a3dac09176c8016ce058cf0ee9ae4d91471ceac20627870489018f01a1bf57",
+    "program_id": "tassadar.compiled_kernel_suite.arithmetic.ops_32.v1",
+    "runner_id": "tassadar.fixture_runner.v1",
+    "trace_abi_id": "tassadar.trace.v1",
+    "trace_abi_version": 1,
+    "trace_digest": "05fa12aa4342f813c5e7a6a7a5eeed2785c11e1fa384eb3aadd90c79a65534e0",
+    "behavior_digest": "c3b208d0916f08de0f4f5320505f21c7572bce8c5905cf9eece1aaf2b459d905",
+    "step_count": 133,
+    "steps": [
+      {
+        "step_index": 0,
+        "pc": 0,
+        "next_pc": 1,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 0
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 0
+        },
+        "stack_before": [],
+        "stack_after": [
+          0
+        ],
+        "locals_after": [
+          0
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 1,
+        "pc": 1,
+        "next_pc": 2,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 0
+        },
+        "stack_before": [
+          0
+        ],
+        "stack_after": [],
+        "locals_after": [
+          0
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 2,
+        "pc": 2,
+        "next_pc": 3,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 0
+        },
+        "stack_before": [],
+        "stack_after": [
+          0
+        ],
+        "locals_after": [
+          0
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 3,
+        "pc": 3,
+        "next_pc": 4,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 6
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 6
+        },
+        "stack_before": [
+          0
+        ],
+        "stack_after": [
+          0,
+          6
+        ],
+        "locals_after": [
+          0
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 4,
+        "pc": 4,
+        "next_pc": 5,
+        "instruction": {
+          "opcode": "i32_add"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "add",
+          "left": 0,
+          "right": 6,
+          "result": 6
+        },
+        "stack_before": [
+          0,
+          6
+        ],
+        "stack_after": [
+          6
+        ],
+        "locals_after": [
+          0
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 5,
+        "pc": 5,
+        "next_pc": 6,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 6
+        },
+        "stack_before": [
+          6
+        ],
+        "stack_after": [],
+        "locals_after": [
+          6
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 6,
+        "pc": 6,
+        "next_pc": 7,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 6
+        },
+        "stack_before": [],
+        "stack_after": [
+          6
+        ],
+        "locals_after": [
+          6
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 7,
+        "pc": 7,
+        "next_pc": 8,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 8
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 8
+        },
+        "stack_before": [
+          6
+        ],
+        "stack_after": [
+          6,
+          8
+        ],
+        "locals_after": [
+          6
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 8,
+        "pc": 8,
+        "next_pc": 9,
+        "instruction": {
+          "opcode": "i32_sub"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "sub",
+          "left": 6,
+          "right": 8,
+          "result": -2
+        },
+        "stack_before": [
+          6,
+          8
+        ],
+        "stack_after": [
+          -2
+        ],
+        "locals_after": [
+          6
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 9,
+        "pc": 9,
+        "next_pc": 10,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": -2
+        },
+        "stack_before": [
+          -2
+        ],
+        "stack_after": [],
+        "locals_after": [
+          -2
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 10,
+        "pc": 10,
+        "next_pc": 11,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": -2
+        },
+        "stack_before": [],
+        "stack_after": [
+          -2
+        ],
+        "locals_after": [
+          -2
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 11,
+        "pc": 11,
+        "next_pc": 12,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 10
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 10
+        },
+        "stack_before": [
+          -2
+        ],
+        "stack_after": [
+          -2,
+          10
+        ],
+        "locals_after": [
+          -2
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 12,
+        "pc": 12,
+        "next_pc": 13,
+        "instruction": {
+          "opcode": "i32_add"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "add",
+          "left": -2,
+          "right": 10,
+          "result": 8
+        },
+        "stack_before": [
+          -2,
+          10
+        ],
+        "stack_after": [
+          8
+        ],
+        "locals_after": [
+          -2
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 13,
+        "pc": 13,
+        "next_pc": 14,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 8
+        },
+        "stack_before": [
+          8
+        ],
+        "stack_after": [],
+        "locals_after": [
+          8
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 14,
+        "pc": 14,
+        "next_pc": 15,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 8
+        },
+        "stack_before": [],
+        "stack_after": [
+          8
+        ],
+        "locals_after": [
+          8
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 15,
+        "pc": 15,
+        "next_pc": 16,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 12
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 12
+        },
+        "stack_before": [
+          8
+        ],
+        "stack_after": [
+          8,
+          12
+        ],
+        "locals_after": [
+          8
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 16,
+        "pc": 16,
+        "next_pc": 17,
+        "instruction": {
+          "opcode": "i32_add"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "add",
+          "left": 8,
+          "right": 12,
+          "result": 20
+        },
+        "stack_before": [
+          8,
+          12
+        ],
+        "stack_after": [
+          20
+        ],
+        "locals_after": [
+          8
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 17,
+        "pc": 17,
+        "next_pc": 18,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 20
+        },
+        "stack_before": [
+          20
+        ],
+        "stack_after": [],
+        "locals_after": [
+          20
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 18,
+        "pc": 18,
+        "next_pc": 19,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 20
+        },
+        "stack_before": [],
+        "stack_after": [
+          20
+        ],
+        "locals_after": [
+          20
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 19,
+        "pc": 19,
+        "next_pc": 20,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 14
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 14
+        },
+        "stack_before": [
+          20
+        ],
+        "stack_after": [
+          20,
+          14
+        ],
+        "locals_after": [
+          20
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 20,
+        "pc": 20,
+        "next_pc": 21,
+        "instruction": {
+          "opcode": "i32_sub"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "sub",
+          "left": 20,
+          "right": 14,
+          "result": 6
+        },
+        "stack_before": [
+          20,
+          14
+        ],
+        "stack_after": [
+          6
+        ],
+        "locals_after": [
+          20
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 21,
+        "pc": 21,
+        "next_pc": 22,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 6
+        },
+        "stack_before": [
+          6
+        ],
+        "stack_after": [],
+        "locals_after": [
+          6
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 22,
+        "pc": 22,
+        "next_pc": 23,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 6
+        },
+        "stack_before": [],
+        "stack_after": [
+          6
+        ],
+        "locals_after": [
+          6
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 23,
+        "pc": 23,
+        "next_pc": 24,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 16
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 16
+        },
+        "stack_before": [
+          6
+        ],
+        "stack_after": [
+          6,
+          16
+        ],
+        "locals_after": [
+          6
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 24,
+        "pc": 24,
+        "next_pc": 25,
+        "instruction": {
+          "opcode": "i32_add"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "add",
+          "left": 6,
+          "right": 16,
+          "result": 22
+        },
+        "stack_before": [
+          6,
+          16
+        ],
+        "stack_after": [
+          22
+        ],
+        "locals_after": [
+          6
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 25,
+        "pc": 25,
+        "next_pc": 26,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 22
+        },
+        "stack_before": [
+          22
+        ],
+        "stack_after": [],
+        "locals_after": [
+          22
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 26,
+        "pc": 26,
+        "next_pc": 27,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 22
+        },
+        "stack_before": [],
+        "stack_after": [
+          22
+        ],
+        "locals_after": [
+          22
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 27,
+        "pc": 27,
+        "next_pc": 28,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 18
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 18
+        },
+        "stack_before": [
+          22
+        ],
+        "stack_after": [
+          22,
+          18
+        ],
+        "locals_after": [
+          22
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 28,
+        "pc": 28,
+        "next_pc": 29,
+        "instruction": {
+          "opcode": "i32_add"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "add",
+          "left": 22,
+          "right": 18,
+          "result": 40
+        },
+        "stack_before": [
+          22,
+          18
+        ],
+        "stack_after": [
+          40
+        ],
+        "locals_after": [
+          22
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 29,
+        "pc": 29,
+        "next_pc": 30,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 40
+        },
+        "stack_before": [
+          40
+        ],
+        "stack_after": [],
+        "locals_after": [
+          40
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 30,
+        "pc": 30,
+        "next_pc": 31,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 40
+        },
+        "stack_before": [],
+        "stack_after": [
+          40
+        ],
+        "locals_after": [
+          40
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 31,
+        "pc": 31,
+        "next_pc": 32,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 20
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 20
+        },
+        "stack_before": [
+          40
+        ],
+        "stack_after": [
+          40,
+          20
+        ],
+        "locals_after": [
+          40
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 32,
+        "pc": 32,
+        "next_pc": 33,
+        "instruction": {
+          "opcode": "i32_sub"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "sub",
+          "left": 40,
+          "right": 20,
+          "result": 20
+        },
+        "stack_before": [
+          40,
+          20
+        ],
+        "stack_after": [
+          20
+        ],
+        "locals_after": [
+          40
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 33,
+        "pc": 33,
+        "next_pc": 34,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 20
+        },
+        "stack_before": [
+          20
+        ],
+        "stack_after": [],
+        "locals_after": [
+          20
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 34,
+        "pc": 34,
+        "next_pc": 35,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 20
+        },
+        "stack_before": [],
+        "stack_after": [
+          20
+        ],
+        "locals_after": [
+          20
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 35,
+        "pc": 35,
+        "next_pc": 36,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 22
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 22
+        },
+        "stack_before": [
+          20
+        ],
+        "stack_after": [
+          20,
+          22
+        ],
+        "locals_after": [
+          20
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 36,
+        "pc": 36,
+        "next_pc": 37,
+        "instruction": {
+          "opcode": "i32_add"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "add",
+          "left": 20,
+          "right": 22,
+          "result": 42
+        },
+        "stack_before": [
+          20,
+          22
+        ],
+        "stack_after": [
+          42
+        ],
+        "locals_after": [
+          20
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 37,
+        "pc": 37,
+        "next_pc": 38,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 42
+        },
+        "stack_before": [
+          42
+        ],
+        "stack_after": [],
+        "locals_after": [
+          42
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 38,
+        "pc": 38,
+        "next_pc": 39,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 42
+        },
+        "stack_before": [],
+        "stack_after": [
+          42
+        ],
+        "locals_after": [
+          42
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 39,
+        "pc": 39,
+        "next_pc": 40,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 24
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 24
+        },
+        "stack_before": [
+          42
+        ],
+        "stack_after": [
+          42,
+          24
+        ],
+        "locals_after": [
+          42
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 40,
+        "pc": 40,
+        "next_pc": 41,
+        "instruction": {
+          "opcode": "i32_add"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "add",
+          "left": 42,
+          "right": 24,
+          "result": 66
+        },
+        "stack_before": [
+          42,
+          24
+        ],
+        "stack_after": [
+          66
+        ],
+        "locals_after": [
+          42
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 41,
+        "pc": 41,
+        "next_pc": 42,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 66
+        },
+        "stack_before": [
+          66
+        ],
+        "stack_after": [],
+        "locals_after": [
+          66
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 42,
+        "pc": 42,
+        "next_pc": 43,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 66
+        },
+        "stack_before": [],
+        "stack_after": [
+          66
+        ],
+        "locals_after": [
+          66
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 43,
+        "pc": 43,
+        "next_pc": 44,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 26
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 26
+        },
+        "stack_before": [
+          66
+        ],
+        "stack_after": [
+          66,
+          26
+        ],
+        "locals_after": [
+          66
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 44,
+        "pc": 44,
+        "next_pc": 45,
+        "instruction": {
+          "opcode": "i32_sub"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "sub",
+          "left": 66,
+          "right": 26,
+          "result": 40
+        },
+        "stack_before": [
+          66,
+          26
+        ],
+        "stack_after": [
+          40
+        ],
+        "locals_after": [
+          66
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 45,
+        "pc": 45,
+        "next_pc": 46,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 40
+        },
+        "stack_before": [
+          40
+        ],
+        "stack_after": [],
+        "locals_after": [
+          40
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 46,
+        "pc": 46,
+        "next_pc": 47,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 40
+        },
+        "stack_before": [],
+        "stack_after": [
+          40
+        ],
+        "locals_after": [
+          40
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 47,
+        "pc": 47,
+        "next_pc": 48,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 28
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 28
+        },
+        "stack_before": [
+          40
+        ],
+        "stack_after": [
+          40,
+          28
+        ],
+        "locals_after": [
+          40
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 48,
+        "pc": 48,
+        "next_pc": 49,
+        "instruction": {
+          "opcode": "i32_add"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "add",
+          "left": 40,
+          "right": 28,
+          "result": 68
+        },
+        "stack_before": [
+          40,
+          28
+        ],
+        "stack_after": [
+          68
+        ],
+        "locals_after": [
+          40
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 49,
+        "pc": 49,
+        "next_pc": 50,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 68
+        },
+        "stack_before": [
+          68
+        ],
+        "stack_after": [],
+        "locals_after": [
+          68
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 50,
+        "pc": 50,
+        "next_pc": 51,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 68
+        },
+        "stack_before": [],
+        "stack_after": [
+          68
+        ],
+        "locals_after": [
+          68
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 51,
+        "pc": 51,
+        "next_pc": 52,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 30
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 30
+        },
+        "stack_before": [
+          68
+        ],
+        "stack_after": [
+          68,
+          30
+        ],
+        "locals_after": [
+          68
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 52,
+        "pc": 52,
+        "next_pc": 53,
+        "instruction": {
+          "opcode": "i32_add"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "add",
+          "left": 68,
+          "right": 30,
+          "result": 98
+        },
+        "stack_before": [
+          68,
+          30
+        ],
+        "stack_after": [
+          98
+        ],
+        "locals_after": [
+          68
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 53,
+        "pc": 53,
+        "next_pc": 54,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 98
+        },
+        "stack_before": [
+          98
+        ],
+        "stack_after": [],
+        "locals_after": [
+          98
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 54,
+        "pc": 54,
+        "next_pc": 55,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 98
+        },
+        "stack_before": [],
+        "stack_after": [
+          98
+        ],
+        "locals_after": [
+          98
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 55,
+        "pc": 55,
+        "next_pc": 56,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 32
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 32
+        },
+        "stack_before": [
+          98
+        ],
+        "stack_after": [
+          98,
+          32
+        ],
+        "locals_after": [
+          98
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 56,
+        "pc": 56,
+        "next_pc": 57,
+        "instruction": {
+          "opcode": "i32_sub"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "sub",
+          "left": 98,
+          "right": 32,
+          "result": 66
+        },
+        "stack_before": [
+          98,
+          32
+        ],
+        "stack_after": [
+          66
+        ],
+        "locals_after": [
+          98
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 57,
+        "pc": 57,
+        "next_pc": 58,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 66
+        },
+        "stack_before": [
+          66
+        ],
+        "stack_after": [],
+        "locals_after": [
+          66
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 58,
+        "pc": 58,
+        "next_pc": 59,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 66
+        },
+        "stack_before": [],
+        "stack_after": [
+          66
+        ],
+        "locals_after": [
+          66
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 59,
+        "pc": 59,
+        "next_pc": 60,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 34
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 34
+        },
+        "stack_before": [
+          66
+        ],
+        "stack_after": [
+          66,
+          34
+        ],
+        "locals_after": [
+          66
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 60,
+        "pc": 60,
+        "next_pc": 61,
+        "instruction": {
+          "opcode": "i32_add"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "add",
+          "left": 66,
+          "right": 34,
+          "result": 100
+        },
+        "stack_before": [
+          66,
+          34
+        ],
+        "stack_after": [
+          100
+        ],
+        "locals_after": [
+          66
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 61,
+        "pc": 61,
+        "next_pc": 62,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 100
+        },
+        "stack_before": [
+          100
+        ],
+        "stack_after": [],
+        "locals_after": [
+          100
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 62,
+        "pc": 62,
+        "next_pc": 63,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 100
+        },
+        "stack_before": [],
+        "stack_after": [
+          100
+        ],
+        "locals_after": [
+          100
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 63,
+        "pc": 63,
+        "next_pc": 64,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 36
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 36
+        },
+        "stack_before": [
+          100
+        ],
+        "stack_after": [
+          100,
+          36
+        ],
+        "locals_after": [
+          100
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 64,
+        "pc": 64,
+        "next_pc": 65,
+        "instruction": {
+          "opcode": "i32_add"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "add",
+          "left": 100,
+          "right": 36,
+          "result": 136
+        },
+        "stack_before": [
+          100,
+          36
+        ],
+        "stack_after": [
+          136
+        ],
+        "locals_after": [
+          100
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 65,
+        "pc": 65,
+        "next_pc": 66,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 136
+        },
+        "stack_before": [
+          136
+        ],
+        "stack_after": [],
+        "locals_after": [
+          136
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 66,
+        "pc": 66,
+        "next_pc": 67,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 136
+        },
+        "stack_before": [],
+        "stack_after": [
+          136
+        ],
+        "locals_after": [
+          136
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 67,
+        "pc": 67,
+        "next_pc": 68,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 38
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 38
+        },
+        "stack_before": [
+          136
+        ],
+        "stack_after": [
+          136,
+          38
+        ],
+        "locals_after": [
+          136
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 68,
+        "pc": 68,
+        "next_pc": 69,
+        "instruction": {
+          "opcode": "i32_sub"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "sub",
+          "left": 136,
+          "right": 38,
+          "result": 98
+        },
+        "stack_before": [
+          136,
+          38
+        ],
+        "stack_after": [
+          98
+        ],
+        "locals_after": [
+          136
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 69,
+        "pc": 69,
+        "next_pc": 70,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 98
+        },
+        "stack_before": [
+          98
+        ],
+        "stack_after": [],
+        "locals_after": [
+          98
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 70,
+        "pc": 70,
+        "next_pc": 71,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 98
+        },
+        "stack_before": [],
+        "stack_after": [
+          98
+        ],
+        "locals_after": [
+          98
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 71,
+        "pc": 71,
+        "next_pc": 72,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 40
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 40
+        },
+        "stack_before": [
+          98
+        ],
+        "stack_after": [
+          98,
+          40
+        ],
+        "locals_after": [
+          98
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 72,
+        "pc": 72,
+        "next_pc": 73,
+        "instruction": {
+          "opcode": "i32_add"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "add",
+          "left": 98,
+          "right": 40,
+          "result": 138
+        },
+        "stack_before": [
+          98,
+          40
+        ],
+        "stack_after": [
+          138
+        ],
+        "locals_after": [
+          98
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 73,
+        "pc": 73,
+        "next_pc": 74,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 138
+        },
+        "stack_before": [
+          138
+        ],
+        "stack_after": [],
+        "locals_after": [
+          138
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 74,
+        "pc": 74,
+        "next_pc": 75,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 138
+        },
+        "stack_before": [],
+        "stack_after": [
+          138
+        ],
+        "locals_after": [
+          138
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 75,
+        "pc": 75,
+        "next_pc": 76,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 42
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 42
+        },
+        "stack_before": [
+          138
+        ],
+        "stack_after": [
+          138,
+          42
+        ],
+        "locals_after": [
+          138
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 76,
+        "pc": 76,
+        "next_pc": 77,
+        "instruction": {
+          "opcode": "i32_add"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "add",
+          "left": 138,
+          "right": 42,
+          "result": 180
+        },
+        "stack_before": [
+          138,
+          42
+        ],
+        "stack_after": [
+          180
+        ],
+        "locals_after": [
+          138
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 77,
+        "pc": 77,
+        "next_pc": 78,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 180
+        },
+        "stack_before": [
+          180
+        ],
+        "stack_after": [],
+        "locals_after": [
+          180
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 78,
+        "pc": 78,
+        "next_pc": 79,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 180
+        },
+        "stack_before": [],
+        "stack_after": [
+          180
+        ],
+        "locals_after": [
+          180
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 79,
+        "pc": 79,
+        "next_pc": 80,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 44
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 44
+        },
+        "stack_before": [
+          180
+        ],
+        "stack_after": [
+          180,
+          44
+        ],
+        "locals_after": [
+          180
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 80,
+        "pc": 80,
+        "next_pc": 81,
+        "instruction": {
+          "opcode": "i32_sub"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "sub",
+          "left": 180,
+          "right": 44,
+          "result": 136
+        },
+        "stack_before": [
+          180,
+          44
+        ],
+        "stack_after": [
+          136
+        ],
+        "locals_after": [
+          180
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 81,
+        "pc": 81,
+        "next_pc": 82,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 136
+        },
+        "stack_before": [
+          136
+        ],
+        "stack_after": [],
+        "locals_after": [
+          136
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 82,
+        "pc": 82,
+        "next_pc": 83,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 136
+        },
+        "stack_before": [],
+        "stack_after": [
+          136
+        ],
+        "locals_after": [
+          136
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 83,
+        "pc": 83,
+        "next_pc": 84,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 46
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 46
+        },
+        "stack_before": [
+          136
+        ],
+        "stack_after": [
+          136,
+          46
+        ],
+        "locals_after": [
+          136
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 84,
+        "pc": 84,
+        "next_pc": 85,
+        "instruction": {
+          "opcode": "i32_add"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "add",
+          "left": 136,
+          "right": 46,
+          "result": 182
+        },
+        "stack_before": [
+          136,
+          46
+        ],
+        "stack_after": [
+          182
+        ],
+        "locals_after": [
+          136
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 85,
+        "pc": 85,
+        "next_pc": 86,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 182
+        },
+        "stack_before": [
+          182
+        ],
+        "stack_after": [],
+        "locals_after": [
+          182
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 86,
+        "pc": 86,
+        "next_pc": 87,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 182
+        },
+        "stack_before": [],
+        "stack_after": [
+          182
+        ],
+        "locals_after": [
+          182
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 87,
+        "pc": 87,
+        "next_pc": 88,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 48
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 48
+        },
+        "stack_before": [
+          182
+        ],
+        "stack_after": [
+          182,
+          48
+        ],
+        "locals_after": [
+          182
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 88,
+        "pc": 88,
+        "next_pc": 89,
+        "instruction": {
+          "opcode": "i32_add"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "add",
+          "left": 182,
+          "right": 48,
+          "result": 230
+        },
+        "stack_before": [
+          182,
+          48
+        ],
+        "stack_after": [
+          230
+        ],
+        "locals_after": [
+          182
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 89,
+        "pc": 89,
+        "next_pc": 90,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 230
+        },
+        "stack_before": [
+          230
+        ],
+        "stack_after": [],
+        "locals_after": [
+          230
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 90,
+        "pc": 90,
+        "next_pc": 91,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 230
+        },
+        "stack_before": [],
+        "stack_after": [
+          230
+        ],
+        "locals_after": [
+          230
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 91,
+        "pc": 91,
+        "next_pc": 92,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 50
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 50
+        },
+        "stack_before": [
+          230
+        ],
+        "stack_after": [
+          230,
+          50
+        ],
+        "locals_after": [
+          230
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 92,
+        "pc": 92,
+        "next_pc": 93,
+        "instruction": {
+          "opcode": "i32_sub"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "sub",
+          "left": 230,
+          "right": 50,
+          "result": 180
+        },
+        "stack_before": [
+          230,
+          50
+        ],
+        "stack_after": [
+          180
+        ],
+        "locals_after": [
+          230
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 93,
+        "pc": 93,
+        "next_pc": 94,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 180
+        },
+        "stack_before": [
+          180
+        ],
+        "stack_after": [],
+        "locals_after": [
+          180
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 94,
+        "pc": 94,
+        "next_pc": 95,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 180
+        },
+        "stack_before": [],
+        "stack_after": [
+          180
+        ],
+        "locals_after": [
+          180
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 95,
+        "pc": 95,
+        "next_pc": 96,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 52
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 52
+        },
+        "stack_before": [
+          180
+        ],
+        "stack_after": [
+          180,
+          52
+        ],
+        "locals_after": [
+          180
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 96,
+        "pc": 96,
+        "next_pc": 97,
+        "instruction": {
+          "opcode": "i32_add"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "add",
+          "left": 180,
+          "right": 52,
+          "result": 232
+        },
+        "stack_before": [
+          180,
+          52
+        ],
+        "stack_after": [
+          232
+        ],
+        "locals_after": [
+          180
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 97,
+        "pc": 97,
+        "next_pc": 98,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 232
+        },
+        "stack_before": [
+          232
+        ],
+        "stack_after": [],
+        "locals_after": [
+          232
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 98,
+        "pc": 98,
+        "next_pc": 99,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 232
+        },
+        "stack_before": [],
+        "stack_after": [
+          232
+        ],
+        "locals_after": [
+          232
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 99,
+        "pc": 99,
+        "next_pc": 100,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 54
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 54
+        },
+        "stack_before": [
+          232
+        ],
+        "stack_after": [
+          232,
+          54
+        ],
+        "locals_after": [
+          232
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 100,
+        "pc": 100,
+        "next_pc": 101,
+        "instruction": {
+          "opcode": "i32_add"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "add",
+          "left": 232,
+          "right": 54,
+          "result": 286
+        },
+        "stack_before": [
+          232,
+          54
+        ],
+        "stack_after": [
+          286
+        ],
+        "locals_after": [
+          232
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 101,
+        "pc": 101,
+        "next_pc": 102,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 286
+        },
+        "stack_before": [
+          286
+        ],
+        "stack_after": [],
+        "locals_after": [
+          286
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 102,
+        "pc": 102,
+        "next_pc": 103,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 286
+        },
+        "stack_before": [],
+        "stack_after": [
+          286
+        ],
+        "locals_after": [
+          286
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 103,
+        "pc": 103,
+        "next_pc": 104,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 56
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 56
+        },
+        "stack_before": [
+          286
+        ],
+        "stack_after": [
+          286,
+          56
+        ],
+        "locals_after": [
+          286
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 104,
+        "pc": 104,
+        "next_pc": 105,
+        "instruction": {
+          "opcode": "i32_sub"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "sub",
+          "left": 286,
+          "right": 56,
+          "result": 230
+        },
+        "stack_before": [
+          286,
+          56
+        ],
+        "stack_after": [
+          230
+        ],
+        "locals_after": [
+          286
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 105,
+        "pc": 105,
+        "next_pc": 106,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 230
+        },
+        "stack_before": [
+          230
+        ],
+        "stack_after": [],
+        "locals_after": [
+          230
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 106,
+        "pc": 106,
+        "next_pc": 107,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 230
+        },
+        "stack_before": [],
+        "stack_after": [
+          230
+        ],
+        "locals_after": [
+          230
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 107,
+        "pc": 107,
+        "next_pc": 108,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 58
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 58
+        },
+        "stack_before": [
+          230
+        ],
+        "stack_after": [
+          230,
+          58
+        ],
+        "locals_after": [
+          230
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 108,
+        "pc": 108,
+        "next_pc": 109,
+        "instruction": {
+          "opcode": "i32_add"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "add",
+          "left": 230,
+          "right": 58,
+          "result": 288
+        },
+        "stack_before": [
+          230,
+          58
+        ],
+        "stack_after": [
+          288
+        ],
+        "locals_after": [
+          230
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 109,
+        "pc": 109,
+        "next_pc": 110,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 288
+        },
+        "stack_before": [
+          288
+        ],
+        "stack_after": [],
+        "locals_after": [
+          288
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 110,
+        "pc": 110,
+        "next_pc": 111,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 288
+        },
+        "stack_before": [],
+        "stack_after": [
+          288
+        ],
+        "locals_after": [
+          288
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 111,
+        "pc": 111,
+        "next_pc": 112,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 60
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 60
+        },
+        "stack_before": [
+          288
+        ],
+        "stack_after": [
+          288,
+          60
+        ],
+        "locals_after": [
+          288
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 112,
+        "pc": 112,
+        "next_pc": 113,
+        "instruction": {
+          "opcode": "i32_add"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "add",
+          "left": 288,
+          "right": 60,
+          "result": 348
+        },
+        "stack_before": [
+          288,
+          60
+        ],
+        "stack_after": [
+          348
+        ],
+        "locals_after": [
+          288
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 113,
+        "pc": 113,
+        "next_pc": 114,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 348
+        },
+        "stack_before": [
+          348
+        ],
+        "stack_after": [],
+        "locals_after": [
+          348
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 114,
+        "pc": 114,
+        "next_pc": 115,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 348
+        },
+        "stack_before": [],
+        "stack_after": [
+          348
+        ],
+        "locals_after": [
+          348
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 115,
+        "pc": 115,
+        "next_pc": 116,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 62
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 62
+        },
+        "stack_before": [
+          348
+        ],
+        "stack_after": [
+          348,
+          62
+        ],
+        "locals_after": [
+          348
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 116,
+        "pc": 116,
+        "next_pc": 117,
+        "instruction": {
+          "opcode": "i32_sub"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "sub",
+          "left": 348,
+          "right": 62,
+          "result": 286
+        },
+        "stack_before": [
+          348,
+          62
+        ],
+        "stack_after": [
+          286
+        ],
+        "locals_after": [
+          348
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 117,
+        "pc": 117,
+        "next_pc": 118,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 286
+        },
+        "stack_before": [
+          286
+        ],
+        "stack_after": [],
+        "locals_after": [
+          286
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 118,
+        "pc": 118,
+        "next_pc": 119,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 286
+        },
+        "stack_before": [],
+        "stack_after": [
+          286
+        ],
+        "locals_after": [
+          286
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 119,
+        "pc": 119,
+        "next_pc": 120,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 64
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 64
+        },
+        "stack_before": [
+          286
+        ],
+        "stack_after": [
+          286,
+          64
+        ],
+        "locals_after": [
+          286
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 120,
+        "pc": 120,
+        "next_pc": 121,
+        "instruction": {
+          "opcode": "i32_add"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "add",
+          "left": 286,
+          "right": 64,
+          "result": 350
+        },
+        "stack_before": [
+          286,
+          64
+        ],
+        "stack_after": [
+          350
+        ],
+        "locals_after": [
+          286
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 121,
+        "pc": 121,
+        "next_pc": 122,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 350
+        },
+        "stack_before": [
+          350
+        ],
+        "stack_after": [],
+        "locals_after": [
+          350
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 122,
+        "pc": 122,
+        "next_pc": 123,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 350
+        },
+        "stack_before": [],
+        "stack_after": [
+          350
+        ],
+        "locals_after": [
+          350
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 123,
+        "pc": 123,
+        "next_pc": 124,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 66
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 66
+        },
+        "stack_before": [
+          350
+        ],
+        "stack_after": [
+          350,
+          66
+        ],
+        "locals_after": [
+          350
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 124,
+        "pc": 124,
+        "next_pc": 125,
+        "instruction": {
+          "opcode": "i32_add"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "add",
+          "left": 350,
+          "right": 66,
+          "result": 416
+        },
+        "stack_before": [
+          350,
+          66
+        ],
+        "stack_after": [
+          416
+        ],
+        "locals_after": [
+          350
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 125,
+        "pc": 125,
+        "next_pc": 126,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 416
+        },
+        "stack_before": [
+          416
+        ],
+        "stack_after": [],
+        "locals_after": [
+          416
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 126,
+        "pc": 126,
+        "next_pc": 127,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 416
+        },
+        "stack_before": [],
+        "stack_after": [
+          416
+        ],
+        "locals_after": [
+          416
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 127,
+        "pc": 127,
+        "next_pc": 128,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 68
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 68
+        },
+        "stack_before": [
+          416
+        ],
+        "stack_after": [
+          416,
+          68
+        ],
+        "locals_after": [
+          416
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 128,
+        "pc": 128,
+        "next_pc": 129,
+        "instruction": {
+          "opcode": "i32_sub"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "sub",
+          "left": 416,
+          "right": 68,
+          "result": 348
+        },
+        "stack_before": [
+          416,
+          68
+        ],
+        "stack_after": [
+          348
+        ],
+        "locals_after": [
+          416
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 129,
+        "pc": 129,
+        "next_pc": 130,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 348
+        },
+        "stack_before": [
+          348
+        ],
+        "stack_after": [],
+        "locals_after": [
+          348
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 130,
+        "pc": 130,
+        "next_pc": 131,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 348
+        },
+        "stack_before": [],
+        "stack_after": [
+          348
+        ],
+        "locals_after": [
+          348
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 131,
+        "pc": 131,
+        "next_pc": 132,
+        "instruction": {
+          "opcode": "output"
+        },
+        "event": {
+          "kind": "output",
+          "value": 348
+        },
+        "stack_before": [
+          348
+        ],
+        "stack_after": [],
+        "locals_after": [
+          348
+        ],
+        "memory_after": []
+      },
+      {
+        "step_index": 132,
+        "pc": 132,
+        "next_pc": 133,
+        "instruction": {
+          "opcode": "return"
+        },
+        "event": {
+          "kind": "return"
+        },
+        "stack_before": [],
+        "stack_after": [],
+        "locals_after": [
+          348
+        ],
+        "memory_after": []
+      }
+    ]
+  },
+  "trace_proof": {
+    "schema_version": 1,
+    "proof_artifact_id": "tassadar://trace_proof/compile-arithmetic_kernel_ops_32.compiled_executor/05fa12aa4342f813c5e7a6a7a5eeed2785c11e1fa384eb3aadd90c79a65534e0",
+    "proof_digest": "a3ae17d5e7764074ea6dd540e20f896d823527105d80a1bc2b2907d3f30cf28b",
+    "trace_artifact_ref": "tassadar://trace/compile-arithmetic_kernel_ops_32.compiled_executor/05fa12aa4342f813c5e7a6a7a5eeed2785c11e1fa384eb3aadd90c79a65534e0",
+    "trace_artifact_digest": "d4a3dac09176c8016ce058cf0ee9ae4d91471ceac20627870489018f01a1bf57",
+    "trace_digest": "05fa12aa4342f813c5e7a6a7a5eeed2785c11e1fa384eb3aadd90c79a65534e0",
+    "program_digest": "7ded0b23517f4c9b440b752002a0157c9b7ded87bde9bebd0f265a1843c8312d",
+    "program_artifact_digest": "d56e60e96d4bd40d753a0c472252dad4f2be8e34cabf034cd2a4360bc88cb90c",
+    "wasm_profile_id": "tassadar.wasm.article_i32_compute.v1",
+    "model_descriptor_digest": "083375bd57121edd5c1f913651e730f6fdefb4633cf143d3b09ac71937e7b6c6",
+    "decode_mode": "reference_linear",
+    "cache_algorithm_id": "tassadar.cache.linear_scan_kv.v1",
+    "runtime_backend": "cpu",
+    "reference_runner_id": "tassadar.fixture_runner.v1",
+    "validation": {
+      "matrix_id": "psionic.minimum_hardware_validation.v1",
+      "documentation_path": "docs/HARDWARE_VALIDATION_MATRIX.md",
+      "claim_id": "tassadar.executor_trace.phase4",
+      "coverage": "not_yet_validated"
+    },
+    "runtime_manifest_identity_digest": "71bee8960487e4f598a3687a6faaef3369eafb4a2f0d8096635c87c46a07fe42",
+    "runtime_manifest_digest": "851d710772a42f9483dd18e4c7f6640032a72b13e31a35f34f9e1c420ce60a37"
+  },
+  "proof_bundle": {
+    "schema_version": 1,
+    "bundle_kind": "local",
+    "status": "succeeded",
+    "request_id": "compile-arithmetic_kernel_ops_32.compiled_executor",
+    "request_digest": "9c8bbc4660d4b34faf9eb05a78860c5b8f18d9d3740895805ec93d015b93ec6f",
+    "product_id": "psionic.tassadar.compiled_weight",
+    "model_id": "tassadar-executor-article-i32-compute-v0-compiled-tassadar.compiled_kernel_suite.arithmetic.ops_32.v1",
+    "runtime_identity": {
+      "runtime_backend": "cpu",
+      "backend_toolchain": {
+        "effective_backend": "cpu",
+        "toolchain_version": "tassadar.fixture_runner.v1",
+        "compiled_backend_features": [
+          "tassadar_executor",
+          "tassadar.decode.reference_linear.v1",
+          "tassadar.wasm.article_i32_compute.v1"
+        ],
+        "probe_state": "compiled_only"
+      }
+    },
+    "validation": {
+      "matrix_id": "psionic.minimum_hardware_validation.v1",
+      "documentation_path": "docs/HARDWARE_VALIDATION_MATRIX.md",
+      "claim_id": "tassadar.executor_trace.phase4",
+      "coverage": "not_yet_validated"
+    },
+    "artifact_residency": {
+      "weight_bundle_digest": "083375bd57121edd5c1f913651e730f6fdefb4633cf143d3b09ac71937e7b6c6",
+      "input_artifact_digests": [
+        "d56e60e96d4bd40d753a0c472252dad4f2be8e34cabf034cd2a4360bc88cb90c"
+      ],
+      "output_artifact_digests": [
+        "d4a3dac09176c8016ce058cf0ee9ae4d91471ceac20627870489018f01a1bf57",
+        "a3ae17d5e7764074ea6dd540e20f896d823527105d80a1bc2b2907d3f30cf28b"
+      ]
+    },
+    "activation_fingerprint_posture": "unavailable"
+  }
+}

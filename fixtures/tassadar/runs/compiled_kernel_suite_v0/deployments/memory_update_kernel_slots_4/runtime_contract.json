@@ -1,0 +1,21 @@
+{
+  "contract_id": "memory_update_kernel_slots_4.compiled_executor.runtime_contract",
+  "contract_digest": "85e894c8a646c67acd9ac1e7b9b1a6081e10bd26a59ca264843f131ddc2dd965",
+  "deployment_kind": "program_specialized",
+  "model_descriptor_digest": "63ea88cd879cf8a8a2305272855c0609b57783d7f353144e460062399a0df55f",
+  "program_artifact_digest": "a64f0582abbad5e01a64013d1524558e8e6a0c2f39ab78b99ed34e5216c11e0c",
+  "program_digest": "06fff5ba5b8ae12bc252f5a87a1b606b3f056a50d51e57095fd500964fd11bf8",
+  "runtime_backend": "cpu",
+  "reference_runner_id": "tassadar.fixture_runner.v1",
+  "supported_decode_modes": [
+    "hull_cache",
+    "reference_linear",
+    "sparse_top_k"
+  ],
+  "default_decode_mode": "reference_linear",
+  "wasm_profile_id": "tassadar.wasm.article_i32_compute.v1",
+  "trace_abi_id": "tassadar.trace.v1",
+  "trace_abi_version": 1,
+  "compile_runtime_manifest_digest": "04588db67523789d37fb1ea4a06f46208617aad3207cbf689bb97eecc0307dec",
+  "compile_execution_proof_bundle_digest": "a3b159b8104ea9f7704aab640ad3628bd10c2375ea47fb696547eb564f12f9e2"
+}

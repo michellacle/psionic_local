@@ -1,0 +1,1489 @@
+{
+  "artifact_id": "arithmetic_kernel_ops_96.compiled_program_artifact",
+  "artifact_digest": "cec657948b0b06a40feb26611915d60f16a40f20ceee5c2a6487866440c39614",
+  "source_identity": {
+    "source_kind": "fixture",
+    "source_name": "tassadar.compiled_kernel_suite.arithmetic.ops_96.v1",
+    "source_digest": "fb2dca872372de019e5d8afcb64d1c640641a641e3288c4101c95146b21b2c3e"
+  },
+  "toolchain_identity": {
+    "compiler_family": "tassadar_fixture",
+    "compiler_version": "v1",
+    "target": "tassadar.wasm.article_i32_compute.v1",
+    "pipeline_features": [
+      "validated_program",
+      "webassembly_first"
+    ]
+  },
+  "wasm_profile_id": "tassadar.wasm.article_i32_compute.v1",
+  "trace_abi_id": "tassadar.trace.v1",
+  "trace_abi_version": 1,
+  "opcode_vocabulary_digest": "b458516f694c301a7b209bb6e710dfc4b7c2756a107738dd38a8fdc8b2dcd64c",
+  "validated_program_digest": "fb2dca872372de019e5d8afcb64d1c640641a641e3288c4101c95146b21b2c3e",
+  "validated_program": {
+    "program_id": "tassadar.compiled_kernel_suite.arithmetic.ops_96.v1",
+    "profile_id": "tassadar.wasm.article_i32_compute.v1",
+    "local_count": 1,
+    "memory_slots": 0,
+    "instructions": [
+      {
+        "opcode": "i32_const",
+        "value": 0
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 6
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 8
+      },
+      {
+        "opcode": "i32_sub"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 10
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 12
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 14
+      },
+      {
+        "opcode": "i32_sub"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 16
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 18
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 20
+      },
+      {
+        "opcode": "i32_sub"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 22
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 24
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 26
+      },
+      {
+        "opcode": "i32_sub"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 28
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 30
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 32
+      },
+      {
+        "opcode": "i32_sub"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 34
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 36
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 38
+      },
+      {
+        "opcode": "i32_sub"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 40
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 42
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 44
+      },
+      {
+        "opcode": "i32_sub"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 46
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 48
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 50
+      },
+      {
+        "opcode": "i32_sub"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 52
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 54
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 56
+      },
+      {
+        "opcode": "i32_sub"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 58
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 60
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 62
+      },
+      {
+        "opcode": "i32_sub"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 64
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 66
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 68
+      },
+      {
+        "opcode": "i32_sub"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 70
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 72
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 74
+      },
+      {
+        "opcode": "i32_sub"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 76
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 78
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 80
+      },
+      {
+        "opcode": "i32_sub"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 82
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 84
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 86
+      },
+      {
+        "opcode": "i32_sub"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 88
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 90
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 92
+      },
+      {
+        "opcode": "i32_sub"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 94
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 96
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 98
+      },
+      {
+        "opcode": "i32_sub"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 100
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 102
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 104
+      },
+      {
+        "opcode": "i32_sub"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 106
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 108
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 110
+      },
+      {
+        "opcode": "i32_sub"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 112
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 114
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 116
+      },
+      {
+        "opcode": "i32_sub"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 118
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 120
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 122
+      },
+      {
+        "opcode": "i32_sub"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 124
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 126
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 128
+      },
+      {
+        "opcode": "i32_sub"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 130
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 132
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 134
+      },
+      {
+        "opcode": "i32_sub"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 136
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 138
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 140
+      },
+      {
+        "opcode": "i32_sub"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 142
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 144
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 146
+      },
+      {
+        "opcode": "i32_sub"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 148
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 150
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 152
+      },
+      {
+        "opcode": "i32_sub"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 154
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 156
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 158
+      },
+      {
+        "opcode": "i32_sub"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 160
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 162
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 164
+      },
+      {
+        "opcode": "i32_sub"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 166
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 168
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 170
+      },
+      {
+        "opcode": "i32_sub"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 172
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 174
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 176
+      },
+      {
+        "opcode": "i32_sub"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 178
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 180
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 182
+      },
+      {
+        "opcode": "i32_sub"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 184
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 186
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 188
+      },
+      {
+        "opcode": "i32_sub"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 190
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 192
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 194
+      },
+      {
+        "opcode": "i32_sub"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 196
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "output"
+      },
+      {
+        "opcode": "return"
+      }
+    ]
+  }
+}

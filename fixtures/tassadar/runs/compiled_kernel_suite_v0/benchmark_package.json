@@ -1,0 +1,313 @@
+{
+  "abi_version": "psionic.benchmark.v1",
+  "key": {
+    "benchmark_ref": "benchmark://openagents/tassadar/compiled_kernel_suite/reference_fixture",
+    "version": "v0"
+  },
+  "display_name": "Tassadar Compiled Kernel Suite Benchmark",
+  "environment": {
+    "environment_ref": "env.openagents.tassadar.compiled_kernel_suite.benchmark",
+    "version": "v0"
+  },
+  "dataset": {
+    "dataset_ref": "dataset://openagents/tassadar/compiled_kernel_suite",
+    "version": "v0"
+  },
+  "split": "benchmark",
+  "repeat_count": 1,
+  "aggregation": "median_score",
+  "verification_policy": {
+    "require_timer_integrity": true,
+    "require_token_accounting": false,
+    "require_final_state_capture": true,
+    "require_execution_strategy": true
+  },
+  "cases": [
+    {
+      "case_id": "arithmetic_kernel_ops_8",
+      "ordinal": 0,
+      "input_ref": "tassadar://input/arithmetic_kernel_ops_8/none",
+      "expected_output_ref": "tassadar://expected_output/arithmetic_kernel_ops_8",
+      "metadata": {
+        "summary": "execute 8 alternating arithmetic updates in locals",
+        "family_id": "arithmetic_kernel",
+        "family_summary": "local-only arithmetic cascade over the article i32 executor profile",
+        "length_parameter_name": "operation_count",
+        "length_parameter_value": 8,
+        "workload_target": "arithmetic_microprogram",
+        "artifact_id": "tassadar://artifact/v0/compiled_kernel_suite/arithmetic_kernel_ops_8",
+        "artifact_digest": "3882304550c1313cc16c353cc7527f8c42a58c4b5367fa449f8a5d4e9a18d28d",
+        "program_digest": "7d4fe169bc208fc744c9609d05e9d57507b1215e3b843970fed687a3fc92a4b3",
+        "expected_outputs": [
+          20
+        ],
+        "expected_trace_steps": 37,
+        "trace_budget_steps": 131072,
+        "timeout_budget_ms": 30000
+      }
+    },
+    {
+      "case_id": "arithmetic_kernel_ops_32",
+      "ordinal": 1,
+      "input_ref": "tassadar://input/arithmetic_kernel_ops_32/none",
+      "expected_output_ref": "tassadar://expected_output/arithmetic_kernel_ops_32",
+      "metadata": {
+        "summary": "execute 32 alternating arithmetic updates in locals",
+        "family_id": "arithmetic_kernel",
+        "family_summary": "local-only arithmetic cascade over the article i32 executor profile",
+        "length_parameter_name": "operation_count",
+        "length_parameter_value": 32,
+        "workload_target": "arithmetic_microprogram",
+        "artifact_id": "tassadar://artifact/v0/compiled_kernel_suite/arithmetic_kernel_ops_32",
+        "artifact_digest": "6216d3c7fb0efcdf4beece35710f1a28c46eac29f19711c520cd8197cfa32319",
+        "program_digest": "7ded0b23517f4c9b440b752002a0157c9b7ded87bde9bebd0f265a1843c8312d",
+        "expected_outputs": [
+          348
+        ],
+        "expected_trace_steps": 133,
+        "trace_budget_steps": 131072,
+        "timeout_budget_ms": 30000
+      }
+    },
+    {
+      "case_id": "arithmetic_kernel_ops_96",
+      "ordinal": 2,
+      "input_ref": "tassadar://input/arithmetic_kernel_ops_96/none",
+      "expected_output_ref": "tassadar://expected_output/arithmetic_kernel_ops_96",
+      "metadata": {
+        "summary": "execute 96 alternating arithmetic updates in locals",
+        "family_id": "arithmetic_kernel",
+        "family_summary": "local-only arithmetic cascade over the article i32 executor profile",
+        "length_parameter_name": "operation_count",
+        "length_parameter_value": 96,
+        "workload_target": "arithmetic_microprogram",
+        "artifact_id": "tassadar://artifact/v0/compiled_kernel_suite/arithmetic_kernel_ops_96",
+        "artifact_digest": "9e071f00609a1422ebe4a2a25e4795308ce8ac627b94153c467d6b57ad235a70",
+        "program_digest": "fb2dca872372de019e5d8afcb64d1c640641a641e3288c4101c95146b21b2c3e",
+        "expected_outputs": [
+          3232
+        ],
+        "expected_trace_steps": 389,
+        "trace_budget_steps": 131072,
+        "timeout_budget_ms": 30000
+      }
+    },
+    {
+      "case_id": "memory_update_kernel_slots_4",
+      "ordinal": 3,
+      "input_ref": "tassadar://input/memory_update_kernel_slots_4/none",
+      "expected_output_ref": "tassadar://expected_output/memory_update_kernel_slots_4",
+      "metadata": {
+        "summary": "update and accumulate the first 4 memory slots",
+        "family_id": "memory_update_kernel",
+        "family_summary": "memory update accumulator with repeated load/add/store passes",
+        "length_parameter_name": "slot_count",
+        "length_parameter_value": 4,
+        "workload_target": "memory_lookup_microprogram",
+        "artifact_id": "tassadar://artifact/v0/compiled_kernel_suite/memory_update_kernel_slots_4",
+        "artifact_digest": "64030c8601585e34734bbcb8a01379613bd40b94098719af59ffe83d3234c276",
+        "program_digest": "06fff5ba5b8ae12bc252f5a87a1b606b3f056a50d51e57095fd500964fd11bf8",
+        "expected_outputs": [
+          20
+        ],
+        "expected_trace_steps": 37,
+        "trace_budget_steps": 131072,
+        "timeout_budget_ms": 30000
+      }
+    },
+    {
+      "case_id": "memory_update_kernel_slots_16",
+      "ordinal": 4,
+      "input_ref": "tassadar://input/memory_update_kernel_slots_16/none",
+      "expected_output_ref": "tassadar://expected_output/memory_update_kernel_slots_16",
+      "metadata": {
+        "summary": "update and accumulate the first 16 memory slots",
+        "family_id": "memory_update_kernel",
+        "family_summary": "memory update accumulator with repeated load/add/store passes",
+        "length_parameter_name": "slot_count",
+        "length_parameter_value": 16,
+        "workload_target": "memory_lookup_microprogram",
+        "artifact_id": "tassadar://artifact/v0/compiled_kernel_suite/memory_update_kernel_slots_16",
+        "artifact_digest": "6edd8052e0567ce408416647fb47241584149c7f5f1f21b3d08d5fb9480212ed",
+        "program_digest": "b4838df4647575c76998c937995a64324d38ed9a3ef1d5cedbde9963d05094d2",
+        "expected_outputs": [
+          272
+        ],
+        "expected_trace_steps": 133,
+        "trace_budget_steps": 131072,
+        "timeout_budget_ms": 30000
+      }
+    },
+    {
+      "case_id": "memory_update_kernel_slots_32",
+      "ordinal": 5,
+      "input_ref": "tassadar://input/memory_update_kernel_slots_32/none",
+      "expected_output_ref": "tassadar://expected_output/memory_update_kernel_slots_32",
+      "metadata": {
+        "summary": "update and accumulate the first 32 memory slots",
+        "family_id": "memory_update_kernel",
+        "family_summary": "memory update accumulator with repeated load/add/store passes",
+        "length_parameter_name": "slot_count",
+        "length_parameter_value": 32,
+        "workload_target": "memory_lookup_microprogram",
+        "artifact_id": "tassadar://artifact/v0/compiled_kernel_suite/memory_update_kernel_slots_32",
+        "artifact_digest": "476a3f9279953225920e914176302a236159faa773e61b35698aa99ebf597e30",
+        "program_digest": "e0bb407305eb4e98cf7c15a971f2098e9a6219f29ec18ba60a31f0f6e7a2b0d0",
+        "expected_outputs": [
+          1056
+        ],
+        "expected_trace_steps": 261,
+        "trace_budget_steps": 131072,
+        "timeout_budget_ms": 30000
+      }
+    },
+    {
+      "case_id": "forward_branch_kernel_branches_2",
+      "ordinal": 6,
+      "input_ref": "tassadar://input/forward_branch_kernel_branches_2/none",
+      "expected_output_ref": "tassadar://expected_output/forward_branch_kernel_branches_2",
+      "metadata": {
+        "summary": "evaluate 2 forward-branch pivots with alternating lanes",
+        "family_id": "forward_branch_kernel",
+        "family_summary": "acyclic forward-branch ladder with alternating taken and untaken pivots",
+        "length_parameter_name": "branch_count",
+        "length_parameter_value": 2,
+        "workload_target": "branch_control_flow_microprogram",
+        "artifact_id": "tassadar://artifact/v0/compiled_kernel_suite/forward_branch_kernel_branches_2",
+        "artifact_digest": "186e9dd0289654fbbed314363983827d008257eae72d9291ee8389531f337a57",
+        "program_digest": "6826025af6d2aa3f58b689fe77894bcb58cee28bc16747aee6b522a87a61c6bd",
+        "expected_outputs": [
+          22
+        ],
+        "expected_trace_steps": 19,
+        "trace_budget_steps": 131072,
+        "timeout_budget_ms": 30000
+      }
+    },
+    {
+      "case_id": "forward_branch_kernel_branches_8",
+      "ordinal": 7,
+      "input_ref": "tassadar://input/forward_branch_kernel_branches_8/none",
+      "expected_output_ref": "tassadar://expected_output/forward_branch_kernel_branches_8",
+      "metadata": {
+        "summary": "evaluate 8 forward-branch pivots with alternating lanes",
+        "family_id": "forward_branch_kernel",
+        "family_summary": "acyclic forward-branch ladder with alternating taken and untaken pivots",
+        "length_parameter_name": "branch_count",
+        "length_parameter_value": 8,
+        "workload_target": "branch_control_flow_microprogram",
+        "artifact_id": "tassadar://artifact/v0/compiled_kernel_suite/forward_branch_kernel_branches_8",
+        "artifact_digest": "fdfabeb50e20da06c094ad9556c2412ebe258222bcbf44e37f5b11975ce9df5d",
+        "program_digest": "7e91f1a9abdb2462341fcfd439cc26896dd86066c45c29bf066242f45dca5e5a",
+        "expected_outputs": [
+          184
+        ],
+        "expected_trace_steps": 61,
+        "trace_budget_steps": 131072,
+        "timeout_budget_ms": 30000
+      }
+    },
+    {
+      "case_id": "forward_branch_kernel_branches_16",
+      "ordinal": 8,
+      "input_ref": "tassadar://input/forward_branch_kernel_branches_16/none",
+      "expected_output_ref": "tassadar://expected_output/forward_branch_kernel_branches_16",
+      "metadata": {
+        "summary": "evaluate 16 forward-branch pivots with alternating lanes",
+        "family_id": "forward_branch_kernel",
+        "family_summary": "acyclic forward-branch ladder with alternating taken and untaken pivots",
+        "length_parameter_name": "branch_count",
+        "length_parameter_value": 16,
+        "workload_target": "branch_control_flow_microprogram",
+        "artifact_id": "tassadar://artifact/v0/compiled_kernel_suite/forward_branch_kernel_branches_16",
+        "artifact_digest": "acab02eb7af2916b56585df980ec6d2014234602bd20d7c38fe2aa43328b63b9",
+        "program_digest": "acb8ab03876dfb3ba8c1c8402bd2c5b4f24b9ea566b6f633d66db8ebf227feb8",
+        "expected_outputs": [
+          624
+        ],
+        "expected_trace_steps": 117,
+        "trace_budget_steps": 131072,
+        "timeout_budget_ms": 30000
+      }
+    },
+    {
+      "case_id": "backward_loop_kernel_iters_63",
+      "ordinal": 9,
+      "input_ref": "tassadar://input/backward_loop_kernel_iters_63/none",
+      "expected_output_ref": "tassadar://expected_output/backward_loop_kernel_iters_63",
+      "metadata": {
+        "summary": "count down from 63 through one backward-branch loop",
+        "family_id": "backward_loop_kernel",
+        "family_summary": "backward-branch decrement loop that grows trace length honestly",
+        "length_parameter_name": "iteration_count",
+        "length_parameter_value": 63,
+        "workload_target": "long_loop_kernel",
+        "artifact_id": "tassadar://artifact/v0/compiled_kernel_suite/backward_loop_kernel_iters_63",
+        "artifact_digest": "61a1187e410df2a47360046259f6d1fee9ee5f91022517ecaab6ecff2637314f",
+        "program_digest": "4d9e18ca1431a8fb562fbac8b32f92aba478c1dfd44afefd2f23fd76cc5f5e92",
+        "expected_outputs": [
+          0
+        ],
+        "expected_trace_steps": 511,
+        "trace_budget_steps": 131072,
+        "timeout_budget_ms": 30000
+      }
+    },
+    {
+      "case_id": "backward_loop_kernel_iters_255",
+      "ordinal": 10,
+      "input_ref": "tassadar://input/backward_loop_kernel_iters_255/none",
+      "expected_output_ref": "tassadar://expected_output/backward_loop_kernel_iters_255",
+      "metadata": {
+        "summary": "count down from 255 through one backward-branch loop",
+        "family_id": "backward_loop_kernel",
+        "family_summary": "backward-branch decrement loop that grows trace length honestly",
+        "length_parameter_name": "iteration_count",
+        "length_parameter_value": 255,
+        "workload_target": "long_loop_kernel",
+        "artifact_id": "tassadar://artifact/v0/compiled_kernel_suite/backward_loop_kernel_iters_255",
+        "artifact_digest": "f3a295c8f89122a6dd0e36342af0fd73d0f86163f6e90c373ba9b10093c4b24a",
+        "program_digest": "17aa73b5b5588796d917f6ed8bf1c1a9d409ad84d9ef85e5def8fa10b1dab8ca",
+        "expected_outputs": [
+          0
+        ],
+        "expected_trace_steps": 2047,
+        "trace_budget_steps": 131072,
+        "timeout_budget_ms": 30000
+      }
+    },
+    {
+      "case_id": "backward_loop_kernel_iters_1023",
+      "ordinal": 11,
+      "input_ref": "tassadar://input/backward_loop_kernel_iters_1023/none",
+      "expected_output_ref": "tassadar://expected_output/backward_loop_kernel_iters_1023",
+      "metadata": {
+        "summary": "count down from 1023 through one backward-branch loop",
+        "family_id": "backward_loop_kernel",
+        "family_summary": "backward-branch decrement loop that grows trace length honestly",
+        "length_parameter_name": "iteration_count",
+        "length_parameter_value": 1023,
+        "workload_target": "long_loop_kernel",
+        "artifact_id": "tassadar://artifact/v0/compiled_kernel_suite/backward_loop_kernel_iters_1023",
+        "artifact_digest": "096b637966ce3fe23bb6d7f55636e9539cfc0828d3fd2c75beafe4f3998c4947",
+        "program_digest": "e0d5711762502c6f6b8a40aa1a8ce3bf8c4ed1ae8b699478cd7b52ccdff18dc7",
+        "expected_outputs": [
+          0
+        ],
+        "expected_trace_steps": 8191,
+        "trace_budget_steps": 131072,
+        "timeout_budget_ms": 30000
+      }
+    }
+  ],
+  "metadata": {
+    "tassadar.compiled_executor_metric_id": "tassadar.compiled_kernel_suite_steps_per_second",
+    "tassadar.corpus_digest": "c13755cb209f3721c27f50382c31f8f42986d8586b00631fe6006d9ef78f6af6",
+    "tassadar.current_workload_targets": [
+      "arithmetic_microprogram",
+      "memory_lookup_microprogram",
+      "branch_control_flow_microprogram",
+      "long_loop_kernel"
+    ]
+  }
+}

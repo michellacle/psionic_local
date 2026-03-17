@@ -55,6 +55,16 @@ const COMPILED_HUNGARIAN_10X10_EXACTNESS_REPORT_REF: &str = "fixtures/tassadar/r
 const COMPILED_HUNGARIAN_10X10_COMPATIBILITY_REPORT_REF: &str = "fixtures/tassadar/runs/hungarian_10x10_v0_compiled_executor_v0/compiled_executor_compatibility_report.json";
 const COMPILED_HUNGARIAN_10X10_CLAIM_BOUNDARY_REPORT_REF: &str =
     "fixtures/tassadar/runs/hungarian_10x10_v0_compiled_executor_v0/claim_boundary_report.json";
+const COMPILED_KERNEL_SUITE_RUN_BUNDLE_REF: &str =
+    "fixtures/tassadar/runs/compiled_kernel_suite_v0/run_bundle.json";
+const COMPILED_KERNEL_SUITE_EXACTNESS_REPORT_REF: &str =
+    "fixtures/tassadar/runs/compiled_kernel_suite_v0/compiled_kernel_suite_exactness_report.json";
+const COMPILED_KERNEL_SUITE_COMPATIBILITY_REPORT_REF: &str =
+    "fixtures/tassadar/runs/compiled_kernel_suite_v0/compiled_kernel_suite_compatibility_report.json";
+const COMPILED_KERNEL_SUITE_SCALING_REPORT_REF: &str =
+    "fixtures/tassadar/runs/compiled_kernel_suite_v0/compiled_kernel_suite_scaling_report.json";
+const COMPILED_KERNEL_SUITE_CLAIM_BOUNDARY_REPORT_REF: &str =
+    "fixtures/tassadar/runs/compiled_kernel_suite_v0/claim_boundary_report.json";
 
 /// Canonical output directory for the Tassadar acceptance report.
 pub const TASSADAR_ACCEPTANCE_OUTPUT_DIR: &str = "fixtures/tassadar/reports";
@@ -582,15 +592,25 @@ fn build_compiled_article_class_verdict(
         COMPILED_HUNGARIAN_10X10_RUN_BUNDLE_REF,
         "tassadar_hungarian_10x10_compiled_executor_run_bundle",
     )?;
-    let passed = sudoku_bundle.claim_class == TassadarClaimClass::CompiledArticleClass
+    let kernel_suite_bundle: Value = read_repo_json(
+        COMPILED_KERNEL_SUITE_RUN_BUNDLE_REF,
+        "tassadar_compiled_kernel_suite_run_bundle",
+    )?;
+    let kernel_suite_landed =
+        kernel_suite_bundle["claim_class"].as_str() == Some("compiled_article_class");
+    let passed = false
+        && sudoku_bundle.claim_class == TassadarClaimClass::CompiledArticleClass
         && sudoku_9x9_bundle["claim_class"].as_str() == Some("compiled_article_class")
-        && hungarian_10x10_bundle["claim_class"].as_str() == Some("compiled_article_class");
+        && hungarian_10x10_bundle["claim_class"].as_str() == Some("compiled_article_class")
+        && kernel_suite_landed;
 
     Ok(TassadarAcceptanceVerdict::new(
         "compiled_article_class",
         passed,
         if passed {
             "The compiled/proof-backed lane now advertises article-class closure from committed article workloads and acceptance artifacts."
+        } else if kernel_suite_landed {
+            "Compiled article-class closure is still red: the repo now has exact compiled 9x9 Sudoku, 10x10 Hungarian, and generic arithmetic/memory/branch/loop kernel evidence, but it still lacks the compiled article-closure checker."
         } else {
             "Compiled article-class closure is still red: the repo now has exact compiled 9x9 Sudoku and 10x10 Hungarian bundles, but it still lacks the generic compiled kernel suite and the compiled article-closure checker."
         },
@@ -630,9 +650,38 @@ fn build_compiled_article_class_verdict(
                 COMPILED_HUNGARIAN_10X10_CLAIM_BOUNDARY_REPORT_REF,
                 None,
             ),
+            TassadarAcceptanceEvidenceRef::new(
+                "generic compiled kernel-suite run bundle",
+                COMPILED_KERNEL_SUITE_RUN_BUNDLE_REF,
+                kernel_suite_bundle["bundle_digest"]
+                    .as_str()
+                    .map(std::string::ToString::to_string),
+            ),
+            TassadarAcceptanceEvidenceRef::new(
+                "generic compiled kernel-suite exactness report",
+                COMPILED_KERNEL_SUITE_EXACTNESS_REPORT_REF,
+                None,
+            ),
+            TassadarAcceptanceEvidenceRef::new(
+                "generic compiled kernel-suite compatibility report",
+                COMPILED_KERNEL_SUITE_COMPATIBILITY_REPORT_REF,
+                None,
+            ),
+            TassadarAcceptanceEvidenceRef::new(
+                "generic compiled kernel-suite scaling report",
+                COMPILED_KERNEL_SUITE_SCALING_REPORT_REF,
+                None,
+            ),
+            TassadarAcceptanceEvidenceRef::new(
+                "generic compiled kernel-suite claim-boundary report",
+                COMPILED_KERNEL_SUITE_CLAIM_BOUNDARY_REPORT_REF,
+                None,
+            ),
         ],
         if passed {
             Vec::new()
+        } else if kernel_suite_landed {
+            vec![String::from("PTAS-305 compiled article-closure checker")]
         } else {
             vec![
                 String::from(

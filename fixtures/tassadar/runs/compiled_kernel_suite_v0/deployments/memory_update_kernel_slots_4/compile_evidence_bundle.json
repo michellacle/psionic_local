@@ -1,0 +1,1194 @@
+{
+  "runtime_manifest": {
+    "schema_version": 1,
+    "manifest_id": "tassadar-runtime-manifest-compile-memory_update_kernel_slots_4.compiled_executor",
+    "runtime_identity": {
+      "runtime_backend": "cpu",
+      "backend_toolchain": {
+        "effective_backend": "cpu",
+        "toolchain_version": "tassadar.fixture_runner.v1",
+        "compiled_backend_features": [
+          "tassadar_executor",
+          "tassadar.decode.reference_linear.v1",
+          "tassadar.wasm.article_i32_compute.v1"
+        ],
+        "probe_state": "compiled_only"
+      }
+    },
+    "validation": {
+      "matrix_id": "psionic.minimum_hardware_validation.v1",
+      "documentation_path": "docs/HARDWARE_VALIDATION_MATRIX.md",
+      "claim_id": "tassadar.executor_trace.phase4",
+      "coverage": "not_yet_validated"
+    },
+    "environment_refs": [
+      "compiled://memory_update_kernel_slots_4.compiled_executor"
+    ],
+    "artifact_bindings": [
+      {
+        "kind": "program_artifact",
+        "reference": "memory_update_kernel_slots_4.compiled_program_artifact",
+        "digest": "a64f0582abbad5e01a64013d1524558e8e6a0c2f39ab78b99ed34e5216c11e0c"
+      },
+      {
+        "kind": "model_descriptor",
+        "reference": "tassadar-executor-article-i32-compute-v0-compiled-tassadar.compiled_kernel_suite.memory_update.slots_4.v1",
+        "digest": "63ea88cd879cf8a8a2305272855c0609b57783d7f353144e460062399a0df55f"
+      },
+      {
+        "kind": "execution_trace",
+        "reference": "tassadar://trace/compile-memory_update_kernel_slots_4.compiled_executor/841a02ad77cb712f339abc3ddd1afedea42fd0d92b613ce73e181f693c1073c9",
+        "digest": "08b2effa2aa806cb67d484a5c2172c4fb7b8abd45d53b765dfdf66b34b0943eb"
+      }
+    ],
+    "static_config_bindings": [
+      {
+        "key": "tassadar.cache_algorithm",
+        "value_digest": "f16de0a458b2dc634c95bfda87c00d81df8ce129f63233cdcc30f7480ad179ff"
+      },
+      {
+        "key": "tassadar.compile_toolchain_digest",
+        "value_digest": "e0776cf34748b2c2be3a007fa9bc5fc10504e65efd4d338875299dacac2a0aab"
+      },
+      {
+        "key": "tassadar.decode_mode",
+        "value_digest": "a24bbf8f0463cdb68b8a0989d969dec5c3258f318ebf05729eb05485b0f281f2"
+      },
+      {
+        "key": "tassadar.program_digest",
+        "value_digest": "06fff5ba5b8ae12bc252f5a87a1b606b3f056a50d51e57095fd500964fd11bf8"
+      },
+      {
+        "key": "tassadar.reference_runner",
+        "value_digest": "e0c7cc93027f98a2ca1a06f8e049ff88e80265603c581d22db0ded1f1c44fbff"
+      },
+      {
+        "key": "tassadar.source_program_digest",
+        "value_digest": "fa94e5b90dc91f49a15c8dabf4eba6ecd88727b4f28f974f18ad6b0f5c6066da"
+      }
+    ],
+    "claims_profile_id": "tassadar.executor_trace.proof.v1",
+    "identity_digest": "f2d81c36e8d27df8cdc88533717292e3a93b333fb0d8d383b81faecccde8ea7c",
+    "manifest_digest": "04588db67523789d37fb1ea4a06f46208617aad3207cbf689bb97eecc0307dec"
+  },
+  "trace_artifact": {
+    "schema_version": 1,
+    "artifact_id": "tassadar://trace/compile-memory_update_kernel_slots_4.compiled_executor/841a02ad77cb712f339abc3ddd1afedea42fd0d92b613ce73e181f693c1073c9",
+    "artifact_digest": "08b2effa2aa806cb67d484a5c2172c4fb7b8abd45d53b765dfdf66b34b0943eb",
+    "program_id": "tassadar.compiled_kernel_suite.memory_update.slots_4.v1",
+    "runner_id": "tassadar.fixture_runner.v1",
+    "trace_abi_id": "tassadar.trace.v1",
+    "trace_abi_version": 1,
+    "trace_digest": "841a02ad77cb712f339abc3ddd1afedea42fd0d92b613ce73e181f693c1073c9",
+    "behavior_digest": "f57ab56355775219e451b0267004f1ea81b83e6b810240894069c4c5f66af0c3",
+    "step_count": 37,
+    "steps": [
+      {
+        "step_index": 0,
+        "pc": 0,
+        "next_pc": 1,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 0
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 0
+        },
+        "stack_before": [],
+        "stack_after": [
+          0
+        ],
+        "locals_after": [
+          0
+        ],
+        "memory_after": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      {
+        "step_index": 1,
+        "pc": 1,
+        "next_pc": 2,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 0
+        },
+        "stack_before": [
+          0
+        ],
+        "stack_after": [],
+        "locals_after": [
+          0
+        ],
+        "memory_after": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      {
+        "step_index": 2,
+        "pc": 2,
+        "next_pc": 3,
+        "instruction": {
+          "opcode": "i32_load",
+          "slot": 0
+        },
+        "event": {
+          "kind": "load",
+          "slot": 0,
+          "value": 1
+        },
+        "stack_before": [],
+        "stack_after": [
+          1
+        ],
+        "locals_after": [
+          0
+        ],
+        "memory_after": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      {
+        "step_index": 3,
+        "pc": 3,
+        "next_pc": 4,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 1
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 1
+        },
+        "stack_before": [
+          1
+        ],
+        "stack_after": [
+          1,
+          1
+        ],
+        "locals_after": [
+          0
+        ],
+        "memory_after": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      {
+        "step_index": 4,
+        "pc": 4,
+        "next_pc": 5,
+        "instruction": {
+          "opcode": "i32_add"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "add",
+          "left": 1,
+          "right": 1,
+          "result": 2
+        },
+        "stack_before": [
+          1,
+          1
+        ],
+        "stack_after": [
+          2
+        ],
+        "locals_after": [
+          0
+        ],
+        "memory_after": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      {
+        "step_index": 5,
+        "pc": 5,
+        "next_pc": 6,
+        "instruction": {
+          "opcode": "i32_store",
+          "slot": 0
+        },
+        "event": {
+          "kind": "store",
+          "slot": 0,
+          "value": 2
+        },
+        "stack_before": [
+          2
+        ],
+        "stack_after": [],
+        "locals_after": [
+          0
+        ],
+        "memory_after": [
+          2,
+          2,
+          3,
+          4
+        ]
+      },
+      {
+        "step_index": 6,
+        "pc": 6,
+        "next_pc": 7,
+        "instruction": {
+          "opcode": "i32_load",
+          "slot": 0
+        },
+        "event": {
+          "kind": "load",
+          "slot": 0,
+          "value": 2
+        },
+        "stack_before": [],
+        "stack_after": [
+          2
+        ],
+        "locals_after": [
+          0
+        ],
+        "memory_after": [
+          2,
+          2,
+          3,
+          4
+        ]
+      },
+      {
+        "step_index": 7,
+        "pc": 7,
+        "next_pc": 8,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 0
+        },
+        "stack_before": [
+          2
+        ],
+        "stack_after": [
+          2,
+          0
+        ],
+        "locals_after": [
+          0
+        ],
+        "memory_after": [
+          2,
+          2,
+          3,
+          4
+        ]
+      },
+      {
+        "step_index": 8,
+        "pc": 8,
+        "next_pc": 9,
+        "instruction": {
+          "opcode": "i32_add"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "add",
+          "left": 2,
+          "right": 0,
+          "result": 2
+        },
+        "stack_before": [
+          2,
+          0
+        ],
+        "stack_after": [
+          2
+        ],
+        "locals_after": [
+          0
+        ],
+        "memory_after": [
+          2,
+          2,
+          3,
+          4
+        ]
+      },
+      {
+        "step_index": 9,
+        "pc": 9,
+        "next_pc": 10,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 2
+        },
+        "stack_before": [
+          2
+        ],
+        "stack_after": [],
+        "locals_after": [
+          2
+        ],
+        "memory_after": [
+          2,
+          2,
+          3,
+          4
+        ]
+      },
+      {
+        "step_index": 10,
+        "pc": 10,
+        "next_pc": 11,
+        "instruction": {
+          "opcode": "i32_load",
+          "slot": 1
+        },
+        "event": {
+          "kind": "load",
+          "slot": 1,
+          "value": 2
+        },
+        "stack_before": [],
+        "stack_after": [
+          2
+        ],
+        "locals_after": [
+          2
+        ],
+        "memory_after": [
+          2,
+          2,
+          3,
+          4
+        ]
+      },
+      {
+        "step_index": 11,
+        "pc": 11,
+        "next_pc": 12,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 2
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 2
+        },
+        "stack_before": [
+          2
+        ],
+        "stack_after": [
+          2,
+          2
+        ],
+        "locals_after": [
+          2
+        ],
+        "memory_after": [
+          2,
+          2,
+          3,
+          4
+        ]
+      },
+      {
+        "step_index": 12,
+        "pc": 12,
+        "next_pc": 13,
+        "instruction": {
+          "opcode": "i32_add"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "add",
+          "left": 2,
+          "right": 2,
+          "result": 4
+        },
+        "stack_before": [
+          2,
+          2
+        ],
+        "stack_after": [
+          4
+        ],
+        "locals_after": [
+          2
+        ],
+        "memory_after": [
+          2,
+          2,
+          3,
+          4
+        ]
+      },
+      {
+        "step_index": 13,
+        "pc": 13,
+        "next_pc": 14,
+        "instruction": {
+          "opcode": "i32_store",
+          "slot": 1
+        },
+        "event": {
+          "kind": "store",
+          "slot": 1,
+          "value": 4
+        },
+        "stack_before": [
+          4
+        ],
+        "stack_after": [],
+        "locals_after": [
+          2
+        ],
+        "memory_after": [
+          2,
+          4,
+          3,
+          4
+        ]
+      },
+      {
+        "step_index": 14,
+        "pc": 14,
+        "next_pc": 15,
+        "instruction": {
+          "opcode": "i32_load",
+          "slot": 1
+        },
+        "event": {
+          "kind": "load",
+          "slot": 1,
+          "value": 4
+        },
+        "stack_before": [],
+        "stack_after": [
+          4
+        ],
+        "locals_after": [
+          2
+        ],
+        "memory_after": [
+          2,
+          4,
+          3,
+          4
+        ]
+      },
+      {
+        "step_index": 15,
+        "pc": 15,
+        "next_pc": 16,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 2
+        },
+        "stack_before": [
+          4
+        ],
+        "stack_after": [
+          4,
+          2
+        ],
+        "locals_after": [
+          2
+        ],
+        "memory_after": [
+          2,
+          4,
+          3,
+          4
+        ]
+      },
+      {
+        "step_index": 16,
+        "pc": 16,
+        "next_pc": 17,
+        "instruction": {
+          "opcode": "i32_add"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "add",
+          "left": 4,
+          "right": 2,
+          "result": 6
+        },
+        "stack_before": [
+          4,
+          2
+        ],
+        "stack_after": [
+          6
+        ],
+        "locals_after": [
+          2
+        ],
+        "memory_after": [
+          2,
+          4,
+          3,
+          4
+        ]
+      },
+      {
+        "step_index": 17,
+        "pc": 17,
+        "next_pc": 18,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 6
+        },
+        "stack_before": [
+          6
+        ],
+        "stack_after": [],
+        "locals_after": [
+          6
+        ],
+        "memory_after": [
+          2,
+          4,
+          3,
+          4
+        ]
+      },
+      {
+        "step_index": 18,
+        "pc": 18,
+        "next_pc": 19,
+        "instruction": {
+          "opcode": "i32_load",
+          "slot": 2
+        },
+        "event": {
+          "kind": "load",
+          "slot": 2,
+          "value": 3
+        },
+        "stack_before": [],
+        "stack_after": [
+          3
+        ],
+        "locals_after": [
+          6
+        ],
+        "memory_after": [
+          2,
+          4,
+          3,
+          4
+        ]
+      },
+      {
+        "step_index": 19,
+        "pc": 19,
+        "next_pc": 20,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 3
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 3
+        },
+        "stack_before": [
+          3
+        ],
+        "stack_after": [
+          3,
+          3
+        ],
+        "locals_after": [
+          6
+        ],
+        "memory_after": [
+          2,
+          4,
+          3,
+          4
+        ]
+      },
+      {
+        "step_index": 20,
+        "pc": 20,
+        "next_pc": 21,
+        "instruction": {
+          "opcode": "i32_add"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "add",
+          "left": 3,
+          "right": 3,
+          "result": 6
+        },
+        "stack_before": [
+          3,
+          3
+        ],
+        "stack_after": [
+          6
+        ],
+        "locals_after": [
+          6
+        ],
+        "memory_after": [
+          2,
+          4,
+          3,
+          4
+        ]
+      },
+      {
+        "step_index": 21,
+        "pc": 21,
+        "next_pc": 22,
+        "instruction": {
+          "opcode": "i32_store",
+          "slot": 2
+        },
+        "event": {
+          "kind": "store",
+          "slot": 2,
+          "value": 6
+        },
+        "stack_before": [
+          6
+        ],
+        "stack_after": [],
+        "locals_after": [
+          6
+        ],
+        "memory_after": [
+          2,
+          4,
+          6,
+          4
+        ]
+      },
+      {
+        "step_index": 22,
+        "pc": 22,
+        "next_pc": 23,
+        "instruction": {
+          "opcode": "i32_load",
+          "slot": 2
+        },
+        "event": {
+          "kind": "load",
+          "slot": 2,
+          "value": 6
+        },
+        "stack_before": [],
+        "stack_after": [
+          6
+        ],
+        "locals_after": [
+          6
+        ],
+        "memory_after": [
+          2,
+          4,
+          6,
+          4
+        ]
+      },
+      {
+        "step_index": 23,
+        "pc": 23,
+        "next_pc": 24,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 6
+        },
+        "stack_before": [
+          6
+        ],
+        "stack_after": [
+          6,
+          6
+        ],
+        "locals_after": [
+          6
+        ],
+        "memory_after": [
+          2,
+          4,
+          6,
+          4
+        ]
+      },
+      {
+        "step_index": 24,
+        "pc": 24,
+        "next_pc": 25,
+        "instruction": {
+          "opcode": "i32_add"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "add",
+          "left": 6,
+          "right": 6,
+          "result": 12
+        },
+        "stack_before": [
+          6,
+          6
+        ],
+        "stack_after": [
+          12
+        ],
+        "locals_after": [
+          6
+        ],
+        "memory_after": [
+          2,
+          4,
+          6,
+          4
+        ]
+      },
+      {
+        "step_index": 25,
+        "pc": 25,
+        "next_pc": 26,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 12
+        },
+        "stack_before": [
+          12
+        ],
+        "stack_after": [],
+        "locals_after": [
+          12
+        ],
+        "memory_after": [
+          2,
+          4,
+          6,
+          4
+        ]
+      },
+      {
+        "step_index": 26,
+        "pc": 26,
+        "next_pc": 27,
+        "instruction": {
+          "opcode": "i32_load",
+          "slot": 3
+        },
+        "event": {
+          "kind": "load",
+          "slot": 3,
+          "value": 4
+        },
+        "stack_before": [],
+        "stack_after": [
+          4
+        ],
+        "locals_after": [
+          12
+        ],
+        "memory_after": [
+          2,
+          4,
+          6,
+          4
+        ]
+      },
+      {
+        "step_index": 27,
+        "pc": 27,
+        "next_pc": 28,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 4
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 4
+        },
+        "stack_before": [
+          4
+        ],
+        "stack_after": [
+          4,
+          4
+        ],
+        "locals_after": [
+          12
+        ],
+        "memory_after": [
+          2,
+          4,
+          6,
+          4
+        ]
+      },
+      {
+        "step_index": 28,
+        "pc": 28,
+        "next_pc": 29,
+        "instruction": {
+          "opcode": "i32_add"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "add",
+          "left": 4,
+          "right": 4,
+          "result": 8
+        },
+        "stack_before": [
+          4,
+          4
+        ],
+        "stack_after": [
+          8
+        ],
+        "locals_after": [
+          12
+        ],
+        "memory_after": [
+          2,
+          4,
+          6,
+          4
+        ]
+      },
+      {
+        "step_index": 29,
+        "pc": 29,
+        "next_pc": 30,
+        "instruction": {
+          "opcode": "i32_store",
+          "slot": 3
+        },
+        "event": {
+          "kind": "store",
+          "slot": 3,
+          "value": 8
+        },
+        "stack_before": [
+          8
+        ],
+        "stack_after": [],
+        "locals_after": [
+          12
+        ],
+        "memory_after": [
+          2,
+          4,
+          6,
+          8
+        ]
+      },
+      {
+        "step_index": 30,
+        "pc": 30,
+        "next_pc": 31,
+        "instruction": {
+          "opcode": "i32_load",
+          "slot": 3
+        },
+        "event": {
+          "kind": "load",
+          "slot": 3,
+          "value": 8
+        },
+        "stack_before": [],
+        "stack_after": [
+          8
+        ],
+        "locals_after": [
+          12
+        ],
+        "memory_after": [
+          2,
+          4,
+          6,
+          8
+        ]
+      },
+      {
+        "step_index": 31,
+        "pc": 31,
+        "next_pc": 32,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 12
+        },
+        "stack_before": [
+          8
+        ],
+        "stack_after": [
+          8,
+          12
+        ],
+        "locals_after": [
+          12
+        ],
+        "memory_after": [
+          2,
+          4,
+          6,
+          8
+        ]
+      },
+      {
+        "step_index": 32,
+        "pc": 32,
+        "next_pc": 33,
+        "instruction": {
+          "opcode": "i32_add"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "add",
+          "left": 8,
+          "right": 12,
+          "result": 20
+        },
+        "stack_before": [
+          8,
+          12
+        ],
+        "stack_after": [
+          20
+        ],
+        "locals_after": [
+          12
+        ],
+        "memory_after": [
+          2,
+          4,
+          6,
+          8
+        ]
+      },
+      {
+        "step_index": 33,
+        "pc": 33,
+        "next_pc": 34,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 20
+        },
+        "stack_before": [
+          20
+        ],
+        "stack_after": [],
+        "locals_after": [
+          20
+        ],
+        "memory_after": [
+          2,
+          4,
+          6,
+          8
+        ]
+      },
+      {
+        "step_index": 34,
+        "pc": 34,
+        "next_pc": 35,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 20
+        },
+        "stack_before": [],
+        "stack_after": [
+          20
+        ],
+        "locals_after": [
+          20
+        ],
+        "memory_after": [
+          2,
+          4,
+          6,
+          8
+        ]
+      },
+      {
+        "step_index": 35,
+        "pc": 35,
+        "next_pc": 36,
+        "instruction": {
+          "opcode": "output"
+        },
+        "event": {
+          "kind": "output",
+          "value": 20
+        },
+        "stack_before": [
+          20
+        ],
+        "stack_after": [],
+        "locals_after": [
+          20
+        ],
+        "memory_after": [
+          2,
+          4,
+          6,
+          8
+        ]
+      },
+      {
+        "step_index": 36,
+        "pc": 36,
+        "next_pc": 37,
+        "instruction": {
+          "opcode": "return"
+        },
+        "event": {
+          "kind": "return"
+        },
+        "stack_before": [],
+        "stack_after": [],
+        "locals_after": [
+          20
+        ],
+        "memory_after": [
+          2,
+          4,
+          6,
+          8
+        ]
+      }
+    ]
+  },
+  "trace_proof": {
+    "schema_version": 1,
+    "proof_artifact_id": "tassadar://trace_proof/compile-memory_update_kernel_slots_4.compiled_executor/841a02ad77cb712f339abc3ddd1afedea42fd0d92b613ce73e181f693c1073c9",
+    "proof_digest": "1e7f6643bcee6e509d56c6b000a7e004fed950d9890d73e492d6d59f0fbfed9f",
+    "trace_artifact_ref": "tassadar://trace/compile-memory_update_kernel_slots_4.compiled_executor/841a02ad77cb712f339abc3ddd1afedea42fd0d92b613ce73e181f693c1073c9",
+    "trace_artifact_digest": "08b2effa2aa806cb67d484a5c2172c4fb7b8abd45d53b765dfdf66b34b0943eb",
+    "trace_digest": "841a02ad77cb712f339abc3ddd1afedea42fd0d92b613ce73e181f693c1073c9",
+    "program_digest": "06fff5ba5b8ae12bc252f5a87a1b606b3f056a50d51e57095fd500964fd11bf8",
+    "program_artifact_digest": "a64f0582abbad5e01a64013d1524558e8e6a0c2f39ab78b99ed34e5216c11e0c",
+    "wasm_profile_id": "tassadar.wasm.article_i32_compute.v1",
+    "model_descriptor_digest": "63ea88cd879cf8a8a2305272855c0609b57783d7f353144e460062399a0df55f",
+    "decode_mode": "reference_linear",
+    "cache_algorithm_id": "tassadar.cache.linear_scan_kv.v1",
+    "runtime_backend": "cpu",
+    "reference_runner_id": "tassadar.fixture_runner.v1",
+    "validation": {
+      "matrix_id": "psionic.minimum_hardware_validation.v1",
+      "documentation_path": "docs/HARDWARE_VALIDATION_MATRIX.md",
+      "claim_id": "tassadar.executor_trace.phase4",
+      "coverage": "not_yet_validated"
+    },
+    "runtime_manifest_identity_digest": "f2d81c36e8d27df8cdc88533717292e3a93b333fb0d8d383b81faecccde8ea7c",
+    "runtime_manifest_digest": "04588db67523789d37fb1ea4a06f46208617aad3207cbf689bb97eecc0307dec"
+  },
+  "proof_bundle": {
+    "schema_version": 1,
+    "bundle_kind": "local",
+    "status": "succeeded",
+    "request_id": "compile-memory_update_kernel_slots_4.compiled_executor",
+    "request_digest": "f412b89d0120ccd251c0f1dd0b074a52881980b83b3c408406222ccacf9c51e2",
+    "product_id": "psionic.tassadar.compiled_weight",
+    "model_id": "tassadar-executor-article-i32-compute-v0-compiled-tassadar.compiled_kernel_suite.memory_update.slots_4.v1",
+    "runtime_identity": {
+      "runtime_backend": "cpu",
+      "backend_toolchain": {
+        "effective_backend": "cpu",
+        "toolchain_version": "tassadar.fixture_runner.v1",
+        "compiled_backend_features": [
+          "tassadar_executor",
+          "tassadar.decode.reference_linear.v1",
+          "tassadar.wasm.article_i32_compute.v1"
+        ],
+        "probe_state": "compiled_only"
+      }
+    },
+    "validation": {
+      "matrix_id": "psionic.minimum_hardware_validation.v1",
+      "documentation_path": "docs/HARDWARE_VALIDATION_MATRIX.md",
+      "claim_id": "tassadar.executor_trace.phase4",
+      "coverage": "not_yet_validated"
+    },
+    "artifact_residency": {
+      "weight_bundle_digest": "63ea88cd879cf8a8a2305272855c0609b57783d7f353144e460062399a0df55f",
+      "input_artifact_digests": [
+        "a64f0582abbad5e01a64013d1524558e8e6a0c2f39ab78b99ed34e5216c11e0c"
+      ],
+      "output_artifact_digests": [
+        "08b2effa2aa806cb67d484a5c2172c4fb7b8abd45d53b765dfdf66b34b0943eb",
+        "1e7f6643bcee6e509d56c6b000a7e004fed950d9890d73e492d6d59f0fbfed9f"
+      ]
+    },
+    "activation_fingerprint_posture": "unavailable"
+  }
+}

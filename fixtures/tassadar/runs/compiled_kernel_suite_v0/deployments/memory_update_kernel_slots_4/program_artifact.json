@@ -1,0 +1,175 @@
+{
+  "artifact_id": "memory_update_kernel_slots_4.compiled_program_artifact",
+  "artifact_digest": "a64f0582abbad5e01a64013d1524558e8e6a0c2f39ab78b99ed34e5216c11e0c",
+  "source_identity": {
+    "source_kind": "fixture",
+    "source_name": "tassadar.compiled_kernel_suite.memory_update.slots_4.v1",
+    "source_digest": "06fff5ba5b8ae12bc252f5a87a1b606b3f056a50d51e57095fd500964fd11bf8"
+  },
+  "toolchain_identity": {
+    "compiler_family": "tassadar_fixture",
+    "compiler_version": "v1",
+    "target": "tassadar.wasm.article_i32_compute.v1",
+    "pipeline_features": [
+      "validated_program",
+      "webassembly_first"
+    ]
+  },
+  "wasm_profile_id": "tassadar.wasm.article_i32_compute.v1",
+  "trace_abi_id": "tassadar.trace.v1",
+  "trace_abi_version": 1,
+  "opcode_vocabulary_digest": "b458516f694c301a7b209bb6e710dfc4b7c2756a107738dd38a8fdc8b2dcd64c",
+  "validated_program_digest": "06fff5ba5b8ae12bc252f5a87a1b606b3f056a50d51e57095fd500964fd11bf8",
+  "validated_program": {
+    "program_id": "tassadar.compiled_kernel_suite.memory_update.slots_4.v1",
+    "profile_id": "tassadar.wasm.article_i32_compute.v1",
+    "local_count": 1,
+    "memory_slots": 4,
+    "initial_memory": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "instructions": [
+      {
+        "opcode": "i32_const",
+        "value": 0
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_load",
+        "slot": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 1
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "i32_store",
+        "slot": 0
+      },
+      {
+        "opcode": "i32_load",
+        "slot": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_load",
+        "slot": 1
+      },
+      {
+        "opcode": "i32_const",
+        "value": 2
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "i32_store",
+        "slot": 1
+      },
+      {
+        "opcode": "i32_load",
+        "slot": 1
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_load",
+        "slot": 2
+      },
+      {
+        "opcode": "i32_const",
+        "value": 3
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "i32_store",
+        "slot": 2
+      },
+      {
+        "opcode": "i32_load",
+        "slot": 2
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_load",
+        "slot": 3
+      },
+      {
+        "opcode": "i32_const",
+        "value": 4
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "i32_store",
+        "slot": 3
+      },
+      {
+        "opcode": "i32_load",
+        "slot": 3
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "output"
+      },
+      {
+        "opcode": "return"
+      }
+    ]
+  }
+}

@@ -1,0 +1,803 @@
+{
+  "artifact_id": "forward_branch_kernel_branches_16.compiled_program_artifact",
+  "artifact_digest": "75c43a211b0b6b7191d1ad7b1e1d8673257089013ee620dd1fbf2d66a076e336",
+  "source_identity": {
+    "source_kind": "fixture",
+    "source_name": "tassadar.compiled_kernel_suite.forward_branch.count_16.v1",
+    "source_digest": "acb8ab03876dfb3ba8c1c8402bd2c5b4f24b9ea566b6f633d66db8ebf227feb8"
+  },
+  "toolchain_identity": {
+    "compiler_family": "tassadar_fixture",
+    "compiler_version": "v1",
+    "target": "tassadar.wasm.article_i32_compute.v1",
+    "pipeline_features": [
+      "validated_program",
+      "webassembly_first"
+    ]
+  },
+  "wasm_profile_id": "tassadar.wasm.article_i32_compute.v1",
+  "trace_abi_id": "tassadar.trace.v1",
+  "trace_abi_version": 1,
+  "opcode_vocabulary_digest": "b458516f694c301a7b209bb6e710dfc4b7c2756a107738dd38a8fdc8b2dcd64c",
+  "validated_program_digest": "acb8ab03876dfb3ba8c1c8402bd2c5b4f24b9ea566b6f633d66db8ebf227feb8",
+  "validated_program": {
+    "program_id": "tassadar.compiled_kernel_suite.forward_branch.count_16.v1",
+    "profile_id": "tassadar.wasm.article_i32_compute.v1",
+    "local_count": 1,
+    "memory_slots": 16,
+    "initial_memory": [
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0
+    ],
+    "instructions": [
+      {
+        "opcode": "i32_const",
+        "value": 0
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_load",
+        "slot": 0
+      },
+      {
+        "opcode": "br_if",
+        "target_pc": 10
+      },
+      {
+        "opcode": "i32_const",
+        "value": 11
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 1
+      },
+      {
+        "opcode": "br_if",
+        "target_pc": 14
+      },
+      {
+        "opcode": "i32_const",
+        "value": 7
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_load",
+        "slot": 1
+      },
+      {
+        "opcode": "br_if",
+        "target_pc": 22
+      },
+      {
+        "opcode": "i32_const",
+        "value": 15
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 1
+      },
+      {
+        "opcode": "br_if",
+        "target_pc": 26
+      },
+      {
+        "opcode": "i32_const",
+        "value": 11
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_load",
+        "slot": 2
+      },
+      {
+        "opcode": "br_if",
+        "target_pc": 34
+      },
+      {
+        "opcode": "i32_const",
+        "value": 19
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 1
+      },
+      {
+        "opcode": "br_if",
+        "target_pc": 38
+      },
+      {
+        "opcode": "i32_const",
+        "value": 15
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_load",
+        "slot": 3
+      },
+      {
+        "opcode": "br_if",
+        "target_pc": 46
+      },
+      {
+        "opcode": "i32_const",
+        "value": 23
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 1
+      },
+      {
+        "opcode": "br_if",
+        "target_pc": 50
+      },
+      {
+        "opcode": "i32_const",
+        "value": 19
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_load",
+        "slot": 4
+      },
+      {
+        "opcode": "br_if",
+        "target_pc": 58
+      },
+      {
+        "opcode": "i32_const",
+        "value": 27
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 1
+      },
+      {
+        "opcode": "br_if",
+        "target_pc": 62
+      },
+      {
+        "opcode": "i32_const",
+        "value": 23
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_load",
+        "slot": 5
+      },
+      {
+        "opcode": "br_if",
+        "target_pc": 70
+      },
+      {
+        "opcode": "i32_const",
+        "value": 31
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 1
+      },
+      {
+        "opcode": "br_if",
+        "target_pc": 74
+      },
+      {
+        "opcode": "i32_const",
+        "value": 27
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_load",
+        "slot": 6
+      },
+      {
+        "opcode": "br_if",
+        "target_pc": 82
+      },
+      {
+        "opcode": "i32_const",
+        "value": 35
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 1
+      },
+      {
+        "opcode": "br_if",
+        "target_pc": 86
+      },
+      {
+        "opcode": "i32_const",
+        "value": 31
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_load",
+        "slot": 7
+      },
+      {
+        "opcode": "br_if",
+        "target_pc": 94
+      },
+      {
+        "opcode": "i32_const",
+        "value": 39
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 1
+      },
+      {
+        "opcode": "br_if",
+        "target_pc": 98
+      },
+      {
+        "opcode": "i32_const",
+        "value": 35
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_load",
+        "slot": 8
+      },
+      {
+        "opcode": "br_if",
+        "target_pc": 106
+      },
+      {
+        "opcode": "i32_const",
+        "value": 43
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 1
+      },
+      {
+        "opcode": "br_if",
+        "target_pc": 110
+      },
+      {
+        "opcode": "i32_const",
+        "value": 39
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_load",
+        "slot": 9
+      },
+      {
+        "opcode": "br_if",
+        "target_pc": 118
+      },
+      {
+        "opcode": "i32_const",
+        "value": 47
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 1
+      },
+      {
+        "opcode": "br_if",
+        "target_pc": 122
+      },
+      {
+        "opcode": "i32_const",
+        "value": 43
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_load",
+        "slot": 10
+      },
+      {
+        "opcode": "br_if",
+        "target_pc": 130
+      },
+      {
+        "opcode": "i32_const",
+        "value": 51
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 1
+      },
+      {
+        "opcode": "br_if",
+        "target_pc": 134
+      },
+      {
+        "opcode": "i32_const",
+        "value": 47
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_load",
+        "slot": 11
+      },
+      {
+        "opcode": "br_if",
+        "target_pc": 142
+      },
+      {
+        "opcode": "i32_const",
+        "value": 55
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 1
+      },
+      {
+        "opcode": "br_if",
+        "target_pc": 146
+      },
+      {
+        "opcode": "i32_const",
+        "value": 51
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_load",
+        "slot": 12
+      },
+      {
+        "opcode": "br_if",
+        "target_pc": 154
+      },
+      {
+        "opcode": "i32_const",
+        "value": 59
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 1
+      },
+      {
+        "opcode": "br_if",
+        "target_pc": 158
+      },
+      {
+        "opcode": "i32_const",
+        "value": 55
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_load",
+        "slot": 13
+      },
+      {
+        "opcode": "br_if",
+        "target_pc": 166
+      },
+      {
+        "opcode": "i32_const",
+        "value": 63
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 1
+      },
+      {
+        "opcode": "br_if",
+        "target_pc": 170
+      },
+      {
+        "opcode": "i32_const",
+        "value": 59
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_load",
+        "slot": 14
+      },
+      {
+        "opcode": "br_if",
+        "target_pc": 178
+      },
+      {
+        "opcode": "i32_const",
+        "value": 67
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 1
+      },
+      {
+        "opcode": "br_if",
+        "target_pc": 182
+      },
+      {
+        "opcode": "i32_const",
+        "value": 63
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_load",
+        "slot": 15
+      },
+      {
+        "opcode": "br_if",
+        "target_pc": 190
+      },
+      {
+        "opcode": "i32_const",
+        "value": 71
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 1
+      },
+      {
+        "opcode": "br_if",
+        "target_pc": 194
+      },
+      {
+        "opcode": "i32_const",
+        "value": 67
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_add"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "output"
+      },
+      {
+        "opcode": "return"
+      }
+    ]
+  }
+}

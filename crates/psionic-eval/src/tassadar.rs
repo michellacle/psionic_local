@@ -2858,6 +2858,25 @@ fn runtime_capability_cell(
     })
 }
 
+fn compiled_kernel_family_max_trace_step_count(report: &Value, family_id: &str) -> u64 {
+    report["family_reports"]
+        .as_array()
+        .and_then(|families| {
+            families.iter().find(|family| {
+                family["family_id"].as_str() == Some(family_id)
+            })
+        })
+        .and_then(|family| family["regimes"].as_array())
+        .map(|regimes| {
+            regimes
+                .iter()
+                .filter_map(|regime| regime["trace_step_count"].as_u64())
+                .max()
+                .unwrap_or(0)
+        })
+        .unwrap_or(0)
+}
+
 /// Builds the machine-readable Tassadar workload capability matrix from the
 /// current committed benchmark, compiled, and learned artifacts.
 pub fn build_tassadar_workload_capability_matrix_report(
@@ -2875,6 +2894,12 @@ pub fn build_tassadar_workload_capability_matrix_report(
     )?;
     let hungarian_10x10_compiled_run_bundle = read_repo_json::<Value>(
         "fixtures/tassadar/runs/hungarian_10x10_v0_compiled_executor_v0/run_bundle.json",
+    )?;
+    let compiled_kernel_suite_run_bundle = read_repo_json::<Value>(
+        "fixtures/tassadar/runs/compiled_kernel_suite_v0/run_bundle.json",
+    )?;
+    let compiled_kernel_suite_scaling_report = read_repo_json::<Value>(
+        "fixtures/tassadar/runs/compiled_kernel_suite_v0/compiled_kernel_suite_scaling_report.json",
     )?;
     let sudoku_promotion_bundle = read_repo_json::<Value>(
         "fixtures/tassadar/runs/sudoku_v0_promotion_v3/promotion_bundle.json",
@@ -2982,7 +3007,96 @@ pub fn build_tassadar_workload_capability_matrix_report(
                     TassadarWorkloadTarget::LongLoopKernel,
                     "runtime.sparse_top_k",
                 )?,
+                TassadarWorkloadCapabilityCell {
+                    surface_id: String::from("compiled.proof_backed"),
+                    posture: TassadarCapabilityPosture::Exact,
+                    artifact_ref: String::from(
+                        "fixtures/tassadar/runs/compiled_kernel_suite_v0/run_bundle.json",
+                    ),
+                    note: format!(
+                        "{}; max_trace_step_count={}",
+                        compiled_kernel_suite_run_bundle["claim_boundary"]
+                            .as_str()
+                            .unwrap_or("compiled kernel suite boundary missing"),
+                        compiled_kernel_family_max_trace_step_count(
+                            &compiled_kernel_suite_scaling_report,
+                            "backward_loop_kernel",
+                        ),
+                    ),
+                },
             ],
+        },
+        TassadarWorkloadCapabilityRow {
+            workload_family_id: String::from("arithmetic_kernel"),
+            workload_target: Some(TassadarWorkloadTarget::ArithmeticMicroprogram),
+            summary: String::from(
+                "compiled-only arithmetic cascade family with exactness-vs-trace-length coverage",
+            ),
+            capabilities: vec![TassadarWorkloadCapabilityCell {
+                surface_id: String::from("compiled.proof_backed"),
+                posture: TassadarCapabilityPosture::Exact,
+                artifact_ref: String::from(
+                    "fixtures/tassadar/runs/compiled_kernel_suite_v0/run_bundle.json",
+                ),
+                note: format!(
+                    "{}; max_trace_step_count={}",
+                    compiled_kernel_suite_run_bundle["claim_boundary"]
+                        .as_str()
+                        .unwrap_or("compiled kernel suite boundary missing"),
+                    compiled_kernel_family_max_trace_step_count(
+                        &compiled_kernel_suite_scaling_report,
+                        "arithmetic_kernel",
+                    ),
+                ),
+            }],
+        },
+        TassadarWorkloadCapabilityRow {
+            workload_family_id: String::from("memory_update_kernel"),
+            workload_target: Some(TassadarWorkloadTarget::MemoryLookupMicroprogram),
+            summary: String::from(
+                "compiled-only memory update family with exactness-vs-trace-length coverage",
+            ),
+            capabilities: vec![TassadarWorkloadCapabilityCell {
+                surface_id: String::from("compiled.proof_backed"),
+                posture: TassadarCapabilityPosture::Exact,
+                artifact_ref: String::from(
+                    "fixtures/tassadar/runs/compiled_kernel_suite_v0/run_bundle.json",
+                ),
+                note: format!(
+                    "{}; max_trace_step_count={}",
+                    compiled_kernel_suite_run_bundle["claim_boundary"]
+                        .as_str()
+                        .unwrap_or("compiled kernel suite boundary missing"),
+                    compiled_kernel_family_max_trace_step_count(
+                        &compiled_kernel_suite_scaling_report,
+                        "memory_update_kernel",
+                    ),
+                ),
+            }],
+        },
+        TassadarWorkloadCapabilityRow {
+            workload_family_id: String::from("forward_branch_kernel"),
+            workload_target: Some(TassadarWorkloadTarget::BranchControlFlowMicroprogram),
+            summary: String::from(
+                "compiled-only forward-branch ladder family with exactness-vs-trace-length coverage",
+            ),
+            capabilities: vec![TassadarWorkloadCapabilityCell {
+                surface_id: String::from("compiled.proof_backed"),
+                posture: TassadarCapabilityPosture::Exact,
+                artifact_ref: String::from(
+                    "fixtures/tassadar/runs/compiled_kernel_suite_v0/run_bundle.json",
+                ),
+                note: format!(
+                    "{}; max_trace_step_count={}",
+                    compiled_kernel_suite_run_bundle["claim_boundary"]
+                        .as_str()
+                        .unwrap_or("compiled kernel suite boundary missing"),
+                    compiled_kernel_family_max_trace_step_count(
+                        &compiled_kernel_suite_scaling_report,
+                        "forward_branch_kernel",
+                    ),
+                ),
+            }],
         },
         TassadarWorkloadCapabilityRow {
             workload_family_id: String::from("sudoku_class_4x4"),
@@ -3189,6 +3303,10 @@ pub fn build_tassadar_workload_capability_matrix_report(
             ),
             String::from(
                 "fixtures/tassadar/runs/hungarian_10x10_v0_compiled_executor_v0/run_bundle.json",
+            ),
+            String::from("fixtures/tassadar/runs/compiled_kernel_suite_v0/run_bundle.json"),
+            String::from(
+                "fixtures/tassadar/runs/compiled_kernel_suite_v0/compiled_kernel_suite_scaling_report.json",
             ),
             String::from("fixtures/tassadar/runs/sudoku_v0_promotion_v3/promotion_bundle.json"),
             String::from(
@@ -4908,6 +5026,20 @@ mod tests {
                 && row.capabilities.iter().any(|cell| {
                     cell.surface_id == "runtime.sparse_top_k"
                         && cell.posture == TassadarCapabilityPosture::FallbackOnly
+                })
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.workload_family_id == "arithmetic_kernel"
+                && row.capabilities.iter().any(|cell| {
+                    cell.surface_id == "compiled.proof_backed"
+                        && cell.posture == TassadarCapabilityPosture::Exact
+                })
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.workload_family_id == "long_loop_kernel"
+                && row.capabilities.iter().any(|cell| {
+                    cell.surface_id == "compiled.proof_backed"
+                        && cell.posture == TassadarCapabilityPosture::Exact
                 })
         }));
         assert!(report.rows.iter().any(|row| {

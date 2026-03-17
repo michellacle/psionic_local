@@ -411,6 +411,18 @@ Current posture:
   keeping the boundary explicit: this is article-sized matching closure on the
   larger matching profile, not learned Hungarian execution and not full
   compiled article parity by itself
+- the generic compiled article-kernel suite now also exists in
+  `psionic-eval`, `psionic-research`, and the canonical bundle root
+  `fixtures/tassadar/runs/compiled_kernel_suite_v0`: `psionic-eval` now
+  packages bounded arithmetic, memory-update, forward-branch, and
+  backward-loop kernel families under the article-shaped i32 profile and emits
+  exactness, refusal, claim-boundary, and exactness-vs-trace-length scaling
+  reports, while `psionic-research` persists twelve proof-bearing compiled
+  deployments with runtime execution proofs for those regimes; the committed
+  bundle proves exact compiled/proof-backed kernel closure across all four
+  families while keeping the boundary explicit: this widens compiled article
+  evidence beyond Sudoku and Hungarian, but it is still not arbitrary-program
+  closure or full compiled article parity by itself
 - the canonical coarse Tassadar claim vocabulary is now
   `compiled_exact`, `compiled_article_class`, `learned_bounded`,
   `learned_article_class`, and `research_only`; the canonical current

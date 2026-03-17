@@ -123,7 +123,7 @@
   "compiled_article_class": {
     "verdict_id": "compiled_article_class",
     "passed": false,
-    "detail": "Compiled article-class closure is still red: the repo now has exact compiled 9x9 Sudoku and 10x10 Hungarian bundles, but it still lacks the generic compiled kernel suite and the compiled article-closure checker.",
+    "detail": "Compiled article-class closure is still red: the repo now has exact compiled 9x9 Sudoku, 10x10 Hungarian, and generic arithmetic/memory/branch/loop kernel evidence, but it still lacks the compiled article-closure checker.",
     "validation_commands": [
       "scripts/check-tassadar-acceptance.sh"
     ],
@@ -154,10 +154,30 @@
       {
         "label": "article-sized compiled Hungarian-10x10 claim-boundary report",
         "artifact_ref": "fixtures/tassadar/runs/hungarian_10x10_v0_compiled_executor_v0/claim_boundary_report.json"
+      },
+      {
+        "label": "generic compiled kernel-suite run bundle",
+        "artifact_ref": "fixtures/tassadar/runs/compiled_kernel_suite_v0/run_bundle.json",
+        "digest": "8bfd76beb13bf88cb96afde2bc152ee70dbe43f4688b05db172f03139405524f"
+      },
+      {
+        "label": "generic compiled kernel-suite exactness report",
+        "artifact_ref": "fixtures/tassadar/runs/compiled_kernel_suite_v0/compiled_kernel_suite_exactness_report.json"
+      },
+      {
+        "label": "generic compiled kernel-suite compatibility report",
+        "artifact_ref": "fixtures/tassadar/runs/compiled_kernel_suite_v0/compiled_kernel_suite_compatibility_report.json"
+      },
+      {
+        "label": "generic compiled kernel-suite scaling report",
+        "artifact_ref": "fixtures/tassadar/runs/compiled_kernel_suite_v0/compiled_kernel_suite_scaling_report.json"
+      },
+      {
+        "label": "generic compiled kernel-suite claim-boundary report",
+        "artifact_ref": "fixtures/tassadar/runs/compiled_kernel_suite_v0/claim_boundary_report.json"
       }
     ],
     "missing_evidence": [
-      "PTAS-304 generic compiled arithmetic/memory/branch/loop kernel suite",
       "PTAS-305 compiled article-closure checker"
     ]
   },
@@ -202,5 +222,5 @@
     ]
   },
   "current_truth_holds": true,
-  "report_digest": "9c964fe2bc3cf3bc0991301262faeb720cbcb1e7eaa7c698b87a221d4e068091"
+  "report_digest": "444265bf527d26337d6bc62aed487b2cdf41cd8c134d3916ea2211de9d1aa25a"
 }

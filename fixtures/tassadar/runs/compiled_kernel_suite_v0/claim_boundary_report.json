@@ -1,0 +1,9 @@
+{
+  "workload_family_id": "tassadar.wasm.article_i32_compute.v1.compiled_kernel_suite",
+  "claim_class": "compiled_article_class",
+  "compiled_lane_status": "exact",
+  "compiled_lane_detail": "exact compiled/proof-backed generic kernel suite is landed for bounded arithmetic, memory-update, forward-branch, and backward-loop families under the article_i32 profile; it widens compiled closure beyond Sudoku and Hungarian but does not claim arbitrary-program parity by itself",
+  "learned_lane_status": "not_done",
+  "learned_lane_detail": "no learned generic long-horizon kernel suite is landed; current closure here is compiled/proof-backed only",
+  "report_digest": "0a8f1b208760e5b472364dbe522ff8d8c32842bd65a54385cb131d55410806f9"
+}

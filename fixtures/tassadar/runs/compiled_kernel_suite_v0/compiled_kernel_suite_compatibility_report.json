@@ -1,0 +1,468 @@
+{
+  "workload_family_id": "tassadar.wasm.article_i32_compute.v1.compiled_kernel_suite",
+  "compiled_suite_artifact_digest": "b924b84d1a1a4d2da1a9f8b1f314b678c63588bfb9d6c012f184332e58e339c2",
+  "total_check_count": 48,
+  "matched_refusal_check_count": 48,
+  "matched_refusal_rate_bps": 10000,
+  "family_reports": [
+    {
+      "family_id": "arithmetic_kernel",
+      "total_check_count": 12,
+      "matched_refusal_check_count": 12,
+      "matched_refusal_rate_bps": 10000
+    },
+    {
+      "family_id": "memory_update_kernel",
+      "total_check_count": 12,
+      "matched_refusal_check_count": 12,
+      "matched_refusal_rate_bps": 10000
+    },
+    {
+      "family_id": "forward_branch_kernel",
+      "total_check_count": 12,
+      "matched_refusal_check_count": 12,
+      "matched_refusal_rate_bps": 10000
+    },
+    {
+      "family_id": "backward_loop_kernel",
+      "total_check_count": 12,
+      "matched_refusal_check_count": 12,
+      "matched_refusal_rate_bps": 10000
+    }
+  ],
+  "check_reports": [
+    {
+      "case_id": "arithmetic_kernel_ops_8",
+      "family_id": "arithmetic_kernel",
+      "check_id": "wrong_program_artifact",
+      "expected_refusal_kind": "program_artifact_digest_mismatch",
+      "observed_refusal_kind": "program_artifact_digest_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program artifact mismatch: expected `0ede72001d870482d07c82c452144e3591f71eea6bea85f0cb0179dee8f35f67`, got `d56e60e96d4bd40d753a0c472252dad4f2be8e34cabf034cd2a4360bc88cb90c`"
+    },
+    {
+      "case_id": "arithmetic_kernel_ops_8",
+      "family_id": "arithmetic_kernel",
+      "check_id": "wrong_wasm_profile",
+      "expected_refusal_kind": "wasm_profile_mismatch",
+      "observed_refusal_kind": "wasm_profile_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: Wasm profile mismatch: expected `tassadar.wasm.article_i32_compute.v1`, got `tassadar.wasm.sudoku_v0_search.v1`"
+    },
+    {
+      "case_id": "arithmetic_kernel_ops_8",
+      "family_id": "arithmetic_kernel",
+      "check_id": "wrong_trace_abi_version",
+      "expected_refusal_kind": "trace_abi_version_mismatch",
+      "observed_refusal_kind": "trace_abi_version_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: trace ABI version mismatch: expected `1`, got `2`"
+    },
+    {
+      "case_id": "arithmetic_kernel_ops_8",
+      "family_id": "arithmetic_kernel",
+      "check_id": "artifact_inconsistent",
+      "expected_refusal_kind": "program_artifact_inconsistent",
+      "observed_refusal_kind": "program_artifact_inconsistent",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: program artifact is internally inconsistent: validated program digest mismatch: expected `7d4fe169bc208fc744c9609d05e9d57507b1215e3b843970fed687a3fc92a4b3`, actual `bogus_program_digest`"
+    },
+    {
+      "case_id": "arithmetic_kernel_ops_32",
+      "family_id": "arithmetic_kernel",
+      "check_id": "wrong_program_artifact",
+      "expected_refusal_kind": "program_artifact_digest_mismatch",
+      "observed_refusal_kind": "program_artifact_digest_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program artifact mismatch: expected `d56e60e96d4bd40d753a0c472252dad4f2be8e34cabf034cd2a4360bc88cb90c`, got `cec657948b0b06a40feb26611915d60f16a40f20ceee5c2a6487866440c39614`"
+    },
+    {
+      "case_id": "arithmetic_kernel_ops_32",
+      "family_id": "arithmetic_kernel",
+      "check_id": "wrong_wasm_profile",
+      "expected_refusal_kind": "wasm_profile_mismatch",
+      "observed_refusal_kind": "wasm_profile_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: Wasm profile mismatch: expected `tassadar.wasm.article_i32_compute.v1`, got `tassadar.wasm.sudoku_v0_search.v1`"
+    },
+    {
+      "case_id": "arithmetic_kernel_ops_32",
+      "family_id": "arithmetic_kernel",
+      "check_id": "wrong_trace_abi_version",
+      "expected_refusal_kind": "trace_abi_version_mismatch",
+      "observed_refusal_kind": "trace_abi_version_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: trace ABI version mismatch: expected `1`, got `2`"
+    },
+    {
+      "case_id": "arithmetic_kernel_ops_32",
+      "family_id": "arithmetic_kernel",
+      "check_id": "artifact_inconsistent",
+      "expected_refusal_kind": "program_artifact_inconsistent",
+      "observed_refusal_kind": "program_artifact_inconsistent",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: program artifact is internally inconsistent: validated program digest mismatch: expected `7ded0b23517f4c9b440b752002a0157c9b7ded87bde9bebd0f265a1843c8312d`, actual `bogus_program_digest`"
+    },
+    {
+      "case_id": "arithmetic_kernel_ops_96",
+      "family_id": "arithmetic_kernel",
+      "check_id": "wrong_program_artifact",
+      "expected_refusal_kind": "program_artifact_digest_mismatch",
+      "observed_refusal_kind": "program_artifact_digest_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program artifact mismatch: expected `cec657948b0b06a40feb26611915d60f16a40f20ceee5c2a6487866440c39614`, got `a64f0582abbad5e01a64013d1524558e8e6a0c2f39ab78b99ed34e5216c11e0c`"
+    },
+    {
+      "case_id": "arithmetic_kernel_ops_96",
+      "family_id": "arithmetic_kernel",
+      "check_id": "wrong_wasm_profile",
+      "expected_refusal_kind": "wasm_profile_mismatch",
+      "observed_refusal_kind": "wasm_profile_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: Wasm profile mismatch: expected `tassadar.wasm.article_i32_compute.v1`, got `tassadar.wasm.sudoku_v0_search.v1`"
+    },
+    {
+      "case_id": "arithmetic_kernel_ops_96",
+      "family_id": "arithmetic_kernel",
+      "check_id": "wrong_trace_abi_version",
+      "expected_refusal_kind": "trace_abi_version_mismatch",
+      "observed_refusal_kind": "trace_abi_version_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: trace ABI version mismatch: expected `1`, got `2`"
+    },
+    {
+      "case_id": "arithmetic_kernel_ops_96",
+      "family_id": "arithmetic_kernel",
+      "check_id": "artifact_inconsistent",
+      "expected_refusal_kind": "program_artifact_inconsistent",
+      "observed_refusal_kind": "program_artifact_inconsistent",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: program artifact is internally inconsistent: validated program digest mismatch: expected `fb2dca872372de019e5d8afcb64d1c640641a641e3288c4101c95146b21b2c3e`, actual `bogus_program_digest`"
+    },
+    {
+      "case_id": "memory_update_kernel_slots_4",
+      "family_id": "memory_update_kernel",
+      "check_id": "wrong_program_artifact",
+      "expected_refusal_kind": "program_artifact_digest_mismatch",
+      "observed_refusal_kind": "program_artifact_digest_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program artifact mismatch: expected `a64f0582abbad5e01a64013d1524558e8e6a0c2f39ab78b99ed34e5216c11e0c`, got `1e80e2008a42a98fba69d1b8816085b87454346d79f1efe27cd94d70e9f7f8b4`"
+    },
+    {
+      "case_id": "memory_update_kernel_slots_4",
+      "family_id": "memory_update_kernel",
+      "check_id": "wrong_wasm_profile",
+      "expected_refusal_kind": "wasm_profile_mismatch",
+      "observed_refusal_kind": "wasm_profile_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: Wasm profile mismatch: expected `tassadar.wasm.article_i32_compute.v1`, got `tassadar.wasm.sudoku_v0_search.v1`"
+    },
+    {
+      "case_id": "memory_update_kernel_slots_4",
+      "family_id": "memory_update_kernel",
+      "check_id": "wrong_trace_abi_version",
+      "expected_refusal_kind": "trace_abi_version_mismatch",
+      "observed_refusal_kind": "trace_abi_version_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: trace ABI version mismatch: expected `1`, got `2`"
+    },
+    {
+      "case_id": "memory_update_kernel_slots_4",
+      "family_id": "memory_update_kernel",
+      "check_id": "artifact_inconsistent",
+      "expected_refusal_kind": "program_artifact_inconsistent",
+      "observed_refusal_kind": "program_artifact_inconsistent",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: program artifact is internally inconsistent: validated program digest mismatch: expected `06fff5ba5b8ae12bc252f5a87a1b606b3f056a50d51e57095fd500964fd11bf8`, actual `bogus_program_digest`"
+    },
+    {
+      "case_id": "memory_update_kernel_slots_16",
+      "family_id": "memory_update_kernel",
+      "check_id": "wrong_program_artifact",
+      "expected_refusal_kind": "program_artifact_digest_mismatch",
+      "observed_refusal_kind": "program_artifact_digest_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program artifact mismatch: expected `1e80e2008a42a98fba69d1b8816085b87454346d79f1efe27cd94d70e9f7f8b4`, got `f756c4853d4a8a5367f596c07aaed7151fc41cdc1e75dff2fdb509e16ea8e286`"
+    },
+    {
+      "case_id": "memory_update_kernel_slots_16",
+      "family_id": "memory_update_kernel",
+      "check_id": "wrong_wasm_profile",
+      "expected_refusal_kind": "wasm_profile_mismatch",
+      "observed_refusal_kind": "wasm_profile_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: Wasm profile mismatch: expected `tassadar.wasm.article_i32_compute.v1`, got `tassadar.wasm.sudoku_v0_search.v1`"
+    },
+    {
+      "case_id": "memory_update_kernel_slots_16",
+      "family_id": "memory_update_kernel",
+      "check_id": "wrong_trace_abi_version",
+      "expected_refusal_kind": "trace_abi_version_mismatch",
+      "observed_refusal_kind": "trace_abi_version_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: trace ABI version mismatch: expected `1`, got `2`"
+    },
+    {
+      "case_id": "memory_update_kernel_slots_16",
+      "family_id": "memory_update_kernel",
+      "check_id": "artifact_inconsistent",
+      "expected_refusal_kind": "program_artifact_inconsistent",
+      "observed_refusal_kind": "program_artifact_inconsistent",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: program artifact is internally inconsistent: validated program digest mismatch: expected `b4838df4647575c76998c937995a64324d38ed9a3ef1d5cedbde9963d05094d2`, actual `bogus_program_digest`"
+    },
+    {
+      "case_id": "memory_update_kernel_slots_32",
+      "family_id": "memory_update_kernel",
+      "check_id": "wrong_program_artifact",
+      "expected_refusal_kind": "program_artifact_digest_mismatch",
+      "observed_refusal_kind": "program_artifact_digest_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program artifact mismatch: expected `f756c4853d4a8a5367f596c07aaed7151fc41cdc1e75dff2fdb509e16ea8e286`, got `df622d050fec859f49ac17b9ca1e954ca8d12e2b30edf47b43fa8b3ea56b1218`"
+    },
+    {
+      "case_id": "memory_update_kernel_slots_32",
+      "family_id": "memory_update_kernel",
+      "check_id": "wrong_wasm_profile",
+      "expected_refusal_kind": "wasm_profile_mismatch",
+      "observed_refusal_kind": "wasm_profile_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: Wasm profile mismatch: expected `tassadar.wasm.article_i32_compute.v1`, got `tassadar.wasm.sudoku_v0_search.v1`"
+    },
+    {
+      "case_id": "memory_update_kernel_slots_32",
+      "family_id": "memory_update_kernel",
+      "check_id": "wrong_trace_abi_version",
+      "expected_refusal_kind": "trace_abi_version_mismatch",
+      "observed_refusal_kind": "trace_abi_version_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: trace ABI version mismatch: expected `1`, got `2`"
+    },
+    {
+      "case_id": "memory_update_kernel_slots_32",
+      "family_id": "memory_update_kernel",
+      "check_id": "artifact_inconsistent",
+      "expected_refusal_kind": "program_artifact_inconsistent",
+      "observed_refusal_kind": "program_artifact_inconsistent",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: program artifact is internally inconsistent: validated program digest mismatch: expected `e0bb407305eb4e98cf7c15a971f2098e9a6219f29ec18ba60a31f0f6e7a2b0d0`, actual `bogus_program_digest`"
+    },
+    {
+      "case_id": "forward_branch_kernel_branches_2",
+      "family_id": "forward_branch_kernel",
+      "check_id": "wrong_program_artifact",
+      "expected_refusal_kind": "program_artifact_digest_mismatch",
+      "observed_refusal_kind": "program_artifact_digest_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program artifact mismatch: expected `df622d050fec859f49ac17b9ca1e954ca8d12e2b30edf47b43fa8b3ea56b1218`, got `d33918ea878175fc07a7f0a4244d5238112f936bcb66de01aa47844998961699`"
+    },
+    {
+      "case_id": "forward_branch_kernel_branches_2",
+      "family_id": "forward_branch_kernel",
+      "check_id": "wrong_wasm_profile",
+      "expected_refusal_kind": "wasm_profile_mismatch",
+      "observed_refusal_kind": "wasm_profile_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: Wasm profile mismatch: expected `tassadar.wasm.article_i32_compute.v1`, got `tassadar.wasm.sudoku_v0_search.v1`"
+    },
+    {
+      "case_id": "forward_branch_kernel_branches_2",
+      "family_id": "forward_branch_kernel",
+      "check_id": "wrong_trace_abi_version",
+      "expected_refusal_kind": "trace_abi_version_mismatch",
+      "observed_refusal_kind": "trace_abi_version_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: trace ABI version mismatch: expected `1`, got `2`"
+    },
+    {
+      "case_id": "forward_branch_kernel_branches_2",
+      "family_id": "forward_branch_kernel",
+      "check_id": "artifact_inconsistent",
+      "expected_refusal_kind": "program_artifact_inconsistent",
+      "observed_refusal_kind": "program_artifact_inconsistent",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: program artifact is internally inconsistent: validated program digest mismatch: expected `6826025af6d2aa3f58b689fe77894bcb58cee28bc16747aee6b522a87a61c6bd`, actual `bogus_program_digest`"
+    },
+    {
+      "case_id": "forward_branch_kernel_branches_8",
+      "family_id": "forward_branch_kernel",
+      "check_id": "wrong_program_artifact",
+      "expected_refusal_kind": "program_artifact_digest_mismatch",
+      "observed_refusal_kind": "program_artifact_digest_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program artifact mismatch: expected `d33918ea878175fc07a7f0a4244d5238112f936bcb66de01aa47844998961699`, got `75c43a211b0b6b7191d1ad7b1e1d8673257089013ee620dd1fbf2d66a076e336`"
+    },
+    {
+      "case_id": "forward_branch_kernel_branches_8",
+      "family_id": "forward_branch_kernel",
+      "check_id": "wrong_wasm_profile",
+      "expected_refusal_kind": "wasm_profile_mismatch",
+      "observed_refusal_kind": "wasm_profile_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: Wasm profile mismatch: expected `tassadar.wasm.article_i32_compute.v1`, got `tassadar.wasm.sudoku_v0_search.v1`"
+    },
+    {
+      "case_id": "forward_branch_kernel_branches_8",
+      "family_id": "forward_branch_kernel",
+      "check_id": "wrong_trace_abi_version",
+      "expected_refusal_kind": "trace_abi_version_mismatch",
+      "observed_refusal_kind": "trace_abi_version_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: trace ABI version mismatch: expected `1`, got `2`"
+    },
+    {
+      "case_id": "forward_branch_kernel_branches_8",
+      "family_id": "forward_branch_kernel",
+      "check_id": "artifact_inconsistent",
+      "expected_refusal_kind": "program_artifact_inconsistent",
+      "observed_refusal_kind": "program_artifact_inconsistent",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: program artifact is internally inconsistent: validated program digest mismatch: expected `7e91f1a9abdb2462341fcfd439cc26896dd86066c45c29bf066242f45dca5e5a`, actual `bogus_program_digest`"
+    },
+    {
+      "case_id": "forward_branch_kernel_branches_16",
+      "family_id": "forward_branch_kernel",
+      "check_id": "wrong_program_artifact",
+      "expected_refusal_kind": "program_artifact_digest_mismatch",
+      "observed_refusal_kind": "program_artifact_digest_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program artifact mismatch: expected `75c43a211b0b6b7191d1ad7b1e1d8673257089013ee620dd1fbf2d66a076e336`, got `1bacd5fd7c303e8ee692b1e59fea9d63a229a77916f97d14e61998ae4e7b52c1`"
+    },
+    {
+      "case_id": "forward_branch_kernel_branches_16",
+      "family_id": "forward_branch_kernel",
+      "check_id": "wrong_wasm_profile",
+      "expected_refusal_kind": "wasm_profile_mismatch",
+      "observed_refusal_kind": "wasm_profile_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: Wasm profile mismatch: expected `tassadar.wasm.article_i32_compute.v1`, got `tassadar.wasm.sudoku_v0_search.v1`"
+    },
+    {
+      "case_id": "forward_branch_kernel_branches_16",
+      "family_id": "forward_branch_kernel",
+      "check_id": "wrong_trace_abi_version",
+      "expected_refusal_kind": "trace_abi_version_mismatch",
+      "observed_refusal_kind": "trace_abi_version_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: trace ABI version mismatch: expected `1`, got `2`"
+    },
+    {
+      "case_id": "forward_branch_kernel_branches_16",
+      "family_id": "forward_branch_kernel",
+      "check_id": "artifact_inconsistent",
+      "expected_refusal_kind": "program_artifact_inconsistent",
+      "observed_refusal_kind": "program_artifact_inconsistent",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: program artifact is internally inconsistent: validated program digest mismatch: expected `acb8ab03876dfb3ba8c1c8402bd2c5b4f24b9ea566b6f633d66db8ebf227feb8`, actual `bogus_program_digest`"
+    },
+    {
+      "case_id": "backward_loop_kernel_iters_63",
+      "family_id": "backward_loop_kernel",
+      "check_id": "wrong_program_artifact",
+      "expected_refusal_kind": "program_artifact_digest_mismatch",
+      "observed_refusal_kind": "program_artifact_digest_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program artifact mismatch: expected `1bacd5fd7c303e8ee692b1e59fea9d63a229a77916f97d14e61998ae4e7b52c1`, got `78edd28bb0ecb80c5a8e9f7be45ca1747c19ec584ef48279b34609683235ed8b`"
+    },
+    {
+      "case_id": "backward_loop_kernel_iters_63",
+      "family_id": "backward_loop_kernel",
+      "check_id": "wrong_wasm_profile",
+      "expected_refusal_kind": "wasm_profile_mismatch",
+      "observed_refusal_kind": "wasm_profile_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: Wasm profile mismatch: expected `tassadar.wasm.article_i32_compute.v1`, got `tassadar.wasm.sudoku_v0_search.v1`"
+    },
+    {
+      "case_id": "backward_loop_kernel_iters_63",
+      "family_id": "backward_loop_kernel",
+      "check_id": "wrong_trace_abi_version",
+      "expected_refusal_kind": "trace_abi_version_mismatch",
+      "observed_refusal_kind": "trace_abi_version_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: trace ABI version mismatch: expected `1`, got `2`"
+    },
+    {
+      "case_id": "backward_loop_kernel_iters_63",
+      "family_id": "backward_loop_kernel",
+      "check_id": "artifact_inconsistent",
+      "expected_refusal_kind": "program_artifact_inconsistent",
+      "observed_refusal_kind": "program_artifact_inconsistent",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: program artifact is internally inconsistent: validated program digest mismatch: expected `4d9e18ca1431a8fb562fbac8b32f92aba478c1dfd44afefd2f23fd76cc5f5e92`, actual `bogus_program_digest`"
+    },
+    {
+      "case_id": "backward_loop_kernel_iters_255",
+      "family_id": "backward_loop_kernel",
+      "check_id": "wrong_program_artifact",
+      "expected_refusal_kind": "program_artifact_digest_mismatch",
+      "observed_refusal_kind": "program_artifact_digest_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program artifact mismatch: expected `78edd28bb0ecb80c5a8e9f7be45ca1747c19ec584ef48279b34609683235ed8b`, got `35306fe38b8bccfcd2bc11f104b58cbfb5dc55e4408739b0d392034ccff378be`"
+    },
+    {
+      "case_id": "backward_loop_kernel_iters_255",
+      "family_id": "backward_loop_kernel",
+      "check_id": "wrong_wasm_profile",
+      "expected_refusal_kind": "wasm_profile_mismatch",
+      "observed_refusal_kind": "wasm_profile_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: Wasm profile mismatch: expected `tassadar.wasm.article_i32_compute.v1`, got `tassadar.wasm.sudoku_v0_search.v1`"
+    },
+    {
+      "case_id": "backward_loop_kernel_iters_255",
+      "family_id": "backward_loop_kernel",
+      "check_id": "wrong_trace_abi_version",
+      "expected_refusal_kind": "trace_abi_version_mismatch",
+      "observed_refusal_kind": "trace_abi_version_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: trace ABI version mismatch: expected `1`, got `2`"
+    },
+    {
+      "case_id": "backward_loop_kernel_iters_255",
+      "family_id": "backward_loop_kernel",
+      "check_id": "artifact_inconsistent",
+      "expected_refusal_kind": "program_artifact_inconsistent",
+      "observed_refusal_kind": "program_artifact_inconsistent",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: program artifact is internally inconsistent: validated program digest mismatch: expected `17aa73b5b5588796d917f6ed8bf1c1a9d409ad84d9ef85e5def8fa10b1dab8ca`, actual `bogus_program_digest`"
+    },
+    {
+      "case_id": "backward_loop_kernel_iters_1023",
+      "family_id": "backward_loop_kernel",
+      "check_id": "wrong_program_artifact",
+      "expected_refusal_kind": "program_artifact_digest_mismatch",
+      "observed_refusal_kind": "program_artifact_digest_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program artifact mismatch: expected `35306fe38b8bccfcd2bc11f104b58cbfb5dc55e4408739b0d392034ccff378be`, got `0ede72001d870482d07c82c452144e3591f71eea6bea85f0cb0179dee8f35f67`"
+    },
+    {
+      "case_id": "backward_loop_kernel_iters_1023",
+      "family_id": "backward_loop_kernel",
+      "check_id": "wrong_wasm_profile",
+      "expected_refusal_kind": "wasm_profile_mismatch",
+      "observed_refusal_kind": "wasm_profile_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: Wasm profile mismatch: expected `tassadar.wasm.article_i32_compute.v1`, got `tassadar.wasm.sudoku_v0_search.v1`"
+    },
+    {
+      "case_id": "backward_loop_kernel_iters_1023",
+      "family_id": "backward_loop_kernel",
+      "check_id": "wrong_trace_abi_version",
+      "expected_refusal_kind": "trace_abi_version_mismatch",
+      "observed_refusal_kind": "trace_abi_version_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: trace ABI version mismatch: expected `1`, got `2`"
+    },
+    {
+      "case_id": "backward_loop_kernel_iters_1023",
+      "family_id": "backward_loop_kernel",
+      "check_id": "artifact_inconsistent",
+      "expected_refusal_kind": "program_artifact_inconsistent",
+      "observed_refusal_kind": "program_artifact_inconsistent",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: program artifact is internally inconsistent: validated program digest mismatch: expected `e0d5711762502c6f6b8a40aa1a8ce3bf8c4ed1ae8b699478cd7b52ccdff18dc7`, actual `bogus_program_digest`"
+    }
+  ],
+  "report_digest": "4fc9ec9de0d41f929e17774adf64c8da8a0949e313f038aff20f609655a158e9"
+}

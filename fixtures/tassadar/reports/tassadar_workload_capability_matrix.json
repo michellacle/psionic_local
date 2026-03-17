@@ -6,6 +6,8 @@
     "fixtures/tassadar/runs/sudoku_9x9_v0_compiled_executor_v0/run_bundle.json",
     "fixtures/tassadar/runs/hungarian_v0_compiled_executor_v0/run_bundle.json",
     "fixtures/tassadar/runs/hungarian_10x10_v0_compiled_executor_v0/run_bundle.json",
+    "fixtures/tassadar/runs/compiled_kernel_suite_v0/run_bundle.json",
+    "fixtures/tassadar/runs/compiled_kernel_suite_v0/compiled_kernel_suite_scaling_report.json",
     "fixtures/tassadar/runs/sudoku_v0_promotion_v3/promotion_bundle.json",
     "fixtures/tassadar/runs/sudoku_v0_promotion_v3/promotion_gate_report.json",
     "fixtures/tassadar/runs/sudoku_v0_promotion_v3/family_report.json",
@@ -109,6 +111,51 @@
           "posture": "fallback_only",
           "artifact_ref": "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json",
           "note": "sparse-top-k exact on 1/1 cases with 0 direct and 1 fallback selections for `long_loop_kernel`"
+        },
+        {
+          "surface_id": "compiled.proof_backed",
+          "posture": "exact",
+          "artifact_ref": "fixtures/tassadar/runs/compiled_kernel_suite_v0/run_bundle.json",
+          "note": "exact compiled/proof-backed generic kernel suite over bounded arithmetic, memory-update, forward-branch, and backward-loop families under the article_i32 profile; this widens compiled article closure evidence beyond Sudoku and Hungarian but is not arbitrary-program closure by itself; max_trace_step_count=8191"
+        }
+      ]
+    },
+    {
+      "workload_family_id": "arithmetic_kernel",
+      "workload_target": "arithmetic_microprogram",
+      "summary": "compiled-only arithmetic cascade family with exactness-vs-trace-length coverage",
+      "capabilities": [
+        {
+          "surface_id": "compiled.proof_backed",
+          "posture": "exact",
+          "artifact_ref": "fixtures/tassadar/runs/compiled_kernel_suite_v0/run_bundle.json",
+          "note": "exact compiled/proof-backed generic kernel suite over bounded arithmetic, memory-update, forward-branch, and backward-loop families under the article_i32 profile; this widens compiled article closure evidence beyond Sudoku and Hungarian but is not arbitrary-program closure by itself; max_trace_step_count=389"
+        }
+      ]
+    },
+    {
+      "workload_family_id": "memory_update_kernel",
+      "workload_target": "memory_lookup_microprogram",
+      "summary": "compiled-only memory update family with exactness-vs-trace-length coverage",
+      "capabilities": [
+        {
+          "surface_id": "compiled.proof_backed",
+          "posture": "exact",
+          "artifact_ref": "fixtures/tassadar/runs/compiled_kernel_suite_v0/run_bundle.json",
+          "note": "exact compiled/proof-backed generic kernel suite over bounded arithmetic, memory-update, forward-branch, and backward-loop families under the article_i32 profile; this widens compiled article closure evidence beyond Sudoku and Hungarian but is not arbitrary-program closure by itself; max_trace_step_count=261"
+        }
+      ]
+    },
+    {
+      "workload_family_id": "forward_branch_kernel",
+      "workload_target": "branch_control_flow_microprogram",
+      "summary": "compiled-only forward-branch ladder family with exactness-vs-trace-length coverage",
+      "capabilities": [
+        {
+          "surface_id": "compiled.proof_backed",
+          "posture": "exact",
+          "artifact_ref": "fixtures/tassadar/runs/compiled_kernel_suite_v0/run_bundle.json",
+          "note": "exact compiled/proof-backed generic kernel suite over bounded arithmetic, memory-update, forward-branch, and backward-loop families under the article_i32 profile; this widens compiled article closure evidence beyond Sudoku and Hungarian but is not arbitrary-program closure by itself; max_trace_step_count=117"
         }
       ]
     },
@@ -219,5 +266,5 @@
     }
   ],
   "claim_boundary": "this matrix is a workload-family capability view over current committed artifacts only; exact runtime, fallback-only runtime, compiled exact, and bounded/partial learned results remain separated and this report does not imply article parity",
-  "report_digest": "004800e86c913aa387809c0695bbc94f34a323ddf4a77a4e4b5e87fd40dbc2ba"
+  "report_digest": "b6328083c0c63fa10bbc199dee2982771e180f05403b46c4312b704b98ad6b0c"
 }

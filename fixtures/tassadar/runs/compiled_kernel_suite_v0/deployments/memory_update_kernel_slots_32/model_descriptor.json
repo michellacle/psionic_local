@@ -1,0 +1,112 @@
+{
+  "model": {
+    "model_id": "tassadar-executor-article-i32-compute-v0-compiled-tassadar.compiled_kernel_suite.memory_update.slots_32.v1",
+    "family": "tassadar_executor.compiled",
+    "revision": "memory_update_kernel_slots_32.compiled_executor"
+  },
+  "compatibility": {
+    "executor_family": "wasm_trace_executor",
+    "trace_abi_id": "tassadar.trace.v1",
+    "trace_abi_version": 1,
+    "wasm_profile_id": "tassadar.wasm.article_i32_compute.v1",
+    "opcode_vocabulary_digest": "b458516f694c301a7b209bb6e710dfc4b7c2756a107738dd38a8fdc8b2dcd64c",
+    "supported_decode_modes": [
+      "reference_linear",
+      "hull_cache",
+      "sparse_top_k"
+    ],
+    "attention_mode": "program_specialized_compiled",
+    "attention_geometry": {
+      "hull_cache_eligible": true
+    },
+    "exactness_posture": "exact_trace_and_output"
+  },
+  "profile": {
+    "profile_id": "tassadar.wasm.article_i32_compute.v1",
+    "allowed_opcodes": [
+      "i32_const",
+      "local_get",
+      "local_set",
+      "i32_add",
+      "i32_sub",
+      "i32_mul",
+      "i32_lt",
+      "i32_load",
+      "i32_store",
+      "br_if",
+      "output",
+      "return"
+    ],
+    "max_locals": 16,
+    "max_memory_slots": 64,
+    "max_program_len": 4096,
+    "max_steps": 131072,
+    "branch_mode": "br_if_non_zero",
+    "host_output_opcode": true
+  },
+  "trace_abi": {
+    "abi_id": "tassadar.trace.v1",
+    "schema_version": 1,
+    "profile_id": "tassadar.wasm.article_i32_compute.v1",
+    "append_only": true,
+    "includes_stack_snapshots": true,
+    "includes_local_snapshots": true,
+    "includes_memory_snapshots": true
+  },
+  "weights": {
+    "format": "ProgrammaticFixture",
+    "source": "ExternalArtifact",
+    "quantization": "none",
+    "digest": "bdab57fe894b91afd92f2ec0c3ce16c60bf08e9ae9068ea88545d2717d6cdf92",
+    "tensors": [
+      {
+        "name": "compiled_decode_contract",
+        "shape": {
+          "dims": [
+            6
+          ]
+        },
+        "dtype": "F32",
+        "quantization": "none"
+      },
+      {
+        "name": "compiled_initial_memory",
+        "shape": {
+          "dims": [
+            64
+          ]
+        },
+        "dtype": "F32",
+        "quantization": "none"
+      },
+      {
+        "name": "compiled_instruction_stream",
+        "shape": {
+          "dims": [
+            4096,
+            4
+          ]
+        },
+        "dtype": "F32",
+        "quantization": "none"
+      },
+      {
+        "name": "compiled_program_header",
+        "shape": {
+          "dims": [
+            8
+          ]
+        },
+        "dtype": "F32",
+        "quantization": "none"
+      }
+    ],
+    "artifacts": [
+      {
+        "name": "memory_update_kernel_slots_32.compiled_executor.compiled_weight.json",
+        "byte_length": 66661,
+        "sha256": "193dac8b5c7f26441edceb65011fb93533dce8500f3d0d9cf174e5b293ded4a3"
+      }
+    ]
+  }
+}

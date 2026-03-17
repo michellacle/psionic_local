@@ -1,0 +1,632 @@
+{
+  "runtime_manifest": {
+    "schema_version": 1,
+    "manifest_id": "tassadar-runtime-manifest-compile-forward_branch_kernel_branches_2.compiled_executor",
+    "runtime_identity": {
+      "runtime_backend": "cpu",
+      "backend_toolchain": {
+        "effective_backend": "cpu",
+        "toolchain_version": "tassadar.fixture_runner.v1",
+        "compiled_backend_features": [
+          "tassadar_executor",
+          "tassadar.decode.reference_linear.v1",
+          "tassadar.wasm.article_i32_compute.v1"
+        ],
+        "probe_state": "compiled_only"
+      }
+    },
+    "validation": {
+      "matrix_id": "psionic.minimum_hardware_validation.v1",
+      "documentation_path": "docs/HARDWARE_VALIDATION_MATRIX.md",
+      "claim_id": "tassadar.executor_trace.phase4",
+      "coverage": "not_yet_validated"
+    },
+    "environment_refs": [
+      "compiled://forward_branch_kernel_branches_2.compiled_executor"
+    ],
+    "artifact_bindings": [
+      {
+        "kind": "program_artifact",
+        "reference": "forward_branch_kernel_branches_2.compiled_program_artifact",
+        "digest": "df622d050fec859f49ac17b9ca1e954ca8d12e2b30edf47b43fa8b3ea56b1218"
+      },
+      {
+        "kind": "model_descriptor",
+        "reference": "tassadar-executor-article-i32-compute-v0-compiled-tassadar.compiled_kernel_suite.forward_branch.count_2.v1",
+        "digest": "9057b23d919da7e6ca427baea9e0850c96368fb22709a188f9e7ff961f76bb70"
+      },
+      {
+        "kind": "execution_trace",
+        "reference": "tassadar://trace/compile-forward_branch_kernel_branches_2.compiled_executor/5f9ad09571337c94b01dfd1fb09954784d0a025bcad384a72182982169771af9",
+        "digest": "6b0fce8cee5be3bc06903650718f814cbebc927f8bbb2de4069bb1493b72fd9f"
+      }
+    ],
+    "static_config_bindings": [
+      {
+        "key": "tassadar.cache_algorithm",
+        "value_digest": "f16de0a458b2dc634c95bfda87c00d81df8ce129f63233cdcc30f7480ad179ff"
+      },
+      {
+        "key": "tassadar.compile_toolchain_digest",
+        "value_digest": "e0776cf34748b2c2be3a007fa9bc5fc10504e65efd4d338875299dacac2a0aab"
+      },
+      {
+        "key": "tassadar.decode_mode",
+        "value_digest": "a24bbf8f0463cdb68b8a0989d969dec5c3258f318ebf05729eb05485b0f281f2"
+      },
+      {
+        "key": "tassadar.program_digest",
+        "value_digest": "6826025af6d2aa3f58b689fe77894bcb58cee28bc16747aee6b522a87a61c6bd"
+      },
+      {
+        "key": "tassadar.reference_runner",
+        "value_digest": "e0c7cc93027f98a2ca1a06f8e049ff88e80265603c581d22db0ded1f1c44fbff"
+      },
+      {
+        "key": "tassadar.source_program_digest",
+        "value_digest": "0d26d28fc8e486b13ce51d0b733c645a12053cc72989ff68239cec4ecc565381"
+      }
+    ],
+    "claims_profile_id": "tassadar.executor_trace.proof.v1",
+    "identity_digest": "465751e91f160211724593414f98158f618554645a8eba90cb533d412ddc7472",
+    "manifest_digest": "ee65522639357e1e734b84a7f3dfd13b165d792f55363904804dd066604f775e"
+  },
+  "trace_artifact": {
+    "schema_version": 1,
+    "artifact_id": "tassadar://trace/compile-forward_branch_kernel_branches_2.compiled_executor/5f9ad09571337c94b01dfd1fb09954784d0a025bcad384a72182982169771af9",
+    "artifact_digest": "6b0fce8cee5be3bc06903650718f814cbebc927f8bbb2de4069bb1493b72fd9f",
+    "program_id": "tassadar.compiled_kernel_suite.forward_branch.count_2.v1",
+    "runner_id": "tassadar.fixture_runner.v1",
+    "trace_abi_id": "tassadar.trace.v1",
+    "trace_abi_version": 1,
+    "trace_digest": "5f9ad09571337c94b01dfd1fb09954784d0a025bcad384a72182982169771af9",
+    "behavior_digest": "94041b44b459673cdcf5127f54f994c6440282d53bc4e103bd547a24a1a0f580",
+    "step_count": 19,
+    "steps": [
+      {
+        "step_index": 0,
+        "pc": 0,
+        "next_pc": 1,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 0
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 0
+        },
+        "stack_before": [],
+        "stack_after": [
+          0
+        ],
+        "locals_after": [
+          0
+        ],
+        "memory_after": [
+          1,
+          0
+        ]
+      },
+      {
+        "step_index": 1,
+        "pc": 1,
+        "next_pc": 2,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 0
+        },
+        "stack_before": [
+          0
+        ],
+        "stack_after": [],
+        "locals_after": [
+          0
+        ],
+        "memory_after": [
+          1,
+          0
+        ]
+      },
+      {
+        "step_index": 2,
+        "pc": 2,
+        "next_pc": 3,
+        "instruction": {
+          "opcode": "i32_load",
+          "slot": 0
+        },
+        "event": {
+          "kind": "load",
+          "slot": 0,
+          "value": 1
+        },
+        "stack_before": [],
+        "stack_after": [
+          1
+        ],
+        "locals_after": [
+          0
+        ],
+        "memory_after": [
+          1,
+          0
+        ]
+      },
+      {
+        "step_index": 3,
+        "pc": 3,
+        "next_pc": 10,
+        "instruction": {
+          "opcode": "br_if",
+          "target_pc": 10
+        },
+        "event": {
+          "kind": "branch",
+          "condition": 1,
+          "taken": true,
+          "target_pc": 10
+        },
+        "stack_before": [
+          1
+        ],
+        "stack_after": [],
+        "locals_after": [
+          0
+        ],
+        "memory_after": [
+          1,
+          0
+        ]
+      },
+      {
+        "step_index": 4,
+        "pc": 10,
+        "next_pc": 11,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 7
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 7
+        },
+        "stack_before": [],
+        "stack_after": [
+          7
+        ],
+        "locals_after": [
+          0
+        ],
+        "memory_after": [
+          1,
+          0
+        ]
+      },
+      {
+        "step_index": 5,
+        "pc": 11,
+        "next_pc": 12,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 0
+        },
+        "stack_before": [
+          7
+        ],
+        "stack_after": [
+          7,
+          0
+        ],
+        "locals_after": [
+          0
+        ],
+        "memory_after": [
+          1,
+          0
+        ]
+      },
+      {
+        "step_index": 6,
+        "pc": 12,
+        "next_pc": 13,
+        "instruction": {
+          "opcode": "i32_add"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "add",
+          "left": 7,
+          "right": 0,
+          "result": 7
+        },
+        "stack_before": [
+          7,
+          0
+        ],
+        "stack_after": [
+          7
+        ],
+        "locals_after": [
+          0
+        ],
+        "memory_after": [
+          1,
+          0
+        ]
+      },
+      {
+        "step_index": 7,
+        "pc": 13,
+        "next_pc": 14,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 7
+        },
+        "stack_before": [
+          7
+        ],
+        "stack_after": [],
+        "locals_after": [
+          7
+        ],
+        "memory_after": [
+          1,
+          0
+        ]
+      },
+      {
+        "step_index": 8,
+        "pc": 14,
+        "next_pc": 15,
+        "instruction": {
+          "opcode": "i32_load",
+          "slot": 1
+        },
+        "event": {
+          "kind": "load",
+          "slot": 1,
+          "value": 0
+        },
+        "stack_before": [],
+        "stack_after": [
+          0
+        ],
+        "locals_after": [
+          7
+        ],
+        "memory_after": [
+          1,
+          0
+        ]
+      },
+      {
+        "step_index": 9,
+        "pc": 15,
+        "next_pc": 16,
+        "instruction": {
+          "opcode": "br_if",
+          "target_pc": 22
+        },
+        "event": {
+          "kind": "branch",
+          "condition": 0,
+          "taken": false,
+          "target_pc": 22
+        },
+        "stack_before": [
+          0
+        ],
+        "stack_after": [],
+        "locals_after": [
+          7
+        ],
+        "memory_after": [
+          1,
+          0
+        ]
+      },
+      {
+        "step_index": 10,
+        "pc": 16,
+        "next_pc": 17,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 15
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 15
+        },
+        "stack_before": [],
+        "stack_after": [
+          15
+        ],
+        "locals_after": [
+          7
+        ],
+        "memory_after": [
+          1,
+          0
+        ]
+      },
+      {
+        "step_index": 11,
+        "pc": 17,
+        "next_pc": 18,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 7
+        },
+        "stack_before": [
+          15
+        ],
+        "stack_after": [
+          15,
+          7
+        ],
+        "locals_after": [
+          7
+        ],
+        "memory_after": [
+          1,
+          0
+        ]
+      },
+      {
+        "step_index": 12,
+        "pc": 18,
+        "next_pc": 19,
+        "instruction": {
+          "opcode": "i32_add"
+        },
+        "event": {
+          "kind": "binary_op",
+          "op": "add",
+          "left": 15,
+          "right": 7,
+          "result": 22
+        },
+        "stack_before": [
+          15,
+          7
+        ],
+        "stack_after": [
+          22
+        ],
+        "locals_after": [
+          7
+        ],
+        "memory_after": [
+          1,
+          0
+        ]
+      },
+      {
+        "step_index": 13,
+        "pc": 19,
+        "next_pc": 20,
+        "instruction": {
+          "opcode": "local_set",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_set",
+          "local": 0,
+          "value": 22
+        },
+        "stack_before": [
+          22
+        ],
+        "stack_after": [],
+        "locals_after": [
+          22
+        ],
+        "memory_after": [
+          1,
+          0
+        ]
+      },
+      {
+        "step_index": 14,
+        "pc": 20,
+        "next_pc": 21,
+        "instruction": {
+          "opcode": "i32_const",
+          "value": 1
+        },
+        "event": {
+          "kind": "const_push",
+          "value": 1
+        },
+        "stack_before": [],
+        "stack_after": [
+          1
+        ],
+        "locals_after": [
+          22
+        ],
+        "memory_after": [
+          1,
+          0
+        ]
+      },
+      {
+        "step_index": 15,
+        "pc": 21,
+        "next_pc": 26,
+        "instruction": {
+          "opcode": "br_if",
+          "target_pc": 26
+        },
+        "event": {
+          "kind": "branch",
+          "condition": 1,
+          "taken": true,
+          "target_pc": 26
+        },
+        "stack_before": [
+          1
+        ],
+        "stack_after": [],
+        "locals_after": [
+          22
+        ],
+        "memory_after": [
+          1,
+          0
+        ]
+      },
+      {
+        "step_index": 16,
+        "pc": 26,
+        "next_pc": 27,
+        "instruction": {
+          "opcode": "local_get",
+          "local": 0
+        },
+        "event": {
+          "kind": "local_get",
+          "local": 0,
+          "value": 22
+        },
+        "stack_before": [],
+        "stack_after": [
+          22
+        ],
+        "locals_after": [
+          22
+        ],
+        "memory_after": [
+          1,
+          0
+        ]
+      },
+      {
+        "step_index": 17,
+        "pc": 27,
+        "next_pc": 28,
+        "instruction": {
+          "opcode": "output"
+        },
+        "event": {
+          "kind": "output",
+          "value": 22
+        },
+        "stack_before": [
+          22
+        ],
+        "stack_after": [],
+        "locals_after": [
+          22
+        ],
+        "memory_after": [
+          1,
+          0
+        ]
+      },
+      {
+        "step_index": 18,
+        "pc": 28,
+        "next_pc": 29,
+        "instruction": {
+          "opcode": "return"
+        },
+        "event": {
+          "kind": "return"
+        },
+        "stack_before": [],
+        "stack_after": [],
+        "locals_after": [
+          22
+        ],
+        "memory_after": [
+          1,
+          0
+        ]
+      }
+    ]
+  },
+  "trace_proof": {
+    "schema_version": 1,
+    "proof_artifact_id": "tassadar://trace_proof/compile-forward_branch_kernel_branches_2.compiled_executor/5f9ad09571337c94b01dfd1fb09954784d0a025bcad384a72182982169771af9",
+    "proof_digest": "e99c165e0bf0dfb65fcbd24b5a632e3f6b819f71bfd767570f1b1254b301af1b",
+    "trace_artifact_ref": "tassadar://trace/compile-forward_branch_kernel_branches_2.compiled_executor/5f9ad09571337c94b01dfd1fb09954784d0a025bcad384a72182982169771af9",
+    "trace_artifact_digest": "6b0fce8cee5be3bc06903650718f814cbebc927f8bbb2de4069bb1493b72fd9f",
+    "trace_digest": "5f9ad09571337c94b01dfd1fb09954784d0a025bcad384a72182982169771af9",
+    "program_digest": "6826025af6d2aa3f58b689fe77894bcb58cee28bc16747aee6b522a87a61c6bd",
+    "program_artifact_digest": "df622d050fec859f49ac17b9ca1e954ca8d12e2b30edf47b43fa8b3ea56b1218",
+    "wasm_profile_id": "tassadar.wasm.article_i32_compute.v1",
+    "model_descriptor_digest": "9057b23d919da7e6ca427baea9e0850c96368fb22709a188f9e7ff961f76bb70",
+    "decode_mode": "reference_linear",
+    "cache_algorithm_id": "tassadar.cache.linear_scan_kv.v1",
+    "runtime_backend": "cpu",
+    "reference_runner_id": "tassadar.fixture_runner.v1",
+    "validation": {
+      "matrix_id": "psionic.minimum_hardware_validation.v1",
+      "documentation_path": "docs/HARDWARE_VALIDATION_MATRIX.md",
+      "claim_id": "tassadar.executor_trace.phase4",
+      "coverage": "not_yet_validated"
+    },
+    "runtime_manifest_identity_digest": "465751e91f160211724593414f98158f618554645a8eba90cb533d412ddc7472",
+    "runtime_manifest_digest": "ee65522639357e1e734b84a7f3dfd13b165d792f55363904804dd066604f775e"
+  },
+  "proof_bundle": {
+    "schema_version": 1,
+    "bundle_kind": "local",
+    "status": "succeeded",
+    "request_id": "compile-forward_branch_kernel_branches_2.compiled_executor",
+    "request_digest": "7b97d4aaafcb585ab1f3b0d888033d7c651c044627b2eb7189f08c4bc6e4e7c9",
+    "product_id": "psionic.tassadar.compiled_weight",
+    "model_id": "tassadar-executor-article-i32-compute-v0-compiled-tassadar.compiled_kernel_suite.forward_branch.count_2.v1",
+    "runtime_identity": {
+      "runtime_backend": "cpu",
+      "backend_toolchain": {
+        "effective_backend": "cpu",
+        "toolchain_version": "tassadar.fixture_runner.v1",
+        "compiled_backend_features": [
+          "tassadar_executor",
+          "tassadar.decode.reference_linear.v1",
+          "tassadar.wasm.article_i32_compute.v1"
+        ],
+        "probe_state": "compiled_only"
+      }
+    },
+    "validation": {
+      "matrix_id": "psionic.minimum_hardware_validation.v1",
+      "documentation_path": "docs/HARDWARE_VALIDATION_MATRIX.md",
+      "claim_id": "tassadar.executor_trace.phase4",
+      "coverage": "not_yet_validated"
+    },
+    "artifact_residency": {
+      "weight_bundle_digest": "9057b23d919da7e6ca427baea9e0850c96368fb22709a188f9e7ff961f76bb70",
+      "input_artifact_digests": [
+        "df622d050fec859f49ac17b9ca1e954ca8d12e2b30edf47b43fa8b3ea56b1218"
+      ],
+      "output_artifact_digests": [
+        "6b0fce8cee5be3bc06903650718f814cbebc927f8bbb2de4069bb1493b72fd9f",
+        "e99c165e0bf0dfb65fcbd24b5a632e3f6b819f71bfd767570f1b1254b301af1b"
+      ]
+    },
+    "activation_fingerprint_posture": "unavailable"
+  }
+}

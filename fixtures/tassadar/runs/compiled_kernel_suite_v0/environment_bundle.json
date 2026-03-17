@@ -1,0 +1,456 @@
+{
+  "eval_package": {
+    "abi_version": "psionic.environment.v1",
+    "key": {
+      "environment_ref": "env.openagents.tassadar.compiled_kernel_suite.eval",
+      "version": "v0"
+    },
+    "family": "evaluation",
+    "display_name": "Tassadar Compiled Kernel Suite Eval",
+    "execution": {
+      "runtime_family": "evaluator",
+      "entrypoint": "tassadar_eval::run",
+      "args": [
+        "runtime://tassadar/compiled_kernel_suite/eval"
+      ],
+      "max_turns": 1,
+      "state_mode": "stateless",
+      "time_budget_ms": 30000
+    },
+    "supported_workloads": [
+      "online_eval",
+      "offline_eval"
+    ],
+    "datasets": [
+      {
+        "dataset": {
+          "dataset_ref": "dataset://openagents/tassadar/compiled_kernel_suite",
+          "version": "v0"
+        },
+        "split": "validation",
+        "mount_path": "/datasets/tassadar/compiled_kernel_suite/validation",
+        "required": true
+      }
+    ],
+    "rubric_hooks": [
+      {
+        "rubric_ref": "tassadar://rubric/exactness/final_output_exactness",
+        "hook_name": "score_final_output_exactness",
+        "score_kind": "binary",
+        "pass_threshold": 10000
+      },
+      {
+        "rubric_ref": "tassadar://rubric/exactness/step_exactness",
+        "hook_name": "score_step_exactness",
+        "score_kind": "binary",
+        "pass_threshold": 10000
+      },
+      {
+        "rubric_ref": "tassadar://rubric/exactness/halt_exactness",
+        "hook_name": "score_halt_exactness",
+        "score_kind": "binary",
+        "pass_threshold": 10000
+      }
+    ],
+    "expected_artifacts": [
+      {
+        "artifact_kind": "tassadar_program_artifact.json",
+        "required": true,
+        "verification_policy_ref": "policy://tassadar/program_artifact"
+      },
+      {
+        "artifact_kind": "tassadar_trace.json",
+        "required": true,
+        "verification_policy_ref": "policy://tassadar/trace"
+      },
+      {
+        "artifact_kind": "tassadar_eval_report.json",
+        "required": true,
+        "verification_policy_ref": "policy://tassadar/eval_report"
+      }
+    ],
+    "policy_references": [
+      {
+        "kind": "verification",
+        "policy_ref": "policy://tassadar/compiled_kernel_suite/eval/verification",
+        "required": true
+      }
+    ],
+    "metadata": {
+      "tassadar.abi_version": "psionic.tassadar_environment.v1",
+      "tassadar.current_workload_targets": [
+        "arithmetic_microprogram",
+        "memory_lookup_microprogram",
+        "branch_control_flow_microprogram",
+        "long_loop_kernel"
+      ],
+      "tassadar.exactness_contract": {
+        "require_final_output_exactness": true,
+        "require_step_exactness": true,
+        "require_halt_exactness": true,
+        "timeout_budget_ms": 30000,
+        "trace_budget_steps": 131072,
+        "require_cpu_reference_baseline": true,
+        "require_reference_linear_baseline": true,
+        "future_throughput_metric_ids": [
+          "tassadar.compiled_kernel_suite_steps_per_second"
+        ]
+      },
+      "tassadar.io_contract": {
+        "input_family": "no_external_input",
+        "output_family": "i32_sequence",
+        "output_element_type": "i32",
+        "deterministic_outputs": true
+      },
+      "tassadar.package_refs": {
+        "group_ref": "group.tassadar.compiled_kernel_suite",
+        "eval_pin_alias": "tassadar_compiled_kernel_suite_eval",
+        "benchmark_pin_alias": "tassadar_compiled_kernel_suite_benchmark",
+        "eval_member_ref": "tassadar_compiled_kernel_suite_eval_member",
+        "benchmark_member_ref": "tassadar_compiled_kernel_suite_benchmark_member",
+        "program_corpus_ref": "tassadar://corpus/compiled_kernel_suite.validation",
+        "io_contract_ref": "tassadar://io/exact_i32_sequence",
+        "rubric_binding_ref": "tassadar://rubric/exactness",
+        "eval_runtime_profile_ref": "runtime://tassadar/compiled_kernel_suite/eval",
+        "benchmark_profile_ref": "benchmark://tassadar/compiled_kernel_suite/reference_fixture",
+        "benchmark_runtime_profile_ref": "runtime://tassadar/compiled_kernel_suite/benchmark"
+      },
+      "tassadar.planned_workload_targets": [],
+      "tassadar.program_binding": {
+        "dataset": {
+          "dataset_ref": "dataset://openagents/tassadar/compiled_kernel_suite",
+          "version": "v0"
+        },
+        "program_corpus_ref": "tassadar://corpus/compiled_kernel_suite.validation",
+        "corpus_digest": "c13755cb209f3721c27f50382c31f8f42986d8586b00631fe6006d9ef78f6af6",
+        "wasm_profile_id": "tassadar.wasm.article_i32_compute.v1",
+        "trace_abi_id": "tassadar.trace.v1",
+        "trace_abi_version": 1,
+        "opcode_vocabulary_digest": "b458516f694c301a7b209bb6e710dfc4b7c2756a107738dd38a8fdc8b2dcd64c",
+        "artifact_digests": [
+          "3882304550c1313cc16c353cc7527f8c42a58c4b5367fa449f8a5d4e9a18d28d",
+          "6216d3c7fb0efcdf4beece35710f1a28c46eac29f19711c520cd8197cfa32319",
+          "9e071f00609a1422ebe4a2a25e4795308ce8ac627b94153c467d6b57ad235a70",
+          "64030c8601585e34734bbcb8a01379613bd40b94098719af59ffe83d3234c276",
+          "6edd8052e0567ce408416647fb47241584149c7f5f1f21b3d08d5fb9480212ed",
+          "476a3f9279953225920e914176302a236159faa773e61b35698aa99ebf597e30",
+          "186e9dd0289654fbbed314363983827d008257eae72d9291ee8389531f337a57",
+          "fdfabeb50e20da06c094ad9556c2412ebe258222bcbf44e37f5b11975ce9df5d",
+          "acab02eb7af2916b56585df980ec6d2014234602bd20d7c38fe2aa43328b63b9",
+          "61a1187e410df2a47360046259f6d1fee9ee5f91022517ecaab6ecff2637314f",
+          "f3a295c8f89122a6dd0e36342af0fd73d0f86163f6e90c373ba9b10093c4b24a",
+          "096b637966ce3fe23bb6d7f55636e9539cfc0828d3fd2c75beafe4f3998c4947"
+        ]
+      },
+      "tassadar.surface": "eval"
+    }
+  },
+  "benchmark_package": {
+    "abi_version": "psionic.environment.v1",
+    "key": {
+      "environment_ref": "env.openagents.tassadar.compiled_kernel_suite.benchmark",
+      "version": "v0"
+    },
+    "family": "evaluation",
+    "display_name": "Tassadar Compiled Kernel Suite Benchmark",
+    "execution": {
+      "runtime_family": "evaluator",
+      "entrypoint": "tassadar_benchmark::run",
+      "args": [
+        "runtime://tassadar/compiled_kernel_suite/benchmark"
+      ],
+      "max_turns": 1,
+      "state_mode": "turn_scoped",
+      "time_budget_ms": 30000
+    },
+    "supported_workloads": [
+      "offline_eval",
+      "validator_benchmark"
+    ],
+    "datasets": [
+      {
+        "dataset": {
+          "dataset_ref": "dataset://openagents/tassadar/compiled_kernel_suite",
+          "version": "v0"
+        },
+        "split": "benchmark",
+        "mount_path": "/datasets/tassadar/compiled_kernel_suite/benchmark",
+        "required": true
+      }
+    ],
+    "rubric_hooks": [
+      {
+        "rubric_ref": "tassadar://rubric/exactness/final_output_exactness",
+        "hook_name": "score_final_output_exactness",
+        "score_kind": "binary",
+        "pass_threshold": 10000
+      },
+      {
+        "rubric_ref": "tassadar://rubric/exactness/step_exactness",
+        "hook_name": "score_step_exactness",
+        "score_kind": "binary",
+        "pass_threshold": 10000
+      },
+      {
+        "rubric_ref": "tassadar://rubric/exactness/halt_exactness",
+        "hook_name": "score_halt_exactness",
+        "score_kind": "binary",
+        "pass_threshold": 10000
+      }
+    ],
+    "expected_artifacts": [
+      {
+        "artifact_kind": "tassadar_program_artifact.json",
+        "required": true,
+        "verification_policy_ref": "policy://tassadar/program_artifact"
+      },
+      {
+        "artifact_kind": "tassadar_trace.json",
+        "required": true,
+        "verification_policy_ref": "policy://tassadar/trace"
+      },
+      {
+        "artifact_kind": "tassadar_eval_report.json",
+        "required": true,
+        "verification_policy_ref": "policy://tassadar/eval_report"
+      }
+    ],
+    "policy_references": [
+      {
+        "kind": "benchmark",
+        "policy_ref": "policy://tassadar/compiled_kernel_suite/benchmark",
+        "required": true
+      },
+      {
+        "kind": "verification",
+        "policy_ref": "policy://tassadar/compiled_kernel_suite/benchmark/verification",
+        "required": true
+      }
+    ],
+    "benchmark_profiles": [
+      {
+        "benchmark_profile_ref": "benchmark://tassadar/compiled_kernel_suite/reference_fixture",
+        "runtime_profile_ref": "runtime://tassadar/compiled_kernel_suite/benchmark",
+        "verification_posture": "validator_required",
+        "expected_execution_strategy": "tassadar_reference_fixture"
+      }
+    ],
+    "metadata": {
+      "tassadar.abi_version": "psionic.tassadar_environment.v1",
+      "tassadar.current_workload_targets": [
+        "arithmetic_microprogram",
+        "memory_lookup_microprogram",
+        "branch_control_flow_microprogram",
+        "long_loop_kernel"
+      ],
+      "tassadar.exactness_contract": {
+        "require_final_output_exactness": true,
+        "require_step_exactness": true,
+        "require_halt_exactness": true,
+        "timeout_budget_ms": 30000,
+        "trace_budget_steps": 131072,
+        "require_cpu_reference_baseline": true,
+        "require_reference_linear_baseline": true,
+        "future_throughput_metric_ids": [
+          "tassadar.compiled_kernel_suite_steps_per_second"
+        ]
+      },
+      "tassadar.io_contract": {
+        "input_family": "no_external_input",
+        "output_family": "i32_sequence",
+        "output_element_type": "i32",
+        "deterministic_outputs": true
+      },
+      "tassadar.package_refs": {
+        "group_ref": "group.tassadar.compiled_kernel_suite",
+        "eval_pin_alias": "tassadar_compiled_kernel_suite_eval",
+        "benchmark_pin_alias": "tassadar_compiled_kernel_suite_benchmark",
+        "eval_member_ref": "tassadar_compiled_kernel_suite_eval_member",
+        "benchmark_member_ref": "tassadar_compiled_kernel_suite_benchmark_member",
+        "program_corpus_ref": "tassadar://corpus/compiled_kernel_suite.validation",
+        "io_contract_ref": "tassadar://io/exact_i32_sequence",
+        "rubric_binding_ref": "tassadar://rubric/exactness",
+        "eval_runtime_profile_ref": "runtime://tassadar/compiled_kernel_suite/eval",
+        "benchmark_profile_ref": "benchmark://tassadar/compiled_kernel_suite/reference_fixture",
+        "benchmark_runtime_profile_ref": "runtime://tassadar/compiled_kernel_suite/benchmark"
+      },
+      "tassadar.planned_workload_targets": [],
+      "tassadar.program_binding": {
+        "dataset": {
+          "dataset_ref": "dataset://openagents/tassadar/compiled_kernel_suite",
+          "version": "v0"
+        },
+        "program_corpus_ref": "tassadar://corpus/compiled_kernel_suite.validation",
+        "corpus_digest": "c13755cb209f3721c27f50382c31f8f42986d8586b00631fe6006d9ef78f6af6",
+        "wasm_profile_id": "tassadar.wasm.article_i32_compute.v1",
+        "trace_abi_id": "tassadar.trace.v1",
+        "trace_abi_version": 1,
+        "opcode_vocabulary_digest": "b458516f694c301a7b209bb6e710dfc4b7c2756a107738dd38a8fdc8b2dcd64c",
+        "artifact_digests": [
+          "3882304550c1313cc16c353cc7527f8c42a58c4b5367fa449f8a5d4e9a18d28d",
+          "6216d3c7fb0efcdf4beece35710f1a28c46eac29f19711c520cd8197cfa32319",
+          "9e071f00609a1422ebe4a2a25e4795308ce8ac627b94153c467d6b57ad235a70",
+          "64030c8601585e34734bbcb8a01379613bd40b94098719af59ffe83d3234c276",
+          "6edd8052e0567ce408416647fb47241584149c7f5f1f21b3d08d5fb9480212ed",
+          "476a3f9279953225920e914176302a236159faa773e61b35698aa99ebf597e30",
+          "186e9dd0289654fbbed314363983827d008257eae72d9291ee8389531f337a57",
+          "fdfabeb50e20da06c094ad9556c2412ebe258222bcbf44e37f5b11975ce9df5d",
+          "acab02eb7af2916b56585df980ec6d2014234602bd20d7c38fe2aa43328b63b9",
+          "61a1187e410df2a47360046259f6d1fee9ee5f91022517ecaab6ecff2637314f",
+          "f3a295c8f89122a6dd0e36342af0fd73d0f86163f6e90c373ba9b10093c4b24a",
+          "096b637966ce3fe23bb6d7f55636e9539cfc0828d3fd2c75beafe4f3998c4947"
+        ]
+      },
+      "tassadar.surface": "benchmark"
+    }
+  },
+  "group": {
+    "group_ref": "group.tassadar.compiled_kernel_suite",
+    "display_name": "Tassadar Compiled Kernel Suite",
+    "members": [
+      {
+        "member_ref": "tassadar_compiled_kernel_suite_eval_member",
+        "pin_alias": "tassadar_compiled_kernel_suite_eval",
+        "surfaces": [
+          "eval"
+        ],
+        "required_workloads": [
+          "online_eval",
+          "offline_eval"
+        ]
+      },
+      {
+        "member_ref": "tassadar_compiled_kernel_suite_benchmark_member",
+        "pin_alias": "tassadar_compiled_kernel_suite_benchmark",
+        "surfaces": [
+          "benchmark"
+        ],
+        "required_workloads": [
+          "validator_benchmark"
+        ],
+        "required_benchmark_profiles": [
+          "benchmark://tassadar/compiled_kernel_suite/reference_fixture"
+        ]
+      }
+    ]
+  },
+  "eval_resolution": {
+    "group_ref": "group.tassadar.compiled_kernel_suite",
+    "surface": "eval",
+    "members": [
+      {
+        "member_ref": "tassadar_compiled_kernel_suite_eval_member",
+        "surface": "eval",
+        "package": {
+          "alias": "tassadar_compiled_kernel_suite_eval",
+          "package_key": {
+            "environment_ref": "env.openagents.tassadar.compiled_kernel_suite.eval",
+            "version": "v0"
+          },
+          "package_digest": "349da51f918cbd16a03fa8a45044ecae4ef7cac0ed8ad87a9a40b946f08cdf03",
+          "supported_workloads": [
+            "online_eval",
+            "offline_eval"
+          ]
+        }
+      }
+    ],
+    "resolution_digest": "ffc15a0dc7c807515eb974c818f88f1b83a37bafb376a6456d30c778303f6462"
+  },
+  "benchmark_resolution": {
+    "group_ref": "group.tassadar.compiled_kernel_suite",
+    "surface": "benchmark",
+    "members": [
+      {
+        "member_ref": "tassadar_compiled_kernel_suite_benchmark_member",
+        "surface": "benchmark",
+        "package": {
+          "alias": "tassadar_compiled_kernel_suite_benchmark",
+          "package_key": {
+            "environment_ref": "env.openagents.tassadar.compiled_kernel_suite.benchmark",
+            "version": "v0"
+          },
+          "package_digest": "682238c66e1b23b9f6b0eff059ae50e5fcaf0733f37e8d26d5315ea0328b813f",
+          "dependencies": [
+            {
+              "environment_ref": "env.openagents.tassadar.compiled_kernel_suite.eval",
+              "version": "v0"
+            }
+          ],
+          "supported_workloads": [
+            "offline_eval",
+            "validator_benchmark"
+          ]
+        },
+        "benchmark_profiles": [
+          "benchmark://tassadar/compiled_kernel_suite/reference_fixture"
+        ]
+      }
+    ],
+    "resolution_digest": "9af4f59af014ec99abaeb03bcf0f372b41657c4c1bef63985a7df58b01ed8cb0"
+  },
+  "package_refs": {
+    "group_ref": "group.tassadar.compiled_kernel_suite",
+    "eval_pin_alias": "tassadar_compiled_kernel_suite_eval",
+    "benchmark_pin_alias": "tassadar_compiled_kernel_suite_benchmark",
+    "eval_member_ref": "tassadar_compiled_kernel_suite_eval_member",
+    "benchmark_member_ref": "tassadar_compiled_kernel_suite_benchmark_member",
+    "program_corpus_ref": "tassadar://corpus/compiled_kernel_suite.validation",
+    "io_contract_ref": "tassadar://io/exact_i32_sequence",
+    "rubric_binding_ref": "tassadar://rubric/exactness",
+    "eval_runtime_profile_ref": "runtime://tassadar/compiled_kernel_suite/eval",
+    "benchmark_profile_ref": "benchmark://tassadar/compiled_kernel_suite/reference_fixture",
+    "benchmark_runtime_profile_ref": "runtime://tassadar/compiled_kernel_suite/benchmark"
+  },
+  "program_binding": {
+    "dataset": {
+      "dataset_ref": "dataset://openagents/tassadar/compiled_kernel_suite",
+      "version": "v0"
+    },
+    "program_corpus_ref": "tassadar://corpus/compiled_kernel_suite.validation",
+    "corpus_digest": "c13755cb209f3721c27f50382c31f8f42986d8586b00631fe6006d9ef78f6af6",
+    "wasm_profile_id": "tassadar.wasm.article_i32_compute.v1",
+    "trace_abi_id": "tassadar.trace.v1",
+    "trace_abi_version": 1,
+    "opcode_vocabulary_digest": "b458516f694c301a7b209bb6e710dfc4b7c2756a107738dd38a8fdc8b2dcd64c",
+    "artifact_digests": [
+      "3882304550c1313cc16c353cc7527f8c42a58c4b5367fa449f8a5d4e9a18d28d",
+      "6216d3c7fb0efcdf4beece35710f1a28c46eac29f19711c520cd8197cfa32319",
+      "9e071f00609a1422ebe4a2a25e4795308ce8ac627b94153c467d6b57ad235a70",
+      "64030c8601585e34734bbcb8a01379613bd40b94098719af59ffe83d3234c276",
+      "6edd8052e0567ce408416647fb47241584149c7f5f1f21b3d08d5fb9480212ed",
+      "476a3f9279953225920e914176302a236159faa773e61b35698aa99ebf597e30",
+      "186e9dd0289654fbbed314363983827d008257eae72d9291ee8389531f337a57",
+      "fdfabeb50e20da06c094ad9556c2412ebe258222bcbf44e37f5b11975ce9df5d",
+      "acab02eb7af2916b56585df980ec6d2014234602bd20d7c38fe2aa43328b63b9",
+      "61a1187e410df2a47360046259f6d1fee9ee5f91022517ecaab6ecff2637314f",
+      "f3a295c8f89122a6dd0e36342af0fd73d0f86163f6e90c373ba9b10093c4b24a",
+      "096b637966ce3fe23bb6d7f55636e9539cfc0828d3fd2c75beafe4f3998c4947"
+    ]
+  },
+  "io_contract": {
+    "input_family": "no_external_input",
+    "output_family": "i32_sequence",
+    "output_element_type": "i32",
+    "deterministic_outputs": true
+  },
+  "exactness_contract": {
+    "require_final_output_exactness": true,
+    "require_step_exactness": true,
+    "require_halt_exactness": true,
+    "timeout_budget_ms": 30000,
+    "trace_budget_steps": 131072,
+    "require_cpu_reference_baseline": true,
+    "require_reference_linear_baseline": true,
+    "future_throughput_metric_ids": [
+      "tassadar.compiled_kernel_suite_steps_per_second"
+    ]
+  },
+  "current_workload_targets": [
+    "arithmetic_microprogram",
+    "memory_lookup_microprogram",
+    "branch_control_flow_microprogram",
+    "long_loop_kernel"
+  ],
+  "planned_workload_targets": []
+}

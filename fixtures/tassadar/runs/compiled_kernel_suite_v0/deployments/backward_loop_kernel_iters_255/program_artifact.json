@@ -1,0 +1,80 @@
+{
+  "artifact_id": "backward_loop_kernel_iters_255.compiled_program_artifact",
+  "artifact_digest": "78edd28bb0ecb80c5a8e9f7be45ca1747c19ec584ef48279b34609683235ed8b",
+  "source_identity": {
+    "source_kind": "fixture",
+    "source_name": "tassadar.compiled_kernel_suite.backward_loop.iters_255.v1",
+    "source_digest": "17aa73b5b5588796d917f6ed8bf1c1a9d409ad84d9ef85e5def8fa10b1dab8ca"
+  },
+  "toolchain_identity": {
+    "compiler_family": "tassadar_fixture",
+    "compiler_version": "v1",
+    "target": "tassadar.wasm.article_i32_compute.v1",
+    "pipeline_features": [
+      "validated_program",
+      "webassembly_first"
+    ]
+  },
+  "wasm_profile_id": "tassadar.wasm.article_i32_compute.v1",
+  "trace_abi_id": "tassadar.trace.v1",
+  "trace_abi_version": 1,
+  "opcode_vocabulary_digest": "b458516f694c301a7b209bb6e710dfc4b7c2756a107738dd38a8fdc8b2dcd64c",
+  "validated_program_digest": "17aa73b5b5588796d917f6ed8bf1c1a9d409ad84d9ef85e5def8fa10b1dab8ca",
+  "validated_program": {
+    "program_id": "tassadar.compiled_kernel_suite.backward_loop.iters_255.v1",
+    "profile_id": "tassadar.wasm.article_i32_compute.v1",
+    "local_count": 1,
+    "memory_slots": 0,
+    "instructions": [
+      {
+        "opcode": "i32_const",
+        "value": 255
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "br_if",
+        "target_pc": 7
+      },
+      {
+        "opcode": "i32_const",
+        "value": 0
+      },
+      {
+        "opcode": "output"
+      },
+      {
+        "opcode": "return"
+      },
+      {
+        "opcode": "local_get",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 1
+      },
+      {
+        "opcode": "i32_sub"
+      },
+      {
+        "opcode": "local_set",
+        "local": 0
+      },
+      {
+        "opcode": "i32_const",
+        "value": 1
+      },
+      {
+        "opcode": "br_if",
+        "target_pc": 2
+      }
+    ]
+  }
+}

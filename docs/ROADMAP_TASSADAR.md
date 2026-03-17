@@ -191,6 +191,10 @@ The current strongest committed artifacts are:
 - `fixtures/tassadar/runs/hungarian_10x10_v0_compiled_executor_v0`
   - exact compiled/proof-backed 10x10 Hungarian lane now exists on the matched
     article-sized corpus
+- `fixtures/tassadar/runs/compiled_kernel_suite_v0`
+  - exact compiled/proof-backed arithmetic, memory-update, forward-branch, and
+    backward-loop kernel suite now exists with exactness-vs-trace-length
+    reporting and proof-bearing deployments
 
 The current technical reality is:
 
@@ -198,7 +202,9 @@ The current technical reality is:
 - the fast decode path exists, but its exact closure is still workload-shaped
   rather than general
 - the compiled/proof-backed lane is stronger today than the learned long-trace
-  lane and now includes article-sized 9x9 Sudoku and 10x10 Hungarian exactness
+  lane and now includes article-sized 9x9 Sudoku, 10x10 Hungarian exactness,
+  and a generic compiled kernel suite over arithmetic, memory, branch, and
+  loop-heavy workloads
 - the learned 4x4 lane is real
 - the learned 9x9 lane still does not fit the full trace honestly under the
   current model contract
@@ -428,7 +434,7 @@ lane first, because that is the strongest current path in this repo.
 | `PTAS-301` | partial | Widen the compiled/proof-backed lane from today's matched 4x4 corpora to article-class Sudoku and matching workloads. |
 | `PTAS-302` | implemented | Land an exact compiled/proof-backed 9x9 Sudoku bundle with readable-log, token-trace, proof, and throughput artifacts. |
 | `PTAS-303` | implemented | Land an exact compiled/proof-backed 10x10 Hungarian-class bundle with benchmark-package, proof, throughput, and explicit claim-boundary artifacts. |
-| `PTAS-304` | planned | Add a generic compiled kernel suite covering arithmetic, memory, branch, and loop-heavy programs with exactness-vs-trace-length reporting. |
+| `PTAS-304` | implemented | Add a generic compiled kernel suite covering arithmetic, memory, branch, and loop-heavy programs with exactness-vs-trace-length reporting. |
 | `PTAS-305` | planned | Add one compiled article-closure checker that only turns green when the bounded 4x4 proxies are no longer the strongest exact compiled result in-tree. |
 
 ## Epic 4: Learned Executor Substrate Redesign
