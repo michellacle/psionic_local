@@ -110,6 +110,11 @@ Current posture:
   readable logs are now explicitly subordinate to the canonical trace
   artifact, and validator-facing ABI pointers are frozen across benchmark,
   compiled, and long-horizon fixture artifacts
+- its Phase 7D workload capability matrix now also exists in `psionic-eval`,
+  with the committed report at
+  `fixtures/tassadar/reports/tassadar_workload_capability_matrix.json` that
+  records runtime exact vs fallback-only posture per workload family and keeps
+  compiled exact, bounded learned, and partial 9x9 learned evidence separate
 - the first trained-executor follow-on bar now also exists in
   `psionic-runtime` and `psionic-models`: a dedicated
   `tassadar.wasm.sudoku_v0_search.v1` profile plus a real 4x4 backtracking

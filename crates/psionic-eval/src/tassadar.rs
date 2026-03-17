@@ -16,6 +16,7 @@ use psionic_runtime::{
     TassadarFixtureRunner, TassadarHullCacheRunner, TassadarHungarianV0CorpusCase,
     TassadarProgramArtifact, TassadarProgramArtifactError, TassadarSparseTopKRunner,
     TassadarSudokuV0CorpusCase, TassadarSudokuV0CorpusSplit, TassadarTraceAbi, TassadarWasmProfile,
+    TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
@@ -68,6 +69,9 @@ pub const TASSADAR_HUNGARIAN_V0_DATASET_REF: &str =
 pub const TASSADAR_HULL_CACHE_METRIC_ID: &str = "tassadar.hull_cache_steps_per_second";
 /// Stable metric id for the Phase 8 sparse-top-k lane.
 pub const TASSADAR_SPARSE_TOP_K_METRIC_ID: &str = "tassadar.sparse_top_k_steps_per_second";
+/// Canonical machine-readable output path for the workload capability matrix report.
+pub const TASSADAR_WORKLOAD_CAPABILITY_MATRIX_REPORT_REF: &str =
+    "fixtures/tassadar/reports/tassadar_workload_capability_matrix.json";
 
 const TASSADAR_OUTPUT_EXACTNESS_METRIC_ID: &str = "tassadar.final_output_exactness_bps";
 const TASSADAR_STEP_EXACTNESS_METRIC_ID: &str = "tassadar.step_exactness_bps";
@@ -84,6 +88,7 @@ const TASSADAR_SPARSE_TOP_K_SPEEDUP_METRIC_ID: &str =
 const TASSADAR_SPARSE_TOP_K_CPU_GAP_METRIC_ID: &str =
     "tassadar.sparse_top_k_remaining_gap_vs_cpu_reference";
 const TASSADAR_TRACE_STEP_COUNT_METRIC_ID: &str = "tassadar.trace_step_count";
+const TASSADAR_WORKLOAD_CAPABILITY_MATRIX_SCHEMA_VERSION: u16 = 1;
 
 /// One packaged Tassadar Phase 3 suite.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -180,6 +185,64 @@ pub struct TassadarBenchmarkReport {
     pub case_reports: Vec<TassadarBenchmarkCaseReport>,
 }
 
+/// Capability posture for one workload family on one Tassadar surface.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TassadarCapabilityPosture {
+    /// Surface is exact on the declared workload family.
+    Exact,
+    /// Surface remains exact only by explicitly falling back to another mode.
+    FallbackOnly,
+    /// Surface exists but remains bounded or partial for this family.
+    Partial,
+    /// Surface is a research-only signal rather than a promoted capability.
+    ResearchOnly,
+    /// Surface has no landed capability for this family yet.
+    NotLanded,
+}
+
+/// One capability cell in the Tassadar workload matrix.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarWorkloadCapabilityCell {
+    /// Stable surface identifier.
+    pub surface_id: String,
+    /// Current posture on the workload family.
+    pub posture: TassadarCapabilityPosture,
+    /// Repo-owned artifact anchoring the posture.
+    pub artifact_ref: String,
+    /// Plain-language note tied to the artifact.
+    pub note: String,
+}
+
+/// One workload-family row in the capability matrix.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarWorkloadCapabilityRow {
+    /// Stable workload-family identifier.
+    pub workload_family_id: String,
+    /// Optional current benchmark workload target when one exists.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub workload_target: Option<TassadarWorkloadTarget>,
+    /// Short summary for the row.
+    pub summary: String,
+    /// Capability cells in stable surface order.
+    pub capabilities: Vec<TassadarWorkloadCapabilityCell>,
+}
+
+/// Machine-readable workload capability matrix for the current Tassadar lane.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarWorkloadCapabilityMatrixReport {
+    /// Stable schema version for the matrix report.
+    pub schema_version: u16,
+    /// Ordered artifact roots used to generate the matrix.
+    pub generated_from_artifacts: Vec<String>,
+    /// Ordered workload-family rows.
+    pub rows: Vec<TassadarWorkloadCapabilityRow>,
+    /// Plain-language boundary statement for the matrix.
+    pub claim_boundary: String,
+    /// Stable digest over the full report.
+    pub report_digest: String,
+}
+
 /// Tassadar benchmark build or execution failure.
 #[derive(Debug, Error)]
 pub enum TassadarBenchmarkError {
@@ -208,6 +271,23 @@ pub enum TassadarBenchmarkError {
     ArtifactCaseMismatch {
         artifact_id: String,
         case_id: String,
+    },
+}
+
+/// Workload capability matrix build or persistence failure.
+#[derive(Debug, Error)]
+pub enum TassadarWorkloadCapabilityMatrixError {
+    /// Underlying filesystem read/write failed.
+    #[error(transparent)]
+    Io(#[from] std::io::Error),
+    /// JSON parsing or serialization failed.
+    #[error(transparent)]
+    Json(#[from] serde_json::Error),
+    /// One required workload family was missing from the article benchmark report.
+    #[error("missing workload target `{workload_target:?}` in the article-class benchmark report")]
+    MissingWorkloadTarget {
+        /// Missing workload target.
+        workload_target: TassadarWorkloadTarget,
     },
 }
 
@@ -1762,6 +1842,413 @@ fn hungarian_v0_case_ids_for_split(
         .collect()
 }
 
+fn eval_repo_root() -> std::path::PathBuf {
+    std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("..")
+        .join("..")
+}
+
+fn workload_target_id(workload_target: TassadarWorkloadTarget) -> &'static str {
+    match workload_target {
+        TassadarWorkloadTarget::ArithmeticMicroprogram => "arithmetic_microprogram",
+        TassadarWorkloadTarget::MemoryLookupMicroprogram => "memory_lookup_microprogram",
+        TassadarWorkloadTarget::BranchControlFlowMicroprogram => "branch_control_flow_microprogram",
+        TassadarWorkloadTarget::MicroWasmKernel => "micro_wasm_kernel",
+        TassadarWorkloadTarget::BranchHeavyKernel => "branch_heavy_kernel",
+        TassadarWorkloadTarget::MemoryHeavyKernel => "memory_heavy_kernel",
+        TassadarWorkloadTarget::LongLoopKernel => "long_loop_kernel",
+        TassadarWorkloadTarget::SudokuClass => "sudoku_class",
+        TassadarWorkloadTarget::HungarianMatching => "hungarian_matching",
+    }
+}
+
+fn read_repo_json<T: serde::de::DeserializeOwned>(
+    relative_path: &str,
+) -> Result<T, TassadarWorkloadCapabilityMatrixError> {
+    let bytes = std::fs::read(eval_repo_root().join(relative_path))?;
+    Ok(serde_json::from_slice(&bytes)?)
+}
+
+fn runtime_capability_cell(
+    benchmark_report: &TassadarBenchmarkReport,
+    workload_target: TassadarWorkloadTarget,
+    surface_id: &str,
+) -> Result<TassadarWorkloadCapabilityCell, TassadarWorkloadCapabilityMatrixError> {
+    let cases = benchmark_report
+        .case_reports
+        .iter()
+        .filter(|case| case.workload_target == workload_target)
+        .collect::<Vec<_>>();
+    if cases.is_empty() {
+        return Err(
+            TassadarWorkloadCapabilityMatrixError::MissingWorkloadTarget { workload_target },
+        );
+    }
+    let exact_count = cases.iter().filter(|case| case.score_bps == 10_000).count();
+    let total = cases.len();
+    let (posture, note) = match surface_id {
+        "runtime.reference_linear" => (
+            TassadarCapabilityPosture::Exact,
+            format!(
+                "reference-linear exact on {exact_count}/{total} benchmark cases for `{}`",
+                workload_target_id(workload_target)
+            ),
+        ),
+        "runtime.hull_cache" => {
+            let direct_count = cases
+                .iter()
+                .filter(|case| case.selection_state == TassadarExecutorSelectionState::Direct)
+                .count();
+            let fallback_count = total.saturating_sub(direct_count);
+            let posture = if direct_count == total {
+                TassadarCapabilityPosture::Exact
+            } else {
+                TassadarCapabilityPosture::FallbackOnly
+            };
+            (
+                posture,
+                format!(
+                    "hull-cache exact on {exact_count}/{total} cases with {direct_count} direct and {fallback_count} fallback selections for `{}`",
+                    workload_target_id(workload_target)
+                ),
+            )
+        }
+        "runtime.sparse_top_k" => {
+            let direct_count = cases
+                .iter()
+                .filter(|case| {
+                    case.sparse_top_k_selection_state == TassadarExecutorSelectionState::Direct
+                })
+                .count();
+            let fallback_count = total.saturating_sub(direct_count);
+            let posture = if direct_count == total {
+                TassadarCapabilityPosture::Exact
+            } else {
+                TassadarCapabilityPosture::FallbackOnly
+            };
+            (
+                posture,
+                format!(
+                    "sparse-top-k exact on {exact_count}/{total} cases with {direct_count} direct and {fallback_count} fallback selections for `{}`",
+                    workload_target_id(workload_target)
+                ),
+            )
+        }
+        _ => unreachable!("unsupported runtime surface"),
+    };
+    Ok(TassadarWorkloadCapabilityCell {
+        surface_id: String::from(surface_id),
+        posture,
+        artifact_ref: String::from(TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF),
+        note,
+    })
+}
+
+/// Builds the machine-readable Tassadar workload capability matrix from the
+/// current committed benchmark, compiled, and learned artifacts.
+pub fn build_tassadar_workload_capability_matrix_report(
+) -> Result<TassadarWorkloadCapabilityMatrixReport, TassadarWorkloadCapabilityMatrixError> {
+    let benchmark_report =
+        read_repo_json::<TassadarBenchmarkReport>(TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF)?;
+    let sudoku_compiled_run_bundle = read_repo_json::<Value>(
+        "fixtures/tassadar/runs/sudoku_v0_compiled_executor_v0/run_bundle.json",
+    )?;
+    let hungarian_compiled_run_bundle = read_repo_json::<Value>(
+        "fixtures/tassadar/runs/hungarian_v0_compiled_executor_v0/run_bundle.json",
+    )?;
+    let sudoku_promotion_bundle = read_repo_json::<Value>(
+        "fixtures/tassadar/runs/sudoku_v0_promotion_v3/promotion_bundle.json",
+    )?;
+    let sudoku_promotion_gate = read_repo_json::<Value>(
+        "fixtures/tassadar/runs/sudoku_v0_promotion_v3/promotion_gate_report.json",
+    )?;
+    let sudoku_promotion_family = read_repo_json::<Value>(
+        "fixtures/tassadar/runs/sudoku_v0_promotion_v3/family_report.json",
+    )?;
+    let sudoku_9x9_fit_report = read_repo_json::<Value>(
+        "fixtures/tassadar/runs/sudoku_9x9_v0_reference_run_v0/sequence_fit_report.json",
+    )?;
+
+    let rows = vec![
+        TassadarWorkloadCapabilityRow {
+            workload_family_id: String::from("micro_wasm_kernel"),
+            workload_target: Some(TassadarWorkloadTarget::MicroWasmKernel),
+            summary: String::from(
+                "unrolled article-class micro-kernel over memory-backed inputs",
+            ),
+            capabilities: vec![
+                runtime_capability_cell(
+                    &benchmark_report,
+                    TassadarWorkloadTarget::MicroWasmKernel,
+                    "runtime.reference_linear",
+                )?,
+                runtime_capability_cell(
+                    &benchmark_report,
+                    TassadarWorkloadTarget::MicroWasmKernel,
+                    "runtime.hull_cache",
+                )?,
+                runtime_capability_cell(
+                    &benchmark_report,
+                    TassadarWorkloadTarget::MicroWasmKernel,
+                    "runtime.sparse_top_k",
+                )?,
+            ],
+        },
+        TassadarWorkloadCapabilityRow {
+            workload_family_id: String::from("branch_heavy_kernel"),
+            workload_target: Some(TassadarWorkloadTarget::BranchHeavyKernel),
+            summary: String::from(
+                "forward-branch ladder kernel that widens control-flow coverage without backward-branch fast-path erasure",
+            ),
+            capabilities: vec![
+                runtime_capability_cell(
+                    &benchmark_report,
+                    TassadarWorkloadTarget::BranchHeavyKernel,
+                    "runtime.reference_linear",
+                )?,
+                runtime_capability_cell(
+                    &benchmark_report,
+                    TassadarWorkloadTarget::BranchHeavyKernel,
+                    "runtime.hull_cache",
+                )?,
+                runtime_capability_cell(
+                    &benchmark_report,
+                    TassadarWorkloadTarget::BranchHeavyKernel,
+                    "runtime.sparse_top_k",
+                )?,
+            ],
+        },
+        TassadarWorkloadCapabilityRow {
+            workload_family_id: String::from("memory_heavy_kernel"),
+            workload_target: Some(TassadarWorkloadTarget::MemoryHeavyKernel),
+            summary: String::from(
+                "dense load/store kernel with staged accumulator writes across the article benchmark path",
+            ),
+            capabilities: vec![
+                runtime_capability_cell(
+                    &benchmark_report,
+                    TassadarWorkloadTarget::MemoryHeavyKernel,
+                    "runtime.reference_linear",
+                )?,
+                runtime_capability_cell(
+                    &benchmark_report,
+                    TassadarWorkloadTarget::MemoryHeavyKernel,
+                    "runtime.hull_cache",
+                )?,
+                runtime_capability_cell(
+                    &benchmark_report,
+                    TassadarWorkloadTarget::MemoryHeavyKernel,
+                    "runtime.sparse_top_k",
+                )?,
+            ],
+        },
+        TassadarWorkloadCapabilityRow {
+            workload_family_id: String::from("long_loop_kernel"),
+            workload_target: Some(TassadarWorkloadTarget::LongLoopKernel),
+            summary: String::from(
+                "current article-class long-horizon decrement loop and trace-ABI exemplar",
+            ),
+            capabilities: vec![
+                runtime_capability_cell(
+                    &benchmark_report,
+                    TassadarWorkloadTarget::LongLoopKernel,
+                    "runtime.reference_linear",
+                )?,
+                runtime_capability_cell(
+                    &benchmark_report,
+                    TassadarWorkloadTarget::LongLoopKernel,
+                    "runtime.hull_cache",
+                )?,
+                runtime_capability_cell(
+                    &benchmark_report,
+                    TassadarWorkloadTarget::LongLoopKernel,
+                    "runtime.sparse_top_k",
+                )?,
+            ],
+        },
+        TassadarWorkloadCapabilityRow {
+            workload_family_id: String::from("sudoku_class_4x4"),
+            workload_target: Some(TassadarWorkloadTarget::SudokuClass),
+            summary: String::from(
+                "real 4x4 search-heavy Sudoku family with runtime, compiled, and bounded learned evidence",
+            ),
+            capabilities: vec![
+                runtime_capability_cell(
+                    &benchmark_report,
+                    TassadarWorkloadTarget::SudokuClass,
+                    "runtime.reference_linear",
+                )?,
+                runtime_capability_cell(
+                    &benchmark_report,
+                    TassadarWorkloadTarget::SudokuClass,
+                    "runtime.hull_cache",
+                )?,
+                runtime_capability_cell(
+                    &benchmark_report,
+                    TassadarWorkloadTarget::SudokuClass,
+                    "runtime.sparse_top_k",
+                )?,
+                TassadarWorkloadCapabilityCell {
+                    surface_id: String::from("compiled.proof_backed"),
+                    posture: TassadarCapabilityPosture::Exact,
+                    artifact_ref: String::from(
+                        "fixtures/tassadar/runs/sudoku_v0_compiled_executor_v0/run_bundle.json",
+                    ),
+                    note: format!(
+                        "{}; serve_posture={}",
+                        sudoku_compiled_run_bundle["claim_boundary"]
+                            .as_str()
+                            .unwrap_or("compiled Sudoku boundary missing"),
+                        sudoku_compiled_run_bundle["serve_posture"]
+                            .as_str()
+                            .unwrap_or("unknown")
+                    ),
+                },
+                TassadarWorkloadCapabilityCell {
+                    surface_id: String::from("learned.bounded"),
+                    posture: TassadarCapabilityPosture::Partial,
+                    artifact_ref: String::from(
+                        "fixtures/tassadar/runs/sudoku_v0_promotion_v3/promotion_bundle.json",
+                    ),
+                    note: format!(
+                        "claim_class={}; first_target_exactness_bps={}; first_32_token_exactness_bps={}; exact_trace_case_count={}; claim_boundary={}",
+                        sudoku_promotion_bundle["claim_class"]
+                            .as_str()
+                            .unwrap_or("unknown"),
+                        sudoku_promotion_gate["first_target_exactness_bps"]
+                            .as_u64()
+                            .unwrap_or(0),
+                        sudoku_promotion_gate["first_32_token_exactness_bps"]
+                            .as_u64()
+                            .unwrap_or(0),
+                        sudoku_promotion_gate["exact_trace_case_count"]
+                            .as_u64()
+                            .unwrap_or(0),
+                        sudoku_promotion_family["claim_boundary"]
+                            .as_str()
+                            .unwrap_or("unknown")
+                    ),
+                },
+            ],
+        },
+        TassadarWorkloadCapabilityRow {
+            workload_family_id: String::from("sudoku_search_9x9"),
+            workload_target: None,
+            summary: String::from(
+                "real 9x9 Sudoku search workload beyond the current learned full-trace fit envelope",
+            ),
+            capabilities: vec![TassadarWorkloadCapabilityCell {
+                surface_id: String::from("learned.long_horizon"),
+                posture: TassadarCapabilityPosture::Partial,
+                artifact_ref: String::from(
+                    "fixtures/tassadar/runs/sudoku_9x9_v0_reference_run_v0/sequence_fit_report.json",
+                ),
+                note: format!(
+                    "{}; model_max_sequence_tokens={}; total_token_count_min={}; total_token_count_max={}; strategy={}",
+                    sudoku_9x9_fit_report["outcome_statement"]
+                        .as_str()
+                        .unwrap_or("unknown"),
+                    sudoku_9x9_fit_report["model_max_sequence_tokens"]
+                        .as_u64()
+                        .unwrap_or(0),
+                    sudoku_9x9_fit_report["total_token_count_min"]
+                        .as_u64()
+                        .unwrap_or(0),
+                    sudoku_9x9_fit_report["total_token_count_max"]
+                        .as_u64()
+                        .unwrap_or(0),
+                    sudoku_9x9_fit_report["teacher_forced_training_strategy"]
+                        .as_str()
+                        .unwrap_or("unknown")
+                ),
+            }],
+        },
+        TassadarWorkloadCapabilityRow {
+            workload_family_id: String::from("hungarian_matching_4x4"),
+            workload_target: Some(TassadarWorkloadTarget::HungarianMatching),
+            summary: String::from(
+                "bounded exact 4x4 Hungarian matching family with runtime and compiled coverage",
+            ),
+            capabilities: vec![
+                runtime_capability_cell(
+                    &benchmark_report,
+                    TassadarWorkloadTarget::HungarianMatching,
+                    "runtime.reference_linear",
+                )?,
+                runtime_capability_cell(
+                    &benchmark_report,
+                    TassadarWorkloadTarget::HungarianMatching,
+                    "runtime.hull_cache",
+                )?,
+                runtime_capability_cell(
+                    &benchmark_report,
+                    TassadarWorkloadTarget::HungarianMatching,
+                    "runtime.sparse_top_k",
+                )?,
+                TassadarWorkloadCapabilityCell {
+                    surface_id: String::from("compiled.proof_backed"),
+                    posture: TassadarCapabilityPosture::Exact,
+                    artifact_ref: String::from(
+                        "fixtures/tassadar/runs/hungarian_v0_compiled_executor_v0/run_bundle.json",
+                    ),
+                    note: format!(
+                        "{}; serve_posture={}",
+                        hungarian_compiled_run_bundle["claim_boundary"]
+                            .as_str()
+                            .unwrap_or("compiled Hungarian boundary missing"),
+                        hungarian_compiled_run_bundle["serve_posture"]
+                            .as_str()
+                            .unwrap_or("unknown")
+                    ),
+                },
+            ],
+        },
+    ];
+
+    let mut report = TassadarWorkloadCapabilityMatrixReport {
+        schema_version: TASSADAR_WORKLOAD_CAPABILITY_MATRIX_SCHEMA_VERSION,
+        generated_from_artifacts: vec![
+            String::from(TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF),
+            String::from("fixtures/tassadar/runs/sudoku_v0_compiled_executor_v0/run_bundle.json"),
+            String::from("fixtures/tassadar/runs/hungarian_v0_compiled_executor_v0/run_bundle.json"),
+            String::from("fixtures/tassadar/runs/sudoku_v0_promotion_v3/promotion_bundle.json"),
+            String::from("fixtures/tassadar/runs/sudoku_v0_promotion_v3/promotion_gate_report.json"),
+            String::from("fixtures/tassadar/runs/sudoku_v0_promotion_v3/family_report.json"),
+            String::from(
+                "fixtures/tassadar/runs/sudoku_9x9_v0_reference_run_v0/sequence_fit_report.json",
+            ),
+        ],
+        rows,
+        claim_boundary: String::from(
+            "this matrix is a workload-family capability view over current committed artifacts only; exact runtime, fallback-only runtime, compiled exact, and bounded/partial learned results remain separated and this report does not imply article parity",
+        ),
+        report_digest: String::new(),
+    };
+    report.report_digest =
+        stable_serialized_digest(b"tassadar_workload_capability_matrix|", &report);
+    Ok(report)
+}
+
+/// Returns the canonical absolute path for the workload capability matrix report.
+#[must_use]
+pub fn tassadar_workload_capability_matrix_report_path() -> std::path::PathBuf {
+    eval_repo_root().join(TASSADAR_WORKLOAD_CAPABILITY_MATRIX_REPORT_REF)
+}
+
+/// Writes the canonical workload capability matrix report.
+pub fn write_tassadar_workload_capability_matrix_report(
+    output_path: impl AsRef<std::path::Path>,
+) -> Result<TassadarWorkloadCapabilityMatrixReport, TassadarWorkloadCapabilityMatrixError> {
+    let output_path = output_path.as_ref();
+    if let Some(parent) = output_path.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+    let report = build_tassadar_workload_capability_matrix_report()?;
+    let bytes = serde_json::to_vec_pretty(&report)?;
+    std::fs::write(output_path, bytes)?;
+    Ok(report)
+}
+
 fn stable_corpus_digest(artifacts: &[TassadarProgramArtifact]) -> String {
     let mut hasher = sha2::Sha256::new();
     hasher.update(b"tassadar_corpus|");
@@ -1806,6 +2293,13 @@ where
 fn stable_outputs_digest(outputs: &[i32]) -> String {
     let bytes = serde_json::to_vec(outputs).unwrap_or_default();
     hex::encode(sha2::Sha256::digest(bytes))
+}
+
+fn stable_serialized_digest<T: Serialize>(prefix: &[u8], value: &T) -> String {
+    let mut hasher = sha2::Sha256::new();
+    hasher.update(prefix);
+    hasher.update(serde_json::to_vec(value).unwrap_or_default());
+    hex::encode(hasher.finalize())
 }
 
 fn build_case_artifacts(
@@ -2200,6 +2694,89 @@ mod tests {
             .case_reports
             .iter()
             .all(|case| case.sparse_top_k_steps_per_second > 0.0));
+        Ok(())
+    }
+
+    #[test]
+    fn tassadar_workload_capability_matrix_maps_current_families(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let report = build_tassadar_workload_capability_matrix_report()?;
+        assert_eq!(
+            report.schema_version,
+            TASSADAR_WORKLOAD_CAPABILITY_MATRIX_SCHEMA_VERSION
+        );
+        assert!(report.rows.iter().any(|row| {
+            row.workload_family_id == "micro_wasm_kernel"
+                && row.capabilities.iter().any(|cell| {
+                    cell.surface_id == "runtime.hull_cache"
+                        && cell.posture == TassadarCapabilityPosture::Exact
+                })
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.workload_family_id == "branch_heavy_kernel"
+                && row.capabilities.iter().any(|cell| {
+                    cell.surface_id == "runtime.sparse_top_k"
+                        && cell.posture == TassadarCapabilityPosture::FallbackOnly
+                })
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.workload_family_id == "sudoku_class_4x4"
+                && row.capabilities.iter().any(|cell| {
+                    cell.surface_id == "compiled.proof_backed"
+                        && cell.posture == TassadarCapabilityPosture::Exact
+                })
+                && row.capabilities.iter().any(|cell| {
+                    cell.surface_id == "learned.bounded"
+                        && cell.posture == TassadarCapabilityPosture::Partial
+                })
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.workload_family_id == "sudoku_search_9x9"
+                && row.capabilities.iter().any(|cell| {
+                    cell.surface_id == "learned.long_horizon"
+                        && cell.posture == TassadarCapabilityPosture::Partial
+                })
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.workload_family_id == "hungarian_matching_4x4"
+                && row.capabilities.iter().any(|cell| {
+                    cell.surface_id == "compiled.proof_backed"
+                        && cell.posture == TassadarCapabilityPosture::Exact
+                })
+        }));
+        Ok(())
+    }
+
+    #[test]
+    fn tassadar_workload_capability_matrix_report_matches_committed_truth(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let report = build_tassadar_workload_capability_matrix_report()?;
+        let bytes = std::fs::read(
+            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .join("..")
+                .join("..")
+                .join(TASSADAR_WORKLOAD_CAPABILITY_MATRIX_REPORT_REF),
+        )?;
+        let persisted: TassadarWorkloadCapabilityMatrixReport = serde_json::from_slice(&bytes)?;
+        assert_eq!(persisted, report);
+        Ok(())
+    }
+
+    #[test]
+    fn write_tassadar_workload_capability_matrix_report_persists_current_truth(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let temp_dir = std::env::temp_dir().join(format!(
+            "psionic-tassadar-eval-capability-matrix-{}",
+            std::process::id()
+        ));
+        std::fs::create_dir_all(&temp_dir)?;
+        let report_path = temp_dir.join("tassadar_workload_capability_matrix.json");
+        let report = write_tassadar_workload_capability_matrix_report(&report_path)?;
+        let bytes = std::fs::read(&report_path)?;
+        let persisted: TassadarWorkloadCapabilityMatrixReport = serde_json::from_slice(&bytes)?;
+        assert_eq!(persisted, report);
+        std::fs::remove_file(&report_path)?;
+        std::fs::remove_dir(&temp_dir)?;
         Ok(())
     }
 }

@@ -182,6 +182,12 @@ The current scope is:
   machine validators now have frozen ABI pointers across benchmark, compiled,
   and long-horizon artifacts, while readable logs remain explicitly
   non-authoritative views over the append-only trace artifact
+- landed Phase 7D bar: one machine-readable Tassadar workload capability matrix
+  now exists in `psionic-eval` at
+  `fixtures/tassadar/reports/tassadar_workload_capability_matrix.json`,
+  keeping runtime exact, runtime fallback-only, compiled exact, bounded
+  learned, and partial learned-long-horizon posture separate per workload
+  family instead of collapsing them into one green summary
 - landed trained-executor Phase 1 follow-on bar: a dedicated
   `tassadar.wasm.sudoku_v0_search.v1` profile now exists with a real 4x4
   backtracking Sudoku program representation on the CPU reference lane, while
