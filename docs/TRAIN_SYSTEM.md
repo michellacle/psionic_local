@@ -218,12 +218,19 @@ The honest description today is:
 > training-core reference loop, but it does not yet own the full distributed
 > train system.
 
-That now includes one intentionally narrow AttnRes reference-training answer:
+That now includes two AttnRes reference-training answers with distinct scope:
 
 - `psionic-train::train_attnres_tiny_next_token(...)` can train the bounded
   CPU-reference AttnRes family over a repo-owned tiny next-token corpus without
   Burn, using stable named parameter groups for the routing pseudo-query and
   LM-head tensors rather than positional optimizer state
+- `psionic-train::attnres_local_reference_training_config(...)`,
+  `attnres_local_reference_training_corpus(...)`, and
+  `train_attnres_local_reference_next_token(...)` now expose the full local
+  reference run contract for the interactive AttnRes desktop lab: the same
+  repo-owned corpus and training core, but a `320`-step local reference budget,
+  non-`tiny` public naming, and logical run timing that matches the Burn demo's
+  intended full-run bar rather than the earlier bounded smoke lane
 - `psionic-train::AttnResTinyTrainingCorpus::reference()` now exposes that
   canonical tiny next-token corpus directly to repo-local consumers instead of
   forcing app code to duplicate sample construction
@@ -234,6 +241,11 @@ That now includes one intentionally narrow AttnRes reference-training answer:
   operator surfaces can pace the run without recreating AttnRes training math;
   the existing whole-run helper remains available as the convenience layer on
   top of that runner
+- that same stepwise contract now also carries logical step duration, elapsed
+  duration, and remaining duration, and the runner exposes the current model,
+  baseline model, bound corpus/config, and accumulated step metrics so app or
+  operator surfaces can render a full local reference run without replaying the
+  entire training loop on every frame
 - checkpoint export is Psionic-native and explicit: the lane persists
   safetensors parameter payloads plus a JSON manifest carrying config, base
   descriptor digest, dataset digests, checkpoint refs, and parent-checkpoint

@@ -66,6 +66,15 @@ impl AttnResTinyTrainingCorpus {
     }
 }
 
+/// Public alias for the full local AttnRes reference corpus contract.
+pub type AttnResLocalReferenceTrainingCorpus = AttnResTinyTrainingCorpus;
+
+/// Returns the canonical local-reference AttnRes corpus.
+pub fn attnres_local_reference_training_corpus()
+-> Result<AttnResLocalReferenceTrainingCorpus, AttnResTinyTrainingError> {
+    AttnResTinyTrainingCorpus::reference()
+}
+
 /// Configuration for the bounded AttnRes tiny-training lane.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct AttnResTinyTrainingConfig {
@@ -134,6 +143,29 @@ impl AttnResTinyTrainingConfig {
         }
         Ok(())
     }
+}
+
+/// Public alias for the full local AttnRes reference config contract.
+pub type AttnResLocalReferenceTrainingConfig = AttnResTinyTrainingConfig;
+
+/// Returns the canonical local-reference config used for the full AttnRes demo run.
+pub fn attnres_local_reference_training_config()
+-> Result<AttnResLocalReferenceTrainingConfig, AttnResTinyTrainingError> {
+    Ok(AttnResTinyTrainingConfig {
+        model_id: String::from("attnres-local-reference"),
+        model_revision: String::from("v1"),
+        run_id: String::from("attnres-local-reference-run"),
+        checkpoint_family: String::from("train.attnres.local_reference"),
+        started_at_ms: 1_761_000_000_000,
+        step_duration_ms: 85,
+        budget: TrainingLoopBudget::new(320, 1, 1)?,
+        routing_optimizer: TrainingOptimizerConfig::adam(0.005, 0.9, 0.99, 1e-8)
+            .with_gradient_clip_norm(1.0),
+        head_optimizer: TrainingOptimizerConfig::adamw(0.008, 0.9, 0.99, 1e-8)
+            .with_weight_decay(0.01)
+            .with_gradient_clip_norm(1.0),
+        finite_difference_epsilon: 0.01,
+    })
 }
 
 /// One machine-readable checkpoint artifact for the AttnRes tiny-training lane.
@@ -253,6 +285,8 @@ pub struct AttnResTinyTrainingStepMetrics {
     pub held_out_mean_routing_l2_delta: f32,
     /// Number of held-out cases whose loss improved.
     pub held_out_improved_case_count: u32,
+    /// Mean selectivity across the current diagnostics snapshot.
+    pub mean_selectivity: f32,
 }
 
 /// Final machine-readable summary for the AttnRes tiny-training lane.
@@ -324,6 +358,12 @@ pub struct AttnResTinyTrainingUpdate {
     pub current_held_out_mean_routing_l2_delta: f32,
     /// Current number of held-out cases whose loss improved.
     pub current_held_out_improved_case_count: u32,
+    /// Logical per-step duration for this run.
+    pub logical_step_duration_ms: u64,
+    /// Logical elapsed duration through the current completed step count.
+    pub logical_elapsed_ms: u64,
+    /// Logical remaining duration through the configured fixed budget.
+    pub logical_remaining_ms: u64,
     /// Stable sample identifier used for live diagnostics.
     pub inspection_sample_id: String,
     /// Input tokens used for live diagnostics.
@@ -363,6 +403,24 @@ pub struct AttnResTinyTrainingRunner {
     current_diagnostics: AttnResDiagnosticsSnapshot,
     latest_note: Option<String>,
 }
+
+/// Public alias for the full local AttnRes reference lifecycle status.
+pub type AttnResLocalReferenceTrainingLifecycleStatus = AttnResTinyTrainingLifecycleStatus;
+
+/// Public alias for the full local AttnRes reference step metrics.
+pub type AttnResLocalReferenceTrainingStepMetrics = AttnResTinyTrainingStepMetrics;
+
+/// Public alias for the full local AttnRes reference update contract.
+pub type AttnResLocalReferenceTrainingUpdate = AttnResTinyTrainingUpdate;
+
+/// Public alias for the full local AttnRes reference runner contract.
+pub type AttnResLocalReferenceTrainingRunner = AttnResTinyTrainingRunner;
+
+/// Public alias for the full local AttnRes reference outcome contract.
+pub type AttnResLocalReferenceTrainingOutcome = AttnResTinyTrainingOutcome;
+
+/// Public alias for the full local AttnRes reference error contract.
+pub type AttnResLocalReferenceTrainingError = AttnResTinyTrainingError;
 
 /// Bounded AttnRes tiny-training failure.
 #[derive(Debug, Error, PartialEq)]
@@ -510,16 +568,24 @@ impl AttnResTinyTrainingRunner {
     /// Returns the current renderer-neutral live update.
     #[must_use]
     pub fn current_update(&self) -> AttnResTinyTrainingUpdate {
+        let completed_steps = self.run.completed_steps();
+        let logical_elapsed_ms = completed_steps.saturating_mul(self.config.step_duration_ms);
+        let logical_remaining_ms = self
+            .config
+            .budget
+            .max_steps
+            .saturating_sub(completed_steps)
+            .saturating_mul(self.config.step_duration_ms);
         AttnResTinyTrainingUpdate {
             run_id: self.config.run_id.clone(),
             lifecycle: if self.is_complete() {
                 AttnResTinyTrainingLifecycleStatus::Completed
-            } else if self.run.completed_steps() == 0 {
+            } else if completed_steps == 0 {
                 AttnResTinyTrainingLifecycleStatus::Starting
             } else {
                 AttnResTinyTrainingLifecycleStatus::Running
             },
-            current_global_step: self.run.completed_steps(),
+            current_global_step: completed_steps,
             max_steps: self.config.budget.max_steps,
             current_training_mean_loss: self.current_training_mean_loss,
             current_held_out_mean_loss: self.current_held_out_eval.trained_mean_loss,
@@ -527,6 +593,9 @@ impl AttnResTinyTrainingRunner {
                 .current_held_out_eval
                 .mean_routing_l2_delta,
             current_held_out_improved_case_count: self.current_held_out_eval.improved_case_count,
+            logical_step_duration_ms: self.config.step_duration_ms,
+            logical_elapsed_ms,
+            logical_remaining_ms,
             inspection_sample_id: self.inspection_sample.sample_id.clone(),
             inspection_tokens: self.inspection_sample.input_tokens.clone(),
             diagnostics: self.current_diagnostics.clone(),
@@ -579,6 +648,7 @@ impl AttnResTinyTrainingRunner {
             held_out_mean_loss: self.current_held_out_eval.trained_mean_loss,
             held_out_mean_routing_l2_delta: self.current_held_out_eval.mean_routing_l2_delta,
             held_out_improved_case_count: self.current_held_out_eval.improved_case_count,
+            mean_selectivity: mean_selectivity_from_diagnostics(&self.current_diagnostics),
         };
         let checkpoint = export_checkpoint(
             &self.initial_model,
@@ -599,6 +669,36 @@ impl AttnResTinyTrainingRunner {
             self.config.budget.max_steps
         ));
         Ok(self.current_update())
+    }
+
+    /// Returns the bound corpus for the active run.
+    #[must_use]
+    pub fn corpus(&self) -> &AttnResTinyTrainingCorpus {
+        &self.corpus
+    }
+
+    /// Returns the bound config for the active run.
+    #[must_use]
+    pub fn config(&self) -> &AttnResTinyTrainingConfig {
+        &self.config
+    }
+
+    /// Returns the seeded baseline model.
+    #[must_use]
+    pub fn initial_model(&self) -> &AttnResCpuReferenceModel {
+        &self.initial_model
+    }
+
+    /// Returns the current stepped model.
+    #[must_use]
+    pub fn current_model(&self) -> &AttnResCpuReferenceModel {
+        &self.current_model
+    }
+
+    /// Returns the accumulated per-step metrics.
+    #[must_use]
+    pub fn step_metrics(&self) -> &[AttnResTinyTrainingStepMetrics] {
+        self.step_metrics.as_slice()
     }
 
     /// Consumes a completed runner and emits the stable whole-run outcome.
@@ -642,6 +742,14 @@ pub fn train_attnres_tiny_next_token(
     runner.into_outcome()
 }
 
+/// Runs the full local AttnRes reference training loop to completion.
+pub fn train_attnres_local_reference_next_token(
+    corpus: &AttnResLocalReferenceTrainingCorpus,
+    config: &AttnResLocalReferenceTrainingConfig,
+) -> Result<AttnResLocalReferenceTrainingOutcome, AttnResLocalReferenceTrainingError> {
+    train_attnres_tiny_next_token(corpus, config)
+}
+
 /// Restores one AttnRes model from a persisted tiny-training checkpoint.
 pub fn restore_attnres_tiny_checkpoint(
     manifest: &AttnResTinyTrainingCheckpointManifest,
@@ -673,6 +781,14 @@ pub fn restore_attnres_tiny_checkpoint(
     .map_err(Into::into)
 }
 
+/// Restores one local-reference checkpoint exported from the full AttnRes lane.
+pub fn restore_attnres_local_reference_checkpoint(
+    manifest: &AttnResTinyTrainingCheckpointManifest,
+    weights_bytes: &[u8],
+) -> Result<AttnResCpuReferenceModel, AttnResTinyTrainingError> {
+    restore_attnres_tiny_checkpoint(manifest, weights_bytes)
+}
+
 fn validate_corpus(corpus: &AttnResTinyTrainingCorpus) -> Result<(), AttnResTinyTrainingError> {
     if corpus.training_samples.is_empty() {
         return Err(AttnResTinyTrainingError::EmptyTrainingSamples);
@@ -699,6 +815,57 @@ fn validate_corpus(corpus: &AttnResTinyTrainingCorpus) -> Result<(), AttnResTiny
         }
     }
     Ok(())
+}
+
+fn mean_selectivity_from_diagnostics(diagnostics: &AttnResDiagnosticsSnapshot) -> f32 {
+    let values = diagnostics
+        .sublayers
+        .iter()
+        .map(|sublayer| {
+            selectivity_from_attnres_weights(
+                aggregate_attnres_source_values(&sublayer.routing_weights, sublayer.source_shape)
+                    .as_slice(),
+            )
+        })
+        .collect::<Vec<_>>();
+    if values.is_empty() {
+        0.0
+    } else {
+        values.iter().sum::<f32>() / values.len() as f32
+    }
+}
+
+fn aggregate_attnres_source_values(values: &[f32], source_shape: [usize; 3]) -> Vec<f32> {
+    let [sources, batch, sequence] = source_shape;
+    if sources == 0 {
+        return Vec::new();
+    }
+    let stride = batch.saturating_mul(sequence).max(1);
+    (0..sources)
+        .map(|source_index| {
+            let start = source_index.saturating_mul(stride);
+            let end = (start + stride).min(values.len());
+            let slice = &values[start..end];
+            if slice.is_empty() {
+                0.0
+            } else {
+                slice.iter().sum::<f32>() / slice.len() as f32
+            }
+        })
+        .collect()
+}
+
+fn selectivity_from_attnres_weights(weights: &[f32]) -> f32 {
+    if weights.len() <= 1 {
+        return 0.0;
+    }
+    let max_weight = weights
+        .iter()
+        .copied()
+        .fold(f32::NEG_INFINITY, f32::max)
+        .max(0.0);
+    let uniform = 1.0 / weights.len() as f32;
+    ((max_weight - uniform) / (1.0 - uniform)).clamp(0.0, 1.0)
 }
 
 fn inspection_sample(
@@ -1140,7 +1307,9 @@ mod tests {
 
     use super::{
         AttnResTinyTrainingConfig, AttnResTinyTrainingCorpus, AttnResTinyTrainingLifecycleStatus,
-        AttnResTinyTrainingRunner, restore_attnres_tiny_checkpoint, train_attnres_tiny_next_token,
+        AttnResTinyTrainingRunner, attnres_local_reference_training_config,
+        attnres_local_reference_training_corpus, restore_attnres_tiny_checkpoint,
+        train_attnres_tiny_next_token,
     };
 
     #[test]
@@ -1229,6 +1398,35 @@ mod tests {
             &corpus.held_out_samples,
         )?;
         assert_eq!(restored_eval, outcome.summary.held_out_eval);
+        Ok(())
+    }
+
+    #[test]
+    fn local_reference_config_exposes_full_run_budget() -> Result<(), Box<dyn Error>> {
+        let config = attnres_local_reference_training_config()?;
+        assert_eq!(config.budget.max_steps, 320);
+        assert_eq!(config.run_id, "attnres-local-reference-run");
+        assert_eq!(config.step_duration_ms, 85);
+        Ok(())
+    }
+
+    #[test]
+    fn local_reference_runner_steps_to_completion() -> Result<(), Box<dyn Error>> {
+        let corpus = attnres_local_reference_training_corpus()?;
+        let config = attnres_local_reference_training_config()?;
+        let mut runner = AttnResTinyTrainingRunner::new(&corpus, &config)?;
+
+        let initial_loss = runner.current_update().current_training_mean_loss;
+        while !runner.is_complete() {
+            runner.step()?;
+        }
+        let final_update = runner.current_update();
+        assert_eq!(
+            final_update.lifecycle,
+            AttnResTinyTrainingLifecycleStatus::Completed
+        );
+        assert_eq!(final_update.current_global_step, config.budget.max_steps);
+        assert!(final_update.current_training_mean_loss < initial_loss);
         Ok(())
     }
 }

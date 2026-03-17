@@ -591,6 +591,12 @@ The current scope is:
   without widening the claim boundary (`4570` to `7812` aggregate target-token
   exactness, `4375` to `6875` first-32 exactness, instruction-pointer `5000`
   to `7000` bps, stack-delta `2500` to `5833` bps, still `10000` bps
+- landed full local AttnRes reference-run contract: `psionic-train` now exposes
+  a non-`tiny` public AttnRes local-reference config/corpus/run surface on top
+  of the existing CPU-reference training core, with a `320`-step local run
+  budget plus stepwise model/config/corpus accessors and logical timing fields
+  so the desktop lab can render the full local interactive run without
+  quadratic replay
   first-target, and still bounded early-curriculum validation only)
 - landed Phase 9C bar: program-specialized compiled-weight deployments in
   `psionic-models` plus larger-2D-head family research outputs in
