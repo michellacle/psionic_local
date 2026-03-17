@@ -1,18 +1,28 @@
-use std::collections::{BTreeMap, VecDeque};
+use std::{
+    collections::{BTreeMap, VecDeque},
+    fs,
+    path::{Path, PathBuf},
+};
 
 use psionic_models::{
     TassadarExecutorContractError, TassadarExecutorFixture, TassadarExecutorModelDescriptor,
     TassadarTraceTokenizer,
 };
+use psionic_research::{
+    TassadarAcceptanceReport, TassadarCompiledArticleClosureReport,
+    TassadarLearnedLongHorizonPolicyReport,
+};
 use psionic_runtime::{
-    TASSADAR_ARTICLE_CLASS_BENCHMARK_ENVIRONMENT_REF, TASSADAR_ARTICLE_CLASS_BENCHMARK_REF,
-    TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF, TassadarExecution, TassadarExecutionEvidenceBundle,
-    TassadarExecutionRefusal, TassadarExecutorDecodeMode, TassadarExecutorExecutionReport,
-    TassadarExecutorSelectionDiagnostic, TassadarInstruction, TassadarProgramArtifact,
-    TassadarRuntimeCapabilityReport, TassadarTraceEvent, TassadarTraceStep, TassadarValidationCase,
     build_tassadar_execution_evidence_bundle, execute_tassadar_executor_request,
     tassadar_article_class_corpus, tassadar_trace_abi_for_profile_id, tassadar_wasm_profile_for_id,
+    TassadarExecution, TassadarExecutionEvidenceBundle, TassadarExecutionRefusal,
+    TassadarExecutorDecodeMode, TassadarExecutorExecutionReport,
+    TassadarExecutorSelectionDiagnostic, TassadarInstruction, TassadarProgramArtifact,
+    TassadarRuntimeCapabilityReport, TassadarTraceEvent, TassadarTraceStep, TassadarValidationCase,
+    TASSADAR_ARTICLE_CLASS_BENCHMARK_ENVIRONMENT_REF, TASSADAR_ARTICLE_CLASS_BENCHMARK_REF,
+    TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF,
 };
+use psionic_train::{TassadarExecutorPromotionGateReport, TassadarExecutorSequenceFitReport};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use thiserror::Error;
@@ -32,6 +42,9 @@ pub const TASSADAR_ARTICLE_EXECUTOR_SESSION_ARTIFACT_REF: &str =
 /// Canonical acceptance artifact for the article hybrid-workflow surface.
 pub const TASSADAR_ARTICLE_HYBRID_WORKFLOW_ARTIFACT_REF: &str =
     "fixtures/tassadar/reports/tassadar_article_hybrid_workflow_artifact.json";
+/// Canonical acceptance artifact for the replay/live Tassadar lab surface.
+pub const TASSADAR_LAB_SURFACE_ARTIFACT_REF: &str =
+    "fixtures/tassadar/reports/tassadar_lab_surface_artifact.json";
 
 const ARTICLE_EXECUTOR_READABLE_LOG_MAX_LINES: usize = 96;
 const ARTICLE_EXECUTOR_TOKEN_TRACE_MAX_TOKENS: usize = 256;
@@ -575,9 +588,17 @@ impl TassadarArticleProofIdentity {
         Self {
             executor_product_id: response.evidence_bundle.proof_bundle.product_id.clone(),
             trace_artifact_id: response.evidence_bundle.trace_artifact.artifact_id.clone(),
-            trace_artifact_digest: response.evidence_bundle.trace_artifact.artifact_digest.clone(),
+            trace_artifact_digest: response
+                .evidence_bundle
+                .trace_artifact
+                .artifact_digest
+                .clone(),
             trace_digest: response.evidence_bundle.trace_artifact.trace_digest.clone(),
-            trace_proof_id: response.evidence_bundle.trace_proof.proof_artifact_id.clone(),
+            trace_proof_id: response
+                .evidence_bundle
+                .trace_proof
+                .proof_artifact_id
+                .clone(),
             trace_proof_digest: response.evidence_bundle.trace_proof.proof_digest.clone(),
             program_artifact_digest: response
                 .evidence_bundle
@@ -594,7 +615,11 @@ impl TassadarArticleProofIdentity {
                 .runtime_manifest
                 .manifest_digest
                 .clone(),
-            proof_bundle_request_digest: response.evidence_bundle.proof_bundle.request_digest.clone(),
+            proof_bundle_request_digest: response
+                .evidence_bundle
+                .proof_bundle
+                .request_digest
+                .clone(),
             proof_bundle_model_id: response.evidence_bundle.proof_bundle.model_id.clone(),
         }
     }
@@ -946,11 +971,10 @@ impl LocalTassadarArticleExecutorSessionService {
         match self.executor_service.execute(&executor_request) {
             Ok(TassadarExecutorOutcome::Completed { response }) => {
                 let proof_identity = TassadarArticleProofIdentity::from_response(&response);
-                let readable_log = build_article_readable_log_excerpt(&case, &response.execution_report.execution);
-                let token_trace = build_article_token_trace_excerpt(
-                    &case,
-                    &response.execution_report.execution,
-                );
+                let readable_log =
+                    build_article_readable_log_excerpt(&case, &response.execution_report.execution);
+                let token_trace =
+                    build_article_token_trace_excerpt(&case, &response.execution_report.execution);
                 Ok(TassadarArticleExecutorSessionOutcome::Completed {
                     response: TassadarArticleExecutorSessionResponse {
                         request_id: request.request_id.clone(),
@@ -991,9 +1015,9 @@ impl LocalTassadarArticleExecutorSessionService {
                     },
                 })
             }
-            Err(TassadarExecutorServiceError::UnsupportedProduct { product_id }) => Err(
-                TassadarArticleExecutorSessionServiceError::UnsupportedProduct { product_id },
-            ),
+            Err(TassadarExecutorServiceError::UnsupportedProduct { product_id }) => {
+                Err(TassadarArticleExecutorSessionServiceError::UnsupportedProduct { product_id })
+            }
             Err(TassadarExecutorServiceError::ExecutionRefusal(refusal)) => {
                 Ok(TassadarArticleExecutorSessionOutcome::Refused {
                     refusal: TassadarArticleExecutorSessionRefusalResponse {
@@ -1030,9 +1054,11 @@ impl LocalTassadarArticleExecutorSessionService {
         if request.product_id == ARTICLE_EXECUTOR_SESSION_PRODUCT_ID {
             Ok(())
         } else {
-            Err(TassadarArticleExecutorSessionServiceError::UnsupportedProduct {
-                product_id: request.product_id.clone(),
-            })
+            Err(
+                TassadarArticleExecutorSessionServiceError::UnsupportedProduct {
+                    product_id: request.product_id.clone(),
+                },
+            )
         }
     }
 
@@ -1058,10 +1084,9 @@ impl LocalTassadarArticleExecutorSessionService {
             request.requested_decode_mode,
         )
         .with_requested_model_id(
-            request
-                .requested_model_id
-                .clone()
-                .unwrap_or_else(|| String::from(TassadarExecutorFixture::ARTICLE_I32_COMPUTE_MODEL_ID)),
+            request.requested_model_id.clone().unwrap_or_else(|| {
+                String::from(TassadarExecutorFixture::ARTICLE_I32_COMPUTE_MODEL_ID)
+            }),
         )
         .with_environment_refs(merge_article_environment_refs(
             request.environment_refs.as_slice(),
@@ -2121,8 +2146,10 @@ impl LocalTassadarArticleHybridWorkflowService {
         };
 
         let planner_request = self.planner_request_for(request, &case);
-        let benchmark_identity =
-            TassadarArticleBenchmarkIdentity::for_case(&case, &planner_request.subproblem.program_artifact);
+        let benchmark_identity = TassadarArticleBenchmarkIdentity::for_case(
+            &case,
+            &planner_request.subproblem.program_artifact,
+        );
         match self.planner_router.route(&planner_request) {
             Ok(TassadarPlannerRoutingOutcome::Completed { response }) => {
                 let proof_identity =
@@ -2158,9 +2185,9 @@ impl LocalTassadarArticleHybridWorkflowService {
                     },
                 })
             }
-            Err(TassadarPlannerRouterError::UnsupportedProduct { product_id }) => Err(
-                TassadarArticleHybridWorkflowServiceError::UnsupportedProduct { product_id },
-            ),
+            Err(TassadarPlannerRouterError::UnsupportedProduct { product_id }) => {
+                Err(TassadarArticleHybridWorkflowServiceError::UnsupportedProduct { product_id })
+            }
         }
     }
 
@@ -2171,9 +2198,11 @@ impl LocalTassadarArticleHybridWorkflowService {
         if request.product_id == ARTICLE_HYBRID_WORKFLOW_PRODUCT_ID {
             Ok(())
         } else {
-            Err(TassadarArticleHybridWorkflowServiceError::UnsupportedProduct {
-                product_id: request.product_id.clone(),
-            })
+            Err(
+                TassadarArticleHybridWorkflowServiceError::UnsupportedProduct {
+                    product_id: request.product_id.clone(),
+                },
+            )
         }
     }
 
@@ -2258,7 +2287,9 @@ fn article_workload_family(case_id: &str) -> &'static str {
 
 fn merge_article_environment_refs(environment_refs: &[String]) -> Vec<String> {
     let mut merged = environment_refs.to_vec();
-    merged.push(String::from(TASSADAR_ARTICLE_CLASS_BENCHMARK_ENVIRONMENT_REF));
+    merged.push(String::from(
+        TASSADAR_ARTICLE_CLASS_BENCHMARK_ENVIRONMENT_REF,
+    ));
     merged.sort();
     merged.dedup();
     merged
@@ -2273,7 +2304,10 @@ fn build_article_readable_log_excerpt(
         "benchmark_ref={}",
         TASSADAR_ARTICLE_CLASS_BENCHMARK_REF
     ));
-    lines.push(format!("workload_family={}", article_workload_family(case.case_id.as_str())));
+    lines.push(format!(
+        "workload_family={}",
+        article_workload_family(case.case_id.as_str())
+    ));
     lines.push(format!("case_id={}", case.case_id));
     lines.push(format!("program_id={}", execution.program_id));
     lines.push(format!("runner_id={}", execution.runner_id));
@@ -2362,14 +2396,21 @@ fn article_stream_events_for_outcome(
     let mut events = Vec::new();
     match outcome {
         TassadarArticleExecutorSessionOutcome::Completed { response } => {
-            events.push(TassadarArticleExecutorSessionStreamEvent::BenchmarkIdentity {
-                benchmark_identity: TassadarArticleBenchmarkIdentityEvent {
-                    benchmark_identity: response.benchmark_identity.clone(),
+            events.push(
+                TassadarArticleExecutorSessionStreamEvent::BenchmarkIdentity {
+                    benchmark_identity: TassadarArticleBenchmarkIdentityEvent {
+                        benchmark_identity: response.benchmark_identity.clone(),
+                    },
                 },
-            });
-            events.push(TassadarArticleExecutorSessionStreamEvent::Capability { runtime_capability });
+            );
+            events
+                .push(TassadarArticleExecutorSessionStreamEvent::Capability { runtime_capability });
             events.push(TassadarArticleExecutorSessionStreamEvent::Selection {
-                selection: response.executor_response.execution_report.selection.clone(),
+                selection: response
+                    .executor_response
+                    .execution_report
+                    .selection
+                    .clone(),
             });
             events.push(TassadarArticleExecutorSessionStreamEvent::ProofIdentity {
                 proof_identity: TassadarArticleProofIdentityEvent {
@@ -2411,11 +2452,16 @@ fn article_stream_events_for_outcome(
         }
         TassadarArticleExecutorSessionOutcome::Refused { refusal } => {
             if let Some(benchmark_identity) = refusal.benchmark_identity.clone() {
-                events.push(TassadarArticleExecutorSessionStreamEvent::BenchmarkIdentity {
-                    benchmark_identity: TassadarArticleBenchmarkIdentityEvent { benchmark_identity },
-                });
+                events.push(
+                    TassadarArticleExecutorSessionStreamEvent::BenchmarkIdentity {
+                        benchmark_identity: TassadarArticleBenchmarkIdentityEvent {
+                            benchmark_identity,
+                        },
+                    },
+                );
             }
-            events.push(TassadarArticleExecutorSessionStreamEvent::Capability { runtime_capability });
+            events
+                .push(TassadarArticleExecutorSessionStreamEvent::Capability { runtime_capability });
             if let Some(selection) = refusal.selection.clone() {
                 events.push(TassadarArticleExecutorSessionStreamEvent::Selection { selection });
             }
@@ -2446,6 +2492,2143 @@ fn format_instruction(instruction: &TassadarInstruction) -> String {
     }
 }
 
+const TASSADAR_ACCEPTANCE_REPORT_REF: &str =
+    "fixtures/tassadar/reports/tassadar_acceptance_report.json";
+const TASSADAR_COMPILED_ARTICLE_CLOSURE_REPORT_REF: &str =
+    "fixtures/tassadar/reports/tassadar_compiled_article_closure_report.json";
+const TASSADAR_LEARNED_HORIZON_POLICY_REPORT_REF: &str =
+    "fixtures/tassadar/reports/tassadar_learned_horizon_policy_report.json";
+const TASSADAR_LEARNED_PROMOTION_GATE_REPORT_REF: &str =
+    "fixtures/tassadar/runs/sudoku_v0_promotion_v3/promotion_gate_report.json";
+const TASSADAR_LEARNED_9X9_SEQUENCE_FIT_REPORT_REF: &str =
+    "fixtures/tassadar/runs/sudoku_9x9_v0_reference_run_v0/sequence_fit_report.json";
+const TASSADAR_ARCHITECTURE_COMPARISON_REPORT_REF: &str =
+    "fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v12/architecture_comparison_report.json";
+const TASSADAR_REPLAY_SOURCE_BADGE: &str = "replay.tassadar";
+const TASSADAR_LIVE_SOURCE_BADGE: &str = "psionic.tassadar";
+const TASSADAR_LAB_SNAPSHOT_SCHEMA_VERSION: u16 = 1;
+
+/// Stable replay identifiers for the canonical Tassadar lab explorer.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TassadarLabReplayId {
+    ArticleSessionDirectMemoryHeavy,
+    ArticleSessionFallbackBranchHeavy,
+    ArticleSessionRefusalNonArticle,
+    ArticleHybridDelegatedMemoryHeavy,
+    ArticleHybridFallbackBranchHeavy,
+    ArticleHybridRefusalOverBudget,
+    AcceptanceReport,
+    CompiledArticleClosureReport,
+    LearnedHorizonPolicyReport,
+    LearnedPromotionGateV3,
+    LearnedSudoku9x9FitReport,
+    ArchitectureComparisonV12,
+}
+
+impl TassadarLabReplayId {
+    /// Returns the stable replay id string.
+    #[must_use]
+    pub const fn id(self) -> &'static str {
+        match self {
+            Self::ArticleSessionDirectMemoryHeavy => "article_session_direct_memory_heavy",
+            Self::ArticleSessionFallbackBranchHeavy => "article_session_fallback_branch_heavy",
+            Self::ArticleSessionRefusalNonArticle => "article_session_refusal_non_article",
+            Self::ArticleHybridDelegatedMemoryHeavy => "article_hybrid_delegated_memory_heavy",
+            Self::ArticleHybridFallbackBranchHeavy => "article_hybrid_fallback_branch_heavy",
+            Self::ArticleHybridRefusalOverBudget => "article_hybrid_refusal_over_budget",
+            Self::AcceptanceReport => "acceptance_report",
+            Self::CompiledArticleClosureReport => "compiled_article_closure_report",
+            Self::LearnedHorizonPolicyReport => "learned_horizon_policy_report",
+            Self::LearnedPromotionGateV3 => "learned_promotion_gate_v3",
+            Self::LearnedSudoku9x9FitReport => "learned_sudoku_9x9_fit_report",
+            Self::ArchitectureComparisonV12 => "architecture_comparison_v12",
+        }
+    }
+
+    #[must_use]
+    const fn family_label(self) -> &'static str {
+        match self {
+            Self::ArticleSessionDirectMemoryHeavy
+            | Self::ArticleSessionFallbackBranchHeavy
+            | Self::ArticleSessionRefusalNonArticle => "Article session artifact",
+            Self::ArticleHybridDelegatedMemoryHeavy
+            | Self::ArticleHybridFallbackBranchHeavy
+            | Self::ArticleHybridRefusalOverBudget => "Article hybrid workflow artifact",
+            Self::AcceptanceReport => "Acceptance report",
+            Self::CompiledArticleClosureReport => "Compiled article closure report",
+            Self::LearnedHorizonPolicyReport => "Learned horizon policy report",
+            Self::LearnedPromotionGateV3 => "Learned promotion gate",
+            Self::LearnedSudoku9x9FitReport => "Learned 9x9 fit report",
+            Self::ArchitectureComparisonV12 => "Architecture comparison",
+        }
+    }
+
+    #[must_use]
+    const fn label(self) -> &'static str {
+        match self {
+            Self::ArticleSessionDirectMemoryHeavy => "Direct memory-heavy article session",
+            Self::ArticleSessionFallbackBranchHeavy => "Fallback branch-heavy article session",
+            Self::ArticleSessionRefusalNonArticle => "Refused non-article article session",
+            Self::ArticleHybridDelegatedMemoryHeavy => "Delegated memory-heavy hybrid workflow",
+            Self::ArticleHybridFallbackBranchHeavy => "Fallback branch-heavy hybrid workflow",
+            Self::ArticleHybridRefusalOverBudget => "Refused over-budget hybrid workflow",
+            Self::AcceptanceReport => "Tassadar acceptance report",
+            Self::CompiledArticleClosureReport => "Compiled article closure report",
+            Self::LearnedHorizonPolicyReport => "Learned long-horizon policy",
+            Self::LearnedPromotionGateV3 => "Learned 4x4 promotion gate",
+            Self::LearnedSudoku9x9FitReport => "Learned 9x9 fit report",
+            Self::ArchitectureComparisonV12 => "Architecture comparison v12",
+        }
+    }
+
+    #[must_use]
+    const fn description(self) -> &'static str {
+        match self {
+            Self::ArticleSessionDirectMemoryHeavy => {
+                "Replays the direct HullCache article-session artifact over the canonical memory-heavy kernel."
+            }
+            Self::ArticleSessionFallbackBranchHeavy => {
+                "Replays the typed sparse-top-k fallback artifact on the branch-heavy kernel."
+            }
+            Self::ArticleSessionRefusalNonArticle => {
+                "Replays the explicit non-article refusal case for the specialized article-session surface."
+            }
+            Self::ArticleHybridDelegatedMemoryHeavy => {
+                "Replays the delegated planner-owned article workflow over the memory-heavy kernel."
+            }
+            Self::ArticleHybridFallbackBranchHeavy => {
+                "Replays the planner fallback path when branch-heavy sparse execution falls back under policy."
+            }
+            Self::ArticleHybridRefusalOverBudget => {
+                "Replays the typed planner refusal when the workflow budget rejects the article request."
+            }
+            Self::AcceptanceReport => {
+                "Replays the machine-readable acceptance verdicts that define the current honest Tassadar claim boundary."
+            }
+            Self::CompiledArticleClosureReport => {
+                "Replays the compiled article-closure checker over the 9x9 Sudoku, 10x10 Hungarian, and kernel-suite evidence roots."
+            }
+            Self::LearnedHorizonPolicyReport => {
+                "Replays the learned long-horizon guardrail that keeps article claims honest when fit and benchmark scope stay bounded."
+            }
+            Self::LearnedPromotionGateV3 => {
+                "Replays the green learned 4x4 promotion gate that proves the bounded learned lane reached its exact validation bar."
+            }
+            Self::LearnedSudoku9x9FitReport => {
+                "Replays the honest 9x9 fit report that keeps full-sequence overflow and bounded-window scope explicit."
+            }
+            Self::ArchitectureComparisonV12 => {
+                "Replays the same-corpus architecture-family comparison across hull, sparse, hybrid, and recurrent learned lanes."
+            }
+        }
+    }
+
+    #[must_use]
+    const fn artifact_ref(self) -> &'static str {
+        match self {
+            Self::ArticleSessionDirectMemoryHeavy
+            | Self::ArticleSessionFallbackBranchHeavy
+            | Self::ArticleSessionRefusalNonArticle => {
+                TASSADAR_ARTICLE_EXECUTOR_SESSION_ARTIFACT_REF
+            }
+            Self::ArticleHybridDelegatedMemoryHeavy
+            | Self::ArticleHybridFallbackBranchHeavy
+            | Self::ArticleHybridRefusalOverBudget => TASSADAR_ARTICLE_HYBRID_WORKFLOW_ARTIFACT_REF,
+            Self::AcceptanceReport => TASSADAR_ACCEPTANCE_REPORT_REF,
+            Self::CompiledArticleClosureReport => TASSADAR_COMPILED_ARTICLE_CLOSURE_REPORT_REF,
+            Self::LearnedHorizonPolicyReport => TASSADAR_LEARNED_HORIZON_POLICY_REPORT_REF,
+            Self::LearnedPromotionGateV3 => TASSADAR_LEARNED_PROMOTION_GATE_REPORT_REF,
+            Self::LearnedSudoku9x9FitReport => TASSADAR_LEARNED_9X9_SEQUENCE_FIT_REPORT_REF,
+            Self::ArchitectureComparisonV12 => TASSADAR_ARCHITECTURE_COMPARISON_REPORT_REF,
+        }
+    }
+}
+
+/// One catalog entry exposed to pane consumers for replay-first exploration.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarLabReplayCatalogEntry {
+    /// Stable replay identifier.
+    pub replay_id: TassadarLabReplayId,
+    /// Short family label used to group related replay roots.
+    pub family_label: String,
+    /// Human-readable replay label.
+    pub label: String,
+    /// Repo-relative artifact root backing the replay.
+    pub artifact_ref: String,
+    /// Plain-language description of the replay.
+    pub description: String,
+}
+
+/// Stable source posture for one prepared Tassadar lab snapshot.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TassadarLabSourceKind {
+    LiveArticleSession,
+    LiveArticleHybridWorkflow,
+    ReplayArtifact,
+}
+
+/// One metric chip surfaced to the pane without forcing the app to interpret
+/// report internals itself.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarLabMetricChip {
+    /// Short label safe for WGPUI cards.
+    pub label: String,
+    /// Display-ready value.
+    pub value: String,
+    /// Stable tone hint such as `green`, `amber`, `red`, or `blue`.
+    pub tone: String,
+}
+
+/// One detail row surfaced to the pane.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarLabFactLine {
+    /// Left-hand label.
+    pub label: String,
+    /// Display-ready value.
+    pub value: String,
+}
+
+/// Renderer-neutral snapshot for one replayed or live Tassadar lab view.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarLabSnapshot {
+    /// Stable schema version.
+    pub schema_version: u16,
+    /// Short source badge such as `psionic.tassadar` or `replay.tassadar`.
+    pub source_badge: String,
+    /// Whether the view came from a live service or a replay artifact.
+    pub source_kind: TassadarLabSourceKind,
+    /// Stable replay identifier when the snapshot came from a committed artifact.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub replay_id: Option<TassadarLabReplayId>,
+    /// Short family label shown in the pane hero.
+    pub family_label: String,
+    /// Main subject label for the current view.
+    pub subject_label: String,
+    /// Short status label such as `direct exact`, `planner fallback`, or `acceptance green`.
+    pub status_label: String,
+    /// One-sentence detail describing the current posture.
+    pub detail_label: String,
+    /// Repo-relative artifact ref when the snapshot is backed by a committed artifact.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub artifact_ref: Option<String>,
+    /// Preserved benchmark identity when one exists.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub benchmark_identity: Option<TassadarArticleBenchmarkIdentity>,
+    /// Preserved proof identity when one exists.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub proof_identity: Option<TassadarArticleProofIdentity>,
+    /// Runtime capability visible to the consumer when one exists.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub runtime_capability: Option<TassadarRuntimeCapabilityReport>,
+    /// Requested decode mode when the view originates from a request.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub requested_decode_mode: Option<TassadarExecutorDecodeMode>,
+    /// Effective decode mode after runtime routing when one exists.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub effective_decode_mode: Option<TassadarExecutorDecodeMode>,
+    /// Route or selection posture label.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub route_state_label: Option<String>,
+    /// Route or selection detail.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub route_detail: Option<String>,
+    /// Program identifier when one exists.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub program_id: Option<String>,
+    /// Wasm profile identifier when one exists.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub wasm_profile_id: Option<String>,
+    /// Derived readable-log excerpt when one exists.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub readable_log: Option<TassadarArticleReadableLogExcerpt>,
+    /// Derived symbolic token-trace excerpt when one exists.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub token_trace: Option<TassadarArticleTokenTraceExcerpt>,
+    /// Final scalar outputs when one exists.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub final_outputs: Vec<i32>,
+    /// Summary chips used by the pane overview cards.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub metric_chips: Vec<TassadarLabMetricChip>,
+    /// Detail rows for program and evidence panels.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub fact_lines: Vec<TassadarLabFactLine>,
+    /// Ordered summary events for the hero feed and replay-first mode.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub events: Vec<String>,
+}
+
+/// Stable update emitted by the Tassadar lab surface.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum TassadarLabUpdate {
+    /// One generic status line, mainly used for report replays.
+    StatusLine {
+        /// Zero-based line index.
+        line_index: usize,
+        /// Renderable line.
+        line: String,
+    },
+    /// Preserved article benchmark identity.
+    BenchmarkIdentity {
+        /// Benchmark identity payload.
+        benchmark_identity: TassadarArticleBenchmarkIdentityEvent,
+    },
+    /// Preserved runtime capability.
+    Capability {
+        /// Runtime capability payload.
+        runtime_capability: TassadarRuntimeCapabilityReport,
+    },
+    /// Preserved decode-selection diagnostic.
+    Selection {
+        /// Selection payload.
+        selection: TassadarExecutorSelectionDiagnostic,
+    },
+    /// Preserved planner routing posture.
+    RoutingStatus {
+        /// Stable route-state label.
+        route_state: String,
+        /// Renderable route detail.
+        detail: String,
+        /// Effective decode mode when one exists.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        effective_decode_mode: Option<TassadarExecutorDecodeMode>,
+    },
+    /// Preserved proof identity.
+    ProofIdentity {
+        /// Proof identity payload.
+        proof_identity: TassadarArticleProofIdentityEvent,
+    },
+    /// One derived readable-log line.
+    ReadableLogLine {
+        /// Readable-log payload.
+        readable_log_line: TassadarArticleReadableLogLineEvent,
+    },
+    /// One symbolic token-trace chunk.
+    TokenTraceChunk {
+        /// Token-trace payload.
+        token_trace_chunk: TassadarArticleTokenTraceChunkEvent,
+    },
+    /// One emitted output value.
+    Output {
+        /// Output payload.
+        output: TassadarExecutorOutputEvent,
+    },
+    /// Terminal update for either live or replay paths.
+    Terminal {
+        /// Stable terminal status label.
+        status_label: String,
+        /// Renderable detail.
+        detail: String,
+    },
+}
+
+/// One prepared replay/live response for desktop consumers.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarLabPreparedView {
+    /// Prepared renderer-neutral snapshot.
+    pub snapshot: TassadarLabSnapshot,
+    /// Ordered updates suitable for replay-first playback.
+    pub updates: Vec<TassadarLabUpdate>,
+}
+
+/// Stable request surface for the replay/live Tassadar lab adapter.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "request_kind", rename_all = "snake_case")]
+pub enum TassadarLabRequest {
+    /// Prepare one live specialized article session.
+    ArticleExecutorSession {
+        /// Underlying served request.
+        request: TassadarArticleExecutorSessionRequest,
+    },
+    /// Prepare one live specialized article hybrid workflow.
+    ArticleHybridWorkflow {
+        /// Underlying served request.
+        request: TassadarArticleHybridWorkflowRequest,
+    },
+    /// Prepare one canonical replay root from committed artifacts.
+    Replay {
+        /// Stable replay id.
+        replay_id: TassadarLabReplayId,
+    },
+}
+
+/// Error while adapting replay/live Tassadar truth for the desktop lab.
+#[derive(Debug, Error)]
+pub enum TassadarLabServiceError {
+    /// The specialized article-session surface rejected the request.
+    #[error(transparent)]
+    ArticleExecutorSession(#[from] TassadarArticleExecutorSessionServiceError),
+    /// The specialized article hybrid-workflow surface rejected the request.
+    #[error(transparent)]
+    ArticleHybridWorkflow(#[from] TassadarArticleHybridWorkflowServiceError),
+    /// Reading one committed replay artifact failed.
+    #[error("failed to read `{path}`: {error}")]
+    Read {
+        /// Artifact path.
+        path: String,
+        /// Source error.
+        error: std::io::Error,
+    },
+    /// Decoding one committed replay artifact failed.
+    #[error("failed to decode `{artifact_kind}` from `{path}`: {error}")]
+    Deserialize {
+        /// Artifact kind.
+        artifact_kind: String,
+        /// Artifact path.
+        path: String,
+        /// Source error.
+        error: serde_json::Error,
+    },
+    /// One replay entry could not be found inside its source artifact.
+    #[error("replay case `{case_name}` is missing from `{artifact_ref}`")]
+    MissingReplayCase {
+        /// Stable case name.
+        case_name: String,
+        /// Artifact ref consulted by the service.
+        artifact_ref: String,
+    },
+    /// A canonical article case could not be resolved.
+    #[error("canonical article case `{case_id}` is missing")]
+    MissingArticleCase {
+        /// Case identifier.
+        case_id: String,
+    },
+}
+
+/// Local replay/live adapter for the desktop Tassadar pane.
+#[derive(Clone, Debug)]
+pub struct LocalTassadarLabService {
+    article_executor_session: LocalTassadarArticleExecutorSessionService,
+    article_hybrid_workflow: LocalTassadarArticleHybridWorkflowService,
+}
+
+impl Default for LocalTassadarLabService {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl LocalTassadarLabService {
+    /// Creates the default local lab adapter.
+    #[must_use]
+    pub fn new() -> Self {
+        Self {
+            article_executor_session: LocalTassadarArticleExecutorSessionService::new(),
+            article_hybrid_workflow: LocalTassadarArticleHybridWorkflowService::new(),
+        }
+    }
+
+    /// Returns the canonical replay catalog the desktop should expose.
+    #[must_use]
+    pub fn replay_catalog(&self) -> Vec<TassadarLabReplayCatalogEntry> {
+        canonical_tassadar_lab_replay_catalog()
+    }
+
+    /// Prepares one replay or live view as a renderer-neutral snapshot plus ordered updates.
+    pub fn prepare(
+        &self,
+        request: &TassadarLabRequest,
+    ) -> Result<TassadarLabPreparedView, TassadarLabServiceError> {
+        match request {
+            TassadarLabRequest::ArticleExecutorSession { request } => {
+                self.prepare_article_executor_session(request)
+            }
+            TassadarLabRequest::ArticleHybridWorkflow { request } => {
+                self.prepare_article_hybrid_workflow(request)
+            }
+            TassadarLabRequest::Replay { replay_id } => self.prepare_replay(*replay_id),
+        }
+    }
+
+    fn prepare_article_executor_session(
+        &self,
+        request: &TassadarArticleExecutorSessionRequest,
+    ) -> Result<TassadarLabPreparedView, TassadarLabServiceError> {
+        let outcome = self.article_executor_session.execute(request)?;
+        let updates = article_stream_events_for_outcome(&outcome)
+            .into_iter()
+            .map(tassadar_lab_update_from_article_event)
+            .collect::<Vec<_>>();
+        let snapshot = snapshot_from_article_executor_session(request, &outcome);
+        Ok(TassadarLabPreparedView { snapshot, updates })
+    }
+
+    fn prepare_article_hybrid_workflow(
+        &self,
+        request: &TassadarArticleHybridWorkflowRequest,
+    ) -> Result<TassadarLabPreparedView, TassadarLabServiceError> {
+        let outcome = self.article_hybrid_workflow.execute(request)?;
+        let snapshot = snapshot_from_article_hybrid_workflow(request, &outcome)?;
+        let updates = updates_from_article_hybrid_workflow(&outcome)?;
+        Ok(TassadarLabPreparedView { snapshot, updates })
+    }
+
+    fn prepare_replay(
+        &self,
+        replay_id: TassadarLabReplayId,
+    ) -> Result<TassadarLabPreparedView, TassadarLabServiceError> {
+        match replay_id {
+            TassadarLabReplayId::ArticleSessionDirectMemoryHeavy
+            | TassadarLabReplayId::ArticleSessionFallbackBranchHeavy
+            | TassadarLabReplayId::ArticleSessionRefusalNonArticle => {
+                self.prepare_replay_article_executor_session(replay_id)
+            }
+            TassadarLabReplayId::ArticleHybridDelegatedMemoryHeavy
+            | TassadarLabReplayId::ArticleHybridFallbackBranchHeavy
+            | TassadarLabReplayId::ArticleHybridRefusalOverBudget => {
+                self.prepare_replay_article_hybrid_workflow(replay_id)
+            }
+            TassadarLabReplayId::AcceptanceReport => self.prepare_replay_acceptance_report(),
+            TassadarLabReplayId::CompiledArticleClosureReport => {
+                self.prepare_replay_compiled_article_closure_report()
+            }
+            TassadarLabReplayId::LearnedHorizonPolicyReport => {
+                self.prepare_replay_learned_horizon_policy_report()
+            }
+            TassadarLabReplayId::LearnedPromotionGateV3 => {
+                self.prepare_replay_learned_promotion_gate_report()
+            }
+            TassadarLabReplayId::LearnedSudoku9x9FitReport => {
+                self.prepare_replay_learned_sudoku_9x9_fit_report()
+            }
+            TassadarLabReplayId::ArchitectureComparisonV12 => {
+                self.prepare_replay_architecture_comparison_report()
+            }
+        }
+    }
+
+    fn prepare_replay_article_executor_session(
+        &self,
+        replay_id: TassadarLabReplayId,
+    ) -> Result<TassadarLabPreparedView, TassadarLabServiceError> {
+        let artifact: TassadarLabArticleExecutorSessionArtifact = read_repo_json(
+            TASSADAR_ARTICLE_EXECUTOR_SESSION_ARTIFACT_REF,
+            "tassadar_lab_article_executor_session_artifact",
+        )?;
+        let case_name = match replay_id {
+            TassadarLabReplayId::ArticleSessionDirectMemoryHeavy => "direct_memory_heavy_hull",
+            TassadarLabReplayId::ArticleSessionFallbackBranchHeavy => {
+                "fallback_branch_heavy_sparse_top_k"
+            }
+            TassadarLabReplayId::ArticleSessionRefusalNonArticle => "refusal_non_article_workload",
+            _ => unreachable!("replay id routed to wrong artifact family"),
+        };
+        let case = artifact
+            .cases
+            .into_iter()
+            .find(|candidate| candidate.name == case_name)
+            .ok_or_else(|| TassadarLabServiceError::MissingReplayCase {
+                case_name: String::from(case_name),
+                artifact_ref: String::from(TASSADAR_ARTICLE_EXECUTOR_SESSION_ARTIFACT_REF),
+            })?;
+        let mut prepared = self.prepare_article_executor_session(&case.request)?;
+        prepared.snapshot.source_badge = String::from(TASSADAR_REPLAY_SOURCE_BADGE);
+        prepared.snapshot.source_kind = TassadarLabSourceKind::ReplayArtifact;
+        prepared.snapshot.replay_id = Some(replay_id);
+        prepared.snapshot.artifact_ref =
+            Some(String::from(TASSADAR_ARTICLE_EXECUTOR_SESSION_ARTIFACT_REF));
+        prepared.snapshot.events.insert(
+            0,
+            format!(
+                "replay root={} case={}",
+                TASSADAR_ARTICLE_EXECUTOR_SESSION_ARTIFACT_REF, case.name
+            ),
+        );
+        Ok(prepared)
+    }
+
+    fn prepare_replay_article_hybrid_workflow(
+        &self,
+        replay_id: TassadarLabReplayId,
+    ) -> Result<TassadarLabPreparedView, TassadarLabServiceError> {
+        let artifact: TassadarLabArticleHybridWorkflowArtifact = read_repo_json(
+            TASSADAR_ARTICLE_HYBRID_WORKFLOW_ARTIFACT_REF,
+            "tassadar_lab_article_hybrid_workflow_artifact",
+        )?;
+        let case_name = match replay_id {
+            TassadarLabReplayId::ArticleHybridDelegatedMemoryHeavy => "delegated_memory_heavy_hull",
+            TassadarLabReplayId::ArticleHybridFallbackBranchHeavy => {
+                "fallback_branch_heavy_sparse_top_k"
+            }
+            TassadarLabReplayId::ArticleHybridRefusalOverBudget => {
+                "refusal_overbudget_memory_heavy"
+            }
+            _ => unreachable!("replay id routed to wrong artifact family"),
+        };
+        let case = artifact
+            .cases
+            .into_iter()
+            .find(|candidate| candidate.name == case_name)
+            .ok_or_else(|| TassadarLabServiceError::MissingReplayCase {
+                case_name: String::from(case_name),
+                artifact_ref: String::from(TASSADAR_ARTICLE_HYBRID_WORKFLOW_ARTIFACT_REF),
+            })?;
+        let mut prepared = self.prepare_article_hybrid_workflow(&case.request)?;
+        prepared.snapshot.source_badge = String::from(TASSADAR_REPLAY_SOURCE_BADGE);
+        prepared.snapshot.source_kind = TassadarLabSourceKind::ReplayArtifact;
+        prepared.snapshot.replay_id = Some(replay_id);
+        prepared.snapshot.artifact_ref =
+            Some(String::from(TASSADAR_ARTICLE_HYBRID_WORKFLOW_ARTIFACT_REF));
+        prepared.snapshot.events.insert(
+            0,
+            format!(
+                "replay root={} case={}",
+                TASSADAR_ARTICLE_HYBRID_WORKFLOW_ARTIFACT_REF, case.name
+            ),
+        );
+        Ok(prepared)
+    }
+
+    fn prepare_replay_acceptance_report(
+        &self,
+    ) -> Result<TassadarLabPreparedView, TassadarLabServiceError> {
+        let report: TassadarAcceptanceReport =
+            read_repo_json(TASSADAR_ACCEPTANCE_REPORT_REF, "tassadar_acceptance_report")?;
+        let verdicts = [
+            ("research_only", &report.research_only),
+            ("compiled_exact", &report.compiled_exact),
+            ("learned_bounded", &report.learned_bounded),
+            (
+                "fast_path_declared_workload_exact",
+                &report.fast_path_declared_workload_exact,
+            ),
+            ("compiled_article_class", &report.compiled_article_class),
+            ("learned_article_class", &report.learned_article_class),
+            ("article_closure", &report.article_closure),
+        ];
+        let mut events = vec![format!(
+            "allowed_claim_classes={}",
+            join_claim_classes(report.allowed_claim_classes.as_slice())
+        )];
+        for (verdict_id, verdict) in verdicts {
+            events.push(format!(
+                "{}={} // {}",
+                verdict_id, verdict.passed, verdict.detail
+            ));
+        }
+        let snapshot = TassadarLabSnapshot {
+            schema_version: TASSADAR_LAB_SNAPSHOT_SCHEMA_VERSION,
+            source_badge: String::from(TASSADAR_REPLAY_SOURCE_BADGE),
+            source_kind: TassadarLabSourceKind::ReplayArtifact,
+            replay_id: Some(TassadarLabReplayId::AcceptanceReport),
+            family_label: String::from("Acceptance report"),
+            subject_label: String::from("Tassadar acceptance and article-closure truth"),
+            status_label: if report.current_truth_holds {
+                String::from("acceptance green")
+            } else {
+                String::from("acceptance red")
+            },
+            detail_label: format!(
+                "article parity language allowed={} // current_truth_holds={}",
+                report.article_parity_language_allowed, report.current_truth_holds
+            ),
+            artifact_ref: Some(String::from(TASSADAR_ACCEPTANCE_REPORT_REF)),
+            benchmark_identity: None,
+            proof_identity: None,
+            runtime_capability: None,
+            requested_decode_mode: None,
+            effective_decode_mode: None,
+            route_state_label: Some(if report.article_parity_language_allowed {
+                String::from("article parity allowed")
+            } else {
+                String::from("article parity blocked")
+            }),
+            route_detail: Some(report.article_closure.detail.clone()),
+            program_id: None,
+            wasm_profile_id: None,
+            readable_log: None,
+            token_trace: None,
+            final_outputs: Vec::new(),
+            metric_chips: vec![
+                chip(
+                    "Allowed claims",
+                    report.allowed_claim_classes.len().to_string(),
+                    if report.allowed_claim_classes.is_empty() {
+                        "red"
+                    } else {
+                        "green"
+                    },
+                ),
+                chip(
+                    "Disallowed claims",
+                    report.disallowed_claim_classes.len().to_string(),
+                    if report.disallowed_claim_classes.is_empty() {
+                        "green"
+                    } else {
+                        "amber"
+                    },
+                ),
+                chip(
+                    "Article parity",
+                    yes_no(report.article_parity_language_allowed),
+                    if report.article_parity_language_allowed {
+                        "green"
+                    } else {
+                        "red"
+                    },
+                ),
+                chip(
+                    "Current truth",
+                    yes_no(report.current_truth_holds),
+                    if report.current_truth_holds {
+                        "green"
+                    } else {
+                        "red"
+                    },
+                ),
+            ],
+            fact_lines: vec![
+                fact("Checker", report.checker_command),
+                fact("Report ref", report.report_ref),
+                fact("Fixture root", report.fixture_root),
+                fact("Article closure", report.article_closure.detail),
+                fact(
+                    "Allowed claim classes",
+                    join_claim_classes(report.allowed_claim_classes.as_slice()),
+                ),
+            ],
+            events: events.clone(),
+        };
+        Ok(TassadarLabPreparedView {
+            snapshot,
+            updates: status_line_updates(events, snapshot_terminal_label(true)),
+        })
+    }
+
+    fn prepare_replay_compiled_article_closure_report(
+        &self,
+    ) -> Result<TassadarLabPreparedView, TassadarLabServiceError> {
+        let report: TassadarCompiledArticleClosureReport = read_repo_json(
+            TASSADAR_COMPILED_ARTICLE_CLOSURE_REPORT_REF,
+            "tassadar_compiled_article_closure_report",
+        )?;
+        let mut events = vec![format!(
+            "required_workload_families={}",
+            report.required_workload_families.join(", ")
+        )];
+        for requirement in &report.requirements {
+            events.push(format!(
+                "{}={} // {}",
+                requirement.requirement_id, requirement.passed, requirement.detail
+            ));
+        }
+        if !report.missing_requirements.is_empty() {
+            events.push(format!(
+                "missing_requirements={}",
+                report.missing_requirements.join(", ")
+            ));
+        }
+        let passed = report.passed;
+        let snapshot = TassadarLabSnapshot {
+            schema_version: TASSADAR_LAB_SNAPSHOT_SCHEMA_VERSION,
+            source_badge: String::from(TASSADAR_REPLAY_SOURCE_BADGE),
+            source_kind: TassadarLabSourceKind::ReplayArtifact,
+            replay_id: Some(TassadarLabReplayId::CompiledArticleClosureReport),
+            family_label: String::from("Compiled article closure report"),
+            subject_label: String::from("Compiled article-class closure"),
+            status_label: if passed {
+                String::from("compiled closure green")
+            } else {
+                String::from("compiled closure red")
+            },
+            detail_label: report.detail.clone(),
+            artifact_ref: Some(String::from(TASSADAR_COMPILED_ARTICLE_CLOSURE_REPORT_REF)),
+            benchmark_identity: None,
+            proof_identity: None,
+            runtime_capability: None,
+            requested_decode_mode: None,
+            effective_decode_mode: None,
+            route_state_label: Some(if passed {
+                String::from("requirements cleared")
+            } else {
+                String::from("requirements blocked")
+            }),
+            route_detail: Some(report.detail.clone()),
+            program_id: None,
+            wasm_profile_id: None,
+            readable_log: None,
+            token_trace: None,
+            final_outputs: Vec::new(),
+            metric_chips: vec![
+                chip(
+                    "Requirements",
+                    report.requirements.len().to_string(),
+                    "blue",
+                ),
+                chip(
+                    "Missing",
+                    report.missing_requirements.len().to_string(),
+                    if report.missing_requirements.is_empty() {
+                        "green"
+                    } else {
+                        "red"
+                    },
+                ),
+                chip(
+                    "Article roots",
+                    report.article_artifact_roots.len().to_string(),
+                    "blue",
+                ),
+                chip(
+                    "Passed",
+                    yes_no(passed),
+                    if passed { "green" } else { "red" },
+                ),
+            ],
+            fact_lines: vec![
+                fact("Checker", report.checker_command),
+                fact("Report ref", report.report_ref),
+                fact(
+                    "Required workload families",
+                    report.required_workload_families.join(", "),
+                ),
+                fact(
+                    "Article artifact roots",
+                    report.article_artifact_roots.join(", "),
+                ),
+                fact("Bounded proxy roots", report.bounded_proxy_roots.join(", ")),
+            ],
+            events: events.clone(),
+        };
+        Ok(TassadarLabPreparedView {
+            snapshot,
+            updates: status_line_updates(events, snapshot_terminal_label(passed)),
+        })
+    }
+
+    fn prepare_replay_learned_horizon_policy_report(
+        &self,
+    ) -> Result<TassadarLabPreparedView, TassadarLabServiceError> {
+        let report: TassadarLearnedLongHorizonPolicyReport = read_repo_json(
+            TASSADAR_LEARNED_HORIZON_POLICY_REPORT_REF,
+            "tassadar_learned_horizon_policy_report",
+        )?;
+        let mut events = vec![
+            format!("guard_status={:?}", report.guard_status),
+            format!("benchmark_status={:?}", report.benchmark_status),
+            format!(
+                "sudoku_9x9_full_sequence_fits={}",
+                report.sudoku_9x9_full_sequence_fits_model_context
+            ),
+            format!(
+                "hungarian_v0_full_sequence_fits={}",
+                report.hungarian_v0_full_sequence_fits_model_context
+            ),
+        ];
+        if let Some(ref detail) = report.refusal_detail {
+            events.push(detail.clone());
+        }
+        if let Some(ref requirement) = report.replacement_requirement {
+            events.push(requirement.clone());
+        }
+        let exact_guard = matches!(
+            report.guard_status,
+            psionic_research::TassadarLearnedLongHorizonGuardStatus::ExactBenchmarkLanded
+        );
+        let snapshot = TassadarLabSnapshot {
+            schema_version: TASSADAR_LAB_SNAPSHOT_SCHEMA_VERSION,
+            source_badge: String::from(TASSADAR_REPLAY_SOURCE_BADGE),
+            source_kind: TassadarLabSourceKind::ReplayArtifact,
+            replay_id: Some(TassadarLabReplayId::LearnedHorizonPolicyReport),
+            family_label: String::from("Learned horizon policy report"),
+            subject_label: String::from("Learned long-horizon guardrail"),
+            status_label: if exact_guard {
+                String::from("learned horizon exact")
+            } else {
+                String::from("learned horizon refusal")
+            },
+            detail_label: report
+                .refusal_detail
+                .clone()
+                .unwrap_or_else(|| String::from("exact learned long-horizon benchmark landed")),
+            artifact_ref: Some(String::from(TASSADAR_LEARNED_HORIZON_POLICY_REPORT_REF)),
+            benchmark_identity: None,
+            proof_identity: None,
+            runtime_capability: None,
+            requested_decode_mode: None,
+            effective_decode_mode: None,
+            route_state_label: Some(match report.guard_status {
+                psionic_research::TassadarLearnedLongHorizonGuardStatus::ExactBenchmarkLanded => {
+                    String::from("exact benchmark landed")
+                }
+                psionic_research::TassadarLearnedLongHorizonGuardStatus::ExplicitRefusalPolicy => {
+                    String::from("explicit refusal policy")
+                }
+            }),
+            route_detail: report.refusal_detail.clone(),
+            program_id: None,
+            wasm_profile_id: None,
+            readable_log: None,
+            token_trace: None,
+            final_outputs: Vec::new(),
+            metric_chips: vec![
+                chip(
+                    "Guard",
+                    format!("{:?}", report.guard_status).to_ascii_lowercase(),
+                    if exact_guard { "green" } else { "amber" },
+                ),
+                chip(
+                    "Article floor",
+                    report.article_class_trace_step_floor.to_string(),
+                    "blue",
+                ),
+                chip(
+                    "9x9 fits",
+                    yes_no(report.sudoku_9x9_full_sequence_fits_model_context),
+                    if report.sudoku_9x9_full_sequence_fits_model_context {
+                        "green"
+                    } else {
+                        "red"
+                    },
+                ),
+                chip(
+                    "Hungarian fits",
+                    yes_no(report.hungarian_v0_full_sequence_fits_model_context),
+                    if report.hungarian_v0_full_sequence_fits_model_context {
+                        "green"
+                    } else {
+                        "red"
+                    },
+                ),
+            ],
+            fact_lines: vec![
+                fact(
+                    "Enforced claim class",
+                    format!("{:?}", report.enforced_claim_class),
+                ),
+                fact("Bounded green artifact", report.bounded_green_artifact_ref),
+                fact("9x9 scope", report.sudoku_9x9_scope_statement),
+                fact("Hungarian verdict", report.hungarian_v0_verdict),
+                fact(
+                    "Refusal reasons",
+                    report
+                        .refusal_reasons
+                        .iter()
+                        .map(|reason| format!("{reason:?}").to_ascii_lowercase())
+                        .collect::<Vec<_>>()
+                        .join(", "),
+                ),
+            ],
+            events: events.clone(),
+        };
+        Ok(TassadarLabPreparedView {
+            snapshot,
+            updates: status_line_updates(events, snapshot_terminal_label(exact_guard)),
+        })
+    }
+
+    fn prepare_replay_learned_promotion_gate_report(
+        &self,
+    ) -> Result<TassadarLabPreparedView, TassadarLabServiceError> {
+        let report: TassadarExecutorPromotionGateReport = read_repo_json(
+            TASSADAR_LEARNED_PROMOTION_GATE_REPORT_REF,
+            "tassadar_executor_promotion_gate_report",
+        )?;
+        let mut events = vec![
+            format!(
+                "first_target_exactness_bps={}",
+                report.first_target_exactness_bps
+            ),
+            format!(
+                "first_32_token_exactness_bps={}",
+                report.first_32_token_exactness_bps
+            ),
+            format!("exact_trace_case_count={}", report.exact_trace_case_count),
+        ];
+        for failure in &report.failures {
+            events.push(format!(
+                "{:?} actual={} required={}",
+                failure.kind, failure.actual, failure.required
+            ));
+        }
+        let passed = report.passed;
+        let snapshot = TassadarLabSnapshot {
+            schema_version: TASSADAR_LAB_SNAPSHOT_SCHEMA_VERSION,
+            source_badge: String::from(TASSADAR_REPLAY_SOURCE_BADGE),
+            source_kind: TassadarLabSourceKind::ReplayArtifact,
+            replay_id: Some(TassadarLabReplayId::LearnedPromotionGateV3),
+            family_label: String::from("Learned promotion gate"),
+            subject_label: format!("Learned 4x4 promotion gate for {}", report.run_id),
+            status_label: if passed {
+                String::from("promotion green")
+            } else {
+                String::from("promotion red")
+            },
+            detail_label: if passed {
+                String::from("bounded learned 4x4 lane clears the exact validation gate")
+            } else {
+                String::from("bounded learned 4x4 lane still fails the exact validation gate")
+            },
+            artifact_ref: Some(String::from(TASSADAR_LEARNED_PROMOTION_GATE_REPORT_REF)),
+            benchmark_identity: None,
+            proof_identity: None,
+            runtime_capability: None,
+            requested_decode_mode: None,
+            effective_decode_mode: None,
+            route_state_label: Some(if passed {
+                String::from("gate passed")
+            } else {
+                String::from("gate failed")
+            }),
+            route_detail: Some(format!(
+                "checkpoint={} stage={}",
+                report.checkpoint_id, report.selected_stage_id
+            )),
+            program_id: None,
+            wasm_profile_id: None,
+            readable_log: None,
+            token_trace: None,
+            final_outputs: Vec::new(),
+            metric_chips: vec![
+                chip(
+                    "First target",
+                    report.first_target_exactness_bps.to_string(),
+                    if report.first_target_exactness_bps == 10_000 {
+                        "green"
+                    } else {
+                        "red"
+                    },
+                ),
+                chip(
+                    "First 32",
+                    report.first_32_token_exactness_bps.to_string(),
+                    if report.first_32_token_exactness_bps > 9_000 {
+                        "green"
+                    } else {
+                        "red"
+                    },
+                ),
+                chip(
+                    "Exact traces",
+                    report.exact_trace_case_count.to_string(),
+                    if report.exact_trace_case_count > 0 {
+                        "green"
+                    } else {
+                        "red"
+                    },
+                ),
+                chip(
+                    "Passed",
+                    yes_no(passed),
+                    if passed { "green" } else { "red" },
+                ),
+            ],
+            fact_lines: vec![
+                fact("Run id", report.run_id),
+                fact("Trainable surface", report.trainable_surface),
+                fact("Checkpoint id", report.checkpoint_id),
+                fact("Selected stage", report.selected_stage_id),
+            ],
+            events: events.clone(),
+        };
+        Ok(TassadarLabPreparedView {
+            snapshot,
+            updates: status_line_updates(events, snapshot_terminal_label(passed)),
+        })
+    }
+
+    fn prepare_replay_learned_sudoku_9x9_fit_report(
+        &self,
+    ) -> Result<TassadarLabPreparedView, TassadarLabServiceError> {
+        let report: TassadarExecutorSequenceFitReport = read_repo_json(
+            TASSADAR_LEARNED_9X9_SEQUENCE_FIT_REPORT_REF,
+            "tassadar_executor_sequence_fit_report",
+        )?;
+        let mut events = vec![
+            format!(
+                "full_sequence_fits={}",
+                report.full_sequence_fits_model_context
+            ),
+            format!(
+                "context_overflow_max={}",
+                report.full_sequence_context_overflow_max
+            ),
+            report.scope_statement.clone(),
+            report.outcome_statement.clone(),
+        ];
+        events.extend(report.blocking_reasons.iter().cloned());
+        let fits = report.full_sequence_fits_model_context;
+        let snapshot = TassadarLabSnapshot {
+            schema_version: TASSADAR_LAB_SNAPSHOT_SCHEMA_VERSION,
+            source_badge: String::from(TASSADAR_REPLAY_SOURCE_BADGE),
+            source_kind: TassadarLabSourceKind::ReplayArtifact,
+            replay_id: Some(TassadarLabReplayId::LearnedSudoku9x9FitReport),
+            family_label: String::from("Learned 9x9 fit report"),
+            subject_label: format!("Learned 9x9 fit for {}", report.run_id),
+            status_label: if fits {
+                String::from("9x9 fit green")
+            } else {
+                String::from("9x9 fit red")
+            },
+            detail_label: report.scope_statement.clone(),
+            artifact_ref: Some(String::from(TASSADAR_LEARNED_9X9_SEQUENCE_FIT_REPORT_REF)),
+            benchmark_identity: None,
+            proof_identity: None,
+            runtime_capability: None,
+            requested_decode_mode: None,
+            effective_decode_mode: None,
+            route_state_label: Some(format!("{:?}", report.fit_disposition).to_ascii_lowercase()),
+            route_detail: Some(report.outcome_statement.clone()),
+            program_id: None,
+            wasm_profile_id: None,
+            readable_log: None,
+            token_trace: None,
+            final_outputs: Vec::new(),
+            metric_chips: vec![
+                chip(
+                    "Model max seq",
+                    report.model_max_sequence_tokens.to_string(),
+                    "blue",
+                ),
+                chip(
+                    "Total tokens max",
+                    report.total_token_count_max.to_string(),
+                    if fits { "green" } else { "amber" },
+                ),
+                chip(
+                    "Overflow max",
+                    report.full_sequence_context_overflow_max.to_string(),
+                    if report.full_sequence_context_overflow_max == 0 {
+                        "green"
+                    } else {
+                        "red"
+                    },
+                ),
+                chip("Fits", yes_no(fits), if fits { "green" } else { "red" }),
+            ],
+            fact_lines: vec![
+                fact("Model id", report.model_id),
+                fact(
+                    "Long trace contract",
+                    format!("{:?}", report.long_trace_contract).to_ascii_lowercase(),
+                ),
+                fact(
+                    "Fit disposition",
+                    format!("{:?}", report.fit_disposition).to_ascii_lowercase(),
+                ),
+                fact("Scope", report.scope_statement),
+                fact("Outcome", report.outcome_statement),
+            ],
+            events: events.clone(),
+        };
+        Ok(TassadarLabPreparedView {
+            snapshot,
+            updates: status_line_updates(events, snapshot_terminal_label(fits)),
+        })
+    }
+
+    fn prepare_replay_architecture_comparison_report(
+        &self,
+    ) -> Result<TassadarLabPreparedView, TassadarLabServiceError> {
+        let report: TassadarLabArchitectureComparisonReport = read_repo_json(
+            TASSADAR_ARCHITECTURE_COMPARISON_REPORT_REF,
+            "tassadar_executor_architecture_comparison_report",
+        )?;
+        let events = vec![
+            format!(
+                "hull first_32_bps={} neural_tps={}",
+                report
+                    .hull_specialized_lookup
+                    .correctness
+                    .first_32_token_exactness_bps,
+                report
+                    .hull_specialized_lookup
+                    .speed
+                    .neural_tokens_per_second
+            ),
+            format!(
+                "sparse first_32_bps={} neural_tps={}",
+                report
+                    .sparse_lookup_baseline
+                    .correctness
+                    .first_32_token_exactness_bps,
+                report.sparse_lookup_baseline.speed.neural_tokens_per_second
+            ),
+            format!(
+                "hybrid first_32_bps={} neural_tps={}",
+                report
+                    .hybrid_attention_baseline
+                    .correctness
+                    .first_32_token_exactness_bps,
+                report
+                    .hybrid_attention_baseline
+                    .speed
+                    .neural_tokens_per_second
+            ),
+            format!(
+                "recurrent first_32_bps={} neural_tps={}",
+                report
+                    .recurrent_windowed_baseline
+                    .correctness
+                    .first_32_token_exactness_bps,
+                report
+                    .recurrent_windowed_baseline
+                    .speed
+                    .neural_tokens_per_second
+            ),
+            format!(
+                "sparse_matches_hull={}",
+                report.sparse_matches_hull_exactness
+            ),
+            format!(
+                "hybrid_matches_or_beats_hull={}",
+                report.hybrid_matches_or_beats_hull_exactness
+            ),
+            format!(
+                "recurrent_changes_long_trace_contract={}",
+                report.recurrent_changes_long_trace_contract
+            ),
+        ];
+        let snapshot = TassadarLabSnapshot {
+            schema_version: TASSADAR_LAB_SNAPSHOT_SCHEMA_VERSION,
+            source_badge: String::from(TASSADAR_REPLAY_SOURCE_BADGE),
+            source_kind: TassadarLabSourceKind::ReplayArtifact,
+            replay_id: Some(TassadarLabReplayId::ArchitectureComparisonV12),
+            family_label: String::from("Architecture comparison"),
+            subject_label: String::from("Hull, sparse, hybrid, and recurrent learned families"),
+            status_label: if report.hybrid_matches_or_beats_hull_exactness {
+                String::from("hybrid matches hull")
+            } else {
+                String::from("hybrid trails hull")
+            },
+            detail_label: report.summary.clone(),
+            artifact_ref: Some(String::from(TASSADAR_ARCHITECTURE_COMPARISON_REPORT_REF)),
+            benchmark_identity: None,
+            proof_identity: None,
+            runtime_capability: None,
+            requested_decode_mode: None,
+            effective_decode_mode: None,
+            route_state_label: Some(if report.recurrent_changes_long_trace_contract {
+                String::from("recurrent contract changed")
+            } else {
+                String::from("same long-trace contract")
+            }),
+            route_detail: Some(format!(
+                "sparse_matches_hull={} // hybrid_matches_or_beats_hull={} // recurrent_matches_hull={}",
+                report.sparse_matches_hull_exactness,
+                report.hybrid_matches_or_beats_hull_exactness,
+                report.recurrent_matches_hull_exactness
+            )),
+            program_id: None,
+            wasm_profile_id: None,
+            readable_log: None,
+            token_trace: None,
+            final_outputs: Vec::new(),
+            metric_chips: vec![
+                chip(
+                    "Hull first32",
+                    report
+                        .hull_specialized_lookup
+                        .correctness
+                        .first_32_token_exactness_bps
+                        .to_string(),
+                    "blue",
+                ),
+                chip(
+                    "Sparse first32",
+                    report
+                        .sparse_lookup_baseline
+                        .correctness
+                        .first_32_token_exactness_bps
+                        .to_string(),
+                    if report.sparse_matches_hull_exactness {
+                        "green"
+                    } else {
+                        "amber"
+                    },
+                ),
+                chip(
+                    "Hybrid first32",
+                    report
+                        .hybrid_attention_baseline
+                        .correctness
+                        .first_32_token_exactness_bps
+                        .to_string(),
+                    if report.hybrid_matches_or_beats_hull_exactness {
+                        "green"
+                    } else {
+                        "red"
+                    },
+                ),
+                chip(
+                    "Recurrent contract",
+                    yes_no(report.recurrent_changes_long_trace_contract),
+                    if report.recurrent_changes_long_trace_contract {
+                        "green"
+                    } else {
+                        "amber"
+                    },
+                ),
+                chip(
+                    "Hybrid tps",
+                    report
+                        .hybrid_attention_baseline
+                        .speed
+                        .neural_tokens_per_second
+                        .to_string(),
+                    "blue",
+                ),
+            ],
+            fact_lines: vec![
+                fact("Dataset storage key", report.dataset_storage_key),
+                fact("Dataset digest", report.dataset_digest),
+                fact("Split", report.split),
+                fact(
+                    "Hull claim boundary",
+                    report.hull_specialized_lookup.claim_boundary,
+                ),
+                fact(
+                    "Hybrid claim boundary",
+                    report.hybrid_attention_baseline.claim_boundary,
+                ),
+                fact(
+                    "Recurrent claim boundary",
+                    report.recurrent_windowed_baseline.claim_boundary,
+                ),
+                fact("Summary", report.summary.clone()),
+            ],
+            events: events.clone(),
+        };
+        Ok(TassadarLabPreparedView {
+            snapshot,
+            updates: status_line_updates(
+                events,
+                if report.hybrid_matches_or_beats_hull_exactness {
+                    String::from("hybrid family matches the current hull exactness bar")
+                } else {
+                    String::from("hybrid family remains below the current hull exactness bar")
+                },
+            ),
+        })
+    }
+}
+
+fn canonical_tassadar_lab_replay_catalog() -> Vec<TassadarLabReplayCatalogEntry> {
+    [
+        TassadarLabReplayId::ArticleSessionDirectMemoryHeavy,
+        TassadarLabReplayId::ArticleSessionFallbackBranchHeavy,
+        TassadarLabReplayId::ArticleSessionRefusalNonArticle,
+        TassadarLabReplayId::ArticleHybridDelegatedMemoryHeavy,
+        TassadarLabReplayId::ArticleHybridFallbackBranchHeavy,
+        TassadarLabReplayId::ArticleHybridRefusalOverBudget,
+        TassadarLabReplayId::AcceptanceReport,
+        TassadarLabReplayId::CompiledArticleClosureReport,
+        TassadarLabReplayId::LearnedHorizonPolicyReport,
+        TassadarLabReplayId::LearnedPromotionGateV3,
+        TassadarLabReplayId::LearnedSudoku9x9FitReport,
+        TassadarLabReplayId::ArchitectureComparisonV12,
+    ]
+    .into_iter()
+    .map(|replay_id| TassadarLabReplayCatalogEntry {
+        replay_id,
+        family_label: String::from(replay_id.family_label()),
+        label: String::from(replay_id.label()),
+        artifact_ref: String::from(replay_id.artifact_ref()),
+        description: String::from(replay_id.description()),
+    })
+    .collect()
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+struct TassadarLabArticleExecutorSessionArtifactCase {
+    name: String,
+    request: TassadarArticleExecutorSessionRequest,
+    outcome: TassadarArticleExecutorSessionOutcome,
+    stream_events: Vec<TassadarArticleExecutorSessionStreamEvent>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+struct TassadarLabArticleExecutorSessionArtifact {
+    schema_version: u16,
+    product_id: String,
+    benchmark_report_ref: String,
+    cases: Vec<TassadarLabArticleExecutorSessionArtifactCase>,
+    artifact_digest: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+struct TassadarLabArticleHybridWorkflowArtifactCase {
+    name: String,
+    request: TassadarArticleHybridWorkflowRequest,
+    outcome: TassadarArticleHybridWorkflowOutcome,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+struct TassadarLabArticleHybridWorkflowArtifact {
+    schema_version: u16,
+    product_id: String,
+    benchmark_report_ref: String,
+    cases: Vec<TassadarLabArticleHybridWorkflowArtifactCase>,
+    artifact_digest: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+struct TassadarLabArchitectureComparisonCorrectness {
+    first_32_token_exactness_bps: u32,
+    exact_trace_case_count: u32,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+struct TassadarLabArchitectureComparisonSpeed {
+    neural_tokens_per_second: u32,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+struct TassadarLabArchitectureComparisonFamily {
+    model_id: String,
+    claim_boundary: String,
+    architecture_identity: String,
+    correctness: TassadarLabArchitectureComparisonCorrectness,
+    speed: TassadarLabArchitectureComparisonSpeed,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+struct TassadarLabArchitectureComparisonReport {
+    dataset_storage_key: String,
+    dataset_digest: String,
+    split: String,
+    prompt_window_token_cap: u32,
+    target_token_cap: u32,
+    hull_specialized_lookup: TassadarLabArchitectureComparisonFamily,
+    sparse_lookup_baseline: TassadarLabArchitectureComparisonFamily,
+    hybrid_attention_baseline: TassadarLabArchitectureComparisonFamily,
+    recurrent_windowed_baseline: TassadarLabArchitectureComparisonFamily,
+    sparse_matches_hull_exactness: bool,
+    hybrid_matches_or_beats_hull_exactness: bool,
+    recurrent_matches_hull_exactness: bool,
+    recurrent_changes_long_trace_contract: bool,
+    summary: String,
+    report_digest: String,
+}
+
+fn snapshot_from_article_executor_session(
+    request: &TassadarArticleExecutorSessionRequest,
+    outcome: &TassadarArticleExecutorSessionOutcome,
+) -> TassadarLabSnapshot {
+    match outcome {
+        TassadarArticleExecutorSessionOutcome::Completed { response } => {
+            let selection = &response.executor_response.execution_report.selection;
+            TassadarLabSnapshot {
+                schema_version: TASSADAR_LAB_SNAPSHOT_SCHEMA_VERSION,
+                source_badge: String::from(TASSADAR_LIVE_SOURCE_BADGE),
+                source_kind: TassadarLabSourceKind::LiveArticleSession,
+                replay_id: None,
+                family_label: String::from("Article session"),
+                subject_label: format!(
+                    "{} // {}",
+                    response.benchmark_identity.workload_family,
+                    response.benchmark_identity.case_id
+                ),
+                status_label: format!("{} exact", selection_state_label(selection.selection_state)),
+                detail_label: selection.detail.clone(),
+                artifact_ref: None,
+                benchmark_identity: Some(response.benchmark_identity.clone()),
+                proof_identity: Some(response.proof_identity.clone()),
+                runtime_capability: Some(response.executor_response.runtime_capability.clone()),
+                requested_decode_mode: Some(request.requested_decode_mode),
+                effective_decode_mode: selection.effective_decode_mode,
+                route_state_label: Some(
+                    selection_state_label(selection.selection_state).to_string(),
+                ),
+                route_detail: Some(selection.detail.clone()),
+                program_id: Some(response.benchmark_identity.program_id.clone()),
+                wasm_profile_id: Some(response.benchmark_identity.wasm_profile_id.clone()),
+                readable_log: Some(response.readable_log.clone()),
+                token_trace: Some(response.token_trace.clone()),
+                final_outputs: response.final_outputs().to_vec(),
+                metric_chips: vec![
+                    chip(
+                        "State",
+                        selection_state_label(selection.selection_state),
+                        selection_tone(selection.selection_state),
+                    ),
+                    chip(
+                        "Requested decode",
+                        format!("{:?}", request.requested_decode_mode).to_ascii_lowercase(),
+                        "blue",
+                    ),
+                    chip(
+                        "Effective decode",
+                        selection.effective_decode_mode.map_or_else(
+                            || String::from("none"),
+                            |mode| format!("{mode:?}").to_ascii_lowercase(),
+                        ),
+                        if selection.is_refused() {
+                            "red"
+                        } else {
+                            "green"
+                        },
+                    ),
+                    chip(
+                        "Outputs",
+                        response.final_outputs().len().to_string(),
+                        "blue",
+                    ),
+                ],
+                fact_lines: vec![
+                    fact("Request id", request.request_id.clone()),
+                    fact(
+                        "Case summary",
+                        response.benchmark_identity.case_summary.clone(),
+                    ),
+                    fact(
+                        "Trace artifact",
+                        response.proof_identity.trace_artifact_id.clone(),
+                    ),
+                    fact("Trace digest", response.proof_identity.trace_digest.clone()),
+                    fact(
+                        "Runtime backend",
+                        response
+                            .executor_response
+                            .runtime_capability
+                            .runtime_backend
+                            .clone(),
+                    ),
+                ],
+                events: vec![
+                    format!(
+                        "selection={} // {}",
+                        selection_state_label(selection.selection_state),
+                        selection.detail
+                    ),
+                    format!(
+                        "proof trace_digest={}",
+                        response.proof_identity.trace_digest
+                    ),
+                    format!("outputs={:?}", response.final_outputs()),
+                ],
+            }
+        }
+        TassadarArticleExecutorSessionOutcome::Refused { refusal } => {
+            let selection = refusal.selection.as_ref();
+            TassadarLabSnapshot {
+                schema_version: TASSADAR_LAB_SNAPSHOT_SCHEMA_VERSION,
+                source_badge: String::from(TASSADAR_LIVE_SOURCE_BADGE),
+                source_kind: TassadarLabSourceKind::LiveArticleSession,
+                replay_id: None,
+                family_label: String::from("Article session"),
+                subject_label: refusal.benchmark_identity.as_ref().map_or_else(
+                    || String::from("Article session refusal"),
+                    |identity| format!("{} // {}", identity.workload_family, identity.case_id),
+                ),
+                status_label: String::from("refused"),
+                detail_label: refusal.detail.clone(),
+                artifact_ref: None,
+                benchmark_identity: refusal.benchmark_identity.clone(),
+                proof_identity: None,
+                runtime_capability: Some(refusal.runtime_capability.clone()),
+                requested_decode_mode: Some(request.requested_decode_mode),
+                effective_decode_mode: selection.and_then(|value| value.effective_decode_mode),
+                route_state_label: Some(String::from("refused")),
+                route_detail: selection.map_or_else(
+                    || Some(refusal.detail.clone()),
+                    |value| Some(value.detail.clone()),
+                ),
+                program_id: refusal
+                    .benchmark_identity
+                    .as_ref()
+                    .map(|identity| identity.program_id.clone()),
+                wasm_profile_id: refusal
+                    .benchmark_identity
+                    .as_ref()
+                    .map(|identity| identity.wasm_profile_id.clone()),
+                readable_log: None,
+                token_trace: None,
+                final_outputs: Vec::new(),
+                metric_chips: vec![
+                    chip("State", "refused", "red"),
+                    chip(
+                        "Requested decode",
+                        format!("{:?}", request.requested_decode_mode).to_ascii_lowercase(),
+                        "blue",
+                    ),
+                    chip(
+                        "Effective decode",
+                        selection
+                            .and_then(|value| value.effective_decode_mode)
+                            .map_or_else(
+                                || String::from("none"),
+                                |mode| format!("{mode:?}").to_ascii_lowercase(),
+                            ),
+                        "red",
+                    ),
+                    chip(
+                        "Supports executor",
+                        yes_no(refusal.runtime_capability.supports_executor_trace),
+                        if refusal.runtime_capability.supports_executor_trace {
+                            "amber"
+                        } else {
+                            "red"
+                        },
+                    ),
+                ],
+                fact_lines: vec![
+                    fact("Request id", request.request_id.clone()),
+                    fact("Detail", refusal.detail.clone()),
+                    fact(
+                        "Runtime backend",
+                        refusal.runtime_capability.runtime_backend.clone(),
+                    ),
+                ],
+                events: vec![refusal.detail.clone()],
+            }
+        }
+    }
+}
+
+fn snapshot_from_article_hybrid_workflow(
+    request: &TassadarArticleHybridWorkflowRequest,
+    outcome: &TassadarArticleHybridWorkflowOutcome,
+) -> Result<TassadarLabSnapshot, TassadarLabServiceError> {
+    match outcome {
+        TassadarArticleHybridWorkflowOutcome::Completed { response } => {
+            let decision = &response.planner_response.routing_decision;
+            let case = article_case_by_id(response.benchmark_identity.case_id.as_str())
+                .ok_or_else(|| TassadarLabServiceError::MissingArticleCase {
+                    case_id: response.benchmark_identity.case_id.clone(),
+                })?;
+            let readable_log = build_article_readable_log_excerpt(
+                &case,
+                &response
+                    .planner_response
+                    .executor_response
+                    .execution_report
+                    .execution,
+            );
+            let token_trace = build_article_token_trace_excerpt(
+                &case,
+                &response
+                    .planner_response
+                    .executor_response
+                    .execution_report
+                    .execution,
+            );
+            Ok(TassadarLabSnapshot {
+                schema_version: TASSADAR_LAB_SNAPSHOT_SCHEMA_VERSION,
+                source_badge: String::from(TASSADAR_LIVE_SOURCE_BADGE),
+                source_kind: TassadarLabSourceKind::LiveArticleHybridWorkflow,
+                replay_id: None,
+                family_label: String::from("Article hybrid workflow"),
+                subject_label: format!(
+                    "{} // {}",
+                    response.benchmark_identity.workload_family,
+                    response.benchmark_identity.case_id
+                ),
+                status_label: String::from("delegated exact"),
+                detail_label: decision.detail.clone(),
+                artifact_ref: None,
+                benchmark_identity: Some(response.benchmark_identity.clone()),
+                proof_identity: Some(response.proof_identity.clone()),
+                runtime_capability: Some(decision.runtime_capability.clone()),
+                requested_decode_mode: Some(request.requested_decode_mode),
+                effective_decode_mode: decision.effective_decode_mode,
+                route_state_label: Some(route_state_label(decision.route_state).to_string()),
+                route_detail: Some(decision.detail.clone()),
+                program_id: Some(response.benchmark_identity.program_id.clone()),
+                wasm_profile_id: Some(response.benchmark_identity.wasm_profile_id.clone()),
+                readable_log: Some(readable_log),
+                token_trace: Some(token_trace),
+                final_outputs: response
+                    .planner_response
+                    .executor_response
+                    .final_outputs()
+                    .to_vec(),
+                metric_chips: vec![
+                    chip("Route", route_state_label(decision.route_state), "green"),
+                    chip(
+                        "Requested decode",
+                        format!("{:?}", request.requested_decode_mode).to_ascii_lowercase(),
+                        "blue",
+                    ),
+                    chip(
+                        "Effective decode",
+                        decision.effective_decode_mode.map_or_else(
+                            || String::from("none"),
+                            |mode| format!("{mode:?}").to_ascii_lowercase(),
+                        ),
+                        "green",
+                    ),
+                    chip(
+                        "Outputs",
+                        response
+                            .planner_response
+                            .executor_response
+                            .final_outputs()
+                            .len()
+                            .to_string(),
+                        "blue",
+                    ),
+                ],
+                fact_lines: vec![
+                    fact("Request id", request.request_id.clone()),
+                    fact("Planner session id", request.planner_session_id.clone()),
+                    fact("Workflow step id", request.workflow_step_id.clone()),
+                    fact("Routing digest", decision.routing_digest.clone()),
+                    fact("Trace digest", response.proof_identity.trace_digest.clone()),
+                ],
+                events: vec![
+                    format!(
+                        "route={} // {}",
+                        route_state_label(decision.route_state),
+                        decision.detail
+                    ),
+                    format!(
+                        "proof trace_digest={}",
+                        response.proof_identity.trace_digest
+                    ),
+                    format!(
+                        "outputs={:?}",
+                        response.planner_response.executor_response.final_outputs()
+                    ),
+                ],
+            })
+        }
+        TassadarArticleHybridWorkflowOutcome::Fallback { fallback } => {
+            let decision = &fallback.planner_fallback.routing_decision;
+            Ok(TassadarLabSnapshot {
+                schema_version: TASSADAR_LAB_SNAPSHOT_SCHEMA_VERSION,
+                source_badge: String::from(TASSADAR_LIVE_SOURCE_BADGE),
+                source_kind: TassadarLabSourceKind::LiveArticleHybridWorkflow,
+                replay_id: None,
+                family_label: String::from("Article hybrid workflow"),
+                subject_label: fallback.benchmark_identity.as_ref().map_or_else(
+                    || String::from("Article hybrid workflow fallback"),
+                    |identity| format!("{} // {}", identity.workload_family, identity.case_id),
+                ),
+                status_label: String::from("planner fallback"),
+                detail_label: fallback.planner_fallback.fallback_summary.clone(),
+                artifact_ref: None,
+                benchmark_identity: fallback.benchmark_identity.clone(),
+                proof_identity: None,
+                runtime_capability: Some(decision.runtime_capability.clone()),
+                requested_decode_mode: Some(request.requested_decode_mode),
+                effective_decode_mode: decision.effective_decode_mode,
+                route_state_label: Some(route_state_label(decision.route_state).to_string()),
+                route_detail: Some(decision.detail.clone()),
+                program_id: fallback
+                    .benchmark_identity
+                    .as_ref()
+                    .map(|identity| identity.program_id.clone()),
+                wasm_profile_id: fallback
+                    .benchmark_identity
+                    .as_ref()
+                    .map(|identity| identity.wasm_profile_id.clone()),
+                readable_log: None,
+                token_trace: None,
+                final_outputs: Vec::new(),
+                metric_chips: vec![
+                    chip("Route", route_state_label(decision.route_state), "amber"),
+                    chip(
+                        "Requested decode",
+                        format!("{:?}", request.requested_decode_mode).to_ascii_lowercase(),
+                        "blue",
+                    ),
+                    chip(
+                        "Effective decode",
+                        decision.effective_decode_mode.map_or_else(
+                            || String::from("none"),
+                            |mode| format!("{mode:?}").to_ascii_lowercase(),
+                        ),
+                        "amber",
+                    ),
+                    chip(
+                        "Executor refusal",
+                        yes_no(fallback.planner_fallback.executor_refusal.is_some()),
+                        "amber",
+                    ),
+                ],
+                fact_lines: vec![
+                    fact("Request id", request.request_id.clone()),
+                    fact("Workflow step id", request.workflow_step_id.clone()),
+                    fact(
+                        "Fallback summary",
+                        fallback.planner_fallback.fallback_summary.clone(),
+                    ),
+                    fact("Routing digest", decision.routing_digest.clone()),
+                ],
+                events: vec![
+                    format!(
+                        "route={} // {}",
+                        route_state_label(decision.route_state),
+                        decision.detail
+                    ),
+                    fallback.planner_fallback.fallback_summary.clone(),
+                ],
+            })
+        }
+        TassadarArticleHybridWorkflowOutcome::Refused { refusal } => {
+            let (runtime_capability, route_state_label_value, route_detail) =
+                refusal.planner_refusal.as_ref().map_or(
+                    (None, String::from("refused"), refusal.detail.clone()),
+                    |planner_refusal| {
+                        (
+                            Some(planner_refusal.routing_decision.runtime_capability.clone()),
+                            route_state_label(planner_refusal.routing_decision.route_state)
+                                .to_string(),
+                            planner_refusal.detail.clone(),
+                        )
+                    },
+                );
+            Ok(TassadarLabSnapshot {
+                schema_version: TASSADAR_LAB_SNAPSHOT_SCHEMA_VERSION,
+                source_badge: String::from(TASSADAR_LIVE_SOURCE_BADGE),
+                source_kind: TassadarLabSourceKind::LiveArticleHybridWorkflow,
+                replay_id: None,
+                family_label: String::from("Article hybrid workflow"),
+                subject_label: refusal.benchmark_identity.as_ref().map_or_else(
+                    || String::from("Article hybrid workflow refusal"),
+                    |identity| format!("{} // {}", identity.workload_family, identity.case_id),
+                ),
+                status_label: String::from("planner refusal"),
+                detail_label: refusal.detail.clone(),
+                artifact_ref: None,
+                benchmark_identity: refusal.benchmark_identity.clone(),
+                proof_identity: None,
+                runtime_capability,
+                requested_decode_mode: Some(request.requested_decode_mode),
+                effective_decode_mode: refusal.planner_refusal.as_ref().and_then(
+                    |planner_refusal| planner_refusal.routing_decision.effective_decode_mode,
+                ),
+                route_state_label: Some(route_state_label_value),
+                route_detail: Some(route_detail),
+                program_id: refusal
+                    .benchmark_identity
+                    .as_ref()
+                    .map(|identity| identity.program_id.clone()),
+                wasm_profile_id: refusal
+                    .benchmark_identity
+                    .as_ref()
+                    .map(|identity| identity.wasm_profile_id.clone()),
+                readable_log: None,
+                token_trace: None,
+                final_outputs: Vec::new(),
+                metric_chips: vec![
+                    chip("Route", "refused", "red"),
+                    chip(
+                        "Requested decode",
+                        format!("{:?}", request.requested_decode_mode).to_ascii_lowercase(),
+                        "blue",
+                    ),
+                    chip(
+                        "Planner refusal",
+                        yes_no(refusal.planner_refusal.is_some()),
+                        "red",
+                    ),
+                ],
+                fact_lines: vec![
+                    fact("Request id", request.request_id.clone()),
+                    fact("Workflow step id", request.workflow_step_id.clone()),
+                    fact("Detail", refusal.detail.clone()),
+                ],
+                events: vec![refusal.detail.clone()],
+            })
+        }
+    }
+}
+
+fn updates_from_article_hybrid_workflow(
+    outcome: &TassadarArticleHybridWorkflowOutcome,
+) -> Result<Vec<TassadarLabUpdate>, TassadarLabServiceError> {
+    let mut updates = Vec::new();
+    match outcome {
+        TassadarArticleHybridWorkflowOutcome::Completed { response } => {
+            let decision = &response.planner_response.routing_decision;
+            let case = article_case_by_id(response.benchmark_identity.case_id.as_str())
+                .ok_or_else(|| TassadarLabServiceError::MissingArticleCase {
+                    case_id: response.benchmark_identity.case_id.clone(),
+                })?;
+            let readable_log = build_article_readable_log_excerpt(
+                &case,
+                &response
+                    .planner_response
+                    .executor_response
+                    .execution_report
+                    .execution,
+            );
+            let token_trace = build_article_token_trace_excerpt(
+                &case,
+                &response
+                    .planner_response
+                    .executor_response
+                    .execution_report
+                    .execution,
+            );
+            updates.push(TassadarLabUpdate::BenchmarkIdentity {
+                benchmark_identity: TassadarArticleBenchmarkIdentityEvent {
+                    benchmark_identity: response.benchmark_identity.clone(),
+                },
+            });
+            updates.push(TassadarLabUpdate::Capability {
+                runtime_capability: decision.runtime_capability.clone(),
+            });
+            if let Some(selection) = decision.selection.clone() {
+                updates.push(TassadarLabUpdate::Selection { selection });
+            }
+            updates.push(TassadarLabUpdate::RoutingStatus {
+                route_state: route_state_label(decision.route_state).to_string(),
+                detail: decision.detail.clone(),
+                effective_decode_mode: decision.effective_decode_mode,
+            });
+            updates.push(TassadarLabUpdate::ProofIdentity {
+                proof_identity: TassadarArticleProofIdentityEvent {
+                    proof_identity: response.proof_identity.clone(),
+                },
+            });
+            for (line_index, line) in readable_log.lines.into_iter().enumerate() {
+                updates.push(TassadarLabUpdate::ReadableLogLine {
+                    readable_log_line: TassadarArticleReadableLogLineEvent { line_index, line },
+                });
+            }
+            for (chunk_index, chunk) in token_trace
+                .tokens
+                .chunks(ARTICLE_EXECUTOR_TOKEN_TRACE_CHUNK_SIZE)
+                .enumerate()
+            {
+                updates.push(TassadarLabUpdate::TokenTraceChunk {
+                    token_trace_chunk: TassadarArticleTokenTraceChunkEvent {
+                        chunk_index,
+                        prompt_token_count: token_trace.prompt_token_count,
+                        total_token_count: token_trace.total_token_count,
+                        truncated: token_trace.truncated,
+                        tokens: chunk.to_vec(),
+                    },
+                });
+            }
+            for (ordinal, value) in response
+                .planner_response
+                .executor_response
+                .final_outputs()
+                .iter()
+                .enumerate()
+            {
+                updates.push(TassadarLabUpdate::Output {
+                    output: TassadarExecutorOutputEvent {
+                        ordinal,
+                        value: *value,
+                    },
+                });
+            }
+            updates.push(TassadarLabUpdate::Terminal {
+                status_label: String::from("delegated exact"),
+                detail: decision.detail.clone(),
+            });
+        }
+        TassadarArticleHybridWorkflowOutcome::Fallback { fallback } => {
+            let decision = &fallback.planner_fallback.routing_decision;
+            if let Some(benchmark_identity) = fallback.benchmark_identity.clone() {
+                updates.push(TassadarLabUpdate::BenchmarkIdentity {
+                    benchmark_identity: TassadarArticleBenchmarkIdentityEvent {
+                        benchmark_identity,
+                    },
+                });
+            }
+            updates.push(TassadarLabUpdate::Capability {
+                runtime_capability: decision.runtime_capability.clone(),
+            });
+            if let Some(selection) = decision.selection.clone() {
+                updates.push(TassadarLabUpdate::Selection { selection });
+            }
+            updates.push(TassadarLabUpdate::RoutingStatus {
+                route_state: route_state_label(decision.route_state).to_string(),
+                detail: decision.detail.clone(),
+                effective_decode_mode: decision.effective_decode_mode,
+            });
+            updates.push(TassadarLabUpdate::StatusLine {
+                line_index: 0,
+                line: fallback.planner_fallback.fallback_summary.clone(),
+            });
+            updates.push(TassadarLabUpdate::Terminal {
+                status_label: String::from("planner fallback"),
+                detail: fallback.planner_fallback.fallback_summary.clone(),
+            });
+        }
+        TassadarArticleHybridWorkflowOutcome::Refused { refusal } => {
+            if let Some(benchmark_identity) = refusal.benchmark_identity.clone() {
+                updates.push(TassadarLabUpdate::BenchmarkIdentity {
+                    benchmark_identity: TassadarArticleBenchmarkIdentityEvent {
+                        benchmark_identity,
+                    },
+                });
+            }
+            if let Some(planner_refusal) = refusal.planner_refusal.as_ref() {
+                updates.push(TassadarLabUpdate::Capability {
+                    runtime_capability: planner_refusal.routing_decision.runtime_capability.clone(),
+                });
+                if let Some(selection) = planner_refusal.routing_decision.selection.clone() {
+                    updates.push(TassadarLabUpdate::Selection { selection });
+                }
+                updates.push(TassadarLabUpdate::RoutingStatus {
+                    route_state: route_state_label(planner_refusal.routing_decision.route_state)
+                        .to_string(),
+                    detail: planner_refusal.detail.clone(),
+                    effective_decode_mode: planner_refusal.routing_decision.effective_decode_mode,
+                });
+            }
+            updates.push(TassadarLabUpdate::StatusLine {
+                line_index: 0,
+                line: refusal.detail.clone(),
+            });
+            updates.push(TassadarLabUpdate::Terminal {
+                status_label: String::from("planner refusal"),
+                detail: refusal.detail.clone(),
+            });
+        }
+    }
+    Ok(updates)
+}
+
+fn tassadar_lab_update_from_article_event(
+    event: TassadarArticleExecutorSessionStreamEvent,
+) -> TassadarLabUpdate {
+    match event {
+        TassadarArticleExecutorSessionStreamEvent::BenchmarkIdentity { benchmark_identity } => {
+            TassadarLabUpdate::BenchmarkIdentity { benchmark_identity }
+        }
+        TassadarArticleExecutorSessionStreamEvent::Capability { runtime_capability } => {
+            TassadarLabUpdate::Capability { runtime_capability }
+        }
+        TassadarArticleExecutorSessionStreamEvent::Selection { selection } => {
+            TassadarLabUpdate::Selection { selection }
+        }
+        TassadarArticleExecutorSessionStreamEvent::ProofIdentity { proof_identity } => {
+            TassadarLabUpdate::ProofIdentity { proof_identity }
+        }
+        TassadarArticleExecutorSessionStreamEvent::ReadableLogLine { readable_log_line } => {
+            TassadarLabUpdate::ReadableLogLine { readable_log_line }
+        }
+        TassadarArticleExecutorSessionStreamEvent::TokenTraceChunk { token_trace_chunk } => {
+            TassadarLabUpdate::TokenTraceChunk { token_trace_chunk }
+        }
+        TassadarArticleExecutorSessionStreamEvent::Output { output } => {
+            TassadarLabUpdate::Output { output }
+        }
+        TassadarArticleExecutorSessionStreamEvent::Terminal { terminal } => {
+            let (status_label, detail) = match terminal.outcome {
+                TassadarArticleExecutorSessionOutcome::Completed { response } => (
+                    String::from("completed"),
+                    response.executor_response.execution_report.selection.detail,
+                ),
+                TassadarArticleExecutorSessionOutcome::Refused { refusal } => {
+                    (String::from("refused"), refusal.detail)
+                }
+            };
+            TassadarLabUpdate::Terminal {
+                status_label,
+                detail,
+            }
+        }
+    }
+}
+
+fn chip(
+    label: impl Into<String>,
+    value: impl Into<String>,
+    tone: impl Into<String>,
+) -> TassadarLabMetricChip {
+    TassadarLabMetricChip {
+        label: label.into(),
+        value: value.into(),
+        tone: tone.into(),
+    }
+}
+
+fn fact(label: impl Into<String>, value: impl Into<String>) -> TassadarLabFactLine {
+    TassadarLabFactLine {
+        label: label.into(),
+        value: value.into(),
+    }
+}
+
+fn status_line_updates(events: Vec<String>, terminal_detail: String) -> Vec<TassadarLabUpdate> {
+    let mut updates = events
+        .into_iter()
+        .enumerate()
+        .map(|(line_index, line)| TassadarLabUpdate::StatusLine { line_index, line })
+        .collect::<Vec<_>>();
+    updates.push(TassadarLabUpdate::Terminal {
+        status_label: String::from("replay loaded"),
+        detail: terminal_detail,
+    });
+    updates
+}
+
+fn snapshot_terminal_label(passed: bool) -> String {
+    if passed {
+        String::from("replay confirms a green posture")
+    } else {
+        String::from("replay keeps the current red posture explicit")
+    }
+}
+
+fn yes_no(value: bool) -> &'static str {
+    if value {
+        "yes"
+    } else {
+        "no"
+    }
+}
+
+fn selection_state_label(state: psionic_runtime::TassadarExecutorSelectionState) -> &'static str {
+    match state {
+        psionic_runtime::TassadarExecutorSelectionState::Direct => "direct",
+        psionic_runtime::TassadarExecutorSelectionState::Fallback => "fallback",
+        psionic_runtime::TassadarExecutorSelectionState::Refused => "refused",
+    }
+}
+
+fn selection_tone(state: psionic_runtime::TassadarExecutorSelectionState) -> &'static str {
+    match state {
+        psionic_runtime::TassadarExecutorSelectionState::Direct => "green",
+        psionic_runtime::TassadarExecutorSelectionState::Fallback => "amber",
+        psionic_runtime::TassadarExecutorSelectionState::Refused => "red",
+    }
+}
+
+fn route_state_label(state: TassadarPlannerRouteState) -> &'static str {
+    match state {
+        TassadarPlannerRouteState::Delegated => "delegated",
+        TassadarPlannerRouteState::PlannerFallback => "planner_fallback",
+        TassadarPlannerRouteState::Refused => "refused",
+    }
+}
+
+fn join_claim_classes(values: &[psionic_runtime::TassadarClaimClass]) -> String {
+    values
+        .iter()
+        .map(|claim_class| format!("{claim_class:?}").to_ascii_lowercase())
+        .collect::<Vec<_>>()
+        .join(", ")
+}
+
+fn repo_root() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .canonicalize()
+        .unwrap_or_else(|_| Path::new(env!("CARGO_MANIFEST_DIR")).join("../.."))
+}
+
+fn read_repo_json<T>(
+    repo_relative_path: &str,
+    artifact_kind: &str,
+) -> Result<T, TassadarLabServiceError>
+where
+    T: for<'de> Deserialize<'de>,
+{
+    let path = repo_root().join(repo_relative_path);
+    let bytes = fs::read(&path).map_err(|error| TassadarLabServiceError::Read {
+        path: path.display().to_string(),
+        error,
+    })?;
+    serde_json::from_slice(&bytes).map_err(|error| TassadarLabServiceError::Deserialize {
+        artifact_kind: String::from(artifact_kind),
+        path: path.display().to_string(),
+        error,
+    })
+}
+
 fn format_event(event: &TassadarTraceEvent) -> String {
     match event {
         TassadarTraceEvent::ConstPush { value } => format!("const_push value={value}"),
@@ -2467,9 +4650,7 @@ fn format_event(event: &TassadarTraceEvent) -> String {
             condition,
             taken,
             target_pc,
-        } => format!(
-            "branch condition={condition} taken={taken} target_pc={target_pc}"
-        ),
+        } => format!("branch condition={condition} taken={taken} target_pc={target_pc}"),
         TassadarTraceEvent::Output { value } => format!("output value={value}"),
         TassadarTraceEvent::Return => String::from("return"),
     }
@@ -2523,25 +4704,25 @@ fn stream_events_for_outcome(
 #[cfg(test)]
 mod tests {
     use super::{
-        ARTICLE_EXECUTOR_SESSION_PRODUCT_ID, ARTICLE_HYBRID_WORKFLOW_PRODUCT_ID,
-        EXECUTOR_TRACE_PRODUCT_ID, LocalTassadarArticleExecutorSessionService,
-        LocalTassadarArticleHybridWorkflowService, LocalTassadarExecutorService,
-        LocalTassadarPlannerRouter, PLANNER_EXECUTOR_ROUTE_PRODUCT_ID,
-        TassadarArticleHybridWorkflowOutcome, TassadarArticleHybridWorkflowRequest,
-        TassadarArticleHybridWorkflowServiceError,
+        LocalTassadarArticleExecutorSessionService, LocalTassadarArticleHybridWorkflowService,
+        LocalTassadarExecutorService, LocalTassadarLabService, LocalTassadarPlannerRouter,
         TassadarArticleExecutorSessionOutcome, TassadarArticleExecutorSessionRequest,
         TassadarArticleExecutorSessionServiceError, TassadarArticleExecutorSessionStreamEvent,
-        TassadarExecutorOutcome, TassadarExecutorRequest, TassadarExecutorServiceError,
-        TassadarExecutorStreamEvent,
-        TassadarPlannerExecutorSubproblem, TassadarPlannerFallbackPolicy,
+        TassadarArticleHybridWorkflowOutcome, TassadarArticleHybridWorkflowRequest,
+        TassadarArticleHybridWorkflowServiceError, TassadarExecutorOutcome,
+        TassadarExecutorRequest, TassadarExecutorServiceError, TassadarExecutorStreamEvent,
+        TassadarLabPreparedView, TassadarLabReplayId, TassadarLabRequest, TassadarLabSourceKind,
+        TassadarLabUpdate, TassadarPlannerExecutorSubproblem, TassadarPlannerFallbackPolicy,
         TassadarPlannerRouteReason, TassadarPlannerRouterError, TassadarPlannerRoutingBudget,
         TassadarPlannerRoutingOutcome, TassadarPlannerRoutingPolicy, TassadarPlannerRoutingRequest,
+        ARTICLE_EXECUTOR_SESSION_PRODUCT_ID, ARTICLE_HYBRID_WORKFLOW_PRODUCT_ID,
+        EXECUTOR_TRACE_PRODUCT_ID, PLANNER_EXECUTOR_ROUTE_PRODUCT_ID,
     };
     use psionic_models::TassadarExecutorFixture;
     use psionic_runtime::{
-        TassadarExecutorDecodeMode, TassadarInstruction, TassadarProgram, TassadarProgramArtifact,
-        TassadarTraceAbi, TassadarWasmProfile, tassadar_article_class_corpus,
-        tassadar_validation_corpus,
+        tassadar_article_class_corpus, tassadar_validation_corpus, TassadarExecutorDecodeMode,
+        TassadarInstruction, TassadarProgram, TassadarProgramArtifact, TassadarTraceAbi,
+        TassadarWasmProfile,
     };
 
     fn request_for_case(case_id: &str) -> TassadarExecutorRequest {
@@ -2595,10 +4776,8 @@ mod tests {
     #[test]
     fn article_session_executes_completed_request_with_benchmark_and_proof_identity() {
         let service = LocalTassadarArticleExecutorSessionService::new();
-        let request = article_request_for_case(
-            "memory_heavy_kernel",
-            TassadarExecutorDecodeMode::HullCache,
-        );
+        let request =
+            article_request_for_case("memory_heavy_kernel", TassadarExecutorDecodeMode::HullCache);
         let expected_outputs = tassadar_article_class_corpus()
             .into_iter()
             .find(|case| case.case_id == "memory_heavy_kernel")
@@ -2637,10 +4816,8 @@ mod tests {
     #[test]
     fn article_session_stream_surfaces_benchmark_proof_log_trace_and_terminal() {
         let service = LocalTassadarArticleExecutorSessionService::new();
-        let request = article_request_for_case(
-            "memory_heavy_kernel",
-            TassadarExecutorDecodeMode::HullCache,
-        );
+        let request =
+            article_request_for_case("memory_heavy_kernel", TassadarExecutorDecodeMode::HullCache);
         let mut stream = service
             .execute_stream(&request)
             .expect("stream should be created");
@@ -2758,10 +4935,7 @@ mod tests {
                     PLANNER_EXECUTOR_ROUTE_PRODUCT_ID
                 );
                 assert_eq!(
-                    response
-                        .planner_response
-                        .routing_decision
-                        .route_state,
+                    response.planner_response.routing_decision.route_state,
                     super::TassadarPlannerRouteState::Delegated
                 );
             }
@@ -2856,6 +5030,122 @@ mod tests {
                 product_id: String::from("psionic.text_generation"),
             }
         );
+    }
+
+    #[test]
+    fn tassadar_lab_live_article_session_prepares_snapshot_and_updates() {
+        let service = LocalTassadarLabService::new();
+        let prepared = service
+            .prepare(&TassadarLabRequest::ArticleExecutorSession {
+                request: article_request_for_case(
+                    "memory_heavy_kernel",
+                    TassadarExecutorDecodeMode::HullCache,
+                ),
+            })
+            .expect("live article session should prepare");
+
+        assert_eq!(
+            prepared.snapshot.source_kind,
+            TassadarLabSourceKind::LiveArticleSession
+        );
+        assert_eq!(prepared.snapshot.replay_id, None);
+        assert_eq!(
+            prepared
+                .snapshot
+                .benchmark_identity
+                .as_ref()
+                .map(|identity| identity.case_id.as_str()),
+            Some("memory_heavy_kernel")
+        );
+        assert!(prepared.snapshot.proof_identity.is_some());
+        assert!(prepared.snapshot.readable_log.is_some());
+        assert!(prepared.snapshot.token_trace.is_some());
+        assert!(prepared
+            .updates
+            .iter()
+            .any(|update| matches!(update, TassadarLabUpdate::ProofIdentity { .. })));
+        assert!(prepared
+            .updates
+            .iter()
+            .any(|update| matches!(update, TassadarLabUpdate::Terminal { .. })));
+    }
+
+    #[test]
+    fn tassadar_lab_replay_catalog_and_prepared_replays_cover_live_and_report_cases() {
+        let service = LocalTassadarLabService::new();
+        let catalog = service.replay_catalog();
+        assert!(catalog.len() >= 12);
+        assert!(catalog.iter().any(|entry| {
+            entry.replay_id == TassadarLabReplayId::ArticleHybridFallbackBranchHeavy
+                && entry.artifact_ref == super::TASSADAR_ARTICLE_HYBRID_WORKFLOW_ARTIFACT_REF
+        }));
+        assert!(catalog.iter().any(|entry| {
+            entry.replay_id == TassadarLabReplayId::AcceptanceReport
+                && entry.artifact_ref == super::TASSADAR_ACCEPTANCE_REPORT_REF
+        }));
+
+        let hybrid_replay = service
+            .prepare(&TassadarLabRequest::Replay {
+                replay_id: TassadarLabReplayId::ArticleHybridFallbackBranchHeavy,
+            })
+            .expect("hybrid replay should prepare");
+        assert_eq!(
+            hybrid_replay.snapshot.source_kind,
+            TassadarLabSourceKind::ReplayArtifact
+        );
+        assert_eq!(
+            hybrid_replay.snapshot.replay_id,
+            Some(TassadarLabReplayId::ArticleHybridFallbackBranchHeavy)
+        );
+        assert_eq!(
+            hybrid_replay.snapshot.artifact_ref.as_deref(),
+            Some(super::TASSADAR_ARTICLE_HYBRID_WORKFLOW_ARTIFACT_REF)
+        );
+        assert!(hybrid_replay
+            .updates
+            .iter()
+            .any(|update| matches!(update, TassadarLabUpdate::RoutingStatus { .. })));
+
+        let acceptance_replay = service
+            .prepare(&TassadarLabRequest::Replay {
+                replay_id: TassadarLabReplayId::AcceptanceReport,
+            })
+            .expect("acceptance replay should prepare");
+        assert_eq!(
+            acceptance_replay.snapshot.replay_id,
+            Some(TassadarLabReplayId::AcceptanceReport)
+        );
+        assert!(acceptance_replay
+            .snapshot
+            .status_label
+            .contains("acceptance"));
+        assert!(acceptance_replay
+            .updates
+            .iter()
+            .any(|update| matches!(update, TassadarLabUpdate::StatusLine { .. })));
+    }
+
+    #[test]
+    fn tassadar_lab_types_roundtrip_through_json() {
+        let service = LocalTassadarLabService::new();
+        let request = TassadarLabRequest::Replay {
+            replay_id: TassadarLabReplayId::CompiledArticleClosureReport,
+        };
+        let encoded_request =
+            serde_json::to_vec(&request).expect("lab replay request should serialize");
+        let decoded_request: TassadarLabRequest =
+            serde_json::from_slice(&encoded_request).expect("lab replay request should decode");
+        assert_eq!(decoded_request, request);
+
+        let prepared = service
+            .prepare(&request)
+            .expect("compiled article replay should prepare");
+        let encoded_prepared =
+            serde_json::to_vec(&prepared).expect("prepared lab view should serialize");
+        let decoded_prepared: TassadarLabPreparedView =
+            serde_json::from_slice(&encoded_prepared).expect("prepared lab view should decode");
+        assert_eq!(decoded_prepared.snapshot, prepared.snapshot);
+        assert_eq!(decoded_prepared.updates, prepared.updates);
     }
 
     #[test]
@@ -3082,13 +5372,11 @@ mod tests {
                     fallback.routing_decision.route_reason,
                     Some(TassadarPlannerRouteReason::ExecutorDecodeFallbackDisallowed)
                 );
-                assert!(
-                    fallback
-                        .routing_decision
-                        .selection
-                        .as_ref()
-                        .is_some_and(|selection| selection.is_fallback())
-                );
+                assert!(fallback
+                    .routing_decision
+                    .selection
+                    .as_ref()
+                    .is_some_and(|selection| selection.is_fallback()));
                 assert!(fallback.fallback_summary.contains("disallowed"));
             }
             other => panic!("expected typed fallback, got {other:?}"),

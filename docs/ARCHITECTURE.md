@@ -567,6 +567,13 @@ The current scope is:
   success, and typed planner fallback/refusal truth; the committed acceptance
   artifact is
   `fixtures/tassadar/reports/tassadar_article_hybrid_workflow_artifact.json`
+- landed Tassadar lab follow-on: `psionic-serve` now also exposes a
+  renderer-neutral replay/live lab adapter that projects
+  `psionic.article_executor_session`, `psionic.article_hybrid_workflow`, and
+  canonical compiled or learned Tassadar artifacts into one stable
+  snapshot/update surface for desktop panes without making OpenAgents parse raw
+  report internals itself; the committed acceptance artifact is
+  `fixtures/tassadar/reports/tassadar_lab_surface_artifact.json`
 - landed Phase 9B bar: bounded small-model executor training in
   `psionic-train`, with package-backed Tassadar supervision, fixed-budget
   training receipts, proof-aware exactness comparison against the handcrafted

@@ -97,6 +97,11 @@ Current posture:
   with the specialized `psionic.article_executor_session` contract bound to the
   canonical article corpus, plus committed direct/fallback/refused session
   evidence at `fixtures/tassadar/reports/tassadar_article_executor_session_artifact.json`
+- its replay/live Tassadar lab surface now also exists in `psionic-serve`,
+  with one renderer-neutral snapshot/update contract that projects both live
+  article-session or hybrid-workflow truth and replay truth over canonical
+  compiled, learned, fit, and closure artifacts, plus committed evidence at
+  `fixtures/tassadar/reports/tassadar_lab_surface_artifact.json`
 - its Phase 7B widened executor envelope now exists in `psionic-runtime`,
   `psionic-models`, and `psionic-eval`, with the widened `core_i32_v2`
   profile, the dedicated article-shaped `tassadar.wasm.article_i32_compute.v1`
@@ -525,6 +530,12 @@ Current posture:
   canonical article cases, preserved benchmark identity plus routing/proof
   receipts, and the committed artifact
   `fixtures/tassadar/reports/tassadar_article_hybrid_workflow_artifact.json`
+- its Tassadar lab follow-on now also exists in `psionic-serve`, with the
+  local replay/live adapter that projects `psionic.article_executor_session`,
+  `psionic.article_hybrid_workflow`, and the canonical compiled or learned
+  report bundles into one renderer-neutral snapshot/update surface consumed by
+  desktop panes, with committed evidence at
+  `fixtures/tassadar/reports/tassadar_lab_surface_artifact.json`
 - its Phase 9A article-workload serving follow-on now also exists in
   `psionic-serve`, with a specialized `psionic.article_executor_session`
   surface that resolves canonical article workloads by case id, preserves
