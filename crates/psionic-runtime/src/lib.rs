@@ -1,6 +1,7 @@
 //! Runtime traits and execution surfaces for Psionic.
 
 mod activation_fingerprint;
+mod attnres;
 mod gpt_oss;
 mod local_multi_device;
 mod parity;
@@ -12,6 +13,7 @@ mod validation;
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
 pub use activation_fingerprint::*;
+pub use attnres::*;
 use ed25519_dalek::{Signature, Signer, SigningKey, Verifier, VerifyingKey};
 pub use gpt_oss::*;
 pub use local_multi_device::*;

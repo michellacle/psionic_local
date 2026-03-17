@@ -1,4 +1,7 @@
 use psionic_core::{DType, QuantizationMode, Shape};
+pub use psionic_runtime::{
+    AttnResDiagnosticsSnapshot, AttnResSublayerKind, AttnResSublayerSnapshot,
+};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use thiserror::Error;
@@ -515,62 +518,6 @@ impl AttnResBlockState {
     pub fn completed_block_count(&self) -> usize {
         self.completed_blocks.len()
     }
-}
-
-/// One AttnRes sublayer kind.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum AttnResSublayerKind {
-    /// Self-attention sublayer.
-    Attention,
-    /// Feed-forward sublayer.
-    FeedForward,
-}
-
-/// One sublayer diagnostic snapshot.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct AttnResSublayerSnapshot {
-    /// Stable sublayer index in `[0, num_layers)`.
-    pub sublayer_index: usize,
-    /// Transformer-layer index for this sublayer.
-    pub transformer_layer_index: usize,
-    /// Whether this was the attention or MLP half.
-    pub kind: AttnResSublayerKind,
-    /// Whether a new block started immediately before the sublayer.
-    pub starts_new_block_before: bool,
-    /// Completed blocks visible before the boundary update.
-    pub completed_blocks_before: usize,
-    /// Completed blocks visible after the boundary update.
-    pub completed_blocks_after: usize,
-    /// Whether a partial block existed before AttnRes routing.
-    pub partial_block_present_before: bool,
-    /// Whether a partial block existed after the sublayer completed.
-    pub partial_block_present_after: bool,
-    /// Shape for the flattened routing tensors as `[sources, batch, seq]`.
-    pub source_shape: [usize; 3],
-    /// Source logits before the depth softmax.
-    pub source_logits: Vec<f32>,
-    /// Source routing weights after the depth softmax.
-    pub routing_weights: Vec<f32>,
-    /// L2 norm of the pseudo-query used by the sublayer.
-    pub query_norm: f32,
-}
-
-/// One full forward-pass diagnostic snapshot.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct AttnResDiagnosticsSnapshot {
-    /// Batch size observed by the forward pass.
-    pub batch_size: usize,
-    /// Sequence length observed by the forward pass.
-    pub sequence_length: usize,
-    /// Hidden width observed by the forward pass.
-    pub hidden_size: usize,
-    /// Final completed-block count after the forward pass.
-    pub final_completed_blocks: usize,
-    /// Whether a partial block remained after the forward pass.
-    pub final_partial_block_present: bool,
-    /// Per-sublayer routing and boundary diagnostics.
-    pub sublayers: Vec<AttnResSublayerSnapshot>,
 }
 
 /// Stable descriptor for one AttnRes family instance.
@@ -2003,6 +1950,10 @@ where
 mod tests {
     use std::error::Error;
 
+    use psionic_runtime::{
+        AttnResTwoPhaseParityBudget, AttnResTwoPhaseParityStatus,
+        compare_attnres_hidden_two_phase_parity, compare_attnres_logit_two_phase_parity,
+    };
     use serde::Deserialize;
 
     use crate::{TokenId, TokenSequence};
@@ -2136,7 +2087,14 @@ mod tests {
         ];
         let standard = model.forward_hidden(&batch)?;
         let two_phase = model.forward_two_phase_hidden(&batch)?;
-        assert!(standard.max_abs_diff(&two_phase)? < 1e-4);
+        let budget = AttnResTwoPhaseParityBudget::default();
+        let report = compare_attnres_hidden_two_phase_parity(
+            standard.values(),
+            two_phase.values(),
+            budget.hidden,
+        )?;
+        assert_ne!(report.status, AttnResTwoPhaseParityStatus::OutsideBudget);
+        assert!(report.summary.within_budget);
         Ok(())
     }
 
@@ -2149,7 +2107,14 @@ mod tests {
         let batch = vec![TokenSequence::new(vec![TokenId(1), TokenId(5), TokenId(7)])];
         let standard = model.forward(&batch)?;
         let two_phase = model.forward_two_phase(&batch)?;
-        assert!(standard.max_abs_diff(&two_phase)? < 1e-4);
+        let budget = AttnResTwoPhaseParityBudget::default();
+        let report = compare_attnres_logit_two_phase_parity(
+            standard.values(),
+            two_phase.values(),
+            budget.logits,
+        )?;
+        assert_ne!(report.status, AttnResTwoPhaseParityStatus::OutsideBudget);
+        assert!(report.summary.within_budget);
         Ok(())
     }
 
