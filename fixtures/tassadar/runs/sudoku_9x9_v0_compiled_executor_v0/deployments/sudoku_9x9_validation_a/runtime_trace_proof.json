@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "proof_artifact_id": "tassadar://trace_proof/execute-sudoku_9x9_validation_a.compiled_executor.compiled_weight/3d4ba4b2ac432c6cf5c041db9316398815b869954229424cddde9be3755d28aa",
+  "proof_digest": "b1ddd9d2b0a169fb4c417c8c9c5acc651df45982a307b01116c0792befe52562",
+  "trace_artifact_ref": "tassadar://trace/execute-sudoku_9x9_validation_a.compiled_executor.compiled_weight/3d4ba4b2ac432c6cf5c041db9316398815b869954229424cddde9be3755d28aa",
+  "trace_artifact_digest": "5c65982f146e915929bb4ae191aea538f5437560ffd8e43c374e27b389098af6",
+  "trace_digest": "3d4ba4b2ac432c6cf5c041db9316398815b869954229424cddde9be3755d28aa",
+  "program_digest": "277b6af5fe3bf64520f02c78d32efc5591c3451334a9f35d925d3c4c8ca8dfd0",
+  "program_artifact_digest": "820b019c4520bc4bc9c1eeb54785bda9a3913be9818b74abcce36150402c9f25",
+  "wasm_profile_id": "tassadar.wasm.sudoku_9x9_search.v1",
+  "model_descriptor_digest": "08a957e999996ac867e81e307b6ca36cb459ad062a331ba060f01e4c035e27e4",
+  "decode_mode": "reference_linear",
+  "cache_algorithm_id": "tassadar.cache.linear_scan_kv.v1",
+  "runtime_backend": "cpu",
+  "reference_runner_id": "tassadar.fixture_runner.v1",
+  "validation": {
+    "matrix_id": "psionic.minimum_hardware_validation.v1",
+    "documentation_path": "docs/HARDWARE_VALIDATION_MATRIX.md",
+    "claim_id": "tassadar.executor_trace.phase4",
+    "coverage": "not_yet_validated"
+  },
+  "runtime_manifest_identity_digest": "5a9ad2103cd5d8b1a567994cc819dd84018fb48c867f10159b5715713fe1a82a",
+  "runtime_manifest_digest": "a5adde25858812bfb76637162a4a311258ce6ea79e0bccba74610ee0ea613548"
+}

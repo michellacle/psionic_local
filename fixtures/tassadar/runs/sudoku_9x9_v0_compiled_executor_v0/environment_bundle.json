@@ -1,0 +1,423 @@
+{
+  "eval_package": {
+    "abi_version": "psionic.environment.v1",
+    "key": {
+      "environment_ref": "env.openagents.tassadar.sudoku_9x9.eval",
+      "version": "v0"
+    },
+    "family": "evaluation",
+    "display_name": "Tassadar Sudoku-9x9 Corpus Eval",
+    "execution": {
+      "runtime_family": "evaluator",
+      "entrypoint": "tassadar_eval::run",
+      "args": [
+        "runtime://tassadar/sudoku_9x9/eval"
+      ],
+      "max_turns": 1,
+      "state_mode": "stateless",
+      "time_budget_ms": 120000
+    },
+    "supported_workloads": [
+      "online_eval",
+      "offline_eval"
+    ],
+    "datasets": [
+      {
+        "dataset": {
+          "dataset_ref": "dataset://openagents/tassadar/sudoku_9x9_corpus",
+          "version": "v0"
+        },
+        "split": "validation",
+        "mount_path": "/datasets/tassadar/sudoku_9x9/validation",
+        "required": true
+      }
+    ],
+    "rubric_hooks": [
+      {
+        "rubric_ref": "tassadar://rubric/exactness/final_output_exactness",
+        "hook_name": "score_final_output_exactness",
+        "score_kind": "binary",
+        "pass_threshold": 10000
+      },
+      {
+        "rubric_ref": "tassadar://rubric/exactness/step_exactness",
+        "hook_name": "score_step_exactness",
+        "score_kind": "binary",
+        "pass_threshold": 10000
+      },
+      {
+        "rubric_ref": "tassadar://rubric/exactness/halt_exactness",
+        "hook_name": "score_halt_exactness",
+        "score_kind": "binary",
+        "pass_threshold": 10000
+      }
+    ],
+    "expected_artifacts": [
+      {
+        "artifact_kind": "tassadar_program_artifact.json",
+        "required": true,
+        "verification_policy_ref": "policy://tassadar/program_artifact"
+      },
+      {
+        "artifact_kind": "tassadar_trace.json",
+        "required": true,
+        "verification_policy_ref": "policy://tassadar/trace"
+      },
+      {
+        "artifact_kind": "tassadar_eval_report.json",
+        "required": true,
+        "verification_policy_ref": "policy://tassadar/eval_report"
+      }
+    ],
+    "policy_references": [
+      {
+        "kind": "verification",
+        "policy_ref": "policy://tassadar/sudoku_9x9/eval/verification",
+        "required": true
+      }
+    ],
+    "metadata": {
+      "tassadar.abi_version": "psionic.tassadar_environment.v1",
+      "tassadar.current_workload_targets": [
+        "sudoku_class"
+      ],
+      "tassadar.exactness_contract": {
+        "require_final_output_exactness": true,
+        "require_step_exactness": true,
+        "require_halt_exactness": true,
+        "timeout_budget_ms": 120000,
+        "trace_budget_steps": 1048576,
+        "require_cpu_reference_baseline": true,
+        "require_reference_linear_baseline": true,
+        "future_throughput_metric_ids": [
+          "tassadar.hull_cache_steps_per_second"
+        ]
+      },
+      "tassadar.io_contract": {
+        "input_family": "no_external_input",
+        "output_family": "i32_sequence",
+        "output_element_type": "i32",
+        "deterministic_outputs": true
+      },
+      "tassadar.package_refs": {
+        "group_ref": "group.tassadar.sudoku_9x9",
+        "eval_pin_alias": "tassadar_sudoku_9x9_eval",
+        "benchmark_pin_alias": "tassadar_sudoku_9x9_benchmark",
+        "eval_member_ref": "tassadar_sudoku_9x9_eval_member",
+        "benchmark_member_ref": "tassadar_sudoku_9x9_benchmark_member",
+        "program_corpus_ref": "tassadar://corpus/sudoku_9x9.validation",
+        "io_contract_ref": "tassadar://io/exact_i32_sequence",
+        "rubric_binding_ref": "tassadar://rubric/exactness",
+        "eval_runtime_profile_ref": "runtime://tassadar/sudoku_9x9/eval",
+        "benchmark_profile_ref": "benchmark://tassadar/sudoku_9x9/reference_fixture",
+        "benchmark_runtime_profile_ref": "runtime://tassadar/sudoku_9x9/benchmark"
+      },
+      "tassadar.planned_workload_targets": [],
+      "tassadar.program_binding": {
+        "dataset": {
+          "dataset_ref": "dataset://openagents/tassadar/sudoku_9x9_corpus",
+          "version": "v0"
+        },
+        "program_corpus_ref": "tassadar://corpus/sudoku_9x9.validation",
+        "corpus_digest": "a46d26306c080ea3147a743b7d537687e1fa2076e3b90300f2906b4db8d5cd2c",
+        "wasm_profile_id": "tassadar.wasm.sudoku_9x9_search.v1",
+        "trace_abi_id": "tassadar.trace.v1",
+        "trace_abi_version": 1,
+        "opcode_vocabulary_digest": "fccf524b9721679331d2d0ac3d1e15f9bd0e5f17ffbdd6cbf62658e1ca735aed",
+        "artifact_digests": [
+          "bf2003532e814be5da142fc1db2e4fbfb4552de8bfeefb7bc447fe3df21feb03",
+          "e5c762536e120c5f2a4d16ded45a072c4b3160df6a7cc3553963fe7dca14e7c2",
+          "451a3c0c64c13c4a6c62aad14bd97452593b21ade4cd714147214d6d9b644483",
+          "2a36996ba5636689ee60e2ddc82929d7052f43f9f4dd25a41008a9d856203c2c"
+        ]
+      },
+      "tassadar.surface": "eval"
+    }
+  },
+  "benchmark_package": {
+    "abi_version": "psionic.environment.v1",
+    "key": {
+      "environment_ref": "env.openagents.tassadar.sudoku_9x9.benchmark",
+      "version": "v0"
+    },
+    "family": "evaluation",
+    "display_name": "Tassadar Sudoku-9x9 Corpus Benchmark",
+    "execution": {
+      "runtime_family": "evaluator",
+      "entrypoint": "tassadar_benchmark::run",
+      "args": [
+        "runtime://tassadar/sudoku_9x9/benchmark"
+      ],
+      "max_turns": 1,
+      "state_mode": "turn_scoped",
+      "time_budget_ms": 120000
+    },
+    "supported_workloads": [
+      "offline_eval",
+      "validator_benchmark"
+    ],
+    "datasets": [
+      {
+        "dataset": {
+          "dataset_ref": "dataset://openagents/tassadar/sudoku_9x9_corpus",
+          "version": "v0"
+        },
+        "split": "benchmark",
+        "mount_path": "/datasets/tassadar/sudoku_9x9/benchmark",
+        "required": true
+      }
+    ],
+    "rubric_hooks": [
+      {
+        "rubric_ref": "tassadar://rubric/exactness/final_output_exactness",
+        "hook_name": "score_final_output_exactness",
+        "score_kind": "binary",
+        "pass_threshold": 10000
+      },
+      {
+        "rubric_ref": "tassadar://rubric/exactness/step_exactness",
+        "hook_name": "score_step_exactness",
+        "score_kind": "binary",
+        "pass_threshold": 10000
+      },
+      {
+        "rubric_ref": "tassadar://rubric/exactness/halt_exactness",
+        "hook_name": "score_halt_exactness",
+        "score_kind": "binary",
+        "pass_threshold": 10000
+      }
+    ],
+    "expected_artifacts": [
+      {
+        "artifact_kind": "tassadar_program_artifact.json",
+        "required": true,
+        "verification_policy_ref": "policy://tassadar/program_artifact"
+      },
+      {
+        "artifact_kind": "tassadar_trace.json",
+        "required": true,
+        "verification_policy_ref": "policy://tassadar/trace"
+      },
+      {
+        "artifact_kind": "tassadar_eval_report.json",
+        "required": true,
+        "verification_policy_ref": "policy://tassadar/eval_report"
+      }
+    ],
+    "policy_references": [
+      {
+        "kind": "benchmark",
+        "policy_ref": "policy://tassadar/sudoku_9x9/benchmark",
+        "required": true
+      },
+      {
+        "kind": "verification",
+        "policy_ref": "policy://tassadar/sudoku_9x9/benchmark/verification",
+        "required": true
+      }
+    ],
+    "benchmark_profiles": [
+      {
+        "benchmark_profile_ref": "benchmark://tassadar/sudoku_9x9/reference_fixture",
+        "runtime_profile_ref": "runtime://tassadar/sudoku_9x9/benchmark",
+        "verification_posture": "validator_required",
+        "expected_execution_strategy": "tassadar_reference_fixture"
+      }
+    ],
+    "metadata": {
+      "tassadar.abi_version": "psionic.tassadar_environment.v1",
+      "tassadar.current_workload_targets": [
+        "sudoku_class"
+      ],
+      "tassadar.exactness_contract": {
+        "require_final_output_exactness": true,
+        "require_step_exactness": true,
+        "require_halt_exactness": true,
+        "timeout_budget_ms": 120000,
+        "trace_budget_steps": 1048576,
+        "require_cpu_reference_baseline": true,
+        "require_reference_linear_baseline": true,
+        "future_throughput_metric_ids": [
+          "tassadar.hull_cache_steps_per_second"
+        ]
+      },
+      "tassadar.io_contract": {
+        "input_family": "no_external_input",
+        "output_family": "i32_sequence",
+        "output_element_type": "i32",
+        "deterministic_outputs": true
+      },
+      "tassadar.package_refs": {
+        "group_ref": "group.tassadar.sudoku_9x9",
+        "eval_pin_alias": "tassadar_sudoku_9x9_eval",
+        "benchmark_pin_alias": "tassadar_sudoku_9x9_benchmark",
+        "eval_member_ref": "tassadar_sudoku_9x9_eval_member",
+        "benchmark_member_ref": "tassadar_sudoku_9x9_benchmark_member",
+        "program_corpus_ref": "tassadar://corpus/sudoku_9x9.validation",
+        "io_contract_ref": "tassadar://io/exact_i32_sequence",
+        "rubric_binding_ref": "tassadar://rubric/exactness",
+        "eval_runtime_profile_ref": "runtime://tassadar/sudoku_9x9/eval",
+        "benchmark_profile_ref": "benchmark://tassadar/sudoku_9x9/reference_fixture",
+        "benchmark_runtime_profile_ref": "runtime://tassadar/sudoku_9x9/benchmark"
+      },
+      "tassadar.planned_workload_targets": [],
+      "tassadar.program_binding": {
+        "dataset": {
+          "dataset_ref": "dataset://openagents/tassadar/sudoku_9x9_corpus",
+          "version": "v0"
+        },
+        "program_corpus_ref": "tassadar://corpus/sudoku_9x9.validation",
+        "corpus_digest": "a46d26306c080ea3147a743b7d537687e1fa2076e3b90300f2906b4db8d5cd2c",
+        "wasm_profile_id": "tassadar.wasm.sudoku_9x9_search.v1",
+        "trace_abi_id": "tassadar.trace.v1",
+        "trace_abi_version": 1,
+        "opcode_vocabulary_digest": "fccf524b9721679331d2d0ac3d1e15f9bd0e5f17ffbdd6cbf62658e1ca735aed",
+        "artifact_digests": [
+          "bf2003532e814be5da142fc1db2e4fbfb4552de8bfeefb7bc447fe3df21feb03",
+          "e5c762536e120c5f2a4d16ded45a072c4b3160df6a7cc3553963fe7dca14e7c2",
+          "451a3c0c64c13c4a6c62aad14bd97452593b21ade4cd714147214d6d9b644483",
+          "2a36996ba5636689ee60e2ddc82929d7052f43f9f4dd25a41008a9d856203c2c"
+        ]
+      },
+      "tassadar.surface": "benchmark"
+    }
+  },
+  "group": {
+    "group_ref": "group.tassadar.sudoku_9x9",
+    "display_name": "Tassadar Sudoku-9x9 Corpus",
+    "members": [
+      {
+        "member_ref": "tassadar_sudoku_9x9_eval_member",
+        "pin_alias": "tassadar_sudoku_9x9_eval",
+        "surfaces": [
+          "eval"
+        ],
+        "required_workloads": [
+          "online_eval",
+          "offline_eval"
+        ]
+      },
+      {
+        "member_ref": "tassadar_sudoku_9x9_benchmark_member",
+        "pin_alias": "tassadar_sudoku_9x9_benchmark",
+        "surfaces": [
+          "benchmark"
+        ],
+        "required_workloads": [
+          "validator_benchmark"
+        ],
+        "required_benchmark_profiles": [
+          "benchmark://tassadar/sudoku_9x9/reference_fixture"
+        ]
+      }
+    ]
+  },
+  "eval_resolution": {
+    "group_ref": "group.tassadar.sudoku_9x9",
+    "surface": "eval",
+    "members": [
+      {
+        "member_ref": "tassadar_sudoku_9x9_eval_member",
+        "surface": "eval",
+        "package": {
+          "alias": "tassadar_sudoku_9x9_eval",
+          "package_key": {
+            "environment_ref": "env.openagents.tassadar.sudoku_9x9.eval",
+            "version": "v0"
+          },
+          "package_digest": "68f6c22d7253bcbda790eb53a9357b25340a209e57cca2106aec8bf9820ba28d",
+          "supported_workloads": [
+            "online_eval",
+            "offline_eval"
+          ]
+        }
+      }
+    ],
+    "resolution_digest": "a064229f4f4acffacb0d7418dd7f7104a6ea4b6e58d22c27bf96105bd408f1e6"
+  },
+  "benchmark_resolution": {
+    "group_ref": "group.tassadar.sudoku_9x9",
+    "surface": "benchmark",
+    "members": [
+      {
+        "member_ref": "tassadar_sudoku_9x9_benchmark_member",
+        "surface": "benchmark",
+        "package": {
+          "alias": "tassadar_sudoku_9x9_benchmark",
+          "package_key": {
+            "environment_ref": "env.openagents.tassadar.sudoku_9x9.benchmark",
+            "version": "v0"
+          },
+          "package_digest": "16211652d867570f704674053c1a9a1b72f7db048b5b269c21ac970974fb93d9",
+          "dependencies": [
+            {
+              "environment_ref": "env.openagents.tassadar.sudoku_9x9.eval",
+              "version": "v0"
+            }
+          ],
+          "supported_workloads": [
+            "offline_eval",
+            "validator_benchmark"
+          ]
+        },
+        "benchmark_profiles": [
+          "benchmark://tassadar/sudoku_9x9/reference_fixture"
+        ]
+      }
+    ],
+    "resolution_digest": "3c4209ca853a8faa2bcc1b03e4fd2970f0b6b5c6f58362cc90fc845bd9b7e9a5"
+  },
+  "package_refs": {
+    "group_ref": "group.tassadar.sudoku_9x9",
+    "eval_pin_alias": "tassadar_sudoku_9x9_eval",
+    "benchmark_pin_alias": "tassadar_sudoku_9x9_benchmark",
+    "eval_member_ref": "tassadar_sudoku_9x9_eval_member",
+    "benchmark_member_ref": "tassadar_sudoku_9x9_benchmark_member",
+    "program_corpus_ref": "tassadar://corpus/sudoku_9x9.validation",
+    "io_contract_ref": "tassadar://io/exact_i32_sequence",
+    "rubric_binding_ref": "tassadar://rubric/exactness",
+    "eval_runtime_profile_ref": "runtime://tassadar/sudoku_9x9/eval",
+    "benchmark_profile_ref": "benchmark://tassadar/sudoku_9x9/reference_fixture",
+    "benchmark_runtime_profile_ref": "runtime://tassadar/sudoku_9x9/benchmark"
+  },
+  "program_binding": {
+    "dataset": {
+      "dataset_ref": "dataset://openagents/tassadar/sudoku_9x9_corpus",
+      "version": "v0"
+    },
+    "program_corpus_ref": "tassadar://corpus/sudoku_9x9.validation",
+    "corpus_digest": "a46d26306c080ea3147a743b7d537687e1fa2076e3b90300f2906b4db8d5cd2c",
+    "wasm_profile_id": "tassadar.wasm.sudoku_9x9_search.v1",
+    "trace_abi_id": "tassadar.trace.v1",
+    "trace_abi_version": 1,
+    "opcode_vocabulary_digest": "fccf524b9721679331d2d0ac3d1e15f9bd0e5f17ffbdd6cbf62658e1ca735aed",
+    "artifact_digests": [
+      "bf2003532e814be5da142fc1db2e4fbfb4552de8bfeefb7bc447fe3df21feb03",
+      "e5c762536e120c5f2a4d16ded45a072c4b3160df6a7cc3553963fe7dca14e7c2",
+      "451a3c0c64c13c4a6c62aad14bd97452593b21ade4cd714147214d6d9b644483",
+      "2a36996ba5636689ee60e2ddc82929d7052f43f9f4dd25a41008a9d856203c2c"
+    ]
+  },
+  "io_contract": {
+    "input_family": "no_external_input",
+    "output_family": "i32_sequence",
+    "output_element_type": "i32",
+    "deterministic_outputs": true
+  },
+  "exactness_contract": {
+    "require_final_output_exactness": true,
+    "require_step_exactness": true,
+    "require_halt_exactness": true,
+    "timeout_budget_ms": 120000,
+    "trace_budget_steps": 1048576,
+    "require_cpu_reference_baseline": true,
+    "require_reference_linear_baseline": true,
+    "future_throughput_metric_ids": [
+      "tassadar.hull_cache_steps_per_second"
+    ]
+  },
+  "current_workload_targets": [
+    "sudoku_class"
+  ],
+  "planned_workload_targets": []
+}

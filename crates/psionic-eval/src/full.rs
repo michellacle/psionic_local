@@ -28,6 +28,8 @@ mod tassadar_executor_eval;
 mod tassadar_executor_hull_benchmark;
 #[path = "tassadar_hungarian_compiled_executor.rs"]
 mod tassadar_hungarian_compiled_executor;
+#[path = "tassadar_sudoku_9x9_compiled_executor.rs"]
+mod tassadar_sudoku_9x9_compiled_executor;
 #[path = "tassadar_sequence.rs"]
 mod tassadar_sequence;
 
@@ -55,6 +57,7 @@ pub use tassadar_executor_benchmark::*;
 pub use tassadar_executor_eval::*;
 pub use tassadar_executor_hull_benchmark::*;
 pub use tassadar_hungarian_compiled_executor::*;
+pub use tassadar_sudoku_9x9_compiled_executor::*;
 pub use tassadar_sequence::*;
 
 /// Human-readable crate ownership summary.

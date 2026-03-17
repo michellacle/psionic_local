@@ -1,0 +1,21 @@
+{
+  "contract_id": "sudoku_9x9_train_b.compiled_executor.runtime_contract",
+  "contract_digest": "993f993b9e6c32182a229a5e8557cc18a6354c049ae8844d3bd9d6dcff0e8372",
+  "deployment_kind": "program_specialized",
+  "model_descriptor_digest": "6af690cccf9c0a11c360d2111d4ee3edd3c17ee9a44046886e2240b9828f8eb1",
+  "program_artifact_digest": "4193b9adf2426183b86d60c86d6969d7312f88d85966d28bf088e093de70facf",
+  "program_digest": "75d36620e7f11eba02cc0e059557de2d2b8c4f8f9e2bb9b0570637410b20de02",
+  "runtime_backend": "cpu",
+  "reference_runner_id": "tassadar.fixture_runner.v1",
+  "supported_decode_modes": [
+    "hull_cache",
+    "reference_linear",
+    "sparse_top_k"
+  ],
+  "default_decode_mode": "reference_linear",
+  "wasm_profile_id": "tassadar.wasm.sudoku_9x9_search.v1",
+  "trace_abi_id": "tassadar.trace.v1",
+  "trace_abi_version": 1,
+  "compile_runtime_manifest_digest": "3196aaab88a351093a67070802b902e81e3a95b29a28f508661397ab0eba1ef4",
+  "compile_execution_proof_bundle_digest": "71e57c891c6dda70cf12482a22f6aac2428431a001708d8bdc3fa60a312e1648"
+}

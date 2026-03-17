@@ -1,0 +1,138 @@
+{
+  "workload_family_id": "tassadar.wasm.sudoku_9x9_search.v1.compiled_executor",
+  "compiled_suite_artifact_digest": "4dd860547a1714617240f2758a578e90c999bd1af7c7586e03d5b4562c0f4a72",
+  "total_check_count": 16,
+  "matched_refusal_check_count": 16,
+  "matched_refusal_rate_bps": 10000,
+  "check_reports": [
+    {
+      "deployment_case_id": "sudoku_9x9_train_a",
+      "check_id": "wrong_program_artifact",
+      "expected_refusal_kind": "program_artifact_digest_mismatch",
+      "observed_refusal_kind": "program_artifact_digest_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program artifact mismatch: expected `5632b8cb031b54c05f0055733aecb51578ebed5a18defb463cb936d5f0f865d8`, got `4193b9adf2426183b86d60c86d6969d7312f88d85966d28bf088e093de70facf`"
+    },
+    {
+      "deployment_case_id": "sudoku_9x9_train_a",
+      "check_id": "wrong_wasm_profile",
+      "expected_refusal_kind": "wasm_profile_mismatch",
+      "observed_refusal_kind": "wasm_profile_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: Wasm profile mismatch: expected `tassadar.wasm.sudoku_9x9_search.v1`, got `tassadar.wasm.sudoku_v0_search.v1`"
+    },
+    {
+      "deployment_case_id": "sudoku_9x9_train_a",
+      "check_id": "wrong_trace_abi_version",
+      "expected_refusal_kind": "trace_abi_version_mismatch",
+      "observed_refusal_kind": "trace_abi_version_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: trace ABI version mismatch: expected `1`, got `2`"
+    },
+    {
+      "deployment_case_id": "sudoku_9x9_train_a",
+      "check_id": "artifact_inconsistent",
+      "expected_refusal_kind": "program_artifact_inconsistent",
+      "observed_refusal_kind": "program_artifact_inconsistent",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: program artifact is internally inconsistent: validated program digest mismatch: expected `ad1f4205b1d8534cbcc26474546e8bfa555354b1ebf3789c35b0fcb6312d1aed`, actual `bogus_program_digest`"
+    },
+    {
+      "deployment_case_id": "sudoku_9x9_train_b",
+      "check_id": "wrong_program_artifact",
+      "expected_refusal_kind": "program_artifact_digest_mismatch",
+      "observed_refusal_kind": "program_artifact_digest_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program artifact mismatch: expected `4193b9adf2426183b86d60c86d6969d7312f88d85966d28bf088e093de70facf`, got `820b019c4520bc4bc9c1eeb54785bda9a3913be9818b74abcce36150402c9f25`"
+    },
+    {
+      "deployment_case_id": "sudoku_9x9_train_b",
+      "check_id": "wrong_wasm_profile",
+      "expected_refusal_kind": "wasm_profile_mismatch",
+      "observed_refusal_kind": "wasm_profile_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: Wasm profile mismatch: expected `tassadar.wasm.sudoku_9x9_search.v1`, got `tassadar.wasm.sudoku_v0_search.v1`"
+    },
+    {
+      "deployment_case_id": "sudoku_9x9_train_b",
+      "check_id": "wrong_trace_abi_version",
+      "expected_refusal_kind": "trace_abi_version_mismatch",
+      "observed_refusal_kind": "trace_abi_version_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: trace ABI version mismatch: expected `1`, got `2`"
+    },
+    {
+      "deployment_case_id": "sudoku_9x9_train_b",
+      "check_id": "artifact_inconsistent",
+      "expected_refusal_kind": "program_artifact_inconsistent",
+      "observed_refusal_kind": "program_artifact_inconsistent",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: program artifact is internally inconsistent: validated program digest mismatch: expected `75d36620e7f11eba02cc0e059557de2d2b8c4f8f9e2bb9b0570637410b20de02`, actual `bogus_program_digest`"
+    },
+    {
+      "deployment_case_id": "sudoku_9x9_validation_a",
+      "check_id": "wrong_program_artifact",
+      "expected_refusal_kind": "program_artifact_digest_mismatch",
+      "observed_refusal_kind": "program_artifact_digest_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program artifact mismatch: expected `820b019c4520bc4bc9c1eeb54785bda9a3913be9818b74abcce36150402c9f25`, got `fe266196d0f77bbf0848ae48bf06105fea3962a61631e9ab6b22fc62301c7463`"
+    },
+    {
+      "deployment_case_id": "sudoku_9x9_validation_a",
+      "check_id": "wrong_wasm_profile",
+      "expected_refusal_kind": "wasm_profile_mismatch",
+      "observed_refusal_kind": "wasm_profile_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: Wasm profile mismatch: expected `tassadar.wasm.sudoku_9x9_search.v1`, got `tassadar.wasm.sudoku_v0_search.v1`"
+    },
+    {
+      "deployment_case_id": "sudoku_9x9_validation_a",
+      "check_id": "wrong_trace_abi_version",
+      "expected_refusal_kind": "trace_abi_version_mismatch",
+      "observed_refusal_kind": "trace_abi_version_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: trace ABI version mismatch: expected `1`, got `2`"
+    },
+    {
+      "deployment_case_id": "sudoku_9x9_validation_a",
+      "check_id": "artifact_inconsistent",
+      "expected_refusal_kind": "program_artifact_inconsistent",
+      "observed_refusal_kind": "program_artifact_inconsistent",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: program artifact is internally inconsistent: validated program digest mismatch: expected `277b6af5fe3bf64520f02c78d32efc5591c3451334a9f35d925d3c4c8ca8dfd0`, actual `bogus_program_digest`"
+    },
+    {
+      "deployment_case_id": "sudoku_9x9_test_a",
+      "check_id": "wrong_program_artifact",
+      "expected_refusal_kind": "program_artifact_digest_mismatch",
+      "observed_refusal_kind": "program_artifact_digest_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program artifact mismatch: expected `fe266196d0f77bbf0848ae48bf06105fea3962a61631e9ab6b22fc62301c7463`, got `5632b8cb031b54c05f0055733aecb51578ebed5a18defb463cb936d5f0f865d8`"
+    },
+    {
+      "deployment_case_id": "sudoku_9x9_test_a",
+      "check_id": "wrong_wasm_profile",
+      "expected_refusal_kind": "wasm_profile_mismatch",
+      "observed_refusal_kind": "wasm_profile_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: Wasm profile mismatch: expected `tassadar.wasm.sudoku_9x9_search.v1`, got `tassadar.wasm.sudoku_v0_search.v1`"
+    },
+    {
+      "deployment_case_id": "sudoku_9x9_test_a",
+      "check_id": "wrong_trace_abi_version",
+      "expected_refusal_kind": "trace_abi_version_mismatch",
+      "observed_refusal_kind": "trace_abi_version_mismatch",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: trace ABI version mismatch: expected `1`, got `2`"
+    },
+    {
+      "deployment_case_id": "sudoku_9x9_test_a",
+      "check_id": "artifact_inconsistent",
+      "expected_refusal_kind": "program_artifact_inconsistent",
+      "observed_refusal_kind": "program_artifact_inconsistent",
+      "matched_expected_refusal": true,
+      "detail": "compiled program descriptor contract failed: program artifact is internally inconsistent: validated program digest mismatch: expected `490480bf93f17a6c2dc69e191693d1f5234bfdabc406739d28c7b6f2da8b6d9f`, actual `bogus_program_digest`"
+    }
+  ],
+  "report_digest": "15d30a98b806060abe4179b39672990c0b62ecaa4d33fca426c0b6023c56d606"
+}

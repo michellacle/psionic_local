@@ -21,6 +21,7 @@ mod tassadar_attention_promotion;
 mod tassadar_attention_training;
 mod tassadar_compiled_executor_bundle;
 mod tassadar_hungarian_compiled_executor_bundle;
+mod tassadar_sudoku_9x9_compiled_executor_bundle;
 mod tassadar_surface_ablation;
 
 #[cfg(feature = "burn-import")]
@@ -32,6 +33,7 @@ pub use tassadar_attention_promotion::*;
 pub use tassadar_attention_training::*;
 pub use tassadar_compiled_executor_bundle::*;
 pub use tassadar_hungarian_compiled_executor_bundle::*;
+pub use tassadar_sudoku_9x9_compiled_executor_bundle::*;
 pub use tassadar_surface_ablation::*;
 
 /// Human-readable crate ownership summary.

@@ -15,6 +15,7 @@ use psionic_train::{
     TassadarExecutorSequenceFitReport,
 };
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
+use serde_json::Value;
 use sha2::{Digest, Sha256};
 use thiserror::Error;
 
@@ -37,6 +38,8 @@ const LEARNED_9X9_SEQUENCE_FIT_REPORT_REF: &str =
     "fixtures/tassadar/runs/sudoku_9x9_v0_reference_run_v0/sequence_fit_report.json";
 const COMPILED_SUDOKU_RUN_BUNDLE_REF: &str =
     "fixtures/tassadar/runs/sudoku_v0_compiled_executor_v0/run_bundle.json";
+const COMPILED_SUDOKU_9X9_RUN_BUNDLE_REF: &str =
+    "fixtures/tassadar/runs/sudoku_9x9_v0_compiled_executor_v0/run_bundle.json";
 const COMPILED_SUDOKU_EXACTNESS_REPORT_REF: &str =
     "fixtures/tassadar/runs/sudoku_v0_compiled_executor_v0/compiled_executor_exactness_report.json";
 const COMPILED_SUDOKU_COMPATIBILITY_REPORT_REF: &str = "fixtures/tassadar/runs/sudoku_v0_compiled_executor_v0/compiled_executor_compatibility_report.json";
@@ -565,11 +568,16 @@ fn build_compiled_article_class_verdict()
         COMPILED_SUDOKU_RUN_BUNDLE_REF,
         "tassadar_compiled_executor_run_bundle",
     )?;
+    let sudoku_9x9_bundle: Value = read_repo_json(
+        COMPILED_SUDOKU_9X9_RUN_BUNDLE_REF,
+        "tassadar_sudoku_9x9_compiled_executor_run_bundle",
+    )?;
     let hungarian_bundle: TassadarHungarianCompiledExecutorRunBundle = read_repo_json(
         COMPILED_HUNGARIAN_RUN_BUNDLE_REF,
         "tassadar_hungarian_compiled_executor_run_bundle",
     )?;
     let passed = sudoku_bundle.claim_class == TassadarClaimClass::CompiledArticleClass
+        && sudoku_9x9_bundle["claim_class"].as_str() == Some("compiled_article_class")
         && hungarian_bundle.claim_class == TassadarClaimClass::CompiledArticleClass;
 
     Ok(TassadarAcceptanceVerdict::new(
@@ -578,7 +586,7 @@ fn build_compiled_article_class_verdict()
         if passed {
             "The compiled/proof-backed lane now advertises article-class closure from committed article workloads and acceptance artifacts."
         } else {
-            "Compiled article-class closure is still red: the strongest exact compiled artifacts are the bounded 4x4 Sudoku-v0 and Hungarian-v0 bundles, and the repo still lacks the article-class workload matrix and larger exact compiled bundles."
+            "Compiled article-class closure is still red: the repo now has an exact compiled 9x9 Sudoku bundle, but it still lacks the article-sized Hungarian bundle, the generic compiled kernel suite, and the compiled article-closure checker."
         },
         vec![String::from(TASSADAR_ACCEPTANCE_CHECKER_COMMAND)],
         vec![
@@ -586,6 +594,13 @@ fn build_compiled_article_class_verdict()
                 "bounded compiled Sudoku run bundle",
                 COMPILED_SUDOKU_RUN_BUNDLE_REF,
                 Some(sudoku_bundle.bundle_digest),
+            ),
+            TassadarAcceptanceEvidenceRef::new(
+                "exact compiled Sudoku-9x9 run bundle",
+                COMPILED_SUDOKU_9X9_RUN_BUNDLE_REF,
+                sudoku_9x9_bundle["bundle_digest"]
+                    .as_str()
+                    .map(std::string::ToString::to_string),
             ),
             TassadarAcceptanceEvidenceRef::new(
                 "bounded compiled Hungarian run bundle",
@@ -597,8 +612,6 @@ fn build_compiled_article_class_verdict()
             Vec::new()
         } else {
             vec![
-                String::from("PTAS-105 article-class workload capability matrix"),
-                String::from("PTAS-302 exact compiled/proof-backed 9x9 Sudoku bundle"),
                 String::from("PTAS-303 exact compiled/proof-backed 10x10 Hungarian bundle"),
                 String::from(
                     "PTAS-304 generic compiled arithmetic/memory/branch/loop kernel suite",

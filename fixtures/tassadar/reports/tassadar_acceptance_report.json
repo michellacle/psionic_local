@@ -123,7 +123,7 @@
   "compiled_article_class": {
     "verdict_id": "compiled_article_class",
     "passed": false,
-    "detail": "Compiled article-class closure is still red: the strongest exact compiled artifacts are the bounded 4x4 Sudoku-v0 and Hungarian-v0 bundles, and the repo still lacks the article-class workload matrix and larger exact compiled bundles.",
+    "detail": "Compiled article-class closure is still red: the repo now has an exact compiled 9x9 Sudoku bundle, but it still lacks the article-sized Hungarian bundle, the generic compiled kernel suite, and the compiled article-closure checker.",
     "validation_commands": [
       "scripts/check-tassadar-acceptance.sh"
     ],
@@ -134,14 +134,17 @@
         "digest": "94bb2f9398cf02cb91393cc51db8ba5a44ee6195c9f8f87da3f6a4bf96319f67"
       },
       {
+        "label": "exact compiled Sudoku-9x9 run bundle",
+        "artifact_ref": "fixtures/tassadar/runs/sudoku_9x9_v0_compiled_executor_v0/run_bundle.json",
+        "digest": "9a433a3ae5932df79c477b3dc49955996fa6825d39eec8f0e6366a2c471e4c66"
+      },
+      {
         "label": "bounded compiled Hungarian run bundle",
         "artifact_ref": "fixtures/tassadar/runs/hungarian_v0_compiled_executor_v0/run_bundle.json",
         "digest": "1d92730054062aaa6801f9e3d1b4b0ed60e5be0b988eda2fa6cf6e258604e59b"
       }
     ],
     "missing_evidence": [
-      "PTAS-105 article-class workload capability matrix",
-      "PTAS-302 exact compiled/proof-backed 9x9 Sudoku bundle",
       "PTAS-303 exact compiled/proof-backed 10x10 Hungarian bundle",
       "PTAS-304 generic compiled arithmetic/memory/branch/loop kernel suite",
       "PTAS-305 compiled article-closure checker"
@@ -188,5 +191,5 @@
     ]
   },
   "current_truth_holds": true,
-  "report_digest": "e82862dc8458fe876a30a4d0b53053604e072dbc609adf4d426c34726218ed66"
+  "report_digest": "db4b1d45f08d6a6450f6cebdb9d92aee28c9ea7f959cb0933e585921810599d8"
 }

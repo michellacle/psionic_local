@@ -3,6 +3,7 @@
   "generated_from_artifacts": [
     "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json",
     "fixtures/tassadar/runs/sudoku_v0_compiled_executor_v0/run_bundle.json",
+    "fixtures/tassadar/runs/sudoku_9x9_v0_compiled_executor_v0/run_bundle.json",
     "fixtures/tassadar/runs/hungarian_v0_compiled_executor_v0/run_bundle.json",
     "fixtures/tassadar/runs/sudoku_v0_promotion_v3/promotion_bundle.json",
     "fixtures/tassadar/runs/sudoku_v0_promotion_v3/promotion_gate_report.json",
@@ -149,8 +150,14 @@
     },
     {
       "workload_family_id": "sudoku_search_9x9",
-      "summary": "real 9x9 Sudoku search workload beyond the current learned full-trace fit envelope",
+      "summary": "real 9x9 Sudoku search workload with exact compiled closure and still-bounded learned long-horizon coverage",
       "capabilities": [
+        {
+          "surface_id": "compiled.proof_backed",
+          "posture": "exact",
+          "artifact_ref": "fixtures/tassadar/runs/sudoku_9x9_v0_compiled_executor_v0/run_bundle.json",
+          "note": "exact compiled/proof-backed Sudoku-9x9 lane on the matched 9x9 corpus with benchmark, proof, readable-log, and compact token-trace artifacts; this is the article-sized Sudoku closure, not full compiled article parity by itself; serve_posture=eval_only"
+        },
         {
           "surface_id": "learned.long_horizon",
           "posture": "partial",
@@ -192,5 +199,5 @@
     }
   ],
   "claim_boundary": "this matrix is a workload-family capability view over current committed artifacts only; exact runtime, fallback-only runtime, compiled exact, and bounded/partial learned results remain separated and this report does not imply article parity",
-  "report_digest": "0caba30c0b29c3824e285029c6426683aa06662ee57503f7637c82ce707987fb"
+  "report_digest": "872da8255dd61da3575e1ff6939cc7d5f62b5c20c7a246e97491b6dbe1737e56"
 }

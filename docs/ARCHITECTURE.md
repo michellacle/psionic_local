@@ -443,6 +443,18 @@ The current scope is:
   matches) while keeping the serving and claim boundary explicit (`eval_only`,
   not a learned Hungarian lane, not arbitrary dimension/program closure, and
   not article parity)
+- landed trained-executor Phase 19 follow-on bar: `psionic-runtime` and
+  `psionic-models` now carry an exact compiled 9x9 Sudoku search deployment
+  lane, `psionic-eval` now emits benchmark/environment, exactness, refusal,
+  and throughput artifacts for
+  `tassadar.wasm.sudoku_9x9_search.v1.compiled_executor`, and
+  `psionic-research` now materializes the canonical bundle root at
+  `fixtures/tassadar/runs/sudoku_9x9_v0_compiled_executor_v0`; the committed
+  artifacts prove exact compiled/proof-backed 9x9 Sudoku closure on the
+  matched corpus (`4/4` exact trace matches against CPU reference and `16/16`
+  exact refusal matches on the full corpus) while keeping the serving and
+  claim boundary explicit (`eval_only`, article-sized Sudoku closure only, not
+  full compiled article parity)
 - landed Phase 8A bar: typed `psionic-research` executor-variant family with
   benchmark/proof/lineage-backed bounded runs and machine-readable sweep
   records for reproducible same-contract candidate comparison

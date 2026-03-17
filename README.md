@@ -383,6 +383,19 @@ Current posture:
   matches, `32/32` exact refusal matches, `eval_only` posture), not learned
   Hungarian execution, not general Hungarian solver parity, and not article
   parity
+- the separate post-audit Phase 19 bar now also exists in `psionic-runtime`,
+  `psionic-models`, `psionic-eval`, `psionic-research`, and a canonical
+  exact compiled 9x9 bundle at
+  `fixtures/tassadar/runs/sudoku_9x9_v0_compiled_executor_v0`:
+  `psionic-eval` now packages the real 9x9 Sudoku corpus with benchmark and
+  environment contracts and emits compiled exactness, refusal, and throughput
+  receipts, while `psionic-research` persists four per-case deployments with
+  compile proof, runtime execution proof, readable-log, and compact
+  token-trace artifacts; the committed bundle proves exact compiled/proof-backed
+  9x9 Sudoku closure on the matched corpus (`4/4` exact trace matches against
+  CPU reference, `16/16` exact refusal matches on the full corpus,
+  `eval_only` posture), which is the article-sized Sudoku result but still not
+  full compiled article parity by itself
 - the canonical coarse Tassadar claim vocabulary is now
   `compiled_exact`, `compiled_article_class`, `learned_bounded`,
   `learned_article_class`, and `research_only`; the canonical current

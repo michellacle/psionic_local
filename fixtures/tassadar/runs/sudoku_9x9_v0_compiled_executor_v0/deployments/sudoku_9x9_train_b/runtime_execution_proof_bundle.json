@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "bundle_kind": "local",
+  "status": "succeeded",
+  "request_id": "execute-sudoku_9x9_train_b.compiled_executor.compiled_weight",
+  "request_digest": "64c34e8b69848e33e32b92974241761a8657af5756db8430eee52f7ca26c4fa2",
+  "product_id": "psionic.tassadar.compiled_executor",
+  "model_id": "tassadar-executor-sudoku-9x9-search-v0-compiled-tassadar.sudoku_9x9_train_b.v1",
+  "runtime_identity": {
+    "runtime_backend": "cpu",
+    "backend_toolchain": {
+      "effective_backend": "cpu",
+      "toolchain_version": "tassadar.fixture_runner.v1",
+      "compiled_backend_features": [
+        "tassadar_executor",
+        "tassadar.decode.reference_linear.v1",
+        "tassadar.wasm.sudoku_9x9_search.v1"
+      ],
+      "probe_state": "compiled_only"
+    }
+  },
+  "validation": {
+    "matrix_id": "psionic.minimum_hardware_validation.v1",
+    "documentation_path": "docs/HARDWARE_VALIDATION_MATRIX.md",
+    "claim_id": "tassadar.executor_trace.phase4",
+    "coverage": "not_yet_validated"
+  },
+  "artifact_residency": {
+    "weight_bundle_digest": "6af690cccf9c0a11c360d2111d4ee3edd3c17ee9a44046886e2240b9828f8eb1",
+    "input_artifact_digests": [
+      "4193b9adf2426183b86d60c86d6969d7312f88d85966d28bf088e093de70facf"
+    ],
+    "output_artifact_digests": [
+      "242515a1bbeca57d95e5632128df14bd9776b3e2a9389544e5ebe60a19e1f0df",
+      "a0a2923375318e5b3b9f40b5588b9db7638fac26e527859a0c6a794514b64864"
+    ]
+  },
+  "activation_fingerprint_posture": "unavailable"
+}

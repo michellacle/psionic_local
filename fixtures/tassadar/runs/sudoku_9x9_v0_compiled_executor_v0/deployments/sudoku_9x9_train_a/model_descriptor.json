@@ -1,0 +1,111 @@
+{
+  "model": {
+    "model_id": "tassadar-executor-sudoku-9x9-search-v0-compiled-tassadar.sudoku_9x9_train_a.v1",
+    "family": "tassadar_executor.compiled",
+    "revision": "sudoku_9x9_train_a.compiled_executor"
+  },
+  "compatibility": {
+    "executor_family": "wasm_trace_executor",
+    "trace_abi_id": "tassadar.trace.v1",
+    "trace_abi_version": 1,
+    "wasm_profile_id": "tassadar.wasm.sudoku_9x9_search.v1",
+    "opcode_vocabulary_digest": "fccf524b9721679331d2d0ac3d1e15f9bd0e5f17ffbdd6cbf62658e1ca735aed",
+    "supported_decode_modes": [
+      "reference_linear",
+      "hull_cache",
+      "sparse_top_k"
+    ],
+    "attention_mode": "program_specialized_compiled",
+    "attention_geometry": {
+      "hull_cache_eligible": true
+    },
+    "exactness_posture": "exact_trace_and_output"
+  },
+  "profile": {
+    "profile_id": "tassadar.wasm.sudoku_9x9_search.v1",
+    "allowed_opcodes": [
+      "i32_const",
+      "local_get",
+      "local_set",
+      "i32_add",
+      "i32_sub",
+      "i32_mul",
+      "i32_load",
+      "i32_store",
+      "br_if",
+      "output",
+      "return"
+    ],
+    "max_locals": 8,
+    "max_memory_slots": 192,
+    "max_program_len": 12288,
+    "max_steps": 1048576,
+    "branch_mode": "br_if_non_zero",
+    "host_output_opcode": true
+  },
+  "trace_abi": {
+    "abi_id": "tassadar.trace.v1",
+    "schema_version": 1,
+    "profile_id": "tassadar.wasm.sudoku_9x9_search.v1",
+    "append_only": true,
+    "includes_stack_snapshots": true,
+    "includes_local_snapshots": true,
+    "includes_memory_snapshots": true
+  },
+  "weights": {
+    "format": "ProgrammaticFixture",
+    "source": "ExternalArtifact",
+    "quantization": "none",
+    "digest": "aa473f584d21ba0667d5183f3cc0db8df633ad5f8bb70d0a329f4c732f60b3a8",
+    "tensors": [
+      {
+        "name": "compiled_decode_contract",
+        "shape": {
+          "dims": [
+            6
+          ]
+        },
+        "dtype": "F32",
+        "quantization": "none"
+      },
+      {
+        "name": "compiled_initial_memory",
+        "shape": {
+          "dims": [
+            192
+          ]
+        },
+        "dtype": "F32",
+        "quantization": "none"
+      },
+      {
+        "name": "compiled_instruction_stream",
+        "shape": {
+          "dims": [
+            12288,
+            4
+          ]
+        },
+        "dtype": "F32",
+        "quantization": "none"
+      },
+      {
+        "name": "compiled_program_header",
+        "shape": {
+          "dims": [
+            8
+          ]
+        },
+        "dtype": "F32",
+        "quantization": "none"
+      }
+    ],
+    "artifacts": [
+      {
+        "name": "sudoku_9x9_train_a.compiled_executor.compiled_weight.json",
+        "byte_length": 248491,
+        "sha256": "dcfd432f5bdca299e2baacfe81a28d93cd1c578cbacfbd0ce0e60eb3aaabe3a8"
+      }
+    ]
+  }
+}

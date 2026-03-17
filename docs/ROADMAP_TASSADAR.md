@@ -181,6 +181,8 @@ The current strongest committed artifacts are:
   - learned 4x4 validation gate is green
 - `fixtures/tassadar/runs/sudoku_9x9_v0_reference_run_v0`
   - learned 9x9 lane is honest but still partial
+- `fixtures/tassadar/runs/sudoku_9x9_v0_compiled_executor_v0`
+  - exact compiled/proof-backed 9x9 Sudoku lane now exists on the matched 9x9 corpus
 - `fixtures/tassadar/runs/sudoku_v0_compiled_executor_v0`
   - bounded compiled/proof-backed Sudoku lane is exact on the matched corpus
 - `fixtures/tassadar/runs/hungarian_v0_compiled_executor_v0`
@@ -193,7 +195,7 @@ The current technical reality is:
 - the fast decode path exists, but its exact closure is still workload-shaped
   rather than general
 - the compiled/proof-backed lane is stronger today than the learned long-trace
-  lane
+  lane and now includes article-sized 9x9 Sudoku exactness
 - the learned 4x4 lane is real
 - the learned 9x9 lane still does not fit the full trace honestly under the
   current model contract
@@ -421,7 +423,7 @@ lane first, because that is the strongest current path in this repo.
 | ID | Status | Work |
 | --- | --- | --- |
 | `PTAS-301` | partial | Widen the compiled/proof-backed lane from today's matched 4x4 corpora to article-class Sudoku and matching workloads. |
-| `PTAS-302` | planned | Land an exact compiled/proof-backed 9x9 Sudoku bundle with readable-log, token-trace, proof, and throughput artifacts. |
+| `PTAS-302` | implemented | Land an exact compiled/proof-backed 9x9 Sudoku bundle with readable-log, token-trace, proof, and throughput artifacts. |
 | `PTAS-303` | planned | Land an exact compiled/proof-backed 10x10 Hungarian-class bundle with benchmark-package, proof, and throughput artifacts. |
 | `PTAS-304` | planned | Add a generic compiled kernel suite covering arithmetic, memory, branch, and loop-heavy programs with exactness-vs-trace-length reporting. |
 | `PTAS-305` | planned | Add one compiled article-closure checker that only turns green when the bounded 4x4 proxies are no longer the strongest exact compiled result in-tree. |
