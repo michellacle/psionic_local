@@ -21,6 +21,7 @@ use psionic_models::{
     TassadarExecutorTrainableSurface, TassadarExecutorTransformer,
     TassadarExecutorTransformerDescriptor, TassadarExecutorTransformerError,
 };
+use psionic_runtime::TassadarClaimClass;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use thiserror::Error;
@@ -77,6 +78,10 @@ const RUN_BUNDLE_FILE: &str = "run_bundle.json";
 
 fn default_trainable_surface() -> TassadarExecutorTrainableSurface {
     TassadarExecutorTrainableSurface::OutputHeadOnly
+}
+
+const fn default_learned_bounded_claim_class() -> TassadarClaimClass {
+    TassadarClaimClass::LearnedBounded
 }
 
 fn tassadar_progress_updates_enabled() -> bool {
@@ -426,7 +431,10 @@ impl TassadarExecutorModelArtifact {
             descriptor: model.descriptor().clone(),
             training_report_digest: training_report.report_digest.clone(),
             linear_benchmark_report_digest: benchmark_report.map(|report| {
-                stable_digest(b"psionic_tassadar_executor_linear_benchmark_report|", report)
+                stable_digest(
+                    b"psionic_tassadar_executor_linear_benchmark_report|",
+                    report,
+                )
             }),
             checkpoint_manifest: checkpoint_manifest.manifest_ref(),
             artifact_digest: String::new(),
@@ -444,6 +452,10 @@ pub struct TassadarExecutorReferenceRunBundle {
     pub schema_version: u16,
     /// Stable run identifier.
     pub run_id: String,
+    /// Coarse claim class. Boundary and exactness reports still carry the
+    /// finer learned-lane limits.
+    #[serde(default = "default_learned_bounded_claim_class")]
+    pub claim_class: TassadarClaimClass,
     /// Active trainable surface for the run.
     #[serde(default = "default_trainable_surface")]
     pub trainable_surface: TassadarExecutorTrainableSurface,
@@ -524,11 +536,16 @@ impl TassadarExecutorReferenceRunBundle {
         model_artifact: &TassadarExecutorModelArtifact,
         artifacts: Vec<EvalArtifact>,
     ) -> Self {
-        let benchmark_digest = benchmark_report
-            .map(|report| stable_digest(b"psionic_tassadar_executor_linear_benchmark_report|", report));
+        let benchmark_digest = benchmark_report.map(|report| {
+            stable_digest(
+                b"psionic_tassadar_executor_linear_benchmark_report|",
+                report,
+            )
+        });
         let mut bundle = Self {
             schema_version: TASSADAR_EXECUTOR_REFERENCE_RUN_SCHEMA_VERSION,
             run_id: config.run_id.clone(),
+            claim_class: TassadarClaimClass::LearnedBounded,
             trainable_surface: config.trainable_surface,
             dataset_version: config.dataset_version.clone(),
             dataset_storage_key: training_manifest.dataset_storage_key.clone(),
@@ -669,7 +686,8 @@ pub fn tassadar_executor_promotion_run_config() -> TassadarExecutorTrainingConfi
         terminal_stage_learning_rate_scale: Some(0.005),
         trainable_surface:
             TassadarExecutorTrainableSurface::OutputHeadEmbeddingsAndSmallLearnedMixer,
-        teacher_forced_training_strategy: crate::TassadarExecutorTeacherForcedTrainingStrategy::FullForwardWindow,
+        teacher_forced_training_strategy:
+            crate::TassadarExecutorTeacherForcedTrainingStrategy::FullForwardWindow,
         curriculum_stages: vec![
             crate::TassadarExecutorCurriculumStage::new("prompt_to_first_token", Some(1), 1),
             crate::TassadarExecutorCurriculumStage::new("prompt_to_first_2_tokens", Some(2), 1),
@@ -707,7 +725,8 @@ pub fn tassadar_executor_promotion_v2_run_config() -> TassadarExecutorTrainingCo
         terminal_stage_learning_rate_scale: Some(0.0025),
         trainable_surface:
             TassadarExecutorTrainableSurface::OutputHeadEmbeddingsAndSmallLearnedMixer,
-        teacher_forced_training_strategy: crate::TassadarExecutorTeacherForcedTrainingStrategy::FullForwardWindow,
+        teacher_forced_training_strategy:
+            crate::TassadarExecutorTeacherForcedTrainingStrategy::FullForwardWindow,
         curriculum_stages: vec![
             crate::TassadarExecutorCurriculumStage::new("prompt_to_first_token", Some(1), 1),
             crate::TassadarExecutorCurriculumStage::new("prompt_to_first_2_tokens", Some(2), 1),
@@ -740,7 +759,11 @@ pub fn execute_tassadar_promotion_training_run(
 pub fn execute_tassadar_promotion_v2_training_run(
     output_dir: &Path,
 ) -> Result<TassadarExecutorReferenceRunBundle, TassadarExecutorRunError> {
-    execute_tassadar_training_run(output_dir, &tassadar_executor_promotion_v2_run_config(), None)
+    execute_tassadar_training_run(
+        output_dir,
+        &tassadar_executor_promotion_v2_run_config(),
+        None,
+    )
 }
 
 /// Executes one persisted Tassadar training run with an optional benchmark split filter.
@@ -1082,6 +1105,7 @@ where
 mod tests {
     use std::fs;
 
+    use psionic_runtime::TassadarClaimClass;
     use tempfile::tempdir;
 
     use super::{
@@ -1104,6 +1128,7 @@ mod tests {
             Some(psionic_data::TassadarSequenceSplit::Validation),
         )?;
 
+        assert_eq!(bundle.claim_class, TassadarClaimClass::LearnedBounded);
         assert!(temp.path().join(TRAINING_REPORT_FILE).exists());
         assert!(temp.path().join(CHECKPOINT_STATE_FILE).exists());
         assert!(temp.path().join(MODEL_ARTIFACT_FILE).exists());
@@ -1154,6 +1179,7 @@ mod tests {
             bundle.run_id,
             tassadar_executor_boundary_run_config().run_id
         );
+        assert_eq!(bundle.claim_class, TassadarClaimClass::LearnedBounded);
         assert_eq!(bundle.dataset_version, "train-v0");
         assert!(bundle.boundary_exactness_report_digest.is_some());
         assert!(bundle.divergence_histogram_report_digest.is_some());

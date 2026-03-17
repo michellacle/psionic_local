@@ -332,6 +332,12 @@ Current posture:
   matches, `32/32` exact refusal matches, `eval_only` posture), not learned
   Hungarian execution, not general Hungarian solver parity, and not article
   parity
+- the canonical coarse Tassadar claim vocabulary is now
+  `compiled_exact`, `compiled_article_class`, `learned_bounded`,
+  `learned_article_class`, and `research_only`; the canonical current
+  compiled, learned, and research bundles now carry a machine-readable
+  `claim_class`, while `claim_boundary`,
+  `boundary_label`, and `serve_posture` remain the finer-grained limits
 - its Phase 8A research family now exists in `psionic-research`, with a typed
   executor-variant family, benchmark/proof/lineage-backed bounded runs, and
   machine-readable sweep records for reproducible same-contract comparisons

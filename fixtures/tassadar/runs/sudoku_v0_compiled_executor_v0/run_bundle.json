@@ -1,6 +1,7 @@
 {
   "run_id": "tassadar-sudoku-v0-compiled-executor-v0",
   "workload_family_id": "tassadar.wasm.sudoku_v0_search.v1.compiled_executor",
+  "claim_class": "compiled_exact",
   "claim_boundary": "bounded compiled/proof-backed Sudoku-v0 executor lane exact on the matched corpus; not arbitrary-program closure and not exposed in serving by default",
   "serve_posture": "eval_only",
   "requested_decode_mode": "reference_linear",
@@ -132,5 +133,5 @@
   "exactness_report_digest": "3dbf95e3f02d7ce75db501f702c137770f9c87abe90347abfeb5747eff83c01a",
   "compatibility_report_digest": "a871e7027f08a90e4643c7f98c70bb9185055a15de1f0404e12c0f65b59bb5c2",
   "compiled_suite_artifact_digest": "089de13d7811928dc1a0be4c57f242752ff995c76e3b0cab86a331ff37842a94",
-  "bundle_digest": "2a9fcad99dd164fc34f283f28594085990b1e66b7f5ca37d652e92fd13b2d5dd"
+  "bundle_digest": "94bb2f9398cf02cb91393cc51db8ba5a44ee6195c9f8f87da3f6a4bf96319f67"
 }

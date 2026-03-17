@@ -415,6 +415,12 @@ The current scope is:
   instruction-set, execution-proxy, claim-boundary, and proof-expectation
   contracts, plus direct comparison against the handcrafted Wasm baseline and
   the bounded small-executor training lane on the validation corpus
+- the canonical coarse Tassadar claim vocabulary is now
+  `compiled_exact`, `compiled_article_class`, `learned_bounded`,
+  `learned_article_class`, and `research_only`; the canonical current
+  compiled, learned, and research bundles carry `claim_class`, while
+  `claim_boundary`, `boundary_label`, and `serve_posture` keep the tighter
+  executable and serving limits explicit
 - landed crate surfaces:
   - `psionic-runtime::tassadar`
   - `psionic-models::TassadarExecutorFixture`

@@ -225,6 +225,44 @@ means all of the following are true at once:
 - "arbitrary C code" claims only become honest after instruction coverage,
   compile receipts, workload suites, and acceptance runners say so
 
+## Claim Vocabulary
+
+Tassadar uses one coarse persisted `claim_class` vocabulary on run bundles,
+promotion bundles, and later acceptance artifacts. It does not replace:
+
+- `claim_boundary`, which keeps the execution boundary honest
+- `boundary_label`, which keeps train-side scope envelopes honest
+- `serve_posture`, which keeps serving exposure honest
+
+The canonical classes are:
+
+| `claim_class` | Meaning | Required artifacts before the claim can appear |
+| --- | --- | --- |
+| `research_only` | bounded research candidate or comparison run | a persisted research bundle plus its training, family, or experiment reports |
+| `learned_bounded` | learned executor result with an explicit bounded workload envelope | a learned run or promotion bundle plus exactness, failure, and fit artifacts that freeze the bounded envelope |
+| `compiled_exact` | exact compiled/proof-backed executor on a matched bounded corpus | a compiled run bundle plus exactness, compatibility/refusal, deployment, and proof artifacts |
+| `learned_article_class` | learned executor that clears the article-class acceptance bar | a learned bundle plus later-window exactness, fit closure, and the article acceptance artifacts from Epic 0 / `PTAS-003` |
+| `compiled_article_class` | exact compiled/proof-backed executor that clears the article-class acceptance bar | a compiled bundle plus article workload-matrix and acceptance artifacts from Epic 0 / `PTAS-003` |
+
+Until the acceptance artifacts in `PTAS-003` exist and turn green, no persisted
+artifact in this repo should honestly use either article-class claim.
+
+## Allowed Claim Transitions
+
+Allowed claim movement is intentionally narrow:
+
+- `research_only -> compiled_exact`
+- `research_only -> learned_bounded`
+- `compiled_exact -> compiled_article_class`
+- `learned_bounded -> learned_article_class`
+- staying in the same claim class for a new bounded run is allowed
+
+Not allowed:
+
+- any direct `research_only -> *_article_class` jump
+- any automatic compiled-to-learned or learned-to-compiled upgrade
+- treating `eval_only` serving posture as if it changed claim class by itself
+
 ## Explicit Non-Goals
 
 These are not goals of this roadmap:
@@ -286,7 +324,7 @@ oscillating between bounded research wins and implied article parity.
 | ID | Status | Work |
 | --- | --- | --- |
 | `PTAS-001` | implemented | Write the lane-specific Tassadar roadmap. This document closes that issue. |
-| `PTAS-002` | planned | Freeze the Tassadar claim vocabulary: `compiled_exact`, `compiled_article_class`, `learned_bounded`, `learned_article_class`, and `research_only`. |
+| `PTAS-002` | implemented | Freeze the Tassadar claim vocabulary: `compiled_exact`, `compiled_article_class`, `learned_bounded`, `learned_article_class`, and `research_only`. This document now defines the vocabulary and transition rules, and persisted bundles now carry `claim_class`. |
 | `PTAS-003` | planned | Add a machine-readable Tassadar acceptance report and repo-owned checker that gates article-parity claims. |
 | `PTAS-004` | planned | Add one compact roadmap-to-artifact index tying each Tassadar phase to canonical fixture roots, audits, and validation commands. |
 

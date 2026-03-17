@@ -9,6 +9,7 @@ use psionic_models::{
     TassadarExecutorAttentionTransformer, TassadarTraceTokenizer, TokenId, TokenSequence,
     TokenizerBoundary,
 };
+use psionic_runtime::TassadarClaimClass;
 use psionic_train::{
     TASSADAR_EXECUTOR_BEST_CHECKPOINT_MANIFEST_FILE, TASSADAR_EXECUTOR_EXACT_TRACE_SAMPLES_FILE,
     TASSADAR_EXECUTOR_EXACTNESS_CURVE_FILE, TASSADAR_EXECUTOR_FAILURE_SAMPLES_FILE,
@@ -26,17 +27,17 @@ use thiserror::Error;
 use crate::{
     TASSADAR_EXECUTOR_ATTENTION_CHECKPOINT_STATE_FILE,
     TASSADAR_EXECUTOR_ATTENTION_FAMILY_REPORT_FILE,
-    TASSADAR_EXECUTOR_ATTENTION_MODEL_DESCRIPTOR_FILE,
-    TASSADAR_EXECUTOR_ATTENTION_RUN_BUNDLE_FILE, TASSADAR_EXECUTOR_ATTENTION_TRAINING_REPORT_FILE,
-    TassadarExecutorAttentionCheckpointState, TassadarExecutorAttentionRunBundle,
-    TassadarExecutorAttentionTrainingConfig, TassadarExecutorAttentionTrainingError,
-    TassadarExecutorAttentionTrainingReport, TassadarExecutorAttentionTrainingStage,
-    run_tassadar_executor_attention_training_with_config,
+    TASSADAR_EXECUTOR_ATTENTION_MODEL_DESCRIPTOR_FILE, TASSADAR_EXECUTOR_ATTENTION_RUN_BUNDLE_FILE,
+    TASSADAR_EXECUTOR_ATTENTION_TRAINING_REPORT_FILE, TassadarExecutorAttentionCheckpointState,
+    TassadarExecutorAttentionRunBundle, TassadarExecutorAttentionTrainingConfig,
+    TassadarExecutorAttentionTrainingError, TassadarExecutorAttentionTrainingReport,
+    TassadarExecutorAttentionTrainingStage, run_tassadar_executor_attention_training_with_config,
 };
 
 const V9_CHECKPOINT_STATE_REF: &str =
     "fixtures/tassadar/runs/sudoku_v0_attention_boundary_v9/checkpoint_state.json";
-const V9_RUN_BUNDLE_REF: &str = "fixtures/tassadar/runs/sudoku_v0_attention_boundary_v9/run_bundle.json";
+const V9_RUN_BUNDLE_REF: &str =
+    "fixtures/tassadar/runs/sudoku_v0_attention_boundary_v9/run_bundle.json";
 const BOOTSTRAP_DIR_NAME: &str = "bootstrap_pc_boundary";
 const BOOTSTRAP_RUN_ID: &str = "tassadar-executor-attention-sudoku-v0-promotion-v3-bootstrap";
 const PROMOTION_RUN_ID: &str = "tassadar-executor-attention-sudoku-v0-promotion-v3";
@@ -45,6 +46,10 @@ const REQUIRED_FIRST_TARGET_EXACTNESS_BPS: u32 = 10_000;
 const REQUIRED_FIRST_32_TOKEN_EXACTNESS_BPS_EXCLUSIVE: u32 = 9_000;
 const REQUIRED_EXACT_TRACE_CASE_COUNT: u32 = 1;
 const EXACTNESS_CURVE_BUCKET_COUNT: usize = 256;
+
+const fn default_learned_bounded_claim_class() -> TassadarClaimClass {
+    TassadarClaimClass::LearnedBounded
+}
 
 /// Canonical output root for the green learned 4x4 promotion bundle.
 pub const TASSADAR_EXECUTOR_ATTENTION_PROMOTION_OUTPUT_DIR: &str =
@@ -56,6 +61,10 @@ pub struct TassadarExecutorAttentionPromotionRunBundle {
     pub run_id: String,
     /// Stable model identifier.
     pub model_id: String,
+    /// Coarse claim class. The promotion remains bounded even when the
+    /// validation gate is green.
+    #[serde(default = "default_learned_bounded_claim_class")]
+    pub claim_class: TassadarClaimClass,
     /// Relative output directory.
     pub output_dir: String,
     /// Relative bootstrap run bundle used for initialization.
@@ -91,6 +100,7 @@ impl TassadarExecutorAttentionPromotionRunBundle {
         let mut bundle = Self {
             run_id: run_bundle.run_id.clone(),
             model_id: run_bundle.model_id.clone(),
+            claim_class: TassadarClaimClass::LearnedBounded,
             output_dir: repo_relative_path(output_dir),
             bootstrap_run_bundle_ref,
             training_report_file: String::from(TASSADAR_EXECUTOR_ATTENTION_TRAINING_REPORT_FILE),
@@ -187,10 +197,7 @@ pub enum TassadarExecutorAttentionPromotionError {
     #[error(transparent)]
     Training(#[from] TassadarExecutorAttentionTrainingError),
     #[error("failed to read `{path}`: {error}")]
-    Read {
-        path: String,
-        error: std::io::Error,
-    },
+    Read { path: String, error: std::io::Error },
     #[error("failed to decode `{artifact_kind}` from `{path}`: {error}")]
     Deserialize {
         artifact_kind: String,
@@ -203,18 +210,18 @@ pub enum TassadarExecutorAttentionPromotionError {
         error: serde_json::Error,
     },
     #[error("failed to write `{path}`: {error}")]
-    Write {
-        path: String,
-        error: std::io::Error,
-    },
-    #[error("best checkpoint `{checkpoint_id}` is missing from the persisted attention training report")]
+    Write { path: String, error: std::io::Error },
+    #[error(
+        "best checkpoint `{checkpoint_id}` is missing from the persisted attention training report"
+    )]
     MissingBestCheckpoint { checkpoint_id: String },
 }
 
 /// Returns the bootstrap config that solves the `<pc>` boundary from the
 /// preserved `v9` checkpoint.
 #[must_use]
-pub fn tassadar_attention_promotion_bootstrap_reference() -> TassadarExecutorAttentionTrainingConfig {
+pub fn tassadar_attention_promotion_bootstrap_reference() -> TassadarExecutorAttentionTrainingConfig
+{
     let mut config = TassadarExecutorAttentionTrainingConfig::boundary_curriculum_reference();
     config.run_id = String::from(BOOTSTRAP_RUN_ID);
     config.learning_rate = 0.02;
@@ -261,11 +268,12 @@ pub fn tassadar_attention_promotion_reference(
 /// promotion artifacts required by issue `#7`.
 pub fn run_tassadar_executor_attention_promotion(
     output_dir: &Path,
-) -> Result<TassadarExecutorAttentionPromotionRunBundle, TassadarExecutorAttentionPromotionError>
-{
-    fs::create_dir_all(output_dir).map_err(|error| TassadarExecutorAttentionPromotionError::Write {
-        path: output_dir.display().to_string(),
-        error,
+) -> Result<TassadarExecutorAttentionPromotionRunBundle, TassadarExecutorAttentionPromotionError> {
+    fs::create_dir_all(output_dir).map_err(|error| {
+        TassadarExecutorAttentionPromotionError::Write {
+            path: output_dir.display().to_string(),
+            error,
+        }
     })?;
     let bootstrap_dir = output_dir.join(BOOTSTRAP_DIR_NAME);
     let _bootstrap_bundle = run_tassadar_executor_attention_training_with_config(
@@ -283,18 +291,14 @@ pub fn run_tassadar_executor_attention_promotion(
             bootstrap_run_bundle_ref.clone(),
         ),
     )?;
-    augment_tassadar_executor_attention_promotion_artifacts(
-        output_dir,
-        bootstrap_run_bundle_ref,
-    )
+    augment_tassadar_executor_attention_promotion_artifacts(output_dir, bootstrap_run_bundle_ref)
 }
 
 /// Generates the promotion-review artifacts for one persisted attention run.
 pub fn augment_tassadar_executor_attention_promotion_artifacts(
     output_dir: &Path,
     bootstrap_run_bundle_ref: String,
-) -> Result<TassadarExecutorAttentionPromotionRunBundle, TassadarExecutorAttentionPromotionError>
-{
+) -> Result<TassadarExecutorAttentionPromotionRunBundle, TassadarExecutorAttentionPromotionError> {
     let run_bundle: TassadarExecutorAttentionRunBundle = read_json(
         output_dir.join(TASSADAR_EXECUTOR_ATTENTION_RUN_BUNDLE_FILE),
         "tassadar_executor_attention_run_bundle",
@@ -340,9 +344,11 @@ pub fn augment_tassadar_executor_attention_promotion_artifacts(
         .epoch_reports
         .iter()
         .find(|epoch| epoch.checkpoint_id == training_report.best_checkpoint_id)
-        .ok_or_else(|| TassadarExecutorAttentionPromotionError::MissingBestCheckpoint {
-            checkpoint_id: training_report.best_checkpoint_id.clone(),
-        })?;
+        .ok_or_else(
+            || TassadarExecutorAttentionPromotionError::MissingBestCheckpoint {
+                checkpoint_id: training_report.best_checkpoint_id.clone(),
+            },
+        )?;
     let dataset_storage_key = dataset_bundle.dataset.storage_key().to_string();
     let dataset_digest = dataset_bundle.dataset.stable_digest();
     let checkpoint_state_digest = checkpoint_state.state_digest.clone();
@@ -382,8 +388,11 @@ pub fn augment_tassadar_executor_attention_promotion_artifacts(
         &family_report,
         best_epoch.stage_id.as_str(),
     );
-    let promotion_bundle =
-        TassadarExecutorAttentionPromotionRunBundle::new(&run_bundle, output_dir, bootstrap_run_bundle_ref);
+    let promotion_bundle = TassadarExecutorAttentionPromotionRunBundle::new(
+        &run_bundle,
+        output_dir,
+        bootstrap_run_bundle_ref,
+    );
 
     write_json(
         output_dir.join(TASSADAR_EXECUTOR_BEST_CHECKPOINT_MANIFEST_FILE),
@@ -523,7 +532,10 @@ fn build_exactness_curve_report(
                     .correctness
                     .aggregate_target_token_exactness_bps,
                 first_target_exactness_bps: epoch.validation.correctness.first_target_exactness_bps,
-                first_8_token_exactness_bps: epoch.validation.correctness.first_8_token_exactness_bps,
+                first_8_token_exactness_bps: epoch
+                    .validation
+                    .correctness
+                    .first_8_token_exactness_bps,
                 first_32_token_exactness_bps: epoch
                     .validation
                     .correctness

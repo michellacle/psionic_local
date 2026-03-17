@@ -9,7 +9,7 @@ use psionic_eval::{
     build_tassadar_compiled_executor_exactness_report,
     build_tassadar_sudoku_v0_compiled_executor_corpus,
 };
-use psionic_runtime::TassadarExecutorDecodeMode;
+use psionic_runtime::{TassadarClaimClass, TassadarExecutorDecodeMode};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use thiserror::Error;
@@ -35,6 +35,10 @@ const RUNTIME_CONTRACT_FILE: &str = "runtime_contract.json";
 const COMPILED_WEIGHT_BUNDLE_FILE: &str = "compiled_weight_bundle.json";
 const COMPILE_EVIDENCE_BUNDLE_FILE: &str = "compile_evidence_bundle.json";
 const MODEL_DESCRIPTOR_FILE: &str = "model_descriptor.json";
+
+const fn default_compiled_exact_claim_class() -> TassadarClaimClass {
+    TassadarClaimClass::CompiledExact
+}
 
 /// Persisted per-case compiled deployment bundle.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -106,6 +110,10 @@ pub struct TassadarCompiledExecutorRunBundle {
     pub run_id: String,
     /// Stable workload family id.
     pub workload_family_id: String,
+    /// Coarse claim class. `claim_boundary` and `serve_posture` keep the finer
+    /// executable boundary explicit.
+    #[serde(default = "default_compiled_exact_claim_class")]
+    pub claim_class: TassadarClaimClass,
     /// Explicit claim boundary.
     pub claim_boundary: String,
     /// Serving posture for the lane.
@@ -140,6 +148,7 @@ impl TassadarCompiledExecutorRunBundle {
         let mut bundle = Self {
             run_id: String::from("tassadar-sudoku-v0-compiled-executor-v0"),
             workload_family_id: exactness_report.workload_family_id.clone(),
+            claim_class: TassadarClaimClass::CompiledExact,
             claim_boundary: String::from(
                 "bounded compiled/proof-backed Sudoku-v0 executor lane exact on the matched corpus; not arbitrary-program closure and not exposed in serving by default",
             ),
@@ -339,6 +348,7 @@ mod tests {
         TASSADAR_COMPILED_EXECUTOR_EXACTNESS_REPORT_FILE,
         TASSADAR_COMPILED_EXECUTOR_SUITE_ARTIFACT_FILE, run_tassadar_compiled_executor_bundle,
     };
+    use psionic_runtime::TassadarClaimClass;
 
     #[test]
     fn compiled_executor_bundle_writes_reports_and_deployments()
@@ -346,6 +356,7 @@ mod tests {
         let temp = tempdir()?;
         let bundle = run_tassadar_compiled_executor_bundle(temp.path())?;
 
+        assert_eq!(bundle.claim_class, TassadarClaimClass::CompiledExact);
         assert_eq!(bundle.deployments.len(), 8);
         assert!(
             temp.path()

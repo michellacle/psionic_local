@@ -12,6 +12,7 @@ use psionic_eval::{
 use psionic_models::{
     TassadarExecutorAttentionError, TassadarExecutorAttentionTransformer, TokenId, TokenSequence,
 };
+use psionic_runtime::TassadarClaimClass;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use thiserror::Error;
@@ -37,6 +38,10 @@ pub const TASSADAR_EXECUTOR_ATTENTION_CHECKPOINT_STATE_FILE: &str = "checkpoint_
 pub const TASSADAR_EXECUTOR_ATTENTION_MODEL_DESCRIPTOR_FILE: &str = "model_descriptor.json";
 /// Canonical top-level run bundle artifact.
 pub const TASSADAR_EXECUTOR_ATTENTION_RUN_BUNDLE_FILE: &str = "run_bundle.json";
+
+const fn default_research_only_claim_class() -> TassadarClaimClass {
+    TassadarClaimClass::ResearchOnly
+}
 
 fn tassadar_progress_updates_enabled() -> bool {
     match std::env::var("OPENAGENTS_TASSADAR_PROGRESS") {
@@ -528,6 +533,10 @@ pub struct TassadarExecutorAttentionRunBundle {
     pub run_id: String,
     /// Stable model identifier.
     pub model_id: String,
+    /// Coarse claim class. This stays `research_only` until a separate bounded
+    /// learned or article-class promotion artifact exists.
+    #[serde(default = "default_research_only_claim_class")]
+    pub claim_class: TassadarClaimClass,
     /// Relative output directory.
     pub output_dir: String,
     /// Relative training report artifact.
@@ -547,6 +556,7 @@ impl TassadarExecutorAttentionRunBundle {
         let mut bundle = Self {
             run_id: run_id.to_string(),
             model_id: model.descriptor().model.model_id.clone(),
+            claim_class: TassadarClaimClass::ResearchOnly,
             output_dir: output_dir.display().to_string(),
             training_report_file: String::from(TASSADAR_EXECUTOR_ATTENTION_TRAINING_REPORT_FILE),
             family_report_file: String::from(TASSADAR_EXECUTOR_ATTENTION_FAMILY_REPORT_FILE),
@@ -1285,6 +1295,7 @@ mod tests {
         repo_root, run_tassadar_executor_attention_training,
         train_tassadar_executor_attention_windowed,
     };
+    use psionic_runtime::TassadarClaimClass;
 
     #[test]
     fn attention_training_repo_root_points_at_extracted_workspace_root() {
@@ -1315,6 +1326,7 @@ mod tests {
 
         let temp = tempdir()?;
         let bundle = run_tassadar_executor_attention_training(temp.path())?;
+        assert_eq!(bundle.claim_class, TassadarClaimClass::ResearchOnly);
         assert!(!bundle.bundle_digest.is_empty());
         assert!(
             temp.path()

@@ -225,6 +225,13 @@ That now includes one intentionally narrow executor-training answer:
 - the resulting claim is intentionally scoped to the validation corpus only; it
   is not a claim that larger learned executors, broader Wasm coverage, or
   compile-to-weights work are already complete in Psionic
+- the canonical coarse Tassadar claim vocabulary is now
+  `compiled_exact`, `compiled_article_class`, `learned_bounded`,
+  `learned_article_class`, and `research_only`; train-side learned bundles
+  generated from the current code now persist `claim_class=learned_bounded`,
+  while `boundary_label`,
+  `claim_boundary`, and `serve_posture` keep the narrower learned-vs-compiled
+  and serving limits explicit
 - the runtime side now does carry the first honest broader-executor substrate
   for later training work: `tassadar.wasm.sudoku_v0_search.v1` can represent a
   real 4x4 backtracking Sudoku program on the CPU reference lane, but that is

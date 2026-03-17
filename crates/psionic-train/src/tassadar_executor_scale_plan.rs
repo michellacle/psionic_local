@@ -468,6 +468,7 @@ mod tests {
 
     use psionic_data::TassadarSequenceSplit;
     use psionic_models::TassadarExecutorTrainableSurface;
+    use psionic_runtime::TassadarClaimClass;
     use tempfile::tempdir;
 
     use super::{
@@ -485,6 +486,7 @@ mod tests {
         let run_bundle = TassadarExecutorReferenceRunBundle {
             schema_version: 1,
             run_id: String::from("tassadar-executor-transformer-sudoku-v0-reference-run-v0"),
+            claim_class: TassadarClaimClass::LearnedBounded,
             trainable_surface: TassadarExecutorTrainableSurface::OutputHeadOnly,
             dataset_version: String::from("train-v0"),
             dataset_storage_key: String::from("oa.tassadar.sudoku_v0.sequence@train-v0"),

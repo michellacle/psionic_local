@@ -32,6 +32,45 @@ pub const TASSADAR_TRACE_PROOF_SCHEMA_VERSION: u16 = 1;
 /// Stable claims-profile identifier for the Tassadar proof lane.
 pub const TASSADAR_PROOF_CLAIMS_PROFILE_ID: &str = "tassadar.executor_trace.proof.v1";
 
+/// Coarse claim class for persisted Tassadar artifacts.
+///
+/// This is the top-level vocabulary used to keep compiled, learned, and
+/// research-only results distinct. It does not replace finer-grained fields
+/// such as `claim_boundary`, `boundary_label`, or `serve_posture`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TassadarClaimClass {
+    /// Exact compiled/proof-backed execution on a matched bounded corpus.
+    CompiledExact,
+    /// Exact compiled/proof-backed execution on the accepted article-class bar.
+    CompiledArticleClass,
+    /// Learned execution with an explicit bounded envelope.
+    LearnedBounded,
+    /// Learned execution that clears the accepted article-class bar.
+    LearnedArticleClass,
+    /// Research-only results that are not yet promoted to an executor claim.
+    ResearchOnly,
+}
+
+impl TassadarClaimClass {
+    /// Returns whether one claim class can honestly advance to another without
+    /// changing lanes.
+    #[must_use]
+    pub fn allows_transition_to(self, next: Self) -> bool {
+        if self == next {
+            return true;
+        }
+        matches!(
+            (self, next),
+            (
+                Self::ResearchOnly,
+                Self::CompiledExact | Self::LearnedBounded
+            ) | (Self::CompiledExact, Self::CompiledArticleClass)
+                | (Self::LearnedBounded, Self::LearnedArticleClass)
+        )
+    }
+}
+
 /// Stable decode modes for the Tassadar executor lane.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -5556,6 +5595,8 @@ fn stable_bytes_digest(bytes: &[u8]) -> String {
 
 #[cfg(test)]
 mod tests {
+    use crate::TassadarClaimClass;
+
     use super::{
         TASSADAR_FIXTURE_RUNNER_ID, TASSADAR_RUNTIME_BACKEND_ID, TassadarCompilerToolchainIdentity,
         TassadarCpuReferenceRunner, TassadarExecutionRefusal, TassadarExecutorDecodeMode,
@@ -6411,6 +6452,34 @@ mod tests {
         assert_eq!(
             evidence.trace_proof.runtime_manifest_identity_digest,
             evidence.runtime_manifest.identity_digest
+        );
+    }
+
+    #[test]
+    fn tassadar_claim_class_transitions_preserve_lane_separation() {
+        assert!(
+            TassadarClaimClass::ResearchOnly
+                .allows_transition_to(TassadarClaimClass::CompiledExact)
+        );
+        assert!(
+            TassadarClaimClass::ResearchOnly
+                .allows_transition_to(TassadarClaimClass::LearnedBounded)
+        );
+        assert!(
+            TassadarClaimClass::CompiledExact
+                .allows_transition_to(TassadarClaimClass::CompiledArticleClass)
+        );
+        assert!(
+            TassadarClaimClass::LearnedBounded
+                .allows_transition_to(TassadarClaimClass::LearnedArticleClass)
+        );
+        assert!(
+            !TassadarClaimClass::CompiledExact
+                .allows_transition_to(TassadarClaimClass::LearnedArticleClass)
+        );
+        assert!(
+            !TassadarClaimClass::LearnedBounded
+                .allows_transition_to(TassadarClaimClass::CompiledArticleClass)
         );
     }
 }
