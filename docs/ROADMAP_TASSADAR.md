@@ -247,6 +247,26 @@ The canonical classes are:
 Until the acceptance artifacts in `PTAS-003` exist and turn green, no persisted
 artifact in this repo should honestly use either article-class claim.
 
+The machine-readable acceptance report in
+`fixtures/tassadar/reports/tassadar_acceptance_report.json` now maps those
+claim boundaries to live repo truth:
+
+- `research_only = true` allows only `research_only` wording for the preserved
+  research bundle
+- `compiled_exact = true` allows `compiled_exact` wording for the bounded
+  compiled/proof-backed Sudoku-v0 and Hungarian-v0 lanes
+- `learned_bounded = true` allows `learned_bounded` wording for the green 4x4
+  learned promotion bundle
+- `fast_path_declared_workload_exact = true` allows only bounded fast-path
+  equivalence wording for the declared Sudoku-v0 hull benchmark window; it does
+  not authorize full-task or article-parity language by itself
+- `compiled_article_class = true` is required before any
+  `compiled_article_class` language can appear honestly
+- `learned_article_class = true` is required before any
+  `learned_article_class` language can appear honestly
+- `article_closure = true` is required before article-parity or
+  "the article claim is reproduced in-tree" wording can appear honestly
+
 ## Allowed Claim Transitions
 
 Allowed claim movement is intentionally narrow:
@@ -325,7 +345,7 @@ oscillating between bounded research wins and implied article parity.
 | --- | --- | --- |
 | `PTAS-001` | implemented | Write the lane-specific Tassadar roadmap. This document closes that issue. |
 | `PTAS-002` | implemented | Freeze the Tassadar claim vocabulary: `compiled_exact`, `compiled_article_class`, `learned_bounded`, `learned_article_class`, and `research_only`. This document now defines the vocabulary and transition rules, and persisted bundles now carry `claim_class`. |
-| `PTAS-003` | planned | Add a machine-readable Tassadar acceptance report and repo-owned checker that gates article-parity claims. |
+| `PTAS-003` | implemented | The repo now has a machine-readable Tassadar acceptance report at `fixtures/tassadar/reports/tassadar_acceptance_report.json`, a repo-owned checker command at `scripts/check-tassadar-acceptance.sh`, and explicit green/red mapping from acceptance fields to allowed claim language. |
 | `PTAS-004` | planned | Add one compact roadmap-to-artifact index tying each Tassadar phase to canonical fixture roots, audits, and validation commands. |
 
 ## Epic 1: Wasm Substrate Closure

@@ -13,17 +13,19 @@ use sha2::{Digest, Sha256};
 use thiserror::Error;
 
 mod runner;
+mod tassadar_acceptance;
+mod tassadar_architecture_comparison;
 mod tassadar_attention_promotion;
 mod tassadar_attention_training;
-mod tassadar_architecture_comparison;
 mod tassadar_compiled_executor_bundle;
 mod tassadar_hungarian_compiled_executor_bundle;
 mod tassadar_surface_ablation;
 
 pub use runner::*;
+pub use tassadar_acceptance::*;
+pub use tassadar_architecture_comparison::*;
 pub use tassadar_attention_promotion::*;
 pub use tassadar_attention_training::*;
-pub use tassadar_architecture_comparison::*;
 pub use tassadar_compiled_executor_bundle::*;
 pub use tassadar_hungarian_compiled_executor_bundle::*;
 pub use tassadar_surface_ablation::*;

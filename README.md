@@ -338,6 +338,11 @@ Current posture:
   compiled, learned, and research bundles now carry a machine-readable
   `claim_class`, while `claim_boundary`,
   `boundary_label`, and `serve_posture` remain the finer-grained limits
+- the repo now also carries one machine-readable Tassadar acceptance report at
+  `fixtures/tassadar/reports/tassadar_acceptance_report.json` plus one
+  checker command at `scripts/check-tassadar-acceptance.sh`; that report keeps
+  current bounded compiled, bounded learned, research-only, bounded fast-path,
+  and still-red article-class truth explicit in one place
 - its Phase 8A research family now exists in `psionic-research`, with a typed
   executor-variant family, benchmark/proof/lineage-backed bounded runs, and
   machine-readable sweep records for reproducible same-contract comparisons
@@ -1024,4 +1029,8 @@ For canonical current-state detail, use `docs/ARCHITECTURE.md` and
 - **[docs/ACTIVATION_FINGERPRINT_PROOFS.md](docs/ACTIVATION_FINGERPRINT_PROOFS.md)** — activation-fingerprint proof posture, embeddings-first artifact generation, and benchmark semantics.
 - **[docs/ROADMAP_FM.md](docs/ROADMAP_FM.md)** — Apple FM lane roadmap and API coverage.
 - **[docs/ROADMAP_TASSADAR.md](docs/ROADMAP_TASSADAR.md)** — Tassadar lane roadmap from the current bounded executor substrate to article-grade WebAssembly in-model compute.
+- `scripts/check-tassadar-acceptance.sh` and
+  `fixtures/tassadar/reports/tassadar_acceptance_report.json` are the canonical
+  live checker and machine-readable acceptance artifact for current Tassadar
+  claim truth.
 - Other planning and reference docs live under `docs/`.

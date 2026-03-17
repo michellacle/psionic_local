@@ -1,0 +1,192 @@
+{
+  "schema_version": 1,
+  "checker_command": "scripts/check-tassadar-acceptance.sh",
+  "report_ref": "fixtures/tassadar/reports/tassadar_acceptance_report.json",
+  "fixture_root": "fixtures/tassadar/runs",
+  "allowed_claim_classes": [
+    "research_only",
+    "compiled_exact",
+    "learned_bounded"
+  ],
+  "disallowed_claim_classes": [
+    "compiled_article_class",
+    "learned_article_class"
+  ],
+  "article_parity_language_allowed": false,
+  "research_only": {
+    "verdict_id": "research_only",
+    "passed": true,
+    "detail": "The preserved Sudoku-v0 attention boundary bundle remains explicitly research-only and is not promoted to a learned or compiled executor claim.",
+    "validation_commands": [
+      "cargo test -p psionic-research attention_training_reduces_loss_and_writes_bundle"
+    ],
+    "evidence": [
+      {
+        "label": "preserved research-only attention run bundle",
+        "artifact_ref": "fixtures/tassadar/runs/sudoku_v0_attention_boundary_v9/run_bundle.json",
+        "digest": "59f97a1f96eb7e95853be6f810ec719846e8bb68fd8bd74dfe5ebc89367ed2ac"
+      }
+    ]
+  },
+  "compiled_exact": {
+    "verdict_id": "compiled_exact",
+    "passed": true,
+    "detail": "The bounded compiled/proof-backed Sudoku-v0 and Hungarian-v0 lanes are exact on their matched corpora and preserve exact refusal truth; this remains bounded compiled exactness, not article-class closure.",
+    "validation_commands": [
+      "cargo test -p psionic-research compiled_executor_bundle_writes_reports_and_deployments",
+      "cargo test -p psionic-research compiled_hungarian_executor_bundle_writes_reports_and_deployments"
+    ],
+    "evidence": [
+      {
+        "label": "bounded compiled Sudoku run bundle",
+        "artifact_ref": "fixtures/tassadar/runs/sudoku_v0_compiled_executor_v0/run_bundle.json",
+        "digest": "94bb2f9398cf02cb91393cc51db8ba5a44ee6195c9f8f87da3f6a4bf96319f67"
+      },
+      {
+        "label": "bounded compiled Sudoku exactness report",
+        "artifact_ref": "fixtures/tassadar/runs/sudoku_v0_compiled_executor_v0/compiled_executor_exactness_report.json",
+        "digest": "3dbf95e3f02d7ce75db501f702c137770f9c87abe90347abfeb5747eff83c01a"
+      },
+      {
+        "label": "bounded compiled Sudoku compatibility report",
+        "artifact_ref": "fixtures/tassadar/runs/sudoku_v0_compiled_executor_v0/compiled_executor_compatibility_report.json",
+        "digest": "a871e7027f08a90e4643c7f98c70bb9185055a15de1f0404e12c0f65b59bb5c2"
+      },
+      {
+        "label": "bounded compiled Hungarian run bundle",
+        "artifact_ref": "fixtures/tassadar/runs/hungarian_v0_compiled_executor_v0/run_bundle.json",
+        "digest": "1d92730054062aaa6801f9e3d1b4b0ed60e5be0b988eda2fa6cf6e258604e59b"
+      },
+      {
+        "label": "bounded compiled Hungarian exactness report",
+        "artifact_ref": "fixtures/tassadar/runs/hungarian_v0_compiled_executor_v0/compiled_executor_exactness_report.json",
+        "digest": "f072f2f74c6856dd076be4ce301f36a48e2e7d6a3b799864fc577f52731a1584"
+      },
+      {
+        "label": "bounded compiled Hungarian compatibility report",
+        "artifact_ref": "fixtures/tassadar/runs/hungarian_v0_compiled_executor_v0/compiled_executor_compatibility_report.json",
+        "digest": "fd49bf4dd82362798eab9c86696d37f16cf4cdf7b2e0f848681a6b4c29a7829a"
+      },
+      {
+        "label": "compiled-vs-learned Hungarian lane status",
+        "artifact_ref": "fixtures/tassadar/runs/hungarian_v0_compiled_executor_v0/hungarian_lane_status_report.json",
+        "digest": "55e7ca9f4d1ca9c26095f3988410f111c72b1a9084779781311bbbdb7011bd8a"
+      }
+    ]
+  },
+  "learned_bounded": {
+    "verdict_id": "learned_bounded",
+    "passed": true,
+    "detail": "The learned Sudoku-v0 promotion bundle is green on its explicit 4x4 boundary and remains honestly bounded rather than article-class.",
+    "validation_commands": [
+      "cargo test -p psionic-train promotion_gate_checker_matches_committed_green_attention_bundle",
+      "scripts/check-tassadar-4x4-promotion-gate.sh"
+    ],
+    "evidence": [
+      {
+        "label": "learned promotion bundle",
+        "artifact_ref": "fixtures/tassadar/runs/sudoku_v0_promotion_v3/promotion_bundle.json",
+        "digest": "7c87d98bc50b2563a45bd71b24f47625837f1611bb3285af2d9e13300f2139bf"
+      },
+      {
+        "label": "learned promotion gate report",
+        "artifact_ref": "fixtures/tassadar/runs/sudoku_v0_promotion_v3/promotion_gate_report.json",
+        "digest": "732df3f1bd53b25f74cf0bfeaba17296dbec57a959562bb0a8c24b8ee644af20"
+      }
+    ]
+  },
+  "fast_path_declared_workload_exact": {
+    "verdict_id": "fast_path_declared_workload_exact",
+    "passed": true,
+    "detail": "The committed hull-cache fast path runs directly with no fallback or refusal and matches the bounded reference-linear decode on all declared Sudoku-v0 benchmark windows; this is bounded fast-path equivalence, not full article-class task exactness.",
+    "validation_commands": [
+      "cargo test -p psionic-eval neural_hull_benchmark_reports_direct_hull_selection_and_window_cap"
+    ],
+    "evidence": [
+      {
+        "label": "reference run bundle with hull benchmark digest",
+        "artifact_ref": "fixtures/tassadar/runs/sudoku_v0_reference_run_v0/run_bundle.json",
+        "digest": "e6ce2cc2854b10fdec50ff0d1082596c086059ed06af2cbccbce6501652b95f9"
+      },
+      {
+        "label": "neural hull benchmark report",
+        "artifact_ref": "fixtures/tassadar/runs/sudoku_v0_reference_run_v0/neural_hull_benchmark_report.json",
+        "digest": "58abf6df4d2d2ac34b61b4f64a9a4cb14952c2538143d865c3448c9ea24f9cbd"
+      },
+      {
+        "label": "neural hull benchmark report digest",
+        "artifact_ref": "fixtures/tassadar/runs/sudoku_v0_reference_run_v0/neural_hull_benchmark_report.json",
+        "digest": "58abf6df4d2d2ac34b61b4f64a9a4cb14952c2538143d865c3448c9ea24f9cbd"
+      }
+    ]
+  },
+  "compiled_article_class": {
+    "verdict_id": "compiled_article_class",
+    "passed": false,
+    "detail": "Compiled article-class closure is still red: the strongest exact compiled artifacts are the bounded 4x4 Sudoku-v0 and Hungarian-v0 bundles, and the repo still lacks the article-class workload matrix and larger exact compiled bundles.",
+    "validation_commands": [
+      "scripts/check-tassadar-acceptance.sh"
+    ],
+    "evidence": [
+      {
+        "label": "bounded compiled Sudoku run bundle",
+        "artifact_ref": "fixtures/tassadar/runs/sudoku_v0_compiled_executor_v0/run_bundle.json",
+        "digest": "94bb2f9398cf02cb91393cc51db8ba5a44ee6195c9f8f87da3f6a4bf96319f67"
+      },
+      {
+        "label": "bounded compiled Hungarian run bundle",
+        "artifact_ref": "fixtures/tassadar/runs/hungarian_v0_compiled_executor_v0/run_bundle.json",
+        "digest": "1d92730054062aaa6801f9e3d1b4b0ed60e5be0b988eda2fa6cf6e258604e59b"
+      }
+    ],
+    "missing_evidence": [
+      "PTAS-105 article-class workload capability matrix",
+      "PTAS-302 exact compiled/proof-backed 9x9 Sudoku bundle",
+      "PTAS-303 exact compiled/proof-backed 10x10 Hungarian bundle",
+      "PTAS-304 generic compiled arithmetic/memory/branch/loop kernel suite",
+      "PTAS-305 compiled article-closure checker"
+    ]
+  },
+  "learned_article_class": {
+    "verdict_id": "learned_article_class",
+    "passed": false,
+    "detail": "Learned article-class closure is still red: the committed 9x9 fit report says full sequences do not fit the current learned model context and the lane remains bounded.",
+    "validation_commands": [
+      "scripts/check-tassadar-acceptance.sh"
+    ],
+    "evidence": [
+      {
+        "label": "bounded learned promotion bundle",
+        "artifact_ref": "fixtures/tassadar/runs/sudoku_v0_promotion_v3/promotion_bundle.json",
+        "digest": "7c87d98bc50b2563a45bd71b24f47625837f1611bb3285af2d9e13300f2139bf"
+      },
+      {
+        "label": "learned 9x9 fit report",
+        "artifact_ref": "fixtures/tassadar/runs/sudoku_9x9_v0_reference_run_v0/sequence_fit_report.json",
+        "digest": "52a905a173672ec49b4c9e8152034696e52535308558810e1652478db888c65d"
+      }
+    ],
+    "missing_evidence": [
+      "PTAS-501 remove the learned 9x9 fit cliff honestly",
+      "PTAS-502 truthful learned 9x9 promotion gate with later-window criteria",
+      "PTAS-503 learned Hungarian-class lane with explicit dual-state supervision",
+      "PTAS-504 million-step learned benchmark or explicit refusal policy",
+      "PTAS-505 learned article-closure audit"
+    ]
+  },
+  "article_closure": {
+    "verdict_id": "article_closure",
+    "passed": false,
+    "detail": "Final article-parity closure remains red because the compiled article-class bar is not closed, even though bounded fast-path and bounded learned facts are separately recorded.",
+    "validation_commands": [
+      "scripts/check-tassadar-acceptance.sh"
+    ],
+    "missing_evidence": [
+      "compiled/proof-backed article-class workloads must turn green",
+      "fast decode truth must stay explicit on its exact workload class",
+      "learned-lane claims must remain separately justified"
+    ]
+  },
+  "current_truth_holds": true,
+  "report_digest": "e82862dc8458fe876a30a4d0b53053604e072dbc609adf4d426c34726218ed66"
+}
