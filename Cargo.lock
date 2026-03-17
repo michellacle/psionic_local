@@ -3647,6 +3647,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "psionic-mlx-recipes"
+version = "0.1.1"
+dependencies = [
+ "psionic-environments",
+ "psionic-train",
+ "serde",
+ "serde_json",
+ "sha2",
+ "thiserror 2.0.18",
+]
+
+[[package]]
 name = "psionic-mlx-serve"
 version = "0.1.1"
 dependencies = [

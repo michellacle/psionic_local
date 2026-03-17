@@ -549,6 +549,9 @@ Current posture:
 - `psionic-mlx-audio`: bounded MLX-style audio package with CPU-reference
   synthesis, WAV IO, codec helpers, streaming chunk contracts, and
   server-facing speech request surfaces.
+- `psionic-mlx-recipes`: bounded MLX-style training-recipe package and CLI
+  above `psionic-train`, including method inventory plus plan emission for
+  SFT, LoRA/DoRA/QLoRA, preference, and RL-family recipes.
 
 ### Backend And Platform Lanes
 
@@ -720,6 +723,9 @@ Implemented now:
   `kokoro`, `xtts`, and `encodec`-class family metadata, quantized-checkpoint
   descriptors, WAV IO, text-to-speech and speech-to-speech request contracts,
   stream-chunk outputs, and a CPU-reference audio server contract.
+- `psionic-mlx-recipes` bounded MLX-style training-recipe package over
+  `psionic-train`, with machine-readable method inventory plus `plan` and
+  `methods` CLIs for SFT, adapter, preference, and RL-style recipe families.
 - CPU baseline plus a first Metal-backed `psionic.embeddings` lane.
 - generic CPU GGUF decoder execution for GPT-OSS plus representative Llama,
   Qwen, and Mistral families through one Psionic-owned runtime surface.
@@ -1002,6 +1008,10 @@ For canonical current-state detail, use `docs/ARCHITECTURE.md` and
   canonical bounded audio package spec for `psionic-mlx-audio`, including
   family/quantization metadata, WAV IO, text-to-speech and speech-to-speech
   requests, stream chunks, and the server-facing speech contract.
+- **[docs/MLX_RECIPE_PACKAGE.md](docs/MLX_RECIPE_PACKAGE.md)** —
+  canonical bounded training-recipe package spec for `psionic-mlx-recipes`,
+  including method inventory, stage mapping, adapter posture, and recipe-plan
+  emission above `psionic-train`.
 - **[docs/INFERENCE_ENGINE.md](docs/INFERENCE_ENGINE.md)** — canonical
   inference-engine completion criteria and current boundaries.
 - **[docs/TRAIN_SYSTEM.md](docs/TRAIN_SYSTEM.md)** — canonical training
