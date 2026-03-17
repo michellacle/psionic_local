@@ -1,0 +1,103 @@
+{
+  "run_id": "tassadar-executor-transformer-sudoku-9x9-reference-run-v0",
+  "claim_class": "learned_bounded",
+  "trainable_surface": "output_head_only",
+  "checkpoint_id": "tassadar-executor-transformer-sudoku-9x9-reference-run-v0.checkpoint.epoch_0004",
+  "selected_stage_id": "full_trace_supervision",
+  "fit_disposition": "bounded_scope_replacement",
+  "one_pass_full_sequence_required_for_declared_contract": false,
+  "full_sequence_fits_model_context": false,
+  "full_sequence_context_overflow_max": 4811021,
+  "scope_statement": "Full 9x9 sequences still exceed one-pass context by 4366934 to 4811021 tokens, but the canonical learned lane is explicitly re-scoped to bounded `incremental_decode_window` windows with separate early, later, and suffix artifacts instead of pretending flat-prefix fit.",
+  "early_prefix_window": {
+    "window_id": "early_prefix_512",
+    "mode": "prefix",
+    "start_target_token_index": 0,
+    "target_token_count": 512,
+    "aggregate_target_token_exactness_bps": 8125,
+    "first_target_exactness_bps": 10000,
+    "first_8_token_exactness_bps": 7500,
+    "first_32_token_exactness_bps": 5938,
+    "exact_window_case_count": 0,
+    "full_trace_exact_case_count": 0,
+    "final_output_exact_case_count": 0,
+    "halt_exact_case_count": 0
+  },
+  "later_offset_window": {
+    "window_id": "later_offset_262144_512",
+    "mode": "offset",
+    "start_target_token_index": 262144,
+    "target_token_count": 512,
+    "aggregate_target_token_exactness_bps": 7852,
+    "first_target_exactness_bps": 10000,
+    "first_8_token_exactness_bps": 8750,
+    "first_32_token_exactness_bps": 8438,
+    "exact_window_case_count": 0,
+    "full_trace_exact_case_count": 0,
+    "final_output_exact_case_count": 0,
+    "halt_exact_case_count": 0
+  },
+  "furthest_fittable_suffix_window": {
+    "window_id": "furthest_fittable_suffix_512",
+    "mode": "furthest_fittable_suffix",
+    "target_token_count": 512,
+    "aggregate_target_token_exactness_bps": 8008,
+    "first_target_exactness_bps": 10000,
+    "first_8_token_exactness_bps": 8750,
+    "first_32_token_exactness_bps": 8438,
+    "exact_window_case_count": 0,
+    "full_trace_exact_case_count": 0,
+    "final_output_exact_case_count": 0,
+    "halt_exact_case_count": 0
+  },
+  "full_trace_exact_case_count_across_gate_windows": 0,
+  "required_full_sequence_fit": true,
+  "required_window_first_target_exactness_bps": 10000,
+  "required_window_first_32_token_exactness_bps_strictly_greater_than": 9000,
+  "required_exact_window_case_count": 1,
+  "required_full_trace_exact_case_count": 1,
+  "passed": false,
+  "failures": [
+    {
+      "kind": "full_sequence_fit_unavailable",
+      "actual": 0,
+      "required": 1
+    },
+    {
+      "kind": "early_prefix_first32_token_exactness_below_threshold",
+      "actual": 5938,
+      "required": 9001
+    },
+    {
+      "kind": "early_prefix_exact_window_count_below_threshold",
+      "actual": 0,
+      "required": 1
+    },
+    {
+      "kind": "later_offset_first32_token_exactness_below_threshold",
+      "actual": 8438,
+      "required": 9001
+    },
+    {
+      "kind": "later_offset_exact_window_count_below_threshold",
+      "actual": 0,
+      "required": 1
+    },
+    {
+      "kind": "suffix_window_first32_token_exactness_below_threshold",
+      "actual": 8438,
+      "required": 9001
+    },
+    {
+      "kind": "suffix_window_exact_window_count_below_threshold",
+      "actual": 0,
+      "required": 1
+    },
+    {
+      "kind": "full_trace_exact_case_count_below_threshold",
+      "actual": 0,
+      "required": 1
+    }
+  ],
+  "report_digest": "e81ab15c3d86cf8a772a2a1b91fdf11831519a3c290d5a4af28e4aa9b0a90ec2"
+}

@@ -19,11 +19,18 @@
   "checkpoint_leaderboard_report_digest": "7eebaec873731cace51a18c09c421d436a840b0f1424c63dd8ce5dc7ef32231b",
   "exactness_curve_report_digest": "40bb68ee1d22868064bc187e44f3cb3afda70005ea0557af5600799ed0ea6b3e",
   "failure_samples_report_digest": "1431af7f7a6e1d75357707efc78037dc7019c8d46c6b89e85fdbed0241df93c7",
+  "best_checkpoint_manifest_digest": "8e185aec4890f1f4add3f4d171808320d92bddeefb212864e33cbd6f95eea828",
   "exact_trace_samples_report_digest": "4c6c5b6dc33d10a6ffb53da4fbfa87b4f15e4b467ea9d5320044417ee78c4e45",
   "sequence_fit_report_digest": "46941cb172330e8d10f7e7560756a1beb3d5e68759c50396b56116faa8390ac6",
+  "promotion_gate_report_digest": "e81ab15c3d86cf8a772a2a1b91fdf11831519a3c290d5a4af28e4aa9b0a90ec2",
   "checkpoint_artifact_digest": "8d3b7ab2bfda33b4ac393b5ddb6dd6de8e5550433487742880244ac796c32095",
   "model_artifact_digest": "57c86fe5c26c8c51c4acca5f4d9d0e336b0c5b452e84a008bb01fc561a8caced",
   "artifacts": [
+    {
+      "artifact_kind": "tassadar_best_checkpoint_manifest",
+      "artifact_ref": "best_checkpoint_manifest.json",
+      "artifact_digest": "e20f0bf2e638fb157e8161460d51be7f380c51e8df1ac73f3402d4c479f74cc9"
+    },
     {
       "artifact_kind": "tassadar_boundary_exactness_report",
       "artifact_ref": "boundary_exactness_report.json",
@@ -95,6 +102,16 @@
       "artifact_digest": "e5e8b09a61f08c29c9baf4f22b470bb94a2183cffcf1ee83cea76b0d4f05e343"
     },
     {
+      "artifact_kind": "tassadar_sudoku_9x9_promotion_bundle",
+      "artifact_ref": "promotion_bundle.json",
+      "artifact_digest": "f5f277c7d6a02f101a5231437c92f587e179a06286487e052f6a126523d2442f"
+    },
+    {
+      "artifact_kind": "tassadar_sudoku_9x9_promotion_gate_report",
+      "artifact_ref": "promotion_gate_report.json",
+      "artifact_digest": "697733a6b26b4405166154ab35e2f529bbf7ac10dacb9accf0d5345684b59e21"
+    },
+    {
       "artifact_kind": "tassadar_sequence_fit_report",
       "artifact_ref": "sequence_fit_report.json",
       "artifact_digest": "44b3ba2e8258e5c353509468572f49e35d9e757190fce19dae8bfe131271fbe8"
@@ -130,5 +147,5 @@
       "artifact_digest": "7ced5d31c3d14dab75510d4983552299fe5288441f324af442c79854cc7ff501"
     }
   ],
-  "bundle_digest": "32e8e278390aec4c2251020e998283f81c910db077273c7f49e483e427926ba1"
+  "bundle_digest": "59e3ef6f0a08997545947e52d9d2c00129ac1a92bb5a5138201fdfa7b14b5c4b"
 }

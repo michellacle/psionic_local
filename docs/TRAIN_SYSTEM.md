@@ -432,19 +432,23 @@ That now includes one intentionally narrow executor-training answer:
   now records an explicit `incremental_decode_window` teacher-forced strategy
   and `incremental_decode_window` long-trace family contract in the training
   manifest, persists `sequence_fit_report.json`, `postmortem.json`,
-  `next_run_plan.json`, `later_window_exactness_report.json`, and
-  `suffix_window_failure_report.json`, and keeps the claim boundary honest by
-  stating exactly what the artifacts prove: full 9x9 traces do not fit the
-  current `524288`-token model context (`4891222` to `5335309` total tokens,
-  overflow `4366934` to `4811021`), so this run is now explicitly a bounded
-  `incremental_decode_window` scope replacement rather than a blocked
-  flat-prefix lane; the early `512`-token prefix reaches `10000` bps first-target
-  exactness but only `5938` bps first-32 exactness and `0/1` exact validation
-  traces, while the fixed later window at target token `262144` and the
+  `next_run_plan.json`, `later_window_exactness_report.json`,
+  `suffix_window_failure_report.json`, `best_checkpoint_manifest.json`,
+  `promotion_bundle.json`, and `promotion_gate_report.json`, while the
+  repo-owned `scripts/check-tassadar-9x9-promotion-gate.sh` checker
+  revalidates the stored report as consistent; the selected checkpoint remains
+  `epoch_0004` from `full_trace_supervision`, full 9x9 traces still do not fit
+  the current `524288`-token model context (`4891222` to `5335309` total
+  tokens, overflow `4366934` to `4811021`), and the new gate makes the
+  remaining learned failure shape machine-readable: the early `512`-token
+  prefix reaches `10000` bps first-target exactness but only `5938` bps
+  first-32 exactness, the fixed later window at target token `262144` and the
   furthest fittable suffix window at target token `472240` both improve to
-  `8438` bps first-32 exactness but still stay `0/1` exact windows, so the
-  correct audit statement remains “bounded and partial, not article-class”
-  even though later-window truth is now explicit; the companion note is
+  `8438` bps first-32 exactness, all three gate windows stay `0/1` exact
+  windows, and full-trace exactness across the declared gate windows remains
+  `0`, so the correct audit statement remains “bounded and partial, not
+  article-class” even though later-window truth is now explicit; the companion
+  note is
   `docs/audits/2026-03-16-tassadar-phase-16-9x9-reference-run-audit.md`
 - the first same-corpus flat-prefix-vs-windowed 9x9 comparison now also
   exists in `psionic-train` under

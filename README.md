@@ -313,21 +313,21 @@ Current posture:
   `incremental_decode_window` teacher-forced strategy and
   `incremental_decode_window` long-trace family contract bound into the
   training manifest, persists `sequence_fit_report.json`, `postmortem.json`,
-  `next_run_plan.json`, `later_window_exactness_report.json`, and
-  `suffix_window_failure_report.json`, and keeps the claim boundary honest by
-  showing that full 9x9 traces still do not fit the current `524288`-token
-  model context (`4891222` to `5335309` total tokens, overflow `4366934` to
-  `4811021`), so the canonical learned 9x9 lane is now recorded as an
-  explicit bounded `incremental_decode_window` scope replacement rather than a
-  fake flat-prefix fit; the early `512`-token prefix stays red (`10000` bps
-  first-target, `5938` bps first-32, `0/1`
-  exact validation traces), but the new non-zero-offset reports show a more
-  specific picture: a fixed later window at target offset `262144` reaches
-  `8438` bps first-32 exactness and the furthest fittable suffix window at
-  target offset `472240` also reaches `8438` bps first-32, while both still
-  remain `0/1` exact windows, so later slices are no longer hidden but the
-  lane is still honestly partial, and the companion
-  audit is
+  `next_run_plan.json`, `later_window_exactness_report.json`,
+  `suffix_window_failure_report.json`, `best_checkpoint_manifest.json`,
+  `promotion_bundle.json`, and `promotion_gate_report.json`, while the
+  repo-owned `scripts/check-tassadar-9x9-promotion-gate.sh` checker
+  revalidates the stored learned 9x9 gate as internally consistent; the
+  selected checkpoint remains `epoch_0004` from `full_trace_supervision`, the
+  learned lane still cannot fit full honest 9x9 traces inside the current
+  `524288`-token model context (`4891222` to `5335309` total tokens, overflow
+  `4366934` to `4811021`), and the new gate keeps the failure shape explicit:
+  early `512`-token first-32 exactness stays at `5938`, both the fixed later
+  window at target offset `262144` and the furthest fittable suffix window
+  improve to `8438`, all three gate windows remain `0/1` exact windows, and
+  full-trace exactness across the declared windows remains `0`, so later
+  slices are no longer hidden but the lane is still honestly partial; the
+  companion audit is
   `docs/audits/2026-03-16-tassadar-phase-16-9x9-reference-run-audit.md`
 - the first same-corpus 9x9 flat-prefix-vs-windowed learned comparison now
   also exists at

@@ -1,0 +1,20 @@
+{
+  "run_id": "tassadar-executor-transformer-sudoku-9x9-reference-run-v0",
+  "claim_class": "learned_bounded",
+  "model_id": "tassadar-executor-transformer-sudoku-9x9-windowed-v0",
+  "output_dir": "fixtures/tassadar/runs/sudoku_9x9_v0_reference_run_v0",
+  "reference_run_bundle_file": "run_bundle.json",
+  "training_report_file": "training_report.json",
+  "checkpoint_artifact_file": "checkpoint_artifact.json",
+  "model_artifact_file": "model_artifact.json",
+  "best_checkpoint_manifest_file": "best_checkpoint_manifest.json",
+  "sequence_fit_report_file": "sequence_fit_report.json",
+  "exactness_curve_file": "exactness_curve.json",
+  "failure_samples_file": "failure_samples.json",
+  "exact_trace_samples_file": "exact_trace_samples.json",
+  "trace_divergence_report_file": "trace_divergence_report.json",
+  "later_window_exactness_file": "later_window_exactness_report.json",
+  "suffix_window_failure_file": "suffix_window_failure_report.json",
+  "promotion_gate_report_file": "promotion_gate_report.json",
+  "bundle_digest": "e706a4a84a5ac81f1843dc88fffde793f373bb228a4e22dcc23f6b91d388835e"
+}

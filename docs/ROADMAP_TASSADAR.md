@@ -182,7 +182,12 @@ The current strongest committed artifacts are:
 - `fixtures/tassadar/runs/sudoku_9x9_v0_reference_run_v0`
   - learned 9x9 lane is honest but still partial, and now includes explicit
     early-vs-later window exactness plus furthest-fittable suffix failure
-    artifacts instead of only the first `512`-token prefix
+    artifacts instead of only the first `512`-token prefix, and now also
+    carries an explicit learned 9x9 `promotion_bundle.json` plus a red
+    `promotion_gate_report.json` that freezes the full-sequence fit failure,
+    the `5938` early-window first-32 exactness, the `8438` later/suffix
+    first-32 exactness, the `0/1` exact-window counts, and the `0` full-trace
+    exact count across the declared gate windows
 - `fixtures/tassadar/runs/sudoku_v0_supervision_ablation_v1`
   - bounded learned structural-supervision comparison proves richer targets
     improve instruction-pointer and stack-delta exactness without widening the
@@ -237,8 +242,9 @@ The current technical reality is:
   sequential trace for Sudoku and Hungarian workloads without widening learned
   execution claims
 - the learned 9x9 lane still does not fit the full trace honestly under the
-  current model contract, but later-window truth is now explicit instead of
-  being inferred from early-prefix metrics alone
+  current model contract, and its later-window truth plus promotion-gate
+  failure shape are now explicit instead of being inferred only from
+  early-prefix metrics alone
 
 That means the honest article-shaped path is:
 
@@ -519,7 +525,7 @@ research-only lane.
 | ID | Status | Work |
 | --- | --- | --- |
 | `PTAS-501` | implemented | Remove the current learned 9x9 full-trace fit cliff without hiding it behind a bounded first-window metric. |
-| `PTAS-502` | planned | Land a truthful learned 9x9 promotion gate with later-window and full-trace exactness criteria, not only first-prefix scores. |
+| `PTAS-502` | implemented | Land a truthful learned 9x9 promotion gate with later-window and full-trace exactness criteria, not only first-prefix scores. |
 | `PTAS-503` | planned | Land a learned Hungarian-class lane with explicit dual-state supervision and exactness-vs-trace-length reporting. |
 | `PTAS-504` | planned | Add a million-step learned trace benchmark family or an explicit learned refusal policy for workloads beyond the supported horizon. |
 | `PTAS-505` | planned | Add one learned article-closure audit that says either "exact article-class learned executor exists" or "the learned lane remains bounded" with no middle-ground marketing language. |

@@ -380,19 +380,21 @@ The current scope is:
   now records an explicit `incremental_decode_window` teacher-forced strategy
   and `incremental_decode_window` long-trace family contract in the training
   manifest, persists `sequence_fit_report.json`, `postmortem.json`,
-  `next_run_plan.json`, `later_window_exactness_report.json`, and
-  `suffix_window_failure_report.json`, and keeps the claim boundary exact by
-  showing that full 9x9 traces still exceed the current `524288`-token model
-  context (`4891222` to `5335309` total tokens, overflow `4366934` to
-  `4811021`), so the run is now explicitly a bounded
-  `incremental_decode_window` scope replacement rather than a blocked
-  flat-prefix lane; the early `512`-token prefix stays red (`10000` bps
-  first-target, `5938` bps
-  first-32, `0/1` exact validation traces), but the later fixed offset window
-  at target token `262144` and the furthest fittable suffix window at target
-  token `472240` both reach `8438` bps first-32 exactness while still staying
-  `0/1` exact windows, so later slices are now visible without pretending the
-  full fit problem is solved
+  `next_run_plan.json`, `later_window_exactness_report.json`,
+  `suffix_window_failure_report.json`, `best_checkpoint_manifest.json`,
+  `promotion_bundle.json`, and `promotion_gate_report.json`, and the
+  repo-owned `scripts/check-tassadar-9x9-promotion-gate.sh` checker
+  revalidates the stored gate as consistent; the selected checkpoint remains
+  `epoch_0004` from `full_trace_supervision`, full 9x9 traces still exceed the
+  current `524288`-token model context (`4891222` to `5335309` total tokens,
+  overflow `4366934` to `4811021`), and the new gate keeps the learned failure
+  boundary explicit: the early `512`-token prefix stays at `5938` bps
+  first-32 exactness, the later fixed offset window at target token `262144`
+  and the furthest fittable suffix window at target token `472240` both reach
+  `8438` bps first-32 exactness, all three gate windows remain `0/1` exact
+  windows, and full-trace exactness across the declared gate windows remains
+  `0`, so later slices are now visible without pretending the full fit problem
+  is solved
 - landed explicit 9x9 long-trace family comparison: `psionic-train` now also
   materializes `fixtures/tassadar/runs/sudoku_9x9_v0_windowed_family_comparison_v1`,
   which keeps the learned claim bounded while making the family split explicit:

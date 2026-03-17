@@ -1,0 +1,19 @@
+{
+  "run_id": "tassadar-executor-transformer-sudoku-9x9-reference-run-v0",
+  "trainable_surface": "output_head_only",
+  "checkpoint_id": "tassadar-executor-transformer-sudoku-9x9-reference-run-v0.checkpoint.epoch_0004",
+  "checkpoint_family": "train.tassadar.executor_transformer",
+  "checkpoint_ref": "checkpoint://tassadar-executor-transformer-sudoku-9x9-reference-run-v0.checkpoint.epoch_0004",
+  "selection_basis": "boundary_metrics_lexicographic_v1",
+  "selected_stage_id": "full_trace_supervision",
+  "global_epoch_index": 4,
+  "first_target_exactness_bps": 10000,
+  "first_32_token_exactness_bps": 5938,
+  "exact_trace_case_count": 0,
+  "checkpoint_artifact_ref": "checkpoint_artifact.json",
+  "model_artifact_ref": "model_artifact.json",
+  "exactness_curve_ref": "exactness_curve.json",
+  "failure_samples_ref": "failure_samples.json",
+  "exact_trace_samples_ref": "exact_trace_samples.json",
+  "report_digest": "8e185aec4890f1f4add3f4d171808320d92bddeefb212864e33cbd6f95eea828"
+}
