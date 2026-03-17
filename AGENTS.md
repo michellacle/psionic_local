@@ -84,13 +84,25 @@
 - Formatting changes are allowed and expected, but they must stay scoped to the
   files intentionally edited for the task unless the user explicitly asks for a
   broader formatting sweep.
+- Treat `cargo fmt`, `rustfmt`, and similar formatters as potentially broader
+  than they look. In Rust crates, formatting one file or one module entrypoint
+  can rewrite sibling modules through the module tree.
 - Do not run workspace-wide `cargo fmt` from a dirty or shared checkout.
 - Prefer formatting only the Rust files you edited.
+- When doing targeted work, prefer the narrowest formatter invocation that
+  preserves the intended file set, and assume it may still spill into adjacent
+  modules until `git diff --stat` proves otherwise.
 - After running formatting, inspect `git diff --stat` or `git status --short`.
   If unrelated files changed, revert those incidental formatting changes before
   continuing.
+- Do not leave incidental formatter spill in a targeted change just because the
+  files are “only formatting.” Either scope it back down or move the work to a
+  clean dedicated formatting pass.
 - If a task genuinely requires a broad formatting pass, land that as a
   dedicated clean change, not mixed into unrelated code or artifact updates.
+- When the checkout is clean and there is a good opportunity, agents should
+  occasionally run a broader `cargo fmt` pass, review the result, and commit
+  those formatting-only changes separately from behavioral work.
 
 ## Artifact-Generating Commands
 
