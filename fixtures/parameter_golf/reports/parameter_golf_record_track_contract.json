@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "report_id": "parameter_golf.record_track_contract.v1",
+  "current_max_claim_posture": "non_record_submission",
+  "next_claim_posture_after_throughput_closure": "record_candidate_blocked_on_accounting",
+  "target_claim_posture": "record_ready",
+  "benchmark_ref": "benchmark://openagents/psionic/parameter_golf/distributed_8xh100",
+  "disposition": "blocked",
+  "acceptance_report_digest": "4ae158e997014041e191bbae74a021a6f109d9a28f9b3761899d7e81e32fa676",
+  "research_harness_report_digest": "be4b3548367c5d066be784a5549c6d87bacb99c4d8d626f6acfd1ed48e5fdc93",
+  "baseline_submission_package_version": "2026.03.18.non_record_submission.v1",
+  "baseline_entrypoint_artifact_digest": "4c42817654c78c10db769c978351338e2be537889c8919b6d7d031c2d596aa31",
+  "baseline_model_artifact_digest": "09a4e000349c9dd077ccaee75f54e31fb7e52541969352aad6ac9aaa7c82e931",
+  "baseline_accounting_receipt_digest": "d9658711f0d336dcaa1052185be911e1869707eaecab6897f7400f1c7c5eb62a",
+  "required_counted_component_ids": [
+    "entrypoint_code_bytes",
+    "compressed_model_bytes",
+    "shipped_runtime_code_bytes",
+    "shipped_wrapper_code_bytes",
+    "required_build_dependency_bytes"
+  ],
+  "required_surfaces": [
+    {
+      "surface_id": "challenge_oracle_parity",
+      "status": "satisfied",
+      "detail": "psionic-data now owns the shard ABI, validation token loader, SentencePiece byte-accounting LUT oracle, a committed parity fixture, and a frozen test that matches the current train_gpt.py and train_gpt_mlx.py reference paths for shard loading, validation slicing, val_loss, and val_bpb.",
+      "evidence_refs": [
+        "fixtures/parameter_golf/reports/parameter_golf_acceptance_report.json"
+      ]
+    },
+    {
+      "surface_id": "reproducible_record_folder_output",
+      "status": "satisfied",
+      "detail": "psionic-train now ships a typed non-record submission package builder that emits README.md, submission.json, train.log, a runnable train_gpt.py review wrapper, the counted int8+zlib model artifact, preserved benchmark receipts, and a machine-readable counted-byte accounting receipt, plus a writer that materializes the folder contract to disk.",
+      "evidence_refs": [
+        "docs/PARAMETER_GOLF_NON_RECORD_SUBMISSION.md",
+        "fixtures/parameter_golf/reports/parameter_golf_acceptance_report.json"
+      ]
+    },
+    {
+      "surface_id": "public_counted_byte_contract",
+      "status": "satisfied",
+      "detail": "The counted-byte vocabulary is explicit and frozen through the committed non-record package surface: entrypoint_code_bytes, compressed_model_bytes, shipped_runtime_code_bytes, shipped_wrapper_code_bytes, required_build_dependency_bytes",
+      "evidence_refs": [
+        "docs/PARAMETER_GOLF_ACCOUNTING.md",
+        "fixtures/parameter_golf/reports/parameter_golf_research_harness_report.json"
+      ]
+    },
+    {
+      "surface_id": "record_runtime_entrypoint",
+      "status": "blocked",
+      "detail": "The current shipped train_gpt.py surface is the non-record review wrapper keyed by entrypoint digest `4c42817654c78c10db769c978351338e2be537889c8919b6d7d031c2d596aa31`; it is not yet a real record-track runtime entrypoint.",
+      "evidence_refs": [
+        "docs/PARAMETER_GOLF_NON_RECORD_SUBMISSION.md"
+      ]
+    },
+    {
+      "surface_id": "counted_runtime_story_for_record_track",
+      "status": "blocked",
+      "detail": "The repo does not yet ship a defended record-track runtime payload or build-dependency story for a true training/eval entrypoint; only the review-wrapper accounting lane is explicit today.",
+      "evidence_refs": [
+        "docs/PARAMETER_GOLF_ACCOUNTING.md",
+        "fixtures/parameter_golf/reports/parameter_golf_research_harness_report.json"
+      ]
+    },
+    {
+      "surface_id": "reproducible_8xh100_record_execution",
+      "status": "blocked",
+      "detail": "psionic-train plus psionic-eval now ship an exact 8xH100 DDP-style receipt lane aligned to the current train_gpt.py posture, including explicit CUDA-device admission gates, replicated topology, NCCL-style all-reduce communication stages, measured wallclock receipts, analytic distributed memory planning, and a machine-readable CUDA training coverage report digest plus blocker list carried on the same receipt seam. Full challenge-speed decoder-kernel and runtime widening are still honestly open. Benchmark ref remains `benchmark://openagents/psionic/parameter_golf/distributed_8xh100`.",
+      "evidence_refs": [
+        "docs/PARAMETER_GOLF_DISTRIBUTED_8XH100.md",
+        "fixtures/parameter_golf/reports/parameter_golf_acceptance_report.json"
+      ]
+    }
+  ],
+  "blockers": [
+    {
+      "blocker_id": "record_wrapper_is_review_only",
+      "detail": "The current train_gpt.py package surface is intentionally a review wrapper and cannot be promoted to a record-track runtime claim.",
+      "blocking_surface_ids": [
+        "record_runtime_entrypoint"
+      ]
+    },
+    {
+      "blocker_id": "record_runtime_bytes_not_yet_defended",
+      "detail": "Record-track promotion still lacks a defended counted-runtime and build-dependency story for the real execution payload.",
+      "blocking_surface_ids": [
+        "counted_runtime_story_for_record_track"
+      ]
+    },
+    {
+      "blocker_id": "reproducible_8xh100_record_execution_not_yet_closed",
+      "detail": "Treat this as explicit distributed execution truth with honest refusal posture and explicit CUDA blocker tracking, not as proof that the remaining CUDA kernel gaps are closed. Treat this as stronger blocked truth, not as green record-track readiness.",
+      "blocking_surface_ids": [
+        "reproducible_8xh100_record_execution"
+      ]
+    }
+  ],
+  "claim_boundary": "record-track contract is now explicit, but the current lane remains blocked on a real record runtime entrypoint, a defended counted-runtime story, and reproducible 8xH100 challenge-speed execution",
+  "report_digest": "5d19e1671c91ed5042b7fd3532eda50d359bba1d2c0f79fb9d65f6a06958000a"
+}

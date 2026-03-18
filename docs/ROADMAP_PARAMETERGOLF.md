@@ -359,7 +359,7 @@ research without losing the oracle.
 | --- | --- | --- | --- |
 | `PGOLF-401` / [#172](https://github.com/OpenAgentsInc/psionic/issues/172) | done (2026-03-18) | `Psionic Parameter Golf: add a non-record submission wrapper and record-folder output contract` | `psionic-train` now ships a typed non-record submission package builder plus folder writer that emit `README.md`, `submission.json`, `train.log`, a runnable `train_gpt.py` review wrapper, preserved benchmark artifacts, and a machine-readable counted-byte accounting receipt without pretending a hidden Rust runtime is free. |
 | `PGOLF-402` / [#173](https://github.com/OpenAgentsInc/psionic/issues/173) | done (2026-03-18) | `Psionic Parameter Golf: add a research harness for post-parity architecture and compression variants` | `psionic-research` now ships a committed Parameter Golf research-harness report that freezes one measured baseline control plus explicit shared-depth or recurrent, stronger parameter-tying, and compression or quantization candidate families against the same oracle digests, submission metric, and counted-byte vocabulary used by the landed non-record package. |
-| `PGOLF-403` / [#174](https://github.com/OpenAgentsInc/psionic/issues/174) | open | `Psionic Parameter Golf: add a record-track submission contract once public accounting is explicit` | Only after the public wrapper and code-size story is clear should the repo claim record-track readiness. This issue owns the final record-submission path, not the earlier research or non-record lane. |
+| `PGOLF-403` / [#174](https://github.com/OpenAgentsInc/psionic/issues/174) | done (2026-03-18) | `Psionic Parameter Golf: add a record-track submission contract once public accounting is explicit` | `psionic-train` now ships a committed blocked record-track contract report that binds the acceptance report, non-record package surface, research harness, and distributed benchmark reference together while explicitly refusing promotion beyond `non_record_submission` until the runtime-entrypoint, counted-runtime, and reproducible `8xH100` blockers are retired. |
 
 ## Current Execution Order
 
@@ -391,7 +391,7 @@ research without losing the oracle.
 
 - `PGOLF-401` -> landed the first honest non-record submission package, counted-byte accounting receipt, review-wrapper entrypoint, and record-folder writer
 - `PGOLF-402` -> landed the committed post-parity research harness report with one measured baseline control and three guarded candidate families on the same oracle and accounting surface
-- `PGOLF-403`
+- `PGOLF-403` -> landed the explicit blocked record-track contract so the remaining runtime, accounting, and `8xH100` blockers are machine-readable
 
 ## Bottom Line
 
@@ -415,5 +415,6 @@ precise about what is true on 2026-03-18:
   results are measured
 - the first truthful result should be parity against `train_gpt.py`, not a new
   architecture
-- record-track claims stay blocked until the actual counted-runtime submission
-  path is implemented, not merely documented
+- record-track claims still stay blocked until the actual counted-runtime
+  submission path is implemented, even though the blocked contract is now
+  documented and machine-readable

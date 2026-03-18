@@ -85,9 +85,9 @@
         "PGOLF-403/#174"
       ],
       "green_definition": "Psionic can defend a record-track submission under the published challenge rules, including counted code, self-contained evaluation, and reproducible 8xH100 execution.",
-      "current_repo_truth": "Psionic now has a first honest non-record package and explicit counted-byte accounting, but the public challenge language still centers a defended train_gpt.py runtime story and reproducible record-track 8xH100 execution, neither of which is closed yet.",
-      "boundary_note": "Treat this as blocked by the remaining record-track runtime story plus the need for reproducible challenge-speed execution truth."
+      "current_repo_truth": "Psionic now has a committed blocked record-track contract that binds the acceptance report, non-record package surface, research harness, and distributed benchmark reference together, but it still marks the review-only entrypoint, undefended counted-runtime story, and reproducible challenge-speed 8xH100 execution as explicit blockers.",
+      "boundary_note": "Treat this as stronger blocked truth, not as green record-track readiness."
     }
   ],
-  "report_digest": "1da386b4b47b63566d507cf9aa6945300bcdbc989616ae4a489c4ea1c4b7dc51"
+  "report_digest": "4ae158e997014041e191bbae74a021a6f109d9a28f9b3761899d7e81e32fa676"
 }
