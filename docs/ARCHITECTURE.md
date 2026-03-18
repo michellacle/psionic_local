@@ -246,6 +246,15 @@ The current scope is:
   `fixtures/tassadar/reports/tassadar_memory_abi_v2_report.json` instead of
   pretending the old fixed-slot memory ABI was already truthful enough for
   module-scale Wasm work
+- landed module-trace ABI v2 bar: `psionic-runtime` now owns explicit legacy
+  v1 versus frame-aware delta-oriented v2 module-trace contracts plus v1/v2
+  artifacts, deterministic replay from v2 back into the legacy snapshot-heavy
+  execution trace, and shared lineage receipts; `psionic-models` now publishes
+  the same lane as a repo-facing trace-ABI publication; `psionic-train` now
+  materializes a training-facing supervision suite over global-state,
+  call-indirect, and deterministic-import cases; and `psionic-eval` now
+  freezes the current evidence at
+  `fixtures/tassadar/reports/tassadar_module_trace_abi_v2_report.json`
 - landed structured-control closure bar: `psionic-compiler` now lowers one
   bounded zero-parameter i32-only Wasm subset with empty block types into
   validated executor-ready structured programs covering `block`, `loop`, `if`,

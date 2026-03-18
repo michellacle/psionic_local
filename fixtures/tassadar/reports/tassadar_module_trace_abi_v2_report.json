@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.module_trace_abi_v2.report.v1",
+  "publication": {
+    "schema_version": 1,
+    "publication_id": "tassadar.module_trace_abi_v2.publication.v1",
+    "status": "implemented",
+    "claim_class": "execution_truth_learned_substrate",
+    "legacy_trace_abi": {
+      "abi_id": "tassadar.module_trace.v1",
+      "schema_version": 1,
+      "frame_aware": false,
+      "delta_oriented": false,
+      "includes_full_state_snapshots": true,
+      "replay_posture": "deterministic replay is available through the full-snapshot append-only trace itself",
+      "proof_lineage_posture": "legacy module-trace authority is the snapshot-heavy append-only step stream"
+    },
+    "trace_abi_v2": {
+      "abi_id": "tassadar.module_trace.v2",
+      "schema_version": 2,
+      "predecessor_abi_id": "tassadar.module_trace.v1",
+      "predecessor_abi_version": 1,
+      "frame_aware": true,
+      "delta_oriented": true,
+      "includes_full_state_snapshots": false,
+      "replay_posture": "deterministic replay remains available by rebuilding the snapshot-heavy execution from frame transitions, event values, and local/global deltas",
+      "proof_lineage_posture": "machine-truth lineage stays compatible with v1 through shared execution digest, final-state truth, and stable trace authority fields instead of per-step full snapshots"
+    },
+    "target_surfaces": [
+      "crates/psionic-runtime",
+      "crates/psionic-models",
+      "crates/psionic-train",
+      "crates/psionic-eval"
+    ],
+    "validation_refs": [
+      "fixtures/tassadar/reports/tassadar_module_trace_abi_v2_report.json"
+    ],
+    "support_boundaries": [
+      "v2 is frame-aware and delta-oriented for the current bounded module lane only; it does not claim arbitrary Wasm closure or general memory tracing",
+      "compatibility with v1 is through shared execution and final-state truth, not by preserving per-step full snapshots",
+      "unsupported host calls still refuse at execution time and therefore remain outside the successful v2 trace family"
+    ],
+    "publication_digest": "b1f166ff4560475410ee990aa9aa09fffa991cde202aa075301baa5f160a6f9e"
+  },
+  "cases": [
+    {
+      "case_id": "global_state_parity",
+      "family": "global_state_parity",
+      "program_id": "tassadar.module_execution.global_state.v1",
+      "returned_value": 12,
+      "halt_reason": "returned",
+      "execution_digest": "8cfc4931e1998b43c9d359d5472cea8f25874685bff19a85e9382b765becd30e",
+      "final_globals_digest": "14d656652c08293062cf93dc20ca673ec4ba01e48f2e646ffcbc11ee2d9f1695",
+      "max_frame_depth": 1,
+      "v1_step_stream_bytes": 1271,
+      "v2_step_stream_bytes": 1249,
+      "step_stream_byte_savings": 22,
+      "step_stream_reduction_bps": 173,
+      "replay_exact": true,
+      "lineage_compatibility_digest": "3871f5da9563eebc7dc50837fa22e7c2c33d39dcd545908cf3cf55159bb4304a"
+    },
+    {
+      "case_id": "call_indirect_dispatch",
+      "family": "call_indirect_dispatch",
+      "program_id": "tassadar.module_execution.call_indirect.v1",
+      "returned_value": 222,
+      "halt_reason": "returned",
+      "execution_digest": "9d65c7e46c5c6fe32085f916f24cb05c81989c3f342b642a5a7f7c64211bc9fa",
+      "final_globals_digest": "bf743d7c17275222b90ec9fb345ca82c90ea691fa9c4294d2e2eead0de5571d0",
+      "max_frame_depth": 2,
+      "v1_step_stream_bytes": 1224,
+      "v2_step_stream_bytes": 1157,
+      "step_stream_byte_savings": 67,
+      "step_stream_reduction_bps": 547,
+      "replay_exact": true,
+      "lineage_compatibility_digest": "54db1e63d8c3c8a32c7f5487e3bb317e3ece50d249c5b8a2c207e82756ba54bf"
+    },
+    {
+      "case_id": "deterministic_import_stub",
+      "family": "deterministic_import_stub",
+      "program_id": "tassadar.module_execution.import_stub.v1",
+      "returned_value": 42,
+      "halt_reason": "returned",
+      "execution_digest": "4acc91f0996ac6eaa6c6c75ed20e6ced0b73b3798a1785581ba533ccde937874",
+      "final_globals_digest": "bf743d7c17275222b90ec9fb345ca82c90ea691fa9c4294d2e2eead0de5571d0",
+      "max_frame_depth": 1,
+      "v1_step_stream_bytes": 873,
+      "v2_step_stream_bytes": 841,
+      "step_stream_byte_savings": 32,
+      "step_stream_reduction_bps": 366,
+      "replay_exact": true,
+      "lineage_compatibility_digest": "d29477ac0cf5a6266acdb6fb870c238da4547ba29c337d01b81a78b9c49c65de"
+    }
+  ],
+  "claim_boundary": "this report proves a frame-aware delta-oriented trace ABI for the current bounded module-execution lane, with explicit v1/v2 versioning, deterministic replay back into the legacy snapshot-heavy trace, and shared final-state lineage truth; it does not claim arbitrary Wasm memory closure or successful traces for unsupported host imports",
+  "report_digest": "a5f784ce44c243f759650e0f4b06886216a36fdc1a09950fbd2ae21b10ce283b"
+}

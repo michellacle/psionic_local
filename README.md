@@ -168,6 +168,13 @@ Current posture:
   delta-oriented memory tracing, a training-facing supervision suite, and the
   committed report at
   `fixtures/tassadar/reports/tassadar_memory_abi_v2_report.json`
+- its module-trace ABI v2 lane now also exists across `psionic-runtime`,
+  `psionic-models`, `psionic-train`, and `psionic-eval`, with explicit
+  legacy-v1 versus frame-aware delta-oriented v2 contracts, deterministic
+  replay back into the snapshot-heavy module execution trace, a public
+  training-facing supervision suite over global-state, call-indirect, and
+  deterministic-import cases, and the committed report at
+  `fixtures/tassadar/reports/tassadar_module_trace_abi_v2_report.json`
 - its structured-control closure lane now also exists across
   `psionic-compiler`, `psionic-runtime`, and `psionic-eval`, with compiler
   lowering from bounded zero-parameter Wasm functions into validated executor

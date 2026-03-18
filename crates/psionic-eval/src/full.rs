@@ -48,6 +48,8 @@ mod tassadar_hungarian_10x10_compiled_executor;
 mod tassadar_hungarian_compiled_executor;
 #[path = "tassadar_memory_abi_v2.rs"]
 mod tassadar_memory_abi_v2;
+#[path = "tassadar_module_trace_abi_v2.rs"]
+mod tassadar_module_trace_abi_v2;
 #[path = "tassadar_numeric_opcode_ladder.rs"]
 mod tassadar_numeric_opcode_ladder;
 #[path = "tassadar_sequence.rs"]
@@ -93,6 +95,7 @@ pub use tassadar_executor_hull_benchmark::*;
 pub use tassadar_hungarian_10x10_compiled_executor::*;
 pub use tassadar_hungarian_compiled_executor::*;
 pub use tassadar_memory_abi_v2::*;
+pub use tassadar_module_trace_abi_v2::*;
 pub use tassadar_numeric_opcode_ladder::*;
 pub use tassadar_sequence::*;
 pub use tassadar_structured_control::*;
