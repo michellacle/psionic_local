@@ -34,6 +34,8 @@ mod tassadar_compiled_executor;
 mod tassadar_compiled_kernel_suite;
 #[path = "tassadar_conditional_masking_report.rs"]
 mod tassadar_conditional_masking_report;
+#[path = "tassadar_cost_per_correct_job.rs"]
+mod tassadar_cost_per_correct_job;
 #[path = "tassadar_decompilation_fidelity.rs"]
 mod tassadar_decompilation_fidelity;
 #[path = "tassadar_efficient_attention_baseline_matrix.rs"]
@@ -144,6 +146,7 @@ pub use tassadar_compiled_distillation::*;
 pub use tassadar_compiled_executor::*;
 pub use tassadar_compiled_kernel_suite::*;
 pub use tassadar_conditional_masking_report::*;
+pub use tassadar_cost_per_correct_job::*;
 pub use tassadar_decompilation_fidelity::*;
 pub use tassadar_efficient_attention_baseline_matrix::*;
 pub use tassadar_error_regime_catalog::*;

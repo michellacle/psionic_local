@@ -1,0 +1,212 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.cost_per_correct_job.report.v1",
+  "evaluated_cases": [
+    {
+      "case_id": "case.patch_apply",
+      "workload_family": "patch_apply_internal_exact",
+      "accepted_outcome_required": true,
+      "threshold_policy": {
+        "threshold_id": "threshold.patch_apply",
+        "max_internal_cost_per_correct_job_milliunits": 4500,
+        "min_internal_evidence_completeness_bps": 9000,
+        "max_internal_refusal_rate_bps": 500,
+        "fallback_route_family": "hybrid_composite",
+        "note": "patch route thresholds stay strict because accepted-outcome readiness matters more than cheap but weak evidence"
+      },
+      "lane_observations": [
+        {
+          "route_family": "internal_exact_compute",
+          "cost_milliunits": 3200,
+          "correctness_bps": 10000,
+          "refusal_rate_bps": 0,
+          "evidence_completeness_bps": 9600,
+          "cost_per_correct_job_milliunits": 3200,
+          "note": "internal exact patch lane is both correct and evidence-complete"
+        },
+        {
+          "route_family": "external_delegation",
+          "cost_milliunits": 7000,
+          "correctness_bps": 9800,
+          "refusal_rate_bps": 100,
+          "evidence_completeness_bps": 9000,
+          "cost_per_correct_job_milliunits": 7142,
+          "note": "external delegation is strong but more expensive"
+        },
+        {
+          "route_family": "hybrid_composite",
+          "cost_milliunits": 4100,
+          "correctness_bps": 10000,
+          "refusal_rate_bps": 0,
+          "evidence_completeness_bps": 9500,
+          "cost_per_correct_job_milliunits": 4100,
+          "note": "hybrid lane stays competitive but does not beat the internal lane economically here"
+        }
+      ],
+      "selected_route_family": "internal_exact_compute",
+      "threshold_crossed": false,
+      "note": "patch apply is the benchmark case where internal exact-compute clearly wins on cost per correct accepted outcome"
+    },
+    {
+      "case_id": "case.long_loop",
+      "workload_family": "long_loop_validator_heavy",
+      "accepted_outcome_required": true,
+      "threshold_policy": {
+        "threshold_id": "threshold.long_loop",
+        "max_internal_cost_per_correct_job_milliunits": 4500,
+        "min_internal_evidence_completeness_bps": 9000,
+        "max_internal_refusal_rate_bps": 1000,
+        "fallback_route_family": "hybrid_composite",
+        "note": "long-loop route thresholds should escalate once refusal risk or evidence incompleteness becomes too large"
+      },
+      "lane_observations": [
+        {
+          "route_family": "internal_exact_compute",
+          "cost_milliunits": 3600,
+          "correctness_bps": 7200,
+          "refusal_rate_bps": 1800,
+          "evidence_completeness_bps": 5800,
+          "cost_per_correct_job_milliunits": 5000,
+          "note": "internal exact lane remains too brittle on long loops even when its raw cost looks attractive"
+        },
+        {
+          "route_family": "external_delegation",
+          "cost_milliunits": 7600,
+          "correctness_bps": 9800,
+          "refusal_rate_bps": 100,
+          "evidence_completeness_bps": 9200,
+          "cost_per_correct_job_milliunits": 7755,
+          "note": "external delegation remains robust but more expensive than the hybrid fallback"
+        },
+        {
+          "route_family": "hybrid_composite",
+          "cost_milliunits": 6900,
+          "correctness_bps": 9900,
+          "refusal_rate_bps": 200,
+          "evidence_completeness_bps": 9400,
+          "cost_per_correct_job_milliunits": 6969,
+          "note": "hybrid fallback keeps exact fast paths while staying below the external lane on cost per correct job"
+        }
+      ],
+      "selected_route_family": "hybrid_composite",
+      "threshold_crossed": true,
+      "threshold_reasons": [
+        "evidence_completeness_too_low",
+        "refusal_rate_too_high"
+      ],
+      "note": "long-loop work crosses the internal lane thresholds, so the hybrid route becomes the honest economic default"
+    },
+    {
+      "case_id": "case.validator_search",
+      "workload_family": "served_search_validator_mount",
+      "accepted_outcome_required": true,
+      "threshold_policy": {
+        "threshold_id": "threshold.validator_search",
+        "max_internal_cost_per_correct_job_milliunits": 4800,
+        "min_internal_evidence_completeness_bps": 9300,
+        "max_internal_refusal_rate_bps": 700,
+        "fallback_route_family": "external_delegation",
+        "note": "validator-heavy search should route away from internal exact lanes once threshold posture fails"
+      },
+      "lane_observations": [
+        {
+          "route_family": "internal_exact_compute",
+          "cost_milliunits": 3900,
+          "correctness_bps": 8600,
+          "refusal_rate_bps": 2200,
+          "evidence_completeness_bps": 6400,
+          "cost_per_correct_job_milliunits": 4534,
+          "note": "internal lane underprices itself relative to its refusal and evidence deficits"
+        },
+        {
+          "route_family": "external_delegation",
+          "cost_milliunits": 8200,
+          "correctness_bps": 9950,
+          "refusal_rate_bps": 100,
+          "evidence_completeness_bps": 9800,
+          "cost_per_correct_job_milliunits": 8241,
+          "note": "external delegation is the robust validator-facing baseline"
+        },
+        {
+          "route_family": "hybrid_composite",
+          "cost_milliunits": 7700,
+          "correctness_bps": 9700,
+          "refusal_rate_bps": 400,
+          "evidence_completeness_bps": 9300,
+          "cost_per_correct_job_milliunits": 7938,
+          "note": "hybrid route is close, but external delegation still wins once validator-heavy thresholds are applied"
+        }
+      ],
+      "selected_route_family": "external_delegation",
+      "threshold_crossed": true,
+      "threshold_reasons": [
+        "evidence_completeness_too_low",
+        "refusal_rate_too_high"
+      ],
+      "note": "validator-heavy search is one of the cases where the executor lane should not be used economically"
+    },
+    {
+      "case_id": "case.parity_short",
+      "workload_family": "parity_short_bounded",
+      "accepted_outcome_required": false,
+      "threshold_policy": {
+        "threshold_id": "threshold.parity_short",
+        "max_internal_cost_per_correct_job_milliunits": 2000,
+        "min_internal_evidence_completeness_bps": 8500,
+        "max_internal_refusal_rate_bps": 200,
+        "fallback_route_family": "hybrid_composite",
+        "note": "short bounded parity keeps a looser evidence threshold because accepted-outcome closure is not mandatory"
+      },
+      "lane_observations": [
+        {
+          "route_family": "internal_exact_compute",
+          "cost_milliunits": 900,
+          "correctness_bps": 10000,
+          "refusal_rate_bps": 0,
+          "evidence_completeness_bps": 8600,
+          "cost_per_correct_job_milliunits": 900,
+          "note": "short bounded parity is the cheap bounded-execution win case"
+        },
+        {
+          "route_family": "external_delegation",
+          "cost_milliunits": 2500,
+          "correctness_bps": 10000,
+          "refusal_rate_bps": 0,
+          "evidence_completeness_bps": 9800,
+          "cost_per_correct_job_milliunits": 2500,
+          "note": "external delegation has stronger evidence but cannot justify the cost here"
+        },
+        {
+          "route_family": "hybrid_composite",
+          "cost_milliunits": 1800,
+          "correctness_bps": 10000,
+          "refusal_rate_bps": 0,
+          "evidence_completeness_bps": 8500,
+          "cost_per_correct_job_milliunits": 1800,
+          "note": "hybrid route remains available but adds unnecessary cost over the internal lane"
+        }
+      ],
+      "selected_route_family": "internal_exact_compute",
+      "threshold_crossed": false,
+      "note": "bounded short parity remains the cheap internal-exact case even under explicit thresholding"
+    }
+  ],
+  "internal_lane_win_count": 2,
+  "external_lane_win_count": 1,
+  "hybrid_lane_win_count": 1,
+  "threshold_crossing_case_count": 2,
+  "average_internal_cost_per_correct_job_milliunits": 3408,
+  "average_external_cost_per_correct_job_milliunits": 6409,
+  "average_hybrid_cost_per_correct_job_milliunits": 5201,
+  "generated_from_refs": [
+    "fixtures/tassadar/reports/tassadar_accepted_outcome_binding_report.json",
+    "fixtures/tassadar/reports/tassadar_composite_routing_report.json",
+    "fixtures/tassadar/reports/tassadar_evidence_calibrated_routing_report.json",
+    "fixtures/tassadar/reports/tassadar_exact_compute_market_report.json"
+  ],
+  "compute_market_dependency_marker": "compute-market remains the owner of canonical economic publication and route-to-product promotion outside standalone psionic",
+  "nexus_dependency_marker": "nexus remains the owner of accepted-outcome and settlement-qualified economic closure outside standalone psionic",
+  "claim_boundary": "this eval report is benchmark-bound product research over matched workload families. It keeps cost per correct job, refusal rate, evidence completeness, and threshold crossings explicit without turning benchmark economics into pricing truth or settlement authority",
+  "summary": "Cost-per-correct report covers 4 matched cases with 2 internal wins, 1 hybrid wins, 1 external wins, and 2 threshold-crossing cases.",
+  "report_digest": "c1f9d68c67d93686c4f9babc03d022930e6e45b289880edd3361f096cc64dfdf"
+}

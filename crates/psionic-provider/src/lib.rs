@@ -7,6 +7,7 @@
 
 mod tassadar_accepted_outcome_binding;
 mod tassadar_composite_routing;
+mod tassadar_cost_per_correct_job;
 mod tassadar_delegation_benchmark;
 mod tassadar_evidence_routing;
 mod tassadar_exact_compute_market;
@@ -34,6 +35,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 pub use tassadar_accepted_outcome_binding::*;
 pub use tassadar_composite_routing::*;
+pub use tassadar_cost_per_correct_job::*;
 pub use tassadar_delegation_benchmark::*;
 pub use tassadar_evidence_routing::*;
 pub use tassadar_exact_compute_market::*;

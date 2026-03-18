@@ -554,6 +554,16 @@ The current scope is:
   objects with separate unsupported-envelope refusals. This lane keeps product
   identity, quote identity, receipt identity, and settlement posture explicit
   instead of flattening executor work into raw hardware or token-count pricing
+- landed cost-per-correct-job follow-on: `psionic-eval` now publishes the
+  benchmark-bound economics report at
+  `fixtures/tassadar/reports/tassadar_cost_per_correct_job_report.json`,
+  freezing matched workload families across internal exact-compute, hybrid
+  composite, and external delegation lanes with explicit refusal rates,
+  evidence completeness, cost-per-correct-job values, and route-threshold
+  crossings; and `psionic-provider` now projects that report into a
+  provider-facing `TassadarCostPerCorrectJobReceipt`. This lane keeps
+  benchmark economics explicit as refusal-bounded product research instead of
+  treating them as market pricing truth by themselves
 - landed module-installation-staging follow-on: `psionic-serve` now publishes a
   bounded staged-install surface with explicit session-mount versus worker-mount
   scope, challenge windows, activation, rollback, and refusal receipts over the
