@@ -535,6 +535,16 @@ The current scope is:
   provider-receipt identities. This lane keeps runtime success separate from
   accepted-outcome closure or settlement-qualified authority instead of
   letting provider receipts imply either one
+- landed composite-routing follow-on: `psionic-router` now publishes the
+  heterogeneous composite-routing report at
+  `fixtures/tassadar/reports/tassadar_composite_routing_report.json`, freezing
+  seeded multi-lane route artifacts across planner, module, CPU-reference, GPU,
+  validator, sandbox, and cluster steps with explicit fallback and
+  challenge-path handling plus direct comparisons against single-lane
+  baselines; and `psionic-provider` now projects that report into a
+  provider-facing `TassadarCompositeRoutingReceipt`. This lane keeps composite
+  route identity, evidence lift, and route economics explicit instead of
+  treating `uses more than one lane` as success by itself
 - landed module-installation-staging follow-on: `psionic-serve` now publishes a
   bounded staged-install surface with explicit session-mount versus worker-mount
   scope, challenge windows, activation, rollback, and refusal receipts over the

@@ -12,6 +12,7 @@
 )]
 
 mod response_state;
+mod tassadar_composite_routing;
 mod tassadar_delegation_benchmark;
 mod tassadar_evidence_routing;
 mod tassadar_module_catalog;
@@ -28,6 +29,7 @@ pub use response_state::{
     ResponseConversationRef, ResponseStateBackend, ResponseStateCapability, ResponseStateContext,
     ResponseStateError, ResponseStateRecord, ResponseStateRetentionPolicy, ResponseStateStore,
 };
+pub use tassadar_composite_routing::*;
 pub use tassadar_delegation_benchmark::*;
 pub use tassadar_evidence_routing::*;
 pub use tassadar_module_catalog::*;

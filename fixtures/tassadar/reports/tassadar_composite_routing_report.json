@@ -1,0 +1,298 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.composite_routing.report.v1",
+  "evaluated_cases": [
+    {
+      "case_id": "composite.patch_validator_bridge",
+      "workload_family": "patch_apply_internal_exact",
+      "mount_id": "mount.patch.validator.v1",
+      "composite_steps": [
+        {
+          "step_id": "planner",
+          "lane_kind": "planner",
+          "lane_ref": "planner.policy.hybrid.v1",
+          "evidence_ref": "fixtures/tassadar/reports/tassadar_planner_language_compute_policy_report.json",
+          "fallback_capable": false,
+          "challenge_path_attached": false,
+          "note": "planner selects a hybrid path instead of a single-lane winner"
+        },
+        {
+          "step_id": "module_executor",
+          "lane_kind": "module_executor",
+          "lane_ref": "module.frontier_relax_core@1.0.0",
+          "evidence_ref": "fixtures/tassadar/reports/tassadar_execution_unit_registration_report.json",
+          "fallback_capable": true,
+          "challenge_path_attached": false,
+          "note": "module executor handles the exact patch core under benchmark-gated posture"
+        },
+        {
+          "step_id": "cpu_reference",
+          "lane_kind": "cpu_reference",
+          "lane_ref": "cpu.reference.patch_apply.v1",
+          "evidence_ref": "fixtures/tassadar/reports/tassadar_benchmark_package_set_summary.json",
+          "fallback_capable": false,
+          "challenge_path_attached": false,
+          "note": "cpu reference certifies exactness on the bounded patch family"
+        },
+        {
+          "step_id": "validator",
+          "lane_kind": "validator",
+          "lane_ref": "validator.patch_apply.strict.v1",
+          "evidence_ref": "fixtures/tassadar/reports/tassadar_accepted_outcome_binding_report.json",
+          "fallback_capable": false,
+          "challenge_path_attached": true,
+          "note": "validator closes the evidence gap for accepted-outcome-ready patch work"
+        }
+      ],
+      "single_lane_baselines": [
+        {
+          "baseline_id": "baseline.module_only",
+          "lane_kind": "module_executor",
+          "route_ref": "route.internal_exact_only",
+          "correctness_bps": 9300,
+          "evidence_quality_bps": 7200,
+          "latency_ms": 60,
+          "cost_milliunits": 2500,
+          "note": "module-only route is cheap but weaker on evidence quality"
+        },
+        {
+          "baseline_id": "baseline.sandbox_only",
+          "lane_kind": "sandbox",
+          "route_ref": "route.sandbox_only",
+          "correctness_bps": 9800,
+          "evidence_quality_bps": 9000,
+          "latency_ms": 150,
+          "cost_milliunits": 7000,
+          "note": "sandbox-only route is strong but more expensive and slower"
+        }
+      ],
+      "selected_route": "composite_preferred",
+      "composite_correctness_bps": 10000,
+      "composite_evidence_quality_bps": 9600,
+      "composite_latency_ms": 85,
+      "composite_cost_milliunits": 3800,
+      "fallback_path_used": false,
+      "challenge_path_used": true,
+      "note": "patch work prefers the composite lane because CPU reference and validator attachment lift evidence quality enough to justify the extra steps"
+    },
+    {
+      "case_id": "composite.long_loop_sandbox_fallback",
+      "workload_family": "long_loop_validator_heavy",
+      "mount_id": "mount.long_loop.validator.v1",
+      "composite_steps": [
+        {
+          "step_id": "planner",
+          "lane_kind": "planner",
+          "lane_ref": "planner.policy.hybrid.v1",
+          "evidence_ref": "fixtures/tassadar/reports/tassadar_planner_language_compute_policy_report.json",
+          "fallback_capable": false,
+          "challenge_path_attached": false,
+          "note": "planner starts with an internal exact-compute attempt but keeps fallback explicit"
+        },
+        {
+          "step_id": "module_executor",
+          "lane_kind": "module_executor",
+          "lane_ref": "module.checkpoint_backtrack_core@1.0.0",
+          "evidence_ref": "fixtures/tassadar/reports/tassadar_execution_unit_registration_report.json",
+          "fallback_capable": true,
+          "challenge_path_attached": false,
+          "note": "module executor handles the bounded fast path before the fallback fires"
+        },
+        {
+          "step_id": "sandbox_fallback",
+          "lane_kind": "sandbox",
+          "lane_ref": "sandbox.delegate.long_loop.v1",
+          "evidence_ref": "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json",
+          "fallback_capable": false,
+          "challenge_path_attached": false,
+          "note": "sandbox delegation remains explicit once the long-loop path exceeds the internal lane's honest closure"
+        },
+        {
+          "step_id": "validator",
+          "lane_kind": "validator",
+          "lane_ref": "validator.long_loop.strict.v1",
+          "evidence_ref": "fixtures/tassadar/reports/tassadar_accepted_outcome_binding_report.json",
+          "fallback_capable": false,
+          "challenge_path_attached": true,
+          "note": "validator stays attached across the fallback rather than being silently dropped"
+        }
+      ],
+      "single_lane_baselines": [
+        {
+          "baseline_id": "baseline.module_only",
+          "lane_kind": "module_executor",
+          "route_ref": "route.internal_exact_only",
+          "correctness_bps": 7200,
+          "evidence_quality_bps": 5400,
+          "latency_ms": 70,
+          "cost_milliunits": 3000,
+          "note": "module-only route underperforms on long-loop correctness and evidence"
+        },
+        {
+          "baseline_id": "baseline.sandbox_only",
+          "lane_kind": "sandbox",
+          "route_ref": "route.sandbox_only",
+          "correctness_bps": 9800,
+          "evidence_quality_bps": 9200,
+          "latency_ms": 220,
+          "cost_milliunits": 7600,
+          "note": "sandbox-only route is robust but more expensive and slower than the hybrid fallback plan"
+        }
+      ],
+      "selected_route": "composite_preferred",
+      "composite_correctness_bps": 9900,
+      "composite_evidence_quality_bps": 9400,
+      "composite_latency_ms": 190,
+      "composite_cost_milliunits": 6500,
+      "fallback_path_used": true,
+      "challenge_path_used": true,
+      "note": "the hybrid fallback route wins because it keeps the internal fast path where honest, then escalates to sandbox and validator lanes when needed"
+    },
+    {
+      "case_id": "composite.gpu_cluster_article",
+      "workload_family": "article_hybrid_workflow",
+      "mount_id": "mount.article.hybrid.v1",
+      "composite_steps": [
+        {
+          "step_id": "planner",
+          "lane_kind": "planner",
+          "lane_ref": "planner.policy.hybrid.v1",
+          "evidence_ref": "fixtures/tassadar/reports/tassadar_article_hybrid_workflow_artifact.json",
+          "fallback_capable": false,
+          "challenge_path_attached": false,
+          "note": "planner opens a GPU plus cluster path for the article workload"
+        },
+        {
+          "step_id": "gpu_executor",
+          "lane_kind": "gpu_executor",
+          "lane_ref": "gpu.executor.article.hybrid.v1",
+          "evidence_ref": "fixtures/tassadar/reports/tassadar_execution_unit_registration_report.json",
+          "fallback_capable": false,
+          "challenge_path_attached": false,
+          "note": "GPU executor handles the dense article path efficiently"
+        },
+        {
+          "step_id": "cluster_fanout",
+          "lane_kind": "cluster",
+          "lane_ref": "cluster.article.hybrid.v1",
+          "evidence_ref": "docs/ARCHITECTURE_EXPLAINER_CLUSTER_BRINGUP_RUNBOOK.md",
+          "fallback_capable": false,
+          "challenge_path_attached": false,
+          "note": "cluster fanout keeps multi-host work explicit rather than hidden in the executor lane"
+        },
+        {
+          "step_id": "cpu_reference",
+          "lane_kind": "cpu_reference",
+          "lane_ref": "cpu.reference.article.hybrid.v1",
+          "evidence_ref": "fixtures/tassadar/reports/tassadar_trace_abi_decision_report.json",
+          "fallback_capable": false,
+          "challenge_path_attached": false,
+          "note": "CPU reference closes the replayable trace identity for the composite route"
+        }
+      ],
+      "single_lane_baselines": [
+        {
+          "baseline_id": "baseline.gpu_only",
+          "lane_kind": "gpu_executor",
+          "route_ref": "route.gpu_only",
+          "correctness_bps": 9300,
+          "evidence_quality_bps": 6500,
+          "latency_ms": 60,
+          "cost_milliunits": 2600,
+          "note": "GPU-only route is fast but under-evidenced for the hybrid article workflow"
+        },
+        {
+          "baseline_id": "baseline.cpu_reference_only",
+          "lane_kind": "cpu_reference",
+          "route_ref": "route.cpu_reference_only",
+          "correctness_bps": 10000,
+          "evidence_quality_bps": 9700,
+          "latency_ms": 280,
+          "cost_milliunits": 9300,
+          "note": "CPU-reference-only route is strongest on raw evidence but too slow and costly"
+        }
+      ],
+      "selected_route": "composite_preferred",
+      "composite_correctness_bps": 9700,
+      "composite_evidence_quality_bps": 9300,
+      "composite_latency_ms": 90,
+      "composite_cost_milliunits": 4100,
+      "fallback_path_used": false,
+      "challenge_path_used": false,
+      "note": "the GPU plus cluster composite path wins because it preserves most of the evidence benefit at materially lower latency and cost than CPU-only reference execution"
+    },
+    {
+      "case_id": "single_lane.module_parity",
+      "workload_family": "parity_short_bounded",
+      "mount_id": "mount.parity.short.v1",
+      "composite_steps": [
+        {
+          "step_id": "planner",
+          "lane_kind": "planner",
+          "lane_ref": "planner.policy.hybrid.v1",
+          "evidence_ref": "fixtures/tassadar/reports/tassadar_planner_language_compute_policy_report.json",
+          "fallback_capable": false,
+          "challenge_path_attached": false,
+          "note": "planner considers a module plus validator composite path for parity work"
+        },
+        {
+          "step_id": "module_executor",
+          "lane_kind": "module_executor",
+          "lane_ref": "module.parity_core@1.0.0",
+          "evidence_ref": "fixtures/tassadar/reports/tassadar_execution_unit_registration_report.json",
+          "fallback_capable": false,
+          "challenge_path_attached": false,
+          "note": "module executor is already exact on the short bounded parity workload"
+        },
+        {
+          "step_id": "validator",
+          "lane_kind": "validator",
+          "lane_ref": "validator.parity.optional.v1",
+          "evidence_ref": "fixtures/tassadar/reports/tassadar_accepted_outcome_binding_report.json",
+          "fallback_capable": false,
+          "challenge_path_attached": true,
+          "note": "optional validator attachment adds cost without meaningful evidence lift on this bounded case"
+        }
+      ],
+      "single_lane_baselines": [
+        {
+          "baseline_id": "baseline.module_only",
+          "lane_kind": "module_executor",
+          "route_ref": "route.internal_exact_only",
+          "correctness_bps": 10000,
+          "evidence_quality_bps": 8600,
+          "latency_ms": 25,
+          "cost_milliunits": 900,
+          "note": "single-lane module execution is already sufficient on short bounded parity workloads"
+        }
+      ],
+      "selected_route": "single_lane_preferred",
+      "composite_correctness_bps": 10000,
+      "composite_evidence_quality_bps": 8500,
+      "composite_latency_ms": 55,
+      "composite_cost_milliunits": 1800,
+      "fallback_path_used": false,
+      "challenge_path_used": true,
+      "note": "the composite plan is intentionally not preferred here because more lanes do not buy enough evidence lift to justify the latency and cost overhead"
+    }
+  ],
+  "composite_preferred_case_count": 3,
+  "single_lane_preferred_case_count": 1,
+  "fallback_case_count": 1,
+  "challenge_path_case_count": 3,
+  "composite_evidence_lift_bps_vs_best_single_lane": 75,
+  "composite_cost_delta_milliunits_vs_best_single_lane": -2150,
+  "composite_latency_delta_ms_vs_best_single_lane": -63,
+  "generated_from_refs": [
+    "fixtures/tassadar/reports/tassadar_accepted_outcome_binding_report.json",
+    "fixtures/tassadar/reports/tassadar_execution_unit_registration_report.json",
+    "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json",
+    "fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json"
+  ],
+  "sandbox_dependency_marker": "psionic-sandbox remains the owner of canonical delegated execution admission and side-effect policy outside standalone psionic",
+  "clusters_dependency_marker": "clusters remain the owner of canonical multi-host resource placement and replay-safe distributed execution outside standalone psionic",
+  "world_mount_dependency_marker": "world-mounts remain the owner of canonical task-scoped composite-route mounting outside standalone psionic",
+  "claim_boundary": "this router report is a research-only heterogeneous routing surface over seeded composite plans. It keeps lane identity, fallback paths, challenge paths, evidence obligations, and single-lane baselines explicit without treating composite routing as accepted-outcome authority, settlement truth, or served capability widening",
+  "summary": "Composite routing covers 4 seeded cases with 3 composite-preferred cases, 1 single-lane-preferred cases, 1 fallback cases, and 3 challenge-path cases.",
+  "report_digest": "07f6024e2c80990561bb5ead25f6d8d12797a6d5e797f150e353dcef848710a8"
+}

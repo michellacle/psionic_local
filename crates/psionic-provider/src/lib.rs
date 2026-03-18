@@ -6,6 +6,7 @@
 )]
 
 mod tassadar_accepted_outcome_binding;
+mod tassadar_composite_routing;
 mod tassadar_delegation_benchmark;
 mod tassadar_evidence_routing;
 mod tassadar_execution_unit_registration;
@@ -31,6 +32,7 @@ use ed25519_dalek::SigningKey;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 pub use tassadar_accepted_outcome_binding::*;
+pub use tassadar_composite_routing::*;
 pub use tassadar_delegation_benchmark::*;
 pub use tassadar_evidence_routing::*;
 pub use tassadar_execution_unit_registration::*;
