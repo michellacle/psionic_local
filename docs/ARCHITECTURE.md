@@ -625,6 +625,19 @@ The current scope is:
   `TassadarTrapExceptionReceipt`. This lane keeps trap-state parity and
   refusal-state parity as first-class execution truth instead of letting
   successful exactness stand in for failure-path closure
+- landed architecture-bakeoff follow-on: `psionic-models` now publishes the
+  public `TassadarArchitectureBakeoffPublication` over flat decoder trace,
+  shared-depth recurrent refinement, linear or recurrentized attention,
+  memory-augmented, pointer, and search-native executor families;
+  `psionic-train` now freezes the same-task same-budget bundle at
+  `fixtures/tassadar/runs/tassadar_architecture_bakeoff_v1/architecture_bakeoff_budget_bundle.json`;
+  `psionic-eval` now publishes the matrix report at
+  `fixtures/tassadar/reports/tassadar_architecture_bakeoff_report.json`; and
+  `psionic-research` now publishes the summary at
+  `fixtures/tassadar/reports/tassadar_architecture_bakeoff_summary.json`.
+  This lane keeps workload-family ownership, cost, stability, and refusal
+  posture explicit instead of treating whichever learned architecture landed
+  first as the default frontier owner
 - landed module-installation-staging follow-on: `psionic-serve` now publishes a
   bounded staged-install surface with explicit session-mount versus worker-mount
   scope, challenge windows, activation, rollback, and refusal receipts over the

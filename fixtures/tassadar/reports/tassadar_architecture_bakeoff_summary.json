@@ -1,0 +1,67 @@
+{
+  "summary_id": "tassadar.architecture_bakeoff.summary.v1",
+  "report_id": "tassadar.architecture_bakeoff.report.v1",
+  "strongest_architecture_by_workload": [
+    [
+      "arithmetic_multi_operand",
+      "linear_recurrentized_attention_executor"
+    ],
+    [
+      "clrs_shortest_path",
+      "pointer_executor"
+    ],
+    [
+      "sudoku_backtracking_search",
+      "search_native_executor"
+    ],
+    [
+      "module_scale_wasm_loop",
+      "memory_augmented_executor"
+    ],
+    [
+      "long_horizon_control",
+      "shared_depth_recurrent_refinement"
+    ]
+  ],
+  "owned_workloads_by_architecture": [
+    [
+      "flat_decoder_trace_model",
+      []
+    ],
+    [
+      "shared_depth_recurrent_refinement",
+      [
+        "long_horizon_control"
+      ]
+    ],
+    [
+      "linear_recurrentized_attention_executor",
+      [
+        "arithmetic_multi_operand"
+      ]
+    ],
+    [
+      "memory_augmented_executor",
+      [
+        "module_scale_wasm_loop"
+      ]
+    ],
+    [
+      "pointer_executor",
+      [
+        "clrs_shortest_path"
+      ]
+    ],
+    [
+      "search_native_executor",
+      [
+        "sudoku_backtracking_search"
+      ]
+    ]
+  ],
+  "refusal_first_workloads": [
+    "module_scale_wasm_loop"
+  ],
+  "claim_boundary": "this summary remains a research-only architecture comparison over shared workloads. It makes workload-family ownership and refusal-first regions explicit and does not widen served capability or broad learned-compute claims by itself",
+  "summary_digest": "c5ace5c69468fcda6f1ed88c72b6163a37d7dcddc5d0f8ce5cd86c151a4c8d54"
+}

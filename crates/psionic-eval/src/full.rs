@@ -18,6 +18,8 @@ mod attnres_training;
 mod tassadar;
 #[path = "tassadar_approximate_attention_closure_matrix.rs"]
 mod tassadar_approximate_attention_closure_matrix;
+#[path = "tassadar_architecture_bakeoff.rs"]
+mod tassadar_architecture_bakeoff;
 #[path = "tassadar_benchmark_package_set.rs"]
 mod tassadar_benchmark_package_set;
 #[path = "tassadar_call_frames.rs"]
@@ -150,6 +152,7 @@ pub use attnres::*;
 pub use attnres_training::*;
 pub use tassadar::*;
 pub use tassadar_approximate_attention_closure_matrix::*;
+pub use tassadar_architecture_bakeoff::*;
 pub use tassadar_benchmark_package_set::*;
 pub use tassadar_call_frames::*;
 pub use tassadar_clrs_wasm_bridge::*;

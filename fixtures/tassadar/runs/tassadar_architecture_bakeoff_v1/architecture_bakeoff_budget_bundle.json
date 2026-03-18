@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "bundle_id": "tassadar.architecture_bakeoff.budget_bundle.v1",
+  "publication_id": "tassadar.architecture_bakeoff.publication.v1",
+  "workload_families": [
+    "arithmetic_multi_operand",
+    "clrs_shortest_path",
+    "sudoku_backtracking_search",
+    "module_scale_wasm_loop",
+    "long_horizon_control"
+  ],
+  "budget_rows": [
+    {
+      "architecture_family": "flat_decoder_trace_model",
+      "train_budget_tokens": 1200000,
+      "eval_case_budget": 32,
+      "cost_cap_bps": 8000,
+      "stability_replay_count": 4,
+      "source_refs": [
+        "fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v11/architecture_comparison_report.json",
+        "fixtures/tassadar/reports/tassadar_trace_state_ablation_report.json"
+      ],
+      "note": "flat decoder trace models share the same budget as the other families and stay explicit as one baseline rather than the default winner"
+    },
+    {
+      "architecture_family": "shared_depth_recurrent_refinement",
+      "train_budget_tokens": 1200000,
+      "eval_case_budget": 32,
+      "cost_cap_bps": 8000,
+      "stability_replay_count": 4,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_shared_depth_architecture_report.json"
+      ],
+      "note": "shared-depth recurrent refinement uses the same train and eval budget so loop-heavy wins stay comparable rather than narrative-driven"
+    },
+    {
+      "architecture_family": "linear_recurrentized_attention_executor",
+      "train_budget_tokens": 1200000,
+      "eval_case_budget": 32,
+      "cost_cap_bps": 8000,
+      "stability_replay_count": 4,
+      "source_refs": [
+        "fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v11/architecture_comparison_report.json",
+        "fixtures/tassadar/reports/tassadar_approximate_attention_closure_matrix.json"
+      ],
+      "note": "linear or recurrentized attention executors use the same budget so cheaper decode paths do not get extra budget advantages in the bakeoff"
+    },
+    {
+      "architecture_family": "memory_augmented_executor",
+      "train_budget_tokens": 1200000,
+      "eval_case_budget": 32,
+      "cost_cap_bps": 8000,
+      "stability_replay_count": 4,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_working_memory_tier_summary.json",
+        "fixtures/tassadar/reports/tassadar_module_state_architecture_report.json"
+      ],
+      "note": "memory-augmented executors keep the same budget while carrying explicit state-publication and module-state evidence refs"
+    },
+    {
+      "architecture_family": "pointer_executor",
+      "train_budget_tokens": 1200000,
+      "eval_case_budget": 32,
+      "cost_cap_bps": 8000,
+      "stability_replay_count": 4,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_conditional_masking_report.json"
+      ],
+      "note": "pointer executors stay on the shared budget and keep pointer-head wins tied to the same workload and cost cap"
+    },
+    {
+      "architecture_family": "search_native_executor",
+      "train_budget_tokens": 1200000,
+      "eval_case_budget": 32,
+      "cost_cap_bps": 8000,
+      "stability_replay_count": 4,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_verifier_guided_search_architecture_report.json"
+      ],
+      "note": "search-native executors stay on the shared budget instead of getting a search-only evaluation universe"
+    }
+  ],
+  "claim_boundary": "this bundle freezes one same-task same-budget architecture matrix over shared workload families. It does not promote any architecture family by itself, and it does not allow earlier-landed lanes to quietly inherit extra budget or a separate evaluation universe",
+  "summary": "Architecture bakeoff budget bundle freezes 6 architecture rows over 5 shared workload families at one common budget.",
+  "bundle_digest": "1d9d4c39d9eb479752ec3be6431d1eb6d21b108a488484677221c55fe9f7302b"
+}

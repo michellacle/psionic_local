@@ -1,0 +1,481 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.architecture_bakeoff.report.v1",
+  "publication": {
+    "schema_version": 1,
+    "publication_id": "tassadar.architecture_bakeoff.publication.v1",
+    "status": "implemented",
+    "claim_class": "research_only_architecture",
+    "model": {
+      "model_id": "tassadar-architecture-bakeoff-v0",
+      "family": "tassadar_architecture_bakeoff",
+      "revision": "v0"
+    },
+    "architecture_families": [
+      "flat_decoder_trace_model",
+      "shared_depth_recurrent_refinement",
+      "linear_recurrentized_attention_executor",
+      "memory_augmented_executor",
+      "pointer_executor",
+      "search_native_executor"
+    ],
+    "workload_families": [
+      "arithmetic_multi_operand",
+      "clrs_shortest_path",
+      "sudoku_backtracking_search",
+      "module_scale_wasm_loop",
+      "long_horizon_control"
+    ],
+    "target_surfaces": [
+      "crates/psionic-models",
+      "crates/psionic-train",
+      "crates/psionic-eval",
+      "crates/psionic-research"
+    ],
+    "validation_refs": [
+      "fixtures/tassadar/runs/tassadar_architecture_bakeoff_v1/architecture_bakeoff_budget_bundle.json",
+      "fixtures/tassadar/reports/tassadar_architecture_bakeoff_report.json",
+      "fixtures/tassadar/reports/tassadar_architecture_bakeoff_summary.json"
+    ],
+    "support_boundaries": [
+      "the bakeoff is a same-task same-budget research matrix over shared workload families; it does not promote any architecture family into served capability by itself",
+      "ownership is workload-family-specific and benchmark-bound; architecture wins in one regime do not imply arbitrary Wasm closure or broad learned exactness elsewhere",
+      "refuse-first rows remain explicit and do not count as silent degradations or hidden tuning decisions"
+    ],
+    "publication_digest": "a8972fd1a1cd28ed30eacdb959b0bcd81ff4443d5bad84ac67b54f02f154462a"
+  },
+  "budget_bundle_id": "tassadar.architecture_bakeoff.budget_bundle.v1",
+  "shared_train_budget_tokens": 1200000,
+  "shared_eval_case_budget": 32,
+  "shared_cost_cap_bps": 8000,
+  "shared_stability_replay_count": 4,
+  "matrix_cells": [
+    {
+      "architecture_family": "flat_decoder_trace_model",
+      "workload_family": "arithmetic_multi_operand",
+      "exactness_bps": 8800,
+      "cost_score_bps": 7600,
+      "refusal_posture": "competitive",
+      "stability_bps": 7200,
+      "ownership_posture": "competitive",
+      "source_artifact_refs": [
+        "fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v11/architecture_comparison_report.json",
+        "fixtures/tassadar/reports/tassadar_trace_state_ablation_report.json"
+      ],
+      "note": "flat decoder traces stay viable on arithmetic but do not own the broader frontier"
+    },
+    {
+      "architecture_family": "flat_decoder_trace_model",
+      "workload_family": "clrs_shortest_path",
+      "exactness_bps": 6400,
+      "cost_score_bps": 6900,
+      "refusal_posture": "research_only",
+      "stability_bps": 6300,
+      "ownership_posture": "research_only",
+      "source_artifact_refs": [
+        "fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v11/architecture_comparison_report.json",
+        "fixtures/tassadar/reports/tassadar_trace_state_ablation_report.json"
+      ],
+      "note": "flat decoder traces lose too much graph-frontier structure to own CLRS under the shared budget"
+    },
+    {
+      "architecture_family": "flat_decoder_trace_model",
+      "workload_family": "sudoku_backtracking_search",
+      "exactness_bps": 4200,
+      "cost_score_bps": 6500,
+      "refusal_posture": "research_only",
+      "stability_bps": 5100,
+      "ownership_posture": "research_only",
+      "source_artifact_refs": [
+        "fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v11/architecture_comparison_report.json",
+        "fixtures/tassadar/reports/tassadar_trace_state_ablation_report.json"
+      ],
+      "note": "flat decoder traces remain bounded research on search-heavy Sudoku workloads"
+    },
+    {
+      "architecture_family": "flat_decoder_trace_model",
+      "workload_family": "module_scale_wasm_loop",
+      "exactness_bps": 3600,
+      "cost_score_bps": 7000,
+      "refusal_posture": "refuse_first",
+      "stability_bps": 4800,
+      "ownership_posture": "refuse_first",
+      "source_artifact_refs": [
+        "fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v11/architecture_comparison_report.json",
+        "fixtures/tassadar/reports/tassadar_trace_state_ablation_report.json"
+      ],
+      "note": "flat decoder traces should currently refuse module-scale Wasm loop ownership under the shared budget"
+    },
+    {
+      "architecture_family": "flat_decoder_trace_model",
+      "workload_family": "long_horizon_control",
+      "exactness_bps": 3100,
+      "cost_score_bps": 6200,
+      "refusal_posture": "refuse_first",
+      "stability_bps": 4900,
+      "ownership_posture": "refuse_first",
+      "source_artifact_refs": [
+        "fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v11/architecture_comparison_report.json",
+        "fixtures/tassadar/reports/tassadar_trace_state_ablation_report.json"
+      ],
+      "note": "flat decoder traces still fail too early to claim long-horizon control closure"
+    },
+    {
+      "architecture_family": "shared_depth_recurrent_refinement",
+      "workload_family": "arithmetic_multi_operand",
+      "exactness_bps": 7600,
+      "cost_score_bps": 5800,
+      "refusal_posture": "competitive",
+      "stability_bps": 8300,
+      "ownership_posture": "competitive",
+      "source_artifact_refs": [
+        "fixtures/tassadar/reports/tassadar_shared_depth_architecture_report.json"
+      ],
+      "note": "shared-depth refinement remains stable on arithmetic but is not the top exactness winner"
+    },
+    {
+      "architecture_family": "shared_depth_recurrent_refinement",
+      "workload_family": "clrs_shortest_path",
+      "exactness_bps": 5800,
+      "cost_score_bps": 5600,
+      "refusal_posture": "research_only",
+      "stability_bps": 7600,
+      "ownership_posture": "research_only",
+      "source_artifact_refs": [
+        "fixtures/tassadar/reports/tassadar_shared_depth_architecture_report.json"
+      ],
+      "note": "shared-depth refinement helps CLRS stability without yet owning the family"
+    },
+    {
+      "architecture_family": "shared_depth_recurrent_refinement",
+      "workload_family": "sudoku_backtracking_search",
+      "exactness_bps": 4700,
+      "cost_score_bps": 5900,
+      "refusal_posture": "research_only",
+      "stability_bps": 6800,
+      "ownership_posture": "research_only",
+      "source_artifact_refs": [
+        "fixtures/tassadar/reports/tassadar_shared_depth_architecture_report.json"
+      ],
+      "note": "shared-depth refinement remains research-only on search-heavy Sudoku workloads"
+    },
+    {
+      "architecture_family": "shared_depth_recurrent_refinement",
+      "workload_family": "module_scale_wasm_loop",
+      "exactness_bps": 7100,
+      "cost_score_bps": 5700,
+      "refusal_posture": "competitive",
+      "stability_bps": 8100,
+      "ownership_posture": "competitive",
+      "source_artifact_refs": [
+        "fixtures/tassadar/reports/tassadar_shared_depth_architecture_report.json"
+      ],
+      "note": "shared-depth refinement is competitive on module-scale Wasm without owning it"
+    },
+    {
+      "architecture_family": "shared_depth_recurrent_refinement",
+      "workload_family": "long_horizon_control",
+      "exactness_bps": 8600,
+      "cost_score_bps": 5200,
+      "refusal_posture": "owns",
+      "stability_bps": 9000,
+      "ownership_posture": "owns",
+      "source_artifact_refs": [
+        "fixtures/tassadar/reports/tassadar_shared_depth_architecture_report.json"
+      ],
+      "note": "shared-depth refinement currently owns the long-horizon control row in the shared-budget bakeoff"
+    },
+    {
+      "architecture_family": "linear_recurrentized_attention_executor",
+      "workload_family": "arithmetic_multi_operand",
+      "exactness_bps": 9300,
+      "cost_score_bps": 4300,
+      "refusal_posture": "owns",
+      "stability_bps": 8100,
+      "ownership_posture": "owns",
+      "source_artifact_refs": [
+        "fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v11/architecture_comparison_report.json",
+        "fixtures/tassadar/reports/tassadar_approximate_attention_closure_matrix.json"
+      ],
+      "note": "linear or recurrentized attention currently owns the arithmetic row by exactness and cost"
+    },
+    {
+      "architecture_family": "linear_recurrentized_attention_executor",
+      "workload_family": "clrs_shortest_path",
+      "exactness_bps": 6900,
+      "cost_score_bps": 5000,
+      "refusal_posture": "competitive",
+      "stability_bps": 7000,
+      "ownership_posture": "competitive",
+      "source_artifact_refs": [
+        "fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v11/architecture_comparison_report.json",
+        "fixtures/tassadar/reports/tassadar_approximate_attention_closure_matrix.json"
+      ],
+      "note": "linear or recurrentized attention is competitive on CLRS but does not own it"
+    },
+    {
+      "architecture_family": "linear_recurrentized_attention_executor",
+      "workload_family": "sudoku_backtracking_search",
+      "exactness_bps": 3200,
+      "cost_score_bps": 4500,
+      "refusal_posture": "refuse_first",
+      "stability_bps": 4300,
+      "ownership_posture": "refuse_first",
+      "source_artifact_refs": [
+        "fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v11/architecture_comparison_report.json",
+        "fixtures/tassadar/reports/tassadar_approximate_attention_closure_matrix.json"
+      ],
+      "note": "linear or recurrentized attention should refuse search-heavy Sudoku closure under the shared budget"
+    },
+    {
+      "architecture_family": "linear_recurrentized_attention_executor",
+      "workload_family": "module_scale_wasm_loop",
+      "exactness_bps": 4600,
+      "cost_score_bps": 4800,
+      "refusal_posture": "refuse_first",
+      "stability_bps": 5400,
+      "ownership_posture": "refuse_first",
+      "source_artifact_refs": [
+        "fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v11/architecture_comparison_report.json",
+        "fixtures/tassadar/reports/tassadar_approximate_attention_closure_matrix.json"
+      ],
+      "note": "linear or recurrentized attention should refuse module-scale Wasm ownership under current memory pressure"
+    },
+    {
+      "architecture_family": "linear_recurrentized_attention_executor",
+      "workload_family": "long_horizon_control",
+      "exactness_bps": 7800,
+      "cost_score_bps": 4600,
+      "refusal_posture": "competitive",
+      "stability_bps": 7600,
+      "ownership_posture": "competitive",
+      "source_artifact_refs": [
+        "fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v11/architecture_comparison_report.json",
+        "fixtures/tassadar/reports/tassadar_approximate_attention_closure_matrix.json"
+      ],
+      "note": "linear or recurrentized attention is competitive on long-horizon control without beating shared-depth refinement"
+    },
+    {
+      "architecture_family": "memory_augmented_executor",
+      "workload_family": "arithmetic_multi_operand",
+      "exactness_bps": 7200,
+      "cost_score_bps": 5600,
+      "refusal_posture": "competitive",
+      "stability_bps": 7800,
+      "ownership_posture": "competitive",
+      "source_artifact_refs": [
+        "fixtures/tassadar/reports/tassadar_working_memory_tier_summary.json",
+        "fixtures/tassadar/reports/tassadar_module_state_architecture_report.json"
+      ],
+      "note": "memory-augmented executors stay viable on arithmetic but do not own it"
+    },
+    {
+      "architecture_family": "memory_augmented_executor",
+      "workload_family": "clrs_shortest_path",
+      "exactness_bps": 7600,
+      "cost_score_bps": 5300,
+      "refusal_posture": "competitive",
+      "stability_bps": 7900,
+      "ownership_posture": "competitive",
+      "source_artifact_refs": [
+        "fixtures/tassadar/reports/tassadar_working_memory_tier_summary.json",
+        "fixtures/tassadar/reports/tassadar_module_state_architecture_report.json"
+      ],
+      "note": "memory-augmented executors remain competitive on CLRS frontier state"
+    },
+    {
+      "architecture_family": "memory_augmented_executor",
+      "workload_family": "sudoku_backtracking_search",
+      "exactness_bps": 6100,
+      "cost_score_bps": 6100,
+      "refusal_posture": "research_only",
+      "stability_bps": 7000,
+      "ownership_posture": "research_only",
+      "source_artifact_refs": [
+        "fixtures/tassadar/reports/tassadar_working_memory_tier_summary.json",
+        "fixtures/tassadar/reports/tassadar_module_state_architecture_report.json"
+      ],
+      "note": "memory-augmented executors help search but do not yet own Sudoku"
+    },
+    {
+      "architecture_family": "memory_augmented_executor",
+      "workload_family": "module_scale_wasm_loop",
+      "exactness_bps": 8400,
+      "cost_score_bps": 5400,
+      "refusal_posture": "owns",
+      "stability_bps": 8500,
+      "ownership_posture": "owns",
+      "source_artifact_refs": [
+        "fixtures/tassadar/reports/tassadar_working_memory_tier_summary.json",
+        "fixtures/tassadar/reports/tassadar_module_state_architecture_report.json"
+      ],
+      "note": "memory-augmented executors currently own the module-scale Wasm row in the shared-budget bakeoff"
+    },
+    {
+      "architecture_family": "memory_augmented_executor",
+      "workload_family": "long_horizon_control",
+      "exactness_bps": 7300,
+      "cost_score_bps": 5500,
+      "refusal_posture": "competitive",
+      "stability_bps": 8100,
+      "ownership_posture": "competitive",
+      "source_artifact_refs": [
+        "fixtures/tassadar/reports/tassadar_working_memory_tier_summary.json",
+        "fixtures/tassadar/reports/tassadar_module_state_architecture_report.json"
+      ],
+      "note": "memory-augmented executors remain competitive on long-horizon control"
+    },
+    {
+      "architecture_family": "pointer_executor",
+      "workload_family": "arithmetic_multi_operand",
+      "exactness_bps": 6900,
+      "cost_score_bps": 5200,
+      "refusal_posture": "research_only",
+      "stability_bps": 6900,
+      "ownership_posture": "research_only",
+      "source_artifact_refs": [
+        "fixtures/tassadar/reports/tassadar_conditional_masking_report.json"
+      ],
+      "note": "pointer executors are not the leading choice for arithmetic under the shared budget"
+    },
+    {
+      "architecture_family": "pointer_executor",
+      "workload_family": "clrs_shortest_path",
+      "exactness_bps": 8300,
+      "cost_score_bps": 4900,
+      "refusal_posture": "owns",
+      "stability_bps": 7800,
+      "ownership_posture": "owns",
+      "source_artifact_refs": [
+        "fixtures/tassadar/reports/tassadar_conditional_masking_report.json"
+      ],
+      "note": "pointer executors currently own the CLRS shortest-path row by exactness and cost under the shared budget"
+    },
+    {
+      "architecture_family": "pointer_executor",
+      "workload_family": "sudoku_backtracking_search",
+      "exactness_bps": 6200,
+      "cost_score_bps": 5600,
+      "refusal_posture": "competitive",
+      "stability_bps": 6500,
+      "ownership_posture": "competitive",
+      "source_artifact_refs": [
+        "fixtures/tassadar/reports/tassadar_conditional_masking_report.json"
+      ],
+      "note": "pointer executors remain competitive on Sudoku without displacing search-native executors"
+    },
+    {
+      "architecture_family": "pointer_executor",
+      "workload_family": "module_scale_wasm_loop",
+      "exactness_bps": 7400,
+      "cost_score_bps": 5100,
+      "refusal_posture": "competitive",
+      "stability_bps": 7300,
+      "ownership_posture": "competitive",
+      "source_artifact_refs": [
+        "fixtures/tassadar/reports/tassadar_conditional_masking_report.json"
+      ],
+      "note": "pointer executors are competitive on module-scale Wasm but do not own it"
+    },
+    {
+      "architecture_family": "pointer_executor",
+      "workload_family": "long_horizon_control",
+      "exactness_bps": 4300,
+      "cost_score_bps": 5000,
+      "refusal_posture": "research_only",
+      "stability_bps": 5200,
+      "ownership_posture": "research_only",
+      "source_artifact_refs": [
+        "fixtures/tassadar/reports/tassadar_conditional_masking_report.json"
+      ],
+      "note": "pointer executors remain research-only on long-horizon control"
+    },
+    {
+      "architecture_family": "search_native_executor",
+      "workload_family": "arithmetic_multi_operand",
+      "exactness_bps": 3500,
+      "cost_score_bps": 7200,
+      "refusal_posture": "refuse_first",
+      "stability_bps": 6000,
+      "ownership_posture": "refuse_first",
+      "source_artifact_refs": [
+        "fixtures/tassadar/reports/tassadar_verifier_guided_search_architecture_report.json"
+      ],
+      "note": "search-native executors should refuse arithmetic ownership under the shared budget"
+    },
+    {
+      "architecture_family": "search_native_executor",
+      "workload_family": "clrs_shortest_path",
+      "exactness_bps": 6100,
+      "cost_score_bps": 6100,
+      "refusal_posture": "research_only",
+      "stability_bps": 6800,
+      "ownership_posture": "research_only",
+      "source_artifact_refs": [
+        "fixtures/tassadar/reports/tassadar_verifier_guided_search_architecture_report.json"
+      ],
+      "note": "search-native executors remain research-only on CLRS under the shared budget"
+    },
+    {
+      "architecture_family": "search_native_executor",
+      "workload_family": "sudoku_backtracking_search",
+      "exactness_bps": 9200,
+      "cost_score_bps": 5800,
+      "refusal_posture": "owns",
+      "stability_bps": 8700,
+      "ownership_posture": "owns",
+      "source_artifact_refs": [
+        "fixtures/tassadar/reports/tassadar_verifier_guided_search_architecture_report.json"
+      ],
+      "note": "search-native executors currently own the Sudoku search row in the shared-budget bakeoff"
+    },
+    {
+      "architecture_family": "search_native_executor",
+      "workload_family": "module_scale_wasm_loop",
+      "exactness_bps": 3400,
+      "cost_score_bps": 6700,
+      "refusal_posture": "refuse_first",
+      "stability_bps": 5900,
+      "ownership_posture": "refuse_first",
+      "source_artifact_refs": [
+        "fixtures/tassadar/reports/tassadar_verifier_guided_search_architecture_report.json"
+      ],
+      "note": "search-native executors should refuse module-scale Wasm ownership under the shared budget"
+    },
+    {
+      "architecture_family": "search_native_executor",
+      "workload_family": "long_horizon_control",
+      "exactness_bps": 5800,
+      "cost_score_bps": 6200,
+      "refusal_posture": "research_only",
+      "stability_bps": 6900,
+      "ownership_posture": "research_only",
+      "source_artifact_refs": [
+        "fixtures/tassadar/reports/tassadar_verifier_guided_search_architecture_report.json"
+      ],
+      "note": "search-native executors remain research-only on long-horizon control"
+    }
+  ],
+  "owned_workload_counts": {
+    "linear_recurrentized_attention_executor": 1,
+    "memory_augmented_executor": 1,
+    "pointer_executor": 1,
+    "search_native_executor": 1,
+    "shared_depth_recurrent_refinement": 1
+  },
+  "refusal_first_cell_count": 6,
+  "generated_from_refs": [
+    "fixtures/tassadar/reports/tassadar_approximate_attention_closure_matrix.json",
+    "fixtures/tassadar/reports/tassadar_conditional_masking_report.json",
+    "fixtures/tassadar/reports/tassadar_module_state_architecture_report.json",
+    "fixtures/tassadar/reports/tassadar_shared_depth_architecture_report.json",
+    "fixtures/tassadar/reports/tassadar_trace_state_ablation_report.json",
+    "fixtures/tassadar/reports/tassadar_verifier_guided_search_architecture_report.json",
+    "fixtures/tassadar/reports/tassadar_working_memory_tier_summary.json",
+    "fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v11/architecture_comparison_report.json",
+    "fixtures/tassadar/runs/tassadar_architecture_bakeoff_v1/architecture_bakeoff_budget_bundle.json"
+  ],
+  "claim_boundary": "this report is a research-only same-task same-budget architecture matrix over shared workload families. It keeps exactness, cost, refusal, and stability explicit per architecture-family/workload-family cell instead of treating whichever lane landed first as the default frontier owner",
+  "summary": "Architecture bakeoff report covers 30 cells across 6 architecture families and 5 workload families, with owned_workload_counts={\"linear_recurrentized_attention_executor\": 1, \"memory_augmented_executor\": 1, \"pointer_executor\": 1, \"search_native_executor\": 1, \"shared_depth_recurrent_refinement\": 1} and refusal_first_cells=6.",
+  "report_digest": "a494606e50ed8bf15afe06e419339eaa78331eb95f2cc74930e3959de36f7c5f"
+}
