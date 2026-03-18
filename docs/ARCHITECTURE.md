@@ -516,6 +516,15 @@ The current scope is:
   provider-facing `TassadarExecutionUnitRegistrationReceipt`. This lane keeps
   execution-unit registration distinct from accepted-outcome truth or market
   eligibility instead of letting runtime success imply settlement posture
+- landed world-mount-compatibility follow-on: `psionic-router` now publishes
+  the world-mount compatibility report at
+  `fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json`,
+  freezing mount-time negotiation across trust posture, import posture,
+  benchmark evidence, module dependencies, and validator bindings with explicit
+  allow, deny, and unresolved outcomes; and `psionic-provider` now projects
+  that report into a provider-facing `TassadarWorldMountCompatibilityReceipt`.
+  This lane keeps mount compatibility distinct from accepted-outcome or
+  settlement transitions instead of hiding it inside route heuristics
 - landed module-installation-staging follow-on: `psionic-serve` now publishes a
   bounded staged-install surface with explicit session-mount versus worker-mount
   scope, challenge windows, activation, rollback, and refusal receipts over the

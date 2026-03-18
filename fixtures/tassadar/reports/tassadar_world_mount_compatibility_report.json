@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.world_mount_compatibility.report.v1",
+  "surface": {
+    "surface_id": "tassadar.executor_world_mount_surface.v1",
+    "supported_trust_postures": [
+      "research_only",
+      "benchmark_gated_internal",
+      "challenge_gated_install"
+    ],
+    "import_posture": "deterministic_stub_imports_only",
+    "minimum_benchmark_ref_count": 2,
+    "available_module_refs": [
+      "candidate_select_core@1.1.0",
+      "checkpoint_backtrack_core@1.0.0",
+      "frontier_relax_core@1.0.0"
+    ],
+    "validator_binding_available": true,
+    "claim_boundary": "this router surface keeps executor-family world-mount negotiation explicit and does not treat mount compatibility as accepted-outcome or settlement authority"
+  },
+  "allowed_case_count": 2,
+  "denied_case_count": 1,
+  "unresolved_case_count": 1,
+  "case_reports": [
+    {
+      "descriptor": {
+        "mount_id": "mount.benchmark_graph",
+        "required_trust_posture": "benchmark_gated_internal",
+        "required_import_posture": "deterministic_stub_imports_only",
+        "minimum_benchmark_ref_count": 2,
+        "required_module_refs": [
+          "frontier_relax_core@1.0.0",
+          "checkpoint_backtrack_core@1.0.0"
+        ],
+        "validator_binding_required": false,
+        "note": "benchmark-scoped graph mount with deterministic imports and internal module dependencies only"
+      },
+      "outcome": "allowed",
+      "note": "world-mount compatibility stays explicit across trust, imports, evidence, module dependencies, and validator bindings"
+    },
+    {
+      "descriptor": {
+        "mount_id": "mount.strict_no_imports",
+        "required_trust_posture": "benchmark_gated_internal",
+        "required_import_posture": "no_imports_only",
+        "minimum_benchmark_ref_count": 2,
+        "required_module_refs": [
+          "frontier_relax_core@1.0.0"
+        ],
+        "validator_binding_required": false,
+        "note": "strict no-import mount should refuse even a capable lane when import posture is too wide"
+      },
+      "outcome": "denied",
+      "refusal_reason": "import_posture_incompatible",
+      "note": "the executor lane is capable enough to run, but its import posture is not compatible with this world mount"
+    },
+    {
+      "descriptor": {
+        "mount_id": "mount.validator_search",
+        "required_trust_posture": "challenge_gated_install",
+        "required_import_posture": "deterministic_stub_imports_only",
+        "minimum_benchmark_ref_count": 2,
+        "required_module_refs": [
+          "candidate_select_core@1.1.0"
+        ],
+        "validator_binding_required": true,
+        "note": "validator-attached search mount keeps trust and validator requirements explicit"
+      },
+      "outcome": "allowed",
+      "note": "world-mount compatibility stays explicit across trust, imports, evidence, module dependencies, and validator bindings"
+    },
+    {
+      "descriptor": {
+        "mount_id": "mount.missing_dependency",
+        "required_trust_posture": "benchmark_gated_internal",
+        "required_import_posture": "deterministic_stub_imports_only",
+        "minimum_benchmark_ref_count": 2,
+        "required_module_refs": [
+          "branch_prune_core@0.1.0"
+        ],
+        "validator_binding_required": false,
+        "note": "missing-module mount stays unresolved rather than being misreported as compatible"
+      },
+      "outcome": "unresolved",
+      "refusal_reason": "module_dependency_missing",
+      "note": "world-mount negotiation stays unresolved when a required module dependency is not currently available on the executor lane"
+    }
+  ],
+  "world_mount_dependency_marker": "world-mounts remain the owner of canonical task-scoped resolution outside standalone psionic",
+  "kernel_policy_dependency_marker": "kernel-policy remains the owner of authority-facing mount policy outside standalone psionic",
+  "claim_boundary": "this router report keeps world-mount compatibility negotiation explicit across trust, imports, evidence, dependencies, and validator policy. It does not imply accepted-outcome or settlement closure",
+  "summary": "World-mount compatibility report now freezes 2 allowed cases, 1 denied cases, and 1 unresolved cases.",
+  "report_digest": "ab62499732e3692564b323a9e0dd8c0446a5bc2bfc9c4eca28db44d4024a2fb4"
+}
