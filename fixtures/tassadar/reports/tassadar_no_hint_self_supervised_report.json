@@ -1,0 +1,300 @@
+{
+  "schema_version": 1,
+  "comparison_id": "tassadar.no_hint_self_supervision.v0",
+  "report_ref": "fixtures/tassadar/reports/tassadar_no_hint_self_supervised_report.json",
+  "regeneration_commands": [
+    "cargo run -p psionic-research --example tassadar_no_hint_self_supervision",
+    "cargo test -p psionic-research no_hint_self_supervised_report_matches_committed_truth -- --nocapture"
+  ],
+  "regime_summaries": [
+    {
+      "supervision_regime": "full_hint_trace",
+      "manifest_digest": "c3b56fe920b2cbf4c7f971a3e150fd6ae70d44673ba9c28742dd5aa3cdf34bbb",
+      "explicit_hint_target_count": 24,
+      "output_target_count": 12,
+      "self_supervised_regularizer_count": 0,
+      "active_signal_count": 36
+    },
+    {
+      "supervision_regime": "subroutine_hints",
+      "manifest_digest": "d43b3345cb718cec9e652b0e254afe05048df070667a1b4d2ecb4eb3d48f49ff",
+      "explicit_hint_target_count": 20,
+      "output_target_count": 12,
+      "self_supervised_regularizer_count": 0,
+      "active_signal_count": 32
+    },
+    {
+      "supervision_regime": "no_hint_output_only",
+      "manifest_digest": "c274230bb3f5ca3ab248db4ee659ac09137a866671203230007963dbd4dfec4b",
+      "explicit_hint_target_count": 0,
+      "output_target_count": 12,
+      "self_supervised_regularizer_count": 0,
+      "active_signal_count": 12
+    },
+    {
+      "supervision_regime": "no_hint_self_supervised",
+      "manifest_digest": "7ab0fca1a461cefd0bbada18cf77f85e1762100a01e3f8b0431208159a5ad53e",
+      "explicit_hint_target_count": 0,
+      "output_target_count": 12,
+      "self_supervised_regularizer_count": 18,
+      "active_signal_count": 30
+    }
+  ],
+  "held_out_signal_reports": [
+    {
+      "supervision_regime": "full_hint_trace",
+      "held_out_workload_family": "sort",
+      "train_workload_families": [
+        "clrs_shortest_path",
+        "sudoku_style"
+      ],
+      "explicit_hint_target_count": 8,
+      "reusable_explicit_hint_target_count": 0,
+      "output_target_count": 4,
+      "reusable_output_target_count": 2,
+      "self_supervised_regularizer_count": 0,
+      "reusable_self_supervised_regularizer_count": 0,
+      "reusable_signal_units": 2,
+      "total_signal_units": 12,
+      "reusable_signal_bps": 1666,
+      "detail": "held_out_workload=sort, supervision_regime=full_hint_trace, reusable_signal_units=2/12, reusable_outputs=2/4, reusable_regularizers=0/0, reusable_explicit_hints=0/8"
+    },
+    {
+      "supervision_regime": "full_hint_trace",
+      "held_out_workload_family": "clrs_shortest_path",
+      "train_workload_families": [
+        "sort",
+        "sudoku_style"
+      ],
+      "explicit_hint_target_count": 8,
+      "reusable_explicit_hint_target_count": 0,
+      "output_target_count": 4,
+      "reusable_output_target_count": 2,
+      "self_supervised_regularizer_count": 0,
+      "reusable_self_supervised_regularizer_count": 0,
+      "reusable_signal_units": 2,
+      "total_signal_units": 12,
+      "reusable_signal_bps": 1666,
+      "detail": "held_out_workload=clrs_shortest_path, supervision_regime=full_hint_trace, reusable_signal_units=2/12, reusable_outputs=2/4, reusable_regularizers=0/0, reusable_explicit_hints=0/8"
+    },
+    {
+      "supervision_regime": "full_hint_trace",
+      "held_out_workload_family": "sudoku_style",
+      "train_workload_families": [
+        "sort",
+        "clrs_shortest_path"
+      ],
+      "explicit_hint_target_count": 8,
+      "reusable_explicit_hint_target_count": 0,
+      "output_target_count": 4,
+      "reusable_output_target_count": 2,
+      "self_supervised_regularizer_count": 0,
+      "reusable_self_supervised_regularizer_count": 0,
+      "reusable_signal_units": 2,
+      "total_signal_units": 12,
+      "reusable_signal_bps": 1666,
+      "detail": "held_out_workload=sudoku_style, supervision_regime=full_hint_trace, reusable_signal_units=2/12, reusable_outputs=2/4, reusable_regularizers=0/0, reusable_explicit_hints=0/8"
+    },
+    {
+      "supervision_regime": "subroutine_hints",
+      "held_out_workload_family": "sort",
+      "train_workload_families": [
+        "clrs_shortest_path",
+        "sudoku_style"
+      ],
+      "explicit_hint_target_count": 6,
+      "reusable_explicit_hint_target_count": 6,
+      "output_target_count": 4,
+      "reusable_output_target_count": 2,
+      "self_supervised_regularizer_count": 0,
+      "reusable_self_supervised_regularizer_count": 0,
+      "reusable_signal_units": 8,
+      "total_signal_units": 10,
+      "reusable_signal_bps": 8000,
+      "detail": "held_out_workload=sort, supervision_regime=subroutine_hints, reusable_signal_units=8/10, reusable_outputs=2/4, reusable_regularizers=0/0, reusable_explicit_hints=6/6"
+    },
+    {
+      "supervision_regime": "subroutine_hints",
+      "held_out_workload_family": "clrs_shortest_path",
+      "train_workload_families": [
+        "sort",
+        "sudoku_style"
+      ],
+      "explicit_hint_target_count": 8,
+      "reusable_explicit_hint_target_count": 8,
+      "output_target_count": 4,
+      "reusable_output_target_count": 2,
+      "self_supervised_regularizer_count": 0,
+      "reusable_self_supervised_regularizer_count": 0,
+      "reusable_signal_units": 10,
+      "total_signal_units": 12,
+      "reusable_signal_bps": 8333,
+      "detail": "held_out_workload=clrs_shortest_path, supervision_regime=subroutine_hints, reusable_signal_units=10/12, reusable_outputs=2/4, reusable_regularizers=0/0, reusable_explicit_hints=8/8"
+    },
+    {
+      "supervision_regime": "subroutine_hints",
+      "held_out_workload_family": "sudoku_style",
+      "train_workload_families": [
+        "sort",
+        "clrs_shortest_path"
+      ],
+      "explicit_hint_target_count": 6,
+      "reusable_explicit_hint_target_count": 6,
+      "output_target_count": 4,
+      "reusable_output_target_count": 2,
+      "self_supervised_regularizer_count": 0,
+      "reusable_self_supervised_regularizer_count": 0,
+      "reusable_signal_units": 8,
+      "total_signal_units": 10,
+      "reusable_signal_bps": 8000,
+      "detail": "held_out_workload=sudoku_style, supervision_regime=subroutine_hints, reusable_signal_units=8/10, reusable_outputs=2/4, reusable_regularizers=0/0, reusable_explicit_hints=6/6"
+    },
+    {
+      "supervision_regime": "no_hint_output_only",
+      "held_out_workload_family": "sort",
+      "train_workload_families": [
+        "clrs_shortest_path",
+        "sudoku_style"
+      ],
+      "explicit_hint_target_count": 0,
+      "reusable_explicit_hint_target_count": 0,
+      "output_target_count": 4,
+      "reusable_output_target_count": 2,
+      "self_supervised_regularizer_count": 0,
+      "reusable_self_supervised_regularizer_count": 0,
+      "reusable_signal_units": 2,
+      "total_signal_units": 4,
+      "reusable_signal_bps": 5000,
+      "detail": "held_out_workload=sort, supervision_regime=no_hint_output_only, reusable_signal_units=2/4, reusable_outputs=2/4, reusable_regularizers=0/0, reusable_explicit_hints=0/0"
+    },
+    {
+      "supervision_regime": "no_hint_output_only",
+      "held_out_workload_family": "clrs_shortest_path",
+      "train_workload_families": [
+        "sort",
+        "sudoku_style"
+      ],
+      "explicit_hint_target_count": 0,
+      "reusable_explicit_hint_target_count": 0,
+      "output_target_count": 4,
+      "reusable_output_target_count": 2,
+      "self_supervised_regularizer_count": 0,
+      "reusable_self_supervised_regularizer_count": 0,
+      "reusable_signal_units": 2,
+      "total_signal_units": 4,
+      "reusable_signal_bps": 5000,
+      "detail": "held_out_workload=clrs_shortest_path, supervision_regime=no_hint_output_only, reusable_signal_units=2/4, reusable_outputs=2/4, reusable_regularizers=0/0, reusable_explicit_hints=0/0"
+    },
+    {
+      "supervision_regime": "no_hint_output_only",
+      "held_out_workload_family": "sudoku_style",
+      "train_workload_families": [
+        "sort",
+        "clrs_shortest_path"
+      ],
+      "explicit_hint_target_count": 0,
+      "reusable_explicit_hint_target_count": 0,
+      "output_target_count": 4,
+      "reusable_output_target_count": 2,
+      "self_supervised_regularizer_count": 0,
+      "reusable_self_supervised_regularizer_count": 0,
+      "reusable_signal_units": 2,
+      "total_signal_units": 4,
+      "reusable_signal_bps": 5000,
+      "detail": "held_out_workload=sudoku_style, supervision_regime=no_hint_output_only, reusable_signal_units=2/4, reusable_outputs=2/4, reusable_regularizers=0/0, reusable_explicit_hints=0/0"
+    },
+    {
+      "supervision_regime": "no_hint_self_supervised",
+      "held_out_workload_family": "sort",
+      "train_workload_families": [
+        "clrs_shortest_path",
+        "sudoku_style"
+      ],
+      "explicit_hint_target_count": 0,
+      "reusable_explicit_hint_target_count": 0,
+      "output_target_count": 4,
+      "reusable_output_target_count": 2,
+      "self_supervised_regularizer_count": 6,
+      "reusable_self_supervised_regularizer_count": 6,
+      "reusable_signal_units": 8,
+      "total_signal_units": 10,
+      "reusable_signal_bps": 8000,
+      "detail": "held_out_workload=sort, supervision_regime=no_hint_self_supervised, reusable_signal_units=8/10, reusable_outputs=2/4, reusable_regularizers=6/6, reusable_explicit_hints=0/0"
+    },
+    {
+      "supervision_regime": "no_hint_self_supervised",
+      "held_out_workload_family": "clrs_shortest_path",
+      "train_workload_families": [
+        "sort",
+        "sudoku_style"
+      ],
+      "explicit_hint_target_count": 0,
+      "reusable_explicit_hint_target_count": 0,
+      "output_target_count": 4,
+      "reusable_output_target_count": 2,
+      "self_supervised_regularizer_count": 6,
+      "reusable_self_supervised_regularizer_count": 6,
+      "reusable_signal_units": 8,
+      "total_signal_units": 10,
+      "reusable_signal_bps": 8000,
+      "detail": "held_out_workload=clrs_shortest_path, supervision_regime=no_hint_self_supervised, reusable_signal_units=8/10, reusable_outputs=2/4, reusable_regularizers=6/6, reusable_explicit_hints=0/0"
+    },
+    {
+      "supervision_regime": "no_hint_self_supervised",
+      "held_out_workload_family": "sudoku_style",
+      "train_workload_families": [
+        "sort",
+        "clrs_shortest_path"
+      ],
+      "explicit_hint_target_count": 0,
+      "reusable_explicit_hint_target_count": 0,
+      "output_target_count": 4,
+      "reusable_output_target_count": 2,
+      "self_supervised_regularizer_count": 6,
+      "reusable_self_supervised_regularizer_count": 6,
+      "reusable_signal_units": 8,
+      "total_signal_units": 10,
+      "reusable_signal_bps": 8000,
+      "detail": "held_out_workload=sudoku_style, supervision_regime=no_hint_self_supervised, reusable_signal_units=8/10, reusable_outputs=2/4, reusable_regularizers=6/6, reusable_explicit_hints=0/0"
+    }
+  ],
+  "clrs_regime_deltas": [
+    {
+      "supervision_regime": "full_hint_trace",
+      "reusable_signal_bps": 1666,
+      "reusable_signal_units": 2,
+      "total_signal_units": 12,
+      "explicit_hint_target_count": 8,
+      "self_supervised_regularizer_count": 0
+    },
+    {
+      "supervision_regime": "subroutine_hints",
+      "reusable_signal_bps": 8333,
+      "reusable_signal_units": 10,
+      "total_signal_units": 12,
+      "explicit_hint_target_count": 8,
+      "self_supervised_regularizer_count": 0
+    },
+    {
+      "supervision_regime": "no_hint_output_only",
+      "reusable_signal_bps": 5000,
+      "reusable_signal_units": 2,
+      "total_signal_units": 4,
+      "explicit_hint_target_count": 0,
+      "self_supervised_regularizer_count": 0
+    },
+    {
+      "supervision_regime": "no_hint_self_supervised",
+      "reusable_signal_bps": 8000,
+      "reusable_signal_units": 8,
+      "total_signal_units": 10,
+      "explicit_hint_target_count": 0,
+      "self_supervised_regularizer_count": 6
+    }
+  ],
+  "served_lane_refusal_reason": "refuse served promotion: the no-hint/self-supervised executor regime is only a research-only architecture proxy with reusable-signal comparisons on the seeded corpus and has no trained-model benchmark gate or served capability publication",
+  "claim_class": "research_only_architecture",
+  "claim_boundary": "this report compares full-hint, subroutine-hint, output-only, and no-hint plus self-supervised regularizer regimes on the seeded sort, CLRS-shortest-path, and sudoku-style corpus only; it reports reusable supervision-signal proxies rather than trained-model exactness or served-lane capability",
+  "summary": "No-hint/self-supervised executor report now freezes four supervision regimes across the seeded bounded corpus: on held-out CLRS shortest-path, output-only no-hint reaches 5000 bps reusable signal, no-hint plus self-supervised regularizers improves that to 8000 bps with zero explicit hint targets, full-hint trace stays at 1666 bps, and reusable subroutine hints remain the upper bound at 8333 bps; served promotion stays explicitly refused.",
+  "report_digest": "0197d47ba88449193a5e39dc2386bb475b8fdec0a547ffc8b5bd0d3dde05009b"
+}

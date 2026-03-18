@@ -496,6 +496,18 @@ That now includes one intentionally narrow executor-training answer:
   comparable trace-family-set contract in `psionic-data`, a reproducible
   committed-truth check in `psionic-train`, and a repo-facing summary report
   at `fixtures/tassadar/reports/tassadar_trace_family_variant_report.json`
+- the first public no-hint / self-supervised executor regime comparison now
+  also exists beside that same bounded lane:
+  `psionic-train` now materializes four seeded supervision regimes
+  (`full_hint_trace`, `subroutine_hints`, `no_hint_output_only`, and
+  `no_hint_self_supervised`) plus deterministic reusable-signal proxies for
+  held-out sort / CLRS-shortest-path / sudoku-style workloads, and
+  `psionic-research` now freezes the resulting architecture report at
+  `fixtures/tassadar/reports/tassadar_no_hint_self_supervised_report.json`;
+  on held-out CLRS shortest-path, reusable signal moves from `1666` bps on
+  full-hint traces to `5000` on output-only no-hint and `8000` on no-hint
+  plus self-supervised regularizers, while reusable subroutine hints remain
+  the upper bound at `8333`, and served promotion is still explicitly refused
 - the learned-structure supervision follow-on now also exists beside that same
   bounded lane: `psionic-models` now derives structural target families for
   instruction pointer, branch outcome, stack delta, memory diff, and

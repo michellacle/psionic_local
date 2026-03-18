@@ -363,6 +363,15 @@ Current posture:
   comparable trace-family set contract for those sequence variants and
   `psionic-research` now freezes the repo-facing summary at
   `fixtures/tassadar/reports/tassadar_trace_family_variant_report.json`
+- the first public no-hint / self-supervised executor regime report now also
+  exists at
+  `fixtures/tassadar/reports/tassadar_no_hint_self_supervised_report.json`;
+  it keeps the whole lane explicitly `research_only_architecture` while
+  freezing the seeded sort / CLRS-shortest-path / sudoku-style comparison:
+  held-out CLRS reusable signal moves from `1666` bps on full-hint traces to
+  `5000` on output-only no-hint and `8000` on no-hint plus self-supervised
+  regularizers, while reusable subroutine hints stay the upper bound at `8333`
+  and served promotion remains explicitly refused
 - the post-Phase-15 boundary-adapter follow-on now also exists in
   `psionic-models`, `psionic-eval`, `psionic-research`, `docs/audits/`, and
   nine preserved bounded artifact roots at

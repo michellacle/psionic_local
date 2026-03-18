@@ -430,6 +430,17 @@ The current scope is:
   explicit `research_only` claim boundaries, and `psionic-research` now
   freezes the repo-facing variant summary at
   `fixtures/tassadar/reports/tassadar_trace_family_variant_report.json`
+- landed research-only no-hint / self-supervised executor regime comparison:
+  `psionic-train` now materializes public full-hint-trace, subroutine-hint,
+  no-hint-output-only, and no-hint-self-supervised regime manifests plus
+  reusable-signal proxies over the seeded sort / CLRS-shortest-path /
+  sudoku-style corpus, and `psionic-research` now freezes the resulting
+  architecture report at
+  `fixtures/tassadar/reports/tassadar_no_hint_self_supervised_report.json`;
+  the held-out CLRS proxy moves from `1666` bps reusable signal on full-hint
+  traces to `5000` on output-only no-hint and `8000` on no-hint plus
+  self-supervised regularizers, while reusable subroutine hints remain at
+  `8333`, and the entire lane stays explicitly refused for served promotion
 - landed trained-executor Phase 15B follow-on bar: the same executor-attention
   family now also carries a bounded relative-target output-bias adapter in
   `psionic-models`, the preserved destructive boundary-first output-head
