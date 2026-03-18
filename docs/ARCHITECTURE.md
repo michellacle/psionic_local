@@ -1130,6 +1130,20 @@ The current scope is:
   compiled, learned, and research bundles carry `claim_class`, while
   `claim_boundary`, `boundary_label`, and `serve_posture` keep the tighter
   executable and serving limits explicit
+- landed planner-native language-versus-compute policy follow-on:
+  `psionic-models` now publishes a research-only
+  `TassadarPlannerLanguageComputePolicyPublication` over explicit
+  `language_only`, `internal_exact_compute`, and `external_tool` route
+  families with weighted correctness, cost, evidence-burden, refusal-risk,
+  and workload-fit signals, `psionic-router` now freezes the deterministic
+  benchmark report at
+  `fixtures/tassadar/reports/tassadar_planner_language_compute_policy_report.json`
+  with seeded hybrid cases that keep language-only wins, internal
+  exact-compute wins, external-tool wins, and explicit `do_not_call_executor`
+  refusals separate, and `psionic-provider` now projects that router report
+  into a provider-facing `TassadarPlannerLanguageComputePolicyReceipt`; the
+  lane remains benchmark-bound routing research and does not widen served
+  capability, accepted-outcome closure, or market authority
 - the final article-parity closeout audit now exists at
   `docs/audits/2026-03-17-tassadar-article-parity-closeout-audit.md`; it is
   explicitly subordinate to `fixtures/tassadar/reports/tassadar_acceptance_report.json`

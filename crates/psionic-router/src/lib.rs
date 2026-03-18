@@ -13,6 +13,7 @@
 
 mod response_state;
 mod tassadar_module_installation;
+mod tassadar_planner_policy;
 mod tassadar_route;
 mod tool_loop;
 
@@ -21,6 +22,7 @@ pub use response_state::{
     ResponseStateError, ResponseStateRecord, ResponseStateRetentionPolicy, ResponseStateStore,
 };
 pub use tassadar_module_installation::*;
+pub use tassadar_planner_policy::*;
 pub use tassadar_route::*;
 pub use tool_loop::{
     ToolExecutionRequest, ToolGateway, ToolHistoryVisibility, ToolLoopController, ToolLoopError,

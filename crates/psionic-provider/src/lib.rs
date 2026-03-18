@@ -5,8 +5,9 @@
     allow(clippy::expect_used, clippy::panic, clippy::panic_in_result_fn)
 )]
 
-mod tassadar_module_library;
 mod tassadar_module_installation;
+mod tassadar_module_library;
+mod tassadar_planner_policy;
 mod tassadar_quantization_truth_envelope;
 
 use std::collections::BTreeMap;
@@ -14,13 +15,13 @@ use std::collections::BTreeMap;
 use ed25519_dalek::SigningKey;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-pub use tassadar_module_library::*;
 pub use tassadar_module_installation::*;
+pub use tassadar_module_library::*;
+pub use tassadar_planner_policy::*;
 pub use tassadar_quantization_truth_envelope::*;
 
 use psionic_research::{
-    TassadarDecompilationArtifactSummary,
-    TassadarKernelModuleScalingSummaryReport,
+    TassadarDecompilationArtifactSummary, TassadarKernelModuleScalingSummaryReport,
     TassadarPromotionChecklistGateKind, TassadarPromotionPolicyReport,
     TassadarPromotionPolicyStatus, TassadarWorkloadCapabilityFrontierSummaryReport,
 };
@@ -438,11 +439,11 @@ impl TassadarCapabilityEnvelope {
             TassadarDeploymentTruthEnvelope::from_served_quantization_truth_envelope(
                 &publication.quantization_truth_envelope,
             )
-            .map_err(
-                |error| TassadarCapabilityEnvelopeError::UnpublishableQuantizationTruthEnvelope {
+            .map_err(|error| {
+                TassadarCapabilityEnvelopeError::UnpublishableQuantizationTruthEnvelope {
                     detail: format!("{error:?}"),
-                },
-            )?;
+                }
+            })?;
         Ok(Self {
             backend_family: String::from(BACKEND_FAMILY),
             product_id: publication.product_id.clone(),
@@ -3277,11 +3278,11 @@ mod tests {
     };
     use psionic_models::{TassadarExecutorFixture, TassadarWorkloadClass};
     use psionic_research::{
+        TassadarPromotionChecklistGateKind, TassadarPromotionPolicyStatus,
         build_tassadar_decompilable_executor_artifacts_report,
         build_tassadar_kernel_module_scaling_summary_report,
-        build_tassadar_workload_capability_frontier_summary_report,
-        TassadarPromotionChecklistGateKind, TassadarPromotionPolicyStatus,
         build_tassadar_promotion_policy_report,
+        build_tassadar_workload_capability_frontier_summary_report,
     };
     use psionic_router::{
         TassadarPlannerExecutorNegotiatedRouteState,
@@ -3345,12 +3346,11 @@ mod tests {
         TassadarExactnessRefusalReceipt, TassadarKernelModuleScalingReceipt,
         TassadarPlannerRouteCapabilityEnvelope, TassadarPlannerRouteCapabilityEnvelopeError,
         TassadarPromotionPolicyReceipt, TassadarTraceArtifactReceipt, TassadarTraceDiffReceipt,
-        TassadarWorkloadCapabilityFrontierReceipt,
-        TextGenerationCapabilityEnvelope, TextGenerationReceipt, WeightBundleEvidence,
-        cache_invalidation_policy, compute_market_supply_refusal_diagnostic,
-        default_compute_market_supply_policy, digest_embedding_request, digest_generation_request,
-        digest_sandbox_execution_request, evaluate_compute_market_supply,
-        served_artifact_identity_for_decoder_model,
+        TassadarWorkloadCapabilityFrontierReceipt, TextGenerationCapabilityEnvelope,
+        TextGenerationReceipt, WeightBundleEvidence, cache_invalidation_policy,
+        compute_market_supply_refusal_diagnostic, default_compute_market_supply_policy,
+        digest_embedding_request, digest_generation_request, digest_sandbox_execution_request,
+        evaluate_compute_market_supply, served_artifact_identity_for_decoder_model,
     };
 
     #[test]
@@ -8516,12 +8516,16 @@ mod tests {
             receipt.workload_family_count,
             summary.frontier_report.frontier_rows.len() as u32
         );
-        assert!(receipt
-            .under_mapped_workload_family_ids
-            .contains(&String::from("micro_wasm_kernel")));
-        assert!(receipt
-            .refusal_first_workload_family_ids
-            .contains(&String::from("sudoku_class")));
+        assert!(
+            receipt
+                .under_mapped_workload_family_ids
+                .contains(&String::from("micro_wasm_kernel"))
+        );
+        assert!(
+            receipt
+                .refusal_first_workload_family_ids
+                .contains(&String::from("sudoku_class"))
+        );
     }
 
     #[test]
@@ -8532,12 +8536,16 @@ mod tests {
 
         assert_eq!(receipt.report_id, summary.report_id);
         assert_eq!(receipt.module_exact_import_complexity_threshold, Some(0));
-        assert!(receipt
-            .kernel_cost_degraded_family_ids
-            .contains(&String::from("backward_loop_kernel")));
-        assert!(receipt
-            .refusal_boundary_family_ids
-            .contains(&String::from("module_host_import_boundary")));
+        assert!(
+            receipt
+                .kernel_cost_degraded_family_ids
+                .contains(&String::from("backward_loop_kernel"))
+        );
+        assert!(
+            receipt
+                .refusal_boundary_family_ids
+                .contains(&String::from("module_host_import_boundary"))
+        );
     }
 
     #[test]

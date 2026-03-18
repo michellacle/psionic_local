@@ -1,0 +1,419 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.planner_language_compute_policy.report.v1",
+  "policy_publication": {
+    "schema_version": 1,
+    "publication_id": "tassadar.planner_language_compute_policy.publication.v1",
+    "status": "implemented",
+    "claim_class": "routing_surface_research_only_architecture",
+    "route_families": [
+      "external_tool",
+      "internal_exact_compute",
+      "language_only"
+    ],
+    "signal_weights": [
+      {
+        "signal": "expected_correctness",
+        "weight_bps": 3600,
+        "prefer_lower": false,
+        "note": "policy should rank lanes by expected correctness before cost, but without treating local runtime success as authority or settlement closure"
+      },
+      {
+        "signal": "estimated_cost",
+        "weight_bps": 1500,
+        "prefer_lower": true,
+        "note": "cost matters once correctness remains adequate; cheap language-only routes should win when exact compute is not justified"
+      },
+      {
+        "signal": "evidence_burden",
+        "weight_bps": 1800,
+        "prefer_lower": true,
+        "note": "routes that require heavier evidence should stay explicit so the planner can trade off stronger receipts against higher burden"
+      },
+      {
+        "signal": "refusal_risk",
+        "weight_bps": 1300,
+        "prefer_lower": true,
+        "note": "the planner should avoid routes that are likely to end in explicit executor or tool refusal when another lane is a better fit"
+      },
+      {
+        "signal": "workload_fit",
+        "weight_bps": 1800,
+        "prefer_lower": false,
+        "note": "workload-family fit remains explicit so the planner does not over-read one lane's wins as general closure"
+      }
+    ],
+    "benchmarked_workload_classes": [
+      "arithmetic_microprogram",
+      "branch_heavy_kernel",
+      "long_loop_kernel",
+      "memory_heavy_kernel",
+      "memory_lookup_microprogram",
+      "sudoku_class"
+    ],
+    "target_surfaces": [
+      "crates/psionic-models",
+      "crates/psionic-router",
+      "crates/psionic-provider"
+    ],
+    "validation_refs": [
+      "fixtures/tassadar/reports/tassadar_planner_language_compute_policy_report.json",
+      "fixtures/tassadar/reports/tassadar_workload_capability_frontier_report.json",
+      "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+    ],
+    "support_boundaries": [
+      "this publication defines a benchmark-bound planner policy vocabulary over language-only, internal exact-compute, and external-tool routes; it does not promote any lane or collapse routing into authority closure",
+      "signal weights are a current public policy prior for benchmarked hybrid cases, not a proof that the same ordering is globally optimal for every task or mount",
+      "internal exact-compute, language-only, and external-tool routes remain distinct receipt and refusal surfaces; publication here does not widen served capability or market posture"
+    ],
+    "publication_digest": "f03f78a3f24552db192c452c528982574ede8fa93a469ecd8a3eb987710438c0"
+  },
+  "evaluated_cases": [
+    {
+      "case_id": "open_ended_article_math_explanation",
+      "task_family": "open_ended_article_math_explanation",
+      "task_intent": "open_ended_explanation",
+      "workload_class": "arithmetic_microprogram",
+      "expected_route_family": "language_only",
+      "selected_route_family": "language_only",
+      "selection_matches_expected": true,
+      "executor_invocation_refused": true,
+      "route_scores": [
+        {
+          "route_family": "external_tool",
+          "product_id": "psionic.sandbox_execution",
+          "admissibility": "admissible",
+          "expected_correctness_bps": 8400,
+          "estimated_cost_milliunits": 4200,
+          "estimated_cost_penalty_bps": 4200,
+          "evidence_burden_bps": 3000,
+          "refusal_risk_bps": 900,
+          "workload_fit_bps": 3200,
+          "composite_score": 2313,
+          "evidence_surface": "sandbox_execution_receipt",
+          "note": "external tool route stays available but is too expensive and unnecessary for an explanatory answer"
+        },
+        {
+          "route_family": "internal_exact_compute",
+          "product_id": "psionic.planner_executor_route",
+          "admissibility": "refused_by_policy",
+          "refusal_reason": "language_sufficient",
+          "expected_correctness_bps": 9900,
+          "estimated_cost_milliunits": 1900,
+          "estimated_cost_penalty_bps": 1900,
+          "evidence_burden_bps": 2600,
+          "refusal_risk_bps": 2700,
+          "workload_fit_bps": 9700,
+          "composite_score": 206,
+          "evidence_surface": "executor_trace_and_proof_bundle",
+          "note": "internal executor stays explicit but is refused by policy because language-only is sufficient for this task"
+        },
+        {
+          "route_family": "language_only",
+          "product_id": "psionic.text_generation",
+          "admissibility": "admissible",
+          "expected_correctness_bps": 8800,
+          "estimated_cost_milliunits": 600,
+          "estimated_cost_penalty_bps": 600,
+          "evidence_burden_bps": 800,
+          "refusal_risk_bps": 400,
+          "workload_fit_bps": 9500,
+          "composite_score": 4592,
+          "evidence_surface": "planner_summary",
+          "note": "language-only route stays cheap and sufficient for an explanatory answer"
+        }
+      ],
+      "note": "Open-ended explanation task where exact internal compute exists but should stay unused because the planner can answer directly in language."
+    },
+    {
+      "case_id": "memory_lookup_result_narration",
+      "task_family": "memory_lookup_result_narration",
+      "task_intent": "open_ended_explanation",
+      "workload_class": "memory_lookup_microprogram",
+      "expected_route_family": "language_only",
+      "selected_route_family": "language_only",
+      "selection_matches_expected": true,
+      "executor_invocation_refused": true,
+      "route_scores": [
+        {
+          "route_family": "external_tool",
+          "product_id": "psionic.sandbox_execution",
+          "admissibility": "admissible",
+          "expected_correctness_bps": 8400,
+          "estimated_cost_milliunits": 4200,
+          "estimated_cost_penalty_bps": 4200,
+          "evidence_burden_bps": 3000,
+          "refusal_risk_bps": 900,
+          "workload_fit_bps": 3200,
+          "composite_score": 2313,
+          "evidence_surface": "sandbox_execution_receipt",
+          "note": "external tool route stays available but is too expensive and unnecessary for an explanatory answer"
+        },
+        {
+          "route_family": "internal_exact_compute",
+          "product_id": "psionic.planner_executor_route",
+          "admissibility": "refused_by_policy",
+          "refusal_reason": "language_sufficient",
+          "expected_correctness_bps": 9900,
+          "estimated_cost_milliunits": 1900,
+          "estimated_cost_penalty_bps": 1900,
+          "evidence_burden_bps": 2600,
+          "refusal_risk_bps": 2700,
+          "workload_fit_bps": 9700,
+          "composite_score": 206,
+          "evidence_surface": "executor_trace_and_proof_bundle",
+          "note": "internal executor stays explicit but is refused by policy because language-only is sufficient for this task"
+        },
+        {
+          "route_family": "language_only",
+          "product_id": "psionic.text_generation",
+          "admissibility": "admissible",
+          "expected_correctness_bps": 8800,
+          "estimated_cost_milliunits": 600,
+          "estimated_cost_penalty_bps": 600,
+          "evidence_burden_bps": 800,
+          "refusal_risk_bps": 400,
+          "workload_fit_bps": 9500,
+          "composite_score": 4592,
+          "evidence_surface": "planner_summary",
+          "note": "language-only route stays cheap and sufficient for an explanatory answer"
+        }
+      ],
+      "note": "Narrative result-reporting task over a bounded memory-lookup workload where language-only remains cheaper and sufficiently correct."
+    },
+    {
+      "case_id": "memory_heavy_exact_executor_patch",
+      "task_family": "memory_heavy_exact_executor_patch",
+      "task_intent": "exact_transform",
+      "workload_class": "memory_heavy_kernel",
+      "expected_route_family": "internal_exact_compute",
+      "selected_route_family": "internal_exact_compute",
+      "selection_matches_expected": true,
+      "executor_invocation_refused": false,
+      "route_scores": [
+        {
+          "route_family": "external_tool",
+          "product_id": "psionic.sandbox_execution",
+          "admissibility": "admissible",
+          "expected_correctness_bps": 9700,
+          "estimated_cost_milliunits": 4600,
+          "estimated_cost_penalty_bps": 4600,
+          "evidence_burden_bps": 3600,
+          "refusal_risk_bps": 900,
+          "workload_fit_bps": 7600,
+          "composite_score": 3405,
+          "evidence_surface": "sandbox_execution_receipt",
+          "note": "external tool route is strong but costlier than the current internal exact-compute lane on this bounded transform"
+        },
+        {
+          "route_family": "internal_exact_compute",
+          "product_id": "psionic.planner_executor_route",
+          "admissibility": "admissible",
+          "expected_correctness_bps": 9900,
+          "estimated_cost_milliunits": 1900,
+          "estimated_cost_penalty_bps": 1900,
+          "evidence_burden_bps": 2600,
+          "refusal_risk_bps": 500,
+          "workload_fit_bps": 9700,
+          "composite_score": 4492,
+          "evidence_surface": "executor_trace_and_proof_bundle",
+          "note": "published exact on the current memory-heavy article kernel family"
+        },
+        {
+          "route_family": "language_only",
+          "product_id": "psionic.text_generation",
+          "admissibility": "admissible",
+          "expected_correctness_bps": 5200,
+          "estimated_cost_milliunits": 700,
+          "estimated_cost_penalty_bps": 700,
+          "evidence_burden_bps": 900,
+          "refusal_risk_bps": 1200,
+          "workload_fit_bps": 2500,
+          "composite_score": 1899,
+          "evidence_surface": "planner_summary",
+          "note": "language-only route cannot justify an exact transform even though it remains cheap"
+        }
+      ],
+      "note": "Exact transform task over a memory-heavy kernel where the internal exact-compute lane should beat both language-only and external delegation."
+    },
+    {
+      "case_id": "branch_heavy_exact_control_repair",
+      "task_family": "branch_heavy_exact_control_repair",
+      "task_intent": "exact_transform",
+      "workload_class": "branch_heavy_kernel",
+      "expected_route_family": "internal_exact_compute",
+      "selected_route_family": "internal_exact_compute",
+      "selection_matches_expected": true,
+      "executor_invocation_refused": false,
+      "route_scores": [
+        {
+          "route_family": "external_tool",
+          "product_id": "psionic.sandbox_execution",
+          "admissibility": "admissible",
+          "expected_correctness_bps": 9700,
+          "estimated_cost_milliunits": 4600,
+          "estimated_cost_penalty_bps": 4600,
+          "evidence_burden_bps": 3600,
+          "refusal_risk_bps": 900,
+          "workload_fit_bps": 7600,
+          "composite_score": 3405,
+          "evidence_surface": "sandbox_execution_receipt",
+          "note": "external tool route is strong but costlier than the current internal exact-compute lane on this bounded transform"
+        },
+        {
+          "route_family": "internal_exact_compute",
+          "product_id": "psionic.planner_executor_route",
+          "admissibility": "admissible",
+          "expected_correctness_bps": 9650,
+          "estimated_cost_milliunits": 2900,
+          "estimated_cost_penalty_bps": 2900,
+          "evidence_burden_bps": 2900,
+          "refusal_risk_bps": 2300,
+          "workload_fit_bps": 8300,
+          "composite_score": 3712,
+          "evidence_surface": "executor_trace_and_proof_bundle",
+          "note": "published exact only with explicit fallback to reference_linear when the requested fast path exceeds the validated branch-heavy envelope"
+        },
+        {
+          "route_family": "language_only",
+          "product_id": "psionic.text_generation",
+          "admissibility": "admissible",
+          "expected_correctness_bps": 5200,
+          "estimated_cost_milliunits": 700,
+          "estimated_cost_penalty_bps": 700,
+          "evidence_burden_bps": 900,
+          "refusal_risk_bps": 1200,
+          "workload_fit_bps": 2500,
+          "composite_score": 1899,
+          "evidence_surface": "planner_summary",
+          "note": "language-only route cannot justify an exact transform even though it remains cheap"
+        }
+      ],
+      "note": "Exact control-flow repair task where the planner should still route internally even if the runtime may need an explicit slower fallback path."
+    },
+    {
+      "case_id": "long_loop_robust_execution_plan",
+      "task_family": "long_loop_robust_execution_plan",
+      "task_intent": "long_horizon_robust_execution",
+      "workload_class": "long_loop_kernel",
+      "expected_route_family": "external_tool",
+      "selected_route_family": "external_tool",
+      "selection_matches_expected": true,
+      "executor_invocation_refused": true,
+      "route_scores": [
+        {
+          "route_family": "external_tool",
+          "product_id": "psionic.sandbox_execution",
+          "admissibility": "admissible",
+          "expected_correctness_bps": 9850,
+          "estimated_cost_milliunits": 4300,
+          "estimated_cost_penalty_bps": 4300,
+          "evidence_burden_bps": 3500,
+          "refusal_risk_bps": 600,
+          "workload_fit_bps": 9500,
+          "composite_score": 3903,
+          "evidence_surface": "sandbox_execution_receipt",
+          "note": "external tool route is the current robust choice for this long-horizon case"
+        },
+        {
+          "route_family": "internal_exact_compute",
+          "product_id": "psionic.planner_executor_route",
+          "admissibility": "refused_by_policy",
+          "refusal_reason": "external_tool_preferred_for_robustness",
+          "expected_correctness_bps": 9450,
+          "estimated_cost_milliunits": 3400,
+          "estimated_cost_penalty_bps": 3400,
+          "evidence_burden_bps": 2900,
+          "refusal_risk_bps": 4100,
+          "workload_fit_bps": 8300,
+          "composite_score": -669,
+          "evidence_surface": "executor_trace_and_proof_bundle",
+          "note": "internal executor remains benchmarked but is refused by policy on this long-horizon case because the explicit external tool lane is currently more robust"
+        },
+        {
+          "route_family": "language_only",
+          "product_id": "psionic.text_generation",
+          "admissibility": "admissible",
+          "expected_correctness_bps": 3800,
+          "estimated_cost_milliunits": 700,
+          "estimated_cost_penalty_bps": 700,
+          "evidence_burden_bps": 700,
+          "refusal_risk_bps": 1800,
+          "workload_fit_bps": 1500,
+          "composite_score": 1173,
+          "evidence_surface": "planner_summary",
+          "note": "language-only route is too brittle for long-horizon robust execution"
+        }
+      ],
+      "note": "Long-horizon task where current internal exact-compute support is still too fragile or costly, so the policy should prefer an explicit external tool lane."
+    },
+    {
+      "case_id": "sudoku_exact_candidate_check",
+      "task_family": "sudoku_exact_candidate_check",
+      "task_intent": "exact_search_check",
+      "workload_class": "sudoku_class",
+      "expected_route_family": "internal_exact_compute",
+      "selected_route_family": "internal_exact_compute",
+      "selection_matches_expected": true,
+      "executor_invocation_refused": false,
+      "route_scores": [
+        {
+          "route_family": "external_tool",
+          "product_id": "psionic.sandbox_execution",
+          "admissibility": "admissible",
+          "expected_correctness_bps": 9550,
+          "estimated_cost_milliunits": 5000,
+          "estimated_cost_penalty_bps": 5000,
+          "evidence_burden_bps": 3900,
+          "refusal_risk_bps": 800,
+          "workload_fit_bps": 8500,
+          "composite_score": 3412,
+          "evidence_surface": "sandbox_execution_receipt",
+          "note": "external tool route remains a strong exact-search baseline but carries higher cost and evidence burden than the bounded internal search lane"
+        },
+        {
+          "route_family": "internal_exact_compute",
+          "product_id": "psionic.planner_executor_route",
+          "admissibility": "admissible",
+          "expected_correctness_bps": 9900,
+          "estimated_cost_milliunits": 1900,
+          "estimated_cost_penalty_bps": 1900,
+          "evidence_burden_bps": 2600,
+          "refusal_risk_bps": 500,
+          "workload_fit_bps": 9700,
+          "composite_score": 4492,
+          "evidence_surface": "executor_trace_and_proof_bundle",
+          "note": "published exact only for the exact Sudoku search workload family under the public benchmark-package-set gate"
+        },
+        {
+          "route_family": "language_only",
+          "product_id": "psionic.text_generation",
+          "admissibility": "admissible",
+          "expected_correctness_bps": 4600,
+          "estimated_cost_milliunits": 700,
+          "estimated_cost_penalty_bps": 700,
+          "evidence_burden_bps": 700,
+          "refusal_risk_bps": 1700,
+          "workload_fit_bps": 2000,
+          "composite_score": 1564,
+          "evidence_surface": "planner_summary",
+          "note": "language-only route is a poor fit for an exact search check"
+        }
+      ],
+      "note": "Exact search-check task where the bounded internal search fixture should remain the planner's preferred exact route."
+    }
+  ],
+  "generated_from_refs": [
+    "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json",
+    "fixtures/tassadar/reports/tassadar_exactness_refusal_report.json",
+    "fixtures/tassadar/reports/tassadar_planner_language_compute_policy_report.json",
+    "fixtures/tassadar/reports/tassadar_workload_capability_frontier_report.json"
+  ],
+  "lane_selection_accuracy_bps": 10000,
+  "policy_compliance_rate_bps": 10000,
+  "cost_per_correct_job_milliunits": 2033,
+  "executor_invocation_refusal_rate_bps": 5000,
+  "claim_boundary": "this report is a benchmark-bound routing surface over seeded hybrid cases. It compares language-only, internal exact-compute, and external-tool lanes without treating route ranking as authority closure, market settlement, or served capability widening",
+  "summary": "Planner policy benchmark covers 6 hybrid cases with selection accuracy 10000 bps, policy compliance 10000 bps, average cost-per-correct-job 2033 milliunits, and executor-invocation refusal 5000 bps.",
+  "report_digest": "f56173cff56c9cdeeed2b084f9abf2bb78f9810bb532522a5de7ff585b9c407a"
+}
