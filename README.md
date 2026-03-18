@@ -385,6 +385,18 @@ Current posture:
   `3`, the algorithmic trace-schema variant cuts it from `11` to `3`, and both
   preserve final output tokens exactly while surfacing scratchpad overhead and
   reset counts
+- the first public efficient-attention baseline matrix now also exists at
+  `fixtures/tassadar/reports/tassadar_efficient_attention_baseline_matrix.json`,
+  with the companion research summary at
+  `fixtures/tassadar/reports/tassadar_efficient_attention_baseline_summary.json`;
+  `psionic-eval` now freezes dense reference-linear, validated SparseTopK,
+  linear/recurrent proxy, Reformer-style proxy, promoted HullCache, and
+  research hierarchical-hull rows on the same article-class workload artifact,
+  and `psionic-research` now makes the win/tie/lose/refuse posture explicit
+  across those same workloads; promoted HullCache is fastest on `2` workloads,
+  the research hierarchical-hull candidate is fastest on `4`, and the
+  Reformer-style proxy explicitly refuses the long-loop and Sudoku rows rather
+  than hiding unsupported locality assumptions behind dense-only comparisons
 - the post-Phase-15 boundary-adapter follow-on now also exists in
   `psionic-models`, `psionic-eval`, `psionic-research`, `docs/audits/`, and
   nine preserved bounded artifact roots at

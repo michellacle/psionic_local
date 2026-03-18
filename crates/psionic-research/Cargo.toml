@@ -31,6 +31,7 @@ hex = { workspace = true }
 psionic-compiler = { path = "../psionic-compiler" }
 psionic-data = { path = "../psionic-data" }
 psionic-eval = { path = "../psionic-eval" }
+psionic-environments = { path = "../psionic-environments" }
 psionic-ir = { path = "../psionic-ir" }
 psionic-models = { path = "../psionic-models" }
 psionic-runtime = { path = "../psionic-runtime" }
