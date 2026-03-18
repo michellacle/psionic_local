@@ -545,6 +545,15 @@ The current scope is:
   provider-facing `TassadarCompositeRoutingReceipt`. This lane keeps composite
   route identity, evidence lift, and route economics explicit instead of
   treating `uses more than one lane` as success by itself
+- landed exact-compute-market follow-on: `psionic-provider` now publishes the
+  exact-compute market report at
+  `fixtures/tassadar/reports/tassadar_exact_compute_market_report.json`,
+  freezing a machine-legible exact-compute product family over explicit
+  execution-unit identity, accepted-outcome binding dependencies, composite
+  route posture, quote posture, pricing posture, and receipt-economic bridge
+  objects with separate unsupported-envelope refusals. This lane keeps product
+  identity, quote identity, receipt identity, and settlement posture explicit
+  instead of flattening executor work into raw hardware or token-count pricing
 - landed module-installation-staging follow-on: `psionic-serve` now publishes a
   bounded staged-install surface with explicit session-mount versus worker-mount
   scope, challenge windows, activation, rollback, and refusal receipts over the

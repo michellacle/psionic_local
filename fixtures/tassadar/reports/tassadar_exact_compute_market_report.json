@@ -1,0 +1,199 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.exact_compute_market.report.v1",
+  "execution_unit_receipt": {
+    "report_id": "tassadar.execution_unit_registration.report.v1",
+    "unit_id": "execution-unit:tassadar:tassadar-executor-fixture-v0",
+    "publishable_workload_class_count": 4,
+    "refusal_taxonomy_count": 2,
+    "runtime_backend": "cpu",
+    "pricing_posture": "benchmark_calibrated_indicative",
+    "settlement_eligible": false,
+    "detail": "execution-unit registration `tassadar.execution_unit_registration.report.v1` exposes unit_id=`execution-unit:tassadar:tassadar-executor-fixture-v0`, publishable_workload_classes=4, refusal_taxonomy_count=2, runtime_backend=`cpu`, pricing_posture=`BenchmarkCalibratedIndicative`, settlement_eligible=false"
+  },
+  "composite_routing_receipt": {
+    "report_id": "tassadar.composite_routing.report.v1",
+    "case_count": 4,
+    "composite_preferred_case_count": 3,
+    "single_lane_preferred_case_count": 1,
+    "fallback_case_count": 1,
+    "challenge_path_case_count": 3,
+    "composite_evidence_lift_bps_vs_best_single_lane": 75,
+    "composite_cost_delta_milliunits_vs_best_single_lane": -2150,
+    "composite_latency_delta_ms_vs_best_single_lane": -63,
+    "generated_from_ref_count": 4,
+    "detail": "composite routing `tassadar.composite_routing.report.v1` covers 4 cases with composite_preferred=3, single_lane_preferred=1, fallback_cases=1, challenge_path_cases=3, evidence_lift_bps=75, cost_delta_milliunits=-2150, latency_delta_ms=-63"
+  },
+  "accepted_outcome_binding_report_id": "tassadar.accepted_outcome_binding.report.v1",
+  "products": [
+    {
+      "product_id": "product.exact_compute.patch_apply.validator_bound",
+      "product_family": "exact_compute_patch",
+      "capability_envelope": {
+        "envelope_id": "envelope.patch_apply.validator_bound",
+        "execution_unit_receipt_id": "tassadar.execution_unit_registration.report.v1",
+        "accepted_outcome_binding_report_id": "tassadar.accepted_outcome_binding.report.v1",
+        "composite_routing_report_id": "tassadar.composite_routing.report.v1",
+        "supported_workload_families": [
+          "patch_apply_internal_exact"
+        ],
+        "validator_binding_required": true,
+        "evidence_class": "validator_bound_accepted_outcome",
+        "accepted_outcome_dependency_refs": [
+          "kernel-policy.accepted-outcome.patch_apply.v1",
+          "nexus.accepted-outcome.patch_apply.v1"
+        ],
+        "settlement_posture": "accepted_outcome_dependent",
+        "note": "premium exact-compute patch product with validator-bound accepted-outcome dependencies"
+      },
+      "quote_posture": "validator_bound",
+      "pricing_posture": "validator_premium",
+      "quoted_price_milliunits": 4200,
+      "validator_premium_milliunits": 900,
+      "evidence_premium_milliunits": 500,
+      "note": "pricing stays tied to validator-bound evidence and accepted-outcome dependencies rather than raw hardware"
+    },
+    {
+      "product_id": "product.exact_compute.long_loop.challenge_window",
+      "product_family": "exact_compute_long_loop",
+      "capability_envelope": {
+        "envelope_id": "envelope.long_loop.challenge_window",
+        "execution_unit_receipt_id": "tassadar.execution_unit_registration.report.v1",
+        "accepted_outcome_binding_report_id": "tassadar.accepted_outcome_binding.report.v1",
+        "composite_routing_report_id": "tassadar.composite_routing.report.v1",
+        "supported_workload_families": [
+          "long_loop_validator_heavy"
+        ],
+        "validator_binding_required": true,
+        "evidence_class": "accepted_outcome_ready",
+        "accepted_outcome_dependency_refs": [
+          "kernel-policy.accepted-outcome.long_loop.v1"
+        ],
+        "settlement_posture": "accepted_outcome_dependent",
+        "note": "hybrid long-loop product requires a challenge window before any authority-facing closure"
+      },
+      "quote_posture": "challenge_window_required",
+      "pricing_posture": "challenge_window_premium",
+      "quoted_price_milliunits": 6900,
+      "validator_premium_milliunits": 1100,
+      "evidence_premium_milliunits": 700,
+      "note": "pricing reflects hybrid fallback cost and challenge-window burden instead of pretending the lane is unconditional"
+    },
+    {
+      "product_id": "product.exact_compute.parity_short",
+      "product_family": "exact_compute_bounded_parity",
+      "capability_envelope": {
+        "envelope_id": "envelope.parity_short.indicative",
+        "execution_unit_receipt_id": "tassadar.execution_unit_registration.report.v1",
+        "accepted_outcome_binding_report_id": "tassadar.accepted_outcome_binding.report.v1",
+        "composite_routing_report_id": "tassadar.composite_routing.report.v1",
+        "supported_workload_families": [
+          "parity_short_bounded"
+        ],
+        "validator_binding_required": false,
+        "evidence_class": "execution_bound",
+        "accepted_outcome_dependency_refs": [
+          "kernel-policy.accepted-outcome.parity.short.v1"
+        ],
+        "settlement_posture": "execution_only",
+        "note": "bounded short-parity product stays execution-bound and does not market validator-backed settlement posture"
+      },
+      "quote_posture": "indicative",
+      "pricing_posture": "benchmark_calibrated_indicative",
+      "quoted_price_milliunits": 1200,
+      "validator_premium_milliunits": 0,
+      "evidence_premium_milliunits": 150,
+      "note": "bounded parity stays a cheap indicative exact-compute product without overclaiming broader outcome closure"
+    }
+  ],
+  "quotes": [
+    {
+      "quote_id": "quote.exact_compute.patch_apply.validator_bound",
+      "product_id": "product.exact_compute.patch_apply.validator_bound",
+      "workload_family": "patch_apply_internal_exact",
+      "execution_unit_receipt_id": "tassadar.execution_unit_registration.report.v1",
+      "accepted_outcome_binding_report_id": "tassadar.accepted_outcome_binding.report.v1",
+      "quote_posture": "validator_bound",
+      "quoted_price_milliunits": 4200,
+      "note": "quote references execution-unit `tassadar.execution_unit_registration.report.v1` and accepted-outcome binding `tassadar.accepted_outcome_binding.report.v1` instead of raw token or hardware abstractions"
+    },
+    {
+      "quote_id": "quote.exact_compute.long_loop.challenge_window",
+      "product_id": "product.exact_compute.long_loop.challenge_window",
+      "workload_family": "long_loop_validator_heavy",
+      "execution_unit_receipt_id": "tassadar.execution_unit_registration.report.v1",
+      "accepted_outcome_binding_report_id": "tassadar.accepted_outcome_binding.report.v1",
+      "quote_posture": "challenge_window_required",
+      "quoted_price_milliunits": 6900,
+      "note": "quote references execution-unit `tassadar.execution_unit_registration.report.v1` and accepted-outcome binding `tassadar.accepted_outcome_binding.report.v1` instead of raw token or hardware abstractions"
+    },
+    {
+      "quote_id": "quote.exact_compute.parity_short",
+      "product_id": "product.exact_compute.parity_short",
+      "workload_family": "parity_short_bounded",
+      "execution_unit_receipt_id": "tassadar.execution_unit_registration.report.v1",
+      "accepted_outcome_binding_report_id": "tassadar.accepted_outcome_binding.report.v1",
+      "quote_posture": "indicative",
+      "quoted_price_milliunits": 1200,
+      "note": "quote references execution-unit `tassadar.execution_unit_registration.report.v1` and accepted-outcome binding `tassadar.accepted_outcome_binding.report.v1` instead of raw token or hardware abstractions"
+    }
+  ],
+  "receipts": [
+    {
+      "receipt_id": "receipt.exact_compute.patch_apply.validator_bound",
+      "product_id": "product.exact_compute.patch_apply.validator_bound",
+      "quote_id": "quote.exact_compute.patch_apply.validator_bound",
+      "execution_unit_receipt_id": "tassadar.execution_unit_registration.report.v1",
+      "candidate_outcome_id": "candidate.patch_apply.validator_bound.v1",
+      "accepted_outcome_dependency_ref": "nexus.accepted-outcome.patch_apply.v1",
+      "settlement_posture": "accepted_outcome_dependent",
+      "note": "receipt identity stays distinct from both quote identity and accepted-outcome authority"
+    },
+    {
+      "receipt_id": "receipt.exact_compute.long_loop.challenge_window",
+      "product_id": "product.exact_compute.long_loop.challenge_window",
+      "quote_id": "quote.exact_compute.long_loop.challenge_window",
+      "execution_unit_receipt_id": "tassadar.execution_unit_registration.report.v1",
+      "candidate_outcome_id": "candidate.long_loop.validator_missing.v1",
+      "accepted_outcome_dependency_ref": "kernel-policy.accepted-outcome.long_loop.v1",
+      "settlement_posture": "accepted_outcome_dependent",
+      "note": "receipt stays publishable even though outcome authority still depends on challenge-window and validator closure"
+    },
+    {
+      "receipt_id": "receipt.exact_compute.parity_short",
+      "product_id": "product.exact_compute.parity_short",
+      "quote_id": "quote.exact_compute.parity_short",
+      "execution_unit_receipt_id": "tassadar.execution_unit_registration.report.v1",
+      "candidate_outcome_id": "candidate.parity.short.v1",
+      "accepted_outcome_dependency_ref": "kernel-policy.accepted-outcome.parity.short.v1",
+      "settlement_posture": "execution_only",
+      "note": "bounded parity receipt stays execution-facing and does not advertise broader settlement eligibility"
+    }
+  ],
+  "refused_envelopes": [
+    {
+      "simulation_id": "refusal.research_search_product",
+      "requested_product_id": "product.exact_compute.search.research_only",
+      "requested_workload_family": "served_search_validator_mount",
+      "requested_evidence_class": "validator_bound_accepted_outcome",
+      "requested_settlement_posture": "accepted_outcome_dependent",
+      "refusal_reason": "unsupported_workload_family",
+      "note": "research-only search remains outside the current marketable exact-compute product family"
+    },
+    {
+      "simulation_id": "refusal.settlement_eligible_exact_compute",
+      "requested_product_id": "product.exact_compute.patch_apply.settlement_ready",
+      "requested_workload_family": "patch_apply_internal_exact",
+      "requested_evidence_class": "validator_bound_accepted_outcome",
+      "requested_settlement_posture": "settlement_not_published",
+      "refusal_reason": "settlement_posture_unsupported",
+      "note": "the current execution-unit registration is not settlement-eligible, so the product family must refuse a settlement-published envelope"
+    }
+  ],
+  "compute_market_dependency_marker": "compute-market remains the owner of canonical quote publication, buyer matching, and market-wide pricing policy outside standalone psionic",
+  "kernel_objects_dependency_marker": "kernel-objects remain the owner of canonical product and receipt object identities outside standalone psionic",
+  "nexus_dependency_marker": "nexus remains the owner of accepted-outcome and settlement-qualified product closure outside standalone psionic",
+  "claim_boundary": "this provider report defines a machine-legible exact-compute product family over execution-unit identity, accepted-outcome dependencies, validator posture, and quote economics. It does not treat quotes, receipts, or runtime success as settlement-qualified authority",
+  "summary": "Exact-compute market report now freezes 3 products, 3 quotes, 3 receipts, and 2 refused product-envelope simulations.",
+  "report_digest": "1fe072cbd88d8dac98b15d1613e0bd340902de37158c899496d125052a941d63"
+}
