@@ -112,6 +112,8 @@ mod tassadar_verifier_guided_search_report;
 mod tassadar_wasm_conformance;
 #[path = "tassadar_wasm_module_ingress.rs"]
 mod tassadar_wasm_module_ingress;
+#[path = "tassadar_wedge_taxonomy.rs"]
+mod tassadar_wedge_taxonomy;
 #[path = "tassadar_weak_supervision_executor.rs"]
 mod tassadar_weak_supervision_executor;
 #[path = "tassadar_working_memory_tier.rs"]
@@ -185,6 +187,7 @@ pub use tassadar_sudoku_9x9_compiled_executor::*;
 pub use tassadar_verifier_guided_search_report::*;
 pub use tassadar_wasm_conformance::*;
 pub use tassadar_wasm_module_ingress::*;
+pub use tassadar_wedge_taxonomy::*;
 pub use tassadar_weak_supervision_executor::*;
 pub use tassadar_working_memory_tier::*;
 pub use tassadar_workload_capability_frontier::*;

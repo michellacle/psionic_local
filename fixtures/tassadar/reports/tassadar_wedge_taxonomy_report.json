@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.wedge_taxonomy.report.v1",
+  "suite_id": "psionic.tassadar_wedge_taxonomy_suite.v1",
+  "evaluated_suites": [
+    {
+      "suite_id": "suite.patch_workflows",
+      "validator_attachment_rate_bps": 10000,
+      "evidence_completeness_bps": 9600,
+      "internal_compute_advantage_bps": 2800,
+      "fallback_comparison_performed": false,
+      "note": "patch workflows are one of the clear property-first wedge cases for internal exact compute"
+    },
+    {
+      "suite_id": "suite.long_loop_workflows",
+      "validator_attachment_rate_bps": 10000,
+      "evidence_completeness_bps": 9300,
+      "internal_compute_advantage_bps": 700,
+      "fallback_comparison_performed": true,
+      "note": "long-loop workflows still need explicit fallback comparisons even when internal compute contributes economically"
+    },
+    {
+      "suite_id": "suite.search_with_settlement_value",
+      "validator_attachment_rate_bps": 10000,
+      "evidence_completeness_bps": 9800,
+      "internal_compute_advantage_bps": -1400,
+      "fallback_comparison_performed": true,
+      "note": "settlement-facing search is a property-first suite where external or validator-heavy routes still dominate"
+    },
+    {
+      "suite_id": "suite.short_operational_parity",
+      "validator_attachment_rate_bps": 0,
+      "evidence_completeness_bps": 8600,
+      "internal_compute_advantage_bps": 1500,
+      "fallback_comparison_performed": false,
+      "note": "short operational parity remains internal-exact-friendly without implying a broad vertical wedge"
+    }
+  ],
+  "average_validator_attachment_rate_bps": 7500,
+  "average_evidence_completeness_bps": 9325,
+  "fallback_comparison_suite_count": 2,
+  "high_exact_compute_benefit_suite_count": 2,
+  "generated_from_refs": [
+    "fixtures/tassadar/reports/tassadar_accepted_outcome_binding_report.json",
+    "fixtures/tassadar/reports/tassadar_cost_per_correct_job_report.json",
+    "fixtures/tassadar/reports/tassadar_exact_compute_market_report.json"
+  ],
+  "validator_policies_dependency_marker": "validator-policies remain the owner of canonical attachment and challenge rules outside standalone psionic",
+  "claim_boundary": "this eval report is benchmark-bound product research over a property-first taxonomy and derived domain suites. It keeps validator attachment, evidence completeness, and fallback-versus-internal comparisons explicit without turning one favorable suite into a broad wedge claim",
+  "summary": "Wedge taxonomy report covers 4 derived suites with average validator attachment 7500 bps, average evidence completeness 9325 bps, and 2 fallback-comparison suites.",
+  "report_digest": "700317c3d00c769274cde1140de83cee13148143ec75f3d50bdf46f89e16ed72"
+}

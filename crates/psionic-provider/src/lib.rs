@@ -26,6 +26,7 @@ mod tassadar_planner_policy;
 mod tassadar_quantization_truth_envelope;
 mod tassadar_receipt_supervision;
 mod tassadar_self_installation_gate;
+mod tassadar_wedge_taxonomy;
 mod tassadar_world_mount_compatibility;
 
 use std::collections::BTreeMap;
@@ -54,6 +55,7 @@ pub use tassadar_planner_policy::*;
 pub use tassadar_quantization_truth_envelope::*;
 pub use tassadar_receipt_supervision::*;
 pub use tassadar_self_installation_gate::*;
+pub use tassadar_wedge_taxonomy::*;
 pub use tassadar_world_mount_compatibility::*;
 
 use psionic_research::{

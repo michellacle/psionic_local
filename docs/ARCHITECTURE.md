@@ -564,6 +564,16 @@ The current scope is:
   provider-facing `TassadarCostPerCorrectJobReceipt`. This lane keeps
   benchmark economics explicit as refusal-bounded product research instead of
   treating them as market pricing truth by themselves
+- landed wedge-taxonomy follow-on: `psionic-environments` now publishes the
+  property-first taxonomy suite for deterministic structure, verifier cost,
+  challenge cost, evidence value, and exact intermediate-compute benefit;
+  `psionic-eval` now publishes the derived-suite report at
+  `fixtures/tassadar/reports/tassadar_wedge_taxonomy_report.json`; and
+  `psionic-provider` now projects that report into a provider-facing
+  `TassadarWedgeTaxonomyReceipt`. This lane keeps domain selection grounded in
+  workload properties, validator attachment, evidence completeness, and
+  fallback-versus-internal comparisons instead of treating one domain demo as a
+  full wedge claim
 - landed module-installation-staging follow-on: `psionic-serve` now publishes a
   bounded staged-install surface with explicit session-mount versus worker-mount
   scope, challenge windows, activation, rollback, and refusal receipts over the
