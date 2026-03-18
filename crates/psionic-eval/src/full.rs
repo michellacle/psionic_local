@@ -40,6 +40,8 @@ mod tassadar_compiled_executor;
 mod tassadar_compiled_kernel_suite;
 #[path = "tassadar_efficient_attention_baseline_matrix.rs"]
 mod tassadar_efficient_attention_baseline_matrix;
+#[path = "tassadar_error_regime_catalog.rs"]
+mod tassadar_error_regime_catalog;
 #[path = "tassadar_exactness_refusal_report.rs"]
 mod tassadar_exactness_refusal_report;
 #[path = "tassadar_executor_architecture_comparison.rs"]
@@ -129,6 +131,7 @@ pub use tassadar_decompilation_fidelity::*;
 pub use tassadar_compiled_executor::*;
 pub use tassadar_compiled_kernel_suite::*;
 pub use tassadar_efficient_attention_baseline_matrix::*;
+pub use tassadar_error_regime_catalog::*;
 pub use tassadar_exactness_refusal_report::*;
 pub use tassadar_executor_architecture_comparison::*;
 pub use tassadar_executor_baseline_comparison::*;

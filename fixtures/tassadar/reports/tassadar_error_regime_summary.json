@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.error_regime.summary.v1",
+  "catalog_report": {
+    "schema_version": 1,
+    "report_id": "tassadar.error_regime.catalog_report.v1",
+    "source_run_ref": "fixtures/tassadar/runs/tassadar_error_regime_catalog_v1/error_regime_sweep_report.json",
+    "source_run_digest": "dd4f57934e732bc3ccefb9356506d91cc1a607717e8fa357cbf3d67599d9c1d2",
+    "recovery_surface_summaries": [
+      {
+        "recovery_surface": "uncorrected",
+        "self_healing_workload_count": 0,
+        "slow_drift_workload_count": 1,
+        "catastrophic_workload_count": 3,
+        "mean_recovered_exactness_bps": 2950,
+        "note": "uncorrected keeps self-healing, slow drift, and catastrophic counts explicit on the seeded workloads."
+      },
+      {
+        "recovery_surface": "checkpoint_only",
+        "self_healing_workload_count": 1,
+        "slow_drift_workload_count": 3,
+        "catastrophic_workload_count": 0,
+        "mean_recovered_exactness_bps": 7275,
+        "note": "checkpoint_only keeps self-healing, slow drift, and catastrophic counts explicit on the seeded workloads."
+      },
+      {
+        "recovery_surface": "verifier_only",
+        "self_healing_workload_count": 2,
+        "slow_drift_workload_count": 2,
+        "catastrophic_workload_count": 0,
+        "mean_recovered_exactness_bps": 7725,
+        "note": "verifier_only keeps self-healing, slow drift, and catastrophic counts explicit on the seeded workloads."
+      },
+      {
+        "recovery_surface": "checkpoint_and_verifier",
+        "self_healing_workload_count": 3,
+        "slow_drift_workload_count": 1,
+        "catastrophic_workload_count": 0,
+        "mean_recovered_exactness_bps": 9575,
+        "note": "checkpoint_and_verifier keeps self-healing, slow drift, and catastrophic counts explicit on the seeded workloads."
+      }
+    ],
+    "workload_summaries": [
+      {
+        "workload_family": "sudoku_backtracking",
+        "best_recovery_surface": "checkpoint_and_verifier",
+        "uncorrected_regime": "slow_drift",
+        "checkpoint_only_regime": "slow_drift",
+        "verifier_only_regime": "self_healing",
+        "checkpoint_and_verifier_regime": "self_healing",
+        "note": "sudoku_backtracking is best served by checkpoint_and_verifier on the current sweep."
+      },
+      {
+        "workload_family": "search_kernel",
+        "best_recovery_surface": "checkpoint_and_verifier",
+        "uncorrected_regime": "catastrophic_divergence",
+        "checkpoint_only_regime": "slow_drift",
+        "verifier_only_regime": "self_healing",
+        "checkpoint_and_verifier_regime": "self_healing",
+        "note": "search_kernel is best served by checkpoint_and_verifier on the current sweep."
+      },
+      {
+        "workload_family": "long_horizon_control",
+        "best_recovery_surface": "checkpoint_and_verifier",
+        "uncorrected_regime": "catastrophic_divergence",
+        "checkpoint_only_regime": "slow_drift",
+        "verifier_only_regime": "slow_drift",
+        "checkpoint_and_verifier_regime": "slow_drift",
+        "note": "long_horizon_control is best served by checkpoint_and_verifier on the current sweep."
+      },
+      {
+        "workload_family": "byte_memory_loop",
+        "best_recovery_surface": "checkpoint_and_verifier",
+        "uncorrected_regime": "catastrophic_divergence",
+        "checkpoint_only_regime": "self_healing",
+        "verifier_only_regime": "slow_drift",
+        "checkpoint_and_verifier_regime": "self_healing",
+        "note": "byte_memory_loop is best served by checkpoint_and_verifier on the current sweep."
+      }
+    ],
+    "catastrophic_without_correction_workloads": [
+      "search_kernel",
+      "long_horizon_control",
+      "byte_memory_loop"
+    ],
+    "workloads_needing_both": [
+      "sudoku_backtracking",
+      "search_kernel",
+      "long_horizon_control",
+      "byte_memory_loop"
+    ],
+    "always_fragile_workloads": [
+      "long_horizon_control"
+    ],
+    "claim_boundary": "this eval report catalogs bounded recovery regimes over the committed injected-error sweep. It keeps self-healing, slow drift, and catastrophic divergence explicit instead of blending correction paths into one headline accuracy number",
+    "summary": "Error-regime catalog now classifies 4 workloads across 4 recovery surfaces, with 3 catastrophic-without-correction workloads and 1 always-fragile workloads.",
+    "report_digest": "071c8de9d88e1016a0fe0610bb3f8adf17852d58d29981bcd562cd4dbd13b5b4"
+  },
+  "checkpoint_dominant_workloads": [
+    "byte_memory_loop"
+  ],
+  "verifier_dominant_workloads": [
+    "search_kernel"
+  ],
+  "workloads_needing_both": [
+    "sudoku_backtracking",
+    "search_kernel",
+    "long_horizon_control",
+    "byte_memory_loop"
+  ],
+  "always_fragile_workloads": [
+    "long_horizon_control"
+  ],
+  "claim_boundary": "this summary is a research interpretation over the committed error-regime catalog. It keeps dominant recovery surfaces and always-fragile workloads explicit instead of promoting correction machinery into a broad executor claim",
+  "summary": "Error-regime summary now marks 1 checkpoint-dominant workloads, 1 verifier-dominant workloads, 4 workloads needing both, and 1 always-fragile workloads.",
+  "report_digest": "3598933421a14ac95bdf2c5b4ae9614a4d36c5ff8b61008b2c1f055658ac787a"
+}

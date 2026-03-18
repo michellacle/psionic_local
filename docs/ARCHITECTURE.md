@@ -279,6 +279,22 @@ The current scope is:
   wins, and explicit refusal thresholds separate instead of treating the
   append-only trace as the uniquely honest representation for every workload
   family
+- landed error-regime-catalog follow-on: `psionic-runtime` now publishes
+  bounded injected-error receipts over `uncorrected`, `checkpoint_only`,
+  `verifier_only`, and `checkpoint_and_verifier` recovery surfaces for the
+  seeded Sudoku-backtracking, search-kernel, long-horizon-control, and
+  byte-memory-loop families with explicit `self_healing`, `slow_drift`, and
+  `catastrophic_divergence` outcomes; `psionic-data` now publishes the public
+  `TassadarErrorRegimeCatalogContract`; `psionic-train` now freezes the
+  committed sweep artifact at
+  `fixtures/tassadar/runs/tassadar_error_regime_catalog_v1/error_regime_sweep_report.json`;
+  `psionic-eval` now freezes the workload-versus-recovery catalog at
+  `fixtures/tassadar/reports/tassadar_error_regime_catalog.json`; and
+  `psionic-research` now freezes the dominant-surface summary at
+  `fixtures/tassadar/reports/tassadar_error_regime_summary.json`. This lane
+  keeps self-healing, slow drift, catastrophic divergence, and explicit
+  checkpoint-versus-verifier tradeoffs separate instead of treating the mere
+  existence of a correction path as proof of exactness
 - landed shared primitive transfer follow-on: `psionic-data` now publishes a
   public `TassadarSharedPrimitiveTransferContract` over explicit
   reachability-expand, relax-state, compare, select, merge, and

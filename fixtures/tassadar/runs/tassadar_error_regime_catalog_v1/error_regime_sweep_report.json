@@ -1,0 +1,341 @@
+{
+  "version": "2026.03.18",
+  "catalog_contract": {
+    "abi_version": "psionic.tassadar.error_regime_catalog.v1",
+    "contract_ref": "dataset://openagents/tassadar/error_regime_catalog",
+    "version": "2026.03.18",
+    "workload_families": [
+      "sudoku_backtracking",
+      "search_kernel",
+      "long_horizon_control",
+      "byte_memory_loop"
+    ],
+    "recovery_surfaces": [
+      "uncorrected",
+      "checkpoint_only",
+      "verifier_only",
+      "checkpoint_and_verifier"
+    ],
+    "regime_classes": [
+      "self_healing",
+      "slow_drift",
+      "catastrophic_divergence"
+    ],
+    "evaluation_axes": [
+      "recovered_exactness_bps",
+      "divergence_step",
+      "checkpoint_reset_count",
+      "verifier_intervention_count",
+      "correction_event_count"
+    ],
+    "cases": [
+      {
+        "case_id": "sudoku_backtracking_error_injection",
+        "workload_family": "sudoku_backtracking",
+        "injected_error_step": 7,
+        "checkpoint_spacing_steps": 4,
+        "note": "bounded Sudoku backtracking with branch-level contradiction handling"
+      },
+      {
+        "case_id": "search_kernel_error_injection",
+        "workload_family": "search_kernel",
+        "injected_error_step": 5,
+        "checkpoint_spacing_steps": 3,
+        "note": "small verifier-guided branch search with a narrow frontier budget"
+      },
+      {
+        "case_id": "long_horizon_control_error_injection",
+        "workload_family": "long_horizon_control",
+        "injected_error_step": 18,
+        "checkpoint_spacing_steps": 6,
+        "note": "long-horizon carried-state control with later-window drift and partial correction"
+      },
+      {
+        "case_id": "byte_memory_loop_error_injection",
+        "workload_family": "byte_memory_loop",
+        "injected_error_step": 11,
+        "checkpoint_spacing_steps": 5,
+        "note": "byte-addressed mutation loop where bad writes remain replay-visible and rewindable"
+      }
+    ],
+    "sweep_report_ref": "fixtures/tassadar/runs/tassadar_error_regime_catalog_v1/error_regime_sweep_report.json",
+    "catalog_report_ref": "fixtures/tassadar/reports/tassadar_error_regime_catalog.json",
+    "summary_report_ref": "fixtures/tassadar/reports/tassadar_error_regime_summary.json",
+    "claim_boundary": "this contract defines one bounded error-regime catalog over declared workloads, correction surfaces, and regime classes. It keeps checkpoint, verifier, and correction claims explicit instead of treating recovery machinery as general exactness proof",
+    "contract_digest": "b2a2a2de37ac92f71ad3757f6802dff94a5e96059fd277eb2b768be521841f15"
+  },
+  "runtime_receipts": [
+    {
+      "receipt_id": "tassadar.error_regime.sudoku_backtracking.uncorrected.v1",
+      "workload_family": "sudoku_backtracking",
+      "recovery_surface": "uncorrected",
+      "injected_error_step": 7,
+      "checkpoint_reset_count": 0,
+      "verifier_intervention_count": 0,
+      "correction_event_count": 0,
+      "regime_class": "slow_drift",
+      "recovered_exactness_bps": 6600,
+      "claim_boundary": "this receipt records one bounded injected-error study cell with explicit correction surfaces, budgets, and final regime class. It does not treat the presence of a correction path as proof of exactness outside the seeded workloads and assumptions",
+      "note": "Sudoku backtracking degrades without explicit correction, but the bounded trace family avoids immediate catastrophic divergence on the seeded case.",
+      "receipt_digest": "f839a6baec21a551e1fd821a1c2f15ea4d2e03ab8ed3082e5be23010b8dce559"
+    },
+    {
+      "receipt_id": "tassadar.error_regime.sudoku_backtracking.checkpoint_only.v1",
+      "workload_family": "sudoku_backtracking",
+      "recovery_surface": "checkpoint_only",
+      "injected_error_step": 7,
+      "checkpoint_reset_count": 1,
+      "verifier_intervention_count": 0,
+      "correction_event_count": 1,
+      "regime_class": "slow_drift",
+      "recovered_exactness_bps": 7600,
+      "claim_boundary": "this receipt records one bounded injected-error study cell with explicit correction surfaces, budgets, and final regime class. It does not treat the presence of a correction path as proof of exactness outside the seeded workloads and assumptions",
+      "note": "Checkpoint rollback removes the worst branch drift but still lacks contradiction-aware branch pruning.",
+      "receipt_digest": "daedc1a468035fec1e00259c1ec55346d2ccadfd8b399bb2f715a835c1c5e6d6"
+    },
+    {
+      "receipt_id": "tassadar.error_regime.sudoku_backtracking.verifier_only.v1",
+      "workload_family": "sudoku_backtracking",
+      "recovery_surface": "verifier_only",
+      "injected_error_step": 7,
+      "checkpoint_reset_count": 0,
+      "verifier_intervention_count": 2,
+      "correction_event_count": 2,
+      "regime_class": "self_healing",
+      "recovered_exactness_bps": 9700,
+      "claim_boundary": "this receipt records one bounded injected-error study cell with explicit correction surfaces, budgets, and final regime class. It does not treat the presence of a correction path as proof of exactness outside the seeded workloads and assumptions",
+      "note": "Verifier-only correction self-heals the seeded Sudoku case because contradiction events are local and branchable.",
+      "receipt_digest": "a203bb6bc35f201c7230f3d2286dc5347c90a83aff9a8d496d83a362db56ab10"
+    },
+    {
+      "receipt_id": "tassadar.error_regime.sudoku_backtracking.checkpoint_and_verifier.v1",
+      "workload_family": "sudoku_backtracking",
+      "recovery_surface": "checkpoint_and_verifier",
+      "injected_error_step": 7,
+      "checkpoint_reset_count": 1,
+      "verifier_intervention_count": 2,
+      "correction_event_count": 3,
+      "regime_class": "self_healing",
+      "recovered_exactness_bps": 10000,
+      "claim_boundary": "this receipt records one bounded injected-error study cell with explicit correction surfaces, budgets, and final regime class. It does not treat the presence of a correction path as proof of exactness outside the seeded workloads and assumptions",
+      "note": "Checkpoint plus verifier closes the remaining seeded Sudoku gap by combining rollback with contradiction certificates.",
+      "receipt_digest": "e61568567572aa58f9b6f75311045536a7e252e58788cd184b6fcf8f430fa7e8"
+    },
+    {
+      "receipt_id": "tassadar.error_regime.search_kernel.uncorrected.v1",
+      "workload_family": "search_kernel",
+      "recovery_surface": "uncorrected",
+      "injected_error_step": 5,
+      "checkpoint_reset_count": 0,
+      "verifier_intervention_count": 0,
+      "correction_event_count": 0,
+      "regime_class": "catastrophic_divergence",
+      "divergence_step": 9,
+      "recovered_exactness_bps": 1800,
+      "claim_boundary": "this receipt records one bounded injected-error study cell with explicit correction surfaces, budgets, and final regime class. It does not treat the presence of a correction path as proof of exactness outside the seeded workloads and assumptions",
+      "note": "The small search kernel diverges quickly without correction because one wrong branch consumes the remaining frontier budget.",
+      "receipt_digest": "94f54b01f5fc46cb78c9822aabd4868c379378d0878d5918bda5c3b6238077c9"
+    },
+    {
+      "receipt_id": "tassadar.error_regime.search_kernel.checkpoint_only.v1",
+      "workload_family": "search_kernel",
+      "recovery_surface": "checkpoint_only",
+      "injected_error_step": 5,
+      "checkpoint_reset_count": 1,
+      "verifier_intervention_count": 0,
+      "correction_event_count": 1,
+      "regime_class": "slow_drift",
+      "recovered_exactness_bps": 6100,
+      "claim_boundary": "this receipt records one bounded injected-error study cell with explicit correction surfaces, budgets, and final regime class. It does not treat the presence of a correction path as proof of exactness outside the seeded workloads and assumptions",
+      "note": "Checkpoint rollback rescues the first failed branch but still leaves later branch selection noisy without verifier guidance.",
+      "receipt_digest": "2d1aea18d5b0db074698b92fc66fa0e7b52955e4189921a8802471b829702e25"
+    },
+    {
+      "receipt_id": "tassadar.error_regime.search_kernel.verifier_only.v1",
+      "workload_family": "search_kernel",
+      "recovery_surface": "verifier_only",
+      "injected_error_step": 5,
+      "checkpoint_reset_count": 0,
+      "verifier_intervention_count": 2,
+      "correction_event_count": 2,
+      "regime_class": "self_healing",
+      "recovered_exactness_bps": 9800,
+      "claim_boundary": "this receipt records one bounded injected-error study cell with explicit correction surfaces, budgets, and final regime class. It does not treat the presence of a correction path as proof of exactness outside the seeded workloads and assumptions",
+      "note": "Verifier interventions are sufficient on the seeded search kernel because the correction events directly expose the dead-end branch.",
+      "receipt_digest": "4d59c18905f8c4306bff43ad3ff6fb3d01b6d866f52c290e3c8bc576aacaea2e"
+    },
+    {
+      "receipt_id": "tassadar.error_regime.search_kernel.checkpoint_and_verifier.v1",
+      "workload_family": "search_kernel",
+      "recovery_surface": "checkpoint_and_verifier",
+      "injected_error_step": 5,
+      "checkpoint_reset_count": 1,
+      "verifier_intervention_count": 2,
+      "correction_event_count": 3,
+      "regime_class": "self_healing",
+      "recovered_exactness_bps": 10000,
+      "claim_boundary": "this receipt records one bounded injected-error study cell with explicit correction surfaces, budgets, and final regime class. It does not treat the presence of a correction path as proof of exactness outside the seeded workloads and assumptions",
+      "note": "Combined rollback and verifier events close the final residual gap on the seeded search-kernel family.",
+      "receipt_digest": "ab7d91718c79bbf274c8ef6e6fb0bb9b6681cd2a5b8f14f86ba0664d6ca70699"
+    },
+    {
+      "receipt_id": "tassadar.error_regime.long_horizon_control.uncorrected.v1",
+      "workload_family": "long_horizon_control",
+      "recovery_surface": "uncorrected",
+      "injected_error_step": 18,
+      "checkpoint_reset_count": 0,
+      "verifier_intervention_count": 0,
+      "correction_event_count": 0,
+      "regime_class": "catastrophic_divergence",
+      "divergence_step": 27,
+      "recovered_exactness_bps": 1200,
+      "claim_boundary": "this receipt records one bounded injected-error study cell with explicit correction surfaces, budgets, and final regime class. It does not treat the presence of a correction path as proof of exactness outside the seeded workloads and assumptions",
+      "note": "Long-horizon control drifts into unrecoverable state without explicit recovery once the carried state crosses the injected fault boundary.",
+      "receipt_digest": "1ee2ffbc6a9901bb37d9b83dceb80c51d9db88751fd229e92610c6999acf40a2"
+    },
+    {
+      "receipt_id": "tassadar.error_regime.long_horizon_control.checkpoint_only.v1",
+      "workload_family": "long_horizon_control",
+      "recovery_surface": "checkpoint_only",
+      "injected_error_step": 18,
+      "checkpoint_reset_count": 2,
+      "verifier_intervention_count": 0,
+      "correction_event_count": 2,
+      "regime_class": "slow_drift",
+      "recovered_exactness_bps": 6200,
+      "claim_boundary": "this receipt records one bounded injected-error study cell with explicit correction surfaces, budgets, and final regime class. It does not treat the presence of a correction path as proof of exactness outside the seeded workloads and assumptions",
+      "note": "Checkpoint rollback bounds the worst explosion, but later-window decisions still drift because the correction is not semantically targeted.",
+      "receipt_digest": "f3ae0d37d116b2e067182e4040cea66a4b2de3d46641e283ac5d2a0e79cda899"
+    },
+    {
+      "receipt_id": "tassadar.error_regime.long_horizon_control.verifier_only.v1",
+      "workload_family": "long_horizon_control",
+      "recovery_surface": "verifier_only",
+      "injected_error_step": 18,
+      "checkpoint_reset_count": 0,
+      "verifier_intervention_count": 3,
+      "correction_event_count": 3,
+      "regime_class": "slow_drift",
+      "recovered_exactness_bps": 5600,
+      "claim_boundary": "this receipt records one bounded injected-error study cell with explicit correction surfaces, budgets, and final regime class. It does not treat the presence of a correction path as proof of exactness outside the seeded workloads and assumptions",
+      "note": "Verifier-only correction catches some contradictions but cannot fully restore the lost carried state without rollback.",
+      "receipt_digest": "482680e0a3c5a7e879d9a8a01b9395adf570045e9ddbfd39899e072f2510bc21"
+    },
+    {
+      "receipt_id": "tassadar.error_regime.long_horizon_control.checkpoint_and_verifier.v1",
+      "workload_family": "long_horizon_control",
+      "recovery_surface": "checkpoint_and_verifier",
+      "injected_error_step": 18,
+      "checkpoint_reset_count": 2,
+      "verifier_intervention_count": 3,
+      "correction_event_count": 5,
+      "regime_class": "slow_drift",
+      "recovered_exactness_bps": 8300,
+      "claim_boundary": "this receipt records one bounded injected-error study cell with explicit correction surfaces, budgets, and final regime class. It does not treat the presence of a correction path as proof of exactness outside the seeded workloads and assumptions",
+      "note": "The combined surface helps most on long-horizon control, but the seeded regime still remains bounded slow drift rather than full self-healing.",
+      "receipt_digest": "2bf67cf29df830784ffa513c39adbdb6106c8e55b1fb780489ed424864b2593c"
+    },
+    {
+      "receipt_id": "tassadar.error_regime.byte_memory_loop.uncorrected.v1",
+      "workload_family": "byte_memory_loop",
+      "recovery_surface": "uncorrected",
+      "injected_error_step": 11,
+      "checkpoint_reset_count": 0,
+      "verifier_intervention_count": 0,
+      "correction_event_count": 0,
+      "regime_class": "catastrophic_divergence",
+      "divergence_step": 16,
+      "recovered_exactness_bps": 2200,
+      "claim_boundary": "this receipt records one bounded injected-error study cell with explicit correction surfaces, budgets, and final regime class. It does not treat the presence of a correction path as proof of exactness outside the seeded workloads and assumptions",
+      "note": "Byte-memory loops diverge once one bad write propagates without rewind.",
+      "receipt_digest": "ffc62099bf7ad6c30e8be48bcc324c502460511315dac8df493d34554c88ef87"
+    },
+    {
+      "receipt_id": "tassadar.error_regime.byte_memory_loop.checkpoint_only.v1",
+      "workload_family": "byte_memory_loop",
+      "recovery_surface": "checkpoint_only",
+      "injected_error_step": 11,
+      "checkpoint_reset_count": 2,
+      "verifier_intervention_count": 0,
+      "correction_event_count": 2,
+      "regime_class": "self_healing",
+      "recovered_exactness_bps": 9200,
+      "claim_boundary": "this receipt records one bounded injected-error study cell with explicit correction surfaces, budgets, and final regime class. It does not treat the presence of a correction path as proof of exactness outside the seeded workloads and assumptions",
+      "note": "Checkpoint rollback is enough to self-heal the seeded byte-memory loop because the incorrect writes stay replay-visible and rewindable.",
+      "receipt_digest": "ebb8eb6d74e1b96dbf4791f3a42f2512718b1ff1fba09d1f9b28a727d67f792b"
+    },
+    {
+      "receipt_id": "tassadar.error_regime.byte_memory_loop.verifier_only.v1",
+      "workload_family": "byte_memory_loop",
+      "recovery_surface": "verifier_only",
+      "injected_error_step": 11,
+      "checkpoint_reset_count": 0,
+      "verifier_intervention_count": 2,
+      "correction_event_count": 2,
+      "regime_class": "slow_drift",
+      "recovered_exactness_bps": 5800,
+      "claim_boundary": "this receipt records one bounded injected-error study cell with explicit correction surfaces, budgets, and final regime class. It does not treat the presence of a correction path as proof of exactness outside the seeded workloads and assumptions",
+      "note": "Verifier-only correction helps isolate impossible write states but cannot undo all corrupted bytes without rewind.",
+      "receipt_digest": "3723055dfacfa576d95f574ccd8afdc2e20f9b9535bf23cee87dc1486acd2a10"
+    },
+    {
+      "receipt_id": "tassadar.error_regime.byte_memory_loop.checkpoint_and_verifier.v1",
+      "workload_family": "byte_memory_loop",
+      "recovery_surface": "checkpoint_and_verifier",
+      "injected_error_step": 11,
+      "checkpoint_reset_count": 2,
+      "verifier_intervention_count": 2,
+      "correction_event_count": 4,
+      "regime_class": "self_healing",
+      "recovered_exactness_bps": 10000,
+      "claim_boundary": "this receipt records one bounded injected-error study cell with explicit correction surfaces, budgets, and final regime class. It does not treat the presence of a correction path as proof of exactness outside the seeded workloads and assumptions",
+      "note": "Combined checkpoint and verifier surfaces return the seeded byte-memory loop to exactness.",
+      "receipt_digest": "0ef4b26af590ef40e9b37eaebb22647e2bc62c72196e075316ef4a81eb4c71e5"
+    }
+  ],
+  "workload_summaries": [
+    {
+      "workload_family": "sudoku_backtracking",
+      "best_recovery_surface": "checkpoint_and_verifier",
+      "verifier_only_exactness_delta_bps": 3100,
+      "checkpoint_only_exactness_delta_bps": 1000,
+      "combined_exactness_delta_bps": 3400,
+      "self_healing_surface_count": 2,
+      "catastrophic_surface_count": 0,
+      "note": "sudoku_backtracking currently looks verifier-first with combined exactness=10000bps."
+    },
+    {
+      "workload_family": "search_kernel",
+      "best_recovery_surface": "checkpoint_and_verifier",
+      "verifier_only_exactness_delta_bps": 8000,
+      "checkpoint_only_exactness_delta_bps": 4300,
+      "combined_exactness_delta_bps": 8200,
+      "self_healing_surface_count": 2,
+      "catastrophic_surface_count": 1,
+      "note": "search_kernel currently looks verifier-first with combined exactness=10000bps."
+    },
+    {
+      "workload_family": "long_horizon_control",
+      "best_recovery_surface": "checkpoint_and_verifier",
+      "verifier_only_exactness_delta_bps": 4400,
+      "checkpoint_only_exactness_delta_bps": 5000,
+      "combined_exactness_delta_bps": 7100,
+      "self_healing_surface_count": 0,
+      "catastrophic_surface_count": 1,
+      "note": "long_horizon_control currently looks checkpoint-first with combined exactness=8300bps."
+    },
+    {
+      "workload_family": "byte_memory_loop",
+      "best_recovery_surface": "checkpoint_and_verifier",
+      "verifier_only_exactness_delta_bps": 3600,
+      "checkpoint_only_exactness_delta_bps": 7000,
+      "combined_exactness_delta_bps": 7800,
+      "self_healing_surface_count": 2,
+      "catastrophic_surface_count": 1,
+      "note": "byte_memory_loop currently looks checkpoint-first with combined exactness=10000bps."
+    }
+  ],
+  "claim_boundary": "this run artifact freezes one bounded injected-error sweep over declared workloads and correction surfaces. It keeps recovery bounded to the seeded workloads, checkpoint schedules, and verifier assumptions instead of treating repair machinery as broad exactness proof",
+  "summary": "Error-regime sweep now freezes 16 workload/surface cells with 6 self-healing and 3 catastrophic outcomes while keeping checkpoint and verifier deltas explicit.",
+  "report_digest": "dd4f57934e732bc3ccefb9356506d91cc1a607717e8fa357cbf3d67599d9c1d2"
+}
