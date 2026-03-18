@@ -1,0 +1,180 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.module_trust_isolation.report.v1",
+  "bundles": [
+    {
+      "module_ref": "candidate_select_core@1.1.0",
+      "trust_posture": "challenge_gated_install",
+      "isolation_boundary": "challenge_gated_install",
+      "evidence_posture": "installed_complete",
+      "benchmark_ref_count": 2,
+      "allowed_peer_trust_postures": [
+        "benchmark_gated_internal",
+        "challenge_gated_install"
+      ],
+      "claim_boundary": "module `candidate_select_core@1.1.0` keeps trust posture ChallengeGatedInstall explicit and does not inherit authority from benchmark count or peer composition alone"
+    },
+    {
+      "module_ref": "checkpoint_backtrack_core@1.0.0",
+      "trust_posture": "benchmark_gated_internal",
+      "isolation_boundary": "benchmark_internal_only",
+      "evidence_posture": "manifest_only",
+      "benchmark_ref_count": 2,
+      "allowed_peer_trust_postures": [
+        "benchmark_gated_internal",
+        "challenge_gated_install"
+      ],
+      "claim_boundary": "module `checkpoint_backtrack_core@1.0.0` keeps trust posture BenchmarkGatedInternal explicit and does not inherit authority from benchmark count or peer composition alone"
+    },
+    {
+      "module_ref": "frontier_relax_core@1.0.0",
+      "trust_posture": "benchmark_gated_internal",
+      "isolation_boundary": "benchmark_internal_only",
+      "evidence_posture": "installed_complete",
+      "benchmark_ref_count": 2,
+      "allowed_peer_trust_postures": [
+        "benchmark_gated_internal",
+        "challenge_gated_install"
+      ],
+      "claim_boundary": "module `frontier_relax_core@1.0.0` keeps trust posture BenchmarkGatedInternal explicit and does not inherit authority from benchmark count or peer composition alone"
+    },
+    {
+      "module_ref": "scratchpad_probe_research@0.1.0",
+      "trust_posture": "research_only",
+      "isolation_boundary": "research_contained",
+      "evidence_posture": "research_seeded",
+      "benchmark_ref_count": 1,
+      "allowed_peer_trust_postures": [
+        "research_only"
+      ],
+      "claim_boundary": "research-only scratchpad probes stay contained and never inherit benchmark-internal or install-grade authority"
+    }
+  ],
+  "allowed_case_count": 2,
+  "refused_case_count": 3,
+  "cross_tier_refusal_count": 1,
+  "privilege_escalation_refusal_count": 1,
+  "mount_policy_refusal_count": 1,
+  "case_reports": [
+    {
+      "case_id": "trust_isolation.benchmark_pair_allowed.v1",
+      "request": {
+        "request_id": "request.benchmark_pair_allowed",
+        "primary_module_ref": "frontier_relax_core@1.0.0",
+        "imported_module_refs": [
+          "checkpoint_backtrack_core@1.0.0"
+        ],
+        "requested_authority_posture": "benchmark_gated_internal",
+        "mount_policy": {
+          "mount_id": "mount.benchmark_internal",
+          "minimum_trust_posture": "benchmark_gated_internal",
+          "allow_research_modules": false,
+          "allow_challenge_gated_installs": false,
+          "note": "benchmark-internal mount allows benchmark-gated modules only and blocks research plus challenge-gated install posture"
+        }
+      },
+      "selection": {
+        "request_id": "request.benchmark_pair_allowed",
+        "primary_module_ref": "frontier_relax_core@1.0.0",
+        "permitted_module_refs": [
+          "checkpoint_backtrack_core@1.0.0",
+          "frontier_relax_core@1.0.0"
+        ],
+        "note": "mount `mount.benchmark_internal` admitted the module composition without widening trust posture across tier boundaries"
+      },
+      "note": "benchmark-gated internal modules compose under the benchmark mount without widening authority"
+    },
+    {
+      "case_id": "trust_isolation.cross_tier_refused.v1",
+      "request": {
+        "request_id": "request.cross_tier_refused",
+        "primary_module_ref": "frontier_relax_core@1.0.0",
+        "imported_module_refs": [
+          "scratchpad_probe_research@0.1.0"
+        ],
+        "requested_authority_posture": "benchmark_gated_internal",
+        "mount_policy": {
+          "mount_id": "mount.benchmark_internal",
+          "minimum_trust_posture": "benchmark_gated_internal",
+          "allow_research_modules": false,
+          "allow_challenge_gated_installs": false,
+          "note": "benchmark-internal mount allows benchmark-gated modules only and blocks research plus challenge-gated install posture"
+        }
+      },
+      "refusal_reason": "cross_tier_composition_denied",
+      "note": "research-only modules cannot silently compose into benchmark-gated internal paths"
+    },
+    {
+      "case_id": "trust_isolation.challenge_allowed.v1",
+      "request": {
+        "request_id": "request.challenge_allowed",
+        "primary_module_ref": "candidate_select_core@1.1.0",
+        "imported_module_refs": [
+          "frontier_relax_core@1.0.0"
+        ],
+        "requested_authority_posture": "challenge_gated_install",
+        "mount_policy": {
+          "mount_id": "mount.challenge_install",
+          "minimum_trust_posture": "benchmark_gated_internal",
+          "allow_research_modules": false,
+          "allow_challenge_gated_installs": true,
+          "note": "challenge-aware mount allows challenge-gated installs when the trust posture stays explicit"
+        }
+      },
+      "selection": {
+        "request_id": "request.challenge_allowed",
+        "primary_module_ref": "candidate_select_core@1.1.0",
+        "permitted_module_refs": [
+          "candidate_select_core@1.1.0",
+          "frontier_relax_core@1.0.0"
+        ],
+        "note": "mount `mount.challenge_install` admitted the module composition without widening trust posture across tier boundaries"
+      },
+      "note": "challenge-gated candidate selection stays legal only on the explicit challenge-aware mount"
+    },
+    {
+      "case_id": "trust_isolation.privilege_escalation_refused.v1",
+      "request": {
+        "request_id": "request.privilege_escalation_refused",
+        "primary_module_ref": "scratchpad_probe_research@0.1.0",
+        "imported_module_refs": [],
+        "requested_authority_posture": "challenge_gated_install",
+        "mount_policy": {
+          "mount_id": "mount.research_lab",
+          "minimum_trust_posture": "research_only",
+          "allow_research_modules": true,
+          "allow_challenge_gated_installs": false,
+          "note": "research mount allows research-only modules but does not permit authority escalation"
+        }
+      },
+      "refusal_reason": "privilege_escalation_denied",
+      "note": "research-only modules remain unable to request install-grade authority"
+    },
+    {
+      "case_id": "trust_isolation.mount_policy_refused.v1",
+      "request": {
+        "request_id": "request.mount_policy_refused",
+        "primary_module_ref": "candidate_select_core@1.1.0",
+        "imported_module_refs": [
+          "frontier_relax_core@1.0.0"
+        ],
+        "requested_authority_posture": "challenge_gated_install",
+        "mount_policy": {
+          "mount_id": "mount.benchmark_internal",
+          "minimum_trust_posture": "benchmark_gated_internal",
+          "allow_research_modules": false,
+          "allow_challenge_gated_installs": false,
+          "note": "benchmark-internal mount allows benchmark-gated modules only and blocks research plus challenge-gated install posture"
+        }
+      },
+      "refusal_reason": "mount_policy_denied",
+      "note": "challenge-gated install posture remains refused on the benchmark-only mount"
+    }
+  ],
+  "cluster_trust_dependency_marker": "cluster-trust remains the owner of provider and cluster authority posture outside standalone psionic",
+  "kernel_policy_dependency_marker": "kernel-policy remains the owner of settlement-grade module authority outside standalone psionic",
+  "world_mount_dependency_marker": "world-mounts remain the owner of task-scoped module authority posture outside standalone psionic",
+  "claim_boundary": "this runtime report keeps research-only, benchmark-internal, and challenge-gated module isolation explicit. It does not claim cluster, kernel, or world-mount authority closure inside standalone psionic",
+  "summary": "Module trust-isolation report now freezes 2 allowed cases, 3 refused cases, 1 cross-tier refusals, 1 privilege-escalation refusals, and 1 mount-policy refusals.",
+  "report_digest": "d669cb8959dfad7df9295c24646bf2ca00f8842792004096648e8b6d0b5ccb1a"
+}

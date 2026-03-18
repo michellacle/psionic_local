@@ -467,6 +467,17 @@ The current scope is:
   distinct from external delegation instead of letting import availability hide
   a boundary crossing, while named `kernel-policy` and `world-mounts`
   follow-ons remain explicit dependency markers outside standalone `psionic`
+- landed trust-isolation follow-on: `psionic-runtime` now publishes the
+  trust-tier isolation report at
+  `fixtures/tassadar/reports/tassadar_module_trust_isolation_report.json`,
+  freezing research-contained, benchmark-internal, and challenge-gated module
+  bundles plus explicit cross-tier, privilege-escalation, and mount-policy
+  refusals; and `psionic-provider` now projects that report into a
+  provider-facing `TassadarModuleTrustIsolationReceipt`. This lane keeps trust
+  posture separate from benchmark count and peer composition instead of letting
+  internal modules silently inherit more authority, while named `cluster-trust`,
+  `kernel-policy`, and `world-mounts` follow-ons remain explicit dependency
+  markers outside standalone `psionic`
 - landed module-installation-staging follow-on: `psionic-serve` now publishes a
   bounded staged-install surface with explicit session-mount versus worker-mount
   scope, challenge windows, activation, rollback, and refusal receipts over the
