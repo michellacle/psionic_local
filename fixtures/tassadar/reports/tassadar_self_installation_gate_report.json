@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.self_installation_gate.report.v1",
+  "session_mounted_count": 1,
+  "challenge_window_count": 1,
+  "rolled_back_count": 1,
+  "refused_count": 1,
+  "case_reports": [
+    {
+      "proposal": {
+        "proposal_id": "self_install.frontier_relax.session.v1",
+        "mount_id": "mount.session",
+        "module_id": "frontier_relax_core",
+        "module_class": "frontier_relax_core",
+        "requested_version": "1.0.0",
+        "scope": "session_mount",
+        "self_extension_allowed": true,
+        "challenge_ticket_acknowledged": false,
+        "benchmark_evidence_present": true,
+        "post_install_benchmark_passed": true
+      },
+      "outcome": "session_mounted",
+      "provider_id": "provider-a",
+      "worker_id": "worker-a",
+      "challenge_ticket_present": false,
+      "rollback_receipt_present": false,
+      "note": "bounded self-install proposals stay inspectable through route selection, mount scope, and challenge posture instead of hiding inside model-internal mutation"
+    },
+    {
+      "proposal": {
+        "proposal_id": "self_install.candidate_select.challenge.v1",
+        "mount_id": "mount.worker.challenge",
+        "module_id": "candidate_select_core",
+        "module_class": "candidate_select_core",
+        "requested_version": "1.2.0",
+        "scope": "worker_mount",
+        "self_extension_allowed": true,
+        "challenge_ticket_acknowledged": true,
+        "benchmark_evidence_present": true,
+        "post_install_benchmark_passed": true
+      },
+      "outcome": "challenge_window",
+      "provider_id": "provider-a",
+      "worker_id": "worker-a",
+      "challenge_ticket_present": true,
+      "rollback_receipt_present": false,
+      "note": "bounded self-install proposals stay inspectable through route selection, mount scope, and challenge posture instead of hiding inside model-internal mutation"
+    },
+    {
+      "proposal": {
+        "proposal_id": "self_install.candidate_select.rollback.v1",
+        "mount_id": "mount.worker.challenge",
+        "module_id": "candidate_select_core",
+        "module_class": "candidate_select_core",
+        "requested_version": "1.2.0",
+        "scope": "worker_mount",
+        "self_extension_allowed": true,
+        "challenge_ticket_acknowledged": true,
+        "benchmark_evidence_present": true,
+        "post_install_benchmark_passed": false
+      },
+      "outcome": "rolled_back_after_benchmark",
+      "provider_id": "provider-a",
+      "worker_id": "worker-a",
+      "challenge_ticket_present": true,
+      "rollback_receipt_present": true,
+      "note": "failed post-install benchmark handling stays explicit through rollback instead of being treated as silent cleanup"
+    },
+    {
+      "proposal": {
+        "proposal_id": "self_install.branch_prune.denied.v1",
+        "mount_id": "mount.session",
+        "module_id": "branch_prune_core",
+        "module_class": "branch_prune_core",
+        "requested_version": "0.1.0",
+        "scope": "session_mount",
+        "self_extension_allowed": false,
+        "challenge_ticket_acknowledged": false,
+        "benchmark_evidence_present": false
+      },
+      "outcome": "refused",
+      "challenge_ticket_present": false,
+      "rollback_receipt_present": false,
+      "refusal_reason": "mount_policy_denied",
+      "note": "self-extension stays blocked when the current mount does not explicitly allow bounded self-install proposals"
+    }
+  ],
+  "kernel_policy_dependency_marker": "kernel-policy remains the owner of settlement-grade self-install authority outside standalone psionic",
+  "nexus_dependency_marker": "nexus remains the owner of cross-provider challenge resolution outside standalone psionic",
+  "claim_boundary": "this router report keeps bounded self-install proposals, policy denial, challenge windows, and rollback under failed post-install benchmarks explicit. It does not claim unrestricted self-modification",
+  "summary": "Self-installation gate report now freezes 1 session mounts, 1 challenge-window proposals, 1 rolled-back proposals, and 1 refused proposals.",
+  "report_digest": "a7e1227ff36b15a795fd1f05531bbf676bb91d5998b6620108e2d605e69df512"
+}

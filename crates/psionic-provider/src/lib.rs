@@ -20,6 +20,7 @@ mod tassadar_module_trust_isolation;
 mod tassadar_planner_policy;
 mod tassadar_quantization_truth_envelope;
 mod tassadar_receipt_supervision;
+mod tassadar_self_installation_gate;
 
 use std::collections::BTreeMap;
 
@@ -41,6 +42,7 @@ pub use tassadar_module_trust_isolation::*;
 pub use tassadar_planner_policy::*;
 pub use tassadar_quantization_truth_envelope::*;
 pub use tassadar_receipt_supervision::*;
+pub use tassadar_self_installation_gate::*;
 
 use psionic_research::{
     TassadarDecompilationArtifactSummary, TassadarKernelModuleScalingSummaryReport,

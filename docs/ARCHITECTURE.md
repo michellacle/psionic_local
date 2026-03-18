@@ -496,6 +496,17 @@ The current scope is:
   lane keeps private naming, private product framing, and over-broad public
   claims from leaking into `psionic`, and requires explicit refusal when
   private-only language survives review
+- landed self-installation-gate follow-on: `psionic-router` now publishes the
+  bounded self-installation gate report at
+  `fixtures/tassadar/reports/tassadar_self_installation_gate_report.json`,
+  freezing session-mount approval, worker-mount challenge windows, rollback
+  under failed post-install benchmarks, and explicit policy denial for blocked
+  proposals; and `psionic-provider` now projects that report into a
+  provider-facing `TassadarSelfInstallationGateReceipt`. This lane keeps
+  self-extension proposal review inspectable and policy-bound instead of
+  implying unrestricted self-modification, while named `kernel-policy` and
+  `nexus` follow-ons remain explicit dependency markers outside standalone
+  `psionic`
 - landed module-installation-staging follow-on: `psionic-serve` now publishes a
   bounded staged-install surface with explicit session-mount versus worker-mount
   scope, challenge windows, activation, rollback, and refusal receipts over the

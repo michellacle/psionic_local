@@ -20,6 +20,7 @@ mod tassadar_module_overlap_resolution;
 mod tassadar_negative_invocation;
 mod tassadar_planner_policy;
 mod tassadar_route;
+mod tassadar_self_installation_gate;
 mod tool_loop;
 
 pub use response_state::{
@@ -34,6 +35,7 @@ pub use tassadar_module_overlap_resolution::*;
 pub use tassadar_negative_invocation::*;
 pub use tassadar_planner_policy::*;
 pub use tassadar_route::*;
+pub use tassadar_self_installation_gate::*;
 pub use tool_loop::{
     ToolExecutionRequest, ToolGateway, ToolHistoryVisibility, ToolLoopController, ToolLoopError,
     ToolLoopModelRunner, ToolLoopModelTurn, ToolLoopOutcome, ToolLoopPolicy, ToolLoopRequest,
