@@ -422,6 +422,19 @@ The current scope is:
   `TassadarModuleLinkReceipt`. This lane keeps dependency graphs, rollback
   paths, and refusal posture machine-legible instead of hiding module
   composition behind heuristic resolution or silent semantic drift
+- landed installed-module-evidence follow-on: `psionic-runtime` now publishes a
+  bounded `TassadarInstalledModuleEvidenceBundle` at
+  `fixtures/tassadar/runs/tassadar_installed_module_evidence_v1/installed_module_evidence_bundle.json`
+  that joins compile lineage, benchmark refs, audit or decompilation refs,
+  refusal posture, revocation hooks, and reinstall parity under one receipt
+  family; `psionic-eval` now freezes the joined summary at
+  `fixtures/tassadar/reports/tassadar_installed_module_evidence_report.json`;
+  and `psionic-provider` now projects the same runtime truth into a
+  provider-facing `TassadarInstalledModuleEvidenceReceipt`. This lane keeps
+  missing-evidence refusal, stale-evidence refusal, revocation readiness, and
+  reinstall parity explicit instead of treating installation as implicit trust,
+  while named `nexus` follow-ons remain explicit dependency markers outside
+  standalone `psionic`
 - landed module-installation-staging follow-on: `psionic-serve` now publishes a
   bounded staged-install surface with explicit session-mount versus worker-mount
   scope, challenge windows, activation, rollback, and refusal receipts over the

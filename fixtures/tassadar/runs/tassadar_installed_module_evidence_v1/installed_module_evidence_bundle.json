@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "bundle_id": "tassadar.installed_module_evidence.bundle.v1",
+  "records": [
+    {
+      "install_id": "install.frontier_relax_core.session.v1",
+      "module_ref": "frontier_relax_core@1.0.0",
+      "manifest_digest": "759495a6d7436f56a3c727d0334e47befd94f416b472ccfe506837ebce44a2e3",
+      "compile_lineage_refs": [
+        "manifest:tassadar.module.frontier_relax_core.manifest.v1",
+        "fixtures/tassadar/reports/tassadar_module_link_runtime_report.json"
+      ],
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_internal_module_library_report.json",
+        "fixtures/tassadar/reports/tassadar_module_link_eval_report.json"
+      ],
+      "audit_artifact_refs": [
+        {
+          "artifact_kind": "audit_artifact",
+          "artifact_ref": "fixtures/tassadar/reports/tassadar_module_link_runtime_report.json"
+        },
+        {
+          "artifact_kind": "audit_artifact",
+          "artifact_ref": "fixtures/tassadar/reports/tassadar_module_link_eval_report.json"
+        }
+      ],
+      "refusal_posture": "challengeable_complete",
+      "revocation_hooks": [
+        {
+          "hook_id": "hook.frontier_relax.challenge",
+          "hook_kind": "challenge_ticket",
+          "hook_ref": "challenge://frontier_relax_core/session_mount"
+        },
+        {
+          "hook_id": "hook.frontier_relax.quarantine",
+          "hook_kind": "quarantine_policy",
+          "hook_ref": "policy://module_quarantine/frontier_relax_core"
+        }
+      ],
+      "reinstall_parity_digest": "parity.frontier_relax_core.1.0.0.v1",
+      "status": "complete",
+      "note": "frontier_relax_core carries complete compile lineage, benchmark refs, audit refs, revocation hooks, and stable reinstall parity across repeated bounded installs"
+    },
+    {
+      "install_id": "reinstall.frontier_relax_core.session.v2",
+      "module_ref": "frontier_relax_core@1.0.0",
+      "manifest_digest": "759495a6d7436f56a3c727d0334e47befd94f416b472ccfe506837ebce44a2e3",
+      "compile_lineage_refs": [
+        "manifest:tassadar.module.frontier_relax_core.manifest.v1",
+        "fixtures/tassadar/reports/tassadar_module_link_runtime_report.json"
+      ],
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_internal_module_library_report.json",
+        "fixtures/tassadar/reports/tassadar_module_link_eval_report.json"
+      ],
+      "audit_artifact_refs": [
+        {
+          "artifact_kind": "audit_artifact",
+          "artifact_ref": "fixtures/tassadar/reports/tassadar_module_link_runtime_report.json"
+        },
+        {
+          "artifact_kind": "audit_artifact",
+          "artifact_ref": "fixtures/tassadar/reports/tassadar_module_link_eval_report.json"
+        }
+      ],
+      "refusal_posture": "challengeable_complete",
+      "revocation_hooks": [
+        {
+          "hook_id": "hook.frontier_relax.reinstall_challenge",
+          "hook_kind": "challenge_ticket",
+          "hook_ref": "challenge://frontier_relax_core/reinstall"
+        },
+        {
+          "hook_id": "hook.frontier_relax.reinstall_revocation",
+          "hook_kind": "revocation_receipt",
+          "hook_ref": "receipt://frontier_relax_core/revocation"
+        }
+      ],
+      "reinstall_parity_digest": "parity.frontier_relax_core.1.0.0.v1",
+      "status": "complete",
+      "note": "frontier_relax_core reinstall preserves the same parity digest as the original bounded install, making reinstall parity explicit rather than assumed"
+    },
+    {
+      "install_id": "install.candidate_select_core.rollback.v1",
+      "module_ref": "candidate_select_core@1.1.0",
+      "manifest_digest": "3086e762d412415da9cbfe2bd8295929638b324af48c002d1af9ad37b22b9e49",
+      "compile_lineage_refs": [
+        "manifest:tassadar.module.candidate_select_core.manifest.v1",
+        "fixtures/tassadar/reports/tassadar_module_installation_staging_report.json",
+        "fixtures/tassadar/reports/tassadar_module_link_runtime_report.json"
+      ],
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_internal_module_library_report.json",
+        "fixtures/tassadar/reports/tassadar_module_installation_staging_report.json"
+      ],
+      "audit_artifact_refs": [
+        {
+          "artifact_kind": "audit_artifact",
+          "artifact_ref": "fixtures/tassadar/reports/tassadar_module_installation_staging_report.json"
+        },
+        {
+          "artifact_kind": "audit_artifact",
+          "artifact_ref": "fixtures/tassadar/reports/tassadar_module_link_runtime_report.json"
+        }
+      ],
+      "refusal_posture": "challengeable_complete",
+      "revocation_hooks": [
+        {
+          "hook_id": "hook.candidate_select.challenge",
+          "hook_kind": "challenge_ticket",
+          "hook_ref": "challenge://candidate_select_core/worker_mount"
+        },
+        {
+          "hook_id": "hook.candidate_select.quarantine",
+          "hook_kind": "quarantine_policy",
+          "hook_ref": "policy://module_quarantine/candidate_select_core"
+        }
+      ],
+      "reinstall_parity_digest": "parity.candidate_select_core.1.1.0.v1",
+      "status": "complete",
+      "note": "candidate_select_core carries rollback-aware audit evidence and revocation hooks so the bounded worker-mount install stays challengeable instead of implicitly trusted"
+    },
+    {
+      "install_id": "install.branch_prune_core.refused_missing_evidence.v1",
+      "module_ref": "branch_prune_core@0.1.0",
+      "manifest_digest": "manifest.missing.branch_prune_core",
+      "compile_lineage_refs": [],
+      "benchmark_refs": [],
+      "audit_artifact_refs": [],
+      "refusal_posture": "refused_missing_evidence",
+      "revocation_hooks": [
+        {
+          "hook_id": "hook.branch_prune.challenge",
+          "hook_kind": "challenge_ticket",
+          "hook_ref": "challenge://branch_prune_core/install"
+        }
+      ],
+      "status": "refused_missing_evidence",
+      "note": "branch_prune_core remains refused because compile lineage, benchmark refs, and audit artifacts are all missing"
+    },
+    {
+      "install_id": "install.candidate_select_core.refused_stale_evidence.v2",
+      "module_ref": "candidate_select_core@1.1.0",
+      "manifest_digest": "3086e762d412415da9cbfe2bd8295929638b324af48c002d1af9ad37b22b9e49",
+      "compile_lineage_refs": [
+        "manifest:tassadar.module.candidate_select_core.manifest.v1",
+        "fixtures/tassadar/reports/tassadar_module_link_runtime_report.json"
+      ],
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_internal_module_library_report.json"
+      ],
+      "audit_artifact_refs": [
+        {
+          "artifact_kind": "audit_artifact",
+          "artifact_ref": "fixtures/tassadar/reports/tassadar_module_link_runtime_report.json"
+        }
+      ],
+      "refusal_posture": "refused_stale_evidence",
+      "revocation_hooks": [
+        {
+          "hook_id": "hook.candidate_select.stale_revocation",
+          "hook_kind": "revocation_receipt",
+          "hook_ref": "receipt://candidate_select_core/stale_evidence_revocation"
+        }
+      ],
+      "reinstall_parity_digest": "parity.candidate_select_core.1.1.0.v1",
+      "stale_evidence_detail": "benchmark lineage predates the current worker-mount install policy epoch and must be re-attested before trust can widen",
+      "status": "refused_stale_evidence",
+      "note": "candidate_select_core refuses stale-evidence promotion even though compile lineage and audit refs remain present"
+    }
+  ],
+  "claim_boundary": "this bundle joins compile lineage, benchmark refs, audit or decompilation refs, refusal posture, revocation hooks, and reinstall parity for the bounded installed-module lane. It does not let installation imply trust when evidence is incomplete or stale, and it does not collapse execution receipts into economic authority",
+  "summary": "Installed-module evidence bundle now freezes 5 records with 3 complete installs, 1 missing-evidence refusals, and 1 stale-evidence refusals.",
+  "bundle_digest": "382e66c21e9502d42b10f12501e8bf2ad54ca7ef91abcd89c95bbc0a4f364057"
+}

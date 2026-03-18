@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.installed_module_evidence.report.v1",
+  "complete_record_count": 3,
+  "missing_evidence_refusal_count": 1,
+  "stale_evidence_refusal_count": 1,
+  "revocation_ready_record_count": 5,
+  "reinstall_parity_group_count": 1,
+  "audit_receipt_ready_record_count": 4,
+  "bundle_ref": "fixtures/tassadar/runs/tassadar_installed_module_evidence_v1/installed_module_evidence_bundle.json",
+  "claim_boundary": "this eval report freezes missing-evidence refusal, stale-evidence refusal, revocation-hook readiness, and reinstall-parity truth for the bounded installed-module lane. It does not let installed evidence bundles imply economic authority or unrestricted module promotion",
+  "summary": "Installed-module evidence report now freezes 3 complete records, 1 missing-evidence refusals, 1 stale-evidence refusals, 5 revocation-ready records, and 1 reinstall parity groups.",
+  "report_digest": "3ea54609e3dd4a289f84cfdfab959ac2c673f984a40e0e2da5ff9ef3204ae485"
+}
