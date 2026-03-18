@@ -1,0 +1,329 @@
+{
+  "lane_contract": {
+    "abi_version": "psionic.tassadar.structured_numeric_encoding_lane.v1",
+    "lane_ref": "tassadar://structured_numeric_encoding_lane/u8_v1",
+    "version": "2026.03.18",
+    "workload_families": [
+      "arithmetic_immediates",
+      "address_offset_stress",
+      "memory_addresses"
+    ],
+    "evaluation_axes": [
+      "held_out_vocab_coverage_bps",
+      "mean_tokens_per_value",
+      "semantic_roundtrip_exact_bps",
+      "representation_generalization_gain_bps"
+    ],
+    "cases": [
+      {
+        "case_id": "arithmetic_immediates_u8",
+        "workload_family": "arithmetic_immediates",
+        "legacy_encoding_id": "tassadar.numeric.immediate.legacy_u8.v1",
+        "candidate_encoding_ids": [
+          "tassadar.numeric.immediate.binary_u8.v1",
+          "tassadar.numeric.immediate.hex_u8.v1"
+        ],
+        "summary": "bounded arithmetic-kernel immediates with held-out higher literals",
+        "train_values": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "held_out_values": [
+          16,
+          31,
+          42,
+          63,
+          127,
+          255
+        ]
+      },
+      {
+        "case_id": "address_offsets_u8",
+        "workload_family": "address_offset_stress",
+        "legacy_encoding_id": "tassadar.numeric.offset.legacy_u8.v1",
+        "candidate_encoding_ids": [
+          "tassadar.numeric.offset.binary_u8.v1",
+          "tassadar.numeric.offset.hex_u8.v1"
+        ],
+        "summary": "bounded offset families with held-out stride and span combinations",
+        "train_values": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          12,
+          16,
+          20
+        ],
+        "held_out_values": [
+          24,
+          28,
+          36,
+          44,
+          52,
+          68,
+          84,
+          100
+        ]
+      },
+      {
+        "case_id": "memory_addresses_u8",
+        "workload_family": "memory_addresses",
+        "legacy_encoding_id": "tassadar.numeric.address.legacy_u8.v1",
+        "candidate_encoding_ids": [
+          "tassadar.numeric.address.binary_u8.v1",
+          "tassadar.numeric.address.hex_u8.v1"
+        ],
+        "summary": "bounded address families with held-out higher memory buckets",
+        "train_values": [
+          0,
+          4,
+          8,
+          12,
+          16,
+          20,
+          24,
+          28,
+          32,
+          48,
+          64,
+          80
+        ],
+        "held_out_values": [
+          96,
+          112,
+          128,
+          144,
+          160,
+          176,
+          192,
+          224,
+          240
+        ]
+      }
+    ],
+    "report_ref": "fixtures/tassadar/reports/tassadar_numeric_encoding_report.json"
+  },
+  "publication": {
+    "schema_version": 1,
+    "publication_id": "tassadar.numeric_encoding.publication.v1",
+    "status": "implemented",
+    "claim_class": "learned_bounded_success",
+    "encodings": [
+      {
+        "schema_version": 1,
+        "encoding_id": "tassadar.numeric.immediate.legacy_u8.v1",
+        "field_family": "immediate",
+        "scheme": "legacy_token",
+        "bit_width": 8,
+        "claim_boundary": "structured numeric encoding changes only the learned representation of bounded numeric fields; it must decode exactly back to the same runtime semantics and does not imply arbitrary numeric closure or general learned exactness",
+        "encoding_digest": "f3da2ab4c63e15338563c763304909c91e5a95d1db525cdb80621022b1919f8e"
+      },
+      {
+        "schema_version": 1,
+        "encoding_id": "tassadar.numeric.immediate.binary_u8.v1",
+        "field_family": "immediate",
+        "scheme": "binary_bits",
+        "bit_width": 8,
+        "claim_boundary": "structured numeric encoding changes only the learned representation of bounded numeric fields; it must decode exactly back to the same runtime semantics and does not imply arbitrary numeric closure or general learned exactness",
+        "encoding_digest": "d45c371a0ac33a8920b18b9551075070258fe06814990054a6e97b92ed44643f"
+      },
+      {
+        "schema_version": 1,
+        "encoding_id": "tassadar.numeric.immediate.hex_u8.v1",
+        "field_family": "immediate",
+        "scheme": "mixed_radix_hex",
+        "bit_width": 8,
+        "claim_boundary": "structured numeric encoding changes only the learned representation of bounded numeric fields; it must decode exactly back to the same runtime semantics and does not imply arbitrary numeric closure or general learned exactness",
+        "encoding_digest": "a4a678d2fb50106d57d471de08929ff3976195c844432a334a9629109b40e24d"
+      },
+      {
+        "schema_version": 1,
+        "encoding_id": "tassadar.numeric.offset.legacy_u8.v1",
+        "field_family": "offset",
+        "scheme": "legacy_token",
+        "bit_width": 8,
+        "claim_boundary": "structured numeric encoding changes only the learned representation of bounded numeric fields; it must decode exactly back to the same runtime semantics and does not imply arbitrary numeric closure or general learned exactness",
+        "encoding_digest": "f32b7a44c42344abc4b8f4a294ab164d416699089ec935ed21a85e07516addbb"
+      },
+      {
+        "schema_version": 1,
+        "encoding_id": "tassadar.numeric.offset.binary_u8.v1",
+        "field_family": "offset",
+        "scheme": "binary_bits",
+        "bit_width": 8,
+        "claim_boundary": "structured numeric encoding changes only the learned representation of bounded numeric fields; it must decode exactly back to the same runtime semantics and does not imply arbitrary numeric closure or general learned exactness",
+        "encoding_digest": "681ae7bd3b67ead07d5692077624926433f533f322f27b462ce4849f8ab1775f"
+      },
+      {
+        "schema_version": 1,
+        "encoding_id": "tassadar.numeric.offset.hex_u8.v1",
+        "field_family": "offset",
+        "scheme": "mixed_radix_hex",
+        "bit_width": 8,
+        "claim_boundary": "structured numeric encoding changes only the learned representation of bounded numeric fields; it must decode exactly back to the same runtime semantics and does not imply arbitrary numeric closure or general learned exactness",
+        "encoding_digest": "3f0d2773c19a6bf552a87a6f99b6a11b91ad19b5732f67a9be5ab2488ba68ed8"
+      },
+      {
+        "schema_version": 1,
+        "encoding_id": "tassadar.numeric.address.legacy_u8.v1",
+        "field_family": "address",
+        "scheme": "legacy_token",
+        "bit_width": 8,
+        "claim_boundary": "structured numeric encoding changes only the learned representation of bounded numeric fields; it must decode exactly back to the same runtime semantics and does not imply arbitrary numeric closure or general learned exactness",
+        "encoding_digest": "f02e58f2a1eb78a9a284528e9699b7e2ebdefc58e3ec88fa027ebc7d5a19f0e2"
+      },
+      {
+        "schema_version": 1,
+        "encoding_id": "tassadar.numeric.address.binary_u8.v1",
+        "field_family": "address",
+        "scheme": "binary_bits",
+        "bit_width": 8,
+        "claim_boundary": "structured numeric encoding changes only the learned representation of bounded numeric fields; it must decode exactly back to the same runtime semantics and does not imply arbitrary numeric closure or general learned exactness",
+        "encoding_digest": "9bb348585d75a561631acb9069866389e2cee7cd2b060618be1c0495189d715a"
+      },
+      {
+        "schema_version": 1,
+        "encoding_id": "tassadar.numeric.address.hex_u8.v1",
+        "field_family": "address",
+        "scheme": "mixed_radix_hex",
+        "bit_width": 8,
+        "claim_boundary": "structured numeric encoding changes only the learned representation of bounded numeric fields; it must decode exactly back to the same runtime semantics and does not imply arbitrary numeric closure or general learned exactness",
+        "encoding_digest": "8e679086ee55cdf775535dbec13d9d764d9df488f8d5c2ac81f9721796d94f17"
+      }
+    ],
+    "validation_refs": [
+      "fixtures/tassadar/reports/tassadar_numeric_encoding_report.json"
+    ],
+    "support_boundaries": [
+      "the lane changes only the learned representation of bounded numeric fields and must decode exactly back to the same numeric semantics",
+      "improved held-out vocabulary coverage is not a claim of arbitrary numeric closure, architecture-indifferent exactness, or served promotion"
+    ],
+    "publication_digest": "1b7ac93564707f8c75e5dedd2bc833fed8aca27fb352c926c815e9c31427d391"
+  },
+  "candidate_reports": [
+    {
+      "case_id": "arithmetic_immediates_u8",
+      "workload_family": "arithmetic_immediates",
+      "legacy_encoding_id": "tassadar.numeric.immediate.legacy_u8.v1",
+      "candidate_encoding_id": "tassadar.numeric.immediate.binary_u8.v1",
+      "train_value_count": 16,
+      "held_out_value_count": 6,
+      "legacy_train_vocab_size": 16,
+      "candidate_train_vocab_size": 2,
+      "legacy_held_out_vocab_coverage_bps": 0,
+      "candidate_held_out_vocab_coverage_bps": 10000,
+      "legacy_mean_tokens_per_value": 1,
+      "candidate_mean_tokens_per_value": 8,
+      "semantic_roundtrip_exact_bps": 10000,
+      "representation_generalization_gain_bps": 10000,
+      "claim_boundary": "structured numeric encoding changes only the learned representation of bounded numeric fields; it must decode exactly back to the same runtime semantics and does not imply arbitrary numeric closure or general learned exactness"
+    },
+    {
+      "case_id": "arithmetic_immediates_u8",
+      "workload_family": "arithmetic_immediates",
+      "legacy_encoding_id": "tassadar.numeric.immediate.legacy_u8.v1",
+      "candidate_encoding_id": "tassadar.numeric.immediate.hex_u8.v1",
+      "train_value_count": 16,
+      "held_out_value_count": 6,
+      "legacy_train_vocab_size": 16,
+      "candidate_train_vocab_size": 16,
+      "legacy_held_out_vocab_coverage_bps": 0,
+      "candidate_held_out_vocab_coverage_bps": 10000,
+      "legacy_mean_tokens_per_value": 1,
+      "candidate_mean_tokens_per_value": 2,
+      "semantic_roundtrip_exact_bps": 10000,
+      "representation_generalization_gain_bps": 10000,
+      "claim_boundary": "structured numeric encoding changes only the learned representation of bounded numeric fields; it must decode exactly back to the same runtime semantics and does not imply arbitrary numeric closure or general learned exactness"
+    },
+    {
+      "case_id": "address_offsets_u8",
+      "workload_family": "address_offset_stress",
+      "legacy_encoding_id": "tassadar.numeric.offset.legacy_u8.v1",
+      "candidate_encoding_id": "tassadar.numeric.offset.binary_u8.v1",
+      "train_value_count": 12,
+      "held_out_value_count": 8,
+      "legacy_train_vocab_size": 12,
+      "candidate_train_vocab_size": 2,
+      "legacy_held_out_vocab_coverage_bps": 0,
+      "candidate_held_out_vocab_coverage_bps": 10000,
+      "legacy_mean_tokens_per_value": 1,
+      "candidate_mean_tokens_per_value": 8,
+      "semantic_roundtrip_exact_bps": 10000,
+      "representation_generalization_gain_bps": 10000,
+      "claim_boundary": "structured numeric encoding changes only the learned representation of bounded numeric fields; it must decode exactly back to the same runtime semantics and does not imply arbitrary numeric closure or general learned exactness"
+    },
+    {
+      "case_id": "address_offsets_u8",
+      "workload_family": "address_offset_stress",
+      "legacy_encoding_id": "tassadar.numeric.offset.legacy_u8.v1",
+      "candidate_encoding_id": "tassadar.numeric.offset.hex_u8.v1",
+      "train_value_count": 12,
+      "held_out_value_count": 8,
+      "legacy_train_vocab_size": 12,
+      "candidate_train_vocab_size": 10,
+      "legacy_held_out_vocab_coverage_bps": 0,
+      "candidate_held_out_vocab_coverage_bps": 10000,
+      "legacy_mean_tokens_per_value": 1,
+      "candidate_mean_tokens_per_value": 2,
+      "semantic_roundtrip_exact_bps": 10000,
+      "representation_generalization_gain_bps": 10000,
+      "claim_boundary": "structured numeric encoding changes only the learned representation of bounded numeric fields; it must decode exactly back to the same runtime semantics and does not imply arbitrary numeric closure or general learned exactness"
+    },
+    {
+      "case_id": "memory_addresses_u8",
+      "workload_family": "memory_addresses",
+      "legacy_encoding_id": "tassadar.numeric.address.legacy_u8.v1",
+      "candidate_encoding_id": "tassadar.numeric.address.binary_u8.v1",
+      "train_value_count": 12,
+      "held_out_value_count": 9,
+      "legacy_train_vocab_size": 12,
+      "candidate_train_vocab_size": 2,
+      "legacy_held_out_vocab_coverage_bps": 0,
+      "candidate_held_out_vocab_coverage_bps": 10000,
+      "legacy_mean_tokens_per_value": 1,
+      "candidate_mean_tokens_per_value": 8,
+      "semantic_roundtrip_exact_bps": 10000,
+      "representation_generalization_gain_bps": 10000,
+      "claim_boundary": "structured numeric encoding changes only the learned representation of bounded numeric fields; it must decode exactly back to the same runtime semantics and does not imply arbitrary numeric closure or general learned exactness"
+    },
+    {
+      "case_id": "memory_addresses_u8",
+      "workload_family": "memory_addresses",
+      "legacy_encoding_id": "tassadar.numeric.address.legacy_u8.v1",
+      "candidate_encoding_id": "tassadar.numeric.address.hex_u8.v1",
+      "train_value_count": 12,
+      "held_out_value_count": 9,
+      "legacy_train_vocab_size": 12,
+      "candidate_train_vocab_size": 8,
+      "legacy_held_out_vocab_coverage_bps": 0,
+      "candidate_held_out_vocab_coverage_bps": 6111,
+      "legacy_mean_tokens_per_value": 1,
+      "candidate_mean_tokens_per_value": 2,
+      "semantic_roundtrip_exact_bps": 10000,
+      "representation_generalization_gain_bps": 6111,
+      "claim_boundary": "structured numeric encoding changes only the learned representation of bounded numeric fields; it must decode exactly back to the same runtime semantics and does not imply arbitrary numeric closure or general learned exactness"
+    }
+  ],
+  "summary": "Structured numeric encoding suite now freezes 6 legacy-vs-candidate comparisons with mean held-out vocabulary coverage gain=9351bps while keeping roundtrip semantics exact.",
+  "report_digest": "bbcf0ea9c9a572e677aa60232c0705140578d985071aa05d86391e41061aed1b"
+}

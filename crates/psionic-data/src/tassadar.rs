@@ -23,6 +23,9 @@ pub const TASSADAR_MODULE_SCALE_WORKLOAD_SUITE_ABI_VERSION: &str =
 /// Stable ABI version for Tassadar numeric-opcode ladder contracts.
 pub const TASSADAR_NUMERIC_OPCODE_LADDER_ABI_VERSION: &str =
     "psionic.tassadar.numeric_opcode_ladder.v1";
+/// Stable ABI version for structured numeric encoding lane contracts.
+pub const TASSADAR_STRUCTURED_NUMERIC_ENCODING_LANE_ABI_VERSION: &str =
+    "psionic.tassadar.structured_numeric_encoding_lane.v1";
 /// Stable ABI version for Tassadar trace-family-set contracts.
 pub const TASSADAR_TRACE_FAMILY_SET_ABI_VERSION: &str = "psionic.tassadar.trace_family_set.v1";
 /// Stable ABI version for CLRS-to-Wasm bridge contracts.
@@ -538,6 +541,403 @@ pub enum TassadarNumericOpcodeLadderError {
         /// Family.
         family: TassadarNumericOpcodeFamily,
         /// Repeated case id.
+        case_id: String,
+    },
+}
+
+/// Workload family summarized by the structured numeric encoding lane.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TassadarStructuredNumericEncodingWorkloadFamily {
+    /// Arithmetic kernels whose generalization stress sits in immediate literals.
+    ArithmeticImmediates,
+    /// Address and offset stress workloads.
+    AddressOffsetStress,
+    /// Explicit address-family workloads.
+    MemoryAddresses,
+}
+
+/// One seeded case in the structured numeric encoding lane.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarStructuredNumericEncodingCaseContract {
+    /// Stable case identifier.
+    pub case_id: String,
+    /// Workload family carried by the case.
+    pub workload_family: TassadarStructuredNumericEncodingWorkloadFamily,
+    /// Stable legacy encoding identifier.
+    pub legacy_encoding_id: String,
+    /// Stable candidate encoding identifiers.
+    pub candidate_encoding_ids: Vec<String>,
+    /// Human-readable case summary.
+    pub summary: String,
+    /// Bounded numeric values visible during the training split.
+    pub train_values: Vec<u32>,
+    /// Held-out numeric values reserved for evaluation.
+    pub held_out_values: Vec<u32>,
+}
+
+impl TassadarStructuredNumericEncodingCaseContract {
+    fn validate(&self) -> Result<(), TassadarStructuredNumericEncodingLaneError> {
+        if self.case_id.trim().is_empty() {
+            return Err(TassadarStructuredNumericEncodingLaneError::MissingCaseId);
+        }
+        if self.legacy_encoding_id.trim().is_empty() {
+            return Err(TassadarStructuredNumericEncodingLaneError::MissingLegacyEncodingId {
+                case_id: self.case_id.clone(),
+            });
+        }
+        if self.candidate_encoding_ids.is_empty() {
+            return Err(TassadarStructuredNumericEncodingLaneError::MissingCandidateEncodingIds {
+                case_id: self.case_id.clone(),
+            });
+        }
+        if self.summary.trim().is_empty() {
+            return Err(TassadarStructuredNumericEncodingLaneError::MissingCaseSummary {
+                case_id: self.case_id.clone(),
+            });
+        }
+        if self.train_values.is_empty() {
+            return Err(TassadarStructuredNumericEncodingLaneError::MissingTrainValues {
+                case_id: self.case_id.clone(),
+            });
+        }
+        if self.held_out_values.is_empty() {
+            return Err(TassadarStructuredNumericEncodingLaneError::MissingHeldOutValues {
+                case_id: self.case_id.clone(),
+            });
+        }
+
+        let mut seen_candidate_ids = BTreeSet::new();
+        for candidate_encoding_id in &self.candidate_encoding_ids {
+            if candidate_encoding_id.trim().is_empty() {
+                return Err(TassadarStructuredNumericEncodingLaneError::MissingCandidateEncodingId {
+                    case_id: self.case_id.clone(),
+                });
+            }
+            if !seen_candidate_ids.insert(candidate_encoding_id.clone()) {
+                return Err(
+                    TassadarStructuredNumericEncodingLaneError::DuplicateCandidateEncodingId {
+                        case_id: self.case_id.clone(),
+                        encoding_id: candidate_encoding_id.clone(),
+                    },
+                );
+            }
+        }
+
+        let train_values = self.train_values.iter().copied().collect::<BTreeSet<_>>();
+        let held_out_values = self.held_out_values.iter().copied().collect::<BTreeSet<_>>();
+        if !train_values.is_disjoint(&held_out_values) {
+            return Err(TassadarStructuredNumericEncodingLaneError::TrainHeldOutOverlap {
+                case_id: self.case_id.clone(),
+            });
+        }
+        Ok(())
+    }
+}
+
+/// Public contract for the structured numeric encoding lane.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarStructuredNumericEncodingLaneContract {
+    /// Stable ABI version.
+    pub abi_version: String,
+    /// Stable lane reference.
+    pub lane_ref: String,
+    /// Immutable lane version.
+    pub version: String,
+    /// Workload families covered by the lane.
+    pub workload_families: Vec<TassadarStructuredNumericEncodingWorkloadFamily>,
+    /// Canonical evaluation axes emitted by the lane.
+    pub evaluation_axes: Vec<String>,
+    /// Seeded cases under the lane.
+    pub cases: Vec<TassadarStructuredNumericEncodingCaseContract>,
+    /// Canonical committed report ref for the lane.
+    pub report_ref: String,
+}
+
+impl TassadarStructuredNumericEncodingLaneContract {
+    /// Creates and validates the lane contract.
+    pub fn new(
+        lane_ref: impl Into<String>,
+        version: impl Into<String>,
+        workload_families: Vec<TassadarStructuredNumericEncodingWorkloadFamily>,
+        evaluation_axes: Vec<String>,
+        cases: Vec<TassadarStructuredNumericEncodingCaseContract>,
+        report_ref: impl Into<String>,
+    ) -> Result<Self, TassadarStructuredNumericEncodingLaneError> {
+        let contract = Self {
+            abi_version: String::from(TASSADAR_STRUCTURED_NUMERIC_ENCODING_LANE_ABI_VERSION),
+            lane_ref: lane_ref.into(),
+            version: version.into(),
+            workload_families,
+            evaluation_axes,
+            cases,
+            report_ref: report_ref.into(),
+        };
+        contract.validate()?;
+        Ok(contract)
+    }
+
+    /// Validates the contract.
+    pub fn validate(&self) -> Result<(), TassadarStructuredNumericEncodingLaneError> {
+        if self.abi_version != TASSADAR_STRUCTURED_NUMERIC_ENCODING_LANE_ABI_VERSION {
+            return Err(
+                TassadarStructuredNumericEncodingLaneError::UnsupportedAbiVersion {
+                    abi_version: self.abi_version.clone(),
+                },
+            );
+        }
+        if self.lane_ref.trim().is_empty() {
+            return Err(TassadarStructuredNumericEncodingLaneError::MissingLaneRef);
+        }
+        if self.version.trim().is_empty() {
+            return Err(TassadarStructuredNumericEncodingLaneError::MissingLaneVersion);
+        }
+        if self.workload_families.is_empty() {
+            return Err(TassadarStructuredNumericEncodingLaneError::MissingWorkloadFamilies);
+        }
+        if self.evaluation_axes.is_empty() {
+            return Err(TassadarStructuredNumericEncodingLaneError::MissingEvaluationAxes);
+        }
+        if self.cases.is_empty() {
+            return Err(TassadarStructuredNumericEncodingLaneError::MissingCases);
+        }
+        if self.report_ref.trim().is_empty() {
+            return Err(TassadarStructuredNumericEncodingLaneError::MissingReportRef);
+        }
+
+        let mut seen_workload_families = BTreeSet::new();
+        for workload_family in &self.workload_families {
+            if !seen_workload_families.insert(*workload_family) {
+                return Err(
+                    TassadarStructuredNumericEncodingLaneError::DuplicateWorkloadFamily {
+                        workload_family: *workload_family,
+                    },
+                );
+            }
+        }
+        let mut seen_axes = BTreeSet::new();
+        for axis in &self.evaluation_axes {
+            if axis.trim().is_empty() {
+                return Err(TassadarStructuredNumericEncodingLaneError::MissingEvaluationAxis);
+            }
+            if !seen_axes.insert(axis.clone()) {
+                return Err(
+                    TassadarStructuredNumericEncodingLaneError::DuplicateEvaluationAxis {
+                        axis: axis.clone(),
+                    },
+                );
+            }
+        }
+        let supported_families = self.workload_families.iter().copied().collect::<BTreeSet<_>>();
+        let mut seen_case_ids = BTreeSet::new();
+        for case in &self.cases {
+            case.validate()?;
+            if !supported_families.contains(&case.workload_family) {
+                return Err(
+                    TassadarStructuredNumericEncodingLaneError::CaseWorkloadFamilyNotDeclared {
+                        case_id: case.case_id.clone(),
+                        workload_family: case.workload_family,
+                    },
+                );
+            }
+            if !seen_case_ids.insert(case.case_id.clone()) {
+                return Err(TassadarStructuredNumericEncodingLaneError::DuplicateCaseId {
+                    case_id: case.case_id.clone(),
+                });
+            }
+        }
+        Ok(())
+    }
+
+    /// Returns a stable digest over the contract.
+    #[must_use]
+    pub fn stable_digest(&self) -> String {
+        stable_digest(
+            b"psionic_tassadar_structured_numeric_encoding_lane_contract|",
+            self,
+        )
+    }
+}
+
+/// Returns the current public structured numeric encoding lane contract.
+#[must_use]
+pub fn tassadar_structured_numeric_encoding_lane_contract(
+) -> TassadarStructuredNumericEncodingLaneContract {
+    TassadarStructuredNumericEncodingLaneContract::new(
+        "tassadar://structured_numeric_encoding_lane/u8_v1",
+        "2026.03.18",
+        vec![
+            TassadarStructuredNumericEncodingWorkloadFamily::ArithmeticImmediates,
+            TassadarStructuredNumericEncodingWorkloadFamily::AddressOffsetStress,
+            TassadarStructuredNumericEncodingWorkloadFamily::MemoryAddresses,
+        ],
+        vec![
+            String::from("held_out_vocab_coverage_bps"),
+            String::from("mean_tokens_per_value"),
+            String::from("semantic_roundtrip_exact_bps"),
+            String::from("representation_generalization_gain_bps"),
+        ],
+        vec![
+            TassadarStructuredNumericEncodingCaseContract {
+                case_id: String::from("arithmetic_immediates_u8"),
+                workload_family:
+                    TassadarStructuredNumericEncodingWorkloadFamily::ArithmeticImmediates,
+                legacy_encoding_id: String::from("tassadar.numeric.immediate.legacy_u8.v1"),
+                candidate_encoding_ids: vec![
+                    String::from("tassadar.numeric.immediate.binary_u8.v1"),
+                    String::from("tassadar.numeric.immediate.hex_u8.v1"),
+                ],
+                summary: String::from(
+                    "bounded arithmetic-kernel immediates with held-out higher literals",
+                ),
+                train_values: (0_u32..=15).collect(),
+                held_out_values: vec![16, 31, 42, 63, 127, 255],
+            },
+            TassadarStructuredNumericEncodingCaseContract {
+                case_id: String::from("address_offsets_u8"),
+                workload_family:
+                    TassadarStructuredNumericEncodingWorkloadFamily::AddressOffsetStress,
+                legacy_encoding_id: String::from("tassadar.numeric.offset.legacy_u8.v1"),
+                candidate_encoding_ids: vec![
+                    String::from("tassadar.numeric.offset.binary_u8.v1"),
+                    String::from("tassadar.numeric.offset.hex_u8.v1"),
+                ],
+                summary: String::from(
+                    "bounded offset families with held-out stride and span combinations",
+                ),
+                train_values: vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 12, 16, 20],
+                held_out_values: vec![24, 28, 36, 44, 52, 68, 84, 100],
+            },
+            TassadarStructuredNumericEncodingCaseContract {
+                case_id: String::from("memory_addresses_u8"),
+                workload_family:
+                    TassadarStructuredNumericEncodingWorkloadFamily::MemoryAddresses,
+                legacy_encoding_id: String::from("tassadar.numeric.address.legacy_u8.v1"),
+                candidate_encoding_ids: vec![
+                    String::from("tassadar.numeric.address.binary_u8.v1"),
+                    String::from("tassadar.numeric.address.hex_u8.v1"),
+                ],
+                summary: String::from(
+                    "bounded address families with held-out higher memory buckets",
+                ),
+                train_values: vec![0, 4, 8, 12, 16, 20, 24, 28, 32, 48, 64, 80],
+                held_out_values: vec![96, 112, 128, 144, 160, 176, 192, 224, 240],
+            },
+        ],
+        "fixtures/tassadar/reports/tassadar_numeric_encoding_report.json",
+    )
+    .expect("current structured numeric encoding lane contract should stay valid")
+}
+
+/// Structured numeric encoding lane validation failure.
+#[derive(Clone, Debug, Error, PartialEq, Eq)]
+pub enum TassadarStructuredNumericEncodingLaneError {
+    /// Unsupported ABI version.
+    #[error("unsupported structured numeric encoding lane ABI version `{abi_version}`")]
+    UnsupportedAbiVersion {
+        /// Observed ABI version.
+        abi_version: String,
+    },
+    /// Missing lane ref.
+    #[error("structured numeric encoding lane is missing `lane_ref`")]
+    MissingLaneRef,
+    /// Missing version.
+    #[error("structured numeric encoding lane is missing `version`")]
+    MissingLaneVersion,
+    /// Missing workload families.
+    #[error("structured numeric encoding lane must declare workload families")]
+    MissingWorkloadFamilies,
+    /// Missing evaluation axes.
+    #[error("structured numeric encoding lane must declare evaluation axes")]
+    MissingEvaluationAxes,
+    /// One evaluation axis was empty.
+    #[error("structured numeric encoding lane contains an empty evaluation axis")]
+    MissingEvaluationAxis,
+    /// Missing cases.
+    #[error("structured numeric encoding lane must declare cases")]
+    MissingCases,
+    /// Missing report ref.
+    #[error("structured numeric encoding lane is missing `report_ref`")]
+    MissingReportRef,
+    /// One workload family repeated.
+    #[error("structured numeric encoding lane repeated workload family `{workload_family:?}`")]
+    DuplicateWorkloadFamily {
+        /// Repeated workload family.
+        workload_family: TassadarStructuredNumericEncodingWorkloadFamily,
+    },
+    /// One evaluation axis repeated.
+    #[error("structured numeric encoding lane repeated evaluation axis `{axis}`")]
+    DuplicateEvaluationAxis {
+        /// Repeated axis.
+        axis: String,
+    },
+    /// Missing case id.
+    #[error("structured numeric encoding lane contains a case without `case_id`")]
+    MissingCaseId,
+    /// Missing legacy encoding identifier.
+    #[error("structured numeric encoding case `{case_id}` is missing `legacy_encoding_id`")]
+    MissingLegacyEncodingId {
+        /// Case identifier.
+        case_id: String,
+    },
+    /// Missing candidate encodings.
+    #[error("structured numeric encoding case `{case_id}` must declare candidate encodings")]
+    MissingCandidateEncodingIds {
+        /// Case identifier.
+        case_id: String,
+    },
+    /// One candidate encoding identifier was empty.
+    #[error("structured numeric encoding case `{case_id}` contains an empty candidate encoding id")]
+    MissingCandidateEncodingId {
+        /// Case identifier.
+        case_id: String,
+    },
+    /// One candidate encoding identifier repeated.
+    #[error("structured numeric encoding case `{case_id}` repeated candidate encoding `{encoding_id}`")]
+    DuplicateCandidateEncodingId {
+        /// Case identifier.
+        case_id: String,
+        /// Repeated encoding identifier.
+        encoding_id: String,
+    },
+    /// Missing case summary.
+    #[error("structured numeric encoding case `{case_id}` is missing `summary`")]
+    MissingCaseSummary {
+        /// Case identifier.
+        case_id: String,
+    },
+    /// Missing training values.
+    #[error("structured numeric encoding case `{case_id}` must declare train values")]
+    MissingTrainValues {
+        /// Case identifier.
+        case_id: String,
+    },
+    /// Missing held-out values.
+    #[error("structured numeric encoding case `{case_id}` must declare held-out values")]
+    MissingHeldOutValues {
+        /// Case identifier.
+        case_id: String,
+    },
+    /// Train and held-out sets overlapped.
+    #[error("structured numeric encoding case `{case_id}` overlaps train and held-out values")]
+    TrainHeldOutOverlap {
+        /// Case identifier.
+        case_id: String,
+    },
+    /// One case referenced an undeclared workload family.
+    #[error(
+        "structured numeric encoding case `{case_id}` references undeclared workload family `{workload_family:?}`"
+    )]
+    CaseWorkloadFamilyNotDeclared {
+        /// Case identifier.
+        case_id: String,
+        /// Undeclared workload family.
+        workload_family: TassadarStructuredNumericEncodingWorkloadFamily,
+    },
+    /// One case id repeated.
+    #[error("structured numeric encoding lane repeated case `{case_id}`")]
+    DuplicateCaseId {
+        /// Repeated case identifier.
         case_id: String,
     },
 }
@@ -2591,6 +2991,7 @@ mod tests {
 
     use super::{
         tassadar_numeric_opcode_ladder_contract, tassadar_verifier_guided_search_trace_family_contract,
+        tassadar_structured_numeric_encoding_lane_contract,
         TassadarBenchmarkAxis, TassadarBenchmarkFamily, TassadarBenchmarkFamilyContract,
         TassadarBenchmarkPackageBinding, TassadarBenchmarkPackageSetContract,
         TassadarClrsAlgorithmFamily, TassadarClrsLengthBucket, TassadarClrsTrajectoryFamily,
@@ -2599,12 +3000,16 @@ mod tests {
         TassadarModuleScaleWorkloadFamily, TassadarModuleScaleWorkloadStatus,
         TassadarModuleScaleWorkloadSuiteContract, TassadarNumericOpcodeFamily,
         TassadarNumericOpcodeFamilyStatus, TassadarNumericOpcodeLadderContract,
-        TassadarSequenceDatasetContract, TassadarSequenceExample, TassadarSequenceExampleMetadata,
-        TassadarSequenceSplit, TassadarTraceFamilyAuthorityScope, TassadarTraceFamilyContract,
-        TassadarTraceFamilySetContract, TassadarTraceFamilyTopology,
-        TassadarTraceFamilyWorkloadBinding, TASSADAR_BENCHMARK_PACKAGE_SET_ABI_VERSION,
+        TassadarSequenceDatasetContract, TassadarSequenceExample,
+        TassadarSequenceExampleMetadata, TassadarSequenceSplit,
+        TassadarStructuredNumericEncodingLaneContract,
+        TassadarStructuredNumericEncodingWorkloadFamily, TassadarTraceFamilyAuthorityScope,
+        TassadarTraceFamilyContract, TassadarTraceFamilySetContract,
+        TassadarTraceFamilyTopology, TassadarTraceFamilyWorkloadBinding,
+        TASSADAR_BENCHMARK_PACKAGE_SET_ABI_VERSION,
         TASSADAR_CLRS_WASM_BRIDGE_ABI_VERSION, TASSADAR_MODULE_SCALE_WORKLOAD_SUITE_ABI_VERSION,
         TASSADAR_NUMERIC_OPCODE_LADDER_ABI_VERSION, TASSADAR_SEQUENCE_DATASET_ABI_VERSION,
+        TASSADAR_STRUCTURED_NUMERIC_ENCODING_LANE_ABI_VERSION,
         TASSADAR_TRACE_FAMILY_SET_ABI_VERSION,
         TASSADAR_VERIFIER_GUIDED_SEARCH_TRACE_FAMILY_ABI_VERSION,
     };
@@ -2833,6 +3238,41 @@ mod tests {
         assert_eq!(contract.supported_workload_families.len(), 2);
         assert_eq!(contract.event_kinds.len(), 5);
         assert_eq!(contract.cases.len(), 2);
+        assert!(!contract.stable_digest().is_empty());
+    }
+
+    #[test]
+    fn structured_numeric_encoding_lane_contract_is_machine_legible() {
+        let contract = tassadar_structured_numeric_encoding_lane_contract();
+        assert_eq!(
+            contract.abi_version,
+            TASSADAR_STRUCTURED_NUMERIC_ENCODING_LANE_ABI_VERSION
+        );
+        assert_eq!(contract.workload_families.len(), 3);
+        assert_eq!(contract.evaluation_axes.len(), 4);
+        assert_eq!(contract.cases.len(), 3);
+        assert_eq!(
+            contract.cases[0].workload_family,
+            TassadarStructuredNumericEncodingWorkloadFamily::ArithmeticImmediates
+        );
+        assert_eq!(
+            contract.cases[1].workload_family,
+            TassadarStructuredNumericEncodingWorkloadFamily::AddressOffsetStress
+        );
+        assert_eq!(
+            contract.cases[2].workload_family,
+            TassadarStructuredNumericEncodingWorkloadFamily::MemoryAddresses
+        );
+        let reparsed = TassadarStructuredNumericEncodingLaneContract::new(
+            contract.lane_ref.clone(),
+            contract.version.clone(),
+            contract.workload_families.clone(),
+            contract.evaluation_axes.clone(),
+            contract.cases.clone(),
+            contract.report_ref.clone(),
+        )
+        .expect("lane contract should rebuild");
+        assert_eq!(reparsed, contract);
         assert!(!contract.stable_digest().is_empty());
     }
 

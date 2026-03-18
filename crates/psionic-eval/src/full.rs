@@ -58,6 +58,8 @@ mod tassadar_memory_abi_v2;
 mod tassadar_module_scale_workload_suite;
 #[path = "tassadar_module_trace_abi_v2.rs"]
 mod tassadar_module_trace_abi_v2;
+#[path = "tassadar_numeric_encoding.rs"]
+mod tassadar_numeric_encoding;
 #[path = "tassadar_numeric_opcode_ladder.rs"]
 mod tassadar_numeric_opcode_ladder;
 #[path = "tassadar_shared_depth_halting_calibration.rs"]
@@ -114,6 +116,7 @@ pub use tassadar_hungarian_compiled_executor::*;
 pub use tassadar_memory_abi_v2::*;
 pub use tassadar_module_scale_workload_suite::*;
 pub use tassadar_module_trace_abi_v2::*;
+pub use tassadar_numeric_encoding::*;
 pub use tassadar_numeric_opcode_ladder::*;
 pub use tassadar_shared_depth_halting_calibration::*;
 pub use tassadar_sequence::*;

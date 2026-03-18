@@ -865,6 +865,21 @@ The current scope is:
   lane is explicitly replay-preserving trace formatting over bounded families,
   not a semantic program rewrite, arbitrary long-horizon learned exactness, or
   served promotion
+- landed structured numeric encoding follow-on: `psionic-ir` now owns public
+  structured numeric encodings for bounded immediate, offset, and address
+  fields under legacy-token, binary-bit, and mixed-radix-hex schemes,
+  `psionic-data` now publishes a public
+  `TassadarStructuredNumericEncodingLaneContract` with explicit train-vs-held-out
+  numeric splits across arithmetic-immediate, address-offset, and
+  memory-address workload families, `psionic-models` now exposes the
+  repo-facing `TassadarNumericEncodingPublication`, `psionic-train` now
+  materializes the committed suite at
+  `fixtures/tassadar/runs/tassadar_numeric_encoding_suite_v1/numeric_encoding_suite.json`,
+  and `psionic-eval` now freezes the committed report at
+  `fixtures/tassadar/reports/tassadar_numeric_encoding_report.json`; the lane
+  is explicitly bounded numeric-representation research over held-out
+  vocabulary coverage and exact roundtrip semantics, not arbitrary numeric
+  closure, learned exactness, or served promotion
 - landed Phase 9D bar: typed learned-plus-compiled and learned-circuit
   research in `psionic-research`, with explicit research-line,
   instruction-set, execution-proxy, claim-boundary, and proof-expectation

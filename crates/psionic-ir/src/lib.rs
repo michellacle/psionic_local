@@ -1,6 +1,7 @@
 //! Canonical graph and plan representation for Psionic.
 
 mod autodiff;
+mod tassadar_numeric_encoding;
 mod tassadar_locality_scratchpad;
 mod tassadar_sparse_rule;
 mod tassadar_scratchpad;
@@ -19,6 +20,7 @@ use sha2::{Digest, Sha256};
 use thiserror::Error;
 
 pub use autodiff::*;
+pub use tassadar_numeric_encoding::*;
 pub use tassadar_locality_scratchpad::*;
 pub use tassadar_sparse_rule::*;
 pub use tassadar_scratchpad::*;
