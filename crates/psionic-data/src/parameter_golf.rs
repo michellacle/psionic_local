@@ -449,6 +449,175 @@ impl ParameterGolfTokenStreamContract {
     }
 }
 
+/// Token role admitted by the current SentencePiece byte-accounting oracle.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ParameterGolfSentencePieceTokenKind {
+    Normal,
+    Byte,
+    Control,
+    Unknown,
+    Unused,
+}
+
+/// One SentencePiece token entry used to rebuild the current byte-accounting LUTs.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ParameterGolfSentencePieceTokenEntry {
+    /// Stable token id inside the tokenizer vocabulary.
+    pub token_id: u32,
+    /// Raw piece string reported by SentencePiece.
+    pub piece: String,
+    /// Token role for the byte-accounting oracle.
+    pub kind: ParameterGolfSentencePieceTokenKind,
+}
+
+impl ParameterGolfSentencePieceTokenEntry {
+    /// Creates one token entry.
+    #[must_use]
+    pub fn new(
+        token_id: u32,
+        piece: impl Into<String>,
+        kind: ParameterGolfSentencePieceTokenKind,
+    ) -> Self {
+        Self {
+            token_id,
+            piece: piece.into(),
+            kind,
+        }
+    }
+}
+
+/// Byte-accounting lookup tables that mirror `build_sentencepiece_luts(...)`.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ParameterGolfSentencePieceByteLuts {
+    /// Base byte count for each token id.
+    pub base_bytes_lut: Vec<i16>,
+    /// Whether the token contributes one leading-space byte when the previous token is not a boundary.
+    pub has_leading_space_lut: Vec<bool>,
+    /// Whether the token should suppress the leading-space carry from the following token.
+    pub is_boundary_token_lut: Vec<bool>,
+}
+
+impl ParameterGolfSentencePieceByteLuts {
+    /// Returns the table size shared by all three LUTs.
+    #[must_use]
+    pub fn table_size(&self) -> usize {
+        self.base_bytes_lut.len()
+    }
+
+    /// Rebuilds the exact current challenge byte-accounting LUTs from explicit SentencePiece token metadata.
+    pub fn build(
+        tokenizer_vocab_size: usize,
+        tokens: &[ParameterGolfSentencePieceTokenEntry],
+    ) -> Result<Self, ParameterGolfDataError> {
+        let max_token_id = tokens.iter().map(|token| token.token_id as usize).max().unwrap_or(0);
+        let table_size = tokenizer_vocab_size.max(max_token_id.saturating_add(1));
+        let mut base_bytes_lut = vec![0_i16; table_size];
+        let mut has_leading_space_lut = vec![false; table_size];
+        let mut is_boundary_token_lut = vec![true; table_size];
+        let mut seen = std::collections::BTreeSet::new();
+
+        for token in tokens {
+            if !seen.insert(token.token_id) {
+                return Err(ParameterGolfDataError::DuplicateSentencePieceTokenId {
+                    token_id: token.token_id,
+                });
+            }
+            let index = token.token_id as usize;
+            match token.kind {
+                ParameterGolfSentencePieceTokenKind::Control
+                | ParameterGolfSentencePieceTokenKind::Unknown
+                | ParameterGolfSentencePieceTokenKind::Unused => {}
+                ParameterGolfSentencePieceTokenKind::Byte => {
+                    is_boundary_token_lut[index] = false;
+                    base_bytes_lut[index] = 1;
+                }
+                ParameterGolfSentencePieceTokenKind::Normal => {
+                    is_boundary_token_lut[index] = false;
+                    let mut piece = token.piece.as_str();
+                    if let Some(stripped) = piece.strip_prefix('▁') {
+                        has_leading_space_lut[index] = true;
+                        piece = stripped;
+                    }
+                    let byte_count = piece.as_bytes().len();
+                    let byte_count = i16::try_from(byte_count).map_err(|_| {
+                        ParameterGolfDataError::SentencePieceByteCountOverflow {
+                            token_id: token.token_id,
+                            actual: byte_count,
+                        }
+                    })?;
+                    base_bytes_lut[index] = byte_count;
+                }
+            }
+        }
+
+        Ok(Self {
+            base_bytes_lut,
+            has_leading_space_lut,
+            is_boundary_token_lut,
+        })
+    }
+
+    /// Counts target bytes with the same leading-space adjustment used by the public challenge scripts.
+    pub fn count_target_bytes(
+        &self,
+        previous_token_ids: &[u32],
+        target_token_ids: &[u32],
+    ) -> Result<u64, ParameterGolfDataError> {
+        if previous_token_ids.len() != target_token_ids.len() {
+            return Err(ParameterGolfDataError::ByteAccountingLengthMismatch {
+                previous_len: previous_token_ids.len(),
+                target_len: target_token_ids.len(),
+            });
+        }
+        let mut total = 0_u64;
+        for (&previous, &target) in previous_token_ids.iter().zip(target_token_ids.iter()) {
+            let previous_index = previous as usize;
+            let target_index = target as usize;
+            if previous_index >= self.table_size() {
+                return Err(ParameterGolfDataError::TokenIdOutOfRange {
+                    token_id: previous,
+                    table_size: self.table_size(),
+                });
+            }
+            if target_index >= self.table_size() {
+                return Err(ParameterGolfDataError::TokenIdOutOfRange {
+                    token_id: target,
+                    table_size: self.table_size(),
+                });
+            }
+            let mut token_bytes = i64::from(self.base_bytes_lut[target_index]);
+            if self.has_leading_space_lut[target_index]
+                && !self.is_boundary_token_lut[previous_index]
+            {
+                token_bytes += 1;
+            }
+            total = total.saturating_add(token_bytes.max(0) as u64);
+        }
+        Ok(total)
+    }
+
+    /// Converts mean token NLL in natural-log units into the challenge's `bits per byte`.
+    pub fn bits_per_byte_from_mean_nll(
+        &self,
+        mean_nll_nats_per_token: f64,
+        previous_token_ids: &[u32],
+        target_token_ids: &[u32],
+    ) -> Result<f64, ParameterGolfDataError> {
+        let token_count = target_token_ids.len() as u64;
+        if token_count == 0 {
+            return Err(ParameterGolfDataError::EmptyTokenBatch);
+        }
+        let byte_count = self.count_target_bytes(previous_token_ids, target_token_ids)?;
+        if byte_count == 0 {
+            return Err(ParameterGolfDataError::ZeroByteCount);
+        }
+        let bits_per_token = mean_nll_nats_per_token / std::f64::consts::LN_2;
+        let tokens_per_byte = token_count as f64 / byte_count as f64;
+        Ok(bits_per_token * tokens_per_byte)
+    }
+}
+
 /// Loads and validates one current-format Parameter Golf shard as a `u16` token vector.
 pub fn load_parameter_golf_shard_tokens(
     path: impl AsRef<Path>,
@@ -685,6 +854,27 @@ pub enum ParameterGolfDataError {
     InvalidTrainShardLimit { requested: usize, available: usize },
     #[error("parameter golf token window size must be greater than zero")]
     InvalidTokenWindowSize,
+    #[error("parameter golf SentencePiece token id `{token_id}` is duplicated")]
+    DuplicateSentencePieceTokenId { token_id: u32 },
+    #[error(
+        "parameter golf SentencePiece token `{token_id}` expands to {actual} bytes, which exceeds the supported i16 LUT range"
+    )]
+    SentencePieceByteCountOverflow { token_id: u32, actual: usize },
+    #[error(
+        "parameter golf byte accounting requires equal previous/target lengths, found previous={previous_len} target={target_len}"
+    )]
+    ByteAccountingLengthMismatch {
+        previous_len: usize,
+        target_len: usize,
+    },
+    #[error(
+        "parameter golf byte accounting token id `{token_id}` is outside the LUT table size {table_size}"
+    )]
+    TokenIdOutOfRange { token_id: u32, table_size: usize },
+    #[error("parameter golf byte accounting requires at least one target token")]
+    EmptyTokenBatch,
+    #[error("parameter golf byte accounting produced zero counted bytes")]
+    ZeroByteCount,
     #[error("parameter golf expected dataset `{expected}` but found `{actual}`")]
     DatasetMismatch { expected: String, actual: String },
     #[error("parameter golf expected split `{expected}` but found cursor split `{actual}`")]
@@ -1037,5 +1227,129 @@ mod tests {
         assert_eq!(second.spans[1].token_count, 3);
         assert_eq!(second.end_cursor.cycle, 1);
         assert_eq!(second.end_cursor.emitted_tokens, 8);
+    }
+
+    #[test]
+    fn sentencepiece_luts_match_current_piece_and_boundary_rules() {
+        let luts = ParameterGolfSentencePieceByteLuts::build(
+            8,
+            &[
+                ParameterGolfSentencePieceTokenEntry::new(
+                    0,
+                    "<unk>",
+                    ParameterGolfSentencePieceTokenKind::Unknown,
+                ),
+                ParameterGolfSentencePieceTokenEntry::new(
+                    1,
+                    "<s>",
+                    ParameterGolfSentencePieceTokenKind::Control,
+                ),
+                ParameterGolfSentencePieceTokenEntry::new(
+                    2,
+                    "▁hello",
+                    ParameterGolfSentencePieceTokenKind::Normal,
+                ),
+                ParameterGolfSentencePieceTokenEntry::new(
+                    3,
+                    "world",
+                    ParameterGolfSentencePieceTokenKind::Normal,
+                ),
+                ParameterGolfSentencePieceTokenEntry::new(
+                    4,
+                    "<0x41>",
+                    ParameterGolfSentencePieceTokenKind::Byte,
+                ),
+                ParameterGolfSentencePieceTokenEntry::new(
+                    5,
+                    "<unused>",
+                    ParameterGolfSentencePieceTokenKind::Unused,
+                ),
+            ],
+        )
+        .expect("luts should build");
+
+        assert_eq!(luts.table_size(), 8);
+        assert_eq!(luts.base_bytes_lut[0], 0);
+        assert!(luts.is_boundary_token_lut[0]);
+        assert_eq!(luts.base_bytes_lut[2], 5);
+        assert!(luts.has_leading_space_lut[2]);
+        assert!(!luts.is_boundary_token_lut[2]);
+        assert_eq!(luts.base_bytes_lut[3], 5);
+        assert!(!luts.has_leading_space_lut[3]);
+        assert_eq!(luts.base_bytes_lut[4], 1);
+        assert!(!luts.is_boundary_token_lut[4]);
+        assert!(luts.is_boundary_token_lut[5]);
+        assert!(luts.is_boundary_token_lut[7]);
+    }
+
+    #[test]
+    fn sentencepiece_byte_accounting_only_adds_leading_space_after_non_boundary_tokens() {
+        let luts = ParameterGolfSentencePieceByteLuts::build(
+            6,
+            &[
+                ParameterGolfSentencePieceTokenEntry::new(
+                    0,
+                    "<unk>",
+                    ParameterGolfSentencePieceTokenKind::Unknown,
+                ),
+                ParameterGolfSentencePieceTokenEntry::new(
+                    1,
+                    "<s>",
+                    ParameterGolfSentencePieceTokenKind::Control,
+                ),
+                ParameterGolfSentencePieceTokenEntry::new(
+                    2,
+                    "▁hello",
+                    ParameterGolfSentencePieceTokenKind::Normal,
+                ),
+                ParameterGolfSentencePieceTokenEntry::new(
+                    3,
+                    "world",
+                    ParameterGolfSentencePieceTokenKind::Normal,
+                ),
+                ParameterGolfSentencePieceTokenEntry::new(
+                    4,
+                    "<0x41>",
+                    ParameterGolfSentencePieceTokenKind::Byte,
+                ),
+            ],
+        )
+        .expect("luts should build");
+
+        let byte_count = luts
+            .count_target_bytes(&[1, 3, 4, 0], &[2, 2, 2, 3])
+            .expect("byte count should compute");
+        assert_eq!(byte_count, 5 + 6 + 6 + 5);
+    }
+
+    #[test]
+    fn sentencepiece_bpb_formula_matches_reference_components() {
+        let luts = ParameterGolfSentencePieceByteLuts::build(
+            4,
+            &[
+                ParameterGolfSentencePieceTokenEntry::new(
+                    0,
+                    "<s>",
+                    ParameterGolfSentencePieceTokenKind::Control,
+                ),
+                ParameterGolfSentencePieceTokenEntry::new(
+                    1,
+                    "▁ab",
+                    ParameterGolfSentencePieceTokenKind::Normal,
+                ),
+                ParameterGolfSentencePieceTokenEntry::new(
+                    2,
+                    "cd",
+                    ParameterGolfSentencePieceTokenKind::Normal,
+                ),
+            ],
+        )
+        .expect("luts should build");
+
+        let mean_nll = std::f64::consts::LN_2;
+        let bpb = luts
+            .bits_per_byte_from_mean_nll(mean_nll, &[0, 1], &[1, 2])
+            .expect("bpb should compute");
+        assert!((bpb - (2.0 / 4.0)).abs() < 1e-12);
     }
 }
