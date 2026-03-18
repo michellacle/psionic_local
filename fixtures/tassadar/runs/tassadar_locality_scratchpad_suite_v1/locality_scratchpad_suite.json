@@ -1,0 +1,181 @@
+{
+  "publication": {
+    "schema_version": 1,
+    "publication_id": "tassadar.locality_scratchpad.publication.v1",
+    "status": "implemented",
+    "claim_class": "execution_truth_learned_substrate_fast_path_substrate",
+    "passes": [
+      {
+        "schema_version": 1,
+        "pass_id": "tassadar.locality.symbolic.segment_reset.v1",
+        "trace_family": "symbolic_straight_line",
+        "format": {
+          "schema_version": 1,
+          "encoding": "delimited_chunk_scratchpad",
+          "position_scheme": "segment_reset",
+          "scratchpad_segment_token_cap": 4
+        },
+        "max_inserted_token_overhead_bps": 25000,
+        "max_output_local_position_cap": 4,
+        "claim_boundary": "compiler pass changes only bounded trace formatting and controlled position layout; it must preserve replayable source token truth and refuses over-budget scratchpad expansion instead of widening execution semantics",
+        "pass_digest": "cef704a1efbaa3de1a25ae0ffc917c5bf9d53150d078b20152d20ae82680d98b"
+      },
+      {
+        "schema_version": 1,
+        "pass_id": "tassadar.locality.module_trace.schema_buckets.v1",
+        "trace_family": "module_trace_v2",
+        "format": {
+          "schema_version": 1,
+          "encoding": "delimited_chunk_scratchpad",
+          "position_scheme": "trace_schema_buckets",
+          "scratchpad_segment_token_cap": 6
+        },
+        "max_inserted_token_overhead_bps": 25000,
+        "max_output_local_position_cap": 6,
+        "claim_boundary": "compiler pass changes only bounded trace formatting and controlled position layout; it must preserve replayable source token truth and refuses over-budget scratchpad expansion instead of widening execution semantics",
+        "pass_digest": "e6287846e34ffe2afe8bead71bc4dff07d9c49e20eef3d6307a998cecb604ba4"
+      }
+    ],
+    "target_surfaces": [
+      "crates/psionic-ir",
+      "crates/psionic-compiler",
+      "crates/psionic-runtime",
+      "crates/psionic-models",
+      "crates/psionic-train",
+      "crates/psionic-eval"
+    ],
+    "validation_refs": [
+      "fixtures/tassadar/reports/tassadar_locality_scratchpad_report.json"
+    ],
+    "support_boundaries": [
+      "the pass reformats only the seeded symbolic straight-line and module-trace-v2 families; unsupported trace families refuse explicitly",
+      "the pass preserves replayable source token truth only; it does not imply general learned exactness, arbitrary long-horizon closure, or semantic program rewrites",
+      "over-budget scratchpad expansion refuses instead of silently widening the current bounded locality contract"
+    ],
+    "publication_digest": "869edccaec6397cbc49aec53eb7b4a6b222cbb2a79106a7160cbaf926a0417e9"
+  },
+  "case_reports": [
+    {
+      "case_id": "addition_pair",
+      "trace_family": "symbolic_straight_line",
+      "source_trace_ref": "symbolic://tassadar.symbolic.addition_pair.v1",
+      "source_trace_digest": "becd9626a21730b3ba09d4db2c499b49dc0e1e973bab0df96b737cf4fa5c232d",
+      "pass_id": "tassadar.locality.symbolic.segment_reset.v1",
+      "baseline_max_useful_lookback": 11,
+      "candidate_max_useful_lookback": 3,
+      "locality_gain_bps": 7272,
+      "baseline_token_count": 12,
+      "candidate_token_count": 31,
+      "scratchpad_overhead_bps": 15833,
+      "replay_exact": true,
+      "claim_boundary": "compiler pass changes only bounded trace formatting and controlled position layout; it must preserve replayable source token truth and refuses over-budget scratchpad expansion instead of widening execution semantics"
+    },
+    {
+      "case_id": "parity_two_bits",
+      "trace_family": "symbolic_straight_line",
+      "source_trace_ref": "symbolic://tassadar.symbolic.parity_two_bits.v1",
+      "source_trace_digest": "0154932a8fb3ab87c0bbbacdd070042fc365f9213b9f972d082dfa91f7fd127d",
+      "pass_id": "tassadar.locality.symbolic.segment_reset.v1",
+      "baseline_max_useful_lookback": 32,
+      "candidate_max_useful_lookback": 3,
+      "locality_gain_bps": 9062,
+      "baseline_token_count": 33,
+      "candidate_token_count": 88,
+      "scratchpad_overhead_bps": 16666,
+      "replay_exact": true,
+      "claim_boundary": "compiler pass changes only bounded trace formatting and controlled position layout; it must preserve replayable source token truth and refuses over-budget scratchpad expansion instead of widening execution semantics"
+    },
+    {
+      "case_id": "memory_accumulator",
+      "trace_family": "symbolic_straight_line",
+      "source_trace_ref": "symbolic://tassadar.symbolic.memory_accumulator.v1",
+      "source_trace_digest": "4bd6ebcfac7e4beacac5fde051c9926e6aa4fbd82f22c690dc6d79d769ff7222",
+      "pass_id": "tassadar.locality.symbolic.segment_reset.v1",
+      "baseline_max_useful_lookback": 15,
+      "candidate_max_useful_lookback": 3,
+      "locality_gain_bps": 8000,
+      "baseline_token_count": 16,
+      "candidate_token_count": 42,
+      "scratchpad_overhead_bps": 16250,
+      "replay_exact": true,
+      "claim_boundary": "compiler pass changes only bounded trace formatting and controlled position layout; it must preserve replayable source token truth and refuses over-budget scratchpad expansion instead of widening execution semantics"
+    },
+    {
+      "case_id": "finite_state_counter",
+      "trace_family": "symbolic_straight_line",
+      "source_trace_ref": "symbolic://tassadar.symbolic.finite_state_counter.v1",
+      "source_trace_digest": "4049786b7d3eda87ea6637bd18cbee6c1c518e43649ace0e66a70a45755b9823",
+      "pass_id": "tassadar.locality.symbolic.segment_reset.v1",
+      "baseline_max_useful_lookback": 22,
+      "candidate_max_useful_lookback": 3,
+      "locality_gain_bps": 8636,
+      "baseline_token_count": 23,
+      "candidate_token_count": 62,
+      "scratchpad_overhead_bps": 16956,
+      "replay_exact": true,
+      "claim_boundary": "compiler pass changes only bounded trace formatting and controlled position layout; it must preserve replayable source token truth and refuses over-budget scratchpad expansion instead of widening execution semantics"
+    },
+    {
+      "case_id": "stack_machine_add_step",
+      "trace_family": "symbolic_straight_line",
+      "source_trace_ref": "symbolic://tassadar.symbolic.stack_machine_add_step.v1",
+      "source_trace_digest": "84272f5124d12167261fb30251ebe160ba47f62b8debffdb3a960fb3c634dea4",
+      "pass_id": "tassadar.locality.symbolic.segment_reset.v1",
+      "baseline_max_useful_lookback": 30,
+      "candidate_max_useful_lookback": 3,
+      "locality_gain_bps": 9000,
+      "baseline_token_count": 31,
+      "candidate_token_count": 84,
+      "scratchpad_overhead_bps": 17096,
+      "replay_exact": true,
+      "claim_boundary": "compiler pass changes only bounded trace formatting and controlled position layout; it must preserve replayable source token truth and refuses over-budget scratchpad expansion instead of widening execution semantics"
+    },
+    {
+      "case_id": "module_global_state_trace",
+      "trace_family": "module_trace_v2",
+      "source_trace_ref": "module_trace_v2://tassadar.module_execution.global_state.v1",
+      "source_trace_digest": "f914165d05c553e931d573a6db633d1fe031566e12d6214d0a1638dd9b1e8973",
+      "pass_id": "tassadar.locality.module_trace.schema_buckets.v1",
+      "baseline_max_useful_lookback": 37,
+      "candidate_max_useful_lookback": 5,
+      "locality_gain_bps": 8648,
+      "baseline_token_count": 38,
+      "candidate_token_count": 91,
+      "scratchpad_overhead_bps": 13947,
+      "replay_exact": true,
+      "claim_boundary": "compiler pass changes only bounded trace formatting and controlled position layout; it must preserve replayable source token truth and refuses over-budget scratchpad expansion instead of widening execution semantics"
+    },
+    {
+      "case_id": "module_call_indirect_trace",
+      "trace_family": "module_trace_v2",
+      "source_trace_ref": "module_trace_v2://tassadar.module_execution.call_indirect.v1",
+      "source_trace_digest": "f0fc86faff7b81db8ff8b101fede5af1af52925ee2db3e43e856be58a97fea66",
+      "pass_id": "tassadar.locality.module_trace.schema_buckets.v1",
+      "baseline_max_useful_lookback": 36,
+      "candidate_max_useful_lookback": 5,
+      "locality_gain_bps": 8611,
+      "baseline_token_count": 37,
+      "candidate_token_count": 89,
+      "scratchpad_overhead_bps": 14054,
+      "replay_exact": true,
+      "claim_boundary": "compiler pass changes only bounded trace formatting and controlled position layout; it must preserve replayable source token truth and refuses over-budget scratchpad expansion instead of widening execution semantics"
+    },
+    {
+      "case_id": "module_deterministic_import_trace",
+      "trace_family": "module_trace_v2",
+      "source_trace_ref": "module_trace_v2://tassadar.module_execution.import_stub.v1",
+      "source_trace_digest": "54664fc7f2c765485931ca2c63546e44f715bbc689cfa9978a3c439e1c78aa17",
+      "pass_id": "tassadar.locality.module_trace.schema_buckets.v1",
+      "baseline_max_useful_lookback": 27,
+      "candidate_max_useful_lookback": 5,
+      "locality_gain_bps": 8148,
+      "baseline_token_count": 28,
+      "candidate_token_count": 68,
+      "scratchpad_overhead_bps": 14285,
+      "replay_exact": true,
+      "claim_boundary": "compiler pass changes only bounded trace formatting and controlled position layout; it must preserve replayable source token truth and refuses over-budget scratchpad expansion instead of widening execution semantics"
+    }
+  ],
+  "summary": "Locality-preserving scratchpad suite now freezes 5 symbolic and 3 module-trace same-program comparisons with mean lookback reduction=8422bps while keeping replay exact and scratchpad overhead explicit.",
+  "report_digest": "cce9c78c5e0804e6a268ec7649b7b8e1d0a2f1df472381352b2a93008ace527b"
+}

@@ -23,6 +23,7 @@ hex = { workspace = true }
 psionic-adapters = { path = "../psionic-adapters" }
 psionic-cluster = { path = "../psionic-cluster" }
 psionic-collectives = { path = "../psionic-collectives" }
+psionic-compiler = { path = "../psionic-compiler" }
 psionic-core = { path = "../psionic-core" }
 psionic-data = { path = "../psionic-data" }
 psionic-datastream = { path = "../psionic-datastream" }

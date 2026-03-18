@@ -849,6 +849,22 @@ The current scope is:
   the lane is explicitly research-only verifier-guided search evidence rather
   than compiled correctness, general combinatorial closure, or served
   promotion
+- landed locality-preserving scratchpad pass follow-on: `psionic-ir` now owns
+  a public locality-preserving scratchpad pass contract over the seeded
+  symbolic straight-line and module-trace-v2 families, `psionic-compiler` now
+  materializes same-program baseline-vs-candidate scratchpad compilations over
+  those families with explicit overhead-budget refusal, `psionic-runtime` now
+  publishes replay receipts proving the candidate formatting preserves source
+  token truth while measuring useful-lookback reduction and overhead,
+  `psionic-models` now exposes the repo-facing
+  `TassadarLocalityScratchpadPublication`, `psionic-train` now materializes
+  the committed suite at
+  `fixtures/tassadar/runs/tassadar_locality_scratchpad_suite_v1/locality_scratchpad_suite.json`,
+  and `psionic-eval` now freezes the committed report at
+  `fixtures/tassadar/reports/tassadar_locality_scratchpad_report.json`; the
+  lane is explicitly replay-preserving trace formatting over bounded families,
+  not a semantic program rewrite, arbitrary long-horizon learned exactness, or
+  served promotion
 - landed Phase 9D bar: typed learned-plus-compiled and learned-circuit
   research in `psionic-research`, with explicit research-line,
   instruction-set, execution-proxy, claim-boundary, and proof-expectation

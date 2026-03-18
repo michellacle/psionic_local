@@ -3910,6 +3910,7 @@ dependencies = [
  "psionic-adapters",
  "psionic-cluster",
  "psionic-collectives",
+ "psionic-compiler",
  "psionic-core",
  "psionic-data",
  "psionic-datastream",
