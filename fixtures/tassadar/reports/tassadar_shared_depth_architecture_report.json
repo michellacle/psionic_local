@@ -1,0 +1,469 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.shared_depth_architecture.report.v1",
+  "publication": {
+    "schema_version": 1,
+    "publication_id": "tassadar.shared_depth_executor.publication.v1",
+    "status": "implemented_early",
+    "claim_class": "research_only_architecture",
+    "model": {
+      "model_id": "tassadar-shared-depth-executor-candidate-v0",
+      "family": "tassadar_shared_depth_executor",
+      "revision": "v0"
+    },
+    "baseline_family_refs": [
+      "model-family://openagents/tassadar/flat_prefix_window_baseline",
+      "model-family://openagents/tassadar/module_state_executor"
+    ],
+    "source_workload_refs": [
+      "fixtures/tassadar/runs/compiled_kernel_suite_v0/compiled_kernel_suite_exactness_report.json",
+      "fixtures/tassadar/reports/tassadar_module_scale_workload_suite_report.json"
+    ],
+    "workload_families": [
+      "loop_heavy_kernel",
+      "call_heavy_module"
+    ],
+    "curriculum_anchors": [
+      {
+        "stage_id": "loop_kernel_refinement_bootstrap",
+        "summary": "bootstrap shared-parameter recurrent refinement on loop-heavy kernels before mixing in call-heavy module traces",
+        "workload_families": [
+          "loop_heavy_kernel"
+        ],
+        "halting_modes": [
+          "fixed_iteration_budget"
+        ],
+        "later_window_start_step": 16,
+        "max_iteration_budget": 128,
+        "target_token_cap": 96
+      },
+      {
+        "stage_id": "call_trace_mix_with_fixed_budget",
+        "summary": "mix call-heavy module traces under the same shared-depth block before enabling dynamic halting",
+        "workload_families": [
+          "loop_heavy_kernel",
+          "call_heavy_module"
+        ],
+        "halting_modes": [
+          "fixed_iteration_budget"
+        ],
+        "later_window_start_step": 24,
+        "max_iteration_budget": 144,
+        "target_token_cap": 128
+      },
+      {
+        "stage_id": "dynamic_halting_calibration",
+        "summary": "freeze shared-depth weights and calibrate an explicit halting head so budget exhaustion becomes measurable rather than implicit",
+        "workload_families": [
+          "loop_heavy_kernel",
+          "call_heavy_module"
+        ],
+        "halting_modes": [
+          "fixed_iteration_budget",
+          "dynamic_halting"
+        ],
+        "later_window_start_step": 32,
+        "max_iteration_budget": 160,
+        "target_token_cap": 160
+      }
+    ],
+    "max_shared_depth_steps": 160,
+    "supports_dynamic_halting": true,
+    "budget_exhaustion_posture": "budget exhaustion must stay explicit as a bounded refinement miss or refusal; the lane may not silently continue past the declared shared-depth budget",
+    "target_surfaces": [
+      "crates/psionic-models",
+      "crates/psionic-train",
+      "crates/psionic-eval",
+      "crates/psionic-research"
+    ],
+    "validation_refs": [
+      "fixtures/tassadar/reports/tassadar_shared_depth_halting_calibration_report.json",
+      "fixtures/tassadar/reports/tassadar_shared_depth_architecture_report.json"
+    ],
+    "support_boundaries": [
+      "the lane is research-only learned bounded architecture work and is not a served or benchmark-gated capability publication",
+      "shared-depth refinement here covers bounded loop-heavy kernel traces and bounded call-heavy module traces only; it does not imply arbitrary long-horizon learned exactness",
+      "dynamic halting is an explicit calibration surface with bounded refusal and degradation posture, not a claim of universal self-timed closure"
+    ],
+    "publication_digest": "83f3752192bfb4ed95b290c21f28eea65398637c9701284bcacf6021ca1c980e"
+  },
+  "curriculum_suite": {
+    "schema_version": 1,
+    "suite_id": "tassadar.shared_depth_curriculum_suite.v1",
+    "claim_class": "research_only_architecture",
+    "model_publication_id": "tassadar.shared_depth_executor.publication.v1",
+    "source_workload_refs": [
+      "fixtures/tassadar/runs/compiled_kernel_suite_v0/compiled_kernel_suite_exactness_report.json",
+      "fixtures/tassadar/reports/tassadar_module_scale_workload_suite_report.json"
+    ],
+    "stages": [
+      {
+        "stage_id": "loop_kernel_refinement_bootstrap",
+        "summary": "bootstrap shared-parameter recurrent refinement on loop-heavy kernels before mixing in call-heavy module traces",
+        "workload_families": [
+          "loop_heavy_kernel"
+        ],
+        "halting_modes": [
+          "fixed_iteration_budget"
+        ],
+        "later_window_start_step": 16,
+        "max_iteration_budget": 128,
+        "target_token_cap": 96
+      },
+      {
+        "stage_id": "call_trace_mix_with_fixed_budget",
+        "summary": "mix call-heavy module traces under the same shared-depth block before enabling dynamic halting",
+        "workload_families": [
+          "loop_heavy_kernel",
+          "call_heavy_module"
+        ],
+        "halting_modes": [
+          "fixed_iteration_budget"
+        ],
+        "later_window_start_step": 24,
+        "max_iteration_budget": 144,
+        "target_token_cap": 128
+      },
+      {
+        "stage_id": "dynamic_halting_calibration",
+        "summary": "freeze shared-depth weights and calibrate an explicit halting head so budget exhaustion becomes measurable rather than implicit",
+        "workload_families": [
+          "loop_heavy_kernel",
+          "call_heavy_module"
+        ],
+        "halting_modes": [
+          "fixed_iteration_budget",
+          "dynamic_halting"
+        ],
+        "later_window_start_step": 32,
+        "max_iteration_budget": 160,
+        "target_token_cap": 160
+      }
+    ],
+    "variants": [
+      {
+        "variant_id": "flat_prefix_baseline",
+        "description": "Current bounded flat-prefix baseline without shared recurrent depth or explicit halting calibration.",
+        "stage_ids": [],
+        "halting_mode": "fixed_iteration_budget",
+        "max_iteration_budget": 128,
+        "later_window_average_bps": 5200,
+        "final_state_average_bps": 7450,
+        "held_out_later_window_average_bps": 5000,
+        "average_budget_exhaustion_rate_bps": 3700,
+        "family_evals": [
+          {
+            "family": "loop_heavy_kernel",
+            "held_out": false,
+            "later_window_exactness_bps": 5400,
+            "final_state_exactness_bps": 7600,
+            "budget_exhaustion_rate_bps": 3900,
+            "mean_iteration_count": 128,
+            "p95_iteration_count": 128,
+            "trace_to_final_state_gap_bps": 2200
+          },
+          {
+            "family": "call_heavy_module",
+            "held_out": true,
+            "later_window_exactness_bps": 5000,
+            "final_state_exactness_bps": 7300,
+            "budget_exhaustion_rate_bps": 3500,
+            "mean_iteration_count": 128,
+            "p95_iteration_count": 128,
+            "trace_to_final_state_gap_bps": 2300
+          }
+        ]
+      },
+      {
+        "variant_id": "shared_depth_fixed_budget",
+        "description": "Reuse one shared refinement block across iterative depth while keeping the refinement budget fixed.",
+        "stage_ids": [
+          "loop_kernel_refinement_bootstrap",
+          "call_trace_mix_with_fixed_budget"
+        ],
+        "halting_mode": "fixed_iteration_budget",
+        "max_iteration_budget": 144,
+        "later_window_average_bps": 7400,
+        "final_state_average_bps": 8750,
+        "held_out_later_window_average_bps": 7200,
+        "average_budget_exhaustion_rate_bps": 2000,
+        "family_evals": [
+          {
+            "family": "loop_heavy_kernel",
+            "held_out": false,
+            "later_window_exactness_bps": 7600,
+            "final_state_exactness_bps": 8800,
+            "budget_exhaustion_rate_bps": 1800,
+            "mean_iteration_count": 92,
+            "p95_iteration_count": 128,
+            "trace_to_final_state_gap_bps": 1200
+          },
+          {
+            "family": "call_heavy_module",
+            "held_out": true,
+            "later_window_exactness_bps": 7200,
+            "final_state_exactness_bps": 8700,
+            "budget_exhaustion_rate_bps": 2200,
+            "mean_iteration_count": 88,
+            "p95_iteration_count": 128,
+            "trace_to_final_state_gap_bps": 1500
+          }
+        ]
+      },
+      {
+        "variant_id": "shared_depth_dynamic_halting",
+        "description": "Freeze the shared-depth block and calibrate an explicit halting head so budget exhaustion becomes observable and lower on long iterative traces.",
+        "stage_ids": [
+          "loop_kernel_refinement_bootstrap",
+          "call_trace_mix_with_fixed_budget",
+          "dynamic_halting_calibration"
+        ],
+        "halting_mode": "dynamic_halting",
+        "max_iteration_budget": 160,
+        "later_window_average_bps": 8100,
+        "final_state_average_bps": 9050,
+        "held_out_later_window_average_bps": 7900,
+        "average_budget_exhaustion_rate_bps": 550,
+        "family_evals": [
+          {
+            "family": "loop_heavy_kernel",
+            "held_out": false,
+            "later_window_exactness_bps": 8300,
+            "final_state_exactness_bps": 9100,
+            "budget_exhaustion_rate_bps": 400,
+            "mean_iteration_count": 61,
+            "p95_iteration_count": 96,
+            "trace_to_final_state_gap_bps": 800
+          },
+          {
+            "family": "call_heavy_module",
+            "held_out": true,
+            "later_window_exactness_bps": 7900,
+            "final_state_exactness_bps": 9000,
+            "budget_exhaustion_rate_bps": 700,
+            "mean_iteration_count": 67,
+            "p95_iteration_count": 104,
+            "trace_to_final_state_gap_bps": 1100
+          }
+        ]
+      }
+    ],
+    "suite_digest": "2d2aa2b5772818819427a6ecbcde0448ffe43fed9a50efcc0610fe374f2e9990"
+  },
+  "halting_report": {
+    "report_id": "tassadar.shared_depth_halting_calibration.report.v1",
+    "publication": {
+      "schema_version": 1,
+      "publication_id": "tassadar.shared_depth_executor.publication.v1",
+      "status": "implemented_early",
+      "claim_class": "research_only_architecture",
+      "model": {
+        "model_id": "tassadar-shared-depth-executor-candidate-v0",
+        "family": "tassadar_shared_depth_executor",
+        "revision": "v0"
+      },
+      "baseline_family_refs": [
+        "model-family://openagents/tassadar/flat_prefix_window_baseline",
+        "model-family://openagents/tassadar/module_state_executor"
+      ],
+      "source_workload_refs": [
+        "fixtures/tassadar/runs/compiled_kernel_suite_v0/compiled_kernel_suite_exactness_report.json",
+        "fixtures/tassadar/reports/tassadar_module_scale_workload_suite_report.json"
+      ],
+      "workload_families": [
+        "loop_heavy_kernel",
+        "call_heavy_module"
+      ],
+      "curriculum_anchors": [
+        {
+          "stage_id": "loop_kernel_refinement_bootstrap",
+          "summary": "bootstrap shared-parameter recurrent refinement on loop-heavy kernels before mixing in call-heavy module traces",
+          "workload_families": [
+            "loop_heavy_kernel"
+          ],
+          "halting_modes": [
+            "fixed_iteration_budget"
+          ],
+          "later_window_start_step": 16,
+          "max_iteration_budget": 128,
+          "target_token_cap": 96
+        },
+        {
+          "stage_id": "call_trace_mix_with_fixed_budget",
+          "summary": "mix call-heavy module traces under the same shared-depth block before enabling dynamic halting",
+          "workload_families": [
+            "loop_heavy_kernel",
+            "call_heavy_module"
+          ],
+          "halting_modes": [
+            "fixed_iteration_budget"
+          ],
+          "later_window_start_step": 24,
+          "max_iteration_budget": 144,
+          "target_token_cap": 128
+        },
+        {
+          "stage_id": "dynamic_halting_calibration",
+          "summary": "freeze shared-depth weights and calibrate an explicit halting head so budget exhaustion becomes measurable rather than implicit",
+          "workload_families": [
+            "loop_heavy_kernel",
+            "call_heavy_module"
+          ],
+          "halting_modes": [
+            "fixed_iteration_budget",
+            "dynamic_halting"
+          ],
+          "later_window_start_step": 32,
+          "max_iteration_budget": 160,
+          "target_token_cap": 160
+        }
+      ],
+      "max_shared_depth_steps": 160,
+      "supports_dynamic_halting": true,
+      "budget_exhaustion_posture": "budget exhaustion must stay explicit as a bounded refinement miss or refusal; the lane may not silently continue past the declared shared-depth budget",
+      "target_surfaces": [
+        "crates/psionic-models",
+        "crates/psionic-train",
+        "crates/psionic-eval",
+        "crates/psionic-research"
+      ],
+      "validation_refs": [
+        "fixtures/tassadar/reports/tassadar_shared_depth_halting_calibration_report.json",
+        "fixtures/tassadar/reports/tassadar_shared_depth_architecture_report.json"
+      ],
+      "support_boundaries": [
+        "the lane is research-only learned bounded architecture work and is not a served or benchmark-gated capability publication",
+        "shared-depth refinement here covers bounded loop-heavy kernel traces and bounded call-heavy module traces only; it does not imply arbitrary long-horizon learned exactness",
+        "dynamic halting is an explicit calibration surface with bounded refusal and degradation posture, not a claim of universal self-timed closure"
+      ],
+      "publication_digest": "83f3752192bfb4ed95b290c21f28eea65398637c9701284bcacf6021ca1c980e"
+    },
+    "rows": [
+      {
+        "variant_id": "flat_prefix_baseline",
+        "workload_family": "loop_heavy_kernel",
+        "held_out": false,
+        "halting_mode": "fixed_iteration_budget",
+        "max_iteration_budget": 128,
+        "mean_iteration_count": 128,
+        "p95_iteration_count": 128,
+        "later_window_exactness_bps": 5400,
+        "final_state_exactness_bps": 7600,
+        "exact_halt_within_budget_bps": 6100,
+        "budget_exhaustion_rate_bps": 3900,
+        "budget_exhaustion_posture": "budget exhaustion stays explicit as a bounded refinement miss or refusal and may not silently widen the iteration budget"
+      },
+      {
+        "variant_id": "flat_prefix_baseline",
+        "workload_family": "call_heavy_module",
+        "held_out": true,
+        "halting_mode": "fixed_iteration_budget",
+        "max_iteration_budget": 128,
+        "mean_iteration_count": 128,
+        "p95_iteration_count": 128,
+        "later_window_exactness_bps": 5000,
+        "final_state_exactness_bps": 7300,
+        "exact_halt_within_budget_bps": 6500,
+        "budget_exhaustion_rate_bps": 3500,
+        "budget_exhaustion_posture": "budget exhaustion stays explicit as a bounded refinement miss or refusal and may not silently widen the iteration budget"
+      },
+      {
+        "variant_id": "shared_depth_fixed_budget",
+        "workload_family": "loop_heavy_kernel",
+        "held_out": false,
+        "halting_mode": "fixed_iteration_budget",
+        "max_iteration_budget": 144,
+        "mean_iteration_count": 92,
+        "p95_iteration_count": 128,
+        "later_window_exactness_bps": 7600,
+        "final_state_exactness_bps": 8800,
+        "exact_halt_within_budget_bps": 8200,
+        "budget_exhaustion_rate_bps": 1800,
+        "budget_exhaustion_posture": "budget exhaustion stays explicit as a bounded refinement miss or refusal and may not silently widen the iteration budget"
+      },
+      {
+        "variant_id": "shared_depth_fixed_budget",
+        "workload_family": "call_heavy_module",
+        "held_out": true,
+        "halting_mode": "fixed_iteration_budget",
+        "max_iteration_budget": 144,
+        "mean_iteration_count": 88,
+        "p95_iteration_count": 128,
+        "later_window_exactness_bps": 7200,
+        "final_state_exactness_bps": 8700,
+        "exact_halt_within_budget_bps": 7800,
+        "budget_exhaustion_rate_bps": 2200,
+        "budget_exhaustion_posture": "budget exhaustion stays explicit as a bounded refinement miss or refusal and may not silently widen the iteration budget"
+      },
+      {
+        "variant_id": "shared_depth_dynamic_halting",
+        "workload_family": "loop_heavy_kernel",
+        "held_out": false,
+        "halting_mode": "dynamic_halting",
+        "max_iteration_budget": 160,
+        "mean_iteration_count": 61,
+        "p95_iteration_count": 96,
+        "later_window_exactness_bps": 8300,
+        "final_state_exactness_bps": 9100,
+        "exact_halt_within_budget_bps": 9600,
+        "budget_exhaustion_rate_bps": 400,
+        "budget_exhaustion_posture": "budget exhaustion stays explicit as a bounded refinement miss or refusal and may not silently widen the iteration budget"
+      },
+      {
+        "variant_id": "shared_depth_dynamic_halting",
+        "workload_family": "call_heavy_module",
+        "held_out": true,
+        "halting_mode": "dynamic_halting",
+        "max_iteration_budget": 160,
+        "mean_iteration_count": 67,
+        "p95_iteration_count": 104,
+        "later_window_exactness_bps": 7900,
+        "final_state_exactness_bps": 9000,
+        "exact_halt_within_budget_bps": 9300,
+        "budget_exhaustion_rate_bps": 700,
+        "budget_exhaustion_posture": "budget exhaustion stays explicit as a bounded refinement miss or refusal and may not silently widen the iteration budget"
+      }
+    ],
+    "dynamic_halting_beats_fixed_budget_on_loop_exhaustion": true,
+    "dynamic_halting_beats_fixed_budget_on_call_exhaustion": true,
+    "dynamic_halting_beats_baseline_on_held_out_later_window": true,
+    "report_digest": "841e706344abd77a191c104b8408c4fe41ba4287889c2d2ffa031993c703c6ef"
+  },
+  "held_out_family_deltas": [
+    {
+      "family": "call_heavy_module",
+      "baseline_later_window_exactness_bps": 5000,
+      "candidate_later_window_exactness_bps": 7900,
+      "baseline_budget_exhaustion_rate_bps": 3500,
+      "candidate_budget_exhaustion_rate_bps": 700,
+      "later_window_delta_bps": 2900,
+      "exhaustion_reduction_bps": 2800
+    }
+  ],
+  "variant_summaries": [
+    {
+      "variant_id": "flat_prefix_baseline",
+      "description": "Current bounded flat-prefix baseline without shared recurrent depth or explicit halting calibration.",
+      "later_window_average_bps": 5200,
+      "final_state_average_bps": 7450,
+      "average_budget_exhaustion_rate_bps": 3700
+    },
+    {
+      "variant_id": "shared_depth_fixed_budget",
+      "description": "Reuse one shared refinement block across iterative depth while keeping the refinement budget fixed.",
+      "later_window_average_bps": 7400,
+      "final_state_average_bps": 8750,
+      "average_budget_exhaustion_rate_bps": 2000
+    },
+    {
+      "variant_id": "shared_depth_dynamic_halting",
+      "description": "Freeze the shared-depth block and calibrate an explicit halting head so budget exhaustion becomes observable and lower on long iterative traces.",
+      "later_window_average_bps": 8100,
+      "final_state_average_bps": 9050,
+      "average_budget_exhaustion_rate_bps": 550
+    }
+  ],
+  "claim_boundary": "this report freezes one research-only shared-depth architecture comparison for loop-heavy kernel traces and call-heavy module traces; it compares a flat-prefix baseline, a shared-depth fixed-budget lane, and a dynamic-halting shared-depth lane, and does not claim served exactness, arbitrary Wasm closure, or benchmark-gated promotion",
+  "summary": "Shared-depth recurrent refinement now has one explicit repo-facing architecture report: cumulative held-out later-window gain=2900 bps and cumulative budget-exhaustion reduction=2800 bps for the dynamic-halting lane relative to the flat-prefix baseline.",
+  "report_digest": "38c88296807c80dc5099cb1e75294252dcfeecaede29be033cee78e2ab872e71"
+}

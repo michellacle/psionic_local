@@ -54,6 +54,8 @@ mod tassadar_module_scale_workload_suite;
 mod tassadar_module_trace_abi_v2;
 #[path = "tassadar_numeric_opcode_ladder.rs"]
 mod tassadar_numeric_opcode_ladder;
+#[path = "tassadar_shared_depth_halting_calibration.rs"]
+mod tassadar_shared_depth_halting_calibration;
 #[path = "tassadar_sequence.rs"]
 mod tassadar_sequence;
 #[path = "tassadar_sparse_rule_compiler_audit.rs"]
@@ -102,6 +104,7 @@ pub use tassadar_memory_abi_v2::*;
 pub use tassadar_module_scale_workload_suite::*;
 pub use tassadar_module_trace_abi_v2::*;
 pub use tassadar_numeric_opcode_ladder::*;
+pub use tassadar_shared_depth_halting_calibration::*;
 pub use tassadar_sequence::*;
 pub use tassadar_sparse_rule_compiler_audit::*;
 pub use tassadar_structured_control::*;

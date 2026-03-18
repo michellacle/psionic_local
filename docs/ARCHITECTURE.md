@@ -796,6 +796,19 @@ The current scope is:
   `fixtures/tassadar/reports/tassadar_sparse_rule_compiler_audit_report.json`;
   the claim remains research-only compiled bounded exactness over the current
   symbolic subset and does not imply arbitrary Wasm or learnability closure
+- landed shared-depth executor family follow-on: `psionic-models` now owns a
+  public research-only `TassadarSharedDepthExecutorPublication` for shared
+  recurrent refinement with explicit fixed-budget versus dynamic-halting
+  posture over loop-heavy kernel and call-heavy module families, `psionic-train`
+  now materializes the same lane as a deterministic curriculum suite comparing
+  flat-prefix, shared-depth fixed-budget, and shared-depth dynamic-halting
+  variants, `psionic-eval` now publishes an explicit halting-calibration report
+  surface over budget exhaustion and later-window exactness, and
+  `psionic-research` now freezes the committed architecture report at
+  `fixtures/tassadar/reports/tassadar_shared_depth_architecture_report.json`;
+  the lane remains research-only learned bounded architecture work and does not
+  imply arbitrary long-horizon learned exactness, arbitrary Wasm closure, or
+  served promotion
 - landed Phase 9D bar: typed learned-plus-compiled and learned-circuit
   research in `psionic-research`, with explicit research-line,
   instruction-set, execution-proxy, claim-boundary, and proof-expectation
