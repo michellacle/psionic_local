@@ -313,6 +313,23 @@ The current scope is:
   This lane keeps mixed-supervision viability, io-only fragility, and
   full-trace-only outliers explicit instead of overstating weaker supervision as
   broad learned module-execution closure
+- landed kernel-module-scaling follow-on: `psionic-data` now publishes a public
+  `TassadarKernelModuleScalingContract` over explicit kernel-scale,
+  bridge-scale, and module-scale families plus declared
+  `call_graph_width`, `control_flow_depth`, `trace_length`,
+  `memory_footprint`, and `import_complexity` pressure labels; `psionic-eval`
+  now freezes the joined scaling report at
+  `fixtures/tassadar/reports/tassadar_kernel_module_scaling_report.json` by
+  reusing the committed compiled-kernel scaling artifact, CLRS bridge report,
+  module-scale workload-suite report, and Wasm host-import refusal boundary
+  instead of inventing a separate benchmark universe; `psionic-research` now
+  freezes the companion summary at
+  `fixtures/tassadar/reports/tassadar_kernel_module_scaling_summary.json`; and
+  `psionic-provider` now projects that summary into a provider-facing
+  `TassadarKernelModuleScalingReceipt`. This lane keeps exact ceilings,
+  exact-but-cost-degraded regions, and refusal boundaries explicit instead of
+  inferring module-scale closure from kernel-scale wins or smoothing distinct
+  workload families into one generic scaling curve
 - landed shared primitive transfer follow-on: `psionic-data` now publishes a
   public `TassadarSharedPrimitiveTransferContract` over explicit
   reachability-expand, relax-state, compare, select, merge, and

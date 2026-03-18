@@ -1,0 +1,688 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.kernel_module_scaling.summary.v1",
+  "scaling_report": {
+    "schema_version": 1,
+    "report_id": "tassadar.kernel_module_scaling.report.v1",
+    "contract_ref": "dataset://openagents/tassadar/kernel_module_scaling",
+    "contract_digest": "3c0c174e9adf2383a140bcb1c51b91508eba6cfda8aa7b4f68890ab17939cd92",
+    "family_reports": [
+      {
+        "workload_family": "arithmetic_kernel",
+        "phase": "kernel_scale",
+        "axis_pressures": {
+          "call_graph_width": "low",
+          "control_flow_depth": "low",
+          "trace_length": "medium",
+          "memory_footprint": "low",
+          "import_complexity": "low"
+        },
+        "points": [
+          {
+            "point_id": "arithmetic_kernel_ops_8",
+            "posture": "exact",
+            "exactness_bps": 10000,
+            "trace_step_count": 37,
+            "compiled_over_cpu_ratio": 0.028009192761,
+            "call_graph_width_value": 1,
+            "control_flow_depth_value": 1,
+            "memory_footprint_units": 0,
+            "import_complexity_value": 0,
+            "supporting_refs": [
+              "fixtures/tassadar/runs/compiled_kernel_suite_v0/compiled_kernel_suite_scaling_report.json"
+            ],
+            "note": "execute 8 alternating arithmetic updates in locals currently keeps exactness=10000, trace_steps=37, memory_units=0, and compiled_over_cpu_ratio=0.028009"
+          },
+          {
+            "point_id": "arithmetic_kernel_ops_32",
+            "posture": "exact_but_cost_degraded",
+            "exactness_bps": 10000,
+            "trace_step_count": 133,
+            "compiled_over_cpu_ratio": 0.017513097507,
+            "call_graph_width_value": 1,
+            "control_flow_depth_value": 1,
+            "memory_footprint_units": 0,
+            "import_complexity_value": 0,
+            "supporting_refs": [
+              "fixtures/tassadar/runs/compiled_kernel_suite_v0/compiled_kernel_suite_scaling_report.json"
+            ],
+            "note": "execute 32 alternating arithmetic updates in locals currently keeps exactness=10000, trace_steps=133, memory_units=0, and compiled_over_cpu_ratio=0.017513"
+          },
+          {
+            "point_id": "arithmetic_kernel_ops_96",
+            "posture": "exact_but_cost_degraded",
+            "exactness_bps": 10000,
+            "trace_step_count": 389,
+            "compiled_over_cpu_ratio": 0.009926946263,
+            "call_graph_width_value": 1,
+            "control_flow_depth_value": 1,
+            "memory_footprint_units": 0,
+            "import_complexity_value": 0,
+            "supporting_refs": [
+              "fixtures/tassadar/runs/compiled_kernel_suite_v0/compiled_kernel_suite_scaling_report.json"
+            ],
+            "note": "execute 96 alternating arithmetic updates in locals currently keeps exactness=10000, trace_steps=389, memory_units=0, and compiled_over_cpu_ratio=0.009927"
+          }
+        ],
+        "exact_point_count": 1,
+        "cost_degraded_point_count": 2,
+        "refusal_point_count": 0,
+        "first_cost_degraded_point_id": "arithmetic_kernel_ops_32",
+        "route_threshold_note": "kernel rows keep exactness separate from cost degradation; once trace length or compiled-over-cpu ratio crosses the current exact ceiling, the report marks the family as exact-but-cost-degraded rather than silently widening the route claim",
+        "claim_boundary": "arithmetic kernels stay bounded to the current article_i32 compiled kernel suite and do not imply module-scale closure by extrapolation"
+      },
+      {
+        "workload_family": "memory_update_kernel",
+        "phase": "kernel_scale",
+        "axis_pressures": {
+          "call_graph_width": "low",
+          "control_flow_depth": "low",
+          "trace_length": "medium",
+          "memory_footprint": "high",
+          "import_complexity": "low"
+        },
+        "points": [
+          {
+            "point_id": "memory_update_kernel_slots_4",
+            "posture": "exact",
+            "exactness_bps": 10000,
+            "trace_step_count": 37,
+            "compiled_over_cpu_ratio": 0.027845853312,
+            "call_graph_width_value": 1,
+            "control_flow_depth_value": 1,
+            "memory_footprint_units": 4,
+            "import_complexity_value": 0,
+            "supporting_refs": [
+              "fixtures/tassadar/runs/compiled_kernel_suite_v0/compiled_kernel_suite_scaling_report.json"
+            ],
+            "note": "update and accumulate the first 4 memory slots currently keeps exactness=10000, trace_steps=37, memory_units=4, and compiled_over_cpu_ratio=0.027846"
+          },
+          {
+            "point_id": "memory_update_kernel_slots_16",
+            "posture": "exact_but_cost_degraded",
+            "exactness_bps": 10000,
+            "trace_step_count": 133,
+            "compiled_over_cpu_ratio": 0.02058571636,
+            "call_graph_width_value": 1,
+            "control_flow_depth_value": 1,
+            "memory_footprint_units": 16,
+            "import_complexity_value": 0,
+            "supporting_refs": [
+              "fixtures/tassadar/runs/compiled_kernel_suite_v0/compiled_kernel_suite_scaling_report.json"
+            ],
+            "note": "update and accumulate the first 16 memory slots currently keeps exactness=10000, trace_steps=133, memory_units=16, and compiled_over_cpu_ratio=0.020586"
+          },
+          {
+            "point_id": "memory_update_kernel_slots_32",
+            "posture": "exact_but_cost_degraded",
+            "exactness_bps": 10000,
+            "trace_step_count": 261,
+            "compiled_over_cpu_ratio": 0.012555863053,
+            "call_graph_width_value": 1,
+            "control_flow_depth_value": 1,
+            "memory_footprint_units": 32,
+            "import_complexity_value": 0,
+            "supporting_refs": [
+              "fixtures/tassadar/runs/compiled_kernel_suite_v0/compiled_kernel_suite_scaling_report.json"
+            ],
+            "note": "update and accumulate the first 32 memory slots currently keeps exactness=10000, trace_steps=261, memory_units=32, and compiled_over_cpu_ratio=0.012556"
+          }
+        ],
+        "exact_point_count": 1,
+        "cost_degraded_point_count": 2,
+        "refusal_point_count": 0,
+        "first_cost_degraded_point_id": "memory_update_kernel_slots_16",
+        "route_threshold_note": "kernel rows keep exactness separate from cost degradation; once trace length or compiled-over-cpu ratio crosses the current exact ceiling, the report marks the family as exact-but-cost-degraded rather than silently widening the route claim",
+        "claim_boundary": "memory-update kernels keep bounded state pressure explicit, but they remain kernel-class evidence rather than module-scale proof"
+      },
+      {
+        "workload_family": "forward_branch_kernel",
+        "phase": "kernel_scale",
+        "axis_pressures": {
+          "call_graph_width": "low",
+          "control_flow_depth": "medium",
+          "trace_length": "medium",
+          "memory_footprint": "medium",
+          "import_complexity": "low"
+        },
+        "points": [
+          {
+            "point_id": "forward_branch_kernel_branches_2",
+            "posture": "exact",
+            "exactness_bps": 10000,
+            "trace_step_count": 19,
+            "compiled_over_cpu_ratio": 0.023448878532,
+            "call_graph_width_value": 1,
+            "control_flow_depth_value": 2,
+            "memory_footprint_units": 2,
+            "import_complexity_value": 0,
+            "supporting_refs": [
+              "fixtures/tassadar/runs/compiled_kernel_suite_v0/compiled_kernel_suite_scaling_report.json"
+            ],
+            "note": "evaluate 2 forward-branch pivots with alternating lanes currently keeps exactness=10000, trace_steps=19, memory_units=2, and compiled_over_cpu_ratio=0.023449"
+          },
+          {
+            "point_id": "forward_branch_kernel_branches_8",
+            "posture": "exact",
+            "exactness_bps": 10000,
+            "trace_step_count": 61,
+            "compiled_over_cpu_ratio": 0.024692415666,
+            "call_graph_width_value": 1,
+            "control_flow_depth_value": 2,
+            "memory_footprint_units": 8,
+            "import_complexity_value": 0,
+            "supporting_refs": [
+              "fixtures/tassadar/runs/compiled_kernel_suite_v0/compiled_kernel_suite_scaling_report.json"
+            ],
+            "note": "evaluate 8 forward-branch pivots with alternating lanes currently keeps exactness=10000, trace_steps=61, memory_units=8, and compiled_over_cpu_ratio=0.024692"
+          },
+          {
+            "point_id": "forward_branch_kernel_branches_16",
+            "posture": "exact_but_cost_degraded",
+            "exactness_bps": 10000,
+            "trace_step_count": 117,
+            "compiled_over_cpu_ratio": 0.01831879797,
+            "call_graph_width_value": 1,
+            "control_flow_depth_value": 2,
+            "memory_footprint_units": 16,
+            "import_complexity_value": 0,
+            "supporting_refs": [
+              "fixtures/tassadar/runs/compiled_kernel_suite_v0/compiled_kernel_suite_scaling_report.json"
+            ],
+            "note": "evaluate 16 forward-branch pivots with alternating lanes currently keeps exactness=10000, trace_steps=117, memory_units=16, and compiled_over_cpu_ratio=0.018319"
+          }
+        ],
+        "exact_point_count": 2,
+        "cost_degraded_point_count": 1,
+        "refusal_point_count": 0,
+        "first_cost_degraded_point_id": "forward_branch_kernel_branches_16",
+        "route_threshold_note": "kernel rows keep exactness separate from cost degradation; once trace length or compiled-over-cpu ratio crosses the current exact ceiling, the report marks the family as exact-but-cost-degraded rather than silently widening the route claim",
+        "claim_boundary": "forward-branch kernels map bounded control-flow pressure only; they do not by themselves settle module call-graph scaling"
+      },
+      {
+        "workload_family": "backward_loop_kernel",
+        "phase": "kernel_scale",
+        "axis_pressures": {
+          "call_graph_width": "low",
+          "control_flow_depth": "high",
+          "trace_length": "high",
+          "memory_footprint": "low",
+          "import_complexity": "low"
+        },
+        "points": [
+          {
+            "point_id": "backward_loop_kernel_iters_63",
+            "posture": "exact_but_cost_degraded",
+            "exactness_bps": 10000,
+            "trace_step_count": 511,
+            "compiled_over_cpu_ratio": 0.008034612865,
+            "call_graph_width_value": 1,
+            "control_flow_depth_value": 3,
+            "memory_footprint_units": 0,
+            "import_complexity_value": 0,
+            "supporting_refs": [
+              "fixtures/tassadar/runs/compiled_kernel_suite_v0/compiled_kernel_suite_scaling_report.json"
+            ],
+            "note": "count down from 63 through one backward-branch loop currently keeps exactness=10000, trace_steps=511, memory_units=0, and compiled_over_cpu_ratio=0.008035"
+          },
+          {
+            "point_id": "backward_loop_kernel_iters_255",
+            "posture": "exact_but_cost_degraded",
+            "exactness_bps": 10000,
+            "trace_step_count": 2047,
+            "compiled_over_cpu_ratio": 0.0020954835,
+            "call_graph_width_value": 1,
+            "control_flow_depth_value": 3,
+            "memory_footprint_units": 0,
+            "import_complexity_value": 0,
+            "supporting_refs": [
+              "fixtures/tassadar/runs/compiled_kernel_suite_v0/compiled_kernel_suite_scaling_report.json"
+            ],
+            "note": "count down from 255 through one backward-branch loop currently keeps exactness=10000, trace_steps=2047, memory_units=0, and compiled_over_cpu_ratio=0.002095"
+          },
+          {
+            "point_id": "backward_loop_kernel_iters_1023",
+            "posture": "exact_but_cost_degraded",
+            "exactness_bps": 10000,
+            "trace_step_count": 8191,
+            "compiled_over_cpu_ratio": 0.000573464842,
+            "call_graph_width_value": 1,
+            "control_flow_depth_value": 3,
+            "memory_footprint_units": 0,
+            "import_complexity_value": 0,
+            "supporting_refs": [
+              "fixtures/tassadar/runs/compiled_kernel_suite_v0/compiled_kernel_suite_scaling_report.json"
+            ],
+            "note": "count down from 1023 through one backward-branch loop currently keeps exactness=10000, trace_steps=8191, memory_units=0, and compiled_over_cpu_ratio=0.000573"
+          }
+        ],
+        "exact_point_count": 0,
+        "cost_degraded_point_count": 3,
+        "refusal_point_count": 0,
+        "first_cost_degraded_point_id": "backward_loop_kernel_iters_63",
+        "route_threshold_note": "kernel rows keep exactness separate from cost degradation; once trace length or compiled-over-cpu ratio crosses the current exact ceiling, the report marks the family as exact-but-cost-degraded rather than silently widening the route claim",
+        "claim_boundary": "backward-loop kernels keep long-horizon cost pressure explicit instead of treating exact compiled replay as free scaling closure"
+      },
+      {
+        "workload_family": "clrs_sequential_shortest_path",
+        "phase": "bridge_scale",
+        "axis_pressures": {
+          "call_graph_width": "low",
+          "control_flow_depth": "high",
+          "trace_length": "medium",
+          "memory_footprint": "medium",
+          "import_complexity": "low"
+        },
+        "points": [
+          {
+            "point_id": "clrs_sequential_shortest_path.tiny",
+            "posture": "exact",
+            "exactness_bps": 10000,
+            "trace_step_count": 13,
+            "cpu_reference_cost_units": 169,
+            "call_graph_width_value": 1,
+            "control_flow_depth_value": 3,
+            "memory_footprint_units": 4,
+            "import_complexity_value": 0,
+            "supporting_refs": [
+              "fixtures/tassadar/reports/tassadar_clrs_wasm_bridge_report.json"
+            ],
+            "note": "CLRS SequentialRelaxation Tiny keeps exactness=10000 with trace_steps=13 and cpu_cost=169"
+          },
+          {
+            "point_id": "clrs_sequential_shortest_path.small",
+            "posture": "exact_but_cost_degraded",
+            "exactness_bps": 10000,
+            "trace_step_count": 19,
+            "cpu_reference_cost_units": 361,
+            "call_graph_width_value": 1,
+            "control_flow_depth_value": 3,
+            "memory_footprint_units": 8,
+            "import_complexity_value": 0,
+            "supporting_refs": [
+              "fixtures/tassadar/reports/tassadar_clrs_wasm_bridge_report.json"
+            ],
+            "note": "CLRS SequentialRelaxation Small keeps exactness=10000 with trace_steps=19 and cpu_cost=361"
+          }
+        ],
+        "exact_point_count": 1,
+        "cost_degraded_point_count": 1,
+        "refusal_point_count": 0,
+        "first_cost_degraded_point_id": "clrs_sequential_shortest_path.small",
+        "route_threshold_note": "bridge rows keep length-bucket and trajectory-family breakpoints explicit; small sequential shortest-path cases already sit beyond the current exact trace ceiling even while outputs remain exact",
+        "claim_boundary": "sequential CLRS bridge rows remain a bounded shortest-path bridge and do not imply broad CLRS or module-scale Wasm closure"
+      },
+      {
+        "workload_family": "clrs_wavefront_shortest_path",
+        "phase": "bridge_scale",
+        "axis_pressures": {
+          "call_graph_width": "low",
+          "control_flow_depth": "medium",
+          "trace_length": "low",
+          "memory_footprint": "medium",
+          "import_complexity": "low"
+        },
+        "points": [
+          {
+            "point_id": "clrs_wavefront_shortest_path.tiny",
+            "posture": "exact",
+            "exactness_bps": 10000,
+            "trace_step_count": 5,
+            "cpu_reference_cost_units": 25,
+            "call_graph_width_value": 1,
+            "control_flow_depth_value": 2,
+            "memory_footprint_units": 4,
+            "import_complexity_value": 0,
+            "supporting_refs": [
+              "fixtures/tassadar/reports/tassadar_clrs_wasm_bridge_report.json"
+            ],
+            "note": "CLRS WavefrontRelaxation Tiny keeps exactness=10000 with trace_steps=5 and cpu_cost=25"
+          },
+          {
+            "point_id": "clrs_wavefront_shortest_path.small",
+            "posture": "exact",
+            "exactness_bps": 10000,
+            "trace_step_count": 13,
+            "cpu_reference_cost_units": 169,
+            "call_graph_width_value": 1,
+            "control_flow_depth_value": 2,
+            "memory_footprint_units": 8,
+            "import_complexity_value": 0,
+            "supporting_refs": [
+              "fixtures/tassadar/reports/tassadar_clrs_wasm_bridge_report.json"
+            ],
+            "note": "CLRS WavefrontRelaxation Small keeps exactness=10000 with trace_steps=13 and cpu_cost=169"
+          }
+        ],
+        "exact_point_count": 2,
+        "cost_degraded_point_count": 0,
+        "refusal_point_count": 0,
+        "route_threshold_note": "bridge rows keep length-bucket and trajectory-family breakpoints explicit; small sequential shortest-path cases already sit beyond the current exact trace ceiling even while outputs remain exact",
+        "claim_boundary": "wavefront CLRS bridge rows remain a bounded shortest-path bridge and keep trajectory-family differences explicit instead of smoothing them into one scaling curve"
+      },
+      {
+        "workload_family": "module_memcpy",
+        "phase": "module_scale",
+        "axis_pressures": {
+          "call_graph_width": "medium",
+          "control_flow_depth": "low",
+          "trace_length": "medium",
+          "memory_footprint": "low",
+          "import_complexity": "low"
+        },
+        "points": [
+          {
+            "point_id": "memcpy_fixed_span_exact",
+            "posture": "exact_but_cost_degraded",
+            "exactness_bps": 10000,
+            "trace_step_count": 18,
+            "cpu_reference_cost_units": 194,
+            "call_graph_width_value": 2,
+            "control_flow_depth_value": 1,
+            "memory_footprint_units": 1,
+            "import_complexity_value": 0,
+            "supporting_refs": [
+              "fixtures/tassadar/reports/tassadar_module_scale_workload_suite_report.json"
+            ],
+            "note": "fixed-span memcpy-style module with explicit load/store replay currently keeps exactness=10000 with trace_steps=18 and cpu_cost=194"
+          }
+        ],
+        "exact_point_count": 0,
+        "cost_degraded_point_count": 1,
+        "refusal_point_count": 0,
+        "first_cost_degraded_point_id": "memcpy_fixed_span_exact",
+        "route_threshold_note": "module rows keep small exact cases and cost-degraded exact cases explicit; they do not widen to arbitrary module families or implicit planner routing",
+        "claim_boundary": "module memcpy rows stay bounded to the public deterministic module suite and do not imply arbitrary module execution closure"
+      },
+      {
+        "workload_family": "module_checksum",
+        "phase": "module_scale",
+        "axis_pressures": {
+          "call_graph_width": "medium",
+          "control_flow_depth": "low",
+          "trace_length": "medium",
+          "memory_footprint": "low",
+          "import_complexity": "low"
+        },
+        "points": [
+          {
+            "point_id": "checksum_fixed_span_exact",
+            "posture": "exact_but_cost_degraded",
+            "exactness_bps": 10000,
+            "trace_step_count": 18,
+            "cpu_reference_cost_units": 162,
+            "call_graph_width_value": 2,
+            "control_flow_depth_value": 1,
+            "memory_footprint_units": 1,
+            "import_complexity_value": 0,
+            "supporting_refs": [
+              "fixtures/tassadar/reports/tassadar_module_scale_workload_suite_report.json"
+            ],
+            "note": "fixed-span checksum-style module with additive and weighted exports currently keeps exactness=10000 with trace_steps=18 and cpu_cost=162"
+          }
+        ],
+        "exact_point_count": 0,
+        "cost_degraded_point_count": 1,
+        "refusal_point_count": 0,
+        "first_cost_degraded_point_id": "checksum_fixed_span_exact",
+        "route_threshold_note": "module rows keep small exact cases and cost-degraded exact cases explicit; they do not widen to arbitrary module families or implicit planner routing",
+        "claim_boundary": "module checksum rows remain bounded to the current deterministic suite and keep module-scale cost pressure explicit"
+      },
+      {
+        "workload_family": "module_parsing",
+        "phase": "module_scale",
+        "axis_pressures": {
+          "call_graph_width": "medium",
+          "control_flow_depth": "medium",
+          "trace_length": "low",
+          "memory_footprint": "low",
+          "import_complexity": "low"
+        },
+        "points": [
+          {
+            "point_id": "parsing_token_triplet_exact",
+            "posture": "exact",
+            "exactness_bps": 10000,
+            "trace_step_count": 16,
+            "cpu_reference_cost_units": 146,
+            "call_graph_width_value": 2,
+            "control_flow_depth_value": 2,
+            "memory_footprint_units": 1,
+            "import_complexity_value": 0,
+            "supporting_refs": [
+              "fixtures/tassadar/reports/tassadar_module_scale_workload_suite_report.json"
+            ],
+            "note": "fixed-token parse module that reconstructs one three-token value exactly currently keeps exactness=10000 with trace_steps=16 and cpu_cost=146"
+          }
+        ],
+        "exact_point_count": 1,
+        "cost_degraded_point_count": 0,
+        "refusal_point_count": 0,
+        "route_threshold_note": "module rows keep small exact cases and cost-degraded exact cases explicit; they do not widen to arbitrary module families or implicit planner routing",
+        "claim_boundary": "module parsing rows remain bounded to the seeded fixed-token module family and do not imply broad parser closure"
+      },
+      {
+        "workload_family": "module_vm_dispatch",
+        "phase": "module_scale",
+        "axis_pressures": {
+          "call_graph_width": "medium",
+          "control_flow_depth": "medium",
+          "trace_length": "low",
+          "memory_footprint": "low",
+          "import_complexity": "low"
+        },
+        "points": [
+          {
+            "point_id": "vm_style_dispatch_exact",
+            "posture": "exact",
+            "exactness_bps": 10000,
+            "trace_step_count": 12,
+            "cpu_reference_cost_units": 74,
+            "call_graph_width_value": 2,
+            "control_flow_depth_value": 2,
+            "memory_footprint_units": 1,
+            "import_complexity_value": 0,
+            "supporting_refs": [
+              "fixtures/tassadar/reports/tassadar_module_scale_workload_suite_report.json"
+            ],
+            "note": "multi-export VM-style dispatch module over deterministic fixed operands currently keeps exactness=10000 with trace_steps=12 and cpu_cost=74"
+          }
+        ],
+        "exact_point_count": 1,
+        "cost_degraded_point_count": 0,
+        "refusal_point_count": 0,
+        "route_threshold_note": "module rows keep small exact cases and cost-degraded exact cases explicit; they do not widen to arbitrary module families or implicit planner routing",
+        "claim_boundary": "VM-style dispatch rows keep bounded multi-export module scaling explicit without widening to arbitrary module graphs"
+      },
+      {
+        "workload_family": "module_vm_param_boundary",
+        "phase": "module_scale",
+        "axis_pressures": {
+          "call_graph_width": "low",
+          "control_flow_depth": "medium",
+          "trace_length": "boundary",
+          "memory_footprint": "low",
+          "import_complexity": "low"
+        },
+        "points": [
+          {
+            "point_id": "vm_style_param_refusal",
+            "posture": "refused",
+            "call_graph_width_value": 1,
+            "control_flow_depth_value": 2,
+            "memory_footprint_units": 0,
+            "import_complexity_value": 0,
+            "supporting_refs": [
+              "fixtures/tassadar/reports/tassadar_module_scale_workload_suite_report.json"
+            ],
+            "note": "parameter-ABI VM-style module that still refuses lowering explicitly currently refuses with Some(\"unsupported_param_count\")"
+          }
+        ],
+        "exact_point_count": 0,
+        "cost_degraded_point_count": 0,
+        "refusal_point_count": 1,
+        "first_refusal_point_id": "vm_style_param_refusal",
+        "route_threshold_note": "parameter-ABI rows remain an explicit module refusal threshold instead of being hidden inside broader module success claims",
+        "claim_boundary": "parameter-ABI VM rows remain an explicit module-scale refusal boundary rather than a hidden unsupported corner"
+      },
+      {
+        "workload_family": "module_host_import_boundary",
+        "phase": "module_scale",
+        "axis_pressures": {
+          "call_graph_width": "low",
+          "control_flow_depth": "low",
+          "trace_length": "low",
+          "memory_footprint": "low",
+          "import_complexity": "boundary"
+        },
+        "points": [
+          {
+            "point_id": "module_unsupported_host_boundary",
+            "posture": "refused",
+            "call_graph_width_value": 1,
+            "control_flow_depth_value": 1,
+            "memory_footprint_units": 0,
+            "import_complexity_value": 1,
+            "supporting_refs": [
+              "fixtures/tassadar/reports/tassadar_wasm_conformance_report.json"
+            ],
+            "note": "curated.unsupported_host_import keeps runtime_error_kind=Some(\"unsupported_host_import\") explicit"
+          }
+        ],
+        "exact_point_count": 0,
+        "cost_degraded_point_count": 0,
+        "refusal_point_count": 1,
+        "first_refusal_point_id": "module_unsupported_host_boundary",
+        "route_threshold_note": "host-import rows remain a direct import-complexity refusal threshold with current exact ceiling fixed at zero imported functions",
+        "claim_boundary": "host-import rows remain an explicit import-complexity refusal boundary and do not imply any host-import support in the current lane"
+      }
+    ],
+    "phase_summaries": [
+      {
+        "phase": "kernel_scale",
+        "family_count": 4,
+        "exact_point_count": 4,
+        "cost_degraded_point_count": 8,
+        "refusal_point_count": 0,
+        "max_exact_call_graph_width": 1,
+        "max_exact_trace_step_count": 61,
+        "max_exact_memory_footprint_units": 8,
+        "max_exact_import_complexity": 0
+      },
+      {
+        "phase": "bridge_scale",
+        "family_count": 2,
+        "exact_point_count": 3,
+        "cost_degraded_point_count": 1,
+        "refusal_point_count": 0,
+        "max_exact_call_graph_width": 1,
+        "max_exact_trace_step_count": 13,
+        "max_exact_memory_footprint_units": 8,
+        "max_exact_import_complexity": 0
+      },
+      {
+        "phase": "module_scale",
+        "family_count": 6,
+        "exact_point_count": 2,
+        "cost_degraded_point_count": 2,
+        "refusal_point_count": 2,
+        "max_exact_call_graph_width": 2,
+        "max_exact_trace_step_count": 16,
+        "max_exact_memory_footprint_units": 1,
+        "max_exact_import_complexity": 0
+      }
+    ],
+    "route_thresholds": [
+      {
+        "threshold_id": "kernel_scale.trace_length_exact_ceiling",
+        "phase": "kernel_scale",
+        "axis": "trace_length",
+        "max_exact_value": 61,
+        "next_posture": "exact_but_cost_degraded",
+        "supporting_refs": [
+          "fixtures/tassadar/runs/compiled_kernel_suite_v0/compiled_kernel_suite_scaling_report.json"
+        ],
+        "note": "kernel_scale keeps exact trace-length support explicit up to 61 measured steps before the current report switches to exact-but-cost-degraded posture"
+      },
+      {
+        "threshold_id": "bridge_scale.trace_length_exact_ceiling",
+        "phase": "bridge_scale",
+        "axis": "trace_length",
+        "max_exact_value": 13,
+        "next_posture": "exact_but_cost_degraded",
+        "supporting_refs": [
+          "fixtures/tassadar/reports/tassadar_clrs_wasm_bridge_report.json"
+        ],
+        "note": "bridge_scale keeps exact trace-length support explicit up to 13 measured steps before the current report switches to exact-but-cost-degraded posture"
+      },
+      {
+        "threshold_id": "module_scale.trace_length_exact_ceiling",
+        "phase": "module_scale",
+        "axis": "trace_length",
+        "max_exact_value": 16,
+        "next_posture": "exact_but_cost_degraded",
+        "supporting_refs": [
+          "fixtures/tassadar/reports/tassadar_module_scale_workload_suite_report.json"
+        ],
+        "note": "module_scale keeps exact trace-length support explicit up to 16 measured steps before the current report switches to exact-but-cost-degraded posture"
+      },
+      {
+        "threshold_id": "kernel_scale.memory_footprint_exact_ceiling",
+        "phase": "kernel_scale",
+        "axis": "memory_footprint",
+        "max_exact_value": 8,
+        "next_posture": "exact_but_cost_degraded",
+        "supporting_refs": [
+          "fixtures/tassadar/runs/compiled_kernel_suite_v0/compiled_kernel_suite_scaling_report.json"
+        ],
+        "note": "kernel-scale exact memory pressure is currently grounded up to 8 units before the report marks later regimes exact-but-cost-degraded"
+      },
+      {
+        "threshold_id": "module_scale.import_complexity_exact_ceiling",
+        "phase": "module_scale",
+        "axis": "import_complexity",
+        "max_exact_value": 0,
+        "next_posture": "refused",
+        "supporting_refs": [
+          "fixtures/tassadar/reports/tassadar_module_scale_workload_suite_report.json",
+          "fixtures/tassadar/reports/tassadar_wasm_conformance_report.json"
+        ],
+        "note": "module-scale exact import complexity is currently grounded only up to 0 imported functions; the next measured host-import point is refusal-first"
+      }
+    ],
+    "generated_from_refs": [
+      "fixtures/tassadar/runs/compiled_kernel_suite_v0/compiled_kernel_suite_scaling_report.json",
+      "fixtures/tassadar/reports/tassadar_clrs_wasm_bridge_report.json",
+      "fixtures/tassadar/reports/tassadar_module_scale_workload_suite_report.json",
+      "fixtures/tassadar/reports/tassadar_wasm_conformance_report.json"
+    ],
+    "claim_boundary": "this report is a research-only scaling map over the current compiled kernel suite, CLRS bridge, module-scale workload suite, and Wasm conformance boundary. It keeps exact points, cost-degraded exact points, and refusal boundaries explicit instead of inferring module-scale closure from kernel-scale wins or smoothing all workload families into one generic curve",
+    "summary": "Kernel-vs-module scaling now covers 12 families with 9 exact points, 11 cost-degraded exact points, 2 refusal points, and 5 route thresholds kept explicit.",
+    "report_digest": "406854e81f0964ae39c01d3a274a13bf44b2a854df0a168db0e1a8ba9a19ad60"
+  },
+  "phase_exact_trace_thresholds": {
+    "bridge_scale": 13,
+    "kernel_scale": 61,
+    "module_scale": 16
+  },
+  "kernel_cost_degraded_family_ids": [
+    "arithmetic_kernel",
+    "memory_update_kernel",
+    "forward_branch_kernel",
+    "backward_loop_kernel"
+  ],
+  "bridge_cost_degraded_family_ids": [
+    "clrs_sequential_shortest_path"
+  ],
+  "module_exact_family_ids": [
+    "module_parsing",
+    "module_vm_dispatch"
+  ],
+  "refusal_boundary_family_ids": [
+    "module_vm_param_boundary",
+    "module_host_import_boundary"
+  ],
+  "claim_boundary": "this summary remains a research-only interpretation over the committed kernel-vs-module scaling report. It keeps exact trace ceilings, cost-degraded families, and refusal boundaries explicit instead of using scaling observations to widen served capability claims or module-closure language",
+  "summary": "Kernel-vs-module scaling summary keeps trace ceilings {\"bridge_scale\": 13, \"kernel_scale\": 61, \"module_scale\": 16}, 4 kernel cost-degraded families, 1 bridge cost-degraded families, 2 exact module families, and 2 refusal-boundary families explicit.",
+  "report_digest": "1ed7d5fdb0e4c7c0752a68f800de1cb7a6713be5f687bc1b03bd00b60b89e8f7"
+}

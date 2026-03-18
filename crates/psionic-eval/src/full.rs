@@ -62,6 +62,8 @@ mod tassadar_executor_hull_benchmark;
 mod tassadar_hungarian_10x10_compiled_executor;
 #[path = "tassadar_hungarian_compiled_executor.rs"]
 mod tassadar_hungarian_compiled_executor;
+#[path = "tassadar_kernel_module_scaling.rs"]
+mod tassadar_kernel_module_scaling;
 #[path = "tassadar_memory_abi_v2.rs"]
 mod tassadar_memory_abi_v2;
 #[path = "tassadar_module_installation_staging.rs"]
@@ -144,6 +146,7 @@ pub use tassadar_executor_eval::*;
 pub use tassadar_executor_hull_benchmark::*;
 pub use tassadar_hungarian_10x10_compiled_executor::*;
 pub use tassadar_hungarian_compiled_executor::*;
+pub use tassadar_kernel_module_scaling::*;
 pub use tassadar_memory_abi_v2::*;
 pub use tassadar_module_installation_staging::*;
 pub use tassadar_module_scale_workload_suite::*;

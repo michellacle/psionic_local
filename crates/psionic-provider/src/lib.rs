@@ -20,6 +20,7 @@ pub use tassadar_quantization_truth_envelope::*;
 
 use psionic_research::{
     TassadarDecompilationArtifactSummary,
+    TassadarKernelModuleScalingSummaryReport,
     TassadarPromotionChecklistGateKind, TassadarPromotionPolicyReport,
     TassadarPromotionPolicyStatus, TassadarWorkloadCapabilityFrontierSummaryReport,
 };
@@ -289,6 +290,57 @@ impl TassadarWorkloadCapabilityFrontierReceipt {
                 report.frontier_report.frontier_rows.len(),
                 report.under_mapped_workload_family_ids.len(),
                 report.refusal_first_workload_family_ids.len(),
+            ),
+        }
+    }
+}
+
+/// Provider-facing receipt for the current kernel-vs-module scaling summary.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarKernelModuleScalingReceipt {
+    /// Stable research summary identifier.
+    pub report_id: String,
+    /// Exact trace-length ceilings keyed by scaling phase.
+    pub phase_exact_trace_thresholds: BTreeMap<String, u64>,
+    /// Kernel-scale families already marked exact-but-cost-degraded.
+    pub kernel_cost_degraded_family_ids: Vec<String>,
+    /// Module-scale families that still stay exact in the current report.
+    pub module_exact_family_ids: Vec<String>,
+    /// Families that remain explicit refusal boundaries.
+    pub refusal_boundary_family_ids: Vec<String>,
+    /// Exact module-scale import-complexity ceiling when one is published.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub module_exact_import_complexity_threshold: Option<u64>,
+    /// Plain-language receipt detail.
+    pub detail: String,
+}
+
+impl TassadarKernelModuleScalingReceipt {
+    /// Builds a provider-facing receipt from the shared kernel-vs-module scaling summary.
+    #[must_use]
+    pub fn from_summary(report: &TassadarKernelModuleScalingSummaryReport) -> Self {
+        let module_exact_import_complexity_threshold = report
+            .scaling_report
+            .route_thresholds
+            .iter()
+            .find(|threshold| {
+                threshold.phase.as_str() == "module_scale"
+                    && threshold.axis.as_str() == "import_complexity"
+            })
+            .map(|threshold| threshold.max_exact_value);
+        Self {
+            report_id: report.report_id.clone(),
+            phase_exact_trace_thresholds: report.phase_exact_trace_thresholds.clone(),
+            kernel_cost_degraded_family_ids: report.kernel_cost_degraded_family_ids.clone(),
+            module_exact_family_ids: report.module_exact_family_ids.clone(),
+            refusal_boundary_family_ids: report.refusal_boundary_family_ids.clone(),
+            module_exact_import_complexity_threshold,
+            detail: format!(
+                "kernel-vs-module scaling currently keeps exact trace ceilings {:?}, {} kernel cost-degraded families, {} exact module families, and {} refusal boundaries explicit",
+                report.phase_exact_trace_thresholds,
+                report.kernel_cost_degraded_family_ids.len(),
+                report.module_exact_family_ids.len(),
+                report.refusal_boundary_family_ids.len(),
             ),
         }
     }
@@ -3226,6 +3278,7 @@ mod tests {
     use psionic_models::{TassadarExecutorFixture, TassadarWorkloadClass};
     use psionic_research::{
         build_tassadar_decompilable_executor_artifacts_report,
+        build_tassadar_kernel_module_scaling_summary_report,
         build_tassadar_workload_capability_frontier_summary_report,
         TassadarPromotionChecklistGateKind, TassadarPromotionPolicyStatus,
         build_tassadar_promotion_policy_report,
@@ -3289,7 +3342,7 @@ mod tests {
         LocalRuntimeObservabilityEnvelope, ProviderReadiness, ReceiptStatus,
         SandboxExecutionCapabilityEnvelope, SandboxExecutionReceipt, TassadarCapabilityEnvelope,
         TassadarCapabilityEnvelopeError, TassadarDecompilationReceipt,
-        TassadarExactnessRefusalReceipt,
+        TassadarExactnessRefusalReceipt, TassadarKernelModuleScalingReceipt,
         TassadarPlannerRouteCapabilityEnvelope, TassadarPlannerRouteCapabilityEnvelopeError,
         TassadarPromotionPolicyReceipt, TassadarTraceArtifactReceipt, TassadarTraceDiffReceipt,
         TassadarWorkloadCapabilityFrontierReceipt,
@@ -8469,6 +8522,22 @@ mod tests {
         assert!(receipt
             .refusal_first_workload_family_ids
             .contains(&String::from("sudoku_class")));
+    }
+
+    #[test]
+    fn tassadar_kernel_module_scaling_receipt_projects_research_summary() {
+        let summary =
+            build_tassadar_kernel_module_scaling_summary_report().expect("scaling summary");
+        let receipt = TassadarKernelModuleScalingReceipt::from_summary(&summary);
+
+        assert_eq!(receipt.report_id, summary.report_id);
+        assert_eq!(receipt.module_exact_import_complexity_threshold, Some(0));
+        assert!(receipt
+            .kernel_cost_degraded_family_ids
+            .contains(&String::from("backward_loop_kernel")));
+        assert!(receipt
+            .refusal_boundary_family_ids
+            .contains(&String::from("module_host_import_boundary")));
     }
 
     #[test]
