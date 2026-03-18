@@ -210,8 +210,7 @@ Psionic already has real substrate this lane can reuse:
 
 Psionic does not yet ship the challenge lane itself:
 
-- no exact challenge-eval oracle above the new FineWeb shard contract and token-stream substrate
-- no frozen parity fixtures proving the full `val_bpb` path against the public scripts yet
+- no benchmark-package or eval-receipt lane for the challenge oracle outside the new `psionic-data` fixture parity path yet
 - no Parameter Golf benchmark package or eval receipts
 - no compact challenge decoder family matching the public baseline
 - no Muon optimizer or challenge-matching optimizer grouping in Psionic
@@ -223,11 +222,11 @@ Psionic does not yet ship the challenge lane itself:
 
 | Area | Current posture | Required Parameter Golf work |
 | --- | --- | --- |
-| `psionic-data` | `implemented_early` generic manifests, tokenizer digests, iteration, packing, and distributed feed planning, plus a landed Parameter Golf shard loader, local-dir manifest builder, deterministic token-stream contract, and SentencePiece byte-accounting LUT oracle | wire the data and tokenizer contracts into exact eval receipts, frozen parity fixtures, and trainer ingestion |
+| `psionic-data` | `implemented_early` generic manifests, tokenizer digests, iteration, packing, and distributed feed planning, plus a landed Parameter Golf shard loader, local-dir manifest builder, deterministic token-stream contract, SentencePiece byte-accounting LUT oracle, and frozen parity fixtures for shard loading, validation slicing, `val_loss`, and `val_bpb` parity against the public Python and MLX scripts | wire the data and tokenizer contracts into exact eval receipts and trainer ingestion |
 | `psionic-models` | `implemented` model metadata plus bounded model families and runtime tokenizers | add the compact challenge decoder family with tied embeddings, GQA, RoPE, RMSNorm, residual mixing, and explicit parameter-count or byte-accounting facts |
 | `psionic-nn` | `implemented` reusable layers, losses, optimizer shells, and eval-only quantization wrappers | widen or compose the current layer set into a reusable causal-decoder path and add any missing train-time primitive support the lane needs |
 | `psionic-train` | `implemented_early` fixed-budget training core, optimizer math, mixed precision, model IO, checkpoint, and replay truth | add challenge-specific train loop, optimizer grouping, Muon support, grad accumulation, wallclock budgeting, and int8+zlib roundtrip export |
-| `psionic-eval` | `implemented` benchmark and eval contracts, with a tracking-only lane acceptance checker but not the oracle itself | add exact Parameter Golf `val_loss` plus `val_bpb` eval reports, oracle parity fixtures, and challenge acceptance reporting tied to real lane receipts |
+| `psionic-eval` | `implemented` benchmark and eval contracts, with a tracking-only lane acceptance checker but not a dedicated Parameter Golf oracle receipt lane yet | add exact Parameter Golf `val_loss` plus `val_bpb` eval reports and challenge acceptance reporting tied to real lane receipts |
 | `psionic-distributed` | `implemented_early` public distributed helpers with reference-emulated public collectives | add the real multi-GPU training path we intend to use for `8xH100`, plus honest topology, communication, and refusal receipts |
 | `psionic-array` and backends | `implemented_early` bounded CPU/Metal/CUDA public surface, with wider CUDA backend kernels below it | widen the CUDA train-time kernel and runtime path needed for competitive small-decoder throughput without overclaiming the public array surface |
 | packaging and compatibility | `planned` for this lane | define the non-record versus record-track wrapper, code-byte accounting posture, record-folder output, and submission metadata path |
@@ -296,7 +295,7 @@ Rebuild the challenge oracle in Psionic before model work.
 | --- | --- | --- | --- |
 | `PGOLF-101` / [#163](https://github.com/OpenAgentsInc/psionic/issues/163) | done (2026-03-18) | `Psionic Parameter Golf: add FineWeb challenge manifests, shard loading, and deterministic token streaming` | `psionic-data` now exposes a dedicated Parameter Golf shard ABI, exact `u16` shard loading, a local-dir bundle builder that produces train-prefix plus fixed-validation manifests with challenge metadata and datastream bindings, and a replay-safe token-stream contract that matches the public contiguous shard order. |
 | `PGOLF-102` / [#164](https://github.com/OpenAgentsInc/psionic/issues/164) | done (2026-03-18) | `Psionic Parameter Golf: add SentencePiece byte-accounting and exact val_bpb reproduction` | `psionic-data::parameter_golf` now exposes explicit SentencePiece token-role metadata, a LUT builder that mirrors the current `build_sentencepiece_luts(...)` behavior for normal, byte, control, unknown, and unused tokens, plus exact leading-space byte counting and `bits per byte` helpers for the challenge oracle. |
-| `PGOLF-103` / [#165](https://github.com/OpenAgentsInc/psionic/issues/165) | open | `Psionic Parameter Golf: add frozen parity fixtures against train_gpt.py and train_gpt_mlx.py` | Add fixture-level parity tests that compare shard loading, validation token slicing, `val_loss`, and `val_bpb` against the current Python and MLX oracles. The lane must prove metric parity before any architecture or throughput claims widen. |
+| `PGOLF-103` / [#165](https://github.com/OpenAgentsInc/psionic/issues/165) | done (2026-03-18) | `Psionic Parameter Golf: add frozen parity fixtures against train_gpt.py and train_gpt_mlx.py` | `psionic-data` now ships a committed oracle-parity fixture, a repo-local generator that extracts the current public Python and MLX reference functions, and a frozen test that proves shard loading, validation token slicing, SentencePiece LUT parity, `val_loss`, and `val_bpb` against both public scripts. |
 
 ## Epic 2: Baseline Model And Single-Device Trainer
 
@@ -372,7 +371,7 @@ research without losing the oracle.
 
 - `PGOLF-101` -> landed FineWeb shard ABI, manifest builder, and deterministic token-stream contract
 - `PGOLF-102` -> landed SentencePiece byte-accounting LUTs and `val_bpb` byte-count helpers
-- `PGOLF-103`
+- `PGOLF-103` -> landed frozen Python/MLX parity fixtures plus shard, validation-slice, `val_loss`, and `val_bpb` oracle tests
 
 ### Phase 3: port the public baseline exactly
 

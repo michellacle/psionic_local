@@ -30,14 +30,14 @@
   "categories": [
     {
       "category_id": "challenge-oracle-parity",
-      "matrix_status": "planned",
+      "matrix_status": "implemented",
       "issue_refs": [
         "PGOLF-101/#163",
         "PGOLF-102/#164",
         "PGOLF-103/#165"
       ],
       "green_definition": "Psionic reproduces the current FineWeb shard contract, fixed validation split, exact val_loss, and exact val_bpb accounting against frozen challenge fixtures.",
-      "current_repo_truth": "No Parameter Golf data contract, SentencePiece byte-accounting oracle, or parity fixtures are landed in psionic-data or psionic-eval yet.",
+      "current_repo_truth": "psionic-data now owns the shard ABI, validation token loader, SentencePiece byte-accounting LUT oracle, a committed parity fixture, and a frozen test that matches the current train_gpt.py and train_gpt_mlx.py reference paths for shard loading, validation slicing, val_loss, and val_bpb.",
       "boundary_note": "Do not claim comparable Parameter Golf scores until this category is green."
     },
     {
@@ -89,5 +89,5 @@
       "boundary_note": "Treat this as blocked by both in-repo implementation work and the need for an explicit public accounting interpretation."
     }
   ],
-  "report_digest": "e56942ccd2ef0a0fd63108d671ee3f14c950ed84b5e75602234eb7bb2d75be27"
+  "report_digest": "021d24a4e47f7e800c0975eeb7c2dfbebc1af431983cdb67447741a930e34fa3"
 }

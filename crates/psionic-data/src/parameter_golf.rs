@@ -8,14 +8,13 @@ use psionic_datastream::{
     DatastreamEncoding, DatastreamManifest, DatastreamManifestRef, DatastreamSubjectKind,
 };
 use serde::{Deserialize, Serialize};
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 use thiserror::Error;
 
 use crate::{
-    DatasetContractError, DatasetIterationMode, DatasetKey, DatasetManifest,
-    DatasetRecordEncoding, DatasetShardManifest, DatasetSplitDeclaration, DatasetSplitKind,
-    TokenizerDigest,
+    DatasetContractError, DatasetIterationMode, DatasetKey, DatasetManifest, DatasetRecordEncoding,
+    DatasetShardManifest, DatasetSplitDeclaration, DatasetSplitKind, TokenizerDigest,
 };
 
 /// Stable shard magic for the current public Parameter Golf FineWeb export.
@@ -37,8 +36,7 @@ pub const PARAMETER_GOLF_VALIDATION_SPLIT_NAME: &str = "validation";
 pub const PARAMETER_GOLF_VALIDATION_IDENTITY: &str =
     "fineweb_val_* fixed first-50k-doc validation split";
 /// Canonical train-selection statement for the current public challenge.
-pub const PARAMETER_GOLF_TRAIN_SELECTION_POSTURE: &str =
-    "prefix of frozen shuffled export";
+pub const PARAMETER_GOLF_TRAIN_SELECTION_POSTURE: &str = "prefix of frozen shuffled export";
 /// Canonical stream-model label for current challenge shards.
 pub const PARAMETER_GOLF_STREAM_MODEL: &str = "contiguous_token_stream";
 
@@ -93,24 +91,25 @@ impl ParameterGolfShardIdentity {
                 path: path.display().to_string(),
             })?;
 
-        let (split_kind, index_text) =
-            if let Some(index_text) = file_name.strip_prefix(ParameterGolfSplitKind::Train.file_prefix()) {
-                (
-                    ParameterGolfSplitKind::Train,
-                    index_text.strip_suffix(".bin"),
-                )
-            } else if let Some(index_text) =
-                file_name.strip_prefix(ParameterGolfSplitKind::Validation.file_prefix())
-            {
-                (
-                    ParameterGolfSplitKind::Validation,
-                    index_text.strip_suffix(".bin"),
-                )
-            } else {
-                return Err(ParameterGolfDataError::InvalidShardFileName {
-                    path: path.display().to_string(),
-                });
-            };
+        let (split_kind, index_text) = if let Some(index_text) =
+            file_name.strip_prefix(ParameterGolfSplitKind::Train.file_prefix())
+        {
+            (
+                ParameterGolfSplitKind::Train,
+                index_text.strip_suffix(".bin"),
+            )
+        } else if let Some(index_text) =
+            file_name.strip_prefix(ParameterGolfSplitKind::Validation.file_prefix())
+        {
+            (
+                ParameterGolfSplitKind::Validation,
+                index_text.strip_suffix(".bin"),
+            )
+        } else {
+            return Err(ParameterGolfDataError::InvalidShardFileName {
+                path: path.display().to_string(),
+            });
+        };
         let Some(index_text) = index_text else {
             return Err(ParameterGolfDataError::InvalidShardFileName {
                 path: path.display().to_string(),
@@ -121,12 +120,11 @@ impl ParameterGolfShardIdentity {
                 path: path.display().to_string(),
             });
         }
-        let shard_index =
-            index_text
-                .parse::<u32>()
-                .map_err(|_| ParameterGolfDataError::InvalidShardFileName {
-                    path: path.display().to_string(),
-                })?;
+        let shard_index = index_text.parse::<u32>().map_err(|_| {
+            ParameterGolfDataError::InvalidShardFileName {
+                path: path.display().to_string(),
+            }
+        })?;
         let shard_key = file_name.trim_end_matches(".bin").to_string();
         Ok(Self {
             split_kind,
@@ -510,7 +508,11 @@ impl ParameterGolfSentencePieceByteLuts {
         tokenizer_vocab_size: usize,
         tokens: &[ParameterGolfSentencePieceTokenEntry],
     ) -> Result<Self, ParameterGolfDataError> {
-        let max_token_id = tokens.iter().map(|token| token.token_id as usize).max().unwrap_or(0);
+        let max_token_id = tokens
+            .iter()
+            .map(|token| token.token_id as usize)
+            .max()
+            .unwrap_or(0);
         let table_size = tokenizer_vocab_size.max(max_token_id.saturating_add(1));
         let mut base_bytes_lut = vec![0_i16; table_size];
         let mut has_leading_space_lut = vec![false; table_size];
@@ -643,6 +645,34 @@ pub fn load_parameter_golf_shard_tokens(
     Ok(tokens)
 }
 
+/// Loads the fixed validation split in manifest order and trims it with the same usable-token rule as the public challenge scripts.
+pub fn load_parameter_golf_validation_tokens_from_paths(
+    paths: &[PathBuf],
+    seq_len: usize,
+) -> Result<Vec<u16>, ParameterGolfDataError> {
+    if paths.is_empty() {
+        return Err(ParameterGolfDataError::MissingValidationShardPaths);
+    }
+    if seq_len == 0 {
+        return Err(ParameterGolfDataError::InvalidValidationSequenceLength);
+    }
+    let mut ordered_paths = paths.to_vec();
+    ordered_paths.sort();
+    let mut tokens = Vec::new();
+    for path in ordered_paths {
+        tokens.extend(load_parameter_golf_shard_tokens(path)?);
+    }
+    let usable = ((tokens.len().saturating_sub(1)) / seq_len) * seq_len;
+    if usable == 0 {
+        return Err(ParameterGolfDataError::ValidationSplitTooShort {
+            seq_len,
+            token_count: tokens.len(),
+        });
+    }
+    tokens.truncate(usable + 1);
+    Ok(tokens)
+}
+
 /// Builds a Parameter Golf dataset bundle from one local shard directory.
 pub fn parameter_golf_dataset_bundle_from_local_dir(
     dataset_key: DatasetKey,
@@ -740,7 +770,10 @@ pub fn parameter_golf_dataset_bundle_from_local_dir(
         validation_receipts.as_slice(),
     );
     let mut metadata = BTreeMap::<String, Value>::new();
-    metadata.insert(String::from("parameter_golf_variant"), Value::String(variant));
+    metadata.insert(
+        String::from("parameter_golf_variant"),
+        Value::String(variant),
+    );
     metadata.insert(
         String::from("parameter_golf_tokenizer_artifact_ref"),
         Value::String(tokenizer_artifact_ref),
@@ -836,6 +869,14 @@ pub enum ParameterGolfDataError {
         expected_tokens: usize,
         actual_tokens: usize,
     },
+    #[error("parameter golf validation loading requires at least one shard path")]
+    MissingValidationShardPaths,
+    #[error("parameter golf validation loading requires `seq_len > 0`")]
+    InvalidValidationSequenceLength,
+    #[error(
+        "parameter golf validation split is too short for seq_len={seq_len}, only {token_count} tokens were available"
+    )]
+    ValidationSplitTooShort { seq_len: usize, token_count: usize },
     #[error("parameter golf train split is missing from `{dataset_root}`")]
     MissingTrainShards { dataset_root: String },
     #[error("parameter golf validation split is missing from `{dataset_root}`")]
@@ -881,7 +922,9 @@ pub enum ParameterGolfDataError {
     CursorSplitMismatch { expected: String, actual: String },
     #[error("parameter golf manifest does not declare split `{split_name}`")]
     UnknownSplit { split_name: String },
-    #[error("parameter golf manifest expected `record_encoding=token_ids_le_u16`, found `{actual}`")]
+    #[error(
+        "parameter golf manifest expected `record_encoding=token_ids_le_u16`, found `{actual}`"
+    )]
     UnexpectedRecordEncoding { actual: String },
     #[error(transparent)]
     Dataset(#[from] DatasetContractError),
@@ -928,7 +971,9 @@ fn build_receipts_for_paths(
             1 << 20,
             DatastreamEncoding::TokenIdsLeU16,
         )
-        .with_dataset_binding(dataset_key.datastream_binding(split_name, identity.shard_key.clone()))
+        .with_dataset_binding(
+            dataset_key.datastream_binding(split_name, identity.shard_key.clone()),
+        )
         .manifest_ref();
         receipts.push(ParameterGolfShardReceipt {
             path: path.display().to_string(),
@@ -995,7 +1040,12 @@ fn stable_parameter_golf_token_window_id(
     hasher.update(b"|");
     hasher.update(start_cursor.next_shard_index.to_string().as_bytes());
     hasher.update(b"|");
-    hasher.update(start_cursor.next_token_offset_in_shard.to_string().as_bytes());
+    hasher.update(
+        start_cursor
+            .next_token_offset_in_shard
+            .to_string()
+            .as_bytes(),
+    );
     hasher.update(b"|");
     hasher.update(end_cursor.cycle.to_string().as_bytes());
     hasher.update(b"|");
@@ -1019,6 +1069,7 @@ fn stable_parameter_golf_token_window_id(
 mod tests {
     use super::*;
     use crate::TokenizerFamily;
+    use serde::Deserialize;
 
     fn sample_tokenizer() -> TokenizerDigest {
         TokenizerDigest::new(TokenizerFamily::SentencePiece, "sp1024-digest", 1024)
@@ -1072,10 +1123,9 @@ mod tests {
 
         let identity = ParameterGolfShardIdentity::parse_path(&shard_path)
             .expect("shard identity should parse");
-        let header = ParameterGolfShardHeader::read_path(&shard_path)
-            .expect("header should validate");
-        let tokens = load_parameter_golf_shard_tokens(&shard_path)
-            .expect("tokens should load");
+        let header =
+            ParameterGolfShardHeader::read_path(&shard_path).expect("header should validate");
+        let tokens = load_parameter_golf_shard_tokens(&shard_path).expect("tokens should load");
 
         assert_eq!(identity.split_kind, ParameterGolfSplitKind::Train);
         assert_eq!(identity.shard_index, 0);
@@ -1093,8 +1143,8 @@ mod tests {
         bytes[8..12].copy_from_slice(&1_i32.to_le_bytes());
         bytes.extend_from_slice(&1_u16.to_le_bytes());
         fs::write(&bad_magic, bytes).expect("bad shard should be written");
-        let bad_magic_err = load_parameter_golf_shard_tokens(&bad_magic)
-            .expect_err("bad magic should be refused");
+        let bad_magic_err =
+            load_parameter_golf_shard_tokens(&bad_magic).expect_err("bad magic should be refused");
         assert!(matches!(
             bad_magic_err,
             ParameterGolfDataError::UnexpectedShardMagic { .. }
@@ -1132,7 +1182,10 @@ mod tests {
         )
         .expect("bundle should validate");
 
-        assert_eq!(bundle.manifest.record_encoding, DatasetRecordEncoding::TokenIdsLeU16);
+        assert_eq!(
+            bundle.manifest.record_encoding,
+            DatasetRecordEncoding::TokenIdsLeU16
+        );
         assert_eq!(bundle.train_shards.len(), 1);
         assert_eq!(bundle.validation_shards.len(), 1);
         assert_eq!(
@@ -1227,6 +1280,85 @@ mod tests {
         assert_eq!(second.spans[1].token_count, 3);
         assert_eq!(second.end_cursor.cycle, 1);
         assert_eq!(second.end_cursor.emitted_tokens, 8);
+    }
+
+    #[derive(Deserialize)]
+    struct OracleParityFixture {
+        seq_len: usize,
+        sentencepiece_entries: Vec<SentencePieceFixtureEntry>,
+        validation_shards: Vec<ValidationShardFixture>,
+        loss_fixture: LossFixture,
+        oracles: BTreeMap<String, OracleFixture>,
+    }
+
+    #[derive(Deserialize)]
+    struct SentencePieceFixtureEntry {
+        token_id: u32,
+        piece: String,
+        kind: String,
+    }
+
+    #[derive(Deserialize)]
+    struct ValidationShardFixture {
+        file_name: String,
+        tokens: Vec<u16>,
+        file_hex: String,
+    }
+
+    #[derive(Deserialize)]
+    struct LossFixture {
+        prev_token_ids: Vec<u32>,
+        target_token_ids: Vec<u32>,
+        logits: Vec<Vec<f64>>,
+    }
+
+    #[derive(Deserialize)]
+    struct OracleFixture {
+        validation_tokens: Vec<u16>,
+        luts: OracleLuts,
+        val_loss: f64,
+        byte_count: u64,
+        val_bpb: f64,
+    }
+
+    #[derive(Deserialize)]
+    struct OracleLuts {
+        base_bytes_lut: Vec<i16>,
+        has_leading_space_lut: Vec<bool>,
+        is_boundary_token_lut: Vec<bool>,
+    }
+
+    fn load_oracle_parity_fixture() -> OracleParityFixture {
+        let path = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../fixtures/parameter_golf/parity/parameter_golf_oracle_parity_fixture.json");
+        serde_json::from_slice(&fs::read(path).expect("fixture should exist"))
+            .expect("fixture json should deserialize")
+    }
+
+    fn token_kind_from_fixture(kind: &str) -> ParameterGolfSentencePieceTokenKind {
+        match kind {
+            "normal" => ParameterGolfSentencePieceTokenKind::Normal,
+            "byte" => ParameterGolfSentencePieceTokenKind::Byte,
+            "control" => ParameterGolfSentencePieceTokenKind::Control,
+            "unknown" => ParameterGolfSentencePieceTokenKind::Unknown,
+            "unused" => ParameterGolfSentencePieceTokenKind::Unused,
+            other => panic!("unknown fixture token kind `{other}`"),
+        }
+    }
+
+    fn mean_cross_entropy_from_logits(logits: &[Vec<f64>], targets: &[u32]) -> f64 {
+        let mut total = 0.0_f64;
+        for (row, &target) in logits.iter().zip(targets.iter()) {
+            let max_logit = row.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+            let logsumexp = max_logit
+                + row
+                    .iter()
+                    .map(|value| (*value - max_logit).exp())
+                    .sum::<f64>()
+                    .ln();
+            total += logsumexp - row[target as usize];
+        }
+        total / targets.len() as f64
     }
 
     #[test]
@@ -1351,5 +1483,83 @@ mod tests {
             .bits_per_byte_from_mean_nll(mean_nll, &[0, 1], &[1, 2])
             .expect("bpb should compute");
         assert!((bpb - (2.0 / 4.0)).abs() < 1e-12);
+    }
+
+    #[test]
+    fn frozen_oracle_fixture_matches_python_and_mlx_reference_paths() {
+        let fixture = load_oracle_parity_fixture();
+        let temp = TempDirGuard::new("oracle-fixture");
+        let mut paths = Vec::new();
+        for shard in &fixture.validation_shards {
+            let path = temp.path.join(&shard.file_name);
+            let bytes = hex::decode(&shard.file_hex).expect("fixture hex should decode");
+            fs::write(&path, bytes).expect("fixture shard should write");
+            assert_eq!(
+                load_parameter_golf_shard_tokens(&path).expect("shard should load"),
+                shard.tokens
+            );
+            paths.push(path);
+        }
+
+        let validation_tokens =
+            load_parameter_golf_validation_tokens_from_paths(paths.as_slice(), fixture.seq_len)
+                .expect("validation tokens should load");
+        for oracle in fixture.oracles.values() {
+            assert_eq!(validation_tokens, oracle.validation_tokens);
+        }
+
+        let entries = fixture
+            .sentencepiece_entries
+            .iter()
+            .map(|entry| {
+                ParameterGolfSentencePieceTokenEntry::new(
+                    entry.token_id,
+                    entry.piece.clone(),
+                    token_kind_from_fixture(entry.kind.as_str()),
+                )
+            })
+            .collect::<Vec<_>>();
+        let luts = ParameterGolfSentencePieceByteLuts::build(8, entries.as_slice())
+            .expect("luts should build");
+        for oracle in fixture.oracles.values() {
+            assert_eq!(luts.base_bytes_lut, oracle.luts.base_bytes_lut);
+            assert_eq!(
+                luts.has_leading_space_lut,
+                oracle.luts.has_leading_space_lut
+            );
+            assert_eq!(
+                luts.is_boundary_token_lut,
+                oracle.luts.is_boundary_token_lut
+            );
+        }
+
+        let val_loss = mean_cross_entropy_from_logits(
+            fixture.loss_fixture.logits.as_slice(),
+            fixture.loss_fixture.target_token_ids.as_slice(),
+        );
+        for oracle in fixture.oracles.values() {
+            assert!((val_loss - oracle.val_loss).abs() < 1e-12);
+        }
+
+        let byte_count = luts
+            .count_target_bytes(
+                fixture.loss_fixture.prev_token_ids.as_slice(),
+                fixture.loss_fixture.target_token_ids.as_slice(),
+            )
+            .expect("byte count should compute");
+        for oracle in fixture.oracles.values() {
+            assert_eq!(byte_count, oracle.byte_count);
+        }
+
+        let val_bpb = luts
+            .bits_per_byte_from_mean_nll(
+                val_loss,
+                fixture.loss_fixture.prev_token_ids.as_slice(),
+                fixture.loss_fixture.target_token_ids.as_slice(),
+            )
+            .expect("val_bpb should compute");
+        for oracle in fixture.oracles.values() {
+            assert!((val_bpb - oracle.val_bpb).abs() < 1e-12);
+        }
     }
 }
