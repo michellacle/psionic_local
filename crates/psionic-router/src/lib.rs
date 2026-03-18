@@ -14,6 +14,7 @@
 mod response_state;
 mod tassadar_delegation_benchmark;
 mod tassadar_evidence_routing;
+mod tassadar_module_catalog;
 mod tassadar_module_installation;
 mod tassadar_negative_invocation;
 mod tassadar_planner_policy;
@@ -26,6 +27,7 @@ pub use response_state::{
 };
 pub use tassadar_delegation_benchmark::*;
 pub use tassadar_evidence_routing::*;
+pub use tassadar_module_catalog::*;
 pub use tassadar_module_installation::*;
 pub use tassadar_negative_invocation::*;
 pub use tassadar_planner_policy::*;

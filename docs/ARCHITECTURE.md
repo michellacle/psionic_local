@@ -435,6 +435,17 @@ The current scope is:
   reinstall parity explicit instead of treating installation as implicit trust,
   while named `nexus` follow-ons remain explicit dependency markers outside
   standalone `psionic`
+- landed module-catalog follow-on: `psionic-compiler` now freezes the bounded
+  reusable primitive catalog at
+  `fixtures/tassadar/reports/tassadar_module_catalog_report.json`, keyed by
+  capability label, workload family, trust posture, benchmark lineage, reuse
+  rate, and held-out-program lift; `psionic-serve` now publishes a
+  benchmark-gated `TassadarModuleCatalogPublication` above that report;
+  `psionic-router` now resolves bounded catalog lookups and keeps ambiguity plus
+  insufficient-evidence refusal explicit; and `psionic-provider` now projects
+  the same served truth into a provider-facing `TassadarModuleCatalogReceipt`.
+  This lane keeps reusable primitive discovery measurable rather than anecdotal
+  and does not widen served capability by implication from catalog membership
 - landed module-installation-staging follow-on: `psionic-serve` now publishes a
   bounded staged-install surface with explicit session-mount versus worker-mount
   scope, challenge windows, activation, rollback, and refusal receipts over the

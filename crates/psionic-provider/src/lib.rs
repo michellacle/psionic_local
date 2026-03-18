@@ -8,6 +8,7 @@
 mod tassadar_delegation_benchmark;
 mod tassadar_evidence_routing;
 mod tassadar_installed_module_evidence;
+mod tassadar_module_catalog;
 mod tassadar_module_linker;
 mod tassadar_module_installation;
 mod tassadar_module_library;
@@ -24,6 +25,7 @@ use sha2::{Digest, Sha256};
 pub use tassadar_delegation_benchmark::*;
 pub use tassadar_evidence_routing::*;
 pub use tassadar_installed_module_evidence::*;
+pub use tassadar_module_catalog::*;
 pub use tassadar_module_linker::*;
 pub use tassadar_module_installation::*;
 pub use tassadar_module_library::*;

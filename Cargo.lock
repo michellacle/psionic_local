@@ -3833,7 +3833,9 @@ name = "psionic-router"
 version = "0.1.1"
 dependencies = [
  "hex",
+ "psionic-compiler",
  "psionic-environments",
+ "psionic-ir",
  "psionic-models",
  "psionic-runtime",
  "psionic-sandbox",

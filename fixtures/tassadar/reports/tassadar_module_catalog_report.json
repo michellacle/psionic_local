@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.module_catalog.report.v1",
+  "entries": [
+    {
+      "entry_id": "catalog.frontier_relax_core.v1",
+      "module_ref": "frontier_relax_core@1.0.0",
+      "capability_labels": [
+        "frontier_relaxation",
+        "shortest_path_primitive"
+      ],
+      "workload_families": [
+        "clrs_shortest_path",
+        "clrs_wasm_shortest_path"
+      ],
+      "trust_posture": "benchmark_gated_internal",
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_clrs_wasm_bridge_report.json",
+        "fixtures/tassadar/reports/tassadar_internal_module_library_report.json"
+      ],
+      "reuse_rate_bps": 10000,
+      "held_out_program_lift_bps": 2400,
+      "claim_boundary": "frontier_relax_core remains bounded to frontier-relaxation and shortest-path family reuse; it is not a generic graph-program catalog row"
+    },
+    {
+      "entry_id": "catalog.candidate_select_core.v1",
+      "module_ref": "candidate_select_core@1.1.0",
+      "capability_labels": [
+        "candidate_selection",
+        "bounded_search",
+        "matching_primitive"
+      ],
+      "workload_families": [
+        "hungarian_matching",
+        "verifier_search"
+      ],
+      "trust_posture": "challenge_gated_install",
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_internal_module_library_report.json",
+        "fixtures/tassadar/reports/tassadar_verifier_guided_search_report.json"
+      ],
+      "reuse_rate_bps": 6666,
+      "held_out_program_lift_bps": 1800,
+      "claim_boundary": "candidate_select_core is discoverable as a bounded reusable primitive for matching and verifier-search families only"
+    },
+    {
+      "entry_id": "catalog.checkpoint_backtrack_core.v1",
+      "module_ref": "checkpoint_backtrack_core@1.0.0",
+      "capability_labels": [
+        "checkpointing",
+        "bounded_search",
+        "rollback_primitive"
+      ],
+      "workload_families": [
+        "verifier_search",
+        "sudoku_v0_search"
+      ],
+      "trust_posture": "benchmark_gated_internal",
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_internal_module_library_report.json",
+        "fixtures/tassadar/reports/tassadar_verifier_guided_search_report.json"
+      ],
+      "reuse_rate_bps": 5000,
+      "held_out_program_lift_bps": 900,
+      "claim_boundary": "checkpoint_backtrack_core is discoverable as a bounded checkpoint and rollback primitive rather than a generic solver module"
+    }
+  ],
+  "claim_boundary": "this compiler-owned catalog report freezes reusable module primitives keyed by capability, workload family, trust posture, and benchmark lineage. It does not make every installed module automatically reusable and it does not widen served capability by implication",
+  "summary": "Module catalog report now freezes 3 reusable entries with max reuse_rate=10000bps and max held_out_program_lift=2400bps.",
+  "report_digest": "38743cfed6d2913e6aa7dc6bc0ce1e605019597470f226da845359971eed1000"
+}
