@@ -478,6 +478,16 @@ The current scope is:
   internal modules silently inherit more authority, while named `cluster-trust`,
   `kernel-policy`, and `world-mounts` follow-ons remain explicit dependency
   markers outside standalone `psionic`
+- landed promotion-lifecycle follow-on: `psionic-eval` now publishes the
+  promotion lifecycle report at
+  `fixtures/tassadar/reports/tassadar_module_promotion_state_report.json`,
+  freezing minimum evidence requirements plus challenge-open, quarantined,
+  revoked, and superseded module states without rewriting install history; and
+  `psionic-provider` now projects that report into a provider-facing
+  `TassadarModulePromotionStateReceipt`. This lane keeps post-promotion
+  challengeability explicit instead of treating one benchmark pass as permanent
+  closure, while named `nexus` and `kernel-policy` follow-ons remain explicit
+  dependency markers outside standalone `psionic`
 - landed module-installation-staging follow-on: `psionic-serve` now publishes a
   bounded staged-install surface with explicit session-mount versus worker-mount
   scope, challenge windows, activation, rollback, and refusal receipts over the

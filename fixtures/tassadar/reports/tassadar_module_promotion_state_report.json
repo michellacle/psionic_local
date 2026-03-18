@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.module_promotion_state.report.v1",
+  "evidence_minimums": {
+    "minimum_compile_lineage_ref_count": 1,
+    "minimum_benchmark_ref_count": 2,
+    "minimum_audit_artifact_ref_count": 1,
+    "require_revocation_hook": true,
+    "require_reinstall_parity_for_active": true
+  },
+  "active_promoted_count": 1,
+  "challenge_open_count": 1,
+  "quarantined_count": 1,
+  "revoked_count": 1,
+  "superseded_count": 1,
+  "records": [
+    {
+      "install_id": "install.frontier_relax_core.session.v1",
+      "module_ref": "frontier_relax_core@1.0.0",
+      "lifecycle_state": "superseded",
+      "evidence_minimums_met": true,
+      "preserved_lineage_refs": [
+        "manifest:tassadar.module.frontier_relax_core.manifest.v1",
+        "fixtures/tassadar/reports/tassadar_module_link_runtime_report.json"
+      ],
+      "superseded_by_install_id": "reinstall.frontier_relax_core.session.v2",
+      "note": "the original frontier_relax_core install stays in history but is superseded by the later parity-preserving reinstall"
+    },
+    {
+      "install_id": "reinstall.frontier_relax_core.session.v2",
+      "module_ref": "frontier_relax_core@1.0.0",
+      "lifecycle_state": "active_promoted",
+      "evidence_minimums_met": true,
+      "preserved_lineage_refs": [
+        "manifest:tassadar.module.frontier_relax_core.manifest.v1",
+        "fixtures/tassadar/reports/tassadar_module_link_runtime_report.json"
+      ],
+      "challenge_refs": [
+        "challenge://frontier_relax_core/reinstall"
+      ],
+      "note": "frontier_relax_core remains actively promoted because the reinstall keeps evidence minimums, revocation hooks, and parity lineage intact"
+    },
+    {
+      "install_id": "install.candidate_select_core.rollback.v1",
+      "module_ref": "candidate_select_core@1.1.0",
+      "lifecycle_state": "challenge_open",
+      "evidence_minimums_met": true,
+      "preserved_lineage_refs": [
+        "manifest:tassadar.module.candidate_select_core.manifest.v1",
+        "fixtures/tassadar/reports/tassadar_module_installation_staging_report.json",
+        "fixtures/tassadar/reports/tassadar_module_link_runtime_report.json"
+      ],
+      "challenge_refs": [
+        "challenge://candidate_select_core/worker_mount"
+      ],
+      "quarantine_refs": [
+        "policy://module_quarantine/candidate_select_core/challenge_window"
+      ],
+      "note": "candidate_select_core remains challengeable after promotion rather than permanently closed after one benchmark pass"
+    },
+    {
+      "install_id": "install.branch_prune_core.refused_missing_evidence.v1",
+      "module_ref": "branch_prune_core@0.1.0",
+      "lifecycle_state": "quarantined",
+      "evidence_minimums_met": false,
+      "quarantine_refs": [
+        "policy://module_quarantine/branch_prune_core_missing_evidence"
+      ],
+      "note": "missing benchmark and audit evidence keeps branch_prune_core quarantined instead of silently promoted"
+    },
+    {
+      "install_id": "install.candidate_select_core.refused_stale_evidence.v2",
+      "module_ref": "candidate_select_core@1.1.0",
+      "lifecycle_state": "revoked",
+      "evidence_minimums_met": false,
+      "preserved_lineage_refs": [
+        "manifest:tassadar.module.candidate_select_core.manifest.v1",
+        "fixtures/tassadar/reports/tassadar_module_link_runtime_report.json"
+      ],
+      "quarantine_refs": [
+        "policy://module_quarantine/candidate_select_core_stale_evidence"
+      ],
+      "revocation_refs": [
+        "receipt://candidate_select_core/revocation/stale_evidence"
+      ],
+      "note": "stale evidence revokes the prior candidate_select_core promotion without erasing the original install lineage"
+    }
+  ],
+  "bundle_ref": "fixtures/tassadar/runs/tassadar_installed_module_evidence_v1/installed_module_evidence_bundle.json",
+  "nexus_dependency_marker": "nexus remains the owner of cross-provider challenge and accepted-outcome closure outside standalone psionic",
+  "kernel_policy_dependency_marker": "kernel-policy remains the owner of settlement-grade promotion authority outside standalone psionic",
+  "claim_boundary": "this eval report keeps promotion evidence minimums, challengeability, quarantine, revocation, and supersession explicit for the bounded module lane. It does not claim nexus or kernel authority closure inside standalone psionic",
+  "summary": "Module-promotion state report now freezes 1 active promotions, 1 challenge-open records, 1 quarantined records, 1 revoked records, and 1 superseded records.",
+  "report_digest": "966367515d664914f84ed60b9a1f069da44128218e6fae3357acbc01c383b1ac"
+}
