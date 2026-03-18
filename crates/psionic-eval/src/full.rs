@@ -44,6 +44,8 @@ mod tassadar_hungarian_compiled_executor;
 mod tassadar_sequence;
 #[path = "tassadar_sudoku_9x9_compiled_executor.rs"]
 mod tassadar_sudoku_9x9_compiled_executor;
+#[path = "tassadar_wasm_module_ingress.rs"]
+mod tassadar_wasm_module_ingress;
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -77,6 +79,7 @@ pub use tassadar_hungarian_10x10_compiled_executor::*;
 pub use tassadar_hungarian_compiled_executor::*;
 pub use tassadar_sequence::*;
 pub use tassadar_sudoku_9x9_compiled_executor::*;
+pub use tassadar_wasm_module_ingress::*;
 
 /// Human-readable crate ownership summary.
 pub const CRATE_ROLE: &str = "held-out eval, benchmark packages, and rubric runtime for Psionic";

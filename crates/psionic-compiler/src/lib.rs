@@ -1,6 +1,7 @@
 //! Lowering and scheduling boundaries for Psionic.
 
 mod tassadar_symbolic;
+mod tassadar_wasm_module;
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -25,6 +26,7 @@ use sha2::{Digest, Sha256};
 use thiserror::Error;
 
 pub use tassadar_symbolic::*;
+pub use tassadar_wasm_module::*;
 
 /// Human-readable crate ownership summary.
 pub const CRATE_ROLE: &str = "compiler and scheduling interfaces";

@@ -18,9 +18,11 @@ default = ["full"]
 full = [
     "dep:psionic-adapters",
     "dep:psionic-apple-fm",
+    "dep:psionic-compiler",
     "dep:psionic-data",
     "dep:psionic-datastream",
     "dep:psionic-environments",
+    "dep:psionic-ir",
     "dep:psionic-models",
     "dep:psionic-runtime",
 ]
@@ -29,9 +31,11 @@ full = [
 hex = { workspace = true }
 psionic-adapters = { path = "../psionic-adapters", optional = true }
 psionic-apple-fm = { path = "../psionic-apple-fm", optional = true }
+psionic-compiler = { path = "../psionic-compiler", optional = true }
 psionic-data = { path = "../psionic-data", optional = true }
 psionic-datastream = { path = "../psionic-datastream", optional = true }
 psionic-environments = { path = "../psionic-environments", optional = true }
+psionic-ir = { path = "../psionic-ir", optional = true }
 psionic-models = { path = "../psionic-models", optional = true }
 psionic-runtime = { path = "../psionic-runtime", optional = true }
 serde = { workspace = true }

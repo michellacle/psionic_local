@@ -3256,7 +3256,7 @@ pub fn compile_tassadar_c_source_to_wasm_receipt(
         }
     };
     let wasm_binary_digest = stable_bytes_digest(&wasm_bytes);
-    let wasm_binary_summary = match summarize_wasm_binary(&wasm_bytes) {
+    let wasm_binary_summary = match summarize_tassadar_wasm_binary(&wasm_bytes) {
         Ok(summary) => summary,
         Err(message) => {
             return TassadarCToWasmCompileReceipt::new(
@@ -3421,7 +3421,9 @@ fn discover_c_compile_toolchain_identity(
     .with_pipeline_features(compile_config.pipeline_features()))
 }
 
-fn summarize_wasm_binary(bytes: &[u8]) -> Result<TassadarWasmBinarySummary, String> {
+/// Summarizes one real Wasm binary into the current bounded structural runtime
+/// view.
+pub fn summarize_tassadar_wasm_binary(bytes: &[u8]) -> Result<TassadarWasmBinarySummary, String> {
     let mut exported_functions = Vec::new();
     let mut function_count = 0u32;
     let mut imported_function_count = 0u32;
@@ -9614,10 +9616,10 @@ mod tests {
         build_tassadar_trace_abi_decision_report, compile_tassadar_c_source_to_wasm_receipt,
         diagnose_tassadar_executor_request, execute_tassadar_executor_request,
         replay_tassadar_execution, run_tassadar_exact_equivalence, run_tassadar_exact_parity,
-        stable_bytes_digest, tassadar_article_class_corpus, tassadar_canonical_c_source_path,
-        tassadar_canonical_wasm_binary_path, tassadar_program_artifact_from_compile_receipt,
-        tassadar_runtime_capability_report, tassadar_sudoku_9x9_corpus,
-        tassadar_sudoku_9x9_search_program, tassadar_sudoku_v0_corpus,
+        stable_bytes_digest, summarize_tassadar_wasm_binary, tassadar_article_class_corpus,
+        tassadar_canonical_c_source_path, tassadar_canonical_wasm_binary_path,
+        tassadar_program_artifact_from_compile_receipt, tassadar_runtime_capability_report,
+        tassadar_sudoku_9x9_corpus, tassadar_sudoku_9x9_search_program, tassadar_sudoku_v0_corpus,
         tassadar_sudoku_v0_search_program, tassadar_supported_wasm_profiles,
         tassadar_validation_corpus, tassadar_wasm_instruction_coverage_report,
         write_tassadar_c_to_wasm_compile_receipt,
@@ -10173,6 +10175,21 @@ mod tests {
         assert_eq!(
             lineage.validated_program_digest,
             artifact.validated_program_digest
+        );
+    }
+
+    #[test]
+    fn canonical_wasm_binary_summary_is_machine_legible() {
+        let wasm_bytes =
+            std::fs::read(tassadar_canonical_wasm_binary_path()).expect("canonical Wasm binary");
+        let summary = summarize_tassadar_wasm_binary(&wasm_bytes)
+            .expect("canonical Wasm summary should parse");
+        assert_eq!(summary.byte_len, wasm_bytes.len());
+        assert!(summary.function_count >= 1);
+        assert!(
+            summary
+                .exported_functions
+                .contains(&String::from("micro_wasm_kernel"))
         );
     }
 

@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.wasm_module_ingress_report.v1",
+  "generated_from_refs": [
+    "fixtures/tassadar/wasm/tassadar_micro_wasm_kernel.wasm",
+    "synthetic://tassadar/wasm/multi_function_v1"
+  ],
+  "cases": [
+    {
+      "case_id": "canonical_micro_wasm_kernel",
+      "source_ref": "fixtures/tassadar/wasm/tassadar_micro_wasm_kernel.wasm",
+      "runtime_summary": {
+        "byte_len": 244,
+        "exported_functions": [
+          "micro_wasm_kernel"
+        ],
+        "function_count": 1,
+        "imported_function_count": 0,
+        "memory_count": 1,
+        "custom_sections": [
+          "producers",
+          "target_features"
+        ]
+      },
+      "wasm_binary_digest": "db3f7b2a8a9cc0e0a9603e6a2206a4c90edf7592704acfb8595c3f5d27f4d35a",
+      "normalized_module_digest": "463a0c90eae88f3056c0a6374ebfc34a599196d6edd9d4e079ef79e61385b657",
+      "roundtrip_wasm_digest": "bd38b0a60e692ee79c2957ba7f3855d765cca3aa23026f0dd72a58623bef8433",
+      "status": "lowering_refused",
+      "function_export_names": [
+        "micro_wasm_kernel"
+      ],
+      "memory_count": 1,
+      "data_segment_count": 0,
+      "lowering_refusal_kind": "unsupported_param_count",
+      "lowering_refusal_detail": "export `micro_wasm_kernel` function 0 declares 1 params, but the bounded runtime lane only admits zero-parameter module exports today"
+    },
+    {
+      "case_id": "seeded_multi_function_module",
+      "source_ref": "synthetic://tassadar/wasm/multi_function_v1",
+      "runtime_summary": {
+        "byte_len": 110,
+        "exported_functions": [
+          "local_double",
+          "pair_sum"
+        ],
+        "function_count": 2,
+        "imported_function_count": 0,
+        "memory_count": 1,
+        "custom_sections": []
+      },
+      "wasm_binary_digest": "fd8cf40df68aa1153e25168eed4bed06cbcfad6fdab33db2c56e3300671a8a26",
+      "normalized_module_digest": "aff6d8209a2f50a502739ec6f5e2c7eb04ee1d9b7277dcf2761bbb172bd46f9a",
+      "roundtrip_wasm_digest": "fd8cf40df68aa1153e25168eed4bed06cbcfad6fdab33db2c56e3300671a8a26",
+      "status": "lowered_exact",
+      "function_export_names": [
+        "pair_sum",
+        "local_double"
+      ],
+      "memory_count": 1,
+      "data_segment_count": 1,
+      "lowered_export_names": [
+        "pair_sum",
+        "local_double"
+      ],
+      "exact_outputs_by_export": {
+        "local_double": [
+          14
+        ],
+        "pair_sum": [
+          5
+        ]
+      },
+      "artifact_bundle_digest": "0336dfd6d2d45e5a94b4f375221577e336bbd39a8005776166fbe7b6cacc849a"
+    }
+  ],
+  "claim_boundary": "this report records bounded normalized Wasm-module ingress only: one real committed binary that parses but still refuses current runtime lowering, plus one canonical multi-function module that round-trips and executes exactly; it does not imply arbitrary Wasm closure, call-frame support, structured control-flow support, or byte-addressed memory ABI completion",
+  "report_digest": "bf086c802b5ae7fcecee2d645f4d2612b4c952b05050d19532174fd2203254aa"
+}

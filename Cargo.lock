@@ -3546,9 +3546,11 @@ dependencies = [
  "hex",
  "psionic-adapters",
  "psionic-apple-fm",
+ "psionic-compiler",
  "psionic-data",
  "psionic-datastream",
  "psionic-environments",
+ "psionic-ir",
  "psionic-models",
  "psionic-runtime",
  "serde",
@@ -3583,6 +3585,8 @@ dependencies = [
  "serde_json",
  "sha2",
  "thiserror 2.0.18",
+ "wasm-encoder",
+ "wasmparser",
 ]
 
 [[package]]

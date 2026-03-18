@@ -564,6 +564,13 @@ Current posture:
   source/toolchain/config/output digests, projects that success into one
   canonical `TassadarProgramArtifact` lineage contract, and surfaces typed
   compile refusals instead of hiding toolchain failure behind ad hoc scripts
+- the repo now also carries one bounded Wasm-module ingress artifact at
+  `fixtures/tassadar/reports/tassadar_wasm_module_ingress_report.json`, emitted
+  by `cargo run -p psionic-eval --example tassadar_wasm_module_ingress_report`;
+  it binds one real committed Wasm binary plus one canonical synthetic
+  multi-function module to runtime-visible module summaries, normalized-module
+  digests, section-level round-trip digests, exact lowered export outputs, and
+  typed refusal when the current runtime boundary still blocks lowering
 - its Phase 8A research family now exists in `psionic-research`, with a typed
   executor-variant family, benchmark/proof/lineage-backed bounded runs, and
   machine-readable sweep records for reproducible same-contract comparisons
@@ -1393,4 +1400,8 @@ For canonical current-state detail, use `docs/ARCHITECTURE.md` and
   `fixtures/tassadar/wasm/tassadar_micro_wasm_kernel.wasm` are the canonical
   Tassadar source/toolchain/output lineage artifacts for the repo-owned
   C-to-Wasm compile path.
+- `fixtures/tassadar/reports/tassadar_wasm_module_ingress_report.json` is the
+  canonical machine-readable artifact for bounded normalized Wasm-module
+  ingress, section-level round-trip truth, and current exact-vs-refused export
+  lowering posture.
 - Other planning and reference docs live under `docs/`.

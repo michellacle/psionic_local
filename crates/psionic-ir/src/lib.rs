@@ -3,6 +3,7 @@
 mod autodiff;
 mod tassadar_scratchpad;
 mod tassadar_symbolic;
+mod tassadar_wasm_module;
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -18,6 +19,7 @@ use thiserror::Error;
 pub use autodiff::*;
 pub use tassadar_scratchpad::*;
 pub use tassadar_symbolic::*;
+pub use tassadar_wasm_module::*;
 
 /// Human-readable crate ownership summary.
 pub const CRATE_ROLE: &str = "canonical graph, autodiff, and execution plan types";
