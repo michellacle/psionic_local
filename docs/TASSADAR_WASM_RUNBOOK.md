@@ -21,6 +21,7 @@ This runbook covers the current repo-owned bounded Wasm flow only:
 
 - Rust-only article frontend canon
 - Rust-to-Wasm article profile completeness matrix
+- bounded Rust-only article ABI closure
 - canonical C-to-Wasm compile receipt
 - source-to-Wasm-to-Tassadar compile-pipeline matrix
 - normalized Wasm-module ingress
@@ -31,7 +32,7 @@ This runbook covers the current repo-owned bounded Wasm flow only:
 It does not claim:
 
 - arbitrary Wasm closure
-- broad parameter-ABI closure
+- general parameter-ABI closure
 - broad host-import closure
 - broad C/C++ frontend closure
 
@@ -97,7 +98,30 @@ Expected outcome:
 - the same profile boundary is what the Tassadar environment bundle and served
   capability publication now cite
 
-### 3. Optional historical C-to-Wasm compile receipt
+### 3. Bounded Rust-only article ABI closure
+
+```bash
+cargo run -p psionic-eval --example tassadar_article_abi_closure_report
+```
+
+Read:
+
+- `fixtures/tassadar/reports/tassadar_article_abi_closure_report.json`
+
+Expected outcome:
+
+- one machine-readable exact/refused report over the committed direct
+  `param_abi_fixture` and `heap_sum_article` Rust sources
+- exact direct scalar `i32 -> i32` entrypoint closure for `add_one`
+- exact direct pointer-plus-length heap-input closure for `heap_sum_i32`,
+  including a non-zero pointer offset case
+- explicit refusal on floating-point params, multi-result returns, and
+  out-of-range heap inputs
+- this is the current honest direct-ABI closure lane; it does not imply that
+  the generic Wasm-text or generic normalized-module lowering path now admits
+  arbitrary parameterized exports
+
+### 4. Optional historical C-to-Wasm compile receipt
 
 ```bash
 cargo run -p psionic-runtime --example tassadar_c_to_wasm_compile_receipt
@@ -115,7 +139,7 @@ Expected outcome:
   `wasm32-unknown-unknown`
 - this step is not required for the Rust-only article-closure path
 
-### 4. Compile-pipeline matrix
+### 5. Compile-pipeline matrix
 
 ```bash
 cargo run -p psionic-eval --example tassadar_compile_pipeline_matrix_report
@@ -131,8 +155,11 @@ Expected outcome:
 - explicit `unsupported_param_count` refusal for the parameter-ABI WAT case
 - explicit toolchain refusal for the C-source path when the local toolchain is
   unavailable or incomplete
+- that parameter-ABI refusal is still expected in this generic lowering path;
+  the committed direct ABI closure now lives in the separate bounded
+  Rust-only article ABI report above
 
-### 5. Wasm-module ingress
+### 6. Wasm-module ingress
 
 ```bash
 cargo run -p psionic-eval --example tassadar_wasm_module_ingress_report
@@ -148,7 +175,7 @@ Expected outcome:
   refuses lowering because the exported function takes one parameter
 - the seeded synthetic multi-function module lowers and executes exactly
 
-### 6. Differential Wasm conformance
+### 7. Differential Wasm conformance
 
 ```bash
 cargo run -p psionic-eval --example tassadar_wasm_conformance_report
@@ -164,7 +191,7 @@ Expected outcome:
 - exact trap parity on the seeded trap cases
 - explicit boundary refusal on the unsupported host-import case
 
-### 7. Module-scale Wasm workloads
+### 8. Module-scale Wasm workloads
 
 ```bash
 cargo run -p psionic-eval --example tassadar_module_scale_workload_suite_report
@@ -179,7 +206,7 @@ Expected outcome:
 - exact lowering for fixed-span memcpy, checksum, parsing, and VM-style cases
 - explicit parameter-ABI refusal on the VM-style parameter case
 
-### 8. Trap and exception parity
+### 9. Trap and exception parity
 
 ```bash
 cargo run -p psionic-eval --example tassadar_trap_exception_report
@@ -202,6 +229,7 @@ Expected outcome:
 Run the focused report checks after the flow:
 
 ```bash
+cargo test -p psionic-eval article_abi -- --nocapture
 cargo test -p psionic-eval wasm_module_ingress -- --nocapture
 cargo test -p psionic-eval wasm_conformance -- --nocapture
 cargo test -p psionic-eval module_scale_workload_suite -- --nocapture

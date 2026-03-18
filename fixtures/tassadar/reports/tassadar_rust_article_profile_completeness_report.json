@@ -26,6 +26,7 @@
     "fixtures/tassadar/reports/tassadar_wasm_conformance_report.json",
     "fixtures/tassadar/reports/tassadar_wasm_instruction_coverage_report.json",
     "fixtures/tassadar/reports/tassadar_module_scale_workload_suite_report.json",
+    "fixtures/tassadar/reports/tassadar_article_abi_closure_report.json",
     "fixtures/tassadar/reports/tassadar_compiled_article_closure_report.json"
   ],
   "rows": [
@@ -136,9 +137,28 @@
       ],
       "supporting_report_refs": [
         "fixtures/tassadar/reports/tassadar_rust_source_canon_report.json",
-        "fixtures/tassadar/reports/tassadar_module_scale_workload_suite_report.json"
+        "fixtures/tassadar/reports/tassadar_module_scale_workload_suite_report.json",
+        "fixtures/tassadar/reports/tassadar_article_abi_closure_report.json"
       ],
-      "detail": "the current Rust article family honestly supports zero-parameter exported entrypoints plus pointer-length memory-style inputs, but it still does not claim a broad direct-parameter ABI"
+      "detail": "the current Rust article family honestly supports zero-parameter exported entrypoints plus pointer-length memory-style inputs, including the bounded direct pointer-plus-length heap-input closure proven by the Rust-only article ABI lane"
+    },
+    {
+      "row_id": "abi.direct_scalar_i32_and_pointer_length_single_i32_return",
+      "category": "abi_shape",
+      "feature_id": "direct_scalar_i32_and_pointer_length_single_i32_return",
+      "status": "supported",
+      "runtime_profile_ids": [
+        "tassadar.wasm.article_i32_compute.v1"
+      ],
+      "source_case_ids": [
+        "param_abi_fixture",
+        "heap_sum_article"
+      ],
+      "supporting_report_refs": [
+        "fixtures/tassadar/reports/tassadar_rust_source_canon_report.json",
+        "fixtures/tassadar/reports/tassadar_article_abi_closure_report.json"
+      ],
+      "detail": "the bounded Rust-only article ABI lane now closes direct scalar i32 entrypoints plus pointer-length i32 heap-input entrypoints with one direct scalar i32 return on the committed canonical fixtures; broader ABI families remain explicit refusals"
     },
     {
       "row_id": "module_sections.arbitrary_host_imports_and_component_shapes",
@@ -210,16 +230,13 @@
         "tassadar.wasm.hungarian_10x10_matching.v1",
         "tassadar.wasm.sudoku_9x9_search.v1"
       ],
-      "source_case_ids": [
-        "param_abi_fixture"
-      ],
       "supporting_report_refs": [
         "fixtures/tassadar/reports/tassadar_rust_source_canon_report.json",
-        "fixtures/tassadar/reports/tassadar_compile_pipeline_matrix_report.json"
+        "fixtures/tassadar/reports/tassadar_article_abi_closure_report.json"
       ],
-      "detail": "direct parameter exports, broader return shapes, and general host ABI closure remain explicit refusals today; the current family still depends on zero-parameter exports plus memory-carried inputs for richer workloads"
+      "detail": "the reproduced article family now includes bounded direct scalar i32 and pointer-length heap-input entrypoints, but broader parameter families, floating-point ABI, multi-result returns, and general host ABI closure remain explicit refusals"
     }
   ],
-  "claim_boundary": "this publication freezes the current Rust-to-Wasm article profile family for Tassadar: it is strong enough to replace vague article rhetoric with supported and refused families across module shape, control flow, tables/globals/indirect calls, numeric families, and ABI shape. It remains a bounded i32-first family and does not imply arbitrary Wasm, arbitrary Rust frontend closure, broad host-import closure, or general parameter ABI closure.",
-  "publication_digest": "fbbfcadfa3d9ed3584352860ebb00b8134fdbbc7518ab5c21e42a97c45b3b4c7"
+  "claim_boundary": "this publication freezes the current Rust-to-Wasm article profile family for Tassadar: it is strong enough to replace vague article rhetoric with supported and refused families across module shape, control flow, tables/globals/indirect calls, numeric families, and ABI shape. It remains a bounded i32-first family with explicit direct scalar i32 and pointer-length heap-input closure only, and it does not imply arbitrary Wasm, arbitrary Rust frontend closure, broad host-import closure, or general parameter ABI closure.",
+  "publication_digest": "39992dc6b7bcf482a58160d698f2e7c3d7fbccc9db44c8c73ad06fd3d7014d23"
 }

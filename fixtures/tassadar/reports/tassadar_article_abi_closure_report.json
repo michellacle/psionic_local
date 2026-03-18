@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.article_abi.closure_report.v1",
+  "publication": {
+    "schema_version": 1,
+    "publication_id": "tassadar.article_abi.publication.v1",
+    "status": "implemented",
+    "claim_class": "compiled_bounded_exactness",
+    "family_id": "tassadar.rust_article_abi.v1",
+    "report_ref": "fixtures/tassadar/reports/tassadar_article_abi_closure_report.json",
+    "source_case_ids": [
+      "param_abi_fixture",
+      "heap_sum_article"
+    ],
+    "supported_entry_shapes": [
+      "direct_scalar_i32_param_to_single_i32_return",
+      "pointer_length_i32_heap_input_to_single_i32_return"
+    ],
+    "refused_entry_shapes": [
+      "floating_point_param_abi",
+      "multi_result_return_abi",
+      "host_handle_or_import_abi"
+    ],
+    "target_surfaces": [
+      "crates/psionic-ir",
+      "crates/psionic-compiler",
+      "crates/psionic-runtime",
+      "crates/psionic-models",
+      "crates/psionic-eval"
+    ],
+    "validation_refs": [
+      "fixtures/tassadar/reports/tassadar_rust_source_canon_report.json",
+      "fixtures/tassadar/reports/tassadar_article_abi_closure_report.json"
+    ],
+    "claim_boundary": "this publication closes direct scalar i32 and pointer-plus-length i32 heap-input entrypoints for the committed Rust-only article fixtures. It does not claim floating-point ABI closure, multi-result returns, host-handle imports, or arbitrary frontend and Wasm ABI closure",
+    "publication_digest": "28cedfeb02fd03cadfc272285bf8d11d6d26db895848c9f7af81f3bed4a75d1c"
+  },
+  "generated_from_refs": [
+    "fixtures/tassadar/reports/tassadar_article_abi_closure_report.json",
+    "fixtures/tassadar/reports/tassadar_rust_source_canon_report.json",
+    "fixtures/tassadar/sources/tassadar_heap_sum_kernel.rs",
+    "fixtures/tassadar/sources/tassadar_param_abi_kernel.rs"
+  ],
+  "cases": [
+    {
+      "case_id": "direct_scalar_i32_param",
+      "source_case_id": "param_abi_fixture",
+      "source_ref": "fixtures/tassadar/sources/tassadar_param_abi_kernel.rs",
+      "export_name": "add_one",
+      "status": "exact",
+      "returned_value": 42,
+      "execution_digest": "8249220a1c7db98a71482c11ca27cb3ac36c91a8c72cd41b740488297c1846f8",
+      "trace_step_count": 4,
+      "artifact_digest": "bb095c635420ea0f5cafb41376ec9851245d4b08c66a3a48d51afe94d9148ef6",
+      "invocation_args": [
+        41
+      ],
+      "heap_byte_len": 0
+    },
+    {
+      "case_id": "pointer_length_heap_input",
+      "source_case_id": "heap_sum_article",
+      "source_ref": "fixtures/tassadar/sources/tassadar_heap_sum_kernel.rs",
+      "export_name": "heap_sum_i32",
+      "status": "exact",
+      "returned_value": 20,
+      "execution_digest": "5517f13cb9c26802f82a90fff1d781bd96ccaac1865103035791bd9fa396b5bd",
+      "trace_step_count": 62,
+      "artifact_digest": "d563506f6881e204bd306c3e6ee63651ab3b083e50988e44e759281332d7cd52",
+      "invocation_args": [
+        0,
+        4
+      ],
+      "heap_byte_len": 16
+    },
+    {
+      "case_id": "pointer_length_heap_input_with_offset",
+      "source_case_id": "heap_sum_article",
+      "source_ref": "fixtures/tassadar/sources/tassadar_heap_sum_kernel.rs",
+      "export_name": "heap_sum_i32",
+      "status": "exact",
+      "returned_value": 24,
+      "execution_digest": "132952079ce32ec97ca0be845aa33175036e509728f349b87cc241c9766f862e",
+      "trace_step_count": 49,
+      "artifact_digest": "d563506f6881e204bd306c3e6ee63651ab3b083e50988e44e759281332d7cd52",
+      "invocation_args": [
+        4,
+        3
+      ],
+      "heap_byte_len": 16
+    },
+    {
+      "case_id": "heap_input_out_of_range_refusal",
+      "source_case_id": "heap_sum_article",
+      "source_ref": "fixtures/tassadar/sources/tassadar_heap_sum_kernel.rs",
+      "export_name": "heap_sum_i32",
+      "status": "refused",
+      "artifact_digest": "d563506f6881e204bd306c3e6ee63651ab3b083e50988e44e759281332d7cd52",
+      "invocation_args": [
+        0,
+        5
+      ],
+      "heap_byte_len": 16,
+      "refusal_kind": "heap_input_out_of_range",
+      "refusal_detail": "article ABI heap input overflows the invocation heap: pointer=0 length=5 element_width_bytes=4 heap_len=16"
+    },
+    {
+      "case_id": "floating_point_param_refusal",
+      "source_case_id": "param_abi_fixture",
+      "source_ref": "fixtures/tassadar/sources/tassadar_param_abi_kernel.rs",
+      "export_name": "add_one_f32",
+      "status": "refused",
+      "invocation_args": [],
+      "heap_byte_len": 0,
+      "refusal_kind": "unsupported_param_kind",
+      "refusal_detail": "article ABI fixture `unsupported_float_param` declares unsupported param 0 kind `F32`"
+    },
+    {
+      "case_id": "multi_result_return_refusal",
+      "source_case_id": "param_abi_fixture",
+      "source_ref": "fixtures/tassadar/sources/tassadar_param_abi_kernel.rs",
+      "export_name": "pair_sum_and_diff",
+      "status": "refused",
+      "invocation_args": [],
+      "heap_byte_len": 0,
+      "refusal_kind": "unsupported_result_kind",
+      "refusal_detail": "article ABI fixture `unsupported_multi_result` declares unsupported result kind `MultiI32Pair`"
+    }
+  ],
+  "claim_boundary": "this report closes the bounded Rust-only article ABI gap only for the committed direct scalar i32 and pointer-plus-length i32 heap-input fixtures. It keeps floating-point params, multi-result returns, host-handle imports, and arbitrary Wasm ABI closure explicit as refusals",
+  "report_digest": "600f3b75301e7cf531760523c2c8d665810a4cd406e6f5eda9dcade8c76db149"
+}

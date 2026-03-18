@@ -15,6 +15,8 @@ const TASSADAR_WASM_INSTRUCTION_COVERAGE_REPORT_REF: &str =
     "fixtures/tassadar/reports/tassadar_wasm_instruction_coverage_report.json";
 const TASSADAR_MODULE_SCALE_WORKLOAD_SUITE_REPORT_REF: &str =
     "fixtures/tassadar/reports/tassadar_module_scale_workload_suite_report.json";
+const TASSADAR_ARTICLE_ABI_CLOSURE_REPORT_REF: &str =
+    "fixtures/tassadar/reports/tassadar_article_abi_closure_report.json";
 const TASSADAR_COMPILED_ARTICLE_CLOSURE_REPORT_REF: &str =
     "fixtures/tassadar/reports/tassadar_compiled_article_closure_report.json";
 
@@ -127,6 +129,7 @@ impl TassadarRustArticleProfileCompletenessPublication {
             String::from(TASSADAR_WASM_CONFORMANCE_REPORT_REF),
             String::from(TASSADAR_WASM_INSTRUCTION_COVERAGE_REPORT_REF),
             String::from(TASSADAR_MODULE_SCALE_WORKLOAD_SUITE_REPORT_REF),
+            String::from(TASSADAR_ARTICLE_ABI_CLOSURE_REPORT_REF),
             String::from(TASSADAR_COMPILED_ARTICLE_CLOSURE_REPORT_REF),
         ];
         let rows = vec![
@@ -177,9 +180,7 @@ impl TassadarRustArticleProfileCompletenessPublication {
                     TassadarWasmProfileId::ArticleI32ComputeV1.as_str(),
                 )],
                 source_case_ids: Vec::new(),
-                supporting_report_refs: vec![String::from(
-                    TASSADAR_WASM_CONFORMANCE_REPORT_REF,
-                )],
+                supporting_report_refs: vec![String::from(TASSADAR_WASM_CONFORMANCE_REPORT_REF)],
                 detail: String::from(
                     "the bounded module lane already admits mutable i32 globals, one funcref table, and zero-parameter indirect calls, and that support is part of the honest article family rather than hidden substrate trivia",
                 ),
@@ -217,9 +218,30 @@ impl TassadarRustArticleProfileCompletenessPublication {
                 supporting_report_refs: vec![
                     String::from(TASSADAR_RUST_SOURCE_CANON_REPORT_REF),
                     String::from(TASSADAR_MODULE_SCALE_WORKLOAD_SUITE_REPORT_REF),
+                    String::from(TASSADAR_ARTICLE_ABI_CLOSURE_REPORT_REF),
                 ],
                 detail: String::from(
-                    "the current Rust article family honestly supports zero-parameter exported entrypoints plus pointer-length memory-style inputs, but it still does not claim a broad direct-parameter ABI",
+                    "the current Rust article family honestly supports zero-parameter exported entrypoints plus pointer-length memory-style inputs, including the bounded direct pointer-plus-length heap-input closure proven by the Rust-only article ABI lane",
+                ),
+            },
+            TassadarRustArticleProfileCompletenessRow {
+                row_id: String::from("abi.direct_scalar_i32_and_pointer_length_single_i32_return"),
+                category: TassadarRustArticleProfileCategory::AbiShape,
+                feature_id: String::from("direct_scalar_i32_and_pointer_length_single_i32_return"),
+                status: TassadarRustArticleProfileRowStatus::Supported,
+                runtime_profile_ids: vec![String::from(
+                    TassadarWasmProfileId::ArticleI32ComputeV1.as_str(),
+                )],
+                source_case_ids: vec![
+                    String::from("param_abi_fixture"),
+                    String::from("heap_sum_article"),
+                ],
+                supporting_report_refs: vec![
+                    String::from(TASSADAR_RUST_SOURCE_CANON_REPORT_REF),
+                    String::from(TASSADAR_ARTICLE_ABI_CLOSURE_REPORT_REF),
+                ],
+                detail: String::from(
+                    "the bounded Rust-only article ABI lane now closes direct scalar i32 entrypoints plus pointer-length i32 heap-input entrypoints with one direct scalar i32 return on the committed canonical fixtures; broader ABI families remain explicit refusals",
                 ),
             },
             TassadarRustArticleProfileCompletenessRow {
@@ -229,15 +251,15 @@ impl TassadarRustArticleProfileCompletenessPublication {
                 status: TassadarRustArticleProfileRowStatus::Refused,
                 runtime_profile_ids: runtime_profile_ids.clone(),
                 source_case_ids: Vec::new(),
-                supporting_report_refs: vec![String::from(
-                    TASSADAR_WASM_CONFORMANCE_REPORT_REF,
-                )],
+                supporting_report_refs: vec![String::from(TASSADAR_WASM_CONFORMANCE_REPORT_REF)],
                 detail: String::from(
                     "arbitrary host-import sections and broader component-style module shapes remain out of scope; only deterministic zero-side-effect stubs are admitted in the bounded module lane",
                 ),
             },
             TassadarRustArticleProfileCompletenessRow {
-                row_id: String::from("control_flow.exception_handling_and_general_callstack_control"),
+                row_id: String::from(
+                    "control_flow.exception_handling_and_general_callstack_control",
+                ),
                 category: TassadarRustArticleProfileCategory::ControlFlowFamily,
                 feature_id: String::from("exception_handling_and_general_callstack_control"),
                 status: TassadarRustArticleProfileRowStatus::Refused,
@@ -251,7 +273,9 @@ impl TassadarRustArticleProfileCompletenessPublication {
                 ),
             },
             TassadarRustArticleProfileCompletenessRow {
-                row_id: String::from("tables_globals_indirect_calls.multi_table_and_parametric_indirect"),
+                row_id: String::from(
+                    "tables_globals_indirect_calls.multi_table_and_parametric_indirect",
+                ),
                 category: TassadarRustArticleProfileCategory::TableGlobalIndirectCallShape,
                 feature_id: String::from(
                     "multi_table_multi_memory_typed_reference_parametric_indirect_call",
@@ -259,9 +283,7 @@ impl TassadarRustArticleProfileCompletenessPublication {
                 status: TassadarRustArticleProfileRowStatus::Refused,
                 runtime_profile_ids: runtime_profile_ids.clone(),
                 source_case_ids: Vec::new(),
-                supporting_report_refs: vec![String::from(
-                    TASSADAR_WASM_CONFORMANCE_REPORT_REF,
-                )],
+                supporting_report_refs: vec![String::from(TASSADAR_WASM_CONFORMANCE_REPORT_REF)],
                 detail: String::from(
                     "the honest article family stops at one funcref table, i32 globals, and zero-parameter indirect calls; broader typed-reference, multi-table, and parametric indirect-call families remain outside the claim",
                 ),
@@ -286,20 +308,22 @@ impl TassadarRustArticleProfileCompletenessPublication {
                 feature_id: String::from("direct_parameter_exports_and_general_return_abi"),
                 status: TassadarRustArticleProfileRowStatus::Refused,
                 runtime_profile_ids: runtime_profile_ids.clone(),
-                source_case_ids: vec![String::from("param_abi_fixture")],
+                source_case_ids: Vec::new(),
                 supporting_report_refs: vec![
                     String::from(TASSADAR_RUST_SOURCE_CANON_REPORT_REF),
-                    String::from(TASSADAR_COMPILE_PIPELINE_MATRIX_REPORT_REF),
+                    String::from(TASSADAR_ARTICLE_ABI_CLOSURE_REPORT_REF),
                 ],
                 detail: String::from(
-                    "direct parameter exports, broader return shapes, and general host ABI closure remain explicit refusals today; the current family still depends on zero-parameter exports plus memory-carried inputs for richer workloads",
+                    "the reproduced article family now includes bounded direct scalar i32 and pointer-length heap-input entrypoints, but broader parameter families, floating-point ABI, multi-result returns, and general host ABI closure remain explicit refusals",
                 ),
             },
         ];
 
         let mut publication = Self {
             schema_version: TASSADAR_RUST_ARTICLE_PROFILE_COMPLETENESS_SCHEMA_VERSION,
-            publication_id: String::from("tassadar.rust_article_profile_completeness.publication.v1"),
+            publication_id: String::from(
+                "tassadar.rust_article_profile_completeness.publication.v1",
+            ),
             status: TassadarRustArticleProfilePublicationStatus::Implemented,
             claim_class: String::from("execution_truth_profile_boundary"),
             family_id: String::from("tassadar.wasm.rust_article_family.v1"),
@@ -309,7 +333,7 @@ impl TassadarRustArticleProfileCompletenessPublication {
             validation_refs,
             rows,
             claim_boundary: String::from(
-                "this publication freezes the current Rust-to-Wasm article profile family for Tassadar: it is strong enough to replace vague article rhetoric with supported and refused families across module shape, control flow, tables/globals/indirect calls, numeric families, and ABI shape. It remains a bounded i32-first family and does not imply arbitrary Wasm, arbitrary Rust frontend closure, broad host-import closure, or general parameter ABI closure.",
+                "this publication freezes the current Rust-to-Wasm article profile family for Tassadar: it is strong enough to replace vague article rhetoric with supported and refused families across module shape, control flow, tables/globals/indirect calls, numeric families, and ABI shape. It remains a bounded i32-first family with explicit direct scalar i32 and pointer-length heap-input closure only, and it does not imply arbitrary Wasm, arbitrary Rust frontend closure, broad host-import closure, or general parameter ABI closure.",
             ),
             publication_digest: String::new(),
         };
@@ -377,8 +401,8 @@ pub enum TassadarRustArticleProfilePublicationError {
 
 /// Returns the canonical Rust-to-Wasm article profile completeness publication.
 #[must_use]
-pub fn tassadar_rust_article_profile_completeness_publication(
-) -> TassadarRustArticleProfileCompletenessPublication {
+pub fn tassadar_rust_article_profile_completeness_publication()
+-> TassadarRustArticleProfileCompletenessPublication {
     TassadarRustArticleProfileCompletenessPublication::new()
 }
 
@@ -392,9 +416,9 @@ fn stable_digest<T: Serialize>(prefix: &[u8], value: &T) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        tassadar_rust_article_profile_completeness_publication,
-        TassadarRustArticleProfilePublicationStatus, TassadarRustArticleProfileRowStatus,
         TASSADAR_RUST_ARTICLE_PROFILE_COMPLETENESS_REPORT_REF,
+        TassadarRustArticleProfilePublicationStatus, TassadarRustArticleProfileRowStatus,
+        tassadar_rust_article_profile_completeness_publication,
     };
 
     #[test]
@@ -410,14 +434,18 @@ mod tests {
             TASSADAR_RUST_ARTICLE_PROFILE_COMPLETENESS_REPORT_REF
         );
         assert_eq!(publication.runtime_profile_ids.len(), 3);
-        assert!(publication
-            .rows
-            .iter()
-            .any(|row| row.status == TassadarRustArticleProfileRowStatus::Supported));
-        assert!(publication
-            .rows
-            .iter()
-            .any(|row| row.status == TassadarRustArticleProfileRowStatus::Refused));
+        assert!(
+            publication
+                .rows
+                .iter()
+                .any(|row| row.status == TassadarRustArticleProfileRowStatus::Supported)
+        );
+        assert!(
+            publication
+                .rows
+                .iter()
+                .any(|row| row.status == TassadarRustArticleProfileRowStatus::Refused)
+        );
         assert!(publication.validate().is_ok());
         assert!(!publication.publication_digest.is_empty());
     }

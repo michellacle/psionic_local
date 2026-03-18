@@ -634,6 +634,15 @@ Current posture:
   module-shape, control-flow, table/global/indirect-call, numeric, and ABI
   rows, and the same publication is now bound into the Tassadar environment
   bundle and served capability-publication surfaces
+- the repo now also carries one bounded Rust-only article ABI closure report
+  at `fixtures/tassadar/reports/tassadar_article_abi_closure_report.json`,
+  emitted by
+  `cargo run -p psionic-eval --example tassadar_article_abi_closure_report`;
+  it closes direct scalar `i32` entrypoints plus pointer-length `i32`
+  heap-input entrypoints with one direct scalar `i32` return on the committed
+  `param_abi_fixture` and `heap_sum_article` Rust sources, while keeping
+  floating-point params, multi-result returns, and general host ABI closure as
+  explicit refusals instead of over-reading the generic Wasm-lowering path
 - the repo now also carries one canonical Tassadar C-to-Wasm compile receipt at
   `fixtures/tassadar/reports/tassadar_c_to_wasm_compile_receipt.json`, emitted
   by `cargo run -p psionic-runtime --example tassadar_c_to_wasm_compile_receipt`;
@@ -648,7 +657,10 @@ Current posture:
   an explicit Wasm-text parameter-ABI lowering refusal, and a typed
   missing-toolchain refusal on the C-source path to compile-receipt digests,
   Wasm-module digests, exact lowered export outputs, and typed refusal posture
-  for the current bounded source-to-Wasm-to-Tassadar lane
+  for the current bounded source-to-Wasm-to-Tassadar lane; direct parameter
+  and pointer-length article entrypoints now close through the separate
+  Rust-only article ABI lane rather than by pretending the generic Wasm
+  lowering boundary already widened
 - the repo now also carries one bounded Wasm-module ingress artifact at
   `fixtures/tassadar/reports/tassadar_wasm_module_ingress_report.json`, emitted
   by `cargo run -p psionic-eval --example tassadar_wasm_module_ingress_report`;

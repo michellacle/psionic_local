@@ -20,6 +20,8 @@ mod tassadar;
 mod tassadar_approximate_attention_closure_matrix;
 #[path = "tassadar_architecture_bakeoff.rs"]
 mod tassadar_architecture_bakeoff;
+#[path = "tassadar_article_abi.rs"]
+mod tassadar_article_abi;
 #[path = "tassadar_benchmark_package_set.rs"]
 mod tassadar_benchmark_package_set;
 #[path = "tassadar_call_frames.rs"]
@@ -36,10 +38,10 @@ mod tassadar_compiled_executor;
 mod tassadar_compiled_kernel_suite;
 #[path = "tassadar_conditional_masking_report.rs"]
 mod tassadar_conditional_masking_report;
-#[path = "tassadar_counterfactual_route_quality.rs"]
-mod tassadar_counterfactual_route_quality;
 #[path = "tassadar_cost_per_correct_job.rs"]
 mod tassadar_cost_per_correct_job;
+#[path = "tassadar_counterfactual_route_quality.rs"]
+mod tassadar_counterfactual_route_quality;
 #[path = "tassadar_decompilation_fidelity.rs"]
 mod tassadar_decompilation_fidelity;
 #[path = "tassadar_efficient_attention_baseline_matrix.rs"]
@@ -62,10 +64,10 @@ mod tassadar_executor_hull_benchmark;
 mod tassadar_hungarian_10x10_compiled_executor;
 #[path = "tassadar_hungarian_compiled_executor.rs"]
 mod tassadar_hungarian_compiled_executor;
-#[path = "tassadar_internal_external_delegation.rs"]
-mod tassadar_internal_external_delegation;
 #[path = "tassadar_installed_module_evidence.rs"]
 mod tassadar_installed_module_evidence;
+#[path = "tassadar_internal_external_delegation.rs"]
+mod tassadar_internal_external_delegation;
 #[path = "tassadar_kernel_module_scaling.rs"]
 mod tassadar_kernel_module_scaling;
 #[path = "tassadar_latency_evidence_tradeoff.rs"]
@@ -80,18 +82,18 @@ mod tassadar_locality_scratchpad;
 mod tassadar_memory_abi_v2;
 #[path = "tassadar_mixed_trajectory.rs"]
 mod tassadar_mixed_trajectory;
+#[path = "tassadar_module_installation_staging.rs"]
+mod tassadar_module_installation_staging;
 #[path = "tassadar_module_linker.rs"]
 mod tassadar_module_linker;
 #[path = "tassadar_module_promotion_state.rs"]
 mod tassadar_module_promotion_state;
-#[path = "tassadar_negative_invocation.rs"]
-mod tassadar_negative_invocation;
-#[path = "tassadar_module_installation_staging.rs"]
-mod tassadar_module_installation_staging;
 #[path = "tassadar_module_scale_workload_suite.rs"]
 mod tassadar_module_scale_workload_suite;
 #[path = "tassadar_module_trace_abi_v2.rs"]
 mod tassadar_module_trace_abi_v2;
+#[path = "tassadar_negative_invocation.rs"]
+mod tassadar_negative_invocation;
 #[path = "tassadar_numeric_encoding.rs"]
 mod tassadar_numeric_encoding;
 #[path = "tassadar_numeric_opcode_ladder.rs"]
@@ -120,24 +122,24 @@ mod tassadar_sparse_rule_compiler_audit;
 mod tassadar_state_design_study_report;
 #[path = "tassadar_structured_control.rs"]
 mod tassadar_structured_control;
+#[path = "tassadar_sudoku_9x9_compiled_executor.rs"]
+mod tassadar_sudoku_9x9_compiled_executor;
 #[path = "tassadar_supervision_density.rs"]
 mod tassadar_supervision_density;
 #[path = "tassadar_trace_state_ablation.rs"]
 mod tassadar_trace_state_ablation;
 #[path = "tassadar_trap_exception.rs"]
 mod tassadar_trap_exception;
-#[path = "tassadar_sudoku_9x9_compiled_executor.rs"]
-mod tassadar_sudoku_9x9_compiled_executor;
 #[path = "tassadar_verifier_guided_search_report.rs"]
 mod tassadar_verifier_guided_search_report;
 #[path = "tassadar_wasm_conformance.rs"]
 mod tassadar_wasm_conformance;
 #[path = "tassadar_wasm_module_ingress.rs"]
 mod tassadar_wasm_module_ingress;
-#[path = "tassadar_wedge_taxonomy.rs"]
-mod tassadar_wedge_taxonomy;
 #[path = "tassadar_weak_supervision_executor.rs"]
 mod tassadar_weak_supervision_executor;
+#[path = "tassadar_wedge_taxonomy.rs"]
+mod tassadar_wedge_taxonomy;
 #[path = "tassadar_working_memory_tier.rs"]
 mod tassadar_working_memory_tier;
 #[path = "tassadar_workload_capability_frontier.rs"]
@@ -163,6 +165,7 @@ pub use attnres_training::*;
 pub use tassadar::*;
 pub use tassadar_approximate_attention_closure_matrix::*;
 pub use tassadar_architecture_bakeoff::*;
+pub use tassadar_article_abi::*;
 pub use tassadar_benchmark_package_set::*;
 pub use tassadar_call_frames::*;
 pub use tassadar_clrs_wasm_bridge::*;
@@ -171,8 +174,8 @@ pub use tassadar_compiled_distillation::*;
 pub use tassadar_compiled_executor::*;
 pub use tassadar_compiled_kernel_suite::*;
 pub use tassadar_conditional_masking_report::*;
-pub use tassadar_counterfactual_route_quality::*;
 pub use tassadar_cost_per_correct_job::*;
+pub use tassadar_counterfactual_route_quality::*;
 pub use tassadar_decompilation_fidelity::*;
 pub use tassadar_efficient_attention_baseline_matrix::*;
 pub use tassadar_error_regime_catalog::*;
@@ -184,8 +187,8 @@ pub use tassadar_executor_eval::*;
 pub use tassadar_executor_hull_benchmark::*;
 pub use tassadar_hungarian_10x10_compiled_executor::*;
 pub use tassadar_hungarian_compiled_executor::*;
-pub use tassadar_internal_external_delegation::*;
 pub use tassadar_installed_module_evidence::*;
+pub use tassadar_internal_external_delegation::*;
 pub use tassadar_kernel_module_scaling::*;
 pub use tassadar_latency_evidence_tradeoff::*;
 pub use tassadar_learnability_gap::*;
@@ -193,12 +196,12 @@ pub use tassadar_locality_envelope::*;
 pub use tassadar_locality_scratchpad::*;
 pub use tassadar_memory_abi_v2::*;
 pub use tassadar_mixed_trajectory::*;
+pub use tassadar_module_installation_staging::*;
 pub use tassadar_module_linker::*;
 pub use tassadar_module_promotion_state::*;
-pub use tassadar_negative_invocation::*;
-pub use tassadar_module_installation_staging::*;
 pub use tassadar_module_scale_workload_suite::*;
 pub use tassadar_module_trace_abi_v2::*;
+pub use tassadar_negative_invocation::*;
 pub use tassadar_numeric_encoding::*;
 pub use tassadar_numeric_opcode_ladder::*;
 pub use tassadar_pointer_memory_scratchpad::*;
@@ -213,15 +216,15 @@ pub use tassadar_shared_primitive_transfer::*;
 pub use tassadar_sparse_rule_compiler_audit::*;
 pub use tassadar_state_design_study_report::*;
 pub use tassadar_structured_control::*;
+pub use tassadar_sudoku_9x9_compiled_executor::*;
 pub use tassadar_supervision_density::*;
 pub use tassadar_trace_state_ablation::*;
 pub use tassadar_trap_exception::*;
-pub use tassadar_sudoku_9x9_compiled_executor::*;
 pub use tassadar_verifier_guided_search_report::*;
 pub use tassadar_wasm_conformance::*;
 pub use tassadar_wasm_module_ingress::*;
-pub use tassadar_wedge_taxonomy::*;
 pub use tassadar_weak_supervision_executor::*;
+pub use tassadar_wedge_taxonomy::*;
 pub use tassadar_working_memory_tier::*;
 pub use tassadar_workload_capability_frontier::*;
 
