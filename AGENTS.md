@@ -24,6 +24,12 @@
 - Domain-specific docs in `docs/` define the contract for their subsystem.
 - `docs/audits/` explains rationale and follow-on direction, but audits are not
   the canonical current-state spec.
+- For Tassadar paper-backed roadmap or issue work, the local paper corpus lives
+  in `~/code/alpha/tassadar/tassadar-research/papers/` and
+  `~/code/alpha/tassadar/can-llms-be-computers/papers/`.
+- The corresponding local reading notes live in
+  `~/code/alpha/tassadar/tassadar-research/notes.md` and
+  `~/code/alpha/tassadar/can-llms-be-computers/notes.md`.
 
 ## Workspace Map
 
