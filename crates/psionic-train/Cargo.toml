@@ -18,6 +18,7 @@ legacy-apple-toolkit-oracle = []
 
 [dependencies]
 ed25519-dalek = { workspace = true }
+flate2 = "1.0"
 half = "2.4.1"
 hex = { workspace = true }
 psionic-adapters = { path = "../psionic-adapters" }

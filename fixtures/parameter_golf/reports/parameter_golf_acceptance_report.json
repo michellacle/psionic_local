@@ -42,15 +42,15 @@
     },
     {
       "category_id": "single-device-trainer-parity",
-      "matrix_status": "partial",
+      "matrix_status": "implemented_early",
       "issue_refs": [
         "PGOLF-201/#166",
         "PGOLF-202/#167",
         "PGOLF-203/#168"
       ],
       "green_definition": "A Psionic-owned baseline decoder can train, validate, export, reload, and re-evaluate on a single device while matching the public baseline architecture and optimizer behavior.",
-      "current_repo_truth": "psionic-models now ships the compact Parameter Golf decoder family with stable tensor naming, baseline parameter accounting, and a frozen train_gpt.py parity fixture at the public 9x512 shape, and psionic-train now ships the challenge optimizer split, baseline schedule helpers, exact Muon reference math, and a frozen train_gpt.py optimizer fixture, but the single-device trainer and export or reload lane above them are still missing.",
-      "boundary_note": "A promising architecture sketch or one-off local run is not enough."
+      "current_repo_truth": "psionic-models now ships the compact Parameter Golf decoder family with stable tensor naming, baseline parameter accounting, a frozen train_gpt.py parity fixture at the public 9x512 shape, and named-parameter export helpers, while psionic-train plus psionic-eval now ship a bounded local-reference trainer with explicit single-device challenge batch geometry, grad accumulation, checkpoint and restart state, raw safetensors export, int8+zlib roundtrip restore, and validation re-eval under Psionic ownership. This is real single-device lane ownership, but it is still a bounded CPU-reference path rather than measured challenge-scale throughput closure.",
+      "boundary_note": "Treat this as stronger than sketches or one-off runs, but not as 8xH100 closure or leaderboard-ready throughput."
     },
     {
       "category_id": "distributed-throughput-closure",
@@ -89,5 +89,5 @@
       "boundary_note": "Treat this as blocked by both in-repo implementation work and the need for an explicit public accounting interpretation."
     }
   ],
-  "report_digest": "31a0babcfc274d89f8900af64733ef7ad969b45f2e1ebf9881016ba6ad5aaeb6"
+  "report_digest": "140e89565d1eada6c810a1f531c4da70a9a2e5a499cb3452a29b86e8ec510cb3"
 }

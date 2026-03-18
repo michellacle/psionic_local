@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use psionic_core::{DType, QuantizationMode, Shape};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -700,6 +702,17 @@ pub struct ParameterGolfWeights {
     pub lm_head: Option<ParameterGolfLinearWeights>,
 }
 
+/// One named Parameter Golf parameter tensor with stable shape metadata.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ParameterGolfParameterVector {
+    /// Stable tensor name.
+    pub parameter_id: String,
+    /// Logical tensor shape.
+    pub shape: Shape,
+    /// Flat dense values.
+    pub values: Vec<f32>,
+}
+
 impl ParameterGolfWeights {
     /// Builds the deterministic reference bundle used by the frozen parity fixture.
     pub fn from_initializer(
@@ -938,6 +951,48 @@ impl ParameterGolfWeights {
         }
         entries
     }
+
+    /// Returns all named parameter tensors in stable name order.
+    #[must_use]
+    pub fn parameter_vectors(&self, config: &ParameterGolfConfig) -> Vec<ParameterGolfParameterVector> {
+        let mut vectors = self
+            .tensor_entries(config)
+            .into_iter()
+            .map(|(metadata, values)| ParameterGolfParameterVector {
+                parameter_id: metadata.name,
+                shape: metadata.shape,
+                values: values.to_vec(),
+            })
+            .collect::<Vec<_>>();
+        vectors.sort_by(|left, right| left.parameter_id.cmp(&right.parameter_id));
+        vectors
+    }
+
+    /// Returns one named parameter tensor when it exists.
+    #[must_use]
+    pub fn parameter_vector(
+        &self,
+        config: &ParameterGolfConfig,
+        parameter_id: &str,
+    ) -> Option<ParameterGolfParameterVector> {
+        self.parameter_vectors(config)
+            .into_iter()
+            .find(|parameter| parameter.parameter_id == parameter_id)
+    }
+
+    /// Returns a rebuilt bundle with the supplied named tensor overrides.
+    pub fn with_parameter_overrides(
+        &self,
+        config: &ParameterGolfConfig,
+        overrides: &BTreeMap<String, Vec<f32>>,
+    ) -> Result<Self, ParameterGolfModelError> {
+        let mut updated = self.clone();
+        for (parameter_id, values) in overrides {
+            apply_parameter_override(&mut updated, parameter_id.as_str(), values.as_slice())?;
+        }
+        validate_weights(config, &updated)?;
+        Ok(updated)
+    }
 }
 
 /// CPU-reference build failure for the Parameter Golf family.
@@ -970,6 +1025,12 @@ pub enum ParameterGolfModelError {
     /// Untied configs require an LM head.
     #[error("lm_head is required when tie_embeddings=false")]
     MissingLmHead,
+    /// A named parameter override targeted an unknown tensor.
+    #[error("unknown parameter golf tensor `{parameter_id}`")]
+    UnknownParameter {
+        /// Unknown tensor name.
+        parameter_id: String,
+    },
 }
 
 /// CPU-reference execution failure for the Parameter Golf family.
@@ -1298,6 +1359,101 @@ fn validate_vector_length(
             expected,
         });
     }
+    Ok(())
+}
+
+fn apply_parameter_override(
+    bundle: &mut ParameterGolfWeights,
+    parameter_id: &str,
+    values: &[f32],
+) -> Result<(), ParameterGolfModelError> {
+    if parameter_id == "tok_emb.weight" {
+        assign_parameter_values(&mut bundle.token_embedding, parameter_id, values)?;
+        return Ok(());
+    }
+    if parameter_id == "skip_weights" {
+        assign_parameter_values(&mut bundle.skip_weights, parameter_id, values)?;
+        return Ok(());
+    }
+    if parameter_id == "lm_head.weight" {
+        let Some(lm_head) = &mut bundle.lm_head else {
+            return Err(ParameterGolfModelError::UnknownParameter {
+                parameter_id: String::from(parameter_id),
+            });
+        };
+        assign_parameter_values(&mut lm_head.weight, parameter_id, values)?;
+        return Ok(());
+    }
+    if let Some(rest) = parameter_id.strip_prefix("blocks.") {
+        let Some((layer_text, tail)) = rest.split_once('.') else {
+            return Err(ParameterGolfModelError::UnknownParameter {
+                parameter_id: String::from(parameter_id),
+            });
+        };
+        let Ok(layer_index) = layer_text.parse::<usize>() else {
+            return Err(ParameterGolfModelError::UnknownParameter {
+                parameter_id: String::from(parameter_id),
+            });
+        };
+        let Some(block) = bundle.blocks.get_mut(layer_index) else {
+            return Err(ParameterGolfModelError::UnknownParameter {
+                parameter_id: String::from(parameter_id),
+            });
+        };
+        match tail {
+            "attn.c_q.weight" => assign_parameter_values(
+                &mut block.attention.q_proj.weight,
+                parameter_id,
+                values,
+            )?,
+            "attn.c_k.weight" => assign_parameter_values(
+                &mut block.attention.k_proj.weight,
+                parameter_id,
+                values,
+            )?,
+            "attn.c_v.weight" => assign_parameter_values(
+                &mut block.attention.v_proj.weight,
+                parameter_id,
+                values,
+            )?,
+            "attn.proj.weight" => assign_parameter_values(
+                &mut block.attention.out_proj.weight,
+                parameter_id,
+                values,
+            )?,
+            "attn.q_gain" => {
+                assign_parameter_values(&mut block.attention.q_gain, parameter_id, values)?
+            }
+            "mlp.fc.weight" => {
+                assign_parameter_values(&mut block.mlp.fc.weight, parameter_id, values)?
+            }
+            "mlp.proj.weight" => {
+                assign_parameter_values(&mut block.mlp.proj.weight, parameter_id, values)?
+            }
+            "attn_scale" => assign_parameter_values(&mut block.attn_scale, parameter_id, values)?,
+            "mlp_scale" => assign_parameter_values(&mut block.mlp_scale, parameter_id, values)?,
+            "resid_mix" => assign_parameter_values(&mut block.resid_mix, parameter_id, values)?,
+            _ => {
+                return Err(ParameterGolfModelError::UnknownParameter {
+                    parameter_id: String::from(parameter_id),
+                });
+            }
+        }
+        return Ok(());
+    }
+    Err(ParameterGolfModelError::UnknownParameter {
+        parameter_id: String::from(parameter_id),
+    })
+}
+
+fn assign_parameter_values(
+    target: &mut Vec<f32>,
+    parameter_id: &str,
+    values: &[f32],
+) -> Result<(), ParameterGolfModelError> {
+    validate_vector_length(parameter_id, values, target.len())?;
+    target.clear();
+    target.extend_from_slice(values);
     Ok(())
 }
 
