@@ -12,12 +12,14 @@
 )]
 
 mod response_state;
+mod tassadar_route;
 mod tool_loop;
 
 pub use response_state::{
     ResponseConversationRef, ResponseStateBackend, ResponseStateCapability, ResponseStateContext,
     ResponseStateError, ResponseStateRecord, ResponseStateRetentionPolicy, ResponseStateStore,
 };
+pub use tassadar_route::*;
 pub use tool_loop::{
     ToolExecutionRequest, ToolGateway, ToolHistoryVisibility, ToolLoopController, ToolLoopError,
     ToolLoopModelRunner, ToolLoopModelTurn, ToolLoopOutcome, ToolLoopPolicy, ToolLoopRequest,

@@ -602,9 +602,11 @@ The current scope is:
   selection on the current subset, exact fallback on unsupported shapes, and
   benchmark reporting against CPU, reference-linear, and hull-cache baselines
 - landed Phase 9A bar: planner-owned hybrid routing through
-  `psionic.planner_executor_route`, with executor preflight, replay-stable
-  routing decisions, typed completed/fallback/refused outcomes, and explicit
-  planner-visible policy, budget, proof, selection, and refusal truth
+  `psionic.planner_executor_route`, with benchmark-gated route capability
+  descriptors shared across `psionic-serve`, `psionic-router`, and
+  `psionic-provider`, executor preflight, replay-stable routing decisions,
+  typed completed/fallback/refused outcomes, and explicit planner-visible
+  policy, budget, proof, selection, and refusal truth
 - landed article-hybrid workflow follow-on: `psionic-serve` now also exposes
   the specialized `psionic.article_hybrid_workflow` surface, which binds
   canonical article workloads into planner-owned exact-compute workflows while

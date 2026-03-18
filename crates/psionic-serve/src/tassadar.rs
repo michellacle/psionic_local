@@ -13,15 +13,19 @@ use psionic_research::{
     TassadarAcceptanceReport, TassadarCompiledArticleClosureReport,
     TassadarLearnedLongHorizonPolicyReport,
 };
+use psionic_router::{
+    TassadarPlannerExecutorDecodeCapability, TassadarPlannerExecutorRouteDescriptor,
+    TassadarPlannerExecutorRoutePosture, TassadarPlannerExecutorRouteRefusalReason,
+};
 use psionic_runtime::{
-    build_tassadar_execution_evidence_bundle, execute_tassadar_executor_request,
-    tassadar_article_class_corpus, tassadar_trace_abi_for_profile_id, tassadar_wasm_profile_for_id,
-    TassadarExecution, TassadarExecutionEvidenceBundle, TassadarExecutionRefusal,
-    TassadarExecutorDecodeMode, TassadarExecutorExecutionReport,
-    TassadarExecutorSelectionDiagnostic, TassadarInstruction, TassadarProgramArtifact,
-    TassadarRuntimeCapabilityReport, TassadarTraceEvent, TassadarTraceStep, TassadarValidationCase,
     TASSADAR_ARTICLE_CLASS_BENCHMARK_ENVIRONMENT_REF, TASSADAR_ARTICLE_CLASS_BENCHMARK_REF,
-    TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF,
+    TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF, TassadarExecution,
+    TassadarExecutionEvidenceBundle, TassadarExecutionRefusal, TassadarExecutorDecodeMode,
+    TassadarExecutorExecutionReport, TassadarExecutorSelectionDiagnostic, TassadarInstruction,
+    TassadarProgramArtifact, TassadarRuntimeCapabilityReport, TassadarTraceEvent,
+    TassadarTraceStep, TassadarValidationCase, build_tassadar_execution_evidence_bundle,
+    execute_tassadar_executor_request, tassadar_article_class_corpus,
+    tassadar_trace_abi_for_profile_id, tassadar_wasm_profile_for_id,
 };
 use psionic_train::{TassadarExecutorPromotionGateReport, TassadarExecutorSequenceFitReport};
 use serde::{Deserialize, Serialize};
@@ -1591,6 +1595,18 @@ pub enum TassadarPlannerRouterError {
     },
 }
 
+/// Capability-descriptor publication failure for the planner / executor route surface.
+#[derive(Clone, Debug, Error, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum TassadarPlannerRouteDescriptorError {
+    /// Publishing the benchmark-gated executor capability failed.
+    #[error("failed to publish Tassadar planner route descriptor: {detail}")]
+    CapabilityPublication {
+        /// Plain-text publication detail.
+        detail: String,
+    },
+}
+
 /// Local planner router that delegates exact subproblems into Tassadar.
 #[derive(Clone, Debug, Default)]
 pub struct LocalTassadarPlannerRouter {
@@ -1611,6 +1627,69 @@ impl LocalTassadarPlannerRouter {
     pub fn with_executor_service(mut self, executor_service: LocalTassadarExecutorService) -> Self {
         self.executor_service = executor_service;
         self
+    }
+
+    /// Publishes one routeable served capability descriptor for planner / executor negotiation.
+    pub fn route_capability_descriptor(
+        &self,
+        requested_model_id: Option<&str>,
+    ) -> Result<TassadarPlannerExecutorRouteDescriptor, TassadarPlannerRouteDescriptorError> {
+        let publication = self
+            .executor_service
+            .capability_publication(requested_model_id)
+            .map_err(
+                |error| TassadarPlannerRouteDescriptorError::CapabilityPublication {
+                    detail: error.to_string(),
+                },
+            )?;
+        let model_id = publication.model_descriptor.model.model_id.clone();
+        let decode_capabilities = publication
+            .model_descriptor
+            .compatibility
+            .supported_decode_modes
+            .iter()
+            .map(|mode| TassadarPlannerExecutorDecodeCapability {
+                requested_decode_mode: *mode,
+                route_posture: match mode {
+                    TassadarExecutorDecodeMode::ReferenceLinear => {
+                        TassadarPlannerExecutorRoutePosture::DirectGuaranteed
+                    }
+                    TassadarExecutorDecodeMode::HullCache
+                    | TassadarExecutorDecodeMode::SparseTopK => {
+                        TassadarPlannerExecutorRoutePosture::FallbackCapable
+                    }
+                },
+                benchmark_report_ref: String::from(TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF),
+                note: match mode {
+                    TassadarExecutorDecodeMode::ReferenceLinear => String::from(
+                        "benchmark-gated exact dense floor for planner-owned executor delegation",
+                    ),
+                    TassadarExecutorDecodeMode::HullCache => String::from(
+                        "benchmark-gated HullCache route posture; direct when current validation covers the workload and explicit fallback otherwise",
+                    ),
+                    TassadarExecutorDecodeMode::SparseTopK => String::from(
+                        "benchmark-gated SparseTopK route posture; direct when current validation covers the workload and explicit fallback otherwise",
+                    ),
+                },
+            })
+            .collect::<Vec<_>>();
+        Ok(TassadarPlannerExecutorRouteDescriptor::new(
+            format!("tassadar.planner_executor_route.{model_id}.v0"),
+            model_id,
+            TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF,
+            publication.workload_capability_matrix.matrix_digest.clone(),
+            decode_capabilities,
+            vec![
+                TassadarPlannerExecutorRouteRefusalReason::UnsupportedProduct,
+                TassadarPlannerExecutorRouteRefusalReason::UnknownModel,
+                TassadarPlannerExecutorRouteRefusalReason::ProviderNotReady,
+                TassadarPlannerExecutorRouteRefusalReason::BenchmarkGateMissing,
+                TassadarPlannerExecutorRouteRefusalReason::DecodeModeUnsupported,
+                TassadarPlannerExecutorRouteRefusalReason::RuntimeFallbackDisallowed,
+                TassadarPlannerExecutorRouteRefusalReason::DirectDecodeRequired,
+            ],
+            "benchmark-gated served planner / executor route descriptor above the current explicit executor-trace lane",
+        ))
     }
 
     /// Routes one planner-owned exact subproblem into Tassadar when policy allows.
@@ -2567,8 +2646,7 @@ const TASSADAR_LEARNED_PROMOTION_GATE_REPORT_REF: &str =
     "fixtures/tassadar/runs/sudoku_v0_promotion_v3/promotion_gate_report.json";
 const TASSADAR_LEARNED_9X9_SEQUENCE_FIT_REPORT_REF: &str =
     "fixtures/tassadar/runs/sudoku_9x9_v0_reference_run_v0/sequence_fit_report.json";
-const TASSADAR_ARCHITECTURE_COMPARISON_REPORT_REF: &str =
-    "fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v12/architecture_comparison_report.json";
+const TASSADAR_ARCHITECTURE_COMPARISON_REPORT_REF: &str = "fixtures/tassadar/runs/sudoku_v0_architecture_comparison_v12/architecture_comparison_report.json";
 const TASSADAR_REPLAY_SOURCE_BADGE: &str = "replay.tassadar";
 const TASSADAR_LIVE_SOURCE_BADGE: &str = "psionic.tassadar";
 const TASSADAR_LAB_SNAPSHOT_SCHEMA_VERSION: u16 = 1;
@@ -4629,11 +4707,7 @@ fn snapshot_terminal_label(passed: bool) -> String {
 }
 
 fn yes_no(value: bool) -> &'static str {
-    if value {
-        "yes"
-    } else {
-        "no"
-    }
+    if value { "yes" } else { "no" }
 }
 
 fn selection_state_label(state: psionic_runtime::TassadarExecutorSelectionState) -> &'static str {
@@ -4769,26 +4843,27 @@ fn stream_events_for_outcome(
 #[cfg(test)]
 mod tests {
     use super::{
-        LocalTassadarArticleExecutorSessionService, LocalTassadarArticleHybridWorkflowService,
-        LocalTassadarExecutorService, LocalTassadarLabService, LocalTassadarPlannerRouter,
-        TassadarArticleExecutorSessionOutcome, TassadarArticleExecutorSessionRequest,
-        TassadarArticleExecutorSessionServiceError, TassadarArticleExecutorSessionStreamEvent,
-        TassadarArticleHybridWorkflowOutcome, TassadarArticleHybridWorkflowRequest,
-        TassadarArticleHybridWorkflowServiceError, TassadarExecutorCapabilityPublicationError,
-        TassadarExecutorOutcome, TassadarExecutorRequest, TassadarExecutorServiceError,
-        TassadarExecutorStreamEvent, TassadarLabPreparedView, TassadarLabReplayId,
-        TassadarLabRequest, TassadarLabSourceKind, TassadarLabUpdate,
-        TassadarPlannerExecutorSubproblem, TassadarPlannerFallbackPolicy,
+        ARTICLE_EXECUTOR_SESSION_PRODUCT_ID, ARTICLE_HYBRID_WORKFLOW_PRODUCT_ID,
+        EXECUTOR_TRACE_PRODUCT_ID, LocalTassadarArticleExecutorSessionService,
+        LocalTassadarArticleHybridWorkflowService, LocalTassadarExecutorService,
+        LocalTassadarLabService, LocalTassadarPlannerRouter, PLANNER_EXECUTOR_ROUTE_PRODUCT_ID,
+        TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF, TassadarArticleExecutorSessionOutcome,
+        TassadarArticleExecutorSessionRequest, TassadarArticleExecutorSessionServiceError,
+        TassadarArticleExecutorSessionStreamEvent, TassadarArticleHybridWorkflowOutcome,
+        TassadarArticleHybridWorkflowRequest, TassadarArticleHybridWorkflowServiceError,
+        TassadarExecutorCapabilityPublicationError, TassadarExecutorOutcome,
+        TassadarExecutorRequest, TassadarExecutorServiceError, TassadarExecutorStreamEvent,
+        TassadarLabPreparedView, TassadarLabReplayId, TassadarLabRequest, TassadarLabSourceKind,
+        TassadarLabUpdate, TassadarPlannerExecutorSubproblem, TassadarPlannerFallbackPolicy,
         TassadarPlannerRouteReason, TassadarPlannerRouterError, TassadarPlannerRoutingBudget,
         TassadarPlannerRoutingOutcome, TassadarPlannerRoutingPolicy, TassadarPlannerRoutingRequest,
-        ARTICLE_EXECUTOR_SESSION_PRODUCT_ID, ARTICLE_HYBRID_WORKFLOW_PRODUCT_ID,
-        EXECUTOR_TRACE_PRODUCT_ID, PLANNER_EXECUTOR_ROUTE_PRODUCT_ID,
     };
     use psionic_models::TassadarExecutorFixture;
+    use psionic_router::TassadarPlannerExecutorRoutePosture;
     use psionic_runtime::{
-        tassadar_article_class_corpus, tassadar_validation_corpus, TassadarExecutorDecodeMode,
-        TassadarInstruction, TassadarProgram, TassadarProgramArtifact, TassadarTraceAbi,
-        TassadarWasmProfile,
+        TassadarExecutorDecodeMode, TassadarInstruction, TassadarProgram, TassadarProgramArtifact,
+        TassadarTraceAbi, TassadarWasmProfile, tassadar_article_class_corpus,
+        tassadar_validation_corpus,
     };
 
     fn request_for_case(case_id: &str) -> TassadarExecutorRequest {
@@ -5167,14 +5242,18 @@ mod tests {
         assert!(prepared.snapshot.proof_identity.is_some());
         assert!(prepared.snapshot.readable_log.is_some());
         assert!(prepared.snapshot.token_trace.is_some());
-        assert!(prepared
-            .updates
-            .iter()
-            .any(|update| matches!(update, TassadarLabUpdate::ProofIdentity { .. })));
-        assert!(prepared
-            .updates
-            .iter()
-            .any(|update| matches!(update, TassadarLabUpdate::Terminal { .. })));
+        assert!(
+            prepared
+                .updates
+                .iter()
+                .any(|update| matches!(update, TassadarLabUpdate::ProofIdentity { .. }))
+        );
+        assert!(
+            prepared
+                .updates
+                .iter()
+                .any(|update| matches!(update, TassadarLabUpdate::Terminal { .. }))
+        );
     }
 
     #[test]
@@ -5208,10 +5287,12 @@ mod tests {
             hybrid_replay.snapshot.artifact_ref.as_deref(),
             Some(super::TASSADAR_ARTICLE_HYBRID_WORKFLOW_ARTIFACT_REF)
         );
-        assert!(hybrid_replay
-            .updates
-            .iter()
-            .any(|update| matches!(update, TassadarLabUpdate::RoutingStatus { .. })));
+        assert!(
+            hybrid_replay
+                .updates
+                .iter()
+                .any(|update| matches!(update, TassadarLabUpdate::RoutingStatus { .. }))
+        );
 
         let acceptance_replay = service
             .prepare(&TassadarLabRequest::Replay {
@@ -5222,14 +5303,18 @@ mod tests {
             acceptance_replay.snapshot.replay_id,
             Some(TassadarLabReplayId::AcceptanceReport)
         );
-        assert!(acceptance_replay
-            .snapshot
-            .status_label
-            .contains("acceptance"));
-        assert!(acceptance_replay
-            .updates
-            .iter()
-            .any(|update| matches!(update, TassadarLabUpdate::StatusLine { .. })));
+        assert!(
+            acceptance_replay
+                .snapshot
+                .status_label
+                .contains("acceptance")
+        );
+        assert!(
+            acceptance_replay
+                .updates
+                .iter()
+                .any(|update| matches!(update, TassadarLabUpdate::StatusLine { .. }))
+        );
     }
 
     #[test]
@@ -5438,6 +5523,55 @@ mod tests {
     }
 
     #[test]
+    fn planner_router_route_capability_descriptor_is_machine_legible() {
+        let router = LocalTassadarPlannerRouter::new().with_executor_service(
+            LocalTassadarExecutorService::new()
+                .with_fixture(TassadarExecutorFixture::article_i32_compute_v1()),
+        );
+        let descriptor = router
+            .route_capability_descriptor(Some(
+                TassadarExecutorFixture::ARTICLE_I32_COMPUTE_MODEL_ID,
+            ))
+            .expect("route descriptor should publish");
+
+        assert_eq!(
+            descriptor.product_id,
+            psionic_router::TASSADAR_PLANNER_EXECUTOR_ROUTE_PRODUCT_ID
+        );
+        assert_eq!(
+            descriptor.model_id,
+            TassadarExecutorFixture::ARTICLE_I32_COMPUTE_MODEL_ID
+        );
+        let reference_linear = descriptor
+            .decode_capabilities
+            .iter()
+            .find(|capability| {
+                capability.requested_decode_mode == TassadarExecutorDecodeMode::ReferenceLinear
+            })
+            .expect("reference-linear decode capability");
+        assert_eq!(
+            reference_linear.route_posture,
+            TassadarPlannerExecutorRoutePosture::DirectGuaranteed
+        );
+        let hull_cache = descriptor
+            .decode_capabilities
+            .iter()
+            .find(|capability| {
+                capability.requested_decode_mode == TassadarExecutorDecodeMode::HullCache
+            })
+            .expect("hull-cache decode capability");
+        assert_eq!(
+            hull_cache.route_posture,
+            TassadarPlannerExecutorRoutePosture::FallbackCapable
+        );
+        assert_eq!(
+            hull_cache.benchmark_report_ref,
+            TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF
+        );
+        assert!(!descriptor.descriptor_digest.is_empty());
+    }
+
+    #[test]
     fn planner_router_can_return_typed_fallback_when_policy_disallows_runtime_decode_fallback() {
         let router = LocalTassadarPlannerRouter::new().with_executor_service(
             LocalTassadarExecutorService::new()
@@ -5479,11 +5613,13 @@ mod tests {
                     fallback.routing_decision.route_reason,
                     Some(TassadarPlannerRouteReason::ExecutorDecodeFallbackDisallowed)
                 );
-                assert!(fallback
-                    .routing_decision
-                    .selection
-                    .as_ref()
-                    .is_some_and(|selection| selection.is_fallback()));
+                assert!(
+                    fallback
+                        .routing_decision
+                        .selection
+                        .as_ref()
+                        .is_some_and(|selection| selection.is_fallback())
+                );
                 assert!(fallback.fallback_summary.contains("disallowed"));
             }
             other => panic!("expected typed fallback, got {other:?}"),

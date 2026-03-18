@@ -562,10 +562,12 @@ Current posture:
   `psionic-models`, and `psionic-eval`, with a validated direct decode mode,
   explicit fallback on unsupported shapes, and published sparse-top-k
   throughput/speedup/CPU-gap reporting alongside CPU, linear, and hull lanes
-- its Phase 9A hybrid planner route now exists in `psionic-serve`, with an
-  explicit `psionic.planner_executor_route` contract, executor preflight,
-  replay-stable routing decisions, typed completed/fallback/refused outcomes,
-  and planner-visible policy, budget, proof, selection, and refusal truth
+- its Phase 9A hybrid planner route now exists across `psionic-serve`,
+  `psionic-router`, and `psionic-provider`, with an explicit
+  `psionic.planner_executor_route` contract, benchmark-gated route capability
+  descriptors, direct-vs-fallback route posture, replay-stable routing
+  decisions, typed completed/fallback/refused outcomes, and planner-visible
+  policy, budget, proof, selection, and refusal truth
 - its article-hybrid workflow follow-on now also exists in `psionic-serve`,
   with the specialized `psionic.article_hybrid_workflow` contract bound to
   canonical article cases, preserved benchmark identity plus routing/proof

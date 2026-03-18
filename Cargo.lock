@@ -3781,6 +3781,7 @@ dependencies = [
  "psionic-cluster",
  "psionic-core",
  "psionic-models",
+ "psionic-router",
  "psionic-runtime",
  "psionic-serve",
  "serde",
@@ -3818,10 +3819,12 @@ dependencies = [
 name = "psionic-router"
 version = "0.1.1"
 dependencies = [
+ "hex",
  "psionic-models",
  "psionic-runtime",
  "serde",
  "serde_json",
+ "sha2",
  "tempfile",
  "thiserror 2.0.18",
 ]
