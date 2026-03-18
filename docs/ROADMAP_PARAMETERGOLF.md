@@ -212,12 +212,12 @@ Psionic does not yet ship the challenge lane itself:
 
 - no FineWeb Parameter Golf dataset manifest or shard-loader family
 - no exact SentencePiece byte-accounting oracle for challenge `val_bpb`
-- no Parameter Golf benchmark package, report, or acceptance checker
+- no Parameter Golf benchmark package or eval receipts
 - no compact challenge decoder family matching the public baseline
 - no Muon optimizer or challenge-matching optimizer grouping in Psionic
 - no single-device trainer that exports the challenge int8 plus zlib artifact
 - no transport-backed `8xH100` train lane proved at challenge throughput
-- no challenge wrapper or artifact-accounting contract for record-track review
+- no challenge wrapper or record-folder output contract for record-track review
 
 ## Gap Map
 
@@ -227,7 +227,7 @@ Psionic does not yet ship the challenge lane itself:
 | `psionic-models` | `implemented` model metadata plus bounded model families and runtime tokenizers | add the compact challenge decoder family with tied embeddings, GQA, RoPE, RMSNorm, residual mixing, and explicit parameter-count or byte-accounting facts |
 | `psionic-nn` | `implemented` reusable layers, losses, optimizer shells, and eval-only quantization wrappers | widen or compose the current layer set into a reusable causal-decoder path and add any missing train-time primitive support the lane needs |
 | `psionic-train` | `implemented_early` fixed-budget training core, optimizer math, mixed precision, model IO, checkpoint, and replay truth | add challenge-specific train loop, optimizer grouping, Muon support, grad accumulation, wallclock budgeting, and int8+zlib roundtrip export |
-| `psionic-eval` | `implemented` benchmark and eval contracts, but not this oracle | add exact Parameter Golf `val_loss` plus `val_bpb` eval reports, oracle parity fixtures, and challenge acceptance reporting |
+| `psionic-eval` | `implemented` benchmark and eval contracts, with a tracking-only lane acceptance checker but not the oracle itself | add exact Parameter Golf `val_loss` plus `val_bpb` eval reports, oracle parity fixtures, and challenge acceptance reporting tied to real lane receipts |
 | `psionic-distributed` | `implemented_early` public distributed helpers with reference-emulated public collectives | add the real multi-GPU training path we intend to use for `8xH100`, plus honest topology, communication, and refusal receipts |
 | `psionic-array` and backends | `implemented_early` bounded CPU/Metal/CUDA public surface, with wider CUDA backend kernels below it | widen the CUDA train-time kernel and runtime path needed for competitive small-decoder throughput without overclaiming the public array surface |
 | packaging and compatibility | `planned` for this lane | define the non-record versus record-track wrapper, code-byte accounting posture, record-folder output, and submission metadata path |
@@ -252,9 +252,11 @@ queue for the lane.
 
 The GitHub issue queue for this roadmap now exists under
 `PGOLF-000` / [#159](https://github.com/OpenAgentsInc/psionic/issues/159),
-with `PGOLF-001` /
-[#160](https://github.com/OpenAgentsInc/psionic/issues/160) reserved for the
-roadmap itself and the remaining child issues left open for implementation.
+with `PGOLF-001` / [#160](https://github.com/OpenAgentsInc/psionic/issues/160)
+reserved for the roadmap itself and `PGOLF-002` /
+[#161](https://github.com/OpenAgentsInc/psionic/issues/161) plus `PGOLF-003` /
+[#162](https://github.com/OpenAgentsInc/psionic/issues/162) now closing the
+governance baseline for claim language and acceptance tracking.
 
 ## Epic 0: Governance And Acceptance
 
@@ -273,8 +275,8 @@ Freeze the claim boundary before we chase benchmarks.
 | ID | Status | Proposed GitHub issue title | Description |
 | --- | --- | --- | --- |
 | `PGOLF-001` / [#160](https://github.com/OpenAgentsInc/psionic/issues/160) | done (2026-03-18) | `Psionic Parameter Golf: create the lane-specific roadmap and issue program` | This document closes the issue. It records the owner split, the public challenge snapshot as of 2026-03-18, and the dependency-ordered issue queue. |
-| `PGOLF-002` / [#161](https://github.com/OpenAgentsInc/psionic/issues/161) | open | `Psionic Parameter Golf: freeze challenge-accounting posture and record-vs-non-record claim language` | Decide how Psionic will describe `research`, `non_record_submission`, `record_candidate_blocked_on_accounting`, and `record_ready` posture; document how Rust runtime code, wrapper code, and build-time dependencies count against the public challenge rules instead of leaving the issue to implication. |
-| `PGOLF-003` / [#162](https://github.com/OpenAgentsInc/psionic/issues/162) | open | `Psionic Parameter Golf: add an acceptance matrix and checker for oracle parity, trainer parity, distributed closure, and submission posture` | Add one repo-owned acceptance contract for the lane so future claims point at an explicit report instead of free-form benchmark notes. The checker should separate oracle parity, single-device parity, distributed throughput closure, and packaging readiness. |
+| `PGOLF-002` / [#161](https://github.com/OpenAgentsInc/psionic/issues/161) | done (2026-03-18) | `Psionic Parameter Golf: freeze challenge-accounting posture and record-vs-non-record claim language` | The repo now has `docs/PARAMETER_GOLF_ACCOUNTING.md`, which freezes the allowed claim vocabulary, makes counted-runtime and wrapper posture explicit, and records that the current lane posture is `research` until stronger categories turn green. |
+| `PGOLF-003` / [#162](https://github.com/OpenAgentsInc/psionic/issues/162) | done (2026-03-18) | `Psionic Parameter Golf: add an acceptance matrix and checker for oracle parity, trainer parity, distributed closure, and submission posture` | The repo now has `docs/PARAMETER_GOLF_ACCEPTANCE_MATRIX.md`, `docs/parameter_golf_acceptance_report.schema.json`, `fixtures/parameter_golf/reports/parameter_golf_acceptance_report.json`, and `scripts/check-parameter-golf-acceptance.sh`, which turn the lane into a schema-backed tracking contract instead of free-form benchmark prose. |
 
 ## Epic 1: Data And Metric Oracle
 
@@ -360,11 +362,11 @@ research without losing the oracle.
 
 ## Current Execution Order
 
-### Phase 1: freeze challenge posture and acceptance
+### Phase 1: freeze challenge posture and acceptance (done 2026-03-18)
 
-- `PGOLF-001`
-- `PGOLF-002`
-- `PGOLF-003`
+- `PGOLF-001` -> roadmap and issue queue
+- `PGOLF-002` -> accounting and claim-language contract
+- `PGOLF-003` -> acceptance matrix, schema, report, and checker
 
 ### Phase 2: rebuild the challenge oracle
 
@@ -405,5 +407,5 @@ precise about what is true on 2026-03-18:
   path
 - the first truthful result should be parity against `train_gpt.py`, not a new
   architecture
-- record-track claims stay blocked until code-accounting and wrapper posture
-  are explicit
+- record-track claims stay blocked until the actual counted-runtime submission
+  path is implemented, not merely documented

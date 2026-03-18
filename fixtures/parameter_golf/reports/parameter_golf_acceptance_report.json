@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "schema_path": "docs/parameter_golf_acceptance_report.schema.json",
+  "runner": "scripts/check-parameter-golf-acceptance.sh",
+  "report_posture": "tracking_only",
+  "claim_vocabulary_version": "2026-03-18",
+  "current_claim_posture": "research",
+  "accounting_posture": {
+    "artifact_cap_bytes": 16000000,
+    "artifact_cap_unit": "decimal_bytes",
+    "counted_components": [
+      "entrypoint_code_bytes",
+      "compressed_model_bytes",
+      "shipped_runtime_code_bytes",
+      "shipped_wrapper_code_bytes",
+      "required_build_dependency_bytes"
+    ],
+    "rust_runtime_posture": "must_count_when_shipped",
+    "wrapper_posture": "allowed_only_when_counted_and_challenge_compatible",
+    "build_dependency_posture": "not_exempt_by_default",
+    "offline_evaluation_required": true
+  },
+  "selected_categories": [
+    "challenge-oracle-parity",
+    "single-device-trainer-parity",
+    "distributed-throughput-closure",
+    "packaging-readiness",
+    "record-track-readiness"
+  ],
+  "categories": [
+    {
+      "category_id": "challenge-oracle-parity",
+      "matrix_status": "planned",
+      "issue_refs": [
+        "PGOLF-101/#163",
+        "PGOLF-102/#164",
+        "PGOLF-103/#165"
+      ],
+      "green_definition": "Psionic reproduces the current FineWeb shard contract, fixed validation split, exact val_loss, and exact val_bpb accounting against frozen challenge fixtures.",
+      "current_repo_truth": "No Parameter Golf data contract, SentencePiece byte-accounting oracle, or parity fixtures are landed in psionic-data or psionic-eval yet.",
+      "boundary_note": "Do not claim comparable Parameter Golf scores until this category is green."
+    },
+    {
+      "category_id": "single-device-trainer-parity",
+      "matrix_status": "planned",
+      "issue_refs": [
+        "PGOLF-201/#166",
+        "PGOLF-202/#167",
+        "PGOLF-203/#168"
+      ],
+      "green_definition": "A Psionic-owned baseline decoder can train, validate, export, reload, and re-evaluate on a single device while matching the public baseline architecture and optimizer behavior.",
+      "current_repo_truth": "No compact challenge decoder family, Muon parity, or single-device reference trainer exists yet in psionic-models or psionic-train.",
+      "boundary_note": "A promising architecture sketch or one-off local run is not enough."
+    },
+    {
+      "category_id": "distributed-throughput-closure",
+      "matrix_status": "planned",
+      "issue_refs": [
+        "PGOLF-301/#169",
+        "PGOLF-302/#170",
+        "PGOLF-303/#171"
+      ],
+      "green_definition": "Psionic has one explicit 8xH100 execution path with topology, timing, memory, and artifact receipts that support the declared challenge bar.",
+      "current_repo_truth": "No benchmark package, no distributed 8xH100 trainer lane, and no widened CUDA training surface are landed for Parameter Golf yet.",
+      "boundary_note": "Do not infer 8xH100 closure from local or reference-emulated distributed helpers."
+    },
+    {
+      "category_id": "packaging-readiness",
+      "matrix_status": "partial",
+      "issue_refs": [
+        "PGOLF-002/#161",
+        "PGOLF-401/#172"
+      ],
+      "green_definition": "Psionic can emit one self-contained submission folder with explicit artifact-byte accounting, runnable entrypoint shape, record metadata, and preserved receipts.",
+      "current_repo_truth": "Claim language and accounting posture are now explicit in docs/PARAMETER_GOLF_ACCOUNTING.md, but no runnable submission wrapper, submission.json generator, README generator, or record-folder output contract is landed yet.",
+      "boundary_note": "This category is only green at the governance level today; the actual package is still missing."
+    },
+    {
+      "category_id": "record-track-readiness",
+      "matrix_status": "partial_outside_psionic",
+      "issue_refs": [
+        "PGOLF-002/#161",
+        "PGOLF-302/#170",
+        "PGOLF-401/#172",
+        "PGOLF-403/#174"
+      ],
+      "green_definition": "Psionic can defend a record-track submission under the published challenge rules, including counted code, self-contained evaluation, and reproducible 8xH100 execution.",
+      "current_repo_truth": "The public challenge language still centers train_gpt.py and counted script bytes, while Psionic has not yet landed either the technical lane or the final counted-runtime story.",
+      "boundary_note": "Treat this as blocked by both in-repo implementation work and the need for an explicit public accounting interpretation."
+    }
+  ],
+  "report_digest": "e56942ccd2ef0a0fd63108d671ee3f14c950ed84b5e75602234eb7bb2d75be27"
+}

@@ -1472,8 +1472,14 @@ For canonical current-state detail, use `docs/ARCHITECTURE.md` and
   runbook, pass criteria, expected signals, and bounded current scope.
 - **[docs/FM_BRIDGE_CONSIDERATIONS.md](docs/FM_BRIDGE_CONSIDERATIONS.md)** — Apple Foundation Models bridge: architecture, binary discovery, build, run, test, shipping, and user requirements in full detail.
 - **[docs/ACTIVATION_FINGERPRINT_PROOFS.md](docs/ACTIVATION_FINGERPRINT_PROOFS.md)** — activation-fingerprint proof posture, embeddings-first artifact generation, and benchmark semantics.
+- **[docs/PARAMETER_GOLF_ACCOUNTING.md](docs/PARAMETER_GOLF_ACCOUNTING.md)** — canonical Parameter Golf claim-language and artifact-accounting contract for research, non-record, and record-track posture.
+- **[docs/PARAMETER_GOLF_ACCEPTANCE_MATRIX.md](docs/PARAMETER_GOLF_ACCEPTANCE_MATRIX.md)** — canonical Parameter Golf acceptance matrix for oracle parity, trainer parity, throughput closure, packaging readiness, and record-track readiness.
 - **[docs/ROADMAP_FM.md](docs/ROADMAP_FM.md)** — Apple FM lane roadmap and API coverage.
 - **[docs/ROADMAP_PARAMETERGOLF.md](docs/ROADMAP_PARAMETERGOLF.md)** — Parameter Golf lane roadmap for challenge-oracle parity, compact decoder training, artifact accounting, and submission packaging inside Psionic.
+- `scripts/check-parameter-golf-acceptance.sh` and
+  `fixtures/parameter_golf/reports/parameter_golf_acceptance_report.json` are
+  the canonical checker and machine-readable acceptance artifact for current
+  Parameter Golf claim truth.
 - **[docs/ROADMAP_TASSADAR.md](docs/ROADMAP_TASSADAR.md)** — Tassadar lane roadmap from the current bounded executor substrate to article-grade WebAssembly in-model compute.
 - **[docs/ROADMAP_TASSADAR_INDEX.md](docs/ROADMAP_TASSADAR_INDEX.md)** — compact Tassadar phase-to-artifact index for canonical bundle roots, audits, validators, and current claim boundaries.
 - `scripts/check-tassadar-acceptance.sh` and
