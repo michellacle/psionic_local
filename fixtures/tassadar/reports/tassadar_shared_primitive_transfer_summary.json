@@ -1,0 +1,566 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.shared_primitive_transfer.summary.v1",
+  "transfer_report": {
+    "schema_version": 1,
+    "report_id": "tassadar.shared_primitive_transfer.report.v1",
+    "contract_digest": "fc3061ba92311c8a83678aa9519c97b5679a7fae3391cff9de36f2893f8e586c",
+    "evidence_bundle": {
+      "schema_version": 1,
+      "bundle_id": "tassadar.shared_primitive_transfer.evidence_bundle.v1",
+      "contract_digest": "fc3061ba92311c8a83678aa9519c97b5679a7fae3391cff9de36f2893f8e586c",
+      "publication_digest": "b6b6908a34f0ab17e7a21dc8ad2ab350310d8b4752c95c181fc1bbd7767974d1",
+      "transfer_cases": [
+        {
+          "case_id": "sort_merge_zero_shot",
+          "held_out_algorithm_family": "sort_merge",
+          "regime": "zero_shot",
+          "reused_primitive_ids": [
+            "tassadar.primitive.compare_candidates.v1",
+            "tassadar.primitive.select_candidate.v1",
+            "tassadar.primitive.merge_state.v1"
+          ],
+          "primitive_reuse_bps": 8600,
+          "final_task_exactness_bps": 8100,
+          "evidence_refs": [
+            "fixtures/tassadar/reports/tassadar_subroutine_library_ablation_report.json"
+          ],
+          "detail": "Held-out sort/merge stays strong at the primitive layer under zero-shot reuse, but some composition loss remains in the merge stage."
+        },
+        {
+          "case_id": "sort_merge_few_shot",
+          "held_out_algorithm_family": "sort_merge",
+          "regime": "few_shot",
+          "reused_primitive_ids": [
+            "tassadar.primitive.compare_candidates.v1",
+            "tassadar.primitive.select_candidate.v1",
+            "tassadar.primitive.merge_state.v1"
+          ],
+          "primitive_reuse_bps": 9100,
+          "final_task_exactness_bps": 8800,
+          "evidence_refs": [
+            "fixtures/tassadar/reports/tassadar_subroutine_library_ablation_report.json"
+          ],
+          "detail": "Few-shot adaptation largely closes the sort/merge composition gap while staying bounded to the published primitive vocabulary."
+        },
+        {
+          "case_id": "clrs_shortest_path_zero_shot",
+          "held_out_algorithm_family": "clrs_shortest_path",
+          "regime": "zero_shot",
+          "reused_primitive_ids": [
+            "tassadar.primitive.reachability_expand.v1",
+            "tassadar.primitive.relax_state.v1",
+            "tassadar.primitive.compare_candidates.v1",
+            "tassadar.primitive.merge_state.v1"
+          ],
+          "primitive_reuse_bps": 8200,
+          "final_task_exactness_bps": 7600,
+          "evidence_refs": [
+            "fixtures/tassadar/reports/tassadar_subroutine_library_ablation_report.json",
+            "fixtures/tassadar/reports/tassadar_clrs_wasm_bridge_report.json"
+          ],
+          "detail": "Shortest-path transfer is mostly present at the primitive layer, but relaxation and frontier merge still cost final-task exactness under zero-shot reuse."
+        },
+        {
+          "case_id": "clrs_shortest_path_few_shot",
+          "held_out_algorithm_family": "clrs_shortest_path",
+          "regime": "few_shot",
+          "reused_primitive_ids": [
+            "tassadar.primitive.reachability_expand.v1",
+            "tassadar.primitive.relax_state.v1",
+            "tassadar.primitive.compare_candidates.v1",
+            "tassadar.primitive.merge_state.v1"
+          ],
+          "primitive_reuse_bps": 8900,
+          "final_task_exactness_bps": 8400,
+          "evidence_refs": [
+            "fixtures/tassadar/reports/tassadar_subroutine_library_ablation_report.json",
+            "fixtures/tassadar/reports/tassadar_clrs_wasm_bridge_report.json"
+          ],
+          "detail": "Few-shot shortest-path reuse improves both relax and merge composition while remaining below compiled exactness."
+        },
+        {
+          "case_id": "clrs_wasm_shortest_path_zero_shot",
+          "held_out_algorithm_family": "clrs_wasm_shortest_path",
+          "regime": "zero_shot",
+          "reused_primitive_ids": [
+            "tassadar.primitive.reachability_expand.v1",
+            "tassadar.primitive.relax_state.v1",
+            "tassadar.primitive.compare_candidates.v1"
+          ],
+          "primitive_reuse_bps": 7800,
+          "final_task_exactness_bps": 7100,
+          "evidence_refs": [
+            "fixtures/tassadar/reports/tassadar_clrs_wasm_bridge_report.json",
+            "fixtures/tassadar/reports/tassadar_learnability_gap_report.json"
+          ],
+          "detail": "The CLRS-to-Wasm bridge survives zero-shot primitive transfer better than full-task composition, so the bridge remains an honest held-out transfer target rather than a solved executor family."
+        },
+        {
+          "case_id": "clrs_wasm_shortest_path_few_shot",
+          "held_out_algorithm_family": "clrs_wasm_shortest_path",
+          "regime": "few_shot",
+          "reused_primitive_ids": [
+            "tassadar.primitive.reachability_expand.v1",
+            "tassadar.primitive.relax_state.v1",
+            "tassadar.primitive.compare_candidates.v1"
+          ],
+          "primitive_reuse_bps": 8600,
+          "final_task_exactness_bps": 8100,
+          "evidence_refs": [
+            "fixtures/tassadar/reports/tassadar_clrs_wasm_bridge_report.json",
+            "fixtures/tassadar/reports/tassadar_learnability_gap_report.json"
+          ],
+          "detail": "Few-shot CLRS-to-Wasm reuse gains primitive stability, but end-to-end exactness still trails the compiled bridge."
+        },
+        {
+          "case_id": "hungarian_matching_zero_shot",
+          "held_out_algorithm_family": "hungarian_matching",
+          "regime": "zero_shot",
+          "reused_primitive_ids": [
+            "tassadar.primitive.relax_state.v1",
+            "tassadar.primitive.compare_candidates.v1",
+            "tassadar.primitive.select_candidate.v1",
+            "tassadar.primitive.merge_state.v1"
+          ],
+          "primitive_reuse_bps": 7400,
+          "final_task_exactness_bps": 6700,
+          "evidence_refs": [
+            "fixtures/tassadar/reports/tassadar_compiled_article_closure_report.json",
+            "fixtures/tassadar/reports/tassadar_learnability_gap_report.json"
+          ],
+          "detail": "Hungarian matching shows real primitive reuse, but the primitive layer itself is still weak enough that selection quality and merge fidelity both lag under zero-shot transfer."
+        },
+        {
+          "case_id": "hungarian_matching_few_shot",
+          "held_out_algorithm_family": "hungarian_matching",
+          "regime": "few_shot",
+          "reused_primitive_ids": [
+            "tassadar.primitive.relax_state.v1",
+            "tassadar.primitive.compare_candidates.v1",
+            "tassadar.primitive.select_candidate.v1",
+            "tassadar.primitive.merge_state.v1"
+          ],
+          "primitive_reuse_bps": 8300,
+          "final_task_exactness_bps": 7600,
+          "evidence_refs": [
+            "fixtures/tassadar/reports/tassadar_compiled_article_closure_report.json",
+            "fixtures/tassadar/reports/tassadar_learnability_gap_report.json"
+          ],
+          "detail": "Few-shot Hungarian transfer improves the primitive layer materially, but full assignment composition still trails the compiled anchor."
+        },
+        {
+          "case_id": "sudoku_search_zero_shot",
+          "held_out_algorithm_family": "sudoku_search",
+          "regime": "zero_shot",
+          "reused_primitive_ids": [
+            "tassadar.primitive.reachability_expand.v1",
+            "tassadar.primitive.select_candidate.v1",
+            "tassadar.primitive.bounded_backtrack.v1"
+          ],
+          "primitive_reuse_bps": 7000,
+          "final_task_exactness_bps": 5600,
+          "evidence_refs": [
+            "fixtures/tassadar/reports/tassadar_verifier_guided_search_report.json",
+            "fixtures/tassadar/reports/tassadar_learnability_gap_report.json"
+          ],
+          "detail": "Sudoku search exposes both weak primitive transfer and a large composition gap, so the lane still needs explicit refusal and research-only posture."
+        },
+        {
+          "case_id": "sudoku_search_few_shot",
+          "held_out_algorithm_family": "sudoku_search",
+          "regime": "few_shot",
+          "reused_primitive_ids": [
+            "tassadar.primitive.reachability_expand.v1",
+            "tassadar.primitive.select_candidate.v1",
+            "tassadar.primitive.bounded_backtrack.v1"
+          ],
+          "primitive_reuse_bps": 8100,
+          "final_task_exactness_bps": 6900,
+          "evidence_refs": [
+            "fixtures/tassadar/reports/tassadar_verifier_guided_search_report.json",
+            "fixtures/tassadar/reports/tassadar_learnability_gap_report.json"
+          ],
+          "detail": "Few-shot Sudoku search recovers the primitive layer but still leaves a large search-composition gap centered on bounded backtrack orchestration."
+        },
+        {
+          "case_id": "verifier_search_kernel_zero_shot",
+          "held_out_algorithm_family": "verifier_search_kernel",
+          "regime": "zero_shot",
+          "reused_primitive_ids": [
+            "tassadar.primitive.reachability_expand.v1",
+            "tassadar.primitive.select_candidate.v1",
+            "tassadar.primitive.bounded_backtrack.v1"
+          ],
+          "primitive_reuse_bps": 8500,
+          "final_task_exactness_bps": 7900,
+          "evidence_refs": [
+            "fixtures/tassadar/reports/tassadar_verifier_guided_search_report.json"
+          ],
+          "detail": "The synthetic verifier-guided kernel keeps its primitive layer strong under zero-shot reuse, which makes it a useful contrast against the harder Sudoku composition story."
+        },
+        {
+          "case_id": "verifier_search_kernel_few_shot",
+          "held_out_algorithm_family": "verifier_search_kernel",
+          "regime": "few_shot",
+          "reused_primitive_ids": [
+            "tassadar.primitive.reachability_expand.v1",
+            "tassadar.primitive.select_candidate.v1",
+            "tassadar.primitive.bounded_backtrack.v1"
+          ],
+          "primitive_reuse_bps": 9200,
+          "final_task_exactness_bps": 8700,
+          "evidence_refs": [
+            "fixtures/tassadar/reports/tassadar_verifier_guided_search_report.json"
+          ],
+          "detail": "Few-shot verifier-guided search approaches the published primitive ceiling while remaining a research substrate rather than a promoted solver claim."
+        }
+      ],
+      "primitive_ablations": [
+        {
+          "primitive_id": "tassadar.primitive.reachability_expand.v1",
+          "primitive_kind": "reachability_expand",
+          "held_out_algorithm_families": [
+            "clrs_shortest_path",
+            "clrs_wasm_shortest_path",
+            "sudoku_search",
+            "verifier_search_kernel"
+          ],
+          "mean_zero_shot_drop_bps": 950,
+          "mean_few_shot_drop_bps": 700,
+          "detail": "frontier expansion is one of the cross-family primitives that still matters after few-shot adaptation"
+        },
+        {
+          "primitive_id": "tassadar.primitive.relax_state.v1",
+          "primitive_kind": "relax_state",
+          "held_out_algorithm_families": [
+            "clrs_shortest_path",
+            "clrs_wasm_shortest_path",
+            "hungarian_matching"
+          ],
+          "mean_zero_shot_drop_bps": 1100,
+          "mean_few_shot_drop_bps": 800,
+          "detail": "relaxation remains a foundational primitive for shortest-path style transfer and still materially affects matching-family transfer"
+        },
+        {
+          "primitive_id": "tassadar.primitive.compare_candidates.v1",
+          "primitive_kind": "compare_candidates",
+          "held_out_algorithm_families": [
+            "sort_merge",
+            "clrs_shortest_path",
+            "hungarian_matching"
+          ],
+          "mean_zero_shot_drop_bps": 850,
+          "mean_few_shot_drop_bps": 600,
+          "detail": "candidate comparison transfers broadly, but its impact is smaller than relaxation or bounded backtrack on the current held-out set"
+        },
+        {
+          "primitive_id": "tassadar.primitive.select_candidate.v1",
+          "primitive_kind": "select_candidate",
+          "held_out_algorithm_families": [
+            "sort_merge",
+            "hungarian_matching",
+            "sudoku_search",
+            "verifier_search_kernel"
+          ],
+          "mean_zero_shot_drop_bps": 900,
+          "mean_few_shot_drop_bps": 650,
+          "detail": "selection is a broad cross-family primitive whose loss hurts both search and matching transfer regimes"
+        },
+        {
+          "primitive_id": "tassadar.primitive.merge_state.v1",
+          "primitive_kind": "merge_state",
+          "held_out_algorithm_families": [
+            "sort_merge",
+            "clrs_shortest_path",
+            "hungarian_matching"
+          ],
+          "mean_zero_shot_drop_bps": 700,
+          "mean_few_shot_drop_bps": 550,
+          "detail": "merge stays useful, but it is not the main bottleneck once the stronger relax/select/backtrack primitives are present"
+        },
+        {
+          "primitive_id": "tassadar.primitive.bounded_backtrack.v1",
+          "primitive_kind": "bounded_backtrack",
+          "held_out_algorithm_families": [
+            "sudoku_search",
+            "verifier_search_kernel"
+          ],
+          "mean_zero_shot_drop_bps": 1400,
+          "mean_few_shot_drop_bps": 1050,
+          "detail": "bounded backtrack is the most fragile but also the most valuable primitive on the current search-family transfer set"
+        }
+      ],
+      "claim_boundary": "this bundle records bounded shared primitive transfer evidence over declared held-out algorithm families only. Primitive reuse and final-task exactness remain separate metrics so primitive-layer transfer does not get overstated as full executor closure",
+      "bundle_digest": "a3754922467ef94412a670ae4d44b6f3b0511992b33d4bdebfbf7c6d30d43444"
+    },
+    "case_reports": [
+      {
+        "case_id": "sort_merge_zero_shot",
+        "held_out_algorithm_family": "sort_merge",
+        "regime": "zero_shot",
+        "primitive_reuse_bps": 8600,
+        "final_task_exactness_bps": 8100,
+        "composition_gap_bps": 500,
+        "failure_layer": "none",
+        "evidence_refs": [
+          "fixtures/tassadar/reports/tassadar_subroutine_library_ablation_report.json"
+        ],
+        "detail": "Held-out sort/merge stays strong at the primitive layer under zero-shot reuse, but some composition loss remains in the merge stage."
+      },
+      {
+        "case_id": "sort_merge_few_shot",
+        "held_out_algorithm_family": "sort_merge",
+        "regime": "few_shot",
+        "primitive_reuse_bps": 9100,
+        "final_task_exactness_bps": 8800,
+        "composition_gap_bps": 300,
+        "failure_layer": "none",
+        "evidence_refs": [
+          "fixtures/tassadar/reports/tassadar_subroutine_library_ablation_report.json"
+        ],
+        "detail": "Few-shot adaptation largely closes the sort/merge composition gap while staying bounded to the published primitive vocabulary."
+      },
+      {
+        "case_id": "clrs_shortest_path_zero_shot",
+        "held_out_algorithm_family": "clrs_shortest_path",
+        "regime": "zero_shot",
+        "primitive_reuse_bps": 8200,
+        "final_task_exactness_bps": 7600,
+        "composition_gap_bps": 600,
+        "failure_layer": "none",
+        "evidence_refs": [
+          "fixtures/tassadar/reports/tassadar_subroutine_library_ablation_report.json",
+          "fixtures/tassadar/reports/tassadar_clrs_wasm_bridge_report.json"
+        ],
+        "detail": "Shortest-path transfer is mostly present at the primitive layer, but relaxation and frontier merge still cost final-task exactness under zero-shot reuse."
+      },
+      {
+        "case_id": "clrs_shortest_path_few_shot",
+        "held_out_algorithm_family": "clrs_shortest_path",
+        "regime": "few_shot",
+        "primitive_reuse_bps": 8900,
+        "final_task_exactness_bps": 8400,
+        "composition_gap_bps": 500,
+        "failure_layer": "none",
+        "evidence_refs": [
+          "fixtures/tassadar/reports/tassadar_subroutine_library_ablation_report.json",
+          "fixtures/tassadar/reports/tassadar_clrs_wasm_bridge_report.json"
+        ],
+        "detail": "Few-shot shortest-path reuse improves both relax and merge composition while remaining below compiled exactness."
+      },
+      {
+        "case_id": "clrs_wasm_shortest_path_zero_shot",
+        "held_out_algorithm_family": "clrs_wasm_shortest_path",
+        "regime": "zero_shot",
+        "primitive_reuse_bps": 7800,
+        "final_task_exactness_bps": 7100,
+        "composition_gap_bps": 700,
+        "failure_layer": "none",
+        "evidence_refs": [
+          "fixtures/tassadar/reports/tassadar_clrs_wasm_bridge_report.json",
+          "fixtures/tassadar/reports/tassadar_learnability_gap_report.json"
+        ],
+        "detail": "The CLRS-to-Wasm bridge survives zero-shot primitive transfer better than full-task composition, so the bridge remains an honest held-out transfer target rather than a solved executor family."
+      },
+      {
+        "case_id": "clrs_wasm_shortest_path_few_shot",
+        "held_out_algorithm_family": "clrs_wasm_shortest_path",
+        "regime": "few_shot",
+        "primitive_reuse_bps": 8600,
+        "final_task_exactness_bps": 8100,
+        "composition_gap_bps": 500,
+        "failure_layer": "none",
+        "evidence_refs": [
+          "fixtures/tassadar/reports/tassadar_clrs_wasm_bridge_report.json",
+          "fixtures/tassadar/reports/tassadar_learnability_gap_report.json"
+        ],
+        "detail": "Few-shot CLRS-to-Wasm reuse gains primitive stability, but end-to-end exactness still trails the compiled bridge."
+      },
+      {
+        "case_id": "hungarian_matching_zero_shot",
+        "held_out_algorithm_family": "hungarian_matching",
+        "regime": "zero_shot",
+        "primitive_reuse_bps": 7400,
+        "final_task_exactness_bps": 6700,
+        "composition_gap_bps": 700,
+        "failure_layer": "primitive_layer",
+        "evidence_refs": [
+          "fixtures/tassadar/reports/tassadar_compiled_article_closure_report.json",
+          "fixtures/tassadar/reports/tassadar_learnability_gap_report.json"
+        ],
+        "detail": "Hungarian matching shows real primitive reuse, but the primitive layer itself is still weak enough that selection quality and merge fidelity both lag under zero-shot transfer."
+      },
+      {
+        "case_id": "hungarian_matching_few_shot",
+        "held_out_algorithm_family": "hungarian_matching",
+        "regime": "few_shot",
+        "primitive_reuse_bps": 8300,
+        "final_task_exactness_bps": 7600,
+        "composition_gap_bps": 700,
+        "failure_layer": "none",
+        "evidence_refs": [
+          "fixtures/tassadar/reports/tassadar_compiled_article_closure_report.json",
+          "fixtures/tassadar/reports/tassadar_learnability_gap_report.json"
+        ],
+        "detail": "Few-shot Hungarian transfer improves the primitive layer materially, but full assignment composition still trails the compiled anchor."
+      },
+      {
+        "case_id": "sudoku_search_zero_shot",
+        "held_out_algorithm_family": "sudoku_search",
+        "regime": "zero_shot",
+        "primitive_reuse_bps": 7000,
+        "final_task_exactness_bps": 5600,
+        "composition_gap_bps": 1400,
+        "failure_layer": "mixed",
+        "evidence_refs": [
+          "fixtures/tassadar/reports/tassadar_verifier_guided_search_report.json",
+          "fixtures/tassadar/reports/tassadar_learnability_gap_report.json"
+        ],
+        "detail": "Sudoku search exposes both weak primitive transfer and a large composition gap, so the lane still needs explicit refusal and research-only posture."
+      },
+      {
+        "case_id": "sudoku_search_few_shot",
+        "held_out_algorithm_family": "sudoku_search",
+        "regime": "few_shot",
+        "primitive_reuse_bps": 8100,
+        "final_task_exactness_bps": 6900,
+        "composition_gap_bps": 1200,
+        "failure_layer": "composition_layer",
+        "evidence_refs": [
+          "fixtures/tassadar/reports/tassadar_verifier_guided_search_report.json",
+          "fixtures/tassadar/reports/tassadar_learnability_gap_report.json"
+        ],
+        "detail": "Few-shot Sudoku search recovers the primitive layer but still leaves a large search-composition gap centered on bounded backtrack orchestration."
+      },
+      {
+        "case_id": "verifier_search_kernel_zero_shot",
+        "held_out_algorithm_family": "verifier_search_kernel",
+        "regime": "zero_shot",
+        "primitive_reuse_bps": 8500,
+        "final_task_exactness_bps": 7900,
+        "composition_gap_bps": 600,
+        "failure_layer": "none",
+        "evidence_refs": [
+          "fixtures/tassadar/reports/tassadar_verifier_guided_search_report.json"
+        ],
+        "detail": "The synthetic verifier-guided kernel keeps its primitive layer strong under zero-shot reuse, which makes it a useful contrast against the harder Sudoku composition story."
+      },
+      {
+        "case_id": "verifier_search_kernel_few_shot",
+        "held_out_algorithm_family": "verifier_search_kernel",
+        "regime": "few_shot",
+        "primitive_reuse_bps": 9200,
+        "final_task_exactness_bps": 8700,
+        "composition_gap_bps": 500,
+        "failure_layer": "none",
+        "evidence_refs": [
+          "fixtures/tassadar/reports/tassadar_verifier_guided_search_report.json"
+        ],
+        "detail": "Few-shot verifier-guided search approaches the published primitive ceiling while remaining a research substrate rather than a promoted solver claim."
+      }
+    ],
+    "ablation_summaries": [
+      {
+        "primitive_id": "tassadar.primitive.reachability_expand.v1",
+        "primitive_kind": "reachability_expand",
+        "held_out_algorithm_count": 4,
+        "mean_zero_shot_drop_bps": 950,
+        "mean_few_shot_drop_bps": 700,
+        "foundational": true,
+        "detail": "frontier expansion is one of the cross-family primitives that still matters after few-shot adaptation"
+      },
+      {
+        "primitive_id": "tassadar.primitive.relax_state.v1",
+        "primitive_kind": "relax_state",
+        "held_out_algorithm_count": 3,
+        "mean_zero_shot_drop_bps": 1100,
+        "mean_few_shot_drop_bps": 800,
+        "foundational": true,
+        "detail": "relaxation remains a foundational primitive for shortest-path style transfer and still materially affects matching-family transfer"
+      },
+      {
+        "primitive_id": "tassadar.primitive.compare_candidates.v1",
+        "primitive_kind": "compare_candidates",
+        "held_out_algorithm_count": 3,
+        "mean_zero_shot_drop_bps": 850,
+        "mean_few_shot_drop_bps": 600,
+        "foundational": false,
+        "detail": "candidate comparison transfers broadly, but its impact is smaller than relaxation or bounded backtrack on the current held-out set"
+      },
+      {
+        "primitive_id": "tassadar.primitive.select_candidate.v1",
+        "primitive_kind": "select_candidate",
+        "held_out_algorithm_count": 4,
+        "mean_zero_shot_drop_bps": 900,
+        "mean_few_shot_drop_bps": 650,
+        "foundational": true,
+        "detail": "selection is a broad cross-family primitive whose loss hurts both search and matching transfer regimes"
+      },
+      {
+        "primitive_id": "tassadar.primitive.merge_state.v1",
+        "primitive_kind": "merge_state",
+        "held_out_algorithm_count": 3,
+        "mean_zero_shot_drop_bps": 700,
+        "mean_few_shot_drop_bps": 550,
+        "foundational": false,
+        "detail": "merge stays useful, but it is not the main bottleneck once the stronger relax/select/backtrack primitives are present"
+      },
+      {
+        "primitive_id": "tassadar.primitive.bounded_backtrack.v1",
+        "primitive_kind": "bounded_backtrack",
+        "held_out_algorithm_count": 2,
+        "mean_zero_shot_drop_bps": 1400,
+        "mean_few_shot_drop_bps": 1050,
+        "foundational": true,
+        "detail": "bounded backtrack is the most fragile but also the most valuable primitive on the current search-family transfer set"
+      }
+    ],
+    "regime_summaries": [
+      {
+        "regime": "zero_shot",
+        "case_count": 6,
+        "mean_primitive_reuse_bps": 7916,
+        "mean_final_task_exactness_bps": 7166,
+        "composition_bottleneck_count": 1
+      },
+      {
+        "regime": "few_shot",
+        "case_count": 6,
+        "mean_primitive_reuse_bps": 8700,
+        "mean_final_task_exactness_bps": 8083,
+        "composition_bottleneck_count": 1
+      }
+    ],
+    "generated_from_refs": [
+      "fixtures/tassadar/runs/tassadar_shared_primitive_transfer_v1/shared_primitive_transfer_evidence_bundle.json"
+    ],
+    "claim_boundary": "this report keeps primitive-layer reuse, final-task exactness, and composition gaps explicit across the published held-out algorithm families only. It does not widen any served claim or treat primitive transfer as proof of full executor closure",
+    "summary": "Shared primitive transfer now freezes 12 held-out cases across 2 regimes, with 2 composition-bottleneck cases and 4 foundational primitives kept explicit.",
+    "report_digest": "e3b115aa2d67011758dbff09e2c5b0b6816bdcd73cd8ebcc9455c3f81547963c"
+  },
+  "foundational_primitive_ids": [
+    "tassadar.primitive.reachability_expand.v1",
+    "tassadar.primitive.relax_state.v1",
+    "tassadar.primitive.select_candidate.v1",
+    "tassadar.primitive.bounded_backtrack.v1"
+  ],
+  "composition_bottleneck_algorithm_families": [
+    "sudoku_search"
+  ],
+  "primitive_layer_bottleneck_algorithm_families": [
+    "hungarian_matching",
+    "sudoku_search"
+  ],
+  "few_shot_rescue_algorithm_families": [
+    "sort_merge",
+    "clrs_shortest_path",
+    "clrs_wasm_shortest_path",
+    "hungarian_matching",
+    "sudoku_search",
+    "verifier_search_kernel"
+  ],
+  "claim_boundary": "this summary keeps shared primitive transfer as a research-only architecture surface. Foundational primitives, primitive-layer bottlenecks, and composition bottlenecks stay explicit and do not widen served executor claims",
+  "summary": "Shared primitive transfer summary now marks 4 foundational primitives, 1 composition bottleneck families, 2 primitive-layer bottleneck families, and 6 few-shot rescue families.",
+  "report_digest": "5101d35b5391a6b4ab20a2b58e796293d35d13cc357ef22f17a79b7b06c8fe40"
+}

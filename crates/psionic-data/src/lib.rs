@@ -9,6 +9,7 @@
 mod apple_adapter;
 mod apple_adapter_curation;
 mod tassadar;
+mod tassadar_shared_primitive_transfer;
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -25,6 +26,7 @@ use thiserror::Error;
 pub use apple_adapter::*;
 pub use apple_adapter_curation::*;
 pub use tassadar::*;
+pub use tassadar_shared_primitive_transfer::*;
 
 /// Human-readable crate ownership summary.
 pub const CRATE_ROLE: &str =

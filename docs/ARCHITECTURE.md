@@ -232,6 +232,23 @@ The current scope is:
   This lane keeps fragile workloads, refusal hotspots, and regime-specific
   degradation explicit instead of treating lower precision or proxy attention
   survival as proof of deployment-robust exactness
+- landed shared primitive transfer follow-on: `psionic-data` now publishes a
+  public `TassadarSharedPrimitiveTransferContract` over explicit
+  reachability-expand, relax-state, compare, select, merge, and
+  bounded-backtrack primitives with declared sort/merge, shortest-path,
+  CLRS-to-Wasm, Hungarian, Sudoku, and verifier-search algorithm families plus
+  separate compiled and learned anchor refs; `psionic-models` now publishes the
+  research-only `TassadarSharedPrimitiveTransferPublication` above that
+  contract; `psionic-train` now freezes the held-out transfer evidence bundle at
+  `fixtures/tassadar/runs/tassadar_shared_primitive_transfer_v1/shared_primitive_transfer_evidence_bundle.json`
+  with explicit primitive-reuse versus final-task-exactness receipts and
+  primitive ablations; `psionic-eval` now freezes the joined report at
+  `fixtures/tassadar/reports/tassadar_shared_primitive_transfer_report.json`;
+  and `psionic-research` now freezes the companion summary at
+  `fixtures/tassadar/reports/tassadar_shared_primitive_transfer_summary.json`.
+  The lane keeps foundational primitives, primitive-layer bottlenecks, and
+  composition bottlenecks explicit instead of overstating shared primitive reuse
+  as broad executor closure
 - landed route-contract follow-on: `psionic-router` now also owns a routeable
   Wasm capability matrix for `psionic.planner_executor_route`, with explicit
   module-class rows, opcode-family facts, import posture, module-class-specific
