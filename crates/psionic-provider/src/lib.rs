@@ -8511,6 +8511,10 @@ mod tests {
             json!("unsupported_host_import")
         );
         assert_eq!(
+            encoded["publication"]["rust_article_profile_completeness"]["family_id"],
+            json!("tassadar.wasm.rust_article_family.v1")
+        );
+        assert_eq!(
             encoded["quantization_truth_envelope"]["active_backend_family"],
             json!("cpu_reference")
         );

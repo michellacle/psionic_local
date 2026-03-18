@@ -7,8 +7,10 @@ use std::{
 use psionic_models::{
     TassadarExecutorContractError, TassadarExecutorFixture, TassadarExecutorModelDescriptor,
     TassadarModuleExecutionCapabilityPublication, TassadarTraceTokenizer,
+    TassadarRustArticleProfileCompletenessPublication,
     TassadarWorkloadCapabilityMatrix, TassadarWorkloadCapabilityMatrixError,
     TassadarWorkloadCapabilityRow, TassadarWorkloadSupportPosture,
+    tassadar_rust_article_profile_completeness_publication,
 };
 use psionic_research::{
     TassadarAcceptanceReport, TassadarCompiledArticleClosureReport,
@@ -70,6 +72,8 @@ pub struct TassadarExecutorCapabilityPublication {
     pub runtime_capability: TassadarRuntimeCapabilityReport,
     /// Repo-facing publication for bounded module execution and host-import boundary truth.
     pub module_execution_capability: TassadarModuleExecutionCapabilityPublication,
+    /// Rust-to-Wasm article profile completeness matrix for the served lane.
+    pub rust_article_profile_completeness: TassadarRustArticleProfileCompletenessPublication,
     /// Machine-readable workload capability matrix for the served lane.
     pub workload_capability_matrix: TassadarWorkloadCapabilityMatrix,
     /// Backend and quantization deployment truth carried through served publication.
@@ -424,6 +428,8 @@ impl LocalTassadarExecutorService {
             model_descriptor: fixture.descriptor().clone(),
             runtime_capability,
             module_execution_capability: fixture.module_execution_capability_publication(),
+            rust_article_profile_completeness:
+                tassadar_rust_article_profile_completeness_publication(),
             workload_capability_matrix,
             quantization_truth_envelope,
         })
@@ -5222,6 +5228,16 @@ mod tests {
         assert_eq!(
             encoded["module_execution_capability"]["runtime_capability"]["host_import_boundary"]["unsupported_host_call_refusal"],
             serde_json::json!("unsupported_host_import")
+        );
+        assert_eq!(
+            encoded["rust_article_profile_completeness"]["family_id"],
+            serde_json::json!("tassadar.wasm.rust_article_family.v1")
+        );
+        assert_eq!(
+            encoded["rust_article_profile_completeness"]["report_ref"],
+            serde_json::json!(
+                "fixtures/tassadar/reports/tassadar_rust_article_profile_completeness_report.json"
+            )
         );
         assert_eq!(
             encoded["quantization_truth_envelope"]["active_backend_family"],

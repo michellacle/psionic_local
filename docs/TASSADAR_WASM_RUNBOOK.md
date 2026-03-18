@@ -20,6 +20,7 @@ It exists to answer a narrow question:
 This runbook covers the current repo-owned bounded Wasm flow only:
 
 - Rust-only article frontend canon
+- Rust-to-Wasm article profile completeness matrix
 - canonical C-to-Wasm compile receipt
 - source-to-Wasm-to-Tassadar compile-pipeline matrix
 - normalized Wasm-module ingress
@@ -77,7 +78,26 @@ Expected outcome:
 - this report is the article-closure frontend anchor; it does not by itself
   imply arbitrary Rust closure or arbitrary Wasm lowering
 
-### 2. Optional historical C-to-Wasm compile receipt
+### 2. Rust-to-Wasm article profile completeness matrix
+
+```bash
+cargo run -p psionic-eval --example tassadar_rust_article_profile_completeness_report
+```
+
+Read:
+
+- `fixtures/tassadar/reports/tassadar_rust_article_profile_completeness_report.json`
+
+Expected outcome:
+
+- one machine-readable supported/refused matrix over module shape, control
+  flow, tables/globals/indirect calls, numeric families, and ABI shape
+- the current Rust-only article family is explicit as a bounded i32-first
+  profile rather than inferred from several narrower artifacts
+- the same profile boundary is what the Tassadar environment bundle and served
+  capability publication now cite
+
+### 3. Optional historical C-to-Wasm compile receipt
 
 ```bash
 cargo run -p psionic-runtime --example tassadar_c_to_wasm_compile_receipt
@@ -95,7 +115,7 @@ Expected outcome:
   `wasm32-unknown-unknown`
 - this step is not required for the Rust-only article-closure path
 
-### 3. Compile-pipeline matrix
+### 4. Compile-pipeline matrix
 
 ```bash
 cargo run -p psionic-eval --example tassadar_compile_pipeline_matrix_report
@@ -112,7 +132,7 @@ Expected outcome:
 - explicit toolchain refusal for the C-source path when the local toolchain is
   unavailable or incomplete
 
-### 4. Wasm-module ingress
+### 5. Wasm-module ingress
 
 ```bash
 cargo run -p psionic-eval --example tassadar_wasm_module_ingress_report
@@ -128,7 +148,7 @@ Expected outcome:
   refuses lowering because the exported function takes one parameter
 - the seeded synthetic multi-function module lowers and executes exactly
 
-### 5. Differential Wasm conformance
+### 6. Differential Wasm conformance
 
 ```bash
 cargo run -p psionic-eval --example tassadar_wasm_conformance_report
@@ -144,7 +164,7 @@ Expected outcome:
 - exact trap parity on the seeded trap cases
 - explicit boundary refusal on the unsupported host-import case
 
-### 6. Module-scale Wasm workloads
+### 7. Module-scale Wasm workloads
 
 ```bash
 cargo run -p psionic-eval --example tassadar_module_scale_workload_suite_report
@@ -159,7 +179,7 @@ Expected outcome:
 - exact lowering for fixed-span memcpy, checksum, parsing, and VM-style cases
 - explicit parameter-ABI refusal on the VM-style parameter case
 
-### 7. Trap and exception parity
+### 8. Trap and exception parity
 
 ```bash
 cargo run -p psionic-eval --example tassadar_trap_exception_report

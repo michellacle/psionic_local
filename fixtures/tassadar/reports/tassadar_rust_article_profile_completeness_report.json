@@ -1,0 +1,225 @@
+{
+  "schema_version": 1,
+  "publication_id": "tassadar.rust_article_profile_completeness.publication.v1",
+  "status": "implemented",
+  "claim_class": "execution_truth_profile_boundary",
+  "family_id": "tassadar.wasm.rust_article_family.v1",
+  "report_ref": "fixtures/tassadar/reports/tassadar_rust_article_profile_completeness_report.json",
+  "runtime_profile_ids": [
+    "tassadar.wasm.article_i32_compute.v1",
+    "tassadar.wasm.hungarian_10x10_matching.v1",
+    "tassadar.wasm.sudoku_9x9_search.v1"
+  ],
+  "source_case_ids": [
+    "multi_export_exact",
+    "memory_lookup_exact",
+    "param_abi_fixture",
+    "micro_wasm_article",
+    "heap_sum_article",
+    "long_loop_article",
+    "hungarian_10x10_article",
+    "sudoku_9x9_article"
+  ],
+  "validation_refs": [
+    "fixtures/tassadar/reports/tassadar_rust_source_canon_report.json",
+    "fixtures/tassadar/reports/tassadar_compile_pipeline_matrix_report.json",
+    "fixtures/tassadar/reports/tassadar_wasm_conformance_report.json",
+    "fixtures/tassadar/reports/tassadar_wasm_instruction_coverage_report.json",
+    "fixtures/tassadar/reports/tassadar_module_scale_workload_suite_report.json",
+    "fixtures/tassadar/reports/tassadar_compiled_article_closure_report.json"
+  ],
+  "rows": [
+    {
+      "row_id": "module_sections.core_sections_with_memory_globals_data",
+      "category": "module_section_family",
+      "feature_id": "core_sections_with_memory_globals_exports_data",
+      "status": "supported",
+      "runtime_profile_ids": [
+        "tassadar.wasm.article_i32_compute.v1",
+        "tassadar.wasm.hungarian_10x10_matching.v1",
+        "tassadar.wasm.sudoku_9x9_search.v1"
+      ],
+      "source_case_ids": [
+        "multi_export_exact",
+        "memory_lookup_exact",
+        "param_abi_fixture",
+        "micro_wasm_article",
+        "heap_sum_article",
+        "long_loop_article",
+        "hungarian_10x10_article",
+        "sudoku_9x9_article"
+      ],
+      "supporting_report_refs": [
+        "fixtures/tassadar/reports/tassadar_rust_source_canon_report.json",
+        "fixtures/tassadar/reports/tassadar_compile_pipeline_matrix_report.json"
+      ],
+      "detail": "the committed Rust source canon compiles into ordinary core Wasm modules with memory, globals, exports, data, and code sections; this is the real Rust-only frontend anchor for the article family"
+    },
+    {
+      "row_id": "control_flow.structured_loops_and_bounded_backtracking",
+      "category": "control_flow_family",
+      "feature_id": "structured_loops_and_bounded_backtracking",
+      "status": "supported",
+      "runtime_profile_ids": [
+        "tassadar.wasm.article_i32_compute.v1",
+        "tassadar.wasm.hungarian_10x10_matching.v1",
+        "tassadar.wasm.sudoku_9x9_search.v1"
+      ],
+      "source_case_ids": [
+        "long_loop_article",
+        "hungarian_10x10_article",
+        "sudoku_9x9_article"
+      ],
+      "supporting_report_refs": [
+        "fixtures/tassadar/reports/tassadar_rust_source_canon_report.json",
+        "fixtures/tassadar/reports/tassadar_compiled_article_closure_report.json"
+      ],
+      "detail": "the current article family honestly includes straight-line kernels, structured loops, and bounded search/backtracking programs, not only hand-held microprograms"
+    },
+    {
+      "row_id": "tables_globals_indirect_calls.single_funcref_table_mutable_i32_globals",
+      "category": "table_global_indirect_call_shape",
+      "feature_id": "single_funcref_table_mutable_i32_globals_zero_param_indirect_call",
+      "status": "supported",
+      "runtime_profile_ids": [
+        "tassadar.wasm.article_i32_compute.v1"
+      ],
+      "supporting_report_refs": [
+        "fixtures/tassadar/reports/tassadar_wasm_conformance_report.json"
+      ],
+      "detail": "the bounded module lane already admits mutable i32 globals, one funcref table, and zero-parameter indirect calls, and that support is part of the honest article family rather than hidden substrate trivia"
+    },
+    {
+      "row_id": "numeric.i32_integer_family",
+      "category": "numeric_family",
+      "feature_id": "i32_integer_family",
+      "status": "supported",
+      "runtime_profile_ids": [
+        "tassadar.wasm.article_i32_compute.v1",
+        "tassadar.wasm.hungarian_10x10_matching.v1",
+        "tassadar.wasm.sudoku_9x9_search.v1"
+      ],
+      "source_case_ids": [
+        "multi_export_exact",
+        "memory_lookup_exact",
+        "param_abi_fixture",
+        "micro_wasm_article",
+        "heap_sum_article",
+        "long_loop_article",
+        "hungarian_10x10_article",
+        "sudoku_9x9_article"
+      ],
+      "supporting_report_refs": [
+        "fixtures/tassadar/reports/tassadar_wasm_instruction_coverage_report.json",
+        "fixtures/tassadar/reports/tassadar_rust_source_canon_report.json"
+      ],
+      "detail": "the reproduced Rust article family is explicitly i32-first today; integer arithmetic, comparison, locals, and memory traffic are real and benchmark-backed"
+    },
+    {
+      "row_id": "abi.zero_param_exports_and_pointer_length_memory_inputs",
+      "category": "abi_shape",
+      "feature_id": "zero_param_exports_and_pointer_length_memory_inputs",
+      "status": "supported",
+      "runtime_profile_ids": [
+        "tassadar.wasm.article_i32_compute.v1",
+        "tassadar.wasm.hungarian_10x10_matching.v1",
+        "tassadar.wasm.sudoku_9x9_search.v1"
+      ],
+      "source_case_ids": [
+        "multi_export_exact",
+        "memory_lookup_exact",
+        "micro_wasm_article",
+        "heap_sum_article",
+        "long_loop_article",
+        "hungarian_10x10_article",
+        "sudoku_9x9_article"
+      ],
+      "supporting_report_refs": [
+        "fixtures/tassadar/reports/tassadar_rust_source_canon_report.json",
+        "fixtures/tassadar/reports/tassadar_module_scale_workload_suite_report.json"
+      ],
+      "detail": "the current Rust article family honestly supports zero-parameter exported entrypoints plus pointer-length memory-style inputs, but it still does not claim a broad direct-parameter ABI"
+    },
+    {
+      "row_id": "module_sections.arbitrary_host_imports_and_component_shapes",
+      "category": "module_section_family",
+      "feature_id": "arbitrary_host_imports_and_component_shapes",
+      "status": "refused",
+      "runtime_profile_ids": [
+        "tassadar.wasm.article_i32_compute.v1",
+        "tassadar.wasm.hungarian_10x10_matching.v1",
+        "tassadar.wasm.sudoku_9x9_search.v1"
+      ],
+      "supporting_report_refs": [
+        "fixtures/tassadar/reports/tassadar_wasm_conformance_report.json"
+      ],
+      "detail": "arbitrary host-import sections and broader component-style module shapes remain out of scope; only deterministic zero-side-effect stubs are admitted in the bounded module lane"
+    },
+    {
+      "row_id": "control_flow.exception_handling_and_general_callstack_control",
+      "category": "control_flow_family",
+      "feature_id": "exception_handling_and_general_callstack_control",
+      "status": "refused",
+      "runtime_profile_ids": [
+        "tassadar.wasm.article_i32_compute.v1",
+        "tassadar.wasm.hungarian_10x10_matching.v1",
+        "tassadar.wasm.sudoku_9x9_search.v1"
+      ],
+      "supporting_report_refs": [
+        "fixtures/tassadar/reports/tassadar_wasm_instruction_coverage_report.json"
+      ],
+      "detail": "the reproduced article family does not yet claim exception handling, arbitrary host-driven control transfer, or a general unconstrained call-stack model"
+    },
+    {
+      "row_id": "tables_globals_indirect_calls.multi_table_and_parametric_indirect",
+      "category": "table_global_indirect_call_shape",
+      "feature_id": "multi_table_multi_memory_typed_reference_parametric_indirect_call",
+      "status": "refused",
+      "runtime_profile_ids": [
+        "tassadar.wasm.article_i32_compute.v1",
+        "tassadar.wasm.hungarian_10x10_matching.v1",
+        "tassadar.wasm.sudoku_9x9_search.v1"
+      ],
+      "supporting_report_refs": [
+        "fixtures/tassadar/reports/tassadar_wasm_conformance_report.json"
+      ],
+      "detail": "the honest article family stops at one funcref table, i32 globals, and zero-parameter indirect calls; broader typed-reference, multi-table, and parametric indirect-call families remain outside the claim"
+    },
+    {
+      "row_id": "numeric.i64_f32_f64_numeric_families",
+      "category": "numeric_family",
+      "feature_id": "i64_f32_f64_numeric_families",
+      "status": "refused",
+      "runtime_profile_ids": [
+        "tassadar.wasm.article_i32_compute.v1",
+        "tassadar.wasm.hungarian_10x10_matching.v1",
+        "tassadar.wasm.sudoku_9x9_search.v1"
+      ],
+      "supporting_report_refs": [
+        "fixtures/tassadar/reports/tassadar_wasm_instruction_coverage_report.json"
+      ],
+      "detail": "the reproduced Rust article family remains explicitly i32-only; i64 and floating-point closure are not yet part of the public boundary"
+    },
+    {
+      "row_id": "abi.direct_parameter_exports_and_general_return_abi",
+      "category": "abi_shape",
+      "feature_id": "direct_parameter_exports_and_general_return_abi",
+      "status": "refused",
+      "runtime_profile_ids": [
+        "tassadar.wasm.article_i32_compute.v1",
+        "tassadar.wasm.hungarian_10x10_matching.v1",
+        "tassadar.wasm.sudoku_9x9_search.v1"
+      ],
+      "source_case_ids": [
+        "param_abi_fixture"
+      ],
+      "supporting_report_refs": [
+        "fixtures/tassadar/reports/tassadar_rust_source_canon_report.json",
+        "fixtures/tassadar/reports/tassadar_compile_pipeline_matrix_report.json"
+      ],
+      "detail": "direct parameter exports, broader return shapes, and general host ABI closure remain explicit refusals today; the current family still depends on zero-parameter exports plus memory-carried inputs for richer workloads"
+    }
+  ],
+  "claim_boundary": "this publication freezes the current Rust-to-Wasm article profile family for Tassadar: it is strong enough to replace vague article rhetoric with supported and refused families across module shape, control flow, tables/globals/indirect calls, numeric families, and ABI shape. It remains a bounded i32-first family and does not imply arbitrary Wasm, arbitrary Rust frontend closure, broad host-import closure, or general parameter ABI closure.",
+  "publication_digest": "fbbfcadfa3d9ed3584352860ebb00b8134fdbbc7518ab5c21e42a97c45b3b4c7"
+}

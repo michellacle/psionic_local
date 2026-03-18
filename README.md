@@ -625,6 +625,15 @@ Current posture:
   the kernel, heap-input, long-loop, Hungarian, and Sudoku families with
   source/toolchain/config/output lineage and keeps the older C receipt out of
   the article-closure claim path
+- the repo now also carries one machine-readable Rust-to-Wasm article profile
+  completeness report at
+  `fixtures/tassadar/reports/tassadar_rust_article_profile_completeness_report.json`,
+  emitted by
+  `cargo run -p psionic-eval --example tassadar_rust_article_profile_completeness_report`;
+  it freezes the current Rust-only article family into supported and refused
+  module-shape, control-flow, table/global/indirect-call, numeric, and ABI
+  rows, and the same publication is now bound into the Tassadar environment
+  bundle and served capability-publication surfaces
 - the repo now also carries one canonical Tassadar C-to-Wasm compile receipt at
   `fixtures/tassadar/reports/tassadar_c_to_wasm_compile_receipt.json`, emitted
   by `cargo run -p psionic-runtime --example tassadar_c_to_wasm_compile_receipt`;
@@ -1510,6 +1519,10 @@ For canonical current-state detail, use `docs/ARCHITECTURE.md` and
   corresponding committed `fixtures/tassadar/wasm/*.wasm` outputs are the
   canonical Rust-only frontend lineage artifacts for the Tassadar
   article-closure path.
+- `fixtures/tassadar/reports/tassadar_rust_article_profile_completeness_report.json`
+  is the canonical machine-readable profile boundary for the current Rust-only
+  article family, and the same publication is bound into the Tassadar
+  environment bundle and served capability publication.
 - `fixtures/tassadar/reports/tassadar_c_to_wasm_compile_receipt.json`,
   `fixtures/tassadar/sources/tassadar_micro_wasm_kernel.c`, and
   `fixtures/tassadar/wasm/tassadar_micro_wasm_kernel.wasm` are the canonical

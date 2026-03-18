@@ -4,6 +4,10 @@ use psionic_data::{
     DatasetKey, TassadarBenchmarkAxis, TassadarBenchmarkFamily, TassadarClrsAlgorithmFamily,
     TassadarClrsLengthBucket, TassadarClrsTrajectoryFamily, TassadarModuleScaleWorkloadFamily,
 };
+use psionic_models::{
+    tassadar_rust_article_profile_completeness_publication,
+    TassadarRustArticleProfileCompletenessPublication,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sha2::Digest;
@@ -28,6 +32,7 @@ const TASSADAR_METADATA_CURRENT_TARGETS_KEY: &str = "tassadar.current_workload_t
 const TASSADAR_METADATA_PLANNED_TARGETS_KEY: &str = "tassadar.planned_workload_targets";
 const TASSADAR_METADATA_BENCHMARK_PACKAGE_SET_KEY: &str = "tassadar.benchmark_package_set";
 const TASSADAR_METADATA_COMPILE_PIPELINE_MATRIX_KEY: &str = "tassadar.compile_pipeline_matrix";
+const TASSADAR_METADATA_RUST_ARTICLE_PROFILE_KEY: &str = "tassadar.rust_article_profile";
 const TASSADAR_METADATA_WASM_CONFORMANCE_KEY: &str = "tassadar.wasm_conformance";
 const TASSADAR_METADATA_MODULE_SCALE_WORKLOAD_SUITE_KEY: &str =
     "tassadar.module_scale_workload_suite";
@@ -687,6 +692,8 @@ impl TassadarEnvironmentSpec {
             exactness_contract: self.exactness_contract.clone(),
             benchmark_package_set_binding: self.benchmark_package_set_binding.clone(),
             compile_pipeline_matrix_binding: self.compile_pipeline_matrix_binding.clone(),
+            rust_article_profile_completeness:
+                tassadar_rust_article_profile_completeness_publication(),
             wasm_conformance_binding: self.wasm_conformance_binding.clone(),
             module_scale_workload_suite_binding: self.module_scale_workload_suite_binding.clone(),
             clrs_wasm_bridge_binding: self.clrs_wasm_bridge_binding.clone(),
@@ -907,6 +914,11 @@ impl TassadarEnvironmentSpec {
             serde_json::to_value(&self.compile_pipeline_matrix_binding).unwrap_or(Value::Null),
         );
         metadata.insert(
+            String::from(TASSADAR_METADATA_RUST_ARTICLE_PROFILE_KEY),
+            serde_json::to_value(tassadar_rust_article_profile_completeness_publication())
+                .unwrap_or(Value::Null),
+        );
+        metadata.insert(
             String::from(TASSADAR_METADATA_WASM_CONFORMANCE_KEY),
             serde_json::to_value(&self.wasm_conformance_binding).unwrap_or(Value::Null),
         );
@@ -988,6 +1000,8 @@ pub struct TassadarEnvironmentBundle {
     pub benchmark_package_set_binding: TassadarBenchmarkPackageSetBinding,
     /// Compile-pipeline matrix binding.
     pub compile_pipeline_matrix_binding: TassadarCompilePipelineMatrixBinding,
+    /// Rust-to-Wasm article profile completeness publication.
+    pub rust_article_profile_completeness: TassadarRustArticleProfileCompletenessPublication,
     /// Wasm conformance binding.
     pub wasm_conformance_binding: TassadarWasmConformanceBinding,
     /// Optional module-scale workload-suite binding.
@@ -1429,6 +1443,15 @@ mod tests {
             bundle
                 .benchmark_package
                 .metadata
+                .get(TASSADAR_METADATA_RUST_ARTICLE_PROFILE_KEY)
+                .and_then(|value| value.get("family_id"))
+                .and_then(Value::as_str),
+            Some("tassadar.wasm.rust_article_family.v1")
+        );
+        assert_eq!(
+            bundle
+                .benchmark_package
+                .metadata
                 .get(TASSADAR_METADATA_WASM_CONFORMANCE_KEY)
                 .and_then(|value| value.get("report_ref"))
                 .and_then(Value::as_str),
@@ -1442,6 +1465,10 @@ mod tests {
                 TassadarWorkloadTarget::MemoryLookupMicroprogram,
                 TassadarWorkloadTarget::BranchControlFlowMicroprogram,
             ]
+        );
+        assert_eq!(
+            bundle.rust_article_profile_completeness.report_ref,
+            "fixtures/tassadar/reports/tassadar_rust_article_profile_completeness_report.json"
         );
         Ok(())
     }
