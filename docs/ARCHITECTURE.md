@@ -591,6 +591,14 @@ The current scope is:
   `fixtures/tassadar/reports/tassadar_trace_state_ablation_summary.json`. This
   lane keeps representation-limited failures explicit instead of treating one
   state surface as privileged by default
+- landed supervision-density follow-on: `psionic-data` now publishes the shared
+  supervision-density canon, `psionic-train` now publishes the corresponding
+  evidence bundle, `psionic-eval` now publishes the report at
+  `fixtures/tassadar/reports/tassadar_supervision_density_report.json`, and
+  `psionic-research` now publishes the summary at
+  `fixtures/tassadar/reports/tassadar_supervision_density_summary.json`. This
+  lane keeps supervision-limited and architecture-limited failures explicit
+  across CLRS, arithmetic, search, and module-scale Wasm families
 - landed module-installation-staging follow-on: `psionic-serve` now publishes a
   bounded staged-install surface with explicit session-mount versus worker-mount
   scope, challenge windows, activation, rollback, and refusal receipts over the

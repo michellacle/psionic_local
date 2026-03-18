@@ -1,0 +1,28 @@
+{
+  "summary_id": "tassadar.supervision_density.summary.v1",
+  "report_id": "tassadar.supervision_density.report.v1",
+  "full_trace_required_workloads": [
+    "clrs_shortest_path",
+    "sudoku_backtracking_search"
+  ],
+  "strongest_regime_by_workload": [
+    [
+      "clrs_shortest_path",
+      "full_trace"
+    ],
+    [
+      "arithmetic_multi_operand",
+      "partial_state"
+    ],
+    [
+      "sudoku_backtracking_search",
+      "full_trace"
+    ],
+    [
+      "module_scale_wasm_loop",
+      "mixed"
+    ]
+  ],
+  "claim_boundary": "this summary remains a research-only supervision-density frontier and does not widen served capability or broad learned-compute claims",
+  "summary_digest": "e4c66fe80a0edd3ec1c3a1d0c4fc2484cede5c9d72fbe9bdebaf248e52e03b84"
+}

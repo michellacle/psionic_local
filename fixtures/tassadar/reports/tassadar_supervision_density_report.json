@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.supervision_density.report.v1",
+  "bundle_id": "tassadar.supervision_density.evidence_bundle.v1",
+  "workload_summaries": [
+    {
+      "workload_family": "clrs_shortest_path",
+      "best_regime": "full_trace",
+      "supervision_limited_regime_count": 0,
+      "architecture_limited_regime_count": 0,
+      "note": "CLRS stays strong under both full-trace and mixed supervision"
+    },
+    {
+      "workload_family": "arithmetic_multi_operand",
+      "best_regime": "partial_state",
+      "supervision_limited_regime_count": 1,
+      "architecture_limited_regime_count": 0,
+      "note": "arithmetic quickly stops needing dense full traces"
+    },
+    {
+      "workload_family": "sudoku_backtracking_search",
+      "best_regime": "full_trace",
+      "supervision_limited_regime_count": 1,
+      "architecture_limited_regime_count": 1,
+      "note": "search remains the clearest trace-hungry workload family"
+    },
+    {
+      "workload_family": "module_scale_wasm_loop",
+      "best_regime": "mixed",
+      "supervision_limited_regime_count": 1,
+      "architecture_limited_regime_count": 1,
+      "note": "module-scale Wasm benefits from mixed supervision but still hits both supervision and architecture ceilings"
+    }
+  ],
+  "supervision_limited_case_count": 3,
+  "architecture_limited_case_count": 2,
+  "generated_from_refs": [
+    "fixtures/tassadar/reports/tassadar_trace_state_ablation_report.json",
+    "fixtures/tassadar/reports/tassadar_weak_supervision_executor_summary.json"
+  ],
+  "claim_boundary": "this eval report is a research-only supervision-density frontier over shared workloads. It remains benchmark-bound and refusal-bounded instead of widening served capability or broad learned-compute claims",
+  "summary": "Supervision-density report covers 4 workloads with 3 supervision-limited cases and 2 architecture-limited cases.",
+  "report_digest": "382adec43bb25c9ec49fb00d385ba0a41d0f769e8093075935878dd333a18419"
+}
