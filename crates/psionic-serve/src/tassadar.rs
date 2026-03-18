@@ -11,7 +11,8 @@ use psionic_models::{
 };
 use psionic_research::{
     TassadarAcceptanceReport, TassadarCompiledArticleClosureReport,
-    TassadarLearnedLongHorizonPolicyReport,
+    TassadarLearnedLongHorizonPolicyReport, TassadarPromotionChecklistGateKind,
+    TassadarPromotionPolicyReport, build_tassadar_promotion_policy_report,
 };
 use psionic_router::{
     TassadarPlannerExecutorDecodeCapability, TassadarPlannerExecutorRouteDescriptor,
@@ -1605,6 +1606,54 @@ pub enum TassadarPlannerRouteDescriptorError {
         /// Plain-text publication detail.
         detail: String,
     },
+}
+
+/// Serve-side refusal when a research lane tries to bypass the public promotion checklist.
+#[derive(Clone, Debug, Error, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum TassadarResearchPromotionError {
+    /// Building the current promotion-policy report failed.
+    #[error("failed to build Tassadar promotion policy report: {detail}")]
+    Build {
+        /// Plain-text build detail.
+        detail: String,
+    },
+    /// The research lane remains blocked on one or more required promotion gates.
+    #[error("Tassadar promotion policy `{policy_id}` blocks served publication: {detail}")]
+    PromotionBlocked {
+        /// Stable promotion-policy identifier.
+        policy_id: String,
+        /// Gate kinds that still block publication.
+        failed_gates: Vec<TassadarPromotionChecklistGateKind>,
+        /// Plain-text refusal detail.
+        detail: String,
+    },
+}
+
+/// Returns the current promotion-policy report only when the research lane is promotable.
+pub fn require_tassadar_research_lane_promotion_ready()
+-> Result<TassadarPromotionPolicyReport, TassadarResearchPromotionError> {
+    let report = build_tassadar_promotion_policy_report().map_err(|error| {
+        TassadarResearchPromotionError::Build {
+            detail: error.to_string(),
+        }
+    })?;
+    if report.status.allows_served_publication() {
+        Ok(report)
+    } else {
+        let failed_gates = report.failed_gates();
+        Err(TassadarResearchPromotionError::PromotionBlocked {
+            policy_id: report.policy_id.clone(),
+            detail: format!(
+                "candidate model `{}` remains `{}` because gates {:?} are still unsatisfied",
+                report.candidate_model_id,
+                serde_json::to_string(&report.status)
+                    .unwrap_or_else(|_| String::from("\"unknown_status\"")),
+                failed_gates
+            ),
+            failed_gates,
+        })
+    }
 }
 
 /// Local planner router that delegates exact subproblems into Tassadar.
@@ -4857,8 +4906,10 @@ mod tests {
         TassadarLabUpdate, TassadarPlannerExecutorSubproblem, TassadarPlannerFallbackPolicy,
         TassadarPlannerRouteReason, TassadarPlannerRouterError, TassadarPlannerRoutingBudget,
         TassadarPlannerRoutingOutcome, TassadarPlannerRoutingPolicy, TassadarPlannerRoutingRequest,
+        TassadarResearchPromotionError, require_tassadar_research_lane_promotion_ready,
     };
     use psionic_models::TassadarExecutorFixture;
+    use psionic_research::TassadarPromotionChecklistGateKind;
     use psionic_router::TassadarPlannerExecutorRoutePosture;
     use psionic_runtime::{
         TassadarExecutorDecodeMode, TassadarInstruction, TassadarProgram, TassadarProgramArtifact,
@@ -5623,6 +5674,25 @@ mod tests {
                 assert!(fallback.fallback_summary.contains("disallowed"));
             }
             other => panic!("expected typed fallback, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn research_lane_promotion_readiness_is_blocked_until_refusal_and_route_gates_clear() {
+        let err = require_tassadar_research_lane_promotion_ready()
+            .expect_err("current research lane should remain blocked");
+
+        match err {
+            TassadarResearchPromotionError::PromotionBlocked { failed_gates, .. } => {
+                assert_eq!(
+                    failed_gates,
+                    vec![
+                        TassadarPromotionChecklistGateKind::RefusalBehavior,
+                        TassadarPromotionChecklistGateKind::RouteContractCompatibility,
+                    ]
+                );
+            }
+            other => panic!("expected blocked promotion policy, got {other:?}"),
         }
     }
 

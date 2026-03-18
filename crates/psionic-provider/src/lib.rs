@@ -9,6 +9,10 @@ use ed25519_dalek::SigningKey;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
+use psionic_research::{
+    TassadarPromotionChecklistGateKind, TassadarPromotionPolicyReport,
+    TassadarPromotionPolicyStatus,
+};
 use psionic_router::{
     TASSADAR_PLANNER_EXECUTOR_ROUTE_PRODUCT_ID, TassadarPlannerExecutorRouteCandidate,
     TassadarPlannerExecutorRouteDescriptor,
@@ -183,6 +187,59 @@ impl TassadarExactnessRefusalReceipt {
             mismatch_summary: report.mismatch_summary.clone(),
             execution_refusal: report.execution_refusal.clone(),
             detail: report.detail.clone(),
+        }
+    }
+}
+
+/// Provider-facing receipt for the current research-to-served promotion policy.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarPromotionPolicyReceipt {
+    /// Stable promotion-policy identifier.
+    pub policy_id: String,
+    /// Candidate run identifier.
+    pub candidate_run_id: String,
+    /// Candidate model identifier.
+    pub candidate_model_id: String,
+    /// Current claim class for the candidate lane.
+    pub candidate_claim_class: psionic_runtime::TassadarClaimClass,
+    /// Served product the lane would need to satisfy.
+    pub target_product_id: String,
+    /// Served route product the lane would need to satisfy.
+    pub target_route_product_id: String,
+    /// Current promotion status.
+    pub status: TassadarPromotionPolicyStatus,
+    /// Gates that still block served publication.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub failed_gates: Vec<TassadarPromotionChecklistGateKind>,
+    /// Plain-language receipt detail.
+    pub detail: String,
+}
+
+impl TassadarPromotionPolicyReceipt {
+    /// Builds a provider-facing receipt from the shared research report.
+    #[must_use]
+    pub fn from_report(report: &TassadarPromotionPolicyReport) -> Self {
+        let failed_gates = report.failed_gates();
+        Self {
+            policy_id: report.policy_id.clone(),
+            candidate_run_id: report.candidate_run_id.clone(),
+            candidate_model_id: report.candidate_model_id.clone(),
+            candidate_claim_class: report.candidate_claim_class,
+            target_product_id: report.target_product_id.clone(),
+            target_route_product_id: report.target_route_product_id.clone(),
+            status: report.status,
+            detail: if failed_gates.is_empty() {
+                format!(
+                    "candidate model `{}` currently clears the public promotion checklist",
+                    report.candidate_model_id
+                )
+            } else {
+                format!(
+                    "candidate model `{}` remains blocked on promotion gates {:?}",
+                    report.candidate_model_id, failed_gates
+                )
+            },
+            failed_gates,
         }
     }
 }
@@ -3004,6 +3061,10 @@ mod tests {
         QuantizationMode as RuntimeQuantizationMode,
     };
     use psionic_models::{TassadarExecutorFixture, TassadarWorkloadClass};
+    use psionic_research::{
+        TassadarPromotionChecklistGateKind, TassadarPromotionPolicyStatus,
+        build_tassadar_promotion_policy_report,
+    };
     use psionic_router::{
         TassadarPlannerExecutorNegotiatedRouteState,
         TassadarPlannerExecutorRouteNegotiationOutcome,
@@ -3063,11 +3124,12 @@ mod tests {
         SandboxExecutionCapabilityEnvelope, SandboxExecutionReceipt, TassadarCapabilityEnvelope,
         TassadarCapabilityEnvelopeError, TassadarExactnessRefusalReceipt,
         TassadarPlannerRouteCapabilityEnvelope, TassadarPlannerRouteCapabilityEnvelopeError,
-        TassadarTraceArtifactReceipt, TassadarTraceDiffReceipt, TextGenerationCapabilityEnvelope,
-        TextGenerationReceipt, WeightBundleEvidence, cache_invalidation_policy,
-        compute_market_supply_refusal_diagnostic, default_compute_market_supply_policy,
-        digest_embedding_request, digest_generation_request, digest_sandbox_execution_request,
-        evaluate_compute_market_supply, served_artifact_identity_for_decoder_model,
+        TassadarPromotionPolicyReceipt, TassadarTraceArtifactReceipt, TassadarTraceDiffReceipt,
+        TextGenerationCapabilityEnvelope, TextGenerationReceipt, WeightBundleEvidence,
+        cache_invalidation_policy, compute_market_supply_refusal_diagnostic,
+        default_compute_market_supply_policy, digest_embedding_request, digest_generation_request,
+        digest_sandbox_execution_request, evaluate_compute_market_supply,
+        served_artifact_identity_for_decoder_model,
     };
 
     #[test]
@@ -8373,5 +8435,26 @@ mod tests {
         );
         assert!(receipt.expected_behavior_digest.is_none());
         assert!(receipt.actual_behavior_digest.is_none());
+    }
+
+    #[test]
+    fn tassadar_promotion_policy_receipt_surfaces_refusal_and_route_blockers() {
+        let report =
+            build_tassadar_promotion_policy_report().expect("promotion policy report should build");
+
+        let receipt = TassadarPromotionPolicyReceipt::from_report(&report);
+
+        assert_eq!(
+            receipt.status,
+            TassadarPromotionPolicyStatus::PromotionBlocked
+        );
+        assert_eq!(
+            receipt.failed_gates,
+            vec![
+                TassadarPromotionChecklistGateKind::RefusalBehavior,
+                TassadarPromotionChecklistGateKind::RouteContractCompatibility,
+            ]
+        );
+        assert_eq!(receipt.candidate_model_id, report.candidate_model_id);
     }
 }

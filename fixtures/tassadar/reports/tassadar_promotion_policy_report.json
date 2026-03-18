@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "policy_id": "tassadar.research_to_served_promotion_policy.v1",
+  "candidate_run_id": "tassadar-executor-attention-sudoku-v0-promotion-v3",
+  "candidate_model_id": "tassadar-executor-attention-transformer-sudoku-v0-v0",
+  "candidate_claim_class": "learned_bounded",
+  "target_product_id": "psionic.executor_trace",
+  "target_route_product_id": "psionic.planner_executor_route",
+  "status": "promotion_blocked",
+  "checklist": [
+    {
+      "gate_kind": "benchmark_evidence",
+      "passed": true,
+      "detail": "the bounded learned 4x4 promotion gate is green on its declared exactness bar, but the result remains bounded evidence until the other promotion gates clear",
+      "evidence_refs": [
+        "fixtures/tassadar/runs/sudoku_v0_promotion_v3/promotion_bundle.json",
+        "fixtures/tassadar/runs/sudoku_v0_promotion_v3/promotion_gate_report.json"
+      ]
+    },
+    {
+      "gate_kind": "refusal_behavior",
+      "passed": false,
+      "detail": "the learned lane does not yet have a stable refusal policy that can bound served claims safely",
+      "evidence_refs": [
+        "fixtures/tassadar/reports/tassadar_learned_horizon_policy_report.json",
+        "fixtures/tassadar/reports/tassadar_exactness_refusal_report.json"
+      ]
+    },
+    {
+      "gate_kind": "route_contract_compatibility",
+      "passed": false,
+      "detail": "no served `psionic.executor_trace` capability publication or `psionic.planner_executor_route` descriptor is attached to candidate model `tassadar-executor-attention-transformer-sudoku-v0-v0` yet, so the research lane cannot be treated as promoted",
+      "evidence_refs": [
+        "fixtures/tassadar/runs/sudoku_v0_promotion_v3/promotion_bundle.json",
+        "fixtures/tassadar/runs/sudoku_v0_promotion_v3/promotion_gate_report.json"
+      ]
+    }
+  ],
+  "validation_commands": [
+    "scripts/check-tassadar-4x4-promotion-gate.sh",
+    "scripts/check-tassadar-acceptance.sh",
+    "scripts/check-tassadar-promotion-policy.sh"
+  ],
+  "report_digest": "9a0bbddd98a77c6f3cf7de6dfca4073e1d65bb6153a1efcd5ba88c5b1d26f09f"
+}

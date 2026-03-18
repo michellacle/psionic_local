@@ -366,8 +366,10 @@ The current scope is:
   (`10000` bps first-target, `10000` bps first-8, `10000` bps first-32,
   `2/2` exact validation traces), `exact_trace_samples.json` captures both
   validation cases, `failure_samples.json` is empty, and the repo-owned gate
-  checker revalidates the stored report as passed, so the learned 4x4 lane is
-  now promotable and Phase 16 is no longer blocked on Phase 14
+  checker revalidates the stored report as passed; that clears the bounded
+  benchmark gate, but the separate promotion-policy report still blocks served
+  promotion until the learned lane also has stable refusal policy and
+  route-contract compatibility
 - landed trained-executor Phase 15 follow-on bar: `psionic-models` now carries
   a separate bounded `TassadarExecutorAttentionTransformer` family with layered
   full-prefix causal hard-max attention, fixed 2D head geometry, explicit

@@ -3781,6 +3781,7 @@ dependencies = [
  "psionic-cluster",
  "psionic-core",
  "psionic-models",
+ "psionic-research",
  "psionic-router",
  "psionic-runtime",
  "psionic-serve",

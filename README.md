@@ -295,8 +295,11 @@ Current posture:
   `scripts/check-tassadar-4x4-promotion-gate.sh` checker revalidates that
   bundle as passed at checkpoint `epoch_0015`
   (`10000` bps first-target, `10000` bps first-8, `10000` bps first-32,
-  `2/2` exact validation traces); the learned 4x4 lane is therefore now
-  promotable and the companion audit is
+  `2/2` exact validation traces); that clears the bounded benchmark gate, but
+  the separate promotion-policy report at
+  `fixtures/tassadar/reports/tassadar_promotion_policy_report.json` still
+  blocks served promotion until the learned lane also has stable refusal
+  policy and route-contract compatibility, and the companion audit is
   `docs/audits/2026-03-16-tassadar-phase-14-promotion-green-audit.md`
 - the fifteenth trained-executor follow-on bar from the post-audit issue spine
   now also exists in `psionic-models`, `psionic-eval`, `psionic-research`,
