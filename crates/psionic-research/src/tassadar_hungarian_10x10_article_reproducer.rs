@@ -108,7 +108,7 @@ impl TassadarHungarian10x10ArticleTokenTraceSummary {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct TassadarArticleDeploymentArtifactRef {
+pub struct TassadarHungarian10x10ArticleDeploymentArtifactRef {
     pub artifact_ref: String,
     pub artifact_digest: String,
 }
@@ -118,27 +118,27 @@ pub struct TassadarHungarian10x10ArticleReproducerBundle {
     pub bundle_id: String,
     pub root_ref: String,
     pub case_id: String,
-    pub compile_evidence_bundle: TassadarArticleDeploymentArtifactRef,
-    pub program_artifact: TassadarArticleDeploymentArtifactRef,
-    pub compiled_weight_artifact: TassadarArticleDeploymentArtifactRef,
-    pub model_descriptor: TassadarArticleDeploymentArtifactRef,
-    pub runtime_execution_proof_bundle: TassadarArticleDeploymentArtifactRef,
-    pub runtime_trace_proof: TassadarArticleDeploymentArtifactRef,
-    pub token_trace_summary: TassadarArticleDeploymentArtifactRef,
-    pub readable_log: TassadarArticleDeploymentArtifactRef,
+    pub compile_evidence_bundle: TassadarHungarian10x10ArticleDeploymentArtifactRef,
+    pub program_artifact: TassadarHungarian10x10ArticleDeploymentArtifactRef,
+    pub compiled_weight_artifact: TassadarHungarian10x10ArticleDeploymentArtifactRef,
+    pub model_descriptor: TassadarHungarian10x10ArticleDeploymentArtifactRef,
+    pub runtime_execution_proof_bundle: TassadarHungarian10x10ArticleDeploymentArtifactRef,
+    pub runtime_trace_proof: TassadarHungarian10x10ArticleDeploymentArtifactRef,
+    pub token_trace_summary: TassadarHungarian10x10ArticleDeploymentArtifactRef,
+    pub readable_log: TassadarHungarian10x10ArticleDeploymentArtifactRef,
     pub bundle_digest: String,
 }
 
 impl TassadarHungarian10x10ArticleReproducerBundle {
     fn new(
-        compile_evidence_bundle: TassadarArticleDeploymentArtifactRef,
-        program_artifact: TassadarArticleDeploymentArtifactRef,
-        compiled_weight_artifact: TassadarArticleDeploymentArtifactRef,
-        model_descriptor: TassadarArticleDeploymentArtifactRef,
-        runtime_execution_proof_bundle: TassadarArticleDeploymentArtifactRef,
-        runtime_trace_proof: TassadarArticleDeploymentArtifactRef,
-        token_trace_summary: TassadarArticleDeploymentArtifactRef,
-        readable_log: TassadarArticleDeploymentArtifactRef,
+        compile_evidence_bundle: TassadarHungarian10x10ArticleDeploymentArtifactRef,
+        program_artifact: TassadarHungarian10x10ArticleDeploymentArtifactRef,
+        compiled_weight_artifact: TassadarHungarian10x10ArticleDeploymentArtifactRef,
+        model_descriptor: TassadarHungarian10x10ArticleDeploymentArtifactRef,
+        runtime_execution_proof_bundle: TassadarHungarian10x10ArticleDeploymentArtifactRef,
+        runtime_trace_proof: TassadarHungarian10x10ArticleDeploymentArtifactRef,
+        token_trace_summary: TassadarHungarian10x10ArticleDeploymentArtifactRef,
+        readable_log: TassadarHungarian10x10ArticleDeploymentArtifactRef,
     ) -> Self {
         let mut bundle = Self {
             bundle_id: String::from("tassadar.hungarian_10x10.article_reproducer_bundle.v1"),
@@ -451,7 +451,7 @@ pub fn write_tassadar_hungarian_10x10_article_reproducer_root(
         artifact_ref(output_root, MODEL_DESCRIPTOR_FILE)?,
         artifact_ref(output_root, RUNTIME_EXECUTION_PROOF_BUNDLE_FILE)?,
         artifact_ref(output_root, RUNTIME_TRACE_PROOF_FILE)?,
-        TassadarArticleDeploymentArtifactRef {
+        TassadarHungarian10x10ArticleDeploymentArtifactRef {
             artifact_ref: canonical_repo_relative_path(&output_root.join(TOKEN_TRACE_SUMMARY_FILE)),
             artifact_digest: token_trace_summary.summary_digest.clone(),
         },
@@ -464,9 +464,9 @@ pub fn write_tassadar_hungarian_10x10_article_reproducer_root(
 fn artifact_ref(
     output_root: &Path,
     file_name: &str,
-) -> Result<TassadarArticleDeploymentArtifactRef, TassadarHungarian10x10ArticleReproducerError> {
+) -> Result<TassadarHungarian10x10ArticleDeploymentArtifactRef, TassadarHungarian10x10ArticleReproducerError> {
     let path = output_root.join(file_name);
-    Ok(TassadarArticleDeploymentArtifactRef {
+    Ok(TassadarHungarian10x10ArticleDeploymentArtifactRef {
         artifact_ref: canonical_repo_relative_path(&path),
         artifact_digest: file_digest(&path)?,
     })

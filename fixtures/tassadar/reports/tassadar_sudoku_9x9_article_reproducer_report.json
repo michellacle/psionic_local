@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.sudoku_9x9.article_reproducer.v1",
+  "workload_family_id": "tassadar.wasm.sudoku_9x9_search.v1.compiled_executor",
+  "source_ref": "fixtures/tassadar/sources/tassadar_sudoku_9x9_article.rs",
+  "source_digest": "8a8d943d3c073db5157cd841db7b2e582a96d5299116ca004db292d8c1508c8e",
+  "source_receipt_digest": "ebfe4a69b5384864a8bc27bb0911e44ef2f0425b999d5d2c58012bab1cd04ac5",
+  "wasm_binary_ref": "fixtures/tassadar/wasm/tassadar_sudoku_9x9_article.wasm",
+  "wasm_binary_digest": "4b53432aed5c47fab80f745b581cf08a6f3f8bf1a332e8466462be7c4549f1ef",
+  "canonical_run_bundle_ref": "fixtures/tassadar/runs/sudoku_9x9_v0_compiled_executor_v0/run_bundle.json",
+  "exactness_report_ref": "fixtures/tassadar/runs/sudoku_9x9_v0_compiled_executor_v0/compiled_executor_exactness_report.json",
+  "canonical_case_id": "sudoku_9x9_test_a",
+  "canonical_case_split": "test",
+  "canonical_case_given_count": 54,
+  "exact_trace_match": true,
+  "final_output_match": true,
+  "halt_match": true,
+  "article_corpus_cases": [
+    {
+      "case_id": "sudoku_9x9_train_a",
+      "split": "train",
+      "difficulty_signal": "givens=55",
+      "exact_trace_match": true,
+      "final_output_match": true
+    },
+    {
+      "case_id": "sudoku_9x9_train_b",
+      "split": "train",
+      "difficulty_signal": "givens=55",
+      "exact_trace_match": true,
+      "final_output_match": true
+    },
+    {
+      "case_id": "sudoku_9x9_validation_a",
+      "split": "validation",
+      "difficulty_signal": "givens=53",
+      "exact_trace_match": true,
+      "final_output_match": true
+    },
+    {
+      "case_id": "sudoku_9x9_test_a",
+      "split": "test",
+      "difficulty_signal": "givens=54",
+      "exact_trace_match": true,
+      "final_output_match": true
+    }
+  ],
+  "compile_evidence_bundle": {
+    "artifact_ref": "fixtures/tassadar/runs/sudoku_9x9_v0_compiled_executor_v0/deployments/sudoku_9x9_test_a/compile_evidence_bundle.json",
+    "artifact_digest": "706bf9f060b36d285148f87d70b906acdc71482c5c13e642ef0bb00ad63da08f"
+  },
+  "program_artifact": {
+    "artifact_ref": "fixtures/tassadar/runs/sudoku_9x9_v0_compiled_executor_v0/deployments/sudoku_9x9_test_a/program_artifact.json",
+    "artifact_digest": "fe266196d0f77bbf0848ae48bf06105fea3962a61631e9ab6b22fc62301c7463"
+  },
+  "compiled_weight_artifact": {
+    "artifact_ref": "fixtures/tassadar/runs/sudoku_9x9_v0_compiled_executor_v0/deployments/sudoku_9x9_test_a/compiled_weight_artifact.json",
+    "artifact_digest": "6139e4e2b61a7321eeed494bf95bfda5dfb448fce4f4f826ac56a778158c9492"
+  },
+  "model_descriptor": {
+    "artifact_ref": "fixtures/tassadar/runs/sudoku_9x9_v0_compiled_executor_v0/deployments/sudoku_9x9_test_a/model_descriptor.json",
+    "artifact_digest": "f2d9cec5aab672512e9a13e0c973979e9959603ebb62d784173483578e27f89e"
+  },
+  "runtime_execution_proof_bundle": {
+    "artifact_ref": "fixtures/tassadar/runs/sudoku_9x9_v0_compiled_executor_v0/deployments/sudoku_9x9_test_a/runtime_execution_proof_bundle.json",
+    "artifact_digest": "05a9e8234c166967fd84eba528b2fcc8dc81a7831b10a80314e895b14819d9dc"
+  },
+  "runtime_trace_proof": {
+    "artifact_ref": "fixtures/tassadar/runs/sudoku_9x9_v0_compiled_executor_v0/deployments/sudoku_9x9_test_a/runtime_trace_proof.json",
+    "artifact_digest": "14a35d227698929375b9463bfd9595644653a98f4877d2b11489bfaca5f16b25"
+  },
+  "token_trace_summary": {
+    "artifact_ref": "fixtures/tassadar/runs/sudoku_9x9_v0_compiled_executor_v0/deployments/sudoku_9x9_test_a/token_trace_summary.json",
+    "artifact_digest": "79a24e509e7e0387270625e4804c8efc18c50d00d296790103c8a7c5461cbce5"
+  },
+  "readable_log": {
+    "artifact_ref": "fixtures/tassadar/runs/sudoku_9x9_v0_compiled_executor_v0/deployments/sudoku_9x9_test_a/readable_log.txt",
+    "artifact_digest": "43af53a94b372b89a4ec858c8303e475d8a112d631525c9319cea50c4188dab9"
+  },
+  "direct_execution_posture": {
+    "requested_decode_mode": "tassadar.decode.reference_linear.v1",
+    "effective_decode_mode": "tassadar.decode.reference_linear.v1",
+    "fallback_observed": false,
+    "external_tool_surface_observed": false,
+    "runtime_backend": "cpu",
+    "compiled_backend_features": [
+      "tassadar_executor",
+      "tassadar.decode.reference_linear.v1",
+      "tassadar.wasm.sudoku_9x9_search.v1"
+    ],
+    "detail": "the canonical Sudoku reproducer stays on the direct compiled executor lane with reference-linear decode parity, no observed fallback, and no external-tool feature markers in the runtime identity"
+  },
+  "claim_boundary": "this report closes one canonical Rust-only Sudoku-9x9 article reproducer by binding the committed Rust source canon receipt to the exact compiled `sudoku_9x9_test_a` search deployment and the committed 9x9 corpus case set. It closes this one backtracking-search workload family only and does not by itself imply Hungarian closure, multi-million-step closure, or arbitrary-program closure.",
+  "report_digest": "9e78d4d2a01dc2e3dd81b649dd2425013a38ee4b7f223aa7da128064501435a8"
+}

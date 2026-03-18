@@ -146,6 +146,29 @@ Expected outcome:
 - this closes one concrete matching workload only; it does not yet imply
   hard-Sudoku or multi-million-step article closure
 
+### 3B. Sudoku-9x9 Rust-only article reproducer
+
+```bash
+cargo run -p psionic-research --example tassadar_sudoku_9x9_article_reproducer
+```
+
+Read:
+
+- `fixtures/tassadar/reports/tassadar_sudoku_9x9_article_reproducer_report.json`
+- `fixtures/tassadar/runs/sudoku_9x9_v0_compiled_executor_v0/deployments/sudoku_9x9_test_a/token_trace_summary.json`
+- `fixtures/tassadar/runs/sudoku_9x9_v0_compiled_executor_v0/deployments/sudoku_9x9_test_a/readable_log.txt`
+
+Expected outcome:
+
+- one canonical Rust-only Sudoku-9x9 article report binds the committed source
+  canon receipt to the exact compiled `sudoku_9x9_test_a` search deployment
+- the report freezes the committed 9x9 corpus case set, the canonical search
+  trace artifacts, and the direct execution posture:
+  `reference_linear -> reference_linear`, `fallback_observed=false`, and
+  `external_tool_surface_observed=false`
+- this closes one concrete backtracking-search workload family only; it does
+  not yet imply Hungarian or multi-million-step article closure
+
 ### 4. Optional historical C-to-Wasm compile receipt
 
 ```bash

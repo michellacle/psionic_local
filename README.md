@@ -655,6 +655,17 @@ Current posture:
   compile lineage, runtime proof lineage, and explicit direct/no-fallback
   posture without widening the claim to Sudoku, million-step, or arbitrary
   program closure
+- the repo now also carries one canonical Rust-only Sudoku-9x9 article
+  reproducer report at
+  `fixtures/tassadar/reports/tassadar_sudoku_9x9_article_reproducer_report.json`,
+  emitted by
+  `cargo run -p psionic-research --example tassadar_sudoku_9x9_article_reproducer`;
+  it binds the committed Rust source canon receipt to the exact compiled
+  `sudoku_9x9_test_a` search deployment under
+  `fixtures/tassadar/runs/sudoku_9x9_v0_compiled_executor_v0`, freezes the
+  committed 9x9 corpus case set, and makes the direct/no-fallback/no-external-tool
+  posture explicit without widening the claim to Hungarian, million-step, or
+  arbitrary program closure
 - the repo now also carries one canonical Tassadar C-to-Wasm compile receipt at
   `fixtures/tassadar/reports/tassadar_c_to_wasm_compile_receipt.json`, emitted
   by `cargo run -p psionic-runtime --example tassadar_c_to_wasm_compile_receipt`;
