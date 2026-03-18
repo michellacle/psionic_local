@@ -44,6 +44,8 @@ mod tassadar_hungarian_compiled_executor;
 mod tassadar_memory_abi_v2;
 #[path = "tassadar_sequence.rs"]
 mod tassadar_sequence;
+#[path = "tassadar_structured_control.rs"]
+mod tassadar_structured_control;
 #[path = "tassadar_sudoku_9x9_compiled_executor.rs"]
 mod tassadar_sudoku_9x9_compiled_executor;
 #[path = "tassadar_wasm_module_ingress.rs"]
@@ -81,6 +83,7 @@ pub use tassadar_hungarian_10x10_compiled_executor::*;
 pub use tassadar_hungarian_compiled_executor::*;
 pub use tassadar_memory_abi_v2::*;
 pub use tassadar_sequence::*;
+pub use tassadar_structured_control::*;
 pub use tassadar_sudoku_9x9_compiled_executor::*;
 pub use tassadar_wasm_module_ingress::*;
 

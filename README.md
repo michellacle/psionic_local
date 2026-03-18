@@ -168,6 +168,13 @@ Current posture:
   delta-oriented memory tracing, a training-facing supervision suite, and the
   committed report at
   `fixtures/tassadar/reports/tassadar_memory_abi_v2_report.json`
+- its structured-control closure lane now also exists across
+  `psionic-compiler`, `psionic-runtime`, and `psionic-eval`, with compiler
+  lowering from bounded zero-parameter Wasm functions into validated executor
+  programs for `block`, `loop`, `if`, `else`, `br`, `br_if`, and `br_table`,
+  runtime-owned exact execution and branch traces for that nested control
+  surface, and the committed report at
+  `fixtures/tassadar/reports/tassadar_structured_control_report.json`
 - the repo now also carries a standardized exactness/refusal evidence surface
   across `psionic-runtime`, `psionic-provider`, and `psionic-eval`, with a
   shared runtime report schema for exact direct, exact fallback, mismatch, and

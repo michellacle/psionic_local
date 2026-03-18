@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.structured_control.report.v1",
+  "cases": [
+    {
+      "case_id": "structured_if_else",
+      "source_ref": "synthetic://tassadar/structured_control/if_else_v1",
+      "status": "exact",
+      "bundle_digest": "9473c085c38ad9fe1057abdc2438f92dee8eea38230c450ae7243887e03510d7",
+      "return_values_by_export": {
+        "structured_if_else": 22
+      },
+      "trace_digests_by_export": {
+        "structured_if_else": "9abeb7f18cac3f386021ba0e267fca720a7dd94dec6499d1becc370e91113aa6"
+      },
+      "trace_steps_by_export": {
+        "structured_if_else": 10
+      }
+    },
+    {
+      "case_id": "structured_loop",
+      "source_ref": "synthetic://tassadar/structured_control/loop_v1",
+      "status": "exact",
+      "bundle_digest": "948c8c5a942bce5214b283f92f70c109028fe4328caa05c7e2869ffcf7c6f410",
+      "return_values_by_export": {
+        "structured_loop": 0
+      },
+      "trace_digests_by_export": {
+        "structured_loop": "d171df2fed5c45ccd7f618db93569c4dbf008dd6d171774f5293973480e55362"
+      },
+      "trace_steps_by_export": {
+        "structured_loop": 34
+      }
+    },
+    {
+      "case_id": "structured_branch_table",
+      "source_ref": "synthetic://tassadar/structured_control/branch_table_v1",
+      "status": "exact",
+      "bundle_digest": "5dfd4e37e92f9e8253d4c4984ab3f4c3d1540c4d8be29801ba0835b32ee5a952",
+      "return_values_by_export": {
+        "branch_table_inner": 100,
+        "branch_table_middle": 200,
+        "branch_table_outer": 300
+      },
+      "trace_digests_by_export": {
+        "branch_table_inner": "6785f38eb6b88205e0711e2cc4c1be05706468bf69a5d7f6ba2c852ac8cc1f16",
+        "branch_table_middle": "073b32601a8277eb0ae197a64a63b797a6045683cb3fc4bdd1b689ef60343b07",
+        "branch_table_outer": "8c8a673530bc4c3c2ac73f55ab49c513768790f0997efd74dbb33c90db97a9db"
+      },
+      "trace_steps_by_export": {
+        "branch_table_inner": 15,
+        "branch_table_middle": 15,
+        "branch_table_outer": 12
+      }
+    },
+    {
+      "case_id": "invalid_label_depth",
+      "source_ref": "synthetic://tassadar/structured_control/invalid_label_depth_v1",
+      "status": "refused",
+      "refusal_kind": "invalid_branch_depth",
+      "refusal_detail": "structured-control branch depth 1 is out of range for nesting depth 1"
+    }
+  ],
+  "claim_boundary": "this report proves one bounded compiled structured-control lane over zero-parameter i32-only Wasm functions with empty block types and exact CPU-reference replay for block, loop, if, else, br, br_if, and br_table; it does not claim calls, block results, imports, memories, tables, globals, or arbitrary Wasm closure",
+  "report_digest": "6a9b8db6ea269dc6f40473f7a6a0e4249bccc6076cf0fb41bbecfdf0ab3ea29a"
+}

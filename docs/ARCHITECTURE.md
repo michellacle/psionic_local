@@ -246,6 +246,15 @@ The current scope is:
   `fixtures/tassadar/reports/tassadar_memory_abi_v2_report.json` instead of
   pretending the old fixed-slot memory ABI was already truthful enough for
   module-scale Wasm work
+- landed structured-control closure bar: `psionic-compiler` now lowers one
+  bounded zero-parameter i32-only Wasm subset with empty block types into
+  validated executor-ready structured programs covering `block`, `loop`, `if`,
+  `else`, `br`, `br_if`, and `br_table`; `psionic-runtime` now owns the exact
+  nested-control executor and branch-trace surface for that lane; and
+  `psionic-eval` now freezes exact and refused evidence at
+  `fixtures/tassadar/reports/tassadar_structured_control_report.json`,
+  including branch-table parity and malformed-label refusal, without claiming
+  calls, memories, block-result closure, or arbitrary Wasm support
 - landed exactness/refusal evidence bar: `psionic-runtime` now owns a shared
   `TassadarExactnessRefusalReport` contract that records exact, mismatch, and
   refused posture above current selection diagnostics and trace/output/halt

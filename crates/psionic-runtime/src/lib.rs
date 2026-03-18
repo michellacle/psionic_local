@@ -9,6 +9,7 @@ mod proof;
 mod structured_output;
 mod tassadar;
 mod tassadar_memory_abi_v2;
+mod tassadar_structured_control;
 mod validation;
 
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
@@ -32,6 +33,7 @@ use sha2::{Digest, Sha256};
 pub use structured_output::*;
 pub use tassadar::*;
 pub use tassadar_memory_abi_v2::*;
+pub use tassadar_structured_control::*;
 use thiserror::Error;
 pub use validation::*;
 
