@@ -210,8 +210,7 @@ Psionic already has real substrate this lane can reuse:
 
 Psionic does not yet ship the challenge lane itself:
 
-- no benchmark-package or eval-receipt lane for the challenge oracle outside the new `psionic-data` fixture parity path yet
-- no Parameter Golf benchmark package or eval receipts
+- a bounded local-reference benchmark package, challenge score report, and wallclock, memory, artifact-size, plus train or eval bundle-root receipts now exist, but only for the local-reference CPU lane
 - a bounded single-device local-reference trainer now exists in `psionic-train`, with explicit batch geometry, grad accumulation, checkpoint and restart posture, raw safetensors export, and int8 plus zlib roundtrip validation, but it is still a CPU reference path rather than measured challenge throughput closure
 - no transport-backed `8xH100` train lane proved at challenge throughput
 - no challenge wrapper or record-folder output contract for record-track review
@@ -223,8 +222,8 @@ Psionic does not yet ship the challenge lane itself:
 | `psionic-data` | `implemented_early` generic manifests, tokenizer digests, iteration, packing, and distributed feed planning, plus a landed Parameter Golf shard loader, local-dir manifest builder, deterministic token-stream contract, SentencePiece byte-accounting LUT oracle, and frozen parity fixtures for shard loading, validation slicing, `val_loss`, and `val_bpb` parity against the public Python and MLX scripts | wire the data and tokenizer contracts into exact eval receipts and trainer ingestion |
 | `psionic-models` | `implemented_early` model metadata plus bounded model families and runtime tokenizers, now including a landed Parameter Golf reference decoder with tied embeddings, GQA, RoPE, RMSNorm-without-weight, learned residual mixing, skip weights, tanh logit softcap, stable tensor naming, baseline parameter accounting, and a frozen `train_gpt.py` parity fixture at the public `9x512` shape, plus new named-parameter override and export helpers used by the single-device reference trainer | widen the family toward faster train-time or research variants without losing the frozen oracle |
 | `psionic-nn` | `implemented` reusable layers, losses, optimizer shells, and eval-only quantization wrappers | widen or compose the current layer set into a reusable causal-decoder path and add any missing train-time primitive support the lane needs |
-| `psionic-train` | `implemented_early` fixed-budget training core, optimizer math, mixed precision, model IO, checkpoint, and replay truth, plus a landed Parameter Golf lane module for the public optimizer split, baseline schedule helpers, exact Muon reference math, a frozen `train_gpt.py` optimizer parity fixture, and a bounded local-reference trainer with challenge batch geometry, grad accumulation, checkpoint or restart state, raw safetensors export, and int8+zlib roundtrip restore | connect the bounded trainer to benchmark receipts, then widen from the CPU reference path to the measured distributed challenge lane |
-| `psionic-eval` | `implemented_early` benchmark and eval contracts, with a tracking-only lane acceptance checker and now a landed Parameter Golf validation eval report used by the local-reference trainer and roundtrip checks | add benchmark-package receipts, leaderboard-facing report packaging, and explicit measured wallclock or memory evidence tied to real lane runs |
+| `psionic-train` | `implemented_early` fixed-budget training core, optimizer math, mixed precision, model IO, checkpoint, and replay truth, plus a landed Parameter Golf lane module for the public optimizer split, baseline schedule helpers, exact Muon reference math, a frozen `train_gpt.py` optimizer parity fixture, a bounded local-reference trainer with challenge batch geometry, grad accumulation, checkpoint or restart state, raw safetensors export, and int8+zlib roundtrip restore, and now a local-reference benchmark bundle builder that emits score, wallclock, memory, artifact-size, and train or eval bundle-root receipts | widen from the CPU reference path to the measured distributed challenge lane and carry the new receipt lane forward to real multi-GPU evidence |
+| `psionic-eval` | `implemented_early` benchmark and eval contracts, with a tracking-only lane acceptance checker, a landed Parameter Golf validation eval report used by the local-reference trainer and roundtrip checks, and now a dedicated Parameter Golf benchmark package plus challenge score and receipt contracts | connect the landed receipt lane to real distributed runs, benchmark-package bundles, and leaderboard-facing review without overclaiming local-reference measurements |
 | `psionic-distributed` | `implemented_early` public distributed helpers with reference-emulated public collectives | add the real multi-GPU training path we intend to use for `8xH100`, plus honest topology, communication, and refusal receipts |
 | `psionic-array` and backends | `implemented_early` bounded CPU/Metal/CUDA public surface, with wider CUDA backend kernels below it | widen the CUDA train-time kernel and runtime path needed for competitive small-decoder throughput without overclaiming the public array surface |
 | packaging and compatibility | `planned` for this lane | define the non-record versus record-track wrapper, code-byte accounting posture, record-folder output, and submission metadata path |
@@ -331,7 +330,7 @@ Turn single-device parity into honest `8xH100` throughput closure.
 
 | ID | Status | Proposed GitHub issue title | Description |
 | --- | --- | --- | --- |
-| `PGOLF-301` / [#169](https://github.com/OpenAgentsInc/psionic/issues/169) | open | `Psionic Parameter Golf: add challenge benchmark packages, eval receipts, and leaderboard-facing reports` | Add a dedicated benchmark or report lane for Parameter Golf so the repo can preserve wallclock, memory, artifact-size, and score receipts under the same eval substrate instead of using ad hoc logs only. |
+| `PGOLF-301` / [#169](https://github.com/OpenAgentsInc/psionic/issues/169) | done (2026-03-18) | `Psionic Parameter Golf: add challenge benchmark packages, eval receipts, and leaderboard-facing reports` | `psionic-eval` now ships a dedicated Parameter Golf benchmark package plus score, wallclock, memory, artifact-size, and bundle-root receipt contracts, and `psionic-train` now ships a bounded local-reference benchmark bundle builder that emits those review artifacts from the Psionic-owned trainer instead of relying on ad hoc logs. |
 | `PGOLF-302` / [#170](https://github.com/OpenAgentsInc/psionic/issues/170) | open | `Psionic Parameter Golf: add the real distributed 8xH100 training lane and throughput receipts` | Decide and implement the actual distributed execution posture for the challenge run, then emit explicit topology, communication, timing, and memory receipts for that path. The target is measured closure, not assumed DDP equivalence. |
 | `PGOLF-303` / [#171](https://github.com/OpenAgentsInc/psionic/issues/171) | open | `Psionic Parameter Golf: widen CUDA runtime and kernel coverage required by the challenge baseline` | Close the gap between today's bounded public array surface and the kernels or runtime path needed for competitive small-decoder training. This includes any train-time RoPE, RMSNorm, attention, residual, optimizer, or quantization kernels that must be widened for the chosen `8xH100` path. |
 
@@ -379,7 +378,7 @@ research without losing the oracle.
 
 ### Phase 4: close measured 8xH100 execution truth
 
-- `PGOLF-301`
+- `PGOLF-301` -> landed local-reference benchmark package, challenge score report, wallclock or memory or artifact-size receipts, and train or eval bundle roots for later leaderboard-facing review
 - `PGOLF-302`
 - `PGOLF-303`
 

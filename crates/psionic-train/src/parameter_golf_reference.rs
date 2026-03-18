@@ -345,7 +345,7 @@ pub struct ParameterGolfTrainingArtifact {
 }
 
 impl ParameterGolfTrainingArtifact {
-    fn new(
+    pub(crate) fn new(
         artifact_kind: impl Into<String>,
         artifact_ref: impl Into<String>,
         bytes: Vec<u8>,

@@ -54,15 +54,15 @@
     },
     {
       "category_id": "distributed-throughput-closure",
-      "matrix_status": "planned",
+      "matrix_status": "partial",
       "issue_refs": [
         "PGOLF-301/#169",
         "PGOLF-302/#170",
         "PGOLF-303/#171"
       ],
       "green_definition": "Psionic has one explicit 8xH100 execution path with topology, timing, memory, and artifact receipts that support the declared challenge bar.",
-      "current_repo_truth": "No benchmark package, no distributed 8xH100 trainer lane, and no widened CUDA training surface are landed for Parameter Golf yet.",
-      "boundary_note": "Do not infer 8xH100 closure from local or reference-emulated distributed helpers."
+      "current_repo_truth": "psionic-eval plus psionic-train now ship a dedicated Parameter Golf benchmark package and receipt lane covering local-reference score, wallclock, memory, artifact-size, and train or eval bundle-root review artifacts, but there is still no real distributed 8xH100 trainer lane or widened CUDA training surface behind those receipts yet.",
+      "boundary_note": "Treat the landed receipt lane as bookkeeping substrate only until the actual distributed path exists."
     },
     {
       "category_id": "packaging-readiness",
@@ -89,5 +89,5 @@
       "boundary_note": "Treat this as blocked by both in-repo implementation work and the need for an explicit public accounting interpretation."
     }
   ],
-  "report_digest": "140e89565d1eada6c810a1f531c4da70a9a2e5a499cb3452a29b86e8ec510cb3"
+  "report_digest": "097de249a9b83cfeece4261f3cbd68aae395d7597c8e2a5eef277b8406b70896"
 }
