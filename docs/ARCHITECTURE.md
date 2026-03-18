@@ -247,6 +247,22 @@ The current scope is:
   This lane keeps backend and quantization drift explicit instead of assuming
   one executor artifact preserves semantics across export, quantization, and
   served backend changes
+- landed approximate-attention-closure follow-on: `psionic-runtime` now
+  projects a same-workload closure report from the shared efficient-attention
+  matrix in
+  `fixtures/tassadar/reports/tassadar_approximate_attention_closure_runtime_report.json`,
+  covering dense, sparse-top-k, linear recurrent, LSH-style proxy, hard-max
+  proxy, HullCache, and hierarchical-hull families with explicit `direct`,
+  `degraded_but_bounded`, and `refused` posture per workload row; `psionic-models`
+  now publishes the public `TassadarApproximateAttentionClosurePublication`
+  above that runtime truth; `psionic-eval` now freezes the machine-legible
+  matrix at
+  `fixtures/tassadar/reports/tassadar_approximate_attention_closure_matrix.json`;
+  and `psionic-research` now freezes the promotion-boundary summary at
+  `fixtures/tassadar/reports/tassadar_approximate_attention_closure_summary.json`.
+  This lane keeps approximate-attention wins, degradations, and refusal
+  hotspots explicit instead of treating one fast-path success as general
+  executor closure
 - landed shared primitive transfer follow-on: `psionic-data` now publishes a
   public `TassadarSharedPrimitiveTransferContract` over explicit
   reachability-expand, relax-state, compare, select, merge, and

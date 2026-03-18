@@ -26,6 +26,8 @@ mod tassadar_call_frames;
 mod tassadar_compiled_distillation;
 #[path = "tassadar_compile_pipeline_matrix.rs"]
 mod tassadar_compile_pipeline_matrix;
+#[path = "tassadar_approximate_attention_closure_matrix.rs"]
+mod tassadar_approximate_attention_closure_matrix;
 #[path = "tassadar_wasm_conformance.rs"]
 mod tassadar_wasm_conformance;
 #[path = "tassadar_conditional_masking_report.rs"]
@@ -118,6 +120,7 @@ pub use tassadar_clrs_wasm_bridge::*;
 pub use tassadar_call_frames::*;
 pub use tassadar_compiled_distillation::*;
 pub use tassadar_compile_pipeline_matrix::*;
+pub use tassadar_approximate_attention_closure_matrix::*;
 pub use tassadar_wasm_conformance::*;
 pub use tassadar_conditional_masking_report::*;
 pub use tassadar_decompilation_fidelity::*;

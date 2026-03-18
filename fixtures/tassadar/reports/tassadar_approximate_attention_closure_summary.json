@@ -1,0 +1,1733 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.approximate_attention_closure.summary.v1",
+  "matrix_report": {
+    "schema_version": 1,
+    "report_id": "tassadar.approximate_attention_closure.matrix.v1",
+    "publication": {
+      "schema_version": 1,
+      "publication_id": "tassadar.approximate_attention_closure.publication.v1",
+      "status": "implemented",
+      "claim_class": "research_only_fast_path_substrate",
+      "model": {
+        "model_id": "tassadar-approximate-attention-closure-v0",
+        "family": "tassadar_approximate_attention_closure",
+        "revision": "v0"
+      },
+      "attention_families": [
+        "dense_reference_linear",
+        "sparse_top_k_validated",
+        "linear_recurrent_runtime",
+        "lsh_bucketed_proxy",
+        "hard_max_routing_proxy",
+        "hull_cache_runtime",
+        "hierarchical_hull_research"
+      ],
+      "workload_targets": [
+        "branch_heavy_kernel",
+        "hungarian_matching",
+        "long_loop_kernel",
+        "memory_heavy_kernel",
+        "micro_wasm_kernel",
+        "sudoku_class"
+      ],
+      "closure_receipts": [
+        {
+          "workload_target": "micro_wasm_kernel",
+          "attention_family": "dense_reference_linear",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 1.0,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "exact reference-linear dense executor baseline reused as the same-harness floor for every other family row"
+        },
+        {
+          "workload_target": "micro_wasm_kernel",
+          "attention_family": "sparse_top_k_validated",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 7.954369,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "validated runtime sparse-top-k baseline on the same article-class cases; explicit fallback remains part of the surface rather than being hidden behind aggregate speedups"
+        },
+        {
+          "workload_target": "micro_wasm_kernel",
+          "attention_family": "linear_recurrent_runtime",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 9.161169,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_recurrent_fast_path_runtime_baseline.json"
+          ],
+          "refusal_reasons": [],
+          "note": "research-only artifact-backed recurrent runtime baseline on the same article-class benchmark package; direct on the smaller direct profiles and explicit exact fallback on the larger article-sized profiles"
+        },
+        {
+          "workload_target": "micro_wasm_kernel",
+          "attention_family": "lsh_bucketed_proxy",
+          "measurement_kind": "proxy_closure_model",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 1.935785,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "research-only chunked / Reformer-style proxy row on the same benchmark package, with explicit fallback or refusal instead of silently widening support"
+        },
+        {
+          "workload_target": "micro_wasm_kernel",
+          "attention_family": "hull_cache_runtime",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 8.110982,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "promoted HullCache runtime row on the same benchmark package, preserving explicit fallback posture where current control-flow limits still apply"
+        },
+        {
+          "workload_target": "micro_wasm_kernel",
+          "attention_family": "hierarchical_hull_research",
+          "measurement_kind": "artifact_backed_research",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 10.557605,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_geometric_variant_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "research-only hierarchical hull candidate posture; any widened exact class here is evidence for follow-on work, not a promoted runtime claim"
+        },
+        {
+          "workload_target": "micro_wasm_kernel",
+          "attention_family": "hard_max_routing_proxy",
+          "measurement_kind": "proxy_closure_model",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 6.25,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_efficient_attention_baseline_matrix.json"
+          ],
+          "refusal_reasons": [],
+          "note": "hard-max proxy stays direct on the bounded micro-kernel row; proxy dense-relative throughput anchor is 6.250000x on workload `micro_wasm_kernel`"
+        },
+        {
+          "workload_target": "branch_heavy_kernel",
+          "attention_family": "dense_reference_linear",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 1.0,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "exact reference-linear dense executor baseline reused as the same-harness floor for every other family row"
+        },
+        {
+          "workload_target": "branch_heavy_kernel",
+          "attention_family": "sparse_top_k_validated",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "degraded_but_bounded",
+          "case_count": 1,
+          "direct_case_count": 0,
+          "degraded_case_count": 1,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 1.30707,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [
+            "sparse_top_k_validation_unsupported"
+          ],
+          "note": "validated runtime sparse-top-k baseline on the same article-class cases; explicit fallback remains part of the surface rather than being hidden behind aggregate speedups"
+        },
+        {
+          "workload_target": "branch_heavy_kernel",
+          "attention_family": "linear_recurrent_runtime",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 12.76559,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_recurrent_fast_path_runtime_baseline.json"
+          ],
+          "refusal_reasons": [],
+          "note": "research-only artifact-backed recurrent runtime baseline on the same article-class benchmark package; direct on the smaller direct profiles and explicit exact fallback on the larger article-sized profiles"
+        },
+        {
+          "workload_target": "branch_heavy_kernel",
+          "attention_family": "lsh_bucketed_proxy",
+          "measurement_kind": "proxy_closure_model",
+          "closure_outcome": "degraded_but_bounded",
+          "case_count": 1,
+          "direct_case_count": 0,
+          "degraded_case_count": 1,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 1.0,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [
+            "chunk_boundary_fragmentation"
+          ],
+          "note": "research-only chunked / Reformer-style proxy row on the same benchmark package, with explicit fallback or refusal instead of silently widening support"
+        },
+        {
+          "workload_target": "branch_heavy_kernel",
+          "attention_family": "hull_cache_runtime",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 10.83359,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "promoted HullCache runtime row on the same benchmark package, preserving explicit fallback posture where current control-flow limits still apply"
+        },
+        {
+          "workload_target": "branch_heavy_kernel",
+          "attention_family": "hierarchical_hull_research",
+          "measurement_kind": "artifact_backed_research",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 9.19636,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_geometric_variant_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "research-only hierarchical hull candidate posture; any widened exact class here is evidence for follow-on work, not a promoted runtime claim"
+        },
+        {
+          "workload_target": "branch_heavy_kernel",
+          "attention_family": "hard_max_routing_proxy",
+          "measurement_kind": "proxy_closure_model",
+          "closure_outcome": "degraded_but_bounded",
+          "case_count": 1,
+          "direct_case_count": 0,
+          "degraded_case_count": 1,
+          "refused_case_count": 0,
+          "exact_case_count": 0,
+          "average_speedup_over_dense_reference": 1.1,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_efficient_attention_baseline_matrix.json"
+          ],
+          "refusal_reasons": [
+            "hard_max_branch_boundary_fragmentation"
+          ],
+          "note": "hard-max proxy remains bounded on branch-heavy control flow but loses smooth fallback behavior; proxy dense-relative throughput anchor is 1.100000x on workload `branch_heavy_kernel`"
+        },
+        {
+          "workload_target": "memory_heavy_kernel",
+          "attention_family": "dense_reference_linear",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 1.0,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "exact reference-linear dense executor baseline reused as the same-harness floor for every other family row"
+        },
+        {
+          "workload_target": "memory_heavy_kernel",
+          "attention_family": "sparse_top_k_validated",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 3.356038,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "validated runtime sparse-top-k baseline on the same article-class cases; explicit fallback remains part of the surface rather than being hidden behind aggregate speedups"
+        },
+        {
+          "workload_target": "memory_heavy_kernel",
+          "attention_family": "linear_recurrent_runtime",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 7.27347,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_recurrent_fast_path_runtime_baseline.json"
+          ],
+          "refusal_reasons": [],
+          "note": "research-only artifact-backed recurrent runtime baseline on the same article-class benchmark package; direct on the smaller direct profiles and explicit exact fallback on the larger article-sized profiles"
+        },
+        {
+          "workload_target": "memory_heavy_kernel",
+          "attention_family": "lsh_bucketed_proxy",
+          "measurement_kind": "proxy_closure_model",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 1.825699,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "research-only chunked / Reformer-style proxy row on the same benchmark package, with explicit fallback or refusal instead of silently widening support"
+        },
+        {
+          "workload_target": "memory_heavy_kernel",
+          "attention_family": "hull_cache_runtime",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 3.688552,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "promoted HullCache runtime row on the same benchmark package, preserving explicit fallback posture where current control-flow limits still apply"
+        },
+        {
+          "workload_target": "memory_heavy_kernel",
+          "attention_family": "hierarchical_hull_research",
+          "measurement_kind": "artifact_backed_research",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 5.821878,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_geometric_variant_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "research-only hierarchical hull candidate posture; any widened exact class here is evidence for follow-on work, not a promoted runtime claim"
+        },
+        {
+          "workload_target": "memory_heavy_kernel",
+          "attention_family": "hard_max_routing_proxy",
+          "measurement_kind": "proxy_closure_model",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 3.8,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_efficient_attention_baseline_matrix.json"
+          ],
+          "refusal_reasons": [],
+          "note": "hard-max proxy stays direct on the current memory-heavy locality row; proxy dense-relative throughput anchor is 3.800000x on workload `memory_heavy_kernel`"
+        },
+        {
+          "workload_target": "long_loop_kernel",
+          "attention_family": "dense_reference_linear",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 1.0,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "exact reference-linear dense executor baseline reused as the same-harness floor for every other family row"
+        },
+        {
+          "workload_target": "long_loop_kernel",
+          "attention_family": "sparse_top_k_validated",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "degraded_but_bounded",
+          "case_count": 1,
+          "direct_case_count": 0,
+          "degraded_case_count": 1,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 1.000543,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [
+            "sparse_top_k_validation_unsupported"
+          ],
+          "note": "validated runtime sparse-top-k baseline on the same article-class cases; explicit fallback remains part of the surface rather than being hidden behind aggregate speedups"
+        },
+        {
+          "workload_target": "long_loop_kernel",
+          "attention_family": "linear_recurrent_runtime",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 3605.228567,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_recurrent_fast_path_runtime_baseline.json"
+          ],
+          "refusal_reasons": [],
+          "note": "research-only artifact-backed recurrent runtime baseline on the same article-class benchmark package; direct on the smaller direct profiles and explicit exact fallback on the larger article-sized profiles"
+        },
+        {
+          "workload_target": "long_loop_kernel",
+          "attention_family": "lsh_bucketed_proxy",
+          "measurement_kind": "proxy_closure_model",
+          "closure_outcome": "refused",
+          "case_count": 1,
+          "direct_case_count": 0,
+          "degraded_case_count": 0,
+          "refused_case_count": 1,
+          "exact_case_count": 0,
+          "average_speedup_over_dense_reference": 0.0,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [
+            "loop_revisitation_outside_chunk_locality"
+          ],
+          "note": "research-only chunked / Reformer-style proxy row on the same benchmark package, with explicit fallback or refusal instead of silently widening support"
+        },
+        {
+          "workload_target": "long_loop_kernel",
+          "attention_family": "hull_cache_runtime",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "degraded_but_bounded",
+          "case_count": 1,
+          "direct_case_count": 0,
+          "degraded_case_count": 1,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 0.998378,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [
+            "hull_cache_control_flow_unsupported"
+          ],
+          "note": "promoted HullCache runtime row on the same benchmark package, preserving explicit fallback posture where current control-flow limits still apply"
+        },
+        {
+          "workload_target": "long_loop_kernel",
+          "attention_family": "hierarchical_hull_research",
+          "measurement_kind": "artifact_backed_research",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 2785.897065,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_geometric_variant_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "research-only hierarchical hull candidate posture; any widened exact class here is evidence for follow-on work, not a promoted runtime claim"
+        },
+        {
+          "workload_target": "long_loop_kernel",
+          "attention_family": "hard_max_routing_proxy",
+          "measurement_kind": "proxy_closure_model",
+          "closure_outcome": "refused",
+          "case_count": 1,
+          "direct_case_count": 0,
+          "degraded_case_count": 0,
+          "refused_case_count": 1,
+          "exact_case_count": 0,
+          "average_speedup_over_dense_reference": 0.0,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_efficient_attention_baseline_matrix.json"
+          ],
+          "refusal_reasons": [
+            "hard_max_attention_breaks_long_horizon_control_boundary"
+          ],
+          "note": "hard-max proxy should refuse on long-horizon revisitation rather than silently degrade; proxy dense-relative throughput anchor is 0.000000x on workload `long_loop_kernel`"
+        },
+        {
+          "workload_target": "sudoku_class",
+          "attention_family": "dense_reference_linear",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "direct",
+          "case_count": 8,
+          "direct_case_count": 8,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 8,
+          "average_speedup_over_dense_reference": 1.0,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "exact reference-linear dense executor baseline reused as the same-harness floor for every other family row"
+        },
+        {
+          "workload_target": "sudoku_class",
+          "attention_family": "sparse_top_k_validated",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "degraded_but_bounded",
+          "case_count": 8,
+          "direct_case_count": 0,
+          "degraded_case_count": 8,
+          "refused_case_count": 0,
+          "exact_case_count": 8,
+          "average_speedup_over_dense_reference": 1.002214,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [
+            "sparse_top_k_validation_unsupported"
+          ],
+          "note": "validated runtime sparse-top-k baseline on the same article-class cases; explicit fallback remains part of the surface rather than being hidden behind aggregate speedups"
+        },
+        {
+          "workload_target": "sudoku_class",
+          "attention_family": "linear_recurrent_runtime",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "degraded_but_bounded",
+          "case_count": 8,
+          "direct_case_count": 0,
+          "degraded_case_count": 8,
+          "refused_case_count": 0,
+          "exact_case_count": 8,
+          "average_speedup_over_dense_reference": 1.0,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_recurrent_fast_path_runtime_baseline.json"
+          ],
+          "refusal_reasons": [
+            "workload_family_outside_direct_closure"
+          ],
+          "note": "research-only artifact-backed recurrent runtime baseline on the same article-class benchmark package; direct on the smaller direct profiles and explicit exact fallback on the larger article-sized profiles"
+        },
+        {
+          "workload_target": "sudoku_class",
+          "attention_family": "lsh_bucketed_proxy",
+          "measurement_kind": "proxy_closure_model",
+          "closure_outcome": "refused",
+          "case_count": 8,
+          "direct_case_count": 0,
+          "degraded_case_count": 0,
+          "refused_case_count": 8,
+          "exact_case_count": 0,
+          "average_speedup_over_dense_reference": 0.0,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [
+            "search_backtracking_outside_chunk_locality"
+          ],
+          "note": "research-only chunked / Reformer-style proxy row on the same benchmark package, with explicit fallback or refusal instead of silently widening support"
+        },
+        {
+          "workload_target": "sudoku_class",
+          "attention_family": "hull_cache_runtime",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "degraded_but_bounded",
+          "case_count": 8,
+          "direct_case_count": 0,
+          "degraded_case_count": 8,
+          "refused_case_count": 0,
+          "exact_case_count": 8,
+          "average_speedup_over_dense_reference": 1.008191,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [
+            "hull_cache_control_flow_unsupported"
+          ],
+          "note": "promoted HullCache runtime row on the same benchmark package, preserving explicit fallback posture where current control-flow limits still apply"
+        },
+        {
+          "workload_target": "sudoku_class",
+          "attention_family": "hierarchical_hull_research",
+          "measurement_kind": "artifact_backed_research",
+          "closure_outcome": "direct",
+          "case_count": 8,
+          "direct_case_count": 8,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 8,
+          "average_speedup_over_dense_reference": 119.254562,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_geometric_variant_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "research-only hierarchical hull candidate posture; any widened exact class here is evidence for follow-on work, not a promoted runtime claim"
+        },
+        {
+          "workload_target": "sudoku_class",
+          "attention_family": "hard_max_routing_proxy",
+          "measurement_kind": "proxy_closure_model",
+          "closure_outcome": "refused",
+          "case_count": 8,
+          "direct_case_count": 0,
+          "degraded_case_count": 0,
+          "refused_case_count": 8,
+          "exact_case_count": 0,
+          "average_speedup_over_dense_reference": 0.0,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_efficient_attention_baseline_matrix.json"
+          ],
+          "refusal_reasons": [
+            "hard_max_attention_breaks_backtracking_search_boundary"
+          ],
+          "note": "hard-max proxy should refuse on backtracking search workloads; proxy dense-relative throughput anchor is 0.000000x on workload `sudoku_class`"
+        },
+        {
+          "workload_target": "hungarian_matching",
+          "attention_family": "dense_reference_linear",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 1.0,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "exact reference-linear dense executor baseline reused as the same-harness floor for every other family row"
+        },
+        {
+          "workload_target": "hungarian_matching",
+          "attention_family": "sparse_top_k_validated",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 3.678748,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "validated runtime sparse-top-k baseline on the same article-class cases; explicit fallback remains part of the surface rather than being hidden behind aggregate speedups"
+        },
+        {
+          "workload_target": "hungarian_matching",
+          "attention_family": "linear_recurrent_runtime",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "degraded_but_bounded",
+          "case_count": 1,
+          "direct_case_count": 0,
+          "degraded_case_count": 1,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 1.0,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_recurrent_fast_path_runtime_baseline.json"
+          ],
+          "refusal_reasons": [
+            "workload_family_outside_direct_closure"
+          ],
+          "note": "research-only artifact-backed recurrent runtime baseline on the same article-class benchmark package; direct on the smaller direct profiles and explicit exact fallback on the larger article-sized profiles"
+        },
+        {
+          "workload_target": "hungarian_matching",
+          "attention_family": "lsh_bucketed_proxy",
+          "measurement_kind": "proxy_closure_model",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 1.681244,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "research-only chunked / Reformer-style proxy row on the same benchmark package, with explicit fallback or refusal instead of silently widening support"
+        },
+        {
+          "workload_target": "hungarian_matching",
+          "attention_family": "hull_cache_runtime",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 3.762238,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "promoted HullCache runtime row on the same benchmark package, preserving explicit fallback posture where current control-flow limits still apply"
+        },
+        {
+          "workload_target": "hungarian_matching",
+          "attention_family": "hierarchical_hull_research",
+          "measurement_kind": "artifact_backed_research",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 3.107458,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_geometric_variant_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "research-only hierarchical hull candidate posture; any widened exact class here is evidence for follow-on work, not a promoted runtime claim"
+        },
+        {
+          "workload_target": "hungarian_matching",
+          "attention_family": "hard_max_routing_proxy",
+          "measurement_kind": "proxy_closure_model",
+          "closure_outcome": "degraded_but_bounded",
+          "case_count": 1,
+          "direct_case_count": 0,
+          "degraded_case_count": 1,
+          "refused_case_count": 0,
+          "exact_case_count": 0,
+          "average_speedup_over_dense_reference": 1.9,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_efficient_attention_baseline_matrix.json"
+          ],
+          "refusal_reasons": [
+            "hard_max_attention_degrades_frontier_revisitation"
+          ],
+          "note": "hard-max proxy remains bounded on matching but loses stable frontier revisitation semantics; proxy dense-relative throughput anchor is 1.900000x on workload `hungarian_matching`"
+        }
+      ],
+      "target_surfaces": [
+        "crates/psionic-models",
+        "crates/psionic-runtime",
+        "crates/psionic-eval",
+        "crates/psionic-research"
+      ],
+      "validation_refs": [
+        "fixtures/tassadar/reports/tassadar_approximate_attention_closure_runtime_report.json",
+        "fixtures/tassadar/reports/tassadar_approximate_attention_closure_matrix.json",
+        "fixtures/tassadar/reports/tassadar_approximate_attention_closure_summary.json"
+      ],
+      "support_boundaries": [
+        "the publication keeps direct, degraded_but_bounded, and refused closure posture explicit for each workload and attention family instead of compressing them into one blended score",
+        "proxy rows such as lsh_bucketed_proxy and hard_max_routing_proxy are bounded analytical surfaces, not promoted runtime capabilities",
+        "the lane reuses the current bounded workload matrix and efficient-attention artifacts; it does not claim general approximate-attention executor closure or served promotion"
+      ],
+      "publication_digest": "f173316d606797c90c9f6326ea8a7b9a83ad7cfc1f66cd6526c53fbf17e6850e"
+    },
+    "runtime_report": {
+      "schema_version": 1,
+      "report_id": "tassadar.approximate_attention_closure.runtime_report.v1",
+      "baseline_matrix_ref": "fixtures/tassadar/reports/tassadar_efficient_attention_baseline_matrix.json",
+      "closure_receipts": [
+        {
+          "workload_target": "micro_wasm_kernel",
+          "attention_family": "dense_reference_linear",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 1.0,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "exact reference-linear dense executor baseline reused as the same-harness floor for every other family row"
+        },
+        {
+          "workload_target": "micro_wasm_kernel",
+          "attention_family": "sparse_top_k_validated",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 7.954369,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "validated runtime sparse-top-k baseline on the same article-class cases; explicit fallback remains part of the surface rather than being hidden behind aggregate speedups"
+        },
+        {
+          "workload_target": "micro_wasm_kernel",
+          "attention_family": "linear_recurrent_runtime",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 9.161169,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_recurrent_fast_path_runtime_baseline.json"
+          ],
+          "refusal_reasons": [],
+          "note": "research-only artifact-backed recurrent runtime baseline on the same article-class benchmark package; direct on the smaller direct profiles and explicit exact fallback on the larger article-sized profiles"
+        },
+        {
+          "workload_target": "micro_wasm_kernel",
+          "attention_family": "lsh_bucketed_proxy",
+          "measurement_kind": "proxy_closure_model",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 1.935785,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "research-only chunked / Reformer-style proxy row on the same benchmark package, with explicit fallback or refusal instead of silently widening support"
+        },
+        {
+          "workload_target": "micro_wasm_kernel",
+          "attention_family": "hull_cache_runtime",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 8.110982,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "promoted HullCache runtime row on the same benchmark package, preserving explicit fallback posture where current control-flow limits still apply"
+        },
+        {
+          "workload_target": "micro_wasm_kernel",
+          "attention_family": "hierarchical_hull_research",
+          "measurement_kind": "artifact_backed_research",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 10.557605,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_geometric_variant_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "research-only hierarchical hull candidate posture; any widened exact class here is evidence for follow-on work, not a promoted runtime claim"
+        },
+        {
+          "workload_target": "micro_wasm_kernel",
+          "attention_family": "hard_max_routing_proxy",
+          "measurement_kind": "proxy_closure_model",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 6.25,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_efficient_attention_baseline_matrix.json"
+          ],
+          "refusal_reasons": [],
+          "note": "hard-max proxy stays direct on the bounded micro-kernel row; proxy dense-relative throughput anchor is 6.250000x on workload `micro_wasm_kernel`"
+        },
+        {
+          "workload_target": "branch_heavy_kernel",
+          "attention_family": "dense_reference_linear",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 1.0,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "exact reference-linear dense executor baseline reused as the same-harness floor for every other family row"
+        },
+        {
+          "workload_target": "branch_heavy_kernel",
+          "attention_family": "sparse_top_k_validated",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "degraded_but_bounded",
+          "case_count": 1,
+          "direct_case_count": 0,
+          "degraded_case_count": 1,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 1.30707,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [
+            "sparse_top_k_validation_unsupported"
+          ],
+          "note": "validated runtime sparse-top-k baseline on the same article-class cases; explicit fallback remains part of the surface rather than being hidden behind aggregate speedups"
+        },
+        {
+          "workload_target": "branch_heavy_kernel",
+          "attention_family": "linear_recurrent_runtime",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 12.76559,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_recurrent_fast_path_runtime_baseline.json"
+          ],
+          "refusal_reasons": [],
+          "note": "research-only artifact-backed recurrent runtime baseline on the same article-class benchmark package; direct on the smaller direct profiles and explicit exact fallback on the larger article-sized profiles"
+        },
+        {
+          "workload_target": "branch_heavy_kernel",
+          "attention_family": "lsh_bucketed_proxy",
+          "measurement_kind": "proxy_closure_model",
+          "closure_outcome": "degraded_but_bounded",
+          "case_count": 1,
+          "direct_case_count": 0,
+          "degraded_case_count": 1,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 1.0,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [
+            "chunk_boundary_fragmentation"
+          ],
+          "note": "research-only chunked / Reformer-style proxy row on the same benchmark package, with explicit fallback or refusal instead of silently widening support"
+        },
+        {
+          "workload_target": "branch_heavy_kernel",
+          "attention_family": "hull_cache_runtime",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 10.83359,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "promoted HullCache runtime row on the same benchmark package, preserving explicit fallback posture where current control-flow limits still apply"
+        },
+        {
+          "workload_target": "branch_heavy_kernel",
+          "attention_family": "hierarchical_hull_research",
+          "measurement_kind": "artifact_backed_research",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 9.19636,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_geometric_variant_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "research-only hierarchical hull candidate posture; any widened exact class here is evidence for follow-on work, not a promoted runtime claim"
+        },
+        {
+          "workload_target": "branch_heavy_kernel",
+          "attention_family": "hard_max_routing_proxy",
+          "measurement_kind": "proxy_closure_model",
+          "closure_outcome": "degraded_but_bounded",
+          "case_count": 1,
+          "direct_case_count": 0,
+          "degraded_case_count": 1,
+          "refused_case_count": 0,
+          "exact_case_count": 0,
+          "average_speedup_over_dense_reference": 1.1,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_efficient_attention_baseline_matrix.json"
+          ],
+          "refusal_reasons": [
+            "hard_max_branch_boundary_fragmentation"
+          ],
+          "note": "hard-max proxy remains bounded on branch-heavy control flow but loses smooth fallback behavior; proxy dense-relative throughput anchor is 1.100000x on workload `branch_heavy_kernel`"
+        },
+        {
+          "workload_target": "memory_heavy_kernel",
+          "attention_family": "dense_reference_linear",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 1.0,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "exact reference-linear dense executor baseline reused as the same-harness floor for every other family row"
+        },
+        {
+          "workload_target": "memory_heavy_kernel",
+          "attention_family": "sparse_top_k_validated",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 3.356038,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "validated runtime sparse-top-k baseline on the same article-class cases; explicit fallback remains part of the surface rather than being hidden behind aggregate speedups"
+        },
+        {
+          "workload_target": "memory_heavy_kernel",
+          "attention_family": "linear_recurrent_runtime",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 7.27347,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_recurrent_fast_path_runtime_baseline.json"
+          ],
+          "refusal_reasons": [],
+          "note": "research-only artifact-backed recurrent runtime baseline on the same article-class benchmark package; direct on the smaller direct profiles and explicit exact fallback on the larger article-sized profiles"
+        },
+        {
+          "workload_target": "memory_heavy_kernel",
+          "attention_family": "lsh_bucketed_proxy",
+          "measurement_kind": "proxy_closure_model",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 1.825699,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "research-only chunked / Reformer-style proxy row on the same benchmark package, with explicit fallback or refusal instead of silently widening support"
+        },
+        {
+          "workload_target": "memory_heavy_kernel",
+          "attention_family": "hull_cache_runtime",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 3.688552,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "promoted HullCache runtime row on the same benchmark package, preserving explicit fallback posture where current control-flow limits still apply"
+        },
+        {
+          "workload_target": "memory_heavy_kernel",
+          "attention_family": "hierarchical_hull_research",
+          "measurement_kind": "artifact_backed_research",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 5.821878,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_geometric_variant_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "research-only hierarchical hull candidate posture; any widened exact class here is evidence for follow-on work, not a promoted runtime claim"
+        },
+        {
+          "workload_target": "memory_heavy_kernel",
+          "attention_family": "hard_max_routing_proxy",
+          "measurement_kind": "proxy_closure_model",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 3.8,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_efficient_attention_baseline_matrix.json"
+          ],
+          "refusal_reasons": [],
+          "note": "hard-max proxy stays direct on the current memory-heavy locality row; proxy dense-relative throughput anchor is 3.800000x on workload `memory_heavy_kernel`"
+        },
+        {
+          "workload_target": "long_loop_kernel",
+          "attention_family": "dense_reference_linear",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 1.0,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "exact reference-linear dense executor baseline reused as the same-harness floor for every other family row"
+        },
+        {
+          "workload_target": "long_loop_kernel",
+          "attention_family": "sparse_top_k_validated",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "degraded_but_bounded",
+          "case_count": 1,
+          "direct_case_count": 0,
+          "degraded_case_count": 1,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 1.000543,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [
+            "sparse_top_k_validation_unsupported"
+          ],
+          "note": "validated runtime sparse-top-k baseline on the same article-class cases; explicit fallback remains part of the surface rather than being hidden behind aggregate speedups"
+        },
+        {
+          "workload_target": "long_loop_kernel",
+          "attention_family": "linear_recurrent_runtime",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 3605.228567,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_recurrent_fast_path_runtime_baseline.json"
+          ],
+          "refusal_reasons": [],
+          "note": "research-only artifact-backed recurrent runtime baseline on the same article-class benchmark package; direct on the smaller direct profiles and explicit exact fallback on the larger article-sized profiles"
+        },
+        {
+          "workload_target": "long_loop_kernel",
+          "attention_family": "lsh_bucketed_proxy",
+          "measurement_kind": "proxy_closure_model",
+          "closure_outcome": "refused",
+          "case_count": 1,
+          "direct_case_count": 0,
+          "degraded_case_count": 0,
+          "refused_case_count": 1,
+          "exact_case_count": 0,
+          "average_speedup_over_dense_reference": 0.0,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [
+            "loop_revisitation_outside_chunk_locality"
+          ],
+          "note": "research-only chunked / Reformer-style proxy row on the same benchmark package, with explicit fallback or refusal instead of silently widening support"
+        },
+        {
+          "workload_target": "long_loop_kernel",
+          "attention_family": "hull_cache_runtime",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "degraded_but_bounded",
+          "case_count": 1,
+          "direct_case_count": 0,
+          "degraded_case_count": 1,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 0.998378,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [
+            "hull_cache_control_flow_unsupported"
+          ],
+          "note": "promoted HullCache runtime row on the same benchmark package, preserving explicit fallback posture where current control-flow limits still apply"
+        },
+        {
+          "workload_target": "long_loop_kernel",
+          "attention_family": "hierarchical_hull_research",
+          "measurement_kind": "artifact_backed_research",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 2785.897065,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_geometric_variant_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "research-only hierarchical hull candidate posture; any widened exact class here is evidence for follow-on work, not a promoted runtime claim"
+        },
+        {
+          "workload_target": "long_loop_kernel",
+          "attention_family": "hard_max_routing_proxy",
+          "measurement_kind": "proxy_closure_model",
+          "closure_outcome": "refused",
+          "case_count": 1,
+          "direct_case_count": 0,
+          "degraded_case_count": 0,
+          "refused_case_count": 1,
+          "exact_case_count": 0,
+          "average_speedup_over_dense_reference": 0.0,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_efficient_attention_baseline_matrix.json"
+          ],
+          "refusal_reasons": [
+            "hard_max_attention_breaks_long_horizon_control_boundary"
+          ],
+          "note": "hard-max proxy should refuse on long-horizon revisitation rather than silently degrade; proxy dense-relative throughput anchor is 0.000000x on workload `long_loop_kernel`"
+        },
+        {
+          "workload_target": "sudoku_class",
+          "attention_family": "dense_reference_linear",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "direct",
+          "case_count": 8,
+          "direct_case_count": 8,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 8,
+          "average_speedup_over_dense_reference": 1.0,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "exact reference-linear dense executor baseline reused as the same-harness floor for every other family row"
+        },
+        {
+          "workload_target": "sudoku_class",
+          "attention_family": "sparse_top_k_validated",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "degraded_but_bounded",
+          "case_count": 8,
+          "direct_case_count": 0,
+          "degraded_case_count": 8,
+          "refused_case_count": 0,
+          "exact_case_count": 8,
+          "average_speedup_over_dense_reference": 1.002214,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [
+            "sparse_top_k_validation_unsupported"
+          ],
+          "note": "validated runtime sparse-top-k baseline on the same article-class cases; explicit fallback remains part of the surface rather than being hidden behind aggregate speedups"
+        },
+        {
+          "workload_target": "sudoku_class",
+          "attention_family": "linear_recurrent_runtime",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "degraded_but_bounded",
+          "case_count": 8,
+          "direct_case_count": 0,
+          "degraded_case_count": 8,
+          "refused_case_count": 0,
+          "exact_case_count": 8,
+          "average_speedup_over_dense_reference": 1.0,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_recurrent_fast_path_runtime_baseline.json"
+          ],
+          "refusal_reasons": [
+            "workload_family_outside_direct_closure"
+          ],
+          "note": "research-only artifact-backed recurrent runtime baseline on the same article-class benchmark package; direct on the smaller direct profiles and explicit exact fallback on the larger article-sized profiles"
+        },
+        {
+          "workload_target": "sudoku_class",
+          "attention_family": "lsh_bucketed_proxy",
+          "measurement_kind": "proxy_closure_model",
+          "closure_outcome": "refused",
+          "case_count": 8,
+          "direct_case_count": 0,
+          "degraded_case_count": 0,
+          "refused_case_count": 8,
+          "exact_case_count": 0,
+          "average_speedup_over_dense_reference": 0.0,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [
+            "search_backtracking_outside_chunk_locality"
+          ],
+          "note": "research-only chunked / Reformer-style proxy row on the same benchmark package, with explicit fallback or refusal instead of silently widening support"
+        },
+        {
+          "workload_target": "sudoku_class",
+          "attention_family": "hull_cache_runtime",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "degraded_but_bounded",
+          "case_count": 8,
+          "direct_case_count": 0,
+          "degraded_case_count": 8,
+          "refused_case_count": 0,
+          "exact_case_count": 8,
+          "average_speedup_over_dense_reference": 1.008191,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [
+            "hull_cache_control_flow_unsupported"
+          ],
+          "note": "promoted HullCache runtime row on the same benchmark package, preserving explicit fallback posture where current control-flow limits still apply"
+        },
+        {
+          "workload_target": "sudoku_class",
+          "attention_family": "hierarchical_hull_research",
+          "measurement_kind": "artifact_backed_research",
+          "closure_outcome": "direct",
+          "case_count": 8,
+          "direct_case_count": 8,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 8,
+          "average_speedup_over_dense_reference": 119.254562,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_geometric_variant_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "research-only hierarchical hull candidate posture; any widened exact class here is evidence for follow-on work, not a promoted runtime claim"
+        },
+        {
+          "workload_target": "sudoku_class",
+          "attention_family": "hard_max_routing_proxy",
+          "measurement_kind": "proxy_closure_model",
+          "closure_outcome": "refused",
+          "case_count": 8,
+          "direct_case_count": 0,
+          "degraded_case_count": 0,
+          "refused_case_count": 8,
+          "exact_case_count": 0,
+          "average_speedup_over_dense_reference": 0.0,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_efficient_attention_baseline_matrix.json"
+          ],
+          "refusal_reasons": [
+            "hard_max_attention_breaks_backtracking_search_boundary"
+          ],
+          "note": "hard-max proxy should refuse on backtracking search workloads; proxy dense-relative throughput anchor is 0.000000x on workload `sudoku_class`"
+        },
+        {
+          "workload_target": "hungarian_matching",
+          "attention_family": "dense_reference_linear",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 1.0,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "exact reference-linear dense executor baseline reused as the same-harness floor for every other family row"
+        },
+        {
+          "workload_target": "hungarian_matching",
+          "attention_family": "sparse_top_k_validated",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 3.678748,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "validated runtime sparse-top-k baseline on the same article-class cases; explicit fallback remains part of the surface rather than being hidden behind aggregate speedups"
+        },
+        {
+          "workload_target": "hungarian_matching",
+          "attention_family": "linear_recurrent_runtime",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "degraded_but_bounded",
+          "case_count": 1,
+          "direct_case_count": 0,
+          "degraded_case_count": 1,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 1.0,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_recurrent_fast_path_runtime_baseline.json"
+          ],
+          "refusal_reasons": [
+            "workload_family_outside_direct_closure"
+          ],
+          "note": "research-only artifact-backed recurrent runtime baseline on the same article-class benchmark package; direct on the smaller direct profiles and explicit exact fallback on the larger article-sized profiles"
+        },
+        {
+          "workload_target": "hungarian_matching",
+          "attention_family": "lsh_bucketed_proxy",
+          "measurement_kind": "proxy_closure_model",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 1.681244,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "research-only chunked / Reformer-style proxy row on the same benchmark package, with explicit fallback or refusal instead of silently widening support"
+        },
+        {
+          "workload_target": "hungarian_matching",
+          "attention_family": "hull_cache_runtime",
+          "measurement_kind": "artifact_backed_runtime",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 3.762238,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "promoted HullCache runtime row on the same benchmark package, preserving explicit fallback posture where current control-flow limits still apply"
+        },
+        {
+          "workload_target": "hungarian_matching",
+          "attention_family": "hierarchical_hull_research",
+          "measurement_kind": "artifact_backed_research",
+          "closure_outcome": "direct",
+          "case_count": 1,
+          "direct_case_count": 1,
+          "degraded_case_count": 0,
+          "refused_case_count": 0,
+          "exact_case_count": 1,
+          "average_speedup_over_dense_reference": 3.107458,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_geometric_variant_report.json"
+          ],
+          "refusal_reasons": [],
+          "note": "research-only hierarchical hull candidate posture; any widened exact class here is evidence for follow-on work, not a promoted runtime claim"
+        },
+        {
+          "workload_target": "hungarian_matching",
+          "attention_family": "hard_max_routing_proxy",
+          "measurement_kind": "proxy_closure_model",
+          "closure_outcome": "degraded_but_bounded",
+          "case_count": 1,
+          "direct_case_count": 0,
+          "degraded_case_count": 1,
+          "refused_case_count": 0,
+          "exact_case_count": 0,
+          "average_speedup_over_dense_reference": 1.9,
+          "benchmark_refs": [
+            "fixtures/tassadar/reports/tassadar_efficient_attention_baseline_matrix.json"
+          ],
+          "refusal_reasons": [
+            "hard_max_attention_degrades_frontier_revisitation"
+          ],
+          "note": "hard-max proxy remains bounded on matching but loses stable frontier revisitation semantics; proxy dense-relative throughput anchor is 1.900000x on workload `hungarian_matching`"
+        }
+      ],
+      "direct_receipt_count": 28,
+      "degraded_receipt_count": 10,
+      "refused_receipt_count": 4,
+      "claim_boundary": "this runtime report projects direct, degraded_but_bounded, and refused closure posture from the shared efficient-attention matrix on the same workload rows. It is a research-only analysis surface and does not promote any approximate-attention family to broad executor closure",
+      "summary": "Approximate-attention closure runtime report now freezes 42 workload-family receipts: 28 direct, 10 degraded_but_bounded, 4 refused.",
+      "report_digest": "1e4c290bda4da49056ca2595246f854db1e9defb0be140cdc7e025946954a00e"
+    },
+    "family_summaries": [
+      {
+        "attention_family": "dense_reference_linear",
+        "direct_workload_count": 6,
+        "degraded_workload_count": 0,
+        "refused_workload_count": 0,
+        "best_direct_speedup_over_dense_reference": 1.0,
+        "note": "family `dense_reference_linear` now has 6 direct, 0 degraded, and 0 refused workload rows"
+      },
+      {
+        "attention_family": "sparse_top_k_validated",
+        "direct_workload_count": 3,
+        "degraded_workload_count": 3,
+        "refused_workload_count": 0,
+        "best_direct_speedup_over_dense_reference": 7.954369,
+        "note": "family `sparse_top_k_validated` now has 3 direct, 3 degraded, and 0 refused workload rows"
+      },
+      {
+        "attention_family": "linear_recurrent_runtime",
+        "direct_workload_count": 4,
+        "degraded_workload_count": 2,
+        "refused_workload_count": 0,
+        "best_direct_speedup_over_dense_reference": 3605.228567,
+        "note": "family `linear_recurrent_runtime` now has 4 direct, 2 degraded, and 0 refused workload rows"
+      },
+      {
+        "attention_family": "lsh_bucketed_proxy",
+        "direct_workload_count": 3,
+        "degraded_workload_count": 1,
+        "refused_workload_count": 2,
+        "best_direct_speedup_over_dense_reference": 1.935785,
+        "note": "family `lsh_bucketed_proxy` now has 3 direct, 1 degraded, and 2 refused workload rows"
+      },
+      {
+        "attention_family": "hard_max_routing_proxy",
+        "direct_workload_count": 2,
+        "degraded_workload_count": 2,
+        "refused_workload_count": 2,
+        "best_direct_speedup_over_dense_reference": 6.25,
+        "note": "family `hard_max_routing_proxy` now has 2 direct, 2 degraded, and 2 refused workload rows"
+      },
+      {
+        "attention_family": "hull_cache_runtime",
+        "direct_workload_count": 4,
+        "degraded_workload_count": 2,
+        "refused_workload_count": 0,
+        "best_direct_speedup_over_dense_reference": 10.83359,
+        "note": "family `hull_cache_runtime` now has 4 direct, 2 degraded, and 0 refused workload rows"
+      },
+      {
+        "attention_family": "hierarchical_hull_research",
+        "direct_workload_count": 6,
+        "degraded_workload_count": 0,
+        "refused_workload_count": 0,
+        "best_direct_speedup_over_dense_reference": 2785.897065,
+        "note": "family `hierarchical_hull_research` now has 6 direct, 0 degraded, and 0 refused workload rows"
+      }
+    ],
+    "workload_summaries": [
+      {
+        "workload_target": "branch_heavy_kernel",
+        "direct_families": [
+          "dense_reference_linear",
+          "linear_recurrent_runtime",
+          "hull_cache_runtime",
+          "hierarchical_hull_research"
+        ],
+        "degraded_families": [
+          "sparse_top_k_validated",
+          "lsh_bucketed_proxy",
+          "hard_max_routing_proxy"
+        ],
+        "refused_families": [],
+        "note": "workload `branch_heavy_kernel` keeps approximate-attention closure split into direct, degraded, and refused families instead of one blended score"
+      },
+      {
+        "workload_target": "hungarian_matching",
+        "direct_families": [
+          "dense_reference_linear",
+          "sparse_top_k_validated",
+          "lsh_bucketed_proxy",
+          "hull_cache_runtime",
+          "hierarchical_hull_research"
+        ],
+        "degraded_families": [
+          "linear_recurrent_runtime",
+          "hard_max_routing_proxy"
+        ],
+        "refused_families": [],
+        "note": "workload `hungarian_matching` keeps approximate-attention closure split into direct, degraded, and refused families instead of one blended score"
+      },
+      {
+        "workload_target": "long_loop_kernel",
+        "direct_families": [
+          "dense_reference_linear",
+          "linear_recurrent_runtime",
+          "hierarchical_hull_research"
+        ],
+        "degraded_families": [
+          "sparse_top_k_validated",
+          "hull_cache_runtime"
+        ],
+        "refused_families": [
+          "lsh_bucketed_proxy",
+          "hard_max_routing_proxy"
+        ],
+        "note": "workload `long_loop_kernel` keeps approximate-attention closure split into direct, degraded, and refused families instead of one blended score"
+      },
+      {
+        "workload_target": "memory_heavy_kernel",
+        "direct_families": [
+          "dense_reference_linear",
+          "sparse_top_k_validated",
+          "linear_recurrent_runtime",
+          "lsh_bucketed_proxy",
+          "hull_cache_runtime",
+          "hierarchical_hull_research",
+          "hard_max_routing_proxy"
+        ],
+        "degraded_families": [],
+        "refused_families": [],
+        "note": "workload `memory_heavy_kernel` keeps approximate-attention closure split into direct, degraded, and refused families instead of one blended score"
+      },
+      {
+        "workload_target": "micro_wasm_kernel",
+        "direct_families": [
+          "dense_reference_linear",
+          "sparse_top_k_validated",
+          "linear_recurrent_runtime",
+          "lsh_bucketed_proxy",
+          "hull_cache_runtime",
+          "hierarchical_hull_research",
+          "hard_max_routing_proxy"
+        ],
+        "degraded_families": [],
+        "refused_families": [],
+        "note": "workload `micro_wasm_kernel` keeps approximate-attention closure split into direct, degraded, and refused families instead of one blended score"
+      },
+      {
+        "workload_target": "sudoku_class",
+        "direct_families": [
+          "dense_reference_linear",
+          "hierarchical_hull_research"
+        ],
+        "degraded_families": [
+          "sparse_top_k_validated",
+          "linear_recurrent_runtime",
+          "hull_cache_runtime"
+        ],
+        "refused_families": [
+          "lsh_bucketed_proxy",
+          "hard_max_routing_proxy"
+        ],
+        "note": "workload `sudoku_class` keeps approximate-attention closure split into direct, degraded, and refused families instead of one blended score"
+      }
+    ],
+    "generated_from_refs": [
+      "fixtures/tassadar/reports/tassadar_approximate_attention_closure_runtime_report.json",
+      "fixtures/tassadar/reports/tassadar_efficient_attention_baseline_matrix.json"
+    ],
+    "claim_boundary": "this eval report is a machine-legible closure matrix over the current bounded workload rows. It keeps direct, degraded_but_bounded, and refused posture explicit for each attention family, and it does not promote any approximate-attention family to served capability by itself",
+    "summary": "Approximate-attention closure matrix now summarizes 7 families across 6 workloads, with 2 workloads carrying refusal from at least two non-dense families.",
+    "report_digest": "37718a863a9e710668a0ccf5449552acf39967d694fc5f11f2ae56d0986b250c"
+  },
+  "fully_direct_families": [
+    "dense_reference_linear",
+    "hierarchical_hull_research"
+  ],
+  "bounded_research_families": [
+    "sparse_top_k_validated",
+    "linear_recurrent_runtime",
+    "lsh_bucketed_proxy",
+    "hard_max_routing_proxy",
+    "hull_cache_runtime"
+  ],
+  "refusal_hotspot_workloads": [
+    "long_loop_kernel",
+    "sudoku_class"
+  ],
+  "claim_boundary": "this summary is a research-only interpretation layer over the committed closure matrix. It keeps fully-direct families, bounded research families, and refusal hotspots explicit instead of turning one approximate-attention win into a general executor claim",
+  "summary": "Approximate-attention closure summary now marks 2 fully-direct families, 5 bounded research families, and 2 refusal-hotspot workloads.",
+  "report_digest": "781cd26b126725f5d2a89f2431edbc5c8ce2fb04e8e0e833fea181565ead4ea5"
+}
