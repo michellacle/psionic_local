@@ -21,6 +21,7 @@ mod tassadar_recurrent_fast_path;
 mod tassadar_structured_control;
 mod tassadar_verifier_guided_search;
 mod tassadar_wasm_conformance;
+mod tassadar_working_memory_tier;
 mod validation;
 
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
@@ -56,6 +57,7 @@ pub use tassadar_recurrent_fast_path::*;
 pub use tassadar_structured_control::*;
 pub use tassadar_verifier_guided_search::*;
 pub use tassadar_wasm_conformance::*;
+pub use tassadar_working_memory_tier::*;
 use thiserror::Error;
 pub use validation::*;
 

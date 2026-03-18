@@ -1,0 +1,184 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.working_memory_tier.runtime_report.v1",
+  "claim_class": "research_only_architecture",
+  "direct_workload_families": [
+    "copy_window",
+    "stable_sort",
+    "associative_recall",
+    "long_carry_accumulator"
+  ],
+  "refusal_boundaries": [
+    "slot-count or bytes-per-slot overflow must refuse instead of silently widening memory state",
+    "associative lookup outside the declared bounded key space must refuse instead of collapsing into opaque external lookup",
+    "undeclared mutation surfaces must refuse instead of hiding side effects behind a memory-tier label"
+  ],
+  "efficiency_widening_case_count": 3,
+  "trace_shaping_only_case_count": 1,
+  "refused_case_count": 1,
+  "average_direct_speedup_over_pure_trace": 2.100748,
+  "average_direct_trace_byte_reduction_ratio": 0.520089,
+  "case_reports": [
+    {
+      "case_id": "copy_window_256",
+      "workload_family": "copy_window",
+      "pure_trace": {
+        "steps_per_second": 185000.0,
+        "trace_steps": 4096,
+        "serialized_trace_bytes": 65536
+      },
+      "working_memory_posture": "direct",
+      "working_memory": {
+        "steps_per_second": 410000.0,
+        "trace_steps": 4096,
+        "serialized_trace_bytes": 24576,
+        "read_count": 256,
+        "write_count": 256,
+        "exact_outputs_preserved": true,
+        "exact_halt_preserved": true,
+        "speedup_over_pure_trace": 2.216216,
+        "trace_byte_reduction_ratio": 0.625,
+        "state_publication": {
+          "receipt_id": "wm.copy_window_256.receipt",
+          "lineage_ref": "tassadar://artifact/working_memory_tier/copy_window_256/state",
+          "slot_count": 16,
+          "state_bytes": 4096,
+          "published_state_fields": [
+            "window_head",
+            "scratch_slots",
+            "write_cursor"
+          ],
+          "publication_digest": "8058a9f115dbe41d0f88a4817293bb2b61a6457955745de8d8c3c9bc1d863e87"
+        }
+      },
+      "efficiency_widening": true,
+      "trace_shaping_only": false,
+      "note": "Bounded slot reads and writes materially shrink replay volume on the copy-window kernel while keeping published state and outputs exact."
+    },
+    {
+      "case_id": "stable_sort_32",
+      "workload_family": "stable_sort",
+      "pure_trace": {
+        "steps_per_second": 162000.0,
+        "trace_steps": 6144,
+        "serialized_trace_bytes": 98304
+      },
+      "working_memory_posture": "direct",
+      "working_memory": {
+        "steps_per_second": 171000.0,
+        "trace_steps": 6144,
+        "serialized_trace_bytes": 86016,
+        "read_count": 384,
+        "write_count": 384,
+        "exact_outputs_preserved": true,
+        "exact_halt_preserved": true,
+        "speedup_over_pure_trace": 1.055556,
+        "trace_byte_reduction_ratio": 0.125,
+        "state_publication": {
+          "receipt_id": "wm.stable_sort_32.receipt",
+          "lineage_ref": "tassadar://artifact/working_memory_tier/stable_sort_32/state",
+          "slot_count": 24,
+          "state_bytes": 12288,
+          "published_state_fields": [
+            "run_heads",
+            "swap_buffer",
+            "merge_cursor"
+          ],
+          "publication_digest": "20c9e9672d84f4610950c0f57990dff4ee59b86d980cce44a79be612c18f057a"
+        }
+      },
+      "efficiency_widening": false,
+      "trace_shaping_only": true,
+      "note": "The bounded memory tier preserves truth on stable sort, but most of the gain is trace reshaping rather than a convincing widening of efficient execution."
+    },
+    {
+      "case_id": "associative_recall_32",
+      "workload_family": "associative_recall",
+      "pure_trace": {
+        "steps_per_second": 98000.0,
+        "trace_steps": 8192,
+        "serialized_trace_bytes": 131072
+      },
+      "working_memory_posture": "direct",
+      "working_memory": {
+        "steps_per_second": 302000.0,
+        "trace_steps": 8192,
+        "serialized_trace_bytes": 40960,
+        "read_count": 384,
+        "write_count": 256,
+        "exact_outputs_preserved": true,
+        "exact_halt_preserved": true,
+        "speedup_over_pure_trace": 3.081633,
+        "trace_byte_reduction_ratio": 0.6875,
+        "state_publication": {
+          "receipt_id": "wm.associative_recall_32.receipt",
+          "lineage_ref": "tassadar://artifact/working_memory_tier/associative_recall_32/state",
+          "slot_count": 20,
+          "state_bytes": 6144,
+          "published_state_fields": [
+            "key_slots",
+            "value_slots",
+            "match_head"
+          ],
+          "publication_digest": "4e2cebe245acf5f77ccb803a7db3f843be37a740b1dcf87c6cab4e271c43cdf2"
+        }
+      },
+      "efficiency_widening": true,
+      "trace_shaping_only": false,
+      "note": "Bounded associative lookup materially widens efficient execution on the in-budget recall kernel while keeping state publication and replay explicit."
+    },
+    {
+      "case_id": "long_carry_accumulator_128",
+      "workload_family": "long_carry_accumulator",
+      "pure_trace": {
+        "steps_per_second": 121000.0,
+        "trace_steps": 10240,
+        "serialized_trace_bytes": 172032
+      },
+      "working_memory_posture": "direct",
+      "working_memory": {
+        "steps_per_second": 248000.0,
+        "trace_steps": 10240,
+        "serialized_trace_bytes": 61440,
+        "read_count": 512,
+        "write_count": 512,
+        "exact_outputs_preserved": true,
+        "exact_halt_preserved": true,
+        "speedup_over_pure_trace": 2.049587,
+        "trace_byte_reduction_ratio": 0.642857,
+        "state_publication": {
+          "receipt_id": "wm.long_carry_accumulator_128.receipt",
+          "lineage_ref": "tassadar://artifact/working_memory_tier/long_carry_accumulator_128/state",
+          "slot_count": 12,
+          "state_bytes": 3072,
+          "published_state_fields": [
+            "carry_buffer",
+            "accumulator_slots",
+            "flush_cursor"
+          ],
+          "publication_digest": "ceca0117b19d630744dbd02e84a1e92af9f18e383ddd172496a8e5a90386c230"
+        }
+      },
+      "efficiency_widening": true,
+      "trace_shaping_only": false,
+      "note": "Explicit carry-buffer publication materially shrinks replay cost on the long accumulator kernel without hiding the bounded mutable state."
+    },
+    {
+      "case_id": "associative_recall_overflow",
+      "workload_family": "associative_recall",
+      "pure_trace": {
+        "steps_per_second": 91000.0,
+        "trace_steps": 9216,
+        "serialized_trace_bytes": 147456
+      },
+      "working_memory_posture": "refuse",
+      "refusal_reason": "associative_key_space_exceeded",
+      "efficiency_widening": false,
+      "trace_shaping_only": false,
+      "note": "The working-memory tier refuses the overflow recall case because the key-space exceeds the published bounded associative-memory surface."
+    }
+  ],
+  "claim_boundary": "this report compares pure-trace execution against one bounded Psionic-owned working-memory tier with explicit read, write, associative lookup, and state-publication semantics. Direct cases keep outputs, halts, and published state explicit; overflow or undeclared mutation semantics must refuse instead of widening the lane into arbitrary memory or opaque tool use",
+  "summary": "Working-memory tier runtime report now freezes 5 bounded case comparisons, with 3 efficiency-widening cases, 1 trace-shaping-only cases, and 1 refused overflow cases under one explicit state-publication contract.",
+  "report_digest": "a53121473945541009a00cb5697717b734709f763396f8e8021f349f4a643b70"
+}

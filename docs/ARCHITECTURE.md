@@ -266,6 +266,22 @@ The current scope is:
   This lane keeps weaker supervision, mixed-distillation rescue, and
   full-trace dependency explicit instead of overstating lighter supervision as
   broad learned executor closure
+- landed working-memory-tier follow-on: `psionic-models` now publishes a
+  public research-only `TassadarWorkingMemoryTierPublication` for one bounded
+  Psionic-owned memory tier with explicit slot reads, writes, associative
+  lookup, and state-publication semantics over copy-window, stable-sort,
+  associative-recall, and long-carry accumulator kernels; `psionic-runtime`
+  now freezes the bounded comparison report at
+  `fixtures/tassadar/reports/tassadar_working_memory_tier_runtime_report.json`
+  with pure-trace versus working-memory metrics, state-publication receipts,
+  trace-shaping-only cases, and explicit refusal boundaries; `psionic-eval`
+  now freezes the classifier report at
+  `fixtures/tassadar/reports/tassadar_working_memory_tier_eval_report.json`;
+  and `psionic-research` now freezes the companion summary at
+  `fixtures/tassadar/reports/tassadar_working_memory_tier_summary.json`. This
+  lane keeps bounded widening, trace-shaping-only behavior, and overflow
+  refusal explicit instead of treating one memory tier as arbitrary-memory
+  closure or a license to hide external tool semantics
 - landed route-contract follow-on: `psionic-router` now also owns a routeable
   Wasm capability matrix for `psionic.planner_executor_route`, with explicit
   module-class rows, opcode-family facts, import posture, module-class-specific

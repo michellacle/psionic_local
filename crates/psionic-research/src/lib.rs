@@ -47,6 +47,7 @@ mod tassadar_surface_ablation;
 mod tassadar_trace_family_comparison;
 mod tassadar_verifier_guided_search_architecture;
 mod tassadar_workload_capability_frontier_summary;
+mod tassadar_working_memory_tier_summary;
 
 #[cfg(feature = "burn-import")]
 pub use attnres_burn_import::*;
@@ -83,6 +84,7 @@ pub use tassadar_surface_ablation::*;
 pub use tassadar_trace_family_comparison::*;
 pub use tassadar_verifier_guided_search_architecture::*;
 pub use tassadar_workload_capability_frontier_summary::*;
+pub use tassadar_working_memory_tier_summary::*;
 
 /// Human-readable crate ownership summary.
 pub const CRATE_ROLE: &str =

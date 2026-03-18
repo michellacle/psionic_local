@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.working_memory_tier.summary.v1",
+  "eval_report": {
+    "schema_version": 1,
+    "report_id": "tassadar.working_memory_tier.eval_report.v1",
+    "runtime_report_ref": "fixtures/tassadar/reports/tassadar_working_memory_tier_runtime_report.json",
+    "runtime_report_digest": "a53121473945541009a00cb5697717b734709f763396f8e8021f349f4a643b70",
+    "family_summaries": [
+      {
+        "workload_family": "copy_window",
+        "case_count": 1,
+        "widening_case_count": 1,
+        "trace_shaping_only_case_count": 0,
+        "refused_case_count": 0,
+        "best_direct_speedup_over_pure_trace": 2.216216,
+        "note": "copy-window kernels look like a credible bounded widening case under explicit slot publication"
+      },
+      {
+        "workload_family": "stable_sort",
+        "case_count": 1,
+        "widening_case_count": 0,
+        "trace_shaping_only_case_count": 1,
+        "refused_case_count": 0,
+        "best_direct_speedup_over_pure_trace": 1.055556,
+        "note": "stable-sort kernels currently look more like trace reshaping than a genuine widening of efficient execution"
+      },
+      {
+        "workload_family": "associative_recall",
+        "case_count": 2,
+        "widening_case_count": 1,
+        "trace_shaping_only_case_count": 0,
+        "refused_case_count": 1,
+        "best_direct_speedup_over_pure_trace": 3.081633,
+        "note": "associative-recall kernels currently show 1 widening case(s) but also 1 refused overflow case(s), so the gain remains bounded and fragile"
+      },
+      {
+        "workload_family": "long_carry_accumulator",
+        "case_count": 1,
+        "widening_case_count": 1,
+        "trace_shaping_only_case_count": 0,
+        "refused_case_count": 0,
+        "best_direct_speedup_over_pure_trace": 2.049587,
+        "note": "long carry-propagation kernels currently show 1 widening case(s) with 0 trace-shaping-only case(s)"
+      }
+    ],
+    "case_outcomes": [
+      {
+        "case_id": "copy_window_256",
+        "workload_family": "copy_window",
+        "outcome_class": "efficiency_widening",
+        "pure_trace_steps_per_second": 185000.0,
+        "working_memory_steps_per_second": 410000.0,
+        "speedup_over_pure_trace": 2.216216,
+        "trace_byte_reduction_ratio": 0.625,
+        "note": "Bounded slot reads and writes materially shrink replay volume on the copy-window kernel while keeping published state and outputs exact."
+      },
+      {
+        "case_id": "stable_sort_32",
+        "workload_family": "stable_sort",
+        "outcome_class": "trace_shaping_only",
+        "pure_trace_steps_per_second": 162000.0,
+        "working_memory_steps_per_second": 171000.0,
+        "speedup_over_pure_trace": 1.055556,
+        "trace_byte_reduction_ratio": 0.125,
+        "note": "The bounded memory tier preserves truth on stable sort, but most of the gain is trace reshaping rather than a convincing widening of efficient execution."
+      },
+      {
+        "case_id": "associative_recall_32",
+        "workload_family": "associative_recall",
+        "outcome_class": "efficiency_widening",
+        "pure_trace_steps_per_second": 98000.0,
+        "working_memory_steps_per_second": 302000.0,
+        "speedup_over_pure_trace": 3.081633,
+        "trace_byte_reduction_ratio": 0.6875,
+        "note": "Bounded associative lookup materially widens efficient execution on the in-budget recall kernel while keeping state publication and replay explicit."
+      },
+      {
+        "case_id": "long_carry_accumulator_128",
+        "workload_family": "long_carry_accumulator",
+        "outcome_class": "efficiency_widening",
+        "pure_trace_steps_per_second": 121000.0,
+        "working_memory_steps_per_second": 248000.0,
+        "speedup_over_pure_trace": 2.049587,
+        "trace_byte_reduction_ratio": 0.642857,
+        "note": "Explicit carry-buffer publication materially shrinks replay cost on the long accumulator kernel without hiding the bounded mutable state."
+      },
+      {
+        "case_id": "associative_recall_overflow",
+        "workload_family": "associative_recall",
+        "outcome_class": "refuse",
+        "pure_trace_steps_per_second": 91000.0,
+        "note": "The working-memory tier refuses the overflow recall case because the key-space exceeds the published bounded associative-memory surface."
+      }
+    ],
+    "widening_case_ids": [
+      "copy_window_256",
+      "associative_recall_32",
+      "long_carry_accumulator_128"
+    ],
+    "trace_shaping_only_case_ids": [
+      "stable_sort_32"
+    ],
+    "refused_case_ids": [
+      "associative_recall_overflow"
+    ],
+    "claim_boundary": "this eval report classifies one committed working-memory runtime artifact into efficiency-widening, trace-shaping-only, and refusal outcomes. It keeps exact bounded state publication separate from promotion and does not treat one bounded memory tier as proof of arbitrary-memory or general learned closure",
+    "summary": "Working-memory tier eval report now classifies 5 committed cases across 4 workload families, keeping 3 widening cases, 1 trace-shaping-only cases, and 1 refused cases explicit.",
+    "report_digest": "9a83dc5185924191c0550a42c33f255ba80db30d0c4bebf51752440fcf3e288f"
+  },
+  "widening_workload_families": [
+    "copy_window",
+    "associative_recall",
+    "long_carry_accumulator"
+  ],
+  "trace_shaping_only_workload_families": [
+    "stable_sort"
+  ],
+  "fragile_widening_workload_families": [
+    "associative_recall"
+  ],
+  "refused_case_ids": [
+    "associative_recall_overflow"
+  ],
+  "follow_on_unknowns": [
+    "whether bounded working-memory publication stays exact on wider sort and graph-locality families instead of only shrinking trace volume",
+    "whether associative recall can widen beyond the current bounded key-space without collapsing into opaque external lookup semantics",
+    "whether write-heavy working-memory tiers preserve enough replay and lineage truth to justify anything beyond research-only posture"
+  ],
+  "claim_boundary": "this summary keeps the working-memory tier as a research-only Psionic-owned architecture surface. Widening families, trace-shaping-only families, and fragile refusal boundaries stay explicit, and none of them widen served capability or imply arbitrary-memory closure",
+  "summary": "Working-memory tier summary now marks 3 widening workload families, 1 trace-shaping-only workload families, 1 fragile widening families, and 1 refused bounded cases.",
+  "report_digest": "556a4e318105e7dd281c2bf21bee8937b462ff15e56cc8bf8a2d752cb3ba373e"
+}
