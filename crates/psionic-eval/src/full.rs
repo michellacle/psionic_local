@@ -44,6 +44,8 @@ mod tassadar_executor_architecture_comparison;
 mod tassadar_executor_baseline_comparison;
 #[path = "tassadar_locality_scratchpad.rs"]
 mod tassadar_locality_scratchpad;
+#[path = "tassadar_learnability_gap.rs"]
+mod tassadar_learnability_gap;
 #[path = "tassadar_executor_benchmark.rs"]
 mod tassadar_executor_benchmark;
 #[path = "tassadar_executor_eval.rs"]
@@ -111,6 +113,7 @@ pub use tassadar_exactness_refusal_report::*;
 pub use tassadar_executor_architecture_comparison::*;
 pub use tassadar_executor_baseline_comparison::*;
 pub use tassadar_locality_scratchpad::*;
+pub use tassadar_learnability_gap::*;
 pub use tassadar_executor_benchmark::*;
 pub use tassadar_executor_eval::*;
 pub use tassadar_executor_hull_benchmark::*;

@@ -894,6 +894,19 @@ The current scope is:
   research-only decompilation evidence for auditability and promotion
   discipline, not a claim of broad learned exactness, arbitrary Wasm closure,
   or served readiness
+- landed learnability-gap analysis follow-on: `psionic-train` now materializes
+  a committed `TassadarLearnabilityGapEvidenceBundle` at
+  `fixtures/tassadar/runs/tassadar_learnability_gap_v1/learnability_gap_evidence_bundle.json`,
+  tying seeded kernel, Sudoku, Hungarian, and CLRS-to-Wasm families to
+  explicit baseline-vs-improved trace, position, supervision, and metric
+  deltas plus plausible learnability-gap classes, `psionic-eval` now freezes
+  the committed classifier report at
+  `fixtures/tassadar/reports/tassadar_learnability_gap_report.json`, and
+  `psionic-research` now freezes the companion action summary at
+  `fixtures/tassadar/reports/tassadar_learnability_gap_analysis_report.json`;
+  the lane is explicitly research-only analysis for gap diagnosis and next
+  actions, not a promotion result or proof that any reported learnability gap
+  is closed
 - landed Phase 9D bar: typed learned-plus-compiled and learned-circuit
   research in `psionic-research`, with explicit research-line,
   instruction-set, execution-proxy, claim-boundary, and proof-expectation

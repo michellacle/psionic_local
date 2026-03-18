@@ -1,0 +1,151 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.learnability_gap.analysis.report.v1",
+  "eval_report": {
+    "schema_version": 1,
+    "report_id": "tassadar.learnability_gap.report.v1",
+    "evidence_bundle": {
+      "schema_version": 1,
+      "bundle_id": "tassadar.learnability_gap.evidence_bundle.v1",
+      "cases": [
+        {
+          "case_id": "kernel_arithmetic_position_gap",
+          "workload_family": "kernel_arithmetic",
+          "baseline_metric_bps": 0,
+          "improved_metric_bps": 6485,
+          "primary_gap": "positional_scheme_miss",
+          "evidence_refs": [
+            "fixtures/tassadar/reports/tassadar_scratchpad_framework_comparison_report.json"
+          ],
+          "detail": "The seeded arithmetic kernel family keeps final outputs exact, but the absolute-position flat trace leaves a max output local position of 14 before the segment-reset scratchpad cut. The report therefore tags the current learnability gap as primarily positional-scheme-sensitive rather than a claim that the kernel family is solved in one representation."
+        },
+        {
+          "case_id": "sudoku_supervision_gap",
+          "workload_family": "sudoku_search",
+          "baseline_metric_bps": 1666,
+          "improved_metric_bps": 8000,
+          "primary_gap": "supervision_miss",
+          "evidence_refs": [
+            "fixtures/tassadar/reports/tassadar_no_hint_self_supervised_report.json"
+          ],
+          "detail": "Held-out Sudoku-style reusable signal rises from 1666 bps under full-hint traces to 8000 bps when the seeded corpus switches to reusable subroutine hints, so the current learnability gap is better explained by supervision structure than by an immediate claim of architecture closure."
+        },
+        {
+          "case_id": "hungarian_trace_capacity_gap",
+          "workload_family": "hungarian_matching",
+          "baseline_metric_bps": 6666,
+          "improved_metric_bps": 10000,
+          "primary_gap": "architecture_capacity_limit",
+          "evidence_refs": [
+            "fixtures/tassadar/runs/tassadar_trace_family_comparison_v1/trace_family_comparison_report.json"
+          ],
+          "detail": "The Hungarian matching family improves context fit from 6666 bps to 10000 bps when the target family moves from sequential CPU authority to the research-only assignment frontier, but the improved frontier still does not erase the fit ceiling across the seeded workloads. The bundle therefore marks a remaining architecture-capacity limit with a trace-format miss as secondary."
+        },
+        {
+          "case_id": "clrs_wasm_supervision_gap",
+          "workload_family": "clrs_wasm_shortest_path",
+          "baseline_metric_bps": 1666,
+          "improved_metric_bps": 8333,
+          "primary_gap": "supervision_miss",
+          "evidence_refs": [
+            "fixtures/tassadar/reports/tassadar_no_hint_self_supervised_report.json",
+            "fixtures/tassadar/reports/tassadar_clrs_wasm_bridge_report.json"
+          ],
+          "detail": "The compiled CLRS-to-Wasm bridge stays exact at 10000 bps across the seeded tiny and small shortest-path witnesses, but the learned proxy only moves from 1666 bps reusable signal under full-hint traces to 8333 bps under reusable subroutine hints. The current learnability gap therefore reads primarily as a supervision miss and secondarily as remaining architecture distance from compiled truth."
+        }
+      ],
+      "claim_boundary": "this bundle records bounded learnability-gap evidence for seeded kernel, Sudoku, Hungarian, and CLRS-to-Wasm families only; it ties trace format, positional scheme, supervision density, and corpus coverage facts to plausible failure classes without promoting any served capability or claiming that a gap is closed",
+      "bundle_digest": "9b9ad9ce3ed461a84aa5924cdc50a4bfcd1522b5d0e43bfb37cadddd0ffb814e"
+    },
+    "case_reports": [
+      {
+        "case_id": "kernel_arithmetic_position_gap",
+        "workload_family": "kernel_arithmetic",
+        "primary_gap": "positional_scheme_miss",
+        "gap_delta_bps": 6485,
+        "materially_actionable": true,
+        "refusal_visible": true,
+        "evidence_refs": [
+          "fixtures/tassadar/reports/tassadar_scratchpad_framework_comparison_report.json"
+        ],
+        "detail": "The seeded arithmetic kernel family keeps final outputs exact, but the absolute-position flat trace leaves a max output local position of 14 before the segment-reset scratchpad cut. The report therefore tags the current learnability gap as primarily positional-scheme-sensitive rather than a claim that the kernel family is solved in one representation."
+      },
+      {
+        "case_id": "sudoku_supervision_gap",
+        "workload_family": "sudoku_search",
+        "primary_gap": "supervision_miss",
+        "gap_delta_bps": 6334,
+        "materially_actionable": true,
+        "refusal_visible": true,
+        "evidence_refs": [
+          "fixtures/tassadar/reports/tassadar_no_hint_self_supervised_report.json"
+        ],
+        "detail": "Held-out Sudoku-style reusable signal rises from 1666 bps under full-hint traces to 8000 bps when the seeded corpus switches to reusable subroutine hints, so the current learnability gap is better explained by supervision structure than by an immediate claim of architecture closure."
+      },
+      {
+        "case_id": "hungarian_trace_capacity_gap",
+        "workload_family": "hungarian_matching",
+        "primary_gap": "architecture_capacity_limit",
+        "gap_delta_bps": 3334,
+        "materially_actionable": true,
+        "refusal_visible": true,
+        "evidence_refs": [
+          "fixtures/tassadar/runs/tassadar_trace_family_comparison_v1/trace_family_comparison_report.json"
+        ],
+        "detail": "The Hungarian matching family improves context fit from 6666 bps to 10000 bps when the target family moves from sequential CPU authority to the research-only assignment frontier, but the improved frontier still does not erase the fit ceiling across the seeded workloads. The bundle therefore marks a remaining architecture-capacity limit with a trace-format miss as secondary."
+      },
+      {
+        "case_id": "clrs_wasm_supervision_gap",
+        "workload_family": "clrs_wasm_shortest_path",
+        "primary_gap": "supervision_miss",
+        "gap_delta_bps": 6667,
+        "materially_actionable": true,
+        "refusal_visible": true,
+        "evidence_refs": [
+          "fixtures/tassadar/reports/tassadar_no_hint_self_supervised_report.json",
+          "fixtures/tassadar/reports/tassadar_clrs_wasm_bridge_report.json"
+        ],
+        "detail": "The compiled CLRS-to-Wasm bridge stays exact at 10000 bps across the seeded tiny and small shortest-path witnesses, but the learned proxy only moves from 1666 bps reusable signal under full-hint traces to 8333 bps under reusable subroutine hints. The current learnability gap therefore reads primarily as a supervision miss and secondarily as remaining architecture distance from compiled truth."
+      }
+    ],
+    "summary_rows": [
+      {
+        "gap_class": "positional_scheme_miss",
+        "case_count": 1,
+        "mean_gap_delta_bps": 6485,
+        "all_materially_actionable": true
+      },
+      {
+        "gap_class": "supervision_miss",
+        "case_count": 2,
+        "mean_gap_delta_bps": 6500,
+        "all_materially_actionable": true
+      },
+      {
+        "gap_class": "architecture_capacity_limit",
+        "case_count": 1,
+        "mean_gap_delta_bps": 3334,
+        "all_materially_actionable": true
+      }
+    ],
+    "claim_boundary": "this report classifies bounded learnability gaps across seeded kernel, Sudoku, Hungarian, and CLRS-to-Wasm families only; it records plausible failure classes and actionability from existing evidence surfaces without promoting any learned executor family or claiming that the underlying gap is closed",
+    "report_digest": "ccdeb898abd30b38aa5469c259606263655ab0fe0a25ac94709c0ae2afd5e682"
+  },
+  "recommended_actions": [
+    {
+      "gap_class": "positional_scheme_miss",
+      "action": "widen the scratchpad and position-scheme matrix before treating kernel-format failures as architecture limits"
+    },
+    {
+      "gap_class": "supervision_miss",
+      "action": "prioritize weaker-versus-structured supervision comparisons on the same workload before widening learned capability claims"
+    },
+    {
+      "gap_class": "architecture_capacity_limit",
+      "action": "treat remaining fit ceilings as architecture-budget blockers and refuse extrapolation until scaling evidence changes them"
+    }
+  ],
+  "claim_boundary": "this report summarizes bounded learnability-gap evidence across seeded executor families only; it recommends next actions for the current gap classes without promoting any learned lane, extrapolating beyond the measured families, or treating the classification itself as closure",
+  "summary": "The learnability-gap tranche now freezes 4 materially actionable cases and 3 gap-class-specific next actions across kernel, Sudoku, Hungarian, and CLRS-to-Wasm evidence.",
+  "report_digest": "bbea00d48ee75c1d626cc0e37ddc5980101d7b2e985b1737f4525246e3479269"
+}
