@@ -184,6 +184,15 @@ Current posture:
   `fixtures/tassadar/reports/tassadar_module_scale_workload_suite_report.json`
   that keeps exactness, trace-length, deterministic CPU-reference cost, and
   typed refusal explicit per module case
+- its module-state learned-executor redesign lane now also exists across
+  `psionic-models`, `psionic-train`, and `psionic-research`, with a public
+  research-only module-state executor publication over explicit call-frame,
+  global-delta, memory-delta, and export-boundary channels, a training-facing
+  module curriculum suite over the module-scale memcpy/parsing/checksum/vm-style
+  families plus held-out family metrics, and the committed report at
+  `fixtures/tassadar/reports/tassadar_module_state_architecture_report.json`
+  that keeps later-window exactness, final-state accuracy, and trace-to-final-state
+  gap deltas explicit against the flat-prefix baseline
 - its structured-control closure lane now also exists across
   `psionic-compiler`, `psionic-runtime`, and `psionic-eval`, with compiler
   lowering from bounded zero-parameter Wasm functions into validated executor

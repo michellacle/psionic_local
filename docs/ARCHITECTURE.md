@@ -265,6 +265,17 @@ The current scope is:
   over committed source and compiled Wasm fixtures, keeping exactness,
   trace-length, deterministic CPU-reference cost, and typed refusal explicit
   instead of implying arbitrary module closure
+- landed module-state learned-executor redesign bar: `psionic-models` now
+  publishes a public `TassadarModuleStateExecutorPublication` over explicit
+  call-frame, global-delta, memory-delta, and export-boundary channels plus
+  staged curriculum anchors for module-scale workloads; `psionic-train` now
+  materializes the corresponding curriculum/eval suite over deterministic
+  memcpy, parsing, checksum, and vm-style families with held-out-family
+  later-window, final-state, and gap metrics; and `psionic-research` now
+  freezes the current evidence at
+  `fixtures/tassadar/reports/tassadar_module_state_architecture_report.json`
+  instead of treating flat-prefix token-trace prediction as the only learned
+  architecture story for module execution
 - landed structured-control closure bar: `psionic-compiler` now lowers one
   bounded zero-parameter i32-only Wasm subset with empty block types into
   validated executor-ready structured programs covering `block`, `loop`, `if`,

@@ -1,0 +1,425 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.module_state_architecture.report.v1",
+  "publication": {
+    "schema_version": 1,
+    "publication_id": "tassadar.module_state_executor.publication.v1",
+    "status": "implemented_early",
+    "claim_class": "research_only_architecture",
+    "model": {
+      "model_id": "tassadar-module-state-executor-candidate-v0",
+      "family": "tassadar_module_state_executor",
+      "revision": "v0"
+    },
+    "baseline_family_refs": [
+      "model-family://openagents/tassadar/windowed_lookup_transformer",
+      "model-family://openagents/tassadar/executor_attention_candidate"
+    ],
+    "source_workload_suite_ref": "fixtures/tassadar/reports/tassadar_module_scale_workload_suite_report.json",
+    "source_program_families": [
+      "memcpy",
+      "parsing",
+      "checksum",
+      "vm_style"
+    ],
+    "state_channels": [
+      "call_frame_state",
+      "global_state_delta",
+      "memory_delta",
+      "export_boundary_state"
+    ],
+    "curriculum_anchors": [
+      {
+        "stage_id": "memory_copy_bootstrap",
+        "summary": "bootstrap memory-delta and global-state channels on memcpy and checksum before wider dispatch families",
+        "train_families": [
+          "memcpy",
+          "checksum"
+        ],
+        "held_out_families": [
+          "parsing",
+          "vm_style"
+        ],
+        "enabled_state_channels": [
+          "global_state_delta",
+          "memory_delta"
+        ],
+        "later_window_start_step": 8,
+        "target_token_cap": 64
+      },
+      {
+        "stage_id": "frame_parse_alignment",
+        "summary": "introduce frame-local recurrent state on parsing while keeping vm-style dispatch held out",
+        "train_families": [
+          "memcpy",
+          "checksum",
+          "parsing"
+        ],
+        "held_out_families": [
+          "vm_style"
+        ],
+        "enabled_state_channels": [
+          "call_frame_state",
+          "global_state_delta",
+          "memory_delta"
+        ],
+        "later_window_start_step": 12,
+        "target_token_cap": 96
+      },
+      {
+        "stage_id": "dispatch_holdout_replay",
+        "summary": "freeze explicit export-boundary state and measure held-out vm-style dispatch after parsing and memory stages",
+        "train_families": [
+          "memcpy",
+          "checksum",
+          "parsing"
+        ],
+        "held_out_families": [
+          "vm_style"
+        ],
+        "enabled_state_channels": [
+          "call_frame_state",
+          "global_state_delta",
+          "memory_delta",
+          "export_boundary_state"
+        ],
+        "later_window_start_step": 16,
+        "target_token_cap": 128
+      }
+    ],
+    "target_surfaces": [
+      "crates/psionic-models",
+      "crates/psionic-train",
+      "crates/psionic-research"
+    ],
+    "validation_refs": [
+      "fixtures/tassadar/reports/tassadar_module_scale_workload_suite_report.json",
+      "fixtures/tassadar/reports/tassadar_module_state_architecture_report.json"
+    ],
+    "support_boundaries": [
+      "the lane remains a learned bounded research-only architecture and is not a served or benchmark-gated capability publication",
+      "state channels are explicit call-frame, global-delta, memory-delta, and export-boundary summaries only; arbitrary host state and arbitrary Wasm closure remain out of scope",
+      "the redesign is anchored to deterministic module-scale memcpy, parsing, checksum, and vm-style workloads rather than arbitrary module execution"
+    ],
+    "publication_digest": "3e895ccd9a2bf90396407287c6f85a63797830303df990478e3209d414565413"
+  },
+  "curriculum_suite": {
+    "schema_version": 1,
+    "suite_id": "tassadar.module_state_curriculum_suite.v1",
+    "claim_class": "research_only_architecture",
+    "model_publication_id": "tassadar.module_state_executor.publication.v1",
+    "source_workload_suite_ref": "fixtures/tassadar/reports/tassadar_module_scale_workload_suite_report.json",
+    "stages": [
+      {
+        "stage_id": "memory_copy_bootstrap",
+        "summary": "bootstrap memory-delta and global-state channels on memcpy and checksum before wider dispatch families",
+        "train_families": [
+          "memcpy",
+          "checksum"
+        ],
+        "held_out_families": [
+          "parsing",
+          "vm_style"
+        ],
+        "enabled_state_channels": [
+          "global_state_delta",
+          "memory_delta"
+        ],
+        "later_window_start_step": 8,
+        "target_token_cap": 64
+      },
+      {
+        "stage_id": "frame_parse_alignment",
+        "summary": "introduce frame-local recurrent state on parsing while keeping vm-style dispatch held out",
+        "train_families": [
+          "memcpy",
+          "checksum",
+          "parsing"
+        ],
+        "held_out_families": [
+          "vm_style"
+        ],
+        "enabled_state_channels": [
+          "call_frame_state",
+          "global_state_delta",
+          "memory_delta"
+        ],
+        "later_window_start_step": 12,
+        "target_token_cap": 96
+      },
+      {
+        "stage_id": "dispatch_holdout_replay",
+        "summary": "freeze explicit export-boundary state and measure held-out vm-style dispatch after parsing and memory stages",
+        "train_families": [
+          "memcpy",
+          "checksum",
+          "parsing"
+        ],
+        "held_out_families": [
+          "vm_style"
+        ],
+        "enabled_state_channels": [
+          "call_frame_state",
+          "global_state_delta",
+          "memory_delta",
+          "export_boundary_state"
+        ],
+        "later_window_start_step": 16,
+        "target_token_cap": 128
+      }
+    ],
+    "variants": [
+      {
+        "variant_id": "flat_prefix_baseline",
+        "description": "Current bounded flat-prefix trace-prediction baseline without explicit frame or memory-delta channels.",
+        "stage_ids": [],
+        "enabled_state_channels": [],
+        "later_window_average_bps": 5775,
+        "final_state_average_bps": 7950,
+        "held_out_later_window_average_bps": 4750,
+        "held_out_final_state_average_bps": 7300,
+        "average_trace_to_final_state_gap_bps": 2175,
+        "family_evals": [
+          {
+            "family": "memcpy",
+            "held_out": false,
+            "later_window_exactness_bps": 6900,
+            "final_state_exactness_bps": 8700,
+            "trace_to_final_state_gap_bps": 1800
+          },
+          {
+            "family": "checksum",
+            "held_out": false,
+            "later_window_exactness_bps": 6700,
+            "final_state_exactness_bps": 8500,
+            "trace_to_final_state_gap_bps": 1800
+          },
+          {
+            "family": "parsing",
+            "held_out": true,
+            "later_window_exactness_bps": 5200,
+            "final_state_exactness_bps": 7600,
+            "trace_to_final_state_gap_bps": 2400
+          },
+          {
+            "family": "vm_style",
+            "held_out": true,
+            "later_window_exactness_bps": 4300,
+            "final_state_exactness_bps": 7000,
+            "trace_to_final_state_gap_bps": 2700
+          }
+        ]
+      },
+      {
+        "variant_id": "frame_state_only",
+        "description": "Add frame-local recurrent state and staged parsing curriculum while leaving memory-delta replay implicit.",
+        "stage_ids": [
+          "memory_copy_bootstrap",
+          "frame_parse_alignment"
+        ],
+        "enabled_state_channels": [
+          "call_frame_state",
+          "global_state_delta",
+          "export_boundary_state"
+        ],
+        "later_window_average_bps": 6675,
+        "final_state_average_bps": 8375,
+        "held_out_later_window_average_bps": 6250,
+        "held_out_final_state_average_bps": 8050,
+        "average_trace_to_final_state_gap_bps": 1700,
+        "family_evals": [
+          {
+            "family": "memcpy",
+            "held_out": false,
+            "later_window_exactness_bps": 7200,
+            "final_state_exactness_bps": 8800,
+            "trace_to_final_state_gap_bps": 1600
+          },
+          {
+            "family": "checksum",
+            "held_out": false,
+            "later_window_exactness_bps": 7000,
+            "final_state_exactness_bps": 8600,
+            "trace_to_final_state_gap_bps": 1600
+          },
+          {
+            "family": "parsing",
+            "held_out": true,
+            "later_window_exactness_bps": 6600,
+            "final_state_exactness_bps": 8200,
+            "trace_to_final_state_gap_bps": 1600
+          },
+          {
+            "family": "vm_style",
+            "held_out": true,
+            "later_window_exactness_bps": 5900,
+            "final_state_exactness_bps": 7900,
+            "trace_to_final_state_gap_bps": 2000
+          }
+        ]
+      },
+      {
+        "variant_id": "frame_state_with_memory_delta",
+        "description": "Keep frame-local state and add explicit memory-delta channels before the held-out dispatch stage.",
+        "stage_ids": [
+          "memory_copy_bootstrap",
+          "frame_parse_alignment"
+        ],
+        "enabled_state_channels": [
+          "call_frame_state",
+          "global_state_delta",
+          "memory_delta"
+        ],
+        "later_window_average_bps": 7375,
+        "final_state_average_bps": 8775,
+        "held_out_later_window_average_bps": 6700,
+        "held_out_final_state_average_bps": 8350,
+        "average_trace_to_final_state_gap_bps": 1400,
+        "family_evals": [
+          {
+            "family": "memcpy",
+            "held_out": false,
+            "later_window_exactness_bps": 8200,
+            "final_state_exactness_bps": 9300,
+            "trace_to_final_state_gap_bps": 1100
+          },
+          {
+            "family": "checksum",
+            "held_out": false,
+            "later_window_exactness_bps": 7900,
+            "final_state_exactness_bps": 9100,
+            "trace_to_final_state_gap_bps": 1200
+          },
+          {
+            "family": "parsing",
+            "held_out": true,
+            "later_window_exactness_bps": 7000,
+            "final_state_exactness_bps": 8500,
+            "trace_to_final_state_gap_bps": 1500
+          },
+          {
+            "family": "vm_style",
+            "held_out": true,
+            "later_window_exactness_bps": 6400,
+            "final_state_exactness_bps": 8200,
+            "trace_to_final_state_gap_bps": 1800
+          }
+        ]
+      },
+      {
+        "variant_id": "full_module_curriculum",
+        "description": "Freeze the full module curriculum with frame, global-delta, memory-delta, and export-boundary state before the held-out vm-style replay gate.",
+        "stage_ids": [
+          "memory_copy_bootstrap",
+          "frame_parse_alignment",
+          "dispatch_holdout_replay"
+        ],
+        "enabled_state_channels": [
+          "call_frame_state",
+          "global_state_delta",
+          "memory_delta",
+          "export_boundary_state"
+        ],
+        "later_window_average_bps": 7950,
+        "final_state_average_bps": 9075,
+        "held_out_later_window_average_bps": 7400,
+        "held_out_final_state_average_bps": 8750,
+        "average_trace_to_final_state_gap_bps": 1125,
+        "family_evals": [
+          {
+            "family": "memcpy",
+            "held_out": false,
+            "later_window_exactness_bps": 8600,
+            "final_state_exactness_bps": 9500,
+            "trace_to_final_state_gap_bps": 900
+          },
+          {
+            "family": "checksum",
+            "held_out": false,
+            "later_window_exactness_bps": 8400,
+            "final_state_exactness_bps": 9300,
+            "trace_to_final_state_gap_bps": 900
+          },
+          {
+            "family": "parsing",
+            "held_out": true,
+            "later_window_exactness_bps": 7700,
+            "final_state_exactness_bps": 8900,
+            "trace_to_final_state_gap_bps": 1200
+          },
+          {
+            "family": "vm_style",
+            "held_out": true,
+            "later_window_exactness_bps": 7100,
+            "final_state_exactness_bps": 8600,
+            "trace_to_final_state_gap_bps": 1500
+          }
+        ]
+      }
+    ],
+    "suite_digest": "32e220275cd7898bd9134d12daf99abbb53b44d69327c361148928700ff02d4f"
+  },
+  "held_out_family_deltas": [
+    {
+      "family": "parsing",
+      "baseline_later_window_exactness_bps": 5200,
+      "candidate_later_window_exactness_bps": 7700,
+      "baseline_final_state_exactness_bps": 7600,
+      "candidate_final_state_exactness_bps": 8900,
+      "later_window_delta_bps": 2500,
+      "final_state_delta_bps": 1300,
+      "trace_to_final_state_gap_reduction_bps": 1200
+    },
+    {
+      "family": "vm_style",
+      "baseline_later_window_exactness_bps": 4300,
+      "candidate_later_window_exactness_bps": 7100,
+      "baseline_final_state_exactness_bps": 7000,
+      "candidate_final_state_exactness_bps": 8600,
+      "later_window_delta_bps": 2800,
+      "final_state_delta_bps": 1600,
+      "trace_to_final_state_gap_reduction_bps": 1200
+    }
+  ],
+  "curriculum_ablations": [
+    {
+      "variant_id": "flat_prefix_baseline",
+      "description": "Current bounded flat-prefix trace-prediction baseline without explicit frame or memory-delta channels.",
+      "later_window_average_bps": 5775,
+      "final_state_average_bps": 7950,
+      "held_out_later_window_average_bps": 4750,
+      "held_out_final_state_average_bps": 7300,
+      "average_trace_to_final_state_gap_bps": 2175
+    },
+    {
+      "variant_id": "frame_state_only",
+      "description": "Add frame-local recurrent state and staged parsing curriculum while leaving memory-delta replay implicit.",
+      "later_window_average_bps": 6675,
+      "final_state_average_bps": 8375,
+      "held_out_later_window_average_bps": 6250,
+      "held_out_final_state_average_bps": 8050,
+      "average_trace_to_final_state_gap_bps": 1700
+    },
+    {
+      "variant_id": "frame_state_with_memory_delta",
+      "description": "Keep frame-local state and add explicit memory-delta channels before the held-out dispatch stage.",
+      "later_window_average_bps": 7375,
+      "final_state_average_bps": 8775,
+      "held_out_later_window_average_bps": 6700,
+      "held_out_final_state_average_bps": 8350,
+      "average_trace_to_final_state_gap_bps": 1400
+    },
+    {
+      "variant_id": "full_module_curriculum",
+      "description": "Freeze the full module curriculum with frame, global-delta, memory-delta, and export-boundary state before the held-out vm-style replay gate.",
+      "later_window_average_bps": 7950,
+      "final_state_average_bps": 9075,
+      "held_out_later_window_average_bps": 7400,
+      "held_out_final_state_average_bps": 8750,
+      "average_trace_to_final_state_gap_bps": 1125
+    }
+  ],
+  "claim_boundary": "this report freezes one learned bounded research-only architecture comparison for module-scale Wasm workloads; it compares a flat-prefix baseline against a frame-aware module-state candidate over deterministic curriculum and held-out-family metrics, and does not claim served exactness, arbitrary Wasm closure, or benchmark-gated promotion",
+  "summary": "Held-out module-family deltas are now explicit for the module-state redesign lane: cumulative later-window gain=5300 bps and cumulative trace-to-final-state gap reduction=2400 bps across the held-out parsing and vm_style families.",
+  "report_digest": "66b5af95f4a463bdc621005377a493a8704d640b027521c254331620d79d76e2"
+}
