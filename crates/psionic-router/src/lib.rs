@@ -13,6 +13,7 @@
 
 mod response_state;
 mod tassadar_composite_routing;
+mod tassadar_counterfactual_route_quality;
 mod tassadar_delegation_benchmark;
 mod tassadar_evidence_routing;
 mod tassadar_latency_evidence_tradeoff;
@@ -31,6 +32,7 @@ pub use response_state::{
     ResponseStateError, ResponseStateRecord, ResponseStateRetentionPolicy, ResponseStateStore,
 };
 pub use tassadar_composite_routing::*;
+pub use tassadar_counterfactual_route_quality::*;
 pub use tassadar_delegation_benchmark::*;
 pub use tassadar_evidence_routing::*;
 pub use tassadar_latency_evidence_tradeoff::*;

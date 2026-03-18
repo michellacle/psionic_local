@@ -564,6 +564,19 @@ The current scope is:
   stitch refusals, and settlement-gated refusals. This lane keeps hybrid
   execution truth, accepted-outcome truth, and settlement posture bridged but
   distinct instead of collapsing them into one composite success bit
+- landed counterfactual-route-quality follow-on: `psionic-router` now publishes
+  the same-task counterfactual route-quality report at
+  `fixtures/tassadar/reports/tassadar_counterfactual_route_quality_report.json`,
+  comparing realized language-only, compiled-exact, internal-executor,
+  external-tool, and hybrid-composite lane choices against the best available
+  alternative on the same tasks with explicit accepted-outcome, evidence,
+  cost, and latency deltas; `psionic-eval` now publishes the derived summary at
+  `fixtures/tassadar/reports/tassadar_counterfactual_route_quality_eval_report.json`;
+  and `psionic-provider` now projects that report into a provider-facing
+  `TassadarCounterfactualRouteQualityReceipt`. This lane keeps realized-route
+  success separate from best-available-route quality so planner training can
+  consume honest overuse and underuse evidence without implying accepted-
+  outcome or settlement authority
 - landed cost-per-correct-job follow-on: `psionic-eval` now publishes the
   benchmark-bound economics report at
   `fixtures/tassadar/reports/tassadar_cost_per_correct_job_report.json`,

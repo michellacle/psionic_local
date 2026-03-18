@@ -1,0 +1,333 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.counterfactual_route_quality.eval_report.v1",
+  "router_report": {
+    "schema_version": 1,
+    "report_id": "tassadar.counterfactual_route_quality.report.v1",
+    "evaluated_cases": [
+      {
+        "case_id": "case.patch_apply_internal_underuse",
+        "workload_family": "patch_apply_internal_exact",
+        "realized_route": {
+          "route_family": "language_only",
+          "task_success_bps": 7600,
+          "accepted_outcome_ready": false,
+          "evidence_quality_bps": 4100,
+          "cost_milliunits": 500,
+          "latency_ms": 30,
+          "note": "realized language-only route finishes the patch analysis but cannot satisfy accepted-outcome posture"
+        },
+        "counterfactual_routes": [
+          {
+            "route_family": "compiled_exact",
+            "task_success_bps": 10000,
+            "accepted_outcome_ready": true,
+            "evidence_quality_bps": 9300,
+            "cost_milliunits": 2100,
+            "latency_ms": 70,
+            "note": "compiled exact route keeps bounded exactness explicit with lower cost than the full hybrid path"
+          },
+          {
+            "route_family": "internal_executor",
+            "task_success_bps": 10000,
+            "accepted_outcome_ready": true,
+            "evidence_quality_bps": 9100,
+            "cost_milliunits": 2200,
+            "latency_ms": 60,
+            "note": "internal executor stays benchmark-gated and accepted-outcome-ready on the seeded patch family"
+          },
+          {
+            "route_family": "external_tool",
+            "task_success_bps": 9800,
+            "accepted_outcome_ready": false,
+            "evidence_quality_bps": 8900,
+            "cost_milliunits": 7000,
+            "latency_ms": 150,
+            "note": "external delegation solves the task but overpays for evidence and still does not improve accepted-outcome readiness here"
+          },
+          {
+            "route_family": "hybrid_composite",
+            "task_success_bps": 10000,
+            "accepted_outcome_ready": true,
+            "evidence_quality_bps": 9600,
+            "cost_milliunits": 3800,
+            "latency_ms": 85,
+            "note": "hybrid composite gives the strongest evidence posture on the seeded patch case"
+          }
+        ],
+        "best_available_route_family": "hybrid_composite",
+        "better_counterfactual_exists": true,
+        "accepted_outcome_delta_bps": 10000,
+        "success_delta_bps": 2400,
+        "evidence_delta_bps": 5500,
+        "cost_regret_milliunits": -3300,
+        "latency_regret_ms": -55,
+        "note": "the realized language-only route hides that an accepted-outcome-ready alternative existed on the same task"
+      },
+      {
+        "case_id": "case.long_loop_internal_overuse",
+        "workload_family": "long_loop_validator_heavy",
+        "realized_route": {
+          "route_family": "internal_executor",
+          "task_success_bps": 7200,
+          "accepted_outcome_ready": false,
+          "evidence_quality_bps": 5800,
+          "cost_milliunits": 3600,
+          "latency_ms": 95,
+          "note": "realized internal executor route underplays refusal pressure on long-loop validator-heavy work"
+        },
+        "counterfactual_routes": [
+          {
+            "route_family": "language_only",
+            "task_success_bps": 5100,
+            "accepted_outcome_ready": false,
+            "evidence_quality_bps": 3500,
+            "cost_milliunits": 700,
+            "latency_ms": 20,
+            "note": "language-only reasoning is cheap but too weak for the seeded long-loop case"
+          },
+          {
+            "route_family": "compiled_exact",
+            "task_success_bps": 7600,
+            "accepted_outcome_ready": false,
+            "evidence_quality_bps": 6300,
+            "cost_milliunits": 4800,
+            "latency_ms": 140,
+            "note": "compiled exactness is stronger than the realized route but still not accepted-outcome-ready here"
+          },
+          {
+            "route_family": "external_tool",
+            "task_success_bps": 9800,
+            "accepted_outcome_ready": false,
+            "evidence_quality_bps": 9200,
+            "cost_milliunits": 7600,
+            "latency_ms": 220,
+            "note": "external delegation is robust but expensive and not authority-ready on its own"
+          },
+          {
+            "route_family": "hybrid_composite",
+            "task_success_bps": 9900,
+            "accepted_outcome_ready": true,
+            "evidence_quality_bps": 9400,
+            "cost_milliunits": 6500,
+            "latency_ms": 190,
+            "note": "hybrid routing keeps the internal fast path where honest and escalates into validator-compatible evidence when needed"
+          }
+        ],
+        "best_available_route_family": "hybrid_composite",
+        "better_counterfactual_exists": true,
+        "accepted_outcome_delta_bps": 10000,
+        "success_delta_bps": 2700,
+        "evidence_delta_bps": 3600,
+        "cost_regret_milliunits": -2900,
+        "latency_regret_ms": -95,
+        "note": "the realized internal route overuses the executor lane without acknowledging a better hybrid alternative"
+      },
+      {
+        "case_id": "case.article_hybrid_correct",
+        "workload_family": "article_hybrid_workflow",
+        "realized_route": {
+          "route_family": "hybrid_composite",
+          "task_success_bps": 9700,
+          "accepted_outcome_ready": true,
+          "evidence_quality_bps": 9300,
+          "cost_milliunits": 4100,
+          "latency_ms": 90,
+          "note": "realized hybrid article route already balances evidence, cost, and latency well"
+        },
+        "counterfactual_routes": [
+          {
+            "route_family": "language_only",
+            "task_success_bps": 6200,
+            "accepted_outcome_ready": false,
+            "evidence_quality_bps": 3900,
+            "cost_milliunits": 600,
+            "latency_ms": 25,
+            "note": "language-only reasoning cannot close the workflow evidence gap for the article workload"
+          },
+          {
+            "route_family": "compiled_exact",
+            "task_success_bps": 9100,
+            "accepted_outcome_ready": true,
+            "evidence_quality_bps": 8900,
+            "cost_milliunits": 5200,
+            "latency_ms": 120,
+            "note": "compiled exactness improves authority posture but stays slower and more expensive than the realized hybrid path"
+          },
+          {
+            "route_family": "internal_executor",
+            "task_success_bps": 9000,
+            "accepted_outcome_ready": false,
+            "evidence_quality_bps": 7200,
+            "cost_milliunits": 3000,
+            "latency_ms": 65,
+            "note": "internal executor alone under-evidences the workflow closure even when it is cheaper"
+          },
+          {
+            "route_family": "external_tool",
+            "task_success_bps": 9400,
+            "accepted_outcome_ready": false,
+            "evidence_quality_bps": 8200,
+            "cost_milliunits": 6800,
+            "latency_ms": 160,
+            "note": "external tools stay slower and less evidence-complete than the realized hybrid route"
+          }
+        ],
+        "best_available_route_family": "hybrid_composite",
+        "better_counterfactual_exists": false,
+        "accepted_outcome_delta_bps": 0,
+        "success_delta_bps": 0,
+        "evidence_delta_bps": 0,
+        "cost_regret_milliunits": 0,
+        "latency_regret_ms": 0,
+        "note": "the realized hybrid route is already the best available option on this seeded workflow"
+      },
+      {
+        "case_id": "case.parity_hybrid_overuse",
+        "workload_family": "parity_short_bounded",
+        "realized_route": {
+          "route_family": "hybrid_composite",
+          "task_success_bps": 10000,
+          "accepted_outcome_ready": true,
+          "evidence_quality_bps": 8500,
+          "cost_milliunits": 1800,
+          "latency_ms": 55,
+          "note": "realized hybrid route succeeds but adds extra lane overhead on a bounded parity workload"
+        },
+        "counterfactual_routes": [
+          {
+            "route_family": "language_only",
+            "task_success_bps": 9800,
+            "accepted_outcome_ready": false,
+            "evidence_quality_bps": 4500,
+            "cost_milliunits": 400,
+            "latency_ms": 20,
+            "note": "language-only reasoning works often enough but is weaker on exact bounded parity"
+          },
+          {
+            "route_family": "compiled_exact",
+            "task_success_bps": 10000,
+            "accepted_outcome_ready": true,
+            "evidence_quality_bps": 8600,
+            "cost_milliunits": 900,
+            "latency_ms": 25,
+            "note": "compiled exactness keeps the same task success while cutting latency and cost"
+          },
+          {
+            "route_family": "internal_executor",
+            "task_success_bps": 10000,
+            "accepted_outcome_ready": true,
+            "evidence_quality_bps": 8400,
+            "cost_milliunits": 950,
+            "latency_ms": 25,
+            "note": "internal executor is also viable but slightly weaker on evidence than the compiled exact row"
+          },
+          {
+            "route_family": "external_tool",
+            "task_success_bps": 10000,
+            "accepted_outcome_ready": false,
+            "evidence_quality_bps": 9100,
+            "cost_milliunits": 2600,
+            "latency_ms": 130,
+            "note": "external tools buy evidence but overpay for the bounded parity case"
+          }
+        ],
+        "best_available_route_family": "compiled_exact",
+        "better_counterfactual_exists": true,
+        "accepted_outcome_delta_bps": 0,
+        "success_delta_bps": 0,
+        "evidence_delta_bps": 100,
+        "cost_regret_milliunits": 900,
+        "latency_regret_ms": 30,
+        "note": "the realized hybrid route hides a cheaper compiled-exact alternative on the same bounded task"
+      }
+    ],
+    "better_counterfactual_case_count": 3,
+    "accepted_outcome_regret_case_count": 2,
+    "overuse_case_count": 1,
+    "underuse_case_count": 1,
+    "average_cost_regret_milliunits": -1325,
+    "average_latency_regret_ms": -30,
+    "generated_from_refs": [
+      "fixtures/tassadar/reports/tassadar_composite_routing_report.json",
+      "fixtures/tassadar/reports/tassadar_evidence_calibrated_routing_report.json",
+      "fixtures/tassadar/reports/tassadar_exactness_refusal_report.json",
+      "fixtures/tassadar/reports/tassadar_planner_language_compute_policy_report.json",
+      "fixtures/tassadar/reports/tassadar_workload_capability_frontier_report.json"
+    ],
+    "nexus_dependency_marker": "nexus remains the owner of canonical accepted-outcome and settlement closure outside standalone psionic",
+    "claim_boundary": "this router report is a research-only analysis over realized and counterfactual lane choices on the same tasks. It keeps accepted-outcome posture, evidence quality, cost, and latency deltas explicit without treating realized-route success as authority closure or served capability widening",
+    "summary": "Counterfactual route-quality report covers 4 cases with 3 better-counterfactual cases, 1 overuse cases, and 1 underuse cases.",
+    "report_digest": "db4fbe621ccad64c9c8bacb9e8b8784105ea9ba6401a6653a47001806f3b81f4"
+  },
+  "eval_rows": [
+    {
+      "case_id": "case.patch_apply_internal_underuse",
+      "workload_family": "patch_apply_internal_exact",
+      "realized_route_family": "language_only",
+      "best_available_route_family": "hybrid_composite",
+      "better_counterfactual_exists": true,
+      "accepted_outcome_delta_bps": 10000,
+      "success_delta_bps": 2400,
+      "evidence_delta_bps": 5500,
+      "cost_regret_milliunits": -3300,
+      "latency_regret_ms": -55,
+      "note": "the realized language-only route hides that an accepted-outcome-ready alternative existed on the same task"
+    },
+    {
+      "case_id": "case.long_loop_internal_overuse",
+      "workload_family": "long_loop_validator_heavy",
+      "realized_route_family": "internal_executor",
+      "best_available_route_family": "hybrid_composite",
+      "better_counterfactual_exists": true,
+      "accepted_outcome_delta_bps": 10000,
+      "success_delta_bps": 2700,
+      "evidence_delta_bps": 3600,
+      "cost_regret_milliunits": -2900,
+      "latency_regret_ms": -95,
+      "note": "the realized internal route overuses the executor lane without acknowledging a better hybrid alternative"
+    },
+    {
+      "case_id": "case.article_hybrid_correct",
+      "workload_family": "article_hybrid_workflow",
+      "realized_route_family": "hybrid_composite",
+      "best_available_route_family": "hybrid_composite",
+      "better_counterfactual_exists": false,
+      "accepted_outcome_delta_bps": 0,
+      "success_delta_bps": 0,
+      "evidence_delta_bps": 0,
+      "cost_regret_milliunits": 0,
+      "latency_regret_ms": 0,
+      "note": "the realized hybrid route is already the best available option on this seeded workflow"
+    },
+    {
+      "case_id": "case.parity_hybrid_overuse",
+      "workload_family": "parity_short_bounded",
+      "realized_route_family": "hybrid_composite",
+      "best_available_route_family": "compiled_exact",
+      "better_counterfactual_exists": true,
+      "accepted_outcome_delta_bps": 0,
+      "success_delta_bps": 0,
+      "evidence_delta_bps": 100,
+      "cost_regret_milliunits": 900,
+      "latency_regret_ms": 30,
+      "note": "the realized hybrid route hides a cheaper compiled-exact alternative on the same bounded task"
+    }
+  ],
+  "better_counterfactual_case_count": 3,
+  "accepted_outcome_better_alternative_case_count": 2,
+  "overuse_case_count": 1,
+  "underuse_case_count": 1,
+  "generated_from_refs": [
+    "fixtures/tassadar/reports/tassadar_composite_routing_report.json",
+    "fixtures/tassadar/reports/tassadar_counterfactual_route_quality_report.json",
+    "fixtures/tassadar/reports/tassadar_evidence_calibrated_routing_report.json",
+    "fixtures/tassadar/reports/tassadar_exactness_refusal_report.json",
+    "fixtures/tassadar/reports/tassadar_planner_language_compute_policy_report.json",
+    "fixtures/tassadar/reports/tassadar_workload_capability_frontier_report.json"
+  ],
+  "nexus_dependency_marker": "nexus remains the owner of accepted-outcome and settlement closure outside standalone psionic",
+  "claim_boundary": "this eval report keeps realized-versus-counterfactual routing deltas explicit for planner learning and route auditing. It remains research-only analysis and does not treat better route ranking as accepted-outcome or settlement authority",
+  "summary": "Counterfactual route-quality eval report covers 4 cases with 3 better-counterfactual cases, 1 overuse cases, and 1 underuse cases.",
+  "report_digest": "d2c809ad58d3e22c5915042defeec5496172ec283ad6194c76ddce5e0bc7d90c"
+}
