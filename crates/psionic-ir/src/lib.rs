@@ -5,6 +5,7 @@ mod tassadar_numeric_encoding;
 mod tassadar_locality_scratchpad;
 mod tassadar_sparse_rule;
 mod tassadar_scratchpad;
+mod tassadar_state_design;
 mod tassadar_symbolic;
 mod tassadar_wasm_module;
 
@@ -24,6 +25,7 @@ pub use tassadar_numeric_encoding::*;
 pub use tassadar_locality_scratchpad::*;
 pub use tassadar_sparse_rule::*;
 pub use tassadar_scratchpad::*;
+pub use tassadar_state_design::*;
 pub use tassadar_symbolic::*;
 pub use tassadar_wasm_module::*;
 

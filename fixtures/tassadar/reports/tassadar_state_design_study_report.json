@@ -1,0 +1,164 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.state_design.study_report.v1",
+  "study_contract_ref": "dataset://openagents/tassadar/state_design_study",
+  "study_contract_digest": "ed7d496cefb25e1c490ff5ea9a3d1fdf72dc4195219ef95b9b05b6f09e16e751",
+  "publication_digest": "b14311752d7f3e81659fcaeaa9ceff35d2223c8ef51a3c1d0cfa9ee096443942",
+  "runtime_report_ref": "fixtures/tassadar/reports/tassadar_state_design_runtime_report.json",
+  "runtime_report_digest": "953c6f2ad6666d61ab971d603cb882fd1dbf648258168066f51101795b53bff2",
+  "family_summaries": [
+    {
+      "design_family": "full_append_only_trace",
+      "exact_replay_case_count": 5,
+      "reconstructable_replay_case_count": 0,
+      "bounded_state_publication_case_count": 0,
+      "refused_case_count": 0,
+      "average_locality_score_bps": 4300,
+      "average_edit_cost_bps": 9200,
+      "preferred_workload_families": [],
+      "note": "append-only traces remain the replay floor, but they are rarely the best locality or edit-cost design on the current workload set"
+    },
+    {
+      "design_family": "delta_trace",
+      "exact_replay_case_count": 0,
+      "reconstructable_replay_case_count": 3,
+      "bounded_state_publication_case_count": 0,
+      "refused_case_count": 2,
+      "average_locality_score_bps": 7467,
+      "average_edit_cost_bps": 4100,
+      "preferred_workload_families": [],
+      "note": "delta traces win where changed addresses or frames stay reconstructable, but they refuse workloads that would hide semantic state behind opaque deltas"
+    },
+    {
+      "design_family": "locality_scratchpad",
+      "exact_replay_case_count": 3,
+      "reconstructable_replay_case_count": 0,
+      "bounded_state_publication_case_count": 0,
+      "refused_case_count": 2,
+      "average_locality_score_bps": 8467,
+      "average_edit_cost_bps": 3333,
+      "preferred_workload_families": [
+        "module_call_trace",
+        "symbolic_locality"
+      ],
+      "note": "scratchpad layouts win where token-trace truth must stay exact but locality can still be reshaped safely"
+    },
+    {
+      "design_family": "recurrent_state",
+      "exact_replay_case_count": 0,
+      "reconstructable_replay_case_count": 0,
+      "bounded_state_publication_case_count": 3,
+      "refused_case_count": 2,
+      "average_locality_score_bps": 8067,
+      "average_edit_cost_bps": 3300,
+      "preferred_workload_families": [
+        "long_horizon_control"
+      ],
+      "note": "recurrent state wins long-horizon workloads only under explicit bounded-state publication rather than replay-complete claims"
+    },
+    {
+      "design_family": "working_memory_tier",
+      "exact_replay_case_count": 0,
+      "reconstructable_replay_case_count": 0,
+      "bounded_state_publication_case_count": 3,
+      "refused_case_count": 2,
+      "average_locality_score_bps": 8367,
+      "average_edit_cost_bps": 2833,
+      "preferred_workload_families": [
+        "associative_recall",
+        "byte_memory_loop"
+      ],
+      "note": "working-memory publication wins semantic memory workloads when slot and lookup semantics stay explicit and bounded"
+    }
+  ],
+  "workload_summaries": [
+    {
+      "workload_family": "module_call_trace",
+      "exact_replay_families": [
+        "full_append_only_trace",
+        "locality_scratchpad"
+      ],
+      "reconstructable_replay_families": [
+        "delta_trace"
+      ],
+      "bounded_state_publication_families": [],
+      "refused_families": [
+        "recurrent_state",
+        "working_memory_tier"
+      ],
+      "recommended_design_family": "locality_scratchpad",
+      "note": "module_call_trace currently favors locality_scratchpad as the best representation tradeoff on the seeded study because it preserves the relevant truth surface with lower edit cost than the audit-floor full trace."
+    },
+    {
+      "workload_family": "symbolic_locality",
+      "exact_replay_families": [
+        "full_append_only_trace",
+        "locality_scratchpad"
+      ],
+      "reconstructable_replay_families": [
+        "delta_trace"
+      ],
+      "bounded_state_publication_families": [],
+      "refused_families": [
+        "recurrent_state",
+        "working_memory_tier"
+      ],
+      "recommended_design_family": "locality_scratchpad",
+      "note": "symbolic_locality currently favors locality_scratchpad as the best representation tradeoff on the seeded study because it preserves the relevant truth surface with lower edit cost than the audit-floor full trace."
+    },
+    {
+      "workload_family": "associative_recall",
+      "exact_replay_families": [
+        "full_append_only_trace"
+      ],
+      "reconstructable_replay_families": [],
+      "bounded_state_publication_families": [
+        "recurrent_state",
+        "working_memory_tier"
+      ],
+      "refused_families": [
+        "delta_trace",
+        "locality_scratchpad"
+      ],
+      "recommended_design_family": "working_memory_tier",
+      "note": "associative_recall currently favors working_memory_tier as the best representation tradeoff on the seeded study because it preserves the relevant truth surface with lower edit cost than the audit-floor full trace."
+    },
+    {
+      "workload_family": "long_horizon_control",
+      "exact_replay_families": [
+        "full_append_only_trace"
+      ],
+      "reconstructable_replay_families": [],
+      "bounded_state_publication_families": [
+        "recurrent_state",
+        "working_memory_tier"
+      ],
+      "refused_families": [
+        "delta_trace",
+        "locality_scratchpad"
+      ],
+      "recommended_design_family": "recurrent_state",
+      "note": "long_horizon_control currently favors recurrent_state as the best representation tradeoff on the seeded study because it preserves the relevant truth surface with lower edit cost than the audit-floor full trace."
+    },
+    {
+      "workload_family": "byte_memory_loop",
+      "exact_replay_families": [
+        "full_append_only_trace",
+        "locality_scratchpad"
+      ],
+      "reconstructable_replay_families": [
+        "delta_trace"
+      ],
+      "bounded_state_publication_families": [
+        "recurrent_state",
+        "working_memory_tier"
+      ],
+      "refused_families": [],
+      "recommended_design_family": "working_memory_tier",
+      "note": "byte_memory_loop currently favors working_memory_tier as the best representation tradeoff on the seeded study because it preserves the relevant truth surface with lower edit cost than the audit-floor full trace."
+    }
+  ],
+  "claim_boundary": "this eval report compares representation designs on the same workloads while keeping replay posture and refusal thresholds explicit. It does not promote the recommended design for one workload into a broad executor or product claim",
+  "summary": "State-design study report now joins contract dataset://openagents/tassadar/state_design_study, publication tassadar.state_design_study.publication.v1, and runtime tassadar.state_design.runtime_report.v1 across 5 design families and 5 workload families.",
+  "report_digest": "dbab396ec7a1cc9c702abeb4e2d9a04845007ff03a6918da7b0bf770360859e1"
+}

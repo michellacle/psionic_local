@@ -263,6 +263,22 @@ The current scope is:
   This lane keeps approximate-attention wins, degradations, and refusal
   hotspots explicit instead of treating one fast-path success as general
   executor closure
+- landed state-design-study follow-on: `psionic-ir` now owns a public
+  state-design contract over `full_append_only_trace`, `delta_trace`,
+  `locality_scratchpad`, `recurrent_state`, and `working_memory_tier` with
+  explicit exact-replay, reconstructable-replay, bounded-state-publication,
+  and refusal posture; `psionic-data` now publishes the same-workload study
+  contract for module-call trace, symbolic-locality, associative-recall,
+  long-horizon control, and byte-memory loop workloads; `psionic-models` now
+  publishes the research-only `TassadarStateDesignStudyPublication`;
+  `psionic-runtime` now freezes the case matrix at
+  `fixtures/tassadar/reports/tassadar_state_design_runtime_report.json`; and
+  `psionic-eval` now freezes the joined workload-versus-family study report at
+  `fixtures/tassadar/reports/tassadar_state_design_study_report.json`. This
+  lane keeps replay floors, reconstructable deltas, bounded semantic-state
+  wins, and explicit refusal thresholds separate instead of treating the
+  append-only trace as the uniquely honest representation for every workload
+  family
 - landed shared primitive transfer follow-on: `psionic-data` now publishes a
   public `TassadarSharedPrimitiveTransferContract` over explicit
   reachability-expand, relax-state, compare, select, merge, and

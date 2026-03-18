@@ -1,0 +1,398 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.state_design.runtime_report.v1",
+  "claim_class": "research_only_architecture",
+  "exact_replay_case_count": 8,
+  "reconstructable_replay_case_count": 3,
+  "bounded_state_publication_case_count": 6,
+  "refused_case_count": 8,
+  "average_non_refused_locality_score_bps": 6976,
+  "average_non_refused_edit_cost_bps": 5100,
+  "case_reports": [
+    {
+      "case_id": "module_call_trace.full_append_only_trace",
+      "workload_family": "module_call_trace",
+      "design_family": "full_append_only_trace",
+      "replay_posture": "exact_replay",
+      "exact_output_preserved": true,
+      "exact_halt_preserved": true,
+      "locality_score_bps": 4900,
+      "edit_cost_bps": 9200,
+      "trace_bytes": 96000,
+      "state_bytes": 96000,
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_module_trace_abi_v2_report.json",
+        "fixtures/tassadar/reports/tassadar_trace_abi_decision_report.json"
+      ],
+      "note": "append-only trace keeps frame transitions replay-complete but pays the highest edit cost on module-call workloads"
+    },
+    {
+      "case_id": "module_call_trace.delta_trace",
+      "workload_family": "module_call_trace",
+      "design_family": "delta_trace",
+      "replay_posture": "reconstructable_replay",
+      "exact_output_preserved": true,
+      "exact_halt_preserved": true,
+      "locality_score_bps": 7300,
+      "edit_cost_bps": 4300,
+      "trace_bytes": 44000,
+      "state_bytes": 11000,
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_module_trace_abi_v2_report.json"
+      ],
+      "note": "delta trace keeps module-call truth reconstructable while cutting the edit surface sharply"
+    },
+    {
+      "case_id": "module_call_trace.locality_scratchpad",
+      "workload_family": "module_call_trace",
+      "design_family": "locality_scratchpad",
+      "replay_posture": "exact_replay",
+      "exact_output_preserved": true,
+      "exact_halt_preserved": true,
+      "locality_score_bps": 8400,
+      "edit_cost_bps": 3000,
+      "trace_bytes": 58000,
+      "state_bytes": 58000,
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_locality_scratchpad_report.json",
+        "fixtures/tassadar/reports/tassadar_module_trace_abi_v2_report.json"
+      ],
+      "note": "scratchpad formatting preserves recovered token truth and wins locality on frame-heavy traces"
+    },
+    {
+      "case_id": "module_call_trace.recurrent_state",
+      "workload_family": "module_call_trace",
+      "design_family": "recurrent_state",
+      "replay_posture": "refused",
+      "exact_output_preserved": false,
+      "exact_halt_preserved": false,
+      "refusal_reason": "replay_surface_insufficient",
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_recurrent_fast_path_runtime_baseline.json"
+      ],
+      "note": "current recurrent publication cannot expose every intermediate frame transition required for module-call replay"
+    },
+    {
+      "case_id": "module_call_trace.working_memory_tier",
+      "workload_family": "module_call_trace",
+      "design_family": "working_memory_tier",
+      "replay_posture": "refused",
+      "exact_output_preserved": false,
+      "exact_halt_preserved": false,
+      "refusal_reason": "unsupported_mutable_addressing",
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_working_memory_tier_runtime_report.json"
+      ],
+      "note": "bounded working-memory slots are not a substitute for exact module-call frame publication"
+    },
+    {
+      "case_id": "symbolic_locality.full_append_only_trace",
+      "workload_family": "symbolic_locality",
+      "design_family": "full_append_only_trace",
+      "replay_posture": "exact_replay",
+      "exact_output_preserved": true,
+      "exact_halt_preserved": true,
+      "locality_score_bps": 4600,
+      "edit_cost_bps": 8800,
+      "trace_bytes": 78000,
+      "state_bytes": 78000,
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_scratchpad_framework_comparison_report.json"
+      ],
+      "note": "full traces remain replay-complete but leave positional span and edit cost unnecessarily high"
+    },
+    {
+      "case_id": "symbolic_locality.delta_trace",
+      "workload_family": "symbolic_locality",
+      "design_family": "delta_trace",
+      "replay_posture": "reconstructable_replay",
+      "exact_output_preserved": true,
+      "exact_halt_preserved": true,
+      "locality_score_bps": 7100,
+      "edit_cost_bps": 4100,
+      "trace_bytes": 35000,
+      "state_bytes": 9000,
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_scratchpad_framework_comparison_report.json"
+      ],
+      "note": "delta traces improve symbolic locality but still require reconstruction to recover the full reasoning surface"
+    },
+    {
+      "case_id": "symbolic_locality.locality_scratchpad",
+      "workload_family": "symbolic_locality",
+      "design_family": "locality_scratchpad",
+      "replay_posture": "exact_replay",
+      "exact_output_preserved": true,
+      "exact_halt_preserved": true,
+      "locality_score_bps": 9300,
+      "edit_cost_bps": 2500,
+      "trace_bytes": 52000,
+      "state_bytes": 52000,
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_locality_scratchpad_report.json",
+        "fixtures/tassadar/reports/tassadar_scratchpad_framework_comparison_report.json"
+      ],
+      "note": "scratchpad formatting is the current best trace-preserving representation for locality-sensitive symbolic workloads"
+    },
+    {
+      "case_id": "symbolic_locality.recurrent_state",
+      "workload_family": "symbolic_locality",
+      "design_family": "recurrent_state",
+      "replay_posture": "refused",
+      "exact_output_preserved": false,
+      "exact_halt_preserved": false,
+      "refusal_reason": "semantic_alias_risk",
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_recurrent_fast_path_runtime_baseline.json"
+      ],
+      "note": "compressing symbolic intermediate state into a carried recurrent vector would hide reconstruction semantics the study keeps explicit"
+    },
+    {
+      "case_id": "symbolic_locality.working_memory_tier",
+      "workload_family": "symbolic_locality",
+      "design_family": "working_memory_tier",
+      "replay_posture": "refused",
+      "exact_output_preserved": false,
+      "exact_halt_preserved": false,
+      "refusal_reason": "semantic_alias_risk",
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_working_memory_tier_runtime_report.json"
+      ],
+      "note": "working-memory publication helps semantic memory tasks, not symbolic trace-locality studies that still require token-level replay"
+    },
+    {
+      "case_id": "associative_recall.full_append_only_trace",
+      "workload_family": "associative_recall",
+      "design_family": "full_append_only_trace",
+      "replay_posture": "exact_replay",
+      "exact_output_preserved": true,
+      "exact_halt_preserved": true,
+      "locality_score_bps": 4000,
+      "edit_cost_bps": 9400,
+      "trace_bytes": 91000,
+      "state_bytes": 91000,
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_working_memory_tier_runtime_report.json"
+      ],
+      "note": "full traces stay replay-complete on associative recall but expand far beyond the bounded memory state they are simulating"
+    },
+    {
+      "case_id": "associative_recall.delta_trace",
+      "workload_family": "associative_recall",
+      "design_family": "delta_trace",
+      "replay_posture": "refused",
+      "exact_output_preserved": false,
+      "exact_halt_preserved": false,
+      "refusal_reason": "semantic_alias_risk",
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_working_memory_tier_runtime_report.json"
+      ],
+      "note": "delta-only publication would hide lookup semantics unless the state surface is made explicit"
+    },
+    {
+      "case_id": "associative_recall.locality_scratchpad",
+      "workload_family": "associative_recall",
+      "design_family": "locality_scratchpad",
+      "replay_posture": "refused",
+      "exact_output_preserved": false,
+      "exact_halt_preserved": false,
+      "refusal_reason": "semantic_alias_risk",
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_locality_scratchpad_report.json"
+      ],
+      "note": "scratchpad layout changes locality but does not expose the semantic lookup state associative recall requires"
+    },
+    {
+      "case_id": "associative_recall.recurrent_state",
+      "workload_family": "associative_recall",
+      "design_family": "recurrent_state",
+      "replay_posture": "bounded_state_publication",
+      "exact_output_preserved": true,
+      "exact_halt_preserved": true,
+      "locality_score_bps": 7800,
+      "edit_cost_bps": 3200,
+      "trace_bytes": 24000,
+      "state_bytes": 7200,
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_recurrent_fast_path_runtime_baseline.json"
+      ],
+      "note": "bounded recurrent carry can preserve the current associative workload family when the published state receipt stays explicit"
+    },
+    {
+      "case_id": "associative_recall.working_memory_tier",
+      "workload_family": "associative_recall",
+      "design_family": "working_memory_tier",
+      "replay_posture": "bounded_state_publication",
+      "exact_output_preserved": true,
+      "exact_halt_preserved": true,
+      "locality_score_bps": 9100,
+      "edit_cost_bps": 2100,
+      "trace_bytes": 18000,
+      "state_bytes": 6400,
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_working_memory_tier_runtime_report.json",
+        "fixtures/tassadar/reports/tassadar_working_memory_tier_eval_report.json"
+      ],
+      "note": "working-memory publication is the strongest current bounded state design for associative recall because the slot and lookup semantics remain explicit"
+    },
+    {
+      "case_id": "long_horizon_control.full_append_only_trace",
+      "workload_family": "long_horizon_control",
+      "design_family": "full_append_only_trace",
+      "replay_posture": "exact_replay",
+      "exact_output_preserved": true,
+      "exact_halt_preserved": true,
+      "locality_score_bps": 3700,
+      "edit_cost_bps": 9600,
+      "trace_bytes": 120000,
+      "state_bytes": 120000,
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_recurrent_fast_path_runtime_baseline.json"
+      ],
+      "note": "full traces remain honest on long-horizon control but become the most expensive representation to edit or route"
+    },
+    {
+      "case_id": "long_horizon_control.delta_trace",
+      "workload_family": "long_horizon_control",
+      "design_family": "delta_trace",
+      "replay_posture": "refused",
+      "exact_output_preserved": false,
+      "exact_halt_preserved": false,
+      "refusal_reason": "declared_state_budget_exceeded",
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_recurrent_fast_path_runtime_baseline.json"
+      ],
+      "note": "current delta reconstruction budget does not survive the carried-state churn in the seeded long-horizon control family"
+    },
+    {
+      "case_id": "long_horizon_control.locality_scratchpad",
+      "workload_family": "long_horizon_control",
+      "design_family": "locality_scratchpad",
+      "replay_posture": "refused",
+      "exact_output_preserved": false,
+      "exact_halt_preserved": false,
+      "refusal_reason": "replay_surface_insufficient",
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_locality_scratchpad_report.json"
+      ],
+      "note": "scratchpad formatting improves locality but does not supply the semantic state compression long-horizon control now needs"
+    },
+    {
+      "case_id": "long_horizon_control.recurrent_state",
+      "workload_family": "long_horizon_control",
+      "design_family": "recurrent_state",
+      "replay_posture": "bounded_state_publication",
+      "exact_output_preserved": true,
+      "exact_halt_preserved": true,
+      "locality_score_bps": 8900,
+      "edit_cost_bps": 2900,
+      "trace_bytes": 30000,
+      "state_bytes": 8100,
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_recurrent_fast_path_runtime_baseline.json",
+        "fixtures/tassadar/reports/tassadar_approximate_attention_closure_matrix.json"
+      ],
+      "note": "bounded recurrent state is the current best fit for long-horizon control because it keeps carried context explicit while avoiding full-trace blowup"
+    },
+    {
+      "case_id": "long_horizon_control.working_memory_tier",
+      "workload_family": "long_horizon_control",
+      "design_family": "working_memory_tier",
+      "replay_posture": "bounded_state_publication",
+      "exact_output_preserved": true,
+      "exact_halt_preserved": true,
+      "locality_score_bps": 7400,
+      "edit_cost_bps": 3700,
+      "trace_bytes": 33000,
+      "state_bytes": 10200,
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_working_memory_tier_runtime_report.json"
+      ],
+      "note": "working memory helps on bounded control loops, but the seeded family still favors recurrent carry over explicit slot mutation"
+    },
+    {
+      "case_id": "byte_memory_loop.full_append_only_trace",
+      "workload_family": "byte_memory_loop",
+      "design_family": "full_append_only_trace",
+      "replay_posture": "exact_replay",
+      "exact_output_preserved": true,
+      "exact_halt_preserved": true,
+      "locality_score_bps": 4300,
+      "edit_cost_bps": 9000,
+      "trace_bytes": 108000,
+      "state_bytes": 108000,
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_memory_abi_v2_report.json"
+      ],
+      "note": "append-only trace preserves every byte mutation but carries the full cost of serializing each intermediate write"
+    },
+    {
+      "case_id": "byte_memory_loop.delta_trace",
+      "workload_family": "byte_memory_loop",
+      "design_family": "delta_trace",
+      "replay_posture": "reconstructable_replay",
+      "exact_output_preserved": true,
+      "exact_halt_preserved": true,
+      "locality_score_bps": 8000,
+      "edit_cost_bps": 3900,
+      "trace_bytes": 42000,
+      "state_bytes": 12600,
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_memory_abi_v2_report.json"
+      ],
+      "note": "delta traces are strong on byte-memory loops because the changed addresses stay explicit and reconstructable"
+    },
+    {
+      "case_id": "byte_memory_loop.locality_scratchpad",
+      "workload_family": "byte_memory_loop",
+      "design_family": "locality_scratchpad",
+      "replay_posture": "exact_replay",
+      "exact_output_preserved": true,
+      "exact_halt_preserved": true,
+      "locality_score_bps": 7700,
+      "edit_cost_bps": 4500,
+      "trace_bytes": 61000,
+      "state_bytes": 61000,
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_locality_scratchpad_report.json"
+      ],
+      "note": "scratchpad formatting helps byte-loop locality, but it still pays more serialized cost than explicit delta or state publication"
+    },
+    {
+      "case_id": "byte_memory_loop.recurrent_state",
+      "workload_family": "byte_memory_loop",
+      "design_family": "recurrent_state",
+      "replay_posture": "bounded_state_publication",
+      "exact_output_preserved": true,
+      "exact_halt_preserved": true,
+      "locality_score_bps": 7500,
+      "edit_cost_bps": 3800,
+      "trace_bytes": 28000,
+      "state_bytes": 8400,
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_recurrent_fast_path_runtime_baseline.json"
+      ],
+      "note": "bounded recurrent carry survives the current byte-loop family when the carried terminal state is published explicitly"
+    },
+    {
+      "case_id": "byte_memory_loop.working_memory_tier",
+      "workload_family": "byte_memory_loop",
+      "design_family": "working_memory_tier",
+      "replay_posture": "bounded_state_publication",
+      "exact_output_preserved": true,
+      "exact_halt_preserved": true,
+      "locality_score_bps": 8600,
+      "edit_cost_bps": 2700,
+      "trace_bytes": 20000,
+      "state_bytes": 7000,
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_working_memory_tier_runtime_report.json",
+        "fixtures/tassadar/reports/tassadar_memory_abi_v2_report.json"
+      ],
+      "note": "working-memory publication performs best on the seeded byte-loop family because declared slot mutation matches the workload semantics directly"
+    }
+  ],
+  "claim_boundary": "this runtime report compares representation surfaces on the same workload families while keeping replay posture, bounded-state publication, and refusal thresholds explicit. It does not promote one representation into a broad executor or served capability claim",
+  "summary": "State-design runtime report now freezes 8 exact-replay, 3 reconstructable-replay, 6 bounded-state-publication, and 8 refused workload/design pairs across five shared workload families.",
+  "report_digest": "953c6f2ad6666d61ab971d603cb882fd1dbf648258168066f51101795b53bff2"
+}

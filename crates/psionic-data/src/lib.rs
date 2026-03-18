@@ -11,6 +11,7 @@ mod apple_adapter_curation;
 mod tassadar_compiled_distillation;
 mod tassadar;
 mod tassadar_shared_primitive_transfer;
+mod tassadar_state_design_study;
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -29,6 +30,7 @@ pub use apple_adapter_curation::*;
 pub use tassadar_compiled_distillation::*;
 pub use tassadar::*;
 pub use tassadar_shared_primitive_transfer::*;
+pub use tassadar_state_design_study::*;
 
 /// Human-readable crate ownership summary.
 pub const CRATE_ROLE: &str =

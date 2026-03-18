@@ -82,6 +82,8 @@ mod tassadar_shared_primitive_transfer;
 mod tassadar_shared_depth_halting_calibration;
 #[path = "tassadar_sequence.rs"]
 mod tassadar_sequence;
+#[path = "tassadar_state_design_study_report.rs"]
+mod tassadar_state_design_study_report;
 #[path = "tassadar_sparse_rule_compiler_audit.rs"]
 mod tassadar_sparse_rule_compiler_audit;
 #[path = "tassadar_structured_control.rs"]
@@ -148,6 +150,7 @@ pub use tassadar_quantization_truth_envelope::*;
 pub use tassadar_shared_primitive_transfer::*;
 pub use tassadar_shared_depth_halting_calibration::*;
 pub use tassadar_sequence::*;
+pub use tassadar_state_design_study_report::*;
 pub use tassadar_sparse_rule_compiler_audit::*;
 pub use tassadar_structured_control::*;
 pub use tassadar_sudoku_9x9_compiled_executor::*;
