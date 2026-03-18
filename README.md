@@ -646,6 +646,12 @@ Current posture:
   `wasmi` over curated and deterministically generated module cases, keeping
   exact success, trap parity, and explicit unsupported-host boundary refusal
   separate instead of pretending the lane already closes arbitrary Wasm
+- the canonical operator guide for the current bounded Wasm lane now lives at
+  `docs/TASSADAR_WASM_RUNBOOK.md`, and the latest live status audit is
+  `docs/audits/2026-03-18-tassadar-wasm-flow-status-audit.md`; together they
+  separate optional local C-toolchain prerequisites from the repo-owned
+  compile-pipeline, ingress, conformance, module-scale, and trap/refusal
+  surfaces that should reproduce on a clean checkout
 - its Phase 8A research family now exists in `psionic-research`, with a typed
   executor-variant family, benchmark/proof/lineage-backed bounded runs, and
   machine-readable sweep records for reproducible same-contract comparisons

@@ -16,6 +16,14 @@ much narrower question quickly:
 > for one landed Tassadar phase, which committed root, audit, validator, and
 > claim boundary should I cite?
 
+## Current Operator Entrypoints
+
+- `docs/TASSADAR_WASM_RUNBOOK.md` is the canonical operator guide for the
+  current bounded Wasm flow.
+- `docs/audits/2026-03-18-tassadar-wasm-flow-status-audit.md` is the latest
+  live status audit for that flow, including the exact commands that were run
+  and the local toolchain caveat for the optional C-to-Wasm step.
+
 ## Current Artifact Index
 
 | Phase | Canonical artifact root | Supporting audit | Primary validator | Current claim boundary |
