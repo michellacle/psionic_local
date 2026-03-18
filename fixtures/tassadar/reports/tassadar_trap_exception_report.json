@@ -1,0 +1,248 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.trap_exception.report.v1",
+  "contract": {
+    "schema_version": 1,
+    "contract_id": "tassadar.trap_exception.contract.v1",
+    "claim_class": "execution_truth / compiled_bounded_exactness / refusal_truth",
+    "case_specs": [
+      {
+        "case_id": "arithmetic_reference_success",
+        "workload_family": "arithmetic_multi_operand",
+        "expected_terminal_kind": "success",
+        "benchmark_refs": [
+          "fixtures/tassadar/runs/compiled_kernel_suite_v0/compiled_kernel_suite_exactness_report.json"
+        ],
+        "note": "seeded arithmetic case where success parity remains the control row for the trap/exception audit"
+      },
+      {
+        "case_id": "module_scale_bounds_fault",
+        "workload_family": "module_scale_wasm_loop",
+        "expected_terminal_kind": "trap",
+        "expected_non_success_kind": "bounds_fault",
+        "benchmark_refs": [
+          "fixtures/tassadar/reports/tassadar_module_scale_workload_suite_report.json",
+          "fixtures/tassadar/reports/tassadar_wasm_conformance_report.json"
+        ],
+        "note": "module-scale Wasm case where byte-addressed memory overflow must trap with explicit state parity"
+      },
+      {
+        "case_id": "sudoku_indirect_call_failure",
+        "workload_family": "sudoku_backtracking_search",
+        "expected_terminal_kind": "trap",
+        "expected_non_success_kind": "indirect_call_failure",
+        "benchmark_refs": [
+          "fixtures/tassadar/reports/tassadar_verifier_guided_search_report.json",
+          "fixtures/tassadar/reports/tassadar_wasm_conformance_report.json"
+        ],
+        "note": "search-heavy case where indirect-call target or signature failure must remain challengeable instead of collapsing into generic search loss"
+      },
+      {
+        "case_id": "malformed_import_refusal",
+        "workload_family": "malformed_import_boundary",
+        "expected_terminal_kind": "refusal",
+        "expected_non_success_kind": "malformed_import",
+        "benchmark_refs": [
+          "fixtures/tassadar/reports/tassadar_wasm_conformance_report.json"
+        ],
+        "note": "malformed import surface where refusal truth must remain explicit before execution starts"
+      },
+      {
+        "case_id": "unsupported_profile_refusal",
+        "workload_family": "clrs_shortest_path",
+        "expected_terminal_kind": "refusal",
+        "expected_non_success_kind": "unsupported_profile_refusal",
+        "benchmark_refs": [
+          "fixtures/tassadar/reports/tassadar_exactness_refusal_report.json",
+          "fixtures/tassadar/reports/tassadar_clrs_wasm_bridge_report.json"
+        ],
+        "note": "unsupported profile request where refusal parity should stay as visible as successful execution parity"
+      }
+    ],
+    "claim_boundary": "this contract is a benchmark-bound execution-truth surface over success, trap, and refusal cases in the widened Wasm lane. It keeps bounds faults, indirect-call failures, malformed imports, and unsupported-profile refusals explicit instead of letting successful exactness stand in for failure-path closure",
+    "summary": "Trap/exception contract freezes 5 cases across 1 success, 2 trap, and 2 refusal expectations.",
+    "contract_digest": "b950d01ce456aee5c45c6b8a86fe4e91a41c68ba099959813ea5ac8c58ce9f35"
+  },
+  "runtime_report": {
+    "schema_version": 1,
+    "report_id": "tassadar.trap_exception.runtime_report.v1",
+    "claim_class": "execution_truth / compiled_bounded_exactness / refusal_truth",
+    "exact_success_parity_case_count": 1,
+    "exact_trap_parity_case_count": 2,
+    "exact_refusal_parity_case_count": 2,
+    "drift_case_count": 0,
+    "case_receipts": [
+      {
+        "case_id": "arithmetic_reference_success",
+        "workload_family": "arithmetic_multi_operand",
+        "reference_terminal_kind": "success",
+        "runtime_terminal_kind": "success",
+        "parity_posture": "exact_success_parity",
+        "output_parity": true,
+        "trap_state_parity": false,
+        "refusal_state_parity": false,
+        "reference_detail": "reference returned i32 result 144 with exact final state",
+        "runtime_detail": "runtime returned i32 result 144 with exact final state",
+        "benchmark_refs": [
+          "fixtures/tassadar/runs/compiled_kernel_suite_v0/compiled_kernel_suite_exactness_report.json"
+        ],
+        "note": "success-path exactness remains a control row here, not a substitute for non-success closure"
+      },
+      {
+        "case_id": "module_scale_bounds_fault",
+        "workload_family": "module_scale_wasm_loop",
+        "reference_terminal_kind": "trap",
+        "runtime_terminal_kind": "trap",
+        "non_success_kind": "bounds_fault",
+        "parity_posture": "exact_trap_parity",
+        "output_parity": false,
+        "trap_state_parity": true,
+        "refusal_state_parity": false,
+        "reference_detail": "reference trapped on out-of-bounds byte-addressed memory load at offset 4096",
+        "runtime_detail": "runtime trapped on out-of-bounds byte-addressed memory load at offset 4096",
+        "benchmark_refs": [
+          "fixtures/tassadar/reports/tassadar_module_scale_workload_suite_report.json",
+          "fixtures/tassadar/reports/tassadar_wasm_conformance_report.json"
+        ],
+        "note": "bounds faults now stay benchmarkable as first-class execution truth instead of living only in runtime logs"
+      },
+      {
+        "case_id": "sudoku_indirect_call_failure",
+        "workload_family": "sudoku_backtracking_search",
+        "reference_terminal_kind": "trap",
+        "runtime_terminal_kind": "trap",
+        "non_success_kind": "indirect_call_failure",
+        "parity_posture": "exact_trap_parity",
+        "output_parity": false,
+        "trap_state_parity": true,
+        "refusal_state_parity": false,
+        "reference_detail": "reference trapped on indirect-call target mismatch during bounded verifier-guided search replay",
+        "runtime_detail": "runtime trapped on indirect-call target mismatch during bounded verifier-guided search replay",
+        "benchmark_refs": [
+          "fixtures/tassadar/reports/tassadar_verifier_guided_search_report.json",
+          "fixtures/tassadar/reports/tassadar_wasm_conformance_report.json"
+        ],
+        "note": "indirect-call failure is now tracked as explicit trap-state parity instead of being absorbed into aggregate search loss"
+      },
+      {
+        "case_id": "malformed_import_refusal",
+        "workload_family": "malformed_import_boundary",
+        "reference_terminal_kind": "refusal",
+        "runtime_terminal_kind": "refusal",
+        "non_success_kind": "malformed_import",
+        "parity_posture": "exact_refusal_parity",
+        "output_parity": false,
+        "trap_state_parity": false,
+        "refusal_state_parity": true,
+        "reference_detail": "reference-side harness refused malformed import descriptor before module admission",
+        "runtime_detail": "runtime refused malformed import descriptor before module admission",
+        "benchmark_refs": [
+          "fixtures/tassadar/reports/tassadar_wasm_conformance_report.json"
+        ],
+        "note": "malformed import semantics now stay visible as refusal truth rather than a hidden preprocessing failure"
+      },
+      {
+        "case_id": "unsupported_profile_refusal",
+        "workload_family": "clrs_shortest_path",
+        "reference_terminal_kind": "refusal",
+        "runtime_terminal_kind": "refusal",
+        "non_success_kind": "unsupported_profile_refusal",
+        "parity_posture": "exact_refusal_parity",
+        "output_parity": false,
+        "trap_state_parity": false,
+        "refusal_state_parity": true,
+        "reference_detail": "reference-side harness refused unsupported profile before execution planning",
+        "runtime_detail": "runtime refused unsupported profile before execution planning",
+        "benchmark_refs": [
+          "fixtures/tassadar/reports/tassadar_exactness_refusal_report.json",
+          "fixtures/tassadar/reports/tassadar_clrs_wasm_bridge_report.json"
+        ],
+        "note": "unsupported profile requests now carry explicit refusal-state parity instead of relying on success-path exactness evidence"
+      }
+    ],
+    "claim_boundary": "this runtime report is a benchmark-bound execution-truth surface over success, trap, and refusal cases. It keeps bounds faults, indirect-call failures, malformed imports, and unsupported-profile refusals explicit instead of letting successful exactness stand in for failure-path closure",
+    "summary": "Trap/exception runtime report covers 5 cases with success_parity=1, trap_parity=2, refusal_parity=2, drift=0.",
+    "report_digest": "ef116f133e206cd2f3ebeddce278983df5ca2b1265a2897c19a4b1cc2ed550d1"
+  },
+  "case_audits": [
+    {
+      "case_id": "arithmetic_reference_success",
+      "workload_family": "arithmetic_multi_operand",
+      "expected_terminal_kind": "success",
+      "reference_terminal_kind": "success",
+      "runtime_terminal_kind": "success",
+      "parity_posture": "exact_success_parity",
+      "parity_preserved": true,
+      "benchmark_ref_count": 1,
+      "note": "seeded arithmetic case where success parity remains the control row for the trap/exception audit"
+    },
+    {
+      "case_id": "module_scale_bounds_fault",
+      "workload_family": "module_scale_wasm_loop",
+      "expected_terminal_kind": "trap",
+      "reference_terminal_kind": "trap",
+      "runtime_terminal_kind": "trap",
+      "expected_non_success_kind": "bounds_fault",
+      "observed_non_success_kind": "bounds_fault",
+      "parity_posture": "exact_trap_parity",
+      "parity_preserved": true,
+      "benchmark_ref_count": 2,
+      "note": "module-scale Wasm case where byte-addressed memory overflow must trap with explicit state parity"
+    },
+    {
+      "case_id": "sudoku_indirect_call_failure",
+      "workload_family": "sudoku_backtracking_search",
+      "expected_terminal_kind": "trap",
+      "reference_terminal_kind": "trap",
+      "runtime_terminal_kind": "trap",
+      "expected_non_success_kind": "indirect_call_failure",
+      "observed_non_success_kind": "indirect_call_failure",
+      "parity_posture": "exact_trap_parity",
+      "parity_preserved": true,
+      "benchmark_ref_count": 2,
+      "note": "search-heavy case where indirect-call target or signature failure must remain challengeable instead of collapsing into generic search loss"
+    },
+    {
+      "case_id": "malformed_import_refusal",
+      "workload_family": "malformed_import_boundary",
+      "expected_terminal_kind": "refusal",
+      "reference_terminal_kind": "refusal",
+      "runtime_terminal_kind": "refusal",
+      "expected_non_success_kind": "malformed_import",
+      "observed_non_success_kind": "malformed_import",
+      "parity_posture": "exact_refusal_parity",
+      "parity_preserved": true,
+      "benchmark_ref_count": 1,
+      "note": "malformed import surface where refusal truth must remain explicit before execution starts"
+    },
+    {
+      "case_id": "unsupported_profile_refusal",
+      "workload_family": "clrs_shortest_path",
+      "expected_terminal_kind": "refusal",
+      "reference_terminal_kind": "refusal",
+      "runtime_terminal_kind": "refusal",
+      "expected_non_success_kind": "unsupported_profile_refusal",
+      "observed_non_success_kind": "unsupported_profile_refusal",
+      "parity_posture": "exact_refusal_parity",
+      "parity_preserved": true,
+      "benchmark_ref_count": 2,
+      "note": "unsupported profile request where refusal parity should stay as visible as successful execution parity"
+    }
+  ],
+  "exact_success_parity_case_count": 1,
+  "exact_trap_parity_case_count": 2,
+  "exact_refusal_parity_case_count": 2,
+  "drift_case_count": 0,
+  "generated_from_refs": [
+    "fixtures/tassadar/reports/tassadar_clrs_wasm_bridge_report.json",
+    "fixtures/tassadar/reports/tassadar_exactness_refusal_report.json",
+    "fixtures/tassadar/reports/tassadar_module_scale_workload_suite_report.json",
+    "fixtures/tassadar/reports/tassadar_trap_exception_runtime_report.json",
+    "fixtures/tassadar/reports/tassadar_verifier_guided_search_report.json",
+    "fixtures/tassadar/reports/tassadar_wasm_conformance_report.json",
+    "fixtures/tassadar/runs/compiled_kernel_suite_v0/compiled_kernel_suite_exactness_report.json"
+  ],
+  "claim_boundary": "this eval report keeps success, trap, and refusal parity benchmark-bound and challengeable. It does not widen served capability, arbitrary Wasm closure, or broad learned-compute claims by implying that success-path exactness already closes failure-path semantics",
+  "summary": "Trap/exception eval report covers 5 audited cases with success_parity=1, trap_parity=2, refusal_parity=2, drift=0.",
+  "report_digest": "bf6da29b11a539bcf72ca094f08a3e71599a6e3b4cec45f6b901a2a8a342e4d5"
+}

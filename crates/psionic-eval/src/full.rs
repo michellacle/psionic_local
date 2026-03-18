@@ -112,6 +112,8 @@ mod tassadar_structured_control;
 mod tassadar_supervision_density;
 #[path = "tassadar_trace_state_ablation.rs"]
 mod tassadar_trace_state_ablation;
+#[path = "tassadar_trap_exception.rs"]
+mod tassadar_trap_exception;
 #[path = "tassadar_sudoku_9x9_compiled_executor.rs"]
 mod tassadar_sudoku_9x9_compiled_executor;
 #[path = "tassadar_verifier_guided_search_report.rs"]
@@ -195,6 +197,7 @@ pub use tassadar_state_design_study_report::*;
 pub use tassadar_structured_control::*;
 pub use tassadar_supervision_density::*;
 pub use tassadar_trace_state_ablation::*;
+pub use tassadar_trap_exception::*;
 pub use tassadar_sudoku_9x9_compiled_executor::*;
 pub use tassadar_verifier_guided_search_report::*;
 pub use tassadar_wasm_conformance::*;

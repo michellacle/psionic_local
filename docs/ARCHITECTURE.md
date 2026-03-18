@@ -613,6 +613,18 @@ The current scope is:
   lane keeps locality wins, downgrade boundaries, and refusal-first workload
   families explicit instead of treating one fast-path or state design as a
   generic long-context answer
+- landed trap-exception-semantics follow-on: `psionic-compiler` now publishes
+  the public `TassadarTrapExceptionContract` over success, bounds-fault,
+  indirect-call-failure, malformed-import, and unsupported-profile cases;
+  `psionic-runtime` now publishes the runtime report at
+  `fixtures/tassadar/reports/tassadar_trap_exception_runtime_report.json`
+  with explicit success, trap, and refusal parity; `psionic-eval` now
+  publishes the joined audit report at
+  `fixtures/tassadar/reports/tassadar_trap_exception_report.json`; and
+  `psionic-provider` now projects that report into a provider-facing
+  `TassadarTrapExceptionReceipt`. This lane keeps trap-state parity and
+  refusal-state parity as first-class execution truth instead of letting
+  successful exactness stand in for failure-path closure
 - landed module-installation-staging follow-on: `psionic-serve` now publishes a
   bounded staged-install surface with explicit session-mount versus worker-mount
   scope, challenge windows, activation, rollback, and refusal receipts over the
