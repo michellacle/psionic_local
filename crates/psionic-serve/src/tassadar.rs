@@ -101,6 +101,10 @@ pub struct TassadarExecutorCapabilityPublication {
     pub numeric_portability_toolchain_family_ids: Vec<String>,
     /// Numeric profile ids currently carried by the numeric portability matrix.
     pub numeric_portability_profile_ids: Vec<String>,
+    /// Float-profile acceptance gate report bound to the served lane.
+    pub float_profile_acceptance_gate_report_ref: String,
+    /// Float-profile route-policy report bound to the served lane.
+    pub float_profile_route_policy_report_ref: String,
     /// Broad internal-compute acceptance gate bound to the served lane.
     pub broad_internal_compute_acceptance_gate_report_ref: String,
     /// Broad internal-compute profile publication and current route selection.
@@ -189,6 +193,12 @@ pub enum TassadarExecutorCapabilityPublicationError {
     /// The numeric portability report was not publishable.
     #[error("invalid numeric portability report: {detail}")]
     InvalidNumericPortability {
+        /// Machine-readable detail for the failed projection.
+        detail: String,
+    },
+    /// The float-profile acceptance gate was not publishable.
+    #[error("invalid float-profile acceptance gate: {detail}")]
+    InvalidFloatProfileAcceptanceGate {
         /// Machine-readable detail for the failed projection.
         detail: String,
     },
@@ -554,6 +564,16 @@ impl LocalTassadarExecutorService {
                     detail: format!("invalid numeric portability report: {error}"),
                 }
             })?;
+        psionic_eval::build_tassadar_float_profile_acceptance_gate_report().map_err(|error| {
+            TassadarExecutorCapabilityPublicationError::InvalidFloatProfileAcceptanceGate {
+                detail: format!("invalid float-profile acceptance gate report: {error}"),
+            }
+        })?;
+        psionic_router::build_tassadar_float_profile_route_policy_report().map_err(|error| {
+            TassadarExecutorCapabilityPublicationError::InvalidFloatProfileAcceptanceGate {
+                detail: format!("invalid float-profile route policy report: {error}"),
+            }
+        })?;
         psionic_eval::build_tassadar_subset_profile_promotion_gate_report().map_err(|error| {
             TassadarExecutorCapabilityPublicationError::InvalidBroadInternalComputeProfilePublication {
                 detail: format!("invalid subset profile promotion gate report: {error}"),
@@ -603,6 +623,12 @@ impl LocalTassadarExecutorService {
             numeric_portability_toolchain_family_ids:
                 numeric_portability_report.toolchain_family_ids,
             numeric_portability_profile_ids: numeric_portability_report.profile_ids,
+            float_profile_acceptance_gate_report_ref: String::from(
+                psionic_eval::TASSADAR_FLOAT_PROFILE_ACCEPTANCE_GATE_REPORT_REF,
+            ),
+            float_profile_route_policy_report_ref: String::from(
+                psionic_router::TASSADAR_FLOAT_PROFILE_ROUTE_POLICY_REPORT_REF,
+            ),
             broad_internal_compute_acceptance_gate_report_ref: String::from(
                 psionic_eval::TASSADAR_BROAD_INTERNAL_COMPUTE_ACCEPTANCE_GATE_REPORT_REF,
             ),
@@ -5681,6 +5707,18 @@ mod tests {
         assert!(numeric_profile_ids.contains(&serde_json::json!(
             "tassadar.numeric_profile.bounded_f64_conversion.v1"
         )));
+        assert_eq!(
+            encoded["float_profile_acceptance_gate_report_ref"],
+            serde_json::json!(
+                "fixtures/tassadar/reports/tassadar_float_profile_acceptance_gate_report.json"
+            )
+        );
+        assert_eq!(
+            encoded["float_profile_route_policy_report_ref"],
+            serde_json::json!(
+                "fixtures/tassadar/reports/tassadar_float_profile_route_policy_report.json"
+            )
+        );
         assert_eq!(
             encoded["broad_internal_compute_profile_publication"]["current_served_profile_id"],
             serde_json::json!("tassadar.internal_compute.article_closeout.v1")

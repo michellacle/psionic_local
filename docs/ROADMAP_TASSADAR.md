@@ -52,6 +52,9 @@ Current honest posture:
   and machine-class envelopes for the bounded float and mixed-numeric lanes,
   keeping exact cpu-reference publication separate from suppressed non-CPU and
   bounded-approximate numeric regimes
+- the repo now also has a float-profile acceptance gate plus route policy for
+  exact numeric profiles, allowing bounded cpu-reference public named-profile
+  posture without widening those profiles into the default served lane
 - broader profiles above that remain benchmarked, suppressed, refused, or
   unpromoted unless their explicit gates are green
 
@@ -77,9 +80,9 @@ Current dependency spine:
 
 Issue-state note:
 
-- `TAS-103` through `TAS-117` are already implemented and tracked in
+- `TAS-103` through `TAS-118` are already implemented and tracked in
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
-- the current open GitHub backlog begins at `TAS-118` and runs through
+- the current open GitHub backlog begins at `TAS-119` and runs through
   `TAS-156`
 
 ## Repo-Local Companion Docs

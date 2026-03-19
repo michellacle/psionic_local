@@ -745,6 +745,14 @@ The current scope is:
   backends and bounded-approximate `f64` narrowing explicit as suppressed
   states; this is not backend-invariant float exactness or broad numeric
   served publication
+- the current float-profile publication artifacts are
+  `fixtures/tassadar/reports/tassadar_float_profile_acceptance_gate_report.json`
+  and `fixtures/tassadar/reports/tassadar_float_profile_route_policy_report.json`,
+  which allow exact cpu-reference numeric profiles to influence public
+  named-profile posture and profile-specific routing only while keeping
+  bounded-approximate `f64` suppressed and keeping the default served lane
+  unchanged; this is not arbitrary Wasm float closure or a new default served
+  float capability
 - recommended closure order follows the spec and its test families: decode and
   validate first, then integer/control/direct-call core, then linear memory,
   then globals/tables/references/indirect calls, then instantiation/import

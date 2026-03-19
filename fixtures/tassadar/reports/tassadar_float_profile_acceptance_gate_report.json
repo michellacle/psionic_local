@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.float_profile_acceptance_gate.report.v1",
+  "float_semantics_report_ref": "fixtures/tassadar/reports/tassadar_float_semantics_comparison_matrix_report.json",
+  "mixed_numeric_report_ref": "fixtures/tassadar/reports/tassadar_mixed_numeric_profile_ladder_report.json",
+  "numeric_portability_report_ref": "fixtures/tassadar/reports/tassadar_numeric_portability_report.json",
+  "profile_rows": [
+    {
+      "profile_id": "tassadar.numeric_profile.f32_only.v1",
+      "support_posture": "exact",
+      "float_evidence_ready": true,
+      "mixed_numeric_evidence_ready": true,
+      "portability_ready": true,
+      "publication_allowed_row_count": 2,
+      "gate_status": "green",
+      "public_profile_allowed": true,
+      "default_served_profile_allowed": false,
+      "detail": "numeric profile `tassadar.numeric_profile.f32_only.v1` is green for named public publication because exact evidence and cpu-reference portability rows are explicit, but it remains non-default for served publication"
+    },
+    {
+      "profile_id": "tassadar.numeric_profile.mixed_i32_f32.v1",
+      "support_posture": "exact",
+      "float_evidence_ready": true,
+      "mixed_numeric_evidence_ready": true,
+      "portability_ready": true,
+      "publication_allowed_row_count": 2,
+      "gate_status": "green",
+      "public_profile_allowed": true,
+      "default_served_profile_allowed": false,
+      "detail": "numeric profile `tassadar.numeric_profile.mixed_i32_f32.v1` is green for named public publication because exact evidence and cpu-reference portability rows are explicit, but it remains non-default for served publication"
+    },
+    {
+      "profile_id": "tassadar.numeric_profile.bounded_f64_conversion.v1",
+      "support_posture": "bounded_approximate",
+      "float_evidence_ready": true,
+      "mixed_numeric_evidence_ready": true,
+      "portability_ready": false,
+      "publication_allowed_row_count": 0,
+      "gate_status": "suppressed",
+      "public_profile_allowed": false,
+      "default_served_profile_allowed": false,
+      "detail": "bounded-approximate f64 narrowing remains suppressed because the repo keeps approximate numeric widening separate from public exact-profile publication"
+    }
+  ],
+  "green_profile_ids": [
+    "tassadar.numeric_profile.f32_only.v1",
+    "tassadar.numeric_profile.mixed_i32_f32.v1"
+  ],
+  "public_profile_allowed_profile_ids": [
+    "tassadar.numeric_profile.f32_only.v1",
+    "tassadar.numeric_profile.mixed_i32_f32.v1"
+  ],
+  "default_served_profile_allowed_profile_ids": [],
+  "suppressed_profile_ids": [
+    "tassadar.numeric_profile.bounded_f64_conversion.v1"
+  ],
+  "failed_profile_ids": [],
+  "overall_green": true,
+  "claim_boundary": "this gate keeps float-enabled publication bounded to named exact numeric profiles with explicit cpu-reference portability. A green row means the profile may influence public named-profile posture only; it does not imply default served publication, arbitrary Wasm float closure, backend-invariant float exactness, or full f64 promotion",
+  "summary": "Float profile acceptance gate now records green_profiles=2, public_profile_allowed_profiles=2, default_served_profile_allowed_profiles=0, suppressed_profiles=1, failed_profiles=0, overall_green=true.",
+  "report_digest": "e8f653d979b54e2012f25ca8201835a6f1639dc7b774f7042b85c718771981f7"
+}

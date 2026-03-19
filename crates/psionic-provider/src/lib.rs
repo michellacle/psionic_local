@@ -21,6 +21,7 @@ mod tassadar_evidence_routing;
 mod tassadar_exact_compute_market;
 mod tassadar_execution_checkpoint;
 mod tassadar_execution_unit_registration;
+mod tassadar_float_profile_acceptance_gate;
 mod tassadar_float_semantics;
 mod tassadar_frozen_core_wasm_closure_gate;
 mod tassadar_import_policy_matrix;
@@ -66,6 +67,7 @@ pub use tassadar_evidence_routing::*;
 pub use tassadar_exact_compute_market::*;
 pub use tassadar_execution_checkpoint::*;
 pub use tassadar_execution_unit_registration::*;
+pub use tassadar_float_profile_acceptance_gate::*;
 pub use tassadar_float_semantics::*;
 pub use tassadar_frozen_core_wasm_closure_gate::*;
 pub use tassadar_import_policy_matrix::*;
@@ -493,6 +495,8 @@ pub struct TassadarCapabilityEnvelope {
     pub broad_internal_compute_portability_receipt: TassadarBroadInternalComputePortabilityReceipt,
     /// Provider-facing receipt for the numeric portability matrix.
     pub numeric_portability_receipt: TassadarNumericPortabilityReceipt,
+    /// Provider-facing receipt for the float-profile acceptance gate.
+    pub float_profile_acceptance_gate_receipt: TassadarFloatProfileAcceptanceGateReceipt,
     /// Provider-facing receipt for the resumable multi-slice promotion lane.
     pub resumable_multi_slice_promotion_receipt: TassadarResumableMultiSlicePromotionReceipt,
     /// Provider-facing receipt for deterministic import-mediated effect-safe resume.
@@ -566,6 +570,18 @@ impl TassadarCapabilityEnvelope {
             })?;
         let numeric_portability_receipt =
             TassadarNumericPortabilityReceipt::from_report(&numeric_portability_report);
+        let float_profile_acceptance_gate_report =
+            psionic_eval::build_tassadar_float_profile_acceptance_gate_report().map_err(
+                |error| TassadarCapabilityEnvelopeError::UnpublishableFloatProfileAcceptanceGate {
+                    detail: format!(
+                        "provider envelope requires a valid float profile acceptance gate report: {error}"
+                    ),
+                },
+            )?;
+        let float_profile_acceptance_gate_receipt =
+            TassadarFloatProfileAcceptanceGateReceipt::from_report(
+                &float_profile_acceptance_gate_report,
+            );
         let resumable_multi_slice_promotion_report =
             psionic_eval::build_tassadar_resumable_multi_slice_promotion_report().map_err(
                 |error| {
@@ -787,6 +803,32 @@ impl TassadarCapabilityEnvelope {
                 ),
             });
         }
+        if publication.float_profile_acceptance_gate_report_ref.trim().is_empty()
+            || publication.float_profile_route_policy_report_ref.trim().is_empty()
+            || !float_profile_acceptance_gate_receipt.overall_green
+            || !float_profile_acceptance_gate_receipt
+                .public_profile_allowed_profile_ids
+                .contains(&String::from("tassadar.numeric_profile.f32_only.v1"))
+            || !float_profile_acceptance_gate_receipt
+                .public_profile_allowed_profile_ids
+                .contains(&String::from("tassadar.numeric_profile.mixed_i32_f32.v1"))
+            || !float_profile_acceptance_gate_receipt
+                .default_served_profile_allowed_profile_ids
+                .is_empty()
+            || !float_profile_acceptance_gate_receipt
+                .suppressed_profile_ids
+                .contains(&String::from(
+                    "tassadar.numeric_profile.bounded_f64_conversion.v1",
+                ))
+        {
+            return Err(
+                TassadarCapabilityEnvelopeError::UnpublishableFloatProfileAcceptanceGate {
+                    detail: String::from(
+                        "provider envelope requires non-empty float-profile acceptance-gate and route-policy refs, green exact numeric profile rows, no default served float-enabled profiles, and continued suppression of the bounded f64 conversion profile",
+                    ),
+                },
+            );
+        }
         Ok(Self {
             backend_family: String::from(BACKEND_FAMILY),
             product_id: publication.product_id.clone(),
@@ -795,6 +837,7 @@ impl TassadarCapabilityEnvelope {
             broad_internal_compute_profile_publication_receipt,
             broad_internal_compute_portability_receipt,
             numeric_portability_receipt,
+            float_profile_acceptance_gate_receipt,
             resumable_multi_slice_promotion_receipt,
             effect_safe_resume_receipt,
             subset_profile_promotion_gate_receipt,
@@ -836,6 +879,11 @@ pub enum TassadarCapabilityEnvelopeError {
     },
     /// The served numeric portability matrix was not publishable provider-side.
     UnpublishableNumericPortability {
+        /// Plain-text validation detail.
+        detail: String,
+    },
+    /// The served float-profile acceptance gate was not publishable provider-side.
+    UnpublishableFloatProfileAcceptanceGate {
         /// Plain-text validation detail.
         detail: String,
     },
@@ -8944,6 +8992,16 @@ mod tests {
             json!(false)
         );
         assert_eq!(
+            encoded["publication"]["float_profile_acceptance_gate_report_ref"],
+            json!(
+                "fixtures/tassadar/reports/tassadar_float_profile_acceptance_gate_report.json"
+            )
+        );
+        assert_eq!(
+            encoded["publication"]["float_profile_route_policy_report_ref"],
+            json!("fixtures/tassadar/reports/tassadar_float_profile_route_policy_report.json")
+        );
+        assert_eq!(
             encoded["broad_internal_compute_profile_publication_receipt"]
                 ["public_profile_specific_route_ids"],
             json!([
@@ -8977,6 +9035,18 @@ mod tests {
                 "tassadar.numeric_profile.f32_only.v1",
                 "tassadar.numeric_profile.mixed_i32_f32.v1"
             ])
+        );
+        assert_eq!(
+            encoded["float_profile_acceptance_gate_receipt"]["public_profile_allowed_profile_ids"],
+            json!([
+                "tassadar.numeric_profile.f32_only.v1",
+                "tassadar.numeric_profile.mixed_i32_f32.v1"
+            ])
+        );
+        assert_eq!(
+            encoded["float_profile_acceptance_gate_receipt"]
+                ["default_served_profile_allowed_profile_ids"],
+            json!([])
         );
         assert_eq!(
             encoded["effect_safe_resume_receipt"]["target_profile_id"],

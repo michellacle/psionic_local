@@ -41,6 +41,7 @@ This runbook covers the current repo-owned bounded Wasm flow only:
 - bounded scalar-f32 semantics, NaN policy, and comparison matrix
 - frozen mixed-numeric profile ladder
 - numeric portability envelopes across backend and toolchain families
+- float-enabled profile publication and route gate
 - normalized Wasm-module ingress
 - differential Wasm conformance against `wasmi`
 - module-scale Wasm workload suite
@@ -86,6 +87,12 @@ Public claim discipline for this lane is:
 - that numeric-portability artifact freezes backend-, toolchain-, and
   machine-class envelopes for the bounded float and mixed-numeric lanes; it is
   not backend-invariant float exactness or broad served numeric publication
+- the current float-profile gate artifacts are
+  `fixtures/tassadar/reports/tassadar_float_profile_acceptance_gate_report.json`
+  and `fixtures/tassadar/reports/tassadar_float_profile_route_policy_report.json`
+- those gate artifacts allow exact cpu-reference numeric profiles to be named
+  and routed in bounded profile-specific form only; they do not create a new
+  default served float lane
 - imports, effects, and host capability policy remain separate embedding
   contracts, not part of the bounded core language claim
 
@@ -791,6 +798,31 @@ Expected outcome:
   not make backend-invariant float exactness, arbitrary Wasm numeric closure,
   or broader served publication green
 
+### 6G. Float-enabled profile publication and route gate
+
+```bash
+cargo run -p psionic-eval --example tassadar_float_profile_acceptance_gate_report
+cargo run -p psionic-router --example tassadar_float_profile_route_policy_report
+```
+
+Read:
+
+- `fixtures/tassadar/reports/tassadar_float_profile_acceptance_gate_report.json`
+- `fixtures/tassadar/reports/tassadar_float_profile_route_policy_report.json`
+
+Expected outcome:
+
+- exact `tassadar.numeric_profile.f32_only.v1` and
+  `tassadar.numeric_profile.mixed_i32_f32.v1` should currently be green for
+  named public profile posture
+- `tassadar.numeric_profile.bounded_f64_conversion.v1` should currently remain
+  explicit as suppressed
+- `default_served_profile_allowed_profile_ids` should currently remain empty
+- the route policy should currently promote only the two exact numeric
+  profiles into cpu-reference profile-specific routes
+- this gate narrows public numeric publication only; it does not create a new
+  default served float lane or imply arbitrary Wasm float closure
+
 ### 7. Differential Wasm conformance
 
 ```bash
@@ -856,6 +888,8 @@ cargo test -p psionic-eval frozen_core_wasm_closure_gate -- --nocapture
 cargo test -p psionic-eval float_semantics -- --nocapture
 cargo test -p psionic-eval mixed_numeric -- --nocapture
 cargo test -p psionic-eval numeric_portability -- --nocapture
+cargo test -p psionic-eval float_profile_acceptance_gate -- --nocapture
+cargo test -p psionic-router float_profile_route_policy -- --nocapture
 cargo test -p psionic-eval wasm_conformance -- --nocapture
 cargo test -p psionic-eval module_scale_workload_suite -- --nocapture
 cargo test -p psionic-eval trap_exception -- --nocapture
@@ -881,6 +915,9 @@ These checks should keep the committed reports and generated truth aligned.
 - If the numeric-portability matrix starts claiming non-CPU or
   bounded-approximate profiles as publication-allowed without new evidence,
   that is a real claim-discipline regression.
+- If the float-profile gate starts allowing a default served float-enabled
+  profile or unsuppresses bounded-approximate `f64` without new evidence, that
+  is a real claim-discipline regression.
 - If the ingress report stops lowering the seeded synthetic module exactly, that
   is a real bounded module-lane regression.
 - If the conformance report loses exact success or trap parity on the supported

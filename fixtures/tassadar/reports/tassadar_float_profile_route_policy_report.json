@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.float_profile_route_policy.report.v1",
+  "acceptance_gate_report_ref": "fixtures/tassadar/reports/tassadar_float_profile_acceptance_gate_report.json",
+  "numeric_portability_report_ref": "fixtures/tassadar/reports/tassadar_numeric_portability_report.json",
+  "rows": [
+    {
+      "route_policy_id": "route.numeric.f32_only.profile_specific",
+      "target_profile_id": "tassadar.numeric_profile.f32_only.v1",
+      "backend_family": "cpu_reference",
+      "toolchain_family": "rustc:wasm32-unknown-unknown",
+      "decision_status": "promoted_profile_specific",
+      "note": "numeric profile `tassadar.numeric_profile.f32_only.v1` is routeable only as a named cpu-reference profile-specific lane"
+    },
+    {
+      "route_policy_id": "route.numeric.mixed_i32_f32.profile_specific",
+      "target_profile_id": "tassadar.numeric_profile.mixed_i32_f32.v1",
+      "backend_family": "cpu_reference",
+      "toolchain_family": "rustc:wasm32-unknown-unknown",
+      "decision_status": "promoted_profile_specific",
+      "note": "numeric profile `tassadar.numeric_profile.mixed_i32_f32.v1` is routeable only as a named cpu-reference profile-specific lane"
+    },
+    {
+      "route_policy_id": "route.numeric.bounded_f64.profile_specific",
+      "target_profile_id": "tassadar.numeric_profile.bounded_f64_conversion.v1",
+      "backend_family": "cpu_reference",
+      "toolchain_family": "rustc:wasm32-unknown-unknown",
+      "decision_status": "suppressed",
+      "note": "numeric profile `tassadar.numeric_profile.bounded_f64_conversion.v1` stays suppressed because the float-profile gate does not allow public route promotion"
+    }
+  ],
+  "promoted_profile_specific_route_count": 2,
+  "suppressed_route_count": 1,
+  "claim_boundary": "this router report names exact float-enabled numeric profiles as profile-specific cpu-reference routes only when the dedicated float-profile gate is green. It keeps approximate f64 narrowing suppressed and does not widen any numeric profile into the default served route",
+  "summary": "Float profile route policy now records promoted_profile_specific_routes=2, suppressed_routes=1.",
+  "report_digest": "a6d52cd2d43006b616a9f150d9625e0006f65608a14354c593040c794fad6af1"
+}
