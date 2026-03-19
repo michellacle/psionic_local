@@ -28,6 +28,8 @@ mod tassadar_approximate_attention_closure_matrix;
 mod tassadar_architecture_bakeoff;
 #[path = "tassadar_article_abi.rs"]
 mod tassadar_article_abi;
+#[path = "tassadar_article_cpu_reproducibility.rs"]
+mod tassadar_article_cpu_reproducibility;
 #[path = "tassadar_article_runtime_closeout.rs"]
 mod tassadar_article_runtime_closeout;
 #[path = "tassadar_benchmark_package_set.rs"]
@@ -177,6 +179,7 @@ pub use tassadar::*;
 pub use tassadar_approximate_attention_closure_matrix::*;
 pub use tassadar_architecture_bakeoff::*;
 pub use tassadar_article_abi::*;
+pub use tassadar_article_cpu_reproducibility::*;
 pub use tassadar_article_runtime_closeout::*;
 pub use tassadar_benchmark_package_set::*;
 pub use tassadar_call_frames::*;

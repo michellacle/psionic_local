@@ -79,6 +79,33 @@ The harness regenerates and validates these committed surfaces:
 - `fixtures/tassadar/reports/tassadar_article_runtime_closeout_summary.json`
 - `fixtures/tassadar/reports/tassadar_direct_model_weight_execution_proof_report.json`
 
+## Portability Companion
+
+The one-command harness closes procedure for the Rust-only article path. The
+cross-machine CPU portability surface is a separate companion check:
+
+```bash
+cargo run -p psionic-eval --example tassadar_article_cpu_reproducibility_report
+cargo run -p psionic-research --example tassadar_article_cpu_reproducibility_summary
+```
+
+Run those commands sequentially, not in parallel. They both touch the
+Rust-to-Wasm canon path, and sequential runs keep the committed portability
+artifacts deterministic.
+
+Read:
+
+- `fixtures/tassadar/reports/tassadar_article_cpu_reproducibility_report.json`
+- `fixtures/tassadar/reports/tassadar_article_cpu_reproducibility_summary.json`
+
+Expected outcome on the current measured host:
+
+- `current_host_machine_class_id=host_cpu_aarch64`
+- `current_host_measured_green=true`
+- supported classes are exactly `host_cpu_aarch64` and `host_cpu_x86_64`
+- unsupported classes remain explicit under `other_host_cpu`
+- the optional C-path compile row remains non-blocking for the Rust-only claim
+
 ## Interpretation
 
 Green means:
@@ -91,6 +118,8 @@ Green means:
   direct without observed external-tool posture
 - the million-step runtime closeout still stays exact and above its declared
   floor on the direct reference-linear CPU path
+- the CPU portability companion still keeps the current host green, the
+  supported CPU classes explicit, and unsupported classes refused
 - the direct model-weight proof still keeps the current served article cases on
   a direct-guaranteed route with zero external calls and no CPU substitution
 
