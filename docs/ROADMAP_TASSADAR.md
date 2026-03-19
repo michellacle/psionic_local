@@ -38,7 +38,8 @@ Current honest posture:
 - the current served profile remains
   `tassadar.internal_compute.article_closeout.v1`
 - the frozen core-Wasm lane now has a declared semantic window plus a committed
-  closure gate, and the current closure verdict remains `not_closed` with
+  closure gate, plus a public acceptance gate and operator runbook-v2 summary;
+  the current closure and public-acceptance verdicts remain suppressed with
   `served_publication_allowed = false`
 - the repo now also has a bounded scalar-`f32` semantics matrix with canonical
   quiet-NaN normalization, ordered Wasm-style comparisons, CPU-reference-only

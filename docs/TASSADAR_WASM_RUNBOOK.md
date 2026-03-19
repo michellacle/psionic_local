@@ -722,6 +722,36 @@ Expected outcome:
 - this artifact controls interpretation: the frozen-window declaration defines
   the target, while the closure gate says whether the target is actually closed
 
+### 6C.1 Full core-Wasm public acceptance gate and operator runbook v2
+
+```bash
+cargo run -p psionic-eval --example tassadar_full_core_wasm_public_acceptance_gate_report
+cargo run -p psionic-research --example tassadar_full_core_wasm_operator_runbook_v2_summary
+```
+
+Read:
+
+- `fixtures/tassadar/reports/tassadar_full_core_wasm_public_acceptance_gate_report.json`
+- `fixtures/tassadar/reports/tassadar_full_core_wasm_operator_runbook_v2_summary.json`
+
+Expected outcome:
+
+- one machine-readable public acceptance gate now freezes what "full core-Wasm"
+  would mean for public posture rather than leaving that interpretation spread
+  across the frozen-window and closure-gate artifacts
+- `official_window_and_harness`, `differential_execution_parity`,
+  `trap_and_refusal_parity`, and `operator_runbook_v2` should currently be
+  green
+- `target_feature_family_coverage`, `cross_machine_harness_replay`, and
+  `served_publication_gate` should currently remain suppressed, which is why
+  the honest current public-acceptance verdict is also `suppressed`
+- the operator summary should currently restate the allowed statement, blocked
+  requirement ids, explicit non-implications, and the exact drill commands used
+  to rerun the gate on a clean checkout
+- this runbook-v2 pair is the public operator layer on top of the frozen
+  closure lane; it does not claim full core-Wasm public closure, arbitrary
+  Wasm, post-core proposal-family support, or Turing-complete support
+
 ### 6D. Bounded scalar-f32 semantics, NaN policy, and comparison matrix
 
 ```bash

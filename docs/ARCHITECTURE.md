@@ -743,6 +743,13 @@ The current scope is:
   `fixtures/tassadar/reports/tassadar_frozen_core_wasm_closure_gate_report.json`,
   which currently remains `not_closed`; the declared window therefore stays a
   closure target rather than a closed full core-Wasm claim
+- the current public-acceptance artifact is
+  `fixtures/tassadar/reports/tassadar_full_core_wasm_public_acceptance_gate_report.json`,
+  with the operator-facing summary at
+  `fixtures/tassadar/reports/tassadar_full_core_wasm_operator_runbook_v2_summary.json`;
+  both currently stay `suppressed`, which keeps the frozen core-Wasm lane
+  challengeable and runnable without silently widening it into a public full
+  closure claim
 - the current bounded float-widening artifact is
   `fixtures/tassadar/reports/tassadar_float_semantics_comparison_matrix_report.json`,
   which narrows float semantics to one scalar-`f32`, CPU-reference-only lane

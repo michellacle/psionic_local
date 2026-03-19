@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.full_core_wasm_public_acceptance_gate.report.v1",
+  "frozen_window_report_ref": "fixtures/tassadar/reports/tassadar_frozen_core_wasm_window_report.json",
+  "closure_gate_report_ref": "fixtures/tassadar/reports/tassadar_frozen_core_wasm_closure_gate_report.json",
+  "operator_runbook_ref": "docs/TASSADAR_WASM_RUNBOOK.md",
+  "operator_drill_commands": [
+    "cargo run -p psionic-eval --example tassadar_frozen_core_wasm_window_report",
+    "cargo run -p psionic-eval --example tassadar_frozen_core_wasm_closure_gate_report",
+    "cargo run -p psionic-eval --example tassadar_full_core_wasm_public_acceptance_gate_report",
+    "cargo run -p psionic-research --example tassadar_full_core_wasm_operator_runbook_v2_summary",
+    "cargo test -p psionic-eval frozen_core_wasm_window -- --nocapture",
+    "cargo test -p psionic-eval frozen_core_wasm_closure_gate -- --nocapture",
+    "cargo test -p psionic-eval full_core_wasm_public_acceptance_gate -- --nocapture"
+  ],
+  "rows": [
+    {
+      "requirement_id": "cross_machine_harness_replay",
+      "status": "suppressed",
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_frozen_core_wasm_closure_gate_report.json"
+      ],
+      "detail": "no dedicated frozen-window cross-machine replay matrix is committed yet; broader portability evidence exists elsewhere but is not enough for this gate"
+    },
+    {
+      "requirement_id": "differential_execution_parity",
+      "status": "green",
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_frozen_core_wasm_closure_gate_report.json"
+      ],
+      "detail": "exact_success=8, exact_trap=3, boundary_refusal=1, drift=0"
+    },
+    {
+      "requirement_id": "official_window_and_harness",
+      "status": "green",
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_frozen_core_wasm_window_report.json",
+        "fixtures/tassadar/reports/tassadar_frozen_core_wasm_closure_gate_report.json"
+      ],
+      "detail": "window_id=tassadar.frozen_core_wasm.window.v1, admitted_validation_cases=3, refusal_validation_cases=2"
+    },
+    {
+      "requirement_id": "operator_runbook_v2",
+      "status": "green",
+      "source_refs": [
+        "docs/TASSADAR_WASM_RUNBOOK.md"
+      ],
+      "detail": "operator runbook v2 is declared at `docs/TASSADAR_WASM_RUNBOOK.md` with 7 explicit drill commands"
+    },
+    {
+      "requirement_id": "served_publication_gate",
+      "status": "suppressed",
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_frozen_core_wasm_closure_gate_report.json"
+      ],
+      "detail": "served publication remains suppressed until every declared frozen core-Wasm gate row is green"
+    },
+    {
+      "requirement_id": "target_feature_family_coverage",
+      "status": "suppressed",
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_frozen_core_wasm_window_report.json",
+        "fixtures/tassadar/reports/tassadar_frozen_core_wasm_closure_gate_report.json"
+      ],
+      "detail": "missing feature families: control.structured_direct_call, core_types.i32_i64, memory.bulk_copy_fill, memory.single_linear_memory, numeric.sign_extension, tables.funcref_call_indirect"
+    },
+    {
+      "requirement_id": "trap_and_refusal_parity",
+      "status": "green",
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_frozen_core_wasm_closure_gate_report.json"
+      ],
+      "detail": "trap_parity=2, refusal_parity=2, drift=0"
+    }
+  ],
+  "green_requirement_ids": [
+    "differential_execution_parity",
+    "official_window_and_harness",
+    "operator_runbook_v2",
+    "trap_and_refusal_parity"
+  ],
+  "suppressed_requirement_ids": [
+    "cross_machine_harness_replay",
+    "served_publication_gate",
+    "target_feature_family_coverage"
+  ],
+  "failed_requirement_ids": [],
+  "acceptance_status": "suppressed",
+  "served_publication_allowed": false,
+  "claim_boundary": "this gate is the disclosure-safe public acceptance gate for one frozen core-Wasm target. It binds the frozen semantic window, closure verdict, served-publication posture, and operator runbook v2 into one machine-readable verdict. It does not imply arbitrary Wasm execution, post-core proposal-family support, broad internal compute, or Turing-complete support. Current target window id: `tassadar.frozen_core_wasm.window.v1`.",
+  "summary": "Full core-Wasm public acceptance gate now records green_requirements=4, suppressed_requirements=3, failed_requirements=0, acceptance_status=Suppressed, served_publication_allowed=false.",
+  "report_digest": "767e75dd6b74ca59563cc4c1fc2853d88162b40ffd317ae97d4d0a4a37f378be"
+}
