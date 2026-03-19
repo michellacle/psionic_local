@@ -8,6 +8,6 @@ cargo run -p psionic-serve --example tassadar_rust_only_article_reproduction
 
 jq -e '
   .all_components_green == true
-  and .component_count == 8
-  and .green_component_count == 8
+  and .component_count == 9
+  and .green_component_count == 9
 ' fixtures/tassadar/reports/tassadar_rust_only_article_reproduction_report.json >/dev/null

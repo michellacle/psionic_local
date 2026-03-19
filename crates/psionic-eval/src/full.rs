@@ -116,6 +116,8 @@ mod tassadar_precision_attention_robustness_audit;
 mod tassadar_quantization_truth_envelope;
 #[path = "tassadar_rust_article_profile_completeness.rs"]
 mod tassadar_rust_article_profile_completeness;
+#[path = "tassadar_rust_only_article_acceptance_gate.rs"]
+mod tassadar_rust_only_article_acceptance_gate;
 #[path = "tassadar_rust_source_canon.rs"]
 mod tassadar_rust_source_canon;
 #[path = "tassadar_search_native_executor.rs"]
@@ -223,6 +225,7 @@ pub use tassadar_pointer_memory_scratchpad::*;
 pub use tassadar_precision_attention_robustness_audit::*;
 pub use tassadar_quantization_truth_envelope::*;
 pub use tassadar_rust_article_profile_completeness::*;
+pub use tassadar_rust_only_article_acceptance_gate::*;
 pub use tassadar_rust_source_canon::*;
 pub use tassadar_search_native_executor::*;
 pub use tassadar_sequence::*;

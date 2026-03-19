@@ -56,13 +56,13 @@ Read:
 Expected outcome:
 
 - `all_components_green=true`
-- `component_count=8`
-- `green_component_count=8`
+- `component_count=9`
+- `green_component_count=9`
 - the report points at the canonical one-command script and this runbook
 - the report covers the current Rust-only article surface:
   source canon, profile completeness, ABI closure, Hungarian reproducer,
-  Sudoku reproducer, runtime closeout, runtime closeout summary, and direct
-  model-weight proof
+  Sudoku reproducer, runtime closeout, runtime closeout summary, direct
+  model-weight proof, and acceptance gate v2
 
 ## Component Outputs
 
@@ -78,6 +78,8 @@ The harness regenerates and validates these committed surfaces:
 - `fixtures/tassadar/reports/tassadar_article_runtime_closeout_report.json`
 - `fixtures/tassadar/reports/tassadar_article_runtime_closeout_summary.json`
 - `fixtures/tassadar/reports/tassadar_direct_model_weight_execution_proof_report.json`
+- `fixtures/tassadar/reports/tassadar_rust_only_article_acceptance_gate_v2.json`
+- `fixtures/tassadar/reports/tassadar_rust_only_article_acceptance_summary.json`
 
 ## Portability Companion
 
@@ -106,6 +108,31 @@ Expected outcome on the current measured host:
 - unsupported classes remain explicit under `other_host_cpu`
 - the optional C-path compile row remains non-blocking for the Rust-only claim
 
+## Acceptance Gate
+
+The canonical prerequisite gate for the full Rust-only article claim is:
+
+```bash
+./scripts/check-tassadar-rust-only-article-acceptance-v2.sh
+```
+
+That checker runs:
+
+```bash
+cargo run -p psionic-serve --example tassadar_rust_only_article_acceptance_gate_v2
+```
+
+and then rejects any non-green result in:
+
+- `fixtures/tassadar/reports/tassadar_rust_only_article_acceptance_gate_v2.json`
+
+Expected outcome:
+
+- `green=true`
+- `prerequisite_count=8`
+- `passed_prerequisite_count=8`
+- `failed_prerequisite_ids=[]`
+
 ## Interpretation
 
 Green means:
@@ -122,6 +149,8 @@ Green means:
   supported CPU classes explicit, and unsupported classes refused
 - the direct model-weight proof still keeps the current served article cases on
   a direct-guaranteed route with zero external calls and no CPU substitution
+- the acceptance gate still proves the full Rust-only article prerequisite set
+  is present instead of inferring final closure from partial green artifacts
 
 Red means the Rust-only article claim has regressed, even if some narrower
 bounded Wasm surfaces are still green.

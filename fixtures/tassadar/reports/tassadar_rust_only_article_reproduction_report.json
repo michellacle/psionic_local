@@ -4,8 +4,8 @@
   "script_ref": "scripts/check-tassadar-rust-only-article-reproduction.sh",
   "runbook_ref": "docs/TASSADAR_RUST_ONLY_ARTICLE_RUNBOOK.md",
   "harness_command": "./scripts/check-tassadar-rust-only-article-reproduction.sh",
-  "component_count": 8,
-  "green_component_count": 8,
+  "component_count": 9,
+  "green_component_count": 9,
   "canonical_case_ids": [
     "hungarian_10x10_test_a",
     "sudoku_9x9_test_a",
@@ -91,10 +91,20 @@
       "validation_command": "cargo run -p psionic-serve --example tassadar_direct_model_weight_execution_proof_report",
       "green": true,
       "detail": "direct_cases=3 fallback_free_cases=3 zero_external_call_cases=3"
+    },
+    {
+      "component_id": "rust_only_article_acceptance_gate_v2",
+      "artifact_refs": [
+        "fixtures/tassadar/reports/tassadar_rust_only_article_acceptance_gate_v2.json",
+        "fixtures/tassadar/reports/tassadar_rust_only_article_acceptance_summary.json"
+      ],
+      "validation_command": "./scripts/check-tassadar-rust-only-article-acceptance-v2.sh",
+      "green": true,
+      "detail": "passed_prerequisites=8/8 failed_prerequisites=0"
     }
   ],
   "all_components_green": true,
-  "claim_boundary": "this harness report closes operator procedure only for the committed Rust-only article path by proving that one command can regenerate the current source canon, profile boundary, ABI closure, Hungarian reproducer, Sudoku reproducer, million-step runtime closeout, and direct model-weight proof surfaces. It does not widen the claim beyond those committed workloads, routes, and proof receipts.",
-  "summary": "Rust-only article reproduction now runs in one command with green_components=8/8 across source canon, profile boundary, ABI closure, Hungarian, Sudoku, million-step runtime, runtime summary, and direct proof surfaces.",
-  "report_digest": "379a37ef04768dd51f0f23633595507b792f5e7ddfdbe492994317ddee65326c"
+  "claim_boundary": "this harness report closes operator procedure only for the committed Rust-only article path by proving that one command can regenerate the current source canon, profile boundary, ABI closure, Hungarian reproducer, Sudoku reproducer, million-step runtime closeout, direct model-weight proof, and acceptance gate surfaces. It does not widen the claim beyond those committed workloads, routes, proofs, and prerequisite gates.",
+  "summary": "Rust-only article reproduction now runs in one command with green_components=9/9 across source canon, profile boundary, ABI closure, Hungarian, Sudoku, million-step runtime, runtime summary, direct proof, and acceptance gate surfaces.",
+  "report_digest": "c48c7ba60372d7a5880ade72f096ba5704549df89bf383e49d92875348b2b81d"
 }

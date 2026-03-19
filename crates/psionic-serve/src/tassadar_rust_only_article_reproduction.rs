@@ -19,16 +19,23 @@ use psionic_eval::{
 };
 use psionic_models::TassadarRustArticleProfileRowStatus;
 use psionic_research::{
+    TassadarRustOnlyArticleAcceptanceSummaryError,
     TassadarArticleRuntimeCloseoutSummaryError, TassadarHungarian10x10ArticleReproducerError,
     TassadarSudoku9x9ArticleReproducerError,
     build_tassadar_article_runtime_closeout_summary_report,
     build_tassadar_hungarian_10x10_article_reproducer_report,
+    tassadar_rust_only_article_acceptance_summary_report_path,
     build_tassadar_sudoku_9x9_article_reproducer_report,
+    write_tassadar_rust_only_article_acceptance_summary_report,
 };
 
 use crate::{
     TassadarDirectModelWeightExecutionProofReportError,
+    TassadarRustOnlyArticleAcceptanceGateV2Error,
+    build_tassadar_rust_only_article_acceptance_gate_v2_report,
     build_tassadar_direct_model_weight_execution_proof_report,
+    tassadar_rust_only_article_acceptance_gate_v2_report_path,
+    write_tassadar_rust_only_article_acceptance_gate_v2_report,
 };
 
 pub const TASSADAR_RUST_ONLY_ARTICLE_REPRODUCTION_REPORT_REF: &str =
@@ -119,13 +126,13 @@ impl TassadarRustOnlyArticleReproductionReport {
             all_components_green: green_component_count == components.len(),
             components,
             claim_boundary: String::from(
-                "this harness report closes operator procedure only for the committed Rust-only article path by proving that one command can regenerate the current source canon, profile boundary, ABI closure, Hungarian reproducer, Sudoku reproducer, million-step runtime closeout, and direct model-weight proof surfaces. It does not widen the claim beyond those committed workloads, routes, and proof receipts.",
+                "this harness report closes operator procedure only for the committed Rust-only article path by proving that one command can regenerate the current source canon, profile boundary, ABI closure, Hungarian reproducer, Sudoku reproducer, million-step runtime closeout, direct model-weight proof, and acceptance gate surfaces. It does not widen the claim beyond those committed workloads, routes, proofs, and prerequisite gates.",
             ),
             summary: String::new(),
             report_digest: String::new(),
         };
         report.summary = format!(
-            "Rust-only article reproduction now runs in one command with green_components={}/{} across source canon, profile boundary, ABI closure, Hungarian, Sudoku, million-step runtime, runtime summary, and direct proof surfaces.",
+            "Rust-only article reproduction now runs in one command with green_components={}/{} across source canon, profile boundary, ABI closure, Hungarian, Sudoku, million-step runtime, runtime summary, direct proof, and acceptance gate surfaces.",
             report.green_component_count, report.component_count,
         );
         report.report_digest = stable_digest(
@@ -152,6 +159,10 @@ pub enum TassadarRustOnlyArticleReproductionError {
     ArticleRuntimeCloseout(#[from] TassadarArticleRuntimeCloseoutReportError),
     #[error(transparent)]
     ArticleRuntimeCloseoutSummary(#[from] TassadarArticleRuntimeCloseoutSummaryError),
+    #[error(transparent)]
+    RustOnlyArticleAcceptanceGateV2(#[from] TassadarRustOnlyArticleAcceptanceGateV2Error),
+    #[error(transparent)]
+    RustOnlyArticleAcceptanceSummary(#[from] TassadarRustOnlyArticleAcceptanceSummaryError),
     #[error(transparent)]
     DirectModelWeightExecutionProof(#[from] TassadarDirectModelWeightExecutionProofReportError),
     #[error("required repo artifact `{path}` is missing")]
@@ -277,6 +288,12 @@ pub fn build_tassadar_rust_only_article_reproduction_report()
                 .contains(&String::from(*case_id))
         })
         && !direct_proof_report.route_descriptor_digest.is_empty();
+
+    let acceptance_gate_report = build_tassadar_rust_only_article_acceptance_gate_v2_report()?;
+    let acceptance_gate_green = acceptance_gate_report.green
+        && acceptance_gate_report.prerequisite_count == 8
+        && acceptance_gate_report.passed_prerequisite_count == 8
+        && acceptance_gate_report.failed_prerequisite_ids.is_empty();
 
     let components = vec![
         TassadarRustOnlyArticleReproductionComponent {
@@ -416,6 +433,27 @@ pub fn build_tassadar_rust_only_article_reproduction_report()
                 direct_proof_report.zero_external_call_case_count,
             ),
         },
+        TassadarRustOnlyArticleReproductionComponent {
+            component_id: String::from("rust_only_article_acceptance_gate_v2"),
+            artifact_refs: vec![
+                String::from(
+                    "fixtures/tassadar/reports/tassadar_rust_only_article_acceptance_gate_v2.json",
+                ),
+                String::from(
+                    "fixtures/tassadar/reports/tassadar_rust_only_article_acceptance_summary.json",
+                ),
+            ],
+            validation_command: String::from(
+                "./scripts/check-tassadar-rust-only-article-acceptance-v2.sh",
+            ),
+            green: acceptance_gate_green,
+            detail: format!(
+                "passed_prerequisites={}/{} failed_prerequisites={}",
+                acceptance_gate_report.passed_prerequisite_count,
+                acceptance_gate_report.prerequisite_count,
+                acceptance_gate_report.failed_prerequisite_ids.len(),
+            ),
+        },
     ];
 
     for component in &components {
@@ -435,6 +473,12 @@ pub fn tassadar_rust_only_article_reproduction_report_path() -> PathBuf {
 pub fn write_tassadar_rust_only_article_reproduction_report(
     output_path: impl AsRef<Path>,
 ) -> Result<TassadarRustOnlyArticleReproductionReport, TassadarRustOnlyArticleReproductionError> {
+    write_tassadar_rust_only_article_acceptance_gate_v2_report(
+        tassadar_rust_only_article_acceptance_gate_v2_report_path(),
+    )?;
+    write_tassadar_rust_only_article_acceptance_summary_report(
+        tassadar_rust_only_article_acceptance_summary_report_path(),
+    )?;
     let output_path = output_path.as_ref();
     if let Some(parent) = output_path.parent() {
         fs::create_dir_all(parent).map_err(|error| {
@@ -517,8 +561,8 @@ mod tests {
     fn rust_only_article_reproduction_report_is_machine_legible() {
         let report = build_tassadar_rust_only_article_reproduction_report().expect("report");
 
-        assert_eq!(report.component_count, 8);
-        assert_eq!(report.green_component_count, 8);
+        assert_eq!(report.component_count, 9);
+        assert_eq!(report.green_component_count, 9);
         assert!(report.all_components_green);
         assert_eq!(
             report.harness_command,
@@ -534,6 +578,12 @@ mod tests {
                 .components
                 .iter()
                 .all(|component| !component.artifact_refs.is_empty())
+        );
+        assert!(
+            report
+                .components
+                .iter()
+                .any(|component| component.component_id == "rust_only_article_acceptance_gate_v2")
         );
     }
 
