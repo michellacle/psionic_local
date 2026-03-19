@@ -1076,6 +1076,12 @@ pub enum ParameterGolfExecutionError {
         /// Actual sequence length.
         actual_sequence: usize,
     },
+    /// The requested causal attention window must be strictly positive.
+    #[error("attention_window_size must be positive, got {attention_window_size}")]
+    InvalidAttentionWindowSize {
+        /// Invalid causal attention window.
+        attention_window_size: usize,
+    },
 }
 
 /// CPU-reference Parameter Golf model used for frozen parity fixtures and future trainer integration.
@@ -1139,8 +1145,25 @@ impl ParameterGolfReferenceModel {
         &self,
         input_ids: &[Vec<u32>],
     ) -> Result<ParameterGolfTensor3, ParameterGolfExecutionError> {
+        self.forward_hidden_with_attention_window_impl(input_ids, None)
+    }
+
+    fn forward_hidden_with_attention_window_impl(
+        &self,
+        input_ids: &[Vec<u32>],
+        attention_window_size: Option<usize>,
+    ) -> Result<ParameterGolfTensor3, ParameterGolfExecutionError> {
         let (batch_size, sequence_length) =
             validate_token_batch(input_ids, self.descriptor.config.vocab_size)?;
+        let attention_window_size = match attention_window_size {
+            Some(0) => {
+                return Err(ParameterGolfExecutionError::InvalidAttentionWindowSize {
+                    attention_window_size: 0,
+                })
+            }
+            Some(attention_window_size) => Some(attention_window_size.min(sequence_length)),
+            None => None,
+        };
         let config = &self.descriptor.config;
         let mut x = embedding_forward(
             &self.weights.token_embedding,
@@ -1154,7 +1177,13 @@ impl ParameterGolfReferenceModel {
         let x0 = x.clone();
         let mut skips = Vec::new();
         for layer_index in 0..config.num_encoder_layers() {
-            x = block_forward(&self.weights.blocks[layer_index], &x, &x0, config);
+            x = block_forward(
+                &self.weights.blocks[layer_index],
+                &x,
+                &x0,
+                config,
+                attention_window_size,
+            );
             skips.push(x.clone());
         }
         for decoder_index in 0..config.num_decoder_layers() {
@@ -1170,6 +1199,7 @@ impl ParameterGolfReferenceModel {
                 &x,
                 &x0,
                 config,
+                attention_window_size,
             );
         }
         Ok(rms_norm_last_dim(
@@ -1184,6 +1214,24 @@ impl ParameterGolfReferenceModel {
         input_ids: &[Vec<u32>],
     ) -> Result<ParameterGolfTensor3, ParameterGolfExecutionError> {
         let hidden = self.forward_hidden(input_ids)?;
+        self.hidden_to_logits(hidden)
+    }
+
+    /// Computes logits with one bounded causal attention window.
+    pub fn forward_logits_with_attention_window(
+        &self,
+        input_ids: &[Vec<u32>],
+        attention_window_size: usize,
+    ) -> Result<ParameterGolfTensor3, ParameterGolfExecutionError> {
+        let hidden =
+            self.forward_hidden_with_attention_window_impl(input_ids, Some(attention_window_size))?;
+        self.hidden_to_logits(hidden)
+    }
+
+    fn hidden_to_logits(
+        &self,
+        hidden: ParameterGolfTensor3,
+    ) -> Result<ParameterGolfTensor3, ParameterGolfExecutionError> {
         let logits_proj = if self.descriptor.config.tie_embeddings {
             linear_forward_with_weight(
                 &hidden,
@@ -1211,6 +1259,25 @@ impl ParameterGolfReferenceModel {
         input_ids: &[Vec<u32>],
         target_ids: &[Vec<u32>],
     ) -> Result<f32, ParameterGolfExecutionError> {
+        self.loss_with_attention_window_impl(input_ids, target_ids, None)
+    }
+
+    /// Computes mean cross-entropy loss with one bounded causal attention window.
+    pub fn loss_with_attention_window(
+        &self,
+        input_ids: &[Vec<u32>],
+        target_ids: &[Vec<u32>],
+        attention_window_size: usize,
+    ) -> Result<f32, ParameterGolfExecutionError> {
+        self.loss_with_attention_window_impl(input_ids, target_ids, Some(attention_window_size))
+    }
+
+    fn loss_with_attention_window_impl(
+        &self,
+        input_ids: &[Vec<u32>],
+        target_ids: &[Vec<u32>],
+        attention_window_size: Option<usize>,
+    ) -> Result<f32, ParameterGolfExecutionError> {
         let expected_batch = input_ids.len();
         let expected_sequence = input_ids.first().map(Vec::len).unwrap_or(0);
         if target_ids.len() != expected_batch
@@ -1224,7 +1291,12 @@ impl ParameterGolfReferenceModel {
             });
         }
         validate_token_batch(target_ids, self.descriptor.config.vocab_size)?;
-        let logits = self.forward_logits(input_ids)?;
+        let logits = match attention_window_size {
+            Some(attention_window_size) => {
+                self.forward_logits_with_attention_window(input_ids, attention_window_size)?
+            }
+            None => self.forward_logits(input_ids)?,
+        };
         Ok(mean_cross_entropy(&logits, target_ids))
     }
 }
@@ -1579,10 +1651,16 @@ fn block_forward(
     x: &ParameterGolfTensor3,
     x0: &ParameterGolfTensor3,
     config: &ParameterGolfConfig,
+    attention_window_size: Option<usize>,
 ) -> ParameterGolfTensor3 {
     let mixed = blend_with_source(x, x0, block.resid_mix.as_slice());
     let normed_for_attention = rms_norm_last_dim(&mixed, PARAMETER_GOLF_DEFAULT_RMS_NORM_EPSILON);
-    let attention = attention_forward(&block.attention, &normed_for_attention, config);
+    let attention = attention_forward(
+        &block.attention,
+        &normed_for_attention,
+        config,
+        attention_window_size,
+    );
     let mut x = mixed;
     add_scaled_in_place(&mut x, &attention, block.attn_scale.as_slice());
     let normed_for_mlp = rms_norm_last_dim(&x, PARAMETER_GOLF_DEFAULT_RMS_NORM_EPSILON);
@@ -1643,6 +1721,7 @@ fn attention_forward(
     attention: &ParameterGolfAttentionWeights,
     input: &ParameterGolfTensor3,
     config: &ParameterGolfConfig,
+    attention_window_size: Option<usize>,
 ) -> ParameterGolfTensor3 {
     let batch_size = input.batch_size();
     let sequence_length = input.sequence_length();
@@ -1761,9 +1840,16 @@ fn attention_forward(
         for head in 0..config.num_heads {
             let kv_head = head / group_size;
             for target_position in 0..sequence_length {
+                let source_start = attention_window_size
+                    .map(|attention_window_size| {
+                        target_position
+                            .saturating_add(1)
+                            .saturating_sub(attention_window_size)
+                    })
+                    .unwrap_or(0);
                 scores.clear();
                 let mut max_score = f32::NEG_INFINITY;
-                for source_position in 0..=target_position {
+                for source_position in source_start..=target_position {
                     let mut dot = 0.0_f32;
                     for feature in 0..head_dim {
                         let q_index = tensor4_index(
@@ -1804,7 +1890,8 @@ fn attention_forward(
                 }
                 for feature in 0..head_dim {
                     let mut value = 0.0_f32;
-                    for (source_position, weight) in weights.iter().enumerate() {
+                    for (source_offset, weight) in weights.iter().enumerate() {
+                        let source_position = source_start + source_offset;
                         let v_index = tensor4_index(
                             batch_size,
                             config.num_kv_heads,
@@ -2225,5 +2312,39 @@ mod tests {
             "loss drift {} exceeded tolerance",
             (loss - fixture.expected_loss).abs()
         );
+    }
+
+    #[test]
+    fn dense_attention_window_matches_default_forward_path() {
+        let fixture = load_baseline_fixture();
+        let model = ParameterGolfReferenceModel::baseline_fixture(fixture.initializer)
+            .expect("baseline fixture model should build");
+        let seq_len = fixture.input_ids.first().map(Vec::len).unwrap_or(0);
+        let dense_logits = model
+            .forward_logits(fixture.input_ids.as_slice())
+            .expect("dense logits should compute");
+        let windowed_logits = model
+            .forward_logits_with_attention_window(fixture.input_ids.as_slice(), seq_len)
+            .expect("seq_len window logits should compute");
+        let max_abs_diff = dense_logits
+            .max_abs_diff(&windowed_logits)
+            .expect("shapes should match");
+        assert!(max_abs_diff < 1e-6, "unexpected dense/windowed drift: {max_abs_diff}");
+    }
+
+    #[test]
+    fn windowed_attention_rejects_zero_window_size() {
+        let fixture = load_baseline_fixture();
+        let model = ParameterGolfReferenceModel::baseline_fixture(fixture.initializer)
+            .expect("baseline fixture model should build");
+        let error = model
+            .forward_logits_with_attention_window(fixture.input_ids.as_slice(), 0)
+            .expect_err("zero window size should be refused");
+        assert!(matches!(
+            error,
+            ParameterGolfExecutionError::InvalidAttentionWindowSize {
+                attention_window_size: 0
+            }
+        ));
     }
 }

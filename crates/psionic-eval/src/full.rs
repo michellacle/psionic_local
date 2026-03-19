@@ -22,6 +22,8 @@ mod parameter_golf_distributed;
 mod parameter_golf_promotion;
 #[path = "parameter_golf_training.rs"]
 mod parameter_golf_training;
+#[path = "parameter_golf_windowed_validation.rs"]
+mod parameter_golf_windowed_validation;
 #[path = "tassadar.rs"]
 mod tassadar;
 #[path = "tassadar_approximate_attention_closure_matrix.rs"]
@@ -262,6 +264,7 @@ pub use parameter_golf_benchmark::*;
 pub use parameter_golf_distributed::*;
 pub use parameter_golf_promotion::*;
 pub use parameter_golf_training::*;
+pub use parameter_golf_windowed_validation::*;
 pub use tassadar::*;
 pub use tassadar_approximate_attention_closure_matrix::*;
 pub use tassadar_async_lifecycle_profile::*;

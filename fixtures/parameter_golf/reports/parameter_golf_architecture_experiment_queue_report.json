@@ -107,21 +107,19 @@
     {
       "issue_ref": "PGOLF-613/#257",
       "variant_id": "restricted_attention_window_candidate",
-      "status": "planned_research_candidate",
+      "status": "implemented_research_variant",
       "mechanism": "Evaluate one fixed local-attention or restricted-attention window on the frozen baseline family under the same metric and accounting surface.",
       "changed_surfaces": [
         "causal_attention_window_mask",
         "sequence_length_1024_eval_slice",
         "unchanged_exported_artifact_surface"
       ],
-      "claim_posture": "planned_research_candidate",
-      "boundary_note": "This row stays open until the repo owns a public-safe restricted-attention eval path on real seq_len=1024 challenge-format windows. Local-reference seq_len=4 evidence is not strong enough to close the issue honestly.",
-      "benchmark_plan": [
-        "reuse the frozen baseline trained model and unchanged non-record code bytes",
-        "run restricted-attention eval on actual seq_len=1024 Parameter Golf token windows rather than only the local-reference fixture",
-        "preserve val_bpb, compressed-model bytes, and analytic or measured attention-work facts against the dense baseline row"
+      "claim_posture": "implemented_restricted_attention_proxy",
+      "boundary_note": "This row is now implemented via the dedicated restricted-attention report on one committed seq_len=1024 challenge-format validation slice. The evidence remains research-only and does not claim retraining closure, single-H100 closure, or record-track readiness.",
+      "evidence_report_refs": [
+        "fixtures/parameter_golf/reports/parameter_golf_restricted_attention_report.json"
       ]
     }
   ],
-  "report_digest": "0607bed6259970912f6402ee06bb73ccee4edd83570e9c9c6d6897e8c82e1c6e"
+  "report_digest": "5116265ac670f58a97bbad7a61cd3774337df1356fd72c3b239ec3bdda6ad74e"
 }

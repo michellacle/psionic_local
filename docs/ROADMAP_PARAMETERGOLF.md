@@ -512,17 +512,17 @@ weakening baseline or record-track claim posture.
 - one committed queue report exists under the canonical research harness
 - each queue row has one explicit mechanism and one bounded claim posture
 - implemented rows preserve metric, artifact-byte, and runtime facts
-- locality or restricted-attention work stays open until it has challenge-like
+- locality or restricted-attention promotion stays blocked on challenge-like
   evidence rather than toy-window intuition
 
 ### Issues
 
 | ID | Status | Proposed GitHub issue title | Description |
 | --- | --- | --- | --- |
-| `PGOLF-610` / [#254](https://github.com/OpenAgentsInc/psionic/issues/254) | done (2026-03-19) | `Psionic Parameter Golf: create the first concrete post-parity architecture experiment queue` | `psionic-research` now ships `parameter_golf_architecture_experiment_queue_report.json` plus `docs/PARAMETER_GOLF_ARCHITECTURE_EXPERIMENT_QUEUE.md`, turning the earlier generic variant bucket into one explicit queue with implemented shared-depth and stronger parameter-tying rows plus an intentionally still-open locality row and benchmark plan. |
+| `PGOLF-610` / [#254](https://github.com/OpenAgentsInc/psionic/issues/254) | done (2026-03-19) | `Psionic Parameter Golf: create the first concrete post-parity architecture experiment queue` | `psionic-research` now ships `parameter_golf_architecture_experiment_queue_report.json` plus `docs/PARAMETER_GOLF_ARCHITECTURE_EXPERIMENT_QUEUE.md`, turning the earlier generic variant bucket into one explicit queue with implemented shared-depth, stronger parameter-tying, and restricted-attention evidence rows. |
 | `PGOLF-611` / [#255](https://github.com/OpenAgentsInc/psionic/issues/255) | done (2026-03-19) | `Psionic Parameter Golf: add a shared-depth or recurrent compact decoder variant report` | The first concrete queue now includes a measured `shared_depth_decoder_value_tying_proxy` row, preserving `val_loss`, `val_bpb`, compressed-model bytes, counted total bytes, and explicit unchanged-dense-runtime facts for a decoder-depth value-reuse proxy on the frozen baseline family. |
 | `PGOLF-612` / [#256](https://github.com/OpenAgentsInc/psionic/issues/256) | done (2026-03-19) | `Psionic Parameter Golf: add a stronger parameter-tying compact variant report` | The same queue now includes a measured `mirrored_block_pair_tying_proxy` row, preserving metric, artifact-byte, and runtime facts for one stronger block-level parameter-tying probe on the frozen baseline family under unchanged code bytes and unchanged dense runtime posture. |
-| `PGOLF-613` / [#257](https://github.com/OpenAgentsInc/psionic/issues/257) | open (2026-03-19) | `Psionic Parameter Golf: add a locality or restricted-attention compact variant report` | The concrete queue now records the locality candidate and benchmark plan explicitly, but the issue stays open because Psionic still lacks a public-safe restricted-attention eval path on real `seq_len=1024` challenge-format windows. |
+| `PGOLF-613` / [#257](https://github.com/OpenAgentsInc/psionic/issues/257) | done (2026-03-19) | `Psionic Parameter Golf: add a locality or restricted-attention compact variant report` | `psionic-eval` now exposes a bounded windowed-validation surface, `psionic-research` now commits `parameter_golf_restricted_attention_report.json` plus `docs/PARAMETER_GOLF_RESTRICTED_ATTENTION_REPORT.md`, and Psionic now has public-safe restricted-attention evidence on one real `seq_len=1024` challenge-format slice. The first fixed `256`-token window is explicit negative evidence: attention-score terms drop to about `43.7%` of dense, but `val_bpb` worsens by about `0.05037`, so locality is not promoted. |
 
 ## Follow-On External And Promotion Issues
 

@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "report_id": "parameter_golf.restricted_attention.report.v1",
+  "claim_boundary": "this report measures one bounded restricted-attention candidate against the frozen dense baseline on one committed seq_len=1024 challenge-format validation slice. It keeps byte accounting, artifact bytes, and runtime deltas explicit, and it does not claim retraining closure, single-H100 closure, or record-track readiness.",
+  "comparison_surface": {
+    "architecture_queue_report_ref": "fixtures/parameter_golf/reports/parameter_golf_architecture_experiment_queue_report.json",
+    "validation_fixture_ref": "fixtures/parameter_golf/parity/parameter_golf_seq1024_validation_fixture.json",
+    "validation_fixture_digest": "9a9f631c6ea46825a281584afe2fb6354fcc1f9c38948b8a633e8b0407c4b6d3",
+    "tokenizer_model_digest": "4f5e8adb109c66b4886963bc75a7befd73bda36d27fd7102df8e9e66503b0e2a",
+    "sequence_length": 1024,
+    "evaluated_sequence_count": 1,
+    "dense_attention_window_size": 1024,
+    "restricted_attention_window_size": 256,
+    "baseline_submission_package_version": "2026.03.18.non_record_submission.v2",
+    "baseline_code_bytes": 877718,
+    "baseline_entrypoint_artifact_digest": "988e72c33e71b6e5111b1f79b0cb2af048dfb8fb323b1dc1e9f785d3d8f2f6d1",
+    "baseline_accounting_receipt_digest": "275494441ebe609b39960972d02e8b0f3fcdc192b8644f440f4671d5c29f32c3"
+  },
+  "dense_baseline": {
+    "issue_ref": "PGOLF-613/#257",
+    "mechanism": "Frozen dense causal attention on one committed seq_len=1024 challenge-format validation slice.",
+    "claim_posture": "research_only_dense_slice_control",
+    "boundary_note": "This row is still the frozen local-reference-trained dense control. It does not imply challenge-speed closure or retrained long-context optimality.",
+    "metrics": {
+      "variant_id": "dense_slice_control",
+      "attention_window_size": 1024,
+      "val_loss": 8.171205520629883,
+      "val_bpb": 4.558717170348182,
+      "bytes_code": 877718,
+      "bytes_model_int8_zlib": 78958,
+      "bytes_total": 956676,
+      "delta_val_bpb_vs_dense": 0.0,
+      "delta_model_bytes_vs_dense": 0
+    },
+    "runtime_facts": {
+      "measurement_posture": "analytic_attention_terms_on_committed_slice",
+      "attention_score_terms_per_forward": 4198400,
+      "relative_attention_score_terms_vs_dense": 1.0,
+      "runtime_note": "This row keeps the current dense runtime path as the challenge-format slice control."
+    }
+  },
+  "restricted_attention_candidate": {
+    "issue_ref": "PGOLF-613/#257",
+    "mechanism": "One fixed local-attention proxy that limits every target token to the most recent 256 source positions while leaving weights and exported artifact bytes unchanged.",
+    "claim_posture": "research_only_restricted_attention_proxy",
+    "boundary_note": "This row is an eval-time restricted-attention proxy over the frozen dense baseline weights. It preserves negative evidence explicitly if the locality cut improves analytic attention cost while harming val_bpb.",
+    "metrics": {
+      "variant_id": "restricted_attention_window_256",
+      "attention_window_size": 256,
+      "val_loss": 8.261497497558594,
+      "val_bpb": 4.609091082071537,
+      "bytes_code": 877718,
+      "bytes_model_int8_zlib": 78958,
+      "bytes_total": 956676,
+      "delta_val_bpb_vs_dense": 0.050373911723355,
+      "delta_model_bytes_vs_dense": 0
+    },
+    "runtime_facts": {
+      "measurement_posture": "analytic_attention_terms_on_committed_slice",
+      "attention_score_terms_per_forward": 1836032,
+      "relative_attention_score_terms_vs_dense": 0.437317073170732,
+      "runtime_note": "This runtime row is analytic, not a measured CUDA speed claim. It captures only the attention-score term reduction from the fixed 256-token causal window under the unchanged dense block stack."
+    }
+  },
+  "report_digest": "91d0e1d9e86c28cea481326e113bcdb70fe06f8ab5447feb758b461dc1a9f8bc"
+}

@@ -119,6 +119,9 @@ pub struct ParameterGolfArchitectureExperimentVariantReport {
     pub claim_posture: String,
     /// Honest boundary note for the row.
     pub boundary_note: String,
+    /// Dedicated evidence reports that own row-specific measurement surfaces.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub evidence_report_refs: Vec<String>,
     /// Measured metrics when the row is implemented today.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub metrics: Option<ParameterGolfArchitectureExperimentMetrics>,
@@ -281,6 +284,7 @@ pub fn build_parameter_golf_architecture_experiment_queue_report() -> Result<
                 "This row is the frozen dense-runtime control for the current bounded harness.",
             ),
         }),
+        evidence_report_refs: Vec::new(),
         benchmark_plan: Vec::new(),
     };
 
@@ -328,6 +332,7 @@ pub fn build_parameter_golf_architecture_experiment_queue_report() -> Result<
             boundary_note: String::from(
                 "This is a post-train shared-depth proxy, not a retrained recurrent runtime. It measures whether decoder-depth value reuse helps the shipped frontier under the same oracle and accounting surface.",
             ),
+            evidence_report_refs: Vec::new(),
             metrics: Some(shared_depth_metrics),
             runtime_facts: Some(ParameterGolfArchitectureExperimentRuntimeFacts {
                 measurement_posture: String::from("post_train_value_tying_proxy"),
@@ -356,6 +361,7 @@ pub fn build_parameter_golf_architecture_experiment_queue_report() -> Result<
             boundary_note: String::from(
                 "This row measures stronger block-level parameter tying on the frozen baseline family. It does not claim that the same tying scheme would remain optimal after full retraining.",
             ),
+            evidence_report_refs: Vec::new(),
             metrics: Some(mirrored_tying_metrics),
             runtime_facts: Some(ParameterGolfArchitectureExperimentRuntimeFacts {
                 measurement_posture: String::from("post_train_value_tying_proxy"),
@@ -372,7 +378,7 @@ pub fn build_parameter_golf_architecture_experiment_queue_report() -> Result<
         ParameterGolfArchitectureExperimentVariantReport {
             issue_ref: String::from("PGOLF-613/#257"),
             variant_id: String::from("restricted_attention_window_candidate"),
-            status: ParameterGolfArchitectureExperimentStatus::PlannedResearchCandidate,
+            status: ParameterGolfArchitectureExperimentStatus::ImplementedResearchVariant,
             mechanism: String::from(
                 "Evaluate one fixed local-attention or restricted-attention window on the frozen baseline family under the same metric and accounting surface.",
             ),
@@ -381,23 +387,16 @@ pub fn build_parameter_golf_architecture_experiment_queue_report() -> Result<
                 String::from("sequence_length_1024_eval_slice"),
                 String::from("unchanged_exported_artifact_surface"),
             ],
-            claim_posture: String::from("planned_research_candidate"),
+            claim_posture: String::from("implemented_restricted_attention_proxy"),
             boundary_note: String::from(
-                "This row stays open until the repo owns a public-safe restricted-attention eval path on real seq_len=1024 challenge-format windows. Local-reference seq_len=4 evidence is not strong enough to close the issue honestly.",
+                "This row is now implemented via the dedicated restricted-attention report on one committed seq_len=1024 challenge-format validation slice. The evidence remains research-only and does not claim retraining closure, single-H100 closure, or record-track readiness.",
             ),
+            evidence_report_refs: vec![String::from(
+                "fixtures/parameter_golf/reports/parameter_golf_restricted_attention_report.json",
+            )],
             metrics: None,
             runtime_facts: None,
-            benchmark_plan: vec![
-                String::from(
-                    "reuse the frozen baseline trained model and unchanged non-record code bytes",
-                ),
-                String::from(
-                    "run restricted-attention eval on actual seq_len=1024 Parameter Golf token windows rather than only the local-reference fixture",
-                ),
-                String::from(
-                    "preserve val_bpb, compressed-model bytes, and analytic or measured attention-work facts against the dense baseline row",
-                ),
-            ],
+            benchmark_plan: Vec::new(),
         },
     ];
 
@@ -620,9 +619,14 @@ mod tests {
                 .count(),
             2
         );
-        assert!(report.variants.iter().any(|variant| variant.variant_id
-            == "restricted_attention_window_candidate"
-            && variant.metrics.is_none()));
+        assert!(report.variants.iter().any(|variant| {
+            variant.variant_id == "restricted_attention_window_candidate"
+                && variant.metrics.is_none()
+                && variant
+                    .evidence_report_refs
+                    .iter()
+                    .any(|reference| reference.ends_with("parameter_golf_restricted_attention_report.json"))
+        }));
     }
 
     #[test]
