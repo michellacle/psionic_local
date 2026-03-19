@@ -770,6 +770,15 @@ The current scope is:
   bounded-approximate `f64` suppressed and keeping the default served lane
   unchanged; this is not arbitrary Wasm float closure or a new default served
   float capability
+- the current memory64 proposal-profile artifacts are
+  `fixtures/tassadar/reports/tassadar_memory64_profile_report.json` and
+  `fixtures/tassadar/runs/tassadar_memory64_resume_v1/tassadar_memory64_resume_bundle.json`,
+  which freeze one bounded single-memory large-address continuation profile
+  with sparse-window checkpoint artifacts above the 4GiB boundary, typed
+  datastream resume locators, and explicit backend-limit refusal truth on the
+  current-host cpu-reference envelope; this is not arbitrary Wasm memory64
+  closure, multi-memory support, generic large-heap portability, or broader
+  served publication
 - recommended closure order follows the spec and its test families: decode and
   validate first, then integer/control/direct-call core, then linear memory,
   then globals/tables/references/indirect calls, then instantiation/import

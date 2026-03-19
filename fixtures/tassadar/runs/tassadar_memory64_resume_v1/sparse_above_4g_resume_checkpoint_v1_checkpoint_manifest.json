@@ -1,0 +1,76 @@
+{
+  "stream_id": "tassadar-memory64://sparse_above_4g_resume.checkpoint.v1",
+  "subject": "checkpoint",
+  "object_digest": "43c70e0c4860ed6f79c902a352c87795d7f05b377fa342e1587e86786625e8de",
+  "total_bytes": 888,
+  "chunk_bytes": 96,
+  "encoding": "raw_binary",
+  "provenance_digest": "decff32570312d247f95136211c55a0823dad93482ffc252952e7a4971e500db",
+  "checkpoint_binding": {
+    "checkpoint_family": "tassadar.memory64_resume.v1",
+    "checkpoint_ref": "checkpoint://tassadar.memory64_resume/sparse_above_4g_resume.checkpoint.v1",
+    "step": 24
+  },
+  "chunks": [
+    {
+      "index": 0,
+      "offset": 0,
+      "length": 96,
+      "chunk_digest": "848cb03a74d4038fd78dac304e4fa43fac3296ae7d2187883e4712163f2ed551"
+    },
+    {
+      "index": 1,
+      "offset": 96,
+      "length": 96,
+      "chunk_digest": "a60724d20632740a5c791ebb126f78cde6ace370b9f91b24071093b7a54eb1c8"
+    },
+    {
+      "index": 2,
+      "offset": 192,
+      "length": 96,
+      "chunk_digest": "9cdcbbc52590fd0cc7003d54f8a5eb9409f24145e6e0dd6815fa54108fab23c9"
+    },
+    {
+      "index": 3,
+      "offset": 288,
+      "length": 96,
+      "chunk_digest": "99b2df50750a965886c276b60716d552252652b9053d5d3354eac48d1ac77cb3"
+    },
+    {
+      "index": 4,
+      "offset": 384,
+      "length": 96,
+      "chunk_digest": "68441380937d9bc437b5b472855abaea46f1e85d7d8779f884a425cea2cf7599"
+    },
+    {
+      "index": 5,
+      "offset": 480,
+      "length": 96,
+      "chunk_digest": "720f7df7d67c2730cc7fd44b3b6c2b7f6ccb7737051422be0c327ab1a753dafa"
+    },
+    {
+      "index": 6,
+      "offset": 576,
+      "length": 96,
+      "chunk_digest": "46b6b959de7915e88002cf74578bbd8837f51deb677b90fadc247015aead1744"
+    },
+    {
+      "index": 7,
+      "offset": 672,
+      "length": 96,
+      "chunk_digest": "3ca3fefa25adae1e9cb7e4f95bf80f96399631ac9176e08913df174d4b2c52ef"
+    },
+    {
+      "index": 8,
+      "offset": 768,
+      "length": 96,
+      "chunk_digest": "2ee8f7bbed12b3c3b4dc183330e3c47d7adbe5cc7413ae3ed79c6fa85b6e00fe"
+    },
+    {
+      "index": 9,
+      "offset": 864,
+      "length": 24,
+      "chunk_digest": "0c3f12b350d59b4b26edee6a9990992c01dde4f8e33c5e049622717173422d88"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "checkpoint_id": "sparse_above_4g_resume.checkpoint.v1",
+  "profile_id": "tassadar.proposal_profile.memory64_continuation.v1",
+  "paused_after_step_count": 24,
+  "virtual_cursor_address": 4294969344,
+  "max_virtual_address_touched": 4294971903,
+  "resident_windows": [
+    {
+      "window_id": "scan_window_a",
+      "base_address": 4294967296,
+      "window_bytes": 4096,
+      "nonzero_byte_count": 19,
+      "window_digest": "9868826986fcf09617adc55e20744dcdb7f70e58396690c2e1c6e956fc9998e7"
+    },
+    {
+      "window_id": "scan_window_b",
+      "base_address": 4294971392,
+      "window_bytes": 4096,
+      "nonzero_byte_count": 11,
+      "window_digest": "c1ccfe73a996ac69d0c831a12cb13509b42c05909dfb9bf98cc73ba5c3424e8f"
+    }
+  ],
+  "spilled_window_count": 2,
+  "spill_bytes": 32768,
+  "checkpoint_digest": "decff32570312d247f95136211c55a0823dad93482ffc252952e7a4971e500db"
+}

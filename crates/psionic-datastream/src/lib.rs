@@ -13,6 +13,7 @@ const KV_CACHE_CHECKPOINT_FAMILY_PREFIX: &str = "serve.kv_cache";
 const TASSADAR_CALL_FRAME_RESUME_FAMILY_PREFIX: &str = "tassadar.call_frame_resume";
 const TASSADAR_DYNAMIC_MEMORY_RESUME_FAMILY_PREFIX: &str = "tassadar.dynamic_memory_resume";
 const TASSADAR_EXECUTION_CHECKPOINT_FAMILY_PREFIX: &str = "tassadar.execution_checkpoint";
+const TASSADAR_MEMORY64_RESUME_FAMILY_PREFIX: &str = "tassadar.memory64_resume";
 
 /// High-level subject being delivered over the data plane.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -197,6 +198,15 @@ impl DatastreamCheckpointBinding {
             .with_checkpoint_ref(format!(
                 "checkpoint://tassadar.dynamic_memory_resume/{checkpoint_id}"
             ))
+            .with_step(step)
+    }
+
+    /// Creates a checkpoint binding for one Tassadar memory64 continuation artifact.
+    #[must_use]
+    pub fn tassadar_memory64_resume(checkpoint_id: impl AsRef<str>, step: u64) -> Self {
+        let checkpoint_id = checkpoint_id.as_ref();
+        Self::new("tassadar.memory64_resume.v1")
+            .with_checkpoint_ref(format!("checkpoint://tassadar.memory64_resume/{checkpoint_id}"))
             .with_step(step)
     }
 
@@ -770,6 +780,28 @@ pub struct TassadarDynamicMemoryResumeLocator {
     pub detail: String,
 }
 
+/// Explicit locator for one persisted Tassadar memory64 continuation artifact.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarMemory64ResumeLocator {
+    /// Stable stream identifier.
+    pub stream_id: String,
+    /// Stable manifest digest.
+    pub manifest_digest: String,
+    /// Stable checkpoint reference.
+    pub checkpoint_ref: String,
+    /// Stable checkpoint family.
+    pub checkpoint_family: String,
+    /// Logical step carried by the checkpoint binding.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub step: Option<u64>,
+    /// Stable digest over the serialized checkpoint payload.
+    pub object_digest: String,
+    /// Total serialized checkpoint bytes.
+    pub total_bytes: u64,
+    /// Plain-language locator detail.
+    pub detail: String,
+}
+
 /// Explicit locator for one persisted Tassadar call-frame resume artifact.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TassadarCallFrameResumeLocator {
@@ -926,6 +958,50 @@ impl DatastreamManifestRef {
                     .as_deref()
                     .unwrap_or_default(),
                 ),
+        })
+    }
+
+    /// Exports this manifest reference as a typed Tassadar memory64 continuation locator.
+    pub fn tassadar_memory64_resume_locator(
+        &self,
+    ) -> Result<TassadarMemory64ResumeLocator, DatastreamTransferError> {
+        let checkpoint_binding = self.checkpoint_binding.as_ref().ok_or_else(|| {
+            DatastreamTransferError::TassadarMemory64ResumeContractInvalid {
+                stream_id: self.stream_id.clone(),
+                subject: self.subject,
+                checkpoint_family: None,
+            }
+        })?;
+        if self.subject != DatastreamSubjectKind::Checkpoint
+            || !checkpoint_binding
+                .checkpoint_family
+                .starts_with(TASSADAR_MEMORY64_RESUME_FAMILY_PREFIX)
+        {
+            return Err(DatastreamTransferError::TassadarMemory64ResumeContractInvalid {
+                stream_id: self.stream_id.clone(),
+                subject: self.subject,
+                checkpoint_family: Some(checkpoint_binding.checkpoint_family.clone()),
+            });
+        }
+        Ok(TassadarMemory64ResumeLocator {
+            stream_id: self.stream_id.clone(),
+            manifest_digest: self.manifest_digest.clone(),
+            checkpoint_ref: checkpoint_binding
+                .checkpoint_ref
+                .clone()
+                .unwrap_or_default(),
+            checkpoint_family: checkpoint_binding.checkpoint_family.clone(),
+            step: checkpoint_binding.step,
+            object_digest: self.object_digest.clone(),
+            total_bytes: self.total_bytes,
+            detail: format!(
+                "tassadar memory64 continuation locator via family `{}` ref `{}`",
+                checkpoint_binding.checkpoint_family,
+                checkpoint_binding
+                    .checkpoint_ref
+                    .as_deref()
+                    .unwrap_or_default(),
+            ),
         })
     }
 
@@ -1414,6 +1490,15 @@ pub enum DatastreamTransferError {
         "datastream `{stream_id}` is not a valid Tassadar dynamic-memory resume contract: subject `{subject:?}`, checkpoint family `{checkpoint_family:?}`"
     )]
     TassadarDynamicMemoryResumeContractInvalid {
+        stream_id: String,
+        subject: DatastreamSubjectKind,
+        checkpoint_family: Option<String>,
+    },
+    /// The manifest reference is not a valid Tassadar memory64 continuation contract.
+    #[error(
+        "datastream `{stream_id}` is not a valid Tassadar memory64 continuation contract: subject `{subject:?}`, checkpoint family `{checkpoint_family:?}`"
+    )]
+    TassadarMemory64ResumeContractInvalid {
         stream_id: String,
         subject: DatastreamSubjectKind,
         checkpoint_family: Option<String>,
@@ -2318,6 +2403,60 @@ mod tests {
                 stream_id: String::from("checkpoint-train-19"),
                 subject: DatastreamSubjectKind::Checkpoint,
                 checkpoint_family: Some(String::from("tassadar.execution_checkpoint.v1")),
+            }
+        );
+    }
+
+    #[test]
+    fn checkpoint_manifest_can_export_tassadar_memory64_resume_locator()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let payload = br#"{"checkpoint_id":"memory64_scan"}"#.to_vec();
+        let manifest = super::DatastreamManifest::from_bytes(
+            "tassadar-memory64-8",
+            DatastreamSubjectKind::Checkpoint,
+            &payload,
+            8,
+            DatastreamEncoding::RawBinary,
+        )
+        .with_checkpoint_binding(
+            DatastreamCheckpointBinding::tassadar_memory64_resume("memory64_scan", 8),
+        );
+
+        let locator = manifest.manifest_ref().tassadar_memory64_resume_locator()?;
+        assert_eq!(locator.stream_id, "tassadar-memory64-8");
+        assert_eq!(locator.manifest_digest, manifest.stable_digest());
+        assert_eq!(
+            locator.checkpoint_ref,
+            "checkpoint://tassadar.memory64_resume/memory64_scan"
+        );
+        assert_eq!(locator.step, Some(8));
+        assert_eq!(locator.object_digest, manifest.object_digest);
+        Ok(())
+    }
+
+    #[test]
+    fn non_memory64_checkpoint_manifest_is_refused_as_memory64_resume_locator() {
+        let manifest = super::DatastreamManifest::from_bytes(
+            "checkpoint-train-21",
+            DatastreamSubjectKind::Checkpoint,
+            b"weights",
+            4,
+            DatastreamEncoding::RawBinary,
+        )
+        .with_checkpoint_binding(
+            DatastreamCheckpointBinding::tassadar_dynamic_memory_resume("copy_fill", 21),
+        );
+
+        let error = manifest
+            .manifest_ref()
+            .tassadar_memory64_resume_locator()
+            .expect_err("non-memory64 checkpoint manifest should be refused");
+        assert_eq!(
+            error,
+            DatastreamTransferError::TassadarMemory64ResumeContractInvalid {
+                stream_id: String::from("checkpoint-train-21"),
+                subject: DatastreamSubjectKind::Checkpoint,
+                checkpoint_family: Some(String::from("tassadar.dynamic_memory_resume.v1")),
             }
         );
     }

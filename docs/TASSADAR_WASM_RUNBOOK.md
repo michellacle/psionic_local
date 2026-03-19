@@ -894,6 +894,29 @@ Expected outcome:
 - explicit malformed-handler refusal parity
 - no default served exception profile ids
 
+### 11. Bounded `memory64` continuation profile
+
+```bash
+cargo run -p psionic-runtime --example tassadar_memory64_resume_bundle
+cargo run -p psionic-eval --example tassadar_memory64_profile_report
+```
+
+Read:
+
+- `fixtures/tassadar/runs/tassadar_memory64_resume_v1/tassadar_memory64_resume_bundle.json`
+- `fixtures/tassadar/reports/tassadar_memory64_profile_report.json`
+
+Expected outcome:
+
+- one named bounded `memory64` profile:
+  `tassadar.proposal_profile.memory64_continuation.v1`
+- exact sparse-window checkpoint and resume parity above the 4GiB boundary
+- exact memory-growth checkpoint and resume parity above the 4GiB boundary
+- persisted checkpoint and manifest artifacts under
+  `fixtures/tassadar/runs/tassadar_memory64_resume_v1`
+- typed datastream resume locators for the successful checkpoint rows
+- explicit backend virtual-address-limit refusal parity
+
 ## Validation Commands
 
 Run the focused report checks after the flow:
@@ -919,6 +942,10 @@ cargo test -p psionic-runtime exception_profile -- --nocapture
 cargo test -p psionic-eval exception_profile -- --nocapture
 cargo test -p psionic-provider exception_profile_receipt_projects_report -- --nocapture
 cargo test -p psionic-provider tassadar_capability_envelope_serializes_served_publication -- --nocapture
+cargo test -p psionic-compiler memory64 -- --nocapture
+cargo test -p psionic-runtime memory64 -- --nocapture
+cargo test -p psionic-datastream memory64 -- --nocapture
+cargo test -p psionic-eval memory64 -- --nocapture
 ```
 
 These checks should keep the committed reports and generated truth aligned.

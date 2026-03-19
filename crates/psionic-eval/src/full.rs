@@ -118,6 +118,8 @@ mod tassadar_linked_program_bundle;
 mod tassadar_locality_envelope;
 #[path = "tassadar_locality_scratchpad.rs"]
 mod tassadar_locality_scratchpad;
+#[path = "tassadar_memory64_profile.rs"]
+mod tassadar_memory64_profile;
 #[path = "tassadar_memory_abi_v2.rs"]
 mod tassadar_memory_abi_v2;
 #[path = "tassadar_mixed_numeric_ladder.rs"]
@@ -266,6 +268,7 @@ pub use tassadar_learnability_gap::*;
 pub use tassadar_linked_program_bundle::*;
 pub use tassadar_locality_envelope::*;
 pub use tassadar_locality_scratchpad::*;
+pub use tassadar_memory64_profile::*;
 pub use tassadar_memory_abi_v2::*;
 pub use tassadar_mixed_numeric_ladder::*;
 pub use tassadar_mixed_trajectory::*;

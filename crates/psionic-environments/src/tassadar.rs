@@ -42,6 +42,7 @@ const TASSADAR_METADATA_RUST_ARTICLE_PROFILE_KEY: &str = "tassadar.rust_article_
 const TASSADAR_METADATA_GENERALIZED_ABI_FAMILY_KEY: &str = "tassadar.generalized_abi_family";
 const TASSADAR_METADATA_EXECUTION_CHECKPOINT_KEY: &str = "tassadar.execution_checkpoint";
 const TASSADAR_METADATA_DYNAMIC_MEMORY_RESUME_KEY: &str = "tassadar.dynamic_memory_resume";
+const TASSADAR_METADATA_MEMORY64_PROFILE_KEY: &str = "tassadar.memory64_profile";
 const TASSADAR_METADATA_INTERNAL_COMPUTE_PROFILE_LADDER_KEY: &str =
     "tassadar.internal_compute_profile_ladder";
 const TASSADAR_METADATA_INTERNAL_COMPUTE_PROFILE_CLAIM_KEY: &str =
@@ -355,6 +356,91 @@ pub fn default_tassadar_dynamic_memory_resume_binding() -> TassadarDynamicMemory
         ),
         checkpoint_family_id: String::from("tassadar.dynamic_memory_resume.v1"),
         case_ids: vec![String::from("copy_fill_pause_after_copy")],
+    }
+}
+
+/// Public bounded memory64 continuation binding reused by Tassadar environment bundles.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarMemory64ProfileBinding {
+    /// Stable memory64 profile report reference.
+    pub report_ref: String,
+    /// Stable memory64 profile report identifier.
+    pub report_id: String,
+    /// Stable run-bundle reference carrying persisted sparse checkpoints.
+    pub run_bundle_ref: String,
+    /// Stable checkpoint-family identifier.
+    pub checkpoint_family_id: String,
+    /// Stable named profile identifier.
+    pub profile_id: String,
+    /// Stable portability envelope identifier.
+    pub portability_envelope_id: String,
+    /// Maximum virtual-address width admitted by the bounded profile.
+    pub max_virtual_address_bits: u8,
+    /// Case identifiers covered by the committed report.
+    pub case_ids: Vec<String>,
+}
+
+impl TassadarMemory64ProfileBinding {
+    /// Returns a stable digest over the binding.
+    #[must_use]
+    pub fn stable_digest(&self) -> String {
+        let encoded =
+            serde_json::to_vec(self).expect("Tassadar memory64 profile binding should serialize");
+        let digest = sha2::Sha256::digest(encoded.as_slice());
+        hex::encode(digest)
+    }
+
+    /// Validates that the binding is explicit.
+    pub fn validate(&self) -> Result<(), TassadarEnvironmentError> {
+        if self.report_ref.trim().is_empty() {
+            return Err(TassadarEnvironmentError::MissingMemory64ProfileReportRef);
+        }
+        if self.report_id.trim().is_empty() {
+            return Err(TassadarEnvironmentError::MissingMemory64ProfileReportId);
+        }
+        if self.run_bundle_ref.trim().is_empty() {
+            return Err(TassadarEnvironmentError::MissingMemory64ProfileRunBundleRef);
+        }
+        if self.checkpoint_family_id.trim().is_empty() {
+            return Err(TassadarEnvironmentError::MissingMemory64ProfileFamilyId);
+        }
+        if self.profile_id.trim().is_empty() {
+            return Err(TassadarEnvironmentError::MissingMemory64ProfileId);
+        }
+        if self.portability_envelope_id.trim().is_empty() {
+            return Err(TassadarEnvironmentError::MissingMemory64PortabilityEnvelopeId);
+        }
+        if self.max_virtual_address_bits < 64 {
+            return Err(TassadarEnvironmentError::InvalidMemory64ProfileAddressBits);
+        }
+        if self.case_ids.is_empty() {
+            return Err(TassadarEnvironmentError::MissingMemory64ProfileCaseIds);
+        }
+        if self.case_ids.iter().any(|case_id| case_id.trim().is_empty()) {
+            return Err(TassadarEnvironmentError::InvalidMemory64ProfileCaseId);
+        }
+        Ok(())
+    }
+}
+
+/// Returns the canonical bounded memory64 continuation binding reused by Tassadar environment surfaces.
+#[must_use]
+pub fn default_tassadar_memory64_profile_binding() -> TassadarMemory64ProfileBinding {
+    TassadarMemory64ProfileBinding {
+        report_ref: String::from("fixtures/tassadar/reports/tassadar_memory64_profile_report.json"),
+        report_id: String::from("tassadar.memory64_profile.report.v1"),
+        run_bundle_ref: String::from(
+            "fixtures/tassadar/runs/tassadar_memory64_resume_v1/tassadar_memory64_resume_bundle.json",
+        ),
+        checkpoint_family_id: String::from("tassadar.memory64_resume.v1"),
+        profile_id: String::from("tassadar.proposal_profile.memory64_continuation.v1"),
+        portability_envelope_id: String::from("cpu_reference_current_host"),
+        max_virtual_address_bits: 64,
+        case_ids: vec![
+            String::from("sparse_above_4g_resume"),
+            String::from("memory_grow_above_4g_resume"),
+            String::from("backend_virtual_address_limit_refusal"),
+        ],
     }
 }
 
@@ -1190,6 +1276,8 @@ pub struct TassadarEnvironmentSpec {
     pub execution_checkpoint_binding: TassadarExecutionCheckpointBinding,
     /// Public dynamic-memory pause-and-resume binding.
     pub dynamic_memory_resume_binding: TassadarDynamicMemoryResumeBinding,
+    /// Public bounded memory64 continuation binding.
+    pub memory64_profile_binding: TassadarMemory64ProfileBinding,
     /// Optional broad internal-compute portability binding.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub broad_internal_compute_portability_binding:
@@ -1298,6 +1386,7 @@ impl TassadarEnvironmentSpec {
             compile_pipeline_matrix_binding: self.compile_pipeline_matrix_binding.clone(),
             execution_checkpoint_binding: self.execution_checkpoint_binding.clone(),
             dynamic_memory_resume_binding: self.dynamic_memory_resume_binding.clone(),
+            memory64_profile_binding: self.memory64_profile_binding.clone(),
             broad_internal_compute_portability_binding: self
                 .broad_internal_compute_portability_binding
                 .clone(),
@@ -1350,6 +1439,7 @@ impl TassadarEnvironmentSpec {
         self.compile_pipeline_matrix_binding.validate()?;
         self.execution_checkpoint_binding.validate()?;
         self.dynamic_memory_resume_binding.validate()?;
+        self.memory64_profile_binding.validate()?;
         if let Some(binding) = &self.broad_internal_compute_portability_binding {
             binding.validate()?;
         }
@@ -1560,6 +1650,10 @@ impl TassadarEnvironmentSpec {
             String::from(TASSADAR_METADATA_DYNAMIC_MEMORY_RESUME_KEY),
             serde_json::to_value(&self.dynamic_memory_resume_binding).unwrap_or(Value::Null),
         );
+        metadata.insert(
+            String::from(TASSADAR_METADATA_MEMORY64_PROFILE_KEY),
+            serde_json::to_value(&self.memory64_profile_binding).unwrap_or(Value::Null),
+        );
         let internal_compute_profile_ladder =
             tassadar_internal_compute_profile_ladder_publication();
         metadata.insert(
@@ -1681,6 +1775,8 @@ pub struct TassadarEnvironmentBundle {
     pub execution_checkpoint_binding: TassadarExecutionCheckpointBinding,
     /// Dynamic-memory pause-and-resume binding.
     pub dynamic_memory_resume_binding: TassadarDynamicMemoryResumeBinding,
+    /// Bounded memory64 continuation binding.
+    pub memory64_profile_binding: TassadarMemory64ProfileBinding,
     /// Optional broad internal-compute portability binding.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub broad_internal_compute_portability_binding:
@@ -1812,6 +1908,37 @@ pub enum TassadarEnvironmentError {
     /// Invalid dynamic-memory resume case id.
     #[error("Tassadar environment spec includes an empty dynamic-memory resume case id")]
     InvalidDynamicMemoryResumeCaseId,
+    /// Missing memory64 profile report ref.
+    #[error("Tassadar environment spec is missing `memory64_profile_binding.report_ref`")]
+    MissingMemory64ProfileReportRef,
+    /// Missing memory64 profile report id.
+    #[error("Tassadar environment spec is missing `memory64_profile_binding.report_id`")]
+    MissingMemory64ProfileReportId,
+    /// Missing memory64 profile run-bundle ref.
+    #[error("Tassadar environment spec is missing `memory64_profile_binding.run_bundle_ref`")]
+    MissingMemory64ProfileRunBundleRef,
+    /// Missing memory64 profile family id.
+    #[error("Tassadar environment spec is missing `memory64_profile_binding.checkpoint_family_id`")]
+    MissingMemory64ProfileFamilyId,
+    /// Missing memory64 profile id.
+    #[error("Tassadar environment spec is missing `memory64_profile_binding.profile_id`")]
+    MissingMemory64ProfileId,
+    /// Missing memory64 portability envelope id.
+    #[error(
+        "Tassadar environment spec is missing `memory64_profile_binding.portability_envelope_id`"
+    )]
+    MissingMemory64PortabilityEnvelopeId,
+    /// Invalid memory64 address width.
+    #[error(
+        "Tassadar environment spec has invalid `memory64_profile_binding.max_virtual_address_bits`"
+    )]
+    InvalidMemory64ProfileAddressBits,
+    /// Missing memory64 case ids.
+    #[error("Tassadar environment spec is missing `memory64_profile_binding.case_ids`")]
+    MissingMemory64ProfileCaseIds,
+    /// Invalid memory64 case id.
+    #[error("Tassadar environment spec includes an empty memory64 profile case id")]
+    InvalidMemory64ProfileCaseId,
     /// Missing broad portability report ref.
     #[error(
         "Tassadar environment spec is missing `broad_internal_compute_portability_binding.report_ref`"
@@ -2261,6 +2388,7 @@ mod tests {
                 ],
             },
             dynamic_memory_resume_binding: default_tassadar_dynamic_memory_resume_binding(),
+            memory64_profile_binding: default_tassadar_memory64_profile_binding(),
             broad_internal_compute_portability_binding: Some(
                 default_tassadar_broad_internal_compute_portability_binding(),
             ),
@@ -2425,6 +2553,15 @@ mod tests {
                 .and_then(|value| value.get("report_ref"))
                 .and_then(Value::as_str),
             Some("fixtures/tassadar/reports/tassadar_dynamic_memory_resume_report.json")
+        );
+        assert_eq!(
+            bundle
+                .benchmark_package
+                .metadata
+                .get(TASSADAR_METADATA_MEMORY64_PROFILE_KEY)
+                .and_then(|value| value.get("report_ref"))
+                .and_then(Value::as_str),
+            Some("fixtures/tassadar/reports/tassadar_memory64_profile_report.json")
         );
         assert_eq!(
             bundle

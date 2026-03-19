@@ -1,0 +1,33 @@
+{
+  "checkpoint_id": "memory_grow_above_4g_resume.checkpoint.v1",
+  "profile_id": "tassadar.proposal_profile.memory64_continuation.v1",
+  "paused_after_step_count": 48,
+  "virtual_cursor_address": 4295065600,
+  "max_virtual_address_touched": 4295102463,
+  "resident_windows": [
+    {
+      "window_id": "grow_window_a",
+      "base_address": 4295032832,
+      "window_bytes": 8192,
+      "nonzero_byte_count": 27,
+      "window_digest": "5874d24a705838ab32b76b72deff56691147e7ddb33fee7ca418911852360569"
+    },
+    {
+      "window_id": "grow_window_b",
+      "base_address": 4295065600,
+      "window_bytes": 8192,
+      "nonzero_byte_count": 13,
+      "window_digest": "2239bbb490187d1602ea0c7c77c7919d31aaea5aec2543c45d99107d35415078"
+    },
+    {
+      "window_id": "grow_window_c",
+      "base_address": 4295098368,
+      "window_bytes": 8192,
+      "nonzero_byte_count": 7,
+      "window_digest": "c45d02ae40b0a18a1f7e51a61ef548e81d743ad710a328e4269f85dd27eb33b3"
+    }
+  ],
+  "spilled_window_count": 3,
+  "spill_bytes": 65536,
+  "checkpoint_digest": "138d4fde536a30df7d42441a471edac4a1ce0623083f2a828635038c4bc2c95e"
+}

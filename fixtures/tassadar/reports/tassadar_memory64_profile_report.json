@@ -1,0 +1,287 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.memory64_profile.report.v1",
+  "compiler_contract": {
+    "schema_version": 1,
+    "contract_id": "tassadar.memory64_profile.contract.v1",
+    "profile_id": "tassadar.proposal_profile.memory64_continuation.v1",
+    "portability_envelope_id": "cpu_reference_current_host",
+    "max_virtual_address_bits": 64,
+    "case_specs": [
+      {
+        "case_id": "sparse_above_4g_resume",
+        "workload_family": "memory64_sparse_scan",
+        "address_shape_id": "single_memory_sparse_resume",
+        "max_virtual_address_touched": 4294971903,
+        "expected_status": "exact",
+        "benchmark_refs": [
+          "fixtures/tassadar/reports/tassadar_dynamic_memory_resume_report.json",
+          "fixtures/tassadar/reports/tassadar_execution_checkpoint_report.json"
+        ],
+        "note": "single-memory sparse continuation above the 4GiB boundary should remain exact inside the bounded memory64 profile"
+      },
+      {
+        "case_id": "memory_grow_above_4g_resume",
+        "workload_family": "memory64_growth_resume",
+        "address_shape_id": "single_memory_growth_resume",
+        "max_virtual_address_touched": 4295102463,
+        "expected_status": "exact",
+        "benchmark_refs": [
+          "fixtures/tassadar/reports/tassadar_dynamic_memory_resume_report.json",
+          "fixtures/tassadar/reports/tassadar_resumable_multi_slice_promotion_report.json"
+        ],
+        "note": "single-memory growth plus continuation above the 4GiB boundary should remain exact only inside the bounded sparse-window profile"
+      },
+      {
+        "case_id": "backend_virtual_address_limit_refusal",
+        "workload_family": "memory64_backend_limit_boundary",
+        "address_shape_id": "single_memory_backend_limit_boundary",
+        "max_virtual_address_touched": 8589934592,
+        "expected_status": "refusal",
+        "expected_refusal_reason_id": "backend_virtual_address_limit",
+        "benchmark_refs": [
+          "fixtures/tassadar/reports/tassadar_dynamic_memory_resume_report.json",
+          "fixtures/tassadar/reports/tassadar_broad_internal_compute_portability_report.json"
+        ],
+        "note": "unsupported host or backend virtual-address envelopes must stay typed refusals instead of being inferred from smaller-memory success cases"
+      }
+    ],
+    "claim_boundary": "this contract freezes one bounded single-memory memory64 continuation profile over sparse large-address lowering, continuation checkpoints, and typed backend-limit refusal. It does not claim arbitrary Wasm memory64 closure, multi-memory support, or backend-invariant large-address portability",
+    "summary": "Memory64 profile contract freezes 3 cases across 2 exact and 1 refusal expectations.",
+    "contract_digest": "a475d475605f3314dfc05cdf9c782cc2f9a5e70de979092162fb2dbdfcf7063e"
+  },
+  "runtime_bundle_ref": "fixtures/tassadar/runs/tassadar_memory64_resume_v1/tassadar_memory64_resume_bundle.json",
+  "runtime_bundle": {
+    "schema_version": 1,
+    "bundle_id": "tassadar.memory64_resume.bundle.v1",
+    "profile_id": "tassadar.proposal_profile.memory64_continuation.v1",
+    "checkpoint_family_id": "tassadar.memory64_resume.v1",
+    "portability_envelope_id": "cpu_reference_current_host",
+    "case_receipts": [
+      {
+        "case_id": "sparse_above_4g_resume",
+        "workload_family": "memory64_sparse_scan",
+        "virtual_address_bits": 64,
+        "status": "exact_resume_parity",
+        "checkpoint": {
+          "checkpoint_id": "sparse_above_4g_resume.checkpoint.v1",
+          "profile_id": "tassadar.proposal_profile.memory64_continuation.v1",
+          "paused_after_step_count": 24,
+          "virtual_cursor_address": 4294969344,
+          "max_virtual_address_touched": 4294971903,
+          "resident_windows": [
+            {
+              "window_id": "scan_window_a",
+              "base_address": 4294967296,
+              "window_bytes": 4096,
+              "nonzero_byte_count": 19,
+              "window_digest": "9868826986fcf09617adc55e20744dcdb7f70e58396690c2e1c6e956fc9998e7"
+            },
+            {
+              "window_id": "scan_window_b",
+              "base_address": 4294971392,
+              "window_bytes": 4096,
+              "nonzero_byte_count": 11,
+              "window_digest": "c1ccfe73a996ac69d0c831a12cb13509b42c05909dfb9bf98cc73ba5c3424e8f"
+            }
+          ],
+          "spilled_window_count": 2,
+          "spill_bytes": 32768,
+          "checkpoint_digest": "decff32570312d247f95136211c55a0823dad93482ffc252952e7a4971e500db"
+        },
+        "max_virtual_address_touched": 4294971903,
+        "resumed_suffix_step_count": 48,
+        "exact_large_address_parity": true,
+        "exact_resume_parity": true,
+        "benchmark_refs": [
+          "fixtures/tassadar/reports/tassadar_dynamic_memory_resume_report.json",
+          "fixtures/tassadar/reports/tassadar_execution_checkpoint_report.json"
+        ],
+        "note": "sparse single-memory continuation preserves parity above the 4GiB boundary through explicit resident windows and spill bytes instead of implying arbitrary flat memory64 closure",
+        "receipt_digest": "723f2a63b78883ea92a813911cdc6528a2f98e10dd076dd19f0ceb4347604ef3"
+      },
+      {
+        "case_id": "memory_grow_above_4g_resume",
+        "workload_family": "memory64_growth_resume",
+        "virtual_address_bits": 64,
+        "status": "exact_resume_parity",
+        "checkpoint": {
+          "checkpoint_id": "memory_grow_above_4g_resume.checkpoint.v1",
+          "profile_id": "tassadar.proposal_profile.memory64_continuation.v1",
+          "paused_after_step_count": 48,
+          "virtual_cursor_address": 4295065600,
+          "max_virtual_address_touched": 4295102463,
+          "resident_windows": [
+            {
+              "window_id": "grow_window_a",
+              "base_address": 4295032832,
+              "window_bytes": 8192,
+              "nonzero_byte_count": 27,
+              "window_digest": "5874d24a705838ab32b76b72deff56691147e7ddb33fee7ca418911852360569"
+            },
+            {
+              "window_id": "grow_window_b",
+              "base_address": 4295065600,
+              "window_bytes": 8192,
+              "nonzero_byte_count": 13,
+              "window_digest": "2239bbb490187d1602ea0c7c77c7919d31aaea5aec2543c45d99107d35415078"
+            },
+            {
+              "window_id": "grow_window_c",
+              "base_address": 4295098368,
+              "window_bytes": 8192,
+              "nonzero_byte_count": 7,
+              "window_digest": "c45d02ae40b0a18a1f7e51a61ef548e81d743ad710a328e4269f85dd27eb33b3"
+            }
+          ],
+          "spilled_window_count": 3,
+          "spill_bytes": 65536,
+          "checkpoint_digest": "138d4fde536a30df7d42441a471edac4a1ce0623083f2a828635038c4bc2c95e"
+        },
+        "max_virtual_address_touched": 4295102463,
+        "resumed_suffix_step_count": 96,
+        "exact_large_address_parity": true,
+        "exact_resume_parity": true,
+        "benchmark_refs": [
+          "fixtures/tassadar/reports/tassadar_dynamic_memory_resume_report.json",
+          "fixtures/tassadar/reports/tassadar_resumable_multi_slice_promotion_report.json"
+        ],
+        "note": "bounded memory growth above 4GiB remains explicit as a continuation receipt with sparse windows and typed spill accounting rather than an arbitrary large-heap claim",
+        "receipt_digest": "23d887c8fa0f60eb27e709247ac1d38a20a0a46c7d6abe06fcdf6af2c068006f"
+      },
+      {
+        "case_id": "backend_virtual_address_limit_refusal",
+        "workload_family": "memory64_backend_limit_boundary",
+        "virtual_address_bits": 64,
+        "status": "exact_refusal_parity",
+        "max_virtual_address_touched": 8589934592,
+        "resumed_suffix_step_count": 0,
+        "exact_large_address_parity": false,
+        "exact_resume_parity": false,
+        "refusal_reason_id": "backend_virtual_address_limit",
+        "benchmark_refs": [
+          "fixtures/tassadar/reports/tassadar_dynamic_memory_resume_report.json",
+          "fixtures/tassadar/reports/tassadar_broad_internal_compute_portability_report.json"
+        ],
+        "note": "unsupported host or backend virtual-address envelopes stay as explicit refusal truth instead of being inferred from smaller-memory success cases",
+        "receipt_digest": "c458aca08f76c2f8d37879dc9d7746ffb7bb4280a29a3dea92bd0f189513011d"
+      }
+    ],
+    "exact_resume_parity_count": 2,
+    "exact_refusal_parity_count": 1,
+    "claim_boundary": "this runtime bundle proves one bounded single-memory memory64 continuation profile over sparse addresses above the 4GiB boundary with explicit spill accounting and typed backend-limit refusal. It does not claim arbitrary Wasm memory64 closure, multi-memory support, generic large-heap portability, or served-profile widening",
+    "bundle_digest": "e37d98688babd62ea5537fa2b5cfd4ce07ba458a5801620855195a506f3c99ab"
+  },
+  "case_reports": [
+    {
+      "case_id": "sparse_above_4g_resume",
+      "workload_family": "memory64_sparse_scan",
+      "status": "exact_resume_parity",
+      "max_virtual_address_touched": 4294971903,
+      "checkpoint_artifact": {
+        "checkpoint_id": "sparse_above_4g_resume.checkpoint.v1",
+        "checkpoint_path": "fixtures/tassadar/runs/tassadar_memory64_resume_v1/sparse_above_4g_resume_checkpoint_v1_checkpoint.json",
+        "manifest_path": "fixtures/tassadar/runs/tassadar_memory64_resume_v1/sparse_above_4g_resume_checkpoint_v1_checkpoint_manifest.json",
+        "manifest_ref": {
+          "stream_id": "tassadar-memory64://sparse_above_4g_resume.checkpoint.v1",
+          "manifest_digest": "3e26a00b668cd9bd85f02e62e80a53622ca28e35a50cf1ef458ef328d037bb1b",
+          "subject": "checkpoint",
+          "object_digest": "43c70e0c4860ed6f79c902a352c87795d7f05b377fa342e1587e86786625e8de",
+          "total_bytes": 888,
+          "chunk_count": 10,
+          "chunk_bytes": 96,
+          "encoding": "raw_binary",
+          "provenance_digest": "decff32570312d247f95136211c55a0823dad93482ffc252952e7a4971e500db",
+          "checkpoint_binding": {
+            "checkpoint_family": "tassadar.memory64_resume.v1",
+            "checkpoint_ref": "checkpoint://tassadar.memory64_resume/sparse_above_4g_resume.checkpoint.v1",
+            "step": 24
+          }
+        },
+        "locator": {
+          "stream_id": "tassadar-memory64://sparse_above_4g_resume.checkpoint.v1",
+          "manifest_digest": "3e26a00b668cd9bd85f02e62e80a53622ca28e35a50cf1ef458ef328d037bb1b",
+          "checkpoint_ref": "checkpoint://tassadar.memory64_resume/sparse_above_4g_resume.checkpoint.v1",
+          "checkpoint_family": "tassadar.memory64_resume.v1",
+          "step": 24,
+          "object_digest": "43c70e0c4860ed6f79c902a352c87795d7f05b377fa342e1587e86786625e8de",
+          "total_bytes": 888,
+          "detail": "tassadar memory64 continuation locator via family `tassadar.memory64_resume.v1` ref `checkpoint://tassadar.memory64_resume/sparse_above_4g_resume.checkpoint.v1`"
+        }
+      },
+      "exact_large_address_parity": true,
+      "exact_resume_parity": true,
+      "note": "sparse single-memory continuation preserves parity above the 4GiB boundary through explicit resident windows and spill bytes instead of implying arbitrary flat memory64 closure"
+    },
+    {
+      "case_id": "memory_grow_above_4g_resume",
+      "workload_family": "memory64_growth_resume",
+      "status": "exact_resume_parity",
+      "max_virtual_address_touched": 4295102463,
+      "checkpoint_artifact": {
+        "checkpoint_id": "memory_grow_above_4g_resume.checkpoint.v1",
+        "checkpoint_path": "fixtures/tassadar/runs/tassadar_memory64_resume_v1/memory_grow_above_4g_resume_checkpoint_v1_checkpoint.json",
+        "manifest_path": "fixtures/tassadar/runs/tassadar_memory64_resume_v1/memory_grow_above_4g_resume_checkpoint_v1_checkpoint_manifest.json",
+        "manifest_ref": {
+          "stream_id": "tassadar-memory64://memory_grow_above_4g_resume.checkpoint.v1",
+          "manifest_digest": "319268df3a022cbe1af6f9efc73b0fb2ba9e9446404aaf5394797ca93bf8d2f5",
+          "subject": "checkpoint",
+          "object_digest": "02cf23432bb59f5781df80ee37580607b9557074ad17f4ccdd3d109d8bb47ef2",
+          "total_bytes": 1125,
+          "chunk_count": 12,
+          "chunk_bytes": 96,
+          "encoding": "raw_binary",
+          "provenance_digest": "138d4fde536a30df7d42441a471edac4a1ce0623083f2a828635038c4bc2c95e",
+          "checkpoint_binding": {
+            "checkpoint_family": "tassadar.memory64_resume.v1",
+            "checkpoint_ref": "checkpoint://tassadar.memory64_resume/memory_grow_above_4g_resume.checkpoint.v1",
+            "step": 48
+          }
+        },
+        "locator": {
+          "stream_id": "tassadar-memory64://memory_grow_above_4g_resume.checkpoint.v1",
+          "manifest_digest": "319268df3a022cbe1af6f9efc73b0fb2ba9e9446404aaf5394797ca93bf8d2f5",
+          "checkpoint_ref": "checkpoint://tassadar.memory64_resume/memory_grow_above_4g_resume.checkpoint.v1",
+          "checkpoint_family": "tassadar.memory64_resume.v1",
+          "step": 48,
+          "object_digest": "02cf23432bb59f5781df80ee37580607b9557074ad17f4ccdd3d109d8bb47ef2",
+          "total_bytes": 1125,
+          "detail": "tassadar memory64 continuation locator via family `tassadar.memory64_resume.v1` ref `checkpoint://tassadar.memory64_resume/memory_grow_above_4g_resume.checkpoint.v1`"
+        }
+      },
+      "exact_large_address_parity": true,
+      "exact_resume_parity": true,
+      "note": "bounded memory growth above 4GiB remains explicit as a continuation receipt with sparse windows and typed spill accounting rather than an arbitrary large-heap claim"
+    },
+    {
+      "case_id": "backend_virtual_address_limit_refusal",
+      "workload_family": "memory64_backend_limit_boundary",
+      "status": "exact_refusal_parity",
+      "max_virtual_address_touched": 8589934592,
+      "exact_large_address_parity": false,
+      "exact_resume_parity": false,
+      "refusal_reason_id": "backend_virtual_address_limit",
+      "note": "unsupported host or backend virtual-address envelopes stay as explicit refusal truth instead of being inferred from smaller-memory success cases"
+    }
+  ],
+  "exact_resume_parity_count": 2,
+  "exact_large_address_parity_count": 2,
+  "exact_refusal_parity_count": 1,
+  "checkpoint_family_id": "tassadar.memory64_resume.v1",
+  "profile_id": "tassadar.proposal_profile.memory64_continuation.v1",
+  "portability_envelope_id": "cpu_reference_current_host",
+  "generated_from_refs": [
+    "fixtures/tassadar/reports/tassadar_broad_internal_compute_portability_report.json",
+    "fixtures/tassadar/reports/tassadar_dynamic_memory_resume_report.json",
+    "fixtures/tassadar/reports/tassadar_execution_checkpoint_report.json",
+    "fixtures/tassadar/reports/tassadar_resumable_multi_slice_promotion_report.json",
+    "fixtures/tassadar/runs/tassadar_memory64_resume_v1/memory_grow_above_4g_resume_checkpoint_v1_checkpoint.json",
+    "fixtures/tassadar/runs/tassadar_memory64_resume_v1/memory_grow_above_4g_resume_checkpoint_v1_checkpoint_manifest.json",
+    "fixtures/tassadar/runs/tassadar_memory64_resume_v1/sparse_above_4g_resume_checkpoint_v1_checkpoint.json",
+    "fixtures/tassadar/runs/tassadar_memory64_resume_v1/sparse_above_4g_resume_checkpoint_v1_checkpoint_manifest.json",
+    "fixtures/tassadar/runs/tassadar_memory64_resume_v1/tassadar_memory64_resume_bundle.json"
+  ],
+  "claim_boundary": "this eval report covers one bounded single-memory memory64 continuation profile with sparse-window checkpoint artifacts and typed backend-limit refusal. It does not claim arbitrary Wasm memory64 closure, multi-memory support, or broader served publication",
+  "summary": "Memory64 profile report covers 3 case rows with exact_resume_parity_count=2, exact_large_address_parity_count=2, exact_refusal_parity_count=1.",
+  "report_digest": "f0dc1ec78ef605a487c0445df3ec09308a7e15d36109bab31ab5e76633b16478"
+}
