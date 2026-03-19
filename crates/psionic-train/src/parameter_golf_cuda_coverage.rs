@@ -1,8 +1,8 @@
 use psionic_core::{
-    PsionicRefusal, PsionicRefusalCode, PsionicRefusalScope,
-    builtin_quantization_capability_semantics_report,
+    builtin_quantization_capability_semantics_report, PsionicRefusal, PsionicRefusalCode,
+    PsionicRefusalScope,
 };
-use psionic_ir::{GraphError, builtin_advanced_operator_program_matrix_report};
+use psionic_ir::{builtin_advanced_operator_program_matrix_report, GraphError};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
@@ -195,10 +195,10 @@ pub fn builtin_parameter_golf_cuda_training_capability_report(
                     "the compact decoder baseline requires RMSNorm in the train-time forward or backward path",
                 ),
                 current_surface: String::from(
-                    "the Parameter Golf model family and CPU reference lane own RMSNorm semantics, but the public CUDA execution surface does not yet publish a widened RMSNorm kernel or backward contract for this lane",
+                    "the public CUDA execution backend now declares and executes backend-specialized dense f32 RMSNorm forward plans, and the Parameter Golf model family plus CPU reference lane own the broader RMSNorm semantics, but the backward and full train-path contracts are still missing on the public CUDA lane",
                 ),
                 boundary_note: String::from(
-                    "The current repo owns RMSNorm semantics, not full direct CUDA train-time RMSNorm closure.",
+                    "Forward RMSNorm is now real on the public CUDA lane, but that is still not backward or full train-time RMSNorm closure.",
                 ),
             },
             ParameterGolfCudaTrainingCoverageCase {
@@ -209,10 +209,10 @@ pub fn builtin_parameter_golf_cuda_training_capability_report(
                     "the compact decoder baseline requires residual addition plus learned residual-mix control tensors across the train-time path",
                 ),
                 current_surface: String::from(
-                    "simple add is inside the public builtin operator matrix, but the coupled residual-control decoder path still rides on CPU reference and IR evidence rather than a widened direct CUDA train path",
+                    "simple add is inside the public builtin operator matrix, and the public CUDA execution backend now also executes dense f32 pointwise mul for residual-control tensors, but the coupled decoder path still rides on CPU reference and IR evidence rather than a widened direct CUDA train path",
                 ),
                 boundary_note: String::from(
-                    "Treat residual support as seeded operator evidence only until the fused decoder path is widened on CUDA.",
+                    "Treat residual support as forward operator evidence only until the fused decoder path and backward lane are widened on CUDA.",
                 ),
             },
             ParameterGolfCudaTrainingCoverageCase {
@@ -265,17 +265,17 @@ where
 mod tests {
     use std::error::Error;
 
-    use psionic_core::{PsionicRefusalCode, builtin_quantization_capability_semantics_report};
+    use psionic_core::{builtin_quantization_capability_semantics_report, PsionicRefusalCode};
     use psionic_ir::builtin_advanced_operator_program_matrix_report;
 
     use crate::{
-        ParameterGolfCudaTrainingCoverageStatus,
         builtin_parameter_golf_cuda_training_capability_report,
+        ParameterGolfCudaTrainingCoverageStatus,
     };
 
     #[test]
-    fn parameter_golf_cuda_training_capability_report_tracks_required_families()
-    -> Result<(), Box<dyn Error>> {
+    fn parameter_golf_cuda_training_capability_report_tracks_required_families(
+    ) -> Result<(), Box<dyn Error>> {
         let report = builtin_parameter_golf_cuda_training_capability_report()?;
         assert_eq!(report.schema_version, 1);
         assert_eq!(report.cases.len(), 6);
@@ -296,14 +296,19 @@ mod tests {
     }
 
     #[test]
-    fn parameter_golf_cuda_training_capability_report_refuses_full_challenge_closure()
-    -> Result<(), Box<dyn Error>> {
+    fn parameter_golf_cuda_training_capability_report_refuses_full_challenge_closure(
+    ) -> Result<(), Box<dyn Error>> {
         let report = builtin_parameter_golf_cuda_training_capability_report()?;
         let refusal = report
             .challenge_readiness_refusal()
             .expect("current report should stay blocked");
-        assert_eq!(refusal.code, PsionicRefusalCode::UnsupportedBackendCapability);
-        assert!(refusal.detail.contains("cuda_bf16_train_precision_contract"));
+        assert_eq!(
+            refusal.code,
+            PsionicRefusalCode::UnsupportedBackendCapability
+        );
+        assert!(refusal
+            .detail
+            .contains("cuda_bf16_train_precision_contract"));
         Ok(())
     }
 }

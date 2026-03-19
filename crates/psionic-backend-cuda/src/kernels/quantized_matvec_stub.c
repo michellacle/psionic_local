@@ -446,6 +446,21 @@ int psionic_cuda_add_f32_offset_in_place(
     return 1;
 }
 
+int psionic_cuda_mul_f32(
+    const void *left,
+    const void *right,
+    int element_count,
+    void *output,
+    void *stream
+) {
+    (void)left;
+    (void)right;
+    (void)element_count;
+    (void)output;
+    (void)stream;
+    return 1;
+}
+
 int psionic_cuda_rope_neox_in_place(
     void *values,
     int element_offset,

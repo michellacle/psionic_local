@@ -929,6 +929,18 @@ __global__ void add_f32_offset_in_place_kernel(
     }
 }
 
+__global__ void mul_f32_kernel(
+    const float *left,
+    const float *right,
+    int element_count,
+    float *output
+) {
+    const int index = static_cast<int>(blockIdx.x) * blockDim.x + threadIdx.x;
+    if (index < element_count) {
+        output[index] = left[index] * right[index];
+    }
+}
+
 __global__ void rms_norm_kernel(
     const float *input,
     const float *weight,
@@ -4369,6 +4381,23 @@ extern "C" int psionic_cuda_add_f32_offset_in_place(
         element_offset,
         static_cast<const float *>(rhs),
         element_count
+    );
+    return static_cast<int>(cudaGetLastError());
+}
+
+extern "C" int psionic_cuda_mul_f32(
+    const void *left,
+    const void *right,
+    int element_count,
+    void *output,
+    void *stream
+) {
+    const int blocks = (element_count + kBlockSize - 1) / kBlockSize;
+    mul_f32_kernel<<<blocks, kBlockSize, 0, static_cast<cudaStream_t>(stream)>>>(
+        static_cast<const float *>(left),
+        static_cast<const float *>(right),
+        element_count,
+        static_cast<float *>(output)
     );
     return static_cast<int>(cudaGetLastError());
 }

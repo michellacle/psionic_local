@@ -21,14 +21,15 @@ use std::{collections::BTreeMap, fmt, io::ErrorKind, process::Command};
 
 use psionic_compiler::compile_graph;
 use psionic_core::{
-    DType, Device, DeviceKind, QuantizationMode, Shape, TensorData, TensorId, TensorSpec,
+    BackendExtensionKind, BackendExtensionOp, DType, Device, DeviceKind, QuantizationMode, Shape,
+    TensorData, TensorId, TensorSpec,
 };
 use psionic_ir::{ExecutionOp, ExecutionPlan, ExecutionStep, Graph};
 use psionic_runtime::{
     Allocator, AllocatorPoolPolicy, AllocatorPoolReport, AllocatorPoolState, BackendDegradedPolicy,
-    BackendName, BackendRuntimeResources, BackendSelection, BufferHandle, CacheAction, CacheKind,
-    CacheObservation, CompilePathEvidence, CompilePathTemperature, DeviceDescriptor,
-    DeviceDiscovery, DeviceMemoryBudget, ExecutionBackend, ExecutionMetrics,
+    BackendExtensionSupport, BackendName, BackendRuntimeResources, BackendSelection, BufferHandle,
+    CacheAction, CacheKind, CacheObservation, CompilePathEvidence, CompilePathTemperature,
+    DeviceDescriptor, DeviceDiscovery, DeviceMemoryBudget, ExecutionBackend, ExecutionMetrics,
     ExecutionPlanCachePolicy, ExecutionPlanCacheReport, ExecutionPlanCacheState, ExecutionResult,
     HealthStatus, KernelCachePolicy, KernelCacheReport, KernelCacheState, NvidiaBackendReport,
     NvidiaDeviceMetadata, NvidiaRecoveryAction, NvidiaRecoveryProfile, NvidiaRiskLevel,
@@ -52,7 +53,7 @@ const CUDA_EXECUTION_PLAN_CACHE_MAX_CACHED_BYTES: u64 = 1024 * 1024;
 
 /// Exact plan surface currently covered by the first CUDA-backed served-product
 /// milestone.
-pub const SUPPORTED_OPS: &[&str] = &["input", "constant", "matmul", "add"];
+pub const SUPPORTED_OPS: &[&str] = &["input", "constant", "matmul", "add", "mul", "rms_norm"];
 
 /// Dense op surface currently covered for the first CUDA-backed embeddings
 /// product path.
@@ -2366,6 +2367,12 @@ impl DeviceDiscovery for CudaBackend {
     fn runtime_resources(&self) -> Option<BackendRuntimeResources> {
         CudaBackend::runtime_resources(self)
     }
+
+    fn extension_support(&self) -> Vec<BackendExtensionSupport> {
+        vec![BackendExtensionSupport::backend_specialized(
+            BackendExtensionKind::RmsNorm,
+        )]
+    }
 }
 
 impl Allocator for CudaBackend {
@@ -2524,6 +2531,18 @@ impl AvailableCudaBackend {
                     submission.encoded_operations += 1;
                     values.insert(step.output, output);
                 }
+                ExecutionOp::Mul => {
+                    let (left, right) = binary_inputs(step, &values)?;
+                    let output = self.allocate(&step.spec)?;
+                    submission.platform.encode_mul(
+                        &left.platform,
+                        &right.platform,
+                        &output.platform,
+                        step.spec.element_count(),
+                    )?;
+                    submission.encoded_operations += 1;
+                    values.insert(step.output, output);
+                }
                 ExecutionOp::Matmul => {
                     let (left, right) = binary_inputs(step, &values)?;
                     let left_dims = left.spec().shape().dims();
@@ -2548,6 +2567,25 @@ impl AvailableCudaBackend {
                     submission.encoded_operations += 1;
                     values.insert(step.output, output);
                 }
+                ExecutionOp::BackendExtension { op } => match op {
+                    BackendExtensionOp::RmsNorm { epsilon } => {
+                        let input = step_input(step, &values, 0)?;
+                        let weight = step_input(step, &values, 1)?;
+                        let output = self.allocate(&step.spec)?;
+                        submission.platform.encode_rms_norm(
+                            &input.platform,
+                            &weight.platform,
+                            &output.platform,
+                            step.spec.element_count(),
+                            epsilon.to_f32(),
+                        )?;
+                        submission.encoded_operations += 1;
+                        values.insert(step.output, output);
+                    }
+                    _ => {
+                        return Err(RuntimeError::UnsupportedStep(step.op.label().to_string()));
+                    }
+                },
                 _ => {
                     return Err(RuntimeError::UnsupportedStep(step.op.label().to_string()));
                 }
@@ -2778,6 +2816,14 @@ fn validate_supported_step(step: &ExecutionStep) -> Result<(), RuntimeError> {
                 )));
             }
         }
+        ExecutionOp::Mul => {
+            if step.inputs.len() != 2 {
+                return Err(RuntimeError::Backend(format!(
+                    "cuda mul step {} requires two inputs",
+                    step.output
+                )));
+            }
+        }
         ExecutionOp::Matmul => {
             if step.inputs.len() != 2 {
                 return Err(RuntimeError::Backend(format!(
@@ -2794,6 +2840,19 @@ fn validate_supported_step(step: &ExecutionStep) -> Result<(), RuntimeError> {
                 )));
             }
         }
+        ExecutionOp::BackendExtension { op } => match op {
+            BackendExtensionOp::RmsNorm { .. } => {
+                if step.inputs.len() != 2 {
+                    return Err(RuntimeError::Backend(format!(
+                        "cuda rms_norm step {} requires two inputs",
+                        step.output
+                    )));
+                }
+            }
+            _ => {
+                return Err(RuntimeError::UnsupportedStep(step.op.label().to_string()));
+            }
+        },
         _ => {
             return Err(RuntimeError::UnsupportedStep(step.op.label().to_string()));
         }
@@ -2851,6 +2910,22 @@ fn binary_inputs<'a>(
         )));
     }
     Ok((left, right))
+}
+
+fn step_input<'a>(
+    step: &ExecutionStep,
+    values: &'a BTreeMap<TensorId, CudaBuffer>,
+    input_index: usize,
+) -> Result<&'a CudaBuffer, RuntimeError> {
+    let Some(input_id) = step.inputs.get(input_index).copied() else {
+        return Err(RuntimeError::Backend(format!(
+            "missing input index {input_index} for step {}",
+            step.output
+        )));
+    };
+    values
+        .get(&input_id)
+        .ok_or(RuntimeError::MissingInput(input_id))
 }
 
 fn discovery_report_internal() -> Result<NvidiaBackendReport, RuntimeError> {
@@ -3134,7 +3209,7 @@ fn parse_memory_bytes(value: &str) -> Option<u64> {
 #[cfg(target_os = "linux")]
 mod platform {
     use std::{
-        ffi::{CStr, c_char, c_int, c_void},
+        ffi::{c_char, c_int, c_void, CStr},
         sync::Arc,
     };
 
@@ -3398,6 +3473,13 @@ mod platform {
             weight: *const c_void,
             element_count: c_int,
             epsilon: f32,
+            output: *mut c_void,
+            stream: CudaStream,
+        ) -> CudaError;
+        fn psionic_cuda_mul_f32(
+            left: *const c_void,
+            right: *const c_void,
+            element_count: c_int,
             output: *mut c_void,
             stream: CudaStream,
         ) -> CudaError;
@@ -4196,6 +4278,34 @@ mod platform {
                     )
                 },
                 "cublasSgeam",
+            )
+        }
+
+        pub(super) fn encode_mul(
+            &mut self,
+            left: &PlatformBuffer,
+            right: &PlatformBuffer,
+            output: &PlatformBuffer,
+            element_count: usize,
+        ) -> Result<(), RuntimeError> {
+            if element_count == 0 {
+                return Ok(());
+            }
+            let element_count = c_int::try_from(element_count).map_err(|_| {
+                RuntimeError::Backend(String::from("cuda mul element count exceeds c_int"))
+            })?;
+            self.runtime.bind_stream(self.stream)?;
+            self.runtime.check(
+                unsafe {
+                    psionic_cuda_mul_f32(
+                        left.inner.device_ptr.cast(),
+                        right.inner.device_ptr.cast(),
+                        element_count,
+                        output.inner.device_ptr.cast(),
+                        self.stream,
+                    )
+                },
+                "psionic_cuda_mul_f32",
             )
         }
 
@@ -6703,6 +6813,18 @@ mod platform {
             )))
         }
 
+        pub(super) fn encode_mul(
+            &mut self,
+            _left: &PlatformBuffer,
+            _right: &PlatformBuffer,
+            _output: &PlatformBuffer,
+            _element_count: usize,
+        ) -> Result<(), RuntimeError> {
+            Err(RuntimeError::Backend(String::from(
+                "cuda runtime substrate currently requires Linux libcudart",
+            )))
+        }
+
         pub(super) fn encode_matmul(
             &mut self,
             _left: &PlatformBuffer,
@@ -7362,18 +7484,20 @@ mod platform {
 
 #[cfg(test)]
 mod tests {
-    use psionic_backend_cpu::CpuBackend;
     use psionic_backend_cpu::decode_quantized_row_into;
     use psionic_backend_cpu::quantized_row_dot;
+    use psionic_backend_cpu::CpuBackend;
     use psionic_compiler::compile_graph;
-    use psionic_core::{DType, DeviceKind, QuantizationMode, Shape, TensorSpec};
+    use psionic_core::{
+        BackendExtensionKind, DType, DeviceKind, QuantizationMode, Shape, TensorSpec,
+    };
     use psionic_ir::GraphBuilder;
 
     use super::CudaMemorySpace;
     use super::{
-        CudaBackend, CudaCommandStatus, CudaCommandWait, HealthStatus, SUPPORTED_OPS,
         architecture_from_compute_capability, cuda_health, parse_inventory_row, parse_mig_profile,
-        recovery_profile, risk_profile, validate_supported_plan,
+        recovery_profile, risk_profile, validate_supported_plan, CudaBackend, CudaCommandStatus,
+        CudaCommandWait, HealthStatus, SUPPORTED_OPS,
     };
     use psionic_core::Device;
     use psionic_runtime::{
@@ -7422,12 +7546,10 @@ mod tests {
     fn risk_profile_marks_display_and_mig_devices_as_elevated() {
         let display_risk = risk_profile(Some(true), None, Some(false));
         assert_eq!(display_risk.level, NvidiaRiskLevel::Elevated);
-        assert!(
-            display_risk
-                .warnings
-                .iter()
-                .any(|warning| warning.contains("display-attached"))
-        );
+        assert!(display_risk
+            .warnings
+            .iter()
+            .any(|warning| warning.contains("display-attached")));
 
         let mig_risk = risk_profile(Some(false), Some("1g.10gb"), Some(true));
         assert_eq!(mig_risk.level, NvidiaRiskLevel::Elevated);
@@ -7450,7 +7572,10 @@ mod tests {
 
     #[test]
     fn cuda_dense_surface_is_documented() {
-        assert_eq!(SUPPORTED_OPS, &["input", "constant", "matmul", "add"]);
+        assert_eq!(
+            SUPPORTED_OPS,
+            &["input", "constant", "matmul", "add", "mul", "rms_norm"]
+        );
     }
 
     #[test]
@@ -7458,27 +7583,24 @@ mod tests {
         let device = Device::new(DeviceKind::Cuda, 0, Some(String::from("cuda:0")));
         let mut builder = GraphBuilder::new(device);
         let input = builder.input("features", Shape::new(vec![1, 2]), DType::F32);
-        let weights = builder.constant_f32(Shape::new(vec![1, 2]), vec![1.0, 0.0])?;
-        let unsupported = builder.mul(&input, &weights)?;
+        let unsupported = builder.reshape(&input, Shape::new(vec![2]))?;
         let graph = builder.finish(vec![unsupported]);
         let plan = compile_graph(&graph)?;
-        let error = validate_supported_plan(&plan).expect_err("mul should be rejected");
+        let error = validate_supported_plan(&plan).expect_err("reshape should be rejected");
         assert_eq!(
             error,
-            psionic_runtime::RuntimeError::UnsupportedStep(String::from("mul"))
+            psionic_runtime::RuntimeError::UnsupportedStep(String::from("reshape"))
         );
         Ok(())
     }
 
     #[test]
     fn cuda_health_is_degraded_when_a_discovered_device_is_elevated() {
-        let devices = vec![
-            parse_inventory_row(
-                "0, NVIDIA GeForce RTX 4080, 00000000:01:00.0, 16376, 8.9, Yes, [N/A], Disabled, HMM",
-            )
-            .expect("inventory row should parse")
-            .into_device_descriptor(),
-        ];
+        let devices = vec![parse_inventory_row(
+            "0, NVIDIA GeForce RTX 4080, 00000000:01:00.0, 16376, 8.9, Yes, [N/A], Disabled, HMM",
+        )
+        .expect("inventory row should parse")
+        .into_device_descriptor()];
         let health = cuda_health(&devices);
         assert_eq!(health.status, HealthStatus::Degraded);
         assert!(health.message.contains("display-attached"));
@@ -7519,8 +7641,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_backend_selection_reports_ready_or_degraded_cuda_when_available()
-    -> Result<(), psionic_runtime::RuntimeError> {
+    fn cuda_backend_selection_reports_ready_or_degraded_cuda_when_available(
+    ) -> Result<(), psionic_runtime::RuntimeError> {
         let backend = CudaBackend::new();
         let Some(_) = backend.selected_device() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -7567,8 +7689,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_backend_fallback_selection_reports_explicit_cpu_fallback_when_unavailable()
-    -> Result<(), psionic_runtime::RuntimeError> {
+    fn cuda_backend_fallback_selection_reports_explicit_cpu_fallback_when_unavailable(
+    ) -> Result<(), psionic_runtime::RuntimeError> {
         let backend = CudaBackend::new();
         if backend.selected_device().is_none() {
             let cpu = CpuBackend::new();
@@ -7601,8 +7723,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_backend_allocates_and_submits_copy_when_available()
-    -> Result<(), psionic_runtime::RuntimeError> {
+    fn cuda_backend_allocates_and_submits_copy_when_available(
+    ) -> Result<(), psionic_runtime::RuntimeError> {
         let mut backend = CudaBackend::new();
         let Some(device) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -7659,8 +7781,93 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_executes_f16_rhs_matmul_when_available()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_backend_executes_mul_when_available() -> Result<(), Box<dyn std::error::Error>> {
+        let mut backend = CudaBackend::new();
+        let Some(selected) = backend.selected_device().cloned() else {
+            assert_eq!(backend.health().status, HealthStatus::Offline);
+            return Ok(());
+        };
+
+        let mut builder = GraphBuilder::new(selected.device.clone());
+        let input = builder.input("features", Shape::new(vec![1, 3]), DType::F32);
+        let scale = builder.constant_f32(Shape::new(vec![1, 3]), vec![2.0, -1.0, 0.5])?;
+        let scaled = builder.mul(&input, &scale)?;
+        let graph = builder.finish(vec![scaled.clone()]);
+
+        let mut inputs = std::collections::BTreeMap::new();
+        inputs.insert(
+            input.id(),
+            backend.input_buffer(Shape::new(vec![1, 3]), vec![1.5, 2.0, -4.0])?,
+        );
+
+        let result = backend.compile_and_execute(&graph, &inputs)?;
+        let output = result
+            .outputs
+            .get(&scaled.id())
+            .ok_or("missing cuda mul output")?;
+        assert_eq!(output.read_f32()?, vec![3.0, -2.0, -2.0]);
+        Ok(())
+    }
+
+    #[test]
+    fn cuda_backend_executes_rms_norm_backend_extension_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let mut backend = CudaBackend::new();
+        let Some(selected) = backend.selected_device().cloned() else {
+            assert_eq!(backend.health().status, HealthStatus::Offline);
+            return Ok(());
+        };
+
+        let mut builder = GraphBuilder::new(selected.device.clone());
+        let input = builder.input("features", Shape::new(vec![1, 4]), DType::F32);
+        let weight = builder.constant_f32(Shape::new(vec![4]), vec![1.0, 2.0, 3.0, 4.0])?;
+        let normalized = builder.rms_norm(&input, &weight, 1e-5)?;
+        let graph = builder.finish(vec![normalized.clone()]);
+
+        let input_values = vec![1.0_f32, -2.0, 0.5, 4.0];
+        let mut inputs = std::collections::BTreeMap::new();
+        inputs.insert(
+            input.id(),
+            backend.input_buffer(Shape::new(vec![1, 4]), input_values.clone())?,
+        );
+
+        let result = backend.compile_and_execute(&graph, &inputs)?;
+        let output = result
+            .outputs
+            .get(&normalized.id())
+            .ok_or("missing cuda rms_norm output")?;
+        let mean_square =
+            input_values.iter().map(|value| value * value).sum::<f32>() / input_values.len() as f32;
+        let inv_rms = 1.0_f32 / (mean_square + 1e-5).sqrt();
+        let expected = input_values
+            .iter()
+            .zip([1.0_f32, 2.0, 3.0, 4.0].iter())
+            .map(|(input, weight)| input * weight * inv_rms)
+            .collect::<Vec<_>>();
+        assert_close(&output.read_f32()?, &expected, 1e-5);
+        Ok(())
+    }
+
+    #[test]
+    fn cuda_backend_reports_rms_norm_extension_support_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let backend = CudaBackend::new();
+        if backend.selected_device().is_none() {
+            assert_eq!(backend.health().status, HealthStatus::Offline);
+            return Ok(());
+        }
+
+        let selection = backend.backend_selection(SUPPORTED_OPS)?;
+        assert!(selection
+            .backend_extensions
+            .iter()
+            .any(|support| support.kind == BackendExtensionKind::RmsNorm));
+        Ok(())
+    }
+
+    #[test]
+    fn cuda_submission_executes_f16_rhs_matmul_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -7690,8 +7897,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_backend_executes_multiple_matmuls_and_adds_when_available()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_backend_executes_multiple_matmuls_and_adds_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -7761,8 +7968,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_backend_executes_q8_0_quantized_matvec_when_available()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_backend_executes_q8_0_quantized_matvec_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -7826,8 +8033,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_backend_executes_mxfp4_quantized_matvec_when_available()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_backend_executes_mxfp4_quantized_matvec_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -7891,8 +8098,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_backend_gathers_f16_row_into_f32_when_available()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_backend_gathers_f16_row_into_f32_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -7944,8 +8151,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_executes_argmax_for_wide_rows_when_available()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_executes_argmax_for_wide_rows_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -7971,8 +8178,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_executes_add_residual_rms_norm_when_available()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_executes_add_residual_rms_norm_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -8024,8 +8231,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_fused_attention_matches_separate_rope_attention_and_cache_path_when_available()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_fused_attention_matches_separate_rope_attention_and_cache_path_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -8167,8 +8374,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_fused_attention_f16_kv_q8_1_matches_separate_attention_and_quantize_when_available()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_fused_attention_f16_kv_q8_1_matches_separate_attention_and_quantize_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -8291,8 +8498,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_fused_attention_graph_f16_kv_q8_1_matches_separate_attention_and_quantize_when_available()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_fused_attention_graph_f16_kv_q8_1_matches_separate_attention_and_quantize_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -8414,8 +8621,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_fused_add_residual_rms_norm_q8_1_router_topk_matches_separate_kernels_when_available()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_fused_add_residual_rms_norm_q8_1_router_topk_matches_separate_kernels_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -8547,8 +8754,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_router_topk_delayed_softmax_matches_fused_router_kernel_when_available()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_router_topk_delayed_softmax_matches_fused_router_kernel_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -8647,8 +8854,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_executes_q8_0_quantized_matvec_q8_1_fast_path_when_available()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_executes_q8_0_quantized_matvec_q8_1_fast_path_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -8691,8 +8898,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_executes_q8_0_quantized_matvec_q8_1_fast_path_with_bias_when_available()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_executes_q8_0_quantized_matvec_q8_1_fast_path_with_bias_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -8737,8 +8944,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_executes_q8_0_quantized_matvec_q8_1_argmax_fast_path_when_available()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_executes_q8_0_quantized_matvec_q8_1_argmax_fast_path_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -8796,8 +9003,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_executes_mxfp4_quantized_matvec_q8_1_fast_path_when_available()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_executes_mxfp4_quantized_matvec_q8_1_fast_path_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -8840,8 +9047,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_executes_q8_0_quantized_matvec_q8_1_fast_path_for_multi_block_rows_when_available()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_executes_q8_0_quantized_matvec_q8_1_fast_path_for_multi_block_rows_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -8890,8 +9097,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_executes_mxfp4_quantized_matvec_q8_1_fast_path_for_multi_block_rows_when_available()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_executes_mxfp4_quantized_matvec_q8_1_fast_path_for_multi_block_rows_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -8940,8 +9147,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_executes_mxfp4_moe_gate_up_swiglu_q8_1_when_available()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_executes_mxfp4_moe_gate_up_swiglu_q8_1_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -8997,8 +9204,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_executes_mxfp4_expert_gate_up_swiglu_q8_1_ids_when_available()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_executes_mxfp4_expert_gate_up_swiglu_q8_1_ids_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -9082,8 +9289,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_executes_mxfp4_moe_down_aggregate_q8_1_when_available()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_executes_mxfp4_moe_down_aggregate_q8_1_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -9148,8 +9355,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_executes_mxfp4_moe_down_aggregate_q8_1_f32_selected4_path_when_available()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_executes_mxfp4_moe_down_aggregate_q8_1_f32_selected4_path_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -9203,8 +9410,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_executes_mxfp4_moe_down_aggregate_q8_1_grouped_selected_path_when_available()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_executes_mxfp4_moe_down_aggregate_q8_1_grouped_selected_path_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -9269,8 +9476,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_executes_mxfp4_grouped_expert_matvec_and_accumulate_when_available()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_executes_mxfp4_grouped_expert_matvec_and_accumulate_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
