@@ -48,6 +48,12 @@ graph directly through dense `add`/`mul` plus CUDA backward graphs when the
 residual-control tensors are already materialized to activation shape, so the
 explicit residual-mix blocker is also retired.
 
+The public CUDA backend now also executes one bounded dense `f32`
+non-interleaved RoPE plus causal grouped-query decoder block by packing the
+baseline self-attention token slices into the existing decode-kernel surface,
+so the old "no public decoder-block execution" gap is no longer the honest
+attention blocker.
+
 That means the remaining CUDA train-path blockers are now machine-readable on
 the same benchmark seam that already carries topology, communication,
 wallclock, and memory facts.
@@ -66,7 +72,7 @@ The report now keeps the following families explicit:
 The current canonical blocker set is:
 
 - `cuda_bf16_train_precision_contract`
-- `cuda_rope_gqa_attention_block`
+- `cuda_rope_gqa_decoder_block_reverse_mode`
 - `cuda_muon_optimizer_path`
 
 ## Current Honest Boundary
@@ -82,12 +88,13 @@ Today it keeps these truths separate:
     path
   - post-train quantized export or roundtrip support is real
 - `partial`
-  - BF16 policy, attention or RoPE program shape, and Muon semantics all have
+  - BF16 policy, bounded RoPE/GQA forward closure, and Muon semantics all have
     explicit substrate or refusal contracts
   - the public CUDA execution backend now genuinely owns dense `f32`
     pointwise `mul` plus bounded dense contiguous `f32` RMSNorm forward and
-    backward execution, plus one bounded residual-mix graph, but the full
-    decoder or optimizer train path is still narrower than the Parameter Golf
+    backward execution, one bounded residual-mix graph, and one bounded
+    causal RoPE/GQA decoder-block forward path, but the full decoder reverse-
+    mode or optimizer train path is still narrower than the Parameter Golf
     challenge lane
 
 This is the intended contract for the issue: do not hide missing CUDA kernels
@@ -105,6 +112,8 @@ Without this report, the repo could say all of these misleading things:
 - an IR or meta-program proof means the direct CUDA kernel exists
 - one forward CUDA surface widening means the whole decoder block now trains on
   CUDA
+- one bounded forward RoPE/GQA decoder block means reverse-mode closure now
+  exists for that block
 - one bounded RMSNorm closure means the whole decoder block now trains on CUDA
 - one bounded full-shape residual-mix graph means generic broadcast or fused
   decoder closure now exists

@@ -3,16 +3,13 @@ use psionic_collectives::{
 };
 use psionic_core::{DType, Device, DeviceKind, Shape, TensorSpec};
 use psionic_eval::{
-    PARAMETER_GOLF_CHALLENGE_REVIEW_BENCHMARK_REF,
-    PARAMETER_GOLF_DISTRIBUTED_8XH100_BENCHMARK_REF,
-    PARAMETER_GOLF_DISTRIBUTED_8XH100_CLAIM_BOUNDARY,
-    ParameterGolfDistributedChallengeThresholds,
+    PARAMETER_GOLF_CHALLENGE_REVIEW_BENCHMARK_REF, PARAMETER_GOLF_DISTRIBUTED_8XH100_BENCHMARK_REF,
+    PARAMETER_GOLF_DISTRIBUTED_8XH100_CLAIM_BOUNDARY, ParameterGolfDistributedChallengeThresholds,
     ParameterGolfDistributedCommunicationReceipt,
-    ParameterGolfDistributedCommunicationStageReceipt,
-    ParameterGolfDistributedLaneDisposition, ParameterGolfDistributedLaneRefusal,
-    ParameterGolfDistributedLaneRefusalKind, ParameterGolfDistributedMemoryReceipt,
-    ParameterGolfDistributedThroughputReceipt, ParameterGolfDistributedTimingReceipt,
-    ParameterGolfDistributedTopologyReceipt,
+    ParameterGolfDistributedCommunicationStageReceipt, ParameterGolfDistributedLaneDisposition,
+    ParameterGolfDistributedLaneRefusal, ParameterGolfDistributedLaneRefusalKind,
+    ParameterGolfDistributedMemoryReceipt, ParameterGolfDistributedThroughputReceipt,
+    ParameterGolfDistributedTimingReceipt, ParameterGolfDistributedTopologyReceipt,
 };
 use psionic_ir::GraphError;
 use psionic_models::ParameterGolfModelDescriptor;
@@ -34,15 +31,14 @@ use crate::{
     TrainingDistributedOptimizerKind, TrainingGradientAccumulationPolicy,
     TrainingGradientAccumulationReduction, TrainingLoopBudget, TrainingOptimizerConfig,
     TrainingOptimizerResidencyPolicy, TrainingOptimizerShardResidency,
-    TrainingOptimizerStateShardKind, TrainingOptimizerStateShardLayout, TrainingParameterGroupState,
-    TrainingParameterShardKind, TrainingParameterShardLayout,
+    TrainingOptimizerStateShardKind, TrainingOptimizerStateShardLayout,
+    TrainingParameterGroupState, TrainingParameterShardKind, TrainingParameterShardLayout,
     TrainingPrecisionPolicy, TrainingShardPlacement, TrainingShardRange, TrainingTensorBuffer,
     builtin_parameter_golf_cuda_training_capability_report, parameter_golf_optimizer_plan,
 };
 
 /// Stable version identifier for the distributed `8xH100` receipt lane.
-pub const PARAMETER_GOLF_DISTRIBUTED_8XH100_VERSION: &str =
-    "2026.03.18.distributed_8xh100.v1";
+pub const PARAMETER_GOLF_DISTRIBUTED_8XH100_VERSION: &str = "2026.03.18.distributed_8xh100.v1";
 
 const PARAMETER_GOLF_DISTRIBUTED_CHECKPOINT_FAMILY: &str =
     "train.parameter_golf.distributed_8xh100";
@@ -131,7 +127,9 @@ impl ParameterGolfDistributed8xH100Config {
                 return Err(ParameterGolfDistributedLaneError::InvalidStepObservation {
                     message: format!(
                         "step {} finished_at_ms={} is earlier than started_at_ms={}",
-                        observation.global_step, observation.finished_at_ms, observation.started_at_ms
+                        observation.global_step,
+                        observation.finished_at_ms,
+                        observation.started_at_ms
                     ),
                 });
             }
@@ -206,7 +204,12 @@ pub fn benchmark_parameter_golf_distributed_8xh100(
     let matrix_parameter_count = optimizer_plan
         .groups
         .iter()
-        .find(|group| matches!(group.execution, ParameterGolfOptimizerExecution::Muon { .. }))
+        .find(|group| {
+            matches!(
+                group.execution,
+                ParameterGolfOptimizerExecution::Muon { .. }
+            )
+        })
         .map_or(0_u64, |group| group.parameter_count as u64);
     let total_parameter_count = optimizer_plan.total_parameter_count as u64;
     let ddp_gradient_payload_bytes = total_parameter_count.saturating_mul(2);
@@ -228,11 +231,9 @@ pub fn benchmark_parameter_golf_distributed_8xh100(
         total_parameter_count,
     )?;
     let timing = build_timing_receipt(config);
-    let mut boundary_notes = vec![
-        String::from(
-            "This receipt mirrors the public train_gpt.py 8xH100 posture: replicated DDP, WORLD_SIZE=8, grad_accum_steps=1, NCCL-style all-reduce for training and validation.",
-        ),
-    ];
+    let mut boundary_notes = vec![String::from(
+        "This receipt mirrors the public train_gpt.py 8xH100 posture: replicated DDP, WORLD_SIZE=8, grad_accum_steps=1, NCCL-style all-reduce for training and validation.",
+    )];
     boundary_notes.extend(cuda_coverage_report.boundary_notes());
     boundary_notes.push(String::from(
         "The memory receipt is an analytic upper bound over the distributed optimizer contract; it is not a direct CUDA allocator trace.",
@@ -335,7 +336,9 @@ fn validate_distributed_geometry(
             message: String::from("train_sequence_length must be positive"),
         });
     }
-    let denom = geometry.world_size.saturating_mul(geometry.grad_accum_steps);
+    let denom = geometry
+        .world_size
+        .saturating_mul(geometry.grad_accum_steps);
     if geometry.train_batch_tokens == 0
         || geometry.train_batch_tokens % denom != 0
         || geometry.local_train_batch_tokens() < geometry.train_sequence_length
@@ -384,8 +387,9 @@ fn distributed_backend_selection(
                 .collect(),
         )
     });
-    let all_devices_match_required_model =
-        devices.iter().all(|device| device_matches_h100(device, thresholds));
+    let all_devices_match_required_model = devices
+        .iter()
+        .all(|device| device_matches_h100(device, thresholds));
     let rejection_reason = if capability_profile.runtime_backend != thresholds.required_backend {
         Some(format!(
             "cluster capability profile targets backend `{}` instead of required `{}`",
@@ -495,7 +499,9 @@ fn build_communication_receipt(
         1,
         format!("{mesh_id}.cluster_state"),
         format!("{mesh_id}.topology"),
-        (0..devices.len()).map(|rank| format!("rank-{rank}")).collect(),
+        (0..devices.len())
+            .map(|rank| format!("rank-{rank}"))
+            .collect(),
     );
     planner.observe_mesh(elastic_membership, members)?;
     let ddp_collective = planner.plan_collective(
@@ -595,7 +601,8 @@ fn build_memory_receipt(
             )
         })
         .collect::<Result<Vec<_>, _>>()?;
-    let collective_sync_plan = build_collective_sync_plan(total_parameter_count, geometry.world_size)?;
+    let collective_sync_plan =
+        build_collective_sync_plan(total_parameter_count, geometry.world_size)?;
     let contract = DistributedOptimizerContract::new(
         "optimizer://openagents/parameter_golf/distributed_8xh100",
         TrainingDistributedOptimizerKind::DataParallel,
@@ -697,7 +704,9 @@ fn build_collective_sync_plan(
     )
     .with_transport(ClusterTransportClass::Loopback);
     let members = (0..world_size)
-        .map(|rank| CollectiveMeshMember::new(format!("rank-{rank}"), rank, rank, format!("cuda:{rank}")))
+        .map(|rank| {
+            CollectiveMeshMember::new(format!("rank-{rank}"), rank, rank, format!("cuda:{rank}"))
+        })
         .collect::<Vec<_>>();
     planner.observe_mesh(
         TrainingElasticMembershipContext::new(
@@ -837,10 +846,16 @@ mod tests {
             rope_base: 10_000.0,
             qk_gain_init: 1.5,
         };
-        let weights =
-            ParameterGolfWeights::from_initializer(&config, ParameterGolfDeterministicInitializer::default())?;
+        let weights = ParameterGolfWeights::from_initializer(
+            &config,
+            ParameterGolfDeterministicInitializer::default(),
+        )?;
         Ok(ParameterGolfReferenceModel::new(
-            ModelDescriptor::new("parameter-golf-distributed-test", "parameter_golf_decoder", "test"),
+            ModelDescriptor::new(
+                "parameter-golf-distributed-test",
+                "parameter_golf_decoder",
+                "test",
+            ),
             config,
             weights,
         )?)
@@ -897,13 +912,18 @@ mod tests {
 
     fn capability_profile() -> ClusterExecutionCapabilityProfile {
         ClusterExecutionCapabilityProfile::new("cuda")
-            .with_supported_communication_classes(vec![ClusterCommunicationClass::TensorCollectiveMesh])
+            .with_supported_communication_classes(vec![
+                ClusterCommunicationClass::TensorCollectiveMesh,
+            ])
             .with_detail("single-node nccl-style all-reduce mesh")
     }
 
     fn measured_config() -> ParameterGolfDistributed8xH100Config {
         let mut config = ParameterGolfDistributed8xH100Config::challenge_defaults();
-        config.run_id = format!("parameter-golf-distributed-test-{}", PARAMETER_GOLF_DISTRIBUTED_8XH100_VERSION);
+        config.run_id = format!(
+            "parameter-golf-distributed-test-{}",
+            PARAMETER_GOLF_DISTRIBUTED_8XH100_VERSION
+        );
         config.mesh_id = String::from("mesh.parameter_golf.test");
         config.geometry = ParameterGolfBatchGeometry {
             world_size: 8,
@@ -923,8 +943,7 @@ mod tests {
     }
 
     #[test]
-    fn parameter_golf_distributed_8xh100_lane_measures_ddp_posture() -> Result<(), Box<dyn Error>>
-    {
+    fn parameter_golf_distributed_8xh100_lane_measures_ddp_posture() -> Result<(), Box<dyn Error>> {
         let model = sample_model()?;
         let devices = (0..8).map(sample_h100_device).collect::<Vec<_>>();
         let receipt = benchmark_parameter_golf_distributed_8xh100(
@@ -934,7 +953,10 @@ mod tests {
             &capability_profile(),
             &measured_config(),
         )?;
-        assert_eq!(receipt.disposition, ParameterGolfDistributedLaneDisposition::Measured);
+        assert_eq!(
+            receipt.disposition,
+            ParameterGolfDistributedLaneDisposition::Measured
+        );
         assert_eq!(
             receipt.topology.backend_selection.selection_state,
             BackendSelectionState::Direct
@@ -944,21 +966,36 @@ mod tests {
         assert_eq!(receipt.communication.axes[0].axis_id, "dp");
         assert_eq!(receipt.communication.axes[0].extent, 8);
         assert_eq!(receipt.communication.stages.len(), 3);
-        assert_eq!(receipt.communication.stages[0].stage_id, "ddp_gradient_all_reduce");
+        assert_eq!(
+            receipt.communication.stages[0].stage_id,
+            "ddp_gradient_all_reduce"
+        );
         assert_eq!(
             receipt.communication.stages[1].stage_id,
             "muon_matrix_update_all_reduce"
         );
         assert!(!receipt.training_capability_report_digest.is_empty());
-        assert!(receipt
-            .challenge_kernel_blockers
-            .contains(&String::from("cuda_bf16_train_precision_contract")));
+        assert!(
+            receipt
+                .challenge_kernel_blockers
+                .contains(&String::from("cuda_bf16_train_precision_contract"))
+        );
         assert!(receipt.boundary_notes.iter().any(|note| {
-            note.contains("cuda_rope_gqa_attention_block")
+            note.contains("cuda_rope_gqa_decoder_block_reverse_mode")
                 || note.contains("cuda_bf16_train_precision_contract")
         }));
-        assert!(receipt.timing.as_ref().is_some_and(|timing| timing.within_wallclock_cap));
-        assert!(receipt.memory.as_ref().is_some_and(|memory| memory.within_device_budget));
+        assert!(
+            receipt
+                .timing
+                .as_ref()
+                .is_some_and(|timing| timing.within_wallclock_cap)
+        );
+        assert!(
+            receipt
+                .memory
+                .as_ref()
+                .is_some_and(|memory| memory.within_device_budget)
+        );
         assert!(receipt.refusal.is_none());
         Ok(())
     }
@@ -975,7 +1012,10 @@ mod tests {
             &capability_profile(),
             &measured_config(),
         )?;
-        assert_eq!(receipt.disposition, ParameterGolfDistributedLaneDisposition::Refused);
+        assert_eq!(
+            receipt.disposition,
+            ParameterGolfDistributedLaneDisposition::Refused
+        );
         let refusal = receipt.refusal.expect("refusal should be present");
         assert_eq!(
             refusal.refusal_kind,
@@ -998,7 +1038,10 @@ mod tests {
             &capability_profile(),
             &config,
         )?;
-        assert_eq!(receipt.disposition, ParameterGolfDistributedLaneDisposition::Refused);
+        assert_eq!(
+            receipt.disposition,
+            ParameterGolfDistributedLaneDisposition::Refused
+        );
         assert!(receipt.timing.is_some());
         let refusal = receipt.refusal.expect("refusal should be present");
         assert_eq!(

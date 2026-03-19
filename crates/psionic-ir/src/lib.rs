@@ -4512,8 +4512,9 @@ fn meta_execute_backend_extension(
                 && value_dims.len() == 4
                 && query_dims[0] == key_dims[0]
                 && query_dims[0] == value_dims[0]
-                && query_dims[1] == key_dims[1]
-                && query_dims[1] == value_dims[1]
+                && key_dims[1] == value_dims[1]
+                && key_dims[1] > 0
+                && query_dims[1].is_multiple_of(key_dims[1])
                 && key_dims[2] == value_dims[2]
                 && query_dims[3] == key_dims[3];
             if !valid {
@@ -5334,17 +5335,17 @@ pub fn builtin_operator_parity_matrix_report() -> Result<OperatorParityMatrixRep
         TensorSpec::new(Shape::new(vec![4, 2]), DType::F32, Device::cpu()),
     )?);
     cases.push(run_operator_parity_supported_case(
-        "pytorch.scaled_dot_product_attention.rank4",
+        "pytorch.scaled_dot_product_attention.rank4_gqa",
         "scaled_dot_product_attention",
         "all_builtin",
         MetaCapabilityProfile::all_builtin(),
         |builder| {
-            let query = builder.input("query", Shape::new(vec![1, 2, 4, 8]), DType::F32);
+            let query = builder.input("query", Shape::new(vec![1, 4, 4, 8]), DType::F32);
             let key = builder.input("key", Shape::new(vec![1, 2, 4, 8]), DType::F32);
-            let value = builder.input("value", Shape::new(vec![1, 2, 4, 16]), DType::F32);
+            let value = builder.input("value", Shape::new(vec![1, 2, 4, 8]), DType::F32);
             builder.scaled_dot_product_attention(&query, &key, &value, 1.0, false)
         },
-        TensorSpec::new(Shape::new(vec![1, 2, 4, 16]), DType::F32, Device::cpu()),
+        TensorSpec::new(Shape::new(vec![1, 4, 4, 8]), DType::F32, Device::cpu()),
     )?);
     cases.push(run_operator_parity_refusal_case(
         "pytorch.rms_norm.backend_kernel_missing",
@@ -5372,8 +5373,8 @@ pub fn builtin_operator_parity_matrix_report() -> Result<OperatorParityMatrixRep
 
 /// Returns the seeded advanced operator-program matrix report for the current
 /// bounded Psionic semantics surface.
-pub fn builtin_advanced_operator_program_matrix_report(
-) -> Result<AdvancedOperatorProgramMatrixReport, GraphError> {
+pub fn builtin_advanced_operator_program_matrix_report()
+-> Result<AdvancedOperatorProgramMatrixReport, GraphError> {
     let mut cases = Vec::new();
 
     cases.push(run_advanced_operator_program_supported_case(
@@ -5402,37 +5403,37 @@ pub fn builtin_advanced_operator_program_matrix_report(
         TensorSpec::new(Shape::new(vec![2, 4]), DType::F32, Device::cpu()),
     )?);
     cases.push(run_advanced_operator_program_supported_case(
-        "pytorch.attention.rotary_residual_block.rank4",
+        "pytorch.attention.rotary_residual_block.rank4_gqa",
         AdvancedOperatorProgramFamily::Attention,
         "attention_rotary_residual_block",
         "all_builtin",
         MetaCapabilityProfile::all_builtin(),
         |builder| {
-            let query = builder.input("query", Shape::new(vec![1, 2, 4, 8]), DType::F32);
+            let query = builder.input("query", Shape::new(vec![1, 4, 4, 8]), DType::F32);
             let key = builder.input("key", Shape::new(vec![1, 2, 4, 8]), DType::F32);
-            let value = builder.input("value", Shape::new(vec![1, 2, 4, 16]), DType::F32);
+            let value = builder.input("value", Shape::new(vec![1, 2, 4, 8]), DType::F32);
             let cos = builder.input("cos", Shape::new(vec![4, 4]), DType::F32);
             let sin = builder.input("sin", Shape::new(vec![4, 4]), DType::F32);
-            let residual = builder.input("residual", Shape::new(vec![1, 2, 4, 16]), DType::F32);
+            let residual = builder.input("residual", Shape::new(vec![1, 4, 4, 8]), DType::F32);
             builder.attention_rotary_residual_block(
                 &query, &key, &value, &cos, &sin, &residual, 0.5, true,
             )
         },
-        TensorSpec::new(Shape::new(vec![1, 2, 4, 16]), DType::F32, Device::cpu()),
+        TensorSpec::new(Shape::new(vec![1, 4, 4, 8]), DType::F32, Device::cpu()),
     )?);
     cases.push(run_advanced_operator_program_refusal_case(
-        "pytorch.attention.rotary_residual_block.backend_missing",
+        "pytorch.attention.rotary_residual_block.backend_missing_gqa",
         AdvancedOperatorProgramFamily::Attention,
         "attention_rotary_residual_block",
         "add_only",
         MetaCapabilityProfile::empty().with_supported_backend_kernels(["add"]),
         |builder| {
-            let query = builder.input("query", Shape::new(vec![1, 2, 4, 8]), DType::F32);
+            let query = builder.input("query", Shape::new(vec![1, 4, 4, 8]), DType::F32);
             let key = builder.input("key", Shape::new(vec![1, 2, 4, 8]), DType::F32);
-            let value = builder.input("value", Shape::new(vec![1, 2, 4, 16]), DType::F32);
+            let value = builder.input("value", Shape::new(vec![1, 2, 4, 8]), DType::F32);
             let cos = builder.input("cos", Shape::new(vec![4, 4]), DType::F32);
             let sin = builder.input("sin", Shape::new(vec![4, 4]), DType::F32);
-            let residual = builder.input("residual", Shape::new(vec![1, 2, 4, 16]), DType::F32);
+            let residual = builder.input("residual", Shape::new(vec![1, 4, 4, 8]), DType::F32);
             builder.attention_rotary_residual_block(
                 &query, &key, &value, &cos, &sin, &residual, 0.5, true,
             )
@@ -5748,19 +5749,19 @@ mod tests {
     use psionic_core::{Device, PsionicRefusalCode, PsionicRefusalScope, QuantizationMode};
 
     use super::{
+        AdvancedOperatorProgramStatus, DType, ExecutionOp, ExecutionPlan, ExecutionStep,
+        ExtensionContractKind, FunctionalTensorKind, FunctionalizationPolicy, GraphBuilder,
+        GraphError, GraphTransformError, KernelDispatchKind, KernelRegistration,
+        MaskedMetaContract, MetaCapabilityProfile, MetaTensor, MetaTensorFamily,
+        MetaTensorFamilyKind, NestedMetaContract, OperatorArity, OperatorImplementationKind,
+        OperatorMetaExecutionKind, OperatorParityStatus, OperatorRegistry, ProgramTransformFamily,
+        RegisteredOperatorSchema, RegistryExtensionError, Shape, SparseMetaContract,
+        SparseMetaLayout, StorageAwareMetaContract, TensorFamilyCapabilityStatus,
+        TensorFamilyCapabilitySurface, TensorSpec, TransformBarrierKind,
         builtin_advanced_operator_program_matrix_report,
         builtin_extension_contract_semantics_report, builtin_operator_parity_matrix_report,
         builtin_program_transform_capability_matrix_report,
-        builtin_tensor_family_capability_matrix_report, AdvancedOperatorProgramStatus, DType,
-        ExecutionOp, ExecutionPlan, ExecutionStep, ExtensionContractKind, FunctionalTensorKind,
-        FunctionalizationPolicy, GraphBuilder, GraphError, GraphTransformError, KernelDispatchKind,
-        KernelRegistration, MaskedMetaContract, MetaCapabilityProfile, MetaTensor,
-        MetaTensorFamily, MetaTensorFamilyKind, NestedMetaContract, OperatorArity,
-        OperatorImplementationKind, OperatorMetaExecutionKind, OperatorParityStatus,
-        OperatorRegistry, ProgramTransformFamily, RegisteredOperatorSchema, RegistryExtensionError,
-        Shape, SparseMetaContract, SparseMetaLayout, StorageAwareMetaContract,
-        TensorFamilyCapabilityStatus, TensorFamilyCapabilitySurface, TensorSpec,
-        TransformBarrierKind,
+        builtin_tensor_family_capability_matrix_report,
     };
 
     #[test]
@@ -6189,10 +6190,12 @@ mod tests {
         let report = builtin_tensor_family_capability_matrix_report();
         assert_eq!(report.schema_version, 1);
         assert_eq!(report.current_scope_window, "psionic_tensor_family_v1");
-        assert!(report
-            .stable_signature_lines()
-            .iter()
-            .any(|line| line.starts_with("matrix_digest=")));
+        assert!(
+            report
+                .stable_signature_lines()
+                .iter()
+                .any(|line| line.starts_with("matrix_digest="))
+        );
 
         let sparse_meta = report
             .cases
@@ -6402,10 +6405,12 @@ mod tests {
         let report = builtin_program_transform_capability_matrix_report();
         assert_eq!(report.schema_version, 1);
         assert_eq!(report.current_scope_window, "psionic_program_transform_v3");
-        assert!(report
-            .stable_signature_lines()
-            .iter()
-            .any(|line| line.starts_with("matrix_digest=")));
+        assert!(
+            report
+                .stable_signature_lines()
+                .iter()
+                .any(|line| line.starts_with("matrix_digest="))
+        );
 
         let mut builder = GraphBuilder::new(Device::cpu());
         let input = builder.input("input", Shape::new(vec![2, 4]), DType::F32);
@@ -6510,10 +6515,12 @@ mod tests {
             report.current_scope_window,
             "psionic_extension_contracts_v1"
         );
-        assert!(report
-            .stable_signature_lines()
-            .iter()
-            .any(|line| line.starts_with("report_digest=")));
+        assert!(
+            report
+                .stable_signature_lines()
+                .iter()
+                .any(|line| line.starts_with("report_digest="))
+        );
 
         let custom_op = report
             .cases
@@ -6594,15 +6601,17 @@ mod tests {
     }
 
     #[test]
-    fn operator_parity_matrix_report_tracks_seeded_supported_and_refusal_cases(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn operator_parity_matrix_report_tracks_seeded_supported_and_refusal_cases()
+    -> Result<(), Box<dyn std::error::Error>> {
         let report = builtin_operator_parity_matrix_report()?;
         assert_eq!(report.schema_version, 1);
         assert_eq!(report.oracle_family_window, "pytorch_opinfo_seed_v0");
-        assert!(report
-            .stable_signature_lines()
-            .iter()
-            .any(|line| line.starts_with("matrix_digest=")));
+        assert!(
+            report
+                .stable_signature_lines()
+                .iter()
+                .any(|line| line.starts_with("matrix_digest="))
+        );
 
         let add_case = report
             .cases
@@ -6646,18 +6655,20 @@ mod tests {
     }
 
     #[test]
-    fn advanced_operator_program_matrix_tracks_supported_and_refused_families(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn advanced_operator_program_matrix_tracks_supported_and_refused_families()
+    -> Result<(), Box<dyn std::error::Error>> {
         let report = builtin_advanced_operator_program_matrix_report()?;
         assert_eq!(report.schema_version, 1);
         assert_eq!(
             report.oracle_family_window,
             "pytorch_advanced_program_seed_v0"
         );
-        assert!(report
-            .stable_signature_lines()
-            .iter()
-            .any(|line| line.starts_with("matrix_digest=")));
+        assert!(
+            report
+                .stable_signature_lines()
+                .iter()
+                .any(|line| line.starts_with("matrix_digest="))
+        );
 
         let linalg_case = report
             .cases
@@ -6670,7 +6681,9 @@ mod tests {
         let attention_refusal = report
             .cases
             .iter()
-            .find(|case| case.case_id == "pytorch.attention.rotary_residual_block.backend_missing")
+            .find(|case| {
+                case.case_id == "pytorch.attention.rotary_residual_block.backend_missing_gqa"
+            })
             .expect("missing attention backend refusal");
         assert_eq!(
             attention_refusal.status,
@@ -6898,6 +6911,19 @@ mod tests {
             return;
         };
         assert_eq!(output.spec().shape().dims(), &[2, 3]);
+    }
+
+    #[test]
+    fn scaled_dot_product_attention_allows_grouped_query_head_shapes() {
+        let mut builder = GraphBuilder::new(Device::cpu());
+        let query = builder.input("query", Shape::new(vec![1, 4, 3, 8]), DType::F32);
+        let key = builder.input("key", Shape::new(vec![1, 2, 3, 8]), DType::F32);
+        let value = builder.input("value", Shape::new(vec![1, 2, 3, 6]), DType::F32);
+
+        let attended = builder
+            .scaled_dot_product_attention(&query, &key, &value, 0.5, true)
+            .expect("gqa attention shape should be accepted");
+        assert_eq!(attended.spec().shape().dims(), &[1, 4, 3, 6]);
     }
 
     #[test]

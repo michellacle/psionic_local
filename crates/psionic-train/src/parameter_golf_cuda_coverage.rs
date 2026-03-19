@@ -1,8 +1,8 @@
 use psionic_core::{
-    builtin_quantization_capability_semantics_report, PsionicRefusal, PsionicRefusalCode,
-    PsionicRefusalScope,
+    PsionicRefusal, PsionicRefusalCode, PsionicRefusalScope,
+    builtin_quantization_capability_semantics_report,
 };
-use psionic_ir::{builtin_advanced_operator_program_matrix_report, GraphError};
+use psionic_ir::{GraphError, builtin_advanced_operator_program_matrix_report};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
@@ -150,8 +150,8 @@ impl ParameterGolfCudaTrainingCapabilityReport {
 }
 
 /// Builds the canonical Parameter Golf CUDA training coverage report.
-pub fn builtin_parameter_golf_cuda_training_capability_report(
-) -> Result<ParameterGolfCudaTrainingCapabilityReport, GraphError> {
+pub fn builtin_parameter_golf_cuda_training_capability_report()
+-> Result<ParameterGolfCudaTrainingCapabilityReport, GraphError> {
     let advanced_operator_report = builtin_advanced_operator_program_matrix_report()?;
     let quantization_report = builtin_quantization_capability_semantics_report();
     Ok(ParameterGolfCudaTrainingCapabilityReport::new(
@@ -174,17 +174,17 @@ pub fn builtin_parameter_golf_cuda_training_capability_report(
                 ),
             },
             ParameterGolfCudaTrainingCoverageCase {
-                case_id: String::from("cuda_rope_gqa_attention_block"),
+                case_id: String::from("cuda_rope_gqa_decoder_block_reverse_mode"),
                 family: ParameterGolfCudaTrainingFamily::Attention,
                 status: ParameterGolfCudaTrainingCoverageStatus::Partial,
                 required_scope: String::from(
                     "the compact decoder baseline requires train-time RoPE plus grouped-query attention over the public 9x512 family",
                 ),
                 current_surface: String::from(
-                    "psionic-ir now proves one attention_rotary_residual_block program and an explicit backend-capability refusal when the required rotary or attention kernels are missing, but this remains an IR or meta-program contract rather than a widened public CUDA training kernel lane",
+                    "psionic-ir now accepts grouped-query attention program shapes and the public CUDA execution backend now executes one bounded dense f32 non-interleaved rotary plus causal grouped-query decoder block on the baseline self-attention lane, but reverse-mode decoder-block training semantics are still not public",
                 ),
                 boundary_note: String::from(
-                    "IR-level attention or RoPE coverage is now explicit, but the public CUDA train path still lacks a declared direct decoder-block execution surface.",
+                    "Do not treat bounded forward CUDA RoPE/GQA decoder-block execution as proof that the public train path already owns reverse-mode or full trainer closure for that block.",
                 ),
             },
             ParameterGolfCudaTrainingCoverageCase {
@@ -265,17 +265,17 @@ where
 mod tests {
     use std::error::Error;
 
-    use psionic_core::{builtin_quantization_capability_semantics_report, PsionicRefusalCode};
+    use psionic_core::{PsionicRefusalCode, builtin_quantization_capability_semantics_report};
     use psionic_ir::builtin_advanced_operator_program_matrix_report;
 
     use crate::{
-        builtin_parameter_golf_cuda_training_capability_report,
         ParameterGolfCudaTrainingCoverageStatus,
+        builtin_parameter_golf_cuda_training_capability_report,
     };
 
     #[test]
-    fn parameter_golf_cuda_training_capability_report_tracks_required_families(
-    ) -> Result<(), Box<dyn Error>> {
+    fn parameter_golf_cuda_training_capability_report_tracks_required_families()
+    -> Result<(), Box<dyn Error>> {
         let report = builtin_parameter_golf_cuda_training_capability_report()?;
         assert_eq!(report.schema_version, 1);
         assert_eq!(report.cases.len(), 6);
@@ -292,20 +292,24 @@ mod tests {
             ParameterGolfCudaTrainingCoverageStatus::ImplementedEarly
         );
         assert_eq!(report.blocking_case_ids.len(), 3);
-        assert!(!report
-            .blocking_case_ids
-            .iter()
-            .any(|case_id| case_id == "cuda_rms_norm_train_path"));
-        assert!(!report
-            .blocking_case_ids
-            .iter()
-            .any(|case_id| case_id == "cuda_residual_mix_train_path"));
+        assert!(
+            !report
+                .blocking_case_ids
+                .iter()
+                .any(|case_id| case_id == "cuda_rms_norm_train_path")
+        );
+        assert!(
+            !report
+                .blocking_case_ids
+                .iter()
+                .any(|case_id| case_id == "cuda_residual_mix_train_path")
+        );
         Ok(())
     }
 
     #[test]
-    fn parameter_golf_cuda_training_capability_report_refuses_full_challenge_closure(
-    ) -> Result<(), Box<dyn Error>> {
+    fn parameter_golf_cuda_training_capability_report_refuses_full_challenge_closure()
+    -> Result<(), Box<dyn Error>> {
         let report = builtin_parameter_golf_cuda_training_capability_report()?;
         let refusal = report
             .challenge_readiness_refusal()
@@ -314,9 +318,11 @@ mod tests {
             refusal.code,
             PsionicRefusalCode::UnsupportedBackendCapability
         );
-        assert!(refusal
-            .detail
-            .contains("cuda_bf16_train_precision_contract"));
+        assert!(
+            refusal
+                .detail
+                .contains("cuda_bf16_train_precision_contract")
+        );
         Ok(())
     }
 }

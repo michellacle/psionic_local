@@ -744,17 +744,20 @@ impl CpuBackend {
         let key_dims = key_buffer.spec().shape().dims().to_vec();
         let value_dims = value_buffer.spec().shape().dims().to_vec();
         let batch = query_dims[0];
-        let heads = query_dims[1];
+        let query_heads = query_dims[1];
+        let key_heads = key_dims[1];
         let query_seq = query_dims[2];
         let key_seq = key_dims[2];
         let head_dim = query_dims[3];
         let value_dim = value_dims[3];
-        let mut output = vec![0.0; batch * heads * query_seq * value_dim];
+        let group_size = query_heads / key_heads;
+        let mut output = vec![0.0; batch * query_heads * query_seq * value_dim];
         let mut scores = vec![0.0; key_seq];
         let mut weights = vec![0.0; key_seq];
 
         for batch_index in 0..batch {
-            for head_index in 0..heads {
+            for head_index in 0..query_heads {
+                let kv_head = head_index / group_size;
                 for query_index in 0..query_seq {
                     let mut max_score = f32::NEG_INFINITY;
                     let mut valid_scores = 0usize;
@@ -764,11 +767,11 @@ impl CpuBackend {
                             continue;
                         }
                         let mut dot = 0.0;
-                        let query_base = ((batch_index * heads + head_index) * query_seq
+                        let query_base = ((batch_index * query_heads + head_index) * query_seq
                             + query_index)
                             * head_dim;
                         let key_base =
-                            ((batch_index * heads + head_index) * key_seq + key_index) * head_dim;
+                            ((batch_index * key_heads + kv_head) * key_seq + key_index) * head_dim;
                         for dim in 0..head_dim {
                             dot += query[query_base + dim] * key[key_base + dim];
                         }
@@ -796,15 +799,16 @@ impl CpuBackend {
                         continue;
                     }
 
-                    let output_base =
-                        ((batch_index * heads + head_index) * query_seq + query_index) * value_dim;
+                    let output_base = ((batch_index * query_heads + head_index) * query_seq
+                        + query_index)
+                        * value_dim;
                     for key_index in 0..key_seq {
                         let normalized = weights[key_index] / weight_sum;
                         if normalized == 0.0 {
                             continue;
                         }
                         let value_base =
-                            ((batch_index * heads + head_index) * key_seq + key_index) * value_dim;
+                            ((batch_index * key_heads + kv_head) * key_seq + key_index) * value_dim;
                         for dim in 0..value_dim {
                             output[output_base + dim] += normalized * value[value_base + dim];
                         }
@@ -1625,7 +1629,7 @@ mod tests {
         HealthStatus, RuntimeError, ServedProductBackendPolicy,
     };
 
-    use super::{cpu_allocator_pool_policy, CpuAllocatorPool, CpuBackend, CpuBuffer};
+    use super::{CpuAllocatorPool, CpuBackend, CpuBuffer, cpu_allocator_pool_policy};
 
     #[test]
     fn cpu_backend_reports_default_device() -> Result<(), psionic_runtime::RuntimeError> {

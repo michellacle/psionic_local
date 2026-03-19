@@ -53,7 +53,16 @@ const CUDA_EXECUTION_PLAN_CACHE_MAX_CACHED_BYTES: u64 = 1024 * 1024;
 
 /// Exact plan surface currently covered by the first CUDA-backed served-product
 /// milestone.
-pub const SUPPORTED_OPS: &[&str] = &["input", "constant", "matmul", "add", "mul", "rms_norm"];
+pub const SUPPORTED_OPS: &[&str] = &[
+    "input",
+    "constant",
+    "matmul",
+    "add",
+    "mul",
+    "rms_norm",
+    "rotary_embedding",
+    "scaled_dot_product_attention",
+];
 
 /// Dense op surface currently covered for the first CUDA-backed embeddings
 /// product path.
@@ -65,6 +74,8 @@ pub const TEXT_GENERATION_SUPPORTED_OPS: &[&str] =
     &["quantized_matvec_q8_0", "quantized_matvec_mxfp4"];
 pub const GGML_Q8_1_BLOCK_ELEMENTS: usize = 32;
 pub const GGML_Q8_1_BLOCK_BYTES: usize = 36;
+const CUDA_PUBLIC_ATTENTION_MAX_SEQUENCE: usize = 512;
+const CUDA_PUBLIC_STANDARD_ROPE_BASE: f32 = 10_000.0;
 
 /// Returns the device scratch-buffer size for contiguous GGML `Q8_1` rows.
 pub fn ggml_q8_1_storage_bytes(rows: usize, cols: usize) -> Result<usize, RuntimeError> {
@@ -2388,9 +2399,13 @@ impl DeviceDiscovery for CudaBackend {
     }
 
     fn extension_support(&self) -> Vec<BackendExtensionSupport> {
-        vec![BackendExtensionSupport::backend_specialized(
-            BackendExtensionKind::RmsNorm,
-        )]
+        vec![
+            BackendExtensionSupport::backend_specialized(BackendExtensionKind::RmsNorm),
+            BackendExtensionSupport::backend_specialized(BackendExtensionKind::RotaryEmbedding),
+            BackendExtensionSupport::backend_specialized(
+                BackendExtensionKind::ScaledDotProductAttention,
+            ),
+        ]
     }
 }
 
@@ -2506,6 +2521,251 @@ impl AvailableCudaBackend {
         let mut buffer = self.allocate(spec)?;
         buffer.write_f32(values)?;
         Ok(buffer)
+    }
+
+    fn execute_rotary_embedding_step(
+        &self,
+        submission: &mut CudaSubmission,
+        step: &ExecutionStep,
+        values: &BTreeMap<TensorId, CudaBuffer>,
+        interleaved: bool,
+    ) -> Result<CudaBuffer, RuntimeError> {
+        if interleaved {
+            return Err(RuntimeError::Backend(String::from(
+                "cuda rotary_embedding only supports the non-interleaved NEOX-style lane",
+            )));
+        }
+        let input = step_input(step, values, 0)?;
+        let cos = step_input(step, values, 1)?;
+        let sin = step_input(step, values, 2)?;
+        let dims = input.spec().shape().dims();
+        if dims.len() != 4 || dims[3] == 0 || !dims[3].is_multiple_of(2) {
+            return Err(RuntimeError::Backend(String::from(
+                "cuda rotary_embedding requires rank-4 tensors with an even head dimension",
+            )));
+        }
+        let batch_size = dims[0];
+        let head_count = dims[1];
+        let sequence_length = dims[2];
+        let head_dim = dims[3];
+        let half_dim = head_dim / 2;
+        validate_standard_neox_rope_tables(cos, sin, batch_size, sequence_length, half_dim)?;
+
+        let output = self.allocate(&step.spec)?;
+        let scratch_spec = TensorSpec::new(
+            Shape::new(vec![head_count, head_dim]),
+            DType::F32,
+            step.spec.device().clone(),
+        );
+        let scratch = self.allocate(&scratch_spec)?;
+        let theta_scale = CUDA_PUBLIC_STANDARD_ROPE_BASE.powf(-2.0_f32 / head_dim as f32);
+        let corr_dims = [0.0_f32, head_dim as f32 - 1.0];
+        for batch_index in 0..batch_size {
+            for position in 0..sequence_length {
+                pack_rank4_token_to_head_major_scratch(
+                    submission,
+                    input,
+                    batch_index,
+                    position,
+                    &scratch,
+                )?;
+                submission.rope_neox_in_place(
+                    &scratch,
+                    0,
+                    head_count,
+                    head_dim,
+                    head_dim,
+                    position,
+                    1.0,
+                    0.0,
+                    corr_dims,
+                    theta_scale,
+                )?;
+                scatter_head_major_scratch_to_rank4_token(
+                    submission,
+                    &scratch,
+                    &output,
+                    batch_index,
+                    position,
+                )?;
+            }
+        }
+        Ok(output)
+    }
+
+    fn execute_scaled_dot_product_attention_step(
+        &self,
+        submission: &mut CudaSubmission,
+        step: &ExecutionStep,
+        values: &BTreeMap<TensorId, CudaBuffer>,
+        scale: f32,
+        causal: bool,
+    ) -> Result<CudaBuffer, RuntimeError> {
+        if !causal {
+            return Err(RuntimeError::Backend(String::from(
+                "cuda scaled_dot_product_attention only supports the bounded causal self-attention lane",
+            )));
+        }
+        let query = step_input(step, values, 0)?;
+        let key = step_input(step, values, 1)?;
+        let value = step_input(step, values, 2)?;
+        let query_dims = query.spec().shape().dims();
+        let key_dims = key.spec().shape().dims();
+        let value_dims = value.spec().shape().dims();
+        if query_dims.len() != 4 || key_dims.len() != 4 || value_dims.len() != 4 {
+            return Err(RuntimeError::Backend(String::from(
+                "cuda scaled_dot_product_attention requires rank-4 query/key/value tensors",
+            )));
+        }
+        let batch_size = query_dims[0];
+        let query_heads = query_dims[1];
+        let sequence_length = query_dims[2];
+        let head_dim = query_dims[3];
+        let kv_heads = key_dims[1];
+        if batch_size == 0
+            || query_heads == 0
+            || kv_heads == 0
+            || head_dim == 0
+            || sequence_length == 0
+        {
+            return Err(RuntimeError::Backend(String::from(
+                "cuda scaled_dot_product_attention requires non-empty batch, head, sequence, and head-dimension extents",
+            )));
+        }
+        if batch_size != key_dims[0]
+            || batch_size != value_dims[0]
+            || sequence_length != key_dims[2]
+            || sequence_length != value_dims[2]
+        {
+            return Err(RuntimeError::Backend(String::from(
+                "cuda scaled_dot_product_attention only supports bounded causal self-attention with matching batch and sequence extents",
+            )));
+        }
+        if head_dim != key_dims[3] || head_dim != value_dims[3] {
+            return Err(RuntimeError::Backend(String::from(
+                "cuda scaled_dot_product_attention requires value and key head dimensions to match query head dimensions on the bounded lane",
+            )));
+        }
+        if kv_heads != value_dims[1] || !query_heads.is_multiple_of(kv_heads) {
+            return Err(RuntimeError::Backend(String::from(
+                "cuda scaled_dot_product_attention requires grouped-query head counts with query_heads divisible by kv_heads",
+            )));
+        }
+        if sequence_length > CUDA_PUBLIC_ATTENTION_MAX_SEQUENCE {
+            return Err(RuntimeError::Backend(format!(
+                "cuda scaled_dot_product_attention only supports sequence lengths up to {CUDA_PUBLIC_ATTENTION_MAX_SEQUENCE} on the bounded public lane",
+            )));
+        }
+        let expected_scale = 1.0_f32 / (head_dim as f32).sqrt();
+        if (scale - expected_scale).abs() > 1e-6 {
+            return Err(RuntimeError::Backend(format!(
+                "cuda scaled_dot_product_attention only supports the baseline scale 1/sqrt(head_dim)={expected_scale}, actual {scale}",
+            )));
+        }
+
+        let output = self.allocate(&step.spec)?;
+        let query_scratch = self.allocate(&TensorSpec::new(
+            Shape::new(vec![query_heads, head_dim]),
+            DType::F32,
+            step.spec.device().clone(),
+        ))?;
+        let kv_scratch_spec = TensorSpec::new(
+            Shape::new(vec![kv_heads, head_dim]),
+            DType::F32,
+            step.spec.device().clone(),
+        );
+        let key_scratch = self.allocate(&kv_scratch_spec)?;
+        let value_scratch = self.allocate(&kv_scratch_spec)?;
+        let token_output = self.allocate(&TensorSpec::new(
+            Shape::new(vec![query_heads, head_dim]),
+            DType::F32,
+            step.spec.device().clone(),
+        ))?;
+        let cache_width = kv_heads.checked_mul(head_dim).ok_or_else(|| {
+            RuntimeError::Backend(String::from(
+                "cuda scaled_dot_product_attention cache width overflow",
+            ))
+        })?;
+        let cache_spec = TensorSpec::new(
+            Shape::new(vec![sequence_length, cache_width]),
+            DType::F32,
+            step.spec.device().clone(),
+        );
+        let key_cache = self.allocate(&cache_spec)?;
+        let value_cache = self.allocate(&cache_spec)?;
+        let cache_row_bytes = byte_len_for_f32_elements(cache_width)?;
+
+        for batch_index in 0..batch_size {
+            for position in 0..sequence_length {
+                pack_rank4_token_to_head_major_scratch(
+                    submission,
+                    query,
+                    batch_index,
+                    position,
+                    &query_scratch,
+                )?;
+                pack_rank4_token_to_head_major_scratch(
+                    submission,
+                    key,
+                    batch_index,
+                    position,
+                    &key_scratch,
+                )?;
+                pack_rank4_token_to_head_major_scratch(
+                    submission,
+                    value,
+                    batch_index,
+                    position,
+                    &value_scratch,
+                )?;
+                submission.attention_decode(
+                    &query_scratch,
+                    0,
+                    &key_scratch,
+                    0,
+                    &value_scratch,
+                    0,
+                    &key_cache,
+                    &value_cache,
+                    cache_width,
+                    0,
+                    position,
+                    0,
+                    query_heads,
+                    kv_heads,
+                    head_dim,
+                    None,
+                    &token_output,
+                )?;
+                scatter_head_major_scratch_to_rank4_token(
+                    submission,
+                    &token_output,
+                    &output,
+                    batch_index,
+                    position,
+                )?;
+                let cache_row_offset = position.checked_mul(cache_row_bytes).ok_or_else(|| {
+                    RuntimeError::Backend(String::from(
+                        "cuda scaled_dot_product_attention cache row offset overflow",
+                    ))
+                })?;
+                submission.copy_buffer_region(
+                    &key_scratch,
+                    0,
+                    &key_cache,
+                    cache_row_offset,
+                    cache_row_bytes,
+                )?;
+                submission.copy_buffer_region(
+                    &value_scratch,
+                    0,
+                    &value_cache,
+                    cache_row_offset,
+                    cache_row_bytes,
+                )?;
+            }
+        }
+        Ok(output)
     }
 
     fn execute(
@@ -2685,6 +2945,25 @@ impl AvailableCudaBackend {
                             epsilon.to_f32(),
                         )?;
                         submission.encoded_operations += 1;
+                        values.insert(step.output, output);
+                    }
+                    BackendExtensionOp::RotaryEmbedding { interleaved } => {
+                        let output = self.execute_rotary_embedding_step(
+                            &mut submission,
+                            step,
+                            &values,
+                            *interleaved,
+                        )?;
+                        values.insert(step.output, output);
+                    }
+                    BackendExtensionOp::ScaledDotProductAttention { scale, causal } => {
+                        let output = self.execute_scaled_dot_product_attention_step(
+                            &mut submission,
+                            step,
+                            &values,
+                            scale.to_f32(),
+                            *causal,
+                        )?;
                         values.insert(step.output, output);
                     }
                     _ => {
@@ -2970,6 +3249,32 @@ fn validate_supported_step(step: &ExecutionStep) -> Result<(), RuntimeError> {
                     )));
                 }
             }
+            BackendExtensionOp::RotaryEmbedding { interleaved } => {
+                if step.inputs.len() != 3 {
+                    return Err(RuntimeError::Backend(format!(
+                        "cuda rotary_embedding step {} requires three inputs",
+                        step.output
+                    )));
+                }
+                if *interleaved {
+                    return Err(RuntimeError::UnsupportedStep(String::from(
+                        "rotary_embedding_interleaved",
+                    )));
+                }
+            }
+            BackendExtensionOp::ScaledDotProductAttention { causal, .. } => {
+                if step.inputs.len() != 3 {
+                    return Err(RuntimeError::Backend(format!(
+                        "cuda scaled_dot_product_attention step {} requires three inputs",
+                        step.output
+                    )));
+                }
+                if !causal {
+                    return Err(RuntimeError::UnsupportedStep(String::from(
+                        "scaled_dot_product_attention_non_causal",
+                    )));
+                }
+            }
             _ => {
                 return Err(RuntimeError::UnsupportedStep(step.op.label().to_string()));
             }
@@ -2998,6 +3303,180 @@ fn ensure_supported_spec(spec: &TensorSpec) -> Result<(), RuntimeError> {
         return Err(RuntimeError::Backend(String::from(
             "cuda dense surface requires contiguous zero-offset tensors",
         )));
+    }
+    Ok(())
+}
+
+fn byte_len_for_f32_elements(element_count: usize) -> Result<usize, RuntimeError> {
+    element_count
+        .checked_mul(size_of_dtype(DType::F32))
+        .ok_or_else(|| {
+            RuntimeError::Backend(String::from(
+                "cuda f32 byte length overflow on bounded public runtime path",
+            ))
+        })
+}
+
+fn rank4_token_head_element_offset(
+    dims: &[usize],
+    batch_index: usize,
+    head_index: usize,
+    position: usize,
+) -> Result<usize, RuntimeError> {
+    if dims.len() != 4 {
+        return Err(RuntimeError::Backend(String::from(
+            "cuda rank-4 helper requires a rank-4 tensor",
+        )));
+    }
+    if batch_index >= dims[0] || head_index >= dims[1] || position >= dims[2] {
+        return Err(RuntimeError::Backend(String::from(
+            "cuda rank-4 helper index exceeds the source tensor extent",
+        )));
+    }
+    batch_index
+        .checked_mul(dims[1])
+        .and_then(|value| value.checked_add(head_index))
+        .and_then(|value| value.checked_mul(dims[2]))
+        .and_then(|value| value.checked_add(position))
+        .and_then(|value| value.checked_mul(dims[3]))
+        .ok_or_else(|| {
+            RuntimeError::Backend(String::from(
+                "cuda rank-4 helper offset overflow on bounded public runtime path",
+            ))
+        })
+}
+
+fn pack_rank4_token_to_head_major_scratch(
+    submission: &mut CudaSubmission,
+    source: &CudaBuffer,
+    batch_index: usize,
+    position: usize,
+    scratch: &CudaBuffer,
+) -> Result<(), RuntimeError> {
+    let source_dims = source.spec().shape().dims();
+    let scratch_dims = scratch.spec().shape().dims();
+    if source_dims.len() != 4
+        || scratch_dims.len() != 2
+        || scratch_dims[0] != source_dims[1]
+        || scratch_dims[1] != source_dims[3]
+    {
+        return Err(RuntimeError::Backend(String::from(
+            "cuda rank-4 packing requires a [heads, head_dim] scratch tensor",
+        )));
+    }
+    let row_bytes = byte_len_for_f32_elements(source_dims[3])?;
+    for head_index in 0..source_dims[1] {
+        let source_offset = byte_len_for_f32_elements(rank4_token_head_element_offset(
+            source_dims,
+            batch_index,
+            head_index,
+            position,
+        )?)?;
+        let scratch_offset = head_index.checked_mul(row_bytes).ok_or_else(|| {
+            RuntimeError::Backend(String::from("cuda rank-4 packing scratch offset overflow"))
+        })?;
+        submission.copy_buffer_region(source, source_offset, scratch, scratch_offset, row_bytes)?;
+    }
+    Ok(())
+}
+
+fn scatter_head_major_scratch_to_rank4_token(
+    submission: &mut CudaSubmission,
+    scratch: &CudaBuffer,
+    destination: &CudaBuffer,
+    batch_index: usize,
+    position: usize,
+) -> Result<(), RuntimeError> {
+    let destination_dims = destination.spec().shape().dims();
+    let scratch_dims = scratch.spec().shape().dims();
+    if destination_dims.len() != 4
+        || scratch_dims.len() != 2
+        || scratch_dims[0] != destination_dims[1]
+        || scratch_dims[1] != destination_dims[3]
+    {
+        return Err(RuntimeError::Backend(String::from(
+            "cuda rank-4 scatter requires a [heads, head_dim] scratch tensor",
+        )));
+    }
+    let row_bytes = byte_len_for_f32_elements(destination_dims[3])?;
+    for head_index in 0..destination_dims[1] {
+        let scratch_offset = head_index.checked_mul(row_bytes).ok_or_else(|| {
+            RuntimeError::Backend(String::from("cuda rank-4 scatter scratch offset overflow"))
+        })?;
+        let destination_offset = byte_len_for_f32_elements(rank4_token_head_element_offset(
+            destination_dims,
+            batch_index,
+            head_index,
+            position,
+        )?)?;
+        submission.copy_buffer_region(
+            scratch,
+            scratch_offset,
+            destination,
+            destination_offset,
+            row_bytes,
+        )?;
+    }
+    Ok(())
+}
+
+fn validate_standard_neox_rope_tables(
+    cos: &CudaBuffer,
+    sin: &CudaBuffer,
+    batch_size: usize,
+    sequence_length: usize,
+    half_dim: usize,
+) -> Result<(), RuntimeError> {
+    let cos_dims = cos.spec().shape().dims();
+    let sin_dims = sin.spec().shape().dims();
+    if cos_dims != sin_dims {
+        return Err(RuntimeError::Backend(String::from(
+            "cuda rotary_embedding requires matching cos and sin table shapes",
+        )));
+    }
+    let batched = match cos_dims {
+        [seq, dim] if *seq == sequence_length && *dim == half_dim => false,
+        [batch, seq, dim]
+            if *batch == batch_size && *seq == sequence_length && *dim == half_dim =>
+        {
+            true
+        }
+        _ => {
+            return Err(RuntimeError::Backend(String::from(
+                "cuda rotary_embedding only supports standard Parameter Golf rope tables",
+            )));
+        }
+    };
+    let cos_values = cos.read_f32()?;
+    let sin_values = sin.read_f32()?;
+    let head_dim = half_dim.checked_mul(2).ok_or_else(|| {
+        RuntimeError::Backend(String::from(
+            "cuda rotary_embedding head dimension overflow while validating rope tables",
+        ))
+    })?;
+    let batch_extent = if batched { batch_size } else { 1 };
+    for batch_index in 0..batch_extent {
+        for position in 0..sequence_length {
+            for feature in 0..half_dim {
+                let exponent = (2 * feature) as f32 / head_dim as f32;
+                let inv_freq = 1.0_f32 / CUDA_PUBLIC_STANDARD_ROPE_BASE.powf(exponent);
+                let angle = position as f32 * inv_freq;
+                let expected_cos = angle.cos();
+                let expected_sin = angle.sin();
+                let table_index = if batched {
+                    (batch_index * sequence_length + position) * half_dim + feature
+                } else {
+                    position * half_dim + feature
+                };
+                if (cos_values[table_index] - expected_cos).abs() > 1e-5
+                    || (sin_values[table_index] - expected_sin).abs() > 1e-5
+                {
+                    return Err(RuntimeError::Backend(String::from(
+                        "cuda rotary_embedding only supports the standard Parameter Golf rope table values on the bounded public lane",
+                    )));
+                }
+            }
+        }
     }
     Ok(())
 }
@@ -3330,7 +3809,7 @@ fn parse_memory_bytes(value: &str) -> Option<u64> {
 #[cfg(target_os = "linux")]
 mod platform {
     use std::{
-        ffi::{c_char, c_int, c_void, CStr},
+        ffi::{CStr, c_char, c_int, c_void},
         sync::Arc,
     };
 
@@ -7734,20 +8213,20 @@ mod platform {
 
 #[cfg(test)]
 mod tests {
+    use psionic_backend_cpu::CpuBackend;
     use psionic_backend_cpu::decode_quantized_row_into;
     use psionic_backend_cpu::quantized_row_dot;
-    use psionic_backend_cpu::CpuBackend;
     use psionic_compiler::compile_graph;
     use psionic_core::{
         BackendExtensionKind, DType, DeviceKind, QuantizationMode, Shape, TensorData, TensorSpec,
     };
-    use psionic_ir::{evaluate_graph, AutodiffContext, AutodiffGraphBuilder, GraphBuilder};
+    use psionic_ir::{AutodiffContext, AutodiffGraphBuilder, GraphBuilder, evaluate_graph};
 
     use super::CudaMemorySpace;
     use super::{
+        CudaBackend, CudaCommandStatus, CudaCommandWait, HealthStatus, SUPPORTED_OPS,
         architecture_from_compute_capability, cuda_health, parse_inventory_row, parse_mig_profile,
-        recovery_profile, risk_profile, validate_supported_plan, CudaBackend, CudaCommandStatus,
-        CudaCommandWait, HealthStatus, SUPPORTED_OPS,
+        recovery_profile, risk_profile, validate_supported_plan,
     };
     use psionic_core::Device;
     use psionic_runtime::{
@@ -7796,10 +8275,12 @@ mod tests {
     fn risk_profile_marks_display_and_mig_devices_as_elevated() {
         let display_risk = risk_profile(Some(true), None, Some(false));
         assert_eq!(display_risk.level, NvidiaRiskLevel::Elevated);
-        assert!(display_risk
-            .warnings
-            .iter()
-            .any(|warning| warning.contains("display-attached")));
+        assert!(
+            display_risk
+                .warnings
+                .iter()
+                .any(|warning| warning.contains("display-attached"))
+        );
 
         let mig_risk = risk_profile(Some(false), Some("1g.10gb"), Some(true));
         assert_eq!(mig_risk.level, NvidiaRiskLevel::Elevated);
@@ -7824,7 +8305,16 @@ mod tests {
     fn cuda_dense_surface_is_documented() {
         assert_eq!(
             SUPPORTED_OPS,
-            &["input", "constant", "matmul", "add", "mul", "rms_norm"]
+            &[
+                "input",
+                "constant",
+                "matmul",
+                "add",
+                "mul",
+                "rms_norm",
+                "rotary_embedding",
+                "scaled_dot_product_attention",
+            ]
         );
     }
 
@@ -7891,8 +8381,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_backend_selection_reports_ready_or_degraded_cuda_when_available(
-    ) -> Result<(), psionic_runtime::RuntimeError> {
+    fn cuda_backend_selection_reports_ready_or_degraded_cuda_when_available()
+    -> Result<(), psionic_runtime::RuntimeError> {
         let backend = CudaBackend::new();
         let Some(_) = backend.selected_device() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -7939,8 +8429,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_backend_fallback_selection_reports_explicit_cpu_fallback_when_unavailable(
-    ) -> Result<(), psionic_runtime::RuntimeError> {
+    fn cuda_backend_fallback_selection_reports_explicit_cpu_fallback_when_unavailable()
+    -> Result<(), psionic_runtime::RuntimeError> {
         let backend = CudaBackend::new();
         if backend.selected_device().is_none() {
             let cpu = CpuBackend::new();
@@ -7973,8 +8463,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_backend_allocates_and_submits_copy_when_available(
-    ) -> Result<(), psionic_runtime::RuntimeError> {
+    fn cuda_backend_allocates_and_submits_copy_when_available()
+    -> Result<(), psionic_runtime::RuntimeError> {
         let mut backend = CudaBackend::new();
         let Some(device) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -8060,8 +8550,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_backend_executes_rms_norm_backend_extension_when_available(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_backend_executes_rms_norm_backend_extension_when_available()
+    -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -8104,8 +8594,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_backend_reports_rms_norm_extension_support_when_available(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_backend_reports_rms_norm_extension_support_when_available()
+    -> Result<(), Box<dyn std::error::Error>> {
         let backend = CudaBackend::new();
         if backend.selected_device().is_none() {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -8113,16 +8603,154 @@ mod tests {
         }
 
         let selection = backend.backend_selection(SUPPORTED_OPS)?;
-        assert!(selection
-            .backend_extensions
-            .iter()
-            .any(|support| support.kind == BackendExtensionKind::RmsNorm));
+        assert!(
+            selection
+                .backend_extensions
+                .iter()
+                .any(|support| support.kind == BackendExtensionKind::RmsNorm)
+        );
+        assert!(
+            selection
+                .backend_extensions
+                .iter()
+                .any(|support| support.kind == BackendExtensionKind::RotaryEmbedding)
+        );
+        assert!(
+            selection
+                .backend_extensions
+                .iter()
+                .any(|support| support.kind == BackendExtensionKind::ScaledDotProductAttention)
+        );
         Ok(())
     }
 
     #[test]
-    fn cuda_backend_executes_rms_norm_backward_graph_when_available(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_backend_executes_parameter_golf_rope_gqa_decoder_block_when_available()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let mut cuda_backend = CudaBackend::new();
+        let Some(selected) = cuda_backend.selected_device().cloned() else {
+            assert_eq!(cuda_backend.health().status, HealthStatus::Offline);
+            return Ok(());
+        };
+
+        let batch_size = 1usize;
+        let query_heads = 4usize;
+        let kv_heads = 2usize;
+        let sequence_length = 4usize;
+        let head_dim = 8usize;
+        let scale = 1.0_f32 / (head_dim as f32).sqrt();
+        let (cos_values, sin_values) = standard_rope_tables(sequence_length, head_dim / 2);
+        let query_values = (0..batch_size * query_heads * sequence_length * head_dim)
+            .map(|index| (index as f32 - 60.0) * 0.0175)
+            .collect::<Vec<_>>();
+        let key_values = (0..batch_size * kv_heads * sequence_length * head_dim)
+            .map(|index| (index as f32 - 24.0) * -0.021)
+            .collect::<Vec<_>>();
+        let value_values = (0..batch_size * kv_heads * sequence_length * head_dim)
+            .map(|index| (index as f32 + 9.0) * 0.013)
+            .collect::<Vec<_>>();
+        let residual_values = (0..batch_size * query_heads * sequence_length * head_dim)
+            .map(|index| (index as f32 % 9.0 - 4.0) * 0.05)
+            .collect::<Vec<_>>();
+
+        let query_shape = Shape::new(vec![batch_size, query_heads, sequence_length, head_dim]);
+        let key_shape = Shape::new(vec![batch_size, kv_heads, sequence_length, head_dim]);
+        let cos_shape = Shape::new(vec![sequence_length, head_dim / 2]);
+
+        let mut cuda_builder = GraphBuilder::new(selected.device.clone());
+        let cuda_query = cuda_builder.input("query", query_shape.clone(), DType::F32);
+        let cuda_key = cuda_builder.input("key", key_shape.clone(), DType::F32);
+        let cuda_value = cuda_builder.input("value", key_shape.clone(), DType::F32);
+        let cuda_residual = cuda_builder.input("residual", query_shape.clone(), DType::F32);
+        let cuda_cos = cuda_builder.constant_f32(cos_shape.clone(), cos_values.clone())?;
+        let cuda_sin = cuda_builder.constant_f32(cos_shape.clone(), sin_values.clone())?;
+        let cuda_output = cuda_builder.attention_rotary_residual_block(
+            &cuda_query,
+            &cuda_key,
+            &cuda_value,
+            &cuda_cos,
+            &cuda_sin,
+            &cuda_residual,
+            scale,
+            true,
+        )?;
+        let cuda_graph = cuda_builder.finish(vec![cuda_output.clone()]);
+
+        let mut cpu_builder = GraphBuilder::new(Device::cpu());
+        let cpu_query = cpu_builder.input("query", query_shape.clone(), DType::F32);
+        let cpu_key = cpu_builder.input("key", key_shape.clone(), DType::F32);
+        let cpu_value = cpu_builder.input("value", key_shape.clone(), DType::F32);
+        let cpu_residual = cpu_builder.input("residual", query_shape.clone(), DType::F32);
+        let cpu_cos = cpu_builder.constant_f32(cos_shape.clone(), cos_values)?;
+        let cpu_sin = cpu_builder.constant_f32(cos_shape, sin_values)?;
+        let cpu_output = cpu_builder.attention_rotary_residual_block(
+            &cpu_query,
+            &cpu_key,
+            &cpu_value,
+            &cpu_cos,
+            &cpu_sin,
+            &cpu_residual,
+            scale,
+            true,
+        )?;
+        let cpu_graph = cpu_builder.finish(vec![cpu_output.clone()]);
+
+        let mut cuda_inputs = std::collections::BTreeMap::new();
+        cuda_inputs.insert(
+            cuda_query.id(),
+            cuda_backend.input_buffer(query_shape.clone(), query_values.clone())?,
+        );
+        cuda_inputs.insert(
+            cuda_key.id(),
+            cuda_backend.input_buffer(key_shape.clone(), key_values.clone())?,
+        );
+        cuda_inputs.insert(
+            cuda_value.id(),
+            cuda_backend.input_buffer(key_shape.clone(), value_values.clone())?,
+        );
+        cuda_inputs.insert(
+            cuda_residual.id(),
+            cuda_backend.input_buffer(query_shape.clone(), residual_values.clone())?,
+        );
+        let cuda_result = cuda_backend.compile_and_execute(&cuda_graph, &cuda_inputs)?;
+        let actual = cuda_result
+            .outputs
+            .get(&cuda_output.id())
+            .ok_or("missing cuda rope/gqa output")?
+            .read_f32()?;
+
+        let mut cpu_backend = CpuBackend::new();
+        let mut cpu_inputs = std::collections::BTreeMap::new();
+        cpu_inputs.insert(
+            cpu_query.id(),
+            cpu_backend.input_buffer(query_shape.clone(), query_values)?,
+        );
+        cpu_inputs.insert(
+            cpu_key.id(),
+            cpu_backend.input_buffer(key_shape.clone(), key_values)?,
+        );
+        cpu_inputs.insert(
+            cpu_value.id(),
+            cpu_backend.input_buffer(key_shape.clone(), value_values)?,
+        );
+        cpu_inputs.insert(
+            cpu_residual.id(),
+            cpu_backend.input_buffer(query_shape, residual_values)?,
+        );
+        let cpu_result = cpu_backend.compile_and_execute(&cpu_graph, &cpu_inputs)?;
+        let expected = cpu_result
+            .outputs
+            .get(&cpu_output.id())
+            .ok_or("missing cpu rope/gqa output")?
+            .logical_values()?;
+
+        assert_close(&actual, &expected, 1e-4);
+        Ok(())
+    }
+
+    #[test]
+    fn cuda_backend_executes_rms_norm_backward_graph_when_available()
+    -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -8142,26 +8770,30 @@ mod tests {
         let graph = builder.finish(vec![scaled.clone()]);
 
         let backward_plan = graph.backward_plan(scaled.id())?;
-        assert!(backward_plan
-            .gradient_graph
-            .nodes()
-            .iter()
-            .any(|node| matches!(
-                node.op(),
-                psionic_ir::OpKind::BackendExtension {
-                    op: psionic_core::BackendExtensionOp::RmsNormInputBackward { .. }
-                }
-            )));
-        assert!(backward_plan
-            .gradient_graph
-            .nodes()
-            .iter()
-            .any(|node| matches!(
-                node.op(),
-                psionic_ir::OpKind::BackendExtension {
-                    op: psionic_core::BackendExtensionOp::RmsNormWeightBackward { .. }
-                }
-            )));
+        assert!(
+            backward_plan
+                .gradient_graph
+                .nodes()
+                .iter()
+                .any(|node| matches!(
+                    node.op(),
+                    psionic_ir::OpKind::BackendExtension {
+                        op: psionic_core::BackendExtensionOp::RmsNormInputBackward { .. }
+                    }
+                ))
+        );
+        assert!(
+            backward_plan
+                .gradient_graph
+                .nodes()
+                .iter()
+                .any(|node| matches!(
+                    node.op(),
+                    psionic_ir::OpKind::BackendExtension {
+                        op: psionic_core::BackendExtensionOp::RmsNormWeightBackward { .. }
+                    }
+                ))
+        );
 
         let input_values = vec![0.3_f32, -0.8, 1.1, -1.0];
         let weight_values = vec![1.2_f32, -0.7, 0.9, 1.5];
@@ -8252,8 +8884,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_backend_executes_parameter_golf_residual_mix_backward_graph_when_available(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_backend_executes_parameter_golf_residual_mix_backward_graph_when_available()
+    -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -8400,8 +9032,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_executes_f16_rhs_matmul_when_available(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_executes_f16_rhs_matmul_when_available()
+    -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -8431,8 +9063,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_backend_executes_multiple_matmuls_and_adds_when_available(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_backend_executes_multiple_matmuls_and_adds_when_available()
+    -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -8502,8 +9134,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_backend_executes_q8_0_quantized_matvec_when_available(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_backend_executes_q8_0_quantized_matvec_when_available()
+    -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -8567,8 +9199,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_backend_executes_mxfp4_quantized_matvec_when_available(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_backend_executes_mxfp4_quantized_matvec_when_available()
+    -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -8632,8 +9264,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_backend_gathers_f16_row_into_f32_when_available(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_backend_gathers_f16_row_into_f32_when_available()
+    -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -8685,8 +9317,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_executes_argmax_for_wide_rows_when_available(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_executes_argmax_for_wide_rows_when_available()
+    -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -8712,8 +9344,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_executes_add_residual_rms_norm_when_available(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_executes_add_residual_rms_norm_when_available()
+    -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -8765,8 +9397,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_fused_attention_matches_separate_rope_attention_and_cache_path_when_available(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_fused_attention_matches_separate_rope_attention_and_cache_path_when_available()
+    -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -8908,8 +9540,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_fused_attention_f16_kv_q8_1_matches_separate_attention_and_quantize_when_available(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_fused_attention_f16_kv_q8_1_matches_separate_attention_and_quantize_when_available()
+    -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -9032,8 +9664,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_fused_attention_graph_f16_kv_q8_1_matches_separate_attention_and_quantize_when_available(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_fused_attention_graph_f16_kv_q8_1_matches_separate_attention_and_quantize_when_available()
+    -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -9155,8 +9787,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_fused_add_residual_rms_norm_q8_1_router_topk_matches_separate_kernels_when_available(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_fused_add_residual_rms_norm_q8_1_router_topk_matches_separate_kernels_when_available()
+    -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -9288,8 +9920,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_router_topk_delayed_softmax_matches_fused_router_kernel_when_available(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_router_topk_delayed_softmax_matches_fused_router_kernel_when_available()
+    -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -9388,8 +10020,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_executes_q8_0_quantized_matvec_q8_1_fast_path_when_available(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_executes_q8_0_quantized_matvec_q8_1_fast_path_when_available()
+    -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -9432,8 +10064,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_executes_q8_0_quantized_matvec_q8_1_fast_path_with_bias_when_available(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_executes_q8_0_quantized_matvec_q8_1_fast_path_with_bias_when_available()
+    -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -9478,8 +10110,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_executes_q8_0_quantized_matvec_q8_1_argmax_fast_path_when_available(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_executes_q8_0_quantized_matvec_q8_1_argmax_fast_path_when_available()
+    -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -9537,8 +10169,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_executes_mxfp4_quantized_matvec_q8_1_fast_path_when_available(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_executes_mxfp4_quantized_matvec_q8_1_fast_path_when_available()
+    -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -9581,8 +10213,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_executes_q8_0_quantized_matvec_q8_1_fast_path_for_multi_block_rows_when_available(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_executes_q8_0_quantized_matvec_q8_1_fast_path_for_multi_block_rows_when_available()
+    -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -9631,8 +10263,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_executes_mxfp4_quantized_matvec_q8_1_fast_path_for_multi_block_rows_when_available(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_executes_mxfp4_quantized_matvec_q8_1_fast_path_for_multi_block_rows_when_available()
+    -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -9681,8 +10313,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_executes_mxfp4_moe_gate_up_swiglu_q8_1_when_available(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_executes_mxfp4_moe_gate_up_swiglu_q8_1_when_available()
+    -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -9738,8 +10370,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_executes_mxfp4_expert_gate_up_swiglu_q8_1_ids_when_available(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_executes_mxfp4_expert_gate_up_swiglu_q8_1_ids_when_available()
+    -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -9823,8 +10455,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_executes_mxfp4_moe_down_aggregate_q8_1_when_available(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_executes_mxfp4_moe_down_aggregate_q8_1_when_available()
+    -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -9889,8 +10521,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_executes_mxfp4_moe_down_aggregate_q8_1_f32_selected4_path_when_available(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_executes_mxfp4_moe_down_aggregate_q8_1_f32_selected4_path_when_available()
+    -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -9944,8 +10576,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_executes_mxfp4_moe_down_aggregate_q8_1_grouped_selected_path_when_available(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_executes_mxfp4_moe_down_aggregate_q8_1_grouped_selected_path_when_available()
+    -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -10010,8 +10642,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_submission_executes_mxfp4_grouped_expert_matvec_and_accumulate_when_available(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_submission_executes_mxfp4_grouped_expert_matvec_and_accumulate_when_available()
+    -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
         let Some(_selected) = backend.selected_device().cloned() else {
             assert_eq!(backend.health().status, HealthStatus::Offline);
@@ -10111,6 +10743,23 @@ mod tests {
                 "index {index}: actual={actual} expected={expected}"
             );
         }
+    }
+
+    fn standard_rope_tables(sequence_length: usize, half_dim: usize) -> (Vec<f32>, Vec<f32>) {
+        let head_dim = half_dim * 2;
+        let mut cos = vec![0.0_f32; sequence_length * half_dim];
+        let mut sin = vec![0.0_f32; sequence_length * half_dim];
+        for position in 0..sequence_length {
+            for feature in 0..half_dim {
+                let exponent = (2 * feature) as f32 / head_dim as f32;
+                let inv_freq = 1.0_f32 / crate::CUDA_PUBLIC_STANDARD_ROPE_BASE.powf(exponent);
+                let angle = position as f32 * inv_freq;
+                let index = position * half_dim + feature;
+                cos[index] = angle.cos();
+                sin[index] = angle.sin();
+            }
+        }
+        (cos, sin)
     }
 
     fn sample_q8_0_row(scale: f32, multiplier: i8) -> Vec<u8> {

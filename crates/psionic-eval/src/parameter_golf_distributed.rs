@@ -12,8 +12,7 @@ pub const PARAMETER_GOLF_DISTRIBUTED_8XH100_BENCHMARK_REF: &str =
     "benchmark://openagents/psionic/parameter_golf/distributed_8xh100";
 
 /// Claim boundary carried by the distributed `8xH100` receipt lane.
-pub const PARAMETER_GOLF_DISTRIBUTED_8XH100_CLAIM_BOUNDARY: &str =
-    "exact 8xH100 DDP-style topology, communication, wallclock, and memory receipts are explicit, but challenge-ready CUDA kernel and runtime widening remains a separate closure item";
+pub const PARAMETER_GOLF_DISTRIBUTED_8XH100_CLAIM_BOUNDARY: &str = "exact 8xH100 DDP-style topology, communication, wallclock, and memory receipts are explicit, but challenge-ready CUDA kernel and runtime widening remains a separate closure item";
 
 /// Explicit challenge bar for the distributed `8xH100` lane.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -297,17 +296,14 @@ mod tests {
     use crate::{
         PARAMETER_GOLF_DISTRIBUTED_8XH100_BENCHMARK_REF,
         PARAMETER_GOLF_DISTRIBUTED_8XH100_CLAIM_BOUNDARY,
-        ParameterGolfDistributedChallengeThresholds,
-        ParameterGolfDistributedCommunicationReceipt,
-        ParameterGolfDistributedCommunicationStageReceipt,
-        ParameterGolfDistributedLaneDisposition, ParameterGolfDistributedMemoryReceipt,
-        ParameterGolfDistributedThroughputReceipt, ParameterGolfDistributedTimingReceipt,
-        ParameterGolfDistributedTopologyReceipt,
+        ParameterGolfDistributedChallengeThresholds, ParameterGolfDistributedCommunicationReceipt,
+        ParameterGolfDistributedCommunicationStageReceipt, ParameterGolfDistributedLaneDisposition,
+        ParameterGolfDistributedMemoryReceipt, ParameterGolfDistributedThroughputReceipt,
+        ParameterGolfDistributedTimingReceipt, ParameterGolfDistributedTopologyReceipt,
     };
 
     #[test]
-    fn parameter_golf_distributed_throughput_receipt_round_trips()
-    -> Result<(), Box<dyn Error>> {
+    fn parameter_golf_distributed_throughput_receipt_round_trips() -> Result<(), Box<dyn Error>> {
         let receipt = ParameterGolfDistributedThroughputReceipt {
             benchmark_ref: String::from(PARAMETER_GOLF_DISTRIBUTED_8XH100_BENCHMARK_REF),
             run_id: String::from("parameter-golf-distributed-test"),
@@ -329,12 +325,8 @@ mod tests {
                 transport: ClusterTransportClass::Loopback,
                 mesh_id: String::from("mesh.parameter_golf.8xh100"),
                 axes: vec![
-                    TrainingDeviceMeshAxis::new(
-                        "dp",
-                        TrainingDeviceMeshAxisKind::DataParallel,
-                        8,
-                    )
-                    .with_collective_group_size(8),
+                    TrainingDeviceMeshAxis::new("dp", TrainingDeviceMeshAxisKind::DataParallel, 8)
+                        .with_collective_group_size(8),
                 ],
                 stages: vec![
                     ParameterGolfDistributedCommunicationStageReceipt {
@@ -360,7 +352,7 @@ mod tests {
             training_capability_report_digest: String::from("cuda-coverage-digest"),
             challenge_kernel_blockers: vec![
                 String::from("cuda_bf16_train_precision_contract"),
-                String::from("cuda_rope_gqa_attention_block"),
+                String::from("cuda_rope_gqa_decoder_block_reverse_mode"),
             ],
             disposition: ParameterGolfDistributedLaneDisposition::Measured,
             timing: Some(ParameterGolfDistributedTimingReceipt {
@@ -403,7 +395,10 @@ mod tests {
         }
         .with_stable_digest();
         let artifact = receipt.as_artifact();
-        assert_eq!(artifact.artifact_kind, "parameter_golf_distributed_throughput_receipt");
+        assert_eq!(
+            artifact.artifact_kind,
+            "parameter_golf_distributed_throughput_receipt"
+        );
         let decoded: ParameterGolfDistributedThroughputReceipt =
             serde_json::from_slice(&serde_json::to_vec(&receipt)?)?;
         assert_eq!(decoded, receipt);
