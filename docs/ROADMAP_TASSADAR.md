@@ -425,6 +425,23 @@ Broad or full closure should also be tied to the official core tests and
 reference authority for the declared window, not to ad hoc opcode counts or
 historical proposal notes.
 
+Recommended support order inside that policy is:
+
+- binary/text ingress plus validation and typed refusal first
+- integer/control/direct-call core next
+- linear memory and data-segment semantics after that
+- globals, tables, references, and indirect calls after memory truth is stable
+- exports, start, and imports only under explicit embedding policy
+- floating-point and conversion widening only after exactness and determinism
+  posture are clear
+- proposal families like exceptions, GC, memory64, multi-memory, linking,
+  SIMD, and relaxed-SIMD only as later named profile families
+
+That order matches the official test-suite shape much better than growing a
+flat supported-opcode count, and it keeps high-risk semantic surfaces like
+floats and broad host interaction behind the core stack-machine, memory, and
+instantiation closure work.
+
 ### Exit Criteria
 
 - a canonical compile pipeline from source program to Wasm artifact exists

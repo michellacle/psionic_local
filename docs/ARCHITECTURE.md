@@ -718,6 +718,12 @@ The current scope is:
   from the core language claim; any future broader or full-Wasm closure should
   also be tied to the official test corpus and reference authority for that
   frozen window instead of an open-ended feature list
+- recommended closure order follows the spec and its test families: decode and
+  validate first, then integer/control/direct-call core, then linear memory,
+  then globals/tables/references/indirect calls, then instantiation/import
+  boundaries, then floating-point widening, and only after that separate
+  proposal-profile families such as exceptions, GC, memory64, multi-memory,
+  linking, SIMD, and relaxed-SIMD
 - landed Phase 8A bar: one widened HullCache closure report now exists in
   `psionic-eval` at
   `fixtures/tassadar/reports/tassadar_hull_cache_closure_report.json`,
