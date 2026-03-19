@@ -131,6 +131,11 @@
 - Do not commit or push from a checkout that still contains unrelated dirt.
 - Push to `origin/main` unless the user explicitly asks for another branch or
   workflow.
+- Never open a pull request, issue, or other outbound contribution against an
+  external repository unless the user explicitly instructs you to do so.
+- This ban is especially strict for OpenAI-owned repositories such as
+  `openai/parameter-golf`: never open or update a PR there unless the user
+  explicitly directs you to.
 - If temporary isolation was required, land the change on `main` and then
   remove the temporary worktree or branch before considering the task done.
 
