@@ -12,6 +12,13 @@ use thiserror::Error;
 pub const TASSADAR_TCM_V1_MODEL_ID: &str = "tcm.v1";
 pub const TASSADAR_TCM_V1_MODEL_REF: &str = "fixtures/tassadar/reports/tassadar_tcm_v1_model.json";
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TassadarUniversalMachineFamily {
+    TwoRegisterMachine,
+    SingleTapeMachine,
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TassadarUniversalSubstrateSemanticRow {
     pub semantic_id: String,

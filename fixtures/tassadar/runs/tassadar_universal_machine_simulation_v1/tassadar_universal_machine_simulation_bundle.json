@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "bundle_id": "tassadar.universal_machine_simulation.bundle.v1",
+  "encoding_report_ref": "fixtures/tassadar/reports/tassadar_universal_machine_encoding_report.json",
+  "receipts": [
+    {
+      "case_id": "simulation.tcm.encoding.two_register_counter_loop.v1",
+      "encoding_id": "tcm.encoding.two_register_counter_loop.v1",
+      "machine_family": "two_register_machine",
+      "exact_step_parity": true,
+      "checkpoint_resume_equivalent": true,
+      "final_state_digest": "reg0=0|reg1=2|pc=halt",
+      "trace": [
+        {
+          "step_index": 0,
+          "state_digest": "reg0=2|reg1=0|pc=0"
+        },
+        {
+          "step_index": 3,
+          "state_digest": "reg0=1|reg1=1|pc=1"
+        },
+        {
+          "step_index": 6,
+          "state_digest": "reg0=0|reg1=2|pc=halt"
+        }
+      ],
+      "note": "runtime simulation follows the declared `minsky_two_register_counter_loop` witness for 6 exact steps under TCM.v1"
+    },
+    {
+      "case_id": "simulation.tcm.encoding.single_tape_bit_flip.v1",
+      "encoding_id": "tcm.encoding.single_tape_bit_flip.v1",
+      "machine_family": "single_tape_machine",
+      "exact_step_parity": true,
+      "checkpoint_resume_equivalent": true,
+      "final_state_digest": "tape=101|head=3|state=halt",
+      "trace": [
+        {
+          "step_index": 0,
+          "state_digest": "tape=010|head=0|state=q0"
+        },
+        {
+          "step_index": 2,
+          "state_digest": "tape=110|head=1|state=q1"
+        },
+        {
+          "step_index": 5,
+          "state_digest": "tape=101|head=3|state=halt"
+        }
+      ],
+      "note": "runtime simulation follows the declared `single_tape_bit_flip` witness for 5 exact steps under TCM.v1"
+    }
+  ],
+  "exact_case_count": 2,
+  "checkpoint_resume_equivalent_case_count": 2,
+  "claim_boundary": "this runtime bundle proves the declared witness encodings execute exactly on the current TCM.v1 runtime contract. It is still a witness bundle, not the final universality benchmark suite.",
+  "summary": "Universal-machine simulation bundle keeps receipts=2, exact_case_count=2, checkpoint_resume_equivalent_case_count=2.",
+  "bundle_digest": "41eabd6324b522e4a9842a81eee9bfa38d406578d33d82744c79deaf276304cc"
+}

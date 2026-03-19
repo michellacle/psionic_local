@@ -100,6 +100,11 @@ Current honest posture:
   substrate language to explicit control, memory, continuation, and
   effect-boundary rows; this is the substrate declaration only, not yet the
   witness construction or final universality gate
+- the repo now also has one explicit universal-machine witness construction,
+  with committed compiler, runtime, eval, and research artifacts for a
+  two-register machine and a single-tape machine over `TCM.v1`; this closes the
+  witness-construction step only, not yet the full witness benchmark suite or
+  the final gate
 - the repo now also has one research-only shared-memory and threads profile
   with a deterministic scheduler envelope, explicit sandbox boundary truth,
   and typed refusal on host-nondeterministic scheduling plus relaxed
@@ -211,7 +216,7 @@ Issue-state note:
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
 - `TAS-125` through `TAS-146` are now implemented and tracked in
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
-- the current open GitHub backlog begins at `TAS-152` and runs through
+- the current open GitHub backlog begins at `TAS-153` and runs through
   `TAS-156`
 
 ## Repo-Local Companion Docs

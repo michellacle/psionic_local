@@ -23,6 +23,7 @@ mod tassadar_sparse_rule_audit;
 mod tassadar_structured_control;
 mod tassadar_symbolic;
 mod tassadar_trap_exception;
+mod tassadar_universal_machine_encoding;
 mod tassadar_wasm_module;
 
 use std::collections::{BTreeMap, BTreeSet};
@@ -70,6 +71,7 @@ pub use tassadar_sparse_rule_audit::*;
 pub use tassadar_structured_control::*;
 pub use tassadar_symbolic::*;
 pub use tassadar_trap_exception::*;
+pub use tassadar_universal_machine_encoding::*;
 pub use tassadar_wasm_module::*;
 
 /// Human-readable crate ownership summary.

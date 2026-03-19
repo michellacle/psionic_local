@@ -1064,6 +1064,16 @@ The current scope is:
   model to already landed checkpoint, process-object, spill-tape, and declared
   effect-profile truth; this still does not prove universal-machine encodings,
   witness suites, final gates, or served universality posture
+- the current universal-machine witness artifacts are
+  `fixtures/tassadar/reports/tassadar_universal_machine_encoding_report.json`,
+  `fixtures/tassadar/runs/tassadar_universal_machine_simulation_v1/tassadar_universal_machine_simulation_bundle.json`,
+  and `fixtures/tassadar/reports/tassadar_universal_machine_proof_report.json`,
+  plus the operator summary
+  `fixtures/tassadar/reports/tassadar_universal_machine_proof_summary.json`,
+  which freeze one explicit witness construction over `TCM.v1` for a
+  two-register machine and a single-tape machine with exact runtime parity;
+  this still does not constitute the dedicated witness benchmark suite, the
+  minimal universal-substrate gate, or served universality posture
 - the current semantic-window revision artifacts are
   `fixtures/tassadar/reports/tassadar_semantic_window_revision_receipt.json`
   and
