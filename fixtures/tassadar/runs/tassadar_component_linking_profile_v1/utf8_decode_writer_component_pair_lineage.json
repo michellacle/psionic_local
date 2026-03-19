@@ -1,0 +1,21 @@
+{
+  "case_id": "utf8_decode_writer_component_pair",
+  "topology_id": "utf8_decode_writer_component_pair",
+  "lineage_entries": [
+    {
+      "component_ref": "utf8_decode_component@1.0.0",
+      "interface_type_ids": [
+        "list_u8",
+        "result_i32"
+      ],
+      "lineage_digest": "98b671818193c3b70bf699a87f14b9dd3b90ed86852227cd7042ee14b50094b1"
+    },
+    {
+      "component_ref": "heap_writer_component@1.0.0",
+      "interface_type_ids": [
+        "result_i32"
+      ],
+      "lineage_digest": "afa934f6ef00c5352aa31976fb8b557f32baa40a59fad00bace780ab9a558f5b"
+    }
+  ]
+}

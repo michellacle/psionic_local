@@ -46,6 +46,8 @@ mod tassadar_call_frames;
 mod tassadar_clrs_wasm_bridge;
 #[path = "tassadar_compile_pipeline_matrix.rs"]
 mod tassadar_compile_pipeline_matrix;
+#[path = "tassadar_component_linking_profile.rs"]
+mod tassadar_component_linking_profile;
 #[path = "tassadar_compiled_distillation.rs"]
 mod tassadar_compiled_distillation;
 #[path = "tassadar_compiled_executor.rs"]
@@ -234,6 +236,7 @@ pub use tassadar_broad_internal_compute_profile_publication::*;
 pub use tassadar_call_frames::*;
 pub use tassadar_clrs_wasm_bridge::*;
 pub use tassadar_compile_pipeline_matrix::*;
+pub use tassadar_component_linking_profile::*;
 pub use tassadar_compiled_distillation::*;
 pub use tassadar_compiled_executor::*;
 pub use tassadar_compiled_kernel_suite::*;

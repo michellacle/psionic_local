@@ -940,6 +940,30 @@ Expected outcome:
   `fixtures/tassadar/runs/tassadar_multi_memory_profile_v1`
 - explicit malformed-topology refusal parity
 
+### 13. Bounded component/linking proposal profile
+
+```bash
+cargo run -p psionic-runtime --example tassadar_component_linking_runtime_bundle
+cargo run -p psionic-eval --example tassadar_component_linking_profile_report
+```
+
+Read:
+
+- `fixtures/tassadar/runs/tassadar_component_linking_profile_v1/tassadar_component_linking_runtime_bundle.json`
+- `fixtures/tassadar/reports/tassadar_component_linking_profile_report.json`
+
+Expected outcome:
+
+- one named bounded component/linking profile:
+  `tassadar.proposal_profile.component_linking_interface_types.v1`
+- exact interface-type lowering parity for the
+  `utf8_decode_writer_component_pair` topology
+- exact interface-type lowering parity for the
+  `checkpoint_resume_component_pair` topology
+- persisted lineage artifacts under
+  `fixtures/tassadar/runs/tassadar_component_linking_profile_v1`
+- explicit incompatible-component-interface refusal parity
+
 ## Validation Commands
 
 Run the focused report checks after the flow:
@@ -974,6 +998,11 @@ cargo test -p psionic-compiler multi_memory_profile -- --nocapture
 cargo test -p psionic-runtime multi_memory_profile -- --nocapture
 cargo test -p psionic-eval multi_memory_profile -- --nocapture
 cargo test -p psionic-provider multi_memory_profile -- --nocapture
+cargo test -p psionic-ir component_linking_profile -- --nocapture
+cargo test -p psionic-compiler component_linking_profile -- --nocapture
+cargo test -p psionic-runtime component_linking_profile -- --nocapture
+cargo test -p psionic-eval component_linking_profile -- --nocapture
+cargo test -p psionic-provider component_linking_profile -- --nocapture
 ```
 
 These checks should keep the committed reports and generated truth aligned.

@@ -1,0 +1,22 @@
+{
+  "case_id": "checkpoint_resume_component_pair",
+  "topology_id": "checkpoint_resume_component_pair",
+  "lineage_entries": [
+    {
+      "component_ref": "checkpoint_codec_component@1.0.0",
+      "interface_type_ids": [
+        "record_i32_i32",
+        "result_refusal_code"
+      ],
+      "lineage_digest": "5b99f508b20318e8c7430159044b12984d7639b88ba6c867e65474ccc17e1f91"
+    },
+    {
+      "component_ref": "resume_runtime_component@1.0.0",
+      "interface_type_ids": [
+        "record_i32_i32",
+        "result_refusal_code"
+      ],
+      "lineage_digest": "24ad6619f750d25e0dc337f1bc74ccef0c9d39d409e6c58b1a05c0f6bfb38f5a"
+    }
+  ]
+}

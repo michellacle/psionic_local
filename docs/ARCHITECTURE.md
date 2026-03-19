@@ -788,6 +788,17 @@ The current scope is:
   malformed-topology refusal truth on the current-host cpu-reference envelope;
   this is not arbitrary Wasm multi-memory closure, memory64 plus multi-memory
   mixing, generic allocator portability, or broader served publication
+- the current component/linking proposal-profile artifacts are
+  `fixtures/tassadar/reports/tassadar_component_linking_profile_report.json`
+  and
+  `fixtures/tassadar/runs/tassadar_component_linking_profile_v1/tassadar_component_linking_runtime_bundle.json`,
+  which freeze one bounded component/linking profile over the explicit
+  `utf8_decode_writer_component_pair` and `checkpoint_resume_component_pair`
+  topologies, with persisted interface-type lineage artifacts and explicit
+  incompatible-interface refusal truth on the current-host cpu-reference
+  envelope; this is not arbitrary component-model closure, unrestricted
+  interface-type lowering, arbitrary host-import composition, or broader
+  served publication
 - recommended closure order follows the spec and its test families: decode and
   validate first, then integer/control/direct-call core, then linear memory,
   then globals/tables/references/indirect calls, then instantiation/import

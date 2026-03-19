@@ -1,0 +1,261 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.component_linking_profile.report.v1",
+  "ir_contract": {
+    "schema_version": 1,
+    "contract_id": "tassadar.component_linking_profile.contract.v1",
+    "profile_id": "tassadar.proposal_profile.component_linking_interface_types.v1",
+    "portability_envelope_id": "cpu_reference_current_host",
+    "admitted_topologies": [
+      {
+        "topology_id": "utf8_decode_writer_component_pair",
+        "component_refs": [
+          "utf8_decode_component@1.0.0",
+          "heap_writer_component@1.0.0"
+        ],
+        "admitted_interface_type_ids": [
+          "list_u8",
+          "result_i32"
+        ],
+        "detail": "one bounded component pair lowers `list<u8>` input bytes into a decode component and then lowers the result into one heap-writer component without widening to arbitrary interface graphs"
+      },
+      {
+        "topology_id": "checkpoint_resume_component_pair",
+        "component_refs": [
+          "checkpoint_codec_component@1.0.0",
+          "resume_runtime_component@1.0.0"
+        ],
+        "admitted_interface_type_ids": [
+          "record_i32_i32",
+          "result_refusal_code"
+        ],
+        "detail": "one bounded checkpoint/resume component pair lowers fixed-width record interfaces and result-coded refusal semantics into the existing continuation lane"
+      }
+    ],
+    "refused_reason_ids": [
+      "incompatible_component_interface",
+      "unsupported_interface_type_lowering",
+      "component_cycle_out_of_scope"
+    ],
+    "claim_boundary": "this contract names one bounded component/linking profile with explicit interface-type lowering on the current-host cpu-reference lane. It does not claim arbitrary component-model closure, unrestricted interface-type lowering, arbitrary host-import composition, or broader served publication",
+    "contract_digest": "513cc404d0c7d31f9c4806032cd193e9dd99f1d7852f98633032207cb30e4a88"
+  },
+  "compiler_contract": {
+    "schema_version": 1,
+    "contract_id": "tassadar.component_linking_profile.compilation_contract.v1",
+    "profile_id": "tassadar.proposal_profile.component_linking_interface_types.v1",
+    "portability_envelope_id": "cpu_reference_current_host",
+    "case_specs": [
+      {
+        "case_id": "utf8_decode_writer_component_pair",
+        "topology_id": "utf8_decode_writer_component_pair",
+        "interface_type_ids": [
+          "list_u8",
+          "result_i32"
+        ],
+        "expected_status": "exact",
+        "benchmark_refs": [
+          "fixtures/tassadar/reports/tassadar_module_link_runtime_report.json",
+          "fixtures/tassadar/reports/tassadar_linked_program_bundle_eval_report.json"
+        ],
+        "note": "the bounded component lane lowers list-of-bytes input plus result<i32> output across one explicit decode/writer component pair"
+      },
+      {
+        "case_id": "checkpoint_resume_component_pair",
+        "topology_id": "checkpoint_resume_component_pair",
+        "interface_type_ids": [
+          "record_i32_i32",
+          "result_refusal_code"
+        ],
+        "expected_status": "exact",
+        "benchmark_refs": [
+          "fixtures/tassadar/reports/tassadar_execution_checkpoint_report.json",
+          "fixtures/tassadar/reports/tassadar_effect_safe_resume_report.json"
+        ],
+        "note": "the bounded component lane lowers a fixed-width record interface plus result-coded refusals across one explicit checkpoint/resume component pair"
+      },
+      {
+        "case_id": "incompatible_component_interface_refusal",
+        "topology_id": "utf8_decode_writer_component_pair",
+        "interface_type_ids": [
+          "record_i32_i32",
+          "list_u8"
+        ],
+        "expected_status": "refusal",
+        "expected_refusal_reason_id": "incompatible_component_interface",
+        "benchmark_refs": [
+          "fixtures/tassadar/reports/tassadar_module_link_eval_report.json",
+          "fixtures/tassadar/reports/tassadar_frozen_core_wasm_window_report.json"
+        ],
+        "note": "incompatible interface-type wiring stays as typed refusal truth instead of widening from the two admitted component pairs"
+      }
+    ],
+    "claim_boundary": "this contract freezes one bounded component/linking proposal profile over explicit interface-type lowering and incompatible-interface refusal. It does not claim arbitrary component-model closure, unrestricted interface lowering, or broader served publication",
+    "summary": "Component-linking compilation contract freezes 3 cases across 2 exact and 1 refusal expectations.",
+    "contract_digest": "250b9c4e9d9ab7d13553b20422ee31506b8776da0971c7b0b333104f063c8e7f"
+  },
+  "runtime_bundle_ref": "fixtures/tassadar/runs/tassadar_component_linking_profile_v1/tassadar_component_linking_runtime_bundle.json",
+  "runtime_bundle": {
+    "schema_version": 1,
+    "bundle_id": "tassadar.component_linking_profile.runtime_bundle.v1",
+    "profile_id": "tassadar.proposal_profile.component_linking_interface_types.v1",
+    "portability_envelope_id": "cpu_reference_current_host",
+    "exact_component_parity_count": 2,
+    "exact_refusal_parity_count": 1,
+    "case_receipts": [
+      {
+        "case_id": "utf8_decode_writer_component_pair",
+        "topology_id": "utf8_decode_writer_component_pair",
+        "status": "exact_component_parity",
+        "lineage_entries": [
+          {
+            "component_ref": "utf8_decode_component@1.0.0",
+            "interface_type_ids": [
+              "list_u8",
+              "result_i32"
+            ],
+            "lineage_digest": "98b671818193c3b70bf699a87f14b9dd3b90ed86852227cd7042ee14b50094b1"
+          },
+          {
+            "component_ref": "heap_writer_component@1.0.0",
+            "interface_type_ids": [
+              "result_i32"
+            ],
+            "lineage_digest": "afa934f6ef00c5352aa31976fb8b557f32baa40a59fad00bace780ab9a558f5b"
+          }
+        ],
+        "exact_interface_lowering_parity": true,
+        "benchmark_refs": [
+          "fixtures/tassadar/reports/tassadar_module_link_runtime_report.json",
+          "fixtures/tassadar/reports/tassadar_linked_program_bundle_eval_report.json"
+        ],
+        "note": "bounded component linking keeps one explicit utf8-decode plus heap-writer pair with stable interface-lowering lineage instead of widening to arbitrary component graphs",
+        "receipt_digest": "771307c93540c1d60b12e2d5694ace097fab93c829985e3b03667a7d71084629"
+      },
+      {
+        "case_id": "checkpoint_resume_component_pair",
+        "topology_id": "checkpoint_resume_component_pair",
+        "status": "exact_component_parity",
+        "lineage_entries": [
+          {
+            "component_ref": "checkpoint_codec_component@1.0.0",
+            "interface_type_ids": [
+              "record_i32_i32",
+              "result_refusal_code"
+            ],
+            "lineage_digest": "5b99f508b20318e8c7430159044b12984d7639b88ba6c867e65474ccc17e1f91"
+          },
+          {
+            "component_ref": "resume_runtime_component@1.0.0",
+            "interface_type_ids": [
+              "record_i32_i32",
+              "result_refusal_code"
+            ],
+            "lineage_digest": "24ad6619f750d25e0dc337f1bc74ccef0c9d39d409e6c58b1a05c0f6bfb38f5a"
+          }
+        ],
+        "exact_interface_lowering_parity": true,
+        "benchmark_refs": [
+          "fixtures/tassadar/reports/tassadar_execution_checkpoint_report.json",
+          "fixtures/tassadar/reports/tassadar_effect_safe_resume_report.json"
+        ],
+        "note": "bounded checkpoint/resume component linking keeps interface records and result-coded refusals explicit across the paired lineage",
+        "receipt_digest": "64f563f9e470de92e3c813ab9bc45d0e93363372d211e3a0d3b8cb563ed4fc83"
+      },
+      {
+        "case_id": "incompatible_component_interface_refusal",
+        "topology_id": "utf8_decode_writer_component_pair",
+        "status": "exact_refusal_parity",
+        "lineage_entries": [],
+        "exact_interface_lowering_parity": false,
+        "refusal_reason_id": "incompatible_component_interface",
+        "benchmark_refs": [
+          "fixtures/tassadar/reports/tassadar_module_link_eval_report.json",
+          "fixtures/tassadar/reports/tassadar_frozen_core_wasm_window_report.json"
+        ],
+        "note": "incompatible component interfaces stay as typed refusal truth instead of widening from the two admitted component pairs",
+        "receipt_digest": "7ecf7ef2b48757c0b3705ce3b64ed5a5d26c32fe01ba2f46dad0d5d192b3bb82"
+      }
+    ],
+    "claim_boundary": "this runtime bundle proves one bounded component/linking proposal profile with explicit interface-type lineage and typed incompatible-interface refusal truth on the current-host cpu-reference lane. It does not claim arbitrary component-model closure, unrestricted interface-type lowering, or broader served publication",
+    "summary": "Component-linking runtime bundle covers 3 cases with exact_component_parity=2 and exact_refusal_parity=1.",
+    "bundle_digest": "20fd530e848b9fc244460447e42d0cdd28342adc7b46db0d512743797b57b008"
+  },
+  "case_reports": [
+    {
+      "case_id": "utf8_decode_writer_component_pair",
+      "topology_id": "utf8_decode_writer_component_pair",
+      "status": "exact_component_parity",
+      "interface_type_ids": [
+        "list_u8",
+        "result_i32",
+        "result_i32"
+      ],
+      "lineage_artifact": {
+        "case_id": "utf8_decode_writer_component_pair",
+        "lineage_path": "fixtures/tassadar/runs/tassadar_component_linking_profile_v1/utf8_decode_writer_component_pair_lineage.json",
+        "component_refs": [
+          "utf8_decode_component@1.0.0",
+          "heap_writer_component@1.0.0"
+        ]
+      },
+      "note": "bounded component linking keeps one explicit utf8-decode plus heap-writer pair with stable interface-lowering lineage instead of widening to arbitrary component graphs"
+    },
+    {
+      "case_id": "checkpoint_resume_component_pair",
+      "topology_id": "checkpoint_resume_component_pair",
+      "status": "exact_component_parity",
+      "interface_type_ids": [
+        "record_i32_i32",
+        "result_refusal_code",
+        "record_i32_i32",
+        "result_refusal_code"
+      ],
+      "lineage_artifact": {
+        "case_id": "checkpoint_resume_component_pair",
+        "lineage_path": "fixtures/tassadar/runs/tassadar_component_linking_profile_v1/checkpoint_resume_component_pair_lineage.json",
+        "component_refs": [
+          "checkpoint_codec_component@1.0.0",
+          "resume_runtime_component@1.0.0"
+        ]
+      },
+      "note": "bounded checkpoint/resume component linking keeps interface records and result-coded refusals explicit across the paired lineage"
+    },
+    {
+      "case_id": "incompatible_component_interface_refusal",
+      "topology_id": "utf8_decode_writer_component_pair",
+      "status": "exact_refusal_parity",
+      "interface_type_ids": [],
+      "refusal_reason_id": "incompatible_component_interface",
+      "note": "incompatible component interfaces stay as typed refusal truth instead of widening from the two admitted component pairs"
+    }
+  ],
+  "green_topology_ids": [
+    "checkpoint_resume_component_pair",
+    "utf8_decode_writer_component_pair"
+  ],
+  "lineage_artifact_case_ids": [
+    "utf8_decode_writer_component_pair",
+    "checkpoint_resume_component_pair"
+  ],
+  "portability_envelope_ids": [
+    "cpu_reference_current_host"
+  ],
+  "exact_component_parity_count": 2,
+  "exact_refusal_parity_count": 1,
+  "overall_green": true,
+  "generated_from_refs": [
+    "fixtures/tassadar/reports/tassadar_effect_safe_resume_report.json",
+    "fixtures/tassadar/reports/tassadar_execution_checkpoint_report.json",
+    "fixtures/tassadar/reports/tassadar_frozen_core_wasm_window_report.json",
+    "fixtures/tassadar/reports/tassadar_linked_program_bundle_eval_report.json",
+    "fixtures/tassadar/reports/tassadar_module_link_eval_report.json",
+    "fixtures/tassadar/reports/tassadar_module_link_runtime_report.json",
+    "fixtures/tassadar/runs/tassadar_component_linking_profile_v1/checkpoint_resume_component_pair_lineage.json",
+    "fixtures/tassadar/runs/tassadar_component_linking_profile_v1/tassadar_component_linking_runtime_bundle.json",
+    "fixtures/tassadar/runs/tassadar_component_linking_profile_v1/utf8_decode_writer_component_pair_lineage.json"
+  ],
+  "claim_boundary": "this eval report covers one bounded component/linking proposal profile with explicit interface-type lowering, lineage artifacts, and incompatible-interface refusal truth. It does not claim arbitrary component-model closure, unrestricted interface lowering, or broader served publication",
+  "summary": "Component-linking profile report covers 3 case rows with exact_component_parity=2, exact_refusal_parity=1, lineage_artifact_cases=2, overall_green=true.",
+  "report_digest": "4b04b58e3d5765149cef8a30d2fb1af3f0effe2aba776f30cdeab34189b77032"
+}
