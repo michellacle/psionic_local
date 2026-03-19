@@ -959,6 +959,16 @@ The current scope is:
   memory, and verifier-attached hybrid architectures; this is not broad
   internal compute, arbitrary Wasm, or broader served internal compute
   promotion
+- the current verifier-attached hybrid controller artifacts are
+  `fixtures/tassadar/runs/tassadar_hybrid_process_controller_v1/tassadar_hybrid_process_controller_runtime_bundle.json`,
+  `fixtures/tassadar/reports/tassadar_hybrid_process_controller_route_report.json`,
+  and `fixtures/tassadar/reports/tassadar_hybrid_process_controller_report.json`,
+  which freeze one research-only controller over session-counter,
+  search-frontier, linked-package-worker, and refused effectful-mailbox
+  transitions with explicit verifier-on versus verifier-off exactness deltas,
+  challenge-path simulations, route posture, and typed unsupported-transition
+  refusal; this is not arbitrary hybrid execution, broad internal compute, or
+  broader served internal compute promotion
 - recommended closure order follows the spec and its test families: decode and
   validate first, then integer/control/direct-call core, then linear memory,
   then globals/tables/references/indirect calls, then instantiation/import

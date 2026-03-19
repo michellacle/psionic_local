@@ -106,6 +106,8 @@ mod tassadar_frozen_core_wasm_closure_gate;
 mod tassadar_frozen_core_wasm_window;
 #[path = "tassadar_generalized_abi.rs"]
 mod tassadar_generalized_abi;
+#[path = "tassadar_hybrid_process_controller.rs"]
+mod tassadar_hybrid_process_controller;
 #[path = "tassadar_hungarian_10x10_compiled_executor.rs"]
 mod tassadar_hungarian_10x10_compiled_executor;
 #[path = "tassadar_hungarian_compiled_executor.rs"]
@@ -300,6 +302,7 @@ pub use tassadar_float_semantics::*;
 pub use tassadar_frozen_core_wasm_closure_gate::*;
 pub use tassadar_frozen_core_wasm_window::*;
 pub use tassadar_generalized_abi::*;
+pub use tassadar_hybrid_process_controller::*;
 pub use tassadar_hungarian_10x10_compiled_executor::*;
 pub use tassadar_hungarian_compiled_executor::*;
 pub use tassadar_installed_module_evidence::*;

@@ -1353,6 +1353,24 @@ Expected outcome:
 - no broad internal compute, arbitrary Wasm, or served internal-compute
   promotion
 
+Read:
+
+- `fixtures/tassadar/runs/tassadar_hybrid_process_controller_v1/tassadar_hybrid_process_controller_runtime_bundle.json`
+- `fixtures/tassadar/reports/tassadar_hybrid_process_controller_route_report.json`
+- `fixtures/tassadar/reports/tassadar_hybrid_process_controller_report.json`
+
+Expected outcome:
+
+- one research-only verifier-attached hybrid controller over session-counter,
+  search-frontier, linked-package-worker, and refused effectful-mailbox
+  transitions
+- explicit verifier-on versus verifier-off exactness deltas, challenge-path
+  simulations, compiled-versus-hybrid route posture, and typed
+  unsupported-transition refusal
+- served publication remains false
+- no arbitrary hybrid execution, broad internal compute, or served
+  internal-compute promotion
+
 ## Validation Commands
 
 Run the focused report checks after the flow:

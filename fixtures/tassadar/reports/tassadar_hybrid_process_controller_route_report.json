@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.hybrid_process_controller.route.report.v1",
+  "runtime_report_ref": "fixtures/tassadar/runs/tassadar_hybrid_process_controller_v1/tassadar_hybrid_process_controller_runtime_bundle.json",
+  "rows": [
+    {
+      "case_id": "hybrid.session_counter_resume.exact.v1",
+      "workload_family": "session_counter_resume",
+      "route_kind": "compiled_exact",
+      "runtime_status": "compiled_exact",
+      "verifier_attached": true,
+      "challenge_path_green": true,
+      "verifier_gain_bps": 0,
+      "note": "compiled exact remains preferred on simple resumable counters even with verifier attachment enabled"
+    },
+    {
+      "case_id": "hybrid.search_frontier_resume.verifier.v1",
+      "workload_family": "search_frontier_resume",
+      "route_kind": "hybrid_verifier_attached",
+      "runtime_status": "hybrid_verifier_attached",
+      "verifier_attached": true,
+      "challenge_path_green": true,
+      "verifier_gain_bps": 1800,
+      "note": "verifier-attached hybrid recovers search frontier resumes that drift when verifier attachment is removed"
+    },
+    {
+      "case_id": "hybrid.linked_package_worker.verifier.v1",
+      "workload_family": "linked_package_worker",
+      "route_kind": "hybrid_verifier_attached",
+      "runtime_status": "hybrid_verifier_attached",
+      "verifier_attached": true,
+      "challenge_path_green": true,
+      "verifier_gain_bps": 1800,
+      "note": "verifier attachment keeps linked worker package transitions challengeable and above the detached hybrid baseline"
+    },
+    {
+      "case_id": "hybrid.effectful_mailbox_transition.refusal.v1",
+      "workload_family": "effectful_mailbox_transition",
+      "route_kind": "refused",
+      "runtime_status": "refused",
+      "verifier_attached": true,
+      "challenge_path_green": false,
+      "verifier_gain_bps": 0,
+      "note": "effectful mailbox transitions remain outside the bounded hybrid controller envelope and refuse instead of silently downgrading into detached learned state updates"
+    }
+  ],
+  "compiled_exact_route_count": 1,
+  "hybrid_route_count": 2,
+  "refused_route_count": 1,
+  "claim_boundary": "this router report freezes bounded route posture for the verifier-attached hybrid controller. It does not imply default hybrid routing, arbitrary lane switching, or served publication widening",
+  "summary": "Hybrid process controller route report exposes 4 rows with compiled_exact=1, hybrid_verifier_attached=2, refused=1.",
+  "report_digest": "e62cf8eb89199d6b818820a681bf6cdb8a6987648eb3900135e3544813c23b68"
+}

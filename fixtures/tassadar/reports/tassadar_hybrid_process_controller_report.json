@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.hybrid_process_controller.report.v1",
+  "publication": {
+    "schema_version": 1,
+    "publication_id": "tassadar.hybrid_process_controller.publication.v1",
+    "status": "implemented_early",
+    "claim_class": "research_only_architecture_routing_surface",
+    "model": {
+      "model_id": "tassadar-hybrid-process-controller-v0",
+      "family": "tassadar_hybrid_process_controller",
+      "revision": "v0"
+    },
+    "controller_modes": [
+      "compiled_exact",
+      "learned_state_update",
+      "search_procedure",
+      "verifier_attachment"
+    ],
+    "workload_families": [
+      "session_counter_resume",
+      "search_frontier_resume",
+      "linked_package_worker",
+      "effectful_mailbox_transition"
+    ],
+    "baseline_refs": [
+      "fixtures/tassadar/reports/tassadar_program_family_frontier_report.json",
+      "fixtures/tassadar/reports/tassadar_search_native_executor_report.json",
+      "fixtures/tassadar/reports/tassadar_installed_process_lifecycle_report.json",
+      "fixtures/tassadar/reports/tassadar_linked_program_bundle_eval_report.json"
+    ],
+    "target_surfaces": [
+      "crates/psionic-models",
+      "crates/psionic-runtime",
+      "crates/psionic-router",
+      "crates/psionic-eval",
+      "crates/psionic-provider"
+    ],
+    "support_boundaries": [
+      "the hybrid controller is a research-only bounded routing surface and does not widen served capability or imply broad practical internal computation",
+      "verifier attachment is mandatory for the hybrid lane inside the seeded benchmark family; unsupported hybrid transitions must refuse instead of silently degrading",
+      "compiled exact, learned state update, and search procedures remain separate lanes; this publication records one bounded controller over them rather than flattening them into a generic executor claim"
+    ],
+    "report_ref": "fixtures/tassadar/reports/tassadar_hybrid_process_controller_report.json",
+    "publication_digest": "20e42aed7e56fd56a2278cd04580df80b8cb520014b94f83ac908bdeb2de626a"
+  },
+  "runtime_report": {
+    "schema_version": 1,
+    "bundle_id": "tassadar.hybrid_process_controller.runtime_bundle.v1",
+    "case_receipts": [
+      {
+        "case_id": "hybrid.session_counter_resume.exact.v1",
+        "workload_family": "session_counter_resume",
+        "runtime_status": "compiled_exact",
+        "selected_controller_mode": "compiled_exact",
+        "verifier_attached": true,
+        "compiled_step_count": 48,
+        "learned_state_step_count": 0,
+        "search_step_count": 0,
+        "verifier_check_count": 6,
+        "verifier_on_exactness_bps": 9900,
+        "verifier_off_exactness_bps": 9900,
+        "challenge_path_simulated": true,
+        "challenge_path_green": true,
+        "note": "compiled exact remains preferred on simple resumable counters even with verifier attachment enabled",
+        "receipt_digest": "8bf1ac8f8f3ab07476688fe4c784a5ed97f729ee611fbbe9a61a7d256f8eceea"
+      },
+      {
+        "case_id": "hybrid.search_frontier_resume.verifier.v1",
+        "workload_family": "search_frontier_resume",
+        "runtime_status": "hybrid_verifier_attached",
+        "selected_controller_mode": "hybrid_verifier_attached",
+        "verifier_attached": true,
+        "compiled_step_count": 18,
+        "learned_state_step_count": 24,
+        "search_step_count": 16,
+        "verifier_check_count": 12,
+        "verifier_on_exactness_bps": 9100,
+        "verifier_off_exactness_bps": 7300,
+        "challenge_path_simulated": true,
+        "challenge_path_green": true,
+        "note": "verifier-attached hybrid recovers search frontier resumes that drift when verifier attachment is removed",
+        "receipt_digest": "f8e5e5db31096a18d185298acb580317f252e5a9d34d421d5f48bf2ad9f6a687"
+      },
+      {
+        "case_id": "hybrid.linked_package_worker.verifier.v1",
+        "workload_family": "linked_package_worker",
+        "runtime_status": "hybrid_verifier_attached",
+        "selected_controller_mode": "hybrid_verifier_attached",
+        "verifier_attached": true,
+        "compiled_step_count": 22,
+        "learned_state_step_count": 20,
+        "search_step_count": 10,
+        "verifier_check_count": 9,
+        "verifier_on_exactness_bps": 8900,
+        "verifier_off_exactness_bps": 7100,
+        "challenge_path_simulated": true,
+        "challenge_path_green": true,
+        "note": "verifier attachment keeps linked worker package transitions challengeable and above the detached hybrid baseline",
+        "receipt_digest": "622e1eb2840a18a46ebce08785318f605903c58302af7ffb7fe1da7fc56941e2"
+      },
+      {
+        "case_id": "hybrid.effectful_mailbox_transition.refusal.v1",
+        "workload_family": "effectful_mailbox_transition",
+        "runtime_status": "refused",
+        "selected_controller_mode": "refused",
+        "verifier_attached": true,
+        "compiled_step_count": 0,
+        "learned_state_step_count": 0,
+        "search_step_count": 0,
+        "verifier_check_count": 3,
+        "verifier_on_exactness_bps": 0,
+        "verifier_off_exactness_bps": 0,
+        "challenge_path_simulated": true,
+        "challenge_path_green": false,
+        "refusal_reason_id": "unsupported_effect_transition",
+        "note": "effectful mailbox transitions remain outside the bounded hybrid controller envelope and refuse instead of silently downgrading into detached learned state updates",
+        "receipt_digest": "955b1643effe6834e24a0c12c77875054863aaa836f83b01032003150ac76a53"
+      }
+    ],
+    "compiled_exact_case_count": 1,
+    "hybrid_case_count": 2,
+    "refused_case_count": 1,
+    "challenge_green_case_count": 3,
+    "claim_boundary": "this runtime bundle freezes one bounded verifier-attached hybrid controller over named process-style workloads. It does not imply arbitrary hybrid execution, arbitrary effects, or served internal-compute promotion",
+    "summary": "Hybrid process controller runtime bundle covers compiled_exact_cases=1, hybrid_cases=2, refused_cases=1, challenge_green_cases=3.",
+    "bundle_digest": "317bb4e9ce0e688824f3aa609bc5ee19429641a512120d6ba4a3b26ee742036f"
+  },
+  "route_report_ref": "fixtures/tassadar/reports/tassadar_hybrid_process_controller_route_report.json",
+  "verifier_positive_delta_case_ids": [
+    "hybrid.search_frontier_resume.verifier.v1",
+    "hybrid.linked_package_worker.verifier.v1"
+  ],
+  "challenge_green_case_ids": [
+    "hybrid.session_counter_resume.exact.v1",
+    "hybrid.search_frontier_resume.verifier.v1",
+    "hybrid.linked_package_worker.verifier.v1"
+  ],
+  "unsupported_transition_case_ids": [
+    "hybrid.effectful_mailbox_transition.refusal.v1"
+  ],
+  "compiled_exact_case_count": 1,
+  "hybrid_verifier_case_count": 2,
+  "refused_case_count": 1,
+  "served_publication_allowed": false,
+  "generated_from_refs": [
+    "fixtures/tassadar/reports/tassadar_hybrid_process_controller_route_report.json",
+    "fixtures/tassadar/runs/tassadar_hybrid_process_controller_v1/tassadar_hybrid_process_controller_runtime_bundle.json"
+  ],
+  "claim_boundary": "this eval report keeps the verifier-attached hybrid controller as a research-only architecture and routing surface. It does not widen served posture, arbitrary hybrid transitions, or broad internal-compute claims",
+  "summary": "Hybrid process controller report covers compiled_exact_cases=1, hybrid_cases=2, refused_cases=1, verifier_positive_delta_cases=2, challenge_green_cases=3, served_publication_allowed=false, route_rows=4.",
+  "report_digest": "0bf1330c0edc32524fe93e3b9ab6b6b5c3965dde92ddc5e29017b5953d95a2fb"
+}
