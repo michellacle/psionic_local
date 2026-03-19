@@ -7,6 +7,7 @@
 
 mod tassadar_accepted_outcome_binding;
 mod tassadar_broad_internal_compute_acceptance_gate;
+mod tassadar_broad_internal_compute_profile_publication;
 mod tassadar_composite_accepted_outcome_template;
 mod tassadar_composite_routing;
 mod tassadar_cost_per_correct_job;
@@ -44,6 +45,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 pub use tassadar_accepted_outcome_binding::*;
 pub use tassadar_broad_internal_compute_acceptance_gate::*;
+pub use tassadar_broad_internal_compute_profile_publication::*;
 pub use tassadar_composite_accepted_outcome_template::*;
 pub use tassadar_composite_routing::*;
 pub use tassadar_cost_per_correct_job::*;
@@ -469,6 +471,9 @@ pub struct TassadarCapabilityEnvelope {
     pub runtime_backend: String,
     /// Served capability publication that the provider is exporting.
     pub publication: TassadarExecutorCapabilityPublication,
+    /// Provider-facing projection of the served broad internal-compute publication.
+    pub broad_internal_compute_profile_publication_receipt:
+        TassadarBroadInternalComputeProfilePublicationReceipt,
     /// Backend and quantization deployment truth for the served lane.
     pub quantization_truth_envelope: TassadarDeploymentTruthEnvelope,
     /// Current provider readiness state.
@@ -508,11 +513,41 @@ impl TassadarCapabilityEnvelope {
                     detail: format!("{error:?}"),
                 }
             })?;
+        let broad_internal_compute_profile_publication_receipt =
+            TassadarBroadInternalComputeProfilePublicationReceipt::from_publication(
+                &publication.broad_internal_compute_profile_publication,
+            );
+        if broad_internal_compute_profile_publication_receipt
+            .current_served_profile_id
+            .trim()
+            .is_empty()
+            || broad_internal_compute_profile_publication_receipt
+                .route_policy_report_ref
+                .trim()
+                .is_empty()
+            || !broad_internal_compute_profile_publication_receipt
+                .published_profile_ids
+                .contains(
+                    &broad_internal_compute_profile_publication_receipt
+                        .current_served_profile_id,
+                )
+            || broad_internal_compute_profile_publication_receipt.current_served_profile_id
+                != publication.internal_compute_profile_claim_check.claim.profile_id
+        {
+            return Err(
+                TassadarCapabilityEnvelopeError::UnpublishableBroadInternalComputeProfilePublication {
+                    detail: String::from(
+                        "provider envelope requires a non-empty current served broad profile id, a route-policy ref, a published current-served profile, and end-to-end agreement with the served internal-compute claim",
+                    ),
+                },
+            );
+        }
         Ok(Self {
             backend_family: String::from(BACKEND_FAMILY),
             product_id: publication.product_id.clone(),
             runtime_backend: publication.runtime_capability.runtime_backend.clone(),
             publication: publication.clone(),
+            broad_internal_compute_profile_publication_receipt,
             quantization_truth_envelope,
             readiness,
         })
@@ -535,6 +570,11 @@ pub enum TassadarCapabilityEnvelopeError {
     },
     /// The served quantization truth envelope was not publishable provider-side.
     UnpublishableQuantizationTruthEnvelope {
+        /// Plain-text validation detail.
+        detail: String,
+    },
+    /// The served broad internal-compute publication was not publishable provider-side.
+    UnpublishableBroadInternalComputeProfilePublication {
         /// Plain-text validation detail.
         detail: String,
     },

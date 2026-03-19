@@ -4,6 +4,8 @@ use psionic_runtime::TassadarWasmProfileId;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
+use crate::TASSADAR_BROAD_INTERNAL_COMPUTE_PROFILE_PUBLICATION_REPORT_REF;
+
 pub const TASSADAR_INTERNAL_COMPUTE_PROFILE_LADDER_REPORT_REF: &str =
     "fixtures/tassadar/reports/tassadar_internal_compute_profile_ladder_report.json";
 
@@ -29,6 +31,8 @@ const TASSADAR_RUST_ONLY_ARTICLE_ACCEPTANCE_GATE_V2_REPORT_REF: &str =
     "fixtures/tassadar/reports/tassadar_rust_only_article_acceptance_gate_v2.json";
 const TASSADAR_RUST_ONLY_ARTICLE_CLOSEOUT_AUDIT_REPORT_REF: &str =
     "fixtures/tassadar/reports/tassadar_rust_only_article_closeout_audit_report.json";
+const TASSADAR_BROAD_INTERNAL_COMPUTE_ROUTE_POLICY_REPORT_REF: &str =
+    "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json";
 
 /// Stable named post-article internal-compute profile identifier.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -455,8 +459,14 @@ impl TassadarInternalComputeProfileLadderPublication {
                 Vec::new(),
                 vec![TassadarInternalComputeRefusalClass::NonCpuBackendUnsupported],
                 vec![
-                    String::from("issue://OpenAgentsInc/psionic/181"),
-                    String::from("issue://OpenAgentsInc/psionic/182"),
+                    String::from(
+                        "fixtures/tassadar/reports/tassadar_broad_internal_compute_portability_report.json",
+                    ),
+                    String::from(
+                        "fixtures/tassadar/reports/tassadar_broad_internal_compute_acceptance_gate.json",
+                    ),
+                    String::from(TASSADAR_BROAD_INTERNAL_COMPUTE_PROFILE_PUBLICATION_REPORT_REF),
+                    String::from(TASSADAR_BROAD_INTERNAL_COMPUTE_ROUTE_POLICY_REPORT_REF),
                 ],
                 "broad public internal-compute publication remains the last rung and stays blocked until the earlier ladder entries are green",
             ),

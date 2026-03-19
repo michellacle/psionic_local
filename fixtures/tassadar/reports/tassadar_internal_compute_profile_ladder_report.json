@@ -217,8 +217,10 @@
           "non_cpu_backend_unsupported"
         ],
         "required_evidence_refs": [
-          "issue://OpenAgentsInc/psionic/181",
-          "issue://OpenAgentsInc/psionic/182"
+          "fixtures/tassadar/reports/tassadar_broad_internal_compute_acceptance_gate.json",
+          "fixtures/tassadar/reports/tassadar_broad_internal_compute_portability_report.json",
+          "fixtures/tassadar/reports/tassadar_broad_internal_compute_profile_publication_report.json",
+          "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
         ],
         "detail": "broad public internal-compute publication remains the last rung and stays blocked until the earlier ladder entries are green"
       },
@@ -337,7 +339,7 @@
       }
     ],
     "claim_boundary": "this ladder prevents vague `supports Rust/Wasm` language by requiring every public internal-compute claim to cite one named profile with explicit admitted features, refusal classes, portability posture, and evidence requirements",
-    "publication_digest": "a3d381cfe11bdf8074a1b53570eb01ab41c47e38ffd7e4cf3c22eb0ab7f37803"
+    "publication_digest": "f58c3378ac53323ee2738cb0d4a25de19f90a6e3c067f182c2f56f6ab3756584"
   },
   "current_served_claim_check": {
     "checker_id": "tassadar.internal_compute_profile_claim_checker.v1",
@@ -374,5 +376,5 @@
   },
   "claim_boundary": "this report freezes the named post-article internal-compute profile ladder plus the current served claim-check result. It exists to stop vague Rust/Wasm language from outrunning the actual evidence-backed claim",
   "summary": "internal-compute profile ladder now records implemented_profiles=2, planned_profiles=6, current_claim_green=true, and current_profile_id=`tassadar.internal_compute.article_closeout.v1`.",
-  "report_digest": "0e752a3fe681deda8711d07274e1e9ebbd6bc9d788655ab702ae372166c1160b"
+  "report_digest": "0d522f1a3539ee5cc5ea8eb32a1811022cf98df1bb3a9bc0312780d2aadc5729"
 }

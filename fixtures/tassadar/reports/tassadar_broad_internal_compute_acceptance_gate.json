@@ -158,15 +158,12 @@
     {
       "profile_id": "tassadar.internal_compute.public_broad_family.v1",
       "publication_allowed_row_count": 0,
-      "missing_required_evidence_refs": [
-        "issue://OpenAgentsInc/psionic/181",
-        "issue://OpenAgentsInc/psionic/182"
-      ],
+      "missing_required_evidence_refs": [],
       "article_baseline_green": true,
       "portability_ready": false,
       "refusal_suite_complete": true,
-      "gate_status": "failed",
-      "detail": "profile `tassadar.internal_compute.public_broad_family.v1` fails the broad gate because portability or required evidence refs are still incomplete"
+      "gate_status": "suppressed",
+      "detail": "profile `tassadar.internal_compute.public_broad_family.v1` stays suppressed because portability publication is not green yet even though baseline receipts are present"
     },
     {
       "profile_id": "tassadar.internal_compute.resumable_multi_slice.v1",
@@ -209,18 +206,18 @@
     "tassadar.internal_compute.article_closeout.v1"
   ],
   "suppressed_profile_ids": [
-    "tassadar.internal_compute.generalized_abi.v1"
+    "tassadar.internal_compute.generalized_abi.v1",
+    "tassadar.internal_compute.public_broad_family.v1"
   ],
   "failed_profile_ids": [
     "tassadar.internal_compute.deterministic_import_subset.v1",
     "tassadar.internal_compute.portable_broad_family.v1",
-    "tassadar.internal_compute.public_broad_family.v1",
     "tassadar.internal_compute.resumable_multi_slice.v1",
     "tassadar.internal_compute.runtime_support_subset.v1",
     "tassadar.internal_compute.wider_numeric_data_layout.v1"
   ],
   "overall_green": false,
   "claim_boundary": "this acceptance gate extends the Rust-only article baseline into a broader internal-compute publication gate. It stays red until named broader profiles have explicit portability envelopes, receipts, and refusal suites, and it keeps suppression visible instead of silently widening one green lab path into a broader claim",
-  "summary": "Broad internal-compute acceptance gate now records green_profiles=1, suppressed_profiles=1, failed_profiles=6, overall_green=false.",
-  "report_digest": "8f97a4868dcbdc276b8cdcc0c8618b498f25c76f088c072d9c1dacf10fb0df7b"
+  "summary": "Broad internal-compute acceptance gate now records green_profiles=1, suppressed_profiles=2, failed_profiles=5, overall_green=false.",
+  "report_digest": "5cea2ea52aab6fbc40c9c3c5f209bce8bc7a1e83ced8132e12eac39a27a70f99"
 }

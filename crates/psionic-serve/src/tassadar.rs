@@ -89,6 +89,9 @@ pub struct TassadarExecutorCapabilityPublication {
     pub broad_internal_compute_portability_report_ref: String,
     /// Broad internal-compute acceptance gate bound to the served lane.
     pub broad_internal_compute_acceptance_gate_report_ref: String,
+    /// Broad internal-compute profile publication and current route selection.
+    pub broad_internal_compute_profile_publication:
+        crate::TassadarBroadInternalComputeProfilePublication,
     /// Machine-readable workload capability matrix for the served lane.
     pub workload_capability_matrix: TassadarWorkloadCapabilityMatrix,
     /// Backend and quantization deployment truth carried through served publication.
@@ -147,6 +150,12 @@ pub enum TassadarExecutorCapabilityPublicationError {
     #[error("invalid internal-compute profile claim: {detail}")]
     InvalidInternalComputeProfileClaim {
         /// Machine-readable detail for the failed claim.
+        detail: String,
+    },
+    /// The broad internal-compute profile publication was not publishable.
+    #[error("invalid broad internal-compute profile publication: {detail}")]
+    InvalidBroadInternalComputeProfilePublication {
+        /// Machine-readable detail for the failed projection.
         detail: String,
     },
 }
@@ -481,6 +490,14 @@ impl LocalTassadarExecutorService {
         .map_err(|error| {
             TassadarExecutorCapabilityPublicationError::InvalidQuantizationTruthEnvelope { error }
         })?;
+        let broad_internal_compute_profile_publication =
+            crate::build_tassadar_broad_internal_compute_profile_publication().map_err(
+                |error| {
+                    TassadarExecutorCapabilityPublicationError::InvalidBroadInternalComputeProfilePublication {
+                        detail: error.to_string(),
+                    }
+                },
+            )?;
         Ok(TassadarExecutorCapabilityPublication {
             product_id: String::from(EXECUTOR_TRACE_PRODUCT_ID),
             model_descriptor: fixture.descriptor().clone(),
@@ -497,6 +514,7 @@ impl LocalTassadarExecutorService {
             broad_internal_compute_acceptance_gate_report_ref: String::from(
                 psionic_eval::TASSADAR_BROAD_INTERNAL_COMPUTE_ACCEPTANCE_GATE_REPORT_REF,
             ),
+            broad_internal_compute_profile_publication,
             workload_capability_matrix,
             quantization_truth_envelope,
         })
@@ -5463,6 +5481,16 @@ mod tests {
             encoded["broad_internal_compute_acceptance_gate_report_ref"],
             serde_json::json!(
                 "fixtures/tassadar/reports/tassadar_broad_internal_compute_acceptance_gate.json"
+            )
+        );
+        assert_eq!(
+            encoded["broad_internal_compute_profile_publication"]["current_served_profile_id"],
+            serde_json::json!("tassadar.internal_compute.article_closeout.v1")
+        );
+        assert_eq!(
+            encoded["broad_internal_compute_profile_publication"]["route_policy_report_ref"],
+            serde_json::json!(
+                "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
             )
         );
         assert_eq!(

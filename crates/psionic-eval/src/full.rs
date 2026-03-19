@@ -36,6 +36,8 @@ mod tassadar_article_runtime_closeout;
 mod tassadar_broad_internal_compute_acceptance_gate;
 #[path = "tassadar_broad_internal_compute_portability.rs"]
 mod tassadar_broad_internal_compute_portability;
+#[path = "tassadar_broad_internal_compute_profile_publication.rs"]
+mod tassadar_broad_internal_compute_profile_publication;
 #[path = "tassadar_benchmark_package_set.rs"]
 mod tassadar_benchmark_package_set;
 #[path = "tassadar_call_frames.rs"]
@@ -201,6 +203,7 @@ pub use tassadar_article_cpu_reproducibility::*;
 pub use tassadar_article_runtime_closeout::*;
 pub use tassadar_broad_internal_compute_acceptance_gate::*;
 pub use tassadar_broad_internal_compute_portability::*;
+pub use tassadar_broad_internal_compute_profile_publication::*;
 pub use tassadar_benchmark_package_set::*;
 pub use tassadar_call_frames::*;
 pub use tassadar_clrs_wasm_bridge::*;
