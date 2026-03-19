@@ -1,6 +1,8 @@
 use std::{
     collections::BTreeMap,
     fs,
+    fs::File,
+    io::{Read, Seek, SeekFrom},
     path::{Path, PathBuf},
 };
 
@@ -645,6 +647,98 @@ pub fn load_parameter_golf_shard_tokens(
     Ok(tokens)
 }
 
+/// Loads one contiguous token slice from a current-format Parameter Golf shard without reading the whole payload.
+pub fn load_parameter_golf_shard_token_slice(
+    path: impl AsRef<Path>,
+    start_token_offset: u64,
+    token_count: u64,
+) -> Result<Vec<u16>, ParameterGolfDataError> {
+    let path = path.as_ref();
+    let header = ParameterGolfShardHeader::read_path(path)?;
+    let available_tokens = header.token_count as u64;
+    let end_token_offset = start_token_offset.saturating_add(token_count);
+    if start_token_offset > available_tokens || end_token_offset > available_tokens {
+        return Err(ParameterGolfDataError::TokenSliceOutOfBounds {
+            path: path.display().to_string(),
+            start_token_offset,
+            token_count,
+            available_tokens,
+        });
+    }
+    let byte_count = token_count
+        .checked_mul(PARAMETER_GOLF_TOKEN_BYTES as u64)
+        .ok_or(ParameterGolfDataError::TokenSliceTooLarge { token_count })?;
+    let byte_count = usize::try_from(byte_count)
+        .map_err(|_| ParameterGolfDataError::TokenSliceTooLarge { token_count })?;
+    let start_byte_offset = PARAMETER_GOLF_SHARD_HEADER_BYTES as u64
+        + (start_token_offset * PARAMETER_GOLF_TOKEN_BYTES as u64);
+
+    let mut file = File::open(path).map_err(|error| ParameterGolfDataError::Io {
+        path: path.display().to_string(),
+        detail: error.to_string(),
+    })?;
+    file.seek(SeekFrom::Start(start_byte_offset))
+        .map_err(|error| ParameterGolfDataError::Io {
+            path: path.display().to_string(),
+            detail: error.to_string(),
+        })?;
+    let mut bytes = vec![0_u8; byte_count];
+    file.read_exact(bytes.as_mut_slice())
+        .map_err(|error| ParameterGolfDataError::Io {
+            path: path.display().to_string(),
+            detail: error.to_string(),
+        })?;
+
+    Ok(bytes
+        .chunks_exact(PARAMETER_GOLF_TOKEN_BYTES)
+        .map(|chunk| u16::from_le_bytes([chunk[0], chunk[1]]))
+        .collect())
+}
+
+/// Materializes one planned Parameter Golf token window from the selected local shard bundle.
+pub fn materialize_parameter_golf_token_window(
+    bundle: &ParameterGolfDatasetBundle,
+    window: &ParameterGolfTokenStreamWindow,
+) -> Result<Vec<u16>, ParameterGolfDataError> {
+    let split_name = window.start_cursor.split_name.as_str();
+    let receipts = match split_name {
+        PARAMETER_GOLF_TRAIN_SPLIT_NAME => bundle.train_shards.as_slice(),
+        PARAMETER_GOLF_VALIDATION_SPLIT_NAME => bundle.validation_shards.as_slice(),
+        _ => {
+            return Err(ParameterGolfDataError::UnknownSplit {
+                split_name: split_name.to_string(),
+            });
+        }
+    };
+    let total_tokens = window
+        .spans
+        .iter()
+        .map(|span| span.token_count)
+        .sum::<u64>();
+    let total_tokens =
+        usize::try_from(total_tokens).map_err(|_| ParameterGolfDataError::TokenSliceTooLarge {
+            token_count: total_tokens as u64,
+        })?;
+    let mut tokens = Vec::with_capacity(total_tokens);
+    for span in &window.spans {
+        let Some(receipt) = receipts
+            .iter()
+            .find(|receipt| receipt.identity.shard_key == span.shard_key)
+        else {
+            return Err(ParameterGolfDataError::UnknownWindowShard {
+                split_name: split_name.to_string(),
+                shard_key: span.shard_key.clone(),
+            });
+        };
+        tokens.extend(load_parameter_golf_shard_token_slice(
+            receipt.path.as_str(),
+            span.start_token_offset,
+            span.token_count,
+        )?);
+    }
+    Ok(tokens)
+}
+
 /// Loads the fixed validation split in manifest order and trims it with the same usable-token rule as the public challenge scripts.
 pub fn load_parameter_golf_validation_tokens_from_paths(
     paths: &[PathBuf],
@@ -869,6 +963,19 @@ pub enum ParameterGolfDataError {
         expected_tokens: usize,
         actual_tokens: usize,
     },
+    #[error(
+        "parameter golf shard `{path}` token slice starting at {start_token_offset} with {token_count} tokens exceeds available token count {available_tokens}"
+    )]
+    TokenSliceOutOfBounds {
+        path: String,
+        start_token_offset: u64,
+        token_count: u64,
+        available_tokens: u64,
+    },
+    #[error(
+        "parameter golf token slice of {token_count} tokens exceeds supported host buffer size"
+    )]
+    TokenSliceTooLarge { token_count: u64 },
     #[error("parameter golf validation loading requires at least one shard path")]
     MissingValidationShardPaths,
     #[error("parameter golf validation loading requires `seq_len > 0`")]
@@ -922,6 +1029,11 @@ pub enum ParameterGolfDataError {
     CursorSplitMismatch { expected: String, actual: String },
     #[error("parameter golf manifest does not declare split `{split_name}`")]
     UnknownSplit { split_name: String },
+    #[error("parameter golf token window references unknown shard `{shard_key}` in split `{split_name}`")]
+    UnknownWindowShard {
+        split_name: String,
+        shard_key: String,
+    },
     #[error(
         "parameter golf manifest expected `record_encoding=token_ids_le_u16`, found `{actual}`"
     )]
@@ -1234,6 +1346,56 @@ mod tests {
             err,
             ParameterGolfDataError::NonContiguousShardIndices { .. }
         ));
+    }
+
+    #[test]
+    fn shard_token_slice_loads_requested_range() {
+        let temp = TempDirGuard::new("slice");
+        let shard = temp.path.join("fineweb_train_000000.bin");
+        write_shard(&shard, &[7, 8, 9, 10, 11]);
+
+        let slice = load_parameter_golf_shard_token_slice(&shard, 1, 3).expect("slice should load");
+        assert_eq!(slice, vec![8, 9, 10]);
+    }
+
+    #[test]
+    fn materialize_token_window_concatenates_ordered_spans() {
+        let temp = TempDirGuard::new("materialize");
+        write_shard(&temp.path.join("fineweb_train_000000.bin"), &[1, 2, 3]);
+        write_shard(&temp.path.join("fineweb_train_000001.bin"), &[4, 5]);
+        write_shard(&temp.path.join("fineweb_val_000000.bin"), &[6, 7, 8, 9]);
+        let bundle = parameter_golf_dataset_bundle_from_local_dir(
+            DatasetKey::new("dataset://parameter-golf/fineweb-sp1024", "2026.03.18"),
+            &temp.path,
+            "sp1024",
+            sample_tokenizer(),
+            "data/tokenizers/fineweb_1024_bpe.model",
+            None,
+        )
+        .expect("bundle should validate");
+
+        let contract = ParameterGolfTokenStreamContract::new(
+            bundle.manifest.key.clone(),
+            PARAMETER_GOLF_TRAIN_SPLIT_NAME,
+        )
+        .with_mode(DatasetIterationMode::Repeat);
+        let cursor = ParameterGolfTokenStreamCursor::new(PARAMETER_GOLF_TRAIN_SPLIT_NAME);
+        let first = contract
+            .plan_window(&bundle.manifest, &cursor, 4)
+            .expect("first window should validate")
+            .expect("first window should exist");
+        let second = contract
+            .plan_window(&bundle.manifest, &first.end_cursor, 4)
+            .expect("second window should validate")
+            .expect("second window should exist");
+
+        let first_tokens =
+            materialize_parameter_golf_token_window(&bundle, &first).expect("first tokens");
+        let second_tokens =
+            materialize_parameter_golf_token_window(&bundle, &second).expect("second tokens");
+
+        assert_eq!(first_tokens, vec![1, 2, 3, 4]);
+        assert_eq!(second_tokens, vec![5, 1, 2, 3]);
     }
 
     #[test]

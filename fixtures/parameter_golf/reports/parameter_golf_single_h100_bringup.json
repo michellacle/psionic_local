@@ -53,8 +53,8 @@
     "require_non_mig": true
   },
   "observed_cuda_health": {
-    "status": "Degraded",
-    "message": "cuda discovered 1 NVIDIA device(s); 1 device(s) are display-attached or MIG-partitioned"
+    "status": "Ready",
+    "message": "cuda ready on 1 NVIDIA device(s)"
   },
   "observed_cuda_devices": [
     {
@@ -73,7 +73,6 @@
       "unified_memory": false,
       "feature_flags": [
         "cuda_architecture_surface",
-        "display_attached",
         "persistence_mode_disabled",
         "addressing_mode_hmm"
       ],
@@ -87,11 +86,10 @@
           "mig_profile": null
         },
         "risk": {
-          "level": "elevated",
-          "display_attached": true,
+          "level": "standard",
+          "display_attached": null,
           "mig_partitioned": false,
           "warnings": [
-            "display-attached NVIDIA devices may show variable latency under local desktop load",
             "persistence mode disabled; first request after idle may pay driver-load latency"
           ]
         },
@@ -142,9 +140,9 @@
     "subject": "parameter_golf_cuda_training",
     "detail": "parameter golf CUDA challenge closure still has explicit blockers: cuda_bf16_train_precision_contract, cuda_rope_gqa_attention_block, cuda_rms_norm_train_path, cuda_residual_mix_train_path, cuda_muon_optimizer_path"
   },
-  "started_at_ms": 1773896763902,
-  "finished_at_ms": 1773896780002,
-  "observed_wallclock_ms": 16099,
+  "started_at_ms": 1773945397487,
+  "finished_at_ms": 1773945412413,
+  "observed_wallclock_ms": 14925,
   "execution_posture": "contract_validation_only",
   "disposition": "refused_machine_contract",
   "refusal": {
@@ -159,11 +157,11 @@
     "cuda_rms_norm_train_path: The current repo owns RMSNorm semantics, not full direct CUDA train-time RMSNorm closure.",
     "cuda_residual_mix_train_path: Treat residual support as seeded operator evidence only until the fused decoder path is widened on CUDA.",
     "cuda_muon_optimizer_path: Muon semantics are explicit and distributed communication is explicit, but the train-time CUDA optimizer surface is still narrower than the lane contract.",
-    "Observed CUDA backend health was Degraded with 1 discovered CUDA device(s); 0 matched the single-H100 contract.",
+    "Observed CUDA backend health was Ready with 1 discovered CUDA device(s); 0 matched the single-H100 contract.",
     "The current local machine does not satisfy the single-H100 contract: single-H100 bring-up requires at least 1 non-MIG `H100` device(s) on backend `cuda` but found 0 matching device(s) among: NVIDIA GeForce RTX 4080",
     "The current single-H100 bring-up command validates dataset, tokenizer, model, optimizer, and blocker truth only; it does not yet execute the real baseline training loop.",
     "final_val_loss, final_val_bpb, and compressed_model_bytes are absent because no training artifact was produced by this command."
   ],
   "claim_boundary": "This report proves the Rust-native single-H100 bring-up command owns the challenge dataset, tokenizer identity, local CUDA machine-admission truth, baseline model contract, observed bring-up wallclock, and explicit CUDA blocker truth. It does not claim successful Psionic training execution or a produced model artifact while the current command remains a validation-and-refusal seam.",
-  "report_digest": "394079fd616c393ecf2886d47516f8b61b73369601cd8c063dbc9130a1849f2f"
+  "report_digest": "ba233a3c3d1723a8ff8911c6ca5b06ed5a5320c8358987638611363a6e4c37b9"
 }

@@ -30,7 +30,9 @@ The canonical machine-readable report and checker now live at:
 That means the repo now owns one real Psionic-native command for the public
 single-device challenge contract instead of only issue text and the exported
 folder's Python launcher, and that command now preserves explicit local CUDA
-machine-admission truth in the same report.
+machine-admission truth in the same report. When the machine contract is
+satisfied, it also materializes the first real challenge training microbatch
+and computes a CPU-reference loss over that exact token window.
 
 ## Command
 
@@ -85,6 +87,9 @@ The command is deliberately narrow and explicit. It binds:
 - the public single-device batch geometry from
   `ParameterGolfBatchGeometry::challenge_single_device_defaults()`
 - the public baseline `9x512` model contract and optimizer-plan digest
+- when local CUDA inventory satisfies the single-H100 admission contract, the
+  first real challenge training microbatch and a CPU-reference mean loss over
+  that exact token window
 - the current CUDA blocker list from
   `builtin_parameter_golf_cuda_training_capability_report()`
 - the observed wallclock of the bring-up command itself
@@ -93,8 +98,9 @@ The command is deliberately narrow and explicit. It binds:
 
 The output report records the exact dataset root, tokenizer path, manifest
 digest, local CUDA inventory, machine-admission thresholds, model descriptor
-digest, optimizer-plan digest, blocker list, observed wallclock, and current
-training-execution posture used by the Rust command.
+digest, optimizer-plan digest, blocker list, observed wallclock, current
+training-execution posture, and optional first-microbatch probe used by the
+Rust command.
 
 ## Current Committed Evidence
 
@@ -118,6 +124,11 @@ against the real public cache, but it still refuses before training because the
 local review host is not a qualifying H100 machine and the public CUDA blocker
 set is still not retired.
 
+On a qualifying non-MIG H100 machine, the command now goes one step further
+before refusal: it materializes the exact first challenge microbatch from the
+cached FineWeb `sp1024` shards and computes a CPU-reference mean loss for that
+window. That is still not a CUDA training claim.
+
 ## Current Honest Boundary
 
 This is not yet a successful Rust-only training run.
@@ -136,6 +147,9 @@ Instead, it does one narrower but important job:
   that revalidates the invariant contract against the same cache
 - it preserves explicit local machine refusal when the host is not a usable
   H100 target instead of pretending the cache alone is enough
+- on a qualifying H100, it proves the Rust path can materialize the first real
+  challenge microbatch and evaluate that microbatch with the CPU reference
+  model
 - it refuses explicitly while the current CUDA blocker list is still non-empty
 - it preserves the exact dataset or tokenizer or model or blocker truth that
   later work must reuse instead of rebuilding from memory

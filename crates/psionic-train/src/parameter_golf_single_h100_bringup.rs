@@ -8,13 +8,16 @@ use std::{
 use psionic_backend_cuda::CudaBackend;
 use psionic_core::{DeviceKind, PsionicRefusal};
 use psionic_data::{
-    parameter_golf_dataset_bundle_from_local_dir, DatasetKey, ParameterGolfDataError,
-    TokenizerDigest, TokenizerFamily,
+    materialize_parameter_golf_token_window, parameter_golf_dataset_bundle_from_local_dir,
+    DatasetIterationMode, DatasetKey, ParameterGolfDataError, ParameterGolfTokenStreamContract,
+    ParameterGolfTokenStreamCursor, TokenizerDigest, TokenizerFamily,
+    PARAMETER_GOLF_TRAIN_SPLIT_NAME,
 };
 use psionic_ir::GraphError;
 use psionic_models::{
-    ParameterGolfConfig, ParameterGolfModelError, ParameterGolfReferenceModel,
-    PARAMETER_GOLF_BASELINE_MODEL_ID, PARAMETER_GOLF_BASELINE_REVISION,
+    ParameterGolfConfig, ParameterGolfExecutionError, ParameterGolfModelError,
+    ParameterGolfReferenceModel, PARAMETER_GOLF_BASELINE_MODEL_ID,
+    PARAMETER_GOLF_BASELINE_REVISION,
 };
 use psionic_runtime::{DeviceDescriptor, HealthStatus, RuntimeHealth};
 use serde::{Deserialize, Serialize};
@@ -167,6 +170,25 @@ pub enum ParameterGolfSingleH100ExecutionPosture {
     TrainingExecuted,
 }
 
+/// One real challenge microbatch probe materialized by the single-H100 bring-up.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ParameterGolfSingleH100ReferenceMicrobatchProbe {
+    /// Stable token-window identifier.
+    pub window_id: String,
+    /// Stable contract digest for the planned training window.
+    pub contract_digest: String,
+    /// Number of raw tokens materialized for the first training microbatch plus one next-token target.
+    pub token_count: u64,
+    /// Stable digest over the raw token window.
+    pub token_digest: String,
+    /// Number of sequences in the probe microbatch.
+    pub batch_size: usize,
+    /// Sequence length per row.
+    pub sequence_length: usize,
+    /// CPU-reference mean loss over the materialized microbatch.
+    pub mean_loss: f32,
+}
+
 /// Machine-readable report for the Rust-native Parameter Golf single-H100 bring-up seam.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ParameterGolfSingleH100BringupReport {
@@ -204,6 +226,9 @@ pub struct ParameterGolfSingleH100BringupReport {
     pub geometry: ParameterGolfBatchGeometry,
     /// Public baseline hyperparameters for the run.
     pub hyperparameters: ParameterGolfTrainingHyperparameters,
+    /// Optional real first-microbatch probe when the machine contract is satisfied.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reference_microbatch_probe: Option<ParameterGolfSingleH100ReferenceMicrobatchProbe>,
     /// Declared local-machine admission thresholds for the single-H100 lane.
     pub machine_thresholds: ParameterGolfSingleH100ChallengeThresholds,
     /// Observed local CUDA backend health when the command ran.
@@ -297,6 +322,8 @@ pub enum ParameterGolfSingleH100BringupError {
     #[error(transparent)]
     Model(#[from] ParameterGolfModelError),
     #[error(transparent)]
+    Execution(#[from] ParameterGolfExecutionError),
+    #[error(transparent)]
     Train(#[from] ParameterGolfTrainError),
     #[error(transparent)]
     Serialization(#[from] serde_json::Error),
@@ -331,12 +358,15 @@ pub fn build_parameter_golf_single_h100_bringup_report(
         stable_digest(b"psionic_parameter_golf_optimizer_plan|", &optimizer_plan);
     let cuda_training_report = builtin_parameter_golf_cuda_training_capability_report()?;
     let machine_observation = inspect_local_single_h100_machine();
+    let reference_microbatch_probe =
+        build_reference_microbatch_probe(config, &bundle, &baseline_model, &machine_observation)?;
     let observed_wallclock_ms = started.elapsed().as_millis() as u64;
     let finished_at_ms = now_ms();
     Ok(build_report(
         config,
         &bundle,
         baseline_model,
+        reference_microbatch_probe,
         &machine_observation,
         optimizer_plan_digest,
         &cuda_training_report,
@@ -372,6 +402,7 @@ fn build_report(
     config: &ParameterGolfSingleH100BringupConfig,
     bundle: &psionic_data::ParameterGolfDatasetBundle,
     baseline_model: ParameterGolfReferenceModel,
+    reference_microbatch_probe: Option<ParameterGolfSingleH100ReferenceMicrobatchProbe>,
     machine_observation: &ParameterGolfSingleH100MachineObservation,
     optimizer_plan_digest: String,
     cuda_training_report: &ParameterGolfCudaTrainingCapabilityReport,
@@ -407,9 +438,17 @@ fn build_report(
             refusal.detail
         ));
     }
-    drift_notes.push(String::from(
-        "The current single-H100 bring-up command validates dataset, tokenizer, model, optimizer, and blocker truth only; it does not yet execute the real baseline training loop.",
-    ));
+    if let Some(probe) = &reference_microbatch_probe {
+        drift_notes.push(format!(
+            "The current single-H100 bring-up command materialized the first real training window ({}) and computed a CPU reference mean loss of {:.8}, but it does not yet execute the CUDA baseline training loop.",
+            probe.window_id,
+            probe.mean_loss,
+        ));
+    } else {
+        drift_notes.push(String::from(
+            "The current single-H100 bring-up command validates dataset, tokenizer, model, optimizer, and blocker truth only; it does not yet execute the real baseline training loop.",
+        ));
+    }
     drift_notes.push(String::from(
         "final_val_loss, final_val_bpb, and compressed_model_bytes are absent because no training artifact was produced by this command.",
     ));
@@ -444,6 +483,18 @@ fn build_report(
         config.dataset_root.display(),
         config.tokenizer_path.display()
     );
+    let claim_boundary = if report_claims_reference_probe(
+        &machine_observation.refusal,
+        &reference_microbatch_probe,
+    ) {
+        String::from(
+            "This report proves the Rust-native single-H100 bring-up command owns the challenge dataset, tokenizer identity, local CUDA machine-admission truth, baseline model contract, one real first-microbatch CPU reference-loss probe, observed bring-up wallclock, and explicit CUDA blocker truth. It does not claim successful Psionic CUDA training execution or a produced model artifact while the current command remains a validation-and-refusal seam.",
+        )
+    } else {
+        String::from(
+            "This report proves the Rust-native single-H100 bring-up command owns the challenge dataset, tokenizer identity, local CUDA machine-admission truth, baseline model contract, observed bring-up wallclock, and explicit CUDA blocker truth. It does not claim successful Psionic training execution or a produced model artifact while the current command remains a validation-and-refusal seam.",
+        )
+    };
     let mut report = ParameterGolfSingleH100BringupReport {
         schema_version: 1,
         scope_window: String::from("parameter_golf_single_h100_bringup_v1"),
@@ -462,6 +513,7 @@ fn build_report(
         validation_identity,
         geometry: config.geometry.clone(),
         hyperparameters: config.hyperparameters.clone(),
+        reference_microbatch_probe,
         machine_thresholds: machine_observation.thresholds.clone(),
         observed_cuda_health: machine_observation.observed_cuda_health.clone(),
         cuda_discovery_error: machine_observation.cuda_discovery_error.clone(),
@@ -488,9 +540,7 @@ fn build_report(
         disposition,
         refusal,
         drift_notes,
-        claim_boundary: String::from(
-            "This report proves the Rust-native single-H100 bring-up command owns the challenge dataset, tokenizer identity, local CUDA machine-admission truth, baseline model contract, observed bring-up wallclock, and explicit CUDA blocker truth. It does not claim successful Psionic training execution or a produced model artifact while the current command remains a validation-and-refusal seam.",
-        ),
+        claim_boundary,
         report_digest: String::new(),
     };
     report.report_digest = stable_digest(
@@ -498,6 +548,102 @@ fn build_report(
         &report,
     );
     report
+}
+
+fn build_reference_microbatch_probe(
+    config: &ParameterGolfSingleH100BringupConfig,
+    bundle: &psionic_data::ParameterGolfDatasetBundle,
+    baseline_model: &ParameterGolfReferenceModel,
+    machine_observation: &ParameterGolfSingleH100MachineObservation,
+) -> Result<
+    Option<ParameterGolfSingleH100ReferenceMicrobatchProbe>,
+    ParameterGolfSingleH100BringupError,
+> {
+    if !machine_observation.machine_contract_satisfied {
+        return Ok(None);
+    }
+    let train_contract = ParameterGolfTokenStreamContract::new(
+        bundle.manifest.key.clone(),
+        PARAMETER_GOLF_TRAIN_SPLIT_NAME,
+    )
+    .with_mode(DatasetIterationMode::Repeat);
+    let cursor = ParameterGolfTokenStreamCursor::new(PARAMETER_GOLF_TRAIN_SPLIT_NAME);
+    let requested_token_count = config.geometry.local_train_batch_tokens().saturating_add(1) as u64;
+    let window = train_contract
+        .plan_window(&bundle.manifest, &cursor, requested_token_count)?
+        .ok_or(ParameterGolfSingleH100BringupError::InvalidConfig {
+            message: String::from(
+                "single-H100 reference microbatch probe could not plan the first training window",
+            ),
+        })?;
+    let tokens = materialize_parameter_golf_token_window(bundle, &window)?;
+    let expected_token_count = config.geometry.local_train_batch_tokens().saturating_add(1);
+    if tokens.len() != expected_token_count {
+        return Err(ParameterGolfSingleH100BringupError::InvalidConfig {
+            message: format!(
+                "single-H100 reference microbatch probe expected {expected_token_count} tokens but materialized {}",
+                tokens.len()
+            ),
+        });
+    }
+    let (input_ids, target_ids) =
+        training_batch_from_window_tokens(tokens.as_slice(), &config.geometry)?;
+    let mean_loss = baseline_model.loss(input_ids.as_slice(), target_ids.as_slice())?;
+    Ok(Some(ParameterGolfSingleH100ReferenceMicrobatchProbe {
+        window_id: window.window_id,
+        contract_digest: window.contract_digest,
+        token_count: tokens.len() as u64,
+        token_digest: stable_digest(
+            b"psionic_parameter_golf_single_h100_reference_window_tokens|",
+            &tokens,
+        ),
+        batch_size: input_ids.len(),
+        sequence_length: config.geometry.train_sequence_length,
+        mean_loss,
+    }))
+}
+
+fn training_batch_from_window_tokens(
+    tokens: &[u16],
+    geometry: &ParameterGolfBatchGeometry,
+) -> Result<(Vec<Vec<u32>>, Vec<Vec<u32>>), ParameterGolfSingleH100BringupError> {
+    let expected_token_count = geometry.local_train_batch_tokens().saturating_add(1);
+    if tokens.len() != expected_token_count {
+        return Err(ParameterGolfSingleH100BringupError::InvalidConfig {
+            message: format!(
+                "training token window must contain exactly {expected_token_count} tokens, found {}",
+                tokens.len()
+            ),
+        });
+    }
+    let batch_size = geometry.local_train_batch_sequences();
+    let sequence_length = geometry.train_sequence_length;
+    let mut input_ids = Vec::with_capacity(batch_size);
+    let mut target_ids = Vec::with_capacity(batch_size);
+    for sequence_index in 0..batch_size {
+        let start = sequence_index * sequence_length;
+        let end = start + sequence_length;
+        input_ids.push(
+            tokens[start..end]
+                .iter()
+                .map(|&token_id| token_id as u32)
+                .collect(),
+        );
+        target_ids.push(
+            tokens[start + 1..end + 1]
+                .iter()
+                .map(|&token_id| token_id as u32)
+                .collect(),
+        );
+    }
+    Ok((input_ids, target_ids))
+}
+
+fn report_claims_reference_probe(
+    machine_refusal: &Option<PsionicRefusal>,
+    reference_microbatch_probe: &Option<ParameterGolfSingleH100ReferenceMicrobatchProbe>,
+) -> bool {
+    machine_refusal.is_none() && reference_microbatch_probe.is_some()
 }
 
 fn build_tokenizer_digest(tokenizer_bytes: &[u8]) -> TokenizerDigest {
@@ -679,11 +825,13 @@ mod tests {
 
     use super::{
         build_parameter_golf_single_h100_bringup_report, device_matches_single_h100,
-        machine_observation_from_inventory, write_parameter_golf_single_h100_bringup_report,
-        ParameterGolfSingleH100BringupConfig, ParameterGolfSingleH100BringupDisposition,
-        ParameterGolfSingleH100ChallengeThresholds, ParameterGolfSingleH100ExecutionPosture,
-        PARAMETER_GOLF_SINGLE_H100_DATASET_REF, PARAMETER_GOLF_SINGLE_H100_DATASET_VERSION,
+        machine_observation_from_inventory, training_batch_from_window_tokens,
+        write_parameter_golf_single_h100_bringup_report, ParameterGolfSingleH100BringupConfig,
+        ParameterGolfSingleH100BringupDisposition, ParameterGolfSingleH100ChallengeThresholds,
+        ParameterGolfSingleH100ExecutionPosture, PARAMETER_GOLF_SINGLE_H100_DATASET_REF,
+        PARAMETER_GOLF_SINGLE_H100_DATASET_VERSION,
     };
+    use crate::ParameterGolfBatchGeometry;
 
     struct TempDirGuard {
         path: PathBuf,
@@ -771,6 +919,7 @@ mod tests {
             report.execution_posture,
             ParameterGolfSingleH100ExecutionPosture::ContractValidationOnly
         );
+        assert!(report.reference_microbatch_probe.is_none());
         assert!(matches!(
             report.disposition,
             ParameterGolfSingleH100BringupDisposition::RefusedMachineContract
@@ -784,9 +933,7 @@ mod tests {
             report.machine_thresholds,
             ParameterGolfSingleH100ChallengeThresholds::challenge_h100()
         );
-        assert!(
-            report.matching_h100_device_count <= report.observed_cuda_devices.len()
-        );
+        assert!(report.matching_h100_device_count <= report.observed_cuda_devices.len());
         if report.machine_contract_satisfied {
             assert_eq!(
                 report.disposition,
@@ -841,7 +988,10 @@ mod tests {
         assert_eq!(loaded.report_digest, report.report_digest);
         assert_eq!(loaded.train_shard_count, 2);
         assert_eq!(loaded.machine_thresholds, report.machine_thresholds);
-        assert_eq!(loaded.machine_contract_satisfied, report.machine_contract_satisfied);
+        assert_eq!(
+            loaded.machine_contract_satisfied,
+            report.machine_contract_satisfied
+        );
         Ok(())
     }
 
@@ -865,17 +1015,19 @@ mod tests {
         assert_eq!(observation.thresholds, thresholds);
         assert_eq!(observation.matching_h100_device_count, 0);
         assert!(!observation.machine_contract_satisfied);
-        assert!(observation
-            .refusal
-            .as_ref()
-            .is_some_and(|refusal| refusal.subject.as_deref()
-                == Some("parameter_golf_single_h100_machine")));
+        assert!(observation.refusal.as_ref().is_some_and(
+            |refusal| refusal.subject.as_deref() == Some("parameter_golf_single_h100_machine")
+        ));
     }
 
     #[test]
     fn single_h100_machine_observation_accepts_non_mig_h100_inventory() {
         let thresholds = ParameterGolfSingleH100ChallengeThresholds::challenge_h100();
-        let device = sample_cuda_device("NVIDIA H100 80GB HBM3", false, Some(80 * 1024 * 1024 * 1024));
+        let device = sample_cuda_device(
+            "NVIDIA H100 80GB HBM3",
+            false,
+            Some(80 * 1024 * 1024 * 1024),
+        );
         assert!(device_matches_single_h100(&device, &thresholds));
 
         let observation = machine_observation_from_inventory(
@@ -891,6 +1043,28 @@ mod tests {
         assert_eq!(observation.matching_h100_device_count, 1);
         assert!(observation.machine_contract_satisfied);
         assert!(observation.refusal.is_none());
+    }
+
+    #[test]
+    fn training_batch_from_window_tokens_slices_inputs_and_targets() -> Result<(), Box<dyn Error>> {
+        let tokens = (1_u16..=33_u16).collect::<Vec<_>>();
+        let geometry = ParameterGolfBatchGeometry {
+            world_size: 1,
+            train_batch_tokens: 32,
+            validation_batch_tokens: 32,
+            train_sequence_length: 4,
+            grad_accum_steps: 1,
+        };
+
+        let (input_ids, target_ids) = training_batch_from_window_tokens(&tokens, &geometry)?;
+
+        assert_eq!(input_ids.len(), geometry.local_train_batch_sequences());
+        assert_eq!(target_ids.len(), geometry.local_train_batch_sequences());
+        assert_eq!(input_ids[0], vec![1, 2, 3, 4]);
+        assert_eq!(target_ids[0], vec![2, 3, 4, 5]);
+        assert_eq!(input_ids.last(), Some(&vec![29, 30, 31, 32]));
+        assert_eq!(target_ids.last(), Some(&vec![30, 31, 32, 33]));
+        Ok(())
     }
 
     fn sample_cuda_device(
