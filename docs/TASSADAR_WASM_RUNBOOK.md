@@ -38,6 +38,7 @@ This runbook covers the current repo-owned bounded Wasm flow only:
 - source-to-Wasm-to-Tassadar compile-pipeline matrix
 - frozen core-Wasm window declaration and official harness
 - frozen core-Wasm semantic parity and closure gate
+- bounded scalar-f32 semantics, NaN policy, and comparison matrix
 - normalized Wasm-module ingress
 - differential Wasm conformance against `wasmi`
 - module-scale Wasm workload suite
@@ -69,6 +70,10 @@ Public claim discipline for this lane is:
   `fixtures/tassadar/reports/tassadar_frozen_core_wasm_closure_gate_report.json`
 - the current closure verdict is `not_closed`, so the frozen-window declaration
   must not be read as full core-Wasm closure
+- the current bounded float-widening artifact is
+  `fixtures/tassadar/reports/tassadar_float_semantics_comparison_matrix_report.json`
+- that float artifact is scalar-`f32`, CPU-reference-only, and refusal-first
+  outside its declared regimes; it is not generic Wasm float closure
 - imports, effects, and host capability policy remain separate embedding
   contracts, not part of the bounded core language claim
 
@@ -698,6 +703,31 @@ Expected outcome:
 - this artifact controls interpretation: the frozen-window declaration defines
   the target, while the closure gate says whether the target is actually closed
 
+### 6D. Bounded scalar-f32 semantics, NaN policy, and comparison matrix
+
+```bash
+cargo run -p psionic-eval --example tassadar_float_semantics_comparison_matrix_report
+```
+
+Read:
+
+- `fixtures/tassadar/reports/tassadar_float_semantics_comparison_matrix_report.json`
+
+Expected outcome:
+
+- one machine-readable bounded float matrix now declares the scalar-`f32`
+  policy for canonical quiet-NaN normalization, nearest-ties-to-even
+  arithmetic, and ordered Wasm-style comparisons
+- exact cases should currently cover finite arithmetic, NaN canonicalization,
+  ordered finite comparisons, signed-zero equality, and NaN comparison posture
+- explicit refusal cases should currently cover `f64_scalar` and
+  `nan_payload_preservation`
+- the policy should currently keep `cpu_reference` as the only supported
+  backend family and keep `metal_served` plus `cuda_served` explicit as refused
+  backend families
+- this artifact widens bounded numeric semantics only; it does not make full
+  Wasm float execution or served publication green
+
 ### 7. Differential Wasm conformance
 
 ```bash
@@ -760,6 +790,7 @@ cargo test -p psionic-serve executor_service_publishes_rust_only_article_runtime
 cargo test -p psionic-eval wasm_module_ingress -- --nocapture
 cargo test -p psionic-eval frozen_core_wasm_window -- --nocapture
 cargo test -p psionic-eval frozen_core_wasm_closure_gate -- --nocapture
+cargo test -p psionic-eval float_semantics -- --nocapture
 cargo test -p psionic-eval wasm_conformance -- --nocapture
 cargo test -p psionic-eval module_scale_workload_suite -- --nocapture
 cargo test -p psionic-eval trap_exception -- --nocapture
@@ -775,6 +806,9 @@ These checks should keep the committed reports and generated truth aligned.
   lowering regression.
 - If the frozen core-Wasm closure gate changes from its current explicit red
   posture without new supporting evidence, that is a real claim-discipline
+  regression.
+- If the float-semantics matrix starts claiming non-CPU backends, `f64`, or
+  NaN-payload preservation without new evidence, that is a real claim-discipline
   regression.
 - If the ingress report stops lowering the seeded synthetic module exactly, that
   is a real bounded module-lane regression.

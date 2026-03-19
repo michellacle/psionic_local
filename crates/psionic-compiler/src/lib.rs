@@ -2,6 +2,7 @@
 
 mod tassadar_article_abi;
 mod tassadar_clrs_wasm_bridge;
+mod tassadar_float_semantics;
 mod tassadar_generalized_abi;
 mod tassadar_internal_module_library;
 mod tassadar_linked_program_bundle;
@@ -40,6 +41,7 @@ use thiserror::Error;
 
 pub use tassadar_article_abi::*;
 pub use tassadar_clrs_wasm_bridge::*;
+pub use tassadar_float_semantics::*;
 pub use tassadar_generalized_abi::*;
 pub use tassadar_internal_module_library::*;
 pub use tassadar_linked_program_bundle::*;

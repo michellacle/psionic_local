@@ -726,6 +726,11 @@ The current scope is:
   `fixtures/tassadar/reports/tassadar_frozen_core_wasm_closure_gate_report.json`,
   which currently remains `not_closed`; the declared window therefore stays a
   closure target rather than a closed full core-Wasm claim
+- the current bounded float-widening artifact is
+  `fixtures/tassadar/reports/tassadar_float_semantics_comparison_matrix_report.json`,
+  which narrows float semantics to one scalar-`f32`, CPU-reference-only lane
+  with canonical quiet-NaN normalization and ordered Wasm-style comparisons;
+  `f64`, NaN-payload preservation, and non-CPU fast-math remain explicit refusals
 - recommended closure order follows the spec and its test families: decode and
   validate first, then integer/control/direct-call core, then linear memory,
   then globals/tables/references/indirect calls, then instantiation/import

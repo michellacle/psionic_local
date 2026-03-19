@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.float_semantics.comparison_matrix.report.v1",
+  "policy": {
+    "policy_id": "tassadar.float_semantics.policy.v1",
+    "family_id": "tassadar.float_semantics.matrix.v1",
+    "profile_id": "tassadar.float_semantics.scalar_f32.v1",
+    "nan_policy_id": "canonical_quiet_nan32",
+    "rounding_policy_id": "nearest_ties_to_even",
+    "comparison_policy_id": "ordered_wasm_f32",
+    "canonical_nan_bits_hex": "0x7fc00000",
+    "supported_backend_family_ids": [
+      "cpu_reference"
+    ],
+    "refused_backend_family_ids": [
+      "cuda_served",
+      "metal_served"
+    ],
+    "supported_operation_ids": [
+      "f32.add",
+      "f32.sub",
+      "f32.mul",
+      "f32.eq",
+      "f32.ne",
+      "f32.lt",
+      "f32.le",
+      "f32.gt",
+      "f32.ge"
+    ],
+    "refused_regime_ids": [
+      "f64_scalar",
+      "nan_payload_preservation",
+      "non_cpu_backend_fast_math"
+    ],
+    "claim_boundary": "this policy declares one bounded scalar-f32 execution lane with canonical quiet-NaN normalization, nearest-ties-to-even arithmetic, and ordered Wasm-style comparisons. It does not claim f64 closure, NaN payload preservation, fast-math equivalence across non-CPU backends, or arbitrary Wasm float closure",
+    "policy_digest": "4cc8e84eae8509328bceff389db69c464775cc2bba147e76d64e79a45d150678"
+  },
+  "generated_from_refs": [
+    "fixtures/tassadar/reports/tassadar_float_semantics_comparison_matrix_report.json",
+    "synthetic://tassadar/float_semantics_matrix/scalar_f32_v1"
+  ],
+  "exact_case_count": 8,
+  "refusal_case_count": 2,
+  "cases": [
+    {
+      "case_id": "f32_add_finite_exact",
+      "source_ref": "synthetic://tassadar/float_semantics_matrix/scalar_f32_v1",
+      "family_id": "tassadar.float_semantics.matrix.v1",
+      "profile_id": "tassadar.float_semantics.scalar_f32.v1",
+      "status": "exact",
+      "operation_id": "f32.add",
+      "observed_f32_bits_hex": "0x40700000",
+      "expected_f32_bits_hex": "0x40700000"
+    },
+    {
+      "case_id": "f32_sub_finite_exact",
+      "source_ref": "synthetic://tassadar/float_semantics_matrix/scalar_f32_v1",
+      "family_id": "tassadar.float_semantics.matrix.v1",
+      "profile_id": "tassadar.float_semantics.scalar_f32.v1",
+      "status": "exact",
+      "operation_id": "f32.sub",
+      "observed_f32_bits_hex": "0x41240000",
+      "expected_f32_bits_hex": "0x41240000"
+    },
+    {
+      "case_id": "f32_mul_finite_exact",
+      "source_ref": "synthetic://tassadar/float_semantics_matrix/scalar_f32_v1",
+      "family_id": "tassadar.float_semantics.matrix.v1",
+      "profile_id": "tassadar.float_semantics.scalar_f32.v1",
+      "status": "exact",
+      "operation_id": "f32.mul",
+      "observed_f32_bits_hex": "0xc0c00000",
+      "expected_f32_bits_hex": "0xc0c00000"
+    },
+    {
+      "case_id": "f32_add_nan_canonicalized_exact",
+      "source_ref": "synthetic://tassadar/float_semantics_matrix/scalar_f32_v1",
+      "family_id": "tassadar.float_semantics.matrix.v1",
+      "profile_id": "tassadar.float_semantics.scalar_f32.v1",
+      "status": "exact",
+      "operation_id": "f32.add",
+      "observed_f32_bits_hex": "0x7fc00000",
+      "expected_f32_bits_hex": "0x7fc00000"
+    },
+    {
+      "case_id": "f32_lt_finite_exact",
+      "source_ref": "synthetic://tassadar/float_semantics_matrix/scalar_f32_v1",
+      "family_id": "tassadar.float_semantics.matrix.v1",
+      "profile_id": "tassadar.float_semantics.scalar_f32.v1",
+      "status": "exact",
+      "operation_id": "f32.lt",
+      "observed_i32": 1,
+      "expected_i32": 1
+    },
+    {
+      "case_id": "f32_eq_signed_zero_exact",
+      "source_ref": "synthetic://tassadar/float_semantics_matrix/scalar_f32_v1",
+      "family_id": "tassadar.float_semantics.matrix.v1",
+      "profile_id": "tassadar.float_semantics.scalar_f32.v1",
+      "status": "exact",
+      "operation_id": "f32.eq",
+      "observed_i32": 1,
+      "expected_i32": 1
+    },
+    {
+      "case_id": "f32_eq_nan_false_exact",
+      "source_ref": "synthetic://tassadar/float_semantics_matrix/scalar_f32_v1",
+      "family_id": "tassadar.float_semantics.matrix.v1",
+      "profile_id": "tassadar.float_semantics.scalar_f32.v1",
+      "status": "exact",
+      "operation_id": "f32.eq",
+      "observed_i32": 0,
+      "expected_i32": 0
+    },
+    {
+      "case_id": "f32_ne_nan_true_exact",
+      "source_ref": "synthetic://tassadar/float_semantics_matrix/scalar_f32_v1",
+      "family_id": "tassadar.float_semantics.matrix.v1",
+      "profile_id": "tassadar.float_semantics.scalar_f32.v1",
+      "status": "exact",
+      "operation_id": "f32.ne",
+      "observed_i32": 1,
+      "expected_i32": 1
+    },
+    {
+      "case_id": "f64_scalar_refusal",
+      "source_ref": "synthetic://tassadar/float_semantics_matrix/scalar_f32_v1",
+      "family_id": "tassadar.float_semantics.matrix.v1",
+      "profile_id": "tassadar.float_semantics.scalar_f32.v1",
+      "status": "refused",
+      "refusal_regime_id": "f64_scalar",
+      "refusal_detail": "the bounded float-semantics lane is scalar-f32 only and refuses f64 execution"
+    },
+    {
+      "case_id": "nan_payload_preservation_refusal",
+      "source_ref": "synthetic://tassadar/float_semantics_matrix/scalar_f32_v1",
+      "family_id": "tassadar.float_semantics.matrix.v1",
+      "profile_id": "tassadar.float_semantics.scalar_f32.v1",
+      "status": "refused",
+      "refusal_regime_id": "nan_payload_preservation",
+      "refusal_detail": "the bounded float-semantics lane canonicalizes NaNs and refuses payload-preservation claims"
+    }
+  ],
+  "claim_boundary": "this report proves one bounded scalar-f32 semantics lane only: canonical quiet-NaN normalization, nearest-ties-to-even arithmetic, ordered Wasm-style comparisons, and explicit refusal on f64, NaN-payload-preservation, and non-CPU fast-math regimes. It does not claim arbitrary Wasm float closure, f64 execution, or backend-invariant served publication",
+  "report_digest": "cf6263a457045b1ca4f9754ace630ec0a334350a60f80db3d7d964d23358adf0"
+}

@@ -48,6 +48,7 @@ const TASSADAR_METADATA_INTERNAL_COMPUTE_PROFILE_CLAIM_KEY: &str =
     "tassadar.internal_compute_profile_claim";
 const TASSADAR_METADATA_BROAD_INTERNAL_COMPUTE_PORTABILITY_KEY: &str =
     "tassadar.broad_internal_compute_portability";
+const TASSADAR_METADATA_FLOAT_SEMANTICS_KEY: &str = "tassadar.float_semantics";
 const TASSADAR_METADATA_WASM_CONFORMANCE_KEY: &str = "tassadar.wasm_conformance";
 const TASSADAR_METADATA_ARCHITECTURE_BAKEOFF_KEY: &str = "tassadar.architecture_bakeoff";
 const TASSADAR_METADATA_MODULE_SCALE_WORKLOAD_SUITE_KEY: &str =
@@ -539,6 +540,97 @@ pub fn default_tassadar_broad_internal_compute_portability_binding()
     }
 }
 
+/// Public bounded float-semantics binding reused by Tassadar environment
+/// bundles.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarFloatSemanticsBinding {
+    /// Stable float-semantics report reference.
+    pub report_ref: String,
+    /// Stable float-semantics report identifier.
+    pub report_id: String,
+    /// Stable float-semantics family id.
+    pub family_id: String,
+    /// Stable float-semantics profile id.
+    pub profile_id: String,
+    /// Stable NaN policy id.
+    pub nan_policy_id: String,
+    /// Stable canonical NaN bit-pattern string.
+    pub canonical_nan_bits_hex: String,
+    /// Stable comparison policy id.
+    pub comparison_policy_id: String,
+    /// Explicit refused regimes outside the bounded scalar-f32 lane.
+    pub refused_regime_ids: Vec<String>,
+}
+
+impl TassadarFloatSemanticsBinding {
+    /// Returns a stable digest over the binding.
+    #[must_use]
+    pub fn stable_digest(&self) -> String {
+        let encoded =
+            serde_json::to_vec(self).expect("Tassadar float semantics binding should serialize");
+        let digest = sha2::Sha256::digest(encoded.as_slice());
+        hex::encode(digest)
+    }
+
+    /// Validates that the binding is explicit.
+    pub fn validate(&self) -> Result<(), TassadarEnvironmentError> {
+        if self.report_ref.trim().is_empty() {
+            return Err(TassadarEnvironmentError::MissingFloatSemanticsReportRef);
+        }
+        if self.report_id.trim().is_empty() {
+            return Err(TassadarEnvironmentError::MissingFloatSemanticsReportId);
+        }
+        if self.family_id.trim().is_empty() {
+            return Err(TassadarEnvironmentError::MissingFloatSemanticsFamilyId);
+        }
+        if self.profile_id.trim().is_empty() {
+            return Err(TassadarEnvironmentError::MissingFloatSemanticsProfileId);
+        }
+        if self.nan_policy_id.trim().is_empty() {
+            return Err(TassadarEnvironmentError::MissingFloatSemanticsNanPolicyId);
+        }
+        if self.canonical_nan_bits_hex.trim().is_empty() {
+            return Err(TassadarEnvironmentError::MissingFloatSemanticsCanonicalNanBits);
+        }
+        if self.comparison_policy_id.trim().is_empty() {
+            return Err(TassadarEnvironmentError::MissingFloatSemanticsComparisonPolicyId);
+        }
+        if self.refused_regime_ids.is_empty() {
+            return Err(TassadarEnvironmentError::MissingFloatSemanticsRefusedRegimes);
+        }
+        if self
+            .refused_regime_ids
+            .iter()
+            .any(|regime_id| regime_id.trim().is_empty())
+        {
+            return Err(TassadarEnvironmentError::InvalidFloatSemanticsRefusedRegimeId);
+        }
+        Ok(())
+    }
+}
+
+/// Returns the canonical bounded float-semantics binding reused by Tassadar
+/// environment surfaces.
+#[must_use]
+pub fn default_tassadar_float_semantics_binding() -> TassadarFloatSemanticsBinding {
+    TassadarFloatSemanticsBinding {
+        report_ref: String::from(
+            "fixtures/tassadar/reports/tassadar_float_semantics_comparison_matrix_report.json",
+        ),
+        report_id: String::from("tassadar.float_semantics.comparison_matrix.report.v1"),
+        family_id: String::from("tassadar.float_semantics.matrix.v1"),
+        profile_id: String::from("tassadar.float_semantics.scalar_f32.v1"),
+        nan_policy_id: String::from("canonical_quiet_nan32"),
+        canonical_nan_bits_hex: String::from("0x7fc00000"),
+        comparison_policy_id: String::from("ordered_wasm_f32"),
+        refused_regime_ids: vec![
+            String::from("f64_scalar"),
+            String::from("nan_payload_preservation"),
+            String::from("non_cpu_backend_fast_math"),
+        ],
+    }
+}
+
 /// Public Wasm conformance binding reused by Tassadar environment bundles.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TassadarWasmConformanceBinding {
@@ -1007,6 +1099,8 @@ pub struct TassadarEnvironmentSpec {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub broad_internal_compute_portability_binding:
         Option<TassadarBroadInternalComputePortabilityBinding>,
+    /// Public bounded float-semantics binding.
+    pub float_semantics_binding: TassadarFloatSemanticsBinding,
     /// Public Wasm conformance binding.
     pub wasm_conformance_binding: TassadarWasmConformanceBinding,
     /// Optional broadened architecture-bakeoff binding.
@@ -1109,6 +1203,7 @@ impl TassadarEnvironmentSpec {
             broad_internal_compute_portability_binding: self
                 .broad_internal_compute_portability_binding
                 .clone(),
+            float_semantics_binding: self.float_semantics_binding.clone(),
             rust_article_profile_completeness:
                 tassadar_rust_article_profile_completeness_publication(),
             generalized_abi_family: tassadar_generalized_abi_publication(),
@@ -1159,6 +1254,7 @@ impl TassadarEnvironmentSpec {
         if let Some(binding) = &self.broad_internal_compute_portability_binding {
             binding.validate()?;
         }
+        self.float_semantics_binding.validate()?;
         self.wasm_conformance_binding.validate()?;
         if let Some(binding) = &self.architecture_bakeoff_binding {
             binding.validate()?;
@@ -1383,6 +1479,10 @@ impl TassadarEnvironmentSpec {
             );
         }
         metadata.insert(
+            String::from(TASSADAR_METADATA_FLOAT_SEMANTICS_KEY),
+            serde_json::to_value(&self.float_semantics_binding).unwrap_or(Value::Null),
+        );
+        metadata.insert(
             String::from(TASSADAR_METADATA_WASM_CONFORMANCE_KEY),
             serde_json::to_value(&self.wasm_conformance_binding).unwrap_or(Value::Null),
         );
@@ -1477,6 +1577,8 @@ pub struct TassadarEnvironmentBundle {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub broad_internal_compute_portability_binding:
         Option<TassadarBroadInternalComputePortabilityBinding>,
+    /// Bounded float-semantics binding.
+    pub float_semantics_binding: TassadarFloatSemanticsBinding,
     /// Rust-to-Wasm article profile completeness publication.
     pub rust_article_profile_completeness: TassadarRustArticleProfileCompletenessPublication,
     /// Generalized ABI family publication.
@@ -1645,6 +1747,37 @@ pub enum TassadarEnvironmentError {
     /// Invalid broad internal-compute profile id.
     #[error("Tassadar environment spec includes an empty broad internal-compute profile id")]
     InvalidBroadInternalComputeProfileId,
+    /// Missing float-semantics report ref.
+    #[error("Tassadar environment spec is missing `float_semantics_binding.report_ref`")]
+    MissingFloatSemanticsReportRef,
+    /// Missing float-semantics report id.
+    #[error("Tassadar environment spec is missing `float_semantics_binding.report_id`")]
+    MissingFloatSemanticsReportId,
+    /// Missing float-semantics family id.
+    #[error("Tassadar environment spec is missing `float_semantics_binding.family_id`")]
+    MissingFloatSemanticsFamilyId,
+    /// Missing float-semantics profile id.
+    #[error("Tassadar environment spec is missing `float_semantics_binding.profile_id`")]
+    MissingFloatSemanticsProfileId,
+    /// Missing float-semantics NaN policy id.
+    #[error("Tassadar environment spec is missing `float_semantics_binding.nan_policy_id`")]
+    MissingFloatSemanticsNanPolicyId,
+    /// Missing float-semantics canonical NaN bits.
+    #[error(
+        "Tassadar environment spec is missing `float_semantics_binding.canonical_nan_bits_hex`"
+    )]
+    MissingFloatSemanticsCanonicalNanBits,
+    /// Missing float-semantics comparison policy id.
+    #[error(
+        "Tassadar environment spec is missing `float_semantics_binding.comparison_policy_id`"
+    )]
+    MissingFloatSemanticsComparisonPolicyId,
+    /// Missing float-semantics refused regimes.
+    #[error("Tassadar environment spec must declare `float_semantics_binding.refused_regime_ids`")]
+    MissingFloatSemanticsRefusedRegimes,
+    /// Invalid float-semantics refused regime id.
+    #[error("Tassadar environment spec includes an empty float-semantics refused regime id")]
+    InvalidFloatSemanticsRefusedRegimeId,
     /// Missing architecture-bakeoff suite ref.
     #[error("Tassadar environment spec is missing `architecture_bakeoff_binding.suite_ref`")]
     MissingArchitectureBakeoffSuiteRef,
@@ -1992,6 +2125,7 @@ mod tests {
             broad_internal_compute_portability_binding: Some(
                 default_tassadar_broad_internal_compute_portability_binding(),
             ),
+            float_semantics_binding: default_tassadar_float_semantics_binding(),
             wasm_conformance_binding: TassadarWasmConformanceBinding {
                 window_report_ref: String::from(
                     "fixtures/tassadar/reports/tassadar_frozen_core_wasm_window_report.json",
@@ -2186,6 +2320,15 @@ mod tests {
             bundle
                 .benchmark_package
                 .metadata
+                .get(TASSADAR_METADATA_FLOAT_SEMANTICS_KEY)
+                .and_then(|value| value.get("report_ref"))
+                .and_then(Value::as_str),
+            Some("fixtures/tassadar/reports/tassadar_float_semantics_comparison_matrix_report.json")
+        );
+        assert_eq!(
+            bundle
+                .benchmark_package
+                .metadata
                 .get(TASSADAR_METADATA_WASM_CONFORMANCE_KEY)
                 .and_then(|value| value.get("report_ref"))
                 .and_then(Value::as_str),
@@ -2220,6 +2363,10 @@ mod tests {
         assert_eq!(
             bundle.generalized_abi_family.report_ref,
             "fixtures/tassadar/reports/tassadar_generalized_abi_family_report.json"
+        );
+        assert_eq!(
+            bundle.float_semantics_binding.report_ref,
+            "fixtures/tassadar/reports/tassadar_float_semantics_comparison_matrix_report.json"
         );
         assert_eq!(
             bundle.execution_checkpoint_binding.run_bundle_ref,
