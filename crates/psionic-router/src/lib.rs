@@ -13,6 +13,7 @@
 
 mod response_state;
 mod tassadar_composite_routing;
+mod tassadar_async_lifecycle_route_policy;
 mod tassadar_broad_internal_compute_route_policy;
 mod tassadar_counterfactual_route_quality;
 mod tassadar_delegation_benchmark;
@@ -36,6 +37,7 @@ pub use response_state::{
     ResponseConversationRef, ResponseStateBackend, ResponseStateCapability, ResponseStateContext,
     ResponseStateError, ResponseStateRecord, ResponseStateRetentionPolicy, ResponseStateStore,
 };
+pub use tassadar_async_lifecycle_route_policy::*;
 pub use tassadar_composite_routing::*;
 pub use tassadar_broad_internal_compute_route_policy::*;
 pub use tassadar_counterfactual_route_quality::*;

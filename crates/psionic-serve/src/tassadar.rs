@@ -136,6 +136,18 @@ pub struct TassadarExecutorCapabilityPublication {
     pub session_process_routeable_interaction_surface_ids: Vec<String>,
     /// Refused interaction surfaces currently bound to the named session-process profile.
     pub session_process_refused_interaction_surface_ids: Vec<String>,
+    /// Async-lifecycle profile report bound to the served lane.
+    pub async_lifecycle_profile_report_ref: String,
+    /// Async-lifecycle route-policy report bound to the served lane.
+    pub async_lifecycle_route_policy_report_ref: String,
+    /// Async-lifecycle profiles currently allowed as named public profiles.
+    pub async_lifecycle_public_profile_ids: Vec<String>,
+    /// Async-lifecycle profiles currently allowed as default served profiles.
+    pub async_lifecycle_default_served_profile_ids: Vec<String>,
+    /// Routeable lifecycle surfaces currently bound to the named async-lifecycle profile.
+    pub async_lifecycle_routeable_surface_ids: Vec<String>,
+    /// Refused lifecycle surfaces currently bound to the named async-lifecycle profile.
+    pub async_lifecycle_refused_surface_ids: Vec<String>,
     /// Preemptive-job profile report bound to the served lane.
     pub preemptive_job_profile_report_ref: String,
     /// Preemptive-job fairness report bound to the served lane.
@@ -264,6 +276,12 @@ pub enum TassadarExecutorCapabilityPublicationError {
     /// The bounded session-process profile was not publishable.
     #[error("invalid session-process profile report: {detail}")]
     InvalidSessionProcessProfile {
+        /// Machine-readable detail for the failed projection.
+        detail: String,
+    },
+    /// The bounded async-lifecycle profile was not publishable.
+    #[error("invalid async-lifecycle profile report: {detail}")]
+    InvalidAsyncLifecycleProfile {
         /// Machine-readable detail for the failed projection.
         detail: String,
     },
@@ -717,6 +735,45 @@ impl LocalTassadarExecutorService {
                 },
             );
         }
+        let async_lifecycle_profile_report =
+            psionic_eval::build_tassadar_async_lifecycle_profile_report().map_err(|error| {
+                TassadarExecutorCapabilityPublicationError::InvalidAsyncLifecycleProfile {
+                    detail: format!("invalid async-lifecycle profile report: {error}"),
+                }
+            })?;
+        if !async_lifecycle_profile_report.overall_green
+            || async_lifecycle_profile_report
+                .public_profile_allowed_profile_ids
+                .is_empty()
+            || async_lifecycle_profile_report
+                .routeable_lifecycle_surface_ids
+                .is_empty()
+        {
+            return Err(
+                TassadarExecutorCapabilityPublicationError::InvalidAsyncLifecycleProfile {
+                    detail: String::from(
+                        "async-lifecycle profile report must stay green, expose at least one named public profile, and keep at least one routeable lifecycle surface",
+                    ),
+                },
+            );
+        }
+        let async_lifecycle_route_policy_report =
+            psionic_router::build_tassadar_async_lifecycle_route_policy_report().map_err(
+                |error| TassadarExecutorCapabilityPublicationError::InvalidAsyncLifecycleProfile {
+                    detail: format!("invalid async-lifecycle route policy report: {error}"),
+                },
+            )?;
+        if async_lifecycle_route_policy_report.promoted_profile_specific_route_count == 0
+            || async_lifecycle_route_policy_report.refused_route_count == 0
+        {
+            return Err(
+                TassadarExecutorCapabilityPublicationError::InvalidAsyncLifecycleProfile {
+                    detail: String::from(
+                        "async-lifecycle route policy report must keep at least one promoted profile-specific route and one refused route",
+                    ),
+                },
+            );
+        }
         let preemptive_job_profile_report =
             psionic_eval::build_tassadar_preemptive_job_profile_report().map_err(|error| {
                 TassadarExecutorCapabilityPublicationError::InvalidPreemptiveJobProfile {
@@ -823,6 +880,20 @@ impl LocalTassadarExecutorService {
                 .routeable_interaction_surface_ids,
             session_process_refused_interaction_surface_ids: session_process_profile_report
                 .refused_interaction_surface_ids,
+            async_lifecycle_profile_report_ref: String::from(
+                psionic_eval::TASSADAR_ASYNC_LIFECYCLE_PROFILE_REPORT_REF,
+            ),
+            async_lifecycle_route_policy_report_ref: String::from(
+                psionic_router::TASSADAR_ASYNC_LIFECYCLE_ROUTE_POLICY_REPORT_REF,
+            ),
+            async_lifecycle_public_profile_ids: async_lifecycle_profile_report
+                .public_profile_allowed_profile_ids,
+            async_lifecycle_default_served_profile_ids: async_lifecycle_profile_report
+                .default_served_profile_allowed_profile_ids,
+            async_lifecycle_routeable_surface_ids: async_lifecycle_profile_report
+                .routeable_lifecycle_surface_ids,
+            async_lifecycle_refused_surface_ids: async_lifecycle_profile_report
+                .refused_lifecycle_surface_ids,
             preemptive_job_profile_report_ref: String::from(
                 psionic_eval::TASSADAR_PREEMPTIVE_JOB_PROFILE_REPORT_REF,
             ),
@@ -5989,6 +6060,42 @@ mod tests {
         assert_eq!(
             encoded["session_process_refused_interaction_surface_ids"],
             serde_json::json!(["open_ended_external_event_stream"])
+        );
+        assert_eq!(
+            encoded["async_lifecycle_profile_report_ref"],
+            serde_json::json!(
+                "fixtures/tassadar/reports/tassadar_async_lifecycle_profile_report.json"
+            )
+        );
+        assert_eq!(
+            encoded["async_lifecycle_route_policy_report_ref"],
+            serde_json::json!(
+                "fixtures/tassadar/reports/tassadar_async_lifecycle_route_policy_report.json"
+            )
+        );
+        assert_eq!(
+            encoded["async_lifecycle_public_profile_ids"],
+            serde_json::json!(["tassadar.internal_compute.async_lifecycle.v1"])
+        );
+        assert_eq!(
+            encoded["async_lifecycle_default_served_profile_ids"],
+            serde_json::json!([])
+        );
+        assert_eq!(
+            encoded["async_lifecycle_routeable_surface_ids"],
+            serde_json::json!([
+                "interruptible_counter_job",
+                "retryable_timeout_search_job",
+                "safe_boundary_cancellation_job"
+            ])
+        );
+        assert_eq!(
+            encoded["async_lifecycle_refused_surface_ids"],
+            serde_json::json!([
+                "mid_effect_cancellation",
+                "open_ended_external_callback",
+                "unbounded_retry_backoff"
+            ])
         );
         assert_eq!(
             encoded["preemptive_job_profile_report_ref"],

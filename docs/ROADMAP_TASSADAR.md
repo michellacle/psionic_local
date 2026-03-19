@@ -115,6 +115,13 @@ Current honest posture:
   that admit seeded clock, randomness, and loopback-network rows while keeping
   ambient clock, OS entropy, and socket I/O on explicit refusal paths and
   leaving the lane non-served by design
+- the repo now also has one bounded async-lifecycle profile
+  `tassadar.internal_compute.async_lifecycle.v1`, with committed runtime, eval,
+  and router artifacts plus served-publication and provider-envelope bindings
+  that admit deterministic interrupt, bounded retry, and safe-boundary
+  cancellation rows while keeping open-ended callbacks, mid-effect
+  cancellation, and unbounded retry on explicit refusal paths and leaving the
+  default served async lane empty
 - broader profiles above that remain benchmarked, suppressed, refused, or
   unpromoted unless their explicit gates are green
 

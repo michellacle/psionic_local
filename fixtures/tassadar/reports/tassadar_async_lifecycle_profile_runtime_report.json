@@ -1,0 +1,266 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.async_lifecycle_profile.runtime_report.v1",
+  "profile_id": "tassadar.internal_compute.async_lifecycle.v1",
+  "rows": [
+    {
+      "case_id": "interrupt_resume_counter_job",
+      "process_id": "tassadar.process.long_loop_kernel.v1",
+      "lifecycle_surface_id": "interruptible_counter_job",
+      "state_shape_id": "counter_register_and_checkpoint_cursor",
+      "route_profile_id": "tassadar.internal_compute.async_lifecycle.v1",
+      "events": [
+        {
+          "event_id": "interrupt_resume_counter_job.event.0",
+          "order_index": 0,
+          "kind": "launch",
+          "boundary_id": "launch.boundary",
+          "note": "async lifecycle event `launch` at boundary `launch.boundary`"
+        },
+        {
+          "event_id": "interrupt_resume_counter_job.event.1",
+          "order_index": 1,
+          "kind": "interrupt_requested",
+          "boundary_id": "interrupt.boundary",
+          "note": "async lifecycle event `interruptrequested` at boundary `interrupt.boundary`"
+        },
+        {
+          "event_id": "interrupt_resume_counter_job.event.2",
+          "order_index": 2,
+          "kind": "checkpoint_persisted",
+          "boundary_id": "checkpoint.async_interrupt.00",
+          "note": "async lifecycle event `checkpointpersisted` at boundary `checkpoint.async_interrupt.00`"
+        },
+        {
+          "event_id": "interrupt_resume_counter_job.event.3",
+          "order_index": 3,
+          "kind": "resumed",
+          "boundary_id": "resume.async_interrupt.00",
+          "note": "async lifecycle event `resumed` at boundary `resume.async_interrupt.00`"
+        },
+        {
+          "event_id": "interrupt_resume_counter_job.event.4",
+          "order_index": 4,
+          "kind": "completed",
+          "boundary_id": "complete.boundary",
+          "note": "async lifecycle event `completed` at boundary `complete.boundary`"
+        }
+      ],
+      "status": "exact_deterministic_parity",
+      "exact_interrupt_parity": true,
+      "exact_retry_parity": false,
+      "exact_cancellation_parity": false,
+      "retry_attempt_count": 0,
+      "final_state_digest": "e09e83ae54c5ee323da17cdf9c5576753ded7c439ac58fc7a29dcceee5051897",
+      "note": "interrupt-and-resume stays exact because the interrupt boundary and resume checkpoint remain deterministic and explicit"
+    },
+    {
+      "case_id": "retryable_timeout_search_job",
+      "process_id": "tassadar.process.search_frontier_kernel.v1",
+      "lifecycle_surface_id": "retryable_timeout_search_job",
+      "state_shape_id": "search_frontier_and_retry_budget",
+      "route_profile_id": "tassadar.internal_compute.async_lifecycle.v1",
+      "events": [
+        {
+          "event_id": "retryable_timeout_search_job.event.0",
+          "order_index": 0,
+          "kind": "launch",
+          "boundary_id": "launch.boundary",
+          "note": "async lifecycle event `launch` at boundary `launch.boundary`"
+        },
+        {
+          "event_id": "retryable_timeout_search_job.event.1",
+          "order_index": 1,
+          "kind": "checkpoint_persisted",
+          "boundary_id": "checkpoint.retryable_timeout.00",
+          "note": "async lifecycle event `checkpointpersisted` at boundary `checkpoint.retryable_timeout.00`"
+        },
+        {
+          "event_id": "retryable_timeout_search_job.event.2",
+          "order_index": 2,
+          "kind": "retry_scheduled",
+          "boundary_id": "retry_budget.attempt_1",
+          "note": "async lifecycle event `retryscheduled` at boundary `retry_budget.attempt_1`"
+        },
+        {
+          "event_id": "retryable_timeout_search_job.event.3",
+          "order_index": 3,
+          "kind": "resumed",
+          "boundary_id": "resume.retryable_timeout.01",
+          "note": "async lifecycle event `resumed` at boundary `resume.retryable_timeout.01`"
+        },
+        {
+          "event_id": "retryable_timeout_search_job.event.4",
+          "order_index": 4,
+          "kind": "completed",
+          "boundary_id": "complete.boundary",
+          "note": "async lifecycle event `completed` at boundary `complete.boundary`"
+        }
+      ],
+      "status": "exact_deterministic_parity",
+      "exact_interrupt_parity": false,
+      "exact_retry_parity": true,
+      "exact_cancellation_parity": false,
+      "retry_attempt_count": 1,
+      "final_state_digest": "f73d0a07e1b8f0fa82c40642b0245e99a21a7e3633511f924b4f50cfc954f498",
+      "note": "bounded retry stays exact because the retry budget, checkpoint boundary, and resumed continuation are frozen explicitly"
+    },
+    {
+      "case_id": "safe_boundary_cancellation_job",
+      "process_id": "tassadar.process.state_machine_accumulator.v1",
+      "lifecycle_surface_id": "safe_boundary_cancellation_job",
+      "state_shape_id": "state_machine_cursor_and_cancel_token",
+      "route_profile_id": "tassadar.internal_compute.async_lifecycle.v1",
+      "events": [
+        {
+          "event_id": "safe_boundary_cancellation_job.event.0",
+          "order_index": 0,
+          "kind": "launch",
+          "boundary_id": "launch.boundary",
+          "note": "async lifecycle event `launch` at boundary `launch.boundary`"
+        },
+        {
+          "event_id": "safe_boundary_cancellation_job.event.1",
+          "order_index": 1,
+          "kind": "interrupt_requested",
+          "boundary_id": "cancel.signal",
+          "note": "async lifecycle event `interruptrequested` at boundary `cancel.signal`"
+        },
+        {
+          "event_id": "safe_boundary_cancellation_job.event.2",
+          "order_index": 2,
+          "kind": "checkpoint_persisted",
+          "boundary_id": "checkpoint.safe_cancel.00",
+          "note": "async lifecycle event `checkpointpersisted` at boundary `checkpoint.safe_cancel.00`"
+        },
+        {
+          "event_id": "safe_boundary_cancellation_job.event.3",
+          "order_index": 3,
+          "kind": "cancel_acknowledged",
+          "boundary_id": "cancel.safe_boundary",
+          "note": "async lifecycle event `cancelacknowledged` at boundary `cancel.safe_boundary`"
+        }
+      ],
+      "status": "exact_deterministic_parity",
+      "exact_interrupt_parity": false,
+      "exact_retry_parity": false,
+      "exact_cancellation_parity": true,
+      "retry_attempt_count": 0,
+      "final_state_digest": "e7029ba5033898848ea7e29ee3a098c050bc96a19a5c8fd988442c88d8721595",
+      "note": "safe-boundary cancellation stays exact because acknowledgement happens only after an explicit checkpoint and replay-safe boundary"
+    },
+    {
+      "case_id": "open_ended_external_callback",
+      "process_id": "tassadar.process.external_callback.v1",
+      "lifecycle_surface_id": "open_ended_external_callback",
+      "state_shape_id": "ambient_callback_mailbox",
+      "route_profile_id": "tassadar.internal_compute.async_lifecycle.v1",
+      "events": [
+        {
+          "event_id": "open_ended_external_callback.event.0",
+          "order_index": 0,
+          "kind": "launch",
+          "boundary_id": "launch.boundary",
+          "note": "async lifecycle event `launch` at boundary `launch.boundary`"
+        },
+        {
+          "event_id": "open_ended_external_callback.event.1",
+          "order_index": 1,
+          "kind": "interrupt_requested",
+          "boundary_id": "ambient.callback.wait",
+          "note": "async lifecycle event `interruptrequested` at boundary `ambient.callback.wait`"
+        }
+      ],
+      "status": "exact_refusal_parity",
+      "exact_interrupt_parity": false,
+      "exact_retry_parity": false,
+      "exact_cancellation_parity": false,
+      "retry_attempt_count": 0,
+      "refusal_reason_id": "async_callback_out_of_envelope",
+      "final_state_digest": "5809dcd2953ea9fc9f71cf601e2f968220ecd95700a9506bd5a501f02a4c5793",
+      "note": "open-ended external callbacks stay outside the bounded async-lifecycle profile"
+    },
+    {
+      "case_id": "mid_effect_cancellation",
+      "process_id": "tassadar.process.effectful_mid_commit.v1",
+      "lifecycle_surface_id": "mid_effect_cancellation",
+      "state_shape_id": "effect_commit_cursor",
+      "route_profile_id": "tassadar.internal_compute.async_lifecycle.v1",
+      "events": [
+        {
+          "event_id": "mid_effect_cancellation.event.0",
+          "order_index": 0,
+          "kind": "launch",
+          "boundary_id": "launch.boundary",
+          "note": "async lifecycle event `launch` at boundary `launch.boundary`"
+        },
+        {
+          "event_id": "mid_effect_cancellation.event.1",
+          "order_index": 1,
+          "kind": "interrupt_requested",
+          "boundary_id": "cancel.unsafe_mid_effect",
+          "note": "async lifecycle event `interruptrequested` at boundary `cancel.unsafe_mid_effect`"
+        }
+      ],
+      "status": "exact_refusal_parity",
+      "exact_interrupt_parity": false,
+      "exact_retry_parity": false,
+      "exact_cancellation_parity": false,
+      "retry_attempt_count": 0,
+      "refusal_reason_id": "mid_effect_cancellation_unsafe",
+      "final_state_digest": "ff0021bc10a1353ffb83463629ddc7fd5045871393820fec95017f55bb11fd7b",
+      "note": "mid-effect cancellation stays refused because it does not preserve a replay-safe checkpoint boundary"
+    },
+    {
+      "case_id": "unbounded_retry_backoff",
+      "process_id": "tassadar.process.unbounded_retry.v1",
+      "lifecycle_surface_id": "unbounded_retry_backoff",
+      "state_shape_id": "retry_budget_unbounded",
+      "route_profile_id": "tassadar.internal_compute.async_lifecycle.v1",
+      "events": [
+        {
+          "event_id": "unbounded_retry_backoff.event.0",
+          "order_index": 0,
+          "kind": "launch",
+          "boundary_id": "launch.boundary",
+          "note": "async lifecycle event `launch` at boundary `launch.boundary`"
+        },
+        {
+          "event_id": "unbounded_retry_backoff.event.1",
+          "order_index": 1,
+          "kind": "retry_scheduled",
+          "boundary_id": "retry_budget.unbounded",
+          "note": "async lifecycle event `retryscheduled` at boundary `retry_budget.unbounded`"
+        }
+      ],
+      "status": "exact_refusal_parity",
+      "exact_interrupt_parity": false,
+      "exact_retry_parity": false,
+      "exact_cancellation_parity": false,
+      "retry_attempt_count": 0,
+      "refusal_reason_id": "unbounded_retry_policy_out_of_envelope",
+      "final_state_digest": "ffb755adc76c627e1257d53e0ec246bf554aca145ffe6fdb376382326e53fec8",
+      "note": "unbounded retry stays refused because the bounded async-lifecycle profile requires an explicit finite retry budget"
+    }
+  ],
+  "exact_case_count": 3,
+  "refusal_case_count": 3,
+  "overall_green": true,
+  "public_profile_allowed_profile_ids": [
+    "tassadar.internal_compute.async_lifecycle.v1"
+  ],
+  "default_served_profile_allowed_profile_ids": [],
+  "routeable_lifecycle_surface_ids": [
+    "interruptible_counter_job",
+    "retryable_timeout_search_job",
+    "safe_boundary_cancellation_job"
+  ],
+  "refused_lifecycle_surface_ids": [
+    "open_ended_external_callback",
+    "mid_effect_cancellation",
+    "unbounded_retry_backoff"
+  ],
+  "claim_boundary": "this runtime report covers one bounded async-lifecycle profile with deterministic interrupt, bounded retry, and safe-boundary cancellation semantics. It keeps open-ended external callbacks, mid-effect cancellation, and unbounded retry policies on explicit refusal paths instead of implying generic async execution, arbitrary external events, or broader served internal compute",
+  "summary": "Async-lifecycle runtime report covers exact_cases=3, refusal_cases=3, routeable_surfaces=3, refused_surfaces=3, overall_green=true.",
+  "report_digest": "53497547ff68eceabbaaee9dd0ae7721e7593d22a3fb6e919f0aeb39524c4125"
+}

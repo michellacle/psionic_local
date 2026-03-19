@@ -1158,6 +1158,29 @@ Expected outcome:
 - explicit refusal on ambient system clock, OS entropy, and socket I/O
 - zero served publication widening for the simulator-backed effect lane
 
+### 22. Async call, interrupt, retry, and cancellation semantics
+
+```bash
+cargo run -p psionic-runtime --example tassadar_async_lifecycle_profile_runtime_report
+cargo run -p psionic-eval --example tassadar_async_lifecycle_profile_report
+cargo run -p psionic-router --example tassadar_async_lifecycle_route_policy_report
+```
+
+Read:
+
+- `fixtures/tassadar/reports/tassadar_async_lifecycle_profile_runtime_report.json`
+- `fixtures/tassadar/reports/tassadar_async_lifecycle_profile_report.json`
+- `fixtures/tassadar/reports/tassadar_async_lifecycle_route_policy_report.json`
+
+Expected outcome:
+
+- one named bounded async-lifecycle profile:
+  `tassadar.internal_compute.async_lifecycle.v1`
+- exact parity on the interrupt, bounded retry, and safe-boundary cancellation rows
+- explicit named-public and zero-default-served posture for the async-lifecycle lane
+- explicit refusal on open-ended callbacks, mid-effect cancellation, and unbounded retry
+- profile-specific route promotion only for the bounded lifecycle surfaces
+
 ## Validation Commands
 
 Run the focused report checks after the flow:
@@ -1234,6 +1257,12 @@ cargo test -p psionic-runtime simulator_effect -- --nocapture
 cargo test -p psionic-sandbox simulator_effect -- --nocapture
 cargo test -p psionic-eval simulator_effect -- --nocapture
 cargo test -p psionic-provider simulator_effect -- --nocapture
+cargo test -p psionic-runtime async_lifecycle -- --nocapture
+cargo test -p psionic-eval async_lifecycle -- --nocapture
+cargo test -p psionic-router async_lifecycle -- --nocapture
+cargo test -p psionic-serve executor_service_capability_publication_serializes_benchmark_gated_matrix -- --nocapture
+cargo test -p psionic-provider async_lifecycle -- --nocapture
+cargo test -p psionic-provider tassadar_capability_envelope_serializes_served_publication -- --nocapture
 ```
 
 These checks should keep the committed reports and generated truth aligned.

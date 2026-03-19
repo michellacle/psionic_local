@@ -6,6 +6,7 @@
 )]
 
 mod tassadar_accepted_outcome_binding;
+mod tassadar_async_lifecycle_profile;
 mod tassadar_broad_internal_compute_acceptance_gate;
 mod tassadar_broad_internal_compute_portability;
 mod tassadar_broad_internal_compute_profile_publication;
@@ -67,6 +68,7 @@ use psionic_ir::{
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 pub use tassadar_accepted_outcome_binding::*;
+pub use tassadar_async_lifecycle_profile::*;
 pub use tassadar_broad_internal_compute_acceptance_gate::*;
 pub use tassadar_broad_internal_compute_portability::*;
 pub use tassadar_broad_internal_compute_profile_publication::*;
@@ -528,6 +530,8 @@ pub struct TassadarCapabilityEnvelope {
     pub simd_profile_receipt: TassadarSimdProfileReceipt,
     /// Provider-facing receipt for the bounded interactive session-process profile.
     pub session_process_profile_receipt: TassadarSessionProcessProfileReceipt,
+    /// Provider-facing receipt for the bounded async-lifecycle profile.
+    pub async_lifecycle_profile_receipt: TassadarAsyncLifecycleProfileReceipt,
     /// Provider-facing receipt for the bounded preemptive-job profile.
     pub preemptive_job_receipt: TassadarPreemptiveJobReceipt,
     /// Provider-facing receipt for the resumable multi-slice promotion lane.
@@ -639,6 +643,16 @@ impl TassadarCapabilityEnvelope {
             })?;
         let session_process_profile_receipt =
             TassadarSessionProcessProfileReceipt::from_report(&session_process_profile_report);
+        let async_lifecycle_profile_report =
+            psionic_eval::build_tassadar_async_lifecycle_profile_report().map_err(|error| {
+                TassadarCapabilityEnvelopeError::UnpublishableAsyncLifecycleProfile {
+                    detail: format!(
+                        "provider envelope requires a valid async-lifecycle profile report: {error}"
+                    ),
+                }
+            })?;
+        let async_lifecycle_profile_receipt =
+            TassadarAsyncLifecycleProfileReceipt::from_report(&async_lifecycle_profile_report);
         let preemptive_job_profile_report =
             psionic_eval::build_tassadar_preemptive_job_profile_report().map_err(|error| {
                 TassadarCapabilityEnvelopeError::UnpublishablePreemptiveJobProfile {
@@ -1020,6 +1034,58 @@ impl TassadarCapabilityEnvelope {
             );
         }
         if publication
+            .async_lifecycle_profile_report_ref
+            .trim()
+            .is_empty()
+            || publication
+                .async_lifecycle_route_policy_report_ref
+                .trim()
+                .is_empty()
+            || publication.async_lifecycle_public_profile_ids
+                != async_lifecycle_profile_receipt.public_profile_allowed_profile_ids
+            || publication.async_lifecycle_default_served_profile_ids
+                != async_lifecycle_profile_receipt.default_served_profile_allowed_profile_ids
+            || publication.async_lifecycle_routeable_surface_ids
+                != async_lifecycle_profile_receipt.routeable_lifecycle_surface_ids
+            || publication.async_lifecycle_refused_surface_ids
+                != async_lifecycle_profile_receipt.refused_lifecycle_surface_ids
+            || !async_lifecycle_profile_receipt.overall_green
+            || !async_lifecycle_profile_receipt
+                .public_profile_allowed_profile_ids
+                .contains(&String::from(
+                    "tassadar.internal_compute.async_lifecycle.v1",
+                ))
+            || !async_lifecycle_profile_receipt
+                .default_served_profile_allowed_profile_ids
+                .is_empty()
+            || !async_lifecycle_profile_receipt
+                .routeable_lifecycle_surface_ids
+                .contains(&String::from("interruptible_counter_job"))
+            || !async_lifecycle_profile_receipt
+                .routeable_lifecycle_surface_ids
+                .contains(&String::from("retryable_timeout_search_job"))
+            || !async_lifecycle_profile_receipt
+                .routeable_lifecycle_surface_ids
+                .contains(&String::from("safe_boundary_cancellation_job"))
+            || !async_lifecycle_profile_receipt
+                .refused_lifecycle_surface_ids
+                .contains(&String::from("open_ended_external_callback"))
+            || !async_lifecycle_profile_receipt
+                .refused_lifecycle_surface_ids
+                .contains(&String::from("mid_effect_cancellation"))
+            || !async_lifecycle_profile_receipt
+                .refused_lifecycle_surface_ids
+                .contains(&String::from("unbounded_retry_backoff"))
+        {
+            return Err(
+                TassadarCapabilityEnvelopeError::UnpublishableAsyncLifecycleProfile {
+                    detail: String::from(
+                        "provider envelope requires non-empty async-lifecycle profile and route-policy refs, exact agreement with the committed public/default-served/lifecycle-surface ids, a green bounded async-lifecycle profile, one named public async-lifecycle profile, zero default served async-lifecycle profiles, three deterministic routeable lifecycle surfaces, and explicit refusal on open-ended callbacks, mid-effect cancellation, and unbounded retry",
+                    ),
+                },
+            );
+        }
+        if publication
             .preemptive_job_profile_report_ref
             .trim()
             .is_empty()
@@ -1076,6 +1142,7 @@ impl TassadarCapabilityEnvelope {
             exception_profile_receipt,
             simd_profile_receipt,
             session_process_profile_receipt,
+            async_lifecycle_profile_receipt,
             preemptive_job_receipt,
             resumable_multi_slice_promotion_receipt,
             effect_safe_resume_receipt,
@@ -1138,6 +1205,11 @@ pub enum TassadarCapabilityEnvelopeError {
     },
     /// The served interactive session-process profile was not publishable provider-side.
     UnpublishableSessionProcessProfile {
+        /// Plain-text validation detail.
+        detail: String,
+    },
+    /// The served async-lifecycle profile was not publishable provider-side.
+    UnpublishableAsyncLifecycleProfile {
         /// Plain-text validation detail.
         detail: String,
     },
@@ -9314,6 +9386,38 @@ mod tests {
             json!(["open_ended_external_event_stream"])
         );
         assert_eq!(
+            encoded["publication"]["async_lifecycle_profile_report_ref"],
+            json!("fixtures/tassadar/reports/tassadar_async_lifecycle_profile_report.json")
+        );
+        assert_eq!(
+            encoded["publication"]["async_lifecycle_route_policy_report_ref"],
+            json!("fixtures/tassadar/reports/tassadar_async_lifecycle_route_policy_report.json")
+        );
+        assert_eq!(
+            encoded["publication"]["async_lifecycle_public_profile_ids"],
+            json!(["tassadar.internal_compute.async_lifecycle.v1"])
+        );
+        assert_eq!(
+            encoded["publication"]["async_lifecycle_default_served_profile_ids"],
+            json!([])
+        );
+        assert_eq!(
+            encoded["publication"]["async_lifecycle_routeable_surface_ids"],
+            json!([
+                "interruptible_counter_job",
+                "retryable_timeout_search_job",
+                "safe_boundary_cancellation_job"
+            ])
+        );
+        assert_eq!(
+            encoded["publication"]["async_lifecycle_refused_surface_ids"],
+            json!([
+                "mid_effect_cancellation",
+                "open_ended_external_callback",
+                "unbounded_retry_backoff"
+            ])
+        );
+        assert_eq!(
             encoded["publication"]["preemptive_job_profile_report_ref"],
             json!("fixtures/tassadar/reports/tassadar_preemptive_job_report.json")
         );
@@ -9437,6 +9541,30 @@ mod tests {
         assert_eq!(
             encoded["session_process_profile_receipt"]["refused_interaction_surface_ids"],
             json!(["open_ended_external_event_stream"])
+        );
+        assert_eq!(
+            encoded["async_lifecycle_profile_receipt"]["public_profile_allowed_profile_ids"],
+            json!(["tassadar.internal_compute.async_lifecycle.v1"])
+        );
+        assert_eq!(
+            encoded["async_lifecycle_profile_receipt"]["default_served_profile_allowed_profile_ids"],
+            json!([])
+        );
+        assert_eq!(
+            encoded["async_lifecycle_profile_receipt"]["routeable_lifecycle_surface_ids"],
+            json!([
+                "interruptible_counter_job",
+                "retryable_timeout_search_job",
+                "safe_boundary_cancellation_job"
+            ])
+        );
+        assert_eq!(
+            encoded["async_lifecycle_profile_receipt"]["refused_lifecycle_surface_ids"],
+            json!([
+                "mid_effect_cancellation",
+                "open_ended_external_callback",
+                "unbounded_retry_backoff"
+            ])
         );
         assert_eq!(
             encoded["preemptive_job_receipt"]["green_scheduler_ids"],

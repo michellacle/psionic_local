@@ -875,6 +875,16 @@ The current scope is:
   envelope only, with explicit refusal on ambient system clock, OS entropy,
   and socket I/O; this is not arbitrary host interaction, broad network
   effects, or broader served internal compute
+- the current async-lifecycle artifacts are
+  `fixtures/tassadar/reports/tassadar_async_lifecycle_profile_runtime_report.json`,
+  `fixtures/tassadar/reports/tassadar_async_lifecycle_profile_report.json`, and
+  `fixtures/tassadar/reports/tassadar_async_lifecycle_route_policy_report.json`,
+  which freeze one bounded async-lifecycle lane with deterministic interrupt,
+  bounded retry, and safe-boundary cancellation semantics plus explicit route
+  promotion for those named surfaces and explicit refusal on open-ended
+  callbacks, mid-effect cancellation, and unbounded retry; this is not generic
+  async execution, arbitrary external events, or broader served internal
+  compute
 - recommended closure order follows the spec and its test families: decode and
   validate first, then integer/control/direct-call core, then linear memory,
   then globals/tables/references/indirect calls, then instantiation/import

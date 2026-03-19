@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.async_lifecycle_route_policy.report.v1",
+  "profile_report_ref": "fixtures/tassadar/reports/tassadar_async_lifecycle_profile_report.json",
+  "rows": [
+    {
+      "route_policy_id": "route.async_lifecycle.interruptible_counter_job",
+      "target_profile_id": "tassadar.internal_compute.async_lifecycle.v1",
+      "lifecycle_surface_id": "interruptible_counter_job",
+      "decision_status": "promoted_profile_specific",
+      "note": "lifecycle surface `interruptible_counter_job` is routeable only as a named profile-specific async-lifecycle lane"
+    },
+    {
+      "route_policy_id": "route.async_lifecycle.retryable_timeout_search_job",
+      "target_profile_id": "tassadar.internal_compute.async_lifecycle.v1",
+      "lifecycle_surface_id": "retryable_timeout_search_job",
+      "decision_status": "promoted_profile_specific",
+      "note": "lifecycle surface `retryable_timeout_search_job` is routeable only as a named profile-specific async-lifecycle lane"
+    },
+    {
+      "route_policy_id": "route.async_lifecycle.safe_boundary_cancellation_job",
+      "target_profile_id": "tassadar.internal_compute.async_lifecycle.v1",
+      "lifecycle_surface_id": "safe_boundary_cancellation_job",
+      "decision_status": "promoted_profile_specific",
+      "note": "lifecycle surface `safe_boundary_cancellation_job` is routeable only as a named profile-specific async-lifecycle lane"
+    },
+    {
+      "route_policy_id": "route.async_lifecycle.open_ended_external_callback",
+      "target_profile_id": "tassadar.internal_compute.async_lifecycle.v1",
+      "lifecycle_surface_id": "open_ended_external_callback",
+      "decision_status": "refused",
+      "note": "lifecycle surface `open_ended_external_callback` remains explicitly refused because it depends on async behavior outside the bounded interrupt/retry/cancel envelope"
+    },
+    {
+      "route_policy_id": "route.async_lifecycle.mid_effect_cancellation",
+      "target_profile_id": "tassadar.internal_compute.async_lifecycle.v1",
+      "lifecycle_surface_id": "mid_effect_cancellation",
+      "decision_status": "refused",
+      "note": "lifecycle surface `mid_effect_cancellation` remains explicitly refused because it depends on async behavior outside the bounded interrupt/retry/cancel envelope"
+    },
+    {
+      "route_policy_id": "route.async_lifecycle.unbounded_retry_backoff",
+      "target_profile_id": "tassadar.internal_compute.async_lifecycle.v1",
+      "lifecycle_surface_id": "unbounded_retry_backoff",
+      "decision_status": "refused",
+      "note": "lifecycle surface `unbounded_retry_backoff` remains explicitly refused because it depends on async behavior outside the bounded interrupt/retry/cancel envelope"
+    }
+  ],
+  "promoted_profile_specific_route_count": 3,
+  "suppressed_route_count": 0,
+  "refused_route_count": 3,
+  "claim_boundary": "this router report promotes only the bounded deterministic async-lifecycle surfaces as profile-specific routes. It keeps open-ended callbacks, mid-effect cancellation, and unbounded retry explicitly refused and does not widen the async-lifecycle profile into a default served route",
+  "summary": "Async-lifecycle route policy now records promoted_profile_specific_routes=3, suppressed_routes=0, refused_routes=3.",
+  "report_digest": "149d07f30bedfa22ffcc0694d8d361fc4c8655f4dcd07b44a16ae03e8b834ab5"
+}

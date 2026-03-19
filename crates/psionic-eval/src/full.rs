@@ -26,6 +26,8 @@ mod parameter_golf_training;
 mod tassadar;
 #[path = "tassadar_approximate_attention_closure_matrix.rs"]
 mod tassadar_approximate_attention_closure_matrix;
+#[path = "tassadar_async_lifecycle_profile.rs"]
+mod tassadar_async_lifecycle_profile;
 #[path = "tassadar_architecture_bakeoff.rs"]
 mod tassadar_architecture_bakeoff;
 #[path = "tassadar_article_abi.rs"]
@@ -244,6 +246,7 @@ pub use parameter_golf_promotion::*;
 pub use parameter_golf_training::*;
 pub use tassadar::*;
 pub use tassadar_approximate_attention_closure_matrix::*;
+pub use tassadar_async_lifecycle_profile::*;
 pub use tassadar_architecture_bakeoff::*;
 pub use tassadar_article_abi::*;
 pub use tassadar_article_cpu_reproducibility::*;
