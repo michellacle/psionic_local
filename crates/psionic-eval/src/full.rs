@@ -72,6 +72,8 @@ mod tassadar_efficient_attention_baseline_matrix;
 mod tassadar_error_regime_catalog;
 #[path = "tassadar_exactness_refusal_report.rs"]
 mod tassadar_exactness_refusal_report;
+#[path = "tassadar_exception_profile.rs"]
+mod tassadar_exception_profile;
 #[path = "tassadar_execution_checkpoint.rs"]
 mod tassadar_execution_checkpoint;
 #[path = "tassadar_executor_architecture_comparison.rs"]
@@ -84,10 +86,10 @@ mod tassadar_executor_benchmark;
 mod tassadar_executor_eval;
 #[path = "tassadar_executor_hull_benchmark.rs"]
 mod tassadar_executor_hull_benchmark;
-#[path = "tassadar_float_semantics.rs"]
-mod tassadar_float_semantics;
 #[path = "tassadar_float_profile_acceptance_gate.rs"]
 mod tassadar_float_profile_acceptance_gate;
+#[path = "tassadar_float_semantics.rs"]
+mod tassadar_float_semantics;
 #[path = "tassadar_frozen_core_wasm_closure_gate.rs"]
 mod tassadar_frozen_core_wasm_closure_gate;
 #[path = "tassadar_frozen_core_wasm_window.rs"]
@@ -120,8 +122,6 @@ mod tassadar_locality_scratchpad;
 mod tassadar_memory_abi_v2;
 #[path = "tassadar_mixed_numeric_ladder.rs"]
 mod tassadar_mixed_numeric_ladder;
-#[path = "tassadar_numeric_portability.rs"]
-mod tassadar_numeric_portability;
 #[path = "tassadar_mixed_trajectory.rs"]
 mod tassadar_mixed_trajectory;
 #[path = "tassadar_module_installation_staging.rs"]
@@ -140,6 +140,8 @@ mod tassadar_negative_invocation;
 mod tassadar_numeric_encoding;
 #[path = "tassadar_numeric_opcode_ladder.rs"]
 mod tassadar_numeric_opcode_ladder;
+#[path = "tassadar_numeric_portability.rs"]
+mod tassadar_numeric_portability;
 #[path = "tassadar_pointer_memory_scratchpad.rs"]
 mod tassadar_pointer_memory_scratchpad;
 #[path = "tassadar_precision_attention_robustness_audit.rs"]
@@ -241,14 +243,15 @@ pub use tassadar_effect_taxonomy::*;
 pub use tassadar_efficient_attention_baseline_matrix::*;
 pub use tassadar_error_regime_catalog::*;
 pub use tassadar_exactness_refusal_report::*;
+pub use tassadar_exception_profile::*;
 pub use tassadar_execution_checkpoint::*;
 pub use tassadar_executor_architecture_comparison::*;
 pub use tassadar_executor_baseline_comparison::*;
 pub use tassadar_executor_benchmark::*;
 pub use tassadar_executor_eval::*;
 pub use tassadar_executor_hull_benchmark::*;
-pub use tassadar_float_semantics::*;
 pub use tassadar_float_profile_acceptance_gate::*;
+pub use tassadar_float_semantics::*;
 pub use tassadar_frozen_core_wasm_closure_gate::*;
 pub use tassadar_frozen_core_wasm_window::*;
 pub use tassadar_generalized_abi::*;
@@ -265,7 +268,6 @@ pub use tassadar_locality_envelope::*;
 pub use tassadar_locality_scratchpad::*;
 pub use tassadar_memory_abi_v2::*;
 pub use tassadar_mixed_numeric_ladder::*;
-pub use tassadar_numeric_portability::*;
 pub use tassadar_mixed_trajectory::*;
 pub use tassadar_module_installation_staging::*;
 pub use tassadar_module_linker::*;
@@ -275,6 +277,7 @@ pub use tassadar_module_trace_abi_v2::*;
 pub use tassadar_negative_invocation::*;
 pub use tassadar_numeric_encoding::*;
 pub use tassadar_numeric_opcode_ladder::*;
+pub use tassadar_numeric_portability::*;
 pub use tassadar_pointer_memory_scratchpad::*;
 pub use tassadar_precision_attention_robustness_audit::*;
 pub use tassadar_quantization_truth_envelope::*;

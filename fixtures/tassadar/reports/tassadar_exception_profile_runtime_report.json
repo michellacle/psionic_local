@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.exception_profile.runtime_report.v1",
+  "profile_id": "tassadar.proposal_profile.exceptions_try_catch_rethrow.v1",
+  "portability_envelope_id": "cpu_reference_current_host",
+  "claim_class": "execution_truth / compiled_bounded_exactness / refusal_truth",
+  "exact_success_parity_case_count": 1,
+  "exact_trap_parity_case_count": 2,
+  "exact_refusal_parity_case_count": 1,
+  "exact_trap_stack_parity_case_count": 2,
+  "drift_case_count": 0,
+  "case_receipts": [
+    {
+      "case_id": "throw_catch_success",
+      "semantic_id": "throw_catch_success",
+      "workload_family": "module_scale_exception_dispatch",
+      "reference_terminal_kind": "success",
+      "runtime_terminal_kind": "success",
+      "parity_posture": "exact_success_parity",
+      "output_parity": true,
+      "trap_stack_parity": false,
+      "refusal_state_parity": false,
+      "reference_detail": "reference caught the thrown tag and returned i32 result 21 with exact recovered state",
+      "runtime_detail": "runtime caught the thrown tag and returned i32 result 21 with exact recovered state",
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_trap_exception_report.json",
+        "fixtures/tassadar/reports/tassadar_module_scale_workload_suite_report.json"
+      ],
+      "note": "typed catch remains a success-path control row here, not evidence for arbitrary exception closure"
+    },
+    {
+      "case_id": "nested_rethrow_trap_stack",
+      "semantic_id": "nested_rethrow_trap_stack",
+      "workload_family": "search_exception_unwind",
+      "reference_terminal_kind": "trap",
+      "runtime_terminal_kind": "trap",
+      "non_success_kind": "uncaught_rethrow",
+      "parity_posture": "exact_trap_parity",
+      "output_parity": false,
+      "trap_stack_parity": true,
+      "refusal_state_parity": false,
+      "reference_trap_stack_depth": 2,
+      "runtime_trap_stack_depth": 2,
+      "reference_detail": "reference rethrew through two handler frames and trapped with uncaught_rethrow at trap-stack depth 2",
+      "runtime_detail": "runtime rethrew through two handler frames and trapped with uncaught_rethrow at trap-stack depth 2",
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_trap_exception_report.json",
+        "fixtures/tassadar/reports/tassadar_wasm_conformance_report.json"
+      ],
+      "note": "nested rethrow now preserves explicit trap-stack depth parity instead of degrading into a generic failure count"
+    },
+    {
+      "case_id": "handler_tag_mismatch_trap",
+      "semantic_id": "handler_tag_mismatch_trap",
+      "workload_family": "exception_handler_dispatch",
+      "reference_terminal_kind": "trap",
+      "runtime_terminal_kind": "trap",
+      "non_success_kind": "handler_tag_mismatch",
+      "parity_posture": "exact_trap_parity",
+      "output_parity": false,
+      "trap_stack_parity": true,
+      "refusal_state_parity": false,
+      "reference_trap_stack_depth": 1,
+      "runtime_trap_stack_depth": 1,
+      "reference_detail": "reference trapped on handler tag mismatch at trap-stack depth 1",
+      "runtime_detail": "runtime trapped on handler tag mismatch at trap-stack depth 1",
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_trap_exception_report.json",
+        "fixtures/tassadar/reports/tassadar_wasm_conformance_report.json"
+      ],
+      "note": "tag mismatch remains typed trap truth instead of being absorbed into malformed-handler refusal"
+    },
+    {
+      "case_id": "malformed_exception_handler_refusal",
+      "semantic_id": "malformed_exception_handler_refusal",
+      "workload_family": "exception_handler_boundary",
+      "reference_terminal_kind": "refusal",
+      "runtime_terminal_kind": "refusal",
+      "non_success_kind": "malformed_exception_handler",
+      "parity_posture": "exact_refusal_parity",
+      "output_parity": false,
+      "trap_stack_parity": false,
+      "refusal_state_parity": true,
+      "reference_detail": "reference-side harness refused malformed exception handler metadata before execution planning",
+      "runtime_detail": "runtime refused malformed exception handler metadata before execution planning",
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_trap_exception_report.json"
+      ],
+      "note": "malformed handlers remain typed refusal truth instead of becoming an opaque validation failure"
+    }
+  ],
+  "claim_boundary": "this runtime report keeps typed throw, catch, and rethrow semantics benchmark-bound inside one named exceptions profile on the current-host cpu-reference lane. It preserves trap-stack parity and malformed-handler refusal truth explicitly instead of inheriting arbitrary exception-family support from generic trap parity",
+  "summary": "Exception profile runtime report covers 4 cases with success_parity=1, trap_parity=2, refusal_parity=1, trap_stack_parity=2, drift=0.",
+  "report_digest": "a461e7970f088b530ff89e2fddd771b1e05e6e6e3fbad4890194ea74d3b4a5aa"
+}

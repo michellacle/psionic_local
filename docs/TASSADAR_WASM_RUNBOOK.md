@@ -872,6 +872,28 @@ Expected outcome:
 - explicit refusal parity for malformed imports and unsupported profiles
 - `drift_case_count = 0`
 
+### 10. Bounded exceptions proposal profile
+
+```bash
+cargo run -p psionic-runtime --example tassadar_exception_profile_runtime_report
+cargo run -p psionic-eval --example tassadar_exception_profile_report
+```
+
+Read:
+
+- `fixtures/tassadar/reports/tassadar_exception_profile_runtime_report.json`
+- `fixtures/tassadar/reports/tassadar_exception_profile_report.json`
+
+Expected outcome:
+
+- one named public exception profile:
+  `tassadar.proposal_profile.exceptions_try_catch_rethrow.v1`
+- exact typed throw/catch success parity
+- exact trap parity on nested rethrow and handler-tag mismatch cases
+- exact trap-stack parity on the non-success exception cases
+- explicit malformed-handler refusal parity
+- no default served exception profile ids
+
 ## Validation Commands
 
 Run the focused report checks after the flow:
@@ -893,6 +915,10 @@ cargo test -p psionic-router float_profile_route_policy -- --nocapture
 cargo test -p psionic-eval wasm_conformance -- --nocapture
 cargo test -p psionic-eval module_scale_workload_suite -- --nocapture
 cargo test -p psionic-eval trap_exception -- --nocapture
+cargo test -p psionic-runtime exception_profile -- --nocapture
+cargo test -p psionic-eval exception_profile -- --nocapture
+cargo test -p psionic-provider exception_profile_receipt_projects_report -- --nocapture
+cargo test -p psionic-provider tassadar_capability_envelope_serializes_served_publication -- --nocapture
 ```
 
 These checks should keep the committed reports and generated truth aligned.
@@ -930,6 +956,9 @@ These checks should keep the committed reports and generated truth aligned.
   VM-style fixed-operand cases, that is a real workload-suite regression.
 - If trap parity or refusal parity drifts in the trap report, the widened Wasm
   claim has a semantic hole even if success cases still look green.
+- If the exception-profile report loses trap-stack parity, adds a default
+  served exception profile, or widens beyond the current-host cpu-reference
+  envelope without new evidence, that is a real claim-discipline regression.
 
 ## Cleanup Rule
 
@@ -951,6 +980,8 @@ hold:
 
 - the compile-pipeline, ingress, conformance, module-scale, and trap reports
   reproduce without unexpected drift
+- the exception-profile runtime and eval reports reproduce without unexpected
+  drift
 - the article runtime closeout bundle, report, and summary reproduce without
   unexpected drift
 - the focused tests above pass

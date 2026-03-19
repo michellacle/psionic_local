@@ -1,0 +1,278 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.exception_profile.report.v1",
+  "ir_contract": {
+    "schema_version": 1,
+    "contract_id": "tassadar.exception_profile.contract.v1",
+    "profiles": [
+      {
+        "profile_id": "tassadar.proposal_profile.exceptions_try_catch_rethrow.v1",
+        "support_posture": "exact",
+        "admitted_semantic_ids": [
+          "throw_catch_success",
+          "nested_rethrow_trap_stack",
+          "handler_tag_mismatch_trap"
+        ],
+        "refused_reason_ids": [
+          "malformed_exception_handler",
+          "exception_delegate_out_of_scope",
+          "exception_try_table_out_of_scope"
+        ],
+        "portability_envelope_id": "cpu_reference_current_host",
+        "detail": "the current exceptions profile admits typed throw/catch/rethrow semantics only on the current-host cpu-reference lane and keeps delegate, try_table, and broader proposal-family widening on explicit refusal paths"
+      }
+    ],
+    "refused_exception_family_ids": [
+      "arbitrary_exception_handling",
+      "generic_wasm_exception_closure",
+      "backend_invariant_exception_portability"
+    ],
+    "claim_boundary": "this contract names one bounded exception-handling profile over typed throw, catch, and rethrow parity on the current-host cpu-reference lane. It does not claim arbitrary Wasm exception closure, delegate or try_table support, backend-invariant portability, or broader served publication",
+    "contract_digest": "94f1f9e26a9dbfb2b6b83ce27f613778ecae51ea00d355750416170f129a7be2"
+  },
+  "compiler_contract": {
+    "schema_version": 1,
+    "contract_id": "tassadar.exception_profile.compilation_contract.v1",
+    "profile_id": "tassadar.proposal_profile.exceptions_try_catch_rethrow.v1",
+    "claim_class": "compiled_bounded_exactness / execution_truth / refusal_truth",
+    "case_specs": [
+      {
+        "case_id": "throw_catch_success",
+        "semantic_id": "throw_catch_success",
+        "workload_family": "module_scale_exception_dispatch",
+        "expected_terminal_kind": "success",
+        "benchmark_refs": [
+          "fixtures/tassadar/reports/tassadar_trap_exception_report.json",
+          "fixtures/tassadar/reports/tassadar_module_scale_workload_suite_report.json"
+        ],
+        "note": "typed throw and catch should recover to an exact success state instead of degrading into a generic trap"
+      },
+      {
+        "case_id": "nested_rethrow_trap_stack",
+        "semantic_id": "nested_rethrow_trap_stack",
+        "workload_family": "search_exception_unwind",
+        "expected_terminal_kind": "trap",
+        "expected_non_success_kind": "uncaught_rethrow",
+        "benchmark_refs": [
+          "fixtures/tassadar/reports/tassadar_trap_exception_report.json",
+          "fixtures/tassadar/reports/tassadar_wasm_conformance_report.json"
+        ],
+        "note": "nested rethrow should preserve typed trap-stack shape instead of collapsing into an undifferentiated failure"
+      },
+      {
+        "case_id": "handler_tag_mismatch_trap",
+        "semantic_id": "handler_tag_mismatch_trap",
+        "workload_family": "exception_handler_dispatch",
+        "expected_terminal_kind": "trap",
+        "expected_non_success_kind": "handler_tag_mismatch",
+        "benchmark_refs": [
+          "fixtures/tassadar/reports/tassadar_trap_exception_report.json",
+          "fixtures/tassadar/reports/tassadar_wasm_conformance_report.json"
+        ],
+        "note": "tag mismatches should remain trap-parity cases rather than looking like malformed-module refusals"
+      },
+      {
+        "case_id": "malformed_exception_handler_refusal",
+        "semantic_id": "malformed_exception_handler_refusal",
+        "workload_family": "exception_handler_boundary",
+        "expected_terminal_kind": "refusal",
+        "expected_non_success_kind": "malformed_exception_handler",
+        "benchmark_refs": [
+          "fixtures/tassadar/reports/tassadar_trap_exception_report.json"
+        ],
+        "note": "malformed exception handlers should stay explicit refusal truth before execution planning starts"
+      }
+    ],
+    "claim_boundary": "this contract freezes one bounded exceptions proposal profile over typed throw, catch, and rethrow semantics. It keeps malformed handlers, delegate, try_table, and broader exception-family widening on explicit refusal paths instead of inheriting them from frozen core-Wasm or generic trap parity",
+    "summary": "Exception profile compilation contract freezes 4 cases across 1 success, 2 trap, and 1 refusal expectations.",
+    "contract_digest": "d03cea2b36e17bf2b5f443a4ffa9b974d8cfcd5f8d60f2019ec02c3d6136c8e1"
+  },
+  "trap_exception_report_ref": "fixtures/tassadar/reports/tassadar_trap_exception_report.json",
+  "runtime_report": {
+    "schema_version": 1,
+    "report_id": "tassadar.exception_profile.runtime_report.v1",
+    "profile_id": "tassadar.proposal_profile.exceptions_try_catch_rethrow.v1",
+    "portability_envelope_id": "cpu_reference_current_host",
+    "claim_class": "execution_truth / compiled_bounded_exactness / refusal_truth",
+    "exact_success_parity_case_count": 1,
+    "exact_trap_parity_case_count": 2,
+    "exact_refusal_parity_case_count": 1,
+    "exact_trap_stack_parity_case_count": 2,
+    "drift_case_count": 0,
+    "case_receipts": [
+      {
+        "case_id": "throw_catch_success",
+        "semantic_id": "throw_catch_success",
+        "workload_family": "module_scale_exception_dispatch",
+        "reference_terminal_kind": "success",
+        "runtime_terminal_kind": "success",
+        "parity_posture": "exact_success_parity",
+        "output_parity": true,
+        "trap_stack_parity": false,
+        "refusal_state_parity": false,
+        "reference_detail": "reference caught the thrown tag and returned i32 result 21 with exact recovered state",
+        "runtime_detail": "runtime caught the thrown tag and returned i32 result 21 with exact recovered state",
+        "benchmark_refs": [
+          "fixtures/tassadar/reports/tassadar_trap_exception_report.json",
+          "fixtures/tassadar/reports/tassadar_module_scale_workload_suite_report.json"
+        ],
+        "note": "typed catch remains a success-path control row here, not evidence for arbitrary exception closure"
+      },
+      {
+        "case_id": "nested_rethrow_trap_stack",
+        "semantic_id": "nested_rethrow_trap_stack",
+        "workload_family": "search_exception_unwind",
+        "reference_terminal_kind": "trap",
+        "runtime_terminal_kind": "trap",
+        "non_success_kind": "uncaught_rethrow",
+        "parity_posture": "exact_trap_parity",
+        "output_parity": false,
+        "trap_stack_parity": true,
+        "refusal_state_parity": false,
+        "reference_trap_stack_depth": 2,
+        "runtime_trap_stack_depth": 2,
+        "reference_detail": "reference rethrew through two handler frames and trapped with uncaught_rethrow at trap-stack depth 2",
+        "runtime_detail": "runtime rethrew through two handler frames and trapped with uncaught_rethrow at trap-stack depth 2",
+        "benchmark_refs": [
+          "fixtures/tassadar/reports/tassadar_trap_exception_report.json",
+          "fixtures/tassadar/reports/tassadar_wasm_conformance_report.json"
+        ],
+        "note": "nested rethrow now preserves explicit trap-stack depth parity instead of degrading into a generic failure count"
+      },
+      {
+        "case_id": "handler_tag_mismatch_trap",
+        "semantic_id": "handler_tag_mismatch_trap",
+        "workload_family": "exception_handler_dispatch",
+        "reference_terminal_kind": "trap",
+        "runtime_terminal_kind": "trap",
+        "non_success_kind": "handler_tag_mismatch",
+        "parity_posture": "exact_trap_parity",
+        "output_parity": false,
+        "trap_stack_parity": true,
+        "refusal_state_parity": false,
+        "reference_trap_stack_depth": 1,
+        "runtime_trap_stack_depth": 1,
+        "reference_detail": "reference trapped on handler tag mismatch at trap-stack depth 1",
+        "runtime_detail": "runtime trapped on handler tag mismatch at trap-stack depth 1",
+        "benchmark_refs": [
+          "fixtures/tassadar/reports/tassadar_trap_exception_report.json",
+          "fixtures/tassadar/reports/tassadar_wasm_conformance_report.json"
+        ],
+        "note": "tag mismatch remains typed trap truth instead of being absorbed into malformed-handler refusal"
+      },
+      {
+        "case_id": "malformed_exception_handler_refusal",
+        "semantic_id": "malformed_exception_handler_refusal",
+        "workload_family": "exception_handler_boundary",
+        "reference_terminal_kind": "refusal",
+        "runtime_terminal_kind": "refusal",
+        "non_success_kind": "malformed_exception_handler",
+        "parity_posture": "exact_refusal_parity",
+        "output_parity": false,
+        "trap_stack_parity": false,
+        "refusal_state_parity": true,
+        "reference_detail": "reference-side harness refused malformed exception handler metadata before execution planning",
+        "runtime_detail": "runtime refused malformed exception handler metadata before execution planning",
+        "benchmark_refs": [
+          "fixtures/tassadar/reports/tassadar_trap_exception_report.json"
+        ],
+        "note": "malformed handlers remain typed refusal truth instead of becoming an opaque validation failure"
+      }
+    ],
+    "claim_boundary": "this runtime report keeps typed throw, catch, and rethrow semantics benchmark-bound inside one named exceptions profile on the current-host cpu-reference lane. It preserves trap-stack parity and malformed-handler refusal truth explicitly instead of inheriting arbitrary exception-family support from generic trap parity",
+    "summary": "Exception profile runtime report covers 4 cases with success_parity=1, trap_parity=2, refusal_parity=1, trap_stack_parity=2, drift=0.",
+    "report_digest": "a461e7970f088b530ff89e2fddd771b1e05e6e6e3fbad4890194ea74d3b4a5aa"
+  },
+  "case_audits": [
+    {
+      "case_id": "throw_catch_success",
+      "semantic_id": "throw_catch_success",
+      "workload_family": "module_scale_exception_dispatch",
+      "reference_terminal_kind": "success",
+      "runtime_terminal_kind": "success",
+      "parity_posture": "exact_success_parity",
+      "parity_preserved": true,
+      "trap_stack_parity": false,
+      "benchmark_ref_count": 2,
+      "note": "typed throw and catch should recover to an exact success state instead of degrading into a generic trap"
+    },
+    {
+      "case_id": "nested_rethrow_trap_stack",
+      "semantic_id": "nested_rethrow_trap_stack",
+      "workload_family": "search_exception_unwind",
+      "reference_terminal_kind": "trap",
+      "runtime_terminal_kind": "trap",
+      "observed_non_success_kind": "uncaught_rethrow",
+      "parity_posture": "exact_trap_parity",
+      "parity_preserved": true,
+      "trap_stack_parity": true,
+      "benchmark_ref_count": 2,
+      "note": "nested rethrow should preserve typed trap-stack shape instead of collapsing into an undifferentiated failure"
+    },
+    {
+      "case_id": "handler_tag_mismatch_trap",
+      "semantic_id": "handler_tag_mismatch_trap",
+      "workload_family": "exception_handler_dispatch",
+      "reference_terminal_kind": "trap",
+      "runtime_terminal_kind": "trap",
+      "observed_non_success_kind": "handler_tag_mismatch",
+      "parity_posture": "exact_trap_parity",
+      "parity_preserved": true,
+      "trap_stack_parity": true,
+      "benchmark_ref_count": 2,
+      "note": "tag mismatches should remain trap-parity cases rather than looking like malformed-module refusals"
+    },
+    {
+      "case_id": "malformed_exception_handler_refusal",
+      "semantic_id": "malformed_exception_handler_refusal",
+      "workload_family": "exception_handler_boundary",
+      "reference_terminal_kind": "refusal",
+      "runtime_terminal_kind": "refusal",
+      "observed_non_success_kind": "malformed_exception_handler",
+      "parity_posture": "exact_refusal_parity",
+      "parity_preserved": true,
+      "trap_stack_parity": false,
+      "benchmark_ref_count": 1,
+      "note": "malformed exception handlers should stay explicit refusal truth before execution planning starts"
+    }
+  ],
+  "profile_rows": [
+    {
+      "profile_id": "tassadar.proposal_profile.exceptions_try_catch_rethrow.v1",
+      "support_posture": "exact",
+      "portability_envelope_id": "cpu_reference_current_host",
+      "throw_catch_parity_ready": true,
+      "rethrow_parity_ready": true,
+      "trap_stack_parity_ready": true,
+      "refusal_ready": true,
+      "named_public_profile_allowed": true,
+      "default_served_profile_allowed": false,
+      "detail": "exception profile `tassadar.proposal_profile.exceptions_try_catch_rethrow.v1` is green for named public profile posture on `cpu_reference_current_host` because throw/catch parity, rethrow trap-stack parity, and malformed-handler refusal truth are explicit; it remains non-default for served publication"
+    }
+  ],
+  "exact_success_parity_case_count": 1,
+  "exact_trap_parity_case_count": 2,
+  "exact_refusal_parity_case_count": 1,
+  "exact_trap_stack_parity_case_count": 2,
+  "drift_case_count": 0,
+  "green_profile_ids": [
+    "tassadar.proposal_profile.exceptions_try_catch_rethrow.v1"
+  ],
+  "public_profile_allowed_profile_ids": [
+    "tassadar.proposal_profile.exceptions_try_catch_rethrow.v1"
+  ],
+  "default_served_profile_allowed_profile_ids": [],
+  "portability_envelope_ids": [
+    "cpu_reference_current_host"
+  ],
+  "overall_green": true,
+  "generated_from_refs": [
+    "fixtures/tassadar/reports/tassadar_exception_profile_runtime_report.json",
+    "fixtures/tassadar/reports/tassadar_module_scale_workload_suite_report.json",
+    "fixtures/tassadar/reports/tassadar_trap_exception_report.json",
+    "fixtures/tassadar/reports/tassadar_wasm_conformance_report.json"
+  ],
+  "claim_boundary": "this eval report keeps the exceptions proposal family bounded to one named current-host cpu-reference profile. A green row means the profile may be named publicly with explicit portability and refusal boundaries only; it does not imply arbitrary Wasm exception closure, backend-invariant portability, or a default served exception lane",
+  "summary": "Exception profile report covers 4 audited cases with success_parity=1, trap_parity=2, refusal_parity=1, trap_stack_parity=2, drift=0, public_profile_allowed_profiles=1, default_served_profile_allowed_profiles=0, overall_green=true.",
+  "report_digest": "355126e6cabbdee73a0d13fef96c3af093e58acdf8e00f66be4086b9373530b1"
+}

@@ -55,6 +55,11 @@ Current honest posture:
 - the repo now also has a float-profile acceptance gate plus route policy for
   exact numeric profiles, allowing bounded cpu-reference public named-profile
   posture without widening those profiles into the default served lane
+- the repo now also has one bounded exceptions proposal profile over typed
+  throw/catch/rethrow semantics with explicit trap-stack parity and malformed
+  handler refusal truth, allowing named public profile posture only on the
+  current-host cpu-reference envelope while keeping the default served
+  exceptions lane empty
 - broader profiles above that remain benchmarked, suppressed, refused, or
   unpromoted unless their explicit gates are green
 
@@ -80,9 +85,9 @@ Current dependency spine:
 
 Issue-state note:
 
-- `TAS-103` through `TAS-118` are already implemented and tracked in
+- `TAS-103` through `TAS-119` are already implemented and tracked in
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
-- the current open GitHub backlog begins at `TAS-119` and runs through
+- the current open GitHub backlog begins at `TAS-120` and runs through
   `TAS-156`
 
 ## Repo-Local Companion Docs

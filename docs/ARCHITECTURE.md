@@ -648,6 +648,23 @@ The current scope is:
   `TassadarTrapExceptionReceipt`. This lane keeps trap-state parity and
   refusal-state parity as first-class execution truth instead of letting
   successful exactness stand in for failure-path closure
+- landed exception-profile follow-on: `psionic-ir` now publishes the public
+  `TassadarExceptionProfileContract` naming the bounded
+  `tassadar.proposal_profile.exceptions_try_catch_rethrow.v1` surface on the
+  current-host cpu-reference envelope; `psionic-compiler` now publishes the
+  companion `TassadarExceptionProfileCompilationContract` over typed
+  throw/catch success, nested rethrow trap-stack parity, handler-tag mismatch
+  trap parity, and malformed-handler refusal; `psionic-runtime` now publishes
+  the runtime report at
+  `fixtures/tassadar/reports/tassadar_exception_profile_runtime_report.json`;
+  `psionic-eval` now publishes the joined report at
+  `fixtures/tassadar/reports/tassadar_exception_profile_report.json`;
+  `psionic-serve` now carries that report ref plus public/default-served and
+  portability ids through `TassadarExecutorCapabilityPublication`; and
+  `psionic-provider` now projects the same report into a
+  `TassadarExceptionProfileReceipt`. This lane keeps typed throw/catch/rethrow
+  parity, trap-stack parity, and the zero-default-served boundary explicit
+  instead of silently widening exceptions into generic Wasm support
 - landed architecture-bakeoff follow-on: `psionic-models` now publishes the
   public `TassadarArchitectureBakeoffPublication` over flat decoder trace,
   shared-depth recurrent refinement, linear or recurrentized attention,

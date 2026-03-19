@@ -2,6 +2,7 @@
 
 mod autodiff;
 mod tassadar_article_abi;
+mod tassadar_exception_profile;
 mod tassadar_frozen_core_wasm;
 mod tassadar_generalized_abi;
 mod tassadar_locality_scratchpad;
@@ -28,6 +29,7 @@ use thiserror::Error;
 
 pub use autodiff::*;
 pub use tassadar_article_abi::*;
+pub use tassadar_exception_profile::*;
 pub use tassadar_frozen_core_wasm::*;
 pub use tassadar_generalized_abi::*;
 pub use tassadar_locality_scratchpad::*;
