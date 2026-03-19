@@ -1232,6 +1232,32 @@ Expected outcome:
   variant-union shapes
 - explicit benchmark-only posture with `served_publication_allowed = false`
 
+### 25. Internal compute package manager, catalog, and dependency solver
+
+```bash
+cargo run -p psionic-compiler --example tassadar_internal_compute_package_manager_report
+cargo run -p psionic-router --example tassadar_internal_compute_package_route_policy_report
+cargo run -p psionic-eval --example tassadar_internal_compute_package_manager_eval_report
+```
+
+Read:
+
+- `fixtures/tassadar/reports/tassadar_internal_compute_package_manager_report.json`
+- `fixtures/tassadar/reports/tassadar_internal_compute_package_route_policy_report.json`
+- `fixtures/tassadar/reports/tassadar_internal_compute_package_manager_eval_report.json`
+
+Expected outcome:
+
+- three named public packages:
+  `package.clrs_shortest_path_stack.v1`,
+  `package.hungarian_matching_stack.v1`, and
+  `package.verifier_search_stack.v1`
+- three routeable package ids and zero default-served package ids
+- explicit refusal on ambiguous solver, insufficient-evidence, and
+  portability-mismatch package requests
+- explicit benchmark-gated served-publication posture without widening this
+  lane into a default served software platform
+
 ## Validation Commands
 
 Run the focused report checks after the flow:

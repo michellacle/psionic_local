@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.internal_compute_package_manager.report.v1",
+  "package_entries": [
+    {
+      "package_id": "package.clrs_shortest_path_stack.v1",
+      "module_refs": [
+        "frontier_relax_core@1.0.0"
+      ],
+      "workload_family": "clrs_shortest_path",
+      "required_profile_ids": [
+        "tassadar.internal_compute.component_model_abi.v1"
+      ],
+      "portability_envelope_id": "cpu_reference_current_host",
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_clrs_wasm_bridge_report.json",
+        "fixtures/tassadar/reports/tassadar_internal_module_library_report.json"
+      ],
+      "claim_boundary": "this bounded package remains one shortest-path stack rooted in frontier-relaxation only; it is not a generic graph-package manager row"
+    },
+    {
+      "package_id": "package.hungarian_matching_stack.v1",
+      "module_refs": [
+        "candidate_select_core@1.1.0"
+      ],
+      "workload_family": "hungarian_matching",
+      "required_profile_ids": [
+        "tassadar.internal_compute.component_model_abi.v1"
+      ],
+      "portability_envelope_id": "cpu_reference_current_host",
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_internal_module_library_report.json",
+        "fixtures/tassadar/reports/tassadar_verifier_guided_search_report.json"
+      ],
+      "claim_boundary": "this bounded package remains one matching stack rooted in candidate selection only; it is not a generic combinatorial-optimization package row"
+    },
+    {
+      "package_id": "package.verifier_search_stack.v1",
+      "module_refs": [
+        "candidate_select_core@1.1.0",
+        "checkpoint_backtrack_core@1.0.0"
+      ],
+      "workload_family": "verifier_search",
+      "required_profile_ids": [
+        "tassadar.internal_compute.component_model_abi.v1"
+      ],
+      "portability_envelope_id": "cpu_reference_current_host",
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_internal_module_library_report.json",
+        "fixtures/tassadar/reports/tassadar_verifier_guided_search_report.json"
+      ],
+      "claim_boundary": "this bounded package remains one verifier-search stack rooted in explicit candidate-selection plus checkpoint primitives; it is not arbitrary bounded-search auto-composition"
+    }
+  ],
+  "solver_cases": [
+    {
+      "case_id": "solver.clrs_shortest_path_stack.v1",
+      "requested_capability_labels": [
+        "frontier_relaxation"
+      ],
+      "workload_family": "clrs_shortest_path",
+      "requested_portability_envelope_id": "cpu_reference_current_host",
+      "status": "exact",
+      "selected_package_id": "package.clrs_shortest_path_stack.v1",
+      "note": "the bounded package manager resolves the shortest-path stack to one benchmarked frontier-relax package instead of leaving catalog selection implicit"
+    },
+    {
+      "case_id": "solver.hungarian_matching_stack.v1",
+      "requested_capability_labels": [
+        "matching_primitive"
+      ],
+      "workload_family": "hungarian_matching",
+      "requested_portability_envelope_id": "cpu_reference_current_host",
+      "status": "exact",
+      "selected_package_id": "package.hungarian_matching_stack.v1",
+      "note": "the bounded package manager resolves the Hungarian matching stack to one benchmarked candidate-selection package rather than one-off manual bundle curation"
+    },
+    {
+      "case_id": "solver.verifier_search_stack.v1",
+      "requested_capability_labels": [
+        "candidate_selection",
+        "checkpointing"
+      ],
+      "workload_family": "verifier_search",
+      "requested_portability_envelope_id": "cpu_reference_current_host",
+      "status": "exact",
+      "selected_package_id": "package.verifier_search_stack.v1",
+      "note": "the bounded package manager resolves verifier search to one explicit multi-module package with typed dependency order instead of hidden orchestration"
+    },
+    {
+      "case_id": "solver.ambiguous_bounded_search_auto.v1",
+      "requested_capability_labels": [
+        "bounded_search"
+      ],
+      "workload_family": "verifier_search",
+      "requested_portability_envelope_id": "cpu_reference_current_host",
+      "status": "refusal",
+      "refusal_reason": "ambiguous_dependency_solver",
+      "note": "auto-resolution for generic bounded_search stays refused when candidate-selection and checkpoint primitives both match verifier_search under the same trust posture"
+    },
+    {
+      "case_id": "solver.insufficient_evidence_matching.v1",
+      "requested_capability_labels": [
+        "matching_primitive"
+      ],
+      "workload_family": "hungarian_matching",
+      "requested_portability_envelope_id": "cpu_reference_current_host",
+      "status": "refusal",
+      "refusal_reason": "insufficient_benchmark_lineage",
+      "note": "package resolution stays refused when requested benchmark lineage exceeds the bounded catalog evidence carried by the matching stack"
+    },
+    {
+      "case_id": "solver.portability_mismatch_gpu_portable.v1",
+      "requested_capability_labels": [
+        "candidate_selection",
+        "checkpointing"
+      ],
+      "workload_family": "verifier_search",
+      "requested_portability_envelope_id": "gpu_portable_cross_host",
+      "status": "refusal",
+      "refusal_reason": "portability_envelope_mismatch",
+      "note": "package resolution stays refused when the caller requests a portability envelope broader than the current host-cpu package line actually supports"
+    }
+  ],
+  "exact_case_count": 3,
+  "refusal_case_count": 3,
+  "public_package_ids": [
+    "package.clrs_shortest_path_stack.v1",
+    "package.hungarian_matching_stack.v1",
+    "package.verifier_search_stack.v1"
+  ],
+  "portability_envelope_ids": [
+    "cpu_reference_current_host"
+  ],
+  "claim_boundary": "this compiler-owned report freezes one bounded internal-compute package manager over named packages, package-local dependency order, trust posture, benchmark lineage, and portability envelopes. It does not imply arbitrary package discovery, arbitrary dependency solving, or broader served publication",
+  "summary": "Internal compute package manager report freezes 3 package entries across 3 exact solver cases and 3 refusal cases.",
+  "report_digest": "988da14eecf765fc16907bc4aa0409cb85319e79f22036d86ea41d934c6e6620"
+}

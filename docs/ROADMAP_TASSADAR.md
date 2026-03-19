@@ -138,6 +138,14 @@ Current honest posture:
   component graphs to explicit interface manifests while keeping cross-profile
   handle mismatches and unsupported variant unions on typed refusal paths; the
   lane remains benchmark-only with `served_publication_allowed = false`
+- the repo now also has one bounded internal-compute package-manager lane with
+  committed compiler, router, eval, served-publication, and provider-facing
+  surfaces that publish the named public packages
+  `package.clrs_shortest_path_stack.v1`,
+  `package.hungarian_matching_stack.v1`, and
+  `package.verifier_search_stack.v1`, while keeping ambiguous solver,
+  insufficient-evidence, and portability-mismatch requests on explicit refusal
+  paths and leaving the default served package lane empty
 - broader profiles above that remain benchmarked, suppressed, refused, or
   unpromoted unless their explicit gates are green
 
@@ -165,9 +173,9 @@ Issue-state note:
 
 - `TAS-103` through `TAS-124` are already implemented and tracked in
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
-- `TAS-125` through `TAS-133` are now implemented and tracked in
+- `TAS-125` through `TAS-134` are now implemented and tracked in
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
-- the current open GitHub backlog begins at `TAS-134` and runs through
+- the current open GitHub backlog begins at `TAS-135` and runs through
   `TAS-156`
 
 ## Repo-Local Companion Docs

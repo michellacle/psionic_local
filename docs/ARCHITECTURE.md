@@ -906,6 +906,15 @@ The current scope is:
   unsupported variant unions; this remains benchmark-only with
   `served_publication_allowed = false`, so it is not arbitrary component-model
   closure, arbitrary host-import composition, or broader served publication
+- the current internal-compute package-manager artifacts are
+  `fixtures/tassadar/reports/tassadar_internal_compute_package_manager_report.json`,
+  `fixtures/tassadar/reports/tassadar_internal_compute_package_route_policy_report.json`,
+  and `fixtures/tassadar/reports/tassadar_internal_compute_package_manager_eval_report.json`,
+  which freeze one bounded internal software-package lane with named public
+  packages, explicit route policy, typed refusal on ambiguous solver,
+  insufficient evidence, and portability mismatch, and zero default-served
+  packages; this is not arbitrary package discovery, arbitrary dependency
+  solving, or broad served internal-compute publication
 - recommended closure order follows the spec and its test families: decode and
   validate first, then integer/control/direct-call core, then linear memory,
   then globals/tables/references/indirect calls, then instantiation/import

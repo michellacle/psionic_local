@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.internal_compute_package_route_policy.report.v1",
+  "selected_case_count": 3,
+  "refused_case_count": 3,
+  "named_public_package_ids": [
+    "package.clrs_shortest_path_stack.v1",
+    "package.hungarian_matching_stack.v1",
+    "package.verifier_search_stack.v1"
+  ],
+  "default_served_package_ids": [],
+  "routeable_package_ids": [
+    "package.clrs_shortest_path_stack.v1",
+    "package.hungarian_matching_stack.v1",
+    "package.verifier_search_stack.v1"
+  ],
+  "refused_package_case_ids": [
+    "solver.ambiguous_bounded_search_auto.v1",
+    "solver.insufficient_evidence_matching.v1",
+    "solver.portability_mismatch_gpu_portable.v1"
+  ],
+  "case_reports": [
+    {
+      "case_id": "solver.clrs_shortest_path_stack.v1",
+      "workload_family": "clrs_shortest_path",
+      "outcome": "selected",
+      "selected_package_id": "package.clrs_shortest_path_stack.v1",
+      "note": "the bounded package manager resolves the shortest-path stack to one benchmarked frontier-relax package instead of leaving catalog selection implicit"
+    },
+    {
+      "case_id": "solver.hungarian_matching_stack.v1",
+      "workload_family": "hungarian_matching",
+      "outcome": "selected",
+      "selected_package_id": "package.hungarian_matching_stack.v1",
+      "note": "the bounded package manager resolves the Hungarian matching stack to one benchmarked candidate-selection package rather than one-off manual bundle curation"
+    },
+    {
+      "case_id": "solver.verifier_search_stack.v1",
+      "workload_family": "verifier_search",
+      "outcome": "selected",
+      "selected_package_id": "package.verifier_search_stack.v1",
+      "note": "the bounded package manager resolves verifier search to one explicit multi-module package with typed dependency order instead of hidden orchestration"
+    },
+    {
+      "case_id": "solver.ambiguous_bounded_search_auto.v1",
+      "workload_family": "verifier_search",
+      "outcome": "refused",
+      "refusal_reason": "ambiguous_dependency_solver",
+      "note": "auto-resolution for generic bounded_search stays refused when candidate-selection and checkpoint primitives both match verifier_search under the same trust posture"
+    },
+    {
+      "case_id": "solver.insufficient_evidence_matching.v1",
+      "workload_family": "hungarian_matching",
+      "outcome": "refused",
+      "refusal_reason": "insufficient_benchmark_lineage",
+      "note": "package resolution stays refused when requested benchmark lineage exceeds the bounded catalog evidence carried by the matching stack"
+    },
+    {
+      "case_id": "solver.portability_mismatch_gpu_portable.v1",
+      "workload_family": "verifier_search",
+      "outcome": "refused",
+      "refusal_reason": "portability_envelope_mismatch",
+      "note": "package resolution stays refused when the caller requests a portability envelope broader than the current host-cpu package line actually supports"
+    }
+  ],
+  "overall_green": true,
+  "claim_boundary": "this router report freezes named-public and routeable internal-compute packages plus explicit refusal on ambiguous solver, insufficient-evidence, and portability-mismatch requests. It does not imply arbitrary package discovery or a default served package lane",
+  "summary": "Internal compute package route policy freezes 3 selected cases, 3 refused cases, 3 named-public packages, and 0 default-served packages.",
+  "report_digest": "ad014dbfca4138c11ed39c4021554a7aaadf77d39985515be98423a62ff62ee4"
+}
