@@ -1016,6 +1016,19 @@ The current scope is:
   prerequisites with explicit blockers and non-implications; this keeps the
   stronger public claim suppressed and is not a broad universality or
   Turing-complete claim
+- the current semantic-window revision artifacts are
+  `fixtures/tassadar/reports/tassadar_semantic_window_revision_receipt.json`
+  and
+  `fixtures/tassadar/reports/tassadar_semantic_window_compatibility_delta_report.json`,
+  which freeze one disclosure-safe semantic-drift process for the frozen
+  core-Wasm lane: metadata-only refresh is compatible but still not
+  publication-ready while the frozen closure gate remains red, public proposal
+  families such as exceptions and SIMD stay separate named profiles instead of
+  silently becoming core-window support, and operator-only families such as
+  memory64, multi-memory, and component-linking stay blocked on their own
+  evidence and publication posture; this is not an activated new Wasm window,
+  implicit proposal inheritance, arbitrary Wasm support, or Turing-complete
+  support
 - recommended closure order follows the spec and its test families: decode and
   validate first, then integer/control/direct-call core, then linear memory,
   then globals/tables/references/indirect calls, then instantiation/import

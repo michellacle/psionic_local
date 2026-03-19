@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "receipt_id": "tassadar.semantic_window_revision.receipt.v1",
+  "active_window": {
+    "schema_version": 1,
+    "window_id": "tassadar.frozen_core_wasm.window.v1",
+    "spec_window_label": "frozen core-Wasm int-first window v1",
+    "official_harness_id": "tassadar.frozen_core_wasm.harness.v1",
+    "text_authority_id": "wat.reference.v1",
+    "binary_decode_authority_id": "wasmparser.decode.0.244.0",
+    "binary_encode_authority_id": "wasm_encoder.encode.0.244.0",
+    "validation_authority_id": "wasmparser.validate.core_int_first.v1",
+    "reference_execution_authority_id": "wasmi.reference.v1",
+    "target_feature_family_ids": [
+      "control.structured_direct_call",
+      "core_types.i32_i64",
+      "globals.mutable",
+      "memory.bulk_copy_fill",
+      "memory.single_linear_memory",
+      "module.import_export_start",
+      "numeric.sign_extension",
+      "segments.active_data_and_element",
+      "tables.funcref_call_indirect"
+    ],
+    "unsupported_proposal_family_ids": [
+      "component_model",
+      "exceptions",
+      "floating_point",
+      "function_references",
+      "gc",
+      "memory64",
+      "multi_memory",
+      "multi_value",
+      "relaxed_simd",
+      "saturating_float_to_int",
+      "simd",
+      "tail_call",
+      "threads"
+    ],
+    "claim_boundary": "declares the frozen core-Wasm semantic window and official harness ids Tassadar will use for closure work; it names one bounded int-first core target and explicit out-of-window proposal families, not current arbitrary Wasm support or full closure by itself",
+    "window_digest": "c407b8a40da5e21e162f67a13c74b144f96c22a9fa0a496a3d08bcff79965e75"
+  },
+  "declared_window_ids": [
+    "tassadar.frozen_core_wasm.window.v1",
+    "tassadar.frozen_core_wasm.window.v1_1.metadata",
+    "tassadar.frozen_core_wasm.window.v1_plus_operator_proposals",
+    "tassadar.frozen_core_wasm.window.v1_plus_public_proposals"
+  ],
+  "candidate_revisions": [
+    {
+      "candidate_window_id": "tassadar.frozen_core_wasm.window.v1_1.metadata",
+      "base_window_id": "tassadar.frozen_core_wasm.window.v1",
+      "revision_kind": "metadata_refresh",
+      "added_feature_family_ids": [],
+      "removed_feature_family_ids": [],
+      "portability_envelope_ids": [
+        "portability.current_host.cpu_reference.v1"
+      ],
+      "status": "compatible_metadata_only",
+      "operator_action": "no semantic lift; rerun the frozen-window and closure-gate drill, then treat the candidate as documentation-only unless every digest still matches",
+      "operator_drill_commands": [
+        "cargo run -p psionic-runtime --example tassadar_semantic_window_revision_receipt",
+        "cargo run -p psionic-eval --example tassadar_frozen_core_wasm_window_report",
+        "cargo run -p psionic-eval --example tassadar_frozen_core_wasm_closure_gate_report"
+      ],
+      "detail": "candidate keeps the same semantic families and harness authorities as the active window; it only allows a metadata-only digest refresh after rerunning the declared frozen-window drill"
+    },
+    {
+      "candidate_window_id": "tassadar.frozen_core_wasm.window.v1_plus_operator_proposals",
+      "base_window_id": "tassadar.frozen_core_wasm.window.v1",
+      "revision_kind": "operator_only_widening",
+      "added_feature_family_ids": [
+        "proposal_family.component_linking",
+        "proposal_family.memory64",
+        "proposal_family.multi_memory"
+      ],
+      "removed_feature_family_ids": [],
+      "portability_envelope_ids": [
+        "portability.current_host.cpu_reference.v1"
+      ],
+      "status": "blocked_evidence_boundary",
+      "operator_action": "keep the active frozen window and refuse the widening unless each family graduates through its own operator-only or public profile ladder first",
+      "operator_drill_commands": [
+        "cargo run -p psionic-eval --example tassadar_proposal_profile_ladder_claim_checker_report",
+        "cargo run -p psionic-eval --example tassadar_broad_general_compute_validator_bridge_report"
+      ],
+      "detail": "memory64, multi-memory, and component-linking still require their own evidence and publication posture; revising the frozen window directly would silently widen portability and served claims"
+    },
+    {
+      "candidate_window_id": "tassadar.frozen_core_wasm.window.v1_plus_public_proposals",
+      "base_window_id": "tassadar.frozen_core_wasm.window.v1",
+      "revision_kind": "proposal_family_lift",
+      "added_feature_family_ids": [
+        "proposal_family.exceptions",
+        "proposal_family.simd"
+      ],
+      "removed_feature_family_ids": [],
+      "portability_envelope_ids": [
+        "portability.current_host.cpu_reference.v1"
+      ],
+      "status": "blocked_proposal_boundary",
+      "operator_action": "keep the frozen core-Wasm window unchanged and publish exceptions or SIMD only as separate named proposal profiles",
+      "operator_drill_commands": [
+        "cargo run -p psionic-eval --example tassadar_proposal_profile_ladder_claim_checker_report",
+        "cargo run -p psionic-router --example tassadar_proposal_profile_route_policy_report"
+      ],
+      "detail": "exceptions and SIMD already have named-profile evidence, but proposal families remain a separate claim class and may not be folded into the frozen core window by silent revision"
+    }
+  ],
+  "compatible_candidate_window_ids": [
+    "tassadar.frozen_core_wasm.window.v1_1.metadata"
+  ],
+  "blocked_candidate_window_ids": [
+    "tassadar.frozen_core_wasm.window.v1_plus_operator_proposals",
+    "tassadar.frozen_core_wasm.window.v1_plus_public_proposals"
+  ],
+  "claim_boundary": "this receipt declares how Tassadar may revise one frozen core-Wasm semantic window without silent drift. It distinguishes metadata-only refresh from blocked proposal-family lift and blocked evidence-bound widening. It does not activate a new window, imply full core-Wasm closure, or widen served posture by itself",
+  "summary": "Semantic-window revision receipt keeps active_window_id=tassadar.frozen_core_wasm.window.v1, compatible_candidates=1, blocked_candidates=2, declared_windows=4.",
+  "receipt_digest": "fc9ee0c036786dca412f3c3dcd573a57851931df67b314deb85bf3012867fce5"
+}

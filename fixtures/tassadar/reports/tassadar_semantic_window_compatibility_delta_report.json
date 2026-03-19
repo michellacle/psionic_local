@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.semantic_window_compatibility_delta.report.v1",
+  "active_window_id": "tassadar.frozen_core_wasm.window.v1",
+  "active_window_report_ref": "fixtures/tassadar/reports/tassadar_frozen_core_wasm_window_report.json",
+  "active_window_report_id": "tassadar.frozen_core_wasm_window.report.v1",
+  "closure_gate_report_ref": "fixtures/tassadar/reports/tassadar_frozen_core_wasm_closure_gate_report.json",
+  "closure_gate_report_id": "tassadar.frozen_core_wasm_closure_gate.report.v1",
+  "revision_receipt_ref": "fixtures/tassadar/reports/tassadar_semantic_window_revision_receipt.json",
+  "revision_receipt_id": "tassadar.semantic_window_revision.receipt.v1",
+  "rows": [
+    {
+      "candidate_window_id": "tassadar.frozen_core_wasm.window.v1_1.metadata",
+      "revision_kind": "metadata_refresh",
+      "compatibility_status": "compatible_metadata_only",
+      "added_feature_family_ids": [],
+      "active_runtime_support_allowed": false,
+      "served_publication_allowed": false,
+      "blocking_report_refs": [
+        "fixtures/tassadar/reports/tassadar_frozen_core_wasm_closure_gate_report.json"
+      ],
+      "operator_action": "no semantic lift; rerun the frozen-window and closure-gate drill, then treat the candidate as documentation-only unless every digest still matches",
+      "operator_drill_commands": [
+        "cargo run -p psionic-runtime --example tassadar_semantic_window_revision_receipt",
+        "cargo run -p psionic-eval --example tassadar_frozen_core_wasm_window_report",
+        "cargo run -p psionic-eval --example tassadar_frozen_core_wasm_closure_gate_report"
+      ],
+      "detail": "candidate keeps the same semantic families and harness authorities as the active window; it only allows a metadata-only digest refresh after rerunning the declared frozen-window drill"
+    },
+    {
+      "candidate_window_id": "tassadar.frozen_core_wasm.window.v1_plus_operator_proposals",
+      "revision_kind": "operator_only_widening",
+      "compatibility_status": "blocked_evidence_boundary",
+      "added_feature_family_ids": [
+        "proposal_family.component_linking",
+        "proposal_family.memory64",
+        "proposal_family.multi_memory"
+      ],
+      "active_runtime_support_allowed": false,
+      "served_publication_allowed": false,
+      "blocking_report_refs": [
+        "fixtures/tassadar/reports/tassadar_proposal_profile_ladder_claim_checker_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_general_compute_validator_bridge_report.json"
+      ],
+      "operator_action": "keep the active frozen window and refuse the widening unless each family graduates through its own operator-only or public profile ladder first",
+      "operator_drill_commands": [
+        "cargo run -p psionic-eval --example tassadar_proposal_profile_ladder_claim_checker_report",
+        "cargo run -p psionic-eval --example tassadar_broad_general_compute_validator_bridge_report"
+      ],
+      "detail": "memory64, multi-memory, and component-linking still require their own evidence and publication posture; revising the frozen window directly would silently widen portability and served claims"
+    },
+    {
+      "candidate_window_id": "tassadar.frozen_core_wasm.window.v1_plus_public_proposals",
+      "revision_kind": "proposal_family_lift",
+      "compatibility_status": "blocked_proposal_boundary",
+      "added_feature_family_ids": [
+        "proposal_family.exceptions",
+        "proposal_family.simd"
+      ],
+      "active_runtime_support_allowed": false,
+      "served_publication_allowed": false,
+      "blocking_report_refs": [
+        "fixtures/tassadar/reports/tassadar_proposal_profile_ladder_claim_checker_report.json"
+      ],
+      "operator_action": "keep the frozen core-Wasm window unchanged and publish exceptions or SIMD only as separate named proposal profiles",
+      "operator_drill_commands": [
+        "cargo run -p psionic-eval --example tassadar_proposal_profile_ladder_claim_checker_report",
+        "cargo run -p psionic-router --example tassadar_proposal_profile_route_policy_report"
+      ],
+      "detail": "exceptions and SIMD already have named-profile evidence, but proposal families remain a separate claim class and may not be folded into the frozen core window by silent revision"
+    }
+  ],
+  "compatible_candidate_window_ids": [
+    "tassadar.frozen_core_wasm.window.v1_1.metadata"
+  ],
+  "blocked_candidate_window_ids": [
+    "tassadar.frozen_core_wasm.window.v1_plus_operator_proposals",
+    "tassadar.frozen_core_wasm.window.v1_plus_public_proposals"
+  ],
+  "operator_drill_commands": [
+    "cargo run -p psionic-eval --example tassadar_frozen_core_wasm_closure_gate_report",
+    "cargo run -p psionic-eval --example tassadar_frozen_core_wasm_window_report",
+    "cargo run -p psionic-eval --example tassadar_proposal_profile_ladder_claim_checker_report",
+    "cargo run -p psionic-eval --example tassadar_semantic_window_compatibility_delta_report",
+    "cargo run -p psionic-runtime --example tassadar_semantic_window_revision_receipt"
+  ],
+  "served_publication_allowed": false,
+  "claim_boundary": "this report turns semantic-window revision into a machine-readable compatibility delta. Metadata-only refresh is compatible but still not auto-published while the frozen-window closure gate stays red. Proposal-family lift and operator-only widening remain blocked, because proposal profiles and portability/publication evidence must stay separate instead of silently becoming frozen-window support",
+  "summary": "Semantic-window compatibility delta keeps active_window_id=tassadar.frozen_core_wasm.window.v1, compatible_candidates=1, blocked_candidates=2, closure_status=NotClosed, proposal_public_profiles=2, served_publication_allowed=false.",
+  "report_digest": "fb684ce84b763f666b45fb4d204508da5734968a82b7dd28a589ab37269a8bb7"
+}

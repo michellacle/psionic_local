@@ -786,6 +786,38 @@ Expected outcome:
   closure lane; it does not claim full core-Wasm public closure, arbitrary
   Wasm, post-core proposal-family support, or Turing-complete support
 
+### 6C.2 Semantic-window revision receipt and compatibility delta
+
+```bash
+cargo run -p psionic-runtime --example tassadar_semantic_window_revision_receipt
+cargo run -p psionic-eval --example tassadar_semantic_window_compatibility_delta_report
+```
+
+Read:
+
+- `fixtures/tassadar/reports/tassadar_semantic_window_revision_receipt.json`
+- `fixtures/tassadar/reports/tassadar_semantic_window_compatibility_delta_report.json`
+
+Expected outcome:
+
+- one runtime receipt should now declare the active frozen core-Wasm window
+  plus explicit named revision candidates instead of leaving semantic drift to
+  prose
+- the metadata-only candidate should stay `compatible_metadata_only`, but it
+  should still not activate a new served or active window while the frozen
+  closure gate remains red
+- the public-proposal candidate should stay
+  `blocked_proposal_boundary`, because exceptions and SIMD remain separate
+  named proposal profiles rather than inherited frozen-window support
+- the operator-only candidate should stay `blocked_evidence_boundary`, because
+  memory64, multi-memory, and component-linking still need their own evidence
+  and publication posture
+- the compatibility-delta report should carry the exact blocking artifact refs
+  and operator drill commands instead of leaving revision policy implicit
+- this pair governs semantic drift only; it does not claim a new active Wasm
+  window, implicit proposal inheritance, arbitrary Wasm, or Turing-complete
+  support
+
 ### 6D. Bounded scalar-f32 semantics, NaN policy, and comparison matrix
 
 ```bash
@@ -1585,6 +1617,10 @@ These checks should keep the committed reports and generated truth aligned.
 - If the frozen core-Wasm closure gate changes from its current explicit red
   posture without new supporting evidence, that is a real claim-discipline
   regression.
+- If the semantic-window revision receipt starts activating a new window or the
+  compatibility-delta report starts collapsing proposal profiles into frozen
+  core-Wasm support without new evidence, that is a real semantic-drift and
+  claim-discipline regression.
 - If the float-semantics matrix starts claiming non-CPU backends, `f64`, or
   NaN-payload preservation without new evidence, that is a real claim-discipline
   regression.
