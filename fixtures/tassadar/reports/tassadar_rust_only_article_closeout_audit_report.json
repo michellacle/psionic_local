@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.rust_only_article_closeout_audit.v1",
+  "checker_script_ref": "scripts/check-tassadar-rust-only-article-closeout-audit.sh",
+  "harness_report_ref": "fixtures/tassadar/reports/tassadar_rust_only_article_reproduction_report.json",
+  "acceptance_gate_report_ref": "fixtures/tassadar/reports/tassadar_rust_only_article_acceptance_gate_v2.json",
+  "direct_model_weight_execution_proof_report_ref": "fixtures/tassadar/reports/tassadar_direct_model_weight_execution_proof_report.json",
+  "cpu_reproducibility_report_ref": "fixtures/tassadar/reports/tassadar_article_cpu_reproducibility_report.json",
+  "direct_route_descriptor_digest": "1f1f6784ad8b8e8ea59f0b0ef5480cd47844aa8c3de650a6e640d4fbf32457fc",
+  "direct_proof_case_ids": [
+    "long_loop_kernel",
+    "sudoku_v0_test_a",
+    "hungarian_matching"
+  ],
+  "current_host_machine_class_id": "host_cpu_aarch64",
+  "harness_green": true,
+  "acceptance_gate_green": true,
+  "direct_model_weight_proof_green": true,
+  "cpu_reproducibility_green": true,
+  "all_surfaces_green": true,
+  "reproduced_claim": "Psionic now reproduces the full Rust-only Percepta article claim end to end on the committed canonical article workloads, with one-command operator procedure, a green prerequisite gate, direct model-weight execution proof on the declared article cases, and explicit CPU portability closure on the declared host CPU classes.",
+  "canonical_case_ids": [
+    "hungarian_10x10_test_a",
+    "sudoku_9x9_test_a",
+    "long_loop_kernel",
+    "sudoku_v0_test_a",
+    "hungarian_matching"
+  ],
+  "supported_machine_class_ids": [
+    "host_cpu_aarch64",
+    "host_cpu_x86_64"
+  ],
+  "remaining_exclusions": [
+    "no arbitrary Rust or arbitrary Wasm closure beyond the committed Rust-only article family",
+    "no non-CPU backend portability or backend-invariant closure",
+    "no portability claim beyond host_cpu_aarch64 and host_cpu_x86_64",
+    "no claim beyond the committed canonical article workloads and the direct route-bound proof surface",
+    "no world-mount, accepted-outcome, settlement, or market-grade closure from this audit"
+  ],
+  "green": true,
+  "claim_boundary": "this report is the final publication boundary for the Rust-only article claim only. It cites the one-command harness, the v2 prerequisite gate, the direct model-weight proof surface, and the CPU reproducibility matrix, and it must not be read as a broader Wasm, backend, or product closure claim",
+  "summary": "Rust-only article closeout audit now records harness_green=true, gate_green=true, direct_proof_green=true, cpu_green=true, all_surfaces_green=true, and green=true.",
+  "report_digest": "2e6af405a2a81946f45fe421fc671e9dee374daff9020c73f3a32bb65bb5b668"
+}

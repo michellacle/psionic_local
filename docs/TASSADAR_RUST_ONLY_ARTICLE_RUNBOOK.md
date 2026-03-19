@@ -80,6 +80,8 @@ The harness regenerates and validates these committed surfaces:
 - `fixtures/tassadar/reports/tassadar_direct_model_weight_execution_proof_report.json`
 - `fixtures/tassadar/reports/tassadar_rust_only_article_acceptance_gate_v2.json`
 - `fixtures/tassadar/reports/tassadar_rust_only_article_acceptance_summary.json`
+- `fixtures/tassadar/reports/tassadar_rust_only_article_closeout_audit_report.json`
+- `fixtures/tassadar/reports/tassadar_rust_only_article_closeout_summary.json`
 
 ## Portability Companion
 
@@ -133,6 +135,53 @@ Expected outcome:
 - `passed_prerequisite_count=8`
 - `failed_prerequisite_ids=[]`
 
+## Final Closeout Audit
+
+The canonical final publication check for the full Rust-only article claim is:
+
+```bash
+./scripts/check-tassadar-rust-only-article-closeout-audit.sh
+```
+
+That checker runs:
+
+```bash
+cargo run -p psionic-eval --example tassadar_rust_only_article_closeout_audit_report
+```
+
+and then rejects any non-green result in:
+
+- `fixtures/tassadar/reports/tassadar_rust_only_article_closeout_audit_report.json`
+
+The companion operator summary is:
+
+```bash
+cargo run -p psionic-research --example tassadar_rust_only_article_closeout_summary
+```
+
+Read:
+
+- `fixtures/tassadar/reports/tassadar_rust_only_article_closeout_audit_report.json`
+- `fixtures/tassadar/reports/tassadar_rust_only_article_closeout_summary.json`
+
+Expected outcome:
+
+- `green=true`
+- `all_surfaces_green=true`
+- `harness_green=true`
+- `acceptance_gate_green=true`
+- `direct_model_weight_proof_green=true`
+- `cpu_reproducibility_green=true`
+- `direct_proof_case_ids` are exactly:
+  `long_loop_kernel`, `sudoku_v0_test_a`, `hungarian_matching`
+- `supported_machine_class_ids` are exactly:
+  `host_cpu_aarch64`, `host_cpu_x86_64`
+
+This closeout audit is the final publication boundary for the current
+Rust-only article claim. It does not replace the underlying harness, gate,
+proof, or CPU reports. It binds them together and turns the final claim red if
+any of those surfaces regress.
+
 ## Interpretation
 
 Green means:
@@ -151,6 +200,10 @@ Green means:
   a direct-guaranteed route with zero external calls and no CPU substitution
 - the acceptance gate still proves the full Rust-only article prerequisite set
   is present instead of inferring final closure from partial green artifacts
+- the final closeout audit now keeps the full Rust-only article publication
+  claim tied to the one-command harness, the prerequisite gate, the direct
+  proof route, and the declared CPU classes instead of letting those surfaces
+  drift apart in prose
 
 Red means the Rust-only article claim has regressed, even if some narrower
 bounded Wasm surfaces are still green.
