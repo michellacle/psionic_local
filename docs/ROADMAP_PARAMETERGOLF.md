@@ -524,6 +524,23 @@ weakening baseline or record-track claim posture.
 | `PGOLF-612` / [#256](https://github.com/OpenAgentsInc/psionic/issues/256) | done (2026-03-19) | `Psionic Parameter Golf: add a stronger parameter-tying compact variant report` | The same queue now includes a measured `mirrored_block_pair_tying_proxy` row, preserving metric, artifact-byte, and runtime facts for one stronger block-level parameter-tying probe on the frozen baseline family under unchanged code bytes and unchanged dense runtime posture. |
 | `PGOLF-613` / [#257](https://github.com/OpenAgentsInc/psionic/issues/257) | open (2026-03-19) | `Psionic Parameter Golf: add a locality or restricted-attention compact variant report` | The concrete queue now records the locality candidate and benchmark plan explicitly, but the issue stays open because Psionic still lacks a public-safe restricted-attention eval path on real `seq_len=1024` challenge-format windows. |
 
+## Follow-On External And Promotion Issues
+
+### Goal
+
+Carry the first real upstream non-record PR, upstream accounting clarification,
+and later record-candidate campaign as explicit tracked work instead of leaving
+those steps implicit after the local dry-run lane.
+
+### Issues
+
+| ID | Status | Proposed GitHub issue title | Description |
+| --- | --- | --- | --- |
+| `PGOLF-606` / [#250](https://github.com/OpenAgentsInc/psionic/issues/250) | open (2026-03-19) | `Psionic Parameter Golf: promote the acceptance matrix and claim posture after the public runtime path closes` | This stays open until `PGOLF-601`, `PGOLF-602`, and `PGOLF-604` close; only then can the acceptance matrix, accounting doc, and machine-readable report be promoted honestly. |
+| `PGOLF-607` / [#251](https://github.com/OpenAgentsInc/psionic/issues/251) | done (2026-03-19) | `Psionic Parameter Golf: submit and track the first real external non-record PR against openai/parameter-golf` | Psionic has now opened `https://github.com/openai/parameter-golf/pull/119`, preserved the exact fork commit and record-folder tree hash in `fixtures/parameter_golf/reports/parameter_golf_external_non_record_pr.json`, and documented the live external submission path in `docs/PARAMETER_GOLF_EXTERNAL_NON_RECORD_PR.md`. |
+| `PGOLF-608` / [#252](https://github.com/OpenAgentsInc/psionic/issues/252) | open (2026-03-19) | `Psionic Parameter Golf: capture maintainer-facing resolution on counted Rust runtime and build-dependency posture` | The counted-runtime question is now asked on the live upstream PR at `https://github.com/openai/parameter-golf/pull/119#issuecomment-4092766684`, but the issue stays open until an explicit maintainer answer, ambiguity statement, or refusal exists. |
+| `PGOLF-609` / [#253](https://github.com/OpenAgentsInc/psionic/issues/253) | open (2026-03-19) | `Psionic Parameter Golf: freeze one real record-candidate config and run campaign` | This stays blocked on the real public runtime path and real `8xH100` evidence rather than on the earlier non-record packaging and PR mechanics. |
+
 ## Current Execution Order
 
 ### Phase 1: freeze challenge posture and acceptance (done 2026-03-18)
@@ -583,6 +600,13 @@ weakening baseline or record-track claim posture.
 - `PGOLF-611` -> landed one measured shared-depth decoder value-tying proxy row with explicit metric, artifact-byte, and unchanged-runtime facts
 - `PGOLF-612` -> landed one measured mirrored block-pair tying proxy row with explicit metric, artifact-byte, and unchanged-runtime facts
 - `PGOLF-613` -> locality or restricted-attention stays open until the repo has challenge-like `seq_len=1024` evidence
+
+### Phase 10: run the first real external submission loop
+
+- `PGOLF-607` -> landed the first real upstream non-record PR and the repo-owned receipt for its exact fork commit, tree hash, and verifier digests
+- `PGOLF-608` -> the counted-runtime question is now asked on the live upstream PR, but it still needs an explicit answer or refusal
+- `PGOLF-606` -> acceptance-matrix promotion stays blocked on the real public runtime and evidence issues
+- `PGOLF-609` -> record-candidate campaign stays blocked on the real public runtime and `8xH100` evidence issues
 
 ## Bottom Line
 
