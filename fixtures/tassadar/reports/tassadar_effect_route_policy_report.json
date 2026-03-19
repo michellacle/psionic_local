@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.effect_route_policy.report.v1",
+  "taxonomy_id": "tassadar.effect_taxonomy.v1",
+  "boundary_id": "tassadar.sandbox_effect_boundary.v1",
+  "rows": [
+    {
+      "effect_ref": "env.clock_stub",
+      "effect_class": "deterministic_internal_stub",
+      "route_kind": "internal_exact",
+      "execution_boundary": "internal_only",
+      "replay_posture": "exact_replay",
+      "evidence_requirement": "capability_publication_only",
+      "max_replays": 4096,
+      "note": "deterministic zero-side-effect stub stays inside the internal exact-compute lane"
+    },
+    {
+      "effect_ref": "state.counter_slot_read",
+      "effect_class": "deterministic_host_state",
+      "route_kind": "host_state_snapshot_bound",
+      "execution_boundary": "host_state_only",
+      "replay_posture": "snapshot_bounded_replay",
+      "evidence_requirement": "state_snapshot_and_receipt",
+      "max_replays": 3,
+      "durable_state_profile_id": "tassadar.sandbox_durable_state.state.counter_slot_read.v1",
+      "note": "deterministic host-backed counter state is admissible only with explicit snapshots and durable-state receipts"
+    },
+    {
+      "effect_ref": "sandbox.math_eval",
+      "effect_class": "external_sandbox_delegation",
+      "route_kind": "sandbox_delegation",
+      "execution_boundary": "sandbox_delegation_only",
+      "replay_posture": "challengeable_delegation",
+      "evidence_requirement": "sandbox_descriptor_and_challenge_receipt",
+      "max_replays": 1,
+      "note": "sandbox math evaluation stays explicit delegation with challengeable evidence instead of being rebranded as internal compute"
+    },
+    {
+      "effect_ref": "input.relay_sample",
+      "effect_class": "bounded_nondeterministic_input",
+      "route_kind": "receipt_bound_input",
+      "execution_boundary": "receipt_bound_nondeterministic",
+      "replay_posture": "receipt_bound_replay",
+      "evidence_requirement": "input_receipt_only",
+      "max_replays": 1,
+      "note": "bounded nondeterministic relay input is admissible only when the observed value is bound to an explicit receipt window"
+    },
+    {
+      "effect_ref": "host.fs_write",
+      "effect_class": "unsafe_side_effect",
+      "route_kind": "refused",
+      "execution_boundary": "refused",
+      "replay_posture": "refused",
+      "evidence_requirement": "refused",
+      "max_replays": 0,
+      "note": "filesystem writes remain refused because they collapse bounded execution into ambient side-effect authority"
+    }
+  ],
+  "internal_exact_row_count": 1,
+  "host_state_row_count": 1,
+  "sandbox_delegation_row_count": 1,
+  "receipt_bound_input_row_count": 1,
+  "refused_row_count": 1,
+  "generated_from_refs": [
+    "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json"
+  ],
+  "kernel_policy_dependency_marker": "kernel-policy remains the authority owner for settlement-grade effect admission outside standalone psionic",
+  "world_mount_dependency_marker": "world-mounts remain the authority owner for task-scoped effect admission outside standalone psionic",
+  "claim_boundary": "this router policy report widens the import story into typed internal exact, host-state replay-bound, sandbox delegation, receipt-bound input, and refused effect routes. It does not collapse sandbox delegation or host-backed state into internal exact compute and it does not grant ambient side-effect authority inside standalone psionic",
+  "summary": "Effect route policy exposes 5 rows across internal_exact=1, host_state_snapshot_bound=1, sandbox_delegation=1, receipt_bound_input=1, refused=1.",
+  "report_digest": "13535b1212949d73f9b18993a91814fff0a4a51e3b09f2ae0dfd9b6ed4f5a5fb"
+}

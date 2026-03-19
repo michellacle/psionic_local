@@ -15,6 +15,9 @@ pub use pool::*;
 mod tassadar_external_delegation;
 pub use tassadar_external_delegation::*;
 
+mod tassadar_effect_boundary;
+pub use tassadar_effect_boundary::*;
+
 mod tassadar_import_boundary;
 pub use tassadar_import_boundary::*;
 

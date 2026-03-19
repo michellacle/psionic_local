@@ -188,6 +188,38 @@ Expected outcome:
   widen the current served claim beyond
   `tassadar.internal_compute.article_closeout.v1`
 
+### 3B.1. Deterministic import/effect taxonomy, receipts, and replay limits
+
+```bash
+cargo run -p psionic-router --example tassadar_effect_route_policy_report
+cargo run -p psionic-eval --example tassadar_effect_taxonomy_report
+```
+
+Read:
+
+- `fixtures/tassadar/reports/tassadar_effect_route_policy_report.json`
+- `fixtures/tassadar/reports/tassadar_effect_taxonomy_report.json`
+
+Expected outcome:
+
+- one router-owned route-policy report now widens the old narrow import matrix
+  into five explicit route kinds: internal exact, host-state snapshot-bound,
+  sandbox delegation, receipt-bound input, and refused
+- one eval-owned taxonomy report now exercises that widened surface with both
+  admitted and refused negotiated cases
+- deterministic internal stubs still stay internal-only
+- durable host-backed state is now a bounded admitted lane, but only with
+  explicit snapshot plus durable-state receipt evidence and only within the
+  declared replay window
+- sandbox delegation remains explicit delegation with challengeable evidence
+  instead of being silently rebranded as internal exact compute
+- nondeterministic relay input remains admissible only with an explicit input
+  receipt window
+- unsafe side effects remain typed refusals
+- this closes effect taxonomy and replay-limit publication only; it does not
+  grant general side-effect authority and it does not collapse host-backed or
+  delegated behavior into the internal exact-compute claim
+
 ### 3C. Hungarian-10x10 Rust-only article reproducer
 
 ```bash

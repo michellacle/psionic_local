@@ -1,0 +1,327 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.effect_taxonomy.report.v1",
+  "effect_taxonomy": {
+    "taxonomy_id": "tassadar.effect_taxonomy.v1",
+    "entries": [
+      {
+        "effect_ref": "env.clock_stub",
+        "effect_class": "deterministic_internal_stub",
+        "execution_boundary": "internal_only",
+        "replay_posture": "exact_replay",
+        "evidence_requirement": "capability_publication_only",
+        "max_replays": 4096,
+        "note": "deterministic zero-side-effect stub stays inside the internal exact-compute lane"
+      },
+      {
+        "effect_ref": "state.counter_slot_read",
+        "effect_class": "deterministic_host_state",
+        "execution_boundary": "host_state_only",
+        "replay_posture": "snapshot_bounded_replay",
+        "evidence_requirement": "state_snapshot_and_receipt",
+        "max_replays": 3,
+        "note": "deterministic host-backed counter state is admissible only with explicit snapshots and durable-state receipts"
+      },
+      {
+        "effect_ref": "sandbox.math_eval",
+        "effect_class": "external_sandbox_delegation",
+        "execution_boundary": "sandbox_delegation_only",
+        "replay_posture": "challengeable_delegation",
+        "evidence_requirement": "sandbox_descriptor_and_challenge_receipt",
+        "max_replays": 1,
+        "note": "sandbox math evaluation stays explicit delegation with challengeable evidence instead of being rebranded as internal compute"
+      },
+      {
+        "effect_ref": "input.relay_sample",
+        "effect_class": "bounded_nondeterministic_input",
+        "execution_boundary": "receipt_bound_nondeterministic",
+        "replay_posture": "receipt_bound_replay",
+        "evidence_requirement": "input_receipt_only",
+        "max_replays": 1,
+        "note": "bounded nondeterministic relay input is admissible only when the observed value is bound to an explicit receipt window"
+      },
+      {
+        "effect_ref": "host.fs_write",
+        "effect_class": "unsafe_side_effect",
+        "execution_boundary": "refused",
+        "replay_posture": "refused",
+        "evidence_requirement": "refused",
+        "max_replays": 0,
+        "note": "filesystem writes remain refused because they collapse bounded execution into ambient side-effect authority"
+      }
+    ],
+    "kernel_policy_dependency_marker": "kernel-policy remains the authority owner for settlement-grade effect admission outside standalone psionic",
+    "world_mount_dependency_marker": "world-mounts remain the authority owner for task-scoped effect admission outside standalone psionic",
+    "claim_boundary": "this taxonomy keeps deterministic internal stubs, deterministic host-backed state, sandbox delegation, bounded nondeterministic inputs, and refused side effects distinct. It does not collapse external delegation or host-backed state into internal exact compute",
+    "taxonomy_digest": "fad01fbdd3351230ef444a0e400bd8ae98da079fdd2740a711c4620461e978aa"
+  },
+  "sandbox_effect_boundary": {
+    "boundary_id": "tassadar.sandbox_effect_boundary.v1",
+    "durable_state_profiles": [
+      {
+        "profile_id": "tassadar.sandbox_durable_state.state.counter_slot_read.v1",
+        "effect_ref": "state.counter_slot_read",
+        "state_namespace": "sandbox.counter_slot",
+        "replay_posture": "snapshot_bounded_replay",
+        "max_replays": 3,
+        "snapshot_required": true,
+        "durable_state_receipt_required": true,
+        "claim_boundary": "deterministic host-backed counter state is admissible only with explicit snapshots and durable-state receipts"
+      }
+    ],
+    "delegated_effect_refs": [
+      "sandbox.math_eval"
+    ],
+    "nondeterministic_effect_refs": [
+      "input.relay_sample"
+    ],
+    "refused_effect_refs": [
+      "host.fs_write"
+    ],
+    "challenge_receipt_required_for_delegation": true,
+    "capability_summary": "sandbox effect boundary keeps durable host-backed state, explicit sandbox delegation, receipt-bound nondeterministic inputs, and refused side effects distinct. It does not collapse host-backed state or delegation into internal exact compute"
+  },
+  "route_policy_ref": "fixtures/tassadar/reports/tassadar_effect_route_policy_report.json",
+  "admitted_case_count": 4,
+  "refusal_case_count": 4,
+  "deterministic_internal_case_count": 1,
+  "host_state_case_count": 2,
+  "sandbox_delegation_case_count": 2,
+  "receipt_bound_input_case_count": 2,
+  "refused_side_effect_case_count": 1,
+  "case_reports": [
+    {
+      "case_id": "internal_exact_clock_stub",
+      "request": {
+        "request_id": "req.effect.internal_exact_clock_stub",
+        "effect_ref": "env.clock_stub",
+        "allow_external_delegation": false,
+        "policy_allows_delegation": false,
+        "state_snapshot_present": false,
+        "durable_state_receipt_present": false,
+        "sandbox_descriptor_present": false,
+        "challenge_receipt_present": false,
+        "nondeterministic_input_receipt_present": false,
+        "replay_attempt": 12
+      },
+      "expected_route_kind": "internal_exact",
+      "receipt": {
+        "request_id": "req.effect.internal_exact_clock_stub",
+        "effect_ref": "env.clock_stub",
+        "effect_class": "deterministic_internal_stub",
+        "execution_boundary": "internal_only",
+        "replay_posture": "exact_replay",
+        "replay_limit": {
+          "max_replays": 4096,
+          "observed_replay_attempt": 12,
+          "state_snapshot_required": false,
+          "durable_state_receipt_required": false,
+          "sandbox_challenge_receipt_required": false,
+          "nondeterministic_input_receipt_required": false
+        },
+        "evidence_refs": [
+          "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json"
+        ],
+        "route_label": "internal_exact_effect",
+        "note": "deterministic zero-side-effect stub stays inside the internal exact-compute lane",
+        "receipt_digest": "8ad40ac6f7a76f5a39615ad599e67806873cbc24a47e59f84f55c2fce3d63679"
+      },
+      "note": "deterministic stub stays on the internal exact route"
+    },
+    {
+      "case_id": "host_state_snapshot_bound_allowed",
+      "request": {
+        "request_id": "req.effect.host_state_snapshot_bound_allowed",
+        "effect_ref": "state.counter_slot_read",
+        "allow_external_delegation": false,
+        "policy_allows_delegation": false,
+        "state_snapshot_present": true,
+        "durable_state_receipt_present": true,
+        "sandbox_descriptor_present": false,
+        "challenge_receipt_present": false,
+        "nondeterministic_input_receipt_present": false,
+        "replay_attempt": 2
+      },
+      "expected_route_kind": "host_state_snapshot_bound",
+      "receipt": {
+        "request_id": "req.effect.host_state_snapshot_bound_allowed",
+        "effect_ref": "state.counter_slot_read",
+        "effect_class": "deterministic_host_state",
+        "execution_boundary": "host_state_only",
+        "replay_posture": "snapshot_bounded_replay",
+        "replay_limit": {
+          "max_replays": 3,
+          "observed_replay_attempt": 2,
+          "state_snapshot_required": true,
+          "durable_state_receipt_required": true,
+          "sandbox_challenge_receipt_required": false,
+          "nondeterministic_input_receipt_required": false
+        },
+        "evidence_refs": [
+          "receipt://tassadar/state.counter_slot.snapshot",
+          "receipt://tassadar/state.counter_slot.read"
+        ],
+        "route_label": "host_state_replay_bound",
+        "note": "deterministic host-backed counter state is admissible only with explicit snapshots and durable-state receipts",
+        "receipt_digest": "ee51efb84f60f6003b365358c3bd80f3fee0dc3b46e8059cbb2c53568d855f7c"
+      },
+      "note": "durable host state stays admissible only with snapshot and state receipt evidence"
+    },
+    {
+      "case_id": "host_state_replay_limit_refusal",
+      "request": {
+        "request_id": "req.effect.host_state_replay_limit_refusal",
+        "effect_ref": "state.counter_slot_read",
+        "allow_external_delegation": false,
+        "policy_allows_delegation": false,
+        "state_snapshot_present": true,
+        "durable_state_receipt_present": true,
+        "sandbox_descriptor_present": false,
+        "challenge_receipt_present": false,
+        "nondeterministic_input_receipt_present": false,
+        "replay_attempt": 4
+      },
+      "expected_route_kind": "host_state_snapshot_bound",
+      "refusal_reason": "replay_limit_exceeded",
+      "note": "durable host state refuses once the explicit replay window is exceeded"
+    },
+    {
+      "case_id": "sandbox_delegation_allowed",
+      "request": {
+        "request_id": "req.effect.sandbox_delegation_allowed",
+        "effect_ref": "sandbox.math_eval",
+        "allow_external_delegation": true,
+        "policy_allows_delegation": true,
+        "state_snapshot_present": false,
+        "durable_state_receipt_present": false,
+        "sandbox_descriptor_present": true,
+        "challenge_receipt_present": true,
+        "nondeterministic_input_receipt_present": false,
+        "replay_attempt": 1
+      },
+      "expected_route_kind": "sandbox_delegation",
+      "receipt": {
+        "request_id": "req.effect.sandbox_delegation_allowed",
+        "effect_ref": "sandbox.math_eval",
+        "effect_class": "external_sandbox_delegation",
+        "execution_boundary": "sandbox_delegation_only",
+        "replay_posture": "challengeable_delegation",
+        "replay_limit": {
+          "max_replays": 1,
+          "observed_replay_attempt": 1,
+          "state_snapshot_required": false,
+          "durable_state_receipt_required": false,
+          "sandbox_challenge_receipt_required": true,
+          "nondeterministic_input_receipt_required": false
+        },
+        "evidence_refs": [
+          "receipt://sandbox/math_eval.descriptor",
+          "receipt://sandbox/math_eval.challenge"
+        ],
+        "route_label": "sandbox_delegated_effect",
+        "note": "sandbox math evaluation stays explicit delegation with challengeable evidence instead of being rebranded as internal compute",
+        "receipt_digest": "e9b5b3daac2f8d2fa7e970471f76031c2713ad1017a9027fccf2a28bc27a3aac"
+      },
+      "note": "sandbox delegation stays explicit and challengeable instead of being rebranded as internal compute"
+    },
+    {
+      "case_id": "sandbox_delegation_policy_denied",
+      "request": {
+        "request_id": "req.effect.sandbox_delegation_policy_denied",
+        "effect_ref": "sandbox.math_eval",
+        "allow_external_delegation": true,
+        "policy_allows_delegation": false,
+        "state_snapshot_present": false,
+        "durable_state_receipt_present": false,
+        "sandbox_descriptor_present": true,
+        "challenge_receipt_present": true,
+        "nondeterministic_input_receipt_present": false,
+        "replay_attempt": 1
+      },
+      "expected_route_kind": "sandbox_delegation",
+      "refusal_reason": "policy_denied_delegation",
+      "note": "delegation still refuses when policy denies the sandbox path"
+    },
+    {
+      "case_id": "receipt_bound_input_allowed",
+      "request": {
+        "request_id": "req.effect.receipt_bound_input_allowed",
+        "effect_ref": "input.relay_sample",
+        "allow_external_delegation": false,
+        "policy_allows_delegation": false,
+        "state_snapshot_present": false,
+        "durable_state_receipt_present": false,
+        "sandbox_descriptor_present": false,
+        "challenge_receipt_present": false,
+        "nondeterministic_input_receipt_present": true,
+        "replay_attempt": 1
+      },
+      "expected_route_kind": "receipt_bound_input",
+      "receipt": {
+        "request_id": "req.effect.receipt_bound_input_allowed",
+        "effect_ref": "input.relay_sample",
+        "effect_class": "bounded_nondeterministic_input",
+        "execution_boundary": "receipt_bound_nondeterministic",
+        "replay_posture": "receipt_bound_replay",
+        "replay_limit": {
+          "max_replays": 1,
+          "observed_replay_attempt": 1,
+          "state_snapshot_required": false,
+          "durable_state_receipt_required": false,
+          "sandbox_challenge_receipt_required": false,
+          "nondeterministic_input_receipt_required": true
+        },
+        "evidence_refs": [
+          "receipt://tassadar/input.relay_sample.window"
+        ],
+        "route_label": "receipt_bound_input",
+        "note": "bounded nondeterministic relay input is admissible only when the observed value is bound to an explicit receipt window",
+        "receipt_digest": "e036aa445fec2178bdd87b7dbb73a6ce0c35d5438751c6ee3babb483f8612e1a"
+      },
+      "note": "bounded nondeterministic input stays admissible only with an observed-value receipt"
+    },
+    {
+      "case_id": "receipt_bound_input_missing_receipt",
+      "request": {
+        "request_id": "req.effect.receipt_bound_input_missing_receipt",
+        "effect_ref": "input.relay_sample",
+        "allow_external_delegation": false,
+        "policy_allows_delegation": false,
+        "state_snapshot_present": false,
+        "durable_state_receipt_present": false,
+        "sandbox_descriptor_present": false,
+        "challenge_receipt_present": false,
+        "nondeterministic_input_receipt_present": false,
+        "replay_attempt": 1
+      },
+      "expected_route_kind": "receipt_bound_input",
+      "refusal_reason": "nondeterministic_input_receipt_missing",
+      "note": "bounded nondeterministic input refuses when the receipt window is missing"
+    },
+    {
+      "case_id": "unsafe_side_effect_refusal",
+      "request": {
+        "request_id": "req.effect.unsafe_side_effect_refusal",
+        "effect_ref": "host.fs_write",
+        "allow_external_delegation": false,
+        "policy_allows_delegation": false,
+        "state_snapshot_present": false,
+        "durable_state_receipt_present": false,
+        "sandbox_descriptor_present": false,
+        "challenge_receipt_present": false,
+        "nondeterministic_input_receipt_present": false,
+        "replay_attempt": 0
+      },
+      "expected_route_kind": "refused",
+      "refusal_reason": "unsafe_effect_class",
+      "note": "unsafe side effects remain a typed refusal instead of widening into ambient host authority"
+    }
+  ],
+  "generated_from_refs": [
+    "fixtures/tassadar/reports/tassadar_effect_route_policy_report.json",
+    "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json"
+  ],
+  "claim_boundary": "this eval report widens the former narrow import matrix into a typed effect taxonomy with explicit receipts and replay limits. It keeps deterministic internal stubs, host-backed state, sandbox delegation, receipt-bound nondeterministic inputs, and refused unsafe side effects distinct instead of flattening them into one implicit host-behavior bucket",
+  "summary": "Effect taxonomy report covers 8 negotiated cases with admitted=4, refused=4, and category coverage internal=1, host_state=2, sandbox_delegation=2, receipt_bound_input=2, refused_side_effect=1.",
+  "report_digest": "65692d21f6c2687bd76661f6c6b47dc37853f2f3708ba8468fe57842460e0614"
+}

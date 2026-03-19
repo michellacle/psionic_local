@@ -58,6 +58,8 @@ mod tassadar_decompilation_fidelity;
 mod tassadar_efficient_attention_baseline_matrix;
 #[path = "tassadar_error_regime_catalog.rs"]
 mod tassadar_error_regime_catalog;
+#[path = "tassadar_effect_taxonomy.rs"]
+mod tassadar_effect_taxonomy;
 #[path = "tassadar_exactness_refusal_report.rs"]
 mod tassadar_exactness_refusal_report;
 #[path = "tassadar_execution_checkpoint.rs"]
@@ -204,6 +206,7 @@ pub use tassadar_counterfactual_route_quality::*;
 pub use tassadar_decompilation_fidelity::*;
 pub use tassadar_efficient_attention_baseline_matrix::*;
 pub use tassadar_error_regime_catalog::*;
+pub use tassadar_effect_taxonomy::*;
 pub use tassadar_exactness_refusal_report::*;
 pub use tassadar_execution_checkpoint::*;
 pub use tassadar_executor_architecture_comparison::*;
