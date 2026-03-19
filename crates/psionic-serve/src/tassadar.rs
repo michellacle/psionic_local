@@ -85,6 +85,10 @@ pub struct TassadarExecutorCapabilityPublication {
     pub internal_compute_profile_ladder: TassadarInternalComputeProfileLadderPublication,
     /// Claim-check result for the named served internal-compute profile.
     pub internal_compute_profile_claim_check: TassadarInternalComputeProfileClaimCheckResult,
+    /// Broad internal-compute portability report bound to the served lane.
+    pub broad_internal_compute_portability_report_ref: String,
+    /// Broad internal-compute acceptance gate bound to the served lane.
+    pub broad_internal_compute_acceptance_gate_report_ref: String,
     /// Machine-readable workload capability matrix for the served lane.
     pub workload_capability_matrix: TassadarWorkloadCapabilityMatrix,
     /// Backend and quantization deployment truth carried through served publication.
@@ -487,6 +491,12 @@ impl LocalTassadarExecutorService {
             generalized_abi_family: tassadar_generalized_abi_publication(),
             internal_compute_profile_ladder,
             internal_compute_profile_claim_check,
+            broad_internal_compute_portability_report_ref: String::from(
+                psionic_runtime::TASSADAR_BROAD_INTERNAL_COMPUTE_PORTABILITY_REPORT_REF,
+            ),
+            broad_internal_compute_acceptance_gate_report_ref: String::from(
+                psionic_eval::TASSADAR_BROAD_INTERNAL_COMPUTE_ACCEPTANCE_GATE_REPORT_REF,
+            ),
             workload_capability_matrix,
             quantization_truth_envelope,
         })
@@ -5442,6 +5452,18 @@ mod tests {
         assert_eq!(
             encoded["internal_compute_profile_claim_check"]["green"],
             serde_json::json!(true)
+        );
+        assert_eq!(
+            encoded["broad_internal_compute_portability_report_ref"],
+            serde_json::json!(
+                "fixtures/tassadar/reports/tassadar_broad_internal_compute_portability_report.json"
+            )
+        );
+        assert_eq!(
+            encoded["broad_internal_compute_acceptance_gate_report_ref"],
+            serde_json::json!(
+                "fixtures/tassadar/reports/tassadar_broad_internal_compute_acceptance_gate.json"
+            )
         );
         assert_eq!(
             encoded["quantization_truth_envelope"]["active_backend_family"],

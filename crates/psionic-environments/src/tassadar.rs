@@ -45,6 +45,8 @@ const TASSADAR_METADATA_INTERNAL_COMPUTE_PROFILE_LADDER_KEY: &str =
     "tassadar.internal_compute_profile_ladder";
 const TASSADAR_METADATA_INTERNAL_COMPUTE_PROFILE_CLAIM_KEY: &str =
     "tassadar.internal_compute_profile_claim";
+const TASSADAR_METADATA_BROAD_INTERNAL_COMPUTE_PORTABILITY_KEY: &str =
+    "tassadar.broad_internal_compute_portability";
 const TASSADAR_METADATA_WASM_CONFORMANCE_KEY: &str = "tassadar.wasm_conformance";
 const TASSADAR_METADATA_ARCHITECTURE_BAKEOFF_KEY: &str = "tassadar.architecture_bakeoff";
 const TASSADAR_METADATA_MODULE_SCALE_WORKLOAD_SUITE_KEY: &str =
@@ -347,6 +349,87 @@ pub fn default_tassadar_architecture_bakeoff_binding() -> TassadarArchitectureBa
         workload_family_ids,
         report_ref: suite.report_ref,
         summary_report_ref: suite.summary_report_ref,
+    }
+}
+
+/// Public portability and acceptance-gate binding reused by Tassadar
+/// environment bundles for broader internal-compute publication control.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarBroadInternalComputePortabilityBinding {
+    /// Stable portability report reference.
+    pub report_ref: String,
+    /// Stable portability report identifier.
+    pub report_id: String,
+    /// Stable broad acceptance-gate report reference.
+    pub acceptance_gate_ref: String,
+    /// Stable broad acceptance-gate report identifier.
+    pub acceptance_gate_id: String,
+    /// Named profiles carried by the binding.
+    pub profile_ids: Vec<String>,
+}
+
+impl TassadarBroadInternalComputePortabilityBinding {
+    /// Returns a stable digest over the binding.
+    #[must_use]
+    pub fn stable_digest(&self) -> String {
+        let encoded = serde_json::to_vec(self)
+            .expect("Tassadar broad internal-compute portability binding should serialize");
+        let digest = sha2::Sha256::digest(encoded.as_slice());
+        hex::encode(digest)
+    }
+
+    /// Validates that the binding is explicit.
+    pub fn validate(&self) -> Result<(), TassadarEnvironmentError> {
+        if self.report_ref.trim().is_empty() {
+            return Err(TassadarEnvironmentError::MissingBroadInternalComputePortabilityReportRef);
+        }
+        if self.report_id.trim().is_empty() {
+            return Err(TassadarEnvironmentError::MissingBroadInternalComputePortabilityReportId);
+        }
+        if self.acceptance_gate_ref.trim().is_empty() {
+            return Err(TassadarEnvironmentError::MissingBroadInternalComputeAcceptanceGateRef);
+        }
+        if self.acceptance_gate_id.trim().is_empty() {
+            return Err(TassadarEnvironmentError::MissingBroadInternalComputeAcceptanceGateId);
+        }
+        if self.profile_ids.is_empty() {
+            return Err(TassadarEnvironmentError::MissingBroadInternalComputeProfileIds);
+        }
+        if self
+            .profile_ids
+            .iter()
+            .any(|profile_id| profile_id.trim().is_empty())
+        {
+            return Err(TassadarEnvironmentError::InvalidBroadInternalComputeProfileId);
+        }
+        Ok(())
+    }
+}
+
+/// Returns the canonical broader internal-compute portability binding reused by
+/// Tassadar environment surfaces.
+#[must_use]
+pub fn default_tassadar_broad_internal_compute_portability_binding(
+) -> TassadarBroadInternalComputePortabilityBinding {
+    TassadarBroadInternalComputePortabilityBinding {
+        report_ref: String::from(
+            "fixtures/tassadar/reports/tassadar_broad_internal_compute_portability_report.json",
+        ),
+        report_id: String::from("tassadar.broad_internal_compute_portability.report.v1"),
+        acceptance_gate_ref: String::from(
+            "fixtures/tassadar/reports/tassadar_broad_internal_compute_acceptance_gate.json",
+        ),
+        acceptance_gate_id: String::from(
+            "tassadar.broad_internal_compute_acceptance_gate.report.v1",
+        ),
+        profile_ids: vec![
+            String::from("tassadar.internal_compute.article_closeout.v1"),
+            String::from("tassadar.internal_compute.generalized_abi.v1"),
+            String::from("tassadar.internal_compute.runtime_support_subset.v1"),
+            String::from("tassadar.internal_compute.deterministic_import_subset.v1"),
+            String::from("tassadar.internal_compute.portable_broad_family.v1"),
+            String::from("tassadar.internal_compute.public_broad_family.v1"),
+        ],
     }
 }
 
@@ -756,6 +839,10 @@ pub struct TassadarEnvironmentSpec {
     pub compile_pipeline_matrix_binding: TassadarCompilePipelineMatrixBinding,
     /// Public checkpointed multi-slice execution binding.
     pub execution_checkpoint_binding: TassadarExecutionCheckpointBinding,
+    /// Optional broad internal-compute portability binding.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub broad_internal_compute_portability_binding:
+        Option<TassadarBroadInternalComputePortabilityBinding>,
     /// Public Wasm conformance binding.
     pub wasm_conformance_binding: TassadarWasmConformanceBinding,
     /// Optional broadened architecture-bakeoff binding.
@@ -854,6 +941,9 @@ impl TassadarEnvironmentSpec {
             benchmark_package_set_binding: self.benchmark_package_set_binding.clone(),
             compile_pipeline_matrix_binding: self.compile_pipeline_matrix_binding.clone(),
             execution_checkpoint_binding: self.execution_checkpoint_binding.clone(),
+            broad_internal_compute_portability_binding: self
+                .broad_internal_compute_portability_binding
+                .clone(),
             rust_article_profile_completeness:
                 tassadar_rust_article_profile_completeness_publication(),
             generalized_abi_family: tassadar_generalized_abi_publication(),
@@ -900,6 +990,9 @@ impl TassadarEnvironmentSpec {
         self.benchmark_package_set_binding.validate()?;
         self.compile_pipeline_matrix_binding.validate()?;
         self.execution_checkpoint_binding.validate()?;
+        if let Some(binding) = &self.broad_internal_compute_portability_binding {
+            binding.validate()?;
+        }
         self.wasm_conformance_binding.validate()?;
         if let Some(binding) = &self.architecture_bakeoff_binding {
             binding.validate()?;
@@ -1113,6 +1206,12 @@ impl TassadarEnvironmentSpec {
             ))
             .unwrap_or(Value::Null),
         );
+        if let Some(binding) = &self.broad_internal_compute_portability_binding {
+            metadata.insert(
+                String::from(TASSADAR_METADATA_BROAD_INTERNAL_COMPUTE_PORTABILITY_KEY),
+                serde_json::to_value(binding).unwrap_or(Value::Null),
+            );
+        }
         metadata.insert(
             String::from(TASSADAR_METADATA_WASM_CONFORMANCE_KEY),
             serde_json::to_value(&self.wasm_conformance_binding).unwrap_or(Value::Null),
@@ -1202,6 +1301,10 @@ pub struct TassadarEnvironmentBundle {
     pub compile_pipeline_matrix_binding: TassadarCompilePipelineMatrixBinding,
     /// Checkpointed multi-slice execution binding.
     pub execution_checkpoint_binding: TassadarExecutionCheckpointBinding,
+    /// Optional broad internal-compute portability binding.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub broad_internal_compute_portability_binding:
+        Option<TassadarBroadInternalComputePortabilityBinding>,
     /// Rust-to-Wasm article profile completeness publication.
     pub rust_article_profile_completeness: TassadarRustArticleProfileCompletenessPublication,
     /// Generalized ABI family publication.
@@ -1304,6 +1407,24 @@ pub enum TassadarEnvironmentError {
     /// Invalid execution-checkpoint workload family id.
     #[error("Tassadar environment spec includes an empty execution-checkpoint workload family id")]
     InvalidExecutionCheckpointWorkloadFamilyId,
+    /// Missing broad portability report ref.
+    #[error("Tassadar environment spec is missing `broad_internal_compute_portability_binding.report_ref`")]
+    MissingBroadInternalComputePortabilityReportRef,
+    /// Missing broad portability report id.
+    #[error("Tassadar environment spec is missing `broad_internal_compute_portability_binding.report_id`")]
+    MissingBroadInternalComputePortabilityReportId,
+    /// Missing broad acceptance-gate ref.
+    #[error("Tassadar environment spec is missing `broad_internal_compute_portability_binding.acceptance_gate_ref`")]
+    MissingBroadInternalComputeAcceptanceGateRef,
+    /// Missing broad acceptance-gate id.
+    #[error("Tassadar environment spec is missing `broad_internal_compute_portability_binding.acceptance_gate_id`")]
+    MissingBroadInternalComputeAcceptanceGateId,
+    /// Missing broad internal-compute profile ids.
+    #[error("Tassadar environment spec is missing `broad_internal_compute_portability_binding.profile_ids`")]
+    MissingBroadInternalComputeProfileIds,
+    /// Invalid broad internal-compute profile id.
+    #[error("Tassadar environment spec includes an empty broad internal-compute profile id")]
+    InvalidBroadInternalComputeProfileId,
     /// Missing architecture-bakeoff suite ref.
     #[error("Tassadar environment spec is missing `architecture_bakeoff_binding.suite_ref`")]
     MissingArchitectureBakeoffSuiteRef,
@@ -1603,6 +1724,9 @@ mod tests {
                     String::from("search_frontier_kernel"),
                 ],
             },
+            broad_internal_compute_portability_binding: Some(
+                default_tassadar_broad_internal_compute_portability_binding(),
+            ),
             wasm_conformance_binding: TassadarWasmConformanceBinding {
                 report_ref: String::from(
                     "fixtures/tassadar/reports/tassadar_wasm_conformance_report.json",
@@ -1752,6 +1876,15 @@ mod tests {
             bundle
                 .benchmark_package
                 .metadata
+                .get(TASSADAR_METADATA_BROAD_INTERNAL_COMPUTE_PORTABILITY_KEY)
+                .and_then(|value| value.get("report_ref"))
+                .and_then(Value::as_str),
+            Some("fixtures/tassadar/reports/tassadar_broad_internal_compute_portability_report.json")
+        );
+        assert_eq!(
+            bundle
+                .benchmark_package
+                .metadata
                 .get(TASSADAR_METADATA_WASM_CONFORMANCE_KEY)
                 .and_then(|value| value.get("report_ref"))
                 .and_then(Value::as_str),
@@ -1790,6 +1923,13 @@ mod tests {
         assert_eq!(
             bundle.execution_checkpoint_binding.run_bundle_ref,
             "fixtures/tassadar/runs/tassadar_execution_checkpoint_v1/tassadar_execution_checkpoint_bundle.json"
+        );
+        assert_eq!(
+            bundle
+                .broad_internal_compute_portability_binding
+                .as_ref()
+                .map(|binding| binding.profile_ids.len()),
+            Some(6)
         );
         assert_eq!(
             bundle

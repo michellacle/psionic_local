@@ -1,0 +1,226 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.broad_internal_compute_acceptance_gate.report.v1",
+  "portability_report_ref": "fixtures/tassadar/reports/tassadar_broad_internal_compute_portability_report.json",
+  "rust_only_article_acceptance_gate_ref": "fixtures/tassadar/reports/tassadar_rust_only_article_acceptance_gate_v2.json",
+  "article_baseline_gate": {
+    "schema_version": 1,
+    "report_id": "tassadar.rust_only_article_acceptance_gate.v2",
+    "checker_script_ref": "scripts/check-tassadar-rust-only-article-acceptance-v2.sh",
+    "prerequisite_count": 8,
+    "passed_prerequisite_count": 8,
+    "failed_prerequisite_ids": [],
+    "prerequisites": [
+      {
+        "prerequisite_id": "rust_source_canon",
+        "artifact_refs": [
+          "fixtures/tassadar/reports/tassadar_rust_source_canon_report.json"
+        ],
+        "validation_commands": [
+          "cargo run -p psionic-eval --example tassadar_rust_source_canon_report"
+        ],
+        "status": "passed",
+        "detail": "compiled_cases=8/8 across [\"multi_export_exact\", \"memory_lookup_exact\", \"param_abi_fixture\", \"micro_wasm_article\", \"heap_sum_article\", \"long_loop_article\", \"hungarian_10x10_article\", \"sudoku_9x9_article\"]"
+      },
+      {
+        "prerequisite_id": "profile_completeness",
+        "artifact_refs": [
+          "fixtures/tassadar/reports/tassadar_rust_article_profile_completeness_report.json"
+        ],
+        "validation_commands": [
+          "cargo run -p psionic-eval --example tassadar_rust_article_profile_completeness_report"
+        ],
+        "status": "passed",
+        "detail": "supported_rows=6/6 refused_rows=5/5 source_case_ids=8/8"
+      },
+      {
+        "prerequisite_id": "article_abi",
+        "artifact_refs": [
+          "fixtures/tassadar/reports/tassadar_article_abi_closure_report.json"
+        ],
+        "validation_commands": [
+          "cargo run -p psionic-eval --example tassadar_article_abi_closure_report"
+        ],
+        "status": "passed",
+        "detail": "exact_cases=3/3 refusal_cases=3/3"
+      },
+      {
+        "prerequisite_id": "hungarian_article_reproducer",
+        "artifact_refs": [
+          "fixtures/tassadar/reports/tassadar_hungarian_10x10_article_reproducer_report.json"
+        ],
+        "validation_commands": [
+          "cargo run -p psionic-research --example tassadar_hungarian_10x10_article_reproducer"
+        ],
+        "status": "passed",
+        "detail": "canonical_case=hungarian_10x10_test_a exact_trace_match=true final_output_match=true halt_match=true fallback_observed=false"
+      },
+      {
+        "prerequisite_id": "sudoku_article_reproducer",
+        "artifact_refs": [
+          "fixtures/tassadar/reports/tassadar_sudoku_9x9_article_reproducer_report.json"
+        ],
+        "validation_commands": [
+          "cargo run -p psionic-research --example tassadar_sudoku_9x9_article_reproducer"
+        ],
+        "status": "passed",
+        "detail": "canonical_case=sudoku_9x9_test_a corpus_cases=4 exact_trace_match=true fallback_observed=false"
+      },
+      {
+        "prerequisite_id": "article_runtime_closeout",
+        "artifact_refs": [
+          "fixtures/tassadar/reports/tassadar_article_runtime_closeout_report.json",
+          "fixtures/tassadar/reports/tassadar_article_runtime_closeout_summary.json"
+        ],
+        "validation_commands": [
+          "cargo run -p psionic-eval --example tassadar_article_runtime_closeout_report",
+          "cargo run -p psionic-research --example tassadar_article_runtime_closeout_summary"
+        ],
+        "status": "passed",
+        "detail": "exact_horizons=4 floor_passes=4 floor_refusals=0 slowest_horizon=state_machine_kernel.two_million_step"
+      },
+      {
+        "prerequisite_id": "direct_model_weight_execution_proof",
+        "artifact_refs": [
+          "fixtures/tassadar/reports/tassadar_direct_model_weight_execution_proof_report.json"
+        ],
+        "validation_commands": [
+          "cargo run -p psionic-serve --example tassadar_direct_model_weight_execution_proof_report"
+        ],
+        "status": "passed",
+        "detail": "direct_cases=3 fallback_free_cases=3 zero_external_call_cases=3"
+      },
+      {
+        "prerequisite_id": "article_cpu_reproducibility",
+        "artifact_refs": [
+          "fixtures/tassadar/reports/tassadar_article_cpu_reproducibility_report.json",
+          "fixtures/tassadar/reports/tassadar_article_cpu_reproducibility_summary.json"
+        ],
+        "validation_commands": [
+          "cargo run -p psionic-eval --example tassadar_article_cpu_reproducibility_report",
+          "cargo run -p psionic-research --example tassadar_article_cpu_reproducibility_summary"
+        ],
+        "status": "passed",
+        "detail": "current_host=host_cpu_aarch64 green_current_host=true supported_classes=2 unsupported_classes=1"
+      }
+    ],
+    "green": true,
+    "claim_boundary": "this report is the anti-hand-wave gate for the Rust-only article claim. It turns green only when every committed prerequisite artifact is present and passes its bounded check, and it does not widen the claim beyond the explicitly enumerated Rust-only source, profile, ABI, reproducer, runtime, direct-proof, and CPU-portability surfaces",
+    "summary": "Rust-only article acceptance gate v2 now records passed_prerequisites=8/8 and green=true.",
+    "report_digest": "bf4f7e8df937fbd7b67a32e19aacb18b6b5307cb8988af924e6897eabdcc1543"
+  },
+  "profile_rows": [
+    {
+      "profile_id": "tassadar.internal_compute.article_closeout.v1",
+      "publication_allowed_row_count": 2,
+      "missing_required_evidence_refs": [],
+      "article_baseline_green": true,
+      "portability_ready": true,
+      "refusal_suite_complete": true,
+      "gate_status": "green",
+      "detail": "profile `tassadar.internal_compute.article_closeout.v1` is green for publication because the article baseline, portability envelope, receipts, and refusal suite are all explicit"
+    },
+    {
+      "profile_id": "tassadar.internal_compute.deterministic_import_subset.v1",
+      "publication_allowed_row_count": 0,
+      "missing_required_evidence_refs": [
+        "issue://OpenAgentsInc/psionic/178"
+      ],
+      "article_baseline_green": true,
+      "portability_ready": false,
+      "refusal_suite_complete": true,
+      "gate_status": "failed",
+      "detail": "profile `tassadar.internal_compute.deterministic_import_subset.v1` fails the broad gate because portability or required evidence refs are still incomplete"
+    },
+    {
+      "profile_id": "tassadar.internal_compute.generalized_abi.v1",
+      "publication_allowed_row_count": 0,
+      "missing_required_evidence_refs": [],
+      "article_baseline_green": true,
+      "portability_ready": false,
+      "refusal_suite_complete": true,
+      "gate_status": "suppressed",
+      "detail": "profile `tassadar.internal_compute.generalized_abi.v1` stays suppressed because portability publication is not green yet even though baseline receipts are present"
+    },
+    {
+      "profile_id": "tassadar.internal_compute.portable_broad_family.v1",
+      "publication_allowed_row_count": 0,
+      "missing_required_evidence_refs": [
+        "issue://OpenAgentsInc/psionic/179",
+        "issue://OpenAgentsInc/psionic/181"
+      ],
+      "article_baseline_green": true,
+      "portability_ready": false,
+      "refusal_suite_complete": true,
+      "gate_status": "failed",
+      "detail": "profile `tassadar.internal_compute.portable_broad_family.v1` fails the broad gate because portability or required evidence refs are still incomplete"
+    },
+    {
+      "profile_id": "tassadar.internal_compute.public_broad_family.v1",
+      "publication_allowed_row_count": 0,
+      "missing_required_evidence_refs": [
+        "issue://OpenAgentsInc/psionic/181",
+        "issue://OpenAgentsInc/psionic/182"
+      ],
+      "article_baseline_green": true,
+      "portability_ready": false,
+      "refusal_suite_complete": true,
+      "gate_status": "failed",
+      "detail": "profile `tassadar.internal_compute.public_broad_family.v1` fails the broad gate because portability or required evidence refs are still incomplete"
+    },
+    {
+      "profile_id": "tassadar.internal_compute.resumable_multi_slice.v1",
+      "publication_allowed_row_count": 0,
+      "missing_required_evidence_refs": [
+        "issue://OpenAgentsInc/psionic/177"
+      ],
+      "article_baseline_green": true,
+      "portability_ready": false,
+      "refusal_suite_complete": true,
+      "gate_status": "failed",
+      "detail": "profile `tassadar.internal_compute.resumable_multi_slice.v1` fails the broad gate because portability or required evidence refs are still incomplete"
+    },
+    {
+      "profile_id": "tassadar.internal_compute.runtime_support_subset.v1",
+      "publication_allowed_row_count": 0,
+      "missing_required_evidence_refs": [
+        "issue://OpenAgentsInc/psionic/180"
+      ],
+      "article_baseline_green": true,
+      "portability_ready": false,
+      "refusal_suite_complete": true,
+      "gate_status": "failed",
+      "detail": "profile `tassadar.internal_compute.runtime_support_subset.v1` fails the broad gate because portability or required evidence refs are still incomplete"
+    },
+    {
+      "profile_id": "tassadar.internal_compute.wider_numeric_data_layout.v1",
+      "publication_allowed_row_count": 0,
+      "missing_required_evidence_refs": [
+        "issue://OpenAgentsInc/psionic/179"
+      ],
+      "article_baseline_green": true,
+      "portability_ready": false,
+      "refusal_suite_complete": true,
+      "gate_status": "failed",
+      "detail": "profile `tassadar.internal_compute.wider_numeric_data_layout.v1` fails the broad gate because portability or required evidence refs are still incomplete"
+    }
+  ],
+  "green_profile_ids": [
+    "tassadar.internal_compute.article_closeout.v1"
+  ],
+  "suppressed_profile_ids": [
+    "tassadar.internal_compute.generalized_abi.v1"
+  ],
+  "failed_profile_ids": [
+    "tassadar.internal_compute.deterministic_import_subset.v1",
+    "tassadar.internal_compute.portable_broad_family.v1",
+    "tassadar.internal_compute.public_broad_family.v1",
+    "tassadar.internal_compute.resumable_multi_slice.v1",
+    "tassadar.internal_compute.runtime_support_subset.v1",
+    "tassadar.internal_compute.wider_numeric_data_layout.v1"
+  ],
+  "overall_green": false,
+  "claim_boundary": "this acceptance gate extends the Rust-only article baseline into a broader internal-compute publication gate. It stays red until named broader profiles have explicit portability envelopes, receipts, and refusal suites, and it keeps suppression visible instead of silently widening one green lab path into a broader claim",
+  "summary": "Broad internal-compute acceptance gate now records green_profiles=1, suppressed_profiles=1, failed_profiles=6, overall_green=false.",
+  "report_digest": "8f97a4868dcbdc276b8cdcc0c8618b498f25c76f088c072d9c1dacf10fb0df7b"
+}
