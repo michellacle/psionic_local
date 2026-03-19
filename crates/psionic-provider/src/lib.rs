@@ -599,6 +599,36 @@ impl TassadarCapabilityEnvelope {
                 .contains(
                     &broad_internal_compute_profile_publication_receipt.current_served_profile_id,
                 )
+            || !broad_internal_compute_profile_publication_receipt
+                .public_profile_specific_route_ids
+                .contains(&String::from(
+                    "tassadar.internal_compute.deterministic_import_subset.v1",
+                ))
+            || !broad_internal_compute_profile_publication_receipt
+                .public_profile_specific_route_ids
+                .contains(&String::from(
+                    "tassadar.internal_compute.runtime_support_subset.v1",
+                ))
+            || !broad_internal_compute_profile_publication_receipt
+                .profile_specific_world_mount_template_ids
+                .contains(&String::from(
+                    "tassadar.internal_compute.deterministic_import_subset.v1",
+                ))
+            || !broad_internal_compute_profile_publication_receipt
+                .profile_specific_world_mount_template_ids
+                .contains(&String::from(
+                    "tassadar.internal_compute.runtime_support_subset.v1",
+                ))
+            || !broad_internal_compute_profile_publication_receipt
+                .profile_specific_accepted_outcome_template_ids
+                .contains(&String::from(
+                    "tassadar.internal_compute.deterministic_import_subset.v1",
+                ))
+            || !broad_internal_compute_profile_publication_receipt
+                .profile_specific_accepted_outcome_template_ids
+                .contains(&String::from(
+                    "tassadar.internal_compute.runtime_support_subset.v1",
+                ))
             || broad_internal_compute_profile_publication_receipt.current_served_profile_id
                 != publication
                     .internal_compute_profile_claim_check
@@ -608,7 +638,7 @@ impl TassadarCapabilityEnvelope {
             return Err(
                 TassadarCapabilityEnvelopeError::UnpublishableBroadInternalComputeProfilePublication {
                     detail: String::from(
-                        "provider envelope requires a non-empty current served broad profile id, a route-policy ref, a published current-served profile, and end-to-end agreement with the served internal-compute claim",
+                        "provider envelope requires a non-empty current served broad profile id, a route-policy ref, a published current-served profile, explicit profile-specific route/mount/accepted-outcome promotion for the deterministic-import and runtime-support subsets, and end-to-end agreement with the served internal-compute claim",
                     ),
                 },
             );
@@ -8804,6 +8834,14 @@ mod tests {
         assert_eq!(
             encoded["publication"]["subset_profile_promotion_gate_report_ref"],
             json!("fixtures/tassadar/reports/tassadar_subset_profile_promotion_gate_report.json")
+        );
+        assert_eq!(
+            encoded["broad_internal_compute_profile_publication_receipt"]
+                ["public_profile_specific_route_ids"],
+            json!([
+                "tassadar.internal_compute.deterministic_import_subset.v1",
+                "tassadar.internal_compute.runtime_support_subset.v1"
+            ])
         );
         assert_eq!(
             encoded["broad_internal_compute_portability_receipt"]["backend_family_ids"],

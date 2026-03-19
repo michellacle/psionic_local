@@ -7,8 +7,8 @@ use psionic_models::{
     TassadarBroadInternalComputeWorldMountBindingStatus,
 };
 use psionic_router::{
-    TassadarBroadInternalComputeRouteDecisionStatus,
     build_tassadar_broad_internal_compute_route_policy_report,
+    TassadarBroadInternalComputeRouteDecisionStatus,
 };
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -18,10 +18,14 @@ pub struct TassadarBroadInternalComputeProfilePublication {
     pub route_policy_report_ref: String,
     pub current_served_profile_id: String,
     pub published_profile_ids: Vec<String>,
+    pub public_profile_specific_route_ids: Vec<String>,
+    pub profile_specific_world_mount_template_ids: Vec<String>,
+    pub profile_specific_accepted_outcome_template_ids: Vec<String>,
     pub suppressed_profile_ids: Vec<String>,
     pub failed_profile_ids: Vec<String>,
     pub current_served_route_status: TassadarBroadInternalComputeRouteDecisionStatus,
-    pub current_served_world_mount_binding_status: TassadarBroadInternalComputeWorldMountBindingStatus,
+    pub current_served_world_mount_binding_status:
+        TassadarBroadInternalComputeWorldMountBindingStatus,
     pub current_served_accepted_outcome_binding_status:
         TassadarBroadInternalComputeAcceptedOutcomeBindingStatus,
     pub claim_boundary: String,
@@ -41,21 +45,22 @@ pub enum TassadarBroadInternalComputeProfilePublicationError {
     CurrentServedProfileNotSelected { profile_id: String },
 }
 
-pub fn build_tassadar_broad_internal_compute_profile_publication(
-) -> Result<
+pub fn build_tassadar_broad_internal_compute_profile_publication() -> Result<
     TassadarBroadInternalComputeProfilePublication,
     TassadarBroadInternalComputeProfilePublicationError,
 > {
-    let report = build_tassadar_broad_internal_compute_profile_publication_report().map_err(
-        |error| TassadarBroadInternalComputeProfilePublicationError::InvalidPublicationReport {
-            detail: error.to_string(),
-        },
-    )?;
-    let route_policy = build_tassadar_broad_internal_compute_route_policy_report().map_err(
-        |error| TassadarBroadInternalComputeProfilePublicationError::InvalidRoutePolicyReport {
-            detail: error.to_string(),
-        },
-    )?;
+    let report =
+        build_tassadar_broad_internal_compute_profile_publication_report().map_err(|error| {
+            TassadarBroadInternalComputeProfilePublicationError::InvalidPublicationReport {
+                detail: error.to_string(),
+            }
+        })?;
+    let route_policy =
+        build_tassadar_broad_internal_compute_route_policy_report().map_err(|error| {
+            TassadarBroadInternalComputeProfilePublicationError::InvalidRoutePolicyReport {
+                detail: error.to_string(),
+            }
+        })?;
     let publication_row = report
         .profile_rows
         .iter()
@@ -81,6 +86,39 @@ pub fn build_tassadar_broad_internal_compute_profile_publication(
             },
         );
     }
+    let public_profile_specific_route_ids = route_policy
+        .rows
+        .iter()
+        .filter(|row| {
+            row.decision_status
+                == TassadarBroadInternalComputeRouteDecisionStatus::PromotedProfileSpecific
+        })
+        .map(|row| row.target_profile_id.clone())
+        .collect::<std::collections::BTreeSet<_>>()
+        .into_iter()
+        .collect::<Vec<_>>();
+    let profile_specific_world_mount_template_ids = report
+        .profile_rows
+        .iter()
+        .filter(|row| {
+            row.world_mount_binding_status
+                == TassadarBroadInternalComputeWorldMountBindingStatus::ProfileSpecificMountTemplateAvailable
+        })
+        .map(|row| row.profile_id.clone())
+        .collect::<std::collections::BTreeSet<_>>()
+        .into_iter()
+        .collect::<Vec<_>>();
+    let profile_specific_accepted_outcome_template_ids = report
+        .profile_rows
+        .iter()
+        .filter(|row| {
+            row.accepted_outcome_binding_status
+                == TassadarBroadInternalComputeAcceptedOutcomeBindingStatus::ProfileSpecificAcceptedOutcomeTemplateAvailable
+        })
+        .map(|row| row.profile_id.clone())
+        .collect::<std::collections::BTreeSet<_>>()
+        .into_iter()
+        .collect::<Vec<_>>();
     Ok(TassadarBroadInternalComputeProfilePublication {
         publication_id: report.report_id,
         report_ref: String::from(
@@ -91,6 +129,9 @@ pub fn build_tassadar_broad_internal_compute_profile_publication(
         ),
         current_served_profile_id: report.current_served_profile_id,
         published_profile_ids: report.published_profile_ids,
+        public_profile_specific_route_ids,
+        profile_specific_world_mount_template_ids,
+        profile_specific_accepted_outcome_template_ids,
         suppressed_profile_ids: report.suppressed_profile_ids,
         failed_profile_ids: report.failed_profile_ids,
         current_served_route_status: route_row.decision_status,
@@ -132,10 +173,18 @@ mod tests {
             publication.current_served_accepted_outcome_binding_status,
             TassadarBroadInternalComputeAcceptedOutcomeBindingStatus::ExactComputeEnvelopeAvailable
         );
+        assert!(publication.suppressed_profile_ids.contains(&String::from(
+            "tassadar.internal_compute.public_broad_family.v1"
+        )));
         assert!(publication
-            .suppressed_profile_ids
+            .public_profile_specific_route_ids
             .contains(&String::from(
-                "tassadar.internal_compute.public_broad_family.v1"
+                "tassadar.internal_compute.deterministic_import_subset.v1"
+            )));
+        assert!(publication
+            .public_profile_specific_route_ids
+            .contains(&String::from(
+                "tassadar.internal_compute.runtime_support_subset.v1"
             )));
     }
 }

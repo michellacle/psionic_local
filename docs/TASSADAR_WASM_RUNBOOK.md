@@ -407,6 +407,46 @@ Expected outcome:
   `tassadar.internal_compute.article_closeout.v1`; it makes portability
   suppression more explicit instead of making broader publication greener
 
+### 3B.7. Public broad-family route, mount, and accepted-outcome promotion
+
+```bash
+cargo run -p psionic-eval --example tassadar_broad_internal_compute_profile_publication_report
+cargo run -p psionic-router --example tassadar_broad_internal_compute_route_policy_report
+cargo run -p psionic-eval --example tassadar_subset_profile_promotion_gate_report
+```
+
+Read:
+
+- `fixtures/tassadar/reports/tassadar_broad_internal_compute_profile_publication_report.json`
+- `fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json`
+- `fixtures/tassadar/reports/tassadar_subset_profile_promotion_gate_report.json`
+
+Expected outcome:
+
+- the current default served profile still stays
+  `tassadar.internal_compute.article_closeout.v1`
+- two broader named profiles are now explicit “publicly nameable but
+  profile-specific” lanes instead of being flattened into generic suppression:
+  `tassadar.internal_compute.deterministic_import_subset.v1` and
+  `tassadar.internal_compute.runtime_support_subset.v1`
+- in the publication report, those two profiles now carry
+  `profile_specific_mount_template_available` and
+  `profile_specific_accepted_outcome_template_available` instead of the older
+  generic “needs policy later” posture
+- in the route-policy report, those same profiles now carry
+  `promoted_profile_specific`, which means they are explicitly public route
+  targets under named profile policy without becoming the default served exact
+  lane
+- the subset gate remains green for those two profiles and still records zero
+  `served_publication_allowed_profile_ids`
+- `world-mounts`, `kernel-policy`, `nexus`, and `compute-market` remain
+  explicit dependency markers for canonical task-scoped mounts, accepted
+  outcomes, and market-wide broad-profile exposure outside standalone
+  `psionic`
+- this is bounded promotion discipline only; it does not make those subset
+  profiles generic served exact compute and does not widen the current default
+  served profile beyond `tassadar.internal_compute.article_closeout.v1`
+
 ### 3C. Hungarian-10x10 Rust-only article reproducer
 
 ```bash

@@ -5594,6 +5594,14 @@ mod tests {
             )
         );
         assert_eq!(
+            encoded["broad_internal_compute_profile_publication"]
+                ["public_profile_specific_route_ids"],
+            serde_json::json!([
+                "tassadar.internal_compute.deterministic_import_subset.v1",
+                "tassadar.internal_compute.runtime_support_subset.v1"
+            ])
+        );
+        assert_eq!(
             encoded["subset_profile_promotion_gate_report_ref"],
             serde_json::json!(
                 "fixtures/tassadar/reports/tassadar_subset_profile_promotion_gate_report.json"

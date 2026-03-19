@@ -15,6 +15,7 @@ pub enum TassadarBroadInternalComputeProfilePublicationStatus {
 #[serde(rename_all = "snake_case")]
 pub enum TassadarBroadInternalComputeWorldMountBindingStatus {
     CompatibleWithCurrentExactComputeMount,
+    ProfileSpecificMountTemplateAvailable,
     RequiresProfileSpecificMountPolicy,
     RefusedPendingProfileEvidence,
 }
@@ -23,6 +24,7 @@ pub enum TassadarBroadInternalComputeWorldMountBindingStatus {
 #[serde(rename_all = "snake_case")]
 pub enum TassadarBroadInternalComputeAcceptedOutcomeBindingStatus {
     ExactComputeEnvelopeAvailable,
+    ProfileSpecificAcceptedOutcomeTemplateAvailable,
     RequiresProfileSpecificAcceptedOutcomeTemplate,
     RefusedPendingProfileEvidence,
 }
@@ -37,8 +39,7 @@ pub struct TassadarBroadInternalComputeProfilePublicationRow {
     pub publication_allowed_row_count: u32,
     pub missing_required_evidence_refs: Vec<String>,
     pub world_mount_binding_status: TassadarBroadInternalComputeWorldMountBindingStatus,
-    pub accepted_outcome_binding_status:
-        TassadarBroadInternalComputeAcceptedOutcomeBindingStatus,
+    pub accepted_outcome_binding_status: TassadarBroadInternalComputeAcceptedOutcomeBindingStatus,
     pub note: String,
 }
 

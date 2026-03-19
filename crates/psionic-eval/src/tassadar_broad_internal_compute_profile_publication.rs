@@ -8,21 +8,23 @@ use sha2::{Digest, Sha256};
 use thiserror::Error;
 
 use psionic_models::{
-    TASSADAR_BROAD_INTERNAL_COMPUTE_PROFILE_PUBLICATION_REPORT_REF,
+    tassadar_current_served_internal_compute_profile_claim,
+    tassadar_internal_compute_profile_ladder_publication,
     TassadarBroadInternalComputeAcceptedOutcomeBindingStatus,
     TassadarBroadInternalComputeProfilePublicationReport,
     TassadarBroadInternalComputeProfilePublicationRow,
     TassadarBroadInternalComputeProfilePublicationStatus,
     TassadarBroadInternalComputeWorldMountBindingStatus,
-    tassadar_current_served_internal_compute_profile_claim,
-    tassadar_internal_compute_profile_ladder_publication,
+    TASSADAR_BROAD_INTERNAL_COMPUTE_PROFILE_PUBLICATION_REPORT_REF,
 };
 
 use crate::{
-    TASSADAR_BROAD_INTERNAL_COMPUTE_ACCEPTANCE_GATE_REPORT_REF,
-    TassadarBroadInternalComputeAcceptanceGateReportError,
-    TassadarBroadInternalComputeAcceptanceStatus,
     build_tassadar_broad_internal_compute_acceptance_gate_report,
+    build_tassadar_effect_safe_resume_report, build_tassadar_linked_program_bundle_eval_report,
+    TassadarBroadInternalComputeAcceptanceGateReportError,
+    TassadarBroadInternalComputeAcceptanceStatus, TassadarEffectSafeResumeReport,
+    TassadarLinkedProgramBundleEvalReport,
+    TASSADAR_BROAD_INTERNAL_COMPUTE_ACCEPTANCE_GATE_REPORT_REF,
 };
 
 const TASSADAR_WORLD_MOUNT_COMPATIBILITY_REPORT_REF: &str =
@@ -51,14 +53,17 @@ pub enum TassadarBroadInternalComputeProfilePublicationReportError {
     },
 }
 
-pub fn build_tassadar_broad_internal_compute_profile_publication_report(
-) -> Result<
+pub fn build_tassadar_broad_internal_compute_profile_publication_report() -> Result<
     TassadarBroadInternalComputeProfilePublicationReport,
     TassadarBroadInternalComputeProfilePublicationReportError,
 > {
     let ladder = tassadar_internal_compute_profile_ladder_publication();
     let acceptance_gate = build_tassadar_broad_internal_compute_acceptance_gate_report()?;
-    let current_served_profile_id = tassadar_current_served_internal_compute_profile_claim().profile_id;
+    let effect_safe_resume_report =
+        build_tassadar_effect_safe_resume_report().expect("effect-safe resume report should build");
+    let linked_program_bundle_eval_report = build_tassadar_linked_program_bundle_eval_report();
+    let current_served_profile_id =
+        tassadar_current_served_internal_compute_profile_claim().profile_id;
 
     let profile_rows = ladder
         .profiles
@@ -84,6 +89,11 @@ pub fn build_tassadar_broad_internal_compute_profile_publication_report(
                     TassadarBroadInternalComputeProfilePublicationStatus::Failed
                 }
             };
+            let profile_specific_mount_ready = profile_specific_mount_ready(
+                profile.profile_id.as_str(),
+                &effect_safe_resume_report,
+                &linked_program_bundle_eval_report,
+            );
             let (world_mount_binding_status, accepted_outcome_binding_status, note) =
                 match publication_status {
                     TassadarBroadInternalComputeProfilePublicationStatus::Published => (
@@ -91,6 +101,16 @@ pub fn build_tassadar_broad_internal_compute_profile_publication_report(
                         TassadarBroadInternalComputeAcceptedOutcomeBindingStatus::ExactComputeEnvelopeAvailable,
                         format!(
                             "profile `{}` is the current served internal-compute profile and remains compatible with the current exact-compute mount, accepted-outcome, and market envelope refs",
+                            profile.profile_id
+                        ),
+                    ),
+                    TassadarBroadInternalComputeProfilePublicationStatus::Suppressed
+                        if profile_specific_mount_ready =>
+                    (
+                        TassadarBroadInternalComputeWorldMountBindingStatus::ProfileSpecificMountTemplateAvailable,
+                        TassadarBroadInternalComputeAcceptedOutcomeBindingStatus::ProfileSpecificAcceptedOutcomeTemplateAvailable,
+                        format!(
+                            "profile `{}` stays suppressed as a served capability, but now has explicit profile-specific route, mount, and accepted-outcome templates for bounded public use under named policy and portability envelopes",
                             profile.profile_id
                         ),
                     ),
@@ -132,14 +152,16 @@ pub fn build_tassadar_broad_internal_compute_profile_publication_report(
     let published_profile_ids = profile_rows
         .iter()
         .filter(|row| {
-            row.publication_status == TassadarBroadInternalComputeProfilePublicationStatus::Published
+            row.publication_status
+                == TassadarBroadInternalComputeProfilePublicationStatus::Published
         })
         .map(|row| row.profile_id.clone())
         .collect::<Vec<_>>();
     let suppressed_profile_ids = profile_rows
         .iter()
         .filter(|row| {
-            row.publication_status == TassadarBroadInternalComputeProfilePublicationStatus::Suppressed
+            row.publication_status
+                == TassadarBroadInternalComputeProfilePublicationStatus::Suppressed
         })
         .map(|row| row.profile_id.clone())
         .collect::<Vec<_>>();
@@ -250,6 +272,30 @@ fn stable_digest<T: Serialize>(prefix: &[u8], value: &T) -> String {
     hex::encode(hasher.finalize())
 }
 
+fn profile_specific_mount_ready(
+    profile_id: &str,
+    effect_safe_resume_report: &TassadarEffectSafeResumeReport,
+    linked_program_bundle_eval_report: &TassadarLinkedProgramBundleEvalReport,
+) -> bool {
+    match profile_id {
+        "tassadar.internal_compute.deterministic_import_subset.v1" => {
+            effect_safe_resume_report.target_profile_id == profile_id
+                && effect_safe_resume_report.admitted_case_count > 0
+                && effect_safe_resume_report.refusal_case_count > 0
+                && !effect_safe_resume_report
+                    .continuation_safe_effect_refs
+                    .is_empty()
+        }
+        "tassadar.internal_compute.runtime_support_subset.v1" => {
+            linked_program_bundle_eval_report.exact_case_count > 0
+                && linked_program_bundle_eval_report.helper_lineage_complete_case_count > 0
+                && linked_program_bundle_eval_report.graph_valid_case_count > 0
+                && linked_program_bundle_eval_report.start_order_exact_case_count > 0
+        }
+        _ => false,
+    }
+}
+
 #[cfg(test)]
 pub fn load_tassadar_broad_internal_compute_profile_publication_report(
     path: impl AsRef<Path>,
@@ -275,10 +321,10 @@ pub fn load_tassadar_broad_internal_compute_profile_publication_report(
 #[cfg(test)]
 mod tests {
     use super::{
-        TassadarBroadInternalComputeProfilePublicationReportError,
         build_tassadar_broad_internal_compute_profile_publication_report,
         load_tassadar_broad_internal_compute_profile_publication_report,
         tassadar_broad_internal_compute_profile_publication_report_path,
+        TassadarBroadInternalComputeProfilePublicationReportError,
     };
     use psionic_models::{
         TassadarBroadInternalComputeAcceptedOutcomeBindingStatus,
@@ -294,11 +340,9 @@ mod tests {
             report.current_served_profile_id,
             "tassadar.internal_compute.article_closeout.v1"
         );
-        assert!(report
-            .published_profile_ids
-            .contains(&String::from(
-                "tassadar.internal_compute.article_closeout.v1"
-            )));
+        assert!(report.published_profile_ids.contains(&String::from(
+            "tassadar.internal_compute.article_closeout.v1"
+        )));
         assert!(report.profile_rows.iter().any(|row| {
             row.profile_id == "tassadar.internal_compute.article_closeout.v1"
                 && row.publication_status
@@ -316,6 +360,24 @@ mod tests {
                     == TassadarBroadInternalComputeWorldMountBindingStatus::RequiresProfileSpecificMountPolicy
                 && row.accepted_outcome_binding_status
                     == TassadarBroadInternalComputeAcceptedOutcomeBindingStatus::RequiresProfileSpecificAcceptedOutcomeTemplate
+        }));
+        assert!(report.profile_rows.iter().any(|row| {
+            row.profile_id == "tassadar.internal_compute.deterministic_import_subset.v1"
+                && row.publication_status
+                    == TassadarBroadInternalComputeProfilePublicationStatus::Suppressed
+                && row.world_mount_binding_status
+                    == TassadarBroadInternalComputeWorldMountBindingStatus::ProfileSpecificMountTemplateAvailable
+                && row.accepted_outcome_binding_status
+                    == TassadarBroadInternalComputeAcceptedOutcomeBindingStatus::ProfileSpecificAcceptedOutcomeTemplateAvailable
+        }));
+        assert!(report.profile_rows.iter().any(|row| {
+            row.profile_id == "tassadar.internal_compute.runtime_support_subset.v1"
+                && row.publication_status
+                    == TassadarBroadInternalComputeProfilePublicationStatus::Suppressed
+                && row.world_mount_binding_status
+                    == TassadarBroadInternalComputeWorldMountBindingStatus::ProfileSpecificMountTemplateAvailable
+                && row.accepted_outcome_binding_status
+                    == TassadarBroadInternalComputeAcceptedOutcomeBindingStatus::ProfileSpecificAcceptedOutcomeTemplateAvailable
         }));
     }
 

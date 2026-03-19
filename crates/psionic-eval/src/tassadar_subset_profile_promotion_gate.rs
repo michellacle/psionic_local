@@ -287,14 +287,15 @@ fn build_deterministic_import_row(
     let gate_green = acceptance_row.gate_status == TassadarBroadInternalComputeAcceptanceStatus::Suppressed
         && publication_row.publication_status
             == TassadarBroadInternalComputeProfilePublicationStatus::Suppressed
-        && route_row.decision_status == TassadarBroadInternalComputeRouteDecisionStatus::Suppressed
+        && route_row.decision_status
+            == TassadarBroadInternalComputeRouteDecisionStatus::PromotedProfileSpecific
         && publication_row.missing_required_evidence_refs.is_empty()
         && replay_proof_complete
         && refusal_posture_complete
         && publication_row.world_mount_binding_status
-            == TassadarBroadInternalComputeWorldMountBindingStatus::RequiresProfileSpecificMountPolicy
+            == TassadarBroadInternalComputeWorldMountBindingStatus::ProfileSpecificMountTemplateAvailable
         && publication_row.accepted_outcome_binding_status
-            == TassadarBroadInternalComputeAcceptedOutcomeBindingStatus::RequiresProfileSpecificAcceptedOutcomeTemplate;
+            == TassadarBroadInternalComputeAcceptedOutcomeBindingStatus::ProfileSpecificAcceptedOutcomeTemplateAvailable;
     let served_publication_allowed = publication_row.publication_status
         == TassadarBroadInternalComputeProfilePublicationStatus::Published
         && route_row.decision_status == TassadarBroadInternalComputeRouteDecisionStatus::Selected;
@@ -315,7 +316,7 @@ fn build_deterministic_import_row(
         served_publication_allowed,
         detail: if gate_green {
             String::from(
-                "deterministic import subset is promotion-safe to name publicly because deterministic stub replay proofs, refusal posture, route suppression, and profile-specific mount/accepted-outcome policy boundaries are all explicit; it remains suppressed until portability and broader publication criteria go green",
+                "deterministic import subset is promotion-safe to name publicly because deterministic stub replay proofs, refusal posture, profile-specific public route promotion, and profile-specific mount/accepted-outcome templates are all explicit; it remains separate from the default served profile until portability and broader publication criteria go green",
             )
         } else {
             String::from(
@@ -368,15 +369,16 @@ fn build_runtime_support_row(
     let gate_green = acceptance_row.gate_status == TassadarBroadInternalComputeAcceptanceStatus::Suppressed
         && publication_row.publication_status
             == TassadarBroadInternalComputeProfilePublicationStatus::Suppressed
-        && route_row.decision_status == TassadarBroadInternalComputeRouteDecisionStatus::Suppressed
+        && route_row.decision_status
+            == TassadarBroadInternalComputeRouteDecisionStatus::PromotedProfileSpecific
         && publication_row.missing_required_evidence_refs.is_empty()
         && positive_evidence_case_count > 0
         && replay_proof_complete
         && refusal_posture_complete
         && publication_row.world_mount_binding_status
-            == TassadarBroadInternalComputeWorldMountBindingStatus::RequiresProfileSpecificMountPolicy
+            == TassadarBroadInternalComputeWorldMountBindingStatus::ProfileSpecificMountTemplateAvailable
         && publication_row.accepted_outcome_binding_status
-            == TassadarBroadInternalComputeAcceptedOutcomeBindingStatus::RequiresProfileSpecificAcceptedOutcomeTemplate;
+            == TassadarBroadInternalComputeAcceptedOutcomeBindingStatus::ProfileSpecificAcceptedOutcomeTemplateAvailable;
     let served_publication_allowed = publication_row.publication_status
         == TassadarBroadInternalComputeProfilePublicationStatus::Published
         && route_row.decision_status == TassadarBroadInternalComputeRouteDecisionStatus::Selected;
@@ -397,7 +399,7 @@ fn build_runtime_support_row(
         served_publication_allowed,
         detail: if gate_green {
             String::from(
-                "runtime-support subset is promotion-safe to name publicly because linked-bundle graph truth, helper lineage, start-order replay, refusal posture, and profile-specific mount/accepted-outcome policy boundaries are all explicit; it remains suppressed until portability and broader publication criteria go green",
+                "runtime-support subset is promotion-safe to name publicly because linked-bundle graph truth, helper lineage, start-order replay, refusal posture, profile-specific public route promotion, and profile-specific mount/accepted-outcome templates are all explicit; it remains separate from the default served profile until portability and broader publication criteria go green",
             )
         } else {
             String::from(
@@ -430,6 +432,11 @@ mod tests {
         tassadar_subset_profile_promotion_gate_report_path,
         write_tassadar_subset_profile_promotion_gate_report,
     };
+    use psionic_models::{
+        TassadarBroadInternalComputeAcceptedOutcomeBindingStatus,
+        TassadarBroadInternalComputeWorldMountBindingStatus,
+    };
+    use psionic_router::TassadarBroadInternalComputeRouteDecisionStatus;
 
     #[test]
     fn subset_profile_promotion_gate_keeps_named_subsets_green_but_suppressed() {
@@ -449,6 +456,18 @@ mod tests {
             .profile_rows
             .iter()
             .all(|row| !row.served_publication_allowed));
+        assert!(report.profile_rows.iter().all(|row| {
+            row.route_decision_status
+                == TassadarBroadInternalComputeRouteDecisionStatus::PromotedProfileSpecific
+        }));
+        assert!(report.profile_rows.iter().all(|row| {
+            row.world_mount_binding_status
+                == TassadarBroadInternalComputeWorldMountBindingStatus::ProfileSpecificMountTemplateAvailable
+        }));
+        assert!(report.profile_rows.iter().all(|row| {
+            row.accepted_outcome_binding_status
+                == TassadarBroadInternalComputeAcceptedOutcomeBindingStatus::ProfileSpecificAcceptedOutcomeTemplateAvailable
+        }));
     }
 
     #[test]

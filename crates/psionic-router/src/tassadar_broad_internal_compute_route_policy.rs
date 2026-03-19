@@ -43,6 +43,7 @@ pub enum TassadarBroadInternalComputePortabilityEnvelope {
 #[serde(rename_all = "snake_case")]
 pub enum TassadarBroadInternalComputeRouteDecisionStatus {
     Selected,
+    PromotedProfileSpecific,
     Suppressed,
     Refused,
 }
@@ -74,6 +75,7 @@ pub struct TassadarBroadInternalComputeRoutePolicyReport {
     pub current_served_profile_id: String,
     pub rows: Vec<TassadarBroadInternalComputeRoutePolicyRow>,
     pub selected_route_count: u32,
+    pub promoted_profile_specific_route_count: u32,
     pub suppressed_route_count: u32,
     pub refused_route_count: u32,
     pub generated_from_refs: Vec<String>,
@@ -204,13 +206,23 @@ pub fn build_tassadar_broad_internal_compute_route_policy_report() -> Result<
             row.decision_status == TassadarBroadInternalComputeRouteDecisionStatus::Selected
         })
         .count() as u32;
+    let promoted_profile_specific_route_count = rows
+        .iter()
+        .filter(|row| {
+            row.decision_status
+                == TassadarBroadInternalComputeRouteDecisionStatus::PromotedProfileSpecific
+        })
+        .count() as u32;
     let suppressed_route_count = rows
         .iter()
         .filter(|row| {
             row.decision_status == TassadarBroadInternalComputeRouteDecisionStatus::Suppressed
         })
         .count() as u32;
-    let refused_route_count = rows.len() as u32 - selected_route_count - suppressed_route_count;
+    let refused_route_count = rows.len() as u32
+        - selected_route_count
+        - promoted_profile_specific_route_count
+        - suppressed_route_count;
     let mut report = TassadarBroadInternalComputeRoutePolicyReport {
         schema_version: REPORT_SCHEMA_VERSION,
         report_id: String::from("tassadar.broad_internal_compute_route_policy.report.v1"),
@@ -220,6 +232,7 @@ pub fn build_tassadar_broad_internal_compute_route_policy_report() -> Result<
         current_served_profile_id: publication_report.current_served_profile_id.clone(),
         rows,
         selected_route_count,
+        promoted_profile_specific_route_count,
         suppressed_route_count,
         refused_route_count,
         generated_from_refs: vec![
@@ -239,8 +252,9 @@ pub fn build_tassadar_broad_internal_compute_route_policy_report() -> Result<
         report_digest: String::new(),
     };
     report.summary = format!(
-        "Broad internal-compute route policy now records selected_routes={}, suppressed_routes={}, refused_routes={}, current_served_profile=`{}`.",
+        "Broad internal-compute route policy now records selected_routes={}, promoted_profile_specific_routes={}, suppressed_routes={}, refused_routes={}, current_served_profile=`{}`.",
         report.selected_route_count,
+        report.promoted_profile_specific_route_count,
         report.suppressed_route_count,
         report.refused_route_count,
         report.current_served_profile_id,
@@ -272,6 +286,14 @@ fn route_row(
         TassadarBroadInternalComputeProfilePublicationStatus::Published => {
             TassadarBroadInternalComputeRouteDecisionStatus::Selected
         }
+        TassadarBroadInternalComputeProfilePublicationStatus::Suppressed
+            if publication_row.world_mount_binding_status
+                == TassadarBroadInternalComputeWorldMountBindingStatus::ProfileSpecificMountTemplateAvailable
+                && publication_row.accepted_outcome_binding_status
+                    == TassadarBroadInternalComputeAcceptedOutcomeBindingStatus::ProfileSpecificAcceptedOutcomeTemplateAvailable =>
+        {
+            TassadarBroadInternalComputeRouteDecisionStatus::PromotedProfileSpecific
+        }
         TassadarBroadInternalComputeProfilePublicationStatus::Suppressed => {
             TassadarBroadInternalComputeRouteDecisionStatus::Suppressed
         }
@@ -282,6 +304,10 @@ fn route_row(
     let note = match decision_status {
         TassadarBroadInternalComputeRouteDecisionStatus::Selected => format!(
             "route `{}` selects profile `{}` because the named profile is the current published lane for these route criteria",
+            route_policy_id, target_profile_id
+        ),
+        TassadarBroadInternalComputeRouteDecisionStatus::PromotedProfileSpecific => format!(
+            "route `{}` promotes profile `{}` as a publicly nameable profile-specific lane with explicit mount and accepted-outcome templates, while still keeping it separate from the current default served profile",
             route_policy_id, target_profile_id
         ),
         TassadarBroadInternalComputeRouteDecisionStatus::Suppressed => format!(
@@ -413,7 +439,12 @@ mod tests {
         assert!(report.rows.iter().any(|row| {
             row.target_profile_id == "tassadar.internal_compute.runtime_support_subset.v1"
                 && row.decision_status
-                    == TassadarBroadInternalComputeRouteDecisionStatus::Suppressed
+                    == TassadarBroadInternalComputeRouteDecisionStatus::PromotedProfileSpecific
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.target_profile_id == "tassadar.internal_compute.deterministic_import_subset.v1"
+                && row.decision_status
+                    == TassadarBroadInternalComputeRouteDecisionStatus::PromotedProfileSpecific
         }));
     }
 

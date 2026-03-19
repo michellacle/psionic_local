@@ -28,9 +28,9 @@
       "portability_posture": "planned",
       "publication_allowed_row_count": 0,
       "missing_required_evidence_refs": [],
-      "world_mount_binding_status": "requires_profile_specific_mount_policy",
-      "accepted_outcome_binding_status": "requires_profile_specific_accepted_outcome_template",
-      "note": "profile `tassadar.internal_compute.deterministic_import_subset.v1` is benchmarked enough to name publicly, but broader mount policy and accepted-outcome templates must stay explicit before it can widen the current served lane"
+      "world_mount_binding_status": "profile_specific_mount_template_available",
+      "accepted_outcome_binding_status": "profile_specific_accepted_outcome_template_available",
+      "note": "profile `tassadar.internal_compute.deterministic_import_subset.v1` stays suppressed as a served capability, but now has explicit profile-specific route, mount, and accepted-outcome templates for bounded public use under named policy and portability envelopes"
     },
     {
       "profile_id": "tassadar.internal_compute.generalized_abi.v1",
@@ -91,9 +91,9 @@
       "portability_posture": "planned",
       "publication_allowed_row_count": 0,
       "missing_required_evidence_refs": [],
-      "world_mount_binding_status": "requires_profile_specific_mount_policy",
-      "accepted_outcome_binding_status": "requires_profile_specific_accepted_outcome_template",
-      "note": "profile `tassadar.internal_compute.runtime_support_subset.v1` is benchmarked enough to name publicly, but broader mount policy and accepted-outcome templates must stay explicit before it can widen the current served lane"
+      "world_mount_binding_status": "profile_specific_mount_template_available",
+      "accepted_outcome_binding_status": "profile_specific_accepted_outcome_template_available",
+      "note": "profile `tassadar.internal_compute.runtime_support_subset.v1` stays suppressed as a served capability, but now has explicit profile-specific route, mount, and accepted-outcome templates for bounded public use under named policy and portability envelopes"
     },
     {
       "profile_id": "tassadar.internal_compute.wider_numeric_data_layout.v1",
@@ -128,5 +128,5 @@
   "compute_market_dependency_marker": "compute-market remains the owner of canonical quote publication, buyer matching, and market-wide broad-profile exposure outside standalone psionic",
   "claim_boundary": "this eval report publishes named broad internal-compute profiles above the current exact-compute family without flattening them into one generic claim. It keeps current served publication, suppressed broader profiles, profile-specific mount posture, and accepted-outcome template posture explicit instead of silently widening one green article lane into broad served or market closure",
   "summary": "Broad internal-compute profile publication now records published_profiles=1, suppressed_profiles=6, failed_profiles=1, current_served_profile=`tassadar.internal_compute.article_closeout.v1`.",
-  "report_digest": "005b84361dddd1e129f8bed30b024d7eabbc5d08e5b329d997801b2584bda351"
+  "report_digest": "e97275c6c640e4a17e33ff4e38ff7a49753c97554e7681ee676dd35254c535a3"
 }

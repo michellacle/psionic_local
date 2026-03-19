@@ -16,12 +16,12 @@
       "publication_allowed_row_count": 0,
       "missing_required_evidence_refs": [],
       "publication_status": "suppressed",
-      "route_decision_status": "suppressed",
-      "world_mount_binding_status": "requires_profile_specific_mount_policy",
-      "accepted_outcome_binding_status": "requires_profile_specific_accepted_outcome_template",
+      "route_decision_status": "promoted_profile_specific",
+      "world_mount_binding_status": "profile_specific_mount_template_available",
+      "accepted_outcome_binding_status": "profile_specific_accepted_outcome_template_available",
       "gate_green": true,
       "served_publication_allowed": false,
-      "detail": "deterministic import subset is promotion-safe to name publicly because deterministic stub replay proofs, refusal posture, route suppression, and profile-specific mount/accepted-outcome policy boundaries are all explicit; it remains suppressed until portability and broader publication criteria go green"
+      "detail": "deterministic import subset is promotion-safe to name publicly because deterministic stub replay proofs, refusal posture, profile-specific public route promotion, and profile-specific mount/accepted-outcome templates are all explicit; it remains separate from the default served profile until portability and broader publication criteria go green"
     },
     {
       "profile_id": "tassadar.internal_compute.runtime_support_subset.v1",
@@ -32,12 +32,12 @@
       "publication_allowed_row_count": 0,
       "missing_required_evidence_refs": [],
       "publication_status": "suppressed",
-      "route_decision_status": "suppressed",
-      "world_mount_binding_status": "requires_profile_specific_mount_policy",
-      "accepted_outcome_binding_status": "requires_profile_specific_accepted_outcome_template",
+      "route_decision_status": "promoted_profile_specific",
+      "world_mount_binding_status": "profile_specific_mount_template_available",
+      "accepted_outcome_binding_status": "profile_specific_accepted_outcome_template_available",
       "gate_green": true,
       "served_publication_allowed": false,
-      "detail": "runtime-support subset is promotion-safe to name publicly because linked-bundle graph truth, helper lineage, start-order replay, refusal posture, and profile-specific mount/accepted-outcome policy boundaries are all explicit; it remains suppressed until portability and broader publication criteria go green"
+      "detail": "runtime-support subset is promotion-safe to name publicly because linked-bundle graph truth, helper lineage, start-order replay, refusal posture, profile-specific public route promotion, and profile-specific mount/accepted-outcome templates are all explicit; it remains separate from the default served profile until portability and broader publication criteria go green"
     }
   ],
   "green_profile_ids": [
@@ -53,5 +53,5 @@
   "compute_market_dependency_marker": "compute-market remains the owner of canonical quote publication, buyer matching, and market-wide broad-profile exposure outside standalone psionic",
   "claim_boundary": "this gate promotes only the deterministic-import subset and runtime-support subset into explicit named-profile publication discipline. A green row means the profile is evidence-complete enough to name publicly while still staying suppressed behind profile-specific mount, accepted-outcome, and market policy; it does not imply broad served publication, arbitrary imports, arbitrary helper/runtime support, or wider internal-compute closure",
   "summary": "Subset profile promotion gate now records green_profiles=2, served_publication_allowed_profiles=0, failed_profiles=0, overall_green=true.",
-  "report_digest": "b38f9a738d8fa1688b69956ef4d00106f2b787816f471d6815908b8a81d77bee"
+  "report_digest": "91246d1f28b45df69a29681547574540cac3805316fc92426cc221e941c3e2b0"
 }
