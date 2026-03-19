@@ -825,6 +825,16 @@ The current scope is:
   refusal on host-nondeterministic scheduling plus relaxed memory-ordering
   regimes; this is not a served threads lane, arbitrary shared-memory
   portability, or general concurrency closure
+- the current proposal-profile ladder artifacts are
+  `fixtures/tassadar/reports/tassadar_proposal_profile_ladder_claim_checker_report.json`
+  and `fixtures/tassadar/reports/tassadar_proposal_profile_route_policy_report.json`,
+  which freeze one disclosure-safe promotion boundary across exceptions,
+  memory64, multi-memory, component-linking, SIMD, and threads, publishing
+  only the named exceptions and SIMD profiles, keeping memory64,
+  multi-memory, and component-linking operator-only, and keeping threads
+  research-only with explicit route refusal; this is not implicit proposal
+  inheritance, a default served proposal lane, arbitrary Wasm, or broad
+  internal-compute publication
 - the current durable process-object artifacts are
   `fixtures/tassadar/reports/tassadar_process_object_report.json` and
   `fixtures/tassadar/runs/tassadar_process_objects_v1/tassadar_process_object_bundle.json`,

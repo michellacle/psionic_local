@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.proposal_profile_ladder_claim_checker.report.v1",
+  "rows": [
+    {
+      "profile_id": "tassadar.proposal_profile.component_linking_interface_types.v1",
+      "profile_family_id": "proposal_family.component_linking",
+      "source_report_ref": "fixtures/tassadar/reports/tassadar_component_linking_profile_report.json",
+      "parity_ready": true,
+      "portability_ready": true,
+      "refusal_ready": true,
+      "named_public_profile_allowed": false,
+      "default_served_profile_allowed": false,
+      "claim_status": "suppressed_operator_only",
+      "detail": "component-linking stays suppressed operator-only because interface-type lowering and refusal truth are explicit but the family still lacks named served-publication posture"
+    },
+    {
+      "profile_id": "tassadar.proposal_profile.exceptions_try_catch_rethrow.v1",
+      "profile_family_id": "proposal_family.exceptions",
+      "source_report_ref": "fixtures/tassadar/reports/tassadar_exception_profile_report.json",
+      "parity_ready": true,
+      "portability_ready": true,
+      "refusal_ready": true,
+      "named_public_profile_allowed": true,
+      "default_served_profile_allowed": false,
+      "claim_status": "published_named_profile",
+      "detail": "exceptions stays claim-safe because throw/catch/rethrow parity, trap-stack parity, refusal truth, and current-host portability are explicit while the default served lane remains empty"
+    },
+    {
+      "profile_id": "tassadar.proposal_profile.memory64_continuation.v1",
+      "profile_family_id": "proposal_family.memory64",
+      "source_report_ref": "fixtures/tassadar/reports/tassadar_memory64_profile_report.json",
+      "parity_ready": true,
+      "portability_ready": true,
+      "refusal_ready": true,
+      "named_public_profile_allowed": false,
+      "default_served_profile_allowed": false,
+      "claim_status": "suppressed_operator_only",
+      "detail": "memory64 stays suppressed operator-only because checkpoint and portability truth are real but there is no named served-publication posture for the profile family"
+    },
+    {
+      "profile_id": "tassadar.proposal_profile.multi_memory_routing.v1",
+      "profile_family_id": "proposal_family.multi_memory",
+      "source_report_ref": "fixtures/tassadar/reports/tassadar_multi_memory_profile_report.json",
+      "parity_ready": true,
+      "portability_ready": true,
+      "refusal_ready": true,
+      "named_public_profile_allowed": false,
+      "default_served_profile_allowed": false,
+      "claim_status": "suppressed_operator_only",
+      "detail": "multi-memory stays suppressed operator-only because exact topology and checkpoint truth are explicit but no public served-profile posture has been earned for the family"
+    },
+    {
+      "profile_id": "tassadar.proposal_profile.simd_deterministic.v1",
+      "profile_family_id": "proposal_family.simd",
+      "source_report_ref": "fixtures/tassadar/reports/tassadar_simd_profile_report.json",
+      "parity_ready": true,
+      "portability_ready": true,
+      "refusal_ready": true,
+      "named_public_profile_allowed": true,
+      "default_served_profile_allowed": false,
+      "claim_status": "published_named_profile",
+      "detail": "SIMD stays claim-safe because the cpu-reference exact row, accelerator fallback rows, and refusal rows are explicit while the default served SIMD lane remains empty"
+    },
+    {
+      "profile_id": "tassadar.research_profile.threads_deterministic_scheduler.v1",
+      "profile_family_id": "proposal_family.threads",
+      "source_report_ref": "fixtures/tassadar/reports/tassadar_threads_research_profile_report.json",
+      "parity_ready": true,
+      "portability_ready": true,
+      "refusal_ready": true,
+      "named_public_profile_allowed": false,
+      "default_served_profile_allowed": false,
+      "claim_status": "suppressed_research_only",
+      "detail": "threads stays research-only because the deterministic scheduler envelope is explicit but the family deliberately has no served-publication posture"
+    }
+  ],
+  "public_profile_ids": [
+    "tassadar.proposal_profile.exceptions_try_catch_rethrow.v1",
+    "tassadar.proposal_profile.simd_deterministic.v1"
+  ],
+  "served_publication_allowed_profile_ids": [
+    "tassadar.proposal_profile.exceptions_try_catch_rethrow.v1",
+    "tassadar.proposal_profile.simd_deterministic.v1"
+  ],
+  "suppressed_profile_ids": [
+    "tassadar.proposal_profile.component_linking_interface_types.v1",
+    "tassadar.proposal_profile.memory64_continuation.v1",
+    "tassadar.proposal_profile.multi_memory_routing.v1"
+  ],
+  "research_only_profile_ids": [
+    "tassadar.research_profile.threads_deterministic_scheduler.v1"
+  ],
+  "failed_profile_ids": [],
+  "default_served_profile_ids": [],
+  "overall_green": true,
+  "claim_boundary": "this claim checker is the disclosure-safe ladder for post-core proposal families. Every profile family must earn its own parity, portability, refusal, and publication posture. Exceptions and SIMD may currently be named publicly; memory64, multi-memory, and component-linking stay suppressed operator-only; threads stays research-only. Nothing here implies arbitrary Wasm, broad internal compute, or implicit proposal inheritance.",
+  "summary": "Proposal-profile ladder claim checker now records public_profiles=2, suppressed_profiles=3, research_only_profiles=1, failed_profiles=0, default_served_profiles=0, overall_green=true.",
+  "report_digest": "f1c150beaf5eb677ae7806e81c199bcea96ffff5e36dc5a008fa59920a957c02"
+}

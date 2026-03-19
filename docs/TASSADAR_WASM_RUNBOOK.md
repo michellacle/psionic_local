@@ -1041,6 +1041,31 @@ Expected outcome:
 - explicit runtime and sandbox refusal parity on relaxed shared-memory ordering
 - `served_publication_allowed = false`
 
+### 15A. Proposal-profile ladder claim checker and served-publication policy
+
+```bash
+cargo run -p psionic-eval --example tassadar_proposal_profile_ladder_claim_checker_report
+cargo run -p psionic-router --example tassadar_proposal_profile_route_policy_report
+```
+
+Read:
+
+- `fixtures/tassadar/reports/tassadar_proposal_profile_ladder_claim_checker_report.json`
+- `fixtures/tassadar/reports/tassadar_proposal_profile_route_policy_report.json`
+
+Expected outcome:
+
+- one disclosure-safe proposal-profile ladder over exceptions, memory64,
+  multi-memory, component-linking, SIMD, and threads
+- only the named public exceptions and SIMD profiles are publishable and
+  routeable as profile-specific lanes
+- memory64, multi-memory, and component-linking stay explicit
+  operator-only suppressed profiles
+- the threads lane stays research-only and route-refused
+- the default served proposal lane remains empty
+- nothing here implies arbitrary Wasm, implicit proposal inheritance, or
+  broader internal-compute publication
+
 ### 16. Durable process snapshot, tape, and work-queue object family
 
 ```bash
