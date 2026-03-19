@@ -29,6 +29,7 @@ This runbook covers the current repo-owned bounded Wasm flow only:
 - checkpointed multi-slice execution receipts
 - linked module-graph and start-order runtime-support receipts
 - deterministic-import and runtime-support subset promotion gate
+- portable broad-family machine matrix and backend/toolchain envelopes
 - memory ABI v2 bulk-memory exactness
 - bounded dynamic-memory pause-and-resume receipts
 - Rust-only article runtime closeout
@@ -369,6 +370,42 @@ Expected outcome:
   publication widening outside standalone `psionic`
 - this does not widen the current served claim beyond
   `tassadar.internal_compute.article_closeout.v1`
+
+### 3B.6. Portable broad-family machine matrix and backend/toolchain envelopes
+
+```bash
+cargo run -p psionic-eval --example tassadar_broad_internal_compute_portability_report
+```
+
+Read:
+
+- `fixtures/tassadar/reports/tassadar_broad_internal_compute_portability_report.json`
+
+Expected outcome:
+
+- one machine-readable portability matrix now freezes broader internal-compute
+  rows across declared backend families, stable toolchain families, and machine
+  classes instead of collapsing portability into one current-host CPU fact
+- the current explicit backend-family set is `cpu_reference`,
+  `metal_served`, and `cuda_served`
+- the current explicit toolchain-family set is
+  `rustc:wasm32-unknown-unknown`,
+  `rustc:wasm32-unknown-unknown+metal_served`, and
+  `rustc:wasm32-unknown-unknown+cuda_served`
+- `tassadar.internal_compute.article_closeout.v1` remains publication-allowed
+  only on the CPU-reference envelope; the corresponding `metal_served` and
+  `cuda_served` rows now stay explicit as
+  `suppressed_backend_envelope_constrained` rather than being silently treated
+  as portable
+- rows outside the declared backend envelope or outside the declared profile
+  envelope remain explicit `suppressed_drifted_outside_envelope`
+- the same backend/toolchain family ids are now carried through served
+  capability publication, provider receipts, and Tassadar environment metadata
+  so operator review and publication review are looking at the same portability
+  envelope
+- this still does not widen the current served claim beyond
+  `tassadar.internal_compute.article_closeout.v1`; it makes portability
+  suppression more explicit instead of making broader publication greener
 
 ### 3C. Hungarian-10x10 Rust-only article reproducer
 

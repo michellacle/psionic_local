@@ -10,6 +10,7 @@ pub enum TassadarBroadInternalComputePortabilityRowStatus {
     PublishedMeasuredCurrentHost,
     PublishedDeclaredClass,
     SuppressedPendingPortabilityEvidence,
+    SuppressedBackendEnvelopeConstrained,
     SuppressedDriftedOutsideEnvelope,
 }
 
@@ -18,6 +19,7 @@ pub enum TassadarBroadInternalComputePortabilityRowStatus {
 pub enum TassadarBroadInternalComputeSuppressionReason {
     PortabilityEvidenceIncomplete,
     ProfileNotImplemented,
+    BackendEnvelopeConstrained,
     OutsideDeclaredEnvelope,
 }
 
@@ -42,6 +44,8 @@ pub struct TassadarBroadInternalComputePortabilityReport {
     pub report_id: String,
     pub current_host_machine_class_id: String,
     pub generated_from_refs: Vec<String>,
+    pub backend_family_ids: Vec<String>,
+    pub toolchain_family_ids: Vec<String>,
     pub rows: Vec<TassadarBroadInternalComputePortabilityRow>,
     pub publication_allowed_profile_ids: Vec<String>,
     pub suppressed_profile_ids: Vec<String>,
@@ -59,6 +63,18 @@ impl TassadarBroadInternalComputePortabilityReport {
     ) -> Self {
         generated_from_refs.sort();
         generated_from_refs.dedup();
+        let backend_family_ids = rows
+            .iter()
+            .map(|row| row.backend_family.clone())
+            .collect::<std::collections::BTreeSet<_>>()
+            .into_iter()
+            .collect::<Vec<_>>();
+        let toolchain_family_ids = rows
+            .iter()
+            .map(|row| row.toolchain_family.clone())
+            .collect::<std::collections::BTreeSet<_>>()
+            .into_iter()
+            .collect::<Vec<_>>();
         let publication_allowed_profile_ids = rows
             .iter()
             .filter(|row| row.publication_allowed)
@@ -80,6 +96,8 @@ impl TassadarBroadInternalComputePortabilityReport {
             report_id: String::from("tassadar.broad_internal_compute_portability.report.v1"),
             current_host_machine_class_id: current_host_machine_class_id.into(),
             generated_from_refs,
+            backend_family_ids,
+            toolchain_family_ids,
             rows,
             publication_allowed_profile_ids,
             suppressed_profile_ids,
@@ -90,7 +108,9 @@ impl TassadarBroadInternalComputePortabilityReport {
             report_digest: String::new(),
         };
         report.summary = format!(
-            "Broad internal-compute portability now records published_rows={}, suppressed_rows={}, published_profiles={}, suppressed_profiles={}, current_host=`{}`.",
+            "Broad internal-compute portability now records backends={}, toolchains={}, published_rows={}, suppressed_rows={}, published_profiles={}, suppressed_profiles={}, current_host=`{}`.",
+            report.backend_family_ids.len(),
+            report.toolchain_family_ids.len(),
             published_row_count,
             suppressed_row_count,
             report.publication_allowed_profile_ids.len(),
@@ -115,8 +135,7 @@ fn stable_digest<T: Serialize>(prefix: &[u8], value: &T) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        TassadarBroadInternalComputePortabilityReport,
-        TassadarBroadInternalComputePortabilityRow,
+        TassadarBroadInternalComputePortabilityReport, TassadarBroadInternalComputePortabilityRow,
         TassadarBroadInternalComputePortabilityRowStatus,
         TassadarBroadInternalComputeSuppressionReason,
     };
@@ -162,6 +181,17 @@ mod tests {
             report.publication_allowed_profile_ids,
             vec![String::from("profile.green")]
         );
-        assert_eq!(report.suppressed_profile_ids, vec![String::from("profile.red")]);
+        assert_eq!(
+            report.suppressed_profile_ids,
+            vec![String::from("profile.red")]
+        );
+        assert_eq!(
+            report.backend_family_ids,
+            vec![String::from("cpu_reference")]
+        );
+        assert_eq!(
+            report.toolchain_family_ids,
+            vec![String::from("rustc-stable")]
+        );
     }
 }

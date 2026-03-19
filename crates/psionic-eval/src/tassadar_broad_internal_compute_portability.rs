@@ -7,20 +7,22 @@ use std::{
 use thiserror::Error;
 
 use psionic_models::{
-    TASSADAR_INTERNAL_COMPUTE_PROFILE_LADDER_REPORT_REF,
-    TassadarInternalComputePortabilityPosture, TassadarInternalComputeProfileStatus,
     tassadar_internal_compute_profile_ladder_publication,
+    TassadarInternalComputePortabilityPosture, TassadarInternalComputeProfileStatus,
+    TASSADAR_INTERNAL_COMPUTE_PROFILE_LADDER_REPORT_REF,
 };
 use psionic_runtime::{
-    TASSADAR_BROAD_INTERNAL_COMPUTE_PORTABILITY_REPORT_REF,
+    build_tassadar_quantization_truth_envelope_runtime_report,
     TassadarBroadInternalComputePortabilityReport, TassadarBroadInternalComputePortabilityRow,
     TassadarBroadInternalComputePortabilityRowStatus,
-    TassadarBroadInternalComputeSuppressionReason,
+    TassadarBroadInternalComputeSuppressionReason, TassadarQuantizationBackendFamily,
+    TassadarQuantizationEnvelopePosture, TASSADAR_BROAD_INTERNAL_COMPUTE_PORTABILITY_REPORT_REF,
+    TASSADAR_QUANTIZATION_TRUTH_ENVELOPE_RUNTIME_REPORT_REF,
 };
 
 use crate::{
-    TASSADAR_ARTICLE_CPU_REPRODUCIBILITY_REPORT_REF,
-    TassadarArticleCpuReproducibilityReportError, build_tassadar_article_cpu_reproducibility_report,
+    build_tassadar_article_cpu_reproducibility_report,
+    TassadarArticleCpuReproducibilityReportError, TASSADAR_ARTICLE_CPU_REPRODUCIBILITY_REPORT_REF,
 };
 
 #[derive(Debug, Error)]
@@ -40,137 +42,229 @@ pub enum TassadarBroadInternalComputePortabilityReportError {
     },
 }
 
-pub fn build_tassadar_broad_internal_compute_portability_report(
-) -> Result<
+pub fn build_tassadar_broad_internal_compute_portability_report() -> Result<
     TassadarBroadInternalComputePortabilityReport,
     TassadarBroadInternalComputePortabilityReportError,
 > {
     let article_report = build_tassadar_article_cpu_reproducibility_report()?;
+    let quantization_report = build_tassadar_quantization_truth_envelope_runtime_report();
     let ladder = tassadar_internal_compute_profile_ladder_publication();
-    let machine_class_ids = article_report
-        .supported_machine_class_ids
-        .iter()
-        .chain(article_report.unsupported_machine_class_ids.iter())
-        .cloned()
-        .collect::<BTreeSet<_>>()
-        .into_iter()
-        .collect::<Vec<_>>();
-    let toolchain_family = format!(
-        "{}:{}:{}",
+    let rust_toolchain_family = format!(
+        "{}:{}",
         article_report.rust_toolchain_identity.compiler_family,
-        article_report.rust_toolchain_identity.compiler_version,
         article_report.rust_toolchain_identity.target,
     );
-    let backend_family = String::from("cpu_reference");
     let current_host_machine_class_id = article_report.matrix.current_host_machine_class_id.clone();
+    let backend_envelopes = backend_envelopes(
+        rust_toolchain_family.as_str(),
+        quantization_report
+            .envelope_receipts
+            .iter()
+            .map(|receipt| (receipt.backend_family, receipt.publication_posture))
+            .collect::<BTreeSet<_>>(),
+    );
 
-    let rows = ladder
-        .profiles
-        .iter()
-        .flat_map(|profile| {
-            machine_class_ids
-                .iter()
-                .cloned()
-                .map(|machine_class_id| {
-                    portability_row_for_profile(
-                        profile,
-                        &machine_class_id,
-                        current_host_machine_class_id.as_str(),
-                        backend_family.as_str(),
-                        toolchain_family.as_str(),
-                        article_report.matrix.current_host_measured_green,
-                    )
-                })
-                .collect::<Vec<_>>()
-        })
-        .collect::<Vec<_>>();
+    let article_supported_machine_class_ids = article_report.supported_machine_class_ids.clone();
+    let current_host_measured_green = article_report.matrix.current_host_measured_green;
+    let mut rows = Vec::new();
+    for profile in &ladder.profiles {
+        for envelope in &backend_envelopes {
+            for machine_class_id in &envelope.machine_class_ids {
+                rows.push(portability_row_for_profile(
+                    profile,
+                    envelope,
+                    machine_class_id,
+                    current_host_machine_class_id.as_str(),
+                    article_supported_machine_class_ids.as_slice(),
+                    current_host_measured_green,
+                ));
+            }
+        }
+    }
 
     Ok(TassadarBroadInternalComputePortabilityReport::new(
         current_host_machine_class_id,
         vec![
             String::from(TASSADAR_ARTICLE_CPU_REPRODUCIBILITY_REPORT_REF),
             String::from(TASSADAR_INTERNAL_COMPUTE_PROFILE_LADDER_REPORT_REF),
+            String::from(TASSADAR_QUANTIZATION_TRUTH_ENVELOPE_RUNTIME_REPORT_REF),
         ],
         rows,
     ))
 }
 
+#[derive(Clone)]
+struct BackendEnvelope {
+    backend_family: String,
+    toolchain_family: String,
+    machine_class_ids: Vec<String>,
+    portable_publication: bool,
+}
+
+fn backend_envelopes(
+    rust_toolchain_family: &str,
+    quantization_envelopes: BTreeSet<(
+        TassadarQuantizationBackendFamily,
+        TassadarQuantizationEnvelopePosture,
+    )>,
+) -> Vec<BackendEnvelope> {
+    let cpu_portable = quantization_envelopes.contains(&(
+        TassadarQuantizationBackendFamily::CpuReference,
+        TassadarQuantizationEnvelopePosture::PublishExact,
+    ));
+    let metal_portable = quantization_envelopes.iter().any(|(backend, posture)| {
+        *backend == TassadarQuantizationBackendFamily::MetalServed
+            && *posture == TassadarQuantizationEnvelopePosture::PublishExact
+    });
+    let cuda_portable = quantization_envelopes.iter().any(|(backend, posture)| {
+        *backend == TassadarQuantizationBackendFamily::CudaServed
+            && *posture == TassadarQuantizationEnvelopePosture::PublishExact
+    });
+
+    vec![
+        BackendEnvelope {
+            backend_family: String::from("cpu_reference"),
+            toolchain_family: String::from(rust_toolchain_family),
+            machine_class_ids: vec![
+                String::from("host_cpu_aarch64"),
+                String::from("host_cpu_x86_64"),
+                String::from("other_host_cpu"),
+            ],
+            portable_publication: cpu_portable,
+        },
+        BackendEnvelope {
+            backend_family: String::from("metal_served"),
+            toolchain_family: format!("{rust_toolchain_family}+metal_served"),
+            machine_class_ids: vec![
+                String::from("host_cpu_aarch64"),
+                String::from("other_host_cpu"),
+            ],
+            portable_publication: metal_portable,
+        },
+        BackendEnvelope {
+            backend_family: String::from("cuda_served"),
+            toolchain_family: format!("{rust_toolchain_family}+cuda_served"),
+            machine_class_ids: vec![
+                String::from("host_cpu_x86_64"),
+                String::from("other_host_cpu"),
+            ],
+            portable_publication: cuda_portable,
+        },
+    ]
+}
+
 fn portability_row_for_profile(
     profile: &psionic_models::TassadarInternalComputeProfileSpec,
+    envelope: &BackendEnvelope,
     machine_class_id: &str,
     current_host_machine_class_id: &str,
-    backend_family: &str,
-    toolchain_family: &str,
+    article_supported_machine_class_ids: &[String],
     current_host_measured_green: bool,
 ) -> TassadarBroadInternalComputePortabilityRow {
-    let supported_machine_class =
-        profile.supported_machine_class_ids.iter().any(|id| id == machine_class_id);
+    let profile_supported_machine_class = profile
+        .supported_machine_class_ids
+        .iter()
+        .any(|id| id == machine_class_id);
+    let backend_supported_machine_class = envelope
+        .machine_class_ids
+        .iter()
+        .any(|id| id == machine_class_id);
     let evidence_complete = required_evidence_refs_resolved(&profile.required_evidence_refs);
     let refusal_suite_complete = !profile.refusal_classes.is_empty();
     let fully_portable = profile.status == TassadarInternalComputeProfileStatus::Implemented
-        && profile.portability_posture == TassadarInternalComputePortabilityPosture::DeclaredCpuMatrix
+        && profile.portability_posture
+            == TassadarInternalComputePortabilityPosture::DeclaredCpuMatrix
         && evidence_complete
         && refusal_suite_complete
-        && supported_machine_class;
+        && profile_supported_machine_class
+        && envelope.backend_family == "cpu_reference"
+        && envelope.portable_publication;
 
-    let (row_status, publication_allowed, suppression_reason, note) = if fully_portable {
-        if machine_class_id == current_host_machine_class_id && current_host_measured_green {
+    let (row_status, publication_allowed, suppression_reason, note) =
+        if !backend_supported_machine_class {
             (
-                TassadarBroadInternalComputePortabilityRowStatus::PublishedMeasuredCurrentHost,
-                true,
-                None,
-                format!(
-                    "profile `{}` is measured green on the current host and stays inside the declared CPU portability envelope",
-                    profile.profile_id
-                ),
-            )
-        } else {
-            (
-                TassadarBroadInternalComputePortabilityRowStatus::PublishedDeclaredClass,
-                true,
-                None,
-                format!(
-                    "profile `{}` is admitted on declared machine class `{}` under the same explicit CPU portability envelope",
-                    profile.profile_id, machine_class_id
-                ),
-            )
-        }
-    } else if !supported_machine_class {
-        (
             TassadarBroadInternalComputePortabilityRowStatus::SuppressedDriftedOutsideEnvelope,
             false,
             Some(TassadarBroadInternalComputeSuppressionReason::OutsideDeclaredEnvelope),
             format!(
-                "profile `{}` is suppressed on `{}` because that machine class drifts outside the declared envelope",
-                profile.profile_id, machine_class_id
+                "profile `{}` is suppressed on backend `{}` / machine `{}` because that machine class drifts outside the declared backend envelope",
+                profile.profile_id, envelope.backend_family, machine_class_id
             ),
         )
-    } else if profile.status != TassadarInternalComputeProfileStatus::Implemented {
-        (
+        } else if fully_portable {
+            if machine_class_id == current_host_machine_class_id && current_host_measured_green {
+                (
+                TassadarBroadInternalComputePortabilityRowStatus::PublishedMeasuredCurrentHost,
+                true,
+                None,
+                format!(
+                    "profile `{}` is measured green on the current host and stays inside the declared `{}` backend envelope",
+                    profile.profile_id, envelope.backend_family
+                ),
+            )
+            } else {
+                (
+                TassadarBroadInternalComputePortabilityRowStatus::PublishedDeclaredClass,
+                true,
+                None,
+                format!(
+                    "profile `{}` is admitted on declared machine class `{}` under the explicit `{}` backend envelope",
+                    profile.profile_id, machine_class_id, envelope.backend_family
+                ),
+            )
+            }
+        } else if !profile_supported_machine_class {
+            (
+            TassadarBroadInternalComputePortabilityRowStatus::SuppressedDriftedOutsideEnvelope,
+            false,
+            Some(TassadarBroadInternalComputeSuppressionReason::OutsideDeclaredEnvelope),
+            format!(
+                "profile `{}` is suppressed on backend `{}` / machine `{}` because that machine class drifts outside the declared profile envelope",
+                profile.profile_id, envelope.backend_family, machine_class_id
+            ),
+        )
+        } else if profile.status != TassadarInternalComputeProfileStatus::Implemented {
+            (
             TassadarBroadInternalComputePortabilityRowStatus::SuppressedPendingPortabilityEvidence,
             false,
             Some(TassadarBroadInternalComputeSuppressionReason::ProfileNotImplemented),
             format!(
-                "profile `{}` remains suppressed because the named profile is still planned rather than implemented",
-                profile.profile_id
+                "profile `{}` remains suppressed on backend `{}` because the named profile is still planned rather than implemented",
+                profile.profile_id, envelope.backend_family
             ),
         )
-    } else {
-        (
+        } else if profile.portability_posture
+            == TassadarInternalComputePortabilityPosture::DeclaredCpuMatrix
+            && envelope.backend_family != "cpu_reference"
+            && article_supported_machine_class_ids
+                .iter()
+                .any(|id| id == machine_class_id)
+        {
+            (
+            TassadarBroadInternalComputePortabilityRowStatus::SuppressedBackendEnvelopeConstrained,
+            false,
+            Some(TassadarBroadInternalComputeSuppressionReason::BackendEnvelopeConstrained),
+            format!(
+                "profile `{}` remains suppressed on backend `{}` / toolchain `{}` because only the CPU-reference portability envelope is currently declared for public promotion",
+                profile.profile_id, envelope.backend_family, envelope.toolchain_family
+            ),
+        )
+        } else {
+            (
             TassadarBroadInternalComputePortabilityRowStatus::SuppressedPendingPortabilityEvidence,
             false,
             Some(TassadarBroadInternalComputeSuppressionReason::PortabilityEvidenceIncomplete),
             format!(
-                "profile `{}` remains suppressed on `{}` because portability posture or required evidence is still incomplete",
-                profile.profile_id, machine_class_id
+                "profile `{}` remains suppressed on backend `{}` / machine `{}` because portability posture or required evidence is still incomplete",
+                profile.profile_id, envelope.backend_family, machine_class_id
             ),
         )
-    };
+        };
 
     TassadarBroadInternalComputePortabilityRow {
         profile_id: profile.profile_id.clone(),
-        backend_family: String::from(backend_family),
-        toolchain_family: String::from(toolchain_family),
+        backend_family: envelope.backend_family.clone(),
+        toolchain_family: envelope.toolchain_family.clone(),
         machine_class_id: String::from(machine_class_id),
         row_status,
         publication_allowed,
@@ -261,28 +355,40 @@ mod tests {
     use psionic_runtime::TassadarBroadInternalComputePortabilityRowStatus;
 
     #[test]
-    fn broad_internal_compute_portability_report_publishes_article_and_suppresses_broader_profiles() {
+    fn broad_internal_compute_portability_report_publishes_article_and_suppresses_broader_profiles()
+    {
         let report = build_tassadar_broad_internal_compute_portability_report().expect("report");
         assert!(report
             .publication_allowed_profile_ids
             .contains(&String::from(
                 "tassadar.internal_compute.article_closeout.v1"
             )));
-        assert!(report
-            .suppressed_profile_ids
-            .contains(&String::from(
-                "tassadar.internal_compute.generalized_abi.v1"
-            )));
+        assert!(report.suppressed_profile_ids.contains(&String::from(
+            "tassadar.internal_compute.generalized_abi.v1"
+        )));
         assert!(report.rows.iter().any(|row| {
             row.profile_id == "tassadar.internal_compute.article_closeout.v1"
                 && row.row_status
                     == TassadarBroadInternalComputePortabilityRowStatus::PublishedMeasuredCurrentHost
         }));
+        assert!(report
+            .backend_family_ids
+            .contains(&String::from("metal_served")));
+        assert!(report
+            .toolchain_family_ids
+            .iter()
+            .any(|id| id.contains("cuda_served")));
+        assert!(report.rows.iter().any(|row| {
+            row.profile_id == "tassadar.internal_compute.article_closeout.v1"
+                && row.backend_family == "metal_served"
+                && row.row_status
+                    == TassadarBroadInternalComputePortabilityRowStatus::SuppressedBackendEnvelopeConstrained
+        }));
     }
 
     #[test]
-    fn broad_internal_compute_portability_report_matches_committed_truth()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn broad_internal_compute_portability_report_matches_committed_truth(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let expected = build_tassadar_broad_internal_compute_portability_report()?;
         let committed = load_tassadar_broad_internal_compute_portability_report(
             tassadar_broad_internal_compute_portability_report_path(),

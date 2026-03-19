@@ -7,6 +7,7 @@
 
 mod tassadar_accepted_outcome_binding;
 mod tassadar_broad_internal_compute_acceptance_gate;
+mod tassadar_broad_internal_compute_portability;
 mod tassadar_broad_internal_compute_profile_publication;
 mod tassadar_composite_accepted_outcome_template;
 mod tassadar_composite_routing;
@@ -48,6 +49,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 pub use tassadar_accepted_outcome_binding::*;
 pub use tassadar_broad_internal_compute_acceptance_gate::*;
+pub use tassadar_broad_internal_compute_portability::*;
 pub use tassadar_broad_internal_compute_profile_publication::*;
 pub use tassadar_composite_accepted_outcome_template::*;
 pub use tassadar_composite_routing::*;
@@ -481,6 +483,8 @@ pub struct TassadarCapabilityEnvelope {
     /// Provider-facing projection of the served broad internal-compute publication.
     pub broad_internal_compute_profile_publication_receipt:
         TassadarBroadInternalComputeProfilePublicationReceipt,
+    /// Provider-facing receipt for the broad internal-compute portability matrix.
+    pub broad_internal_compute_portability_receipt: TassadarBroadInternalComputePortabilityReceipt,
     /// Provider-facing receipt for the resumable multi-slice promotion lane.
     pub resumable_multi_slice_promotion_receipt: TassadarResumableMultiSlicePromotionReceipt,
     /// Provider-facing receipt for deterministic import-mediated effect-safe resume.
@@ -529,6 +533,20 @@ impl TassadarCapabilityEnvelope {
         let broad_internal_compute_profile_publication_receipt =
             TassadarBroadInternalComputeProfilePublicationReceipt::from_publication(
                 &publication.broad_internal_compute_profile_publication,
+            );
+        let broad_internal_compute_portability_report =
+            psionic_eval::build_tassadar_broad_internal_compute_portability_report().map_err(
+                |error| {
+                    TassadarCapabilityEnvelopeError::UnpublishableBroadInternalComputePortability {
+                        detail: format!(
+                            "provider envelope requires a valid broad internal-compute portability report: {error}"
+                        ),
+                    }
+                },
+            )?;
+        let broad_internal_compute_portability_receipt =
+            TassadarBroadInternalComputePortabilityReceipt::from_report(
+                &broad_internal_compute_portability_report,
             );
         let resumable_multi_slice_promotion_report =
             psionic_eval::build_tassadar_resumable_multi_slice_promotion_report().map_err(
@@ -622,12 +640,50 @@ impl TassadarCapabilityEnvelope {
                 },
             );
         }
+        if publication
+            .broad_internal_compute_portability_report_ref
+            .trim()
+            .is_empty()
+            || publication
+                .broad_internal_compute_portability_backend_family_ids
+                .is_empty()
+            || publication
+                .broad_internal_compute_portability_toolchain_family_ids
+                .is_empty()
+            || publication.broad_internal_compute_portability_backend_family_ids
+                != broad_internal_compute_portability_receipt.backend_family_ids
+            || publication.broad_internal_compute_portability_toolchain_family_ids
+                != broad_internal_compute_portability_receipt.toolchain_family_ids
+            || !broad_internal_compute_portability_receipt
+                .publication_allowed_profile_ids
+                .contains(&String::from(
+                    "tassadar.internal_compute.article_closeout.v1",
+                ))
+            || !broad_internal_compute_portability_receipt
+                .backend_family_ids
+                .contains(&String::from("cpu_reference"))
+            || !broad_internal_compute_portability_receipt
+                .backend_family_ids
+                .contains(&String::from("cuda_served"))
+            || !broad_internal_compute_portability_receipt
+                .backend_family_ids
+                .contains(&String::from("metal_served"))
+        {
+            return Err(
+                TassadarCapabilityEnvelopeError::UnpublishableBroadInternalComputePortability {
+                    detail: String::from(
+                        "provider envelope requires a non-empty broad portability ref, non-empty backend/toolchain families, exact agreement with the committed portability report, and explicit cpu/metal/cuda backend envelopes with article-closeout publication still bounded to the committed matrix",
+                    ),
+                },
+            );
+        }
         Ok(Self {
             backend_family: String::from(BACKEND_FAMILY),
             product_id: publication.product_id.clone(),
             runtime_backend: publication.runtime_capability.runtime_backend.clone(),
             publication: publication.clone(),
             broad_internal_compute_profile_publication_receipt,
+            broad_internal_compute_portability_receipt,
             resumable_multi_slice_promotion_receipt,
             effect_safe_resume_receipt,
             subset_profile_promotion_gate_receipt,
@@ -658,6 +714,11 @@ pub enum TassadarCapabilityEnvelopeError {
     },
     /// The served broad internal-compute publication was not publishable provider-side.
     UnpublishableBroadInternalComputeProfilePublication {
+        /// Plain-text validation detail.
+        detail: String,
+    },
+    /// The served broad internal-compute portability matrix was not publishable provider-side.
+    UnpublishableBroadInternalComputePortability {
         /// Plain-text validation detail.
         detail: String,
     },
@@ -8743,6 +8804,18 @@ mod tests {
         assert_eq!(
             encoded["publication"]["subset_profile_promotion_gate_report_ref"],
             json!("fixtures/tassadar/reports/tassadar_subset_profile_promotion_gate_report.json")
+        );
+        assert_eq!(
+            encoded["broad_internal_compute_portability_receipt"]["backend_family_ids"],
+            json!(["cpu_reference", "cuda_served", "metal_served"])
+        );
+        assert_eq!(
+            encoded["broad_internal_compute_portability_receipt"]["toolchain_family_ids"],
+            json!([
+                "rustc:wasm32-unknown-unknown",
+                "rustc:wasm32-unknown-unknown+cuda_served",
+                "rustc:wasm32-unknown-unknown+metal_served"
+            ])
         );
         assert_eq!(
             encoded["effect_safe_resume_receipt"]["target_profile_id"],

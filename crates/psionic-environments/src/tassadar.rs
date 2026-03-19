@@ -1,18 +1,18 @@
 use std::collections::BTreeMap;
 
 use psionic_data::{
-    DatasetKey, TassadarBenchmarkAxis, TassadarBenchmarkFamily, TassadarClrsAlgorithmFamily,
-    TassadarClrsLengthBucket, TassadarClrsTrajectoryFamily, TassadarModuleScaleWorkloadFamily,
-    tassadar_broad_program_family_suite_contract,
+    tassadar_broad_program_family_suite_contract, DatasetKey, TassadarBenchmarkAxis,
+    TassadarBenchmarkFamily, TassadarClrsAlgorithmFamily, TassadarClrsLengthBucket,
+    TassadarClrsTrajectoryFamily, TassadarModuleScaleWorkloadFamily,
 };
 use psionic_models::{
-    TassadarGeneralizedAbiPublication, TassadarInternalComputeProfileClaimCheckResult,
-    TassadarInternalComputeProfileLadderPublication,
-    TassadarRustArticleProfileCompletenessPublication,
     check_tassadar_internal_compute_profile_claim,
     tassadar_current_served_internal_compute_profile_claim, tassadar_generalized_abi_publication,
     tassadar_internal_compute_profile_ladder_publication,
-    tassadar_rust_article_profile_completeness_publication,
+    tassadar_rust_article_profile_completeness_publication, TassadarGeneralizedAbiPublication,
+    TassadarInternalComputeProfileClaimCheckResult,
+    TassadarInternalComputeProfileLadderPublication,
+    TassadarRustArticleProfileCompletenessPublication,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -436,6 +436,10 @@ pub struct TassadarBroadInternalComputePortabilityBinding {
     pub acceptance_gate_ref: String,
     /// Stable broad acceptance-gate report identifier.
     pub acceptance_gate_id: String,
+    /// Backend families carried by the committed portability matrix.
+    pub backend_family_ids: Vec<String>,
+    /// Toolchain families carried by the committed portability matrix.
+    pub toolchain_family_ids: Vec<String>,
     /// Named profiles carried by the binding.
     pub profile_ids: Vec<String>,
 }
@@ -464,6 +468,26 @@ impl TassadarBroadInternalComputePortabilityBinding {
         if self.acceptance_gate_id.trim().is_empty() {
             return Err(TassadarEnvironmentError::MissingBroadInternalComputeAcceptanceGateId);
         }
+        if self.backend_family_ids.is_empty() {
+            return Err(TassadarEnvironmentError::MissingBroadInternalComputeBackendFamilyIds);
+        }
+        if self
+            .backend_family_ids
+            .iter()
+            .any(|backend_family_id| backend_family_id.trim().is_empty())
+        {
+            return Err(TassadarEnvironmentError::InvalidBroadInternalComputeBackendFamilyId);
+        }
+        if self.toolchain_family_ids.is_empty() {
+            return Err(TassadarEnvironmentError::MissingBroadInternalComputeToolchainFamilyIds);
+        }
+        if self
+            .toolchain_family_ids
+            .iter()
+            .any(|toolchain_family_id| toolchain_family_id.trim().is_empty())
+        {
+            return Err(TassadarEnvironmentError::InvalidBroadInternalComputeToolchainFamilyId);
+        }
         if self.profile_ids.is_empty() {
             return Err(TassadarEnvironmentError::MissingBroadInternalComputeProfileIds);
         }
@@ -481,8 +505,8 @@ impl TassadarBroadInternalComputePortabilityBinding {
 /// Returns the canonical broader internal-compute portability binding reused by
 /// Tassadar environment surfaces.
 #[must_use]
-pub fn default_tassadar_broad_internal_compute_portability_binding()
--> TassadarBroadInternalComputePortabilityBinding {
+pub fn default_tassadar_broad_internal_compute_portability_binding(
+) -> TassadarBroadInternalComputePortabilityBinding {
     TassadarBroadInternalComputePortabilityBinding {
         report_ref: String::from(
             "fixtures/tassadar/reports/tassadar_broad_internal_compute_portability_report.json",
@@ -494,6 +518,16 @@ pub fn default_tassadar_broad_internal_compute_portability_binding()
         acceptance_gate_id: String::from(
             "tassadar.broad_internal_compute_acceptance_gate.report.v1",
         ),
+        backend_family_ids: vec![
+            String::from("cpu_reference"),
+            String::from("cuda_served"),
+            String::from("metal_served"),
+        ],
+        toolchain_family_ids: vec![
+            String::from("rustc:wasm32-unknown-unknown"),
+            String::from("rustc:wasm32-unknown-unknown+cuda_served"),
+            String::from("rustc:wasm32-unknown-unknown+metal_served"),
+        ],
         profile_ids: vec![
             String::from("tassadar.internal_compute.article_closeout.v1"),
             String::from("tassadar.internal_compute.generalized_abi.v1"),
@@ -1345,9 +1379,10 @@ impl TassadarEnvironmentSpec {
                     pin_alias: self.package_refs.benchmark_pin_alias.clone(),
                     surfaces: vec![EnvironmentUsageSurface::Benchmark],
                     required_workloads: vec![EnvironmentWorkloadClass::ValidatorBenchmark],
-                    required_benchmark_profiles: vec![
-                        self.package_refs.benchmark_profile_ref.clone(),
-                    ],
+                    required_benchmark_profiles: vec![self
+                        .package_refs
+                        .benchmark_profile_ref
+                        .clone()],
                 },
             ],
         }
@@ -1437,7 +1472,9 @@ pub enum TassadarEnvironmentError {
     #[error("Tassadar environment spec is missing the benchmark dataset binding")]
     MissingBenchmarkDataset,
     /// Missing benchmark package-set ref.
-    #[error("Tassadar environment spec is missing `benchmark_package_set_binding.package_set_ref`")]
+    #[error(
+        "Tassadar environment spec is missing `benchmark_package_set_binding.package_set_ref`"
+    )]
     MissingBenchmarkPackageSetRef,
     /// Missing benchmark package-set version.
     #[error(
@@ -1529,6 +1566,26 @@ pub enum TassadarEnvironmentError {
         "Tassadar environment spec is missing `broad_internal_compute_portability_binding.acceptance_gate_id`"
     )]
     MissingBroadInternalComputeAcceptanceGateId,
+    /// Missing broad internal-compute backend families.
+    #[error(
+        "Tassadar environment spec is missing `broad_internal_compute_portability_binding.backend_family_ids`"
+    )]
+    MissingBroadInternalComputeBackendFamilyIds,
+    /// Invalid broad internal-compute backend family id.
+    #[error(
+        "Tassadar environment spec includes an empty broad internal-compute backend family id"
+    )]
+    InvalidBroadInternalComputeBackendFamilyId,
+    /// Missing broad internal-compute toolchain families.
+    #[error(
+        "Tassadar environment spec is missing `broad_internal_compute_portability_binding.toolchain_family_ids`"
+    )]
+    MissingBroadInternalComputeToolchainFamilyIds,
+    /// Invalid broad internal-compute toolchain family id.
+    #[error(
+        "Tassadar environment spec includes an empty broad internal-compute toolchain family id"
+    )]
+    InvalidBroadInternalComputeToolchainFamilyId,
     /// Missing broad internal-compute profile ids.
     #[error(
         "Tassadar environment spec is missing `broad_internal_compute_portability_binding.profile_ids`"
@@ -1577,7 +1634,9 @@ pub enum TassadarEnvironmentError {
     #[error("Tassadar environment spec includes an empty Wasm conformance case family id")]
     InvalidWasmConformanceCaseFamilyId,
     /// Missing module-scale suite ref.
-    #[error("Tassadar environment spec is missing `module_scale_workload_suite_binding.suite_ref`")]
+    #[error(
+        "Tassadar environment spec is missing `module_scale_workload_suite_binding.suite_ref`"
+    )]
     MissingModuleScaleSuiteRef,
     /// Missing module-scale suite version.
     #[error(
@@ -2065,6 +2124,28 @@ mod tests {
         );
         assert_eq!(
             bundle
+                .broad_internal_compute_portability_binding
+                .as_ref()
+                .map(|binding| binding.backend_family_ids.clone()),
+            Some(vec![
+                String::from("cpu_reference"),
+                String::from("cuda_served"),
+                String::from("metal_served"),
+            ])
+        );
+        assert_eq!(
+            bundle
+                .broad_internal_compute_portability_binding
+                .as_ref()
+                .map(|binding| binding.toolchain_family_ids.clone()),
+            Some(vec![
+                String::from("rustc:wasm32-unknown-unknown"),
+                String::from("rustc:wasm32-unknown-unknown+cuda_served"),
+                String::from("rustc:wasm32-unknown-unknown+metal_served"),
+            ])
+        );
+        assert_eq!(
+            bundle
                 .architecture_bakeoff_binding
                 .as_ref()
                 .map(|binding| binding.workload_family_ids.len()),
@@ -2075,8 +2156,8 @@ mod tests {
     }
 
     #[test]
-    fn tassadar_environment_bundle_carries_optional_module_scale_suite_binding()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn tassadar_environment_bundle_carries_optional_module_scale_suite_binding(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut spec = sample_spec();
         spec.module_scale_workload_suite_binding = Some(TassadarModuleScaleWorkloadSuiteBinding {
             suite_ref: String::from("benchmark-suite://openagents/tassadar/module_scale"),
@@ -2119,8 +2200,8 @@ mod tests {
     }
 
     #[test]
-    fn tassadar_environment_bundle_carries_optional_clrs_wasm_bridge_binding()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn tassadar_environment_bundle_carries_optional_clrs_wasm_bridge_binding(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut spec = sample_spec();
         spec.clrs_wasm_bridge_binding = Some(TassadarClrsWasmBridgeBinding {
             bridge_ref: String::from("benchmark-bridge://openagents/tassadar/clrs_wasm"),

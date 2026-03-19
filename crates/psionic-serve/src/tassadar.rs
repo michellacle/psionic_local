@@ -87,6 +87,10 @@ pub struct TassadarExecutorCapabilityPublication {
     pub internal_compute_profile_claim_check: TassadarInternalComputeProfileClaimCheckResult,
     /// Broad internal-compute portability report bound to the served lane.
     pub broad_internal_compute_portability_report_ref: String,
+    /// Backend families currently carried by the broad internal-compute portability matrix.
+    pub broad_internal_compute_portability_backend_family_ids: Vec<String>,
+    /// Toolchain families currently carried by the broad internal-compute portability matrix.
+    pub broad_internal_compute_portability_toolchain_family_ids: Vec<String>,
     /// Broad internal-compute acceptance gate bound to the served lane.
     pub broad_internal_compute_acceptance_gate_report_ref: String,
     /// Broad internal-compute profile publication and current route selection.
@@ -496,6 +500,16 @@ impl LocalTassadarExecutorService {
         .map_err(|error| {
             TassadarExecutorCapabilityPublicationError::InvalidQuantizationTruthEnvelope { error }
         })?;
+        let broad_internal_compute_portability_report =
+            psionic_eval::build_tassadar_broad_internal_compute_portability_report().map_err(
+                |error| {
+                    TassadarExecutorCapabilityPublicationError::InvalidBroadInternalComputeProfilePublication {
+                        detail: format!(
+                            "invalid broad internal-compute portability report: {error}"
+                        ),
+                    }
+                },
+            )?;
         let broad_internal_compute_profile_publication =
             crate::build_tassadar_broad_internal_compute_profile_publication().map_err(
                 |error| {
@@ -534,6 +548,10 @@ impl LocalTassadarExecutorService {
             broad_internal_compute_portability_report_ref: String::from(
                 psionic_runtime::TASSADAR_BROAD_INTERNAL_COMPUTE_PORTABILITY_REPORT_REF,
             ),
+            broad_internal_compute_portability_backend_family_ids:
+                broad_internal_compute_portability_report.backend_family_ids,
+            broad_internal_compute_portability_toolchain_family_ids:
+                broad_internal_compute_portability_report.toolchain_family_ids,
             broad_internal_compute_acceptance_gate_report_ref: String::from(
                 psionic_eval::TASSADAR_BROAD_INTERNAL_COMPUTE_ACCEPTANCE_GATE_REPORT_REF,
             ),
@@ -5537,6 +5555,28 @@ mod tests {
                 "fixtures/tassadar/reports/tassadar_broad_internal_compute_portability_report.json"
             )
         );
+        let backend_families = encoded["broad_internal_compute_portability_backend_family_ids"]
+            .as_array()
+            .expect("backend family ids should encode as an array")
+            .iter()
+            .cloned()
+            .collect::<Vec<_>>();
+        assert!(backend_families.contains(&serde_json::json!("cpu_reference")));
+        assert!(backend_families.contains(&serde_json::json!("metal_served")));
+        assert!(backend_families.contains(&serde_json::json!("cuda_served")));
+        let toolchain_families = encoded["broad_internal_compute_portability_toolchain_family_ids"]
+            .as_array()
+            .expect("toolchain family ids should encode as an array")
+            .iter()
+            .cloned()
+            .collect::<Vec<_>>();
+        assert!(toolchain_families.contains(&serde_json::json!("rustc:wasm32-unknown-unknown")));
+        assert!(toolchain_families.contains(&serde_json::json!(
+            "rustc:wasm32-unknown-unknown+metal_served"
+        )));
+        assert!(toolchain_families.contains(&serde_json::json!(
+            "rustc:wasm32-unknown-unknown+cuda_served"
+        )));
         assert_eq!(
             encoded["broad_internal_compute_acceptance_gate_report_ref"],
             serde_json::json!(
