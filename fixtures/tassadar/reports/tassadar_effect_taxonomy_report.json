@@ -57,6 +57,15 @@
   },
   "sandbox_effect_boundary": {
     "boundary_id": "tassadar.sandbox_effect_boundary.v1",
+    "continuation_safe_effect_refs": [
+      "env.clock_stub"
+    ],
+    "continuation_refused_effect_refs": [
+      "state.counter_slot_read",
+      "sandbox.math_eval",
+      "input.relay_sample",
+      "host.fs_write"
+    ],
     "durable_state_profiles": [
       {
         "profile_id": "tassadar.sandbox_durable_state.state.counter_slot_read.v1",
@@ -323,5 +332,5 @@
   ],
   "claim_boundary": "this eval report widens the former narrow import matrix into a typed effect taxonomy with explicit receipts and replay limits. It keeps deterministic internal stubs, host-backed state, sandbox delegation, receipt-bound nondeterministic inputs, and refused unsafe side effects distinct instead of flattening them into one implicit host-behavior bucket",
   "summary": "Effect taxonomy report covers 8 negotiated cases with admitted=4, refused=4, and category coverage internal=1, host_state=2, sandbox_delegation=2, receipt_bound_input=2, refused_side_effect=1.",
-  "report_digest": "65692d21f6c2687bd76661f6c6b47dc37853f2f3708ba8468fe57842460e0614"
+  "report_digest": "af652c3b714fa2a30c94344bafa249fb4b17746c3e415f2e964b269af1283f66"
 }

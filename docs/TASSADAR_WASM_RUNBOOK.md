@@ -275,6 +275,35 @@ Expected outcome:
   grant general side-effect authority and it does not collapse host-backed or
   delegated behavior into the internal exact-compute claim
 
+### 3B.3. Deterministic import-mediated continuation and effect-safe resume
+
+```bash
+cargo run -p psionic-eval --example tassadar_effect_safe_resume_report
+```
+
+Read:
+
+- `fixtures/tassadar/reports/tassadar_effect_safe_resume_report.json`
+- `fixtures/tassadar/runs/tassadar_effect_safe_resume_v1/tassadar_effect_safe_resume_bundle.json`
+
+Expected outcome:
+
+- one machine-readable joined report now promotes the resumable base lane only
+  into the deterministic import subset
+- exact resumable continuation is explicit only for deterministic internal stub
+  receipts over the committed recursive and multi-function seeded checkpoints
+- host-backed state, sandbox delegation, receipt-bound nondeterministic input,
+  and unsafe side effects remain typed refusals for this target profile even
+  when the broader effect taxonomy can classify them
+- the sandbox effect boundary now makes continuation-safe versus
+  continuation-refused effect refs machine-legible
+- the named profile `tassadar.internal_compute.deterministic_import_subset.v1`
+  is now benchmarked and implemented in the internal-compute ladder, but it
+  remains non-portable and non-promoted until broader portability evidence
+  exists
+- this does not widen the current served claim beyond
+  `tassadar.internal_compute.article_closeout.v1`
+
 ### 3C. Hungarian-10x10 Rust-only article reproducer
 
 ```bash

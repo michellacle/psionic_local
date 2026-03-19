@@ -1,0 +1,274 @@
+{
+  "schema_version": 1,
+  "bundle_id": "tassadar.effect_safe_resume.bundle.v1",
+  "target_profile_id": "tassadar.internal_compute.deterministic_import_subset.v1",
+  "base_profile_id": "tassadar.internal_compute.resumable_multi_slice.v1",
+  "base_run_root_ref": "fixtures/tassadar/runs/tassadar_call_frame_resume_v1",
+  "continuation_safe_effect_refs": [
+    "env.clock_stub"
+  ],
+  "continuation_refused_effect_refs": [
+    "host.fs_write",
+    "input.relay_sample",
+    "sandbox.math_eval",
+    "state.counter_slot_read"
+  ],
+  "case_receipts": [
+    {
+      "case_id": "multi_function_pause_after_direct_call.clock_stub",
+      "target_profile_id": "tassadar.internal_compute.deterministic_import_subset.v1",
+      "base_profile_id": "tassadar.internal_compute.resumable_multi_slice.v1",
+      "base_case_id": "multi_function_pause_after_direct_call",
+      "checkpoint_id": "multi_function_pause_after_direct_call.checkpoint.v1",
+      "effect_request": {
+        "request_id": "req.effect_safe_resume.clock_stub.multi_function",
+        "effect_ref": "env.clock_stub",
+        "allow_external_delegation": false,
+        "policy_allows_delegation": false,
+        "state_snapshot_present": false,
+        "durable_state_receipt_present": false,
+        "sandbox_descriptor_present": false,
+        "challenge_receipt_present": false,
+        "nondeterministic_input_receipt_present": false,
+        "replay_attempt": 9
+      },
+      "decision_status": "admitted",
+      "effect_receipt": {
+        "request_id": "req.effect_safe_resume.clock_stub.multi_function",
+        "effect_ref": "env.clock_stub",
+        "effect_class": "deterministic_internal_stub",
+        "execution_boundary": "internal_only",
+        "replay_posture": "exact_replay",
+        "replay_limit": {
+          "max_replays": 4096,
+          "observed_replay_attempt": 9,
+          "state_snapshot_required": false,
+          "durable_state_receipt_required": false,
+          "sandbox_challenge_receipt_required": false,
+          "nondeterministic_input_receipt_required": false
+        },
+        "evidence_refs": [
+          "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json"
+        ],
+        "route_label": "internal_exact_effect",
+        "note": "deterministic zero-side-effect stub stays inside the internal exact-compute lane",
+        "receipt_digest": "891d5a5cfd2bc605759dae185b97574c5b7b420a26ac049084534cd22820d520"
+      },
+      "exact_resume_parity": true,
+      "note": "deterministic stub receipts keep multi-function continuation exact without widening the target profile into host-backed or delegated effects",
+      "receipt_digest": "0bd655b827b4ad2f3c533159d69c97d760441bf10d72968101a9bfa57f6b6ca0"
+    },
+    {
+      "case_id": "multi_function_pause_after_direct_call.sandbox_math_eval",
+      "target_profile_id": "tassadar.internal_compute.deterministic_import_subset.v1",
+      "base_profile_id": "tassadar.internal_compute.resumable_multi_slice.v1",
+      "base_case_id": "multi_function_pause_after_direct_call",
+      "checkpoint_id": "multi_function_pause_after_direct_call.checkpoint.v1",
+      "effect_request": {
+        "request_id": "req.effect_safe_resume.sandbox.refused",
+        "effect_ref": "sandbox.math_eval",
+        "allow_external_delegation": true,
+        "policy_allows_delegation": true,
+        "state_snapshot_present": false,
+        "durable_state_receipt_present": false,
+        "sandbox_descriptor_present": true,
+        "challenge_receipt_present": true,
+        "nondeterministic_input_receipt_present": false,
+        "replay_attempt": 1
+      },
+      "decision_status": "refused",
+      "effect_receipt": {
+        "request_id": "req.effect_safe_resume.sandbox.refused",
+        "effect_ref": "sandbox.math_eval",
+        "effect_class": "external_sandbox_delegation",
+        "execution_boundary": "sandbox_delegation_only",
+        "replay_posture": "challengeable_delegation",
+        "replay_limit": {
+          "max_replays": 1,
+          "observed_replay_attempt": 1,
+          "state_snapshot_required": false,
+          "durable_state_receipt_required": false,
+          "sandbox_challenge_receipt_required": true,
+          "nondeterministic_input_receipt_required": false
+        },
+        "evidence_refs": [
+          "receipt://sandbox/math_eval.descriptor",
+          "receipt://sandbox/math_eval.challenge"
+        ],
+        "route_label": "sandbox_delegated_effect",
+        "note": "sandbox math evaluation stays explicit delegation with challengeable evidence instead of being rebranded as internal compute",
+        "receipt_digest": "b6c4ca735d377f3f01da69fa78816f3718d9f0f35af8a0c43e9a4e9bb6aa3231"
+      },
+      "refusal_kind": "external_delegation_unsupported",
+      "exact_resume_parity": false,
+      "note": "sandbox delegation remains challengeable external execution and is not silently rebranded as deterministic internal continuation",
+      "receipt_digest": "262f64383564ebb5ada6a4dbdc99afe5edcc7589257c089b8a53bbfd2f71e169"
+    },
+    {
+      "case_id": "multi_function_pause_after_direct_call.unsafe_effect",
+      "target_profile_id": "tassadar.internal_compute.deterministic_import_subset.v1",
+      "base_profile_id": "tassadar.internal_compute.resumable_multi_slice.v1",
+      "base_case_id": "multi_function_pause_after_direct_call",
+      "checkpoint_id": "multi_function_pause_after_direct_call.checkpoint.v1",
+      "effect_request": {
+        "request_id": "req.effect_safe_resume.unsafe.refused",
+        "effect_ref": "host.fs_write",
+        "allow_external_delegation": false,
+        "policy_allows_delegation": false,
+        "state_snapshot_present": false,
+        "durable_state_receipt_present": false,
+        "sandbox_descriptor_present": false,
+        "challenge_receipt_present": false,
+        "nondeterministic_input_receipt_present": false,
+        "replay_attempt": 1
+      },
+      "decision_status": "refused",
+      "refusal_kind": "taxonomy_refused_unsafe_effect",
+      "taxonomy_refusal_reason": "unsafe_effect_class",
+      "exact_resume_parity": false,
+      "note": "unsafe side effects remain refused by the taxonomy before continuation policy can even consider them",
+      "receipt_digest": "fb2ede63511de5ac0f1c1e5ea7e5618fc092b2d7b30f0e6f15a06b5a4fcb2630"
+    },
+    {
+      "case_id": "recursive_sum_pause_mid_stack.clock_stub",
+      "target_profile_id": "tassadar.internal_compute.deterministic_import_subset.v1",
+      "base_profile_id": "tassadar.internal_compute.resumable_multi_slice.v1",
+      "base_case_id": "recursive_sum_pause_mid_stack",
+      "checkpoint_id": "recursive_sum_pause_mid_stack.checkpoint.v1",
+      "effect_request": {
+        "request_id": "req.effect_safe_resume.clock_stub.recursive_sum",
+        "effect_ref": "env.clock_stub",
+        "allow_external_delegation": false,
+        "policy_allows_delegation": false,
+        "state_snapshot_present": false,
+        "durable_state_receipt_present": false,
+        "sandbox_descriptor_present": false,
+        "challenge_receipt_present": false,
+        "nondeterministic_input_receipt_present": false,
+        "replay_attempt": 12
+      },
+      "decision_status": "admitted",
+      "effect_receipt": {
+        "request_id": "req.effect_safe_resume.clock_stub.recursive_sum",
+        "effect_ref": "env.clock_stub",
+        "effect_class": "deterministic_internal_stub",
+        "execution_boundary": "internal_only",
+        "replay_posture": "exact_replay",
+        "replay_limit": {
+          "max_replays": 4096,
+          "observed_replay_attempt": 12,
+          "state_snapshot_required": false,
+          "durable_state_receipt_required": false,
+          "sandbox_challenge_receipt_required": false,
+          "nondeterministic_input_receipt_required": false
+        },
+        "evidence_refs": [
+          "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json"
+        ],
+        "route_label": "internal_exact_effect",
+        "note": "deterministic zero-side-effect stub stays inside the internal exact-compute lane",
+        "receipt_digest": "131309d397b81ec3f93713a9daa6332913b853739bdd29c98d3f144cc20c099c"
+      },
+      "exact_resume_parity": true,
+      "note": "deterministic internal stubs stay admissible for resumable continuation because their receipts preserve the exact base replay contract",
+      "receipt_digest": "9dd7192df0a35cdc89d104eb711bfc407a0abc7b1cb07985e36b5b5162e86bac"
+    },
+    {
+      "case_id": "recursive_sum_pause_mid_stack.input_relay_sample",
+      "target_profile_id": "tassadar.internal_compute.deterministic_import_subset.v1",
+      "base_profile_id": "tassadar.internal_compute.resumable_multi_slice.v1",
+      "base_case_id": "recursive_sum_pause_mid_stack",
+      "checkpoint_id": "recursive_sum_pause_mid_stack.checkpoint.v1",
+      "effect_request": {
+        "request_id": "req.effect_safe_resume.input.refused",
+        "effect_ref": "input.relay_sample",
+        "allow_external_delegation": false,
+        "policy_allows_delegation": false,
+        "state_snapshot_present": false,
+        "durable_state_receipt_present": false,
+        "sandbox_descriptor_present": false,
+        "challenge_receipt_present": false,
+        "nondeterministic_input_receipt_present": true,
+        "replay_attempt": 1
+      },
+      "decision_status": "refused",
+      "effect_receipt": {
+        "request_id": "req.effect_safe_resume.input.refused",
+        "effect_ref": "input.relay_sample",
+        "effect_class": "bounded_nondeterministic_input",
+        "execution_boundary": "receipt_bound_nondeterministic",
+        "replay_posture": "receipt_bound_replay",
+        "replay_limit": {
+          "max_replays": 1,
+          "observed_replay_attempt": 1,
+          "state_snapshot_required": false,
+          "durable_state_receipt_required": false,
+          "sandbox_challenge_receipt_required": false,
+          "nondeterministic_input_receipt_required": true
+        },
+        "evidence_refs": [
+          "receipt://tassadar/input.relay_sample.window"
+        ],
+        "route_label": "receipt_bound_input",
+        "note": "bounded nondeterministic relay input is admissible only when the observed value is bound to an explicit receipt window",
+        "receipt_digest": "dee21f31dd257745ea3cc92275b6a02638bfda6a64198452dcaf2586427fc6ee"
+      },
+      "refusal_kind": "nondeterministic_input_unsupported",
+      "exact_resume_parity": false,
+      "note": "receipt-bound nondeterministic input remains explicit but outside the deterministic import subset for exact resumable continuation",
+      "receipt_digest": "df42e294b50f9b8cf10752bff68314f17bc59501b78ddfdd9eef0c785505e102"
+    },
+    {
+      "case_id": "recursive_sum_pause_mid_stack.state_counter_slot_read",
+      "target_profile_id": "tassadar.internal_compute.deterministic_import_subset.v1",
+      "base_profile_id": "tassadar.internal_compute.resumable_multi_slice.v1",
+      "base_case_id": "recursive_sum_pause_mid_stack",
+      "checkpoint_id": "recursive_sum_pause_mid_stack.checkpoint.v1",
+      "effect_request": {
+        "request_id": "req.effect_safe_resume.host_state.refused",
+        "effect_ref": "state.counter_slot_read",
+        "allow_external_delegation": false,
+        "policy_allows_delegation": false,
+        "state_snapshot_present": true,
+        "durable_state_receipt_present": true,
+        "sandbox_descriptor_present": false,
+        "challenge_receipt_present": false,
+        "nondeterministic_input_receipt_present": false,
+        "replay_attempt": 1
+      },
+      "decision_status": "refused",
+      "effect_receipt": {
+        "request_id": "req.effect_safe_resume.host_state.refused",
+        "effect_ref": "state.counter_slot_read",
+        "effect_class": "deterministic_host_state",
+        "execution_boundary": "host_state_only",
+        "replay_posture": "snapshot_bounded_replay",
+        "replay_limit": {
+          "max_replays": 3,
+          "observed_replay_attempt": 1,
+          "state_snapshot_required": true,
+          "durable_state_receipt_required": true,
+          "sandbox_challenge_receipt_required": false,
+          "nondeterministic_input_receipt_required": false
+        },
+        "evidence_refs": [
+          "receipt://tassadar/state.counter_slot.snapshot",
+          "receipt://tassadar/state.counter_slot.read"
+        ],
+        "route_label": "host_state_replay_bound",
+        "note": "deterministic host-backed counter state is admissible only with explicit snapshots and durable-state receipts",
+        "receipt_digest": "223c1803767744d1fa1e88e136a76a9211d131dbc3644272975a449d16f0ac4d"
+      },
+      "refusal_kind": "host_state_unsupported",
+      "exact_resume_parity": false,
+      "note": "host-backed state stays outside the deterministic import subset even when a snapshot and durable-state receipt exist",
+      "receipt_digest": "7f19bb5afaeea31651a1fe1d068afd2da43bce1cf83d6b06210e6e0e480a1c0c"
+    }
+  ],
+  "admitted_case_count": 2,
+  "refusal_case_count": 4,
+  "kernel_policy_dependency_marker": "kernel-policy remains the authority owner for settlement-grade effect admission outside standalone psionic",
+  "world_mount_dependency_marker": "world-mounts remain the authority owner for task-scoped effect admission outside standalone psionic",
+  "claim_boundary": "this bundle promotes the resumable call-frame lane only into a deterministic-import subset. It admits exact resumable continuation for deterministic internal stubs with explicit effect receipts and keeps host-backed state, sandbox delegation, bounded nondeterministic input, and unsafe side effects on typed refusal paths.",
+  "bundle_digest": "bade6524ea13be5ebdb2fa463a1e5f2207f8a8f0c837c6c53a12c8ce3d2fd318"
+}

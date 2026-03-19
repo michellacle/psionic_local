@@ -1,0 +1,21 @@
+{
+  "request_id": "req.effect_safe_resume.clock_stub.recursive_sum",
+  "effect_ref": "env.clock_stub",
+  "effect_class": "deterministic_internal_stub",
+  "execution_boundary": "internal_only",
+  "replay_posture": "exact_replay",
+  "replay_limit": {
+    "max_replays": 4096,
+    "observed_replay_attempt": 12,
+    "state_snapshot_required": false,
+    "durable_state_receipt_required": false,
+    "sandbox_challenge_receipt_required": false,
+    "nondeterministic_input_receipt_required": false
+  },
+  "evidence_refs": [
+    "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json"
+  ],
+  "route_label": "internal_exact_effect",
+  "note": "deterministic zero-side-effect stub stays inside the internal exact-compute lane",
+  "receipt_digest": "131309d397b81ec3f93713a9daa6332913b853739bdd29c98d3f144cc20c099c"
+}

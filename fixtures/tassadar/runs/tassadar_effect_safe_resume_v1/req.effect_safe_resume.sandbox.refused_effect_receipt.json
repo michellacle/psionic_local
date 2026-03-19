@@ -1,0 +1,22 @@
+{
+  "request_id": "req.effect_safe_resume.sandbox.refused",
+  "effect_ref": "sandbox.math_eval",
+  "effect_class": "external_sandbox_delegation",
+  "execution_boundary": "sandbox_delegation_only",
+  "replay_posture": "challengeable_delegation",
+  "replay_limit": {
+    "max_replays": 1,
+    "observed_replay_attempt": 1,
+    "state_snapshot_required": false,
+    "durable_state_receipt_required": false,
+    "sandbox_challenge_receipt_required": true,
+    "nondeterministic_input_receipt_required": false
+  },
+  "evidence_refs": [
+    "receipt://sandbox/math_eval.descriptor",
+    "receipt://sandbox/math_eval.challenge"
+  ],
+  "route_label": "sandbox_delegated_effect",
+  "note": "sandbox math evaluation stays explicit delegation with challengeable evidence instead of being rebranded as internal compute",
+  "receipt_digest": "b6c4ca735d377f3f01da69fa78816f3718d9f0f35af8a0c43e9a4e9bb6aa3231"
+}

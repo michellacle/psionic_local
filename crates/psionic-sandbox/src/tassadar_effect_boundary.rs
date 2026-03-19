@@ -27,6 +27,10 @@ pub struct TassadarSandboxDurableStateImportProfile {
 pub struct TassadarSandboxEffectBoundary {
     /// Stable boundary identifier.
     pub boundary_id: String,
+    /// Effect refs admitted for deterministic effect-safe continuation.
+    pub continuation_safe_effect_refs: Vec<String>,
+    /// Effect refs that stay outside deterministic effect-safe continuation.
+    pub continuation_refused_effect_refs: Vec<String>,
     /// Durable-state profiles admitted by the sandbox boundary.
     pub durable_state_profiles: Vec<TassadarSandboxDurableStateImportProfile>,
     /// Effect refs that require explicit sandbox delegation.
@@ -78,8 +82,22 @@ pub fn tassadar_sandbox_effect_boundary() -> TassadarSandboxEffectBoundary {
         .filter(|entry| entry.effect_class == TassadarEffectClass::UnsafeSideEffect)
         .map(|entry| entry.effect_ref.clone())
         .collect::<Vec<_>>();
+    let continuation_safe_effect_refs = taxonomy
+        .entries
+        .iter()
+        .filter(|entry| entry.effect_class == TassadarEffectClass::DeterministicInternalStub)
+        .map(|entry| entry.effect_ref.clone())
+        .collect::<Vec<_>>();
+    let continuation_refused_effect_refs = taxonomy
+        .entries
+        .iter()
+        .filter(|entry| entry.effect_class != TassadarEffectClass::DeterministicInternalStub)
+        .map(|entry| entry.effect_ref.clone())
+        .collect::<Vec<_>>();
     TassadarSandboxEffectBoundary {
         boundary_id: String::from("tassadar.sandbox_effect_boundary.v1"),
+        continuation_safe_effect_refs,
+        continuation_refused_effect_refs,
         durable_state_profiles,
         delegated_effect_refs,
         nondeterministic_effect_refs,
@@ -100,6 +118,15 @@ mod tests {
     fn sandbox_effect_boundary_is_machine_legible() {
         let boundary = tassadar_sandbox_effect_boundary();
         assert_eq!(boundary.boundary_id, "tassadar.sandbox_effect_boundary.v1");
+        assert_eq!(
+            boundary.continuation_safe_effect_refs,
+            vec![String::from("env.clock_stub")]
+        );
+        assert!(
+            boundary
+                .continuation_refused_effect_refs
+                .contains(&String::from("state.counter_slot_read"))
+        );
         assert_eq!(
             boundary.delegated_effect_refs,
             vec![String::from("sandbox.math_eval")]

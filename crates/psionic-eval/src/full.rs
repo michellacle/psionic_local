@@ -64,6 +64,8 @@ mod tassadar_counterfactual_route_quality;
 mod tassadar_decompilation_fidelity;
 #[path = "tassadar_dynamic_memory_resume.rs"]
 mod tassadar_dynamic_memory_resume;
+#[path = "tassadar_effect_safe_resume.rs"]
+mod tassadar_effect_safe_resume;
 #[path = "tassadar_effect_taxonomy.rs"]
 mod tassadar_effect_taxonomy;
 #[path = "tassadar_efficient_attention_baseline_matrix.rs"]
@@ -221,6 +223,7 @@ pub use tassadar_cost_per_correct_job::*;
 pub use tassadar_counterfactual_route_quality::*;
 pub use tassadar_decompilation_fidelity::*;
 pub use tassadar_dynamic_memory_resume::*;
+pub use tassadar_effect_safe_resume::*;
 pub use tassadar_effect_taxonomy::*;
 pub use tassadar_efficient_attention_baseline_matrix::*;
 pub use tassadar_error_regime_catalog::*;

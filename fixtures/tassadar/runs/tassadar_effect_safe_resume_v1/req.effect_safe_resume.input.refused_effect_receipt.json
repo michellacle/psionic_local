@@ -1,0 +1,21 @@
+{
+  "request_id": "req.effect_safe_resume.input.refused",
+  "effect_ref": "input.relay_sample",
+  "effect_class": "bounded_nondeterministic_input",
+  "execution_boundary": "receipt_bound_nondeterministic",
+  "replay_posture": "receipt_bound_replay",
+  "replay_limit": {
+    "max_replays": 1,
+    "observed_replay_attempt": 1,
+    "state_snapshot_required": false,
+    "durable_state_receipt_required": false,
+    "sandbox_challenge_receipt_required": false,
+    "nondeterministic_input_receipt_required": true
+  },
+  "evidence_refs": [
+    "receipt://tassadar/input.relay_sample.window"
+  ],
+  "route_label": "receipt_bound_input",
+  "note": "bounded nondeterministic relay input is admissible only when the observed value is bound to an explicit receipt window",
+  "receipt_digest": "dee21f31dd257745ea3cc92275b6a02638bfda6a64198452dcaf2586427fc6ee"
+}

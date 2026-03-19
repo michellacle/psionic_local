@@ -14,6 +14,7 @@ mod tassadar_cost_per_correct_job;
 mod tassadar_counterfactual_route_quality;
 mod tassadar_delegation_benchmark;
 mod tassadar_direct_model_weight_execution_proof;
+mod tassadar_effect_safe_resume;
 mod tassadar_effect_taxonomy;
 mod tassadar_evidence_routing;
 mod tassadar_exact_compute_market;
@@ -53,6 +54,7 @@ pub use tassadar_cost_per_correct_job::*;
 pub use tassadar_counterfactual_route_quality::*;
 pub use tassadar_delegation_benchmark::*;
 pub use tassadar_direct_model_weight_execution_proof::*;
+pub use tassadar_effect_safe_resume::*;
 pub use tassadar_effect_taxonomy::*;
 pub use tassadar_evidence_routing::*;
 pub use tassadar_exact_compute_market::*;
@@ -478,6 +480,8 @@ pub struct TassadarCapabilityEnvelope {
         TassadarBroadInternalComputeProfilePublicationReceipt,
     /// Provider-facing receipt for the resumable multi-slice promotion lane.
     pub resumable_multi_slice_promotion_receipt: TassadarResumableMultiSlicePromotionReceipt,
+    /// Provider-facing receipt for deterministic import-mediated effect-safe resume.
+    pub effect_safe_resume_receipt: TassadarEffectSafeResumeReceipt,
     /// Backend and quantization deployment truth for the served lane.
     pub quantization_truth_envelope: TassadarDeploymentTruthEnvelope,
     /// Current provider readiness state.
@@ -535,6 +539,16 @@ impl TassadarCapabilityEnvelope {
             TassadarResumableMultiSlicePromotionReceipt::from_report(
                 &resumable_multi_slice_promotion_report,
             );
+        let effect_safe_resume_report =
+            psionic_eval::build_tassadar_effect_safe_resume_report().map_err(|error| {
+                TassadarCapabilityEnvelopeError::UnpublishableBroadInternalComputeProfilePublication {
+                    detail: format!(
+                        "provider envelope requires a valid effect-safe resume report: {error}"
+                    ),
+                }
+            })?;
+        let effect_safe_resume_receipt =
+            TassadarEffectSafeResumeReceipt::from_report(&effect_safe_resume_report);
         if broad_internal_compute_profile_publication_receipt
             .current_served_profile_id
             .trim()
@@ -569,6 +583,7 @@ impl TassadarCapabilityEnvelope {
             publication: publication.clone(),
             broad_internal_compute_profile_publication_receipt,
             resumable_multi_slice_promotion_receipt,
+            effect_safe_resume_receipt,
             quantization_truth_envelope,
             readiness,
         })
@@ -8659,6 +8674,14 @@ mod tests {
         assert_eq!(
             encoded["publication"]["internal_compute_profile_claim_check"]["green"],
             json!(true)
+        );
+        assert_eq!(
+            encoded["publication"]["effect_safe_resume_report_ref"],
+            json!("fixtures/tassadar/reports/tassadar_effect_safe_resume_report.json")
+        );
+        assert_eq!(
+            encoded["effect_safe_resume_receipt"]["target_profile_id"],
+            json!("tassadar.internal_compute.deterministic_import_subset.v1")
         );
         assert_eq!(
             encoded["quantization_truth_envelope"]["active_backend_family"],

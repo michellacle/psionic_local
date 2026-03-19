@@ -17,8 +17,12 @@ const TASSADAR_ARTICLE_ABI_CLOSURE_REPORT_REF: &str =
     "fixtures/tassadar/reports/tassadar_article_abi_closure_report.json";
 const TASSADAR_GENERALIZED_ABI_FAMILY_REPORT_REF: &str =
     "fixtures/tassadar/reports/tassadar_generalized_abi_family_report.json";
+const TASSADAR_EFFECT_TAXONOMY_REPORT_REF: &str =
+    "fixtures/tassadar/reports/tassadar_effect_taxonomy_report.json";
 const TASSADAR_RESUMABLE_MULTI_SLICE_PROMOTION_REPORT_REF: &str =
     "fixtures/tassadar/reports/tassadar_resumable_multi_slice_promotion_report.json";
+const TASSADAR_EFFECT_SAFE_RESUME_REPORT_REF: &str =
+    "fixtures/tassadar/reports/tassadar_effect_safe_resume_report.json";
 const TASSADAR_HUNGARIAN_10X10_ARTICLE_REPRODUCER_REPORT_REF: &str =
     "fixtures/tassadar/reports/tassadar_hungarian_10x10_article_reproducer_report.json";
 const TASSADAR_SUDOKU_9X9_ARTICLE_REPRODUCER_REPORT_REF: &str =
@@ -386,28 +390,42 @@ impl TassadarInternalComputeProfileLadderPublication {
             ),
             TassadarInternalComputeProfileSpec::new(
                 TassadarInternalComputeProfileId::DeterministicImportSubsetV1,
-                TassadarInternalComputeProfileStatus::Planned,
+                TassadarInternalComputeProfileStatus::Implemented,
                 vec![String::from(
                     TassadarWasmProfileId::ArticleI32ComputeV1.as_str(),
                 )],
                 vec![
                     String::from("article_control_and_memory_core"),
                     String::from("deterministic_import_effects"),
+                    String::from("effect_safe_resumable_continuation"),
                 ],
-                vec![String::from("generalized_abi_required")],
+                vec![
+                    String::from("generalized_abi_required"),
+                    String::from("resumable_slice_abi"),
+                ],
                 vec![String::from("i32_integer_family")],
-                vec![String::from("deterministic_import_replay_limits")],
-                vec![String::from("deterministic_stub_imports_only")],
+                vec![
+                    String::from("call_frame_checkpoint_receipts"),
+                    String::from("deterministic_import_replay_limits"),
+                ],
+                vec![
+                    String::from("deterministic_stub_imports_only"),
+                    String::from("effect_safe_resume_receipts"),
+                ],
                 TassadarInternalComputeImportPosture::DeterministicStubImportsOnly,
-                TassadarInternalComputeExactnessPosture::Planned,
+                TassadarInternalComputeExactnessPosture::ExactRouteBounded,
                 TassadarInternalComputePortabilityPosture::Planned,
-                Vec::new(),
+                current_supported_machine_class_ids.clone(),
                 vec![
                     TassadarInternalComputeRefusalClass::ArbitraryWasmUnsupported,
                     TassadarInternalComputeRefusalClass::NonCpuBackendUnsupported,
                 ],
-                vec![String::from("issue://OpenAgentsInc/psionic/178")],
-                "import-mediated execution stays a separate named profile and must remain explicit about replay limits and effect taxonomy",
+                vec![
+                    String::from(TASSADAR_EFFECT_SAFE_RESUME_REPORT_REF),
+                    String::from(TASSADAR_EFFECT_TAXONOMY_REPORT_REF),
+                    String::from(TASSADAR_RESUMABLE_MULTI_SLICE_PROMOTION_REPORT_REF),
+                ],
+                "deterministic import-mediated continuation is now benchmarked as a separate implemented profile over explicit deterministic-stub effect receipts layered on the resumable base lane. It remains non-portable and non-promoted until portability evidence and broader publication gates go green, and it still refuses host-backed state, sandbox delegation, nondeterministic input, and unsafe effects",
             ),
             TassadarInternalComputeProfileSpec::new(
                 TassadarInternalComputeProfileId::ResumableMultiSliceV1,

@@ -1,0 +1,22 @@
+{
+  "request_id": "req.effect_safe_resume.host_state.refused",
+  "effect_ref": "state.counter_slot_read",
+  "effect_class": "deterministic_host_state",
+  "execution_boundary": "host_state_only",
+  "replay_posture": "snapshot_bounded_replay",
+  "replay_limit": {
+    "max_replays": 3,
+    "observed_replay_attempt": 1,
+    "state_snapshot_required": true,
+    "durable_state_receipt_required": true,
+    "sandbox_challenge_receipt_required": false,
+    "nondeterministic_input_receipt_required": false
+  },
+  "evidence_refs": [
+    "receipt://tassadar/state.counter_slot.snapshot",
+    "receipt://tassadar/state.counter_slot.read"
+  ],
+  "route_label": "host_state_replay_bound",
+  "note": "deterministic host-backed counter state is admissible only with explicit snapshots and durable-state receipts",
+  "receipt_digest": "223c1803767744d1fa1e88e136a76a9211d131dbc3644272975a449d16f0ac4d"
+}

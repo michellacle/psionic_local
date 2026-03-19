@@ -68,38 +68,47 @@
       },
       {
         "profile_id": "tassadar.internal_compute.deterministic_import_subset.v1",
-        "status": "planned",
+        "status": "implemented",
         "admitted_wasm_profile_ids": [
           "tassadar.wasm.article_i32_compute.v1"
         ],
         "admitted_opcode_family_ids": [
           "article_control_and_memory_core",
-          "deterministic_import_effects"
+          "deterministic_import_effects",
+          "effect_safe_resumable_continuation"
         ],
         "admitted_abi_shape_ids": [
-          "generalized_abi_required"
+          "generalized_abi_required",
+          "resumable_slice_abi"
         ],
         "admitted_numeric_family_ids": [
           "i32_integer_family"
         ],
         "admitted_memory_semantic_ids": [
+          "call_frame_checkpoint_receipts",
           "deterministic_import_replay_limits"
         ],
         "admitted_runtime_support_ids": [
-          "deterministic_stub_imports_only"
+          "deterministic_stub_imports_only",
+          "effect_safe_resume_receipts"
         ],
         "import_posture": "deterministic_stub_imports_only",
-        "exactness_posture": "planned",
+        "exactness_posture": "exact_route_bounded",
         "portability_posture": "planned",
-        "supported_machine_class_ids": [],
+        "supported_machine_class_ids": [
+          "host_cpu_aarch64",
+          "host_cpu_x86_64"
+        ],
         "refusal_classes": [
           "arbitrary_wasm_unsupported",
           "non_cpu_backend_unsupported"
         ],
         "required_evidence_refs": [
-          "issue://OpenAgentsInc/psionic/178"
+          "fixtures/tassadar/reports/tassadar_effect_safe_resume_report.json",
+          "fixtures/tassadar/reports/tassadar_effect_taxonomy_report.json",
+          "fixtures/tassadar/reports/tassadar_resumable_multi_slice_promotion_report.json"
         ],
-        "detail": "import-mediated execution stays a separate named profile and must remain explicit about replay limits and effect taxonomy"
+        "detail": "deterministic import-mediated continuation is now benchmarked as a separate implemented profile over explicit deterministic-stub effect receipts layered on the resumable base lane. It remains non-portable and non-promoted until portability evidence and broader publication gates go green, and it still refuses host-backed state, sandbox delegation, nondeterministic input, and unsafe effects"
       },
       {
         "profile_id": "tassadar.internal_compute.generalized_abi.v1",
@@ -361,7 +370,7 @@
       }
     ],
     "claim_boundary": "this ladder prevents vague `supports Rust/Wasm` language by requiring every public internal-compute claim to cite one named profile with explicit admitted features, refusal classes, portability posture, and evidence requirements",
-    "publication_digest": "c1760c33a4c6cd69b6ddb5b86cdf949357d10fe2671e21334ec03fbb6ac62d00"
+    "publication_digest": "804ec828a3537d41c4d0a2e4c419f7f20cc7d7e4b97e2d156c3e900ea5f0d3e6"
   },
   "current_served_claim_check": {
     "checker_id": "tassadar.internal_compute_profile_claim_checker.v1",
@@ -397,6 +406,6 @@
     "claim_digest": "10df43985e072b5bcdfe4975a3809c46703dab1097b7b2bdcece32a8ed83819d"
   },
   "claim_boundary": "this report freezes the named post-article internal-compute profile ladder plus the current served claim-check result. It exists to stop vague Rust/Wasm language from outrunning the actual evidence-backed claim",
-  "summary": "internal-compute profile ladder now records implemented_profiles=4, planned_profiles=4, current_claim_green=true, and current_profile_id=`tassadar.internal_compute.article_closeout.v1`.",
-  "report_digest": "d221bb8021beabd133c735f5555fe3cbbf917ada1f60fb8e666ba87eba5a1569"
+  "summary": "internal-compute profile ladder now records implemented_profiles=5, planned_profiles=3, current_claim_green=true, and current_profile_id=`tassadar.internal_compute.article_closeout.v1`.",
+  "report_digest": "082a987a0a160a506e56f905e838d0e6055a84603583e0f7771006e78ef4bb17"
 }
