@@ -1,0 +1,34 @@
+{
+  "case_id": "session_checkpoint_counter_stack",
+  "component_graph_id": "session_checkpoint_counter_stack",
+  "interface_id": "session_counter_checkpoint_v1",
+  "component_ports": [
+    {
+      "component_ref": "session_process_component@1.0.0",
+      "port_role_id": "session_loop",
+      "interface_id": "session_counter_checkpoint_v1",
+      "type_ids": [
+        "record_session_delta_v1",
+        "record_counter_value_v1"
+      ]
+    },
+    {
+      "component_ref": "checkpoint_codec_component@1.0.0",
+      "port_role_id": "checkpoint_codec",
+      "interface_id": "session_counter_checkpoint_v1",
+      "type_ids": [
+        "option_process_snapshot_ref_v1",
+        "result_process_snapshot_ref_v1"
+      ]
+    },
+    {
+      "component_ref": "process_snapshot_store_component@1.0.0",
+      "port_role_id": "snapshot_store",
+      "interface_id": "session_counter_checkpoint_v1",
+      "type_ids": [
+        "result_process_snapshot_ref_v1"
+      ]
+    }
+  ],
+  "manifest_digest": "22810177f500a495a50c73a2098815c2f89f50ded2df1f03cfc2ab6a90c6aa6a"
+}

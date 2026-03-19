@@ -131,6 +131,13 @@ Current honest posture:
   families on explicit refusal paths; named `kernel-policy` and `nexus`
   follow-ons remain explicit dependency markers outside standalone psionic and
   the lane stays non-served by design
+- the repo now also has one bounded internal component-model ABI lane
+  `tassadar.internal_compute.component_model_abi.v1`, with committed IR and
+  compiler contracts, runtime and eval artifacts, and provider-facing receipts
+  that bind session-checkpoint, artifact-reader-retry, and spill-resume
+  component graphs to explicit interface manifests while keeping cross-profile
+  handle mismatches and unsupported variant unions on typed refusal paths; the
+  lane remains benchmark-only with `served_publication_allowed = false`
 - broader profiles above that remain benchmarked, suppressed, refused, or
   unpromoted unless their explicit gates are green
 
@@ -158,9 +165,9 @@ Issue-state note:
 
 - `TAS-103` through `TAS-124` are already implemented and tracked in
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
-- `TAS-125` through `TAS-132` are now implemented and tracked in
+- `TAS-125` through `TAS-133` are now implemented and tracked in
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
-- the current open GitHub backlog begins at `TAS-133` and runs through
+- the current open GitHub backlog begins at `TAS-134` and runs through
   `TAS-156`
 
 ## Repo-Local Companion Docs

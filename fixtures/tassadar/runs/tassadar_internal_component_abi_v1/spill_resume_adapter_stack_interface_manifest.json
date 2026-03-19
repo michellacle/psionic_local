@@ -1,0 +1,35 @@
+{
+  "case_id": "spill_resume_adapter_stack",
+  "component_graph_id": "spill_resume_adapter_stack",
+  "interface_id": "spill_resume_adapter_v1",
+  "component_ports": [
+    {
+      "component_ref": "spill_segment_loader_component@1.0.0",
+      "port_role_id": "spill_loader",
+      "interface_id": "spill_resume_adapter_v1",
+      "type_ids": [
+        "record_spill_segment_refs_v1",
+        "record_memory_window_v1"
+      ]
+    },
+    {
+      "component_ref": "resume_runtime_component@1.0.0",
+      "port_role_id": "resume_runtime",
+      "interface_id": "spill_resume_adapter_v1",
+      "type_ids": [
+        "record_tape_cursor_v1",
+        "result_resume_token_v1"
+      ]
+    },
+    {
+      "component_ref": "memory_window_adapter_component@1.0.0",
+      "port_role_id": "memory_window_adapter",
+      "interface_id": "spill_resume_adapter_v1",
+      "type_ids": [
+        "result_resume_token_v1",
+        "record_memory_window_v1"
+      ]
+    }
+  ],
+  "manifest_digest": "e2864987a1d56057b4db0e3beda99062add1f2bcce6824068a8d29b41be28138"
+}

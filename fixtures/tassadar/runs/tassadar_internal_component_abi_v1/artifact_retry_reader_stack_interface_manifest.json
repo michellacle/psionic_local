@@ -1,0 +1,35 @@
+{
+  "case_id": "artifact_retry_reader_stack",
+  "component_graph_id": "artifact_retry_reader_stack",
+  "interface_id": "artifact_reader_retry_job_v1",
+  "component_ports": [
+    {
+      "component_ref": "artifact_mount_reader_component@1.0.0",
+      "port_role_id": "artifact_reader",
+      "interface_id": "artifact_reader_retry_job_v1",
+      "type_ids": [
+        "record_artifact_mount_ref_v1",
+        "result_read_batch_v1"
+      ]
+    },
+    {
+      "component_ref": "async_retry_scheduler_component@1.0.0",
+      "port_role_id": "retry_scheduler",
+      "interface_id": "artifact_reader_retry_job_v1",
+      "type_ids": [
+        "record_retry_budget_v1",
+        "record_refusal_code_v1"
+      ]
+    },
+    {
+      "component_ref": "work_queue_dispatch_component@1.0.0",
+      "port_role_id": "job_dispatch",
+      "interface_id": "artifact_reader_retry_job_v1",
+      "type_ids": [
+        "result_read_batch_v1",
+        "record_refusal_code_v1"
+      ]
+    }
+  ],
+  "manifest_digest": "4421304e62d527726ff9018b2bac4753fd707b4e607c267c5e5c402bbe00fef9"
+}

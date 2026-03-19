@@ -896,6 +896,16 @@ The current scope is:
   dependency markers outside standalone psionic, so this is not authority
   closure, ambient effect admission, or settlement-ready accepted-outcome
   truth
+- the current internal component-model ABI artifacts are
+  `fixtures/tassadar/runs/tassadar_internal_component_abi_v1/tassadar_internal_component_abi_bundle.json`
+  and `fixtures/tassadar/reports/tassadar_internal_component_abi_report.json`,
+  plus the persisted interface-manifest files under the same run root, which
+  freeze one bounded internal-compute software-platform lane with explicit
+  session-checkpoint, artifact-reader-retry, and spill-resume interface
+  contracts plus typed refusal on cross-profile handle mismatches and
+  unsupported variant unions; this remains benchmark-only with
+  `served_publication_allowed = false`, so it is not arbitrary component-model
+  closure, arbitrary host-import composition, or broader served publication
 - recommended closure order follows the spec and its test families: decode and
   validate first, then integer/control/direct-call core, then linear memory,
   then globals/tables/references/indirect calls, then instantiation/import

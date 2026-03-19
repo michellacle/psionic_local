@@ -1,0 +1,174 @@
+{
+  "schema_version": 1,
+  "bundle_id": "tassadar.internal_component_abi.runtime_bundle.v1",
+  "profile_id": "tassadar.internal_compute.component_model_abi.v1",
+  "portability_envelope_id": "cpu_reference_current_host",
+  "exact_interface_parity_count": 3,
+  "exact_refusal_parity_count": 2,
+  "case_receipts": [
+    {
+      "case_id": "session_checkpoint_counter_stack",
+      "component_graph_id": "session_checkpoint_counter_stack",
+      "interface_id": "session_counter_checkpoint_v1",
+      "status": "exact_interface_parity",
+      "component_ports": [
+        {
+          "component_ref": "session_process_component@1.0.0",
+          "port_role_id": "session_loop",
+          "interface_id": "session_counter_checkpoint_v1",
+          "type_ids": [
+            "record_session_delta_v1",
+            "record_counter_value_v1"
+          ]
+        },
+        {
+          "component_ref": "checkpoint_codec_component@1.0.0",
+          "port_role_id": "checkpoint_codec",
+          "interface_id": "session_counter_checkpoint_v1",
+          "type_ids": [
+            "option_process_snapshot_ref_v1",
+            "result_process_snapshot_ref_v1"
+          ]
+        },
+        {
+          "component_ref": "process_snapshot_store_component@1.0.0",
+          "port_role_id": "snapshot_store",
+          "interface_id": "session_counter_checkpoint_v1",
+          "type_ids": [
+            "result_process_snapshot_ref_v1"
+          ]
+        }
+      ],
+      "interface_manifest_path": "fixtures/tassadar/runs/tassadar_internal_component_abi_v1/session_checkpoint_counter_stack_interface_manifest.json",
+      "exact_interface_parity": true,
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_session_process_profile_report.json",
+        "fixtures/tassadar/reports/tassadar_process_object_report.json",
+        "fixtures/tassadar/reports/tassadar_execution_checkpoint_report.json"
+      ],
+      "note": "bounded internal software closure keeps one session-loop plus checkpoint plus snapshot-store stack with explicit interface contracts instead of widening to arbitrary plugin graphs",
+      "receipt_digest": "90c396133ac4f483c4f55d9cce7e4f24779b878b60504523d87fea568d98a5b0"
+    },
+    {
+      "case_id": "artifact_retry_reader_stack",
+      "component_graph_id": "artifact_retry_reader_stack",
+      "interface_id": "artifact_reader_retry_job_v1",
+      "status": "exact_interface_parity",
+      "component_ports": [
+        {
+          "component_ref": "artifact_mount_reader_component@1.0.0",
+          "port_role_id": "artifact_reader",
+          "interface_id": "artifact_reader_retry_job_v1",
+          "type_ids": [
+            "record_artifact_mount_ref_v1",
+            "result_read_batch_v1"
+          ]
+        },
+        {
+          "component_ref": "async_retry_scheduler_component@1.0.0",
+          "port_role_id": "retry_scheduler",
+          "interface_id": "artifact_reader_retry_job_v1",
+          "type_ids": [
+            "record_retry_budget_v1",
+            "record_refusal_code_v1"
+          ]
+        },
+        {
+          "component_ref": "work_queue_dispatch_component@1.0.0",
+          "port_role_id": "job_dispatch",
+          "interface_id": "artifact_reader_retry_job_v1",
+          "type_ids": [
+            "result_read_batch_v1",
+            "record_refusal_code_v1"
+          ]
+        }
+      ],
+      "interface_manifest_path": "fixtures/tassadar/runs/tassadar_internal_component_abi_v1/artifact_retry_reader_stack_interface_manifest.json",
+      "exact_interface_parity": true,
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_virtual_fs_mount_profile_report.json",
+        "fixtures/tassadar/reports/tassadar_async_lifecycle_profile_report.json",
+        "fixtures/tassadar/reports/tassadar_process_object_report.json"
+      ],
+      "note": "bounded internal software closure keeps one artifact-reader plus retry-scheduler plus dispatch stack with typed retry budgets and refusal codes instead of widening to arbitrary async orchestration",
+      "receipt_digest": "aa012ad2a1fda2fe2ff4f7ac5e90ddc8e254d493a73af12830c68e32b9ed290b"
+    },
+    {
+      "case_id": "spill_resume_adapter_stack",
+      "component_graph_id": "spill_resume_adapter_stack",
+      "interface_id": "spill_resume_adapter_v1",
+      "status": "exact_interface_parity",
+      "component_ports": [
+        {
+          "component_ref": "spill_segment_loader_component@1.0.0",
+          "port_role_id": "spill_loader",
+          "interface_id": "spill_resume_adapter_v1",
+          "type_ids": [
+            "record_spill_segment_refs_v1",
+            "record_memory_window_v1"
+          ]
+        },
+        {
+          "component_ref": "resume_runtime_component@1.0.0",
+          "port_role_id": "resume_runtime",
+          "interface_id": "spill_resume_adapter_v1",
+          "type_ids": [
+            "record_tape_cursor_v1",
+            "result_resume_token_v1"
+          ]
+        },
+        {
+          "component_ref": "memory_window_adapter_component@1.0.0",
+          "port_role_id": "memory_window_adapter",
+          "interface_id": "spill_resume_adapter_v1",
+          "type_ids": [
+            "result_resume_token_v1",
+            "record_memory_window_v1"
+          ]
+        }
+      ],
+      "interface_manifest_path": "fixtures/tassadar/runs/tassadar_internal_component_abi_v1/spill_resume_adapter_stack_interface_manifest.json",
+      "exact_interface_parity": true,
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_spill_tape_store_report.json",
+        "fixtures/tassadar/reports/tassadar_execution_checkpoint_report.json",
+        "fixtures/tassadar/reports/tassadar_effect_safe_resume_report.json"
+      ],
+      "note": "bounded internal software closure keeps one spill-loader plus resumable runtime plus memory-window adapter stack with typed continuation handles instead of widening to arbitrary persistent memory services",
+      "receipt_digest": "1873f71879132222982d38bf649824ce8d12a1d5fb4cf8c99c9e5eb56cfcc5e5"
+    },
+    {
+      "case_id": "cross_profile_handle_mismatch_refusal",
+      "component_graph_id": "session_checkpoint_counter_stack",
+      "interface_id": "session_counter_checkpoint_v1",
+      "status": "exact_refusal_parity",
+      "component_ports": [],
+      "exact_interface_parity": false,
+      "refusal_reason_id": "cross_profile_handle_mismatch",
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_component_linking_profile_report.json",
+        "fixtures/tassadar/reports/tassadar_process_object_report.json"
+      ],
+      "note": "cross-profile snapshot and continuation handles stay as typed refusal truth instead of widening compatibility across unrelated internal-compute lanes",
+      "receipt_digest": "6d9e92c044894cd6146c1f4e8a60fb31a01d48871d67e63e9dd61f8220e13841"
+    },
+    {
+      "case_id": "unsupported_variant_union_refusal",
+      "component_graph_id": "artifact_retry_reader_stack",
+      "interface_id": "artifact_reader_retry_job_v1",
+      "status": "exact_refusal_parity",
+      "component_ports": [],
+      "exact_interface_parity": false,
+      "refusal_reason_id": "unsupported_variant_union_shape",
+      "benchmark_refs": [
+        "fixtures/tassadar/reports/tassadar_component_linking_profile_report.json",
+        "fixtures/tassadar/reports/tassadar_virtual_fs_mount_profile_report.json"
+      ],
+      "note": "variant-union payloads stay as typed refusal truth instead of implying general interface-union lowering or arbitrary runtime discovery",
+      "receipt_digest": "3171930705dab4b99e566ee03abb296af61df319567dd801cc50a40a3abce0ba"
+    }
+  ],
+  "claim_boundary": "this runtime bundle proves one bounded internal-compute component-model ABI lane with explicit interface manifests and typed refusal on handle mismatches and unsupported union shapes. It does not claim arbitrary component-model closure, arbitrary host-import composition, or broader served publication",
+  "summary": "Internal component ABI runtime bundle covers 5 cases with exact_interface_parity=3 and exact_refusal_parity=2.",
+  "bundle_digest": "dac046d05e8e33588593916181a94bb4693023498309d91984d83e264fd5ec29"
+}

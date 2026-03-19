@@ -1207,6 +1207,31 @@ Expected outcome:
   than silent authority backfill inside standalone psionic
 - zero served publication widening for the effectful replay lane
 
+### 24. Internal component-model ABI and interface-type contracts
+
+```bash
+cargo run -p psionic-runtime --example tassadar_internal_component_abi_bundle
+cargo run -p psionic-eval --example tassadar_internal_component_abi_report
+```
+
+Read:
+
+- `fixtures/tassadar/runs/tassadar_internal_component_abi_v1/tassadar_internal_component_abi_bundle.json`
+- `fixtures/tassadar/reports/tassadar_internal_component_abi_report.json`
+- interface-manifest files under
+  `fixtures/tassadar/runs/tassadar_internal_component_abi_v1`
+
+Expected outcome:
+
+- one named bounded internal-compute component-model ABI lane:
+  `tassadar.internal_compute.component_model_abi.v1`
+- exact interface parity on the session-checkpoint, artifact-reader-retry, and
+  spill-resume component graphs
+- persisted interface manifests for those three exact graphs
+- explicit refusal on cross-profile handle mismatches and unsupported
+  variant-union shapes
+- explicit benchmark-only posture with `served_publication_allowed = false`
+
 ## Validation Commands
 
 Run the focused report checks after the flow:
