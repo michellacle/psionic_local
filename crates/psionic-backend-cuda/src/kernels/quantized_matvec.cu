@@ -944,29 +944,96 @@ __global__ void mul_f32_kernel(
 __global__ void rms_norm_kernel(
     const float *input,
     const float *weight,
-    int element_count,
+    int feature_count,
+    float epsilon,
+    float *output
+) {
+    const int row = static_cast<int>(blockIdx.x);
+    const int row_offset = row * feature_count;
+    __shared__ float scratch[kBlockSize];
+
+    float mean_square_partial = 0.0f;
+    for (int feature = threadIdx.x; feature < feature_count; feature += blockDim.x) {
+        const float value = input[row_offset + feature];
+        mean_square_partial += value * value;
+    }
+    const float mean_square_sum = reduce_block_sum(mean_square_partial, scratch);
+    const float inv_rms = rsqrtf(mean_square_sum / static_cast<float>(feature_count) + epsilon);
+    for (int feature = threadIdx.x; feature < feature_count; feature += blockDim.x) {
+        output[row_offset + feature] = input[row_offset + feature] * weight[feature] * inv_rms;
+    }
+}
+
+__global__ void rms_norm_input_backward_kernel(
+    const float *input,
+    const float *weight,
+    const float *grad_output,
+    int feature_count,
+    float epsilon,
+    float *output
+) {
+    const int row = static_cast<int>(blockIdx.x);
+    const int row_offset = row * feature_count;
+    __shared__ float scratch[kBlockSize];
+
+    float mean_square_partial = 0.0f;
+    for (int feature = threadIdx.x; feature < feature_count; feature += blockDim.x) {
+        const float value = input[row_offset + feature];
+        mean_square_partial += value * value;
+    }
+    const float mean_square_sum = reduce_block_sum(mean_square_partial, scratch);
+    const float inv_rms = rsqrtf(mean_square_sum / static_cast<float>(feature_count) + epsilon);
+    const float inv_rms_cubed = inv_rms * inv_rms * inv_rms;
+
+    float weighted_dot_partial = 0.0f;
+    for (int feature = threadIdx.x; feature < feature_count; feature += blockDim.x) {
+        weighted_dot_partial +=
+            input[row_offset + feature] *
+            weight[feature] *
+            grad_output[row_offset + feature];
+    }
+    const float weighted_dot = reduce_block_sum(weighted_dot_partial, scratch);
+    const float correction = inv_rms_cubed * weighted_dot / static_cast<float>(feature_count);
+
+    for (int feature = threadIdx.x; feature < feature_count; feature += blockDim.x) {
+        const float value = input[row_offset + feature];
+        const float scale = weight[feature];
+        const float grad = grad_output[row_offset + feature];
+        output[row_offset + feature] = (grad * scale * inv_rms) - (value * correction);
+    }
+}
+
+__global__ void rms_norm_weight_backward_kernel(
+    const float *input,
+    const float *grad_output,
+    int row_count,
+    int feature_count,
     float epsilon,
     float *output
 ) {
     __shared__ float scratch[kBlockSize];
-    float sum = 0.0f;
-    for (int index = threadIdx.x; index < element_count; index += blockDim.x) {
-        const float value = input[index];
-        sum += value * value;
+
+    for (int feature = threadIdx.x; feature < feature_count; feature += blockDim.x) {
+        output[feature] = 0.0f;
     }
-    scratch[threadIdx.x] = sum;
     __syncthreads();
 
-    for (int offset = blockDim.x / 2; offset > 0; offset >>= 1) {
-        if (threadIdx.x < offset) {
-            scratch[threadIdx.x] += scratch[threadIdx.x + offset];
+    for (int row = 0; row < row_count; ++row) {
+        const int row_offset = row * feature_count;
+        float mean_square_partial = 0.0f;
+        for (int feature = threadIdx.x; feature < feature_count; feature += blockDim.x) {
+            const float value = input[row_offset + feature];
+            mean_square_partial += value * value;
+        }
+        const float mean_square_sum = reduce_block_sum(mean_square_partial, scratch);
+        const float inv_rms = rsqrtf(mean_square_sum / static_cast<float>(feature_count) + epsilon);
+
+        for (int feature = threadIdx.x; feature < feature_count; feature += blockDim.x) {
+            output[feature] += grad_output[row_offset + feature] *
+                input[row_offset + feature] *
+                inv_rms;
         }
         __syncthreads();
-    }
-
-    const float inv_rms = rsqrtf(scratch[0] / static_cast<float>(element_count) + epsilon);
-    for (int index = threadIdx.x; index < element_count; index += blockDim.x) {
-        output[index] = input[index] * weight[index] * inv_rms;
     }
 }
 
@@ -4216,14 +4283,23 @@ extern "C" int psionic_cuda_rms_norm(
     const void *input,
     const void *weight,
     int element_count,
+    int feature_count,
     float epsilon,
     void *output,
     void *stream
 ) {
-    rms_norm_kernel<<<1, kBlockSize, 0, static_cast<cudaStream_t>(stream)>>>(
+    if (feature_count <= 0 || element_count <= 0 || element_count % feature_count != 0) {
+        return static_cast<int>(cudaErrorInvalidValue);
+    }
+    rms_norm_kernel<<<
+        element_count / feature_count,
+        kBlockSize,
+        0,
+        static_cast<cudaStream_t>(stream)
+    >>>(
         static_cast<const float *>(input),
         static_cast<const float *>(weight),
-        element_count,
+        feature_count,
         epsilon,
         static_cast<float *>(output)
     );
@@ -4247,6 +4323,58 @@ extern "C" int psionic_cuda_rms_norm_q8_1(
         element_count,
         epsilon,
         static_cast<Q81Block *>(output)
+    );
+    return static_cast<int>(cudaGetLastError());
+}
+
+extern "C" int psionic_cuda_rms_norm_input_backward(
+    const void *input,
+    const void *weight,
+    const void *grad_output,
+    int element_count,
+    int feature_count,
+    float epsilon,
+    void *output,
+    void *stream
+) {
+    if (feature_count <= 0 || element_count <= 0 || element_count % feature_count != 0) {
+        return static_cast<int>(cudaErrorInvalidValue);
+    }
+    rms_norm_input_backward_kernel<<<
+        element_count / feature_count,
+        kBlockSize,
+        0,
+        static_cast<cudaStream_t>(stream)
+    >>>(
+        static_cast<const float *>(input),
+        static_cast<const float *>(weight),
+        static_cast<const float *>(grad_output),
+        feature_count,
+        epsilon,
+        static_cast<float *>(output)
+    );
+    return static_cast<int>(cudaGetLastError());
+}
+
+extern "C" int psionic_cuda_rms_norm_weight_backward(
+    const void *input,
+    const void *grad_output,
+    int element_count,
+    int feature_count,
+    float epsilon,
+    void *output,
+    void *stream
+) {
+    if (feature_count <= 0 || element_count <= 0 || element_count % feature_count != 0) {
+        return static_cast<int>(cudaErrorInvalidValue);
+    }
+    rms_norm_weight_backward_kernel<<<1, kBlockSize, 0, static_cast<cudaStream_t>(stream)>>>(
+        static_cast<const float *>(input),
+        static_cast<const float *>(grad_output),
+        element_count / feature_count,
+        feature_count,
+        epsilon,
+        static_cast<float *>(output)
     );
     return static_cast<int>(cudaGetLastError());
 }

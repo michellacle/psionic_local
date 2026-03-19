@@ -832,11 +832,30 @@ impl CudaSubmission {
         element_count: usize,
         epsilon: f32,
     ) -> Result<(), RuntimeError> {
+        let feature_count = weight.spec().storage_size();
+        if feature_count == 0 {
+            return Err(RuntimeError::Backend(String::from(
+                "cuda rms_norm requires a non-empty weight tensor",
+            )));
+        }
+        if input.spec().storage_size() != element_count
+            || output.spec().storage_size() != element_count
+        {
+            return Err(RuntimeError::Backend(String::from(
+                "cuda rms_norm requires matching input and output sizes",
+            )));
+        }
+        if element_count % feature_count != 0 {
+            return Err(RuntimeError::Backend(String::from(
+                "cuda rms_norm requires output size to be a multiple of the weight size",
+            )));
+        }
         self.platform.encode_rms_norm(
             &input.platform,
             &weight.platform,
             &output.platform,
             element_count,
+            feature_count,
             epsilon,
         )?;
         self.encoded_operations += 1;
@@ -2571,12 +2590,98 @@ impl AvailableCudaBackend {
                     BackendExtensionOp::RmsNorm { epsilon } => {
                         let input = step_input(step, &values, 0)?;
                         let weight = step_input(step, &values, 1)?;
+                        let feature_count = weight.spec().storage_size();
+                        if feature_count == 0 {
+                            return Err(RuntimeError::Backend(String::from(
+                                "cuda rms_norm requires a non-empty weight tensor",
+                            )));
+                        }
+                        let element_count = step.spec.storage_size();
+                        if input.spec().storage_size() != element_count {
+                            return Err(RuntimeError::Backend(String::from(
+                                "cuda rms_norm requires matching input and output sizes",
+                            )));
+                        }
+                        if element_count % feature_count != 0 {
+                            return Err(RuntimeError::Backend(String::from(
+                                "cuda rms_norm requires output size to be a multiple of the weight size",
+                            )));
+                        }
                         let output = self.allocate(&step.spec)?;
                         submission.platform.encode_rms_norm(
                             &input.platform,
                             &weight.platform,
                             &output.platform,
-                            step.spec.element_count(),
+                            element_count,
+                            feature_count,
+                            epsilon.to_f32(),
+                        )?;
+                        submission.encoded_operations += 1;
+                        values.insert(step.output, output);
+                    }
+                    BackendExtensionOp::RmsNormInputBackward { epsilon } => {
+                        let input = step_input(step, &values, 0)?;
+                        let weight = step_input(step, &values, 1)?;
+                        let grad_output = step_input(step, &values, 2)?;
+                        let feature_count = weight.spec().storage_size();
+                        if feature_count == 0 {
+                            return Err(RuntimeError::Backend(String::from(
+                                "cuda rms_norm_input_backward requires a non-empty weight tensor",
+                            )));
+                        }
+                        let element_count = step.spec.storage_size();
+                        if input.spec().storage_size() != element_count
+                            || grad_output.spec().storage_size() != element_count
+                        {
+                            return Err(RuntimeError::Backend(String::from(
+                                "cuda rms_norm_input_backward requires matching input, grad_output, and output sizes",
+                            )));
+                        }
+                        if element_count % feature_count != 0 {
+                            return Err(RuntimeError::Backend(String::from(
+                                "cuda rms_norm_input_backward requires output size to be a multiple of the weight size",
+                            )));
+                        }
+                        let output = self.allocate(&step.spec)?;
+                        submission.platform.encode_rms_norm_input_backward(
+                            &input.platform,
+                            &weight.platform,
+                            &grad_output.platform,
+                            &output.platform,
+                            element_count,
+                            feature_count,
+                            epsilon.to_f32(),
+                        )?;
+                        submission.encoded_operations += 1;
+                        values.insert(step.output, output);
+                    }
+                    BackendExtensionOp::RmsNormWeightBackward { epsilon } => {
+                        let input = step_input(step, &values, 0)?;
+                        let grad_output = step_input(step, &values, 1)?;
+                        let feature_count = step.spec.storage_size();
+                        if feature_count == 0 {
+                            return Err(RuntimeError::Backend(String::from(
+                                "cuda rms_norm_weight_backward requires a non-empty output tensor",
+                            )));
+                        }
+                        let element_count = input.spec().storage_size();
+                        if grad_output.spec().storage_size() != element_count {
+                            return Err(RuntimeError::Backend(String::from(
+                                "cuda rms_norm_weight_backward requires matching input and grad_output sizes",
+                            )));
+                        }
+                        if element_count % feature_count != 0 {
+                            return Err(RuntimeError::Backend(String::from(
+                                "cuda rms_norm_weight_backward requires input size to be a multiple of the output size",
+                            )));
+                        }
+                        let output = self.allocate(&step.spec)?;
+                        submission.platform.encode_rms_norm_weight_backward(
+                            &input.platform,
+                            &grad_output.platform,
+                            &output.platform,
+                            element_count,
+                            feature_count,
                             epsilon.to_f32(),
                         )?;
                         submission.encoded_operations += 1;
@@ -2845,6 +2950,22 @@ fn validate_supported_step(step: &ExecutionStep) -> Result<(), RuntimeError> {
                 if step.inputs.len() != 2 {
                     return Err(RuntimeError::Backend(format!(
                         "cuda rms_norm step {} requires two inputs",
+                        step.output
+                    )));
+                }
+            }
+            BackendExtensionOp::RmsNormInputBackward { .. } => {
+                if step.inputs.len() != 3 {
+                    return Err(RuntimeError::Backend(format!(
+                        "cuda rms_norm_input_backward step {} requires three inputs",
+                        step.output
+                    )));
+                }
+            }
+            BackendExtensionOp::RmsNormWeightBackward { .. } => {
+                if step.inputs.len() != 2 {
+                    return Err(RuntimeError::Backend(format!(
+                        "cuda rms_norm_weight_backward step {} requires two inputs",
                         step.output
                     )));
                 }
@@ -3472,6 +3593,7 @@ mod platform {
             input: *const c_void,
             weight: *const c_void,
             element_count: c_int,
+            feature_count: c_int,
             epsilon: f32,
             output: *mut c_void,
             stream: CudaStream,
@@ -3487,6 +3609,25 @@ mod platform {
             input: *const c_void,
             weight: *const c_void,
             element_count: c_int,
+            epsilon: f32,
+            output: *mut c_void,
+            stream: CudaStream,
+        ) -> CudaError;
+        fn psionic_cuda_rms_norm_input_backward(
+            input: *const c_void,
+            weight: *const c_void,
+            grad_output: *const c_void,
+            element_count: c_int,
+            feature_count: c_int,
+            epsilon: f32,
+            output: *mut c_void,
+            stream: CudaStream,
+        ) -> CudaError;
+        fn psionic_cuda_rms_norm_weight_backward(
+            input: *const c_void,
+            grad_output: *const c_void,
+            element_count: c_int,
+            feature_count: c_int,
             epsilon: f32,
             output: *mut c_void,
             stream: CudaStream,
@@ -4782,10 +4923,14 @@ mod platform {
             weight: &PlatformBuffer,
             output: &PlatformBuffer,
             element_count: usize,
+            feature_count: usize,
             epsilon: f32,
         ) -> Result<(), RuntimeError> {
             let element_count = c_int::try_from(element_count).map_err(|_| {
                 RuntimeError::Backend(String::from("cuda rms_norm element count exceeds c_int"))
+            })?;
+            let feature_count = c_int::try_from(feature_count).map_err(|_| {
+                RuntimeError::Backend(String::from("cuda rms_norm feature count exceeds c_int"))
             })?;
             self.runtime.set_device()?;
             self.runtime.check(
@@ -4794,6 +4939,7 @@ mod platform {
                         input.inner.device_ptr.cast(),
                         weight.inner.device_ptr.cast(),
                         element_count,
+                        feature_count,
                         epsilon,
                         output.inner.device_ptr.cast(),
                         self.stream,
@@ -4829,6 +4975,80 @@ mod platform {
                     )
                 },
                 "psionic_cuda_rms_norm_q8_1",
+            )
+        }
+
+        pub(super) fn encode_rms_norm_input_backward(
+            &mut self,
+            input: &PlatformBuffer,
+            weight: &PlatformBuffer,
+            grad_output: &PlatformBuffer,
+            output: &PlatformBuffer,
+            element_count: usize,
+            feature_count: usize,
+            epsilon: f32,
+        ) -> Result<(), RuntimeError> {
+            let element_count = c_int::try_from(element_count).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda rms_norm_input_backward element count exceeds c_int",
+                ))
+            })?;
+            let feature_count = c_int::try_from(feature_count).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda rms_norm_input_backward feature count exceeds c_int",
+                ))
+            })?;
+            self.runtime.set_device()?;
+            self.runtime.check(
+                unsafe {
+                    psionic_cuda_rms_norm_input_backward(
+                        input.inner.device_ptr.cast(),
+                        weight.inner.device_ptr.cast(),
+                        grad_output.inner.device_ptr.cast(),
+                        element_count,
+                        feature_count,
+                        epsilon,
+                        output.inner.device_ptr.cast(),
+                        self.stream,
+                    )
+                },
+                "psionic_cuda_rms_norm_input_backward",
+            )
+        }
+
+        pub(super) fn encode_rms_norm_weight_backward(
+            &mut self,
+            input: &PlatformBuffer,
+            grad_output: &PlatformBuffer,
+            output: &PlatformBuffer,
+            element_count: usize,
+            feature_count: usize,
+            epsilon: f32,
+        ) -> Result<(), RuntimeError> {
+            let element_count = c_int::try_from(element_count).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda rms_norm_weight_backward element count exceeds c_int",
+                ))
+            })?;
+            let feature_count = c_int::try_from(feature_count).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda rms_norm_weight_backward feature count exceeds c_int",
+                ))
+            })?;
+            self.runtime.set_device()?;
+            self.runtime.check(
+                unsafe {
+                    psionic_cuda_rms_norm_weight_backward(
+                        input.inner.device_ptr.cast(),
+                        grad_output.inner.device_ptr.cast(),
+                        element_count,
+                        feature_count,
+                        epsilon,
+                        output.inner.device_ptr.cast(),
+                        self.stream,
+                    )
+                },
+                "psionic_cuda_rms_norm_weight_backward",
             )
         }
 
@@ -6969,6 +7189,7 @@ mod platform {
             _weight: &PlatformBuffer,
             _output: &PlatformBuffer,
             _element_count: usize,
+            _feature_count: usize,
             _epsilon: f32,
         ) -> Result<(), RuntimeError> {
             Err(RuntimeError::Backend(String::from(
@@ -6982,6 +7203,35 @@ mod platform {
             _weight: &PlatformBuffer,
             _output_q8_1: &PlatformBuffer,
             _element_count: usize,
+            _epsilon: f32,
+        ) -> Result<(), RuntimeError> {
+            Err(RuntimeError::Backend(String::from(
+                "cuda quantized text-generation kernels require Linux CUDA support",
+            )))
+        }
+
+        pub(super) fn encode_rms_norm_input_backward(
+            &mut self,
+            _input: &PlatformBuffer,
+            _weight: &PlatformBuffer,
+            _grad_output: &PlatformBuffer,
+            _output: &PlatformBuffer,
+            _element_count: usize,
+            _feature_count: usize,
+            _epsilon: f32,
+        ) -> Result<(), RuntimeError> {
+            Err(RuntimeError::Backend(String::from(
+                "cuda quantized text-generation kernels require Linux CUDA support",
+            )))
+        }
+
+        pub(super) fn encode_rms_norm_weight_backward(
+            &mut self,
+            _input: &PlatformBuffer,
+            _grad_output: &PlatformBuffer,
+            _output: &PlatformBuffer,
+            _element_count: usize,
+            _feature_count: usize,
             _epsilon: f32,
         ) -> Result<(), RuntimeError> {
             Err(RuntimeError::Backend(String::from(
@@ -7489,9 +7739,9 @@ mod tests {
     use psionic_backend_cpu::CpuBackend;
     use psionic_compiler::compile_graph;
     use psionic_core::{
-        BackendExtensionKind, DType, DeviceKind, QuantizationMode, Shape, TensorSpec,
+        BackendExtensionKind, DType, DeviceKind, QuantizationMode, Shape, TensorData, TensorSpec,
     };
-    use psionic_ir::GraphBuilder;
+    use psionic_ir::{evaluate_graph, AutodiffContext, AutodiffGraphBuilder, GraphBuilder};
 
     use super::CudaMemorySpace;
     use super::{
@@ -7819,16 +8069,16 @@ mod tests {
         };
 
         let mut builder = GraphBuilder::new(selected.device.clone());
-        let input = builder.input("features", Shape::new(vec![1, 4]), DType::F32);
+        let input = builder.input("features", Shape::new(vec![2, 4]), DType::F32);
         let weight = builder.constant_f32(Shape::new(vec![4]), vec![1.0, 2.0, 3.0, 4.0])?;
         let normalized = builder.rms_norm(&input, &weight, 1e-5)?;
         let graph = builder.finish(vec![normalized.clone()]);
 
-        let input_values = vec![1.0_f32, -2.0, 0.5, 4.0];
+        let input_values = vec![1.0_f32, -2.0, 0.5, 4.0, -1.5, 0.25, 3.0, -0.75];
         let mut inputs = std::collections::BTreeMap::new();
         inputs.insert(
             input.id(),
-            backend.input_buffer(Shape::new(vec![1, 4]), input_values.clone())?,
+            backend.input_buffer(Shape::new(vec![2, 4]), input_values.clone())?,
         );
 
         let result = backend.compile_and_execute(&graph, &inputs)?;
@@ -7836,13 +8086,18 @@ mod tests {
             .outputs
             .get(&normalized.id())
             .ok_or("missing cuda rms_norm output")?;
-        let mean_square =
-            input_values.iter().map(|value| value * value).sum::<f32>() / input_values.len() as f32;
-        let inv_rms = 1.0_f32 / (mean_square + 1e-5).sqrt();
+        let weights = [1.0_f32, 2.0, 3.0, 4.0];
         let expected = input_values
-            .iter()
-            .zip([1.0_f32, 2.0, 3.0, 4.0].iter())
-            .map(|(input, weight)| input * weight * inv_rms)
+            .chunks_exact(weights.len())
+            .flat_map(|row| {
+                let mean_square =
+                    row.iter().map(|value| value * value).sum::<f32>() / row.len() as f32;
+                let inv_rms = 1.0_f32 / (mean_square + 1e-5).sqrt();
+                row.iter()
+                    .zip(weights.iter())
+                    .map(|(input, weight)| input * weight * inv_rms)
+                    .collect::<Vec<_>>()
+            })
             .collect::<Vec<_>>();
         assert_close(&output.read_f32()?, &expected, 1e-5);
         Ok(())
@@ -7862,6 +8117,137 @@ mod tests {
             .backend_extensions
             .iter()
             .any(|support| support.kind == BackendExtensionKind::RmsNorm));
+        Ok(())
+    }
+
+    #[test]
+    fn cuda_backend_executes_rms_norm_backward_graph_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let mut backend = CudaBackend::new();
+        let Some(selected) = backend.selected_device().cloned() else {
+            assert_eq!(backend.health().status, HealthStatus::Offline);
+            return Ok(());
+        };
+
+        let epsilon = 1e-5_f32;
+        let mut builder = AutodiffGraphBuilder::with_context(
+            selected.device.clone(),
+            AutodiffContext::training(),
+        );
+        let input = builder.input("x", Shape::new(vec![1, 4]), DType::F32, true);
+        let weight = builder.input("weight", Shape::new(vec![4]), DType::F32, true);
+        let normalized = builder.rms_norm(&input, &weight, epsilon)?;
+        let scale = builder.constant_f32(Shape::new(vec![1, 4]), vec![0.5, -1.0, 0.25, 1.5])?;
+        let scaled = builder.mul(&normalized, &scale)?;
+        let graph = builder.finish(vec![scaled.clone()]);
+
+        let backward_plan = graph.backward_plan(scaled.id())?;
+        assert!(backward_plan
+            .gradient_graph
+            .nodes()
+            .iter()
+            .any(|node| matches!(
+                node.op(),
+                psionic_ir::OpKind::BackendExtension {
+                    op: psionic_core::BackendExtensionOp::RmsNormInputBackward { .. }
+                }
+            )));
+        assert!(backward_plan
+            .gradient_graph
+            .nodes()
+            .iter()
+            .any(|node| matches!(
+                node.op(),
+                psionic_ir::OpKind::BackendExtension {
+                    op: psionic_core::BackendExtensionOp::RmsNormWeightBackward { .. }
+                }
+            )));
+
+        let input_values = vec![0.3_f32, -0.8, 1.1, -1.0];
+        let weight_values = vec![1.2_f32, -0.7, 0.9, 1.5];
+        let upstream_seed = vec![1.0_f32, 0.5, -0.25, 2.0];
+        let primal_inputs = std::collections::BTreeMap::from([
+            (input.id(), TensorData::F32(input_values.clone())),
+            (weight.id(), TensorData::F32(weight_values.clone())),
+        ]);
+        let forward_values = evaluate_graph(graph.graph(), &primal_inputs)?;
+        let expected = graph.backward_materialized_with_seed(
+            scaled.id(),
+            &primal_inputs,
+            Some(TensorData::F32(upstream_seed.clone())),
+        )?;
+
+        let plan = compile_graph(&backward_plan.gradient_graph)?;
+        validate_supported_plan(&plan)?;
+
+        let mut backward_inputs = std::collections::BTreeMap::new();
+        for binding in &backward_plan.primal_bindings {
+            let value = forward_values
+                .get(&binding.primal_tensor)
+                .ok_or("missing forward value for backward binding")?;
+            let spec = backward_plan
+                .gradient_graph
+                .node(binding.gradient_graph_input)
+                .ok_or("missing backward graph input node")?
+                .tensor()
+                .spec()
+                .shape()
+                .clone();
+            backward_inputs.insert(
+                binding.gradient_graph_input,
+                backend.input_buffer(spec, value.as_f32_slice().ok_or("non-f32 forward value")?)?,
+            );
+        }
+        let seed_shape = backward_plan
+            .gradient_graph
+            .node(backward_plan.seed_input)
+            .ok_or("missing backward seed node")?
+            .tensor()
+            .spec()
+            .shape()
+            .clone();
+        backward_inputs.insert(
+            backward_plan.seed_input,
+            backend.input_buffer(seed_shape, upstream_seed.clone())?,
+        );
+
+        let result =
+            backend.compile_and_execute(&backward_plan.gradient_graph, &backward_inputs)?;
+        let input_gradient = result
+            .outputs
+            .get(
+                &backward_plan
+                    .gradient_for(input.id())
+                    .ok_or("missing input gradient id")?,
+            )
+            .ok_or("missing cuda rms_norm input gradient output")?;
+        let weight_gradient = result
+            .outputs
+            .get(
+                &backward_plan
+                    .gradient_for(weight.id())
+                    .ok_or("missing weight gradient id")?,
+            )
+            .ok_or("missing cuda rms_norm weight gradient output")?;
+
+        assert_close(
+            &input_gradient.read_f32()?,
+            expected
+                .gradient(input.id())
+                .ok_or("missing expected input gradient")?
+                .as_f32_slice()
+                .ok_or("expected input gradient is not f32")?,
+            1e-5,
+        );
+        assert_close(
+            &weight_gradient.read_f32()?,
+            expected
+                .gradient(weight.id())
+                .ok_or("missing expected weight gradient")?
+                .as_f32_slice()
+                .ok_or("expected weight gradient is not f32")?,
+            1e-5,
+        );
         Ok(())
     }
 

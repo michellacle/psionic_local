@@ -353,6 +353,7 @@ int psionic_cuda_rms_norm(
     const void *input,
     const void *weight,
     int element_count,
+    int feature_count,
     float epsilon,
     void *output,
     void *stream
@@ -360,6 +361,7 @@ int psionic_cuda_rms_norm(
     (void)input;
     (void)weight;
     (void)element_count;
+    (void)feature_count;
     (void)epsilon;
     (void)output;
     (void)stream;
@@ -377,6 +379,46 @@ int psionic_cuda_rms_norm_q8_1(
     (void)input;
     (void)weight;
     (void)element_count;
+    (void)epsilon;
+    (void)output;
+    (void)stream;
+    return 1;
+}
+
+int psionic_cuda_rms_norm_input_backward(
+    const void *input,
+    const void *weight,
+    const void *grad_output,
+    int element_count,
+    int feature_count,
+    float epsilon,
+    void *output,
+    void *stream
+) {
+    (void)input;
+    (void)weight;
+    (void)grad_output;
+    (void)element_count;
+    (void)feature_count;
+    (void)epsilon;
+    (void)output;
+    (void)stream;
+    return 1;
+}
+
+int psionic_cuda_rms_norm_weight_backward(
+    const void *input,
+    const void *grad_output,
+    int element_count,
+    int feature_count,
+    float epsilon,
+    void *output,
+    void *stream
+) {
+    (void)input;
+    (void)grad_output;
+    (void)element_count;
+    (void)feature_count;
     (void)epsilon;
     (void)output;
     (void)stream;

@@ -190,15 +190,15 @@ pub fn builtin_parameter_golf_cuda_training_capability_report(
             ParameterGolfCudaTrainingCoverageCase {
                 case_id: String::from("cuda_rms_norm_train_path"),
                 family: ParameterGolfCudaTrainingFamily::RmsNorm,
-                status: ParameterGolfCudaTrainingCoverageStatus::Partial,
+                status: ParameterGolfCudaTrainingCoverageStatus::ImplementedEarly,
                 required_scope: String::from(
                     "the compact decoder baseline requires RMSNorm in the train-time forward or backward path",
                 ),
                 current_surface: String::from(
-                    "the public CUDA execution backend now declares and executes backend-specialized dense f32 RMSNorm forward plans, and psionic-ir now owns bounded dense f32 reference evaluation plus reverse-mode support for RMSNorm train-visible graphs, but the public CUDA backward execution contract is still missing on the train path",
+                    "the public CUDA execution backend now executes bounded dense contiguous f32 RMSNorm forward plus bounded RMSNorm backward graph ops across batched rows, and psionic-ir owns matching dense f32 reference evaluation plus reverse-mode graph semantics for the same train-visible lane",
                 ),
                 boundary_note: String::from(
-                    "RMSNorm train-visible graph semantics are now real, but public CUDA backward execution is still missing on the train path.",
+                    "Do not treat bounded dense f32 RMSNorm closure as proof that BF16, decoder-block attention, residual-mix, or optimizer closure is already done.",
                 ),
             },
             ParameterGolfCudaTrainingCoverageCase {
@@ -291,7 +291,11 @@ mod tests {
             report.cases.last().expect("quantization case").status,
             ParameterGolfCudaTrainingCoverageStatus::ImplementedEarly
         );
-        assert_eq!(report.blocking_case_ids.len(), 5);
+        assert_eq!(report.blocking_case_ids.len(), 4);
+        assert!(!report
+            .blocking_case_ids
+            .iter()
+            .any(|case_id| case_id == "cuda_rms_norm_train_path"));
         Ok(())
     }
 

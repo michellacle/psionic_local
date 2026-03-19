@@ -29,8 +29,8 @@ The public CUDA execution backend now also owns two real forward-surface
 widens needed by the baseline decoder lane:
 
 - dense contiguous `f32` pointwise `mul`
-- backend-specialized dense `f32` `rms_norm` forward execution plus declared
-  runtime extension support
+- backend-specialized dense contiguous `f32` `rms_norm` forward execution plus
+  declared runtime extension support
 
 `psionic-ir` now also owns one real train-visible RMSNorm graph seam above the
 backend:
@@ -38,6 +38,10 @@ backend:
 - dense `f32` reference evaluation for `rms_norm`
 - bounded reverse-mode support for `rms_norm`, with explicit continued refusal
   for the other backend-extension families
+
+The public CUDA backend now also executes the bounded RMSNorm backward graph
+ops introduced by that autodiff seam, so RMSNorm itself is no longer part of
+the remaining blocker set.
 
 That means the remaining CUDA train-path blockers are now machine-readable on
 the same benchmark seam that already carries topology, communication,
@@ -58,7 +62,6 @@ The current canonical blocker set is:
 
 - `cuda_bf16_train_precision_contract`
 - `cuda_rope_gqa_attention_block`
-- `cuda_rms_norm_train_path`
 - `cuda_residual_mix_train_path`
 - `cuda_muon_optimizer_path`
 
@@ -69,18 +72,17 @@ The report is intentionally not a fake green badge.
 Today it keeps these truths separate:
 
 - `implemented_early`
+  - bounded dense contiguous `f32` RMSNorm forward plus backward graph
+    execution is real on the public CUDA path
   - post-train quantized export or roundtrip support is real
 - `partial`
   - BF16 policy, attention or RoPE program shape, residual decoder-path
     closure, and Muon semantics all have explicit substrate or refusal
     contracts
   - the public CUDA execution backend now genuinely owns dense `f32`
-    pointwise `mul` plus backend-specialized `rms_norm` forward execution, but
-    the full train path is still narrower than the Parameter Golf challenge
-    lane
-  - RMSNorm train-visible graph semantics are now real in the bounded dense
-    `f32` reference/autodiff lane, but public CUDA backward execution is still
-    missing
+    pointwise `mul` plus bounded dense contiguous `f32` RMSNorm forward and
+    backward execution, but the full decoder or optimizer train path is still
+    narrower than the Parameter Golf challenge lane
 
 This is the intended contract for the issue: do not hide missing CUDA kernels
 behind broader model or distributed receipts.
@@ -97,8 +99,7 @@ Without this report, the repo could say all of these misleading things:
 - an IR or meta-program proof means the direct CUDA kernel exists
 - one forward CUDA surface widening means the whole decoder block now trains on
   CUDA
-- bounded reference-autodiff closure means the public CUDA backward path is
-  already implemented
+- one bounded RMSNorm closure means the whole decoder block now trains on CUDA
 - a CPU-reference Muon implementation means the CUDA optimizer surface is done
 - artifact quantization means train-time low-precision closure is done
 
