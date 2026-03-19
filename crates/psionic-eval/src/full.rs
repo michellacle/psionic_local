@@ -42,8 +42,6 @@ mod tassadar_broad_internal_compute_portability;
 mod tassadar_broad_internal_compute_profile_publication;
 #[path = "tassadar_call_frames.rs"]
 mod tassadar_call_frames;
-#[path = "tassadar_resumable_multi_slice_promotion.rs"]
-mod tassadar_resumable_multi_slice_promotion;
 #[path = "tassadar_clrs_wasm_bridge.rs"]
 mod tassadar_clrs_wasm_bridge;
 #[path = "tassadar_compile_pipeline_matrix.rs"]
@@ -136,6 +134,8 @@ mod tassadar_pointer_memory_scratchpad;
 mod tassadar_precision_attention_robustness_audit;
 #[path = "tassadar_quantization_truth_envelope.rs"]
 mod tassadar_quantization_truth_envelope;
+#[path = "tassadar_resumable_multi_slice_promotion.rs"]
+mod tassadar_resumable_multi_slice_promotion;
 #[path = "tassadar_rust_article_profile_completeness.rs"]
 mod tassadar_rust_article_profile_completeness;
 #[path = "tassadar_rust_only_article_acceptance_gate.rs"]
@@ -158,6 +158,8 @@ mod tassadar_sparse_rule_compiler_audit;
 mod tassadar_state_design_study_report;
 #[path = "tassadar_structured_control.rs"]
 mod tassadar_structured_control;
+#[path = "tassadar_subset_profile_promotion_gate.rs"]
+mod tassadar_subset_profile_promotion_gate;
 #[path = "tassadar_sudoku_9x9_compiled_executor.rs"]
 mod tassadar_sudoku_9x9_compiled_executor;
 #[path = "tassadar_supervision_density.rs"]
@@ -212,7 +214,6 @@ pub use tassadar_broad_internal_compute_acceptance_gate::*;
 pub use tassadar_broad_internal_compute_portability::*;
 pub use tassadar_broad_internal_compute_profile_publication::*;
 pub use tassadar_call_frames::*;
-pub use tassadar_resumable_multi_slice_promotion::*;
 pub use tassadar_clrs_wasm_bridge::*;
 pub use tassadar_compile_pipeline_matrix::*;
 pub use tassadar_compiled_distillation::*;
@@ -259,6 +260,7 @@ pub use tassadar_numeric_opcode_ladder::*;
 pub use tassadar_pointer_memory_scratchpad::*;
 pub use tassadar_precision_attention_robustness_audit::*;
 pub use tassadar_quantization_truth_envelope::*;
+pub use tassadar_resumable_multi_slice_promotion::*;
 pub use tassadar_rust_article_profile_completeness::*;
 pub use tassadar_rust_only_article_acceptance_gate::*;
 pub use tassadar_rust_only_article_closeout_audit::*;
@@ -270,6 +272,7 @@ pub use tassadar_shared_primitive_transfer::*;
 pub use tassadar_sparse_rule_compiler_audit::*;
 pub use tassadar_state_design_study_report::*;
 pub use tassadar_structured_control::*;
+pub use tassadar_subset_profile_promotion_gate::*;
 pub use tassadar_sudoku_9x9_compiled_executor::*;
 pub use tassadar_supervision_density::*;
 pub use tassadar_trace_state_ablation::*;
@@ -2070,8 +2073,8 @@ mod tests {
     }
 
     #[test]
-    fn eval_sample_from_environment_summary_is_machine_legible()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn eval_sample_from_environment_summary_is_machine_legible(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let package = eval_environment();
         let summary = scored_summary("session-1", "task-1", 8_600, true)?;
         let sample = EvalSampleRecord::from_environment_summary(
@@ -2095,8 +2098,8 @@ mod tests {
     }
 
     #[test]
-    fn eval_run_finalizes_summary_and_preserves_online_offline_parity()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn eval_run_finalizes_summary_and_preserves_online_offline_parity(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let package = eval_environment();
         let offline_sample = EvalSampleRecord::from_environment_summary(
             "sample-offline",
@@ -2161,8 +2164,8 @@ mod tests {
     }
 
     #[test]
-    fn benchmark_package_supports_repeat_aggregation_and_operator_simulation()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn benchmark_package_supports_repeat_aggregation_and_operator_simulation(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let package = eval_environment();
         let benchmark_package = BenchmarkPackage::new(
             BenchmarkPackageKey::new("benchmark://openagents/math/basic", "2026.03.14"),
@@ -2241,8 +2244,8 @@ mod tests {
     }
 
     #[test]
-    fn benchmark_policy_refuses_missing_verification_facts()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn benchmark_policy_refuses_missing_verification_facts(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let package = eval_environment();
         let benchmark_package = BenchmarkPackage::new(
             BenchmarkPackageKey::new("benchmark://openagents/math/basic", "2026.03.14"),

@@ -2,9 +2,11 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use psionic_eval::{
-    TASSADAR_BROAD_INTERNAL_COMPUTE_ACCEPTANCE_GATE_REPORT_REF,
-    TassadarBroadInternalComputeAcceptanceStatus,
     build_tassadar_broad_internal_compute_acceptance_gate_report,
+    build_tassadar_subset_profile_promotion_gate_report,
+    TassadarBroadInternalComputeAcceptanceStatus,
+    TASSADAR_BROAD_INTERNAL_COMPUTE_ACCEPTANCE_GATE_REPORT_REF,
+    TASSADAR_SUBSET_PROFILE_PROMOTION_GATE_REPORT_REF,
 };
 use psionic_runtime::TASSADAR_BROAD_INTERNAL_COMPUTE_PORTABILITY_REPORT_REF;
 
@@ -21,6 +23,8 @@ pub struct TassadarBroadInternalComputePublicationDecision {
     pub profile_id: String,
     pub portability_report_ref: String,
     pub acceptance_gate_report_ref: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub subset_profile_promotion_gate_report_ref: Option<String>,
     pub status: TassadarBroadInternalComputePublicationDecisionStatus,
     pub detail: String,
 }
@@ -41,12 +45,47 @@ pub fn tassadar_broad_internal_compute_publication_decision(
     TassadarBroadInternalComputePublicationDecision,
     TassadarBroadInternalComputePublicationDecisionError,
 > {
+    let subset_gate = build_tassadar_subset_profile_promotion_gate_report()
+        .expect("subset profile promotion gate should build");
+    if let Some(row) = subset_gate
+        .profile_rows
+        .iter()
+        .find(|row| row.profile_id == profile_id)
+    {
+        let status = if row.served_publication_allowed {
+            TassadarBroadInternalComputePublicationDecisionStatus::Published
+        } else if row.gate_green {
+            TassadarBroadInternalComputePublicationDecisionStatus::Suppressed
+        } else {
+            TassadarBroadInternalComputePublicationDecisionStatus::Failed
+        };
+        return Ok(TassadarBroadInternalComputePublicationDecision {
+            profile_id: String::from(profile_id),
+            portability_report_ref: String::from(
+                TASSADAR_BROAD_INTERNAL_COMPUTE_PORTABILITY_REPORT_REF,
+            ),
+            acceptance_gate_report_ref: String::from(
+                TASSADAR_BROAD_INTERNAL_COMPUTE_ACCEPTANCE_GATE_REPORT_REF,
+            ),
+            subset_profile_promotion_gate_report_ref: Some(String::from(
+                TASSADAR_SUBSET_PROFILE_PROMOTION_GATE_REPORT_REF,
+            )),
+            status,
+            detail: row.detail.clone(),
+        });
+    }
     let report = build_tassadar_broad_internal_compute_acceptance_gate_report()
         .expect("broad internal-compute acceptance gate should build");
-    let Some(row) = report.profile_rows.iter().find(|row| row.profile_id == profile_id) else {
-        return Err(TassadarBroadInternalComputePublicationDecisionError::UnknownProfile {
-            profile_id: String::from(profile_id),
-        });
+    let Some(row) = report
+        .profile_rows
+        .iter()
+        .find(|row| row.profile_id == profile_id)
+    else {
+        return Err(
+            TassadarBroadInternalComputePublicationDecisionError::UnknownProfile {
+                profile_id: String::from(profile_id),
+            },
+        );
     };
     let status = match row.gate_status {
         TassadarBroadInternalComputeAcceptanceStatus::Green => {
@@ -67,6 +106,7 @@ pub fn tassadar_broad_internal_compute_publication_decision(
         acceptance_gate_report_ref: String::from(
             TASSADAR_BROAD_INTERNAL_COMPUTE_ACCEPTANCE_GATE_REPORT_REF,
         ),
+        subset_profile_promotion_gate_report_ref: None,
         status,
         detail: row.detail.clone(),
     })
@@ -81,28 +121,28 @@ pub fn require_tassadar_broad_internal_compute_profile_publication(
     let decision = tassadar_broad_internal_compute_publication_decision(profile_id)?;
     match decision.status {
         TassadarBroadInternalComputePublicationDecisionStatus::Published => Ok(decision),
-        TassadarBroadInternalComputePublicationDecisionStatus::Suppressed => {
-            Err(TassadarBroadInternalComputePublicationDecisionError::Suppressed {
+        TassadarBroadInternalComputePublicationDecisionStatus::Suppressed => Err(
+            TassadarBroadInternalComputePublicationDecisionError::Suppressed {
                 profile_id: decision.profile_id.clone(),
                 detail: decision.detail.clone(),
-            })
-        }
-        TassadarBroadInternalComputePublicationDecisionStatus::Failed => {
-            Err(TassadarBroadInternalComputePublicationDecisionError::Failed {
+            },
+        ),
+        TassadarBroadInternalComputePublicationDecisionStatus::Failed => Err(
+            TassadarBroadInternalComputePublicationDecisionError::Failed {
                 profile_id: decision.profile_id.clone(),
                 detail: decision.detail.clone(),
-            })
-        }
+            },
+        ),
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::{
-        TassadarBroadInternalComputePublicationDecisionError,
-        TassadarBroadInternalComputePublicationDecisionStatus,
         require_tassadar_broad_internal_compute_profile_publication,
         tassadar_broad_internal_compute_publication_decision,
+        TassadarBroadInternalComputePublicationDecisionError,
+        TassadarBroadInternalComputePublicationDecisionStatus,
     };
 
     #[test]
@@ -128,13 +168,28 @@ mod tests {
 
     #[test]
     fn broad_internal_compute_publication_gate_refuses_failed_profiles() {
+        let decision = tassadar_broad_internal_compute_publication_decision(
+            "tassadar.internal_compute.runtime_support_subset.v1",
+        )
+        .expect("runtime support subset decision");
+        assert_eq!(
+            decision.status,
+            TassadarBroadInternalComputePublicationDecisionStatus::Suppressed
+        );
+        assert_eq!(
+            decision.subset_profile_promotion_gate_report_ref,
+            Some(String::from(
+                "fixtures/tassadar/reports/tassadar_subset_profile_promotion_gate_report.json"
+            ))
+        );
+
         let error = require_tassadar_broad_internal_compute_profile_publication(
             "tassadar.internal_compute.runtime_support_subset.v1",
         )
-        .expect_err("runtime support subset should still fail");
+        .expect_err("runtime support subset should still stay suppressed");
         assert!(matches!(
             error,
-            TassadarBroadInternalComputePublicationDecisionError::Failed { .. }
+            TassadarBroadInternalComputePublicationDecisionError::Suppressed { .. }
         ));
     }
 }

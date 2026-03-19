@@ -28,6 +28,7 @@ This runbook covers the current repo-owned bounded Wasm flow only:
 - bounded Rust-only article ABI closure
 - checkpointed multi-slice execution receipts
 - linked module-graph and start-order runtime-support receipts
+- deterministic-import and runtime-support subset promotion gate
 - memory ABI v2 bulk-memory exactness
 - bounded dynamic-memory pause-and-resume receipts
 - Rust-only article runtime closeout
@@ -336,6 +337,37 @@ Expected outcome:
 - this widens real linked-program behavior only inside the explicit bounded
   bundle family; it does not imply arbitrary linked software growth, general
   import/runtime-support closure, or a widened current served claim beyond
+  `tassadar.internal_compute.article_closeout.v1`
+
+### 3B.5. Deterministic-import and runtime-support subset promotion gate
+
+```bash
+cargo run -p psionic-eval --example tassadar_subset_profile_promotion_gate_report
+```
+
+Read:
+
+- `fixtures/tassadar/reports/tassadar_subset_profile_promotion_gate_report.json`
+
+Expected outcome:
+
+- one machine-readable gate now names the two bounded post-article subset
+  profiles that are evidence-complete enough to publish honestly as named,
+  suppressed profiles:
+  `tassadar.internal_compute.deterministic_import_subset.v1` and
+  `tassadar.internal_compute.runtime_support_subset.v1`
+- the gate is green only when deterministic-import replay proofs, linked-bundle
+  replay proofs, negative refusal coverage, route suppression, and
+  profile-specific world-mount plus accepted-outcome policy posture are all
+  explicit
+- the gate still records zero
+  `served_publication_allowed_profile_ids`, which is the point: these profiles
+  are safe to name publicly without being safe to widen into the current served
+  lane
+- `world-mounts`, `kernel-policy`, `nexus`, and `compute-market` remain
+  explicit external dependency markers for any future profile-specific
+  publication widening outside standalone `psionic`
+- this does not widen the current served claim beyond
   `tassadar.internal_compute.article_closeout.v1`
 
 ### 3C. Hungarian-10x10 Rust-only article reproducer

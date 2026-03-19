@@ -5,22 +5,22 @@ use std::{
 };
 
 use psionic_models::{
-    TassadarExecutorContractError, TassadarExecutorFixture, TassadarExecutorModelDescriptor,
-    TassadarGeneralizedAbiPublication, TassadarInternalComputeProfileClaimCheckResult,
+    check_tassadar_internal_compute_profile_claim,
+    tassadar_current_served_internal_compute_profile_claim, tassadar_generalized_abi_publication,
+    tassadar_internal_compute_profile_ladder_publication,
+    tassadar_rust_article_profile_completeness_publication, TassadarExecutorContractError,
+    TassadarExecutorFixture, TassadarExecutorModelDescriptor, TassadarGeneralizedAbiPublication,
+    TassadarInternalComputeProfileClaimCheckResult,
     TassadarInternalComputeProfileLadderPublication, TassadarModuleExecutionCapabilityPublication,
     TassadarRustArticleProfileCompletenessPublication, TassadarTraceTokenizer,
     TassadarWorkloadCapabilityMatrix, TassadarWorkloadCapabilityMatrixError,
     TassadarWorkloadCapabilityRow, TassadarWorkloadSupportPosture,
-    check_tassadar_internal_compute_profile_claim,
-    tassadar_current_served_internal_compute_profile_claim, tassadar_generalized_abi_publication,
-    tassadar_internal_compute_profile_ladder_publication,
-    tassadar_rust_article_profile_completeness_publication,
 };
 use psionic_research::{
-    TASSADAR_ARTICLE_RUNTIME_CLOSEOUT_SUMMARY_REPORT_REF, TassadarAcceptanceReport,
-    TassadarCompiledArticleClosureReport, TassadarLearnedLongHorizonPolicyReport,
-    TassadarPromotionChecklistGateKind, TassadarPromotionPolicyReport,
     build_tassadar_article_runtime_closeout_summary_report, build_tassadar_promotion_policy_report,
+    TassadarAcceptanceReport, TassadarCompiledArticleClosureReport,
+    TassadarLearnedLongHorizonPolicyReport, TassadarPromotionChecklistGateKind,
+    TassadarPromotionPolicyReport, TASSADAR_ARTICLE_RUNTIME_CLOSEOUT_SUMMARY_REPORT_REF,
 };
 use psionic_router::{
     TassadarPlannerExecutorDecodeCapability, TassadarPlannerExecutorRouteDescriptor,
@@ -29,14 +29,14 @@ use psionic_router::{
     TassadarPlannerExecutorWasmImportPosture, TassadarPlannerExecutorWasmOpcodeFamily,
 };
 use psionic_runtime::{
-    TASSADAR_ARTICLE_CLASS_BENCHMARK_ENVIRONMENT_REF, TASSADAR_ARTICLE_CLASS_BENCHMARK_REF,
-    TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF, TassadarDirectModelWeightExecutionProofReceipt,
-    TassadarExecution, TassadarExecutionEvidenceBundle, TassadarExecutionRefusal,
-    TassadarExecutorDecodeMode, TassadarExecutorExecutionReport,
-    TassadarExecutorSelectionDiagnostic, TassadarInstruction, TassadarProgramArtifact,
-    TassadarRuntimeCapabilityReport, TassadarTraceEvent, TassadarTraceStep, TassadarValidationCase,
     build_tassadar_execution_evidence_bundle, execute_tassadar_executor_request,
     tassadar_article_class_corpus, tassadar_trace_abi_for_profile_id, tassadar_wasm_profile_for_id,
+    TassadarDirectModelWeightExecutionProofReceipt, TassadarExecution,
+    TassadarExecutionEvidenceBundle, TassadarExecutionRefusal, TassadarExecutorDecodeMode,
+    TassadarExecutorExecutionReport, TassadarExecutorSelectionDiagnostic, TassadarInstruction,
+    TassadarProgramArtifact, TassadarRuntimeCapabilityReport, TassadarTraceEvent,
+    TassadarTraceStep, TassadarValidationCase, TASSADAR_ARTICLE_CLASS_BENCHMARK_ENVIRONMENT_REF,
+    TASSADAR_ARTICLE_CLASS_BENCHMARK_REF, TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF,
 };
 use psionic_train::{TassadarExecutorPromotionGateReport, TassadarExecutorSequenceFitReport};
 use serde::{Deserialize, Serialize};
@@ -92,6 +92,8 @@ pub struct TassadarExecutorCapabilityPublication {
     /// Broad internal-compute profile publication and current route selection.
     pub broad_internal_compute_profile_publication:
         crate::TassadarBroadInternalComputeProfilePublication,
+    /// Deterministic-import and runtime-support subset promotion gate report bound to the served lane.
+    pub subset_profile_promotion_gate_report_ref: String,
     /// Resumable multi-slice promotion report bound to the served lane.
     pub resumable_multi_slice_promotion_report_ref: String,
     /// Deterministic import-mediated effect-safe resume report bound to the served lane.
@@ -502,6 +504,11 @@ impl LocalTassadarExecutorService {
                     }
                 },
             )?;
+        psionic_eval::build_tassadar_subset_profile_promotion_gate_report().map_err(|error| {
+            TassadarExecutorCapabilityPublicationError::InvalidBroadInternalComputeProfilePublication {
+                detail: format!("invalid subset profile promotion gate report: {error}"),
+            }
+        })?;
         psionic_eval::build_tassadar_resumable_multi_slice_promotion_report().map_err(|error| {
             TassadarExecutorCapabilityPublicationError::InvalidBroadInternalComputeProfilePublication {
                 detail: format!(
@@ -531,6 +538,9 @@ impl LocalTassadarExecutorService {
                 psionic_eval::TASSADAR_BROAD_INTERNAL_COMPUTE_ACCEPTANCE_GATE_REPORT_REF,
             ),
             broad_internal_compute_profile_publication,
+            subset_profile_promotion_gate_report_ref: String::from(
+                psionic_eval::TASSADAR_SUBSET_PROFILE_PROMOTION_GATE_REPORT_REF,
+            ),
             resumable_multi_slice_promotion_report_ref: String::from(
                 psionic_eval::TASSADAR_RESUMABLE_MULTI_SLICE_PROMOTION_REPORT_REF,
             ),
@@ -1862,8 +1872,8 @@ pub enum TassadarResearchPromotionError {
 }
 
 /// Returns the current promotion-policy report only when the research lane is promotable.
-pub fn require_tassadar_research_lane_promotion_ready()
--> Result<TassadarPromotionPolicyReport, TassadarResearchPromotionError> {
+pub fn require_tassadar_research_lane_promotion_ready(
+) -> Result<TassadarPromotionPolicyReport, TassadarResearchPromotionError> {
     let report = build_tassadar_promotion_policy_report().map_err(|error| {
         TassadarResearchPromotionError::Build {
             detail: error.to_string(),
@@ -5225,7 +5235,11 @@ fn snapshot_terminal_label(passed: bool) -> String {
 }
 
 fn yes_no(value: bool) -> &'static str {
-    if value { "yes" } else { "no" }
+    if value {
+        "yes"
+    } else {
+        "no"
+    }
 }
 
 fn selection_state_label(state: psionic_runtime::TassadarExecutorSelectionState) -> &'static str {
@@ -5361,11 +5375,9 @@ fn stream_events_for_outcome(
 #[cfg(test)]
 mod tests {
     use super::{
-        ARTICLE_EXECUTOR_SESSION_PRODUCT_ID, ARTICLE_HYBRID_WORKFLOW_PRODUCT_ID,
-        EXECUTOR_TRACE_PRODUCT_ID, LocalTassadarArticleExecutorSessionService,
+        require_tassadar_research_lane_promotion_ready, LocalTassadarArticleExecutorSessionService,
         LocalTassadarArticleHybridWorkflowService, LocalTassadarExecutorService,
-        LocalTassadarLabService, LocalTassadarPlannerRouter, PLANNER_EXECUTOR_ROUTE_PRODUCT_ID,
-        TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF, TassadarArticleExecutorSessionOutcome,
+        LocalTassadarLabService, LocalTassadarPlannerRouter, TassadarArticleExecutorSessionOutcome,
         TassadarArticleExecutorSessionRequest, TassadarArticleExecutorSessionServiceError,
         TassadarArticleExecutorSessionStreamEvent, TassadarArticleHybridWorkflowOutcome,
         TassadarArticleHybridWorkflowRequest, TassadarArticleHybridWorkflowServiceError,
@@ -5375,7 +5387,9 @@ mod tests {
         TassadarLabUpdate, TassadarPlannerExecutorSubproblem, TassadarPlannerFallbackPolicy,
         TassadarPlannerRouteReason, TassadarPlannerRouterError, TassadarPlannerRoutingBudget,
         TassadarPlannerRoutingOutcome, TassadarPlannerRoutingPolicy, TassadarPlannerRoutingRequest,
-        TassadarResearchPromotionError, require_tassadar_research_lane_promotion_ready,
+        TassadarResearchPromotionError, ARTICLE_EXECUTOR_SESSION_PRODUCT_ID,
+        ARTICLE_HYBRID_WORKFLOW_PRODUCT_ID, EXECUTOR_TRACE_PRODUCT_ID,
+        PLANNER_EXECUTOR_ROUTE_PRODUCT_ID, TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF,
     };
     use psionic_models::{TassadarExecutorFixture, TassadarWorkloadClass};
     use psionic_research::TassadarPromotionChecklistGateKind;
@@ -5383,9 +5397,9 @@ mod tests {
         TassadarPlannerExecutorRoutePosture, TassadarPlannerExecutorWasmImportPosture,
     };
     use psionic_runtime::{
-        TassadarExecutorDecodeMode, TassadarInstruction, TassadarProgram, TassadarProgramArtifact,
-        TassadarTraceAbi, TassadarWasmProfile, tassadar_article_class_corpus,
-        tassadar_validation_corpus,
+        tassadar_article_class_corpus, tassadar_validation_corpus, TassadarExecutorDecodeMode,
+        TassadarInstruction, TassadarProgram, TassadarProgramArtifact, TassadarTraceAbi,
+        TassadarWasmProfile,
     };
 
     fn request_for_case(case_id: &str) -> TassadarExecutorRequest {
@@ -5456,11 +5470,13 @@ mod tests {
             serde_json::json!(true)
         );
         assert_eq!(
-            encoded["module_execution_capability"]["runtime_capability"]["supports_active_element_segments"],
+            encoded["module_execution_capability"]["runtime_capability"]
+                ["supports_active_element_segments"],
             serde_json::json!(true)
         );
         assert_eq!(
-            encoded["module_execution_capability"]["runtime_capability"]["supports_start_function_instantiation"],
+            encoded["module_execution_capability"]["runtime_capability"]
+                ["supports_start_function_instantiation"],
             serde_json::json!(true)
         );
         assert_eq!(
@@ -5468,7 +5484,8 @@ mod tests {
             serde_json::json!(true)
         );
         assert_eq!(
-            encoded["module_execution_capability"]["runtime_capability"]["supports_active_data_segments"],
+            encoded["module_execution_capability"]["runtime_capability"]
+                ["supports_active_data_segments"],
             serde_json::json!(true)
         );
         assert_eq!(
@@ -5476,7 +5493,8 @@ mod tests {
             serde_json::json!(true)
         );
         assert_eq!(
-            encoded["module_execution_capability"]["runtime_capability"]["host_import_boundary"]["unsupported_host_call_refusal"],
+            encoded["module_execution_capability"]["runtime_capability"]["host_import_boundary"]
+                ["unsupported_host_call_refusal"],
             serde_json::json!("unsupported_host_import")
         );
         assert_eq!(
@@ -5533,6 +5551,12 @@ mod tests {
             encoded["broad_internal_compute_profile_publication"]["route_policy_report_ref"],
             serde_json::json!(
                 "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
+            )
+        );
+        assert_eq!(
+            encoded["subset_profile_promotion_gate_report_ref"],
+            serde_json::json!(
+                "fixtures/tassadar/reports/tassadar_subset_profile_promotion_gate_report.json"
             )
         );
         assert_eq!(
@@ -5744,11 +5768,9 @@ mod tests {
         let outcome = service.execute(&request).expect("request should be typed");
         match outcome {
             TassadarArticleExecutorSessionOutcome::Refused { refusal } => {
-                assert!(
-                    refusal
-                        .detail
-                        .contains("direct model-weight execution proof")
-                );
+                assert!(refusal
+                    .detail
+                    .contains("direct model-weight execution proof"));
             }
             other => panic!("expected proof-required fallback refusal, got {other:?}"),
         }
@@ -5938,18 +5960,14 @@ mod tests {
         assert!(prepared.snapshot.proof_identity.is_some());
         assert!(prepared.snapshot.readable_log.is_some());
         assert!(prepared.snapshot.token_trace.is_some());
-        assert!(
-            prepared
-                .updates
-                .iter()
-                .any(|update| matches!(update, TassadarLabUpdate::ProofIdentity { .. }))
-        );
-        assert!(
-            prepared
-                .updates
-                .iter()
-                .any(|update| matches!(update, TassadarLabUpdate::Terminal { .. }))
-        );
+        assert!(prepared
+            .updates
+            .iter()
+            .any(|update| matches!(update, TassadarLabUpdate::ProofIdentity { .. })));
+        assert!(prepared
+            .updates
+            .iter()
+            .any(|update| matches!(update, TassadarLabUpdate::Terminal { .. })));
     }
 
     #[test]
@@ -5983,12 +6001,10 @@ mod tests {
             hybrid_replay.snapshot.artifact_ref.as_deref(),
             Some(super::TASSADAR_ARTICLE_HYBRID_WORKFLOW_ARTIFACT_REF)
         );
-        assert!(
-            hybrid_replay
-                .updates
-                .iter()
-                .any(|update| matches!(update, TassadarLabUpdate::RoutingStatus { .. }))
-        );
+        assert!(hybrid_replay
+            .updates
+            .iter()
+            .any(|update| matches!(update, TassadarLabUpdate::RoutingStatus { .. })));
 
         let acceptance_replay = service
             .prepare(&TassadarLabRequest::Replay {
@@ -5999,18 +6015,14 @@ mod tests {
             acceptance_replay.snapshot.replay_id,
             Some(TassadarLabReplayId::AcceptanceReport)
         );
-        assert!(
-            acceptance_replay
-                .snapshot
-                .status_label
-                .contains("acceptance")
-        );
-        assert!(
-            acceptance_replay
-                .updates
-                .iter()
-                .any(|update| matches!(update, TassadarLabUpdate::StatusLine { .. }))
-        );
+        assert!(acceptance_replay
+            .snapshot
+            .status_label
+            .contains("acceptance"));
+        assert!(acceptance_replay
+            .updates
+            .iter()
+            .any(|update| matches!(update, TassadarLabUpdate::StatusLine { .. })));
     }
 
     #[test]
@@ -6279,11 +6291,9 @@ mod tests {
             micro_kernel.import_posture,
             TassadarPlannerExecutorWasmImportPosture::NoImportsOnly
         );
-        assert!(
-            micro_kernel
-                .direct_decode_modes
-                .contains(&TassadarExecutorDecodeMode::HullCache)
-        );
+        assert!(micro_kernel
+            .direct_decode_modes
+            .contains(&TassadarExecutorDecodeMode::HullCache));
         let long_loop = descriptor
             .wasm_capability_matrix
             .rows
@@ -6294,11 +6304,9 @@ mod tests {
             long_loop.exact_fallback_decode_mode,
             Some(TassadarExecutorDecodeMode::ReferenceLinear)
         );
-        assert!(
-            !long_loop
-                .direct_decode_modes
-                .contains(&TassadarExecutorDecodeMode::HullCache)
-        );
+        assert!(!long_loop
+            .direct_decode_modes
+            .contains(&TassadarExecutorDecodeMode::HullCache));
         assert!(!descriptor.descriptor_digest.is_empty());
     }
 
@@ -6344,13 +6352,11 @@ mod tests {
                     fallback.routing_decision.route_reason,
                     Some(TassadarPlannerRouteReason::ExecutorDecodeFallbackDisallowed)
                 );
-                assert!(
-                    fallback
-                        .routing_decision
-                        .selection
-                        .as_ref()
-                        .is_some_and(|selection| selection.is_fallback())
-                );
+                assert!(fallback
+                    .routing_decision
+                    .selection
+                    .as_ref()
+                    .is_some_and(|selection| selection.is_fallback()));
                 assert!(fallback.fallback_summary.contains("disallowed"));
             }
             other => panic!("expected typed fallback, got {other:?}"),
