@@ -1,0 +1,336 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.virtual_fs_mount.profile_report.v1",
+  "profile_id": "tassadar.effect_profile.virtual_fs_mounts.v1",
+  "runtime_bundle_ref": "fixtures/tassadar/runs/tassadar_virtual_fs_mounts_v1/tassadar_virtual_fs_mount_runtime_bundle.json",
+  "runtime_bundle": {
+    "schema_version": 1,
+    "bundle_id": "tassadar.virtual_fs_mount.runtime_bundle.v1",
+    "profile_id": "tassadar.effect_profile.virtual_fs_mounts.v1",
+    "case_receipts": [
+      {
+        "case_id": "dictionary_scan_read_only_mount",
+        "process_id": "tassadar.process.mounted_dictionary_lookup.v1",
+        "profile_id": "tassadar.effect_profile.virtual_fs_mounts.v1",
+        "mount_id": "artifact_mount.validation_dictionary",
+        "virtual_path": "/virtual/artifacts/validation/dictionary.txt",
+        "access_mode": "read_only_artifact_mount",
+        "expected_mount_policy_id": "mount_policy.read_only_artifacts.v1",
+        "status": "exact_replay_parity",
+        "exact_replay_parity": true,
+        "exact_artifact_proof_parity": true,
+        "write_bytes": 0,
+        "artifact_read_proofs": [
+          {
+            "proof_id": "dictionary_scan_read_only_mount::proof::0000",
+            "mount_id": "artifact_mount.validation_dictionary",
+            "virtual_path": "/virtual/artifacts/validation/dictionary.txt",
+            "artifact_rel_path": "mounted_artifacts/validation/dictionary.txt",
+            "artifact_digest": "4fdbc441ea7b546100e086ac1e4fc5ae6749b7314311c99db05be450eca12996",
+            "read_offset_bytes": 0,
+            "read_length_bytes": 5,
+            "observed_chunk_digest": "8ed3f6ad685b959ead7022518e1af76cd816f8e8ec7ccdda1ed4018e8f2223f8",
+            "challenge_ref": "challenge://tassadar/virtual_fs/dictionary_scan/00",
+            "note": "bounded dictionary scan proof for the `alpha` token remains challengeable and replay-safe"
+          },
+          {
+            "proof_id": "dictionary_scan_read_only_mount::proof::0006",
+            "mount_id": "artifact_mount.validation_dictionary",
+            "virtual_path": "/virtual/artifacts/validation/dictionary.txt",
+            "artifact_rel_path": "mounted_artifacts/validation/dictionary.txt",
+            "artifact_digest": "4fdbc441ea7b546100e086ac1e4fc5ae6749b7314311c99db05be450eca12996",
+            "read_offset_bytes": 6,
+            "read_length_bytes": 4,
+            "observed_chunk_digest": "f44e64e75f3948e9f73f8dfa94721c4ce8cbb4f265c4790c702b2d41cfbf2753",
+            "challenge_ref": "challenge://tassadar/virtual_fs/dictionary_scan/01",
+            "note": "bounded dictionary scan proof for the `beta` token remains challengeable and replay-safe"
+          }
+        ],
+        "refusal_kinds": [],
+        "note": "read-only dictionary mount stays deterministic because artifact digests, virtual path, and read windows are all frozen explicitly",
+        "receipt_digest": "108479431608bf669ebeca4040cbe4926572699f5b1e70a5140dcde0c787f6f5"
+      },
+      {
+        "case_id": "config_read_then_ephemeral_write",
+        "process_id": "tassadar.process.ephemeral_cache_build.v1",
+        "profile_id": "tassadar.effect_profile.virtual_fs_mounts.v1",
+        "mount_id": "artifact_mount.ephemeral_workspace",
+        "virtual_path": "/virtual/work/cache/result.bin",
+        "access_mode": "artifact_read_plus_ephemeral_write",
+        "expected_mount_policy_id": "mount_policy.artifact_plus_ephemeral_workspace.v1",
+        "status": "exact_replay_parity",
+        "exact_replay_parity": true,
+        "exact_artifact_proof_parity": true,
+        "write_bytes": 96,
+        "artifact_read_proofs": [
+          {
+            "proof_id": "config_read_then_ephemeral_write::proof::0000",
+            "mount_id": "artifact_mount.ephemeral_workspace",
+            "virtual_path": "/virtual/artifacts/config/task_config.json",
+            "artifact_rel_path": "mounted_artifacts/config/task_config.json",
+            "artifact_digest": "9c07a97537a3a64be453527c52f3a16ac585005a11a88c162dc4b3a6f9bb7374",
+            "read_offset_bytes": 0,
+            "read_length_bytes": 25,
+            "observed_chunk_digest": "9c07a97537a3a64be453527c52f3a16ac585005a11a88c162dc4b3a6f9bb7374",
+            "challenge_ref": "challenge://tassadar/virtual_fs/config_read/00",
+            "note": "mounted config read stays challengeable before the deterministic ephemeral cache write executes"
+          }
+        ],
+        "refusal_kinds": [],
+        "note": "mounted config reads plus bounded ephemeral workspace writes stay deterministic because the mount set, write budget, and replay receipts are all frozen explicitly",
+        "receipt_digest": "e32ab3cf3dc455a90f5fbf618b68e51dae8f89913808d3b1fdfc0295210a6c23"
+      },
+      {
+        "case_id": "ambient_host_home_refusal",
+        "process_id": "tassadar.process.host_path_probe.v1",
+        "profile_id": "tassadar.effect_profile.virtual_fs_mounts.v1",
+        "mount_id": "ambient_host_home",
+        "virtual_path": "/host/home/.ssh/id_ed25519",
+        "access_mode": "refused",
+        "expected_mount_policy_id": "mount_policy.read_only_artifacts.v1",
+        "status": "exact_refusal_parity",
+        "exact_replay_parity": false,
+        "exact_artifact_proof_parity": false,
+        "write_bytes": 0,
+        "artifact_read_proofs": [],
+        "refusal_kinds": [
+          "ambient_host_path_denied"
+        ],
+        "note": "ambient host-home paths remain refused because they are outside the declared virtual-filesystem mount set",
+        "receipt_digest": "006c5965767973b427d1d869aea2ceaf2e52cd7e3de9db823c8507607784be96"
+      },
+      {
+        "case_id": "path_escape_refusal",
+        "process_id": "tassadar.process.path_escape_probe.v1",
+        "profile_id": "tassadar.effect_profile.virtual_fs_mounts.v1",
+        "mount_id": "artifact_mount.validation_dictionary",
+        "virtual_path": "/virtual/artifacts/validation/../../private.txt",
+        "access_mode": "refused",
+        "expected_mount_policy_id": "mount_policy.read_only_artifacts.v1",
+        "status": "exact_refusal_parity",
+        "exact_replay_parity": false,
+        "exact_artifact_proof_parity": false,
+        "write_bytes": 0,
+        "artifact_read_proofs": [],
+        "refusal_kinds": [
+          "path_traversal_denied",
+          "undeclared_mount_policy"
+        ],
+        "note": "path traversal and undeclared mount widening remain explicit refusals instead of ambient filesystem access",
+        "receipt_digest": "dacfcf0b450af86c22092b323e5378fe1ca1e24ad66a0d2ac6c977b42f69fa27"
+      }
+    ],
+    "exact_case_count": 2,
+    "refusal_case_count": 3,
+    "allowed_mount_ids": [
+      "artifact_mount.validation_dictionary",
+      "artifact_mount.ephemeral_workspace"
+    ],
+    "refused_path_ids": [
+      "/host/home/.ssh/id_ed25519",
+      "/virtual/artifacts/validation/../../private.txt"
+    ],
+    "world_mount_dependency_marker": "world-mounts remain the owner of canonical task-scoped mount policy outside standalone psionic",
+    "claim_boundary": "this runtime bundle covers one bounded virtual-filesystem and artifact-mount profile with challengeable artifact-read proofs, deterministic ephemeral write bounds, and explicit refusal on ambient host paths or undeclared mounts. It does not claim arbitrary host filesystem access, broad effect closure, or broader served internal compute",
+    "summary": "Virtual-fs runtime bundle covers exact_cases=2, refusal_rows=3, allowed_mounts=2, refused_paths=2.",
+    "bundle_digest": "73c3bfb00e564541f3e8fde1aa31ce2ebbab0676f7eff5fb76dbe1d49b44f27f"
+  },
+  "sandbox_boundary_report_ref": "fixtures/tassadar/reports/tassadar_virtual_fs_mount_sandbox_boundary_report.json",
+  "sandbox_boundary_report": {
+    "schema_version": 1,
+    "report_id": "tassadar.virtual_fs_mount.sandbox_boundary.report.v1",
+    "profile_id": "tassadar.effect_profile.virtual_fs_mounts.v1",
+    "runtime_bundle_ref": "fixtures/tassadar/runs/tassadar_virtual_fs_mounts_v1/tassadar_virtual_fs_mount_runtime_bundle.json",
+    "rows": [
+      {
+        "case_id": "dictionary_scan_read_only_mount",
+        "mount_id": "artifact_mount.validation_dictionary",
+        "virtual_path": "/virtual/artifacts/validation/dictionary.txt",
+        "status": "allowed_deterministic",
+        "read_only_mount": true,
+        "challengeable_artifact_proof_required": true,
+        "max_write_bytes": 0,
+        "note": "read-only dictionary mount stays deterministic because artifact digests, virtual path, and read windows are all frozen explicitly"
+      },
+      {
+        "case_id": "config_read_then_ephemeral_write",
+        "mount_id": "artifact_mount.ephemeral_workspace",
+        "virtual_path": "/virtual/work/cache/result.bin",
+        "status": "allowed_deterministic",
+        "read_only_mount": false,
+        "challengeable_artifact_proof_required": true,
+        "max_write_bytes": 96,
+        "note": "mounted config reads plus bounded ephemeral workspace writes stay deterministic because the mount set, write budget, and replay receipts are all frozen explicitly"
+      },
+      {
+        "case_id": "ambient_host_home_refusal",
+        "mount_id": "ambient_host_home",
+        "virtual_path": "/host/home/.ssh/id_ed25519",
+        "status": "refused_out_of_envelope",
+        "read_only_mount": false,
+        "challengeable_artifact_proof_required": false,
+        "max_write_bytes": 0,
+        "refusal_reason_id": "ambienthostpathdenied",
+        "note": "ambient host-home paths remain refused because they are outside the declared virtual-filesystem mount set"
+      },
+      {
+        "case_id": "path_escape_refusal",
+        "mount_id": "artifact_mount.validation_dictionary",
+        "virtual_path": "/virtual/artifacts/validation/../../private.txt",
+        "status": "refused_out_of_envelope",
+        "read_only_mount": false,
+        "challengeable_artifact_proof_required": false,
+        "max_write_bytes": 0,
+        "refusal_reason_id": "pathtraversaldenied",
+        "note": "path traversal and undeclared mount widening remain explicit refusals instead of ambient filesystem access"
+      }
+    ],
+    "allowed_mount_ids": [
+      "artifact_mount.validation_dictionary",
+      "artifact_mount.ephemeral_workspace"
+    ],
+    "refused_path_ids": [
+      "/host/home/.ssh/id_ed25519",
+      "/virtual/artifacts/validation/../../private.txt"
+    ],
+    "allowed_case_count": 2,
+    "refused_case_count": 2,
+    "denied_path_refusal_count": 2,
+    "challengeable_artifact_read_case_count": 2,
+    "world_mount_dependency_marker": "world-mounts remain the authority owner for canonical task-scoped mount policy outside standalone psionic",
+    "kernel_policy_dependency_marker": "kernel-policy remains the authority owner for settlement-grade effect admission outside standalone psionic",
+    "claim_boundary": "this sandbox boundary admits only one deterministic virtual-filesystem mount profile with read-only artifact mounts and bounded ephemeral workspace writes. It keeps ambient host paths and undeclared mount widening on explicit refusal paths instead of implying arbitrary filesystem access",
+    "summary": "Virtual-fs sandbox boundary freezes allowed_cases=2, refused_cases=2, denied_path_refusals=2, challengeable_artifact_reads=2.",
+    "report_digest": "2276ede0456c027495b84f5dc5f18a8da16c7b22af74c907de28eb66747ffbf0"
+  },
+  "case_reports": [
+    {
+      "case_id": "dictionary_scan_read_only_mount",
+      "process_id": "tassadar.process.mounted_dictionary_lookup.v1",
+      "mount_id": "artifact_mount.validation_dictionary",
+      "virtual_path": "/virtual/artifacts/validation/dictionary.txt",
+      "status": "exact_replay_parity",
+      "exact_replay_parity": true,
+      "exact_artifact_proof_parity": true,
+      "write_bytes": 0,
+      "mounted_artifacts": [
+        {
+          "case_id": "dictionary_scan_read_only_mount",
+          "mount_id": "artifact_mount.validation_dictionary",
+          "virtual_path": "/virtual/artifacts/validation/dictionary.txt",
+          "artifact_rel_path": "fixtures/tassadar/runs/tassadar_virtual_fs_mounts_v1/mounted_artifacts/validation/dictionary.txt",
+          "artifact_digest": "4fdbc441ea7b546100e086ac1e4fc5ae6749b7314311c99db05be450eca12996"
+        },
+        {
+          "case_id": "dictionary_scan_read_only_mount",
+          "mount_id": "artifact_mount.validation_dictionary",
+          "virtual_path": "/virtual/artifacts/validation/dictionary.txt",
+          "artifact_rel_path": "fixtures/tassadar/runs/tassadar_virtual_fs_mounts_v1/mounted_artifacts/validation/dictionary.txt",
+          "artifact_digest": "4fdbc441ea7b546100e086ac1e4fc5ae6749b7314311c99db05be450eca12996"
+        }
+      ],
+      "proof_refs": [
+        {
+          "case_id": "dictionary_scan_read_only_mount",
+          "proof_id": "dictionary_scan_read_only_mount::proof::0000",
+          "proof_rel_path": "fixtures/tassadar/runs/tassadar_virtual_fs_mounts_v1/artifact_read_proofs/dictionary_scan_read_only_mount::proof::0000.json",
+          "proof_digest": "ad43d1e7ad3314181b3c091e5e6ea98c4297ca1cb7315712c116bbea2b8e8fbe"
+        },
+        {
+          "case_id": "dictionary_scan_read_only_mount",
+          "proof_id": "dictionary_scan_read_only_mount::proof::0006",
+          "proof_rel_path": "fixtures/tassadar/runs/tassadar_virtual_fs_mounts_v1/artifact_read_proofs/dictionary_scan_read_only_mount::proof::0006.json",
+          "proof_digest": "57767e9e1929d3a1614b358e6645b68e6496a383841d68dcc1d26528421d5330"
+        }
+      ],
+      "refusal_kinds": [],
+      "note": "read-only dictionary mount stays deterministic because artifact digests, virtual path, and read windows are all frozen explicitly"
+    },
+    {
+      "case_id": "config_read_then_ephemeral_write",
+      "process_id": "tassadar.process.ephemeral_cache_build.v1",
+      "mount_id": "artifact_mount.ephemeral_workspace",
+      "virtual_path": "/virtual/work/cache/result.bin",
+      "status": "exact_replay_parity",
+      "exact_replay_parity": true,
+      "exact_artifact_proof_parity": true,
+      "write_bytes": 96,
+      "mounted_artifacts": [
+        {
+          "case_id": "config_read_then_ephemeral_write",
+          "mount_id": "artifact_mount.ephemeral_workspace",
+          "virtual_path": "/virtual/artifacts/config/task_config.json",
+          "artifact_rel_path": "fixtures/tassadar/runs/tassadar_virtual_fs_mounts_v1/mounted_artifacts/config/task_config.json",
+          "artifact_digest": "9c07a97537a3a64be453527c52f3a16ac585005a11a88c162dc4b3a6f9bb7374"
+        }
+      ],
+      "proof_refs": [
+        {
+          "case_id": "config_read_then_ephemeral_write",
+          "proof_id": "config_read_then_ephemeral_write::proof::0000",
+          "proof_rel_path": "fixtures/tassadar/runs/tassadar_virtual_fs_mounts_v1/artifact_read_proofs/config_read_then_ephemeral_write::proof::0000.json",
+          "proof_digest": "523cd801114f782dd0778147765c5c26494da552f5c4f1d3133bcd0e1a36edcd"
+        }
+      ],
+      "refusal_kinds": [],
+      "note": "mounted config reads plus bounded ephemeral workspace writes stay deterministic because the mount set, write budget, and replay receipts are all frozen explicitly"
+    },
+    {
+      "case_id": "ambient_host_home_refusal",
+      "process_id": "tassadar.process.host_path_probe.v1",
+      "mount_id": "ambient_host_home",
+      "virtual_path": "/host/home/.ssh/id_ed25519",
+      "status": "exact_refusal_parity",
+      "exact_replay_parity": false,
+      "exact_artifact_proof_parity": false,
+      "write_bytes": 0,
+      "mounted_artifacts": [],
+      "proof_refs": [],
+      "refusal_kinds": [
+        "ambient_host_path_denied"
+      ],
+      "note": "ambient host-home paths remain refused because they are outside the declared virtual-filesystem mount set"
+    },
+    {
+      "case_id": "path_escape_refusal",
+      "process_id": "tassadar.process.path_escape_probe.v1",
+      "mount_id": "artifact_mount.validation_dictionary",
+      "virtual_path": "/virtual/artifacts/validation/../../private.txt",
+      "status": "exact_refusal_parity",
+      "exact_replay_parity": false,
+      "exact_artifact_proof_parity": false,
+      "write_bytes": 0,
+      "mounted_artifacts": [],
+      "proof_refs": [],
+      "refusal_kinds": [
+        "path_traversal_denied",
+        "undeclared_mount_policy"
+      ],
+      "note": "path traversal and undeclared mount widening remain explicit refusals instead of ambient filesystem access"
+    }
+  ],
+  "allowed_mount_ids": [
+    "artifact_mount.validation_dictionary",
+    "artifact_mount.ephemeral_workspace"
+  ],
+  "refused_path_ids": [
+    "/host/home/.ssh/id_ed25519",
+    "/virtual/artifacts/validation/../../private.txt"
+  ],
+  "exact_case_count": 2,
+  "refusal_case_count": 3,
+  "served_publication_allowed": false,
+  "world_mount_dependency_marker": "world-mounts remain the owner of canonical task-scoped mount policy outside standalone psionic",
+  "generated_from_refs": [
+    "fixtures/tassadar/reports/tassadar_virtual_fs_mount_sandbox_boundary_report.json",
+    "fixtures/tassadar/runs/tassadar_virtual_fs_mounts_v1/artifact_read_proofs/config_read_then_ephemeral_write::proof::0000.json",
+    "fixtures/tassadar/runs/tassadar_virtual_fs_mounts_v1/artifact_read_proofs/dictionary_scan_read_only_mount::proof::0000.json",
+    "fixtures/tassadar/runs/tassadar_virtual_fs_mounts_v1/artifact_read_proofs/dictionary_scan_read_only_mount::proof::0006.json",
+    "fixtures/tassadar/runs/tassadar_virtual_fs_mounts_v1/mounted_artifacts/config/task_config.json",
+    "fixtures/tassadar/runs/tassadar_virtual_fs_mounts_v1/mounted_artifacts/validation/dictionary.txt",
+    "fixtures/tassadar/runs/tassadar_virtual_fs_mounts_v1/tassadar_virtual_fs_mount_runtime_bundle.json"
+  ],
+  "claim_boundary": "this eval report covers one bounded virtual-filesystem and artifact-mount profile with challengeable artifact-read proofs and deterministic ephemeral write bounds. It keeps ambient host paths and undeclared mount widening on explicit refusal paths instead of implying arbitrary filesystem access or broader served compute",
+  "summary": "Virtual-fs profile report covers exact_cases=2, refusal_rows=3, allowed_mounts=2, refused_paths=2, served_publication_allowed=false.",
+  "report_digest": "8b7292c0e1ab227c2e6e132702e43582ebe91132316a2e016c594bf955084141"
+}

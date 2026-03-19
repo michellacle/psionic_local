@@ -53,6 +53,7 @@ mod tassadar_subset_profile_promotion_gate;
 mod tassadar_threads_research_profile;
 mod tassadar_trap_exception;
 mod tassadar_wedge_taxonomy;
+mod tassadar_virtual_fs_mount_profile;
 mod tassadar_world_mount_compatibility;
 
 use std::collections::BTreeMap;
@@ -112,6 +113,7 @@ pub use tassadar_subset_profile_promotion_gate::*;
 pub use tassadar_threads_research_profile::*;
 pub use tassadar_trap_exception::*;
 pub use tassadar_wedge_taxonomy::*;
+pub use tassadar_virtual_fs_mount_profile::*;
 pub use tassadar_world_mount_compatibility::*;
 
 use psionic_research::{

@@ -1,0 +1,12 @@
+{
+  "proof_id": "dictionary_scan_read_only_mount::proof::0000",
+  "mount_id": "artifact_mount.validation_dictionary",
+  "virtual_path": "/virtual/artifacts/validation/dictionary.txt",
+  "artifact_rel_path": "mounted_artifacts/validation/dictionary.txt",
+  "artifact_digest": "4fdbc441ea7b546100e086ac1e4fc5ae6749b7314311c99db05be450eca12996",
+  "read_offset_bytes": 0,
+  "read_length_bytes": 5,
+  "observed_chunk_digest": "8ed3f6ad685b959ead7022518e1af76cd816f8e8ec7ccdda1ed4018e8f2223f8",
+  "challenge_ref": "challenge://tassadar/virtual_fs/dictionary_scan/00",
+  "note": "bounded dictionary scan proof for the `alpha` token remains challengeable and replay-safe"
+}

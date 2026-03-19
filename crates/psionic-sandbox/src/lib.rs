@@ -26,3 +26,6 @@ pub use tassadar_import_policy_matrix::*;
 
 mod tassadar_threads_scheduler_boundary;
 pub use tassadar_threads_scheduler_boundary::*;
+
+mod tassadar_virtual_fs_mount_boundary;
+pub use tassadar_virtual_fs_mount_boundary::*;

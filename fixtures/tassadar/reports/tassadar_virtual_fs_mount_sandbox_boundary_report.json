@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.virtual_fs_mount.sandbox_boundary.report.v1",
+  "profile_id": "tassadar.effect_profile.virtual_fs_mounts.v1",
+  "runtime_bundle_ref": "fixtures/tassadar/runs/tassadar_virtual_fs_mounts_v1/tassadar_virtual_fs_mount_runtime_bundle.json",
+  "rows": [
+    {
+      "case_id": "dictionary_scan_read_only_mount",
+      "mount_id": "artifact_mount.validation_dictionary",
+      "virtual_path": "/virtual/artifacts/validation/dictionary.txt",
+      "status": "allowed_deterministic",
+      "read_only_mount": true,
+      "challengeable_artifact_proof_required": true,
+      "max_write_bytes": 0,
+      "note": "read-only dictionary mount stays deterministic because artifact digests, virtual path, and read windows are all frozen explicitly"
+    },
+    {
+      "case_id": "config_read_then_ephemeral_write",
+      "mount_id": "artifact_mount.ephemeral_workspace",
+      "virtual_path": "/virtual/work/cache/result.bin",
+      "status": "allowed_deterministic",
+      "read_only_mount": false,
+      "challengeable_artifact_proof_required": true,
+      "max_write_bytes": 96,
+      "note": "mounted config reads plus bounded ephemeral workspace writes stay deterministic because the mount set, write budget, and replay receipts are all frozen explicitly"
+    },
+    {
+      "case_id": "ambient_host_home_refusal",
+      "mount_id": "ambient_host_home",
+      "virtual_path": "/host/home/.ssh/id_ed25519",
+      "status": "refused_out_of_envelope",
+      "read_only_mount": false,
+      "challengeable_artifact_proof_required": false,
+      "max_write_bytes": 0,
+      "refusal_reason_id": "ambienthostpathdenied",
+      "note": "ambient host-home paths remain refused because they are outside the declared virtual-filesystem mount set"
+    },
+    {
+      "case_id": "path_escape_refusal",
+      "mount_id": "artifact_mount.validation_dictionary",
+      "virtual_path": "/virtual/artifacts/validation/../../private.txt",
+      "status": "refused_out_of_envelope",
+      "read_only_mount": false,
+      "challengeable_artifact_proof_required": false,
+      "max_write_bytes": 0,
+      "refusal_reason_id": "pathtraversaldenied",
+      "note": "path traversal and undeclared mount widening remain explicit refusals instead of ambient filesystem access"
+    }
+  ],
+  "allowed_mount_ids": [
+    "artifact_mount.validation_dictionary",
+    "artifact_mount.ephemeral_workspace"
+  ],
+  "refused_path_ids": [
+    "/host/home/.ssh/id_ed25519",
+    "/virtual/artifacts/validation/../../private.txt"
+  ],
+  "allowed_case_count": 2,
+  "refused_case_count": 2,
+  "denied_path_refusal_count": 2,
+  "challengeable_artifact_read_case_count": 2,
+  "world_mount_dependency_marker": "world-mounts remain the authority owner for canonical task-scoped mount policy outside standalone psionic",
+  "kernel_policy_dependency_marker": "kernel-policy remains the authority owner for settlement-grade effect admission outside standalone psionic",
+  "claim_boundary": "this sandbox boundary admits only one deterministic virtual-filesystem mount profile with read-only artifact mounts and bounded ephemeral workspace writes. It keeps ambient host paths and undeclared mount widening on explicit refusal paths instead of implying arbitrary filesystem access",
+  "summary": "Virtual-fs sandbox boundary freezes allowed_cases=2, refused_cases=2, denied_path_refusals=2, challengeable_artifact_reads=2.",
+  "report_digest": "2276ede0456c027495b84f5dc5f18a8da16c7b22af74c907de28eb66747ffbf0"
+}

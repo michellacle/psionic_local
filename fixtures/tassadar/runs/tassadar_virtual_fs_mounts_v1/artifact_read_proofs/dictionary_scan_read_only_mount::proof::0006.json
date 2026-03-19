@@ -1,0 +1,12 @@
+{
+  "proof_id": "dictionary_scan_read_only_mount::proof::0006",
+  "mount_id": "artifact_mount.validation_dictionary",
+  "virtual_path": "/virtual/artifacts/validation/dictionary.txt",
+  "artifact_rel_path": "mounted_artifacts/validation/dictionary.txt",
+  "artifact_digest": "4fdbc441ea7b546100e086ac1e4fc5ae6749b7314311c99db05be450eca12996",
+  "read_offset_bytes": 6,
+  "read_length_bytes": 4,
+  "observed_chunk_digest": "f44e64e75f3948e9f73f8dfa94721c4ce8cbb4f265c4790c702b2d41cfbf2753",
+  "challenge_ref": "challenge://tassadar/virtual_fs/dictionary_scan/01",
+  "note": "bounded dictionary scan proof for the `beta` token remains challengeable and replay-safe"
+}

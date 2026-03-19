@@ -204,6 +204,8 @@ mod tassadar_trace_state_ablation;
 mod tassadar_trap_exception;
 #[path = "tassadar_verifier_guided_search_report.rs"]
 mod tassadar_verifier_guided_search_report;
+#[path = "tassadar_virtual_fs_mount_profile.rs"]
+mod tassadar_virtual_fs_mount_profile;
 #[path = "tassadar_wasm_conformance.rs"]
 mod tassadar_wasm_conformance;
 #[path = "tassadar_wasm_module_ingress.rs"]
@@ -329,6 +331,7 @@ pub use tassadar_threads_research_profile::*;
 pub use tassadar_trace_state_ablation::*;
 pub use tassadar_trap_exception::*;
 pub use tassadar_verifier_guided_search_report::*;
+pub use tassadar_virtual_fs_mount_profile::*;
 pub use tassadar_wasm_conformance::*;
 pub use tassadar_wasm_module_ingress::*;
 pub use tassadar_weak_supervision_executor::*;

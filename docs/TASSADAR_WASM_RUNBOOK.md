@@ -1108,6 +1108,31 @@ Expected outcome:
 - explicit refusal on the host-nondeterministic scheduler regime
 - zero served publication widening for the preemptive-job lane
 
+### 20. Deterministic virtual filesystem and artifact-mount effect profile
+
+```bash
+cargo run -p psionic-runtime --example tassadar_virtual_fs_mount_runtime_bundle
+cargo run -p psionic-sandbox --example tassadar_virtual_fs_mount_sandbox_boundary_report
+cargo run -p psionic-eval --example tassadar_virtual_fs_mount_profile_report
+```
+
+Read:
+
+- `fixtures/tassadar/runs/tassadar_virtual_fs_mounts_v1/tassadar_virtual_fs_mount_runtime_bundle.json`
+- `fixtures/tassadar/reports/tassadar_virtual_fs_mount_sandbox_boundary_report.json`
+- `fixtures/tassadar/reports/tassadar_virtual_fs_mount_profile_report.json`
+- mounted-artifact and artifact-read-proof files under
+  `fixtures/tassadar/runs/tassadar_virtual_fs_mounts_v1`
+
+Expected outcome:
+
+- one named bounded virtual-filesystem and artifact-mount profile:
+  `tassadar.effect_profile.virtual_fs_mounts.v1`
+- challengeable artifact-read proofs on the mounted dictionary and config rows
+- deterministic bounded ephemeral workspace writes on the cache-write row
+- explicit refusal on ambient host paths and path-traversal / undeclared-mount widening
+- zero served publication widening for the virtual-filesystem lane
+
 ## Validation Commands
 
 Run the focused report checks after the flow:
@@ -1176,6 +1201,10 @@ cargo test -p psionic-runtime preemptive_job -- --nocapture
 cargo test -p psionic-cluster preemptive_job -- --nocapture
 cargo test -p psionic-eval preemptive_job -- --nocapture
 cargo test -p psionic-provider preemptive_job -- --nocapture
+cargo test -p psionic-runtime virtual_fs -- --nocapture
+cargo test -p psionic-sandbox virtual_fs -- --nocapture
+cargo test -p psionic-eval virtual_fs -- --nocapture
+cargo test -p psionic-provider virtual_fs -- --nocapture
 ```
 
 These checks should keep the committed reports and generated truth aligned.

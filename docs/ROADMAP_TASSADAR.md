@@ -104,6 +104,11 @@ Current honest posture:
   cluster, and eval reports plus served-publication and provider-envelope
   bindings that keep the lane operator-visible but non-served while refusing
   host-nondeterministic scheduling explicitly
+- the repo now also has one bounded virtual-filesystem and artifact-mount
+  profile `tassadar.effect_profile.virtual_fs_mounts.v1`, with committed
+  runtime, sandbox, and eval artifacts plus provider receipts that keep the
+  lane challengeable, replay-safe, and non-served while leaving canonical
+  mount authority explicitly owned by `world-mounts` outside standalone psionic
 - broader profiles above that remain benchmarked, suppressed, refused, or
   unpromoted unless their explicit gates are green
 

@@ -1,0 +1,12 @@
+{
+  "proof_id": "config_read_then_ephemeral_write::proof::0000",
+  "mount_id": "artifact_mount.ephemeral_workspace",
+  "virtual_path": "/virtual/artifacts/config/task_config.json",
+  "artifact_rel_path": "mounted_artifacts/config/task_config.json",
+  "artifact_digest": "9c07a97537a3a64be453527c52f3a16ac585005a11a88c162dc4b3a6f9bb7374",
+  "read_offset_bytes": 0,
+  "read_length_bytes": 25,
+  "observed_chunk_digest": "9c07a97537a3a64be453527c52f3a16ac585005a11a88c162dc4b3a6f9bb7374",
+  "challenge_ref": "challenge://tassadar/virtual_fs/config_read/00",
+  "note": "mounted config read stays challengeable before the deterministic ephemeral cache write executes"
+}

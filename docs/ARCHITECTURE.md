@@ -855,6 +855,16 @@ The current scope is:
   explicit refusal on host-nondeterministic scheduling; this is not arbitrary
   cluster scheduling, general concurrency closure, or broader served internal
   compute
+- the current virtual-filesystem artifacts are
+  `fixtures/tassadar/runs/tassadar_virtual_fs_mounts_v1/tassadar_virtual_fs_mount_runtime_bundle.json`,
+  `fixtures/tassadar/reports/tassadar_virtual_fs_mount_sandbox_boundary_report.json`,
+  and `fixtures/tassadar/reports/tassadar_virtual_fs_mount_profile_report.json`,
+  plus the mounted-artifact and artifact-read-proof files under the same run
+  root, which freeze one bounded virtual-filesystem and artifact-mount lane
+  with challengeable artifact-read proofs, deterministic ephemeral write
+  bounds, and explicit refusal on ambient host paths or undeclared mount
+  widening; this is not arbitrary host filesystem access, broad effect closure,
+  or broader served internal compute
 - recommended closure order follows the spec and its test families: decode and
   validate first, then integer/control/direct-call core, then linear memory,
   then globals/tables/references/indirect calls, then instantiation/import
