@@ -14,6 +14,9 @@ const TASSADAR_CALL_FRAME_RESUME_FAMILY_PREFIX: &str = "tassadar.call_frame_resu
 const TASSADAR_DYNAMIC_MEMORY_RESUME_FAMILY_PREFIX: &str = "tassadar.dynamic_memory_resume";
 const TASSADAR_EXECUTION_CHECKPOINT_FAMILY_PREFIX: &str = "tassadar.execution_checkpoint";
 const TASSADAR_MEMORY64_RESUME_FAMILY_PREFIX: &str = "tassadar.memory64_resume";
+const TASSADAR_PROCESS_SNAPSHOT_FAMILY_PREFIX: &str = "tassadar.process_snapshot";
+const TASSADAR_PROCESS_TAPE_FAMILY_PREFIX: &str = "tassadar.process_tape";
+const TASSADAR_PROCESS_WORK_QUEUE_FAMILY_PREFIX: &str = "tassadar.process_work_queue";
 
 /// High-level subject being delivered over the data plane.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -206,7 +209,9 @@ impl DatastreamCheckpointBinding {
     pub fn tassadar_memory64_resume(checkpoint_id: impl AsRef<str>, step: u64) -> Self {
         let checkpoint_id = checkpoint_id.as_ref();
         Self::new("tassadar.memory64_resume.v1")
-            .with_checkpoint_ref(format!("checkpoint://tassadar.memory64_resume/{checkpoint_id}"))
+            .with_checkpoint_ref(format!(
+                "checkpoint://tassadar.memory64_resume/{checkpoint_id}"
+            ))
             .with_step(step)
     }
 
@@ -217,6 +222,37 @@ impl DatastreamCheckpointBinding {
         Self::new("tassadar.call_frame_resume.v1")
             .with_checkpoint_ref(format!(
                 "checkpoint://tassadar.call_frame_resume/{checkpoint_id}"
+            ))
+            .with_step(step)
+    }
+
+    /// Creates a checkpoint binding for one Tassadar durable process snapshot.
+    #[must_use]
+    pub fn tassadar_process_snapshot(process_id: impl AsRef<str>, step: u64) -> Self {
+        let process_id = process_id.as_ref();
+        Self::new("tassadar.process_snapshot.v1")
+            .with_checkpoint_ref(format!(
+                "checkpoint://tassadar.process_snapshot/{process_id}"
+            ))
+            .with_step(step)
+    }
+
+    /// Creates a checkpoint binding for one Tassadar durable process tape.
+    #[must_use]
+    pub fn tassadar_process_tape(process_id: impl AsRef<str>, step: u64) -> Self {
+        let process_id = process_id.as_ref();
+        Self::new("tassadar.process_tape.v1")
+            .with_checkpoint_ref(format!("checkpoint://tassadar.process_tape/{process_id}"))
+            .with_step(step)
+    }
+
+    /// Creates a checkpoint binding for one Tassadar durable process work queue.
+    #[must_use]
+    pub fn tassadar_process_work_queue(process_id: impl AsRef<str>, step: u64) -> Self {
+        let process_id = process_id.as_ref();
+        Self::new("tassadar.process_work_queue.v1")
+            .with_checkpoint_ref(format!(
+                "checkpoint://tassadar.process_work_queue/{process_id}"
             ))
             .with_step(step)
     }
@@ -824,6 +860,48 @@ pub struct TassadarCallFrameResumeLocator {
     pub detail: String,
 }
 
+/// Explicit locator for one persisted Tassadar durable process snapshot.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarProcessSnapshotLocator {
+    pub stream_id: String,
+    pub manifest_digest: String,
+    pub checkpoint_ref: String,
+    pub checkpoint_family: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub step: Option<u64>,
+    pub object_digest: String,
+    pub total_bytes: u64,
+    pub detail: String,
+}
+
+/// Explicit locator for one persisted Tassadar durable process tape.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarProcessTapeLocator {
+    pub stream_id: String,
+    pub manifest_digest: String,
+    pub checkpoint_ref: String,
+    pub checkpoint_family: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub step: Option<u64>,
+    pub object_digest: String,
+    pub total_bytes: u64,
+    pub detail: String,
+}
+
+/// Explicit locator for one persisted Tassadar durable process work queue.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarProcessWorkQueueLocator {
+    pub stream_id: String,
+    pub manifest_digest: String,
+    pub checkpoint_ref: String,
+    pub checkpoint_family: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub step: Option<u64>,
+    pub object_digest: String,
+    pub total_bytes: u64,
+    pub detail: String,
+}
+
 impl DatastreamManifestRef {
     /// Exports this manifest reference as an explicit datastream-backed KV locator.
     pub fn kv_cache_external_locator(
@@ -957,7 +1035,7 @@ impl DatastreamManifestRef {
                     .checkpoint_ref
                     .as_deref()
                     .unwrap_or_default(),
-                ),
+            ),
         })
     }
 
@@ -977,11 +1055,13 @@ impl DatastreamManifestRef {
                 .checkpoint_family
                 .starts_with(TASSADAR_MEMORY64_RESUME_FAMILY_PREFIX)
         {
-            return Err(DatastreamTransferError::TassadarMemory64ResumeContractInvalid {
-                stream_id: self.stream_id.clone(),
-                subject: self.subject,
-                checkpoint_family: Some(checkpoint_binding.checkpoint_family.clone()),
-            });
+            return Err(
+                DatastreamTransferError::TassadarMemory64ResumeContractInvalid {
+                    stream_id: self.stream_id.clone(),
+                    subject: self.subject,
+                    checkpoint_family: Some(checkpoint_binding.checkpoint_family.clone()),
+                },
+            );
         }
         Ok(TassadarMemory64ResumeLocator {
             stream_id: self.stream_id.clone(),
@@ -1021,11 +1101,13 @@ impl DatastreamManifestRef {
                 .checkpoint_family
                 .starts_with(TASSADAR_CALL_FRAME_RESUME_FAMILY_PREFIX)
         {
-            return Err(DatastreamTransferError::TassadarCallFrameResumeContractInvalid {
-                stream_id: self.stream_id.clone(),
-                subject: self.subject,
-                checkpoint_family: Some(checkpoint_binding.checkpoint_family.clone()),
-            });
+            return Err(
+                DatastreamTransferError::TassadarCallFrameResumeContractInvalid {
+                    stream_id: self.stream_id.clone(),
+                    subject: self.subject,
+                    checkpoint_family: Some(checkpoint_binding.checkpoint_family.clone()),
+                },
+            );
         }
         Ok(TassadarCallFrameResumeLocator {
             stream_id: self.stream_id.clone(),
@@ -1040,6 +1122,144 @@ impl DatastreamManifestRef {
             total_bytes: self.total_bytes,
             detail: format!(
                 "tassadar call-frame resume locator via family `{}` ref `{}`",
+                checkpoint_binding.checkpoint_family,
+                checkpoint_binding
+                    .checkpoint_ref
+                    .as_deref()
+                    .unwrap_or_default(),
+            ),
+        })
+    }
+
+    /// Exports this manifest reference as a typed Tassadar durable process snapshot locator.
+    pub fn tassadar_process_snapshot_locator(
+        &self,
+    ) -> Result<TassadarProcessSnapshotLocator, DatastreamTransferError> {
+        let checkpoint_binding = self.checkpoint_binding.as_ref().ok_or_else(|| {
+            DatastreamTransferError::TassadarProcessSnapshotContractInvalid {
+                stream_id: self.stream_id.clone(),
+                subject: self.subject,
+                checkpoint_family: None,
+            }
+        })?;
+        if self.subject != DatastreamSubjectKind::Checkpoint
+            || !checkpoint_binding
+                .checkpoint_family
+                .starts_with(TASSADAR_PROCESS_SNAPSHOT_FAMILY_PREFIX)
+        {
+            return Err(
+                DatastreamTransferError::TassadarProcessSnapshotContractInvalid {
+                    stream_id: self.stream_id.clone(),
+                    subject: self.subject,
+                    checkpoint_family: Some(checkpoint_binding.checkpoint_family.clone()),
+                },
+            );
+        }
+        Ok(TassadarProcessSnapshotLocator {
+            stream_id: self.stream_id.clone(),
+            manifest_digest: self.manifest_digest.clone(),
+            checkpoint_ref: checkpoint_binding
+                .checkpoint_ref
+                .clone()
+                .unwrap_or_default(),
+            checkpoint_family: checkpoint_binding.checkpoint_family.clone(),
+            step: checkpoint_binding.step,
+            object_digest: self.object_digest.clone(),
+            total_bytes: self.total_bytes,
+            detail: format!(
+                "tassadar durable process snapshot locator via family `{}` ref `{}`",
+                checkpoint_binding.checkpoint_family,
+                checkpoint_binding
+                    .checkpoint_ref
+                    .as_deref()
+                    .unwrap_or_default(),
+            ),
+        })
+    }
+
+    /// Exports this manifest reference as a typed Tassadar durable process tape locator.
+    pub fn tassadar_process_tape_locator(
+        &self,
+    ) -> Result<TassadarProcessTapeLocator, DatastreamTransferError> {
+        let checkpoint_binding = self.checkpoint_binding.as_ref().ok_or_else(|| {
+            DatastreamTransferError::TassadarProcessTapeContractInvalid {
+                stream_id: self.stream_id.clone(),
+                subject: self.subject,
+                checkpoint_family: None,
+            }
+        })?;
+        if self.subject != DatastreamSubjectKind::Checkpoint
+            || !checkpoint_binding
+                .checkpoint_family
+                .starts_with(TASSADAR_PROCESS_TAPE_FAMILY_PREFIX)
+        {
+            return Err(
+                DatastreamTransferError::TassadarProcessTapeContractInvalid {
+                    stream_id: self.stream_id.clone(),
+                    subject: self.subject,
+                    checkpoint_family: Some(checkpoint_binding.checkpoint_family.clone()),
+                },
+            );
+        }
+        Ok(TassadarProcessTapeLocator {
+            stream_id: self.stream_id.clone(),
+            manifest_digest: self.manifest_digest.clone(),
+            checkpoint_ref: checkpoint_binding
+                .checkpoint_ref
+                .clone()
+                .unwrap_or_default(),
+            checkpoint_family: checkpoint_binding.checkpoint_family.clone(),
+            step: checkpoint_binding.step,
+            object_digest: self.object_digest.clone(),
+            total_bytes: self.total_bytes,
+            detail: format!(
+                "tassadar durable process tape locator via family `{}` ref `{}`",
+                checkpoint_binding.checkpoint_family,
+                checkpoint_binding
+                    .checkpoint_ref
+                    .as_deref()
+                    .unwrap_or_default(),
+            ),
+        })
+    }
+
+    /// Exports this manifest reference as a typed Tassadar durable process work-queue locator.
+    pub fn tassadar_process_work_queue_locator(
+        &self,
+    ) -> Result<TassadarProcessWorkQueueLocator, DatastreamTransferError> {
+        let checkpoint_binding = self.checkpoint_binding.as_ref().ok_or_else(|| {
+            DatastreamTransferError::TassadarProcessWorkQueueContractInvalid {
+                stream_id: self.stream_id.clone(),
+                subject: self.subject,
+                checkpoint_family: None,
+            }
+        })?;
+        if self.subject != DatastreamSubjectKind::Checkpoint
+            || !checkpoint_binding
+                .checkpoint_family
+                .starts_with(TASSADAR_PROCESS_WORK_QUEUE_FAMILY_PREFIX)
+        {
+            return Err(
+                DatastreamTransferError::TassadarProcessWorkQueueContractInvalid {
+                    stream_id: self.stream_id.clone(),
+                    subject: self.subject,
+                    checkpoint_family: Some(checkpoint_binding.checkpoint_family.clone()),
+                },
+            );
+        }
+        Ok(TassadarProcessWorkQueueLocator {
+            stream_id: self.stream_id.clone(),
+            manifest_digest: self.manifest_digest.clone(),
+            checkpoint_ref: checkpoint_binding
+                .checkpoint_ref
+                .clone()
+                .unwrap_or_default(),
+            checkpoint_family: checkpoint_binding.checkpoint_family.clone(),
+            step: checkpoint_binding.step,
+            object_digest: self.object_digest.clone(),
+            total_bytes: self.total_bytes,
+            detail: format!(
+                "tassadar durable process work-queue locator via family `{}` ref `{}`",
                 checkpoint_binding.checkpoint_family,
                 checkpoint_binding
                     .checkpoint_ref
@@ -1508,6 +1728,33 @@ pub enum DatastreamTransferError {
         "datastream `{stream_id}` is not a valid Tassadar call-frame resume contract: subject `{subject:?}`, checkpoint family `{checkpoint_family:?}`"
     )]
     TassadarCallFrameResumeContractInvalid {
+        stream_id: String,
+        subject: DatastreamSubjectKind,
+        checkpoint_family: Option<String>,
+    },
+    /// The manifest reference is not a valid Tassadar durable process snapshot contract.
+    #[error(
+        "datastream `{stream_id}` is not a valid Tassadar durable process snapshot contract: subject `{subject:?}`, checkpoint family `{checkpoint_family:?}`"
+    )]
+    TassadarProcessSnapshotContractInvalid {
+        stream_id: String,
+        subject: DatastreamSubjectKind,
+        checkpoint_family: Option<String>,
+    },
+    /// The manifest reference is not a valid Tassadar durable process tape contract.
+    #[error(
+        "datastream `{stream_id}` is not a valid Tassadar durable process tape contract: subject `{subject:?}`, checkpoint family `{checkpoint_family:?}`"
+    )]
+    TassadarProcessTapeContractInvalid {
+        stream_id: String,
+        subject: DatastreamSubjectKind,
+        checkpoint_family: Option<String>,
+    },
+    /// The manifest reference is not a valid Tassadar durable process work-queue contract.
+    #[error(
+        "datastream `{stream_id}` is not a valid Tassadar durable process work-queue contract: subject `{subject:?}`, checkpoint family `{checkpoint_family:?}`"
+    )]
+    TassadarProcessWorkQueueContractInvalid {
         stream_id: String,
         subject: DatastreamSubjectKind,
         checkpoint_family: Option<String>,
@@ -2418,9 +2665,10 @@ mod tests {
             8,
             DatastreamEncoding::RawBinary,
         )
-        .with_checkpoint_binding(
-            DatastreamCheckpointBinding::tassadar_memory64_resume("memory64_scan", 8),
-        );
+        .with_checkpoint_binding(DatastreamCheckpointBinding::tassadar_memory64_resume(
+            "memory64_scan",
+            8,
+        ));
 
         let locator = manifest.manifest_ref().tassadar_memory64_resume_locator()?;
         assert_eq!(locator.stream_id, "tassadar-memory64-8");
@@ -2477,7 +2725,9 @@ mod tests {
             5,
         ));
 
-        let locator = manifest.manifest_ref().tassadar_call_frame_resume_locator()?;
+        let locator = manifest
+            .manifest_ref()
+            .tassadar_call_frame_resume_locator()?;
         assert_eq!(locator.stream_id, "tassadar-call-frame-5");
         assert_eq!(locator.manifest_digest, manifest.stable_digest());
         assert_eq!(
@@ -2512,6 +2762,172 @@ mod tests {
                 stream_id: String::from("checkpoint-train-23"),
                 subject: DatastreamSubjectKind::Checkpoint,
                 checkpoint_family: Some(String::from("tassadar.execution_checkpoint.v1")),
+            }
+        );
+    }
+
+    #[test]
+    fn checkpoint_manifest_can_export_tassadar_process_snapshot_locator()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let payload = br#"{"process_id":"long_loop_kernel"}"#.to_vec();
+        let manifest = super::DatastreamManifest::from_bytes(
+            "tassadar-process-snapshot-7",
+            DatastreamSubjectKind::Checkpoint,
+            &payload,
+            8,
+            DatastreamEncoding::RawBinary,
+        )
+        .with_checkpoint_binding(DatastreamCheckpointBinding::tassadar_process_snapshot(
+            "tassadar.process.long_loop_kernel.v1",
+            7,
+        ));
+
+        let locator = manifest
+            .manifest_ref()
+            .tassadar_process_snapshot_locator()?;
+        assert_eq!(locator.stream_id, "tassadar-process-snapshot-7");
+        assert_eq!(locator.manifest_digest, manifest.stable_digest());
+        assert_eq!(
+            locator.checkpoint_ref,
+            "checkpoint://tassadar.process_snapshot/tassadar.process.long_loop_kernel.v1"
+        );
+        assert_eq!(locator.step, Some(7));
+        Ok(())
+    }
+
+    #[test]
+    fn checkpoint_manifest_can_export_tassadar_process_tape_locator()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let payload = br#"{"process_id":"search_frontier_kernel"}"#.to_vec();
+        let manifest = super::DatastreamManifest::from_bytes(
+            "tassadar-process-tape-9",
+            DatastreamSubjectKind::Checkpoint,
+            &payload,
+            8,
+            DatastreamEncoding::RawBinary,
+        )
+        .with_checkpoint_binding(DatastreamCheckpointBinding::tassadar_process_tape(
+            "tassadar.process.search_frontier_kernel.v1",
+            9,
+        ));
+
+        let locator = manifest.manifest_ref().tassadar_process_tape_locator()?;
+        assert_eq!(locator.stream_id, "tassadar-process-tape-9");
+        assert_eq!(
+            locator.checkpoint_ref,
+            "checkpoint://tassadar.process_tape/tassadar.process.search_frontier_kernel.v1"
+        );
+        assert_eq!(locator.step, Some(9));
+        Ok(())
+    }
+
+    #[test]
+    fn checkpoint_manifest_can_export_tassadar_process_work_queue_locator()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let payload = br#"{"process_id":"state_machine_accumulator"}"#.to_vec();
+        let manifest = super::DatastreamManifest::from_bytes(
+            "tassadar-process-work-queue-11",
+            DatastreamSubjectKind::Checkpoint,
+            &payload,
+            8,
+            DatastreamEncoding::RawBinary,
+        )
+        .with_checkpoint_binding(DatastreamCheckpointBinding::tassadar_process_work_queue(
+            "tassadar.process.state_machine_accumulator.v1",
+            11,
+        ));
+
+        let locator = manifest
+            .manifest_ref()
+            .tassadar_process_work_queue_locator()?;
+        assert_eq!(locator.stream_id, "tassadar-process-work-queue-11");
+        assert_eq!(
+            locator.checkpoint_ref,
+            "checkpoint://tassadar.process_work_queue/tassadar.process.state_machine_accumulator.v1"
+        );
+        assert_eq!(locator.step, Some(11));
+        Ok(())
+    }
+
+    #[test]
+    fn non_process_snapshot_manifest_is_refused_as_process_snapshot_locator() {
+        let manifest = super::DatastreamManifest::from_bytes(
+            "checkpoint-train-25",
+            DatastreamSubjectKind::Checkpoint,
+            b"weights",
+            4,
+            DatastreamEncoding::RawBinary,
+        )
+        .with_checkpoint_binding(
+            DatastreamCheckpointBinding::tassadar_execution_checkpoint("alpha", 25),
+        );
+
+        let error = manifest
+            .manifest_ref()
+            .tassadar_process_snapshot_locator()
+            .expect_err("non-process-snapshot checkpoint manifest should be refused");
+        assert_eq!(
+            error,
+            DatastreamTransferError::TassadarProcessSnapshotContractInvalid {
+                stream_id: String::from("checkpoint-train-25"),
+                subject: DatastreamSubjectKind::Checkpoint,
+                checkpoint_family: Some(String::from("tassadar.execution_checkpoint.v1")),
+            }
+        );
+    }
+
+    #[test]
+    fn non_process_tape_manifest_is_refused_as_process_tape_locator() {
+        let manifest = super::DatastreamManifest::from_bytes(
+            "checkpoint-train-27",
+            DatastreamSubjectKind::Checkpoint,
+            b"weights",
+            4,
+            DatastreamEncoding::RawBinary,
+        )
+        .with_checkpoint_binding(DatastreamCheckpointBinding::tassadar_process_snapshot(
+            "tassadar.process.long_loop_kernel.v1",
+            27,
+        ));
+
+        let error = manifest
+            .manifest_ref()
+            .tassadar_process_tape_locator()
+            .expect_err("non-process-tape checkpoint manifest should be refused");
+        assert_eq!(
+            error,
+            DatastreamTransferError::TassadarProcessTapeContractInvalid {
+                stream_id: String::from("checkpoint-train-27"),
+                subject: DatastreamSubjectKind::Checkpoint,
+                checkpoint_family: Some(String::from("tassadar.process_snapshot.v1")),
+            }
+        );
+    }
+
+    #[test]
+    fn non_process_work_queue_manifest_is_refused_as_process_work_queue_locator() {
+        let manifest = super::DatastreamManifest::from_bytes(
+            "checkpoint-train-29",
+            DatastreamSubjectKind::Checkpoint,
+            b"weights",
+            4,
+            DatastreamEncoding::RawBinary,
+        )
+        .with_checkpoint_binding(DatastreamCheckpointBinding::tassadar_process_tape(
+            "tassadar.process.search_frontier_kernel.v1",
+            29,
+        ));
+
+        let error = manifest
+            .manifest_ref()
+            .tassadar_process_work_queue_locator()
+            .expect_err("non-process-work-queue checkpoint manifest should be refused");
+        assert_eq!(
+            error,
+            DatastreamTransferError::TassadarProcessWorkQueueContractInvalid {
+                stream_id: String::from("checkpoint-train-29"),
+                subject: DatastreamSubjectKind::Checkpoint,
+                checkpoint_family: Some(String::from("tassadar.process_tape.v1")),
             }
         );
     }

@@ -1011,6 +1011,31 @@ Expected outcome:
 - explicit runtime and sandbox refusal parity on relaxed shared-memory ordering
 - `served_publication_allowed = false`
 
+### 16. Durable process snapshot, tape, and work-queue object family
+
+```bash
+cargo run -p psionic-runtime --example tassadar_process_object_bundle
+cargo run -p psionic-eval --example tassadar_process_object_report
+```
+
+Read:
+
+- `fixtures/tassadar/runs/tassadar_process_objects_v1/tassadar_process_object_bundle.json`
+- `fixtures/tassadar/reports/tassadar_process_object_report.json`
+- persisted snapshot, tape, and work-queue artifacts under
+  `fixtures/tassadar/runs/tassadar_process_objects_v1`
+
+Expected outcome:
+
+- one named durable process-object family:
+  `tassadar.internal_compute.process_objects.v1`
+- first-class snapshot, tape, and work-queue objects for the committed
+  checkpoint-backed workload rows
+- exact durable-process parity for all seeded rows
+- typed datastream locators for process snapshots, tapes, and work queues
+- explicit stale-snapshot, out-of-range tape cursor, and profile-mismatched
+  queue refusals
+
 ## Validation Commands
 
 Run the focused report checks after the flow:
@@ -1059,6 +1084,10 @@ cargo test -p psionic-sandbox threads_scheduler_boundary -- --nocapture
 cargo test -p psionic-eval threads_research_profile -- --nocapture
 cargo test -p psionic-provider threads_research_profile -- --nocapture
 cargo test -p psionic-research threads_research_profile -- --nocapture
+cargo test -p psionic-runtime process_object -- --nocapture
+cargo test -p psionic-datastream process_ -- --nocapture
+cargo test -p psionic-eval process_object -- --nocapture
+cargo test -p psionic-provider process_object -- --nocapture
 ```
 
 These checks should keep the committed reports and generated truth aligned.

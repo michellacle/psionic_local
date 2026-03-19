@@ -1,0 +1,82 @@
+{
+  "stream_id": "tassadar-process-work-queue://tassadar.process.search_frontier_kernel.v1",
+  "subject": "checkpoint",
+  "object_digest": "b785138641a623fb8db90666d26ef95cc8a761e08f9b2df5bf505600ecd92b91",
+  "total_bytes": 1050,
+  "chunk_bytes": 96,
+  "encoding": "raw_binary",
+  "provenance_digest": "0f48f697d6a4ca58f22a47cd983f079e0ebd64e5fe4f035f95957c5a3d5fd7bd",
+  "checkpoint_binding": {
+    "checkpoint_family": "tassadar.process_work_queue.v1",
+    "checkpoint_ref": "checkpoint://tassadar.process_work_queue/tassadar.process.search_frontier_kernel.v1",
+    "step": 9
+  },
+  "chunks": [
+    {
+      "index": 0,
+      "offset": 0,
+      "length": 96,
+      "chunk_digest": "404b70572e8e60cd2a5aa2c7fd1bfd6185ffe673ae3321545a583e2d087f3d56"
+    },
+    {
+      "index": 1,
+      "offset": 96,
+      "length": 96,
+      "chunk_digest": "8d6f183cb411fe6ba42968842b990234f2a33315281d15113772e43919b3fa6c"
+    },
+    {
+      "index": 2,
+      "offset": 192,
+      "length": 96,
+      "chunk_digest": "9a2bdc5ddff845fc957a940bfba6355656d49f85e52d3ca6244a482d617bd267"
+    },
+    {
+      "index": 3,
+      "offset": 288,
+      "length": 96,
+      "chunk_digest": "6a96359ef01ce8f69722496b20a81aec561059928b9d8215dfe6e2649f6bf990"
+    },
+    {
+      "index": 4,
+      "offset": 384,
+      "length": 96,
+      "chunk_digest": "a2f422f0a24edaaa956b23f6eb7ee88d93958f01d1a9834ef347e89b0007c467"
+    },
+    {
+      "index": 5,
+      "offset": 480,
+      "length": 96,
+      "chunk_digest": "3deab53276ddc584872fba330510a10b553e0dc3fdc95b8eb6bfc1e1dc0717eb"
+    },
+    {
+      "index": 6,
+      "offset": 576,
+      "length": 96,
+      "chunk_digest": "37fdf54fe813f458faec13ecd345ad31a1b2356152d4c5d51a1132035a4d547a"
+    },
+    {
+      "index": 7,
+      "offset": 672,
+      "length": 96,
+      "chunk_digest": "681c4c3995c17689cb1047a4fc31a4ae1b095f671a1e5e603728eafabca721e2"
+    },
+    {
+      "index": 8,
+      "offset": 768,
+      "length": 96,
+      "chunk_digest": "3e190db65eeec7fdcc183c85929b0e784906ae95dabcaa00cd0d99fa719d204c"
+    },
+    {
+      "index": 9,
+      "offset": 864,
+      "length": 96,
+      "chunk_digest": "47d2ecdcb703730498cd0dae6225156fc43441ac94de6194a481f2c7a47189e7"
+    },
+    {
+      "index": 10,
+      "offset": 960,
+      "length": 90,
+      "chunk_digest": "052f9ea651ee2b0e7cf62085b50525254d3c8be817106becafbe982ffff314e2"
+    }
+  ]
+}

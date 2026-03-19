@@ -1,0 +1,313 @@
+{
+  "schema_version": 1,
+  "bundle_id": "tassadar.process_object.bundle.v1",
+  "profile_id": "tassadar.internal_compute.process_objects.v1",
+  "snapshot_family_id": "tassadar.process_snapshot.v1",
+  "tape_family_id": "tassadar.process_tape.v1",
+  "work_queue_family_id": "tassadar.process_work_queue.v1",
+  "case_receipts": [
+    {
+      "case_id": "long_loop_kernel",
+      "process_id": "tassadar.process.long_loop_kernel.v1",
+      "workload_family": "long_loop_kernel",
+      "exact_process_parity": true,
+      "snapshot": {
+        "process_id": "tassadar.process.long_loop_kernel.v1",
+        "workload_family": "long_loop_kernel",
+        "profile_id": "tassadar.internal_compute.process_objects.v1",
+        "snapshot_family_id": "tassadar.process_snapshot.v1",
+        "checkpoint_id": "tassadar.long_loop_kernel.checkpoint.slice_0003",
+        "next_step_index": 12,
+        "state_bytes": 16,
+        "memory_digest": "d66d35222e85c5ed2e425a9acc6755d4135be6eab3fbb380781a53c7e0cb73c3",
+        "replay_identity": "f2cd05b5f85a9dacdaa2647361cb56e87d010a88fbfe1bf77dd06afe71cf9783",
+        "tape_head_position": 4,
+        "work_queue_depth": 1,
+        "snapshot_digest": "9f95fa2ce637474be93eae5e01ba8ae771146b435d21bfb56499085ab3d50a55"
+      },
+      "tape": {
+        "process_id": "tassadar.process.long_loop_kernel.v1",
+        "tape_family_id": "tassadar.process_tape.v1",
+        "latest_checkpoint_id": "tassadar.long_loop_kernel.checkpoint.slice_0003",
+        "head_position": 4,
+        "entry_count": 4,
+        "entries": [
+          {
+            "entry_id": "tassadar.process.long_loop_kernel.v1::tape::00",
+            "kind": "slice_checkpoint",
+            "source_checkpoint_id": "tassadar.long_loop_kernel.checkpoint.slice_0000",
+            "source_slice_index": 0,
+            "next_step_index": 3,
+            "state_digest": "923335d088c382419cc2d6bec73dd4e5217dfb4f8cd738022289c464c171fcc4",
+            "note": "process tape entry captures slice 0 for `long_loop_kernel`"
+          },
+          {
+            "entry_id": "tassadar.process.long_loop_kernel.v1::tape::01",
+            "kind": "queue_ready",
+            "source_checkpoint_id": "tassadar.long_loop_kernel.checkpoint.slice_0001",
+            "source_slice_index": 1,
+            "next_step_index": 6,
+            "state_digest": "cfb24a44de05f4b1ad0ea78ca4c020b5a12a27c3388ce42b67ca283eb78e028e",
+            "note": "process tape entry captures slice 1 for `long_loop_kernel`"
+          },
+          {
+            "entry_id": "tassadar.process.long_loop_kernel.v1::tape::02",
+            "kind": "queue_ready",
+            "source_checkpoint_id": "tassadar.long_loop_kernel.checkpoint.slice_0002",
+            "source_slice_index": 2,
+            "next_step_index": 9,
+            "state_digest": "bdd6b20805a4b0ccc0dbd22b06987fee3199dcbb4a558a200a72269edd4aeeaa",
+            "note": "process tape entry captures slice 2 for `long_loop_kernel`"
+          },
+          {
+            "entry_id": "tassadar.process.long_loop_kernel.v1::tape::03",
+            "kind": "queue_ready",
+            "source_checkpoint_id": "tassadar.long_loop_kernel.checkpoint.slice_0003",
+            "source_slice_index": 3,
+            "next_step_index": 12,
+            "state_digest": "d66d35222e85c5ed2e425a9acc6755d4135be6eab3fbb380781a53c7e0cb73c3",
+            "note": "process tape entry captures slice 3 for `long_loop_kernel`"
+          }
+        ],
+        "tape_digest": "a7c880f223e8d166348f9463f96b807abbac90afcf85cdb30a3e5b6ec3444810"
+      },
+      "work_queue": {
+        "process_id": "tassadar.process.long_loop_kernel.v1",
+        "queue_family_id": "tassadar.process_work_queue.v1",
+        "latest_checkpoint_id": "tassadar.long_loop_kernel.checkpoint.slice_0003",
+        "pending_entry_count": 1,
+        "drained_entry_count": 4,
+        "entries": [
+          {
+            "entry_id": "long_loop_kernel::resume_loop_slice",
+            "operation_id": "resume_loop_slice",
+            "payload_digest": "83ed381bd299fa8c8867cb19cdb8dd0a175fd743515bad0e8bd86feaeffcf1a1",
+            "enqueued_at_step": 12,
+            "priority": 1,
+            "note": "resume the next bounded loop slice from the durable process snapshot"
+          }
+        ],
+        "queue_digest": "aef14a92e7fd41cc3bc7e218eb4a83a170139cf842c3d68253bcdd9aa6c62a63"
+      },
+      "refusal_cases": [
+        {
+          "refusal_kind": "stale_process_snapshot",
+          "object_ref": "tassadar.long_loop_kernel.checkpoint.slice_0000",
+          "detail": "older process snapshots remain stale once a later durable continuation object supersedes them The underlying execution-checkpoint lineage already exercises stale-checkpoint refusal truth."
+        },
+        {
+          "refusal_kind": "tape_cursor_out_of_range",
+          "object_ref": "tassadar.process.long_loop_kernel.v1#tape",
+          "detail": "process tape for `long_loop_kernel` refuses cursors beyond head_position=4"
+        },
+        {
+          "refusal_kind": "work_queue_profile_mismatch",
+          "object_ref": "tassadar.process.long_loop_kernel.v1#queue",
+          "detail": "work queue for `long_loop_kernel` remains profile-bound to `tassadar.internal_compute.process_objects.v1` and refuses mismatched profile resumes"
+        }
+      ],
+      "note": "durable process objects preserve checkpointed continuation for `long_loop_kernel` while keeping stale or malformed continuation objects explicit",
+      "receipt_digest": "5fb28ebd26ce35ef9c815956fb983f45f092b9e30fc6fac699fb8d86b314e63d"
+    },
+    {
+      "case_id": "state_machine_accumulator",
+      "process_id": "tassadar.process.state_machine_accumulator.v1",
+      "workload_family": "state_machine_accumulator",
+      "exact_process_parity": true,
+      "snapshot": {
+        "process_id": "tassadar.process.state_machine_accumulator.v1",
+        "workload_family": "state_machine_accumulator",
+        "profile_id": "tassadar.internal_compute.process_objects.v1",
+        "snapshot_family_id": "tassadar.process_snapshot.v1",
+        "checkpoint_id": "tassadar.state_machine_accumulator.checkpoint.slice_0001",
+        "next_step_index": 6,
+        "state_bytes": 24,
+        "memory_digest": "69abf6322ebead0e9f213bbb118e0e84c47c0cff17ef1610ded150ec25fb544c",
+        "replay_identity": "355c4557b35ab08f221ac077bf4e544c630856ab47e23b22ad30401f962bdd34",
+        "tape_head_position": 2,
+        "work_queue_depth": 2,
+        "snapshot_digest": "88877ab5d78244f4f604e65ee699b99d99814deae1585f180df1a05a33bbd27b"
+      },
+      "tape": {
+        "process_id": "tassadar.process.state_machine_accumulator.v1",
+        "tape_family_id": "tassadar.process_tape.v1",
+        "latest_checkpoint_id": "tassadar.state_machine_accumulator.checkpoint.slice_0001",
+        "head_position": 2,
+        "entry_count": 2,
+        "entries": [
+          {
+            "entry_id": "tassadar.process.state_machine_accumulator.v1::tape::00",
+            "kind": "slice_checkpoint",
+            "source_checkpoint_id": "tassadar.state_machine_accumulator.checkpoint.slice_0000",
+            "source_slice_index": 0,
+            "next_step_index": 3,
+            "state_digest": "e9baea5fc9611878613a0fdf8d3ebd40cca4da62612cc94631377dbb615c5ea5",
+            "note": "process tape entry captures slice 0 for `state_machine_accumulator`"
+          },
+          {
+            "entry_id": "tassadar.process.state_machine_accumulator.v1::tape::01",
+            "kind": "queue_ready",
+            "source_checkpoint_id": "tassadar.state_machine_accumulator.checkpoint.slice_0001",
+            "source_slice_index": 1,
+            "next_step_index": 6,
+            "state_digest": "69abf6322ebead0e9f213bbb118e0e84c47c0cff17ef1610ded150ec25fb544c",
+            "note": "process tape entry captures slice 1 for `state_machine_accumulator`"
+          }
+        ],
+        "tape_digest": "1eeddfa37cb8348cdffbeb4e3d95d2fae8473e6c913d2bbfc93350e422cd8eeb"
+      },
+      "work_queue": {
+        "process_id": "tassadar.process.state_machine_accumulator.v1",
+        "queue_family_id": "tassadar.process_work_queue.v1",
+        "latest_checkpoint_id": "tassadar.state_machine_accumulator.checkpoint.slice_0001",
+        "pending_entry_count": 2,
+        "drained_entry_count": 2,
+        "entries": [
+          {
+            "entry_id": "state_machine_accumulator::load_state_stage",
+            "operation_id": "load_state_stage",
+            "payload_digest": "5d50d0c5706171aa1505698fb5dcefbcc1c9825730fb8ee53c63412113b9a3aa",
+            "enqueued_at_step": 6,
+            "priority": 1,
+            "note": "load the staged accumulator state from the durable snapshot"
+          },
+          {
+            "entry_id": "state_machine_accumulator::emit_final_sum",
+            "operation_id": "emit_final_sum",
+            "payload_digest": "0d5917dde89a6c5d2cb02018030b308ca9e481b1d203ea42687ff67bf9976bee",
+            "enqueued_at_step": 7,
+            "priority": 2,
+            "note": "emit the final deterministic accumulator value after queue drain"
+          }
+        ],
+        "queue_digest": "51ae1a2a64bc02660fb3f8b7629a2ced26cffdea1863637201d762993b86ea16"
+      },
+      "refusal_cases": [
+        {
+          "refusal_kind": "stale_process_snapshot",
+          "object_ref": "tassadar.state_machine_accumulator.checkpoint.slice_0000",
+          "detail": "older process snapshots remain stale once a later durable continuation object supersedes them The underlying execution-checkpoint lineage already exercises stale-checkpoint refusal truth."
+        },
+        {
+          "refusal_kind": "tape_cursor_out_of_range",
+          "object_ref": "tassadar.process.state_machine_accumulator.v1#tape",
+          "detail": "process tape for `state_machine_accumulator` refuses cursors beyond head_position=2"
+        },
+        {
+          "refusal_kind": "work_queue_profile_mismatch",
+          "object_ref": "tassadar.process.state_machine_accumulator.v1#queue",
+          "detail": "work queue for `state_machine_accumulator` remains profile-bound to `tassadar.internal_compute.process_objects.v1` and refuses mismatched profile resumes"
+        }
+      ],
+      "note": "durable process objects preserve checkpointed continuation for `state_machine_accumulator` while keeping stale or malformed continuation objects explicit",
+      "receipt_digest": "02b743e79798e295c0fb00231f86672f4b8840534d20298fec3137e49ff88ef1"
+    },
+    {
+      "case_id": "search_frontier_kernel",
+      "process_id": "tassadar.process.search_frontier_kernel.v1",
+      "workload_family": "search_frontier_kernel",
+      "exact_process_parity": true,
+      "snapshot": {
+        "process_id": "tassadar.process.search_frontier_kernel.v1",
+        "workload_family": "search_frontier_kernel",
+        "profile_id": "tassadar.internal_compute.process_objects.v1",
+        "snapshot_family_id": "tassadar.process_snapshot.v1",
+        "checkpoint_id": "tassadar.search_frontier_kernel.checkpoint.slice_0002",
+        "next_step_index": 9,
+        "state_bytes": 24,
+        "memory_digest": "9162240aed1896b18b0595a6fb39cda31d502f890c10d0822aaaf3fe4f614aee",
+        "replay_identity": "d761fa3b78e187c48716af1156dfc1c6ec5dbc3bd80dee9ced7a71ca6c96f716",
+        "tape_head_position": 3,
+        "work_queue_depth": 2,
+        "snapshot_digest": "50f0e80646d1c7b5eca7702b89ed655873497920cbce2a60bc36a47db7807410"
+      },
+      "tape": {
+        "process_id": "tassadar.process.search_frontier_kernel.v1",
+        "tape_family_id": "tassadar.process_tape.v1",
+        "latest_checkpoint_id": "tassadar.search_frontier_kernel.checkpoint.slice_0002",
+        "head_position": 3,
+        "entry_count": 3,
+        "entries": [
+          {
+            "entry_id": "tassadar.process.search_frontier_kernel.v1::tape::00",
+            "kind": "frontier_drain",
+            "source_checkpoint_id": "tassadar.search_frontier_kernel.checkpoint.slice_0000",
+            "source_slice_index": 0,
+            "next_step_index": 3,
+            "state_digest": "25eab9b8d0db53c41f4660b17e9529f6638934cc3894ee1e025d06e0e4d50ec2",
+            "note": "process tape entry captures slice 0 for `search_frontier_kernel`"
+          },
+          {
+            "entry_id": "tassadar.process.search_frontier_kernel.v1::tape::01",
+            "kind": "frontier_drain",
+            "source_checkpoint_id": "tassadar.search_frontier_kernel.checkpoint.slice_0001",
+            "source_slice_index": 1,
+            "next_step_index": 6,
+            "state_digest": "6ab103150dd5c87bab83f330913c994736e39765fa5ed286c66d7e8ee33144ee",
+            "note": "process tape entry captures slice 1 for `search_frontier_kernel`"
+          },
+          {
+            "entry_id": "tassadar.process.search_frontier_kernel.v1::tape::02",
+            "kind": "frontier_drain",
+            "source_checkpoint_id": "tassadar.search_frontier_kernel.checkpoint.slice_0002",
+            "source_slice_index": 2,
+            "next_step_index": 9,
+            "state_digest": "9162240aed1896b18b0595a6fb39cda31d502f890c10d0822aaaf3fe4f614aee",
+            "note": "process tape entry captures slice 2 for `search_frontier_kernel`"
+          }
+        ],
+        "tape_digest": "689bfd648f050ebe7e59637b529e180d02e2a358a5ae555f2cc60a257fa3072b"
+      },
+      "work_queue": {
+        "process_id": "tassadar.process.search_frontier_kernel.v1",
+        "queue_family_id": "tassadar.process_work_queue.v1",
+        "latest_checkpoint_id": "tassadar.search_frontier_kernel.checkpoint.slice_0002",
+        "pending_entry_count": 2,
+        "drained_entry_count": 3,
+        "entries": [
+          {
+            "entry_id": "search_frontier_kernel::expand_frontier_head",
+            "operation_id": "expand_frontier_head",
+            "payload_digest": "3abe607fb17b87a91396ede282ee13207f763f4c3eb01e8f5a3ab61e4d9ef7ab",
+            "enqueued_at_step": 9,
+            "priority": 1,
+            "note": "expand the frontier head selected by the durable queue"
+          },
+          {
+            "entry_id": "search_frontier_kernel::drain_terminal_goal",
+            "operation_id": "drain_terminal_goal",
+            "payload_digest": "cc50d9c1345fc003544072220614831b153cb35cf39ced276b78b323f770732c",
+            "enqueued_at_step": 10,
+            "priority": 2,
+            "note": "drain the terminal goal entry after deterministic frontier replay"
+          }
+        ],
+        "queue_digest": "0f48f697d6a4ca58f22a47cd983f079e0ebd64e5fe4f035f95957c5a3d5fd7bd"
+      },
+      "refusal_cases": [
+        {
+          "refusal_kind": "stale_process_snapshot",
+          "object_ref": "tassadar.search_frontier_kernel.checkpoint.slice_0000",
+          "detail": "older process snapshots remain stale once a later durable continuation object supersedes them The underlying execution-checkpoint lineage already exercises stale-checkpoint refusal truth."
+        },
+        {
+          "refusal_kind": "tape_cursor_out_of_range",
+          "object_ref": "tassadar.process.search_frontier_kernel.v1#tape",
+          "detail": "process tape for `search_frontier_kernel` refuses cursors beyond head_position=3"
+        },
+        {
+          "refusal_kind": "work_queue_profile_mismatch",
+          "object_ref": "tassadar.process.search_frontier_kernel.v1#queue",
+          "detail": "work queue for `search_frontier_kernel` remains profile-bound to `tassadar.internal_compute.process_objects.v1` and refuses mismatched profile resumes"
+        }
+      ],
+      "note": "durable process objects preserve checkpointed continuation for `search_frontier_kernel` while keeping stale or malformed continuation objects explicit",
+      "receipt_digest": "be7afdccd53165dbfd2e4c32e566d08887c210ab33dd12b3391b0c0d0879c062"
+    }
+  ],
+  "exact_process_case_count": 3,
+  "refusal_case_count": 9,
+  "claim_boundary": "this runtime bundle freezes one durable process-object family over the committed checkpointed workloads only. It keeps snapshots, tapes, work queues, and malformed-or-stale continuation-object refusals explicit instead of implying arbitrary process semantics, async effects, or general served internal compute",
+  "summary": "Process-object bundle covers 3 process rows with exact_process_cases=3 and refusal_cases=9.",
+  "bundle_digest": "ae6a85f67464acb401a7ecc3748b56453da15a1f80d8041aaea5b712ac6c25ab"
+}

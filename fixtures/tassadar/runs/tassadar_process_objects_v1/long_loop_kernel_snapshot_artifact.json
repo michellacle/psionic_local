@@ -1,0 +1,14 @@
+{
+  "process_id": "tassadar.process.long_loop_kernel.v1",
+  "workload_family": "long_loop_kernel",
+  "profile_id": "tassadar.internal_compute.process_objects.v1",
+  "snapshot_family_id": "tassadar.process_snapshot.v1",
+  "checkpoint_id": "tassadar.long_loop_kernel.checkpoint.slice_0003",
+  "next_step_index": 12,
+  "state_bytes": 16,
+  "memory_digest": "d66d35222e85c5ed2e425a9acc6755d4135be6eab3fbb380781a53c7e0cb73c3",
+  "replay_identity": "f2cd05b5f85a9dacdaa2647361cb56e87d010a88fbfe1bf77dd06afe71cf9783",
+  "tape_head_position": 4,
+  "work_queue_depth": 1,
+  "snapshot_digest": "9f95fa2ce637474be93eae5e01ba8ae771146b435d21bfb56499085ab3d50a55"
+}

@@ -80,6 +80,12 @@ Current honest posture:
   with a deterministic scheduler envelope, explicit sandbox boundary truth,
   and typed refusal on host-nondeterministic scheduling plus relaxed
   memory-ordering regimes; it remains non-served and non-promoted by design
+- the repo now also has one durable process-object family
+  `tassadar.internal_compute.process_objects.v1` over the committed
+  checkpoint-backed workloads, with first-class snapshot, tape, and work-queue
+  objects, typed datastream locators, provider receipts, and environment
+  bindings while keeping stale snapshots, out-of-range tape cursors, and
+  profile-mismatched queues on explicit refusal paths
 - broader profiles above that remain benchmarked, suppressed, refused, or
   unpromoted unless their explicit gates are green
 
@@ -107,7 +113,7 @@ Issue-state note:
 
 - `TAS-103` through `TAS-124` are already implemented and tracked in
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
-- the current open GitHub backlog begins at `TAS-125` and runs through
+- the current open GitHub backlog begins at `TAS-126` and runs through
   `TAS-156`
 
 ## Repo-Local Companion Docs

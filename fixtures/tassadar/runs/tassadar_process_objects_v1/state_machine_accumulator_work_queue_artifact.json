@@ -1,0 +1,26 @@
+{
+  "process_id": "tassadar.process.state_machine_accumulator.v1",
+  "queue_family_id": "tassadar.process_work_queue.v1",
+  "latest_checkpoint_id": "tassadar.state_machine_accumulator.checkpoint.slice_0001",
+  "pending_entry_count": 2,
+  "drained_entry_count": 2,
+  "entries": [
+    {
+      "entry_id": "state_machine_accumulator::load_state_stage",
+      "operation_id": "load_state_stage",
+      "payload_digest": "5d50d0c5706171aa1505698fb5dcefbcc1c9825730fb8ee53c63412113b9a3aa",
+      "enqueued_at_step": 6,
+      "priority": 1,
+      "note": "load the staged accumulator state from the durable snapshot"
+    },
+    {
+      "entry_id": "state_machine_accumulator::emit_final_sum",
+      "operation_id": "emit_final_sum",
+      "payload_digest": "0d5917dde89a6c5d2cb02018030b308ca9e481b1d203ea42687ff67bf9976bee",
+      "enqueued_at_step": 7,
+      "priority": 2,
+      "note": "emit the final deterministic accumulator value after queue drain"
+    }
+  ],
+  "queue_digest": "51ae1a2a64bc02660fb3f8b7629a2ced26cffdea1863637201d762993b86ea16"
+}

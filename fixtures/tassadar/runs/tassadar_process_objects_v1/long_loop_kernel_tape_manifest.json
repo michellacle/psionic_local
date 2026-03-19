@@ -1,0 +1,142 @@
+{
+  "stream_id": "tassadar-process-tape://tassadar.process.long_loop_kernel.v1",
+  "subject": "checkpoint",
+  "object_digest": "a33033d680fde1942b602657ee03106728b7911c6365527a63df1a13f7c7f441",
+  "total_bytes": 1996,
+  "chunk_bytes": 96,
+  "encoding": "raw_binary",
+  "provenance_digest": "a7c880f223e8d166348f9463f96b807abbac90afcf85cdb30a3e5b6ec3444810",
+  "checkpoint_binding": {
+    "checkpoint_family": "tassadar.process_tape.v1",
+    "checkpoint_ref": "checkpoint://tassadar.process_tape/tassadar.process.long_loop_kernel.v1",
+    "step": 12
+  },
+  "chunks": [
+    {
+      "index": 0,
+      "offset": 0,
+      "length": 96,
+      "chunk_digest": "817b59af3b3e7c96ec14b2b6a03c838dd1eef9d461bcab1cbb9d36f80a280fca"
+    },
+    {
+      "index": 1,
+      "offset": 96,
+      "length": 96,
+      "chunk_digest": "33d3285e8afa28311026880165c269480ee772f1b07f3f779f516a065907b841"
+    },
+    {
+      "index": 2,
+      "offset": 192,
+      "length": 96,
+      "chunk_digest": "757d7d963cd2c36fb8d9755c7fda35a994f7311f1ae2e2e121bd99ac87cd9e7d"
+    },
+    {
+      "index": 3,
+      "offset": 288,
+      "length": 96,
+      "chunk_digest": "767fef443f10495ab4903dff4cda557e3d3cedbd08ff46b0e1ba7fb95265727b"
+    },
+    {
+      "index": 4,
+      "offset": 384,
+      "length": 96,
+      "chunk_digest": "7880c74ec873ccc73b7c1ab0356894dfe1bd2c2e367f06fb8148db5062533e96"
+    },
+    {
+      "index": 5,
+      "offset": 480,
+      "length": 96,
+      "chunk_digest": "7a7a0f29992adbf63ef63b3a4ca4cb890ee80c2226c9a104a48fd08fcdf57c72"
+    },
+    {
+      "index": 6,
+      "offset": 576,
+      "length": 96,
+      "chunk_digest": "87973a00161ec7e686e1355c80967cbcf2ff3aa79195891466e0fdb6bb90f755"
+    },
+    {
+      "index": 7,
+      "offset": 672,
+      "length": 96,
+      "chunk_digest": "58e746556ed60c5630ae3198d35d6709d465426e023f83d7c8da1501d8aa56d1"
+    },
+    {
+      "index": 8,
+      "offset": 768,
+      "length": 96,
+      "chunk_digest": "06e1ec5480071596c0db69730bdff62f427e055246cedf62913ec358c865e8cf"
+    },
+    {
+      "index": 9,
+      "offset": 864,
+      "length": 96,
+      "chunk_digest": "31ca26c009ba7728b0b64e37edf1c60e74c0de28f7e19701fd7c6b7554a53edc"
+    },
+    {
+      "index": 10,
+      "offset": 960,
+      "length": 96,
+      "chunk_digest": "76dd804a68b8814887f3a0253e19e5a0bacc98e92eca7030e3ebfa9d8c1cd852"
+    },
+    {
+      "index": 11,
+      "offset": 1056,
+      "length": 96,
+      "chunk_digest": "3f524e4128edb28f0639acb73db420e651abb4b15862f9f01dd9335216625292"
+    },
+    {
+      "index": 12,
+      "offset": 1152,
+      "length": 96,
+      "chunk_digest": "683ac1362df0dab9c9e2cb4b711a2b86d517638d98df1633f54480597bf49bf3"
+    },
+    {
+      "index": 13,
+      "offset": 1248,
+      "length": 96,
+      "chunk_digest": "35432004808298c4d1c1809df77eced040d6c78ad9f840a766085ea4bedab6d8"
+    },
+    {
+      "index": 14,
+      "offset": 1344,
+      "length": 96,
+      "chunk_digest": "f616786e370da31a5cff58259adbd530d5727bd275750da71a9d4deebe439d7c"
+    },
+    {
+      "index": 15,
+      "offset": 1440,
+      "length": 96,
+      "chunk_digest": "b06e1b5e13b226663b3964a28dd77c6ca71e09f17c32e8a33354490767c7e953"
+    },
+    {
+      "index": 16,
+      "offset": 1536,
+      "length": 96,
+      "chunk_digest": "dc6ab074823a9f129d0252d8b7a1540ca14f72c1097ca003dcd43f22b7295fc2"
+    },
+    {
+      "index": 17,
+      "offset": 1632,
+      "length": 96,
+      "chunk_digest": "dfbe4b04f4fb727753ec762dc40f5214e7cf8535130e132ece980ed1a5dd2800"
+    },
+    {
+      "index": 18,
+      "offset": 1728,
+      "length": 96,
+      "chunk_digest": "d66c3f2dc8e6ff8490078b3f1b800006603f06749490801e7f84cd5535c2f5f7"
+    },
+    {
+      "index": 19,
+      "offset": 1824,
+      "length": 96,
+      "chunk_digest": "66f001099ef04e926700a933bc27cc46a4e821c0f7caf12c3419666e00b1522c"
+    },
+    {
+      "index": 20,
+      "offset": 1920,
+      "length": 76,
+      "chunk_digest": "ebc36acbc14ce587d4e98dc32df936f95b228b7491cc66aadfb828b310420787"
+    }
+  ]
+}

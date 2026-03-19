@@ -1,0 +1,14 @@
+{
+  "process_id": "tassadar.process.state_machine_accumulator.v1",
+  "workload_family": "state_machine_accumulator",
+  "profile_id": "tassadar.internal_compute.process_objects.v1",
+  "snapshot_family_id": "tassadar.process_snapshot.v1",
+  "checkpoint_id": "tassadar.state_machine_accumulator.checkpoint.slice_0001",
+  "next_step_index": 6,
+  "state_bytes": 24,
+  "memory_digest": "69abf6322ebead0e9f213bbb118e0e84c47c0cff17ef1610ded150ec25fb544c",
+  "replay_identity": "355c4557b35ab08f221ac077bf4e544c630856ab47e23b22ad30401f962bdd34",
+  "tape_head_position": 2,
+  "work_queue_depth": 2,
+  "snapshot_digest": "88877ab5d78244f4f604e65ee699b99d99814deae1585f180df1a05a33bbd27b"
+}

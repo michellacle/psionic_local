@@ -818,6 +818,15 @@ The current scope is:
   refusal on host-nondeterministic scheduling plus relaxed memory-ordering
   regimes; this is not a served threads lane, arbitrary shared-memory
   portability, or general concurrency closure
+- the current durable process-object artifacts are
+  `fixtures/tassadar/reports/tassadar_process_object_report.json` and
+  `fixtures/tassadar/runs/tassadar_process_objects_v1/tassadar_process_object_bundle.json`,
+  plus the persisted snapshot, tape, and work-queue artifacts under the same
+  run root, which freeze one checkpoint-backed durable process family with
+  first-class continuation objects, typed datastream locators, and explicit
+  stale-snapshot, out-of-range tape, and profile-mismatched queue refusals;
+  this is not arbitrary process semantics, async-effect closure, broad
+  internal compute, or served-profile widening
 - recommended closure order follows the spec and its test families: decode and
   validate first, then integer/control/direct-call core, then linear memory,
   then globals/tables/references/indirect calls, then instantiation/import

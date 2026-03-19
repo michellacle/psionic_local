@@ -1,0 +1,18 @@
+{
+  "process_id": "tassadar.process.long_loop_kernel.v1",
+  "queue_family_id": "tassadar.process_work_queue.v1",
+  "latest_checkpoint_id": "tassadar.long_loop_kernel.checkpoint.slice_0003",
+  "pending_entry_count": 1,
+  "drained_entry_count": 4,
+  "entries": [
+    {
+      "entry_id": "long_loop_kernel::resume_loop_slice",
+      "operation_id": "resume_loop_slice",
+      "payload_digest": "83ed381bd299fa8c8867cb19cdb8dd0a175fd743515bad0e8bd86feaeffcf1a1",
+      "enqueued_at_step": 12,
+      "priority": 1,
+      "note": "resume the next bounded loop slice from the durable process snapshot"
+    }
+  ],
+  "queue_digest": "aef14a92e7fd41cc3bc7e218eb4a83a170139cf842c3d68253bcdd9aa6c62a63"
+}

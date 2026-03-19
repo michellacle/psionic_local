@@ -41,6 +41,7 @@ const TASSADAR_METADATA_COMPILE_PIPELINE_MATRIX_KEY: &str = "tassadar.compile_pi
 const TASSADAR_METADATA_RUST_ARTICLE_PROFILE_KEY: &str = "tassadar.rust_article_profile";
 const TASSADAR_METADATA_GENERALIZED_ABI_FAMILY_KEY: &str = "tassadar.generalized_abi_family";
 const TASSADAR_METADATA_EXECUTION_CHECKPOINT_KEY: &str = "tassadar.execution_checkpoint";
+const TASSADAR_METADATA_PROCESS_OBJECT_KEY: &str = "tassadar.process_object_family";
 const TASSADAR_METADATA_DYNAMIC_MEMORY_RESUME_KEY: &str = "tassadar.dynamic_memory_resume";
 const TASSADAR_METADATA_MEMORY64_PROFILE_KEY: &str = "tassadar.memory64_profile";
 const TASSADAR_METADATA_INTERNAL_COMPUTE_PROFILE_LADDER_KEY: &str =
@@ -288,6 +289,91 @@ pub fn default_tassadar_execution_checkpoint_binding() -> TassadarExecutionCheck
     }
 }
 
+/// Public durable process snapshot, tape, and work-queue binding reused by
+/// Tassadar environment bundles.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarProcessObjectBinding {
+    /// Stable durable-process report reference.
+    pub report_ref: String,
+    /// Stable durable-process report identifier.
+    pub report_id: String,
+    /// Stable run-bundle reference carrying persisted process objects.
+    pub run_bundle_ref: String,
+    /// Stable process-snapshot family identifier.
+    pub snapshot_family_id: String,
+    /// Stable process-tape family identifier.
+    pub tape_family_id: String,
+    /// Stable process work-queue family identifier.
+    pub work_queue_family_id: String,
+    /// Stable process identifiers covered by the committed report.
+    pub process_ids: Vec<String>,
+}
+
+impl TassadarProcessObjectBinding {
+    /// Returns a stable digest over the binding.
+    #[must_use]
+    pub fn stable_digest(&self) -> String {
+        let encoded =
+            serde_json::to_vec(self).expect("Tassadar process-object binding should serialize");
+        let digest = sha2::Sha256::digest(encoded.as_slice());
+        hex::encode(digest)
+    }
+
+    /// Validates that the binding is explicit.
+    pub fn validate(&self) -> Result<(), TassadarEnvironmentError> {
+        if self.report_ref.trim().is_empty() {
+            return Err(TassadarEnvironmentError::MissingProcessObjectReportRef);
+        }
+        if self.report_id.trim().is_empty() {
+            return Err(TassadarEnvironmentError::MissingProcessObjectReportId);
+        }
+        if self.run_bundle_ref.trim().is_empty() {
+            return Err(TassadarEnvironmentError::MissingProcessObjectRunBundleRef);
+        }
+        if self.snapshot_family_id.trim().is_empty() {
+            return Err(TassadarEnvironmentError::MissingProcessSnapshotFamilyId);
+        }
+        if self.tape_family_id.trim().is_empty() {
+            return Err(TassadarEnvironmentError::MissingProcessTapeFamilyId);
+        }
+        if self.work_queue_family_id.trim().is_empty() {
+            return Err(TassadarEnvironmentError::MissingProcessWorkQueueFamilyId);
+        }
+        if self.process_ids.is_empty() {
+            return Err(TassadarEnvironmentError::MissingProcessObjectProcessIds);
+        }
+        if self
+            .process_ids
+            .iter()
+            .any(|process_id| process_id.trim().is_empty())
+        {
+            return Err(TassadarEnvironmentError::InvalidProcessObjectProcessId);
+        }
+        Ok(())
+    }
+}
+
+/// Returns the canonical durable process-object binding reused by Tassadar
+/// environment surfaces.
+#[must_use]
+pub fn default_tassadar_process_object_binding() -> TassadarProcessObjectBinding {
+    TassadarProcessObjectBinding {
+        report_ref: String::from("fixtures/tassadar/reports/tassadar_process_object_report.json"),
+        report_id: String::from("tassadar.process_object.report.v1"),
+        run_bundle_ref: String::from(
+            "fixtures/tassadar/runs/tassadar_process_objects_v1/tassadar_process_object_bundle.json",
+        ),
+        snapshot_family_id: String::from("tassadar.process_snapshot.v1"),
+        tape_family_id: String::from("tassadar.process_tape.v1"),
+        work_queue_family_id: String::from("tassadar.process_work_queue.v1"),
+        process_ids: vec![
+            String::from("tassadar.process.long_loop_kernel.v1"),
+            String::from("tassadar.process.state_machine_accumulator.v1"),
+            String::from("tassadar.process.search_frontier_kernel.v1"),
+        ],
+    }
+}
+
 /// Public dynamic-memory pause-and-resume binding reused by Tassadar
 /// environment bundles.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -416,7 +502,11 @@ impl TassadarMemory64ProfileBinding {
         if self.case_ids.is_empty() {
             return Err(TassadarEnvironmentError::MissingMemory64ProfileCaseIds);
         }
-        if self.case_ids.iter().any(|case_id| case_id.trim().is_empty()) {
+        if self
+            .case_ids
+            .iter()
+            .any(|case_id| case_id.trim().is_empty())
+        {
             return Err(TassadarEnvironmentError::InvalidMemory64ProfileCaseId);
         }
         Ok(())
@@ -1274,6 +1364,8 @@ pub struct TassadarEnvironmentSpec {
     pub compile_pipeline_matrix_binding: TassadarCompilePipelineMatrixBinding,
     /// Public checkpointed multi-slice execution binding.
     pub execution_checkpoint_binding: TassadarExecutionCheckpointBinding,
+    /// Public durable process snapshot, tape, and work-queue binding.
+    pub process_object_binding: TassadarProcessObjectBinding,
     /// Public dynamic-memory pause-and-resume binding.
     pub dynamic_memory_resume_binding: TassadarDynamicMemoryResumeBinding,
     /// Public bounded memory64 continuation binding.
@@ -1385,6 +1477,7 @@ impl TassadarEnvironmentSpec {
             benchmark_package_set_binding: self.benchmark_package_set_binding.clone(),
             compile_pipeline_matrix_binding: self.compile_pipeline_matrix_binding.clone(),
             execution_checkpoint_binding: self.execution_checkpoint_binding.clone(),
+            process_object_binding: self.process_object_binding.clone(),
             dynamic_memory_resume_binding: self.dynamic_memory_resume_binding.clone(),
             memory64_profile_binding: self.memory64_profile_binding.clone(),
             broad_internal_compute_portability_binding: self
@@ -1438,6 +1531,7 @@ impl TassadarEnvironmentSpec {
         self.benchmark_package_set_binding.validate()?;
         self.compile_pipeline_matrix_binding.validate()?;
         self.execution_checkpoint_binding.validate()?;
+        self.process_object_binding.validate()?;
         self.dynamic_memory_resume_binding.validate()?;
         self.memory64_profile_binding.validate()?;
         if let Some(binding) = &self.broad_internal_compute_portability_binding {
@@ -1647,6 +1741,10 @@ impl TassadarEnvironmentSpec {
             serde_json::to_value(&self.execution_checkpoint_binding).unwrap_or(Value::Null),
         );
         metadata.insert(
+            String::from(TASSADAR_METADATA_PROCESS_OBJECT_KEY),
+            serde_json::to_value(&self.process_object_binding).unwrap_or(Value::Null),
+        );
+        metadata.insert(
             String::from(TASSADAR_METADATA_DYNAMIC_MEMORY_RESUME_KEY),
             serde_json::to_value(&self.dynamic_memory_resume_binding).unwrap_or(Value::Null),
         );
@@ -1773,6 +1871,8 @@ pub struct TassadarEnvironmentBundle {
     pub compile_pipeline_matrix_binding: TassadarCompilePipelineMatrixBinding,
     /// Checkpointed multi-slice execution binding.
     pub execution_checkpoint_binding: TassadarExecutionCheckpointBinding,
+    /// Durable process snapshot, tape, and work-queue binding.
+    pub process_object_binding: TassadarProcessObjectBinding,
     /// Dynamic-memory pause-and-resume binding.
     pub dynamic_memory_resume_binding: TassadarDynamicMemoryResumeBinding,
     /// Bounded memory64 continuation binding.
@@ -1888,6 +1988,30 @@ pub enum TassadarEnvironmentError {
     /// Invalid execution-checkpoint workload family id.
     #[error("Tassadar environment spec includes an empty execution-checkpoint workload family id")]
     InvalidExecutionCheckpointWorkloadFamilyId,
+    /// Missing dynamic-memory resume report ref.
+    #[error("Tassadar environment spec is missing `process_object_binding.report_ref`")]
+    MissingProcessObjectReportRef,
+    /// Missing durable process report id.
+    #[error("Tassadar environment spec is missing `process_object_binding.report_id`")]
+    MissingProcessObjectReportId,
+    /// Missing durable process run-bundle ref.
+    #[error("Tassadar environment spec is missing `process_object_binding.run_bundle_ref`")]
+    MissingProcessObjectRunBundleRef,
+    /// Missing durable process snapshot family id.
+    #[error("Tassadar environment spec is missing `process_object_binding.snapshot_family_id`")]
+    MissingProcessSnapshotFamilyId,
+    /// Missing durable process tape family id.
+    #[error("Tassadar environment spec is missing `process_object_binding.tape_family_id`")]
+    MissingProcessTapeFamilyId,
+    /// Missing durable process work-queue family id.
+    #[error("Tassadar environment spec is missing `process_object_binding.work_queue_family_id`")]
+    MissingProcessWorkQueueFamilyId,
+    /// Missing durable process ids.
+    #[error("Tassadar environment spec is missing `process_object_binding.process_ids`")]
+    MissingProcessObjectProcessIds,
+    /// Invalid durable process id.
+    #[error("Tassadar environment spec includes an empty process-object process id")]
+    InvalidProcessObjectProcessId,
     /// Missing dynamic-memory resume report ref.
     #[error("Tassadar environment spec is missing `dynamic_memory_resume_binding.report_ref`")]
     MissingDynamicMemoryResumeReportRef,
@@ -2034,9 +2158,7 @@ pub enum TassadarEnvironmentError {
     )]
     MissingFloatSemanticsCanonicalNanBits,
     /// Missing float-semantics comparison policy id.
-    #[error(
-        "Tassadar environment spec is missing `float_semantics_binding.comparison_policy_id`"
-    )]
+    #[error("Tassadar environment spec is missing `float_semantics_binding.comparison_policy_id`")]
     MissingFloatSemanticsComparisonPolicyId,
     /// Missing float-semantics refused regimes.
     #[error("Tassadar environment spec must declare `float_semantics_binding.refused_regime_ids`")]
@@ -2387,6 +2509,7 @@ mod tests {
                     String::from("search_frontier_kernel"),
                 ],
             },
+            process_object_binding: default_tassadar_process_object_binding(),
             dynamic_memory_resume_binding: default_tassadar_dynamic_memory_resume_binding(),
             memory64_profile_binding: default_tassadar_memory64_profile_binding(),
             broad_internal_compute_portability_binding: Some(
@@ -2549,6 +2672,15 @@ mod tests {
             bundle
                 .benchmark_package
                 .metadata
+                .get(TASSADAR_METADATA_PROCESS_OBJECT_KEY)
+                .and_then(|value| value.get("report_ref"))
+                .and_then(Value::as_str),
+            Some("fixtures/tassadar/reports/tassadar_process_object_report.json")
+        );
+        assert_eq!(
+            bundle
+                .benchmark_package
+                .metadata
                 .get(TASSADAR_METADATA_DYNAMIC_MEMORY_RESUME_KEY)
                 .and_then(|value| value.get("report_ref"))
                 .and_then(Value::as_str),
@@ -2609,7 +2741,9 @@ mod tests {
                 .get(TASSADAR_METADATA_FLOAT_SEMANTICS_KEY)
                 .and_then(|value| value.get("report_ref"))
                 .and_then(Value::as_str),
-            Some("fixtures/tassadar/reports/tassadar_float_semantics_comparison_matrix_report.json")
+            Some(
+                "fixtures/tassadar/reports/tassadar_float_semantics_comparison_matrix_report.json"
+            )
         );
         assert_eq!(
             bundle
@@ -2658,6 +2792,11 @@ mod tests {
             bundle.execution_checkpoint_binding.run_bundle_ref,
             "fixtures/tassadar/runs/tassadar_execution_checkpoint_v1/tassadar_execution_checkpoint_bundle.json"
         );
+        assert_eq!(
+            bundle.process_object_binding.run_bundle_ref,
+            "fixtures/tassadar/runs/tassadar_process_objects_v1/tassadar_process_object_bundle.json"
+        );
+        assert_eq!(bundle.process_object_binding.process_ids.len(), 3);
         assert_eq!(
             bundle.dynamic_memory_resume_binding.run_bundle_ref,
             "fixtures/tassadar/runs/tassadar_dynamic_memory_resume_v1/tassadar_dynamic_memory_resume_bundle.json"

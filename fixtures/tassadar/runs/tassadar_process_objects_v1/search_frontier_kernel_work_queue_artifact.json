@@ -1,0 +1,26 @@
+{
+  "process_id": "tassadar.process.search_frontier_kernel.v1",
+  "queue_family_id": "tassadar.process_work_queue.v1",
+  "latest_checkpoint_id": "tassadar.search_frontier_kernel.checkpoint.slice_0002",
+  "pending_entry_count": 2,
+  "drained_entry_count": 3,
+  "entries": [
+    {
+      "entry_id": "search_frontier_kernel::expand_frontier_head",
+      "operation_id": "expand_frontier_head",
+      "payload_digest": "3abe607fb17b87a91396ede282ee13207f763f4c3eb01e8f5a3ab61e4d9ef7ab",
+      "enqueued_at_step": 9,
+      "priority": 1,
+      "note": "expand the frontier head selected by the durable queue"
+    },
+    {
+      "entry_id": "search_frontier_kernel::drain_terminal_goal",
+      "operation_id": "drain_terminal_goal",
+      "payload_digest": "cc50d9c1345fc003544072220614831b153cb35cf39ced276b78b323f770732c",
+      "enqueued_at_step": 10,
+      "priority": 2,
+      "note": "drain the terminal goal entry after deterministic frontier replay"
+    }
+  ],
+  "queue_digest": "0f48f697d6a4ca58f22a47cd983f079e0ebd64e5fe4f035f95957c5a3d5fd7bd"
+}

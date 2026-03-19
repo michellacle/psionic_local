@@ -1,0 +1,14 @@
+{
+  "process_id": "tassadar.process.search_frontier_kernel.v1",
+  "workload_family": "search_frontier_kernel",
+  "profile_id": "tassadar.internal_compute.process_objects.v1",
+  "snapshot_family_id": "tassadar.process_snapshot.v1",
+  "checkpoint_id": "tassadar.search_frontier_kernel.checkpoint.slice_0002",
+  "next_step_index": 9,
+  "state_bytes": 24,
+  "memory_digest": "9162240aed1896b18b0595a6fb39cda31d502f890c10d0822aaaf3fe4f614aee",
+  "replay_identity": "d761fa3b78e187c48716af1156dfc1c6ec5dbc3bd80dee9ced7a71ca6c96f716",
+  "tape_head_position": 3,
+  "work_queue_depth": 2,
+  "snapshot_digest": "50f0e80646d1c7b5eca7702b89ed655873497920cbce2a60bc36a47db7807410"
+}

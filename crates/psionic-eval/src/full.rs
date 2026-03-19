@@ -152,6 +152,8 @@ mod tassadar_numeric_portability;
 mod tassadar_pointer_memory_scratchpad;
 #[path = "tassadar_precision_attention_robustness_audit.rs"]
 mod tassadar_precision_attention_robustness_audit;
+#[path = "tassadar_process_object_family.rs"]
+mod tassadar_process_object_family;
 #[path = "tassadar_quantization_truth_envelope.rs"]
 mod tassadar_quantization_truth_envelope;
 #[path = "tassadar_resumable_multi_slice_promotion.rs"]
@@ -293,6 +295,7 @@ pub use tassadar_numeric_opcode_ladder::*;
 pub use tassadar_numeric_portability::*;
 pub use tassadar_pointer_memory_scratchpad::*;
 pub use tassadar_precision_attention_robustness_audit::*;
+pub use tassadar_process_object_family::*;
 pub use tassadar_quantization_truth_envelope::*;
 pub use tassadar_resumable_multi_slice_promotion::*;
 pub use tassadar_rust_article_profile_completeness::*;

@@ -1,0 +1,46 @@
+{
+  "process_id": "tassadar.process.long_loop_kernel.v1",
+  "tape_family_id": "tassadar.process_tape.v1",
+  "latest_checkpoint_id": "tassadar.long_loop_kernel.checkpoint.slice_0003",
+  "head_position": 4,
+  "entry_count": 4,
+  "entries": [
+    {
+      "entry_id": "tassadar.process.long_loop_kernel.v1::tape::00",
+      "kind": "slice_checkpoint",
+      "source_checkpoint_id": "tassadar.long_loop_kernel.checkpoint.slice_0000",
+      "source_slice_index": 0,
+      "next_step_index": 3,
+      "state_digest": "923335d088c382419cc2d6bec73dd4e5217dfb4f8cd738022289c464c171fcc4",
+      "note": "process tape entry captures slice 0 for `long_loop_kernel`"
+    },
+    {
+      "entry_id": "tassadar.process.long_loop_kernel.v1::tape::01",
+      "kind": "queue_ready",
+      "source_checkpoint_id": "tassadar.long_loop_kernel.checkpoint.slice_0001",
+      "source_slice_index": 1,
+      "next_step_index": 6,
+      "state_digest": "cfb24a44de05f4b1ad0ea78ca4c020b5a12a27c3388ce42b67ca283eb78e028e",
+      "note": "process tape entry captures slice 1 for `long_loop_kernel`"
+    },
+    {
+      "entry_id": "tassadar.process.long_loop_kernel.v1::tape::02",
+      "kind": "queue_ready",
+      "source_checkpoint_id": "tassadar.long_loop_kernel.checkpoint.slice_0002",
+      "source_slice_index": 2,
+      "next_step_index": 9,
+      "state_digest": "bdd6b20805a4b0ccc0dbd22b06987fee3199dcbb4a558a200a72269edd4aeeaa",
+      "note": "process tape entry captures slice 2 for `long_loop_kernel`"
+    },
+    {
+      "entry_id": "tassadar.process.long_loop_kernel.v1::tape::03",
+      "kind": "queue_ready",
+      "source_checkpoint_id": "tassadar.long_loop_kernel.checkpoint.slice_0003",
+      "source_slice_index": 3,
+      "next_step_index": 12,
+      "state_digest": "d66d35222e85c5ed2e425a9acc6755d4135be6eab3fbb380781a53c7e0cb73c3",
+      "note": "process tape entry captures slice 3 for `long_loop_kernel`"
+    }
+  ],
+  "tape_digest": "a7c880f223e8d166348f9463f96b807abbac90afcf85cdb30a3e5b6ec3444810"
+}
