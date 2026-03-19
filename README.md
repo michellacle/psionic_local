@@ -1578,6 +1578,7 @@ For canonical current-state detail, use `docs/ARCHITECTURE.md` and
 - **[docs/PARAMETER_GOLF_RECORD_FOLDER_COMPATIBILITY.md](docs/PARAMETER_GOLF_RECORD_FOLDER_COMPATIBILITY.md)** — canonical Parameter Golf challenge-repo folder-compatibility contract and verifier gate for `records/...` exports.
 - **[docs/PARAMETER_GOLF_EXPORTED_SUBMISSION_EVIDENCE.md](docs/PARAMETER_GOLF_EXPORTED_SUBMISSION_EVIDENCE.md)** — canonical Parameter Golf exported-folder evidence and replay-verification contract for metrics, wallclock, and counted bytes.
 - **[docs/PARAMETER_GOLF_PR_SUBMISSION_FLOW.md](docs/PARAMETER_GOLF_PR_SUBMISSION_FLOW.md)** — canonical Parameter Golf promotion receipt, final PR-bundle, and local challenge-clone dry-run contract.
+- **[docs/PARAMETER_GOLF_ARCHITECTURE_EXPERIMENT_QUEUE.md](docs/PARAMETER_GOLF_ARCHITECTURE_EXPERIMENT_QUEUE.md)** — canonical concrete post-parity architecture queue for shared-depth, stronger parameter-tying, and still-open locality work.
 - **[docs/ROADMAP_FM.md](docs/ROADMAP_FM.md)** — Apple FM lane roadmap and API coverage.
 - **[docs/ROADMAP_PARAMETERGOLF.md](docs/ROADMAP_PARAMETERGOLF.md)** — Parameter Golf lane roadmap for challenge-oracle parity, compact decoder training, artifact accounting, and submission packaging inside Psionic.
 - `scripts/check-parameter-golf-acceptance.sh` and

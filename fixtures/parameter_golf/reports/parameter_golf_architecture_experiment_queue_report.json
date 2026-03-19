@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "report_id": "parameter_golf.architecture_experiment_queue.v1",
+  "claim_boundary": "this report freezes the first concrete post-parity Parameter Golf architecture queue on the bounded local-reference harness. The implemented rows are post-train value-sharing probes over the frozen baseline control; they do not claim full retraining, challenge-speed improvement, single-H100 closure, or record-track readiness.",
+  "comparison_surface": {
+    "harness_report_ref": "fixtures/parameter_golf/reports/parameter_golf_research_harness_report.json",
+    "baseline_run_id": "parameter-golf-local-reference-run",
+    "training_dataset_digest": "e538ea23d42cef6c883e09c75adab67bc8d9b6a2adc0454da2b8fa1caf349a00",
+    "validation_dataset_digest": "48b0c65039efa19e41d54b4572fdd29fef3e7fbc0991fdd6c6abc3e95ebe143d",
+    "benchmark_ref": "benchmark://openagents/psionic/parameter_golf/challenge_review",
+    "submission_metric_id": "parameter_golf.validation_bits_per_byte",
+    "sequence_length": 4,
+    "artifact_cap_bytes": 16000000,
+    "baseline_submission_package_version": "2026.03.18.non_record_submission.v2",
+    "baseline_code_bytes": 877718,
+    "baseline_entrypoint_artifact_digest": "988e72c33e71b6e5111b1f79b0cb2af048dfb8fb323b1dc1e9f785d3d8f2f6d1",
+    "baseline_accounting_receipt_digest": "275494441ebe609b39960972d02e8b0f3fcdc192b8644f440f4671d5c29f32c3"
+  },
+  "baseline_control": {
+    "issue_ref": "PGOLF-402/#173",
+    "variant_id": "baseline_control",
+    "status": "implemented_research_variant",
+    "mechanism": "Frozen local-reference baseline control with the current dense decoder, current Muon-plus-Adam split, and current int8-plus-zlib export.",
+    "changed_surfaces": [
+      "public_9x512_decoder",
+      "current_muon_plus_adam_optimizer_split",
+      "current_int8_zlib_export"
+    ],
+    "claim_posture": "research_only_baseline_control",
+    "boundary_note": "This row remains the bounded local-reference control only. It does not imply single-H100 or 8xH100 challenge closure.",
+    "metrics": {
+      "val_loss": 8.598987817764282,
+      "val_bpb": 9.924573665082512,
+      "bytes_code": 877718,
+      "bytes_model_int8_zlib": 78958,
+      "bytes_total": 956676,
+      "delta_val_bpb_vs_baseline": 0.0,
+      "delta_model_bytes_vs_baseline": 0
+    },
+    "runtime_facts": {
+      "measurement_posture": "bounded_local_reference_control",
+      "baseline_logical_training_ms": 100,
+      "relative_dense_attention_score_ops": 1.0,
+      "relative_unique_decoder_block_fraction": 1.0,
+      "runtime_note": "This row is the frozen dense-runtime control for the current bounded harness."
+    }
+  },
+  "variants": [
+    {
+      "issue_ref": "PGOLF-611/#255",
+      "variant_id": "shared_depth_decoder_value_tying_proxy",
+      "status": "implemented_research_variant",
+      "mechanism": "Reuse one canonical decoder block by value across every decoder-depth position while leaving the current dense runtime path unchanged.",
+      "changed_surfaces": [
+        "decoder_block_value_reuse",
+        "post_train_decoder_half_weight_aliasing_proxy",
+        "unchanged_dense_forward_runtime"
+      ],
+      "claim_posture": "research_only_shared_depth_proxy",
+      "boundary_note": "This is a post-train shared-depth proxy, not a retrained recurrent runtime. It measures whether decoder-depth value reuse helps the shipped frontier under the same oracle and accounting surface.",
+      "metrics": {
+        "val_loss": 9.10285472869873,
+        "val_bpb": 10.506114700021048,
+        "bytes_code": 877718,
+        "bytes_model_int8_zlib": 78939,
+        "bytes_total": 956657,
+        "delta_val_bpb_vs_baseline": 0.5815410349385353,
+        "delta_model_bytes_vs_baseline": -19
+      },
+      "runtime_facts": {
+        "measurement_posture": "post_train_value_tying_proxy",
+        "baseline_logical_training_ms": 100,
+        "relative_dense_attention_score_ops": 1.0,
+        "relative_unique_decoder_block_fraction": 0.2,
+        "runtime_note": "All decoder-depth executions still run, but only one decoder block remains unique by value in this proxy row."
+      }
+    },
+    {
+      "issue_ref": "PGOLF-612/#256",
+      "variant_id": "mirrored_block_pair_tying_proxy",
+      "status": "implemented_research_variant",
+      "mechanism": "Tie mirrored encoder-decoder block pairs by value so each pair shares one averaged block while keeping the current dense runtime path and exported-folder code surface unchanged.",
+      "changed_surfaces": [
+        "mirrored_block_pair_weight_tying",
+        "cross_half_parameter_reuse",
+        "unchanged_dense_forward_runtime"
+      ],
+      "claim_posture": "research_only_parameter_tying_proxy",
+      "boundary_note": "This row measures stronger block-level parameter tying on the frozen baseline family. It does not claim that the same tying scheme would remain optimal after full retraining.",
+      "metrics": {
+        "val_loss": 7.601267337799072,
+        "val_bpb": 8.773048554171181,
+        "bytes_code": 877718,
+        "bytes_model_int8_zlib": 82070,
+        "bytes_total": 959788,
+        "delta_val_bpb_vs_baseline": -1.1515251109113311,
+        "delta_model_bytes_vs_baseline": 3112
+      },
+      "runtime_facts": {
+        "measurement_posture": "post_train_value_tying_proxy",
+        "baseline_logical_training_ms": 100,
+        "relative_dense_attention_score_ops": 1.0,
+        "relative_unique_decoder_block_fraction": 0.8,
+        "runtime_note": "The dense runtime path stays unchanged; the only runtime-facing difference here is reduced unique block-state entropy in the exported artifact."
+      }
+    },
+    {
+      "issue_ref": "PGOLF-613/#257",
+      "variant_id": "restricted_attention_window_candidate",
+      "status": "planned_research_candidate",
+      "mechanism": "Evaluate one fixed local-attention or restricted-attention window on the frozen baseline family under the same metric and accounting surface.",
+      "changed_surfaces": [
+        "causal_attention_window_mask",
+        "sequence_length_1024_eval_slice",
+        "unchanged_exported_artifact_surface"
+      ],
+      "claim_posture": "planned_research_candidate",
+      "boundary_note": "This row stays open until the repo owns a public-safe restricted-attention eval path on real seq_len=1024 challenge-format windows. Local-reference seq_len=4 evidence is not strong enough to close the issue honestly.",
+      "benchmark_plan": [
+        "reuse the frozen baseline trained model and unchanged non-record code bytes",
+        "run restricted-attention eval on actual seq_len=1024 Parameter Golf token windows rather than only the local-reference fixture",
+        "preserve val_bpb, compressed-model bytes, and analytic or measured attention-work facts against the dense baseline row"
+      ]
+    }
+  ],
+  "report_digest": "0607bed6259970912f6402ee06bb73ccee4edd83570e9c9c6d6897e8c82e1c6e"
+}

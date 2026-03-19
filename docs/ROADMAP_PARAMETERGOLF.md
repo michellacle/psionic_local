@@ -500,6 +500,30 @@ record-track submissions.
 | `PGOLF-702` / [#192](https://github.com/OpenAgentsInc/psionic/issues/192) | done (2026-03-18) | `Psionic Parameter Golf: add a final PR bundle generator and checklist for parameter-golf/records` | `psionic-train` now emits one deterministic final PR bundle that contains the exact `records/...` folder, exported-folder evidence and replay reports, promotion receipt, and maintainer-facing checklist text needed to open a public non-record challenge PR directly from Psionic-owned artifacts. |
 | `PGOLF-703` / [#193](https://github.com/OpenAgentsInc/psionic/issues/193) | done (2026-03-18) | `Psionic Parameter Golf: dry-run a full Psionic submission against the local parameter-golf clone and preserve the verifier report` | The repo now stages the generated folder into the live local `~/code/parameter-golf` clone, reruns the compatibility and replay verifiers there, removes the staged folder, checks the clone returns to the original `git status --short --branch`, and preserves the committed dry-run report. |
 
+## Epic 8: Concrete Post-Parity Architecture Queue
+
+### Goal
+
+Turn the research harness into one concrete, bounded architecture queue without
+weakening baseline or record-track claim posture.
+
+### Exit Criteria
+
+- one committed queue report exists under the canonical research harness
+- each queue row has one explicit mechanism and one bounded claim posture
+- implemented rows preserve metric, artifact-byte, and runtime facts
+- locality or restricted-attention work stays open until it has challenge-like
+  evidence rather than toy-window intuition
+
+### Issues
+
+| ID | Status | Proposed GitHub issue title | Description |
+| --- | --- | --- | --- |
+| `PGOLF-610` / [#254](https://github.com/OpenAgentsInc/psionic/issues/254) | done (2026-03-19) | `Psionic Parameter Golf: create the first concrete post-parity architecture experiment queue` | `psionic-research` now ships `parameter_golf_architecture_experiment_queue_report.json` plus `docs/PARAMETER_GOLF_ARCHITECTURE_EXPERIMENT_QUEUE.md`, turning the earlier generic variant bucket into one explicit queue with implemented shared-depth and stronger parameter-tying rows plus an intentionally still-open locality row and benchmark plan. |
+| `PGOLF-611` / [#255](https://github.com/OpenAgentsInc/psionic/issues/255) | done (2026-03-19) | `Psionic Parameter Golf: add a shared-depth or recurrent compact decoder variant report` | The first concrete queue now includes a measured `shared_depth_decoder_value_tying_proxy` row, preserving `val_loss`, `val_bpb`, compressed-model bytes, counted total bytes, and explicit unchanged-dense-runtime facts for a decoder-depth value-reuse proxy on the frozen baseline family. |
+| `PGOLF-612` / [#256](https://github.com/OpenAgentsInc/psionic/issues/256) | done (2026-03-19) | `Psionic Parameter Golf: add a stronger parameter-tying compact variant report` | The same queue now includes a measured `mirrored_block_pair_tying_proxy` row, preserving metric, artifact-byte, and runtime facts for one stronger block-level parameter-tying probe on the frozen baseline family under unchanged code bytes and unchanged dense runtime posture. |
+| `PGOLF-613` / [#257](https://github.com/OpenAgentsInc/psionic/issues/257) | open (2026-03-19) | `Psionic Parameter Golf: add a locality or restricted-attention compact variant report` | The concrete queue now records the locality candidate and benchmark plan explicitly, but the issue stays open because Psionic still lacks a public-safe restricted-attention eval path on real `seq_len=1024` challenge-format windows. |
+
 ## Current Execution Order
 
 ### Phase 1: freeze challenge posture and acceptance (done 2026-03-18)
@@ -553,6 +577,13 @@ record-track submissions.
 - `PGOLF-702` -> landed the deterministic final PR bundle and checklist for `parameter-golf/records/...`
 - `PGOLF-703` -> landed the full local challenge-clone dry run plus committed verifier report
 
+### Phase 9: widen the concrete post-parity architecture queue
+
+- `PGOLF-610` -> landed the first committed concrete queue for post-parity architecture work under the canonical research harness
+- `PGOLF-611` -> landed one measured shared-depth decoder value-tying proxy row with explicit metric, artifact-byte, and unchanged-runtime facts
+- `PGOLF-612` -> landed one measured mirrored block-pair tying proxy row with explicit metric, artifact-byte, and unchanged-runtime facts
+- `PGOLF-613` -> locality or restricted-attention stays open until the repo has challenge-like `seq_len=1024` evidence
+
 ## Bottom Line
 
 Parameter Golf is a good forcing function for compact-model training, exact
@@ -575,8 +606,8 @@ precise about what is true on 2026-03-18:
   local-reference replay and the stronger shipped runtime-byte story is not yet
   defended for record-track promotion
 - post-parity architecture and compression work now has a committed research
-  harness, but those candidates remain explicitly research-only until new
-  results are measured
+  harness plus a first concrete architecture queue, but those candidates remain
+  explicitly research-only until new results are measured
 - the first truthful result should be parity against `train_gpt.py`, not a new
   architecture
 - the next real work is no longer "more bootstrap closure"; it is retiring the

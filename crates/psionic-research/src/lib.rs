@@ -15,6 +15,7 @@ use thiserror::Error;
 #[cfg(feature = "burn-import")]
 mod attnres_burn_import;
 mod attnres_residual_comparison;
+mod parameter_golf_architecture_experiment_queue;
 mod parameter_golf_research_harness;
 mod runner;
 mod tassadar_acceptance;
@@ -74,6 +75,7 @@ mod tassadar_workload_capability_frontier_summary;
 #[cfg(feature = "burn-import")]
 pub use attnres_burn_import::*;
 pub use attnres_residual_comparison::*;
+pub use parameter_golf_architecture_experiment_queue::*;
 pub use parameter_golf_research_harness::*;
 pub use runner::*;
 pub use tassadar_acceptance::*;

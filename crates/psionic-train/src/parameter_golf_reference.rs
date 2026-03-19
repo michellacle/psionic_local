@@ -1827,6 +1827,16 @@ fn export_int8_zlib_model_artifact(
     ))
 }
 
+/// Exports one Parameter Golf model into the canonical int8-plus-zlib artifact
+/// surface used by the bounded benchmark and submission lanes.
+pub fn export_parameter_golf_int8_zlib_model_artifact(
+    model: &ParameterGolfReferenceModel,
+    run_id: &str,
+    step: u64,
+) -> Result<ParameterGolfTrainingArtifact, ParameterGolfReferenceTrainingError> {
+    export_int8_zlib_model_artifact(model, run_id, step)
+}
+
 fn serialize_tensors(
     tensors: Vec<(String, SafeTensorsDType, Vec<usize>, Vec<u8>)>,
     metadata: Option<HashMap<String, String>>,
