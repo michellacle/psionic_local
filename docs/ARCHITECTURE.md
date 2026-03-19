@@ -979,6 +979,15 @@ The current scope is:
   decompilation, and safety-gate reasons; this is not arbitrary
   program-to-weights closure, broad internal compute, or broader served
   internal compute promotion
+- the current effective-unbounded claim-check artifacts are
+  `fixtures/tassadar/reports/tassadar_effective_unbounded_compute_claim_report.json`,
+  `fixtures/tassadar/reports/tassadar_effective_unbounded_compute_claim_summary.json`,
+  and `docs/audits/2026-03-19-tassadar-effective-unbounded-compute-claim-audit.md`,
+  which freeze one disclosure-safe claim checker over continuation, state,
+  effect, portability, broad-publication, and specialization-safety
+  prerequisites with explicit blockers and non-implications; this keeps the
+  stronger public claim suppressed and is not a broad universality or
+  Turing-complete claim
 - recommended closure order follows the spec and its test families: decode and
   validate first, then integer/control/direct-call core, then linear memory,
   then globals/tables/references/indirect calls, then instantiation/import

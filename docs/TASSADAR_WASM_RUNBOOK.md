@@ -1387,6 +1387,20 @@ Expected outcome:
 - no arbitrary program-to-weights closure, broad internal compute, or served
   internal-compute promotion
 
+Read:
+
+- `fixtures/tassadar/reports/tassadar_effective_unbounded_compute_claim_report.json`
+- `fixtures/tassadar/reports/tassadar_effective_unbounded_compute_claim_summary.json`
+- `docs/audits/2026-03-19-tassadar-effective-unbounded-compute-claim-audit.md`
+
+Expected outcome:
+
+- one disclosure-safe claim checker over continuation, state, effect,
+  portability, broad-publication, and specialization-safety prerequisites
+- explicit blocked prerequisites and explicit non-implications
+- claim status remains suppressed until the missing prerequisites are closed
+- no arbitrary Wasm, broad served internal compute, or Turing-complete claim
+
 ## Validation Commands
 
 Run the focused report checks after the flow:

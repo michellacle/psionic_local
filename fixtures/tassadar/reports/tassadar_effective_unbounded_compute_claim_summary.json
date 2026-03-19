@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.effective_unbounded_compute_claim.summary.v1",
+  "eval_report": {
+    "schema_version": 1,
+    "report_id": "tassadar.effective_unbounded_compute_claim.report.v1",
+    "prerequisite_rows": [
+      {
+        "prerequisite_id": "resumable_continuation_objects",
+        "satisfied": true,
+        "source_refs": [
+          "fixtures/tassadar/reports/tassadar_process_object_report.json",
+          "fixtures/tassadar/reports/tassadar_spill_tape_store_report.json",
+          "fixtures/tassadar/reports/tassadar_installed_process_lifecycle_report.json"
+        ],
+        "note": "checkpoint, spill-tape, and installed-process lifecycle artifacts exist, so resumable continuation objects are real under explicit envelopes"
+      },
+      {
+        "prerequisite_id": "effect_and_refusal_receipts",
+        "satisfied": true,
+        "source_refs": [
+          "fixtures/tassadar/reports/tassadar_effectful_replay_audit_report.json",
+          "fixtures/tassadar/reports/tassadar_hybrid_process_controller_report.json"
+        ],
+        "note": "effect receipts and typed refusal boundaries are explicit on the current bounded effect and hybrid surfaces"
+      },
+      {
+        "prerequisite_id": "hybrid_process_control",
+        "satisfied": true,
+        "source_refs": [
+          "fixtures/tassadar/reports/tassadar_hybrid_process_controller_report.json"
+        ],
+        "note": "hybrid control is only counted when verifier-positive-delta cases and unsupported-transition refusals are both explicit"
+      },
+      {
+        "prerequisite_id": "portable_publication_envelope",
+        "satisfied": false,
+        "source_refs": [
+          "fixtures/tassadar/reports/tassadar_broad_internal_compute_portability_report.json"
+        ],
+        "note": "effective-unbounded claims require more than the article-closeout portability anchor; today the broader portability matrix is still too narrow"
+      },
+      {
+        "prerequisite_id": "broad_publication_gate",
+        "satisfied": false,
+        "source_refs": [
+          "fixtures/tassadar/reports/tassadar_broad_internal_compute_acceptance_gate.json"
+        ],
+        "note": "the broad internal-compute publication gate must be green before any effective-unbounded claim can be disclosed safely"
+      },
+      {
+        "prerequisite_id": "specialization_safety_gate",
+        "satisfied": false,
+        "source_refs": [
+          "fixtures/tassadar/reports/tassadar_broad_family_specialization_report.json"
+        ],
+        "note": "effective-unbounded claims require specialization families to stay decompilable and safe to challenge, not just benchmarked"
+      }
+    ],
+    "satisfied_prerequisite_ids": [
+      "resumable_continuation_objects",
+      "effect_and_refusal_receipts",
+      "hybrid_process_control"
+    ],
+    "missing_prerequisite_ids": [
+      "portable_publication_envelope",
+      "broad_publication_gate",
+      "specialization_safety_gate"
+    ],
+    "claim_status": "suppressed",
+    "meaning_statement": "effective unbounded computation here means bounded execution slices plus resumable state, continuation, and refusal-safe effect handling under declared portability envelopes and explicit checkpoint or tape objects; it does not mean infinite in-core execution or arbitrary universality",
+    "out_of_scope_claims": [
+      "arbitrary Wasm execution",
+      "broad served internal compute",
+      "arbitrary effectful process execution",
+      "Turing-complete support"
+    ],
+    "claim_boundary": "this checker is a disclosure-safe claim-closure surface. It decides whether the repo may honestly say `effective unbounded computation under envelopes`, and it keeps that claim suppressed until portability, specialization safety, and broad publication prerequisites are all green",
+    "summary": "Effective-unbounded claim checker records satisfied_prerequisites=3, missing_prerequisites=3, claim_status=Suppressed.",
+    "report_digest": "e873247ac0657fd829a06227c53054b43c855353b96d6b14b3a52e0944bcbee0"
+  },
+  "allowed_statement": "Psionic/Tassadar has bounded execution slices plus resumable continuation and state objects under explicit envelopes, but the repo may not yet claim `effective unbounded computation` as a public broad-compute posture.",
+  "blocked_by": [
+    "portable_publication_envelope",
+    "broad_publication_gate",
+    "specialization_safety_gate"
+  ],
+  "explicit_non_implications": [
+    "arbitrary Wasm execution",
+    "broad served internal compute",
+    "arbitrary effectful process execution",
+    "Turing-complete support"
+  ],
+  "claim_boundary": "this summary is a disclosure-safe claim audit. It states what the repo can say today about resumable bounded computation and what it still cannot say about effective unbounded computation or universality",
+  "summary": "Effective-unbounded claim summary keeps blocked_by=3, explicit_non_implications=4, claim_status=Suppressed.",
+  "report_digest": "4d9eb5f95b5c608f3d813b9366183a43b055575502786e973918f5832a0a5975"
+}

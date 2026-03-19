@@ -74,6 +74,8 @@ mod tassadar_counterfactual_route_quality;
 mod tassadar_decompilation_fidelity;
 #[path = "tassadar_dynamic_memory_resume.rs"]
 mod tassadar_dynamic_memory_resume;
+#[path = "tassadar_effective_unbounded_compute_claim.rs"]
+mod tassadar_effective_unbounded_compute_claim;
 #[path = "tassadar_effect_safe_resume.rs"]
 mod tassadar_effect_safe_resume;
 #[path = "tassadar_effect_taxonomy.rs"]
@@ -290,6 +292,7 @@ pub use tassadar_cross_profile_link_compatibility::*;
 pub use tassadar_counterfactual_route_quality::*;
 pub use tassadar_decompilation_fidelity::*;
 pub use tassadar_dynamic_memory_resume::*;
+pub use tassadar_effective_unbounded_compute_claim::*;
 pub use tassadar_effect_safe_resume::*;
 pub use tassadar_effect_taxonomy::*;
 pub use tassadar_effectful_replay_audit::*;
