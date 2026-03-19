@@ -1060,6 +1060,30 @@ Expected outcome:
 - zero default served session-process profiles
 - explicit route-policy refusal on the open-ended external-event surface
 
+### 18. Spill-aware memory extension and external tape-store semantics
+
+```bash
+cargo run -p psionic-runtime --example tassadar_spill_tape_store_bundle
+cargo run -p psionic-eval --example tassadar_spill_tape_store_report
+```
+
+Read:
+
+- `fixtures/tassadar/runs/tassadar_spill_tape_store_v1/tassadar_spill_tape_store_bundle.json`
+- `fixtures/tassadar/reports/tassadar_spill_tape_store_report.json`
+- persisted spill-segment and external-tape-store artifacts under
+  `fixtures/tassadar/runs/tassadar_spill_tape_store_v1`
+
+Expected outcome:
+
+- one named bounded spill-aware continuation profile:
+  `tassadar.internal_compute.spill_tape_store.v1`
+- exact spill-vs-in-core parity on the bounded long-loop row
+- exact spill-vs-in-core parity on the bounded search-frontier row
+- exact external-tape resume parity on both bounded exact rows
+- typed datastream locators for spill segments and external tape-store segments
+- explicit oversize-state, missing-segment, and non-cpu portability refusals
+
 ## Validation Commands
 
 Run the focused report checks after the flow:
@@ -1118,6 +1142,12 @@ cargo test -p psionic-router session_process -- --nocapture
 cargo test -p psionic-serve executor_service_capability_publication_serializes_benchmark_gated_matrix -- --nocapture
 cargo test -p psionic-provider session_process_profile_receipt_projects_report -- --nocapture
 cargo test -p psionic-provider tassadar_capability_envelope_serializes_served_publication -- --nocapture
+cargo test -p psionic-runtime spill_tape -- --nocapture
+cargo test -p psionic-datastream spill -- --nocapture
+cargo test -p psionic-datastream external_tape -- --nocapture
+cargo test -p psionic-eval spill_tape -- --nocapture
+cargo test -p psionic-provider spill_tape_store -- --nocapture
+cargo test -p psionic-environments tassadar_environment_bundle_is_machine_legible -- --nocapture
 ```
 
 These checks should keep the committed reports and generated truth aligned.

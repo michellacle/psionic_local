@@ -1,0 +1,10 @@
+{
+  "segment_id": "long_loop_spill_resume::spill::01",
+  "family_id": "tassadar.spill_segment.v1",
+  "source_checkpoint_id": "checkpoint.long_loop_kernel.02",
+  "segment_index": 1,
+  "spill_bytes": 128,
+  "page_count": 4,
+  "digest": "df1dcbffb5e1d9f42b46be28ecdc5f47fb4977917fb2db74c6711a2d1269127d",
+  "note": "spill segment 1 externalizes bounded continuation bytes from `checkpoint.long_loop_kernel.02`"
+}

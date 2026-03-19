@@ -836,6 +836,16 @@ The current scope is:
   promotion for those surfaces, and typed refusal on open-ended external event
   streams; this is not a generic agent loop, arbitrary interactive Wasm, async
   effect closure, or broader served internal compute
+- the current spill/tape continuation artifacts are
+  `fixtures/tassadar/runs/tassadar_spill_tape_store_v1/tassadar_spill_tape_store_bundle.json`
+  and `fixtures/tassadar/reports/tassadar_spill_tape_store_report.json`, plus
+  the persisted spill-segment and external-tape-store artifacts under the same
+  run root, which freeze one bounded spill-aware continuation lane with typed
+  datastream locators, current-host cpu-reference portability, and explicit
+  refusal on oversize spill state, missing tape segments, and non-cpu
+  portability widening; this is not infinite in-core memory, arbitrary
+  persistent process semantics, async effect closure, or broader served
+  internal compute
 - recommended closure order follows the spec and its test families: decode and
   validate first, then integer/control/direct-call core, then linear memory,
   then globals/tables/references/indirect calls, then instantiation/import

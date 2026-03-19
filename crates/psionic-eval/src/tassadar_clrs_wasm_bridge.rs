@@ -487,6 +487,8 @@ fn build_tassadar_clrs_wasm_bridge_environment_bundle(
         execution_checkpoint_binding:
             psionic_environments::default_tassadar_execution_checkpoint_binding(),
         process_object_binding: psionic_environments::default_tassadar_process_object_binding(),
+        spill_tape_store_binding:
+            psionic_environments::default_tassadar_spill_tape_store_binding(),
         dynamic_memory_resume_binding:
             psionic_environments::default_tassadar_dynamic_memory_resume_binding(),
         memory64_profile_binding: psionic_environments::default_tassadar_memory64_profile_binding(),

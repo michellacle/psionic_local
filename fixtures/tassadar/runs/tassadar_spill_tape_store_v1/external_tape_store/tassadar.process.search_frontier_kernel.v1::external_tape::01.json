@@ -1,0 +1,9 @@
+{
+  "segment_id": "tassadar.process.search_frontier_kernel.v1::external_tape::01",
+  "family_id": "tassadar.external_tape_store.v1",
+  "process_id": "tassadar.process.search_frontier_kernel.v1",
+  "sequence_index": 1,
+  "payload_bytes": 88,
+  "digest": "40d4c540d433f5c42f4ced1ecb957f4470e0a1d445559fc8c536f629f044bf9d",
+  "note": "external tape-store segment 1 carries bounded continuation lineage for `tassadar.process.search_frontier_kernel.v1`"
+}

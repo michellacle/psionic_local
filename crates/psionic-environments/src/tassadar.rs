@@ -42,6 +42,7 @@ const TASSADAR_METADATA_RUST_ARTICLE_PROFILE_KEY: &str = "tassadar.rust_article_
 const TASSADAR_METADATA_GENERALIZED_ABI_FAMILY_KEY: &str = "tassadar.generalized_abi_family";
 const TASSADAR_METADATA_EXECUTION_CHECKPOINT_KEY: &str = "tassadar.execution_checkpoint";
 const TASSADAR_METADATA_PROCESS_OBJECT_KEY: &str = "tassadar.process_object_family";
+const TASSADAR_METADATA_SPILL_TAPE_STORE_KEY: &str = "tassadar.spill_tape_store_profile";
 const TASSADAR_METADATA_DYNAMIC_MEMORY_RESUME_KEY: &str = "tassadar.dynamic_memory_resume";
 const TASSADAR_METADATA_MEMORY64_PROFILE_KEY: &str = "tassadar.memory64_profile";
 const TASSADAR_METADATA_INTERNAL_COMPUTE_PROFILE_LADDER_KEY: &str =
@@ -370,6 +371,100 @@ pub fn default_tassadar_process_object_binding() -> TassadarProcessObjectBinding
             String::from("tassadar.process.long_loop_kernel.v1"),
             String::from("tassadar.process.state_machine_accumulator.v1"),
             String::from("tassadar.process.search_frontier_kernel.v1"),
+        ],
+    }
+}
+
+/// Public spill-aware continuation binding reused by Tassadar environment bundles.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarSpillTapeStoreBinding {
+    /// Stable spill/tape report reference.
+    pub report_ref: String,
+    /// Stable spill/tape report identifier.
+    pub report_id: String,
+    /// Stable run-bundle reference carrying persisted spill/tape artifacts.
+    pub run_bundle_ref: String,
+    /// Stable named spill/tape profile identifier.
+    pub profile_id: String,
+    /// Stable spill-segment family identifier.
+    pub spill_segment_family_id: String,
+    /// Stable external tape-store family identifier.
+    pub external_tape_store_family_id: String,
+    /// Stable portability envelope identifiers carried by the committed report.
+    pub portability_envelope_ids: Vec<String>,
+    /// Stable case identifiers covered by the committed report.
+    pub case_ids: Vec<String>,
+}
+
+impl TassadarSpillTapeStoreBinding {
+    /// Returns a stable digest over the binding.
+    #[must_use]
+    pub fn stable_digest(&self) -> String {
+        let encoded =
+            serde_json::to_vec(self).expect("Tassadar spill/tape binding should serialize");
+        let digest = sha2::Sha256::digest(encoded.as_slice());
+        hex::encode(digest)
+    }
+
+    /// Validates that the binding is explicit.
+    pub fn validate(&self) -> Result<(), TassadarEnvironmentError> {
+        if self.report_ref.trim().is_empty() {
+            return Err(TassadarEnvironmentError::MissingSpillTapeStoreReportRef);
+        }
+        if self.report_id.trim().is_empty() {
+            return Err(TassadarEnvironmentError::MissingSpillTapeStoreReportId);
+        }
+        if self.run_bundle_ref.trim().is_empty() {
+            return Err(TassadarEnvironmentError::MissingSpillTapeStoreRunBundleRef);
+        }
+        if self.profile_id.trim().is_empty() {
+            return Err(TassadarEnvironmentError::MissingSpillTapeStoreProfileId);
+        }
+        if self.spill_segment_family_id.trim().is_empty() {
+            return Err(TassadarEnvironmentError::MissingSpillSegmentFamilyId);
+        }
+        if self.external_tape_store_family_id.trim().is_empty() {
+            return Err(TassadarEnvironmentError::MissingExternalTapeStoreFamilyId);
+        }
+        if self.portability_envelope_ids.is_empty() {
+            return Err(TassadarEnvironmentError::MissingSpillTapeStorePortabilityEnvelopes);
+        }
+        if self
+            .portability_envelope_ids
+            .iter()
+            .any(|envelope_id| envelope_id.trim().is_empty())
+        {
+            return Err(TassadarEnvironmentError::InvalidSpillTapeStorePortabilityEnvelopeId);
+        }
+        if self.case_ids.is_empty() {
+            return Err(TassadarEnvironmentError::MissingSpillTapeStoreCaseIds);
+        }
+        if self.case_ids.iter().any(|case_id| case_id.trim().is_empty()) {
+            return Err(TassadarEnvironmentError::InvalidSpillTapeStoreCaseId);
+        }
+        Ok(())
+    }
+}
+
+/// Returns the canonical spill-aware continuation binding reused by Tassadar environment surfaces.
+#[must_use]
+pub fn default_tassadar_spill_tape_store_binding() -> TassadarSpillTapeStoreBinding {
+    TassadarSpillTapeStoreBinding {
+        report_ref: String::from(
+            "fixtures/tassadar/reports/tassadar_spill_tape_store_report.json",
+        ),
+        report_id: String::from("tassadar.spill_tape_store.report.v1"),
+        run_bundle_ref: String::from(
+            "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/tassadar_spill_tape_store_bundle.json",
+        ),
+        profile_id: String::from("tassadar.internal_compute.spill_tape_store.v1"),
+        spill_segment_family_id: String::from("tassadar.spill_segment.v1"),
+        external_tape_store_family_id: String::from("tassadar.external_tape_store.v1"),
+        portability_envelope_ids: vec![String::from("cpu_reference_current_host")],
+        case_ids: vec![
+            String::from("long_loop_spill_resume"),
+            String::from("search_frontier_spill_resume"),
+            String::from("state_machine_oversize_spill_refusal"),
         ],
     }
 }
@@ -1366,6 +1461,8 @@ pub struct TassadarEnvironmentSpec {
     pub execution_checkpoint_binding: TassadarExecutionCheckpointBinding,
     /// Public durable process snapshot, tape, and work-queue binding.
     pub process_object_binding: TassadarProcessObjectBinding,
+    /// Public spill-aware continuation and external tape-store binding.
+    pub spill_tape_store_binding: TassadarSpillTapeStoreBinding,
     /// Public dynamic-memory pause-and-resume binding.
     pub dynamic_memory_resume_binding: TassadarDynamicMemoryResumeBinding,
     /// Public bounded memory64 continuation binding.
@@ -1478,6 +1575,7 @@ impl TassadarEnvironmentSpec {
             compile_pipeline_matrix_binding: self.compile_pipeline_matrix_binding.clone(),
             execution_checkpoint_binding: self.execution_checkpoint_binding.clone(),
             process_object_binding: self.process_object_binding.clone(),
+            spill_tape_store_binding: self.spill_tape_store_binding.clone(),
             dynamic_memory_resume_binding: self.dynamic_memory_resume_binding.clone(),
             memory64_profile_binding: self.memory64_profile_binding.clone(),
             broad_internal_compute_portability_binding: self
@@ -1532,6 +1630,7 @@ impl TassadarEnvironmentSpec {
         self.compile_pipeline_matrix_binding.validate()?;
         self.execution_checkpoint_binding.validate()?;
         self.process_object_binding.validate()?;
+        self.spill_tape_store_binding.validate()?;
         self.dynamic_memory_resume_binding.validate()?;
         self.memory64_profile_binding.validate()?;
         if let Some(binding) = &self.broad_internal_compute_portability_binding {
@@ -1745,6 +1844,10 @@ impl TassadarEnvironmentSpec {
             serde_json::to_value(&self.process_object_binding).unwrap_or(Value::Null),
         );
         metadata.insert(
+            String::from(TASSADAR_METADATA_SPILL_TAPE_STORE_KEY),
+            serde_json::to_value(&self.spill_tape_store_binding).unwrap_or(Value::Null),
+        );
+        metadata.insert(
             String::from(TASSADAR_METADATA_DYNAMIC_MEMORY_RESUME_KEY),
             serde_json::to_value(&self.dynamic_memory_resume_binding).unwrap_or(Value::Null),
         );
@@ -1873,6 +1976,8 @@ pub struct TassadarEnvironmentBundle {
     pub execution_checkpoint_binding: TassadarExecutionCheckpointBinding,
     /// Durable process snapshot, tape, and work-queue binding.
     pub process_object_binding: TassadarProcessObjectBinding,
+    /// Spill-aware continuation and external tape-store binding.
+    pub spill_tape_store_binding: TassadarSpillTapeStoreBinding,
     /// Dynamic-memory pause-and-resume binding.
     pub dynamic_memory_resume_binding: TassadarDynamicMemoryResumeBinding,
     /// Bounded memory64 continuation binding.
@@ -2012,6 +2117,44 @@ pub enum TassadarEnvironmentError {
     /// Invalid durable process id.
     #[error("Tassadar environment spec includes an empty process-object process id")]
     InvalidProcessObjectProcessId,
+    /// Missing spill/tape report ref.
+    #[error("Tassadar environment spec is missing `spill_tape_store_binding.report_ref`")]
+    MissingSpillTapeStoreReportRef,
+    /// Missing spill/tape report id.
+    #[error("Tassadar environment spec is missing `spill_tape_store_binding.report_id`")]
+    MissingSpillTapeStoreReportId,
+    /// Missing spill/tape run-bundle ref.
+    #[error("Tassadar environment spec is missing `spill_tape_store_binding.run_bundle_ref`")]
+    MissingSpillTapeStoreRunBundleRef,
+    /// Missing spill/tape profile id.
+    #[error("Tassadar environment spec is missing `spill_tape_store_binding.profile_id`")]
+    MissingSpillTapeStoreProfileId,
+    /// Missing spill-segment family id.
+    #[error(
+        "Tassadar environment spec is missing `spill_tape_store_binding.spill_segment_family_id`"
+    )]
+    MissingSpillSegmentFamilyId,
+    /// Missing external tape-store family id.
+    #[error(
+        "Tassadar environment spec is missing `spill_tape_store_binding.external_tape_store_family_id`"
+    )]
+    MissingExternalTapeStoreFamilyId,
+    /// Missing spill/tape portability envelopes.
+    #[error(
+        "Tassadar environment spec is missing `spill_tape_store_binding.portability_envelope_ids`"
+    )]
+    MissingSpillTapeStorePortabilityEnvelopes,
+    /// Invalid spill/tape portability envelope id.
+    #[error(
+        "Tassadar environment spec includes an empty spill/tape portability envelope id"
+    )]
+    InvalidSpillTapeStorePortabilityEnvelopeId,
+    /// Missing spill/tape case ids.
+    #[error("Tassadar environment spec is missing `spill_tape_store_binding.case_ids`")]
+    MissingSpillTapeStoreCaseIds,
+    /// Invalid spill/tape case id.
+    #[error("Tassadar environment spec includes an empty spill/tape case id")]
+    InvalidSpillTapeStoreCaseId,
     /// Missing dynamic-memory resume report ref.
     #[error("Tassadar environment spec is missing `dynamic_memory_resume_binding.report_ref`")]
     MissingDynamicMemoryResumeReportRef,
@@ -2510,6 +2653,7 @@ mod tests {
                 ],
             },
             process_object_binding: default_tassadar_process_object_binding(),
+            spill_tape_store_binding: default_tassadar_spill_tape_store_binding(),
             dynamic_memory_resume_binding: default_tassadar_dynamic_memory_resume_binding(),
             memory64_profile_binding: default_tassadar_memory64_profile_binding(),
             broad_internal_compute_portability_binding: Some(

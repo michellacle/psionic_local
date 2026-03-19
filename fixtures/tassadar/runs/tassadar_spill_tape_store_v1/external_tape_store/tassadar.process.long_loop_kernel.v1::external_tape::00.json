@@ -1,0 +1,9 @@
+{
+  "segment_id": "tassadar.process.long_loop_kernel.v1::external_tape::00",
+  "family_id": "tassadar.external_tape_store.v1",
+  "process_id": "tassadar.process.long_loop_kernel.v1",
+  "sequence_index": 0,
+  "payload_bytes": 72,
+  "digest": "299d68e02fd0ce65799f1dcd52551a26f5e1a8dd90409445f111f12a2dbbe879",
+  "note": "external tape-store segment 0 carries bounded continuation lineage for `tassadar.process.long_loop_kernel.v1`"
+}

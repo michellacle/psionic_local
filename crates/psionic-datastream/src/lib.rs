@@ -17,6 +17,8 @@ const TASSADAR_MEMORY64_RESUME_FAMILY_PREFIX: &str = "tassadar.memory64_resume";
 const TASSADAR_PROCESS_SNAPSHOT_FAMILY_PREFIX: &str = "tassadar.process_snapshot";
 const TASSADAR_PROCESS_TAPE_FAMILY_PREFIX: &str = "tassadar.process_tape";
 const TASSADAR_PROCESS_WORK_QUEUE_FAMILY_PREFIX: &str = "tassadar.process_work_queue";
+const TASSADAR_SPILL_SEGMENT_FAMILY_PREFIX: &str = "tassadar.spill_segment";
+const TASSADAR_EXTERNAL_TAPE_STORE_FAMILY_PREFIX: &str = "tassadar.external_tape_store";
 
 /// High-level subject being delivered over the data plane.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -253,6 +255,26 @@ impl DatastreamCheckpointBinding {
         Self::new("tassadar.process_work_queue.v1")
             .with_checkpoint_ref(format!(
                 "checkpoint://tassadar.process_work_queue/{process_id}"
+            ))
+            .with_step(step)
+    }
+
+    /// Creates a checkpoint binding for one Tassadar spill-backed memory segment.
+    #[must_use]
+    pub fn tassadar_spill_segment(process_id: impl AsRef<str>, step: u64) -> Self {
+        let process_id = process_id.as_ref();
+        Self::new("tassadar.spill_segment.v1")
+            .with_checkpoint_ref(format!("checkpoint://tassadar.spill_segment/{process_id}"))
+            .with_step(step)
+    }
+
+    /// Creates a checkpoint binding for one Tassadar external tape-store segment.
+    #[must_use]
+    pub fn tassadar_external_tape_store(process_id: impl AsRef<str>, step: u64) -> Self {
+        let process_id = process_id.as_ref();
+        Self::new("tassadar.external_tape_store.v1")
+            .with_checkpoint_ref(format!(
+                "checkpoint://tassadar.external_tape_store/{process_id}"
             ))
             .with_step(step)
     }
@@ -902,6 +924,34 @@ pub struct TassadarProcessWorkQueueLocator {
     pub detail: String,
 }
 
+/// Explicit locator for one persisted Tassadar spill-backed memory segment.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarSpillSegmentLocator {
+    pub stream_id: String,
+    pub manifest_digest: String,
+    pub checkpoint_ref: String,
+    pub checkpoint_family: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub step: Option<u64>,
+    pub object_digest: String,
+    pub total_bytes: u64,
+    pub detail: String,
+}
+
+/// Explicit locator for one persisted Tassadar external tape-store segment.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarExternalTapeStoreLocator {
+    pub stream_id: String,
+    pub manifest_digest: String,
+    pub checkpoint_ref: String,
+    pub checkpoint_family: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub step: Option<u64>,
+    pub object_digest: String,
+    pub total_bytes: u64,
+    pub detail: String,
+}
+
 impl DatastreamManifestRef {
     /// Exports this manifest reference as an explicit datastream-backed KV locator.
     pub fn kv_cache_external_locator(
@@ -1260,6 +1310,96 @@ impl DatastreamManifestRef {
             total_bytes: self.total_bytes,
             detail: format!(
                 "tassadar durable process work-queue locator via family `{}` ref `{}`",
+                checkpoint_binding.checkpoint_family,
+                checkpoint_binding
+                    .checkpoint_ref
+                    .as_deref()
+                    .unwrap_or_default(),
+            ),
+        })
+    }
+
+    /// Exports this manifest reference as a typed Tassadar spill-backed memory-segment locator.
+    pub fn tassadar_spill_segment_locator(
+        &self,
+    ) -> Result<TassadarSpillSegmentLocator, DatastreamTransferError> {
+        let checkpoint_binding = self.checkpoint_binding.as_ref().ok_or_else(|| {
+            DatastreamTransferError::TassadarSpillSegmentContractInvalid {
+                stream_id: self.stream_id.clone(),
+                subject: self.subject,
+                checkpoint_family: None,
+            }
+        })?;
+        if self.subject != DatastreamSubjectKind::Checkpoint
+            || !checkpoint_binding
+                .checkpoint_family
+                .starts_with(TASSADAR_SPILL_SEGMENT_FAMILY_PREFIX)
+        {
+            return Err(DatastreamTransferError::TassadarSpillSegmentContractInvalid {
+                stream_id: self.stream_id.clone(),
+                subject: self.subject,
+                checkpoint_family: Some(checkpoint_binding.checkpoint_family.clone()),
+            });
+        }
+        Ok(TassadarSpillSegmentLocator {
+            stream_id: self.stream_id.clone(),
+            manifest_digest: self.manifest_digest.clone(),
+            checkpoint_ref: checkpoint_binding
+                .checkpoint_ref
+                .clone()
+                .unwrap_or_default(),
+            checkpoint_family: checkpoint_binding.checkpoint_family.clone(),
+            step: checkpoint_binding.step,
+            object_digest: self.object_digest.clone(),
+            total_bytes: self.total_bytes,
+            detail: format!(
+                "tassadar spill-segment locator via family `{}` ref `{}`",
+                checkpoint_binding.checkpoint_family,
+                checkpoint_binding
+                    .checkpoint_ref
+                    .as_deref()
+                    .unwrap_or_default(),
+            ),
+        })
+    }
+
+    /// Exports this manifest reference as a typed Tassadar external tape-store locator.
+    pub fn tassadar_external_tape_store_locator(
+        &self,
+    ) -> Result<TassadarExternalTapeStoreLocator, DatastreamTransferError> {
+        let checkpoint_binding = self.checkpoint_binding.as_ref().ok_or_else(|| {
+            DatastreamTransferError::TassadarExternalTapeStoreContractInvalid {
+                stream_id: self.stream_id.clone(),
+                subject: self.subject,
+                checkpoint_family: None,
+            }
+        })?;
+        if self.subject != DatastreamSubjectKind::Checkpoint
+            || !checkpoint_binding
+                .checkpoint_family
+                .starts_with(TASSADAR_EXTERNAL_TAPE_STORE_FAMILY_PREFIX)
+        {
+            return Err(
+                DatastreamTransferError::TassadarExternalTapeStoreContractInvalid {
+                    stream_id: self.stream_id.clone(),
+                    subject: self.subject,
+                    checkpoint_family: Some(checkpoint_binding.checkpoint_family.clone()),
+                },
+            );
+        }
+        Ok(TassadarExternalTapeStoreLocator {
+            stream_id: self.stream_id.clone(),
+            manifest_digest: self.manifest_digest.clone(),
+            checkpoint_ref: checkpoint_binding
+                .checkpoint_ref
+                .clone()
+                .unwrap_or_default(),
+            checkpoint_family: checkpoint_binding.checkpoint_family.clone(),
+            step: checkpoint_binding.step,
+            object_digest: self.object_digest.clone(),
+            total_bytes: self.total_bytes,
+            detail: format!(
+                "tassadar external tape-store locator via family `{}` ref `{}`",
                 checkpoint_binding.checkpoint_family,
                 checkpoint_binding
                     .checkpoint_ref
@@ -1755,6 +1895,24 @@ pub enum DatastreamTransferError {
         "datastream `{stream_id}` is not a valid Tassadar durable process work-queue contract: subject `{subject:?}`, checkpoint family `{checkpoint_family:?}`"
     )]
     TassadarProcessWorkQueueContractInvalid {
+        stream_id: String,
+        subject: DatastreamSubjectKind,
+        checkpoint_family: Option<String>,
+    },
+    /// The manifest reference is not a valid Tassadar spill-segment contract.
+    #[error(
+        "datastream `{stream_id}` is not a valid Tassadar spill-segment contract: subject `{subject:?}`, checkpoint family `{checkpoint_family:?}`"
+    )]
+    TassadarSpillSegmentContractInvalid {
+        stream_id: String,
+        subject: DatastreamSubjectKind,
+        checkpoint_family: Option<String>,
+    },
+    /// The manifest reference is not a valid Tassadar external tape-store contract.
+    #[error(
+        "datastream `{stream_id}` is not a valid Tassadar external tape-store contract: subject `{subject:?}`, checkpoint family `{checkpoint_family:?}`"
+    )]
+    TassadarExternalTapeStoreContractInvalid {
         stream_id: String,
         subject: DatastreamSubjectKind,
         checkpoint_family: Option<String>,
@@ -2926,6 +3084,115 @@ mod tests {
             error,
             DatastreamTransferError::TassadarProcessWorkQueueContractInvalid {
                 stream_id: String::from("checkpoint-train-29"),
+                subject: DatastreamSubjectKind::Checkpoint,
+                checkpoint_family: Some(String::from("tassadar.process_tape.v1")),
+            }
+        );
+    }
+
+    #[test]
+    fn spill_segment_manifest_exports_typed_locator() -> Result<(), Box<dyn std::error::Error>> {
+        let payload = br#"{"spill":"segment"}"#.to_vec();
+        let manifest = super::DatastreamManifest::from_bytes(
+            "tassadar-spill-segment-31",
+            DatastreamSubjectKind::Checkpoint,
+            &payload,
+            8,
+            DatastreamEncoding::RawBinary,
+        )
+        .with_checkpoint_binding(DatastreamCheckpointBinding::tassadar_spill_segment(
+            "tassadar.process.long_loop_kernel.v1",
+            31,
+        ));
+
+        let locator = manifest.manifest_ref().tassadar_spill_segment_locator()?;
+        assert_eq!(locator.stream_id, "tassadar-spill-segment-31");
+        assert_eq!(
+            locator.checkpoint_ref,
+            "checkpoint://tassadar.spill_segment/tassadar.process.long_loop_kernel.v1"
+        );
+        assert_eq!(locator.step, Some(31));
+        Ok(())
+    }
+
+    #[test]
+    fn external_tape_store_manifest_exports_typed_locator()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let payload = br#"{"tape":"segment"}"#.to_vec();
+        let manifest = super::DatastreamManifest::from_bytes(
+            "tassadar-external-tape-33",
+            DatastreamSubjectKind::Checkpoint,
+            &payload,
+            8,
+            DatastreamEncoding::RawBinary,
+        )
+        .with_checkpoint_binding(DatastreamCheckpointBinding::tassadar_external_tape_store(
+            "tassadar.process.search_frontier_kernel.v1",
+            33,
+        ));
+
+        let locator = manifest
+            .manifest_ref()
+            .tassadar_external_tape_store_locator()?;
+        assert_eq!(locator.stream_id, "tassadar-external-tape-33");
+        assert_eq!(
+            locator.checkpoint_ref,
+            "checkpoint://tassadar.external_tape_store/tassadar.process.search_frontier_kernel.v1"
+        );
+        assert_eq!(locator.step, Some(33));
+        Ok(())
+    }
+
+    #[test]
+    fn non_spill_segment_manifest_is_refused_as_spill_segment_locator() {
+        let manifest = super::DatastreamManifest::from_bytes(
+            "checkpoint-train-35",
+            DatastreamSubjectKind::Checkpoint,
+            b"weights",
+            4,
+            DatastreamEncoding::RawBinary,
+        )
+        .with_checkpoint_binding(DatastreamCheckpointBinding::tassadar_process_snapshot(
+            "tassadar.process.long_loop_kernel.v1",
+            35,
+        ));
+
+        let error = manifest
+            .manifest_ref()
+            .tassadar_spill_segment_locator()
+            .expect_err("non-spill checkpoint manifest should be refused");
+        assert_eq!(
+            error,
+            DatastreamTransferError::TassadarSpillSegmentContractInvalid {
+                stream_id: String::from("checkpoint-train-35"),
+                subject: DatastreamSubjectKind::Checkpoint,
+                checkpoint_family: Some(String::from("tassadar.process_snapshot.v1")),
+            }
+        );
+    }
+
+    #[test]
+    fn non_external_tape_store_manifest_is_refused_as_external_tape_store_locator() {
+        let manifest = super::DatastreamManifest::from_bytes(
+            "checkpoint-train-37",
+            DatastreamSubjectKind::Checkpoint,
+            b"weights",
+            4,
+            DatastreamEncoding::RawBinary,
+        )
+        .with_checkpoint_binding(DatastreamCheckpointBinding::tassadar_process_tape(
+            "tassadar.process.search_frontier_kernel.v1",
+            37,
+        ));
+
+        let error = manifest
+            .manifest_ref()
+            .tassadar_external_tape_store_locator()
+            .expect_err("non-external-tape checkpoint manifest should be refused");
+        assert_eq!(
+            error,
+            DatastreamTransferError::TassadarExternalTapeStoreContractInvalid {
+                stream_id: String::from("checkpoint-train-37"),
                 subject: DatastreamSubjectKind::Checkpoint,
                 checkpoint_family: Some(String::from("tassadar.process_tape.v1")),
             }

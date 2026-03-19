@@ -1,0 +1,10 @@
+{
+  "segment_id": "state_machine_oversize_spill_refusal::spill::00",
+  "family_id": "tassadar.spill_segment.v1",
+  "source_checkpoint_id": "checkpoint.state_machine_accumulator.04",
+  "segment_index": 0,
+  "spill_bytes": 512,
+  "page_count": 16,
+  "digest": "652a9a25fcf2d1aaa58c15193bfffed7d94fc70a87aca0fdafc539fefd14326d",
+  "note": "spill segment 0 externalizes bounded continuation bytes from `checkpoint.state_machine_accumulator.04`"
+}

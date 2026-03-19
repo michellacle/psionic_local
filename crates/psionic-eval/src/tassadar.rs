@@ -1713,6 +1713,8 @@ fn build_tassadar_environment_bundle(
         execution_checkpoint_binding:
             psionic_environments::default_tassadar_execution_checkpoint_binding(),
         process_object_binding: psionic_environments::default_tassadar_process_object_binding(),
+        spill_tape_store_binding:
+            psionic_environments::default_tassadar_spill_tape_store_binding(),
         dynamic_memory_resume_binding:
             psionic_environments::default_tassadar_dynamic_memory_resume_binding(),
         memory64_profile_binding: psionic_environments::default_tassadar_memory64_profile_binding(),
@@ -1958,6 +1960,8 @@ fn build_tassadar_article_class_environment_bundle(
         execution_checkpoint_binding:
             psionic_environments::default_tassadar_execution_checkpoint_binding(),
         process_object_binding: psionic_environments::default_tassadar_process_object_binding(),
+        spill_tape_store_binding:
+            psionic_environments::default_tassadar_spill_tape_store_binding(),
         dynamic_memory_resume_binding:
             psionic_environments::default_tassadar_dynamic_memory_resume_binding(),
         memory64_profile_binding: psionic_environments::default_tassadar_memory64_profile_binding(),
@@ -2222,6 +2226,8 @@ fn build_tassadar_sudoku_9x9_environment_bundle(
         execution_checkpoint_binding:
             psionic_environments::default_tassadar_execution_checkpoint_binding(),
         process_object_binding: psionic_environments::default_tassadar_process_object_binding(),
+        spill_tape_store_binding:
+            psionic_environments::default_tassadar_spill_tape_store_binding(),
         dynamic_memory_resume_binding:
             psionic_environments::default_tassadar_dynamic_memory_resume_binding(),
         memory64_profile_binding: psionic_environments::default_tassadar_memory64_profile_binding(),
@@ -2475,6 +2481,8 @@ fn build_tassadar_hungarian_v0_environment_bundle(
         execution_checkpoint_binding:
             psionic_environments::default_tassadar_execution_checkpoint_binding(),
         process_object_binding: psionic_environments::default_tassadar_process_object_binding(),
+        spill_tape_store_binding:
+            psionic_environments::default_tassadar_spill_tape_store_binding(),
         dynamic_memory_resume_binding:
             psionic_environments::default_tassadar_dynamic_memory_resume_binding(),
         memory64_profile_binding: psionic_environments::default_tassadar_memory64_profile_binding(),
@@ -2729,6 +2737,8 @@ fn build_tassadar_hungarian_10x10_environment_bundle(
         execution_checkpoint_binding:
             psionic_environments::default_tassadar_execution_checkpoint_binding(),
         process_object_binding: psionic_environments::default_tassadar_process_object_binding(),
+        spill_tape_store_binding:
+            psionic_environments::default_tassadar_spill_tape_store_binding(),
         dynamic_memory_resume_binding:
             psionic_environments::default_tassadar_dynamic_memory_resume_binding(),
         memory64_profile_binding: psionic_environments::default_tassadar_memory64_profile_binding(),

@@ -170,6 +170,8 @@ mod tassadar_rust_source_canon;
 mod tassadar_search_native_executor;
 #[path = "tassadar_session_process_profile.rs"]
 mod tassadar_session_process_profile;
+#[path = "tassadar_spill_tape_store_profile.rs"]
+mod tassadar_spill_tape_store_profile;
 #[path = "tassadar_sequence.rs"]
 mod tassadar_sequence;
 #[path = "tassadar_shared_depth_halting_calibration.rs"]
@@ -306,6 +308,7 @@ pub use tassadar_rust_only_article_closeout_audit::*;
 pub use tassadar_rust_source_canon::*;
 pub use tassadar_search_native_executor::*;
 pub use tassadar_session_process_profile::*;
+pub use tassadar_spill_tape_store_profile::*;
 pub use tassadar_sequence::*;
 pub use tassadar_shared_depth_halting_calibration::*;
 pub use tassadar_shared_primitive_transfer::*;

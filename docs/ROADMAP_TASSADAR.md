@@ -92,6 +92,12 @@ Current honest posture:
   route-policy reports plus served-publication and provider-envelope bindings,
   while keeping open-ended external event streams on explicit refusal paths and
   leaving the default served session-process lane empty
+- the repo now also has one bounded spill-aware continuation profile
+  `tassadar.internal_compute.spill_tape_store.v1` over spill-backed memory
+  segments and external tape-store artifacts, with committed runtime, eval,
+  provider, and environment bindings on the current-host cpu-reference
+  portability envelope while keeping oversize state, missing tape segments, and
+  non-cpu portability widening on explicit refusal paths
 - broader profiles above that remain benchmarked, suppressed, refused, or
   unpromoted unless their explicit gates are green
 
@@ -119,9 +125,9 @@ Issue-state note:
 
 - `TAS-103` through `TAS-124` are already implemented and tracked in
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
-- `TAS-125` through `TAS-126` are now implemented and tracked in
+- `TAS-125` through `TAS-127` are now implemented and tracked in
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
-- the current open GitHub backlog begins at `TAS-127` and runs through
+- the current open GitHub backlog begins at `TAS-128` and runs through
   `TAS-156`
 
 ## Repo-Local Companion Docs

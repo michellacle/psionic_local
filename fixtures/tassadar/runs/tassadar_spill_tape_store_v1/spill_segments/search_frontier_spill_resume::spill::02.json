@@ -1,0 +1,10 @@
+{
+  "segment_id": "search_frontier_spill_resume::spill::02",
+  "family_id": "tassadar.spill_segment.v1",
+  "source_checkpoint_id": "checkpoint.search_frontier_kernel.03",
+  "segment_index": 2,
+  "spill_bytes": 144,
+  "page_count": 5,
+  "digest": "b494bbaf4d643e9a757d18b07a672b418407e4c1b1f1b4bf9c1d55c5bf439c41",
+  "note": "spill segment 2 externalizes bounded continuation bytes from `checkpoint.search_frontier_kernel.03`"
+}

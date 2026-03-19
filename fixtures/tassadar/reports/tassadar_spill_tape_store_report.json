@@ -1,0 +1,585 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.spill_tape_store.report.v1",
+  "runtime_bundle_ref": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/tassadar_spill_tape_store_bundle.json",
+  "runtime_bundle": {
+    "schema_version": 1,
+    "bundle_id": "tassadar.spill_tape_store.bundle.v1",
+    "profile_id": "tassadar.internal_compute.spill_tape_store.v1",
+    "spill_segment_family_id": "tassadar.spill_segment.v1",
+    "external_tape_store_family_id": "tassadar.external_tape_store.v1",
+    "portability_envelope_ids": [
+      "cpu_reference_current_host"
+    ],
+    "case_receipts": [
+      {
+        "case_id": "long_loop_spill_resume",
+        "process_id": "tassadar.process.long_loop_kernel.v1",
+        "workload_family": "long_loop_kernel",
+        "checkpoint_id": "checkpoint.long_loop_kernel.02",
+        "checkpoint_step": 16384,
+        "portability_envelope_id": "cpu_reference_current_host",
+        "status": "exact_spill_and_resume_parity",
+        "spill_vs_in_core_parity": true,
+        "external_tape_resume_parity": true,
+        "in_core_state_bytes": 96,
+        "spill_segments": [
+          {
+            "segment_id": "long_loop_spill_resume::spill::00",
+            "family_id": "tassadar.spill_segment.v1",
+            "source_checkpoint_id": "checkpoint.long_loop_kernel.02",
+            "segment_index": 0,
+            "spill_bytes": 128,
+            "page_count": 4,
+            "digest": "0b0f18d3e59593f0ff383dae1731fa0670981a25670e9db7be556a5f3e8e152d",
+            "note": "spill segment 0 externalizes bounded continuation bytes from `checkpoint.long_loop_kernel.02`"
+          },
+          {
+            "segment_id": "long_loop_spill_resume::spill::01",
+            "family_id": "tassadar.spill_segment.v1",
+            "source_checkpoint_id": "checkpoint.long_loop_kernel.02",
+            "segment_index": 1,
+            "spill_bytes": 128,
+            "page_count": 4,
+            "digest": "df1dcbffb5e1d9f42b46be28ecdc5f47fb4977917fb2db74c6711a2d1269127d",
+            "note": "spill segment 1 externalizes bounded continuation bytes from `checkpoint.long_loop_kernel.02`"
+          }
+        ],
+        "external_tape_segments": [
+          {
+            "segment_id": "tassadar.process.long_loop_kernel.v1::external_tape::00",
+            "family_id": "tassadar.external_tape_store.v1",
+            "process_id": "tassadar.process.long_loop_kernel.v1",
+            "sequence_index": 0,
+            "payload_bytes": 72,
+            "digest": "299d68e02fd0ce65799f1dcd52551a26f5e1a8dd90409445f111f12a2dbbe879",
+            "note": "external tape-store segment 0 carries bounded continuation lineage for `tassadar.process.long_loop_kernel.v1`"
+          },
+          {
+            "segment_id": "tassadar.process.long_loop_kernel.v1::external_tape::01",
+            "family_id": "tassadar.external_tape_store.v1",
+            "process_id": "tassadar.process.long_loop_kernel.v1",
+            "sequence_index": 1,
+            "payload_bytes": 88,
+            "digest": "ffcb2cdcc1d5d8f878e7488d40184a0ec8aaa8fcec5824da9b9f0ec1d9923893",
+            "note": "external tape-store segment 1 carries bounded continuation lineage for `tassadar.process.long_loop_kernel.v1`"
+          }
+        ],
+        "refusal_cases": [
+          {
+            "refusal_kind": "missing_external_tape_segment",
+            "object_ref": "external_tape://tassadar.process.long_loop_kernel.v1/segment/99",
+            "detail": "missing external tape segment remains an explicit refusal instead of silent reconstruction"
+          }
+        ],
+        "note": "spill-backed long-loop continuation preserves exact parity against the in-core lane and replays from the external tape store exactly",
+        "receipt_digest": "863a1c2903c7465db9678a6d23cdab13cc9da8fb8001a80718c023d24d058b96"
+      },
+      {
+        "case_id": "search_frontier_spill_resume",
+        "process_id": "tassadar.process.search_frontier_kernel.v1",
+        "workload_family": "search_frontier_kernel",
+        "checkpoint_id": "checkpoint.search_frontier_kernel.03",
+        "checkpoint_step": 2048,
+        "portability_envelope_id": "cpu_reference_current_host",
+        "status": "exact_spill_and_resume_parity",
+        "spill_vs_in_core_parity": true,
+        "external_tape_resume_parity": true,
+        "in_core_state_bytes": 112,
+        "spill_segments": [
+          {
+            "segment_id": "search_frontier_spill_resume::spill::02",
+            "family_id": "tassadar.spill_segment.v1",
+            "source_checkpoint_id": "checkpoint.search_frontier_kernel.03",
+            "segment_index": 2,
+            "spill_bytes": 144,
+            "page_count": 5,
+            "digest": "b494bbaf4d643e9a757d18b07a672b418407e4c1b1f1b4bf9c1d55c5bf439c41",
+            "note": "spill segment 2 externalizes bounded continuation bytes from `checkpoint.search_frontier_kernel.03`"
+          },
+          {
+            "segment_id": "search_frontier_spill_resume::spill::03",
+            "family_id": "tassadar.spill_segment.v1",
+            "source_checkpoint_id": "checkpoint.search_frontier_kernel.03",
+            "segment_index": 3,
+            "spill_bytes": 144,
+            "page_count": 5,
+            "digest": "237bcb1d3b37b267a4e50c8fed7875fcfb664b063e077f4a1b7ae9c853ed5210",
+            "note": "spill segment 3 externalizes bounded continuation bytes from `checkpoint.search_frontier_kernel.03`"
+          }
+        ],
+        "external_tape_segments": [
+          {
+            "segment_id": "tassadar.process.search_frontier_kernel.v1::external_tape::00",
+            "family_id": "tassadar.external_tape_store.v1",
+            "process_id": "tassadar.process.search_frontier_kernel.v1",
+            "sequence_index": 0,
+            "payload_bytes": 72,
+            "digest": "95f5947795ee12f524b825a46de79cd3394d13cc9f68dab6be481291b9e9cb58",
+            "note": "external tape-store segment 0 carries bounded continuation lineage for `tassadar.process.search_frontier_kernel.v1`"
+          },
+          {
+            "segment_id": "tassadar.process.search_frontier_kernel.v1::external_tape::01",
+            "family_id": "tassadar.external_tape_store.v1",
+            "process_id": "tassadar.process.search_frontier_kernel.v1",
+            "sequence_index": 1,
+            "payload_bytes": 88,
+            "digest": "40d4c540d433f5c42f4ced1ecb957f4470e0a1d445559fc8c536f629f044bf9d",
+            "note": "external tape-store segment 1 carries bounded continuation lineage for `tassadar.process.search_frontier_kernel.v1`"
+          }
+        ],
+        "refusal_cases": [
+          {
+            "refusal_kind": "portability_envelope_mismatch",
+            "object_ref": "portability://metal_served",
+            "detail": "spill-backed continuation remains bounded to the current-host cpu-reference portability envelope and refuses non-cpu widening"
+          }
+        ],
+        "note": "spill-backed search-frontier continuation preserves exact parity under the bounded cpu-reference portability envelope",
+        "receipt_digest": "a184277c455489d4fc04088baf99f57e1be2586c577b000b473fab7ef8570fd1"
+      },
+      {
+        "case_id": "state_machine_oversize_spill_refusal",
+        "process_id": "tassadar.process.state_machine_accumulator.v1",
+        "workload_family": "state_machine_accumulator",
+        "checkpoint_id": "checkpoint.state_machine_accumulator.04",
+        "checkpoint_step": 1024,
+        "portability_envelope_id": "cpu_reference_current_host",
+        "status": "exact_refusal_parity",
+        "spill_vs_in_core_parity": false,
+        "external_tape_resume_parity": false,
+        "in_core_state_bytes": 176,
+        "spill_segments": [
+          {
+            "segment_id": "state_machine_oversize_spill_refusal::spill::00",
+            "family_id": "tassadar.spill_segment.v1",
+            "source_checkpoint_id": "checkpoint.state_machine_accumulator.04",
+            "segment_index": 0,
+            "spill_bytes": 512,
+            "page_count": 16,
+            "digest": "652a9a25fcf2d1aaa58c15193bfffed7d94fc70a87aca0fdafc539fefd14326d",
+            "note": "spill segment 0 externalizes bounded continuation bytes from `checkpoint.state_machine_accumulator.04`"
+          }
+        ],
+        "external_tape_segments": [
+          {
+            "segment_id": "tassadar.process.state_machine_accumulator.v1::external_tape::00",
+            "family_id": "tassadar.external_tape_store.v1",
+            "process_id": "tassadar.process.state_machine_accumulator.v1",
+            "sequence_index": 0,
+            "payload_bytes": 48,
+            "digest": "14ed5b0e9595aa864093809423573fd473fe75644195245a5692258d4d836a3b",
+            "note": "external tape-store segment 0 carries bounded continuation lineage for `tassadar.process.state_machine_accumulator.v1`"
+          }
+        ],
+        "refusal_cases": [
+          {
+            "refusal_kind": "oversize_state_out_of_envelope",
+            "object_ref": "spill://tassadar.process.state_machine_accumulator.v1/segment/00",
+            "detail": "spill-backed continuation refuses state that exceeds the bounded segment-size envelope instead of pretending unbounded in-core extension exists"
+          }
+        ],
+        "note": "oversize spill state stays on an explicit refusal path instead of widening the bounded segment-size contract",
+        "receipt_digest": "fcd7aaed9c9cc339c2589376df4d579eac5febcd23ea344b82e12d5432435270"
+      }
+    ],
+    "exact_case_count": 2,
+    "refusal_case_count": 3,
+    "claim_boundary": "this runtime bundle freezes one bounded spill-aware continuation profile with external tape-store semantics on the current-host cpu-reference envelope only. It keeps oversize state, missing tape segments, and non-cpu portability widening on explicit refusal paths instead of implying infinite in-core memory, arbitrary process persistence, or broader served internal compute",
+    "summary": "Spill/tape runtime bundle covers 3 case rows with exact_cases=2 and refusal_rows=3.",
+    "bundle_digest": "c56e24d238a51712b4cdfb959984f5760f792550f1611436c73dfb5536b71cc5"
+  },
+  "case_reports": [
+    {
+      "case_id": "long_loop_spill_resume",
+      "process_id": "tassadar.process.long_loop_kernel.v1",
+      "workload_family": "long_loop_kernel",
+      "status": "exact_spill_and_resume_parity",
+      "spill_vs_in_core_parity": true,
+      "external_tape_resume_parity": true,
+      "portability_envelope_id": "cpu_reference_current_host",
+      "spill_segment_count": 2,
+      "external_tape_segment_count": 2,
+      "spill_segment_artifacts": [
+        {
+          "case_id": "long_loop_spill_resume",
+          "spill_segment_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/long_loop_spill_resume::spill::00.json",
+          "manifest_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/long_loop_spill_resume::spill::00.manifest.json",
+          "manifest_ref": {
+            "stream_id": "spill-segment-long_loop_spill_resume::spill::00",
+            "manifest_digest": "94b0f8f9d2350cb9784ef38fd69534ff278a35e307bb49b77a834e6c652e2ce6",
+            "subject": "checkpoint",
+            "object_digest": "171dacf847793f27d09d0adedf63cb9b55b4dd7b5aa1e5a59750b9869e3beed7",
+            "total_bytes": 410,
+            "chunk_count": 13,
+            "chunk_bytes": 32,
+            "encoding": "raw_binary",
+            "checkpoint_binding": {
+              "checkpoint_family": "tassadar.spill_segment.v1",
+              "checkpoint_ref": "checkpoint://tassadar.spill_segment/tassadar.process.long_loop_kernel.v1",
+              "step": 16384
+            }
+          },
+          "locator": {
+            "stream_id": "spill-segment-long_loop_spill_resume::spill::00",
+            "manifest_digest": "94b0f8f9d2350cb9784ef38fd69534ff278a35e307bb49b77a834e6c652e2ce6",
+            "checkpoint_ref": "checkpoint://tassadar.spill_segment/tassadar.process.long_loop_kernel.v1",
+            "checkpoint_family": "tassadar.spill_segment.v1",
+            "step": 16384,
+            "object_digest": "171dacf847793f27d09d0adedf63cb9b55b4dd7b5aa1e5a59750b9869e3beed7",
+            "total_bytes": 410,
+            "detail": "tassadar spill-segment locator via family `tassadar.spill_segment.v1` ref `checkpoint://tassadar.spill_segment/tassadar.process.long_loop_kernel.v1`"
+          }
+        },
+        {
+          "case_id": "long_loop_spill_resume",
+          "spill_segment_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/long_loop_spill_resume::spill::01.json",
+          "manifest_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/long_loop_spill_resume::spill::01.manifest.json",
+          "manifest_ref": {
+            "stream_id": "spill-segment-long_loop_spill_resume::spill::01",
+            "manifest_digest": "6aa94be3e31ae7fdbb7e61045e8b3c5a008cce6d37bba3b7a0ae269efeee1ceb",
+            "subject": "checkpoint",
+            "object_digest": "d7b03a5871d0db18b15e6d972e72999795ad42d5847afa3cff7df5c35e1980fd",
+            "total_bytes": 410,
+            "chunk_count": 13,
+            "chunk_bytes": 32,
+            "encoding": "raw_binary",
+            "checkpoint_binding": {
+              "checkpoint_family": "tassadar.spill_segment.v1",
+              "checkpoint_ref": "checkpoint://tassadar.spill_segment/tassadar.process.long_loop_kernel.v1",
+              "step": 16384
+            }
+          },
+          "locator": {
+            "stream_id": "spill-segment-long_loop_spill_resume::spill::01",
+            "manifest_digest": "6aa94be3e31ae7fdbb7e61045e8b3c5a008cce6d37bba3b7a0ae269efeee1ceb",
+            "checkpoint_ref": "checkpoint://tassadar.spill_segment/tassadar.process.long_loop_kernel.v1",
+            "checkpoint_family": "tassadar.spill_segment.v1",
+            "step": 16384,
+            "object_digest": "d7b03a5871d0db18b15e6d972e72999795ad42d5847afa3cff7df5c35e1980fd",
+            "total_bytes": 410,
+            "detail": "tassadar spill-segment locator via family `tassadar.spill_segment.v1` ref `checkpoint://tassadar.spill_segment/tassadar.process.long_loop_kernel.v1`"
+          }
+        }
+      ],
+      "external_tape_store_artifacts": [
+        {
+          "case_id": "long_loop_spill_resume",
+          "tape_segment_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.long_loop_kernel.v1::external_tape::00.json",
+          "manifest_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.long_loop_kernel.v1::external_tape::00.manifest.json",
+          "manifest_ref": {
+            "stream_id": "external-tape-tassadar.process.long_loop_kernel.v1::external_tape::00",
+            "manifest_digest": "5d60284205b6c1a25e8c171c37b2b47751c5e77f6a96c3b6700bb40316f16c35",
+            "subject": "checkpoint",
+            "object_digest": "3824aa6d672885f18e55eea7d56c5609ae148d85309364e1b765b28fde2ee94a",
+            "total_bytes": 433,
+            "chunk_count": 14,
+            "chunk_bytes": 32,
+            "encoding": "raw_binary",
+            "checkpoint_binding": {
+              "checkpoint_family": "tassadar.external_tape_store.v1",
+              "checkpoint_ref": "checkpoint://tassadar.external_tape_store/tassadar.process.long_loop_kernel.v1",
+              "step": 16384
+            }
+          },
+          "locator": {
+            "stream_id": "external-tape-tassadar.process.long_loop_kernel.v1::external_tape::00",
+            "manifest_digest": "5d60284205b6c1a25e8c171c37b2b47751c5e77f6a96c3b6700bb40316f16c35",
+            "checkpoint_ref": "checkpoint://tassadar.external_tape_store/tassadar.process.long_loop_kernel.v1",
+            "checkpoint_family": "tassadar.external_tape_store.v1",
+            "step": 16384,
+            "object_digest": "3824aa6d672885f18e55eea7d56c5609ae148d85309364e1b765b28fde2ee94a",
+            "total_bytes": 433,
+            "detail": "tassadar external tape-store locator via family `tassadar.external_tape_store.v1` ref `checkpoint://tassadar.external_tape_store/tassadar.process.long_loop_kernel.v1`"
+          }
+        },
+        {
+          "case_id": "long_loop_spill_resume",
+          "tape_segment_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.long_loop_kernel.v1::external_tape::01.json",
+          "manifest_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.long_loop_kernel.v1::external_tape::01.manifest.json",
+          "manifest_ref": {
+            "stream_id": "external-tape-tassadar.process.long_loop_kernel.v1::external_tape::01",
+            "manifest_digest": "6f1dd1a4e551b6c9f30d452a2dfda27130a7ecea55110e7389d47412b60c0b24",
+            "subject": "checkpoint",
+            "object_digest": "bd2505ee76242efe579a5ce74d84bb715c738b782b9bdf3ddcbb9bc1af3dcda3",
+            "total_bytes": 433,
+            "chunk_count": 14,
+            "chunk_bytes": 32,
+            "encoding": "raw_binary",
+            "checkpoint_binding": {
+              "checkpoint_family": "tassadar.external_tape_store.v1",
+              "checkpoint_ref": "checkpoint://tassadar.external_tape_store/tassadar.process.long_loop_kernel.v1",
+              "step": 16384
+            }
+          },
+          "locator": {
+            "stream_id": "external-tape-tassadar.process.long_loop_kernel.v1::external_tape::01",
+            "manifest_digest": "6f1dd1a4e551b6c9f30d452a2dfda27130a7ecea55110e7389d47412b60c0b24",
+            "checkpoint_ref": "checkpoint://tassadar.external_tape_store/tassadar.process.long_loop_kernel.v1",
+            "checkpoint_family": "tassadar.external_tape_store.v1",
+            "step": 16384,
+            "object_digest": "bd2505ee76242efe579a5ce74d84bb715c738b782b9bdf3ddcbb9bc1af3dcda3",
+            "total_bytes": 433,
+            "detail": "tassadar external tape-store locator via family `tassadar.external_tape_store.v1` ref `checkpoint://tassadar.external_tape_store/tassadar.process.long_loop_kernel.v1`"
+          }
+        }
+      ],
+      "refusal_kinds": [
+        "missing_external_tape_segment"
+      ],
+      "note": "spill-backed long-loop continuation preserves exact parity against the in-core lane and replays from the external tape store exactly"
+    },
+    {
+      "case_id": "search_frontier_spill_resume",
+      "process_id": "tassadar.process.search_frontier_kernel.v1",
+      "workload_family": "search_frontier_kernel",
+      "status": "exact_spill_and_resume_parity",
+      "spill_vs_in_core_parity": true,
+      "external_tape_resume_parity": true,
+      "portability_envelope_id": "cpu_reference_current_host",
+      "spill_segment_count": 2,
+      "external_tape_segment_count": 2,
+      "spill_segment_artifacts": [
+        {
+          "case_id": "search_frontier_spill_resume",
+          "spill_segment_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/search_frontier_spill_resume::spill::02.json",
+          "manifest_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/search_frontier_spill_resume::spill::02.manifest.json",
+          "manifest_ref": {
+            "stream_id": "spill-segment-search_frontier_spill_resume::spill::02",
+            "manifest_digest": "f71da2b90ba732e0a854998eadbd107c88b815128f91f4e24bfae51ca48066de",
+            "subject": "checkpoint",
+            "object_digest": "84b1b56fb8f5885b2731a308526955b0345f6c89c1f2e767da66ec7f551cfba5",
+            "total_bytes": 428,
+            "chunk_count": 14,
+            "chunk_bytes": 32,
+            "encoding": "raw_binary",
+            "checkpoint_binding": {
+              "checkpoint_family": "tassadar.spill_segment.v1",
+              "checkpoint_ref": "checkpoint://tassadar.spill_segment/tassadar.process.search_frontier_kernel.v1",
+              "step": 2048
+            }
+          },
+          "locator": {
+            "stream_id": "spill-segment-search_frontier_spill_resume::spill::02",
+            "manifest_digest": "f71da2b90ba732e0a854998eadbd107c88b815128f91f4e24bfae51ca48066de",
+            "checkpoint_ref": "checkpoint://tassadar.spill_segment/tassadar.process.search_frontier_kernel.v1",
+            "checkpoint_family": "tassadar.spill_segment.v1",
+            "step": 2048,
+            "object_digest": "84b1b56fb8f5885b2731a308526955b0345f6c89c1f2e767da66ec7f551cfba5",
+            "total_bytes": 428,
+            "detail": "tassadar spill-segment locator via family `tassadar.spill_segment.v1` ref `checkpoint://tassadar.spill_segment/tassadar.process.search_frontier_kernel.v1`"
+          }
+        },
+        {
+          "case_id": "search_frontier_spill_resume",
+          "spill_segment_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/search_frontier_spill_resume::spill::03.json",
+          "manifest_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/search_frontier_spill_resume::spill::03.manifest.json",
+          "manifest_ref": {
+            "stream_id": "spill-segment-search_frontier_spill_resume::spill::03",
+            "manifest_digest": "b67912ea8801d08a28558090a8dfe5de4e84043fa0395e2070ccf5cf02728a00",
+            "subject": "checkpoint",
+            "object_digest": "4f00ba87213058ef1cfa1705b6d3981b8bb0f62d1633272d51ce100be8b74216",
+            "total_bytes": 428,
+            "chunk_count": 14,
+            "chunk_bytes": 32,
+            "encoding": "raw_binary",
+            "checkpoint_binding": {
+              "checkpoint_family": "tassadar.spill_segment.v1",
+              "checkpoint_ref": "checkpoint://tassadar.spill_segment/tassadar.process.search_frontier_kernel.v1",
+              "step": 2048
+            }
+          },
+          "locator": {
+            "stream_id": "spill-segment-search_frontier_spill_resume::spill::03",
+            "manifest_digest": "b67912ea8801d08a28558090a8dfe5de4e84043fa0395e2070ccf5cf02728a00",
+            "checkpoint_ref": "checkpoint://tassadar.spill_segment/tassadar.process.search_frontier_kernel.v1",
+            "checkpoint_family": "tassadar.spill_segment.v1",
+            "step": 2048,
+            "object_digest": "4f00ba87213058ef1cfa1705b6d3981b8bb0f62d1633272d51ce100be8b74216",
+            "total_bytes": 428,
+            "detail": "tassadar spill-segment locator via family `tassadar.spill_segment.v1` ref `checkpoint://tassadar.spill_segment/tassadar.process.search_frontier_kernel.v1`"
+          }
+        }
+      ],
+      "external_tape_store_artifacts": [
+        {
+          "case_id": "search_frontier_spill_resume",
+          "tape_segment_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.search_frontier_kernel.v1::external_tape::00.json",
+          "manifest_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.search_frontier_kernel.v1::external_tape::00.manifest.json",
+          "manifest_ref": {
+            "stream_id": "external-tape-tassadar.process.search_frontier_kernel.v1::external_tape::00",
+            "manifest_digest": "11f35899ca986a1a8eb8e8f8b768f00f3a575242dad0933d11ab35e5e0a1b468",
+            "subject": "checkpoint",
+            "object_digest": "15125e2eec6136f1537b98d9a45f6247c9bc4ab920c716122d1a5cca8462c0b9",
+            "total_bytes": 451,
+            "chunk_count": 15,
+            "chunk_bytes": 32,
+            "encoding": "raw_binary",
+            "checkpoint_binding": {
+              "checkpoint_family": "tassadar.external_tape_store.v1",
+              "checkpoint_ref": "checkpoint://tassadar.external_tape_store/tassadar.process.search_frontier_kernel.v1",
+              "step": 2048
+            }
+          },
+          "locator": {
+            "stream_id": "external-tape-tassadar.process.search_frontier_kernel.v1::external_tape::00",
+            "manifest_digest": "11f35899ca986a1a8eb8e8f8b768f00f3a575242dad0933d11ab35e5e0a1b468",
+            "checkpoint_ref": "checkpoint://tassadar.external_tape_store/tassadar.process.search_frontier_kernel.v1",
+            "checkpoint_family": "tassadar.external_tape_store.v1",
+            "step": 2048,
+            "object_digest": "15125e2eec6136f1537b98d9a45f6247c9bc4ab920c716122d1a5cca8462c0b9",
+            "total_bytes": 451,
+            "detail": "tassadar external tape-store locator via family `tassadar.external_tape_store.v1` ref `checkpoint://tassadar.external_tape_store/tassadar.process.search_frontier_kernel.v1`"
+          }
+        },
+        {
+          "case_id": "search_frontier_spill_resume",
+          "tape_segment_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.search_frontier_kernel.v1::external_tape::01.json",
+          "manifest_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.search_frontier_kernel.v1::external_tape::01.manifest.json",
+          "manifest_ref": {
+            "stream_id": "external-tape-tassadar.process.search_frontier_kernel.v1::external_tape::01",
+            "manifest_digest": "8a1a0a15a2f155e28c0f2b850412f8ffe17ca76c76d45b0d471c2fef5bd6f08b",
+            "subject": "checkpoint",
+            "object_digest": "a0b229e11cb103f5b08513232f23f6b1f39bec3495cb3380d91d079a12aa36cf",
+            "total_bytes": 451,
+            "chunk_count": 15,
+            "chunk_bytes": 32,
+            "encoding": "raw_binary",
+            "checkpoint_binding": {
+              "checkpoint_family": "tassadar.external_tape_store.v1",
+              "checkpoint_ref": "checkpoint://tassadar.external_tape_store/tassadar.process.search_frontier_kernel.v1",
+              "step": 2048
+            }
+          },
+          "locator": {
+            "stream_id": "external-tape-tassadar.process.search_frontier_kernel.v1::external_tape::01",
+            "manifest_digest": "8a1a0a15a2f155e28c0f2b850412f8ffe17ca76c76d45b0d471c2fef5bd6f08b",
+            "checkpoint_ref": "checkpoint://tassadar.external_tape_store/tassadar.process.search_frontier_kernel.v1",
+            "checkpoint_family": "tassadar.external_tape_store.v1",
+            "step": 2048,
+            "object_digest": "a0b229e11cb103f5b08513232f23f6b1f39bec3495cb3380d91d079a12aa36cf",
+            "total_bytes": 451,
+            "detail": "tassadar external tape-store locator via family `tassadar.external_tape_store.v1` ref `checkpoint://tassadar.external_tape_store/tassadar.process.search_frontier_kernel.v1`"
+          }
+        }
+      ],
+      "refusal_kinds": [
+        "portability_envelope_mismatch"
+      ],
+      "note": "spill-backed search-frontier continuation preserves exact parity under the bounded cpu-reference portability envelope"
+    },
+    {
+      "case_id": "state_machine_oversize_spill_refusal",
+      "process_id": "tassadar.process.state_machine_accumulator.v1",
+      "workload_family": "state_machine_accumulator",
+      "status": "exact_refusal_parity",
+      "spill_vs_in_core_parity": false,
+      "external_tape_resume_parity": false,
+      "portability_envelope_id": "cpu_reference_current_host",
+      "spill_segment_count": 1,
+      "external_tape_segment_count": 1,
+      "spill_segment_artifacts": [
+        {
+          "case_id": "state_machine_oversize_spill_refusal",
+          "spill_segment_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/state_machine_oversize_spill_refusal::spill::00.json",
+          "manifest_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/state_machine_oversize_spill_refusal::spill::00.manifest.json",
+          "manifest_ref": {
+            "stream_id": "spill-segment-state_machine_oversize_spill_refusal::spill::00",
+            "manifest_digest": "828dc5df37c62ed30e848fe73bb9a25cdcdec3b6381c36d14b98149e7eff630b",
+            "subject": "checkpoint",
+            "object_digest": "f39d19d8fe1724d001439275144d5c6113c67e7c80253b1565e3f75f3a905fdc",
+            "total_bytes": 443,
+            "chunk_count": 14,
+            "chunk_bytes": 32,
+            "encoding": "raw_binary",
+            "checkpoint_binding": {
+              "checkpoint_family": "tassadar.spill_segment.v1",
+              "checkpoint_ref": "checkpoint://tassadar.spill_segment/tassadar.process.state_machine_accumulator.v1",
+              "step": 1024
+            }
+          },
+          "locator": {
+            "stream_id": "spill-segment-state_machine_oversize_spill_refusal::spill::00",
+            "manifest_digest": "828dc5df37c62ed30e848fe73bb9a25cdcdec3b6381c36d14b98149e7eff630b",
+            "checkpoint_ref": "checkpoint://tassadar.spill_segment/tassadar.process.state_machine_accumulator.v1",
+            "checkpoint_family": "tassadar.spill_segment.v1",
+            "step": 1024,
+            "object_digest": "f39d19d8fe1724d001439275144d5c6113c67e7c80253b1565e3f75f3a905fdc",
+            "total_bytes": 443,
+            "detail": "tassadar spill-segment locator via family `tassadar.spill_segment.v1` ref `checkpoint://tassadar.spill_segment/tassadar.process.state_machine_accumulator.v1`"
+          }
+        }
+      ],
+      "external_tape_store_artifacts": [
+        {
+          "case_id": "state_machine_oversize_spill_refusal",
+          "tape_segment_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.state_machine_accumulator.v1::external_tape::00.json",
+          "manifest_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.state_machine_accumulator.v1::external_tape::00.manifest.json",
+          "manifest_ref": {
+            "stream_id": "external-tape-tassadar.process.state_machine_accumulator.v1::external_tape::00",
+            "manifest_digest": "cd679423ae74b27e12309db68fb384d67cb3519485ad88985db57d1c2b978e83",
+            "subject": "checkpoint",
+            "object_digest": "a3a328714b4dc29e3a6bae7e06926fcb1d867818ecd5c0b351365d1f027fc0df",
+            "total_bytes": 460,
+            "chunk_count": 15,
+            "chunk_bytes": 32,
+            "encoding": "raw_binary",
+            "checkpoint_binding": {
+              "checkpoint_family": "tassadar.external_tape_store.v1",
+              "checkpoint_ref": "checkpoint://tassadar.external_tape_store/tassadar.process.state_machine_accumulator.v1",
+              "step": 1024
+            }
+          },
+          "locator": {
+            "stream_id": "external-tape-tassadar.process.state_machine_accumulator.v1::external_tape::00",
+            "manifest_digest": "cd679423ae74b27e12309db68fb384d67cb3519485ad88985db57d1c2b978e83",
+            "checkpoint_ref": "checkpoint://tassadar.external_tape_store/tassadar.process.state_machine_accumulator.v1",
+            "checkpoint_family": "tassadar.external_tape_store.v1",
+            "step": 1024,
+            "object_digest": "a3a328714b4dc29e3a6bae7e06926fcb1d867818ecd5c0b351365d1f027fc0df",
+            "total_bytes": 460,
+            "detail": "tassadar external tape-store locator via family `tassadar.external_tape_store.v1` ref `checkpoint://tassadar.external_tape_store/tassadar.process.state_machine_accumulator.v1`"
+          }
+        }
+      ],
+      "refusal_kinds": [
+        "oversize_state_out_of_envelope"
+      ],
+      "note": "oversize spill state stays on an explicit refusal path instead of widening the bounded segment-size contract"
+    }
+  ],
+  "profile_id": "tassadar.internal_compute.spill_tape_store.v1",
+  "spill_segment_family_id": "tassadar.spill_segment.v1",
+  "external_tape_store_family_id": "tassadar.external_tape_store.v1",
+  "portability_envelope_ids": [
+    "cpu_reference_current_host"
+  ],
+  "exact_case_count": 2,
+  "refusal_case_count": 3,
+  "generated_from_refs": [
+    "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.long_loop_kernel.v1::external_tape::00.json",
+    "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.long_loop_kernel.v1::external_tape::00.manifest.json",
+    "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.long_loop_kernel.v1::external_tape::01.json",
+    "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.long_loop_kernel.v1::external_tape::01.manifest.json",
+    "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.search_frontier_kernel.v1::external_tape::00.json",
+    "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.search_frontier_kernel.v1::external_tape::00.manifest.json",
+    "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.search_frontier_kernel.v1::external_tape::01.json",
+    "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.search_frontier_kernel.v1::external_tape::01.manifest.json",
+    "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.state_machine_accumulator.v1::external_tape::00.json",
+    "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.state_machine_accumulator.v1::external_tape::00.manifest.json",
+    "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/long_loop_spill_resume::spill::00.json",
+    "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/long_loop_spill_resume::spill::00.manifest.json",
+    "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/long_loop_spill_resume::spill::01.json",
+    "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/long_loop_spill_resume::spill::01.manifest.json",
+    "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/search_frontier_spill_resume::spill::02.json",
+    "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/search_frontier_spill_resume::spill::02.manifest.json",
+    "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/search_frontier_spill_resume::spill::03.json",
+    "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/search_frontier_spill_resume::spill::03.manifest.json",
+    "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/state_machine_oversize_spill_refusal::spill::00.json",
+    "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/state_machine_oversize_spill_refusal::spill::00.manifest.json",
+    "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/tassadar_spill_tape_store_bundle.json"
+  ],
+  "claim_boundary": "this eval report covers one bounded spill-aware continuation profile with external tape-store semantics on the current-host cpu-reference portability envelope only. It keeps oversize-state, missing-segment, and non-cpu portability widening on typed refusal paths instead of implying arbitrary persistent memory, async effect closure, or broader served internal compute",
+  "summary": "Spill/tape report covers exact_cases=2, refusal_rows=3, case_reports=3.",
+  "report_digest": "aff6caa9d10360eb67a5d0182d617c37546d0c78f4900201a55c522fbf441b4e"
+}
