@@ -6,8 +6,11 @@ use sha2::{Digest, Sha256};
 #[serde(rename_all = "snake_case")]
 pub enum TassadarGeneralizedAbiFixtureId {
     PairAddI32,
+    PairAddI64,
     DualHeapDotI32,
     SumAndMaxStatusOutput,
+    PairSumAndDiffI32,
+    SumAndMaxI64StatusOutput,
     MultiExportPairSum,
     MultiExportLocalDouble,
     UnsupportedFloatParam,
@@ -21,8 +24,11 @@ impl TassadarGeneralizedAbiFixtureId {
     pub const fn as_str(self) -> &'static str {
         match self {
             Self::PairAddI32 => "pair_add_i32",
+            Self::PairAddI64 => "pair_add_i64",
             Self::DualHeapDotI32 => "dual_heap_dot_i32",
             Self::SumAndMaxStatusOutput => "sum_and_max_status_output",
+            Self::PairSumAndDiffI32 => "pair_sum_and_diff_i32",
+            Self::SumAndMaxI64StatusOutput => "sum_and_max_i64_status_output",
             Self::MultiExportPairSum => "multi_export_pair_sum",
             Self::MultiExportLocalDouble => "multi_export_local_double",
             Self::UnsupportedFloatParam => "unsupported_float_param",
@@ -38,6 +44,7 @@ impl TassadarGeneralizedAbiFixtureId {
 #[serde(rename_all = "snake_case")]
 pub enum TassadarGeneralizedAbiParamKind {
     I32,
+    I64,
     PointerToI32,
     LengthI32,
     F32,
@@ -49,7 +56,7 @@ pub enum TassadarGeneralizedAbiParamKind {
 #[serde(rename_all = "snake_case")]
 pub enum TassadarGeneralizedAbiResultKind {
     I32,
-    MultiI32Pair,
+    I64,
     BufferPointerAndLength,
 }
 
@@ -152,6 +159,29 @@ impl TassadarGeneralizedAbiFixture {
     }
 
     #[must_use]
+    pub fn pair_add_i64() -> Self {
+        Self::new(
+            TassadarGeneralizedAbiFixtureId::PairAddI64,
+            "wider_numeric_pair_add",
+            "fixtures/tassadar/sources/tassadar_wider_numeric_kernel.rs",
+            "pair_add_i64",
+            "rust.wider_numeric_kernel.pair_add_i64",
+            "multi_param_i64_to_single_i64_return",
+            vec![
+                TassadarGeneralizedAbiParamKind::I64,
+                TassadarGeneralizedAbiParamKind::I64,
+            ],
+            vec![TassadarGeneralizedAbiResultKind::I64],
+            Vec::new(),
+            vec![
+                String::from("direct_scalar_i64_entrypoints"),
+                String::from("panic_abort_loop_only"),
+            ],
+            "two direct scalar i64 parameters with one direct scalar i64 return are admitted under the widened numeric and data-layout ladder",
+        )
+    }
+
+    #[must_use]
     pub fn dual_heap_dot_i32() -> Self {
         Self::new(
             TassadarGeneralizedAbiFixtureId::DualHeapDotI32,
@@ -239,6 +269,77 @@ impl TassadarGeneralizedAbiFixture {
     }
 
     #[must_use]
+    pub fn pair_sum_and_diff_i32() -> Self {
+        Self::new(
+            TassadarGeneralizedAbiFixtureId::PairSumAndDiffI32,
+            "wider_numeric_pair_sum_and_diff",
+            "fixtures/tassadar/sources/tassadar_wider_numeric_kernel.rs",
+            "pair_sum_and_diff",
+            "rust.wider_numeric_kernel.pair_sum_and_diff",
+            "homogeneous_i32_pair_return",
+            vec![
+                TassadarGeneralizedAbiParamKind::I32,
+                TassadarGeneralizedAbiParamKind::I32,
+            ],
+            vec![
+                TassadarGeneralizedAbiResultKind::I32,
+                TassadarGeneralizedAbiResultKind::I32,
+            ],
+            Vec::new(),
+            vec![
+                String::from("homogeneous_multi_value_returns"),
+                String::from("panic_abort_loop_only"),
+            ],
+            "one homogeneous two-value i32 return shape is admitted under the widened numeric and data-layout ladder",
+        )
+    }
+
+    #[must_use]
+    pub fn sum_and_max_i64_status_output() -> Self {
+        Self::new(
+            TassadarGeneralizedAbiFixtureId::SumAndMaxI64StatusOutput,
+            "wider_numeric_i64_status_output",
+            "fixtures/tassadar/sources/tassadar_wider_numeric_kernel.rs",
+            "sum_and_max_i64_into_buffer",
+            "rust.wider_numeric_kernel.i64_status_output",
+            "result_code_plus_output_buffer_i64",
+            vec![
+                TassadarGeneralizedAbiParamKind::PointerToI32,
+                TassadarGeneralizedAbiParamKind::LengthI32,
+                TassadarGeneralizedAbiParamKind::PointerToI32,
+                TassadarGeneralizedAbiParamKind::LengthI32,
+            ],
+            vec![TassadarGeneralizedAbiResultKind::I32],
+            vec![
+                TassadarGeneralizedAbiMemoryRegion {
+                    region_id: String::from("input_values_i64"),
+                    role: TassadarGeneralizedAbiMemoryRegionRole::Input,
+                    pointer_param_index: 0,
+                    length_param_index: 1,
+                    element_width_bytes: 8,
+                    signed: true,
+                    minimum_length_elements: 1,
+                },
+                TassadarGeneralizedAbiMemoryRegion {
+                    region_id: String::from("output_values_i64"),
+                    role: TassadarGeneralizedAbiMemoryRegionRole::Output,
+                    pointer_param_index: 2,
+                    length_param_index: 3,
+                    element_width_bytes: 8,
+                    signed: true,
+                    minimum_length_elements: 2,
+                },
+            ],
+            vec![
+                String::from("caller_owned_output_buffers"),
+                String::from("i64_region_layouts"),
+                String::from("panic_abort_loop_only"),
+            ],
+            "caller-owned status-code-plus-output-buffer shapes with 8-byte aligned i64 layouts are admitted under the widened numeric and data-layout ladder",
+        )
+    }
+
+    #[must_use]
     pub fn multi_export_pair_sum() -> Self {
         Self::new(
             TassadarGeneralizedAbiFixtureId::MultiExportPairSum,
@@ -300,19 +401,19 @@ impl TassadarGeneralizedAbiFixture {
     pub fn unsupported_multi_result() -> Self {
         Self::new(
             TassadarGeneralizedAbiFixtureId::UnsupportedMultiResult,
-            "param_abi_fixture",
-            "fixtures/tassadar/sources/tassadar_param_abi_kernel.rs",
+            "wider_numeric_mixed_multi_result",
+            "fixtures/tassadar/sources/tassadar_wider_numeric_kernel.rs",
             "pair_sum_and_diff",
-            "rust.param_abi_kernel.unsupported_multi_result",
-            "multi_result_return_abi",
+            "rust.wider_numeric_kernel.unsupported_mixed_multi_result",
+            "mixed_multi_value_return_abi",
             vec![TassadarGeneralizedAbiParamKind::I32],
             vec![
                 TassadarGeneralizedAbiResultKind::I32,
-                TassadarGeneralizedAbiResultKind::MultiI32Pair,
+                TassadarGeneralizedAbiResultKind::I64,
             ],
             Vec::new(),
             vec![String::from("panic_abort_loop_only")],
-            "multi-result ABI shapes remain explicit refusals under the widened generalized ABI family",
+            "mixed-width multi-value return shapes remain explicit refusals under the widened numeric and data-layout ladder",
         )
     }
 
@@ -355,8 +456,11 @@ impl TassadarGeneralizedAbiFixture {
 pub fn tassadar_generalized_abi_fixture_suite() -> Vec<TassadarGeneralizedAbiFixture> {
     vec![
         TassadarGeneralizedAbiFixture::pair_add_i32(),
+        TassadarGeneralizedAbiFixture::pair_add_i64(),
         TassadarGeneralizedAbiFixture::dual_heap_dot_i32(),
         TassadarGeneralizedAbiFixture::sum_and_max_status_output(),
+        TassadarGeneralizedAbiFixture::pair_sum_and_diff_i32(),
+        TassadarGeneralizedAbiFixture::sum_and_max_i64_status_output(),
         TassadarGeneralizedAbiFixture::multi_export_pair_sum(),
         TassadarGeneralizedAbiFixture::multi_export_local_double(),
         TassadarGeneralizedAbiFixture::unsupported_float_param(),
@@ -384,7 +488,7 @@ mod tests {
     fn generalized_abi_fixture_suite_is_machine_legible() {
         let fixtures = tassadar_generalized_abi_fixture_suite();
 
-        assert_eq!(fixtures.len(), 9);
+        assert_eq!(fixtures.len(), 12);
         assert!(fixtures.iter().any(|fixture| {
             fixture.fixture_id == TassadarGeneralizedAbiFixtureId::DualHeapDotI32
                 && fixture.memory_regions.len() == 2
@@ -395,6 +499,14 @@ mod tests {
                     .memory_regions
                     .iter()
                     .any(|region| region.role == TassadarGeneralizedAbiMemoryRegionRole::Output)
+        }));
+        assert!(fixtures.iter().any(|fixture| {
+            fixture.fixture_id == TassadarGeneralizedAbiFixtureId::PairAddI64
+                && fixture.param_kinds
+                    == vec![
+                        super::TassadarGeneralizedAbiParamKind::I64,
+                        super::TassadarGeneralizedAbiParamKind::I64,
+                    ]
         }));
     }
 }

@@ -301,18 +301,22 @@
       },
       {
         "profile_id": "tassadar.internal_compute.wider_numeric_data_layout.v1",
-        "status": "planned",
+        "status": "implemented",
         "admitted_wasm_profile_ids": [
-          "tassadar.wasm.article_i32_compute.v1"
+          "tassadar.wasm.article_i32_compute.v1",
+          "tassadar.wasm.generalized_abi.v1"
         ],
         "admitted_opcode_family_ids": [
           "article_control_and_memory_core",
           "wider_numeric_and_data_layout"
         ],
         "admitted_abi_shape_ids": [
-          "generalized_abi_required"
+          "homogeneous_i32_pair_returns",
+          "multi_param_i64_entrypoints",
+          "result_code_plus_output_buffer_i64"
         ],
         "admitted_numeric_family_ids": [
+          "i32_integer_family",
           "i64_integer_family",
           "wider_integer_layouts"
         ],
@@ -321,25 +325,34 @@
           "wider_numeric_data_layout"
         ],
         "admitted_runtime_support_ids": [
-          "wider_numeric_runtime_support"
+          "caller_owned_output_buffers",
+          "direct_scalar_i64_entrypoints",
+          "homogeneous_multi_value_returns",
+          "i64_region_layouts",
+          "panic_abort_loop_only"
         ],
         "import_posture": "no_imports_only",
-        "exactness_posture": "planned",
+        "exactness_posture": "exact_route_bounded",
         "portability_posture": "planned",
-        "supported_machine_class_ids": [],
+        "supported_machine_class_ids": [
+          "host_cpu_aarch64",
+          "host_cpu_x86_64"
+        ],
         "refusal_classes": [
+          "broad_host_import_unsupported",
           "broad_abi_unsupported",
           "runtime_support_subset_unsupported",
           "non_cpu_backend_unsupported"
         ],
         "required_evidence_refs": [
-          "issue://OpenAgentsInc/psionic/179"
+          "fixtures/tassadar/reports/tassadar_generalized_abi_family_report.json",
+          "fixtures/tassadar/reports/tassadar_rust_source_canon_report.json"
         ],
-        "detail": "wider numeric and data-layout claims remain separate from article closeout and stay red until their own evidence exists"
+        "detail": "wider numeric and data-layout claims are now benchmarked as a separate implemented profile over exact i64 scalar entrypoints, homogeneous two-value i32 returns, and 8-byte caller-owned buffer layouts. The profile remains non-portable and non-promoted until its own portability and broader runtime-support evidence exists"
       }
     ],
     "claim_boundary": "this ladder prevents vague `supports Rust/Wasm` language by requiring every public internal-compute claim to cite one named profile with explicit admitted features, refusal classes, portability posture, and evidence requirements",
-    "publication_digest": "f58c3378ac53323ee2738cb0d4a25de19f90a6e3c067f182c2f56f6ab3756584"
+    "publication_digest": "762b61af7c04ce936768e7e3bc34f80289e6ee23f0ae4f0269661cc667c835aa"
   },
   "current_served_claim_check": {
     "checker_id": "tassadar.internal_compute_profile_claim_checker.v1",
@@ -375,6 +388,6 @@
     "claim_digest": "10df43985e072b5bcdfe4975a3809c46703dab1097b7b2bdcece32a8ed83819d"
   },
   "claim_boundary": "this report freezes the named post-article internal-compute profile ladder plus the current served claim-check result. It exists to stop vague Rust/Wasm language from outrunning the actual evidence-backed claim",
-  "summary": "internal-compute profile ladder now records implemented_profiles=2, planned_profiles=6, current_claim_green=true, and current_profile_id=`tassadar.internal_compute.article_closeout.v1`.",
-  "report_digest": "0d522f1a3539ee5cc5ea8eb32a1811022cf98df1bb3a9bc0312780d2aadc5729"
+  "summary": "internal-compute profile ladder now records implemented_profiles=3, planned_profiles=5, current_claim_green=true, and current_profile_id=`tassadar.internal_compute.article_closeout.v1`.",
+  "report_digest": "8ba3a30c7129aebe30a6d8062e77eda6dbca420d6081f200b56ef5a2a0e09b9d"
 }

@@ -41,11 +41,11 @@
       "required_portability_envelope": "declared_cpu_matrix",
       "required_abi_shape_id": "generalized_abi_required",
       "required_runtime_support_id": "wider_numeric_runtime_support",
-      "publication_status": "failed",
-      "decision_status": "refused",
-      "world_mount_binding_status": "refused_pending_profile_evidence",
-      "accepted_outcome_binding_status": "refused_pending_profile_evidence",
-      "note": "route `route.wider_numeric.data_layout` refuses profile `tassadar.internal_compute.wider_numeric_data_layout.v1` because the named profile is still blocked on missing evidence or a non-green broader claim posture"
+      "publication_status": "suppressed",
+      "decision_status": "suppressed",
+      "world_mount_binding_status": "requires_profile_specific_mount_policy",
+      "accepted_outcome_binding_status": "requires_profile_specific_accepted_outcome_template",
+      "note": "route `route.wider_numeric.data_layout` points at profile `tassadar.internal_compute.wider_numeric_data_layout.v1` but keeps it suppressed until the named profile's broader portability and public publication posture turn green"
     },
     {
       "route_policy_id": "route.runtime_support.linked_bundle",
@@ -124,8 +124,8 @@
     }
   ],
   "selected_route_count": 1,
-  "suppressed_route_count": 2,
-  "refused_route_count": 5,
+  "suppressed_route_count": 3,
+  "refused_route_count": 4,
   "generated_from_refs": [
     "fixtures/tassadar/reports/tassadar_broad_internal_compute_profile_publication_report.json",
     "fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json",
@@ -137,6 +137,6 @@
   "nexus_dependency_marker": "nexus remains the owner of canonical accepted-outcome issuance and settlement-qualified closure outside standalone psionic",
   "compute_market_dependency_marker": "compute-market remains the owner of canonical quote publication, buyer matching, and market-wide broad-profile exposure outside standalone psionic",
   "claim_boundary": "this router report selects among named internal-compute profiles by explicit exactness, checkpoint, import, ABI-shape, runtime-support, and portability criteria. It preserves selected, suppressed, and refused profile routes explicitly instead of flattening wider computation into one generic exact-compute lane",
-  "summary": "Broad internal-compute route policy now records selected_routes=1, suppressed_routes=2, refused_routes=5, current_served_profile=`tassadar.internal_compute.article_closeout.v1`.",
-  "report_digest": "41d7abb0afe88cdeec7a2e455beface9e38591829bf7269d158c87e8c666b8d8"
+  "summary": "Broad internal-compute route policy now records selected_routes=1, suppressed_routes=3, refused_routes=4, current_served_profile=`tassadar.internal_compute.article_closeout.v1`.",
+  "report_digest": "228cb683a7f82424ce25d27638812366440b82c7ca6eb3d3f2c5bca5f76df93e"
 }

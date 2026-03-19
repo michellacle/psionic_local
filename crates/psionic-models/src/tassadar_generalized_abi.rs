@@ -36,8 +36,11 @@ impl TassadarGeneralizedAbiPublication {
     fn new() -> Self {
         let fixtures = [
             TassadarGeneralizedAbiFixture::pair_add_i32(),
+            TassadarGeneralizedAbiFixture::pair_add_i64(),
             TassadarGeneralizedAbiFixture::dual_heap_dot_i32(),
             TassadarGeneralizedAbiFixture::sum_and_max_status_output(),
+            TassadarGeneralizedAbiFixture::pair_sum_and_diff_i32(),
+            TassadarGeneralizedAbiFixture::sum_and_max_i64_status_output(),
             TassadarGeneralizedAbiFixture::multi_export_pair_sum(),
             TassadarGeneralizedAbiFixture::multi_export_local_double(),
         ];
@@ -74,12 +77,13 @@ impl TassadarGeneralizedAbiPublication {
                 String::from("caller_owns_all_input_buffers"),
                 String::from("caller_owns_all_output_buffers"),
                 String::from("output_buffers_must_not_alias_other_regions"),
+                String::from("i64_buffer_regions_must_be_8_byte_aligned"),
                 String::from("callee_allocated_returned_buffers_are_refused"),
                 String::from("free_or_host_handle_callbacks_are_refused"),
             ],
             refused_shape_ids: vec![
                 String::from("floating_point_param_abi"),
-                String::from("multi_result_return_abi"),
+                String::from("mixed_multi_value_return_abi"),
                 String::from("host_handle_or_callback_abi"),
                 String::from("callee_allocated_returned_buffer"),
                 String::from("dynamic_runtime_or_std_alloc"),
@@ -99,7 +103,7 @@ impl TassadarGeneralizedAbiPublication {
                 String::from(TASSADAR_GENERALIZED_ABI_FAMILY_REPORT_REF),
             ],
             claim_boundary: String::from(
-                "this publication widens the bounded ABI story from the article-only direct ABI slice to one reusable generalized i32-first family over multi-param scalar entrypoints, multiple pointer-length inputs, caller-owned result-code-plus-output-buffer shapes, and bounded multi-export program shapes. It does not claim floating-point closure, multi-result returns, host-handle imports, callee-allocated returned buffers, arbitrary runtime support, or arbitrary Wasm ABI closure",
+                "this publication widens the bounded ABI story from the article-only direct ABI slice to one reusable generalized family over multi-param scalar entrypoints, exact i64 scalar entrypoints, homogeneous two-value i32 returns, multiple pointer-length inputs, caller-owned result-code-plus-output-buffer shapes, 8-byte caller-owned buffer layouts, and bounded multi-export program shapes. It does not claim floating-point closure, mixed-width multi-result returns, host-handle imports, callee-allocated returned buffers, arbitrary runtime support, or arbitrary Wasm ABI closure",
             ),
             publication_digest: String::new(),
         };
@@ -141,6 +145,11 @@ mod tests {
             publication
                 .supported_program_shape_ids
                 .contains(&String::from("result_code_plus_output_buffer_i32"))
+        );
+        assert!(
+            publication
+                .supported_program_shape_ids
+                .contains(&String::from("result_code_plus_output_buffer_i64"))
         );
     }
 }

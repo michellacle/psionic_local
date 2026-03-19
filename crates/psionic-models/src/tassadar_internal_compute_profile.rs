@@ -303,16 +303,22 @@ impl TassadarInternalComputeProfileLadderPublication {
             ),
             TassadarInternalComputeProfileSpec::new(
                 TassadarInternalComputeProfileId::WiderNumericDataLayoutV1,
-                TassadarInternalComputeProfileStatus::Planned,
-                vec![String::from(
-                    TassadarWasmProfileId::ArticleI32ComputeV1.as_str(),
-                )],
+                TassadarInternalComputeProfileStatus::Implemented,
+                vec![
+                    String::from(TassadarWasmProfileId::ArticleI32ComputeV1.as_str()),
+                    String::from("tassadar.wasm.generalized_abi.v1"),
+                ],
                 vec![
                     String::from("article_control_and_memory_core"),
                     String::from("wider_numeric_and_data_layout"),
                 ],
-                vec![String::from("generalized_abi_required")],
                 vec![
+                    String::from("multi_param_i64_entrypoints"),
+                    String::from("homogeneous_i32_pair_returns"),
+                    String::from("result_code_plus_output_buffer_i64"),
+                ],
+                vec![
+                    String::from("i32_integer_family"),
                     String::from("i64_integer_family"),
                     String::from("wider_integer_layouts"),
                 ],
@@ -320,18 +326,28 @@ impl TassadarInternalComputeProfileLadderPublication {
                     String::from("byte_addressed_linear_memory_v2"),
                     String::from("wider_numeric_data_layout"),
                 ],
-                vec![String::from("wider_numeric_runtime_support")],
-                TassadarInternalComputeImportPosture::NoImportsOnly,
-                TassadarInternalComputeExactnessPosture::Planned,
-                TassadarInternalComputePortabilityPosture::Planned,
-                Vec::new(),
                 vec![
+                    String::from("caller_owned_output_buffers"),
+                    String::from("direct_scalar_i64_entrypoints"),
+                    String::from("homogeneous_multi_value_returns"),
+                    String::from("i64_region_layouts"),
+                    String::from("panic_abort_loop_only"),
+                ],
+                TassadarInternalComputeImportPosture::NoImportsOnly,
+                TassadarInternalComputeExactnessPosture::ExactRouteBounded,
+                TassadarInternalComputePortabilityPosture::Planned,
+                current_supported_machine_class_ids.clone(),
+                vec![
+                    TassadarInternalComputeRefusalClass::BroadHostImportUnsupported,
                     TassadarInternalComputeRefusalClass::BroadAbiUnsupported,
                     TassadarInternalComputeRefusalClass::RuntimeSupportSubsetUnsupported,
                     TassadarInternalComputeRefusalClass::NonCpuBackendUnsupported,
                 ],
-                vec![String::from("issue://OpenAgentsInc/psionic/179")],
-                "wider numeric and data-layout claims remain separate from article closeout and stay red until their own evidence exists",
+                vec![
+                    String::from(TASSADAR_RUST_SOURCE_CANON_REPORT_REF),
+                    String::from(TASSADAR_GENERALIZED_ABI_FAMILY_REPORT_REF),
+                ],
+                "wider numeric and data-layout claims are now benchmarked as a separate implemented profile over exact i64 scalar entrypoints, homogeneous two-value i32 returns, and 8-byte caller-owned buffer layouts. The profile remains non-portable and non-promoted until its own portability and broader runtime-support evidence exists",
             ),
             TassadarInternalComputeProfileSpec::new(
                 TassadarInternalComputeProfileId::RuntimeSupportSubsetV1,
@@ -714,6 +730,9 @@ mod tests {
         let generalized_abi = publication
             .profile(TassadarInternalComputeProfileId::GeneralizedAbiV1.as_str())
             .expect("generalized abi profile");
+        let wider_numeric = publication
+            .profile(TassadarInternalComputeProfileId::WiderNumericDataLayoutV1.as_str())
+            .expect("wider numeric profile");
 
         assert_eq!(
             article_profile.status,
@@ -721,6 +740,10 @@ mod tests {
         );
         assert_eq!(
             generalized_abi.status,
+            TassadarInternalComputeProfileStatus::Implemented
+        );
+        assert_eq!(
+            wider_numeric.status,
             TassadarInternalComputeProfileStatus::Implemented
         );
         assert!(article_profile
@@ -735,6 +758,9 @@ mod tests {
                     "fixtures/tassadar/reports/tassadar_generalized_abi_family_report.json"
                 ))
         );
+        assert!(wider_numeric.required_evidence_refs.contains(&String::from(
+            "fixtures/tassadar/reports/tassadar_generalized_abi_family_report.json"
+        )));
     }
 
     #[test]

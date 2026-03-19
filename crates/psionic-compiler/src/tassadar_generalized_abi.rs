@@ -57,6 +57,11 @@ pub enum TassadarGeneralizedAbiLoweringError {
         fixture_id: String,
         kind: TassadarGeneralizedAbiResultKind,
     },
+    #[error("generalized ABI fixture `{fixture_id}` declares unsupported result kinds `{kinds:?}`")]
+    UnsupportedResultKinds {
+        fixture_id: String,
+        kinds: Vec<TassadarGeneralizedAbiResultKind>,
+    },
     #[error("generalized ABI fixture `{fixture_id}` failed runtime validation: {error}")]
     InvalidLoweredProgram {
         fixture_id: String,
@@ -71,6 +76,7 @@ pub fn lower_tassadar_generalized_abi_fixture(
     for (param_index, kind) in fixture.param_kinds.iter().copied().enumerate() {
         match kind {
             TassadarGeneralizedAbiParamKind::I32
+            | TassadarGeneralizedAbiParamKind::I64
             | TassadarGeneralizedAbiParamKind::PointerToI32
             | TassadarGeneralizedAbiParamKind::LengthI32 => {}
             unsupported => {
@@ -83,16 +89,27 @@ pub fn lower_tassadar_generalized_abi_fixture(
         }
     }
 
-    let result_kind = match fixture.result_kinds.as_slice() {
-        [] => None,
-        [TassadarGeneralizedAbiResultKind::I32] => Some(TassadarGeneralizedAbiResultKind::I32),
-        [unsupported]
-        | [TassadarGeneralizedAbiResultKind::I32, unsupported, ..]
-        | [unsupported, ..] => {
+    let result_kinds = match fixture.result_kinds.as_slice() {
+        [] => Vec::new(),
+        [TassadarGeneralizedAbiResultKind::I32]
+        | [TassadarGeneralizedAbiResultKind::I64]
+        | [
+            TassadarGeneralizedAbiResultKind::I32,
+            TassadarGeneralizedAbiResultKind::I32,
+        ] => fixture.result_kinds.clone(),
+        [unsupported] => {
             return Err(TassadarGeneralizedAbiLoweringError::UnsupportedResultKind {
                 fixture_id: String::from(fixture.fixture_id.as_str()),
                 kind: *unsupported,
             });
+        }
+        kinds => {
+            return Err(
+                TassadarGeneralizedAbiLoweringError::UnsupportedResultKinds {
+                    fixture_id: String::from(fixture.fixture_id.as_str()),
+                    kinds: kinds.to_vec(),
+                },
+            );
         }
     };
 
@@ -105,7 +122,29 @@ pub fn lower_tassadar_generalized_abi_fixture(
             export_name: fixture.export_name.clone(),
             program_shape_id: fixture.program_shape_id.clone(),
             param_kinds: fixture.param_kinds.clone(),
-            result_kind,
+            result_kinds,
+            local_count: 2,
+            memory_regions: fixture.memory_regions.clone(),
+            runtime_support_ids: fixture.runtime_support_ids.clone(),
+            instructions: vec![
+                TassadarGeneralizedAbiInstruction::LocalGet { local_index: 0 },
+                TassadarGeneralizedAbiInstruction::LocalGet { local_index: 1 },
+                TassadarGeneralizedAbiInstruction::BinaryOp {
+                    op: TassadarStructuredControlBinaryOp::Add,
+                },
+                TassadarGeneralizedAbiInstruction::Return,
+            ],
+            claim_boundary: fixture.claim_boundary.clone(),
+        },
+        TassadarGeneralizedAbiFixtureId::PairAddI64 => TassadarGeneralizedAbiProgram {
+            program_id: tassadar_generalized_abi_program_id(fixture),
+            fixture_id: String::from(fixture.fixture_id.as_str()),
+            source_case_id: fixture.source_case_id.clone(),
+            source_ref: fixture.source_ref.clone(),
+            export_name: fixture.export_name.clone(),
+            program_shape_id: fixture.program_shape_id.clone(),
+            param_kinds: fixture.param_kinds.clone(),
+            result_kinds,
             local_count: 2,
             memory_regions: fixture.memory_regions.clone(),
             runtime_support_ids: fixture.runtime_support_ids.clone(),
@@ -127,7 +166,7 @@ pub fn lower_tassadar_generalized_abi_fixture(
             export_name: fixture.export_name.clone(),
             program_shape_id: fixture.program_shape_id.clone(),
             param_kinds: fixture.param_kinds.clone(),
-            result_kind,
+            result_kinds,
             local_count: 7,
             memory_regions: fixture.memory_regions.clone(),
             runtime_support_ids: fixture.runtime_support_ids.clone(),
@@ -182,7 +221,7 @@ pub fn lower_tassadar_generalized_abi_fixture(
             export_name: fixture.export_name.clone(),
             program_shape_id: fixture.program_shape_id.clone(),
             param_kinds: fixture.param_kinds.clone(),
-            result_kind,
+            result_kinds,
             local_count: 8,
             memory_regions: fixture.memory_regions.clone(),
             runtime_support_ids: fixture.runtime_support_ids.clone(),
@@ -248,6 +287,109 @@ pub fn lower_tassadar_generalized_abi_fixture(
             ],
             claim_boundary: fixture.claim_boundary.clone(),
         },
+        TassadarGeneralizedAbiFixtureId::PairSumAndDiffI32 => TassadarGeneralizedAbiProgram {
+            program_id: tassadar_generalized_abi_program_id(fixture),
+            fixture_id: String::from(fixture.fixture_id.as_str()),
+            source_case_id: fixture.source_case_id.clone(),
+            source_ref: fixture.source_ref.clone(),
+            export_name: fixture.export_name.clone(),
+            program_shape_id: fixture.program_shape_id.clone(),
+            param_kinds: fixture.param_kinds.clone(),
+            result_kinds,
+            local_count: 2,
+            memory_regions: fixture.memory_regions.clone(),
+            runtime_support_ids: fixture.runtime_support_ids.clone(),
+            instructions: vec![
+                TassadarGeneralizedAbiInstruction::LocalGet { local_index: 0 },
+                TassadarGeneralizedAbiInstruction::LocalGet { local_index: 1 },
+                TassadarGeneralizedAbiInstruction::BinaryOp {
+                    op: TassadarStructuredControlBinaryOp::Add,
+                },
+                TassadarGeneralizedAbiInstruction::LocalGet { local_index: 0 },
+                TassadarGeneralizedAbiInstruction::LocalGet { local_index: 1 },
+                TassadarGeneralizedAbiInstruction::BinaryOp {
+                    op: TassadarStructuredControlBinaryOp::Sub,
+                },
+                TassadarGeneralizedAbiInstruction::Return,
+            ],
+            claim_boundary: fixture.claim_boundary.clone(),
+        },
+        TassadarGeneralizedAbiFixtureId::SumAndMaxI64StatusOutput => {
+            TassadarGeneralizedAbiProgram {
+                program_id: tassadar_generalized_abi_program_id(fixture),
+                fixture_id: String::from(fixture.fixture_id.as_str()),
+                source_case_id: fixture.source_case_id.clone(),
+                source_ref: fixture.source_ref.clone(),
+                export_name: fixture.export_name.clone(),
+                program_shape_id: fixture.program_shape_id.clone(),
+                param_kinds: fixture.param_kinds.clone(),
+                result_kinds,
+                local_count: 8,
+                memory_regions: fixture.memory_regions.clone(),
+                runtime_support_ids: fixture.runtime_support_ids.clone(),
+                instructions: vec![
+                    TassadarGeneralizedAbiInstruction::I64Const { value: 0 },
+                    TassadarGeneralizedAbiInstruction::LocalSet { local_index: 4 },
+                    TassadarGeneralizedAbiInstruction::I64Const { value: 0 },
+                    TassadarGeneralizedAbiInstruction::LocalSet { local_index: 5 },
+                    TassadarGeneralizedAbiInstruction::I32Const { value: 0 },
+                    TassadarGeneralizedAbiInstruction::LocalSet { local_index: 6 },
+                    TassadarGeneralizedAbiInstruction::LocalGet { local_index: 6 },
+                    TassadarGeneralizedAbiInstruction::LocalGet { local_index: 1 },
+                    TassadarGeneralizedAbiInstruction::BinaryOp {
+                        op: TassadarStructuredControlBinaryOp::LtS,
+                    },
+                    TassadarGeneralizedAbiInstruction::BranchIfZero { target_pc: 27 },
+                    TassadarGeneralizedAbiInstruction::I64LoadRegionAtIndex {
+                        region_id: String::from("input_values_i64"),
+                        index_local_index: 6,
+                    },
+                    TassadarGeneralizedAbiInstruction::LocalSet { local_index: 7 },
+                    TassadarGeneralizedAbiInstruction::LocalGet { local_index: 4 },
+                    TassadarGeneralizedAbiInstruction::LocalGet { local_index: 7 },
+                    TassadarGeneralizedAbiInstruction::BinaryOp {
+                        op: TassadarStructuredControlBinaryOp::Add,
+                    },
+                    TassadarGeneralizedAbiInstruction::LocalSet { local_index: 4 },
+                    TassadarGeneralizedAbiInstruction::LocalGet { local_index: 7 },
+                    TassadarGeneralizedAbiInstruction::LocalGet { local_index: 5 },
+                    TassadarGeneralizedAbiInstruction::BinaryOp {
+                        op: TassadarStructuredControlBinaryOp::GtS,
+                    },
+                    TassadarGeneralizedAbiInstruction::BranchIfZero { target_pc: 22 },
+                    TassadarGeneralizedAbiInstruction::LocalGet { local_index: 7 },
+                    TassadarGeneralizedAbiInstruction::LocalSet { local_index: 5 },
+                    TassadarGeneralizedAbiInstruction::LocalGet { local_index: 6 },
+                    TassadarGeneralizedAbiInstruction::I32Const { value: 1 },
+                    TassadarGeneralizedAbiInstruction::BinaryOp {
+                        op: TassadarStructuredControlBinaryOp::Add,
+                    },
+                    TassadarGeneralizedAbiInstruction::LocalSet { local_index: 6 },
+                    TassadarGeneralizedAbiInstruction::Jump { target_pc: 6 },
+                    TassadarGeneralizedAbiInstruction::I32Const { value: 0 },
+                    TassadarGeneralizedAbiInstruction::LocalSet { local_index: 6 },
+                    TassadarGeneralizedAbiInstruction::LocalGet { local_index: 4 },
+                    TassadarGeneralizedAbiInstruction::LocalSet { local_index: 7 },
+                    TassadarGeneralizedAbiInstruction::I64StoreRegionAtIndex {
+                        region_id: String::from("output_values_i64"),
+                        index_local_index: 6,
+                        value_local_index: 7,
+                    },
+                    TassadarGeneralizedAbiInstruction::I32Const { value: 1 },
+                    TassadarGeneralizedAbiInstruction::LocalSet { local_index: 6 },
+                    TassadarGeneralizedAbiInstruction::LocalGet { local_index: 5 },
+                    TassadarGeneralizedAbiInstruction::LocalSet { local_index: 7 },
+                    TassadarGeneralizedAbiInstruction::I64StoreRegionAtIndex {
+                        region_id: String::from("output_values_i64"),
+                        index_local_index: 6,
+                        value_local_index: 7,
+                    },
+                    TassadarGeneralizedAbiInstruction::I32Const { value: 0 },
+                    TassadarGeneralizedAbiInstruction::Return,
+                ],
+                claim_boundary: fixture.claim_boundary.clone(),
+            }
+        }
         TassadarGeneralizedAbiFixtureId::MultiExportPairSum => TassadarGeneralizedAbiProgram {
             program_id: tassadar_generalized_abi_program_id(fixture),
             fixture_id: String::from(fixture.fixture_id.as_str()),
@@ -256,7 +398,7 @@ pub fn lower_tassadar_generalized_abi_fixture(
             export_name: fixture.export_name.clone(),
             program_shape_id: fixture.program_shape_id.clone(),
             param_kinds: fixture.param_kinds.clone(),
-            result_kind,
+            result_kinds,
             local_count: 0,
             memory_regions: fixture.memory_regions.clone(),
             runtime_support_ids: fixture.runtime_support_ids.clone(),
@@ -278,7 +420,7 @@ pub fn lower_tassadar_generalized_abi_fixture(
             export_name: fixture.export_name.clone(),
             program_shape_id: fixture.program_shape_id.clone(),
             param_kinds: fixture.param_kinds.clone(),
-            result_kind,
+            result_kinds,
             local_count: 1,
             memory_regions: fixture.memory_regions.clone(),
             runtime_support_ids: fixture.runtime_support_ids.clone(),
@@ -302,10 +444,12 @@ pub fn lower_tassadar_generalized_abi_fixture(
             });
         }
         TassadarGeneralizedAbiFixtureId::UnsupportedMultiResult => {
-            return Err(TassadarGeneralizedAbiLoweringError::UnsupportedResultKind {
-                fixture_id: String::from(fixture.fixture_id.as_str()),
-                kind: TassadarGeneralizedAbiResultKind::MultiI32Pair,
-            });
+            return Err(
+                TassadarGeneralizedAbiLoweringError::UnsupportedResultKinds {
+                    fixture_id: String::from(fixture.fixture_id.as_str()),
+                    kinds: fixture.result_kinds.clone(),
+                },
+            );
         }
         TassadarGeneralizedAbiFixtureId::UnsupportedHostHandle => {
             return Err(TassadarGeneralizedAbiLoweringError::UnsupportedParamKind {
@@ -346,7 +490,10 @@ mod tests {
     use psionic_runtime::{
         execute_tassadar_generalized_abi_program,
         tassadar_generalized_abi_dual_heap_dot_invocation,
+        tassadar_generalized_abi_i64_status_output_invocation,
+        tassadar_generalized_abi_pair_add_i64_invocation,
         tassadar_generalized_abi_pair_add_invocation,
+        tassadar_generalized_abi_pair_sum_and_diff_i32_invocation,
         tassadar_generalized_abi_status_output_invocation,
     };
 
@@ -361,6 +508,16 @@ mod tests {
         )
         .expect("pair add should execute");
         assert_eq!(pair_execution.returned_value, Some(42));
+
+        let pair_i64 =
+            lower_tassadar_generalized_abi_fixture(&TassadarGeneralizedAbiFixture::pair_add_i64())
+                .expect("pair add i64 should lower");
+        let pair_i64_execution = execute_tassadar_generalized_abi_program(
+            &pair_i64.program,
+            &tassadar_generalized_abi_pair_add_i64_invocation(),
+        )
+        .expect("pair add i64 should execute");
+        assert_eq!(pair_i64_execution.returned_i64, Some(42));
 
         let dot = lower_tassadar_generalized_abi_fixture(
             &TassadarGeneralizedAbiFixture::dual_heap_dot_i32(),
@@ -384,6 +541,29 @@ mod tests {
         .expect("status output should execute");
         assert_eq!(output_execution.returned_value, Some(0));
         assert_eq!(output_execution.output_regions[0].words, vec![19, 9]);
+
+        let pair_multi = lower_tassadar_generalized_abi_fixture(
+            &TassadarGeneralizedAbiFixture::pair_sum_and_diff_i32(),
+        )
+        .expect("pair sum and diff should lower");
+        let pair_multi_execution = execute_tassadar_generalized_abi_program(
+            &pair_multi.program,
+            &tassadar_generalized_abi_pair_sum_and_diff_i32_invocation(),
+        )
+        .expect("pair sum and diff should execute");
+        assert_eq!(pair_multi_execution.returned_values, vec![42, -2]);
+
+        let i64_output = lower_tassadar_generalized_abi_fixture(
+            &TassadarGeneralizedAbiFixture::sum_and_max_i64_status_output(),
+        )
+        .expect("i64 output shape should lower");
+        let i64_output_execution = execute_tassadar_generalized_abi_program(
+            &i64_output.program,
+            &tassadar_generalized_abi_i64_status_output_invocation(),
+        )
+        .expect("i64 output shape should execute");
+        assert_eq!(i64_output_execution.returned_value, Some(0));
+        assert_eq!(i64_output_execution.output_regions[0].words, vec![19, 9]);
     }
 
     #[test]
@@ -409,6 +589,7 @@ mod tests {
             assert!(matches!(
                 error,
                 TassadarGeneralizedAbiLoweringError::UnsupportedResultKind { .. }
+                    | TassadarGeneralizedAbiLoweringError::UnsupportedResultKinds { .. }
             ));
         }
     }

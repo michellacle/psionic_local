@@ -163,20 +163,28 @@ Read:
 Expected outcome:
 
 - one machine-readable exact/refused report over the widened generalized
-  i32-first ABI family
+  generalized ABI family
 - exact multi-param scalar `i32, i32 -> i32` closure for `pair_add`
+- exact multi-param scalar `i64, i64 -> i64` closure for `pair_add_i64`
 - exact multiple pointer-length input closure for `dot_i32`
+- exact homogeneous two-value `i32, i32 -> (i32, i32)` closure for
+  `pair_sum_and_diff`
 - exact caller-owned result-code-plus-output-buffer closure for
   `sum_and_max_into_buffer`
+- exact caller-owned `i64` result-code-plus-output-buffer closure for
+  `sum_and_max_i64_into_buffer`
 - exact bounded multi-export program-shape closure for `pair_sum` and
   `local_double`
 - explicit refusal on short output buffers, aliased output buffers,
-  floating-point params, multi-result returns, host-handle callbacks, and
-  callee-allocated returned buffers
+  unaligned `i64` buffer layouts, floating-point params, mixed-width
+  multi-result returns, host-handle callbacks, and callee-allocated returned
+  buffers
 - this is a benchmarked broader ABI family, not the current promoted
   article-closeout claim; the served internal-compute claim remains
   `tassadar.internal_compute.article_closeout.v1` even though the ladder now
-  records `tassadar.internal_compute.generalized_abi.v1` as implemented
+  records both `tassadar.internal_compute.generalized_abi.v1` and
+  `tassadar.internal_compute.wider_numeric_data_layout.v1` as implemented but
+  still non-promoted
 
 ### 3B. Checkpointed multi-slice execution receipts
 

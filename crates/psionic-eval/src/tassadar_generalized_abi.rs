@@ -16,7 +16,10 @@ use psionic_runtime::{
     TassadarGeneralizedAbiRegionObservation, execute_tassadar_generalized_abi_program,
     tassadar_generalized_abi_dual_heap_dot_invocation,
     tassadar_generalized_abi_dual_heap_dot_out_of_range_invocation,
-    tassadar_generalized_abi_pair_add_invocation,
+    tassadar_generalized_abi_i64_status_output_invocation,
+    tassadar_generalized_abi_i64_status_output_unaligned_invocation,
+    tassadar_generalized_abi_pair_add_i64_invocation, tassadar_generalized_abi_pair_add_invocation,
+    tassadar_generalized_abi_pair_sum_and_diff_i32_invocation,
     tassadar_generalized_abi_status_output_aliasing_invocation,
     tassadar_generalized_abi_status_output_invocation,
     tassadar_generalized_abi_status_output_short_invocation,
@@ -46,12 +49,16 @@ pub struct TassadarGeneralizedAbiCaseReport {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub returned_value: Option<i32>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub returned_i64: Option<i64>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub returned_values: Vec<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub execution_digest: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub trace_step_count: Option<usize>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub artifact_digest: Option<String>,
-    pub invocation_args: Vec<i32>,
+    pub invocation_args: Vec<i64>,
     pub heap_byte_len: usize,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub output_regions: Vec<TassadarGeneralizedAbiRegionObservation>,
@@ -94,7 +101,7 @@ impl TassadarGeneralizedAbiFamilyReport {
             refusal_case_count,
             cases,
             claim_boundary: String::from(
-                "this report widens the bounded ABI story to a reusable generalized family over multi-param scalar entrypoints, multiple pointer-length inputs, caller-owned result-code-plus-output-buffer shapes, and bounded multi-export program shapes. It keeps floating-point params, multi-result returns, host-handle callbacks, callee-allocated returned buffers, aliasing output buffers, and arbitrary runtime support explicit as refusals",
+                "this report widens the bounded ABI story to a reusable generalized family over multi-param scalar entrypoints, exact i64 scalar entrypoints, homogeneous two-value i32 returns, multiple pointer-length inputs, caller-owned result-code-plus-output-buffer shapes, 8-byte caller-owned buffer layouts, and bounded multi-export program shapes. It keeps floating-point params, mixed-width multi-result returns, host-handle callbacks, callee-allocated returned buffers, malformed or aliased output buffers, and arbitrary runtime support explicit as refusals",
             ),
             report_digest: String::new(),
         };
@@ -121,8 +128,11 @@ pub enum TassadarGeneralizedAbiFamilyReportError {
 pub fn build_tassadar_generalized_abi_family_report()
 -> Result<TassadarGeneralizedAbiFamilyReport, TassadarGeneralizedAbiFamilyReportError> {
     let pair_fixture = TassadarGeneralizedAbiFixture::pair_add_i32();
+    let pair_i64_fixture = TassadarGeneralizedAbiFixture::pair_add_i64();
     let dot_fixture = TassadarGeneralizedAbiFixture::dual_heap_dot_i32();
     let output_fixture = TassadarGeneralizedAbiFixture::sum_and_max_status_output();
+    let pair_multi_fixture = TassadarGeneralizedAbiFixture::pair_sum_and_diff_i32();
+    let i64_output_fixture = TassadarGeneralizedAbiFixture::sum_and_max_i64_status_output();
     let pair_sum_fixture = TassadarGeneralizedAbiFixture::multi_export_pair_sum();
     let local_double_fixture = TassadarGeneralizedAbiFixture::multi_export_local_double();
     let float_fixture = TassadarGeneralizedAbiFixture::unsupported_float_param();
@@ -137,8 +147,11 @@ pub fn build_tassadar_generalized_abi_family_report()
     ];
     for fixture in [
         &pair_fixture,
+        &pair_i64_fixture,
         &dot_fixture,
         &output_fixture,
+        &pair_multi_fixture,
+        &i64_output_fixture,
         &pair_sum_fixture,
         &local_double_fixture,
         &float_fixture,
@@ -158,6 +171,17 @@ pub fn build_tassadar_generalized_abi_family_report()
                 &pair_fixture,
                 tassadar_generalized_abi_pair_add_invocation(),
                 Some(42),
+                None,
+                Vec::new(),
+                Vec::new(),
+            )?,
+            build_exact_case(
+                "multi_param_i64_exact",
+                &pair_i64_fixture,
+                tassadar_generalized_abi_pair_add_i64_invocation(),
+                None,
+                Some(42),
+                Vec::new(),
                 Vec::new(),
             )?,
             build_exact_case(
@@ -165,6 +189,8 @@ pub fn build_tassadar_generalized_abi_family_report()
                 &dot_fixture,
                 tassadar_generalized_abi_dual_heap_dot_invocation(),
                 Some(32),
+                None,
+                Vec::new(),
                 Vec::new(),
             )?,
             build_runtime_refusal_case(
@@ -177,6 +203,8 @@ pub fn build_tassadar_generalized_abi_family_report()
                 &output_fixture,
                 tassadar_generalized_abi_status_output_invocation(),
                 Some(0),
+                None,
+                Vec::new(),
                 vec![vec![19, 9]],
             )?,
             build_runtime_refusal_case(
@@ -190,10 +218,35 @@ pub fn build_tassadar_generalized_abi_family_report()
                 tassadar_generalized_abi_status_output_aliasing_invocation(),
             )?,
             build_exact_case(
+                "homogeneous_multi_value_return_exact",
+                &pair_multi_fixture,
+                tassadar_generalized_abi_pair_sum_and_diff_i32_invocation(),
+                None,
+                None,
+                vec![42, -2],
+                Vec::new(),
+            )?,
+            build_exact_case(
+                "result_code_plus_output_buffer_i64_exact",
+                &i64_output_fixture,
+                tassadar_generalized_abi_i64_status_output_invocation(),
+                Some(0),
+                None,
+                Vec::new(),
+                vec![vec![19, 9]],
+            )?,
+            build_runtime_refusal_case(
+                "result_code_plus_output_buffer_i64_unaligned_refusal",
+                &i64_output_fixture,
+                tassadar_generalized_abi_i64_status_output_unaligned_invocation(),
+            )?,
+            build_exact_case(
                 "bounded_multi_export_pair_sum_exact",
                 &pair_sum_fixture,
                 TassadarGeneralizedAbiInvocation::new(Vec::new()),
                 Some(5),
+                None,
+                Vec::new(),
                 Vec::new(),
             )?,
             build_exact_case(
@@ -201,10 +254,12 @@ pub fn build_tassadar_generalized_abi_family_report()
                 &local_double_fixture,
                 TassadarGeneralizedAbiInvocation::new(Vec::new()),
                 Some(14),
+                None,
+                Vec::new(),
                 Vec::new(),
             )?,
             build_lowering_refusal_case("floating_point_param_refusal", &float_fixture),
-            build_lowering_refusal_case("multi_result_return_refusal", &multi_result_fixture),
+            build_lowering_refusal_case("mixed_multi_result_return_refusal", &multi_result_fixture),
             build_lowering_refusal_case("host_handle_param_refusal", &host_handle_fixture),
             build_lowering_refusal_case(
                 "callee_allocated_returned_buffer_refusal",
@@ -251,13 +306,23 @@ fn build_exact_case(
     fixture: &TassadarGeneralizedAbiFixture,
     invocation: TassadarGeneralizedAbiInvocation,
     expected_returned_value: Option<i32>,
-    expected_output_words: Vec<Vec<i32>>,
+    expected_returned_i64: Option<i64>,
+    expected_returned_values: Vec<i64>,
+    expected_output_words: Vec<Vec<i64>>,
 ) -> Result<TassadarGeneralizedAbiCaseReport, TassadarGeneralizedAbiFamilyReportError> {
     let artifact = lower_tassadar_generalized_abi_fixture(fixture)?;
     let execution = execute_tassadar_generalized_abi_program(&artifact.program, &invocation)?;
     assert_eq!(
         execution.returned_value, expected_returned_value,
         "generalized ABI case `{case_id}` should match its CPU reference expectation"
+    );
+    assert_eq!(
+        execution.returned_i64, expected_returned_i64,
+        "generalized ABI case `{case_id}` should match its i64 return expectation"
+    );
+    assert_eq!(
+        execution.returned_values, expected_returned_values,
+        "generalized ABI case `{case_id}` should match its multi-value return expectation"
     );
     if !expected_output_words.is_empty() {
         let actual = execution
@@ -270,6 +335,7 @@ fn build_exact_case(
             "generalized ABI case `{case_id}` should match its output-buffer expectation"
         );
     }
+    let execution_digest = execution.execution_digest();
     Ok(TassadarGeneralizedAbiCaseReport {
         case_id: String::from(case_id),
         source_case_id: fixture.source_case_id.clone(),
@@ -279,7 +345,9 @@ fn build_exact_case(
         runtime_support_ids: fixture.runtime_support_ids.clone(),
         status: TassadarGeneralizedAbiCaseStatus::Exact,
         returned_value: execution.returned_value,
-        execution_digest: Some(execution.execution_digest()),
+        returned_i64: execution.returned_i64,
+        returned_values: execution.returned_values,
+        execution_digest: Some(execution_digest),
         trace_step_count: Some(execution.steps.len()),
         artifact_digest: Some(artifact.artifact_digest),
         invocation_args: invocation.args,
@@ -297,24 +365,29 @@ fn build_runtime_refusal_case(
 ) -> Result<TassadarGeneralizedAbiCaseReport, TassadarGeneralizedAbiFamilyReportError> {
     let artifact = lower_tassadar_generalized_abi_fixture(fixture)?;
     match execute_tassadar_generalized_abi_program(&artifact.program, &invocation) {
-        Ok(execution) => Ok(TassadarGeneralizedAbiCaseReport {
-            case_id: String::from(case_id),
-            source_case_id: fixture.source_case_id.clone(),
-            source_ref: fixture.source_ref.clone(),
-            export_name: fixture.export_name.clone(),
-            program_shape_id: fixture.program_shape_id.clone(),
-            runtime_support_ids: fixture.runtime_support_ids.clone(),
-            status: TassadarGeneralizedAbiCaseStatus::Exact,
-            returned_value: execution.returned_value,
-            execution_digest: Some(execution.execution_digest()),
-            trace_step_count: Some(execution.steps.len()),
-            artifact_digest: Some(artifact.artifact_digest),
-            invocation_args: invocation.args,
-            heap_byte_len: invocation.heap_bytes.len(),
-            output_regions: execution.output_regions,
-            refusal_kind: None,
-            refusal_detail: None,
-        }),
+        Ok(execution) => {
+            let execution_digest = execution.execution_digest();
+            Ok(TassadarGeneralizedAbiCaseReport {
+                case_id: String::from(case_id),
+                source_case_id: fixture.source_case_id.clone(),
+                source_ref: fixture.source_ref.clone(),
+                export_name: fixture.export_name.clone(),
+                program_shape_id: fixture.program_shape_id.clone(),
+                runtime_support_ids: fixture.runtime_support_ids.clone(),
+                status: TassadarGeneralizedAbiCaseStatus::Exact,
+                returned_value: execution.returned_value,
+                returned_i64: execution.returned_i64,
+                returned_values: execution.returned_values,
+                execution_digest: Some(execution_digest),
+                trace_step_count: Some(execution.steps.len()),
+                artifact_digest: Some(artifact.artifact_digest),
+                invocation_args: invocation.args,
+                heap_byte_len: invocation.heap_bytes.len(),
+                output_regions: execution.output_regions,
+                refusal_kind: None,
+                refusal_detail: None,
+            })
+        }
         Err(error) => Ok(TassadarGeneralizedAbiCaseReport {
             case_id: String::from(case_id),
             source_case_id: fixture.source_case_id.clone(),
@@ -324,6 +397,8 @@ fn build_runtime_refusal_case(
             runtime_support_ids: fixture.runtime_support_ids.clone(),
             status: TassadarGeneralizedAbiCaseStatus::Refused,
             returned_value: None,
+            returned_i64: None,
+            returned_values: Vec::new(),
             execution_digest: None,
             trace_step_count: None,
             artifact_digest: Some(artifact.artifact_digest),
@@ -350,6 +425,8 @@ fn build_lowering_refusal_case(
             runtime_support_ids: fixture.runtime_support_ids.clone(),
             status: TassadarGeneralizedAbiCaseStatus::Exact,
             returned_value: None,
+            returned_i64: None,
+            returned_values: Vec::new(),
             execution_digest: None,
             trace_step_count: None,
             artifact_digest: Some(artifact.artifact_digest),
@@ -368,6 +445,8 @@ fn build_lowering_refusal_case(
             runtime_support_ids: fixture.runtime_support_ids.clone(),
             status: TassadarGeneralizedAbiCaseStatus::Refused,
             returned_value: None,
+            returned_i64: None,
+            returned_values: Vec::new(),
             execution_digest: None,
             trace_step_count: None,
             artifact_digest: None,
@@ -387,6 +466,9 @@ fn lowering_refusal_kind(error: &TassadarGeneralizedAbiLoweringError) -> String 
         }
         TassadarGeneralizedAbiLoweringError::UnsupportedResultKind { .. } => {
             String::from("unsupported_result_kind")
+        }
+        TassadarGeneralizedAbiLoweringError::UnsupportedResultKinds { .. } => {
+            String::from("unsupported_result_kinds")
         }
         TassadarGeneralizedAbiLoweringError::InvalidLoweredProgram { .. } => {
             String::from("invalid_lowered_program")
@@ -409,6 +491,7 @@ fn runtime_refusal_kind(error: &TassadarGeneralizedAbiError) -> String {
         TassadarGeneralizedAbiError::InvocationArgCountMismatch { .. } => {
             String::from("invocation_arg_count_mismatch")
         }
+        TassadarGeneralizedAbiError::UnalignedPointer { .. } => String::from("unaligned_pointer"),
         TassadarGeneralizedAbiError::MemoryRegionIndexOutOfRange { .. } => {
             String::from("memory_region_index_out_of_range")
         }
@@ -447,7 +530,7 @@ mod tests {
             report.publication.family_id,
             "tassadar.rust_generalized_abi.v1"
         );
-        assert_eq!(report.exact_case_count, 5);
+        assert_eq!(report.exact_case_count, 8);
         assert!(report.cases.iter().any(|case| {
             case.case_id == "result_code_plus_output_buffer_exact"
                 && case.status == TassadarGeneralizedAbiCaseStatus::Exact
@@ -456,6 +539,11 @@ mod tests {
                     .first()
                     .map(|region| region.words.as_slice())
                     == Some([19, 9].as_slice())
+        }));
+        assert!(report.cases.iter().any(|case| {
+            case.case_id == "multi_param_i64_exact"
+                && case.returned_i64 == Some(42)
+                && case.status == TassadarGeneralizedAbiCaseStatus::Exact
         }));
         assert!(report.cases.iter().any(|case| {
             case.case_id == "host_handle_param_refusal"

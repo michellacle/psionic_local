@@ -13,12 +13,59 @@ use crate::TassadarStructuredControlBinaryOp;
 
 const TASSADAR_GENERALIZED_ABI_MAX_STEPS: usize = 32_768;
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+enum TassadarGeneralizedAbiRuntimeValue {
+    I32(i32),
+    I64(i64),
+}
+
+impl TassadarGeneralizedAbiRuntimeValue {
+    fn type_label(&self) -> &'static str {
+        match self {
+            Self::I32(_) => "i32",
+            Self::I64(_) => "i64",
+        }
+    }
+
+    fn as_i32(&self, context: &str) -> Result<i32, TassadarGeneralizedAbiError> {
+        match self {
+            Self::I32(value) => Ok(*value),
+            Self::I64(_) => Err(TassadarGeneralizedAbiError::ValueTypeMismatch {
+                context: String::from(context),
+                expected: String::from("i32"),
+                actual: String::from(self.type_label()),
+            }),
+        }
+    }
+
+    fn as_i64(&self, context: &str) -> Result<i64, TassadarGeneralizedAbiError> {
+        match self {
+            Self::I32(_) => Err(TassadarGeneralizedAbiError::ValueTypeMismatch {
+                context: String::from(context),
+                expected: String::from("i64"),
+                actual: String::from(self.type_label()),
+            }),
+            Self::I64(value) => Ok(*value),
+        }
+    }
+
+    fn as_trace_i64(&self) -> i64 {
+        match self {
+            Self::I32(value) => i64::from(*value),
+            Self::I64(value) => *value,
+        }
+    }
+}
+
 /// One instruction in the widened generalized ABI family.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "opcode", rename_all = "snake_case")]
 pub enum TassadarGeneralizedAbiInstruction {
     I32Const {
         value: i32,
+    },
+    I64Const {
+        value: i64,
     },
     LocalGet {
         local_index: u32,
@@ -33,7 +80,16 @@ pub enum TassadarGeneralizedAbiInstruction {
         region_id: String,
         index_local_index: u32,
     },
+    I64LoadRegionAtIndex {
+        region_id: String,
+        index_local_index: u32,
+    },
     I32StoreRegionAtIndex {
+        region_id: String,
+        index_local_index: u32,
+        value_local_index: u32,
+    },
+    I64StoreRegionAtIndex {
         region_id: String,
         index_local_index: u32,
         value_local_index: u32,
@@ -57,8 +113,8 @@ pub struct TassadarGeneralizedAbiProgram {
     pub export_name: String,
     pub program_shape_id: String,
     pub param_kinds: Vec<TassadarGeneralizedAbiParamKind>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub result_kind: Option<TassadarGeneralizedAbiResultKind>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub result_kinds: Vec<TassadarGeneralizedAbiResultKind>,
     pub local_count: usize,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub memory_regions: Vec<TassadarGeneralizedAbiMemoryRegion>,
@@ -82,6 +138,7 @@ impl TassadarGeneralizedAbiProgram {
         for (param_index, kind) in self.param_kinds.iter().copied().enumerate() {
             match kind {
                 TassadarGeneralizedAbiParamKind::I32
+                | TassadarGeneralizedAbiParamKind::I64
                 | TassadarGeneralizedAbiParamKind::PointerToI32
                 | TassadarGeneralizedAbiParamKind::LengthI32 => {}
                 unsupported => {
@@ -92,10 +149,22 @@ impl TassadarGeneralizedAbiProgram {
                 }
             }
         }
-        if let Some(result_kind) = self.result_kind
-            && result_kind != TassadarGeneralizedAbiResultKind::I32
-        {
-            return Err(TassadarGeneralizedAbiError::UnsupportedResultKind { kind: result_kind });
+        match self.result_kinds.as_slice() {
+            []
+            | [TassadarGeneralizedAbiResultKind::I32]
+            | [TassadarGeneralizedAbiResultKind::I64]
+            | [
+                TassadarGeneralizedAbiResultKind::I32,
+                TassadarGeneralizedAbiResultKind::I32,
+            ] => {}
+            [kind] => {
+                return Err(TassadarGeneralizedAbiError::UnsupportedResultKind { kind: *kind });
+            }
+            kinds => {
+                return Err(TassadarGeneralizedAbiError::UnsupportedResultKinds {
+                    kinds: kinds.to_vec(),
+                });
+            }
         }
         let mut region_ids = BTreeSet::new();
         for region in &self.memory_regions {
@@ -123,6 +192,10 @@ impl TassadarGeneralizedAbiProgram {
                 TassadarGeneralizedAbiInstruction::I32LoadRegionAtIndex {
                     region_id,
                     index_local_index,
+                }
+                | TassadarGeneralizedAbiInstruction::I64LoadRegionAtIndex {
+                    region_id,
+                    index_local_index,
                 } => {
                     if *index_local_index as usize >= self.local_count {
                         return Err(TassadarGeneralizedAbiError::LocalOutOfRange {
@@ -139,6 +212,11 @@ impl TassadarGeneralizedAbiProgram {
                     }
                 }
                 TassadarGeneralizedAbiInstruction::I32StoreRegionAtIndex {
+                    region_id,
+                    index_local_index,
+                    value_local_index,
+                }
+                | TassadarGeneralizedAbiInstruction::I64StoreRegionAtIndex {
                     region_id,
                     index_local_index,
                     value_local_index,
@@ -179,14 +257,14 @@ impl TassadarGeneralizedAbiProgram {
 /// One invocation over the widened generalized ABI family.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TassadarGeneralizedAbiInvocation {
-    pub args: Vec<i32>,
+    pub args: Vec<i64>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub heap_bytes: Vec<u8>,
 }
 
 impl TassadarGeneralizedAbiInvocation {
     #[must_use]
-    pub fn new(args: Vec<i32>) -> Self {
+    pub fn new(args: Vec<i64>) -> Self {
         Self {
             args,
             heap_bytes: Vec::new(),
@@ -205,10 +283,10 @@ impl TassadarGeneralizedAbiInvocation {
 pub struct TassadarGeneralizedAbiRegionObservation {
     pub region_id: String,
     pub role: TassadarGeneralizedAbiMemoryRegionRole,
-    pub pointer: i32,
-    pub length: i32,
+    pub pointer: i64,
+    pub length: i64,
     pub element_width_bytes: u8,
-    pub words: Vec<i32>,
+    pub words: Vec<i64>,
     pub region_digest: String,
 }
 
@@ -217,34 +295,34 @@ pub struct TassadarGeneralizedAbiRegionObservation {
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum TassadarGeneralizedAbiTraceEvent {
     ConstPush {
-        value: i32,
+        value: i64,
     },
     LocalGet {
         local_index: u32,
-        value: i32,
+        value: i64,
     },
     LocalSet {
         local_index: u32,
-        value: i32,
+        value: i64,
     },
     BinaryOp {
         op: TassadarStructuredControlBinaryOp,
-        left: i32,
-        right: i32,
-        result: i32,
+        left: i64,
+        right: i64,
+        result: i64,
     },
     RegionLoad {
         region_id: String,
         address: u32,
-        value: i32,
+        value: i64,
     },
     RegionStore {
         region_id: String,
         address: u32,
-        value: i32,
+        value: i64,
     },
     BranchIfZero {
-        condition: i32,
+        condition: i64,
         target_pc: usize,
         taken: bool,
     },
@@ -253,7 +331,9 @@ pub enum TassadarGeneralizedAbiTraceEvent {
     },
     Return {
         #[serde(skip_serializing_if = "Option::is_none")]
-        value: Option<i32>,
+        value: Option<i64>,
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        values: Vec<i64>,
     },
 }
 
@@ -263,8 +343,8 @@ pub struct TassadarGeneralizedAbiTraceStep {
     pub step_index: usize,
     pub pc_before: usize,
     pub event: TassadarGeneralizedAbiTraceEvent,
-    pub locals_after: Vec<i32>,
-    pub operand_stack_after: Vec<i32>,
+    pub locals_after: Vec<i64>,
+    pub operand_stack_after: Vec<i64>,
 }
 
 /// One complete execution result in the widened generalized ABI family.
@@ -279,6 +359,10 @@ pub struct TassadarGeneralizedAbiExecution {
     pub steps: Vec<TassadarGeneralizedAbiTraceStep>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub returned_value: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub returned_i64: Option<i64>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub returned_values: Vec<i64>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub output_regions: Vec<TassadarGeneralizedAbiRegionObservation>,
 }
@@ -311,6 +395,10 @@ pub enum TassadarGeneralizedAbiError {
     #[error("generalized ABI result declares unsupported kind `{kind:?}`")]
     UnsupportedResultKind {
         kind: TassadarGeneralizedAbiResultKind,
+    },
+    #[error("generalized ABI result vector declares unsupported kinds `{kinds:?}`")]
+    UnsupportedResultKinds {
+        kinds: Vec<TassadarGeneralizedAbiResultKind>,
     },
     #[error("generalized ABI memory region id must not be empty")]
     EmptyMemoryRegionId,
@@ -361,6 +449,22 @@ pub enum TassadarGeneralizedAbiError {
         local_count: usize,
     },
     #[error(
+        "generalized ABI invocation arg {arg_index} expected `{expected}` but received `{actual}`"
+    )]
+    InvocationArgTypeMismatch {
+        arg_index: usize,
+        expected: String,
+        actual: String,
+    },
+    #[error(
+        "generalized ABI value type mismatch for {context}: expected `{expected}`, actual `{actual}`"
+    )]
+    ValueTypeMismatch {
+        context: String,
+        expected: String,
+        actual: String,
+    },
+    #[error(
         "generalized ABI instruction at pc {pc} branches to invalid target {target_pc} (instruction_count={instruction_count})"
     )]
     InvalidBranchTarget {
@@ -373,12 +477,12 @@ pub enum TassadarGeneralizedAbiError {
     #[error("generalized ABI heap-backed invocation is missing heap bytes")]
     MissingHeapBytes,
     #[error("generalized ABI pointer arg {pointer} must be non-negative")]
-    NegativePointer { pointer: i32 },
+    NegativePointer { pointer: i64 },
     #[error("generalized ABI length arg {length} must be non-negative")]
-    NegativeLength { length: i32 },
+    NegativeLength { length: i64 },
     #[error("generalized ABI pointer {pointer} is not aligned to {required_alignment} bytes")]
     UnalignedPointer {
-        pointer: i32,
+        pointer: i64,
         required_alignment: u8,
     },
     #[error(
@@ -386,8 +490,8 @@ pub enum TassadarGeneralizedAbiError {
     )]
     MemoryRegionOutOfRange {
         region_id: String,
-        pointer: i32,
-        length: i32,
+        pointer: i64,
+        length: i64,
         element_width_bytes: u8,
         heap_len: usize,
     },
@@ -396,7 +500,7 @@ pub enum TassadarGeneralizedAbiError {
     )]
     MemoryRegionTooShort {
         region_id: String,
-        actual_length: i32,
+        actual_length: i64,
         minimum_length: u8,
     },
     #[error(
@@ -411,8 +515,8 @@ pub enum TassadarGeneralizedAbiError {
     )]
     MemoryRegionIndexOutOfRange {
         region_id: String,
-        index: i32,
-        length: i32,
+        index: i64,
+        length: i64,
     },
     #[error(
         "generalized ABI stack underflow at pc {pc} for {context}: needed {needed}, available {available}"
@@ -451,9 +555,9 @@ pub fn execute_tassadar_generalized_abi_program(
     program.validate()?;
     validate_invocation(program, invocation)?;
 
-    let mut locals = vec![0; program.local_count];
+    let mut locals = vec![TassadarGeneralizedAbiRuntimeValue::I32(0); program.local_count];
     for (index, value) in invocation.args.iter().copied().enumerate() {
-        locals[index] = value;
+        locals[index] = runtime_value_from_arg(value, program.param_kinds[index], index)?;
     }
     let mut heap_bytes = invocation.heap_bytes.clone();
     let mut operand_stack = Vec::new();
@@ -484,20 +588,31 @@ pub fn execute_tassadar_generalized_abi_program(
         let pc_before = pc;
         let event = match instruction {
             TassadarGeneralizedAbiInstruction::I32Const { value } => {
-                operand_stack.push(value);
+                operand_stack.push(TassadarGeneralizedAbiRuntimeValue::I32(value));
+                pc += 1;
+                TassadarGeneralizedAbiTraceEvent::ConstPush {
+                    value: i64::from(value),
+                }
+            }
+            TassadarGeneralizedAbiInstruction::I64Const { value } => {
+                operand_stack.push(TassadarGeneralizedAbiRuntimeValue::I64(value));
                 pc += 1;
                 TassadarGeneralizedAbiTraceEvent::ConstPush { value }
             }
             TassadarGeneralizedAbiInstruction::LocalGet { local_index } => {
-                let value = *locals.get(local_index as usize).ok_or(
-                    TassadarGeneralizedAbiError::LocalOutOfRange {
+                let value = locals
+                    .get(local_index as usize)
+                    .ok_or(TassadarGeneralizedAbiError::LocalOutOfRange {
                         local_index,
                         local_count: locals.len(),
-                    },
-                )?;
-                operand_stack.push(value);
+                    })?
+                    .clone();
+                operand_stack.push(value.clone());
                 pc += 1;
-                TassadarGeneralizedAbiTraceEvent::LocalGet { local_index, value }
+                TassadarGeneralizedAbiTraceEvent::LocalGet {
+                    local_index,
+                    value: value.as_trace_i64(),
+                }
             }
             TassadarGeneralizedAbiInstruction::LocalSet { local_index } => {
                 let value = pop_operand(&mut operand_stack, pc, "local.set")?;
@@ -507,21 +622,24 @@ pub fn execute_tassadar_generalized_abi_program(
                         local_index,
                         local_count,
                     },
-                )? = value;
+                )? = value.clone();
                 pc += 1;
-                TassadarGeneralizedAbiTraceEvent::LocalSet { local_index, value }
+                TassadarGeneralizedAbiTraceEvent::LocalSet {
+                    local_index,
+                    value: value.as_trace_i64(),
+                }
             }
             TassadarGeneralizedAbiInstruction::BinaryOp { op } => {
                 let right = pop_operand(&mut operand_stack, pc, "binary_op")?;
                 let left = pop_operand(&mut operand_stack, pc, "binary_op")?;
-                let result = execute_binary_op(op, left, right);
-                operand_stack.push(result);
+                let result = execute_binary_op(op, left.clone(), right.clone())?;
+                operand_stack.push(result.clone());
                 pc += 1;
                 TassadarGeneralizedAbiTraceEvent::BinaryOp {
                     op,
-                    left,
-                    right,
-                    result,
+                    left: left.as_trace_i64(),
+                    right: right.as_trace_i64(),
+                    result: result.as_trace_i64(),
                 }
             }
             TassadarGeneralizedAbiInstruction::I32LoadRegionAtIndex {
@@ -535,7 +653,26 @@ pub fn execute_tassadar_generalized_abi_program(
                 )?;
                 let address = memory_region_address(region, &locals, index_local_index)?;
                 let value = load_i32(&heap_bytes, address)?;
-                operand_stack.push(value);
+                operand_stack.push(TassadarGeneralizedAbiRuntimeValue::I32(value));
+                pc += 1;
+                TassadarGeneralizedAbiTraceEvent::RegionLoad {
+                    region_id,
+                    address,
+                    value: i64::from(value),
+                }
+            }
+            TassadarGeneralizedAbiInstruction::I64LoadRegionAtIndex {
+                region_id,
+                index_local_index,
+            } => {
+                let region = region_lookup.get(region_id.as_str()).copied().ok_or(
+                    TassadarGeneralizedAbiError::UnknownMemoryRegionInInstruction {
+                        region_id: region_id.clone(),
+                    },
+                )?;
+                let address = memory_region_address(region, &locals, index_local_index)?;
+                let value = load_i64(&heap_bytes, address)?;
+                operand_stack.push(TassadarGeneralizedAbiRuntimeValue::I64(value));
                 pc += 1;
                 TassadarGeneralizedAbiTraceEvent::RegionLoad {
                     region_id,
@@ -554,13 +691,40 @@ pub fn execute_tassadar_generalized_abi_program(
                     },
                 )?;
                 let address = memory_region_address(region, &locals, index_local_index)?;
-                let value = *locals.get(value_local_index as usize).ok_or(
-                    TassadarGeneralizedAbiError::LocalOutOfRange {
+                let value = locals
+                    .get(value_local_index as usize)
+                    .ok_or(TassadarGeneralizedAbiError::LocalOutOfRange {
                         local_index: value_local_index,
                         local_count: locals.len(),
+                    })?
+                    .as_i32("i32_store_region_at_index")?;
+                store_i32(&mut heap_bytes, address, value)?;
+                pc += 1;
+                TassadarGeneralizedAbiTraceEvent::RegionStore {
+                    region_id,
+                    address,
+                    value: i64::from(value),
+                }
+            }
+            TassadarGeneralizedAbiInstruction::I64StoreRegionAtIndex {
+                region_id,
+                index_local_index,
+                value_local_index,
+            } => {
+                let region = region_lookup.get(region_id.as_str()).copied().ok_or(
+                    TassadarGeneralizedAbiError::UnknownMemoryRegionInInstruction {
+                        region_id: region_id.clone(),
                     },
                 )?;
-                store_i32(&mut heap_bytes, address, value)?;
+                let address = memory_region_address(region, &locals, index_local_index)?;
+                let value = locals
+                    .get(value_local_index as usize)
+                    .ok_or(TassadarGeneralizedAbiError::LocalOutOfRange {
+                        local_index: value_local_index,
+                        local_count: locals.len(),
+                    })?
+                    .as_i64("i64_store_region_at_index")?;
+                store_i64(&mut heap_bytes, address, value)?;
                 pc += 1;
                 TassadarGeneralizedAbiTraceEvent::RegionStore {
                     region_id,
@@ -570,14 +734,14 @@ pub fn execute_tassadar_generalized_abi_program(
             }
             TassadarGeneralizedAbiInstruction::BranchIfZero { target_pc } => {
                 let condition = pop_operand(&mut operand_stack, pc, "branch_if_zero")?;
-                let taken = condition == 0;
+                let taken = condition.as_trace_i64() == 0;
                 if taken {
                     pc = target_pc;
                 } else {
                     pc += 1;
                 }
                 TassadarGeneralizedAbiTraceEvent::BranchIfZero {
-                    condition,
+                    condition: condition.as_trace_i64(),
                     target_pc,
                     taken,
                 }
@@ -587,23 +751,41 @@ pub fn execute_tassadar_generalized_abi_program(
                 TassadarGeneralizedAbiTraceEvent::Jump { target_pc }
             }
             TassadarGeneralizedAbiInstruction::Return => {
-                let value = match program.result_kind {
-                    Some(TassadarGeneralizedAbiResultKind::I32) => {
-                        Some(pop_operand(&mut operand_stack, pc, "return_value")?)
-                    }
-                    Some(other) => {
-                        return Err(TassadarGeneralizedAbiError::UnsupportedResultKind {
-                            kind: other,
-                        });
-                    }
-                    None => None,
+                let mut runtime_values = Vec::new();
+                for _ in 0..program.result_kinds.len() {
+                    runtime_values.push(pop_operand(&mut operand_stack, pc, "return_value")?);
+                }
+                runtime_values.reverse();
+                let trace_values = runtime_values
+                    .iter()
+                    .map(TassadarGeneralizedAbiRuntimeValue::as_trace_i64)
+                    .collect::<Vec<_>>();
+                let returned_value =
+                    if program.result_kinds.as_slice() == [TassadarGeneralizedAbiResultKind::I32] {
+                        Some(runtime_values[0].as_i32("return_value")?)
+                    } else {
+                        None
+                    };
+                let returned_i64 =
+                    if program.result_kinds.as_slice() == [TassadarGeneralizedAbiResultKind::I64] {
+                        Some(runtime_values[0].as_i64("return_value")?)
+                    } else {
+                        None
+                    };
+                let returned_values = if program.result_kinds.len() > 1 {
+                    trace_values.clone()
+                } else {
+                    Vec::new()
                 };
                 steps.push(TassadarGeneralizedAbiTraceStep {
                     step_index,
                     pc_before,
-                    event: TassadarGeneralizedAbiTraceEvent::Return { value },
-                    locals_after: locals.clone(),
-                    operand_stack_after: operand_stack.clone(),
+                    event: TassadarGeneralizedAbiTraceEvent::Return {
+                        value: returned_value.map(i64::from).or(returned_i64),
+                        values: returned_values.clone(),
+                    },
+                    locals_after: trace_stack(&locals),
+                    operand_stack_after: trace_stack(&operand_stack),
                 });
                 let output_regions = program
                     .memory_regions
@@ -628,7 +810,9 @@ pub fn execute_tassadar_generalized_abi_program(
                         &heap_bytes,
                     ),
                     steps,
-                    returned_value: value,
+                    returned_value,
+                    returned_i64,
+                    returned_values,
                     output_regions,
                 });
             }
@@ -637,8 +821,8 @@ pub fn execute_tassadar_generalized_abi_program(
             step_index,
             pc_before,
             event,
-            locals_after: locals.clone(),
-            operand_stack_after: operand_stack.clone(),
+            locals_after: trace_stack(&locals),
+            operand_stack_after: trace_stack(&operand_stack),
         });
         step_index = step_index.saturating_add(1);
     }
@@ -685,7 +869,7 @@ fn validate_memory_region(
             },
         );
     }
-    if region.element_width_bytes != 4 {
+    if !matches!(region.element_width_bytes, 4 | 8) {
         return Err(
             TassadarGeneralizedAbiError::UnsupportedMemoryRegionElementWidth {
                 region_id: region.region_id.clone(),
@@ -694,6 +878,46 @@ fn validate_memory_region(
         );
     }
     Ok(())
+}
+
+fn runtime_value_from_arg(
+    value: i64,
+    kind: TassadarGeneralizedAbiParamKind,
+    arg_index: usize,
+) -> Result<TassadarGeneralizedAbiRuntimeValue, TassadarGeneralizedAbiError> {
+    match kind {
+        TassadarGeneralizedAbiParamKind::I64 => Ok(TassadarGeneralizedAbiRuntimeValue::I64(value)),
+        TassadarGeneralizedAbiParamKind::I32
+        | TassadarGeneralizedAbiParamKind::PointerToI32
+        | TassadarGeneralizedAbiParamKind::LengthI32 => i32::try_from(value)
+            .map(TassadarGeneralizedAbiRuntimeValue::I32)
+            .map_err(|_| TassadarGeneralizedAbiError::InvocationArgTypeMismatch {
+                arg_index,
+                expected: match kind {
+                    TassadarGeneralizedAbiParamKind::I32 => String::from("i32"),
+                    TassadarGeneralizedAbiParamKind::PointerToI32 => String::from("pointer_to_i32"),
+                    TassadarGeneralizedAbiParamKind::LengthI32 => String::from("length_i32"),
+                    TassadarGeneralizedAbiParamKind::I64
+                    | TassadarGeneralizedAbiParamKind::F32
+                    | TassadarGeneralizedAbiParamKind::HostHandle => unreachable!(),
+                },
+                actual: format!("out_of_range_i64({value})"),
+            }),
+        TassadarGeneralizedAbiParamKind::F32 | TassadarGeneralizedAbiParamKind::HostHandle => {
+            Err(TassadarGeneralizedAbiError::InvocationArgTypeMismatch {
+                arg_index,
+                expected: String::from("supported_generalized_abi_param"),
+                actual: format!("{kind:?}"),
+            })
+        }
+    }
+}
+
+fn trace_stack(values: &[TassadarGeneralizedAbiRuntimeValue]) -> Vec<i64> {
+    values
+        .iter()
+        .map(TassadarGeneralizedAbiRuntimeValue::as_trace_i64)
+        .collect()
 }
 
 fn validate_invocation(
@@ -710,6 +934,11 @@ fn validate_invocation(
         return Err(TassadarGeneralizedAbiError::MissingHeapBytes);
     }
 
+    for (arg_index, (&value, kind)) in invocation.args.iter().zip(&program.param_kinds).enumerate()
+    {
+        runtime_value_from_arg(value, *kind, arg_index)?;
+    }
+
     let mut ranges = Vec::new();
     for region in &program.memory_regions {
         let pointer = invocation.args[region.pointer_param_index as usize];
@@ -720,21 +949,27 @@ fn validate_invocation(
         if length < 0 {
             return Err(TassadarGeneralizedAbiError::NegativeLength { length });
         }
-        if pointer % i32::from(region.element_width_bytes) != 0 {
+        if pointer % i64::from(region.element_width_bytes) != 0 {
             return Err(TassadarGeneralizedAbiError::UnalignedPointer {
                 pointer,
                 required_alignment: region.element_width_bytes,
             });
         }
-        if length < i32::from(region.minimum_length_elements) {
+        if length < i64::from(region.minimum_length_elements) {
             return Err(TassadarGeneralizedAbiError::MemoryRegionTooShort {
                 region_id: region.region_id.clone(),
                 actual_length: length,
                 minimum_length: region.minimum_length_elements,
             });
         }
-        let needed_bytes = usize::try_from(pointer).unwrap_or_default()
-            + usize::try_from(length).unwrap_or_default() * usize::from(region.element_width_bytes);
+        let needed_bytes = usize::try_from(pointer)
+            .unwrap_or(usize::MAX)
+            .checked_add(
+                usize::try_from(length)
+                    .unwrap_or(usize::MAX)
+                    .saturating_mul(usize::from(region.element_width_bytes)),
+            )
+            .unwrap_or(usize::MAX);
         if needed_bytes > invocation.heap_bytes.len() {
             return Err(TassadarGeneralizedAbiError::MemoryRegionOutOfRange {
                 region_id: region.region_id.clone(),
@@ -779,40 +1014,44 @@ fn validate_invocation(
 
 fn memory_region_address(
     region: &TassadarGeneralizedAbiMemoryRegion,
-    locals: &[i32],
+    locals: &[TassadarGeneralizedAbiRuntimeValue],
     index_local_index: u32,
 ) -> Result<u32, TassadarGeneralizedAbiError> {
-    let base_pointer = *locals.get(region.pointer_param_index as usize).ok_or(
-        TassadarGeneralizedAbiError::LocalOutOfRange {
+    let base_pointer = locals
+        .get(region.pointer_param_index as usize)
+        .ok_or(TassadarGeneralizedAbiError::LocalOutOfRange {
             local_index: u32::from(region.pointer_param_index),
             local_count: locals.len(),
-        },
-    )?;
-    let declared_length = *locals.get(region.length_param_index as usize).ok_or(
-        TassadarGeneralizedAbiError::LocalOutOfRange {
+        })?
+        .as_i32("memory_region_pointer")?;
+    let declared_length = locals
+        .get(region.length_param_index as usize)
+        .ok_or(TassadarGeneralizedAbiError::LocalOutOfRange {
             local_index: u32::from(region.length_param_index),
             local_count: locals.len(),
-        },
-    )?;
-    let index = *locals.get(index_local_index as usize).ok_or(
-        TassadarGeneralizedAbiError::LocalOutOfRange {
+        })?
+        .as_i32("memory_region_length")?;
+    let index = locals
+        .get(index_local_index as usize)
+        .ok_or(TassadarGeneralizedAbiError::LocalOutOfRange {
             local_index: index_local_index,
             local_count: locals.len(),
-        },
-    )?;
+        })?
+        .as_i32("memory_region_index")?;
     if index < 0 || index >= declared_length {
         return Err(TassadarGeneralizedAbiError::MemoryRegionIndexOutOfRange {
             region_id: region.region_id.clone(),
-            index,
-            length: declared_length,
+            index: i64::from(index),
+            length: i64::from(declared_length),
         });
     }
     let base_pointer =
         u32::try_from(base_pointer).map_err(|_| TassadarGeneralizedAbiError::NegativePointer {
-            pointer: base_pointer,
+            pointer: i64::from(base_pointer),
         })?;
-    let index = u32::try_from(index)
-        .map_err(|_| TassadarGeneralizedAbiError::NegativeLength { length: index })?;
+    let index = u32::try_from(index).map_err(|_| TassadarGeneralizedAbiError::NegativeLength {
+        length: i64::from(index),
+    })?;
     base_pointer
         .checked_add(index.saturating_mul(u32::from(region.element_width_bytes)))
         .ok_or(TassadarGeneralizedAbiError::HeapLoadOutOfRange {
@@ -837,6 +1076,21 @@ fn load_i32(heap_bytes: &[u8], address: u32) -> Result<i32, TassadarGeneralizedA
     ))
 }
 
+fn load_i64(heap_bytes: &[u8], address: u32) -> Result<i64, TassadarGeneralizedAbiError> {
+    let address = usize::try_from(address).unwrap_or(usize::MAX);
+    let end = address.saturating_add(8);
+    if end > heap_bytes.len() {
+        return Err(TassadarGeneralizedAbiError::HeapLoadOutOfRange {
+            address: address as u32,
+            width_bytes: 8,
+            heap_len: heap_bytes.len(),
+        });
+    }
+    Ok(i64::from_le_bytes(
+        heap_bytes[address..end].try_into().expect("length checked"),
+    ))
+}
+
 fn store_i32(
     heap_bytes: &mut [u8],
     address: u32,
@@ -855,21 +1109,45 @@ fn store_i32(
     Ok(())
 }
 
+fn store_i64(
+    heap_bytes: &mut [u8],
+    address: u32,
+    value: i64,
+) -> Result<(), TassadarGeneralizedAbiError> {
+    let address = usize::try_from(address).unwrap_or(usize::MAX);
+    let end = address.saturating_add(8);
+    if end > heap_bytes.len() {
+        return Err(TassadarGeneralizedAbiError::HeapStoreOutOfRange {
+            address: address as u32,
+            width_bytes: 8,
+            heap_len: heap_bytes.len(),
+        });
+    }
+    heap_bytes[address..end].copy_from_slice(&value.to_le_bytes());
+    Ok(())
+}
+
 fn capture_region_observation(
     region: &TassadarGeneralizedAbiMemoryRegion,
-    locals: &[i32],
+    locals: &[TassadarGeneralizedAbiRuntimeValue],
     heap_bytes: &[u8],
 ) -> Result<TassadarGeneralizedAbiRegionObservation, TassadarGeneralizedAbiError> {
-    let pointer = locals[region.pointer_param_index as usize];
-    let length = locals[region.length_param_index as usize];
+    let pointer = locals[region.pointer_param_index as usize].as_trace_i64();
+    let length = locals[region.length_param_index as usize].as_trace_i64();
     let start = usize::try_from(pointer).unwrap_or_default();
-    let byte_len =
-        usize::try_from(length).unwrap_or_default() * usize::from(region.element_width_bytes);
+    let byte_len = usize::try_from(length)
+        .unwrap_or_default()
+        .saturating_mul(usize::from(region.element_width_bytes));
     let end = start.saturating_add(byte_len);
     let mut words = Vec::new();
     let mut cursor = start;
     while cursor < end {
-        words.push(load_i32(heap_bytes, cursor as u32)?);
+        let word = match region.element_width_bytes {
+            4 => i64::from(load_i32(heap_bytes, cursor as u32)?),
+            8 => load_i64(heap_bytes, cursor as u32)?,
+            _ => unreachable!("validate_memory_region gates element width"),
+        };
+        words.push(word);
         cursor = cursor.saturating_add(usize::from(region.element_width_bytes));
     }
     Ok(TassadarGeneralizedAbiRegionObservation {
@@ -887,10 +1165,10 @@ fn capture_region_observation(
 }
 
 fn pop_operand(
-    operand_stack: &mut Vec<i32>,
+    operand_stack: &mut Vec<TassadarGeneralizedAbiRuntimeValue>,
     pc: usize,
     context: &str,
-) -> Result<i32, TassadarGeneralizedAbiError> {
+) -> Result<TassadarGeneralizedAbiRuntimeValue, TassadarGeneralizedAbiError> {
     let available = operand_stack.len();
     operand_stack
         .pop()
@@ -902,29 +1180,141 @@ fn pop_operand(
         })
 }
 
-fn execute_binary_op(op: TassadarStructuredControlBinaryOp, left: i32, right: i32) -> i32 {
-    match op {
-        TassadarStructuredControlBinaryOp::Add => left.saturating_add(right),
-        TassadarStructuredControlBinaryOp::Sub => left.saturating_sub(right),
-        TassadarStructuredControlBinaryOp::Mul => left.saturating_mul(right),
-        TassadarStructuredControlBinaryOp::Eq => i32::from(left == right),
-        TassadarStructuredControlBinaryOp::Ne => i32::from(left != right),
-        TassadarStructuredControlBinaryOp::LtS => i32::from(left < right),
-        TassadarStructuredControlBinaryOp::LtU => i32::from((left as u32) < (right as u32)),
-        TassadarStructuredControlBinaryOp::GtS => i32::from(left > right),
-        TassadarStructuredControlBinaryOp::GtU => i32::from((left as u32) > (right as u32)),
-        TassadarStructuredControlBinaryOp::LeS => i32::from(left <= right),
-        TassadarStructuredControlBinaryOp::LeU => i32::from((left as u32) <= (right as u32)),
-        TassadarStructuredControlBinaryOp::GeS => i32::from(left >= right),
-        TassadarStructuredControlBinaryOp::GeU => i32::from((left as u32) >= (right as u32)),
-        TassadarStructuredControlBinaryOp::And => left & right,
-        TassadarStructuredControlBinaryOp::Or => left | right,
-        TassadarStructuredControlBinaryOp::Xor => left ^ right,
-        TassadarStructuredControlBinaryOp::Shl => left.wrapping_shl(right as u32),
-        TassadarStructuredControlBinaryOp::ShrS => left.wrapping_shr(right as u32),
-        TassadarStructuredControlBinaryOp::ShrU => {
-            ((left as u32).wrapping_shr(right as u32)) as i32
-        }
+fn execute_binary_op(
+    op: TassadarStructuredControlBinaryOp,
+    left: TassadarGeneralizedAbiRuntimeValue,
+    right: TassadarGeneralizedAbiRuntimeValue,
+) -> Result<TassadarGeneralizedAbiRuntimeValue, TassadarGeneralizedAbiError> {
+    match (left, right) {
+        (
+            TassadarGeneralizedAbiRuntimeValue::I32(left),
+            TassadarGeneralizedAbiRuntimeValue::I32(right),
+        ) => Ok(match op {
+            TassadarStructuredControlBinaryOp::Add => {
+                TassadarGeneralizedAbiRuntimeValue::I32(left.saturating_add(right))
+            }
+            TassadarStructuredControlBinaryOp::Sub => {
+                TassadarGeneralizedAbiRuntimeValue::I32(left.saturating_sub(right))
+            }
+            TassadarStructuredControlBinaryOp::Mul => {
+                TassadarGeneralizedAbiRuntimeValue::I32(left.saturating_mul(right))
+            }
+            TassadarStructuredControlBinaryOp::Eq => {
+                TassadarGeneralizedAbiRuntimeValue::I32(i32::from(left == right))
+            }
+            TassadarStructuredControlBinaryOp::Ne => {
+                TassadarGeneralizedAbiRuntimeValue::I32(i32::from(left != right))
+            }
+            TassadarStructuredControlBinaryOp::LtS => {
+                TassadarGeneralizedAbiRuntimeValue::I32(i32::from(left < right))
+            }
+            TassadarStructuredControlBinaryOp::LtU => {
+                TassadarGeneralizedAbiRuntimeValue::I32(i32::from((left as u32) < (right as u32)))
+            }
+            TassadarStructuredControlBinaryOp::GtS => {
+                TassadarGeneralizedAbiRuntimeValue::I32(i32::from(left > right))
+            }
+            TassadarStructuredControlBinaryOp::GtU => {
+                TassadarGeneralizedAbiRuntimeValue::I32(i32::from((left as u32) > (right as u32)))
+            }
+            TassadarStructuredControlBinaryOp::LeS => {
+                TassadarGeneralizedAbiRuntimeValue::I32(i32::from(left <= right))
+            }
+            TassadarStructuredControlBinaryOp::LeU => {
+                TassadarGeneralizedAbiRuntimeValue::I32(i32::from((left as u32) <= (right as u32)))
+            }
+            TassadarStructuredControlBinaryOp::GeS => {
+                TassadarGeneralizedAbiRuntimeValue::I32(i32::from(left >= right))
+            }
+            TassadarStructuredControlBinaryOp::GeU => {
+                TassadarGeneralizedAbiRuntimeValue::I32(i32::from((left as u32) >= (right as u32)))
+            }
+            TassadarStructuredControlBinaryOp::And => {
+                TassadarGeneralizedAbiRuntimeValue::I32(left & right)
+            }
+            TassadarStructuredControlBinaryOp::Or => {
+                TassadarGeneralizedAbiRuntimeValue::I32(left | right)
+            }
+            TassadarStructuredControlBinaryOp::Xor => {
+                TassadarGeneralizedAbiRuntimeValue::I32(left ^ right)
+            }
+            TassadarStructuredControlBinaryOp::Shl => {
+                TassadarGeneralizedAbiRuntimeValue::I32(left.wrapping_shl(right as u32))
+            }
+            TassadarStructuredControlBinaryOp::ShrS => {
+                TassadarGeneralizedAbiRuntimeValue::I32(left.wrapping_shr(right as u32))
+            }
+            TassadarStructuredControlBinaryOp::ShrU => TassadarGeneralizedAbiRuntimeValue::I32(
+                ((left as u32).wrapping_shr(right as u32)) as i32,
+            ),
+        }),
+        (
+            TassadarGeneralizedAbiRuntimeValue::I64(left),
+            TassadarGeneralizedAbiRuntimeValue::I64(right),
+        ) => Ok(match op {
+            TassadarStructuredControlBinaryOp::Add => {
+                TassadarGeneralizedAbiRuntimeValue::I64(left.saturating_add(right))
+            }
+            TassadarStructuredControlBinaryOp::Sub => {
+                TassadarGeneralizedAbiRuntimeValue::I64(left.saturating_sub(right))
+            }
+            TassadarStructuredControlBinaryOp::Mul => {
+                TassadarGeneralizedAbiRuntimeValue::I64(left.saturating_mul(right))
+            }
+            TassadarStructuredControlBinaryOp::Eq => {
+                TassadarGeneralizedAbiRuntimeValue::I32(i32::from(left == right))
+            }
+            TassadarStructuredControlBinaryOp::Ne => {
+                TassadarGeneralizedAbiRuntimeValue::I32(i32::from(left != right))
+            }
+            TassadarStructuredControlBinaryOp::LtS => {
+                TassadarGeneralizedAbiRuntimeValue::I32(i32::from(left < right))
+            }
+            TassadarStructuredControlBinaryOp::LtU => {
+                TassadarGeneralizedAbiRuntimeValue::I32(i32::from((left as u64) < (right as u64)))
+            }
+            TassadarStructuredControlBinaryOp::GtS => {
+                TassadarGeneralizedAbiRuntimeValue::I32(i32::from(left > right))
+            }
+            TassadarStructuredControlBinaryOp::GtU => {
+                TassadarGeneralizedAbiRuntimeValue::I32(i32::from((left as u64) > (right as u64)))
+            }
+            TassadarStructuredControlBinaryOp::LeS => {
+                TassadarGeneralizedAbiRuntimeValue::I32(i32::from(left <= right))
+            }
+            TassadarStructuredControlBinaryOp::LeU => {
+                TassadarGeneralizedAbiRuntimeValue::I32(i32::from((left as u64) <= (right as u64)))
+            }
+            TassadarStructuredControlBinaryOp::GeS => {
+                TassadarGeneralizedAbiRuntimeValue::I32(i32::from(left >= right))
+            }
+            TassadarStructuredControlBinaryOp::GeU => {
+                TassadarGeneralizedAbiRuntimeValue::I32(i32::from((left as u64) >= (right as u64)))
+            }
+            TassadarStructuredControlBinaryOp::And => {
+                TassadarGeneralizedAbiRuntimeValue::I64(left & right)
+            }
+            TassadarStructuredControlBinaryOp::Or => {
+                TassadarGeneralizedAbiRuntimeValue::I64(left | right)
+            }
+            TassadarStructuredControlBinaryOp::Xor => {
+                TassadarGeneralizedAbiRuntimeValue::I64(left ^ right)
+            }
+            TassadarStructuredControlBinaryOp::Shl => {
+                TassadarGeneralizedAbiRuntimeValue::I64(left.wrapping_shl(right as u32))
+            }
+            TassadarStructuredControlBinaryOp::ShrS => {
+                TassadarGeneralizedAbiRuntimeValue::I64(left.wrapping_shr(right as u32))
+            }
+            TassadarStructuredControlBinaryOp::ShrU => TassadarGeneralizedAbiRuntimeValue::I64(
+                ((left as u64).wrapping_shr(right as u32)) as i64,
+            ),
+        }),
+        (left, right) => Err(TassadarGeneralizedAbiError::ValueTypeMismatch {
+            context: String::from("binary_op_operands"),
+            expected: String::from(left.type_label()),
+            actual: String::from(right.type_label()),
+        }),
     }
 }
 
@@ -937,6 +1327,11 @@ fn stable_digest<T: Serialize>(prefix: &[u8], value: &T) -> String {
 
 #[must_use]
 pub fn tassadar_generalized_abi_pair_add_invocation() -> TassadarGeneralizedAbiInvocation {
+    TassadarGeneralizedAbiInvocation::new(vec![20, 22])
+}
+
+#[must_use]
+pub fn tassadar_generalized_abi_pair_add_i64_invocation() -> TassadarGeneralizedAbiInvocation {
     TassadarGeneralizedAbiInvocation::new(vec![20, 22])
 }
 
@@ -960,12 +1355,37 @@ pub fn tassadar_generalized_abi_dual_heap_dot_out_of_range_invocation()
 }
 
 #[must_use]
+pub fn tassadar_generalized_abi_pair_sum_and_diff_i32_invocation()
+-> TassadarGeneralizedAbiInvocation {
+    TassadarGeneralizedAbiInvocation::new(vec![20, 22])
+}
+
+#[must_use]
 pub fn tassadar_generalized_abi_status_output_invocation() -> TassadarGeneralizedAbiInvocation {
     let mut bytes = Vec::new();
     for value in [5_i32, 2_i32, 9_i32, 3_i32, 0_i32, 0_i32] {
         bytes.extend_from_slice(&value.to_le_bytes());
     }
     TassadarGeneralizedAbiInvocation::new(vec![0, 4, 16, 2]).with_heap_bytes(bytes)
+}
+
+#[must_use]
+pub fn tassadar_generalized_abi_i64_status_output_invocation() -> TassadarGeneralizedAbiInvocation {
+    let mut bytes = Vec::new();
+    for value in [5_i64, 2_i64, 9_i64, 3_i64, 0_i64, 0_i64] {
+        bytes.extend_from_slice(&value.to_le_bytes());
+    }
+    TassadarGeneralizedAbiInvocation::new(vec![0, 4, 32, 2]).with_heap_bytes(bytes)
+}
+
+#[must_use]
+pub fn tassadar_generalized_abi_i64_status_output_unaligned_invocation()
+-> TassadarGeneralizedAbiInvocation {
+    let mut bytes = Vec::new();
+    for value in [5_i64, 2_i64, 9_i64, 3_i64, 0_i64, 0_i64] {
+        bytes.extend_from_slice(&value.to_le_bytes());
+    }
+    TassadarGeneralizedAbiInvocation::new(vec![4, 4, 36, 2]).with_heap_bytes(bytes)
 }
 
 #[must_use]
@@ -1002,15 +1422,20 @@ mod tests {
         TassadarGeneralizedAbiError, TassadarGeneralizedAbiInstruction,
         TassadarGeneralizedAbiProgram, execute_tassadar_generalized_abi_program,
         tassadar_generalized_abi_dual_heap_dot_invocation,
-        tassadar_generalized_abi_pair_add_invocation, tassadar_generalized_abi_program_id,
+        tassadar_generalized_abi_i64_status_output_invocation,
+        tassadar_generalized_abi_i64_status_output_unaligned_invocation,
+        tassadar_generalized_abi_pair_add_i64_invocation,
+        tassadar_generalized_abi_pair_add_invocation,
+        tassadar_generalized_abi_pair_sum_and_diff_i32_invocation,
+        tassadar_generalized_abi_program_id,
         tassadar_generalized_abi_status_output_aliasing_invocation,
         tassadar_generalized_abi_status_output_invocation,
         tassadar_generalized_abi_status_output_short_invocation,
     };
-    use psionic_ir::TassadarGeneralizedAbiFixture;
+    use psionic_ir::{TassadarGeneralizedAbiFixture, TassadarGeneralizedAbiResultKind};
 
     #[test]
-    fn generalized_abi_scalar_and_output_shapes_are_exact() {
+    fn generalized_abi_scalar_output_and_wider_numeric_shapes_are_exact() {
         let pair_fixture = TassadarGeneralizedAbiFixture::pair_add_i32();
         let pair_program = TassadarGeneralizedAbiProgram {
             program_id: tassadar_generalized_abi_program_id(&pair_fixture),
@@ -1020,7 +1445,7 @@ mod tests {
             export_name: pair_fixture.export_name.clone(),
             program_shape_id: pair_fixture.program_shape_id.clone(),
             param_kinds: pair_fixture.param_kinds.clone(),
-            result_kind: pair_fixture.result_kinds.first().copied(),
+            result_kinds: pair_fixture.result_kinds.clone(),
             local_count: 2,
             memory_regions: Vec::new(),
             runtime_support_ids: pair_fixture.runtime_support_ids.clone(),
@@ -1042,6 +1467,37 @@ mod tests {
         .expect("pair add should execute");
         assert_eq!(pair_execution.returned_value, Some(42));
 
+        let pair_i64_fixture = TassadarGeneralizedAbiFixture::pair_add_i64();
+        let pair_i64_program = TassadarGeneralizedAbiProgram {
+            program_id: tassadar_generalized_abi_program_id(&pair_i64_fixture),
+            fixture_id: String::from(pair_i64_fixture.fixture_id.as_str()),
+            source_case_id: pair_i64_fixture.source_case_id.clone(),
+            source_ref: pair_i64_fixture.source_ref.clone(),
+            export_name: pair_i64_fixture.export_name.clone(),
+            program_shape_id: pair_i64_fixture.program_shape_id.clone(),
+            param_kinds: pair_i64_fixture.param_kinds.clone(),
+            result_kinds: pair_i64_fixture.result_kinds.clone(),
+            local_count: 2,
+            memory_regions: Vec::new(),
+            runtime_support_ids: pair_i64_fixture.runtime_support_ids.clone(),
+            instructions: vec![
+                TassadarGeneralizedAbiInstruction::LocalGet { local_index: 0 },
+                TassadarGeneralizedAbiInstruction::LocalGet { local_index: 1 },
+                TassadarGeneralizedAbiInstruction::BinaryOp {
+                    op: crate::TassadarStructuredControlBinaryOp::Add,
+                },
+                TassadarGeneralizedAbiInstruction::Return,
+            ],
+            claim_boundary: pair_i64_fixture.claim_boundary.clone(),
+        };
+
+        let pair_i64_execution = execute_tassadar_generalized_abi_program(
+            &pair_i64_program,
+            &tassadar_generalized_abi_pair_add_i64_invocation(),
+        )
+        .expect("pair add i64 should execute");
+        assert_eq!(pair_i64_execution.returned_i64, Some(42));
+
         let output_fixture = TassadarGeneralizedAbiFixture::sum_and_max_status_output();
         let output_program = TassadarGeneralizedAbiProgram {
             program_id: tassadar_generalized_abi_program_id(&output_fixture),
@@ -1051,7 +1507,7 @@ mod tests {
             export_name: output_fixture.export_name.clone(),
             program_shape_id: output_fixture.program_shape_id.clone(),
             param_kinds: output_fixture.param_kinds.clone(),
-            result_kind: output_fixture.result_kinds.first().copied(),
+            result_kinds: output_fixture.result_kinds.clone(),
             local_count: 8,
             memory_regions: output_fixture.memory_regions.clone(),
             runtime_support_ids: output_fixture.runtime_support_ids.clone(),
@@ -1125,10 +1581,130 @@ mod tests {
         .expect("status output should execute");
         assert_eq!(output_execution.returned_value, Some(0));
         assert_eq!(output_execution.output_regions[0].words, vec![19, 9]);
+
+        let multi_value_fixture = TassadarGeneralizedAbiFixture::pair_sum_and_diff_i32();
+        let multi_value_program = TassadarGeneralizedAbiProgram {
+            program_id: tassadar_generalized_abi_program_id(&multi_value_fixture),
+            fixture_id: String::from(multi_value_fixture.fixture_id.as_str()),
+            source_case_id: multi_value_fixture.source_case_id.clone(),
+            source_ref: multi_value_fixture.source_ref.clone(),
+            export_name: multi_value_fixture.export_name.clone(),
+            program_shape_id: multi_value_fixture.program_shape_id.clone(),
+            param_kinds: multi_value_fixture.param_kinds.clone(),
+            result_kinds: multi_value_fixture.result_kinds.clone(),
+            local_count: 2,
+            memory_regions: Vec::new(),
+            runtime_support_ids: multi_value_fixture.runtime_support_ids.clone(),
+            instructions: vec![
+                TassadarGeneralizedAbiInstruction::LocalGet { local_index: 0 },
+                TassadarGeneralizedAbiInstruction::LocalGet { local_index: 1 },
+                TassadarGeneralizedAbiInstruction::BinaryOp {
+                    op: crate::TassadarStructuredControlBinaryOp::Add,
+                },
+                TassadarGeneralizedAbiInstruction::LocalGet { local_index: 0 },
+                TassadarGeneralizedAbiInstruction::LocalGet { local_index: 1 },
+                TassadarGeneralizedAbiInstruction::BinaryOp {
+                    op: crate::TassadarStructuredControlBinaryOp::Sub,
+                },
+                TassadarGeneralizedAbiInstruction::Return,
+            ],
+            claim_boundary: multi_value_fixture.claim_boundary.clone(),
+        };
+
+        let multi_value_execution = execute_tassadar_generalized_abi_program(
+            &multi_value_program,
+            &tassadar_generalized_abi_pair_sum_and_diff_i32_invocation(),
+        )
+        .expect("homogeneous multi-value return should execute");
+        assert_eq!(multi_value_execution.returned_values, vec![42, -2]);
+
+        let i64_output_fixture = TassadarGeneralizedAbiFixture::sum_and_max_i64_status_output();
+        let i64_output_program = TassadarGeneralizedAbiProgram {
+            program_id: tassadar_generalized_abi_program_id(&i64_output_fixture),
+            fixture_id: String::from(i64_output_fixture.fixture_id.as_str()),
+            source_case_id: i64_output_fixture.source_case_id.clone(),
+            source_ref: i64_output_fixture.source_ref.clone(),
+            export_name: i64_output_fixture.export_name.clone(),
+            program_shape_id: i64_output_fixture.program_shape_id.clone(),
+            param_kinds: i64_output_fixture.param_kinds.clone(),
+            result_kinds: i64_output_fixture.result_kinds.clone(),
+            local_count: 8,
+            memory_regions: i64_output_fixture.memory_regions.clone(),
+            runtime_support_ids: i64_output_fixture.runtime_support_ids.clone(),
+            instructions: vec![
+                TassadarGeneralizedAbiInstruction::I64Const { value: 0 },
+                TassadarGeneralizedAbiInstruction::LocalSet { local_index: 4 },
+                TassadarGeneralizedAbiInstruction::I64Const { value: 0 },
+                TassadarGeneralizedAbiInstruction::LocalSet { local_index: 5 },
+                TassadarGeneralizedAbiInstruction::I32Const { value: 0 },
+                TassadarGeneralizedAbiInstruction::LocalSet { local_index: 6 },
+                TassadarGeneralizedAbiInstruction::LocalGet { local_index: 6 },
+                TassadarGeneralizedAbiInstruction::LocalGet { local_index: 1 },
+                TassadarGeneralizedAbiInstruction::BinaryOp {
+                    op: crate::TassadarStructuredControlBinaryOp::LtS,
+                },
+                TassadarGeneralizedAbiInstruction::BranchIfZero { target_pc: 27 },
+                TassadarGeneralizedAbiInstruction::I64LoadRegionAtIndex {
+                    region_id: String::from("input_values_i64"),
+                    index_local_index: 6,
+                },
+                TassadarGeneralizedAbiInstruction::LocalSet { local_index: 7 },
+                TassadarGeneralizedAbiInstruction::LocalGet { local_index: 4 },
+                TassadarGeneralizedAbiInstruction::LocalGet { local_index: 7 },
+                TassadarGeneralizedAbiInstruction::BinaryOp {
+                    op: crate::TassadarStructuredControlBinaryOp::Add,
+                },
+                TassadarGeneralizedAbiInstruction::LocalSet { local_index: 4 },
+                TassadarGeneralizedAbiInstruction::LocalGet { local_index: 7 },
+                TassadarGeneralizedAbiInstruction::LocalGet { local_index: 5 },
+                TassadarGeneralizedAbiInstruction::BinaryOp {
+                    op: crate::TassadarStructuredControlBinaryOp::GtS,
+                },
+                TassadarGeneralizedAbiInstruction::BranchIfZero { target_pc: 22 },
+                TassadarGeneralizedAbiInstruction::LocalGet { local_index: 7 },
+                TassadarGeneralizedAbiInstruction::LocalSet { local_index: 5 },
+                TassadarGeneralizedAbiInstruction::LocalGet { local_index: 6 },
+                TassadarGeneralizedAbiInstruction::I32Const { value: 1 },
+                TassadarGeneralizedAbiInstruction::BinaryOp {
+                    op: crate::TassadarStructuredControlBinaryOp::Add,
+                },
+                TassadarGeneralizedAbiInstruction::LocalSet { local_index: 6 },
+                TassadarGeneralizedAbiInstruction::Jump { target_pc: 6 },
+                TassadarGeneralizedAbiInstruction::I32Const { value: 0 },
+                TassadarGeneralizedAbiInstruction::LocalSet { local_index: 6 },
+                TassadarGeneralizedAbiInstruction::LocalGet { local_index: 4 },
+                TassadarGeneralizedAbiInstruction::LocalSet { local_index: 7 },
+                TassadarGeneralizedAbiInstruction::I64StoreRegionAtIndex {
+                    region_id: String::from("output_values_i64"),
+                    index_local_index: 6,
+                    value_local_index: 7,
+                },
+                TassadarGeneralizedAbiInstruction::I32Const { value: 1 },
+                TassadarGeneralizedAbiInstruction::LocalSet { local_index: 6 },
+                TassadarGeneralizedAbiInstruction::LocalGet { local_index: 5 },
+                TassadarGeneralizedAbiInstruction::LocalSet { local_index: 7 },
+                TassadarGeneralizedAbiInstruction::I64StoreRegionAtIndex {
+                    region_id: String::from("output_values_i64"),
+                    index_local_index: 6,
+                    value_local_index: 7,
+                },
+                TassadarGeneralizedAbiInstruction::I32Const { value: 0 },
+                TassadarGeneralizedAbiInstruction::Return,
+            ],
+            claim_boundary: i64_output_fixture.claim_boundary.clone(),
+        };
+
+        let i64_output_execution = execute_tassadar_generalized_abi_program(
+            &i64_output_program,
+            &tassadar_generalized_abi_i64_status_output_invocation(),
+        )
+        .expect("i64 status output should execute");
+        assert_eq!(i64_output_execution.returned_value, Some(0));
+        assert_eq!(i64_output_execution.output_regions[0].words, vec![19, 9]);
     }
 
     #[test]
-    fn generalized_abi_region_validation_refuses_aliasing_and_short_outputs() {
+    fn generalized_abi_region_validation_refuses_aliasing_short_and_unaligned_outputs() {
         let fixture = TassadarGeneralizedAbiFixture::sum_and_max_status_output();
         let program = TassadarGeneralizedAbiProgram {
             program_id: tassadar_generalized_abi_program_id(&fixture),
@@ -1138,7 +1714,7 @@ mod tests {
             export_name: fixture.export_name.clone(),
             program_shape_id: fixture.program_shape_id.clone(),
             param_kinds: fixture.param_kinds.clone(),
-            result_kind: fixture.result_kinds.first().copied(),
+            result_kinds: fixture.result_kinds.clone(),
             local_count: 4,
             memory_regions: fixture.memory_regions.clone(),
             runtime_support_ids: fixture.runtime_support_ids.clone(),
@@ -1168,6 +1744,36 @@ mod tests {
             alias_error,
             TassadarGeneralizedAbiError::AliasedMemoryRegions { .. }
         ));
+
+        let i64_fixture = TassadarGeneralizedAbiFixture::sum_and_max_i64_status_output();
+        let i64_program = TassadarGeneralizedAbiProgram {
+            program_id: tassadar_generalized_abi_program_id(&i64_fixture),
+            fixture_id: String::from(i64_fixture.fixture_id.as_str()),
+            source_case_id: i64_fixture.source_case_id.clone(),
+            source_ref: i64_fixture.source_ref.clone(),
+            export_name: i64_fixture.export_name.clone(),
+            program_shape_id: i64_fixture.program_shape_id.clone(),
+            param_kinds: i64_fixture.param_kinds.clone(),
+            result_kinds: i64_fixture.result_kinds.clone(),
+            local_count: 4,
+            memory_regions: i64_fixture.memory_regions.clone(),
+            runtime_support_ids: i64_fixture.runtime_support_ids.clone(),
+            instructions: vec![
+                TassadarGeneralizedAbiInstruction::I32Const { value: 0 },
+                TassadarGeneralizedAbiInstruction::Return,
+            ],
+            claim_boundary: i64_fixture.claim_boundary,
+        };
+
+        let unaligned_error = execute_tassadar_generalized_abi_program(
+            &i64_program,
+            &tassadar_generalized_abi_i64_status_output_unaligned_invocation(),
+        )
+        .expect_err("unaligned i64 buffers should refuse");
+        assert!(matches!(
+            unaligned_error,
+            TassadarGeneralizedAbiError::UnalignedPointer { .. }
+        ));
     }
 
     #[test]
@@ -1181,7 +1787,7 @@ mod tests {
             export_name: fixture.export_name.clone(),
             program_shape_id: fixture.program_shape_id.clone(),
             param_kinds: fixture.param_kinds.clone(),
-            result_kind: fixture.result_kinds.first().copied(),
+            result_kinds: fixture.result_kinds.clone(),
             local_count: 7,
             memory_regions: fixture.memory_regions.clone(),
             runtime_support_ids: fixture.runtime_support_ids.clone(),
@@ -1235,5 +1841,42 @@ mod tests {
         )
         .expect("dual heap dot should execute");
         assert_eq!(execution.returned_value, Some(32));
+    }
+
+    #[test]
+    fn generalized_abi_mixed_multi_value_returns_stay_refused() {
+        let fixture = TassadarGeneralizedAbiFixture::unsupported_multi_result();
+        let program = TassadarGeneralizedAbiProgram {
+            program_id: tassadar_generalized_abi_program_id(&fixture),
+            fixture_id: String::from(fixture.fixture_id.as_str()),
+            source_case_id: fixture.source_case_id.clone(),
+            source_ref: fixture.source_ref.clone(),
+            export_name: fixture.export_name.clone(),
+            program_shape_id: fixture.program_shape_id.clone(),
+            param_kinds: fixture.param_kinds.clone(),
+            result_kinds: fixture.result_kinds.clone(),
+            local_count: 1,
+            memory_regions: fixture.memory_regions.clone(),
+            runtime_support_ids: fixture.runtime_support_ids.clone(),
+            instructions: vec![
+                TassadarGeneralizedAbiInstruction::I32Const { value: 0 },
+                TassadarGeneralizedAbiInstruction::I64Const { value: 1 },
+                TassadarGeneralizedAbiInstruction::Return,
+            ],
+            claim_boundary: fixture.claim_boundary,
+        };
+
+        let error = program
+            .validate()
+            .expect_err("mixed-width returns should refuse");
+        assert!(matches!(
+            error,
+            TassadarGeneralizedAbiError::UnsupportedResultKinds { kinds }
+                if kinds
+                    == vec![
+                        TassadarGeneralizedAbiResultKind::I32,
+                        TassadarGeneralizedAbiResultKind::I64
+                    ]
+        ));
     }
 }
