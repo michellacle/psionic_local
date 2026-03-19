@@ -747,6 +747,11 @@ Current posture:
   separate optional local C-toolchain prerequisites from the repo-owned
   compile-pipeline, ingress, conformance, module-scale, and trap/refusal
   surfaces that should reproduce on a clean checkout
+- public claim discipline for that lane is explicit in
+  `docs/ARCHITECTURE.md`, `docs/ROADMAP_TASSADAR.md`, and
+  `docs/TASSADAR_WASM_RUNBOOK.md`: "supports Wasm" means a named Tassadar
+  profile inside a frozen WebAssembly spec window, not an open-ended claim
+  about the whole moving language
 - its Phase 8A research family now exists in `psionic-research`, with a typed
   executor-variant family, benchmark/proof/lineage-backed bounded runs, and
   machine-readable sweep records for reproducible same-contract comparisons

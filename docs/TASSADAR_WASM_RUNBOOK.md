@@ -44,6 +44,21 @@ It does not claim:
 - broad host-import closure
 - broad C/C++ frontend closure
 
+## Relation To The WebAssembly Spec
+
+This runbook validates the current bounded Tassadar Wasm profile only.
+
+Public claim discipline for this lane is:
+
+- "supports Wasm" should mean a named Tassadar profile inside a frozen
+  WebAssembly spec window
+- the current bounded lane uses `wasmi` differential checks on its admitted
+  subset, not a claim of general WebAssembly closure
+- any future broad or full-Wasm closure should be tied to the official core
+  tests and reference authority for the declared window
+- imports, effects, and host capability policy remain separate embedding
+  contracts, not part of the bounded core language claim
+
 ## Preconditions
 
 Start from a clean checkout:

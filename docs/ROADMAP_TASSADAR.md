@@ -407,6 +407,24 @@ Close the runtime, profile, compile, and artifact gaps between today's bounded
 executor substrate and the article-shaped "compile low-level programs and run
 them internally" target.
 
+### WebAssembly Spec Policy
+
+Any future "supports Wasm" or "full Wasm" claim should be read as a claim about
+one declared Tassadar profile or profile family inside one frozen WebAssembly
+spec window, not as an open-ended promise about the entire moving language.
+
+Support widening should therefore follow coherent semantic surfaces:
+
+- syntax and binary/text ingress
+- validation and refusal
+- execution and trap parity
+- memory, tables, globals, and calls
+- imports and effects as separate embedding policy
+
+Broad or full closure should also be tied to the official core tests and
+reference authority for the declared window, not to ad hoc opcode counts or
+historical proposal notes.
+
 ### Exit Criteria
 
 - a canonical compile pipeline from source program to Wasm artifact exists
@@ -415,6 +433,8 @@ them internally" target.
 - long-trace workloads have benchmark packages and fixture suites that do not
   rely only on 4x4 proxies
 - program compatibility and refusal reports stay explicit as coverage widens
+- any future broader or full-Wasm claim is frozen to a declared spec window
+  and official test/reference evidence, not a drifting feature checklist
 
 ### Issues
 

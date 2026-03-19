@@ -712,6 +712,12 @@ The current scope is:
   and `psionic-provider` now validates that served route descriptors keep the
   routeable Wasm rows benchmark-gated instead of collapsing everything into one
   coarse "supports Wasm" claim
+- public Wasm claim discipline is therefore: "supports Wasm" means a named
+  Tassadar profile or profile family inside a frozen WebAssembly spec window,
+  with imports, effects, routing, and host capability policy kept separate
+  from the core language claim; any future broader or full-Wasm closure should
+  also be tied to the official test corpus and reference authority for that
+  frozen window instead of an open-ended feature list
 - landed Phase 8A bar: one widened HullCache closure report now exists in
   `psionic-eval` at
   `fixtures/tassadar/reports/tassadar_hull_cache_closure_report.json`,
