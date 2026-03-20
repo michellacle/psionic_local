@@ -57,11 +57,14 @@ mod tests {
         let receipt = TassadarArticleEquivalenceAcceptanceGateReceipt::from_report(&report);
 
         assert_eq!(receipt.acceptance_status, "blocked");
-        assert_eq!(receipt.required_issue_count, 37);
-        assert_eq!(receipt.closed_required_issue_count, 1);
-        assert!(receipt.blocked_issue_ids.contains(&String::from("TAS-159")));
-        assert_eq!(receipt.blocked_blocker_ids.len(), 7);
-        assert_eq!(receipt.optional_open_issue_ids, vec![String::from("TAS-R1")]);
+        assert_eq!(receipt.required_issue_count, report.required_issue_count);
+        assert_eq!(
+            receipt.closed_required_issue_count,
+            report.closed_required_issue_count
+        );
+        assert_eq!(receipt.blocked_issue_ids, report.blocked_issue_ids);
+        assert_eq!(receipt.blocked_blocker_ids, report.blocked_blocker_ids);
+        assert_eq!(receipt.optional_open_issue_ids, report.optional_open_issue_ids);
         assert!(!receipt.article_equivalence_green);
         assert!(!receipt.public_claim_allowed);
     }

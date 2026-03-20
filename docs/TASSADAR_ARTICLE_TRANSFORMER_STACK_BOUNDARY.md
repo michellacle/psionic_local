@@ -1,0 +1,102 @@
+# Tassadar Article Transformer Stack Boundary
+
+This document is the canonical Transformer stack boundary for the
+article-equivalence closure wave.
+
+The final article route is not one monolithic new crate. It is one explicit
+boundary spanning existing crates, with `psionic-transformer` as the
+architecture anchor.
+
+## Boundary Decision
+
+The canonical owned article route must use this boundary:
+
+- `psionic-core` plus `psionic-array` for tensor and bounded array ops
+- `psionic-nn` plus `psionic-transformer` for layer, parameter-state, and
+  reusable Transformer-architecture interfaces
+- `psionic-models` for the canonical article-model wrapper, weight artifact
+  format, and forward-pass-owned trace hook surface
+- `psionic-runtime` for replay, trace ABI, proof identity, and receipt hooks
+
+The final article route must not bypass `psionic-transformer` by reintroducing
+an ad hoc mixed implementation spread directly across model and runtime crates.
+
+## Ownership Diagram
+
+```text
+psionic-core + psionic-array
+  -> tensor metadata, layouts, devices, bounded array ops
+
+psionic-nn + psionic-transformer
+  -> module state, primitive layers, reusable Transformer architecture
+
+psionic-models
+  -> canonical article model artifact, forward-pass hooks, weight bundle format
+
+psionic-runtime
+  -> replay, trace ABI, proof identity, and receipt hooks
+```
+
+## Required Interfaces
+
+### Tensor and array ops
+
+- owner modules:
+  `crates/psionic-core/src/lib.rs`
+  `crates/psionic-array/src/lib.rs`
+- purpose:
+  the article route consumes tensor metadata, layout truth, and bounded array
+  execution through these shared surfaces
+
+### Layer and parameter state
+
+- owner modules:
+  `crates/psionic-nn/src/lib.rs`
+  `crates/psionic-nn/src/layers.rs`
+  `crates/psionic-transformer/src/lib.rs`
+- purpose:
+  primitive layer semantics and reusable Transformer-architecture configs stay
+  here; `psionic-transformer` is the architecture anchor
+
+### Model artifact format
+
+- owner modules:
+  `crates/psionic-models/src/lib.rs`
+  `crates/psionic-models/src/tassadar_executor_transformer.rs`
+- purpose:
+  the canonical article model descriptor, weight bundle, and artifact identity
+  all live in `psionic-models`
+
+### Forward-pass trace hooks
+
+- owner modules:
+  `crates/psionic-models/src/tassadar_executor_transformer.rs`
+  `crates/psionic-runtime/src/tassadar.rs`
+- purpose:
+  forward-pass-owned trace hooks are emitted by the model boundary and
+  serialized into runtime-owned trace ABI surfaces
+
+### Replay and receipt hooks
+
+- owner modules:
+  `crates/psionic-runtime/src/proof.rs`
+  `crates/psionic-runtime/src/tassadar.rs`
+- purpose:
+  replay, proof identity, trace receipts, and execution challenge hooks remain
+  runtime-owned
+
+## Dependency Direction
+
+The boundary is backed by real dependency checks:
+
+- `psionic-models` must depend on `psionic-transformer`
+- `psionic-transformer` must not depend on `psionic-models` or
+  `psionic-runtime`
+- `psionic-runtime` must not depend on `psionic-models`
+- `psionic-models` must not depend on `psionic-eval` or `psionic-research`
+
+## Route Requirement
+
+Any canonical article-equivalence Transformer route must use this boundary.
+Later issues may extend the implementations inside these owners, but they must
+not redefine the ownership split or route around it.

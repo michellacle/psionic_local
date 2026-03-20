@@ -731,7 +731,7 @@ fn issue_coverage_rows() -> Vec<TassadarArticleEquivalenceIssueCoverageRow> {
             277,
             "TAS-160: Canonical Transformer stack boundary",
             TassadarArticleEquivalenceIssueRole::Implementation,
-            "open",
+            "closed",
             &["BEQ-003"],
         ),
         issue_row(

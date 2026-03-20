@@ -16,8 +16,9 @@ jq -e '
   and .public_claim_allowed == false
   and ((.green_requirement_ids | index("TAS-158")) != null)
   and ((.green_requirement_ids | index("TAS-159")) != null)
+  and ((.green_requirement_ids | index("TAS-160")) != null)
   and ((.failed_requirement_ids | index("article_equivalence_blockers_closed")) != null)
-  and ((.failed_requirement_ids | index("TAS-160")) != null)
+  and ((.failed_requirement_ids | index("TAS-161")) != null)
   and ((.optional_open_issue_ids | index("TAS-R1")) != null)
   and ((.blocked_issue_ids | length) > 0)
 ' fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json >/dev/null

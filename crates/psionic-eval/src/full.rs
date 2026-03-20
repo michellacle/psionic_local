@@ -58,6 +58,8 @@ mod tassadar_broad_internal_compute_profile_publication;
 mod tassadar_broad_general_compute_validator_bridge;
 #[path = "tassadar_call_frames.rs"]
 mod tassadar_call_frames;
+#[path = "tassadar_canonical_transformer_stack_boundary.rs"]
+mod tassadar_canonical_transformer_stack_boundary;
 #[path = "tassadar_clrs_wasm_bridge.rs"]
 mod tassadar_clrs_wasm_bridge;
 #[path = "tassadar_compile_pipeline_matrix.rs"]
@@ -318,6 +320,7 @@ pub use tassadar_broad_internal_compute_portability::*;
 pub use tassadar_broad_internal_compute_profile_publication::*;
 pub use tassadar_broad_general_compute_validator_bridge::*;
 pub use tassadar_call_frames::*;
+pub use tassadar_canonical_transformer_stack_boundary::*;
 pub use tassadar_clrs_wasm_bridge::*;
 pub use tassadar_compile_pipeline_matrix::*;
 pub use tassadar_compiled_distillation::*;

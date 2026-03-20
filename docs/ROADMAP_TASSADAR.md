@@ -172,6 +172,18 @@ Current honest posture:
   research-only, or still insufficient for canonical article closure; the
   inventory is explicitly tied to the final acceptance gate while the overall
   article-equivalence verdict remains blocked
+- the repo now also has one canonical Transformer stack boundary for the
+  article-equivalence closure wave, with a boundary spec at
+  `docs/TASSADAR_ARTICLE_TRANSFORMER_STACK_BOUNDARY.md`, a committed eval
+  report at
+  `fixtures/tassadar/reports/tassadar_canonical_transformer_stack_boundary_report.json`,
+  a disclosure-safe research summary at
+  `fixtures/tassadar/reports/tassadar_canonical_transformer_stack_boundary_summary.json`,
+  and an audit note that freeze one explicit multi-crate owned route boundary
+  with `psionic-transformer` as the architecture anchor, `psionic-models` as
+  the canonical article-model and artifact owner, and `psionic-runtime` as the
+  replay and receipt owner; the boundary is explicitly tied to the final
+  acceptance gate while the overall article-equivalence verdict remains blocked
 - the repo now also has one research-only shared-memory and threads profile
   with a deterministic scheduler envelope, explicit sandbox boundary truth,
   and typed refusal on host-nondeterministic scheduling plus relaxed
