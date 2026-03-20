@@ -10,8 +10,8 @@ mod tassadar;
 mod tassadar_approximate_attention_closure;
 mod tassadar_architecture_bakeoff;
 mod tassadar_article_abi;
-mod tassadar_broad_internal_compute_profile_publication;
 mod tassadar_broad_family_specialization;
+mod tassadar_broad_internal_compute_profile_publication;
 mod tassadar_call_frames;
 mod tassadar_conditional_masking_executor;
 mod tassadar_decompilable_executor;
@@ -36,9 +36,9 @@ mod tassadar_pointer_memory_scratchpad;
 mod tassadar_precision_attention_audit;
 mod tassadar_program_family_frontier;
 mod tassadar_quantization_truth_envelope;
-mod tassadar_relaxed_simd_profile;
 mod tassadar_receipt_supervision;
 mod tassadar_recurrent_fast_path;
+mod tassadar_relaxed_simd_profile;
 mod tassadar_rust_article_profile;
 mod tassadar_scratchpad;
 mod tassadar_search_native_executor;
@@ -67,6 +67,11 @@ use psionic_catalog::{
     OllamaProvenanceFacts, OllamaProvenanceKind, PagedBlobRange,
 };
 use psionic_core::{DType, QuantizationMode, QuantizedBlockLayout, Shape};
+pub use psionic_transformer::{
+    ActivationFunction, AttnResBlockState, AttnResConfig, AttnResConfigError,
+    AttnResExecutionError, AttnResTensor3, AttnResTensorError, DecoderAttentionConfig,
+    DecoderBlockConfig, DecoderConfig, DecoderFeedForwardConfig,
+};
 use safetensors::{Dtype as SafeTensorsDType, SafeTensors, serialize_to_file, tensor::TensorView};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -82,8 +87,8 @@ pub use tassadar::*;
 pub use tassadar_approximate_attention_closure::*;
 pub use tassadar_architecture_bakeoff::*;
 pub use tassadar_article_abi::*;
-pub use tassadar_broad_internal_compute_profile_publication::*;
 pub use tassadar_broad_family_specialization::*;
+pub use tassadar_broad_internal_compute_profile_publication::*;
 pub use tassadar_call_frames::*;
 pub use tassadar_conditional_masking_executor::*;
 pub use tassadar_decompilable_executor::*;
@@ -108,9 +113,9 @@ pub use tassadar_pointer_memory_scratchpad::*;
 pub use tassadar_precision_attention_audit::*;
 pub use tassadar_program_family_frontier::*;
 pub use tassadar_quantization_truth_envelope::*;
-pub use tassadar_relaxed_simd_profile::*;
 pub use tassadar_receipt_supervision::*;
 pub use tassadar_recurrent_fast_path::*;
+pub use tassadar_relaxed_simd_profile::*;
 pub use tassadar_rust_article_profile::*;
 pub use tassadar_scratchpad::*;
 pub use tassadar_search_native_executor::*;
@@ -126,7 +131,7 @@ pub use tassadar_working_memory_tier::*;
 pub use tassadar_workload_frontier::*;
 
 /// Human-readable crate ownership summary.
-pub const CRATE_ROLE: &str = "reusable model definitions and metadata";
+pub const CRATE_ROLE: &str = "reusable model descriptors, loaders, and model-family wrappers";
 
 /// Embedding vector normalization policy.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -789,71 +794,6 @@ pub fn apply_context_window(
             preserved_prefix_tokens,
         },
     ))
-}
-
-/// Activation function used by a decoder feed-forward block.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub enum ActivationFunction {
-    /// Identity activation, useful for deterministic fixture paths.
-    Identity,
-    /// ReLU activation.
-    Relu,
-    /// SiLU / SwiGLU-style activation used by the first supported GGUF decoder families.
-    Silu,
-}
-
-/// Attention configuration for a decoder block.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct DecoderAttentionConfig {
-    /// Number of query heads.
-    pub head_count: usize,
-    /// Number of KV heads.
-    pub kv_head_count: usize,
-    /// Width of each head.
-    pub head_dim: usize,
-    /// Rotary dimension reserved for future RoPE support.
-    pub rotary_dim: usize,
-}
-
-/// Feed-forward configuration for a decoder block.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct DecoderFeedForwardConfig {
-    /// Hidden expansion size.
-    pub intermediate_size: usize,
-    /// Activation used inside the block.
-    pub activation: ActivationFunction,
-}
-
-/// Reusable decoder block configuration.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct DecoderBlockConfig {
-    /// Attention sub-block configuration.
-    pub attention: DecoderAttentionConfig,
-    /// Feed-forward sub-block configuration.
-    pub feed_forward: DecoderFeedForwardConfig,
-}
-
-/// Decoder-style transformer configuration.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct DecoderConfig {
-    /// Model hidden width.
-    pub hidden_size: usize,
-    /// Number of decoder layers.
-    pub layer_count: usize,
-    /// Vocabulary size.
-    pub vocab_size: usize,
-    /// Maximum supported context length.
-    pub max_context: usize,
-    /// Shared block configuration.
-    pub block: DecoderBlockConfig,
-}
-
-impl DecoderConfig {
-    /// Returns the total KV width per position.
-    #[must_use]
-    pub fn kv_width(&self) -> usize {
-        self.block.attention.kv_head_count * self.block.attention.head_dim
-    }
 }
 
 /// Supported weight bundle encoding.

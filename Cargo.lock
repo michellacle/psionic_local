@@ -3748,6 +3748,7 @@ dependencies = [
  "psionic-core",
  "psionic-ir",
  "psionic-runtime",
+ "psionic-transformer",
  "safetensors",
  "serde",
  "serde_json",
@@ -3908,6 +3909,7 @@ dependencies = [
  "psionic-router",
  "psionic-runtime",
  "psionic-train",
+ "psionic-transformer",
  "rand",
  "reqwest",
  "safetensors",
@@ -3947,6 +3949,14 @@ dependencies = [
  "serde_json",
  "sha2",
  "tempfile",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "psionic-transformer"
+version = "0.1.1"
+dependencies = [
+ "serde",
  "thiserror 2.0.18",
 ]
 

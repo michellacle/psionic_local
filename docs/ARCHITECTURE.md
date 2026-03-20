@@ -2136,14 +2136,17 @@ Applications / Operators / Authority
    - adapter identity, packaging, and hosted binding lineage
 14. backend crates
    - backend-specific runtime implementations only
-15. `psionic-models`
-   - reusable model definitions and metadata
-16. `psionic-serve`
+15. `psionic-transformer`
+   - reusable transformer architecture primitives above `psionic-nn` and below
+     `psionic-models`
+16. `psionic-models`
+   - reusable model definitions, descriptors, and artifact metadata
+17. `psionic-serve`
    - request, response, and execution contracts for served products
-17. `psionic-router`
+18. `psionic-router`
    - reusable multi-model routing inventory, policy filters, and worker-path
      selection for served fleets
-18. `psionic-provider`
+19. `psionic-provider`
    - provider-facing capability, readiness, and receipt types at the OpenAgents
      boundary
 
@@ -2157,6 +2160,9 @@ under exactly these final crate names.
 - no crate in `crates/psionic-*` may path-depend on `apps/*`
 - reusable engine crates must not own app workflows or market authority
 - `psionic-provider` is the boundary adapter, not a place to hide app logic
+- `psionic-nn` owns primitive layers, `psionic-transformer` owns reusable
+  transformer architecture, and `psionic-models` owns descriptors, loaders,
+  and artifact-governance wrappers above that architecture layer
 
 ## Canonical Psionic Work Classes
 

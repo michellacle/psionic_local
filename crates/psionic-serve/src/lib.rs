@@ -22,14 +22,14 @@ mod gguf;
 mod gpt_oss;
 mod openai_http;
 mod tassadar;
-mod tassadar_broad_internal_compute_publication_gate;
 mod tassadar_broad_internal_compute_profile_publication;
+mod tassadar_broad_internal_compute_publication_gate;
 mod tassadar_direct_model_weight_execution_proof;
 mod tassadar_execution_unit_registration;
 mod tassadar_full_core_wasm_publication_gate;
 mod tassadar_general_internal_compute_red_team_publication;
-mod tassadar_internal_compute_package_manager;
 mod tassadar_installed_process_lifecycle;
+mod tassadar_internal_compute_package_manager;
 mod tassadar_module_catalog;
 mod tassadar_module_installation;
 mod tassadar_module_library;
@@ -63,13 +63,12 @@ pub use psionic_core::QuantizationMode;
 use psionic_core::{DType, Device, Shape, TensorId};
 use psionic_ir::{Graph, GraphBuilder, GraphError};
 pub use psionic_models::{
-    ActivationFunction, ArtifactWordDecoder, ByteProjectionEmbedder, ContextOverflowPolicy,
-    ContextWindowAccounting, ContextWindowError, DecoderAttentionConfig, DecoderBlockConfig,
-    DecoderConfig, DecoderFeedForwardConfig, DecoderFixtureWeights, DecoderModelDescriptor,
-    DecoderWeightLoader, EmbeddingModelDescriptor, EmbeddingNormalization, EmbeddingWeights,
-    FixtureDecoderLoader, FixtureWordTokenizer, GgufDecoderAdapter, GgufDecoderAdapterLoader,
-    GgufDecoderFamily, GgufDecoderFamilyMetadata, GgufDecoderLayerTensorLayout,
-    GgufDecoderTensorLayout, GgufEmbeddingAdapter, GgufEmbeddingAdapterLoader, GgufEmbeddingFamily,
+    ArtifactWordDecoder, ByteProjectionEmbedder, ContextOverflowPolicy, ContextWindowAccounting,
+    ContextWindowError, DecoderFixtureWeights, DecoderModelDescriptor, DecoderWeightLoader,
+    EmbeddingModelDescriptor, EmbeddingNormalization, EmbeddingWeights, FixtureDecoderLoader,
+    FixtureWordTokenizer, GgufDecoderAdapter, GgufDecoderAdapterLoader, GgufDecoderFamily,
+    GgufDecoderFamilyMetadata, GgufDecoderLayerTensorLayout, GgufDecoderTensorLayout,
+    GgufEmbeddingAdapter, GgufEmbeddingAdapterLoader, GgufEmbeddingFamily,
     GgufEmbeddingFamilyMetadata, GgufEmbeddingLayerTensorLayout, GgufEmbeddingPooling,
     GgufEmbeddingTensorLayout, GgufPromptTemplateFamily, GgufPromptTemplateRenderer,
     GptOssHarmonyParsedOutput, ModelArtifactGovernance, ModelArtifactLicenseEntry,
@@ -79,7 +78,6 @@ pub use psionic_models::{
     TokenVocabulary, TokenizerBoundary, WeightArtifactMetadata, WeightBundleMetadata, WeightFormat,
     WeightSource, WeightTensorMetadata, apply_context_window, digest_generation_defaults,
 };
-pub use tassadar_general_internal_compute_red_team_publication::*;
 use psionic_runtime::{
     BackendHealthTracker, BackendSelection, BackendSelectionState, BackendToolchainIdentity,
     CacheAction, CacheInvalidationPolicy, CacheInvalidationTrigger, CacheKind, CacheObservation,
@@ -103,16 +101,21 @@ use psionic_runtime::{
     StructuredOutputValue, TokenSampler, default_cache_invalidation_policy, plan_model_admission,
     select_argmax_token,
 };
+pub use psionic_transformer::{
+    ActivationFunction, DecoderAttentionConfig, DecoderBlockConfig, DecoderConfig,
+    DecoderFeedForwardConfig,
+};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 pub use tassadar::*;
-pub use tassadar_broad_internal_compute_publication_gate::*;
 pub use tassadar_broad_internal_compute_profile_publication::*;
+pub use tassadar_broad_internal_compute_publication_gate::*;
 pub use tassadar_direct_model_weight_execution_proof::*;
 pub use tassadar_execution_unit_registration::*;
 pub use tassadar_full_core_wasm_publication_gate::*;
-pub use tassadar_internal_compute_package_manager::*;
+pub use tassadar_general_internal_compute_red_team_publication::*;
 pub use tassadar_installed_process_lifecycle::*;
+pub use tassadar_internal_compute_package_manager::*;
 pub use tassadar_module_catalog::*;
 pub use tassadar_module_installation::*;
 pub use tassadar_module_library::*;
@@ -9083,10 +9086,12 @@ mod tests {
     };
     use crate::{DecoderBlockConfig, DecoderConfig, DecoderModelDescriptor};
     use psionic_models::{
-        ActivationFunction, DecoderAttentionConfig, DecoderFeedForwardConfig,
         DecoderFixtureWeights, TokenSequence, TokenizerBoundary, assert_prompt_window_case,
         assert_rendered_prompt_case, golden_prompt_fixture, golden_prompt_fixtures,
         golden_tokenizer_fixture,
+    };
+    use psionic_transformer::{
+        ActivationFunction, DecoderAttentionConfig, DecoderFeedForwardConfig,
     };
 
     #[test]

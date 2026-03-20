@@ -930,6 +930,10 @@ Current posture:
   with `Module::quantize(...)`, explicit quantize reports, and
   `QuantizedLinear` / `QuantizedEmbedding` wrappers over `int8_symmetric`
   block storage and dequantize-to-`f32` forward semantics.
+- `psionic-transformer`: reusable Transformer architecture primitives above
+  `psionic-nn` and below `psionic-models`, including shared decoder configs and
+  architecture-level `AttnRes` config/tensor/state surfaces that should not
+  live in model-governance or artifact-loader code.
 - `psionic-compiler`: lowering, scheduling, replay-stable program identity,
   compiler diagnostics, and the first public compile-transform surface with
   explicit purity, concrete-plan cache identity, bounded shapeless trace-family
@@ -989,8 +993,8 @@ Current posture:
 
 ### Serving And Adapter Surface
 
-- `psionic-models`: reusable model families, metadata, tokenizer hooks, and
-  model-loading seams.
+- `psionic-models`: model descriptors, artifact-loading seams, tokenizer
+  hooks, and model-family wrappers above `psionic-transformer`.
 - `psionic-serve`: served compute contracts for chat, responses, embeddings,
   scheduling, structured output, tool calling, adapter-backed execution, and
   the bounded local AttnRes text-generation surface.

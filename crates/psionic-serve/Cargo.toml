@@ -29,6 +29,7 @@ psionic-models = { path = "../psionic-models" }
 psionic-research = { path = "../psionic-research" }
 psionic-router = { path = "../psionic-router" }
 psionic-runtime = { path = "../psionic-runtime" }
+psionic-transformer = { path = "../psionic-transformer" }
 psionic-train = { path = "../psionic-train" }
 rand = { workspace = true }
 reqwest = { workspace = true, features = ["blocking"] }
