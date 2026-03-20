@@ -23,14 +23,18 @@ pub enum LayerError {
         dtype: DType,
         device: Device,
     },
-    #[error("layer `{layer}` shape mismatch for `{tensor}`: expected {expected}, found {actual:?}")]
+    #[error(
+        "layer `{layer}` shape mismatch for `{tensor}`: expected {expected}, found {actual:?}"
+    )]
     ShapeMismatch {
         layer: &'static str,
         tensor: &'static str,
         expected: String,
         actual: Vec<usize>,
     },
-    #[error("layer `{layer}` index {index} is out of range for embedding table size {upper_bound}")]
+    #[error(
+        "layer `{layer}` index {index} is out of range for embedding table size {upper_bound}"
+    )]
     IndexOutOfRange {
         layer: &'static str,
         index: usize,
@@ -269,6 +273,15 @@ impl Embedding {
         &self.module
     }
 
+    pub fn weight_f32(&self) -> Result<&[f32], LayerError> {
+        parameter_f32(
+            &self.module,
+            "embedding",
+            "weight",
+            &[self.vocab_size, self.embedding_dim],
+        )
+    }
+
     pub fn forward(&self, indices: &[usize]) -> Result<NnTensor, LayerError> {
         self.forward_with_shape(Shape::new(vec![indices.len()]), indices)
     }
@@ -323,6 +336,25 @@ pub struct LayerNorm {
 }
 
 impl LayerNorm {
+    pub fn from_f32_parts(
+        module_id: impl Into<String>,
+        feature_size: usize,
+        epsilon: f32,
+        weight: Vec<f32>,
+        bias: Vec<f32>,
+    ) -> Result<Self, LayerError> {
+        ensure_positive("layer_norm", "feature_size", feature_size)?;
+        ensure_positive_f32("layer_norm", "epsilon", epsilon)?;
+        let mut module = Module::new(module_id, "layer_norm")?;
+        module.insert_parameter("weight", dense_parameter(&[feature_size], weight, true)?)?;
+        module.insert_parameter("bias", dense_parameter(&[feature_size], bias, true)?)?;
+        Ok(Self {
+            module,
+            feature_size,
+            epsilon,
+        })
+    }
+
     pub fn new(
         module_id: impl Into<String>,
         feature_size: usize,
@@ -348,6 +380,24 @@ impl LayerNorm {
 
     pub fn module(&self) -> &Module {
         &self.module
+    }
+
+    #[must_use]
+    pub const fn feature_size(&self) -> usize {
+        self.feature_size
+    }
+
+    #[must_use]
+    pub const fn epsilon(&self) -> f32 {
+        self.epsilon
+    }
+
+    pub fn weight_f32(&self) -> Result<&[f32], LayerError> {
+        parameter_f32(&self.module, "layer_norm", "weight", &[self.feature_size])
+    }
+
+    pub fn bias_f32(&self) -> Result<&[f32], LayerError> {
+        parameter_f32(&self.module, "layer_norm", "bias", &[self.feature_size])
     }
 
     pub fn forward(&self, input: &NnTensor) -> Result<NnTensor, LayerError> {
@@ -1288,8 +1338,8 @@ mod tests {
     }
 
     #[test]
-    fn norm_activation_and_dropout_layers_match_bounded_reference()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn norm_activation_and_dropout_layers_match_bounded_reference(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let layer_norm = LayerNorm::new("ln0", 2, 1e-5)?;
         let rms_norm = RmsNorm::new("rms0", 2, 1e-5)?;
         let activation = Activation::new("act0", ActivationKind::Relu)?;

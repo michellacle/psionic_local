@@ -1,6 +1,10 @@
-use std::collections::BTreeMap;
+use std::{
+    collections::BTreeMap,
+    fs,
+    path::{Path, PathBuf},
+};
 
-use psionic_core::{Shape, TensorData};
+use psionic_core::{DType, Shape, TensorData};
 use psionic_runtime::{
     build_tassadar_article_transformer_forward_pass_evidence_bundle,
     tassadar_article_trace_machine_step_schema, TassadarArticleTraceChannelKind,
@@ -18,13 +22,15 @@ use psionic_transformer::{
     MultiHeadAttention, PositionwiseFeedForward, TransformerDecoderLayer, TransformerEmbeddings,
     TransformerEncoderLayer, TransformerExecutionMode,
 };
+use safetensors::{serialize, tensor::TensorView, Dtype as SafeTensorsDType, SafeTensors};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use thiserror::Error;
 
 use crate::{
     ModelDescriptor, TassadarArticleTraceDecodeError, TassadarDecodedArticleTraceDomain,
-    TassadarTraceTokenizer, TokenId, TokenizerBoundary,
+    TassadarTraceTokenizer, TokenId, TokenizerBoundary, WeightArtifactMetadata,
+    WeightBundleMetadata, WeightFormat, WeightSource, WeightTensorMetadata,
 };
 
 /// Stable architecture classification for the canonical article Transformer.
@@ -55,13 +61,145 @@ pub struct TassadarArticleTransformerDescriptor {
     pub substitution_justification: Option<String>,
     pub embedding_strategy: TassadarArticleTransformerEmbeddingStrategy,
     pub config: EncoderDecoderTransformerConfig,
+    pub artifact_binding: TassadarArticleTransformerArtifactBinding,
+    pub weights: WeightBundleMetadata,
 }
 
 impl TassadarArticleTransformerDescriptor {
     /// Returns a stable descriptor digest.
     #[must_use]
     pub fn stable_digest(&self) -> String {
-        stable_digest(b"psionic_tassadar_article_transformer_descriptor|", self)
+        #[derive(Serialize)]
+        struct StableArtifactBinding<'a> {
+            artifact_id: &'a str,
+            artifact_format: WeightFormat,
+            primary_artifact_sha256: &'a str,
+            weight_bundle_digest: &'a str,
+            tensor_count: usize,
+        }
+
+        #[derive(Serialize)]
+        struct StableWeightArtifactMetadata<'a> {
+            byte_length: u64,
+            sha256: &'a str,
+            storage: &'a Option<crate::WeightArtifactStorageMetadata>,
+        }
+
+        #[derive(Serialize)]
+        struct StableWeightBundleMetadata<'a> {
+            format: WeightFormat,
+            source: WeightSource,
+            quantization: psionic_core::QuantizationMode,
+            quantization_modes: &'a [psionic_core::QuantizationMode],
+            digest: &'a str,
+            tensors: &'a [WeightTensorMetadata],
+            artifacts: Vec<StableWeightArtifactMetadata<'a>>,
+        }
+
+        #[derive(Serialize)]
+        struct StableDescriptor<'a> {
+            model: &'a ModelDescriptor,
+            source_paper_title: &'a str,
+            source_paper_ref: &'a str,
+            architecture_variant: TassadarArticleTransformerArchitectureVariant,
+            paper_faithful: bool,
+            substitution_justification: &'a Option<String>,
+            embedding_strategy: TassadarArticleTransformerEmbeddingStrategy,
+            config: &'a EncoderDecoderTransformerConfig,
+            artifact_binding: StableArtifactBinding<'a>,
+            weights: StableWeightBundleMetadata<'a>,
+        }
+
+        let stable_artifacts = self
+            .weights
+            .artifacts
+            .iter()
+            .map(|artifact| StableWeightArtifactMetadata {
+                byte_length: artifact.byte_length,
+                sha256: artifact.sha256.as_str(),
+                storage: &artifact.storage,
+            })
+            .collect::<Vec<_>>();
+        let stable_descriptor = StableDescriptor {
+            model: &self.model,
+            source_paper_title: self.source_paper_title.as_str(),
+            source_paper_ref: self.source_paper_ref.as_str(),
+            architecture_variant: self.architecture_variant,
+            paper_faithful: self.paper_faithful,
+            substitution_justification: &self.substitution_justification,
+            embedding_strategy: self.embedding_strategy,
+            config: &self.config,
+            artifact_binding: StableArtifactBinding {
+                artifact_id: self.artifact_binding.artifact_id.as_str(),
+                artifact_format: self.artifact_binding.artifact_format,
+                primary_artifact_sha256: self.artifact_binding.primary_artifact_sha256.as_str(),
+                weight_bundle_digest: self.artifact_binding.weight_bundle_digest.as_str(),
+                tensor_count: self.artifact_binding.tensor_count,
+            },
+            weights: StableWeightBundleMetadata {
+                format: self.weights.format,
+                source: self.weights.source,
+                quantization: self.weights.quantization,
+                quantization_modes: self.weights.quantization_modes.as_slice(),
+                digest: self.weights.digest.as_str(),
+                tensors: self.weights.tensors.as_slice(),
+                artifacts: stable_artifacts,
+            },
+        };
+        stable_digest(
+            b"psionic_tassadar_article_transformer_descriptor|",
+            &stable_descriptor,
+        )
+    }
+}
+
+/// Stable model-side artifact identity for one canonical article-Transformer descriptor.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarArticleTransformerArtifactBinding {
+    pub artifact_id: String,
+    pub artifact_ref: String,
+    pub artifact_format: WeightFormat,
+    pub primary_artifact_sha256: String,
+    pub weight_bundle_digest: String,
+    pub tensor_count: usize,
+    pub artifact_identity_digest: String,
+}
+
+impl TassadarArticleTransformerArtifactBinding {
+    fn new(
+        model_id: &str,
+        artifact_ref: impl Into<String>,
+        artifact_format: WeightFormat,
+        primary_artifact_sha256: impl Into<String>,
+        weight_bundle_digest: impl Into<String>,
+        tensor_count: usize,
+    ) -> Self {
+        let artifact_ref = artifact_ref.into();
+        let primary_artifact_sha256 = primary_artifact_sha256.into();
+        let weight_bundle_digest = weight_bundle_digest.into();
+        let mut binding = Self {
+            artifact_id: format!(
+                "tassadar://article_transformer/weights/{model_id}/{weight_bundle_digest}"
+            ),
+            artifact_ref,
+            artifact_format,
+            primary_artifact_sha256,
+            weight_bundle_digest,
+            tensor_count,
+            artifact_identity_digest: String::new(),
+        };
+        binding.artifact_identity_digest = stable_digest(
+            b"psionic_tassadar_article_transformer_artifact_binding|",
+            &(
+                binding.artifact_id.as_str(),
+                binding.artifact_ref.as_str(),
+                binding.artifact_format.identity_label(),
+                binding.primary_artifact_sha256.as_str(),
+                binding.weight_bundle_digest.as_str(),
+                binding.tensor_count,
+            ),
+        );
+        binding
     }
 }
 
@@ -71,6 +209,13 @@ pub struct TassadarArticleTransformerParameterVector {
     pub parameter_id: String,
     pub shape: Vec<usize>,
     pub values: Vec<f32>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+struct TassadarArticleTransformerArtifactTensorRow {
+    name: String,
+    shape: Vec<usize>,
+    values: Vec<f32>,
 }
 
 /// One channel binding between the runtime-owned trace schema and tokenizer forms.
@@ -160,6 +305,14 @@ impl TassadarArticleTransformer {
     pub const DECODER_OUTPUT_SHARED_PARAMETER_ID: &str = "decoder_output_shared_table";
     pub const LOGITS_PROJECTION_WEIGHT_PARAMETER_ID: &str = "logits_projection_weight";
     pub const LOGITS_PROJECTION_BIAS_PARAMETER_ID: &str = "logits_projection_bias";
+    pub const CANONICAL_DESCRIPTOR_REF: &str =
+        "fixtures/tassadar/models/tassadar_article_transformer_paper_faithful_v0_descriptor.json";
+    pub const CANONICAL_ARTIFACT_REF: &str =
+        "fixtures/tassadar/models/tassadar_article_transformer_paper_faithful_v0.safetensors";
+    pub const TRACE_BOUND_DESCRIPTOR_REF: &str =
+        "fixtures/tassadar/models/tassadar_article_transformer_trace_bound_v0_descriptor.json";
+    pub const TRACE_BOUND_ARTIFACT_REF: &str =
+        "fixtures/tassadar/models/tassadar_article_transformer_trace_bound_v0.safetensors";
 
     /// Returns a small canonical reference config used for closure tests.
     #[must_use]
@@ -228,22 +381,20 @@ impl TassadarArticleTransformer {
             }
         };
         let logits_projection_bias = vec![0.0; config.target_vocab_size];
-        Self::from_weight_parts(
+        let model = Self::from_weight_parts(
             config,
             embedding_strategy,
             source_embedding_table,
             target_embedding_table,
             logits_projection_weight,
             logits_projection_bias,
-        )
+        )?;
+        model.with_memory_artifact_binding()
     }
 
     /// Returns a small canonical paper-faithful route used by closure reports.
     pub fn canonical_reference() -> Result<Self, TassadarArticleTransformerError> {
-        Self::paper_faithful_reference(
-            Self::tiny_reference_config(),
-            TassadarArticleTransformerEmbeddingStrategy::SharedSourceTargetAndOutput,
-        )
+        Self::load_from_descriptor_path(Self::canonical_reference_descriptor_path())
     }
 
     /// Returns a bounded trace-domain config whose vocab exactly matches the
@@ -269,6 +420,17 @@ impl TassadarArticleTransformer {
 
     /// Returns a trace-bound reference model for the canonical article route.
     pub fn article_trace_domain_reference() -> Result<Self, TassadarArticleTransformerError> {
+        Self::load_from_descriptor_path(Self::trace_bound_descriptor_path())
+    }
+
+    fn build_canonical_reference_source() -> Result<Self, TassadarArticleTransformerError> {
+        Self::paper_faithful_reference(
+            Self::tiny_reference_config(),
+            TassadarArticleTransformerEmbeddingStrategy::SharedSourceTargetAndOutput,
+        )
+    }
+
+    fn build_trace_domain_reference_source() -> Result<Self, TassadarArticleTransformerError> {
         let tokenizer = TassadarTraceTokenizer::new();
         let config = Self::trace_domain_reference_config(&tokenizer);
         let mut model = Self::paper_faithful_reference(
@@ -277,13 +439,249 @@ impl TassadarArticleTransformer {
         )?;
         model.descriptor.model =
             ModelDescriptor::new(Self::TRACE_BOUND_MODEL_ID, Self::MODEL_FAMILY, "v0");
+        model = model.with_memory_artifact_binding()?;
         Ok(model)
+    }
+
+    #[must_use]
+    pub fn canonical_reference_descriptor_path() -> PathBuf {
+        repo_root().join(Self::CANONICAL_DESCRIPTOR_REF)
+    }
+
+    #[must_use]
+    pub fn canonical_reference_artifact_path() -> PathBuf {
+        repo_root().join(Self::CANONICAL_ARTIFACT_REF)
+    }
+
+    #[must_use]
+    pub fn trace_bound_descriptor_path() -> PathBuf {
+        repo_root().join(Self::TRACE_BOUND_DESCRIPTOR_REF)
+    }
+
+    #[must_use]
+    pub fn trace_bound_artifact_path() -> PathBuf {
+        repo_root().join(Self::TRACE_BOUND_ARTIFACT_REF)
     }
 
     /// Returns the public descriptor.
     #[must_use]
     pub fn descriptor(&self) -> &TassadarArticleTransformerDescriptor {
         &self.descriptor
+    }
+
+    #[must_use]
+    pub fn artifact_binding(&self) -> &TassadarArticleTransformerArtifactBinding {
+        &self.descriptor.artifact_binding
+    }
+
+    #[must_use]
+    pub fn weight_metadata(&self) -> &WeightBundleMetadata {
+        &self.descriptor.weights
+    }
+
+    pub fn load_from_descriptor_path(
+        descriptor_path: impl AsRef<Path>,
+    ) -> Result<Self, TassadarArticleTransformerError> {
+        let descriptor_path = descriptor_path.as_ref();
+        let descriptor_bytes =
+            fs::read(descriptor_path).map_err(|error| TassadarArticleTransformerError::Read {
+                path: descriptor_path.display().to_string(),
+                error,
+            })?;
+        let descriptor: TassadarArticleTransformerDescriptor =
+            serde_json::from_slice(&descriptor_bytes).map_err(|error| {
+                TassadarArticleTransformerError::Decode {
+                    path: descriptor_path.display().to_string(),
+                    error,
+                }
+            })?;
+        let artifact_path = resolve_artifact_path(
+            descriptor_path,
+            descriptor.artifact_binding.artifact_ref.as_str(),
+        )?;
+        let artifact_bytes =
+            fs::read(&artifact_path).map_err(|error| TassadarArticleTransformerError::Read {
+                path: artifact_path.display().to_string(),
+                error,
+            })?;
+        Self::from_descriptor_and_artifact_bytes(descriptor, &artifact_bytes)
+    }
+
+    pub fn write_artifact_bundle(
+        &self,
+        descriptor_path: impl AsRef<Path>,
+        artifact_path: impl AsRef<Path>,
+    ) -> Result<TassadarArticleTransformerDescriptor, TassadarArticleTransformerError> {
+        let descriptor_path = descriptor_path.as_ref();
+        let artifact_path = artifact_path.as_ref();
+        if let Some(parent) = descriptor_path.parent() {
+            fs::create_dir_all(parent).map_err(|error| {
+                TassadarArticleTransformerError::CreateDir {
+                    path: parent.display().to_string(),
+                    error,
+                }
+            })?;
+        }
+        if let Some(parent) = artifact_path.parent() {
+            fs::create_dir_all(parent).map_err(|error| {
+                TassadarArticleTransformerError::CreateDir {
+                    path: parent.display().to_string(),
+                    error,
+                }
+            })?;
+        }
+        let artifact_ref = relative_artifact_ref(descriptor_path, artifact_path);
+        let descriptor = self.descriptor_with_artifact_ref(artifact_ref)?;
+        let artifact_bytes = serialize_artifact_rows_to_bytes(&self.artifact_tensor_rows()?)?;
+        fs::write(artifact_path, &artifact_bytes).map_err(|error| {
+            TassadarArticleTransformerError::Write {
+                path: artifact_path.display().to_string(),
+                error,
+            }
+        })?;
+        let json = serde_json::to_string_pretty(&descriptor)?;
+        fs::write(descriptor_path, format!("{json}\n")).map_err(|error| {
+            TassadarArticleTransformerError::Write {
+                path: descriptor_path.display().to_string(),
+                error,
+            }
+        })?;
+        Ok(descriptor)
+    }
+
+    pub fn write_committed_reference_artifacts(
+    ) -> Result<Vec<TassadarArticleTransformerDescriptor>, TassadarArticleTransformerError> {
+        let canonical = Self::build_canonical_reference_source()?.write_artifact_bundle(
+            Self::canonical_reference_descriptor_path(),
+            Self::canonical_reference_artifact_path(),
+        )?;
+        let trace_bound = Self::build_trace_domain_reference_source()?.write_artifact_bundle(
+            Self::trace_bound_descriptor_path(),
+            Self::trace_bound_artifact_path(),
+        )?;
+        Ok(vec![canonical, trace_bound])
+    }
+
+    fn with_memory_artifact_binding(mut self) -> Result<Self, TassadarArticleTransformerError> {
+        self.descriptor = self.descriptor_with_artifact_ref(format!(
+            "memory://tassadar/article_transformer/{}.safetensors",
+            self.descriptor.model.model_id
+        ))?;
+        Ok(self)
+    }
+
+    fn descriptor_with_artifact_ref(
+        &self,
+        artifact_ref: impl Into<String>,
+    ) -> Result<TassadarArticleTransformerDescriptor, TassadarArticleTransformerError> {
+        let artifact_ref = artifact_ref.into();
+        let rows = self.artifact_tensor_rows()?;
+        let artifact_bytes = serialize_artifact_rows_to_bytes(rows.as_slice())?;
+        let artifact_sha256 = hex::encode(Sha256::digest(&artifact_bytes));
+        let weights = build_article_transformer_weight_bundle_metadata(
+            rows.as_slice(),
+            artifact_ref.clone(),
+            artifact_sha256.clone(),
+            artifact_bytes.len() as u64,
+        );
+        let artifact_binding = TassadarArticleTransformerArtifactBinding::new(
+            self.descriptor.model.model_id.as_str(),
+            artifact_ref,
+            weights.format,
+            artifact_sha256,
+            weights.digest.clone(),
+            weights.tensors.len(),
+        );
+        let mut descriptor = self.descriptor.clone();
+        descriptor.artifact_binding = artifact_binding;
+        descriptor.weights = weights;
+        Ok(descriptor)
+    }
+
+    fn from_descriptor_and_artifact_bytes(
+        descriptor: TassadarArticleTransformerDescriptor,
+        artifact_bytes: &[u8],
+    ) -> Result<Self, TassadarArticleTransformerError> {
+        let tensor_map = load_article_transformer_tensor_map(artifact_bytes)?;
+        let actual_weights =
+            build_article_transformer_weight_bundle_metadata_from_map(&tensor_map, &descriptor);
+        if actual_weights.digest != descriptor.weights.digest
+            || actual_weights.tensors != descriptor.weights.tensors
+            || actual_weights.artifacts != descriptor.weights.artifacts
+            || actual_weights.format != descriptor.weights.format
+            || actual_weights.source != descriptor.weights.source
+        {
+            return Err(TassadarArticleTransformerError::ArtifactMetadataMismatch {
+                expected_digest: descriptor.weights.digest.clone(),
+                actual_digest: actual_weights.digest,
+            });
+        }
+        let config = descriptor.config.clone();
+        let source_embedding_table = require_tensor_values(
+            &tensor_map,
+            "source_embeddings.token_embedding.weight",
+            &[config.source_vocab_size, config.hidden_size],
+        )?;
+        let target_embedding_table = require_tensor_values(
+            &tensor_map,
+            "target_embeddings.token_embedding.weight",
+            &[config.target_vocab_size, config.hidden_size],
+        )?;
+        let source_embeddings = TransformerEmbeddings::from_f32_table(
+            "tassadar.article_transformer.source_embeddings",
+            config.source_vocab_size,
+            config.hidden_size,
+            config.max_source_positions,
+            source_embedding_table.clone(),
+            config.dropout_probability(),
+        )?;
+        let target_embeddings = TransformerEmbeddings::from_f32_table(
+            "tassadar.article_transformer.target_embeddings",
+            config.target_vocab_size,
+            config.hidden_size,
+            config.max_target_positions,
+            target_embedding_table.clone(),
+            config.dropout_probability(),
+        )?;
+        let encoder_layers = (0..config.encoder_layer_count)
+            .map(|layer_index| build_encoder_layer_from_tensors(&config, layer_index, &tensor_map))
+            .collect::<Result<Vec<_>, _>>()?;
+        let decoder_layers = (0..config.decoder_layer_count)
+            .map(|layer_index| build_decoder_layer_from_tensors(&config, layer_index, &tensor_map))
+            .collect::<Result<Vec<_>, _>>()?;
+        let logits_projection_weight = require_tensor_values(
+            &tensor_map,
+            "logits_projection.weight",
+            &[config.target_vocab_size, config.hidden_size],
+        )?;
+        let logits_projection_bias = require_tensor_values(
+            &tensor_map,
+            "logits_projection.bias",
+            &[config.target_vocab_size],
+        )?;
+        let logits_projection = Linear::from_f32_parts(
+            "tassadar.article_transformer.logits_projection",
+            config.hidden_size,
+            config.target_vocab_size,
+            logits_projection_weight.clone(),
+            Some(logits_projection_bias.clone()),
+        )?;
+        let model = EncoderDecoderTransformer::from_components(
+            config,
+            source_embeddings,
+            target_embeddings,
+            encoder_layers,
+            decoder_layers,
+            logits_projection,
+        )?;
+        Ok(Self {
+            descriptor,
+            source_embedding_table,
+            target_embedding_table,
+            logits_projection_weight,
+            logits_projection_bias,
+            model,
+        })
     }
 
     /// Returns the canonical trace-domain binding for the current model.
@@ -667,14 +1065,15 @@ impl TassadarArticleTransformer {
             }
         }
 
-        Self::from_weight_parts(
+        let model = Self::from_weight_parts(
             self.descriptor.config.clone(),
             self.embedding_strategy(),
             source_embedding_table,
             target_embedding_table,
             logits_projection_weight,
             logits_projection_bias,
-        )
+        )?;
+        model.with_memory_artifact_binding()
     }
 
     /// Runs a paper-faithful encoder-decoder forward pass.
@@ -706,6 +1105,9 @@ impl TassadarArticleTransformer {
             self.descriptor.model.family.clone(),
             self.descriptor().stable_digest(),
             self.trainable_parameter_digest(),
+            self.artifact_binding().artifact_id.clone(),
+            self.weight_metadata().digest.clone(),
+            self.artifact_binding().primary_artifact_sha256.clone(),
         )
     }
 
@@ -864,6 +1266,102 @@ impl TassadarArticleTransformer {
         ))
     }
 
+    fn artifact_tensor_rows(
+        &self,
+    ) -> Result<Vec<TassadarArticleTransformerArtifactTensorRow>, TassadarArticleTransformerError>
+    {
+        let config = self.model.config();
+        let mut rows = vec![
+            artifact_tensor_row(
+                "source_embeddings.token_embedding.weight",
+                vec![config.source_vocab_size, config.hidden_size],
+                self.model
+                    .source_embeddings()
+                    .token_embedding_table_f32()?
+                    .to_vec(),
+            ),
+            artifact_tensor_row(
+                "target_embeddings.token_embedding.weight",
+                vec![config.target_vocab_size, config.hidden_size],
+                self.model
+                    .target_embeddings()
+                    .token_embedding_table_f32()?
+                    .to_vec(),
+            ),
+        ];
+        for (layer_index, layer) in self.model.encoder_layers().iter().enumerate() {
+            append_attention_tensor_rows(
+                &mut rows,
+                &format!("encoder_layers.{layer_index}.self_attention"),
+                layer.self_attention(),
+            )?;
+            append_layer_norm_tensor_rows(
+                &mut rows,
+                &format!("encoder_layers.{layer_index}.self_attention_norm"),
+                layer.self_attention_norm(),
+            )?;
+            append_feed_forward_tensor_rows(
+                &mut rows,
+                &format!("encoder_layers.{layer_index}.feed_forward"),
+                layer.feed_forward(),
+            )?;
+            append_layer_norm_tensor_rows(
+                &mut rows,
+                &format!("encoder_layers.{layer_index}.feed_forward_norm"),
+                layer.feed_forward_norm(),
+            )?;
+        }
+        for (layer_index, layer) in self.model.decoder_layers().iter().enumerate() {
+            append_attention_tensor_rows(
+                &mut rows,
+                &format!("decoder_layers.{layer_index}.self_attention"),
+                layer.self_attention(),
+            )?;
+            append_layer_norm_tensor_rows(
+                &mut rows,
+                &format!("decoder_layers.{layer_index}.self_attention_norm"),
+                layer.self_attention_norm(),
+            )?;
+            append_attention_tensor_rows(
+                &mut rows,
+                &format!("decoder_layers.{layer_index}.cross_attention"),
+                layer.cross_attention(),
+            )?;
+            append_layer_norm_tensor_rows(
+                &mut rows,
+                &format!("decoder_layers.{layer_index}.cross_attention_norm"),
+                layer.cross_attention_norm(),
+            )?;
+            append_feed_forward_tensor_rows(
+                &mut rows,
+                &format!("decoder_layers.{layer_index}.feed_forward"),
+                layer.feed_forward(),
+            )?;
+            append_layer_norm_tensor_rows(
+                &mut rows,
+                &format!("decoder_layers.{layer_index}.feed_forward_norm"),
+                layer.feed_forward_norm(),
+            )?;
+        }
+        rows.push(artifact_tensor_row(
+            "logits_projection.weight",
+            vec![config.target_vocab_size, config.hidden_size],
+            self.model.logits_projection().weight_f32()?.to_vec(),
+        ));
+        rows.push(artifact_tensor_row(
+            "logits_projection.bias",
+            vec![config.target_vocab_size],
+            self.model
+                .logits_projection()
+                .bias_f32()?
+                .ok_or_else(|| TassadarArticleTransformerError::MissingLinearBias {
+                    path: String::from("logits_projection.bias"),
+                })?
+                .to_vec(),
+        ));
+        Ok(rows)
+    }
+
     fn from_weight_parts(
         config: EncoderDecoderTransformerConfig,
         embedding_strategy: TassadarArticleTransformerEmbeddingStrategy,
@@ -920,6 +1418,8 @@ impl TassadarArticleTransformer {
             substitution_justification: None,
             embedding_strategy,
             config,
+            artifact_binding: placeholder_artifact_binding(Self::MODEL_ID),
+            weights: placeholder_weight_bundle_metadata(),
         };
         Ok(Self {
             descriptor,
@@ -933,7 +1433,7 @@ impl TassadarArticleTransformer {
 }
 
 /// Article-route wrapper construction or forward-pass failure.
-#[derive(Clone, Debug, Error, PartialEq)]
+#[derive(Debug, Error)]
 pub enum TassadarArticleTransformerError {
     #[error(transparent)]
     EncoderDecoder(#[from] EncoderDecoderTransformerError),
@@ -943,11 +1443,47 @@ pub enum TassadarArticleTransformerError {
     Layer(#[from] LayerError),
     #[error(transparent)]
     TraceDecode(#[from] TassadarArticleTraceDecodeError),
+    #[error(transparent)]
+    Json(#[from] serde_json::Error),
+    #[error("failed to create directory `{path}`: {error}")]
+    CreateDir { path: String, error: std::io::Error },
+    #[error("failed to read `{path}`: {error}")]
+    Read { path: String, error: std::io::Error },
+    #[error("failed to write `{path}`: {error}")]
+    Write { path: String, error: std::io::Error },
+    #[error("failed to decode `{path}`: {error}")]
+    Decode {
+        path: String,
+        error: serde_json::Error,
+    },
+    #[error("failed to parse {format} artifact: {message}")]
+    ArtifactFormat { format: String, message: String },
     #[error("component `{component}` invalid configuration: {message}")]
     InvalidConfiguration {
         component: &'static str,
         message: String,
     },
+    #[error("linear tensor `{path}` unexpectedly omitted bias")]
+    MissingLinearBias { path: String },
+    #[error("artifact tensor `{name}` is missing")]
+    MissingArtifactTensor { name: String },
+    #[error("artifact tensor `{name}` expected shape {expected:?}, found {actual:?}")]
+    ArtifactTensorShapeMismatch {
+        name: String,
+        expected: Vec<usize>,
+        actual: Vec<usize>,
+    },
+    #[error("artifact tensor `{name}` used unsupported dtype `{dtype}`")]
+    UnsupportedArtifactTensorDType { name: String, dtype: String },
+    #[error(
+        "descriptor weight metadata digest `{expected_digest}` did not match loaded artifact digest `{actual_digest}`"
+    )]
+    ArtifactMetadataMismatch {
+        expected_digest: String,
+        actual_digest: String,
+    },
+    #[error("artifact ref `{artifact_ref}` is not file-backed")]
+    NonFileArtifactRef { artifact_ref: String },
     #[error("unknown bounded trainable parameter `{parameter_id}`")]
     UnknownParameter { parameter_id: String },
     #[error(
@@ -1380,12 +1916,604 @@ fn stable_digest<T: Serialize>(prefix: &[u8], value: &T) -> String {
     hex::encode(hasher.finalize())
 }
 
+fn repo_root() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(Path::parent)
+        .expect("psionic-models should live under <repo>/crates/psionic-models")
+        .to_path_buf()
+}
+
+fn placeholder_artifact_binding(model_id: &str) -> TassadarArticleTransformerArtifactBinding {
+    TassadarArticleTransformerArtifactBinding::new(
+        model_id,
+        "pending://tassadar/article_transformer/unbound.safetensors",
+        WeightFormat::SafeTensors,
+        "pending",
+        "pending",
+        0,
+    )
+}
+
+fn placeholder_weight_bundle_metadata() -> WeightBundleMetadata {
+    WeightBundleMetadata {
+        format: WeightFormat::SafeTensors,
+        source: WeightSource::ExternalArtifact,
+        quantization: psionic_core::QuantizationMode::None,
+        quantization_modes: Vec::new(),
+        digest: String::from("pending"),
+        tensors: Vec::new(),
+        artifacts: Vec::new(),
+    }
+}
+
+fn artifact_tensor_row(
+    name: &str,
+    shape: Vec<usize>,
+    values: Vec<f32>,
+) -> TassadarArticleTransformerArtifactTensorRow {
+    TassadarArticleTransformerArtifactTensorRow {
+        name: String::from(name),
+        shape,
+        values,
+    }
+}
+
+fn append_attention_tensor_rows(
+    rows: &mut Vec<TassadarArticleTransformerArtifactTensorRow>,
+    prefix: &str,
+    attention: &MultiHeadAttention,
+) -> Result<(), TassadarArticleTransformerError> {
+    let hidden_size = attention.hidden_size();
+    rows.push(artifact_tensor_row(
+        &format!("{prefix}.query_projection.weight"),
+        vec![hidden_size, hidden_size],
+        attention.query_weight_f32()?.to_vec(),
+    ));
+    rows.push(artifact_tensor_row(
+        &format!("{prefix}.query_projection.bias"),
+        vec![hidden_size],
+        attention
+            .query_bias_f32()?
+            .ok_or_else(|| TassadarArticleTransformerError::MissingLinearBias {
+                path: format!("{prefix}.query_projection.bias"),
+            })?
+            .to_vec(),
+    ));
+    rows.push(artifact_tensor_row(
+        &format!("{prefix}.key_projection.weight"),
+        vec![hidden_size, hidden_size],
+        attention.key_weight_f32()?.to_vec(),
+    ));
+    rows.push(artifact_tensor_row(
+        &format!("{prefix}.key_projection.bias"),
+        vec![hidden_size],
+        attention
+            .key_bias_f32()?
+            .ok_or_else(|| TassadarArticleTransformerError::MissingLinearBias {
+                path: format!("{prefix}.key_projection.bias"),
+            })?
+            .to_vec(),
+    ));
+    rows.push(artifact_tensor_row(
+        &format!("{prefix}.value_projection.weight"),
+        vec![hidden_size, hidden_size],
+        attention.value_weight_f32()?.to_vec(),
+    ));
+    rows.push(artifact_tensor_row(
+        &format!("{prefix}.value_projection.bias"),
+        vec![hidden_size],
+        attention
+            .value_bias_f32()?
+            .ok_or_else(|| TassadarArticleTransformerError::MissingLinearBias {
+                path: format!("{prefix}.value_projection.bias"),
+            })?
+            .to_vec(),
+    ));
+    rows.push(artifact_tensor_row(
+        &format!("{prefix}.output_projection.weight"),
+        vec![hidden_size, hidden_size],
+        attention.output_weight_f32()?.to_vec(),
+    ));
+    rows.push(artifact_tensor_row(
+        &format!("{prefix}.output_projection.bias"),
+        vec![hidden_size],
+        attention
+            .output_bias_f32()?
+            .ok_or_else(|| TassadarArticleTransformerError::MissingLinearBias {
+                path: format!("{prefix}.output_projection.bias"),
+            })?
+            .to_vec(),
+    ));
+    Ok(())
+}
+
+fn append_feed_forward_tensor_rows(
+    rows: &mut Vec<TassadarArticleTransformerArtifactTensorRow>,
+    prefix: &str,
+    feed_forward: &PositionwiseFeedForward,
+) -> Result<(), TassadarArticleTransformerError> {
+    rows.push(artifact_tensor_row(
+        &format!("{prefix}.input_projection.weight"),
+        vec![feed_forward.intermediate_size(), feed_forward.hidden_size()],
+        feed_forward.input_weight_f32()?.to_vec(),
+    ));
+    rows.push(artifact_tensor_row(
+        &format!("{prefix}.input_projection.bias"),
+        vec![feed_forward.intermediate_size()],
+        feed_forward
+            .input_bias_f32()?
+            .ok_or_else(|| TassadarArticleTransformerError::MissingLinearBias {
+                path: format!("{prefix}.input_projection.bias"),
+            })?
+            .to_vec(),
+    ));
+    rows.push(artifact_tensor_row(
+        &format!("{prefix}.output_projection.weight"),
+        vec![feed_forward.hidden_size(), feed_forward.intermediate_size()],
+        feed_forward.output_weight_f32()?.to_vec(),
+    ));
+    rows.push(artifact_tensor_row(
+        &format!("{prefix}.output_projection.bias"),
+        vec![feed_forward.hidden_size()],
+        feed_forward
+            .output_bias_f32()?
+            .ok_or_else(|| TassadarArticleTransformerError::MissingLinearBias {
+                path: format!("{prefix}.output_projection.bias"),
+            })?
+            .to_vec(),
+    ));
+    Ok(())
+}
+
+fn append_layer_norm_tensor_rows(
+    rows: &mut Vec<TassadarArticleTransformerArtifactTensorRow>,
+    prefix: &str,
+    layer_norm: &LayerNorm,
+) -> Result<(), TassadarArticleTransformerError> {
+    rows.push(artifact_tensor_row(
+        &format!("{prefix}.weight"),
+        vec![layer_norm.feature_size()],
+        layer_norm.weight_f32()?.to_vec(),
+    ));
+    rows.push(artifact_tensor_row(
+        &format!("{prefix}.bias"),
+        vec![layer_norm.feature_size()],
+        layer_norm.bias_f32()?.to_vec(),
+    ));
+    Ok(())
+}
+
+fn build_attention_from_tensors(
+    module_id: String,
+    tensor_prefix: &str,
+    hidden_size: usize,
+    head_count: usize,
+    tensor_map: &BTreeMap<String, TassadarArticleTransformerArtifactTensorRow>,
+) -> Result<MultiHeadAttention, TassadarArticleTransformerError> {
+    MultiHeadAttention::from_f32_parts(
+        module_id,
+        hidden_size,
+        head_count,
+        require_tensor_values(
+            tensor_map,
+            &format!("{tensor_prefix}.query_projection.weight"),
+            &[hidden_size, hidden_size],
+        )?,
+        Some(require_tensor_values(
+            tensor_map,
+            &format!("{tensor_prefix}.query_projection.bias"),
+            &[hidden_size],
+        )?),
+        require_tensor_values(
+            tensor_map,
+            &format!("{tensor_prefix}.key_projection.weight"),
+            &[hidden_size, hidden_size],
+        )?,
+        Some(require_tensor_values(
+            tensor_map,
+            &format!("{tensor_prefix}.key_projection.bias"),
+            &[hidden_size],
+        )?),
+        require_tensor_values(
+            tensor_map,
+            &format!("{tensor_prefix}.value_projection.weight"),
+            &[hidden_size, hidden_size],
+        )?,
+        Some(require_tensor_values(
+            tensor_map,
+            &format!("{tensor_prefix}.value_projection.bias"),
+            &[hidden_size],
+        )?),
+        require_tensor_values(
+            tensor_map,
+            &format!("{tensor_prefix}.output_projection.weight"),
+            &[hidden_size, hidden_size],
+        )?,
+        Some(require_tensor_values(
+            tensor_map,
+            &format!("{tensor_prefix}.output_projection.bias"),
+            &[hidden_size],
+        )?),
+        0.0,
+    )
+    .map_err(Into::into)
+}
+
+fn build_feed_forward_from_tensors(
+    module_id: String,
+    tensor_prefix: &str,
+    hidden_size: usize,
+    feed_forward_size: usize,
+    tensor_map: &BTreeMap<String, TassadarArticleTransformerArtifactTensorRow>,
+) -> Result<PositionwiseFeedForward, TassadarArticleTransformerError> {
+    PositionwiseFeedForward::from_f32_parts(
+        module_id,
+        hidden_size,
+        feed_forward_size,
+        ActivationKind::Relu,
+        require_tensor_values(
+            tensor_map,
+            &format!("{tensor_prefix}.input_projection.weight"),
+            &[feed_forward_size, hidden_size],
+        )?,
+        Some(require_tensor_values(
+            tensor_map,
+            &format!("{tensor_prefix}.input_projection.bias"),
+            &[feed_forward_size],
+        )?),
+        require_tensor_values(
+            tensor_map,
+            &format!("{tensor_prefix}.output_projection.weight"),
+            &[hidden_size, feed_forward_size],
+        )?,
+        Some(require_tensor_values(
+            tensor_map,
+            &format!("{tensor_prefix}.output_projection.bias"),
+            &[hidden_size],
+        )?),
+        0.0,
+    )
+    .map_err(Into::into)
+}
+
+fn build_layer_norm_from_tensors(
+    module_id: String,
+    tensor_prefix: &str,
+    feature_size: usize,
+    tensor_map: &BTreeMap<String, TassadarArticleTransformerArtifactTensorRow>,
+) -> Result<LayerNorm, TassadarArticleTransformerError> {
+    LayerNorm::from_f32_parts(
+        module_id,
+        feature_size,
+        1e-5,
+        require_tensor_values(
+            tensor_map,
+            &format!("{tensor_prefix}.weight"),
+            &[feature_size],
+        )?,
+        require_tensor_values(
+            tensor_map,
+            &format!("{tensor_prefix}.bias"),
+            &[feature_size],
+        )?,
+    )
+    .map_err(Into::into)
+}
+
+fn build_encoder_layer_from_tensors(
+    config: &EncoderDecoderTransformerConfig,
+    layer_index: usize,
+    tensor_map: &BTreeMap<String, TassadarArticleTransformerArtifactTensorRow>,
+) -> Result<TransformerEncoderLayer, TassadarArticleTransformerError> {
+    let module_id = format!("tassadar.article_transformer.encoder_layers.{layer_index}");
+    let tensor_prefix = format!("encoder_layers.{layer_index}");
+    TransformerEncoderLayer::from_components(
+        build_attention_from_tensors(
+            format!("{module_id}.self_attention"),
+            &format!("{tensor_prefix}.self_attention"),
+            config.hidden_size,
+            config.head_count,
+            tensor_map,
+        )?,
+        build_layer_norm_from_tensors(
+            format!("{module_id}.self_attention_norm"),
+            &format!("{tensor_prefix}.self_attention_norm"),
+            config.hidden_size,
+            tensor_map,
+        )?,
+        build_feed_forward_from_tensors(
+            format!("{module_id}.feed_forward"),
+            &format!("{tensor_prefix}.feed_forward"),
+            config.hidden_size,
+            config.feed_forward_size,
+            tensor_map,
+        )?,
+        build_layer_norm_from_tensors(
+            format!("{module_id}.feed_forward_norm"),
+            &format!("{tensor_prefix}.feed_forward_norm"),
+            config.hidden_size,
+            tensor_map,
+        )?,
+    )
+    .map_err(Into::into)
+}
+
+fn build_decoder_layer_from_tensors(
+    config: &EncoderDecoderTransformerConfig,
+    layer_index: usize,
+    tensor_map: &BTreeMap<String, TassadarArticleTransformerArtifactTensorRow>,
+) -> Result<TransformerDecoderLayer, TassadarArticleTransformerError> {
+    let module_id = format!("tassadar.article_transformer.decoder_layers.{layer_index}");
+    let tensor_prefix = format!("decoder_layers.{layer_index}");
+    TransformerDecoderLayer::from_components(
+        build_attention_from_tensors(
+            format!("{module_id}.self_attention"),
+            &format!("{tensor_prefix}.self_attention"),
+            config.hidden_size,
+            config.head_count,
+            tensor_map,
+        )?,
+        build_layer_norm_from_tensors(
+            format!("{module_id}.self_attention_norm"),
+            &format!("{tensor_prefix}.self_attention_norm"),
+            config.hidden_size,
+            tensor_map,
+        )?,
+        build_attention_from_tensors(
+            format!("{module_id}.cross_attention"),
+            &format!("{tensor_prefix}.cross_attention"),
+            config.hidden_size,
+            config.head_count,
+            tensor_map,
+        )?,
+        build_layer_norm_from_tensors(
+            format!("{module_id}.cross_attention_norm"),
+            &format!("{tensor_prefix}.cross_attention_norm"),
+            config.hidden_size,
+            tensor_map,
+        )?,
+        build_feed_forward_from_tensors(
+            format!("{module_id}.feed_forward"),
+            &format!("{tensor_prefix}.feed_forward"),
+            config.hidden_size,
+            config.feed_forward_size,
+            tensor_map,
+        )?,
+        build_layer_norm_from_tensors(
+            format!("{module_id}.feed_forward_norm"),
+            &format!("{tensor_prefix}.feed_forward_norm"),
+            config.hidden_size,
+            tensor_map,
+        )?,
+    )
+    .map_err(Into::into)
+}
+
+fn serialize_artifact_rows_to_bytes(
+    rows: &[TassadarArticleTransformerArtifactTensorRow],
+) -> Result<Vec<u8>, TassadarArticleTransformerError> {
+    let mut ordered = rows.to_vec();
+    ordered.sort_by(|left, right| left.name.cmp(&right.name));
+    let mut tensors = Vec::with_capacity(ordered.len());
+    for row in &ordered {
+        let byte_data = encode_f32_le_bytes(row.values.as_slice()).into_boxed_slice();
+        let leaked: &'static [u8] = Box::leak(byte_data);
+        let view =
+            TensorView::new(SafeTensorsDType::F32, row.shape.clone(), leaked).map_err(|error| {
+                TassadarArticleTransformerError::ArtifactFormat {
+                    format: String::from("safetensors"),
+                    message: error.to_string(),
+                }
+            })?;
+        tensors.push((row.name.clone(), view));
+    }
+    serialize(tensors, None).map_err(|error| TassadarArticleTransformerError::ArtifactFormat {
+        format: String::from("safetensors"),
+        message: error.to_string(),
+    })
+}
+
+fn load_article_transformer_tensor_map(
+    artifact_bytes: &[u8],
+) -> Result<
+    BTreeMap<String, TassadarArticleTransformerArtifactTensorRow>,
+    TassadarArticleTransformerError,
+> {
+    let tensors = SafeTensors::deserialize(artifact_bytes).map_err(|error| {
+        TassadarArticleTransformerError::ArtifactFormat {
+            format: String::from("safetensors"),
+            message: error.to_string(),
+        }
+    })?;
+    let mut names = tensors.names();
+    names.sort_unstable();
+    let mut tensor_map = BTreeMap::new();
+    for name in names {
+        let tensor = tensors.tensor(name).map_err(|error| {
+            TassadarArticleTransformerError::ArtifactFormat {
+                format: String::from("safetensors"),
+                message: error.to_string(),
+            }
+        })?;
+        if tensor.dtype() != SafeTensorsDType::F32 {
+            return Err(
+                TassadarArticleTransformerError::UnsupportedArtifactTensorDType {
+                    name: name.to_string(),
+                    dtype: tensor.dtype().to_string(),
+                },
+            );
+        }
+        tensor_map.insert(
+            name.to_string(),
+            artifact_tensor_row(
+                name,
+                tensor.shape().to_vec(),
+                decode_f32_tensor_bytes(name, tensor.data())?,
+            ),
+        );
+    }
+    Ok(tensor_map)
+}
+
+fn require_tensor_values(
+    tensor_map: &BTreeMap<String, TassadarArticleTransformerArtifactTensorRow>,
+    name: &str,
+    expected_shape: &[usize],
+) -> Result<Vec<f32>, TassadarArticleTransformerError> {
+    let row = tensor_map.get(name).ok_or_else(|| {
+        TassadarArticleTransformerError::MissingArtifactTensor {
+            name: String::from(name),
+        }
+    })?;
+    if row.shape != expected_shape {
+        return Err(
+            TassadarArticleTransformerError::ArtifactTensorShapeMismatch {
+                name: String::from(name),
+                expected: expected_shape.to_vec(),
+                actual: row.shape.clone(),
+            },
+        );
+    }
+    Ok(row.values.clone())
+}
+
+fn build_article_transformer_weight_bundle_metadata(
+    rows: &[TassadarArticleTransformerArtifactTensorRow],
+    artifact_ref: String,
+    artifact_sha256: String,
+    artifact_byte_length: u64,
+) -> WeightBundleMetadata {
+    let mut ordered = rows.to_vec();
+    ordered.sort_by(|left, right| left.name.cmp(&right.name));
+    let tensors = ordered
+        .iter()
+        .map(|row| {
+            WeightTensorMetadata::new(row.name.clone(), Shape::new(row.shape.clone()), DType::F32)
+        })
+        .collect::<Vec<_>>();
+    let mut hasher = Sha256::new();
+    for (metadata, row) in tensors.iter().zip(ordered.iter()) {
+        digest_tensor_values(&mut hasher, metadata, row.values.as_slice());
+    }
+    WeightBundleMetadata {
+        format: WeightFormat::SafeTensors,
+        source: WeightSource::ExternalArtifact,
+        quantization: psionic_core::QuantizationMode::None,
+        quantization_modes: Vec::new(),
+        digest: hex::encode(hasher.finalize()),
+        tensors,
+        artifacts: vec![WeightArtifactMetadata::new(
+            artifact_ref,
+            artifact_byte_length,
+            artifact_sha256,
+        )],
+    }
+}
+
+fn build_article_transformer_weight_bundle_metadata_from_map(
+    tensor_map: &BTreeMap<String, TassadarArticleTransformerArtifactTensorRow>,
+    descriptor: &TassadarArticleTransformerDescriptor,
+) -> WeightBundleMetadata {
+    let rows = tensor_map.values().cloned().collect::<Vec<_>>();
+    let artifact_byte_length = descriptor
+        .weights
+        .artifacts
+        .first()
+        .map(|artifact| artifact.byte_length)
+        .unwrap_or_default();
+    build_article_transformer_weight_bundle_metadata(
+        rows.as_slice(),
+        descriptor.artifact_binding.artifact_ref.clone(),
+        descriptor.artifact_binding.primary_artifact_sha256.clone(),
+        artifact_byte_length,
+    )
+}
+
+fn resolve_artifact_path(
+    descriptor_path: &Path,
+    artifact_ref: &str,
+) -> Result<PathBuf, TassadarArticleTransformerError> {
+    if artifact_ref.starts_with("memory://") {
+        return Err(TassadarArticleTransformerError::NonFileArtifactRef {
+            artifact_ref: String::from(artifact_ref),
+        });
+    }
+    let artifact_path = PathBuf::from(artifact_ref);
+    if artifact_path.is_absolute() {
+        Ok(artifact_path)
+    } else {
+        Ok(descriptor_path
+            .parent()
+            .unwrap_or_else(|| Path::new("."))
+            .join(artifact_path))
+    }
+}
+
+fn relative_artifact_ref(descriptor_path: &Path, artifact_path: &Path) -> String {
+    if let Some(parent) = descriptor_path.parent() {
+        if let Ok(relative) = artifact_path.strip_prefix(parent) {
+            return relative.display().to_string();
+        }
+    }
+    artifact_path
+        .file_name()
+        .and_then(|value| value.to_str())
+        .map(String::from)
+        .unwrap_or_else(|| artifact_path.display().to_string())
+}
+
+fn encode_f32_le_bytes(values: &[f32]) -> Vec<u8> {
+    values
+        .iter()
+        .flat_map(|value| value.to_le_bytes())
+        .collect()
+}
+
+fn decode_f32_tensor_bytes(
+    name: &str,
+    bytes: &[u8],
+) -> Result<Vec<f32>, TassadarArticleTransformerError> {
+    if bytes.len() % 4 != 0 {
+        return Err(TassadarArticleTransformerError::ArtifactFormat {
+            format: String::from("safetensors"),
+            message: format!(
+                "tensor `{name}` byte length {} is not divisible by 4",
+                bytes.len()
+            ),
+        });
+    }
+    Ok(bytes
+        .chunks_exact(4)
+        .map(|chunk| f32::from_le_bytes([chunk[0], chunk[1], chunk[2], chunk[3]]))
+        .collect())
+}
+
+fn digest_tensor_values(hasher: &mut Sha256, metadata: &WeightTensorMetadata, values: &[f32]) {
+    hasher.update(metadata.name.as_bytes());
+    hasher.update(b"|");
+    hasher.update(format!("{:?}", metadata.dtype).as_bytes());
+    hasher.update(b"|");
+    hasher.update(format!("{:?}", metadata.quantization).as_bytes());
+    hasher.update(b"|");
+    for dimension in metadata.shape.dims() {
+        hasher.update(dimension.to_string().as_bytes());
+        hasher.update(b",");
+    }
+    hasher.update(b"|");
+    for value in values {
+        hasher.update(value.to_bits().to_be_bytes());
+    }
+    hasher.update(b"\n");
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
         TassadarArticleTransformer, TassadarArticleTransformerArchitectureVariant,
         TassadarArticleTransformerEmbeddingStrategy, TassadarArticleTransformerError,
     };
+    use crate::{WeightFormat, WeightSource};
     use psionic_core::Shape;
     use psionic_runtime::{
         tassadar_article_class_corpus, TassadarArticleTransformerCheckpointLineage,
@@ -1413,6 +2541,64 @@ mod tests {
             descriptor.source_paper_title,
             TassadarArticleTransformer::SOURCE_PAPER_TITLE
         );
+        Ok(())
+    }
+
+    #[test]
+    fn article_transformer_descriptor_is_artifact_backed(
+    ) -> Result<(), TassadarArticleTransformerError> {
+        let model = TassadarArticleTransformer::canonical_reference()?;
+        let descriptor = model.descriptor();
+
+        assert_eq!(descriptor.weights.format, WeightFormat::SafeTensors);
+        assert_eq!(descriptor.weights.source, WeightSource::ExternalArtifact);
+        assert!(!descriptor.weights.artifacts.is_empty());
+        assert!(!descriptor.weights.tensors.is_empty());
+        assert_eq!(
+            descriptor.artifact_binding.weight_bundle_digest,
+            descriptor.weights.digest
+        );
+        assert_eq!(
+            descriptor.artifact_binding.tensor_count,
+            descriptor.weights.tensors.len()
+        );
+        assert_eq!(
+            descriptor.artifact_binding.primary_artifact_sha256,
+            descriptor.weights.artifacts[0].sha256
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn article_transformer_artifact_bundle_roundtrips(
+    ) -> Result<(), TassadarArticleTransformerError> {
+        let model = TassadarArticleTransformer::canonical_reference()?;
+        let directory = tempfile::tempdir().expect("tempdir");
+        let descriptor_path = directory.path().join("article_transformer_descriptor.json");
+        let artifact_path = directory
+            .path()
+            .join("article_transformer_weights.safetensors");
+
+        let written_descriptor = model.write_artifact_bundle(&descriptor_path, &artifact_path)?;
+        let reloaded = TassadarArticleTransformer::load_from_descriptor_path(&descriptor_path)?;
+        let output = reloaded.forward(
+            Shape::new(vec![1, 2]),
+            &[0, 1],
+            Shape::new(vec![1, 3]),
+            &[0, 1, 2],
+            TransformerExecutionMode::Eval,
+        )?;
+
+        assert_eq!(written_descriptor, *reloaded.descriptor());
+        assert_eq!(
+            model.descriptor().stable_digest(),
+            reloaded.descriptor().stable_digest()
+        );
+        assert_eq!(
+            model.model_artifact_binding().artifact_digest,
+            reloaded.model_artifact_binding().artifact_digest
+        );
+        assert_eq!(output.logits.dims(), &[1, 3, 8]);
         Ok(())
     }
 

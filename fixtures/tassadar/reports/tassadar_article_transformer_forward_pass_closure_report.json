@@ -8,7 +8,6 @@
     "tied_requirement_satisfied": true,
     "acceptance_status": "blocked",
     "blocked_issue_ids": [
-      "TAS-168",
       "TAS-169",
       "TAS-169A",
       "TAS-170",
@@ -49,7 +48,6 @@
       "tied_requirement_satisfied": true,
       "acceptance_status": "blocked",
       "blocked_issue_ids": [
-        "TAS-168",
         "TAS-169",
         "TAS-169A",
         "TAS-170",
@@ -89,7 +87,6 @@
         "acceptance_status": "blocked",
         "article_equivalence_green": false,
         "blocked_issue_ids": [
-          "TAS-168",
           "TAS-169",
           "TAS-169A",
           "TAS-170",
@@ -289,7 +286,7 @@
       "current_truth_boundary": "psionic already owns real reusable substrate for tensor contracts, bounded array execution, module state, basic layers, transformer-boundary configs, model descriptors, weight lineage metadata, runtime proof identity, and trace receipts. The current gap is not substrate absence; it is the missing owned article-equivalence stack and the current presence of bounded research or fixture-backed lanes that are not yet sufficient for canonical article closure.",
       "claim_boundary": "this report inventories reusable substrate only. It freezes what can be reused, what needs extension, what stays research-only, and what is still not sufficient for article closure. It does not claim that the owned article-equivalence Transformer stack, the canonical article model artifact, or the final article-equivalence proof route already exist.",
       "summary": "Existing substrate inventory now records surface_count=11, blocker_surface_count=6, non_blocker_surface_count=5, inventory_contract_green=true, tied_requirement_satisfied=true, and article_equivalence_green=false.",
-      "report_digest": "a1ec55ad52e9cfb35ad78ae06dde9d28a4bfaadd1d3c9b1242257590a318d2f6"
+      "report_digest": "4faa6e07cc9c14f446e51ea11efaf9cb7bfd81004397b33b4f4d947463d5251d"
     },
     "interface_rows": [
       {
@@ -421,7 +418,7 @@
     "article_equivalence_green": false,
     "claim_boundary": "this report freezes one explicit canonical Transformer stack boundary for the article-equivalence closure wave. The route is not one monolithic crate; it is one required boundary spanning existing crates with `psionic-transformer` as the architecture anchor, `psionic-models` as the article-model and artifact owner, and `psionic-runtime` as the replay/receipt owner. This does not claim the final article-equivalence stack is complete or green.",
     "summary": "Canonical Transformer stack boundary now records interface_rows=5, dependency_checks=6, tied_requirement_satisfied=true, boundary_contract_green=true, and article_equivalence_green=false.",
-    "report_digest": "ea40e497cc39a6a6fe2d9f9402ae39838982967acaf19cc3c696c0ff9e442c0c"
+    "report_digest": "68dac6e1c3e3f5f535bce458392fc5a0477d798d89ae0bbd83ec8ddae2211a18"
   },
   "evidence_bundle_ref": "fixtures/tassadar/runs/tassadar_article_transformer_forward_pass_v1/article_transformer_forward_pass_evidence_bundle.json",
   "evidence_bundle": {
@@ -434,11 +431,12 @@
     "model_artifact": {
       "model_id": "tassadar-article-transformer-paper-faithful-v0",
       "model_family": "tassadar_article_transformer",
-      "descriptor_digest": "c4d7d5866946eda34a41c3c117351638b179cab20c2bdb2113de45d0b9be147f",
+      "descriptor_digest": "cdb9cd95a8ea018fa8d532c7075fe5de62ee48412c5030998beaaddf52174bc4",
       "trainable_parameter_digest": "6db5e587eca1da1dcdf2823a21d0405d80f812008fd3325ed6d9b7f7fa5e2645",
-      "artifact_id": "tassadar://article_transformer/model/tassadar-article-transformer-paper-faithful-v0/c4d7d5866946eda34a41c3c117351638b179cab20c2bdb2113de45d0b9be147f",
-      "weight_bundle_digest": "43f2d324bac70fa308e5fb451a4cece85d97c1dd72c2262b40e0a7457060428e",
-      "artifact_digest": "92fc898295cc107ba1808d3402cf4c8b57cc22eeaefc257de9ca31e05fc31296"
+      "artifact_id": "tassadar://article_transformer/weights/tassadar-article-transformer-paper-faithful-v0/7f3186feb7db9dd092607da28d2f8d7753f7556eacbadd76b0bb1c44d44512b4",
+      "weight_bundle_digest": "7f3186feb7db9dd092607da28d2f8d7753f7556eacbadd76b0bb1c44d44512b4",
+      "primary_artifact_sha256": "af60e8ab5887fcb24f557d80fc82e13ea6da14725027dcfd99220d009c59a7c0",
+      "artifact_digest": "25c7935d73b11e65b47a797c33b011f7887fe3284a9e99cc30d0eb2a564f1e83"
     },
     "run_config": {
       "run_id": "tassadar_article_transformer_forward_pass_v1",
@@ -487,7 +485,7 @@
     },
     "trace_artifact": {
       "schema_version": 1,
-      "artifact_id": "tassadar://article_transformer/trace/tassadar_article_transformer_forward_pass_reference_request/c4d7d5866946eda34a41c3c117351638b179cab20c2bdb2113de45d0b9be147f",
+      "artifact_id": "tassadar://article_transformer/trace/tassadar_article_transformer_forward_pass_reference_request/cdb9cd95a8ea018fa8d532c7075fe5de62ee48412c5030998beaaddf52174bc4",
       "forward_output_digest": "b4a48e9d9576dd2599adbfe827b407b900461451bb79c4925974c33f37ec4c99",
       "encoder_hidden_state_digest": "12b098972f65cad39a4146a01cb57b70cbab591ac0bc32fe02c78ba527a5bbdf",
       "decoder_hidden_state_digest": "450bf30c8ffb443237c7e3f82ea6c65ae37cb307c15635297fbd7b2d0479acdf",
@@ -576,7 +574,7 @@
       "model_module_ref": "crates/psionic-models/src/tassadar_article_transformer.rs",
       "transformer_module_ref": "crates/psionic-transformer/src/encoder_decoder.rs",
       "trace_digest": "d509ec4a77c7a1d65bdf773693a314436f9fe66b9351f7fc73df12c1b2704252",
-      "artifact_digest": "a6e500e69dbceba462d91dae48f33bc7e282f81f36a274e32fc1eb058a969ca1"
+      "artifact_digest": "a546497b78ba4b064a142fef4354d839a1be4dab530c8a9fd0b2ff7141659b43"
     },
     "decode_receipt": {
       "schema_version": 1,
@@ -631,7 +629,7 @@
         {
           "kind": "model_descriptor",
           "reference": "tassadar-article-transformer-paper-faithful-v0",
-          "digest": "c4d7d5866946eda34a41c3c117351638b179cab20c2bdb2113de45d0b9be147f"
+          "digest": "cdb9cd95a8ea018fa8d532c7075fe5de62ee48412c5030998beaaddf52174bc4"
         },
         {
           "kind": "checkpoint",
@@ -639,14 +637,14 @@
           "digest": "fcab06e606b2229bb5a71d905b85a28e4d055c1eb1c7dca9a3956574a7c93406"
         },
         {
-          "kind": "policy_weights",
-          "reference": "tassadar://article_transformer/model/tassadar-article-transformer-paper-faithful-v0/c4d7d5866946eda34a41c3c117351638b179cab20c2bdb2113de45d0b9be147f",
-          "digest": "43f2d324bac70fa308e5fb451a4cece85d97c1dd72c2262b40e0a7457060428e"
+          "kind": "execution_trace",
+          "reference": "tassadar://article_transformer/trace/tassadar_article_transformer_forward_pass_reference_request/cdb9cd95a8ea018fa8d532c7075fe5de62ee48412c5030998beaaddf52174bc4",
+          "digest": "a546497b78ba4b064a142fef4354d839a1be4dab530c8a9fd0b2ff7141659b43"
         },
         {
-          "kind": "execution_trace",
-          "reference": "tassadar://article_transformer/trace/tassadar_article_transformer_forward_pass_reference_request/c4d7d5866946eda34a41c3c117351638b179cab20c2bdb2113de45d0b9be147f",
-          "digest": "a6e500e69dbceba462d91dae48f33bc7e282f81f36a274e32fc1eb058a969ca1"
+          "kind": "policy_weights",
+          "reference": "tassadar://article_transformer/weights/tassadar-article-transformer-paper-faithful-v0/7f3186feb7db9dd092607da28d2f8d7753f7556eacbadd76b0bb1c44d44512b4",
+          "digest": "7f3186feb7db9dd092607da28d2f8d7753f7556eacbadd76b0bb1c44d44512b4"
         }
       ],
       "static_config_bindings": [
@@ -668,7 +666,7 @@
         },
         {
           "key": "tassadar.article_transformer.model_artifact_digest",
-          "value_digest": "92fc898295cc107ba1808d3402cf4c8b57cc22eeaefc257de9ca31e05fc31296"
+          "value_digest": "25c7935d73b11e65b47a797c33b011f7887fe3284a9e99cc30d0eb2a564f1e83"
         },
         {
           "key": "tassadar.article_transformer.model_module_ref",
@@ -708,8 +706,8 @@
         }
       ],
       "claims_profile_id": "tassadar.article_transformer.forward_pass.v1",
-      "identity_digest": "2e981fb2f2c5b60b36df26a3581d525fa52603e23ba5bda735e5e92685a8814f",
-      "manifest_digest": "4b60ff676fe4da90f5b1e28b5670da5c8266aa09bc126b5b225ca0a8d2ae6c8e"
+      "identity_digest": "bbebe12eb2b3a3b1b5baf43ee11a771b41d9f970d45b59ac2c6044a90a0ee28a",
+      "manifest_digest": "8758f0a00245694a8d9eac4fc7cb3f5414f7b29ccf453fea6e8bba9771e1595e"
     },
     "proof_bundle": {
       "schema_version": 1,
@@ -739,13 +737,13 @@
         "coverage": "not_yet_validated"
       },
       "artifact_residency": {
-        "weight_bundle_digest": "43f2d324bac70fa308e5fb451a4cece85d97c1dd72c2262b40e0a7457060428e",
+        "weight_bundle_digest": "7f3186feb7db9dd092607da28d2f8d7753f7556eacbadd76b0bb1c44d44512b4",
         "input_artifact_digests": [
-          "92fc898295cc107ba1808d3402cf4c8b57cc22eeaefc257de9ca31e05fc31296",
+          "25c7935d73b11e65b47a797c33b011f7887fe3284a9e99cc30d0eb2a564f1e83",
           "fcab06e606b2229bb5a71d905b85a28e4d055c1eb1c7dca9a3956574a7c93406"
         ],
         "output_artifact_digests": [
-          "a6e500e69dbceba462d91dae48f33bc7e282f81f36a274e32fc1eb058a969ca1",
+          "a546497b78ba4b064a142fef4354d839a1be4dab530c8a9fd0b2ff7141659b43",
           "0cc88b5bbe980cbc9ec8a7307eb00c9a5168115ecec359ffceca0cb672c79fa1",
           "4df79688b5597e209831afcaafe029eda2e02cb65ced044539e8e95c37aa9c07"
         ]
@@ -753,20 +751,20 @@
       "activation_fingerprint_posture": "unavailable"
     },
     "claim_boundary": "this runtime bundle covers one canonical article-Transformer forward-pass lane with model identity, run-config capture, attention-trace summaries, greedy decode receipt, deterministic replay receipt, and optional checkpoint lineage bound into the Psionic runtime-manifest and proof-bundle substrate. It does not claim final article trace-vocabulary closure, benchmark parity, fast-route promotion, or final article-equivalence green status.",
-    "bundle_digest": "2b3f3f317c2a414625b24f21530d3ee51a497d97f84673ed000bd88666a7d651"
+    "bundle_digest": "0810484b8323121432069c8474506477976d1e759c9adc692156d996b2187356"
   },
   "case_rows": [
     {
       "case_id": "model_artifact_identity",
       "validation_kind": "model_artifact_identity",
       "passed": true,
-      "detail": "model_id=tassadar-article-transformer-paper-faithful-v0 descriptor_digest=c4d7d5866946eda34a41c3c117351638b179cab20c2bdb2113de45d0b9be147f weight_bundle_digest=43f2d324bac70fa308e5fb451a4cece85d97c1dd72c2262b40e0a7457060428e"
+      "detail": "model_id=tassadar-article-transformer-paper-faithful-v0 descriptor_digest=cdb9cd95a8ea018fa8d532c7075fe5de62ee48412c5030998beaaddf52174bc4 weight_bundle_digest=7f3186feb7db9dd092607da28d2f8d7753f7556eacbadd76b0bb1c44d44512b4"
     },
     {
       "case_id": "runtime_manifest_bindings",
       "validation_kind": "runtime_manifest_bindings",
       "passed": true,
-      "detail": "claims_profile_matches=true trace_binding_matches=true runtime_manifest_identity_digest=2e981fb2f2c5b60b36df26a3581d525fa52603e23ba5bda735e5e92685a8814f proof_bundle_status=Succeeded"
+      "detail": "claims_profile_matches=true trace_binding_matches=true runtime_manifest_identity_digest=bbebe12eb2b3a3b1b5baf43ee11a771b41d9f970d45b59ac2c6044a90a0ee28a proof_bundle_status=Succeeded"
     },
     {
       "case_id": "forward_pass_trace_hooks",
@@ -812,5 +810,5 @@
   "article_equivalence_green": false,
   "claim_boundary": "this report freezes the runtime evidence closure for one canonical article-Transformer forward-pass lane only. It proves that model identity, run config, attention-trace summaries, deterministic replay, decode receipts, and checkpoint lineage now bind into the Psionic runtime-manifest and proof-bundle substrate on top of the owned `psionic-transformer` route. It does not claim final article trace-vocabulary closure, weight-production closure, reference-linear exactness proof, fast-route promotion, benchmark parity, or final article-equivalence green status.",
   "summary": "Article Transformer forward-pass closure now records case_rows=6, all_required_cases_present=true, all_cases_pass=true, boundary_review_passed=true, tied_requirement_satisfied=true, article_transformer_forward_pass_contract_green=true, and article_equivalence_green=false.",
-  "report_digest": "90ff41f0184cbb8300c2d22e27e0f2d908ec9e141982df949d204d6c78ac3d51"
+  "report_digest": "84ecfad8e959d36f8f3fce03a8f26f5df2ba1f23c36e67e13d979c1df46f13a3"
 }

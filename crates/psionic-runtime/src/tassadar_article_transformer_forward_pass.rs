@@ -28,6 +28,8 @@ pub struct TassadarArticleTransformerModelArtifactBinding {
     pub artifact_id: String,
     /// Stable parameter-bundle digest surfaced to runtime receipts.
     pub weight_bundle_digest: String,
+    /// Stable primary artifact SHA-256 digest.
+    pub primary_artifact_sha256: String,
     /// Stable digest over the full model-artifact binding.
     pub artifact_digest: String,
 }
@@ -40,24 +42,20 @@ impl TassadarArticleTransformerModelArtifactBinding {
         model_family: impl Into<String>,
         descriptor_digest: impl Into<String>,
         trainable_parameter_digest: impl Into<String>,
+        artifact_id: impl Into<String>,
+        weight_bundle_digest: impl Into<String>,
+        primary_artifact_sha256: impl Into<String>,
     ) -> Self {
         let mut binding = Self {
             model_id: model_id.into(),
             model_family: model_family.into(),
             descriptor_digest: descriptor_digest.into(),
             trainable_parameter_digest: trainable_parameter_digest.into(),
-            artifact_id: String::new(),
-            weight_bundle_digest: String::new(),
+            artifact_id: artifact_id.into(),
+            weight_bundle_digest: weight_bundle_digest.into(),
+            primary_artifact_sha256: primary_artifact_sha256.into(),
             artifact_digest: String::new(),
         };
-        binding.artifact_id = format!(
-            "tassadar://article_transformer/model/{}/{}",
-            binding.model_id, binding.descriptor_digest
-        );
-        binding.weight_bundle_digest = stable_digest(
-            b"psionic_tassadar_article_transformer_parameter_bundle|",
-            &binding.trainable_parameter_digest,
-        );
         binding.artifact_digest = stable_digest(
             b"psionic_tassadar_article_transformer_model_artifact_binding|",
             &(
@@ -67,6 +65,7 @@ impl TassadarArticleTransformerModelArtifactBinding {
                 binding.trainable_parameter_digest.as_str(),
                 binding.artifact_id.as_str(),
                 binding.weight_bundle_digest.as_str(),
+                binding.primary_artifact_sha256.as_str(),
             ),
         );
         binding
@@ -457,8 +456,8 @@ pub struct TassadarArticleTransformerForwardPassEvidenceBundle {
 
 /// Returns the current validation reference for the article-Transformer forward-pass lane.
 #[must_use]
-pub fn tassadar_article_transformer_forward_pass_validation_reference(
-) -> ValidationMatrixReference {
+pub fn tassadar_article_transformer_forward_pass_validation_reference() -> ValidationMatrixReference
+{
     ValidationMatrixReference::not_yet_validated("tassadar.article_transformer.forward_pass.phase2")
 }
 
@@ -495,7 +494,10 @@ pub fn build_tassadar_article_transformer_forward_pass_evidence_bundle(
         .with_probe(BackendProbeState::CompiledOnly, Vec::new()),
     );
     let mut runtime_manifest = RuntimeManifest::new(
-        format!("tassadar-article-transformer-runtime-manifest-{}", run_config.request_id),
+        format!(
+            "tassadar-article-transformer-runtime-manifest-{}",
+            run_config.request_id
+        ),
         runtime_identity.clone(),
     )
     .with_validation(validation.clone())
@@ -679,8 +681,7 @@ fn stable_digest<T: Serialize>(prefix: &[u8], value: &T) -> String {
 mod tests {
     use super::{
         build_tassadar_article_transformer_forward_pass_evidence_bundle,
-        TassadarArticleTransformerCheckpointLineage,
-        TassadarArticleTransformerDecodeReceipt,
+        TassadarArticleTransformerCheckpointLineage, TassadarArticleTransformerDecodeReceipt,
         TassadarArticleTransformerForwardPassChannelTrace,
         TassadarArticleTransformerForwardPassRunConfig,
         TassadarArticleTransformerForwardPassTraceArtifact,
@@ -697,6 +698,9 @@ mod tests {
             "tassadar_article_transformer",
             "descriptor-digest",
             "parameter-digest",
+            "tassadar://article_transformer/weights/tassadar-article-transformer-paper-faithful-v0/weight-bundle-digest",
+            "weight-bundle-digest",
+            "artifact-sha256",
         );
         let run_config = TassadarArticleTransformerForwardPassRunConfig::new(
             "run-1",
@@ -773,24 +777,27 @@ mod tests {
             replay_receipt,
         );
 
-        assert_eq!(bundle.proof_bundle.status, ExecutionProofBundleStatus::Succeeded);
-        assert!(
-            bundle
-                .runtime_manifest
-                .artifact_bindings
-                .iter()
-                .any(|binding| binding.kind == RuntimeManifestArtifactKind::Checkpoint
+        assert_eq!(
+            bundle.proof_bundle.status,
+            ExecutionProofBundleStatus::Succeeded
+        );
+        assert!(bundle
+            .runtime_manifest
+            .artifact_bindings
+            .iter()
+            .any(
+                |binding| binding.kind == RuntimeManifestArtifactKind::Checkpoint
                     && binding.reference == "checkpoint-ref"
-                    && binding.digest == "checkpoint-object-digest")
-        );
-        assert!(
-            bundle
-                .runtime_manifest
-                .static_config_bindings
-                .iter()
-                .any(|binding| binding.key == "tassadar.article_transformer.parent_manifest_digest"
-                    && binding.value_digest == "parent-manifest-digest")
-        );
+                    && binding.digest == "checkpoint-object-digest"
+            ));
+        assert!(bundle
+            .runtime_manifest
+            .static_config_bindings
+            .iter()
+            .any(
+                |binding| binding.key == "tassadar.article_transformer.parent_manifest_digest"
+                    && binding.value_digest == "parent-manifest-digest"
+            ));
     }
 
     #[test]
@@ -800,6 +807,9 @@ mod tests {
             "tassadar_article_transformer",
             "descriptor-digest",
             "parameter-digest",
+            "tassadar://article_transformer/weights/tassadar-article-transformer-paper-faithful-v0/weight-bundle-digest",
+            "weight-bundle-digest",
+            "artifact-sha256",
         );
         let run_config = TassadarArticleTransformerForwardPassRunConfig::new(
             "run-2",
@@ -851,7 +861,10 @@ mod tests {
             replay_receipt,
         );
 
-        assert_eq!(bundle.proof_bundle.status, ExecutionProofBundleStatus::Failed);
+        assert_eq!(
+            bundle.proof_bundle.status,
+            ExecutionProofBundleStatus::Failed
+        );
         assert_eq!(
             bundle.proof_bundle.failure_reason.as_deref(),
             Some("article_transformer_forward_pass_replay_mismatch")

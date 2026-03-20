@@ -179,6 +179,20 @@ identical. The machine-readable gate also keeps bounded suppressions explicit
 when an article case exceeds the current trace-domain reference-model position
 window rather than widening the support boundary silently.
 
+`TAS-168` now closes the artifact-backed descriptor tranche on top of the same
+split. `psionic-models` now owns committed canonical and trace-bound
+article-Transformer descriptors plus safetensors bundles under
+`fixtures/tassadar/models/`, with explicit tensor inventory, save/load
+roundtrip, and digest-bound artifact metadata in
+`crates/psionic-models/src/tassadar_article_transformer.rs`. `psionic-runtime`
+now binds the forward-pass evidence lane in
+`crates/psionic-runtime/src/tassadar_article_transformer_forward_pass.rs` to
+the descriptor digest, stable weight-bundle digest, and primary safetensors
+SHA-256 from that model-owned artifact boundary instead of synthesizing model
+identity from a fixture-only trainable surface. The legacy fixture-backed lane
+in `crates/psionic-models/src/tassadar.rs` remains explicit non-canonical
+rather than silently masquerading as the owned article model.
+
 ## Route Requirement
 
 Any canonical article-equivalence Transformer route must use this boundary.

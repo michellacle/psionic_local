@@ -182,6 +182,26 @@ impl TransformerEncoderLayer {
         self.self_attention.hidden_size()
     }
 
+    #[must_use]
+    pub const fn self_attention(&self) -> &MultiHeadAttention {
+        &self.self_attention
+    }
+
+    #[must_use]
+    pub const fn self_attention_norm(&self) -> &LayerNorm {
+        &self.self_attention_norm
+    }
+
+    #[must_use]
+    pub const fn feed_forward(&self) -> &PositionwiseFeedForward {
+        &self.feed_forward
+    }
+
+    #[must_use]
+    pub const fn feed_forward_norm(&self) -> &LayerNorm {
+        &self.feed_forward_norm
+    }
+
     pub fn forward(
         &self,
         input: &NnTensor,
@@ -280,6 +300,36 @@ impl TransformerDecoderLayer {
         self.self_attention.hidden_size()
     }
 
+    #[must_use]
+    pub const fn self_attention(&self) -> &MultiHeadAttention {
+        &self.self_attention
+    }
+
+    #[must_use]
+    pub const fn self_attention_norm(&self) -> &LayerNorm {
+        &self.self_attention_norm
+    }
+
+    #[must_use]
+    pub const fn cross_attention(&self) -> &MultiHeadAttention {
+        &self.cross_attention
+    }
+
+    #[must_use]
+    pub const fn cross_attention_norm(&self) -> &LayerNorm {
+        &self.cross_attention_norm
+    }
+
+    #[must_use]
+    pub const fn feed_forward(&self) -> &PositionwiseFeedForward {
+        &self.feed_forward
+    }
+
+    #[must_use]
+    pub const fn feed_forward_norm(&self) -> &LayerNorm {
+        &self.feed_forward_norm
+    }
+
     pub fn forward(
         &self,
         input: &NnTensor,
@@ -309,8 +359,9 @@ impl TransformerDecoderLayer {
             &self_attention_normed,
             &cross_attention.hidden_state,
         )?;
-        let cross_attention_normed =
-            self.cross_attention_norm.forward(&cross_attention_residual)?;
+        let cross_attention_normed = self
+            .cross_attention_norm
+            .forward(&cross_attention_residual)?;
         let feed_forward = self.feed_forward.forward(&cross_attention_normed, mode)?;
         let feed_forward_residual = add_tensors(
             "decoder_layer.feed_forward_residual",
@@ -480,6 +531,31 @@ impl EncoderDecoderTransformer {
         &self.config
     }
 
+    #[must_use]
+    pub const fn source_embeddings(&self) -> &TransformerEmbeddings {
+        &self.source_embeddings
+    }
+
+    #[must_use]
+    pub const fn target_embeddings(&self) -> &TransformerEmbeddings {
+        &self.target_embeddings
+    }
+
+    #[must_use]
+    pub fn encoder_layers(&self) -> &[TransformerEncoderLayer] {
+        &self.encoder_layers
+    }
+
+    #[must_use]
+    pub fn decoder_layers(&self) -> &[TransformerDecoderLayer] {
+        &self.decoder_layers
+    }
+
+    #[must_use]
+    pub const fn logits_projection(&self) -> &Linear {
+        &self.logits_projection
+    }
+
     pub fn forward(
         &self,
         source_index_shape: Shape,
@@ -512,8 +588,14 @@ impl EncoderDecoderTransformer {
         cross_attention_mask: Option<&AttentionMask>,
         mode: TransformerExecutionMode,
     ) -> Result<EncoderDecoderTransformerForwardOutput, EncoderDecoderTransformerError> {
-        validate_index_shape("encoder_decoder_transformer.source_tokens", &source_index_shape)?;
-        validate_index_shape("encoder_decoder_transformer.target_tokens", &target_index_shape)?;
+        validate_index_shape(
+            "encoder_decoder_transformer.source_tokens",
+            &source_index_shape,
+        )?;
+        validate_index_shape(
+            "encoder_decoder_transformer.target_tokens",
+            &target_index_shape,
+        )?;
         let source_dims = source_index_shape.dims();
         let target_dims = target_index_shape.dims();
         if source_dims[0] != target_dims[0] {
@@ -548,24 +630,19 @@ impl EncoderDecoderTransformer {
             "encoder_decoder_transformer.cross_attention_mask",
         )?;
 
-        let mut encoder_hidden_state = self.source_embeddings.forward(
-            source_index_shape,
-            source_token_ids,
-            mode,
-        )?;
+        let mut encoder_hidden_state =
+            self.source_embeddings
+                .forward(source_index_shape, source_token_ids, mode)?;
         let mut encoder_layer_outputs = Vec::with_capacity(self.encoder_layers.len());
         for layer in &self.encoder_layers {
-            let output =
-                layer.forward(&encoder_hidden_state, encoder_self_attention_mask, mode)?;
+            let output = layer.forward(&encoder_hidden_state, encoder_self_attention_mask, mode)?;
             encoder_hidden_state = output.hidden_state.clone();
             encoder_layer_outputs.push(output);
         }
 
-        let mut decoder_hidden_state = self.target_embeddings.forward(
-            target_index_shape.clone(),
-            target_token_ids,
-            mode,
-        )?;
+        let mut decoder_hidden_state =
+            self.target_embeddings
+                .forward(target_index_shape.clone(), target_token_ids, mode)?;
         let causal_mask = AttentionMask::causal(target_dims[0], target_dims[1], target_dims[1]);
         let combined_decoder_mask = decoder_self_attention_mask
             .map(|mask| causal_mask.combine(mask))
@@ -694,8 +771,8 @@ fn add_tensors(
 #[cfg(test)]
 mod tests {
     use super::{
-        EncoderDecoderTransformer, EncoderDecoderTransformerConfig,
-        EncoderDecoderTransformerError, TransformerDecoderLayer, TransformerEncoderLayer,
+        EncoderDecoderTransformer, EncoderDecoderTransformerConfig, EncoderDecoderTransformerError,
+        TransformerDecoderLayer, TransformerEncoderLayer,
     };
     use crate::{
         MultiHeadAttention, PositionwiseFeedForward, TransformerEmbeddings,
@@ -770,7 +847,11 @@ mod tests {
                 Some(vec![0.0; 4]),
                 config.dropout_probability(),
             )?,
-            LayerNorm::new("article.encoder.self_attention_norm", config.hidden_size, 1e-5)?,
+            LayerNorm::new(
+                "article.encoder.self_attention_norm",
+                config.hidden_size,
+                1e-5,
+            )?,
             PositionwiseFeedForward::from_f32_parts(
                 "article.encoder.feed_forward",
                 config.hidden_size,
@@ -782,7 +863,11 @@ mod tests {
                 Some(vec![0.0; 4]),
                 config.dropout_probability(),
             )?,
-            LayerNorm::new("article.encoder.feed_forward_norm", config.hidden_size, 1e-5)?,
+            LayerNorm::new(
+                "article.encoder.feed_forward_norm",
+                config.hidden_size,
+                1e-5,
+            )?,
         )?;
         let decoder_layer = TransformerDecoderLayer::from_components(
             MultiHeadAttention::from_f32_parts(
@@ -799,7 +884,11 @@ mod tests {
                 Some(vec![0.0; 4]),
                 config.dropout_probability(),
             )?,
-            LayerNorm::new("article.decoder.self_attention_norm", config.hidden_size, 1e-5)?,
+            LayerNorm::new(
+                "article.decoder.self_attention_norm",
+                config.hidden_size,
+                1e-5,
+            )?,
             MultiHeadAttention::from_f32_parts(
                 "article.decoder.cross_attention",
                 config.hidden_size,
@@ -814,7 +903,11 @@ mod tests {
                 Some(vec![0.0; 4]),
                 config.dropout_probability(),
             )?,
-            LayerNorm::new("article.decoder.cross_attention_norm", config.hidden_size, 1e-5)?,
+            LayerNorm::new(
+                "article.decoder.cross_attention_norm",
+                config.hidden_size,
+                1e-5,
+            )?,
             PositionwiseFeedForward::from_f32_parts(
                 "article.decoder.feed_forward",
                 config.hidden_size,
@@ -826,7 +919,11 @@ mod tests {
                 Some(vec![0.0; 4]),
                 config.dropout_probability(),
             )?,
-            LayerNorm::new("article.decoder.feed_forward_norm", config.hidden_size, 1e-5)?,
+            LayerNorm::new(
+                "article.decoder.feed_forward_norm",
+                config.hidden_size,
+                1e-5,
+            )?,
         )?;
         let logits_projection = Linear::from_f32_parts(
             "article.logits_projection",

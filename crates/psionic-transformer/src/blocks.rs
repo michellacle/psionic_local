@@ -148,6 +148,10 @@ impl TransformerEmbeddings {
         self.positional_encoding.max_positions()
     }
 
+    pub fn token_embedding_table_f32(&self) -> Result<&[f32], LayerError> {
+        self.token_embedding.weight_f32()
+    }
+
     pub fn forward(
         &self,
         index_shape: Shape,
@@ -276,6 +280,38 @@ impl MultiHeadAttention {
         self.head_dim
     }
 
+    pub fn query_weight_f32(&self) -> Result<&[f32], LayerError> {
+        self.query_projection.weight_f32()
+    }
+
+    pub fn query_bias_f32(&self) -> Result<Option<&[f32]>, LayerError> {
+        self.query_projection.bias_f32()
+    }
+
+    pub fn key_weight_f32(&self) -> Result<&[f32], LayerError> {
+        self.key_projection.weight_f32()
+    }
+
+    pub fn key_bias_f32(&self) -> Result<Option<&[f32]>, LayerError> {
+        self.key_projection.bias_f32()
+    }
+
+    pub fn value_weight_f32(&self) -> Result<&[f32], LayerError> {
+        self.value_projection.weight_f32()
+    }
+
+    pub fn value_bias_f32(&self) -> Result<Option<&[f32]>, LayerError> {
+        self.value_projection.bias_f32()
+    }
+
+    pub fn output_weight_f32(&self) -> Result<&[f32], LayerError> {
+        self.output_projection.weight_f32()
+    }
+
+    pub fn output_bias_f32(&self) -> Result<Option<&[f32]>, LayerError> {
+        self.output_projection.bias_f32()
+    }
+
     pub fn forward(
         &self,
         query: &NnTensor,
@@ -402,6 +438,22 @@ impl PositionwiseFeedForward {
     #[must_use]
     pub const fn intermediate_size(&self) -> usize {
         self.intermediate_size
+    }
+
+    pub fn input_weight_f32(&self) -> Result<&[f32], LayerError> {
+        self.input_projection.weight_f32()
+    }
+
+    pub fn input_bias_f32(&self) -> Result<Option<&[f32]>, LayerError> {
+        self.input_projection.bias_f32()
+    }
+
+    pub fn output_weight_f32(&self) -> Result<&[f32], LayerError> {
+        self.output_projection.weight_f32()
+    }
+
+    pub fn output_bias_f32(&self) -> Result<Option<&[f32]>, LayerError> {
+        self.output_projection.bias_f32()
     }
 }
 

@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.article_transformer_artifact_descriptor.summary.v1",
+  "report_ref": "fixtures/tassadar/reports/tassadar_article_transformer_artifact_descriptor_report.json",
+  "report": {
+    "schema_version": 1,
+    "report_id": "tassadar.article_transformer_artifact_descriptor.report.v1",
+    "acceptance_gate_tie": {
+      "acceptance_gate_report_ref": "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json",
+      "tied_requirement_id": "TAS-168",
+      "tied_requirement_satisfied": true,
+      "acceptance_status": "blocked",
+      "blocked_issue_ids": [
+        "TAS-169",
+        "TAS-169A",
+        "TAS-170",
+        "TAS-171",
+        "TAS-171A",
+        "TAS-171B",
+        "TAS-171C",
+        "TAS-172",
+        "TAS-173",
+        "TAS-174",
+        "TAS-175",
+        "TAS-176",
+        "TAS-177",
+        "TAS-178",
+        "TAS-179",
+        "TAS-179A",
+        "TAS-180",
+        "TAS-181",
+        "TAS-182",
+        "TAS-183",
+        "TAS-184",
+        "TAS-184A",
+        "TAS-185",
+        "TAS-185A",
+        "TAS-186"
+      ]
+    },
+    "committed_artifact_review": {
+      "canonical_descriptor_ref": "fixtures/tassadar/models/tassadar_article_transformer_paper_faithful_v0_descriptor.json",
+      "canonical_artifact_ref": "fixtures/tassadar/models/tassadar_article_transformer_paper_faithful_v0.safetensors",
+      "trace_bound_descriptor_ref": "fixtures/tassadar/models/tassadar_article_transformer_trace_bound_v0_descriptor.json",
+      "trace_bound_artifact_ref": "fixtures/tassadar/models/tassadar_article_transformer_trace_bound_v0.safetensors",
+      "all_committed_refs_exist": true,
+      "all_refs_under_fixtures_tassadar_models": true,
+      "detail": "committed article-transformer descriptor and safetensors refs now live under `fixtures/tassadar/models/` with canonical_exists=true trace_bound_exists=true"
+    },
+    "case_rows": [
+      {
+        "case_id": "canonical_descriptor_artifact_backed",
+        "validation_kind": "canonical_descriptor_artifact_backed",
+        "passed": true,
+        "detail": "canonical descriptor now binds `tassadar-article-transformer-paper-faithful-v0` to safetensors-backed weight metadata with tensor_count=88 and artifact_sha256=af60e8ab5887fcb24f557d80fc82e13ea6da14725027dcfd99220d009c59a7c0"
+      },
+      {
+        "case_id": "trace_bound_descriptor_artifact_backed",
+        "validation_kind": "trace_bound_descriptor_artifact_backed",
+        "passed": true,
+        "detail": "trace-bound descriptor now binds tokenizer-sized config source_vocab=303 target_vocab=303 to one safetensors artifact digest efb7507315ab98d34b69c8078be22689b775830f9ba6449db88ad5983b499a6c"
+      },
+      {
+        "case_id": "artifact_roundtrip",
+        "validation_kind": "artifact_roundtrip",
+        "passed": true,
+        "detail": "descriptor and safetensors roundtrip preserved stable digest `cdb9cd95a8ea018fa8d532c7075fe5de62ee48412c5030998beaaddf52174bc4`"
+      },
+      {
+        "case_id": "tensor_inventory_metadata",
+        "validation_kind": "tensor_inventory_metadata",
+        "passed": true,
+        "detail": "canonical tensor_count=88 and trace-bound tensor_count=88 both expose unique non-empty tensor metadata rows"
+      },
+      {
+        "case_id": "runtime_artifact_binding",
+        "validation_kind": "runtime_artifact_binding",
+        "passed": true,
+        "detail": "runtime binding now reuses weight_bundle_digest=7f3186feb7db9dd092607da28d2f8d7753f7556eacbadd76b0bb1c44d44512b4 and artifact_id=tassadar://article_transformer/weights/tassadar-article-transformer-paper-faithful-v0/7f3186feb7db9dd092607da28d2f8d7753f7556eacbadd76b0bb1c44d44512b4"
+      }
+    ],
+    "all_required_cases_present": true,
+    "all_cases_pass": true,
+    "artifact_descriptor_contract_green": true,
+    "article_equivalence_green": false,
+    "claim_boundary": "this report freezes the article-Transformer descriptor and weight-artifact closure only. It proves that the canonical and trace-bound article descriptors are now safetensors-backed, non-fixture, and bound to explicit tensor inventory plus runtime-visible artifact identity. It does not claim reference-linear exactness, fast-route closure, benchmark parity, single-run closure, or final article-equivalence green status.",
+    "summary": "Article Transformer artifact descriptor closure now records case_rows=5, all_required_cases_present=true, all_cases_pass=true, committed_refs_exist=true, tied_requirement_satisfied=true, artifact_descriptor_contract_green=true, and article_equivalence_green=false.",
+    "report_digest": "95bd8ece6f78f9b2e751f4cccd41519adc03a484b91121b41a0a82feda7f945d"
+  },
+  "case_count": 5,
+  "passed_case_count": 5,
+  "committed_refs_exist": true,
+  "tied_requirement_id": "TAS-168",
+  "tied_requirement_satisfied": true,
+  "acceptance_status": "blocked",
+  "artifact_descriptor_contract_green": true,
+  "article_equivalence_green": false,
+  "claim_boundary": "this summary mirrors the article-Transformer descriptor and weight-artifact closure only. It keeps the safetensors-backed canonical/trace-bound model facts operator-readable without widening the current article-equivalence claim boundary.",
+  "summary": "Article Transformer artifact descriptor summary now records case_count=5, passed_case_count=5, committed_refs_exist=true, tied_requirement_satisfied=true, artifact_descriptor_contract_green=true, and article_equivalence_green=false.",
+  "report_digest": "7568eb98306ec3b6d77750d66f9da038d7a134b38bc09d90453a2e4f8d2498a8"
+}
