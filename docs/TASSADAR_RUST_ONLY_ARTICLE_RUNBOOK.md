@@ -33,8 +33,8 @@ What it does prove:
 
 What it does not prove:
 
-- arbitrary C frontend closure
-- arbitrary Wasm execution
+- the article's explicit arbitrary-C frontend scope
+- a generic public Wasm-interpreter closure claim
 - full frozen core-Wasm closure
 - broad served/public universality
 - or that the article's broad fast-attention headline is now the canonical
