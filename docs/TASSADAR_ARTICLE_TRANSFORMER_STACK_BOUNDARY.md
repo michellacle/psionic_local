@@ -279,6 +279,23 @@ does not close dataset contamination independence, fast-route promotion,
 benchmark equivalence, single-run no-spill closure, clean-room weight
 causality, or the final article-equivalence claim.
 
+`TAS-171C` now closes that next dataset-contamination and
+evaluation-independence tranche on top of the same route. `psionic-eval` now
+commits one explicit audit at
+`fixtures/tassadar/reports/tassadar_article_evaluation_independence_audit_report.json`
+that ties the committed `TAS-171B` held-out and adversarial suite back to the
+committed trained lineage contract, then requires exact case-id exclusion,
+exact source/target/sequence digest exclusion, prefix-window near-duplicate
+checks, generator-level separation, and profile-level feature-separation
+review between the training slice and the evaluation slice. `psionic-research`
+now mirrors the operator-readable summary at
+`fixtures/tassadar/reports/tassadar_article_evaluation_independence_summary.json`.
+This is the point where the repo now machine-readably says the current
+evaluation win cannot be explained by simple leaked training exposure inside
+the bounded article slice, but it still does not close fast-route promotion,
+benchmark equivalence, single-run no-spill closure, clean-room weight
+causality, or the final article-equivalence claim.
+
 ## Route Requirement
 
 Any canonical article-equivalence Transformer route must use this boundary.

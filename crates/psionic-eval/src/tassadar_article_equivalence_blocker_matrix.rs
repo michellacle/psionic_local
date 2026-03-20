@@ -859,7 +859,7 @@ fn issue_coverage_rows() -> Vec<TassadarArticleEquivalenceIssueCoverageRow> {
             293,
             "TAS-171C: Dataset contamination and evaluation independence audit",
             TassadarArticleEquivalenceIssueRole::Implementation,
-            "open",
+            "closed",
             &["BEQ-005", "BEQ-007"],
         ),
         issue_row(

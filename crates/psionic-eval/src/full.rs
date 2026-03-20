@@ -38,6 +38,8 @@ mod tassadar_article_cpu_reproducibility;
 mod tassadar_article_equivalence_acceptance_gate;
 #[path = "tassadar_article_equivalence_blocker_matrix.rs"]
 mod tassadar_article_equivalence_blocker_matrix;
+#[path = "tassadar_article_evaluation_independence_audit.rs"]
+mod tassadar_article_evaluation_independence_audit;
 #[path = "tassadar_article_fixture_transformer_parity.rs"]
 mod tassadar_article_fixture_transformer_parity;
 #[path = "tassadar_article_representation_invariance_gate.rs"]
@@ -52,10 +54,10 @@ mod tassadar_article_transformer_artifact_descriptor;
 mod tassadar_article_transformer_forward_pass_closure;
 #[path = "tassadar_article_transformer_forward_pass_evidence.rs"]
 mod tassadar_article_transformer_forward_pass_evidence;
-#[path = "tassadar_article_transformer_model_closure.rs"]
-mod tassadar_article_transformer_model_closure;
 #[path = "tassadar_article_transformer_generalization_gate.rs"]
 mod tassadar_article_transformer_generalization_gate;
+#[path = "tassadar_article_transformer_model_closure.rs"]
+mod tassadar_article_transformer_model_closure;
 #[path = "tassadar_article_transformer_reference_linear_exactness_gate.rs"]
 mod tassadar_article_transformer_reference_linear_exactness_gate;
 #[path = "tassadar_article_transformer_training_closure.rs"]
@@ -342,6 +344,7 @@ pub use tassadar_article_abi::*;
 pub use tassadar_article_cpu_reproducibility::*;
 pub use tassadar_article_equivalence_acceptance_gate::*;
 pub use tassadar_article_equivalence_blocker_matrix::*;
+pub use tassadar_article_evaluation_independence_audit::*;
 pub use tassadar_article_fixture_transformer_parity::*;
 pub use tassadar_article_representation_invariance_gate::*;
 pub use tassadar_article_runtime_closeout::*;
@@ -349,8 +352,8 @@ pub use tassadar_article_trace_vocabulary_binding::*;
 pub use tassadar_article_transformer_artifact_descriptor::*;
 pub use tassadar_article_transformer_forward_pass_closure::*;
 pub use tassadar_article_transformer_forward_pass_evidence::*;
-pub use tassadar_article_transformer_model_closure::*;
 pub use tassadar_article_transformer_generalization_gate::*;
+pub use tassadar_article_transformer_model_closure::*;
 pub use tassadar_article_transformer_reference_linear_exactness_gate::*;
 pub use tassadar_article_transformer_training_closure::*;
 pub use tassadar_article_transformer_training_evidence::*;
