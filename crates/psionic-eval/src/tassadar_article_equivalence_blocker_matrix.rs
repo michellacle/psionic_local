@@ -20,8 +20,7 @@ const ARTICLE_SOURCE_TITLE: &str = "Can LLMs Be Computers?";
 const ARTICLE_SOURCE_DATE: &str = "2026-03-11";
 const ARTICLE_SOURCE_REF: &str =
     "Percepta article `can-llms-be-computers.md` as reviewed on 2026-03-19";
-const ARTICLE_SOURCE_LINE_NUMBERING_NOTE: &str =
-    "line numbers refer to the 2026-03-19 working article text that includes the implementation-status note preface; they do not reuse the older gap-analysis line numbering";
+const ARTICLE_SOURCE_LINE_NUMBERING_NOTE: &str = "line numbers refer to the 2026-03-19 working article text that includes the implementation-status note preface; they do not reuse the older gap-analysis line numbering";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -192,8 +191,7 @@ pub fn build_tassadar_article_equivalence_blocker_matrix_report() -> Result<
         blockers,
         issue_coverage_rows,
         required_later_issue_count: required_later_issue_ids().len(),
-        prerequisite_transformer_boundary_green: evaluation
-            .prerequisite_transformer_boundary_green,
+        prerequisite_transformer_boundary_green: evaluation.prerequisite_transformer_boundary_green,
         all_required_categories_present: evaluation.all_required_categories_present,
         all_blocker_ids_unique: evaluation.all_blocker_ids_unique,
         all_blockers_have_article_line_provenance: evaluation
@@ -212,7 +210,9 @@ pub fn build_tassadar_article_equivalence_blocker_matrix_report() -> Result<
             String::from("not a positive article-equivalence closure claim"),
             String::from("not arbitrary C or arbitrary Wasm ingress closure"),
             String::from("not a generic public interpreter-in-weights claim"),
-            String::from("not proof that the fast decode path is already the canonical public route"),
+            String::from(
+                "not proof that the fast decode path is already the canonical public route",
+            ),
             String::from(
                 "not proof that hard-Sudoku benchmark closure, no-spill single-run closure, or route-minimality closure already exist",
             ),
@@ -414,18 +414,23 @@ fn blocker_rows() -> Vec<TassadarArticleEquivalenceBlockerRow> {
         TassadarArticleEquivalenceBlockerRow {
             blocker_id: String::from("BEQ-001"),
             category: TassadarArticleEquivalenceBlockerCategory::FrontendScope,
-            title: String::from("Declared article-equivalent frontend/compiler ingress remains open"),
+            title: String::from(
+                "Declared article-equivalent frontend/compiler ingress remains open",
+            ),
             repo_status: TassadarRepoStatus::Partial,
             current_gap_summary: String::from(
-                "the article claims arbitrary C-code ingress into an in-transformer execution path, while the public repo closes only a bounded Rust-only frontend route",
+                "the article claims arbitrary C-code ingress into an in-transformer execution path, while the public repo now declares only one narrower Rust-source-only article frontend/compiler envelope",
             ),
             current_public_truth: String::from(
-                "the repo already has committed Rust source canon, Rust-to-Wasm profile completeness, bounded ABI closure, and a green Rust-only article closeout audit, but that is still narrower than the article's frontend rhetoric",
+                "the repo now has one explicit article frontend/compiler envelope manifest and report over Rust-source-only `rustc` -> `wasm32-unknown-unknown` `#![no_std]` / `#![no_main]` sources, plus committed Rust source canon, Rust-to-Wasm profile completeness, bounded ABI closure, and a green Rust-only article closeout audit, but that remains narrower than the article's frontend rhetoric",
             ),
             closure_requirements: vec![
-                String::from("declare one article frontend/compiler envelope instead of reusing the Rust-only closeout envelope by implication"),
-                String::from("expand the committed source corpus and compile matrix over that envelope"),
-                String::from("close the Hungarian and Sudoku demo sources through that declared envelope"),
+                String::from(
+                    "expand the committed source corpus and compile matrix over that envelope",
+                ),
+                String::from(
+                    "close the Hungarian and Sudoku demo sources through that declared envelope",
+                ),
             ],
             article_line_refs: vec![
                 line_ref(
@@ -455,9 +460,15 @@ fn blocker_rows() -> Vec<TassadarArticleEquivalenceBlockerRow> {
                 "the repo has a real bounded Wasm lane, a declared frozen core-Wasm window, and a bounded Turing-complete substrate statement under `TCM.v1`, but not a public generic interpreter-in-weights breadth claim",
             ),
             closure_requirements: vec![
-                String::from("declare one article interpreter breadth envelope rather than relying on bounded Rust-only article fixtures"),
-                String::from("build a broad program-family suite over the declared article interpreter envelope"),
-                String::from("keep refusal and unsupported-program taxonomy machine-legible when breadth remains incomplete"),
+                String::from(
+                    "declare one article interpreter breadth envelope rather than relying on bounded Rust-only article fixtures",
+                ),
+                String::from(
+                    "build a broad program-family suite over the declared article interpreter envelope",
+                ),
+                String::from(
+                    "keep refusal and unsupported-program taxonomy machine-legible when breadth remains incomplete",
+                ),
             ],
             article_line_refs: vec![
                 line_ref(
@@ -493,9 +504,15 @@ fn blocker_rows() -> Vec<TassadarArticleEquivalenceBlockerRow> {
                 "the repo now has real tensor, array, nn, runtime, and `psionic-transformer` substrate overlap, but the public article-closeout proof surface is still narrower than a canonical owned Transformer-backed route",
             ),
             closure_requirements: vec![
-                String::from("freeze one canonical Transformer stack boundary above the existing Psionic substrate"),
-                String::from("implement the owned paper-faithful article Transformer path with training, replay, and receipts"),
-                String::from("replace the current fixture-shaped article model surface with a real artifact-backed Transformer model and weight lineage"),
+                String::from(
+                    "freeze one canonical Transformer stack boundary above the existing Psionic substrate",
+                ),
+                String::from(
+                    "implement the owned paper-faithful article Transformer path with training, replay, and receipts",
+                ),
+                String::from(
+                    "replace the current fixture-shaped article model surface with a real artifact-backed Transformer model and weight lineage",
+                ),
             ],
             article_line_refs: vec![
                 line_ref(
@@ -531,9 +548,15 @@ fn blocker_rows() -> Vec<TassadarArticleEquivalenceBlockerRow> {
                 "the repo now has one canonical fast-route stack with machine-legible selection, exactness, and throughput-floor artifacts on the bounded committed workloads, while later tranches keep final article-equivalence green status red",
             ),
             closure_requirements: vec![
-                String::from("choose one fast architecture that can become the canonical article route"),
-                String::from("integrate that fast path into the Transformer-backed article model itself"),
-                String::from("close exactness, no-fallback, and throughput floors on the selected fast path"),
+                String::from(
+                    "choose one fast architecture that can become the canonical article route",
+                ),
+                String::from(
+                    "integrate that fast path into the Transformer-backed article model itself",
+                ),
+                String::from(
+                    "close exactness, no-fallback, and throughput floors on the selected fast path",
+                ),
             ],
             article_line_refs: vec![
                 line_ref(
@@ -575,9 +598,15 @@ fn blocker_rows() -> Vec<TassadarArticleEquivalenceBlockerRow> {
                 "the repo already has bounded Hungarian and Sudoku article reproducers plus long-horizon runtime closure, but not one canonical article demo-and-benchmark parity gate at the article's stated breadth",
             ),
             closure_requirements: vec![
-                String::from("close the Hungarian demo on the canonical article route with explicit throughput floors"),
-                String::from("close Arto Inkala and the declared hard-Sudoku benchmark suite on the canonical article route"),
-                String::from("combine those rows into one article demo-and-benchmark equivalence gate"),
+                String::from(
+                    "close the Hungarian demo on the canonical article route with explicit throughput floors",
+                ),
+                String::from(
+                    "close Arto Inkala and the declared hard-Sudoku benchmark suite on the canonical article route",
+                ),
+                String::from(
+                    "combine those rows into one article demo-and-benchmark equivalence gate",
+                ),
             ],
             article_line_refs: vec![
                 line_ref(
@@ -625,9 +654,15 @@ fn blocker_rows() -> Vec<TassadarArticleEquivalenceBlockerRow> {
                 "the repo already has named long-horizon direct execution and a bounded resumable universality substrate, but not the final no-resume single-run article gate",
             ),
             closure_requirements: vec![
-                String::from("freeze one no-resume article operator envelope over the canonical route"),
-                String::from("prove exact long-horizon execution with no checkpoint restore, spill/tape extension, hidden re-entry, or teacher forcing"),
-                String::from("keep context-length sensitivity and no-cheat boundary perturbations explicit"),
+                String::from(
+                    "freeze one no-resume article operator envelope over the canonical route",
+                ),
+                String::from(
+                    "prove exact long-horizon execution with no checkpoint restore, spill/tape extension, hidden re-entry, or teacher forcing",
+                ),
+                String::from(
+                    "keep context-length sensitivity and no-cheat boundary perturbations explicit",
+                ),
             ],
             article_line_refs: vec![
                 line_ref(
@@ -654,7 +689,9 @@ fn blocker_rows() -> Vec<TassadarArticleEquivalenceBlockerRow> {
         TassadarArticleEquivalenceBlockerRow {
             blocker_id: String::from("BEQ-007"),
             category: TassadarArticleEquivalenceBlockerCategory::WeightsOwnershipScope,
-            title: String::from("Clean-room weight causality and route-minimality verdict remain open"),
+            title: String::from(
+                "Clean-room weight causality and route-minimality verdict remain open",
+            ),
             repo_status: TassadarRepoStatus::Partial,
             current_gap_summary: String::from(
                 "the article invites a strong reading where decisive execution behavior lives in transformer weights on a minimal route. The public repo still lacks the final clean-room causality, activation-dominance, and route-minimality verdicts for that stronger reading",
@@ -663,9 +700,15 @@ fn blocker_rows() -> Vec<TassadarArticleEquivalenceBlockerRow> {
                 "the repo already has direct no-tool proof receipts on committed article workloads and explicit refusal discipline, but it does not yet have the final generic interpreter-ownership gate or the final route-minimality publication verdict",
             ),
             closure_requirements: vec![
-                String::from("move direct no-tool proof and exactness onto the Transformer-backed route"),
-                String::from("close invariance, anti-memorization, and evaluation-independence evidence so correctness does not look like brittle recall"),
-                String::from("publish clean-room weight causality, KV-cache and activation-state discipline, route-minimality, and final publication verdicts"),
+                String::from(
+                    "move direct no-tool proof and exactness onto the Transformer-backed route",
+                ),
+                String::from(
+                    "close invariance, anti-memorization, and evaluation-independence evidence so correctness does not look like brittle recall",
+                ),
+                String::from(
+                    "publish clean-room weight causality, KV-cache and activation-state discipline, route-minimality, and final publication verdicts",
+                ),
             ],
             article_line_refs: vec![
                 line_ref(
@@ -899,7 +942,7 @@ fn issue_coverage_rows() -> Vec<TassadarArticleEquivalenceIssueCoverageRow> {
             298,
             "TAS-176: Declared article frontend/compiler envelope",
             TassadarArticleEquivalenceIssueRole::Implementation,
-            "open",
+            "closed",
             &["BEQ-001"],
         ),
         issue_row(
@@ -1091,11 +1134,11 @@ fn read_json<T: DeserializeOwned>(
 #[cfg(test)]
 mod tests {
     use super::{
+        TASSADAR_ARTICLE_EQUIVALENCE_BLOCKER_MATRIX_REPORT_REF,
+        TassadarArticleEquivalenceBlockerMatrixReport, TassadarArticleEquivalenceIssueRole,
         build_tassadar_article_equivalence_blocker_matrix_report, evaluate_matrix,
         issue_coverage_rows, read_json, tassadar_article_equivalence_blocker_matrix_report_path,
         write_tassadar_article_equivalence_blocker_matrix_report,
-        TassadarArticleEquivalenceBlockerMatrixReport, TassadarArticleEquivalenceIssueRole,
-        TASSADAR_ARTICLE_EQUIVALENCE_BLOCKER_MATRIX_REPORT_REF,
     };
 
     #[test]

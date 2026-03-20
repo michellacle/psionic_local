@@ -372,6 +372,27 @@ route clears the declared CPU throughput floor on the bounded committed route,
 but the broader final article-equivalence claim still remains later frontend,
 benchmark, single-run, and weight-ownership tranches.
 
+`TAS-176` now closes the first frontend/compiler-boundary tranche on top of the
+same owned route. `psionic-compiler` now commits the declared article
+frontend/compiler envelope manifest at
+`fixtures/tassadar/sources/tassadar_article_frontend_compiler_envelope_v1.json`,
+freezing one Rust-source-only `rustc` -> `wasm32-unknown-unknown`
+`#![no_std]` / `#![no_main]` envelope with explicit `core`-only source-surface
+truth, explicit admitted ABI rows, and explicit refusal rows for C/C++ ingress,
+std/alloc surface, host imports, syscall-dependent rows, UB-dependent rows, and
+wider ABI shapes. `psionic-eval` now freezes the machine-readable closure
+artifact at
+`fixtures/tassadar/reports/tassadar_article_frontend_compiler_envelope_report.json`,
+binding that declared envelope to the committed Rust source canon, current
+toolchain identities, zero-import Wasm outputs on the admitted cases, and
+representative refusal probes on the out-of-envelope cases. `psionic-research`
+now mirrors the operator-readable summary at
+`fixtures/tassadar/reports/tassadar_article_frontend_compiler_envelope_summary.json`.
+This is the point where the repo now machine-readably says article claims must
+bind to one explicit frontend/compiler envelope instead of borrowing the older
+Rust-only closeout path by implication, but corpus expansion and full
+Hungarian/Sudoku demo parity still remain later frontend tranches.
+
 ## Route Requirement
 
 Any canonical article-equivalence Transformer route must use this boundary.

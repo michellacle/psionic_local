@@ -1,6 +1,7 @@
 //! Lowering and scheduling boundaries for Psionic.
 
 mod tassadar_article_abi;
+mod tassadar_article_frontend_compiler_envelope;
 mod tassadar_clrs_wasm_bridge;
 mod tassadar_component_linking_profile;
 mod tassadar_cross_profile_link_compatibility;
@@ -13,12 +14,12 @@ mod tassadar_internal_module_library;
 mod tassadar_linked_program_bundle;
 mod tassadar_locality_scratchpad;
 mod tassadar_memory64_profile;
-mod tassadar_multi_memory_profile;
 mod tassadar_mixed_numeric_ladder;
 mod tassadar_module_catalog;
 mod tassadar_module_linker;
 mod tassadar_module_manifest;
 mod tassadar_module_overlap_resolution;
+mod tassadar_multi_memory_profile;
 mod tassadar_sparse_rule_audit;
 mod tassadar_structured_control;
 mod tassadar_symbolic;
@@ -49,6 +50,7 @@ use sha2::{Digest, Sha256};
 use thiserror::Error;
 
 pub use tassadar_article_abi::*;
+pub use tassadar_article_frontend_compiler_envelope::*;
 pub use tassadar_clrs_wasm_bridge::*;
 pub use tassadar_component_linking_profile::*;
 pub use tassadar_cross_profile_link_compatibility::*;
@@ -61,12 +63,12 @@ pub use tassadar_internal_module_library::*;
 pub use tassadar_linked_program_bundle::*;
 pub use tassadar_locality_scratchpad::*;
 pub use tassadar_memory64_profile::*;
-pub use tassadar_multi_memory_profile::*;
 pub use tassadar_mixed_numeric_ladder::*;
 pub use tassadar_module_catalog::*;
 pub use tassadar_module_linker::*;
 pub use tassadar_module_manifest::*;
 pub use tassadar_module_overlap_resolution::*;
+pub use tassadar_multi_memory_profile::*;
 pub use tassadar_sparse_rule_audit::*;
 pub use tassadar_structured_control::*;
 pub use tassadar_symbolic::*;

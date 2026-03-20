@@ -1,0 +1,598 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.article_frontend_compiler_envelope.report.v1",
+  "checker_script_ref": "scripts/check-tassadar-article-frontend-compiler-envelope.sh",
+  "acceptance_gate_tie": {
+    "acceptance_gate_report_ref": "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json",
+    "tied_requirement_id": "TAS-176",
+    "tied_requirement_satisfied": true,
+    "acceptance_status": "blocked",
+    "blocked_issue_ids": [
+      "TAS-177",
+      "TAS-178",
+      "TAS-179",
+      "TAS-179A",
+      "TAS-180",
+      "TAS-181",
+      "TAS-182",
+      "TAS-183",
+      "TAS-184",
+      "TAS-184A",
+      "TAS-185",
+      "TAS-185A",
+      "TAS-186"
+    ]
+  },
+  "manifest_ref": "fixtures/tassadar/sources/tassadar_article_frontend_compiler_envelope_v1.json",
+  "manifest": {
+    "schema_version": 1,
+    "manifest_id": "tassadar.article_frontend_compiler_envelope.v1",
+    "manifest_ref": "fixtures/tassadar/sources/tassadar_article_frontend_compiler_envelope_v1.json",
+    "route_anchor": "psionic_transformer.article_route",
+    "frontend_family": "rust_source",
+    "toolchain_policy": {
+      "compiler_family": "rustc",
+      "target": "wasm32-unknown-unknown",
+      "language_version": "edition_2024",
+      "crate_type": "cdylib",
+      "optimization_level": "3",
+      "panic_strategy": "abort",
+      "require_no_std": true,
+      "require_no_main": true
+    },
+    "allowed_library_surfaces": [
+      "core_only_no_std"
+    ],
+    "allowed_abi_surfaces": [
+      {
+        "abi_surface_id": "nullary_i32_return",
+        "signature_shape": "extern_c fn() -> i32",
+        "detail": "nullary i32-return entrypoints cover the bounded article demo and long-horizon kernels"
+      },
+      {
+        "abi_surface_id": "scalar_i32_params_single_i32_return",
+        "signature_shape": "extern_c fn(i32...) -> i32",
+        "detail": "direct scalar i32 arguments with one i32 return stay inside the declared article frontend/compiler envelope"
+      },
+      {
+        "abi_surface_id": "pointer_length_i32_heap_input_single_i32_return",
+        "signature_shape": "extern_c fn(*const/*mut i32, i32...) -> i32",
+        "detail": "bounded pointer-length heap-input entrypoints stay admitted only for i32-backed buffers inside the already-declared article ABI lane"
+      }
+    ],
+    "admitted_source_rows": [
+      {
+        "case_id": "multi_export_exact",
+        "workload_family_id": "rust.multi_export_kernel",
+        "source_kind": "rust_source",
+        "source_ref": "fixtures/tassadar/sources/tassadar_multi_export_kernel.rs",
+        "compile_surface_id": "rustc.wasm32_unknown_unknown.article_envelope.v1",
+        "compile_config_digest": "97ba9d7535b17bb5cabb68a233bf506ffd63f64a097407e002f04a129975aff9",
+        "compile_pipeline_features": [
+          "compiler_binary:rustc",
+          "crate_name:tassadar_multi_export_kernel",
+          "crate_type:cdylib",
+          "edition:2024",
+          "export:local_double",
+          "export:pair_sum",
+          "metadata:tassadar_multi_export_kernel",
+          "optimization:3",
+          "panic:abort",
+          "target:wasm32-unknown-unknown"
+        ],
+        "abi_surface_id": "scalar_i32_params_single_i32_return"
+      },
+      {
+        "case_id": "memory_lookup_exact",
+        "workload_family_id": "rust.memory_lookup_kernel",
+        "source_kind": "rust_source",
+        "source_ref": "fixtures/tassadar/sources/tassadar_memory_lookup_kernel.rs",
+        "compile_surface_id": "rustc.wasm32_unknown_unknown.article_envelope.v1",
+        "compile_config_digest": "1771115d5c9540be32ba96e88fa40e2173c53debdc45f44df3349e6f9c53915f",
+        "compile_pipeline_features": [
+          "compiler_binary:rustc",
+          "crate_name:tassadar_memory_lookup_kernel",
+          "crate_type:cdylib",
+          "edition:2024",
+          "export:load_edge_sum",
+          "export:load_middle",
+          "metadata:tassadar_memory_lookup_kernel",
+          "optimization:3",
+          "panic:abort",
+          "target:wasm32-unknown-unknown"
+        ],
+        "abi_surface_id": "nullary_i32_return"
+      },
+      {
+        "case_id": "param_abi_fixture",
+        "workload_family_id": "rust.param_abi_kernel",
+        "source_kind": "rust_source",
+        "source_ref": "fixtures/tassadar/sources/tassadar_param_abi_kernel.rs",
+        "compile_surface_id": "rustc.wasm32_unknown_unknown.article_envelope.v1",
+        "compile_config_digest": "347cb479af44b3ce37fa66a810bc5d5fca6a4a128ac4f9b967edc800994726a6",
+        "compile_pipeline_features": [
+          "compiler_binary:rustc",
+          "crate_name:tassadar_param_abi_kernel",
+          "crate_type:cdylib",
+          "edition:2024",
+          "export:add_one",
+          "export:pair_add",
+          "metadata:tassadar_param_abi_kernel",
+          "optimization:3",
+          "panic:abort",
+          "target:wasm32-unknown-unknown"
+        ],
+        "abi_surface_id": "scalar_i32_params_single_i32_return"
+      },
+      {
+        "case_id": "micro_wasm_article",
+        "workload_family_id": "rust.micro_wasm_article",
+        "source_kind": "rust_source",
+        "source_ref": "fixtures/tassadar/sources/tassadar_micro_wasm_kernel.rs",
+        "compile_surface_id": "rustc.wasm32_unknown_unknown.article_envelope.v1",
+        "compile_config_digest": "bdfc8c7a0e89f17d60bbd357399e6dae135e67aca0a86b196d58724a012a0217",
+        "compile_pipeline_features": [
+          "compiler_binary:rustc",
+          "crate_name:tassadar_micro_wasm_kernel",
+          "crate_type:cdylib",
+          "edition:2024",
+          "export:micro_wasm_kernel",
+          "metadata:tassadar_micro_wasm_kernel",
+          "optimization:3",
+          "panic:abort",
+          "target:wasm32-unknown-unknown"
+        ],
+        "abi_surface_id": "pointer_length_i32_heap_input_single_i32_return"
+      },
+      {
+        "case_id": "heap_sum_article",
+        "workload_family_id": "rust.heap_sum_article",
+        "source_kind": "rust_source",
+        "source_ref": "fixtures/tassadar/sources/tassadar_heap_sum_kernel.rs",
+        "compile_surface_id": "rustc.wasm32_unknown_unknown.article_envelope.v1",
+        "compile_config_digest": "6b16fe38d0181a1cffb972fa84f8a3ad00591e18676de2d72bdcb3e13a171729",
+        "compile_pipeline_features": [
+          "compiler_binary:rustc",
+          "crate_name:tassadar_heap_sum_kernel",
+          "crate_type:cdylib",
+          "edition:2024",
+          "export:dot_i32",
+          "export:heap_sum_i32",
+          "export:sum_and_max_into_buffer",
+          "metadata:tassadar_heap_sum_kernel",
+          "optimization:3",
+          "panic:abort",
+          "target:wasm32-unknown-unknown"
+        ],
+        "abi_surface_id": "pointer_length_i32_heap_input_single_i32_return"
+      },
+      {
+        "case_id": "long_loop_article",
+        "workload_family_id": "rust.long_loop_article",
+        "source_kind": "rust_source",
+        "source_ref": "fixtures/tassadar/sources/tassadar_long_loop_kernel.rs",
+        "compile_surface_id": "rustc.wasm32_unknown_unknown.article_envelope.v1",
+        "compile_config_digest": "b31ec18bb3f44440c344bc4a0cd3f0bf1cb3c671c3512016c36a35a98f304608",
+        "compile_pipeline_features": [
+          "compiler_binary:rustc",
+          "crate_name:tassadar_long_loop_kernel",
+          "crate_type:cdylib",
+          "edition:2024",
+          "export:million_step_loop",
+          "metadata:tassadar_long_loop_kernel",
+          "optimization:3",
+          "panic:abort",
+          "target:wasm32-unknown-unknown"
+        ],
+        "abi_surface_id": "nullary_i32_return"
+      },
+      {
+        "case_id": "hungarian_10x10_article",
+        "workload_family_id": "rust.hungarian_10x10_article",
+        "source_kind": "rust_source",
+        "source_ref": "fixtures/tassadar/sources/tassadar_hungarian_10x10_article.rs",
+        "compile_surface_id": "rustc.wasm32_unknown_unknown.article_envelope.v1",
+        "compile_config_digest": "d1629c79f07cf91c73860c767fe8e42dd4f8678710e674a5d394750dea3a46bf",
+        "compile_pipeline_features": [
+          "compiler_binary:rustc",
+          "crate_name:tassadar_hungarian_10x10_article",
+          "crate_type:cdylib",
+          "edition:2024",
+          "export:hungarian_10x10_article_cost",
+          "metadata:tassadar_hungarian_10x10_article",
+          "optimization:3",
+          "panic:abort",
+          "target:wasm32-unknown-unknown"
+        ],
+        "abi_surface_id": "nullary_i32_return"
+      },
+      {
+        "case_id": "sudoku_9x9_article",
+        "workload_family_id": "rust.sudoku_9x9_article",
+        "source_kind": "rust_source",
+        "source_ref": "fixtures/tassadar/sources/tassadar_sudoku_9x9_article.rs",
+        "compile_surface_id": "rustc.wasm32_unknown_unknown.article_envelope.v1",
+        "compile_config_digest": "dd71bf6270a38ebe9c5d3e57f67b9f81b816f1eb8c065bd078e9d3c0392e477a",
+        "compile_pipeline_features": [
+          "compiler_binary:rustc",
+          "crate_name:tassadar_sudoku_9x9_article",
+          "crate_type:cdylib",
+          "edition:2024",
+          "export:sudoku_9x9_article_checksum",
+          "metadata:tassadar_sudoku_9x9_article",
+          "optimization:3",
+          "panic:abort",
+          "target:wasm32-unknown-unknown"
+        ],
+        "abi_surface_id": "nullary_i32_return"
+      }
+    ],
+    "disallowed_rows": [
+      {
+        "row_id": "c_source_outside_declared_frontend",
+        "refusal_kind": "outside_declared_frontend_family",
+        "title": "C/C++ source ingress stays outside the declared article envelope",
+        "representative_source_ref": "fixtures/tassadar/sources/tassadar_micro_wasm_kernel.c",
+        "detail": "the public article frontend/compiler envelope is Rust-source-only for now; the historical C-source compile receipt remains visible but out of envelope"
+      },
+      {
+        "row_id": "std_surface_outside_declared_library",
+        "refusal_kind": "outside_declared_library_surface",
+        "title": "std or alloc-backed Rust sources stay outside the declared article envelope",
+        "representative_source_ref": "fixtures/tassadar/sources/tassadar_article_std_surface_refusal.rs",
+        "detail": "the declared envelope admits `core`-only `#![no_std]` sources rather than a broader std/alloc source surface"
+      },
+      {
+        "row_id": "wider_numeric_abi_outside_declared_surface",
+        "refusal_kind": "outside_declared_abi_surface",
+        "title": "wider numeric or multi-result ABI rows stay outside the declared article envelope",
+        "representative_source_ref": "fixtures/tassadar/sources/tassadar_wider_numeric_kernel.rs",
+        "detail": "the declared frontend/compiler envelope stays aligned with the already-bounded i32 article ABI rather than widening to i64 or multi-result rows"
+      },
+      {
+        "row_id": "host_imports_and_syscalls_outside_declared_surface",
+        "refusal_kind": "host_or_syscall_surface_disallowed",
+        "title": "host imports and syscall-dependent rows stay outside the declared article envelope",
+        "representative_source_ref": "fixtures/tassadar/sources/tassadar_article_host_import_refusal.rs",
+        "detail": "the declared envelope admits direct pure exports only; host calls, imported callbacks, and syscall-backed behavior remain out of scope"
+      },
+      {
+        "row_id": "ub_dependent_rows_outside_declared_surface",
+        "refusal_kind": "ub_dependent_source_disallowed",
+        "title": "UB-dependent source rows stay outside the declared article envelope",
+        "representative_source_ref": "fixtures/tassadar/sources/tassadar_article_ub_refusal.rs",
+        "detail": "unsafe code is not rejected categorically, but rows whose semantics depend on undefined behavior stay outside the declared envelope"
+      },
+      {
+        "row_id": "older_language_revision_outside_declared_surface",
+        "refusal_kind": "outside_declared_language_version",
+        "title": "language revisions outside edition 2024 stay outside the declared article envelope",
+        "representative_source_ref": "fixtures/tassadar/sources/tassadar_param_abi_kernel.rs",
+        "detail": "public article-closure claims bind to the explicit current edition and toolchain policy instead of implying generic cross-edition frontend closure"
+      }
+    ],
+    "current_truth_boundary": "the declared article frontend/compiler envelope is one Rust-source-only `rustc` -> `wasm32-unknown-unknown` route over `#![no_std]` + `#![no_main]` sources, `core`-only source surface, `cdylib` output, `panic=abort`, and the already-bounded i32-oriented article ABI rows; C/C++, std/alloc surfaces, host imports, syscall-dependent rows, UB-dependent rows, and wider numeric or multi-result ABI rows stay outside this declared public envelope",
+    "non_implications": [
+      "not arbitrary C or C++ article ingress",
+      "not generic Rust frontend closure",
+      "not Cargo dependency-graph closure",
+      "not host-import, syscall, or OS service closure",
+      "not a widening of the current bounded article ABI or interpreter breadth"
+    ],
+    "claim_boundary": "this manifest declares only the frontend/compiler envelope that current public article-closure claims are allowed to rely on. It does not by itself expand the corpus, prove article-demo parity, or turn final article-equivalence green.",
+    "manifest_digest": "a9d849e5555303997c21c2b9d7056e1b7edcf2b6323627ce9aa21355cbb55ea2"
+  },
+  "manifest_check": {
+    "manifest_ref": "fixtures/tassadar/sources/tassadar_article_frontend_compiler_envelope_v1.json",
+    "admitted_source_count": 8,
+    "declared_refusal_kinds": [
+      "outside_declared_frontend_family",
+      "outside_declared_language_version",
+      "outside_declared_library_surface",
+      "outside_declared_abi_surface",
+      "host_or_syscall_surface_disallowed",
+      "ub_dependent_source_disallowed"
+    ],
+    "manifest_green": true,
+    "detail": "the manifest is green only when the Rust-only envelope stays explicit, all refusal kinds remain declared, and the bounded admitted source set is present"
+  },
+  "rust_source_canon_report_ref": "fixtures/tassadar/reports/tassadar_rust_source_canon_report.json",
+  "compile_matrix_report_ref": "fixtures/tassadar/reports/tassadar_compile_pipeline_matrix_report.json",
+  "compile_matrix_tie": {
+    "report_ref": "fixtures/tassadar/reports/tassadar_compile_pipeline_matrix_report.json",
+    "case_id": "c_missing_toolchain_refusal",
+    "source_ref": "fixtures/tassadar/sources/tassadar_micro_wasm_kernel.c",
+    "case_status": "compile_refused",
+    "compile_refusal_kind": "toolchain_unavailable",
+    "green": true,
+    "detail": "the older C-source compile receipt remains visible as a historical compile-matrix row, but it stays outside the declared article frontend/compiler envelope"
+  },
+  "admitted_case_checks": [
+    {
+      "case_id": "multi_export_exact",
+      "source_ref": "fixtures/tassadar/sources/tassadar_multi_export_kernel.rs",
+      "source_digest": "47ea087de354da4c2b3691454eb8cfb7c08731c227957f5c95a869117c8505a0",
+      "source_canon_compiled": true,
+      "compile_config_digest_matches_manifest": true,
+      "toolchain_identity": {
+        "compiler_family": "rustc",
+        "compiler_version": "rustc 1.92.0 (ded5c06cf 2025-12-08)",
+        "target": "wasm32-unknown-unknown",
+        "pipeline_features": [
+          "compiler_binary:rustc",
+          "crate_name:tassadar_multi_export_kernel",
+          "crate_type:cdylib",
+          "edition:2024",
+          "export:local_double",
+          "export:pair_sum",
+          "metadata:tassadar_multi_export_kernel",
+          "optimization:3",
+          "panic:abort",
+          "target:wasm32-unknown-unknown"
+        ]
+      },
+      "toolchain_identity_green": true,
+      "source_policy_green": true,
+      "imported_function_count": 0,
+      "detail": "admitted source rows stay green only when the committed source policy, compile-config digest, toolchain identity, and zero-import Wasm output all continue to match the declared envelope"
+    },
+    {
+      "case_id": "memory_lookup_exact",
+      "source_ref": "fixtures/tassadar/sources/tassadar_memory_lookup_kernel.rs",
+      "source_digest": "70d2652567d542e340b2f537efef82548eb274fb84900de133b954b102f271a1",
+      "source_canon_compiled": true,
+      "compile_config_digest_matches_manifest": true,
+      "toolchain_identity": {
+        "compiler_family": "rustc",
+        "compiler_version": "rustc 1.92.0 (ded5c06cf 2025-12-08)",
+        "target": "wasm32-unknown-unknown",
+        "pipeline_features": [
+          "compiler_binary:rustc",
+          "crate_name:tassadar_memory_lookup_kernel",
+          "crate_type:cdylib",
+          "edition:2024",
+          "export:load_edge_sum",
+          "export:load_middle",
+          "metadata:tassadar_memory_lookup_kernel",
+          "optimization:3",
+          "panic:abort",
+          "target:wasm32-unknown-unknown"
+        ]
+      },
+      "toolchain_identity_green": true,
+      "source_policy_green": true,
+      "imported_function_count": 0,
+      "detail": "admitted source rows stay green only when the committed source policy, compile-config digest, toolchain identity, and zero-import Wasm output all continue to match the declared envelope"
+    },
+    {
+      "case_id": "param_abi_fixture",
+      "source_ref": "fixtures/tassadar/sources/tassadar_param_abi_kernel.rs",
+      "source_digest": "9b30b596db6706ecd0125aa43a0b0bf694343f0ce9401db982e477085a0ae205",
+      "source_canon_compiled": true,
+      "compile_config_digest_matches_manifest": true,
+      "toolchain_identity": {
+        "compiler_family": "rustc",
+        "compiler_version": "rustc 1.92.0 (ded5c06cf 2025-12-08)",
+        "target": "wasm32-unknown-unknown",
+        "pipeline_features": [
+          "compiler_binary:rustc",
+          "crate_name:tassadar_param_abi_kernel",
+          "crate_type:cdylib",
+          "edition:2024",
+          "export:add_one",
+          "export:pair_add",
+          "metadata:tassadar_param_abi_kernel",
+          "optimization:3",
+          "panic:abort",
+          "target:wasm32-unknown-unknown"
+        ]
+      },
+      "toolchain_identity_green": true,
+      "source_policy_green": true,
+      "imported_function_count": 0,
+      "detail": "admitted source rows stay green only when the committed source policy, compile-config digest, toolchain identity, and zero-import Wasm output all continue to match the declared envelope"
+    },
+    {
+      "case_id": "micro_wasm_article",
+      "source_ref": "fixtures/tassadar/sources/tassadar_micro_wasm_kernel.rs",
+      "source_digest": "f7b52899ade2375f3e0b12351e2aa18927c763b3e529f189bb5c323eae090f13",
+      "source_canon_compiled": true,
+      "compile_config_digest_matches_manifest": true,
+      "toolchain_identity": {
+        "compiler_family": "rustc",
+        "compiler_version": "rustc 1.92.0 (ded5c06cf 2025-12-08)",
+        "target": "wasm32-unknown-unknown",
+        "pipeline_features": [
+          "compiler_binary:rustc",
+          "crate_name:tassadar_micro_wasm_kernel",
+          "crate_type:cdylib",
+          "edition:2024",
+          "export:micro_wasm_kernel",
+          "metadata:tassadar_micro_wasm_kernel",
+          "optimization:3",
+          "panic:abort",
+          "target:wasm32-unknown-unknown"
+        ]
+      },
+      "toolchain_identity_green": true,
+      "source_policy_green": true,
+      "imported_function_count": 0,
+      "detail": "admitted source rows stay green only when the committed source policy, compile-config digest, toolchain identity, and zero-import Wasm output all continue to match the declared envelope"
+    },
+    {
+      "case_id": "heap_sum_article",
+      "source_ref": "fixtures/tassadar/sources/tassadar_heap_sum_kernel.rs",
+      "source_digest": "6ce5d9449cbab790a42c80730ebf51d0a8f17c6b03bb58c9edf676e1eb23d69e",
+      "source_canon_compiled": true,
+      "compile_config_digest_matches_manifest": true,
+      "toolchain_identity": {
+        "compiler_family": "rustc",
+        "compiler_version": "rustc 1.92.0 (ded5c06cf 2025-12-08)",
+        "target": "wasm32-unknown-unknown",
+        "pipeline_features": [
+          "compiler_binary:rustc",
+          "crate_name:tassadar_heap_sum_kernel",
+          "crate_type:cdylib",
+          "edition:2024",
+          "export:dot_i32",
+          "export:heap_sum_i32",
+          "export:sum_and_max_into_buffer",
+          "metadata:tassadar_heap_sum_kernel",
+          "optimization:3",
+          "panic:abort",
+          "target:wasm32-unknown-unknown"
+        ]
+      },
+      "toolchain_identity_green": true,
+      "source_policy_green": true,
+      "imported_function_count": 0,
+      "detail": "admitted source rows stay green only when the committed source policy, compile-config digest, toolchain identity, and zero-import Wasm output all continue to match the declared envelope"
+    },
+    {
+      "case_id": "long_loop_article",
+      "source_ref": "fixtures/tassadar/sources/tassadar_long_loop_kernel.rs",
+      "source_digest": "94b18f5c1fcfb6450953a5d518d752f89253cb2b4e1af96646d123e9595f7057",
+      "source_canon_compiled": true,
+      "compile_config_digest_matches_manifest": true,
+      "toolchain_identity": {
+        "compiler_family": "rustc",
+        "compiler_version": "rustc 1.92.0 (ded5c06cf 2025-12-08)",
+        "target": "wasm32-unknown-unknown",
+        "pipeline_features": [
+          "compiler_binary:rustc",
+          "crate_name:tassadar_long_loop_kernel",
+          "crate_type:cdylib",
+          "edition:2024",
+          "export:million_step_loop",
+          "metadata:tassadar_long_loop_kernel",
+          "optimization:3",
+          "panic:abort",
+          "target:wasm32-unknown-unknown"
+        ]
+      },
+      "toolchain_identity_green": true,
+      "source_policy_green": true,
+      "imported_function_count": 0,
+      "detail": "admitted source rows stay green only when the committed source policy, compile-config digest, toolchain identity, and zero-import Wasm output all continue to match the declared envelope"
+    },
+    {
+      "case_id": "hungarian_10x10_article",
+      "source_ref": "fixtures/tassadar/sources/tassadar_hungarian_10x10_article.rs",
+      "source_digest": "f3a89c7c1baf3c9706188edffae9042e14bf5c526b4f4184632e1edaf8221b3e",
+      "source_canon_compiled": true,
+      "compile_config_digest_matches_manifest": true,
+      "toolchain_identity": {
+        "compiler_family": "rustc",
+        "compiler_version": "rustc 1.92.0 (ded5c06cf 2025-12-08)",
+        "target": "wasm32-unknown-unknown",
+        "pipeline_features": [
+          "compiler_binary:rustc",
+          "crate_name:tassadar_hungarian_10x10_article",
+          "crate_type:cdylib",
+          "edition:2024",
+          "export:hungarian_10x10_article_cost",
+          "metadata:tassadar_hungarian_10x10_article",
+          "optimization:3",
+          "panic:abort",
+          "target:wasm32-unknown-unknown"
+        ]
+      },
+      "toolchain_identity_green": true,
+      "source_policy_green": true,
+      "imported_function_count": 0,
+      "detail": "admitted source rows stay green only when the committed source policy, compile-config digest, toolchain identity, and zero-import Wasm output all continue to match the declared envelope"
+    },
+    {
+      "case_id": "sudoku_9x9_article",
+      "source_ref": "fixtures/tassadar/sources/tassadar_sudoku_9x9_article.rs",
+      "source_digest": "8a8d943d3c073db5157cd841db7b2e582a96d5299116ca004db292d8c1508c8e",
+      "source_canon_compiled": true,
+      "compile_config_digest_matches_manifest": true,
+      "toolchain_identity": {
+        "compiler_family": "rustc",
+        "compiler_version": "rustc 1.92.0 (ded5c06cf 2025-12-08)",
+        "target": "wasm32-unknown-unknown",
+        "pipeline_features": [
+          "compiler_binary:rustc",
+          "crate_name:tassadar_sudoku_9x9_article",
+          "crate_type:cdylib",
+          "edition:2024",
+          "export:sudoku_9x9_article_checksum",
+          "metadata:tassadar_sudoku_9x9_article",
+          "optimization:3",
+          "panic:abort",
+          "target:wasm32-unknown-unknown"
+        ]
+      },
+      "toolchain_identity_green": true,
+      "source_policy_green": true,
+      "imported_function_count": 0,
+      "detail": "admitted source rows stay green only when the committed source policy, compile-config digest, toolchain identity, and zero-import Wasm output all continue to match the declared envelope"
+    }
+  ],
+  "refusal_probes": [
+    {
+      "row_id": "c_source_outside_declared_frontend",
+      "source_ref": "fixtures/tassadar/sources/tassadar_micro_wasm_kernel.c",
+      "source_kind": "c_source",
+      "expected_refusal_kind": "outside_declared_frontend_family",
+      "actual_refusal_kind": "outside_declared_frontend_family",
+      "probe_green": true,
+      "detail": "the public article frontend/compiler envelope is Rust-source-only for now; the historical C-source compile receipt remains visible but out of envelope"
+    },
+    {
+      "row_id": "std_surface_outside_declared_library",
+      "source_ref": "fixtures/tassadar/sources/tassadar_article_std_surface_refusal.rs",
+      "source_kind": "rust_source",
+      "expected_refusal_kind": "outside_declared_library_surface",
+      "actual_refusal_kind": "outside_declared_library_surface",
+      "probe_green": true,
+      "detail": "the declared envelope admits `core`-only `#![no_std]` sources rather than a broader std/alloc source surface"
+    },
+    {
+      "row_id": "wider_numeric_abi_outside_declared_surface",
+      "source_ref": "fixtures/tassadar/sources/tassadar_wider_numeric_kernel.rs",
+      "source_kind": "rust_source",
+      "expected_refusal_kind": "outside_declared_abi_surface",
+      "actual_refusal_kind": "outside_declared_abi_surface",
+      "probe_green": true,
+      "detail": "the declared frontend/compiler envelope stays aligned with the already-bounded i32 article ABI rather than widening to i64 or multi-result rows"
+    },
+    {
+      "row_id": "host_imports_and_syscalls_outside_declared_surface",
+      "source_ref": "fixtures/tassadar/sources/tassadar_article_host_import_refusal.rs",
+      "source_kind": "rust_source",
+      "expected_refusal_kind": "host_or_syscall_surface_disallowed",
+      "actual_refusal_kind": "host_or_syscall_surface_disallowed",
+      "probe_green": true,
+      "detail": "the declared envelope admits direct pure exports only; host calls, imported callbacks, and syscall-backed behavior remain out of scope"
+    },
+    {
+      "row_id": "ub_dependent_rows_outside_declared_surface",
+      "source_ref": "fixtures/tassadar/sources/tassadar_article_ub_refusal.rs",
+      "source_kind": "rust_source",
+      "expected_refusal_kind": "ub_dependent_source_disallowed",
+      "actual_refusal_kind": "ub_dependent_source_disallowed",
+      "probe_green": true,
+      "detail": "unsafe code is not rejected categorically, but rows whose semantics depend on undefined behavior stay outside the declared envelope"
+    },
+    {
+      "row_id": "older_language_revision_outside_declared_surface",
+      "source_ref": "fixtures/tassadar/sources/tassadar_param_abi_kernel.rs",
+      "source_kind": "rust_source",
+      "expected_refusal_kind": "outside_declared_language_version",
+      "actual_refusal_kind": "outside_declared_language_version",
+      "probe_green": true,
+      "detail": "public article-closure claims bind to the explicit current edition and toolchain policy instead of implying generic cross-edition frontend closure"
+    }
+  ],
+  "admitted_case_green_count": 8,
+  "refusal_probe_green_count": 6,
+  "toolchain_identity_green": true,
+  "refusal_taxonomy_green": true,
+  "envelope_manifest_green": true,
+  "article_equivalence_green": false,
+  "claim_boundary": "this report closes TAS-176 only. It freezes one declared public article frontend/compiler envelope, proves that the currently admitted Rust article fixtures stay inside it with stable toolchain identity and zero-import Wasm outputs, and proves that representative out-of-envelope rows still refuse explicitly. It does not yet widen the corpus, close Hungarian or Sudoku demo parity, or turn final article-equivalence green.",
+  "summary": "Article frontend/compiler envelope report now records tied_requirement_satisfied=true, manifest_green=true, admitted_cases=8/8, refusal_probes=6/6, toolchain_identity_green=true, refusal_taxonomy_green=true, and article_equivalence_green=false.",
+  "report_digest": "ed4445a653821fc633bc719e51641cc628aae32ac6c6b6898b05a1bb5e972382"
+}
