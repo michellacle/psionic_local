@@ -14,7 +14,6 @@
       "tied_requirement_satisfied": true,
       "acceptance_status": "blocked",
       "blocked_issue_ids": [
-        "TAS-171B",
         "TAS-171C",
         "TAS-172",
         "TAS-173",
@@ -459,7 +458,7 @@
     "article_equivalence_green": false,
     "claim_boundary": "this gate certifies only that the owned Transformer-backed reference-linear route now stays exact on the declared article workload family under the current trace-domain route, with explicit exact/mismatch/refused rows and explicit direct-proof binding for the bounded proof family. It does not yet claim anti-memorization closure, contamination independence, fast-route promotion, benchmark parity, single-run closure, or final article-equivalence green status.",
     "summary": "Transformer-backed reference-linear exactness gate now records declared_case_count=13, exact_case_count=13, mismatch_case_count=0, refused_case_count=0, direct_model_weight_proof_case_count=3, reference_linear_exactness_green=true, and article_equivalence_green=false.",
-    "report_digest": "b3619b7807c0499e97e420588725b89aba9036d65846c9d4e2ad348773012ea9"
+    "report_digest": "b5e4ad6b1739bf967ad4ef8c1b1f62429de35e6f88a91e8822783fbbe9392513"
   },
   "case_count": 13,
   "exact_case_count": 13,
@@ -476,5 +475,5 @@
   "refused_case_ids": [],
   "claim_boundary": "this summary mirrors only the bounded Transformer-backed reference-linear exactness gate. It keeps the full-family exactness counts operator-readable without widening the claim beyond the underlying gate report.",
   "summary": "Transformer-backed reference-linear exactness summary now records case_count=13, exact_case_count=13, mismatch_case_count=0, refused_case_count=0, direct_model_weight_proof_case_count=3, reference_linear_exactness_green=true, and article_equivalence_green=false.",
-  "report_digest": "54b07ac4c1392e5ee779f9f64397ff2680ed5c72cc7f115741a6e1d009ef90eb"
+  "report_digest": "9e44aabab3b4d785c68d42800f73c60a2c22a2284f2df383b8707f59f4e0e2ca"
 }

@@ -262,6 +262,23 @@ but it still does not close anti-memorization, contamination independence,
 benchmark equivalence, single-run no-spill closure, or the final
 article-equivalence claim.
 
+`TAS-171B` now closes that next anti-memorization tranche on top of the same
+reference-linear route. `psionic-eval` now commits one deterministic
+generalization gate at
+`fixtures/tassadar/reports/tassadar_article_transformer_generalization_gate_report.json`
+covering held-out randomized bounded-family cases, adversarial article-scale
+Sudoku and Hungarian variants, size/structure scaling across bounded and
+article-scale programs, and mixed-order curriculum runs, all with explicit
+out-of-distribution fingerprints against the declared article corpus and the
+family corpora. `psionic-research` now mirrors the operator-readable summary at
+`fixtures/tassadar/reports/tassadar_article_transformer_generalization_summary.json`.
+This is the point where the owned reference-linear route is now
+machine-readably green on a held-out and adversarial article-envelope
+generalization suite rather than only the declared corpus itself, but it still
+does not close dataset contamination independence, fast-route promotion,
+benchmark equivalence, single-run no-spill closure, clean-room weight
+causality, or the final article-equivalence claim.
+
 ## Route Requirement
 
 Any canonical article-equivalence Transformer route must use this boundary.

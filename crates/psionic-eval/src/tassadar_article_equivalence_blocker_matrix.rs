@@ -851,7 +851,7 @@ fn issue_coverage_rows() -> Vec<TassadarArticleEquivalenceIssueCoverageRow> {
             292,
             "TAS-171B: Generalization and anti-memorization gate",
             TassadarArticleEquivalenceIssueRole::Implementation,
-            "open",
+            "closed",
             &["BEQ-002", "BEQ-005", "BEQ-007"],
         ),
         issue_row(
