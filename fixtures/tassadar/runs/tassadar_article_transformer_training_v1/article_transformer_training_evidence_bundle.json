@@ -1,0 +1,1418 @@
+{
+  "schema_version": 1,
+  "bundle_id": "tassadar.article_transformer.training_evidence_bundle.v1",
+  "tied_requirement_id": "TAS-164",
+  "model_module_ref": "crates/psionic-models/src/tassadar_article_transformer.rs",
+  "transformer_module_ref": "crates/psionic-transformer/src/encoder_decoder.rs",
+  "train_module_ref": "crates/psionic-train/src/tassadar_article_transformer_training.rs",
+  "run_id": "tassadar-article-transformer-training-run",
+  "checkpoint_family": "train.tassadar.article_transformer",
+  "architecture_variant": "attention_is_all_you_need_encoder_decoder",
+  "config": {
+    "source_vocab_size": 8,
+    "target_vocab_size": 8,
+    "hidden_size": 4,
+    "feed_forward_size": 8,
+    "head_count": 2,
+    "encoder_layer_count": 2,
+    "decoder_layer_count": 2,
+    "max_source_positions": 16,
+    "max_target_positions": 16,
+    "dropout_probability_bps": 0
+  },
+  "embedding_strategy": "unshared",
+  "trainable_parameter_ids": [
+    "source_embedding_table",
+    "target_embedding_table",
+    "logits_projection_weight",
+    "logits_projection_bias"
+  ],
+  "trainable_parameter_scalar_count": 104,
+  "loss_kind": "label_smoothed_cross_entropy",
+  "optimizer_kind": "adam",
+  "scheduler_kind": "inverse_square_root_warmup",
+  "warmup_steps": 8,
+  "label_smoothing": 0.01,
+  "finite_difference_epsilon": 0.01,
+  "training_examples": [
+    {
+      "example_id": "select_first_ab",
+      "task_kind": "select_first",
+      "source_tokens": [
+        6,
+        2,
+        3
+      ],
+      "target_tokens": [
+        2
+      ]
+    },
+    {
+      "example_id": "select_second_cd",
+      "task_kind": "select_second",
+      "source_tokens": [
+        7,
+        4,
+        5
+      ],
+      "target_tokens": [
+        5
+      ]
+    }
+  ],
+  "held_out_examples": [
+    {
+      "example_id": "select_first_cd",
+      "task_kind": "select_first",
+      "source_tokens": [
+        6,
+        4,
+        5
+      ],
+      "target_tokens": [
+        4
+      ]
+    },
+    {
+      "example_id": "select_second_ab",
+      "task_kind": "select_second",
+      "source_tokens": [
+        7,
+        2,
+        3
+      ],
+      "target_tokens": [
+        3
+      ]
+    }
+  ],
+  "gradient_checks": [
+    {
+      "parameter_id": "logits_projection_bias",
+      "gradient_len": 8,
+      "max_abs_gradient": 0.37081242,
+      "all_finite": true,
+      "detail": "finite-difference gradients were computed directly on the bounded trainable article-Transformer surface"
+    },
+    {
+      "parameter_id": "logits_projection_weight",
+      "gradient_len": 32,
+      "max_abs_gradient": 0.37926435,
+      "all_finite": true,
+      "detail": "finite-difference gradients were computed directly on the bounded trainable article-Transformer surface"
+    },
+    {
+      "parameter_id": "source_embedding_table",
+      "gradient_len": 32,
+      "max_abs_gradient": 0.00009536743,
+      "all_finite": true,
+      "detail": "finite-difference gradients were computed directly on the bounded trainable article-Transformer surface"
+    },
+    {
+      "parameter_id": "target_embedding_table",
+      "gradient_len": 32,
+      "max_abs_gradient": 0.03167391,
+      "all_finite": true,
+      "detail": "finite-difference gradients were computed directly on the bounded trainable article-Transformer surface"
+    }
+  ],
+  "step_evidence": [
+    {
+      "global_step": 1,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 1.6773641,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 2.268393,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.051562503,
+        "logits_projection_weight": 0.051562503,
+        "source_embedding_table": 0.051562503,
+        "target_embedding_table": 0.051562503
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 2,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 1.3300359,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 2.5637472,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.065625004,
+        "logits_projection_weight": 0.065625004,
+        "source_embedding_table": 0.065625004,
+        "target_embedding_table": 0.065625004
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 3,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 1.0489533,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 3.0405962,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.079687506,
+        "logits_projection_weight": 0.079687506,
+        "source_embedding_table": 0.079687506,
+        "target_embedding_table": 0.079687506
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 4,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.8712051,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 3.7264547,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.09375,
+        "logits_projection_weight": 0.09375,
+        "source_embedding_table": 0.09375,
+        "target_embedding_table": 0.09375
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 5,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.7864203,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 4.5568066,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.1078125,
+        "logits_projection_weight": 0.1078125,
+        "source_embedding_table": 0.1078125,
+        "target_embedding_table": 0.1078125
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 6,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.75454843,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 5.4370728,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.121875,
+        "logits_projection_weight": 0.121875,
+        "source_embedding_table": 0.121875,
+        "target_embedding_table": 0.121875
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 7,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.7458472,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 6.3086996,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.13593751,
+        "logits_projection_weight": 0.13593751,
+        "source_embedding_table": 0.13593751,
+        "target_embedding_table": 0.13593751
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 8,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.74621886,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 7.143623,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.15,
+        "logits_projection_weight": 0.15,
+        "source_embedding_table": 0.15,
+        "target_embedding_table": 0.15
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 9,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.74906397,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 7.816313,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.14142136,
+        "logits_projection_weight": 0.14142136,
+        "source_embedding_table": 0.14142136,
+        "target_embedding_table": 0.14142136
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 10,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.7519432,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 8.34973,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.13416408,
+        "logits_projection_weight": 0.13416408,
+        "source_embedding_table": 0.13416408,
+        "target_embedding_table": 0.13416408
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 11,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.7543745,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 8.75677,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.12792043,
+        "logits_projection_weight": 0.12792043,
+        "source_embedding_table": 0.12792043,
+        "target_embedding_table": 0.12792043
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 12,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.75627875,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 9.043046,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.1224745,
+        "logits_projection_weight": 0.1224745,
+        "source_embedding_table": 0.1224745,
+        "target_embedding_table": 0.1224745
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 13,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.75751024,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 9.210081,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.11766969,
+        "logits_projection_weight": 0.11766969,
+        "source_embedding_table": 0.11766969,
+        "target_embedding_table": 0.11766969
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 14,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.75789493,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 9.259026,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.11338934,
+        "logits_projection_weight": 0.11338934,
+        "source_embedding_table": 0.11338934,
+        "target_embedding_table": 0.11338934
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 15,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.7573949,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 9.1938715,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.10954452,
+        "logits_projection_weight": 0.10954452,
+        "source_embedding_table": 0.10954452,
+        "target_embedding_table": 0.10954452
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 16,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.7561457,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 9.023331,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.10606602,
+        "logits_projection_weight": 0.10606602,
+        "source_embedding_table": 0.10606602,
+        "target_embedding_table": 0.10606602
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 17,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.7543558,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 8.760875,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.10289916,
+        "logits_projection_weight": 0.10289916,
+        "source_embedding_table": 0.10289916,
+        "target_embedding_table": 0.10289916
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 18,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.7522092,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 8.42287,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.10000001,
+        "logits_projection_weight": 0.10000001,
+        "source_embedding_table": 0.10000001,
+        "target_embedding_table": 0.10000001
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 19,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.7498742,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 8.026487,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.09733286,
+        "logits_projection_weight": 0.09733286,
+        "source_embedding_table": 0.09733286,
+        "target_embedding_table": 0.09733286
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 20,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.7475956,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 7.5888767,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.09486833,
+        "logits_projection_weight": 0.09486833,
+        "source_embedding_table": 0.09486833,
+        "target_embedding_table": 0.09486833
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 21,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.7457741,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 7.128696,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.09258202,
+        "logits_projection_weight": 0.09258202,
+        "source_embedding_table": 0.09258202,
+        "target_embedding_table": 0.09258202
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 22,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.74494845,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 6.672678,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.09045341,
+        "logits_projection_weight": 0.09045341,
+        "source_embedding_table": 0.09045341,
+        "target_embedding_table": 0.09045341
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 23,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.74552184,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 6.2666364,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.08846518,
+        "logits_projection_weight": 0.08846518,
+        "source_embedding_table": 0.08846518,
+        "target_embedding_table": 0.08846518
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 24,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.747007,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 5.980879,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.08660254,
+        "logits_projection_weight": 0.08660254,
+        "source_embedding_table": 0.08660254,
+        "target_embedding_table": 0.08660254
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 25,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.7478794,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 5.871555,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.084852815,
+        "logits_projection_weight": 0.084852815,
+        "source_embedding_table": 0.084852815,
+        "target_embedding_table": 0.084852815
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 26,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.747414,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 5.924802,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.08320503,
+        "logits_projection_weight": 0.08320503,
+        "source_embedding_table": 0.08320503,
+        "target_embedding_table": 0.08320503
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 27,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.74628806,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 6.0855436,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.08164966,
+        "logits_projection_weight": 0.08164966,
+        "source_embedding_table": 0.08164966,
+        "target_embedding_table": 0.08164966
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 28,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.7453288,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 6.2992773,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.08017837,
+        "logits_projection_weight": 0.08017837,
+        "source_embedding_table": 0.08017837,
+        "target_embedding_table": 0.08017837
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 29,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.74486506,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 6.5243163,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.07878387,
+        "logits_projection_weight": 0.07878387,
+        "source_embedding_table": 0.07878387,
+        "target_embedding_table": 0.07878387
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 30,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.74483615,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 6.732753,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.07745967,
+        "logits_projection_weight": 0.07745967,
+        "source_embedding_table": 0.07745967,
+        "target_embedding_table": 0.07745967
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 31,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.7450448,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 6.908248,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.076200075,
+        "logits_projection_weight": 0.076200075,
+        "source_embedding_table": 0.076200075,
+        "target_embedding_table": 0.076200075
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 32,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.7453132,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 7.0432143,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.075,
+        "logits_projection_weight": 0.075,
+        "source_embedding_table": 0.075,
+        "target_embedding_table": 0.075
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 33,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.74553365,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 7.1356893,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.0738549,
+        "logits_projection_weight": 0.0738549,
+        "source_embedding_table": 0.0738549,
+        "target_embedding_table": 0.0738549
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 34,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.74565905,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 7.186922,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.07276069,
+        "logits_projection_weight": 0.07276069,
+        "source_embedding_table": 0.07276069,
+        "target_embedding_table": 0.07276069
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 35,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.7456781,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 7.1999893,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.07171372,
+        "logits_projection_weight": 0.07171372,
+        "source_embedding_table": 0.07171372,
+        "target_embedding_table": 0.07171372
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 36,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.7455957,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 7.179055,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.07071068,
+        "logits_projection_weight": 0.07071068,
+        "source_embedding_table": 0.07071068,
+        "target_embedding_table": 0.07071068
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 37,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.7454269,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 7.1288633,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.06974859,
+        "logits_projection_weight": 0.06974859,
+        "source_embedding_table": 0.06974859,
+        "target_embedding_table": 0.06974859
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 38,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.7452011,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 7.054677,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.06882472,
+        "logits_projection_weight": 0.06882472,
+        "source_embedding_table": 0.06882472,
+        "target_embedding_table": 0.06882472
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 39,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.74496037,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 6.9622326,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.06793662,
+        "logits_projection_weight": 0.06793662,
+        "source_embedding_table": 0.06793662,
+        "target_embedding_table": 0.06793662
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 40,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.74475133,
+      "training_exact_match_count": 2,
+      "held_out_mean_loss": 6.8578625,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.06708204,
+        "logits_projection_weight": 0.06708204,
+        "source_embedding_table": 0.06708204,
+        "target_embedding_table": 0.06708204
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 41,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.7446103,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 6.748578,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.066258915,
+        "logits_projection_weight": 0.066258915,
+        "source_embedding_table": 0.066258915,
+        "target_embedding_table": 0.066258915
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 42,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.7445538,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 6.6420727,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.06546537,
+        "logits_projection_weight": 0.06546537,
+        "source_embedding_table": 0.06546537,
+        "target_embedding_table": 0.06546537
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 43,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.74457246,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 6.546157,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.064699665,
+        "logits_projection_weight": 0.064699665,
+        "source_embedding_table": 0.064699665,
+        "target_embedding_table": 0.064699665
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 44,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.744637,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 6.468151,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.06396022,
+        "logits_projection_weight": 0.06396022,
+        "source_embedding_table": 0.06396022,
+        "target_embedding_table": 0.06396022
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 45,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.74470586,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 6.4139876,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.06324556,
+        "logits_projection_weight": 0.06324556,
+        "source_embedding_table": 0.06324556,
+        "target_embedding_table": 0.06324556
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 46,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.7447406,
+      "training_exact_match_count": 2,
+      "held_out_mean_loss": 6.3869705,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.06255433,
+        "logits_projection_weight": 0.06255433,
+        "source_embedding_table": 0.06255433,
+        "target_embedding_table": 0.06255433
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 47,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.7447207,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 6.387251,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.061885275,
+        "logits_projection_weight": 0.061885275,
+        "source_embedding_table": 0.061885275,
+        "target_embedding_table": 0.061885275
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 48,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.74464935,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 6.411867,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.06123725,
+        "logits_projection_weight": 0.06123725,
+        "source_embedding_table": 0.06123725,
+        "target_embedding_table": 0.06123725
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 49,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.7445487,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 6.455632,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.060609154,
+        "logits_projection_weight": 0.060609154,
+        "source_embedding_table": 0.060609154,
+        "target_embedding_table": 0.060609154
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 50,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.7444478,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 6.5120926,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.060000002,
+        "logits_projection_weight": 0.060000002,
+        "source_embedding_table": 0.060000002,
+        "target_embedding_table": 0.060000002
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 51,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.7443701,
+      "training_exact_match_count": 2,
+      "held_out_mean_loss": 6.574532,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.05940886,
+        "logits_projection_weight": 0.05940886,
+        "source_embedding_table": 0.05940886,
+        "target_embedding_table": 0.05940886
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 52,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.74432564,
+      "training_exact_match_count": 2,
+      "held_out_mean_loss": 6.636922,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.058834843,
+        "logits_projection_weight": 0.058834843,
+        "source_embedding_table": 0.058834843,
+        "target_embedding_table": 0.058834843
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 53,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.74431056,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 6.6940804,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.058277152,
+        "logits_projection_weight": 0.058277152,
+        "source_embedding_table": 0.058277152,
+        "target_embedding_table": 0.058277152
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 54,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.74431205,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 6.7421703,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.05773503,
+        "logits_projection_weight": 0.05773503,
+        "source_embedding_table": 0.05773503,
+        "target_embedding_table": 0.05773503
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 55,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.7443168,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 6.7786455,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.057207756,
+        "logits_projection_weight": 0.057207756,
+        "source_embedding_table": 0.057207756,
+        "target_embedding_table": 0.057207756
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 56,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.74431443,
+      "training_exact_match_count": 1,
+      "held_out_mean_loss": 6.802184,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.05669467,
+        "logits_projection_weight": 0.05669467,
+        "source_embedding_table": 0.05669467,
+        "target_embedding_table": 0.05669467
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 57,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.7443,
+      "training_exact_match_count": 2,
+      "held_out_mean_loss": 6.8123837,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.05619515,
+        "logits_projection_weight": 0.05619515,
+        "source_embedding_table": 0.05619515,
+        "target_embedding_table": 0.05619515
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 58,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.7442727,
+      "training_exact_match_count": 2,
+      "held_out_mean_loss": 6.8098364,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.055708602,
+        "logits_projection_weight": 0.055708602,
+        "source_embedding_table": 0.055708602,
+        "target_embedding_table": 0.055708602
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 59,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.7442336,
+      "training_exact_match_count": 2,
+      "held_out_mean_loss": 6.7958984,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.055234477,
+        "logits_projection_weight": 0.055234477,
+        "source_embedding_table": 0.055234477,
+        "target_embedding_table": 0.055234477
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 60,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.7441869,
+      "training_exact_match_count": 2,
+      "held_out_mean_loss": 6.772577,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.05477226,
+        "logits_projection_weight": 0.05477226,
+        "source_embedding_table": 0.05477226,
+        "target_embedding_table": 0.05477226
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 61,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.7441384,
+      "training_exact_match_count": 2,
+      "held_out_mean_loss": 6.7422876,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.05432145,
+        "logits_projection_weight": 0.05432145,
+        "source_embedding_table": 0.05432145,
+        "target_embedding_table": 0.05432145
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 62,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.7440945,
+      "training_exact_match_count": 2,
+      "held_out_mean_loss": 6.7078567,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.053881593,
+        "logits_projection_weight": 0.053881593,
+        "source_embedding_table": 0.053881593,
+        "target_embedding_table": 0.053881593
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 63,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.7440593,
+      "training_exact_match_count": 2,
+      "held_out_mean_loss": 6.672349,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.053452253,
+        "logits_projection_weight": 0.053452253,
+        "source_embedding_table": 0.053452253,
+        "target_embedding_table": 0.053452253
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    },
+    {
+      "global_step": 64,
+      "batch_id": "tassadar.article_transformer.toy_tasks.v1-gradient-batch",
+      "training_mean_loss": 0.74403363,
+      "training_exact_match_count": 2,
+      "held_out_mean_loss": 6.638702,
+      "held_out_exact_match_count": 0,
+      "effective_learning_rates": {
+        "logits_projection_bias": 0.05303301,
+        "logits_projection_weight": 0.05303301,
+        "source_embedding_table": 0.05303301,
+        "target_embedding_table": 0.05303301
+      },
+      "scheduler_kinds": {
+        "logits_projection_bias": "inverse_square_root_warmup",
+        "logits_projection_weight": "inverse_square_root_warmup",
+        "source_embedding_table": "inverse_square_root_warmup",
+        "target_embedding_table": "inverse_square_root_warmup"
+      }
+    }
+  ],
+  "initial_training_mean_loss": 2.0288131,
+  "final_training_mean_loss": 0.74403363,
+  "initial_training_exact_match_count": 1,
+  "final_training_exact_match_count": 2,
+  "final_held_out_mean_loss": 6.638702,
+  "final_held_out_exact_match_count": 0,
+  "overfit_training_exact_match": true,
+  "checkpoint": {
+    "checkpoint_ref": "tassadar-article-transformer-training-run:step:64",
+    "checkpoint_family": "train.tassadar.article_transformer",
+    "manifest_digest": "fd47a59ec26f11cb5df78d325ca9bff2f12d6577e2ef4d7d395de643fa03263e",
+    "trained_trainable_parameter_digest": "b29b90c73b16de5f0a737a2eed067ba77a20aec77f6df5ee005a5253cbbfce88",
+    "restored_trainable_parameter_digest": "b29b90c73b16de5f0a737a2eed067ba77a20aec77f6df5ee005a5253cbbfce88",
+    "restore_matches_trained_state": true
+  },
+  "claim_boundary": "this evidence bundle covers one bounded article-Transformer training lane over two toy sequence tasks, a finite-difference optimizer loop, and deterministic checkpoint restore on the canonical owned stack. It does not claim full-parameter article training, benchmark parity, or final article-equivalence green status.",
+  "bundle_digest": "23c8e00265c731d46b196d9112876948abb91939e61d9021d1961b9453821222"
+}

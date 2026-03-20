@@ -322,6 +322,8 @@ pub enum TrainingSchedulerKind {
     StepLr,
     /// Linear warmup analogous to common transformer training ramps.
     LinearWarmup,
+    /// Linear warmup followed by inverse-square-root decay.
+    InverseSquareRootWarmup,
     /// Cosine annealing over a fixed step budget.
     CosineAnnealing,
 }
@@ -341,6 +343,13 @@ pub enum TrainingSchedulerConfig {
     },
     /// Linearly ramps from `start_factor * base_lr` to `base_lr`.
     LinearWarmup {
+        /// Number of warmup steps.
+        warmup_steps: u64,
+        /// Starting scale relative to the base learning rate.
+        start_factor: f32,
+    },
+    /// Linearly ramps to `base_lr`, then decays proportionally to `step^-0.5`.
+    InverseSquareRootWarmup {
         /// Number of warmup steps.
         warmup_steps: u64,
         /// Starting scale relative to the base learning rate.
@@ -377,6 +386,15 @@ impl TrainingSchedulerConfig {
         }
     }
 
+    /// Returns a linear-warmup plus inverse-square-root-decay schedule.
+    #[must_use]
+    pub const fn inverse_square_root_warmup(warmup_steps: u64, start_factor: f32) -> Self {
+        Self::InverseSquareRootWarmup {
+            warmup_steps,
+            start_factor,
+        }
+    }
+
     /// Returns a cosine annealing schedule.
     #[must_use]
     pub const fn cosine_annealing(total_steps: u64, min_learning_rate: f32) -> Self {
@@ -393,6 +411,9 @@ impl TrainingSchedulerConfig {
             Self::Constant => TrainingSchedulerKind::Constant,
             Self::StepLr { .. } => TrainingSchedulerKind::StepLr,
             Self::LinearWarmup { .. } => TrainingSchedulerKind::LinearWarmup,
+            Self::InverseSquareRootWarmup { .. } => {
+                TrainingSchedulerKind::InverseSquareRootWarmup
+            }
             Self::CosineAnnealing { .. } => TrainingSchedulerKind::CosineAnnealing,
         }
     }

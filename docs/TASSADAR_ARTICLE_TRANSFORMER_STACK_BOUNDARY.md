@@ -118,6 +118,15 @@ it must not pull the lower-level `psionic-nn` layer substrate back into the
 training or model crates. The repo now keeps that interop split in
 `psionic-nn-optimizers`.
 
+`TAS-164` now closes the first bounded article-Transformer training lane on
+top of this split in
+`crates/psionic-train/src/tassadar_article_transformer_training.rs`.
+That lane consumes the canonical article wrapper from `psionic-models`,
+keeps reusable encoder-decoder architecture ownership in
+`psionic-transformer`, and leaves optimizer-loop orchestration in
+`psionic-train` rather than reabsorbing Transformer ownership into the train
+crate.
+
 ## Route Requirement
 
 Any canonical article-equivalence Transformer route must use this boundary.

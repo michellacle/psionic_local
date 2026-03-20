@@ -581,6 +581,23 @@ fn resolve_scheduler_learning_rate(
             let progress = (step_number.min(*warmup_steps) as f32) / (*warmup_steps as f32);
             Ok(base_learning_rate * (start_factor + ((1.0 - start_factor) * progress)))
         }
+        TrainingSchedulerConfig::InverseSquareRootWarmup {
+            warmup_steps,
+            start_factor,
+        } => {
+            if *warmup_steps == 0 {
+                return Err(TrainingOptimizerError::InvalidSchedulerConfig {
+                    scheduler: TrainingSchedulerKind::InverseSquareRootWarmup,
+                    message: String::from("warmup_steps must be greater than zero"),
+                });
+            }
+            if step_number <= *warmup_steps {
+                let progress = (step_number as f32) / (*warmup_steps as f32);
+                Ok(base_learning_rate * (start_factor + ((1.0 - start_factor) * progress)))
+            } else {
+                Ok(base_learning_rate * ((*warmup_steps as f32) / (step_number as f32)).sqrt())
+            }
+        }
         TrainingSchedulerConfig::CosineAnnealing {
             total_steps,
             min_learning_rate,

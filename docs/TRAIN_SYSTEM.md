@@ -198,6 +198,10 @@ It already has real substrate for:
 - bounded `Tassadar` small-executor training over the validation benchmark
   package, using the fixed-budget training core plus proof-aware exactness
   comparison against the handcrafted reference lane
+- bounded article-Transformer toy-task training over the canonical owned stack,
+  with label-smoothed cross-entropy, Adam plus inverse-square-root warmup,
+  finite-gradient checks, and deterministic checkpoint restore rooted in
+  `psionic-transformer`
 - adapter lineage
 
 It does not yet implement the full distributed trainer-orchestrator-RL runtime.
@@ -328,6 +332,26 @@ That now includes one intentionally narrow executor-training answer:
   the frozen training manifest, training report, linear benchmark report,
   checkpoint payload plus checkpoint manifest, and trained-model artifact under
   `fixtures/tassadar/runs/sudoku_v0_reference_run_v0`; the
+
+That now also includes one intentionally narrow article-Transformer training
+closure:
+
+- `psionic-train::train_tassadar_article_transformer_toy_suite(...)` can train
+  the canonical paper-faithful article wrapper over two toy selector tasks
+  without bypassing `psionic-transformer`
+- the recipe is explicit and machine-legible: label-smoothed cross-entropy,
+  Adam, inverse-square-root warmup, finite-difference gradients, fixed-budget
+  step receipts, and deterministic checkpoint restore all land in committed
+  evidence
+- the resulting committed artifact is intentionally narrow:
+  `fixtures/tassadar/runs/tassadar_article_transformer_training_v1/article_transformer_training_evidence_bundle.json`
+  proves the owned stack is trainable and restorable on bounded tasks, not
+  that full article-model training, benchmark parity, or final
+  article-equivalence closure are done
+- the eval and research surfaces keep the boundary explicit:
+  `psionic-eval` closes `TAS-164` through a dedicated training-closure report,
+  while `psionic-research` mirrors that result in a summary without widening
+  the public claim boundary
   current committed run is intentionally recorded as low exactness
   (`validation_exact_trace_case_count = 0/2`, aggregate target exactness
   `15` bps), which makes it useful as a real learning baseline rather than as

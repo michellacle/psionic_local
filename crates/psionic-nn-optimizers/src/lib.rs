@@ -145,6 +145,7 @@ pub enum SchedulerKind {
     Constant,
     StepLr,
     LinearWarmup,
+    InverseSquareRootWarmup,
     CosineAnnealing,
 }
 
@@ -154,6 +155,7 @@ impl From<SchedulerKind> for TrainingSchedulerKind {
             SchedulerKind::Constant => Self::Constant,
             SchedulerKind::StepLr => Self::StepLr,
             SchedulerKind::LinearWarmup => Self::LinearWarmup,
+            SchedulerKind::InverseSquareRootWarmup => Self::InverseSquareRootWarmup,
             SchedulerKind::CosineAnnealing => Self::CosineAnnealing,
         }
     }
@@ -165,6 +167,7 @@ impl From<TrainingSchedulerKind> for SchedulerKind {
             TrainingSchedulerKind::Constant => Self::Constant,
             TrainingSchedulerKind::StepLr => Self::StepLr,
             TrainingSchedulerKind::LinearWarmup => Self::LinearWarmup,
+            TrainingSchedulerKind::InverseSquareRootWarmup => Self::InverseSquareRootWarmup,
             TrainingSchedulerKind::CosineAnnealing => Self::CosineAnnealing,
         }
     }
@@ -179,6 +182,10 @@ pub enum SchedulerConfig {
         gamma: f32,
     },
     LinearWarmup {
+        warmup_steps: u64,
+        start_factor: f32,
+    },
+    InverseSquareRootWarmup {
         warmup_steps: u64,
         start_factor: f32,
     },
@@ -208,6 +215,14 @@ impl SchedulerConfig {
     }
 
     #[must_use]
+    pub const fn inverse_square_root_warmup(warmup_steps: u64, start_factor: f32) -> Self {
+        Self::InverseSquareRootWarmup {
+            warmup_steps,
+            start_factor,
+        }
+    }
+
+    #[must_use]
     pub const fn cosine_annealing(total_steps: u64, min_learning_rate: f32) -> Self {
         Self::CosineAnnealing {
             total_steps,
@@ -221,6 +236,7 @@ impl SchedulerConfig {
             Self::Constant => SchedulerKind::Constant,
             Self::StepLr { .. } => SchedulerKind::StepLr,
             Self::LinearWarmup { .. } => SchedulerKind::LinearWarmup,
+            Self::InverseSquareRootWarmup { .. } => SchedulerKind::InverseSquareRootWarmup,
             Self::CosineAnnealing { .. } => SchedulerKind::CosineAnnealing,
         }
     }
@@ -235,6 +251,13 @@ impl SchedulerConfig {
                 warmup_steps,
                 start_factor,
             } => TrainingSchedulerConfig::linear_warmup(*warmup_steps, *start_factor),
+            Self::InverseSquareRootWarmup {
+                warmup_steps,
+                start_factor,
+            } => TrainingSchedulerConfig::inverse_square_root_warmup(
+                *warmup_steps,
+                *start_factor,
+            ),
             Self::CosineAnnealing {
                 total_steps,
                 min_learning_rate,
@@ -253,6 +276,13 @@ impl SchedulerConfig {
                 warmup_steps,
                 start_factor,
             } => Self::LinearWarmup {
+                warmup_steps: *warmup_steps,
+                start_factor: *start_factor,
+            },
+            TrainingSchedulerConfig::InverseSquareRootWarmup {
+                warmup_steps,
+                start_factor,
+            } => Self::InverseSquareRootWarmup {
                 warmup_steps: *warmup_steps,
                 start_factor: *start_factor,
             },
