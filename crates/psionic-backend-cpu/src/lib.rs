@@ -442,6 +442,10 @@ impl CpuBackend {
             BackendExtensionOp::QuantizedMatmul { rhs_mode } => {
                 self.quantized_matmul(step, values, *rhs_mode)
             }
+            BackendExtensionOp::ParameterGolfProjectionLoss { .. }
+            | BackendExtensionOp::ParameterGolfProjectionLossBackward { .. } => {
+                Err(RuntimeError::UnsupportedStep(op.label().to_string()))
+            }
         }
     }
 
@@ -1864,6 +1868,42 @@ mod tests {
         };
         assert_eq!(output.as_f32_slice(), Some(&[1.5, 2.5, 3.5, 4.5][..]));
         assert_eq!(result.metrics.steps_executed, 5);
+        Ok(())
+    }
+
+    #[test]
+    fn cpu_backend_refuses_parameter_golf_projection_loss_backend_extension(
+    ) -> Result<(), RuntimeError> {
+        let mut builder = GraphBuilder::new(Device::cpu());
+        let logits = builder.input("logits", Shape::new(vec![1, 2, 4]), DType::F32);
+        let target_ids = builder.input("target_ids", Shape::new(vec![1, 2]), DType::F32);
+        let loss = builder
+            .parameter_golf_projection_loss(&logits, &target_ids, 30.0)
+            .map_err(|error| RuntimeError::Backend(error.to_string()))?;
+        let graph = builder.finish(vec![loss.clone()]);
+
+        let mut backend = CpuBackend::new();
+        let inputs = BTreeMap::from([
+            (
+                logits.id(),
+                backend.input_buffer(
+                    Shape::new(vec![1, 2, 4]),
+                    vec![0.1_f32, -0.2, 0.3, 0.7, -0.4, 0.5, -0.1, 0.2],
+                )?,
+            ),
+            (
+                target_ids.id(),
+                backend.input_buffer(Shape::new(vec![1, 2]), vec![3.0_f32, 1.0])?,
+            ),
+        ]);
+
+        let error = backend
+            .compile_and_execute(&graph, &inputs)
+            .expect_err("cpu backend should refuse parameter golf projection loss");
+        assert_eq!(
+            error,
+            RuntimeError::UnsupportedStep(String::from("parameter_golf_projection_loss"))
+        );
         Ok(())
     }
 

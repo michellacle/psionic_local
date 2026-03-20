@@ -64,6 +64,8 @@ pub const SUPPORTED_OPS: &[&str] = &[
     "relu_squared_backward",
     "silu",
     "silu_backward",
+    "parameter_golf_projection_loss",
+    "parameter_golf_projection_loss_backward",
     "rms_norm",
     "rotary_embedding",
     "rotary_embedding_backward",
@@ -2493,6 +2495,9 @@ impl DeviceDiscovery for CudaBackend {
         vec![
             BackendExtensionSupport::backend_specialized(BackendExtensionKind::ReluSquared),
             BackendExtensionSupport::backend_specialized(BackendExtensionKind::Silu),
+            BackendExtensionSupport::backend_specialized(
+                BackendExtensionKind::ParameterGolfProjectionLoss,
+            ),
             BackendExtensionSupport::backend_specialized(BackendExtensionKind::RmsNorm),
             BackendExtensionSupport::backend_specialized(BackendExtensionKind::RotaryEmbedding),
             BackendExtensionSupport::backend_specialized(
@@ -2732,6 +2737,97 @@ impl AvailableCudaBackend {
         let grad_output_values = grad_output.read_f32()?;
         let output_values = silu_backward_values(&input_values, &grad_output_values);
         self.buffer_from_tensor_data(&step.spec, &TensorData::F32(output_values))
+    }
+
+    fn execute_parameter_golf_projection_loss_step(
+        &self,
+        submission: &mut CudaSubmission,
+        step: &ExecutionStep,
+        values: &BTreeMap<TensorId, CudaBuffer>,
+        logit_softcap: f32,
+    ) -> Result<CudaBuffer, RuntimeError> {
+        let logits = step_input(step, values, 0)?;
+        let target_ids = step_input(step, values, 1)?;
+        let logits_dims = logits.spec().shape().dims();
+        let target_dims = target_ids.spec().shape().dims();
+        if logits_dims.len() != 3 {
+            return Err(RuntimeError::Backend(String::from(
+                "cuda parameter_golf_projection_loss requires rank-3 logits [batch, seq, vocab]",
+            )));
+        }
+        if target_dims.len() != 2 {
+            return Err(RuntimeError::Backend(String::from(
+                "cuda parameter_golf_projection_loss requires rank-2 target_ids [batch, seq]",
+            )));
+        }
+        if logits_dims[0] != target_dims[0] || logits_dims[1] != target_dims[1] {
+            return Err(RuntimeError::Backend(String::from(
+                "cuda parameter_golf_projection_loss requires target_ids batch/seq dims to match logits",
+            )));
+        }
+        let row_count = logits_dims[0].saturating_mul(logits_dims[1]);
+        let vocab_size = logits_dims[2];
+        let output = self.allocate(&step.spec)?;
+        submission.platform.encode_parameter_golf_projection_loss(
+            &logits.platform,
+            &target_ids.platform,
+            &output.platform,
+            row_count,
+            vocab_size,
+            logit_softcap,
+        )?;
+        submission.encoded_operations += 1;
+        Ok(output)
+    }
+
+    fn execute_parameter_golf_projection_loss_backward_step(
+        &self,
+        submission: &mut CudaSubmission,
+        step: &ExecutionStep,
+        values: &BTreeMap<TensorId, CudaBuffer>,
+        logit_softcap: f32,
+    ) -> Result<CudaBuffer, RuntimeError> {
+        let logits = step_input(step, values, 0)?;
+        let target_ids = step_input(step, values, 1)?;
+        let grad_output = step_input(step, values, 2)?;
+        let logits_dims = logits.spec().shape().dims();
+        let target_dims = target_ids.spec().shape().dims();
+        if logits_dims.len() != 3 {
+            return Err(RuntimeError::Backend(String::from(
+                "cuda parameter_golf_projection_loss_backward requires rank-3 logits [batch, seq, vocab]",
+            )));
+        }
+        if target_dims.len() != 2 {
+            return Err(RuntimeError::Backend(String::from(
+                "cuda parameter_golf_projection_loss_backward requires rank-2 target_ids [batch, seq]",
+            )));
+        }
+        if logits_dims[0] != target_dims[0] || logits_dims[1] != target_dims[1] {
+            return Err(RuntimeError::Backend(String::from(
+                "cuda parameter_golf_projection_loss_backward requires target_ids batch/seq dims to match logits",
+            )));
+        }
+        if grad_output.spec().storage_size() != 1 {
+            return Err(RuntimeError::Backend(String::from(
+                "cuda parameter_golf_projection_loss_backward requires scalar grad_output",
+            )));
+        }
+        let row_count = logits_dims[0].saturating_mul(logits_dims[1]);
+        let vocab_size = logits_dims[2];
+        let output = self.allocate(&step.spec)?;
+        submission
+            .platform
+            .encode_parameter_golf_projection_loss_backward(
+                &logits.platform,
+                &target_ids.platform,
+                &grad_output.platform,
+                &output.platform,
+                row_count,
+                vocab_size,
+                logit_softcap,
+            )?;
+        submission.encoded_operations += 1;
+        Ok(output)
     }
 
     fn execute_scaled_dot_product_attention_step(
@@ -3143,6 +3239,24 @@ impl AvailableCudaBackend {
                     }
                     BackendExtensionOp::SiluBackward => {
                         values.insert(step.output, self.execute_silu_backward_step(step, &values)?);
+                    }
+                    BackendExtensionOp::ParameterGolfProjectionLoss { logit_softcap } => {
+                        let output = self.execute_parameter_golf_projection_loss_step(
+                            &mut submission,
+                            step,
+                            &values,
+                            logit_softcap.to_f32(),
+                        )?;
+                        values.insert(step.output, output);
+                    }
+                    BackendExtensionOp::ParameterGolfProjectionLossBackward { logit_softcap } => {
+                        let output = self.execute_parameter_golf_projection_loss_backward_step(
+                            &mut submission,
+                            step,
+                            &values,
+                            logit_softcap.to_f32(),
+                        )?;
+                        values.insert(step.output, output);
                     }
                     BackendExtensionOp::RmsNorm { epsilon } => {
                         let input = step_input(step, &values, 0)?;
@@ -3594,6 +3708,22 @@ fn validate_supported_step(step: &ExecutionStep) -> Result<(), RuntimeError> {
                 if step.inputs.len() != 2 {
                     return Err(RuntimeError::Backend(format!(
                         "cuda silu_backward step {} requires two inputs",
+                        step.output
+                    )));
+                }
+            }
+            BackendExtensionOp::ParameterGolfProjectionLoss { .. } => {
+                if step.inputs.len() != 2 {
+                    return Err(RuntimeError::Backend(format!(
+                        "cuda parameter_golf_projection_loss step {} requires two inputs",
+                        step.output
+                    )));
+                }
+            }
+            BackendExtensionOp::ParameterGolfProjectionLossBackward { .. } => {
+                if step.inputs.len() != 3 {
+                    return Err(RuntimeError::Backend(format!(
+                        "cuda parameter_golf_projection_loss_backward step {} requires three inputs",
                         step.output
                     )));
                 }
@@ -4691,6 +4821,25 @@ mod platform {
             element_count: c_int,
             feature_count: c_int,
             epsilon: f32,
+            output: *mut c_void,
+            stream: CudaStream,
+        ) -> CudaError;
+        fn psionic_cuda_parameter_golf_projection_loss(
+            logits: *const c_void,
+            target_ids: *const c_void,
+            row_count: c_int,
+            vocab_size: c_int,
+            logit_softcap: f32,
+            output: *mut c_void,
+            stream: CudaStream,
+        ) -> CudaError;
+        fn psionic_cuda_parameter_golf_projection_loss_backward(
+            logits: *const c_void,
+            target_ids: *const c_void,
+            grad_output: *const c_void,
+            row_count: c_int,
+            vocab_size: c_int,
+            logit_softcap: f32,
             output: *mut c_void,
             stream: CudaStream,
         ) -> CudaError;
@@ -6100,6 +6249,80 @@ mod platform {
                     )
                 },
                 "psionic_cuda_rms_norm",
+            )
+        }
+
+        pub(super) fn encode_parameter_golf_projection_loss(
+            &mut self,
+            logits: &PlatformBuffer,
+            target_ids: &PlatformBuffer,
+            output: &PlatformBuffer,
+            row_count: usize,
+            vocab_size: usize,
+            logit_softcap: f32,
+        ) -> Result<(), RuntimeError> {
+            let row_count = c_int::try_from(row_count).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda parameter_golf_projection_loss row count exceeds c_int",
+                ))
+            })?;
+            let vocab_size = c_int::try_from(vocab_size).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda parameter_golf_projection_loss vocab size exceeds c_int",
+                ))
+            })?;
+            self.runtime.set_device()?;
+            self.runtime.check(
+                unsafe {
+                    psionic_cuda_parameter_golf_projection_loss(
+                        logits.inner.device_ptr.cast(),
+                        target_ids.inner.device_ptr.cast(),
+                        row_count,
+                        vocab_size,
+                        logit_softcap,
+                        output.inner.device_ptr.cast(),
+                        self.stream,
+                    )
+                },
+                "psionic_cuda_parameter_golf_projection_loss",
+            )
+        }
+
+        pub(super) fn encode_parameter_golf_projection_loss_backward(
+            &mut self,
+            logits: &PlatformBuffer,
+            target_ids: &PlatformBuffer,
+            grad_output: &PlatformBuffer,
+            output: &PlatformBuffer,
+            row_count: usize,
+            vocab_size: usize,
+            logit_softcap: f32,
+        ) -> Result<(), RuntimeError> {
+            let row_count = c_int::try_from(row_count).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda parameter_golf_projection_loss_backward row count exceeds c_int",
+                ))
+            })?;
+            let vocab_size = c_int::try_from(vocab_size).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda parameter_golf_projection_loss_backward vocab size exceeds c_int",
+                ))
+            })?;
+            self.runtime.set_device()?;
+            self.runtime.check(
+                unsafe {
+                    psionic_cuda_parameter_golf_projection_loss_backward(
+                        logits.inner.device_ptr.cast(),
+                        target_ids.inner.device_ptr.cast(),
+                        grad_output.inner.device_ptr.cast(),
+                        row_count,
+                        vocab_size,
+                        logit_softcap,
+                        output.inner.device_ptr.cast(),
+                        self.stream,
+                    )
+                },
+                "psionic_cuda_parameter_golf_projection_loss_backward",
             )
         }
 
@@ -8365,6 +8588,35 @@ mod platform {
             )))
         }
 
+        pub(super) fn encode_parameter_golf_projection_loss(
+            &mut self,
+            _logits: &PlatformBuffer,
+            _target_ids: &PlatformBuffer,
+            _output: &PlatformBuffer,
+            _row_count: usize,
+            _vocab_size: usize,
+            _logit_softcap: f32,
+        ) -> Result<(), RuntimeError> {
+            Err(RuntimeError::Backend(String::from(
+                "cuda quantized text-generation kernels require Linux CUDA support",
+            )))
+        }
+
+        pub(super) fn encode_parameter_golf_projection_loss_backward(
+            &mut self,
+            _logits: &PlatformBuffer,
+            _target_ids: &PlatformBuffer,
+            _grad_output: &PlatformBuffer,
+            _output: &PlatformBuffer,
+            _row_count: usize,
+            _vocab_size: usize,
+            _logit_softcap: f32,
+        ) -> Result<(), RuntimeError> {
+            Err(RuntimeError::Backend(String::from(
+                "cuda quantized text-generation kernels require Linux CUDA support",
+            )))
+        }
+
         pub(super) fn encode_rms_norm_q8_1(
             &mut self,
             _input: &PlatformBuffer,
@@ -8998,9 +9250,19 @@ mod tests {
                 "matmul",
                 "add",
                 "mul",
+                "relu_squared",
+                "relu_squared_backward",
+                "silu",
+                "silu_backward",
+                "parameter_golf_projection_loss",
+                "parameter_golf_projection_loss_backward",
                 "rms_norm",
                 "rotary_embedding",
+                "rotary_embedding_backward",
                 "scaled_dot_product_attention",
+                "scaled_dot_product_attention_query_backward",
+                "scaled_dot_product_attention_key_backward",
+                "scaled_dot_product_attention_value_backward",
             ]
         );
     }
@@ -9301,6 +9563,59 @@ mod tests {
     }
 
     #[test]
+    fn cuda_backend_executes_parameter_golf_projection_loss_backend_extension_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let mut backend = CudaBackend::new();
+        let Some(selected) = backend.selected_device().cloned() else {
+            assert_eq!(backend.health().status, HealthStatus::Offline);
+            return Ok(());
+        };
+
+        let logit_softcap = 30.0_f32;
+        let logits_shape = Shape::new(vec![1, 2, 4]);
+        let target_shape = Shape::new(vec![1, 2]);
+        let logits_values = vec![0.1_f32, -0.2, 0.3, 0.7, -0.4, 0.5, -0.1, 0.2];
+        let target_values = vec![3.0_f32, 1.0];
+
+        let mut builder = GraphBuilder::new(selected.device.clone());
+        let logits = builder.input("logits", logits_shape.clone(), DType::F32);
+        let target_ids = builder.input("target_ids", target_shape.clone(), DType::F32);
+        let loss = builder.parameter_golf_projection_loss(&logits, &target_ids, logit_softcap)?;
+        let graph = builder.finish(vec![loss.clone()]);
+
+        let inputs = std::collections::BTreeMap::from([
+            (
+                logits.id(),
+                backend.input_buffer(logits_shape.clone(), logits_values.clone())?,
+            ),
+            (
+                target_ids.id(),
+                backend.input_buffer(target_shape.clone(), target_values.clone())?,
+            ),
+        ]);
+        let result = backend.compile_and_execute(&graph, &inputs)?;
+        let output = result
+            .outputs
+            .get(&loss.id())
+            .ok_or("missing cuda parameter golf projection loss output")?;
+
+        let expected = evaluate_graph(
+            &graph,
+            &std::collections::BTreeMap::from([
+                (logits.id(), TensorData::F32(logits_values)),
+                (target_ids.id(), TensorData::F32(target_values)),
+            ]),
+        )?;
+        let expected_loss = expected
+            .get(&loss.id())
+            .ok_or("missing reference parameter golf projection loss output")?
+            .as_f32_slice()
+            .ok_or("reference parameter golf projection loss output should be f32")?;
+        assert_close(&output.read_f32()?, expected_loss, 1e-5);
+        Ok(())
+    }
+
+    #[test]
     fn cuda_backend_executes_rms_norm_backend_extension_when_available(
     ) -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();
@@ -9354,6 +9669,10 @@ mod tests {
         }
 
         let selection = backend.backend_selection(SUPPORTED_OPS)?;
+        assert!(selection
+            .backend_extensions
+            .iter()
+            .any(|support| support.kind == BackendExtensionKind::ParameterGolfProjectionLoss));
         assert!(selection
             .backend_extensions
             .iter()
@@ -10017,6 +10336,107 @@ mod tests {
                 .ok_or("missing expected weight gradient")?
                 .as_f32_slice()
                 .ok_or("expected weight gradient is not f32")?,
+            1e-5,
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn cuda_backend_executes_parameter_golf_projection_loss_backward_graph_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let mut backend = CudaBackend::new();
+        let Some(selected) = backend.selected_device().cloned() else {
+            assert_eq!(backend.health().status, HealthStatus::Offline);
+            return Ok(());
+        };
+
+        let logit_softcap = 30.0_f32;
+        let logits_shape = Shape::new(vec![1, 2, 4]);
+        let target_shape = Shape::new(vec![1, 2]);
+        let mut builder = AutodiffGraphBuilder::with_context(
+            selected.device.clone(),
+            AutodiffContext::training(),
+        );
+        let logits = builder.input("logits", logits_shape.clone(), DType::F32, true);
+        let target_ids = builder.input("target_ids", target_shape.clone(), DType::F32, false);
+        let loss = builder.parameter_golf_projection_loss(&logits, &target_ids, logit_softcap)?;
+        let graph = builder.finish(vec![loss.clone()]);
+
+        let backward_plan = graph.backward_plan(loss.id())?;
+        assert!(backward_plan.gradient_for(logits.id()).is_some());
+        assert!(backward_plan.gradient_for(target_ids.id()).is_none());
+        assert!(backward_plan
+            .gradient_graph
+            .nodes()
+            .iter()
+            .any(|node| matches!(
+                node.op(),
+                psionic_ir::OpKind::BackendExtension {
+                    op: psionic_core::BackendExtensionOp::ParameterGolfProjectionLossBackward { .. }
+                }
+            )));
+
+        let logits_values = vec![0.1_f32, -0.2, 0.3, 0.7, -0.4, 0.5, -0.1, 0.2];
+        let target_values = vec![3.0_f32, 1.0];
+        let primal_inputs = std::collections::BTreeMap::from([
+            (logits.id(), TensorData::F32(logits_values.clone())),
+            (target_ids.id(), TensorData::F32(target_values.clone())),
+        ]);
+        let forward_values = evaluate_graph(graph.graph(), &primal_inputs)?;
+        let expected = graph.backward_materialized(loss.id(), &primal_inputs)?;
+
+        let plan = compile_graph(&backward_plan.gradient_graph)?;
+        validate_supported_plan(&plan)?;
+
+        let mut backward_inputs = std::collections::BTreeMap::new();
+        for binding in &backward_plan.primal_bindings {
+            let value = forward_values
+                .get(&binding.primal_tensor)
+                .ok_or("missing forward value for backward binding")?;
+            let spec = backward_plan
+                .gradient_graph
+                .node(binding.gradient_graph_input)
+                .ok_or("missing backward graph input node")?
+                .tensor()
+                .spec()
+                .shape()
+                .clone();
+            backward_inputs.insert(
+                binding.gradient_graph_input,
+                backend.input_buffer(spec, value.as_f32_slice().ok_or("non-f32 forward value")?)?,
+            );
+        }
+        let seed_shape = backward_plan
+            .gradient_graph
+            .node(backward_plan.seed_input)
+            .ok_or("missing backward seed node")?
+            .tensor()
+            .spec()
+            .shape()
+            .clone();
+        backward_inputs.insert(
+            backward_plan.seed_input,
+            backend.input_buffer(seed_shape, vec![1.0_f32])?,
+        );
+
+        let result =
+            backend.compile_and_execute(&backward_plan.gradient_graph, &backward_inputs)?;
+        let logits_gradient = result
+            .outputs
+            .get(
+                &backward_plan
+                    .gradient_for(logits.id())
+                    .ok_or("missing logits gradient id")?,
+            )
+            .ok_or("missing cuda parameter golf projection loss logits gradient output")?;
+
+        assert_close(
+            &logits_gradient.read_f32()?,
+            expected
+                .gradient(logits.id())
+                .ok_or("missing expected logits gradient")?
+                .as_f32_slice()
+                .ok_or("expected logits gradient is not f32")?,
             1e-5,
         );
         Ok(())

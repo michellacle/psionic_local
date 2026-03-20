@@ -413,6 +413,15 @@ impl Graph {
         &self.outputs
     }
 
+    /// Returns a cloned graph with a replacement output list.
+    #[must_use]
+    pub fn with_outputs(&self, outputs: Vec<TensorId>) -> Self {
+        Self {
+            nodes: self.nodes.clone(),
+            outputs,
+        }
+    }
+
     /// Returns a node by output tensor ID.
     #[must_use]
     pub fn node(&self, id: TensorId) -> Option<&Node> {
@@ -3868,6 +3877,18 @@ const BUILTIN_OPERATOR_SCHEMAS: &[OperatorSchema] = &[
         OperatorMetaExecutionKind::BuiltinInference,
     ),
     OperatorSchema::new(
+        "parameter_golf_projection_loss",
+        OperatorArity::Fixed(2),
+        OperatorImplementationKind::BackendKernel,
+        OperatorMetaExecutionKind::BuiltinInference,
+    ),
+    OperatorSchema::new(
+        "parameter_golf_projection_loss_backward",
+        OperatorArity::Fixed(3),
+        OperatorImplementationKind::BackendKernel,
+        OperatorMetaExecutionKind::BuiltinInference,
+    ),
+    OperatorSchema::new(
         "rms_norm",
         OperatorArity::Fixed(2),
         OperatorImplementationKind::BackendKernel,
@@ -4453,6 +4474,15 @@ fn meta_execute_backend_extension(
                 input.device().clone(),
             ))
         }
+        BackendExtensionOp::ParameterGolfProjectionLoss { .. } => {
+            validate_parameter_golf_projection_loss_spec("parameter_golf_projection_loss", inputs)
+        }
+        BackendExtensionOp::ParameterGolfProjectionLossBackward { .. } => {
+            validate_parameter_golf_projection_loss_backward_spec(
+                "parameter_golf_projection_loss_backward",
+                inputs,
+            )
+        }
         BackendExtensionOp::RmsNorm { .. } => {
             ensure_matching_specs("rms_norm", inputs)?;
             let input = &inputs[0];
@@ -4935,6 +4965,51 @@ impl GraphBuilder {
         Ok(self.register_backend_extension(op, vec![input.id(), grad_output.id()], spec))
     }
 
+    /// Applies the bounded Parameter Golf tanh-softcap next-token mean loss to
+    /// rank-3 pre-softcap logits and dense `f32` target ids.
+    pub fn parameter_golf_projection_loss(
+        &mut self,
+        pre_softcap_logits: &Tensor,
+        target_ids: &Tensor,
+        logit_softcap: f32,
+    ) -> Result<Tensor, GraphError> {
+        let op = BackendExtensionOp::ParameterGolfProjectionLoss {
+            logit_softcap: psionic_core::StableF32::from_f32(logit_softcap),
+        };
+        let spec = self.meta_spec(
+            &ExecutionOp::BackendExtension { op: op.clone() },
+            &[pre_softcap_logits, target_ids],
+            None,
+        )?;
+        Ok(self.register_backend_extension(
+            op,
+            vec![pre_softcap_logits.id(), target_ids.id()],
+            spec,
+        ))
+    }
+
+    pub(crate) fn parameter_golf_projection_loss_backward(
+        &mut self,
+        pre_softcap_logits: &Tensor,
+        target_ids: &Tensor,
+        grad_output: &Tensor,
+        logit_softcap: f32,
+    ) -> Result<Tensor, GraphError> {
+        let op = BackendExtensionOp::ParameterGolfProjectionLossBackward {
+            logit_softcap: psionic_core::StableF32::from_f32(logit_softcap),
+        };
+        let spec = self.meta_spec(
+            &ExecutionOp::BackendExtension { op: op.clone() },
+            &[pre_softcap_logits, target_ids, grad_output],
+            None,
+        )?;
+        Ok(self.register_backend_extension(
+            op,
+            vec![pre_softcap_logits.id(), target_ids.id(), grad_output.id()],
+            spec,
+        ))
+    }
+
     /// Applies RMS normalization over the last dimension.
     pub fn rms_norm(
         &mut self,
@@ -5411,6 +5486,10 @@ fn format_backend_extension_payload(op: &BackendExtensionOp) -> String {
         | BackendExtensionOp::ReluSquaredBackward
         | BackendExtensionOp::Silu
         | BackendExtensionOp::SiluBackward => String::new(),
+        BackendExtensionOp::ParameterGolfProjectionLoss { logit_softcap }
+        | BackendExtensionOp::ParameterGolfProjectionLossBackward { logit_softcap } => {
+            format!("logit_softcap_bits={:08x}", logit_softcap.0)
+        }
         BackendExtensionOp::RmsNorm { epsilon }
         | BackendExtensionOp::RmsNormInputBackward { epsilon }
         | BackendExtensionOp::RmsNormWeightBackward { epsilon } => {
@@ -5708,6 +5787,106 @@ fn validate_scaled_dot_product_attention_backward_spec(
         ));
     }
     Ok(inputs[target_input_index].clone())
+}
+
+fn validate_parameter_golf_projection_loss_spec(
+    label: &str,
+    inputs: &[TensorSpec],
+) -> Result<TensorSpec, GraphError> {
+    if inputs.len() != 2 {
+        return Err(extension_error(
+            label,
+            format!("expected 2 inputs, received {}", inputs.len()),
+        ));
+    }
+    let logits = &inputs[0];
+    let target_ids = &inputs[1];
+    if logits.dtype() != DType::F32 {
+        return Err(extension_error(
+            label,
+            format!("logits dtype must be F32, actual {:?}", logits.dtype()),
+        ));
+    }
+    if target_ids.dtype() != DType::F32 {
+        return Err(extension_error(
+            label,
+            format!(
+                "target_ids dtype must be F32 token indices, actual {:?}",
+                target_ids.dtype()
+            ),
+        ));
+    }
+    if logits.device() != target_ids.device() {
+        return Err(extension_error(
+            label,
+            format!(
+                "target_ids device {} must match logits device {}",
+                target_ids.device(),
+                logits.device()
+            ),
+        ));
+    }
+    if logits.shape().dims().len() != 3 {
+        return Err(extension_error(
+            label,
+            format!(
+                "logits shape {} must be rank-3 [batch, seq, vocab]",
+                logits.shape()
+            ),
+        ));
+    }
+    if target_ids.shape().dims().len() != 2 {
+        return Err(extension_error(
+            label,
+            format!(
+                "target_ids shape {} must be rank-2 [batch, seq]",
+                target_ids.shape()
+            ),
+        ));
+    }
+    if logits.shape().dims()[0] != target_ids.shape().dims()[0]
+        || logits.shape().dims()[1] != target_ids.shape().dims()[1]
+    {
+        return Err(extension_error(
+            label,
+            format!(
+                "target_ids shape {} must match logits batch/seq dims {}",
+                target_ids.shape(),
+                logits.shape()
+            ),
+        ));
+    }
+    Ok(TensorSpec::new(
+        Shape::new(vec![]),
+        DType::F32,
+        logits.device().clone(),
+    ))
+}
+
+fn validate_parameter_golf_projection_loss_backward_spec(
+    label: &str,
+    inputs: &[TensorSpec],
+) -> Result<TensorSpec, GraphError> {
+    if inputs.len() != 3 {
+        return Err(extension_error(
+            label,
+            format!("expected 3 inputs, received {}", inputs.len()),
+        ));
+    }
+    let logits = &inputs[0];
+    let grad_output = &inputs[2];
+    let forward_spec = validate_parameter_golf_projection_loss_spec(label, &inputs[..2])?;
+    if grad_output != &forward_spec {
+        return Err(extension_error(
+            label,
+            format!(
+                "grad_output spec {} must match forward output spec {}",
+                format_spec(grad_output),
+                format_spec(&forward_spec)
+            ),
+        ));
+    }
+    Ok(logits.clone())
 }
 
 /// Returns the seeded advanced operator-program matrix report for the current

@@ -368,6 +368,46 @@ int psionic_cuda_rms_norm(
     return 1;
 }
 
+int psionic_cuda_parameter_golf_projection_loss(
+    const void *logits,
+    const void *target_ids,
+    int row_count,
+    int vocab_size,
+    float logit_softcap,
+    void *output,
+    void *stream
+) {
+    (void)logits;
+    (void)target_ids;
+    (void)row_count;
+    (void)vocab_size;
+    (void)logit_softcap;
+    (void)output;
+    (void)stream;
+    return 1;
+}
+
+int psionic_cuda_parameter_golf_projection_loss_backward(
+    const void *logits,
+    const void *target_ids,
+    const void *grad_output,
+    int row_count,
+    int vocab_size,
+    float logit_softcap,
+    void *output,
+    void *stream
+) {
+    (void)logits;
+    (void)target_ids;
+    (void)grad_output;
+    (void)row_count;
+    (void)vocab_size;
+    (void)logit_softcap;
+    (void)output;
+    (void)stream;
+    return 1;
+}
+
 int psionic_cuda_rms_norm_q8_1(
     const void *input,
     const void *weight,

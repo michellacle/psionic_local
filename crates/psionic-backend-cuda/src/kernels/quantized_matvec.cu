@@ -1037,6 +1037,88 @@ __global__ void rms_norm_weight_backward_kernel(
     }
 }
 
+__global__ void parameter_golf_projection_loss_kernel(
+    const float *logits,
+    const float *target_ids,
+    int row_count,
+    int vocab_size,
+    float logit_softcap,
+    float *output
+) {
+    __shared__ float scratch[kBlockSize];
+    const int row = blockIdx.x;
+    if (row >= row_count) {
+        return;
+    }
+    const int row_offset = row * vocab_size;
+    float local_max = -FLT_MAX;
+    for (int column = threadIdx.x; column < vocab_size; column += blockDim.x) {
+        const float softcapped =
+            logit_softcap * tanhf(logits[row_offset + column] / logit_softcap);
+        local_max = fmaxf(local_max, softcapped);
+    }
+    const float max_value = reduce_block_max(local_max, scratch);
+    float local_sum = 0.0f;
+    for (int column = threadIdx.x; column < vocab_size; column += blockDim.x) {
+        const float softcapped =
+            logit_softcap * tanhf(logits[row_offset + column] / logit_softcap);
+        local_sum += expf(softcapped - max_value);
+    }
+    const float denom = fmaxf(reduce_block_sum(local_sum, scratch), 1e-20f);
+    if (threadIdx.x == 0) {
+        const int target = static_cast<int>(target_ids[row]);
+        const float target_softcapped =
+            logit_softcap * tanhf(logits[row_offset + target] / logit_softcap);
+        atomicAdd(
+            output,
+            (max_value + logf(denom) - target_softcapped) / static_cast<float>(row_count)
+        );
+    }
+}
+
+__global__ void parameter_golf_projection_loss_backward_kernel(
+    const float *logits,
+    const float *target_ids,
+    const float *grad_output,
+    int row_count,
+    int vocab_size,
+    float logit_softcap,
+    float *output
+) {
+    __shared__ float scratch[kBlockSize];
+    const int row = blockIdx.x;
+    if (row >= row_count) {
+        return;
+    }
+    const int row_offset = row * vocab_size;
+    float local_max = -FLT_MAX;
+    for (int column = threadIdx.x; column < vocab_size; column += blockDim.x) {
+        const float softcapped =
+            logit_softcap * tanhf(logits[row_offset + column] / logit_softcap);
+        local_max = fmaxf(local_max, softcapped);
+    }
+    const float max_value = reduce_block_max(local_max, scratch);
+    float local_sum = 0.0f;
+    for (int column = threadIdx.x; column < vocab_size; column += blockDim.x) {
+        const float softcapped =
+            logit_softcap * tanhf(logits[row_offset + column] / logit_softcap);
+        local_sum += expf(softcapped - max_value);
+    }
+    const float denom = fmaxf(reduce_block_sum(local_sum, scratch), 1e-20f);
+    const int target = static_cast<int>(target_ids[row]);
+    const float scale = grad_output[0] / static_cast<float>(row_count);
+    for (int column = threadIdx.x; column < vocab_size; column += blockDim.x) {
+        const float softcapped =
+            logit_softcap * tanhf(logits[row_offset + column] / logit_softcap);
+        const float probability = expf(softcapped - max_value) / denom;
+        const float delta = column == target ? 1.0f : 0.0f;
+        const float ratio = softcapped / logit_softcap;
+        const float softcap_derivative = 1.0f - ratio * ratio;
+        output[row_offset + column] =
+            scale * (probability - delta) * softcap_derivative;
+    }
+}
+
 __global__ void rms_norm_q8_1_kernel(
     const float *input,
     const float *weight,
@@ -4302,6 +4384,73 @@ extern "C" int psionic_cuda_rms_norm(
         static_cast<const float *>(weight),
         feature_count,
         epsilon,
+        static_cast<float *>(output)
+    );
+    return static_cast<int>(cudaGetLastError());
+}
+
+extern "C" int psionic_cuda_parameter_golf_projection_loss(
+    const void *logits,
+    const void *target_ids,
+    int row_count,
+    int vocab_size,
+    float logit_softcap,
+    void *output,
+    void *stream
+) {
+    if (row_count <= 0 || vocab_size <= 0 || !isfinite(logit_softcap) || logit_softcap <= 0.0f) {
+        return static_cast<int>(cudaErrorInvalidValue);
+    }
+    cudaError_t status = cudaMemsetAsync(
+        output,
+        0,
+        sizeof(float),
+        static_cast<cudaStream_t>(stream)
+    );
+    if (status != cudaSuccess) {
+        return static_cast<int>(status);
+    }
+    parameter_golf_projection_loss_kernel<<<
+        row_count,
+        kBlockSize,
+        0,
+        static_cast<cudaStream_t>(stream)
+    >>>(
+        static_cast<const float *>(logits),
+        static_cast<const float *>(target_ids),
+        row_count,
+        vocab_size,
+        logit_softcap,
+        static_cast<float *>(output)
+    );
+    return static_cast<int>(cudaGetLastError());
+}
+
+extern "C" int psionic_cuda_parameter_golf_projection_loss_backward(
+    const void *logits,
+    const void *target_ids,
+    const void *grad_output,
+    int row_count,
+    int vocab_size,
+    float logit_softcap,
+    void *output,
+    void *stream
+) {
+    if (row_count <= 0 || vocab_size <= 0 || !isfinite(logit_softcap) || logit_softcap <= 0.0f) {
+        return static_cast<int>(cudaErrorInvalidValue);
+    }
+    parameter_golf_projection_loss_backward_kernel<<<
+        row_count,
+        kBlockSize,
+        0,
+        static_cast<cudaStream_t>(stream)
+    >>>(
+        static_cast<const float *>(logits),
+        static_cast<const float *>(target_ids),
+        static_cast<const float *>(grad_output),
+        row_count,
+        vocab_size,
+        logit_softcap,
         static_cast<float *>(output)
     );
     return static_cast<int>(cudaGetLastError());
