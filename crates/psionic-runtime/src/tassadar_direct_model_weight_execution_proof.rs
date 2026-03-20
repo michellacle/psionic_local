@@ -63,6 +63,10 @@ pub struct TassadarDirectModelWeightExecutionProofInput {
     /// Primary external model artifact digest when one exists.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub model_primary_artifact_digest: Option<String>,
+    /// Stable lineage-contract reference for the weight bundle.
+    pub model_lineage_contract_ref: String,
+    /// Stable digest over the lineage contract bound into the receipt.
+    pub model_lineage_contract_digest: String,
     /// Requested decode mode for the execution.
     pub requested_decode_mode: TassadarExecutorDecodeMode,
     /// Effective decode mode observed at runtime.
@@ -131,6 +135,10 @@ pub struct TassadarDirectModelWeightExecutionProofReceipt {
     /// Primary external model artifact digest when one exists.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub model_primary_artifact_digest: Option<String>,
+    /// Stable lineage-contract reference for the weight bundle.
+    pub model_lineage_contract_ref: String,
+    /// Stable digest over the lineage contract bound into the receipt.
+    pub model_lineage_contract_digest: String,
     /// Requested decode mode for the execution.
     pub requested_decode_mode: TassadarExecutorDecodeMode,
     /// Effective decode mode observed at runtime.
@@ -184,6 +192,20 @@ impl TassadarDirectModelWeightExecutionProofReceipt {
                 receipt_id: input.receipt_id.clone(),
             },
         )?;
+        if input.model_lineage_contract_ref.trim().is_empty() {
+            return Err(
+                TassadarDirectModelWeightExecutionProofError::MissingModelLineageContractRef {
+                    receipt_id: input.receipt_id,
+                },
+            );
+        }
+        if input.model_lineage_contract_digest.trim().is_empty() {
+            return Err(
+                TassadarDirectModelWeightExecutionProofError::MissingModelLineageContractDigest {
+                    receipt_id: input.receipt_id,
+                },
+            );
+        }
         if input.selection_state != TassadarExecutorSelectionState::Direct {
             return Err(
                 TassadarDirectModelWeightExecutionProofError::SelectionNotDirect {
@@ -272,7 +294,7 @@ impl TassadarDirectModelWeightExecutionProofReceipt {
         }
 
         let mut receipt = Self {
-            schema_version: 1,
+            schema_version: 2,
             receipt_id: input.receipt_id,
             benchmark_ref: input.benchmark_ref,
             benchmark_environment_ref: input.benchmark_environment_ref,
@@ -285,6 +307,8 @@ impl TassadarDirectModelWeightExecutionProofReceipt {
             model_descriptor_digest: input.model_descriptor_digest,
             model_weight_bundle_digest: input.model_weight_bundle_digest,
             model_primary_artifact_digest: input.model_primary_artifact_digest,
+            model_lineage_contract_ref: input.model_lineage_contract_ref,
+            model_lineage_contract_digest: input.model_lineage_contract_digest,
             requested_decode_mode: input.requested_decode_mode,
             effective_decode_mode,
             selection_state: input.selection_state,
@@ -303,18 +327,19 @@ impl TassadarDirectModelWeightExecutionProofReceipt {
             proof_bundle_model_id: input.proof_bundle_model_id,
             route_binding: input.route_binding,
             claim_boundary: String::from(
-                "this receipt closes direct model-weight execution only for the committed article workload and model pairing named here. It proves explicit no-fallback, zero-external-call, zero-tool-surface posture on the direct executor lane with bound route, trace, proof, and runtime-manifest lineage, but it does not imply future routes or undeclared workloads inherit the same proof without this receipt family",
+                "this receipt closes direct model-weight execution only for the committed article workload and model pairing named here. It proves explicit no-fallback, zero-external-call, zero-tool-surface posture on the direct executor lane with bound route, trace, proof, runtime-manifest lineage, and explicit weight-lineage contract binding, but it does not imply future routes or undeclared workloads inherit the same proof without this receipt family",
             ),
             detail: String::new(),
             receipt_digest: String::new(),
         };
         receipt.detail = format!(
-            "direct model-weight execution proof `{}` binds case `{}` to model `{}` on requested/effective decode `{}` with route `{}` and zero external calls",
+            "direct model-weight execution proof `{}` binds case `{}` to model `{}` on requested/effective decode `{}` with route `{}`, lineage `{}`, and zero external calls",
             receipt.receipt_id,
             receipt.article_case_id,
             receipt.model_id,
             receipt.requested_decode_mode.as_str(),
             receipt.route_binding.route_descriptor_digest,
+            receipt.model_lineage_contract_ref,
         );
         receipt.receipt_digest = stable_digest(
             b"psionic_tassadar_direct_model_weight_execution_proof_receipt|",
@@ -330,6 +355,12 @@ impl TassadarDirectModelWeightExecutionProofReceipt {
 pub enum TassadarDirectModelWeightExecutionProofError {
     #[error("direct model-weight proof `{receipt_id}` was missing an effective decode mode")]
     MissingEffectiveDecodeMode { receipt_id: String },
+    #[error("direct model-weight proof `{receipt_id}` was missing a model-lineage contract ref")]
+    MissingModelLineageContractRef { receipt_id: String },
+    #[error(
+        "direct model-weight proof `{receipt_id}` was missing a model-lineage contract digest"
+    )]
+    MissingModelLineageContractDigest { receipt_id: String },
     #[error(
         "direct model-weight proof `{receipt_id}` observed selection state `{selection_state:?}` instead of `direct`"
     )]
@@ -430,6 +461,10 @@ mod tests {
             model_descriptor_digest: String::from("model-descriptor-digest"),
             model_weight_bundle_digest: String::from("weight-bundle-digest"),
             model_primary_artifact_digest: Some(String::from("weight-artifact-digest")),
+            model_lineage_contract_ref: String::from(
+                "fixtures/tassadar/models/tassadar_article_transformer_trace_bound_trained_v0_lineage_contract.json",
+            ),
+            model_lineage_contract_digest: String::from("lineage-contract-digest"),
             requested_decode_mode: TassadarExecutorDecodeMode::ReferenceLinear,
             effective_decode_mode: Some(TassadarExecutorDecodeMode::ReferenceLinear),
             selection_state: TassadarExecutorSelectionState::Direct,
@@ -469,7 +504,7 @@ mod tests {
         let receipt = TassadarDirectModelWeightExecutionProofReceipt::new(input())
             .expect("receipt should validate");
 
-        assert_eq!(receipt.schema_version, 1);
+        assert_eq!(receipt.schema_version, 2);
         assert_eq!(receipt.external_call_count, 0);
         assert!(!receipt.external_tool_surface_observed);
         assert!(!receipt.cpu_result_substitution_observed);
@@ -482,6 +517,25 @@ mod tests {
 
     #[test]
     fn direct_model_weight_execution_proof_receipt_rejects_fallback_or_external_surfaces() {
+        let mut missing_lineage_ref = input();
+        missing_lineage_ref.model_lineage_contract_ref.clear();
+        assert_eq!(
+            TassadarDirectModelWeightExecutionProofReceipt::new(missing_lineage_ref).unwrap_err(),
+            TassadarDirectModelWeightExecutionProofError::MissingModelLineageContractRef {
+                receipt_id: String::from("direct-proof.long_loop_kernel"),
+            }
+        );
+
+        let mut missing_lineage_digest = input();
+        missing_lineage_digest.model_lineage_contract_digest.clear();
+        assert_eq!(
+            TassadarDirectModelWeightExecutionProofReceipt::new(missing_lineage_digest)
+                .unwrap_err(),
+            TassadarDirectModelWeightExecutionProofError::MissingModelLineageContractDigest {
+                receipt_id: String::from("direct-proof.long_loop_kernel"),
+            }
+        );
+
         let mut fallback = input();
         fallback.fallback_observed = true;
         assert_eq!(

@@ -233,6 +233,20 @@ replacement bounded truth carrier for the article corpus, but it is still not
 yet the point where direct no-tool proof ownership has moved off the fixture
 lane. That stronger handoff remains the next tranche.
 
+`TAS-171` now closes that first direct-proof handoff without pretending the
+entire article-exactness family is done. `psionic-serve` now binds the bounded
+direct no-tool proof report in
+`fixtures/tassadar/reports/tassadar_direct_model_weight_execution_proof_report.json`
+to the committed trained trace-bound Transformer model rather than the
+historical fixture model, and every receipt now carries the explicit trained
+lineage contract plus the parity-certificate dependency that justifies the
+rebind. The old fixture lane remains visible as the historical baseline, but
+the canonical bounded direct-proof family for the three named workloads now
+belongs to the Transformer-backed reference-linear route. Full declared-family
+reference-linear exactness, anti-memorization, contamination independence, and
+the stronger clean-room ownership verdict still remain later tranches starting
+at `TAS-171A`.
+
 ## Route Requirement
 
 Any canonical article-equivalence Transformer route must use this boundary.

@@ -562,7 +562,7 @@
         "github_issue_number": 290,
         "title": "TAS-171: Reference-linear direct-proof closure on the Transformer-backed route",
         "issue_role": "implementation",
-        "issue_state": "open",
+        "issue_state": "closed",
         "blocker_ids": [
           "BEQ-003",
           "BEQ-007"
@@ -839,7 +839,7 @@
     ],
     "claim_boundary": "this report freezes the exact blocker set for article-equivalent closure. It is a machine-readable contract for what still has to become true. It keeps article-equivalence red by design until every blocker closes, and it must not be read as widening the current public capability surface",
     "summary": "Article-equivalence blocker matrix now freezes blocker_count=7, later_issue_count=38, matrix_contract_green=true, article_equivalence_green=false, and open_blocker_count=7.",
-    "report_digest": "85eeed0a21dee5cade6880ce753dd0760a879d3aaa4a4467109818ae23425319"
+    "report_digest": "9c05a8ce28f2522ea2f6207abbd0b6144efa5794744320f3cb9c5b2dfba16621"
   },
   "requirement_rows": [
     {
@@ -1103,7 +1103,7 @@
       "requirement_id": "TAS-171",
       "requirement_kind": "implementation",
       "required_for_green": true,
-      "satisfied": false,
+      "satisfied": true,
       "blocker_ids": [
         "BEQ-003",
         "BEQ-007"
@@ -1111,7 +1111,7 @@
       "source_refs": [
         "fixtures/tassadar/reports/tassadar_article_equivalence_blocker_matrix_report.json"
       ],
-      "detail": "TAS-171 (`TAS-171: Reference-linear direct-proof closure on the Transformer-backed route`) remains open in the blocker matrix, so the final article-equivalence gate stays blocked on blocker families BEQ-003, BEQ-007 until that tranche closes."
+      "detail": "TAS-171 (`TAS-171: Reference-linear direct-proof closure on the Transformer-backed route`) is closed in the blocker matrix, so this acceptance-gate row is currently satisfied for blocker families BEQ-003, BEQ-007."
     },
     {
       "requirement_id": "TAS-171A",
@@ -1422,9 +1422,9 @@
   ],
   "total_requirement_count": 41,
   "required_requirement_count": 40,
-  "passed_required_requirement_count": 17,
+  "passed_required_requirement_count": 18,
   "required_issue_count": 37,
-  "closed_required_issue_count": 15,
+  "closed_required_issue_count": 16,
   "green_requirement_ids": [
     "blocker_matrix_contract_frozen",
     "owned_transformer_route_boundary_frozen",
@@ -1442,11 +1442,11 @@
     "TAS-168",
     "TAS-169",
     "TAS-169A",
-    "TAS-170"
+    "TAS-170",
+    "TAS-171"
   ],
   "failed_requirement_ids": [
     "article_equivalence_blockers_closed",
-    "TAS-171",
     "TAS-171A",
     "TAS-171B",
     "TAS-171C",
@@ -1470,7 +1470,6 @@
     "TAS-186"
   ],
   "blocked_issue_ids": [
-    "TAS-171",
     "TAS-171A",
     "TAS-171B",
     "TAS-171C",
@@ -1522,6 +1521,6 @@
   "article_equivalence_green": false,
   "public_claim_allowed": false,
   "claim_boundary": "this is the frozen final acceptance gate for article-equivalent closure. It stays blocked until the blocker-matrix contract remains intact, the owned `psionic-transformer` route boundary remains intact, the blocker matrix itself turns article-equivalence green, and every required TAS tranche from `TAS-158` through `TAS-186` is closed. A green result here is necessary but not sufficient to widen public capability claims, and it still does not imply arbitrary C ingress, arbitrary Wasm ingress, or generic interpreter-in-weights closure outside the declared article envelope.",
-  "summary": "Article-equivalence acceptance gate now records passed_required_requirements=17/40, closed_required_issues=15/37, blocked_issues=22, blocker_matrix_article_equivalence_green=false, and article_equivalence_green=false.",
-  "report_digest": "bbe0ba996daf1c9489165d2228eab477669f07369d5442267c97279c4267be84"
+  "summary": "Article-equivalence acceptance gate now records passed_required_requirements=18/40, closed_required_issues=16/37, blocked_issues=21, blocker_matrix_article_equivalence_green=false, and article_equivalence_green=false.",
+  "report_digest": "c04dc913145cb1f26b0e369b7c877c59c4f58206fb2344ec3bc17bc789e81dd5"
 }

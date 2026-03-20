@@ -364,6 +364,37 @@ pub fn bind_tassadar_direct_model_weight_route(
     })
 }
 
+/// Rebinds one served route descriptor onto a Transformer-backed
+/// reference-linear direct-proof surface.
+#[must_use]
+pub fn rebind_tassadar_reference_linear_direct_proof_route(
+    route_descriptor: &TassadarPlannerExecutorRouteDescriptor,
+    model_id: impl Into<String>,
+    note: impl Into<String>,
+) -> TassadarPlannerExecutorRouteDescriptor {
+    let model_id = model_id.into();
+    let note = note.into();
+    TassadarPlannerExecutorRouteDescriptor::new(
+        format!("tassadar.planner_executor_route.{model_id}.v0"),
+        model_id,
+        route_descriptor.benchmark_report_ref.clone(),
+        route_descriptor.internal_compute_profile_id.clone(),
+        route_descriptor
+            .internal_compute_profile_claim_digest
+            .clone(),
+        route_descriptor.workload_capability_digest.clone(),
+        route_descriptor.wasm_capability_matrix.clone(),
+        vec![TassadarPlannerExecutorDecodeCapability {
+            requested_decode_mode: TassadarExecutorDecodeMode::ReferenceLinear,
+            route_posture: TassadarPlannerExecutorRoutePosture::DirectGuaranteed,
+            benchmark_report_ref: route_descriptor.benchmark_report_ref.clone(),
+            note: note.clone(),
+        }],
+        route_descriptor.refusal_reasons.clone(),
+        note,
+    )
+}
+
 /// Route candidate contributed by one provider / worker pair.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TassadarPlannerExecutorRouteCandidate {
@@ -1055,14 +1086,15 @@ where
 #[cfg(test)]
 mod tests {
     use super::{
+        bind_tassadar_direct_model_weight_route, negotiate_tassadar_planner_executor_route,
+        rebind_tassadar_reference_linear_direct_proof_route,
         TassadarDirectModelWeightRouteBindingError, TassadarPlannerExecutorDecodeCapability,
         TassadarPlannerExecutorNegotiatedRouteState, TassadarPlannerExecutorRouteCandidate,
         TassadarPlannerExecutorRouteDescriptor, TassadarPlannerExecutorRouteNegotiationOutcome,
         TassadarPlannerExecutorRouteNegotiationRequest, TassadarPlannerExecutorRoutePosture,
         TassadarPlannerExecutorRouteRefusalReason, TassadarPlannerExecutorWasmCapabilityMatrix,
         TassadarPlannerExecutorWasmCapabilityRow, TassadarPlannerExecutorWasmImportPosture,
-        TassadarPlannerExecutorWasmOpcodeFamily, bind_tassadar_direct_model_weight_route,
-        negotiate_tassadar_planner_executor_route,
+        TassadarPlannerExecutorWasmOpcodeFamily,
     };
     use psionic_models::TassadarWorkloadClass;
     use psionic_runtime::TassadarExecutorDecodeMode;
@@ -1224,6 +1256,43 @@ mod tests {
                 route_posture: TassadarPlannerExecutorRoutePosture::FallbackCapable,
             }
         );
+    }
+
+    #[test]
+    fn reference_linear_direct_proof_route_rebinds_model_identity() {
+        let descriptor = route_descriptor(
+            "route-direct-proof",
+            "fixture-model",
+            vec![TassadarPlannerExecutorDecodeCapability {
+                requested_decode_mode: TassadarExecutorDecodeMode::ReferenceLinear,
+                route_posture: TassadarPlannerExecutorRoutePosture::DirectGuaranteed,
+                benchmark_report_ref: String::from(
+                    "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json",
+                ),
+                note: String::from("fixture direct dense floor"),
+            }],
+        );
+
+        let rebound = rebind_tassadar_reference_linear_direct_proof_route(
+            &descriptor,
+            "tassadar-article-transformer-trace-bound-trained-v0",
+            "Transformer-backed direct-proof route",
+        );
+
+        assert_eq!(
+            rebound.model_id,
+            "tassadar-article-transformer-trace-bound-trained-v0"
+        );
+        assert_eq!(rebound.decode_capabilities.len(), 1);
+        assert_eq!(
+            rebound.decode_capabilities[0].requested_decode_mode,
+            TassadarExecutorDecodeMode::ReferenceLinear
+        );
+        assert_eq!(
+            rebound.decode_capabilities[0].route_posture,
+            TassadarPlannerExecutorRoutePosture::DirectGuaranteed
+        );
+        assert_ne!(rebound.descriptor_digest, descriptor.descriptor_digest);
     }
 
     #[test]

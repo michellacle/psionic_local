@@ -835,7 +835,7 @@ fn issue_coverage_rows() -> Vec<TassadarArticleEquivalenceIssueCoverageRow> {
             290,
             "TAS-171: Reference-linear direct-proof closure on the Transformer-backed route",
             TassadarArticleEquivalenceIssueRole::Implementation,
-            "open",
+            "closed",
             &["BEQ-003", "BEQ-007"],
         ),
         issue_row(
