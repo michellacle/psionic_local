@@ -1,0 +1,2359 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.universality_verdict_split.report.v1",
+  "universal_machine_proof_report_ref": "fixtures/tassadar/reports/tassadar_universal_machine_proof_report.json",
+  "minimal_universal_substrate_gate_report_ref": "fixtures/tassadar/reports/tassadar_minimal_universal_substrate_acceptance_gate_report.json",
+  "session_process_profile_report_ref": "fixtures/tassadar/reports/tassadar_session_process_profile_report.json",
+  "spill_tape_store_report_ref": "fixtures/tassadar/reports/tassadar_spill_tape_store_report.json",
+  "process_object_report_ref": "fixtures/tassadar/reports/tassadar_process_object_report.json",
+  "universal_machine_proof_report": {
+    "schema_version": 1,
+    "report_id": "tassadar.universal_machine_proof.report.v1",
+    "encoding_report_ref": "fixtures/tassadar/reports/tassadar_universal_machine_encoding_report.json",
+    "encoding_report": {
+      "schema_version": 1,
+      "report_id": "tassadar.universal_machine_encoding.report.v1",
+      "substrate_model_ref": "fixtures/tassadar/reports/tassadar_tcm_v1_model.json",
+      "substrate_model": {
+        "schema_version": 1,
+        "model_id": "tcm.v1",
+        "computation_style": "bounded small-step resumable machine with persistent state, checkpoint-backed continuation, spill-tape extension, and explicit refusal on out-of-model effects",
+        "control_rows": [
+          {
+            "semantic_id": "conditional_control",
+            "supported": true,
+            "source_profile_ids": [
+              "tassadar.internal_compute.article_closeout.v1",
+              "tassadar.internal_compute.call_stack_and_recursion.v1"
+            ],
+            "note": "the substrate model assumes exact conditional branch, structured loop, and call-frame behavior under declared bounded slices"
+          },
+          {
+            "semantic_id": "indirect_dispatch",
+            "supported": true,
+            "source_profile_ids": [
+              "tassadar.proposal_profile.component_linking_interface_types.v1",
+              "tassadar.internal_compute.component_model_abi.v1"
+            ],
+            "note": "the substrate model includes indirect or table-mediated dispatch only through declared interface and component rows, not implicit host calls"
+          }
+        ],
+        "memory_rows": [
+          {
+            "semantic_id": "mutable_heap_segments",
+            "supported": true,
+            "source_profile_ids": [
+              "tassadar.internal_compute.generalized_abi.v1",
+              "tassadar.internal_compute.spill_tape_store.v1"
+            ],
+            "note": "the substrate model includes mutable heap state with exact byte-addressed mutation and explicit spill-tape extension"
+          },
+          {
+            "semantic_id": "checkpoint_backed_extension",
+            "supported": true,
+            "source_profile_ids": [
+              "tassadar.internal_compute.process_objects.v1",
+              "tassadar.internal_compute.installed_process_lifecycle.v1"
+            ],
+            "note": "state may extend beyond one slice only through persisted checkpoint, process-object, and lifecycle artifacts"
+          }
+        ],
+        "continuation_rows": [
+          {
+            "semantic_id": "bounded_slice_resume",
+            "supported": true,
+            "source_profile_ids": [
+              "tassadar.internal_compute.execution_checkpoint.v1",
+              "tassadar.internal_compute.spill_tape_store.v1"
+            ],
+            "note": "the substrate model is explicitly resumable rather than infinite in-core; continuation happens by exact slice resume with persisted state"
+          },
+          {
+            "semantic_id": "persistent_process_identity",
+            "supported": true,
+            "source_profile_ids": [
+              "tassadar.internal_compute.process_objects.v1",
+              "tassadar.internal_compute.session_process.v1"
+            ],
+            "note": "the substrate model includes stable process identity, tape head, and work-queue facts across resumptions"
+          }
+        ],
+        "effect_boundary_rows": [
+          {
+            "semantic_id": "declared_effect_profiles_only",
+            "supported": true,
+            "source_profile_ids": [
+              "tassadar.effect_profile.virtual_fs_mounts.v1",
+              "tassadar.effect_profile.simulator_backed_io.v1"
+            ],
+            "note": "effectful behavior is only in-model when it stays inside declared simulator or virtual-fs profiles with replay and refusal truth"
+          },
+          {
+            "semantic_id": "ambient_host_effects_refused",
+            "supported": true,
+            "source_profile_ids": [
+              "tassadar.effect_profile.replay_challenge_receipts.v1",
+              "tassadar.effect_profile.async_lifecycle.v1"
+            ],
+            "note": "ambient host power does not count as part of TCM.v1; undeclared host effects must refuse explicitly"
+          }
+        ],
+        "unsupported_feature_families": [
+          "ambient host io",
+          "implicit public publication",
+          "undeclared semantic-window widening",
+          "arbitrary Wasm execution"
+        ],
+        "theory_scope": "TCM.v1 is the declared terminal substrate model for Psionic/Tassadar. Universal computation, if claimed later, must be a construction over this explicit substrate rather than over vague broadness language.",
+        "refusal_boundary": "features outside the declared control, memory, continuation, and effect rows are not implicit extensions of TCM.v1. They require either an explicit later semantic row or a typed refusal.",
+        "claim_boundary": "this model declares the substrate only. It does not by itself prove universal-machine encodings, witness suites, final gates, or public served universality posture.",
+        "summary": "TCM.v1 declares control_rows=2, memory_rows=2, continuation_rows=2, effect_rows=2, unsupported_feature_families=4.",
+        "model_digest": "259cab92c74b71b0135d4d2efee3212d4c8efe8ae6a62165f9560cbd509fe3c6"
+      },
+      "encoding_rows": [
+        {
+          "encoding_id": "tcm.encoding.two_register_counter_loop.v1",
+          "machine_family": "two_register_machine",
+          "witness_program_id": "minsky_two_register_counter_loop",
+          "checkpoint_resume_equivalent": true,
+          "expected_step_count": 6,
+          "initial_state_digest": {
+            "step_index": 0,
+            "digest": "reg0=2|reg1=0|pc=0"
+          },
+          "final_state_digest": {
+            "step_index": 6,
+            "digest": "reg0=0|reg1=2|pc=halt"
+          },
+          "note": "a minimal two-register witness that repeatedly decrements r0 and increments r1 until halt, demonstrating register-machine style control and mutable state over TCM.v1"
+        },
+        {
+          "encoding_id": "tcm.encoding.single_tape_bit_flip.v1",
+          "machine_family": "single_tape_machine",
+          "witness_program_id": "single_tape_bit_flip",
+          "checkpoint_resume_equivalent": true,
+          "expected_step_count": 5,
+          "initial_state_digest": {
+            "step_index": 0,
+            "digest": "tape=010|head=0|state=q0"
+          },
+          "final_state_digest": {
+            "step_index": 5,
+            "digest": "tape=101|head=3|state=halt"
+          },
+          "note": "a minimal single-tape witness that scans and flips a bounded tape segment, demonstrating tape-style mutation and head movement over TCM.v1"
+        }
+      ],
+      "exact_encoding_count": 2,
+      "claim_boundary": "this compiler report declares witness encodings only. It does not yet claim a benchmark suite, a final gate, or served universality posture.",
+      "summary": "Universal-machine encoding report keeps encoding_rows=2, exact_encoding_count=2.",
+      "report_digest": "95592aa16d684ba6a076a6380de5c7e088c42b6f0f9c37a122c4efe1633df5e6"
+    },
+    "simulation_bundle_ref": "fixtures/tassadar/runs/tassadar_universal_machine_simulation_v1/tassadar_universal_machine_simulation_bundle.json",
+    "simulation_bundle": {
+      "schema_version": 1,
+      "bundle_id": "tassadar.universal_machine_simulation.bundle.v1",
+      "encoding_report_ref": "fixtures/tassadar/reports/tassadar_universal_machine_encoding_report.json",
+      "receipts": [
+        {
+          "case_id": "simulation.tcm.encoding.two_register_counter_loop.v1",
+          "encoding_id": "tcm.encoding.two_register_counter_loop.v1",
+          "machine_family": "two_register_machine",
+          "exact_step_parity": true,
+          "checkpoint_resume_equivalent": true,
+          "final_state_digest": "reg0=0|reg1=2|pc=halt",
+          "trace": [
+            {
+              "step_index": 0,
+              "state_digest": "reg0=2|reg1=0|pc=0"
+            },
+            {
+              "step_index": 3,
+              "state_digest": "reg0=1|reg1=1|pc=1"
+            },
+            {
+              "step_index": 6,
+              "state_digest": "reg0=0|reg1=2|pc=halt"
+            }
+          ],
+          "note": "runtime simulation follows the declared `minsky_two_register_counter_loop` witness for 6 exact steps under TCM.v1"
+        },
+        {
+          "case_id": "simulation.tcm.encoding.single_tape_bit_flip.v1",
+          "encoding_id": "tcm.encoding.single_tape_bit_flip.v1",
+          "machine_family": "single_tape_machine",
+          "exact_step_parity": true,
+          "checkpoint_resume_equivalent": true,
+          "final_state_digest": "tape=101|head=3|state=halt",
+          "trace": [
+            {
+              "step_index": 0,
+              "state_digest": "tape=010|head=0|state=q0"
+            },
+            {
+              "step_index": 2,
+              "state_digest": "tape=110|head=1|state=q1"
+            },
+            {
+              "step_index": 5,
+              "state_digest": "tape=101|head=3|state=halt"
+            }
+          ],
+          "note": "runtime simulation follows the declared `single_tape_bit_flip` witness for 5 exact steps under TCM.v1"
+        }
+      ],
+      "exact_case_count": 2,
+      "checkpoint_resume_equivalent_case_count": 2,
+      "claim_boundary": "this runtime bundle proves the declared witness encodings execute exactly on the current TCM.v1 runtime contract. It is still a witness bundle, not the final universality benchmark suite.",
+      "summary": "Universal-machine simulation bundle keeps receipts=2, exact_case_count=2, checkpoint_resume_equivalent_case_count=2.",
+      "bundle_digest": "41eabd6324b522e4a9842a81eee9bfa38d406578d33d82744c79deaf276304cc"
+    },
+    "runtime_contract_ref": "fixtures/tassadar/reports/tassadar_tcm_v1_runtime_contract_report.json",
+    "proof_rows": [
+      {
+        "encoding_id": "tcm.encoding.two_register_counter_loop.v1",
+        "step_parity": true,
+        "final_state_parity": true,
+        "checkpoint_resume_equivalent": true,
+        "satisfied": true,
+        "note": "encoding `tcm.encoding.two_register_counter_loop.v1` matches the runtime witness trace under runtime envelope `current-host cpu-reference operator envelope with persisted checkpoints, process objects, spill-tape extension, and declared effect profiles only`"
+      },
+      {
+        "encoding_id": "tcm.encoding.single_tape_bit_flip.v1",
+        "step_parity": true,
+        "final_state_parity": true,
+        "checkpoint_resume_equivalent": true,
+        "satisfied": true,
+        "note": "encoding `tcm.encoding.single_tape_bit_flip.v1` matches the runtime witness trace under runtime envelope `current-host cpu-reference operator envelope with persisted checkpoints, process objects, spill-tape extension, and declared effect profiles only`"
+      }
+    ],
+    "green_encoding_ids": [
+      "tcm.encoding.two_register_counter_loop.v1",
+      "tcm.encoding.single_tape_bit_flip.v1"
+    ],
+    "overall_green": true,
+    "theory_statement": "TCM.v1 now has explicit witness encodings and exact runtime simulation targets for a two-register machine and a single-tape machine.",
+    "claim_boundary": "this proof report closes the explicit witness construction only. It does not yet constitute the full witness benchmark suite or the final universality gate.",
+    "summary": "Universal-machine proof report keeps proof_rows=2, green_encoding_ids=2, overall_green=true.",
+    "report_digest": "8c1f7ecbadfc51d75dd4b00590c4e0bb2752ddf06d83ca9b3b139d36fde81559"
+  },
+  "minimal_universal_substrate_gate_report": {
+    "schema_version": 1,
+    "report_id": "tassadar.minimal_universal_substrate.acceptance_gate.report.v1",
+    "runtime_report_ref": "fixtures/tassadar/reports/tassadar_minimal_universal_substrate_runtime_report.json",
+    "witness_suite_report_ref": "fixtures/tassadar/reports/tassadar_universality_witness_suite_report.json",
+    "runtime_report": {
+      "schema_version": 1,
+      "report_id": "tassadar.minimal_universal_substrate.runtime_report.v1",
+      "runtime_contract_ref": "fixtures/tassadar/reports/tassadar_tcm_v1_runtime_contract_report.json",
+      "runtime_contract": {
+        "schema_version": 1,
+        "report_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+        "substrate_model_ref": "fixtures/tassadar/reports/tassadar_tcm_v1_model.json",
+        "substrate_model": {
+          "schema_version": 1,
+          "model_id": "tcm.v1",
+          "computation_style": "bounded small-step resumable machine with persistent state, checkpoint-backed continuation, spill-tape extension, and explicit refusal on out-of-model effects",
+          "control_rows": [
+            {
+              "semantic_id": "conditional_control",
+              "supported": true,
+              "source_profile_ids": [
+                "tassadar.internal_compute.article_closeout.v1",
+                "tassadar.internal_compute.call_stack_and_recursion.v1"
+              ],
+              "note": "the substrate model assumes exact conditional branch, structured loop, and call-frame behavior under declared bounded slices"
+            },
+            {
+              "semantic_id": "indirect_dispatch",
+              "supported": true,
+              "source_profile_ids": [
+                "tassadar.proposal_profile.component_linking_interface_types.v1",
+                "tassadar.internal_compute.component_model_abi.v1"
+              ],
+              "note": "the substrate model includes indirect or table-mediated dispatch only through declared interface and component rows, not implicit host calls"
+            }
+          ],
+          "memory_rows": [
+            {
+              "semantic_id": "mutable_heap_segments",
+              "supported": true,
+              "source_profile_ids": [
+                "tassadar.internal_compute.generalized_abi.v1",
+                "tassadar.internal_compute.spill_tape_store.v1"
+              ],
+              "note": "the substrate model includes mutable heap state with exact byte-addressed mutation and explicit spill-tape extension"
+            },
+            {
+              "semantic_id": "checkpoint_backed_extension",
+              "supported": true,
+              "source_profile_ids": [
+                "tassadar.internal_compute.process_objects.v1",
+                "tassadar.internal_compute.installed_process_lifecycle.v1"
+              ],
+              "note": "state may extend beyond one slice only through persisted checkpoint, process-object, and lifecycle artifacts"
+            }
+          ],
+          "continuation_rows": [
+            {
+              "semantic_id": "bounded_slice_resume",
+              "supported": true,
+              "source_profile_ids": [
+                "tassadar.internal_compute.execution_checkpoint.v1",
+                "tassadar.internal_compute.spill_tape_store.v1"
+              ],
+              "note": "the substrate model is explicitly resumable rather than infinite in-core; continuation happens by exact slice resume with persisted state"
+            },
+            {
+              "semantic_id": "persistent_process_identity",
+              "supported": true,
+              "source_profile_ids": [
+                "tassadar.internal_compute.process_objects.v1",
+                "tassadar.internal_compute.session_process.v1"
+              ],
+              "note": "the substrate model includes stable process identity, tape head, and work-queue facts across resumptions"
+            }
+          ],
+          "effect_boundary_rows": [
+            {
+              "semantic_id": "declared_effect_profiles_only",
+              "supported": true,
+              "source_profile_ids": [
+                "tassadar.effect_profile.virtual_fs_mounts.v1",
+                "tassadar.effect_profile.simulator_backed_io.v1"
+              ],
+              "note": "effectful behavior is only in-model when it stays inside declared simulator or virtual-fs profiles with replay and refusal truth"
+            },
+            {
+              "semantic_id": "ambient_host_effects_refused",
+              "supported": true,
+              "source_profile_ids": [
+                "tassadar.effect_profile.replay_challenge_receipts.v1",
+                "tassadar.effect_profile.async_lifecycle.v1"
+              ],
+              "note": "ambient host power does not count as part of TCM.v1; undeclared host effects must refuse explicitly"
+            }
+          ],
+          "unsupported_feature_families": [
+            "ambient host io",
+            "implicit public publication",
+            "undeclared semantic-window widening",
+            "arbitrary Wasm execution"
+          ],
+          "theory_scope": "TCM.v1 is the declared terminal substrate model for Psionic/Tassadar. Universal computation, if claimed later, must be a construction over this explicit substrate rather than over vague broadness language.",
+          "refusal_boundary": "features outside the declared control, memory, continuation, and effect rows are not implicit extensions of TCM.v1. They require either an explicit later semantic row or a typed refusal.",
+          "claim_boundary": "this model declares the substrate only. It does not by itself prove universal-machine encodings, witness suites, final gates, or public served universality posture.",
+          "summary": "TCM.v1 declares control_rows=2, memory_rows=2, continuation_rows=2, effect_rows=2, unsupported_feature_families=4.",
+          "model_digest": "259cab92c74b71b0135d4d2efee3212d4c8efe8ae6a62165f9560cbd509fe3c6"
+        },
+        "runtime_rows": [
+          {
+            "semantic_id": "bounded_slice_resume",
+            "satisfied": true,
+            "source_refs": [
+              "fixtures/tassadar/reports/tassadar_execution_checkpoint_report.json",
+              "fixtures/tassadar/reports/tassadar_spill_tape_store_report.json"
+            ],
+            "note": "slice resume is grounded in the execution-checkpoint and spill-tape lanes rather than implied by one long uninterrupted run"
+          },
+          {
+            "semantic_id": "persistent_process_identity",
+            "satisfied": true,
+            "source_refs": [
+              "fixtures/tassadar/reports/tassadar_process_object_report.json",
+              "fixtures/tassadar/reports/tassadar_installed_process_lifecycle_report.json"
+            ],
+            "note": "process identity, snapshot lineage, and rollback/migration facts stay explicit across resumed executions"
+          },
+          {
+            "semantic_id": "mutable_heap_segments",
+            "satisfied": true,
+            "source_refs": [
+              "fixtures/tassadar/reports/tassadar_generalized_abi_report.json",
+              "fixtures/tassadar/reports/tassadar_dynamic_memory_resume_report.json"
+            ],
+            "note": "heap mutation and dynamic memory growth stay explicit in the generalized ABI and dynamic-memory lanes"
+          },
+          {
+            "semantic_id": "declared_effect_profiles_only",
+            "satisfied": true,
+            "source_refs": [
+              "fixtures/tassadar/reports/tassadar_virtual_fs_mount_profile_report.json",
+              "fixtures/tassadar/reports/tassadar_simulator_effect_profile_report.json",
+              "fixtures/tassadar/reports/tassadar_effectful_replay_audit_report.json"
+            ],
+            "note": "effectful computation only counts inside declared virtual-fs, simulator, and replay-checked profiles"
+          }
+        ],
+        "refusal_rows": [
+          {
+            "semantic_id": "ambient_host_effects_refused",
+            "satisfied": true,
+            "source_refs": [
+              "fixtures/tassadar/reports/tassadar_effectful_replay_audit_report.json",
+              "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json"
+            ],
+            "note": "ambient host effects and undeclared imports remain outside TCM.v1 and must refuse explicitly"
+          },
+          {
+            "semantic_id": "implicit_publication_refused",
+            "satisfied": true,
+            "source_refs": [
+              "fixtures/tassadar/reports/tassadar_general_internal_compute_red_team_audit_report.json",
+              "fixtures/tassadar/reports/tassadar_full_core_wasm_public_acceptance_gate_report.json"
+            ],
+            "note": "publication or route widening never counts as part of the runtime substrate; it must pass its own gates"
+          }
+        ],
+        "satisfied_runtime_semantic_ids": [
+          "bounded_slice_resume",
+          "persistent_process_identity",
+          "mutable_heap_segments",
+          "declared_effect_profiles_only"
+        ],
+        "refused_out_of_model_semantic_ids": [
+          "ambient_host_effects_refused",
+          "implicit_publication_refused"
+        ],
+        "overall_green": true,
+        "runtime_envelope": "current-host cpu-reference operator envelope with persisted checkpoints, process objects, spill-tape extension, and declared effect profiles only",
+        "claim_boundary": "this runtime contract binds TCM.v1 to already landed runtime truth. It still does not prove universal-machine encodings or served universality posture.",
+        "summary": "TCM.v1 runtime contract keeps runtime_rows=4, refusal_rows=2, overall_green=true.",
+        "report_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017"
+      },
+      "requirement_rows": [
+        {
+          "requirement_id": "conditional_control_exact",
+          "satisfied": true,
+          "source_refs": [
+            "fixtures/tassadar/reports/tassadar_structured_control_report.json"
+          ],
+          "note": "structured conditional control remains exact and explicitly bounded rather than inferred from broad Wasm rhetoric"
+        },
+        {
+          "requirement_id": "mutable_memory_growth",
+          "satisfied": true,
+          "source_refs": [
+            "fixtures/tassadar/reports/tassadar_dynamic_memory_resume_report.json"
+          ],
+          "note": "mutable memory and explicit growth stay grounded in the dynamic-memory resume lane"
+        },
+        {
+          "requirement_id": "spill_tape_extension",
+          "satisfied": true,
+          "source_refs": [
+            "fixtures/tassadar/reports/tassadar_spill_tape_store_report.json"
+          ],
+          "note": "state extension beyond one slice stays grounded in spill-segment and external-tape artifacts"
+        },
+        {
+          "requirement_id": "persistent_continuation_resume",
+          "satisfied": true,
+          "source_refs": [
+            "fixtures/tassadar/reports/tassadar_execution_checkpoint_report.json",
+            "fixtures/tassadar/reports/tassadar_spill_tape_store_report.json"
+          ],
+          "note": "persistent continuation and resume stay grounded in checkpoint and spill/tape receipts rather than long in-core runs"
+        },
+        {
+          "requirement_id": "machine_step_replay",
+          "satisfied": true,
+          "source_refs": [
+            "fixtures/tassadar/runs/tassadar_universal_machine_simulation_v1/tassadar_universal_machine_simulation_bundle.json"
+          ],
+          "note": "machine-step replay stays grounded in the committed universal-machine simulation bundle"
+        },
+        {
+          "requirement_id": "runtime_refusal_truth",
+          "satisfied": true,
+          "source_refs": [
+            "fixtures/tassadar/reports/tassadar_effectful_replay_audit_report.json",
+            "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json"
+          ],
+          "note": "runtime refusal truth stays explicit for ambient host effects, undeclared imports, and implicit publication widening"
+        }
+      ],
+      "green_requirement_ids": [
+        "conditional_control_exact",
+        "mutable_memory_growth",
+        "spill_tape_extension",
+        "persistent_continuation_resume",
+        "machine_step_replay",
+        "runtime_refusal_truth"
+      ],
+      "overall_green": true,
+      "claim_boundary": "this runtime report freezes the minimal runtime-owned prerequisites for the universal-substrate gate. It does not by itself prove witness coverage, gate closure, verdict splitting, served posture, or Turing-complete closeout.",
+      "summary": "Minimal universal-substrate runtime report keeps requirement_rows=6, green_requirement_ids=6, overall_green=true.",
+      "report_digest": "5a1c6b146ed53b7d9cdbea063de3cc6def2dc44279de26d8d41350c923aaeae8"
+    },
+    "witness_suite_report": {
+      "schema_version": 1,
+      "report_id": "tassadar.universality_witness_suite.report.v1",
+      "suite_contract": {
+        "abi_version": "psionic.tassadar.universality_witness_suite.v1",
+        "suite_ref": "dataset://openagents/tassadar/universality_witness_suite",
+        "version": "2026.03.19",
+        "witness_rows": [
+          {
+            "witness_family": "register_machine",
+            "expected_status": "exact",
+            "authority_refs": [
+              "fixtures/tassadar/reports/tassadar_universal_machine_proof_report.json"
+            ],
+            "claim_boundary": "register-machine universality stays bounded to the committed two-register witness over `TCM.v1` rather than implying broader arbitrary-machine closure"
+          },
+          {
+            "witness_family": "tape_machine",
+            "expected_status": "exact",
+            "authority_refs": [
+              "fixtures/tassadar/reports/tassadar_universal_machine_proof_report.json"
+            ],
+            "claim_boundary": "tape-machine universality stays bounded to the committed single-tape witness over `TCM.v1` rather than implying unbounded semantic-window widening"
+          },
+          {
+            "witness_family": "bytecode_vm_interpreter",
+            "expected_status": "exact",
+            "authority_refs": [
+              "fixtures/tassadar/reports/tassadar_module_scale_workload_suite_report.json"
+            ],
+            "claim_boundary": "bytecode-vm interpretation stays bounded to the current deterministic vm-style module family and its explicit parameter-ABI refusal sibling rather than implying arbitrary Wasm or arbitrary interpreter closure"
+          },
+          {
+            "witness_family": "session_process_kernel",
+            "expected_status": "exact",
+            "authority_refs": [
+              "fixtures/tassadar/reports/tassadar_session_process_profile_report.json"
+            ],
+            "claim_boundary": "session-process kernels stay bounded to deterministic echo and counter-turn loops rather than implying open-ended external event processing or generic agent loops"
+          },
+          {
+            "witness_family": "spill_tape_continuation",
+            "expected_status": "exact",
+            "authority_refs": [
+              "fixtures/tassadar/reports/tassadar_spill_tape_store_report.json"
+            ],
+            "claim_boundary": "spill/tape continuation stays bounded to the current-host cpu-reference envelope and explicit segment-store artifacts rather than implying arbitrary persistent memory or async effect closure"
+          },
+          {
+            "witness_family": "bytecode_vm_param_boundary",
+            "expected_status": "refusal_boundary",
+            "authority_refs": [
+              "fixtures/tassadar/reports/tassadar_module_scale_workload_suite_report.json"
+            ],
+            "claim_boundary": "vm-style parameter ABI mismatch remains an explicit refusal boundary inside the witness suite rather than a silent widening to arbitrary call signatures"
+          },
+          {
+            "witness_family": "external_event_loop_boundary",
+            "expected_status": "refusal_boundary",
+            "authority_refs": [
+              "fixtures/tassadar/reports/tassadar_session_process_profile_report.json"
+            ],
+            "claim_boundary": "open-ended external event loops remain an explicit refusal boundary inside the witness suite rather than a silent widening to generic long-running agent processes"
+          }
+        ],
+        "evaluation_axes": [
+          "exact_runtime_parity",
+          "checkpoint_resume_equivalent",
+          "refusal_boundary_held",
+          "runtime_envelope",
+          "evidence_anchor"
+        ],
+        "report_ref": "fixtures/tassadar/reports/tassadar_universality_witness_suite_report.json",
+        "summary_report_ref": "fixtures/tassadar/reports/tassadar_universality_witness_suite_summary.json",
+        "contract_digest": "b2b9561ff235d5a1072ee73b7ed92f9d03c11cd390d0975b7c2942b189f85045"
+      },
+      "suite_binding": {
+        "suite_ref": "dataset://openagents/tassadar/universality_witness_suite",
+        "suite_version": "2026.03.19",
+        "exact_family_ids": [
+          "register_machine",
+          "tape_machine",
+          "bytecode_vm_interpreter",
+          "session_process_kernel",
+          "spill_tape_continuation"
+        ],
+        "refusal_boundary_family_ids": [
+          "bytecode_vm_param_boundary",
+          "external_event_loop_boundary"
+        ],
+        "evaluation_axes": [
+          "exact_runtime_parity",
+          "checkpoint_resume_equivalent",
+          "refusal_boundary_held",
+          "runtime_envelope",
+          "evidence_anchor"
+        ],
+        "report_ref": "fixtures/tassadar/reports/tassadar_universality_witness_suite_report.json",
+        "summary_report_ref": "fixtures/tassadar/reports/tassadar_universality_witness_suite_summary.json"
+      },
+      "generated_from_refs": [
+        "fixtures/tassadar/reports/tassadar_tcm_v1_runtime_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_universal_machine_proof_report.json",
+        "fixtures/tassadar/reports/tassadar_module_scale_workload_suite_report.json",
+        "fixtures/tassadar/reports/tassadar_session_process_profile_report.json",
+        "fixtures/tassadar/reports/tassadar_spill_tape_store_report.json"
+      ],
+      "family_rows": [
+        {
+          "witness_family": "register_machine",
+          "expected_status": "exact",
+          "satisfied": true,
+          "evidence_anchor_ids": [
+            "tcm.encoding.two_register_counter_loop.v1"
+          ],
+          "exact_runtime_parity": true,
+          "checkpoint_resume_equivalent": true,
+          "refusal_boundary_held": false,
+          "runtime_envelope": "current-host cpu-reference operator envelope with persisted checkpoints, process objects, spill-tape extension, and declared effect profiles only",
+          "note": "the dedicated witness suite keeps the two-register construction as the minimal register-machine anchor over `TCM.v1` exact step and final-state parity"
+        },
+        {
+          "witness_family": "tape_machine",
+          "expected_status": "exact",
+          "satisfied": true,
+          "evidence_anchor_ids": [
+            "tcm.encoding.single_tape_bit_flip.v1"
+          ],
+          "exact_runtime_parity": true,
+          "checkpoint_resume_equivalent": true,
+          "refusal_boundary_held": false,
+          "runtime_envelope": "current-host cpu-reference operator envelope with persisted checkpoints, process objects, spill-tape extension, and declared effect profiles only",
+          "note": "the dedicated witness suite keeps the single-tape construction as the minimal tape-machine anchor over `TCM.v1` exact step and final-state parity"
+        },
+        {
+          "witness_family": "bytecode_vm_interpreter",
+          "expected_status": "exact",
+          "satisfied": true,
+          "evidence_anchor_ids": [
+            "vm_style_dispatch_exact"
+          ],
+          "exact_runtime_parity": true,
+          "refusal_boundary_held": true,
+          "runtime_envelope": "bounded vm-style module family under the current Wasm-text-to-Tassadar lowering lane",
+          "note": "the dedicated witness suite keeps bytecode-vm interpretation bounded to the exact vm-style module case while holding the parameter-ABI sibling on explicit refusal"
+        },
+        {
+          "witness_family": "session_process_kernel",
+          "expected_status": "exact",
+          "satisfied": true,
+          "evidence_anchor_ids": [
+            "deterministic_echo_turn_loop",
+            "stateful_counter_turn_loop"
+          ],
+          "exact_runtime_parity": true,
+          "checkpoint_resume_equivalent": true,
+          "refusal_boundary_held": true,
+          "runtime_envelope": "deterministic finite-turn session-process profile with persisted local state",
+          "note": "the dedicated witness suite keeps process-kernel execution grounded in deterministic echo and counter-turn loops with explicit refusal on open-ended external streams"
+        },
+        {
+          "witness_family": "spill_tape_continuation",
+          "expected_status": "exact",
+          "satisfied": true,
+          "evidence_anchor_ids": [
+            "long_loop_spill_resume",
+            "search_frontier_spill_resume"
+          ],
+          "exact_runtime_parity": true,
+          "checkpoint_resume_equivalent": true,
+          "refusal_boundary_held": true,
+          "runtime_envelope": "current-host cpu-reference spill/tape continuation envelope",
+          "note": "the dedicated witness suite keeps spill/tape continuation grounded in explicit spill-segment and external-tape artifacts rather than implicit persistent-memory claims"
+        },
+        {
+          "witness_family": "bytecode_vm_param_boundary",
+          "expected_status": "refusal_boundary",
+          "satisfied": true,
+          "evidence_anchor_ids": [
+            "vm_style_param_refusal"
+          ],
+          "refusal_boundary_held": true,
+          "runtime_envelope": "bounded vm-style module family under the current Wasm-text-to-Tassadar lowering lane",
+          "note": "the dedicated witness suite keeps vm-style parameter ABI widening on an explicit refusal boundary rather than silently admitting broader call signatures"
+        },
+        {
+          "witness_family": "external_event_loop_boundary",
+          "expected_status": "refusal_boundary",
+          "satisfied": true,
+          "evidence_anchor_ids": [
+            "open_ended_external_event_stream"
+          ],
+          "refusal_boundary_held": true,
+          "runtime_envelope": "deterministic finite-turn session-process profile with persisted local state",
+          "note": "the dedicated witness suite keeps open-ended external event loops on explicit refusal instead of reading process-kernel evidence as generic agent-loop closure"
+        }
+      ],
+      "exact_family_count": 5,
+      "refusal_boundary_count": 2,
+      "overall_green": true,
+      "explicit_non_implications": [
+        "minimal universal-substrate gate",
+        "theory/operator/served verdict split",
+        "served universality posture",
+        "arbitrary Wasm"
+      ],
+      "claim_boundary": "this report closes the dedicated universality witness benchmark suite only. It keeps the benchmark surface bounded to explicit `TCM.v1` witness constructions, vm-style interpreter kernels, session-process kernels, spill/tape continuation, and named refusal boundaries without claiming the minimal universal-substrate gate, the final verdict split, arbitrary Wasm, or served universality posture",
+      "summary": "Universality witness suite report keeps family_rows=7, exact_family_count=5, refusal_boundary_count=2, overall_green=true.",
+      "report_digest": "434f80150c05c44ef7bdf6d126f8e6141e2506e6a4c4da6a5178f5d415ebae3c"
+    },
+    "requirement_rows": [
+      {
+        "requirement_id": "conditional_control_exact",
+        "satisfied": true,
+        "source_refs": [
+          "fixtures/tassadar/reports/tassadar_structured_control_report.json"
+        ],
+        "detail": "conditional control must stay exact before the minimal universal-substrate gate can turn green"
+      },
+      {
+        "requirement_id": "mutable_memory_growth",
+        "satisfied": true,
+        "source_refs": [
+          "fixtures/tassadar/reports/tassadar_dynamic_memory_resume_report.json"
+        ],
+        "detail": "mutable memory and explicit growth must stay green before the minimal universal-substrate gate can turn green"
+      },
+      {
+        "requirement_id": "spill_tape_extension",
+        "satisfied": true,
+        "source_refs": [
+          "fixtures/tassadar/reports/tassadar_spill_tape_store_report.json"
+        ],
+        "detail": "spill and tape extension must stay explicit before the minimal universal-substrate gate can turn green"
+      },
+      {
+        "requirement_id": "persistent_continuation_resume",
+        "satisfied": true,
+        "source_refs": [
+          "fixtures/tassadar/reports/tassadar_execution_checkpoint_report.json"
+        ],
+        "detail": "persistent continuation and resume must stay explicit before the minimal universal-substrate gate can turn green"
+      },
+      {
+        "requirement_id": "machine_step_replay",
+        "satisfied": true,
+        "source_refs": [
+          "fixtures/tassadar/runs/tassadar_universal_machine_simulation_v1/tassadar_universal_machine_simulation_bundle.json"
+        ],
+        "detail": "machine-step replay must stay explicit before the minimal universal-substrate gate can turn green"
+      },
+      {
+        "requirement_id": "universality_witness_suite",
+        "satisfied": true,
+        "source_refs": [
+          "fixtures/tassadar/reports/tassadar_universality_witness_suite_report.json"
+        ],
+        "detail": "the dedicated witness suite must stay green before the minimal universal-substrate gate can turn green"
+      },
+      {
+        "requirement_id": "portability_envelope_declared",
+        "satisfied": true,
+        "source_refs": [
+          "fixtures/tassadar/reports/tassadar_minimal_universal_substrate_runtime_report.json"
+        ],
+        "detail": "every witness row must carry an explicit runtime envelope before the minimal universal-substrate gate can turn green"
+      },
+      {
+        "requirement_id": "refusal_truth_explicit",
+        "satisfied": true,
+        "source_refs": [
+          "fixtures/tassadar/reports/tassadar_universality_witness_suite_report.json"
+        ],
+        "detail": "refusal truth must stay explicit for out-of-profile behavior before the minimal universal-substrate gate can turn green"
+      }
+    ],
+    "green_requirement_ids": [
+      "conditional_control_exact",
+      "mutable_memory_growth",
+      "spill_tape_extension",
+      "persistent_continuation_resume",
+      "machine_step_replay",
+      "universality_witness_suite",
+      "portability_envelope_declared",
+      "refusal_truth_explicit"
+    ],
+    "failed_requirement_ids": [],
+    "acceptance_status": "green",
+    "overall_green": true,
+    "claim_boundary": "this gate is the single machine-readable acceptance artifact for the minimal universal substrate. It turns green only when runtime prerequisites, witness coverage, portability envelopes, and refusal truth are all explicit. It does not by itself widen into theory/operator/served verdict splitting, served universality posture, arbitrary Wasm, or final Turing-complete closeout.",
+    "summary": "Minimal universal-substrate acceptance gate keeps green_requirement_ids=8, failed_requirement_ids=0, acceptance_status=Green.",
+    "report_digest": "be61096488915d00f39a0617056b2f0c3e5f51c802752a612aa99a6a3d17bbfb"
+  },
+  "session_process_profile_report": {
+    "schema_version": 1,
+    "report_id": "tassadar.session_process_profile.report.v1",
+    "profile_id": "tassadar.internal_compute.session_process.v1",
+    "runtime_report_ref": "fixtures/tassadar/reports/tassadar_session_process_profile_runtime_report.json",
+    "runtime_report": {
+      "schema_version": 1,
+      "report_id": "tassadar.session_process_profile.runtime_report.v1",
+      "profile_id": "tassadar.internal_compute.session_process.v1",
+      "rows": [
+        {
+          "case_id": "echo_roundtrip_session",
+          "session_id": "session.echo_roundtrip.v1",
+          "interaction_surface_id": "deterministic_echo_turn_loop",
+          "local_state_shape_id": "single_reply_buffer",
+          "route_profile_id": "tassadar.internal_compute.session_process.v1",
+          "input_messages": [
+            {
+              "message_id": "echo_roundtrip_session::00",
+              "turn_index": 0,
+              "kind": "open_session",
+              "payload_digest": "876d3e677954505601473f268451200b2267d47fd6a809388f9f6010daefedcb",
+              "note": "open:echo"
+            },
+            {
+              "message_id": "echo_roundtrip_session::01",
+              "turn_index": 1,
+              "kind": "user_turn",
+              "payload_digest": "2ee3608a6c29c8d703e773ddcabb70706e5d03cef51c0e2bb04a3051cd37de9f",
+              "note": "user:hello bounded world"
+            },
+            {
+              "message_id": "echo_roundtrip_session::02",
+              "turn_index": 2,
+              "kind": "close_session",
+              "payload_digest": "1cd03b16a7002d58a571c74dc113421dfa8a552ca360bc4400f64abc613b02ac",
+              "note": "close:echo"
+            }
+          ],
+          "output_messages": [
+            {
+              "message_id": "echo_roundtrip_session::00",
+              "turn_index": 0,
+              "kind": "assistant_turn",
+              "payload_digest": "5be45573871bc19f88c88c0cd22adb111e444534f73991cfcd0a7a2ca8b1f341",
+              "note": "assistant:hello bounded world"
+            },
+            {
+              "message_id": "echo_roundtrip_session::01",
+              "turn_index": 1,
+              "kind": "assistant_turn",
+              "payload_digest": "d51a79b50cb685070dc94ed02387a7b950c462f908a26e433fb2089314f3b2aa",
+              "note": "assistant:echo closed"
+            }
+          ],
+          "status": "exact_deterministic_parity",
+          "exact_state_parity": true,
+          "exact_output_parity": true,
+          "final_state_digest": "ab084cb8acfb32ed6938c0b64d26e47b03aea5ddd82bc3953812b476e6f2ddac",
+          "note": "echo loop preserves one bounded reply buffer across a deterministic turn pair"
+        },
+        {
+          "case_id": "counter_stateful_session",
+          "session_id": "session.counter_stateful.v1",
+          "interaction_surface_id": "stateful_counter_turn_loop",
+          "local_state_shape_id": "persistent_counter_register",
+          "route_profile_id": "tassadar.internal_compute.session_process.v1",
+          "input_messages": [
+            {
+              "message_id": "counter_stateful_session::00",
+              "turn_index": 0,
+              "kind": "open_session",
+              "payload_digest": "cc999bfa219499966fa58f2ee96a3396f70218140025a5386d171882c4f593f0",
+              "note": "open:counter"
+            },
+            {
+              "message_id": "counter_stateful_session::01",
+              "turn_index": 1,
+              "kind": "user_turn",
+              "payload_digest": "0e4b49082ef91b2516a68e940937ffd6a0fcfb4ff00db149048ae9933cca2425",
+              "note": "user:increment"
+            },
+            {
+              "message_id": "counter_stateful_session::02",
+              "turn_index": 2,
+              "kind": "user_turn",
+              "payload_digest": "03dc079dbb9fc155969ddf6f23188be560c9fb149fe2cb80811ae5f9351734d6",
+              "note": "user:increment"
+            },
+            {
+              "message_id": "counter_stateful_session::03",
+              "turn_index": 3,
+              "kind": "user_turn",
+              "payload_digest": "54215df2543a1df6795c5f69045b62b1dc22b42e6d69926c82aa23690e395205",
+              "note": "user:query"
+            },
+            {
+              "message_id": "counter_stateful_session::04",
+              "turn_index": 4,
+              "kind": "close_session",
+              "payload_digest": "4e4eba44c9e7e8a3d5feabf7bfcbb56f4d0a450d4c8a34a89b25b5dd3cede744",
+              "note": "close:counter"
+            }
+          ],
+          "output_messages": [
+            {
+              "message_id": "counter_stateful_session::00",
+              "turn_index": 0,
+              "kind": "assistant_turn",
+              "payload_digest": "710424fb0c3b3870f91bdb108e735a938f0e6ec946ffab59f45b1f59a0b5b7f7",
+              "note": "assistant:count=1"
+            },
+            {
+              "message_id": "counter_stateful_session::01",
+              "turn_index": 1,
+              "kind": "assistant_turn",
+              "payload_digest": "9844e4b698b6b5e716d4172364e0ea580b1cc73942e3275fd20b86b078fe9533",
+              "note": "assistant:count=2"
+            },
+            {
+              "message_id": "counter_stateful_session::02",
+              "turn_index": 2,
+              "kind": "assistant_turn",
+              "payload_digest": "73c53794754c070d86e3303a7ea449794cab63eeaab02345bebac356ebbcd42a",
+              "note": "assistant:count=2"
+            },
+            {
+              "message_id": "counter_stateful_session::03",
+              "turn_index": 3,
+              "kind": "assistant_turn",
+              "payload_digest": "c4b88c2d3b7f8a6e65be386fe4dba52390d5922b15eaee460a32c655847573f9",
+              "note": "assistant:counter closed"
+            }
+          ],
+          "status": "exact_deterministic_parity",
+          "exact_state_parity": true,
+          "exact_output_parity": true,
+          "final_state_digest": "ac80a888e8270a4df9a3e7c480be315e63394bc3508edf48bc54e29098be3d49",
+          "note": "stateful loop preserves a bounded counter register across deterministic turns"
+        },
+        {
+          "case_id": "open_ended_external_event_stream",
+          "session_id": "session.open_ended_external.v1",
+          "interaction_surface_id": "open_ended_external_event_stream",
+          "local_state_shape_id": "ambient_event_mailbox",
+          "route_profile_id": "tassadar.internal_compute.session_process.v1",
+          "input_messages": [
+            {
+              "message_id": "open_ended_external_event_stream::00",
+              "turn_index": 0,
+              "kind": "open_session",
+              "payload_digest": "a9490bc05562b64fa17d6d9ed63729f86886b446b05f2ebaf4dd40abc42b7b70",
+              "note": "open:external"
+            },
+            {
+              "message_id": "open_ended_external_event_stream::01",
+              "turn_index": 1,
+              "kind": "user_turn",
+              "payload_digest": "4867da52b3f83d5f873618984d447307e341beb04b744dd7d45ec454d19b9887",
+              "note": "user:wait_for_external_event"
+            }
+          ],
+          "output_messages": [],
+          "status": "exact_refusal_parity",
+          "exact_state_parity": true,
+          "exact_output_parity": true,
+          "refusal_reason_id": "interactive_surface_out_of_envelope",
+          "final_state_digest": "d757f0f894a93c52615dcfe034781dc59cd701caa1522585dd89678d708da55e",
+          "note": "open-ended external event streams stay outside the bounded session-process profile"
+        }
+      ],
+      "exact_case_count": 2,
+      "refusal_case_count": 1,
+      "overall_green": true,
+      "public_profile_allowed_profile_ids": [
+        "tassadar.internal_compute.session_process.v1"
+      ],
+      "default_served_profile_allowed_profile_ids": [],
+      "routeable_interaction_surface_ids": [
+        "deterministic_echo_turn_loop",
+        "stateful_counter_turn_loop"
+      ],
+      "refused_interaction_surface_ids": [
+        "open_ended_external_event_stream"
+      ],
+      "claim_boundary": "this runtime report covers one bounded deterministic session-process profile with persisted local state, finite message transcripts, and explicit refusal on open-ended external event streams. It does not claim a generic agent loop, arbitrary interactive Wasm, ambient tool execution, or broader served internal compute",
+      "summary": "Session-process runtime report covers exact_cases=2, refusal_cases=1, routeable_surfaces=2, refused_surfaces=1, overall_green=true.",
+      "report_digest": "212656398edd1eab6a8dbe70863cf52cb91cddf13b89d903fcc65bbd9c13a92d"
+    },
+    "case_audits": [
+      {
+        "case_id": "echo_roundtrip_session",
+        "session_id": "session.echo_roundtrip.v1",
+        "interaction_surface_id": "deterministic_echo_turn_loop",
+        "local_state_shape_id": "single_reply_buffer",
+        "runtime_status": "exact_deterministic_parity",
+        "exact_state_parity": true,
+        "exact_output_parity": true,
+        "route_eligible": true,
+        "note": "echo loop preserves one bounded reply buffer across a deterministic turn pair"
+      },
+      {
+        "case_id": "counter_stateful_session",
+        "session_id": "session.counter_stateful.v1",
+        "interaction_surface_id": "stateful_counter_turn_loop",
+        "local_state_shape_id": "persistent_counter_register",
+        "runtime_status": "exact_deterministic_parity",
+        "exact_state_parity": true,
+        "exact_output_parity": true,
+        "route_eligible": true,
+        "note": "stateful loop preserves a bounded counter register across deterministic turns"
+      },
+      {
+        "case_id": "open_ended_external_event_stream",
+        "session_id": "session.open_ended_external.v1",
+        "interaction_surface_id": "open_ended_external_event_stream",
+        "local_state_shape_id": "ambient_event_mailbox",
+        "runtime_status": "exact_refusal_parity",
+        "exact_state_parity": true,
+        "exact_output_parity": true,
+        "refusal_reason_id": "interactive_surface_out_of_envelope",
+        "route_eligible": false,
+        "note": "open-ended external event streams stay outside the bounded session-process profile"
+      }
+    ],
+    "exact_case_count": 2,
+    "refusal_case_count": 1,
+    "overall_green": true,
+    "public_profile_allowed_profile_ids": [
+      "tassadar.internal_compute.session_process.v1"
+    ],
+    "default_served_profile_allowed_profile_ids": [],
+    "routeable_interaction_surface_ids": [
+      "deterministic_echo_turn_loop",
+      "stateful_counter_turn_loop"
+    ],
+    "refused_interaction_surface_ids": [
+      "open_ended_external_event_stream"
+    ],
+    "claim_boundary": "this eval report covers one bounded interactive session-process profile with finite message transcripts and persisted local session state. It admits profile-specific named public posture only for the deterministic surfaces in this report and keeps open-ended external event loops on explicit refusal paths instead of implying a generic agent loop or broader served internal compute",
+    "summary": "Session-process profile report covers exact_cases=2, refusal_cases=1, routeable_surfaces=2, refused_surfaces=1, overall_green=true.",
+    "report_digest": "7d267ea312cb4c5b6e881d4f690a9d63312d8c565ede4388fb1fe40dd3a4ea93"
+  },
+  "spill_tape_store_report": {
+    "schema_version": 1,
+    "report_id": "tassadar.spill_tape_store.report.v1",
+    "runtime_bundle_ref": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/tassadar_spill_tape_store_bundle.json",
+    "runtime_bundle": {
+      "schema_version": 1,
+      "bundle_id": "tassadar.spill_tape_store.bundle.v1",
+      "profile_id": "tassadar.internal_compute.spill_tape_store.v1",
+      "spill_segment_family_id": "tassadar.spill_segment.v1",
+      "external_tape_store_family_id": "tassadar.external_tape_store.v1",
+      "portability_envelope_ids": [
+        "cpu_reference_current_host"
+      ],
+      "case_receipts": [
+        {
+          "case_id": "long_loop_spill_resume",
+          "process_id": "tassadar.process.long_loop_kernel.v1",
+          "workload_family": "long_loop_kernel",
+          "checkpoint_id": "checkpoint.long_loop_kernel.02",
+          "checkpoint_step": 16384,
+          "portability_envelope_id": "cpu_reference_current_host",
+          "status": "exact_spill_and_resume_parity",
+          "spill_vs_in_core_parity": true,
+          "external_tape_resume_parity": true,
+          "in_core_state_bytes": 96,
+          "spill_segments": [
+            {
+              "segment_id": "long_loop_spill_resume::spill::00",
+              "family_id": "tassadar.spill_segment.v1",
+              "source_checkpoint_id": "checkpoint.long_loop_kernel.02",
+              "segment_index": 0,
+              "spill_bytes": 128,
+              "page_count": 4,
+              "digest": "0b0f18d3e59593f0ff383dae1731fa0670981a25670e9db7be556a5f3e8e152d",
+              "note": "spill segment 0 externalizes bounded continuation bytes from `checkpoint.long_loop_kernel.02`"
+            },
+            {
+              "segment_id": "long_loop_spill_resume::spill::01",
+              "family_id": "tassadar.spill_segment.v1",
+              "source_checkpoint_id": "checkpoint.long_loop_kernel.02",
+              "segment_index": 1,
+              "spill_bytes": 128,
+              "page_count": 4,
+              "digest": "df1dcbffb5e1d9f42b46be28ecdc5f47fb4977917fb2db74c6711a2d1269127d",
+              "note": "spill segment 1 externalizes bounded continuation bytes from `checkpoint.long_loop_kernel.02`"
+            }
+          ],
+          "external_tape_segments": [
+            {
+              "segment_id": "tassadar.process.long_loop_kernel.v1::external_tape::00",
+              "family_id": "tassadar.external_tape_store.v1",
+              "process_id": "tassadar.process.long_loop_kernel.v1",
+              "sequence_index": 0,
+              "payload_bytes": 72,
+              "digest": "299d68e02fd0ce65799f1dcd52551a26f5e1a8dd90409445f111f12a2dbbe879",
+              "note": "external tape-store segment 0 carries bounded continuation lineage for `tassadar.process.long_loop_kernel.v1`"
+            },
+            {
+              "segment_id": "tassadar.process.long_loop_kernel.v1::external_tape::01",
+              "family_id": "tassadar.external_tape_store.v1",
+              "process_id": "tassadar.process.long_loop_kernel.v1",
+              "sequence_index": 1,
+              "payload_bytes": 88,
+              "digest": "ffcb2cdcc1d5d8f878e7488d40184a0ec8aaa8fcec5824da9b9f0ec1d9923893",
+              "note": "external tape-store segment 1 carries bounded continuation lineage for `tassadar.process.long_loop_kernel.v1`"
+            }
+          ],
+          "refusal_cases": [
+            {
+              "refusal_kind": "missing_external_tape_segment",
+              "object_ref": "external_tape://tassadar.process.long_loop_kernel.v1/segment/99",
+              "detail": "missing external tape segment remains an explicit refusal instead of silent reconstruction"
+            }
+          ],
+          "note": "spill-backed long-loop continuation preserves exact parity against the in-core lane and replays from the external tape store exactly",
+          "receipt_digest": "863a1c2903c7465db9678a6d23cdab13cc9da8fb8001a80718c023d24d058b96"
+        },
+        {
+          "case_id": "search_frontier_spill_resume",
+          "process_id": "tassadar.process.search_frontier_kernel.v1",
+          "workload_family": "search_frontier_kernel",
+          "checkpoint_id": "checkpoint.search_frontier_kernel.03",
+          "checkpoint_step": 2048,
+          "portability_envelope_id": "cpu_reference_current_host",
+          "status": "exact_spill_and_resume_parity",
+          "spill_vs_in_core_parity": true,
+          "external_tape_resume_parity": true,
+          "in_core_state_bytes": 112,
+          "spill_segments": [
+            {
+              "segment_id": "search_frontier_spill_resume::spill::02",
+              "family_id": "tassadar.spill_segment.v1",
+              "source_checkpoint_id": "checkpoint.search_frontier_kernel.03",
+              "segment_index": 2,
+              "spill_bytes": 144,
+              "page_count": 5,
+              "digest": "b494bbaf4d643e9a757d18b07a672b418407e4c1b1f1b4bf9c1d55c5bf439c41",
+              "note": "spill segment 2 externalizes bounded continuation bytes from `checkpoint.search_frontier_kernel.03`"
+            },
+            {
+              "segment_id": "search_frontier_spill_resume::spill::03",
+              "family_id": "tassadar.spill_segment.v1",
+              "source_checkpoint_id": "checkpoint.search_frontier_kernel.03",
+              "segment_index": 3,
+              "spill_bytes": 144,
+              "page_count": 5,
+              "digest": "237bcb1d3b37b267a4e50c8fed7875fcfb664b063e077f4a1b7ae9c853ed5210",
+              "note": "spill segment 3 externalizes bounded continuation bytes from `checkpoint.search_frontier_kernel.03`"
+            }
+          ],
+          "external_tape_segments": [
+            {
+              "segment_id": "tassadar.process.search_frontier_kernel.v1::external_tape::00",
+              "family_id": "tassadar.external_tape_store.v1",
+              "process_id": "tassadar.process.search_frontier_kernel.v1",
+              "sequence_index": 0,
+              "payload_bytes": 72,
+              "digest": "95f5947795ee12f524b825a46de79cd3394d13cc9f68dab6be481291b9e9cb58",
+              "note": "external tape-store segment 0 carries bounded continuation lineage for `tassadar.process.search_frontier_kernel.v1`"
+            },
+            {
+              "segment_id": "tassadar.process.search_frontier_kernel.v1::external_tape::01",
+              "family_id": "tassadar.external_tape_store.v1",
+              "process_id": "tassadar.process.search_frontier_kernel.v1",
+              "sequence_index": 1,
+              "payload_bytes": 88,
+              "digest": "40d4c540d433f5c42f4ced1ecb957f4470e0a1d445559fc8c536f629f044bf9d",
+              "note": "external tape-store segment 1 carries bounded continuation lineage for `tassadar.process.search_frontier_kernel.v1`"
+            }
+          ],
+          "refusal_cases": [
+            {
+              "refusal_kind": "portability_envelope_mismatch",
+              "object_ref": "portability://metal_served",
+              "detail": "spill-backed continuation remains bounded to the current-host cpu-reference portability envelope and refuses non-cpu widening"
+            }
+          ],
+          "note": "spill-backed search-frontier continuation preserves exact parity under the bounded cpu-reference portability envelope",
+          "receipt_digest": "a184277c455489d4fc04088baf99f57e1be2586c577b000b473fab7ef8570fd1"
+        },
+        {
+          "case_id": "state_machine_oversize_spill_refusal",
+          "process_id": "tassadar.process.state_machine_accumulator.v1",
+          "workload_family": "state_machine_accumulator",
+          "checkpoint_id": "checkpoint.state_machine_accumulator.04",
+          "checkpoint_step": 1024,
+          "portability_envelope_id": "cpu_reference_current_host",
+          "status": "exact_refusal_parity",
+          "spill_vs_in_core_parity": false,
+          "external_tape_resume_parity": false,
+          "in_core_state_bytes": 176,
+          "spill_segments": [
+            {
+              "segment_id": "state_machine_oversize_spill_refusal::spill::00",
+              "family_id": "tassadar.spill_segment.v1",
+              "source_checkpoint_id": "checkpoint.state_machine_accumulator.04",
+              "segment_index": 0,
+              "spill_bytes": 512,
+              "page_count": 16,
+              "digest": "652a9a25fcf2d1aaa58c15193bfffed7d94fc70a87aca0fdafc539fefd14326d",
+              "note": "spill segment 0 externalizes bounded continuation bytes from `checkpoint.state_machine_accumulator.04`"
+            }
+          ],
+          "external_tape_segments": [
+            {
+              "segment_id": "tassadar.process.state_machine_accumulator.v1::external_tape::00",
+              "family_id": "tassadar.external_tape_store.v1",
+              "process_id": "tassadar.process.state_machine_accumulator.v1",
+              "sequence_index": 0,
+              "payload_bytes": 48,
+              "digest": "14ed5b0e9595aa864093809423573fd473fe75644195245a5692258d4d836a3b",
+              "note": "external tape-store segment 0 carries bounded continuation lineage for `tassadar.process.state_machine_accumulator.v1`"
+            }
+          ],
+          "refusal_cases": [
+            {
+              "refusal_kind": "oversize_state_out_of_envelope",
+              "object_ref": "spill://tassadar.process.state_machine_accumulator.v1/segment/00",
+              "detail": "spill-backed continuation refuses state that exceeds the bounded segment-size envelope instead of pretending unbounded in-core extension exists"
+            }
+          ],
+          "note": "oversize spill state stays on an explicit refusal path instead of widening the bounded segment-size contract",
+          "receipt_digest": "fcd7aaed9c9cc339c2589376df4d579eac5febcd23ea344b82e12d5432435270"
+        }
+      ],
+      "exact_case_count": 2,
+      "refusal_case_count": 3,
+      "claim_boundary": "this runtime bundle freezes one bounded spill-aware continuation profile with external tape-store semantics on the current-host cpu-reference envelope only. It keeps oversize state, missing tape segments, and non-cpu portability widening on explicit refusal paths instead of implying infinite in-core memory, arbitrary process persistence, or broader served internal compute",
+      "summary": "Spill/tape runtime bundle covers 3 case rows with exact_cases=2 and refusal_rows=3.",
+      "bundle_digest": "c56e24d238a51712b4cdfb959984f5760f792550f1611436c73dfb5536b71cc5"
+    },
+    "case_reports": [
+      {
+        "case_id": "long_loop_spill_resume",
+        "process_id": "tassadar.process.long_loop_kernel.v1",
+        "workload_family": "long_loop_kernel",
+        "status": "exact_spill_and_resume_parity",
+        "spill_vs_in_core_parity": true,
+        "external_tape_resume_parity": true,
+        "portability_envelope_id": "cpu_reference_current_host",
+        "spill_segment_count": 2,
+        "external_tape_segment_count": 2,
+        "spill_segment_artifacts": [
+          {
+            "case_id": "long_loop_spill_resume",
+            "spill_segment_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/long_loop_spill_resume::spill::00.json",
+            "manifest_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/long_loop_spill_resume::spill::00.manifest.json",
+            "manifest_ref": {
+              "stream_id": "spill-segment-long_loop_spill_resume::spill::00",
+              "manifest_digest": "94b0f8f9d2350cb9784ef38fd69534ff278a35e307bb49b77a834e6c652e2ce6",
+              "subject": "checkpoint",
+              "object_digest": "171dacf847793f27d09d0adedf63cb9b55b4dd7b5aa1e5a59750b9869e3beed7",
+              "total_bytes": 410,
+              "chunk_count": 13,
+              "chunk_bytes": 32,
+              "encoding": "raw_binary",
+              "checkpoint_binding": {
+                "checkpoint_family": "tassadar.spill_segment.v1",
+                "checkpoint_ref": "checkpoint://tassadar.spill_segment/tassadar.process.long_loop_kernel.v1",
+                "step": 16384
+              }
+            },
+            "locator": {
+              "stream_id": "spill-segment-long_loop_spill_resume::spill::00",
+              "manifest_digest": "94b0f8f9d2350cb9784ef38fd69534ff278a35e307bb49b77a834e6c652e2ce6",
+              "checkpoint_ref": "checkpoint://tassadar.spill_segment/tassadar.process.long_loop_kernel.v1",
+              "checkpoint_family": "tassadar.spill_segment.v1",
+              "step": 16384,
+              "object_digest": "171dacf847793f27d09d0adedf63cb9b55b4dd7b5aa1e5a59750b9869e3beed7",
+              "total_bytes": 410,
+              "detail": "tassadar spill-segment locator via family `tassadar.spill_segment.v1` ref `checkpoint://tassadar.spill_segment/tassadar.process.long_loop_kernel.v1`"
+            }
+          },
+          {
+            "case_id": "long_loop_spill_resume",
+            "spill_segment_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/long_loop_spill_resume::spill::01.json",
+            "manifest_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/long_loop_spill_resume::spill::01.manifest.json",
+            "manifest_ref": {
+              "stream_id": "spill-segment-long_loop_spill_resume::spill::01",
+              "manifest_digest": "6aa94be3e31ae7fdbb7e61045e8b3c5a008cce6d37bba3b7a0ae269efeee1ceb",
+              "subject": "checkpoint",
+              "object_digest": "d7b03a5871d0db18b15e6d972e72999795ad42d5847afa3cff7df5c35e1980fd",
+              "total_bytes": 410,
+              "chunk_count": 13,
+              "chunk_bytes": 32,
+              "encoding": "raw_binary",
+              "checkpoint_binding": {
+                "checkpoint_family": "tassadar.spill_segment.v1",
+                "checkpoint_ref": "checkpoint://tassadar.spill_segment/tassadar.process.long_loop_kernel.v1",
+                "step": 16384
+              }
+            },
+            "locator": {
+              "stream_id": "spill-segment-long_loop_spill_resume::spill::01",
+              "manifest_digest": "6aa94be3e31ae7fdbb7e61045e8b3c5a008cce6d37bba3b7a0ae269efeee1ceb",
+              "checkpoint_ref": "checkpoint://tassadar.spill_segment/tassadar.process.long_loop_kernel.v1",
+              "checkpoint_family": "tassadar.spill_segment.v1",
+              "step": 16384,
+              "object_digest": "d7b03a5871d0db18b15e6d972e72999795ad42d5847afa3cff7df5c35e1980fd",
+              "total_bytes": 410,
+              "detail": "tassadar spill-segment locator via family `tassadar.spill_segment.v1` ref `checkpoint://tassadar.spill_segment/tassadar.process.long_loop_kernel.v1`"
+            }
+          }
+        ],
+        "external_tape_store_artifacts": [
+          {
+            "case_id": "long_loop_spill_resume",
+            "tape_segment_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.long_loop_kernel.v1::external_tape::00.json",
+            "manifest_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.long_loop_kernel.v1::external_tape::00.manifest.json",
+            "manifest_ref": {
+              "stream_id": "external-tape-tassadar.process.long_loop_kernel.v1::external_tape::00",
+              "manifest_digest": "5d60284205b6c1a25e8c171c37b2b47751c5e77f6a96c3b6700bb40316f16c35",
+              "subject": "checkpoint",
+              "object_digest": "3824aa6d672885f18e55eea7d56c5609ae148d85309364e1b765b28fde2ee94a",
+              "total_bytes": 433,
+              "chunk_count": 14,
+              "chunk_bytes": 32,
+              "encoding": "raw_binary",
+              "checkpoint_binding": {
+                "checkpoint_family": "tassadar.external_tape_store.v1",
+                "checkpoint_ref": "checkpoint://tassadar.external_tape_store/tassadar.process.long_loop_kernel.v1",
+                "step": 16384
+              }
+            },
+            "locator": {
+              "stream_id": "external-tape-tassadar.process.long_loop_kernel.v1::external_tape::00",
+              "manifest_digest": "5d60284205b6c1a25e8c171c37b2b47751c5e77f6a96c3b6700bb40316f16c35",
+              "checkpoint_ref": "checkpoint://tassadar.external_tape_store/tassadar.process.long_loop_kernel.v1",
+              "checkpoint_family": "tassadar.external_tape_store.v1",
+              "step": 16384,
+              "object_digest": "3824aa6d672885f18e55eea7d56c5609ae148d85309364e1b765b28fde2ee94a",
+              "total_bytes": 433,
+              "detail": "tassadar external tape-store locator via family `tassadar.external_tape_store.v1` ref `checkpoint://tassadar.external_tape_store/tassadar.process.long_loop_kernel.v1`"
+            }
+          },
+          {
+            "case_id": "long_loop_spill_resume",
+            "tape_segment_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.long_loop_kernel.v1::external_tape::01.json",
+            "manifest_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.long_loop_kernel.v1::external_tape::01.manifest.json",
+            "manifest_ref": {
+              "stream_id": "external-tape-tassadar.process.long_loop_kernel.v1::external_tape::01",
+              "manifest_digest": "6f1dd1a4e551b6c9f30d452a2dfda27130a7ecea55110e7389d47412b60c0b24",
+              "subject": "checkpoint",
+              "object_digest": "bd2505ee76242efe579a5ce74d84bb715c738b782b9bdf3ddcbb9bc1af3dcda3",
+              "total_bytes": 433,
+              "chunk_count": 14,
+              "chunk_bytes": 32,
+              "encoding": "raw_binary",
+              "checkpoint_binding": {
+                "checkpoint_family": "tassadar.external_tape_store.v1",
+                "checkpoint_ref": "checkpoint://tassadar.external_tape_store/tassadar.process.long_loop_kernel.v1",
+                "step": 16384
+              }
+            },
+            "locator": {
+              "stream_id": "external-tape-tassadar.process.long_loop_kernel.v1::external_tape::01",
+              "manifest_digest": "6f1dd1a4e551b6c9f30d452a2dfda27130a7ecea55110e7389d47412b60c0b24",
+              "checkpoint_ref": "checkpoint://tassadar.external_tape_store/tassadar.process.long_loop_kernel.v1",
+              "checkpoint_family": "tassadar.external_tape_store.v1",
+              "step": 16384,
+              "object_digest": "bd2505ee76242efe579a5ce74d84bb715c738b782b9bdf3ddcbb9bc1af3dcda3",
+              "total_bytes": 433,
+              "detail": "tassadar external tape-store locator via family `tassadar.external_tape_store.v1` ref `checkpoint://tassadar.external_tape_store/tassadar.process.long_loop_kernel.v1`"
+            }
+          }
+        ],
+        "refusal_kinds": [
+          "missing_external_tape_segment"
+        ],
+        "note": "spill-backed long-loop continuation preserves exact parity against the in-core lane and replays from the external tape store exactly"
+      },
+      {
+        "case_id": "search_frontier_spill_resume",
+        "process_id": "tassadar.process.search_frontier_kernel.v1",
+        "workload_family": "search_frontier_kernel",
+        "status": "exact_spill_and_resume_parity",
+        "spill_vs_in_core_parity": true,
+        "external_tape_resume_parity": true,
+        "portability_envelope_id": "cpu_reference_current_host",
+        "spill_segment_count": 2,
+        "external_tape_segment_count": 2,
+        "spill_segment_artifacts": [
+          {
+            "case_id": "search_frontier_spill_resume",
+            "spill_segment_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/search_frontier_spill_resume::spill::02.json",
+            "manifest_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/search_frontier_spill_resume::spill::02.manifest.json",
+            "manifest_ref": {
+              "stream_id": "spill-segment-search_frontier_spill_resume::spill::02",
+              "manifest_digest": "f71da2b90ba732e0a854998eadbd107c88b815128f91f4e24bfae51ca48066de",
+              "subject": "checkpoint",
+              "object_digest": "84b1b56fb8f5885b2731a308526955b0345f6c89c1f2e767da66ec7f551cfba5",
+              "total_bytes": 428,
+              "chunk_count": 14,
+              "chunk_bytes": 32,
+              "encoding": "raw_binary",
+              "checkpoint_binding": {
+                "checkpoint_family": "tassadar.spill_segment.v1",
+                "checkpoint_ref": "checkpoint://tassadar.spill_segment/tassadar.process.search_frontier_kernel.v1",
+                "step": 2048
+              }
+            },
+            "locator": {
+              "stream_id": "spill-segment-search_frontier_spill_resume::spill::02",
+              "manifest_digest": "f71da2b90ba732e0a854998eadbd107c88b815128f91f4e24bfae51ca48066de",
+              "checkpoint_ref": "checkpoint://tassadar.spill_segment/tassadar.process.search_frontier_kernel.v1",
+              "checkpoint_family": "tassadar.spill_segment.v1",
+              "step": 2048,
+              "object_digest": "84b1b56fb8f5885b2731a308526955b0345f6c89c1f2e767da66ec7f551cfba5",
+              "total_bytes": 428,
+              "detail": "tassadar spill-segment locator via family `tassadar.spill_segment.v1` ref `checkpoint://tassadar.spill_segment/tassadar.process.search_frontier_kernel.v1`"
+            }
+          },
+          {
+            "case_id": "search_frontier_spill_resume",
+            "spill_segment_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/search_frontier_spill_resume::spill::03.json",
+            "manifest_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/search_frontier_spill_resume::spill::03.manifest.json",
+            "manifest_ref": {
+              "stream_id": "spill-segment-search_frontier_spill_resume::spill::03",
+              "manifest_digest": "b67912ea8801d08a28558090a8dfe5de4e84043fa0395e2070ccf5cf02728a00",
+              "subject": "checkpoint",
+              "object_digest": "4f00ba87213058ef1cfa1705b6d3981b8bb0f62d1633272d51ce100be8b74216",
+              "total_bytes": 428,
+              "chunk_count": 14,
+              "chunk_bytes": 32,
+              "encoding": "raw_binary",
+              "checkpoint_binding": {
+                "checkpoint_family": "tassadar.spill_segment.v1",
+                "checkpoint_ref": "checkpoint://tassadar.spill_segment/tassadar.process.search_frontier_kernel.v1",
+                "step": 2048
+              }
+            },
+            "locator": {
+              "stream_id": "spill-segment-search_frontier_spill_resume::spill::03",
+              "manifest_digest": "b67912ea8801d08a28558090a8dfe5de4e84043fa0395e2070ccf5cf02728a00",
+              "checkpoint_ref": "checkpoint://tassadar.spill_segment/tassadar.process.search_frontier_kernel.v1",
+              "checkpoint_family": "tassadar.spill_segment.v1",
+              "step": 2048,
+              "object_digest": "4f00ba87213058ef1cfa1705b6d3981b8bb0f62d1633272d51ce100be8b74216",
+              "total_bytes": 428,
+              "detail": "tassadar spill-segment locator via family `tassadar.spill_segment.v1` ref `checkpoint://tassadar.spill_segment/tassadar.process.search_frontier_kernel.v1`"
+            }
+          }
+        ],
+        "external_tape_store_artifacts": [
+          {
+            "case_id": "search_frontier_spill_resume",
+            "tape_segment_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.search_frontier_kernel.v1::external_tape::00.json",
+            "manifest_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.search_frontier_kernel.v1::external_tape::00.manifest.json",
+            "manifest_ref": {
+              "stream_id": "external-tape-tassadar.process.search_frontier_kernel.v1::external_tape::00",
+              "manifest_digest": "11f35899ca986a1a8eb8e8f8b768f00f3a575242dad0933d11ab35e5e0a1b468",
+              "subject": "checkpoint",
+              "object_digest": "15125e2eec6136f1537b98d9a45f6247c9bc4ab920c716122d1a5cca8462c0b9",
+              "total_bytes": 451,
+              "chunk_count": 15,
+              "chunk_bytes": 32,
+              "encoding": "raw_binary",
+              "checkpoint_binding": {
+                "checkpoint_family": "tassadar.external_tape_store.v1",
+                "checkpoint_ref": "checkpoint://tassadar.external_tape_store/tassadar.process.search_frontier_kernel.v1",
+                "step": 2048
+              }
+            },
+            "locator": {
+              "stream_id": "external-tape-tassadar.process.search_frontier_kernel.v1::external_tape::00",
+              "manifest_digest": "11f35899ca986a1a8eb8e8f8b768f00f3a575242dad0933d11ab35e5e0a1b468",
+              "checkpoint_ref": "checkpoint://tassadar.external_tape_store/tassadar.process.search_frontier_kernel.v1",
+              "checkpoint_family": "tassadar.external_tape_store.v1",
+              "step": 2048,
+              "object_digest": "15125e2eec6136f1537b98d9a45f6247c9bc4ab920c716122d1a5cca8462c0b9",
+              "total_bytes": 451,
+              "detail": "tassadar external tape-store locator via family `tassadar.external_tape_store.v1` ref `checkpoint://tassadar.external_tape_store/tassadar.process.search_frontier_kernel.v1`"
+            }
+          },
+          {
+            "case_id": "search_frontier_spill_resume",
+            "tape_segment_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.search_frontier_kernel.v1::external_tape::01.json",
+            "manifest_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.search_frontier_kernel.v1::external_tape::01.manifest.json",
+            "manifest_ref": {
+              "stream_id": "external-tape-tassadar.process.search_frontier_kernel.v1::external_tape::01",
+              "manifest_digest": "8a1a0a15a2f155e28c0f2b850412f8ffe17ca76c76d45b0d471c2fef5bd6f08b",
+              "subject": "checkpoint",
+              "object_digest": "a0b229e11cb103f5b08513232f23f6b1f39bec3495cb3380d91d079a12aa36cf",
+              "total_bytes": 451,
+              "chunk_count": 15,
+              "chunk_bytes": 32,
+              "encoding": "raw_binary",
+              "checkpoint_binding": {
+                "checkpoint_family": "tassadar.external_tape_store.v1",
+                "checkpoint_ref": "checkpoint://tassadar.external_tape_store/tassadar.process.search_frontier_kernel.v1",
+                "step": 2048
+              }
+            },
+            "locator": {
+              "stream_id": "external-tape-tassadar.process.search_frontier_kernel.v1::external_tape::01",
+              "manifest_digest": "8a1a0a15a2f155e28c0f2b850412f8ffe17ca76c76d45b0d471c2fef5bd6f08b",
+              "checkpoint_ref": "checkpoint://tassadar.external_tape_store/tassadar.process.search_frontier_kernel.v1",
+              "checkpoint_family": "tassadar.external_tape_store.v1",
+              "step": 2048,
+              "object_digest": "a0b229e11cb103f5b08513232f23f6b1f39bec3495cb3380d91d079a12aa36cf",
+              "total_bytes": 451,
+              "detail": "tassadar external tape-store locator via family `tassadar.external_tape_store.v1` ref `checkpoint://tassadar.external_tape_store/tassadar.process.search_frontier_kernel.v1`"
+            }
+          }
+        ],
+        "refusal_kinds": [
+          "portability_envelope_mismatch"
+        ],
+        "note": "spill-backed search-frontier continuation preserves exact parity under the bounded cpu-reference portability envelope"
+      },
+      {
+        "case_id": "state_machine_oversize_spill_refusal",
+        "process_id": "tassadar.process.state_machine_accumulator.v1",
+        "workload_family": "state_machine_accumulator",
+        "status": "exact_refusal_parity",
+        "spill_vs_in_core_parity": false,
+        "external_tape_resume_parity": false,
+        "portability_envelope_id": "cpu_reference_current_host",
+        "spill_segment_count": 1,
+        "external_tape_segment_count": 1,
+        "spill_segment_artifacts": [
+          {
+            "case_id": "state_machine_oversize_spill_refusal",
+            "spill_segment_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/state_machine_oversize_spill_refusal::spill::00.json",
+            "manifest_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/state_machine_oversize_spill_refusal::spill::00.manifest.json",
+            "manifest_ref": {
+              "stream_id": "spill-segment-state_machine_oversize_spill_refusal::spill::00",
+              "manifest_digest": "828dc5df37c62ed30e848fe73bb9a25cdcdec3b6381c36d14b98149e7eff630b",
+              "subject": "checkpoint",
+              "object_digest": "f39d19d8fe1724d001439275144d5c6113c67e7c80253b1565e3f75f3a905fdc",
+              "total_bytes": 443,
+              "chunk_count": 14,
+              "chunk_bytes": 32,
+              "encoding": "raw_binary",
+              "checkpoint_binding": {
+                "checkpoint_family": "tassadar.spill_segment.v1",
+                "checkpoint_ref": "checkpoint://tassadar.spill_segment/tassadar.process.state_machine_accumulator.v1",
+                "step": 1024
+              }
+            },
+            "locator": {
+              "stream_id": "spill-segment-state_machine_oversize_spill_refusal::spill::00",
+              "manifest_digest": "828dc5df37c62ed30e848fe73bb9a25cdcdec3b6381c36d14b98149e7eff630b",
+              "checkpoint_ref": "checkpoint://tassadar.spill_segment/tassadar.process.state_machine_accumulator.v1",
+              "checkpoint_family": "tassadar.spill_segment.v1",
+              "step": 1024,
+              "object_digest": "f39d19d8fe1724d001439275144d5c6113c67e7c80253b1565e3f75f3a905fdc",
+              "total_bytes": 443,
+              "detail": "tassadar spill-segment locator via family `tassadar.spill_segment.v1` ref `checkpoint://tassadar.spill_segment/tassadar.process.state_machine_accumulator.v1`"
+            }
+          }
+        ],
+        "external_tape_store_artifacts": [
+          {
+            "case_id": "state_machine_oversize_spill_refusal",
+            "tape_segment_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.state_machine_accumulator.v1::external_tape::00.json",
+            "manifest_path": "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.state_machine_accumulator.v1::external_tape::00.manifest.json",
+            "manifest_ref": {
+              "stream_id": "external-tape-tassadar.process.state_machine_accumulator.v1::external_tape::00",
+              "manifest_digest": "cd679423ae74b27e12309db68fb384d67cb3519485ad88985db57d1c2b978e83",
+              "subject": "checkpoint",
+              "object_digest": "a3a328714b4dc29e3a6bae7e06926fcb1d867818ecd5c0b351365d1f027fc0df",
+              "total_bytes": 460,
+              "chunk_count": 15,
+              "chunk_bytes": 32,
+              "encoding": "raw_binary",
+              "checkpoint_binding": {
+                "checkpoint_family": "tassadar.external_tape_store.v1",
+                "checkpoint_ref": "checkpoint://tassadar.external_tape_store/tassadar.process.state_machine_accumulator.v1",
+                "step": 1024
+              }
+            },
+            "locator": {
+              "stream_id": "external-tape-tassadar.process.state_machine_accumulator.v1::external_tape::00",
+              "manifest_digest": "cd679423ae74b27e12309db68fb384d67cb3519485ad88985db57d1c2b978e83",
+              "checkpoint_ref": "checkpoint://tassadar.external_tape_store/tassadar.process.state_machine_accumulator.v1",
+              "checkpoint_family": "tassadar.external_tape_store.v1",
+              "step": 1024,
+              "object_digest": "a3a328714b4dc29e3a6bae7e06926fcb1d867818ecd5c0b351365d1f027fc0df",
+              "total_bytes": 460,
+              "detail": "tassadar external tape-store locator via family `tassadar.external_tape_store.v1` ref `checkpoint://tassadar.external_tape_store/tassadar.process.state_machine_accumulator.v1`"
+            }
+          }
+        ],
+        "refusal_kinds": [
+          "oversize_state_out_of_envelope"
+        ],
+        "note": "oversize spill state stays on an explicit refusal path instead of widening the bounded segment-size contract"
+      }
+    ],
+    "profile_id": "tassadar.internal_compute.spill_tape_store.v1",
+    "spill_segment_family_id": "tassadar.spill_segment.v1",
+    "external_tape_store_family_id": "tassadar.external_tape_store.v1",
+    "portability_envelope_ids": [
+      "cpu_reference_current_host"
+    ],
+    "exact_case_count": 2,
+    "refusal_case_count": 3,
+    "generated_from_refs": [
+      "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.long_loop_kernel.v1::external_tape::00.json",
+      "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.long_loop_kernel.v1::external_tape::00.manifest.json",
+      "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.long_loop_kernel.v1::external_tape::01.json",
+      "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.long_loop_kernel.v1::external_tape::01.manifest.json",
+      "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.search_frontier_kernel.v1::external_tape::00.json",
+      "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.search_frontier_kernel.v1::external_tape::00.manifest.json",
+      "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.search_frontier_kernel.v1::external_tape::01.json",
+      "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.search_frontier_kernel.v1::external_tape::01.manifest.json",
+      "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.state_machine_accumulator.v1::external_tape::00.json",
+      "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/external_tape_store/tassadar.process.state_machine_accumulator.v1::external_tape::00.manifest.json",
+      "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/long_loop_spill_resume::spill::00.json",
+      "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/long_loop_spill_resume::spill::00.manifest.json",
+      "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/long_loop_spill_resume::spill::01.json",
+      "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/long_loop_spill_resume::spill::01.manifest.json",
+      "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/search_frontier_spill_resume::spill::02.json",
+      "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/search_frontier_spill_resume::spill::02.manifest.json",
+      "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/search_frontier_spill_resume::spill::03.json",
+      "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/search_frontier_spill_resume::spill::03.manifest.json",
+      "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/state_machine_oversize_spill_refusal::spill::00.json",
+      "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/spill_segments/state_machine_oversize_spill_refusal::spill::00.manifest.json",
+      "fixtures/tassadar/runs/tassadar_spill_tape_store_v1/tassadar_spill_tape_store_bundle.json"
+    ],
+    "claim_boundary": "this eval report covers one bounded spill-aware continuation profile with external tape-store semantics on the current-host cpu-reference portability envelope only. It keeps oversize-state, missing-segment, and non-cpu portability widening on typed refusal paths instead of implying arbitrary persistent memory, async effect closure, or broader served internal compute",
+    "summary": "Spill/tape report covers exact_cases=2, refusal_rows=3, case_reports=3.",
+    "report_digest": "aff6caa9d10360eb67a5d0182d617c37546d0c78f4900201a55c522fbf441b4e"
+  },
+  "process_object_report": {
+    "schema_version": 1,
+    "report_id": "tassadar.process_object.report.v1",
+    "runtime_bundle_ref": "fixtures/tassadar/runs/tassadar_process_objects_v1/tassadar_process_object_bundle.json",
+    "runtime_bundle": {
+      "schema_version": 1,
+      "bundle_id": "tassadar.process_object.bundle.v1",
+      "profile_id": "tassadar.internal_compute.process_objects.v1",
+      "snapshot_family_id": "tassadar.process_snapshot.v1",
+      "tape_family_id": "tassadar.process_tape.v1",
+      "work_queue_family_id": "tassadar.process_work_queue.v1",
+      "case_receipts": [
+        {
+          "case_id": "long_loop_kernel",
+          "process_id": "tassadar.process.long_loop_kernel.v1",
+          "workload_family": "long_loop_kernel",
+          "exact_process_parity": true,
+          "snapshot": {
+            "process_id": "tassadar.process.long_loop_kernel.v1",
+            "workload_family": "long_loop_kernel",
+            "profile_id": "tassadar.internal_compute.process_objects.v1",
+            "snapshot_family_id": "tassadar.process_snapshot.v1",
+            "checkpoint_id": "tassadar.long_loop_kernel.checkpoint.slice_0003",
+            "next_step_index": 12,
+            "state_bytes": 16,
+            "memory_digest": "d66d35222e85c5ed2e425a9acc6755d4135be6eab3fbb380781a53c7e0cb73c3",
+            "replay_identity": "f2cd05b5f85a9dacdaa2647361cb56e87d010a88fbfe1bf77dd06afe71cf9783",
+            "tape_head_position": 4,
+            "work_queue_depth": 1,
+            "snapshot_digest": "9f95fa2ce637474be93eae5e01ba8ae771146b435d21bfb56499085ab3d50a55"
+          },
+          "tape": {
+            "process_id": "tassadar.process.long_loop_kernel.v1",
+            "tape_family_id": "tassadar.process_tape.v1",
+            "latest_checkpoint_id": "tassadar.long_loop_kernel.checkpoint.slice_0003",
+            "head_position": 4,
+            "entry_count": 4,
+            "entries": [
+              {
+                "entry_id": "tassadar.process.long_loop_kernel.v1::tape::00",
+                "kind": "slice_checkpoint",
+                "source_checkpoint_id": "tassadar.long_loop_kernel.checkpoint.slice_0000",
+                "source_slice_index": 0,
+                "next_step_index": 3,
+                "state_digest": "923335d088c382419cc2d6bec73dd4e5217dfb4f8cd738022289c464c171fcc4",
+                "note": "process tape entry captures slice 0 for `long_loop_kernel`"
+              },
+              {
+                "entry_id": "tassadar.process.long_loop_kernel.v1::tape::01",
+                "kind": "queue_ready",
+                "source_checkpoint_id": "tassadar.long_loop_kernel.checkpoint.slice_0001",
+                "source_slice_index": 1,
+                "next_step_index": 6,
+                "state_digest": "cfb24a44de05f4b1ad0ea78ca4c020b5a12a27c3388ce42b67ca283eb78e028e",
+                "note": "process tape entry captures slice 1 for `long_loop_kernel`"
+              },
+              {
+                "entry_id": "tassadar.process.long_loop_kernel.v1::tape::02",
+                "kind": "queue_ready",
+                "source_checkpoint_id": "tassadar.long_loop_kernel.checkpoint.slice_0002",
+                "source_slice_index": 2,
+                "next_step_index": 9,
+                "state_digest": "bdd6b20805a4b0ccc0dbd22b06987fee3199dcbb4a558a200a72269edd4aeeaa",
+                "note": "process tape entry captures slice 2 for `long_loop_kernel`"
+              },
+              {
+                "entry_id": "tassadar.process.long_loop_kernel.v1::tape::03",
+                "kind": "queue_ready",
+                "source_checkpoint_id": "tassadar.long_loop_kernel.checkpoint.slice_0003",
+                "source_slice_index": 3,
+                "next_step_index": 12,
+                "state_digest": "d66d35222e85c5ed2e425a9acc6755d4135be6eab3fbb380781a53c7e0cb73c3",
+                "note": "process tape entry captures slice 3 for `long_loop_kernel`"
+              }
+            ],
+            "tape_digest": "a7c880f223e8d166348f9463f96b807abbac90afcf85cdb30a3e5b6ec3444810"
+          },
+          "work_queue": {
+            "process_id": "tassadar.process.long_loop_kernel.v1",
+            "queue_family_id": "tassadar.process_work_queue.v1",
+            "latest_checkpoint_id": "tassadar.long_loop_kernel.checkpoint.slice_0003",
+            "pending_entry_count": 1,
+            "drained_entry_count": 4,
+            "entries": [
+              {
+                "entry_id": "long_loop_kernel::resume_loop_slice",
+                "operation_id": "resume_loop_slice",
+                "payload_digest": "83ed381bd299fa8c8867cb19cdb8dd0a175fd743515bad0e8bd86feaeffcf1a1",
+                "enqueued_at_step": 12,
+                "priority": 1,
+                "note": "resume the next bounded loop slice from the durable process snapshot"
+              }
+            ],
+            "queue_digest": "aef14a92e7fd41cc3bc7e218eb4a83a170139cf842c3d68253bcdd9aa6c62a63"
+          },
+          "refusal_cases": [
+            {
+              "refusal_kind": "stale_process_snapshot",
+              "object_ref": "tassadar.long_loop_kernel.checkpoint.slice_0000",
+              "detail": "older process snapshots remain stale once a later durable continuation object supersedes them The underlying execution-checkpoint lineage already exercises stale-checkpoint refusal truth."
+            },
+            {
+              "refusal_kind": "tape_cursor_out_of_range",
+              "object_ref": "tassadar.process.long_loop_kernel.v1#tape",
+              "detail": "process tape for `long_loop_kernel` refuses cursors beyond head_position=4"
+            },
+            {
+              "refusal_kind": "work_queue_profile_mismatch",
+              "object_ref": "tassadar.process.long_loop_kernel.v1#queue",
+              "detail": "work queue for `long_loop_kernel` remains profile-bound to `tassadar.internal_compute.process_objects.v1` and refuses mismatched profile resumes"
+            }
+          ],
+          "note": "durable process objects preserve checkpointed continuation for `long_loop_kernel` while keeping stale or malformed continuation objects explicit",
+          "receipt_digest": "5fb28ebd26ce35ef9c815956fb983f45f092b9e30fc6fac699fb8d86b314e63d"
+        },
+        {
+          "case_id": "state_machine_accumulator",
+          "process_id": "tassadar.process.state_machine_accumulator.v1",
+          "workload_family": "state_machine_accumulator",
+          "exact_process_parity": true,
+          "snapshot": {
+            "process_id": "tassadar.process.state_machine_accumulator.v1",
+            "workload_family": "state_machine_accumulator",
+            "profile_id": "tassadar.internal_compute.process_objects.v1",
+            "snapshot_family_id": "tassadar.process_snapshot.v1",
+            "checkpoint_id": "tassadar.state_machine_accumulator.checkpoint.slice_0001",
+            "next_step_index": 6,
+            "state_bytes": 24,
+            "memory_digest": "69abf6322ebead0e9f213bbb118e0e84c47c0cff17ef1610ded150ec25fb544c",
+            "replay_identity": "355c4557b35ab08f221ac077bf4e544c630856ab47e23b22ad30401f962bdd34",
+            "tape_head_position": 2,
+            "work_queue_depth": 2,
+            "snapshot_digest": "88877ab5d78244f4f604e65ee699b99d99814deae1585f180df1a05a33bbd27b"
+          },
+          "tape": {
+            "process_id": "tassadar.process.state_machine_accumulator.v1",
+            "tape_family_id": "tassadar.process_tape.v1",
+            "latest_checkpoint_id": "tassadar.state_machine_accumulator.checkpoint.slice_0001",
+            "head_position": 2,
+            "entry_count": 2,
+            "entries": [
+              {
+                "entry_id": "tassadar.process.state_machine_accumulator.v1::tape::00",
+                "kind": "slice_checkpoint",
+                "source_checkpoint_id": "tassadar.state_machine_accumulator.checkpoint.slice_0000",
+                "source_slice_index": 0,
+                "next_step_index": 3,
+                "state_digest": "e9baea5fc9611878613a0fdf8d3ebd40cca4da62612cc94631377dbb615c5ea5",
+                "note": "process tape entry captures slice 0 for `state_machine_accumulator`"
+              },
+              {
+                "entry_id": "tassadar.process.state_machine_accumulator.v1::tape::01",
+                "kind": "queue_ready",
+                "source_checkpoint_id": "tassadar.state_machine_accumulator.checkpoint.slice_0001",
+                "source_slice_index": 1,
+                "next_step_index": 6,
+                "state_digest": "69abf6322ebead0e9f213bbb118e0e84c47c0cff17ef1610ded150ec25fb544c",
+                "note": "process tape entry captures slice 1 for `state_machine_accumulator`"
+              }
+            ],
+            "tape_digest": "1eeddfa37cb8348cdffbeb4e3d95d2fae8473e6c913d2bbfc93350e422cd8eeb"
+          },
+          "work_queue": {
+            "process_id": "tassadar.process.state_machine_accumulator.v1",
+            "queue_family_id": "tassadar.process_work_queue.v1",
+            "latest_checkpoint_id": "tassadar.state_machine_accumulator.checkpoint.slice_0001",
+            "pending_entry_count": 2,
+            "drained_entry_count": 2,
+            "entries": [
+              {
+                "entry_id": "state_machine_accumulator::load_state_stage",
+                "operation_id": "load_state_stage",
+                "payload_digest": "5d50d0c5706171aa1505698fb5dcefbcc1c9825730fb8ee53c63412113b9a3aa",
+                "enqueued_at_step": 6,
+                "priority": 1,
+                "note": "load the staged accumulator state from the durable snapshot"
+              },
+              {
+                "entry_id": "state_machine_accumulator::emit_final_sum",
+                "operation_id": "emit_final_sum",
+                "payload_digest": "0d5917dde89a6c5d2cb02018030b308ca9e481b1d203ea42687ff67bf9976bee",
+                "enqueued_at_step": 7,
+                "priority": 2,
+                "note": "emit the final deterministic accumulator value after queue drain"
+              }
+            ],
+            "queue_digest": "51ae1a2a64bc02660fb3f8b7629a2ced26cffdea1863637201d762993b86ea16"
+          },
+          "refusal_cases": [
+            {
+              "refusal_kind": "stale_process_snapshot",
+              "object_ref": "tassadar.state_machine_accumulator.checkpoint.slice_0000",
+              "detail": "older process snapshots remain stale once a later durable continuation object supersedes them The underlying execution-checkpoint lineage already exercises stale-checkpoint refusal truth."
+            },
+            {
+              "refusal_kind": "tape_cursor_out_of_range",
+              "object_ref": "tassadar.process.state_machine_accumulator.v1#tape",
+              "detail": "process tape for `state_machine_accumulator` refuses cursors beyond head_position=2"
+            },
+            {
+              "refusal_kind": "work_queue_profile_mismatch",
+              "object_ref": "tassadar.process.state_machine_accumulator.v1#queue",
+              "detail": "work queue for `state_machine_accumulator` remains profile-bound to `tassadar.internal_compute.process_objects.v1` and refuses mismatched profile resumes"
+            }
+          ],
+          "note": "durable process objects preserve checkpointed continuation for `state_machine_accumulator` while keeping stale or malformed continuation objects explicit",
+          "receipt_digest": "02b743e79798e295c0fb00231f86672f4b8840534d20298fec3137e49ff88ef1"
+        },
+        {
+          "case_id": "search_frontier_kernel",
+          "process_id": "tassadar.process.search_frontier_kernel.v1",
+          "workload_family": "search_frontier_kernel",
+          "exact_process_parity": true,
+          "snapshot": {
+            "process_id": "tassadar.process.search_frontier_kernel.v1",
+            "workload_family": "search_frontier_kernel",
+            "profile_id": "tassadar.internal_compute.process_objects.v1",
+            "snapshot_family_id": "tassadar.process_snapshot.v1",
+            "checkpoint_id": "tassadar.search_frontier_kernel.checkpoint.slice_0002",
+            "next_step_index": 9,
+            "state_bytes": 24,
+            "memory_digest": "9162240aed1896b18b0595a6fb39cda31d502f890c10d0822aaaf3fe4f614aee",
+            "replay_identity": "d761fa3b78e187c48716af1156dfc1c6ec5dbc3bd80dee9ced7a71ca6c96f716",
+            "tape_head_position": 3,
+            "work_queue_depth": 2,
+            "snapshot_digest": "50f0e80646d1c7b5eca7702b89ed655873497920cbce2a60bc36a47db7807410"
+          },
+          "tape": {
+            "process_id": "tassadar.process.search_frontier_kernel.v1",
+            "tape_family_id": "tassadar.process_tape.v1",
+            "latest_checkpoint_id": "tassadar.search_frontier_kernel.checkpoint.slice_0002",
+            "head_position": 3,
+            "entry_count": 3,
+            "entries": [
+              {
+                "entry_id": "tassadar.process.search_frontier_kernel.v1::tape::00",
+                "kind": "frontier_drain",
+                "source_checkpoint_id": "tassadar.search_frontier_kernel.checkpoint.slice_0000",
+                "source_slice_index": 0,
+                "next_step_index": 3,
+                "state_digest": "25eab9b8d0db53c41f4660b17e9529f6638934cc3894ee1e025d06e0e4d50ec2",
+                "note": "process tape entry captures slice 0 for `search_frontier_kernel`"
+              },
+              {
+                "entry_id": "tassadar.process.search_frontier_kernel.v1::tape::01",
+                "kind": "frontier_drain",
+                "source_checkpoint_id": "tassadar.search_frontier_kernel.checkpoint.slice_0001",
+                "source_slice_index": 1,
+                "next_step_index": 6,
+                "state_digest": "6ab103150dd5c87bab83f330913c994736e39765fa5ed286c66d7e8ee33144ee",
+                "note": "process tape entry captures slice 1 for `search_frontier_kernel`"
+              },
+              {
+                "entry_id": "tassadar.process.search_frontier_kernel.v1::tape::02",
+                "kind": "frontier_drain",
+                "source_checkpoint_id": "tassadar.search_frontier_kernel.checkpoint.slice_0002",
+                "source_slice_index": 2,
+                "next_step_index": 9,
+                "state_digest": "9162240aed1896b18b0595a6fb39cda31d502f890c10d0822aaaf3fe4f614aee",
+                "note": "process tape entry captures slice 2 for `search_frontier_kernel`"
+              }
+            ],
+            "tape_digest": "689bfd648f050ebe7e59637b529e180d02e2a358a5ae555f2cc60a257fa3072b"
+          },
+          "work_queue": {
+            "process_id": "tassadar.process.search_frontier_kernel.v1",
+            "queue_family_id": "tassadar.process_work_queue.v1",
+            "latest_checkpoint_id": "tassadar.search_frontier_kernel.checkpoint.slice_0002",
+            "pending_entry_count": 2,
+            "drained_entry_count": 3,
+            "entries": [
+              {
+                "entry_id": "search_frontier_kernel::expand_frontier_head",
+                "operation_id": "expand_frontier_head",
+                "payload_digest": "3abe607fb17b87a91396ede282ee13207f763f4c3eb01e8f5a3ab61e4d9ef7ab",
+                "enqueued_at_step": 9,
+                "priority": 1,
+                "note": "expand the frontier head selected by the durable queue"
+              },
+              {
+                "entry_id": "search_frontier_kernel::drain_terminal_goal",
+                "operation_id": "drain_terminal_goal",
+                "payload_digest": "cc50d9c1345fc003544072220614831b153cb35cf39ced276b78b323f770732c",
+                "enqueued_at_step": 10,
+                "priority": 2,
+                "note": "drain the terminal goal entry after deterministic frontier replay"
+              }
+            ],
+            "queue_digest": "0f48f697d6a4ca58f22a47cd983f079e0ebd64e5fe4f035f95957c5a3d5fd7bd"
+          },
+          "refusal_cases": [
+            {
+              "refusal_kind": "stale_process_snapshot",
+              "object_ref": "tassadar.search_frontier_kernel.checkpoint.slice_0000",
+              "detail": "older process snapshots remain stale once a later durable continuation object supersedes them The underlying execution-checkpoint lineage already exercises stale-checkpoint refusal truth."
+            },
+            {
+              "refusal_kind": "tape_cursor_out_of_range",
+              "object_ref": "tassadar.process.search_frontier_kernel.v1#tape",
+              "detail": "process tape for `search_frontier_kernel` refuses cursors beyond head_position=3"
+            },
+            {
+              "refusal_kind": "work_queue_profile_mismatch",
+              "object_ref": "tassadar.process.search_frontier_kernel.v1#queue",
+              "detail": "work queue for `search_frontier_kernel` remains profile-bound to `tassadar.internal_compute.process_objects.v1` and refuses mismatched profile resumes"
+            }
+          ],
+          "note": "durable process objects preserve checkpointed continuation for `search_frontier_kernel` while keeping stale or malformed continuation objects explicit",
+          "receipt_digest": "be7afdccd53165dbfd2e4c32e566d08887c210ab33dd12b3391b0c0d0879c062"
+        }
+      ],
+      "exact_process_case_count": 3,
+      "refusal_case_count": 9,
+      "claim_boundary": "this runtime bundle freezes one durable process-object family over the committed checkpointed workloads only. It keeps snapshots, tapes, work queues, and malformed-or-stale continuation-object refusals explicit instead of implying arbitrary process semantics, async effects, or general served internal compute",
+      "summary": "Process-object bundle covers 3 process rows with exact_process_cases=3 and refusal_cases=9.",
+      "bundle_digest": "ae6a85f67464acb401a7ecc3748b56453da15a1f80d8041aaea5b712ac6c25ab"
+    },
+    "case_reports": [
+      {
+        "case_id": "long_loop_kernel",
+        "process_id": "tassadar.process.long_loop_kernel.v1",
+        "workload_family": "long_loop_kernel",
+        "exact_process_parity": true,
+        "checkpoint_id": "tassadar.long_loop_kernel.checkpoint.slice_0003",
+        "next_step_index": 12,
+        "tape_entry_count": 4,
+        "work_queue_depth": 1,
+        "snapshot_artifact": {
+          "process_id": "tassadar.process.long_loop_kernel.v1",
+          "snapshot_path": "fixtures/tassadar/runs/tassadar_process_objects_v1/long_loop_kernel_snapshot_artifact.json",
+          "manifest_path": "fixtures/tassadar/runs/tassadar_process_objects_v1/long_loop_kernel_snapshot_manifest.json",
+          "manifest_ref": {
+            "stream_id": "tassadar-process-snapshot://tassadar.process.long_loop_kernel.v1",
+            "manifest_digest": "d80a68518a77e6033fd4e490df79bdf274d7060d1e982045002c7833b68d39a1",
+            "subject": "checkpoint",
+            "object_digest": "9ccaaa11e5abaa69abe2c0b435989bcfe8aacb1f20107867f2f011c9fa68116c",
+            "total_bytes": 653,
+            "chunk_count": 7,
+            "chunk_bytes": 96,
+            "encoding": "raw_binary",
+            "provenance_digest": "9f95fa2ce637474be93eae5e01ba8ae771146b435d21bfb56499085ab3d50a55",
+            "checkpoint_binding": {
+              "checkpoint_family": "tassadar.process_snapshot.v1",
+              "checkpoint_ref": "checkpoint://tassadar.process_snapshot/tassadar.process.long_loop_kernel.v1",
+              "step": 12
+            }
+          },
+          "locator": {
+            "stream_id": "tassadar-process-snapshot://tassadar.process.long_loop_kernel.v1",
+            "manifest_digest": "d80a68518a77e6033fd4e490df79bdf274d7060d1e982045002c7833b68d39a1",
+            "checkpoint_ref": "checkpoint://tassadar.process_snapshot/tassadar.process.long_loop_kernel.v1",
+            "checkpoint_family": "tassadar.process_snapshot.v1",
+            "step": 12,
+            "object_digest": "9ccaaa11e5abaa69abe2c0b435989bcfe8aacb1f20107867f2f011c9fa68116c",
+            "total_bytes": 653,
+            "detail": "tassadar durable process snapshot locator via family `tassadar.process_snapshot.v1` ref `checkpoint://tassadar.process_snapshot/tassadar.process.long_loop_kernel.v1`"
+          }
+        },
+        "tape_artifact": {
+          "process_id": "tassadar.process.long_loop_kernel.v1",
+          "tape_path": "fixtures/tassadar/runs/tassadar_process_objects_v1/long_loop_kernel_tape_artifact.json",
+          "manifest_path": "fixtures/tassadar/runs/tassadar_process_objects_v1/long_loop_kernel_tape_manifest.json",
+          "manifest_ref": {
+            "stream_id": "tassadar-process-tape://tassadar.process.long_loop_kernel.v1",
+            "manifest_digest": "d6e20ade0c34ad21b670fcf4e60246c20aeb2c631b067a38441e205018f4719f",
+            "subject": "checkpoint",
+            "object_digest": "a33033d680fde1942b602657ee03106728b7911c6365527a63df1a13f7c7f441",
+            "total_bytes": 1996,
+            "chunk_count": 21,
+            "chunk_bytes": 96,
+            "encoding": "raw_binary",
+            "provenance_digest": "a7c880f223e8d166348f9463f96b807abbac90afcf85cdb30a3e5b6ec3444810",
+            "checkpoint_binding": {
+              "checkpoint_family": "tassadar.process_tape.v1",
+              "checkpoint_ref": "checkpoint://tassadar.process_tape/tassadar.process.long_loop_kernel.v1",
+              "step": 12
+            }
+          },
+          "locator": {
+            "stream_id": "tassadar-process-tape://tassadar.process.long_loop_kernel.v1",
+            "manifest_digest": "d6e20ade0c34ad21b670fcf4e60246c20aeb2c631b067a38441e205018f4719f",
+            "checkpoint_ref": "checkpoint://tassadar.process_tape/tassadar.process.long_loop_kernel.v1",
+            "checkpoint_family": "tassadar.process_tape.v1",
+            "step": 12,
+            "object_digest": "a33033d680fde1942b602657ee03106728b7911c6365527a63df1a13f7c7f441",
+            "total_bytes": 1996,
+            "detail": "tassadar durable process tape locator via family `tassadar.process_tape.v1` ref `checkpoint://tassadar.process_tape/tassadar.process.long_loop_kernel.v1`"
+          }
+        },
+        "work_queue_artifact": {
+          "process_id": "tassadar.process.long_loop_kernel.v1",
+          "work_queue_path": "fixtures/tassadar/runs/tassadar_process_objects_v1/long_loop_kernel_work_queue_artifact.json",
+          "manifest_path": "fixtures/tassadar/runs/tassadar_process_objects_v1/long_loop_kernel_work_queue_manifest.json",
+          "manifest_ref": {
+            "stream_id": "tassadar-process-work-queue://tassadar.process.long_loop_kernel.v1",
+            "manifest_digest": "9a94924024e26e43fec7931f4ea207d1fb00fd1ea7f3aad385679f1414a847c5",
+            "subject": "checkpoint",
+            "object_digest": "d83f1981339fb1504ff9c1928609bad8a5ed8da39a487fcbc73e0ffec7847e55",
+            "total_bytes": 693,
+            "chunk_count": 8,
+            "chunk_bytes": 96,
+            "encoding": "raw_binary",
+            "provenance_digest": "aef14a92e7fd41cc3bc7e218eb4a83a170139cf842c3d68253bcdd9aa6c62a63",
+            "checkpoint_binding": {
+              "checkpoint_family": "tassadar.process_work_queue.v1",
+              "checkpoint_ref": "checkpoint://tassadar.process_work_queue/tassadar.process.long_loop_kernel.v1",
+              "step": 12
+            }
+          },
+          "locator": {
+            "stream_id": "tassadar-process-work-queue://tassadar.process.long_loop_kernel.v1",
+            "manifest_digest": "9a94924024e26e43fec7931f4ea207d1fb00fd1ea7f3aad385679f1414a847c5",
+            "checkpoint_ref": "checkpoint://tassadar.process_work_queue/tassadar.process.long_loop_kernel.v1",
+            "checkpoint_family": "tassadar.process_work_queue.v1",
+            "step": 12,
+            "object_digest": "d83f1981339fb1504ff9c1928609bad8a5ed8da39a487fcbc73e0ffec7847e55",
+            "total_bytes": 693,
+            "detail": "tassadar durable process work-queue locator via family `tassadar.process_work_queue.v1` ref `checkpoint://tassadar.process_work_queue/tassadar.process.long_loop_kernel.v1`"
+          }
+        },
+        "refusal_kinds": [
+          "stale_process_snapshot",
+          "tape_cursor_out_of_range",
+          "work_queue_profile_mismatch"
+        ],
+        "note": "durable process objects preserve checkpointed continuation for `long_loop_kernel` while keeping stale or malformed continuation objects explicit"
+      },
+      {
+        "case_id": "state_machine_accumulator",
+        "process_id": "tassadar.process.state_machine_accumulator.v1",
+        "workload_family": "state_machine_accumulator",
+        "exact_process_parity": true,
+        "checkpoint_id": "tassadar.state_machine_accumulator.checkpoint.slice_0001",
+        "next_step_index": 6,
+        "tape_entry_count": 2,
+        "work_queue_depth": 2,
+        "snapshot_artifact": {
+          "process_id": "tassadar.process.state_machine_accumulator.v1",
+          "snapshot_path": "fixtures/tassadar/runs/tassadar_process_objects_v1/state_machine_accumulator_snapshot_artifact.json",
+          "manifest_path": "fixtures/tassadar/runs/tassadar_process_objects_v1/state_machine_accumulator_snapshot_manifest.json",
+          "manifest_ref": {
+            "stream_id": "tassadar-process-snapshot://tassadar.process.state_machine_accumulator.v1",
+            "manifest_digest": "5343c72e14f2950363e00a8f59a01b30dbcaf843d726d64fd5406747b1660cd6",
+            "subject": "checkpoint",
+            "object_digest": "c0b9b086d89941eddd104e1cf63bd4e5d22cc5722fe78009b283d253a2c68498",
+            "total_bytes": 679,
+            "chunk_count": 8,
+            "chunk_bytes": 96,
+            "encoding": "raw_binary",
+            "provenance_digest": "88877ab5d78244f4f604e65ee699b99d99814deae1585f180df1a05a33bbd27b",
+            "checkpoint_binding": {
+              "checkpoint_family": "tassadar.process_snapshot.v1",
+              "checkpoint_ref": "checkpoint://tassadar.process_snapshot/tassadar.process.state_machine_accumulator.v1",
+              "step": 6
+            }
+          },
+          "locator": {
+            "stream_id": "tassadar-process-snapshot://tassadar.process.state_machine_accumulator.v1",
+            "manifest_digest": "5343c72e14f2950363e00a8f59a01b30dbcaf843d726d64fd5406747b1660cd6",
+            "checkpoint_ref": "checkpoint://tassadar.process_snapshot/tassadar.process.state_machine_accumulator.v1",
+            "checkpoint_family": "tassadar.process_snapshot.v1",
+            "step": 6,
+            "object_digest": "c0b9b086d89941eddd104e1cf63bd4e5d22cc5722fe78009b283d253a2c68498",
+            "total_bytes": 679,
+            "detail": "tassadar durable process snapshot locator via family `tassadar.process_snapshot.v1` ref `checkpoint://tassadar.process_snapshot/tassadar.process.state_machine_accumulator.v1`"
+          }
+        },
+        "tape_artifact": {
+          "process_id": "tassadar.process.state_machine_accumulator.v1",
+          "tape_path": "fixtures/tassadar/runs/tassadar_process_objects_v1/state_machine_accumulator_tape_artifact.json",
+          "manifest_path": "fixtures/tassadar/runs/tassadar_process_objects_v1/state_machine_accumulator_tape_manifest.json",
+          "manifest_ref": {
+            "stream_id": "tassadar-process-tape://tassadar.process.state_machine_accumulator.v1",
+            "manifest_digest": "eec75b65d4ab55e1e4683a4ded32e13befb9efb76dd19f2c9069f8d791ed6481",
+            "subject": "checkpoint",
+            "object_digest": "a1cf92c3e24bbf1ea6c34236aef8485157ffd823b90fe3c2fc0145371d9791b5",
+            "total_bytes": 1237,
+            "chunk_count": 13,
+            "chunk_bytes": 96,
+            "encoding": "raw_binary",
+            "provenance_digest": "1eeddfa37cb8348cdffbeb4e3d95d2fae8473e6c913d2bbfc93350e422cd8eeb",
+            "checkpoint_binding": {
+              "checkpoint_family": "tassadar.process_tape.v1",
+              "checkpoint_ref": "checkpoint://tassadar.process_tape/tassadar.process.state_machine_accumulator.v1",
+              "step": 6
+            }
+          },
+          "locator": {
+            "stream_id": "tassadar-process-tape://tassadar.process.state_machine_accumulator.v1",
+            "manifest_digest": "eec75b65d4ab55e1e4683a4ded32e13befb9efb76dd19f2c9069f8d791ed6481",
+            "checkpoint_ref": "checkpoint://tassadar.process_tape/tassadar.process.state_machine_accumulator.v1",
+            "checkpoint_family": "tassadar.process_tape.v1",
+            "step": 6,
+            "object_digest": "a1cf92c3e24bbf1ea6c34236aef8485157ffd823b90fe3c2fc0145371d9791b5",
+            "total_bytes": 1237,
+            "detail": "tassadar durable process tape locator via family `tassadar.process_tape.v1` ref `checkpoint://tassadar.process_tape/tassadar.process.state_machine_accumulator.v1`"
+          }
+        },
+        "work_queue_artifact": {
+          "process_id": "tassadar.process.state_machine_accumulator.v1",
+          "work_queue_path": "fixtures/tassadar/runs/tassadar_process_objects_v1/state_machine_accumulator_work_queue_artifact.json",
+          "manifest_path": "fixtures/tassadar/runs/tassadar_process_objects_v1/state_machine_accumulator_work_queue_manifest.json",
+          "manifest_ref": {
+            "stream_id": "tassadar-process-work-queue://tassadar.process.state_machine_accumulator.v1",
+            "manifest_digest": "0518948cb19e6bbd89a21cb3db15a53110382f68b4486230a2ba443d19f5cb6e",
+            "subject": "checkpoint",
+            "object_digest": "b327c6cad90a612ad62c5bd71a1ccc2671a894c6017c152b6a9f02c04ca31c6e",
+            "total_bytes": 1047,
+            "chunk_count": 11,
+            "chunk_bytes": 96,
+            "encoding": "raw_binary",
+            "provenance_digest": "51ae1a2a64bc02660fb3f8b7629a2ced26cffdea1863637201d762993b86ea16",
+            "checkpoint_binding": {
+              "checkpoint_family": "tassadar.process_work_queue.v1",
+              "checkpoint_ref": "checkpoint://tassadar.process_work_queue/tassadar.process.state_machine_accumulator.v1",
+              "step": 6
+            }
+          },
+          "locator": {
+            "stream_id": "tassadar-process-work-queue://tassadar.process.state_machine_accumulator.v1",
+            "manifest_digest": "0518948cb19e6bbd89a21cb3db15a53110382f68b4486230a2ba443d19f5cb6e",
+            "checkpoint_ref": "checkpoint://tassadar.process_work_queue/tassadar.process.state_machine_accumulator.v1",
+            "checkpoint_family": "tassadar.process_work_queue.v1",
+            "step": 6,
+            "object_digest": "b327c6cad90a612ad62c5bd71a1ccc2671a894c6017c152b6a9f02c04ca31c6e",
+            "total_bytes": 1047,
+            "detail": "tassadar durable process work-queue locator via family `tassadar.process_work_queue.v1` ref `checkpoint://tassadar.process_work_queue/tassadar.process.state_machine_accumulator.v1`"
+          }
+        },
+        "refusal_kinds": [
+          "stale_process_snapshot",
+          "tape_cursor_out_of_range",
+          "work_queue_profile_mismatch"
+        ],
+        "note": "durable process objects preserve checkpointed continuation for `state_machine_accumulator` while keeping stale or malformed continuation objects explicit"
+      },
+      {
+        "case_id": "search_frontier_kernel",
+        "process_id": "tassadar.process.search_frontier_kernel.v1",
+        "workload_family": "search_frontier_kernel",
+        "exact_process_parity": true,
+        "checkpoint_id": "tassadar.search_frontier_kernel.checkpoint.slice_0002",
+        "next_step_index": 9,
+        "tape_entry_count": 3,
+        "work_queue_depth": 2,
+        "snapshot_artifact": {
+          "process_id": "tassadar.process.search_frontier_kernel.v1",
+          "snapshot_path": "fixtures/tassadar/runs/tassadar_process_objects_v1/search_frontier_kernel_snapshot_artifact.json",
+          "manifest_path": "fixtures/tassadar/runs/tassadar_process_objects_v1/search_frontier_kernel_snapshot_manifest.json",
+          "manifest_ref": {
+            "stream_id": "tassadar-process-snapshot://tassadar.process.search_frontier_kernel.v1",
+            "manifest_digest": "1d3579758b157e6491d27bd5697af175de679e80d85d2d0de02d10ccaf1bfd66",
+            "subject": "checkpoint",
+            "object_digest": "e9434e07f9b376d5f57bf1eb16c9208571ee19a7056d8581b04c966d12b970f4",
+            "total_bytes": 670,
+            "chunk_count": 7,
+            "chunk_bytes": 96,
+            "encoding": "raw_binary",
+            "provenance_digest": "50f0e80646d1c7b5eca7702b89ed655873497920cbce2a60bc36a47db7807410",
+            "checkpoint_binding": {
+              "checkpoint_family": "tassadar.process_snapshot.v1",
+              "checkpoint_ref": "checkpoint://tassadar.process_snapshot/tassadar.process.search_frontier_kernel.v1",
+              "step": 9
+            }
+          },
+          "locator": {
+            "stream_id": "tassadar-process-snapshot://tassadar.process.search_frontier_kernel.v1",
+            "manifest_digest": "1d3579758b157e6491d27bd5697af175de679e80d85d2d0de02d10ccaf1bfd66",
+            "checkpoint_ref": "checkpoint://tassadar.process_snapshot/tassadar.process.search_frontier_kernel.v1",
+            "checkpoint_family": "tassadar.process_snapshot.v1",
+            "step": 9,
+            "object_digest": "e9434e07f9b376d5f57bf1eb16c9208571ee19a7056d8581b04c966d12b970f4",
+            "total_bytes": 670,
+            "detail": "tassadar durable process snapshot locator via family `tassadar.process_snapshot.v1` ref `checkpoint://tassadar.process_snapshot/tassadar.process.search_frontier_kernel.v1`"
+          }
+        },
+        "tape_artifact": {
+          "process_id": "tassadar.process.search_frontier_kernel.v1",
+          "tape_path": "fixtures/tassadar/runs/tassadar_process_objects_v1/search_frontier_kernel_tape_artifact.json",
+          "manifest_path": "fixtures/tassadar/runs/tassadar_process_objects_v1/search_frontier_kernel_tape_manifest.json",
+          "manifest_ref": {
+            "stream_id": "tassadar-process-tape://tassadar.process.search_frontier_kernel.v1",
+            "manifest_digest": "6dfc45d5c0633b3391e8d6ccbada6935d8714b3c6ce8d79caa158952e66b4f70",
+            "subject": "checkpoint",
+            "object_digest": "4c7478bd3830153f1e9936cf32291730ac8312d40df5dcaf1b3cd022b2505001",
+            "total_bytes": 1650,
+            "chunk_count": 18,
+            "chunk_bytes": 96,
+            "encoding": "raw_binary",
+            "provenance_digest": "689bfd648f050ebe7e59637b529e180d02e2a358a5ae555f2cc60a257fa3072b",
+            "checkpoint_binding": {
+              "checkpoint_family": "tassadar.process_tape.v1",
+              "checkpoint_ref": "checkpoint://tassadar.process_tape/tassadar.process.search_frontier_kernel.v1",
+              "step": 9
+            }
+          },
+          "locator": {
+            "stream_id": "tassadar-process-tape://tassadar.process.search_frontier_kernel.v1",
+            "manifest_digest": "6dfc45d5c0633b3391e8d6ccbada6935d8714b3c6ce8d79caa158952e66b4f70",
+            "checkpoint_ref": "checkpoint://tassadar.process_tape/tassadar.process.search_frontier_kernel.v1",
+            "checkpoint_family": "tassadar.process_tape.v1",
+            "step": 9,
+            "object_digest": "4c7478bd3830153f1e9936cf32291730ac8312d40df5dcaf1b3cd022b2505001",
+            "total_bytes": 1650,
+            "detail": "tassadar durable process tape locator via family `tassadar.process_tape.v1` ref `checkpoint://tassadar.process_tape/tassadar.process.search_frontier_kernel.v1`"
+          }
+        },
+        "work_queue_artifact": {
+          "process_id": "tassadar.process.search_frontier_kernel.v1",
+          "work_queue_path": "fixtures/tassadar/runs/tassadar_process_objects_v1/search_frontier_kernel_work_queue_artifact.json",
+          "manifest_path": "fixtures/tassadar/runs/tassadar_process_objects_v1/search_frontier_kernel_work_queue_manifest.json",
+          "manifest_ref": {
+            "stream_id": "tassadar-process-work-queue://tassadar.process.search_frontier_kernel.v1",
+            "manifest_digest": "71d1e0d09dce244016243675872b3d265bb9dccf499cc7ebbf5570a0ac1a0371",
+            "subject": "checkpoint",
+            "object_digest": "b785138641a623fb8db90666d26ef95cc8a761e08f9b2df5bf505600ecd92b91",
+            "total_bytes": 1050,
+            "chunk_count": 11,
+            "chunk_bytes": 96,
+            "encoding": "raw_binary",
+            "provenance_digest": "0f48f697d6a4ca58f22a47cd983f079e0ebd64e5fe4f035f95957c5a3d5fd7bd",
+            "checkpoint_binding": {
+              "checkpoint_family": "tassadar.process_work_queue.v1",
+              "checkpoint_ref": "checkpoint://tassadar.process_work_queue/tassadar.process.search_frontier_kernel.v1",
+              "step": 9
+            }
+          },
+          "locator": {
+            "stream_id": "tassadar-process-work-queue://tassadar.process.search_frontier_kernel.v1",
+            "manifest_digest": "71d1e0d09dce244016243675872b3d265bb9dccf499cc7ebbf5570a0ac1a0371",
+            "checkpoint_ref": "checkpoint://tassadar.process_work_queue/tassadar.process.search_frontier_kernel.v1",
+            "checkpoint_family": "tassadar.process_work_queue.v1",
+            "step": 9,
+            "object_digest": "b785138641a623fb8db90666d26ef95cc8a761e08f9b2df5bf505600ecd92b91",
+            "total_bytes": 1050,
+            "detail": "tassadar durable process work-queue locator via family `tassadar.process_work_queue.v1` ref `checkpoint://tassadar.process_work_queue/tassadar.process.search_frontier_kernel.v1`"
+          }
+        },
+        "refusal_kinds": [
+          "stale_process_snapshot",
+          "tape_cursor_out_of_range",
+          "work_queue_profile_mismatch"
+        ],
+        "note": "durable process objects preserve checkpointed continuation for `search_frontier_kernel` while keeping stale or malformed continuation objects explicit"
+      }
+    ],
+    "exact_process_parity_count": 3,
+    "refusal_case_count": 9,
+    "process_locator_count": 9,
+    "profile_id": "tassadar.internal_compute.process_objects.v1",
+    "snapshot_family_id": "tassadar.process_snapshot.v1",
+    "tape_family_id": "tassadar.process_tape.v1",
+    "work_queue_family_id": "tassadar.process_work_queue.v1",
+    "generated_from_refs": [
+      "fixtures/tassadar/runs/tassadar_process_objects_v1/long_loop_kernel_snapshot_artifact.json",
+      "fixtures/tassadar/runs/tassadar_process_objects_v1/long_loop_kernel_snapshot_manifest.json",
+      "fixtures/tassadar/runs/tassadar_process_objects_v1/long_loop_kernel_tape_artifact.json",
+      "fixtures/tassadar/runs/tassadar_process_objects_v1/long_loop_kernel_tape_manifest.json",
+      "fixtures/tassadar/runs/tassadar_process_objects_v1/long_loop_kernel_work_queue_artifact.json",
+      "fixtures/tassadar/runs/tassadar_process_objects_v1/long_loop_kernel_work_queue_manifest.json",
+      "fixtures/tassadar/runs/tassadar_process_objects_v1/search_frontier_kernel_snapshot_artifact.json",
+      "fixtures/tassadar/runs/tassadar_process_objects_v1/search_frontier_kernel_snapshot_manifest.json",
+      "fixtures/tassadar/runs/tassadar_process_objects_v1/search_frontier_kernel_tape_artifact.json",
+      "fixtures/tassadar/runs/tassadar_process_objects_v1/search_frontier_kernel_tape_manifest.json",
+      "fixtures/tassadar/runs/tassadar_process_objects_v1/search_frontier_kernel_work_queue_artifact.json",
+      "fixtures/tassadar/runs/tassadar_process_objects_v1/search_frontier_kernel_work_queue_manifest.json",
+      "fixtures/tassadar/runs/tassadar_process_objects_v1/state_machine_accumulator_snapshot_artifact.json",
+      "fixtures/tassadar/runs/tassadar_process_objects_v1/state_machine_accumulator_snapshot_manifest.json",
+      "fixtures/tassadar/runs/tassadar_process_objects_v1/state_machine_accumulator_tape_artifact.json",
+      "fixtures/tassadar/runs/tassadar_process_objects_v1/state_machine_accumulator_tape_manifest.json",
+      "fixtures/tassadar/runs/tassadar_process_objects_v1/state_machine_accumulator_work_queue_artifact.json",
+      "fixtures/tassadar/runs/tassadar_process_objects_v1/state_machine_accumulator_work_queue_manifest.json",
+      "fixtures/tassadar/runs/tassadar_process_objects_v1/tassadar_process_object_bundle.json"
+    ],
+    "claim_boundary": "this eval report covers the deterministic durable process-object family only for the committed checkpoint-backed workloads. It keeps snapshots, tapes, work queues, typed locators, and stale-or-malformed continuation-object refusals explicit instead of implying arbitrary process semantics, async effects, or broader served internal compute",
+    "summary": "Process-object report covers 3 case rows with exact_process_parity_count=3, refusal_case_count=9, and process_locator_count=9.",
+    "report_digest": "82a32395ce8337a8414a30be9a6ba29fb1632ee4e833fce53013778a3134afa2"
+  },
+  "verdict_rows": [
+    {
+      "verdict_level": "theory",
+      "verdict_status": "green",
+      "allowed_statement": "Psionic/Tassadar can honestly say that `TCM.v1` has a declared universal substrate plus explicit universal-machine witness constructions under the declared checkpoint-and-resume semantics.",
+      "artifact_refs": [
+        "fixtures/tassadar/reports/tassadar_universal_machine_proof_report.json",
+        "fixtures/tassadar/reports/tassadar_minimal_universal_substrate_acceptance_gate_report.json"
+      ],
+      "route_constraint_ids": [
+        "theory_has_no_served_route_claim"
+      ],
+      "allowed_profile_ids": [
+        "tcm.v1"
+      ],
+      "blocked_by": [],
+      "detail": "theory-green means there is now one declared universal substrate plus explicit witness encodings and a green minimal universal-substrate gate; it does not by itself imply operator or served widening"
+    },
+    {
+      "verdict_level": "operator",
+      "verdict_status": "green",
+      "allowed_statement": "Psionic/Tassadar can honestly say that operators have one bounded universality-capable lane under named session-process, spill/tape, and process-object envelopes with exact checkpoint-and-replay evidence.",
+      "artifact_refs": [
+        "fixtures/tassadar/reports/tassadar_minimal_universal_substrate_acceptance_gate_report.json",
+        "fixtures/tassadar/reports/tassadar_session_process_profile_report.json",
+        "fixtures/tassadar/reports/tassadar_spill_tape_store_report.json",
+        "fixtures/tassadar/reports/tassadar_process_object_report.json"
+      ],
+      "route_constraint_ids": [
+        "operator_named_profile_routes_only",
+        "operator_checkpoint_resume_required",
+        "operator_spill_tape_extension_required"
+      ],
+      "allowed_profile_ids": [
+        "tassadar.internal_compute.session_process.v1",
+        "tassadar.internal_compute.spill_tape_store.v1",
+        "tassadar.internal_compute.process_objects.v1"
+      ],
+      "blocked_by": [],
+      "detail": "operator-green means the universal construction survives only inside explicit resumable process envelopes with persisted state objects, spill/tape extension, and typed refusal on broader external loops or ambient effects"
+    },
+    {
+      "verdict_level": "served",
+      "verdict_status": "suppressed",
+      "allowed_statement": "Psionic/Tassadar does not yet expose a served universality lane; public served posture remains narrower than the theory-green and operator-green claims.",
+      "artifact_refs": [
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_profile_publication_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
+      ],
+      "route_constraint_ids": [
+        "served_universality_route_publication_suppressed",
+        "served_universality_profile_not_selected"
+      ],
+      "allowed_profile_ids": [],
+      "blocked_by": [
+        "named_served_universal_profile_missing",
+        "kernel_policy_served_universality_authority_outside_psionic",
+        "nexus_accepted_outcome_closure_outside_psionic"
+      ],
+      "detail": "served-green remains suppressed because the current served internal-compute lane is still article-closeout, not a published universality profile, and the authority-bearing served closure still lives outside standalone psionic"
+    }
+  ],
+  "theory_green": true,
+  "operator_green": true,
+  "served_green": false,
+  "overall_green": true,
+  "kernel_policy_dependency_marker": "kernel-policy remains the owner of canonical served universality publication policy and settlement-gated authority outside standalone psionic",
+  "nexus_dependency_marker": "nexus remains the owner of canonical accepted-outcome issuance and settlement-qualified served closure outside standalone psionic",
+  "claim_boundary": "this report is the explicit theory/operator/served split for the universality claim. It keeps theoretical universality, operator-owned resumable execution, and served/public posture separate so the terminal claim cannot silently widen into broader publication or settlement posture.",
+  "summary": "Universality verdict split keeps theory_green=true, operator_green=true, served_green=false, overall_green=true.",
+  "report_digest": "c74c77968fda637f0fa73d12c0c131cac0d00ff10092cc712efb0787d9746082"
+}

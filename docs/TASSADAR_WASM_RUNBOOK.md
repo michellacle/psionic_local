@@ -811,6 +811,35 @@ Expected outcome:
 - this gate is still not the theory/operator/served verdict split, not served
   universality posture, and not final Turing-complete closeout
 
+### 6C.2b Theory/operator/served universality verdict split
+
+```bash
+cargo run -p psionic-eval --example tassadar_universality_verdict_split_report
+cargo test -p psionic-serve universality_verdict_publication -- --nocapture
+cargo test -p psionic-provider universality_verdict_receipt -- --nocapture
+```
+
+Read:
+
+- `fixtures/tassadar/reports/tassadar_universality_verdict_split_report.json`
+- `docs/audits/2026-03-19-tassadar-universality-verdict-split-audit.md`
+
+Expected outcome:
+
+- `theory_green` should now be `true`, meaning `TCM.v1`, the witness
+  construction, and the minimal universal-substrate gate jointly support a
+  construction-backed universality statement
+- `operator_green` should now be `true`, meaning the claim survives only inside
+  the named session-process, spill/tape, and process-object envelopes
+- `served_green` should currently remain `false`, and the served row should
+  keep named-profile, route, `kernel-policy`, and `nexus` blockers explicit
+- the served publication check should fail closed rather than silently widening
+  the current served internal-compute profile into a served universality lane
+- the current served internal-compute profile should still remain
+  `tassadar.internal_compute.article_closeout.v1`
+- this split is the theorem-to-product boundary, but it is still not the final
+  Turing-completeness closeout
+
 ### 6C.3 Semantic-window revision receipt and compatibility delta
 
 ```bash

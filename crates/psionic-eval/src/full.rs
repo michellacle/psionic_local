@@ -184,6 +184,8 @@ mod tassadar_numeric_portability;
 mod tassadar_pointer_memory_scratchpad;
 #[path = "tassadar_pre_closeout_universality_audit.rs"]
 mod tassadar_pre_closeout_universality_audit;
+#[path = "tassadar_universality_verdict_split.rs"]
+mod tassadar_universality_verdict_split;
 #[path = "tassadar_proposal_profile_ladder_claim_checker.rs"]
 mod tassadar_proposal_profile_ladder_claim_checker;
 #[path = "tassadar_program_family_frontier.rs"]
@@ -371,6 +373,7 @@ pub use tassadar_numeric_opcode_ladder::*;
 pub use tassadar_numeric_portability::*;
 pub use tassadar_pointer_memory_scratchpad::*;
 pub use tassadar_pre_closeout_universality_audit::*;
+pub use tassadar_universality_verdict_split::*;
 pub use tassadar_proposal_profile_ladder_claim_checker::*;
 pub use tassadar_program_family_frontier::*;
 pub use tassadar_precision_attention_robustness_audit::*;

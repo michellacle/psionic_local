@@ -1051,10 +1051,12 @@ The current scope is:
   `fixtures/tassadar/reports/tassadar_pre_closeout_universality_claim_boundary_report.json`,
   and `docs/audits/2026-03-19-tassadar-pre-closeout-universality-audit.md`,
   which freeze one disclosure-safe bridge between the landed broadness-adjacent
-  surfaces and the still-missing terminal-contract artifacts, explicitly
-  keeping `TCM.v1`, the universality witness construction, the witness suite,
-  the minimal universal-substrate gate, and the final verdict split as pending;
-  this is not a Turing-complete or final universality claim
+  surfaces and the terminal-contract tranche as it existed before the final
+  closeout. Those artifacts explicitly kept `TCM.v1`, the universality witness
+  construction, the witness suite, the minimal universal-substrate gate, and
+  the final verdict split pending at that pre-closeout point; this remains
+  useful historical claim-boundary context, not a Turing-complete or final
+  universality claim
 - the current `TCM.v1` substrate artifacts are
   `fixtures/tassadar/reports/tassadar_tcm_v1_model.json`,
   `fixtures/tassadar/reports/tassadar_tcm_v1_runtime_contract_report.json`,
@@ -1095,6 +1097,18 @@ The current scope is:
   continuation, machine-step replay, witness coverage, portability envelopes,
   and refusal truth; this still does not constitute the theory/operator/served
   verdict split, served universality posture, or Turing-complete closeout
+- the current universality verdict-split artifact is
+  `fixtures/tassadar/reports/tassadar_universality_verdict_split_report.json`,
+  plus the served publication projection in
+  `crates/psionic-serve/src/tassadar_universality_verdict_publication.rs`, the
+  provider receipt in
+  `crates/psionic-provider/src/tassadar_universality_verdicts.rs`, and the
+  audit note `docs/audits/2026-03-19-tassadar-universality-verdict-split-audit.md`,
+  which freeze the terminal theorem-to-product split itself: theoretical
+  universality is green, operator-owned resumable process semantics are green,
+  and served/public universality remains explicitly suppressed with route and
+  authority dependencies left visible; this still is not the final
+  Turing-completeness closeout
 - the current semantic-window revision artifacts are
   `fixtures/tassadar/reports/tassadar_semantic_window_revision_receipt.json`
   and
