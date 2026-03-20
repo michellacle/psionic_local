@@ -1,0 +1,241 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.existing_substrate_inventory.summary.v1",
+  "inventory_report_ref": "fixtures/tassadar/reports/tassadar_existing_substrate_inventory_report.json",
+  "inventory_report": {
+    "schema_version": 1,
+    "report_id": "tassadar.existing_substrate_inventory.report.v1",
+    "acceptance_gate_tie": {
+      "acceptance_gate_report_ref": "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json",
+      "blocker_matrix_report_ref": "fixtures/tassadar/reports/tassadar_article_equivalence_blocker_matrix_report.json",
+      "tied_requirement_id": "TAS-159",
+      "tied_requirement_satisfied": true,
+      "acceptance_status": "blocked",
+      "article_equivalence_green": false,
+      "blocked_issue_ids": [
+        "TAS-160",
+        "TAS-161",
+        "TAS-162",
+        "TAS-163",
+        "TAS-164",
+        "TAS-165",
+        "TAS-166",
+        "TAS-167",
+        "TAS-167A",
+        "TAS-168",
+        "TAS-169",
+        "TAS-169A",
+        "TAS-170",
+        "TAS-171",
+        "TAS-171A",
+        "TAS-171B",
+        "TAS-171C",
+        "TAS-172",
+        "TAS-173",
+        "TAS-174",
+        "TAS-175",
+        "TAS-176",
+        "TAS-177",
+        "TAS-178",
+        "TAS-179",
+        "TAS-179A",
+        "TAS-180",
+        "TAS-181",
+        "TAS-182",
+        "TAS-183",
+        "TAS-184",
+        "TAS-184A",
+        "TAS-185",
+        "TAS-185A",
+        "TAS-186"
+      ]
+    },
+    "surfaces": [
+      {
+        "surface_id": "psionic_core_tensor_contracts",
+        "crate_id": "psionic-core",
+        "title": "Tensor contracts and typed refusal vocabulary",
+        "item_refs": [
+          "crates/psionic-core/src/lib.rs"
+        ],
+        "classification": "reusable_as_is",
+        "blocks_article_closure": false,
+        "current_truth": "typed tensor ids, dtypes, shapes, devices, quantization layouts, and refusal codes already exist as shared engine contracts",
+        "extension_or_gap": "no article-specific closure gap lives here; higher layers consume these contracts"
+      },
+      {
+        "surface_id": "psionic_array_lazy_array_facade",
+        "crate_id": "psionic-array",
+        "title": "Lazy array facade and bounded public materialization surface",
+        "item_refs": [
+          "crates/psionic-array/src/lib.rs"
+        ],
+        "classification": "reusable_with_extension",
+        "blocks_article_closure": true,
+        "current_truth": "the repo already has a bounded graph-backed array surface with explicit evaluation, backend identities, cache posture, and debug capture hooks",
+        "extension_or_gap": "the owned article-equivalence stack still needs broader transformer-oriented tensor/view/math coverage than the current narrow public array surface provides"
+      },
+      {
+        "surface_id": "psionic_nn_module_state_and_basic_layers",
+        "crate_id": "psionic-nn",
+        "title": "Module state tree and basic reusable layers",
+        "item_refs": [
+          "crates/psionic-nn/src/lib.rs",
+          "crates/psionic-nn/src/layers.rs"
+        ],
+        "classification": "reusable_with_extension",
+        "blocks_article_closure": true,
+        "current_truth": "module trees, parameter traversal, quantized wrappers, and reusable Linear/Embedding/LayerNorm/RmsNorm/Dropout layers already exist",
+        "extension_or_gap": "the owned article route still needs attention primitives and article-block composition above these layers"
+      },
+      {
+        "surface_id": "psionic_transformer_architecture_boundary",
+        "crate_id": "psionic-transformer",
+        "title": "Canonical reusable Transformer-boundary configs",
+        "item_refs": [
+          "crates/psionic-transformer/src/lib.rs",
+          "docs/ARCHITECTURE.md"
+        ],
+        "classification": "reusable_as_is",
+        "blocks_article_closure": false,
+        "current_truth": "the dedicated `psionic-transformer` crate now owns reusable decoder and AttnRes architecture primitives at the intended layering boundary",
+        "extension_or_gap": "the remaining gap is implementing the canonical article stack on top of this boundary, not redefining the boundary itself"
+      },
+      {
+        "surface_id": "psionic_models_descriptor_and_weight_lineage",
+        "crate_id": "psionic-models",
+        "title": "Model descriptors and weight-lineage metadata",
+        "item_refs": [
+          "crates/psionic-models/src/lib.rs"
+        ],
+        "classification": "reusable_as_is",
+        "blocks_article_closure": false,
+        "current_truth": "shared model descriptors, weight bundle metadata, and artifact-governance wrappers already exist for reusable model families",
+        "extension_or_gap": "these surfaces can be reused directly once the canonical article model artifact exists"
+      },
+      {
+        "surface_id": "psionic_models_attnres_reference_family",
+        "crate_id": "psionic-models",
+        "title": "AttnRes reference model family",
+        "item_refs": [
+          "crates/psionic-models/src/attnres.rs"
+        ],
+        "classification": "research_only",
+        "blocks_article_closure": false,
+        "current_truth": "the repo already has a bounded CPU-reference AttnRes family that is useful as a model-architecture pilot and training/control experiment surface",
+        "extension_or_gap": "it is not the canonical article route and remains a research-only forcing function rather than a closure blocker"
+      },
+      {
+        "surface_id": "psionic_models_executor_transformer_scaffold",
+        "crate_id": "psionic-models",
+        "title": "Existing executor-transformer scaffold",
+        "item_refs": [
+          "crates/psionic-models/src/tassadar_executor_transformer.rs"
+        ],
+        "classification": "reusable_with_extension",
+        "blocks_article_closure": true,
+        "current_truth": "the repo already has executor-transformer configs, weight bundles, forward-pass scaffolding, decode state, KV points, and refusal posture",
+        "extension_or_gap": "the scaffold still needs paper-faithful architecture, owned vocabulary/channel binding, exactness closure, and lineage closure before it can become the canonical article route"
+      },
+      {
+        "surface_id": "psionic_models_fixture_backed_article_executor_lane",
+        "crate_id": "psionic-models",
+        "title": "Fixture-backed article executor lane",
+        "item_refs": [
+          "crates/psionic-models/src/tassadar.rs"
+        ],
+        "classification": "not_sufficient_for_article_closure",
+        "blocks_article_closure": true,
+        "current_truth": "the current fixture-backed article executor lane still carries the bounded Rust-only article closeout and compatibility truth",
+        "extension_or_gap": "canonical article-equivalence closure cannot stop at this reference-fixture lane; it must graduate to an owned Transformer-backed artifact"
+      },
+      {
+        "surface_id": "psionic_runtime_proof_identity_and_trace_receipts",
+        "crate_id": "psionic-runtime",
+        "title": "Runtime proof identity and trace receipts",
+        "item_refs": [
+          "crates/psionic-runtime/src/proof.rs",
+          "crates/psionic-runtime/src/tassadar.rs"
+        ],
+        "classification": "reusable_as_is",
+        "blocks_article_closure": false,
+        "current_truth": "execution proof bundles, runtime identity, trace ABI contracts, trace artifacts, and replay-safe evidence surfaces already exist",
+        "extension_or_gap": "these runtime truth surfaces can be reused directly once the owned article route emits the right artifacts"
+      },
+      {
+        "surface_id": "psionic_runtime_article_closeout_receipts",
+        "crate_id": "psionic-runtime",
+        "title": "Article-closeout runtime and direct-proof receipts",
+        "item_refs": [
+          "crates/psionic-runtime/src/tassadar_article_runtime_closeout.rs",
+          "crates/psionic-runtime/src/tassadar_direct_model_weight_execution_proof.rs"
+        ],
+        "classification": "reusable_with_extension",
+        "blocks_article_closure": true,
+        "current_truth": "the runtime already owns article ABI, article runtime closeout, and direct model-weight proof surfaces",
+        "extension_or_gap": "those receipts still need rebinding from the current bounded lanes into the canonical owned Transformer-backed article route"
+      }
+    ],
+    "required_classification_count": 4,
+    "classification_counts": [
+      {
+        "classification": "reusable_as_is",
+        "count": 4
+      },
+      {
+        "classification": "reusable_with_extension",
+        "count": 4
+      },
+      {
+        "classification": "research_only",
+        "count": 1
+      },
+      {
+        "classification": "not_sufficient_for_article_closure",
+        "count": 1
+      }
+    ],
+    "surface_count": 10,
+    "blocker_surface_count": 5,
+    "non_blocker_surface_count": 5,
+    "all_required_classifications_present": true,
+    "all_surface_ids_unique": true,
+    "all_surfaces_have_item_refs": true,
+    "all_surfaces_have_explicit_blocker_labels": true,
+    "inventory_contract_green": true,
+    "article_equivalence_green": false,
+    "current_truth_boundary": "psionic already owns real reusable substrate for tensor contracts, bounded array execution, module state, basic layers, transformer-boundary configs, model descriptors, weight lineage metadata, runtime proof identity, and trace receipts. The current gap is not substrate absence; it is the missing owned article-equivalence stack and the current presence of bounded research or fixture-backed lanes that are not yet sufficient for canonical article closure.",
+    "claim_boundary": "this report inventories reusable substrate only. It freezes what can be reused, what needs extension, what stays research-only, and what is still not sufficient for article closure. It does not claim that the owned article-equivalence Transformer stack, the canonical article model artifact, or the final article-equivalence proof route already exist.",
+    "summary": "Existing substrate inventory now records surface_count=10, blocker_surface_count=5, non_blocker_surface_count=5, inventory_contract_green=true, tied_requirement_satisfied=true, and article_equivalence_green=false.",
+    "report_digest": "c712bc5ab54efacee397e09877cbcc0fdc5d61e6d9524081a5f3cfdf966c3210"
+  },
+  "surface_count": 10,
+  "blocker_surface_count": 5,
+  "non_blocker_surface_count": 5,
+  "classification_counts": [
+    {
+      "classification": "reusable_as_is",
+      "count": 4
+    },
+    {
+      "classification": "reusable_with_extension",
+      "count": 4
+    },
+    {
+      "classification": "research_only",
+      "count": 1
+    },
+    {
+      "classification": "not_sufficient_for_article_closure",
+      "count": 1
+    }
+  ],
+  "tied_requirement_id": "TAS-159",
+  "tied_requirement_satisfied": true,
+  "acceptance_status": "blocked",
+  "article_equivalence_green": false,
+  "current_truth_boundary": "psionic already owns real reusable substrate for tensor contracts, bounded array execution, module state, basic layers, transformer-boundary configs, model descriptors, weight lineage metadata, runtime proof identity, and trace receipts. The current gap is not substrate absence; it is the missing owned article-equivalence stack and the current presence of bounded research or fixture-backed lanes that are not yet sufficient for canonical article closure.",
+  "claim_boundary": "this summary mirrors the existing-substrate inventory only. It keeps the reusable-substrate boundary operator-readable, but it does not widen the current public article-equivalence claim boundary beyond the underlying inventory report",
+  "summary": "Existing substrate inventory summary now records surface_count=10, blocker_surface_count=5, tied_requirement_satisfied=true, acceptance_status=blocked, and article_equivalence_green=false.",
+  "report_digest": "aee6ea75d5c49cc33b12744bd4f07a1a6c77460b3deb82c34eabc4579d51b140"
+}

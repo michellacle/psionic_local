@@ -161,6 +161,17 @@ Current honest posture:
   `psionic-transformer` route boundary, blocker closure, and every required
   TAS tranche from `TAS-158` through `TAS-186`; the gate remains intentionally
   blocked and does not by itself widen public capability claims
+- the repo now also has one canonical existing-substrate inventory for the
+  article-equivalence closure wave, with a committed eval report at
+  `fixtures/tassadar/reports/tassadar_existing_substrate_inventory_report.json`,
+  a disclosure-safe research summary at
+  `fixtures/tassadar/reports/tassadar_existing_substrate_inventory_summary.json`,
+  and an audit note that freeze which current `psionic-core`, `psionic-array`,
+  `psionic-nn`, `psionic-transformer`, `psionic-models`, and
+  `psionic-runtime` surfaces are reusable as-is, reusable with extension,
+  research-only, or still insufficient for canonical article closure; the
+  inventory is explicitly tied to the final acceptance gate while the overall
+  article-equivalence verdict remains blocked
 - the repo now also has one research-only shared-memory and threads profile
   with a deterministic scheduler envelope, explicit sandbox boundary truth,
   and typed refusal on host-nondeterministic scheduling plus relaxed

@@ -38,6 +38,8 @@ mod tassadar_article_abi;
 mod tassadar_article_equivalence_acceptance_gate;
 #[path = "tassadar_article_equivalence_blocker_matrix.rs"]
 mod tassadar_article_equivalence_blocker_matrix;
+#[path = "tassadar_existing_substrate_inventory.rs"]
+mod tassadar_existing_substrate_inventory;
 #[path = "tassadar_article_cpu_reproducibility.rs"]
 mod tassadar_article_cpu_reproducibility;
 #[path = "tassadar_article_runtime_closeout.rs"]
@@ -306,6 +308,7 @@ pub use tassadar_architecture_bakeoff::*;
 pub use tassadar_article_abi::*;
 pub use tassadar_article_equivalence_acceptance_gate::*;
 pub use tassadar_article_equivalence_blocker_matrix::*;
+pub use tassadar_existing_substrate_inventory::*;
 pub use tassadar_article_cpu_reproducibility::*;
 pub use tassadar_article_runtime_closeout::*;
 pub use tassadar_benchmark_package_set::*;
