@@ -12,7 +12,6 @@
       "tied_requirement_satisfied": true,
       "acceptance_status": "blocked",
       "blocked_issue_ids": [
-        "TAS-173",
         "TAS-174",
         "TAS-175",
         "TAS-176",
@@ -35,7 +34,7 @@
       "proof_report_ref": "fixtures/tassadar/reports/tassadar_direct_model_weight_execution_proof_report.json",
       "model_id": "tassadar-article-transformer-trace-bound-trained-v0",
       "benchmark_report_ref": "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json",
-      "route_descriptor_digest": "fd60b5bb9c1e95b1aabf1d1ca4754219fcec4992b1921a56f5eb1411712e5beb",
+      "route_descriptor_digest": "9c3c9db9ff7c63142afce564687b9f0a6cb4286961c8296be4ebeb852b1374ec",
       "direct_case_count": 3,
       "fallback_free_case_count": 3,
       "zero_external_call_case_count": 3,
@@ -578,7 +577,7 @@
     "article_equivalence_green": false,
     "claim_boundary": "this report selects exactly one fast architecture for the canonical article route without pretending that the fast path is already integrated into the owned Transformer-backed model. It keeps same-harness exactness, direct-versus-fallback posture, route-contract fit, promoted runtime truth, and research-only candidates separate so TAS-173 through TAS-175 can close the integration, no-fallback, and throughput tranches explicitly rather than collapsing them into one weak headline.",
     "summary": "Article fast-route architecture selection now chooses `hull_cache_runtime` as the canonical fast article route with routeable_candidate_count=1, exact_article_matrix_candidate_count=3, selected_direct_module_class_count=4, selected_fallback_module_class_count=2, tied_requirement_satisfied=true, and article_equivalence_green=false.",
-    "report_digest": "7f104bf20fc6354d08f63da3da6cf00f3376c55f4c23c6051a31f12959c51500"
+    "report_digest": "939f7ab34c189bccf2fdd8410c4bd49576698ae30d0f532c500f3ec7c9b351c3"
   },
   "tied_requirement_id": "TAS-172",
   "tied_requirement_satisfied": true,
@@ -592,5 +591,5 @@
   "article_equivalence_green": false,
   "claim_boundary": "this summary mirrors only the TAS-172 fast-route architecture selection. It keeps the chosen fast family, candidate counts, and projected routeability split operator-readable without pretending that TAS-173 through TAS-175 are already closed.",
   "summary": "Article fast-route selection summary now records selected_candidate_kind=`hull_cache_runtime`, routeable_candidate_count=1, exact_article_matrix_candidate_count=3, selected_direct_module_class_count=4, selected_fallback_module_class_count=2, fast_route_selection_green=true, and article_equivalence_green=false.",
-  "report_digest": "abed1eb12962fa6a28c1ceba910a74f87c6ccc0e796803a58695a840bab7bddd"
+  "report_digest": "d33a229debf0ab02208066f564e1edfe671f2ddc516fa40762f688338bae25eb"
 }

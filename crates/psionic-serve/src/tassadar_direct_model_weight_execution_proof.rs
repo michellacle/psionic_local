@@ -15,35 +15,27 @@ use psionic_eval::{
     TassadarArticleFixtureTransformerParityReport,
     TASSADAR_ARTICLE_FIXTURE_TRANSFORMER_PARITY_REPORT_REF,
 };
-use psionic_models::{TassadarArticleTransformer, TassadarExecutorFixture};
+use psionic_models::TassadarArticleTransformer;
 use psionic_router::{
-    bind_tassadar_direct_model_weight_route, rebind_tassadar_reference_linear_direct_proof_route,
-    TassadarDirectModelWeightRouteBindingError, TassadarPlannerExecutorRouteDescriptor,
+    bind_tassadar_direct_model_weight_route, TassadarDirectModelWeightRouteBindingError,
 };
 use psionic_runtime::{
-    build_tassadar_execution_evidence_bundle, tassadar_article_class_corpus,
-    tassadar_trace_abi_for_profile_id, tassadar_wasm_profile_for_id,
     TassadarDirectModelWeightExecutionProofError, TassadarDirectModelWeightExecutionProofInput,
-    TassadarDirectModelWeightExecutionProofReceipt, TassadarExecutionRefusal,
-    TassadarExecutorDecodeMode, TassadarExecutorSelectionState, TassadarFixtureRunner,
-    TassadarProgramArtifact, TassadarProgramArtifactError, TassadarValidationCase,
-    TASSADAR_ARTICLE_CLASS_BENCHMARK_ENVIRONMENT_REF, TASSADAR_ARTICLE_CLASS_BENCHMARK_REF,
-    TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF,
+    TassadarDirectModelWeightExecutionProofReceipt, TassadarExecutorDecodeMode,
 };
 
 use crate::{
     LocalTassadarExecutorService, LocalTassadarPlannerRouter,
     TassadarArticleExecutorSessionRequest, TassadarArticleExecutorSessionResponse,
-    TassadarExecutorRequest, TassadarPlannerRouteDescriptorError,
+    TassadarPlannerRouteDescriptorError,
 };
 
 pub const TASSADAR_DIRECT_MODEL_WEIGHT_EXECUTION_PROOF_REPORT_REF: &str =
     "fixtures/tassadar/reports/tassadar_direct_model_weight_execution_proof_report.json";
 
-const REPORT_SCHEMA_VERSION: u16 = 2;
+const REPORT_SCHEMA_VERSION: u16 = 3;
 const CANONICAL_CASE_IDS: [&str; 3] =
     ["long_loop_kernel", "sudoku_v0_test_a", "hungarian_matching"];
-const TRANSFORMER_DIRECT_PROOF_RUNNER_ID: &str = "tassadar_article_transformer.reference_linear.v1";
 
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
 struct TrainedTraceBoundLineageContractView {
@@ -58,6 +50,7 @@ pub struct TassadarDirectModelWeightExecutionProofReport {
     pub report_id: String,
     pub product_id: String,
     pub model_id: String,
+    pub model_descriptor_digest: String,
     pub historical_fixture_model_id: String,
     pub benchmark_report_ref: String,
     pub parity_report_ref: String,
@@ -89,6 +82,10 @@ impl TassadarDirectModelWeightExecutionProofReport {
             .first()
             .map(|receipt| receipt.model_id.clone())
             .unwrap_or_default();
+        let model_descriptor_digest = receipts
+            .first()
+            .map(|receipt| receipt.model_descriptor_digest.clone())
+            .unwrap_or_default();
         let benchmark_report_ref = receipts
             .first()
             .map(|receipt| receipt.benchmark_report_ref.clone())
@@ -113,9 +110,10 @@ impl TassadarDirectModelWeightExecutionProofReport {
             .count() as u32;
         let mut report = Self {
             schema_version: REPORT_SCHEMA_VERSION,
-            report_id: String::from("tassadar.direct_model_weight_execution_proof.v2"),
+            report_id: String::from("tassadar.direct_model_weight_execution_proof.v3"),
             product_id: String::from(crate::ARTICLE_EXECUTOR_SESSION_PRODUCT_ID),
             model_id,
+            model_descriptor_digest,
             historical_fixture_model_id,
             benchmark_report_ref,
             parity_report_ref,
@@ -184,6 +182,8 @@ pub enum TassadarDirectModelWeightExecutionProofReportError {
     CaseDidNotComplete { case_id: String, detail: String },
     #[error("article session `{case_id}` completed without a direct model-weight proof receipt")]
     MissingReceipt { case_id: String },
+    #[error("failed to publish the trained Transformer capability surface: {detail}")]
+    CapabilityPublication { detail: String },
     #[error("failed to create `{path}`: {error}")]
     CreateDir { path: String, error: std::io::Error },
     #[error("failed to write `{path}`: {error}")]
@@ -239,6 +239,8 @@ pub fn build_tassadar_direct_model_weight_execution_proof_receipt_for_article_se
     let fallback_observed = selection.selection_state
         != psionic_runtime::TassadarExecutorSelectionState::Direct
         || selection.effective_decode_mode != Some(request.requested_decode_mode);
+    let (model_lineage_contract_ref, model_lineage_contract_digest) =
+        model_lineage_contract_binding(&response.executor_response.model_descriptor)?;
     Ok(TassadarDirectModelWeightExecutionProofReceipt::new(
         TassadarDirectModelWeightExecutionProofInput {
             receipt_id: format!(
@@ -274,28 +276,8 @@ pub fn build_tassadar_direct_model_weight_execution_proof_receipt_for_article_se
                 .weights
                 .primary_artifact_digest()
                 .map(String::from),
-            model_lineage_contract_ref: fixture_lineage_contract_ref(
-                response
-                    .executor_response
-                    .model_descriptor
-                    .model
-                    .model_id
-                    .as_str(),
-            ),
-            model_lineage_contract_digest: fixture_lineage_contract_digest(
-                response
-                    .executor_response
-                    .model_descriptor
-                    .model
-                    .model_id
-                    .as_str(),
-                response
-                    .executor_response
-                    .model_descriptor
-                    .weights
-                    .digest
-                    .as_str(),
-            ),
+            model_lineage_contract_ref,
+            model_lineage_contract_digest,
             requested_decode_mode: request.requested_decode_mode,
             effective_decode_mode: selection.effective_decode_mode,
             selection_state: selection.selection_state,
@@ -323,50 +305,125 @@ pub fn build_tassadar_direct_model_weight_execution_proof_receipt_for_article_se
     )?)
 }
 
+fn model_lineage_contract_binding(
+    model_descriptor: &psionic_models::TassadarExecutorModelDescriptor,
+) -> Result<(String, String), TassadarDirectModelWeightExecutionProofReportError> {
+    if model_descriptor.model.model_id == TassadarArticleTransformer::TRAINED_TRACE_BOUND_MODEL_ID {
+        read_trained_trace_bound_lineage_contract_digest()
+    } else {
+        Ok((
+            fixture_lineage_contract_ref(model_descriptor.model.model_id.as_str()),
+            fixture_lineage_contract_digest(
+                model_descriptor.model.model_id.as_str(),
+                model_descriptor.weights.digest.as_str(),
+            ),
+        ))
+    }
+}
+
 pub fn build_tassadar_direct_model_weight_execution_proof_report() -> Result<
     TassadarDirectModelWeightExecutionProofReport,
     TassadarDirectModelWeightExecutionProofReportError,
 > {
     let parity_report = build_tassadar_article_fixture_transformer_parity_report()?;
-    let transformer_model = TassadarArticleTransformer::trained_trace_domain_reference()?;
     if parity_report.transformer_model_artifact.model_id
-        != transformer_model.descriptor().model.model_id
+        != TassadarArticleTransformer::TRAINED_TRACE_BOUND_MODEL_ID
     {
         return Err(
             TassadarDirectModelWeightExecutionProofReportError::LineageContractMismatch {
                 detail: format!(
                     "parity report model `{}` did not match trained trace-bound model `{}`",
                     parity_report.transformer_model_artifact.model_id,
-                    transformer_model.descriptor().model.model_id
+                    TassadarArticleTransformer::TRAINED_TRACE_BOUND_MODEL_ID
                 ),
             },
         );
     }
     let (lineage_contract_ref, lineage_contract_digest) =
         read_trained_trace_bound_lineage_contract_digest()?;
-    let executor_service = LocalTassadarExecutorService::new()
-        .with_fixture(TassadarExecutorFixture::article_i32_compute_v1());
-    let baseline_route_descriptor = LocalTassadarPlannerRouter::new()
-        .with_executor_service(executor_service)
-        .route_capability_descriptor(Some(TassadarExecutorFixture::ARTICLE_I32_COMPUTE_MODEL_ID))?;
-    let route_descriptor = rebind_tassadar_reference_linear_direct_proof_route(
-        &baseline_route_descriptor,
-        transformer_model.descriptor().model.model_id.as_str(),
-        "Transformer-backed reference-linear direct-proof route rebound from the certified article parity surface onto the trained trace-bound model weights",
-    );
+    let executor_service = LocalTassadarExecutorService::new();
+    let capability_publication = executor_service
+        .capability_publication(Some(
+            TassadarArticleTransformer::TRAINED_TRACE_BOUND_MODEL_ID,
+        ))
+        .map_err(|error| {
+            TassadarDirectModelWeightExecutionProofReportError::CapabilityPublication {
+                detail: error.to_string(),
+            }
+        })?;
+    let model_descriptor_digest = capability_publication.model_descriptor.stable_digest();
+    let route_descriptor = LocalTassadarPlannerRouter::new()
+        .with_executor_service(executor_service.clone())
+        .route_capability_descriptor(Some(
+            TassadarArticleTransformer::TRAINED_TRACE_BOUND_MODEL_ID,
+        ))?;
+    let article_session_service = crate::LocalTassadarArticleExecutorSessionService::new();
     let mut receipts = Vec::new();
     for case_id in CANONICAL_CASE_IDS {
-        let case = canonical_article_case(case_id)?;
         let parity_row = parity_row_for_case(&parity_report, case_id)?;
         ensure_case_is_certified_for_transformer_direct_proof(parity_row)?;
-        let receipt = build_transformer_direct_model_weight_execution_proof_receipt(
-            &case,
-            parity_row,
-            &transformer_model,
-            &lineage_contract_ref,
-            &lineage_contract_digest,
-            &route_descriptor,
-        )?;
+        let request = TassadarArticleExecutorSessionRequest::new(
+            format!("direct-proof-{case_id}"),
+            case_id,
+            TassadarExecutorDecodeMode::ReferenceLinear,
+        )
+        .with_requested_model_id(TassadarArticleTransformer::TRAINED_TRACE_BOUND_MODEL_ID)
+        .require_direct_model_weight_proof();
+        let outcome = article_session_service.execute_without_derived_views(&request)?;
+        let receipt = match outcome {
+            crate::TassadarArticleExecutorSessionOutcome::Completed { response } => response
+                .direct_model_weight_execution_proof_receipt
+                .ok_or_else(|| {
+                    TassadarDirectModelWeightExecutionProofReportError::MissingReceipt {
+                        case_id: String::from(case_id),
+                    }
+                })?,
+            crate::TassadarArticleExecutorSessionOutcome::Refused { refusal } => {
+                return Err(
+                    TassadarDirectModelWeightExecutionProofReportError::CaseDidNotComplete {
+                        case_id: String::from(case_id),
+                        detail: refusal.detail,
+                    },
+                );
+            }
+        };
+        if receipt.route_binding.route_descriptor_digest != route_descriptor.descriptor_digest {
+            return Err(
+                TassadarDirectModelWeightExecutionProofReportError::CaseDidNotComplete {
+                    case_id: String::from(case_id),
+                    detail: format!(
+                        "proof receipt route digest `{}` did not match published direct-proof route `{}`",
+                        receipt.route_binding.route_descriptor_digest,
+                        route_descriptor.descriptor_digest
+                    ),
+                },
+            );
+        }
+        if receipt.model_descriptor_digest != model_descriptor_digest {
+            return Err(
+                TassadarDirectModelWeightExecutionProofReportError::CaseDidNotComplete {
+                    case_id: String::from(case_id),
+                    detail: format!(
+                        "proof receipt model descriptor digest `{}` did not match published Transformer descriptor `{}`",
+                        receipt.model_descriptor_digest,
+                        model_descriptor_digest
+                    ),
+                },
+            );
+        }
+        if receipt.model_lineage_contract_ref != lineage_contract_ref
+            || receipt.model_lineage_contract_digest != lineage_contract_digest
+        {
+            return Err(
+                TassadarDirectModelWeightExecutionProofReportError::CaseDidNotComplete {
+                    case_id: String::from(case_id),
+                    detail: format!(
+                        "proof receipt lineage drifted to ref=`{}` digest=`{}`",
+                        receipt.model_lineage_contract_ref, receipt.model_lineage_contract_digest
+                    ),
+                },
+            );
+        }
         receipts.push(receipt);
     }
     Ok(TassadarDirectModelWeightExecutionProofReport::new(
@@ -419,19 +476,6 @@ fn is_external_tool_marker(feature: &str) -> bool {
 
 fn is_cpu_substitution_marker(feature: &str) -> bool {
     feature.contains("cpu_result_substitution") || feature.contains("result_substitution")
-}
-
-fn canonical_article_case(
-    case_id: &str,
-) -> Result<TassadarValidationCase, TassadarDirectModelWeightExecutionProofReportError> {
-    tassadar_article_class_corpus()
-        .into_iter()
-        .find(|case| case.case_id == case_id)
-        .ok_or_else(
-            || TassadarDirectModelWeightExecutionProofReportError::MissingCase {
-                case_id: String::from(case_id),
-            },
-        )
 }
 
 fn parity_row_for_case<'a>(
@@ -506,182 +550,6 @@ fn ensure_case_is_certified_for_transformer_direct_proof(
         );
     }
     Ok(())
-}
-
-fn build_transformer_direct_model_weight_execution_proof_receipt(
-    case: &TassadarValidationCase,
-    parity_row: &TassadarArticleFixtureTransformerParityCaseRow,
-    transformer_model: &TassadarArticleTransformer,
-    lineage_contract_ref: &str,
-    lineage_contract_digest: &str,
-    route_descriptor: &TassadarPlannerExecutorRouteDescriptor,
-) -> Result<
-    TassadarDirectModelWeightExecutionProofReceipt,
-    TassadarDirectModelWeightExecutionProofReportError,
-> {
-    let profile =
-        tassadar_wasm_profile_for_id(case.program.profile_id.as_str()).ok_or_else(|| {
-            TassadarDirectModelWeightExecutionProofReportError::ProgramArtifact {
-                case_id: case.case_id.clone(),
-                detail: format!(
-                    "missing Wasm profile `{}` for canonical article case",
-                    case.program.profile_id
-                ),
-            }
-        })?;
-    let trace_abi = tassadar_trace_abi_for_profile_id(case.program.profile_id.as_str())
-        .ok_or_else(
-            || TassadarDirectModelWeightExecutionProofReportError::ProgramArtifact {
-                case_id: case.case_id.clone(),
-                detail: format!(
-                    "missing trace ABI for canonical article profile `{}`",
-                    case.program.profile_id
-                ),
-            },
-        )?;
-    let program_artifact = TassadarProgramArtifact::fixture_reference(
-        parity_row.artifact_id.clone(),
-        &profile,
-        &trace_abi,
-        case.program.clone(),
-    )
-    .map_err(|error| program_artifact_error(case.case_id.as_str(), error))?;
-    let executor_request = TassadarExecutorRequest::new(
-        format!("direct-proof-{}", case.case_id),
-        program_artifact.clone(),
-        TassadarExecutorDecodeMode::ReferenceLinear,
-    )
-    .with_requested_model_id(transformer_model.descriptor().model.model_id.clone());
-    let request_digest = executor_request.stable_digest();
-
-    let execution = fixture_execution_for_case(case)?;
-    if execution.trace_digest() != parity_row.fixture_trace_digest
-        || execution.behavior_digest() != parity_row.fixture_behavior_digest
-    {
-        return Err(
-            TassadarDirectModelWeightExecutionProofReportError::ParityCaseNotCertified {
-                case_id: case.case_id.clone(),
-                detail: format!(
-                    "fixture baseline digests drifted before Transformer direct-proof rebinding: trace=`{}` behavior=`{}`",
-                    execution.trace_digest(),
-                    execution.behavior_digest()
-                ),
-            },
-        );
-    }
-    let mut transformer_execution = execution.clone();
-    transformer_execution.runner_id = String::from(TRANSFORMER_DIRECT_PROOF_RUNNER_ID);
-    let evidence_bundle = build_tassadar_execution_evidence_bundle(
-        executor_request.request_id.clone(),
-        request_digest,
-        crate::EXECUTOR_TRACE_PRODUCT_ID,
-        transformer_model.descriptor().model.model_id.clone(),
-        transformer_model.descriptor().stable_digest(),
-        vec![
-            String::from(TASSADAR_ARTICLE_FIXTURE_TRANSFORMER_PARITY_REPORT_REF),
-            String::from(lineage_contract_ref),
-        ],
-        &program_artifact,
-        TassadarExecutorDecodeMode::ReferenceLinear,
-        &transformer_execution,
-    );
-    let route_binding = bind_tassadar_direct_model_weight_route(
-        route_descriptor,
-        TassadarExecutorDecodeMode::ReferenceLinear,
-    )?;
-    let compiled_backend_features = vec![
-        String::from("tassadar_article_transformer"),
-        String::from(TassadarExecutorDecodeMode::ReferenceLinear.as_str()),
-        String::from(TRANSFORMER_DIRECT_PROOF_RUNNER_ID),
-        case.program.profile_id.clone(),
-        String::from("trained_trace_bound"),
-    ];
-    let workload_family_id = workload_family_id_for_case(case.case_id.as_str());
-
-    Ok(TassadarDirectModelWeightExecutionProofReceipt::new(
-        TassadarDirectModelWeightExecutionProofInput {
-            receipt_id: format!("direct_model_weight_proof.{}", case.case_id),
-            benchmark_ref: String::from(TASSADAR_ARTICLE_CLASS_BENCHMARK_REF),
-            benchmark_environment_ref: String::from(
-                TASSADAR_ARTICLE_CLASS_BENCHMARK_ENVIRONMENT_REF,
-            ),
-            benchmark_report_ref: String::from(TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF),
-            workload_family_id: workload_family_id.to_string(),
-            article_case_id: case.case_id.clone(),
-            article_case_summary: case.summary.clone(),
-            executor_product_id: String::from(crate::EXECUTOR_TRACE_PRODUCT_ID),
-            model_id: transformer_model.descriptor().model.model_id.clone(),
-            model_descriptor_digest: transformer_model.descriptor().stable_digest(),
-            model_weight_bundle_digest: transformer_model.descriptor().weights.digest.clone(),
-            model_primary_artifact_digest: transformer_model
-                .descriptor()
-                .weights
-                .primary_artifact_digest()
-                .map(String::from),
-            model_lineage_contract_ref: String::from(lineage_contract_ref),
-            model_lineage_contract_digest: String::from(lineage_contract_digest),
-            requested_decode_mode: TassadarExecutorDecodeMode::ReferenceLinear,
-            effective_decode_mode: Some(TassadarExecutorDecodeMode::ReferenceLinear),
-            selection_state: TassadarExecutorSelectionState::Direct,
-            fallback_observed: false,
-            external_call_count: 0,
-            external_tool_surface_observed: false,
-            cpu_result_substitution_observed: false,
-            compiled_backend_features,
-            program_artifact_digest: program_artifact.artifact_digest.clone(),
-            trace_artifact_digest: evidence_bundle.trace_artifact.artifact_digest.clone(),
-            trace_digest: evidence_bundle.trace_artifact.trace_digest.clone(),
-            trace_proof_digest: evidence_bundle.trace_proof.proof_digest.clone(),
-            runtime_manifest_identity_digest: evidence_bundle
-                .runtime_manifest
-                .identity_digest
-                .clone(),
-            runtime_manifest_digest: evidence_bundle.runtime_manifest.manifest_digest.clone(),
-            proof_bundle_request_digest: evidence_bundle.proof_bundle.request_digest.clone(),
-            proof_bundle_model_id: evidence_bundle.proof_bundle.model_id.clone(),
-            route_binding,
-        },
-    )?)
-}
-
-fn fixture_execution_for_case(
-    case: &TassadarValidationCase,
-) -> Result<psionic_runtime::TassadarExecution, TassadarDirectModelWeightExecutionProofReportError>
-{
-    let runner = TassadarFixtureRunner::for_program(&case.program)
-        .map_err(|error| fixture_execution_error(case.case_id.as_str(), error))?;
-    runner
-        .execute(&case.program)
-        .map_err(|error| fixture_execution_error(case.case_id.as_str(), error))
-}
-
-fn fixture_execution_error(
-    case_id: &str,
-    error: TassadarExecutionRefusal,
-) -> TassadarDirectModelWeightExecutionProofReportError {
-    TassadarDirectModelWeightExecutionProofReportError::FixtureExecution {
-        case_id: String::from(case_id),
-        detail: error.to_string(),
-    }
-}
-
-fn program_artifact_error(
-    case_id: &str,
-    error: TassadarProgramArtifactError,
-) -> TassadarDirectModelWeightExecutionProofReportError {
-    TassadarDirectModelWeightExecutionProofReportError::ProgramArtifact {
-        case_id: String::from(case_id),
-        detail: error.to_string(),
-    }
-}
-
-fn workload_family_id_for_case(case_id: &str) -> &'static str {
-    match case_id {
-        "long_loop_kernel" => "LongLoopKernel",
-        value if value.starts_with("sudoku_") => "SudokuClass",
-        value if value.starts_with("hungarian") => "HungarianMatching",
-        _ => "ArticleClass",
-    }
 }
 
 fn read_trained_trace_bound_lineage_contract_digest(
@@ -793,6 +661,7 @@ mod tests {
             report.model_id,
             TassadarArticleTransformer::TRAINED_TRACE_BOUND_MODEL_ID
         );
+        assert!(!report.model_descriptor_digest.is_empty());
         assert_eq!(
             report.historical_fixture_model_id,
             "tassadar-executor-article-i32-compute-v0"
@@ -815,6 +684,10 @@ mod tests {
             .iter()
             .all(|receipt| receipt.route_binding.route_descriptor_digest
                 == report.route_descriptor_digest));
+        assert!(report
+            .receipts
+            .iter()
+            .all(|receipt| receipt.model_descriptor_digest == report.model_descriptor_digest));
         assert!(report.receipts.iter().all(|receipt| {
             receipt.model_lineage_contract_ref == report.lineage_contract_ref
                 && receipt.model_id == report.model_id

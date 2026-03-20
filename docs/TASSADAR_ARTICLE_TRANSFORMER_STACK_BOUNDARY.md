@@ -314,6 +314,27 @@ Transformer-backed model already runs on that fast path. That integration,
 no-fallback closeout, and throughput-floor closeout remain `TAS-173` through
 `TAS-175`.
 
+`TAS-173` now closes that next integration tranche on top of the same owned
+route. `psionic-models` now projects the trained
+`tassadar-article-transformer-trace-bound-trained-v0` artifact into the served
+executor descriptor boundary with explicit `ReferenceLinear` plus `HullCache`
+decode support on the canonical article profile, and `psionic-serve` now uses
+that trained model identity for the default article-session and hybrid article
+workflow surfaces instead of keeping the historical article fixture as the
+canonical served model. The committed
+`fixtures/tassadar/reports/tassadar_direct_model_weight_execution_proof_report.json`
+now binds one canonical Transformer model-descriptor digest plus one published
+route digest into the direct proof family, and the committed
+`fixtures/tassadar/reports/tassadar_article_fast_route_implementation_report.json`
+plus
+`fixtures/tassadar/reports/tassadar_article_fast_route_implementation_summary.json`
+now freeze the descriptor, replacement-publication, live article-session,
+hybrid-route, and direct-proof closure statement in one machine-readable
+artifact pair. This is the point where the repo now machine-readably says the
+selected `HullCache` fast path is owned by the canonical Transformer-backed
+article route itself, but full no-fallback exactness and throughput-floor
+closure still remain `TAS-174` and `TAS-175`.
+
 ## Route Requirement
 
 Any canonical article-equivalence Transformer route must use this boundary.

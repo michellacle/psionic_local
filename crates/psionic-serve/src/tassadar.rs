@@ -5,12 +5,13 @@ use std::{
 };
 
 use psionic_models::{
+    build_tassadar_article_transformer_trained_executor_descriptor,
     check_tassadar_internal_compute_profile_claim,
     tassadar_current_served_internal_compute_profile_claim, tassadar_generalized_abi_publication,
     tassadar_internal_compute_profile_ladder_publication,
     tassadar_rust_article_profile_completeness_publication, TassadarExecutorContractError,
-    TassadarExecutorFixture, TassadarExecutorModelDescriptor, TassadarGeneralizedAbiPublication,
-    TassadarInternalComputeProfileClaimCheckResult,
+    TassadarArticleTransformer, TassadarExecutorFixture, TassadarExecutorModelDescriptor,
+    TassadarGeneralizedAbiPublication, TassadarInternalComputeProfileClaimCheckResult,
     TassadarInternalComputeProfileLadderPublication, TassadarModuleExecutionCapabilityPublication,
     TassadarRustArticleProfileCompletenessPublication, TassadarTraceTokenizer,
     TassadarWorkloadCapabilityMatrix, TassadarWorkloadCapabilityMatrixError,
@@ -29,7 +30,8 @@ use psionic_router::{
     TassadarPlannerExecutorWasmImportPosture, TassadarPlannerExecutorWasmOpcodeFamily,
 };
 use psionic_runtime::{
-    build_tassadar_execution_evidence_bundle, execute_tassadar_executor_request,
+    build_tassadar_execution_evidence_bundle, diagnose_tassadar_executor_request,
+    execute_tassadar_executor_request,
     tassadar_article_class_corpus, tassadar_trace_abi_for_profile_id, tassadar_wasm_profile_for_id,
     TassadarDirectModelWeightExecutionProofReceipt, TassadarExecution,
     TassadarExecutionEvidenceBundle, TassadarExecutionRefusal, TassadarExecutorDecodeMode,
@@ -553,6 +555,12 @@ pub enum TassadarExecutorServiceError {
         /// Requested model identifier.
         model_id: String,
     },
+    /// The Transformer-backed article replacement lane could not be projected honestly.
+    #[error("invalid article Transformer replacement lane: {detail}")]
+    InvalidArticleTransformerReplacement {
+        /// Machine-readable detail for the failed projection.
+        detail: String,
+    },
     /// The request reached execution even though runtime selection refused it.
     #[error(transparent)]
     ExecutionRefusal(#[from] TassadarExecutionRefusal),
@@ -603,6 +611,58 @@ pub struct LocalTassadarExecutorService {
     default_model_id: String,
 }
 
+fn is_transformer_backed_article_model_id(model_id: &str) -> bool {
+    model_id == TassadarArticleTransformer::TRAINED_TRACE_BOUND_MODEL_ID
+}
+
+fn transformer_backed_article_fixture() -> TassadarExecutorFixture {
+    TassadarExecutorFixture::article_i32_compute_v1()
+}
+
+fn ensure_transformer_backed_article_replacement_ready() -> Result<(), String> {
+    let parity_report = psionic_eval::build_tassadar_article_fixture_transformer_parity_report()
+        .map_err(|error| {
+            format!("failed to build fixture-to-Transformer parity report: {error}")
+        })?;
+    if !parity_report.replacement_certified {
+        return Err(String::from(
+            "fixture-to-Transformer parity report is not green enough to publish the trained Transformer-backed article route",
+        ));
+    }
+    if parity_report.transformer_model_artifact.model_id
+        != TassadarArticleTransformer::TRAINED_TRACE_BOUND_MODEL_ID
+    {
+        return Err(format!(
+            "parity report model `{}` did not match trained Transformer model `{}`",
+            parity_report.transformer_model_artifact.model_id,
+            TassadarArticleTransformer::TRAINED_TRACE_BOUND_MODEL_ID
+        ));
+    }
+    Ok(())
+}
+
+fn transformer_backed_article_model_descriptor(
+) -> Result<TassadarExecutorModelDescriptor, String> {
+    ensure_transformer_backed_article_replacement_ready()?;
+    build_tassadar_article_transformer_trained_executor_descriptor().map_err(|error| {
+        format!("failed to build trained Transformer-backed article descriptor: {error}")
+    })
+}
+
+fn transformer_backed_article_workload_capability_matrix(
+) -> Result<TassadarWorkloadCapabilityMatrix, String> {
+    let descriptor = transformer_backed_article_model_descriptor()?;
+    let baseline = transformer_backed_article_fixture().workload_capability_matrix();
+    Ok(TassadarWorkloadCapabilityMatrix::new(
+        descriptor.model.model_id.clone(),
+        descriptor.model.family.clone(),
+        baseline.rows,
+        String::from(
+            "this workload matrix projects the certified article fixture workload boundary onto the trained trace-bound Transformer-backed article route. It keeps explicit direct-versus-fallback decode truth for ReferenceLinear and HullCache without claiming TAS-174 no-fallback closure or TAS-175 throughput closure.",
+        ),
+    ))
+}
+
 impl Default for LocalTassadarExecutorService {
     fn default() -> Self {
         Self::new()
@@ -640,12 +700,38 @@ impl LocalTassadarExecutorService {
         requested_model_id: Option<&str>,
     ) -> Result<TassadarExecutorCapabilityPublication, TassadarExecutorCapabilityPublicationError>
     {
-        let fixture = self
-            .resolve_fixture_by_model_id(requested_model_id)
-            .map_err(
-                |model_id| TassadarExecutorCapabilityPublicationError::UnknownModel { model_id },
-            )?;
-        let workload_capability_matrix = fixture.workload_capability_matrix();
+        let requested_model_id = requested_model_id.unwrap_or(self.default_model_id.as_str());
+        let (model_descriptor, workload_capability_matrix, runtime_capability, module_execution_capability) =
+            if is_transformer_backed_article_model_id(requested_model_id) {
+                let model_descriptor =
+                    transformer_backed_article_model_descriptor().map_err(|detail| {
+                        TassadarExecutorCapabilityPublicationError::InvalidArticleTransformerReplacement {
+                            detail,
+                        }
+                    })?;
+                (
+                    model_descriptor,
+                    transformer_backed_article_workload_capability_matrix().map_err(|detail| {
+                        TassadarExecutorCapabilityPublicationError::InvalidArticleTransformerReplacement {
+                            detail,
+                        }
+                    })?,
+                    TassadarRuntimeCapabilityReport::current(),
+                    transformer_backed_article_fixture().module_execution_capability_publication(),
+                )
+            } else {
+                let fixture = self
+                    .resolve_fixture_by_model_id(Some(requested_model_id))
+                    .map_err(
+                        |model_id| TassadarExecutorCapabilityPublicationError::UnknownModel { model_id },
+                    )?;
+                (
+                    fixture.descriptor().clone(),
+                    fixture.workload_capability_matrix(),
+                    fixture.runtime_capability_report(),
+                    fixture.module_execution_capability_publication(),
+                )
+            };
         workload_capability_matrix
             .validate_publication()
             .map_err(|error| {
@@ -666,7 +752,6 @@ impl LocalTassadarExecutorService {
                 },
             );
         }
-        let runtime_capability = fixture.runtime_capability_report();
         let quantization_truth_envelope = crate::build_tassadar_served_quantization_truth_envelope(
             runtime_capability.runtime_backend.as_str(),
         )
@@ -866,9 +951,9 @@ impl LocalTassadarExecutorService {
             )?;
         Ok(TassadarExecutorCapabilityPublication {
             product_id: String::from(EXECUTOR_TRACE_PRODUCT_ID),
-            model_descriptor: fixture.descriptor().clone(),
+            model_descriptor,
             runtime_capability,
-            module_execution_capability: fixture.module_execution_capability_publication(),
+            module_execution_capability,
             rust_article_profile_completeness:
                 tassadar_rust_article_profile_completeness_publication(),
             generalized_abi_family: tassadar_generalized_abi_publication(),
@@ -1072,7 +1157,7 @@ impl LocalTassadarExecutorService {
             replacement_certified: report.replacement_certified,
             article_equivalence_green: report.article_equivalence_green,
             claim_boundary: String::from(
-                "this served publication cites the bounded fixture-to-Transformer parity certificate for the declared article corpus only. It certifies replacement of the old fixture lane as the bounded truth carrier on those workloads, but it does not yet move direct no-tool proof ownership to the Transformer route or widen the broader article-equivalence claim boundary.",
+                "this served publication cites the bounded fixture-to-Transformer parity certificate for the declared article corpus only. It certifies replacement of the old fixture lane as the bounded truth carrier on those workloads and supports the trained Transformer-backed article route as the canonical served model identity, but it does not by itself close fast-route no-fallback posture, throughput-floor closure, or the broader article-equivalence claim boundary.",
             ),
             publication_digest: String::new(),
         };
@@ -1089,7 +1174,15 @@ impl LocalTassadarExecutorService {
         request: &TassadarExecutorRequest,
     ) -> Result<TassadarExecutorOutcome, TassadarExecutorServiceError> {
         self.validate_product(request)?;
-        let fixture = self.resolve_fixture(request)?;
+        let requested_model_id = request
+            .requested_model_id
+            .as_deref()
+            .unwrap_or(self.default_model_id.as_str());
+        if is_transformer_backed_article_model_id(requested_model_id) {
+            return self.execute_with_transformer_backed_article_model(request);
+        }
+        let fixture = self.resolve_fixture_by_model_id(Some(requested_model_id))
+            .map_err(|model_id| TassadarExecutorServiceError::UnknownModel { model_id })?;
         Ok(self.execute_with_fixture(fixture, request))
     }
 
@@ -1099,10 +1192,20 @@ impl LocalTassadarExecutorService {
         request: &TassadarExecutorRequest,
     ) -> Result<LocalTassadarExecutorStream, TassadarExecutorServiceError> {
         self.validate_product(request)?;
-        let fixture = self.resolve_fixture(request)?;
-        let outcome = self.execute_with_fixture(fixture, request);
+        let requested_model_id = request
+            .requested_model_id
+            .as_deref()
+            .unwrap_or(self.default_model_id.as_str());
+        let runtime_capability = if is_transformer_backed_article_model_id(requested_model_id) {
+            TassadarRuntimeCapabilityReport::current()
+        } else {
+            self.resolve_fixture_by_model_id(Some(requested_model_id))
+                .map_err(|model_id| TassadarExecutorServiceError::UnknownModel { model_id })?
+                .runtime_capability_report()
+        };
+        let outcome = self.execute(request)?;
         Ok(LocalTassadarExecutorStream::from_events(
-            stream_events_for_outcome(fixture, outcome),
+            stream_events_for_outcome(runtime_capability, outcome),
         ))
     }
 
@@ -1112,28 +1215,27 @@ impl LocalTassadarExecutorService {
         request: &TassadarExecutorRequest,
     ) -> Result<TassadarExecutorPreflightReport, TassadarExecutorServiceError> {
         self.validate_product(request)?;
-        let fixture = self.resolve_fixture(request)?;
-        let descriptor = fixture.descriptor().clone();
-        let runtime_capability = fixture.runtime_capability_report();
-        let contract_error = descriptor
-            .validate_program_artifact(&request.program_artifact, request.requested_decode_mode)
-            .err();
-        let selection = if contract_error.is_none() {
-            Some(fixture.runtime_selection_diagnostic(
-                &request.program_artifact.validated_program,
-                request.requested_decode_mode,
-            ))
-        } else {
-            None
-        };
-        Ok(TassadarExecutorPreflightReport {
-            request_id: request.request_id.clone(),
-            product_id: request.product_id.clone(),
-            model_descriptor: descriptor,
-            runtime_capability,
-            contract_error,
-            selection,
-        })
+        let requested_model_id = request
+            .requested_model_id
+            .as_deref()
+            .unwrap_or(self.default_model_id.as_str());
+        if is_transformer_backed_article_model_id(requested_model_id) {
+            let descriptor = transformer_backed_article_model_descriptor().map_err(|detail| {
+                TassadarExecutorServiceError::InvalidArticleTransformerReplacement { detail }
+            })?;
+            return Ok(self.preflight_with_model_descriptor(
+                request,
+                descriptor,
+                TassadarRuntimeCapabilityReport::current(),
+            ));
+        }
+        let fixture = self.resolve_fixture_by_model_id(Some(requested_model_id))
+            .map_err(|model_id| TassadarExecutorServiceError::UnknownModel { model_id })?;
+        Ok(self.preflight_with_model_descriptor(
+            request,
+            fixture.descriptor().clone(),
+            fixture.runtime_capability_report(),
+        ))
     }
 
     fn validate_product(
@@ -1147,18 +1249,6 @@ impl LocalTassadarExecutorService {
                 product_id: request.product_id.clone(),
             })
         }
-    }
-
-    fn resolve_fixture(
-        &self,
-        request: &TassadarExecutorRequest,
-    ) -> Result<&TassadarExecutorFixture, TassadarExecutorServiceError> {
-        let requested_model_id = request
-            .requested_model_id
-            .as_deref()
-            .unwrap_or(self.default_model_id.as_str());
-        self.resolve_fixture_by_model_id(Some(requested_model_id))
-            .map_err(|model_id| TassadarExecutorServiceError::UnknownModel { model_id })
     }
 
     fn resolve_fixture_by_model_id(
@@ -1176,8 +1266,62 @@ impl LocalTassadarExecutorService {
         fixture: &TassadarExecutorFixture,
         request: &TassadarExecutorRequest,
     ) -> TassadarExecutorOutcome {
-        let descriptor = fixture.descriptor().clone();
-        let runtime_capability = fixture.runtime_capability_report();
+        self.execute_with_model_descriptor(
+            request,
+            fixture.descriptor().clone(),
+            fixture.runtime_capability_report(),
+        )
+    }
+
+    fn execute_with_transformer_backed_article_model(
+        &self,
+        request: &TassadarExecutorRequest,
+    ) -> Result<TassadarExecutorOutcome, TassadarExecutorServiceError> {
+        let descriptor = transformer_backed_article_model_descriptor().map_err(|detail| {
+            TassadarExecutorServiceError::InvalidArticleTransformerReplacement { detail }
+        })?;
+        Ok(self.execute_with_model_descriptor(
+            request,
+            descriptor,
+            TassadarRuntimeCapabilityReport::current(),
+        ))
+    }
+
+    fn preflight_with_model_descriptor(
+        &self,
+        request: &TassadarExecutorRequest,
+        descriptor: TassadarExecutorModelDescriptor,
+        runtime_capability: TassadarRuntimeCapabilityReport,
+    ) -> TassadarExecutorPreflightReport {
+        let contract_error = descriptor
+            .validate_program_artifact(&request.program_artifact, request.requested_decode_mode)
+            .err();
+        let selection = if contract_error.is_none() {
+            Some(diagnose_tassadar_executor_request(
+                &request.program_artifact.validated_program,
+                request.requested_decode_mode,
+                request.program_artifact.trace_abi_version,
+                Some(descriptor.compatibility.supported_decode_modes.as_slice()),
+            ))
+        } else {
+            None
+        };
+        TassadarExecutorPreflightReport {
+            request_id: request.request_id.clone(),
+            product_id: request.product_id.clone(),
+            model_descriptor: descriptor,
+            runtime_capability,
+            contract_error,
+            selection,
+        }
+    }
+
+    fn execute_with_model_descriptor(
+        &self,
+        request: &TassadarExecutorRequest,
+        descriptor: TassadarExecutorModelDescriptor,
+        runtime_capability: TassadarRuntimeCapabilityReport,
+    ) -> TassadarExecutorOutcome {
         match descriptor
             .validate_program_artifact(&request.program_artifact, request.requested_decode_mode)
         {
@@ -1197,9 +1341,11 @@ impl LocalTassadarExecutorService {
             }
         }
 
-        let selection = fixture.runtime_selection_diagnostic(
+        let selection = diagnose_tassadar_executor_request(
             &request.program_artifact.validated_program,
             request.requested_decode_mode,
+            request.program_artifact.trace_abi_version,
+            Some(descriptor.compatibility.supported_decode_modes.as_slice()),
         );
         if selection.effective_decode_mode.is_none() {
             return TassadarExecutorOutcome::Refused {
@@ -1720,6 +1866,23 @@ impl LocalTassadarArticleExecutorSessionService {
         request: &TassadarArticleExecutorSessionRequest,
     ) -> Result<TassadarArticleExecutorSessionOutcome, TassadarArticleExecutorSessionServiceError>
     {
+        self.execute_with_derived_views(request, true)
+    }
+
+    pub(crate) fn execute_without_derived_views(
+        &self,
+        request: &TassadarArticleExecutorSessionRequest,
+    ) -> Result<TassadarArticleExecutorSessionOutcome, TassadarArticleExecutorSessionServiceError>
+    {
+        self.execute_with_derived_views(request, false)
+    }
+
+    fn execute_with_derived_views(
+        &self,
+        request: &TassadarArticleExecutorSessionRequest,
+        include_derived_views: bool,
+    ) -> Result<TassadarArticleExecutorSessionOutcome, TassadarArticleExecutorSessionServiceError>
+    {
         self.validate_product(request)?;
         let runtime_capability = TassadarRuntimeCapabilityReport::current();
         let Some(case) = article_case_by_id(request.article_case_id.as_str()) else {
@@ -1747,10 +1910,41 @@ impl LocalTassadarArticleExecutorSessionService {
         match self.executor_service.execute(&executor_request) {
             Ok(TassadarExecutorOutcome::Completed { response }) => {
                 let proof_identity = TassadarArticleProofIdentity::from_response(&response);
-                let readable_log =
-                    build_article_readable_log_excerpt(&case, &response.execution_report.execution);
-                let token_trace =
-                    build_article_token_trace_excerpt(&case, &response.execution_report.execution);
+                let (readable_log, token_trace) = if include_derived_views {
+                    (
+                        build_article_readable_log_excerpt(
+                            &case,
+                            &response.execution_report.execution,
+                        ),
+                        build_article_token_trace_excerpt(
+                            &case,
+                            &response.execution_report.execution,
+                        ),
+                    )
+                } else {
+                    (
+                        TassadarArticleReadableLogExcerpt {
+                            max_lines: 0,
+                            total_line_count: 0,
+                            truncated: false,
+                            lines: Vec::new(),
+                            derivation_posture: String::from(
+                                "derived readable-log view intentionally suppressed for proof-only article-session execution",
+                            ),
+                        },
+                        TassadarArticleTokenTraceExcerpt {
+                            max_tokens: 0,
+                            total_token_count: 0,
+                            prompt_token_count: 0,
+                            truncated: false,
+                            tokenizer_digest: String::new(),
+                            tokens: Vec::new(),
+                            derivation_posture: String::from(
+                                "derived token-trace view intentionally suppressed for proof-only article-session execution",
+                            ),
+                        },
+                    )
+                };
                 let mut response = TassadarArticleExecutorSessionResponse {
                     request_id: request.request_id.clone(),
                     product_id: request.product_id.clone(),
@@ -1825,6 +2019,22 @@ impl LocalTassadarArticleExecutorSessionService {
                     },
                 })
             }
+            Err(TassadarExecutorServiceError::InvalidArticleTransformerReplacement {
+                detail,
+            }) => Ok(TassadarArticleExecutorSessionOutcome::Refused {
+                refusal: TassadarArticleExecutorSessionRefusalResponse {
+                    request_id: request.request_id.clone(),
+                    product_id: request.product_id.clone(),
+                    benchmark_identity: Some(benchmark_identity),
+                    model_descriptor: None,
+                    runtime_capability,
+                    contract_error: None,
+                    selection: None,
+                    detail: format!(
+                        "trained Transformer-backed article route is not publishable yet: {detail}"
+                    ),
+                },
+            }),
             Err(TassadarExecutorServiceError::UnsupportedProduct { product_id }) => {
                 Err(TassadarArticleExecutorSessionServiceError::UnsupportedProduct { product_id })
             }
@@ -1895,7 +2105,7 @@ impl LocalTassadarArticleExecutorSessionService {
         )
         .with_requested_model_id(
             request.requested_model_id.clone().unwrap_or_else(|| {
-                String::from(TassadarExecutorFixture::ARTICLE_I32_COMPUTE_MODEL_ID)
+                String::from(TassadarArticleTransformer::TRAINED_TRACE_BOUND_MODEL_ID)
             }),
         )
         .with_environment_refs(merge_article_environment_refs(
@@ -2529,6 +2739,23 @@ impl LocalTassadarPlannerRouter {
                     None,
                 ));
             }
+            Err(TassadarExecutorServiceError::InvalidArticleTransformerReplacement {
+                detail,
+            }) => {
+                let capability = TassadarRuntimeCapabilityReport::current();
+                return Ok(self.policy_terminal_outcome(
+                    request,
+                    Some(executor_request_digest),
+                    capability,
+                    None,
+                    None,
+                    TassadarPlannerRouteReason::ExecutorServiceRejected,
+                    format!(
+                        "trained Transformer-backed article route is not publishable yet: {detail}"
+                    ),
+                    None,
+                ));
+            }
         };
 
         if !request.routing_policy.allow_executor_delegation {
@@ -2755,6 +2982,23 @@ impl LocalTassadarPlannerRouter {
                     None,
                     TassadarPlannerRouteReason::ExecutorServiceRejected,
                     detail,
+                    None,
+                ))
+            }
+            Err(TassadarExecutorServiceError::InvalidArticleTransformerReplacement {
+                detail,
+            }) => {
+                let capability = TassadarRuntimeCapabilityReport::current();
+                Ok(self.policy_terminal_outcome(
+                    request,
+                    Some(executor_request_digest),
+                    capability,
+                    None,
+                    None,
+                    TassadarPlannerRouteReason::ExecutorServiceRejected,
+                    format!(
+                        "trained Transformer-backed article route is not publishable yet: {detail}"
+                    ),
                     None,
                 ))
             }
@@ -3385,7 +3629,7 @@ impl LocalTassadarArticleHybridWorkflowService {
             subproblem = subproblem.with_requested_model_id(requested_model_id);
         } else {
             subproblem = subproblem
-                .with_requested_model_id(TassadarExecutorFixture::ARTICLE_I32_COMPUTE_MODEL_ID);
+                .with_requested_model_id(TassadarArticleTransformer::TRAINED_TRACE_BOUND_MODEL_ID);
         }
         TassadarPlannerRoutingRequest::new(
             request.request_id.clone(),
@@ -5827,11 +6071,11 @@ fn format_event(event: &TassadarTraceEvent) -> String {
 }
 
 fn stream_events_for_outcome(
-    fixture: &TassadarExecutorFixture,
+    runtime_capability: TassadarRuntimeCapabilityReport,
     outcome: TassadarExecutorOutcome,
 ) -> Vec<TassadarExecutorStreamEvent> {
     let mut events = vec![TassadarExecutorStreamEvent::Capability {
-        runtime_capability: fixture.runtime_capability_report(),
+        runtime_capability,
     }];
     match &outcome {
         TassadarExecutorOutcome::Completed { response } => {
@@ -5890,7 +6134,9 @@ mod tests {
         ARTICLE_HYBRID_WORKFLOW_PRODUCT_ID, EXECUTOR_TRACE_PRODUCT_ID,
         PLANNER_EXECUTOR_ROUTE_PRODUCT_ID, TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF,
     };
-    use psionic_models::{TassadarExecutorFixture, TassadarWorkloadClass};
+    use psionic_models::{
+        TassadarArticleTransformer, TassadarExecutorFixture, TassadarWorkloadClass,
+    };
     use psionic_research::TassadarPromotionChecklistGateKind;
     use psionic_router::{
         TassadarPlannerExecutorRoutePosture, TassadarPlannerExecutorWasmImportPosture,
@@ -6425,6 +6671,10 @@ mod tests {
                 assert_eq!(
                     response.proof_identity.executor_product_id,
                     EXECUTOR_TRACE_PRODUCT_ID
+                );
+                assert_eq!(
+                    response.executor_response.model_descriptor.model.model_id,
+                    TassadarArticleTransformer::TRAINED_TRACE_BOUND_MODEL_ID
                 );
                 assert_eq!(response.final_outputs(), expected_outputs.as_slice());
                 assert_eq!(
@@ -7016,13 +7266,10 @@ mod tests {
 
     #[test]
     fn planner_router_route_capability_descriptor_is_machine_legible() {
-        let router = LocalTassadarPlannerRouter::new().with_executor_service(
-            LocalTassadarExecutorService::new()
-                .with_fixture(TassadarExecutorFixture::article_i32_compute_v1()),
-        );
+        let router = LocalTassadarPlannerRouter::new();
         let descriptor = router
             .route_capability_descriptor(Some(
-                TassadarExecutorFixture::ARTICLE_I32_COMPUTE_MODEL_ID,
+                TassadarArticleTransformer::TRAINED_TRACE_BOUND_MODEL_ID,
             ))
             .expect("route descriptor should publish");
 
@@ -7032,7 +7279,7 @@ mod tests {
         );
         assert_eq!(
             descriptor.model_id,
-            TassadarExecutorFixture::ARTICLE_I32_COMPUTE_MODEL_ID
+            TassadarArticleTransformer::TRAINED_TRACE_BOUND_MODEL_ID
         );
         assert_eq!(
             descriptor.internal_compute_profile_id,

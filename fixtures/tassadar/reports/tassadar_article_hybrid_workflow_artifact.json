@@ -49,17 +49,17 @@
             "trace_artifact_digest": "558a3c29da240ed2aea3197b106c752bb698c5fc58fb343a0dfb6b46c07d0553",
             "trace_digest": "0a0d5afe024f9ae2d2860946dfab539d227d189df6e5cd96affbbc906f7724ef",
             "trace_proof_id": "tassadar://trace_proof/article-hybrid-delegated-memory-heavy::workflow-step-memory-heavy/0a0d5afe024f9ae2d2860946dfab539d227d189df6e5cd96affbbc906f7724ef",
-            "trace_proof_digest": "56d58fe73a853e900ebe8a39f48b2ed93e9ec2fc8b25c5e254d6a9940443c797",
+            "trace_proof_digest": "cc75bcb6c61668e083bafd2df7276c9e6cc1307a99033a03d05204d193d10aa2",
             "program_artifact_digest": "c0e559706071e64069b8daef223e30e8842ab4fecf7f61f0dd2f769944b8c6d7",
-            "runtime_manifest_identity_digest": "82f51cffad49bc2739ef3a5f4490ded284d7c6b8af6a710cb40113aee141713a",
-            "runtime_manifest_digest": "f271211275aae5fe8894edc64c740fc3c1c1a1e30af2c008c9c2d3855604bcab",
-            "proof_bundle_request_digest": "3634434f38b4298a7afe13e19064612de318955d5e61b4f361c1071e5abb08d8",
-            "proof_bundle_model_id": "tassadar-executor-article-i32-compute-v0"
+            "runtime_manifest_identity_digest": "0039f5785724cc63dc8e5aab547a821bcb9c49db9924f230bf216381f7b6ab22",
+            "runtime_manifest_digest": "2d7d3b5149d9916ba3f2a59d0220c56b16cd12899b498512e182aadc82b62c88",
+            "proof_bundle_request_digest": "944a80d69587b39e0f9b4412fe1bd67bccda7843e5f21a592d4e424e4ead002a",
+            "proof_bundle_model_id": "tassadar-article-transformer-trace-bound-trained-v0"
           },
           "planner_response": {
             "routing_decision": {
-              "planner_request_digest": "134949dfcf11b4f9a82f748462e64bd5ac9c0c9b4221f2a85407a53369c481d5",
-              "routing_digest": "736152179d53d493aad65c801bf4782e049ab6347d00629da2173dafe0af6b0d",
+              "planner_request_digest": "06daf8349db8d86dbb429ad544fd9e4b175805015c342b8f7d8409d29e268cd3",
+              "routing_digest": "73f0e4e120be5b89f73772ed765538980fecdffc0c64f640a870bb85f5958206",
               "planner_request_id": "article-hybrid-delegated-memory-heavy",
               "planner_session_id": "planner-session-article-alpha",
               "planner_model_id": "planner-article-fixture-v0",
@@ -68,7 +68,7 @@
               "subproblem_id": "workflow-step-memory-heavy",
               "requested_decode_mode": "hull_cache",
               "effective_decode_mode": "hull_cache",
-              "executor_request_digest": "3634434f38b4298a7afe13e19064612de318955d5e61b4f361c1071e5abb08d8",
+              "executor_request_digest": "944a80d69587b39e0f9b4412fe1bd67bccda7843e5f21a592d4e424e4ead002a",
               "route_state": "delegated",
               "routing_budget": {
                 "max_program_len": 4096,
@@ -123,8 +123,7 @@
                 "detail": "hull-cache decode requested and supported on the validated subset",
                 "model_supported_decode_modes": [
                   "reference_linear",
-                  "hull_cache",
-                  "sparse_top_k"
+                  "hull_cache"
                 ]
               },
               "detail": "planner delegated exact subproblem `workflow-step-memory-heavy` into Tassadar via `psionic.executor_trace`"
@@ -134,8 +133,8 @@
               "product_id": "psionic.executor_trace",
               "model_descriptor": {
                 "model": {
-                  "model_id": "tassadar-executor-article-i32-compute-v0",
-                  "family": "tassadar_executor",
+                  "model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+                  "family": "tassadar_article_transformer",
                   "revision": "v0"
                 },
                 "compatibility": {
@@ -146,10 +145,9 @@
                   "opcode_vocabulary_digest": "b458516f694c301a7b209bb6e710dfc4b7c2756a107738dd38a8fdc8b2dcd64c",
                   "supported_decode_modes": [
                     "reference_linear",
-                    "hull_cache",
-                    "sparse_top_k"
+                    "hull_cache"
                   ],
-                  "attention_mode": "reference_fixture",
+                  "attention_mode": "standard_softmax",
                   "attention_geometry": {
                     "hull_cache_eligible": true
                   },
@@ -188,55 +186,934 @@
                   "includes_memory_snapshots": true
                 },
                 "weights": {
-                  "format": "ProgrammaticFixture",
-                  "source": "Fixture",
+                  "format": "SafeTensors",
+                  "source": "ExternalArtifact",
                   "quantization": "none",
-                  "digest": "7d3043dc278ac9cdfd9b19192fc2bffc7082602da30b62d3bb7d31fa41b6ddd4",
+                  "digest": "99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c",
                   "tensors": [
                     {
-                      "name": "opcode_semantics",
+                      "name": "decoder_layers.0.cross_attention.key_projection.bias",
                       "shape": {
                         "dims": [
-                          12,
-                          5
+                          8
                         ]
                       },
                       "dtype": "F32",
                       "quantization": "none"
                     },
                     {
-                      "name": "opcode_stack_effects",
+                      "name": "decoder_layers.0.cross_attention.key_projection.weight",
                       "shape": {
                         "dims": [
-                          12,
-                          2
+                          8,
+                          8
                         ]
                       },
                       "dtype": "F32",
                       "quantization": "none"
                     },
                     {
-                      "name": "profile_limits",
+                      "name": "decoder_layers.0.cross_attention.output_projection.bias",
                       "shape": {
                         "dims": [
-                          4
+                          8
                         ]
                       },
                       "dtype": "F32",
                       "quantization": "none"
                     },
                     {
-                      "name": "trace_abi_flags",
+                      "name": "decoder_layers.0.cross_attention.output_projection.weight",
                       "shape": {
                         "dims": [
-                          6
+                          8,
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.0.cross_attention.query_projection.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.0.cross_attention.query_projection.weight",
+                      "shape": {
+                        "dims": [
+                          8,
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.0.cross_attention.value_projection.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.0.cross_attention.value_projection.weight",
+                      "shape": {
+                        "dims": [
+                          8,
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.0.cross_attention_norm.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.0.cross_attention_norm.weight",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.0.feed_forward.input_projection.bias",
+                      "shape": {
+                        "dims": [
+                          16
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.0.feed_forward.input_projection.weight",
+                      "shape": {
+                        "dims": [
+                          16,
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.0.feed_forward.output_projection.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.0.feed_forward.output_projection.weight",
+                      "shape": {
+                        "dims": [
+                          8,
+                          16
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.0.feed_forward_norm.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.0.feed_forward_norm.weight",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.0.self_attention.key_projection.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.0.self_attention.key_projection.weight",
+                      "shape": {
+                        "dims": [
+                          8,
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.0.self_attention.output_projection.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.0.self_attention.output_projection.weight",
+                      "shape": {
+                        "dims": [
+                          8,
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.0.self_attention.query_projection.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.0.self_attention.query_projection.weight",
+                      "shape": {
+                        "dims": [
+                          8,
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.0.self_attention.value_projection.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.0.self_attention.value_projection.weight",
+                      "shape": {
+                        "dims": [
+                          8,
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.0.self_attention_norm.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.0.self_attention_norm.weight",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.1.cross_attention.key_projection.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.1.cross_attention.key_projection.weight",
+                      "shape": {
+                        "dims": [
+                          8,
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.1.cross_attention.output_projection.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.1.cross_attention.output_projection.weight",
+                      "shape": {
+                        "dims": [
+                          8,
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.1.cross_attention.query_projection.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.1.cross_attention.query_projection.weight",
+                      "shape": {
+                        "dims": [
+                          8,
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.1.cross_attention.value_projection.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.1.cross_attention.value_projection.weight",
+                      "shape": {
+                        "dims": [
+                          8,
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.1.cross_attention_norm.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.1.cross_attention_norm.weight",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.1.feed_forward.input_projection.bias",
+                      "shape": {
+                        "dims": [
+                          16
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.1.feed_forward.input_projection.weight",
+                      "shape": {
+                        "dims": [
+                          16,
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.1.feed_forward.output_projection.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.1.feed_forward.output_projection.weight",
+                      "shape": {
+                        "dims": [
+                          8,
+                          16
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.1.feed_forward_norm.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.1.feed_forward_norm.weight",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.1.self_attention.key_projection.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.1.self_attention.key_projection.weight",
+                      "shape": {
+                        "dims": [
+                          8,
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.1.self_attention.output_projection.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.1.self_attention.output_projection.weight",
+                      "shape": {
+                        "dims": [
+                          8,
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.1.self_attention.query_projection.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.1.self_attention.query_projection.weight",
+                      "shape": {
+                        "dims": [
+                          8,
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.1.self_attention.value_projection.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.1.self_attention.value_projection.weight",
+                      "shape": {
+                        "dims": [
+                          8,
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.1.self_attention_norm.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "decoder_layers.1.self_attention_norm.weight",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "encoder_layers.0.feed_forward.input_projection.bias",
+                      "shape": {
+                        "dims": [
+                          16
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "encoder_layers.0.feed_forward.input_projection.weight",
+                      "shape": {
+                        "dims": [
+                          16,
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "encoder_layers.0.feed_forward.output_projection.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "encoder_layers.0.feed_forward.output_projection.weight",
+                      "shape": {
+                        "dims": [
+                          8,
+                          16
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "encoder_layers.0.feed_forward_norm.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "encoder_layers.0.feed_forward_norm.weight",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "encoder_layers.0.self_attention.key_projection.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "encoder_layers.0.self_attention.key_projection.weight",
+                      "shape": {
+                        "dims": [
+                          8,
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "encoder_layers.0.self_attention.output_projection.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "encoder_layers.0.self_attention.output_projection.weight",
+                      "shape": {
+                        "dims": [
+                          8,
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "encoder_layers.0.self_attention.query_projection.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "encoder_layers.0.self_attention.query_projection.weight",
+                      "shape": {
+                        "dims": [
+                          8,
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "encoder_layers.0.self_attention.value_projection.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "encoder_layers.0.self_attention.value_projection.weight",
+                      "shape": {
+                        "dims": [
+                          8,
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "encoder_layers.0.self_attention_norm.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "encoder_layers.0.self_attention_norm.weight",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "encoder_layers.1.feed_forward.input_projection.bias",
+                      "shape": {
+                        "dims": [
+                          16
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "encoder_layers.1.feed_forward.input_projection.weight",
+                      "shape": {
+                        "dims": [
+                          16,
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "encoder_layers.1.feed_forward.output_projection.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "encoder_layers.1.feed_forward.output_projection.weight",
+                      "shape": {
+                        "dims": [
+                          8,
+                          16
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "encoder_layers.1.feed_forward_norm.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "encoder_layers.1.feed_forward_norm.weight",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "encoder_layers.1.self_attention.key_projection.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "encoder_layers.1.self_attention.key_projection.weight",
+                      "shape": {
+                        "dims": [
+                          8,
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "encoder_layers.1.self_attention.output_projection.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "encoder_layers.1.self_attention.output_projection.weight",
+                      "shape": {
+                        "dims": [
+                          8,
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "encoder_layers.1.self_attention.query_projection.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "encoder_layers.1.self_attention.query_projection.weight",
+                      "shape": {
+                        "dims": [
+                          8,
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "encoder_layers.1.self_attention.value_projection.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "encoder_layers.1.self_attention.value_projection.weight",
+                      "shape": {
+                        "dims": [
+                          8,
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "encoder_layers.1.self_attention_norm.bias",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "encoder_layers.1.self_attention_norm.weight",
+                      "shape": {
+                        "dims": [
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "logits_projection.bias",
+                      "shape": {
+                        "dims": [
+                          303
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "logits_projection.weight",
+                      "shape": {
+                        "dims": [
+                          303,
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "source_embeddings.token_embedding.weight",
+                      "shape": {
+                        "dims": [
+                          303,
+                          8
+                        ]
+                      },
+                      "dtype": "F32",
+                      "quantization": "none"
+                    },
+                    {
+                      "name": "target_embeddings.token_embedding.weight",
+                      "shape": {
+                        "dims": [
+                          303,
+                          8
                         ]
                       },
                       "dtype": "F32",
                       "quantization": "none"
                     }
                   ],
-                  "artifacts": []
+                  "artifacts": [
+                    {
+                      "name": "tassadar_article_transformer_trace_bound_trained_v0.safetensors",
+                      "byte_length": 51948,
+                      "sha256": "e24923e6fe39f0656b3f331fb935e0827a3de43b706014610e513ca5a54e9f84"
+                    }
+                  ]
                 }
               },
               "runtime_capability": {
@@ -281,8 +1158,7 @@
                   "detail": "hull-cache decode requested and supported on the validated subset",
                   "model_supported_decode_modes": [
                     "reference_linear",
-                    "hull_cache",
-                    "sparse_top_k"
+                    "hull_cache"
                   ]
                 },
                 "execution": {
@@ -1485,8 +2361,8 @@
                     },
                     {
                       "kind": "model_descriptor",
-                      "reference": "tassadar-executor-article-i32-compute-v0",
-                      "digest": "46e34e67c5bc9a646c3ebd6e25eb8d93fe1181242c3698d8c9d3c4602b695b57"
+                      "reference": "tassadar-article-transformer-trace-bound-trained-v0",
+                      "digest": "f0f9055770ea186568cdf61526e568d5f98285a3d9e1602849a4f52101695a54"
                     },
                     {
                       "kind": "execution_trace",
@@ -1521,8 +2397,8 @@
                     }
                   ],
                   "claims_profile_id": "tassadar.executor_trace.proof.v1",
-                  "identity_digest": "82f51cffad49bc2739ef3a5f4490ded284d7c6b8af6a710cb40113aee141713a",
-                  "manifest_digest": "f271211275aae5fe8894edc64c740fc3c1c1a1e30af2c008c9c2d3855604bcab"
+                  "identity_digest": "0039f5785724cc63dc8e5aab547a821bcb9c49db9924f230bf216381f7b6ab22",
+                  "manifest_digest": "2d7d3b5149d9916ba3f2a59d0220c56b16cd12899b498512e182aadc82b62c88"
                 },
                 "trace_artifact": {
                   "schema_version": 1,
@@ -2668,14 +3544,14 @@
                 "trace_proof": {
                   "schema_version": 1,
                   "proof_artifact_id": "tassadar://trace_proof/article-hybrid-delegated-memory-heavy::workflow-step-memory-heavy/0a0d5afe024f9ae2d2860946dfab539d227d189df6e5cd96affbbc906f7724ef",
-                  "proof_digest": "56d58fe73a853e900ebe8a39f48b2ed93e9ec2fc8b25c5e254d6a9940443c797",
+                  "proof_digest": "cc75bcb6c61668e083bafd2df7276c9e6cc1307a99033a03d05204d193d10aa2",
                   "trace_artifact_ref": "tassadar://trace/article-hybrid-delegated-memory-heavy::workflow-step-memory-heavy/0a0d5afe024f9ae2d2860946dfab539d227d189df6e5cd96affbbc906f7724ef",
                   "trace_artifact_digest": "558a3c29da240ed2aea3197b106c752bb698c5fc58fb343a0dfb6b46c07d0553",
                   "trace_digest": "0a0d5afe024f9ae2d2860946dfab539d227d189df6e5cd96affbbc906f7724ef",
                   "program_digest": "656d9d35b87a6bc0a2e268e959ded085255ab0e1afeea4e0f72d728f3affdd7d",
                   "program_artifact_digest": "c0e559706071e64069b8daef223e30e8842ab4fecf7f61f0dd2f769944b8c6d7",
                   "wasm_profile_id": "tassadar.wasm.article_i32_compute.v1",
-                  "model_descriptor_digest": "46e34e67c5bc9a646c3ebd6e25eb8d93fe1181242c3698d8c9d3c4602b695b57",
+                  "model_descriptor_digest": "f0f9055770ea186568cdf61526e568d5f98285a3d9e1602849a4f52101695a54",
                   "decode_mode": "hull_cache",
                   "cache_algorithm_id": "tassadar.cache.hull_support.v1",
                   "runtime_backend": "cpu",
@@ -2686,17 +3562,17 @@
                     "claim_id": "tassadar.executor_trace.phase4",
                     "coverage": "not_yet_validated"
                   },
-                  "runtime_manifest_identity_digest": "82f51cffad49bc2739ef3a5f4490ded284d7c6b8af6a710cb40113aee141713a",
-                  "runtime_manifest_digest": "f271211275aae5fe8894edc64c740fc3c1c1a1e30af2c008c9c2d3855604bcab"
+                  "runtime_manifest_identity_digest": "0039f5785724cc63dc8e5aab547a821bcb9c49db9924f230bf216381f7b6ab22",
+                  "runtime_manifest_digest": "2d7d3b5149d9916ba3f2a59d0220c56b16cd12899b498512e182aadc82b62c88"
                 },
                 "proof_bundle": {
                   "schema_version": 1,
                   "bundle_kind": "local",
                   "status": "succeeded",
                   "request_id": "article-hybrid-delegated-memory-heavy::workflow-step-memory-heavy",
-                  "request_digest": "3634434f38b4298a7afe13e19064612de318955d5e61b4f361c1071e5abb08d8",
+                  "request_digest": "944a80d69587b39e0f9b4412fe1bd67bccda7843e5f21a592d4e424e4ead002a",
                   "product_id": "psionic.executor_trace",
-                  "model_id": "tassadar-executor-article-i32-compute-v0",
+                  "model_id": "tassadar-article-transformer-trace-bound-trained-v0",
                   "runtime_identity": {
                     "runtime_backend": "cpu",
                     "backend_toolchain": {
@@ -2717,13 +3593,13 @@
                     "coverage": "not_yet_validated"
                   },
                   "artifact_residency": {
-                    "weight_bundle_digest": "46e34e67c5bc9a646c3ebd6e25eb8d93fe1181242c3698d8c9d3c4602b695b57",
+                    "weight_bundle_digest": "f0f9055770ea186568cdf61526e568d5f98285a3d9e1602849a4f52101695a54",
                     "input_artifact_digests": [
                       "c0e559706071e64069b8daef223e30e8842ab4fecf7f61f0dd2f769944b8c6d7"
                     ],
                     "output_artifact_digests": [
                       "558a3c29da240ed2aea3197b106c752bb698c5fc58fb343a0dfb6b46c07d0553",
-                      "56d58fe73a853e900ebe8a39f48b2ed93e9ec2fc8b25c5e254d6a9940443c797"
+                      "cc75bcb6c61668e083bafd2df7276c9e6cc1307a99033a03d05204d193d10aa2"
                     ]
                   },
                   "activation_fingerprint_posture": "unavailable"
@@ -2779,8 +3655,8 @@
           },
           "planner_fallback": {
             "routing_decision": {
-              "planner_request_digest": "63297f5f063c97288e9c3f51a8421775a918990e1ea0c366c5a3152026881c74",
-              "routing_digest": "cd077c1aad0f49b0e25dbb5bc70fc5de9de80dae3229a92464d7b9d1b63f2763",
+              "planner_request_digest": "a5608f93cb71da2641703fe1d9ac2c15060b88c78e91879af456e9e28ceade2c",
+              "routing_digest": "ca39e44cf1475a1466a41cc468dd41b17a1e00d9423ad490d101ff4c4b94fb01",
               "planner_request_id": "article-hybrid-fallback-branch-heavy",
               "planner_session_id": "planner-session-article-beta",
               "planner_model_id": "planner-article-fixture-v0",
@@ -2788,8 +3664,7 @@
               "executor_product_id": "psionic.executor_trace",
               "subproblem_id": "workflow-step-branch-heavy",
               "requested_decode_mode": "sparse_top_k",
-              "effective_decode_mode": "reference_linear",
-              "executor_request_digest": "17da6efce21c9a51c7f64e7e420c53d756394851db1b7be596c5f7a0e51e52c3",
+              "executor_request_digest": "d9754ed7cd571a4ab51b1ca45b74b3db1266ff609c581bbdf69ee2a6f8f9338f",
               "route_state": "planner_fallback",
               "route_reason": "trace_step_budget_exceeded",
               "routing_budget": {
@@ -2834,20 +3709,12 @@
                 "default_decode_mode": "reference_linear",
                 "exact_fallback_decode_mode": "reference_linear"
               },
-              "selection": {
-                "program_id": "tassadar.branch_heavy_kernel.v1",
-                "runtime_backend": "cpu",
-                "requested_profile_id": "tassadar.wasm.article_i32_compute.v1",
-                "requested_trace_abi_version": 1,
-                "requested_decode_mode": "sparse_top_k",
-                "effective_decode_mode": "reference_linear",
-                "selection_state": "fallback",
-                "selection_reason": "sparse_top_k_validation_unsupported",
-                "detail": "instruction count 77 exceeds validated sparse-top-k limit 64; falling back to `tassadar.decode.reference_linear.v1`",
-                "model_supported_decode_modes": [
+              "contract_error": {
+                "kind": "decode_mode_unsupported",
+                "requested": "sparse_top_k",
+                "supported": [
                   "reference_linear",
-                  "hull_cache",
-                  "sparse_top_k"
+                  "hull_cache"
                 ]
               },
               "detail": "profile-backed trace-step budget 131072 exceeds planner budget 512"
@@ -2899,8 +3766,8 @@
           },
           "planner_refusal": {
             "routing_decision": {
-              "planner_request_digest": "3af886e314ecbf8d82454512d74810d350a732c581519a39831bc1ae6a5f40bf",
-              "routing_digest": "d9361373d3d7f3bfd2a4928df838bd1c50cea4f2053c4a9fdd103d33c463d7a3",
+              "planner_request_digest": "18a22feea4b6caa4106a89cf5603d87af2f808efcfbf7b1264fdb1fd75e0b38f",
+              "routing_digest": "38223f97b1126e9191f4f4a4193204e203fbabfbd252d3ba3de65da5a87f60d3",
               "planner_request_id": "article-hybrid-refusal-memory-heavy",
               "planner_session_id": "planner-session-article-gamma",
               "planner_model_id": "planner-article-fixture-v0",
@@ -2909,7 +3776,7 @@
               "subproblem_id": "workflow-step-memory-heavy-refusal",
               "requested_decode_mode": "hull_cache",
               "effective_decode_mode": "hull_cache",
-              "executor_request_digest": "dff6b0e0e958e77075cbefe90fe22de61f13d6ecab23fd20fca6e902caecd1b2",
+              "executor_request_digest": "2d54866a13bd90649321b6d7421f7a60b35cfb470768db180526d07aad8b5b9b",
               "route_state": "refused",
               "route_reason": "program_length_budget_exceeded",
               "routing_budget": {
@@ -2965,8 +3832,7 @@
                 "detail": "hull-cache decode requested and supported on the validated subset",
                 "model_supported_decode_modes": [
                   "reference_linear",
-                  "hull_cache",
-                  "sparse_top_k"
+                  "hull_cache"
                 ]
               },
               "detail": "validated program uses 31 instructions which exceeds planner budget 1"
@@ -2978,5 +3844,5 @@
       }
     }
   ],
-  "artifact_digest": "539cbecb709348353d07a866ef7d0531b65df471a298796566b3fcf5e72ea246"
+  "artifact_digest": "1afe7fb63a5ea72e3d429e674fd9dbd3b8865743470ea1e80fcabfa92cc72f80"
 }

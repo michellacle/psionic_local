@@ -14,8 +14,9 @@ use thiserror::Error;
 
 use crate::{
     ModelArtifactGovernance, ModelDescriptor, ModelIngressSurface, ModelInteropBoundary,
-    ModelRuntimeSurface, ModelServingSurface, WeightArtifactMetadata, WeightBundleMetadata,
-    WeightFormat, WeightSource, WeightTensorMetadata,
+    ModelRuntimeSurface, ModelServingSurface, TassadarArticleTransformer,
+    WeightArtifactMetadata, WeightBundleMetadata, WeightFormat, WeightSource,
+    WeightTensorMetadata,
 };
 
 const TASSADAR_WORKLOAD_CAPABILITY_MATRIX_SCHEMA_VERSION: u16 = 1;
@@ -25,6 +26,8 @@ const TASSADAR_BENCHMARK_PACKAGE_SET_SUMMARY_REPORT_REF: &str =
     "fixtures/tassadar/reports/tassadar_benchmark_package_set_summary.json";
 const TASSADAR_REFERENCE_FIXTURE_BENCHMARK_REF: &str =
     "benchmark://openagents/tassadar/reference_fixture/validation_corpus";
+pub const TASSADAR_ARTICLE_TRANSFORMER_TRAINED_EXECUTOR_DESCRIPTOR_REF: &str =
+    "fixtures/tassadar/models/tassadar_article_transformer_trace_bound_trained_v0_executor_descriptor.json";
 
 /// Stable executor-family identity distinct from ordinary decoder families.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -130,6 +133,52 @@ impl TassadarExecutorCompatibility {
     pub fn supports_decode_mode(&self, decode_mode: TassadarExecutorDecodeMode) -> bool {
         self.supported_decode_modes.contains(&decode_mode)
     }
+}
+
+/// Builds the served executor-facing descriptor for the trained trace-bound
+/// article Transformer route.
+pub fn build_tassadar_article_transformer_trained_executor_descriptor(
+) -> Result<TassadarExecutorModelDescriptor, crate::TassadarArticleTransformerError> {
+    let model = TassadarArticleTransformer::trained_trace_domain_reference()?;
+    Ok(tassadar_article_transformer_executor_descriptor(&model))
+}
+
+/// Projects one article-Transformer artifact into the served executor-model
+/// descriptor boundary used by routing, proof receipts, and article sessions.
+#[must_use]
+pub fn tassadar_article_transformer_executor_descriptor(
+    model: &TassadarArticleTransformer,
+) -> TassadarExecutorModelDescriptor {
+    let profile = TassadarWasmProfile::article_i32_compute_v1();
+    let trace_abi = TassadarTraceAbi::article_i32_compute_v1();
+    let compatibility = TassadarExecutorCompatibility {
+        executor_family: TassadarExecutorFamily::WasmTraceExecutor,
+        trace_abi_id: trace_abi.abi_id.clone(),
+        trace_abi_version: trace_abi.schema_version,
+        wasm_profile_id: profile.profile_id.clone(),
+        opcode_vocabulary_digest: profile.opcode_vocabulary_digest(),
+        supported_decode_modes: vec![
+            TassadarExecutorDecodeMode::ReferenceLinear,
+            TassadarExecutorDecodeMode::HullCache,
+        ],
+        attention_mode: TassadarExecutorAttentionMode::StandardSoftmax,
+        attention_geometry: TassadarAttentionGeometryContract {
+            constrained_lookup_head_dim: None,
+            hull_cache_eligible: true,
+        },
+        exactness_posture: TassadarExecutorExactnessPosture::ExactTraceAndOutput,
+    };
+    TassadarExecutorModelDescriptor::new(
+        ModelDescriptor::new(
+            model.descriptor().model.model_id.clone(),
+            model.descriptor().model.family.clone(),
+            model.descriptor().model.revision.clone(),
+        ),
+        compatibility,
+        profile,
+        trace_abi,
+        model.weight_metadata().clone(),
+    )
 }
 
 /// Explicit workload-class taxonomy for public Tassadar capability publication.
@@ -2227,8 +2276,9 @@ mod tests {
     };
 
     use super::{
+        build_tassadar_article_transformer_trained_executor_descriptor,
         TassadarCompiledProgramError, TassadarCompiledProgramSuiteArtifact,
-        TassadarExecutorContractError, TassadarExecutorFixture,
+        TassadarExecutorContractError, TassadarExecutorFixture, TassadarWasmProfile,
         TassadarWorkloadCapabilityMatrixError, TassadarWorkloadCapabilityRefusalReason,
         TassadarWorkloadClass, TassadarWorkloadSupportPosture,
     };
@@ -2567,6 +2617,33 @@ mod tests {
                 .compatibility
                 .attention_geometry
                 .hull_cache_eligible
+        );
+    }
+
+    #[test]
+    fn trained_article_transformer_executor_descriptor_projects_fast_route_support() {
+        let descriptor = build_tassadar_article_transformer_trained_executor_descriptor()
+            .expect("trained article Transformer descriptor");
+
+        assert_eq!(
+            descriptor.model.model_id,
+            crate::TassadarArticleTransformer::TRAINED_TRACE_BOUND_MODEL_ID
+        );
+        assert_eq!(
+            descriptor.compatibility.supported_decode_modes,
+            vec![
+                TassadarExecutorDecodeMode::ReferenceLinear,
+                TassadarExecutorDecodeMode::HullCache,
+            ]
+        );
+        assert_eq!(
+            descriptor.compatibility.attention_mode,
+            super::TassadarExecutorAttentionMode::StandardSoftmax
+        );
+        assert!(descriptor.compatibility.attention_geometry.hull_cache_eligible);
+        assert_eq!(
+            descriptor.profile.profile_id,
+            TassadarWasmProfile::article_i32_compute_v1().profile_id
         );
     }
 

@@ -875,7 +875,7 @@ fn issue_coverage_rows() -> Vec<TassadarArticleEquivalenceIssueCoverageRow> {
             295,
             "TAS-173: Fast-path implementation inside the Transformer-backed model",
             TassadarArticleEquivalenceIssueRole::Implementation,
-            "open",
+            "closed",
             &["BEQ-004"],
         ),
         issue_row(
