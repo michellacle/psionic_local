@@ -288,6 +288,8 @@ pub struct TassadarArticleTransformer {
 impl TassadarArticleTransformer {
     pub const MODEL_ID: &str = "tassadar-article-transformer-paper-faithful-v0";
     pub const TRACE_BOUND_MODEL_ID: &str = "tassadar-article-transformer-trace-bound-v0";
+    pub const TRAINED_TRACE_BOUND_MODEL_ID: &str =
+        "tassadar-article-transformer-trace-bound-trained-v0";
     pub const MODEL_FAMILY: &str = "tassadar_article_transformer";
     pub const SOURCE_PAPER_TITLE: &str = "Attention Is All You Need";
     pub const SOURCE_PAPER_REF: &str =
@@ -313,6 +315,10 @@ impl TassadarArticleTransformer {
         "fixtures/tassadar/models/tassadar_article_transformer_trace_bound_v0_descriptor.json";
     pub const TRACE_BOUND_ARTIFACT_REF: &str =
         "fixtures/tassadar/models/tassadar_article_transformer_trace_bound_v0.safetensors";
+    pub const TRAINED_TRACE_BOUND_DESCRIPTOR_REF: &str =
+        "fixtures/tassadar/models/tassadar_article_transformer_trace_bound_trained_v0_descriptor.json";
+    pub const TRAINED_TRACE_BOUND_ARTIFACT_REF: &str =
+        "fixtures/tassadar/models/tassadar_article_transformer_trace_bound_trained_v0.safetensors";
 
     /// Returns a small canonical reference config used for closure tests.
     #[must_use]
@@ -423,6 +429,12 @@ impl TassadarArticleTransformer {
         Self::load_from_descriptor_path(Self::trace_bound_descriptor_path())
     }
 
+    /// Returns the first produced trace-bound reference model for the canonical
+    /// article route.
+    pub fn trained_trace_domain_reference() -> Result<Self, TassadarArticleTransformerError> {
+        Self::load_from_descriptor_path(Self::trained_trace_bound_descriptor_path())
+    }
+
     fn build_canonical_reference_source() -> Result<Self, TassadarArticleTransformerError> {
         Self::paper_faithful_reference(
             Self::tiny_reference_config(),
@@ -461,6 +473,16 @@ impl TassadarArticleTransformer {
     #[must_use]
     pub fn trace_bound_artifact_path() -> PathBuf {
         repo_root().join(Self::TRACE_BOUND_ARTIFACT_REF)
+    }
+
+    #[must_use]
+    pub fn trained_trace_bound_descriptor_path() -> PathBuf {
+        repo_root().join(Self::TRAINED_TRACE_BOUND_DESCRIPTOR_REF)
+    }
+
+    #[must_use]
+    pub fn trained_trace_bound_artifact_path() -> PathBuf {
+        repo_root().join(Self::TRAINED_TRACE_BOUND_ARTIFACT_REF)
     }
 
     /// Returns the public descriptor.
@@ -1065,7 +1087,7 @@ impl TassadarArticleTransformer {
             }
         }
 
-        let model = Self::from_weight_parts(
+        let mut model = Self::from_weight_parts(
             self.descriptor.config.clone(),
             self.embedding_strategy(),
             source_embedding_table,
@@ -1073,6 +1095,19 @@ impl TassadarArticleTransformer {
             logits_projection_weight,
             logits_projection_bias,
         )?;
+        model.descriptor = self.descriptor.clone();
+        model.with_memory_artifact_binding()
+    }
+
+    /// Rebinds the current weight state to one explicit model identity while
+    /// preserving the current architecture and weight-sharing contract.
+    pub fn with_model_identity(
+        &self,
+        model_id: impl Into<String>,
+        revision: impl Into<String>,
+    ) -> Result<Self, TassadarArticleTransformerError> {
+        let mut model = self.clone();
+        model.descriptor.model = ModelDescriptor::new(model_id, Self::MODEL_FAMILY, revision);
         model.with_memory_artifact_binding()
     }
 
@@ -2509,6 +2544,8 @@ fn digest_tensor_values(hasher: &mut Sha256, metadata: &WeightTensorMetadata, va
 
 #[cfg(test)]
 mod tests {
+    use std::collections::BTreeMap;
+
     use super::{
         TassadarArticleTransformer, TassadarArticleTransformerArchitectureVariant,
         TassadarArticleTransformerEmbeddingStrategy, TassadarArticleTransformerError,
@@ -2772,6 +2809,50 @@ mod tests {
         assert!(roundtrip.prompt_boundary_preserved);
         assert!(roundtrip.halt_marker_preserved);
         assert!(roundtrip.roundtrip_exact);
+        Ok(())
+    }
+
+    #[test]
+    fn trace_bound_parameter_overrides_preserve_model_identity(
+    ) -> Result<(), TassadarArticleTransformerError> {
+        let model = TassadarArticleTransformer::article_trace_domain_reference()?;
+        let mut shared = model
+            .trainable_parameter_vector(TassadarArticleTransformer::SHARED_EMBEDDING_PARAMETER_ID)
+            .expect("shared parameter");
+        shared.values[0] += 0.125;
+        let updated = model.with_parameter_overrides(&BTreeMap::from([(
+            String::from(TassadarArticleTransformer::SHARED_EMBEDDING_PARAMETER_ID),
+            shared.values,
+        )]))?;
+
+        assert_eq!(
+            updated.descriptor().model.model_id,
+            TassadarArticleTransformer::TRACE_BOUND_MODEL_ID
+        );
+        assert!(updated
+            .artifact_binding()
+            .artifact_ref
+            .contains(TassadarArticleTransformer::TRACE_BOUND_MODEL_ID));
+        Ok(())
+    }
+
+    #[test]
+    fn article_transformer_supports_rebinding_to_trained_trace_bound_identity(
+    ) -> Result<(), TassadarArticleTransformerError> {
+        let model = TassadarArticleTransformer::article_trace_domain_reference()?;
+        let trained = model.with_model_identity(
+            TassadarArticleTransformer::TRAINED_TRACE_BOUND_MODEL_ID,
+            "v0",
+        )?;
+
+        assert_eq!(
+            trained.descriptor().model.model_id,
+            TassadarArticleTransformer::TRAINED_TRACE_BOUND_MODEL_ID
+        );
+        assert!(trained
+            .artifact_binding()
+            .artifact_ref
+            .contains(TassadarArticleTransformer::TRAINED_TRACE_BOUND_MODEL_ID));
         Ok(())
     }
 }

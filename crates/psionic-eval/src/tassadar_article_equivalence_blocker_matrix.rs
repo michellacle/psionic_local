@@ -811,7 +811,7 @@ fn issue_coverage_rows() -> Vec<TassadarArticleEquivalenceIssueCoverageRow> {
             287,
             "TAS-169: Transformer-backed article model weight production run",
             TassadarArticleEquivalenceIssueRole::Implementation,
-            "open",
+            "closed",
             &["BEQ-003"],
         ),
         issue_row(

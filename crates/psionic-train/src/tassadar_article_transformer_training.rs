@@ -2,8 +2,7 @@ use std::collections::BTreeMap;
 
 use psionic_core::{DType, Device, Shape, TensorData, TensorSpec};
 use psionic_eval::{
-    TassadarArticleTransformerCheckpointEvidence,
-    TassadarArticleTransformerGradientCheckEvidence,
+    TassadarArticleTransformerCheckpointEvidence, TassadarArticleTransformerGradientCheckEvidence,
     TassadarArticleTransformerToyTaskExample, TassadarArticleTransformerToyTaskKind,
     TassadarArticleTransformerTrainingEvidenceBundle,
     TassadarArticleTransformerTrainingStepEvidence,
@@ -127,9 +126,11 @@ impl TassadarArticleTransformerTrainingConfig {
             || self.label_smoothing <= 0.0
             || self.label_smoothing >= 1.0
         {
-            return Err(TassadarArticleTransformerTrainingError::InvalidLabelSmoothing {
-                value: self.label_smoothing,
-            });
+            return Err(
+                TassadarArticleTransformerTrainingError::InvalidLabelSmoothing {
+                    value: self.label_smoothing,
+                },
+            );
         }
         if !self.finite_difference_epsilon.is_finite() || self.finite_difference_epsilon <= 0.0 {
             return Err(
@@ -262,8 +263,12 @@ pub fn train_tassadar_article_transformer_toy_suite(
         config.label_smoothing,
         config.finite_difference_epsilon,
     )?;
-    let initial_metrics =
-        dataset_metrics(&initial_model, suite, &suite.training_examples, config.label_smoothing)?;
+    let initial_metrics = dataset_metrics(
+        &initial_model,
+        suite,
+        &suite.training_examples,
+        config.label_smoothing,
+    )?;
     let mut run = FixedBudgetTrainingRun::new(
         config.run_id.clone(),
         config.checkpoint_family.clone(),
@@ -288,12 +293,21 @@ pub fn train_tassadar_article_transformer_toy_suite(
             .started_at_ms
             .saturating_add(step_index.saturating_mul(config.step_duration_ms));
         let finished_at_ms = started_at_ms.saturating_add(config.step_duration_ms);
-        let receipt = run.apply_step(TrainingStepInput::new(batch, started_at_ms, finished_at_ms))?;
+        let receipt =
+            run.apply_step(TrainingStepInput::new(batch, started_at_ms, finished_at_ms))?;
         current_model = materialize_model(&initial_model, &run)?;
-        let train_metrics =
-            dataset_metrics(&current_model, suite, &suite.training_examples, config.label_smoothing)?;
-        let held_out_metrics =
-            dataset_metrics(&current_model, suite, &suite.held_out_examples, config.label_smoothing)?;
+        let train_metrics = dataset_metrics(
+            &current_model,
+            suite,
+            &suite.training_examples,
+            config.label_smoothing,
+        )?;
+        let held_out_metrics = dataset_metrics(
+            &current_model,
+            suite,
+            &suite.held_out_examples,
+            config.label_smoothing,
+        )?;
         step_evidence.push(TassadarArticleTransformerTrainingStepEvidence {
             global_step: receipt.schedule.global_step,
             batch_id: receipt.batch_id.clone(),
@@ -330,12 +344,22 @@ pub fn train_tassadar_article_transformer_toy_suite(
         config.budget.max_steps,
         Some(&initial_checkpoint),
     )?;
-    let restored_model =
-        restore_tassadar_article_transformer_checkpoint(&final_checkpoint.manifest, &final_checkpoint.weights_bytes)?;
-    let final_train_metrics =
-        dataset_metrics(&current_model, suite, &suite.training_examples, config.label_smoothing)?;
-    let final_held_out_metrics =
-        dataset_metrics(&current_model, suite, &suite.held_out_examples, config.label_smoothing)?;
+    let restored_model = restore_tassadar_article_transformer_checkpoint(
+        &final_checkpoint.manifest,
+        &final_checkpoint.weights_bytes,
+    )?;
+    let final_train_metrics = dataset_metrics(
+        &current_model,
+        suite,
+        &suite.training_examples,
+        config.label_smoothing,
+    )?;
+    let final_held_out_metrics = dataset_metrics(
+        &current_model,
+        suite,
+        &suite.held_out_examples,
+        config.label_smoothing,
+    )?;
 
     Ok(TassadarArticleTransformerTrainingOutcome {
         initial_model,
@@ -454,6 +478,18 @@ pub fn restore_tassadar_article_transformer_checkpoint(
         manifest.config.clone(),
         manifest.embedding_strategy,
     )?;
+    restore_tassadar_article_transformer_checkpoint_with_base_model(
+        &base_model,
+        manifest,
+        weights_bytes,
+    )
+}
+
+pub fn restore_tassadar_article_transformer_checkpoint_with_base_model(
+    base_model: &TassadarArticleTransformer,
+    manifest: &TassadarArticleTransformerCheckpointManifest,
+    weights_bytes: &[u8],
+) -> Result<TassadarArticleTransformer, TassadarArticleTransformerTrainingError> {
     let safetensors = SafeTensors::deserialize(weights_bytes).map_err(|error| {
         TassadarArticleTransformerTrainingError::Serialization {
             context: "article transformer checkpoint restore",
@@ -498,14 +534,18 @@ fn validate_suite(
         .chain(suite.held_out_examples.iter())
     {
         if example.source_tokens.is_empty() {
-            return Err(TassadarArticleTransformerTrainingError::EmptySourceSequence {
-                example_id: example.example_id.clone(),
-            });
+            return Err(
+                TassadarArticleTransformerTrainingError::EmptySourceSequence {
+                    example_id: example.example_id.clone(),
+                },
+            );
         }
         if example.target_tokens.is_empty() {
-            return Err(TassadarArticleTransformerTrainingError::EmptyTargetSequence {
-                example_id: example.example_id.clone(),
-            });
+            return Err(
+                TassadarArticleTransformerTrainingError::EmptyTargetSequence {
+                    example_id: example.example_id.clone(),
+                },
+            );
         }
         for &token_id in example
             .source_tokens
@@ -537,24 +577,22 @@ fn build_training_groups(
             } else {
                 TrainingParameterClass::Embedding
             };
-            Ok(
-                TrainingParameterGroupState::new(
+            Ok(TrainingParameterGroupState::new(
+                parameter.parameter_id.clone(),
+                class,
+                TrainingTensorBuffer::from_f32(
                     parameter.parameter_id.clone(),
-                    class,
-                    TrainingTensorBuffer::from_f32(
-                        parameter.parameter_id.clone(),
-                        TensorSpec::new(
-                            Shape::new(parameter.shape.clone()),
-                            DType::F32,
-                            Device::cpu(),
-                        ),
-                        parameter.values.clone(),
-                    )?,
-                    config.optimizer.clone(),
-                    TrainingOptimizerResidencyPolicy::host_only(),
-                )?
-                .with_scheduler(config.scheduler.clone()),
-            )
+                    TensorSpec::new(
+                        Shape::new(parameter.shape.clone()),
+                        DType::F32,
+                        Device::cpu(),
+                    ),
+                    parameter.values.clone(),
+                )?,
+                config.optimizer.clone(),
+                TrainingOptimizerResidencyPolicy::host_only(),
+            )?
+            .with_scheduler(config.scheduler.clone()))
         })
         .collect()
 }
@@ -564,8 +602,10 @@ fn build_gradient_checks(
     suite: &TassadarArticleTransformerToyTaskSuite,
     label_smoothing: f32,
     epsilon: f32,
-) -> Result<Vec<TassadarArticleTransformerGradientCheckEvidence>, TassadarArticleTransformerTrainingError>
-{
+) -> Result<
+    Vec<TassadarArticleTransformerGradientCheckEvidence>,
+    TassadarArticleTransformerTrainingError,
+> {
     let gradients = finite_difference_gradients(model, suite, label_smoothing, epsilon)?;
     Ok(gradients
         .into_iter()
@@ -596,7 +636,12 @@ fn build_gradient_batch(
     label_smoothing: f32,
     epsilon: f32,
 ) -> Result<TrainingGradientBatch, TassadarArticleTransformerTrainingError> {
-    let batch_loss = mean_dataset_loss(current_model, suite, &suite.training_examples, label_smoothing)?;
+    let batch_loss = mean_dataset_loss(
+        current_model,
+        suite,
+        &suite.training_examples,
+        label_smoothing,
+    )?;
     let gradients = finite_difference_gradients(current_model, suite, label_smoothing, epsilon)?;
     let mut batch_gradients = BTreeMap::new();
     for parameter in initial_model.trainable_parameter_vectors() {
@@ -608,7 +653,11 @@ fn build_gradient_batch(
             parameter.parameter_id.clone(),
             TrainingTensorBuffer::from_f32(
                 parameter.parameter_id.clone(),
-                TensorSpec::new(Shape::new(parameter.shape.clone()), DType::F32, Device::cpu()),
+                TensorSpec::new(
+                    Shape::new(parameter.shape.clone()),
+                    DType::F32,
+                    Device::cpu(),
+                ),
                 values,
             )?,
         );
@@ -642,8 +691,18 @@ fn finite_difference_gradients(
             minus.insert(parameter.parameter_id.clone(), minus_values);
             let plus_model = model.with_parameter_overrides(&plus)?;
             let minus_model = model.with_parameter_overrides(&minus)?;
-            let plus_loss = mean_dataset_loss(&plus_model, suite, &suite.training_examples, label_smoothing)?;
-            let minus_loss = mean_dataset_loss(&minus_model, suite, &suite.training_examples, label_smoothing)?;
+            let plus_loss = mean_dataset_loss(
+                &plus_model,
+                suite,
+                &suite.training_examples,
+                label_smoothing,
+            )?;
+            let minus_loss = mean_dataset_loss(
+                &minus_model,
+                suite,
+                &suite.training_examples,
+                label_smoothing,
+            )?;
             gradient[index] = (plus_loss - minus_loss) / (2.0 * epsilon);
         }
         gradients.insert(parameter.parameter_id.clone(), gradient);
@@ -660,12 +719,8 @@ fn dataset_metrics(
     let mut total_loss = 0.0f32;
     let mut exact_match_count = 0usize;
     for example in examples {
-        let (loss, predicted) = example_loss_and_prediction(
-            model,
-            suite,
-            example,
-            label_smoothing,
-        )?;
+        let (loss, predicted) =
+            example_loss_and_prediction(model, suite, example, label_smoothing)?;
         total_loss += loss;
         if predicted == example.target_tokens {
             exact_match_count += 1;
@@ -720,7 +775,12 @@ fn example_loss_and_prediction(
 fn decoder_input_tokens(bos_token_id: usize, target_tokens: &[usize]) -> Vec<usize> {
     let mut input = Vec::with_capacity(target_tokens.len());
     input.push(bos_token_id);
-    input.extend(target_tokens.iter().copied().take(target_tokens.len().saturating_sub(1)));
+    input.extend(
+        target_tokens
+            .iter()
+            .copied()
+            .take(target_tokens.len().saturating_sub(1)),
+    );
     input
 }
 
@@ -771,7 +831,9 @@ fn materialize_model(
             dense_values(group, parameter.parameter_id.as_str())?.to_vec(),
         );
     }
-    initial_model.with_parameter_overrides(&overrides).map_err(Into::into)
+    initial_model
+        .with_parameter_overrides(&overrides)
+        .map_err(Into::into)
 }
 
 fn export_checkpoint(
@@ -809,14 +871,15 @@ fn export_checkpoint(
             &suite.held_out_examples,
         ),
         parameter_ids,
-        parent_checkpoint_ref: parent
-            .map(|checkpoint| checkpoint.manifest.checkpoint_ref.clone()),
-        parent_manifest_digest: parent
-            .map(|checkpoint| checkpoint.manifest.stable_digest()),
+        parent_checkpoint_ref: parent.map(|checkpoint| checkpoint.manifest.checkpoint_ref.clone()),
+        parent_manifest_digest: parent.map(|checkpoint| checkpoint.manifest.stable_digest()),
     };
     let checkpoint = TrainingCheckpointReference::new(
         config.checkpoint_family.clone(),
-        format!("tassadar.article_transformer.checkpoint.{}.{}", config.run_id, step),
+        format!(
+            "tassadar.article_transformer.checkpoint.{}.{}",
+            config.run_id, step
+        ),
         manifest.stable_digest(),
         stable_bytes_digest(
             b"psionic_tassadar_article_transformer_checkpoint_weights|",
@@ -852,12 +915,13 @@ fn export_checkpoint_weights(
 
     let mut views = Vec::with_capacity(raw_buffers.len());
     for (parameter_id, bytes, shape) in &raw_buffers {
-        let view = TensorView::new(SafeTensorsDType::F32, shape.clone(), bytes.as_slice()).map_err(
-            |error| TassadarArticleTransformerTrainingError::Serialization {
-                context: "article transformer checkpoint export",
-                message: error.to_string(),
-            },
-        )?;
+        let view = TensorView::new(SafeTensorsDType::F32, shape.clone(), bytes.as_slice())
+            .map_err(
+                |error| TassadarArticleTransformerTrainingError::Serialization {
+                    context: "article transformer checkpoint export",
+                    message: error.to_string(),
+                },
+            )?;
         views.push((parameter_id.clone(), view));
     }
     serialize(
@@ -866,20 +930,23 @@ fn export_checkpoint_weights(
             .map(|(parameter_id, view)| (parameter_id.as_str(), view.clone())),
         None,
     )
-    .map_err(|error| TassadarArticleTransformerTrainingError::Serialization {
-        context: "article transformer checkpoint export",
-        message: error.to_string(),
-    })
+    .map_err(
+        |error| TassadarArticleTransformerTrainingError::Serialization {
+            context: "article transformer checkpoint export",
+            message: error.to_string(),
+        },
+    )
 }
 
 fn required_group<'a>(
     run: &'a FixedBudgetTrainingRun,
     group_id: &str,
 ) -> Result<&'a TrainingParameterGroupState, TassadarArticleTransformerTrainingError> {
-    run.parameter_group(group_id)
-        .ok_or_else(|| TassadarArticleTransformerTrainingError::MissingParameterGroup {
+    run.parameter_group(group_id).ok_or_else(|| {
+        TassadarArticleTransformerTrainingError::MissingParameterGroup {
             group_id: String::from(group_id),
-        })
+        }
+    })
 }
 
 fn dense_values<'a>(
@@ -1063,11 +1130,9 @@ mod tests {
         let output_path = directory
             .path()
             .join("article_transformer_training_evidence_bundle.json");
-        let written = write_tassadar_article_transformer_training_evidence_bundle(
-            &output_path,
-            &bundle,
-        )
-        .expect("write bundle");
+        let written =
+            write_tassadar_article_transformer_training_evidence_bundle(&output_path, &bundle)
+                .expect("write bundle");
         let persisted: TassadarArticleTransformerTrainingEvidenceBundle =
             serde_json::from_slice(&std::fs::read(&output_path).expect("read")).expect("decode");
         assert_eq!(written, persisted);

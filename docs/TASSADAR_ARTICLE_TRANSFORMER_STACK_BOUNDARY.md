@@ -193,6 +193,19 @@ identity from a fixture-only trainable surface. The legacy fixture-backed lane
 in `crates/psionic-models/src/tassadar.rs` remains explicit non-canonical
 rather than silently masquerading as the owned article model.
 
+`TAS-169` now closes the first real trained-weight tranche on top of that same
+split. `psionic-train` now owns a bounded article-class production lane in
+`crates/psionic-train/src/tassadar_article_transformer_weight_production.rs`
+that distills one explicit `32`-token trace-prefix window from the canonical
+Hungarian article demo into the committed trace-bound article wrapper while
+keeping the kernel-family cases as held-out evidence. `psionic-models` now
+owns the resulting committed trained trace-bound descriptor and safetensors
+artifact under `fixtures/tassadar/models/`, while `psionic-eval` and
+`psionic-research` now freeze the corresponding production report and summary
+without pretending that this first trained artifact is already the final
+reference-linear proof route, full article-class exactness, or final
+article-equivalence green status.
+
 ## Route Requirement
 
 Any canonical article-equivalence Transformer route must use this boundary.

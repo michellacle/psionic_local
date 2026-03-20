@@ -202,6 +202,10 @@ It already has real substrate for:
   with label-smoothed cross-entropy, Adam plus inverse-square-root warmup,
   finite-gradient checks, and deterministic checkpoint restore rooted in
   `psionic-transformer`
+- bounded article-Transformer trained-weight production over a canonical
+  article-class trace-prefix slice, with one explicit trained trace-bound
+  safetensors artifact plus checkpoint and artifact-reload parity rooted in
+  `psionic-transformer`
 - adapter lineage
 
 It does not yet implement the full distributed trainer-orchestrator-RL runtime.
@@ -362,6 +366,19 @@ closure:
   (`validation_exact_trace_case_count = 0/2`, aggregate target exactness
   `15` bps), which makes it useful as a real learning baseline rather than as
   benchmark theater
+- `TAS-169` now adds the first real trained trace-bound article artifact on
+  top of that same owned stack:
+  `psionic-train::run_tassadar_article_transformer_weight_production(...)`
+  now distills the committed trace-bound article wrapper over one explicit
+  `32`-token Hungarian article-demo trace window while scoring the kernel
+  family as held-out evidence, and the lane now persists the resulting bundle
+  at
+  `fixtures/tassadar/runs/tassadar_article_transformer_weight_production_v1/article_transformer_weight_production_bundle.json`
+  plus the trained descriptor and safetensors artifact at
+  `fixtures/tassadar/models/tassadar_article_transformer_trace_bound_trained_v0_descriptor.json`
+  and
+  `fixtures/tassadar/models/tassadar_article_transformer_trace_bound_trained_v0.safetensors`
+  with explicit checkpoint-restore and artifact-reload parity
 - the train-side learning loop artifacts now also exist for that same run:
   `psionic-train` can augment the persisted bundle with
   `training_telemetry.json`, `exactness_curve.json`,

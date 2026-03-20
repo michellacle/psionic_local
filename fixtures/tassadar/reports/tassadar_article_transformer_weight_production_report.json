@@ -1,8 +1,42 @@
 {
   "schema_version": 1,
-  "report_id": "tassadar.canonical_transformer_stack_boundary.summary.v1",
-  "boundary_report_ref": "fixtures/tassadar/reports/tassadar_canonical_transformer_stack_boundary_report.json",
-  "boundary_report": {
+  "report_id": "tassadar.article_transformer_weight_production.report.v1",
+  "acceptance_gate_tie": {
+    "acceptance_gate_report_ref": "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json",
+    "canonical_boundary_report_ref": "fixtures/tassadar/reports/tassadar_canonical_transformer_stack_boundary_report.json",
+    "evidence_bundle_ref": "fixtures/tassadar/runs/tassadar_article_transformer_weight_production_v1/article_transformer_weight_production_bundle.json",
+    "tied_requirement_id": "TAS-169",
+    "tied_requirement_satisfied": true,
+    "acceptance_status": "blocked",
+    "blocked_issue_ids": [
+      "TAS-169A",
+      "TAS-170",
+      "TAS-171",
+      "TAS-171A",
+      "TAS-171B",
+      "TAS-171C",
+      "TAS-172",
+      "TAS-173",
+      "TAS-174",
+      "TAS-175",
+      "TAS-176",
+      "TAS-177",
+      "TAS-178",
+      "TAS-179",
+      "TAS-179A",
+      "TAS-180",
+      "TAS-181",
+      "TAS-182",
+      "TAS-183",
+      "TAS-184",
+      "TAS-184A",
+      "TAS-185",
+      "TAS-185A",
+      "TAS-186"
+    ]
+  },
+  "canonical_boundary_report_ref": "fixtures/tassadar/reports/tassadar_canonical_transformer_stack_boundary_report.json",
+  "canonical_boundary_report": {
     "schema_version": 1,
     "report_id": "tassadar.canonical_transformer_stack_boundary.report.v1",
     "boundary_doc_ref": "docs/TASSADAR_ARTICLE_TRANSFORMER_STACK_BOUNDARY.md",
@@ -384,15 +418,310 @@
     "summary": "Canonical Transformer stack boundary now records interface_rows=5, dependency_checks=6, tied_requirement_satisfied=true, boundary_contract_green=true, and article_equivalence_green=false.",
     "report_digest": "75842049b91e76f62bcae4f9dbaf07a4f108c99f85ede9acb6b2e25112f5b96d"
   },
-  "boundary_doc_ref": "docs/TASSADAR_ARTICLE_TRANSFORMER_STACK_BOUNDARY.md",
-  "interface_count": 5,
-  "dependency_check_count": 6,
-  "tied_requirement_id": "TAS-160",
-  "tied_requirement_satisfied": true,
-  "acceptance_status": "blocked",
-  "boundary_contract_green": true,
+  "evidence_bundle_ref": "fixtures/tassadar/runs/tassadar_article_transformer_weight_production_v1/article_transformer_weight_production_bundle.json",
+  "evidence_bundle": {
+    "schema_version": 1,
+    "bundle_id": "tassadar.article_transformer.weight_production_bundle.v1",
+    "tied_requirement_id": "TAS-169",
+    "model_module_ref": "crates/psionic-models/src/tassadar_article_transformer.rs",
+    "transformer_module_ref": "crates/psionic-transformer/src/encoder_decoder.rs",
+    "train_module_ref": "crates/psionic-train/src/tassadar_article_transformer_weight_production.rs",
+    "runtime_module_ref": "crates/psionic-runtime/src/tassadar.rs",
+    "run_id": "tassadar-article-transformer-weight-production-v1",
+    "checkpoint_family": "train.tassadar.article_transformer.weight_production",
+    "suite_id": "tassadar.article_transformer.weight_production_suite.v1",
+    "suite_description": "bounded article-class trace-production slice over one trained Hungarian article demo plus held-out kernel-family cases on a 32-token trace-prefix window",
+    "source_corpus_id": "tassadar.article_class_corpus.v1",
+    "architecture_variant": "attention_is_all_you_need_encoder_decoder",
+    "config": {
+      "source_vocab_size": 303,
+      "target_vocab_size": 303,
+      "hidden_size": 8,
+      "feed_forward_size": 16,
+      "head_count": 2,
+      "encoder_layer_count": 2,
+      "decoder_layer_count": 2,
+      "max_source_positions": 16384,
+      "max_target_positions": 16384,
+      "dropout_probability_bps": 0
+    },
+    "embedding_strategy": "shared_source_target_and_output",
+    "trainable_parameter_ids": [
+      "logits_projection_bias"
+    ],
+    "trainable_parameter_scalar_count": 303,
+    "loss_kind": "label_smoothed_cross_entropy",
+    "optimizer_kind": "adam",
+    "scheduler_kind": "inverse_square_root_warmup",
+    "warmup_steps": 1,
+    "label_smoothing": 0.01,
+    "finite_difference_epsilon": 0.01,
+    "base_descriptor_ref": "fixtures/tassadar/models/tassadar_article_transformer_trace_bound_v0_descriptor.json",
+    "base_artifact_ref": "fixtures/tassadar/models/tassadar_article_transformer_trace_bound_v0.safetensors",
+    "produced_descriptor_ref": "fixtures/tassadar/models/tassadar_article_transformer_trace_bound_trained_v0_descriptor.json",
+    "produced_artifact_ref": "fixtures/tassadar/models/tassadar_article_transformer_trace_bound_trained_v0.safetensors",
+    "training_cases": [
+      {
+        "case_id": "hungarian_matching",
+        "split": "train",
+        "summary": "tiny fixed 2x2 matching instance with comparison-selected winning assignment and exact cost",
+        "profile_id": "tassadar.wasm.article_i32_compute.v1",
+        "trace_step_count": 17,
+        "expected_output_count": 2,
+        "prompt_token_count": 108,
+        "target_token_count": 32,
+        "full_target_token_count": 1410,
+        "source_token_digest": "ef9760bd58df73b1ee90108c3f77fe8a711b549fef8a64aace035b93c517674a",
+        "target_token_digest": "f92a7cd911b7b3426dc56981b972ed8d0bae6ee4f4788d17eb33c9184afe759c",
+        "sequence_digest": "6984530e5aea6d029a8a038031aa9c972a16d51f98303eefa399b880bbfbdaac",
+        "halt_reason": "returned"
+      }
+    ],
+    "held_out_cases": [
+      {
+        "case_id": "micro_wasm_kernel",
+        "split": "held_out",
+        "summary": "unrolled weighted-sum and checksum micro-kernel over memory-backed inputs",
+        "profile_id": "tassadar.wasm.article_i32_compute.v1",
+        "trace_step_count": 49,
+        "expected_output_count": 2,
+        "prompt_token_count": 235,
+        "target_token_count": 32,
+        "full_target_token_count": 4941,
+        "source_token_digest": "6a21fcf81d0d0e9d3538008b1791e82581f87858ac84cf163712f0939d52163e",
+        "target_token_digest": "d4c8ef632458f402ce99a9572d60b748eee7e7c57d5c5f7755052a82eb969469",
+        "sequence_digest": "d8cdeedff73790165a0b4f2f7d4edc75376b7de80f56d2264490f29a19ca6a7c",
+        "halt_reason": "returned"
+      },
+      {
+        "case_id": "branch_heavy_kernel",
+        "split": "held_out",
+        "summary": "acyclic branch ladder over memory-backed flags that exercises repeated forward control-flow pivots",
+        "profile_id": "tassadar.wasm.article_i32_compute.v1",
+        "trace_step_count": 45,
+        "expected_output_count": 1,
+        "prompt_token_count": 371,
+        "target_token_count": 32,
+        "full_target_token_count": 3917,
+        "source_token_digest": "c19a2908e40e145229d2d7d7352d245e65e96e248c18f8f1d4d0028b59bfd4f3",
+        "target_token_digest": "d4c8ef632458f402ce99a9572d60b748eee7e7c57d5c5f7755052a82eb969469",
+        "sequence_digest": "ed9591e9ccd3ab11da987a8dea147633561c6f3443a2219b355d1889f7172acf",
+        "halt_reason": "returned"
+      },
+      {
+        "case_id": "memory_heavy_kernel",
+        "split": "held_out",
+        "summary": "dense memory-read and memory-write kernel that folds adjacent slots into staged accumulator buffers",
+        "profile_id": "tassadar.wasm.article_i32_compute.v1",
+        "trace_step_count": 31,
+        "expected_output_count": 1,
+        "prompt_token_count": 185,
+        "target_token_count": 32,
+        "full_target_token_count": 3501,
+        "source_token_digest": "1caaff46fc4e923f45c921cbb12e8b59be77b5de52b65c5e09e63fd71acd908d",
+        "target_token_digest": "78ea5ebbcb4f7a01bf99b4875a8bba503c93fcfc612f97d9b1f559f2cd8dbd9e",
+        "sequence_digest": "29bb75e2d226b8f2b7f5fe5abb2f2631f345ef5486008bc8ad4f55cc931f6126",
+        "halt_reason": "returned"
+      }
+    ],
+    "gradient_checks": [
+      {
+        "parameter_id": "logits_projection_bias",
+        "gradient_len": 303,
+        "max_abs_gradient": 0.67729044,
+        "all_finite": true,
+        "detail": "selected trace-bound article-Transformer gradients were computed directly on the bounded trainable surface, using exact bias gradients where available and finite differences otherwise"
+      }
+    ],
+    "step_evidence": [
+      {
+        "global_step": 1,
+        "batch_id": "tassadar.article_transformer.weight_production_suite.v1-gradient-batch",
+        "training_mean_loss": 5.0306664,
+        "training_token_exactness_bps": 625,
+        "training_exact_match_count": 0,
+        "held_out_mean_loss": 5.097193,
+        "held_out_token_exactness_bps": 625,
+        "held_out_exact_match_count": 0,
+        "effective_learning_rates": {
+          "logits_projection_bias": 0.35
+        },
+        "scheduler_kinds": {
+          "logits_projection_bias": "inverse_square_root_warmup"
+        }
+      }
+    ],
+    "case_metrics": [
+      {
+        "case_id": "hungarian_matching",
+        "split": "train",
+        "initial_mean_loss": 5.6866364,
+        "final_mean_loss": 5.0306664,
+        "initial_token_exactness_bps": 0,
+        "final_token_exactness_bps": 625,
+        "initial_exact_target_match": false,
+        "final_exact_target_match": false,
+        "improved": true,
+        "initial_prediction_digest": "0716889c5f9b1b33a04c3e771b56ea1b89c23d633e232cb0c1d57c1ae0f49d47",
+        "final_prediction_digest": "4b571a847387f90638b0a6370ef5d9091c9a01476fb060575540d8f6cf934d3d"
+      },
+      {
+        "case_id": "micro_wasm_kernel",
+        "split": "held_out",
+        "initial_mean_loss": 5.725096,
+        "final_mean_loss": 5.1124215,
+        "initial_token_exactness_bps": 0,
+        "final_token_exactness_bps": 625,
+        "initial_exact_target_match": false,
+        "final_exact_target_match": false,
+        "improved": true,
+        "initial_prediction_digest": "04addd1f2267b6f1f36307d5287a656d4defff121546421a8b86a1890f9d0362",
+        "final_prediction_digest": "f84278b4fbc9d6c9bcaf937441c1d6f3db2a85d8c1c46968aa3b59342b8a6fbe"
+      },
+      {
+        "case_id": "branch_heavy_kernel",
+        "split": "held_out",
+        "initial_mean_loss": 5.724814,
+        "final_mean_loss": 5.1121445,
+        "initial_token_exactness_bps": 0,
+        "final_token_exactness_bps": 625,
+        "initial_exact_target_match": false,
+        "final_exact_target_match": false,
+        "improved": true,
+        "initial_prediction_digest": "04addd1f2267b6f1f36307d5287a656d4defff121546421a8b86a1890f9d0362",
+        "final_prediction_digest": "f84278b4fbc9d6c9bcaf937441c1d6f3db2a85d8c1c46968aa3b59342b8a6fbe"
+      },
+      {
+        "case_id": "memory_heavy_kernel",
+        "split": "held_out",
+        "initial_mean_loss": 5.701329,
+        "final_mean_loss": 5.0670133,
+        "initial_token_exactness_bps": 0,
+        "final_token_exactness_bps": 625,
+        "initial_exact_target_match": false,
+        "final_exact_target_match": false,
+        "improved": true,
+        "initial_prediction_digest": "0716889c5f9b1b33a04c3e771b56ea1b89c23d633e232cb0c1d57c1ae0f49d47",
+        "final_prediction_digest": "4b571a847387f90638b0a6370ef5d9091c9a01476fb060575540d8f6cf934d3d"
+      }
+    ],
+    "base_model_artifact_binding": {
+      "model_id": "tassadar-article-transformer-trace-bound-v0",
+      "model_family": "tassadar_article_transformer",
+      "descriptor_digest": "7e30f3bca2c21cd25f1b35a1b00273d5d058ada687a459aae5439e12129154d6",
+      "trainable_parameter_digest": "65f85416eb59fc05dc2d136694a65d78d443e9508a638ab0d6ef60ab2718dd42",
+      "artifact_id": "tassadar://article_transformer/weights/tassadar-article-transformer-trace-bound-v0/efb7507315ab98d34b69c8078be22689b775830f9ba6449db88ad5983b499a6c",
+      "weight_bundle_digest": "efb7507315ab98d34b69c8078be22689b775830f9ba6449db88ad5983b499a6c",
+      "primary_artifact_sha256": "788e90536c3cf35dda30d842cede3b2f2a046cc3af89451199db6deb3179644a",
+      "artifact_digest": "6887038e5c1b7ed2d730bbb616e9d517517ee4c6ab6fd1f2857e4b35e64418d2"
+    },
+    "produced_model_artifact_binding": {
+      "model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+      "model_family": "tassadar_article_transformer",
+      "descriptor_digest": "5fac189c12ccc979a0e457a970222dcb6b4c055e84d56cfc76d1396017f90804",
+      "trainable_parameter_digest": "37bd5b9f48a61abf0b75f442e36d48dd4af2e23f8b32651312e51eed4b59e590",
+      "artifact_id": "tassadar://article_transformer/weights/tassadar-article-transformer-trace-bound-trained-v0/99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c",
+      "weight_bundle_digest": "99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c",
+      "primary_artifact_sha256": "e24923e6fe39f0656b3f331fb935e0827a3de43b706014610e513ca5a54e9f84",
+      "artifact_digest": "2f4c2c664d3424cfacb09b0a403bfda1b5663f8e93fede654b5e0040b845adbe"
+    },
+    "initial_training_mean_loss": 5.6866364,
+    "final_training_mean_loss": 5.0306664,
+    "initial_training_token_exactness_bps": 0,
+    "final_training_token_exactness_bps": 625,
+    "initial_training_exact_match_count": 0,
+    "final_training_exact_match_count": 0,
+    "final_held_out_mean_loss": 5.097193,
+    "final_held_out_token_exactness_bps": 625,
+    "final_held_out_exact_match_count": 0,
+    "produced_artifact_differs_from_base": true,
+    "checkpoint": {
+      "checkpoint_ref": "tassadar-article-transformer-weight-production-v1:step:1",
+      "checkpoint_family": "train.tassadar.article_transformer.weight_production",
+      "stream_id": "tassadar.article_transformer.weight_production.tassadar-article-transformer-weight-production-v1.1",
+      "manifest_digest": "21da784140c9597af382dfa90c2046deb2b05e611dd0d5f31f857fcc979e9445",
+      "object_digest": "210a8a1a36113f7aa28899b6d33c38d9763b4eb386814e057e1ce1746004b7e5",
+      "writer_node_id": "psionic.local.cpu_reference",
+      "membership_epoch": 0,
+      "cluster_state_digest": "cluster.local.cpu_reference",
+      "topology_digest": "topology.cpu_reference",
+      "started_at_ms": 1774406400250,
+      "step": 1,
+      "durable_at_ms": 1774406400250,
+      "parent_checkpoint_ref": "tassadar-article-transformer-weight-production-v1:step:0",
+      "parent_manifest_digest": "dd37e0f472cf6ef6a63231632f72d10437b5c87aba53ff7f3c29add848ef7331",
+      "trained_trainable_parameter_digest": "37bd5b9f48a61abf0b75f442e36d48dd4af2e23f8b32651312e51eed4b59e590",
+      "restored_trainable_parameter_digest": "37bd5b9f48a61abf0b75f442e36d48dd4af2e23f8b32651312e51eed4b59e590",
+      "restore_matches_trained_state": true
+    },
+    "artifact_reload_matches_trained_state": true,
+    "artifact_reload_descriptor_digest": "5fac189c12ccc979a0e457a970222dcb6b4c055e84d56cfc76d1396017f90804",
+    "claim_boundary": "this evidence bundle covers the first real Transformer-backed article-model weight production run on a bounded article-class slice. It proves that the owned trace-bound article wrapper can train on canonical trace-domain targets, emit a committed trained safetensors artifact, reload that artifact exactly, and preserve checkpoint restore parity. It does not claim full article-class exactness, benchmark parity, fast-route closure, or final article-equivalence green status.",
+    "bundle_digest": "f441f8543aacff9e7f88a97f0cc33764cf1daec3e0364fe914ee7ab74d837d56"
+  },
+  "artifact_review": {
+    "base_descriptor_ref": "fixtures/tassadar/models/tassadar_article_transformer_trace_bound_v0_descriptor.json",
+    "base_artifact_ref": "fixtures/tassadar/models/tassadar_article_transformer_trace_bound_v0.safetensors",
+    "produced_descriptor_ref": "fixtures/tassadar/models/tassadar_article_transformer_trace_bound_trained_v0_descriptor.json",
+    "produced_artifact_ref": "fixtures/tassadar/models/tassadar_article_transformer_trace_bound_trained_v0.safetensors",
+    "all_committed_refs_exist": true,
+    "produced_refs_under_fixtures_tassadar_models": true,
+    "produced_artifact_differs_from_base": true,
+    "checkpoint_restore_matches_trained_state": true,
+    "artifact_reload_matches_trained_state": true,
+    "detail": "base_descriptor_ref=fixtures/tassadar/models/tassadar_article_transformer_trace_bound_v0_descriptor.json produced_descriptor_ref=fixtures/tassadar/models/tassadar_article_transformer_trace_bound_trained_v0_descriptor.json all_committed_refs_exist=true produced_refs_under_fixtures_tassadar_models=true produced_artifact_differs_from_base=true checkpoint_restore_matches_trained_state=true artifact_reload_matches_trained_state=true"
+  },
+  "boundary_review": {
+    "model_module_ref": "crates/psionic-models/src/tassadar_article_transformer.rs",
+    "transformer_module_ref": "crates/psionic-transformer/src/encoder_decoder.rs",
+    "train_module_ref": "crates/psionic-train/src/tassadar_article_transformer_weight_production.rs",
+    "runtime_module_ref": "crates/psionic-runtime/src/tassadar.rs",
+    "models_cargo_toml_ref": "crates/psionic-models/Cargo.toml",
+    "train_cargo_toml_ref": "crates/psionic-train/Cargo.toml",
+    "evidence_roots_in_expected_modules": true,
+    "models_depend_on_psionic_transformer": true,
+    "train_depends_on_psionic_transformer": true,
+    "canonical_boundary_green": true,
+    "passed": true,
+    "detail": "expected_refs_match=true models_depend_on_psionic_transformer=true train_depends_on_psionic_transformer=true canonical_boundary_green=true"
+  },
+  "case_rows": [
+    {
+      "case_id": "bounded_canonical_suite",
+      "validation_kind": "bounded_canonical_suite",
+      "passed": true,
+      "detail": "source_corpus_id=tassadar.article_class_corpus.v1 training_cases=1 held_out_cases=3 case_ids_match_expected=true all_cases_nonempty=true"
+    },
+    {
+      "case_id": "produced_artifact_written",
+      "validation_kind": "produced_artifact_written",
+      "passed": true,
+      "detail": "base_descriptor_ref=fixtures/tassadar/models/tassadar_article_transformer_trace_bound_v0_descriptor.json produced_descriptor_ref=fixtures/tassadar/models/tassadar_article_transformer_trace_bound_trained_v0_descriptor.json all_committed_refs_exist=true produced_refs_under_fixtures_tassadar_models=true produced_artifact_differs_from_base=true checkpoint_restore_matches_trained_state=true artifact_reload_matches_trained_state=true"
+    },
+    {
+      "case_id": "artifact_reload_and_checkpoint_restore",
+      "validation_kind": "artifact_reload_and_checkpoint_restore",
+      "passed": true,
+      "detail": "checkpoint_restore_matches_trained_state=true artifact_reload_matches_trained_state=true"
+    },
+    {
+      "case_id": "nontrivial_imitation_targets",
+      "validation_kind": "nontrivial_imitation_targets",
+      "passed": true,
+      "detail": "initial_training_mean_loss=5.6866364 final_training_mean_loss=5.0306664 initial_training_token_exactness_bps=0 final_training_token_exactness_bps=625 final_held_out_token_exactness_bps=625 case_metrics_present=true any_case_improved=true"
+    },
+    {
+      "case_id": "boundary_rooted_in_transformer",
+      "validation_kind": "boundary_rooted_in_transformer",
+      "passed": true,
+      "detail": "expected_refs_match=true models_depend_on_psionic_transformer=true train_depends_on_psionic_transformer=true canonical_boundary_green=true"
+    }
+  ],
+  "all_required_cases_present": true,
+  "all_cases_pass": true,
+  "weight_production_contract_green": true,
   "article_equivalence_green": false,
-  "claim_boundary": "this summary mirrors the canonical Transformer stack boundary only. It keeps the crate/interface split operator-readable, but it does not widen the current public article-equivalence claim boundary beyond the underlying boundary report",
-  "summary": "Canonical Transformer stack boundary summary now records interface_count=5, dependency_check_count=6, tied_requirement_satisfied=true, boundary_contract_green=true, and article_equivalence_green=false.",
-  "report_digest": "88b0ddd8b67684992b9c3bbbfb7db5fa955c177601e31c82e5886c54466ab098"
+  "claim_boundary": "this report closes only the first real Transformer-backed article weight-production run on a bounded article-class slice. It proves that the owned stack now emits a committed trained trace-bound artifact with explicit imitation metrics, checkpoint restore parity, and artifact reload parity. It does not claim full article-class exactness, fast-route closure, benchmark parity, contamination independence, or final article-equivalence green status.",
+  "summary": "Article Transformer weight production now records case_rows=5, all_required_cases_present=true, all_cases_pass=true, tied_requirement_satisfied=true, weight_production_contract_green=true, and article_equivalence_green=false.",
+  "report_digest": "380f7f8ead7a7afe9fe8307d05e2a1fc31adda747f32ccc98daa2771dbc9110c"
 }
