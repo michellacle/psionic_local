@@ -93,8 +93,7 @@ Current honest posture:
   with committed eval and research artifacts that freeze exactly which
   broadness-adjacent surfaces are already real before the terminal contract and
   exactly which terminal-contract artifacts are still missing; the current
-  terminal claim remains suppressed until the minimal gate and the verdict
-  split land
+  terminal claim remains suppressed until the verdict split lands
 - the repo now also has one declared terminal substrate model `TCM.v1`, with a
   committed IR model artifact and runtime contract report that bind universal-
   substrate language to explicit control, memory, continuation, and
@@ -111,6 +110,13 @@ Current honest posture:
   open-ended external event loops on explicit refusal boundaries; this still
   does not constitute the minimal universal-substrate gate, the verdict split,
   or served universality posture
+- the repo now also has one minimal universal-substrate acceptance gate, with a
+  committed runtime prerequisite report, eval gate artifact, provider receipt,
+  and one-command checker script that turn green only when conditional control,
+  mutable memory, spill/tape extension, persistent continuation, machine-step
+  replay, witness coverage, portability envelopes, and refusal truth are all
+  explicit; this still does not constitute the theory/operator/served verdict
+  split, served universality posture, or Turing-complete closeout
 - the repo now also has one research-only shared-memory and threads profile
   with a deterministic scheduler envelope, explicit sandbox boundary truth,
   and typed refusal on host-nondeterministic scheduling plus relaxed
@@ -222,7 +228,7 @@ Issue-state note:
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
 - `TAS-125` through `TAS-146` are now implemented and tracked in
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
-- the current open GitHub backlog begins at `TAS-154` and runs through
+- the current open GitHub backlog begins at `TAS-155` and runs through
   `TAS-156`
 
 ## Repo-Local Companion Docs

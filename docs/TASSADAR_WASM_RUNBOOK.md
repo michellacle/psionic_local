@@ -786,7 +786,32 @@ Expected outcome:
   closure lane; it does not claim full core-Wasm public closure, arbitrary
   Wasm, post-core proposal-family support, or Turing-complete support
 
-### 6C.2 Semantic-window revision receipt and compatibility delta
+### 6C.2 Minimal universal-substrate gate
+
+```bash
+cargo run -p psionic-runtime --example tassadar_minimal_universal_substrate_runtime_report
+cargo run -p psionic-eval --example tassadar_minimal_universal_substrate_acceptance_gate_report
+scripts/check-tassadar-minimal-universal-substrate-gate.sh
+```
+
+Read:
+
+- `fixtures/tassadar/reports/tassadar_minimal_universal_substrate_runtime_report.json`
+- `fixtures/tassadar/reports/tassadar_minimal_universal_substrate_acceptance_gate_report.json`
+
+Expected outcome:
+
+- one runtime-owned prerequisite report now freezes the green rows required
+  before any minimal universal-substrate claim is even discussable
+- one eval-owned gate now turns green only when conditional control, mutable
+  memory, spill/tape extension, persistent continuation, machine-step replay,
+  witness coverage, portability envelopes, and refusal truth are all explicit
+- the checker script should currently pass and should fail closed if any one of
+  those prerequisite rows goes red
+- this gate is still not the theory/operator/served verdict split, not served
+  universality posture, and not final Turing-complete closeout
+
+### 6C.3 Semantic-window revision receipt and compatibility delta
 
 ```bash
 cargo run -p psionic-runtime --example tassadar_semantic_window_revision_receipt

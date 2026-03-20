@@ -1084,6 +1084,17 @@ The current scope is:
   open-ended external event loops; this still does not constitute the minimal
   universal-substrate gate, the theory/operator/served verdict split, served
   universality posture, or Turing-complete closeout
+- the current minimal universal-substrate gate artifacts are
+  `fixtures/tassadar/reports/tassadar_minimal_universal_substrate_runtime_report.json`
+  and
+  `fixtures/tassadar/reports/tassadar_minimal_universal_substrate_acceptance_gate_report.json`,
+  plus the one-command checker
+  `scripts/check-tassadar-minimal-universal-substrate-gate.sh`, which freeze
+  one runtime-owned prerequisite report and one eval-owned green/fail gate over
+  conditional control, mutable memory, spill/tape extension, persistent
+  continuation, machine-step replay, witness coverage, portability envelopes,
+  and refusal truth; this still does not constitute the theory/operator/served
+  verdict split, served universality posture, or Turing-complete closeout
 - the current semantic-window revision artifacts are
   `fixtures/tassadar/reports/tassadar_semantic_window_revision_receipt.json`
   and
