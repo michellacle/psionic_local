@@ -250,6 +250,8 @@ mod tassadar_threads_research_profile;
 mod tassadar_trace_state_ablation;
 #[path = "tassadar_trap_exception.rs"]
 mod tassadar_trap_exception;
+#[path = "tassadar_turing_completeness_closeout_audit.rs"]
+mod tassadar_turing_completeness_closeout_audit;
 #[path = "tassadar_universal_machine_proof.rs"]
 mod tassadar_universal_machine_proof;
 #[path = "tassadar_universality_witness_suite.rs"]
@@ -406,6 +408,7 @@ pub use tassadar_supervision_density::*;
 pub use tassadar_threads_research_profile::*;
 pub use tassadar_trace_state_ablation::*;
 pub use tassadar_trap_exception::*;
+pub use tassadar_turing_completeness_closeout_audit::*;
 pub use tassadar_universal_machine_proof::*;
 pub use tassadar_universality_witness_suite::*;
 pub use tassadar_verifier_guided_search_report::*;

@@ -1109,6 +1109,16 @@ The current scope is:
   and served/public universality remains explicitly suppressed with route and
   authority dependencies left visible; this still is not the final
   Turing-completeness closeout
+- the current final closeout artifacts are
+  `fixtures/tassadar/reports/tassadar_turing_completeness_closeout_audit_report.json`,
+  `fixtures/tassadar/reports/tassadar_turing_completeness_closeout_summary.json`,
+  the provider receipt in
+  `crates/psionic-provider/src/tassadar_turing_completeness_closeout.rs`, and
+  the audit note `docs/audits/2026-03-19-tassadar-turing-completeness-closeout-audit.md`,
+  which freeze the bounded terminal statement itself: under declared `TCM.v1`
+  semantics, explicit portability envelopes, and explicit refusal boundaries,
+  Turing-complete support is real for theory and operator use, while
+  served/public universality remains suppressed
 - the current semantic-window revision artifacts are
   `fixtures/tassadar/reports/tassadar_semantic_window_revision_receipt.json`
   and

@@ -126,6 +126,15 @@ Current honest posture:
   the served lane remains suppressed because no named served universality
   profile is published and authority-bearing served closure still lives outside
   standalone `psionic`
+- the repo now also has one final Turing-completeness closeout audit, with a
+  committed eval report at
+  `fixtures/tassadar/reports/tassadar_turing_completeness_closeout_audit_report.json`,
+  a disclosure-safe research summary at
+  `fixtures/tassadar/reports/tassadar_turing_completeness_closeout_summary.json`,
+  a provider-facing receipt, and an audit note that freeze the exact bounded
+  terminal statement: Turing-complete support is green for theory and operator
+  use under declared `TCM.v1` semantics and explicit envelopes, while
+  served/public universality remains suppressed
 - the repo now also has one research-only shared-memory and threads profile
   with a deterministic scheduler envelope, explicit sandbox boundary truth,
   and typed refusal on host-nondeterministic scheduling plus relaxed
@@ -239,8 +248,9 @@ Issue-state note:
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
 - `TAS-147` through `TAS-155` are now implemented and tracked in
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
-- the current open GitHub backlog begins at `TAS-156` and runs through
-  `TAS-156`
+- `TAS-156` is now implemented and tracked in
+  `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
+- there is currently no open GitHub TAS backlog in this repo
 
 ## Repo-Local Companion Docs
 

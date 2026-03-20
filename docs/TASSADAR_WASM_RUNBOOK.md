@@ -840,6 +840,34 @@ Expected outcome:
 - this split is the theorem-to-product boundary, but it is still not the final
   Turing-completeness closeout
 
+### 6C.2c Turing-completeness closeout audit
+
+```bash
+cargo run -p psionic-eval --example tassadar_turing_completeness_closeout_audit_report
+cargo run -p psionic-research --example tassadar_turing_completeness_closeout_summary
+cargo test -p psionic-provider turing_completeness_closeout_receipt -- --nocapture
+```
+
+Read:
+
+- `fixtures/tassadar/reports/tassadar_turing_completeness_closeout_audit_report.json`
+- `fixtures/tassadar/reports/tassadar_turing_completeness_closeout_summary.json`
+- `docs/audits/2026-03-19-tassadar-turing-completeness-closeout-audit.md`
+
+Expected outcome:
+
+- the closeout audit should now keep the declared substrate, the witness
+  construction, the witness suite, the minimal gate, and the verdict split in
+  one source-to-claim artifact
+- the final bounded statement should now be explicit: Turing-complete support
+  is green for theory and operator use under declared `TCM.v1` semantics and
+  explicit envelopes
+- `served_green` should still remain `false`
+- portability envelopes and refusal boundaries should remain attached directly
+  to the closeout statement instead of being implied indirectly
+- this closeout still does not imply arbitrary Wasm, broad served internal
+  compute, or settlement-qualified universality closure
+
 ### 6C.3 Semantic-window revision receipt and compatibility delta
 
 ```bash
