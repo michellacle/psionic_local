@@ -1,14 +1,14 @@
 {
   "schema_version": 1,
-  "report_id": "tassadar.attention_primitive_mask_closure.summary.v1",
-  "report_ref": "fixtures/tassadar/reports/tassadar_attention_primitive_mask_closure_report.json",
+  "report_id": "tassadar.transformer_block_closure.summary.v1",
+  "report_ref": "fixtures/tassadar/reports/tassadar_transformer_block_closure_report.json",
   "report": {
     "schema_version": 1,
-    "report_id": "tassadar.attention_primitive_mask_closure.report.v1",
+    "report_id": "tassadar.transformer_block_closure.report.v1",
     "acceptance_gate_tie": {
       "acceptance_gate_report_ref": "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json",
       "canonical_boundary_report_ref": "fixtures/tassadar/reports/tassadar_canonical_transformer_stack_boundary_report.json",
-      "tied_requirement_id": "TAS-161",
+      "tied_requirement_id": "TAS-162",
       "tied_requirement_satisfied": true,
       "acceptance_status": "blocked",
       "blocked_issue_ids": [
@@ -433,72 +433,78 @@
     },
     "case_rows": [
       {
-        "case_id": "stable_softmax",
-        "validation_kind": "stable_softmax",
+        "case_id": "embedding_binding",
+        "validation_kind": "embedding_binding",
         "passed": true,
-        "detail": "stable softmax stayed finite under extreme logits and produced the expected [1, 0] probability split"
+        "detail": "token embeddings and deterministic sinusoidal positional bindings now compose in `psionic-transformer` with the expected [batch, seq, hidden] surface"
       },
       {
-        "case_id": "causal_mask",
-        "validation_kind": "causal_mask",
+        "case_id": "dropout_training_eval_posture",
+        "validation_kind": "dropout_training_eval_posture",
         "passed": true,
-        "detail": "causal masking zeroed future attention while preserving the deterministic prefix row"
+        "detail": "train-versus-eval posture is explicit and seed-stable for reusable block composition"
       },
       {
-        "case_id": "padding_mask",
-        "validation_kind": "padding_mask",
+        "case_id": "multi_head_projection_merge",
+        "validation_kind": "multi_head_projection_merge",
         "passed": true,
-        "detail": "padding masking zeroed padded keys and kept the masked-out high-score column from dominating the output"
+        "detail": "reusable multi-head projection, attention, and merge now execute in `psionic-transformer` with explicit trace shape [batch, heads, query, key]"
       },
       {
-        "case_id": "combined_mask",
-        "validation_kind": "combined_mask",
+        "case_id": "feed_forward_block",
+        "validation_kind": "feed_forward_block",
         "passed": true,
-        "detail": "combined masking enforced both causal and padding boundaries in one reusable path"
+        "detail": "position-wise feed-forward composition now stays reusable in `psionic-transformer` and matches the expected ReLU reference path"
       },
       {
-        "case_id": "deterministic_forward",
-        "validation_kind": "deterministic_forward",
+        "case_id": "residual_and_norm",
+        "validation_kind": "residual_and_norm",
         "passed": true,
-        "detail": "the owned attention primitive produced byte-stable repeated outputs for the same inputs and mask"
+        "detail": "residual addition and layer-norm sequencing now live in reusable decoder-block composition rather than ad hoc per-model code"
       },
       {
-        "case_id": "probability_trace_export",
-        "validation_kind": "probability_trace_export",
+        "case_id": "deterministic_decoder_block_forward",
+        "validation_kind": "deterministic_decoder_block_forward",
         "passed": true,
-        "detail": "attention probability traces now export through psionic-core tensor spec and dense f32 tensor data"
+        "detail": "decoder-block composition stays deterministic in eval posture for repeated reusable forward passes"
       }
     ],
     "boundary_review": {
       "transformer_cargo_ref": "crates/psionic-transformer/Cargo.toml",
-      "transformer_attention_module_ref": "crates/psionic-transformer/src/attention.rs",
+      "transformer_blocks_module_ref": "crates/psionic-transformer/src/blocks.rs",
+      "nn_cargo_ref": "crates/psionic-nn/Cargo.toml",
+      "nn_optimizers_cargo_ref": "crates/psionic-nn-optimizers/Cargo.toml",
       "models_executor_module_ref": "crates/psionic-models/src/tassadar_executor_transformer.rs",
-      "direct_core_dependency": true,
-      "direct_array_dependency": true,
+      "direct_nn_dependency": true,
       "direct_models_dependency": false,
       "direct_runtime_dependency": false,
-      "transformer_defines_owned_primitive": true,
-      "models_mentions_owned_symbol": false,
+      "nn_depends_on_train": false,
+      "optimizer_interop_split_present": true,
+      "transformer_defines_embeddings": true,
+      "transformer_defines_multi_head_attention": true,
+      "transformer_defines_feed_forward": true,
+      "transformer_defines_decoder_block": true,
+      "models_mentions_owned_block_symbols": false,
       "passed": true,
-      "detail": "the reusable owned attention primitive now lives in `psionic-transformer`, depends directly on `psionic-core` and `psionic-array`, and does not drift back into `psionic-models` or direct runtime ownership"
+      "detail": "reusable transformer block composition now lives in `psionic-transformer` above `psionic-nn`; `psionic-nn` no longer points back into `psionic-train`, and optimizer interop is split into `psionic-nn-optimizers` so the canonical transformer boundary stays acyclic and model-independent"
     },
     "all_required_cases_present": true,
     "all_cases_pass": true,
-    "attention_primitive_contract_green": true,
+    "transformer_block_contract_green": true,
     "article_equivalence_green": false,
-    "claim_boundary": "this report freezes the owned scaled dot-product attention and masking primitive only. It proves that reusable attention math, mask composition, deterministic trace export, and crate ownership now live in `psionic-transformer`, but it does not claim full article-equivalent Transformer closure.",
-    "summary": "Attention primitive closure now records case_rows=6, all_required_cases_present=true, all_cases_pass=true, boundary_review_passed=true, tied_requirement_satisfied=true, attention_primitive_contract_green=true, and article_equivalence_green=false.",
-    "report_digest": "c6039848e2199016362bcbc32b9d6d8a2d156204c8ca28de9098fec4a6222b03"
+    "claim_boundary": "this report freezes the reusable transformer block layer only. It proves that embeddings, positional binding, multi-head projection and merge, feed-forward, residual-plus-norm composition, and train versus eval dropout posture now live in `psionic-transformer` above `psionic-nn`, but it does not claim the paper-faithful article model artifact or final article-equivalence route are complete.",
+    "summary": "Transformer block closure now records case_rows=6, all_required_cases_present=true, all_cases_pass=true, boundary_review_passed=true, tied_requirement_satisfied=true, transformer_block_contract_green=true, and article_equivalence_green=false.",
+    "report_digest": "4077d60e4671a052d859eb7e37572943c600564b458ae96d78d852451f52bb8f"
   },
   "case_count": 6,
   "passed_case_count": 6,
   "boundary_review_passed": true,
-  "tied_requirement_id": "TAS-161",
+  "tied_requirement_id": "TAS-162",
   "tied_requirement_satisfied": true,
   "acceptance_status": "blocked",
-  "attention_primitive_contract_green": true,
+  "transformer_block_contract_green": true,
   "article_equivalence_green": false,
-  "claim_boundary": "this summary mirrors the owned attention primitive closure only. It keeps the reusable attention, mask, and trace facts operator-readable without widening the current article-equivalence claim boundary.",
-  "summary": "Attention primitive summary now records case_count=6, passed_case_count=6, boundary_review_passed=true, tied_requirement_satisfied=true, attention_primitive_contract_green=true, and article_equivalence_green=false.",
-  "report_digest": "164bd2768dbee810fd0763b553aeb75cbb5462b6c894c3638eb6cf8297b82e30"
+  "claim_boundary": "this summary mirrors the reusable transformer block closure only. It keeps the block-layer facts operator-readable without widening the current article-equivalence claim boundary.",
+  "summary": "Transformer block summary now records case_count=6, passed_case_count=6, boundary_review_passed=true, tied_requirement_satisfied=true, transformer_block_contract_green=true, and article_equivalence_green=false.",
+  "report_digest": "1a5389555712d57934be342b43e39c55d9755ccd4add83c866610c87ac717df9"
 }

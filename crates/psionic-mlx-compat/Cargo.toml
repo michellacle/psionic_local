@@ -22,3 +22,4 @@ psionic-distributed = { path = "../psionic-distributed" }
 psionic-function-io = { path = "../psionic-function-io" }
 psionic-ir = { path = "../psionic-ir" }
 psionic-nn = { path = "../psionic-nn" }
+psionic-nn-optimizers = { path = "../psionic-nn-optimizers" }

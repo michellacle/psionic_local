@@ -104,10 +104,9 @@ pub enum TassadarExistingSubstrateInventoryReportError {
     Json(#[from] serde_json::Error),
 }
 
-pub fn build_tassadar_existing_substrate_inventory_report() -> Result<
-    TassadarExistingSubstrateInventoryReport,
-    TassadarExistingSubstrateInventoryReportError,
-> {
+pub fn build_tassadar_existing_substrate_inventory_report(
+) -> Result<TassadarExistingSubstrateInventoryReport, TassadarExistingSubstrateInventoryReportError>
+{
     let acceptance_gate_report = build_tassadar_article_equivalence_acceptance_gate_report()?;
     Ok(build_report_from_inputs(
         acceptance_gate_report,
@@ -136,22 +135,27 @@ fn build_report_from_inputs(
         blocked_issue_ids: acceptance_gate_report.blocked_issue_ids.clone(),
     };
     let classification_counts = classification_counts(surfaces.as_slice());
-    let blocker_surface_count = surfaces.iter().filter(|row| row.blocks_article_closure).count();
+    let blocker_surface_count = surfaces
+        .iter()
+        .filter(|row| row.blocks_article_closure)
+        .count();
     let non_blocker_surface_count = surfaces.len() - blocker_surface_count;
     let observed_classifications = surfaces
         .iter()
         .map(|row| row.classification)
         .collect::<BTreeSet<_>>();
-    let all_required_classifications_present = observed_classifications == required_classifications();
+    let all_required_classifications_present =
+        observed_classifications == required_classifications();
     let surface_ids = surfaces
         .iter()
         .map(|row| row.surface_id.clone())
         .collect::<Vec<_>>();
-    let all_surface_ids_unique = surface_ids.len() == surface_ids.iter().collect::<BTreeSet<_>>().len();
+    let all_surface_ids_unique =
+        surface_ids.len() == surface_ids.iter().collect::<BTreeSet<_>>().len();
     let all_surfaces_have_item_refs = surfaces.iter().all(|row| !row.item_refs.is_empty());
-    let all_surfaces_have_explicit_blocker_labels = surfaces.iter().all(|row| {
-        !row.current_truth.trim().is_empty() && !row.extension_or_gap.trim().is_empty()
-    });
+    let all_surfaces_have_explicit_blocker_labels = surfaces
+        .iter()
+        .all(|row| !row.current_truth.trim().is_empty() && !row.extension_or_gap.trim().is_empty());
     let inventory_contract_green = acceptance_gate_tie.tied_requirement_satisfied
         && all_required_classifications_present
         && all_surface_ids_unique
@@ -205,13 +209,15 @@ fn classification_counts(
 ) -> Vec<TassadarExistingSubstrateClassificationCount> {
     required_classifications()
         .into_iter()
-        .map(|classification| TassadarExistingSubstrateClassificationCount {
-            classification,
-            count: surfaces
-                .iter()
-                .filter(|row| row.classification == classification)
-                .count(),
-        })
+        .map(
+            |classification| TassadarExistingSubstrateClassificationCount {
+                classification,
+                count: surfaces
+                    .iter()
+                    .filter(|row| row.classification == classification)
+                    .count(),
+            },
+        )
         .collect()
 }
 
@@ -253,8 +259,8 @@ fn substrate_surface_rows() -> Vec<TassadarExistingSubstrateSurfaceRow> {
             &["crates/psionic-nn/src/lib.rs", "crates/psionic-nn/src/layers.rs"],
             TassadarExistingSubstrateClassification::ReusableWithExtension,
             true,
-            "module trees, parameter traversal, quantized wrappers, and reusable Linear/Embedding/LayerNorm/RmsNorm/Dropout layers already exist",
-            "the owned article route still needs attention primitives and article-block composition above these layers",
+            "module trees, parameter traversal, quantized wrappers, and reusable Linear/Embedding/LayerNorm/RmsNorm/Dropout layers already exist as the lower-level layer substrate",
+            "the lower-level layer substrate now exists at the right boundary; the remaining gap is the paper-faithful article model and proof route above it, not missing primitive NN layers",
         ),
         surface_row(
             "psionic_transformer_architecture_boundary",
@@ -263,11 +269,12 @@ fn substrate_surface_rows() -> Vec<TassadarExistingSubstrateSurfaceRow> {
             &[
                 "crates/psionic-transformer/src/lib.rs",
                 "crates/psionic-transformer/src/attention.rs",
+                "crates/psionic-transformer/src/blocks.rs",
                 "docs/ARCHITECTURE.md",
             ],
             TassadarExistingSubstrateClassification::ReusableAsIs,
             false,
-            "the dedicated `psionic-transformer` crate now owns reusable decoder and AttnRes architecture primitives plus the owned scaled dot-product attention, mask, and probability-trace path at the intended layering boundary",
+            "the dedicated `psionic-transformer` crate now owns reusable decoder and AttnRes architecture primitives plus the owned scaled dot-product attention, embeddings, feed-forward, residual, and norm block path at the intended layering boundary",
             "the remaining gap is implementing the canonical article stack on top of this boundary, not redefining the boundary itself",
         ),
         surface_row(
@@ -365,10 +372,8 @@ pub fn tassadar_existing_substrate_inventory_report_path() -> PathBuf {
 
 pub fn write_tassadar_existing_substrate_inventory_report(
     output_path: impl AsRef<Path>,
-) -> Result<
-    TassadarExistingSubstrateInventoryReport,
-    TassadarExistingSubstrateInventoryReportError,
-> {
+) -> Result<TassadarExistingSubstrateInventoryReport, TassadarExistingSubstrateInventoryReportError>
+{
     let output_path = output_path.as_ref();
     if let Some(parent) = output_path.parent() {
         fs::create_dir_all(parent).map_err(|error| {
@@ -409,12 +414,13 @@ fn read_json<T: DeserializeOwned>(
     path: impl AsRef<Path>,
 ) -> Result<T, TassadarExistingSubstrateInventoryReportError> {
     let path = path.as_ref();
-    let bytes = fs::read(path).map_err(|error| {
-        TassadarExistingSubstrateInventoryReportError::Read {
-            path: path.display().to_string(),
-            error,
-        }
-    })?;
+    let bytes =
+        fs::read(path).map_err(
+            |error| TassadarExistingSubstrateInventoryReportError::Read {
+                path: path.display().to_string(),
+                error,
+            },
+        )?;
     serde_json::from_slice(&bytes).map_err(|error| {
         TassadarExistingSubstrateInventoryReportError::Decode {
             path: path.display().to_string(),

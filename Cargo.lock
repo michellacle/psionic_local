@@ -3554,11 +3554,13 @@ dependencies = [
  "psionic-apple-fm",
  "psionic-cluster",
  "psionic-compiler",
+ "psionic-core",
  "psionic-data",
  "psionic-datastream",
  "psionic-environments",
  "psionic-ir",
  "psionic-models",
+ "psionic-nn",
  "psionic-router",
  "psionic-runtime",
  "psionic-sandbox",
@@ -3664,6 +3666,7 @@ dependencies = [
  "psionic-function-io",
  "psionic-ir",
  "psionic-nn",
+ "psionic-nn-optimizers",
 ]
 
 [[package]]
@@ -3781,6 +3784,18 @@ version = "0.1.1"
 dependencies = [
  "hex",
  "psionic-core",
+ "serde",
+ "sha2",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "psionic-nn-optimizers"
+version = "0.1.1"
+dependencies = [
+ "hex",
+ "psionic-core",
+ "psionic-nn",
  "psionic-train",
  "serde",
  "sha2",
@@ -3959,6 +3974,7 @@ version = "0.1.1"
 dependencies = [
  "psionic-array",
  "psionic-core",
+ "psionic-nn",
  "serde",
  "thiserror 2.0.18",
 ]

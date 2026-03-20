@@ -22,12 +22,11 @@ pub const BOUNDARY_NOTE: &str =
 pub mod core {
     pub use psionic_array::{
         Array, ArrayBackendCaptureArtifactRequest, ArrayBackendCaptureConfig,
-        ArrayBackendCaptureFormat, ArrayBackendCaptureReceipt, ArrayCacheLimitControl,
-        ArrayDevice, ArrayError, ArrayRuntimeResourceReport, ArrayStream, EvaluatedArray,
-        PendingAsyncEval,
+        ArrayBackendCaptureFormat, ArrayBackendCaptureReceipt, ArrayCacheLimitControl, ArrayDevice,
+        ArrayError, ArrayRuntimeResourceReport, ArrayStream, EvaluatedArray, PendingAsyncEval,
     };
-    pub use psionic_core::{DType, Device, Shape, TensorData, TensorSpec};
     use psionic_array::{ArrayBackendDebugSnapshot, ArrayBackendDebugSupport, ArrayContext};
+    pub use psionic_core::{DType, Device, Shape, TensorData, TensorSpec};
 
     /// Thin MLX-like context wrapper over the Psionic-native array context.
     #[derive(Clone, Debug)]
@@ -231,13 +230,13 @@ pub mod core {
 /// MLX-like transform surface over the native autodiff and compile crates.
 pub mod transforms {
     pub use psionic_compiler::{
-        CompileTransform, CompileTransformConfig, CompileTransformDebugMode,
-        CompileTransformError, CompileTransformTraceMode, compile_transform,
+        compile_transform, CompileTransform, CompileTransformConfig, CompileTransformDebugMode,
+        CompileTransformError, CompileTransformTraceMode,
     };
     pub use psionic_ir::{
-        AutodiffGraph, AutodiffGraphBuilder, CustomVjpTransform, CustomVjpTransformResult,
-        VmapSupport, VmapTransformError, VmapUnsupportedReason, checkpoint, custom_vjp, grad, jvp,
-        value_and_grad, vjp, vmap,
+        checkpoint, custom_vjp, grad, jvp, value_and_grad, vjp, vmap, AutodiffGraph,
+        AutodiffGraphBuilder, CustomVjpTransform, CustomVjpTransformResult, VmapSupport,
+        VmapTransformError, VmapUnsupportedReason,
     };
 }
 
@@ -248,7 +247,7 @@ pub mod nn {
 
 /// MLX-like optimizer layout split out for discoverability.
 pub mod optimizers {
-    pub use psionic_nn::{
+    pub use psionic_nn_optimizers::{
         MultiOptimizer, MultiOptimizerStepReport, Optimizer, OptimizerConfig, OptimizerGroup,
         OptimizerKind, OptimizerModuleStepReport, OptimizerParameterState,
         OptimizerParameterStepReport, OptimizerStateSnapshot, SchedulerBinding, SchedulerConfig,
@@ -269,9 +268,9 @@ pub mod distributed {
 /// Repo-owned compatibility reports that keep this facade bounded and reviewable.
 pub mod reports {
     pub use psionic_compat::{
-        MlxCompatibilityMatrixEntry, MlxCompatibilityMatrixReport,
-        MlxCompatibilityMatrixStatus, MlxCompatibilityScopeReport,
         builtin_mlx_compatibility_matrix_report, builtin_mlx_compatibility_scope_report,
+        MlxCompatibilityMatrixEntry, MlxCompatibilityMatrixReport, MlxCompatibilityMatrixStatus,
+        MlxCompatibilityScopeReport,
     };
 }
 
@@ -287,8 +286,8 @@ mod tests {
     use psionic_core::Shape;
 
     #[test]
-    fn core_context_helpers_build_and_eval_bounded_cpu_arrays()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn core_context_helpers_build_and_eval_bounded_cpu_arrays(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let context = core::cpu_seeded(7)?;
         let ones = context.ones(Shape::new(vec![2, 2]))?;
         let filled = context.full(Shape::new(vec![2, 2]), 2.0)?;
@@ -317,22 +316,14 @@ mod tests {
             naming.matrix_status,
             reports::MlxCompatibilityMatrixStatus::Supported
         );
-        assert!(
-            naming
-                .blocking_issue_refs
-                .iter()
-                .all(|issue| !issue.contains("PMLX-606"))
-        );
-        assert!(
-            naming
-                .blocking_issue_refs
-                .iter()
-                .all(|issue| !issue.contains("PMLX-607"))
-        );
-        assert!(
-            naming
-                .summary
-                .contains("psionic-mlx-compat")
-        );
+        assert!(naming
+            .blocking_issue_refs
+            .iter()
+            .all(|issue| !issue.contains("PMLX-606")));
+        assert!(naming
+            .blocking_issue_refs
+            .iter()
+            .all(|issue| !issue.contains("PMLX-607")));
+        assert!(naming.summary.contains("psionic-mlx-compat"));
     }
 }

@@ -1,14 +1,15 @@
 use std::collections::{BTreeMap, BTreeSet};
 
-use crate::{
+use psionic_core::{DType, Device, DeviceKind, TensorData, TensorSpec};
+use psionic_nn::{
     Module, ModuleParameter, ModuleParameterView, ModuleStateDict, ModuleStateEntry,
     ModuleStateEntryKind, ModuleStateError,
 };
-use psionic_core::{DType, Device, DeviceKind, TensorData, TensorSpec};
 use psionic_train::{
-    TrainingOptimizerConfig, TrainingOptimizerError, TrainingOptimizerKind, TrainingOptimizerState,
-    TrainingOptimizerStepReport, TrainingSchedulerBinding, TrainingSchedulerConfig,
-    TrainingSchedulerKind, TrainingSchedulerState, scheduled_learning_rate,
+    scheduled_learning_rate, TrainingOptimizerConfig, TrainingOptimizerError,
+    TrainingOptimizerKind, TrainingOptimizerState, TrainingOptimizerStepReport,
+    TrainingSchedulerBinding, TrainingSchedulerConfig, TrainingSchedulerKind,
+    TrainingSchedulerState,
 };
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -1198,11 +1199,11 @@ mod tests {
         MultiOptimizer, Optimizer, OptimizerConfig, OptimizerError, OptimizerGroup,
         ParameterGroupSemantics, SchedulerConfig,
     };
-    use crate::{
+    use psionic_core::{DType, Device, Shape, TensorData, TensorSpec};
+    use psionic_nn::{
         Module, ModuleParameter, ModuleStateDict, ModuleStateEntry, ModuleStateEntryKind,
         ModuleStateView,
     };
-    use psionic_core::{DType, Device, Shape, TensorData, TensorSpec};
 
     fn dense_parameter(
         dims: &[usize],
@@ -1243,8 +1244,8 @@ mod tests {
     }
 
     #[test]
-    fn module_optimizer_updates_trainable_parameters_and_ignores_frozen_gradients()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn module_optimizer_updates_trainable_parameters_and_ignores_frozen_gradients(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut module = Module::new("model", "toy")?;
         module.insert_parameter("weight", dense_parameter(&[2], vec![1.0, -1.0], true)?)?;
         module.insert_parameter("bias", dense_parameter(&[2], vec![0.5, -0.5], false)?)?;
@@ -1279,8 +1280,8 @@ mod tests {
     }
 
     #[test]
-    fn module_optimizer_state_snapshot_roundtrips_without_losing_momentum()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn module_optimizer_state_snapshot_roundtrips_without_losing_momentum(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut module_a = Module::new("model", "toy")?;
         module_a.insert_parameter("weight", dense_parameter(&[2], vec![1.0, -1.0], true)?)?;
         let gradients = gradient_dict(
@@ -1309,8 +1310,8 @@ mod tests {
     }
 
     #[test]
-    fn module_optimizer_scheduler_and_parameter_semantics_scale_effective_rates()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn module_optimizer_scheduler_and_parameter_semantics_scale_effective_rates(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut module = Module::new("model", "toy")?;
         module.insert_parameter("weight", dense_parameter(&[2], vec![1.0, -1.0], true)?)?;
         let gradients = gradient_dict(
@@ -1350,8 +1351,8 @@ mod tests {
     }
 
     #[test]
-    fn multi_optimizer_composes_disjoint_groups_and_refuses_overlap_or_unassigned_paths()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn multi_optimizer_composes_disjoint_groups_and_refuses_overlap_or_unassigned_paths(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut module = Module::new("model", "toy")?;
         module.insert_parameter("encoder", dense_parameter(&[2], vec![1.0, -1.0], true)?)?;
         module.insert_parameter("head", dense_parameter(&[2], vec![0.5, -0.5], true)?)?;
@@ -1427,8 +1428,8 @@ mod tests {
     }
 
     #[test]
-    fn module_optimizer_refuses_missing_unknown_and_spec_drift_paths()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn module_optimizer_refuses_missing_unknown_and_spec_drift_paths(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut module = Module::new("model", "toy")?;
         module.insert_parameter("weight", dense_parameter(&[2], vec![1.0, -1.0], true)?)?;
         let mut optimizer = Optimizer::new(OptimizerConfig::adam(0.05, 0.9, 0.999, 1e-8));

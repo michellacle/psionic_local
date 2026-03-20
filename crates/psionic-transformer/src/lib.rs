@@ -1,11 +1,13 @@
 //! Reusable transformer architecture primitives for Psionic.
 
 mod attention;
+mod blocks;
 
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 pub use attention::*;
+pub use blocks::*;
 
 /// Human-readable crate ownership summary.
 pub const CRATE_ROLE: &str = "reusable transformer architecture primitives";

@@ -196,6 +196,20 @@ Current honest posture:
   probability-trace export as owned `psionic-transformer` truth; this tranche
   is explicitly tied to the final acceptance gate while the overall
   article-equivalence verdict remains blocked
+- the repo now also has one canonical reusable Transformer block layer for the
+  article-equivalence closure wave, with reusable implementation in
+  `crates/psionic-transformer/src/blocks.rs`, a committed eval report at
+  `fixtures/tassadar/reports/tassadar_transformer_block_closure_report.json`,
+  a disclosure-safe research summary at
+  `fixtures/tassadar/reports/tassadar_transformer_block_closure_summary.json`,
+  and an audit note that freeze token embedding plus positional binding,
+  train-versus-eval dropout posture, multi-head projection and merge,
+  feed-forward composition, residual plus layer norm, and reusable
+  decoder-block execution as owned `psionic-transformer` truth while
+  preserving `psionic-nn` as the lower-level layer substrate through the
+  `psionic-nn-optimizers` split; this tranche is explicitly tied to the final
+  acceptance gate while the overall article-equivalence verdict remains
+  blocked
 - the repo now also has one research-only shared-memory and threads profile
   with a deterministic scheduler envelope, explicit sandbox boundary truth,
   and typed refusal on host-nondeterministic scheduling plus relaxed

@@ -242,8 +242,9 @@ fn interface_rows() -> Vec<TassadarTransformerBoundaryInterfaceRow> {
                 "crates/psionic-nn/src/layers.rs",
                 "crates/psionic-transformer/src/lib.rs",
                 "crates/psionic-transformer/src/attention.rs",
+                "crates/psionic-transformer/src/blocks.rs",
             ],
-            "module state, primitive layers, and reusable transformer attention plus architecture configs stay split between `psionic-nn` and `psionic-transformer`, with `psionic-transformer` as the architecture anchor",
+            "module state, primitive layers, and reusable transformer attention plus block composition stay split between `psionic-nn` and `psionic-transformer`, with `psionic-transformer` as the architecture anchor",
         ),
         interface_row(
             TassadarTransformerBoundaryInterfaceKind::ModelArtifactFormat,
@@ -297,8 +298,8 @@ fn ownership_rows() -> Vec<TassadarTransformerBoundaryOwnershipRow> {
         ),
         ownership_row(
             "psionic-transformer",
-            "crates/psionic-transformer/src/attention.rs",
-            "canonical reusable transformer architecture boundary plus owned scaled dot-product attention and masking primitive above primitive layers and below model artifacts",
+            "crates/psionic-transformer/src/blocks.rs",
+            "canonical reusable transformer architecture boundary plus owned attention, embeddings, feed-forward, residual, and norm block composition above primitive layers and below model artifacts",
         ),
         ownership_row(
             "psionic-models",
@@ -340,6 +341,7 @@ fn dependency_checks() -> Result<
 > {
     let models_cargo = read_repo_file("crates/psionic-models/Cargo.toml")?;
     let transformer_cargo = read_repo_file("crates/psionic-transformer/Cargo.toml")?;
+    let nn_cargo = read_repo_file("crates/psionic-nn/Cargo.toml")?;
     let runtime_cargo = read_repo_file("crates/psionic-runtime/Cargo.toml")?;
     Ok(vec![
         dependency_check_row(
@@ -349,11 +351,25 @@ fn dependency_checks() -> Result<
             "`psionic-models` must depend on `psionic-transformer` so the canonical article model artifact cannot bypass the architecture boundary",
         ),
         dependency_check_row(
+            "psionic_transformer_depends_on_psionic_nn",
+            "crates/psionic-transformer/Cargo.toml",
+            cargo_toml_has_dependency(transformer_cargo.as_str(), "psionic-nn"),
+            "`psionic-transformer` must depend on `psionic-nn` so reusable block composition stays above the layer substrate instead of rebuilding private layer logic",
+        ),
+        dependency_check_row(
             "psionic_transformer_avoids_models_and_runtime",
             "crates/psionic-transformer/Cargo.toml",
             !cargo_toml_has_dependency(transformer_cargo.as_str(), "psionic-models")
                 && !cargo_toml_has_dependency(transformer_cargo.as_str(), "psionic-runtime"),
             "`psionic-transformer` must stay below `psionic-models` and `psionic-runtime` so the architecture boundary remains reusable and not product-coupled",
+        ),
+        dependency_check_row(
+            "psionic_nn_avoids_train_models_and_runtime",
+            "crates/psionic-nn/Cargo.toml",
+            !cargo_toml_has_dependency(nn_cargo.as_str(), "psionic-train")
+                && !cargo_toml_has_dependency(nn_cargo.as_str(), "psionic-models")
+                && !cargo_toml_has_dependency(nn_cargo.as_str(), "psionic-runtime"),
+            "`psionic-nn` must stay below training, model, and runtime crates so it can act as the lower-level layer and module substrate for the canonical transformer route",
         ),
         dependency_check_row(
             "psionic_runtime_avoids_models_dependency",
@@ -491,11 +507,11 @@ mod tests {
         assert!(report.acceptance_gate_tie.tied_requirement_satisfied);
         assert!(!report.article_equivalence_green);
         assert_eq!(report.interface_rows.len(), 5);
-        assert_eq!(report.dependency_checks.len(), 4);
+        assert_eq!(report.dependency_checks.len(), 6);
         assert!(report.all_dependency_checks_pass);
         assert!(report.interface_rows.iter().any(|row| {
             row.owner_modules
-                .contains(&String::from("crates/psionic-transformer/src/attention.rs"))
+                .contains(&String::from("crates/psionic-transformer/src/blocks.rs"))
         }));
     }
 

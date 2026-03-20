@@ -55,10 +55,12 @@ psionic-runtime
   `crates/psionic-nn/src/layers.rs`
   `crates/psionic-transformer/src/lib.rs`
   `crates/psionic-transformer/src/attention.rs`
+  `crates/psionic-transformer/src/blocks.rs`
 - purpose:
-  primitive layer semantics and reusable Transformer-architecture plus owned
-  scaled dot-product attention, masking, and probability-trace export stay
-  here; `psionic-transformer` is the architecture anchor
+  primitive layer semantics plus reusable Transformer attention, embeddings,
+  feed-forward, residual and norm block composition, masking, and
+  probability-trace export stay here; `psionic-transformer` is the
+  architecture anchor
 
 ### Model artifact format
 
@@ -92,10 +94,18 @@ psionic-runtime
 The boundary is backed by real dependency checks:
 
 - `psionic-models` must depend on `psionic-transformer`
+- `psionic-transformer` must depend on `psionic-nn`
 - `psionic-transformer` must not depend on `psionic-models` or
+  `psionic-runtime`
+- `psionic-nn` must not depend on `psionic-train`, `psionic-models`, or
   `psionic-runtime`
 - `psionic-runtime` must not depend on `psionic-models`
 - `psionic-models` must not depend on `psionic-eval` or `psionic-research`
+
+Optimizer and training-facing orchestration can live above this boundary, but
+it must not pull the lower-level `psionic-nn` layer substrate back into the
+training or model crates. The repo now keeps that interop split in
+`psionic-nn-optimizers`.
 
 ## Route Requirement
 

@@ -2,7 +2,6 @@
 //! for Psionic.
 
 mod layers;
-mod optimizers;
 mod quantized;
 mod training;
 
@@ -17,12 +16,12 @@ use sha2::{Digest, Sha256};
 use thiserror::Error;
 
 pub use layers::*;
-pub use optimizers::*;
 pub use quantized::*;
 pub use training::*;
 
 /// Human-readable crate ownership summary.
-pub const CRATE_ROLE: &str = "module, parameter, buffer, state-tree, bounded layer, quantized-module, training-helper, and optimizer semantics";
+pub const CRATE_ROLE: &str =
+    "module, parameter, buffer, state-tree, bounded layer, quantized-module, and training-helper semantics";
 
 /// Error returned when a module tree or state entry violates Psionic-nn rules.
 #[derive(Clone, Debug, Error, PartialEq, Eq)]
@@ -1658,10 +1657,10 @@ mod tests {
     use psionic_core::{Device, Shape, TensorData, TensorSpec};
 
     use super::{
-        DType, Module, ModuleBuffer, ModuleParameter, ModuleParameterView, ModuleParityStatus,
-        ModuleStateDict, ModuleStateEntry, ModuleStateEntryKind, ModuleStateError,
-        ModuleStateLoadError, ModuleStateLoadMode, ModuleStateView,
-        builtin_module_parity_matrix_report,
+        builtin_module_parity_matrix_report, DType, Module, ModuleBuffer, ModuleParameter,
+        ModuleParameterView, ModuleParityStatus, ModuleStateDict, ModuleStateEntry,
+        ModuleStateEntryKind, ModuleStateError, ModuleStateLoadError, ModuleStateLoadMode,
+        ModuleStateView,
     };
 
     fn f32_parameter(shape: &[usize], values: &[f32]) -> Result<ModuleParameter, ModuleStateError> {
@@ -1693,8 +1692,8 @@ mod tests {
     }
 
     #[test]
-    fn module_tree_traversal_surfaces_named_parameters_buffers_and_modules()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn module_tree_traversal_surfaces_named_parameters_buffers_and_modules(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut root = Module::new("toy-transformer", "transformer")?;
         root.insert_parameter("embedding", f32_parameter(&[2, 2], &[0.1, 0.2, 0.3, 0.4])?)?;
         root.insert_buffer("running_scale", f32_buffer(&[2], &[1.0, 1.0], true)?)?;
@@ -1749,8 +1748,8 @@ mod tests {
     }
 
     #[test]
-    fn module_freeze_semantics_and_filtered_parameter_discovery_stay_recursive()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn module_freeze_semantics_and_filtered_parameter_discovery_stay_recursive(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut root = Module::new("toy-transformer", "transformer")?;
         root.insert_parameter(
             "embedding",
@@ -1828,8 +1827,8 @@ mod tests {
     }
 
     #[test]
-    fn module_state_tree_persistent_view_omits_nonpersistent_buffers_and_stays_stable()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn module_state_tree_persistent_view_omits_nonpersistent_buffers_and_stays_stable(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut root = Module::new("toy-module", "normed_linear")?;
         root.insert_parameter("weight", f32_parameter(&[2, 2], &[1.0, 2.0, 3.0, 4.0])?)?;
         root.insert_buffer("running_mean", f32_buffer(&[2], &[0.0, 0.1], true)?)?;
@@ -1844,19 +1843,17 @@ mod tests {
         assert_eq!(persistent.entries[0].kind, ModuleStateEntryKind::Parameter);
         assert_eq!(persistent.entries[1].kind, ModuleStateEntryKind::Buffer);
         assert!(persistent.entries.iter().all(|entry| entry.persistent));
-        assert!(
-            persistent
-                .stable_signature_lines()
-                .iter()
-                .any(|line| line.starts_with("state_tree_digest="))
-        );
+        assert!(persistent
+            .stable_signature_lines()
+            .iter()
+            .any(|line| line.starts_with("state_tree_digest=")));
         assert_eq!(root.stable_digest(), all.state_tree_digest);
         Ok(())
     }
 
     #[test]
-    fn module_tree_refuses_shadowing_invalid_names_and_missing_paths()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn module_tree_refuses_shadowing_invalid_names_and_missing_paths(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut root = Module::new("toy", "linear")?;
         root.insert_parameter("weight", f32_parameter(&[1], &[1.0])?)?;
 
@@ -1907,8 +1904,8 @@ mod tests {
     }
 
     #[test]
-    fn module_state_dict_is_deterministic_and_persistent_only_by_default()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn module_state_dict_is_deterministic_and_persistent_only_by_default(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut root = Module::new("toy", "encoder")?;
         root.insert_parameter("weight", f32_parameter(&[2], &[1.0, 2.0])?)?;
         root.insert_buffer("running_mean", f32_buffer(&[2], &[0.0, 0.1], true)?)?;
@@ -1920,12 +1917,10 @@ mod tests {
             vec![String::from("running_mean"), String::from("weight")]
         );
         assert_eq!(state_dict.view, ModuleStateView::PersistentOnly);
-        assert!(
-            state_dict
-                .stable_signature_lines()
-                .iter()
-                .any(|line| line.starts_with("state_dict_digest="))
-        );
+        assert!(state_dict
+            .stable_signature_lines()
+            .iter()
+            .any(|line| line.starts_with("state_dict_digest=")));
         assert!(state_dict.entry("scratch").is_none());
 
         let all_buffers = root.state_dict_with_view(ModuleStateView::AllBuffers);
@@ -1935,8 +1930,8 @@ mod tests {
     }
 
     #[test]
-    fn save_weights_defaults_to_persistent_view_and_load_weights_defaults_to_strict()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn save_weights_defaults_to_persistent_view_and_load_weights_defaults_to_strict(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut target = Module::new("target", "linear")?;
         target.insert_parameter("weight", f32_parameter(&[1], &[1.0])?)?;
         target.insert_buffer("running_mean", f32_buffer(&[1], &[0.0], true)?)?;
@@ -1964,8 +1959,8 @@ mod tests {
     }
 
     #[test]
-    fn load_weights_with_mode_surfaces_non_strict_behavior_explicitly()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn load_weights_with_mode_surfaces_non_strict_behavior_explicitly(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut target = Module::new("target", "linear")?;
         target.insert_parameter("weight", f32_parameter(&[1], &[1.0])?)?;
         target.insert_buffer("running_mean", f32_buffer(&[1], &[0.0], true)?)?;
@@ -2013,8 +2008,8 @@ mod tests {
     }
 
     #[test]
-    fn non_strict_module_state_load_reports_missing_and_unexpected_keys()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn non_strict_module_state_load_reports_missing_and_unexpected_keys(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut target = Module::new("target", "linear")?;
         target.insert_parameter("weight", f32_parameter(&[1], &[1.0])?)?;
         target.insert_buffer("running_mean", f32_buffer(&[1], &[0.0], true)?)?;
@@ -2037,8 +2032,8 @@ mod tests {
     }
 
     #[test]
-    fn module_state_load_refuses_shape_and_kind_mismatches_even_non_strict()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn module_state_load_refuses_shape_and_kind_mismatches_even_non_strict(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut target = Module::new("target", "block")?;
         target.insert_parameter("weight", f32_parameter(&[2], &[1.0, 2.0])?)?;
 
@@ -2094,17 +2089,15 @@ mod tests {
     }
 
     #[test]
-    fn module_parity_matrix_report_tracks_seeded_supported_and_refusal_cases()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn module_parity_matrix_report_tracks_seeded_supported_and_refusal_cases(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let report = builtin_module_parity_matrix_report()?;
         assert_eq!(report.schema_version, 1);
         assert_eq!(report.oracle_family_window, "pytorch_module_db_seed_v0");
-        assert!(
-            report
-                .stable_signature_lines()
-                .iter()
-                .any(|line| line.starts_with("matrix_digest="))
-        );
+        assert!(report
+            .stable_signature_lines()
+            .iter()
+            .any(|line| line.starts_with("matrix_digest=")));
 
         let linear_case = report
             .cases

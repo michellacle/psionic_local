@@ -16,8 +16,8 @@ use thiserror::Error;
 mod attnres_burn_import;
 mod attnres_residual_comparison;
 mod parameter_golf_architecture_experiment_queue;
-mod parameter_golf_restricted_attention_report;
 mod parameter_golf_research_harness;
+mod parameter_golf_restricted_attention_report;
 mod runner;
 mod tassadar_acceptance;
 mod tassadar_approximate_attention_closure_summary;
@@ -26,7 +26,6 @@ mod tassadar_architecture_comparison;
 mod tassadar_article_cpu_reproducibility_summary;
 mod tassadar_article_equivalence_blocker_matrix_summary;
 mod tassadar_article_runtime_closeout_summary;
-mod tassadar_existing_substrate_inventory_summary;
 mod tassadar_attention_primitive_mask_closure_summary;
 mod tassadar_attention_promotion;
 mod tassadar_attention_training;
@@ -38,9 +37,10 @@ mod tassadar_compiled_distillation_summary;
 mod tassadar_compiled_executor_bundle;
 mod tassadar_compiled_kernel_suite_bundle;
 mod tassadar_decompilable_executor_artifacts;
-mod tassadar_efficient_attention_baseline_summary;
 mod tassadar_effective_unbounded_compute_claim_summary;
+mod tassadar_efficient_attention_baseline_summary;
 mod tassadar_error_regime_summary;
+mod tassadar_existing_substrate_inventory_summary;
 mod tassadar_full_core_wasm_operator_runbook_v2_summary;
 mod tassadar_general_internal_compute_red_team_summary;
 mod tassadar_hungarian_10x10_article_reproducer;
@@ -49,8 +49,8 @@ mod tassadar_hungarian_compiled_executor_bundle;
 mod tassadar_internal_compute_profile_ladder_summary;
 mod tassadar_internal_module_library_summary;
 mod tassadar_kernel_module_scaling_summary;
-mod tassadar_learned_call_stack_heap_suite_summary;
 mod tassadar_learnability_gap_analysis;
+mod tassadar_learned_call_stack_heap_suite_summary;
 mod tassadar_linked_program_bundle_summary;
 mod tassadar_locality_envelope_summary;
 mod tassadar_module_installation_staging_summary;
@@ -61,16 +61,14 @@ mod tassadar_pointer_memory_scratchpad_summary;
 mod tassadar_pre_closeout_universality_claim_boundary;
 mod tassadar_precision_attention_robustness_summary;
 mod tassadar_program_family_frontier_summary;
-mod tassadar_universal_machine_proof_summary;
-mod tassadar_universality_witness_suite_summary;
 mod tassadar_program_to_weights_benchmark;
 mod tassadar_promotion_policy;
 mod tassadar_relaxed_simd_research_summary;
 mod tassadar_rust_only_article_acceptance_summary;
 mod tassadar_rust_only_article_closeout_summary;
-mod tassadar_shared_state_concurrency_summary;
 mod tassadar_shared_depth_architecture;
 mod tassadar_shared_primitive_transfer_summary;
+mod tassadar_shared_state_concurrency_summary;
 mod tassadar_sparse_rule_compiler_audit;
 mod tassadar_subroutine_library_ablation;
 mod tassadar_sudoku_9x9_article_reproducer;
@@ -82,18 +80,21 @@ mod tassadar_symbolic_program_artifact_suite;
 mod tassadar_threads_research_profile_summary;
 mod tassadar_trace_family_comparison;
 mod tassadar_trace_state_ablation_summary;
+mod tassadar_transformer_block_closure_summary;
+mod tassadar_turing_completeness_closeout_summary;
+mod tassadar_universal_machine_proof_summary;
+mod tassadar_universality_witness_suite_summary;
 mod tassadar_verifier_guided_search_architecture;
 mod tassadar_weak_supervision_executor_summary;
 mod tassadar_working_memory_tier_summary;
 mod tassadar_workload_capability_frontier_summary;
-mod tassadar_turing_completeness_closeout_summary;
 
 #[cfg(feature = "burn-import")]
 pub use attnres_burn_import::*;
 pub use attnres_residual_comparison::*;
 pub use parameter_golf_architecture_experiment_queue::*;
-pub use parameter_golf_restricted_attention_report::*;
 pub use parameter_golf_research_harness::*;
+pub use parameter_golf_restricted_attention_report::*;
 pub use runner::*;
 pub use tassadar_acceptance::*;
 pub use tassadar_approximate_attention_closure_summary::*;
@@ -102,7 +103,6 @@ pub use tassadar_architecture_comparison::*;
 pub use tassadar_article_cpu_reproducibility_summary::*;
 pub use tassadar_article_equivalence_blocker_matrix_summary::*;
 pub use tassadar_article_runtime_closeout_summary::*;
-pub use tassadar_existing_substrate_inventory_summary::*;
 pub use tassadar_attention_primitive_mask_closure_summary::*;
 pub use tassadar_attention_promotion::*;
 pub use tassadar_attention_training::*;
@@ -114,9 +114,10 @@ pub use tassadar_compiled_distillation_summary::*;
 pub use tassadar_compiled_executor_bundle::*;
 pub use tassadar_compiled_kernel_suite_bundle::*;
 pub use tassadar_decompilable_executor_artifacts::*;
-pub use tassadar_efficient_attention_baseline_summary::*;
 pub use tassadar_effective_unbounded_compute_claim_summary::*;
+pub use tassadar_efficient_attention_baseline_summary::*;
 pub use tassadar_error_regime_summary::*;
+pub use tassadar_existing_substrate_inventory_summary::*;
 pub use tassadar_full_core_wasm_operator_runbook_v2_summary::*;
 pub use tassadar_general_internal_compute_red_team_summary::*;
 pub use tassadar_hungarian_10x10_article_reproducer::*;
@@ -125,8 +126,8 @@ pub use tassadar_hungarian_compiled_executor_bundle::*;
 pub use tassadar_internal_compute_profile_ladder_summary::*;
 pub use tassadar_internal_module_library_summary::*;
 pub use tassadar_kernel_module_scaling_summary::*;
-pub use tassadar_learned_call_stack_heap_suite_summary::*;
 pub use tassadar_learnability_gap_analysis::*;
+pub use tassadar_learned_call_stack_heap_suite_summary::*;
 pub use tassadar_linked_program_bundle_summary::*;
 pub use tassadar_locality_envelope_summary::*;
 pub use tassadar_module_installation_staging_summary::*;
@@ -137,16 +138,14 @@ pub use tassadar_pointer_memory_scratchpad_summary::*;
 pub use tassadar_pre_closeout_universality_claim_boundary::*;
 pub use tassadar_precision_attention_robustness_summary::*;
 pub use tassadar_program_family_frontier_summary::*;
-pub use tassadar_universal_machine_proof_summary::*;
-pub use tassadar_universality_witness_suite_summary::*;
 pub use tassadar_program_to_weights_benchmark::*;
 pub use tassadar_promotion_policy::*;
 pub use tassadar_relaxed_simd_research_summary::*;
 pub use tassadar_rust_only_article_acceptance_summary::*;
 pub use tassadar_rust_only_article_closeout_summary::*;
-pub use tassadar_shared_state_concurrency_summary::*;
 pub use tassadar_shared_depth_architecture::*;
 pub use tassadar_shared_primitive_transfer_summary::*;
+pub use tassadar_shared_state_concurrency_summary::*;
 pub use tassadar_sparse_rule_compiler_audit::*;
 pub use tassadar_subroutine_library_ablation::*;
 pub use tassadar_sudoku_9x9_article_reproducer::*;
@@ -158,7 +157,10 @@ pub use tassadar_symbolic_program_artifact_suite::*;
 pub use tassadar_threads_research_profile_summary::*;
 pub use tassadar_trace_family_comparison::*;
 pub use tassadar_trace_state_ablation_summary::*;
+pub use tassadar_transformer_block_closure_summary::*;
 pub use tassadar_turing_completeness_closeout_summary::*;
+pub use tassadar_universal_machine_proof_summary::*;
+pub use tassadar_universality_witness_suite_summary::*;
 pub use tassadar_verifier_guided_search_architecture::*;
 pub use tassadar_weak_supervision_executor_summary::*;
 pub use tassadar_working_memory_tier_summary::*;
@@ -2244,12 +2246,10 @@ mod tests {
             vec![String::from("peak_memory_bytes")]
         );
         assert_eq!(evaluation.per_metric.len(), 2);
-        assert!(
-            evaluation
-                .per_metric
-                .iter()
-                .any(|metric| !metric.hard_gate_passed)
-        );
+        assert!(evaluation
+            .per_metric
+            .iter()
+            .any(|metric| !metric.hard_gate_passed));
     }
 
     #[test]
@@ -2418,11 +2418,9 @@ mod tests {
         );
         assert!(!blocked.promotable);
         assert_eq!(blocked.decision, PromotionDecision::Blocked);
-        assert!(
-            blocked
-                .reasons
-                .contains(&PromotionReasonCode::BetterNumberOnly)
-        );
+        assert!(blocked
+            .reasons
+            .contains(&PromotionReasonCode::BetterNumberOnly));
     }
 
     #[test]

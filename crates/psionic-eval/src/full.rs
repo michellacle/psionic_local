@@ -28,36 +28,34 @@ mod parameter_golf_windowed_validation;
 mod tassadar;
 #[path = "tassadar_approximate_attention_closure_matrix.rs"]
 mod tassadar_approximate_attention_closure_matrix;
-#[path = "tassadar_async_lifecycle_profile.rs"]
-mod tassadar_async_lifecycle_profile;
 #[path = "tassadar_architecture_bakeoff.rs"]
 mod tassadar_architecture_bakeoff;
-#[path = "tassadar_attention_primitive_mask_closure.rs"]
-mod tassadar_attention_primitive_mask_closure;
 #[path = "tassadar_article_abi.rs"]
 mod tassadar_article_abi;
+#[path = "tassadar_article_cpu_reproducibility.rs"]
+mod tassadar_article_cpu_reproducibility;
 #[path = "tassadar_article_equivalence_acceptance_gate.rs"]
 mod tassadar_article_equivalence_acceptance_gate;
 #[path = "tassadar_article_equivalence_blocker_matrix.rs"]
 mod tassadar_article_equivalence_blocker_matrix;
-#[path = "tassadar_existing_substrate_inventory.rs"]
-mod tassadar_existing_substrate_inventory;
-#[path = "tassadar_article_cpu_reproducibility.rs"]
-mod tassadar_article_cpu_reproducibility;
 #[path = "tassadar_article_runtime_closeout.rs"]
 mod tassadar_article_runtime_closeout;
+#[path = "tassadar_async_lifecycle_profile.rs"]
+mod tassadar_async_lifecycle_profile;
+#[path = "tassadar_attention_primitive_mask_closure.rs"]
+mod tassadar_attention_primitive_mask_closure;
 #[path = "tassadar_benchmark_package_set.rs"]
 mod tassadar_benchmark_package_set;
 #[path = "tassadar_broad_family_specialization.rs"]
 mod tassadar_broad_family_specialization;
+#[path = "tassadar_broad_general_compute_validator_bridge.rs"]
+mod tassadar_broad_general_compute_validator_bridge;
 #[path = "tassadar_broad_internal_compute_acceptance_gate.rs"]
 mod tassadar_broad_internal_compute_acceptance_gate;
 #[path = "tassadar_broad_internal_compute_portability.rs"]
 mod tassadar_broad_internal_compute_portability;
 #[path = "tassadar_broad_internal_compute_profile_publication.rs"]
 mod tassadar_broad_internal_compute_profile_publication;
-#[path = "tassadar_broad_general_compute_validator_bridge.rs"]
-mod tassadar_broad_general_compute_validator_bridge;
 #[path = "tassadar_call_frames.rs"]
 mod tassadar_call_frames;
 #[path = "tassadar_canonical_transformer_stack_boundary.rs"]
@@ -78,22 +76,22 @@ mod tassadar_component_linking_profile;
 mod tassadar_conditional_masking_report;
 #[path = "tassadar_cost_per_correct_job.rs"]
 mod tassadar_cost_per_correct_job;
-#[path = "tassadar_cross_profile_link_compatibility.rs"]
-mod tassadar_cross_profile_link_compatibility;
 #[path = "tassadar_counterfactual_route_quality.rs"]
 mod tassadar_counterfactual_route_quality;
+#[path = "tassadar_cross_profile_link_compatibility.rs"]
+mod tassadar_cross_profile_link_compatibility;
 #[path = "tassadar_decompilation_fidelity.rs"]
 mod tassadar_decompilation_fidelity;
 #[path = "tassadar_dynamic_memory_resume.rs"]
 mod tassadar_dynamic_memory_resume;
-#[path = "tassadar_effective_unbounded_compute_claim.rs"]
-mod tassadar_effective_unbounded_compute_claim;
 #[path = "tassadar_effect_safe_resume.rs"]
 mod tassadar_effect_safe_resume;
 #[path = "tassadar_effect_taxonomy.rs"]
 mod tassadar_effect_taxonomy;
 #[path = "tassadar_effectful_replay_audit.rs"]
 mod tassadar_effectful_replay_audit;
+#[path = "tassadar_effective_unbounded_compute_claim.rs"]
+mod tassadar_effective_unbounded_compute_claim;
 #[path = "tassadar_efficient_attention_baseline_matrix.rs"]
 mod tassadar_efficient_attention_baseline_matrix;
 #[path = "tassadar_error_regime_catalog.rs"]
@@ -114,26 +112,28 @@ mod tassadar_executor_benchmark;
 mod tassadar_executor_eval;
 #[path = "tassadar_executor_hull_benchmark.rs"]
 mod tassadar_executor_hull_benchmark;
+#[path = "tassadar_existing_substrate_inventory.rs"]
+mod tassadar_existing_substrate_inventory;
 #[path = "tassadar_float_profile_acceptance_gate.rs"]
 mod tassadar_float_profile_acceptance_gate;
 #[path = "tassadar_float_semantics.rs"]
 mod tassadar_float_semantics;
-#[path = "tassadar_full_core_wasm_public_acceptance_gate.rs"]
-mod tassadar_full_core_wasm_public_acceptance_gate;
-#[path = "tassadar_general_internal_compute_red_team_audit.rs"]
-mod tassadar_general_internal_compute_red_team_audit;
 #[path = "tassadar_frozen_core_wasm_closure_gate.rs"]
 mod tassadar_frozen_core_wasm_closure_gate;
 #[path = "tassadar_frozen_core_wasm_window.rs"]
 mod tassadar_frozen_core_wasm_window;
+#[path = "tassadar_full_core_wasm_public_acceptance_gate.rs"]
+mod tassadar_full_core_wasm_public_acceptance_gate;
+#[path = "tassadar_general_internal_compute_red_team_audit.rs"]
+mod tassadar_general_internal_compute_red_team_audit;
 #[path = "tassadar_generalized_abi.rs"]
 mod tassadar_generalized_abi;
-#[path = "tassadar_hybrid_process_controller.rs"]
-mod tassadar_hybrid_process_controller;
 #[path = "tassadar_hungarian_10x10_compiled_executor.rs"]
 mod tassadar_hungarian_10x10_compiled_executor;
 #[path = "tassadar_hungarian_compiled_executor.rs"]
 mod tassadar_hungarian_compiled_executor;
+#[path = "tassadar_hybrid_process_controller.rs"]
+mod tassadar_hybrid_process_controller;
 #[path = "tassadar_installed_module_evidence.rs"]
 mod tassadar_installed_module_evidence;
 #[path = "tassadar_installed_process_lifecycle.rs"]
@@ -148,12 +148,12 @@ mod tassadar_internal_compute_profile_ladder;
 mod tassadar_internal_external_delegation;
 #[path = "tassadar_kernel_module_scaling.rs"]
 mod tassadar_kernel_module_scaling;
-#[path = "tassadar_learned_call_stack_heap_suite.rs"]
-mod tassadar_learned_call_stack_heap_suite;
 #[path = "tassadar_latency_evidence_tradeoff.rs"]
 mod tassadar_latency_evidence_tradeoff;
 #[path = "tassadar_learnability_gap.rs"]
 mod tassadar_learnability_gap;
+#[path = "tassadar_learned_call_stack_heap_suite.rs"]
+mod tassadar_learned_call_stack_heap_suite;
 #[path = "tassadar_linked_program_bundle.rs"]
 mod tassadar_linked_program_bundle;
 #[path = "tassadar_locality_envelope.rs"]
@@ -194,18 +194,16 @@ mod tassadar_numeric_portability;
 mod tassadar_pointer_memory_scratchpad;
 #[path = "tassadar_pre_closeout_universality_audit.rs"]
 mod tassadar_pre_closeout_universality_audit;
-#[path = "tassadar_universality_verdict_split.rs"]
-mod tassadar_universality_verdict_split;
-#[path = "tassadar_proposal_profile_ladder_claim_checker.rs"]
-mod tassadar_proposal_profile_ladder_claim_checker;
-#[path = "tassadar_program_family_frontier.rs"]
-mod tassadar_program_family_frontier;
 #[path = "tassadar_precision_attention_robustness_audit.rs"]
 mod tassadar_precision_attention_robustness_audit;
 #[path = "tassadar_preemptive_job_profile.rs"]
 mod tassadar_preemptive_job_profile;
 #[path = "tassadar_process_object_family.rs"]
 mod tassadar_process_object_family;
+#[path = "tassadar_program_family_frontier.rs"]
+mod tassadar_program_family_frontier;
+#[path = "tassadar_proposal_profile_ladder_claim_checker.rs"]
+mod tassadar_proposal_profile_ladder_claim_checker;
 #[path = "tassadar_quantization_truth_envelope.rs"]
 mod tassadar_quantization_truth_envelope;
 #[path = "tassadar_relaxed_simd_research_ladder.rs"]
@@ -230,16 +228,16 @@ mod tassadar_semantic_window_migration_planner;
 mod tassadar_sequence;
 #[path = "tassadar_session_process_profile.rs"]
 mod tassadar_session_process_profile;
-#[path = "tassadar_shared_state_concurrency_verdicts.rs"]
-mod tassadar_shared_state_concurrency_verdicts;
-#[path = "tassadar_simulator_effect_profile.rs"]
-mod tassadar_simulator_effect_profile;
 #[path = "tassadar_shared_depth_halting_calibration.rs"]
 mod tassadar_shared_depth_halting_calibration;
 #[path = "tassadar_shared_primitive_transfer.rs"]
 mod tassadar_shared_primitive_transfer;
+#[path = "tassadar_shared_state_concurrency_verdicts.rs"]
+mod tassadar_shared_state_concurrency_verdicts;
 #[path = "tassadar_simd_profile.rs"]
 mod tassadar_simd_profile;
+#[path = "tassadar_simulator_effect_profile.rs"]
+mod tassadar_simulator_effect_profile;
 #[path = "tassadar_sparse_rule_compiler_audit.rs"]
 mod tassadar_sparse_rule_compiler_audit;
 #[path = "tassadar_spill_tape_store_profile.rs"]
@@ -258,12 +256,16 @@ mod tassadar_supervision_density;
 mod tassadar_threads_research_profile;
 #[path = "tassadar_trace_state_ablation.rs"]
 mod tassadar_trace_state_ablation;
+#[path = "tassadar_transformer_block_closure.rs"]
+mod tassadar_transformer_block_closure;
 #[path = "tassadar_trap_exception.rs"]
 mod tassadar_trap_exception;
 #[path = "tassadar_turing_completeness_closeout_audit.rs"]
 mod tassadar_turing_completeness_closeout_audit;
 #[path = "tassadar_universal_machine_proof.rs"]
 mod tassadar_universal_machine_proof;
+#[path = "tassadar_universality_verdict_split.rs"]
+mod tassadar_universality_verdict_split;
 #[path = "tassadar_universality_witness_suite.rs"]
 mod tassadar_universality_witness_suite;
 #[path = "tassadar_verifier_guided_search_report.rs"]
@@ -307,21 +309,20 @@ pub use parameter_golf_training::*;
 pub use parameter_golf_windowed_validation::*;
 pub use tassadar::*;
 pub use tassadar_approximate_attention_closure_matrix::*;
-pub use tassadar_async_lifecycle_profile::*;
 pub use tassadar_architecture_bakeoff::*;
-pub use tassadar_attention_primitive_mask_closure::*;
 pub use tassadar_article_abi::*;
+pub use tassadar_article_cpu_reproducibility::*;
 pub use tassadar_article_equivalence_acceptance_gate::*;
 pub use tassadar_article_equivalence_blocker_matrix::*;
-pub use tassadar_existing_substrate_inventory::*;
-pub use tassadar_article_cpu_reproducibility::*;
 pub use tassadar_article_runtime_closeout::*;
+pub use tassadar_async_lifecycle_profile::*;
+pub use tassadar_attention_primitive_mask_closure::*;
 pub use tassadar_benchmark_package_set::*;
 pub use tassadar_broad_family_specialization::*;
+pub use tassadar_broad_general_compute_validator_bridge::*;
 pub use tassadar_broad_internal_compute_acceptance_gate::*;
 pub use tassadar_broad_internal_compute_portability::*;
 pub use tassadar_broad_internal_compute_profile_publication::*;
-pub use tassadar_broad_general_compute_validator_bridge::*;
 pub use tassadar_call_frames::*;
 pub use tassadar_canonical_transformer_stack_boundary::*;
 pub use tassadar_clrs_wasm_bridge::*;
@@ -332,14 +333,14 @@ pub use tassadar_compiled_kernel_suite::*;
 pub use tassadar_component_linking_profile::*;
 pub use tassadar_conditional_masking_report::*;
 pub use tassadar_cost_per_correct_job::*;
-pub use tassadar_cross_profile_link_compatibility::*;
 pub use tassadar_counterfactual_route_quality::*;
+pub use tassadar_cross_profile_link_compatibility::*;
 pub use tassadar_decompilation_fidelity::*;
 pub use tassadar_dynamic_memory_resume::*;
-pub use tassadar_effective_unbounded_compute_claim::*;
 pub use tassadar_effect_safe_resume::*;
 pub use tassadar_effect_taxonomy::*;
 pub use tassadar_effectful_replay_audit::*;
+pub use tassadar_effective_unbounded_compute_claim::*;
 pub use tassadar_efficient_attention_baseline_matrix::*;
 pub use tassadar_error_regime_catalog::*;
 pub use tassadar_exactness_refusal_report::*;
@@ -350,16 +351,17 @@ pub use tassadar_executor_baseline_comparison::*;
 pub use tassadar_executor_benchmark::*;
 pub use tassadar_executor_eval::*;
 pub use tassadar_executor_hull_benchmark::*;
+pub use tassadar_existing_substrate_inventory::*;
 pub use tassadar_float_profile_acceptance_gate::*;
 pub use tassadar_float_semantics::*;
-pub use tassadar_full_core_wasm_public_acceptance_gate::*;
-pub use tassadar_general_internal_compute_red_team_audit::*;
 pub use tassadar_frozen_core_wasm_closure_gate::*;
 pub use tassadar_frozen_core_wasm_window::*;
+pub use tassadar_full_core_wasm_public_acceptance_gate::*;
+pub use tassadar_general_internal_compute_red_team_audit::*;
 pub use tassadar_generalized_abi::*;
-pub use tassadar_hybrid_process_controller::*;
 pub use tassadar_hungarian_10x10_compiled_executor::*;
 pub use tassadar_hungarian_compiled_executor::*;
+pub use tassadar_hybrid_process_controller::*;
 pub use tassadar_installed_module_evidence::*;
 pub use tassadar_installed_process_lifecycle::*;
 pub use tassadar_internal_component_abi::*;
@@ -367,14 +369,14 @@ pub use tassadar_internal_compute_package_manager::*;
 pub use tassadar_internal_compute_profile_ladder::*;
 pub use tassadar_internal_external_delegation::*;
 pub use tassadar_kernel_module_scaling::*;
-pub use tassadar_learned_call_stack_heap_suite::*;
 pub use tassadar_latency_evidence_tradeoff::*;
 pub use tassadar_learnability_gap::*;
+pub use tassadar_learned_call_stack_heap_suite::*;
 pub use tassadar_linked_program_bundle::*;
 pub use tassadar_locality_envelope::*;
 pub use tassadar_locality_scratchpad::*;
-pub use tassadar_memory_abi_v2::*;
 pub use tassadar_memory64_profile::*;
+pub use tassadar_memory_abi_v2::*;
 pub use tassadar_minimal_universal_substrate_acceptance_gate::*;
 pub use tassadar_mixed_numeric_ladder::*;
 pub use tassadar_mixed_trajectory::*;
@@ -390,12 +392,11 @@ pub use tassadar_numeric_opcode_ladder::*;
 pub use tassadar_numeric_portability::*;
 pub use tassadar_pointer_memory_scratchpad::*;
 pub use tassadar_pre_closeout_universality_audit::*;
-pub use tassadar_universality_verdict_split::*;
-pub use tassadar_proposal_profile_ladder_claim_checker::*;
-pub use tassadar_program_family_frontier::*;
 pub use tassadar_precision_attention_robustness_audit::*;
 pub use tassadar_preemptive_job_profile::*;
 pub use tassadar_process_object_family::*;
+pub use tassadar_program_family_frontier::*;
+pub use tassadar_proposal_profile_ladder_claim_checker::*;
 pub use tassadar_quantization_truth_envelope::*;
 pub use tassadar_relaxed_simd_research_ladder::*;
 pub use tassadar_resumable_multi_slice_promotion::*;
@@ -408,11 +409,11 @@ pub use tassadar_semantic_window_compatibility_delta::*;
 pub use tassadar_semantic_window_migration_planner::*;
 pub use tassadar_sequence::*;
 pub use tassadar_session_process_profile::*;
-pub use tassadar_shared_state_concurrency_verdicts::*;
-pub use tassadar_simulator_effect_profile::*;
 pub use tassadar_shared_depth_halting_calibration::*;
 pub use tassadar_shared_primitive_transfer::*;
+pub use tassadar_shared_state_concurrency_verdicts::*;
 pub use tassadar_simd_profile::*;
+pub use tassadar_simulator_effect_profile::*;
 pub use tassadar_sparse_rule_compiler_audit::*;
 pub use tassadar_spill_tape_store_profile::*;
 pub use tassadar_state_design_study_report::*;
@@ -422,9 +423,11 @@ pub use tassadar_sudoku_9x9_compiled_executor::*;
 pub use tassadar_supervision_density::*;
 pub use tassadar_threads_research_profile::*;
 pub use tassadar_trace_state_ablation::*;
+pub use tassadar_transformer_block_closure::*;
 pub use tassadar_trap_exception::*;
 pub use tassadar_turing_completeness_closeout_audit::*;
 pub use tassadar_universal_machine_proof::*;
+pub use tassadar_universality_verdict_split::*;
 pub use tassadar_universality_witness_suite::*;
 pub use tassadar_verifier_guided_search_report::*;
 pub use tassadar_virtual_fs_mount_profile::*;
@@ -2223,8 +2226,8 @@ mod tests {
     }
 
     #[test]
-    fn eval_sample_from_environment_summary_is_machine_legible()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn eval_sample_from_environment_summary_is_machine_legible(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let package = eval_environment();
         let summary = scored_summary("session-1", "task-1", 8_600, true)?;
         let sample = EvalSampleRecord::from_environment_summary(
@@ -2248,8 +2251,8 @@ mod tests {
     }
 
     #[test]
-    fn eval_run_finalizes_summary_and_preserves_online_offline_parity()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn eval_run_finalizes_summary_and_preserves_online_offline_parity(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let package = eval_environment();
         let offline_sample = EvalSampleRecord::from_environment_summary(
             "sample-offline",
@@ -2314,8 +2317,8 @@ mod tests {
     }
 
     #[test]
-    fn benchmark_package_supports_repeat_aggregation_and_operator_simulation()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn benchmark_package_supports_repeat_aggregation_and_operator_simulation(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let package = eval_environment();
         let benchmark_package = BenchmarkPackage::new(
             BenchmarkPackageKey::new("benchmark://openagents/math/basic", "2026.03.14"),
@@ -2394,8 +2397,8 @@ mod tests {
     }
 
     #[test]
-    fn benchmark_policy_refuses_missing_verification_facts()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn benchmark_policy_refuses_missing_verification_facts(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let package = eval_environment();
         let benchmark_package = BenchmarkPackage::new(
             BenchmarkPackageKey::new("benchmark://openagents/math/basic", "2026.03.14"),

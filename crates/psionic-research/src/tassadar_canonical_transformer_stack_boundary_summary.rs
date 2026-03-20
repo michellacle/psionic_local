@@ -192,7 +192,7 @@ mod tests {
         assert!(report.boundary_contract_green);
         assert!(!report.article_equivalence_green);
         assert_eq!(report.interface_count, 5);
-        assert_eq!(report.dependency_check_count, 4);
+        assert_eq!(report.dependency_check_count, 6);
     }
 
     #[test]

@@ -747,7 +747,7 @@ fn issue_coverage_rows() -> Vec<TassadarArticleEquivalenceIssueCoverageRow> {
             279,
             "TAS-162: Multi-head, feed-forward, residual, and norm block closure",
             TassadarArticleEquivalenceIssueRole::Implementation,
-            "open",
+            "closed",
             &["BEQ-003"],
         ),
         issue_row(
