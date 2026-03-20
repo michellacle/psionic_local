@@ -113,8 +113,8 @@
     {
       "source_role": "model_module",
       "source_ref": "crates/psionic-models/src/tassadar_article_transformer.rs",
-      "byte_length": 111359,
-      "sha256": "3022d134eb2dda660576233a291d7e3b201a55bc77493e48246a6c79a063a26c"
+      "byte_length": 112772,
+      "sha256": "c4acbf70470720fd70391509208564b8bb8e66eeaef3715698c0eaef7af92756"
     },
     {
       "source_role": "transformer_module",
@@ -131,11 +131,11 @@
     {
       "source_role": "runtime_module",
       "source_ref": "crates/psionic-runtime/src/tassadar.rs",
-      "byte_length": 463518,
-      "sha256": "360772e9aa9400ec4639ef52bdc6d2af3a19baf1fb99690de61cca75ce6e2f14"
+      "byte_length": 467595,
+      "sha256": "891b4b38fd727d8ff151ecec7f79af7e873ef8f8f6b393c987fd619678250660"
     }
   ],
-  "source_inventory_digest": "d4e4f9bde7501b52be1bba7846e4e10c33dacb2ecfade8f91ce8c2a9bb4cd7e9",
+  "source_inventory_digest": "1ecb925a0fac206e277925cfb2473b61e84bd9ed9dfc8944182c477185661a60",
   "artifact_inventory": [
     {
       "artifact_role": "evidence_bundle",
@@ -211,5 +211,5 @@
     "restore_matches_trained_state": true
   },
   "claim_boundary": "this lineage contract freezes only the first real trained trace-bound article-model weight artifact. It binds the exact workload set, training-config snapshot, source inventory, descriptor digests, checkpoint lineage, and committed artifact digests into one challengeable manifest without implying reference-linear exactness, fast-route closure, benchmark parity, or final article-equivalence green status.",
-  "contract_digest": "6b8bcfe0f0156dddb8abe585b8cc023717927b38b422cbc99b7292294c2ba3e4"
+  "contract_digest": "c449f1b60fbb88b1c9e467b856426e28823c5c94d0d28015c331bc4c4c77ed01"
 }

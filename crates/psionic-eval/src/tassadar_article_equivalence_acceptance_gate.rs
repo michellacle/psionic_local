@@ -11,10 +11,10 @@ use sha2::{Digest, Sha256};
 use thiserror::Error;
 
 use crate::{
-    TASSADAR_ARTICLE_EQUIVALENCE_BLOCKER_MATRIX_REPORT_REF,
+    build_tassadar_article_equivalence_blocker_matrix_report,
     TassadarArticleEquivalenceBlockerMatrixReport,
     TassadarArticleEquivalenceBlockerMatrixReportError, TassadarArticleEquivalenceIssueRole,
-    build_tassadar_article_equivalence_blocker_matrix_report,
+    TASSADAR_ARTICLE_EQUIVALENCE_BLOCKER_MATRIX_REPORT_REF,
 };
 
 pub const TASSADAR_ARTICLE_EQUIVALENCE_ACCEPTANCE_GATE_REPORT_REF: &str =
@@ -433,17 +433,17 @@ impl TassadarArticleEquivalenceAcceptanceRequirementKind {
 #[cfg(test)]
 mod tests {
     use super::{
-        ARTICLE_EQUIVALENCE_BLOCKERS_CLOSED_REQUIREMENT_ID, BLOCKER_MATRIX_CONTRACT_REQUIREMENT_ID,
-        OPTIONAL_RESEARCH_ISSUE_ID, OWNED_TRANSFORMER_ROUTE_BOUNDARY_REQUIREMENT_ID,
-        TassadarArticleEquivalenceAcceptanceGateReport, TassadarArticleEquivalenceAcceptanceStatus,
         build_report_from_blocker_matrix,
         build_tassadar_article_equivalence_acceptance_gate_report, read_json, requirement_rows,
         tassadar_article_equivalence_acceptance_gate_report_path,
         write_tassadar_article_equivalence_acceptance_gate_report,
+        TassadarArticleEquivalenceAcceptanceGateReport, TassadarArticleEquivalenceAcceptanceStatus,
+        ARTICLE_EQUIVALENCE_BLOCKERS_CLOSED_REQUIREMENT_ID, BLOCKER_MATRIX_CONTRACT_REQUIREMENT_ID,
+        OPTIONAL_RESEARCH_ISSUE_ID, OWNED_TRANSFORMER_ROUTE_BOUNDARY_REQUIREMENT_ID,
     };
     use crate::{
-        TassadarArticleEquivalenceIssueRole, TassadarRepoStatus,
         build_tassadar_article_equivalence_blocker_matrix_report,
+        TassadarArticleEquivalenceIssueRole, TassadarRepoStatus,
     };
 
     fn green_blocker_matrix_report() -> crate::TassadarArticleEquivalenceBlockerMatrixReport {
@@ -490,146 +490,92 @@ mod tests {
         assert!(report.prerequisite_transformer_boundary_green);
         assert!(!report.blocker_matrix_article_equivalence_green);
         assert_eq!(report.required_issue_count, 37);
-        assert_eq!(report.closed_required_issue_count, 26);
-        assert_eq!(report.passed_required_requirement_count, 28);
-        assert!(
-            report
-                .green_requirement_ids
-                .contains(&String::from(BLOCKER_MATRIX_CONTRACT_REQUIREMENT_ID))
-        );
+        assert_eq!(report.closed_required_issue_count, 27);
+        assert_eq!(report.passed_required_requirement_count, 29);
+        assert!(report
+            .green_requirement_ids
+            .contains(&String::from(BLOCKER_MATRIX_CONTRACT_REQUIREMENT_ID)));
         assert!(report.green_requirement_ids.contains(&String::from(
             OWNED_TRANSFORMER_ROUTE_BOUNDARY_REQUIREMENT_ID
         )));
-        assert!(
-            report
-                .green_requirement_ids
-                .contains(&String::from("TAS-158"))
-        );
-        assert!(
-            report
-                .green_requirement_ids
-                .contains(&String::from("TAS-159"))
-        );
-        assert!(
-            report
-                .green_requirement_ids
-                .contains(&String::from("TAS-160"))
-        );
-        assert!(
-            report
-                .green_requirement_ids
-                .contains(&String::from("TAS-161"))
-        );
-        assert!(
-            report
-                .green_requirement_ids
-                .contains(&String::from("TAS-162"))
-        );
-        assert!(
-            report
-                .green_requirement_ids
-                .contains(&String::from("TAS-163"))
-        );
-        assert!(
-            report
-                .green_requirement_ids
-                .contains(&String::from("TAS-164"))
-        );
-        assert!(
-            report
-                .green_requirement_ids
-                .contains(&String::from("TAS-165"))
-        );
-        assert!(
-            report
-                .green_requirement_ids
-                .contains(&String::from("TAS-166"))
-        );
-        assert!(
-            report
-                .green_requirement_ids
-                .contains(&String::from("TAS-167"))
-        );
-        assert!(
-            report
-                .green_requirement_ids
-                .contains(&String::from("TAS-167A"))
-        );
-        assert!(
-            report
-                .green_requirement_ids
-                .contains(&String::from("TAS-168"))
-        );
-        assert!(
-            report
-                .green_requirement_ids
-                .contains(&String::from("TAS-169"))
-        );
-        assert!(
-            report
-                .green_requirement_ids
-                .contains(&String::from("TAS-169A"))
-        );
-        assert!(
-            report
-                .green_requirement_ids
-                .contains(&String::from("TAS-170"))
-        );
-        assert!(
-            report
-                .green_requirement_ids
-                .contains(&String::from("TAS-171"))
-        );
-        assert!(
-            report
-                .green_requirement_ids
-                .contains(&String::from("TAS-171A"))
-        );
-        assert!(
-            report
-                .green_requirement_ids
-                .contains(&String::from("TAS-171B"))
-        );
-        assert!(
-            report
-                .green_requirement_ids
-                .contains(&String::from("TAS-171C"))
-        );
-        assert!(
-            report
-                .green_requirement_ids
-                .contains(&String::from("TAS-172"))
-        );
-        assert!(
-            report
-                .green_requirement_ids
-                .contains(&String::from("TAS-173"))
-        );
-        assert!(
-            report
-                .green_requirement_ids
-                .contains(&String::from("TAS-174"))
-        );
-        assert!(
-            report
-                .green_requirement_ids
-                .contains(&String::from("TAS-175"))
-        );
-        assert!(
-            report
-                .green_requirement_ids
-                .contains(&String::from("TAS-176"))
-        );
-        assert!(
-            report
-                .green_requirement_ids
-                .contains(&String::from("TAS-177"))
-        );
-        assert!(
-            report
-                .green_requirement_ids
-                .contains(&String::from("TAS-178"))
-        );
+        assert!(report
+            .green_requirement_ids
+            .contains(&String::from("TAS-158")));
+        assert!(report
+            .green_requirement_ids
+            .contains(&String::from("TAS-159")));
+        assert!(report
+            .green_requirement_ids
+            .contains(&String::from("TAS-160")));
+        assert!(report
+            .green_requirement_ids
+            .contains(&String::from("TAS-161")));
+        assert!(report
+            .green_requirement_ids
+            .contains(&String::from("TAS-162")));
+        assert!(report
+            .green_requirement_ids
+            .contains(&String::from("TAS-163")));
+        assert!(report
+            .green_requirement_ids
+            .contains(&String::from("TAS-164")));
+        assert!(report
+            .green_requirement_ids
+            .contains(&String::from("TAS-165")));
+        assert!(report
+            .green_requirement_ids
+            .contains(&String::from("TAS-166")));
+        assert!(report
+            .green_requirement_ids
+            .contains(&String::from("TAS-167")));
+        assert!(report
+            .green_requirement_ids
+            .contains(&String::from("TAS-167A")));
+        assert!(report
+            .green_requirement_ids
+            .contains(&String::from("TAS-168")));
+        assert!(report
+            .green_requirement_ids
+            .contains(&String::from("TAS-169")));
+        assert!(report
+            .green_requirement_ids
+            .contains(&String::from("TAS-169A")));
+        assert!(report
+            .green_requirement_ids
+            .contains(&String::from("TAS-170")));
+        assert!(report
+            .green_requirement_ids
+            .contains(&String::from("TAS-171")));
+        assert!(report
+            .green_requirement_ids
+            .contains(&String::from("TAS-171A")));
+        assert!(report
+            .green_requirement_ids
+            .contains(&String::from("TAS-171B")));
+        assert!(report
+            .green_requirement_ids
+            .contains(&String::from("TAS-171C")));
+        assert!(report
+            .green_requirement_ids
+            .contains(&String::from("TAS-172")));
+        assert!(report
+            .green_requirement_ids
+            .contains(&String::from("TAS-173")));
+        assert!(report
+            .green_requirement_ids
+            .contains(&String::from("TAS-174")));
+        assert!(report
+            .green_requirement_ids
+            .contains(&String::from("TAS-175")));
+        assert!(report
+            .green_requirement_ids
+            .contains(&String::from("TAS-176")));
+        assert!(report
+            .green_requirement_ids
+            .contains(&String::from("TAS-177")));
+        assert!(report
+            .green_requirement_ids
+            .contains(&String::from("TAS-178")));
         assert!(report.failed_requirement_ids.contains(&String::from(
             ARTICLE_EQUIVALENCE_BLOCKERS_CLOSED_REQUIREMENT_ID
         )));
@@ -637,10 +583,15 @@ mod tests {
             report.optional_open_issue_ids,
             vec![String::from(OPTIONAL_RESEARCH_ISSUE_ID)]
         );
-        assert_eq!(report.blocked_issue_ids.len(), 11);
+        assert!(report
+            .green_requirement_ids
+            .contains(&String::from("TAS-179")));
+        assert_eq!(report.closed_required_issue_count, 27);
+        assert_eq!(report.passed_required_requirement_count, 29);
+        assert_eq!(report.blocked_issue_ids.len(), 10);
         assert_eq!(
             report.blocked_issue_ids.first().map(String::as_str),
-            Some("TAS-179")
+            Some("TAS-179A")
         );
         assert_eq!(report.blocked_blocker_ids.len(), 7);
     }

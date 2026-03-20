@@ -34,6 +34,7 @@ mod tassadar_article_fast_route_throughput_floor_summary;
 mod tassadar_article_fixture_transformer_parity_summary;
 mod tassadar_article_frontend_compiler_envelope_summary;
 mod tassadar_article_frontend_corpus_compile_matrix_summary;
+mod tassadar_article_interpreter_breadth_envelope_summary;
 mod tassadar_article_representation_invariance_gate_summary;
 mod tassadar_article_runtime_closeout_summary;
 mod tassadar_article_trace_vocabulary_binding_summary;
@@ -131,6 +132,7 @@ pub use tassadar_article_fast_route_throughput_floor_summary::*;
 pub use tassadar_article_fixture_transformer_parity_summary::*;
 pub use tassadar_article_frontend_compiler_envelope_summary::*;
 pub use tassadar_article_frontend_corpus_compile_matrix_summary::*;
+pub use tassadar_article_interpreter_breadth_envelope_summary::*;
 pub use tassadar_article_representation_invariance_gate_summary::*;
 pub use tassadar_article_runtime_closeout_summary::*;
 pub use tassadar_article_trace_vocabulary_binding_summary::*;
@@ -2286,12 +2288,10 @@ mod tests {
             vec![String::from("peak_memory_bytes")]
         );
         assert_eq!(evaluation.per_metric.len(), 2);
-        assert!(
-            evaluation
-                .per_metric
-                .iter()
-                .any(|metric| !metric.hard_gate_passed)
-        );
+        assert!(evaluation
+            .per_metric
+            .iter()
+            .any(|metric| !metric.hard_gate_passed));
     }
 
     #[test]
@@ -2460,11 +2460,9 @@ mod tests {
         );
         assert!(!blocked.promotable);
         assert_eq!(blocked.decision, PromotionDecision::Blocked);
-        assert!(
-            blocked
-                .reasons
-                .contains(&PromotionReasonCode::BetterNumberOnly)
-        );
+        assert!(blocked
+            .reasons
+            .contains(&PromotionReasonCode::BetterNumberOnly));
     }
 
     #[test]

@@ -423,6 +423,26 @@ themselves close through the declared frontend/compiler envelope, while later
 interpreter-breadth, benchmark-wide, and final article-equivalence tranches
 remain open.
 
+`TAS-179` now closes the declared interpreter-breadth envelope tranche on top
+of that same owned route. `psionic-data` now commits the machine-readable
+article interpreter breadth manifest at
+`fixtures/tassadar/sources/tassadar_article_interpreter_breadth_envelope_v1.json`,
+freezing one explicit claim surface over the frozen core-Wasm floor, the
+current named article i32 profiles, and the later required search-process,
+long-horizon control, and module-scale Wasm-loop families while keeping
+linked-program bundles research-only and import-mediated processes,
+dynamic-memory resume, memory64, multi-memory, component-linking, exception
+profiles, and broader float semantics explicitly outside the article envelope.
+`psionic-eval` now commits the machine-readable closure artifact at
+`fixtures/tassadar/reports/tassadar_article_interpreter_breadth_envelope_report.json`,
+and `psionic-research` mirrors the operator-readable summary at
+`fixtures/tassadar/reports/tassadar_article_interpreter_breadth_envelope_summary.json`.
+This is the point where the repo now machine-readably says later
+article-equivalence breadth claims must stay inside one declared envelope
+instead of borrowing arbitrary-program language by implication, while the
+follow-on breadth-suite, benchmark, single-run, and final article-equivalence
+tranches remain open.
+
 ## Route Requirement
 
 Any canonical article-equivalence Transformer route must use this boundary.

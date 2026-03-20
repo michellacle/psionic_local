@@ -10,24 +10,24 @@ use sha2::{Digest, Sha256};
 use thiserror::Error;
 
 use psionic_compiler::{
-    TassadarArticleFrontendAbiSurfaceId,
-    TASSADAR_ARTICLE_FRONTEND_COMPILER_ENVELOPE_MANIFEST_REF,
-    TassadarArticleFrontendCompilerEnvelopeManifest, TassadarArticleFrontendEnvelopeRefusalKind,
     build_tassadar_article_frontend_compiler_envelope_manifest,
+    TassadarArticleFrontendAbiSurfaceId, TassadarArticleFrontendCompilerEnvelopeManifest,
+    TassadarArticleFrontendEnvelopeRefusalKind,
+    TASSADAR_ARTICLE_FRONTEND_COMPILER_ENVELOPE_MANIFEST_REF,
 };
 use psionic_runtime::{
-    TassadarCompileRefusal, TassadarCompilerToolchainIdentity, TassadarRustToWasmCompileConfig,
+    compile_tassadar_rust_source_to_wasm_receipt, TassadarCompileRefusal,
+    TassadarCompilerToolchainIdentity, TassadarRustToWasmCompileConfig,
     TassadarRustToWasmCompileOutcome, TassadarRustToWasmCompileReceipt, TassadarWasmBinarySummary,
-    compile_tassadar_rust_source_to_wasm_receipt,
 };
 
 use crate::{
-    TASSADAR_ARTICLE_EQUIVALENCE_ACCEPTANCE_GATE_REPORT_REF,
-    TASSADAR_RUST_SOURCE_CANON_REPORT_REF, TassadarArticleEquivalenceAcceptanceGateReport,
+    build_tassadar_article_equivalence_acceptance_gate_report,
+    TassadarArticleEquivalenceAcceptanceGateReport,
     TassadarArticleEquivalenceAcceptanceGateReportError,
     TassadarArticleEquivalenceAcceptanceStatus, TassadarRustSourceCanonCaseStatus,
-    TassadarRustSourceCanonReport,
-    build_tassadar_article_equivalence_acceptance_gate_report,
+    TassadarRustSourceCanonReport, TASSADAR_ARTICLE_EQUIVALENCE_ACCEPTANCE_GATE_REPORT_REF,
+    TASSADAR_RUST_SOURCE_CANON_REPORT_REF,
 };
 
 pub const TASSADAR_ARTICLE_DEMO_FRONTEND_PARITY_REPORT_REF: &str =
@@ -193,11 +193,11 @@ pub enum TassadarArticleDemoFrontendParityReportError {
     Json(#[from] serde_json::Error),
 }
 
-pub fn build_tassadar_article_demo_frontend_parity_report() -> Result<
-    TassadarArticleDemoFrontendParityReport,
-    TassadarArticleDemoFrontendParityReportError,
-> {
-    let _guard = ARTICLE_DEMO_FRONTEND_PARITY_BUILD_LOCK.lock().expect("build lock");
+pub fn build_tassadar_article_demo_frontend_parity_report(
+) -> Result<TassadarArticleDemoFrontendParityReport, TassadarArticleDemoFrontendParityReportError> {
+    let _guard = ARTICLE_DEMO_FRONTEND_PARITY_BUILD_LOCK
+        .lock()
+        .expect("build lock");
     let acceptance_gate = build_tassadar_article_equivalence_acceptance_gate_report()?;
     let manifest = build_tassadar_article_frontend_compiler_envelope_manifest();
     let source_canon: TassadarRustSourceCanonReport = read_repo_json(
@@ -217,7 +217,10 @@ pub fn build_tassadar_article_demo_frontend_parity_report() -> Result<
         .filter(|row| !row.wasm_binary_ref.is_empty())
         .count();
     let green_demo_count = demo_rows.iter().filter(|row| row.row_green).count();
-    let refusal_probe_green_count = refusal_probes.iter().filter(|row| row.refusal_green).count();
+    let refusal_probe_green_count = refusal_probes
+        .iter()
+        .filter(|row| row.refusal_green)
+        .count();
     let source_compile_receipt_parity_green = demo_rows.iter().all(|row| {
         row.source_canon_compiled
             && row.source_ref_green
@@ -229,8 +232,7 @@ pub fn build_tassadar_article_demo_frontend_parity_report() -> Result<
     let workload_identity_parity_green = demo_rows.iter().all(|row| {
         row.canonical_case_id_green && row.canonical_workload_identity_green && row.row_green
     });
-    let unsupported_variant_refusal_green =
-        refusal_probes.iter().all(|probe| probe.refusal_green);
+    let unsupported_variant_refusal_green = refusal_probes.iter().all(|probe| probe.refusal_green);
     let acceptance_gate_tie = build_acceptance_gate_tie(&acceptance_gate)?;
     let demo_frontend_parity_green = acceptance_gate_tie.tied_requirement_satisfied
         && compiled_demo_count == demo_rows.len()
@@ -290,10 +292,7 @@ pub fn tassadar_article_demo_frontend_parity_report_path() -> PathBuf {
 
 pub fn write_tassadar_article_demo_frontend_parity_report(
     output_path: impl AsRef<Path>,
-) -> Result<
-    TassadarArticleDemoFrontendParityReport,
-    TassadarArticleDemoFrontendParityReportError,
-> {
+) -> Result<TassadarArticleDemoFrontendParityReport, TassadarArticleDemoFrontendParityReportError> {
     let output_path = output_path.as_ref();
     if let Some(parent) = output_path.parent() {
         fs::create_dir_all(parent).map_err(|error| {
@@ -390,16 +389,16 @@ fn build_demo_row(
     let source_ref_green = compile_receipt.source_identity.source_name == spec.source_ref
         && source_case.source_ref == spec.source_ref
         && reproducer.source_ref == spec.source_ref;
-    let source_digest_parity_green =
-        compile_receipt.source_identity.source_digest == source_case.source_digest
-            && source_case.source_digest == reproducer.source_digest;
+    let source_digest_parity_green = compile_receipt.source_identity.source_digest
+        == source_case.source_digest
+        && source_case.source_digest == reproducer.source_digest;
     let source_compile_receipt_parity_green = compile_receipt.succeeded();
     let canonical_wasm_parity_green = source_case.wasm_binary_ref.as_deref()
         == Some(reproducer.wasm_binary_ref.as_str())
-            && source_case.wasm_binary_digest.as_deref()
-                == Some(reproducer.wasm_binary_digest.as_str())
-            && !reproducer.wasm_binary_ref.is_empty()
-            && !reproducer.wasm_binary_digest.is_empty();
+        && source_case.wasm_binary_digest.as_deref()
+            == Some(reproducer.wasm_binary_digest.as_str())
+        && !reproducer.wasm_binary_ref.is_empty()
+        && !reproducer.wasm_binary_digest.is_empty();
     let manifest_alignment_green = compile_receipt.succeeded()
         && compile_config_matches_manifest(&spec.compile_config, manifest)
         && manifest_allows_abi_surface(manifest, spec.abi_surface_id);
@@ -615,10 +614,8 @@ fn normalized_compile_receipt_digest(
     {
         *wasm_binary_ref = String::from(canonical_wasm_ref);
     }
-    normalized.receipt_digest = stable_digest(
-        b"tassadar_rust_to_wasm_compile_receipt|",
-        &normalized,
-    );
+    normalized.receipt_digest =
+        stable_digest(b"tassadar_rust_to_wasm_compile_receipt|", &normalized);
     normalized.receipt_digest
 }
 
@@ -695,15 +692,15 @@ fn refusal_specs() -> Vec<TassadarArticleDemoFrontendRefusalSpec> {
         TassadarArticleDemoFrontendRefusalSpec {
             row_id: "hungarian_10x10_article_std_variant_refusal",
             demo_id: TassadarArticleDemoFrontendFamily::Hungarian10x10,
-            source_ref:
-                "fixtures/tassadar/sources/tassadar_hungarian_10x10_article_std_refusal.rs",
+            source_ref: "fixtures/tassadar/sources/tassadar_hungarian_10x10_article_std_refusal.rs",
             output_wasm_ref:
                 "fixtures/tassadar/wasm/tassadar_hungarian_10x10_article_std_refusal_tas178.wasm",
             compile_config: canonical_compile_config(
                 "tassadar_hungarian_10x10_article_std_refusal_tas178",
                 &["hungarian_10x10_article_std_refusal_cost"],
             ),
-            expected_refusal_kind: TassadarArticleFrontendEnvelopeRefusalKind::OutsideDeclaredLibrarySurface,
+            expected_refusal_kind:
+                TassadarArticleFrontendEnvelopeRefusalKind::OutsideDeclaredLibrarySurface,
         },
         TassadarArticleDemoFrontendRefusalSpec {
             row_id: "sudoku_9x9_article_host_import_variant_refusal",
@@ -739,7 +736,10 @@ fn canonical_compile_config(
         optimization_level: String::from("3"),
         panic_strategy: String::from("abort"),
         metadata_tag: String::from(crate_name),
-        export_symbols: export_symbols.iter().map(|symbol| String::from(*symbol)).collect(),
+        export_symbols: export_symbols
+            .iter()
+            .map(|symbol| String::from(*symbol))
+            .collect(),
     }
 }
 
@@ -769,12 +769,11 @@ fn read_repo_json<T: DeserializeOwned>(
     artifact_kind: &str,
 ) -> Result<T, TassadarArticleDemoFrontendParityReportError> {
     let path = repo_root().join(relative_path);
-    let bytes = fs::read(&path).map_err(|error| {
-        TassadarArticleDemoFrontendParityReportError::Read {
+    let bytes =
+        fs::read(&path).map_err(|error| TassadarArticleDemoFrontendParityReportError::Read {
             path: path.display().to_string(),
             error,
-        }
-    })?;
+        })?;
     serde_json::from_slice(&bytes).map_err(|error| {
         TassadarArticleDemoFrontendParityReportError::Decode {
             path: format!("{} ({artifact_kind})", path.display()),
@@ -786,10 +785,10 @@ fn read_repo_json<T: DeserializeOwned>(
 #[cfg(test)]
 mod tests {
     use super::{
-        TASSADAR_ARTICLE_DEMO_FRONTEND_PARITY_REPORT_REF, TassadarArticleDemoFrontendParityReport,
         build_tassadar_article_demo_frontend_parity_report, read_repo_json,
         tassadar_article_demo_frontend_parity_report_path,
         write_tassadar_article_demo_frontend_parity_report,
+        TassadarArticleDemoFrontendParityReport, TASSADAR_ARTICLE_DEMO_FRONTEND_PARITY_REPORT_REF,
     };
 
     #[test]
@@ -807,8 +806,12 @@ mod tests {
         assert!(report.demo_frontend_parity_green);
         assert!(!report.article_equivalence_green);
         assert_eq!(
-            report.acceptance_gate_tie.blocked_issue_ids.first().map(String::as_str),
-            Some("TAS-179")
+            report
+                .acceptance_gate_tie
+                .blocked_issue_ids
+                .first()
+                .map(String::as_str),
+            Some("TAS-179A")
         );
     }
 
@@ -829,8 +832,8 @@ mod tests {
         let output_path = directory
             .path()
             .join("tassadar_article_demo_frontend_parity_report.json");
-        let written = write_tassadar_article_demo_frontend_parity_report(&output_path)
-            .expect("write report");
+        let written =
+            write_tassadar_article_demo_frontend_parity_report(&output_path).expect("write report");
         let persisted: TassadarArticleDemoFrontendParityReport =
             serde_json::from_slice(&std::fs::read(&output_path).expect("read")).expect("decode");
         assert_eq!(written, persisted);

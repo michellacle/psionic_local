@@ -11,21 +11,22 @@ use sha2::{Digest, Sha256};
 use thiserror::Error;
 
 use psionic_compiler::{
-    TassadarArticleFrontendAbiSurfaceId,
-    TASSADAR_ARTICLE_FRONTEND_COMPILER_ENVELOPE_MANIFEST_REF,
-    TassadarArticleFrontendCompilerEnvelopeManifest, TassadarArticleFrontendEnvelopeRefusalKind,
     build_tassadar_article_frontend_compiler_envelope_manifest,
+    TassadarArticleFrontendAbiSurfaceId, TassadarArticleFrontendCompilerEnvelopeManifest,
+    TassadarArticleFrontendEnvelopeRefusalKind,
+    TASSADAR_ARTICLE_FRONTEND_COMPILER_ENVELOPE_MANIFEST_REF,
 };
 use psionic_runtime::{
-    TassadarCompileRefusal, TassadarCompilerToolchainIdentity, TassadarRustToWasmCompileConfig,
-    TassadarWasmBinarySummary, compile_tassadar_rust_source_to_wasm_receipt,
+    compile_tassadar_rust_source_to_wasm_receipt, TassadarCompileRefusal,
+    TassadarCompilerToolchainIdentity, TassadarRustToWasmCompileConfig, TassadarWasmBinarySummary,
 };
 
 use crate::{
-    TASSADAR_ARTICLE_EQUIVALENCE_ACCEPTANCE_GATE_REPORT_REF,
+    build_tassadar_article_equivalence_acceptance_gate_report,
     TassadarArticleEquivalenceAcceptanceGateReport,
     TassadarArticleEquivalenceAcceptanceGateReportError,
-    TassadarArticleEquivalenceAcceptanceStatus, build_tassadar_article_equivalence_acceptance_gate_report,
+    TassadarArticleEquivalenceAcceptanceStatus,
+    TASSADAR_ARTICLE_EQUIVALENCE_ACCEPTANCE_GATE_REPORT_REF,
 };
 
 pub const TASSADAR_ARTICLE_FRONTEND_CORPUS_COMPILE_MATRIX_REPORT_REF: &str =
@@ -170,7 +171,9 @@ pub fn build_tassadar_article_frontend_corpus_compile_matrix_report() -> Result<
     TassadarArticleFrontendCorpusCompileMatrixReport,
     TassadarArticleFrontendCorpusCompileMatrixReportError,
 > {
-    let _guard = ARTICLE_FRONTEND_CORPUS_COMPILE_MATRIX_BUILD_LOCK.lock().expect("build lock");
+    let _guard = ARTICLE_FRONTEND_CORPUS_COMPILE_MATRIX_BUILD_LOCK
+        .lock()
+        .expect("build lock");
     let acceptance_gate = build_tassadar_article_equivalence_acceptance_gate_report()?;
     let manifest = build_tassadar_article_frontend_compiler_envelope_manifest();
     let case_rows = case_specs()
@@ -188,7 +191,9 @@ pub fn build_tassadar_article_frontend_corpus_compile_matrix_report() -> Result<
         .count();
     let toolchain_failure_case_count = case_rows
         .iter()
-        .filter(|row| row.actual_status == TassadarArticleFrontendCorpusCaseStatus::ToolchainFailure)
+        .filter(|row| {
+            row.actual_status == TassadarArticleFrontendCorpusCaseStatus::ToolchainFailure
+        })
         .count();
     let lineage_green_count = case_rows.iter().filter(|row| row.lineage_green).count();
     let refusal_green_count = case_rows.iter().filter(|row| row.refusal_green).count();
@@ -308,12 +313,14 @@ fn build_acceptance_gate_tie(
         .iter()
         .any(|requirement_id| requirement_id == TIED_REQUIREMENT_ID);
     if !tied_requirement_satisfied {
-        return Err(TassadarArticleFrontendCorpusCompileMatrixReportError::Invariant {
-            detail: format!(
-                "acceptance gate does not yet treat `{}` as green",
-                TIED_REQUIREMENT_ID
-            ),
-        });
+        return Err(
+            TassadarArticleFrontendCorpusCompileMatrixReportError::Invariant {
+                detail: format!(
+                    "acceptance gate does not yet treat `{}` as green",
+                    TIED_REQUIREMENT_ID
+                ),
+            },
+        );
     }
     Ok(TassadarArticleFrontendCorpusAcceptanceGateTie {
         acceptance_gate_report_ref: String::from(
@@ -392,10 +399,16 @@ fn build_case_row(
         .refusal()
         .map(|refusal| refusal.kind_slug().to_string());
     let compile_refusal_detail = compile_receipt.refusal().map(refusal_detail);
-    let envelope_refusal_kind =
-        classify_envelope_refusal(spec, source_text.as_ref(), compile_receipt.wasm_binary_summary());
-    let actual_status =
-        actual_status_for_case(envelope_refusal_kind, compile_receipt.refusal(), compile_receipt.succeeded());
+    let envelope_refusal_kind = classify_envelope_refusal(
+        spec,
+        source_text.as_ref(),
+        compile_receipt.wasm_binary_summary(),
+    );
+    let actual_status = actual_status_for_case(
+        envelope_refusal_kind,
+        compile_receipt.refusal(),
+        compile_receipt.succeeded(),
+    );
     let abi_surface_id = spec.abi_surface_id.map(String::from);
     let lineage_green = actual_status == TassadarArticleFrontendCorpusCaseStatus::Compiled
         && compile_receipt.succeeded()
@@ -410,12 +423,12 @@ fn build_case_row(
     let refusal_green = actual_status == TassadarArticleFrontendCorpusCaseStatus::TypedRefusal
         && envelope_refusal_kind == spec.expected_refusal_kind
         && spec.expected_status == TassadarArticleFrontendCorpusCaseStatus::TypedRefusal;
-    let toolchain_failure_green =
-        actual_status == TassadarArticleFrontendCorpusCaseStatus::ToolchainFailure
-            && spec.expected_status == TassadarArticleFrontendCorpusCaseStatus::ToolchainFailure
-            && compile_receipt
-                .refusal()
-                .is_some_and(is_toolchain_failure_refusal);
+    let toolchain_failure_green = actual_status
+        == TassadarArticleFrontendCorpusCaseStatus::ToolchainFailure
+        && spec.expected_status == TassadarArticleFrontendCorpusCaseStatus::ToolchainFailure
+        && compile_receipt
+            .refusal()
+            .is_some_and(is_toolchain_failure_refusal);
     let detail = match actual_status {
         TassadarArticleFrontendCorpusCaseStatus::Compiled => format!(
             "compiled through the declared article envelope with abi_surface_id={}, wasm_output_ref={}, and zero-import lineage",
@@ -520,7 +533,10 @@ fn compile_config_matches_manifest(
 ) -> bool {
     compile_config.compiler_binary == manifest.toolchain_policy.compiler_family
         && compile_config.target == manifest.toolchain_policy.target
-        && language_version_matches(compile_config.edition.as_str(), &manifest.toolchain_policy.language_version)
+        && language_version_matches(
+            compile_config.edition.as_str(),
+            &manifest.toolchain_policy.language_version,
+        )
         && compile_config.crate_type == manifest.toolchain_policy.crate_type
         && compile_config.optimization_level == manifest.toolchain_policy.optimization_level
         && compile_config.panic_strategy == manifest.toolchain_policy.panic_strategy
@@ -854,7 +870,10 @@ fn canonical_compile_config(
         optimization_level: String::from("3"),
         panic_strategy: String::from("abort"),
         metadata_tag: String::from(crate_name),
-        export_symbols: export_symbols.iter().map(|symbol| String::from(*symbol)).collect(),
+        export_symbols: export_symbols
+            .iter()
+            .map(|symbol| String::from(*symbol))
+            .collect(),
     }
 }
 
@@ -911,12 +930,11 @@ fn read_repo_json<T: DeserializeOwned>(
 #[cfg(test)]
 mod tests {
     use super::{
-        TASSADAR_ARTICLE_FRONTEND_CORPUS_COMPILE_MATRIX_REPORT_REF,
         build_tassadar_article_frontend_corpus_compile_matrix_report, read_repo_json,
         tassadar_article_frontend_corpus_compile_matrix_report_path,
         write_tassadar_article_frontend_corpus_compile_matrix_report,
-        TassadarArticleFrontendCorpusCaseStatus,
-        TassadarArticleFrontendCorpusCompileMatrixReport,
+        TassadarArticleFrontendCorpusCaseStatus, TassadarArticleFrontendCorpusCompileMatrixReport,
+        TASSADAR_ARTICLE_FRONTEND_CORPUS_COMPILE_MATRIX_REPORT_REF,
     };
 
     #[test]
@@ -937,8 +955,12 @@ mod tests {
         assert!(report.compile_matrix_green);
         assert!(!report.article_equivalence_green);
         assert_eq!(
-            report.acceptance_gate_tie.blocked_issue_ids.first().map(String::as_str),
-            Some("TAS-179")
+            report
+                .acceptance_gate_tie
+                .blocked_issue_ids
+                .first()
+                .map(String::as_str),
+            Some("TAS-179A")
         );
         assert_eq!(
             report

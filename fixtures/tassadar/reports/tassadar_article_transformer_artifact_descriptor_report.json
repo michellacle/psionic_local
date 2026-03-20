@@ -7,21 +7,6 @@
     "tied_requirement_satisfied": true,
     "acceptance_status": "blocked",
     "blocked_issue_ids": [
-      "TAS-169",
-      "TAS-169A",
-      "TAS-170",
-      "TAS-171",
-      "TAS-171A",
-      "TAS-171B",
-      "TAS-171C",
-      "TAS-172",
-      "TAS-173",
-      "TAS-174",
-      "TAS-175",
-      "TAS-176",
-      "TAS-177",
-      "TAS-178",
-      "TAS-179",
       "TAS-179A",
       "TAS-180",
       "TAS-181",
@@ -81,5 +66,5 @@
   "article_equivalence_green": false,
   "claim_boundary": "this report freezes the article-Transformer descriptor and weight-artifact closure only. It proves that the canonical and trace-bound article descriptors are now safetensors-backed, non-fixture, and bound to explicit tensor inventory plus runtime-visible artifact identity. It does not claim reference-linear exactness, fast-route closure, benchmark parity, single-run closure, or final article-equivalence green status.",
   "summary": "Article Transformer artifact descriptor closure now records case_rows=5, all_required_cases_present=true, all_cases_pass=true, committed_refs_exist=true, tied_requirement_satisfied=true, artifact_descriptor_contract_green=true, and article_equivalence_green=false.",
-  "report_digest": "95bd8ece6f78f9b2e751f4cccd41519adc03a484b91121b41a0a82feda7f945d"
+  "report_digest": "fd078291e9c2153755215aceecd1d85b0e15c039c68f7562a7a4f07a274b286d"
 }

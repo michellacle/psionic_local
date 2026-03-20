@@ -10,6 +10,7 @@ mod apple_adapter;
 mod apple_adapter_curation;
 mod parameter_golf;
 mod tassadar;
+mod tassadar_article_interpreter_breadth_envelope;
 mod tassadar_broad_program_family;
 mod tassadar_compiled_distillation;
 mod tassadar_error_regime_catalog;
@@ -41,6 +42,7 @@ pub use apple_adapter::*;
 pub use apple_adapter_curation::*;
 pub use parameter_golf::*;
 pub use tassadar::*;
+pub use tassadar_article_interpreter_breadth_envelope::*;
 pub use tassadar_broad_program_family::*;
 pub use tassadar_compiled_distillation::*;
 pub use tassadar_error_regime_catalog::*;
@@ -2375,7 +2377,9 @@ pub enum DistributedDataFeedContractError {
     Determinism(#[from] DeterminismContractError),
     #[error("distributed data feed expected split `{split_name}` to exist in the manifest")]
     UnknownSplit { split_name: String },
-    #[error("distributed replay ordering requires a seeded or strict runtime determinism contract")]
+    #[error(
+        "distributed replay ordering requires a seeded or strict runtime determinism contract"
+    )]
     BestEffortReplayUnsupported,
     #[error("worker coordination requires a non-empty replica group")]
     MissingReplicaGroup,
@@ -3064,18 +3068,16 @@ mod tests {
             DatasetRecordEncoding::TokenIdsLeU32,
             sample_tokenizer(),
         )
-        .with_splits(vec![
-            DatasetSplitDeclaration::new(
-                &dataset,
-                "train",
-                DatasetSplitKind::Train,
-                vec![
-                    sample_shard(&dataset, "train", "shard-0", 3, 24),
-                    sample_shard(&dataset, "train", "shard-1", 2, 18),
-                ],
-            )
-            .expect("split should validate"),
-        ]);
+        .with_splits(vec![DatasetSplitDeclaration::new(
+            &dataset,
+            "train",
+            DatasetSplitKind::Train,
+            vec![
+                sample_shard(&dataset, "train", "shard-0", 3, 24),
+                sample_shard(&dataset, "train", "shard-1", 2, 18),
+            ],
+        )
+        .expect("split should validate")]);
 
         let contract = DatasetIterationContract::new(dataset, "train")
             .with_mode(DatasetIterationMode::Repeat)
@@ -3147,12 +3149,10 @@ mod tests {
         let report = builtin_data_ingress_semantics_report();
         assert_eq!(report.schema_version, 1);
         assert_eq!(report.current_scope_window, "psionic_data_ingress_v1");
-        assert!(
-            report
-                .stable_signature_lines()
-                .iter()
-                .any(|line| line.starts_with("report_digest="))
-        );
+        assert!(report
+            .stable_signature_lines()
+            .iter()
+            .any(|line| line.starts_with("report_digest=")));
 
         let direct_host = report
             .cases
@@ -3285,12 +3285,10 @@ mod tests {
             report.current_scope_window,
             "psionic_distributed_data_feed_v1"
         );
-        assert!(
-            report
-                .stable_signature_lines()
-                .iter()
-                .any(|line| line.starts_with("report_digest="))
-        );
+        assert!(report
+            .stable_signature_lines()
+            .iter()
+            .any(|line| line.starts_with("report_digest=")));
 
         let contiguous = report
             .cases
@@ -3339,12 +3337,10 @@ mod tests {
             .expect("missing elastic-membership refusal");
         assert_eq!(refused.status, DistributedDataFeedCapabilityStatus::Refused);
         assert!(refused.refusal.is_some());
-        assert!(
-            refused
-                .refusal
-                .as_ref()
-                .expect("refusal should exist")
-                .contains("elastic_membership")
-        );
+        assert!(refused
+            .refusal
+            .as_ref()
+            .expect("refusal should exist")
+            .contains("elastic_membership"));
     }
 }

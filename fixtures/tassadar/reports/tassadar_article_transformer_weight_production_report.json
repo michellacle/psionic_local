@@ -9,20 +9,6 @@
     "tied_requirement_satisfied": true,
     "acceptance_status": "blocked",
     "blocked_issue_ids": [
-      "TAS-169A",
-      "TAS-170",
-      "TAS-171",
-      "TAS-171A",
-      "TAS-171B",
-      "TAS-171C",
-      "TAS-172",
-      "TAS-173",
-      "TAS-174",
-      "TAS-175",
-      "TAS-176",
-      "TAS-177",
-      "TAS-178",
-      "TAS-179",
       "TAS-179A",
       "TAS-180",
       "TAS-181",
@@ -48,20 +34,6 @@
       "tied_requirement_satisfied": true,
       "acceptance_status": "blocked",
       "blocked_issue_ids": [
-        "TAS-169A",
-        "TAS-170",
-        "TAS-171",
-        "TAS-171A",
-        "TAS-171B",
-        "TAS-171C",
-        "TAS-172",
-        "TAS-173",
-        "TAS-174",
-        "TAS-175",
-        "TAS-176",
-        "TAS-177",
-        "TAS-178",
-        "TAS-179",
         "TAS-179A",
         "TAS-180",
         "TAS-181",
@@ -86,20 +58,6 @@
         "acceptance_status": "blocked",
         "article_equivalence_green": false,
         "blocked_issue_ids": [
-          "TAS-169A",
-          "TAS-170",
-          "TAS-171",
-          "TAS-171A",
-          "TAS-171B",
-          "TAS-171C",
-          "TAS-172",
-          "TAS-173",
-          "TAS-174",
-          "TAS-175",
-          "TAS-176",
-          "TAS-177",
-          "TAS-178",
-          "TAS-179",
           "TAS-179A",
           "TAS-180",
           "TAS-181",
@@ -284,7 +242,7 @@
       "current_truth_boundary": "psionic already owns real reusable substrate for tensor contracts, bounded array execution, module state, basic layers, transformer-boundary configs, model descriptors, weight lineage metadata, runtime proof identity, and trace receipts. The current gap is not substrate absence; it is the missing owned article-equivalence stack and the current presence of bounded research or fixture-backed lanes that are not yet sufficient for canonical article closure.",
       "claim_boundary": "this report inventories reusable substrate only. It freezes what can be reused, what needs extension, what stays research-only, and what is still not sufficient for article closure. It does not claim that the owned article-equivalence Transformer stack, the canonical article model artifact, or the final article-equivalence proof route already exist.",
       "summary": "Existing substrate inventory now records surface_count=11, blocker_surface_count=6, non_blocker_surface_count=5, inventory_contract_green=true, tied_requirement_satisfied=true, and article_equivalence_green=false.",
-      "report_digest": "34b8d32e60902a8ddf8dc25aa4bc11c722d57a9d13f9f2fbe83494cae9f613f3"
+      "report_digest": "98f45a5cf58bf45734236f9e7feffb4eb85a6acb659577370bc16573ae0def4c"
     },
     "interface_rows": [
       {
@@ -416,7 +374,7 @@
     "article_equivalence_green": false,
     "claim_boundary": "this report freezes one explicit canonical Transformer stack boundary for the article-equivalence closure wave. The route is not one monolithic crate; it is one required boundary spanning existing crates with `psionic-transformer` as the architecture anchor, `psionic-models` as the article-model and artifact owner, and `psionic-runtime` as the replay/receipt owner. This does not claim the final article-equivalence stack is complete or green.",
     "summary": "Canonical Transformer stack boundary now records interface_rows=5, dependency_checks=6, tied_requirement_satisfied=true, boundary_contract_green=true, and article_equivalence_green=false.",
-    "report_digest": "75842049b91e76f62bcae4f9dbaf07a4f108c99f85ede9acb6b2e25112f5b96d"
+    "report_digest": "900b74c17ae02d915d8f63b7023fcb1d8fbb062df8695c85feed41eeddbb4449"
   },
   "evidence_bundle_ref": "fixtures/tassadar/runs/tassadar_article_transformer_weight_production_v1/article_transformer_weight_production_bundle.json",
   "evidence_bundle": {
@@ -723,5 +681,5 @@
   "article_equivalence_green": false,
   "claim_boundary": "this report closes only the first real Transformer-backed article weight-production run on a bounded article-class slice. It proves that the owned stack now emits a committed trained trace-bound artifact with explicit imitation metrics, checkpoint restore parity, and artifact reload parity. It does not claim full article-class exactness, fast-route closure, benchmark parity, contamination independence, or final article-equivalence green status.",
   "summary": "Article Transformer weight production now records case_rows=5, all_required_cases_present=true, all_cases_pass=true, tied_requirement_satisfied=true, weight_production_contract_green=true, and article_equivalence_green=false.",
-  "report_digest": "380f7f8ead7a7afe9fe8307d05e2a1fc31adda747f32ccc98daa2771dbc9110c"
+  "report_digest": "4ca8b578e8be424e4c0a3355453402badf53ffa2769ac450b4d5836a0185f449"
 }

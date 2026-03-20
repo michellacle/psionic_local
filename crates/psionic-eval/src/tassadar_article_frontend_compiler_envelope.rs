@@ -10,24 +10,24 @@ use sha2::{Digest, Sha256};
 use thiserror::Error;
 
 use psionic_compiler::{
-    TASSADAR_ARTICLE_FRONTEND_COMPILER_ENVELOPE_MANIFEST_REF,
-    TassadarArticleFrontendCompilerEnvelopeManifest, TassadarArticleFrontendEnvelopeRefusalKind,
-    TassadarArticleFrontendFamily, build_tassadar_article_frontend_compiler_envelope_manifest,
+    build_tassadar_article_frontend_compiler_envelope_manifest,
     tassadar_article_frontend_compiler_envelope_manifest_path,
     write_tassadar_article_frontend_compiler_envelope_manifest,
+    TassadarArticleFrontendCompilerEnvelopeManifest, TassadarArticleFrontendEnvelopeRefusalKind,
+    TassadarArticleFrontendFamily, TASSADAR_ARTICLE_FRONTEND_COMPILER_ENVELOPE_MANIFEST_REF,
 };
 use psionic_runtime::{
-    TASSADAR_CANONICAL_C_SOURCE_REF, TassadarCompilerToolchainIdentity, TassadarProgramSourceKind,
+    TassadarCompilerToolchainIdentity, TassadarProgramSourceKind, TASSADAR_CANONICAL_C_SOURCE_REF,
 };
 
 use crate::{
-    TASSADAR_ARTICLE_EQUIVALENCE_ACCEPTANCE_GATE_REPORT_REF,
-    TASSADAR_COMPILE_PIPELINE_MATRIX_REPORT_REF, TASSADAR_RUST_SOURCE_CANON_REPORT_REF,
+    build_tassadar_article_equivalence_acceptance_gate_report,
     TassadarArticleEquivalenceAcceptanceGateReport,
     TassadarArticleEquivalenceAcceptanceGateReportError,
     TassadarArticleEquivalenceAcceptanceStatus, TassadarCompilePipelineMatrixCaseStatus,
     TassadarCompilePipelineMatrixReport, TassadarRustSourceCanonCaseStatus,
-    TassadarRustSourceCanonReport, build_tassadar_article_equivalence_acceptance_gate_report,
+    TassadarRustSourceCanonReport, TASSADAR_ARTICLE_EQUIVALENCE_ACCEPTANCE_GATE_REPORT_REF,
+    TASSADAR_COMPILE_PIPELINE_MATRIX_REPORT_REF, TASSADAR_RUST_SOURCE_CANON_REPORT_REF,
 };
 
 pub const TASSADAR_ARTICLE_FRONTEND_COMPILER_ENVELOPE_REPORT_REF: &str =
@@ -595,11 +595,11 @@ fn read_repo_json<T: DeserializeOwned>(
 #[cfg(test)]
 mod tests {
     use super::{
-        TASSADAR_ARTICLE_FRONTEND_COMPILER_ENVELOPE_REPORT_REF,
-        TassadarArticleFrontendCompilerEnvelopeReport,
         build_tassadar_article_frontend_compiler_envelope_report, read_repo_json,
         tassadar_article_frontend_compiler_envelope_report_path,
         write_tassadar_article_frontend_compiler_envelope_report,
+        TassadarArticleFrontendCompilerEnvelopeReport,
+        TASSADAR_ARTICLE_FRONTEND_COMPILER_ENVELOPE_REPORT_REF,
     };
 
     #[test]
@@ -615,7 +615,7 @@ mod tests {
                 .blocked_issue_ids
                 .first()
                 .map(String::as_str),
-            Some("TAS-179")
+            Some("TAS-179A")
         );
         assert!(report.envelope_manifest_green);
         assert!(report.toolchain_identity_green);

@@ -451,10 +451,10 @@ fn blocker_rows() -> Vec<TassadarArticleEquivalenceBlockerRow> {
             title: String::from("Declared article interpreter breadth remains open"),
             repo_status: TassadarRepoStatus::Partial,
             current_gap_summary: String::from(
-                "the article frames arbitrary programs and a WebAssembly interpreter inside transformer weights, while the public repo still carries bounded named Wasm profiles and a suppressed frozen core-Wasm closure gate",
+                "the public repo now declares one article interpreter breadth envelope, but the article still frames arbitrary programs and a WebAssembly interpreter inside transformer weights while the remaining breadth-suite and final gate tranches stay open",
             ),
             current_public_truth: String::from(
-                "the repo has a real bounded Wasm lane, a declared frozen core-Wasm window, and a bounded Turing-complete substrate statement under `TCM.v1`, but not a public generic interpreter-in-weights breadth claim",
+                "the repo now has a machine-readable article interpreter breadth envelope over the frozen core-Wasm floor, the current named article i32 profiles, and the later required search-process, long-horizon control, and module-scale Wasm-loop families, while linked-program bundles stay research-only and broader import-mediated, dynamic-memory, memory64, multi-memory, component-linking, exception, and float-semantics families remain outside the declared article envelope",
             ),
             closure_requirements: vec![
                 String::from(
@@ -963,7 +963,7 @@ fn issue_coverage_rows() -> Vec<TassadarArticleEquivalenceIssueCoverageRow> {
             301,
             "TAS-179: Declared article interpreter breadth envelope",
             TassadarArticleEquivalenceIssueRole::Implementation,
-            "open",
+            "closed",
             &["BEQ-002"],
         ),
         issue_row(
@@ -1131,11 +1131,11 @@ fn read_json<T: DeserializeOwned>(
 #[cfg(test)]
 mod tests {
     use super::{
-        TASSADAR_ARTICLE_EQUIVALENCE_BLOCKER_MATRIX_REPORT_REF,
-        TassadarArticleEquivalenceBlockerMatrixReport, TassadarArticleEquivalenceIssueRole,
         build_tassadar_article_equivalence_blocker_matrix_report, evaluate_matrix,
         issue_coverage_rows, read_json, tassadar_article_equivalence_blocker_matrix_report_path,
         write_tassadar_article_equivalence_blocker_matrix_report,
+        TassadarArticleEquivalenceBlockerMatrixReport, TassadarArticleEquivalenceIssueRole,
+        TASSADAR_ARTICLE_EQUIVALENCE_BLOCKER_MATRIX_REPORT_REF,
     };
 
     #[test]

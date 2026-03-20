@@ -14,13 +14,6 @@
       "tied_requirement_satisfied": true,
       "acceptance_status": "blocked",
       "blocked_issue_ids": [
-        "TAS-173",
-        "TAS-174",
-        "TAS-175",
-        "TAS-176",
-        "TAS-177",
-        "TAS-178",
-        "TAS-179",
         "TAS-179A",
         "TAS-180",
         "TAS-181",
@@ -46,7 +39,7 @@
     },
     "direct_proof_review": {
       "report_ref": "fixtures/tassadar/reports/tassadar_direct_model_weight_execution_proof_report.json",
-      "report_id": "tassadar.direct_model_weight_execution_proof.v2",
+      "report_id": "tassadar.direct_model_weight_execution_proof.v3",
       "required_case_count": 3,
       "bound_case_count": 3,
       "direct_case_count": 3,
@@ -456,7 +449,7 @@
     "article_equivalence_green": false,
     "claim_boundary": "this gate certifies only that the owned Transformer-backed reference-linear route now stays exact on the declared article workload family under the current trace-domain route, with explicit exact/mismatch/refused rows and explicit direct-proof binding for the bounded proof family. It does not yet claim anti-memorization closure, contamination independence, fast-route promotion, benchmark parity, single-run closure, or final article-equivalence green status.",
     "summary": "Transformer-backed reference-linear exactness gate now records declared_case_count=13, exact_case_count=13, mismatch_case_count=0, refused_case_count=0, direct_model_weight_proof_case_count=3, reference_linear_exactness_green=true, and article_equivalence_green=false.",
-    "report_digest": "74d96eea85244179356a5324f94a09db01f7b9cc6901246c89290973bfa6c498"
+    "report_digest": "8b59056c174fa6dc6b6b224026e221dd17208ba7d1ab279cbbd3f51b0827bd44"
   },
   "case_count": 13,
   "exact_case_count": 13,
@@ -473,5 +466,5 @@
   "refused_case_ids": [],
   "claim_boundary": "this summary mirrors only the bounded Transformer-backed reference-linear exactness gate. It keeps the full-family exactness counts operator-readable without widening the claim beyond the underlying gate report.",
   "summary": "Transformer-backed reference-linear exactness summary now records case_count=13, exact_case_count=13, mismatch_case_count=0, refused_case_count=0, direct_model_weight_proof_case_count=3, reference_linear_exactness_green=true, and article_equivalence_green=false.",
-  "report_digest": "6151dbb1c6052ed6b9b78a4031b729117a31e97c669d32d84baa15c5bde7efff"
+  "report_digest": "befa2b06109ad4e7054f440b634c2374d758d6160c035d4e30d2509daa8c5788"
 }

@@ -10,13 +10,6 @@
     "tied_requirement_satisfied": true,
     "acceptance_status": "blocked",
     "blocked_issue_ids": [
-      "TAS-173",
-      "TAS-174",
-      "TAS-175",
-      "TAS-176",
-      "TAS-177",
-      "TAS-178",
-      "TAS-179",
       "TAS-179A",
       "TAS-180",
       "TAS-181",
@@ -432,5 +425,5 @@
   "article_equivalence_green": false,
   "claim_boundary": "this audit certifies only that the current held-out and adversarial article-envelope evaluation suite stays separated from the current trained weight-production slice by explicit case-id exclusion, token-digest exclusion, prefix-window duplicate checks, generator provenance, and profile-level feature separation. It does not yet certify fast-route promotion, benchmark parity, single-run no-spill closure, clean-room weight causality, route minimality, or final article-equivalence green status.",
   "summary": "Article evaluation-independence audit now records training_case_count=4, evaluation_case_count=6, exact_case_id_overlap_count=0, exact_source_token_overlap_count=0, exact_target_token_overlap_count=0, exact_sequence_overlap_count=0, near_duplicate_pair_count=0, shared_generator_id_count=0, shared_generator_rule_digest_count=0, shared_profile_id_count=0, evaluation_independence_green=true, and article_equivalence_green=false.",
-  "report_digest": "c952fe5e55c8d9c5d969893de48992ce30c384835831afd009ca7e5de20672c7"
+  "report_digest": "b70a74f414a80c6c275db25923801ea64f6452affa949f61067b791a8501856b"
 }

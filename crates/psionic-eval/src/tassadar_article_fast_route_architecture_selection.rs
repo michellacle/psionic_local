@@ -10,27 +10,28 @@ use thiserror::Error;
 use psionic_environments::TassadarWorkloadTarget;
 use psionic_models::{TassadarArticleTransformer, TassadarWorkloadClass};
 use psionic_router::{
-    TassadarPlannerExecutorDecodeCapability, TassadarPlannerExecutorNegotiatedRouteState,
-    TassadarPlannerExecutorRouteCandidate, TassadarPlannerExecutorRouteDescriptor,
-    TassadarPlannerExecutorRouteNegotiationOutcome, TassadarPlannerExecutorRouteNegotiationRequest,
-    TassadarPlannerExecutorRoutePosture, TassadarPlannerExecutorRouteRefusalReason,
-    TassadarPlannerExecutorWasmCapabilityMatrix, TassadarPlannerExecutorWasmCapabilityRow,
-    TassadarPlannerExecutorWasmImportPosture, TassadarPlannerExecutorWasmOpcodeFamily,
-    negotiate_tassadar_planner_executor_route,
+    negotiate_tassadar_planner_executor_route, TassadarPlannerExecutorDecodeCapability,
+    TassadarPlannerExecutorNegotiatedRouteState, TassadarPlannerExecutorRouteCandidate,
+    TassadarPlannerExecutorRouteDescriptor, TassadarPlannerExecutorRouteNegotiationOutcome,
+    TassadarPlannerExecutorRouteNegotiationRequest, TassadarPlannerExecutorRoutePosture,
+    TassadarPlannerExecutorRouteRefusalReason, TassadarPlannerExecutorWasmCapabilityMatrix,
+    TassadarPlannerExecutorWasmCapabilityRow, TassadarPlannerExecutorWasmImportPosture,
+    TassadarPlannerExecutorWasmOpcodeFamily,
 };
 use psionic_runtime::{
-    TASSADAR_RECURRENT_FAST_PATH_RUNTIME_BASELINE_REPORT_REF, TassadarClaimClass,
-    TassadarExecutorDecodeMode, TassadarRecurrentFastPathRuntimeBaselineReport,
+    TassadarClaimClass, TassadarExecutorDecodeMode, TassadarRecurrentFastPathRuntimeBaselineReport,
+    TASSADAR_RECURRENT_FAST_PATH_RUNTIME_BASELINE_REPORT_REF,
 };
 
 use crate::{
-    TASSADAR_ARTICLE_EQUIVALENCE_ACCEPTANCE_GATE_REPORT_REF,
-    TASSADAR_EFFICIENT_ATTENTION_BASELINE_MATRIX_REPORT_REF,
-    TASSADAR_HULL_CACHE_CLOSURE_REPORT_REF, TassadarArticleEquivalenceAcceptanceGateReport,
+    build_tassadar_article_equivalence_acceptance_gate_report,
+    TassadarArticleEquivalenceAcceptanceGateReport,
     TassadarArticleEquivalenceAcceptanceGateReportError,
     TassadarArticleEquivalenceAcceptanceStatus, TassadarEfficientAttentionBaselineFamilyKind,
     TassadarEfficientAttentionBaselineMatrixReport, TassadarHullCacheClosureReport,
-    build_tassadar_article_equivalence_acceptance_gate_report,
+    TASSADAR_ARTICLE_EQUIVALENCE_ACCEPTANCE_GATE_REPORT_REF,
+    TASSADAR_EFFICIENT_ATTENTION_BASELINE_MATRIX_REPORT_REF,
+    TASSADAR_HULL_CACHE_CLOSURE_REPORT_REF,
 };
 
 pub const TASSADAR_ARTICLE_FAST_ROUTE_ARCHITECTURE_SELECTION_REPORT_REF: &str =
@@ -986,11 +987,11 @@ fn stable_digest<T: Serialize>(prefix: &[u8], value: &T) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        TASSADAR_ARTICLE_FAST_ROUTE_ARCHITECTURE_SELECTION_REPORT_REF,
-        TassadarArticleFastRouteArchitectureSelectionReport, TassadarArticleFastRouteCandidateKind,
         build_tassadar_article_fast_route_architecture_selection_report, read_artifact,
         tassadar_article_fast_route_architecture_selection_report_path,
         write_tassadar_article_fast_route_architecture_selection_report,
+        TassadarArticleFastRouteArchitectureSelectionReport, TassadarArticleFastRouteCandidateKind,
+        TASSADAR_ARTICLE_FAST_ROUTE_ARCHITECTURE_SELECTION_REPORT_REF,
     };
 
     #[test]
@@ -1035,7 +1036,7 @@ mod tests {
                 .blocked_issue_ids
                 .first()
                 .map(String::as_str),
-            Some("TAS-179")
+            Some("TAS-179A")
         );
     }
 

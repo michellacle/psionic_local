@@ -56,6 +56,8 @@ mod tassadar_article_fixture_transformer_parity;
 mod tassadar_article_frontend_compiler_envelope;
 #[path = "tassadar_article_frontend_corpus_compile_matrix.rs"]
 mod tassadar_article_frontend_corpus_compile_matrix;
+#[path = "tassadar_article_interpreter_breadth_envelope.rs"]
+mod tassadar_article_interpreter_breadth_envelope;
 #[path = "tassadar_article_representation_invariance_gate.rs"]
 mod tassadar_article_representation_invariance_gate;
 #[path = "tassadar_article_runtime_closeout.rs"]
@@ -367,6 +369,7 @@ pub use tassadar_article_fast_route_throughput_floor::*;
 pub use tassadar_article_fixture_transformer_parity::*;
 pub use tassadar_article_frontend_compiler_envelope::*;
 pub use tassadar_article_frontend_corpus_compile_matrix::*;
+pub use tassadar_article_interpreter_breadth_envelope::*;
 pub use tassadar_article_representation_invariance_gate::*;
 pub use tassadar_article_runtime_closeout::*;
 pub use tassadar_article_trace_vocabulary_binding::*;
@@ -440,8 +443,8 @@ pub use tassadar_learned_call_stack_heap_suite::*;
 pub use tassadar_linked_program_bundle::*;
 pub use tassadar_locality_envelope::*;
 pub use tassadar_locality_scratchpad::*;
-pub use tassadar_memory_abi_v2::*;
 pub use tassadar_memory64_profile::*;
+pub use tassadar_memory_abi_v2::*;
 pub use tassadar_minimal_universal_substrate_acceptance_gate::*;
 pub use tassadar_mixed_numeric_ladder::*;
 pub use tassadar_mixed_trajectory::*;
@@ -2292,8 +2295,8 @@ mod tests {
     }
 
     #[test]
-    fn eval_sample_from_environment_summary_is_machine_legible()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn eval_sample_from_environment_summary_is_machine_legible(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let package = eval_environment();
         let summary = scored_summary("session-1", "task-1", 8_600, true)?;
         let sample = EvalSampleRecord::from_environment_summary(
@@ -2317,8 +2320,8 @@ mod tests {
     }
 
     #[test]
-    fn eval_run_finalizes_summary_and_preserves_online_offline_parity()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn eval_run_finalizes_summary_and_preserves_online_offline_parity(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let package = eval_environment();
         let offline_sample = EvalSampleRecord::from_environment_summary(
             "sample-offline",
@@ -2383,8 +2386,8 @@ mod tests {
     }
 
     #[test]
-    fn benchmark_package_supports_repeat_aggregation_and_operator_simulation()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn benchmark_package_supports_repeat_aggregation_and_operator_simulation(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let package = eval_environment();
         let benchmark_package = BenchmarkPackage::new(
             BenchmarkPackageKey::new("benchmark://openagents/math/basic", "2026.03.14"),
@@ -2463,8 +2466,8 @@ mod tests {
     }
 
     #[test]
-    fn benchmark_policy_refuses_missing_verification_facts()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn benchmark_policy_refuses_missing_verification_facts(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let package = eval_environment();
         let benchmark_package = BenchmarkPackage::new(
             BenchmarkPackageKey::new("benchmark://openagents/math/basic", "2026.03.14"),
