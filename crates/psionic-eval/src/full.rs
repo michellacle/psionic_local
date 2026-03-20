@@ -42,6 +42,8 @@ mod tassadar_article_equivalence_blocker_matrix;
 mod tassadar_article_evaluation_independence_audit;
 #[path = "tassadar_article_fast_route_architecture_selection.rs"]
 mod tassadar_article_fast_route_architecture_selection;
+#[path = "tassadar_article_fast_route_exactness.rs"]
+mod tassadar_article_fast_route_exactness;
 #[path = "tassadar_article_fast_route_implementation.rs"]
 mod tassadar_article_fast_route_implementation;
 #[path = "tassadar_article_fixture_transformer_parity.rs"]
@@ -350,6 +352,7 @@ pub use tassadar_article_equivalence_acceptance_gate::*;
 pub use tassadar_article_equivalence_blocker_matrix::*;
 pub use tassadar_article_evaluation_independence_audit::*;
 pub use tassadar_article_fast_route_architecture_selection::*;
+pub use tassadar_article_fast_route_exactness::*;
 pub use tassadar_article_fast_route_implementation::*;
 pub use tassadar_article_fixture_transformer_parity::*;
 pub use tassadar_article_representation_invariance_gate::*;

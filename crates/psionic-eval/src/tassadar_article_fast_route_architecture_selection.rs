@@ -1013,8 +1013,8 @@ mod tests {
             })
             .expect("HullCache routeability");
         assert!(hull_routeability.routeable);
-        assert_eq!(hull_routeability.direct_module_class_count, 4);
-        assert_eq!(hull_routeability.fallback_module_class_count, 2);
+        assert_eq!(hull_routeability.direct_module_class_count, 6);
+        assert_eq!(hull_routeability.fallback_module_class_count, 0);
 
         let recurrent_verdict = report
             .candidate_verdicts
@@ -1033,7 +1033,7 @@ mod tests {
                 .blocked_issue_ids
                 .first()
                 .map(String::as_str),
-            Some("TAS-173")
+            Some("TAS-175")
         );
     }
 

@@ -883,7 +883,7 @@ fn issue_coverage_rows() -> Vec<TassadarArticleEquivalenceIssueCoverageRow> {
             296,
             "TAS-174: Fast-route exactness and no-fallback closure",
             TassadarArticleEquivalenceIssueRole::Implementation,
-            "open",
+            "closed",
             &["BEQ-004"],
         ),
         issue_row(

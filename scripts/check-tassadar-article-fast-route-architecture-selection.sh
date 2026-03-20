@@ -28,7 +28,7 @@ jq -e '
   and (.transformer_model_route_anchor_review.passed == true)
   and ((.routeability_checks | map(select(.candidate_kind == "hull_cache_runtime")) | length) == 1)
   and ((.routeability_checks[] | select(.candidate_kind == "hull_cache_runtime") | .routeable) == true)
-  and ((.routeability_checks[] | select(.candidate_kind == "hull_cache_runtime") | .direct_module_class_count) == 4)
-  and ((.routeability_checks[] | select(.candidate_kind == "hull_cache_runtime") | .fallback_module_class_count) == 2)
+  and ((.routeability_checks[] | select(.candidate_kind == "hull_cache_runtime") | .direct_module_class_count) == 6)
+  and ((.routeability_checks[] | select(.candidate_kind == "hull_cache_runtime") | .fallback_module_class_count) == 0)
   and ((.candidate_verdicts[] | select(.candidate_kind == "hull_cache_runtime") | .selected) == true)
 ' fixtures/tassadar/reports/tassadar_article_fast_route_architecture_selection_report.json >/dev/null

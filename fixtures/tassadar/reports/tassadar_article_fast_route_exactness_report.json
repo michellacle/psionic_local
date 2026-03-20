@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.article_fast_route_exactness.v1",
+  "checker_script_ref": "scripts/check-tassadar-article-fast-route-exactness.sh",
+  "acceptance_gate_tie": {
+    "acceptance_gate_report_ref": "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json",
+    "tied_requirement_id": "TAS-174",
+    "tied_requirement_satisfied": true,
+    "acceptance_status": "blocked",
+    "blocked_issue_ids": [
+      "TAS-175",
+      "TAS-176",
+      "TAS-177",
+      "TAS-178",
+      "TAS-179",
+      "TAS-179A",
+      "TAS-180",
+      "TAS-181",
+      "TAS-182",
+      "TAS-183",
+      "TAS-184",
+      "TAS-184A",
+      "TAS-185",
+      "TAS-185A",
+      "TAS-186"
+    ]
+  },
+  "implementation_prerequisite": {
+    "report_ref": "fixtures/tassadar/reports/tassadar_article_fast_route_implementation_report.json",
+    "selected_candidate_kind": "hull_cache_runtime",
+    "fast_route_implementation_green": true,
+    "detail": "TAS-174 builds on TAS-173, so the canonical trained Transformer-backed article route must already own the selected HullCache path before exactness and no-fallback closure can turn green"
+  },
+  "hull_cache_closure_review": {
+    "report_ref": "fixtures/tassadar/reports/tassadar_hull_cache_closure_report.json",
+    "long_loop_direct_case_count": 1,
+    "sudoku_direct_case_count": 8,
+    "hungarian_direct_case_count": 1,
+    "long_loop_fallback_case_count": 0,
+    "sudoku_fallback_case_count": 0,
+    "hungarian_fallback_case_count": 0,
+    "all_article_workloads_exact": true,
+    "detail": "the widened HullCache closure report must now show LongLoopKernel, SudokuClass, and HungarianMatching as exact with zero fallback cases before TAS-174 can close"
+  },
+  "article_session_reviews": [
+    {
+      "artifact_ref": "fixtures/tassadar/reports/tassadar_article_fast_route_exactness_session_artifact.json",
+      "case_name": "direct_long_loop_hull",
+      "case_id": "long_loop_kernel",
+      "model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+      "requested_decode_mode": "hull_cache",
+      "effective_decode_mode": "hull_cache",
+      "selection_state": "direct",
+      "exact_direct_hull_cache": true,
+      "detail": "the canonical article-session surface must complete each representative article workload as a direct HullCache execution on the trained Transformer-backed model"
+    },
+    {
+      "artifact_ref": "fixtures/tassadar/reports/tassadar_article_fast_route_exactness_session_artifact.json",
+      "case_name": "direct_sudoku_v0_hull",
+      "case_id": "sudoku_v0_test_a",
+      "model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+      "requested_decode_mode": "hull_cache",
+      "effective_decode_mode": "hull_cache",
+      "selection_state": "direct",
+      "exact_direct_hull_cache": true,
+      "detail": "the canonical article-session surface must complete each representative article workload as a direct HullCache execution on the trained Transformer-backed model"
+    },
+    {
+      "artifact_ref": "fixtures/tassadar/reports/tassadar_article_fast_route_exactness_session_artifact.json",
+      "case_name": "direct_hungarian_hull",
+      "case_id": "hungarian_matching",
+      "model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+      "requested_decode_mode": "hull_cache",
+      "effective_decode_mode": "hull_cache",
+      "selection_state": "direct",
+      "exact_direct_hull_cache": true,
+      "detail": "the canonical article-session surface must complete each representative article workload as a direct HullCache execution on the trained Transformer-backed model"
+    }
+  ],
+  "hybrid_route_reviews": [
+    {
+      "artifact_ref": "fixtures/tassadar/reports/tassadar_article_fast_route_exactness_hybrid_workflow_artifact.json",
+      "case_name": "delegated_long_loop_hull",
+      "case_id": "long_loop_kernel",
+      "model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+      "planner_effective_decode_mode": "hull_cache",
+      "executor_effective_decode_mode": "hull_cache",
+      "selection_state": "direct",
+      "exact_direct_hull_cache": true,
+      "detail": "the canonical article hybrid workflow must delegate each representative article workload through the planner-owned direct HullCache route on the trained Transformer-backed model"
+    },
+    {
+      "artifact_ref": "fixtures/tassadar/reports/tassadar_article_fast_route_exactness_hybrid_workflow_artifact.json",
+      "case_name": "delegated_sudoku_v0_hull",
+      "case_id": "sudoku_v0_test_a",
+      "model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+      "planner_effective_decode_mode": "hull_cache",
+      "executor_effective_decode_mode": "hull_cache",
+      "selection_state": "direct",
+      "exact_direct_hull_cache": true,
+      "detail": "the canonical article hybrid workflow must delegate each representative article workload through the planner-owned direct HullCache route on the trained Transformer-backed model"
+    },
+    {
+      "artifact_ref": "fixtures/tassadar/reports/tassadar_article_fast_route_exactness_hybrid_workflow_artifact.json",
+      "case_name": "delegated_hungarian_hull",
+      "case_id": "hungarian_matching",
+      "model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+      "planner_effective_decode_mode": "hull_cache",
+      "executor_effective_decode_mode": "hull_cache",
+      "selection_state": "direct",
+      "exact_direct_hull_cache": true,
+      "detail": "the canonical article hybrid workflow must delegate each representative article workload through the planner-owned direct HullCache route on the trained Transformer-backed model"
+    }
+  ],
+  "exactness_green": true,
+  "article_equivalence_green": false,
+  "claim_boundary": "this report closes only TAS-174. It proves the selected HullCache fast path is now exact and no-fallback on the declared canonical article workload families inside the current article profile, and that the served article-session plus hybrid route surfaces expose those workloads as direct HullCache executions on the trained Transformer-backed model. It does not yet claim throughput-floor closure or final article-equivalence green status.",
+  "summary": "Article fast-route exactness report now records tied_requirement_satisfied=true, implementation_prerequisite_green=true, all_article_workloads_exact=true, article_session_direct_cases=3, hybrid_direct_cases=3, exactness_green=true, and article_equivalence_green=false.",
+  "report_digest": "ba39c5d9971ffd5678716c99ef83af1fb87e64cff5e67a6e94f059cca4ab96a7"
+}

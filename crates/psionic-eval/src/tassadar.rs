@@ -10,20 +10,21 @@ use psionic_environments::{
 };
 use psionic_models::{TassadarExecutorContractError, TassadarExecutorFixture};
 use psionic_runtime::{
-    TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF, TassadarClaimClass, TassadarCpuReferenceRunner,
-    TassadarExecutionRefusal, TassadarExecutorDecodeMode, TassadarExecutorSelectionReason,
-    TassadarExecutorSelectionState, TassadarFixtureRunner, TassadarHierarchicalHullCandidateRunner,
-    TassadarHullCacheRunner, TassadarHungarian10x10CorpusCase, TassadarHungarianV0CorpusCase,
-    TassadarInstruction, TassadarProgram, TassadarProgramArtifact, TassadarProgramArtifactError,
-    TassadarSparseTopKRunner, TassadarSudoku9x9CorpusCase, TassadarSudokuV0CorpusCase,
-    TassadarSudokuV0CorpusSplit, TassadarTraceAbi, TassadarTraceArtifact, TassadarWasmProfile,
     build_tassadar_execution_evidence_bundle, diagnose_tassadar_executor_request,
     run_tassadar_exact_equivalence, tassadar_article_class_corpus, tassadar_hungarian_10x10_corpus,
     tassadar_hungarian_v0_corpus, tassadar_sudoku_9x9_corpus, tassadar_sudoku_v0_corpus,
-    tassadar_trace_abi_for_profile_id, tassadar_validation_corpus,
+    tassadar_trace_abi_for_profile_id, tassadar_validation_corpus, TassadarClaimClass,
+    TassadarCpuReferenceRunner, TassadarExecutionRefusal, TassadarExecutorDecodeMode,
+    TassadarExecutorSelectionReason, TassadarExecutorSelectionState, TassadarFixtureRunner,
+    TassadarHierarchicalHullCandidateRunner, TassadarHullCacheRunner,
+    TassadarHungarian10x10CorpusCase, TassadarHungarianV0CorpusCase, TassadarInstruction,
+    TassadarProgram, TassadarProgramArtifact, TassadarProgramArtifactError,
+    TassadarSparseTopKRunner, TassadarSudoku9x9CorpusCase, TassadarSudokuV0CorpusCase,
+    TassadarSudokuV0CorpusSplit, TassadarTraceAbi, TassadarTraceArtifact, TassadarWasmProfile,
+    TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF,
 };
 use serde::{Deserialize, Serialize};
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 use sha2::Digest;
 use thiserror::Error;
 
@@ -1713,8 +1714,7 @@ fn build_tassadar_environment_bundle(
         execution_checkpoint_binding:
             psionic_environments::default_tassadar_execution_checkpoint_binding(),
         process_object_binding: psionic_environments::default_tassadar_process_object_binding(),
-        spill_tape_store_binding:
-            psionic_environments::default_tassadar_spill_tape_store_binding(),
+        spill_tape_store_binding: psionic_environments::default_tassadar_spill_tape_store_binding(),
         dynamic_memory_resume_binding:
             psionic_environments::default_tassadar_dynamic_memory_resume_binding(),
         simulator_effect_profile_binding:
@@ -1962,8 +1962,7 @@ fn build_tassadar_article_class_environment_bundle(
         execution_checkpoint_binding:
             psionic_environments::default_tassadar_execution_checkpoint_binding(),
         process_object_binding: psionic_environments::default_tassadar_process_object_binding(),
-        spill_tape_store_binding:
-            psionic_environments::default_tassadar_spill_tape_store_binding(),
+        spill_tape_store_binding: psionic_environments::default_tassadar_spill_tape_store_binding(),
         dynamic_memory_resume_binding:
             psionic_environments::default_tassadar_dynamic_memory_resume_binding(),
         simulator_effect_profile_binding:
@@ -2230,8 +2229,7 @@ fn build_tassadar_sudoku_9x9_environment_bundle(
         execution_checkpoint_binding:
             psionic_environments::default_tassadar_execution_checkpoint_binding(),
         process_object_binding: psionic_environments::default_tassadar_process_object_binding(),
-        spill_tape_store_binding:
-            psionic_environments::default_tassadar_spill_tape_store_binding(),
+        spill_tape_store_binding: psionic_environments::default_tassadar_spill_tape_store_binding(),
         dynamic_memory_resume_binding:
             psionic_environments::default_tassadar_dynamic_memory_resume_binding(),
         simulator_effect_profile_binding:
@@ -2487,8 +2485,7 @@ fn build_tassadar_hungarian_v0_environment_bundle(
         execution_checkpoint_binding:
             psionic_environments::default_tassadar_execution_checkpoint_binding(),
         process_object_binding: psionic_environments::default_tassadar_process_object_binding(),
-        spill_tape_store_binding:
-            psionic_environments::default_tassadar_spill_tape_store_binding(),
+        spill_tape_store_binding: psionic_environments::default_tassadar_spill_tape_store_binding(),
         dynamic_memory_resume_binding:
             psionic_environments::default_tassadar_dynamic_memory_resume_binding(),
         simulator_effect_profile_binding:
@@ -2745,8 +2742,7 @@ fn build_tassadar_hungarian_10x10_environment_bundle(
         execution_checkpoint_binding:
             psionic_environments::default_tassadar_execution_checkpoint_binding(),
         process_object_binding: psionic_environments::default_tassadar_process_object_binding(),
-        spill_tape_store_binding:
-            psionic_environments::default_tassadar_spill_tape_store_binding(),
+        spill_tape_store_binding: psionic_environments::default_tassadar_spill_tape_store_binding(),
         dynamic_memory_resume_binding:
             psionic_environments::default_tassadar_dynamic_memory_resume_binding(),
         simulator_effect_profile_binding:
@@ -3128,8 +3124,8 @@ fn compiled_kernel_family_max_trace_step_count(report: &Value, family_id: &str) 
 
 /// Builds the machine-readable Tassadar workload capability matrix from the
 /// current committed benchmark, compiled, and learned artifacts.
-pub fn build_tassadar_workload_capability_matrix_report()
--> Result<TassadarWorkloadCapabilityMatrixReport, TassadarWorkloadCapabilityMatrixError> {
+pub fn build_tassadar_workload_capability_matrix_report(
+) -> Result<TassadarWorkloadCapabilityMatrixReport, TassadarWorkloadCapabilityMatrixError> {
     let benchmark_report =
         read_repo_json::<TassadarBenchmarkReport>(TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF)?;
     let sudoku_compiled_run_bundle = read_repo_json::<Value>(
@@ -3654,8 +3650,8 @@ fn build_hull_cache_workload_summary(
 
 /// Builds the widened HullCache closure report from the committed article-class
 /// benchmark artifact.
-pub fn build_tassadar_hull_cache_closure_report()
--> Result<TassadarHullCacheClosureReport, TassadarHullCacheClosureError> {
+pub fn build_tassadar_hull_cache_closure_report(
+) -> Result<TassadarHullCacheClosureReport, TassadarHullCacheClosureError> {
     let benchmark_report =
         read_repo_json::<TassadarBenchmarkReport>(TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF)
             .map_err(|error| match error {
@@ -3690,7 +3686,7 @@ pub fn build_tassadar_hull_cache_closure_report()
         exact_workloads,
         fallback_only_workloads,
         claim_boundary: String::from(
-            "the widened HullCache closure is now artifact-backed for direct micro, branch-heavy, memory-heavy, and bounded Hungarian workloads, while long-loop and Sudoku search workloads remain explicit fallback-only families under the current control-flow contract",
+            "the widened HullCache closure is now artifact-backed for direct micro, branch-heavy, memory-heavy, long-loop, Sudoku search, and bounded Hungarian article workloads inside the current canonical article profile. It proves exact direct HullCache posture on those declared workload families, but it does not yet claim throughput-floor closure or broader arbitrary-program control-flow support beyond the committed article corpus",
         ),
         report_digest: String::new(),
     };
@@ -3789,8 +3785,8 @@ fn build_sparse_top_k_workload_summary(
 
 /// Builds the SparseTopK comparison report from the committed article-class
 /// benchmark artifact.
-pub fn build_tassadar_sparse_top_k_comparison_report()
--> Result<TassadarSparseTopKComparisonReport, TassadarSparseTopKComparisonError> {
+pub fn build_tassadar_sparse_top_k_comparison_report(
+) -> Result<TassadarSparseTopKComparisonReport, TassadarSparseTopKComparisonError> {
     let benchmark_report =
         read_repo_json::<TassadarBenchmarkReport>(TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF)
             .map_err(|error| match error {
@@ -4170,8 +4166,8 @@ fn build_decode_scaling_regime(
 
 /// Builds the machine-readable decode-scaling report across the current active
 /// Tassadar decode modes.
-pub fn build_tassadar_decode_scaling_report()
--> Result<TassadarDecodeScalingReport, TassadarDecodeScalingReportError> {
+pub fn build_tassadar_decode_scaling_report(
+) -> Result<TassadarDecodeScalingReport, TassadarDecodeScalingReportError> {
     let _article_benchmark_report: Value = read_repo_json(
         TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF,
     )
@@ -4520,8 +4516,8 @@ fn build_geometric_variant_workload_summary(
 }
 
 /// Builds the machine-readable geometric-variant comparison report.
-pub fn build_tassadar_geometric_variant_report()
--> Result<TassadarGeometricVariantReport, TassadarGeometricVariantReportError> {
+pub fn build_tassadar_geometric_variant_report(
+) -> Result<TassadarGeometricVariantReport, TassadarGeometricVariantReportError> {
     let benchmark_report: TassadarBenchmarkReport = read_repo_json(
         TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF,
     )
@@ -4912,8 +4908,8 @@ mod tests {
     }
 
     #[test]
-    fn tassadar_reference_fixture_suite_builds_package_and_environment_contracts()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn tassadar_reference_fixture_suite_builds_package_and_environment_contracts(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let suite = build_tassadar_reference_fixture_suite("2026.03.15")?;
         assert_eq!(suite.artifacts.len(), 4);
         assert_eq!(suite.benchmark_package.cases.len(), 4);
@@ -4956,49 +4952,37 @@ mod tests {
     }
 
     #[test]
-    fn tassadar_reference_fixture_benchmark_is_exact_on_current_validation_corpus()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn tassadar_reference_fixture_benchmark_is_exact_on_current_validation_corpus(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let report = run_tassadar_reference_fixture_benchmark("2026.03.15")?;
         assert_eq!(report.aggregate_summary.round_count, 1);
         assert_eq!(report.aggregate_summary.aggregate_score_bps, Some(10_000));
         assert_eq!(report.aggregate_summary.aggregate_pass_rate_bps, 10_000);
         assert_eq!(report.eval_run.status, crate::EvalRunStatus::Finalized);
-        assert!(
-            report
-                .case_reports
-                .iter()
-                .all(|case| case.status == EvalSampleStatus::Passed)
-        );
-        assert!(
-            report
-                .case_reports
-                .iter()
-                .all(|case| case.cpu_reference_steps_per_second > 0.0)
-        );
-        assert!(
-            report
-                .case_reports
-                .iter()
-                .all(|case| case.reference_linear_steps_per_second > 0.0)
-        );
-        assert!(
-            report
-                .case_reports
-                .iter()
-                .all(|case| case.hull_cache_steps_per_second > 0.0)
-        );
-        assert!(
-            report
-                .case_reports
-                .iter()
-                .all(|case| case.sparse_top_k_steps_per_second > 0.0)
-        );
-        assert!(
-            report
-                .case_reports
-                .iter()
-                .all(|case| case.hull_cache_speedup_over_reference_linear > 1.0)
-        );
+        assert!(report
+            .case_reports
+            .iter()
+            .all(|case| case.status == EvalSampleStatus::Passed));
+        assert!(report
+            .case_reports
+            .iter()
+            .all(|case| case.cpu_reference_steps_per_second > 0.0));
+        assert!(report
+            .case_reports
+            .iter()
+            .all(|case| case.reference_linear_steps_per_second > 0.0));
+        assert!(report
+            .case_reports
+            .iter()
+            .all(|case| case.hull_cache_steps_per_second > 0.0));
+        assert!(report
+            .case_reports
+            .iter()
+            .all(|case| case.sparse_top_k_steps_per_second > 0.0));
+        assert!(report
+            .case_reports
+            .iter()
+            .all(|case| case.hull_cache_speedup_over_reference_linear > 1.0));
         assert!(report.case_reports.iter().all(|case| {
             case.sparse_top_k_selection_state == TassadarExecutorSelectionState::Direct
                 && case.sparse_top_k_selection_reason.is_none()
@@ -5012,12 +4996,10 @@ mod tests {
                 && case.selection_reason.is_none()
                 && !case.used_decode_fallback
         }));
-        assert!(
-            report
-                .case_reports
-                .iter()
-                .all(|case| case.trace_digest_equal)
-        );
+        assert!(report
+            .case_reports
+            .iter()
+            .all(|case| case.trace_digest_equal));
         assert!(report.case_reports.iter().all(|case| case.outputs_equal));
         assert!(report.case_reports.iter().all(|case| case.halt_equal));
         assert!(report.eval_run.samples.iter().all(|sample| {
@@ -5044,19 +5026,17 @@ mod tests {
                 .iter()
                 .any(|artifact| artifact.artifact_kind == "tassadar_selection_diagnostic.json")
         }));
-        assert!(
-            report
-                .eval_run
-                .run_artifacts
-                .iter()
-                .any(|artifact| { artifact.artifact_kind == "tassadar_runtime_capability.json" })
-        );
+        assert!(report
+            .eval_run
+            .run_artifacts
+            .iter()
+            .any(|artifact| { artifact.artifact_kind == "tassadar_runtime_capability.json" }));
         Ok(())
     }
 
     #[test]
-    fn tassadar_article_class_suite_builds_package_and_environment_contracts()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn tassadar_article_class_suite_builds_package_and_environment_contracts(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let suite = build_tassadar_article_class_suite("2026.03.16")?;
         let sudoku_v0_corpus = tassadar_sudoku_v0_corpus();
         assert_eq!(suite.artifacts.len(), sudoku_v0_corpus.len() + 5);
@@ -5105,19 +5085,17 @@ mod tests {
     }
 
     #[test]
-    fn tassadar_article_class_benchmark_is_exact_on_widened_corpus()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn tassadar_article_class_benchmark_is_exact_on_widened_corpus(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let report = run_tassadar_article_class_benchmark("2026.03.16")?;
         assert_eq!(report.aggregate_summary.round_count, 1);
         assert_eq!(report.aggregate_summary.aggregate_score_bps, Some(10_000));
         assert_eq!(report.aggregate_summary.aggregate_pass_rate_bps, 10_000);
         assert_eq!(report.eval_run.status, crate::EvalRunStatus::Finalized);
-        assert!(
-            report
-                .case_reports
-                .iter()
-                .all(|case| case.status == EvalSampleStatus::Passed)
-        );
+        assert!(report
+            .case_reports
+            .iter()
+            .all(|case| case.status == EvalSampleStatus::Passed));
         assert_eq!(
             report
                 .case_reports
@@ -5258,44 +5236,34 @@ mod tests {
                 _ => {}
             }
         }
-        assert!(
-            report
-                .case_reports
-                .iter()
-                .all(|case| case.trace_digest_equal)
-        );
+        assert!(report
+            .case_reports
+            .iter()
+            .all(|case| case.trace_digest_equal));
         assert!(report.case_reports.iter().all(|case| case.outputs_equal));
         assert!(report.case_reports.iter().all(|case| case.halt_equal));
-        assert!(
-            report
-                .case_reports
-                .iter()
-                .all(|case| case.cpu_reference_steps_per_second > 0.0)
-        );
-        assert!(
-            report
-                .case_reports
-                .iter()
-                .all(|case| case.reference_linear_steps_per_second > 0.0)
-        );
-        assert!(
-            report
-                .case_reports
-                .iter()
-                .all(|case| case.hull_cache_steps_per_second > 0.0)
-        );
-        assert!(
-            report
-                .case_reports
-                .iter()
-                .all(|case| case.sparse_top_k_steps_per_second > 0.0)
-        );
+        assert!(report
+            .case_reports
+            .iter()
+            .all(|case| case.cpu_reference_steps_per_second > 0.0));
+        assert!(report
+            .case_reports
+            .iter()
+            .all(|case| case.reference_linear_steps_per_second > 0.0));
+        assert!(report
+            .case_reports
+            .iter()
+            .all(|case| case.hull_cache_steps_per_second > 0.0));
+        assert!(report
+            .case_reports
+            .iter()
+            .all(|case| case.sparse_top_k_steps_per_second > 0.0));
         Ok(())
     }
 
     #[test]
-    fn tassadar_workload_capability_matrix_maps_current_families()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn tassadar_workload_capability_matrix_maps_current_families(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let report = build_tassadar_workload_capability_matrix_report()?;
         assert_eq!(
             report.schema_version,
@@ -5373,8 +5341,8 @@ mod tests {
     }
 
     #[test]
-    fn tassadar_workload_capability_matrix_report_matches_committed_truth()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn tassadar_workload_capability_matrix_report_matches_committed_truth(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let report = build_tassadar_workload_capability_matrix_report()?;
         let bytes = std::fs::read(
             std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -5388,8 +5356,8 @@ mod tests {
     }
 
     #[test]
-    fn write_tassadar_workload_capability_matrix_report_persists_current_truth()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn write_tassadar_workload_capability_matrix_report_persists_current_truth(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let temp_dir = std::env::temp_dir().join(format!(
             "psionic-tassadar-eval-capability-matrix-{}",
             std::process::id()
@@ -5406,8 +5374,8 @@ mod tests {
     }
 
     #[test]
-    fn tassadar_hull_cache_closure_report_tracks_widened_direct_subset()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn tassadar_hull_cache_closure_report_tracks_widened_direct_subset(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let report = build_tassadar_hull_cache_closure_report()?;
         assert!(report.exact_workloads.iter().any(|row| {
             row.workload_target == TassadarWorkloadTarget::MicroWasmKernel
@@ -5429,20 +5397,30 @@ mod tests {
                 && row.direct_case_count == 1
                 && row.fallback_case_count == 0
         }));
-        assert!(report.fallback_only_workloads.iter().any(|row| {
+        assert!(report.exact_workloads.iter().any(|row| {
             row.workload_target == TassadarWorkloadTarget::LongLoopKernel
-                && row.fallback_case_count == 1
+                && row.direct_case_count == 1
+                && row.fallback_case_count == 0
         }));
-        assert!(report.fallback_only_workloads.iter().any(|row| {
+        assert!(report.exact_workloads.iter().any(|row| {
             row.workload_target == TassadarWorkloadTarget::SudokuClass
-                && row.fallback_case_count == 8
+                && row.direct_case_count == 8
+                && row.fallback_case_count == 0
         }));
+        assert!(!report
+            .fallback_only_workloads
+            .iter()
+            .any(|row| { row.workload_target == TassadarWorkloadTarget::LongLoopKernel }));
+        assert!(!report
+            .fallback_only_workloads
+            .iter()
+            .any(|row| { row.workload_target == TassadarWorkloadTarget::SudokuClass }));
         Ok(())
     }
 
     #[test]
-    fn tassadar_hull_cache_closure_report_matches_committed_truth()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn tassadar_hull_cache_closure_report_matches_committed_truth(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let report = build_tassadar_hull_cache_closure_report()?;
         let bytes = std::fs::read(
             std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -5456,8 +5434,8 @@ mod tests {
     }
 
     #[test]
-    fn write_tassadar_hull_cache_closure_report_persists_current_truth()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn write_tassadar_hull_cache_closure_report_persists_current_truth(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let temp_dir = std::env::temp_dir().join(format!(
             "psionic-tassadar-eval-hull-cache-closure-{}",
             std::process::id()
@@ -5474,8 +5452,8 @@ mod tests {
     }
 
     #[test]
-    fn tassadar_sparse_top_k_comparison_report_tracks_direct_and_fallback_families()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn tassadar_sparse_top_k_comparison_report_tracks_direct_and_fallback_families(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let report = build_tassadar_sparse_top_k_comparison_report()?;
         assert!(report.exact_workloads.iter().any(|row| {
             row.workload_target == TassadarWorkloadTarget::MicroWasmKernel
@@ -5508,8 +5486,8 @@ mod tests {
     }
 
     #[test]
-    fn tassadar_sparse_top_k_comparison_report_matches_committed_truth()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn tassadar_sparse_top_k_comparison_report_matches_committed_truth(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let report = build_tassadar_sparse_top_k_comparison_report()?;
         let bytes = std::fs::read(
             std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -5523,8 +5501,8 @@ mod tests {
     }
 
     #[test]
-    fn write_tassadar_sparse_top_k_comparison_report_persists_current_truth()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn write_tassadar_sparse_top_k_comparison_report_persists_current_truth(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let temp_dir = std::env::temp_dir().join(format!(
             "psionic-tassadar-eval-sparse-top-k-comparison-{}",
             std::process::id()
@@ -5541,8 +5519,8 @@ mod tests {
     }
 
     #[test]
-    fn tassadar_geometric_variant_report_tracks_runtime_and_research_boundaries()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn tassadar_geometric_variant_report_tracks_runtime_and_research_boundaries(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let report = cached_geometric_variant_report();
         assert_eq!(
             report.schema_version,
@@ -5578,18 +5556,16 @@ mod tests {
                 && summary.fallback_case_count == 0
                 && summary.exact_case_count == 8
         }));
-        assert!(
-            report
-                .case_reports
-                .iter()
-                .all(|case| case.variant_steps_per_second > 0.0)
-        );
+        assert!(report
+            .case_reports
+            .iter()
+            .all(|case| case.variant_steps_per_second > 0.0));
         Ok(())
     }
 
     #[test]
-    fn tassadar_geometric_variant_report_matches_committed_truth()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn tassadar_geometric_variant_report_matches_committed_truth(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let bytes = std::fs::read(
             std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
                 .join("..")
@@ -5597,12 +5573,10 @@ mod tests {
                 .join(TASSADAR_GEOMETRIC_VARIANT_REPORT_REF),
         )?;
         let persisted: TassadarGeometricVariantReport = serde_json::from_slice(&bytes)?;
-        assert!(
-            persisted
-                .case_reports
-                .iter()
-                .all(|case| case.variant_steps_per_second > 0.0)
-        );
+        assert!(persisted
+            .case_reports
+            .iter()
+            .all(|case| case.variant_steps_per_second > 0.0));
         assert_eq!(
             normalized_geometric_variant_report_value(cached_geometric_variant_report()),
             normalized_geometric_variant_report_value(&persisted)
@@ -5611,8 +5585,8 @@ mod tests {
     }
 
     #[test]
-    fn write_tassadar_geometric_variant_report_persists_current_truth()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn write_tassadar_geometric_variant_report_persists_current_truth(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let temp_dir = std::env::temp_dir().join(format!(
             "psionic-tassadar-eval-geometric-variants-{}",
             std::process::id()
@@ -5622,12 +5596,10 @@ mod tests {
         let report = write_tassadar_geometric_variant_report(&report_path)?;
         let bytes = std::fs::read(&report_path)?;
         let persisted: TassadarGeometricVariantReport = serde_json::from_slice(&bytes)?;
-        assert!(
-            persisted
-                .case_reports
-                .iter()
-                .all(|case| case.variant_steps_per_second > 0.0)
-        );
+        assert!(persisted
+            .case_reports
+            .iter()
+            .all(|case| case.variant_steps_per_second > 0.0));
         assert_eq!(
             normalized_geometric_variant_report_value(&report),
             normalized_geometric_variant_report_value(&persisted)
@@ -5638,8 +5610,8 @@ mod tests {
     }
 
     #[test]
-    fn tassadar_decode_scaling_report_tracks_direct_and_fallback_regimes()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn tassadar_decode_scaling_report_tracks_direct_and_fallback_regimes(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let report = cached_decode_scaling_report();
         assert_eq!(
             report.schema_version,
@@ -5721,8 +5693,8 @@ mod tests {
     }
 
     #[test]
-    fn tassadar_decode_scaling_report_matches_committed_truth()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn tassadar_decode_scaling_report_matches_committed_truth(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let bytes = std::fs::read(
             std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
                 .join("..")
@@ -5738,8 +5710,8 @@ mod tests {
     }
 
     #[test]
-    fn write_tassadar_decode_scaling_report_persists_current_truth()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn write_tassadar_decode_scaling_report_persists_current_truth(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let temp_dir = std::env::temp_dir().join(format!(
             "psionic-tassadar-eval-decode-scaling-{}",
             std::process::id()

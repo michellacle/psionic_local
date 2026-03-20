@@ -2,9 +2,10 @@ use std::{fs, path::Path};
 
 use psionic_runtime::TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF;
 use psionic_serve::{
-    ARTICLE_EXECUTOR_SESSION_PRODUCT_ID, LocalTassadarArticleExecutorSessionService,
-    TASSADAR_ARTICLE_EXECUTOR_SESSION_ARTIFACT_REF, TassadarArticleExecutorSessionOutcome,
+    tassadar_article_executor_session_stream_events_for_outcome,
+    LocalTassadarArticleExecutorSessionService, TassadarArticleExecutorSessionOutcome,
     TassadarArticleExecutorSessionRequest, TassadarArticleExecutorSessionStreamEvent,
+    ARTICLE_EXECUTOR_SESSION_PRODUCT_ID, TASSADAR_ARTICLE_EXECUTOR_SESSION_ARTIFACT_REF,
 };
 use serde::Serialize;
 use sha2::{Digest, Sha256};
@@ -85,11 +86,7 @@ fn collect_case(
     request: TassadarArticleExecutorSessionRequest,
 ) -> Result<ArticleExecutorSessionArtifactCase, Box<dyn std::error::Error>> {
     let outcome = service.execute(&request)?;
-    let mut stream = service.execute_stream(&request)?;
-    let mut stream_events = Vec::new();
-    while let Some(event) = stream.next_event() {
-        stream_events.push(event);
-    }
+    let stream_events = tassadar_article_executor_session_stream_events_for_outcome(&outcome);
     Ok(ArticleExecutorSessionArtifactCase {
         name: String::from(name),
         request,

@@ -628,7 +628,7 @@
         "github_issue_number": 296,
         "title": "TAS-174: Fast-route exactness and no-fallback closure",
         "issue_role": "implementation",
-        "issue_state": "open",
+        "issue_state": "closed",
         "blocker_ids": [
           "BEQ-004"
         ]
@@ -839,7 +839,7 @@
     ],
     "claim_boundary": "this report freezes the exact blocker set for article-equivalent closure. It is a machine-readable contract for what still has to become true. It keeps article-equivalence red by design until every blocker closes, and it must not be read as widening the current public capability surface",
     "summary": "Article-equivalence blocker matrix now freezes blocker_count=7, later_issue_count=38, matrix_contract_green=true, article_equivalence_green=false, and open_blocker_count=7.",
-    "report_digest": "e507a263802534eeb6ec636ec8f799c0064328f2835756d7e08c1ae77eb361cf"
+    "report_digest": "4ea9b5d681668fb06617bff55f751e1511866bcfad83a3586deb1d5d439b9d03"
   },
   "requirement_rows": [
     {
@@ -1187,14 +1187,14 @@
       "requirement_id": "TAS-174",
       "requirement_kind": "implementation",
       "required_for_green": true,
-      "satisfied": false,
+      "satisfied": true,
       "blocker_ids": [
         "BEQ-004"
       ],
       "source_refs": [
         "fixtures/tassadar/reports/tassadar_article_equivalence_blocker_matrix_report.json"
       ],
-      "detail": "TAS-174 (`TAS-174: Fast-route exactness and no-fallback closure`) remains open in the blocker matrix, so the final article-equivalence gate stays blocked on blocker families BEQ-004 until that tranche closes."
+      "detail": "TAS-174 (`TAS-174: Fast-route exactness and no-fallback closure`) is closed in the blocker matrix, so this acceptance-gate row is currently satisfied for blocker families BEQ-004."
     },
     {
       "requirement_id": "TAS-175",
@@ -1422,9 +1422,9 @@
   ],
   "total_requirement_count": 41,
   "required_requirement_count": 40,
-  "passed_required_requirement_count": 23,
+  "passed_required_requirement_count": 24,
   "required_issue_count": 37,
-  "closed_required_issue_count": 21,
+  "closed_required_issue_count": 22,
   "green_requirement_ids": [
     "blocker_matrix_contract_frozen",
     "owned_transformer_route_boundary_frozen",
@@ -1448,11 +1448,11 @@
     "TAS-171B",
     "TAS-171C",
     "TAS-172",
-    "TAS-173"
+    "TAS-173",
+    "TAS-174"
   ],
   "failed_requirement_ids": [
     "article_equivalence_blockers_closed",
-    "TAS-174",
     "TAS-175",
     "TAS-176",
     "TAS-177",
@@ -1470,7 +1470,6 @@
     "TAS-186"
   ],
   "blocked_issue_ids": [
-    "TAS-174",
     "TAS-175",
     "TAS-176",
     "TAS-177",
@@ -1516,6 +1515,6 @@
   "article_equivalence_green": false,
   "public_claim_allowed": false,
   "claim_boundary": "this is the frozen final acceptance gate for article-equivalent closure. It stays blocked until the blocker-matrix contract remains intact, the owned `psionic-transformer` route boundary remains intact, the blocker matrix itself turns article-equivalence green, and every required TAS tranche from `TAS-158` through `TAS-186` is closed. A green result here is necessary but not sufficient to widen public capability claims, and it still does not imply arbitrary C ingress, arbitrary Wasm ingress, or generic interpreter-in-weights closure outside the declared article envelope.",
-  "summary": "Article-equivalence acceptance gate now records passed_required_requirements=23/40, closed_required_issues=21/37, blocked_issues=16, blocker_matrix_article_equivalence_green=false, and article_equivalence_green=false.",
-  "report_digest": "9f75c727d731510a536906fab30f77acb888b936ee97cd3f4271d90213274851"
+  "summary": "Article-equivalence acceptance gate now records passed_required_requirements=24/40, closed_required_issues=22/37, blocked_issues=15, blocker_matrix_article_equivalence_green=false, and article_equivalence_green=false.",
+  "report_digest": "2b5e3c26ee0a93499dae233c7a4a04940b1a0949105ac2f85608c46cde5a72db"
 }

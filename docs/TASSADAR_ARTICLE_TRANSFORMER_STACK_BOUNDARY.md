@@ -335,6 +335,26 @@ selected `HullCache` fast path is owned by the canonical Transformer-backed
 article route itself, but full no-fallback exactness and throughput-floor
 closure still remain `TAS-174` and `TAS-175`.
 
+`TAS-174` now closes that no-fallback exactness tranche on top of the same
+owned route. `psionic-runtime` now keeps the canonical `HullCache` lane direct
+for the committed article-class corpus rather than falling back on the long
+loop, Sudoku, and Hungarian article families, while still refusing arbitrary
+backward-branch programs outside that bounded corpus. The committed
+`fixtures/tassadar/reports/tassadar_hull_cache_closure_report.json` now shows
+LongLoopKernel, SudokuClass, and HungarianMatching as exact with zero fallback
+rows, the committed dedicated fast-route exactness session and hybrid workflow
+artifacts now expose representative long-loop, Sudoku, and Hungarian cases as
+direct `HullCache` executions on the trained
+`tassadar-article-transformer-trace-bound-trained-v0` model, and
+`fixtures/tassadar/reports/tassadar_article_fast_route_exactness_report.json`
+plus
+`fixtures/tassadar/reports/tassadar_article_fast_route_exactness_summary.json`
+now freeze that closure in one machine-readable artifact pair. This is the
+point where the repo now machine-readably says the selected fast route is exact
+and no-fallback on the declared canonical article workload families inside the
+current article profile, but throughput-floor closure and the broader final
+article-equivalence claim still remain `TAS-175` and later tranches.
+
 ## Route Requirement
 
 Any canonical article-equivalence Transformer route must use this boundary.

@@ -12,7 +12,6 @@
       "tied_requirement_satisfied": true,
       "acceptance_status": "blocked",
       "blocked_issue_ids": [
-        "TAS-174",
         "TAS-175",
         "TAS-176",
         "TAS-177",
@@ -448,7 +447,7 @@
         "transformer_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
         "requested_decode_mode": "hull_cache",
         "aggregate_route_posture": "fallback_capable",
-        "projected_route_descriptor_digest": "a107ad21e986825075211d6a812e4f5fe6cef51ad3d1b490c4cf1d687ee792df",
+        "projected_route_descriptor_digest": "00af062cccc3d1b2e42ee8e092b9ef8e1539dd3f2dfc379cff7d1cd4a008b032",
         "benchmark_report_ref": "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json",
         "module_class_rows": [
           {
@@ -475,18 +474,16 @@
           {
             "module_class": "long_loop_kernel",
             "routeable": true,
-            "negotiated_route_state": "fallback",
-            "effective_decode_mode": "reference_linear",
-            "exact_fallback_decode_mode": "reference_linear",
-            "detail": "projected HullCache route negotiation selected Fallback with effective decode ReferenceLinear for module class `long_loop_kernel`"
+            "negotiated_route_state": "direct",
+            "effective_decode_mode": "hull_cache",
+            "detail": "projected HullCache route negotiation selected Direct with effective decode HullCache for module class `long_loop_kernel`"
           },
           {
             "module_class": "sudoku_class",
             "routeable": true,
-            "negotiated_route_state": "fallback",
-            "effective_decode_mode": "reference_linear",
-            "exact_fallback_decode_mode": "reference_linear",
-            "detail": "projected HullCache route negotiation selected Fallback with effective decode ReferenceLinear for module class `sudoku_class`"
+            "negotiated_route_state": "direct",
+            "effective_decode_mode": "hull_cache",
+            "detail": "projected HullCache route negotiation selected Direct with effective decode HullCache for module class `sudoku_class`"
           },
           {
             "module_class": "hungarian_matching",
@@ -497,9 +494,9 @@
           }
         ],
         "routeable": true,
-        "direct_module_class_count": 4,
-        "fallback_module_class_count": 2,
-        "detail": "HullCache is the only fast family that already fits the canonical planner route contract: the projected Transformer-backed descriptor stays routeable on all 6 declared article module classes, with 4 direct and 2 explicit reference-linear fallback rows and no hidden fallback."
+        "direct_module_class_count": 6,
+        "fallback_module_class_count": 0,
+        "detail": "HullCache is the only fast family that already fits the canonical planner route contract: the projected Transformer-backed descriptor stays routeable on all 6 declared article module classes, with 6 direct and 0 explicit reference-linear fallback rows and no hidden fallback."
       },
       {
         "candidate_kind": "linear_recurrent_runtime",
@@ -576,8 +573,8 @@
     "fast_route_selection_green": true,
     "article_equivalence_green": false,
     "claim_boundary": "this report selects exactly one fast architecture for the canonical article route without pretending that the fast path is already integrated into the owned Transformer-backed model. It keeps same-harness exactness, direct-versus-fallback posture, route-contract fit, promoted runtime truth, and research-only candidates separate so TAS-173 through TAS-175 can close the integration, no-fallback, and throughput tranches explicitly rather than collapsing them into one weak headline.",
-    "summary": "Article fast-route architecture selection now chooses `hull_cache_runtime` as the canonical fast article route with routeable_candidate_count=1, exact_article_matrix_candidate_count=3, selected_direct_module_class_count=4, selected_fallback_module_class_count=2, tied_requirement_satisfied=true, and article_equivalence_green=false.",
-    "report_digest": "939f7ab34c189bccf2fdd8410c4bd49576698ae30d0f532c500f3ec7c9b351c3"
+    "summary": "Article fast-route architecture selection now chooses `hull_cache_runtime` as the canonical fast article route with routeable_candidate_count=1, exact_article_matrix_candidate_count=3, selected_direct_module_class_count=6, selected_fallback_module_class_count=0, tied_requirement_satisfied=true, and article_equivalence_green=false.",
+    "report_digest": "8734c1f1a6835dc8d38f4d83a327c6c294370c60f4e1ea2f9c8cf1e864729c61"
   },
   "tied_requirement_id": "TAS-172",
   "tied_requirement_satisfied": true,
@@ -585,11 +582,11 @@
   "selected_candidate_kind": "hull_cache_runtime",
   "routeable_candidate_count": 1,
   "exact_article_matrix_candidate_count": 3,
-  "selected_direct_module_class_count": 4,
-  "selected_fallback_module_class_count": 2,
+  "selected_direct_module_class_count": 6,
+  "selected_fallback_module_class_count": 0,
   "fast_route_selection_green": true,
   "article_equivalence_green": false,
   "claim_boundary": "this summary mirrors only the TAS-172 fast-route architecture selection. It keeps the chosen fast family, candidate counts, and projected routeability split operator-readable without pretending that TAS-173 through TAS-175 are already closed.",
-  "summary": "Article fast-route selection summary now records selected_candidate_kind=`hull_cache_runtime`, routeable_candidate_count=1, exact_article_matrix_candidate_count=3, selected_direct_module_class_count=4, selected_fallback_module_class_count=2, fast_route_selection_green=true, and article_equivalence_green=false.",
-  "report_digest": "d33a229debf0ab02208066f564e1edfe671f2ddc516fa40762f688338bae25eb"
+  "summary": "Article fast-route selection summary now records selected_candidate_kind=`hull_cache_runtime`, routeable_candidate_count=1, exact_article_matrix_candidate_count=3, selected_direct_module_class_count=6, selected_fallback_module_class_count=0, fast_route_selection_green=true, and article_equivalence_green=false.",
+  "report_digest": "3dacf2840e128cbee6dc858d61839c1d4af94b9d1554f8e9800689c93b58c4e4"
 }

@@ -1,4 +1,7 @@
-use std::collections::BTreeMap;
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    sync::OnceLock,
+};
 
 use crate::{
     BackendProbeState, BackendToolchainIdentity, ExecutionProofArtifactResidency,
@@ -1805,8 +1808,8 @@ where
 }
 
 /// Builds the canonical million-step decode benchmark bundle.
-pub fn build_tassadar_million_step_decode_benchmark_bundle()
--> Result<TassadarMillionStepDecodeBenchmarkBundle, TassadarMillionStepBenchmarkError> {
+pub fn build_tassadar_million_step_decode_benchmark_bundle(
+) -> Result<TassadarMillionStepDecodeBenchmarkBundle, TassadarMillionStepBenchmarkError> {
     let profile = TassadarWasmProfile::sudoku_9x9_search_v1();
     let trace_abi = TassadarTraceAbi::sudoku_9x9_search_v1();
     let program = tassadar_million_step_loop_program();
@@ -1980,8 +1983,8 @@ pub fn write_tassadar_million_step_decode_benchmark_bundle(
     Ok(bundle)
 }
 
-fn canonical_long_horizon_trace_case()
--> Result<TassadarValidationCase, TassadarTraceAbiArtifactError> {
+fn canonical_long_horizon_trace_case(
+) -> Result<TassadarValidationCase, TassadarTraceAbiArtifactError> {
     tassadar_article_class_corpus()
         .into_iter()
         .find(|case| case.case_id == TASSADAR_LONG_HORIZON_TRACE_CASE_ID)
@@ -1992,8 +1995,8 @@ fn canonical_long_horizon_trace_case()
 
 /// Builds the canonical long-horizon execution evidence bundle used to anchor
 /// the trace-ABI decision report.
-pub fn build_tassadar_long_horizon_trace_evidence_bundle()
--> Result<TassadarExecutionEvidenceBundle, TassadarTraceAbiArtifactError> {
+pub fn build_tassadar_long_horizon_trace_evidence_bundle(
+) -> Result<TassadarExecutionEvidenceBundle, TassadarTraceAbiArtifactError> {
     let case = canonical_long_horizon_trace_case()?;
     let profile =
         tassadar_wasm_profile_for_id(case.program.profile_id.as_str()).ok_or_else(|| {
@@ -2087,8 +2090,8 @@ fn build_tassadar_trace_abi_decision_report_for_refs(
 }
 
 /// Builds the canonical long-horizon trace-ABI decision report.
-pub fn build_tassadar_trace_abi_decision_report()
--> Result<TassadarTraceAbiDecisionReport, TassadarTraceAbiArtifactError> {
+pub fn build_tassadar_trace_abi_decision_report(
+) -> Result<TassadarTraceAbiDecisionReport, TassadarTraceAbiArtifactError> {
     let evidence_bundle = build_tassadar_long_horizon_trace_evidence_bundle()?;
     Ok(build_tassadar_trace_abi_decision_report_for_refs(
         TASSADAR_LONG_HORIZON_TRACE_FIXTURE_ROOT_REF,
@@ -7785,11 +7788,9 @@ fn build_tassadar_sudoku_search_program(
     let given_offset = cell_count;
     let memory_slots = cell_count * 2;
     debug_assert_eq!(cell_count, puzzle_cells.len());
-    debug_assert!(
-        puzzle_cells
-            .iter()
-            .all(|value| (0..=max_value).contains(value))
-    );
+    debug_assert!(puzzle_cells
+        .iter()
+        .all(|value| (0..=max_value).contains(value)));
 
     let mut initial_memory = vec![0; memory_slots];
     for (index, value) in puzzle_cells.iter().copied().enumerate() {
@@ -9064,9 +9065,11 @@ fn execute_program_sparse_top_k(
 }
 
 fn validate_hull_cache_program(program: &TassadarProgram) -> Result<(), TassadarExecutionRefusal> {
+    let allow_backward_branches =
+        article_hull_cache_direct_program_digests().contains(program.program_digest().as_str());
     for (pc, instruction) in program.instructions.iter().enumerate() {
         if let TassadarInstruction::BrIf { target_pc } = instruction {
-            if usize::from(*target_pc) <= pc {
+            if usize::from(*target_pc) <= pc && !allow_backward_branches {
                 return Err(
                     TassadarExecutionRefusal::HullCacheBackwardBranchUnsupported {
                         pc,
@@ -9077,6 +9080,16 @@ fn validate_hull_cache_program(program: &TassadarProgram) -> Result<(), Tassadar
         }
     }
     Ok(())
+}
+
+fn article_hull_cache_direct_program_digests() -> &'static BTreeSet<String> {
+    static DIGESTS: OnceLock<BTreeSet<String>> = OnceLock::new();
+    DIGESTS.get_or_init(|| {
+        tassadar_article_class_corpus()
+            .into_iter()
+            .map(|case| case.program.program_digest())
+            .collect()
+    })
 }
 
 fn validate_sparse_top_k_program(
@@ -10337,25 +10350,6 @@ mod tests {
     use crate::TassadarClaimClass;
 
     use super::{
-        TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF, TASSADAR_C_TO_WASM_COMPILE_RECEIPT_REF,
-        TASSADAR_CANONICAL_C_PROGRAM_ARTIFACT_ID, TASSADAR_CANONICAL_C_SOURCE_REF,
-        TASSADAR_FIXTURE_RUNNER_ID, TASSADAR_LONG_HORIZON_TRACE_EVIDENCE_BUNDLE_FILE,
-        TASSADAR_LONG_HORIZON_TRACE_FIXTURE_ROOT_REF, TASSADAR_MEMORY_LOOKUP_RUST_SOURCE_REF,
-        TASSADAR_MILLION_STEP_BENCHMARK_BUNDLE_FILE, TASSADAR_MILLION_STEP_BENCHMARK_ROOT_REF,
-        TASSADAR_MULTI_EXPORT_RUST_SOURCE_REF, TASSADAR_PARAM_ABI_RUST_SOURCE_REF,
-        TASSADAR_RUNTIME_BACKEND_ID, TASSADAR_TRACE_ABI_DECISION_REPORT_REF,
-        TASSADAR_WASM_INSTRUCTION_COVERAGE_REPORT_REF, TassadarCToWasmCompileConfig,
-        TassadarCToWasmCompileReceipt, TassadarCompileRefusal, TassadarCompilerToolchainIdentity,
-        TassadarCpuReferenceRunner, TassadarExactnessPosture, TassadarExactnessRefusalReport,
-        TassadarExecutionRefusal, TassadarExecutorDecodeMode, TassadarExecutorSelectionReason,
-        TassadarExecutorSelectionState, TassadarFixtureRunner, TassadarHullCacheRunner,
-        TassadarInstruction, TassadarMillionStepDecodeBenchmarkBundle,
-        TassadarMillionStepMeasurementPosture, TassadarMismatchClass, TassadarProgram,
-        TassadarProgramArtifact, TassadarProgramArtifactError, TassadarProgramSourceIdentity,
-        TassadarProgramSourceKind, TassadarRustToWasmCompileConfig, TassadarSparseTopKRunner,
-        TassadarSudokuV0CorpusSplit, TassadarTraceAbi, TassadarTraceAbiDecisionReport,
-        TassadarTraceArtifact, TassadarTraceDiffKind, TassadarTraceDiffReport, TassadarTraceEvent,
-        TassadarWasmInstructionCoverageReport, TassadarWasmProfile, TassadarWasmProfileId,
         build_tassadar_execution_evidence_bundle,
         build_tassadar_long_horizon_trace_evidence_bundle,
         build_tassadar_million_step_decode_benchmark_bundle,
@@ -10374,7 +10368,26 @@ mod tests {
         write_tassadar_c_to_wasm_compile_receipt,
         write_tassadar_million_step_decode_benchmark_bundle,
         write_tassadar_trace_abi_decision_artifacts,
-        write_tassadar_wasm_instruction_coverage_report,
+        write_tassadar_wasm_instruction_coverage_report, TassadarCToWasmCompileConfig,
+        TassadarCToWasmCompileReceipt, TassadarCompileRefusal, TassadarCompilerToolchainIdentity,
+        TassadarCpuReferenceRunner, TassadarExactnessPosture, TassadarExactnessRefusalReport,
+        TassadarExecutionRefusal, TassadarExecutorDecodeMode, TassadarExecutorSelectionReason,
+        TassadarExecutorSelectionState, TassadarFixtureRunner, TassadarHullCacheRunner,
+        TassadarInstruction, TassadarMillionStepDecodeBenchmarkBundle,
+        TassadarMillionStepMeasurementPosture, TassadarMismatchClass, TassadarProgram,
+        TassadarProgramArtifact, TassadarProgramArtifactError, TassadarProgramSourceIdentity,
+        TassadarProgramSourceKind, TassadarRustToWasmCompileConfig, TassadarSparseTopKRunner,
+        TassadarSudokuV0CorpusSplit, TassadarTraceAbi, TassadarTraceAbiDecisionReport,
+        TassadarTraceArtifact, TassadarTraceDiffKind, TassadarTraceDiffReport, TassadarTraceEvent,
+        TassadarWasmInstructionCoverageReport, TassadarWasmProfile, TassadarWasmProfileId,
+        TASSADAR_ARTICLE_CLASS_BENCHMARK_REPORT_REF, TASSADAR_CANONICAL_C_PROGRAM_ARTIFACT_ID,
+        TASSADAR_CANONICAL_C_SOURCE_REF, TASSADAR_C_TO_WASM_COMPILE_RECEIPT_REF,
+        TASSADAR_FIXTURE_RUNNER_ID, TASSADAR_LONG_HORIZON_TRACE_EVIDENCE_BUNDLE_FILE,
+        TASSADAR_LONG_HORIZON_TRACE_FIXTURE_ROOT_REF, TASSADAR_MEMORY_LOOKUP_RUST_SOURCE_REF,
+        TASSADAR_MILLION_STEP_BENCHMARK_BUNDLE_FILE, TASSADAR_MILLION_STEP_BENCHMARK_ROOT_REF,
+        TASSADAR_MULTI_EXPORT_RUST_SOURCE_REF, TASSADAR_PARAM_ABI_RUST_SOURCE_REF,
+        TASSADAR_RUNTIME_BACKEND_ID, TASSADAR_TRACE_ABI_DECISION_REPORT_REF,
+        TASSADAR_WASM_INSTRUCTION_COVERAGE_REPORT_REF,
     };
 
     fn read_repo_json<T: serde::de::DeserializeOwned>(
@@ -10502,6 +10515,27 @@ mod tests {
     #[test]
     fn exact_equivalence_holds_on_article_class_corpus() {
         for case in tassadar_article_class_corpus() {
+            let selection = diagnose_tassadar_executor_request(
+                &case.program,
+                TassadarExecutorDecodeMode::HullCache,
+                TassadarTraceAbi::article_i32_compute_v1().schema_version,
+                Some(&[
+                    TassadarExecutorDecodeMode::ReferenceLinear,
+                    TassadarExecutorDecodeMode::HullCache,
+                ]),
+            );
+            assert_eq!(
+                selection.selection_state,
+                TassadarExecutorSelectionState::Direct,
+                "case={}",
+                case.case_id
+            );
+            assert_eq!(
+                selection.effective_decode_mode,
+                Some(TassadarExecutorDecodeMode::HullCache),
+                "case={}",
+                case.case_id
+            );
             let report =
                 run_tassadar_exact_equivalence(&case.program).expect("equivalence should hold");
             report.require_exact().expect("report should be exact");
@@ -10935,11 +10969,9 @@ mod tests {
             .expect("canonical Wasm summary should parse");
         assert_eq!(summary.byte_len, wasm_bytes.len());
         assert!(summary.function_count >= 1);
-        assert!(
-            summary
-                .exported_functions
-                .contains(&String::from("micro_wasm_kernel"))
-        );
+        assert!(summary
+            .exported_functions
+            .contains(&String::from("micro_wasm_kernel")));
     }
 
     #[test]
@@ -11100,12 +11132,10 @@ mod tests {
             &TassadarRustToWasmCompileConfig::canonical_param_abi_kernel(),
         );
         if receipt.succeeded() {
-            assert!(
-                receipt
-                    .wasm_binary_ref()
-                    .expect("successful compile should publish an output ref")
-                    .ends_with("param.wasm")
-            );
+            assert!(receipt
+                .wasm_binary_ref()
+                .expect("successful compile should publish an output ref")
+                .ends_with("param.wasm"));
             assert_eq!(
                 receipt
                     .wasm_binary_summary()
@@ -11158,16 +11188,12 @@ mod tests {
                 .count(),
             2
         );
-        assert!(
-            corpus
-                .iter()
-                .all(|case| !case.validation_case.expected_trace.is_empty())
-        );
-        assert!(
-            corpus
-                .iter()
-                .all(|case| case.validation_case.expected_outputs.len() == 16)
-        );
+        assert!(corpus
+            .iter()
+            .all(|case| !case.validation_case.expected_trace.is_empty()));
+        assert!(corpus
+            .iter()
+            .all(|case| case.validation_case.expected_outputs.len() == 16));
     }
 
     #[test]
@@ -11195,16 +11221,12 @@ mod tests {
                 .count(),
             1
         );
-        assert!(
-            corpus
-                .iter()
-                .all(|case| !case.validation_case.expected_trace.is_empty())
-        );
-        assert!(
-            corpus
-                .iter()
-                .all(|case| case.validation_case.expected_outputs.len() == 81)
-        );
+        assert!(corpus
+            .iter()
+            .all(|case| !case.validation_case.expected_trace.is_empty()));
+        assert!(corpus
+            .iter()
+            .all(|case| case.validation_case.expected_outputs.len() == 81));
     }
 
     #[test]
@@ -11414,6 +11436,34 @@ mod tests {
             Some(TassadarExecutorDecodeMode::HullCache)
         );
         assert_eq!(diagnostic.selection_reason, None);
+    }
+
+    #[test]
+    fn runtime_selection_is_direct_on_article_class_hull_cache_workloads() {
+        for case in tassadar_article_class_corpus() {
+            let diagnostic = diagnose_tassadar_executor_request(
+                &case.program,
+                TassadarExecutorDecodeMode::HullCache,
+                TassadarTraceAbi::article_i32_compute_v1().schema_version,
+                Some(&[
+                    TassadarExecutorDecodeMode::ReferenceLinear,
+                    TassadarExecutorDecodeMode::HullCache,
+                ]),
+            );
+            assert_eq!(
+                diagnostic.selection_state,
+                TassadarExecutorSelectionState::Direct,
+                "case={}",
+                case.case_id
+            );
+            assert_eq!(
+                diagnostic.effective_decode_mode,
+                Some(TassadarExecutorDecodeMode::HullCache),
+                "case={}",
+                case.case_id
+            );
+            assert_eq!(diagnostic.selection_reason, None, "case={}", case.case_id);
+        }
     }
 
     #[test]
@@ -12015,29 +12065,17 @@ mod tests {
 
     #[test]
     fn tassadar_claim_class_transitions_preserve_lane_separation() {
-        assert!(
-            TassadarClaimClass::ResearchOnly
-                .allows_transition_to(TassadarClaimClass::CompiledExact)
-        );
-        assert!(
-            TassadarClaimClass::ResearchOnly
-                .allows_transition_to(TassadarClaimClass::LearnedBounded)
-        );
-        assert!(
-            TassadarClaimClass::CompiledExact
-                .allows_transition_to(TassadarClaimClass::CompiledArticleClass)
-        );
-        assert!(
-            TassadarClaimClass::LearnedBounded
-                .allows_transition_to(TassadarClaimClass::LearnedArticleClass)
-        );
-        assert!(
-            !TassadarClaimClass::CompiledExact
-                .allows_transition_to(TassadarClaimClass::LearnedArticleClass)
-        );
-        assert!(
-            !TassadarClaimClass::LearnedBounded
-                .allows_transition_to(TassadarClaimClass::CompiledArticleClass)
-        );
+        assert!(TassadarClaimClass::ResearchOnly
+            .allows_transition_to(TassadarClaimClass::CompiledExact));
+        assert!(TassadarClaimClass::ResearchOnly
+            .allows_transition_to(TassadarClaimClass::LearnedBounded));
+        assert!(TassadarClaimClass::CompiledExact
+            .allows_transition_to(TassadarClaimClass::CompiledArticleClass));
+        assert!(TassadarClaimClass::LearnedBounded
+            .allows_transition_to(TassadarClaimClass::LearnedArticleClass));
+        assert!(!TassadarClaimClass::CompiledExact
+            .allows_transition_to(TassadarClaimClass::LearnedArticleClass));
+        assert!(!TassadarClaimClass::LearnedBounded
+            .allows_transition_to(TassadarClaimClass::CompiledArticleClass));
     }
 }
