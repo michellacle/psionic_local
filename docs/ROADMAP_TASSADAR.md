@@ -157,6 +157,19 @@ Current honest posture:
   but it does not yet reissue the bounded Turing-completeness claim on the
   canonical route or imply served/public universality, weighted plugin
   control, or arbitrary software capability
+- the repo now also has one post-article canonical-route semantic-preservation
+  audit, with a committed eval report at
+  `fixtures/tassadar/reports/tassadar_post_article_canonical_route_semantic_preservation_audit_report.json`,
+  a disclosure-safe research summary at
+  `fixtures/tassadar/reports/tassadar_post_article_canonical_route_semantic_preservation_summary.json`,
+  a provider-facing receipt, a checker script, and an audit note that prove
+  the declared continuation mechanics preserve canonical identity, declared
+  state ownership, and declared semantics on the bridge machine identity
+  instead of merely preserving a subset of outputs; this tranche still does
+  not prove decision provenance, publish the final carrier split, reissue the
+  bounded Turing-completeness claim on the canonical route, or imply
+  served/public universality, weighted plugin control, or arbitrary software
+  capability
 - the repo now also has one machine-readable article-equivalence blocker
   matrix, with a committed eval report at
   `fixtures/tassadar/reports/tassadar_article_equivalence_blocker_matrix_report.json`,

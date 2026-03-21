@@ -654,6 +654,24 @@ bridge still is not a semantic-preservation proof, a control-plane provenance
 proof, a served/public universality approval, a weighted plugin-control claim,
 or an arbitrary software-capability claim.
 
+`TAS-188` now closes the semantic-preservation and state-ownership tranche at
+`fixtures/tassadar/reports/tassadar_post_article_canonical_route_semantic_preservation_audit_report.json`.
+That audit binds the bridge machine identity to the current session-process,
+spill/tape, and installed-process continuation evidence, freezes one declared
+weights-owned versus ephemeral versus resumed versus durable state taxonomy,
+and states machine-readably that host may execute declared continuation
+mechanics but may not own workflow semantics. The operator-readable summary now
+lives at
+`fixtures/tassadar/reports/tassadar_post_article_canonical_route_semantic_preservation_summary.json`,
+the provider receipt now lives at
+`crates/psionic-provider/src/tassadar_post_article_canonical_route_semantic_preservation.rs`,
+and the dedicated checker now lives at
+`scripts/check-tassadar-post-article-canonical-route-semantic-preservation-audit.sh`.
+This tranche still is not the full control-plane decision-provenance proof,
+the final direct-versus-resumable carrier split publication, a rebased
+Turing-completeness approval, a served/public universality approval, a
+weighted plugin-control claim, or an arbitrary software-capability claim.
+
 ## Route Requirement
 
 Any canonical article-equivalence Transformer route must use this boundary.

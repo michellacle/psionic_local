@@ -1,0 +1,312 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.post_article_canonical_route_semantic_preservation_audit.report.v1",
+  "checker_script_ref": "scripts/check-tassadar-post-article-canonical-route-semantic-preservation-audit.sh",
+  "bridge_contract_report_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
+  "session_process_profile_report_ref": "fixtures/tassadar/reports/tassadar_session_process_profile_report.json",
+  "spill_tape_store_report_ref": "fixtures/tassadar/reports/tassadar_spill_tape_store_report.json",
+  "installed_process_lifecycle_report_ref": "fixtures/tassadar/reports/tassadar_installed_process_lifecycle_report.json",
+  "supporting_material_rows": [
+    {
+      "material_id": "bridge_contract",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
+      "source_report_id": "tassadar.post_article_universality_bridge.contract.report.v1",
+      "source_report_digest": "2908d3a3b0a47f76c60fcf61726f8f37fc366b9ffe9ba3d3ddad75f08a012e10",
+      "detail": "the bridge contract must stay green before semantic-preservation closure can bind continuation mechanics to the canonical machine identity"
+    },
+    {
+      "material_id": "tcm_v1_runtime_contract",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_tcm_v1_runtime_contract_report.json",
+      "source_report_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+      "source_report_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
+      "detail": "the declared `TCM.v1` continuation contract must stay green before resumed state can be classified or carried forward under the bridge"
+    },
+    {
+      "material_id": "session_process_profile",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_session_process_profile_report.json",
+      "source_report_id": "tassadar.session_process_profile.report.v1",
+      "source_report_digest": "7d267ea312cb4c5b6e881d4f690a9d63312d8c565ede4388fb1fe40dd3a4ea93",
+      "detail": "the session-process profile must stay green so bounded interactive resume semantics remain explicit and open-ended external loops remain refused"
+    },
+    {
+      "material_id": "spill_tape_store_profile",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_spill_tape_store_report.json",
+      "source_report_id": "tassadar.spill_tape_store.report.v1",
+      "source_report_digest": "aff6caa9d10360eb67a5d0182d617c37546d0c78f4900201a55c522fbf441b4e",
+      "detail": "the spill/tape profile must keep exact parity rows and typed refusal rows explicit so spill-backed resume does not widen into arbitrary persistent semantics"
+    },
+    {
+      "material_id": "installed_process_lifecycle",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_installed_process_lifecycle_report.json",
+      "source_report_id": "tassadar.installed_process_lifecycle.report.v1",
+      "source_report_digest": "b5640dc76a8627e5cfce454d7a025154b346669bbed3d8938f7d98b9d915b603",
+      "detail": "the installed-process lifecycle must stay green and operator-only so durable snapshot and rollback semantics remain explicit without widening into served/public lifecycle control"
+    },
+    {
+      "material_id": "post_article_turing_completeness_audit_context",
+      "material_class": "observational_context",
+      "satisfied": true,
+      "source_ref": "docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md",
+      "detail": "the March 20 rebase audit remains context only here; it motivates the tranche but does not substitute for proof-carrying semantic-preservation artifacts"
+    },
+    {
+      "material_id": "plugin_system_turing_completeness_audit_context",
+      "material_class": "observational_context",
+      "satisfied": true,
+      "source_ref": "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md",
+      "detail": "the March 20 plugin audit remains context only here; it keeps the later capability boundary visible without substituting for proof-carrying semantic-preservation artifacts"
+    }
+  ],
+  "canonical_identity_review": {
+    "machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+    "canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+    "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+    "canonical_route_descriptor_digest": "00af062cccc3d1b2e42ee8e092b9ef8e1539dd3f2dfc379cff7d1cd4a008b032",
+    "continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+    "continuation_contract_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
+    "same_canonical_identity_required_across_resume": true,
+    "route_identity_mutation_allowed": false,
+    "model_identity_mutation_allowed": false,
+    "canonical_identity_green": true,
+    "detail": "machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1` canonical_model_id=`tassadar-article-transformer-trace-bound-trained-v0` canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1` and continuation_contract_id=`tassadar.tcm_v1.runtime_contract.report.v1` remain the required identity tuple across declared continuation mechanics; route_identity_mutation_allowed=false and model_identity_mutation_allowed=false."
+  },
+  "control_ownership_boundary_review": {
+    "host_executes_declared_mechanics": true,
+    "host_decides_workflow": false,
+    "control_ownership_rule_green": true,
+    "decision_provenance_proof_complete": false,
+    "deferred_issue_ids": [
+      "TAS-188A"
+    ],
+    "detail": "host may execute declared resume, spill, migration, and rollback mechanics under explicit receipts and contracts, but host_decides_workflow=false stays frozen here. Full branch/retry/stop decision provenance is deferred to `TAS-188A` instead of being implied by this semantic-preservation tranche."
+  },
+  "state_class_rows": [
+    {
+      "state_class_id": "weights_owned_control_state",
+      "class_kind": "weights_owned",
+      "current_posture": "implemented",
+      "allowed_owners": [
+        "canonical_model_weights",
+        "canonical_route_identity"
+      ],
+      "workflow_authority_allowed": true,
+      "declared_artifact_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json"
+      ],
+      "state_semantics": "workflow meaning, transition semantics, and canonical-route identity remain weight-owned on the bridge machine identity",
+      "state_class_green": true,
+      "detail": "weights-owned control state is frozen on canonical_model_id=`tassadar-article-transformer-trace-bound-trained-v0` and canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1` under machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`."
+    },
+    {
+      "state_class_id": "ephemeral_execution_state",
+      "class_kind": "ephemeral",
+      "current_posture": "implemented",
+      "allowed_owners": [
+        "canonical_route_runtime"
+      ],
+      "workflow_authority_allowed": false,
+      "declared_artifact_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_session_process_profile_report.json"
+      ],
+      "state_semantics": "step-local runtime buffers may execute declared mechanics, but they do not become durable workflow authority or a hidden fifth state class",
+      "state_class_green": true,
+      "detail": "ephemeral execution state is admitted only as runtime-local mechanism support. It is inferred from the bridge contract's direct-carrier exclusions plus the explicit resumed and durable classes, and it may not decide workflow on its own."
+    },
+    {
+      "state_class_id": "resumed_continuation_state",
+      "class_kind": "resumed",
+      "current_posture": "implemented",
+      "allowed_owners": [
+        "tcm_v1_continuation_contract",
+        "declared_resume_objects"
+      ],
+      "workflow_authority_allowed": false,
+      "declared_artifact_refs": [
+        "fixtures/tassadar/reports/tassadar_session_process_profile_report.json",
+        "fixtures/tassadar/reports/tassadar_spill_tape_store_report.json",
+        "fixtures/tassadar/reports/tassadar_installed_process_lifecycle_report.json"
+      ],
+      "state_semantics": "explicit resumed state extends execution under the declared continuation contract without rebinding workflow ownership away from the canonical machine identity",
+      "state_class_green": true,
+      "detail": "resumed continuation state stays explicit across deterministic session turns, spill/tape resume, and installed-process migration or rollback; exact parity and typed refusal rows keep the class bounded instead of turning it into ambient workflow state."
+    },
+    {
+      "state_class_id": "durable_receipt_backed_state",
+      "class_kind": "durable",
+      "current_posture": "implemented",
+      "allowed_owners": [
+        "receipt_backed_host_storage"
+      ],
+      "workflow_authority_allowed": false,
+      "declared_artifact_refs": [
+        "fixtures/tassadar/reports/tassadar_spill_tape_store_report.json",
+        "fixtures/tassadar/reports/tassadar_installed_process_lifecycle_report.json"
+      ],
+      "state_semantics": "manifests, tape segments, snapshots, and migration or rollback receipts may persist declared continuation state, but they do not decide what the workflow should do next",
+      "state_class_green": true,
+      "detail": "durable state remains receipt-backed and typed. Missing segments, portability mismatches, stale snapshots, and missing lineage stay explicit refusal rows rather than becoming silent state-authority widening."
+    },
+    {
+      "state_class_id": "undeclared_workflow_state_refused",
+      "class_kind": "undeclared_workflow_state_refused",
+      "current_posture": "refused",
+      "allowed_owners": [],
+      "workflow_authority_allowed": false,
+      "declared_artifact_refs": [
+        "fixtures/tassadar/reports/tassadar_session_process_profile_report.json",
+        "fixtures/tassadar/reports/tassadar_spill_tape_store_report.json",
+        "fixtures/tassadar/reports/tassadar_installed_process_lifecycle_report.json"
+      ],
+      "state_semantics": "any workflow-affecting state outside the declared weights-owned, ephemeral, resumed, and durable classes is out of model and must fail closed",
+      "state_class_green": true,
+      "detail": "undeclared workflow state remains refused: open-ended external event streams stay out of envelope, oversize or missing continuation artifacts stay typed refusals, and stale or portability-invalid lifecycle state stays explicitly blocked."
+    }
+  ],
+  "continuation_mechanism_rows": [
+    {
+      "mechanism_id": "session_process_profile_semantic_preservation",
+      "mechanism_kind": "session_process",
+      "source_report_ref": "fixtures/tassadar/reports/tassadar_session_process_profile_report.json",
+      "source_report_id": "tassadar.session_process_profile.report.v1",
+      "source_report_digest": "7d267ea312cb4c5b6e881d4f690a9d63312d8c565ede4388fb1fe40dd3a4ea93",
+      "canonical_machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+      "preserved_model_identity": true,
+      "preserved_route_identity": true,
+      "exact_state_parity_green": true,
+      "exact_output_parity_green": true,
+      "typed_refusal_green": true,
+      "expressivity_extension_blocked": true,
+      "supporting_state_class_ids": [
+        "ephemeral_execution_state",
+        "resumed_continuation_state"
+      ],
+      "semantic_preservation_green": true,
+      "detail": "deterministic session turns keep exact state and output parity across admitted surfaces while explicitly refusing the open-ended external-event loop, so continuation extends execution without silently widening the canonical route into generic workflow control."
+    },
+    {
+      "mechanism_id": "spill_tape_store_semantic_preservation",
+      "mechanism_kind": "spill_tape_store",
+      "source_report_ref": "fixtures/tassadar/reports/tassadar_spill_tape_store_report.json",
+      "source_report_id": "tassadar.spill_tape_store.report.v1",
+      "source_report_digest": "aff6caa9d10360eb67a5d0182d617c37546d0c78f4900201a55c522fbf441b4e",
+      "canonical_machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+      "preserved_model_identity": true,
+      "preserved_route_identity": true,
+      "exact_state_parity_green": true,
+      "exact_output_parity_green": true,
+      "typed_refusal_green": true,
+      "expressivity_extension_blocked": true,
+      "supporting_state_class_ids": [
+        "resumed_continuation_state",
+        "durable_receipt_backed_state"
+      ],
+      "semantic_preservation_green": true,
+      "detail": "spill-backed resume keeps in-core versus spilled state parity and external-tape resume parity explicit on declared workloads, while missing segments, portability mismatches, and oversize state remain typed refusals instead of becoming hidden expressivity extensions."
+    },
+    {
+      "mechanism_id": "installed_process_lifecycle_semantic_preservation",
+      "mechanism_kind": "installed_process_lifecycle",
+      "source_report_ref": "fixtures/tassadar/reports/tassadar_installed_process_lifecycle_report.json",
+      "source_report_id": "tassadar.installed_process_lifecycle.report.v1",
+      "source_report_digest": "b5640dc76a8627e5cfce454d7a025154b346669bbed3d8938f7d98b9d915b603",
+      "canonical_machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+      "preserved_model_identity": true,
+      "preserved_route_identity": true,
+      "exact_state_parity_green": true,
+      "exact_output_parity_green": true,
+      "typed_refusal_green": true,
+      "expressivity_extension_blocked": true,
+      "supporting_state_class_ids": [
+        "resumed_continuation_state",
+        "durable_receipt_backed_state"
+      ],
+      "semantic_preservation_green": true,
+      "detail": "installed-process snapshots, migration receipts, and rollback receipts preserve declared lifecycle semantics under exact migration or rollback parity while stale snapshots, portability mismatches, missing lineage, and served-publication widening remain explicitly blocked."
+    }
+  ],
+  "validation_rows": [
+    {
+      "validation_id": "helper_substitution_quarantined",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json"
+      ],
+      "detail": "helper substitution remains quarantined on the canonical bridge machine identity, so semantic-preservation closure does not inherit a hidden host-helper lane"
+    },
+    {
+      "validation_id": "route_drift_rejected",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json"
+      ],
+      "detail": "route drift remains rejected because every continuation mechanism is audited against one fixed machine identity tuple instead of a drifting route family"
+    },
+    {
+      "validation_id": "continuation_abuse_quarantined",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_session_process_profile_report.json",
+        "fixtures/tassadar/reports/tassadar_spill_tape_store_report.json",
+        "fixtures/tassadar/reports/tassadar_installed_process_lifecycle_report.json"
+      ],
+      "detail": "continuation abuse remains quarantined because undeclared workflow state stays refused and host mechanics stay non-authoritative under declared session, spill, and lifecycle envelopes"
+    },
+    {
+      "validation_id": "semantic_drift_blocked",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_session_process_profile_report.json",
+        "fixtures/tassadar/reports/tassadar_spill_tape_store_report.json",
+        "fixtures/tassadar/reports/tassadar_installed_process_lifecycle_report.json"
+      ],
+      "detail": "semantic drift remains blocked because every admitted continuation mechanism keeps exact state or lifecycle parity plus typed refusal boundaries instead of merely matching a subset of outputs"
+    },
+    {
+      "validation_id": "proof_class_distinction_preserved",
+      "green": true,
+      "source_refs": [
+        "docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md",
+        "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md"
+      ],
+      "detail": "proof-carrying artifacts and observational audits remain distinct classes in this closeout audit instead of being collapsed into one undifferentiated evidence bucket"
+    },
+    {
+      "validation_id": "overclaim_posture_explicit",
+      "green": true,
+      "source_refs": [
+        "docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md",
+        "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md"
+      ],
+      "detail": "the semantic-preservation tranche remains bounded: decision provenance, carrier split publication, rebased universality, plugin control, served/public universality, and arbitrary software capability all stay explicitly out of scope"
+    }
+  ],
+  "state_ownership_green": true,
+  "semantic_preservation_green": true,
+  "semantic_preservation_status": "green",
+  "semantic_preservation_audit_green": true,
+  "decision_provenance_proof_complete": false,
+  "carrier_split_publication_complete": false,
+  "deferred_issue_ids": [
+    "TAS-188A",
+    "TAS-189"
+  ],
+  "rebase_claim_allowed": false,
+  "plugin_capability_claim_allowed": false,
+  "served_public_universality_allowed": false,
+  "arbitrary_software_capability_allowed": false,
+  "claim_boundary": "this closeout audit proves only the post-`TAS-186` semantic-preservation and state-ownership tranche for continuation mechanics on the canonical bridge machine identity. It freezes canonical model and route identity across declared resume mechanics, classifies weights-owned versus ephemeral versus resumed versus durable state, and refuses undeclared workflow state outside those classes. It does not by itself prove branch/retry/stop decision provenance, publish the final direct-versus-resumable carrier split, allow the rebased Turing-completeness claim, allow weighted plugin control, allow served/public universality, or allow arbitrary software capability.",
+  "summary": "Post-article canonical-route semantic-preservation audit keeps supporting_materials=7/7, state_classes=5/5, continuation_mechanisms=3/3, validation_rows=6/6, semantic_preservation_status=Green, decision_provenance_proof_complete=false, and carrier_split_publication_complete=false.",
+  "report_digest": "43e448b14eefefbc80745a93960d4cc591d930c16e3a7abb083421e499a97467"
+}

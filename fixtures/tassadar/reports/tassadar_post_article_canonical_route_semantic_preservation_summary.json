@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.post_article_canonical_route_semantic_preservation_audit.report.v1",
+  "machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+  "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+  "semantic_preservation_status": "green",
+  "semantic_preservation_audit_green": true,
+  "state_ownership_green": true,
+  "control_ownership_rule_green": true,
+  "semantic_preservation_green": true,
+  "decision_provenance_proof_complete": false,
+  "carrier_split_publication_complete": false,
+  "deferred_issue_ids": [
+    "TAS-188A",
+    "TAS-189"
+  ],
+  "state_class_ids": [
+    "weights_owned_control_state",
+    "ephemeral_execution_state",
+    "resumed_continuation_state",
+    "durable_receipt_backed_state",
+    "undeclared_workflow_state_refused"
+  ],
+  "continuation_mechanism_ids": [
+    "session_process_profile_semantic_preservation",
+    "spill_tape_store_semantic_preservation",
+    "installed_process_lifecycle_semantic_preservation"
+  ],
+  "rebase_claim_allowed": false,
+  "plugin_capability_claim_allowed": false,
+  "served_public_universality_allowed": false,
+  "arbitrary_software_capability_allowed": false,
+  "detail": "post-article semantic-preservation summary keeps machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1`, state_classes=5, continuation_mechanisms=3, semantic_preservation_status=Green, decision_provenance_proof_complete=false, and carrier_split_publication_complete=false.",
+  "summary_digest": "56310bd5e48a74d4fa3be739b6217c911254b2883526b54f3756d80266357239"
+}

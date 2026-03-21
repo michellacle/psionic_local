@@ -1135,6 +1135,21 @@ The current scope is:
   explicit; this still does not prove semantic-preserving continuation,
   control-plane provenance, served/public universality, weighted plugin
   control, or arbitrary software capability
+- the current post-article semantic-preservation artifacts are
+  `fixtures/tassadar/reports/tassadar_post_article_canonical_route_semantic_preservation_audit_report.json`,
+  `fixtures/tassadar/reports/tassadar_post_article_canonical_route_semantic_preservation_summary.json`,
+  the provider receipt in
+  `crates/psionic-provider/src/tassadar_post_article_canonical_route_semantic_preservation.rs`,
+  the checker script
+  `scripts/check-tassadar-post-article-canonical-route-semantic-preservation-audit.sh`,
+  and the audit note
+  `docs/audits/2026-03-21-tassadar-post-article-canonical-route-semantic-preservation-audit.md`,
+  which prove that the current session-process, spill/tape, and
+  installed-process continuation mechanics preserve canonical-route identity,
+  declared state ownership, and declared semantics on the bridge machine
+  identity without widening the claim to control-plane decision provenance,
+  final carrier publication, rebased universality admission, served/public
+  universality, weighted plugin control, or arbitrary software capability
 - the current semantic-window revision artifacts are
   `fixtures/tassadar/reports/tassadar_semantic_window_revision_receipt.json`
   and
