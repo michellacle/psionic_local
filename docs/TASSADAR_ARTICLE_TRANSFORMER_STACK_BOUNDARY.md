@@ -742,6 +742,24 @@ gate, publish the rebased theory/operator/served verdict split, admit
 served/public universality, admit weighted plugin control, or admit arbitrary
 software capability.
 
+`TAS-192` now closes the canonical-route universal-substrate gate tranche at
+`fixtures/tassadar/reports/tassadar_post_article_canonical_route_universal_substrate_gate_report.json`.
+That report joins the historical minimal universal-substrate gate,
+article-equivalence closure, the bridge contract, semantic-preservation audit,
+control-plane proof, carrier split, proof rebinding, and witness-suite reissue
+into one machine-readable gate bound to the bridge machine identity while
+keeping portability, refusal truth, helper substitution, route drift,
+continuation abuse, semantic drift, and overclaim posture explicit. The
+operator-readable summary now lives at
+`fixtures/tassadar/reports/tassadar_post_article_canonical_route_universal_substrate_gate_summary.json`,
+the provider receipt now lives at
+`crates/psionic-provider/src/tassadar_post_article_canonical_route_universal_substrate_gate.rs`,
+and the dedicated checker now lives at
+`scripts/check-tassadar-post-article-canonical-route-universal-substrate-gate.sh`.
+This tranche still does not publish the rebased theory/operator/served verdict
+split, admit served/public universality, admit weighted plugin control, or
+admit arbitrary software capability.
+
 ## Route Requirement
 
 Any canonical article-equivalence Transformer route must use this boundary.

@@ -1,0 +1,227 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.post_article_canonical_route_universal_substrate_gate.report.v1",
+  "checker_script_ref": "scripts/check-tassadar-post-article-canonical-route-universal-substrate-gate.sh",
+  "minimal_universal_substrate_gate_report_ref": "fixtures/tassadar/reports/tassadar_minimal_universal_substrate_acceptance_gate_report.json",
+  "article_equivalence_acceptance_gate_report_ref": "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json",
+  "bridge_contract_report_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
+  "semantic_preservation_audit_report_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_route_semantic_preservation_audit_report.json",
+  "control_plane_proof_report_ref": "fixtures/tassadar/reports/tassadar_post_article_control_plane_decision_provenance_proof_report.json",
+  "carrier_split_contract_report_ref": "fixtures/tassadar/reports/tassadar_post_article_carrier_split_contract_report.json",
+  "proof_rebinding_report_ref": "fixtures/tassadar/reports/tassadar_post_article_universal_machine_proof_rebinding_report.json",
+  "witness_suite_reissue_report_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_witness_suite_reissue_report.json",
+  "machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+  "canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+  "canonical_weight_artifact_id": "tassadar://article_transformer/weights/tassadar-article-transformer-trace-bound-trained-v0/99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c",
+  "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+  "continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+  "supporting_material_rows": [
+    {
+      "material_id": "historical_minimal_universal_substrate_gate",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_minimal_universal_substrate_acceptance_gate_report.json",
+      "source_artifact_id": "tassadar.minimal_universal_substrate.acceptance_gate.report.v1",
+      "source_artifact_digest": "be61096488915d00f39a0617056b2f0c3e5f51c802752a612aa99a6a3d17bbfb",
+      "detail": "the historical minimal universal-substrate gate must stay green so the canonical-route rebase inherits an already explicit bounded universality substrate instead of inventing a new one by implication."
+    },
+    {
+      "material_id": "article_equivalence_acceptance_gate",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json",
+      "source_artifact_id": "tassadar.article_equivalence.acceptance_gate.report.v1",
+      "source_artifact_digest": "e61112cca9b9525c33c875cb21cc0b8927047a968c92bf371fe98f3d0a859395",
+      "detail": "the article-equivalence acceptance gate must stay green so the universality rebase is tied to the same declared canonical owned route rather than to a weaker adjacent lane."
+    },
+    {
+      "material_id": "post_article_bridge_contract",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
+      "source_artifact_id": "tassadar.post_article_universality_bridge.contract.report.v1",
+      "source_artifact_digest": "2908d3a3b0a47f76c60fcf61726f8f37fc366b9ffe9ba3d3ddad75f08a012e10",
+      "detail": "the bridge contract must stay green so the canonical machine, model, weight, route, continuation, and carrier identities remain explicit while the universality story is rebound."
+    },
+    {
+      "material_id": "post_article_semantic_preservation_audit",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_route_semantic_preservation_audit_report.json",
+      "source_artifact_id": "tassadar.post_article_canonical_route_semantic_preservation_audit.report.v1",
+      "source_artifact_digest": "43e448b14eefefbc80745a93960d4cc591d930c16e3a7abb083421e499a97467",
+      "detail": "the semantic-preservation audit must stay green so the canonical-route universality gate is about preserved execution semantics rather than selected output parity."
+    },
+    {
+      "material_id": "post_article_control_plane_proof",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_control_plane_decision_provenance_proof_report.json",
+      "source_artifact_id": "tassadar.post_article_control_plane_decision_provenance_proof.report.v1",
+      "source_artifact_digest": "6e2ee7d74812a896d76f878dbad372fe2f3acaf44436adbe4d8c7091f5960ba1",
+      "detail": "the control-plane proof must stay green so the rebased universality lane remains model-owned instead of host-owned or helper-owned."
+    },
+    {
+      "material_id": "post_article_carrier_split_contract",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_carrier_split_contract_report.json",
+      "source_artifact_id": "tassadar.post_article_carrier_split.contract.report.v1",
+      "source_artifact_digest": "fe9d679ae954ffe4d844844568fcdba0f5afee2acc8056081690f2a364309cd4",
+      "detail": "the carrier split must stay green so bounded resumable universality does not collapse back into the direct article-equivalent carrier."
+    },
+    {
+      "material_id": "post_article_proof_rebinding",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_universal_machine_proof_rebinding_report.json",
+      "source_artifact_id": "tassadar.post_article_universal_machine_proof_rebinding.report.v1",
+      "source_artifact_digest": "624319869c9f792273fe1bd09aa397e9c4b7116483d1c748f1e1fd89d0bb2c5a",
+      "detail": "the proof-rebinding report must stay green so the historical universal-machine proof is already attached to the canonical machine, model, weight, and route identities."
+    },
+    {
+      "material_id": "post_article_witness_suite_reissue",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_witness_suite_reissue_report.json",
+      "source_artifact_id": "tassadar.post_article_universality_witness_suite_reissue.report.v1",
+      "source_artifact_digest": "3fa3693d4068f2ad3b7189a33fb1ff175f74a8b7581273ec10c3f99cda47c728",
+      "detail": "the witness-suite reissue must stay green so the older witness family is rebound onto the canonical route instead of remaining only on the historical operator lane."
+    },
+    {
+      "material_id": "post_article_turing_audit_context",
+      "material_class": "observational_context",
+      "satisfied": true,
+      "source_ref": "docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md",
+      "detail": "the March 20 post-article turing audit remains observational context only here and states why this gate exists without substituting for the proof-carrying dependency chain."
+    }
+  ],
+  "portability_rows": [
+    {
+      "portability_id": "historical_portability_envelope_declared",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_minimal_universal_substrate_acceptance_gate_report.json"
+      ],
+      "detail": "the historical minimal gate keeps portability envelopes explicit, so the canonical-route rebase starts from a declared runtime envelope instead of an implicit portability story."
+    },
+    {
+      "portability_id": "canonical_route_runtime_envelopes_preserved",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_universality_witness_suite_reissue_report.json"
+      ],
+      "detail": "every reissued witness family keeps an explicit runtime envelope and canonical-route binding, so portability remains declared even before the later matrix extension issue lands."
+    },
+    {
+      "portability_id": "canonical_machine_matrix_declared",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json"
+      ],
+      "detail": "the bridge machine identity keeps the current host and supported machine classes explicit, so the gate binds to a declared machine envelope while full matrix replay remains deferred to TAS-193."
+    }
+  ],
+  "refusal_boundary_rows": [
+    {
+      "refusal_boundary_id": "historical_refusal_truth_explicit",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_minimal_universal_substrate_acceptance_gate_report.json"
+      ],
+      "detail": "the historical minimal gate keeps refusal truth explicit for out-of-profile behavior, so the canonical-route rebase inherits typed refusal instead of masking it as absence."
+    },
+    {
+      "refusal_boundary_id": "canonical_route_refusal_boundaries_preserved",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_universality_witness_suite_reissue_report.json"
+      ],
+      "detail": "the two refusal-boundary witness families remain explicit and green on the canonical route instead of being flattened into apparent universality success."
+    }
+  ],
+  "proof_rebinding_complete": true,
+  "witness_suite_reissued": true,
+  "bounded_universality_story_carried": true,
+  "gate_status": "green",
+  "gate_green": true,
+  "universal_substrate_gate_allowed": true,
+  "deferred_issue_ids": [
+    "TAS-193"
+  ],
+  "rebase_claim_allowed": false,
+  "plugin_capability_claim_allowed": false,
+  "served_public_universality_allowed": false,
+  "arbitrary_software_capability_allowed": false,
+  "validation_rows": [
+    {
+      "validation_id": "canonical_identity_binding_consistent",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universal_machine_proof_rebinding_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_witness_suite_reissue_report.json"
+      ],
+      "detail": "the bridge, proof-rebinding, and witness-suite reissue artifacts all bind to the same machine, model, weight, route, and continuation identities instead of drifting by metadata."
+    },
+    {
+      "validation_id": "helper_substitution_quarantined",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_universality_witness_suite_reissue_report.json"
+      ],
+      "detail": "helper substitution remains quarantined, so the canonical-route universality gate cannot be satisfied by hidden host helpers or synthetic receipts."
+    },
+    {
+      "validation_id": "route_drift_rejected",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_witness_suite_reissue_report.json"
+      ],
+      "detail": "route drift remains rejected, so the gate stays attached to one declared canonical route id and one declared route descriptor digest."
+    },
+    {
+      "validation_id": "continuation_abuse_quarantined",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_route_semantic_preservation_audit_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_control_plane_decision_provenance_proof_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_carrier_split_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_witness_suite_reissue_report.json"
+      ],
+      "detail": "continuation abuse remains quarantined, so resumed execution extends one declared machine instead of manufacturing a second hidden machine by host control."
+    },
+    {
+      "validation_id": "semantic_drift_blocked",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_route_semantic_preservation_audit_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_witness_suite_reissue_report.json"
+      ],
+      "detail": "semantic drift remains blocked, so the canonical-route universality gate is about preserved execution semantics rather than selective parity snapshots."
+    },
+    {
+      "validation_id": "article_equivalence_not_overread_as_universality",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_minimal_universal_substrate_acceptance_gate_report.json",
+        "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universal_machine_proof_rebinding_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_witness_suite_reissue_report.json"
+      ],
+      "detail": "article equivalence alone is not treated as universality; the gate turns green only once the historical substrate, bridge, proof rebinding, and canonical-route witness suite are all explicit and green."
+    },
+    {
+      "validation_id": "overclaim_posture_explicit",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_universality_witness_suite_reissue_report.json"
+      ],
+      "detail": "the gate admits only the bounded canonical-route universal-substrate story and keeps the rebased verdict split, served/public universality, weighted plugin control, and arbitrary software capability explicitly out of scope."
+    }
+  ],
+  "claim_boundary": "this gate is the single machine-readable decision that the post-`TAS-186` canonical owned route now carries the bounded universality story. It requires the historical minimal universal-substrate gate, the article-equivalence closure, the bridge contract, semantic-preservation and control-plane proofs, the carrier split, proof rebinding, and the canonical-route witness-suite reissue while keeping portability, refusal truth, route drift, continuation abuse, semantic drift, and overclaim posture explicit. It does not by itself publish the rebased theory/operator/served verdict split, admit served/public universality, admit weighted plugin control, or admit arbitrary software capability.",
+  "summary": "Post-article canonical-route universal-substrate gate keeps supporting_materials=9/9, portability_rows=3/3, refusal_boundary_rows=2/2, validation_rows=7/7, bounded_universality_story_carried=true, and gate_status=Green.",
+  "report_digest": "4a81f409aa1be57cba2df1c9a4d04e518902c53ddd772de5c4f9919275452b98"
+}

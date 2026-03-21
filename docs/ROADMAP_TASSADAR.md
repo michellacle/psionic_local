@@ -225,6 +225,20 @@ Current honest posture:
   canonical-route universal-substrate gate, publish the rebased verdict
   split, imply served/public universality, weighted plugin control, or
   arbitrary software capability
+- the repo now also has one post-article canonical-route universal-substrate
+  gate, with a committed eval report at
+  `fixtures/tassadar/reports/tassadar_post_article_canonical_route_universal_substrate_gate_report.json`,
+  a disclosure-safe research summary at
+  `fixtures/tassadar/reports/tassadar_post_article_canonical_route_universal_substrate_gate_summary.json`,
+  a provider-facing receipt, a checker script, and an audit note that join the
+  historical minimal universal-substrate artifact with the bridge contract,
+  semantic-preservation audit, control-plane proof, carrier split,
+  proof-rebinding, and canonical-route witness-suite reissue on one declared
+  machine identity while keeping portability, refusal truth, helper
+  substitution, route drift, continuation abuse, semantic drift, and
+  overclaim posture explicit; this tranche still does not publish the rebased
+  verdict split, imply served/public universality, weighted plugin control,
+  or arbitrary software capability
 - the repo now also has one machine-readable article-equivalence blocker
   matrix, with a committed eval report at
   `fixtures/tassadar/reports/tassadar_article_equivalence_blocker_matrix_report.json`,
