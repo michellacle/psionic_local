@@ -1,0 +1,312 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.post_article_universality_witness_suite_reissue.report.v1",
+  "checker_script_ref": "scripts/check-tassadar-post-article-universality-witness-suite-reissue.sh",
+  "historical_witness_suite_report_ref": "fixtures/tassadar/reports/tassadar_universality_witness_suite_report.json",
+  "historical_witness_suite_report_id": "tassadar.universality_witness_suite.report.v1",
+  "historical_witness_suite_report_digest": "434f80150c05c44ef7bdf6d126f8e6141e2506e6a4c4da6a5178f5d415ebae3c",
+  "runtime_contract_ref": "fixtures/tassadar/reports/tassadar_tcm_v1_runtime_contract_report.json",
+  "runtime_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+  "runtime_contract_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
+  "machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+  "canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+  "canonical_weight_artifact_id": "tassadar://article_transformer/weights/tassadar-article-transformer-trace-bound-trained-v0/99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c",
+  "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+  "continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+  "supporting_material_rows": [
+    {
+      "material_id": "historical_universality_witness_suite",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_universality_witness_suite_report.json",
+      "source_artifact_id": "tassadar.universality_witness_suite.report.v1",
+      "source_artifact_digest": "434f80150c05c44ef7bdf6d126f8e6141e2506e6a4c4da6a5178f5d415ebae3c",
+      "detail": "the historical witness suite must stay green so the reissue starts from the older operator-lane suite rather than from sampled or partial evidence."
+    },
+    {
+      "material_id": "tcm_v1_runtime_contract",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_tcm_v1_runtime_contract_report.json",
+      "source_artifact_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+      "source_artifact_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
+      "detail": "the declared `TCM.v1` runtime contract must stay green so resumed execution and refusal boundaries remain machine-legible under the same continuation contract id."
+    },
+    {
+      "material_id": "post_article_proof_rebinding",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_universal_machine_proof_rebinding_report.json",
+      "source_artifact_id": "tassadar.post_article_universal_machine_proof_rebinding.report.v1",
+      "source_artifact_digest": "624319869c9f792273fe1bd09aa397e9c4b7116483d1c748f1e1fd89d0bb2c5a",
+      "detail": "the proof-rebinding report must stay green so the historical universal-machine anchors already bind to the canonical machine, model, weight, and route identities."
+    },
+    {
+      "material_id": "post_article_bridge_contract",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
+      "source_artifact_id": "tassadar.post_article_universality_bridge.contract.report.v1",
+      "source_artifact_digest": "2908d3a3b0a47f76c60fcf61726f8f37fc366b9ffe9ba3d3ddad75f08a012e10",
+      "detail": "the bridge contract must stay green so the canonical machine tuple and resumable-lane ownership remain explicit for the reissued suite."
+    },
+    {
+      "material_id": "post_article_semantic_preservation_audit",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_route_semantic_preservation_audit_report.json",
+      "source_artifact_id": "tassadar.post_article_canonical_route_semantic_preservation_audit.report.v1",
+      "source_artifact_digest": "43e448b14eefefbc80745a93960d4cc591d930c16e3a7abb083421e499a97467",
+      "detail": "the semantic-preservation audit must stay green so the reissued suite does not silently move witness meaning across semantic drift."
+    },
+    {
+      "material_id": "post_article_control_plane_proof",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_control_plane_decision_provenance_proof_report.json",
+      "source_artifact_id": "tassadar.post_article_control_plane_decision_provenance_proof.report.v1",
+      "source_artifact_digest": "6e2ee7d74812a896d76f878dbad372fe2f3acaf44436adbe4d8c7091f5960ba1",
+      "detail": "the control-plane proof must stay green so the reissued suite remains model-owned instead of cache-owned or host-owned."
+    },
+    {
+      "material_id": "post_article_carrier_split_contract",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_carrier_split_contract_report.json",
+      "source_artifact_id": "tassadar.post_article_carrier_split.contract.report.v1",
+      "source_artifact_digest": "fe9d679ae954ffe4d844844568fcdba0f5afee2acc8056081690f2a364309cd4",
+      "detail": "the carrier split must stay green so the reissued suite remains inside the resumable universality carrier instead of collapsing into the direct article-equivalent carrier."
+    },
+    {
+      "material_id": "historical_verdict_split_audit_context",
+      "material_class": "observational_context",
+      "satisfied": true,
+      "source_ref": "docs/audits/2026-03-19-tassadar-universality-verdict-split-audit.md",
+      "detail": "the March 19 verdict-split audit remains observational context only here and reminds the suite reissue not to widen into verdict publication."
+    },
+    {
+      "material_id": "post_article_turing_audit_context",
+      "material_class": "observational_context",
+      "satisfied": true,
+      "source_ref": "docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md",
+      "detail": "the March 20 post-article turing audit remains observational context only here and motivates the canonical-route suite reissue without substituting for proof-carrying artifacts."
+    }
+  ],
+  "reissued_family_rows": [
+    {
+      "witness_family": "register_machine",
+      "expected_status": "exact",
+      "historical_row_satisfied": true,
+      "canonical_machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+      "canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+      "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+      "evidence_anchor_ids": [
+        "tcm.encoding.two_register_counter_loop.v1"
+      ],
+      "exact_runtime_parity": true,
+      "checkpoint_resume_equivalent": true,
+      "refusal_boundary_held": false,
+      "runtime_envelope": "current-host cpu-reference operator envelope with persisted checkpoints, process objects, spill-tape extension, and declared effect profiles only",
+      "canonical_identity_bound": true,
+      "reissued_on_canonical_route": true,
+      "satisfied": true,
+      "detail": "historical witness family `RegisterMachine` is rebound onto machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1` canonical_model_id=`tassadar-article-transformer-trace-bound-trained-v0` canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1` with evidence anchors=1 and expected_status=Exact."
+    },
+    {
+      "witness_family": "tape_machine",
+      "expected_status": "exact",
+      "historical_row_satisfied": true,
+      "canonical_machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+      "canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+      "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+      "evidence_anchor_ids": [
+        "tcm.encoding.single_tape_bit_flip.v1"
+      ],
+      "exact_runtime_parity": true,
+      "checkpoint_resume_equivalent": true,
+      "refusal_boundary_held": false,
+      "runtime_envelope": "current-host cpu-reference operator envelope with persisted checkpoints, process objects, spill-tape extension, and declared effect profiles only",
+      "canonical_identity_bound": true,
+      "reissued_on_canonical_route": true,
+      "satisfied": true,
+      "detail": "historical witness family `TapeMachine` is rebound onto machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1` canonical_model_id=`tassadar-article-transformer-trace-bound-trained-v0` canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1` with evidence anchors=1 and expected_status=Exact."
+    },
+    {
+      "witness_family": "bytecode_vm_interpreter",
+      "expected_status": "exact",
+      "historical_row_satisfied": true,
+      "canonical_machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+      "canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+      "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+      "evidence_anchor_ids": [
+        "vm_style_dispatch_exact"
+      ],
+      "exact_runtime_parity": true,
+      "refusal_boundary_held": true,
+      "runtime_envelope": "bounded vm-style module family under the current Wasm-text-to-Tassadar lowering lane",
+      "canonical_identity_bound": true,
+      "reissued_on_canonical_route": true,
+      "satisfied": true,
+      "detail": "historical witness family `BytecodeVmInterpreter` is rebound onto machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1` canonical_model_id=`tassadar-article-transformer-trace-bound-trained-v0` canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1` with evidence anchors=1 and expected_status=Exact."
+    },
+    {
+      "witness_family": "session_process_kernel",
+      "expected_status": "exact",
+      "historical_row_satisfied": true,
+      "canonical_machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+      "canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+      "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+      "evidence_anchor_ids": [
+        "deterministic_echo_turn_loop",
+        "stateful_counter_turn_loop"
+      ],
+      "exact_runtime_parity": true,
+      "checkpoint_resume_equivalent": true,
+      "refusal_boundary_held": true,
+      "runtime_envelope": "deterministic finite-turn session-process profile with persisted local state",
+      "canonical_identity_bound": true,
+      "reissued_on_canonical_route": true,
+      "satisfied": true,
+      "detail": "historical witness family `SessionProcessKernel` is rebound onto machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1` canonical_model_id=`tassadar-article-transformer-trace-bound-trained-v0` canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1` with evidence anchors=2 and expected_status=Exact."
+    },
+    {
+      "witness_family": "spill_tape_continuation",
+      "expected_status": "exact",
+      "historical_row_satisfied": true,
+      "canonical_machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+      "canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+      "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+      "evidence_anchor_ids": [
+        "long_loop_spill_resume",
+        "search_frontier_spill_resume"
+      ],
+      "exact_runtime_parity": true,
+      "checkpoint_resume_equivalent": true,
+      "refusal_boundary_held": true,
+      "runtime_envelope": "current-host cpu-reference spill/tape continuation envelope",
+      "canonical_identity_bound": true,
+      "reissued_on_canonical_route": true,
+      "satisfied": true,
+      "detail": "historical witness family `SpillTapeContinuation` is rebound onto machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1` canonical_model_id=`tassadar-article-transformer-trace-bound-trained-v0` canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1` with evidence anchors=2 and expected_status=Exact."
+    },
+    {
+      "witness_family": "bytecode_vm_param_boundary",
+      "expected_status": "refusal_boundary",
+      "historical_row_satisfied": true,
+      "canonical_machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+      "canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+      "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+      "evidence_anchor_ids": [
+        "vm_style_param_refusal"
+      ],
+      "refusal_boundary_held": true,
+      "runtime_envelope": "bounded vm-style module family under the current Wasm-text-to-Tassadar lowering lane",
+      "canonical_identity_bound": true,
+      "reissued_on_canonical_route": true,
+      "satisfied": true,
+      "detail": "historical witness family `BytecodeVmParamBoundary` is rebound onto machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1` canonical_model_id=`tassadar-article-transformer-trace-bound-trained-v0` canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1` with evidence anchors=1 and expected_status=RefusalBoundary."
+    },
+    {
+      "witness_family": "external_event_loop_boundary",
+      "expected_status": "refusal_boundary",
+      "historical_row_satisfied": true,
+      "canonical_machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+      "canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+      "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+      "evidence_anchor_ids": [
+        "open_ended_external_event_stream"
+      ],
+      "refusal_boundary_held": true,
+      "runtime_envelope": "deterministic finite-turn session-process profile with persisted local state",
+      "canonical_identity_bound": true,
+      "reissued_on_canonical_route": true,
+      "satisfied": true,
+      "detail": "historical witness family `ExternalEventLoopBoundary` is rebound onto machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1` canonical_model_id=`tassadar-article-transformer-trace-bound-trained-v0` canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1` with evidence anchors=1 and expected_status=RefusalBoundary."
+    }
+  ],
+  "exact_family_count": 5,
+  "refusal_boundary_count": 2,
+  "proof_rebinding_complete": true,
+  "witness_suite_reissued": true,
+  "witness_suite_status": "green",
+  "universal_substrate_gate_allowed": false,
+  "deferred_issue_ids": [
+    "TAS-192"
+  ],
+  "rebase_claim_allowed": false,
+  "plugin_capability_claim_allowed": false,
+  "served_public_universality_allowed": false,
+  "arbitrary_software_capability_allowed": false,
+  "validation_rows": [
+    {
+      "validation_id": "helper_substitution_quarantined",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_universal_machine_proof_rebinding_report.json"
+      ],
+      "detail": "helper substitution remains quarantined, so the reissued witness suite cannot be satisfied by hidden helper execution."
+    },
+    {
+      "validation_id": "route_drift_rejected",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json"
+      ],
+      "detail": "route drift remains rejected, so every reissued witness row binds to one declared canonical route id."
+    },
+    {
+      "validation_id": "continuation_abuse_quarantined",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_route_semantic_preservation_audit_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_carrier_split_contract_report.json"
+      ],
+      "detail": "continuation abuse remains quarantined, so continuation-stress witnesses stay in the declared continuation carrier instead of creating resume-only cheating lanes."
+    },
+    {
+      "validation_id": "semantic_drift_blocked",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_route_semantic_preservation_audit_report.json"
+      ],
+      "detail": "semantic drift remains blocked, so the reissued witness suite preserves historical family meaning instead of sampled output parity alone."
+    },
+    {
+      "validation_id": "hidden_cache_owned_control_flow_blocked",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_universal_machine_proof_rebinding_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_control_plane_decision_provenance_proof_report.json"
+      ],
+      "detail": "hidden cache-owned or batching-owned control flow remains blocked, so the canonical-route suite is not secretly satisfied by cache-held workflow logic."
+    },
+    {
+      "validation_id": "resume_only_cheating_blocked",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_universal_machine_proof_rebinding_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_carrier_split_contract_report.json"
+      ],
+      "detail": "resume-only cheating remains blocked, so resumed execution can extend declared witnesses but cannot become a hidden second machine that manufactures green rows."
+    },
+    {
+      "validation_id": "refusal_boundaries_preserved",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_universality_witness_suite_report.json"
+      ],
+      "detail": "the two refusal-boundary witness families remain explicit and green while the proof-carrying reissue rows stay distinct from observational audit context."
+    },
+    {
+      "validation_id": "overclaim_posture_explicit",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_universal_machine_proof_rebinding_report.json"
+      ],
+      "detail": "the reissued witness suite remains bounded: it does not by itself enable the universal-substrate gate, rebased verdict split, served/public universality, weighted plugin control, or arbitrary software capability."
+    }
+  ],
+  "claim_boundary": "this report reissues the dedicated universality witness suite onto the post-`TAS-186` canonical machine, model, weight, and route identities. It keeps exact and refusal-boundary families explicit and keeps helper substitution, hidden cache-owned control flow, resume-only cheating, and wider overclaim posture blocked. It does not by itself enable the canonical-route universal-substrate gate, publish the rebased verdict split, admit served/public universality, admit weighted plugin control, or admit arbitrary software capability.",
+  "summary": "Post-article universality witness-suite reissue keeps supporting_materials=9/9, family_rows=7/7, validation_rows=8/8, witness_suite_reissued=true, and witness_suite_status=Green.",
+  "report_digest": "3fa3693d4068f2ad3b7189a33fb1ff175f74a8b7581273ec10c3f99cda47c728"
+}

@@ -725,6 +725,23 @@ enable the canonical-route universal-substrate gate, publish the rebased
 theory/operator/served verdict split, admit served/public universality, admit
 weighted plugin control, or admit arbitrary software capability.
 
+`TAS-191` now closes the universality witness-suite reissue tranche at
+`fixtures/tassadar/reports/tassadar_post_article_universality_witness_suite_reissue_report.json`.
+That report reissues the older seven-row witness suite onto the bridge machine
+identity, canonical model artifact, and canonical route id while keeping the
+same exact and refusal-boundary families explicit and keeping helper
+substitution, hidden cache-owned control flow, and resume-only cheating as
+explicit negative rows. The operator-readable summary now lives at
+`fixtures/tassadar/reports/tassadar_post_article_universality_witness_suite_reissue_summary.json`,
+the provider receipt now lives at
+`crates/psionic-provider/src/tassadar_post_article_universality_witness_suite_reissue.rs`,
+and the dedicated checker now lives at
+`scripts/check-tassadar-post-article-universality-witness-suite-reissue.sh`.
+This tranche still does not enable the canonical-route universal-substrate
+gate, publish the rebased theory/operator/served verdict split, admit
+served/public universality, admit weighted plugin control, or admit arbitrary
+software capability.
+
 ## Route Requirement
 
 Any canonical article-equivalence Transformer route must use this boundary.

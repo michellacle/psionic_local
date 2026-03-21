@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.post_article_universality_witness_suite_reissue.report.v1",
+  "machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+  "canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+  "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+  "witness_suite_status": "green",
+  "proof_rebinding_complete": true,
+  "witness_suite_reissued": true,
+  "exact_family_count": 5,
+  "refusal_boundary_count": 2,
+  "deferred_issue_ids": [
+    "TAS-192"
+  ],
+  "universal_substrate_gate_allowed": false,
+  "rebase_claim_allowed": false,
+  "plugin_capability_claim_allowed": false,
+  "served_public_universality_allowed": false,
+  "arbitrary_software_capability_allowed": false,
+  "detail": "post-article universality witness-suite reissue summary keeps machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, canonical_model_id=`tassadar-article-transformer-trace-bound-trained-v0`, canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1`, exact_family_count=5, refusal_boundary_count=2, and witness_suite_status=Green.",
+  "summary_digest": "48b1dc495784e9e7f267264ede1bb28bb70163a26e8f65150c862ca54a23f273"
+}

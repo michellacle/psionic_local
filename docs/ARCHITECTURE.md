@@ -1200,6 +1200,22 @@ The current scope is:
   universal-substrate gate, publish the rebased verdict split, admit
   served/public universality, admit weighted plugin control, or admit
   arbitrary software capability
+- the current post-article universality witness-suite reissue artifacts are
+  `fixtures/tassadar/reports/tassadar_post_article_universality_witness_suite_reissue_report.json`,
+  `fixtures/tassadar/reports/tassadar_post_article_universality_witness_suite_reissue_summary.json`,
+  the provider receipt in
+  `crates/psionic-provider/src/tassadar_post_article_universality_witness_suite_reissue.rs`,
+  the checker script
+  `scripts/check-tassadar-post-article-universality-witness-suite-reissue.sh`,
+  and the audit note
+  `docs/audits/2026-03-21-tassadar-post-article-universality-witness-suite-reissue.md`,
+  which freeze the older seven-row witness suite on the bridge machine,
+  canonical model, and canonical route while keeping helper substitution,
+  hidden cache-owned control flow, and resume-only cheating explicit as
+  negative rows; this still does not enable the canonical-route
+  universal-substrate gate, publish the rebased verdict split, admit
+  served/public universality, admit weighted plugin control, or admit
+  arbitrary software capability
 - the current semantic-window revision artifacts are
   `fixtures/tassadar/reports/tassadar_semantic_window_revision_receipt.json`
   and

@@ -212,6 +212,19 @@ Current honest posture:
   suite, enable the canonical-route universal-substrate gate, publish the
   rebased verdict split, imply served/public universality, weighted plugin
   control, or arbitrary software capability
+- the repo now also has one post-article universality witness-suite reissue
+  report, with a committed eval report at
+  `fixtures/tassadar/reports/tassadar_post_article_universality_witness_suite_reissue_report.json`,
+  a disclosure-safe research summary at
+  `fixtures/tassadar/reports/tassadar_post_article_universality_witness_suite_reissue_summary.json`,
+  a provider-facing receipt, a checker script, and an audit note that rebind
+  the older seven-row witness suite onto the bridge machine identity,
+  canonical model artifact, and canonical route id while keeping helper
+  substitution, hidden cache-owned control flow, and resume-only cheating
+  explicit as negative rows; this tranche still does not enable the
+  canonical-route universal-substrate gate, publish the rebased verdict
+  split, imply served/public universality, weighted plugin control, or
+  arbitrary software capability
 - the repo now also has one machine-readable article-equivalence blocker
   matrix, with a committed eval report at
   `fixtures/tassadar/reports/tassadar_article_equivalence_blocker_matrix_report.json`,
