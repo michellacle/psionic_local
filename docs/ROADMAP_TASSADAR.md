@@ -281,6 +281,19 @@ Current honest posture:
   the first closed-world operator-curated plugin tranche, and still does not
   imply plugin publication, served/public universality, or arbitrary software
   capability
+- the repo now also has one post-article Turing-completeness closeout audit,
+  with a committed eval report at
+  `fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json`,
+  a disclosure-safe research summary at
+  `fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_summary.json`,
+  a provider-facing receipt, a checker script, and an audit note that keep the
+  historical `TAS-156` closeout standing while stating machine-readably that
+  the canonical post-`TAS-186` route is now the truth carrier for the bounded
+  Turing-completeness claim and that control-plane ownership plus
+  decision-provenance proof are part of that truth carrier; this tranche keeps
+  the final canonical machine closure bundle separate for `TAS-215` and still
+  does not imply weighted plugin control, plugin publication, served/public
+  universality, or arbitrary software capability
 - the repo now also has one machine-readable article-equivalence blocker
   matrix, with a committed eval report at
   `fixtures/tassadar/reports/tassadar_article_equivalence_blocker_matrix_report.json`,
@@ -480,9 +493,10 @@ Issue-state note:
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
 - `TAS-156` is now implemented and tracked in
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
-- `TAS-157` is now implemented and tracked in
+- `TAS-157` through `TAS-196` are now implemented and tracked in
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
-- there is currently no open GitHub TAS backlog in this repo
+- `TAS-197` through `TAS-215` remain open in GitHub and are tracked via the
+  issue bodies plus `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
 
 ## Repo-Local Companion Docs
 

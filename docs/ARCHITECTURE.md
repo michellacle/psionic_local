@@ -1284,6 +1284,21 @@ The current scope is:
   operator-curated plugin tranche, and keeping weighted plugin control,
   plugin publication, served/public universality, and arbitrary software
   capability blocked
+- the current post-article Turing-completeness closeout artifacts are
+  `fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json`,
+  `fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_summary.json`,
+  the provider receipt in
+  `crates/psionic-provider/src/tassadar_post_article_turing_completeness_closeout.rs`,
+  the checker script
+  `scripts/check-tassadar-post-article-turing-completeness-closeout-audit.sh`,
+  and the audit note
+  `docs/audits/2026-03-21-tassadar-post-article-turing-completeness-closeout-audit.md`,
+  which keep the historical `TAS-156` closeout standing, make the canonical
+  post-`TAS-186` route plus control-plane provenance the current truth carrier
+  for bounded Turing-completeness on the owned route, keep the final canonical
+  machine closure bundle separate for `TAS-215`, and keep weighted plugin
+  control, plugin publication, served/public universality, and arbitrary
+  software capability out of scope
 - the current semantic-window revision artifacts are
   `fixtures/tassadar/reports/tassadar_semantic_window_revision_receipt.json`
   and

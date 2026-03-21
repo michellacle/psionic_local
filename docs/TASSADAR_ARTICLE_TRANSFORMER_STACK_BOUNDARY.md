@@ -814,6 +814,22 @@ scheduling ownership plus the first closed-world operator-curated plugin
 tranche, and still does not admit weighted plugin control, plugin publication,
 served/public universality, or arbitrary software capability.
 
+`TAS-196` now closes the post-article Turing-completeness closeout tranche at
+`fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json`.
+That report keeps the historical `TAS-156` closeout standing, states that the
+canonical post-`TAS-186` route is now the truth carrier for the bounded
+Turing-completeness claim, and makes control-plane ownership plus
+decision-provenance proof part of that truth carrier instead of treating them
+as adjacent but optional evidence. The operator-readable summary now lives at
+`fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_summary.json`,
+the provider receipt now lives at
+`crates/psionic-provider/src/tassadar_post_article_turing_completeness_closeout.rs`,
+and the dedicated checker now lives at
+`scripts/check-tassadar-post-article-turing-completeness-closeout-audit.sh`.
+This tranche keeps the final canonical machine closure bundle separate for
+`TAS-215`, and it still does not admit weighted plugin control, plugin
+publication, served/public universality, or arbitrary software capability.
+
 ## Route Requirement
 
 Any canonical article-equivalence Transformer route must use this boundary.

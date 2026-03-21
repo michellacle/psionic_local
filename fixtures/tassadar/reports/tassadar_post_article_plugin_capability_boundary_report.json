@@ -32,7 +32,7 @@
     "bridge_contract_report_id": "tassadar.post_article_universality_bridge.contract.report.v1",
     "bridge_contract_report_digest": "2908d3a3b0a47f76c60fcf61726f8f37fc366b9ffe9ba3d3ddad75f08a012e10",
     "rebased_verdict_report_id": "tassadar.post_article_rebased_universality_verdict_split.report.v1",
-    "rebased_verdict_report_digest": "2f8b9a63db23339a06a378940ffb71d80a15a1af779d99a2e68cc893ea9cf57d",
+    "rebased_verdict_report_digest": "8494555b354367ac81aa71f015db3898defa41c7ff7b09435c9265c580d960d1",
     "canonical_architecture_anchor_crate": "psionic-transformer",
     "canonical_architecture_boundary_ref": "docs/TASSADAR_ARTICLE_TRANSFORMER_STACK_BOUNDARY.md",
     "detail": "machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1` canonical_model_id=`tassadar-article-transformer-trace-bound-trained-v0` canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1` continuation_contract_id=`tassadar.tcm_v1.runtime_contract.report.v1` reserved_capability_plane_id=`tassadar.post_article_universality_bridge.reserved_capability_plane.v1` and canonical architecture ownership stays anchored in `psionic-transformer`."
@@ -62,7 +62,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_rebased_universality_verdict_split_report.json",
       "bound_report_id": "tassadar.post_article_rebased_universality_verdict_split.report.v1",
-      "bound_report_digest": "2f8b9a63db23339a06a378940ffb71d80a15a1af779d99a2e68cc893ea9cf57d",
+      "bound_report_digest": "8494555b354367ac81aa71f015db3898defa41c7ff7b09435c9265c580d960d1",
       "detail": "the rebased theory/operator verdict stays green while plugin capability remains explicitly out of scope."
     },
     {
@@ -382,10 +382,9 @@
   "served_public_universality_allowed": false,
   "arbitrary_software_capability_allowed": false,
   "deferred_issue_ids": [
-    "TAS-196",
     "TAS-197"
   ],
   "claim_boundary": "this report makes the post-`TAS-186` rebased universality lane explicitly plugin-aware without widening `TCM.v1`, the continuation contract, or the rebased verdict into weighted plugin control. It binds one reserved capability plane above the canonical bridge machine identity, keeps plugin execution as a separate software-capability layer, keeps plugin state and receipt identity outside the bounded compute substrate, reserves choice-set integrity/resource transparency/scheduling ownership and a closed-world operator-curated first tranche, and leaves plugin/publication/served/arbitrary software capability claims blocked.",
   "summary": "post-article plugin-capability boundary report binds machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1`, boundary_status=Green, dependency_rows=7, reserved_invariants=3, rebase_claim_allowed=true, plugin_capability_claim_allowed=false, weighted_plugin_control_allowed=false, and plugin_publication_allowed=false.",
-  "report_digest": "d4425bd013c4c0be651fd67da93d5f9e836ca38081f5714051b3de5707d1cc49"
+  "report_digest": "1687166e872b153f8a86113d2d6feeb5a086f74702f15f5b0002acd88df16ba1"
 }

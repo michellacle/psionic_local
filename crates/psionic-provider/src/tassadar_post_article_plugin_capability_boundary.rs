@@ -74,10 +74,7 @@ mod tests {
             receipt.first_plugin_tranche_posture,
             "closed_world_operator_curated_only_until_audited"
         );
-        assert_eq!(
-            receipt.deferred_issue_ids,
-            vec![String::from("TAS-196"), String::from("TAS-197")]
-        );
+        assert_eq!(receipt.deferred_issue_ids, vec![String::from("TAS-197")]);
         assert!(receipt.rebase_claim_allowed);
         assert!(!receipt.plugin_capability_claim_allowed);
         assert!(!receipt.weighted_plugin_control_allowed);

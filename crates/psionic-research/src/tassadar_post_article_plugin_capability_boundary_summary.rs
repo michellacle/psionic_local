@@ -212,10 +212,7 @@ mod tests {
             summary.first_plugin_tranche_posture,
             "closed_world_operator_curated_only_until_audited"
         );
-        assert_eq!(
-            summary.deferred_issue_ids,
-            vec![String::from("TAS-196"), String::from("TAS-197")]
-        );
+        assert_eq!(summary.deferred_issue_ids, vec![String::from("TAS-197")]);
         assert!(summary.rebase_claim_allowed);
         assert!(!summary.plugin_capability_claim_allowed);
         assert!(!summary.weighted_plugin_control_allowed);

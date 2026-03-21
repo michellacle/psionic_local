@@ -274,6 +274,8 @@ mod tassadar_post_article_canonical_route_universal_substrate_gate;
 mod tassadar_post_article_universality_portability_minimality_matrix;
 #[path = "tassadar_post_article_rebased_universality_verdict_split.rs"]
 mod tassadar_post_article_rebased_universality_verdict_split;
+#[path = "tassadar_post_article_turing_completeness_closeout_audit.rs"]
+mod tassadar_post_article_turing_completeness_closeout_audit;
 #[path = "tassadar_post_article_canonical_route_semantic_preservation_audit.rs"]
 mod tassadar_post_article_canonical_route_semantic_preservation_audit;
 #[path = "tassadar_post_article_universality_bridge_contract.rs"]
@@ -518,6 +520,7 @@ pub use tassadar_post_article_universality_witness_suite_reissue::*;
 pub use tassadar_post_article_canonical_route_universal_substrate_gate::*;
 pub use tassadar_post_article_universality_portability_minimality_matrix::*;
 pub use tassadar_post_article_rebased_universality_verdict_split::*;
+pub use tassadar_post_article_turing_completeness_closeout_audit::*;
 pub use tassadar_post_article_canonical_route_semantic_preservation_audit::*;
 pub use tassadar_post_article_universality_bridge_contract::*;
 pub use tassadar_pre_closeout_universality_audit::*;
