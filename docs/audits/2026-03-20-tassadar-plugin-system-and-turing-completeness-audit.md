@@ -410,6 +410,58 @@ It intersects directly with:
 Until those are closed, any weighted plugin-controller claim would be weak,
 because the host runtime could still be doing too much orchestration work.
 
+## Two Non-Negotiable Ownership Laws
+
+The plugin tranche should freeze two blunt laws early, because they are the
+easiest place for the repo to drift into host-orchestrated tool behavior while
+still using weighted-plugin language.
+
+### 1. State Ownership Law
+
+Plugin-related state should stay in explicit classes:
+
+- packet-local state:
+  request and response state carried in the invocation itself
+- instance-local ephemeral state:
+  warmed tables, memoized helpers, and caches that may improve performance but
+  may never become canonical workflow truth
+- host-backed durable state:
+  explicit mounted stores, artifact stores, checkpoints, queues, and worklists
+  under receipts and replay posture
+- weights-owned control state:
+  the model's own plugin-selection, branching, retry, and stop logic
+
+The hard refusal is:
+
+no durable workflow truth may be smuggled into plugin instance memory, hidden
+runtime state, or cache-like host layers and still be described as weighted
+software behavior.
+
+### 2. Control Ownership Law
+
+The plugin system also needs one blunt rule:
+
+host may execute capability, but host may not decide workflow.
+
+That means the host may:
+
+- resolve manifests and verify digests
+- mount capabilities
+- enforce bounds
+- run Wasm exports
+- emit receipts and typed failure/refusal outcomes
+
+But the host may not:
+
+- choose which plugin to call
+- choose which export to call
+- decide retries
+- decide stop conditions
+- or branch multi-step workflow logic on behalf of the model
+
+Without this law, the repo would drift into a tool runtime that only sounds
+weighted.
+
 ## Does The Plugin System Change The Shape Of The Turing-Completeness Push?
 
 Yes, but only in a constrained way.
@@ -439,7 +491,7 @@ That would weaken the claim discipline.
 ### What Should Change
 
 If the long-term target includes the plugin system, the post-`TAS-186`
-Turing-completeness push should become plugin-aware in four concrete ways.
+Turing-completeness push should become plugin-aware in five concrete ways.
 
 #### 1. Do Not Freeze A Pure-Compute-Only Terminal Shape
 
@@ -498,7 +550,17 @@ Otherwise the repo will later struggle to say:
 
 That state split is useful even before plugins exist.
 
-#### 4. The Verdict Split Should Keep Plugin Capability Separate
+#### 4. Freeze The Workflow-Ownership Rule
+
+The post-`TAS-186` bridge should carry one blunt rule forward:
+
+host may execute capability, but host may not decide workflow.
+
+That rule belongs in the bridge before the plugin tranche starts, because later
+plugin work will otherwise be forced to infer it from indirect article or
+continuation artifacts.
+
+#### 5. The Verdict Split Should Keep Plugin Capability Separate
 
 The final rebased theory/operator/served split should not silently imply:
 
@@ -525,6 +587,7 @@ Those are:
 - make the bridge contract reserve plugin-boundary identity fields
 - make the continuation-ownership audit explicit about packet-local,
   ephemeral-instance, and durable-host state
+- freeze the workflow-ownership rule before any plugin-controller claim is made
 - keep the rebased verdict split from over-reading future plugin capability
 
 That is enough for now.
@@ -541,93 +604,279 @@ It is **not** the right moment to make the immediate push also close:
 
 Those belong in the next tranche.
 
-## What The Plugin Tranche Should Look Like
+## Proposed GitHub Issue Roadmap
 
-After the post-`TAS-186` rebase lands, the plugin work should be its own issue
-wave.
+Suggested numbering below assumes the post-`TAS-186` Turing-completeness
+bridge consumes `TAS-187` through `TAS-196`. If the tracker advances first,
+preserve the dependency order and titles, not the exact numerals.
 
-Recommended tranche shape:
+### Suggested `TAS-197`: Freeze Plugin Charter, Claim Boundary, And Ownership Laws
 
-### 1. Plugin Charter And Claim Boundary
+Suggested GitHub title:
 
-Freeze:
+`Tassadar: freeze weighted plugin charter and ownership boundary`
 
-- internal-only posture
-- plugin non-goals
-- policy and publication boundary
-- explicit relation to `TCM.v1` and post-article owned-route truth
+Summary:
 
-### 2. Plugin Manifest And Identity Contract
+Freeze the plugin system as a bounded software-capability layer above the
+rebased compute substrate, with explicit state ownership and control ownership
+rules.
 
-Land:
+Description:
 
-- plugin manifest schema
-- canonical invocation identity
-- export declaration rules
-- replay class
-- trust tier
-- evidence configuration
+- define plugin non-goals and internal-only/publication posture
+- bind the plugin system explicitly to the post-`TAS-186` owned-route truth
+  without mutating `TCM.v1`
+- freeze the state-class split across packet-local, instance-local ephemeral,
+  host-backed durable, and weights-owned control state
+- freeze the rule that host may execute capability but may not decide workflow
 
-### 3. Packet ABI And Rust-First PDK
+Supporting material:
 
-Land:
+- `~/code/alpha/tassadar/plugin-system.md`
+- `docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md`
+- `docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md`
+- `fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json`
+- `fixtures/tassadar/reports/tassadar_broad_internal_compute_profile_publication_report.json`
 
-- packet ABI
-- schema ids
-- guest refusal type
-- narrow host import binding surface
-- conformance harness
+### Suggested `TAS-198`: Canonical Plugin Manifest, Identity, And Hot-Swap Contract
 
-### 4. Host-Owned Plugin Runtime
+Suggested GitHub title:
 
-Land:
+`Tassadar: add canonical plugin manifest and hot-swap identity contract`
 
-- runtime engine abstraction
-- artifact load and digest verification
-- invoke API
-- pool and queue semantics
-- timeout and memory enforcement
-- cancellation handles
+Summary:
 
-### 5. Plugin Receipts And Replay
+Land the canonical plugin contract so plugins become real named software
+artifacts rather than loosely packaged modules.
 
-Land:
+Description:
 
-- invocation receipt schema
-- plugin replay classes
-- route-integrated evidence bundle
-- replay and refusal checks
+- define `plugin_id`, `plugin_version`, `artifact_digest`, declared exports,
+  packet ABI version, schema ids, limits, trust tier, replay class, and
+  evidence settings
+- define canonical invocation identity fields
+- define compatibility and hot-swap rules across versions, ABI shapes, and
+  trust posture
+- keep multi-module packaging explicit when one plugin is a linked bundle
 
-### 6. World-Mount Envelope Compiler For Plugins
+Supporting material:
 
-Land:
+- `~/code/alpha/tassadar/plugin-system.md`
+- `fixtures/tassadar/reports/tassadar_module_trust_isolation_report.json`
+- `fixtures/tassadar/reports/tassadar_module_promotion_state_report.json`
+- `fixtures/tassadar/reports/tassadar_internal_compute_package_manager_report.json`
+- `fixtures/tassadar/reports/tassadar_internal_compute_package_route_policy_report.json`
 
-- plugin admissibility check
-- capability namespace mount compilation
-- route-to-envelope binding
-- explicit denial behavior
+### Suggested `TAS-199`: Packet ABI And Rust-First Plugin PDK
 
-### 7. Weighted Controller Integration
+Suggested GitHub title:
 
-Land:
+`Tassadar: add packet ABI and Rust-first plugin PDK`
 
-- structured weighted plugin control trace
-- packet encoding from model outputs
-- result path back into the model loop
-- refusal-aware continuation
+Summary:
 
-This step should only start after the owned-route mechanistic bar is strong
-enough that the repo can honestly say the host is not the real planner.
+Define the narrow invocation ABI and guest authoring surface that every bounded
+plugin must use.
 
-### 8. Plugin Promotion And Publication
+Description:
 
-Land:
+- define one input packet, one output packet or typed refusal, and one explicit
+  error channel
+- define schema ids, codec ids, payload bytes, and metadata envelope shape
+- define the Rust-first guest refusal type and narrow host import surface
+- keep the ABI narrow enough that conformance is easy to test and audit
 
-- plugin trust tiers
-- plugin benchmark bars
-- plugin publication gates
-- validator and accepted-outcome policy hooks
-- explicit operator-only vs served posture
+Supporting material:
+
+- `~/code/alpha/tassadar/plugin-system.md`
+- `fixtures/tassadar/reports/tassadar_internal_component_abi_report.json`
+- `docs/audits/2026-03-18-tassadar-post-tas-102-final-audit.md`
+
+### Suggested `TAS-200`: Host-Owned Plugin Runtime API And Engine Abstraction
+
+Suggested GitHub title:
+
+`Tassadar: add host-owned plugin runtime API and engine abstraction`
+
+Summary:
+
+Build the bounded runtime substrate that loads, mounts, executes, and cancels
+plugin invocations without leaking backend-specific behavior into the top-level
+contract.
+
+Description:
+
+- define artifact loading and digest verification
+- define the engine abstraction for instantiate, invoke, mount, cancel, and
+  usage collection
+- define pool, queue, timeout, memory, concurrency, and optional fuel bounds
+- keep backend-specific details below the host-owned runtime API
+
+Supporting material:
+
+- `~/code/alpha/tassadar/plugin-system.md`
+- `fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json`
+- `fixtures/tassadar/reports/tassadar_async_lifecycle_profile_report.json`
+- `fixtures/tassadar/reports/tassadar_simulator_effect_profile_report.json`
+
+### Suggested `TAS-201`: Plugin Invocation Receipts And Replay Classes
+
+Suggested GitHub title:
+
+`Tassadar: add plugin invocation receipts and replay classes`
+
+Summary:
+
+Freeze the receipt identity and replay posture needed to make plugin execution
+auditable and challengeable.
+
+Description:
+
+- define invocation id, plugin id, version, artifact digest, export name,
+  packet ABI version, digests, envelope ids, backend id, refusal/failure
+  class, and resource summary
+- define deterministic and snapshot-based replay classes
+- connect plugin receipts to route-integrated evidence and challenge receipts
+
+Supporting material:
+
+- `~/code/alpha/tassadar/plugin-system.md`
+- `fixtures/tassadar/reports/tassadar_effectful_replay_audit_report.json`
+- `fixtures/tassadar/reports/tassadar_installed_module_evidence_report.json`
+- `fixtures/tassadar/reports/tassadar_module_promotion_state_report.json`
+
+### Suggested `TAS-202`: World-Mount Envelope Compiler And Plugin Admissibility Contract
+
+Suggested GitHub title:
+
+`Tassadar: compile world-mount envelopes for plugins`
+
+Summary:
+
+Translate route and mount policy into explicit runtime-admissible plugin
+envelopes so capability mediation is no longer ad hoc.
+
+Description:
+
+- define plugin admissibility checks
+- compile capability namespace grants, network rules, and mount posture into
+  runtime envelopes
+- bind route policy to plugin version constraints and trust posture
+- keep explicit denial behavior for unsupported or disallowed invocations
+
+Supporting material:
+
+- `~/code/alpha/tassadar/plugin-system.md`
+- `fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json`
+- `fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json`
+- `fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json`
+
+### Suggested `TAS-203`: Plugin Conformance Sandbox And Benchmark Harness
+
+Suggested GitHub title:
+
+`Tassadar: add plugin conformance sandbox and benchmark harness`
+
+Summary:
+
+Prove that plugins are real software components with clean identity, bounded
+execution, and refusal behavior before the repo claims model-owned plugin
+planning.
+
+Description:
+
+- run static conformance harnesses and host-scripted traces only, not
+  model-owned sequencing
+- cover roundtrip success, malformed packet refusal, capability denial,
+  timeout, memory-limit, packet-size, digest-mismatch, replay, and hot-swap
+  compatibility rows
+- benchmark cold, warm, pooled, queued, and cancelled execution paths
+- keep receipt integrity and envelope compatibility explicit
+
+Supporting material:
+
+- `~/code/alpha/tassadar/plugin-system.md`
+- `fixtures/tassadar/reports/tassadar_async_lifecycle_profile_report.json`
+- `fixtures/tassadar/reports/tassadar_effectful_replay_audit_report.json`
+- `fixtures/tassadar/reports/tassadar_module_trust_isolation_report.json`
+- `fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json`
+
+### Suggested `TAS-204`: Weighted Plugin Controller Trace And Refusal-Aware Model Loop
+
+Suggested GitHub title:
+
+`Tassadar: add weighted plugin controller trace and refusal-aware model loop`
+
+Summary:
+
+Only after the substrate is proven should the repo claim that the model owns
+plugin selection, sequencing, retries, and stop conditions.
+
+Description:
+
+- define the structured weighted plugin control trace
+- encode packet arguments from model outputs under the canonical packet ABI
+- return result packets and typed refusals back into the model loop
+- prove that the host validates and executes but does not become the planner
+- add negative rows for hidden host-side sequencing or retry logic
+
+Supporting material:
+
+- `~/code/alpha/tassadar/plugin-system.md`
+- `docs/TASSADAR_ARTICLE_TRANSFORMER_STACK_BOUNDARY.md`
+- `docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md`
+- `fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json`
+
+### Suggested `TAS-205`: Plugin Promotion, Publication, And Trust-Tier Gate
+
+Suggested GitHub title:
+
+`Tassadar: add plugin promotion and publication gate`
+
+Summary:
+
+Add the policy and trust machinery needed to promote bounded plugins without
+accidentally widening them into a public arbitrary-software claim.
+
+Description:
+
+- define plugin benchmark bars and trust-tier gates
+- define operator-only versus served/public posture
+- bind validator and accepted-outcome hooks where required
+- keep promotion, quarantine, revocation, and publication refusal explicit
+
+Supporting material:
+
+- `fixtures/tassadar/reports/tassadar_module_promotion_state_report.json`
+- `fixtures/tassadar/reports/tassadar_module_trust_isolation_report.json`
+- `fixtures/tassadar/reports/tassadar_broad_internal_compute_profile_publication_report.json`
+- `fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json`
+
+### Suggested `TAS-206`: Publish The Bounded Weighted Plugin Platform Closeout Audit
+
+Suggested GitHub title:
+
+`Tassadar: publish bounded weighted plugin platform closeout audit`
+
+Summary:
+
+Publish the first honest plugin-platform closeout only after manifest, ABI,
+runtime, receipts, mount compiler, conformance sandbox, weighted control, and
+promotion/publication bars are all green.
+
+Description:
+
+- state clearly what the plugin system does and does not claim
+- preserve the separation from the bounded Turing-completeness closeout
+- keep operator and served/plugin publication posture explicit
+- refuse any implication of arbitrary public Wasm or arbitrary public tool use
+
+Supporting material:
+
+- `docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md`
+- `docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md`
+- `~/code/alpha/tassadar/plugin-system.md`
 
 ## Recommended Dependency Order
 
@@ -636,11 +885,14 @@ The dependency order should be:
 1. finish `TAS-182` through `TAS-186`
 2. land the post-article Turing-completeness bridge tranche from the companion
    audit
-3. land plugin charter, manifest, packet ABI, runtime API, and receipts
-4. land world-mount envelope compiler and policy integration for plugins
-5. land weighted plugin-controller integration
-6. land plugin promotion/publication policy
-7. only then consider any stronger "weighted software platform" closeout
+3. land plugin charter, manifest, packet ABI, runtime API, receipts, and
+   replay classes
+4. land the world-mount envelope compiler and plugin admissibility contract
+5. land the plugin conformance sandbox with static harnesses and scripted
+   traces, not model-owned sequencing
+6. only then land weighted plugin-controller integration
+7. land plugin promotion/publication policy
+8. only then consider any stronger "weighted software platform" closeout
 
 That order matters because it keeps the repo from using a not-yet-audited
 weighted controller as evidence for a plugin system whose core control-ownership

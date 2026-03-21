@@ -311,7 +311,7 @@ claim.
 
 ## Why A Bridge Tranche Is Better Than Rewriting `TCM.v1`
 
-The bridge approach is recommended for four reasons.
+The bridge approach is recommended for five reasons.
 
 ### 1. It preserves existing truthful artifacts
 
@@ -353,10 +353,72 @@ That means the universality bridge should leave room for a later bounded
 software-capability layer above `TCM.v1`, without implying that plugin
 capability is already part of the Turing-completeness closeout.
 
+## Non-Negotiable Bridge Laws
+
+The bridge tranche should freeze two blunt laws early, because both the
+rebased Turing-completeness story and the later plugin-system story can drift
+if these are left implicit.
+
+### 1. State Ownership Law
+
+The bridge should classify state into explicit buckets:
+
+- weights-owned compute state:
+  the canonical owned route remains the truth carrier for the machine step and
+  direct compute evolution
+- cache and activation state:
+  in-run ephemeral acceleration state only, never durable workflow truth
+- resumed process-object and spill/checkpoint state:
+  declared continuation state with preserved identity and explicit receipts
+- host-backed durable state:
+  only explicit checkpoint, artifact, queue, or worklist state under declared
+  stores and receipts
+
+The important refusal is:
+
+no durable workflow truth may be smuggled into undeclared host helpers, hidden
+runtime metadata, or cache-like state and still be described as belonging to
+the canonical owned route.
+
+### 2. Control Ownership Law
+
+The bridge should also freeze one blunt rule:
+
+host may execute continuation and capability mechanics, but host may not decide
+workflow.
+
+That means the host may:
+
+- reload checkpoints
+- advance declared spill/tape or process-object mechanics
+- enforce bounds and policy
+- execute later plugin capability calls once such a layer exists
+
+But the host may not:
+
+- invent branch choices
+- choose retries
+- choose stop conditions
+- select hidden helper programs
+- or quietly become the planner under the cover of resume logic
+
+This is how the repo keeps operator universality under bounded continuation
+from decaying into host-orchestrated behavior that only sounds weighted.
+
 ## Necessary Work After `TAS-186`
 
 The following follow-on work is `planned` if the goal is to make the new
 canonical route fully Turing-complete in an honest and machine-readable way.
+
+The bar here is not:
+
+- one infinite uninterrupted no-spill run
+
+The bar is:
+
+- whether the canonical owned route remains the truth carrier under bounded
+  resume, continuation, spill/tape, and process-identity semantics without
+  losing state-ownership or control-ownership cleanliness
 
 ### A. Freeze The Bridge Contract
 
@@ -501,24 +563,282 @@ This is not a request to build the plugin system inside the rebased
 Turing-completeness tranche. It is a request to make sure that tranche does not
 accidentally preclude the cleaner plugin architecture.
 
-## Recommended Follow-On Issue Shape
+## Proposed GitHub Issue Roadmap
 
-The cleanest path after `TAS-186` is one new post-article tranche with issue
-shape roughly like this:
+Suggested numbering below assumes the next dedicated post-`TAS-186` tranche
+continues the current TAS sequence. If the tracker advances first, preserve the
+dependency order and titles, not the exact numerals.
 
-- `planned`: post-article universality bridge contract and claim-boundary audit
-- `planned`: canonical-route continuation, spill, and process-identity
-  ownership audit
-- `planned`: canonical-route universal-machine proof rebinding
-- `planned`: canonical-route universality witness suite
-- `planned`: canonical-route minimal universal-substrate gate
-- `planned`: canonical-route universality portability and minimality matrix
-- `planned`: rebased theory/operator/served universality verdict split
-- `planned`: plugin-aware capability-boundary and state-class contract for the
-  post-`TAS-186` bridge
-- `planned`: post-article Turing-completeness closeout audit
+### Suggested `TAS-187`: Freeze Post-Article Universality Bridge Contract
 
-The numbering can be chosen later. The important thing is the dependency order.
+Suggested GitHub title:
+
+`Tassadar: freeze post-article universality bridge contract`
+
+Summary:
+
+Bind the old `TCM.v1` closeout to the canonical post-`TAS-186` owned-route
+identities without rewriting the historical `TAS-151` through `TAS-156`
+artifacts.
+
+Description:
+
+- declare the canonical model id, weight artifact digest, and route digest that
+  now carry the rebased universality story
+- state whether the carrier is `ReferenceLinear`, `HullCache`, a resumable
+  route family above them, or an explicit split across those lanes
+- bind old `TCM.v1` rows to new owned-route evidence where appropriate
+- keep the relation to later plugin capability calls explicit instead of
+  leaving it implicit
+
+Supporting material:
+
+- `docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md`
+- `docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md`
+- `docs/TASSADAR_ARTICLE_TRANSFORMER_STACK_BOUNDARY.md`
+- `fixtures/tassadar/reports/tassadar_tcm_v1_model.json`
+- `fixtures/tassadar/reports/tassadar_tcm_v1_runtime_contract_report.json`
+- `fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json`
+
+### Suggested `TAS-188`: Freeze Canonical-Route State Ownership Law
+
+Suggested GitHub title:
+
+`Tassadar: freeze canonical-route state ownership law`
+
+Summary:
+
+Make state classes first-class so later continuation and plugin work cannot
+quietly move durable workflow truth into caches or hidden host state.
+
+Description:
+
+- define what state is weights-owned compute state
+- define what cache or activation state may exist and keep it explicitly
+  ephemeral
+- define what resumed process objects and spill/checkpoint state may preserve
+- define what may live only in host-backed durable stores under receipts
+- refuse undeclared durable workflow state outside those classes
+
+Supporting material:
+
+- `docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md`
+- `docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md`
+- `fixtures/tassadar/reports/tassadar_tcm_v1_model.json`
+- `fixtures/tassadar/reports/tassadar_tcm_v1_runtime_contract_report.json`
+- `fixtures/tassadar/reports/tassadar_spill_tape_store_report.json`
+- `fixtures/tassadar/reports/tassadar_session_process_profile_report.json`
+- `fixtures/tassadar/reports/tassadar_installed_process_lifecycle_report.json`
+
+### Suggested `TAS-189`: Audit Canonical-Route Continuation And Control Ownership
+
+Suggested GitHub title:
+
+`Tassadar: audit continuation and control ownership on the canonical route`
+
+Summary:
+
+Prove that bounded resume, spill/tape, and process identity mechanics wrap the
+canonical owned route without the host becoming the workflow planner.
+
+Description:
+
+- preserve model identity and route identity across resumes
+- prove resume logic does not substitute a different interpreter or helper path
+- freeze the rule that host may execute continuation mechanics but may not
+  decide workflow
+- include negative rows for host-side branch choice, hidden helper loops, and
+  resume-only cheating
+- fail closed when resumed execution would leave the declared route or profile
+
+Supporting material:
+
+- `docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md`
+- `docs/TASSADAR_ARTICLE_TRANSFORMER_STACK_BOUNDARY.md`
+- `fixtures/tassadar/reports/tassadar_spill_tape_store_report.json`
+- `fixtures/tassadar/reports/tassadar_session_process_profile_runtime_report.json`
+- `fixtures/tassadar/reports/tassadar_async_lifecycle_profile_report.json`
+- `fixtures/tassadar/reports/tassadar_article_equivalence_blocker_matrix_report.json`
+
+### Suggested `TAS-190`: Rebind The Universal-Machine Proof To The Canonical Route
+
+Suggested GitHub title:
+
+`Tassadar: rebind universal-machine proof to post-article canonical route`
+
+Summary:
+
+Replay the existing universal-machine proof against the canonical post-`TAS-186`
+model, weight, and route identities.
+
+Description:
+
+- reissue proof receipts against the canonical owned route
+- make resumed-execution equivalence explicit where the operator claim still
+  depends on continuation
+- keep helper substitution and route drift as explicit failure rows
+
+Supporting material:
+
+- `fixtures/tassadar/reports/tassadar_universal_machine_proof_report.json`
+- `fixtures/tassadar/reports/tassadar_tcm_v1_model.json`
+- `fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json`
+- `docs/audits/2026-03-19-tassadar-turing-completeness-closeout-audit.md`
+
+### Suggested `TAS-191`: Reissue The Canonical-Route Universality Witness Suite
+
+Suggested GitHub title:
+
+`Tassadar: reissue universality witness suite on canonical route`
+
+Summary:
+
+Move the witness suite from the older operator lane onto the canonical owned
+route while keeping refusal and cheating-detection rows explicit.
+
+Description:
+
+- replay register-machine, tape-machine, VM-style, and continuation-stress
+  witnesses on the canonical route
+- bind every witness receipt to the new model and route identities
+- add negative rows for helper substitution, hidden cache-owned control flow,
+  and resume-only cheating
+
+Supporting material:
+
+- `fixtures/tassadar/reports/tassadar_universality_witness_suite_report.json`
+- `fixtures/tassadar/reports/tassadar_tcm_v1_runtime_contract_report.json`
+- `docs/audits/2026-03-19-tassadar-universality-verdict-split-audit.md`
+- `docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md`
+
+### Suggested `TAS-192`: Add The Canonical-Route Universal-Substrate Gate
+
+Suggested GitHub title:
+
+`Tassadar: add canonical-route universal-substrate gate`
+
+Summary:
+
+Create one machine-readable gate that decides whether the canonical owned route
+now carries the bounded universality story.
+
+Description:
+
+- require `TAS-186` closure
+- require the bridge contract, state/control ownership law, continuation audit,
+  proof rebinding, and witness suite
+- keep portability and refusal rows explicit
+- refuse over-reading article equivalence as universality
+
+Supporting material:
+
+- `fixtures/tassadar/reports/tassadar_minimal_universal_substrate_acceptance_gate_report.json`
+- `fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json`
+- `docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md`
+
+### Suggested `TAS-193`: Extend Universality Portability And Minimality Matrix
+
+Suggested GitHub title:
+
+`Tassadar: extend universality portability and minimality matrix to canonical route`
+
+Summary:
+
+Prove the rebased universality lane survives the declared machine matrix and
+refuses route drift or minimality failure.
+
+Description:
+
+- replay witness workloads across the declared machine matrix
+- require resumed-execution parity across the same matrix
+- make route-drift suppression and minimality failures explicit
+- preserve the older served/public suppression boundary
+
+Supporting material:
+
+- `fixtures/tassadar/reports/tassadar_broad_internal_compute_portability_report.json`
+- `fixtures/tassadar/reports/tassadar_turing_completeness_closeout_audit_report.json`
+- `fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json`
+- `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
+
+### Suggested `TAS-194`: Publish The Rebased Theory/Operator/Served Verdict Split
+
+Suggested GitHub title:
+
+`Tassadar: publish rebased theory/operator/served universality verdict split`
+
+Summary:
+
+Reissue the verdict split for the canonical route so theory, operator, and
+served/public posture stay separate after the rebase.
+
+Description:
+
+- publish the theory verdict for the rebased witness-backed substrate story
+- publish the operator verdict for bounded-slice universality under explicit
+  continuation semantics
+- keep served/public universality suppressed unless external dependencies move
+- refuse any implication that plugin capability or publication has become green
+
+Supporting material:
+
+- `fixtures/tassadar/reports/tassadar_universality_verdict_split_report.json`
+- `fixtures/tassadar/reports/tassadar_turing_completeness_closeout_summary.json`
+- `docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md`
+
+### Suggested `TAS-195`: Reserve The Plugin-Capability Boundary Above `TCM.v1`
+
+Suggested GitHub title:
+
+`Tassadar: reserve plugin-capability boundary above TCM.v1`
+
+Summary:
+
+Make the rebase explicitly plugin-aware while keeping plugin capability outside
+the bounded compute substrate and outside the universality verdict.
+
+Description:
+
+- declare that `TCM.v1` remains the bounded compute substrate
+- declare that plugin execution is a separate software-capability layer above
+  that substrate
+- keep plugin state classes and receipt identity separate from the core compute
+  substrate
+- refuse any implication that theory/operator universality already grants
+  weighted plugin control or plugin publication
+
+Supporting material:
+
+- `docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md`
+- `~/code/alpha/tassadar/plugin-system.md`
+- `fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json`
+- `fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json`
+
+### Suggested `TAS-196`: Publish The Post-Article Turing-Completeness Closeout Audit
+
+Suggested GitHub title:
+
+`Tassadar: publish post-article turing-completeness closeout audit`
+
+Summary:
+
+Publish the final rebased closeout once the bridge, ownership, witness, gate,
+portability, and verdict artifacts are all green.
+
+Description:
+
+- state that the historical `TAS-156` closeout still stands
+- state that the canonical post-`TAS-186` route is now the truth carrier for
+  the bounded Turing-completeness claim
+- keep plugin capability and served/public plugin posture out of scope
+- preserve explicit refusal and publication boundaries
+
+Supporting material:
+
+- `docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md`
+- `docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md`
+- `fixtures/tassadar/reports/tassadar_turing_completeness_closeout_audit_report.json`
+- `fixtures/tassadar/reports/tassadar_turing_completeness_closeout_summary.json`
 
 ## Current Honest Statement
 
