@@ -619,7 +619,7 @@ pub fn build_tassadar_post_article_plugin_invocation_receipts_and_replay_classes
         plugin_publication_allowed: false,
         served_public_universality_allowed: false,
         arbitrary_software_capability_allowed: false,
-        deferred_issue_ids: vec![String::from("TAS-202")],
+        deferred_issue_ids: Vec::new(),
         claim_boundary: String::from(
             "this eval report freezes the canonical post-article plugin invocation-receipt identity and replay-class lattice above the host-owned runtime API and the earlier replay/evidence/promotion precedents. It keeps receipt identity, typed retry and propagation posture, route-integrated evidence, challenge bindings, and operator-only or publication-refused lanes machine-readable while keeping weighted plugin control, plugin publication, served/public universality, and arbitrary software capability blocked.",
         ),
@@ -876,7 +876,7 @@ mod tests {
         assert_eq!(report.replay_class_rows.len(), 4);
         assert_eq!(report.failure_class_rows.len(), 12);
         assert_eq!(report.validation_rows.len(), 9);
-        assert_eq!(report.deferred_issue_ids, vec![String::from("TAS-202")]);
+        assert!(report.deferred_issue_ids.is_empty());
         assert!(report.operator_internal_only_posture);
         assert!(report.receipt_identity_frozen);
         assert!(report.resource_summary_required);

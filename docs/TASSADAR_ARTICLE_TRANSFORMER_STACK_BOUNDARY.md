@@ -956,8 +956,33 @@ the provider receipt now lives at
 and the dedicated checker now lives at
 `scripts/check-tassadar-post-article-plugin-invocation-receipts-and-replay-classes.sh`.
 This tranche keeps receipt and replay posture bounded and machine-legible,
-clears the runtime-API defer pointer to empty, moves the deferred frontier to
-`TAS-202`, and still does not admit weighted plugin control, plugin
+clears the runtime-API defer pointer to empty, and still does not admit
+weighted plugin control, plugin
+publication, served/public universality, or arbitrary software capability.
+
+`TAS-202` now closes the canonical world-mount envelope compiler and
+admissibility tranche at
+`fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json`.
+That report freezes canonical closed-world plugin admissibility above the
+now-closed invocation-receipt layer by inheriting the now-closed receipt
+contract plus the earlier world-mount compatibility, import-policy, and
+internal-compute route-policy precedents, binding explicit candidate-set
+enumeration, explicit equivalent-choice classes, route and mount binding,
+version constraints, trust posture, publication posture, compiled capability
+and network or artifact mount envelopes, receipt-visible filtering, and typed
+denied, suppressed, and quarantined outcomes to the same canonical machine
+identity and computational-model statement as the earlier plugin tranche. The
+operator-readable summary now lives at
+`fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_summary.json`,
+the runtime bundle now lives at
+`fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json`,
+the provider receipt now lives at
+`crates/psionic-provider/src/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility.rs`,
+and the dedicated checker now lives at
+`scripts/check-tassadar-post-article-plugin-world-mount-envelope-compiler-and-admissibility.sh`.
+This tranche keeps admissibility posture bounded and machine-legible, clears
+the invocation-receipt defer pointer to empty, moves the deferred frontier to
+`TAS-203`, and still does not admit weighted plugin control, plugin
 publication, served/public universality, or arbitrary software capability.
 
 ## Route Requirement

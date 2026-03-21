@@ -61,7 +61,7 @@ jq -e '
   and .plugin_publication_allowed == false
   and .served_public_universality_allowed == false
   and .arbitrary_software_capability_allowed == false
-  and (.deferred_issue_ids == ["TAS-202"])
+  and (.deferred_issue_ids == [])
 ' fixtures/tassadar/reports/tassadar_post_article_plugin_invocation_receipts_and_replay_classes_report.json >/dev/null
 
 jq -e '
@@ -76,7 +76,7 @@ jq -e '
   and .replay_class_row_count == 4
   and .failure_class_row_count == 12
   and .validation_row_count == 9
-  and (.deferred_issue_ids == ["TAS-202"])
+  and (.deferred_issue_ids == [])
   and .operator_internal_only_posture == true
   and .rebase_claim_allowed == true
   and .plugin_capability_claim_allowed == false

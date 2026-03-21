@@ -354,6 +354,20 @@ Current honest posture:
   failure lanes; this tranche still keeps weighted plugin control, plugin
   publication, served/public universality, and arbitrary software capability
   blocked
+- the repo now also has one post-article plugin world-mount envelope compiler
+  and admissibility contract, with a committed sandbox-owned report at
+  `fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json`,
+  a disclosure-safe research summary at
+  `fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_summary.json`,
+  a committed runtime bundle, a provider-facing receipt, a checker script, and
+  an audit note that freeze canonical closed-world plugin admissibility above
+  the invocation-receipt layer, including explicit candidate-set enumeration,
+  auditable equivalent-choice classes, route and mount binding, version
+  constraints, trust and publication posture binding, compiled capability and
+  network or artifact mount envelopes, receipt-visible filtering, and typed
+  denied, suppressed, and quarantined outcomes; this tranche still keeps
+  weighted plugin control, plugin publication, served/public universality, and
+  arbitrary software capability blocked
 - the repo now also has one post-article Turing-completeness closeout audit,
   with a committed eval report at
   `fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json`,

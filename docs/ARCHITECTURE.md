@@ -1384,6 +1384,26 @@ The current scope is:
   current lane operator/internal-only and leaving weighted plugin control,
   plugin publication, served/public universality, and arbitrary software
   capability blocked
+- the current post-article plugin world-mount envelope compiler and
+  admissibility artifacts are
+  `fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json`,
+  `fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_summary.json`,
+  the runtime bundle in
+  `fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json`,
+  the provider receipt in
+  `crates/psionic-provider/src/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility.rs`,
+  the checker script
+  `scripts/check-tassadar-post-article-plugin-world-mount-envelope-compiler-and-admissibility.sh`,
+  and the audit note
+  `docs/audits/2026-03-21-tassadar-post-article-plugin-world-mount-envelope-compiler-and-admissibility.md`,
+  which freeze canonical closed-world plugin admissibility above the
+  invocation-receipt layer by requiring explicit candidate-set enumeration,
+  explicit equivalent-choice classes, explicit version and trust or
+  publication posture binding, compiled capability and network or artifact
+  mount envelopes, receipt-visible filtering, and typed denied, suppressed,
+  and quarantined outcomes while keeping the current lane operator/internal-
+  only and leaving weighted plugin control, plugin publication,
+  served/public universality, and arbitrary software capability blocked
 - the current post-article Turing-completeness closeout artifacts are
   `fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json`,
   `fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_summary.json`,

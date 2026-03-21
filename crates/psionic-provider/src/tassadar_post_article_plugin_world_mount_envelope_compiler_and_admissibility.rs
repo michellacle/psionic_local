@@ -1,9 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use psionic_research::TassadarPostArticlePluginInvocationReceiptsAndReplayClassesSummary;
+use psionic_research::TassadarPostArticlePluginWorldMountEnvelopeCompilerAndAdmissibilitySummary;
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct TassadarPostArticlePluginInvocationReceiptsAndReplayClassesReceipt {
+pub struct TassadarPostArticlePluginWorldMountEnvelopeCompilerAndAdmissibilityReceipt {
     pub report_id: String,
     pub machine_identity_id: String,
     pub canonical_route_id: String,
@@ -11,10 +11,12 @@ pub struct TassadarPostArticlePluginInvocationReceiptsAndReplayClassesReceipt {
     pub host_owned_runtime_api_id: String,
     pub engine_abstraction_id: String,
     pub invocation_receipt_profile_id: String,
+    pub world_mount_envelope_compiler_id: String,
+    pub admissibility_contract_id: String,
     pub contract_status: String,
-    pub receipt_identity_row_count: u32,
-    pub replay_class_row_count: u32,
-    pub failure_class_row_count: u32,
+    pub candidate_set_row_count: u32,
+    pub equivalent_choice_row_count: u32,
+    pub envelope_row_count: u32,
     pub validation_row_count: u32,
     pub deferred_issue_ids: Vec<String>,
     pub operator_internal_only_posture: bool,
@@ -27,10 +29,10 @@ pub struct TassadarPostArticlePluginInvocationReceiptsAndReplayClassesReceipt {
     pub detail: String,
 }
 
-impl TassadarPostArticlePluginInvocationReceiptsAndReplayClassesReceipt {
+impl TassadarPostArticlePluginWorldMountEnvelopeCompilerAndAdmissibilityReceipt {
     #[must_use]
     pub fn from_summary(
-        summary: &TassadarPostArticlePluginInvocationReceiptsAndReplayClassesSummary,
+        summary: &TassadarPostArticlePluginWorldMountEnvelopeCompilerAndAdmissibilitySummary,
     ) -> Self {
         Self {
             report_id: summary.report_id.clone(),
@@ -40,10 +42,12 @@ impl TassadarPostArticlePluginInvocationReceiptsAndReplayClassesReceipt {
             host_owned_runtime_api_id: summary.host_owned_runtime_api_id.clone(),
             engine_abstraction_id: summary.engine_abstraction_id.clone(),
             invocation_receipt_profile_id: summary.invocation_receipt_profile_id.clone(),
+            world_mount_envelope_compiler_id: summary.world_mount_envelope_compiler_id.clone(),
+            admissibility_contract_id: summary.admissibility_contract_id.clone(),
             contract_status: format!("{:?}", summary.contract_status).to_lowercase(),
-            receipt_identity_row_count: summary.receipt_identity_row_count,
-            replay_class_row_count: summary.replay_class_row_count,
-            failure_class_row_count: summary.failure_class_row_count,
+            candidate_set_row_count: summary.candidate_set_row_count,
+            equivalent_choice_row_count: summary.equivalent_choice_row_count,
+            envelope_row_count: summary.envelope_row_count,
             validation_row_count: summary.validation_row_count,
             deferred_issue_ids: summary.deferred_issue_ids.clone(),
             operator_internal_only_posture: summary.operator_internal_only_posture,
@@ -54,12 +58,12 @@ impl TassadarPostArticlePluginInvocationReceiptsAndReplayClassesReceipt {
             served_public_universality_allowed: summary.served_public_universality_allowed,
             arbitrary_software_capability_allowed: summary.arbitrary_software_capability_allowed,
             detail: format!(
-                "post-article plugin invocation-receipt summary `{}` keeps contract_status={:?}, invocation_receipt_profile_id=`{}`, replay_class_rows={}, validation_rows={}, and deferred_issue_ids={}.",
+                "post-article plugin world-mount admissibility summary `{}` keeps contract_status={:?}, world_mount_envelope_compiler_id=`{}`, candidate_set_rows={}, envelope_rows={}, and deferred_issue_ids={}.",
                 summary.report_id,
                 summary.contract_status,
-                summary.invocation_receipt_profile_id,
-                summary.replay_class_row_count,
-                summary.validation_row_count,
+                summary.world_mount_envelope_compiler_id,
+                summary.candidate_set_row_count,
+                summary.envelope_row_count,
                 summary.deferred_issue_ids.len(),
             ),
         }
@@ -68,16 +72,16 @@ impl TassadarPostArticlePluginInvocationReceiptsAndReplayClassesReceipt {
 
 #[cfg(test)]
 mod tests {
-    use super::TassadarPostArticlePluginInvocationReceiptsAndReplayClassesReceipt;
-    use psionic_research::build_tassadar_post_article_plugin_invocation_receipts_and_replay_classes_summary;
+    use super::TassadarPostArticlePluginWorldMountEnvelopeCompilerAndAdmissibilityReceipt;
+    use psionic_research::build_tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_summary;
 
     #[test]
-    fn post_article_plugin_invocation_receipts_receipt_projects_summary() {
+    fn post_article_plugin_world_mount_admissibility_receipt_projects_summary() {
         let summary =
-            build_tassadar_post_article_plugin_invocation_receipts_and_replay_classes_summary()
+            build_tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_summary()
                 .expect("summary");
         let receipt =
-            TassadarPostArticlePluginInvocationReceiptsAndReplayClassesReceipt::from_summary(
+            TassadarPostArticlePluginWorldMountEnvelopeCompilerAndAdmissibilityReceipt::from_summary(
                 &summary,
             );
 
@@ -95,7 +99,15 @@ mod tests {
             receipt.invocation_receipt_profile_id,
             "tassadar.plugin_runtime.invocation_receipts.v1"
         );
-        assert!(receipt.deferred_issue_ids.is_empty());
+        assert_eq!(
+            receipt.world_mount_envelope_compiler_id,
+            "tassadar.plugin_runtime.world_mount_envelope_compiler.v1"
+        );
+        assert_eq!(
+            receipt.admissibility_contract_id,
+            "tassadar.plugin_runtime.admissibility.v1"
+        );
+        assert_eq!(receipt.deferred_issue_ids, vec![String::from("TAS-203")]);
         assert!(receipt.operator_internal_only_posture);
         assert!(receipt.rebase_claim_allowed);
         assert!(!receipt.plugin_capability_claim_allowed);

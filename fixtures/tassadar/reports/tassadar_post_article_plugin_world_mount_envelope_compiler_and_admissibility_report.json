@@ -1,0 +1,1084 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.post_article_plugin_world_mount_envelope_compiler_and_admissibility.report.v1",
+  "checker_script_ref": "scripts/check-tassadar-post-article-plugin-world-mount-envelope-compiler-and-admissibility.sh",
+  "invocation_receipts_report_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_invocation_receipts_and_replay_classes_report.json",
+  "world_mount_compatibility_report_ref": "fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json",
+  "import_policy_matrix_report_ref": "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json",
+  "broad_internal_compute_route_policy_report_ref": "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json",
+  "local_plugin_system_spec_ref": "~/code/alpha/tassadar/plugin-system.md",
+  "supporting_material_refs": [
+    "fixtures/tassadar/reports/tassadar_post_article_plugin_invocation_receipts_and_replay_classes_report.json",
+    "fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json",
+    "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json",
+    "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json",
+    "~/code/alpha/tassadar/plugin-system.md"
+  ],
+  "machine_identity_binding": {
+    "machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+    "canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+    "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+    "canonical_route_descriptor_digest": "00af062cccc3d1b2e42ee8e092b9ef8e1539dd3f2dfc379cff7d1cd4a008b032",
+    "canonical_weight_bundle_digest": "99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c",
+    "canonical_weight_primary_artifact_sha256": "e24923e6fe39f0656b3f331fb935e0827a3de43b706014610e513ca5a54e9f84",
+    "continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+    "continuation_contract_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
+    "computational_model_statement_id": "tassadar.post_article_universality_bridge.computational_model_statement.v1",
+    "invocation_receipts_report_id": "tassadar.post_article_plugin_invocation_receipts_and_replay_classes.report.v1",
+    "invocation_receipts_report_digest": "30b5ea1337daa25afc5de192fa03e042bd16780e91928657a3856e298dcee955",
+    "packet_abi_version": "packet.v1",
+    "host_owned_runtime_api_id": "tassadar.plugin_runtime.host_owned_api.v1",
+    "engine_abstraction_id": "tassadar.plugin_runtime.engine_abstraction.v1",
+    "invocation_receipt_profile_id": "tassadar.plugin_runtime.invocation_receipts.v1",
+    "world_mount_envelope_compiler_id": "tassadar.plugin_runtime.world_mount_envelope_compiler.v1",
+    "admissibility_contract_id": "tassadar.plugin_runtime.admissibility.v1",
+    "runtime_bundle_id": "tassadar.post_article_plugin_world_mount_envelope_compiler_and_admissibility.runtime_bundle.v1",
+    "runtime_bundle_digest": "b86b31ba99f8b1dc66a57423d12e6911c2ed994455f238a7e158996c254ff3a0",
+    "runtime_bundle_ref": "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+    "detail": "machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1` canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1` invocation_receipts_report_id=`tassadar.post_article_plugin_invocation_receipts_and_replay_classes.report.v1` world_mount_envelope_compiler_id=`tassadar.plugin_runtime.world_mount_envelope_compiler.v1` and runtime_bundle_id=`tassadar.post_article_plugin_world_mount_envelope_compiler_and_admissibility.runtime_bundle.v1` remain bound together."
+  },
+  "runtime_bundle_ref": "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+  "runtime_bundle": {
+    "schema_version": 1,
+    "bundle_id": "tassadar.post_article_plugin_world_mount_envelope_compiler_and_admissibility.runtime_bundle.v1",
+    "host_owned_runtime_api_id": "tassadar.plugin_runtime.host_owned_api.v1",
+    "invocation_receipt_profile_id": "tassadar.plugin_runtime.invocation_receipts.v1",
+    "world_mount_envelope_compiler_id": "tassadar.plugin_runtime.world_mount_envelope_compiler.v1",
+    "admissibility_contract_id": "tassadar.plugin_runtime.admissibility.v1",
+    "admissibility_rule_rows": [
+      {
+        "rule_id": "closed_world_candidate_sets_explicit",
+        "green": true,
+        "detail": "candidate sets remain fully enumerated or explicitly bounded instead of discovered ad hoc at invocation time."
+      },
+      {
+        "rule_id": "route_policy_binds_plugin_ids",
+        "green": true,
+        "detail": "route policy remains bound to named plugin ids and does not admit hidden plugin substitution."
+      },
+      {
+        "rule_id": "version_constraints_visible",
+        "green": true,
+        "detail": "plugin version constraints remain explicit inside the admissibility contract."
+      },
+      {
+        "rule_id": "trust_posture_binds_admission",
+        "green": true,
+        "detail": "trust posture remains an explicit admissibility input instead of host-side policy drift."
+      },
+      {
+        "rule_id": "publication_posture_binds_admission",
+        "green": true,
+        "detail": "publication posture remains explicit so served-disallowed plugins cannot silently widen claims."
+      },
+      {
+        "rule_id": "receipt_visible_filtering_required",
+        "green": true,
+        "detail": "filtering, ranking, and transformation receipts remain explicit whenever admissibility is narrowed."
+      },
+      {
+        "rule_id": "equivalent_choice_neutrality_auditable",
+        "green": true,
+        "detail": "equivalent-choice classes remain explicit and fail closed when neutral choice is violated."
+      },
+      {
+        "rule_id": "world_mount_envelopes_compiled",
+        "green": true,
+        "detail": "world-mount, capability, network, timeout, memory, and provenance posture remain compiled into runtime-owned envelopes."
+      },
+      {
+        "rule_id": "explicit_denial_and_quarantine_behavior",
+        "green": true,
+        "detail": "unsupported, disallowed, suppressed, and quarantined invocations remain typed instead of collapsing into one generic failure."
+      }
+    ],
+    "candidate_set_rows": [
+      {
+        "candidate_set_id": "candidate_set.benchmark_graph.v1",
+        "route_policy_id": "route.deterministic_import.subset",
+        "world_mount_id": "mount.benchmark_graph",
+        "candidate_plugin_ids": [
+          "plugin.frontier_relax_core",
+          "plugin.checkpoint_backtrack_core"
+        ],
+        "version_constraints": [
+          "plugin.frontier_relax_core@>=1.0.0,<2.0.0",
+          "plugin.checkpoint_backtrack_core@=1.0.0"
+        ],
+        "closed_world_enumerated": true,
+        "explicit_enumeration_required": true,
+        "hidden_ranking_allowed": false,
+        "receipt_visible_filter_required": true,
+        "equivalent_choice_class_id": "choice.search_core_pair.closed_world_neutral.v1",
+        "detail": "benchmark-graph admission stays closed-world and receipt-visible across a bounded pair of internal search-core plugins."
+      },
+      {
+        "candidate_set_id": "candidate_set.validator_search.v1",
+        "route_policy_id": "route.deterministic_import.subset",
+        "world_mount_id": "mount.validator_search",
+        "candidate_plugin_ids": [
+          "plugin.candidate_select_core"
+        ],
+        "version_constraints": [
+          "plugin.candidate_select_core@=1.1.0"
+        ],
+        "closed_world_enumerated": true,
+        "explicit_enumeration_required": true,
+        "hidden_ranking_allowed": false,
+        "receipt_visible_filter_required": true,
+        "equivalent_choice_class_id": "choice.validator_search.singleton.v1",
+        "detail": "validator-search admission stays singleton and exact under the route-plus-mount contract."
+      },
+      {
+        "candidate_set_id": "candidate_set.strict_no_imports.v1",
+        "route_policy_id": "route.article_closeout.served_exact",
+        "world_mount_id": "mount.strict_no_imports",
+        "candidate_plugin_ids": [
+          "plugin.frontier_relax_core"
+        ],
+        "version_constraints": [
+          "plugin.frontier_relax_core@=1.0.0"
+        ],
+        "closed_world_enumerated": true,
+        "explicit_enumeration_required": true,
+        "hidden_ranking_allowed": false,
+        "receipt_visible_filter_required": true,
+        "equivalent_choice_class_id": "choice.strict_no_imports.singleton.v1",
+        "detail": "strict no-import admission remains singleton and exact so import-posture refusal stays typed."
+      },
+      {
+        "candidate_set_id": "candidate_set.missing_dependency.v1",
+        "route_policy_id": "route.deterministic_import.subset",
+        "world_mount_id": "mount.missing_dependency",
+        "candidate_plugin_ids": [
+          "plugin.branch_prune_core"
+        ],
+        "version_constraints": [
+          "plugin.branch_prune_core@=0.1.0"
+        ],
+        "closed_world_enumerated": true,
+        "explicit_enumeration_required": true,
+        "hidden_ranking_allowed": false,
+        "receipt_visible_filter_required": true,
+        "equivalent_choice_class_id": "choice.missing_dependency.singleton.v1",
+        "detail": "missing-dependency admission remains closed-world and quarantinable instead of silently widening to substitute plugins."
+      },
+      {
+        "candidate_set_id": "candidate_set.public_broad_family.v1",
+        "route_policy_id": "route.public_broad_family.publication",
+        "world_mount_id": "mount.validator_search",
+        "candidate_plugin_ids": [
+          "plugin.candidate_select_core"
+        ],
+        "version_constraints": [
+          "plugin.candidate_select_core@=1.1.0"
+        ],
+        "closed_world_enumerated": true,
+        "explicit_enumeration_required": true,
+        "hidden_ranking_allowed": false,
+        "receipt_visible_filter_required": true,
+        "equivalent_choice_class_id": "choice.public_broad_family.singleton.v1",
+        "detail": "served/public publication candidates remain bounded and explicit even when the selected route is still suppressed."
+      }
+    ],
+    "equivalent_choice_rows": [
+      {
+        "equivalent_choice_class_id": "choice.search_core_pair.closed_world_neutral.v1",
+        "bounded_candidate_count": 2,
+        "neutral_choice_auditable": true,
+        "hidden_ranking_allowed": false,
+        "receipt_visible_transforms_required": true,
+        "violation_reason_id": "equivalent_choice_neutrality_violation",
+        "detail": "two bounded internal search-core candidates remain admissible only under neutral closed-world choice with receipt-visible filtering."
+      },
+      {
+        "equivalent_choice_class_id": "choice.validator_search.singleton.v1",
+        "bounded_candidate_count": 1,
+        "neutral_choice_auditable": true,
+        "hidden_ranking_allowed": false,
+        "receipt_visible_transforms_required": true,
+        "violation_reason_id": "version_constraint_unsatisfied",
+        "detail": "singleton validator-search admission still requires an explicit filter receipt and fails closed on version skew."
+      },
+      {
+        "equivalent_choice_class_id": "choice.strict_no_imports.singleton.v1",
+        "bounded_candidate_count": 1,
+        "neutral_choice_auditable": true,
+        "hidden_ranking_allowed": false,
+        "receipt_visible_transforms_required": true,
+        "violation_reason_id": "import_posture_incompatible",
+        "detail": "strict no-import admission remains singleton and fails closed on import-posture mismatch."
+      },
+      {
+        "equivalent_choice_class_id": "choice.missing_dependency.singleton.v1",
+        "bounded_candidate_count": 1,
+        "neutral_choice_auditable": true,
+        "hidden_ranking_allowed": false,
+        "receipt_visible_transforms_required": true,
+        "violation_reason_id": "module_dependency_missing",
+        "detail": "missing-dependency admission remains singleton and explicit so quarantine is typed rather than widened."
+      },
+      {
+        "equivalent_choice_class_id": "choice.public_broad_family.singleton.v1",
+        "bounded_candidate_count": 1,
+        "neutral_choice_auditable": true,
+        "hidden_ranking_allowed": false,
+        "receipt_visible_transforms_required": true,
+        "violation_reason_id": "route_policy_suppressed",
+        "detail": "public-broad-family admission remains singleton and explicit even while the route stays suppressed."
+      }
+    ],
+    "envelope_rows": [
+      {
+        "envelope_id": "envelope.benchmark_graph.internal_search.v1",
+        "route_policy_id": "route.deterministic_import.subset",
+        "world_mount_id": "mount.benchmark_graph",
+        "selected_plugin_id": "plugin.frontier_relax_core",
+        "selected_plugin_version": "1.0.0",
+        "mounted_capability_namespace_ids": [
+          "env.clock_stub"
+        ],
+        "network_rule_ids": [
+          "network.none"
+        ],
+        "artifact_mount_ids": [
+          "artifact_mount.validation_dictionary"
+        ],
+        "timeout_ceiling_millis": 150,
+        "memory_ceiling_bytes": 8388608,
+        "concurrency_ceiling": 1,
+        "provenance_requirement_ids": [
+          "route_evidence_required",
+          "closed_world_candidate_set_receipt_required"
+        ],
+        "replay_requirement_id": "deterministic_replayable",
+        "trust_posture_id": "benchmark_gated_internal",
+        "publication_posture_id": "operator_internal_only",
+        "closed_world_discovery_assumption": true,
+        "detail": "benchmark-graph admission compiles one deterministic internal-only mount envelope with explicit capability, artifact, replay, and provenance posture."
+      },
+      {
+        "envelope_id": "envelope.validator_search.operator_internal.v1",
+        "route_policy_id": "route.deterministic_import.subset",
+        "world_mount_id": "mount.validator_search",
+        "selected_plugin_id": "plugin.candidate_select_core",
+        "selected_plugin_version": "1.1.0",
+        "mounted_capability_namespace_ids": [
+          "env.clock_stub",
+          "sandbox.math_eval"
+        ],
+        "network_rule_ids": [
+          "sim.network.loopback_fifo_seed_7.v1"
+        ],
+        "artifact_mount_ids": [
+          "artifact_mount.validation_dictionary",
+          "artifact_mount.ephemeral_workspace"
+        ],
+        "timeout_ceiling_millis": 150,
+        "memory_ceiling_bytes": 8388608,
+        "concurrency_ceiling": 1,
+        "provenance_requirement_ids": [
+          "route_evidence_required",
+          "validator_binding_required",
+          "challenge_receipt_required"
+        ],
+        "replay_requirement_id": "deterministic_replayable",
+        "trust_posture_id": "challenge_gated_install",
+        "publication_posture_id": "operator_internal_only",
+        "closed_world_discovery_assumption": true,
+        "detail": "validator-search admission compiles one operator/internal envelope with explicit sandbox delegation, loopback-only network posture, and validator binding requirements."
+      }
+    ],
+    "case_receipts": [
+      {
+        "case_id": "benchmark_graph_frontier_relax_core_admitted",
+        "status": "exact_admitted_envelope",
+        "route_policy_id": "route.deterministic_import.subset",
+        "world_mount_id": "mount.benchmark_graph",
+        "candidate_set_id": "candidate_set.benchmark_graph.v1",
+        "selected_plugin_id": "plugin.frontier_relax_core",
+        "selected_plugin_version": "1.0.0",
+        "selected_install_id": "reinstall.frontier_relax_core.session.v2",
+        "trust_posture_id": "benchmark_gated_internal",
+        "publication_posture_id": "operator_internal_only",
+        "equivalent_choice_class_id": "choice.search_core_pair.closed_world_neutral.v1",
+        "filter_transform_receipt_ids": [
+          "receipt.filter.benchmark_graph.closed_world.v1",
+          "receipt.choice.search_core_pair.neutral.v1"
+        ],
+        "envelope_id": "envelope.benchmark_graph.internal_search.v1",
+        "note": "benchmark-graph admission stays exact because candidate enumeration, neutral choice, version constraints, and the compiled runtime envelope all remain explicit.",
+        "receipt_digest": "ce853afd40964d0a1eb568f9bd500c9bee1c5eca3600928c376dc2f86d21bed2"
+      },
+      {
+        "case_id": "validator_search_candidate_select_core_admitted",
+        "status": "exact_admitted_envelope",
+        "route_policy_id": "route.deterministic_import.subset",
+        "world_mount_id": "mount.validator_search",
+        "candidate_set_id": "candidate_set.validator_search.v1",
+        "selected_plugin_id": "plugin.candidate_select_core",
+        "selected_plugin_version": "1.1.0",
+        "selected_install_id": "install.candidate_select_core.rollback.v1",
+        "trust_posture_id": "challenge_gated_install",
+        "publication_posture_id": "operator_internal_only",
+        "equivalent_choice_class_id": "choice.validator_search.singleton.v1",
+        "filter_transform_receipt_ids": [
+          "receipt.filter.validator_search.singleton.v1"
+        ],
+        "envelope_id": "envelope.validator_search.operator_internal.v1",
+        "note": "validator-search admission stays exact because the route, mount, version, trust, and compiled envelope all remain explicit.",
+        "receipt_digest": "7235fb2cb7a0b2917df617ffdf9d98c5443d430e191c718c7044c130bc4e5e53"
+      },
+      {
+        "case_id": "strict_no_imports_denied",
+        "status": "exact_denied_envelope",
+        "route_policy_id": "route.article_closeout.served_exact",
+        "world_mount_id": "mount.strict_no_imports",
+        "candidate_set_id": "candidate_set.strict_no_imports.v1",
+        "trust_posture_id": "benchmark_gated_internal",
+        "publication_posture_id": "operator_internal_only",
+        "equivalent_choice_class_id": "choice.strict_no_imports.singleton.v1",
+        "filter_transform_receipt_ids": [
+          "receipt.filter.strict_no_imports.closed_world.v1"
+        ],
+        "denial_reason_id": "import_posture_incompatible",
+        "note": "strict no-import admission fails closed because the world mount demands a narrower import posture than the admissible plugin route can supply.",
+        "receipt_digest": "8d648b4bae1f2691fa49955e368cfaa7786914245983bb5256b27e01e8db365f"
+      },
+      {
+        "case_id": "validator_search_version_denied",
+        "status": "exact_denied_envelope",
+        "route_policy_id": "route.deterministic_import.subset",
+        "world_mount_id": "mount.validator_search",
+        "candidate_set_id": "candidate_set.validator_search.v1",
+        "trust_posture_id": "challenge_gated_install",
+        "publication_posture_id": "operator_internal_only",
+        "equivalent_choice_class_id": "choice.validator_search.singleton.v1",
+        "filter_transform_receipt_ids": [
+          "receipt.filter.validator_search.singleton.v1"
+        ],
+        "denial_reason_id": "version_constraint_unsatisfied",
+        "note": "validator-search admission fails closed when a candidate plugin version is outside the route-bound admissible version constraint.",
+        "receipt_digest": "35629ee1e5fc4e98b3b29fd8ecb188cef4341e6c4ba3deb82d92ef75be0422ed"
+      },
+      {
+        "case_id": "missing_dependency_quarantined",
+        "status": "exact_quarantined_envelope",
+        "route_policy_id": "route.deterministic_import.subset",
+        "world_mount_id": "mount.missing_dependency",
+        "candidate_set_id": "candidate_set.missing_dependency.v1",
+        "trust_posture_id": "benchmark_gated_internal",
+        "publication_posture_id": "operator_internal_only",
+        "equivalent_choice_class_id": "choice.missing_dependency.singleton.v1",
+        "filter_transform_receipt_ids": [
+          "receipt.filter.missing_dependency.closed_world.v1"
+        ],
+        "denial_reason_id": "module_dependency_missing",
+        "note": "missing dependency remains a typed quarantine posture instead of silently substituting or widening the admissible candidate set.",
+        "receipt_digest": "5312c9d85c446e52d03cb2848bbb862cc99fde4f85fa6dc34c684323b728d837"
+      },
+      {
+        "case_id": "benchmark_graph_hidden_ranking_suppressed",
+        "status": "exact_suppressed_envelope",
+        "route_policy_id": "route.deterministic_import.subset",
+        "world_mount_id": "mount.benchmark_graph",
+        "candidate_set_id": "candidate_set.benchmark_graph.v1",
+        "trust_posture_id": "benchmark_gated_internal",
+        "publication_posture_id": "operator_internal_only",
+        "equivalent_choice_class_id": "choice.search_core_pair.closed_world_neutral.v1",
+        "filter_transform_receipt_ids": [],
+        "denial_reason_id": "equivalent_choice_neutrality_violation",
+        "note": "benchmark-graph admission is suppressed when an equivalent-choice class would require hidden ranking instead of a receipt-visible neutral selection trace.",
+        "receipt_digest": "4fcc9e6501dc7fb0b04966203abc5fbd9c8f40d02a2455105dc84ec22218d43c"
+      },
+      {
+        "case_id": "public_broad_family_route_suppressed",
+        "status": "exact_suppressed_envelope",
+        "route_policy_id": "route.public_broad_family.publication",
+        "world_mount_id": "mount.validator_search",
+        "candidate_set_id": "candidate_set.public_broad_family.v1",
+        "trust_posture_id": "challenge_gated_install",
+        "publication_posture_id": "served_disallowed",
+        "equivalent_choice_class_id": "choice.public_broad_family.singleton.v1",
+        "filter_transform_receipt_ids": [
+          "receipt.filter.public_broad_family.closed_world.v1"
+        ],
+        "denial_reason_id": "route_policy_suppressed",
+        "note": "public-broad-family admission stays suppressed because the route policy is not yet allowed to widen served/public claims.",
+        "receipt_digest": "3b0cb047f9605025091099a2e9238cd9e6d7c8e2cf655ac83adc8a8f5860f5b6"
+      }
+    ],
+    "exact_admitted_case_count": 2,
+    "exact_denied_case_count": 2,
+    "exact_suppressed_case_count": 2,
+    "exact_quarantined_case_count": 1,
+    "claim_boundary": "this runtime bundle freezes the canonical post-article plugin admissibility and world-mount envelope compiler above the host-owned runtime API and invocation-receipt contract. It keeps candidate-set enumeration, equivalent-choice classes, route-policy and world-mount binding, version constraints, trust posture, publication posture, compiled runtime envelopes, and explicit denial or quarantine behavior machine-readable while keeping weighted plugin control, plugin publication, served/public universality, and arbitrary software capability blocked.",
+    "summary": "Post-article plugin admissibility bundle covers admissibility_rules=9, candidate_sets=5, equivalent_choice_classes=5, envelopes=2, admitted_cases=2, denied_cases=2, suppressed_cases=2, quarantined_cases=1.",
+    "bundle_digest": "b86b31ba99f8b1dc66a57423d12e6911c2ed994455f238a7e158996c254ff3a0"
+  },
+  "dependency_rows": [
+    {
+      "dependency_id": "invocation_receipts_contract_closed",
+      "dependency_class": "receipt_precedent",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_invocation_receipts_and_replay_classes_report.json",
+      "bound_report_id": "tassadar.post_article_plugin_invocation_receipts_and_replay_classes.report.v1",
+      "bound_report_digest": "30b5ea1337daa25afc5de192fa03e042bd16780e91928657a3856e298dcee955",
+      "detail": "the earlier invocation-receipt contract is green and no longer defers TAS-202."
+    },
+    {
+      "dependency_id": "world_mount_precedent_bound",
+      "dependency_class": "world_mount_precedent",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json",
+      "bound_report_id": "tassadar.world_mount_compatibility.report.v1",
+      "bound_report_digest": "ab62499732e3692564b323a9e0dd8c0446a5bc2bfc9c4eca28db44d4024a2fb4",
+      "detail": "world-mount compatibility precedent keeps allowed, denied, and unresolved mount outcomes explicit before admissibility can compile runtime envelopes."
+    },
+    {
+      "dependency_id": "import_policy_precedent_bound",
+      "dependency_class": "import_policy_precedent",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json",
+      "bound_report_id": "tassadar.import_policy_matrix.report.v1",
+      "bound_report_digest": "62d7e2eb8bc8bdcef179f6150a1694ff1dd150cdea39d92cb8dbac2c845f50e3",
+      "detail": "import-policy precedent keeps deterministic stubs, sandbox delegation, and refused host effects explicit for envelope compilation."
+    },
+    {
+      "dependency_id": "route_policy_precedent_bound",
+      "dependency_class": "route_policy_precedent",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json",
+      "bound_report_id": "tassadar.broad_internal_compute_route_policy.report.v1",
+      "bound_report_digest": "a7fabcb7159ca0c6ffd4658777976121b4c943232a128976a935f6a9e29056c2",
+      "detail": "route-policy precedent keeps selected, promoted, suppressed, and refused internal-compute routes explicit before plugin admissibility can bind them."
+    },
+    {
+      "dependency_id": "plugin_system_admissibility_shape_cited",
+      "dependency_class": "design_input",
+      "satisfied": true,
+      "source_ref": "~/code/alpha/tassadar/plugin-system.md",
+      "detail": "the local plugin-system note remains the cited design input for admissibility checks, closed-world candidate sets, equivalent-choice classes, and compiled runtime envelopes."
+    }
+  ],
+  "admissibility_rule_rows": [
+    {
+      "rule_id": "closed_world_candidate_sets_explicit",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "candidate sets remain fully enumerated or explicitly bounded instead of discovered ad hoc at invocation time."
+    },
+    {
+      "rule_id": "route_policy_binds_plugin_ids",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "route policy remains bound to named plugin ids and does not admit hidden plugin substitution."
+    },
+    {
+      "rule_id": "version_constraints_visible",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "plugin version constraints remain explicit inside the admissibility contract."
+    },
+    {
+      "rule_id": "trust_posture_binds_admission",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "trust posture remains an explicit admissibility input instead of host-side policy drift."
+    },
+    {
+      "rule_id": "publication_posture_binds_admission",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "publication posture remains explicit so served-disallowed plugins cannot silently widen claims."
+    },
+    {
+      "rule_id": "receipt_visible_filtering_required",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "filtering, ranking, and transformation receipts remain explicit whenever admissibility is narrowed."
+    },
+    {
+      "rule_id": "equivalent_choice_neutrality_auditable",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "equivalent-choice classes remain explicit and fail closed when neutral choice is violated."
+    },
+    {
+      "rule_id": "world_mount_envelopes_compiled",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "world-mount, capability, network, timeout, memory, and provenance posture remain compiled into runtime-owned envelopes."
+    },
+    {
+      "rule_id": "explicit_denial_and_quarantine_behavior",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "unsupported, disallowed, suppressed, and quarantined invocations remain typed instead of collapsing into one generic failure."
+    }
+  ],
+  "candidate_set_rows": [
+    {
+      "candidate_set_id": "candidate_set.benchmark_graph.v1",
+      "route_policy_id": "route.deterministic_import.subset",
+      "world_mount_id": "mount.benchmark_graph",
+      "candidate_plugin_ids": [
+        "plugin.frontier_relax_core",
+        "plugin.checkpoint_backtrack_core"
+      ],
+      "version_constraints": [
+        "plugin.frontier_relax_core@>=1.0.0,<2.0.0",
+        "plugin.checkpoint_backtrack_core@=1.0.0"
+      ],
+      "closed_world_enumerated": true,
+      "explicit_enumeration_required": true,
+      "hidden_ranking_allowed": false,
+      "receipt_visible_filter_required": true,
+      "equivalent_choice_class_id": "choice.search_core_pair.closed_world_neutral.v1",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
+      ],
+      "detail": "benchmark-graph admission stays closed-world and receipt-visible across a bounded pair of internal search-core plugins."
+    },
+    {
+      "candidate_set_id": "candidate_set.validator_search.v1",
+      "route_policy_id": "route.deterministic_import.subset",
+      "world_mount_id": "mount.validator_search",
+      "candidate_plugin_ids": [
+        "plugin.candidate_select_core"
+      ],
+      "version_constraints": [
+        "plugin.candidate_select_core@=1.1.0"
+      ],
+      "closed_world_enumerated": true,
+      "explicit_enumeration_required": true,
+      "hidden_ranking_allowed": false,
+      "receipt_visible_filter_required": true,
+      "equivalent_choice_class_id": "choice.validator_search.singleton.v1",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
+      ],
+      "detail": "validator-search admission stays singleton and exact under the route-plus-mount contract."
+    },
+    {
+      "candidate_set_id": "candidate_set.strict_no_imports.v1",
+      "route_policy_id": "route.article_closeout.served_exact",
+      "world_mount_id": "mount.strict_no_imports",
+      "candidate_plugin_ids": [
+        "plugin.frontier_relax_core"
+      ],
+      "version_constraints": [
+        "plugin.frontier_relax_core@=1.0.0"
+      ],
+      "closed_world_enumerated": true,
+      "explicit_enumeration_required": true,
+      "hidden_ranking_allowed": false,
+      "receipt_visible_filter_required": true,
+      "equivalent_choice_class_id": "choice.strict_no_imports.singleton.v1",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
+      ],
+      "detail": "strict no-import admission remains singleton and exact so import-posture refusal stays typed."
+    },
+    {
+      "candidate_set_id": "candidate_set.missing_dependency.v1",
+      "route_policy_id": "route.deterministic_import.subset",
+      "world_mount_id": "mount.missing_dependency",
+      "candidate_plugin_ids": [
+        "plugin.branch_prune_core"
+      ],
+      "version_constraints": [
+        "plugin.branch_prune_core@=0.1.0"
+      ],
+      "closed_world_enumerated": true,
+      "explicit_enumeration_required": true,
+      "hidden_ranking_allowed": false,
+      "receipt_visible_filter_required": true,
+      "equivalent_choice_class_id": "choice.missing_dependency.singleton.v1",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
+      ],
+      "detail": "missing-dependency admission remains closed-world and quarantinable instead of silently widening to substitute plugins."
+    },
+    {
+      "candidate_set_id": "candidate_set.public_broad_family.v1",
+      "route_policy_id": "route.public_broad_family.publication",
+      "world_mount_id": "mount.validator_search",
+      "candidate_plugin_ids": [
+        "plugin.candidate_select_core"
+      ],
+      "version_constraints": [
+        "plugin.candidate_select_core@=1.1.0"
+      ],
+      "closed_world_enumerated": true,
+      "explicit_enumeration_required": true,
+      "hidden_ranking_allowed": false,
+      "receipt_visible_filter_required": true,
+      "equivalent_choice_class_id": "choice.public_broad_family.singleton.v1",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
+      ],
+      "detail": "served/public publication candidates remain bounded and explicit even when the selected route is still suppressed."
+    }
+  ],
+  "equivalent_choice_rows": [
+    {
+      "equivalent_choice_class_id": "choice.search_core_pair.closed_world_neutral.v1",
+      "bounded_candidate_count": 2,
+      "neutral_choice_auditable": true,
+      "hidden_ranking_allowed": false,
+      "receipt_visible_transforms_required": true,
+      "violation_reason_id": "equivalent_choice_neutrality_violation",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "two bounded internal search-core candidates remain admissible only under neutral closed-world choice with receipt-visible filtering."
+    },
+    {
+      "equivalent_choice_class_id": "choice.validator_search.singleton.v1",
+      "bounded_candidate_count": 1,
+      "neutral_choice_auditable": true,
+      "hidden_ranking_allowed": false,
+      "receipt_visible_transforms_required": true,
+      "violation_reason_id": "version_constraint_unsatisfied",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "singleton validator-search admission still requires an explicit filter receipt and fails closed on version skew."
+    },
+    {
+      "equivalent_choice_class_id": "choice.strict_no_imports.singleton.v1",
+      "bounded_candidate_count": 1,
+      "neutral_choice_auditable": true,
+      "hidden_ranking_allowed": false,
+      "receipt_visible_transforms_required": true,
+      "violation_reason_id": "import_posture_incompatible",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "strict no-import admission remains singleton and fails closed on import-posture mismatch."
+    },
+    {
+      "equivalent_choice_class_id": "choice.missing_dependency.singleton.v1",
+      "bounded_candidate_count": 1,
+      "neutral_choice_auditable": true,
+      "hidden_ranking_allowed": false,
+      "receipt_visible_transforms_required": true,
+      "violation_reason_id": "module_dependency_missing",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "missing-dependency admission remains singleton and explicit so quarantine is typed rather than widened."
+    },
+    {
+      "equivalent_choice_class_id": "choice.public_broad_family.singleton.v1",
+      "bounded_candidate_count": 1,
+      "neutral_choice_auditable": true,
+      "hidden_ranking_allowed": false,
+      "receipt_visible_transforms_required": true,
+      "violation_reason_id": "route_policy_suppressed",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "public-broad-family admission remains singleton and explicit even while the route stays suppressed."
+    }
+  ],
+  "envelope_rows": [
+    {
+      "envelope_id": "envelope.benchmark_graph.internal_search.v1",
+      "route_policy_id": "route.deterministic_import.subset",
+      "world_mount_id": "mount.benchmark_graph",
+      "selected_plugin_id": "plugin.frontier_relax_core",
+      "selected_plugin_version": "1.0.0",
+      "mounted_capability_namespace_ids": [
+        "env.clock_stub"
+      ],
+      "network_rule_ids": [
+        "network.none"
+      ],
+      "artifact_mount_ids": [
+        "artifact_mount.validation_dictionary"
+      ],
+      "timeout_ceiling_millis": 150,
+      "memory_ceiling_bytes": 8388608,
+      "concurrency_ceiling": 1,
+      "provenance_requirement_ids": [
+        "route_evidence_required",
+        "closed_world_candidate_set_receipt_required"
+      ],
+      "replay_requirement_id": "deterministic_replayable",
+      "trust_posture_id": "benchmark_gated_internal",
+      "publication_posture_id": "operator_internal_only",
+      "closed_world_discovery_assumption": true,
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json",
+        "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
+      ],
+      "detail": "benchmark-graph admission compiles one deterministic internal-only mount envelope with explicit capability, artifact, replay, and provenance posture."
+    },
+    {
+      "envelope_id": "envelope.validator_search.operator_internal.v1",
+      "route_policy_id": "route.deterministic_import.subset",
+      "world_mount_id": "mount.validator_search",
+      "selected_plugin_id": "plugin.candidate_select_core",
+      "selected_plugin_version": "1.1.0",
+      "mounted_capability_namespace_ids": [
+        "env.clock_stub",
+        "sandbox.math_eval"
+      ],
+      "network_rule_ids": [
+        "sim.network.loopback_fifo_seed_7.v1"
+      ],
+      "artifact_mount_ids": [
+        "artifact_mount.validation_dictionary",
+        "artifact_mount.ephemeral_workspace"
+      ],
+      "timeout_ceiling_millis": 150,
+      "memory_ceiling_bytes": 8388608,
+      "concurrency_ceiling": 1,
+      "provenance_requirement_ids": [
+        "route_evidence_required",
+        "validator_binding_required",
+        "challenge_receipt_required"
+      ],
+      "replay_requirement_id": "deterministic_replayable",
+      "trust_posture_id": "challenge_gated_install",
+      "publication_posture_id": "operator_internal_only",
+      "closed_world_discovery_assumption": true,
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json",
+        "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
+      ],
+      "detail": "validator-search admission compiles one operator/internal envelope with explicit sandbox delegation, loopback-only network posture, and validator binding requirements."
+    }
+  ],
+  "case_rows": [
+    {
+      "case_id": "benchmark_graph_frontier_relax_core_admitted",
+      "status": "exact_admitted_envelope",
+      "route_policy_id": "route.deterministic_import.subset",
+      "world_mount_id": "mount.benchmark_graph",
+      "candidate_set_id": "candidate_set.benchmark_graph.v1",
+      "selected_plugin_id": "plugin.frontier_relax_core",
+      "selected_plugin_version": "1.0.0",
+      "selected_install_id": "reinstall.frontier_relax_core.session.v2",
+      "trust_posture_id": "benchmark_gated_internal",
+      "publication_posture_id": "operator_internal_only",
+      "equivalent_choice_class_id": "choice.search_core_pair.closed_world_neutral.v1",
+      "filter_transform_receipt_ids": [
+        "receipt.filter.benchmark_graph.closed_world.v1",
+        "receipt.choice.search_core_pair.neutral.v1"
+      ],
+      "envelope_id": "envelope.benchmark_graph.internal_search.v1",
+      "receipt_digest": "ce853afd40964d0a1eb568f9bd500c9bee1c5eca3600928c376dc2f86d21bed2",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json",
+        "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
+      ],
+      "detail": "benchmark-graph admission stays exact because candidate enumeration, neutral choice, version constraints, and the compiled runtime envelope all remain explicit."
+    },
+    {
+      "case_id": "validator_search_candidate_select_core_admitted",
+      "status": "exact_admitted_envelope",
+      "route_policy_id": "route.deterministic_import.subset",
+      "world_mount_id": "mount.validator_search",
+      "candidate_set_id": "candidate_set.validator_search.v1",
+      "selected_plugin_id": "plugin.candidate_select_core",
+      "selected_plugin_version": "1.1.0",
+      "selected_install_id": "install.candidate_select_core.rollback.v1",
+      "trust_posture_id": "challenge_gated_install",
+      "publication_posture_id": "operator_internal_only",
+      "equivalent_choice_class_id": "choice.validator_search.singleton.v1",
+      "filter_transform_receipt_ids": [
+        "receipt.filter.validator_search.singleton.v1"
+      ],
+      "envelope_id": "envelope.validator_search.operator_internal.v1",
+      "receipt_digest": "7235fb2cb7a0b2917df617ffdf9d98c5443d430e191c718c7044c130bc4e5e53",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json",
+        "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
+      ],
+      "detail": "validator-search admission stays exact because the route, mount, version, trust, and compiled envelope all remain explicit."
+    },
+    {
+      "case_id": "strict_no_imports_denied",
+      "status": "exact_denied_envelope",
+      "route_policy_id": "route.article_closeout.served_exact",
+      "world_mount_id": "mount.strict_no_imports",
+      "candidate_set_id": "candidate_set.strict_no_imports.v1",
+      "trust_posture_id": "benchmark_gated_internal",
+      "publication_posture_id": "operator_internal_only",
+      "equivalent_choice_class_id": "choice.strict_no_imports.singleton.v1",
+      "filter_transform_receipt_ids": [
+        "receipt.filter.strict_no_imports.closed_world.v1"
+      ],
+      "denial_reason_id": "import_posture_incompatible",
+      "receipt_digest": "8d648b4bae1f2691fa49955e368cfaa7786914245983bb5256b27e01e8db365f",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json",
+        "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
+      ],
+      "detail": "strict no-import admission fails closed because the world mount demands a narrower import posture than the admissible plugin route can supply."
+    },
+    {
+      "case_id": "validator_search_version_denied",
+      "status": "exact_denied_envelope",
+      "route_policy_id": "route.deterministic_import.subset",
+      "world_mount_id": "mount.validator_search",
+      "candidate_set_id": "candidate_set.validator_search.v1",
+      "trust_posture_id": "challenge_gated_install",
+      "publication_posture_id": "operator_internal_only",
+      "equivalent_choice_class_id": "choice.validator_search.singleton.v1",
+      "filter_transform_receipt_ids": [
+        "receipt.filter.validator_search.singleton.v1"
+      ],
+      "denial_reason_id": "version_constraint_unsatisfied",
+      "receipt_digest": "35629ee1e5fc4e98b3b29fd8ecb188cef4341e6c4ba3deb82d92ef75be0422ed",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json",
+        "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
+      ],
+      "detail": "validator-search admission fails closed when a candidate plugin version is outside the route-bound admissible version constraint."
+    },
+    {
+      "case_id": "missing_dependency_quarantined",
+      "status": "exact_quarantined_envelope",
+      "route_policy_id": "route.deterministic_import.subset",
+      "world_mount_id": "mount.missing_dependency",
+      "candidate_set_id": "candidate_set.missing_dependency.v1",
+      "trust_posture_id": "benchmark_gated_internal",
+      "publication_posture_id": "operator_internal_only",
+      "equivalent_choice_class_id": "choice.missing_dependency.singleton.v1",
+      "filter_transform_receipt_ids": [
+        "receipt.filter.missing_dependency.closed_world.v1"
+      ],
+      "denial_reason_id": "module_dependency_missing",
+      "receipt_digest": "5312c9d85c446e52d03cb2848bbb862cc99fde4f85fa6dc34c684323b728d837",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json",
+        "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
+      ],
+      "detail": "missing dependency remains a typed quarantine posture instead of silently substituting or widening the admissible candidate set."
+    },
+    {
+      "case_id": "benchmark_graph_hidden_ranking_suppressed",
+      "status": "exact_suppressed_envelope",
+      "route_policy_id": "route.deterministic_import.subset",
+      "world_mount_id": "mount.benchmark_graph",
+      "candidate_set_id": "candidate_set.benchmark_graph.v1",
+      "trust_posture_id": "benchmark_gated_internal",
+      "publication_posture_id": "operator_internal_only",
+      "equivalent_choice_class_id": "choice.search_core_pair.closed_world_neutral.v1",
+      "filter_transform_receipt_ids": [],
+      "denial_reason_id": "equivalent_choice_neutrality_violation",
+      "receipt_digest": "4fcc9e6501dc7fb0b04966203abc5fbd9c8f40d02a2455105dc84ec22218d43c",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json",
+        "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
+      ],
+      "detail": "benchmark-graph admission is suppressed when an equivalent-choice class would require hidden ranking instead of a receipt-visible neutral selection trace."
+    },
+    {
+      "case_id": "public_broad_family_route_suppressed",
+      "status": "exact_suppressed_envelope",
+      "route_policy_id": "route.public_broad_family.publication",
+      "world_mount_id": "mount.validator_search",
+      "candidate_set_id": "candidate_set.public_broad_family.v1",
+      "trust_posture_id": "challenge_gated_install",
+      "publication_posture_id": "served_disallowed",
+      "equivalent_choice_class_id": "choice.public_broad_family.singleton.v1",
+      "filter_transform_receipt_ids": [
+        "receipt.filter.public_broad_family.closed_world.v1"
+      ],
+      "denial_reason_id": "route_policy_suppressed",
+      "receipt_digest": "3b0cb047f9605025091099a2e9238cd9e6d7c8e2cf655ac83adc8a8f5860f5b6",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json",
+        "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
+      ],
+      "detail": "public-broad-family admission stays suppressed because the route policy is not yet allowed to widen served/public claims."
+    }
+  ],
+  "validation_rows": [
+    {
+      "validation_id": "invocation_receipts_dependency_closed",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_invocation_receipts_and_replay_classes_report.json"
+      ],
+      "detail": "the earlier invocation-receipt contract is green and no longer defers TAS-202."
+    },
+    {
+      "validation_id": "world_mount_precedent_bound",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json"
+      ],
+      "detail": "world-mount compatibility precedent still carries allowed, denied, and unresolved mount posture explicitly."
+    },
+    {
+      "validation_id": "import_policy_precedent_bound",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json"
+      ],
+      "detail": "import-policy precedent still separates deterministic stubs, sandbox delegation, and refused host side effects."
+    },
+    {
+      "validation_id": "route_policy_precedent_bound",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
+      ],
+      "detail": "route-policy precedent still keeps selected, promoted, suppressed, and refused routes explicit."
+    },
+    {
+      "validation_id": "candidate_set_enumeration_frozen",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json"
+      ],
+      "detail": "candidate sets remain closed-world, explicitly enumerated, and receipt-visible."
+    },
+    {
+      "validation_id": "equivalent_choice_model_frozen",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "equivalent-choice classes stay bounded, auditable, and fail closed on hidden ranking."
+    },
+    {
+      "validation_id": "world_mount_envelopes_compiled",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json",
+        "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
+      ],
+      "detail": "runtime envelopes stay compiled with explicit capability, network, artifact, timeout, memory, replay, trust, and publication posture."
+    },
+    {
+      "validation_id": "typed_denial_and_quarantine_behavior",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json"
+      ],
+      "detail": "denied, suppressed, and quarantined posture remain typed instead of collapsing into one generic failure."
+    },
+    {
+      "validation_id": "overclaim_posture_blocked",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_invocation_receipts_and_replay_classes_report.json",
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json"
+      ],
+      "detail": "the admissibility contract stays operator/internal-only and does not imply weighted plugin control, plugin publication, served/public universality, or arbitrary software capability."
+    }
+  ],
+  "contract_status": "green",
+  "contract_green": true,
+  "operator_internal_only_posture": true,
+  "admissibility_frozen": true,
+  "candidate_set_enumeration_frozen": true,
+  "equivalent_choice_model_frozen": true,
+  "world_mount_envelope_compiler_frozen": true,
+  "receipt_visible_filtering_required": true,
+  "version_constraint_binding_required": true,
+  "trust_posture_binding_required": true,
+  "publication_posture_binding_required": true,
+  "denial_behavior_frozen": true,
+  "rebase_claim_allowed": true,
+  "plugin_capability_claim_allowed": false,
+  "weighted_plugin_control_allowed": false,
+  "plugin_publication_allowed": false,
+  "served_public_universality_allowed": false,
+  "arbitrary_software_capability_allowed": false,
+  "deferred_issue_ids": [
+    "TAS-203"
+  ],
+  "claim_boundary": "this sandbox report freezes the canonical post-article plugin admissibility contract above the invocation-receipt layer and the earlier world-mount, import-policy, and route-policy precedents. It keeps closed-world candidate sets, equivalent-choice classes, route and mount binding, version constraints, trust posture, publication posture, compiled runtime envelopes, and typed denied or quarantined outcomes machine-readable while keeping weighted plugin control, plugin publication, served/public universality, and arbitrary software capability blocked.",
+  "summary": "Post-article plugin world-mount admissibility report keeps contract_status=Green, dependency_rows=5, candidate_set_rows=5, equivalent_choice_rows=5, envelope_rows=2, case_rows=7, validation_rows=9, and deferred_issue_ids=1.",
+  "report_digest": "79e1f2092f8ccc49ec7129843fbedb2d9ee87fac0f5fd36611ecf1f5cb1bb09f"
+}

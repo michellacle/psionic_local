@@ -32,8 +32,10 @@ pub use tassadar_post_article_plugin_charter_authority_boundary::*;
 
 mod tassadar_post_article_plugin_packet_abi_and_rust_pdk;
 mod tassadar_post_article_plugin_runtime_api_and_engine_abstraction;
+mod tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility;
 pub use tassadar_post_article_plugin_packet_abi_and_rust_pdk::*;
 pub use tassadar_post_article_plugin_runtime_api_and_engine_abstraction::*;
+pub use tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility::*;
 
 mod tassadar_simulator_effect_boundary;
 pub use tassadar_simulator_effect_boundary::*;
