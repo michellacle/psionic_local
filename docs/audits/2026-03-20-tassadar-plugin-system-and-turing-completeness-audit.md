@@ -129,6 +129,9 @@ machinery decides the third.
 Both this audit and the companion Turing-completeness audit should be read
 under the same invariants.
 
+- Plane Separation:
+  data plane, control plane, and capability plane remain explicit with no
+  hidden cross-plane leakage
 - State Ownership:
   durable workflow truth must live only in explicit weights-owned, ephemeral,
   resumed, or host-backed state classes
@@ -149,6 +152,49 @@ under the same invariants.
 - Scheduling Ownership:
   ordering, concurrency, and result-visibility timing must be model-decided or
   fixed as a declared runtime contract
+
+## Three-Plane Contract
+
+The cleanest way to keep the plugin architecture honest is to freeze three
+separate planes:
+
+- data plane:
+  `TCM.v1` and the canonical owned compute route carry pure compute evolution
+- control plane:
+  the weighted decision trace carries plugin selection, branching, retry, and
+  stop logic
+- capability plane:
+  bounded plugins execute declared capabilities under envelopes and receipts
+
+No plane may silently absorb another plane's responsibilities.
+
+That means:
+
+- the capability plane may not quietly become the planner
+- the control plane may not be hidden inside packet schemas or runtime
+  admissibility logic
+- the data plane may not be widened into arbitrary capability execution by
+  implication
+
+## Adversarial Host Model
+
+The audits should assume a host that is allowed to try to cheat unless a rule
+forbids it.
+
+The host may attempt to:
+
+- reorder execution
+- cache and substitute results
+- inject ranking or routing heuristics
+- hide candidates or refusal modes
+- exploit latency, cost, quota, or pool asymmetries
+- adapt scheduling and concurrency
+
+The system must therefore either:
+
+- surface these behaviors explicitly in the model-visible trace and receipts
+- freeze them as non-adaptive runtime contract
+- or refuse them outright
 
 ## Primary Claim Dependency
 
@@ -512,6 +558,9 @@ Those rules must cover:
 - multi-plugin workflow integrity
 - refusal propagation across chains
 - envelope intersection across composed workflows
+- semantic closure under multi-step chaining
+- non-lossy schema transitions across chained plugin outputs
+- fail-closed behavior when composition introduces ambiguity
 - replay under partial cancellation
 - explicit prohibition on implicit shared-memory, cache, or timing channels
 
@@ -555,6 +604,53 @@ executions except through:
 
 Without that rule, the repo can grow a shadow planner via telemetry or cache
 history while still sounding weighted.
+
+### 16. Plugin Language Boundary And Closed-World Discovery Contract: `planned`
+
+The plugin system also needs one explicit statement of what plugins are allowed
+to be and how they are discovered.
+
+That contract must freeze:
+
+- plugins as bounded effectful procedures over declared packet and effect
+  envelopes, not a silent second universal compute substrate
+- first-version discovery as closed-world and operator-curated
+- enumeration guarantees for the admissible plugin set
+- explicit refusal on open-world dynamic discovery unless separately audited
+
+Without that contract, plugins can reintroduce hidden general compute or break
+choice-set integrity by discovery drift.
+
+### 17. Anti-Interpreter-Smuggling Rule: `planned`
+
+The plugin system also needs one explicit refusal boundary against plugins that
+internalize workflow logic and substitute for the weighted controller.
+
+That rule must freeze:
+
+- no plugin may become an undeclared interpreter for the workflow itself
+- no plugin may absorb branching, retry, or stop logic that is supposed to
+  remain weighted and model-owned
+- plugin internals may not be used to reintroduce hidden Turing-completeness
+  outside the declared compute substrate
+
+Without that rule, the model can degrade into a thin wrapper around a host-run
+interpreter.
+
+### 18. Failure-Domain Isolation Contract: `planned`
+
+The plugin system also needs explicit failure-domain isolation.
+
+That contract must freeze:
+
+- per-plugin failure domains
+- per-step failure domains
+- per-workflow failure domains
+- refusal behavior when failures would corrupt unrelated state or alter the
+  admissible choice set
+
+Without that contract, failures in one plugin can silently mutate global
+workflow truth.
 
 ## The Most Important Boundary Question
 
@@ -694,6 +790,14 @@ That includes:
 - pool pressure
 - throttling
 
+Equivalent choices must not be biased by hidden cost-model or latency-shaping
+drift.
+
+Either:
+
+- cost and latency are fixed constants for the contract
+- or they are fully surfaced and stable across equivalent choices
+
 Without this law, economics become hidden orchestration.
 
 ### 7. Scheduling Ownership Law
@@ -715,6 +819,12 @@ Plugins must not communicate or influence each other except through:
 
 Implicit shared memory, shared cache coordination, or timing-based signaling
 must be treated as out of contract.
+
+Outputs must also not carry undeclared covert channels through latent shared
+representations or schema fields whose semantic completeness is not audited.
+
+When outputs compose across steps, that composition must remain semantically
+closed and non-lossy or fail closed with typed refusal.
 
 ### 9. Control Trace Replay Law
 
@@ -749,6 +859,21 @@ executions except through:
 - or declared, auditable policy changes
 
 Without this law, a shadow planner can emerge outside the model.
+
+### 12. Anti-Interpreter-Smuggling Law
+
+Plugins may not internalize workflow logic that substitutes for the weighted
+controller.
+
+That means:
+
+- plugins may not become undeclared workflow interpreters
+- packet schemas may not become hidden programs that relocate control logic
+- capability execution may not reintroduce hidden general compute outside the
+  declared substrate
+
+Without this law, the plugin system can pass surface conformance while moving
+real control out of the model.
 
 ## Does The Plugin System Change The Shape Of The Turing-Completeness Push?
 
@@ -796,6 +921,7 @@ It should leave room for:
 - mount-envelope identities
 - plugin-specific receipts
 - explicit software-like capability components
+- explicit control-plane versus capability-plane separation
 
 That does **not** mean making plugins a prerequisite for Turing completeness.
 It means not hard-coding a terminal contract that would need to be rewritten as
@@ -827,6 +953,9 @@ It should also reserve:
 - choice-set integrity
 - resource transparency
 - scheduling ownership
+- closed-world enumeration guarantees for the first plugin tranche
+- forward-compatible packet and receipt hooks rather than ad hoc later
+  extensions
 
 #### 3. Continuation Ownership Must Become State-Class-Aware
 
@@ -881,6 +1010,8 @@ Those are:
 
 - preserve a clean separation between pure compute substrate and capability
   execution layer
+- preserve a clean separation between data plane, control plane, and capability
+  plane
 - make the bridge contract reserve plugin-boundary identity fields
 - make the continuation-ownership audit explicit about packet-local,
   ephemeral-instance, and durable-host state
@@ -888,6 +1019,8 @@ Those are:
   reinjection before any weighted plugin-controller claim is made
 - reserve choice-set integrity, resource transparency, and scheduling
   ownership before any adaptive plugin layer exists
+- reserve forward-compatible packet boundary hooks, capability invocation
+  slots, receipt extensibility fields, and schema-version negotiation hooks
 - freeze the workflow-ownership rule before any plugin-controller claim is made
 - keep the rebased verdict split from over-reading future plugin capability
 
@@ -928,6 +1061,10 @@ Description:
 - define plugin non-goals and internal-only/publication posture
 - bind the plugin system explicitly to the post-`TAS-186` owned-route truth
   without mutating `TCM.v1`
+- freeze the three-plane contract across data plane, control plane, and
+  capability plane
+- freeze the adversarial host model the later conformance harness must defend
+  against
 - freeze the state-class split across packet-local, instance-local ephemeral,
   host-backed durable, and weights-owned control state
 - freeze the rule that host may execute capability but may not decide workflow
@@ -936,6 +1073,10 @@ Description:
 - freeze choice-set integrity, resource transparency, and scheduling ownership
 - freeze the no-externalized-learning rule for runtime behavior across
   executions
+- freeze the plugin language boundary as bounded effectful procedures rather
+  than an undeclared second compute substrate
+- freeze the first plugin tranche as closed-world and operator-curated
+- freeze the anti-interpreter-smuggling rule
 - define who may declare a plugin canonical, who may widen capability
   envelopes, and which receipts are required before posture changes
 
@@ -1023,8 +1164,11 @@ Description:
 - define pool, queue, timeout, memory, concurrency, and optional fuel bounds
 - freeze which resource signals are model-visible and which are fixed runtime
   contract
+- freeze cost-model invariance requirements across equivalent choices
 - freeze concurrency and scheduling semantics so the host cannot adapt them
   opportunistically
+- define failure-domain isolation across per-plugin, per-step, and per-workflow
+  failures
 - keep backend-specific details below the host-owned runtime API
 
 Supporting material:
@@ -1076,6 +1220,8 @@ Description:
 - define plugin admissibility checks
 - make candidate sets fully enumerated or explicitly bounded
 - make any filtering, ranking, or transformation receipt-visible
+- freeze the closed-world discovery assumption and explicit enumeration
+  guarantees for the admissible set
 - compile capability namespace grants, network rules, and mount posture into
   runtime envelopes
 - bind route policy to plugin version constraints and trust posture
@@ -1110,7 +1256,10 @@ Description:
 - cover multi-plugin workflow integrity, refusal propagation, envelope
   intersection, hot-swap inside composed workflows, and replay under partial
   cancellation
+- cover per-plugin, per-step, and per-workflow failure-domain isolation
 - cover shared-cache, shared-store, and timing-channel isolation negatives
+- cover covert-channel negatives through latent shared representations or
+  semantically incomplete schemas
 - benchmark cold, warm, pooled, queued, and cancelled execution paths
 - keep receipt integrity and envelope compatibility explicit
 
@@ -1122,16 +1271,17 @@ Supporting material:
 - `fixtures/tassadar/reports/tassadar_module_trust_isolation_report.json`
 - `fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json`
 
-### Suggested `TAS-203A`: Plugin Result-Binding And Schema-Stability Contract
+### Suggested `TAS-203A`: Plugin Result-Binding, Schema-Stability, And Composition Contract
 
 Suggested GitHub title:
 
-`Tassadar: add plugin result-binding and schema-stability contract`
+`Tassadar: add plugin result-binding, schema-stability, and composition contract`
 
 Summary:
 
 Prove that plugin outputs can be bound back into the model loop in a stable,
-typed, replayable way before the repo claims model-owned plugin sequencing.
+typed, replayable, composition-safe way before the repo claims model-owned
+plugin sequencing.
 
 Description:
 
@@ -1140,8 +1290,11 @@ Description:
 - bind output digests to the next model-visible state explicitly
 - define model-version versus plugin-schema compatibility and fail-closed
   behavior on version skew
+- require semantic closure under multi-step chaining
+- require non-lossy schema transitions across chained plugin outputs
 - refuse reinjection when schema repair or coercion would alter declared task
   meaning
+- fail closed when composition across steps introduces ambiguity
 - make the return path stable enough that weighted planning is not built on an
   adapter-defined contract
 
@@ -1175,6 +1328,8 @@ Description:
 - add negative rows for host auto-retry, fallback export selection, heuristic
   plugin ranking, schema auto-repair, cached result substitution, candidate
   precomputation, and hidden top-k filtering
+- add negative rows for adversarial host behaviors from the earlier threat
+  model, not just obvious planner substitutions
 
 Supporting material:
 
@@ -1282,8 +1437,12 @@ But the repo does **not** yet have:
 - plugin-specific invocation receipts
 - a stable result-binding and schema-stability contract
 - a plugin-specific authority and governance model
+- a formal three-plane contract across data, control, and capability planes
+- a unified adversarial host model
+- a frozen plugin language boundary plus closed-world discovery contract
 - planner-indistinguishability guardrails over choice sets, resources, and
   scheduling
+- explicit failure-domain and covert-channel constraints
 - a replayable control-trace determinism contract
 - a model-plugin compatibility contract
 - an explicit no-externalized-learning guardrail

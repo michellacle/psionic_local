@@ -109,6 +109,9 @@ the plugin tranche. The third is a policy and release question above both.
 Both this audit and the companion plugin audit should be read under the same
 invariants.
 
+- Plane Separation:
+  data plane, control plane, and capability plane remain explicit with no
+  hidden cross-plane leakage
 - State Ownership:
   durable workflow truth must live only in explicit weights-owned, ephemeral,
   resumed, or host-backed state classes
@@ -129,6 +132,50 @@ invariants.
 - Scheduling Ownership:
   ordering, concurrency, and result-visibility timing must be model-decided or
   fixed as a declared runtime contract
+
+## Three-Plane Contract
+
+The bridge should preserve three separate planes:
+
+- data plane:
+  the canonical owned route and `TCM.v1` compute substrate carry pure compute
+  evolution
+- control plane:
+  the weighted route and continuation truth carry branching and claim-bearing
+  control semantics
+- capability plane:
+  any later plugin system sits above the bridge as a bounded execution layer
+
+No plane may silently absorb another plane's responsibilities.
+
+In particular:
+
+- the data plane may not be widened into arbitrary capability execution by
+  implication
+- the control plane may not be hidden inside host continuation or admissibility
+  logic
+- the future capability plane may not silently rewrite compute or control
+  claims
+
+## Adversarial Host Model
+
+The bridge should assume a host that may try to cheat unless a rule forbids
+it.
+
+The host may attempt to:
+
+- reorder execution
+- cache and substitute results
+- inject heuristics
+- hide candidates or refusal modes
+- exploit latency, cost, quota, or pool asymmetries
+- adapt scheduling or concurrency
+
+The bridge must therefore either:
+
+- surface these behaviors in route-visible truth and receipts
+- freeze them as non-adaptive runtime contract
+- or refuse them outright
 
 ## What Is Already Real And Still Valid
 
@@ -563,6 +610,8 @@ Land one dedicated bridge artifact that answers:
   accommodate plugins
 - how choice-set integrity, resource transparency, and scheduling ownership are
   reserved for later capability layers above the bridge
+- which forward-compatible hooks remain reserved for packet boundaries,
+  capability invocation slots, receipt extensibility, and schema negotiation
 
 Without this contract, later universality rebasing will drift.
 
@@ -735,6 +784,8 @@ Description:
   now carry the rebased universality story
 - publish the explicit split between direct article-equivalent carrier truths
   and bounded resumable universality carrier truths
+- freeze the three-plane contract across data plane, control plane, and later
+  capability plane
 - state whether the carrier is `ReferenceLinear`, `HullCache`, a resumable
   route family above them, or an explicit split across those lanes
 - bind old `TCM.v1` rows to new owned-route evidence where appropriate
@@ -742,6 +793,8 @@ Description:
   leaving it implicit
 - reserve choice-set integrity, resource transparency, and scheduling ownership
   invariants for later capability layers
+- reserve forward-compatible packet boundary hooks, capability invocation
+  slots, receipt extensibility fields, and schema-version negotiation hooks
 
 Supporting material:
 
@@ -954,12 +1007,16 @@ the bounded compute substrate and outside the universality verdict.
 Description:
 
 - declare that `TCM.v1` remains the bounded compute substrate
+- declare the later plugin system as a distinct capability plane above the
+  bridge rather than an implicit extension of compute truth
 - declare that plugin execution is a separate software-capability layer above
   that substrate
 - keep plugin state classes and receipt identity separate from the core compute
   substrate
 - reserve choice-set integrity, resource transparency, and scheduling ownership
   as non-negotiable invariants for any later capability layer
+- reserve the closed-world/operator-curated assumption for the first audited
+  plugin tranche unless later discovery work is separately audited
 - refuse any implication that theory/operator universality already grants
   weighted plugin control or plugin publication
 
