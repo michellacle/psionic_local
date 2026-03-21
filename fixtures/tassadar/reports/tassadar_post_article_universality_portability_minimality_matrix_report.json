@@ -1,0 +1,281 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.post_article_universality_portability_minimality_matrix.report.v1",
+  "checker_script_ref": "scripts/check-tassadar-post-article-universality-portability-minimality-matrix.sh",
+  "universal_substrate_gate_report_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_route_universal_substrate_gate_report.json",
+  "broad_internal_compute_portability_report_ref": "fixtures/tassadar/reports/tassadar_broad_internal_compute_portability_report.json",
+  "turing_completeness_closeout_audit_report_ref": "fixtures/tassadar/reports/tassadar_turing_completeness_closeout_audit_report.json",
+  "article_equivalence_acceptance_gate_report_ref": "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json",
+  "bridge_contract_report_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
+  "article_fast_route_architecture_selection_report_ref": "fixtures/tassadar/reports/tassadar_article_fast_route_architecture_selection_report.json",
+  "article_route_minimality_audit_report_ref": "fixtures/tassadar/reports/tassadar_article_route_minimality_audit_report.json",
+  "machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+  "canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+  "canonical_weight_artifact_id": "tassadar://article_transformer/weights/tassadar-article-transformer-trace-bound-trained-v0/99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c",
+  "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+  "continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+  "supporting_material_rows": [
+    {
+      "material_id": "canonical_route_universal_substrate_gate",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_route_universal_substrate_gate_report.json",
+      "source_artifact_id": "tassadar.post_article_canonical_route_universal_substrate_gate.report.v1",
+      "source_artifact_digest": "4a81f409aa1be57cba2df1c9a4d04e518902c53ddd772de5c4f9919275452b98",
+      "detail": "the canonical-route universal-substrate gate must stay green before the portability/minimality matrix can inherit any bounded universality story on the canonical route."
+    },
+    {
+      "material_id": "broad_internal_compute_portability",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_broad_internal_compute_portability_report.json",
+      "source_artifact_id": "tassadar.broad_internal_compute_portability.report.v1",
+      "source_artifact_digest": "5f414f4a520d91ccf097f1356292311bf0ffbc085cf512da66e659280fb70f04",
+      "detail": "the broad internal-compute portability report must keep the article-closeout profile explicit across declared CPU classes so the rebased universality matrix inherits a machine envelope instead of a single-host anecdote."
+    },
+    {
+      "material_id": "historical_turing_closeout_audit",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_turing_completeness_closeout_audit_report.json",
+      "source_artifact_id": "tassadar.turing_completeness_closeout_audit.report.v1",
+      "source_artifact_digest": "f1ef25bbd79723483dd299009ddf308b21f2d3f94a1a2d029914c092a26a206b",
+      "detail": "the historical closeout audit must stay theory-green and operator-green with served suppression explicit so the rebased matrix preserves the older public boundary instead of widening it silently."
+    },
+    {
+      "material_id": "article_equivalence_acceptance_gate",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json",
+      "source_artifact_id": "tassadar.article_equivalence.acceptance_gate.report.v1",
+      "source_artifact_digest": "e61112cca9b9525c33c875cb21cc0b8927047a968c92bf371fe98f3d0a859395",
+      "detail": "the article-equivalence acceptance gate must stay green so the portability/minimality matrix remains bound to the declared canonical owned route."
+    },
+    {
+      "material_id": "post_article_bridge_contract",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
+      "source_artifact_id": "tassadar.post_article_universality_bridge.contract.report.v1",
+      "source_artifact_digest": "2908d3a3b0a47f76c60fcf61726f8f37fc366b9ffe9ba3d3ddad75f08a012e10",
+      "detail": "the bridge contract must stay green so machine classes, carrier split, and canonical route identity remain frozen while the machine matrix is extended."
+    },
+    {
+      "material_id": "article_fast_route_architecture_selection",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_article_fast_route_architecture_selection_report.json",
+      "source_artifact_id": "tassadar.article_fast_route_architecture_selection.v1",
+      "source_artifact_digest": "21416b2c6f63127474d19382f4fe716a812b263d2cfcbf17cbf67ade0e70bf92",
+      "detail": "the fast-route architecture-selection report must stay green so the matrix classifies real route candidates rather than an invented route list."
+    },
+    {
+      "material_id": "article_route_minimality_audit",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_article_route_minimality_audit_report.json",
+      "source_artifact_id": "tassadar.article_route_minimality.audit.v1",
+      "source_artifact_digest": "d36fb661d9133f1e130c59db2fc3ec1cb1e9d9055316724d19e10a1198dad16e",
+      "detail": "the article route-minimality audit must stay green so component boundaries, route purity, and state-carrier minimality remain machine-checkable on the same canonical route id."
+    },
+    {
+      "material_id": "tassadar_sync_context",
+      "material_class": "observational_context",
+      "satisfied": true,
+      "source_ref": "docs/ROADMAP_TASSADAR_TAS_SYNC.md",
+      "detail": "the TAS sync file remains observational context only here and records the implementation lineage without substituting for the proof-carrying matrix artifacts."
+    }
+  ],
+  "machine_matrix_rows": [
+    {
+      "profile_id": "tassadar.internal_compute.article_closeout.v1",
+      "backend_family": "cpu_reference",
+      "toolchain_family": "rustc:wasm32-unknown-unknown",
+      "machine_class_id": "host_cpu_aarch64",
+      "portability_row_status": "published_declared_class",
+      "publication_allowed": true,
+      "declared_by_bridge_machine_identity": true,
+      "supports_rebased_universality": true,
+      "resumed_execution_parity_explicit": true,
+      "row_green": true,
+      "detail": "profile `tassadar.internal_compute.article_closeout.v1` is admitted on declared machine class `host_cpu_aarch64` under the explicit `cpu_reference` backend envelope resumed_execution_parity_explicit=true declared_by_bridge_machine_identity=true supports_rebased_universality=true"
+    },
+    {
+      "profile_id": "tassadar.internal_compute.article_closeout.v1",
+      "backend_family": "cpu_reference",
+      "toolchain_family": "rustc:wasm32-unknown-unknown",
+      "machine_class_id": "host_cpu_x86_64",
+      "portability_row_status": "published_measured_current_host",
+      "publication_allowed": true,
+      "declared_by_bridge_machine_identity": true,
+      "supports_rebased_universality": true,
+      "resumed_execution_parity_explicit": true,
+      "row_green": true,
+      "detail": "profile `tassadar.internal_compute.article_closeout.v1` is measured green on the current host and stays inside the declared `cpu_reference` backend envelope resumed_execution_parity_explicit=true declared_by_bridge_machine_identity=true supports_rebased_universality=true"
+    },
+    {
+      "profile_id": "tassadar.internal_compute.article_closeout.v1",
+      "backend_family": "cpu_reference",
+      "toolchain_family": "rustc:wasm32-unknown-unknown",
+      "machine_class_id": "other_host_cpu",
+      "portability_row_status": "suppressed_drifted_outside_envelope",
+      "publication_allowed": false,
+      "suppression_reason": "outside_declared_envelope",
+      "declared_by_bridge_machine_identity": false,
+      "supports_rebased_universality": false,
+      "resumed_execution_parity_explicit": true,
+      "row_green": true,
+      "detail": "profile `tassadar.internal_compute.article_closeout.v1` is suppressed on backend `cpu_reference` / machine `other_host_cpu` because that machine class drifts outside the declared profile envelope resumed_execution_parity_explicit=true declared_by_bridge_machine_identity=false supports_rebased_universality=false"
+    }
+  ],
+  "route_classification_rows": [
+    {
+      "candidate_kind": "hull_cache_runtime",
+      "route_carrier_status": "inside_universality_carrier",
+      "route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+      "route_descriptor_digest": "00af062cccc3d1b2e42ee8e092b9ef8e1539dd3f2dfc379cff7d1cd4a008b032",
+      "decode_mode": "tassadar.decode.hull_cache.v1",
+      "semantics_equivalence_explicit": true,
+      "inherits_universality": true,
+      "classification_green": true,
+      "detail": "candidate `hull_cache_runtime` is the selected canonical route and stays inside the universality carrier because the universal-substrate gate is green, the route-minimality audit is green, the canonical route id matches `tassadar.article_route.direct_hull_cache_runtime.v1`, and the route descriptor digest stays `00af062cccc3d1b2e42ee8e092b9ef8e1539dd3f2dfc379cff7d1cd4a008b032`."
+    },
+    {
+      "candidate_kind": "linear_recurrent_runtime",
+      "route_carrier_status": "outside_universality_carrier_acceleration_only",
+      "semantics_equivalence_explicit": false,
+      "inherits_universality": false,
+      "classification_green": true,
+      "detail": "candidate `linear_recurrent_runtime` remains outside the universality carrier as an explicit acceleration-only or research-only surface because no semantics-equivalence proof binds it to the canonical route."
+    },
+    {
+      "candidate_kind": "hierarchical_hull_research",
+      "route_carrier_status": "outside_universality_carrier_research_only",
+      "semantics_equivalence_explicit": false,
+      "inherits_universality": false,
+      "classification_green": true,
+      "detail": "candidate `hierarchical_hull_research` remains outside the universality carrier as an explicit acceleration-only or research-only surface because no semantics-equivalence proof binds it to the canonical route."
+    },
+    {
+      "candidate_kind": "two_dimensional_head_hard_max_research",
+      "route_carrier_status": "outside_universality_carrier_research_only",
+      "semantics_equivalence_explicit": false,
+      "inherits_universality": false,
+      "classification_green": true,
+      "detail": "candidate `two_dimensional_head_hard_max_research` remains outside the universality carrier as an explicit acceleration-only or research-only surface because no semantics-equivalence proof binds it to the canonical route."
+    }
+  ],
+  "minimality_rows": [
+    {
+      "minimality_id": "machine_component_boundary_minimality",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_article_route_minimality_audit_report.json"
+      ],
+      "detail": "machine-level minimality remains explicit because route purity and state-carrier minimality both stay green on the canonical route instead of reducing minimality to route shape alone."
+    },
+    {
+      "minimality_id": "preserved_transform_minimality",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_route_universal_substrate_gate_report.json",
+        "fixtures/tassadar/reports/tassadar_article_route_minimality_audit_report.json"
+      ],
+      "detail": "machine-level minimality remains explicit over preserved transforms because identity binding, semantic drift blocking, and continuation-boundary exclusions all stay green."
+    },
+    {
+      "minimality_id": "acceleration_surfaces_classified",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_article_fast_route_architecture_selection_report.json"
+      ],
+      "detail": "non-selected fast routes remain explicitly outside the universality carrier as acceleration-only or research-only surfaces instead of inheriting proof status by proximity."
+    }
+  ],
+  "bounded_universality_story_carried": true,
+  "universal_substrate_gate_allowed": true,
+  "machine_matrix_green": true,
+  "route_classification_green": true,
+  "minimality_green": true,
+  "served_suppression_boundary_preserved": true,
+  "served_conformance_envelope_defined": true,
+  "matrix_status": "green",
+  "matrix_green": true,
+  "deferred_issue_ids": [
+    "TAS-194"
+  ],
+  "rebase_claim_allowed": false,
+  "plugin_capability_claim_allowed": false,
+  "served_public_universality_allowed": false,
+  "arbitrary_software_capability_allowed": false,
+  "validation_rows": [
+    {
+      "validation_id": "helper_substitution_quarantined",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_route_universal_substrate_gate_report.json"
+      ],
+      "detail": "helper substitution remains quarantined, so the portability/minimality matrix cannot be satisfied by hidden host substitution."
+    },
+    {
+      "validation_id": "route_drift_rejected",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_route_universal_substrate_gate_report.json"
+      ],
+      "detail": "route drift remains rejected, so the matrix stays attached to one canonical route id and one canonical route descriptor digest."
+    },
+    {
+      "validation_id": "continuation_abuse_quarantined",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_route_universal_substrate_gate_report.json"
+      ],
+      "detail": "continuation abuse remains quarantined, so resumed execution remains an explicit carrier property instead of a hidden second machine."
+    },
+    {
+      "validation_id": "semantic_drift_blocked",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_route_universal_substrate_gate_report.json"
+      ],
+      "detail": "semantic drift remains blocked, so the matrix does not treat portability or acceleration as license to change execution semantics."
+    },
+    {
+      "validation_id": "declared_machine_matrix_covered",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_portability_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json"
+      ],
+      "detail": "the matrix covers the declared bridge machine classes and keeps the out-of-envelope class explicitly suppressed instead of leaving missing cells ambiguous."
+    },
+    {
+      "validation_id": "fast_route_classification_explicit",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_article_fast_route_architecture_selection_report.json"
+      ],
+      "detail": "every current fast-route candidate is classified explicitly as either inside the universality carrier or outside it as an acceleration-only or research-only surface."
+    },
+    {
+      "validation_id": "served_suppression_boundary_preserved",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_turing_completeness_closeout_audit_report.json"
+      ],
+      "detail": "the older served/public suppression boundary remains preserved, so this matrix does not silently publish served universality."
+    },
+    {
+      "validation_id": "overclaim_posture_explicit",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_route_universal_substrate_gate_report.json"
+      ],
+      "detail": "the matrix stays inside the portability/minimality tranche only and does not publish the rebased verdict split, served/public universality, weighted plugin control, or arbitrary software capability."
+    }
+  ],
+  "claim_boundary": "this matrix proves that the post-`TAS-186` bounded universality lane is attached to one declared machine matrix and one explicit route-carrier classification. It keeps current-host and declared-class machine cells, explicit suppression outside the declared envelope, explicit carrier binding for the selected canonical HullCache route, explicit acceleration-only or research-only posture for non-selected fast routes, and explicit minimality over machine components, semantics, and preserved transforms. It does not by itself publish the rebased theory/operator/served verdict split, admit served/public universality, admit weighted plugin control, or admit arbitrary software capability.",
+  "summary": "Post-article universality portability/minimality matrix keeps supporting_materials=8/8, machine_rows=3/3, route_rows=4/4, minimality_rows=3/3, validation_rows=8/8, served_suppression_boundary_preserved=true, and matrix_status=Green.",
+  "report_digest": "c2fdf6afbcc46642c1a8f494264e595b1def5145a2200946b2aff963a8d6469b"
+}

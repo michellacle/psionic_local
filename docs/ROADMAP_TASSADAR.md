@@ -239,6 +239,20 @@ Current honest posture:
   overclaim posture explicit; this tranche still does not publish the rebased
   verdict split, imply served/public universality, weighted plugin control,
   or arbitrary software capability
+- the repo now also has one post-article universality portability/minimality
+  matrix, with a committed eval report at
+  `fixtures/tassadar/reports/tassadar_post_article_universality_portability_minimality_matrix_report.json`,
+  a disclosure-safe research summary at
+  `fixtures/tassadar/reports/tassadar_post_article_universality_portability_minimality_matrix_summary.json`,
+  a provider-facing receipt, a served conformance envelope at
+  `fixtures/tassadar/reports/tassadar_post_article_universality_served_conformance_envelope.json`,
+  a checker script, and an audit note that extend the rebased canonical-route
+  universality lane across one declared CPU machine matrix, one explicit
+  route-carrier classification, and one machine-level minimality contract
+  while keeping out-of-envelope machines explicitly suppressed and preserving
+  the narrower served article-closeout boundary; this tranche still does not
+  publish the rebased theory/operator/served verdict split, imply served/public
+  universality, weighted plugin control, or arbitrary software capability
 - the repo now also has one machine-readable article-equivalence blocker
   matrix, with a committed eval report at
   `fixtures/tassadar/reports/tassadar_article_equivalence_blocker_matrix_report.json`,

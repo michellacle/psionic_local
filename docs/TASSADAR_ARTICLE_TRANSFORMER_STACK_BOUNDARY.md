@@ -760,6 +760,24 @@ This tranche still does not publish the rebased theory/operator/served verdict
 split, admit served/public universality, admit weighted plugin control, or
 admit arbitrary software capability.
 
+`TAS-193` now closes the post-article universality portability/minimality
+matrix tranche at
+`fixtures/tassadar/reports/tassadar_post_article_universality_portability_minimality_matrix_report.json`.
+That report extends the rebased canonical-route universality lane across one
+declared CPU machine matrix, one explicit route-carrier classification, and
+one machine-level minimality contract instead of inheriting those claims from
+adjacent green artifacts. The operator-readable summary now lives at
+`fixtures/tassadar/reports/tassadar_post_article_universality_portability_minimality_matrix_summary.json`,
+the provider receipt now lives at
+`crates/psionic-provider/src/tassadar_post_article_universality_portability_minimality_matrix.rs`,
+the served conformance envelope now lives at
+`fixtures/tassadar/reports/tassadar_post_article_universality_served_conformance_envelope.json`,
+and the dedicated checker now lives at
+`scripts/check-tassadar-post-article-universality-portability-minimality-matrix.sh`.
+This tranche still does not publish the rebased theory/operator/served verdict
+split, admit served/public universality, admit weighted plugin control, or
+admit arbitrary software capability.
+
 ## Route Requirement
 
 Any canonical article-equivalence Transformer route must use this boundary.

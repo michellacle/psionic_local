@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.post_article_universality_portability_minimality_matrix.report.v1",
+  "machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+  "canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+  "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+  "matrix_status": "green",
+  "bounded_universality_story_carried": true,
+  "machine_row_count": 3,
+  "route_row_count": 4,
+  "minimality_row_count": 3,
+  "validation_row_count": 8,
+  "machine_matrix_green": true,
+  "route_classification_green": true,
+  "minimality_green": true,
+  "served_suppression_boundary_preserved": true,
+  "served_conformance_envelope_defined": true,
+  "deferred_issue_ids": [
+    "TAS-194"
+  ],
+  "universal_substrate_gate_allowed": true,
+  "rebase_claim_allowed": false,
+  "plugin_capability_claim_allowed": false,
+  "served_public_universality_allowed": false,
+  "arbitrary_software_capability_allowed": false,
+  "detail": "post-article universality portability/minimality summary keeps machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1`, machine_rows=3, route_rows=4, minimality_rows=3, validation_rows=8, matrix_status=Green, and served_conformance_envelope_defined=true.",
+  "summary_digest": "1a5e88ea130f6c931d4d1cd2e7dc20072cfd6eb36f77b0d2767c0dbe1dbab39f"
+}

@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "publication_id": "tassadar.post_article_universality_served_conformance_envelope.v1",
+  "matrix_report_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_portability_minimality_matrix_report.json",
+  "route_minimality_publication_ref": "fixtures/tassadar/reports/tassadar_article_route_minimality_publication_verdict.json",
+  "cross_machine_reproducibility_publication_ref": "fixtures/tassadar/reports/tassadar_article_cross_machine_reproducibility_publication.json",
+  "served_profile_report_ref": "fixtures/tassadar/reports/tassadar_broad_internal_compute_profile_publication_report.json",
+  "served_route_policy_report_ref": "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json",
+  "current_served_internal_compute_profile_id": "tassadar.internal_compute.article_closeout.v1",
+  "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+  "canonical_route_descriptor_digest": "00af062cccc3d1b2e42ee8e092b9ef8e1539dd3f2dfc379cff7d1cd4a008b032",
+  "selected_decode_mode": "tassadar.decode.hull_cache.v1",
+  "supported_machine_class_ids": [
+    "host_cpu_aarch64",
+    "host_cpu_x86_64"
+  ],
+  "allowed_narrower_deviation_ids": [
+    "served_posture_may_remain_narrower_than_operator_universality",
+    "served_posture_may_expose_only_direct_article_route",
+    "served_posture_may_remain_cpu_only_with_explicit_suppression_elsewhere"
+  ],
+  "required_identical_property_ids": [
+    "canonical_route_id_matches_bridge_identity",
+    "canonical_route_descriptor_digest_matches_bridge_identity",
+    "selected_decode_mode_matches_direct_article_route",
+    "supported_machine_classes_stay_inside_declared_cpu_matrix",
+    "deterministic_direct_route_only"
+  ],
+  "fail_closed_condition_ids": [
+    "route_drift_or_descriptor_change",
+    "machine_outside_declared_cpu_matrix",
+    "nonselected_fast_route_claimed_as_universal",
+    "resumable_or_public_universality_widening_attempted",
+    "plugin_capability_implication_attempted"
+  ],
+  "matrix_green": true,
+  "route_minimality_publication_green": true,
+  "cross_machine_reproducibility_green": true,
+  "served_suppression_boundary_preserved": true,
+  "served_public_universality_allowed": false,
+  "claim_boundary": "this served conformance envelope freezes the narrow served posture that may exist below the rebased operator universality claim. The served lane may stay narrower than the operator lane, but it must keep the canonical direct article route identity, route descriptor digest, selected decode mode, and declared CPU machine matrix explicit; any route drift, undeclared machine widening, fast-route carrier laundering, or implication of served/public universality or plugin capability must fail closed.",
+  "publication_digest": "18acdafa84adfc0295205334fc64eec765c70537d15c3a063ab72bc0532ef73a"
+}

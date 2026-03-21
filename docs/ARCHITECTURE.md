@@ -1234,6 +1234,24 @@ The current scope is:
   and overclaim posture explicit; this still does not publish the rebased
   verdict split, admit served/public universality, admit weighted plugin
   control, or admit arbitrary software capability
+- the current post-article universality portability/minimality artifacts are
+  `fixtures/tassadar/reports/tassadar_post_article_universality_portability_minimality_matrix_report.json`,
+  `fixtures/tassadar/reports/tassadar_post_article_universality_portability_minimality_matrix_summary.json`,
+  the provider receipt in
+  `crates/psionic-provider/src/tassadar_post_article_universality_portability_minimality_matrix.rs`,
+  the served conformance envelope at
+  `fixtures/tassadar/reports/tassadar_post_article_universality_served_conformance_envelope.json`,
+  the checker script
+  `scripts/check-tassadar-post-article-universality-portability-minimality-matrix.sh`,
+  and the audit note
+  `docs/audits/2026-03-21-tassadar-post-article-universality-portability-minimality-matrix.md`,
+  which extend the rebased canonical-route universality lane across one
+  declared CPU machine matrix, one explicit route-carrier classification, one
+  machine-level minimality contract, and one fail-closed served conformance
+  envelope while keeping out-of-envelope machines and non-canonical fast routes
+  explicitly suppressed; this still does not publish the rebased verdict
+  split, admit served/public universality, admit weighted plugin control, or
+  admit arbitrary software capability
 - the current semantic-window revision artifacts are
   `fixtures/tassadar/reports/tassadar_semantic_window_revision_receipt.json`
   and
