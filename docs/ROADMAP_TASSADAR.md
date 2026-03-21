@@ -144,6 +144,19 @@ Current honest posture:
   terminal statement: Turing-complete support is green for theory and operator
   use under declared `TCM.v1` semantics and explicit envelopes, while
   served/public universality remains suppressed
+- the repo now also has one post-article universality bridge contract, with a
+  committed eval report at
+  `fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json`,
+  a disclosure-safe research summary at
+  `fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_summary.json`,
+  a provider-facing receipt, a checker script, and an audit note that bind the
+  historical `TCM.v1` closeout chain to one explicit post-`TAS-186` machine
+  identity tuple on the canonical owned article route without rewriting the
+  older artifacts; the bridge keeps the direct article-equivalent lane,
+  resumable universality lane, and reserved later capability plane explicit,
+  but it does not yet reissue the bounded Turing-completeness claim on the
+  canonical route or imply served/public universality, weighted plugin
+  control, or arbitrary software capability
 - the repo now also has one machine-readable article-equivalence blocker
   matrix, with a committed eval report at
   `fixtures/tassadar/reports/tassadar_article_equivalence_blocker_matrix_report.json`,

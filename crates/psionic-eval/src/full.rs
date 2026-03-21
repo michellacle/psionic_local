@@ -260,6 +260,8 @@ mod tassadar_numeric_portability;
 mod tassadar_owned_transformer_stack_audit;
 #[path = "tassadar_pointer_memory_scratchpad.rs"]
 mod tassadar_pointer_memory_scratchpad;
+#[path = "tassadar_post_article_universality_bridge_contract.rs"]
+mod tassadar_post_article_universality_bridge_contract;
 #[path = "tassadar_pre_closeout_universality_audit.rs"]
 mod tassadar_pre_closeout_universality_audit;
 #[path = "tassadar_precision_attention_robustness_audit.rs"]
@@ -493,6 +495,7 @@ pub use tassadar_numeric_opcode_ladder::*;
 pub use tassadar_numeric_portability::*;
 pub use tassadar_owned_transformer_stack_audit::*;
 pub use tassadar_pointer_memory_scratchpad::*;
+pub use tassadar_post_article_universality_bridge_contract::*;
 pub use tassadar_pre_closeout_universality_audit::*;
 pub use tassadar_precision_attention_robustness_audit::*;
 pub use tassadar_preemptive_job_profile::*;

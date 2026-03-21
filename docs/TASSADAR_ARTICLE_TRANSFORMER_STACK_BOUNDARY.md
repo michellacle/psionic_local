@@ -637,6 +637,23 @@ stochastic execution, planner/hybrid canonical routes, generic
 interpreter-in-weights claims outside the article envelope, and the post-article
 universality bridge remain explicitly out of scope.
 
+`TAS-187` now freezes the post-article universality bridge contract at
+`fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json`.
+That bridge binds the canonical post-`TAS-186` article model, weight artifact,
+and direct `HullCache` route identity to the preserved historical `TCM.v1`
+runtime contract without rewriting the older closure artifacts. It keeps the
+direct article-equivalent carrier distinct from the bounded resumable
+universality carrier, leaves the later capability plane explicitly reserved,
+and publishes the operator-readable summary at
+`fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_summary.json`,
+the provider receipt at
+`crates/psionic-provider/src/tassadar_post_article_universality_bridge_contract.rs`,
+and the dedicated checker at
+`scripts/check-tassadar-post-article-universality-bridge-contract.sh`. This
+bridge still is not a semantic-preservation proof, a control-plane provenance
+proof, a served/public universality approval, a weighted plugin-control claim,
+or an arbitrary software-capability claim.
+
 ## Route Requirement
 
 Any canonical article-equivalence Transformer route must use this boundary.

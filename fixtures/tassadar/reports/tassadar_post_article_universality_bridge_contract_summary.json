@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.post_article_universality_bridge.contract.report.v1",
+  "bridge_machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+  "carrier_topology": "explicit_split_across_direct_and_resumable_lanes",
+  "canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+  "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+  "continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+  "direct_carrier_id": "tassadar.post_article_universality_bridge.direct_article_equivalent_carrier.v1",
+  "resumable_carrier_id": "tassadar.post_article_universality_bridge.resumable_universality_carrier.v1",
+  "reserved_capability_plane_id": "tassadar.post_article_universality_bridge.reserved_capability_plane.v1",
+  "reserved_later_invariant_ids": [
+    "choice_set_integrity",
+    "resource_transparency",
+    "scheduling_ownership"
+  ],
+  "reserved_capability_issue_ids": [
+    "TAS-195",
+    "TAS-197",
+    "TAS-199",
+    "TAS-200",
+    "TAS-201",
+    "TAS-203A"
+  ],
+  "bridge_status": "green",
+  "bridge_contract_green": true,
+  "rebase_claim_allowed": false,
+  "plugin_capability_claim_allowed": false,
+  "served_public_universality_allowed": false,
+  "detail": "post-article universality bridge summary keeps machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, carrier_topology=ExplicitSplitAcrossDirectAndResumableLanes, canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1`, reserved_capability_issue_ids=4, bridge_status=Green, rebase_claim_allowed=false, plugin_capability_claim_allowed=false, and served_public_universality_allowed=false.",
+  "summary_digest": "c7fff9f27c27365222366f2edee0a97c5b4020f545f232e4214b2beada2a6c38"
+}

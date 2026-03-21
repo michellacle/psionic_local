@@ -1119,6 +1119,22 @@ The current scope is:
   semantics, explicit portability envelopes, and explicit refusal boundaries,
   Turing-complete support is real for theory and operator use, while
   served/public universality remains suppressed
+- the current post-article universality bridge artifacts are
+  `fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json`,
+  `fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_summary.json`,
+  the provider receipt in
+  `crates/psionic-provider/src/tassadar_post_article_universality_bridge_contract.rs`,
+  the checker script
+  `scripts/check-tassadar-post-article-universality-bridge-contract.sh`, and
+  the audit note
+  `docs/audits/2026-03-21-tassadar-post-article-universality-bridge-contract.md`,
+  which bind the canonical post-`TAS-186` article route identity to the
+  historical `TCM.v1` runtime and closeout chain without rewriting those older
+  artifacts, while keeping the direct article-equivalent carrier, the bounded
+  resumable universality carrier, and the reserved later capability plane
+  explicit; this still does not prove semantic-preserving continuation,
+  control-plane provenance, served/public universality, weighted plugin
+  control, or arbitrary software capability
 - the current semantic-window revision artifacts are
   `fixtures/tassadar/reports/tassadar_semantic_window_revision_receipt.json`
   and
