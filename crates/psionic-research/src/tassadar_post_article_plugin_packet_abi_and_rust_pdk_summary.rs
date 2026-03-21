@@ -10,10 +10,10 @@ use sha2::{Digest, Sha256};
 use thiserror::Error;
 
 use psionic_sandbox::{
+    build_tassadar_post_article_plugin_packet_abi_and_rust_pdk_report,
     TassadarPostArticlePluginPacketAbiAndRustPdkReport,
     TassadarPostArticlePluginPacketAbiAndRustPdkReportError,
     TassadarPostArticlePluginPacketAbiAndRustPdkStatus,
-    build_tassadar_post_article_plugin_packet_abi_and_rust_pdk_report,
 };
 
 pub const TASSADAR_POST_ARTICLE_PLUGIN_PACKET_ABI_AND_RUST_PDK_SUMMARY_REF: &str =
@@ -189,11 +189,11 @@ mod tests {
     use tempfile::tempdir;
 
     use super::{
-        TASSADAR_POST_ARTICLE_PLUGIN_PACKET_ABI_AND_RUST_PDK_SUMMARY_REF,
-        TassadarPostArticlePluginPacketAbiAndRustPdkSummary,
         build_tassadar_post_article_plugin_packet_abi_and_rust_pdk_summary, read_repo_json,
         tassadar_post_article_plugin_packet_abi_and_rust_pdk_summary_path,
         write_tassadar_post_article_plugin_packet_abi_and_rust_pdk_summary,
+        TassadarPostArticlePluginPacketAbiAndRustPdkSummary,
+        TASSADAR_POST_ARTICLE_PLUGIN_PACKET_ABI_AND_RUST_PDK_SUMMARY_REF,
     };
     use psionic_sandbox::TassadarPostArticlePluginPacketAbiAndRustPdkStatus;
 
@@ -210,7 +210,7 @@ mod tests {
         assert_eq!(summary.abi_row_count, 8);
         assert_eq!(summary.pdk_row_count, 6);
         assert_eq!(summary.validation_row_count, 8);
-        assert_eq!(summary.deferred_issue_ids, vec![String::from("TAS-200")]);
+        assert!(summary.deferred_issue_ids.is_empty());
         assert!(summary.operator_internal_only_posture);
         assert!(summary.rebase_claim_allowed);
         assert!(!summary.plugin_capability_claim_allowed);
@@ -224,10 +224,9 @@ mod tests {
     fn post_article_plugin_packet_abi_summary_matches_committed_truth() {
         let generated =
             build_tassadar_post_article_plugin_packet_abi_and_rust_pdk_summary().expect("summary");
-        let committed: TassadarPostArticlePluginPacketAbiAndRustPdkSummary = read_repo_json(
-            TASSADAR_POST_ARTICLE_PLUGIN_PACKET_ABI_AND_RUST_PDK_SUMMARY_REF,
-        )
-        .expect("committed summary");
+        let committed: TassadarPostArticlePluginPacketAbiAndRustPdkSummary =
+            read_repo_json(TASSADAR_POST_ARTICLE_PLUGIN_PACKET_ABI_AND_RUST_PDK_SUMMARY_REF)
+                .expect("committed summary");
         assert_eq!(generated, committed);
         assert_eq!(
             tassadar_post_article_plugin_packet_abi_and_rust_pdk_summary_path()
@@ -243,10 +242,9 @@ mod tests {
         let output_path = directory
             .path()
             .join("tassadar_post_article_plugin_packet_abi_and_rust_pdk_summary.json");
-        let written = write_tassadar_post_article_plugin_packet_abi_and_rust_pdk_summary(
-            &output_path,
-        )
-        .expect("write summary");
+        let written =
+            write_tassadar_post_article_plugin_packet_abi_and_rust_pdk_summary(&output_path)
+                .expect("write summary");
         let persisted: TassadarPostArticlePluginPacketAbiAndRustPdkSummary =
             serde_json::from_slice(&std::fs::read(&output_path).expect("read summary"))
                 .expect("decode summary");

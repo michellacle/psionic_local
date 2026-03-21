@@ -324,6 +324,22 @@ Current honest posture:
   and one narrow packet-host import namespace; this tranche still keeps
   weighted plugin control, plugin publication, served/public universality,
   and arbitrary software capability blocked
+- the repo now also has one post-article plugin runtime API and engine
+  abstraction contract, with a committed sandbox-owned report at
+  `fixtures/tassadar/reports/tassadar_post_article_plugin_runtime_api_and_engine_abstraction_report.json`,
+  a disclosure-safe research summary at
+  `fixtures/tassadar/reports/tassadar_post_article_plugin_runtime_api_and_engine_abstraction_summary.json`,
+  a committed runtime bundle, a served publication, a provider-facing
+  receipt, a checker script, and an audit note that freeze one host-owned
+  plugin runtime API and one backend-neutral engine layer above the packet
+  ABI, including digest-verified loading, bounded instantiate/invoke/mount/
+  cancel/usage operations, explicit timeout/memory/queue/pool/concurrency
+  ceilings, fixed model-information boundaries for queue depth, retries,
+  runtime cost, and time, fixed scheduling semantics, cost-model
+  invariance, and explicit per-plugin/per-step/per-workflow failure
+  isolation; this tranche still keeps weighted plugin control, plugin
+  publication, served/public universality, and arbitrary software
+  capability blocked
 - the repo now also has one post-article Turing-completeness closeout audit,
   with a committed eval report at
   `fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json`,
@@ -536,9 +552,9 @@ Issue-state note:
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
 - `TAS-156` is now implemented and tracked in
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
-- `TAS-157` through `TAS-199` are now implemented and tracked in
+- `TAS-157` through `TAS-200` are now implemented and tracked in
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
-- `TAS-200` through `TAS-215` remain open in GitHub and are tracked via the
+- `TAS-201` through `TAS-216` remain open in GitHub and are tracked via the
   issue bodies plus `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
 
 ## Repo-Local Companion Docs

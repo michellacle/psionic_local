@@ -12,9 +12,7 @@
   "abi_row_count": 8,
   "pdk_row_count": 6,
   "validation_row_count": 8,
-  "deferred_issue_ids": [
-    "TAS-200"
-  ],
+  "deferred_issue_ids": [],
   "operator_internal_only_posture": true,
   "rebase_claim_allowed": true,
   "plugin_capability_claim_allowed": false,
@@ -22,6 +20,6 @@
   "plugin_publication_allowed": false,
   "served_public_universality_allowed": false,
   "arbitrary_software_capability_allowed": false,
-  "detail": "post-article plugin packet ABI summary keeps machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, packet_abi_version=`packet.v1`, rust_first_pdk_id=`tassadar.plugin.rust_first_pdk.v1`, contract_status=Green, abi_rows=8, and deferred_issue_ids=1.",
-  "summary_digest": "d611ea7ccf762201bef781547ca6fe571af8142a238ca5bc6d9048f07ff4616a"
+  "detail": "post-article plugin packet ABI summary keeps machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, packet_abi_version=`packet.v1`, rust_first_pdk_id=`tassadar.plugin.rust_first_pdk.v1`, contract_status=Green, abi_rows=8, and deferred_issue_ids=0.",
+  "summary_digest": "7566cd4892e57dc01c8fd37f4c8944ad56c8fcc3441f3f480980a3b917836845"
 }

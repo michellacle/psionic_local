@@ -1340,6 +1340,29 @@ The current scope is:
   current lane operator/internal-only and leaving weighted plugin control,
   plugin publication, served/public universality, and arbitrary software
   capability blocked
+- the current post-article plugin runtime-API and engine-abstraction artifacts
+  are
+  `fixtures/tassadar/reports/tassadar_post_article_plugin_runtime_api_and_engine_abstraction_report.json`,
+  `fixtures/tassadar/reports/tassadar_post_article_plugin_runtime_api_and_engine_abstraction_summary.json`,
+  the runtime bundle in
+  `fixtures/tassadar/runs/tassadar_post_article_plugin_runtime_api_and_engine_abstraction_v1/tassadar_post_article_plugin_runtime_api_and_engine_abstraction_bundle.json`,
+  the served publication in
+  `fixtures/tassadar/reports/tassadar_post_article_plugin_runtime_api_and_engine_abstraction_publication.json`,
+  the provider receipt in
+  `crates/psionic-provider/src/tassadar_post_article_plugin_runtime_api_and_engine_abstraction.rs`,
+  the checker script
+  `scripts/check-tassadar-post-article-plugin-runtime-api-and-engine-abstraction.sh`,
+  and the audit note
+  `docs/audits/2026-03-21-tassadar-post-article-plugin-runtime-api-and-engine-abstraction.md`,
+  which freeze one host-owned plugin runtime API and one backend-neutral
+  engine abstraction above the packet ABI by requiring digest-verified
+  loading, bounded instantiate/invoke/mount/cancel/usage operations,
+  explicit timeout/memory/queue/pool/concurrency ceilings, fixed
+  model-information boundaries for queue depth/retries/runtime cost/time,
+  cost-model invariance, fixed scheduling semantics, and explicit failure
+  isolation while keeping the current lane operator/internal-only and leaving
+  weighted plugin control, plugin publication, served/public universality,
+  and arbitrary software capability blocked
 - the current post-article Turing-completeness closeout artifacts are
   `fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json`,
   `fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_summary.json`,

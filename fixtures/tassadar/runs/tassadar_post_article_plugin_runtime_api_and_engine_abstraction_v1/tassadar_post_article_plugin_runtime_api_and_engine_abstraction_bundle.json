@@ -1,0 +1,472 @@
+{
+  "schema_version": 1,
+  "bundle_id": "tassadar.post_article_plugin_runtime_api_and_engine_abstraction.runtime_bundle.v1",
+  "host_owned_runtime_api_id": "tassadar.plugin_runtime.host_owned_api.v1",
+  "engine_abstraction_id": "tassadar.plugin_runtime.engine_abstraction.v1",
+  "engine_profile_id": "tassadar.plugin_runtime.engine_profile.wasm_bounded.v1",
+  "packet_abi_version": "packet.v1",
+  "artifact_loading_rows": [
+    {
+      "row_id": "load_declared_plugin_artifact",
+      "green": true,
+      "detail": "runtime loads only the manifest-declared plugin artifact and linked bundle members instead of accepting ad hoc binaries."
+    },
+    {
+      "row_id": "verify_artifact_digest_before_instantiate",
+      "green": true,
+      "detail": "artifact digest verification is required before instantiate or pool admission so runtime identity stays machine-checkable."
+    },
+    {
+      "row_id": "freeze_linked_bundle_membership",
+      "green": true,
+      "detail": "linked multi-module packaging stays bound to one stable bundle identity instead of late host-side composition."
+    }
+  ],
+  "engine_operation_rows": [
+    {
+      "operation_id": "instantiate_artifact",
+      "host_owned_surface_id": "load_plugin",
+      "backend_specific_types_hidden": true,
+      "model_visible": false,
+      "green": true,
+      "detail": "instantiate stays behind the host-owned runtime API and does not leak backend-specific engine handles."
+    },
+    {
+      "operation_id": "invoke_export",
+      "host_owned_surface_id": "invoke",
+      "backend_specific_types_hidden": true,
+      "model_visible": false,
+      "green": true,
+      "detail": "export invocation stays packet-shaped behind the host-owned runtime API."
+    },
+    {
+      "operation_id": "mount_capabilities",
+      "host_owned_surface_id": "invoke",
+      "backend_specific_types_hidden": true,
+      "model_visible": false,
+      "green": true,
+      "detail": "capability mounting remains runtime-owned and mount-envelope mediated rather than guest-driven."
+    },
+    {
+      "operation_id": "cancel_running_execution",
+      "host_owned_surface_id": "cancel",
+      "backend_specific_types_hidden": true,
+      "model_visible": false,
+      "green": true,
+      "detail": "cancellation remains an explicit runtime API action instead of backend-specific interruption wiring."
+    },
+    {
+      "operation_id": "collect_usage_summary",
+      "host_owned_surface_id": "invoke",
+      "backend_specific_types_hidden": true,
+      "model_visible": false,
+      "green": true,
+      "detail": "usage collection stays receipt-bound and host-owned instead of a backend-private side channel."
+    },
+    {
+      "operation_id": "pool_instance_reuse",
+      "host_owned_surface_id": "load_plugin",
+      "backend_specific_types_hidden": true,
+      "model_visible": false,
+      "green": true,
+      "detail": "pool reuse stays a runtime-owned optimization with no backend-specific surface leaked to the top-level contract."
+    }
+  ],
+  "bound_rows": [
+    {
+      "bound_id": "timeout_bound",
+      "required": true,
+      "model_visible": false,
+      "green": true,
+      "detail": "every invocation runs under an explicit timeout ceiling and timeout overflow resolves to a typed runtime failure."
+    },
+    {
+      "bound_id": "memory_bound",
+      "required": true,
+      "model_visible": false,
+      "green": true,
+      "detail": "every invocation runs under an explicit memory ceiling and memory overflow resolves to a typed runtime failure."
+    },
+    {
+      "bound_id": "queue_bound",
+      "required": true,
+      "model_visible": false,
+      "green": true,
+      "detail": "queue depth remains bounded and saturation resolves to a typed refusal instead of unbounded waiting."
+    },
+    {
+      "bound_id": "pool_bound",
+      "required": true,
+      "model_visible": false,
+      "green": true,
+      "detail": "per-plugin pool size remains bounded and the runtime never relies on unbounded instance spawning."
+    },
+    {
+      "bound_id": "concurrency_bound",
+      "required": true,
+      "model_visible": false,
+      "green": true,
+      "detail": "concurrency slot count remains runtime-owned and fixed per admitted runtime profile."
+    },
+    {
+      "bound_id": "fuel_bound_optional",
+      "required": false,
+      "model_visible": false,
+      "green": true,
+      "detail": "instruction fuel remains an optional extra ceiling that can be enabled without changing the host-owned runtime API shape."
+    }
+  ],
+  "signal_rows": [
+    {
+      "signal_id": "mount_envelope_identity",
+      "model_visible": true,
+      "fixed_runtime_contract": true,
+      "green": true,
+      "detail": "the guest may observe the resolved mount-envelope identity because capability selection must remain explicit."
+    },
+    {
+      "signal_id": "mounted_capability_namespace_ids",
+      "model_visible": true,
+      "fixed_runtime_contract": true,
+      "green": true,
+      "detail": "the guest may observe which capability namespaces were mounted because mount scope is part of the bounded packet contract."
+    },
+    {
+      "signal_id": "queue_depth",
+      "model_visible": false,
+      "fixed_runtime_contract": true,
+      "green": true,
+      "detail": "queue depth stays hidden from the model and is fixed runtime contract rather than a control signal."
+    },
+    {
+      "signal_id": "retry_budget",
+      "model_visible": false,
+      "fixed_runtime_contract": true,
+      "green": true,
+      "detail": "retry policy remains runtime-owned and hidden from the model until a later receipt or replay contract freezes it explicitly."
+    },
+    {
+      "signal_id": "runtime_cost_class",
+      "model_visible": false,
+      "fixed_runtime_contract": true,
+      "green": true,
+      "detail": "runtime cost remains a hidden invariant instead of a model-visible optimization signal."
+    },
+    {
+      "signal_id": "timeout_budget_class",
+      "model_visible": false,
+      "fixed_runtime_contract": true,
+      "green": true,
+      "detail": "timeout budgets remain runtime-owned and are surfaced only by typed outcomes and receipts."
+    },
+    {
+      "signal_id": "memory_limit_class",
+      "model_visible": false,
+      "fixed_runtime_contract": true,
+      "green": true,
+      "detail": "memory ceilings remain runtime-owned and are surfaced only by typed outcomes and receipts."
+    },
+    {
+      "signal_id": "wall_clock_elapsed",
+      "model_visible": false,
+      "fixed_runtime_contract": true,
+      "green": true,
+      "detail": "wall-clock time stays hidden and control-neutral inside the host-owned runtime contract."
+    }
+  ],
+  "time_semantics": {
+    "logical_time_semantics_id": "logical_deadline_budget_class",
+    "logical_time_model_observable": false,
+    "wall_time_semantics_id": "wall_clock_hidden_abort_budget",
+    "wall_time_model_observable": false,
+    "queue_depth_model_observable": false,
+    "retry_budget_model_observable": false,
+    "runtime_cost_model_observable": false,
+    "cost_model_invariance_required": true,
+    "scheduling_semantics_fixed": true,
+    "detail": "logical time and wall time stay control-neutral inside the runtime contract; queue depth, retries, and runtime cost remain hidden, while cost-model invariance and fixed scheduling semantics stay mandatory across equivalent choices."
+  },
+  "failure_isolation_rows": [
+    {
+      "isolation_id": "per_plugin_failure_isolation",
+      "failure_scope_id": "plugin_instance",
+      "green": true,
+      "detail": "one plugin instance failure must not silently widen or corrupt another admitted plugin artifact."
+    },
+    {
+      "isolation_id": "per_step_failure_isolation",
+      "failure_scope_id": "workflow_step",
+      "green": true,
+      "detail": "one plugin step failure must remain local to that invocation outcome and be carried by typed receipt state."
+    },
+    {
+      "isolation_id": "per_workflow_failure_summary",
+      "failure_scope_id": "workflow",
+      "green": true,
+      "detail": "workflow-level failure aggregation stays outside the plugin engine and is projected by explicit receipt facts rather than hidden host control flow."
+    }
+  ],
+  "case_receipts": [
+    {
+      "case_id": "load_verify_invoke_success",
+      "lifecycle_surface_id": "load_instantiate_invoke",
+      "status": "exact_success",
+      "invocation_id": "inv.plugin.echo.0001",
+      "plugin_id": "plugin.echo",
+      "plugin_version": "1.0.0",
+      "artifact_digest": "sha256:1171cc0b2f52da94e06f0b5c8c67872ba8c19fc97efec4a94ef39966a1959d83",
+      "export_name": "handle_packet",
+      "packet_abi_version": "packet.v1",
+      "mounted_capability_namespace_ids": [
+        "artifact.read_only"
+      ],
+      "visible_signal_ids": [
+        "mount_envelope_identity",
+        "mounted_capability_namespace_ids"
+      ],
+      "hidden_signal_ids": [
+        "queue_depth",
+        "retry_budget",
+        "runtime_cost_class",
+        "timeout_budget_class",
+        "memory_limit_class",
+        "wall_clock_elapsed"
+      ],
+      "replay_posture_id": "deterministic_receipt_replay",
+      "outcome_id": "success",
+      "usage_summary": {
+        "logical_cpu_millis": 3,
+        "guest_memory_bytes": 1572864,
+        "queue_wait_millis": 0,
+        "fuel_consumed": 17920,
+        "pool_reuse": false,
+        "emitted_receipt_field_ids": [
+          "invocation_identity_digest",
+          "input_packet_digest",
+          "output_packet_digest"
+        ]
+      },
+      "note": "load, digest verification, instantiate, and invoke remain host-owned and receipt-bound for the canonical success path.",
+      "receipt_digest": "a2c7434b780243c16c502c97faab8c743e20db61d10fa25a8c0f78c477ec1b5f"
+    },
+    {
+      "case_id": "warm_pool_reuse_success",
+      "lifecycle_surface_id": "warm_pool_invoke",
+      "status": "exact_success",
+      "invocation_id": "inv.plugin.artifact_probe.0002",
+      "plugin_id": "plugin.artifact_probe",
+      "plugin_version": "1.0.0",
+      "artifact_digest": "sha256:e0dc8d15af2ec6c30f20ab7eca81cc4f01bfc35fece43ecb1ce42d672b31718f",
+      "export_name": "handle_packet",
+      "packet_abi_version": "packet.v1",
+      "mounted_capability_namespace_ids": [
+        "artifact.read_only",
+        "capability.artifact_probe"
+      ],
+      "visible_signal_ids": [
+        "mount_envelope_identity",
+        "mounted_capability_namespace_ids"
+      ],
+      "hidden_signal_ids": [
+        "queue_depth",
+        "retry_budget",
+        "runtime_cost_class",
+        "timeout_budget_class",
+        "memory_limit_class",
+        "wall_clock_elapsed"
+      ],
+      "replay_posture_id": "deterministic_receipt_replay",
+      "outcome_id": "success",
+      "usage_summary": {
+        "logical_cpu_millis": 2,
+        "guest_memory_bytes": 1851392,
+        "queue_wait_millis": 1,
+        "fuel_consumed": 14208,
+        "pool_reuse": true,
+        "emitted_receipt_field_ids": [
+          "invocation_identity_digest",
+          "input_packet_digest",
+          "output_packet_digest"
+        ]
+      },
+      "note": "pool reuse stays a runtime-owned optimization and does not widen the top-level API surface.",
+      "receipt_digest": "247d59467f309d92d0fac5bace6cc1e66aded17692975e3b8ef09e121e248bfa"
+    },
+    {
+      "case_id": "queue_saturation_refusal",
+      "lifecycle_surface_id": "queue_admission",
+      "status": "exact_typed_refusal",
+      "invocation_id": "inv.plugin.queue.0003",
+      "plugin_id": "plugin.echo",
+      "plugin_version": "1.0.0",
+      "artifact_digest": "sha256:1171cc0b2f52da94e06f0b5c8c67872ba8c19fc97efec4a94ef39966a1959d83",
+      "export_name": "handle_packet",
+      "packet_abi_version": "packet.v1",
+      "mounted_capability_namespace_ids": [
+        "artifact.read_only"
+      ],
+      "visible_signal_ids": [
+        "mount_envelope_identity",
+        "mounted_capability_namespace_ids"
+      ],
+      "hidden_signal_ids": [
+        "queue_depth",
+        "retry_budget",
+        "runtime_cost_class",
+        "timeout_budget_class",
+        "memory_limit_class",
+        "wall_clock_elapsed"
+      ],
+      "replay_posture_id": "deterministic_receipt_replay",
+      "outcome_id": "queue_saturation",
+      "usage_summary": {
+        "logical_cpu_millis": 0,
+        "guest_memory_bytes": 0,
+        "queue_wait_millis": 4,
+        "pool_reuse": false,
+        "emitted_receipt_field_ids": [
+          "invocation_identity_digest",
+          "input_packet_digest",
+          "typed_refusal_id"
+        ]
+      },
+      "note": "bounded queue saturation remains an explicit refusal instead of unbounded buffering or host-side retry.",
+      "receipt_digest": "723295fb7030491f4983a24f6872d223fdc153dfdf866f572e39177b4a2ae851"
+    },
+    {
+      "case_id": "timeout_abort_failure",
+      "lifecycle_surface_id": "timeout_abort",
+      "status": "exact_runtime_failure",
+      "invocation_id": "inv.plugin.timeout.0004",
+      "plugin_id": "plugin.long_running",
+      "plugin_version": "1.0.0",
+      "artifact_digest": "sha256:3189aefc1d7476c4cbcf4f6db0cf5011efcd2c322a84dad8560a72186cb0a2ef",
+      "export_name": "handle_packet",
+      "packet_abi_version": "packet.v1",
+      "mounted_capability_namespace_ids": [
+        "artifact.read_only"
+      ],
+      "visible_signal_ids": [
+        "mount_envelope_identity",
+        "mounted_capability_namespace_ids"
+      ],
+      "hidden_signal_ids": [
+        "queue_depth",
+        "retry_budget",
+        "runtime_cost_class",
+        "timeout_budget_class",
+        "memory_limit_class",
+        "wall_clock_elapsed"
+      ],
+      "replay_posture_id": "snapshot_based_failure_replay",
+      "outcome_id": "runtime_timeout",
+      "usage_summary": {
+        "logical_cpu_millis": 25,
+        "guest_memory_bytes": 2359296,
+        "queue_wait_millis": 0,
+        "fuel_consumed": 131072,
+        "pool_reuse": false,
+        "emitted_receipt_field_ids": [
+          "invocation_identity_digest",
+          "input_packet_digest",
+          "host_error_id"
+        ]
+      },
+      "note": "timeout overflow remains a typed runtime failure with no hidden downgrade or extended wall-clock continuation.",
+      "receipt_digest": "6779a7f1b4a2328d731812c15f0efd14180fc319091b9cb6bea6286958b5ae85"
+    },
+    {
+      "case_id": "memory_limit_failure",
+      "lifecycle_surface_id": "memory_abort",
+      "status": "exact_runtime_failure",
+      "invocation_id": "inv.plugin.memory.0005",
+      "plugin_id": "plugin.memory_probe",
+      "plugin_version": "1.0.0",
+      "artifact_digest": "sha256:ae6713a1b2208d9363565108ba8d5b005402f176c0ff76e709e26d932855db02",
+      "export_name": "handle_packet",
+      "packet_abi_version": "packet.v1",
+      "mounted_capability_namespace_ids": [
+        "artifact.read_only",
+        "capability.memory_probe"
+      ],
+      "visible_signal_ids": [
+        "mount_envelope_identity",
+        "mounted_capability_namespace_ids"
+      ],
+      "hidden_signal_ids": [
+        "queue_depth",
+        "retry_budget",
+        "runtime_cost_class",
+        "timeout_budget_class",
+        "memory_limit_class",
+        "wall_clock_elapsed"
+      ],
+      "replay_posture_id": "snapshot_based_failure_replay",
+      "outcome_id": "runtime_memory_limit",
+      "usage_summary": {
+        "logical_cpu_millis": 9,
+        "guest_memory_bytes": 8388608,
+        "queue_wait_millis": 0,
+        "fuel_consumed": 49152,
+        "pool_reuse": false,
+        "emitted_receipt_field_ids": [
+          "invocation_identity_digest",
+          "input_packet_digest",
+          "host_error_id"
+        ]
+      },
+      "note": "memory overflow remains a typed runtime failure and does not degrade into host-side oversubscription.",
+      "receipt_digest": "a0f652f9699fcdd124e099b0668627b23923a7923a2c5ba450acfd5f97a6b932"
+    },
+    {
+      "case_id": "explicit_cancel_acknowledged",
+      "lifecycle_surface_id": "cancel_running_execution",
+      "status": "exact_cancellation",
+      "invocation_id": "inv.plugin.cancel.0006",
+      "plugin_id": "plugin.search_frontier",
+      "plugin_version": "1.0.0",
+      "artifact_digest": "sha256:11f9b9be8f68aa2ff1e3d25723337ed90433dc98336c661cff79897fbd26075e",
+      "export_name": "handle_packet",
+      "packet_abi_version": "packet.v1",
+      "mounted_capability_namespace_ids": [
+        "artifact.read_only",
+        "capability.search_frontier"
+      ],
+      "visible_signal_ids": [
+        "mount_envelope_identity",
+        "mounted_capability_namespace_ids"
+      ],
+      "hidden_signal_ids": [
+        "queue_depth",
+        "retry_budget",
+        "runtime_cost_class",
+        "timeout_budget_class",
+        "memory_limit_class",
+        "wall_clock_elapsed"
+      ],
+      "replay_posture_id": "snapshot_based_failure_replay",
+      "outcome_id": "cancel_acknowledged",
+      "usage_summary": {
+        "logical_cpu_millis": 4,
+        "guest_memory_bytes": 2097152,
+        "queue_wait_millis": 0,
+        "fuel_consumed": 21504,
+        "pool_reuse": false,
+        "emitted_receipt_field_ids": [
+          "invocation_identity_digest",
+          "input_packet_digest",
+          "host_error_id"
+        ]
+      },
+      "note": "explicit cancellation stays behind one host-owned API and acknowledges only after runtime-owned interruption handling.",
+      "receipt_digest": "6fdcad6e37bb3118affb0fdd99e1d7875025166a382a9243f0c5b44d77b25f61"
+    }
+  ],
+  "exact_success_case_count": 2,
+  "exact_typed_refusal_case_count": 1,
+  "exact_runtime_failure_case_count": 2,
+  "exact_cancellation_case_count": 1,
+  "claim_boundary": "this runtime bundle freezes one host-owned plugin runtime API above the packet ABI and manifest contract, with digest-verified load, bounded engine operations, explicit timeout/memory/queue/pool/concurrency ceilings, fixed model-information boundaries, and typed success/refusal/failure/cancellation outcomes. It does not imply weighted plugin control, plugin publication, served/public universality, or arbitrary public software execution.",
+  "summary": "Post-article plugin runtime API bundle covers success_cases=2, refusal_cases=1, failure_cases=2, cancellation_cases=1, engine_rows=6, bound_rows=6, and signal_rows=8.",
+  "bundle_digest": "6bf8c45392c06210fc3adb377d8478a74de8c02cbc02cedd066889bdda1cd6e3"
+}

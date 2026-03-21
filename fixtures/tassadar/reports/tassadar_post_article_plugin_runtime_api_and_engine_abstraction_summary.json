@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.post_article_plugin_runtime_api_and_engine_abstraction.report.v1",
+  "machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+  "canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+  "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+  "computational_model_statement_id": "tassadar.post_article_universality_bridge.computational_model_statement.v1",
+  "packet_abi_version": "packet.v1",
+  "host_owned_runtime_api_id": "tassadar.plugin_runtime.host_owned_api.v1",
+  "engine_abstraction_id": "tassadar.plugin_runtime.engine_abstraction.v1",
+  "contract_status": "green",
+  "dependency_row_count": 5,
+  "runtime_api_row_count": 8,
+  "engine_row_count": 6,
+  "bound_row_count": 6,
+  "signal_boundary_row_count": 8,
+  "failure_isolation_row_count": 3,
+  "validation_row_count": 8,
+  "deferred_issue_ids": [
+    "TAS-201"
+  ],
+  "operator_internal_only_posture": true,
+  "rebase_claim_allowed": true,
+  "plugin_capability_claim_allowed": false,
+  "weighted_plugin_control_allowed": false,
+  "plugin_publication_allowed": false,
+  "served_public_universality_allowed": false,
+  "arbitrary_software_capability_allowed": false,
+  "detail": "post-article plugin runtime API summary keeps machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, host_owned_runtime_api_id=`tassadar.plugin_runtime.host_owned_api.v1`, engine_abstraction_id=`tassadar.plugin_runtime.engine_abstraction.v1`, contract_status=Green, runtime_api_rows=8, and deferred_issue_ids=1.",
+  "summary_digest": "bc6895d5b37fa81099a329c5d491d1c14f8029fc6dfc24ba2d2c3158763f4fd9"
+}

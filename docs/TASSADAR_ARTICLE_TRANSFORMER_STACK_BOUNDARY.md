@@ -895,6 +895,32 @@ This tranche keeps the guest surface narrow, keeps host errors separate from
 guest refusals, and still does not admit weighted plugin control, plugin
 publication, served/public universality, or arbitrary software capability.
 
+`TAS-200` now closes the canonical host-owned plugin runtime API and
+engine-abstraction tranche at
+`fixtures/tassadar/reports/tassadar_post_article_plugin_runtime_api_and_engine_abstraction_report.json`.
+That report freezes one runtime-owned load/instantiate/invoke/mount/cancel/
+usage contract above the packet ABI and manifest layer by inheriting the now
+closed packet ABI contract plus the earlier import-policy, async-lifecycle,
+and simulator-effect precedents, binding digest verification, bounded queue/
+pool/timeout/memory/concurrency ceilings, hidden queue-depth/retry/runtime-
+cost/time signals, fixed scheduling semantics, cost-model invariance, and
+explicit per-plugin/per-step/per-workflow failure isolation to the same
+canonical machine identity and computational-model statement as the packet
+ABI report. The operator-readable summary now lives at
+`fixtures/tassadar/reports/tassadar_post_article_plugin_runtime_api_and_engine_abstraction_summary.json`,
+the runtime bundle now lives at
+`fixtures/tassadar/runs/tassadar_post_article_plugin_runtime_api_and_engine_abstraction_v1/tassadar_post_article_plugin_runtime_api_and_engine_abstraction_bundle.json`,
+the served publication now lives at
+`fixtures/tassadar/reports/tassadar_post_article_plugin_runtime_api_and_engine_abstraction_publication.json`,
+the provider receipt now lives at
+`crates/psionic-provider/src/tassadar_post_article_plugin_runtime_api_and_engine_abstraction.rs`,
+and the dedicated checker now lives at
+`scripts/check-tassadar-post-article-plugin-runtime-api-and-engine-abstraction.sh`.
+This tranche keeps runtime behavior bounded and machine-legible, clears the
+packet-ABI defer pointer to empty, and still does not admit weighted plugin
+control, plugin publication, served/public universality, or arbitrary
+software capability.
+
 ## Route Requirement
 
 Any canonical article-equivalence Transformer route must use this boundary.

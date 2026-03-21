@@ -49,7 +49,7 @@ jq -e '
   and .plugin_publication_allowed == false
   and .served_public_universality_allowed == false
   and .arbitrary_software_capability_allowed == false
-  and (.deferred_issue_ids == ["TAS-200"])
+  and (.deferred_issue_ids == [])
 ' fixtures/tassadar/reports/tassadar_post_article_plugin_packet_abi_and_rust_pdk_report.json >/dev/null
 
 jq -e '
@@ -61,7 +61,7 @@ jq -e '
   and .abi_row_count == 8
   and .pdk_row_count == 6
   and .validation_row_count == 8
-  and (.deferred_issue_ids == ["TAS-200"])
+  and (.deferred_issue_ids == [])
   and .operator_internal_only_posture == true
   and .rebase_claim_allowed == true
   and .plugin_capability_claim_allowed == false

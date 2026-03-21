@@ -663,10 +663,8 @@
   "plugin_publication_allowed": false,
   "served_public_universality_allowed": false,
   "arbitrary_software_capability_allowed": false,
-  "deferred_issue_ids": [
-    "TAS-200"
-  ],
+  "deferred_issue_ids": [],
   "claim_boundary": "this report freezes the first post-article plugin packet ABI and Rust-first PDK above the rebased machine without widening the current claim surface. It defines a single packet-shaped invocation contract, explicit typed refusal and host-error channels, a host-owned receipt channel, and a narrow Rust-first guest import surface while keeping weighted plugin control, plugin publication, served/public universality, and arbitrary software capability blocked until the later runtime API, engine-abstraction, and controller tranches land.",
-  "summary": "post-article plugin packet ABI report binds machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1`, contract_status=Green, abi_rows=8, pdk_rows=6, validation_rows=8, and deferred_issue_ids=1.",
-  "report_digest": "e0e52f2ebdcf86e73df6e271f406775ad21a47219ab80ed4e73c52ae947ab2b1"
+  "summary": "post-article plugin packet ABI report binds machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1`, contract_status=Green, abi_rows=8, pdk_rows=6, validation_rows=8, and deferred_issue_ids=0.",
+  "report_digest": "7b442f95f77893fcd0a1205e2932b88e3f0fd9234937ae3f8b19f2ff472299ed"
 }

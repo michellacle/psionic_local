@@ -10,16 +10,16 @@ use sha2::{Digest, Sha256};
 use thiserror::Error;
 
 use psionic_compiler::{
+    compile_tassadar_post_article_plugin_packet_abi_and_rust_pdk_contract,
+    TassadarPostArticlePluginPacketAbiRustPdkCompilationContract,
     TASSADAR_POST_ARTICLE_PLUGIN_HOST_IMPORT_NAMESPACE_ID,
     TASSADAR_POST_ARTICLE_PLUGIN_REFUSAL_TYPE_ID,
-    TassadarPostArticlePluginPacketAbiRustPdkCompilationContract,
-    compile_tassadar_post_article_plugin_packet_abi_and_rust_pdk_contract,
 };
 use psionic_runtime::{
-    TASSADAR_POST_ARTICLE_PLUGIN_PACKET_ABI_AND_RUST_PDK_BUNDLE_REF,
+    build_tassadar_post_article_plugin_packet_abi_and_rust_pdk_bundle,
     TassadarPostArticlePluginPacketAbiAndRustPdkRuntimeBundle,
     TassadarPostArticlePluginPacketAbiCaseStatus,
-    build_tassadar_post_article_plugin_packet_abi_and_rust_pdk_bundle,
+    TASSADAR_POST_ARTICLE_PLUGIN_PACKET_ABI_AND_RUST_PDK_BUNDLE_REF,
 };
 
 pub const TASSADAR_POST_ARTICLE_PLUGIN_PACKET_ABI_AND_RUST_PDK_REPORT_REF: &str =
@@ -200,10 +200,9 @@ pub fn build_tassadar_post_article_plugin_packet_abi_and_rust_pdk_report() -> Re
         });
     let explicit_host_error_channel_frozen = runtime_bundle.host_error_channel_ids
         == vec![String::from("capability_namespace_unmounted")]
-        && runtime_bundle
-            .case_receipts
-            .iter()
-            .any(|case| case.status == TassadarPostArticlePluginPacketAbiCaseStatus::ExactHostError);
+        && runtime_bundle.case_receipts.iter().any(|case| {
+            case.status == TassadarPostArticlePluginPacketAbiCaseStatus::ExactHostError
+        });
     let explicit_receipt_channel_required = runtime_bundle
         .receipt_field_ids
         .iter()
@@ -289,7 +288,11 @@ pub fn build_tassadar_post_article_plugin_packet_abi_and_rust_pdk_report() -> Re
         &internal_component_abi,
         operator_internal_only_posture,
     );
-    let abi_rows = build_abi_rows(&compiler_contract, &runtime_bundle, explicit_receipt_channel_required);
+    let abi_rows = build_abi_rows(
+        &compiler_contract,
+        &runtime_bundle,
+        explicit_receipt_channel_required,
+    );
     let pdk_rows = build_pdk_rows(
         &compiler_contract,
         &runtime_bundle,
@@ -387,7 +390,7 @@ pub fn build_tassadar_post_article_plugin_packet_abi_and_rust_pdk_report() -> Re
         plugin_publication_allowed,
         served_public_universality_allowed,
         arbitrary_software_capability_allowed,
-        deferred_issue_ids: vec![String::from("TAS-200")],
+        deferred_issue_ids: Vec::new(),
         claim_boundary: String::from(
             "this report freezes the first post-article plugin packet ABI and Rust-first PDK above the rebased machine without widening the current claim surface. It defines a single packet-shaped invocation contract, explicit typed refusal and host-error channels, a host-owned receipt channel, and a narrow Rust-first guest import surface while keeping weighted plugin control, plugin publication, served/public universality, and arbitrary software capability blocked until the later runtime API, engine-abstraction, and controller tranches land.",
         ),
@@ -719,7 +722,9 @@ fn build_validation_rows(
     let exact_typed_refusal_count = runtime_bundle
         .case_receipts
         .iter()
-        .filter(|case| case.status == TassadarPostArticlePluginPacketAbiCaseStatus::ExactTypedRefusal)
+        .filter(|case| {
+            case.status == TassadarPostArticlePluginPacketAbiCaseStatus::ExactTypedRefusal
+        })
         .count();
     let exact_host_error_count = runtime_bundle
         .case_receipts
@@ -961,17 +966,17 @@ mod tests {
     use tempfile::tempdir;
 
     use super::{
-        TassadarPostArticlePluginPacketAbiAndRustPdkReport,
-        TassadarPostArticlePluginPacketAbiAndRustPdkStatus,
         build_tassadar_post_article_plugin_packet_abi_and_rust_pdk_report, read_json,
         tassadar_post_article_plugin_packet_abi_and_rust_pdk_report_path,
         write_tassadar_post_article_plugin_packet_abi_and_rust_pdk_report,
+        TassadarPostArticlePluginPacketAbiAndRustPdkReport,
+        TassadarPostArticlePluginPacketAbiAndRustPdkStatus,
     };
 
     #[test]
     fn post_article_plugin_packet_abi_report_freezes_contract_without_widening_claims() {
-        let report = build_tassadar_post_article_plugin_packet_abi_and_rust_pdk_report()
-            .expect("report");
+        let report =
+            build_tassadar_post_article_plugin_packet_abi_and_rust_pdk_report().expect("report");
 
         assert_eq!(
             report.contract_status,
@@ -995,17 +1000,16 @@ mod tests {
         assert_eq!(report.abi_rows.len(), 8);
         assert_eq!(report.pdk_rows.len(), 6);
         assert_eq!(report.validation_rows.len(), 8);
-        assert_eq!(report.deferred_issue_ids, vec![String::from("TAS-200")]);
+        assert!(report.deferred_issue_ids.is_empty());
     }
 
     #[test]
     fn post_article_plugin_packet_abi_report_matches_committed_truth() {
-        let generated = build_tassadar_post_article_plugin_packet_abi_and_rust_pdk_report()
-            .expect("report");
-        let committed: TassadarPostArticlePluginPacketAbiAndRustPdkReport = read_json(
-            tassadar_post_article_plugin_packet_abi_and_rust_pdk_report_path(),
-        )
-        .expect("committed report");
+        let generated =
+            build_tassadar_post_article_plugin_packet_abi_and_rust_pdk_report().expect("report");
+        let committed: TassadarPostArticlePluginPacketAbiAndRustPdkReport =
+            read_json(tassadar_post_article_plugin_packet_abi_and_rust_pdk_report_path())
+                .expect("committed report");
         assert_eq!(generated, committed);
     }
 
@@ -1015,10 +1019,9 @@ mod tests {
         let output_path = directory
             .path()
             .join("tassadar_post_article_plugin_packet_abi_and_rust_pdk_report.json");
-        let written = write_tassadar_post_article_plugin_packet_abi_and_rust_pdk_report(
-            &output_path,
-        )
-        .expect("write report");
+        let written =
+            write_tassadar_post_article_plugin_packet_abi_and_rust_pdk_report(&output_path)
+                .expect("write report");
         let persisted: TassadarPostArticlePluginPacketAbiAndRustPdkReport =
             read_json(&output_path).expect("persisted report");
         assert_eq!(written, persisted);
