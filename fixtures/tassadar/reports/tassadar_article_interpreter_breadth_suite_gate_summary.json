@@ -12,7 +12,6 @@
       "tied_requirement_satisfied": true,
       "acceptance_status": "blocked",
       "blocked_issue_ids": [
-        "TAS-184",
         "TAS-184A",
         "TAS-185",
         "TAS-185A",
@@ -30,7 +29,6 @@
         "tied_requirement_satisfied": true,
         "acceptance_status": "blocked",
         "blocked_issue_ids": [
-          "TAS-184",
           "TAS-184A",
           "TAS-185",
           "TAS-185A",
@@ -416,7 +414,7 @@
       "article_equivalence_green": false,
       "claim_boundary": "this report closes TAS-179 only. It freezes one declared article interpreter breadth envelope over the frozen core-Wasm floor, the current named article i32 profiles, and the later required search-process, long-horizon control, and module-scale Wasm-loop families while keeping linked-program bundles research-only and import-mediated processes, dynamic-memory resume, memory64, multi-memory, component-linking, exception profiles, and broader float semantics explicitly outside the article envelope. It does not yet build the breadth suite or turn final article-equivalence green.",
       "summary": "Article interpreter breadth envelope report now records tied_requirement_satisfied=true, current_floor_green=2/2, declared_required_family_green=3/3, research_only_family_green=1/1, explicit_out_of_envelope_green=7/7, envelope_contract_green=true, and article_equivalence_green=false.",
-      "report_digest": "481ada446ea20e071272f18effe8cb1af00cc52a2b8fd2fcceda1de6a557e8c8"
+      "report_digest": "d9ab6281962c20888d6e6a7b68385002a92a6a790ecee96c3623d3fbab56f5fe"
     },
     "suite_manifest_ref": "fixtures/tassadar/sources/tassadar_article_interpreter_breadth_suite_v1.json",
     "suite_manifest": {
@@ -741,17 +739,17 @@
     "breadth_gate_green": true,
     "article_equivalence_green": false,
     "claim_boundary": "this report closes TAS-179A only. It proves the declared TAS-179 interpreter-breadth envelope over one generic article-program family suite spanning arithmetic, call-heavy, allocator-backed, indirect-call, branch-heavy, loop-heavy, state-machine, and parser-style rows. It still does not imply arbitrary-program closure, benchmark-wide article closure, or final article-equivalence green status.",
-    "summary": "Article interpreter breadth suite gate now records tied_requirement_satisfied=true, green_families=8/8, breadth_gate_green=true, blocked_issue_frontier=Some(\"TAS-184\"), and article_equivalence_green=false.",
-    "report_digest": "c664fe2527e4e54e7bc4ee2cd657976b9b61ed6fae4363945b6b33c80ef9946d"
+    "summary": "Article interpreter breadth suite gate now records tied_requirement_satisfied=true, green_families=8/8, breadth_gate_green=true, blocked_issue_frontier=Some(\"TAS-184A\"), and article_equivalence_green=false.",
+    "report_digest": "5a5fc21ec6c3f2406d5a1991d8030cd3c53bc4904f1ffdf712fd019075ff406c"
   },
   "tied_requirement_id": "TAS-179A",
   "tied_requirement_satisfied": true,
-  "blocked_issue_frontier": "TAS-184",
+  "blocked_issue_frontier": "TAS-184A",
   "green_family_count": 8,
   "required_family_count": 8,
   "breadth_gate_green": true,
   "article_equivalence_green": false,
   "claim_boundary": "this summary mirrors only the TAS-179A article interpreter breadth suite gate. It keeps the generic family coverage operator-readable while leaving benchmark-wide, single-run, and final article-equivalence closure explicitly open.",
-  "summary": "Article interpreter breadth suite gate summary now records tied_requirement_satisfied=true, green_families=8/8, breadth_gate_green=true, blocked_issue_frontier=Some(\"TAS-184\"), and article_equivalence_green=false.",
-  "report_digest": "a6c971efc4e1e8bed3a095e8e23c4f730f69819f2871e26d9a2066ef3e20cea3"
+  "summary": "Article interpreter breadth suite gate summary now records tied_requirement_satisfied=true, green_families=8/8, breadth_gate_green=true, blocked_issue_frontier=Some(\"TAS-184A\"), and article_equivalence_green=false.",
+  "report_digest": "bad6b626982868ca87013fdd46fc71ca7522f9810e49ff116aefec92e385fc1a"
 }

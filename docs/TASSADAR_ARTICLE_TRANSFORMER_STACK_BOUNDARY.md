@@ -541,6 +541,34 @@ single-run no-spill posture is closed inside the bounded public envelope,
 while clean-room weight causality, route minimality, and final
 article-equivalence tranches remain open.
 
+`TAS-184` now closes that next clean-room interpreter-ownership tranche on top
+of the same owned route. `psionic-eval` now commits the joined ownership gate
+artifact at
+`fixtures/tassadar/reports/tassadar_article_interpreter_ownership_gate_report.json`,
+which binds the canonical Transformer boundary, the declared interpreter
+breadth suite, a widened six-case generic direct no-tool proof suite, a
+route-purity audit, a computation-mapping report, a breadth conformance
+matrix, and concrete weight-perturbation and locality evidence into one
+machine-readable ownership verdict. The widened direct-proof suite keeps the
+three committed served proof receipts while adding the declared `micro`,
+`branch-heavy`, and `memory-heavy` article families as explicit
+Transformer-backed reference-linear receipts inside the eval-owned report
+instead of silently treating the narrower demo set as sufficient. The same
+gate keeps host substitution, external oracle use, preprocessing shortcuts,
+runtime-owned control flow, helper-module mediation, and cache-owned decisive
+steps explicit as audit questions instead of collapsing them into a generic
+"the outputs were correct" claim. `psionic-research` now mirrors the
+operator-readable summary at
+`fixtures/tassadar/reports/tassadar_article_interpreter_ownership_gate_summary.json`,
+and `psionic-provider` now projects the same verdict into
+`crates/psionic-provider/src/tassadar_article_interpreter_ownership_gate.rs`.
+This is the point where the repo now machine-readably says the decisive
+interpreter behavior for the declared article envelope belongs to the owned
+Transformer forward-pass route itself rather than a hidden host-side control
+plane, while the later KV-cache and activation-state dominance verdict,
+cross-machine reproducibility, route minimality, and final
+article-equivalence tranches remain open.
+
 ## Route Requirement
 
 Any canonical article-equivalence Transformer route must use this boundary.

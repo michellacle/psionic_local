@@ -3566,6 +3566,7 @@ dependencies = [
  "psionic-runtime",
  "psionic-sandbox",
  "psionic-transformer",
+ "safetensors",
  "serde",
  "serde_json",
  "sha2",

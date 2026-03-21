@@ -12,7 +12,6 @@
       "tied_requirement_satisfied": true,
       "acceptance_status": "blocked",
       "blocked_issue_ids": [
-        "TAS-184",
         "TAS-184A",
         "TAS-185",
         "TAS-185A",
@@ -511,7 +510,7 @@
     "article_equivalence_green": false,
     "claim_boundary": "this report closes TAS-178 only. It proves that the canonical Hungarian and Sudoku article demo sources compile through the declared public frontend/compiler envelope and stay bound to the same canonical compiled-executor case and workload identities already used by the bounded reproducers. It does not yet claim final Hungarian fast-route parity, Arto or benchmark-wide hard-Sudoku closure, arbitrary-program closure, or final article-equivalence green status.",
     "summary": "Article demo frontend parity now records tied_requirement_satisfied=true, compiled_demos=2/2, refusal_probes=2/2, source_compile_receipt_parity_green=true, workload_identity_parity_green=true, unsupported_variant_refusal_green=true, demo_frontend_parity_green=true, and article_equivalence_green=false.",
-    "report_digest": "4c29be5778cbfa9303a2063732af3f54216e23ad95941ca2c89bb7ad26d98f13"
+    "report_digest": "2b34ea26b0f5c9be726ef7fce60e0a5cf10532e2eae5faef5192b1e998e9a87c"
   },
   "tied_requirement_id": "TAS-178",
   "tied_requirement_satisfied": true,
@@ -525,5 +524,5 @@
   "article_equivalence_green": false,
   "claim_boundary": "this summary mirrors only the TAS-178 article-demo frontend parity tranche. It keeps the Hungarian and Sudoku demo-source closure plus explicit unsupported-variant refusals operator-readable without pretending that later interpreter-breadth, benchmark-wide, or final article-equivalence tranches are already green.",
   "summary": "Article demo frontend parity summary now records tied_requirement_satisfied=true, green_demos=2/2, refusal_probes_green=2, source_compile_receipt_parity_green=true, workload_identity_parity_green=true, unsupported_variant_refusal_green=true, demo_frontend_parity_green=true, and article_equivalence_green=false.",
-  "report_digest": "956af021078b9a9aa6e397318b78c2e3d785d91e9b94251352500bce671b78b1"
+  "report_digest": "7f4885c4c359a18acac1d7aaddde2dccacec48675396a89ec1d8b35136f49421"
 }

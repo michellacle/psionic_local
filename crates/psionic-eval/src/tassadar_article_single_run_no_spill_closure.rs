@@ -14,16 +14,13 @@ use crate::{
     build_tassadar_article_demo_benchmark_equivalence_gate_report,
     build_tassadar_article_equivalence_acceptance_gate_report,
     build_tassadar_article_fast_route_throughput_floor_report,
-    build_tassadar_article_runtime_closeout_report,
-    build_tassadar_dynamic_memory_resume_report,
+    build_tassadar_article_runtime_closeout_report, build_tassadar_dynamic_memory_resume_report,
     build_tassadar_effect_safe_resume_report, build_tassadar_execution_checkpoint_report,
-    build_tassadar_spill_tape_store_report,
-    TassadarArticleDemoBenchmarkEquivalenceGateReport,
+    build_tassadar_spill_tape_store_report, TassadarArticleDemoBenchmarkEquivalenceGateReport,
     TassadarArticleDemoBenchmarkEquivalenceGateReportError,
     TassadarArticleEquivalenceAcceptanceGateReport,
     TassadarArticleEquivalenceAcceptanceGateReportError,
-    TassadarArticleEquivalenceAcceptanceStatus,
-    TassadarArticleFastRouteThroughputFloorReport,
+    TassadarArticleEquivalenceAcceptanceStatus, TassadarArticleFastRouteThroughputFloorReport,
     TassadarArticleFastRouteThroughputFloorReportError, TassadarArticleRuntimeCloseoutReport,
     TassadarArticleRuntimeCloseoutReportError, TassadarDynamicMemoryResumeReport,
     TassadarDynamicMemoryResumeReportError, TassadarEffectSafeResumeReport,
@@ -382,7 +379,8 @@ fn build_report_from_inputs(
     let operator_envelope = build_operator_envelope(policy);
     let horizon_review = build_horizon_review(&runtime_closeout, &throughput_floor, &descriptor);
     let step_consistency_review = build_step_consistency_review(&horizon_review);
-    let context_sensitivity_review = build_context_sensitivity_review(&horizon_review, &descriptor, policy);
+    let context_sensitivity_review =
+        build_context_sensitivity_review(&horizon_review, &descriptor, policy);
     let boundary_perturbation_review = build_boundary_perturbation_review(
         &execution_checkpoint,
         &spill_tape_store,
@@ -785,7 +783,9 @@ fn build_boundary_perturbation_review(
         == EXPECTED_EFFECT_SAFE_RESUME_PROFILE_ID
         && effect_safe_resume.admitted_case_count > 0
         && effect_safe_resume.refusal_case_count > 0
-        && !effect_safe_resume.continuation_refused_effect_refs.is_empty();
+        && !effect_safe_resume
+            .continuation_refused_effect_refs
+            .is_empty();
     let dynamic_memory_resume_marker_green = dynamic_memory_resume.checkpoint_family_id
         == EXPECTED_DYNAMIC_MEMORY_RESUME_FAMILY_ID
         && dynamic_memory_resume.exact_resume_parity_count > 0;
@@ -1025,8 +1025,7 @@ mod tests {
         default_no_spill_policy, read_repo_json,
         tassadar_article_single_run_no_spill_closure_report_path,
         write_tassadar_article_single_run_no_spill_closure_report, NoSpillPolicy,
-        TassadarArticleSingleRunNoSpillClosureReport,
-        TassadarArticleTransformerDescriptorView,
+        TassadarArticleSingleRunNoSpillClosureReport, TassadarArticleTransformerDescriptorView,
         TASSADAR_ARTICLE_SINGLE_RUN_NO_SPILL_CLOSURE_REPORT_REF,
     };
     use crate::{
@@ -1034,9 +1033,8 @@ mod tests {
         build_tassadar_article_equivalence_acceptance_gate_report,
         build_tassadar_article_fast_route_throughput_floor_report,
         build_tassadar_article_runtime_closeout_report,
-        build_tassadar_dynamic_memory_resume_report,
-        build_tassadar_effect_safe_resume_report, build_tassadar_execution_checkpoint_report,
-        build_tassadar_spill_tape_store_report,
+        build_tassadar_dynamic_memory_resume_report, build_tassadar_effect_safe_resume_report,
+        build_tassadar_execution_checkpoint_report, build_tassadar_spill_tape_store_report,
     };
 
     fn build_test_report(
@@ -1072,20 +1070,32 @@ mod tests {
 
         assert!(report.acceptance_gate_tie.tied_requirement_satisfied);
         assert_eq!(
-            report.acceptance_gate_tie.blocked_issue_ids.first().map(String::as_str),
-            Some("TAS-184")
+            report
+                .acceptance_gate_tie
+                .blocked_issue_ids
+                .first()
+                .map(String::as_str),
+            Some("TAS-184A")
         );
-        assert!(report
-            .benchmark_prerequisite
-            .article_demo_benchmark_equivalence_gate_green);
+        assert!(
+            report
+                .benchmark_prerequisite
+                .article_demo_benchmark_equivalence_gate_green
+        );
         assert!(report.operator_envelope.operator_envelope_green);
         assert!(report.horizon_review.deterministic_exactness_green);
         assert!(report.step_consistency_review.consistency_green);
         assert!(report.context_sensitivity_review.context_sensitivity_green);
-        assert!(report
-            .boundary_perturbation_review
-            .perturbation_negative_control_green);
-        assert!(report.stochastic_mode_review.stochastic_mode_robustness_green);
+        assert!(
+            report
+                .boundary_perturbation_review
+                .perturbation_negative_control_green
+        );
+        assert!(
+            report
+                .stochastic_mode_review
+                .stochastic_mode_robustness_green
+        );
         assert!(report.binding_review.binding_green);
         assert!(report.single_run_no_spill_closure_green);
         assert!(!report.article_equivalence_green);
@@ -1143,9 +1153,11 @@ mod tests {
             &default_no_spill_policy(),
         );
 
-        assert!(!report
-            .boundary_perturbation_review
-            .checkpoint_resume_marker_green);
+        assert!(
+            !report
+                .boundary_perturbation_review
+                .checkpoint_resume_marker_green
+        );
         assert!(!report.single_run_no_spill_closure_green);
     }
 
@@ -1188,7 +1200,11 @@ mod tests {
         let report = build_test_report(&policy, committed_descriptor());
 
         assert!(!report.operator_envelope.operator_envelope_green);
-        assert!(!report.stochastic_mode_review.stochastic_mode_robustness_green);
+        assert!(
+            !report
+                .stochastic_mode_review
+                .stochastic_mode_robustness_green
+        );
         assert!(!report.single_run_no_spill_closure_green);
     }
 

@@ -36,8 +36,6 @@ mod tassadar_article_abi;
 mod tassadar_article_cpu_reproducibility;
 #[path = "tassadar_article_demo_benchmark_equivalence_gate.rs"]
 mod tassadar_article_demo_benchmark_equivalence_gate;
-#[path = "tassadar_article_single_run_no_spill_closure.rs"]
-mod tassadar_article_single_run_no_spill_closure;
 #[path = "tassadar_article_demo_frontend_parity.rs"]
 mod tassadar_article_demo_frontend_parity;
 #[path = "tassadar_article_equivalence_acceptance_gate.rs"]
@@ -68,10 +66,14 @@ mod tassadar_article_hungarian_demo_parity;
 mod tassadar_article_interpreter_breadth_envelope;
 #[path = "tassadar_article_interpreter_breadth_suite_gate.rs"]
 mod tassadar_article_interpreter_breadth_suite_gate;
+#[path = "tassadar_article_interpreter_ownership_gate.rs"]
+mod tassadar_article_interpreter_ownership_gate;
 #[path = "tassadar_article_representation_invariance_gate.rs"]
 mod tassadar_article_representation_invariance_gate;
 #[path = "tassadar_article_runtime_closeout.rs"]
 mod tassadar_article_runtime_closeout;
+#[path = "tassadar_article_single_run_no_spill_closure.rs"]
+mod tassadar_article_single_run_no_spill_closure;
 #[path = "tassadar_article_trace_vocabulary_binding.rs"]
 mod tassadar_article_trace_vocabulary_binding;
 #[path = "tassadar_article_transformer_artifact_descriptor.rs"]
@@ -369,7 +371,6 @@ pub use tassadar_architecture_bakeoff::*;
 pub use tassadar_article_abi::*;
 pub use tassadar_article_cpu_reproducibility::*;
 pub use tassadar_article_demo_benchmark_equivalence_gate::*;
-pub use tassadar_article_single_run_no_spill_closure::*;
 pub use tassadar_article_demo_frontend_parity::*;
 pub use tassadar_article_equivalence_acceptance_gate::*;
 pub use tassadar_article_equivalence_blocker_matrix::*;
@@ -385,8 +386,10 @@ pub use tassadar_article_hard_sudoku_benchmark_closure::*;
 pub use tassadar_article_hungarian_demo_parity::*;
 pub use tassadar_article_interpreter_breadth_envelope::*;
 pub use tassadar_article_interpreter_breadth_suite_gate::*;
+pub use tassadar_article_interpreter_ownership_gate::*;
 pub use tassadar_article_representation_invariance_gate::*;
 pub use tassadar_article_runtime_closeout::*;
+pub use tassadar_article_single_run_no_spill_closure::*;
 pub use tassadar_article_trace_vocabulary_binding::*;
 pub use tassadar_article_transformer_artifact_descriptor::*;
 pub use tassadar_article_transformer_forward_pass_closure::*;

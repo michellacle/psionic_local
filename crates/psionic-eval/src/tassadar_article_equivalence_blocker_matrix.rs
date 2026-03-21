@@ -685,10 +685,10 @@ fn blocker_rows() -> Vec<TassadarArticleEquivalenceBlockerRow> {
             ),
             repo_status: TassadarRepoStatus::Partial,
             current_gap_summary: String::from(
-                "the article invites a strong reading where decisive execution behavior lives in transformer weights on a minimal route. The public repo still lacks the final clean-room causality, activation-dominance, and route-minimality verdicts for that stronger reading",
+                "the article invites a strong reading where decisive execution behavior lives in transformer weights on a minimal route. The public repo now closes the first joined interpreter-ownership verdict, but it still lacks the later KV-cache and activation-dominance discipline, cross-machine reproducibility, route-minimality, and final publication verdicts for that stronger reading",
             ),
             current_public_truth: String::from(
-                "the repo already has direct no-tool proof receipts on committed article workloads and explicit refusal discipline, but it does not yet have the final generic interpreter-ownership gate or the final route-minimality publication verdict",
+                "the repo now has one canonical TAS-184 interpreter-ownership gate tying the owned Transformer boundary, the declared breadth suite, a widened generic direct no-tool proof suite, route-purity review, computation mapping, and weight-perturbation sensitivity into one machine-readable ownership verdict; it still does not yet have the later KV-cache and activation-state discipline audit, cross-machine reproducibility matrix, route-minimality publication verdict, or final article-equivalence claim checker",
             ),
             closure_requirements: vec![
                 String::from(
@@ -1005,7 +1005,7 @@ fn issue_coverage_rows() -> Vec<TassadarArticleEquivalenceIssueCoverageRow> {
             307,
             "TAS-184: Clean-room weight causality and interpreter ownership gate",
             TassadarArticleEquivalenceIssueRole::Implementation,
-            "open",
+            "closed",
             &["BEQ-007"],
         ),
         issue_row(

@@ -10,8 +10,6 @@
     "tied_requirement_satisfied": true,
     "acceptance_status": "blocked",
     "blocked_issue_ids": [
-      "TAS-183",
-      "TAS-184",
       "TAS-184A",
       "TAS-185",
       "TAS-185A",
@@ -31,8 +29,6 @@
       "tied_requirement_satisfied": true,
       "acceptance_status": "blocked",
       "blocked_issue_ids": [
-        "TAS-183",
-        "TAS-184",
         "TAS-184A",
         "TAS-185",
         "TAS-185A",
@@ -51,8 +47,6 @@
         "acceptance_status": "blocked",
         "article_equivalence_green": false,
         "blocked_issue_ids": [
-          "TAS-183",
-          "TAS-184",
           "TAS-184A",
           "TAS-185",
           "TAS-185A",
@@ -231,7 +225,7 @@
       "current_truth_boundary": "psionic already owns real reusable substrate for tensor contracts, bounded array execution, module state, basic layers, transformer-boundary configs, model descriptors, weight lineage metadata, runtime proof identity, and trace receipts. The current gap is not substrate absence; it is the missing owned article-equivalence stack and the current presence of bounded research or fixture-backed lanes that are not yet sufficient for canonical article closure.",
       "claim_boundary": "this report inventories reusable substrate only. It freezes what can be reused, what needs extension, what stays research-only, and what is still not sufficient for article closure. It does not claim that the owned article-equivalence Transformer stack, the canonical article model artifact, or the final article-equivalence proof route already exist.",
       "summary": "Existing substrate inventory now records surface_count=11, blocker_surface_count=6, non_blocker_surface_count=5, inventory_contract_green=true, tied_requirement_satisfied=true, and article_equivalence_green=false.",
-      "report_digest": "dad3c431973cb3112427b9793b40a87b01e7753514bcac9a592a7145f799f9a0"
+      "report_digest": "be63dee54295c4da45ae21b8ee7cb4c052fb4c9260487bd8b6bb127678a7d9b8"
     },
     "interface_rows": [
       {
@@ -363,7 +357,7 @@
     "article_equivalence_green": false,
     "claim_boundary": "this report freezes one explicit canonical Transformer stack boundary for the article-equivalence closure wave. The route is not one monolithic crate; it is one required boundary spanning existing crates with `psionic-transformer` as the architecture anchor, `psionic-models` as the article-model and artifact owner, and `psionic-runtime` as the replay/receipt owner. This does not claim the final article-equivalence stack is complete or green.",
     "summary": "Canonical Transformer stack boundary now records interface_rows=5, dependency_checks=6, tied_requirement_satisfied=true, boundary_contract_green=true, and article_equivalence_green=false.",
-    "report_digest": "87fc34695f849d8b066b6dea8503d9bb85bc24b637ef111b778304fa7c9068cf"
+    "report_digest": "07c3e642fa08dbf784bfa858a5ad9574f92e28455a6b18b102638a285576d4cf"
   },
   "evidence_bundle_ref": "fixtures/tassadar/runs/tassadar_article_transformer_weight_production_v1/article_transformer_weight_production_bundle.json",
   "evidence_bundle_digest": "f441f8543aacff9e7f88a97f0cc33764cf1daec3e0364fe914ee7ab74d837d56",
@@ -651,5 +645,5 @@
   "article_equivalence_green": false,
   "claim_boundary": "this report closes only the lineage and artifact-contract tranche around the first real trained trace-bound article-model weights. It proves the exact workload set, training-config snapshot, source inventory, checkpoint lineage, and artifact digests are frozen and challengeable. It does not claim reference-linear exactness, fast-route closure, benchmark parity, single-run closure, or final article-equivalence green status.",
   "summary": "Article Transformer weight lineage contract now records case_rows=7, all_required_cases_present=true, all_cases_pass=true, contract_matches_current_truth=true, tied_requirement_satisfied=true, weight_lineage_contract_green=true, and article_equivalence_green=false.",
-  "report_digest": "a918ac8396cc45ef1056763d503eb71fea217be4884f288774974164c57e87b0"
+  "report_digest": "55d77600a1d1c8236cf33a8c9f42ae9bec60d2e1d3bdc78c8e061e7769ca0b74"
 }

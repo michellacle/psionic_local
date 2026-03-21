@@ -331,8 +331,8 @@
         "category": "weights_ownership_scope",
         "title": "Clean-room weight causality and route-minimality verdict remain open",
         "repo_status": "partial",
-        "current_gap_summary": "the article invites a strong reading where decisive execution behavior lives in transformer weights on a minimal route. The public repo still lacks the final clean-room causality, activation-dominance, and route-minimality verdicts for that stronger reading",
-        "current_public_truth": "the repo already has direct no-tool proof receipts on committed article workloads and explicit refusal discipline, but it does not yet have the final generic interpreter-ownership gate or the final route-minimality publication verdict",
+        "current_gap_summary": "the article invites a strong reading where decisive execution behavior lives in transformer weights on a minimal route. The public repo now closes the first joined interpreter-ownership verdict, but it still lacks the later KV-cache and activation-dominance discipline, cross-machine reproducibility, route-minimality, and final publication verdicts for that stronger reading",
+        "current_public_truth": "the repo now has one canonical TAS-184 interpreter-ownership gate tying the owned Transformer boundary, the declared breadth suite, a widened generic direct no-tool proof suite, route-purity review, computation mapping, and weight-perturbation sensitivity into one machine-readable ownership verdict; it still does not yet have the later KV-cache and activation-state discipline audit, cross-machine reproducibility matrix, route-minimality publication verdict, or final article-equivalence claim checker",
         "closure_requirements": [
           "move direct no-tool proof and exactness onto the Transformer-backed route",
           "close invariance, anti-memorization, and evaluation-independence evidence so correctness does not look like brittle recall",
@@ -738,7 +738,7 @@
         "github_issue_number": 307,
         "title": "TAS-184: Clean-room weight causality and interpreter ownership gate",
         "issue_role": "implementation",
-        "issue_state": "open",
+        "issue_state": "closed",
         "blocker_ids": [
           "BEQ-007"
         ]
@@ -830,7 +830,7 @@
     ],
     "claim_boundary": "this report freezes the exact blocker set for article-equivalent closure. It is a machine-readable contract for what still has to become true. It keeps article-equivalence red by design until every blocker closes, and it must not be read as widening the current public capability surface",
     "summary": "Article-equivalence blocker matrix now freezes blocker_count=7, later_issue_count=38, matrix_contract_green=true, article_equivalence_green=false, and open_blocker_count=2.",
-    "report_digest": "63a5c04a94f652d21ddde33e722f382b437c880f5892d3f3f73069ffb7b09d0d"
+    "report_digest": "fc310ef11864950aae90ea633e34e6129349d60f66f6ae3281596013768d9766"
   },
   "requirement_rows": [
     {
@@ -1325,14 +1325,14 @@
       "requirement_id": "TAS-184",
       "requirement_kind": "implementation",
       "required_for_green": true,
-      "satisfied": false,
+      "satisfied": true,
       "blocker_ids": [
         "BEQ-007"
       ],
       "source_refs": [
         "fixtures/tassadar/reports/tassadar_article_equivalence_blocker_matrix_report.json"
       ],
-      "detail": "TAS-184 (`TAS-184: Clean-room weight causality and interpreter ownership gate`) remains open in the blocker matrix, so the final article-equivalence gate stays blocked on blocker families BEQ-007 until that tranche closes."
+      "detail": "TAS-184 (`TAS-184: Clean-room weight causality and interpreter ownership gate`) is closed in the blocker matrix, so this acceptance-gate row is currently satisfied for blocker families BEQ-007."
     },
     {
       "requirement_id": "TAS-184A",
@@ -1413,9 +1413,9 @@
   ],
   "total_requirement_count": 41,
   "required_requirement_count": 40,
-  "passed_required_requirement_count": 34,
+  "passed_required_requirement_count": 35,
   "required_issue_count": 37,
-  "closed_required_issue_count": 32,
+  "closed_required_issue_count": 33,
   "green_requirement_ids": [
     "blocker_matrix_contract_frozen",
     "owned_transformer_route_boundary_frozen",
@@ -1450,18 +1450,17 @@
     "TAS-180",
     "TAS-181",
     "TAS-182",
-    "TAS-183"
+    "TAS-183",
+    "TAS-184"
   ],
   "failed_requirement_ids": [
     "article_equivalence_blockers_closed",
-    "TAS-184",
     "TAS-184A",
     "TAS-185",
     "TAS-185A",
     "TAS-186"
   ],
   "blocked_issue_ids": [
-    "TAS-184",
     "TAS-184A",
     "TAS-185",
     "TAS-185A",
@@ -1491,6 +1490,6 @@
   "article_equivalence_green": false,
   "public_claim_allowed": false,
   "claim_boundary": "this is the frozen final acceptance gate for article-equivalent closure. It stays blocked until the blocker-matrix contract remains intact, the owned `psionic-transformer` route boundary remains intact, the blocker matrix itself turns article-equivalence green, and every required TAS tranche from `TAS-158` through `TAS-186` is closed. A green result here is necessary but not sufficient to widen public capability claims, and it still does not imply arbitrary C ingress, arbitrary Wasm ingress, or generic interpreter-in-weights closure outside the declared article envelope.",
-  "summary": "Article-equivalence acceptance gate now records passed_required_requirements=34/40, closed_required_issues=32/37, blocked_issues=5, blocker_matrix_article_equivalence_green=false, and article_equivalence_green=false.",
-  "report_digest": "9346502f677ad830685fdb61a839f46b53dd8987cfbd3a3cc7ce27fa73f69284"
+  "summary": "Article-equivalence acceptance gate now records passed_required_requirements=35/40, closed_required_issues=33/37, blocked_issues=4, blocker_matrix_article_equivalence_green=false, and article_equivalence_green=false.",
+  "report_digest": "2aaaefb750725f56c14e737101941caeeca571e7d5026545dcada374a4abd4cf"
 }
