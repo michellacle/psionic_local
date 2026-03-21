@@ -104,6 +104,32 @@ things the repo may eventually prove:
 The first item is the point of the bridge tranche. The second is the point of
 the plugin tranche. The third is a policy and release question above both.
 
+## Cross-Tranche Invariants
+
+Both this audit and the companion plugin audit should be read under the same
+invariants.
+
+- State Ownership:
+  durable workflow truth must live only in explicit weights-owned, ephemeral,
+  resumed, or host-backed state classes
+- Control Ownership:
+  host may execute declared mechanics, but host may not decide workflow
+- Semantic Preservation:
+  adapters, continuation mechanics, marshalling, and reinjection must preserve
+  declared meaning or fail closed
+- Carrier Separation:
+  direct article-equivalent, bounded resumable universality, and later
+  plugin-capability claims remain distinct carriers
+- Choice-Set Integrity:
+  admissible choices may not be hidden, pre-ranked, filtered, or rewritten
+  off-trace
+- Resource Transparency:
+  latency, cost, quota, availability, and pool pressure that affect branching
+  must be model-visible or fixed by contract
+- Scheduling Ownership:
+  ordering, concurrency, and result-visibility timing must be model-decided or
+  fixed as a declared runtime contract
+
 ## What Is Already Real And Still Valid
 
 The older universality scaffold was not invalidated by the later article work.
@@ -460,6 +486,49 @@ That split is the cleanest way to stop people from mentally merging:
 - resumable operator universality
 - later plugin-aware capability execution
 
+### 5. Choice-Set Integrity Law
+
+The bridge and any later capability layer above it must not restrict, rank,
+filter, or rewrite the effective choice set in a way that is invisible to the
+declared route truth.
+
+That means:
+
+- if later capability surfaces exist, admissible choices must be fully
+  enumerated or explicitly bounded
+- any filtering or transformation must be receipt-visible
+- refusal and failure classes that affect branching may not be hidden
+- hidden heuristics may not narrow the route's effective choice set
+
+Otherwise the host can still decide workflow by constraining what the route is
+allowed to see.
+
+### 6. Resource Transparency Law
+
+Any resource constraint that can affect branching, retries, continuation, or
+later capability selection must be surfaced as part of the declared route truth
+or fixed by contract.
+
+That includes:
+
+- latency
+- cost
+- quota
+- availability
+- pool pressure
+
+Otherwise the host can steer workflow economically while still sounding
+route-faithful.
+
+### 7. Scheduling Ownership Law
+
+Ordering, concurrency, and result-visibility timing must be either:
+
+- explicitly decided by the route
+- or explicitly frozen as a non-adaptive runtime contract
+
+Otherwise scheduling becomes hidden planning.
+
 ## Necessary Work After `TAS-186`
 
 The following follow-on work is `planned` if the goal is to make the new
@@ -492,6 +561,8 @@ Land one dedicated bridge artifact that answers:
 - where future packet-mediated software capability calls sit relative to the
   pure compute substrate, so the bridge does not later have to be redefined to
   accommodate plugins
+- how choice-set integrity, resource transparency, and scheduling ownership are
+  reserved for later capability layers above the bridge
 
 Without this contract, later universality rebasing will drift.
 
@@ -669,6 +740,8 @@ Description:
 - bind old `TCM.v1` rows to new owned-route evidence where appropriate
 - keep the relation to later plugin capability calls explicit instead of
   leaving it implicit
+- reserve choice-set integrity, resource transparency, and scheduling ownership
+  invariants for later capability layers
 
 Supporting material:
 
@@ -885,6 +958,8 @@ Description:
   that substrate
 - keep plugin state classes and receipt identity separate from the core compute
   substrate
+- reserve choice-set integrity, resource transparency, and scheduling ownership
+  as non-negotiable invariants for any later capability layer
 - refuse any implication that theory/operator universality already grants
   weighted plugin control or plugin publication
 

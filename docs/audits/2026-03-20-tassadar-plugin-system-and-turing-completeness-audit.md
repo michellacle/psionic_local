@@ -124,6 +124,49 @@ Those are different claim classes. The Turing-completeness rebase buys the
 first. The plugin tranche buys the second. The governance and publication
 machinery decides the third.
 
+## Cross-Tranche Invariants
+
+Both this audit and the companion Turing-completeness audit should be read
+under the same invariants.
+
+- State Ownership:
+  durable workflow truth must live only in explicit weights-owned, ephemeral,
+  resumed, or host-backed state classes
+- Control Ownership:
+  host may execute declared mechanics, but host may not decide workflow
+- Semantic Preservation:
+  adapters, continuation mechanics, marshalling, and reinjection must preserve
+  declared meaning or fail closed
+- Carrier Separation:
+  direct article-equivalent, bounded resumable universality, and later
+  plugin-capability claims remain distinct carriers
+- Choice-Set Integrity:
+  admissible choices may not be hidden, pre-ranked, filtered, or rewritten
+  off-trace
+- Resource Transparency:
+  latency, cost, quota, availability, and pool pressure that affect branching
+  must be model-visible or fixed by contract
+- Scheduling Ownership:
+  ordering, concurrency, and result-visibility timing must be model-decided or
+  fixed as a declared runtime contract
+
+## Primary Claim Dependency
+
+The plugin system is only valid if weighted control ownership is proven on the
+canonical route.
+
+All other plugin work is subordinate to that dependency:
+
+- manifest identity
+- runtime API
+- receipts
+- conformance harnesses
+- promotion and publication machinery
+
+Without weighted control ownership, those surfaces may still describe useful
+bounded software components, but they do not yet add up to the claimed weighted
+plugin system.
+
 ## What The Plugin-System Spec Actually Requires
 
 The draft plugin-system spec is not asking for "arbitrary tools" in a vague
@@ -445,6 +488,74 @@ That contract must freeze:
 The repo already has adjacent trust and publication substrate, but not one
 plugin-specific authority model that answers those questions.
 
+### 11. Planner-Indistinguishability And Runtime-Steering Guardrails: `planned`
+
+The plugin system also needs explicit guardrails against host steering that
+still looks surface-compliant.
+
+Those guardrails must cover:
+
+- choice-set integrity
+- resource transparency
+- scheduling ownership
+- explicit refusal when hidden filtering, ranking, rewriting, or adaptive
+  runtime steering would alter workflow
+
+Without those guardrails, the host can still become the planner indirectly.
+
+### 12. Cross-Plugin Isolation And Composition Integrity: `planned`
+
+The plugin system also needs explicit rules for composition boundaries.
+
+Those rules must cover:
+
+- multi-plugin workflow integrity
+- refusal propagation across chains
+- envelope intersection across composed workflows
+- replay under partial cancellation
+- explicit prohibition on implicit shared-memory, cache, or timing channels
+
+Without those rules, plugins can influence each other outside the declared
+trace.
+
+### 13. Control-Trace Replay And Determinism Contract: `planned`
+
+The plugin system also needs replay posture for the weighted control trace
+itself, not only for individual plugin invocations.
+
+That contract must freeze:
+
+- control-trace determinism class
+- model sampling policy
+- temperature and randomness controls
+- any external signals that may influence branching
+
+Without that, the repo can audit calls without being able to audit workflows.
+
+### 14. Model-Plugin Compatibility Contract: `planned`
+
+The plugin system also needs one explicit rule for model version versus plugin
+schema expectations.
+
+That contract must freeze:
+
+- which plugin schemas a given model was trained or validated against
+- when explicit compatibility adapters are allowed
+- when version skew must fail closed
+
+Without that, training/runtime mismatch drift can break semantic preservation.
+
+### 15. No Externalized Learning Guardrail: `planned`
+
+The host runtime may not adapt plugin selection, ranking, or sequencing across
+executions except through:
+
+- explicit model updates
+- or declared, auditable policy changes
+
+Without that rule, the repo can grow a shadow planner via telemetry or cache
+history while still sounding weighted.
+
 ## The Most Important Boundary Question
 
 The central architectural question is not "can Tassadar host Wasm modules?"
@@ -550,6 +661,95 @@ It must answer:
 Without governance identity, the platform can have technical identity while
 still lacking a trustworthy authority boundary.
 
+### 5. Choice-Set Integrity Law
+
+The host may not restrict, rank, pre-filter, or rewrite the set of admissible
+plugins, exports, or arguments in a way that is not explicitly visible to and
+attributable within the model-controlled trace.
+
+That means:
+
+- the candidate set must be fully enumerated or explicitly bounded
+- any filtering or transformation must be receipt-visible
+- refusal and failure classes that affect branching may not be hidden
+- hidden heuristics may not narrow the effective choice set
+- precomputed candidate outputs may not be surfaced as if they were neutral
+  options
+
+Without this law, host filtering can decide workflow while preserving surface
+compliance.
+
+### 6. Resource Transparency Law
+
+Any resource constraint that can affect plugin selection, sequencing, retry,
+or termination must be surfaced as model-visible state or frozen as a declared
+contract.
+
+That includes:
+
+- latency
+- cost
+- quotas
+- availability
+- pool pressure
+- throttling
+
+Without this law, economics become hidden orchestration.
+
+### 7. Scheduling Ownership Law
+
+Ordering, concurrency, and result-visibility timing must be either:
+
+- explicitly decided by the model
+- or explicitly frozen as a non-adaptive runtime contract
+
+The host may not adapt scheduling opportunistically and still describe itself
+as execution-only.
+
+### 8. Plugin Isolation Law
+
+Plugins must not communicate or influence each other except through:
+
+- explicit packet exchange visible in the model-controlled trace
+- or declared shared host-backed stores under receipts
+
+Implicit shared memory, shared cache coordination, or timing-based signaling
+must be treated as out of contract.
+
+### 9. Control Trace Replay Law
+
+The weighted plugin control trace must be replayable under a declared
+determinism class.
+
+That means the repo must freeze:
+
+- model sampling policy
+- temperature or randomness controls
+- any external signals influencing branching
+
+Without this law, the repo can replay calls without being able to replay
+workflow decisions.
+
+### 10. Model-Plugin Compatibility Law
+
+A model must only operate against plugin schemas it was trained or validated
+against, unless:
+
+- explicit compatibility adapters are declared, versioned, and audited
+- or invocation fails closed
+
+Without this law, schema drift can silently change task meaning.
+
+### 11. No Externalized Learning Law
+
+The host runtime may not adapt plugin selection, ranking, or sequencing across
+executions except through:
+
+- explicit model updates
+- or declared, auditable policy changes
+
+Without this law, a shadow planner can emerge outside the model.
+
 ## Does The Plugin System Change The Shape Of The Turing-Completeness Push?
 
 Yes, but only in a constrained way.
@@ -622,6 +822,12 @@ The right pattern is:
 That boundary should also carry a semantic-preservation rule for packet
 marshalling, schema adaptation, and result reinjection.
 
+It should also reserve:
+
+- choice-set integrity
+- resource transparency
+- scheduling ownership
+
 #### 3. Continuation Ownership Must Become State-Class-Aware
 
 The plugin spec makes a strong distinction between:
@@ -680,6 +886,8 @@ Those are:
   ephemeral-instance, and durable-host state
 - freeze a semantic-preservation rule for packet-mediated adapters and result
   reinjection before any weighted plugin-controller claim is made
+- reserve choice-set integrity, resource transparency, and scheduling
+  ownership before any adaptive plugin layer exists
 - freeze the workflow-ownership rule before any plugin-controller claim is made
 - keep the rebased verdict split from over-reading future plugin capability
 
@@ -725,6 +933,9 @@ Description:
 - freeze the rule that host may execute capability but may not decide workflow
 - freeze the semantic-preservation rule for marshalling, schema adaptation, and
   result reinjection
+- freeze choice-set integrity, resource transparency, and scheduling ownership
+- freeze the no-externalized-learning rule for runtime behavior across
+  executions
 - define who may declare a plugin canonical, who may widen capability
   envelopes, and which receipts are required before posture changes
 
@@ -810,6 +1021,10 @@ Description:
 - define the engine abstraction for instantiate, invoke, mount, cancel, and
   usage collection
 - define pool, queue, timeout, memory, concurrency, and optional fuel bounds
+- freeze which resource signals are model-visible and which are fixed runtime
+  contract
+- freeze concurrency and scheduling semantics so the host cannot adapt them
+  opportunistically
 - keep backend-specific details below the host-owned runtime API
 
 Supporting material:
@@ -859,6 +1074,8 @@ envelopes so capability mediation is no longer ad hoc.
 Description:
 
 - define plugin admissibility checks
+- make candidate sets fully enumerated or explicitly bounded
+- make any filtering, ranking, or transformation receipt-visible
 - compile capability namespace grants, network rules, and mount posture into
   runtime envelopes
 - bind route policy to plugin version constraints and trust posture
@@ -893,6 +1110,7 @@ Description:
 - cover multi-plugin workflow integrity, refusal propagation, envelope
   intersection, hot-swap inside composed workflows, and replay under partial
   cancellation
+- cover shared-cache, shared-store, and timing-channel isolation negatives
 - benchmark cold, warm, pooled, queued, and cancelled execution paths
 - keep receipt integrity and envelope compatibility explicit
 
@@ -920,6 +1138,8 @@ Description:
 - define output schema evolution and backward-compatibility rules
 - define refusal normalization and typed failure preservation
 - bind output digests to the next model-visible state explicitly
+- define model-version versus plugin-schema compatibility and fail-closed
+  behavior on version skew
 - refuse reinjection when schema repair or coercion would alter declared task
   meaning
 - make the return path stable enough that weighted planning is not built on an
@@ -946,12 +1166,15 @@ plugin selection, sequencing, retries, and stop conditions.
 Description:
 
 - define the structured weighted plugin control trace
+- define the control-trace determinism class, sampling policy, and randomness
+  controls
 - encode packet arguments from model outputs under the canonical packet ABI
 - return result packets and typed refusals back into the model loop
 - prove that the host validates and executes but does not become the planner
 - add negative rows for hidden host-side sequencing or retry logic
 - add negative rows for host auto-retry, fallback export selection, heuristic
-  plugin ranking, schema auto-repair, and cached result substitution
+  plugin ranking, schema auto-repair, cached result substitution, candidate
+  precomputation, and hidden top-k filtering
 
 Supporting material:
 
@@ -1032,7 +1255,8 @@ The dependency order should be:
 
 That order matters because it keeps the repo from using a not-yet-audited
 weighted controller as evidence for a plugin system whose core control-ownership
-question is still unresolved.
+question is still unresolved and keeps runtime steering, side channels, and
+adapter drift out of the claim surface.
 
 ## What The Repo Can Honestly Say Today
 
@@ -1058,13 +1282,19 @@ But the repo does **not** yet have:
 - plugin-specific invocation receipts
 - a stable result-binding and schema-stability contract
 - a plugin-specific authority and governance model
+- planner-indistinguishability guardrails over choice sets, resources, and
+  scheduling
+- a replayable control-trace determinism contract
+- a model-plugin compatibility contract
+- an explicit no-externalized-learning guardrail
 - or a weighted controller that owns plugin selection and sequencing on the
   canonical owned Transformer route
 
 So the plugin system is not blocked on basic substrate. It is blocked on
 unifying that substrate under one plugin contract, proving semantic
 preservation through adapters and result reinjection, freezing governance
-identity, and then proving weighted control ownership.
+identity, closing host-steering attack surfaces, and then proving weighted
+control ownership.
 
 ## Final Judgment
 
