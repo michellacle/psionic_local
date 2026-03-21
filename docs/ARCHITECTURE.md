@@ -1166,6 +1166,22 @@ The current scope is:
   identity; this still does not publish the final carrier split, admit the
   rebased universality claim, admit served/public universality, admit weighted
   plugin control, or admit arbitrary software capability
+- the current post-article carrier-split artifacts are
+  `fixtures/tassadar/reports/tassadar_post_article_carrier_split_contract_report.json`,
+  `fixtures/tassadar/reports/tassadar_post_article_carrier_split_contract_summary.json`,
+  the provider receipt in
+  `crates/psionic-provider/src/tassadar_post_article_carrier_split_contract.rs`,
+  the checker script
+  `scripts/check-tassadar-post-article-carrier-split-contract.sh`,
+  and the audit note
+  `docs/audits/2026-03-21-tassadar-post-article-carrier-split-contract.md`,
+  which freeze the direct article-equivalent carrier and resumable bounded
+  universality carrier as separate machine-readable claim lanes on the bridge
+  machine identity while keeping transfer by implication blocked and the
+  reserved capability plane explicit; this still does not rebind the
+  historical universal-machine proof, reissue the witness suite, publish the
+  rebased verdict split, admit served/public universality, admit weighted
+  plugin control, or admit arbitrary software capability
 - the current semantic-window revision artifacts are
   `fixtures/tassadar/reports/tassadar_semantic_window_revision_receipt.json`
   and

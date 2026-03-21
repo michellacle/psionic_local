@@ -691,6 +691,23 @@ publication, a rebased Turing-completeness approval, a served/public
 universality approval, a weighted plugin-control claim, or an arbitrary
 software-capability claim.
 
+`TAS-189` now closes the carrier-split publication tranche at
+`fixtures/tassadar/reports/tassadar_post_article_carrier_split_contract_report.json`.
+That contract binds the direct article-equivalent truths and the resumable
+bounded-universality truths to different carriers on the same bridge machine
+identity, records that transfer by implication is blocked in both directions,
+and keeps the reserved capability plane explicit instead of leaving later
+capability widening implicit. The operator-readable summary now lives at
+`fixtures/tassadar/reports/tassadar_post_article_carrier_split_contract_summary.json`,
+the provider receipt now lives at
+`crates/psionic-provider/src/tassadar_post_article_carrier_split_contract.rs`,
+and the dedicated checker now lives at
+`scripts/check-tassadar-post-article-carrier-split-contract.sh`.
+This tranche still does not rebind the universal-machine proof, reissue the
+universality witness suite, publish the rebased verdict split, admit
+served/public universality, admit weighted plugin control, or admit arbitrary
+software capability.
+
 ## Route Requirement
 
 Any canonical article-equivalence Transformer route must use this boundary.

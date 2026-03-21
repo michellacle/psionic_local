@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.post_article_carrier_split.contract.report.v1",
+  "machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+  "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+  "direct_carrier_id": "tassadar.post_article_universality_bridge.direct_article_equivalent_carrier.v1",
+  "resumable_carrier_id": "tassadar.post_article_universality_bridge.resumable_universality_carrier.v1",
+  "reserved_capability_plane_id": "tassadar.post_article_universality_bridge.reserved_capability_plane.v1",
+  "carrier_split_status": "green",
+  "carrier_split_publication_complete": true,
+  "carrier_collapse_refused": true,
+  "reserved_capability_plane_explicit": true,
+  "decision_provenance_proof_complete": true,
+  "deferred_issue_ids": [
+    "TAS-190"
+  ],
+  "rebase_claim_allowed": false,
+  "plugin_capability_claim_allowed": false,
+  "served_public_universality_allowed": false,
+  "arbitrary_software_capability_allowed": false,
+  "detail": "post-article carrier-split summary keeps machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, direct_carrier_id=`tassadar.post_article_universality_bridge.direct_article_equivalent_carrier.v1`, resumable_carrier_id=`tassadar.post_article_universality_bridge.resumable_universality_carrier.v1`, carrier_split_status=Green, carrier_collapse_refused=true, carrier_split_publication_complete=true, and deferred_issue_ids=1.",
+  "summary_digest": "f06c31a1f95f9e6d6e3c0e4196736d746dd4f0aa81c6072f1cb46f31c9da1fd7"
+}

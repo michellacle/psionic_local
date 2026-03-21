@@ -182,7 +182,20 @@ Current honest posture:
   boundaries, hidden-state closure, observer acceptance, and hidden-control
   channel exclusions; this tranche still does not publish the final carrier
   split, reissue the bounded Turing-completeness claim on the canonical route,
-  or imply served/public universality, weighted plugin control, or arbitrary
+  imply served/public universality, weighted plugin control, or arbitrary
+  software capability
+- the repo now also has one post-article carrier-split contract, with a
+  committed eval report at
+  `fixtures/tassadar/reports/tassadar_post_article_carrier_split_contract_report.json`,
+  a disclosure-safe research summary at
+  `fixtures/tassadar/reports/tassadar_post_article_carrier_split_contract_summary.json`,
+  a provider-facing receipt, a checker script, and an audit note that bind
+  direct article-equivalent truths and resumable bounded-universality truths
+  to different carriers on the same bridge machine identity while explicitly
+  blocking transfer by implication and keeping the reserved capability plane
+  explicit; this tranche still does not rebind the historical
+  universal-machine proof, reissue the witness suite, publish the rebased
+  verdict split, imply served/public universality, weighted plugin control,
   software capability
 - the repo now also has one machine-readable article-equivalence blocker
   matrix, with a committed eval report at
