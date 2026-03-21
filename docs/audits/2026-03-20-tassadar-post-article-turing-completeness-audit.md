@@ -1,0 +1,512 @@
+# Tassadar Post-Article Turing-Completeness Rebase Audit
+
+Date: 2026-03-20
+
+## Purpose
+
+This audit reviews the older Tassadar universality and Turing-completeness
+scaffold after the newer post-`TAS-156A` article-equivalence wave.
+
+It answers two separate questions:
+
+1. What from the older `TAS-141` and `TAS-150` through `TAS-156` tranche is
+   still real and still honest?
+2. What still has to land after `TAS-186` if the goal is not merely
+   article-equivalent closure, but a truthful statement that the new canonical
+   owned Transformer route is the route that carries the repo's
+   Turing-completeness story?
+
+## Source Set
+
+This audit is based on the current repo state plus the current public TAS issue
+set.
+
+Canonical repo surfaces reviewed:
+
+- `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
+- `docs/TASSADAR_ARTICLE_TRANSFORMER_STACK_BOUNDARY.md`
+- `docs/audits/2026-03-19-tassadar-effective-unbounded-compute-claim-audit.md`
+- `docs/audits/2026-03-19-tassadar-pre-closeout-universality-audit.md`
+- `docs/audits/2026-03-19-tassadar-tcm-v1-substrate-audit.md`
+- `docs/audits/2026-03-19-tassadar-turing-completeness-closeout-audit.md`
+- `docs/audits/2026-03-19-tassadar-universality-verdict-split-audit.md`
+- `docs/audits/2026-03-20-tassadar-article-equivalence-blocker-matrix.md`
+- `docs/audits/2026-03-20-tassadar-article-equivalence-acceptance-gate.md`
+
+Canonical machine-readable surfaces reviewed:
+
+- `fixtures/tassadar/reports/tassadar_effective_unbounded_compute_claim_report.json`
+- `fixtures/tassadar/reports/tassadar_pre_closeout_universality_claim_boundary_report.json`
+- `fixtures/tassadar/reports/tassadar_tcm_v1_model.json`
+- `fixtures/tassadar/reports/tassadar_tcm_v1_runtime_contract_report.json`
+- `fixtures/tassadar/reports/tassadar_universal_machine_proof_report.json`
+- `fixtures/tassadar/reports/tassadar_universality_witness_suite_report.json`
+- `fixtures/tassadar/reports/tassadar_minimal_universal_substrate_acceptance_gate_report.json`
+- `fixtures/tassadar/reports/tassadar_universality_verdict_split_report.json`
+- `fixtures/tassadar/reports/tassadar_turing_completeness_closeout_audit_report.json`
+- `fixtures/tassadar/reports/tassadar_article_equivalence_blocker_matrix_report.json`
+- `fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json`
+
+Public issue sets reviewed:
+
+- `TAS-141`
+- `TAS-150` through `TAS-156`
+- `TAS-156A`
+- `TAS-157` through `TAS-186`
+- `TAS-R1`
+
+## Executive Verdict
+
+Current audit verdict:
+
+- historical `TCM.v1` universality scaffold: `implemented`
+- canonical post-`TAS-156A` article-equivalence route: `implemented` through
+  `TAS-181`, `partial` through `TAS-186`
+- Turing-completeness claim rebased onto the canonical owned Transformer route:
+  `planned`
+- served/public universality on the new route: `partial_outside_psionic`
+
+The important distinction is this:
+
+The repo already has one coherent bounded Turing-completeness closeout under
+declared `TCM.v1` semantics for theory and operator use. That closeout is still
+internally consistent and still honest on its own terms.
+
+What the repo does **not** yet have is a proof that the newer canonical
+`psionic-transformer` article-equivalence route is itself the route that closes
+that Turing-completeness story. The old closeout and the new article wave are
+not the same lane, and they were not updated together.
+
+## What Is Already Real And Still Valid
+
+The older universality scaffold was not invalidated by the later article work.
+The following facts remain `implemented`:
+
+- `TAS-141`:
+  one disclosure-safe effective-unbounded claim boundary exists, and it stays
+  suppressed until broad portability, publication, and specialization-safety
+  rows are green.
+- `TAS-150`:
+  one explicit pre-closeout universality boundary exists, and it correctly
+  records that broadness-adjacent work did not itself equal a terminal
+  Turing-completeness claim.
+- `TAS-151`:
+  `TCM.v1` exists as one declared universal substrate model with explicit
+  control, memory, continuation, and effect-boundary rows.
+- `TAS-152`:
+  one explicit universal-machine witness construction exists over `TCM.v1`.
+- `TAS-153`:
+  one dedicated universality witness suite exists.
+- `TAS-154`:
+  one minimal universal-substrate acceptance gate exists.
+- `TAS-155`:
+  one explicit theory/operator/served verdict split exists.
+- `TAS-156`:
+  one bounded Turing-completeness closeout audit exists with
+  `theory=green`, `operator=green`, and `served=suppressed`.
+
+That older closeout is also disciplined in the right way:
+
+- it does not imply arbitrary Wasm execution
+- it does not imply broad served internal compute
+- it does not imply public universality publication
+- it does not imply settlement-qualified universality closure
+
+Those refusal boundaries are still the right ones.
+
+## What Changed After `TAS-156A`
+
+The later article-equivalence wave changed the canonical truth carrier for the
+article story.
+
+The repo now has a separate post-`TAS-156A` canonical path:
+
+- `TAS-160` freezes the owned multi-crate Transformer boundary with
+  `psionic-transformer` as the architecture anchor.
+- `TAS-163` through `TAS-175` build the real owned article model, trained
+  artifact, reference-linear proof lane, fast-route selection, fast-route
+  integration, exactness closure, and throughput-floor closure.
+- `TAS-176` through `TAS-181` freeze the declared frontend/compiler envelope,
+  broader frontend corpus, demo-source parity, declared interpreter breadth,
+  breadth suite, Hungarian parity, and hard-Sudoku benchmark closure.
+- `TAS-182` through `TAS-186` remain open and are aimed at final article
+  closure, not at universality rebasing:
+  demo/benchmark unification, no-spill single-run closure, clean-room weight
+  ownership, cache and activation-state discipline, reproducibility,
+  route-minimality, and the final article-equivalence audit.
+
+That means the repo now has two different high-value truths:
+
+- an older resumable operator universality contract over `TCM.v1`
+- a newer canonical owned Transformer route for the article-equivalence story
+
+Both are real. They are not yet the same route.
+
+## Where The Old Turing-Completeness Scaffold Is Now Stale
+
+The older closeout is still honest, but it is stale relative to the newer
+canonical route in six concrete ways.
+
+### 1. Substrate Anchoring Gap
+
+`TCM.v1` still cites older named internal-compute profile anchors such as
+`tassadar.internal_compute.article_closeout.v1`,
+`tassadar.internal_compute.spill_tape_store.v1`, and
+`tassadar.internal_compute.process_objects.v1`.
+
+It does **not** yet cite:
+
+- the canonical `psionic-transformer` route boundary from `TAS-160`
+- the canonical article model artifact family from `TAS-168` through `TAS-169A`
+- the reference-linear and fast-route proof surfaces from `TAS-171` through
+  `TAS-175`
+- the article-equivalence gate and blocker surfaces from `TAS-157` through
+  `TAS-186`
+
+So the terminal universality contract is still anchored to the pre-article-gap
+operator lane, not to the new owned-route closeout program.
+
+### 2. Ownership And Mechanism Gap
+
+The older universality tranche proves operator-universality under resumable
+envelopes. It does **not** prove:
+
+- that the decisive computation lives in the owned Transformer weights
+- that hidden runtime-controlled control flow is absent
+- that helper modules or retrieval layers are not secretly carrying the work
+- that KV cache or activation state are not the real interpreter substrate
+
+Those are exactly the open concerns in `TAS-184` and `TAS-184A`.
+
+### 3. Execution-Posture Gap
+
+The older `TCM.v1` story is explicitly resumable and continuation-backed:
+
+- bounded slice resume
+- spill/tape extension
+- process objects
+- persistent process identity
+- session-process profiles
+
+The new article-equivalence wave is explicitly trying to close a different bar:
+
+- no checkpoint restore
+- no spill/tape extension
+- one uninterrupted owned Transformer execution path
+- no hidden re-entry
+- no runtime-controlled loop unrolling outside the model
+
+That is the point of `TAS-183`.
+
+These are not contradictory, but they are different contracts. The repo has not
+yet written down how they compose.
+
+### 4. Frontend And Breadth Gap
+
+The old Turing-completeness closeout leaned on:
+
+- the broader internal-compute ladder
+- VM-style module witnesses
+- session-process kernels
+- spill/tape continuation kernels
+
+The new article-equivalence wave now has a much sharper declared public
+envelope:
+
+- one Rust-only frontend/compiler envelope
+- one declared article interpreter breadth envelope
+- one fixed generic article-program family suite
+
+The older closeout was never updated to say whether the new canonical owned
+route closes universality:
+
+- inside that declared article envelope only
+- across a wider operator-only envelope
+- or across both, with an explicit split
+
+### 5. Portability And Minimality Gap
+
+The older closeout has bounded portability language, but it does not cite the
+new canonical-route reproducibility and minimality surfaces because those do
+not exist yet.
+
+That is now the job of:
+
+- `TAS-185`: cross-machine reproducibility matrix
+- `TAS-185A`: route minimality audit and publication verdict
+
+Until those land, any attempt to rebase Turing completeness onto the new
+canonical route would be premature.
+
+### 6. Final Claim-Surface Gap
+
+The older closeout was allowed to be operator-green specifically because it
+stayed separate from the article-equivalence program.
+
+The new final article-equivalence gate at `TAS-186` will decide whether the
+canonical owned Transformer route is article-equivalent.
+
+It will **not** by itself decide:
+
+- whether the canonical route is the universal substrate carrier
+- whether persisted continuation on that route stays ownership-clean
+- whether the old `TCM.v1` closeout should be reinterpreted in light of the
+  newer canonical model and route identities
+
+That still needs a second wave.
+
+## What `TAS-186` Will And Will Not Mean
+
+If `TAS-182` through `TAS-186` all turn green, the repo will have one strong
+new fact:
+
+The canonical owned `psionic-transformer` route will be article-equivalent
+under the declared frontend, interpreter-breadth, benchmark, ownership, cache,
+reproducibility, and minimality bars.
+
+That still will **not** automatically mean:
+
+- the canonical owned route is the route behind `TCM.v1`
+- the canonical owned route is itself the final Turing-complete operator lane
+- the old resumable universality contract has been updated to reference the new
+  canonical route
+- the canonical owned route is universally claimable without the old
+  checkpoint, spill/tape, and process-object semantics
+
+After `TAS-186`, the right statement would be:
+
+Psionic has one canonical owned Transformer route that is article-equivalent
+inside the declared article envelope, and Psionic separately still has one
+older bounded `TCM.v1` operator-universality closeout under resumable
+envelopes.
+
+That is a stronger repo than either lane alone, but it is still not yet one
+rebased unified story.
+
+## Recommended Post-`TAS-186` Strategy
+
+The recommended strategy is:
+
+- keep the old `TCM.v1` closeout intact as historical machine-readable truth
+- do **not** mutate the meaning of `TAS-156`
+- do **not** pretend that article-equivalence alone already rebases the
+  universality contract
+- add one new post-`TAS-186` bridge tranche that explicitly ties the canonical
+  owned Transformer route back into the existing `TCM.v1` theory/operator
+  story
+
+This is the least error-prone option because it preserves the old claim
+discipline while letting the new route become the truth carrier for that older
+claim.
+
+## Why A Bridge Tranche Is Better Than Rewriting `TCM.v1`
+
+The bridge approach is recommended for four reasons.
+
+### 1. It preserves existing truthful artifacts
+
+The old `TAS-151` through `TAS-156` artifacts remain correct on their own
+terms. Rewriting them would create needless provenance churn.
+
+### 2. It keeps the no-spill and resumable stories separate
+
+Article-equivalence needs the stronger no-spill and no-helper audit.
+Turing-completeness for real operator use still naturally lives inside bounded
+slices with persisted continuation. Those are different claims and should stay
+different.
+
+### 3. It keeps claim scope honest
+
+The bridge can say exactly which part of the new route is:
+
+- direct single-run article-equivalent
+- resumable operator-universality-capable
+- still suppressed for served/public posture
+
+That is much safer than flattening them into one sentence.
+
+### 4. It avoids forcing the wrong terminal bar
+
+The repo does not need to prove "one infinite uninterrupted no-spill run"
+to make a truthful Turing-completeness statement. The older `TCM.v1` closeout
+was already honest that universality lived under bounded slices and persisted
+continuation.
+
+## Necessary Work After `TAS-186`
+
+The following follow-on work is `planned` if the goal is to make the new
+canonical route fully Turing-complete in an honest and machine-readable way.
+
+### A. Freeze The Bridge Contract
+
+Land one dedicated bridge artifact that answers:
+
+- which canonical model id from the article-equivalence wave is now the
+  universality carrier?
+- which canonical weight artifact digest is in scope?
+- which route digest is in scope?
+- is universality carried by `ReferenceLinear`, `HullCache`, a resumable route
+  family above them, or an explicit split across those lanes?
+- which old `TCM.v1` rows now bind to new owned-route evidence, and which still
+  bind only to older operator surfaces?
+
+Without this contract, later universality rebasing will drift.
+
+### B. Prove Continuation Ownership On The New Route
+
+The canonical route needs one explicit audit for resumed execution ownership.
+
+It must prove that checkpoint, spill/tape, and process-object semantics:
+
+- wrap the canonical owned route instead of substituting for it
+- preserve canonical model identity and route identity across resumes
+- do not add helper-side control flow that would defeat `TAS-184`
+- fail closed when resumed execution would leave the declared route or profile
+
+This is the most important missing bridge between `TAS-183`/`TAS-184` and the
+older operator-universality lane.
+
+### C. Rebind Universal-Machine Proofs To The Canonical Route
+
+The older witness construction must be replayed against the new canonical
+owned-route identities.
+
+That means:
+
+- exact proof receipts must cite the canonical post-`TAS-186` model id
+- exact proof receipts must cite the canonical post-`TAS-186` weight artifact
+- exact proof receipts must cite the canonical post-`TAS-186` route digest
+- checkpoint/resume equivalence must remain explicit where resumable execution
+  is still part of the operator claim
+
+Until this happens, the old universal-machine proof remains real but not
+canonically attached to the new route.
+
+### D. Rebuild The Witness Suite Around The Canonical Route
+
+The universality witness suite should be reissued so the canonical owned route
+is the route being exercised, not only the older operator lane.
+
+At minimum that suite should still include:
+
+- register-machine witnesses
+- tape-machine witnesses
+- VM-style interpreter kernels
+- continuation-stress kernels
+- explicit refusal-boundary rows
+
+But it now also needs:
+
+- route-identity binding to the post-`TAS-186` canonical model
+- ownership-clean resumed execution rows
+- negative rows for helper substitution, hidden cache-owned control flow, and
+  resume-only cheating
+
+### E. Add A Canonical-Route Universal-Substrate Gate
+
+The old minimal gate should not be silently reused.
+
+One new gate should require:
+
+- `TAS-186` green
+- canonical-route bridge contract green
+- continuation-ownership audit green
+- canonical-route universal-machine proof green
+- canonical-route witness suite green
+- portability and refusal rows green on the declared machine matrix
+
+That gate is the first place where the repo can honestly ask whether the new
+canonical route, not merely the older operator lane, is Turing-complete.
+
+### F. Extend Portability And Minimality To The Universality Lane
+
+`TAS-185` and `TAS-185A` are necessary, but not sufficient.
+
+They need one follow-on extension over the universality carrier itself:
+
+- cross-machine witness-suite replay
+- cross-machine resumed-execution parity
+- route-drift suppression across resume boundaries
+- explicit refusal when portability or minimality fails
+
+The older `TAS-156` closeout already carried portability and refusal language,
+but it was not bound to the newer canonical route.
+
+### G. Reissue The Final Verdict Split
+
+Once the rebased gate is green, the repo should publish one new verdict split
+for the canonical route:
+
+- theory: whether the canonical route now carries the witness-backed substrate
+  story
+- operator: whether the canonical route now supports bounded-slice universal
+  execution under explicit continuation envelopes
+- served: whether any served/public universality widening is allowed
+
+The expected served verdict remains `partial_outside_psionic` unless
+`kernel-policy` and `nexus` ownership moves or the user explicitly asks for
+that cross-repo work.
+
+### H. Publish A New Final Closeout Audit
+
+Only after the new bridge, proof, suite, gate, portability, and verdict-split
+artifacts exist should the repo publish a second final closeout.
+
+That new closeout should say:
+
+- the older `TAS-156` closeout still stands historically
+- the post-`TAS-186` canonical owned Transformer route is now the truth carrier
+  for the bounded Turing-completeness statement
+- served/public universality remains either suppressed or explicitly bounded
+
+## Recommended Follow-On Issue Shape
+
+The cleanest path after `TAS-186` is one new post-article tranche with issue
+shape roughly like this:
+
+- `planned`: post-article universality bridge contract and claim-boundary audit
+- `planned`: canonical-route continuation, spill, and process-identity
+  ownership audit
+- `planned`: canonical-route universal-machine proof rebinding
+- `planned`: canonical-route universality witness suite
+- `planned`: canonical-route minimal universal-substrate gate
+- `planned`: canonical-route universality portability and minimality matrix
+- `planned`: rebased theory/operator/served universality verdict split
+- `planned`: post-article Turing-completeness closeout audit
+
+The numbering can be chosen later. The important thing is the dependency order.
+
+## Current Honest Statement
+
+The strongest current statement this repo can make is:
+
+Psionic/Tassadar has two separate truthful closure surfaces:
+
+- one older bounded `TCM.v1` Turing-completeness closeout for theory and
+  operator use under explicit resumable envelopes
+- one newer canonical owned Transformer article-equivalence program that is
+  implemented through `TAS-181` and remains `partial` on `TAS-182` through
+  `TAS-186`
+
+What the repo still cannot say is:
+
+The new post-`TAS-156A` canonical owned Transformer route is already the route
+that carries the repo's bounded Turing-completeness closeout.
+
+That remains `planned`.
+
+## Final Judgment
+
+The older universality tranche should be treated as `implemented`, not as
+obsolete.
+
+The newer article-equivalence tranche should be treated as the new canonical
+owned-route truth carrier for article claims, but not yet as the rebased
+carrier for the repo's Turing-completeness claim.
+
+The right next move after `TAS-186` is therefore not to rewrite history and not
+to over-read article equivalence as universality. The right next move is one
+explicit bridge tranche that binds `TCM.v1`, witness proofs, resumable
+continuation, portability, and verdict splitting onto the canonical owned
+Transformer route without weakening the existing refusal and publication
+discipline.
