@@ -183,7 +183,8 @@ mod tests {
 
         assert!(report.matrix_contract_green);
         assert!(!report.article_equivalence_green);
-        assert_eq!(report.open_blocker_count, report.blocker_count);
+        assert_eq!(report.blocker_count, 7);
+        assert_eq!(report.open_blocker_count, 2);
     }
 
     #[test]

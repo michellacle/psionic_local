@@ -428,7 +428,7 @@ mod tests {
                 .blocked_issue_ids
                 .first()
                 .map(String::as_str),
-            Some("TAS-183")
+            Some("TAS-184")
         );
         assert_eq!(report.current_floor_green_count, 2);
         assert_eq!(report.declared_required_family_green_count, 3);

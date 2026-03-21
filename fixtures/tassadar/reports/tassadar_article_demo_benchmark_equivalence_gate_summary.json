@@ -12,7 +12,6 @@
       "tied_requirement_satisfied": true,
       "acceptance_status": "blocked",
       "blocked_issue_ids": [
-        "TAS-183",
         "TAS-184",
         "TAS-184A",
         "TAS-185",
@@ -74,12 +73,12 @@
     "article_demo_benchmark_equivalence_gate_green": true,
     "article_equivalence_green": false,
     "claim_boundary": "this report closes TAS-182 only. It freezes one unified article demo-and-benchmark gate on top of the canonical owned `psionic-transformer` route boundary by requiring the Hungarian demo parity row, the named Arto parity row, and the declared hard-Sudoku benchmark-suite row to stay green together. It does not imply single-run no-spill closure, clean-room weight causality, route minimality, or final article-equivalence green status.",
-    "summary": "Article demo-and-benchmark equivalence gate now records tied_requirement_satisfied=true, hungarian_demo_parity_green=true, named_arto_parity_green=true, benchmark_wide_sudoku_parity_green=true, binding_green=true, gate_green=true, blocked_issue_frontier=Some(\"TAS-183\"), and article_equivalence_green=false.",
-    "report_digest": "5abae31f1052daa186e31f853d3f33d89da83131ae39b42975741337a4cee530"
+    "summary": "Article demo-and-benchmark equivalence gate now records tied_requirement_satisfied=true, hungarian_demo_parity_green=true, named_arto_parity_green=true, benchmark_wide_sudoku_parity_green=true, binding_green=true, gate_green=true, blocked_issue_frontier=Some(\"TAS-184\"), and article_equivalence_green=false.",
+    "report_digest": "63593cd7577509af9574c5cfa4c0ef7aeb720d9e6bffd8967a6d0d4f1e69bb42"
   },
   "tied_requirement_id": "TAS-182",
   "tied_requirement_satisfied": true,
-  "blocked_issue_frontier": "TAS-183",
+  "blocked_issue_frontier": "TAS-184",
   "hungarian_demo_parity_green": true,
   "named_arto_parity_green": true,
   "benchmark_wide_sudoku_parity_green": true,
@@ -87,6 +86,6 @@
   "article_demo_benchmark_equivalence_gate_green": true,
   "article_equivalence_green": false,
   "claim_boundary": "this summary mirrors only the TAS-182 unified article demo-and-benchmark gate. It keeps the joined Hungarian, named-Arto, and declared hard-Sudoku suite closure operator-readable without pretending that single-run no-spill closure, clean-room weight causality, or final article-equivalence green status are already true.",
-  "summary": "Article demo-and-benchmark equivalence gate summary now records tied_requirement_satisfied=true, hungarian_demo_parity_green=true, named_arto_parity_green=true, benchmark_wide_sudoku_parity_green=true, binding_green=true, gate_green=true, blocked_issue_frontier=Some(\"TAS-183\"), and article_equivalence_green=false.",
-  "report_digest": "a87b88d17915cfa5b9431e24e24449544887c41c4ba693b350d9993182b5b5c6"
+  "summary": "Article demo-and-benchmark equivalence gate summary now records tied_requirement_satisfied=true, hungarian_demo_parity_green=true, named_arto_parity_green=true, benchmark_wide_sudoku_parity_green=true, binding_green=true, gate_green=true, blocked_issue_frontier=Some(\"TAS-184\"), and article_equivalence_green=false.",
+  "report_digest": "187c4b940e40f8a3e9a20bad190ab9f2b9b1f8b9e629932bbcfb2442d7bcc529"
 }

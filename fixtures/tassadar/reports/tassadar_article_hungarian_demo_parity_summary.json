@@ -12,7 +12,6 @@
       "tied_requirement_satisfied": true,
       "acceptance_status": "blocked",
       "blocked_issue_ids": [
-        "TAS-183",
         "TAS-184",
         "TAS-184A",
         "TAS-185",
@@ -147,12 +146,12 @@
     "hungarian_demo_parity_green": true,
     "article_equivalence_green": false,
     "claim_boundary": "this report closes TAS-180 only. It binds the canonical 10x10 Hungarian article demo source to one direct HullCache fast-route session, one planner-owned HullCache hybrid workflow, the declared throughput-floor artifact, and the existing no-tool reproducer proof surface. It does not yet claim Arto closure, benchmark-wide hard-Sudoku closure, unified demo-and-benchmark equivalence, single-run closure, or final article-equivalence green status.",
-    "summary": "Hungarian article demo parity now records tied_requirement_satisfied=true, frontend_green=true, no_tool_proof_green=true, session_fast_route_green=true, hybrid_fast_route_green=true, throughput_floor_green=true, binding_green=true, blocked_issue_frontier=Some(\"TAS-183\"), and article_equivalence_green=false.",
-    "report_digest": "88791c39ad9ec73355445bdc446b08dacf019c8203b98502944779c5e6430b21"
+    "summary": "Hungarian article demo parity now records tied_requirement_satisfied=true, frontend_green=true, no_tool_proof_green=true, session_fast_route_green=true, hybrid_fast_route_green=true, throughput_floor_green=true, binding_green=true, blocked_issue_frontier=Some(\"TAS-184\"), and article_equivalence_green=false.",
+    "report_digest": "9b157242b7193d0e47b8c818399d439c98c63b1354d8f35cc140f2214216d871"
   },
   "tied_requirement_id": "TAS-180",
   "tied_requirement_satisfied": true,
-  "blocked_issue_frontier": "TAS-183",
+  "blocked_issue_frontier": "TAS-184",
   "session_fast_route_green": true,
   "hybrid_fast_route_green": true,
   "throughput_floor_green": true,
@@ -161,6 +160,6 @@
   "hungarian_demo_parity_green": true,
   "article_equivalence_green": false,
   "claim_boundary": "this summary mirrors only the TAS-180 Hungarian article demo parity tranche. It keeps the 10x10 Hungarian fast-route, throughput-floor, and no-tool-proof binding operator-readable without pretending that the hard-Sudoku benchmark or final article-equivalence tranches are already green.",
-  "summary": "Hungarian article demo parity summary now records tied_requirement_satisfied=true, session_fast_route_green=true, hybrid_fast_route_green=true, throughput_floor_green=true, no_tool_proof_green=true, binding_green=true, blocked_issue_frontier=Some(\"TAS-183\"), and article_equivalence_green=false.",
-  "report_digest": "ad1d4501b1d909c8b0bb7f73588e5a1d5360695027c11edabea0341b282a171b"
+  "summary": "Hungarian article demo parity summary now records tied_requirement_satisfied=true, session_fast_route_green=true, hybrid_fast_route_green=true, throughput_floor_green=true, no_tool_proof_green=true, binding_green=true, blocked_issue_frontier=Some(\"TAS-184\"), and article_equivalence_green=false.",
+  "report_digest": "e47458f1fb4a7a0e041da7863a3fcc470bae0689963cb70e3720bae54e1ac4eb"
 }

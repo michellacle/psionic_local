@@ -476,7 +476,7 @@ mod tests {
                 .blocked_issue_ids
                 .first()
                 .map(String::as_str),
-            Some("TAS-183")
+            Some("TAS-184")
         );
         assert!(!report.article_equivalence_green);
     }

@@ -521,6 +521,26 @@ public envelope, while no-spill single-run closure, clean-room weight
 causality, route minimality, and final article-equivalence tranches remain
 open.
 
+`TAS-183` now closes that later single-run no-spill tranche on top of the same
+owned route. `psionic-eval` now commits the joined closure artifact at
+`fixtures/tassadar/reports/tassadar_article_single_run_no_spill_closure_report.json`,
+binding the committed `TAS-182` demo-and-benchmark prerequisite, the canonical
+article runtime closeout report, the fast-route throughput-floor report, the
+trained trace-bound article model descriptor, and explicit negative-control
+continuation lanes from execution checkpoints, spill or tape-store execution,
+effect-safe resume, and dynamic-memory resume into one machine-readable
+surface. That report keeps the selected fast route fixed to
+`HullCache` under `tassadar.decode.hull_cache.v1`, requires deterministic exact
+million-step and multi-million-step horizon closure, step and trace digest
+alignment, bounded context-to-horizon posture, and explicit refusal of
+stochastic retry-farming or teacher-forcing escape hatches. `psionic-research`
+now mirrors the operator-readable summary at
+`fixtures/tassadar/reports/tassadar_article_single_run_no_spill_closure_summary.json`.
+This is the point where the repo now machine-readably says the article's
+single-run no-spill posture is closed inside the bounded public envelope,
+while clean-room weight causality, route minimality, and final
+article-equivalence tranches remain open.
+
 ## Route Requirement
 
 Any canonical article-equivalence Transformer route must use this boundary.

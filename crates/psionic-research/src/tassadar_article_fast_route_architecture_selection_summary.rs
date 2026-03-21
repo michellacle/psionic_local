@@ -208,8 +208,8 @@ mod tests {
         assert_eq!(summary.selected_candidate_kind, "hull_cache_runtime");
         assert_eq!(summary.routeable_candidate_count, 1);
         assert_eq!(summary.exact_article_matrix_candidate_count, 3);
-        assert_eq!(summary.selected_direct_module_class_count, 4);
-        assert_eq!(summary.selected_fallback_module_class_count, 2);
+        assert_eq!(summary.selected_direct_module_class_count, 6);
+        assert_eq!(summary.selected_fallback_module_class_count, 0);
         assert!(summary.tied_requirement_satisfied);
         assert_eq!(summary.acceptance_status, "blocked");
         assert!(summary.fast_route_selection_green);

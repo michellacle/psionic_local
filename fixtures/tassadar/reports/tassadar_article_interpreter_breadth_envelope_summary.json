@@ -12,7 +12,6 @@
       "tied_requirement_satisfied": true,
       "acceptance_status": "blocked",
       "blocked_issue_ids": [
-        "TAS-183",
         "TAS-184",
         "TAS-184A",
         "TAS-185",
@@ -399,7 +398,7 @@
     "article_equivalence_green": false,
     "claim_boundary": "this report closes TAS-179 only. It freezes one declared article interpreter breadth envelope over the frozen core-Wasm floor, the current named article i32 profiles, and the later required search-process, long-horizon control, and module-scale Wasm-loop families while keeping linked-program bundles research-only and import-mediated processes, dynamic-memory resume, memory64, multi-memory, component-linking, exception profiles, and broader float semantics explicitly outside the article envelope. It does not yet build the breadth suite or turn final article-equivalence green.",
     "summary": "Article interpreter breadth envelope report now records tied_requirement_satisfied=true, current_floor_green=2/2, declared_required_family_green=3/3, research_only_family_green=1/1, explicit_out_of_envelope_green=7/7, envelope_contract_green=true, and article_equivalence_green=false.",
-    "report_digest": "f550227621c130044fa349fa99f6872165190f9ec7a398932d53d30db6c36da9"
+    "report_digest": "481ada446ea20e071272f18effe8cb1af00cc52a2b8fd2fcceda1de6a557e8c8"
   },
   "tied_requirement_id": "TAS-179",
   "tied_requirement_satisfied": true,
@@ -412,5 +411,5 @@
   "article_equivalence_green": false,
   "claim_boundary": "this summary mirrors only the TAS-179 declared interpreter-breadth envelope. It keeps the in-envelope, research-only, and out-of-envelope family split operator-readable without pretending that the later breadth suite or final article-equivalence gate are already closed.",
   "summary": "Article interpreter breadth envelope summary now records tied_requirement_satisfied=true, current_floor_green=2, declared_required_family_green=3, research_only_family_green=1, explicit_out_of_envelope_green=7, envelope_contract_green=true, and article_equivalence_green=false.",
-  "report_digest": "26336426e9763c927dbfba3edee05c4166885462e75bd081fcbb0de3fdad8b78"
+  "report_digest": "909cd70a7577aae29234f85edc8287fd27a2892cfaa291b9c67f668a934abe8c"
 }

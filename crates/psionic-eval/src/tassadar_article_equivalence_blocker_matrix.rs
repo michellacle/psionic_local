@@ -636,13 +636,13 @@ fn blocker_rows() -> Vec<TassadarArticleEquivalenceBlockerRow> {
         TassadarArticleEquivalenceBlockerRow {
             blocker_id: String::from("BEQ-006"),
             category: TassadarArticleEquivalenceBlockerCategory::SingleRunScope,
-            title: String::from("Single-run no-spill article posture remains open"),
-            repo_status: TassadarRepoStatus::Partial,
+            title: String::from("Single-run no-spill article posture is closed"),
+            repo_status: TassadarRepoStatus::Implemented,
             current_gap_summary: String::from(
-                "the article frames million-step execution inside a single transformer run, while the public terminal substrate claim still permits bounded slices, persisted continuation, and spill/tape extension",
+                "the repo now freezes one no-resume single-run operator envelope over the canonical article route boundary, keeps long-horizon exactness and throughput-floor receipts explicit, and treats checkpoint, spill, and continuation lanes as negative controls instead of inheriting them into article closure",
             ),
             current_public_truth: String::from(
-                "the repo already has named long-horizon direct execution and a bounded resumable universality substrate, but not the final no-resume single-run article gate",
+                "the repo now has one machine-readable TAS-183 gate over benchmark parity, million-step and multi-million-step horizon receipts, step-to-compute consistency, context-length sensitivity, and explicit checkpoint/spill/resume negative controls while keeping final weight-causality and route-minimality verdicts separate",
             ),
             closure_requirements: vec![
                 String::from(
@@ -997,7 +997,7 @@ fn issue_coverage_rows() -> Vec<TassadarArticleEquivalenceIssueCoverageRow> {
             306,
             "TAS-183: Single-run no-spill million-step closure",
             TassadarArticleEquivalenceIssueRole::Implementation,
-            "open",
+            "closed",
             &["BEQ-006"],
         ),
         issue_row(
@@ -1140,7 +1140,7 @@ mod tests {
         assert!(report.matrix_contract_green);
         assert!(!report.article_equivalence_green);
         assert_eq!(report.blocker_count, 7);
-        assert_eq!(report.open_blocker_count, 3);
+        assert_eq!(report.open_blocker_count, 2);
         assert!(report.all_later_issues_covered);
         assert!(report.all_blockers_have_article_line_provenance);
     }
