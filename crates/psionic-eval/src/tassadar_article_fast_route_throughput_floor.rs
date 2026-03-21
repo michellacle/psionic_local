@@ -10,27 +10,24 @@ use sha2::{Digest, Sha256};
 use thiserror::Error;
 
 use psionic_runtime::{
-    TassadarArticleFastRouteThroughputBundle, TassadarArticleFastRouteThroughputBundleError,
-    TASSADAR_ARTICLE_FAST_ROUTE_THROUGHPUT_BUNDLE_FILE,
-    TASSADAR_ARTICLE_FAST_ROUTE_THROUGHPUT_ROOT_REF,
     build_tassadar_article_fast_route_throughput_bundle,
     tassadar_article_fast_route_throughput_root_path,
-    write_tassadar_article_fast_route_throughput_bundle,
+    write_tassadar_article_fast_route_throughput_bundle, TassadarArticleFastRouteThroughputBundle,
+    TassadarArticleFastRouteThroughputBundleError,
+    TASSADAR_ARTICLE_FAST_ROUTE_THROUGHPUT_BUNDLE_FILE,
+    TASSADAR_ARTICLE_FAST_ROUTE_THROUGHPUT_ROOT_REF,
 };
 
 use crate::{
     build_tassadar_article_cpu_reproducibility_report,
     build_tassadar_article_equivalence_acceptance_gate_report,
     build_tassadar_article_fast_route_architecture_selection_report,
-    build_tassadar_article_fast_route_exactness_report,
-    TassadarArticleCpuReproducibilityReport, TassadarArticleCpuReproducibilityReportError,
-    TassadarArticleEquivalenceAcceptanceGateReport,
+    build_tassadar_article_fast_route_exactness_report, TassadarArticleCpuReproducibilityReport,
+    TassadarArticleCpuReproducibilityReportError, TassadarArticleEquivalenceAcceptanceGateReport,
     TassadarArticleEquivalenceAcceptanceGateReportError,
-    TassadarArticleEquivalenceAcceptanceStatus,
-    TassadarArticleFastRouteArchitectureSelectionReport,
-    TassadarArticleFastRouteArchitectureSelectionError,
-    TassadarArticleFastRouteExactnessReport, TassadarArticleFastRouteExactnessReportError,
-    TASSADAR_ARTICLE_CPU_REPRODUCIBILITY_REPORT_REF,
+    TassadarArticleEquivalenceAcceptanceStatus, TassadarArticleFastRouteArchitectureSelectionError,
+    TassadarArticleFastRouteArchitectureSelectionReport, TassadarArticleFastRouteExactnessReport,
+    TassadarArticleFastRouteExactnessReportError, TASSADAR_ARTICLE_CPU_REPRODUCIBILITY_REPORT_REF,
     TASSADAR_ARTICLE_EQUIVALENCE_ACCEPTANCE_GATE_REPORT_REF,
     TASSADAR_ARTICLE_FAST_ROUTE_ARCHITECTURE_SELECTION_REPORT_REF,
     TASSADAR_ARTICLE_FAST_ROUTE_EXACTNESS_REPORT_REF,
@@ -128,9 +125,10 @@ pub enum TassadarArticleFastRouteThroughputFloorReportError {
     Json(#[from] serde_json::Error),
 }
 
-pub fn build_tassadar_article_fast_route_throughput_floor_report(
-) -> Result<TassadarArticleFastRouteThroughputFloorReport, TassadarArticleFastRouteThroughputFloorReportError>
-{
+pub fn build_tassadar_article_fast_route_throughput_floor_report() -> Result<
+    TassadarArticleFastRouteThroughputFloorReport,
+    TassadarArticleFastRouteThroughputFloorReportError,
+> {
     let acceptance_gate = build_tassadar_article_equivalence_acceptance_gate_report()?;
     let selection_report = build_tassadar_article_fast_route_architecture_selection_report()?;
     let exactness_report = build_tassadar_article_fast_route_exactness_report()?;
@@ -140,8 +138,7 @@ pub fn build_tassadar_article_fast_route_throughput_floor_report(
     let acceptance_gate_tie = build_acceptance_gate_tie(&acceptance_gate)?;
     let selection_prerequisite = build_selection_prerequisite(&selection_report);
     let exactness_prerequisite = build_exactness_prerequisite(&exactness_report);
-    let cross_machine_drift_review =
-        build_cross_machine_drift_review(&cpu_reproducibility_report);
+    let cross_machine_drift_review = build_cross_machine_drift_review(&cpu_reproducibility_report);
     let throughput_floor_green = acceptance_gate_tie.tied_requirement_satisfied
         && selection_prerequisite.fast_route_selection_green
         && exactness_prerequisite.exactness_green
@@ -154,7 +151,7 @@ pub fn build_tassadar_article_fast_route_throughput_floor_report(
         checker_script_ref: String::from(
             TASSADAR_ARTICLE_FAST_ROUTE_THROUGHPUT_FLOOR_CHECKER_REF,
         ),
-        acceptance_gate_tie,
+        acceptance_gate_tie: acceptance_gate_tie.clone(),
         selection_prerequisite,
         exactness_prerequisite,
         cross_machine_drift_review,
@@ -168,7 +165,8 @@ pub fn build_tassadar_article_fast_route_throughput_floor_report(
         kernel_floor_pass_count: throughput_bundle.kernel_floor_pass_count,
         throughput_bundle,
         throughput_floor_green,
-        article_equivalence_green: false,
+        article_equivalence_green: acceptance_gate_tie.blocked_issue_ids.is_empty()
+            && throughput_floor_green,
         claim_boundary: String::from(
             "this report closes TAS-175 only. It ties the selected HullCache fast route to explicit throughput-floor evidence, current-host cross-machine drift bounds, and the earlier TAS-172/TAS-174 prerequisites without claiming final Hungarian demo parity, Arto closure, benchmark-wide hard-Sudoku closure, no-spill single-run closure, or article-equivalence green status.",
         ),
@@ -203,8 +201,10 @@ pub fn tassadar_article_fast_route_throughput_floor_report_path() -> PathBuf {
 
 pub fn write_tassadar_article_fast_route_throughput_floor_report(
     output_path: impl AsRef<Path>,
-) -> Result<TassadarArticleFastRouteThroughputFloorReport, TassadarArticleFastRouteThroughputFloorReportError>
-{
+) -> Result<
+    TassadarArticleFastRouteThroughputFloorReport,
+    TassadarArticleFastRouteThroughputFloorReportError,
+> {
     write_tassadar_article_fast_route_throughput_bundle(
         tassadar_article_fast_route_throughput_root_path(),
     )?;
@@ -230,19 +230,23 @@ pub fn write_tassadar_article_fast_route_throughput_floor_report(
 
 fn build_acceptance_gate_tie(
     acceptance_gate: &TassadarArticleEquivalenceAcceptanceGateReport,
-) -> Result<TassadarArticleFastRouteThroughputFloorAcceptanceGateTie, TassadarArticleFastRouteThroughputFloorReportError>
-{
+) -> Result<
+    TassadarArticleFastRouteThroughputFloorAcceptanceGateTie,
+    TassadarArticleFastRouteThroughputFloorReportError,
+> {
     let tied_requirement_satisfied = acceptance_gate
         .green_requirement_ids
         .iter()
         .any(|requirement_id| requirement_id == TIED_REQUIREMENT_ID);
     if !tied_requirement_satisfied {
-        return Err(TassadarArticleFastRouteThroughputFloorReportError::Invariant {
-            detail: format!(
-                "acceptance gate does not yet treat `{}` as green",
-                TIED_REQUIREMENT_ID
-            ),
-        });
+        return Err(
+            TassadarArticleFastRouteThroughputFloorReportError::Invariant {
+                detail: format!(
+                    "acceptance gate does not yet treat `{}` as green",
+                    TIED_REQUIREMENT_ID
+                ),
+            },
+        );
     }
     Ok(TassadarArticleFastRouteThroughputFloorAcceptanceGateTie {
         acceptance_gate_report_ref: String::from(
@@ -286,8 +290,12 @@ fn build_exactness_prerequisite(
 fn build_cross_machine_drift_review(
     cpu_reproducibility_report: &TassadarArticleCpuReproducibilityReport,
 ) -> TassadarArticleFastRouteThroughputCrossMachineDriftReview {
-    let supported_machine_class_ids = cpu_reproducibility_report.supported_machine_class_ids.clone();
-    let drift_policy_green = cpu_reproducibility_report.matrix.current_host_measured_green
+    let supported_machine_class_ids = cpu_reproducibility_report
+        .supported_machine_class_ids
+        .clone();
+    let drift_policy_green = cpu_reproducibility_report
+        .matrix
+        .current_host_measured_green
         && supported_machine_class_ids
             == vec![
                 String::from("host_cpu_aarch64"),
@@ -346,11 +354,11 @@ fn read_repo_json<T: DeserializeOwned>(
 #[cfg(test)]
 mod tests {
     use super::{
-        TASSADAR_ARTICLE_FAST_ROUTE_THROUGHPUT_FLOOR_REPORT_REF,
-        TassadarArticleFastRouteThroughputFloorReport,
         build_tassadar_article_fast_route_throughput_floor_report, read_repo_json,
         tassadar_article_fast_route_throughput_floor_report_path,
         write_tassadar_article_fast_route_throughput_floor_report,
+        TassadarArticleFastRouteThroughputFloorReport,
+        TASSADAR_ARTICLE_FAST_ROUTE_THROUGHPUT_FLOOR_REPORT_REF,
     };
 
     fn normalized_report_value(
@@ -395,7 +403,7 @@ mod tests {
         assert_eq!(report.demo_internal_floor_pass_count, 2);
         assert_eq!(report.kernel_floor_pass_count, 4);
         assert!(report.throughput_floor_green);
-        assert!(!report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
         assert!(report
             .throughput_bundle
             .demo_receipts
@@ -410,7 +418,8 @@ mod tests {
 
     #[test]
     fn throughput_floor_report_matches_committed_truth() {
-        let generated = build_tassadar_article_fast_route_throughput_floor_report().expect("report");
+        let generated =
+            build_tassadar_article_fast_route_throughput_floor_report().expect("report");
         let committed: TassadarArticleFastRouteThroughputFloorReport = read_repo_json(
             TASSADAR_ARTICLE_FAST_ROUTE_THROUGHPUT_FLOOR_REPORT_REF,
             "article_fast_route_throughput_floor_report",

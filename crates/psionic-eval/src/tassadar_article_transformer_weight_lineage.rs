@@ -1150,10 +1150,10 @@ mod tests {
         let report = build_tassadar_article_transformer_weight_lineage_report().expect("report");
 
         assert!(report.acceptance_gate_tie.tied_requirement_satisfied);
-        assert_eq!(report.acceptance_gate_tie.acceptance_status, crate::TassadarArticleEquivalenceAcceptanceStatus::Blocked);
+        assert_eq!(report.acceptance_gate_tie.acceptance_status, crate::TassadarArticleEquivalenceAcceptanceStatus::Green);
         assert!(report.manifest_review.contract_matches_current_truth);
         assert!(report.weight_lineage_contract_green);
-        assert!(!report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
         assert_eq!(report.case_rows.len(), 7);
         assert_eq!(report.case_rows.iter().filter(|row| row.passed).count(), 7);
     }

@@ -21,7 +21,7 @@ cargo run -p psionic-research --example tassadar_article_interpreter_ownership_g
 jq -e '
   .acceptance_gate_tie.tied_requirement_id == "TAS-184"
   and .acceptance_gate_tie.tied_requirement_satisfied == true
-  and (.acceptance_gate_tie.blocked_issue_ids[0] == "TAS-186")
+  and ((.acceptance_gate_tie.blocked_issue_ids | length) == 0)
   and .canonical_boundary_report.boundary_contract_green == true
   and .generic_direct_proof_review.generic_direct_proof_suite_green == true
   and .generic_direct_proof_review.direct_case_count == 6
@@ -34,13 +34,13 @@ jq -e '
   and (.weight_perturbation_review.intervention_rows | length) == 4
   and .binding_review.ownership_gate_green == true
   and .interpreter_ownership_green == true
-  and .article_equivalence_green == false
+  and .article_equivalence_green == true
 ' fixtures/tassadar/reports/tassadar_article_interpreter_ownership_gate_report.json >/dev/null
 
 jq -e '
   .tied_requirement_id == "TAS-184"
   and .tied_requirement_satisfied == true
-  and .blocked_issue_frontier == "TAS-186"
+  and .blocked_issue_frontier == null
   and .generic_direct_proof_suite_green == true
   and .generic_direct_proof_case_count == 6
   and .breadth_conformance_matrix_green == true
@@ -49,5 +49,5 @@ jq -e '
   and .mapping_stable_across_runs == true
   and .perturbation_sensitivity_green == true
   and .interpreter_ownership_green == true
-  and .article_equivalence_green == false
+  and .article_equivalence_green == true
 ' fixtures/tassadar/reports/tassadar_article_interpreter_ownership_gate_summary.json >/dev/null

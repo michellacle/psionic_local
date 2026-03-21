@@ -13,7 +13,7 @@ cargo run -p psionic-research --example tassadar_article_transformer_reference_l
 
 jq -e '
   .reference_linear_exactness_green == true
-  and .article_equivalence_green == false
+  and .article_equivalence_green == true
   and .declared_case_count == 13
   and .exact_case_count == 13
   and .mismatch_case_count == 0

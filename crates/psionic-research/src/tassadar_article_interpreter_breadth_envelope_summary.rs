@@ -192,7 +192,7 @@ mod tests {
         assert_eq!(summary.research_only_family_green_count, 1);
         assert_eq!(summary.explicit_out_of_envelope_green_count, 7);
         assert!(summary.envelope_contract_green);
-        assert!(!summary.article_equivalence_green);
+        assert!(summary.article_equivalence_green);
     }
 
     #[test]

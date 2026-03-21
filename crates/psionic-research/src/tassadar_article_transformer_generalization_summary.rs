@@ -221,7 +221,7 @@ mod tests {
         assert_eq!(summary.adversarial_case_count, 2);
         assert_eq!(summary.curriculum_run_count, 2);
         assert!(summary.generalization_green);
-        assert!(!summary.article_equivalence_green);
+        assert!(summary.article_equivalence_green);
         assert!(summary.mismatch_case_ids.is_empty());
         assert!(summary.refused_case_ids.is_empty());
     }

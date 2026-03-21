@@ -256,7 +256,7 @@ fn build_report_from_inputs(
         checker_script_ref: String::from(
             TASSADAR_ARTICLE_DEMO_BENCHMARK_EQUIVALENCE_GATE_CHECKER_REF,
         ),
-        acceptance_gate_tie,
+        acceptance_gate_tie: acceptance_gate_tie.clone(),
         hungarian_review,
         benchmark_review,
         binding_review,
@@ -264,7 +264,8 @@ fn build_report_from_inputs(
         named_arto_parity_green,
         benchmark_wide_sudoku_parity_green,
         article_demo_benchmark_equivalence_gate_green,
-        article_equivalence_green: false,
+        article_equivalence_green: acceptance_gate_tie.blocked_issue_ids.is_empty()
+            && article_demo_benchmark_equivalence_gate_green,
         claim_boundary: String::from(
             "this report closes TAS-182 only. It freezes one unified article demo-and-benchmark gate on top of the canonical owned `psionic-transformer` route boundary by requiring the Hungarian demo parity row, the named Arto parity row, and the declared hard-Sudoku benchmark-suite row to stay green together. It does not imply single-run no-spill closure, clean-room weight causality, route minimality, or final article-equivalence green status.",
         ),
@@ -470,15 +471,8 @@ mod tests {
         assert!(report.benchmark_wide_sudoku_parity_green);
         assert!(report.binding_review.binding_green);
         assert!(report.article_demo_benchmark_equivalence_gate_green);
-        assert_eq!(
-            report
-                .acceptance_gate_tie
-                .blocked_issue_ids
-                .first()
-                .map(String::as_str),
-            Some("TAS-186")
-        );
-        assert!(!report.article_equivalence_green);
+        assert!(report.acceptance_gate_tie.blocked_issue_ids.is_empty());
+        assert!(report.article_equivalence_green);
     }
 
     #[test]

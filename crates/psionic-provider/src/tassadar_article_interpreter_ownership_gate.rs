@@ -90,10 +90,7 @@ mod tests {
         let receipt = TassadarArticleInterpreterOwnershipGateReceipt::from_report(&report);
 
         assert_eq!(receipt.tied_requirement_id, "TAS-184");
-        assert_eq!(
-            receipt.blocked_issue_ids.first().map(String::as_str),
-            Some("TAS-186")
-        );
+        assert!(receipt.blocked_issue_ids.is_empty());
         assert_eq!(receipt.generic_direct_proof_case_count, 6);
         assert!(receipt.generic_direct_proof_suite_green);
         assert_eq!(receipt.breadth_family_count, 8);
@@ -101,7 +98,7 @@ mod tests {
         assert!(receipt.mapping_stable_across_runs);
         assert!(receipt.perturbation_sensitivity_green);
         assert!(receipt.interpreter_ownership_green);
-        assert!(!receipt.article_equivalence_green);
+        assert!(receipt.article_equivalence_green);
         Ok(())
     }
 }

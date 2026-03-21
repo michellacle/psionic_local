@@ -184,10 +184,10 @@ mod tests {
             build_tassadar_article_transformer_artifact_descriptor_summary().expect("summary");
 
         assert!(report.tied_requirement_satisfied);
-        assert_eq!(report.acceptance_status, "blocked");
+        assert_eq!(report.acceptance_status, "green");
         assert!(report.committed_refs_exist);
         assert!(report.artifact_descriptor_contract_green);
-        assert!(!report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
         assert_eq!(report.case_count, 5);
         assert_eq!(report.passed_case_count, 5);
     }

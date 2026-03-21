@@ -7,10 +7,8 @@
     "ownership_gate_report_ref": "fixtures/tassadar/reports/tassadar_article_interpreter_ownership_gate_report.json",
     "tied_requirement_id": "TAS-184A",
     "tied_requirement_satisfied": true,
-    "acceptance_status": "blocked",
-    "blocked_issue_ids": [
-      "TAS-186"
-    ]
+    "acceptance_status": "green",
+    "blocked_issue_ids": []
   },
   "ownership_gate_report_ref": "fixtures/tassadar/reports/tassadar_article_interpreter_ownership_gate_report.json",
   "ownership_gate_green": true,
@@ -373,8 +371,8 @@
     "detail": "ownership_gate_green=true weight_perturbation_sensitivity_green=true cache_growth_scales_with_problem_size=true cache_truncation_breaks_correctness=true cache_reset_breaks_correctness=true carrier_boundary_declared=true"
   },
   "kv_activation_discipline_green": true,
-  "article_equivalence_green": false,
-  "claim_boundary": "this report closes TAS-184A only. It declares the article-route KV-cache and activation-state discipline verdict for the bounded public envelope, including explicit acceptable versus non-acceptable state carriers and an explicit weight-dominant versus activation-dominant versus mixed verdict. It still does not close cross-machine reproducibility from TAS-185, route minimality from TAS-185A, or the final article-equivalence audit from TAS-186.",
-  "summary": "Article KV-cache and activation-state discipline audit now records tied_requirement_satisfied=true, verdict=Mixed, cache_growth_scales_with_problem_size=true, truncation_breaks_correctness=true, reset_breaks_correctness=true, constrained_cache_equivalence=false, blocked_issue_frontier=Some(\"TAS-186\"), and article_equivalence_green=false.",
-  "report_digest": "1bb6f618aa4dccf6c038d064e44e6dfa6ea2dd1a8b742a74bfe73ebd27e24b24"
+  "article_equivalence_green": true,
+  "claim_boundary": "this report closes TAS-184A only. It declares the article-route KV-cache and activation-state discipline verdict for the bounded public envelope, including explicit acceptable versus non-acceptable state carriers and an explicit weight-dominant versus activation-dominant versus mixed verdict. By itself it still does not replace the later cross-machine reproducibility matrix, route-minimality audit, or final article-equivalence audit.",
+  "summary": "Article KV-cache and activation-state discipline audit now records tied_requirement_satisfied=true, verdict=Mixed, cache_growth_scales_with_problem_size=true, truncation_breaks_correctness=true, reset_breaks_correctness=true, constrained_cache_equivalence=false, blocked_issue_frontier=None, and article_equivalence_green=true.",
+  "report_digest": "42ec0fe40d03a37bb51f4b0b243ec1a91c359468a1971e11169f694c26dbb646"
 }

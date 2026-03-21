@@ -170,7 +170,7 @@ fn build_report_from_inputs(
         schema_version: 1,
         report_id: String::from("tassadar.article_interpreter_breadth_envelope.report.v1"),
         checker_script_ref: String::from(TASSADAR_ARTICLE_INTERPRETER_BREADTH_ENVELOPE_CHECKER_REF),
-        acceptance_gate_tie,
+        acceptance_gate_tie: acceptance_gate_tie.clone(),
         manifest_ref: String::from(TASSADAR_ARTICLE_INTERPRETER_BREADTH_ENVELOPE_REF),
         manifest,
         contract_check,
@@ -180,7 +180,8 @@ fn build_report_from_inputs(
         research_only_family_green_count,
         explicit_out_of_envelope_green_count,
         envelope_contract_green,
-        article_equivalence_green: false,
+        article_equivalence_green: acceptance_gate_tie.blocked_issue_ids.is_empty()
+            && envelope_contract_green,
         claim_boundary: String::from(
             "this report closes TAS-179 only. It freezes one declared article interpreter breadth envelope over the frozen core-Wasm floor, the current named article i32 profiles, and the later required search-process, long-horizon control, and module-scale Wasm-loop families while keeping linked-program bundles research-only and import-mediated processes, dynamic-memory resume, memory64, multi-memory, component-linking, exception profiles, and broader float semantics explicitly outside the article envelope. It does not yet build the breadth suite or turn final article-equivalence green.",
         ),
@@ -417,25 +418,19 @@ mod tests {
     };
 
     #[test]
-    fn article_interpreter_breadth_envelope_tracks_declared_envelope_without_final_green() {
+    fn article_interpreter_breadth_envelope_tracks_declared_envelope_with_final_green() {
         let report = build_tassadar_article_interpreter_breadth_envelope_report().expect("report");
 
         assert_eq!(report.acceptance_gate_tie.tied_requirement_id, "TAS-179");
         assert!(report.acceptance_gate_tie.tied_requirement_satisfied);
-        assert_eq!(
-            report
-                .acceptance_gate_tie
-                .blocked_issue_ids
-                .first()
-                .map(String::as_str),
-            Some("TAS-186")
-        );
+        assert!(report.acceptance_gate_tie.blocked_issue_ids.is_empty());
         assert_eq!(report.current_floor_green_count, 2);
         assert_eq!(report.declared_required_family_green_count, 3);
         assert_eq!(report.research_only_family_green_count, 1);
         assert_eq!(report.explicit_out_of_envelope_green_count, 7);
         assert!(report.envelope_contract_green);
-        assert!(!report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
     }
 
     #[test]

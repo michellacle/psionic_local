@@ -204,21 +204,23 @@ pub fn build_tassadar_article_equivalence_blocker_matrix_report() -> Result<
         open_blocker_count: evaluation.open_blocker_count,
         open_blocker_ids,
         current_truth_boundary: String::from(
-            "the public repo has a bounded Rust-only article-closeout path, a bounded no-tool direct proof route on committed workloads, and a bounded Turing-complete substrate statement under declared `TCM.v1` semantics; it does not yet have full article-equivalent closure in the article's strongest frontend, fast-route, benchmark, single-run, or clean-room weight-ownership reading",
+            "the public repo now has one bounded article-equivalence closure for the declared Rust-only article envelope: the owned `psionic-transformer` route, the canonical trained trace-bound article model and weight artifact, the direct deterministic HullCache claim route, the declared CPU machine matrix, and the explicit mechanistic, behavioral, and operational closure gates all now land green together",
         ),
         non_implications: vec![
-            String::from("not a positive article-equivalence closure claim"),
             String::from("not arbitrary C or arbitrary Wasm ingress closure"),
             String::from("not a generic public interpreter-in-weights claim"),
             String::from(
-                "not proof that the fast decode path is already the canonical public route",
+                "not a widening of the claim beyond the declared article frontend, interpreter, benchmark, and same-run operator envelope",
             ),
             String::from(
-                "not proof that hard-Sudoku benchmark closure, no-spill single-run closure, or route-minimality closure already exist",
+                "not a planner-mediated, hybrid, stochastic, or resumed execution claim for the canonical public article route",
+            ),
+            String::from(
+                "not the post-article universality or generic Turing-completeness bridge",
             ),
         ],
         claim_boundary: String::from(
-            "this report freezes the exact blocker set for article-equivalent closure. It is a machine-readable contract for what still has to become true. It keeps article-equivalence red by design until every blocker closes, and it must not be read as widening the current public capability surface",
+            "this report freezes the exact blocker set for bounded article-equivalence closure and now records that every blocker row has closed. It remains a machine-readable contract for what had to become true, and it must not be read as widening the public capability surface beyond the declared article envelope",
         ),
         summary: String::new(),
         report_digest: String::new(),
@@ -492,13 +494,13 @@ fn blocker_rows() -> Vec<TassadarArticleEquivalenceBlockerRow> {
         TassadarArticleEquivalenceBlockerRow {
             blocker_id: String::from("BEQ-003"),
             category: TassadarArticleEquivalenceBlockerCategory::TransformerStackReality,
-            title: String::from("Canonical owned Transformer-backed article route remains open"),
-            repo_status: TassadarRepoStatus::Partial,
+            title: String::from("Canonical owned Transformer-backed article route is now closed"),
+            repo_status: TassadarRepoStatus::Implemented,
             current_gap_summary: String::from(
-                "the article-equivalent path still lacks one canonical owned Transformer stack and one non-fixture article model artifact that carries the public route end to end",
+                "the remaining gap was one canonical owned Transformer stack plus one non-fixture article model artifact carrying the public route end to end; that gap is now closed",
             ),
             current_public_truth: String::from(
-                "the repo now has real tensor, array, nn, runtime, and `psionic-transformer` substrate overlap, but the public article-closeout proof surface is still narrower than a canonical owned Transformer-backed route",
+                "the repo now has one canonical owned `psionic-transformer` route, one canonical trained article model artifact with weight lineage, and one bounded public article route that stays inside that owned stack end to end",
             ),
             closure_requirements: vec![
                 String::from(
@@ -681,14 +683,14 @@ fn blocker_rows() -> Vec<TassadarArticleEquivalenceBlockerRow> {
             blocker_id: String::from("BEQ-007"),
             category: TassadarArticleEquivalenceBlockerCategory::WeightsOwnershipScope,
             title: String::from(
-                "Clean-room weight causality and route-minimality verdict remain open",
+                "Clean-room weight causality and route-minimality verdict are closed",
             ),
             repo_status: TassadarRepoStatus::Implemented,
             current_gap_summary: String::from(
-                "the article invites a strong reading where decisive execution behavior lives in transformer weights on a minimal route. The public repo now closes the joined interpreter-ownership verdict, the explicit KV-cache plus activation-state discipline verdict, the cross-machine reproducibility matrix, and the direct-route minimality plus publication verdict split for that stronger reading",
+                "the article invites a strong reading where decisive execution behavior lives in transformer weights on a minimal route. The public repo now closes the joined interpreter-ownership verdict, the explicit KV-cache plus activation-state discipline verdict, the cross-machine reproducibility matrix, the direct-route minimality plus publication verdict split, and the final bounded article-equivalence claim checker for that stronger reading",
             ),
             current_public_truth: String::from(
-                "the repo now has one canonical TAS-184 interpreter-ownership gate, one TAS-184A KV-cache and activation-state discipline audit, one TAS-185 cross-machine reproducibility matrix, and one TAS-185A route-minimality audit plus publication verdict, together making the bounded route's weight sensitivity, mixed same-run state carrier posture, declared machine-class stability, and direct-route ownership boundary machine-readable; only the final TAS-186 article-equivalence claim checker remains separate",
+                "the repo now has one canonical TAS-184 interpreter-ownership gate, one TAS-184A KV-cache and activation-state discipline audit, one TAS-185 cross-machine reproducibility matrix, one TAS-185A route-minimality audit plus publication verdict, and one TAS-186 final article-equivalence claim checker plus audit, together making the bounded route's weight sensitivity, mixed same-run state carrier posture, declared machine-class stability, direct-route ownership boundary, and final bounded article-equivalence verdict machine-readable",
             ),
             closure_requirements: vec![
                 String::from(
@@ -1037,7 +1039,7 @@ fn issue_coverage_rows() -> Vec<TassadarArticleEquivalenceIssueCoverageRow> {
             311,
             "TAS-186: Final article-equivalence claim checker and audit",
             TassadarArticleEquivalenceIssueRole::FinalAudit,
-            "open",
+            "closed",
             &[
                 "BEQ-001", "BEQ-002", "BEQ-003", "BEQ-004", "BEQ-005", "BEQ-006", "BEQ-007",
             ],
@@ -1133,14 +1135,14 @@ mod tests {
     };
 
     #[test]
-    fn article_equivalence_blocker_matrix_is_structurally_green_and_substantively_red() {
+    fn article_equivalence_blocker_matrix_turns_green_when_all_required_rows_close() {
         let report = build_tassadar_article_equivalence_blocker_matrix_report().expect("report");
 
         assert!(report.prerequisite_transformer_boundary_green);
         assert!(report.matrix_contract_green);
-        assert!(!report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
         assert_eq!(report.blocker_count, 7);
-        assert_eq!(report.open_blocker_count, 1);
+        assert_eq!(report.open_blocker_count, 0);
         assert!(report.all_later_issues_covered);
         assert!(report.all_blockers_have_article_line_provenance);
     }

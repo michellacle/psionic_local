@@ -173,10 +173,10 @@ mod tests {
         let report = build_tassadar_transformer_block_closure_summary().expect("summary");
 
         assert!(report.tied_requirement_satisfied);
-        assert_eq!(report.acceptance_status, "blocked");
+        assert_eq!(report.acceptance_status, "green");
         assert!(report.boundary_review_passed);
         assert!(report.transformer_block_contract_green);
-        assert!(!report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
         assert_eq!(report.case_count, 6);
         assert_eq!(report.passed_case_count, 6);
     }

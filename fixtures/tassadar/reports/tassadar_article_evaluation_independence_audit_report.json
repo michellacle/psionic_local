@@ -8,12 +8,8 @@
     "lineage_contract_ref": "fixtures/tassadar/models/tassadar_article_transformer_trace_bound_trained_v0_lineage_contract.json",
     "tied_requirement_id": "TAS-171C",
     "tied_requirement_satisfied": true,
-    "acceptance_status": "blocked",
-    "blocked_issue_ids": [
-      "TAS-185",
-      "TAS-185A",
-      "TAS-186"
-    ]
+    "acceptance_status": "green",
+    "blocked_issue_ids": []
   },
   "generalization_prerequisite_review": {
     "report_ref": "fixtures/tassadar/reports/tassadar_article_transformer_generalization_gate_report.json",
@@ -415,8 +411,8 @@
     "detail": "training_profile_count=1 evaluation_profile_count=4 shared_profile_id_count=0 training_prompt_token_range=[108, 371] evaluation_prompt_token_range=[2603, 51536] training_target_token_range=[1410, 4941] evaluation_target_token_range=[56116, 22682306] training_trace_step_range=[17, 49] evaluation_trace_step_range=[375, 50291]"
   },
   "evaluation_independence_green": true,
-  "article_equivalence_green": false,
+  "article_equivalence_green": true,
   "claim_boundary": "this audit certifies only that the current held-out and adversarial article-envelope evaluation suite stays separated from the current trained weight-production slice by explicit case-id exclusion, token-digest exclusion, prefix-window duplicate checks, generator provenance, and profile-level feature separation. It does not yet certify fast-route promotion, benchmark parity, single-run no-spill closure, clean-room weight causality, route minimality, or final article-equivalence green status.",
-  "summary": "Article evaluation-independence audit now records training_case_count=4, evaluation_case_count=6, exact_case_id_overlap_count=0, exact_source_token_overlap_count=0, exact_target_token_overlap_count=0, exact_sequence_overlap_count=0, near_duplicate_pair_count=0, shared_generator_id_count=0, shared_generator_rule_digest_count=0, shared_profile_id_count=0, evaluation_independence_green=true, and article_equivalence_green=false.",
-  "report_digest": "4c5f67198e68ac0babab03aaeb334a16f122749bb3612874af03a863fa034283"
+  "summary": "Article evaluation-independence audit now records training_case_count=4, evaluation_case_count=6, exact_case_id_overlap_count=0, exact_source_token_overlap_count=0, exact_target_token_overlap_count=0, exact_sequence_overlap_count=0, near_duplicate_pair_count=0, shared_generator_id_count=0, shared_generator_rule_digest_count=0, shared_profile_id_count=0, evaluation_independence_green=true, and article_equivalence_green=true.",
+  "report_digest": "88ddea608361c0596f92a61ad17a899aa048ce93b9d3a12d9885d3e4055ae475"
 }

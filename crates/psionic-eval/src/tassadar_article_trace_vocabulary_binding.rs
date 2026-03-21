@@ -574,7 +574,7 @@ mod tests {
         assert!(report.acceptance_gate_tie.tied_requirement_satisfied);
         assert_eq!(
             report.acceptance_gate_tie.acceptance_status,
-            crate::TassadarArticleEquivalenceAcceptanceStatus::Blocked
+            crate::TassadarArticleEquivalenceAcceptanceStatus::Green
         );
         assert_eq!(report.trace_domain_binding.channel_binding_rows.len(), 14);
         assert!(report.trace_domain_binding.source_vocab_compatible);
@@ -585,7 +585,7 @@ mod tests {
         assert!(report.roundtrip.roundtrip_exact);
         assert!(report.boundary_review.passed);
         assert!(report.article_trace_vocabulary_binding_green);
-        assert!(!report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
     }
 
     #[test]

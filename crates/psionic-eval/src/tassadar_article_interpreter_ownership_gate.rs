@@ -504,7 +504,7 @@ fn build_report_from_inputs(
         checker_script_ref: String::from(
             TASSADAR_ARTICLE_INTERPRETER_OWNERSHIP_GATE_CHECKER_REF,
         ),
-        acceptance_gate_tie,
+        acceptance_gate_tie: acceptance_gate_tie.clone(),
         canonical_boundary_report_ref: String::from(
             TASSADAR_CANONICAL_TRANSFORMER_STACK_BOUNDARY_REPORT_REF,
         ),
@@ -520,9 +520,10 @@ fn build_report_from_inputs(
         weight_perturbation_review,
         binding_review,
         interpreter_ownership_green,
-        article_equivalence_green: false,
+        article_equivalence_green: acceptance_gate_tie.blocked_issue_ids.is_empty()
+            && interpreter_ownership_green,
         claim_boundary: String::from(
-            "this report closes TAS-184 only. It binds the owned Transformer route, the generic article workload-family direct no-tool proof suite, the already-green breadth/generalization/independence/no-spill prerequisites, and concrete weight-perturbation sensitivity into one clean-room interpreter-ownership verdict. It still does not freeze the later KV-cache and activation-state dominance verdict from TAS-184A, cross-machine reproducibility from TAS-185, route minimality from TAS-185A, or the final article-equivalence audit from TAS-186.",
+            "this report closes TAS-184 only. It binds the owned Transformer route, the generic article workload-family direct no-tool proof suite, the already-green breadth/generalization/independence/no-spill prerequisites, and concrete weight-perturbation sensitivity into one clean-room interpreter-ownership verdict. By itself it still does not replace the later KV-cache and activation-state discipline verdict, cross-machine reproducibility matrix, route-minimality audit, or final article-equivalence audit.",
         ),
         summary: String::new(),
         report_digest: String::new(),
@@ -1871,15 +1872,8 @@ mod tests {
                 .all_interventions_show_sensitivity
         );
         assert!(report.interpreter_ownership_green);
-        assert_eq!(
-            report
-                .acceptance_gate_tie
-                .blocked_issue_ids
-                .first()
-                .map(String::as_str),
-            Some("TAS-186")
-        );
-        assert!(!report.article_equivalence_green);
+        assert!(report.acceptance_gate_tie.blocked_issue_ids.is_empty());
+        assert!(report.article_equivalence_green);
     }
 
     #[test]

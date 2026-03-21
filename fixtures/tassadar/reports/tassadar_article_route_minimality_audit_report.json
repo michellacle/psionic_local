@@ -11,10 +11,8 @@
     "cross_machine_reproducibility_report_ref": "fixtures/tassadar/reports/tassadar_article_cross_machine_reproducibility_matrix_report.json",
     "tied_requirement_id": "TAS-185A",
     "tied_requirement_satisfied": true,
-    "acceptance_status": "blocked",
-    "blocked_issue_ids": [
-      "TAS-186"
-    ]
+    "acceptance_status": "green",
+    "blocked_issue_ids": []
   },
   "canonical_claim_route_review": {
     "canonical_claim_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
@@ -117,17 +115,15 @@
     "detail": "route_like_article_in_kind=true operator_verdict_green=true canonical_claim_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1`"
   },
   "public_verdict_review": {
-    "posture": "suppressed_pending_final_audit",
+    "posture": "green_bounded",
     "public_verdict_declared": true,
-    "public_verdict_green": false,
-    "blocked_issue_ids": [
-      "TAS-186"
-    ],
-    "detail": "public_verdict_declared=true posture=SuppressedPendingFinalAudit public_verdict_green=false blocked_issue_count=1"
+    "public_verdict_green": true,
+    "blocked_issue_ids": [],
+    "detail": "public_verdict_declared=true posture=GreenBounded public_verdict_green=true blocked_issue_count=0"
   },
   "route_minimality_audit_green": true,
-  "article_equivalence_green": false,
-  "claim_boundary": "this report closes TAS-185A only. It freezes the minimal final article claim route as the direct HullCache runtime path on the canonical article model, excludes checkpoint, spill, persisted continuation, hidden helper mediation, and planner-owned hybrid orchestration from that claim route, and publishes an explicit operator-green versus public-suppressed verdict split. It does not by itself close the final TAS-186 article-equivalence claim checker or turn article_equivalence_green true.",
-  "summary": "Article route-minimality audit now records tied_requirement_satisfied=true, operator_verdict_green=true, public_verdict_green=false, public_blocked_issue_count=1, route_minimality_audit_green=true, and article_equivalence_green=false.",
-  "report_digest": "cfde677578f41c6b1ad91ae14a9ef16fd837e33c269c549c487a5d971031212c"
+  "article_equivalence_green": true,
+  "claim_boundary": "this report closes TAS-185A only. It freezes the minimal final article claim route as the direct HullCache runtime path on the canonical article model, excludes checkpoint, spill, persisted continuation, hidden helper mediation, and planner-owned hybrid orchestration from that claim route, and publishes one explicit operator versus bounded-public verdict. It remains one prerequisite surface for the final article-equivalence audit rather than a substitute for it.",
+  "summary": "Article route-minimality audit now records tied_requirement_satisfied=true, operator_verdict_green=true, public_verdict_green=true, public_blocked_issue_count=0, route_minimality_audit_green=true, and article_equivalence_green=true.",
+  "report_digest": "d36fb661d9133f1e130c59db2fc3ec1cb1e9d9055316724d19e10a1198dad16e"
 }

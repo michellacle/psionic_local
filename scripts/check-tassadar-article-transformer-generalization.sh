@@ -17,7 +17,7 @@ cargo run -p psionic-research --example tassadar_article_transformer_generalizat
 
 jq -e '
   .generalization_green == true
-  and .article_equivalence_green == false
+  and .article_equivalence_green == true
   and .case_count == 6
   and .exact_case_count == 6
   and .mismatch_case_count == 0

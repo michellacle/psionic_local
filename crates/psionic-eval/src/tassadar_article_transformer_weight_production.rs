@@ -777,7 +777,7 @@ mod tests {
         assert!(report.acceptance_gate_tie.tied_requirement_satisfied);
         assert_eq!(
             report.acceptance_gate_tie.acceptance_status,
-            TassadarArticleEquivalenceAcceptanceStatus::Blocked
+            TassadarArticleEquivalenceAcceptanceStatus::Green
         );
         assert!(report.artifact_review.all_committed_refs_exist);
         assert!(report.artifact_review.produced_artifact_differs_from_base);
@@ -788,7 +788,7 @@ mod tests {
         );
         assert!(report.artifact_review.artifact_reload_matches_trained_state);
         assert!(report.weight_production_contract_green);
-        assert!(!report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
         assert_eq!(report.case_rows.len(), 5);
         assert_eq!(report.evidence_bundle.training_cases.len(), 1);
         assert_eq!(report.evidence_bundle.held_out_cases.len(), 3);

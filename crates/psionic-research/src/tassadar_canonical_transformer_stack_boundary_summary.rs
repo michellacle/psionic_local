@@ -188,9 +188,9 @@ mod tests {
             build_tassadar_canonical_transformer_stack_boundary_summary().expect("summary");
 
         assert!(report.tied_requirement_satisfied);
-        assert_eq!(report.acceptance_status, "blocked");
+        assert_eq!(report.acceptance_status, "green");
         assert!(report.boundary_contract_green);
-        assert!(!report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
         assert_eq!(report.interface_count, 5);
         assert_eq!(report.dependency_check_count, 6);
     }

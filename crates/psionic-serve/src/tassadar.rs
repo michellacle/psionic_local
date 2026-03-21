@@ -6646,7 +6646,7 @@ mod tests {
         assert_eq!(publication.exact_trace_case_count, 13);
         assert_eq!(publication.exact_output_case_count, 13);
         assert!(publication.replacement_certified);
-        assert!(!publication.article_equivalence_green);
+        assert!(publication.article_equivalence_green);
         assert!(!publication.publication_digest.is_empty());
     }
 

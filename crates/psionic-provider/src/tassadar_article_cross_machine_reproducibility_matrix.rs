@@ -96,17 +96,14 @@ mod tests {
         let receipt = TassadarArticleCrossMachineReproducibilityMatrixReceipt::from_report(&report);
 
         assert_eq!(receipt.tied_requirement_id, "TAS-185");
-        assert_eq!(
-            receipt.blocked_issue_ids.first().map(String::as_str),
-            Some("TAS-186")
-        );
+        assert!(receipt.blocked_issue_ids.is_empty());
         assert_eq!(receipt.supported_machine_class_ids.len(), 2);
         assert!(receipt.deterministic_mode_green);
         assert!(receipt.throughput_floor_stability_green);
         assert!(!receipt.stochastic_mode_supported);
         assert!(receipt.stochastic_mode_out_of_scope);
         assert!(receipt.reproducibility_matrix_green);
-        assert!(!receipt.article_equivalence_green);
+        assert!(receipt.article_equivalence_green);
         Ok(())
     }
 }

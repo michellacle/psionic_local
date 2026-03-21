@@ -185,7 +185,7 @@ pub fn build_tassadar_article_frontend_compiler_envelope_report() -> Result<
         schema_version: 1,
         report_id: String::from("tassadar.article_frontend_compiler_envelope.report.v1"),
         checker_script_ref: String::from(TASSADAR_ARTICLE_FRONTEND_COMPILER_ENVELOPE_CHECKER_REF),
-        acceptance_gate_tie,
+        acceptance_gate_tie: acceptance_gate_tie.clone(),
         manifest_ref: String::from(TASSADAR_ARTICLE_FRONTEND_COMPILER_ENVELOPE_MANIFEST_REF),
         manifest,
         manifest_check,
@@ -199,7 +199,10 @@ pub fn build_tassadar_article_frontend_compiler_envelope_report() -> Result<
         toolchain_identity_green,
         refusal_taxonomy_green,
         envelope_manifest_green,
-        article_equivalence_green: false,
+        article_equivalence_green: acceptance_gate_tie.blocked_issue_ids.is_empty()
+            && envelope_manifest_green
+            && toolchain_identity_green
+            && refusal_taxonomy_green,
         claim_boundary: String::from(
             "this report closes TAS-176 only. It freezes one declared public article frontend/compiler envelope, proves that the currently admitted Rust article fixtures stay inside it with stable toolchain identity and zero-import Wasm outputs, and proves that representative out-of-envelope rows still refuse explicitly. It does not yet widen the corpus, close Hungarian or Sudoku demo parity, or turn final article-equivalence green.",
         ),
@@ -603,26 +606,18 @@ mod tests {
     };
 
     #[test]
-    fn article_frontend_compiler_envelope_report_tracks_declared_bounded_green_without_final_green()
-    {
+    fn article_frontend_compiler_envelope_report_tracks_declared_bounded_green_with_final_green() {
         let report = build_tassadar_article_frontend_compiler_envelope_report().expect("report");
 
         assert_eq!(report.acceptance_gate_tie.tied_requirement_id, "TAS-176");
         assert!(report.acceptance_gate_tie.tied_requirement_satisfied);
-        assert_eq!(
-            report
-                .acceptance_gate_tie
-                .blocked_issue_ids
-                .first()
-                .map(String::as_str),
-            Some("TAS-186")
-        );
+        assert!(report.acceptance_gate_tie.blocked_issue_ids.is_empty());
         assert!(report.envelope_manifest_green);
         assert!(report.toolchain_identity_green);
         assert!(report.refusal_taxonomy_green);
         assert_eq!(report.admitted_case_green_count, 8);
         assert_eq!(report.refusal_probe_green_count, 6);
-        assert!(!report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
     }
 
     #[test]

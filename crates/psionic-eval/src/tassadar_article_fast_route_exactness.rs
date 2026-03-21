@@ -283,13 +283,14 @@ pub fn build_tassadar_article_fast_route_exactness_report(
         schema_version: 1,
         report_id: String::from("tassadar.article_fast_route_exactness.v1"),
         checker_script_ref: String::from(TASSADAR_ARTICLE_FAST_ROUTE_EXACTNESS_CHECKER_REF),
-        acceptance_gate_tie,
+        acceptance_gate_tie: acceptance_gate_tie.clone(),
         implementation_prerequisite,
         hull_cache_closure_review,
         article_session_reviews,
         hybrid_route_reviews,
         exactness_green,
-        article_equivalence_green: false,
+        article_equivalence_green: acceptance_gate_tie.blocked_issue_ids.is_empty()
+            && exactness_green,
         claim_boundary: String::from(
             "this report closes only TAS-174. It proves the selected HullCache fast path is now exact and no-fallback on the declared canonical article workload families inside the current article profile, and that the served article-session plus hybrid route surfaces expose those workloads as direct HullCache executions on the trained Transformer-backed model. It does not yet claim throughput-floor closure or final article-equivalence green status.",
         ),
@@ -642,7 +643,7 @@ mod tests {
             .iter()
             .all(|review| review.exact_direct_hull_cache));
         assert!(report.exactness_green);
-        assert!(!report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
     }
 
     #[test]

@@ -8,7 +8,7 @@ cargo run -p psionic-eval --example tassadar_article_equivalence_blocker_matrix_
 
 jq -e '
   .matrix_contract_green == true
-  and .article_equivalence_green == false
+  and .article_equivalence_green == true
   and .prerequisite_transformer_boundary_green == true
   and .all_required_categories_present == true
   and .all_blockers_have_article_line_provenance == true
@@ -16,12 +16,20 @@ jq -e '
   and .all_later_issues_covered == true
   and .all_issue_refs_point_to_known_blockers == true
   and .blocker_count == 7
-  and .open_blocker_count == 2
+  and .open_blocker_count == 0
+  and ((.open_blocker_ids | length) == 0)
   and ((.issue_coverage_rows | map(select(.issue_id == "TAS-176" and .issue_state == "closed")) | length) == 1)
   and ((.issue_coverage_rows | map(select(.issue_id == "TAS-177" and .issue_state == "closed")) | length) == 1)
   and ((.issue_coverage_rows | map(select(.issue_id == "TAS-178" and .issue_state == "closed")) | length) == 1)
   and ((.issue_coverage_rows | map(select(.issue_id == "TAS-179" and .issue_state == "closed")) | length) == 1)
   and ((.issue_coverage_rows | map(select(.issue_id == "TAS-179A" and .issue_state == "closed")) | length) == 1)
+  and ((.issue_coverage_rows | map(select(.issue_id == "TAS-180" and .issue_state == "closed")) | length) == 1)
+  and ((.issue_coverage_rows | map(select(.issue_id == "TAS-181" and .issue_state == "closed")) | length) == 1)
   and ((.issue_coverage_rows | map(select(.issue_id == "TAS-182" and .issue_state == "closed")) | length) == 1)
   and ((.issue_coverage_rows | map(select(.issue_id == "TAS-183" and .issue_state == "closed")) | length) == 1)
+  and ((.issue_coverage_rows | map(select(.issue_id == "TAS-184" and .issue_state == "closed")) | length) == 1)
+  and ((.issue_coverage_rows | map(select(.issue_id == "TAS-184A" and .issue_state == "closed")) | length) == 1)
+  and ((.issue_coverage_rows | map(select(.issue_id == "TAS-185" and .issue_state == "closed")) | length) == 1)
+  and ((.issue_coverage_rows | map(select(.issue_id == "TAS-185A" and .issue_state == "closed")) | length) == 1)
+  and ((.issue_coverage_rows | map(select(.issue_id == "TAS-186" and .issue_state == "closed")) | length) == 1)
 ' fixtures/tassadar/reports/tassadar_article_equivalence_blocker_matrix_report.json >/dev/null

@@ -187,8 +187,8 @@ mod tests {
         let report = build_tassadar_existing_substrate_inventory_summary().expect("summary");
 
         assert!(report.tied_requirement_satisfied);
-        assert_eq!(report.acceptance_status, "blocked");
-        assert!(!report.article_equivalence_green);
+        assert_eq!(report.acceptance_status, "green");
+        assert!(report.article_equivalence_green);
         assert_eq!(report.surface_count, 11);
         assert_eq!(report.blocker_surface_count, 6);
     }

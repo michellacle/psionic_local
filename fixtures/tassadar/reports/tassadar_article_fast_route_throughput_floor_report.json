@@ -6,10 +6,8 @@
     "acceptance_gate_report_ref": "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json",
     "tied_requirement_id": "TAS-175",
     "tied_requirement_satisfied": true,
-    "acceptance_status": "blocked",
-    "blocked_issue_ids": [
-      "TAS-186"
-    ]
+    "acceptance_status": "green",
+    "blocked_issue_ids": []
   },
   "selection_prerequisite": {
     "report_ref": "fixtures/tassadar/reports/tassadar_article_fast_route_architecture_selection_report.json",
@@ -20,7 +18,7 @@
   "exactness_prerequisite": {
     "report_ref": "fixtures/tassadar/reports/tassadar_article_fast_route_exactness_report.json",
     "exactness_green": true,
-    "article_equivalence_green": false,
+    "article_equivalence_green": true,
     "detail": "TAS-175 depends on TAS-174 staying exact and fallback-free on the selected fast route before runtime floors can count as honest closure"
   },
   "cross_machine_drift_review": {
@@ -73,10 +71,10 @@
         "exactness_bps": 10000,
         "selection_state": "direct",
         "effective_decode_mode": "hull_cache",
-        "measured_run_time_seconds": 0.003720686,
-        "steps_per_second": 13096240.854509087,
-        "tokens_per_second": 3099550459.2432685,
-        "lines_per_second": 13097584.692715269,
+        "measured_run_time_seconds": 0.003704465,
+        "steps_per_second": 13153586.280340075,
+        "tokens_per_second": 3113122677.6336126,
+        "lines_per_second": 13154936.002904603,
         "internal_token_throughput_floor": 30000.0,
         "public_token_anchor_status": "passed",
         "public_line_anchor_status": "passed",
@@ -106,10 +104,10 @@
         "exactness_bps": 10000,
         "selection_state": "direct",
         "effective_decode_mode": "hull_cache",
-        "measured_run_time_seconds": 0.00130327,
-        "steps_per_second": 5235292.7635869775,
-        "tokens_per_second": 3753038127.17242,
-        "lines_per_second": 5239129.267151089,
+        "measured_run_time_seconds": 0.001356169,
+        "steps_per_second": 5031083.884088193,
+        "tokens_per_second": 3606646369.294683,
+        "lines_per_second": 5034770.740224855,
         "internal_token_throughput_floor": 30000.0,
         "public_token_anchor_status": "passed",
         "public_line_anchor_status": "passed",
@@ -124,8 +122,8 @@
         "runtime_runner_id": "tassadar.hull_cache_runner.v1",
         "exact_step_count": 1048575,
         "exactness_bps": 10000,
-        "measured_run_time_seconds": 0.598793764,
-        "steps_per_second": 1751145.4912212482,
+        "measured_run_time_seconds": 0.621494802,
+        "steps_per_second": 1687182.2525717602,
         "internal_steps_per_second_floor": 250000.0,
         "floor_status": "passed",
         "note": "this row is projected from the bounded article runtime closeout bundle so TAS-175 can publish fast-route million-step and multi-million-step throughput floors without widening the later single-run no-spill claim surface"
@@ -136,8 +134,8 @@
         "runtime_runner_id": "tassadar.hull_cache_runner.v1",
         "exact_step_count": 2097151,
         "exactness_bps": 10000,
-        "measured_run_time_seconds": 1.20863874,
-        "steps_per_second": 1735134.6854892306,
+        "measured_run_time_seconds": 1.252585108,
+        "steps_per_second": 1674258.2892020142,
         "internal_steps_per_second_floor": 250000.0,
         "floor_status": "passed",
         "note": "this row is projected from the bounded article runtime closeout bundle so TAS-175 can publish fast-route million-step and multi-million-step throughput floors without widening the later single-run no-spill claim surface"
@@ -148,8 +146,8 @@
         "runtime_runner_id": "tassadar.hull_cache_runner.v1",
         "exact_step_count": 1230779,
         "exactness_bps": 10000,
-        "measured_run_time_seconds": 0.756721344,
-        "steps_per_second": 1626462.646730895,
+        "measured_run_time_seconds": 0.788678627,
+        "steps_per_second": 1560558.3286587528,
         "internal_steps_per_second_floor": 250000.0,
         "floor_status": "passed",
         "note": "this row is projected from the bounded article runtime closeout bundle so TAS-175 can publish fast-route million-step and multi-million-step throughput floors without widening the later single-run no-spill claim surface"
@@ -160,8 +158,8 @@
         "runtime_runner_id": "tassadar.hull_cache_runner.v1",
         "exact_step_count": 2461547,
         "exactness_bps": 10000,
-        "measured_run_time_seconds": 1.508607176,
-        "steps_per_second": 1631668.6273007626,
+        "measured_run_time_seconds": 1.5609657700000001,
+        "steps_per_second": 1576938.4872545924,
         "internal_steps_per_second_floor": 250000.0,
         "floor_status": "passed",
         "note": "this row is projected from the bounded article runtime closeout bundle so TAS-175 can publish fast-route million-step and multi-million-step throughput floors without widening the later single-run no-spill claim surface"
@@ -173,14 +171,14 @@
     "throughput_floor_green": true,
     "claim_boundary": "this runtime bundle closes TAS-175 only for the selected HullCache fast path on the committed Hungarian article run, the committed Sudoku-9x9 hard-Sudoku stand-in run, and the bounded million-step and multi-million-step kernel set. It does not claim final Hungarian demo parity, canonical Arto Inkala closure, benchmark-wide hard-Sudoku closure, or final article-equivalence green status.",
     "summary": "Fast-route throughput bundle now records demo_public_floor_passes=2/2, demo_internal_floor_passes=2/2, kernel_floor_passes=4/4, and throughput_floor_green=true.",
-    "bundle_digest": "0e5d7abf8d66a72b4db0e0a9d9531d0e1e35622e333068b47e37ca00f233ef0c"
+    "bundle_digest": "3f2bb4641d41739932ee0ff0c523d1fa15cbf7815d236939ad778e67dab6a730"
   },
   "demo_public_floor_pass_count": 2,
   "demo_internal_floor_pass_count": 2,
   "kernel_floor_pass_count": 4,
   "throughput_floor_green": true,
-  "article_equivalence_green": false,
+  "article_equivalence_green": true,
   "claim_boundary": "this report closes TAS-175 only. It ties the selected HullCache fast route to explicit throughput-floor evidence, current-host cross-machine drift bounds, and the earlier TAS-172/TAS-174 prerequisites without claiming final Hungarian demo parity, Arto closure, benchmark-wide hard-Sudoku closure, no-spill single-run closure, or article-equivalence green status.",
   "summary": "Fast-route throughput-floor report now records tied_requirement_satisfied=true, selection_green=true, exactness_green=true, drift_policy_green=true, demo_public_floor_passes=2/2, demo_internal_floor_passes=2/2, kernel_floor_passes=4/4, and throughput_floor_green=true.",
-  "report_digest": "3f3f91c8ec63fa8b625f30d6bdb7200f5e7412cd3394bfbf0d2c30ac1d937558"
+  "report_digest": "b500d330f5146399b4b49f054e8ebd45aa584707f8f66b0a3433424ccbfa086d"
 }

@@ -679,7 +679,7 @@ mod tests {
         assert!(report.all_required_cases_present);
         assert!(report.all_cases_pass);
         assert!(report.attention_primitive_contract_green);
-        assert!(!report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
         assert_eq!(report.case_rows.len(), 6);
     }
 

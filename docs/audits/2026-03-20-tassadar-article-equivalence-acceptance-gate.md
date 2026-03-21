@@ -31,7 +31,7 @@ block green.
 
 ## Current Status
 
-The committed gate remains intentionally blocked.
+The committed gate is now green.
 
 Current bounded truth:
 

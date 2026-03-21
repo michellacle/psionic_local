@@ -191,7 +191,7 @@ mod tests {
         let report = build_tassadar_owned_transformer_stack_audit_summary().expect("summary");
 
         assert!(report.tied_requirement_satisfied);
-        assert_eq!(report.acceptance_status, "blocked");
+        assert_eq!(report.acceptance_status, "green");
         assert_eq!(report.owned_stack_backed_surface_count, 4);
         assert_eq!(report.fixture_backed_surface_count, 1);
         assert_eq!(report.research_only_surface_count, 1);
@@ -199,7 +199,7 @@ mod tests {
         assert_eq!(report.remaining_blocker_count, 7);
         assert!(report.actual_owned_transformer_stack_exists);
         assert!(report.owned_transformer_stack_audit_green);
-        assert!(!report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
     }
 
     #[test]

@@ -56,7 +56,7 @@ mod tests {
             build_tassadar_article_equivalence_acceptance_gate_report().expect("acceptance gate");
         let receipt = TassadarArticleEquivalenceAcceptanceGateReceipt::from_report(&report);
 
-        assert_eq!(receipt.acceptance_status, "blocked");
+        assert_eq!(receipt.acceptance_status, "green");
         assert_eq!(receipt.required_issue_count, report.required_issue_count);
         assert_eq!(
             receipt.closed_required_issue_count,
@@ -64,8 +64,13 @@ mod tests {
         );
         assert_eq!(receipt.blocked_issue_ids, report.blocked_issue_ids);
         assert_eq!(receipt.blocked_blocker_ids, report.blocked_blocker_ids);
-        assert_eq!(receipt.optional_open_issue_ids, report.optional_open_issue_ids);
-        assert!(!receipt.article_equivalence_green);
-        assert!(!receipt.public_claim_allowed);
+        assert_eq!(
+            receipt.optional_open_issue_ids,
+            report.optional_open_issue_ids
+        );
+        assert!(receipt.blocked_issue_ids.is_empty());
+        assert!(receipt.blocked_blocker_ids.is_empty());
+        assert!(receipt.article_equivalence_green);
+        assert!(receipt.public_claim_allowed);
     }
 }

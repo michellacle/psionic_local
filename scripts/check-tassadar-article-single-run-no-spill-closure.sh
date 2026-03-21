@@ -20,7 +20,7 @@ cargo run -p psionic-research --example tassadar_article_single_run_no_spill_clo
 jq -e '
   .acceptance_gate_tie.tied_requirement_id == "TAS-183"
   and .acceptance_gate_tie.tied_requirement_satisfied == true
-  and (.acceptance_gate_tie.blocked_issue_ids[0] == "TAS-186")
+  and ((.acceptance_gate_tie.blocked_issue_ids | length) == 0)
   and .benchmark_prerequisite.tied_requirement_id == "TAS-182"
   and .benchmark_prerequisite.article_demo_benchmark_equivalence_gate_green == true
   and .operator_envelope.operator_envelope_green == true
@@ -31,18 +31,18 @@ jq -e '
   and .stochastic_mode_review.stochastic_mode_robustness_green == true
   and .binding_review.binding_green == true
   and .single_run_no_spill_closure_green == true
-  and .article_equivalence_green == false
+  and .article_equivalence_green == true
 ' fixtures/tassadar/reports/tassadar_article_single_run_no_spill_closure_report.json >/dev/null
 
 jq -e '
   .tied_requirement_id == "TAS-183"
   and .tied_requirement_satisfied == true
-  and .blocked_issue_frontier == "TAS-186"
+  and .blocked_issue_frontier == null
   and .deterministic_exactness_green == true
   and .step_consistency_green == true
   and .context_sensitivity_green == true
   and .perturbation_negative_control_green == true
   and .stochastic_mode_robustness_green == true
   and .single_run_no_spill_closure_green == true
-  and .article_equivalence_green == false
+  and .article_equivalence_green == true
 ' fixtures/tassadar/reports/tassadar_article_single_run_no_spill_closure_summary.json >/dev/null

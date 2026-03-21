@@ -25,7 +25,7 @@ fi
 
 jq -e '
   .throughput_floor_green == true
-  and .article_equivalence_green == false
+  and .article_equivalence_green == true
   and ((.acceptance_gate_tie.tied_requirement_id) == "TAS-175")
   and ((.acceptance_gate_tie.tied_requirement_satisfied) == true)
   and ((.selection_prerequisite.selected_candidate_kind) == "hull_cache_runtime")
@@ -58,5 +58,5 @@ jq -e '
   and .demo_internal_floor_pass_count == 2
   and .kernel_floor_pass_count == 4
   and .throughput_floor_green == true
-  and .article_equivalence_green == false
+  and .article_equivalence_green == true
 ' fixtures/tassadar/reports/tassadar_article_fast_route_throughput_floor_summary.json >/dev/null

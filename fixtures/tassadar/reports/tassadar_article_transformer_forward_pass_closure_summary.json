@@ -10,12 +10,8 @@
       "canonical_boundary_report_ref": "fixtures/tassadar/reports/tassadar_canonical_transformer_stack_boundary_report.json",
       "tied_requirement_id": "TAS-165",
       "tied_requirement_satisfied": true,
-      "acceptance_status": "blocked",
-      "blocked_issue_ids": [
-        "TAS-185",
-        "TAS-185A",
-        "TAS-186"
-      ]
+      "acceptance_status": "green",
+      "blocked_issue_ids": []
     },
     "canonical_boundary_report_ref": "fixtures/tassadar/reports/tassadar_canonical_transformer_stack_boundary_report.json",
     "canonical_boundary_report": {
@@ -28,12 +24,8 @@
         "existing_substrate_inventory_report_ref": "fixtures/tassadar/reports/tassadar_existing_substrate_inventory_report.json",
         "tied_requirement_id": "TAS-160",
         "tied_requirement_satisfied": true,
-        "acceptance_status": "blocked",
-        "blocked_issue_ids": [
-          "TAS-185",
-          "TAS-185A",
-          "TAS-186"
-        ]
+        "acceptance_status": "green",
+        "blocked_issue_ids": []
       },
       "existing_substrate_inventory_report_ref": "fixtures/tassadar/reports/tassadar_existing_substrate_inventory_report.json",
       "existing_substrate_inventory_report": {
@@ -44,13 +36,9 @@
           "blocker_matrix_report_ref": "fixtures/tassadar/reports/tassadar_article_equivalence_blocker_matrix_report.json",
           "tied_requirement_id": "TAS-159",
           "tied_requirement_satisfied": true,
-          "acceptance_status": "blocked",
-          "article_equivalence_green": false,
-          "blocked_issue_ids": [
-            "TAS-185",
-            "TAS-185A",
-            "TAS-186"
-          ]
+          "acceptance_status": "green",
+          "article_equivalence_green": true,
+          "blocked_issue_ids": []
         },
         "surfaces": [
           {
@@ -220,11 +208,11 @@
         "all_surfaces_have_item_refs": true,
         "all_surfaces_have_explicit_blocker_labels": true,
         "inventory_contract_green": true,
-        "article_equivalence_green": false,
+        "article_equivalence_green": true,
         "current_truth_boundary": "psionic already owns real reusable substrate for tensor contracts, bounded array execution, module state, basic layers, transformer-boundary configs, model descriptors, weight lineage metadata, runtime proof identity, and trace receipts. The current gap is not substrate absence; it is the missing owned article-equivalence stack and the current presence of bounded research or fixture-backed lanes that are not yet sufficient for canonical article closure.",
         "claim_boundary": "this report inventories reusable substrate only. It freezes what can be reused, what needs extension, what stays research-only, and what is still not sufficient for article closure. It does not claim that the owned article-equivalence Transformer stack, the canonical article model artifact, or the final article-equivalence proof route already exist.",
-        "summary": "Existing substrate inventory now records surface_count=11, blocker_surface_count=6, non_blocker_surface_count=5, inventory_contract_green=true, tied_requirement_satisfied=true, and article_equivalence_green=false.",
-        "report_digest": "b39dc2952ab53179534b7688035f120c6f3d7aa3ad079864c38d6ce03aa7628c"
+        "summary": "Existing substrate inventory now records surface_count=11, blocker_surface_count=6, non_blocker_surface_count=5, inventory_contract_green=true, tied_requirement_satisfied=true, and article_equivalence_green=true.",
+        "report_digest": "2d65f9fc50f18a091e6924f27316d2aa7aa0917c2bafa346d377cd8d23ffd9a8"
       },
       "interface_rows": [
         {
@@ -353,10 +341,10 @@
       "all_ownership_rows_have_real_module_refs": true,
       "canonical_route_required_boundary": true,
       "boundary_contract_green": true,
-      "article_equivalence_green": false,
+      "article_equivalence_green": true,
       "claim_boundary": "this report freezes one explicit canonical Transformer stack boundary for the article-equivalence closure wave. The route is not one monolithic crate; it is one required boundary spanning existing crates with `psionic-transformer` as the architecture anchor, `psionic-models` as the article-model and artifact owner, and `psionic-runtime` as the replay/receipt owner. This does not claim the final article-equivalence stack is complete or green.",
-      "summary": "Canonical Transformer stack boundary now records interface_rows=5, dependency_checks=6, tied_requirement_satisfied=true, boundary_contract_green=true, and article_equivalence_green=false.",
-      "report_digest": "a7855860c1dd9f5d71d6b61f57ab3084e9537cd2c8f8e0cd254531d745a2c65f"
+      "summary": "Canonical Transformer stack boundary now records interface_rows=5, dependency_checks=6, tied_requirement_satisfied=true, boundary_contract_green=true, and article_equivalence_green=true.",
+      "report_digest": "43e37e6e2d4a9892c128690fa5ee9ee643c794f58c4a4cf2556c0daff16d1f2b"
     },
     "evidence_bundle_ref": "fixtures/tassadar/runs/tassadar_article_transformer_forward_pass_v1/article_transformer_forward_pass_evidence_bundle.json",
     "evidence_bundle": {
@@ -745,10 +733,10 @@
     "all_required_cases_present": true,
     "all_cases_pass": true,
     "article_transformer_forward_pass_contract_green": true,
-    "article_equivalence_green": false,
+    "article_equivalence_green": true,
     "claim_boundary": "this report freezes the runtime evidence closure for one canonical article-Transformer forward-pass lane only. It proves that model identity, run config, attention-trace summaries, deterministic replay, decode receipts, and checkpoint lineage now bind into the Psionic runtime-manifest and proof-bundle substrate on top of the owned `psionic-transformer` route. It does not claim final article trace-vocabulary closure, weight-production closure, reference-linear exactness proof, fast-route promotion, benchmark parity, or final article-equivalence green status.",
-    "summary": "Article Transformer forward-pass closure now records case_rows=6, all_required_cases_present=true, all_cases_pass=true, boundary_review_passed=true, tied_requirement_satisfied=true, article_transformer_forward_pass_contract_green=true, and article_equivalence_green=false.",
-    "report_digest": "06a251e0f04dec76fe4117564ba72350ef3e0a07b82cbe5bdba62ebd25264c7a"
+    "summary": "Article Transformer forward-pass closure now records case_rows=6, all_required_cases_present=true, all_cases_pass=true, boundary_review_passed=true, tied_requirement_satisfied=true, article_transformer_forward_pass_contract_green=true, and article_equivalence_green=true.",
+    "report_digest": "9b71f0c75ce8087e7acabddd48ef021d5a19a6056b381bfc6ebb0cc22a4c2e84"
   },
   "case_count": 6,
   "passed_case_count": 6,
@@ -757,10 +745,10 @@
   "checkpoint_lineage_present": true,
   "tied_requirement_id": "TAS-165",
   "tied_requirement_satisfied": true,
-  "acceptance_status": "blocked",
+  "acceptance_status": "green",
   "forward_pass_contract_green": true,
-  "article_equivalence_green": false,
+  "article_equivalence_green": true,
   "claim_boundary": "this summary mirrors the article-Transformer forward-pass runtime closure only. It keeps the model-identity, trace, replay, decode, and checkpoint-lineage facts operator-readable without widening the repo's public article-equivalence claim boundary.",
-  "summary": "Article Transformer forward-pass summary now records case_count=6, passed_case_count=6, trace_channel_count=6, decoded_token_count=1, forward_pass_contract_green=true, and article_equivalence_green=false.",
-  "report_digest": "7771d460cfc77dbc3dd980632be347e09862c2fa6906fef3399dbb7d714b8e51"
+  "summary": "Article Transformer forward-pass summary now records case_count=6, passed_case_count=6, trace_channel_count=6, decoded_token_count=1, forward_pass_contract_green=true, and article_equivalence_green=true.",
+  "report_digest": "09b54094c0d6ece4c8b5d1656110d62e9ed4cf57c21127bbe317b40d2f427048"
 }

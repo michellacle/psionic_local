@@ -70,6 +70,8 @@ pub struct TassadarDirectModelWeightExecutionProofReport {
 
 impl TassadarDirectModelWeightExecutionProofReport {
     fn new(
+        model_id: String,
+        model_descriptor_digest: String,
         historical_fixture_model_id: String,
         parity_report_ref: String,
         parity_report_digest: String,
@@ -78,14 +80,6 @@ impl TassadarDirectModelWeightExecutionProofReport {
         route_descriptor_digest: String,
         receipts: Vec<TassadarDirectModelWeightExecutionProofReceipt>,
     ) -> Self {
-        let model_id = receipts
-            .first()
-            .map(|receipt| receipt.model_id.clone())
-            .unwrap_or_default();
-        let model_descriptor_digest = receipts
-            .first()
-            .map(|receipt| receipt.model_descriptor_digest.clone())
-            .unwrap_or_default();
         let benchmark_report_ref = receipts
             .first()
             .map(|receipt| receipt.benchmark_report_ref.clone())
@@ -352,6 +346,12 @@ pub fn build_tassadar_direct_model_weight_execution_proof_report() -> Result<
             }
         })?;
     let model_descriptor_digest = capability_publication.model_descriptor.stable_digest();
+    let model_weight_bundle_digest = capability_publication.model_descriptor.weights.digest.clone();
+    let model_primary_artifact_digest = capability_publication
+        .model_descriptor
+        .weights
+        .primary_artifact_digest()
+        .map(String::from);
     let route_descriptor = LocalTassadarPlannerRouter::new()
         .with_executor_service(executor_service.clone())
         .route_capability_descriptor(Some(
@@ -399,14 +399,35 @@ pub fn build_tassadar_direct_model_weight_execution_proof_report() -> Result<
                 },
             );
         }
-        if receipt.model_descriptor_digest != model_descriptor_digest {
+        if receipt.model_id != capability_publication.model_descriptor.model.model_id {
             return Err(
                 TassadarDirectModelWeightExecutionProofReportError::CaseDidNotComplete {
                     case_id: String::from(case_id),
                     detail: format!(
-                        "proof receipt model descriptor digest `{}` did not match published Transformer descriptor `{}`",
-                        receipt.model_descriptor_digest,
-                        model_descriptor_digest
+                        "proof receipt model `{}` did not match published Transformer model `{}`",
+                        receipt.model_id, capability_publication.model_descriptor.model.model_id
+                    ),
+                },
+            );
+        }
+        if receipt.model_weight_bundle_digest != model_weight_bundle_digest {
+            return Err(
+                TassadarDirectModelWeightExecutionProofReportError::CaseDidNotComplete {
+                    case_id: String::from(case_id),
+                    detail: format!(
+                        "proof receipt weight bundle digest `{}` did not match published Transformer weight bundle `{}`",
+                        receipt.model_weight_bundle_digest, model_weight_bundle_digest
+                    ),
+                },
+            );
+        }
+        if receipt.model_primary_artifact_digest != model_primary_artifact_digest {
+            return Err(
+                TassadarDirectModelWeightExecutionProofReportError::CaseDidNotComplete {
+                    case_id: String::from(case_id),
+                    detail: format!(
+                        "proof receipt primary artifact digest `{:?}` did not match published Transformer primary artifact `{:?}`",
+                        receipt.model_primary_artifact_digest, model_primary_artifact_digest
                     ),
                 },
             );
@@ -427,6 +448,8 @@ pub fn build_tassadar_direct_model_weight_execution_proof_report() -> Result<
         receipts.push(receipt);
     }
     Ok(TassadarDirectModelWeightExecutionProofReport::new(
+        capability_publication.model_descriptor.model.model_id.clone(),
+        model_descriptor_digest,
         parity_report.fixture_model_id,
         String::from(TASSADAR_ARTICLE_FIXTURE_TRANSFORMER_PARITY_REPORT_REF),
         parity_report.report_digest,
@@ -687,7 +710,12 @@ mod tests {
         assert!(report
             .receipts
             .iter()
-            .all(|receipt| receipt.model_descriptor_digest == report.model_descriptor_digest));
+            .all(|receipt| receipt.model_id == report.model_id));
+        assert!(report
+            .receipts
+            .iter()
+            .all(|receipt| receipt.model_weight_bundle_digest
+                == report.receipts[0].model_weight_bundle_digest));
         assert!(report.receipts.iter().all(|receipt| {
             receipt.model_lineage_contract_ref == report.lineage_contract_ref
                 && receipt.model_id == report.model_id

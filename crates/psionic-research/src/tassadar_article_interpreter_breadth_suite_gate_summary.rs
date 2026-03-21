@@ -181,11 +181,11 @@ mod tests {
             build_tassadar_article_interpreter_breadth_suite_gate_summary().expect("summary");
 
         assert!(summary.tied_requirement_satisfied);
-        assert_eq!(summary.blocked_issue_frontier.as_deref(), Some("TAS-186"));
+        assert_eq!(summary.blocked_issue_frontier, None);
         assert_eq!(summary.green_family_count, 8);
         assert_eq!(summary.required_family_count, 8);
         assert!(summary.breadth_gate_green);
-        assert!(!summary.article_equivalence_green);
+        assert!(summary.article_equivalence_green);
     }
 
     #[test]

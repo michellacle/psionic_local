@@ -18,7 +18,7 @@ cargo run -p psionic-serve --example tassadar_article_route_minimality_publicati
 jq -e '
   .acceptance_gate_tie.tied_requirement_id == "TAS-185A"
   and .acceptance_gate_tie.tied_requirement_satisfied == true
-  and (.acceptance_gate_tie.blocked_issue_ids[0] == "TAS-186")
+  and ((.acceptance_gate_tie.blocked_issue_ids | length) == 0)
   and .canonical_claim_route_review.canonical_claim_route_id == "tassadar.article_route.direct_hull_cache_runtime.v1"
   and .canonical_claim_route_review.selected_decode_mode == "hull_cache"
   and .continuation_boundary_review.checkpoint_restore_allowed == false
@@ -35,31 +35,32 @@ jq -e '
   and .orchestration_review.public_claim_route_excludes_hybrid_surface == true
   and .orchestration_review.extra_orchestration_layers_excluded == true
   and .operator_verdict_review.operator_verdict_green == true
-  and .public_verdict_review.posture == "suppressed_pending_final_audit"
-  and .public_verdict_review.public_verdict_green == false
+  and .public_verdict_review.posture == "green_bounded"
+  and .public_verdict_review.public_verdict_green == true
+  and ((.public_verdict_review.blocked_issue_ids | length) == 0)
   and .route_minimality_audit_green == true
-  and .article_equivalence_green == false
+  and .article_equivalence_green == true
 ' fixtures/tassadar/reports/tassadar_article_route_minimality_audit_report.json >/dev/null
 
 jq -e '
   .tied_requirement_id == "TAS-185A"
   and .tied_requirement_satisfied == true
-  and .blocked_issue_frontier == "TAS-186"
+  and .blocked_issue_frontier == "none"
   and .canonical_claim_route_id == "tassadar.article_route.direct_hull_cache_runtime.v1"
   and .selected_decode_mode == "tassadar.decode.hull_cache.v1"
   and .operator_verdict_green == true
-  and .public_posture == "suppressed_pending_final_audit"
-  and .public_verdict_green == false
+  and .public_posture == "green_bounded"
+  and .public_verdict_green == true
   and .route_minimality_audit_green == true
-  and .article_equivalence_green == false
+  and .article_equivalence_green == true
 ' fixtures/tassadar/reports/tassadar_article_route_minimality_audit_summary.json >/dev/null
 
 jq -e '
   .canonical_claim_route_id == "tassadar.article_route.direct_hull_cache_runtime.v1"
   and .selected_decode_mode == "tassadar.decode.hull_cache.v1"
   and .operator_verdict_green == true
-  and .public_posture == "suppressed_pending_final_audit"
-  and (.public_blocked_issue_ids[0] == "TAS-186")
+  and .public_posture == "green_bounded"
+  and ((.public_blocked_issue_ids | length) == 0)
   and .route_minimality_audit_green == true
-  and .article_equivalence_green == false
+  and .article_equivalence_green == true
 ' fixtures/tassadar/reports/tassadar_article_route_minimality_publication_verdict.json >/dev/null

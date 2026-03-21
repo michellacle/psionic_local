@@ -200,9 +200,9 @@ mod tests {
             build_tassadar_article_transformer_forward_pass_closure_summary().expect("summary");
 
         assert!(report.tied_requirement_satisfied);
-        assert_eq!(report.acceptance_status, "blocked");
+        assert_eq!(report.acceptance_status, "green");
         assert!(report.forward_pass_contract_green);
-        assert!(!report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
         assert_eq!(report.case_count, 6);
         assert_eq!(report.passed_case_count, 6);
         assert_eq!(report.trace_channel_count, 6);

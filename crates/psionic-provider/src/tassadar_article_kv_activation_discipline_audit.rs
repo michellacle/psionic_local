@@ -96,10 +96,7 @@ mod tests {
         let receipt = TassadarArticleKvActivationDisciplineAuditReceipt::from_report(&report);
 
         assert_eq!(receipt.tied_requirement_id, "TAS-184A");
-        assert_eq!(
-            receipt.blocked_issue_ids.first().map(String::as_str),
-            Some("TAS-186")
-        );
+        assert!(receipt.blocked_issue_ids.is_empty());
         assert!(receipt.ownership_gate_green);
         assert_eq!(receipt.feasible_constraint_case_count, 4);
         assert_eq!(
@@ -112,7 +109,7 @@ mod tests {
         assert!(receipt.cache_reset_breaks_correctness);
         assert!(!receipt.equivalent_behavior_survives_under_constrained_cache);
         assert!(receipt.kv_activation_discipline_green);
-        assert!(!receipt.article_equivalence_green);
+        assert!(receipt.article_equivalence_green);
         Ok(())
     }
 }

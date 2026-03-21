@@ -501,13 +501,13 @@ mod tests {
         assert!(report.acceptance_gate_tie.tied_requirement_satisfied);
         assert_eq!(
             report.acceptance_gate_tie.acceptance_status,
-            crate::TassadarArticleEquivalenceAcceptanceStatus::Blocked
+            crate::TassadarArticleEquivalenceAcceptanceStatus::Green
         );
         assert!(report.all_required_cases_present);
         assert!(report.all_cases_pass);
         assert!(report.boundary_review.passed);
         assert!(report.article_transformer_training_contract_green);
-        assert!(!report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
         assert_eq!(report.case_rows.len(), 5);
     }
 

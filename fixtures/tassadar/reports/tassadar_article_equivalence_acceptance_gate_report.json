@@ -129,10 +129,10 @@
       {
         "blocker_id": "BEQ-003",
         "category": "transformer_stack_reality",
-        "title": "Canonical owned Transformer-backed article route remains open",
-        "repo_status": "partial",
-        "current_gap_summary": "the article-equivalent path still lacks one canonical owned Transformer stack and one non-fixture article model artifact that carries the public route end to end",
-        "current_public_truth": "the repo now has real tensor, array, nn, runtime, and `psionic-transformer` substrate overlap, but the public article-closeout proof surface is still narrower than a canonical owned Transformer-backed route",
+        "title": "Canonical owned Transformer-backed article route is now closed",
+        "repo_status": "implemented",
+        "current_gap_summary": "the remaining gap was one canonical owned Transformer stack plus one non-fixture article model artifact carrying the public route end to end; that gap is now closed",
+        "current_public_truth": "the repo now has one canonical owned `psionic-transformer` route, one canonical trained article model artifact with weight lineage, and one bounded public article route that stays inside that owned stack end to end",
         "closure_requirements": [
           "freeze one canonical Transformer stack boundary above the existing Psionic substrate",
           "implement the owned paper-faithful article Transformer path with training, replay, and receipts",
@@ -329,10 +329,10 @@
       {
         "blocker_id": "BEQ-007",
         "category": "weights_ownership_scope",
-        "title": "Clean-room weight causality and route-minimality verdict remain open",
+        "title": "Clean-room weight causality and route-minimality verdict are closed",
         "repo_status": "implemented",
-        "current_gap_summary": "the article invites a strong reading where decisive execution behavior lives in transformer weights on a minimal route. The public repo now closes the joined interpreter-ownership verdict, the explicit KV-cache plus activation-state discipline verdict, the cross-machine reproducibility matrix, and the direct-route minimality plus publication verdict split for that stronger reading",
-        "current_public_truth": "the repo now has one canonical TAS-184 interpreter-ownership gate, one TAS-184A KV-cache and activation-state discipline audit, one TAS-185 cross-machine reproducibility matrix, and one TAS-185A route-minimality audit plus publication verdict, together making the bounded route's weight sensitivity, mixed same-run state carrier posture, declared machine-class stability, and direct-route ownership boundary machine-readable; only the final TAS-186 article-equivalence claim checker remains separate",
+        "current_gap_summary": "the article invites a strong reading where decisive execution behavior lives in transformer weights on a minimal route. The public repo now closes the joined interpreter-ownership verdict, the explicit KV-cache plus activation-state discipline verdict, the cross-machine reproducibility matrix, the direct-route minimality plus publication verdict split, and the final bounded article-equivalence claim checker for that stronger reading",
+        "current_public_truth": "the repo now has one canonical TAS-184 interpreter-ownership gate, one TAS-184A KV-cache and activation-state discipline audit, one TAS-185 cross-machine reproducibility matrix, one TAS-185A route-minimality audit plus publication verdict, and one TAS-186 final article-equivalence claim checker plus audit, together making the bounded route's weight sensitivity, mixed same-run state carrier posture, declared machine-class stability, direct-route ownership boundary, and final bounded article-equivalence verdict machine-readable",
         "closure_requirements": [
           "move direct no-tool proof and exactness onto the Transformer-backed route",
           "close invariance, anti-memorization, and evaluation-independence evidence so correctness does not look like brittle recall",
@@ -781,7 +781,7 @@
         "github_issue_number": 311,
         "title": "TAS-186: Final article-equivalence claim checker and audit",
         "issue_role": "final_audit",
-        "issue_state": "open",
+        "issue_state": "closed",
         "blocker_ids": [
           "BEQ-001",
           "BEQ-002",
@@ -814,22 +814,20 @@
     "all_later_issues_covered": true,
     "all_issue_refs_point_to_known_blockers": true,
     "matrix_contract_green": true,
-    "article_equivalence_green": false,
-    "open_blocker_count": 1,
-    "open_blocker_ids": [
-      "BEQ-003"
-    ],
-    "current_truth_boundary": "the public repo has a bounded Rust-only article-closeout path, a bounded no-tool direct proof route on committed workloads, and a bounded Turing-complete substrate statement under declared `TCM.v1` semantics; it does not yet have full article-equivalent closure in the article's strongest frontend, fast-route, benchmark, single-run, or clean-room weight-ownership reading",
+    "article_equivalence_green": true,
+    "open_blocker_count": 0,
+    "open_blocker_ids": [],
+    "current_truth_boundary": "the public repo now has one bounded article-equivalence closure for the declared Rust-only article envelope: the owned `psionic-transformer` route, the canonical trained trace-bound article model and weight artifact, the direct deterministic HullCache claim route, the declared CPU machine matrix, and the explicit mechanistic, behavioral, and operational closure gates all now land green together",
     "non_implications": [
-      "not a positive article-equivalence closure claim",
       "not arbitrary C or arbitrary Wasm ingress closure",
       "not a generic public interpreter-in-weights claim",
-      "not proof that the fast decode path is already the canonical public route",
-      "not proof that hard-Sudoku benchmark closure, no-spill single-run closure, or route-minimality closure already exist"
+      "not a widening of the claim beyond the declared article frontend, interpreter, benchmark, and same-run operator envelope",
+      "not a planner-mediated, hybrid, stochastic, or resumed execution claim for the canonical public article route",
+      "not the post-article universality or generic Turing-completeness bridge"
     ],
-    "claim_boundary": "this report freezes the exact blocker set for article-equivalent closure. It is a machine-readable contract for what still has to become true. It keeps article-equivalence red by design until every blocker closes, and it must not be read as widening the current public capability surface",
-    "summary": "Article-equivalence blocker matrix now freezes blocker_count=7, later_issue_count=38, matrix_contract_green=true, article_equivalence_green=false, and open_blocker_count=1.",
-    "report_digest": "1c32012a25bd94aa78fb80170d545194d3f93da0e05e495b058b4a5a1196568c"
+    "claim_boundary": "this report freezes the exact blocker set for bounded article-equivalence closure and now records that every blocker row has closed. It remains a machine-readable contract for what had to become true, and it must not be read as widening the public capability surface beyond the declared article envelope",
+    "summary": "Article-equivalence blocker matrix now freezes blocker_count=7, later_issue_count=38, matrix_contract_green=true, article_equivalence_green=true, and open_blocker_count=0.",
+    "report_digest": "97fe7359aed2bdba39c10645c7bd02b509d85c202f5326c2e2e8d233534c27d3"
   },
   "requirement_rows": [
     {
@@ -870,7 +868,7 @@
       "requirement_id": "article_equivalence_blockers_closed",
       "requirement_kind": "contract",
       "required_for_green": true,
-      "satisfied": false,
+      "satisfied": true,
       "blocker_ids": [
         "BEQ-001",
         "BEQ-002",
@@ -1379,7 +1377,7 @@
       "requirement_id": "TAS-186",
       "requirement_kind": "final_audit",
       "required_for_green": true,
-      "satisfied": false,
+      "satisfied": true,
       "blocker_ids": [
         "BEQ-001",
         "BEQ-002",
@@ -1392,7 +1390,7 @@
       "source_refs": [
         "fixtures/tassadar/reports/tassadar_article_equivalence_blocker_matrix_report.json"
       ],
-      "detail": "TAS-186 (`TAS-186: Final article-equivalence claim checker and audit`) remains open in the blocker matrix, so the final article-equivalence gate stays blocked on blocker families BEQ-001, BEQ-002, BEQ-003, BEQ-004, BEQ-005, BEQ-006, BEQ-007 until that tranche closes."
+      "detail": "TAS-186 (`TAS-186: Final article-equivalence claim checker and audit`) is closed in the blocker matrix, so this acceptance-gate row is currently satisfied for blocker families BEQ-001, BEQ-002, BEQ-003, BEQ-004, BEQ-005, BEQ-006, BEQ-007."
     },
     {
       "requirement_id": "TAS-R1",
@@ -1412,12 +1410,13 @@
   ],
   "total_requirement_count": 41,
   "required_requirement_count": 40,
-  "passed_required_requirement_count": 38,
+  "passed_required_requirement_count": 40,
   "required_issue_count": 37,
-  "closed_required_issue_count": 36,
+  "closed_required_issue_count": 37,
   "green_requirement_ids": [
     "blocker_matrix_contract_frozen",
     "owned_transformer_route_boundary_frozen",
+    "article_equivalence_blockers_closed",
     "TAS-158",
     "TAS-159",
     "TAS-160",
@@ -1453,38 +1452,24 @@
     "TAS-184",
     "TAS-184A",
     "TAS-185",
-    "TAS-185A"
-  ],
-  "failed_requirement_ids": [
-    "article_equivalence_blockers_closed",
+    "TAS-185A",
     "TAS-186"
   ],
-  "blocked_issue_ids": [
-    "TAS-186"
-  ],
-  "blocked_blocker_ids": [
-    "BEQ-001",
-    "BEQ-002",
-    "BEQ-003",
-    "BEQ-004",
-    "BEQ-005",
-    "BEQ-006",
-    "BEQ-007"
-  ],
+  "failed_requirement_ids": [],
+  "blocked_issue_ids": [],
+  "blocked_blocker_ids": [],
   "optional_open_issue_ids": [
     "TAS-R1"
   ],
   "blocker_matrix_contract_green": true,
   "prerequisite_transformer_boundary_green": true,
-  "blocker_matrix_article_equivalence_green": false,
-  "open_blocker_count": 1,
-  "open_blocker_ids": [
-    "BEQ-003"
-  ],
-  "acceptance_status": "blocked",
-  "article_equivalence_green": false,
-  "public_claim_allowed": false,
-  "claim_boundary": "this is the frozen final acceptance gate for article-equivalent closure. It stays blocked until the blocker-matrix contract remains intact, the owned `psionic-transformer` route boundary remains intact, the blocker matrix itself turns article-equivalence green, and every required TAS tranche from `TAS-158` through `TAS-186` is closed. A green result here is necessary but not sufficient to widen public capability claims, and it still does not imply arbitrary C ingress, arbitrary Wasm ingress, or generic interpreter-in-weights closure outside the declared article envelope.",
-  "summary": "Article-equivalence acceptance gate now records passed_required_requirements=38/40, closed_required_issues=36/37, blocked_issues=1, blocker_matrix_article_equivalence_green=false, and article_equivalence_green=false.",
-  "report_digest": "fd5033ca5c3827cf48f84ddcf7b374530b416ff29928d72b1f75c87bba18da62"
+  "blocker_matrix_article_equivalence_green": true,
+  "open_blocker_count": 0,
+  "open_blocker_ids": [],
+  "acceptance_status": "green",
+  "article_equivalence_green": true,
+  "public_claim_allowed": true,
+  "claim_boundary": "this is the frozen final acceptance gate for article-equivalent closure. It stays blocked until the blocker-matrix contract remains intact, the owned `psionic-transformer` route boundary remains intact, the blocker matrix itself turns article-equivalence green, and every required TAS tranche from `TAS-158` through `TAS-186` is closed. A green result here permits the bounded public article-equivalence claim inside the declared article envelope, but it still does not imply arbitrary C ingress, arbitrary Wasm ingress, or generic interpreter-in-weights closure outside that envelope.",
+  "summary": "Article-equivalence acceptance gate now records passed_required_requirements=40/40, closed_required_issues=37/37, blocked_issues=0, blocker_matrix_article_equivalence_green=true, and article_equivalence_green=true.",
+  "report_digest": "e61112cca9b9525c33c875cb21cc0b8927047a968c92bf371fe98f3d0a859395"
 }

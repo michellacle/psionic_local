@@ -414,7 +414,7 @@ fn build_report_from_inputs(
         checker_script_ref: String::from(
             TASSADAR_ARTICLE_SINGLE_RUN_NO_SPILL_CLOSURE_CHECKER_REF,
         ),
-        acceptance_gate_tie,
+        acceptance_gate_tie: acceptance_gate_tie.clone(),
         benchmark_prerequisite,
         operator_envelope,
         horizon_review,
@@ -424,7 +424,8 @@ fn build_report_from_inputs(
         stochastic_mode_review,
         binding_review,
         single_run_no_spill_closure_green,
-        article_equivalence_green: false,
+        article_equivalence_green: acceptance_gate_tie.blocked_issue_ids.is_empty()
+            && single_run_no_spill_closure_green,
         claim_boundary: String::from(
             "this report closes TAS-183 only. It freezes one no-resume single-run operator envelope on top of the canonical owned `psionic-transformer` route boundary by requiring the unified TAS-182 benchmark gate to stay green, the declared million-step and multi-million-step horizon receipts to stay exact and under floor, the context window to remain small relative to horizon size, and checkpoint/spill/resume lanes to stay explicit negative controls instead of inheriting article closure. It does not imply clean-room weight causality, route minimality, or final article-equivalence green status.",
         ),
@@ -1069,14 +1070,7 @@ mod tests {
         let report = build_tassadar_article_single_run_no_spill_closure_report().expect("report");
 
         assert!(report.acceptance_gate_tie.tied_requirement_satisfied);
-        assert_eq!(
-            report
-                .acceptance_gate_tie
-                .blocked_issue_ids
-                .first()
-                .map(String::as_str),
-            Some("TAS-186")
-        );
+        assert!(report.acceptance_gate_tie.blocked_issue_ids.is_empty());
         assert!(
             report
                 .benchmark_prerequisite
@@ -1098,7 +1092,7 @@ mod tests {
         );
         assert!(report.binding_review.binding_green);
         assert!(report.single_run_no_spill_closure_green);
-        assert!(!report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
     }
 
     #[test]

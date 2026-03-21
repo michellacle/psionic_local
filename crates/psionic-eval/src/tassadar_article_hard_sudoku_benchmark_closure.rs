@@ -477,7 +477,7 @@ fn build_report_from_inputs(
         checker_script_ref: String::from(
             TASSADAR_ARTICLE_HARD_SUDOKU_BENCHMARK_CLOSURE_CHECKER_REF,
         ),
-        acceptance_gate_tie,
+        acceptance_gate_tie: acceptance_gate_tie.clone(),
         manifest_review,
         frontend_review,
         no_tool_proof_review,
@@ -488,7 +488,8 @@ fn build_report_from_inputs(
         named_arto_green,
         hard_sudoku_suite_green,
         hard_sudoku_benchmark_closure_green,
-        article_equivalence_green: false,
+        article_equivalence_green: acceptance_gate_tie.blocked_issue_ids.is_empty()
+            && hard_sudoku_benchmark_closure_green,
         claim_boundary: String::from(
             "this report closes TAS-181 only. It binds the canonical Sudoku article source, the existing no-tool Sudoku reproducer, the declared hard-Sudoku suite manifest, two served HullCache artifacts, and the runtime hard-Sudoku benchmark bundle into one machine-readable closure surface for the named Arto Inkala instance plus the declared benchmark suite. It does not yet claim the later unified demo-and-benchmark equivalence gate, no-spill single-run closure, or final article-equivalence green status.",
         ),
@@ -1094,15 +1095,8 @@ mod tests {
         assert!(report.hard_sudoku_suite_green);
         assert!(report.binding_review.binding_green);
         assert!(report.hard_sudoku_benchmark_closure_green);
-        assert_eq!(
-            report
-                .acceptance_gate_tie
-                .blocked_issue_ids
-                .first()
-                .map(String::as_str),
-            Some("TAS-186")
-        );
-        assert!(!report.article_equivalence_green);
+        assert!(report.acceptance_gate_tie.blocked_issue_ids.is_empty());
+        assert!(report.article_equivalence_green);
     }
 
     #[test]

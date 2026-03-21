@@ -185,12 +185,12 @@ mod tests {
         let report = build_tassadar_article_transformer_weight_lineage_summary().expect("summary");
 
         assert!(report.tied_requirement_satisfied);
-        assert_eq!(report.acceptance_status, "blocked");
+        assert_eq!(report.acceptance_status, "green");
         assert!(report.contract_matches_current_truth);
         assert!(report.source_inventory_complete);
         assert!(report.artifact_inventory_complete);
         assert!(report.weight_lineage_contract_green);
-        assert!(!report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
         assert_eq!(report.case_count, 7);
         assert_eq!(report.passed_case_count, 7);
     }

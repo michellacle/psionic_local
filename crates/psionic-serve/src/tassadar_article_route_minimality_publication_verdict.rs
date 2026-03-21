@@ -106,7 +106,7 @@ pub fn build_tassadar_article_route_minimality_publication_verdict() -> Result<
         route_minimality_audit_green: report.route_minimality_audit_green,
         article_equivalence_green: report.article_equivalence_green,
         claim_boundary: String::from(
-            "this served publication verdict cites the canonical TAS-185A route-minimality audit for the direct HullCache article route only. It freezes the operator-green route-minimality result together with the explicit public suppression posture while TAS-186 remains open, and it does not widen the served claim to final article-equivalence green status or to planner-mediated and hybrid orchestration lanes.",
+            "this served publication verdict cites the canonical TAS-185A route-minimality audit for the direct HullCache article route only. It freezes the bounded public verdict for that direct deterministic route and it does not widen the served claim to planner-mediated, hybrid, resumed, or stochastic orchestration lanes.",
         ),
         publication_digest: String::new(),
     };
@@ -204,7 +204,7 @@ mod tests {
     }
 
     #[test]
-    fn article_route_minimality_publication_verdict_is_bounded_and_suppressed(
+    fn article_route_minimality_publication_verdict_is_green_bounded(
     ) -> Result<(), Box<dyn std::error::Error>> {
         let publication = build_tassadar_article_route_minimality_publication_verdict()?;
 
@@ -220,17 +220,12 @@ mod tests {
         assert!(publication.operator_verdict_green);
         assert_eq!(
             publication.public_posture,
-            TassadarArticleRouteMinimalityPublicPosture::SuppressedPendingFinalAudit
+            TassadarArticleRouteMinimalityPublicPosture::GreenBounded
         );
-        assert_eq!(
-            publication
-                .public_blocked_issue_ids
-                .first()
-                .map(String::as_str),
-            Some("TAS-186")
-        );
+        assert!(publication.public_verdict_green);
+        assert!(publication.public_blocked_issue_ids.is_empty());
         assert!(publication.route_minimality_audit_green);
-        assert!(!publication.article_equivalence_green);
+        assert!(publication.article_equivalence_green);
         Ok(())
     }
 

@@ -7,13 +7,11 @@
   "route_descriptor_digest": "00af062cccc3d1b2e42ee8e092b9ef8e1539dd3f2dfc379cff7d1cd4a008b032",
   "selected_decode_mode": "tassadar.decode.hull_cache.v1",
   "operator_verdict_green": true,
-  "public_posture": "suppressed_pending_final_audit",
-  "public_verdict_green": false,
-  "public_blocked_issue_ids": [
-    "TAS-186"
-  ],
+  "public_posture": "green_bounded",
+  "public_verdict_green": true,
+  "public_blocked_issue_ids": [],
   "route_minimality_audit_green": true,
-  "article_equivalence_green": false,
-  "claim_boundary": "this served publication verdict cites the canonical TAS-185A route-minimality audit for the direct HullCache article route only. It freezes the operator-green route-minimality result together with the explicit public suppression posture while TAS-186 remains open, and it does not widen the served claim to final article-equivalence green status or to planner-mediated and hybrid orchestration lanes.",
-  "publication_digest": "6a774d0c3671cd7cbecc33a74d484172c875325748d357b2cf1b9f828074edcf"
+  "article_equivalence_green": true,
+  "claim_boundary": "this served publication verdict cites the canonical TAS-185A route-minimality audit for the direct HullCache article route only. It freezes the bounded public verdict for that direct deterministic route and it does not widen the served claim to planner-mediated, hybrid, resumed, or stochastic orchestration lanes.",
+  "publication_digest": "da37e7d09d59bb82742112fb5d3b244efe221c1dc94d392d412c4ceaeb5e4e9d"
 }

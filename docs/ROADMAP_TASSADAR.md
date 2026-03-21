@@ -151,16 +151,16 @@ Current honest posture:
   `fixtures/tassadar/reports/tassadar_article_equivalence_blocker_matrix_summary.json`,
   a checker script, and an audit note that freeze the separate post-`TAS-156`
   article-gap closure bar without widening the current public capability
-  surface; the blocker contract is green while article equivalence itself
-  remains explicitly red
+  surface; the blocker contract is green and final bounded article
+  equivalence now closes elsewhere on top of it
 - the repo now also has one final article-equivalence acceptance gate skeleton,
   with a committed eval report at
   `fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json`,
   a checker script, a provider-facing receipt, and an audit note that freeze
-  the final red gate over the blocker-matrix contract, the owned
+  the final gate over the blocker-matrix contract, the owned
   `psionic-transformer` route boundary, blocker closure, and every required
-  TAS tranche from `TAS-158` through `TAS-186`; the gate remains intentionally
-  blocked and does not by itself widen public capability claims
+  TAS tranche from `TAS-158` through `TAS-186`; the gate is now green and does
+  not by itself widen public capability claims beyond the declared envelope
 - the repo now also has one canonical existing-substrate inventory for the
   article-equivalence closure wave, with a committed eval report at
   `fixtures/tassadar/reports/tassadar_existing_substrate_inventory_report.json`,
@@ -170,8 +170,8 @@ Current honest posture:
   `psionic-nn`, `psionic-transformer`, `psionic-models`, and
   `psionic-runtime` surfaces are reusable as-is, reusable with extension,
   research-only, or still insufficient for canonical article closure; the
-  inventory is explicitly tied to the final acceptance gate while the overall
-  article-equivalence verdict remains blocked
+  inventory is explicitly tied to the final acceptance gate while the final
+  article-equivalence verdict now closes elsewhere
 - the repo now also has one canonical Transformer stack boundary for the
   article-equivalence closure wave, with a boundary spec at
   `docs/TASSADAR_ARTICLE_TRANSFORMER_STACK_BOUNDARY.md`, a committed eval
@@ -183,7 +183,8 @@ Current honest posture:
   with `psionic-transformer` as the architecture anchor, `psionic-models` as
   the canonical article-model and artifact owner, and `psionic-runtime` as the
   replay and receipt owner; the boundary is explicitly tied to the final
-  acceptance gate while the overall article-equivalence verdict remains blocked
+  acceptance gate while the final article-equivalence verdict now closes
+  elsewhere
 - the repo now also has one canonical owned scaled dot-product attention and
   mask path for the article-equivalence closure wave, with reusable
   implementation in `crates/psionic-transformer/src/attention.rs`, a committed
@@ -194,8 +195,8 @@ Current honest posture:
   and an audit note that freeze stable softmax, causal and padding masks,
   combined-mask support, deterministic forward behavior, and
   probability-trace export as owned `psionic-transformer` truth; this tranche
-  is explicitly tied to the final acceptance gate while the overall
-  article-equivalence verdict remains blocked
+  is explicitly tied to the final acceptance gate while the final
+  article-equivalence verdict now closes elsewhere
 - the repo now also has one canonical reusable Transformer block layer for the
   article-equivalence closure wave, with reusable implementation in
   `crates/psionic-transformer/src/blocks.rs`, a committed eval report at
@@ -224,8 +225,8 @@ Current honest posture:
   projection, and embedding-sharing modes on one owned route while keeping
   article trace vocabulary, artifact-backed weights, replay receipts, and the
   final article-equivalence verdict open; this tranche is explicitly tied to
-  the final acceptance gate while the overall article-equivalence verdict
-  remains blocked
+  the final acceptance gate while the final article-equivalence verdict now
+  closes elsewhere
 - the repo now also has one research-only shared-memory and threads profile
   with a deterministic scheduler envelope, explicit sandbox boundary truth,
   and typed refusal on host-nondeterministic scheduling plus relaxed

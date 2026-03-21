@@ -87,10 +87,7 @@ mod tests {
         let receipt = TassadarArticleRouteMinimalityAuditReceipt::from_report(&report);
 
         assert_eq!(receipt.tied_requirement_id, "TAS-185A");
-        assert_eq!(
-            receipt.blocked_issue_ids.first().map(String::as_str),
-            Some("TAS-186")
-        );
+        assert!(receipt.blocked_issue_ids.is_empty());
         assert_eq!(
             receipt.canonical_claim_route_id,
             "tassadar.article_route.direct_hull_cache_runtime.v1"
@@ -102,11 +99,11 @@ mod tests {
         assert!(receipt.operator_verdict_green);
         assert_eq!(
             receipt.public_posture,
-            TassadarArticleRouteMinimalityPublicPosture::SuppressedPendingFinalAudit
+            TassadarArticleRouteMinimalityPublicPosture::GreenBounded
         );
-        assert!(!receipt.public_verdict_green);
+        assert!(receipt.public_verdict_green);
         assert!(receipt.route_minimality_audit_green);
-        assert!(!receipt.article_equivalence_green);
+        assert!(receipt.article_equivalence_green);
         Ok(())
     }
 }

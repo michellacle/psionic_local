@@ -198,7 +198,7 @@ mod tests {
         assert_eq!(summary.article_session_direct_case_count, 3);
         assert_eq!(summary.hybrid_direct_case_count, 3);
         assert!(summary.exactness_green);
-        assert!(!summary.article_equivalence_green);
+        assert!(summary.article_equivalence_green);
     }
 
     #[test]

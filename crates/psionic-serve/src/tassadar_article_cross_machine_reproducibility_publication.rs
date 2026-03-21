@@ -210,7 +210,7 @@ mod tests {
         assert!(publication.throughput_floor_stability_green);
         assert!(publication.stochastic_mode_out_of_scope);
         assert!(publication.reproducibility_matrix_green);
-        assert!(!publication.article_equivalence_green);
+        assert!(publication.article_equivalence_green);
         Ok(())
     }
 

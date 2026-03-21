@@ -18,7 +18,7 @@ cargo run -p psionic-serve --example tassadar_article_cross_machine_reproducibil
 jq -e '
   .acceptance_gate_tie.tied_requirement_id == "TAS-185"
   and .acceptance_gate_tie.tied_requirement_satisfied == true
-  and (.acceptance_gate_tie.blocked_issue_ids[0] == "TAS-186")
+  and ((.acceptance_gate_tie.blocked_issue_ids | length) == 0)
   and .machine_matrix_review.current_host_measured_green == true
   and (.machine_matrix_review.supported_machine_class_ids | length) == 2
   and .machine_matrix_review.machine_class_alignment_green == true
@@ -32,20 +32,20 @@ jq -e '
   and .stochastic_mode_review.out_of_scope == true
   and .deterministic_mode_green == true
   and .reproducibility_matrix_green == true
-  and .article_equivalence_green == false
+  and .article_equivalence_green == true
 ' fixtures/tassadar/reports/tassadar_article_cross_machine_reproducibility_matrix_report.json >/dev/null
 
 jq -e '
   .tied_requirement_id == "TAS-185"
   and .tied_requirement_satisfied == true
-  and .blocked_issue_frontier == "TAS-186"
+  and .blocked_issue_frontier == "none"
   and (.supported_machine_class_ids | length) == 2
   and .deterministic_mode_green == true
   and .throughput_floor_stability_green == true
   and .stochastic_mode_supported == false
   and .stochastic_mode_out_of_scope == true
   and .reproducibility_matrix_green == true
-  and .article_equivalence_green == false
+  and .article_equivalence_green == true
 ' fixtures/tassadar/reports/tassadar_article_cross_machine_reproducibility_matrix_summary.json >/dev/null
 
 jq -e '
@@ -55,5 +55,5 @@ jq -e '
   and .throughput_floor_stability_green == true
   and .stochastic_mode_out_of_scope == true
   and .reproducibility_matrix_green == true
-  and .article_equivalence_green == false
+  and .article_equivalence_green == true
 ' fixtures/tassadar/reports/tassadar_article_cross_machine_reproducibility_publication.json >/dev/null

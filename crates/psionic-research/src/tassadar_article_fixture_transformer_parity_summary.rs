@@ -193,10 +193,10 @@ mod tests {
         let report = build_tassadar_article_fixture_transformer_parity_summary().expect("summary");
 
         assert!(report.tied_requirement_satisfied);
-        assert_eq!(report.acceptance_status, "blocked");
+        assert_eq!(report.acceptance_status, "green");
         assert!(report.replacement_certified);
         assert!(report.replacement_publication_allowed);
-        assert!(!report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
         assert_eq!(report.case_count, 13);
         assert_eq!(report.routeable_case_count, 13);
         assert_eq!(report.exact_trace_case_count, 13);

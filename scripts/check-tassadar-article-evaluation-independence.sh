@@ -19,7 +19,7 @@ cargo run -p psionic-research --example tassadar_article_evaluation_independence
 
 jq -e '
   .evaluation_independence_green == true
-  and .article_equivalence_green == false
+  and .article_equivalence_green == true
   and ((.training_case_rows | length) == 4)
   and ((.evaluation_case_rows | length) == 6)
   and .generalization_prerequisite_review.passed == true

@@ -187,7 +187,7 @@ mod tests {
         assert!(summary.toolchain_identity_green);
         assert!(summary.refusal_taxonomy_green);
         assert!(summary.envelope_manifest_green);
-        assert!(!summary.article_equivalence_green);
+        assert!(summary.article_equivalence_green);
     }
 
     #[test]

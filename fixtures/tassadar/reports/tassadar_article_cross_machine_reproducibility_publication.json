@@ -13,7 +13,7 @@
   "throughput_floor_stability_green": true,
   "stochastic_mode_out_of_scope": true,
   "reproducibility_matrix_green": true,
-  "article_equivalence_green": false,
+  "article_equivalence_green": true,
   "claim_boundary": "this served publication cites the canonical TAS-185 cross-machine reproducibility matrix for the selected deterministic fast article route only. It freezes the declared supported CPU machine classes, the selected HullCache decode mode, and the explicit out-of-scope stochastic posture without widening the served claim to route minimality, stochastic execution, or final article-equivalence green status.",
-  "publication_digest": "3a1afd976916b771fb2639d093d7c6a63bae3cb14a5b0bc3e8ca5281db3eb92a"
+  "publication_digest": "bea9f202d435a44fde26ce641d4e22a6dc8b000623b5289d04176b4dda5e5a72"
 }

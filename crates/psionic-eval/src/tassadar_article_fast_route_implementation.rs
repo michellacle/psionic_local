@@ -316,7 +316,7 @@ pub fn build_tassadar_article_fast_route_implementation_report() -> Result<
         schema_version: 1,
         report_id: String::from("tassadar.article_fast_route_implementation.v1"),
         checker_script_ref: String::from(TASSADAR_ARTICLE_FAST_ROUTE_IMPLEMENTATION_CHECKER_REF),
-        acceptance_gate_tie,
+        acceptance_gate_tie: acceptance_gate_tie.clone(),
         selected_candidate_kind: selection_report.selected_candidate_kind,
         descriptor_review,
         replacement_review,
@@ -324,7 +324,8 @@ pub fn build_tassadar_article_fast_route_implementation_report() -> Result<
         hybrid_route_review,
         direct_proof_review,
         fast_route_implementation_green,
-        article_equivalence_green: false,
+        article_equivalence_green: acceptance_gate_tie.blocked_issue_ids.is_empty()
+            && fast_route_implementation_green,
         claim_boundary: String::from(
             "this report closes only TAS-173. It proves the canonical trained Transformer-backed article model now owns the selected HullCache fast path at the descriptor, article-session, hybrid-route, and direct-proof surfaces. It does not yet claim fast-route no-fallback closure, throughput-floor closure, or final article-equivalence green status.",
         ),
@@ -379,15 +380,19 @@ pub fn write_tassadar_article_fast_route_implementation_report(
 
 fn build_acceptance_gate_tie(
     acceptance_gate: &TassadarArticleEquivalenceAcceptanceGateReport,
-) -> Result<TassadarArticleFastRouteImplementationAcceptanceGateTie, TassadarArticleFastRouteImplementationReportError>
-{
+) -> Result<
+    TassadarArticleFastRouteImplementationAcceptanceGateTie,
+    TassadarArticleFastRouteImplementationReportError,
+> {
     let tied_requirement = acceptance_gate
         .requirement_rows
         .iter()
         .find(|row| row.requirement_id == TIED_REQUIREMENT_ID)
-        .ok_or_else(|| TassadarArticleFastRouteImplementationReportError::Invariant {
-            detail: format!("acceptance gate missing requirement `{TIED_REQUIREMENT_ID}`"),
-        })?;
+        .ok_or_else(
+            || TassadarArticleFastRouteImplementationReportError::Invariant {
+                detail: format!("acceptance gate missing requirement `{TIED_REQUIREMENT_ID}`"),
+            },
+        )?;
     Ok(TassadarArticleFastRouteImplementationAcceptanceGateTie {
         acceptance_gate_report_ref: String::from(
             TASSADAR_ARTICLE_EQUIVALENCE_ACCEPTANCE_GATE_REPORT_REF,
@@ -457,21 +462,25 @@ fn build_article_session_review(
         .cases
         .iter()
         .find(|case| case.name == ARTICLE_DIRECT_HULL_CASE_NAME)
-        .ok_or_else(|| TassadarArticleFastRouteImplementationReportError::Invariant {
-            detail: format!(
-                "article executor artifact missing case `{ARTICLE_DIRECT_HULL_CASE_NAME}`"
-            ),
-        })?;
+        .ok_or_else(
+            || TassadarArticleFastRouteImplementationReportError::Invariant {
+                detail: format!(
+                    "article executor artifact missing case `{ARTICLE_DIRECT_HULL_CASE_NAME}`"
+                ),
+            },
+        )?;
     let response = case
         .outcome
         .response
         .as_ref()
         .filter(|_| case.outcome.status == "completed")
-        .ok_or_else(|| TassadarArticleFastRouteImplementationReportError::Invariant {
-            detail: format!(
-                "article executor case `{ARTICLE_DIRECT_HULL_CASE_NAME}` did not complete"
-            ),
-        })?;
+        .ok_or_else(
+            || TassadarArticleFastRouteImplementationReportError::Invariant {
+                detail: format!(
+                    "article executor case `{ARTICLE_DIRECT_HULL_CASE_NAME}` did not complete"
+                ),
+            },
+        )?;
     let model_descriptor = &response.executor_response.model_descriptor;
     let selection = &response.executor_response.execution_report.selection;
     let model_descriptor_digest = model_descriptor.stable_digest();
@@ -513,27 +522,38 @@ fn build_hybrid_route_review(
         .cases
         .iter()
         .find(|case| case.name == HYBRID_DIRECT_HULL_CASE_NAME)
-        .ok_or_else(|| TassadarArticleFastRouteImplementationReportError::Invariant {
-            detail: format!(
-                "article hybrid artifact missing case `{HYBRID_DIRECT_HULL_CASE_NAME}`"
-            ),
-        })?;
+        .ok_or_else(
+            || TassadarArticleFastRouteImplementationReportError::Invariant {
+                detail: format!(
+                    "article hybrid artifact missing case `{HYBRID_DIRECT_HULL_CASE_NAME}`"
+                ),
+            },
+        )?;
     let response = case
         .outcome
         .response
         .as_ref()
         .filter(|_| case.outcome.status == "completed")
-        .ok_or_else(|| TassadarArticleFastRouteImplementationReportError::Invariant {
-            detail: format!(
-                "article hybrid case `{HYBRID_DIRECT_HULL_CASE_NAME}` did not complete"
-            ),
-        })?;
+        .ok_or_else(
+            || TassadarArticleFastRouteImplementationReportError::Invariant {
+                detail: format!(
+                    "article hybrid case `{HYBRID_DIRECT_HULL_CASE_NAME}` did not complete"
+                ),
+            },
+        )?;
     let model_descriptor = &response.planner_response.executor_response.model_descriptor;
-    let selection = &response.planner_response.executor_response.execution_report.selection;
+    let selection = &response
+        .planner_response
+        .executor_response
+        .execution_report
+        .selection;
     let model_descriptor_digest = model_descriptor.stable_digest();
     let fast_path_integrated = model_descriptor.model.model_id == expected_model_id
         && model_descriptor_digest == expected_descriptor_digest
-        && response.planner_response.routing_decision.effective_decode_mode
+        && response
+            .planner_response
+            .routing_decision
+            .effective_decode_mode
             == Some(TassadarExecutorDecodeMode::HullCache)
         && selection.effective_decode_mode == Some(TassadarExecutorDecodeMode::HullCache)
         && selection.selection_state == TassadarExecutorSelectionState::Direct;
@@ -542,7 +562,10 @@ fn build_hybrid_route_review(
         case_name: String::from(HYBRID_DIRECT_HULL_CASE_NAME),
         model_id: model_descriptor.model.model_id.clone(),
         model_descriptor_digest,
-        planner_effective_decode_mode: response.planner_response.routing_decision.effective_decode_mode,
+        planner_effective_decode_mode: response
+            .planner_response
+            .routing_decision
+            .effective_decode_mode,
         executor_effective_decode_mode: selection.effective_decode_mode,
         selection_state: selection.selection_state,
         fast_path_integrated,
@@ -676,16 +699,17 @@ mod tests {
         );
         assert!(report.direct_proof_review.descriptor_binding_green);
         assert!(report.fast_route_implementation_green);
-        assert!(!report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
     }
 
     #[test]
     fn fast_route_implementation_report_matches_committed_truth() {
-        let generated =
-            build_tassadar_article_fast_route_implementation_report().expect("report");
-        let committed: TassadarArticleFastRouteImplementationReport =
-            read_repo_json(TASSADAR_ARTICLE_FAST_ROUTE_IMPLEMENTATION_REPORT_REF, "report")
-                .expect("committed report");
+        let generated = build_tassadar_article_fast_route_implementation_report().expect("report");
+        let committed: TassadarArticleFastRouteImplementationReport = read_repo_json(
+            TASSADAR_ARTICLE_FAST_ROUTE_IMPLEMENTATION_REPORT_REF,
+            "report",
+        )
+        .expect("committed report");
         assert_eq!(generated, committed);
     }
 

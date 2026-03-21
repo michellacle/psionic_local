@@ -25,7 +25,7 @@ fi
 
 jq -e '
   .exactness_green == true
-  and .article_equivalence_green == false
+  and .article_equivalence_green == true
   and ((.acceptance_gate_tie.tied_requirement_id) == "TAS-174")
   and ((.acceptance_gate_tie.tied_requirement_satisfied) == true)
   and ((.implementation_prerequisite.selected_candidate_kind) == "hull_cache_runtime")
@@ -54,5 +54,5 @@ jq -e '
   and .article_session_direct_case_count == 3
   and .hybrid_direct_case_count == 3
   and .exactness_green == true
-  and .article_equivalence_green == false
+  and .article_equivalence_green == true
 ' fixtures/tassadar/reports/tassadar_article_fast_route_exactness_summary.json >/dev/null

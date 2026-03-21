@@ -23,8 +23,8 @@ jq -e '
   and .category_coverage_green == true
   and .envelope_alignment_green == true
   and .compile_matrix_green == true
-  and .article_equivalence_green == false
-  and (.acceptance_gate_tie.blocked_issue_ids[0] == "TAS-186")
+  and .article_equivalence_green == true
+  and ((.acceptance_gate_tie.blocked_issue_ids | length) == 0)
 ' fixtures/tassadar/reports/tassadar_article_frontend_corpus_compile_matrix_report.json >/dev/null
 
 jq -e '
@@ -36,5 +36,5 @@ jq -e '
   and .category_coverage_green == true
   and .envelope_alignment_green == true
   and .compile_matrix_green == true
-  and .article_equivalence_green == false
+  and .article_equivalence_green == true
 ' fixtures/tassadar/reports/tassadar_article_frontend_corpus_compile_matrix_summary.json >/dev/null

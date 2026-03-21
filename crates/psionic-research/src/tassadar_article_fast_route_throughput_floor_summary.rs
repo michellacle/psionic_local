@@ -192,7 +192,7 @@ mod tests {
         assert_eq!(summary.demo_internal_floor_pass_count, 2);
         assert_eq!(summary.kernel_floor_pass_count, 4);
         assert!(summary.throughput_floor_green);
-        assert!(!summary.article_equivalence_green);
+        assert!(summary.article_equivalence_green);
     }
 
     #[test]

@@ -201,7 +201,7 @@ mod tests {
         assert!(summary.category_coverage_green);
         assert!(summary.envelope_alignment_green);
         assert!(summary.compile_matrix_green);
-        assert!(!summary.article_equivalence_green);
+        assert!(summary.article_equivalence_green);
     }
 
     #[test]

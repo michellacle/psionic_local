@@ -621,8 +621,21 @@ operator-readable summary at
 `psionic-serve` now freezes the explicit publication verdict split at
 `fixtures/tassadar/reports/tassadar_article_route_minimality_publication_verdict.json`.
 The bounded article route is now machine-readably minimal and operator-green,
-while the public verdict remains explicitly suppressed until the final
-`TAS-186` article-equivalence claim checker closes.
+and `TAS-186` now closes the final bounded article-equivalence verdict on top
+of that same route. `psionic-eval` now commits the claim checker at
+`fixtures/tassadar/reports/tassadar_article_equivalence_claim_checker_report.json`
+plus the final audit at
+`fixtures/tassadar/reports/tassadar_article_equivalence_final_audit_report.json`,
+`psionic-research` now mirrors the operator-readable summary at
+`fixtures/tassadar/reports/tassadar_article_equivalence_final_audit_summary.json`,
+and the final checker script now lives at
+`scripts/check-tassadar-article-equivalence-final-audit.sh`. The public repo
+now has one bounded article-equivalence claim for the direct deterministic
+`HullCache` route on the canonical article model and declared CPU machine
+matrix, while arbitrary C ingress, arbitrary Wasm ingress, resumed execution,
+stochastic execution, planner/hybrid canonical routes, generic
+interpreter-in-weights claims outside the article envelope, and the post-article
+universality bridge remain explicitly out of scope.
 
 ## Route Requirement
 

@@ -954,7 +954,7 @@ mod tests {
         assert!(report.acceptance_gate_tie.tied_requirement_satisfied);
         assert_eq!(
             report.acceptance_gate_tie.acceptance_status,
-            crate::TassadarArticleEquivalenceAcceptanceStatus::Blocked
+            crate::TassadarArticleEquivalenceAcceptanceStatus::Green
         );
         assert!(report.actual_owned_transformer_stack_exists);
         assert!(report.all_required_surface_statuses_present);
@@ -968,7 +968,7 @@ mod tests {
         assert_eq!(report.substrate_only_surface_count, 3);
         assert_eq!(report.remaining_blocker_count, 7);
         assert!(report.owned_transformer_stack_audit_green);
-        assert!(!report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
     }
 
     #[test]

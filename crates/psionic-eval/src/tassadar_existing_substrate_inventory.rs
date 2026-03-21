@@ -456,7 +456,7 @@ mod tests {
 
         assert!(report.inventory_contract_green);
         assert!(report.acceptance_gate_tie.tied_requirement_satisfied);
-        assert!(!report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
         assert_eq!(report.surface_count, 11);
         assert_eq!(report.blocker_surface_count, 6);
         assert_eq!(report.non_blocker_surface_count, 5);

@@ -446,7 +446,7 @@ pub fn build_tassadar_article_cross_machine_reproducibility_matrix_report() -> R
         checker_script_ref: String::from(
             TASSADAR_ARTICLE_CROSS_MACHINE_REPRODUCIBILITY_MATRIX_CHECKER_REF,
         ),
-        acceptance_gate_tie,
+        acceptance_gate_tie: acceptance_gate_tie.clone(),
         machine_matrix_review,
         route_stability_review,
         demo_review,
@@ -457,7 +457,8 @@ pub fn build_tassadar_article_cross_machine_reproducibility_matrix_report() -> R
         deterministic_mode_green,
         throughput_floor_stability_green,
         reproducibility_matrix_green,
-        article_equivalence_green: false,
+        article_equivalence_green: acceptance_gate_tie.blocked_issue_ids.is_empty()
+            && reproducibility_matrix_green,
         claim_boundary: String::from(
             "this report closes TAS-185 only. It freezes one cross-machine reproducibility matrix for the canonical fast article route over the declared `host_cpu_x86_64` and `host_cpu_aarch64` machine classes, binding deterministic demo exactness, deterministic long-horizon exactness, and throughput-floor stability to the selected HullCache route while keeping stochastic execution explicit and out of scope for the current canonical route. It does not by itself close route minimality, final publication verdicts, or article-equivalence green status.",
         ),
@@ -963,14 +964,7 @@ mod tests {
 
         assert_eq!(report.acceptance_gate_tie.tied_requirement_id, "TAS-185");
         assert!(report.acceptance_gate_tie.tied_requirement_satisfied);
-        assert_eq!(
-            report
-                .acceptance_gate_tie
-                .blocked_issue_ids
-                .first()
-                .map(String::as_str),
-            Some("TAS-186")
-        );
+        assert!(report.acceptance_gate_tie.blocked_issue_ids.is_empty());
         assert!(report.machine_matrix_review.current_host_measured_green);
         assert!(report.machine_matrix_review.machine_class_alignment_green);
         assert_eq!(
@@ -989,7 +983,7 @@ mod tests {
         assert!(report.stochastic_mode_review.out_of_scope);
         assert!(report.deterministic_mode_green);
         assert!(report.reproducibility_matrix_green);
-        assert!(!report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
 
         let current_host_row = report
             .machine_rows

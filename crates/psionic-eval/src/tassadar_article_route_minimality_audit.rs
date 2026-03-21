@@ -500,11 +500,12 @@ pub fn build_tassadar_article_route_minimality_audit_report(
         state_carrier_review,
         orchestration_review,
         operator_verdict_review,
-        public_verdict_review,
+        public_verdict_review: public_verdict_review.clone(),
         route_minimality_audit_green,
-        article_equivalence_green: false,
+        article_equivalence_green: route_minimality_audit_green
+            && public_verdict_review.public_verdict_green,
         claim_boundary: String::from(
-            "this report closes TAS-185A only. It freezes the minimal final article claim route as the direct HullCache runtime path on the canonical article model, excludes checkpoint, spill, persisted continuation, hidden helper mediation, and planner-owned hybrid orchestration from that claim route, and publishes an explicit operator-green versus public-suppressed verdict split. It does not by itself close the final TAS-186 article-equivalence claim checker or turn article_equivalence_green true.",
+            "this report closes TAS-185A only. It freezes the minimal final article claim route as the direct HullCache runtime path on the canonical article model, excludes checkpoint, spill, persisted continuation, hidden helper mediation, and planner-owned hybrid orchestration from that claim route, and publishes one explicit operator versus bounded-public verdict. It remains one prerequisite surface for the final article-equivalence audit rather than a substitute for it.",
         ),
         summary: String::new(),
         report_digest: String::new(),
@@ -688,14 +689,7 @@ mod tests {
 
         assert_eq!(report.acceptance_gate_tie.tied_requirement_id, "TAS-185A");
         assert!(report.acceptance_gate_tie.tied_requirement_satisfied);
-        assert_eq!(
-            report
-                .acceptance_gate_tie
-                .blocked_issue_ids
-                .first()
-                .map(String::as_str),
-            Some("TAS-186")
-        );
+        assert!(report.acceptance_gate_tie.blocked_issue_ids.is_empty());
         assert_eq!(
             report.canonical_claim_route_review.canonical_claim_route_id,
             "tassadar.article_route.direct_hull_cache_runtime.v1"
@@ -720,11 +714,11 @@ mod tests {
         assert!(report.operator_verdict_review.operator_verdict_green);
         assert_eq!(
             report.public_verdict_review.posture,
-            TassadarArticleRouteMinimalityPublicPosture::SuppressedPendingFinalAudit
+            TassadarArticleRouteMinimalityPublicPosture::GreenBounded
         );
-        assert!(!report.public_verdict_review.public_verdict_green);
+        assert!(report.public_verdict_review.public_verdict_green);
         assert!(report.route_minimality_audit_green);
-        assert!(!report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
         Ok(())
     }
 

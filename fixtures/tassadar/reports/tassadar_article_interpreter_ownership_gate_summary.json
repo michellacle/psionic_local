@@ -19,11 +19,8 @@
       "direct_proof_report_ref": "fixtures/tassadar/reports/tassadar_direct_model_weight_execution_proof_report.json",
       "tied_requirement_id": "TAS-184",
       "tied_requirement_satisfied": true,
-      "acceptance_status": "blocked",
-      "blocked_issue_ids": [
-        "TAS-185A",
-        "TAS-186"
-      ]
+      "acceptance_status": "green",
+      "blocked_issue_ids": []
     },
     "canonical_boundary_report_ref": "fixtures/tassadar/reports/tassadar_canonical_transformer_stack_boundary_report.json",
     "canonical_boundary_report": {
@@ -36,11 +33,8 @@
         "existing_substrate_inventory_report_ref": "fixtures/tassadar/reports/tassadar_existing_substrate_inventory_report.json",
         "tied_requirement_id": "TAS-160",
         "tied_requirement_satisfied": true,
-        "acceptance_status": "blocked",
-        "blocked_issue_ids": [
-          "TAS-185A",
-          "TAS-186"
-        ]
+        "acceptance_status": "green",
+        "blocked_issue_ids": []
       },
       "existing_substrate_inventory_report_ref": "fixtures/tassadar/reports/tassadar_existing_substrate_inventory_report.json",
       "existing_substrate_inventory_report": {
@@ -51,12 +45,9 @@
           "blocker_matrix_report_ref": "fixtures/tassadar/reports/tassadar_article_equivalence_blocker_matrix_report.json",
           "tied_requirement_id": "TAS-159",
           "tied_requirement_satisfied": true,
-          "acceptance_status": "blocked",
-          "article_equivalence_green": false,
-          "blocked_issue_ids": [
-            "TAS-185A",
-            "TAS-186"
-          ]
+          "acceptance_status": "green",
+          "article_equivalence_green": true,
+          "blocked_issue_ids": []
         },
         "surfaces": [
           {
@@ -226,11 +217,11 @@
         "all_surfaces_have_item_refs": true,
         "all_surfaces_have_explicit_blocker_labels": true,
         "inventory_contract_green": true,
-        "article_equivalence_green": false,
+        "article_equivalence_green": true,
         "current_truth_boundary": "psionic already owns real reusable substrate for tensor contracts, bounded array execution, module state, basic layers, transformer-boundary configs, model descriptors, weight lineage metadata, runtime proof identity, and trace receipts. The current gap is not substrate absence; it is the missing owned article-equivalence stack and the current presence of bounded research or fixture-backed lanes that are not yet sufficient for canonical article closure.",
         "claim_boundary": "this report inventories reusable substrate only. It freezes what can be reused, what needs extension, what stays research-only, and what is still not sufficient for article closure. It does not claim that the owned article-equivalence Transformer stack, the canonical article model artifact, or the final article-equivalence proof route already exist.",
-        "summary": "Existing substrate inventory now records surface_count=11, blocker_surface_count=6, non_blocker_surface_count=5, inventory_contract_green=true, tied_requirement_satisfied=true, and article_equivalence_green=false.",
-        "report_digest": "1be348f66d401dabb99b740667adaac0e6d86e48c28a7e146b787d59f90cafcd"
+        "summary": "Existing substrate inventory now records surface_count=11, blocker_surface_count=6, non_blocker_surface_count=5, inventory_contract_green=true, tied_requirement_satisfied=true, and article_equivalence_green=true.",
+        "report_digest": "2d65f9fc50f18a091e6924f27316d2aa7aa0917c2bafa346d377cd8d23ffd9a8"
       },
       "interface_rows": [
         {
@@ -359,10 +350,10 @@
       "all_ownership_rows_have_real_module_refs": true,
       "canonical_route_required_boundary": true,
       "boundary_contract_green": true,
-      "article_equivalence_green": false,
+      "article_equivalence_green": true,
       "claim_boundary": "this report freezes one explicit canonical Transformer stack boundary for the article-equivalence closure wave. The route is not one monolithic crate; it is one required boundary spanning existing crates with `psionic-transformer` as the architecture anchor, `psionic-models` as the article-model and artifact owner, and `psionic-runtime` as the replay/receipt owner. This does not claim the final article-equivalence stack is complete or green.",
-      "summary": "Canonical Transformer stack boundary now records interface_rows=5, dependency_checks=6, tied_requirement_satisfied=true, boundary_contract_green=true, and article_equivalence_green=false.",
-      "report_digest": "146d246067b834e43221fb6586f3d8bbe03919123b4368d395246545c36f1851"
+      "summary": "Canonical Transformer stack boundary now records interface_rows=5, dependency_checks=6, tied_requirement_satisfied=true, boundary_contract_green=true, and article_equivalence_green=true.",
+      "report_digest": "43e37e6e2d4a9892c128690fa5ee9ee643c794f58c4a4cf2556c0daff16d1f2b"
     },
     "breadth_suite_gate_report_ref": "fixtures/tassadar/reports/tassadar_article_interpreter_breadth_suite_gate_report.json",
     "breadth_suite_gate_report": {
@@ -373,11 +364,8 @@
         "acceptance_gate_report_ref": "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json",
         "tied_requirement_id": "TAS-179A",
         "tied_requirement_satisfied": true,
-        "acceptance_status": "blocked",
-        "blocked_issue_ids": [
-          "TAS-185A",
-          "TAS-186"
-        ]
+        "acceptance_status": "green",
+        "blocked_issue_ids": []
       },
       "envelope_report_ref": "fixtures/tassadar/reports/tassadar_article_interpreter_breadth_envelope_report.json",
       "envelope_report": {
@@ -388,11 +376,8 @@
           "acceptance_gate_report_ref": "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json",
           "tied_requirement_id": "TAS-179",
           "tied_requirement_satisfied": true,
-          "acceptance_status": "blocked",
-          "blocked_issue_ids": [
-            "TAS-185A",
-            "TAS-186"
-          ]
+          "acceptance_status": "green",
+          "blocked_issue_ids": []
         },
         "manifest_ref": "fixtures/tassadar/sources/tassadar_article_interpreter_breadth_envelope_v1.json",
         "manifest": {
@@ -770,10 +755,10 @@
         "research_only_family_green_count": 1,
         "explicit_out_of_envelope_green_count": 7,
         "envelope_contract_green": true,
-        "article_equivalence_green": false,
+        "article_equivalence_green": true,
         "claim_boundary": "this report closes TAS-179 only. It freezes one declared article interpreter breadth envelope over the frozen core-Wasm floor, the current named article i32 profiles, and the later required search-process, long-horizon control, and module-scale Wasm-loop families while keeping linked-program bundles research-only and import-mediated processes, dynamic-memory resume, memory64, multi-memory, component-linking, exception profiles, and broader float semantics explicitly outside the article envelope. It does not yet build the breadth suite or turn final article-equivalence green.",
-        "summary": "Article interpreter breadth envelope report now records tied_requirement_satisfied=true, current_floor_green=2/2, declared_required_family_green=3/3, research_only_family_green=1/1, explicit_out_of_envelope_green=7/7, envelope_contract_green=true, and article_equivalence_green=false.",
-        "report_digest": "60e84d6764b158a9b31c26174cabcad7d3c8de2ff07746cd8aa16492da1b8dee"
+        "summary": "Article interpreter breadth envelope report now records tied_requirement_satisfied=true, current_floor_green=2/2, declared_required_family_green=3/3, research_only_family_green=1/1, explicit_out_of_envelope_green=7/7, envelope_contract_green=true, and article_equivalence_green=true.",
+        "report_digest": "6cbe59a40ab595b667b338feafa389d6ce79002806fc54352133357d4186e363"
       },
       "suite_manifest_ref": "fixtures/tassadar/sources/tassadar_article_interpreter_breadth_suite_v1.json",
       "suite_manifest": {
@@ -1096,20 +1081,20 @@
       ],
       "green_family_count": 8,
       "breadth_gate_green": true,
-      "article_equivalence_green": false,
+      "article_equivalence_green": true,
       "claim_boundary": "this report closes TAS-179A only. It proves the declared TAS-179 interpreter-breadth envelope over one generic article-program family suite spanning arithmetic, call-heavy, allocator-backed, indirect-call, branch-heavy, loop-heavy, state-machine, and parser-style rows. It still does not imply arbitrary-program closure, benchmark-wide article closure, or final article-equivalence green status.",
-      "summary": "Article interpreter breadth suite gate now records tied_requirement_satisfied=true, green_families=8/8, breadth_gate_green=true, blocked_issue_frontier=Some(\"TAS-185A\"), and article_equivalence_green=false.",
-      "report_digest": "bfd1001af381517c8ae850f3fb0cd3b89ee804d64c48b1fef8ae1b7416b53932"
+      "summary": "Article interpreter breadth suite gate now records tied_requirement_satisfied=true, green_families=8/8, breadth_gate_green=true, blocked_issue_frontier=None, and article_equivalence_green=true.",
+      "report_digest": "6d06fc3b6cf7065743aa3b5fc59165148736a7a9f088dcd46c4eeb81e974cbcb"
     },
     "generic_direct_proof_review": {
       "generic_suite_id": "tassadar.article_workload_family_generic_direct_proof_suite.v1",
       "report_ref": "fixtures/tassadar/reports/tassadar_direct_model_weight_execution_proof_report.json",
       "benchmark_report_ref": "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json",
-      "route_descriptor_digest": "9c3c9db9ff7c63142afce564687b9f0a6cb4286961c8296be4ebeb852b1374ec",
+      "route_descriptor_digest": "98d55f02cddd78ba320a3ce679b2059ccd55375dfaa71ed2aa6d1a3e07946d05",
       "direct_route_binding": {
         "route_product_id": "psionic.planner_executor_route",
         "route_id": "tassadar.planner_executor_route.tassadar-article-transformer-trace-bound-trained-v0.v0",
-        "route_descriptor_digest": "9c3c9db9ff7c63142afce564687b9f0a6cb4286961c8296be4ebeb852b1374ec",
+        "route_descriptor_digest": "98d55f02cddd78ba320a3ce679b2059ccd55375dfaa71ed2aa6d1a3e07946d05",
         "route_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
         "benchmark_report_ref": "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json",
         "requested_decode_mode": "reference_linear",
@@ -1160,7 +1145,7 @@
             "model_weight_bundle_digest": "99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c",
             "model_primary_artifact_digest": "e24923e6fe39f0656b3f331fb935e0827a3de43b706014610e513ca5a54e9f84",
             "model_lineage_contract_ref": "fixtures/tassadar/models/tassadar_article_transformer_trace_bound_trained_v0_lineage_contract.json",
-            "model_lineage_contract_digest": "6f641acf36b6831bfd81cab9da718cb615a69c4d2e02fa1fbdaa23b3576a008d",
+            "model_lineage_contract_digest": "05d277e6234849327ae03eecd4fd5f557356198543da139d11214af345cc0a05",
             "requested_decode_mode": "reference_linear",
             "effective_decode_mode": "reference_linear",
             "selection_state": "direct",
@@ -1177,14 +1162,14 @@
             "trace_artifact_digest": "ed3b84716128446c091498b05bd5371341141f8e7645cd42bd1b3fec554a6e7f",
             "trace_digest": "200c2ef86b64a4d28bf5f0ad50d851e0ceb007d0f955002a7415720287403d7f",
             "trace_proof_digest": "d2fee99034ab15ad4509a0ee23a4a7e497a412ea7af1ddc242e5459f423d13f1",
-            "runtime_manifest_identity_digest": "c22de6b5c5a19e8fa8355de3cea0cae693828ad63468f12768abe70ec10e4833",
-            "runtime_manifest_digest": "f3dd7d5c37379ec28ad0b27a552aa73c7f312da7e3cb12d7f16d542f66aff3ed",
+            "runtime_manifest_identity_digest": "ccf1578768116a41283c6d9f55c00531b0380e07ffafe563e2bd890fcc73a714",
+            "runtime_manifest_digest": "8ef1308171c338c83fb1dcdbfc11e257638eb8205178011a16190920808a7af6",
             "proof_bundle_request_digest": "ec9841db490a8ff77c9192553c26383a971a257b431c7a99917c510c3c00120b",
             "proof_bundle_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
             "route_binding": {
               "route_product_id": "psionic.planner_executor_route",
               "route_id": "tassadar.planner_executor_route.tassadar-article-transformer-trace-bound-trained-v0.v0",
-              "route_descriptor_digest": "9c3c9db9ff7c63142afce564687b9f0a6cb4286961c8296be4ebeb852b1374ec",
+              "route_descriptor_digest": "98d55f02cddd78ba320a3ce679b2059ccd55375dfaa71ed2aa6d1a3e07946d05",
               "route_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
               "benchmark_report_ref": "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json",
               "requested_decode_mode": "reference_linear",
@@ -1192,8 +1177,8 @@
               "note": "benchmark-gated exact dense floor for planner-owned executor delegation"
             },
             "claim_boundary": "this receipt closes direct model-weight execution only for the committed article workload and model pairing named here. It proves explicit no-fallback, zero-external-call, zero-tool-surface posture on the direct executor lane with bound route, trace, proof, runtime-manifest lineage, and explicit weight-lineage contract binding, but it does not imply future routes or undeclared workloads inherit the same proof without this receipt family",
-            "detail": "direct model-weight execution proof `generic_direct_model_weight_proof.micro_wasm_kernel` binds case `micro_wasm_kernel` to model `tassadar-article-transformer-trace-bound-trained-v0` on requested/effective decode `tassadar.decode.reference_linear.v1` with route `9c3c9db9ff7c63142afce564687b9f0a6cb4286961c8296be4ebeb852b1374ec`, lineage `fixtures/tassadar/models/tassadar_article_transformer_trace_bound_trained_v0_lineage_contract.json`, and zero external calls",
-            "receipt_digest": "702c3f4c4f3610389e7b55c46e81d507767ba2a836d64153ba6cbdcb02082493"
+            "detail": "direct model-weight execution proof `generic_direct_model_weight_proof.micro_wasm_kernel` binds case `micro_wasm_kernel` to model `tassadar-article-transformer-trace-bound-trained-v0` on requested/effective decode `tassadar.decode.reference_linear.v1` with route `98d55f02cddd78ba320a3ce679b2059ccd55375dfaa71ed2aa6d1a3e07946d05`, lineage `fixtures/tassadar/models/tassadar_article_transformer_trace_bound_trained_v0_lineage_contract.json`, and zero external calls",
+            "receipt_digest": "d1104d7c0816f4b6e36395e48dc9edd68c23307d5abc2501fb75fa8440454c86"
           },
           "direct_no_tool_green": true,
           "detail": "eval-owned synthetic receipt widens direct no-tool proof to an additional declared generic article workload family case"
@@ -1223,7 +1208,7 @@
             "model_weight_bundle_digest": "99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c",
             "model_primary_artifact_digest": "e24923e6fe39f0656b3f331fb935e0827a3de43b706014610e513ca5a54e9f84",
             "model_lineage_contract_ref": "fixtures/tassadar/models/tassadar_article_transformer_trace_bound_trained_v0_lineage_contract.json",
-            "model_lineage_contract_digest": "6f641acf36b6831bfd81cab9da718cb615a69c4d2e02fa1fbdaa23b3576a008d",
+            "model_lineage_contract_digest": "05d277e6234849327ae03eecd4fd5f557356198543da139d11214af345cc0a05",
             "requested_decode_mode": "reference_linear",
             "effective_decode_mode": "reference_linear",
             "selection_state": "direct",
@@ -1240,14 +1225,14 @@
             "trace_artifact_digest": "15ead49431e0e6b07590ce63290d1cfe92f3209b80385bce91197e64a83a0867",
             "trace_digest": "1258398a37021bc641d5843e0c32e0e239ea4effc0431f89aefcbda57a3bd2fd",
             "trace_proof_digest": "259960d747695dadc1073cc6670148186eb0bccdb2900d2322c446974d5128a9",
-            "runtime_manifest_identity_digest": "c22de6b5c5a19e8fa8355de3cea0cae693828ad63468f12768abe70ec10e4833",
-            "runtime_manifest_digest": "e0fe75fb1290ec5203554396b6ee86917b6c5b6e1f12817d64b2b569dde03453",
+            "runtime_manifest_identity_digest": "ccf1578768116a41283c6d9f55c00531b0380e07ffafe563e2bd890fcc73a714",
+            "runtime_manifest_digest": "73c648cf74250eaeb0bf58b355b747c12f128d259a6c366c433edd25977cbcea",
             "proof_bundle_request_digest": "3d12f815eaab69a92b32c3de9662e5deedcda2ae2ad011a6d949dce26af904d8",
             "proof_bundle_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
             "route_binding": {
               "route_product_id": "psionic.planner_executor_route",
               "route_id": "tassadar.planner_executor_route.tassadar-article-transformer-trace-bound-trained-v0.v0",
-              "route_descriptor_digest": "9c3c9db9ff7c63142afce564687b9f0a6cb4286961c8296be4ebeb852b1374ec",
+              "route_descriptor_digest": "98d55f02cddd78ba320a3ce679b2059ccd55375dfaa71ed2aa6d1a3e07946d05",
               "route_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
               "benchmark_report_ref": "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json",
               "requested_decode_mode": "reference_linear",
@@ -1255,8 +1240,8 @@
               "note": "benchmark-gated exact dense floor for planner-owned executor delegation"
             },
             "claim_boundary": "this receipt closes direct model-weight execution only for the committed article workload and model pairing named here. It proves explicit no-fallback, zero-external-call, zero-tool-surface posture on the direct executor lane with bound route, trace, proof, runtime-manifest lineage, and explicit weight-lineage contract binding, but it does not imply future routes or undeclared workloads inherit the same proof without this receipt family",
-            "detail": "direct model-weight execution proof `generic_direct_model_weight_proof.branch_heavy_kernel` binds case `branch_heavy_kernel` to model `tassadar-article-transformer-trace-bound-trained-v0` on requested/effective decode `tassadar.decode.reference_linear.v1` with route `9c3c9db9ff7c63142afce564687b9f0a6cb4286961c8296be4ebeb852b1374ec`, lineage `fixtures/tassadar/models/tassadar_article_transformer_trace_bound_trained_v0_lineage_contract.json`, and zero external calls",
-            "receipt_digest": "99246222ba4f4135bd5a2f1b71ea4fe7b06bcbb693106bfc0c3083372f784cb3"
+            "detail": "direct model-weight execution proof `generic_direct_model_weight_proof.branch_heavy_kernel` binds case `branch_heavy_kernel` to model `tassadar-article-transformer-trace-bound-trained-v0` on requested/effective decode `tassadar.decode.reference_linear.v1` with route `98d55f02cddd78ba320a3ce679b2059ccd55375dfaa71ed2aa6d1a3e07946d05`, lineage `fixtures/tassadar/models/tassadar_article_transformer_trace_bound_trained_v0_lineage_contract.json`, and zero external calls",
+            "receipt_digest": "a31f39e2312c6ae818a564a49b0805abca8926df1c544bf0cb2b69bbfe5a2194"
           },
           "direct_no_tool_green": true,
           "detail": "eval-owned synthetic receipt widens direct no-tool proof to an additional declared generic article workload family case"
@@ -1286,7 +1271,7 @@
             "model_weight_bundle_digest": "99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c",
             "model_primary_artifact_digest": "e24923e6fe39f0656b3f331fb935e0827a3de43b706014610e513ca5a54e9f84",
             "model_lineage_contract_ref": "fixtures/tassadar/models/tassadar_article_transformer_trace_bound_trained_v0_lineage_contract.json",
-            "model_lineage_contract_digest": "6f641acf36b6831bfd81cab9da718cb615a69c4d2e02fa1fbdaa23b3576a008d",
+            "model_lineage_contract_digest": "05d277e6234849327ae03eecd4fd5f557356198543da139d11214af345cc0a05",
             "requested_decode_mode": "reference_linear",
             "effective_decode_mode": "reference_linear",
             "selection_state": "direct",
@@ -1303,14 +1288,14 @@
             "trace_artifact_digest": "ea940d8b993eeeacdb55f67c3b9d012f6008cbc45c2eea0d757b90f4cc692ed0",
             "trace_digest": "0a0d5afe024f9ae2d2860946dfab539d227d189df6e5cd96affbbc906f7724ef",
             "trace_proof_digest": "48400c3c4189eed10b94496c9c1413aa481b7720e5bd3c9861bb0a1b65eadd50",
-            "runtime_manifest_identity_digest": "c22de6b5c5a19e8fa8355de3cea0cae693828ad63468f12768abe70ec10e4833",
-            "runtime_manifest_digest": "37d52c9b6d16bcc9652162d376170aa46d5a2d78468e85277202726e330ce37f",
+            "runtime_manifest_identity_digest": "ccf1578768116a41283c6d9f55c00531b0380e07ffafe563e2bd890fcc73a714",
+            "runtime_manifest_digest": "6962324d01f6d92917dd2c441a5de13c6415f144822c5450c51310c5530eac55",
             "proof_bundle_request_digest": "51385e46d841cbe54970ee9af61e87ce15576222593f20674c6ed8324bcb3e12",
             "proof_bundle_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
             "route_binding": {
               "route_product_id": "psionic.planner_executor_route",
               "route_id": "tassadar.planner_executor_route.tassadar-article-transformer-trace-bound-trained-v0.v0",
-              "route_descriptor_digest": "9c3c9db9ff7c63142afce564687b9f0a6cb4286961c8296be4ebeb852b1374ec",
+              "route_descriptor_digest": "98d55f02cddd78ba320a3ce679b2059ccd55375dfaa71ed2aa6d1a3e07946d05",
               "route_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
               "benchmark_report_ref": "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json",
               "requested_decode_mode": "reference_linear",
@@ -1318,8 +1303,8 @@
               "note": "benchmark-gated exact dense floor for planner-owned executor delegation"
             },
             "claim_boundary": "this receipt closes direct model-weight execution only for the committed article workload and model pairing named here. It proves explicit no-fallback, zero-external-call, zero-tool-surface posture on the direct executor lane with bound route, trace, proof, runtime-manifest lineage, and explicit weight-lineage contract binding, but it does not imply future routes or undeclared workloads inherit the same proof without this receipt family",
-            "detail": "direct model-weight execution proof `generic_direct_model_weight_proof.memory_heavy_kernel` binds case `memory_heavy_kernel` to model `tassadar-article-transformer-trace-bound-trained-v0` on requested/effective decode `tassadar.decode.reference_linear.v1` with route `9c3c9db9ff7c63142afce564687b9f0a6cb4286961c8296be4ebeb852b1374ec`, lineage `fixtures/tassadar/models/tassadar_article_transformer_trace_bound_trained_v0_lineage_contract.json`, and zero external calls",
-            "receipt_digest": "ef66784c6e40f9f7e6e10cdc3243a6fa2e02445470bed822e9019b235fb71f45"
+            "detail": "direct model-weight execution proof `generic_direct_model_weight_proof.memory_heavy_kernel` binds case `memory_heavy_kernel` to model `tassadar-article-transformer-trace-bound-trained-v0` on requested/effective decode `tassadar.decode.reference_linear.v1` with route `98d55f02cddd78ba320a3ce679b2059ccd55375dfaa71ed2aa6d1a3e07946d05`, lineage `fixtures/tassadar/models/tassadar_article_transformer_trace_bound_trained_v0_lineage_contract.json`, and zero external calls",
+            "receipt_digest": "5f8b776c36b8de5bf04512b49167fc98383de3460da6c1efbf780eb0cd854565"
           },
           "direct_no_tool_green": true,
           "detail": "eval-owned synthetic receipt widens direct no-tool proof to an additional declared generic article workload family case"
@@ -1345,11 +1330,11 @@
             "article_case_summary": "longer-horizon decrement loop that keeps exact backward-branch behavior explicit under the current article-shaped profile",
             "executor_product_id": "psionic.executor_trace",
             "model_id": "tassadar-article-transformer-trace-bound-trained-v0",
-            "model_descriptor_digest": "f0f9055770ea186568cdf61526e568d5f98285a3d9e1602849a4f52101695a54",
+            "model_descriptor_digest": "31586ffcdd81ba3717c060ab55e815ce5cbbf1c5fe8d7607c1a2fe35e5657d38",
             "model_weight_bundle_digest": "99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c",
             "model_primary_artifact_digest": "e24923e6fe39f0656b3f331fb935e0827a3de43b706014610e513ca5a54e9f84",
             "model_lineage_contract_ref": "fixtures/tassadar/models/tassadar_article_transformer_trace_bound_trained_v0_lineage_contract.json",
-            "model_lineage_contract_digest": "6f641acf36b6831bfd81cab9da718cb615a69c4d2e02fa1fbdaa23b3576a008d",
+            "model_lineage_contract_digest": "05d277e6234849327ae03eecd4fd5f557356198543da139d11214af345cc0a05",
             "requested_decode_mode": "reference_linear",
             "effective_decode_mode": "reference_linear",
             "selection_state": "direct",
@@ -1365,15 +1350,15 @@
             "program_artifact_digest": "70ee8e11ebf43d947308b32d1a9a7f0ffc31a64fbc36c79c7fcaf5592e373352",
             "trace_artifact_digest": "4f05a7b521ad7519013e53e211269b0ff3c6df5de7e873f01bec17c54cc6db43",
             "trace_digest": "672ffba42d6503747b741f3a48485aa2010b547b3d32a330c7e8a49389555a76",
-            "trace_proof_digest": "cf8e75f873ab829e58734db81fa8a32153411bf7b7e630be89cc47e28cb28c8e",
-            "runtime_manifest_identity_digest": "40d65e45a2f6841419409146442d68ddae8f8df346561cc2b78060385e4b222a",
-            "runtime_manifest_digest": "54411d94a7ca3c509220238ebdc19c8cd06f70bb74535cf642b18f3438f13a5a",
+            "trace_proof_digest": "8d737e4971950c5588ce05854aeedd47f09c710c2ebcbb5cc4569e3891c03818",
+            "runtime_manifest_identity_digest": "3a51b96e3925462a4c13b1321ebd8b0c71a1b0e9c31e58f14f444474787d7108",
+            "runtime_manifest_digest": "208291a063c1e6637aa1b64f7af4070bfa9d19088a69ec5917329671466fb1f3",
             "proof_bundle_request_digest": "f84acf81153f6443259be257c8530a64ea74e87bfe369775208a0f71c58914df",
             "proof_bundle_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
             "route_binding": {
               "route_product_id": "psionic.planner_executor_route",
               "route_id": "tassadar.planner_executor_route.tassadar-article-transformer-trace-bound-trained-v0.v0",
-              "route_descriptor_digest": "9c3c9db9ff7c63142afce564687b9f0a6cb4286961c8296be4ebeb852b1374ec",
+              "route_descriptor_digest": "98d55f02cddd78ba320a3ce679b2059ccd55375dfaa71ed2aa6d1a3e07946d05",
               "route_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
               "benchmark_report_ref": "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json",
               "requested_decode_mode": "reference_linear",
@@ -1381,8 +1366,8 @@
               "note": "benchmark-gated exact dense floor for planner-owned executor delegation"
             },
             "claim_boundary": "this receipt closes direct model-weight execution only for the committed article workload and model pairing named here. It proves explicit no-fallback, zero-external-call, zero-tool-surface posture on the direct executor lane with bound route, trace, proof, runtime-manifest lineage, and explicit weight-lineage contract binding, but it does not imply future routes or undeclared workloads inherit the same proof without this receipt family",
-            "detail": "direct model-weight execution proof `direct_model_weight_proof.long_loop_kernel` binds case `long_loop_kernel` to model `tassadar-article-transformer-trace-bound-trained-v0` on requested/effective decode `tassadar.decode.reference_linear.v1` with route `9c3c9db9ff7c63142afce564687b9f0a6cb4286961c8296be4ebeb852b1374ec`, lineage `fixtures/tassadar/models/tassadar_article_transformer_trace_bound_trained_v0_lineage_contract.json`, and zero external calls",
-            "receipt_digest": "c31b536b29202ff3e59dc364e9d0ceb33ed0f3ed28d2472d0b79a4eecb545f77"
+            "detail": "direct model-weight execution proof `direct_model_weight_proof.long_loop_kernel` binds case `long_loop_kernel` to model `tassadar-article-transformer-trace-bound-trained-v0` on requested/effective decode `tassadar.decode.reference_linear.v1` with route `98d55f02cddd78ba320a3ce679b2059ccd55375dfaa71ed2aa6d1a3e07946d05`, lineage `fixtures/tassadar/models/tassadar_article_transformer_trace_bound_trained_v0_lineage_contract.json`, and zero external calls",
+            "receipt_digest": "6a880f70fc4bc988df0be31a4d33c40c1f65c5b5123592008442121a23ae3698"
           },
           "direct_no_tool_green": true,
           "detail": "existing committed served proof receipt remains exact and no-tool on the canonical generic-suite case"
@@ -1408,11 +1393,11 @@
             "article_case_summary": "real 4x4 Sudoku-v0 backtracking puzzle on the test split with 6 givens",
             "executor_product_id": "psionic.executor_trace",
             "model_id": "tassadar-article-transformer-trace-bound-trained-v0",
-            "model_descriptor_digest": "f0f9055770ea186568cdf61526e568d5f98285a3d9e1602849a4f52101695a54",
+            "model_descriptor_digest": "31586ffcdd81ba3717c060ab55e815ce5cbbf1c5fe8d7607c1a2fe35e5657d38",
             "model_weight_bundle_digest": "99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c",
             "model_primary_artifact_digest": "e24923e6fe39f0656b3f331fb935e0827a3de43b706014610e513ca5a54e9f84",
             "model_lineage_contract_ref": "fixtures/tassadar/models/tassadar_article_transformer_trace_bound_trained_v0_lineage_contract.json",
-            "model_lineage_contract_digest": "6f641acf36b6831bfd81cab9da718cb615a69c4d2e02fa1fbdaa23b3576a008d",
+            "model_lineage_contract_digest": "05d277e6234849327ae03eecd4fd5f557356198543da139d11214af345cc0a05",
             "requested_decode_mode": "reference_linear",
             "effective_decode_mode": "reference_linear",
             "selection_state": "direct",
@@ -1428,15 +1413,15 @@
             "program_artifact_digest": "8f3d6c325218c7491199e64caae415e7713cda47329fea71dc5411329282bbf6",
             "trace_artifact_digest": "f5f167b082dde8305abfd0d05c12f8f450e2865ce954c62612278bd459a36dc9",
             "trace_digest": "ec8445f690c455de182b1abe6416d17d14cf15afd1c073918cdaa90dee2a2a7a",
-            "trace_proof_digest": "d2cf6fb5848e2bea5348f4a93e05915fd9f4116a25ce7be685b09e86e0f5859e",
-            "runtime_manifest_identity_digest": "afec2c48b18c05b2cb7d9f87dadf6b8dac4e7d59cae588700bc25d24deb28ad9",
-            "runtime_manifest_digest": "b24f46be9223bca77a9419b140088d84c4504ca1d61febaea82c19e38089cec4",
+            "trace_proof_digest": "02865211108a00e7b3528ff5c90ba7f04cfa098c25f0c621c36d566a1dd1b067",
+            "runtime_manifest_identity_digest": "b768993023a2f4f030d983a2f1f52b81b5d956b49a40ec929b877c9ccfd64e09",
+            "runtime_manifest_digest": "cbcba44a4215d82665eac9360d998c2e88303747b77f55ef82372bd4e5eab1b3",
             "proof_bundle_request_digest": "5da7afefba11d272ce5aaa77c631d987454cc2c7bb4795350c60dd719e43aa9a",
             "proof_bundle_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
             "route_binding": {
               "route_product_id": "psionic.planner_executor_route",
               "route_id": "tassadar.planner_executor_route.tassadar-article-transformer-trace-bound-trained-v0.v0",
-              "route_descriptor_digest": "9c3c9db9ff7c63142afce564687b9f0a6cb4286961c8296be4ebeb852b1374ec",
+              "route_descriptor_digest": "98d55f02cddd78ba320a3ce679b2059ccd55375dfaa71ed2aa6d1a3e07946d05",
               "route_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
               "benchmark_report_ref": "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json",
               "requested_decode_mode": "reference_linear",
@@ -1444,8 +1429,8 @@
               "note": "benchmark-gated exact dense floor for planner-owned executor delegation"
             },
             "claim_boundary": "this receipt closes direct model-weight execution only for the committed article workload and model pairing named here. It proves explicit no-fallback, zero-external-call, zero-tool-surface posture on the direct executor lane with bound route, trace, proof, runtime-manifest lineage, and explicit weight-lineage contract binding, but it does not imply future routes or undeclared workloads inherit the same proof without this receipt family",
-            "detail": "direct model-weight execution proof `direct_model_weight_proof.sudoku_v0_test_a` binds case `sudoku_v0_test_a` to model `tassadar-article-transformer-trace-bound-trained-v0` on requested/effective decode `tassadar.decode.reference_linear.v1` with route `9c3c9db9ff7c63142afce564687b9f0a6cb4286961c8296be4ebeb852b1374ec`, lineage `fixtures/tassadar/models/tassadar_article_transformer_trace_bound_trained_v0_lineage_contract.json`, and zero external calls",
-            "receipt_digest": "fdc70a7a1c079cba6c7c2004b4c2f2cfa88541307dacbbfe703d41b097f3f8e0"
+            "detail": "direct model-weight execution proof `direct_model_weight_proof.sudoku_v0_test_a` binds case `sudoku_v0_test_a` to model `tassadar-article-transformer-trace-bound-trained-v0` on requested/effective decode `tassadar.decode.reference_linear.v1` with route `98d55f02cddd78ba320a3ce679b2059ccd55375dfaa71ed2aa6d1a3e07946d05`, lineage `fixtures/tassadar/models/tassadar_article_transformer_trace_bound_trained_v0_lineage_contract.json`, and zero external calls",
+            "receipt_digest": "05116ab27bf37e6be7542c5aed903e7bc065f2d38af9eb8d563a4d7440e75d07"
           },
           "direct_no_tool_green": true,
           "detail": "existing committed served proof receipt remains exact and no-tool on the canonical generic-suite case"
@@ -1471,11 +1456,11 @@
             "article_case_summary": "tiny fixed 2x2 matching instance with comparison-selected winning assignment and exact cost",
             "executor_product_id": "psionic.executor_trace",
             "model_id": "tassadar-article-transformer-trace-bound-trained-v0",
-            "model_descriptor_digest": "f0f9055770ea186568cdf61526e568d5f98285a3d9e1602849a4f52101695a54",
+            "model_descriptor_digest": "31586ffcdd81ba3717c060ab55e815ce5cbbf1c5fe8d7607c1a2fe35e5657d38",
             "model_weight_bundle_digest": "99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c",
             "model_primary_artifact_digest": "e24923e6fe39f0656b3f331fb935e0827a3de43b706014610e513ca5a54e9f84",
             "model_lineage_contract_ref": "fixtures/tassadar/models/tassadar_article_transformer_trace_bound_trained_v0_lineage_contract.json",
-            "model_lineage_contract_digest": "6f641acf36b6831bfd81cab9da718cb615a69c4d2e02fa1fbdaa23b3576a008d",
+            "model_lineage_contract_digest": "05d277e6234849327ae03eecd4fd5f557356198543da139d11214af345cc0a05",
             "requested_decode_mode": "reference_linear",
             "effective_decode_mode": "reference_linear",
             "selection_state": "direct",
@@ -1491,15 +1476,15 @@
             "program_artifact_digest": "5dd72e271aafd706d2e2fad3fa2e6c295fab9a6aa972757c76dda4e832b6609c",
             "trace_artifact_digest": "f2a739be6ded0711d468207bab36523e1346724f64b1d9f77c65444aa93d5bac",
             "trace_digest": "a037a75777d742951f2dd8f5c79c1bb9f637edfb829ab962e56ebcebfecc05f0",
-            "trace_proof_digest": "bb900bbe455c4d87553fb4d3881cfca0862ae5617927607714d5e16e93c329ad",
-            "runtime_manifest_identity_digest": "1b1bed480df857dbb70d87ec7266cf08675e17111df1d9d7aca0dc534f1ded99",
-            "runtime_manifest_digest": "c027785ed9ea21f05b6af1d494b9f1452bc17b11295deb4eccb67269336ebf1f",
+            "trace_proof_digest": "b84f59bd3a86c72c83578068192ae1042b2899c5bde6b912721c3348cfb8e30b",
+            "runtime_manifest_identity_digest": "ddf8897e7d4686eece42c2ddb63d061b4192dd615eb99c0b7b19988647e0f765",
+            "runtime_manifest_digest": "d130310dbf0f765e1f60c4dc8d56c0f0b3bc690470bc871ccdc224693ff65731",
             "proof_bundle_request_digest": "93d256a319f5cfd9dc8d5292f7e4e4ecdf61d3b38ff0c85c28dace80c1f4e5da",
             "proof_bundle_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
             "route_binding": {
               "route_product_id": "psionic.planner_executor_route",
               "route_id": "tassadar.planner_executor_route.tassadar-article-transformer-trace-bound-trained-v0.v0",
-              "route_descriptor_digest": "9c3c9db9ff7c63142afce564687b9f0a6cb4286961c8296be4ebeb852b1374ec",
+              "route_descriptor_digest": "98d55f02cddd78ba320a3ce679b2059ccd55375dfaa71ed2aa6d1a3e07946d05",
               "route_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
               "benchmark_report_ref": "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json",
               "requested_decode_mode": "reference_linear",
@@ -1507,8 +1492,8 @@
               "note": "benchmark-gated exact dense floor for planner-owned executor delegation"
             },
             "claim_boundary": "this receipt closes direct model-weight execution only for the committed article workload and model pairing named here. It proves explicit no-fallback, zero-external-call, zero-tool-surface posture on the direct executor lane with bound route, trace, proof, runtime-manifest lineage, and explicit weight-lineage contract binding, but it does not imply future routes or undeclared workloads inherit the same proof without this receipt family",
-            "detail": "direct model-weight execution proof `direct_model_weight_proof.hungarian_matching` binds case `hungarian_matching` to model `tassadar-article-transformer-trace-bound-trained-v0` on requested/effective decode `tassadar.decode.reference_linear.v1` with route `9c3c9db9ff7c63142afce564687b9f0a6cb4286961c8296be4ebeb852b1374ec`, lineage `fixtures/tassadar/models/tassadar_article_transformer_trace_bound_trained_v0_lineage_contract.json`, and zero external calls",
-            "receipt_digest": "39cd3b5f5b5e13440ee1420c24455b324525e8ac4c73a4a84cec9ff5fbe310d4"
+            "detail": "direct model-weight execution proof `direct_model_weight_proof.hungarian_matching` binds case `hungarian_matching` to model `tassadar-article-transformer-trace-bound-trained-v0` on requested/effective decode `tassadar.decode.reference_linear.v1` with route `98d55f02cddd78ba320a3ce679b2059ccd55375dfaa71ed2aa6d1a3e07946d05`, lineage `fixtures/tassadar/models/tassadar_article_transformer_trace_bound_trained_v0_lineage_contract.json`, and zero external calls",
+            "receipt_digest": "96fe4637da6fd1572e1299d2152547574ad39c76e4d46377e6a771176b84f3d4"
           },
           "direct_no_tool_green": true,
           "detail": "existing committed served proof receipt remains exact and no-tool on the canonical generic-suite case"
@@ -1891,14 +1876,14 @@
       "detail": "canonical_boundary_green=true breadth_conformance_matrix_green=true generic_direct_proof_suite_green=true route_purity_green=true mapping_stable_across_runs=true perturbation_sensitivity_green=true"
     },
     "interpreter_ownership_green": true,
-    "article_equivalence_green": false,
-    "claim_boundary": "this report closes TAS-184 only. It binds the owned Transformer route, the generic article workload-family direct no-tool proof suite, the already-green breadth/generalization/independence/no-spill prerequisites, and concrete weight-perturbation sensitivity into one clean-room interpreter-ownership verdict. It still does not freeze the later KV-cache and activation-state dominance verdict from TAS-184A, cross-machine reproducibility from TAS-185, route minimality from TAS-185A, or the final article-equivalence audit from TAS-186.",
-    "summary": "Article interpreter-ownership gate now records tied_requirement_satisfied=true, generic_direct_proof_cases=6, breadth_families_green=8/8, route_purity_green=true, perturbation_sensitivity_green=true, ownership_gate_green=true, blocked_issue_frontier=Some(\"TAS-185A\"), and article_equivalence_green=false.",
-    "report_digest": "267f6f1fa187bd73310bd4b91fe7bc594673bd96072f5d0b05daef5689ce0589"
+    "article_equivalence_green": true,
+    "claim_boundary": "this report closes TAS-184 only. It binds the owned Transformer route, the generic article workload-family direct no-tool proof suite, the already-green breadth/generalization/independence/no-spill prerequisites, and concrete weight-perturbation sensitivity into one clean-room interpreter-ownership verdict. By itself it still does not replace the later KV-cache and activation-state discipline verdict, cross-machine reproducibility matrix, route-minimality audit, or final article-equivalence audit.",
+    "summary": "Article interpreter-ownership gate now records tied_requirement_satisfied=true, generic_direct_proof_cases=6, breadth_families_green=8/8, route_purity_green=true, perturbation_sensitivity_green=true, ownership_gate_green=true, blocked_issue_frontier=None, and article_equivalence_green=true.",
+    "report_digest": "8ed27734ebebe2e8a29697edec79e4d6d3d435dcd29dc403ed9290eebf498bb4"
   },
   "tied_requirement_id": "TAS-184",
   "tied_requirement_satisfied": true,
-  "blocked_issue_frontier": "TAS-185A",
+  "blocked_issue_frontier": null,
   "generic_direct_proof_suite_green": true,
   "generic_direct_proof_case_count": 6,
   "breadth_conformance_matrix_green": true,
@@ -1908,8 +1893,8 @@
   "perturbation_sensitivity_green": true,
   "locality_characterization": "diffuse",
   "interpreter_ownership_green": true,
-  "article_equivalence_green": false,
+  "article_equivalence_green": true,
   "claim_boundary": "this summary mirrors only the TAS-184 interpreter-ownership gate. It keeps the widened generic direct-proof suite, breadth conformance, route-purity audit, computation mapping, and weight-perturbation sensitivity operator-readable without pretending that the later KV-cache and activation-state discipline verdict, cross-machine reproducibility, route minimality, or final article-equivalence green status are already true.",
-  "summary": "Article interpreter-ownership gate summary now records tied_requirement_satisfied=true, generic_direct_proof_suite_green=true, generic_direct_proof_case_count=6, breadth_conformance_matrix_green=true, green_family_count=8, route_purity_green=true, mapping_stable_across_runs=true, perturbation_sensitivity_green=true, locality_characterization=Diffuse, blocked_issue_frontier=Some(\"TAS-185A\"), ownership_gate_green=true, and article_equivalence_green=false.",
-  "report_digest": "09eb072fc21ea0dcb23d41f9661b28ed502f87e8009435302ebe9a7c397b65c8"
+  "summary": "Article interpreter-ownership gate summary now records tied_requirement_satisfied=true, generic_direct_proof_suite_green=true, generic_direct_proof_case_count=6, breadth_conformance_matrix_green=true, green_family_count=8, route_purity_green=true, mapping_stable_across_runs=true, perturbation_sensitivity_green=true, locality_characterization=Diffuse, blocked_issue_frontier=None, ownership_gate_green=true, and article_equivalence_green=true.",
+  "report_digest": "2e34903d5645967407fc9cfe5c32bb194e4adcfa82f43205914487e31ece7829"
 }

@@ -219,13 +219,13 @@ mod tests {
             .expect("representation invariance summary");
 
         assert!(summary.tied_requirement_satisfied);
-        assert_eq!(summary.acceptance_status, "blocked");
+        assert_eq!(summary.acceptance_status, "green");
         assert!(summary.case_count > 0);
         assert!(summary.suppressed_case_count > 0);
         assert!(summary.exact_trace_case_count > 0);
         assert!(summary.canonicalized_trace_case_count > 0);
         assert!(summary.article_representation_invariance_green);
-        assert!(!summary.article_equivalence_green);
+        assert!(summary.article_equivalence_green);
     }
 
     #[test]

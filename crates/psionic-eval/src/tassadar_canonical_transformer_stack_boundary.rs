@@ -512,7 +512,7 @@ mod tests {
 
         assert!(report.boundary_contract_green);
         assert!(report.acceptance_gate_tie.tied_requirement_satisfied);
-        assert!(!report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
         assert_eq!(report.interface_rows.len(), 5);
         assert_eq!(report.dependency_checks.len(), 6);
         assert!(report.all_dependency_checks_pass);

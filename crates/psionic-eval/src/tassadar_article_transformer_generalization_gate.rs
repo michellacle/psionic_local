@@ -1717,7 +1717,7 @@ mod tests {
         assert_eq!(report.out_of_distribution_case_count, 6);
         assert_eq!(report.curriculum_order_review.run_count, 2);
         assert!(report.generalization_green);
-        assert!(!report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
         assert!(report.randomized_program_review.passed);
         assert!(report.adversarial_variant_review.passed);
         assert!(report.size_structure_scaling_review.passed);

@@ -1,0 +1,23 @@
+{
+  "report_id": "tassadar.article_equivalence.final_audit.report.v1",
+  "matched_article_line_count": 24,
+  "all_article_lines_matched": true,
+  "mechanistic_verdict_green": true,
+  "behavioral_verdict_green": true,
+  "operational_verdict_green": true,
+  "canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+  "canonical_weight_artifact_id": "tassadar://article_transformer/weights/tassadar-article-transformer-trace-bound-trained-v0/99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c",
+  "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+  "canonical_decode_mode": "hull_cache",
+  "supported_machine_class_ids": [
+    "host_cpu_aarch64",
+    "host_cpu_x86_64"
+  ],
+  "optional_open_issue_ids": [
+    "TAS-R1"
+  ],
+  "public_article_equivalence_claim_allowed": true,
+  "article_equivalence_green": true,
+  "detail": "TAS-186 now records matched_article_line_count=24, mechanistic_verdict_green=true, behavioral_verdict_green=true, operational_verdict_green=true, canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1`, supported_machine_classes=2, public_article_equivalence_claim_allowed=true, and article_equivalence_green=true.",
+  "summary_digest": "dcc92011c0d45131c62a1ab8165f32537c9bae1939abf1717cf0b006ca7fe008"
+}

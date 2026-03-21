@@ -158,7 +158,7 @@ mod tests {
         let summary = build_tassadar_article_kv_activation_discipline_audit_summary()?;
 
         assert_eq!(summary.tied_requirement_id, "TAS-184A");
-        assert_eq!(summary.blocked_issue_frontier, "TAS-186");
+        assert_eq!(summary.blocked_issue_frontier, "none");
         assert_eq!(summary.feasible_constraint_case_count, 4);
         assert_eq!(
             summary.dominance_verdict,
@@ -170,7 +170,7 @@ mod tests {
         assert!(summary.cache_reset_breaks_correctness);
         assert!(!summary.equivalent_behavior_survives_under_constrained_cache);
         assert!(summary.kv_activation_discipline_green);
-        assert!(!summary.article_equivalence_green);
+        assert!(summary.article_equivalence_green);
         Ok(())
     }
 

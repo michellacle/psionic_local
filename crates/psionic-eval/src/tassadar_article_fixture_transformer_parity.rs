@@ -708,7 +708,7 @@ mod tests {
         assert!(report.all_cases_pass);
         assert!(report.replacement_certified);
         assert!(report.replacement_publication_allowed);
-        assert!(!report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
         assert_eq!(report.supported_case_count, 13);
         assert_eq!(report.routeable_case_count, 13);
         assert_eq!(report.exact_trace_case_count, 13);
@@ -722,7 +722,7 @@ mod tests {
                 .blocked_issue_ids
                 .first()
                 .map(String::as_str),
-            Some("TAS-186")
+            None
         );
     }
 

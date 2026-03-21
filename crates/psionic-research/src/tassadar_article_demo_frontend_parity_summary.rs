@@ -194,7 +194,7 @@ mod tests {
         assert!(summary.workload_identity_parity_green);
         assert!(summary.unsupported_variant_refusal_green);
         assert!(summary.demo_frontend_parity_green);
-        assert!(!summary.article_equivalence_green);
+        assert!(summary.article_equivalence_green);
     }
 
     #[test]

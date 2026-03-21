@@ -6,12 +6,8 @@
     "trace_vocabulary_binding_report_ref": "fixtures/tassadar/reports/tassadar_article_trace_vocabulary_binding_report.json",
     "tied_requirement_id": "TAS-167A",
     "tied_requirement_satisfied": true,
-    "acceptance_status": "blocked",
-    "blocked_issue_ids": [
-      "TAS-185",
-      "TAS-185A",
-      "TAS-186"
-    ]
+    "acceptance_status": "green",
+    "blocked_issue_ids": []
   },
   "trace_vocabulary_binding_report_ref": "fixtures/tassadar/reports/tassadar_article_trace_vocabulary_binding_report.json",
   "trace_vocabulary_binding_green": true,
@@ -383,8 +379,8 @@
     "detail": "the boundary review checks that runtime-owned prompt-surface and local-remap helpers exist, tokenizer symbolic retokenization helpers exist, and the canonical boundary doc names TAS-167A plus representation-sensitive canonicalization explicitly"
   },
   "article_representation_invariance_green": true,
-  "article_equivalence_green": false,
+  "article_equivalence_green": true,
   "claim_boundary": "this report closes the prompt, tokenization, and representation invariance gate for the declared owned article route only. It proves that trivial whitespace and prompt/target token-split perturbations do not change the route, that semantically irrelevant prompt-field ordering canonicalizes cleanly, that dead-code suffix IR layout changes preserve exact execution behavior, and that local-slot renaming is explicitly representation-sensitive but still canonicalizes back to the same semantic trace. It does not claim artifact-backed weight identity, reference-linear exactness on the Transformer-backed route, fast-route promotion, benchmark parity, or final article-equivalence green status.",
-  "summary": "Article representation invariance now records case_count=18, exact_trace_case_count=16, canonicalized_trace_case_count=2, output_stable_case_count=18, tokenizer_roundtrip_exact_case_count=18, model_binding_roundtrip_exact_case_count=18, article_representation_invariance_green=true, and article_equivalence_green=false.",
-  "report_digest": "61801295fee9d32ba919bae9a14f07e3047c128c30de381d3fc441d2b075166e"
+  "summary": "Article representation invariance now records case_count=18, exact_trace_case_count=16, canonicalized_trace_case_count=2, output_stable_case_count=18, tokenizer_roundtrip_exact_case_count=18, model_binding_roundtrip_exact_case_count=18, article_representation_invariance_green=true, and article_equivalence_green=true.",
+  "report_digest": "8bec663b0a0f1c806217c2ddef53c322655217a79c929840d81458d207cc4993"
 }

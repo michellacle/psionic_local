@@ -44,6 +44,10 @@ mod tassadar_article_demo_frontend_parity;
 mod tassadar_article_equivalence_acceptance_gate;
 #[path = "tassadar_article_equivalence_blocker_matrix.rs"]
 mod tassadar_article_equivalence_blocker_matrix;
+#[path = "tassadar_article_equivalence_claim_checker.rs"]
+mod tassadar_article_equivalence_claim_checker;
+#[path = "tassadar_article_equivalence_final_audit.rs"]
+mod tassadar_article_equivalence_final_audit;
 #[path = "tassadar_article_evaluation_independence_audit.rs"]
 mod tassadar_article_evaluation_independence_audit;
 #[path = "tassadar_article_fast_route_architecture_selection.rs"]
@@ -381,6 +385,8 @@ pub use tassadar_article_demo_benchmark_equivalence_gate::*;
 pub use tassadar_article_demo_frontend_parity::*;
 pub use tassadar_article_equivalence_acceptance_gate::*;
 pub use tassadar_article_equivalence_blocker_matrix::*;
+pub use tassadar_article_equivalence_claim_checker::*;
+pub use tassadar_article_equivalence_final_audit::*;
 pub use tassadar_article_evaluation_independence_audit::*;
 pub use tassadar_article_fast_route_architecture_selection::*;
 pub use tassadar_article_fast_route_exactness::*;

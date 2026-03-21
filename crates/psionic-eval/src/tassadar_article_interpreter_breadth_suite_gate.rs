@@ -217,7 +217,7 @@ fn build_report_from_inputs(
         checker_script_ref: String::from(
             TASSADAR_ARTICLE_INTERPRETER_BREADTH_SUITE_GATE_CHECKER_REF,
         ),
-        acceptance_gate_tie,
+        acceptance_gate_tie: acceptance_gate_tie.clone(),
         envelope_report_ref: String::from(TASSADAR_ARTICLE_INTERPRETER_BREADTH_ENVELOPE_REPORT_REF),
         envelope_report,
         suite_manifest_ref: String::from(TASSADAR_ARTICLE_INTERPRETER_BREADTH_SUITE_REF),
@@ -226,7 +226,8 @@ fn build_report_from_inputs(
         family_checks,
         green_family_count,
         breadth_gate_green,
-        article_equivalence_green: false,
+        article_equivalence_green: acceptance_gate_tie.blocked_issue_ids.is_empty()
+            && breadth_gate_green,
         claim_boundary: String::from(
             "this report closes TAS-179A only. It proves the declared TAS-179 interpreter-breadth envelope over one generic article-program family suite spanning arithmetic, call-heavy, allocator-backed, indirect-call, branch-heavy, loop-heavy, state-machine, and parser-style rows. It still does not imply arbitrary-program closure, benchmark-wide article closure, or final article-equivalence green status.",
         ),
@@ -593,23 +594,16 @@ mod tests {
     };
 
     #[test]
-    fn article_interpreter_breadth_suite_gate_closes_breadth_without_final_article_equivalence() {
+    fn article_interpreter_breadth_suite_gate_closes_breadth_with_final_article_equivalence() {
         let report =
             build_tassadar_article_interpreter_breadth_suite_gate_report().expect("report");
 
         assert!(report.acceptance_gate_tie.tied_requirement_satisfied);
-        assert_eq!(
-            report
-                .acceptance_gate_tie
-                .blocked_issue_ids
-                .first()
-                .map(String::as_str),
-            Some("TAS-186")
-        );
+        assert!(report.acceptance_gate_tie.blocked_issue_ids.is_empty());
         assert_eq!(report.green_family_count, 8);
         assert!(report.contract_check.contract_green);
         assert!(report.breadth_gate_green);
-        assert!(!report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
     }
 
     #[test]

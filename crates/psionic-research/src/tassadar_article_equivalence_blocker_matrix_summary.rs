@@ -182,9 +182,9 @@ mod tests {
         let report = build_tassadar_article_equivalence_blocker_matrix_summary().expect("summary");
 
         assert!(report.matrix_contract_green);
-        assert!(!report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
         assert_eq!(report.blocker_count, 7);
-        assert_eq!(report.open_blocker_count, 2);
+        assert_eq!(report.open_blocker_count, 0);
     }
 
     #[test]

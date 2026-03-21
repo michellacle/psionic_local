@@ -207,9 +207,9 @@ fn build_report_from_blocker_matrix(
         optional_open_issue_ids,
         acceptance_status,
         article_equivalence_green,
-        public_claim_allowed: false,
+        public_claim_allowed: article_equivalence_green,
         claim_boundary: String::from(
-            "this is the frozen final acceptance gate for article-equivalent closure. It stays blocked until the blocker-matrix contract remains intact, the owned `psionic-transformer` route boundary remains intact, the blocker matrix itself turns article-equivalence green, and every required TAS tranche from `TAS-158` through `TAS-186` is closed. A green result here is necessary but not sufficient to widen public capability claims, and it still does not imply arbitrary C ingress, arbitrary Wasm ingress, or generic interpreter-in-weights closure outside the declared article envelope.",
+            "this is the frozen final acceptance gate for article-equivalent closure. It stays blocked until the blocker-matrix contract remains intact, the owned `psionic-transformer` route boundary remains intact, the blocker matrix itself turns article-equivalence green, and every required TAS tranche from `TAS-158` through `TAS-186` is closed. A green result here permits the bounded public article-equivalence claim inside the declared article envelope, but it still does not imply arbitrary C ingress, arbitrary Wasm ingress, or generic interpreter-in-weights closure outside that envelope.",
         ),
         summary: String::new(),
         report_digest: String::new(),
@@ -476,22 +476,22 @@ mod tests {
     }
 
     #[test]
-    fn article_equivalence_acceptance_gate_is_intentionally_red_by_default() {
+    fn article_equivalence_acceptance_gate_is_green_by_default() {
         let report =
             build_tassadar_article_equivalence_acceptance_gate_report().expect("acceptance gate");
 
         assert_eq!(
             report.acceptance_status,
-            TassadarArticleEquivalenceAcceptanceStatus::Blocked
+            TassadarArticleEquivalenceAcceptanceStatus::Green
         );
-        assert!(!report.article_equivalence_green);
-        assert!(!report.public_claim_allowed);
+        assert!(report.article_equivalence_green);
+        assert!(report.public_claim_allowed);
         assert!(report.blocker_matrix_contract_green);
         assert!(report.prerequisite_transformer_boundary_green);
-        assert!(!report.blocker_matrix_article_equivalence_green);
+        assert!(report.blocker_matrix_article_equivalence_green);
         assert_eq!(report.required_issue_count, 37);
-        assert_eq!(report.closed_required_issue_count, 36);
-        assert_eq!(report.passed_required_requirement_count, 38);
+        assert_eq!(report.closed_required_issue_count, 37);
+        assert_eq!(report.passed_required_requirement_count, 40);
         assert!(report
             .green_requirement_ids
             .contains(&String::from(BLOCKER_MATRIX_CONTRACT_REQUIREMENT_ID)));
@@ -576,9 +576,7 @@ mod tests {
         assert!(report
             .green_requirement_ids
             .contains(&String::from("TAS-178")));
-        assert!(report.failed_requirement_ids.contains(&String::from(
-            ARTICLE_EQUIVALENCE_BLOCKERS_CLOSED_REQUIREMENT_ID
-        )));
+        assert!(report.failed_requirement_ids.is_empty());
         assert_eq!(
             report.optional_open_issue_ids,
             vec![String::from(OPTIONAL_RESEARCH_ISSUE_ID)]
@@ -598,14 +596,13 @@ mod tests {
         assert!(report
             .green_requirement_ids
             .contains(&String::from("TAS-182")));
-        assert_eq!(report.closed_required_issue_count, 36);
-        assert_eq!(report.passed_required_requirement_count, 38);
-        assert_eq!(report.blocked_issue_ids.len(), 1);
-        assert_eq!(
-            report.blocked_issue_ids.first().map(String::as_str),
-            Some("TAS-186")
-        );
-        assert_eq!(report.blocked_blocker_ids.len(), 7);
+        assert!(report
+            .green_requirement_ids
+            .contains(&String::from("TAS-186")));
+        assert_eq!(report.closed_required_issue_count, 37);
+        assert_eq!(report.passed_required_requirement_count, 40);
+        assert!(report.blocked_issue_ids.is_empty());
+        assert!(report.blocked_blocker_ids.is_empty());
     }
 
     #[test]
@@ -617,7 +614,7 @@ mod tests {
             TassadarArticleEquivalenceAcceptanceStatus::Green
         );
         assert!(report.article_equivalence_green);
-        assert!(!report.public_claim_allowed);
+        assert!(report.public_claim_allowed);
         assert_eq!(report.required_issue_count, 37);
         assert_eq!(report.closed_required_issue_count, 37);
         assert!(report.failed_requirement_ids.is_empty());

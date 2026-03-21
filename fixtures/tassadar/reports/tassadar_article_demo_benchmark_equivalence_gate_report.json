@@ -6,10 +6,8 @@
     "acceptance_gate_report_ref": "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json",
     "tied_requirement_id": "TAS-182",
     "tied_requirement_satisfied": true,
-    "acceptance_status": "blocked",
-    "blocked_issue_ids": [
-      "TAS-186"
-    ]
+    "acceptance_status": "green",
+    "blocked_issue_ids": []
   },
   "hungarian_review": {
     "report_ref": "fixtures/tassadar/reports/tassadar_article_hungarian_demo_parity_report.json",
@@ -63,8 +61,8 @@
   "named_arto_parity_green": true,
   "benchmark_wide_sudoku_parity_green": true,
   "article_demo_benchmark_equivalence_gate_green": true,
-  "article_equivalence_green": false,
+  "article_equivalence_green": true,
   "claim_boundary": "this report closes TAS-182 only. It freezes one unified article demo-and-benchmark gate on top of the canonical owned `psionic-transformer` route boundary by requiring the Hungarian demo parity row, the named Arto parity row, and the declared hard-Sudoku benchmark-suite row to stay green together. It does not imply single-run no-spill closure, clean-room weight causality, route minimality, or final article-equivalence green status.",
-  "summary": "Article demo-and-benchmark equivalence gate now records tied_requirement_satisfied=true, hungarian_demo_parity_green=true, named_arto_parity_green=true, benchmark_wide_sudoku_parity_green=true, binding_green=true, gate_green=true, blocked_issue_frontier=Some(\"TAS-186\"), and article_equivalence_green=false.",
-  "report_digest": "5992b2ca8486b080fbfdebd563f48d4b7be11fdbb89275fe2952810116ef06b4"
+  "summary": "Article demo-and-benchmark equivalence gate now records tied_requirement_satisfied=true, hungarian_demo_parity_green=true, named_arto_parity_green=true, benchmark_wide_sudoku_parity_green=true, binding_green=true, gate_green=true, blocked_issue_frontier=None, and article_equivalence_green=true.",
+  "report_digest": "17e2c200909256ba87b43297a958e4926dd050751d6ce90d19be30a10cf0a8ae"
 }

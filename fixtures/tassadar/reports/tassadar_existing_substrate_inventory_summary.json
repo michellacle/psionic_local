@@ -10,13 +10,9 @@
       "blocker_matrix_report_ref": "fixtures/tassadar/reports/tassadar_article_equivalence_blocker_matrix_report.json",
       "tied_requirement_id": "TAS-159",
       "tied_requirement_satisfied": true,
-      "acceptance_status": "blocked",
-      "article_equivalence_green": false,
-      "blocked_issue_ids": [
-        "TAS-185",
-        "TAS-185A",
-        "TAS-186"
-      ]
+      "acceptance_status": "green",
+      "article_equivalence_green": true,
+      "blocked_issue_ids": []
     },
     "surfaces": [
       {
@@ -186,11 +182,11 @@
     "all_surfaces_have_item_refs": true,
     "all_surfaces_have_explicit_blocker_labels": true,
     "inventory_contract_green": true,
-    "article_equivalence_green": false,
+    "article_equivalence_green": true,
     "current_truth_boundary": "psionic already owns real reusable substrate for tensor contracts, bounded array execution, module state, basic layers, transformer-boundary configs, model descriptors, weight lineage metadata, runtime proof identity, and trace receipts. The current gap is not substrate absence; it is the missing owned article-equivalence stack and the current presence of bounded research or fixture-backed lanes that are not yet sufficient for canonical article closure.",
     "claim_boundary": "this report inventories reusable substrate only. It freezes what can be reused, what needs extension, what stays research-only, and what is still not sufficient for article closure. It does not claim that the owned article-equivalence Transformer stack, the canonical article model artifact, or the final article-equivalence proof route already exist.",
-    "summary": "Existing substrate inventory now records surface_count=11, blocker_surface_count=6, non_blocker_surface_count=5, inventory_contract_green=true, tied_requirement_satisfied=true, and article_equivalence_green=false.",
-    "report_digest": "b39dc2952ab53179534b7688035f120c6f3d7aa3ad079864c38d6ce03aa7628c"
+    "summary": "Existing substrate inventory now records surface_count=11, blocker_surface_count=6, non_blocker_surface_count=5, inventory_contract_green=true, tied_requirement_satisfied=true, and article_equivalence_green=true.",
+    "report_digest": "2d65f9fc50f18a091e6924f27316d2aa7aa0917c2bafa346d377cd8d23ffd9a8"
   },
   "surface_count": 11,
   "blocker_surface_count": 6,
@@ -215,10 +211,10 @@
   ],
   "tied_requirement_id": "TAS-159",
   "tied_requirement_satisfied": true,
-  "acceptance_status": "blocked",
-  "article_equivalence_green": false,
+  "acceptance_status": "green",
+  "article_equivalence_green": true,
   "current_truth_boundary": "psionic already owns real reusable substrate for tensor contracts, bounded array execution, module state, basic layers, transformer-boundary configs, model descriptors, weight lineage metadata, runtime proof identity, and trace receipts. The current gap is not substrate absence; it is the missing owned article-equivalence stack and the current presence of bounded research or fixture-backed lanes that are not yet sufficient for canonical article closure.",
   "claim_boundary": "this summary mirrors the existing-substrate inventory only. It keeps the reusable-substrate boundary operator-readable, but it does not widen the current public article-equivalence claim boundary beyond the underlying inventory report",
-  "summary": "Existing substrate inventory summary now records surface_count=11, blocker_surface_count=6, tied_requirement_satisfied=true, acceptance_status=blocked, and article_equivalence_green=false.",
-  "report_digest": "81cc7402e8acd1fef54fdd110da5fb47927f68e040824fdfd4d75c3e5f7d65e2"
+  "summary": "Existing substrate inventory summary now records surface_count=11, blocker_surface_count=6, tied_requirement_satisfied=true, acceptance_status=green, and article_equivalence_green=true.",
+  "report_digest": "67da66d6a578b93c70b3d3c92650341a753b781b438d1f485e5fde81e7dc1ab3"
 }

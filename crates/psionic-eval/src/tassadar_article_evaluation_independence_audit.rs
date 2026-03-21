@@ -1501,7 +1501,7 @@ mod tests {
         assert!(report.generator_overlap_audit.passed);
         assert!(report.feature_distribution_review.passed);
         assert!(report.evaluation_independence_green);
-        assert!(!report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
     }
 
     #[test]

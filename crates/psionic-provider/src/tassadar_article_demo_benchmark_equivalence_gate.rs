@@ -56,12 +56,12 @@ mod tests {
         assert_eq!(receipt.tied_requirement_id, "TAS-182");
         assert_eq!(
             receipt.blocked_issue_ids.first().map(String::as_str),
-            Some("TAS-183")
+            None
         );
         assert!(receipt.hungarian_demo_parity_green);
         assert!(receipt.named_arto_parity_green);
         assert!(receipt.benchmark_wide_sudoku_parity_green);
         assert!(receipt.gate_green);
-        assert!(!receipt.article_equivalence_green);
+        assert!(receipt.article_equivalence_green);
     }
 }

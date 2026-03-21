@@ -979,11 +979,11 @@ mod tests {
         assert!(report.acceptance_gate_tie.tied_requirement_satisfied);
         assert_eq!(
             report.acceptance_gate_tie.acceptance_status,
-            super::TassadarArticleEquivalenceAcceptanceStatus::Blocked
+            super::TassadarArticleEquivalenceAcceptanceStatus::Green
         );
         assert!(report.trace_vocabulary_binding_green);
         assert!(report.article_representation_invariance_green);
-        assert!(!report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
         assert_eq!(
             report
                 .representation_equivalence_review

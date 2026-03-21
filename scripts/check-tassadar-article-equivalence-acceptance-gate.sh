@@ -8,15 +8,15 @@ cargo run -p psionic-eval --example tassadar_article_equivalence_blocker_matrix_
 cargo run -p psionic-eval --example tassadar_article_equivalence_acceptance_gate_report
 
 jq -e '
-  .acceptance_status == "blocked"
-  and .article_equivalence_green == false
+  .acceptance_status == "green"
+  and .article_equivalence_green == true
   and .blocker_matrix_contract_green == true
   and .prerequisite_transformer_boundary_green == true
-  and .blocker_matrix_article_equivalence_green == false
-  and .public_claim_allowed == false
-  and .closed_required_issue_count == 36
-  and .passed_required_requirement_count == 38
-  and .open_blocker_count == 1
+  and .blocker_matrix_article_equivalence_green == true
+  and .public_claim_allowed == true
+  and .closed_required_issue_count == 37
+  and .passed_required_requirement_count == 40
+  and .open_blocker_count == 0
   and ((.green_requirement_ids | index("TAS-158")) != null)
   and ((.green_requirement_ids | index("TAS-159")) != null)
   and ((.green_requirement_ids | index("TAS-160")) != null)
@@ -34,8 +34,12 @@ jq -e '
   and ((.green_requirement_ids | index("TAS-183")) != null)
   and ((.green_requirement_ids | index("TAS-184")) != null)
   and ((.green_requirement_ids | index("TAS-184A")) != null)
-  and ((.failed_requirement_ids | index("article_equivalence_blockers_closed")) != null)
+  and ((.green_requirement_ids | index("TAS-185")) != null)
+  and ((.green_requirement_ids | index("TAS-185A")) != null)
+  and ((.green_requirement_ids | index("TAS-186")) != null)
+  and ((.green_requirement_ids | index("article_equivalence_blockers_closed")) != null)
+  and ((.failed_requirement_ids | length) == 0)
   and ((.optional_open_issue_ids | index("TAS-R1")) != null)
-  and ((.blocked_issue_ids | length) > 0)
-  and (.blocked_issue_ids[0] == "TAS-186")
+  and ((.blocked_issue_ids | length) == 0)
+  and ((.blocked_blocker_ids | length) == 0)
 ' fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json >/dev/null

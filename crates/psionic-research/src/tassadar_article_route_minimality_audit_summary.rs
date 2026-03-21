@@ -146,13 +146,13 @@ mod tests {
     }
 
     #[test]
-    fn article_route_minimality_audit_summary_tracks_public_suppression(
+    fn article_route_minimality_audit_summary_tracks_public_green_closeout(
     ) -> Result<(), Box<dyn std::error::Error>> {
         let summary = build_tassadar_article_route_minimality_audit_summary()?;
 
         assert_eq!(summary.tied_requirement_id, "TAS-185A");
         assert!(summary.tied_requirement_satisfied);
-        assert_eq!(summary.blocked_issue_frontier, "TAS-186");
+        assert_eq!(summary.blocked_issue_frontier, "none");
         assert_eq!(
             summary.canonical_claim_route_id,
             "tassadar.article_route.direct_hull_cache_runtime.v1"
@@ -164,11 +164,11 @@ mod tests {
         assert!(summary.operator_verdict_green);
         assert_eq!(
             summary.public_posture,
-            TassadarArticleRouteMinimalityPublicPosture::SuppressedPendingFinalAudit
+            TassadarArticleRouteMinimalityPublicPosture::GreenBounded
         );
-        assert!(!summary.public_verdict_green);
+        assert!(summary.public_verdict_green);
         assert!(summary.route_minimality_audit_green);
-        assert!(!summary.article_equivalence_green);
+        assert!(summary.article_equivalence_green);
         Ok(())
     }
 

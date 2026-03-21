@@ -223,9 +223,9 @@ mod tests {
         assert_eq!(summary.shared_generator_rule_digest_count, 0);
         assert_eq!(summary.shared_profile_id_count, 0);
         assert!(summary.tied_requirement_satisfied);
-        assert_eq!(summary.acceptance_status, "blocked");
+        assert_eq!(summary.acceptance_status, "green");
         assert!(summary.evaluation_independence_green);
-        assert!(!summary.article_equivalence_green);
+        assert!(summary.article_equivalence_green);
     }
 
     #[test]

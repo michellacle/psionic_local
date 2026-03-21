@@ -407,7 +407,7 @@ fn build_report_from_inputs(
         schema_version: 1,
         report_id: String::from("tassadar.article_hungarian_demo_parity.report.v1"),
         checker_script_ref: String::from(TASSADAR_ARTICLE_HUNGARIAN_DEMO_PARITY_CHECKER_REF),
-        acceptance_gate_tie,
+        acceptance_gate_tie: acceptance_gate_tie.clone(),
         frontend_review,
         no_tool_proof_review,
         fast_route_session_review,
@@ -415,7 +415,8 @@ fn build_report_from_inputs(
         throughput_review,
         binding_review,
         hungarian_demo_parity_green,
-        article_equivalence_green: false,
+        article_equivalence_green: acceptance_gate_tie.blocked_issue_ids.is_empty()
+            && hungarian_demo_parity_green,
         claim_boundary: String::from(
             "this report closes TAS-180 only. It binds the canonical 10x10 Hungarian article demo source to one direct HullCache fast-route session, one planner-owned HullCache hybrid workflow, the declared throughput-floor artifact, and the existing no-tool reproducer proof surface. It does not yet claim Arto closure, benchmark-wide hard-Sudoku closure, unified demo-and-benchmark equivalence, single-run closure, or final article-equivalence green status.",
         ),
@@ -917,15 +918,8 @@ mod tests {
         assert!(report.throughput_review.declared_floor_green);
         assert!(report.binding_review.binding_green);
         assert!(report.hungarian_demo_parity_green);
-        assert_eq!(
-            report
-                .acceptance_gate_tie
-                .blocked_issue_ids
-                .first()
-                .map(String::as_str),
-            Some("TAS-186")
-        );
-        assert!(!report.article_equivalence_green);
+        assert!(report.acceptance_gate_tie.blocked_issue_ids.is_empty());
+        assert!(report.article_equivalence_green);
     }
 
     #[test]

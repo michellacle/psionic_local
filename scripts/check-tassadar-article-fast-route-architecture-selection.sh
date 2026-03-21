@@ -21,7 +21,7 @@ cargo run -p psionic-research --example tassadar_article_fast_route_architecture
 
 jq -e '
   .fast_route_selection_green == true
-  and .article_equivalence_green == false
+  and .article_equivalence_green == true
   and ((.acceptance_gate_tie.tied_requirement_id) == "TAS-172")
   and ((.acceptance_gate_tie.tied_requirement_satisfied) == true)
   and ((.selected_candidate_kind) == "hull_cache_runtime")

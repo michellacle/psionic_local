@@ -203,9 +203,9 @@ mod tests {
         assert_eq!(report.refused_case_count, 0);
         assert_eq!(report.direct_model_weight_proof_case_count, 3);
         assert!(report.tied_requirement_satisfied);
-        assert_eq!(report.acceptance_status, "blocked");
+        assert_eq!(report.acceptance_status, "green");
         assert!(report.reference_linear_exactness_green);
-        assert!(!report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
         assert!(report.mismatch_case_ids.is_empty());
         assert!(report.refused_case_ids.is_empty());
     }

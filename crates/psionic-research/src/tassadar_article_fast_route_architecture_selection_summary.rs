@@ -211,9 +211,9 @@ mod tests {
         assert_eq!(summary.selected_direct_module_class_count, 6);
         assert_eq!(summary.selected_fallback_module_class_count, 0);
         assert!(summary.tied_requirement_satisfied);
-        assert_eq!(summary.acceptance_status, "blocked");
+        assert_eq!(summary.acceptance_status, "green");
         assert!(summary.fast_route_selection_green);
-        assert!(!summary.article_equivalence_green);
+        assert!(summary.article_equivalence_green);
     }
 
     #[test]

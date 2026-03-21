@@ -204,7 +204,7 @@ mod tests {
             build_tassadar_article_trace_vocabulary_binding_summary().expect("binding summary");
 
         assert!(report.tied_requirement_satisfied);
-        assert_eq!(report.acceptance_status, "blocked");
+        assert_eq!(report.acceptance_status, "green");
         assert_eq!(report.channel_binding_row_count, 14);
         assert!(report.source_vocab_compatible);
         assert!(report.target_vocab_compatible);
@@ -213,7 +213,7 @@ mod tests {
         assert!(report.all_required_channels_bound);
         assert!(report.roundtrip_exact);
         assert!(report.article_trace_vocabulary_binding_green);
-        assert!(!report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
     }
 
     #[test]

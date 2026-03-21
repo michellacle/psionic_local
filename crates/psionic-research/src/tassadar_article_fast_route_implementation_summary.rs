@@ -193,7 +193,7 @@ mod tests {
         assert!(summary.hybrid_fast_path_integrated);
         assert!(summary.direct_proof_descriptor_binding_green);
         assert!(summary.fast_route_implementation_green);
-        assert!(!summary.article_equivalence_green);
+        assert!(summary.article_equivalence_green);
     }
 
     #[test]

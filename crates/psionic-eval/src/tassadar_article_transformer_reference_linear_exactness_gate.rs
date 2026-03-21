@@ -857,7 +857,7 @@ mod tests {
         assert_eq!(report.within_transformer_context_window_case_count, 4);
         assert_eq!(report.direct_model_weight_proof_case_count, 3);
         assert!(report.reference_linear_exactness_green);
-        assert!(!report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
         assert!(report.parity_review.passed);
         assert!(report.direct_proof_review.passed);
         assert!(report

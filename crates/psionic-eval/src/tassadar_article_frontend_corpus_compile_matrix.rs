@@ -230,7 +230,7 @@ pub fn build_tassadar_article_frontend_corpus_compile_matrix_report() -> Result<
         schema_version: 1,
         report_id: String::from("tassadar.article_frontend_corpus_compile_matrix.report.v1"),
         checker_script_ref: String::from(TASSADAR_ARTICLE_FRONTEND_CORPUS_COMPILE_MATRIX_CHECKER_REF),
-        acceptance_gate_tie,
+        acceptance_gate_tie: acceptance_gate_tie.clone(),
         manifest_ref: String::from(TASSADAR_ARTICLE_FRONTEND_COMPILER_ENVELOPE_MANIFEST_REF),
         manifest,
         case_rows,
@@ -244,7 +244,8 @@ pub fn build_tassadar_article_frontend_corpus_compile_matrix_report() -> Result<
         category_coverage_green,
         envelope_alignment_green,
         compile_matrix_green,
-        article_equivalence_green: false,
+        article_equivalence_green: acceptance_gate_tie.blocked_issue_ids.is_empty()
+            && compile_matrix_green,
         claim_boundary: String::from(
             "this report closes TAS-177 only. It expands the article-envelope frontend corpus beyond the old narrow canonical lane by compiling a broader committed Rust source set across arithmetic, branch-heavy, state-machine, allocator-backed memory, Hungarian-like, and Sudoku-like support families, while keeping typed refusal and toolchain-failure posture machine-readable. It does not yet claim article-demo frontend parity, arbitrary-program closure, or final article-equivalence green status.",
         ),
@@ -953,15 +954,8 @@ mod tests {
         assert!(report.category_coverage_green);
         assert!(report.envelope_alignment_green);
         assert!(report.compile_matrix_green);
-        assert!(!report.article_equivalence_green);
-        assert_eq!(
-            report
-                .acceptance_gate_tie
-                .blocked_issue_ids
-                .first()
-                .map(String::as_str),
-            Some("TAS-186")
-        );
+        assert!(report.article_equivalence_green);
+        assert!(report.acceptance_gate_tie.blocked_issue_ids.is_empty());
         assert_eq!(
             report
                 .case_rows

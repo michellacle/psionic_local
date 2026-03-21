@@ -606,9 +606,9 @@ mod tests {
             build_tassadar_article_transformer_forward_pass_closure_report().expect("report");
 
         assert!(report.acceptance_gate_tie.tied_requirement_satisfied);
-        assert_eq!(report.acceptance_gate_tie.acceptance_status, super::TassadarArticleEquivalenceAcceptanceStatus::Blocked);
+        assert_eq!(report.acceptance_gate_tie.acceptance_status, super::TassadarArticleEquivalenceAcceptanceStatus::Green);
         assert!(report.article_transformer_forward_pass_contract_green);
-        assert!(!report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
         assert_eq!(report.case_rows.len(), 6);
         assert_eq!(report.case_rows.iter().filter(|row| row.passed).count(), 6);
     }

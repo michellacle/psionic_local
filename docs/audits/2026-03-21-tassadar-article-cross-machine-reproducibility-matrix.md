@@ -28,9 +28,7 @@ The matrix does not yet say:
 
 - that the route is minimal
 - that stochastic execution is part of the admitted article claim
-- that the final publication checker is green
-- that the broader article argument is now complete without the remaining
-  `TAS-185A` and `TAS-186` tranches
+- that the broader article argument is complete by this matrix alone
 
 Canonical artifacts for this tranche:
 

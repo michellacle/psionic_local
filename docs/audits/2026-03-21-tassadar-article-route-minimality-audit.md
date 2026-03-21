@@ -19,20 +19,20 @@ The public repo now says, machine-readably:
   that claim route
 - planner-owned and hybrid orchestration lanes remain outside the public claim
   even when they exist as operator-side surfaces
-- the operator verdict is green while the public verdict remains explicitly
-  suppressed until `TAS-186`
+- the operator verdict is green and the bounded public verdict now resolves on
+  the same direct route with `TAS-186` now closed
 
 This is stronger than saying the route merely works. It freezes which route is
 the claim, which orchestration layers are not the claim, and which public
-posture is still blocked.
+posture is now `green_bounded`.
 
-It is still not the final article-equivalence verdict.
+It is still not, by itself, the final article-equivalence verdict.
 
-The audit does not yet say:
+The audit still does not say:
 
-- that the final article-equivalence checker is green
-- that the remaining blocker-matrix open row is gone
 - that the public claim can widen past the bounded article envelope
+- that planner or hybrid orchestration become part of the canonical route
+- that resumed or stochastic execution become part of the claim
 
 Canonical artifacts for this tranche:
 

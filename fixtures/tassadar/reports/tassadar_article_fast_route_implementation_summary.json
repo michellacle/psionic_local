@@ -10,12 +10,8 @@
       "acceptance_gate_report_ref": "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json",
       "tied_requirement_id": "TAS-173",
       "tied_requirement_satisfied": true,
-      "acceptance_status": "blocked",
-      "blocked_issue_ids": [
-        "TAS-185",
-        "TAS-185A",
-        "TAS-186"
-      ]
+      "acceptance_status": "green",
+      "blocked_issue_ids": []
     },
     "selected_candidate_kind": "hull_cache_runtime",
     "descriptor_review": {
@@ -70,21 +66,21 @@
       "detail": "the direct model-weight proof report now binds the trained Transformer model id, one canonical model-descriptor digest, and one published route digest into the proof family"
     },
     "fast_route_implementation_green": true,
-    "article_equivalence_green": false,
+    "article_equivalence_green": true,
     "claim_boundary": "this report closes only TAS-173. It proves the canonical trained Transformer-backed article model now owns the selected HullCache fast path at the descriptor, article-session, hybrid-route, and direct-proof surfaces. It does not yet claim fast-route no-fallback closure, throughput-floor closure, or final article-equivalence green status.",
     "summary": "Article fast-route implementation report now records selected_candidate_kind=`hull_cache_runtime`, tied_requirement_satisfied=true, fast_route_implementation_green=true, article_session_model_id=`tassadar-article-transformer-trace-bound-trained-v0`, hybrid_model_id=`tassadar-article-transformer-trace-bound-trained-v0`, and direct_proof_descriptor_binding_green=true.",
-    "report_digest": "cf44e6c0fc045aeb0b7f2dd399494b0a572554f776964530b9756379f1cc3424"
+    "report_digest": "ee91d5d07f6ee386ac7f7f0a4884a1d8e430a9a2bacd28f03038015bd027266c"
   },
   "tied_requirement_id": "TAS-173",
   "tied_requirement_satisfied": true,
-  "acceptance_status": "blocked",
+  "acceptance_status": "green",
   "selected_candidate_kind": "hull_cache_runtime",
   "article_session_fast_path_integrated": true,
   "hybrid_fast_path_integrated": true,
   "direct_proof_descriptor_binding_green": true,
   "fast_route_implementation_green": true,
-  "article_equivalence_green": false,
+  "article_equivalence_green": true,
   "claim_boundary": "this summary mirrors only the TAS-173 fast-route implementation tranche. It keeps the canonical HullCache ownership, live session routing, and direct-proof descriptor binding operator-readable without pretending that TAS-174 or TAS-175 are already closed.",
-  "summary": "Article fast-route implementation summary now records selected_candidate_kind=`hull_cache_runtime`, tied_requirement_satisfied=true, article_session_fast_path_integrated=true, hybrid_fast_path_integrated=true, direct_proof_descriptor_binding_green=true, fast_route_implementation_green=true, and article_equivalence_green=false.",
-  "report_digest": "cb10dbf539b2e8476f59cf5cddf45c61c3bbc77e5e85115a025553e6eb449c74"
+  "summary": "Article fast-route implementation summary now records selected_candidate_kind=`hull_cache_runtime`, tied_requirement_satisfied=true, article_session_fast_path_integrated=true, hybrid_fast_path_integrated=true, direct_proof_descriptor_binding_green=true, fast_route_implementation_green=true, and article_equivalence_green=true.",
+  "report_digest": "a31406d619ba6f7aecae059fd57c6a09c7f961d381c849f286c08c28d3352072"
 }

@@ -335,7 +335,7 @@ fn build_report_from_inputs(
         checker_script_ref: String::from(
             TASSADAR_ARTICLE_KV_ACTIVATION_DISCIPLINE_AUDIT_CHECKER_REF,
         ),
-        acceptance_gate_tie,
+        acceptance_gate_tie: acceptance_gate_tie.clone(),
         ownership_gate_report_ref: String::from(TASSADAR_ARTICLE_INTERPRETER_OWNERSHIP_GATE_REPORT_REF),
         ownership_gate_green: ownership_report.interpreter_ownership_green,
         growth_report,
@@ -344,9 +344,10 @@ fn build_report_from_inputs(
         dominance_verdict,
         binding_review,
         kv_activation_discipline_green,
-        article_equivalence_green: false,
+        article_equivalence_green: acceptance_gate_tie.blocked_issue_ids.is_empty()
+            && kv_activation_discipline_green,
         claim_boundary: String::from(
-            "this report closes TAS-184A only. It declares the article-route KV-cache and activation-state discipline verdict for the bounded public envelope, including explicit acceptable versus non-acceptable state carriers and an explicit weight-dominant versus activation-dominant versus mixed verdict. It still does not close cross-machine reproducibility from TAS-185, route minimality from TAS-185A, or the final article-equivalence audit from TAS-186.",
+            "this report closes TAS-184A only. It declares the article-route KV-cache and activation-state discipline verdict for the bounded public envelope, including explicit acceptable versus non-acceptable state carriers and an explicit weight-dominant versus activation-dominant versus mixed verdict. By itself it still does not replace the later cross-machine reproducibility matrix, route-minimality audit, or final article-equivalence audit.",
         ),
         summary: String::new(),
         report_digest: String::new(),
@@ -1046,15 +1047,8 @@ mod tests {
             report.dominance_verdict.verdict,
             super::TassadarArticleStateDominanceVerdictKind::Mixed
         );
-        assert_eq!(
-            report
-                .acceptance_gate_tie
-                .blocked_issue_ids
-                .first()
-                .map(String::as_str),
-            Some("TAS-186")
-        );
-        assert!(!report.article_equivalence_green);
+        assert!(report.acceptance_gate_tie.blocked_issue_ids.is_empty());
+        assert!(report.article_equivalence_green);
     }
 
     #[test]

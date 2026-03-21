@@ -246,7 +246,7 @@ pub fn build_tassadar_article_demo_frontend_parity_report(
         schema_version: 1,
         report_id: String::from("tassadar.article_demo_frontend_parity.report.v1"),
         checker_script_ref: String::from(TASSADAR_ARTICLE_DEMO_FRONTEND_PARITY_CHECKER_REF),
-        acceptance_gate_tie,
+        acceptance_gate_tie: acceptance_gate_tie.clone(),
         manifest_ref: String::from(TASSADAR_ARTICLE_FRONTEND_COMPILER_ENVELOPE_MANIFEST_REF),
         manifest,
         source_canon_report_ref: String::from(TASSADAR_RUST_SOURCE_CANON_REPORT_REF),
@@ -259,7 +259,8 @@ pub fn build_tassadar_article_demo_frontend_parity_report(
         workload_identity_parity_green,
         unsupported_variant_refusal_green,
         demo_frontend_parity_green,
-        article_equivalence_green: false,
+        article_equivalence_green: acceptance_gate_tie.blocked_issue_ids.is_empty()
+            && demo_frontend_parity_green,
         claim_boundary: String::from(
             "this report closes TAS-178 only. It proves that the canonical Hungarian and Sudoku article demo sources compile through the declared public frontend/compiler envelope and stay bound to the same canonical compiled-executor case and workload identities already used by the bounded reproducers. It does not yet claim final Hungarian fast-route parity, Arto or benchmark-wide hard-Sudoku closure, arbitrary-program closure, or final article-equivalence green status.",
         ),
@@ -804,15 +805,8 @@ mod tests {
         assert!(report.workload_identity_parity_green);
         assert!(report.unsupported_variant_refusal_green);
         assert!(report.demo_frontend_parity_green);
-        assert!(!report.article_equivalence_green);
-        assert_eq!(
-            report
-                .acceptance_gate_tie
-                .blocked_issue_ids
-                .first()
-                .map(String::as_str),
-            Some("TAS-186")
-        );
+        assert!(report.article_equivalence_green);
+        assert!(report.acceptance_gate_tie.blocked_issue_ids.is_empty());
     }
 
     #[test]

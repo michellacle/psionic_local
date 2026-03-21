@@ -1006,7 +1006,7 @@ mod tests {
             TassadarArticleFastRouteCandidateKind::HullCacheRuntime
         );
         assert!(report.fast_route_selection_green);
-        assert!(!report.article_equivalence_green);
+        assert!(report.article_equivalence_green);
 
         let hull_routeability = report
             .routeability_checks
@@ -1036,7 +1036,7 @@ mod tests {
                 .blocked_issue_ids
                 .first()
                 .map(String::as_str),
-            Some("TAS-186")
+            None
         );
     }
 
