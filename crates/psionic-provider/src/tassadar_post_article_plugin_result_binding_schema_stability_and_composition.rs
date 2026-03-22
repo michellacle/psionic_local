@@ -1,9 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use psionic_research::TassadarPostArticlePluginConformanceSandboxAndBenchmarkHarnessSummary;
+use psionic_research::TassadarPostArticlePluginResultBindingSchemaStabilityAndCompositionSummary;
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct TassadarPostArticlePluginConformanceSandboxAndBenchmarkHarnessReceipt {
+pub struct TassadarPostArticlePluginResultBindingSchemaStabilityAndCompositionReceipt {
     pub report_id: String,
     pub machine_identity_id: String,
     pub canonical_route_id: String,
@@ -11,16 +11,18 @@ pub struct TassadarPostArticlePluginConformanceSandboxAndBenchmarkHarnessReceipt
     pub host_owned_runtime_api_id: String,
     pub engine_abstraction_id: String,
     pub invocation_receipt_profile_id: String,
-    pub conformance_harness_id: String,
-    pub benchmark_harness_id: String,
+    pub result_binding_contract_id: String,
+    pub model_loop_return_profile_id: String,
+    pub runtime_bundle_id: String,
     pub contract_status: String,
-    pub conformance_row_count: u32,
-    pub workflow_row_count: u32,
-    pub isolation_negative_row_count: u32,
-    pub benchmark_row_count: u32,
+    pub binding_row_count: u32,
+    pub evidence_boundary_row_count: u32,
+    pub composition_row_count: u32,
+    pub negative_row_count: u32,
     pub validation_row_count: u32,
     pub deferred_issue_ids: Vec<String>,
-    pub conformance_sandbox_green: bool,
+    pub result_binding_contract_green: bool,
+    pub semantic_composition_closure_green: bool,
     pub operator_internal_only_posture: bool,
     pub rebase_claim_allowed: bool,
     pub plugin_capability_claim_allowed: bool,
@@ -31,10 +33,10 @@ pub struct TassadarPostArticlePluginConformanceSandboxAndBenchmarkHarnessReceipt
     pub detail: String,
 }
 
-impl TassadarPostArticlePluginConformanceSandboxAndBenchmarkHarnessReceipt {
+impl TassadarPostArticlePluginResultBindingSchemaStabilityAndCompositionReceipt {
     #[must_use]
     pub fn from_summary(
-        summary: &TassadarPostArticlePluginConformanceSandboxAndBenchmarkHarnessSummary,
+        summary: &TassadarPostArticlePluginResultBindingSchemaStabilityAndCompositionSummary,
     ) -> Self {
         Self {
             report_id: summary.report_id.clone(),
@@ -44,16 +46,18 @@ impl TassadarPostArticlePluginConformanceSandboxAndBenchmarkHarnessReceipt {
             host_owned_runtime_api_id: summary.host_owned_runtime_api_id.clone(),
             engine_abstraction_id: summary.engine_abstraction_id.clone(),
             invocation_receipt_profile_id: summary.invocation_receipt_profile_id.clone(),
-            conformance_harness_id: summary.conformance_harness_id.clone(),
-            benchmark_harness_id: summary.benchmark_harness_id.clone(),
+            result_binding_contract_id: summary.result_binding_contract_id.clone(),
+            model_loop_return_profile_id: summary.model_loop_return_profile_id.clone(),
+            runtime_bundle_id: summary.runtime_bundle_id.clone(),
             contract_status: format!("{:?}", summary.contract_status).to_lowercase(),
-            conformance_row_count: summary.conformance_row_count,
-            workflow_row_count: summary.workflow_row_count,
-            isolation_negative_row_count: summary.isolation_negative_row_count,
-            benchmark_row_count: summary.benchmark_row_count,
+            binding_row_count: summary.binding_row_count,
+            evidence_boundary_row_count: summary.evidence_boundary_row_count,
+            composition_row_count: summary.composition_row_count,
+            negative_row_count: summary.negative_row_count,
             validation_row_count: summary.validation_row_count,
             deferred_issue_ids: summary.deferred_issue_ids.clone(),
-            conformance_sandbox_green: summary.conformance_sandbox_green,
+            result_binding_contract_green: summary.result_binding_contract_green,
+            semantic_composition_closure_green: summary.semantic_composition_closure_green,
             operator_internal_only_posture: summary.operator_internal_only_posture,
             rebase_claim_allowed: summary.rebase_claim_allowed,
             plugin_capability_claim_allowed: summary.plugin_capability_claim_allowed,
@@ -62,12 +66,12 @@ impl TassadarPostArticlePluginConformanceSandboxAndBenchmarkHarnessReceipt {
             served_public_universality_allowed: summary.served_public_universality_allowed,
             arbitrary_software_capability_allowed: summary.arbitrary_software_capability_allowed,
             detail: format!(
-                "post-article plugin conformance summary `{}` keeps contract_status={:?}, conformance_harness_id=`{}`, conformance_rows={}, benchmark_rows={}, and deferred_issue_ids={}.",
+                "post-article plugin result-binding summary `{}` keeps contract_status={:?}, result_binding_contract_id=`{}`, binding_rows={}, composition_rows={}, and deferred_issue_ids={}.",
                 summary.report_id,
                 summary.contract_status,
-                summary.conformance_harness_id,
-                summary.conformance_row_count,
-                summary.benchmark_row_count,
+                summary.result_binding_contract_id,
+                summary.binding_row_count,
+                summary.composition_row_count,
                 summary.deferred_issue_ids.len(),
             ),
         }
@@ -76,16 +80,16 @@ impl TassadarPostArticlePluginConformanceSandboxAndBenchmarkHarnessReceipt {
 
 #[cfg(test)]
 mod tests {
-    use super::TassadarPostArticlePluginConformanceSandboxAndBenchmarkHarnessReceipt;
-    use psionic_research::build_tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_summary;
+    use super::TassadarPostArticlePluginResultBindingSchemaStabilityAndCompositionReceipt;
+    use psionic_research::build_tassadar_post_article_plugin_result_binding_schema_stability_and_composition_summary;
 
     #[test]
-    fn post_article_plugin_conformance_harness_receipt_projects_summary() {
+    fn post_article_plugin_result_binding_receipt_projects_summary() {
         let summary =
-            build_tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_summary()
+            build_tassadar_post_article_plugin_result_binding_schema_stability_and_composition_summary()
                 .expect("summary");
         let receipt =
-            TassadarPostArticlePluginConformanceSandboxAndBenchmarkHarnessReceipt::from_summary(
+            TassadarPostArticlePluginResultBindingSchemaStabilityAndCompositionReceipt::from_summary(
                 &summary,
             );
 
@@ -104,15 +108,21 @@ mod tests {
             "tassadar.plugin_runtime.invocation_receipts.v1"
         );
         assert_eq!(
-            receipt.conformance_harness_id,
-            "tassadar.plugin_runtime.conformance_harness.v1"
+            receipt.result_binding_contract_id,
+            "tassadar.weighted_plugin.result_binding_contract.v1"
         );
         assert_eq!(
-            receipt.benchmark_harness_id,
-            "tassadar.plugin_runtime.benchmark_harness.v1"
+            receipt.model_loop_return_profile_id,
+            "tassadar.weighted_plugin.model_loop_return_profile.v1"
         );
-        assert!(receipt.deferred_issue_ids.is_empty());
-        assert!(receipt.conformance_sandbox_green);
+        assert_eq!(receipt.binding_row_count, 5);
+        assert_eq!(receipt.evidence_boundary_row_count, 3);
+        assert_eq!(receipt.composition_row_count, 4);
+        assert_eq!(receipt.negative_row_count, 4);
+        assert_eq!(receipt.validation_row_count, 12);
+        assert_eq!(receipt.deferred_issue_ids, vec![String::from("TAS-204")]);
+        assert!(receipt.result_binding_contract_green);
+        assert!(receipt.semantic_composition_closure_green);
         assert!(receipt.operator_internal_only_posture);
         assert!(receipt.rebase_claim_allowed);
         assert!(!receipt.plugin_capability_claim_allowed);

@@ -1423,9 +1423,31 @@ The current scope is:
   intersection, hot-swap compatibility, failure-domain isolation, side-channel
   and covert-channel negatives, and cold or warm or pooled or queued or
   cancelled benchmark evidence while keeping the current lane
-  operator/internal-only and leaving weighted plugin sequencing, plugin
+  operator/internal-only, clearing the conformance defer pointer to empty after
+  `TAS-203A`, and leaving weighted plugin sequencing, plugin
   publication, served/public universality, and arbitrary software capability
   blocked
+- the current post-article plugin result-binding, schema-stability, and
+  composition artifacts are
+  `fixtures/tassadar/reports/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_report.json`,
+  `fixtures/tassadar/reports/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_summary.json`,
+  the runtime bundle in
+  `fixtures/tassadar/runs/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_v1/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_bundle.json`,
+  the provider receipt in
+  `crates/psionic-provider/src/tassadar_post_article_plugin_result_binding_schema_stability_and_composition.rs`,
+  the checker script
+  `scripts/check-tassadar-post-article-plugin-result-binding-schema-stability-and-composition.sh`,
+  and the audit note
+  `docs/audits/2026-03-21-tassadar-post-article-plugin-result-binding-schema-stability-and-composition.md`,
+  which freeze the transformer-owned result-binding contract plus runtime-owned
+  schema-stability and composition evidence by requiring explicit output-to-
+  state digest binding, explicit backward-compatible schema evolution rules,
+  typed refusal normalization, proof-versus-observational result boundaries,
+  non-lossy semantic closure across admitted multi-step chains, and fail-closed
+  posture on lossy coercion, schema auto-repair, ambiguous composition, or
+  semantically incomplete reinjection while still leaving weighted plugin
+  control, plugin publication, served/public universality, and arbitrary
+  software capability blocked
 - the current post-article Turing-completeness closeout artifacts are
   `fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json`,
   `fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_summary.json`,

@@ -1,0 +1,527 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.post_article_plugin_result_binding_schema_stability_and_composition.report.v1",
+  "checker_script_ref": "scripts/check-tassadar-post-article-plugin-result-binding-schema-stability-and-composition.sh",
+  "conformance_eval_report_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_eval_report.json",
+  "runtime_bundle_ref": "fixtures/tassadar/runs/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_v1/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_bundle.json",
+  "local_plugin_system_spec_ref": "~/code/alpha/tassadar/plugin-system.md",
+  "supporting_material_refs": [
+    "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_eval_report.json",
+    "fixtures/tassadar/runs/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_v1/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_bundle.json",
+    "fixtures/tassadar/reports/tassadar_effectful_replay_audit_report.json",
+    "fixtures/tassadar/reports/tassadar_internal_component_abi_report.json",
+    "crates/psionic-transformer/src/tassadar_post_article_plugin_result_binding_contract.rs",
+    "~/code/alpha/tassadar/plugin-system.md",
+    "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md"
+  ],
+  "machine_identity_binding": {
+    "machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+    "canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+    "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+    "canonical_route_descriptor_digest": "00af062cccc3d1b2e42ee8e092b9ef8e1539dd3f2dfc379cff7d1cd4a008b032",
+    "canonical_weight_bundle_digest": "99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c",
+    "canonical_weight_primary_artifact_sha256": "e24923e6fe39f0656b3f331fb935e0827a3de43b706014610e513ca5a54e9f84",
+    "continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+    "continuation_contract_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
+    "computational_model_statement_id": "tassadar.post_article_universality_bridge.computational_model_statement.v1",
+    "conformance_eval_report_id": "tassadar.post_article_plugin_conformance_sandbox_and_benchmark_harness.eval_report.v1",
+    "conformance_eval_report_digest": "38a301b3df169ba72d7a1cb6a13e1df4e9c308cd0e4399eec33398567c7e517b",
+    "packet_abi_version": "packet.v1",
+    "host_owned_runtime_api_id": "tassadar.plugin_runtime.host_owned_api.v1",
+    "engine_abstraction_id": "tassadar.plugin_runtime.engine_abstraction.v1",
+    "invocation_receipt_profile_id": "tassadar.plugin_runtime.invocation_receipts.v1",
+    "conformance_harness_id": "tassadar.plugin_runtime.conformance_harness.v1",
+    "benchmark_harness_id": "tassadar.plugin_runtime.benchmark_harness.v1",
+    "result_binding_contract_id": "tassadar.weighted_plugin.result_binding_contract.v1",
+    "result_binding_contract_digest": "2b436220da9899c0566f9308088bdd744efd067f609a5b0617dfedf7808f89a0",
+    "model_loop_return_profile_id": "tassadar.weighted_plugin.model_loop_return_profile.v1",
+    "runtime_bundle_id": "tassadar.post_article_plugin_result_binding_schema_stability_and_composition.runtime_bundle.v1",
+    "runtime_bundle_digest": "9fe1b2f74abc43b6032198fcf5d5ebae3fb663bc13cbd17c96e90b5e1a1b1cd9",
+    "runtime_bundle_ref": "fixtures/tassadar/runs/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_v1/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_bundle.json",
+    "effectful_replay_audit_report_id": "tassadar.effectful_replay_audit.report.v1",
+    "internal_component_abi_report_id": "tassadar.internal_component_abi.report.v1",
+    "detail": "machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1` canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1` conformance_eval_report_id=`tassadar.post_article_plugin_conformance_sandbox_and_benchmark_harness.eval_report.v1` result_binding_contract_id=`tassadar.weighted_plugin.result_binding_contract.v1` and runtime_bundle_id=`tassadar.post_article_plugin_result_binding_schema_stability_and_composition.runtime_bundle.v1` remain bound together."
+  },
+  "transformer_contract": {
+    "schema_version": 1,
+    "contract_id": "tassadar.weighted_plugin.result_binding_contract.v1",
+    "model_loop_return_profile_id": "tassadar.weighted_plugin.model_loop_return_profile.v1",
+    "schema_evolution_rule_rows": [
+      {
+        "rule_id": "exact_schema_identity_or_declared_backward_compatibility",
+        "green": true,
+        "detail": "plugin outputs may only re-enter the model loop under exact schema identity or an explicitly declared backward-compatible evolution rule."
+      },
+      {
+        "rule_id": "output_digest_binds_next_model_visible_state",
+        "green": true,
+        "detail": "every admitted plugin output digest must bind to the next model-visible state digest explicitly instead of relying on adapter-defined reshaping."
+      },
+      {
+        "rule_id": "lossy_field_coercion_refused",
+        "green": true,
+        "detail": "lossy coercion or field dropping remains a typed refusal rather than a silent reinjection convenience."
+      },
+      {
+        "rule_id": "semantic_incompleteness_fails_closed",
+        "green": true,
+        "detail": "schema projections that leave task meaning semantically incomplete remain fail-closed instead of adapter-defined partial success."
+      }
+    ],
+    "refusal_normalization_rule_rows": [
+      {
+        "rule_id": "typed_failure_classes_preserved",
+        "green": true,
+        "detail": "typed refusal and failure classes remain preserved all the way into the model-visible return state."
+      },
+      {
+        "rule_id": "retryable_vs_terminal_refusals_explicit",
+        "green": true,
+        "detail": "retryable and terminal refusal classes remain explicit instead of collapsing into one generic model-visible error token."
+      },
+      {
+        "rule_id": "observational_audits_do_not_rewrite_proof_state",
+        "green": true,
+        "detail": "observational result audits remain distinct from proof-carrying result guarantees and may not rewrite the reinjection contract."
+      },
+      {
+        "rule_id": "version_skew_refuses_before_reinjection",
+        "green": true,
+        "detail": "model-version versus plugin-schema version skew remains a fail-closed refusal before reinjection."
+      }
+    ],
+    "composition_law_rows": [
+      {
+        "rule_id": "multi_step_semantic_closure_required",
+        "green": true,
+        "detail": "multi-step chaining remains semantically closed or fails closed with typed refusal."
+      },
+      {
+        "rule_id": "non_lossy_schema_transition_required",
+        "green": true,
+        "detail": "schema transitions across chained plugin outputs remain non-lossy or refuse reinjection."
+      },
+      {
+        "rule_id": "ambiguous_composition_blocked",
+        "green": true,
+        "detail": "composition across steps that introduces ambiguity remains blocked instead of letting host adapters choose a meaning."
+      },
+      {
+        "rule_id": "adapter_defined_return_path_forbidden",
+        "green": true,
+        "detail": "the model-loop return path stays contract-defined and replayable rather than adapter-defined per caller or plugin family."
+      }
+    ],
+    "claim_boundary": "this transformer-owned contract freezes the abstract weighted plugin result-binding surface above the canonical owned route. It keeps schema evolution, refusal normalization, explicit output-to-state digest binding, semantic closure, non-lossy composition, and fail-closed ambiguity posture explicit without yet claiming that weighted plugin sequencing itself is closed.",
+    "summary": "Transformer result-binding contract freezes 4 schema-evolution rules, 4 refusal-normalization rules, and 4 composition laws for weighted plugin return-path ownership."
+  },
+  "dependency_rows": [
+    {
+      "dependency_id": "conformance_harness_closure_green",
+      "dependency_class": "conformance_precedent",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_eval_report.json",
+      "bound_report_id": "tassadar.post_article_plugin_conformance_sandbox_and_benchmark_harness.eval_report.v1",
+      "bound_report_digest": "38a301b3df169ba72d7a1cb6a13e1df4e9c308cd0e4399eec33398567c7e517b",
+      "detail": "the prior conformance harness is green and no longer carries a defer pointer now that result binding closes its only declared gap."
+    },
+    {
+      "dependency_id": "effectful_replay_audit_available",
+      "dependency_class": "replay_precedent",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_effectful_replay_audit_report.json",
+      "bound_report_id": "tassadar.effectful_replay_audit.report.v1",
+      "bound_report_digest": "eef9f54ce5f9c131a5b70ada6f63dbc30ee0c9d201a8cf78dd42a55c26145da5",
+      "detail": "the replay precedent keeps proof-carrying receipts and typed refusals explicit for effectful surfaces that feed the plugin result-binding return path."
+    },
+    {
+      "dependency_id": "internal_component_abi_available",
+      "dependency_class": "abi_precedent",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_internal_component_abi_report.json",
+      "bound_report_id": "tassadar.internal_component_abi.report.v1",
+      "bound_report_digest": "916adb14fa5cae3815083c0b4501c24bc3930aa9a1833618add2485a335ded19",
+      "detail": "the bounded internal component ABI keeps exact interface parity and exact refusal parity explicit so the plugin return path does not widen into adapter-defined union semantics."
+    },
+    {
+      "dependency_id": "transformer_result_binding_contract_present",
+      "dependency_class": "transformer_contract",
+      "satisfied": true,
+      "source_ref": "crates/psionic-transformer/src/tassadar_post_article_plugin_result_binding_contract.rs",
+      "bound_report_id": "tassadar.weighted_plugin.result_binding_contract.v1",
+      "bound_report_digest": "2b436220da9899c0566f9308088bdd744efd067f609a5b0617dfedf7808f89a0",
+      "detail": "the transformer-owned contract is the canonical abstract result-binding artifact for weighted plugin return-path ownership."
+    },
+    {
+      "dependency_id": "runtime_result_binding_bundle_present",
+      "dependency_class": "runtime_evidence",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/runs/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_v1/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_bundle.json",
+      "bound_report_id": "tassadar.post_article_plugin_result_binding_schema_stability_and_composition.runtime_bundle.v1",
+      "bound_report_digest": "9fe1b2f74abc43b6032198fcf5d5ebae3fb663bc13cbd17c96e90b5e1a1b1cd9",
+      "detail": "the runtime bundle carries the concrete result-binding, evidence-boundary, composition, and fail-closed negative rows against the same contract ids."
+    },
+    {
+      "dependency_id": "plugin_system_spec_declared",
+      "dependency_class": "design_input",
+      "satisfied": true,
+      "source_ref": "~/code/alpha/tassadar/plugin-system.md",
+      "detail": "the local plugin-system spec remains the design input for the explicit model-loop return path, typed refusal posture, and weighted continue/retry/stop loop."
+    },
+    {
+      "dependency_id": "plugin_system_audit_declared",
+      "dependency_class": "audit_input",
+      "satisfied": true,
+      "source_ref": "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md",
+      "detail": "the plugin-system audit remains the supporting law source for semantic-preservation, non-lossy composition, and fail-closed ambiguity posture."
+    }
+  ],
+  "binding_rows": [
+    {
+      "case_id": "fetch_text_exact_binding",
+      "plugin_id": "plugin.http_fetch_text",
+      "model_version_id": "tassadar.weighted_plugin_controller.schema_set.v1",
+      "plugin_output_schema_id": "plugin.http.fetch_text.output.v1",
+      "projected_model_state_schema_id": "model_state.plugin_result.fetch_text.v1",
+      "output_digest": "7d494576e3b6137b5d668509d88477c51665c8bf088f0728ff9e811fcd593a26",
+      "next_model_visible_state_id": "state_projection.fetch_text_exact_binding.v1",
+      "next_model_visible_state_digest": "defc66576b1a86b345534782fc09c8396c4338f8daa3f8f26ff2c8a79e91e799",
+      "schema_transition_class_id": "schema_transition.exact_identity.v1",
+      "compatibility_status": "exact_compatible",
+      "proof_receipt_id": "proof.plugin_result.fetch_text.v1",
+      "observational_audit_id": "audit.plugin_result.fetch_text.observed.v1",
+      "semantic_closure_preserved": true,
+      "detail": "exact fetch-text outputs stay digest-bound to one explicit model-visible state without adapter rewriting."
+    },
+    {
+      "case_id": "html_extract_backward_compatible_binding",
+      "plugin_id": "plugin.html_extract",
+      "model_version_id": "tassadar.weighted_plugin_controller.schema_set.v1",
+      "plugin_output_schema_id": "plugin.html.extract.output.v2",
+      "projected_model_state_schema_id": "model_state.plugin_result.html_extract.v1_compatible",
+      "output_digest": "125301a7687cf1492d9143d2e9d330f8025da303b4147e66d9d7e0d964f26324",
+      "next_model_visible_state_id": "state_projection.html_extract_backward_compatible_binding.v1",
+      "next_model_visible_state_digest": "9473782104721b2b37e97bbffc4d2e0343fb07a66ec43671dbd9aac9f7df62dc",
+      "schema_transition_class_id": "schema_transition.backward_compatible_additive.v1",
+      "compatibility_status": "backward_compatible",
+      "observational_audit_id": "audit.plugin_result.html_extract.compatibility.v1",
+      "semantic_closure_preserved": true,
+      "detail": "backward-compatible additive schema evolution stays explicit and bounded to one audited projection instead of host-defined reshaping."
+    },
+    {
+      "case_id": "timeout_refusal_normalized_binding",
+      "plugin_id": "plugin.http_fetch_text",
+      "model_version_id": "tassadar.weighted_plugin_controller.schema_set.v1",
+      "plugin_output_schema_id": "plugin.refusal.runtime_timeout.v1",
+      "projected_model_state_schema_id": "model_state.plugin_refusal.timeout.v1",
+      "output_digest": "d38f70fa8b41117c10f2034f2676e384b204ac6db9c6ee1cea15c1065fe26090",
+      "next_model_visible_state_id": "state_projection.timeout_refusal_normalized_binding.v1",
+      "next_model_visible_state_digest": "7a95744590d8e5996aab262c263ecf6da4e972bd9fed7757b9a96ee348938204",
+      "schema_transition_class_id": "schema_transition.refusal_normalized.v1",
+      "compatibility_status": "refusal_normalized",
+      "observational_audit_id": "audit.plugin_result.timeout.normalization.v1",
+      "typed_refusal_reason_id": "runtime_timeout",
+      "semantic_closure_preserved": true,
+      "detail": "typed runtime timeouts remain normalized into one explicit model-visible refusal state without erasing retry posture."
+    },
+    {
+      "case_id": "validator_search_proof_carrying_binding",
+      "plugin_id": "plugin.validator_search",
+      "model_version_id": "tassadar.weighted_plugin_controller.schema_set.v1",
+      "plugin_output_schema_id": "plugin.validator.search.output.v1",
+      "projected_model_state_schema_id": "model_state.plugin_result.validator_search.v1",
+      "output_digest": "6a8e56963cbffbd66cad82f5db38bb79d58f4c956a31b72e13cec110f7e1e331",
+      "next_model_visible_state_id": "state_projection.validator_search_proof_carrying_binding.v1",
+      "next_model_visible_state_digest": "1c718e0f051fca0bf2c54643490d78bfc2c074bb0d2147f9650ffaef2ab5b1d0",
+      "schema_transition_class_id": "schema_transition.exact_identity.v1",
+      "compatibility_status": "exact_compatible",
+      "proof_receipt_id": "proof.plugin_result.validator_search.v1",
+      "observational_audit_id": "audit.plugin_result.validator_search.observed.v1",
+      "semantic_closure_preserved": true,
+      "detail": "proof-carrying validator-search outputs stay distinct from observational audits and remain explicitly bound into the next model-visible state."
+    },
+    {
+      "case_id": "html_extract_version_skew_blocked",
+      "plugin_id": "plugin.html_extract",
+      "model_version_id": "tassadar.weighted_plugin_controller.schema_set.v1",
+      "plugin_output_schema_id": "plugin.html.extract.output.v3",
+      "projected_model_state_schema_id": "model_state.plugin_binding.blocked.version_skew.v1",
+      "output_digest": "ec4f123902b2d140f2186b461f6ba00824f3d8679968041b382d4aa49114b6e5",
+      "next_model_visible_state_id": "state_projection.html_extract_version_skew_blocked.v1",
+      "next_model_visible_state_digest": "d4efb3f23eb2988361eee1ef431505989e21a9bbf2a7149f84baa35e8abc764c",
+      "schema_transition_class_id": "schema_transition.version_skew_blocked.v1",
+      "compatibility_status": "version_skew_blocked",
+      "observational_audit_id": "audit.plugin_result.version_skew.blocked.v1",
+      "typed_refusal_reason_id": "model_plugin_schema_version_skew",
+      "semantic_closure_preserved": true,
+      "detail": "model-version versus plugin-schema version skew fails closed into one explicit blocked reinjection state."
+    }
+  ],
+  "evidence_boundary_rows": [
+    {
+      "boundary_id": "proof_vs_observational_fetch_text",
+      "case_id": "fetch_text_exact_binding",
+      "proof_receipt_id": "proof.plugin_result.fetch_text.v1",
+      "observational_audit_id": "audit.plugin_result.fetch_text.observed.v1",
+      "proof_carrying_guarantee_id": "proof_guarantee.digest_bound_result_binding.v1",
+      "observational_audit_kind_id": "observational_audit.replayed_output_observation.v1",
+      "proof_required_for_reinjection": true,
+      "detail": "fetch-text reinjection requires the proof-carrying receipt while keeping the observational audit separate and non-authoritative."
+    },
+    {
+      "boundary_id": "observational_only_backward_compatibility_projection",
+      "case_id": "html_extract_backward_compatible_binding",
+      "observational_audit_id": "audit.plugin_result.html_extract.compatibility.v1",
+      "proof_carrying_guarantee_id": "proof_guarantee.not_available_for_projection_only.v1",
+      "observational_audit_kind_id": "observational_audit.backward_compatibility_projection.v1",
+      "proof_required_for_reinjection": false,
+      "detail": "backward-compatible schema projection remains observationally audited and may not masquerade as proof-carrying exactness."
+    },
+    {
+      "boundary_id": "proof_vs_observational_validator_search",
+      "case_id": "validator_search_proof_carrying_binding",
+      "proof_receipt_id": "proof.plugin_result.validator_search.v1",
+      "observational_audit_id": "audit.plugin_result.validator_search.observed.v1",
+      "proof_carrying_guarantee_id": "proof_guarantee.validator_proof_bound_result.v1",
+      "observational_audit_kind_id": "observational_audit.validator_result_observation.v1",
+      "proof_required_for_reinjection": true,
+      "detail": "validator-search reinjection keeps proof-carrying guarantees distinct from observational result audits."
+    }
+  ],
+  "composition_rows": [
+    {
+      "case_id": "fetch_then_extract_semantically_closed",
+      "step_output_schema_ids": [
+        "plugin.http.fetch_text.output.v1",
+        "plugin.html.extract.output.v2"
+      ],
+      "step_output_digests": [
+        "5cd9cccdceae06d5b915e46064e3680cf04be192d559b6f9f9d456b38fa03bc7",
+        "1427712bf5e4fcd799fe3a5c3f2259a6f651665dbf7cfe9a76f7f8f850696adc"
+      ],
+      "composite_state_schema_id": "model_state.plugin_chain.fetch_then_extract.v1",
+      "composite_state_digest": "c20a00d80a7415e9d8d34b30dcb6ceae133f38f11e7897904eae4161d4f84b94",
+      "non_lossy_transition_required": true,
+      "semantic_closure_preserved": true,
+      "ambiguous_composition_blocked": false,
+      "detail": "fetch-text followed by html-extract stays semantically closed and non-lossy under one explicit chained model-visible state."
+    },
+    {
+      "case_id": "fetch_then_readability_non_lossy",
+      "step_output_schema_ids": [
+        "plugin.http.fetch_text.output.v1",
+        "plugin.readability.extract.output.v1"
+      ],
+      "step_output_digests": [
+        "6598a2c3343071fdf30daba401601c766dfb43f5bc65b28e93006d5c47fa8dcb",
+        "ee83046b1186288cfe50631060e465a52283c0d1125b400ead15362e5222ed40"
+      ],
+      "composite_state_schema_id": "model_state.plugin_chain.fetch_then_readability.v1",
+      "composite_state_digest": "4b6fefd51837a88b2829c04b3f18ee811231e7c85bb1bf0552abbcb3e9e69577",
+      "non_lossy_transition_required": true,
+      "semantic_closure_preserved": true,
+      "ambiguous_composition_blocked": false,
+      "detail": "two-step readability projection remains non-lossy and semantically closed under one explicit chained state digest."
+    },
+    {
+      "case_id": "timeout_then_retry_budget_semantically_closed",
+      "step_output_schema_ids": [
+        "plugin.refusal.runtime_timeout.v1",
+        "plugin.retry_budget.state.v1"
+      ],
+      "step_output_digests": [
+        "b67507c54910603a221f519bcfdc5067485f9c4c6fe7e163fd702724464155fa",
+        "b67507c54910603a221f519bcfdc5067485f9c4c6fe7e163fd702724464155fa"
+      ],
+      "composite_state_schema_id": "model_state.plugin_chain.timeout_then_retry_budget.v1",
+      "composite_state_digest": "ebe47237f870150c2a72e2e934e2604b7a2792df883e5a6f9155028fcab3ecff",
+      "non_lossy_transition_required": true,
+      "semantic_closure_preserved": true,
+      "ambiguous_composition_blocked": false,
+      "detail": "typed timeout refusal plus retry-budget state remains semantically closed instead of relying on hidden host retry mutation."
+    },
+    {
+      "case_id": "extract_then_rss_ambiguity_blocked",
+      "step_output_schema_ids": [
+        "plugin.html.extract.output.v2",
+        "plugin.rss.parse.output.v1"
+      ],
+      "step_output_digests": [
+        "ccee4640f253b14d35b107b4be12ac0b489c76e326a45e25d7de9ee239a614c2",
+        "2978ad16d5e5b51a661b2df7baa9b43382620b0b27c89b6e5ce3ac729bb63c5b"
+      ],
+      "composite_state_schema_id": "model_state.plugin_chain.blocked.ambiguous_composition.v1",
+      "composite_state_digest": "d917bffe883906f582f9a6785dc9b3b64772e0e0fcace8f3673d807051969e9b",
+      "non_lossy_transition_required": true,
+      "semantic_closure_preserved": false,
+      "ambiguous_composition_blocked": true,
+      "typed_refusal_reason_id": "ambiguous_composition_introduced",
+      "detail": "ambiguous multi-step composition fails closed instead of letting adapters choose one meaning for incompatible intermediate schemas."
+    }
+  ],
+  "negative_rows": [
+    {
+      "check_id": "lossy_coercion_refused",
+      "negative_class_id": "lossy_coercion",
+      "green": true,
+      "typed_refusal_reason_id": "lossy_schema_coercion_refused",
+      "detail": "lossy schema coercion remains a typed refusal instead of a silent field drop on reinjection."
+    },
+    {
+      "check_id": "schema_auto_repair_blocked",
+      "negative_class_id": "schema_auto_repair",
+      "green": true,
+      "typed_refusal_reason_id": "schema_auto_repair_blocked",
+      "detail": "schema auto-repair remains blocked instead of mutating plugin outputs to fit the model loop."
+    },
+    {
+      "check_id": "ambiguous_composition_blocked",
+      "negative_class_id": "ambiguous_composition",
+      "green": true,
+      "typed_refusal_reason_id": "ambiguous_composition_introduced",
+      "detail": "ambiguous composition remains blocked instead of letting host adapters pick one branch meaning."
+    },
+    {
+      "check_id": "semantically_incomplete_reinjection_blocked",
+      "negative_class_id": "semantically_incomplete_reinjection",
+      "green": true,
+      "typed_refusal_reason_id": "semantically_incomplete_reinjection_blocked",
+      "detail": "semantically incomplete reinjection remains blocked instead of allowing partial task meaning to drift through the model-visible state."
+    }
+  ],
+  "validation_rows": [
+    {
+      "validation_id": "output_digest_binds_next_model_state",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_v1/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_bundle.json",
+        "crates/psionic-transformer/src/tassadar_post_article_plugin_result_binding_contract.rs"
+      ],
+      "detail": "every runtime binding row keeps one explicit output digest to next model-visible state digest binding under the transformer-owned contract."
+    },
+    {
+      "validation_id": "backward_compatible_schema_evolution_explicit",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_v1/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_bundle.json",
+        "crates/psionic-transformer/src/tassadar_post_article_plugin_result_binding_contract.rs"
+      ],
+      "detail": "backward-compatible additive evolution stays explicit and fail-closed instead of allowing schema auto-repair to rewrite task meaning."
+    },
+    {
+      "validation_id": "typed_refusal_normalization_preserved",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_v1/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_bundle.json",
+        "crates/psionic-transformer/src/tassadar_post_article_plugin_result_binding_contract.rs",
+        "fixtures/tassadar/reports/tassadar_effectful_replay_audit_report.json"
+      ],
+      "detail": "typed refusal classes remain explicit and replay-compatible when plugin outputs normalize back into the model loop."
+    },
+    {
+      "validation_id": "version_skew_fails_closed",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_v1/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_bundle.json",
+        "crates/psionic-transformer/src/tassadar_post_article_plugin_result_binding_contract.rs"
+      ],
+      "detail": "model-version versus plugin-schema skew refuses reinjection before any adapter-defined repair path can run."
+    },
+    {
+      "validation_id": "proof_required_bindings_stay_proof_bound",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_v1/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_bundle.json",
+        "fixtures/tassadar/reports/tassadar_effectful_replay_audit_report.json"
+      ],
+      "detail": "proof-carrying bindings stay distinct from observational audits so observations do not silently rewrite the proof state."
+    },
+    {
+      "validation_id": "observational_only_bindings_do_not_overclaim",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_v1/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_bundle.json",
+        "fixtures/tassadar/reports/tassadar_internal_component_abi_report.json"
+      ],
+      "detail": "observational compatibility projections remain bounded and do not masquerade as exact proof-carrying equivalence."
+    },
+    {
+      "validation_id": "semantic_closure_under_multi_step_chaining",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_v1/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_bundle.json",
+        "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md"
+      ],
+      "detail": "multi-step composition remains semantically closed for the admitted chains instead of relying on host-only hidden glue."
+    },
+    {
+      "validation_id": "non_lossy_schema_transition_required",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_v1/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_bundle.json",
+        "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md"
+      ],
+      "detail": "every composition row keeps non-lossy schema transition as a requirement rather than an optional best-effort adaptation."
+    },
+    {
+      "validation_id": "ambiguous_composition_fails_closed",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_v1/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_bundle.json",
+        "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md"
+      ],
+      "detail": "composition ambiguity remains a typed refusal instead of letting the host choose one meaning."
+    },
+    {
+      "validation_id": "lossy_coercion_refused",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_v1/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_bundle.json"
+      ],
+      "detail": "lossy field coercion remains explicitly refused on reinjection."
+    },
+    {
+      "validation_id": "semantic_incompleteness_refused",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_v1/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_bundle.json",
+        "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md"
+      ],
+      "detail": "semantically incomplete reinjection remains fail-closed instead of silently truncating task meaning."
+    },
+    {
+      "validation_id": "adapter_defined_return_path_forbidden",
+      "green": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_plugin_result_binding_contract.rs",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "the result return path stays contract-defined and stable enough for later weighted continuation to bind to it honestly."
+    }
+  ],
+  "contract_status": "green",
+  "contract_green": true,
+  "result_binding_contract_green": true,
+  "explicit_output_to_state_digest_binding": true,
+  "schema_evolution_fail_closed": true,
+  "typed_refusal_normalization_preserved": true,
+  "version_skew_fail_closed": true,
+  "proof_vs_observational_boundary_explicit": true,
+  "semantic_composition_closure_green": true,
+  "non_lossy_schema_transition_required": true,
+  "ambiguous_composition_blocked": true,
+  "adapter_defined_return_path_blocked": true,
+  "operator_internal_only_posture": true,
+  "rebase_claim_allowed": true,
+  "plugin_capability_claim_allowed": false,
+  "weighted_plugin_control_allowed": false,
+  "plugin_publication_allowed": false,
+  "served_public_universality_allowed": false,
+  "arbitrary_software_capability_allowed": false,
+  "deferred_issue_ids": [
+    "TAS-204"
+  ],
+  "claim_boundary": "this eval-owned closure report binds the transformer-owned plugin result-binding contract plus the runtime-owned schema-stability and composition evidence to the canonical post-article machine identity. It proves stable output-to-state digest binding, fail-closed schema evolution, typed refusal normalization, proof-versus-observational separation, and semantic closure under bounded multi-step composition while still refusing to treat weighted plugin sequencing, plugin publication, served/public universality, or arbitrary software capability as closed before the later controller and platform issues land.",
+  "summary": "Post-article plugin result-binding report keeps contract_status=Green, dependency_rows=7, binding_rows=5, evidence_boundary_rows=3, composition_rows=4, negative_rows=4, validation_rows=12, and deferred_issue_ids=1.",
+  "report_digest": "1827de3836eeab7fee446c10fbe6876d60bb9b638816ce4514de8ca2f8f94f21"
+}

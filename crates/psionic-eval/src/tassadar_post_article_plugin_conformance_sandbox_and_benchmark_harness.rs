@@ -12,10 +12,10 @@ use thiserror::Error;
 use psionic_sandbox::{
     build_tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_report,
     TassadarPostArticlePluginBenchmarkHarnessReportRow,
+    TassadarPostArticlePluginConformanceHarnessDependencyClass,
     TassadarPostArticlePluginConformanceHarnessReportRow,
     TassadarPostArticlePluginConformanceSandboxAndBenchmarkHarnessReport,
     TassadarPostArticlePluginConformanceSandboxAndBenchmarkHarnessReportError,
-    TassadarPostArticlePluginConformanceHarnessDependencyClass,
     TassadarPostArticlePluginIsolationNegativeReportRow,
     TassadarPostArticlePluginWorkflowHarnessReportRow,
     TASSADAR_POST_ARTICLE_PLUGIN_CONFORMANCE_SANDBOX_AND_BENCHMARK_HARNESS_REPORT_REF,
@@ -24,8 +24,7 @@ use psionic_sandbox::{
 pub const TASSADAR_POST_ARTICLE_PLUGIN_CONFORMANCE_SANDBOX_AND_BENCHMARK_HARNESS_EVAL_REPORT_REF:
     &str =
     "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_eval_report.json";
-pub const TASSADAR_POST_ARTICLE_PLUGIN_CONFORMANCE_SANDBOX_AND_BENCHMARK_HARNESS_CHECKER_REF:
-    &str =
+pub const TASSADAR_POST_ARTICLE_PLUGIN_CONFORMANCE_SANDBOX_AND_BENCHMARK_HARNESS_CHECKER_REF: &str =
     "scripts/check-tassadar-post-article-plugin-conformance-sandbox-and-benchmark-harness.sh";
 
 const LOCAL_PLUGIN_SYSTEM_SPEC_REF: &str = "~/code/alpha/tassadar/plugin-system.md";
@@ -247,25 +246,22 @@ pub fn build_tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harn
         Some(sandbox.report_digest.clone()),
         "the sandbox-owned conformance contract is green and carries the declared conformance, workflow, isolation, and benchmark rows.",
     )];
-    dependency_rows.extend(
-        sandbox
-            .dependency_rows
-            .iter()
-            .map(|row| TassadarPostArticlePluginConformanceEvalDependencyRow {
-                dependency_id: format!("sandbox.{}", row.dependency_id),
-                dependency_class: match row.dependency_class {
-                    TassadarPostArticlePluginConformanceHarnessDependencyClass::DesignInput => {
-                        TassadarPostArticlePluginConformanceEvalDependencyClass::DesignInput
-                    }
-                    _ => TassadarPostArticlePluginConformanceEvalDependencyClass::SupportingPrecedent,
-                },
-                satisfied: row.satisfied,
-                source_ref: row.source_ref.clone(),
-                bound_report_id: row.bound_report_id.clone(),
-                bound_report_digest: row.bound_report_digest.clone(),
-                detail: row.detail.clone(),
-            }),
-    );
+    dependency_rows.extend(sandbox.dependency_rows.iter().map(|row| {
+        TassadarPostArticlePluginConformanceEvalDependencyRow {
+            dependency_id: format!("sandbox.{}", row.dependency_id),
+            dependency_class: match row.dependency_class {
+                TassadarPostArticlePluginConformanceHarnessDependencyClass::DesignInput => {
+                    TassadarPostArticlePluginConformanceEvalDependencyClass::DesignInput
+                }
+                _ => TassadarPostArticlePluginConformanceEvalDependencyClass::SupportingPrecedent,
+            },
+            satisfied: row.satisfied,
+            source_ref: row.source_ref.clone(),
+            bound_report_id: row.bound_report_id.clone(),
+            bound_report_digest: row.bound_report_digest.clone(),
+            detail: row.detail.clone(),
+        }
+    }));
 
     let conformance_sandbox_green = sandbox.contract_green;
     let cold_path_benchmarked = has_benchmark_row(&sandbox, "cold_instantiate");
@@ -439,7 +435,7 @@ pub fn build_tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harn
         plugin_publication_allowed: false,
         served_public_universality_allowed: false,
         arbitrary_software_capability_allowed: false,
-        deferred_issue_ids: vec![String::from("TAS-203A")],
+        deferred_issue_ids: vec![],
         claim_boundary: String::from(
             "this eval-owned harness freezes the canonical post-article plugin conformance sandbox and benchmark evidence above the admissibility contract. It keeps static host-scripted conformance rows, workflow rows, failure-domain and side-channel negative rows, and cold or warm or pooled or queued or cancelled benchmark paths machine-readable while keeping weighted plugin sequencing, plugin publication, served/public universality, and arbitrary software capability blocked.",
         ),
@@ -488,8 +484,7 @@ pub fn write_tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harn
         })?;
     }
     let report =
-        build_tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_eval_report(
-        )?;
+        build_tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_eval_report()?;
     let json = serde_json::to_string_pretty(&report)?;
     fs::write(output_path, format!("{json}\n")).map_err(|error| {
         TassadarPostArticlePluginConformanceSandboxAndBenchmarkHarnessEvalReportError::Write {
@@ -615,7 +610,7 @@ mod tests {
         assert_eq!(report.isolation_negative_rows.len(), 8);
         assert_eq!(report.benchmark_rows.len(), 7);
         assert_eq!(report.validation_rows.len(), 11);
-        assert_eq!(report.deferred_issue_ids, vec![String::from("TAS-203A")]);
+        assert!(report.deferred_issue_ids.is_empty());
         assert!(report.conformance_sandbox_green);
         assert!(report.cold_path_benchmarked);
         assert!(report.warm_path_benchmarked);

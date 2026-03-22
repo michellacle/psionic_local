@@ -27,8 +27,7 @@ use psionic_runtime::{
 pub const TASSADAR_POST_ARTICLE_PLUGIN_CONFORMANCE_SANDBOX_AND_BENCHMARK_HARNESS_REPORT_REF:
     &str =
     "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_report.json";
-pub const TASSADAR_POST_ARTICLE_PLUGIN_CONFORMANCE_SANDBOX_AND_BENCHMARK_HARNESS_CHECKER_REF:
-    &str =
+pub const TASSADAR_POST_ARTICLE_PLUGIN_CONFORMANCE_SANDBOX_AND_BENCHMARK_HARNESS_CHECKER_REF: &str =
     "scripts/check-tassadar-post-article-plugin-conformance-sandbox-and-benchmark-harness.sh";
 
 const ASYNC_LIFECYCLE_PROFILE_REPORT_REF: &str =
@@ -230,7 +229,9 @@ pub struct TassadarPostArticlePluginConformanceSandboxAndBenchmarkHarnessReport 
 #[derive(Debug, Error)]
 pub enum TassadarPostArticlePluginConformanceSandboxAndBenchmarkHarnessReportError {
     #[error(transparent)]
-    Admissibility(#[from] TassadarPostArticlePluginWorldMountEnvelopeCompilerAndAdmissibilityReportError),
+    Admissibility(
+        #[from] TassadarPostArticlePluginWorldMountEnvelopeCompilerAndAdmissibilityReportError,
+    ),
     #[error("failed to create `{path}`: {error}")]
     CreateDir { path: String, error: std::io::Error },
     #[error("failed to write `{path}`: {error}")]
@@ -597,9 +598,7 @@ pub fn build_tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harn
         })
         .collect::<Vec<_>>();
 
-    let static_harness_only = conformance_rows
-        .iter()
-        .all(|row| row.static_harness_only)
+    let static_harness_only = conformance_rows.iter().all(|row| row.static_harness_only)
         && workflow_rows.iter().all(|row| row.static_harness_only)
         && isolation_negative_rows
             .iter()
@@ -607,9 +606,7 @@ pub fn build_tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harn
     let host_scripted_trace_only = conformance_rows
         .iter()
         .all(|row| row.host_scripted_trace_only)
-        && workflow_rows
-            .iter()
-            .all(|row| row.host_scripted_trace_only)
+        && workflow_rows.iter().all(|row| row.host_scripted_trace_only)
         && isolation_negative_rows
             .iter()
             .all(|row| row.host_scripted_trace_only);
@@ -637,21 +634,23 @@ pub fn build_tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harn
             .iter()
             .filter(|row| row.isolation_scope_id.starts_with("per_"))
             .all(|row| row.green);
-    let side_channel_negatives_green = isolation_negative_rows.iter().any(|row| {
-        row.negative_class_id == "hidden_shared_cache_channel" && row.green
-    }) && isolation_negative_rows.iter().any(|row| {
-        row.negative_class_id == "hidden_shared_store_channel" && row.green
-    }) && isolation_negative_rows.iter().any(|row| {
-        row.negative_class_id == "timing_channel_leak" && row.green
-    });
-    let covert_channel_negatives_green = isolation_negative_rows.iter().any(|row| {
-        row.negative_class_id == "latent_shared_representation_channel" && row.green
-    }) && isolation_negative_rows.iter().any(|row| {
-        row.negative_class_id == "semantically_incomplete_schema_channel" && row.green
-    });
+    let side_channel_negatives_green = isolation_negative_rows
+        .iter()
+        .any(|row| row.negative_class_id == "hidden_shared_cache_channel" && row.green)
+        && isolation_negative_rows
+            .iter()
+            .any(|row| row.negative_class_id == "hidden_shared_store_channel" && row.green)
+        && isolation_negative_rows
+            .iter()
+            .any(|row| row.negative_class_id == "timing_channel_leak" && row.green);
+    let covert_channel_negatives_green = isolation_negative_rows
+        .iter()
+        .any(|row| row.negative_class_id == "latent_shared_representation_channel" && row.green)
+        && isolation_negative_rows.iter().any(|row| {
+            row.negative_class_id == "semantically_incomplete_schema_channel" && row.green
+        });
     let hot_swap_compatibility_frozen = conformance_rows.iter().any(|row| {
-        row.outcome == TassadarPostArticlePluginConformanceOutcome::HotSwapCompatible
-            && row.green
+        row.outcome == TassadarPostArticlePluginConformanceOutcome::HotSwapCompatible && row.green
     }) && workflow_rows.iter().any(|row| {
         row.outcome == TassadarPostArticlePluginWorkflowOutcome::HotSwapCompatible && row.green
     });
@@ -659,20 +658,21 @@ pub fn build_tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harn
         row.outcome == TassadarPostArticlePluginWorkflowOutcome::PartialCancellationReplayStable
             && row.green
     }) && replay_precedent_bound;
-    let benchmark_paths_measured =
-        benchmark_rows.iter().any(|row| row.path_class_id == "cold_instantiate" && row.green)
-            && benchmark_rows
-                .iter()
-                .any(|row| row.path_class_id == "warm_invoke" && row.green)
-            && benchmark_rows
-                .iter()
-                .any(|row| row.path_class_id == "pooled_reuse" && row.green)
-            && benchmark_rows
-                .iter()
-                .any(|row| row.path_class_id == "queued_saturation" && row.green)
-            && benchmark_rows
-                .iter()
-                .any(|row| row.path_class_id == "cancelled_path" && row.green);
+    let benchmark_paths_measured = benchmark_rows
+        .iter()
+        .any(|row| row.path_class_id == "cold_instantiate" && row.green)
+        && benchmark_rows
+            .iter()
+            .any(|row| row.path_class_id == "warm_invoke" && row.green)
+        && benchmark_rows
+            .iter()
+            .any(|row| row.path_class_id == "pooled_reuse" && row.green)
+        && benchmark_rows
+            .iter()
+            .any(|row| row.path_class_id == "queued_saturation" && row.green)
+        && benchmark_rows
+            .iter()
+            .any(|row| row.path_class_id == "cancelled_path" && row.green);
     let evidence_overhead_explicit = benchmark_rows
         .iter()
         .any(|row| row.path_class_id == "evidence_overhead" && row.green);
@@ -867,7 +867,7 @@ pub fn build_tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harn
         plugin_publication_allowed: false,
         served_public_universality_allowed: false,
         arbitrary_software_capability_allowed: false,
-        deferred_issue_ids: vec![String::from("TAS-203A")],
+        deferred_issue_ids: vec![],
         claim_boundary: String::from(
             "this sandbox report freezes the canonical post-article plugin conformance sandbox and benchmark harness above the admissibility contract. It keeps static host-scripted conformance traces, typed refusal and limit behavior, workflow integrity, explicit envelope intersection, hot-swap compatibility, failure-domain isolation, side-channel and covert-channel negatives, and benchmark-path evidence machine-readable while keeping weighted plugin sequencing, plugin publication, served/public universality, and arbitrary software capability blocked.",
         ),
@@ -895,9 +895,8 @@ pub fn build_tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harn
 #[must_use]
 pub fn tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_report_path(
 ) -> PathBuf {
-    repo_root().join(
-        TASSADAR_POST_ARTICLE_PLUGIN_CONFORMANCE_SANDBOX_AND_BENCHMARK_HARNESS_REPORT_REF,
-    )
+    repo_root()
+        .join(TASSADAR_POST_ARTICLE_PLUGIN_CONFORMANCE_SANDBOX_AND_BENCHMARK_HARNESS_REPORT_REF)
 }
 
 pub fn write_tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_report(
@@ -1074,7 +1073,7 @@ mod tests {
         assert_eq!(report.isolation_negative_rows.len(), 8);
         assert_eq!(report.benchmark_rows.len(), 7);
         assert_eq!(report.validation_rows.len(), 12);
-        assert_eq!(report.deferred_issue_ids, vec![String::from("TAS-203A")]);
+        assert!(report.deferred_issue_ids.is_empty());
         assert!(report.operator_internal_only_posture);
         assert!(report.static_harness_only);
         assert!(report.host_scripted_trace_only);

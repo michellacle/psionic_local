@@ -757,15 +757,15 @@ pub fn build_tassadar_post_article_universality_bridge_contract_report() -> Resu
         TassadarPostArticleReservationHookRow {
             hook_id: String::from("schema_version_negotiation_hook"),
             purpose: String::from(
-                "reserve schema-version negotiation for later plugin result binding and composition contracts",
+                "keep schema-version negotiation explicit above the bridge while result binding stays contract-owned and weighted controller ownership remains later",
             ),
-            reserved_issue_ids: vec![String::from("TAS-203A")],
-            current_posture: String::from("reserved_not_implemented"),
+            reserved_issue_ids: vec![String::from("TAS-204")],
+            current_posture: String::from("reserved_after_result_binding_contract"),
             source_refs: vec![String::from(
                 "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md",
             )],
             detail: String::from(
-                "the bridge freezes the current schema version and names the later negotiation boundary rather than widening the current report into a plugin-schema contract",
+                "the bridge now delegates schema-stability and result-binding ownership to TAS-203A while keeping the later weighted-controller continuation boundary explicit instead of widening the bridge itself into a controller contract",
             ),
         },
     ];

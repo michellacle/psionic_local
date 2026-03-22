@@ -1431,10 +1431,8 @@
   "plugin_publication_allowed": false,
   "served_public_universality_allowed": false,
   "arbitrary_software_capability_allowed": false,
-  "deferred_issue_ids": [
-    "TAS-203A"
-  ],
+  "deferred_issue_ids": [],
   "claim_boundary": "this sandbox report freezes the canonical post-article plugin conformance sandbox and benchmark harness above the admissibility contract. It keeps static host-scripted conformance traces, typed refusal and limit behavior, workflow integrity, explicit envelope intersection, hot-swap compatibility, failure-domain isolation, side-channel and covert-channel negatives, and benchmark-path evidence machine-readable while keeping weighted plugin sequencing, plugin publication, served/public universality, and arbitrary software capability blocked.",
-  "summary": "Post-article plugin conformance sandbox report keeps contract_status=Green, dependency_rows=6, conformance_rows=9, workflow_rows=5, isolation_negative_rows=8, benchmark_rows=7, validation_rows=12, and deferred_issue_ids=1.",
-  "report_digest": "d068d787d8d83d1d16ce6bfd23dac132d3e55308bbe33ceff2c322094263144e"
+  "summary": "Post-article plugin conformance sandbox report keeps contract_status=Green, dependency_rows=6, conformance_rows=9, workflow_rows=5, isolation_negative_rows=8, benchmark_rows=7, validation_rows=12, and deferred_issue_ids=0.",
+  "report_digest": "3d004f48e19cc24435e539fada7d24562f77bc093ee2c5c690aa2098b25dc34b"
 }

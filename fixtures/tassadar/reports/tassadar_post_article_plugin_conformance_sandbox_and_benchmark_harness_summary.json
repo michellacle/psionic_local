@@ -18,9 +18,7 @@
   "isolation_negative_row_count": 8,
   "benchmark_row_count": 7,
   "validation_row_count": 11,
-  "deferred_issue_ids": [
-    "TAS-203A"
-  ],
+  "deferred_issue_ids": [],
   "conformance_sandbox_green": true,
   "operator_internal_only_posture": true,
   "rebase_claim_allowed": true,
@@ -29,6 +27,6 @@
   "plugin_publication_allowed": false,
   "served_public_universality_allowed": false,
   "arbitrary_software_capability_allowed": false,
-  "detail": "post-article plugin conformance summary keeps machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, conformance_harness_id=`tassadar.plugin_runtime.conformance_harness.v1`, contract_status=Green, conformance_rows=9, benchmark_rows=7, and deferred_issue_ids=1.",
-  "summary_digest": "3cb3f9e13eb3cb98de6264f90454278b8a730853c64bf32ca67af2a01fa94438"
+  "detail": "post-article plugin conformance summary keeps machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, conformance_harness_id=`tassadar.plugin_runtime.conformance_harness.v1`, contract_status=Green, conformance_rows=9, benchmark_rows=7, and deferred_issue_ids=0.",
+  "summary_digest": "6701d35c8bff54788de5dfc291f6b088487c43782bdce13c498578b475527cac"
 }

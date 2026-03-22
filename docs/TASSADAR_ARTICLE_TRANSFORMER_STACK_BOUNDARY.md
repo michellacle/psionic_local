@@ -1010,9 +1010,33 @@ the provider receipt now lives at
 and the dedicated checker now lives at
 `scripts/check-tassadar-post-article-plugin-conformance-sandbox-and-benchmark-harness.sh`.
 This tranche keeps plugin conformance posture bounded and machine-legible,
-moves the deferred frontier to `TAS-203A`, and still does not admit weighted
-plugin sequencing, plugin publication, served/public universality, or
-arbitrary software capability.
+clears the conformance defer pointer to empty after `TAS-203A`, and still does
+not admit weighted plugin sequencing, plugin publication, served/public
+universality, or arbitrary software capability.
+
+`TAS-203A` now closes the canonical plugin result-binding, schema-stability,
+and composition contract tranche at
+`fixtures/tassadar/reports/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_report.json`.
+That eval-owned report binds one transformer-owned result-binding contract plus
+one runtime-owned bundle to the same canonical machine identity and
+computational-model statement as the earlier post-article plugin tranche while
+freezing explicit output-to-state digest binding, explicit
+backward-compatible schema evolution, typed refusal normalization,
+proof-versus-observational result boundaries, semantic closure under bounded
+multi-step chaining, non-lossy schema transitions, and fail-closed posture on
+lossy coercion, schema auto-repair, ambiguity, or semantically incomplete
+reinjection. The operator-readable summary now lives at
+`fixtures/tassadar/reports/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_summary.json`,
+the runtime bundle now lives at
+`fixtures/tassadar/runs/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_v1/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_bundle.json`,
+the provider receipt now lives at
+`crates/psionic-provider/src/tassadar_post_article_plugin_result_binding_schema_stability_and_composition.rs`,
+and the dedicated checker now lives at
+`scripts/check-tassadar-post-article-plugin-result-binding-schema-stability-and-composition.sh`.
+This tranche keeps plugin result binding bounded and machine-legible, moves
+the deferred frontier to `TAS-204`, and still does not admit weighted plugin
+sequencing, plugin publication, served/public universality, or arbitrary
+software capability.
 
 ## Route Requirement
 

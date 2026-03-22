@@ -66,7 +66,7 @@ jq -e '
   and .plugin_publication_allowed == false
   and .served_public_universality_allowed == false
   and .arbitrary_software_capability_allowed == false
-  and (.deferred_issue_ids == ["TAS-203A"])
+  and (.deferred_issue_ids == [])
 ' fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_report.json >/dev/null
 
 jq -e '
@@ -99,7 +99,7 @@ jq -e '
   and .plugin_publication_allowed == false
   and .served_public_universality_allowed == false
   and .arbitrary_software_capability_allowed == false
-  and (.deferred_issue_ids == ["TAS-203A"])
+  and (.deferred_issue_ids == [])
 ' fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_eval_report.json >/dev/null
 
 jq -e '
@@ -113,7 +113,7 @@ jq -e '
   and .isolation_negative_row_count == 8
   and .benchmark_row_count == 7
   and .validation_row_count == 11
-  and (.deferred_issue_ids == ["TAS-203A"])
+  and (.deferred_issue_ids == [])
   and .conformance_sandbox_green == true
   and .operator_internal_only_posture == true
   and .rebase_claim_allowed == true

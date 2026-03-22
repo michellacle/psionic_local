@@ -79,8 +79,7 @@ pub fn build_tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harn
     TassadarPostArticlePluginConformanceSandboxAndBenchmarkHarnessSummaryError,
 > {
     let report =
-        build_tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_eval_report(
-        )?;
+        build_tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_eval_report()?;
     Ok(build_summary_from_report(&report))
 }
 
@@ -155,9 +154,8 @@ fn build_summary_from_report(
 #[must_use]
 pub fn tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_summary_path(
 ) -> PathBuf {
-    repo_root().join(
-        TASSADAR_POST_ARTICLE_PLUGIN_CONFORMANCE_SANDBOX_AND_BENCHMARK_HARNESS_SUMMARY_REF,
-    )
+    repo_root()
+        .join(TASSADAR_POST_ARTICLE_PLUGIN_CONFORMANCE_SANDBOX_AND_BENCHMARK_HARNESS_SUMMARY_REF)
 }
 
 pub fn write_tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_summary(
@@ -259,7 +257,7 @@ mod tests {
         assert_eq!(summary.isolation_negative_row_count, 8);
         assert_eq!(summary.benchmark_row_count, 7);
         assert_eq!(summary.validation_row_count, 11);
-        assert_eq!(summary.deferred_issue_ids, vec![String::from("TAS-203A")]);
+        assert!(summary.deferred_issue_ids.is_empty());
         assert!(summary.conformance_sandbox_green);
         assert!(summary.operator_internal_only_posture);
         assert!(summary.rebase_claim_allowed);

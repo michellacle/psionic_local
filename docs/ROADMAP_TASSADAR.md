@@ -382,9 +382,27 @@ Current honest posture:
   integrity and envelope intersection, hot-swap compatibility, failure-domain
   isolation, side-channel and covert-channel negatives, and cold or warm or
   pooled or queued or cancelled benchmark evidence; this tranche clears the
-  admissibility defer pointer to empty, moves the deferred frontier to
-  `TAS-203A`, and still keeps weighted plugin sequencing, plugin publication,
-  served/public universality, and arbitrary software capability blocked
+  admissibility defer pointer to empty and later clears its own defer pointer
+  to empty after `TAS-203A`, while still keeping weighted plugin sequencing,
+  plugin publication, served/public universality, and arbitrary software
+  capability blocked
+- the repo now also has one post-article plugin result-binding,
+  schema-stability, and composition contract, with a committed eval-owned
+  report at
+  `fixtures/tassadar/reports/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_report.json`,
+  a disclosure-safe research summary at
+  `fixtures/tassadar/reports/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_summary.json`,
+  a committed runtime bundle, a provider-facing receipt, a checker script, and
+  an audit note that freeze the transformer-owned result-binding contract plus
+  runtime-owned schema-stability evidence above the conformance harness,
+  including explicit output-to-state digest binding, backward-compatible
+  schema evolution, typed refusal normalization, proof-versus-observational
+  result boundaries, non-lossy multi-step semantic closure, and fail-closed
+  posture on lossy coercion, schema auto-repair, ambiguous composition, and
+  semantically incomplete reinjection; this tranche moves the deferred
+  frontier to `TAS-204` and still keeps weighted plugin sequencing, plugin
+  publication, served/public universality, and arbitrary software capability
+  blocked
 - the repo now also has one post-article Turing-completeness closeout audit,
   with a committed eval report at
   `fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json`,
@@ -597,9 +615,9 @@ Issue-state note:
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
 - `TAS-156` is now implemented and tracked in
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
-- `TAS-157` through `TAS-203` are now implemented and tracked in
+- `TAS-157` through `TAS-203A` are now implemented and tracked in
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
-- `TAS-203A` through `TAS-226` remain open in GitHub and are tracked via the
+- `TAS-204` through `TAS-226` remain open in GitHub and are tracked via the
   issue bodies plus `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
 
 ## Repo-Local Companion Docs

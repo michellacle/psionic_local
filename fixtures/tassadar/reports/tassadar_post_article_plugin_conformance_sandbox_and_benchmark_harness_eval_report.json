@@ -24,7 +24,7 @@
     "continuation_contract_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
     "computational_model_statement_id": "tassadar.post_article_universality_bridge.computational_model_statement.v1",
     "sandbox_report_id": "tassadar.post_article_plugin_conformance_sandbox_and_benchmark_harness.report.v1",
-    "sandbox_report_digest": "d068d787d8d83d1d16ce6bfd23dac132d3e55308bbe33ceff2c322094263144e",
+    "sandbox_report_digest": "3d004f48e19cc24435e539fada7d24562f77bc093ee2c5c690aa2098b25dc34b",
     "packet_abi_version": "packet.v1",
     "host_owned_runtime_api_id": "tassadar.plugin_runtime.host_owned_api.v1",
     "engine_abstraction_id": "tassadar.plugin_runtime.engine_abstraction.v1",
@@ -45,7 +45,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_report.json",
       "bound_report_id": "tassadar.post_article_plugin_conformance_sandbox_and_benchmark_harness.report.v1",
-      "bound_report_digest": "d068d787d8d83d1d16ce6bfd23dac132d3e55308bbe33ceff2c322094263144e",
+      "bound_report_digest": "3d004f48e19cc24435e539fada7d24562f77bc093ee2c5c690aa2098b25dc34b",
       "detail": "the sandbox-owned conformance contract is green and carries the declared conformance, workflow, isolation, and benchmark rows."
     },
     {
@@ -827,10 +827,8 @@
   "plugin_publication_allowed": false,
   "served_public_universality_allowed": false,
   "arbitrary_software_capability_allowed": false,
-  "deferred_issue_ids": [
-    "TAS-203A"
-  ],
+  "deferred_issue_ids": [],
   "claim_boundary": "this eval-owned harness freezes the canonical post-article plugin conformance sandbox and benchmark evidence above the admissibility contract. It keeps static host-scripted conformance rows, workflow rows, failure-domain and side-channel negative rows, and cold or warm or pooled or queued or cancelled benchmark paths machine-readable while keeping weighted plugin sequencing, plugin publication, served/public universality, and arbitrary software capability blocked.",
-  "summary": "Post-article plugin conformance eval report keeps contract_status=Green, dependency_rows=7, conformance_rows=9, workflow_rows=5, isolation_negative_rows=8, benchmark_rows=7, validation_rows=11, and deferred_issue_ids=1.",
-  "report_digest": "79d81b0c131bf5d132cf7d4b015da6f55a1ddfa9c4db7722918524f362a132a0"
+  "summary": "Post-article plugin conformance eval report keeps contract_status=Green, dependency_rows=7, conformance_rows=9, workflow_rows=5, isolation_negative_rows=8, benchmark_rows=7, validation_rows=11, and deferred_issue_ids=0.",
+  "report_digest": "38a301b3df169ba72d7a1cb6a13e1df4e9c308cd0e4399eec33398567c7e517b"
 }
