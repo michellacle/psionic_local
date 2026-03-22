@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "bundle_id": "tassadar.post_article.plugin_text_stats.runtime_bundle.v1",
+  "plugin_id": "plugin.text.stats",
+  "plugin_version": "v1",
+  "manifest_id": "manifest.plugin.text.stats.v1",
+  "artifact_id": "artifact.plugin.text.stats.v1",
+  "packet_abi_version": "packet.v1",
+  "mount_envelope_id": "mount.plugin.text.stats.no_capabilities.v1",
+  "tool_projection": {
+    "plugin_id": "plugin.text.stats",
+    "tool_name": "plugin_text_stats",
+    "description": "count bytes, Unicode scalar values, lines, non-empty lines, and whitespace-delimited words from packet-local text without tokenizer, language, or semantic-structure claims.",
+    "arguments_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "text": {
+          "description": "packet-local text counted with Rust byte length, chars(), lines(), and split_whitespace() semantics.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "type": "object"
+    },
+    "result_schema_id": "plugin.text.stats.output.v1",
+    "refusal_schema_ids": [
+      "plugin.refusal.schema_invalid.v1",
+      "plugin.refusal.packet_too_large.v1",
+      "plugin.refusal.unsupported_codec.v1"
+    ],
+    "replay_class_id": "deterministic_replayable"
+  },
+  "negative_claim_ids": [
+    "tokenizer_truth_not_claimed",
+    "language_detection_not_claimed",
+    "sentence_boundary_truth_not_claimed",
+    "semantic_structure_not_claimed"
+  ],
+  "case_rows": [
+    {
+      "case_id": "text_stats_success",
+      "status": "exact_success",
+      "codec_id": "json",
+      "request_packet_digest": "72ccc4ddaca2729df1353e7b68c8ae84795638c69794ffc1b8eb7b2f18ccd16a",
+      "response_or_refusal_schema_id": "plugin.text.stats.output.v1",
+      "response_or_refusal_digest": "8e6be1e3458789956beae2dedbae46ba706fb3c8182a540bbcf0ab608a81f030",
+      "receipt": {
+        "receipt_id": "receipt.plugin.text.stats.72ccc4ddaca2729d.v1",
+        "plugin_id": "plugin.text.stats",
+        "plugin_version": "v1",
+        "tool_name": "plugin_text_stats",
+        "packet_abi_version": "packet.v1",
+        "mount_envelope_id": "mount.plugin.text.stats.no_capabilities.v1",
+        "capability_namespace_ids": [],
+        "replay_class_id": "deterministic_replayable",
+        "status": "success",
+        "input_schema_id": "plugin.text.stats.input.v1",
+        "input_packet_digest": "72ccc4ddaca2729df1353e7b68c8ae84795638c69794ffc1b8eb7b2f18ccd16a",
+        "output_or_refusal_schema_id": "plugin.text.stats.output.v1",
+        "output_or_refusal_digest": "8e6be1e3458789956beae2dedbae46ba706fb3c8182a540bbcf0ab608a81f030",
+        "detail": "text-stats keeps byte, scalar, line, and whitespace-delimited word counts explicit and packet-local instead of borrowing tokenizer or semantic structure claims.",
+        "receipt_digest": "94985e020227e97bc4074a3d32b743b11a4a834bd6480e011185b1c498063dfd"
+      },
+      "detail": "the runtime counts bytes, Unicode scalar values, lines, non-empty lines, and split_whitespace() words deterministically from packet-local text."
+    },
+    {
+      "case_id": "schema_invalid_missing_text",
+      "status": "typed_malformed_packet",
+      "codec_id": "json",
+      "request_packet_digest": "b84c1acf091222bfaf0dab067568bcf23c14d5970c02553c7a6d839384dfa37b",
+      "response_or_refusal_schema_id": "plugin.refusal.schema_invalid.v1",
+      "response_or_refusal_digest": "53c2137a7827a7fd730a059ba9817661c3730c0e1811d4ce02ea521b40142747",
+      "receipt": {
+        "receipt_id": "receipt.plugin.text.stats.b84c1acf091222bf.v1",
+        "plugin_id": "plugin.text.stats",
+        "plugin_version": "v1",
+        "tool_name": "plugin_text_stats",
+        "packet_abi_version": "packet.v1",
+        "mount_envelope_id": "mount.plugin.text.stats.no_capabilities.v1",
+        "capability_namespace_ids": [],
+        "replay_class_id": "deterministic_replayable",
+        "status": "refusal",
+        "input_schema_id": "plugin.text.stats.input.v1",
+        "input_packet_digest": "b84c1acf091222bfaf0dab067568bcf23c14d5970c02553c7a6d839384dfa37b",
+        "output_or_refusal_schema_id": "plugin.refusal.schema_invalid.v1",
+        "output_or_refusal_digest": "53c2137a7827a7fd730a059ba9817661c3730c0e1811d4ce02ea521b40142747",
+        "refusal_class_id": "schema_invalid",
+        "detail": "text-stats refuses malformed packets without host-side schema repair.",
+        "receipt_digest": "65f9fc93720aa79e1b8b9ac09be853016590e47283f241baf94e3e4d91c8693a"
+      },
+      "detail": "missing `text` fails closed into one typed schema-invalid refusal."
+    },
+    {
+      "case_id": "packet_too_large_refusal",
+      "status": "typed_refusal",
+      "codec_id": "json",
+      "request_packet_digest": "53262be069a301ae84dc3108bf5515851205a3548f37971fcfadefeddd88ff35",
+      "response_or_refusal_schema_id": "plugin.refusal.packet_too_large.v1",
+      "response_or_refusal_digest": "acafeb2c872e29474686c038bb70fdba6fdb969f04c47d544a99e08e8ca5f96b",
+      "receipt": {
+        "receipt_id": "receipt.plugin.text.stats.53262be069a301ae.v1",
+        "plugin_id": "plugin.text.stats",
+        "plugin_version": "v1",
+        "tool_name": "plugin_text_stats",
+        "packet_abi_version": "packet.v1",
+        "mount_envelope_id": "mount.plugin.text.stats.no_capabilities.v1",
+        "capability_namespace_ids": [],
+        "replay_class_id": "deterministic_replayable",
+        "status": "refusal",
+        "input_schema_id": "plugin.text.stats.input.v1",
+        "input_packet_digest": "53262be069a301ae84dc3108bf5515851205a3548f37971fcfadefeddd88ff35",
+        "output_or_refusal_schema_id": "plugin.refusal.packet_too_large.v1",
+        "output_or_refusal_digest": "acafeb2c872e29474686c038bb70fdba6fdb969f04c47d544a99e08e8ca5f96b",
+        "refusal_class_id": "packet_too_large",
+        "detail": "text-stats keeps packet size ceilings explicit instead of relying on ambient parser allocation behavior.",
+        "receipt_digest": "168e0b163c4096f9a18ab291166d7f28660c8609441d0c56b1f1286b03c9f387"
+      },
+      "detail": "packet ceilings remain explicit instead of relying on ambient parser allocation behavior."
+    },
+    {
+      "case_id": "unsupported_codec_refusal",
+      "status": "typed_refusal",
+      "codec_id": "bytes",
+      "request_packet_digest": "72ccc4ddaca2729df1353e7b68c8ae84795638c69794ffc1b8eb7b2f18ccd16a",
+      "response_or_refusal_schema_id": "plugin.refusal.unsupported_codec.v1",
+      "response_or_refusal_digest": "6e93f640ccaf988b0ce4e036332ade07e034773b90a1b281ecbda88ed96d9de3",
+      "receipt": {
+        "receipt_id": "receipt.plugin.text.stats.72ccc4ddaca2729d.v1",
+        "plugin_id": "plugin.text.stats",
+        "plugin_version": "v1",
+        "tool_name": "plugin_text_stats",
+        "packet_abi_version": "packet.v1",
+        "mount_envelope_id": "mount.plugin.text.stats.no_capabilities.v1",
+        "capability_namespace_ids": [],
+        "replay_class_id": "deterministic_replayable",
+        "status": "refusal",
+        "input_schema_id": "plugin.text.stats.input.v1",
+        "input_packet_digest": "72ccc4ddaca2729df1353e7b68c8ae84795638c69794ffc1b8eb7b2f18ccd16a",
+        "output_or_refusal_schema_id": "plugin.refusal.unsupported_codec.v1",
+        "output_or_refusal_digest": "6e93f640ccaf988b0ce4e036332ade07e034773b90a1b281ecbda88ed96d9de3",
+        "refusal_class_id": "unsupported_codec",
+        "detail": "text-stats accepts only json packet input under packet.v1.",
+        "receipt_digest": "6f2e86b081d28866c877925be4e5e247750050eedb6afb15a4a326ac0be0fe36"
+      },
+      "detail": "unsupported codecs remain typed refusal truth instead of host-side best effort decode."
+    }
+  ],
+  "claim_boundary": "this runtime bundle closes one capability-free starter plugin that counts bytes, Unicode scalar values, lines, non-empty lines, and whitespace-delimited words from packet-local text. It does not claim tokenizer truth, language detection, sentence-boundary truth, or semantic structure.",
+  "summary": "text-stats runtime bundle covers 4 cases across success=1, malformed=1, refusals=2.",
+  "bundle_digest": "3da14ca2372c133187c6b969077c45256c082dcad251e269777ce7262890b14a"
+}

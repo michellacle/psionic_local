@@ -52,6 +52,50 @@ Negative claims stay explicit:
 - no redirect truth
 - no network reachability truth
 
+### `plugin.text.stats`
+
+- runtime bundle:
+  `fixtures/tassadar/runs/tassadar_post_article_plugin_text_stats_v1/tassadar_post_article_plugin_text_stats_bundle.json`
+- example writer:
+  `cargo run -p psionic-runtime --example tassadar_post_article_plugin_text_stats_bundle`
+- user demo:
+  `cargo run -p psionic-runtime --example tassadar_post_article_plugin_text_stats_demo`
+- checker:
+  `scripts/check-tassadar-post-article-plugin-text-stats.sh`
+
+`plugin.text.stats` is now a real capability-free runtime entry for a simple
+user-authored host-native plugin. It accepts one JSON packet shaped like
+`{ "text": string }` and returns bounded packet-local count truth:
+
+- `byte_count`
+- `unicode_scalar_count`
+- `line_count`
+- `non_empty_line_count`
+- `word_count`
+
+The counting rules stay explicit and deterministic: Rust byte length,
+`chars()`, `lines()`, and `split_whitespace()` semantics only.
+
+Typed refusal surface:
+
+- `plugin.refusal.schema_invalid.v1`
+- `plugin.refusal.packet_too_large.v1`
+- `plugin.refusal.unsupported_codec.v1`
+
+Tool projection is explicit and stable:
+
+- tool name: `plugin_text_stats`
+- argument schema remains JSON-schema-shaped and packet-derived
+- replay class remains `deterministic_replayable`
+- mount envelope remains `mount.plugin.text.stats.no_capabilities.v1`
+
+Negative claims stay explicit:
+
+- no tokenizer truth
+- no language detection truth
+- no sentence boundary truth
+- no semantic structure truth
+
 ### `plugin.http.fetch_text`
 
 - runtime bundle:

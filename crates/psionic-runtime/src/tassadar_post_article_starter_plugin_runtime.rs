@@ -19,6 +19,9 @@ use crate::TASSADAR_POST_ARTICLE_PLUGIN_PACKET_ABI_VERSION;
 pub const TASSADAR_POST_ARTICLE_PLUGIN_TEXT_URL_EXTRACT_RUNTIME_BUNDLE_REF: &str = "fixtures/tassadar/runs/tassadar_post_article_plugin_text_url_extract_v1/tassadar_post_article_plugin_text_url_extract_bundle.json";
 pub const TASSADAR_POST_ARTICLE_PLUGIN_TEXT_URL_EXTRACT_RUN_ROOT_REF: &str =
     "fixtures/tassadar/runs/tassadar_post_article_plugin_text_url_extract_v1";
+pub const TASSADAR_POST_ARTICLE_PLUGIN_TEXT_STATS_RUNTIME_BUNDLE_REF: &str = "fixtures/tassadar/runs/tassadar_post_article_plugin_text_stats_v1/tassadar_post_article_plugin_text_stats_bundle.json";
+pub const TASSADAR_POST_ARTICLE_PLUGIN_TEXT_STATS_RUN_ROOT_REF: &str =
+    "fixtures/tassadar/runs/tassadar_post_article_plugin_text_stats_v1";
 pub const TASSADAR_POST_ARTICLE_PLUGIN_HTTP_FETCH_TEXT_RUNTIME_BUNDLE_REF: &str =
     "fixtures/tassadar/runs/tassadar_post_article_plugin_http_fetch_text_v1/tassadar_post_article_plugin_http_fetch_text_bundle.json";
 pub const TASSADAR_POST_ARTICLE_PLUGIN_HTTP_FETCH_TEXT_RUN_ROOT_REF: &str =
@@ -39,6 +42,10 @@ pub const STARTER_PLUGIN_TEXT_URL_EXTRACT_INPUT_SCHEMA_ID: &str =
     "plugin.text.url_extract.input.v1";
 pub const STARTER_PLUGIN_TEXT_URL_EXTRACT_OUTPUT_SCHEMA_ID: &str =
     "plugin.text.url_extract.output.v1";
+pub const STARTER_PLUGIN_TEXT_STATS_ID: &str = "plugin.text.stats";
+pub const STARTER_PLUGIN_TEXT_STATS_TOOL_NAME: &str = "plugin_text_stats";
+pub const STARTER_PLUGIN_TEXT_STATS_INPUT_SCHEMA_ID: &str = "plugin.text.stats.input.v1";
+pub const STARTER_PLUGIN_TEXT_STATS_OUTPUT_SCHEMA_ID: &str = "plugin.text.stats.output.v1";
 pub const STARTER_PLUGIN_REFUSAL_SCHEMA_INVALID_ID: &str = "plugin.refusal.schema_invalid.v1";
 pub const STARTER_PLUGIN_REFUSAL_PACKET_TOO_LARGE_ID: &str = "plugin.refusal.packet_too_large.v1";
 pub const STARTER_PLUGIN_REFUSAL_UNSUPPORTED_CODEC_ID: &str = "plugin.refusal.unsupported_codec.v1";
@@ -187,6 +194,80 @@ pub struct UrlExtractRuntimeBundle {
     pub tool_projection: StarterPluginToolProjection,
     pub negative_claim_ids: Vec<String>,
     pub case_rows: Vec<UrlExtractRuntimeCase>,
+    pub claim_boundary: String,
+    pub summary: String,
+    pub bundle_digest: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TextStatsRequest {
+    pub text: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TextStatsResponse {
+    pub byte_count: usize,
+    pub unicode_scalar_count: usize,
+    pub line_count: usize,
+    pub non_empty_line_count: usize,
+    pub word_count: usize,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TextStatsConfig {
+    pub packet_size_limit_bytes: usize,
+}
+
+impl Default for TextStatsConfig {
+    fn default() -> Self {
+        Self {
+            packet_size_limit_bytes: 16 * 1024,
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TextStatsInvocationOutcome {
+    pub receipt: StarterPluginInvocationReceipt,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub response: Option<TextStatsResponse>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub refusal: Option<StarterPluginRefusal>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TextStatsRuntimeCaseStatus {
+    ExactSuccess,
+    TypedMalformedPacket,
+    TypedRefusal,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TextStatsRuntimeCase {
+    pub case_id: String,
+    pub status: TextStatsRuntimeCaseStatus,
+    pub codec_id: String,
+    pub request_packet_digest: String,
+    pub response_or_refusal_schema_id: String,
+    pub response_or_refusal_digest: String,
+    pub receipt: StarterPluginInvocationReceipt,
+    pub detail: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TextStatsRuntimeBundle {
+    pub schema_version: u16,
+    pub bundle_id: String,
+    pub plugin_id: String,
+    pub plugin_version: String,
+    pub manifest_id: String,
+    pub artifact_id: String,
+    pub packet_abi_version: String,
+    pub mount_envelope_id: String,
+    pub tool_projection: StarterPluginToolProjection,
+    pub negative_claim_ids: Vec<String>,
+    pub case_rows: Vec<TextStatsRuntimeCase>,
     pub claim_boundary: String,
     pub summary: String,
     pub bundle_digest: String,
@@ -786,6 +867,240 @@ pub fn write_url_extract_runtime_bundle(
 pub fn load_url_extract_runtime_bundle(
     path: impl AsRef<Path>,
 ) -> Result<UrlExtractRuntimeBundle, StarterPluginRuntimeError> {
+    read_json(path)
+}
+
+#[must_use]
+pub fn text_stats_tool_projection() -> StarterPluginToolProjection {
+    StarterPluginToolProjection {
+        plugin_id: String::from(STARTER_PLUGIN_TEXT_STATS_ID),
+        tool_name: String::from(STARTER_PLUGIN_TEXT_STATS_TOOL_NAME),
+        description: String::from(
+            "count bytes, Unicode scalar values, lines, non-empty lines, and whitespace-delimited words from packet-local text without tokenizer, language, or semantic-structure claims.",
+        ),
+        arguments_schema: json!({
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["text"],
+            "properties": {
+                "text": {
+                    "type": "string",
+                    "description": "packet-local text counted with Rust byte length, chars(), lines(), and split_whitespace() semantics."
+                }
+            }
+        }),
+        result_schema_id: String::from(STARTER_PLUGIN_TEXT_STATS_OUTPUT_SCHEMA_ID),
+        refusal_schema_ids: vec![
+            String::from(STARTER_PLUGIN_REFUSAL_SCHEMA_INVALID_ID),
+            String::from(STARTER_PLUGIN_REFUSAL_PACKET_TOO_LARGE_ID),
+            String::from(STARTER_PLUGIN_REFUSAL_UNSUPPORTED_CODEC_ID),
+        ],
+        replay_class_id: String::from("deterministic_replayable"),
+    }
+}
+
+#[must_use]
+pub fn invoke_text_stats_json_packet(
+    codec_id: &str,
+    packet_bytes: &[u8],
+    config: &TextStatsConfig,
+) -> TextStatsInvocationOutcome {
+    let input_packet_digest = sha256_digest(packet_bytes);
+    if codec_id != "json" {
+        return text_stats_refusal_outcome(
+            &input_packet_digest,
+            STARTER_PLUGIN_REFUSAL_UNSUPPORTED_CODEC_ID,
+            "unsupported_codec",
+            "text-stats accepts only json packet input under packet.v1.",
+        );
+    }
+    if packet_bytes.len() > config.packet_size_limit_bytes {
+        return text_stats_refusal_outcome(
+            &input_packet_digest,
+            STARTER_PLUGIN_REFUSAL_PACKET_TOO_LARGE_ID,
+            "packet_too_large",
+            "text-stats keeps packet size ceilings explicit instead of relying on ambient parser allocation behavior.",
+        );
+    }
+    let request = match serde_json::from_slice::<TextStatsRequest>(packet_bytes) {
+        Ok(request) => request,
+        Err(_) => {
+            return text_stats_refusal_outcome(
+                &input_packet_digest,
+                STARTER_PLUGIN_REFUSAL_SCHEMA_INVALID_ID,
+                "schema_invalid",
+                "text-stats refuses malformed packets without host-side schema repair.",
+            );
+        }
+    };
+
+    let response = text_stats_response(&request.text);
+    let output_or_refusal_digest = stable_json_digest(b"text_stats_response|", &response);
+    let mut receipt = StarterPluginInvocationReceipt {
+        receipt_id: format!(
+            "receipt.{}.{}.v1",
+            STARTER_PLUGIN_TEXT_STATS_ID,
+            &input_packet_digest[..16]
+        ),
+        plugin_id: String::from(STARTER_PLUGIN_TEXT_STATS_ID),
+        plugin_version: String::from(STARTER_PLUGIN_VERSION),
+        tool_name: String::from(STARTER_PLUGIN_TEXT_STATS_TOOL_NAME),
+        packet_abi_version: String::from(TASSADAR_POST_ARTICLE_PLUGIN_PACKET_ABI_VERSION),
+        mount_envelope_id: String::from("mount.plugin.text.stats.no_capabilities.v1"),
+        capability_namespace_ids: Vec::new(),
+        replay_class_id: String::from("deterministic_replayable"),
+        status: StarterPluginInvocationStatus::Success,
+        input_schema_id: String::from(STARTER_PLUGIN_TEXT_STATS_INPUT_SCHEMA_ID),
+        input_packet_digest,
+        output_or_refusal_schema_id: String::from(STARTER_PLUGIN_TEXT_STATS_OUTPUT_SCHEMA_ID),
+        output_or_refusal_digest,
+        refusal_class_id: None,
+        detail: String::from(
+            "text-stats keeps byte, scalar, line, and whitespace-delimited word counts explicit and packet-local instead of borrowing tokenizer or semantic structure claims.",
+        ),
+        receipt_digest: String::new(),
+    };
+    receipt.receipt_digest = stable_json_digest(b"text_stats_receipt|", &receipt);
+    TextStatsInvocationOutcome {
+        receipt,
+        response: Some(response),
+        refusal: None,
+    }
+}
+
+#[must_use]
+pub fn build_text_stats_runtime_bundle() -> TextStatsRuntimeBundle {
+    let success_packet = br#"{"text":"alpha beta\n\ngamma delta"}"#;
+    let malformed_packet = br#"{"body":"missing text"}"#;
+    let oversized_packet = oversized_text_stats_packet(TextStatsConfig::default());
+
+    let success =
+        invoke_text_stats_json_packet("json", success_packet, &TextStatsConfig::default());
+    let malformed =
+        invoke_text_stats_json_packet("json", malformed_packet, &TextStatsConfig::default());
+    let packet_too_large =
+        invoke_text_stats_json_packet("json", &oversized_packet, &TextStatsConfig::default());
+    let unsupported_codec =
+        invoke_text_stats_json_packet("bytes", success_packet, &TextStatsConfig::default());
+
+    let case_rows = vec![
+        text_stats_case(
+            "text_stats_success",
+            TextStatsRuntimeCaseStatus::ExactSuccess,
+            "json",
+            sha256_digest(success_packet),
+            STARTER_PLUGIN_TEXT_STATS_OUTPUT_SCHEMA_ID,
+            success.receipt.output_or_refusal_digest.clone(),
+            success.receipt.clone(),
+            "the runtime counts bytes, Unicode scalar values, lines, non-empty lines, and split_whitespace() words deterministically from packet-local text.",
+        ),
+        text_stats_case(
+            "schema_invalid_missing_text",
+            TextStatsRuntimeCaseStatus::TypedMalformedPacket,
+            "json",
+            sha256_digest(malformed_packet),
+            STARTER_PLUGIN_REFUSAL_SCHEMA_INVALID_ID,
+            malformed.receipt.output_or_refusal_digest.clone(),
+            malformed.receipt.clone(),
+            "missing `text` fails closed into one typed schema-invalid refusal.",
+        ),
+        text_stats_case(
+            "packet_too_large_refusal",
+            TextStatsRuntimeCaseStatus::TypedRefusal,
+            "json",
+            sha256_digest(&oversized_packet),
+            STARTER_PLUGIN_REFUSAL_PACKET_TOO_LARGE_ID,
+            packet_too_large.receipt.output_or_refusal_digest.clone(),
+            packet_too_large.receipt.clone(),
+            "packet ceilings remain explicit instead of relying on ambient parser allocation behavior.",
+        ),
+        text_stats_case(
+            "unsupported_codec_refusal",
+            TextStatsRuntimeCaseStatus::TypedRefusal,
+            "bytes",
+            sha256_digest(success_packet),
+            STARTER_PLUGIN_REFUSAL_UNSUPPORTED_CODEC_ID,
+            unsupported_codec.receipt.output_or_refusal_digest.clone(),
+            unsupported_codec.receipt.clone(),
+            "unsupported codecs remain typed refusal truth instead of host-side best effort decode.",
+        ),
+    ];
+
+    let mut bundle = TextStatsRuntimeBundle {
+        schema_version: 1,
+        bundle_id: String::from("tassadar.post_article.plugin_text_stats.runtime_bundle.v1"),
+        plugin_id: String::from(STARTER_PLUGIN_TEXT_STATS_ID),
+        plugin_version: String::from(STARTER_PLUGIN_VERSION),
+        manifest_id: String::from("manifest.plugin.text.stats.v1"),
+        artifact_id: String::from("artifact.plugin.text.stats.v1"),
+        packet_abi_version: String::from(TASSADAR_POST_ARTICLE_PLUGIN_PACKET_ABI_VERSION),
+        mount_envelope_id: String::from("mount.plugin.text.stats.no_capabilities.v1"),
+        tool_projection: text_stats_tool_projection(),
+        negative_claim_ids: vec![
+            String::from("tokenizer_truth_not_claimed"),
+            String::from("language_detection_not_claimed"),
+            String::from("sentence_boundary_truth_not_claimed"),
+            String::from("semantic_structure_not_claimed"),
+        ],
+        case_rows,
+        claim_boundary: String::from(
+            "this runtime bundle closes one capability-free starter plugin that counts bytes, Unicode scalar values, lines, non-empty lines, and whitespace-delimited words from packet-local text. It does not claim tokenizer truth, language detection, sentence-boundary truth, or semantic structure.",
+        ),
+        summary: String::new(),
+        bundle_digest: String::new(),
+    };
+    bundle.summary = format!(
+        "text-stats runtime bundle covers {} cases across success={}, malformed={}, refusals={}.",
+        bundle.case_rows.len(),
+        bundle
+            .case_rows
+            .iter()
+            .filter(|row| row.status == TextStatsRuntimeCaseStatus::ExactSuccess)
+            .count(),
+        bundle
+            .case_rows
+            .iter()
+            .filter(|row| row.status == TextStatsRuntimeCaseStatus::TypedMalformedPacket)
+            .count(),
+        bundle
+            .case_rows
+            .iter()
+            .filter(|row| row.status == TextStatsRuntimeCaseStatus::TypedRefusal)
+            .count(),
+    );
+    bundle.bundle_digest = stable_json_digest(b"text_stats_runtime_bundle|", &bundle);
+    bundle
+}
+
+#[must_use]
+pub fn tassadar_post_article_plugin_text_stats_runtime_bundle_path() -> PathBuf {
+    repo_root().join(TASSADAR_POST_ARTICLE_PLUGIN_TEXT_STATS_RUNTIME_BUNDLE_REF)
+}
+
+pub fn write_text_stats_runtime_bundle(
+    output_path: impl AsRef<Path>,
+) -> Result<TextStatsRuntimeBundle, StarterPluginRuntimeError> {
+    let output_path = output_path.as_ref();
+    if let Some(parent) = output_path.parent() {
+        fs::create_dir_all(parent).map_err(|error| StarterPluginRuntimeError::CreateDir {
+            path: parent.display().to_string(),
+            error,
+        })?;
+    }
+    let bundle = build_text_stats_runtime_bundle();
+    let json = serde_json::to_string_pretty(&bundle)?;
+    fs::write(output_path, format!("{json}\n")).map_err(|error| {
+        StarterPluginRuntimeError::Write {
+            path: output_path.display().to_string(),
+            error,
+        }
+    })?;
+    Ok(bundle)
+}
+
+pub fn load_text_stats_runtime_bundle(
+    path: impl AsRef<Path>,
+) -> Result<TextStatsRuntimeBundle, StarterPluginRuntimeError> {
     read_json(path)
 }
 
@@ -1961,6 +2276,89 @@ fn oversized_url_extract_packet(config: UrlExtractConfig) -> Vec<u8> {
         .unwrap_or_else(|error| format!("{{\"error\":\"{error}\"}}").into_bytes())
 }
 
+fn text_stats_refusal_outcome(
+    input_packet_digest: &str,
+    schema_id: &str,
+    refusal_class_id: &str,
+    detail: impl Into<String>,
+) -> TextStatsInvocationOutcome {
+    let refusal = StarterPluginRefusal {
+        schema_id: String::from(schema_id),
+        refusal_class_id: String::from(refusal_class_id),
+        detail: detail.into(),
+    };
+    let output_or_refusal_digest = stable_json_digest(b"text_stats_refusal|", &refusal);
+    let mut receipt = StarterPluginInvocationReceipt {
+        receipt_id: format!(
+            "receipt.{}.{}.v1",
+            STARTER_PLUGIN_TEXT_STATS_ID,
+            &input_packet_digest[..16]
+        ),
+        plugin_id: String::from(STARTER_PLUGIN_TEXT_STATS_ID),
+        plugin_version: String::from(STARTER_PLUGIN_VERSION),
+        tool_name: String::from(STARTER_PLUGIN_TEXT_STATS_TOOL_NAME),
+        packet_abi_version: String::from(TASSADAR_POST_ARTICLE_PLUGIN_PACKET_ABI_VERSION),
+        mount_envelope_id: String::from("mount.plugin.text.stats.no_capabilities.v1"),
+        capability_namespace_ids: Vec::new(),
+        replay_class_id: String::from("deterministic_replayable"),
+        status: StarterPluginInvocationStatus::Refusal,
+        input_schema_id: String::from(STARTER_PLUGIN_TEXT_STATS_INPUT_SCHEMA_ID),
+        input_packet_digest: String::from(input_packet_digest),
+        output_or_refusal_schema_id: String::from(schema_id),
+        output_or_refusal_digest,
+        refusal_class_id: Some(String::from(refusal_class_id)),
+        detail: refusal.detail.clone(),
+        receipt_digest: String::new(),
+    };
+    receipt.receipt_digest = stable_json_digest(b"text_stats_receipt|", &receipt);
+    TextStatsInvocationOutcome {
+        receipt,
+        response: None,
+        refusal: Some(refusal),
+    }
+}
+
+fn text_stats_response(text: &str) -> TextStatsResponse {
+    let line_count = text.lines().count();
+    let non_empty_line_count = text.lines().filter(|line| !line.trim().is_empty()).count();
+    let word_count = text.split_whitespace().count();
+    TextStatsResponse {
+        byte_count: text.len(),
+        unicode_scalar_count: text.chars().count(),
+        line_count,
+        non_empty_line_count,
+        word_count,
+    }
+}
+
+fn text_stats_case(
+    case_id: &str,
+    status: TextStatsRuntimeCaseStatus,
+    codec_id: &str,
+    request_packet_digest: String,
+    response_or_refusal_schema_id: &str,
+    response_or_refusal_digest: String,
+    receipt: StarterPluginInvocationReceipt,
+    detail: &str,
+) -> TextStatsRuntimeCase {
+    TextStatsRuntimeCase {
+        case_id: String::from(case_id),
+        status,
+        codec_id: String::from(codec_id),
+        request_packet_digest,
+        response_or_refusal_schema_id: String::from(response_or_refusal_schema_id),
+        response_or_refusal_digest,
+        receipt,
+        detail: String::from(detail),
+    }
+}
+
+fn oversized_text_stats_packet(config: TextStatsConfig) -> Vec<u8> {
+    let oversized = "x".repeat(config.packet_size_limit_bytes.saturating_add(1));
+    serde_json::to_vec(&json!({ "text": oversized }))
+        .unwrap_or_else(|error| format!("{{\"error\":\"{error}\"}}").into_bytes())
+}
+
 fn default_fetch_text_mount_envelope(replay_class_id: &str) -> FetchTextMountEnvelope {
     FetchTextMountEnvelope {
         envelope_id: String::from("mount.plugin.http.fetch_text.read_only_http_allowlist.v1"),
@@ -2764,18 +3162,21 @@ fn read_json<T: for<'de> Deserialize<'de>>(
 mod tests {
     use super::{
         build_extract_readable_runtime_bundle, build_feed_parse_runtime_bundle,
-        build_fetch_text_runtime_bundle, build_url_extract_runtime_bundle,
-        invoke_extract_readable_json_packet, invoke_feed_parse_json_packet,
-        invoke_fetch_text_json_packet, invoke_url_extract_json_packet,
+        build_fetch_text_runtime_bundle, build_text_stats_runtime_bundle,
+        build_url_extract_runtime_bundle, invoke_extract_readable_json_packet,
+        invoke_feed_parse_json_packet, invoke_fetch_text_json_packet,
+        invoke_text_stats_json_packet, invoke_url_extract_json_packet,
         tassadar_post_article_plugin_feed_rss_atom_parse_runtime_bundle_path,
         tassadar_post_article_plugin_html_extract_readable_runtime_bundle_path,
         tassadar_post_article_plugin_http_fetch_text_runtime_bundle_path,
+        tassadar_post_article_plugin_text_stats_runtime_bundle_path,
         tassadar_post_article_plugin_text_url_extract_runtime_bundle_path,
         write_extract_readable_runtime_bundle, write_feed_parse_runtime_bundle,
-        write_fetch_text_runtime_bundle, write_url_extract_runtime_bundle, ExtractReadableConfig,
-        ExtractReadableRuntimeCaseStatus, FeedParseConfig, FeedParseRuntimeCaseStatus,
-        FetchTextConfig, FetchTextRuntimeCaseStatus, FetchTextSnapshotResponse,
-        FetchTextSnapshotResult, UrlExtractConfig, UrlExtractRuntimeCaseStatus,
+        write_fetch_text_runtime_bundle, write_text_stats_runtime_bundle,
+        write_url_extract_runtime_bundle, ExtractReadableConfig, ExtractReadableRuntimeCaseStatus,
+        FeedParseConfig, FeedParseRuntimeCaseStatus, FetchTextConfig, FetchTextRuntimeCaseStatus,
+        FetchTextSnapshotResponse, FetchTextSnapshotResult, TextStatsConfig,
+        TextStatsRuntimeCaseStatus, UrlExtractConfig, UrlExtractRuntimeCaseStatus,
         STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_OUTPUT_SCHEMA_ID,
         STARTER_PLUGIN_HTML_EXTRACT_READABLE_OUTPUT_SCHEMA_ID,
         STARTER_PLUGIN_HTTP_FETCH_TEXT_OUTPUT_SCHEMA_ID,
@@ -2787,6 +3188,7 @@ mod tests {
         STARTER_PLUGIN_REFUSAL_TIMEOUT_ID, STARTER_PLUGIN_REFUSAL_UNSUPPORTED_CODEC_ID,
         STARTER_PLUGIN_REFUSAL_UNSUPPORTED_FEED_FORMAT_ID,
         STARTER_PLUGIN_REFUSAL_UPSTREAM_FAILURE_ID, STARTER_PLUGIN_REFUSAL_URL_NOT_PERMITTED_ID,
+        STARTER_PLUGIN_TEXT_STATS_OUTPUT_SCHEMA_ID,
         STARTER_PLUGIN_TEXT_URL_EXTRACT_OUTPUT_SCHEMA_ID,
     };
     use tempfile::tempdir;
@@ -2914,6 +3316,104 @@ mod tests {
         let path = tassadar_post_article_plugin_text_url_extract_runtime_bundle_path();
         assert!(path.ends_with(
             "fixtures/tassadar/runs/tassadar_post_article_plugin_text_url_extract_v1/tassadar_post_article_plugin_text_url_extract_bundle.json"
+        ));
+    }
+
+    #[test]
+    fn text_stats_success_returns_deterministic_counts() {
+        let packet = br#"{"text":"alpha beta\n\ngamma delta"}"#;
+        let outcome = invoke_text_stats_json_packet("json", packet, &TextStatsConfig::default());
+
+        assert_eq!(
+            outcome.receipt.output_or_refusal_schema_id,
+            STARTER_PLUGIN_TEXT_STATS_OUTPUT_SCHEMA_ID
+        );
+        let response = outcome.response.expect("response");
+        assert_eq!(response.byte_count, 23);
+        assert_eq!(response.unicode_scalar_count, 23);
+        assert_eq!(response.line_count, 3);
+        assert_eq!(response.non_empty_line_count, 2);
+        assert_eq!(response.word_count, 4);
+    }
+
+    #[test]
+    fn text_stats_refuses_schema_invalid_packets() {
+        let outcome = invoke_text_stats_json_packet(
+            "json",
+            br#"{"body":"missing"}"#,
+            &TextStatsConfig::default(),
+        );
+        assert_eq!(
+            outcome.receipt.output_or_refusal_schema_id,
+            STARTER_PLUGIN_REFUSAL_SCHEMA_INVALID_ID
+        );
+    }
+
+    #[test]
+    fn text_stats_refuses_oversized_packets_and_unsupported_codecs() {
+        let oversized = invoke_text_stats_json_packet(
+            "json",
+            br#"{"text":"0123456789"}"#,
+            &TextStatsConfig {
+                packet_size_limit_bytes: 8,
+            },
+        );
+        assert_eq!(
+            oversized.receipt.output_or_refusal_schema_id,
+            STARTER_PLUGIN_REFUSAL_PACKET_TOO_LARGE_ID
+        );
+
+        let wrong_codec = invoke_text_stats_json_packet(
+            "bytes",
+            br#"{"text":"alpha beta"}"#,
+            &TextStatsConfig::default(),
+        );
+        assert_eq!(
+            wrong_codec.receipt.output_or_refusal_schema_id,
+            STARTER_PLUGIN_REFUSAL_UNSUPPORTED_CODEC_ID
+        );
+    }
+
+    #[test]
+    fn text_stats_runtime_bundle_covers_declared_cases() {
+        let bundle = build_text_stats_runtime_bundle();
+
+        assert_eq!(bundle.case_rows.len(), 4);
+        assert!(bundle
+            .case_rows
+            .iter()
+            .any(|row| row.status == TextStatsRuntimeCaseStatus::ExactSuccess));
+        assert!(bundle.case_rows.iter().any(|row| {
+            row.status == TextStatsRuntimeCaseStatus::TypedMalformedPacket
+                && row.response_or_refusal_schema_id == STARTER_PLUGIN_REFUSAL_SCHEMA_INVALID_ID
+        }));
+        assert!(bundle.case_rows.iter().any(|row| {
+            row.status == TextStatsRuntimeCaseStatus::TypedRefusal
+                && row.response_or_refusal_schema_id == STARTER_PLUGIN_REFUSAL_PACKET_TOO_LARGE_ID
+        }));
+        assert!(bundle.case_rows.iter().any(|row| {
+            row.status == TextStatsRuntimeCaseStatus::TypedRefusal
+                && row.response_or_refusal_schema_id == STARTER_PLUGIN_REFUSAL_UNSUPPORTED_CODEC_ID
+        }));
+    }
+
+    #[test]
+    fn text_stats_runtime_bundle_writes_and_loads() {
+        let tempdir = tempdir().expect("tempdir");
+        let output_path = tempdir.path().join("text_stats_bundle.json");
+        let written = write_text_stats_runtime_bundle(&output_path).expect("write bundle");
+        let loaded: super::TextStatsRuntimeBundle =
+            super::load_text_stats_runtime_bundle(&output_path).expect("load bundle");
+
+        assert_eq!(written, loaded);
+        assert!(output_path.exists());
+    }
+
+    #[test]
+    fn text_stats_runtime_bundle_repo_path_is_under_fixtures() {
+        let path = tassadar_post_article_plugin_text_stats_runtime_bundle_path();
+        assert!(path.ends_with(
+            "fixtures/tassadar/runs/tassadar_post_article_plugin_text_stats_v1/tassadar_post_article_plugin_text_stats_bundle.json"
         ));
     }
 
