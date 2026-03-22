@@ -37,5 +37,8 @@ the fetch-text lane.
 
 ## Next Frontier
 
+`TAS-224` is now also closed by the router-owned served pilot in
+`docs/TASSADAR_ROUTER_PLUGIN_TOOL_LOOP.md`.
+
 The next open orchestration frontier above the deterministic starter controller
-is `TAS-224`: router-owned plugin tool-loop integration on `/v1/responses`.
+is `TAS-225`: Apple FM plugin tool integration and macOS local pilot.

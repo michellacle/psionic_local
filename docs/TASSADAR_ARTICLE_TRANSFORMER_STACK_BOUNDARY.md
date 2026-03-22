@@ -1395,7 +1395,16 @@ plus the checker
 `scripts/check-tassadar-post-article-starter-plugin-workflow-controller.sh`.
 That closes one host-owned multi-plugin web-content intake graph above the
 shared bridge without widening the boundary to open-ended planning or weighted
-controller closure, and moves the next open bridge frontier to `TAS-224`.
+controller closure.
+`TAS-224` now adds the router-owned starter-plugin tool loop in
+`crates/psionic-router/src/tassadar_post_article_starter_plugin_tool_loop.rs`
+plus the served pilot bundle in
+`fixtures/tassadar/runs/tassadar_post_article_router_plugin_tool_loop_pilot_v1/tassadar_post_article_router_plugin_tool_loop_pilot_bundle.json`
+and the checker
+`scripts/check-tassadar-post-article-router-plugin-tool-loop.sh`.
+That closes the first router-owned `/v1/responses` plugin lane above the shared
+bridge without widening the boundary to weighted controller closure, and moves
+the next open bridge frontier to `TAS-225`.
 
 ## Route Requirement
 

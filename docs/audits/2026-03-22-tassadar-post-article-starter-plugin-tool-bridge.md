@@ -44,5 +44,9 @@ in
 and its committed bundle at
 `fixtures/tassadar/runs/tassadar_post_article_starter_plugin_workflow_controller_v1/tassadar_post_article_starter_plugin_workflow_controller_bundle.json`.
 
-The next open orchestration frontier above the shared bridge is `TAS-224`:
-router-owned plugin tool-loop integration on `/v1/responses`.
+`TAS-224` is now also closed by the router-owned served pilot in
+`docs/TASSADAR_ROUTER_PLUGIN_TOOL_LOOP.md` and its committed bundle at
+`fixtures/tassadar/runs/tassadar_post_article_router_plugin_tool_loop_pilot_v1/tassadar_post_article_router_plugin_tool_loop_pilot_bundle.json`.
+
+The next open orchestration frontier above the shared bridge is now `TAS-225`:
+Apple FM plugin tool integration and macOS local pilot.

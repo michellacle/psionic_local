@@ -55,8 +55,8 @@ Each case carries:
 
 ## Planned
 
-- router-owned `/v1/responses` plugin tool-loop integration above the same
-  shared bridge
+- router-owned `/v1/responses` pilot now lands separately in
+  `docs/TASSADAR_ROUTER_PLUGIN_TOOL_LOOP.md`
 - Apple FM local plugin-session integration above the same shared bridge
 - parity and training-bootstrap artifacts above the deterministic, router, and
   Apple FM controller lanes

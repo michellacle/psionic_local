@@ -42,5 +42,8 @@ catalog shell and the new starter-runtime substrate.
 `plugin.html.extract_readable` runtime bundle in
 `fixtures/tassadar/runs/tassadar_post_article_plugin_html_extract_readable_v1/tassadar_post_article_plugin_html_extract_readable_bundle.json`.
 
+`TAS-224` is now also closed by the router-owned served pilot in
+`docs/TASSADAR_ROUTER_PLUGIN_TOOL_LOOP.md`.
+
 The next open orchestration frontier above the deterministic starter controller
-is `TAS-224`: router-owned plugin tool-loop integration on `/v1/responses`.
+is `TAS-225`: Apple FM plugin tool integration and macOS local pilot.

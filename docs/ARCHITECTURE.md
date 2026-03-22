@@ -1789,8 +1789,17 @@ The current scope is:
   `docs/audits/2026-03-22-tassadar-post-article-starter-plugin-workflow-controller.md`,
   which publish one host-owned deterministic web-content intake graph above the
   shared bridge, keep branch and stop decisions explicit, freeze one success
-  pilot plus one refusal pilot, and move the next open orchestration frontier
-  to `TAS-224`.
+  pilot plus one refusal pilot
+- the current router-owned starter-plugin tool-loop artifacts are
+  `fixtures/tassadar/runs/tassadar_post_article_router_plugin_tool_loop_pilot_v1/tassadar_post_article_router_plugin_tool_loop_pilot_bundle.json`,
+  the checker
+  `scripts/check-tassadar-post-article-router-plugin-tool-loop.sh`, the router
+  tool-loop doc `docs/TASSADAR_ROUTER_PLUGIN_TOOL_LOOP.md`, and the audit note
+  `docs/audits/2026-03-22-tassadar-post-article-router-plugin-tool-loop.md`,
+  which publish one real `/v1/responses` seed response, one router-owned tool
+  gateway above the shared bridge, one multi-step success pilot, one typed
+  refusal pilot, one continuation row with explicit route truth, and move the
+  next open orchestration frontier to `TAS-225`.
 - the current semantic-window revision artifacts are
   `fixtures/tassadar/reports/tassadar_semantic_window_revision_receipt.json`
   and

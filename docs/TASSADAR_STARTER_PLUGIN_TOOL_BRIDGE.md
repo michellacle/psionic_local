@@ -72,10 +72,14 @@ The first deterministic controller above this bridge now lives in
 its workflow graph, branch rows, refusal rows, and stop conditions host-owned
 and explicit while reusing this bridge for every tool call.
 
+The first router-owned served controller above the same bridge now lives in
+`docs/TASSADAR_ROUTER_PLUGIN_TOOL_LOOP.md`. That pilot keeps projected tool
+definitions, router-owned tool execution, structured envelopes, plugin
+receipts, and response-state continuation explicit without claiming weighted
+controller closure.
+
 ## Planned
 
-- router-owned `/v1/responses` plugin tool-loop integration above this shared
-  bridge
 - Apple FM session tool integration above this shared bridge
 - trace-corpus and parity-matrix freezing above the deterministic, router, and
   Apple FM controller lanes

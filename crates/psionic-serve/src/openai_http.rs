@@ -67,6 +67,10 @@ use crate::{
     tokio_runtime_telemetry_axum::serve_with_runtime_telemetry,
 };
 
+mod tassadar_post_article_router_plugin_tool_loop_pilot;
+
+pub use tassadar_post_article_router_plugin_tool_loop_pilot::*;
+
 const DEFAULT_MAX_TOKENS: usize = 256;
 const HARMONY_RETURN_STOP: &str = "<|return|>";
 const HARMONY_CALL_STOP: &str = "<|call|>";
@@ -268,7 +272,6 @@ impl ResolvedToolCall {
     }
 }
 
-#[cfg(test)]
 fn tool_loop_tool_call_from_resolved(call: ResolvedToolCall) -> psionic_router::ToolLoopToolCall {
     psionic_router::ToolLoopToolCall {
         id: call.id,
@@ -277,7 +280,6 @@ fn tool_loop_tool_call_from_resolved(call: ResolvedToolCall) -> psionic_router::
     }
 }
 
-#[cfg(test)]
 fn assistant_prompt_message_for_tool_loop(content: Option<String>) -> Option<PromptMessage> {
     content
         .filter(|value| !value.trim().is_empty())

@@ -1,0 +1,1275 @@
+{
+  "schema_version": 1,
+  "bundle_id": "tassadar.post_article.router_plugin_tool_loop_pilot.bundle.v1",
+  "tool_definition_rows": [
+    {
+      "tool_name": "plugin_text_url_extract",
+      "description": "extract literal http:// and https:// strings from packet-local text without URL validation, DNS, or network reachability claims.",
+      "parameters_digest": "faa376d8850bd26a2cca4286043e6185e73661cf76c654ca25fef6c3ba136106",
+      "stable_kind": "function"
+    },
+    {
+      "tool_name": "plugin_http_fetch_text",
+      "description": "fetch allowlisted text content through a host-mediated read-only HTTP mount without browser execution, cookies, auth sessions, or unrestricted network access.",
+      "parameters_digest": "8794f224f0110343791a1b2b255e2df7ac4a5ec949a3783c68f3ca4112e8f074",
+      "stable_kind": "function"
+    },
+    {
+      "tool_name": "plugin_html_extract_readable",
+      "description": "extract bounded readable text, metadata, and harvested links from already-fetched HTML without browser rendering or network access.",
+      "parameters_digest": "09962aef6d6014880fe425b15f07938cd9bf6c11a5cd0a75484095372915a164",
+      "stable_kind": "function"
+    },
+    {
+      "tool_name": "plugin_feed_rss_atom_parse",
+      "description": "parse already-fetched RSS 2.0 or Atom 1.0 documents into bounded feed metadata and entry rows without network access or general XML claims.",
+      "parameters_digest": "bc5dfad4e24836efc8044a5976b8df06189e49b46cfa2e3caabf0b90efed5827",
+      "stable_kind": "function"
+    }
+  ],
+  "case_rows": [
+    {
+      "case_id": "router_plugin_tool_loop_success",
+      "directive": "Read https://snapshot.example/article and https://snapshot.example/feed.rss.",
+      "served_seed": {
+        "response_id": "psionic-resp-1",
+        "conversation_id": "psionic-conv-1",
+        "conversation_revision": 1,
+        "tool_call_names": [
+          "plugin_text_url_extract"
+        ],
+        "route_worker": "local_cpu_0",
+        "route_strategy": "warm_aware",
+        "stored": true,
+        "replayed_prompt_messages": 0
+      },
+      "tool_loop_outcome": {
+        "termination_reason": "completed",
+        "final_message": {
+          "role": "assistant",
+          "content": "I extracted one article and one feed through the router-owned plugin tool loop."
+        },
+        "final_prompt_history": [
+          {
+            "role": "user",
+            "content": "Read https://snapshot.example/article and https://snapshot.example/feed.rss."
+          },
+          {
+            "role": "assistant",
+            "content": "{\"tool_call_id\":\"psionic-resp-1-tool-0\",\"name\":\"plugin_text_url_extract\",\"arguments\":{\"text\":\"Read https://snapshot.example/article and https://snapshot.example/feed.rss.\"}}",
+            "channel": "tool_call"
+          },
+          {
+            "role": "tool",
+            "content": "{\"tool_name\":\"plugin_text_url_extract\",\"plugin_id\":\"plugin.text.url_extract\",\"plugin_version\":\"v1\",\"status\":\"success\",\"output_or_refusal_schema_id\":\"plugin.text.url_extract.output.v1\",\"replay_class_id\":\"deterministic_replayable\",\"structured_payload\":{\"urls\":[\"https://snapshot.example/article\",\"https://snapshot.example/feed.rss.\"]},\"plugin_receipt\":{\"receipt_id\":\"receipt.plugin.text.url_extract.62157e9942c049fa.v1\",\"plugin_id\":\"plugin.text.url_extract\",\"plugin_version\":\"v1\",\"tool_name\":\"plugin_text_url_extract\",\"packet_abi_version\":\"packet.v1\",\"mount_envelope_id\":\"mount.plugin.text.url_extract.no_capabilities.v1\",\"capability_namespace_ids\":[],\"replay_class_id\":\"deterministic_replayable\",\"status\":\"success\",\"input_schema_id\":\"plugin.text.url_extract.input.v1\",\"input_packet_digest\":\"62157e9942c049fa8e6ab7c6a1f74b1f41a2f5016445acc61527f8a8c8ce7f1b\",\"output_or_refusal_schema_id\":\"plugin.text.url_extract.output.v1\",\"output_or_refusal_digest\":\"214fd263858f807ded0fa9178cb5361396d4d52d4235af2cb29cc1fca930b7fe\",\"detail\":\"url extract keeps the legacy left-to-right https?://[^\\\\s]+ rule with duplicate preservation and no network semantics.\",\"receipt_digest\":\"fd52592bfe7ec1f52cbaae881db7a57041825dd51e07900e0e8d82da323aa341\"}}",
+            "author_name": "plugin_text_url_extract"
+          },
+          {
+            "role": "assistant",
+            "content": "Fetching article HTML through the router-owned plugin gateway."
+          },
+          {
+            "role": "assistant",
+            "content": "{\"tool_call_id\":\"tool-1\",\"name\":\"plugin_http_fetch_text\",\"arguments\":{\"url\":\"https://snapshot.example/article\"}}",
+            "channel": "tool_call"
+          },
+          {
+            "role": "tool",
+            "content": "{\"tool_name\":\"plugin_http_fetch_text\",\"plugin_id\":\"plugin.http.fetch_text\",\"plugin_version\":\"v1\",\"status\":\"success\",\"output_or_refusal_schema_id\":\"plugin.http.fetch_text.output.v1\",\"replay_class_id\":\"replayable_with_snapshots\",\"structured_payload\":{\"final_url\":\"https://snapshot.example/article\",\"status_code\":200,\"content_type\":\"text/html\",\"charset\":\"utf-8\",\"body_text\":\"<html lang=\\\"en\\\"><head><title>Snapshot Article</title></head><body><main><p>Bounded starter plugin content.</p></main></body></html>\",\"truncated\":false},\"plugin_receipt\":{\"receipt_id\":\"receipt.plugin.http.fetch_text.aa5ae2b22543ed81.v1\",\"plugin_id\":\"plugin.http.fetch_text\",\"plugin_version\":\"v1\",\"tool_name\":\"plugin_http_fetch_text\",\"packet_abi_version\":\"packet.v1\",\"mount_envelope_id\":\"mount.plugin.http.fetch_text.read_only_http_allowlist.v1\",\"capability_namespace_ids\":[\"capability.http.read_only.v1\"],\"replay_class_id\":\"replayable_with_snapshots\",\"status\":\"success\",\"input_schema_id\":\"plugin.http.fetch_text.input.v1\",\"input_packet_digest\":\"aa5ae2b22543ed81711389887a52bd710d475bb12785618b07edcaad83b51cea\",\"output_or_refusal_schema_id\":\"plugin.http.fetch_text.output.v1\",\"output_or_refusal_digest\":\"da2fc12b9e181424b8b781b24df5e7508965a4e7a55ae901b917681ad5a5ab4a\",\"detail\":\"fetch-text keeps GET-only host-mediated access explicit and returns structured text-fetch truth without browser semantics.\",\"receipt_digest\":\"b46d6d7f789b833ceadeb938f07f5debe355e7ab53add5a002507ef3a3459a97\"}}",
+            "author_name": "plugin_http_fetch_text"
+          },
+          {
+            "role": "assistant",
+            "content": "Extracting readable article content."
+          },
+          {
+            "role": "assistant",
+            "content": "{\"tool_call_id\":\"tool-2\",\"name\":\"plugin_html_extract_readable\",\"arguments\":{\"source_url\":\"https://snapshot.example/article\",\"content_type\":\"text/html\",\"body_text\":\"<html lang=\\\"en\\\"><head><title>Snapshot Article</title></head><body><main><p>Bounded starter plugin content.</p></main></body></html>\"}}",
+            "channel": "tool_call"
+          },
+          {
+            "role": "tool",
+            "content": "{\"tool_name\":\"plugin_html_extract_readable\",\"plugin_id\":\"plugin.html.extract_readable\",\"plugin_version\":\"v1\",\"status\":\"success\",\"output_or_refusal_schema_id\":\"plugin.html.extract_readable.output.v1\",\"replay_class_id\":\"deterministic_replayable\",\"structured_payload\":{\"title\":\"Snapshot Article\",\"site_name\":\"snapshot.example\",\"excerpt\":\"Bounded starter plugin content.\",\"readable_text\":\"Bounded starter plugin content.\",\"harvested_links\":[],\"content_language\":\"en\"},\"plugin_receipt\":{\"receipt_id\":\"receipt.plugin.html.extract_readable.1646205d55c61941.v1\",\"plugin_id\":\"plugin.html.extract_readable\",\"plugin_version\":\"v1\",\"tool_name\":\"plugin_html_extract_readable\",\"packet_abi_version\":\"packet.v1\",\"mount_envelope_id\":\"mount.plugin.html.extract_readable.no_capabilities.v1\",\"capability_namespace_ids\":[],\"replay_class_id\":\"deterministic_replayable\",\"status\":\"success\",\"input_schema_id\":\"plugin.html.extract_readable.input.v1\",\"input_packet_digest\":\"1646205d55c61941305892d12c0129468bda966e187cecd67a00cff21b86adee\",\"output_or_refusal_schema_id\":\"plugin.html.extract_readable.output.v1\",\"output_or_refusal_digest\":\"773984ba9e24e9b31d9303c18afc842913c2c80127967d3b6b3e9c6d061e6c4f\",\"detail\":\"extract-readable keeps bounded readability rules explicit and local instead of hiding them in host glue or browser state.\",\"receipt_digest\":\"05a7fff53655232b5e8a01232576276d8d017c0f5de6a5606ad243fec71ddaa7\"}}",
+            "author_name": "plugin_html_extract_readable"
+          },
+          {
+            "role": "assistant",
+            "content": "Fetching feed XML through the same gateway."
+          },
+          {
+            "role": "assistant",
+            "content": "{\"tool_call_id\":\"tool-3\",\"name\":\"plugin_http_fetch_text\",\"arguments\":{\"url\":\"https://snapshot.example/feed.rss\"}}",
+            "channel": "tool_call"
+          },
+          {
+            "role": "tool",
+            "content": "{\"tool_name\":\"plugin_http_fetch_text\",\"plugin_id\":\"plugin.http.fetch_text\",\"plugin_version\":\"v1\",\"status\":\"success\",\"output_or_refusal_schema_id\":\"plugin.http.fetch_text.output.v1\",\"replay_class_id\":\"replayable_with_snapshots\",\"structured_payload\":{\"final_url\":\"https://snapshot.example/feed.rss\",\"status_code\":200,\"content_type\":\"application/rss+xml\",\"charset\":\"utf-8\",\"body_text\":\"<?xml version=\\\"1.0\\\" encoding=\\\"utf-8\\\"?><rss version=\\\"2.0\\\"><channel><title>Snapshot Feed</title><link>https://snapshot.example/</link><description>Snapshot feed updates.</description><item><title>Feed Entry</title><link>/posts/feed-entry</link><description>Snapshot entry summary.</description></item></channel></rss>\",\"truncated\":false},\"plugin_receipt\":{\"receipt_id\":\"receipt.plugin.http.fetch_text.818e6c686ecfff73.v1\",\"plugin_id\":\"plugin.http.fetch_text\",\"plugin_version\":\"v1\",\"tool_name\":\"plugin_http_fetch_text\",\"packet_abi_version\":\"packet.v1\",\"mount_envelope_id\":\"mount.plugin.http.fetch_text.read_only_http_allowlist.v1\",\"capability_namespace_ids\":[\"capability.http.read_only.v1\"],\"replay_class_id\":\"replayable_with_snapshots\",\"status\":\"success\",\"input_schema_id\":\"plugin.http.fetch_text.input.v1\",\"input_packet_digest\":\"818e6c686ecfff7348f85891ad436c71169b3bdc1507c7d6c10adae43e63e705\",\"output_or_refusal_schema_id\":\"plugin.http.fetch_text.output.v1\",\"output_or_refusal_digest\":\"de6264c00b05bdb4e384fbee68f7817d16b716c6590e4aa25b704f2a57365b08\",\"detail\":\"fetch-text keeps GET-only host-mediated access explicit and returns structured text-fetch truth without browser semantics.\",\"receipt_digest\":\"beb2b5da6ad6c23aaa111962cc4663cec3a82335864b4fe36b2370d27e3593f9\"}}",
+            "author_name": "plugin_http_fetch_text"
+          },
+          {
+            "role": "assistant",
+            "content": "Parsing the feed as RSS or Atom."
+          },
+          {
+            "role": "assistant",
+            "content": "{\"tool_call_id\":\"tool-4\",\"name\":\"plugin_feed_rss_atom_parse\",\"arguments\":{\"source_url\":\"https://snapshot.example/feed.rss\",\"content_type\":\"application/rss+xml\",\"feed_text\":\"<?xml version=\\\"1.0\\\" encoding=\\\"utf-8\\\"?><rss version=\\\"2.0\\\"><channel><title>Snapshot Feed</title><link>https://snapshot.example/</link><description>Snapshot feed updates.</description><item><title>Feed Entry</title><link>/posts/feed-entry</link><description>Snapshot entry summary.</description></item></channel></rss>\"}}",
+            "channel": "tool_call"
+          },
+          {
+            "role": "tool",
+            "content": "{\"tool_name\":\"plugin_feed_rss_atom_parse\",\"plugin_id\":\"plugin.feed.rss_atom_parse\",\"plugin_version\":\"v1\",\"status\":\"success\",\"output_or_refusal_schema_id\":\"plugin.feed.rss_atom_parse.output.v1\",\"replay_class_id\":\"deterministic_replayable\",\"structured_payload\":{\"feed_title\":\"Snapshot Feed\",\"feed_homepage_url\":\"https://snapshot.example/\",\"feed_description\":\"Snapshot feed updates.\",\"entries\":[{\"title\":\"Feed Entry\",\"link\":\"https://snapshot.example/posts/feed-entry\",\"summary\":\"Snapshot entry summary.\",\"content_excerpt\":\"Snapshot entry summary.\"}]},\"plugin_receipt\":{\"receipt_id\":\"receipt.plugin.feed.rss_atom_parse.3430f94093b76c67.v1\",\"plugin_id\":\"plugin.feed.rss_atom_parse\",\"plugin_version\":\"v1\",\"tool_name\":\"plugin_feed_rss_atom_parse\",\"packet_abi_version\":\"packet.v1\",\"mount_envelope_id\":\"mount.plugin.feed.rss_atom_parse.no_capabilities.v1\",\"capability_namespace_ids\":[],\"replay_class_id\":\"deterministic_replayable\",\"status\":\"success\",\"input_schema_id\":\"plugin.feed.rss_atom_parse.input.v1\",\"input_packet_digest\":\"3430f94093b76c67eacaadd3470ec7676574bfa9d63a3531c9771a48a8e2bcca\",\"output_or_refusal_schema_id\":\"plugin.feed.rss_atom_parse.output.v1\",\"output_or_refusal_digest\":\"6ef6eb5da2be9a7b431d3dd470adb4251b5260c359f8881146b0f85da2658ddd\",\"detail\":\"feed-parse keeps RSS 2.0 and Atom 1.0 normalization explicit and local instead of hiding broader XML interpretation in host glue.\",\"receipt_digest\":\"34286eb8a47ff91e59249319886c205fc0a8a9111a807700f8b9186f8f0e67b2\"}}",
+            "author_name": "plugin_feed_rss_atom_parse"
+          },
+          {
+            "role": "assistant",
+            "content": "I extracted one article and one feed through the router-owned plugin tool loop."
+          }
+        ],
+        "steps": [
+          {
+            "step_index": 0,
+            "route_selection": {
+              "worker_id": "local_cpu_0",
+              "model_key": "tiny-router-plugin-tool.gguf@synthetic_local",
+              "canonical_name": "tiny-router-plugin-tool.gguf",
+              "endpoint": "responses",
+              "family": "llama",
+              "backend_label": "cpu",
+              "execution_mode_label": "native",
+              "execution_engine_label": "psionic",
+              "execution_profile": {
+                "batch_posture": "continuous_batch",
+                "queue_policy": {
+                  "discipline": "fifo",
+                  "max_active_requests": 4,
+                  "max_queued_requests": 32,
+                  "per_model_serialization": true
+                },
+                "throughput_class": "throughput_optimized",
+                "prefill_decode_capability": {
+                  "supported_modes": [
+                    "disaggregated_colocated"
+                  ],
+                  "supported_transports": [
+                    "in_process_kv_state"
+                  ],
+                  "exposes_split_metrics": true,
+                  "detail": "continuous batching keeps prompt-prefill and decode as distinct co-located scheduler phases"
+                }
+              },
+              "scheduler_policy": {
+                "max_active_requests": 4,
+                "max_queued_requests": 32,
+                "max_prefill_tokens_per_tick": 4,
+                "max_decode_tokens_per_tick": 8
+              },
+              "metrics": {
+                "eligible_workers": 1,
+                "warm_workers": 1,
+                "cache_matches": 0,
+                "sampled_workers": 1,
+                "selected_active_requests": 0,
+                "strategy": "warm_aware"
+              },
+              "routing_notes": [
+                "resolved target `default:tiny-router-plugin-tool.gguf@synthetic_local` to model `tiny-router-plugin-tool.gguf` on worker `local_cpu_0`",
+                "placement policy selected the route from the `warm` candidate pool",
+                "capability filters were satisfied by the selected worker route"
+              ]
+            },
+            "prompt_history_len_before": 1,
+            "prompt_history_len_after": 3,
+            "tool_calls": [
+              {
+                "id": "psionic-resp-1-tool-0",
+                "name": "plugin_text_url_extract",
+                "arguments": {
+                  "text": "Read https://snapshot.example/article and https://snapshot.example/feed.rss."
+                }
+              }
+            ],
+            "tool_results": [
+              {
+                "tool_call_id": "psionic-resp-1-tool-0",
+                "tool_name": "plugin_text_url_extract",
+                "provider": {
+                  "provider_id": "starter-plugin-runtime",
+                  "interface": {
+                    "kind": "native"
+                  },
+                  "history_visibility": "none",
+                  "result_visibility": "inject_into_model"
+                },
+                "visibility": "inject_into_model",
+                "message": {
+                  "role": "tool",
+                  "content": "{\"tool_name\":\"plugin_text_url_extract\",\"plugin_id\":\"plugin.text.url_extract\",\"plugin_version\":\"v1\",\"status\":\"success\",\"output_or_refusal_schema_id\":\"plugin.text.url_extract.output.v1\",\"replay_class_id\":\"deterministic_replayable\",\"structured_payload\":{\"urls\":[\"https://snapshot.example/article\",\"https://snapshot.example/feed.rss.\"]},\"plugin_receipt\":{\"receipt_id\":\"receipt.plugin.text.url_extract.62157e9942c049fa.v1\",\"plugin_id\":\"plugin.text.url_extract\",\"plugin_version\":\"v1\",\"tool_name\":\"plugin_text_url_extract\",\"packet_abi_version\":\"packet.v1\",\"mount_envelope_id\":\"mount.plugin.text.url_extract.no_capabilities.v1\",\"capability_namespace_ids\":[],\"replay_class_id\":\"deterministic_replayable\",\"status\":\"success\",\"input_schema_id\":\"plugin.text.url_extract.input.v1\",\"input_packet_digest\":\"62157e9942c049fa8e6ab7c6a1f74b1f41a2f5016445acc61527f8a8c8ce7f1b\",\"output_or_refusal_schema_id\":\"plugin.text.url_extract.output.v1\",\"output_or_refusal_digest\":\"214fd263858f807ded0fa9178cb5361396d4d52d4235af2cb29cc1fca930b7fe\",\"detail\":\"url extract keeps the legacy left-to-right https?://[^\\\\s]+ rule with duplicate preservation and no network semantics.\",\"receipt_digest\":\"fd52592bfe7ec1f52cbaae881db7a57041825dd51e07900e0e8d82da323aa341\"}}",
+                  "author_name": "plugin_text_url_extract"
+                },
+                "structured": {
+                  "tool_name": "plugin_text_url_extract",
+                  "plugin_id": "plugin.text.url_extract",
+                  "plugin_version": "v1",
+                  "status": "success",
+                  "output_or_refusal_schema_id": "plugin.text.url_extract.output.v1",
+                  "replay_class_id": "deterministic_replayable",
+                  "structured_payload": {
+                    "urls": [
+                      "https://snapshot.example/article",
+                      "https://snapshot.example/feed.rss."
+                    ]
+                  },
+                  "plugin_receipt": {
+                    "receipt_id": "receipt.plugin.text.url_extract.62157e9942c049fa.v1",
+                    "plugin_id": "plugin.text.url_extract",
+                    "plugin_version": "v1",
+                    "tool_name": "plugin_text_url_extract",
+                    "packet_abi_version": "packet.v1",
+                    "mount_envelope_id": "mount.plugin.text.url_extract.no_capabilities.v1",
+                    "capability_namespace_ids": [],
+                    "replay_class_id": "deterministic_replayable",
+                    "status": "success",
+                    "input_schema_id": "plugin.text.url_extract.input.v1",
+                    "input_packet_digest": "62157e9942c049fa8e6ab7c6a1f74b1f41a2f5016445acc61527f8a8c8ce7f1b",
+                    "output_or_refusal_schema_id": "plugin.text.url_extract.output.v1",
+                    "output_or_refusal_digest": "214fd263858f807ded0fa9178cb5361396d4d52d4235af2cb29cc1fca930b7fe",
+                    "detail": "url extract keeps the legacy left-to-right https?://[^\\s]+ rule with duplicate preservation and no network semantics.",
+                    "receipt_digest": "fd52592bfe7ec1f52cbaae881db7a57041825dd51e07900e0e8d82da323aa341"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "step_index": 1,
+            "route_selection": {
+              "worker_id": "local_cpu_0",
+              "model_key": "tiny-router-plugin-tool.gguf@synthetic_local",
+              "canonical_name": "tiny-router-plugin-tool.gguf",
+              "endpoint": "responses",
+              "family": "llama",
+              "backend_label": "cpu",
+              "execution_mode_label": "native",
+              "execution_engine_label": "psionic",
+              "execution_profile": {
+                "batch_posture": "continuous_batch",
+                "queue_policy": {
+                  "discipline": "fifo",
+                  "max_active_requests": 4,
+                  "max_queued_requests": 32,
+                  "per_model_serialization": true
+                },
+                "throughput_class": "throughput_optimized",
+                "prefill_decode_capability": {
+                  "supported_modes": [
+                    "disaggregated_colocated"
+                  ],
+                  "supported_transports": [
+                    "in_process_kv_state"
+                  ],
+                  "exposes_split_metrics": true,
+                  "detail": "continuous batching keeps prompt-prefill and decode as distinct co-located scheduler phases"
+                }
+              },
+              "scheduler_policy": {
+                "max_active_requests": 4,
+                "max_queued_requests": 32,
+                "max_prefill_tokens_per_tick": 4,
+                "max_decode_tokens_per_tick": 8
+              },
+              "metrics": {
+                "eligible_workers": 1,
+                "warm_workers": 1,
+                "cache_matches": 0,
+                "sampled_workers": 1,
+                "selected_active_requests": 0,
+                "strategy": "warm_aware"
+              },
+              "routing_notes": [
+                "resolved target `default:tiny-router-plugin-tool.gguf@synthetic_local` to model `tiny-router-plugin-tool.gguf` on worker `local_cpu_0`",
+                "selected preferred worker `local_cpu_0` as the final route tiebreak",
+                "placement policy selected the route from the `warm` candidate pool",
+                "capability filters were satisfied by the selected worker route"
+              ]
+            },
+            "prompt_history_len_before": 3,
+            "prompt_history_len_after": 6,
+            "assistant_message": {
+              "role": "assistant",
+              "content": "Fetching article HTML through the router-owned plugin gateway."
+            },
+            "tool_calls": [
+              {
+                "id": "tool-1",
+                "name": "plugin_http_fetch_text",
+                "arguments": {
+                  "url": "https://snapshot.example/article"
+                }
+              }
+            ],
+            "tool_results": [
+              {
+                "tool_call_id": "tool-1",
+                "tool_name": "plugin_http_fetch_text",
+                "provider": {
+                  "provider_id": "starter-plugin-runtime",
+                  "interface": {
+                    "kind": "native"
+                  },
+                  "history_visibility": "none",
+                  "result_visibility": "inject_into_model"
+                },
+                "visibility": "inject_into_model",
+                "message": {
+                  "role": "tool",
+                  "content": "{\"tool_name\":\"plugin_http_fetch_text\",\"plugin_id\":\"plugin.http.fetch_text\",\"plugin_version\":\"v1\",\"status\":\"success\",\"output_or_refusal_schema_id\":\"plugin.http.fetch_text.output.v1\",\"replay_class_id\":\"replayable_with_snapshots\",\"structured_payload\":{\"final_url\":\"https://snapshot.example/article\",\"status_code\":200,\"content_type\":\"text/html\",\"charset\":\"utf-8\",\"body_text\":\"<html lang=\\\"en\\\"><head><title>Snapshot Article</title></head><body><main><p>Bounded starter plugin content.</p></main></body></html>\",\"truncated\":false},\"plugin_receipt\":{\"receipt_id\":\"receipt.plugin.http.fetch_text.aa5ae2b22543ed81.v1\",\"plugin_id\":\"plugin.http.fetch_text\",\"plugin_version\":\"v1\",\"tool_name\":\"plugin_http_fetch_text\",\"packet_abi_version\":\"packet.v1\",\"mount_envelope_id\":\"mount.plugin.http.fetch_text.read_only_http_allowlist.v1\",\"capability_namespace_ids\":[\"capability.http.read_only.v1\"],\"replay_class_id\":\"replayable_with_snapshots\",\"status\":\"success\",\"input_schema_id\":\"plugin.http.fetch_text.input.v1\",\"input_packet_digest\":\"aa5ae2b22543ed81711389887a52bd710d475bb12785618b07edcaad83b51cea\",\"output_or_refusal_schema_id\":\"plugin.http.fetch_text.output.v1\",\"output_or_refusal_digest\":\"da2fc12b9e181424b8b781b24df5e7508965a4e7a55ae901b917681ad5a5ab4a\",\"detail\":\"fetch-text keeps GET-only host-mediated access explicit and returns structured text-fetch truth without browser semantics.\",\"receipt_digest\":\"b46d6d7f789b833ceadeb938f07f5debe355e7ab53add5a002507ef3a3459a97\"}}",
+                  "author_name": "plugin_http_fetch_text"
+                },
+                "structured": {
+                  "tool_name": "plugin_http_fetch_text",
+                  "plugin_id": "plugin.http.fetch_text",
+                  "plugin_version": "v1",
+                  "status": "success",
+                  "output_or_refusal_schema_id": "plugin.http.fetch_text.output.v1",
+                  "replay_class_id": "replayable_with_snapshots",
+                  "structured_payload": {
+                    "final_url": "https://snapshot.example/article",
+                    "status_code": 200,
+                    "content_type": "text/html",
+                    "charset": "utf-8",
+                    "body_text": "<html lang=\"en\"><head><title>Snapshot Article</title></head><body><main><p>Bounded starter plugin content.</p></main></body></html>",
+                    "truncated": false
+                  },
+                  "plugin_receipt": {
+                    "receipt_id": "receipt.plugin.http.fetch_text.aa5ae2b22543ed81.v1",
+                    "plugin_id": "plugin.http.fetch_text",
+                    "plugin_version": "v1",
+                    "tool_name": "plugin_http_fetch_text",
+                    "packet_abi_version": "packet.v1",
+                    "mount_envelope_id": "mount.plugin.http.fetch_text.read_only_http_allowlist.v1",
+                    "capability_namespace_ids": [
+                      "capability.http.read_only.v1"
+                    ],
+                    "replay_class_id": "replayable_with_snapshots",
+                    "status": "success",
+                    "input_schema_id": "plugin.http.fetch_text.input.v1",
+                    "input_packet_digest": "aa5ae2b22543ed81711389887a52bd710d475bb12785618b07edcaad83b51cea",
+                    "output_or_refusal_schema_id": "plugin.http.fetch_text.output.v1",
+                    "output_or_refusal_digest": "da2fc12b9e181424b8b781b24df5e7508965a4e7a55ae901b917681ad5a5ab4a",
+                    "detail": "fetch-text keeps GET-only host-mediated access explicit and returns structured text-fetch truth without browser semantics.",
+                    "receipt_digest": "b46d6d7f789b833ceadeb938f07f5debe355e7ab53add5a002507ef3a3459a97"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "step_index": 2,
+            "route_selection": {
+              "worker_id": "local_cpu_0",
+              "model_key": "tiny-router-plugin-tool.gguf@synthetic_local",
+              "canonical_name": "tiny-router-plugin-tool.gguf",
+              "endpoint": "responses",
+              "family": "llama",
+              "backend_label": "cpu",
+              "execution_mode_label": "native",
+              "execution_engine_label": "psionic",
+              "execution_profile": {
+                "batch_posture": "continuous_batch",
+                "queue_policy": {
+                  "discipline": "fifo",
+                  "max_active_requests": 4,
+                  "max_queued_requests": 32,
+                  "per_model_serialization": true
+                },
+                "throughput_class": "throughput_optimized",
+                "prefill_decode_capability": {
+                  "supported_modes": [
+                    "disaggregated_colocated"
+                  ],
+                  "supported_transports": [
+                    "in_process_kv_state"
+                  ],
+                  "exposes_split_metrics": true,
+                  "detail": "continuous batching keeps prompt-prefill and decode as distinct co-located scheduler phases"
+                }
+              },
+              "scheduler_policy": {
+                "max_active_requests": 4,
+                "max_queued_requests": 32,
+                "max_prefill_tokens_per_tick": 4,
+                "max_decode_tokens_per_tick": 8
+              },
+              "metrics": {
+                "eligible_workers": 1,
+                "warm_workers": 1,
+                "cache_matches": 0,
+                "sampled_workers": 1,
+                "selected_active_requests": 0,
+                "strategy": "warm_aware"
+              },
+              "routing_notes": [
+                "resolved target `default:tiny-router-plugin-tool.gguf@synthetic_local` to model `tiny-router-plugin-tool.gguf` on worker `local_cpu_0`",
+                "selected preferred worker `local_cpu_0` as the final route tiebreak",
+                "placement policy selected the route from the `warm` candidate pool",
+                "capability filters were satisfied by the selected worker route"
+              ]
+            },
+            "prompt_history_len_before": 6,
+            "prompt_history_len_after": 9,
+            "assistant_message": {
+              "role": "assistant",
+              "content": "Extracting readable article content."
+            },
+            "tool_calls": [
+              {
+                "id": "tool-2",
+                "name": "plugin_html_extract_readable",
+                "arguments": {
+                  "source_url": "https://snapshot.example/article",
+                  "content_type": "text/html",
+                  "body_text": "<html lang=\"en\"><head><title>Snapshot Article</title></head><body><main><p>Bounded starter plugin content.</p></main></body></html>"
+                }
+              }
+            ],
+            "tool_results": [
+              {
+                "tool_call_id": "tool-2",
+                "tool_name": "plugin_html_extract_readable",
+                "provider": {
+                  "provider_id": "starter-plugin-runtime",
+                  "interface": {
+                    "kind": "native"
+                  },
+                  "history_visibility": "none",
+                  "result_visibility": "inject_into_model"
+                },
+                "visibility": "inject_into_model",
+                "message": {
+                  "role": "tool",
+                  "content": "{\"tool_name\":\"plugin_html_extract_readable\",\"plugin_id\":\"plugin.html.extract_readable\",\"plugin_version\":\"v1\",\"status\":\"success\",\"output_or_refusal_schema_id\":\"plugin.html.extract_readable.output.v1\",\"replay_class_id\":\"deterministic_replayable\",\"structured_payload\":{\"title\":\"Snapshot Article\",\"site_name\":\"snapshot.example\",\"excerpt\":\"Bounded starter plugin content.\",\"readable_text\":\"Bounded starter plugin content.\",\"harvested_links\":[],\"content_language\":\"en\"},\"plugin_receipt\":{\"receipt_id\":\"receipt.plugin.html.extract_readable.1646205d55c61941.v1\",\"plugin_id\":\"plugin.html.extract_readable\",\"plugin_version\":\"v1\",\"tool_name\":\"plugin_html_extract_readable\",\"packet_abi_version\":\"packet.v1\",\"mount_envelope_id\":\"mount.plugin.html.extract_readable.no_capabilities.v1\",\"capability_namespace_ids\":[],\"replay_class_id\":\"deterministic_replayable\",\"status\":\"success\",\"input_schema_id\":\"plugin.html.extract_readable.input.v1\",\"input_packet_digest\":\"1646205d55c61941305892d12c0129468bda966e187cecd67a00cff21b86adee\",\"output_or_refusal_schema_id\":\"plugin.html.extract_readable.output.v1\",\"output_or_refusal_digest\":\"773984ba9e24e9b31d9303c18afc842913c2c80127967d3b6b3e9c6d061e6c4f\",\"detail\":\"extract-readable keeps bounded readability rules explicit and local instead of hiding them in host glue or browser state.\",\"receipt_digest\":\"05a7fff53655232b5e8a01232576276d8d017c0f5de6a5606ad243fec71ddaa7\"}}",
+                  "author_name": "plugin_html_extract_readable"
+                },
+                "structured": {
+                  "tool_name": "plugin_html_extract_readable",
+                  "plugin_id": "plugin.html.extract_readable",
+                  "plugin_version": "v1",
+                  "status": "success",
+                  "output_or_refusal_schema_id": "plugin.html.extract_readable.output.v1",
+                  "replay_class_id": "deterministic_replayable",
+                  "structured_payload": {
+                    "title": "Snapshot Article",
+                    "site_name": "snapshot.example",
+                    "excerpt": "Bounded starter plugin content.",
+                    "readable_text": "Bounded starter plugin content.",
+                    "harvested_links": [],
+                    "content_language": "en"
+                  },
+                  "plugin_receipt": {
+                    "receipt_id": "receipt.plugin.html.extract_readable.1646205d55c61941.v1",
+                    "plugin_id": "plugin.html.extract_readable",
+                    "plugin_version": "v1",
+                    "tool_name": "plugin_html_extract_readable",
+                    "packet_abi_version": "packet.v1",
+                    "mount_envelope_id": "mount.plugin.html.extract_readable.no_capabilities.v1",
+                    "capability_namespace_ids": [],
+                    "replay_class_id": "deterministic_replayable",
+                    "status": "success",
+                    "input_schema_id": "plugin.html.extract_readable.input.v1",
+                    "input_packet_digest": "1646205d55c61941305892d12c0129468bda966e187cecd67a00cff21b86adee",
+                    "output_or_refusal_schema_id": "plugin.html.extract_readable.output.v1",
+                    "output_or_refusal_digest": "773984ba9e24e9b31d9303c18afc842913c2c80127967d3b6b3e9c6d061e6c4f",
+                    "detail": "extract-readable keeps bounded readability rules explicit and local instead of hiding them in host glue or browser state.",
+                    "receipt_digest": "05a7fff53655232b5e8a01232576276d8d017c0f5de6a5606ad243fec71ddaa7"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "step_index": 3,
+            "route_selection": {
+              "worker_id": "local_cpu_0",
+              "model_key": "tiny-router-plugin-tool.gguf@synthetic_local",
+              "canonical_name": "tiny-router-plugin-tool.gguf",
+              "endpoint": "responses",
+              "family": "llama",
+              "backend_label": "cpu",
+              "execution_mode_label": "native",
+              "execution_engine_label": "psionic",
+              "execution_profile": {
+                "batch_posture": "continuous_batch",
+                "queue_policy": {
+                  "discipline": "fifo",
+                  "max_active_requests": 4,
+                  "max_queued_requests": 32,
+                  "per_model_serialization": true
+                },
+                "throughput_class": "throughput_optimized",
+                "prefill_decode_capability": {
+                  "supported_modes": [
+                    "disaggregated_colocated"
+                  ],
+                  "supported_transports": [
+                    "in_process_kv_state"
+                  ],
+                  "exposes_split_metrics": true,
+                  "detail": "continuous batching keeps prompt-prefill and decode as distinct co-located scheduler phases"
+                }
+              },
+              "scheduler_policy": {
+                "max_active_requests": 4,
+                "max_queued_requests": 32,
+                "max_prefill_tokens_per_tick": 4,
+                "max_decode_tokens_per_tick": 8
+              },
+              "metrics": {
+                "eligible_workers": 1,
+                "warm_workers": 1,
+                "cache_matches": 0,
+                "sampled_workers": 1,
+                "selected_active_requests": 0,
+                "strategy": "warm_aware"
+              },
+              "routing_notes": [
+                "resolved target `default:tiny-router-plugin-tool.gguf@synthetic_local` to model `tiny-router-plugin-tool.gguf` on worker `local_cpu_0`",
+                "selected preferred worker `local_cpu_0` as the final route tiebreak",
+                "placement policy selected the route from the `warm` candidate pool",
+                "capability filters were satisfied by the selected worker route"
+              ]
+            },
+            "prompt_history_len_before": 9,
+            "prompt_history_len_after": 12,
+            "assistant_message": {
+              "role": "assistant",
+              "content": "Fetching feed XML through the same gateway."
+            },
+            "tool_calls": [
+              {
+                "id": "tool-3",
+                "name": "plugin_http_fetch_text",
+                "arguments": {
+                  "url": "https://snapshot.example/feed.rss"
+                }
+              }
+            ],
+            "tool_results": [
+              {
+                "tool_call_id": "tool-3",
+                "tool_name": "plugin_http_fetch_text",
+                "provider": {
+                  "provider_id": "starter-plugin-runtime",
+                  "interface": {
+                    "kind": "native"
+                  },
+                  "history_visibility": "none",
+                  "result_visibility": "inject_into_model"
+                },
+                "visibility": "inject_into_model",
+                "message": {
+                  "role": "tool",
+                  "content": "{\"tool_name\":\"plugin_http_fetch_text\",\"plugin_id\":\"plugin.http.fetch_text\",\"plugin_version\":\"v1\",\"status\":\"success\",\"output_or_refusal_schema_id\":\"plugin.http.fetch_text.output.v1\",\"replay_class_id\":\"replayable_with_snapshots\",\"structured_payload\":{\"final_url\":\"https://snapshot.example/feed.rss\",\"status_code\":200,\"content_type\":\"application/rss+xml\",\"charset\":\"utf-8\",\"body_text\":\"<?xml version=\\\"1.0\\\" encoding=\\\"utf-8\\\"?><rss version=\\\"2.0\\\"><channel><title>Snapshot Feed</title><link>https://snapshot.example/</link><description>Snapshot feed updates.</description><item><title>Feed Entry</title><link>/posts/feed-entry</link><description>Snapshot entry summary.</description></item></channel></rss>\",\"truncated\":false},\"plugin_receipt\":{\"receipt_id\":\"receipt.plugin.http.fetch_text.818e6c686ecfff73.v1\",\"plugin_id\":\"plugin.http.fetch_text\",\"plugin_version\":\"v1\",\"tool_name\":\"plugin_http_fetch_text\",\"packet_abi_version\":\"packet.v1\",\"mount_envelope_id\":\"mount.plugin.http.fetch_text.read_only_http_allowlist.v1\",\"capability_namespace_ids\":[\"capability.http.read_only.v1\"],\"replay_class_id\":\"replayable_with_snapshots\",\"status\":\"success\",\"input_schema_id\":\"plugin.http.fetch_text.input.v1\",\"input_packet_digest\":\"818e6c686ecfff7348f85891ad436c71169b3bdc1507c7d6c10adae43e63e705\",\"output_or_refusal_schema_id\":\"plugin.http.fetch_text.output.v1\",\"output_or_refusal_digest\":\"de6264c00b05bdb4e384fbee68f7817d16b716c6590e4aa25b704f2a57365b08\",\"detail\":\"fetch-text keeps GET-only host-mediated access explicit and returns structured text-fetch truth without browser semantics.\",\"receipt_digest\":\"beb2b5da6ad6c23aaa111962cc4663cec3a82335864b4fe36b2370d27e3593f9\"}}",
+                  "author_name": "plugin_http_fetch_text"
+                },
+                "structured": {
+                  "tool_name": "plugin_http_fetch_text",
+                  "plugin_id": "plugin.http.fetch_text",
+                  "plugin_version": "v1",
+                  "status": "success",
+                  "output_or_refusal_schema_id": "plugin.http.fetch_text.output.v1",
+                  "replay_class_id": "replayable_with_snapshots",
+                  "structured_payload": {
+                    "final_url": "https://snapshot.example/feed.rss",
+                    "status_code": 200,
+                    "content_type": "application/rss+xml",
+                    "charset": "utf-8",
+                    "body_text": "<?xml version=\"1.0\" encoding=\"utf-8\"?><rss version=\"2.0\"><channel><title>Snapshot Feed</title><link>https://snapshot.example/</link><description>Snapshot feed updates.</description><item><title>Feed Entry</title><link>/posts/feed-entry</link><description>Snapshot entry summary.</description></item></channel></rss>",
+                    "truncated": false
+                  },
+                  "plugin_receipt": {
+                    "receipt_id": "receipt.plugin.http.fetch_text.818e6c686ecfff73.v1",
+                    "plugin_id": "plugin.http.fetch_text",
+                    "plugin_version": "v1",
+                    "tool_name": "plugin_http_fetch_text",
+                    "packet_abi_version": "packet.v1",
+                    "mount_envelope_id": "mount.plugin.http.fetch_text.read_only_http_allowlist.v1",
+                    "capability_namespace_ids": [
+                      "capability.http.read_only.v1"
+                    ],
+                    "replay_class_id": "replayable_with_snapshots",
+                    "status": "success",
+                    "input_schema_id": "plugin.http.fetch_text.input.v1",
+                    "input_packet_digest": "818e6c686ecfff7348f85891ad436c71169b3bdc1507c7d6c10adae43e63e705",
+                    "output_or_refusal_schema_id": "plugin.http.fetch_text.output.v1",
+                    "output_or_refusal_digest": "de6264c00b05bdb4e384fbee68f7817d16b716c6590e4aa25b704f2a57365b08",
+                    "detail": "fetch-text keeps GET-only host-mediated access explicit and returns structured text-fetch truth without browser semantics.",
+                    "receipt_digest": "beb2b5da6ad6c23aaa111962cc4663cec3a82335864b4fe36b2370d27e3593f9"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "step_index": 4,
+            "route_selection": {
+              "worker_id": "local_cpu_0",
+              "model_key": "tiny-router-plugin-tool.gguf@synthetic_local",
+              "canonical_name": "tiny-router-plugin-tool.gguf",
+              "endpoint": "responses",
+              "family": "llama",
+              "backend_label": "cpu",
+              "execution_mode_label": "native",
+              "execution_engine_label": "psionic",
+              "execution_profile": {
+                "batch_posture": "continuous_batch",
+                "queue_policy": {
+                  "discipline": "fifo",
+                  "max_active_requests": 4,
+                  "max_queued_requests": 32,
+                  "per_model_serialization": true
+                },
+                "throughput_class": "throughput_optimized",
+                "prefill_decode_capability": {
+                  "supported_modes": [
+                    "disaggregated_colocated"
+                  ],
+                  "supported_transports": [
+                    "in_process_kv_state"
+                  ],
+                  "exposes_split_metrics": true,
+                  "detail": "continuous batching keeps prompt-prefill and decode as distinct co-located scheduler phases"
+                }
+              },
+              "scheduler_policy": {
+                "max_active_requests": 4,
+                "max_queued_requests": 32,
+                "max_prefill_tokens_per_tick": 4,
+                "max_decode_tokens_per_tick": 8
+              },
+              "metrics": {
+                "eligible_workers": 1,
+                "warm_workers": 1,
+                "cache_matches": 0,
+                "sampled_workers": 1,
+                "selected_active_requests": 0,
+                "strategy": "warm_aware"
+              },
+              "routing_notes": [
+                "resolved target `default:tiny-router-plugin-tool.gguf@synthetic_local` to model `tiny-router-plugin-tool.gguf` on worker `local_cpu_0`",
+                "selected preferred worker `local_cpu_0` as the final route tiebreak",
+                "placement policy selected the route from the `warm` candidate pool",
+                "capability filters were satisfied by the selected worker route"
+              ]
+            },
+            "prompt_history_len_before": 12,
+            "prompt_history_len_after": 15,
+            "assistant_message": {
+              "role": "assistant",
+              "content": "Parsing the feed as RSS or Atom."
+            },
+            "tool_calls": [
+              {
+                "id": "tool-4",
+                "name": "plugin_feed_rss_atom_parse",
+                "arguments": {
+                  "source_url": "https://snapshot.example/feed.rss",
+                  "content_type": "application/rss+xml",
+                  "feed_text": "<?xml version=\"1.0\" encoding=\"utf-8\"?><rss version=\"2.0\"><channel><title>Snapshot Feed</title><link>https://snapshot.example/</link><description>Snapshot feed updates.</description><item><title>Feed Entry</title><link>/posts/feed-entry</link><description>Snapshot entry summary.</description></item></channel></rss>"
+                }
+              }
+            ],
+            "tool_results": [
+              {
+                "tool_call_id": "tool-4",
+                "tool_name": "plugin_feed_rss_atom_parse",
+                "provider": {
+                  "provider_id": "starter-plugin-runtime",
+                  "interface": {
+                    "kind": "native"
+                  },
+                  "history_visibility": "none",
+                  "result_visibility": "inject_into_model"
+                },
+                "visibility": "inject_into_model",
+                "message": {
+                  "role": "tool",
+                  "content": "{\"tool_name\":\"plugin_feed_rss_atom_parse\",\"plugin_id\":\"plugin.feed.rss_atom_parse\",\"plugin_version\":\"v1\",\"status\":\"success\",\"output_or_refusal_schema_id\":\"plugin.feed.rss_atom_parse.output.v1\",\"replay_class_id\":\"deterministic_replayable\",\"structured_payload\":{\"feed_title\":\"Snapshot Feed\",\"feed_homepage_url\":\"https://snapshot.example/\",\"feed_description\":\"Snapshot feed updates.\",\"entries\":[{\"title\":\"Feed Entry\",\"link\":\"https://snapshot.example/posts/feed-entry\",\"summary\":\"Snapshot entry summary.\",\"content_excerpt\":\"Snapshot entry summary.\"}]},\"plugin_receipt\":{\"receipt_id\":\"receipt.plugin.feed.rss_atom_parse.3430f94093b76c67.v1\",\"plugin_id\":\"plugin.feed.rss_atom_parse\",\"plugin_version\":\"v1\",\"tool_name\":\"plugin_feed_rss_atom_parse\",\"packet_abi_version\":\"packet.v1\",\"mount_envelope_id\":\"mount.plugin.feed.rss_atom_parse.no_capabilities.v1\",\"capability_namespace_ids\":[],\"replay_class_id\":\"deterministic_replayable\",\"status\":\"success\",\"input_schema_id\":\"plugin.feed.rss_atom_parse.input.v1\",\"input_packet_digest\":\"3430f94093b76c67eacaadd3470ec7676574bfa9d63a3531c9771a48a8e2bcca\",\"output_or_refusal_schema_id\":\"plugin.feed.rss_atom_parse.output.v1\",\"output_or_refusal_digest\":\"6ef6eb5da2be9a7b431d3dd470adb4251b5260c359f8881146b0f85da2658ddd\",\"detail\":\"feed-parse keeps RSS 2.0 and Atom 1.0 normalization explicit and local instead of hiding broader XML interpretation in host glue.\",\"receipt_digest\":\"34286eb8a47ff91e59249319886c205fc0a8a9111a807700f8b9186f8f0e67b2\"}}",
+                  "author_name": "plugin_feed_rss_atom_parse"
+                },
+                "structured": {
+                  "tool_name": "plugin_feed_rss_atom_parse",
+                  "plugin_id": "plugin.feed.rss_atom_parse",
+                  "plugin_version": "v1",
+                  "status": "success",
+                  "output_or_refusal_schema_id": "plugin.feed.rss_atom_parse.output.v1",
+                  "replay_class_id": "deterministic_replayable",
+                  "structured_payload": {
+                    "feed_title": "Snapshot Feed",
+                    "feed_homepage_url": "https://snapshot.example/",
+                    "feed_description": "Snapshot feed updates.",
+                    "entries": [
+                      {
+                        "title": "Feed Entry",
+                        "link": "https://snapshot.example/posts/feed-entry",
+                        "summary": "Snapshot entry summary.",
+                        "content_excerpt": "Snapshot entry summary."
+                      }
+                    ]
+                  },
+                  "plugin_receipt": {
+                    "receipt_id": "receipt.plugin.feed.rss_atom_parse.3430f94093b76c67.v1",
+                    "plugin_id": "plugin.feed.rss_atom_parse",
+                    "plugin_version": "v1",
+                    "tool_name": "plugin_feed_rss_atom_parse",
+                    "packet_abi_version": "packet.v1",
+                    "mount_envelope_id": "mount.plugin.feed.rss_atom_parse.no_capabilities.v1",
+                    "capability_namespace_ids": [],
+                    "replay_class_id": "deterministic_replayable",
+                    "status": "success",
+                    "input_schema_id": "plugin.feed.rss_atom_parse.input.v1",
+                    "input_packet_digest": "3430f94093b76c67eacaadd3470ec7676574bfa9d63a3531c9771a48a8e2bcca",
+                    "output_or_refusal_schema_id": "plugin.feed.rss_atom_parse.output.v1",
+                    "output_or_refusal_digest": "6ef6eb5da2be9a7b431d3dd470adb4251b5260c359f8881146b0f85da2658ddd",
+                    "detail": "feed-parse keeps RSS 2.0 and Atom 1.0 normalization explicit and local instead of hiding broader XML interpretation in host glue.",
+                    "receipt_digest": "34286eb8a47ff91e59249319886c205fc0a8a9111a807700f8b9186f8f0e67b2"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "step_index": 5,
+            "route_selection": {
+              "worker_id": "local_cpu_0",
+              "model_key": "tiny-router-plugin-tool.gguf@synthetic_local",
+              "canonical_name": "tiny-router-plugin-tool.gguf",
+              "endpoint": "responses",
+              "family": "llama",
+              "backend_label": "cpu",
+              "execution_mode_label": "native",
+              "execution_engine_label": "psionic",
+              "execution_profile": {
+                "batch_posture": "continuous_batch",
+                "queue_policy": {
+                  "discipline": "fifo",
+                  "max_active_requests": 4,
+                  "max_queued_requests": 32,
+                  "per_model_serialization": true
+                },
+                "throughput_class": "throughput_optimized",
+                "prefill_decode_capability": {
+                  "supported_modes": [
+                    "disaggregated_colocated"
+                  ],
+                  "supported_transports": [
+                    "in_process_kv_state"
+                  ],
+                  "exposes_split_metrics": true,
+                  "detail": "continuous batching keeps prompt-prefill and decode as distinct co-located scheduler phases"
+                }
+              },
+              "scheduler_policy": {
+                "max_active_requests": 4,
+                "max_queued_requests": 32,
+                "max_prefill_tokens_per_tick": 4,
+                "max_decode_tokens_per_tick": 8
+              },
+              "metrics": {
+                "eligible_workers": 1,
+                "warm_workers": 1,
+                "cache_matches": 0,
+                "sampled_workers": 1,
+                "selected_active_requests": 0,
+                "strategy": "warm_aware"
+              },
+              "routing_notes": [
+                "resolved target `default:tiny-router-plugin-tool.gguf@synthetic_local` to model `tiny-router-plugin-tool.gguf` on worker `local_cpu_0`",
+                "selected preferred worker `local_cpu_0` as the final route tiebreak",
+                "placement policy selected the route from the `warm` candidate pool",
+                "capability filters were satisfied by the selected worker route"
+              ]
+            },
+            "prompt_history_len_before": 15,
+            "prompt_history_len_after": 16,
+            "assistant_message": {
+              "role": "assistant",
+              "content": "I extracted one article and one feed through the router-owned plugin tool loop."
+            }
+          }
+        ]
+      },
+      "receipt_rows": [
+        {
+          "step_index": 0,
+          "tool_call_id": "psionic-resp-1-tool-0",
+          "tool_name": "plugin_text_url_extract",
+          "plugin_id": "plugin.text.url_extract",
+          "plugin_receipt_id": "receipt.plugin.text.url_extract.62157e9942c049fa.v1",
+          "plugin_receipt_digest": "fd52592bfe7ec1f52cbaae881db7a57041825dd51e07900e0e8d82da323aa341",
+          "status": "success",
+          "output_or_refusal_schema_id": "plugin.text.url_extract.output.v1",
+          "replay_class_id": "deterministic_replayable"
+        },
+        {
+          "step_index": 1,
+          "tool_call_id": "tool-1",
+          "tool_name": "plugin_http_fetch_text",
+          "plugin_id": "plugin.http.fetch_text",
+          "plugin_receipt_id": "receipt.plugin.http.fetch_text.aa5ae2b22543ed81.v1",
+          "plugin_receipt_digest": "b46d6d7f789b833ceadeb938f07f5debe355e7ab53add5a002507ef3a3459a97",
+          "status": "success",
+          "output_or_refusal_schema_id": "plugin.http.fetch_text.output.v1",
+          "replay_class_id": "replayable_with_snapshots"
+        },
+        {
+          "step_index": 2,
+          "tool_call_id": "tool-2",
+          "tool_name": "plugin_html_extract_readable",
+          "plugin_id": "plugin.html.extract_readable",
+          "plugin_receipt_id": "receipt.plugin.html.extract_readable.1646205d55c61941.v1",
+          "plugin_receipt_digest": "05a7fff53655232b5e8a01232576276d8d017c0f5de6a5606ad243fec71ddaa7",
+          "status": "success",
+          "output_or_refusal_schema_id": "plugin.html.extract_readable.output.v1",
+          "replay_class_id": "deterministic_replayable"
+        },
+        {
+          "step_index": 3,
+          "tool_call_id": "tool-3",
+          "tool_name": "plugin_http_fetch_text",
+          "plugin_id": "plugin.http.fetch_text",
+          "plugin_receipt_id": "receipt.plugin.http.fetch_text.818e6c686ecfff73.v1",
+          "plugin_receipt_digest": "beb2b5da6ad6c23aaa111962cc4663cec3a82335864b4fe36b2370d27e3593f9",
+          "status": "success",
+          "output_or_refusal_schema_id": "plugin.http.fetch_text.output.v1",
+          "replay_class_id": "replayable_with_snapshots"
+        },
+        {
+          "step_index": 4,
+          "tool_call_id": "tool-4",
+          "tool_name": "plugin_feed_rss_atom_parse",
+          "plugin_id": "plugin.feed.rss_atom_parse",
+          "plugin_receipt_id": "receipt.plugin.feed.rss_atom_parse.3430f94093b76c67.v1",
+          "plugin_receipt_digest": "34286eb8a47ff91e59249319886c205fc0a8a9111a807700f8b9186f8f0e67b2",
+          "status": "success",
+          "output_or_refusal_schema_id": "plugin.feed.rss_atom_parse.output.v1",
+          "replay_class_id": "deterministic_replayable"
+        }
+      ],
+      "observed_history_lens": [
+        1,
+        3,
+        6,
+        9,
+        12,
+        15
+      ],
+      "max_steps": 6,
+      "bounded_step_count_preserved": true,
+      "structured_plugin_outputs_preserved": true,
+      "typed_refusal_preserved": false,
+      "detail": "the first step comes from a real `/v1/responses` tool-call response, while the bounded follow-on turns stay router-owned and execute real starter plugins through the shared bridge."
+    },
+    {
+      "case_id": "router_plugin_tool_loop_fetch_refusal",
+      "directive": "Read https://snapshot.example/binary.",
+      "served_seed": {
+        "response_id": "psionic-resp-1",
+        "conversation_id": "psionic-conv-1",
+        "conversation_revision": 1,
+        "tool_call_names": [
+          "plugin_text_url_extract"
+        ],
+        "route_worker": "local_cpu_0",
+        "route_strategy": "warm_aware",
+        "stored": true,
+        "replayed_prompt_messages": 0
+      },
+      "tool_loop_outcome": {
+        "termination_reason": "completed",
+        "final_message": {
+          "role": "assistant",
+          "content": "The router-owned plugin tool loop stopped after a typed fetch refusal."
+        },
+        "final_prompt_history": [
+          {
+            "role": "user",
+            "content": "Read https://snapshot.example/binary."
+          },
+          {
+            "role": "assistant",
+            "content": "{\"tool_call_id\":\"psionic-resp-1-tool-0\",\"name\":\"plugin_text_url_extract\",\"arguments\":{\"text\":\"Read https://snapshot.example/binary.\"}}",
+            "channel": "tool_call"
+          },
+          {
+            "role": "tool",
+            "content": "{\"tool_name\":\"plugin_text_url_extract\",\"plugin_id\":\"plugin.text.url_extract\",\"plugin_version\":\"v1\",\"status\":\"success\",\"output_or_refusal_schema_id\":\"plugin.text.url_extract.output.v1\",\"replay_class_id\":\"deterministic_replayable\",\"structured_payload\":{\"urls\":[\"https://snapshot.example/binary.\"]},\"plugin_receipt\":{\"receipt_id\":\"receipt.plugin.text.url_extract.4a6f86849a652648.v1\",\"plugin_id\":\"plugin.text.url_extract\",\"plugin_version\":\"v1\",\"tool_name\":\"plugin_text_url_extract\",\"packet_abi_version\":\"packet.v1\",\"mount_envelope_id\":\"mount.plugin.text.url_extract.no_capabilities.v1\",\"capability_namespace_ids\":[],\"replay_class_id\":\"deterministic_replayable\",\"status\":\"success\",\"input_schema_id\":\"plugin.text.url_extract.input.v1\",\"input_packet_digest\":\"4a6f86849a6526480a438ff012a729b18611d63bbcf1a14c1810f61af9416346\",\"output_or_refusal_schema_id\":\"plugin.text.url_extract.output.v1\",\"output_or_refusal_digest\":\"784e5a2425219ec59dc14d5fc26b3d39ed9f88a0f7077033806b98eb40b5893b\",\"detail\":\"url extract keeps the legacy left-to-right https?://[^\\\\s]+ rule with duplicate preservation and no network semantics.\",\"receipt_digest\":\"40c66550e26f0f13729b7f6037f249098d7dce373eee75d0ee71d0ab86c3512f\"}}",
+            "author_name": "plugin_text_url_extract"
+          },
+          {
+            "role": "assistant",
+            "content": "Fetching the extracted binary URL."
+          },
+          {
+            "role": "assistant",
+            "content": "{\"tool_call_id\":\"tool-1\",\"name\":\"plugin_http_fetch_text\",\"arguments\":{\"url\":\"https://snapshot.example/binary\"}}",
+            "channel": "tool_call"
+          },
+          {
+            "role": "tool",
+            "content": "{\"tool_name\":\"plugin_http_fetch_text\",\"plugin_id\":\"plugin.http.fetch_text\",\"plugin_version\":\"v1\",\"status\":\"refusal\",\"output_or_refusal_schema_id\":\"plugin.refusal.content_type_unsupported.v1\",\"replay_class_id\":\"replayable_with_snapshots\",\"structured_payload\":{\"schema_id\":\"plugin.refusal.content_type_unsupported.v1\",\"refusal_class_id\":\"content_type_unsupported\",\"detail\":\"content type `image/png` is outside the bounded text-fetch window.\"},\"plugin_receipt\":{\"receipt_id\":\"receipt.plugin.http.fetch_text.c81ec5cc115ff561.v1\",\"plugin_id\":\"plugin.http.fetch_text\",\"plugin_version\":\"v1\",\"tool_name\":\"plugin_http_fetch_text\",\"packet_abi_version\":\"packet.v1\",\"mount_envelope_id\":\"mount.plugin.http.fetch_text.read_only_http_allowlist.v1\",\"capability_namespace_ids\":[\"capability.http.read_only.v1\"],\"replay_class_id\":\"replayable_with_snapshots\",\"status\":\"refusal\",\"input_schema_id\":\"plugin.http.fetch_text.input.v1\",\"input_packet_digest\":\"c81ec5cc115ff56182920b966d9d4deac1e13d71d25ea6d189efec3f20d978a1\",\"output_or_refusal_schema_id\":\"plugin.refusal.content_type_unsupported.v1\",\"output_or_refusal_digest\":\"c51de5cd8f480d9c690d97908afc39d25e648385a3290da426e603393b611bde\",\"refusal_class_id\":\"content_type_unsupported\",\"detail\":\"content type `image/png` is outside the bounded text-fetch window.\",\"receipt_digest\":\"44f2eaa29817d76374d585ffc39daa2fb1c2c8fc5ed4b741f27ffec56275884d\"}}",
+            "author_name": "plugin_http_fetch_text"
+          },
+          {
+            "role": "assistant",
+            "content": "The router-owned plugin tool loop stopped after a typed fetch refusal."
+          }
+        ],
+        "steps": [
+          {
+            "step_index": 0,
+            "route_selection": {
+              "worker_id": "local_cpu_0",
+              "model_key": "tiny-router-plugin-tool.gguf@synthetic_local",
+              "canonical_name": "tiny-router-plugin-tool.gguf",
+              "endpoint": "responses",
+              "family": "llama",
+              "backend_label": "cpu",
+              "execution_mode_label": "native",
+              "execution_engine_label": "psionic",
+              "execution_profile": {
+                "batch_posture": "continuous_batch",
+                "queue_policy": {
+                  "discipline": "fifo",
+                  "max_active_requests": 4,
+                  "max_queued_requests": 32,
+                  "per_model_serialization": true
+                },
+                "throughput_class": "throughput_optimized",
+                "prefill_decode_capability": {
+                  "supported_modes": [
+                    "disaggregated_colocated"
+                  ],
+                  "supported_transports": [
+                    "in_process_kv_state"
+                  ],
+                  "exposes_split_metrics": true,
+                  "detail": "continuous batching keeps prompt-prefill and decode as distinct co-located scheduler phases"
+                }
+              },
+              "scheduler_policy": {
+                "max_active_requests": 4,
+                "max_queued_requests": 32,
+                "max_prefill_tokens_per_tick": 4,
+                "max_decode_tokens_per_tick": 8
+              },
+              "metrics": {
+                "eligible_workers": 1,
+                "warm_workers": 1,
+                "cache_matches": 0,
+                "sampled_workers": 1,
+                "selected_active_requests": 0,
+                "strategy": "warm_aware"
+              },
+              "routing_notes": [
+                "resolved target `default:tiny-router-plugin-tool.gguf@synthetic_local` to model `tiny-router-plugin-tool.gguf` on worker `local_cpu_0`",
+                "placement policy selected the route from the `warm` candidate pool",
+                "capability filters were satisfied by the selected worker route"
+              ]
+            },
+            "prompt_history_len_before": 1,
+            "prompt_history_len_after": 3,
+            "tool_calls": [
+              {
+                "id": "psionic-resp-1-tool-0",
+                "name": "plugin_text_url_extract",
+                "arguments": {
+                  "text": "Read https://snapshot.example/binary."
+                }
+              }
+            ],
+            "tool_results": [
+              {
+                "tool_call_id": "psionic-resp-1-tool-0",
+                "tool_name": "plugin_text_url_extract",
+                "provider": {
+                  "provider_id": "starter-plugin-runtime",
+                  "interface": {
+                    "kind": "native"
+                  },
+                  "history_visibility": "none",
+                  "result_visibility": "inject_into_model"
+                },
+                "visibility": "inject_into_model",
+                "message": {
+                  "role": "tool",
+                  "content": "{\"tool_name\":\"plugin_text_url_extract\",\"plugin_id\":\"plugin.text.url_extract\",\"plugin_version\":\"v1\",\"status\":\"success\",\"output_or_refusal_schema_id\":\"plugin.text.url_extract.output.v1\",\"replay_class_id\":\"deterministic_replayable\",\"structured_payload\":{\"urls\":[\"https://snapshot.example/binary.\"]},\"plugin_receipt\":{\"receipt_id\":\"receipt.plugin.text.url_extract.4a6f86849a652648.v1\",\"plugin_id\":\"plugin.text.url_extract\",\"plugin_version\":\"v1\",\"tool_name\":\"plugin_text_url_extract\",\"packet_abi_version\":\"packet.v1\",\"mount_envelope_id\":\"mount.plugin.text.url_extract.no_capabilities.v1\",\"capability_namespace_ids\":[],\"replay_class_id\":\"deterministic_replayable\",\"status\":\"success\",\"input_schema_id\":\"plugin.text.url_extract.input.v1\",\"input_packet_digest\":\"4a6f86849a6526480a438ff012a729b18611d63bbcf1a14c1810f61af9416346\",\"output_or_refusal_schema_id\":\"plugin.text.url_extract.output.v1\",\"output_or_refusal_digest\":\"784e5a2425219ec59dc14d5fc26b3d39ed9f88a0f7077033806b98eb40b5893b\",\"detail\":\"url extract keeps the legacy left-to-right https?://[^\\\\s]+ rule with duplicate preservation and no network semantics.\",\"receipt_digest\":\"40c66550e26f0f13729b7f6037f249098d7dce373eee75d0ee71d0ab86c3512f\"}}",
+                  "author_name": "plugin_text_url_extract"
+                },
+                "structured": {
+                  "tool_name": "plugin_text_url_extract",
+                  "plugin_id": "plugin.text.url_extract",
+                  "plugin_version": "v1",
+                  "status": "success",
+                  "output_or_refusal_schema_id": "plugin.text.url_extract.output.v1",
+                  "replay_class_id": "deterministic_replayable",
+                  "structured_payload": {
+                    "urls": [
+                      "https://snapshot.example/binary."
+                    ]
+                  },
+                  "plugin_receipt": {
+                    "receipt_id": "receipt.plugin.text.url_extract.4a6f86849a652648.v1",
+                    "plugin_id": "plugin.text.url_extract",
+                    "plugin_version": "v1",
+                    "tool_name": "plugin_text_url_extract",
+                    "packet_abi_version": "packet.v1",
+                    "mount_envelope_id": "mount.plugin.text.url_extract.no_capabilities.v1",
+                    "capability_namespace_ids": [],
+                    "replay_class_id": "deterministic_replayable",
+                    "status": "success",
+                    "input_schema_id": "plugin.text.url_extract.input.v1",
+                    "input_packet_digest": "4a6f86849a6526480a438ff012a729b18611d63bbcf1a14c1810f61af9416346",
+                    "output_or_refusal_schema_id": "plugin.text.url_extract.output.v1",
+                    "output_or_refusal_digest": "784e5a2425219ec59dc14d5fc26b3d39ed9f88a0f7077033806b98eb40b5893b",
+                    "detail": "url extract keeps the legacy left-to-right https?://[^\\s]+ rule with duplicate preservation and no network semantics.",
+                    "receipt_digest": "40c66550e26f0f13729b7f6037f249098d7dce373eee75d0ee71d0ab86c3512f"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "step_index": 1,
+            "route_selection": {
+              "worker_id": "local_cpu_0",
+              "model_key": "tiny-router-plugin-tool.gguf@synthetic_local",
+              "canonical_name": "tiny-router-plugin-tool.gguf",
+              "endpoint": "responses",
+              "family": "llama",
+              "backend_label": "cpu",
+              "execution_mode_label": "native",
+              "execution_engine_label": "psionic",
+              "execution_profile": {
+                "batch_posture": "continuous_batch",
+                "queue_policy": {
+                  "discipline": "fifo",
+                  "max_active_requests": 4,
+                  "max_queued_requests": 32,
+                  "per_model_serialization": true
+                },
+                "throughput_class": "throughput_optimized",
+                "prefill_decode_capability": {
+                  "supported_modes": [
+                    "disaggregated_colocated"
+                  ],
+                  "supported_transports": [
+                    "in_process_kv_state"
+                  ],
+                  "exposes_split_metrics": true,
+                  "detail": "continuous batching keeps prompt-prefill and decode as distinct co-located scheduler phases"
+                }
+              },
+              "scheduler_policy": {
+                "max_active_requests": 4,
+                "max_queued_requests": 32,
+                "max_prefill_tokens_per_tick": 4,
+                "max_decode_tokens_per_tick": 8
+              },
+              "metrics": {
+                "eligible_workers": 1,
+                "warm_workers": 1,
+                "cache_matches": 0,
+                "sampled_workers": 1,
+                "selected_active_requests": 0,
+                "strategy": "warm_aware"
+              },
+              "routing_notes": [
+                "resolved target `default:tiny-router-plugin-tool.gguf@synthetic_local` to model `tiny-router-plugin-tool.gguf` on worker `local_cpu_0`",
+                "selected preferred worker `local_cpu_0` as the final route tiebreak",
+                "placement policy selected the route from the `warm` candidate pool",
+                "capability filters were satisfied by the selected worker route"
+              ]
+            },
+            "prompt_history_len_before": 3,
+            "prompt_history_len_after": 6,
+            "assistant_message": {
+              "role": "assistant",
+              "content": "Fetching the extracted binary URL."
+            },
+            "tool_calls": [
+              {
+                "id": "tool-1",
+                "name": "plugin_http_fetch_text",
+                "arguments": {
+                  "url": "https://snapshot.example/binary"
+                }
+              }
+            ],
+            "tool_results": [
+              {
+                "tool_call_id": "tool-1",
+                "tool_name": "plugin_http_fetch_text",
+                "provider": {
+                  "provider_id": "starter-plugin-runtime",
+                  "interface": {
+                    "kind": "native"
+                  },
+                  "history_visibility": "none",
+                  "result_visibility": "inject_into_model"
+                },
+                "visibility": "inject_into_model",
+                "message": {
+                  "role": "tool",
+                  "content": "{\"tool_name\":\"plugin_http_fetch_text\",\"plugin_id\":\"plugin.http.fetch_text\",\"plugin_version\":\"v1\",\"status\":\"refusal\",\"output_or_refusal_schema_id\":\"plugin.refusal.content_type_unsupported.v1\",\"replay_class_id\":\"replayable_with_snapshots\",\"structured_payload\":{\"schema_id\":\"plugin.refusal.content_type_unsupported.v1\",\"refusal_class_id\":\"content_type_unsupported\",\"detail\":\"content type `image/png` is outside the bounded text-fetch window.\"},\"plugin_receipt\":{\"receipt_id\":\"receipt.plugin.http.fetch_text.c81ec5cc115ff561.v1\",\"plugin_id\":\"plugin.http.fetch_text\",\"plugin_version\":\"v1\",\"tool_name\":\"plugin_http_fetch_text\",\"packet_abi_version\":\"packet.v1\",\"mount_envelope_id\":\"mount.plugin.http.fetch_text.read_only_http_allowlist.v1\",\"capability_namespace_ids\":[\"capability.http.read_only.v1\"],\"replay_class_id\":\"replayable_with_snapshots\",\"status\":\"refusal\",\"input_schema_id\":\"plugin.http.fetch_text.input.v1\",\"input_packet_digest\":\"c81ec5cc115ff56182920b966d9d4deac1e13d71d25ea6d189efec3f20d978a1\",\"output_or_refusal_schema_id\":\"plugin.refusal.content_type_unsupported.v1\",\"output_or_refusal_digest\":\"c51de5cd8f480d9c690d97908afc39d25e648385a3290da426e603393b611bde\",\"refusal_class_id\":\"content_type_unsupported\",\"detail\":\"content type `image/png` is outside the bounded text-fetch window.\",\"receipt_digest\":\"44f2eaa29817d76374d585ffc39daa2fb1c2c8fc5ed4b741f27ffec56275884d\"}}",
+                  "author_name": "plugin_http_fetch_text"
+                },
+                "structured": {
+                  "tool_name": "plugin_http_fetch_text",
+                  "plugin_id": "plugin.http.fetch_text",
+                  "plugin_version": "v1",
+                  "status": "refusal",
+                  "output_or_refusal_schema_id": "plugin.refusal.content_type_unsupported.v1",
+                  "replay_class_id": "replayable_with_snapshots",
+                  "structured_payload": {
+                    "schema_id": "plugin.refusal.content_type_unsupported.v1",
+                    "refusal_class_id": "content_type_unsupported",
+                    "detail": "content type `image/png` is outside the bounded text-fetch window."
+                  },
+                  "plugin_receipt": {
+                    "receipt_id": "receipt.plugin.http.fetch_text.c81ec5cc115ff561.v1",
+                    "plugin_id": "plugin.http.fetch_text",
+                    "plugin_version": "v1",
+                    "tool_name": "plugin_http_fetch_text",
+                    "packet_abi_version": "packet.v1",
+                    "mount_envelope_id": "mount.plugin.http.fetch_text.read_only_http_allowlist.v1",
+                    "capability_namespace_ids": [
+                      "capability.http.read_only.v1"
+                    ],
+                    "replay_class_id": "replayable_with_snapshots",
+                    "status": "refusal",
+                    "input_schema_id": "plugin.http.fetch_text.input.v1",
+                    "input_packet_digest": "c81ec5cc115ff56182920b966d9d4deac1e13d71d25ea6d189efec3f20d978a1",
+                    "output_or_refusal_schema_id": "plugin.refusal.content_type_unsupported.v1",
+                    "output_or_refusal_digest": "c51de5cd8f480d9c690d97908afc39d25e648385a3290da426e603393b611bde",
+                    "refusal_class_id": "content_type_unsupported",
+                    "detail": "content type `image/png` is outside the bounded text-fetch window.",
+                    "receipt_digest": "44f2eaa29817d76374d585ffc39daa2fb1c2c8fc5ed4b741f27ffec56275884d"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "step_index": 2,
+            "route_selection": {
+              "worker_id": "local_cpu_0",
+              "model_key": "tiny-router-plugin-tool.gguf@synthetic_local",
+              "canonical_name": "tiny-router-plugin-tool.gguf",
+              "endpoint": "responses",
+              "family": "llama",
+              "backend_label": "cpu",
+              "execution_mode_label": "native",
+              "execution_engine_label": "psionic",
+              "execution_profile": {
+                "batch_posture": "continuous_batch",
+                "queue_policy": {
+                  "discipline": "fifo",
+                  "max_active_requests": 4,
+                  "max_queued_requests": 32,
+                  "per_model_serialization": true
+                },
+                "throughput_class": "throughput_optimized",
+                "prefill_decode_capability": {
+                  "supported_modes": [
+                    "disaggregated_colocated"
+                  ],
+                  "supported_transports": [
+                    "in_process_kv_state"
+                  ],
+                  "exposes_split_metrics": true,
+                  "detail": "continuous batching keeps prompt-prefill and decode as distinct co-located scheduler phases"
+                }
+              },
+              "scheduler_policy": {
+                "max_active_requests": 4,
+                "max_queued_requests": 32,
+                "max_prefill_tokens_per_tick": 4,
+                "max_decode_tokens_per_tick": 8
+              },
+              "metrics": {
+                "eligible_workers": 1,
+                "warm_workers": 1,
+                "cache_matches": 0,
+                "sampled_workers": 1,
+                "selected_active_requests": 0,
+                "strategy": "warm_aware"
+              },
+              "routing_notes": [
+                "resolved target `default:tiny-router-plugin-tool.gguf@synthetic_local` to model `tiny-router-plugin-tool.gguf` on worker `local_cpu_0`",
+                "selected preferred worker `local_cpu_0` as the final route tiebreak",
+                "placement policy selected the route from the `warm` candidate pool",
+                "capability filters were satisfied by the selected worker route"
+              ]
+            },
+            "prompt_history_len_before": 6,
+            "prompt_history_len_after": 7,
+            "assistant_message": {
+              "role": "assistant",
+              "content": "The router-owned plugin tool loop stopped after a typed fetch refusal."
+            }
+          }
+        ]
+      },
+      "receipt_rows": [
+        {
+          "step_index": 0,
+          "tool_call_id": "psionic-resp-1-tool-0",
+          "tool_name": "plugin_text_url_extract",
+          "plugin_id": "plugin.text.url_extract",
+          "plugin_receipt_id": "receipt.plugin.text.url_extract.4a6f86849a652648.v1",
+          "plugin_receipt_digest": "40c66550e26f0f13729b7f6037f249098d7dce373eee75d0ee71d0ab86c3512f",
+          "status": "success",
+          "output_or_refusal_schema_id": "plugin.text.url_extract.output.v1",
+          "replay_class_id": "deterministic_replayable"
+        },
+        {
+          "step_index": 1,
+          "tool_call_id": "tool-1",
+          "tool_name": "plugin_http_fetch_text",
+          "plugin_id": "plugin.http.fetch_text",
+          "plugin_receipt_id": "receipt.plugin.http.fetch_text.c81ec5cc115ff561.v1",
+          "plugin_receipt_digest": "44f2eaa29817d76374d585ffc39daa2fb1c2c8fc5ed4b741f27ffec56275884d",
+          "status": "refusal",
+          "output_or_refusal_schema_id": "plugin.refusal.content_type_unsupported.v1",
+          "replay_class_id": "replayable_with_snapshots"
+        }
+      ],
+      "observed_history_lens": [
+        1,
+        3,
+        6
+      ],
+      "max_steps": 3,
+      "bounded_step_count_preserved": true,
+      "structured_plugin_outputs_preserved": true,
+      "typed_refusal_preserved": true,
+      "detail": "the refusal case proves typed fetch refusals remain structured and receipt-bound after crossing the router-owned tool loop."
+    }
+  ],
+  "continuation_row": {
+    "previous_response_id": "psionic-resp-1",
+    "response_id": "psionic-resp-2",
+    "conversation_id": "psionic-conv-1",
+    "conversation_revision": 2,
+    "tool_call_names": [
+      "plugin_text_url_extract"
+    ],
+    "route_worker": "local_cpu_0",
+    "route_strategy": "warm_aware",
+    "stored": true,
+    "replayed_prompt_messages": 2
+  },
+  "claim_boundary": "this pilot freezes one bounded router-owned plugin tool loop on `/v1/responses` with shared starter-plugin runtime execution, structured tool envelopes, typed refusals, response-state continuation, and explicit route truth. It does not claim weighted plugin closure, arbitrary model planning, or canonical Tassadar controller completion.",
+  "summary": "router-owned plugin tool-loop pilot covers tool_definitions=4, case_rows=2, and one continuation receipt above the shared starter-plugin runtime bridge.",
+  "bundle_digest": "c5b29de4b470c88c8b17fd04b93a13b73b81b36fa6071a2a330de0201f890d8f"
+}

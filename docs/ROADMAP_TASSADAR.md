@@ -706,8 +706,20 @@ Current honest posture:
   and an audit note at
   `docs/audits/2026-03-22-tassadar-post-article-starter-plugin-workflow-controller.md`;
   this keeps the first multi-plugin intake graph host-owned, bridge-reusing,
-  branch-explicit, refusal-explicit, and stop-explicit while moving the next
-  open bridge frontier to `TAS-224`
+  branch-explicit, refusal-explicit, and stop-explicit
+- the repo now also has one router-owned starter-plugin tool loop, with
+  reusable gateway code in
+  `crates/psionic-router/src/tassadar_post_article_starter_plugin_tool_loop.rs`,
+  a committed served pilot bundle at
+  `fixtures/tassadar/runs/tassadar_post_article_router_plugin_tool_loop_pilot_v1/tassadar_post_article_router_plugin_tool_loop_pilot_bundle.json`,
+  a dedicated checker at
+  `scripts/check-tassadar-post-article-router-plugin-tool-loop.sh`, a router
+  tool-loop doc at `docs/TASSADAR_ROUTER_PLUGIN_TOOL_LOOP.md`, and an audit
+  note at
+  `docs/audits/2026-03-22-tassadar-post-article-router-plugin-tool-loop.md`;
+  this keeps the first served `/v1/responses` plugin lane router-owned,
+  receipt-bound, refusal-explicit, and response-state-explicit while moving
+  the next open bridge frontier to `TAS-225`
 - the repo now also has one machine-readable article-equivalence blocker
   matrix, with a committed eval report at
   `fixtures/tassadar/reports/tassadar_article_equivalence_blocker_matrix_report.json`,
@@ -927,9 +939,11 @@ Issue-state note:
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
 - `TAS-223` is now implemented and tracked in
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
+- `TAS-224` is now implemented and tracked in
+  `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
 - `TAS-221` remains open in GitHub as the umbrella issue and is tracked via
   the issue body plus `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
-- `TAS-224` through `TAS-226` remain open in GitHub and are tracked via the
+- `TAS-225` through `TAS-226` remain open in GitHub and are tracked via the
   issue bodies plus `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
 
 ## Repo-Local Companion Docs

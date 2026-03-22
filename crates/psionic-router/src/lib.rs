@@ -12,10 +12,10 @@
 )]
 
 mod response_state;
-mod tassadar_composite_routing;
 mod tassadar_async_lifecycle_route_policy;
-mod tassadar_broad_internal_compute_route_policy;
 mod tassadar_broad_general_compute_validator_route_policy;
+mod tassadar_broad_internal_compute_route_policy;
+mod tassadar_composite_routing;
 mod tassadar_counterfactual_route_quality;
 mod tassadar_cross_profile_link_compatibility;
 mod tassadar_delegation_benchmark;
@@ -25,18 +25,19 @@ mod tassadar_float_profile_route_policy;
 mod tassadar_general_internal_compute_red_team_route_exercises;
 mod tassadar_hybrid_process_controller;
 mod tassadar_internal_compute_package_manager;
-mod tassadar_session_process_route_policy;
 mod tassadar_latency_evidence_tradeoff;
+mod tassadar_linked_program_bundle_route;
 mod tassadar_module_catalog;
 mod tassadar_module_installation;
-mod tassadar_linked_program_bundle_route;
 mod tassadar_module_overlap_resolution;
 mod tassadar_negative_invocation;
 mod tassadar_planner_policy;
+mod tassadar_post_article_starter_plugin_tool_loop;
 mod tassadar_proposal_profile_route_policy;
 mod tassadar_route;
-mod tassadar_semantic_window_route_policy;
 mod tassadar_self_installation_gate;
+mod tassadar_semantic_window_route_policy;
+mod tassadar_session_process_route_policy;
 mod tassadar_world_mount_compatibility;
 mod tool_loop;
 
@@ -45,9 +46,9 @@ pub use response_state::{
     ResponseStateError, ResponseStateRecord, ResponseStateRetentionPolicy, ResponseStateStore,
 };
 pub use tassadar_async_lifecycle_route_policy::*;
-pub use tassadar_composite_routing::*;
-pub use tassadar_broad_internal_compute_route_policy::*;
 pub use tassadar_broad_general_compute_validator_route_policy::*;
+pub use tassadar_broad_internal_compute_route_policy::*;
+pub use tassadar_composite_routing::*;
 pub use tassadar_counterfactual_route_quality::*;
 pub use tassadar_cross_profile_link_compatibility::*;
 pub use tassadar_delegation_benchmark::*;
@@ -57,7 +58,6 @@ pub use tassadar_float_profile_route_policy::*;
 pub use tassadar_general_internal_compute_red_team_route_exercises::*;
 pub use tassadar_hybrid_process_controller::*;
 pub use tassadar_internal_compute_package_manager::*;
-pub use tassadar_session_process_route_policy::*;
 pub use tassadar_latency_evidence_tradeoff::*;
 pub use tassadar_linked_program_bundle_route::*;
 pub use tassadar_module_catalog::*;
@@ -65,10 +65,12 @@ pub use tassadar_module_installation::*;
 pub use tassadar_module_overlap_resolution::*;
 pub use tassadar_negative_invocation::*;
 pub use tassadar_planner_policy::*;
+pub use tassadar_post_article_starter_plugin_tool_loop::*;
 pub use tassadar_proposal_profile_route_policy::*;
 pub use tassadar_route::*;
-pub use tassadar_semantic_window_route_policy::*;
 pub use tassadar_self_installation_gate::*;
+pub use tassadar_semantic_window_route_policy::*;
+pub use tassadar_session_process_route_policy::*;
 pub use tassadar_world_mount_compatibility::*;
 pub use tool_loop::{
     ToolExecutionRequest, ToolGateway, ToolHistoryVisibility, ToolLoopController, ToolLoopError,
