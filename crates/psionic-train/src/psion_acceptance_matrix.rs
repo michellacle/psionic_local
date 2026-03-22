@@ -48,6 +48,8 @@ pub enum PsionBenchmarkFamily {
     ArchitectureReasoning,
     /// Held-out improvement on the curated technical corpus.
     HeldOutTechnicalReasoning,
+    /// Normative source-grounded reading on held-out specifications and manuals.
+    NormativeSpecReading,
     /// Specifications and manuals kept separate from the training lane.
     SpecificationAndManualComprehension,
     /// Route-selection calibration across direct, handoff, and refusal lanes.
@@ -459,7 +461,11 @@ impl PsionAcceptanceMatrix {
                 )?;
             }
             (None, None) => {
-                if requirement.family == PsionBenchmarkFamily::ArchitectureReasoning {
+                if matches!(
+                    requirement.family,
+                    PsionBenchmarkFamily::ArchitectureReasoning
+                        | PsionBenchmarkFamily::NormativeSpecReading
+                ) {
                     return Err(PsionAcceptanceMatrixError::MissingField {
                         field: format!(
                             "phase_gates.{:?}.benchmark_requirements.{:?}.benchmark_artifact_id",

@@ -55,6 +55,9 @@ clustered execution, and machine-legible execution truth.
 - `docs/PSION_ARCHITECTURE_REASONING_BENCHMARK.md` is the canonical
   architecture-reasoning benchmark-package and acceptance-binding doc for the
   `Psion` learned-model lane.
+- `docs/PSION_NORMATIVE_SPEC_READING_BENCHMARK.md` is the canonical
+  normative-reading benchmark-package and acceptance-binding doc for the
+  `Psion` learned-model lane.
 - `docs/PSION_CHECKPOINT_RECOVERY.md` is the canonical dense-versus-sharded
   checkpoint restart, rollback, and invalidation doc for the `Psion`
   learned-model lane.

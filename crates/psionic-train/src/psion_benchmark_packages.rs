@@ -59,6 +59,15 @@ pub enum PsionArchitectureReasoningProbeKind {
     TradeoffAnalysis,
 }
 
+/// Probe kind for normative spec-reading benchmark items.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PsionNormativeSpecReadingProbeKind {
+    ExactDefinition,
+    NamedEdgeCondition,
+    NamedGuarantee,
+}
+
 /// Prompt envelope shared by the bounded Psion benchmark families.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -302,6 +311,10 @@ pub enum PsionBenchmarkTaskContract {
     NormativeSpecReading {
         normative_source_ref: String,
         required_section_anchor: String,
+        probe_kind: PsionNormativeSpecReadingProbeKind,
+        expected_fact: String,
+        grounded_reading_required: bool,
+        engineering_inference_forbidden: bool,
     },
     EngineeringSpecInterpretation {
         artifact_ref: String,
@@ -365,6 +378,10 @@ impl PsionBenchmarkTaskContract {
                 Self::NormativeSpecReading {
                     normative_source_ref,
                     required_section_anchor,
+                    expected_fact,
+                    grounded_reading_required,
+                    engineering_inference_forbidden,
+                    ..
                 },
             ) => {
                 ensure_nonempty(
@@ -375,6 +392,26 @@ impl PsionBenchmarkTaskContract {
                     required_section_anchor.as_str(),
                     "normative_spec_reading.required_section_anchor",
                 )?;
+                ensure_nonempty(
+                    expected_fact.as_str(),
+                    "normative_spec_reading.expected_fact",
+                )?;
+                if !grounded_reading_required {
+                    return Err(PsionBenchmarkPackageError::FieldMismatch {
+                        field: String::from("normative_spec_reading.grounded_reading_required"),
+                        expected: String::from("true"),
+                        actual: String::from("false"),
+                    });
+                }
+                if !engineering_inference_forbidden {
+                    return Err(PsionBenchmarkPackageError::FieldMismatch {
+                        field: String::from(
+                            "normative_spec_reading.engineering_inference_forbidden",
+                        ),
+                        expected: String::from("true"),
+                        actual: String::from("false"),
+                    });
+                }
             }
             (
                 PsionBenchmarkPackageFamily::EngineeringSpecInterpretation,
@@ -1336,10 +1373,10 @@ fn expected_acceptance_family(
         PsionBenchmarkPackageFamily::ArchitectureReasoning => {
             PsionBenchmarkFamily::ArchitectureReasoning
         }
-        PsionBenchmarkPackageFamily::NormativeSpecReading
-        | PsionBenchmarkPackageFamily::EngineeringSpecInterpretation => {
-            PsionBenchmarkFamily::SpecificationAndManualComprehension
+        PsionBenchmarkPackageFamily::NormativeSpecReading => {
+            PsionBenchmarkFamily::NormativeSpecReading
         }
+        PsionBenchmarkPackageFamily::EngineeringSpecInterpretation => return None,
         PsionBenchmarkPackageFamily::MemorizationVersusReasoning => {
             PsionBenchmarkFamily::HeldOutTechnicalReasoning
         }
@@ -1958,7 +1995,7 @@ mod tests {
         PsionBenchmarkExpectedResponseFormat, PsionBenchmarkGraderInterface, PsionBenchmarkItem,
         PsionBenchmarkPackageContract, PsionBenchmarkPackageError, PsionBenchmarkPackageFamily,
         PsionBenchmarkPromptEnvelope, PsionBenchmarkPromptFormat, PsionBenchmarkRubricDimension,
-        PsionBenchmarkRubricGrader, PsionBenchmarkTaskContract,
+        PsionBenchmarkRubricGrader, PsionBenchmarkTaskContract, PsionNormativeSpecReadingProbeKind,
     };
     use crate::{PsionMetricKind, PsionObservedMetric, PsionPhaseGate, PsionRouteKind};
     use psionic_data::{PsionExclusionManifest, PsionSourceLifecycleManifest};
@@ -2205,27 +2242,86 @@ mod tests {
             record_psion_benchmark_package(
                 "psion_normative_spec_benchmark_v1",
                 PsionBenchmarkPackageFamily::NormativeSpecReading,
-                benchmark_package("psion_normative_spec_benchmark_v1", &["spec-case-1"]),
+                benchmark_package(
+                    "psion_normative_spec_benchmark_v1",
+                    &[
+                        "spec-case-definition",
+                        "spec-case-edge-condition",
+                        "spec-case-guarantee",
+                    ],
+                ),
                 vec![explanation_prompt_format()],
                 vec![exact_label_grader()],
                 contamination_inputs(&["spec_quiz_eval_pack_v1", "wasm_core_spec_release_2"]),
-                vec![PsionBenchmarkItem {
-                    item_id: String::from("spec-case-1"),
-                    family: PsionBenchmarkPackageFamily::NormativeSpecReading,
-                    prompt_format_id: String::from("bounded_explanation_v1"),
-                    grader_id: String::from("exact_label_v1"),
-                    prompt_digest: String::from("spec-prompt-digest-1"),
-                    source_ids: vec![
-                        String::from("spec_quiz_eval_pack_v1"),
-                        String::from("wasm_core_spec_release_2"),
-                    ],
-                    task: PsionBenchmarkTaskContract::NormativeSpecReading {
-                        normative_source_ref: String::from("wasm://core/validation"),
-                        required_section_anchor: String::from("2.5.1"),
+                vec![
+                    PsionBenchmarkItem {
+                        item_id: String::from("spec-case-definition"),
+                        family: PsionBenchmarkPackageFamily::NormativeSpecReading,
+                        prompt_format_id: String::from("bounded_explanation_v1"),
+                        grader_id: String::from("exact_label_v1"),
+                        prompt_digest: String::from("spec-prompt-digest-1"),
+                        source_ids: vec![
+                            String::from("spec_quiz_eval_pack_v1"),
+                            String::from("wasm_core_spec_release_2"),
+                        ],
+                        task: PsionBenchmarkTaskContract::NormativeSpecReading {
+                            normative_source_ref: String::from("wasm://core/validation"),
+                            required_section_anchor: String::from("2.5.1"),
+                            probe_kind: PsionNormativeSpecReadingProbeKind::ExactDefinition,
+                            expected_fact: String::from("definition of validation context"),
+                            grounded_reading_required: true,
+                            engineering_inference_forbidden: true,
+                        },
+                        detail: String::from(
+                            "Normative definition item checks exact source-grounded reading of the named term without allowing later engineering inference to stand in for the quoted fact.",
+                        ),
                     },
-                    detail: String::from("Normative spec item checks section-anchored reading."),
-                }],
-                "Normative spec package uses the shared contract with an exact-label grader.",
+                    PsionBenchmarkItem {
+                        item_id: String::from("spec-case-edge-condition"),
+                        family: PsionBenchmarkPackageFamily::NormativeSpecReading,
+                        prompt_format_id: String::from("bounded_explanation_v1"),
+                        grader_id: String::from("exact_label_v1"),
+                        prompt_digest: String::from("spec-prompt-digest-2"),
+                        source_ids: vec![
+                            String::from("spec_quiz_eval_pack_v1"),
+                            String::from("wasm_core_spec_release_2"),
+                        ],
+                        task: PsionBenchmarkTaskContract::NormativeSpecReading {
+                            normative_source_ref: String::from("wasm://core/validation"),
+                            required_section_anchor: String::from("2.5.4"),
+                            probe_kind: PsionNormativeSpecReadingProbeKind::NamedEdgeCondition,
+                            expected_fact: String::from("named malformed-module condition"),
+                            grounded_reading_required: true,
+                            engineering_inference_forbidden: true,
+                        },
+                        detail: String::from(
+                            "Normative edge-condition item checks whether the answer names the specific edge case stated in the text rather than smoothing it into generic advice.",
+                        ),
+                    },
+                    PsionBenchmarkItem {
+                        item_id: String::from("spec-case-guarantee"),
+                        family: PsionBenchmarkPackageFamily::NormativeSpecReading,
+                        prompt_format_id: String::from("bounded_explanation_v1"),
+                        grader_id: String::from("exact_label_v1"),
+                        prompt_digest: String::from("spec-prompt-digest-3"),
+                        source_ids: vec![
+                            String::from("spec_quiz_eval_pack_v1"),
+                            String::from("wasm_core_spec_release_2"),
+                        ],
+                        task: PsionBenchmarkTaskContract::NormativeSpecReading {
+                            normative_source_ref: String::from("wasm://core/execution"),
+                            required_section_anchor: String::from("4.2.15"),
+                            probe_kind: PsionNormativeSpecReadingProbeKind::NamedGuarantee,
+                            expected_fact: String::from("named execution guarantee"),
+                            grounded_reading_required: true,
+                            engineering_inference_forbidden: true,
+                        },
+                        detail: String::from(
+                            "Normative guarantee item checks whether the answer states what the spec actually guarantees without adding portability claims that the text does not name.",
+                        ),
+                    },
+                ],
+                "Normative spec package uses typed exact-label items that separate exact definitions and named edge conditions from any later engineering inference.",
             )?,
             record_psion_benchmark_package(
                 "psion_engineering_spec_benchmark_v1",

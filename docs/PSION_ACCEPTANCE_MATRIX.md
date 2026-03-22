@@ -58,6 +58,11 @@ requirements now bind directly to the concrete benchmark package
 Pilot and later scale-up decisions therefore cannot satisfy the architecture
 gate with an arbitrary receipt from another package.
 
+`PSION-22` applies the same pattern to normative source-grounded reading:
+`psion_normative_spec_benchmark_v1` now has its own named acceptance family
+and direct package binding, so normative reading no longer rides on the older
+combined spec/manual benchmark family or on engineering interpretation receipts.
+
 ## Promotion Contract
 
 `Psion` phase promotion is recorded through the training-owned

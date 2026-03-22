@@ -144,6 +144,11 @@ and now also has:
   family-specific benchmark doc for the `Psion` learned-model lane and
   freezes the typed architecture item coverage, contamination attachment, and
   direct acceptance-matrix binding for the architecture-reasoning package.
+- `docs/PSION_NORMATIVE_SPEC_READING_BENCHMARK.md` is the canonical first
+  normative-reading benchmark doc for the `Psion` learned-model lane and
+  freezes the typed normative item coverage, grounded-reading-versus-inference
+  boundary, contamination attachment, and direct acceptance-matrix binding for
+  the normative spec-reading package.
 - `docs/PSION_CHECKPOINT_RECOVERY.md` is the canonical first dense-versus-
   sharded checkpoint-recovery doc for the `Psion` learned-model lane and
   freezes the explicit restart, rollback, corruption-detection, and

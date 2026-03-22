@@ -178,7 +178,7 @@
       "schema_version": "psion.benchmark_package_contract.v1",
       "package_id": "psion_normative_spec_benchmark_v1",
       "package_family": "normative_spec_reading",
-      "acceptance_family": "specification_and_manual_comprehension",
+      "acceptance_family": "normative_spec_reading",
       "benchmark_package": {
         "abi_version": "psionic.benchmark.v1",
         "key": {
@@ -200,7 +200,13 @@
         },
         "cases": [
           {
-            "case_id": "spec-case-1"
+            "case_id": "spec-case-definition"
+          },
+          {
+            "case_id": "spec-case-edge-condition"
+          },
+          {
+            "case_id": "spec-case-guarantee"
           }
         ]
       },
@@ -244,7 +250,7 @@
       },
       "items": [
         {
-          "item_id": "spec-case-1",
+          "item_id": "spec-case-definition",
           "family": "normative_spec_reading",
           "prompt_format_id": "bounded_explanation_v1",
           "grader_id": "exact_label_v1",
@@ -256,19 +262,65 @@
           "task": {
             "task_kind": "normative_spec_reading",
             "normative_source_ref": "wasm://core/validation",
-            "required_section_anchor": "2.5.1"
+            "required_section_anchor": "2.5.1",
+            "probe_kind": "exact_definition",
+            "expected_fact": "definition of validation context",
+            "grounded_reading_required": true,
+            "engineering_inference_forbidden": true
           },
-          "detail": "Normative spec item checks section-anchored reading."
+          "detail": "Normative definition item checks exact source-grounded reading of the named term without allowing later engineering inference to stand in for the quoted fact."
+        },
+        {
+          "item_id": "spec-case-edge-condition",
+          "family": "normative_spec_reading",
+          "prompt_format_id": "bounded_explanation_v1",
+          "grader_id": "exact_label_v1",
+          "prompt_digest": "spec-prompt-digest-2",
+          "source_ids": [
+            "spec_quiz_eval_pack_v1",
+            "wasm_core_spec_release_2"
+          ],
+          "task": {
+            "task_kind": "normative_spec_reading",
+            "normative_source_ref": "wasm://core/validation",
+            "required_section_anchor": "2.5.4",
+            "probe_kind": "named_edge_condition",
+            "expected_fact": "named malformed-module condition",
+            "grounded_reading_required": true,
+            "engineering_inference_forbidden": true
+          },
+          "detail": "Normative edge-condition item checks whether the answer names the specific edge case stated in the text rather than smoothing it into generic advice."
+        },
+        {
+          "item_id": "spec-case-guarantee",
+          "family": "normative_spec_reading",
+          "prompt_format_id": "bounded_explanation_v1",
+          "grader_id": "exact_label_v1",
+          "prompt_digest": "spec-prompt-digest-3",
+          "source_ids": [
+            "spec_quiz_eval_pack_v1",
+            "wasm_core_spec_release_2"
+          ],
+          "task": {
+            "task_kind": "normative_spec_reading",
+            "normative_source_ref": "wasm://core/execution",
+            "required_section_anchor": "4.2.15",
+            "probe_kind": "named_guarantee",
+            "expected_fact": "named execution guarantee",
+            "grounded_reading_required": true,
+            "engineering_inference_forbidden": true
+          },
+          "detail": "Normative guarantee item checks whether the answer states what the spec actually guarantees without adding portability claims that the text does not name."
         }
       ],
-      "summary": "Normative spec package uses the shared contract with an exact-label grader.",
-      "package_digest": "8a8ccf2e556115f779b9092648acf6cb1e2a8f648ce9f8acb3890b53002b1d70"
+      "summary": "Normative spec package uses typed exact-label items that separate exact definitions and named edge conditions from any later engineering inference.",
+      "package_digest": "dd5741c92863fe4525d67eadd513b955b01f97adb9aa0f1cfa22619e8b273b32"
     },
     {
       "schema_version": "psion.benchmark_package_contract.v1",
       "package_id": "psion_engineering_spec_benchmark_v1",
       "package_family": "engineering_spec_interpretation",
-      "acceptance_family": "specification_and_manual_comprehension",
+      "acceptance_family": null,
       "benchmark_package": {
         "abi_version": "psionic.benchmark.v1",
         "key": {
@@ -390,7 +442,7 @@
         }
       ],
       "summary": "Engineering spec package uses the shared contract with both rubric-backed and exact-label graders.",
-      "package_digest": "d50e6b9ddc50fae6a4ee99451f3a0723db01b9955560950365be8b7ffec6834e"
+      "package_digest": "5151ff5b2e5cc83338e9e4fcdff5338146cd4e9110a24743d5f2b9ddb7a315c7"
     },
     {
       "schema_version": "psion.benchmark_package_contract.v1",
@@ -653,5 +705,5 @@
     }
   ],
   "summary": "Canonical catalog proving the main Psion benchmark families can all build on one shared prompt, item, grader, contamination-input, and receipt contract.",
-  "catalog_digest": "02b2be8b7ce308d87c084d37f7a62ab3a80d5037dbdd53bbd732093403915723"
+  "catalog_digest": "2f18e6e84592ebb560b50e111ad622d102ff32cb70b66a0763c8db267e819f98"
 }

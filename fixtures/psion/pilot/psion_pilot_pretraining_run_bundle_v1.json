@@ -317,9 +317,9 @@
       {
         "receipt_id": "psion-pilot-specification-boundary-receipt-v1",
         "phase": "pilot",
-        "family": "specification_and_manual_comprehension",
-        "benchmark_artifact_id": "psion_specification_boundary_benchmark_v1",
-        "benchmark_artifact_digest": "sha256:psion_specification_boundary_benchmark_v1",
+        "family": "normative_spec_reading",
+        "benchmark_artifact_id": "psion_normative_spec_benchmark_v1",
+        "benchmark_artifact_digest": "dd5741c92863fe4525d67eadd513b955b01f97adb9aa0f1cfa22619e8b273b32",
         "metrics": [
           {
             "metric_kind": "pass_rate_bps",

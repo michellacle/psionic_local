@@ -466,17 +466,16 @@ impl PsionPilotPretrainingRunBundle {
             return Err(PsionPilotPretrainingRunError::HeldOutImprovementMismatch);
         }
 
-        let Some(spec_receipt) =
-            benchmark_map.get(&PsionBenchmarkFamily::SpecificationAndManualComprehension)
+        let Some(spec_receipt) = benchmark_map.get(&PsionBenchmarkFamily::NormativeSpecReading)
         else {
             return Err(PsionPilotPretrainingRunError::MissingBenchmarkReceipt {
-                family: String::from("specification_and_manual_comprehension"),
+                family: String::from("normative_spec_reading"),
             });
         };
         let Some(spec_pass_rate) = benchmark_metric(spec_receipt, PsionMetricKind::PassRateBps)
         else {
             return Err(PsionPilotPretrainingRunError::MissingBenchmarkMetric {
-                family: String::from("specification_and_manual_comprehension"),
+                family: String::from("normative_spec_reading"),
                 metric: String::from("pass_rate_bps"),
             });
         };
@@ -972,9 +971,7 @@ mod tests {
             .promotion_decision_receipt
             .benchmark_receipts
             .iter_mut()
-            .find(|receipt| {
-                receipt.family == PsionBenchmarkFamily::SpecificationAndManualComprehension
-            })
+            .find(|receipt| receipt.family == PsionBenchmarkFamily::NormativeSpecReading)
             .expect("bundle should include spec boundary receipt");
         let pass_rate = spec_receipt
             .metrics
@@ -1121,12 +1118,10 @@ mod tests {
                         "psion-pilot-specification-boundary-receipt-v1",
                     ),
                     phase: PsionPhaseGate::Pilot,
-                    family: PsionBenchmarkFamily::SpecificationAndManualComprehension,
-                    benchmark_artifact_id: String::from(
-                        "psion_specification_boundary_benchmark_v1",
-                    ),
+                    family: PsionBenchmarkFamily::NormativeSpecReading,
+                    benchmark_artifact_id: String::from("psion_normative_spec_benchmark_v1"),
                     benchmark_artifact_digest: String::from(
-                        "sha256:psion_specification_boundary_benchmark_v1",
+                        "dd5741c92863fe4525d67eadd513b955b01f97adb9aa0f1cfa22619e8b273b32",
                     ),
                     metrics: vec![PsionObservedMetric {
                         metric_kind: PsionMetricKind::PassRateBps,

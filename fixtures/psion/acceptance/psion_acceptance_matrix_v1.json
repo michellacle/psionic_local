@@ -133,7 +133,9 @@
           "rationale": "Held-out improvement remains a tracked gate instead of collapsing to one loss curve."
         },
         {
-          "family": "specification_and_manual_comprehension",
+          "family": "normative_spec_reading",
+          "benchmark_artifact_id": "psion_normative_spec_benchmark_v1",
+          "benchmark_artifact_digest": "dd5741c92863fe4525d67eadd513b955b01f97adb9aa0f1cfa22619e8b273b32",
           "threshold_bands": [
             {
               "metric_kind": "pass_rate_bps",
@@ -224,7 +226,9 @@
           "rationale": "The SFT gate still depends on held-out technical reasoning rather than chat polish."
         },
         {
-          "family": "specification_and_manual_comprehension",
+          "family": "normative_spec_reading",
+          "benchmark_artifact_id": "psion_normative_spec_benchmark_v1",
+          "benchmark_artifact_digest": "dd5741c92863fe4525d67eadd513b955b01f97adb9aa0f1cfa22619e8b273b32",
           "threshold_bands": [
             {
               "metric_kind": "pass_rate_bps",
@@ -426,7 +430,9 @@
           "rationale": "Held-out technical reasoning remains a named benchmark family at cluster scale."
         },
         {
-          "family": "specification_and_manual_comprehension",
+          "family": "normative_spec_reading",
+          "benchmark_artifact_id": "psion_normative_spec_benchmark_v1",
+          "benchmark_artifact_digest": "dd5741c92863fe4525d67eadd513b955b01f97adb9aa0f1cfa22619e8b273b32",
           "threshold_bands": [
             {
               "metric_kind": "pass_rate_bps",

@@ -22,6 +22,10 @@ The first family-specific package contract now also has a dedicated doc:
 architecture item coverage and direct acceptance binding for
 `psion_architecture_reasoning_benchmark_v1`.
 
+`docs/PSION_NORMATIVE_SPEC_READING_BENCHMARK.md` now does the same for
+`psion_normative_spec_benchmark_v1`, including the grounded-reading boundary
+that keeps normative source text separate from later engineering inference.
+
 ## Canonical Artifacts
 
 - `crates/psionic-train/src/psion_benchmark_packages.rs` owns the shared

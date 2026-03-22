@@ -1616,12 +1616,20 @@ mod tests {
             .iter()
             .find(|package| package.package_id == "psion_normative_spec_benchmark_v1")
             .expect("normative package should exist");
-        let mut item_receipt = base_item_receipt(package, "spec-case-1");
+        let mut item_receipts = package
+            .items
+            .iter()
+            .map(|item| base_item_receipt(package, item.item_id.as_str()))
+            .collect::<Vec<_>>();
+        let item_receipt = item_receipts
+            .iter_mut()
+            .find(|item| item.item_id == "spec-case-definition")
+            .expect("definition item receipt should exist");
         item_receipt.exact_truth = None;
         let error = record_psion_benchmark_label_generation_receipt(
             "psion-normative-labelgen-receipt-v1",
             package,
-            vec![item_receipt],
+            item_receipts,
             "Normative label-generation receipt.",
             &artifact_lineage_manifest(),
             &lifecycle_manifest(),
