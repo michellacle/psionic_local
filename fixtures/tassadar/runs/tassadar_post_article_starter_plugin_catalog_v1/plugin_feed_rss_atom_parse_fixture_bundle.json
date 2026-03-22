@@ -1,0 +1,70 @@
+{
+  "plugin_id": "plugin.feed.rss_atom_parse",
+  "plugin_version": "v1",
+  "fixture_bundle_id": "fixture_bundle.plugin.feed.rss_atom_parse.v1",
+  "packet_abi_version": "packet.v1",
+  "success_case_ids": [
+    "rss_parse_success",
+    "atom_parse_success"
+  ],
+  "malformed_case_ids": [
+    "schema_invalid_missing_feed_text"
+  ],
+  "refusal_case_ids": [
+    "unsupported_feed_format_refusal"
+  ],
+  "negative_claim_ids": [
+    "arbitrary_xml_support_not_claimed",
+    "opml_support_not_claimed",
+    "general_document_parsing_not_claimed"
+  ],
+  "cases": [
+    {
+      "case_id": "rss_parse_success",
+      "status": "exact_success",
+      "request_schema_id": "plugin.feed.rss_atom_parse.input.v1",
+      "request_packet_digest": "e72bd96ce565b120a1f79d199edcf8bc35630d4a4498692cc0c6b2957a617521",
+      "response_or_refusal_schema_id": "plugin.feed.rss_atom_parse.output.v1",
+      "response_or_refusal_digest": "e0c9b5584681151a5814ba870f876ec88024113717cde44636d74fc6776c25a8",
+      "replay_class_id": "deterministic_replayable",
+      "receipt_id": "receipt.plugin.feed.rss_atom_parse.rss_parse_success.v1",
+      "detail": "rss v2 parsing stays deterministic and packet-local over already-fetched content."
+    },
+    {
+      "case_id": "atom_parse_success",
+      "status": "exact_success",
+      "request_schema_id": "plugin.feed.rss_atom_parse.input.v1",
+      "request_packet_digest": "abd22fd68dccbf7b1b39e1d1ac484cda0a4cdc026ea6bc7192b4212d4bd469a0",
+      "response_or_refusal_schema_id": "plugin.feed.rss_atom_parse.output.v1",
+      "response_or_refusal_digest": "3314da10b199f1e0888d4f1763f350eed5b87e75055bf09c9b29993d20be6800",
+      "replay_class_id": "deterministic_replayable",
+      "receipt_id": "receipt.plugin.feed.rss_atom_parse.atom_parse_success.v1",
+      "detail": "atom parsing stays inside the same deterministic bounded format window."
+    },
+    {
+      "case_id": "schema_invalid_missing_feed_text",
+      "status": "typed_malformed_packet",
+      "request_schema_id": "plugin.feed.rss_atom_parse.input.v1",
+      "request_packet_digest": "8a6bb7be3ac8db5e4f36b81a695f79a3f73e9fdc06aa4e93c617ed664dacfd67",
+      "response_or_refusal_schema_id": "plugin.refusal.schema_invalid.v1",
+      "response_or_refusal_digest": "8d3e7da2deac7ee6b6a7594189032635e89a235e57394e98f24074ca29874a1f",
+      "replay_class_id": "deterministic_replayable",
+      "receipt_id": "receipt.plugin.feed.rss_atom_parse.schema_invalid_missing_feed_text.v1",
+      "refusal_or_failure_class_id": "schema_invalid",
+      "detail": "missing feed text remains a typed packet refusal instead of host-hidden fetch or parse fallback."
+    },
+    {
+      "case_id": "unsupported_feed_format_refusal",
+      "status": "typed_refusal",
+      "request_schema_id": "plugin.feed.rss_atom_parse.input.v1",
+      "request_packet_digest": "a77a2eed80db2e70c0c72939128cd120a675da062d8575afd15830618d2e3a8b",
+      "response_or_refusal_schema_id": "plugin.refusal.unsupported_feed_format.v1",
+      "response_or_refusal_digest": "43f3b3ac2a9a447d896c2e2161ebb4014e5df6ad07bc38677b843c8a79be0435",
+      "replay_class_id": "deterministic_replayable",
+      "receipt_id": "receipt.plugin.feed.rss_atom_parse.unsupported_feed_format_refusal.v1",
+      "refusal_or_failure_class_id": "unsupported_feed_format",
+      "detail": "opml and arbitrary xml stay outside the starter feed parser boundary."
+    }
+  ],
+  "bundle_digest": "07e6609a5d89fe9a1536cc7f667f2b810b8a8ea95bb87fecd9c9474fce871d4c"
+}

@@ -260,10 +260,10 @@ mod tassadar_numeric_portability;
 mod tassadar_owned_transformer_stack_audit;
 #[path = "tassadar_pointer_memory_scratchpad.rs"]
 mod tassadar_pointer_memory_scratchpad;
-#[path = "tassadar_post_article_bounded_weighted_plugin_platform_closeout_audit.rs"]
-mod tassadar_post_article_bounded_weighted_plugin_platform_closeout_audit;
 #[path = "tassadar_post_article_anti_drift_stability_closeout_audit.rs"]
 mod tassadar_post_article_anti_drift_stability_closeout_audit;
+#[path = "tassadar_post_article_bounded_weighted_plugin_platform_closeout_audit.rs"]
+mod tassadar_post_article_bounded_weighted_plugin_platform_closeout_audit;
 #[path = "tassadar_post_article_canonical_machine_closure_bundle.rs"]
 mod tassadar_post_article_canonical_machine_closure_bundle;
 #[path = "tassadar_post_article_canonical_machine_identity_lock.rs"]
@@ -294,6 +294,8 @@ mod tassadar_post_article_plugin_invocation_receipts_and_replay_classes;
 mod tassadar_post_article_plugin_result_binding_schema_stability_and_composition;
 #[path = "tassadar_post_article_rebased_universality_verdict_split.rs"]
 mod tassadar_post_article_rebased_universality_verdict_split;
+#[path = "tassadar_post_article_starter_plugin_catalog.rs"]
+mod tassadar_post_article_starter_plugin_catalog;
 #[path = "tassadar_post_article_turing_completeness_closeout_audit.rs"]
 mod tassadar_post_article_turing_completeness_closeout_audit;
 #[path = "tassadar_post_article_universal_machine_proof_rebinding.rs"]
@@ -539,8 +541,8 @@ pub use tassadar_numeric_opcode_ladder::*;
 pub use tassadar_numeric_portability::*;
 pub use tassadar_owned_transformer_stack_audit::*;
 pub use tassadar_pointer_memory_scratchpad::*;
-pub use tassadar_post_article_bounded_weighted_plugin_platform_closeout_audit::*;
 pub use tassadar_post_article_anti_drift_stability_closeout_audit::*;
+pub use tassadar_post_article_bounded_weighted_plugin_platform_closeout_audit::*;
 pub use tassadar_post_article_canonical_machine_closure_bundle::*;
 pub use tassadar_post_article_canonical_machine_identity_lock::*;
 pub use tassadar_post_article_canonical_route_semantic_preservation_audit::*;
@@ -556,6 +558,7 @@ pub use tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness::
 pub use tassadar_post_article_plugin_invocation_receipts_and_replay_classes::*;
 pub use tassadar_post_article_plugin_result_binding_schema_stability_and_composition::*;
 pub use tassadar_post_article_rebased_universality_verdict_split::*;
+pub use tassadar_post_article_starter_plugin_catalog::*;
 pub use tassadar_post_article_turing_completeness_closeout_audit::*;
 pub use tassadar_post_article_universal_machine_proof_rebinding::*;
 pub use tassadar_post_article_universality_bridge_contract::*;

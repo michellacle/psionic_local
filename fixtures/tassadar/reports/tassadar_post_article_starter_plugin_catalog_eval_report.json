@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.post_article.starter_plugin_catalog.eval_report.v1",
+  "checker_script_ref": "scripts/check-tassadar-post-article-starter-plugin-catalog.sh",
+  "catalog_report_ref": "fixtures/tassadar/reports/tassadar_post_article_starter_plugin_catalog_report.json",
+  "machine_identity_binding": {
+    "machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+    "canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+    "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+    "canonical_route_descriptor_digest": "00af062cccc3d1b2e42ee8e092b9ef8e1539dd3f2dfc379cff7d1cd4a008b032",
+    "canonical_weight_bundle_digest": "99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c",
+    "canonical_weight_primary_artifact_sha256": "e24923e6fe39f0656b3f331fb935e0827a3de43b706014610e513ca5a54e9f84",
+    "continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+    "continuation_contract_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
+    "computational_model_statement_id": "tassadar.post_article.canonical_computational_model.statement.v1",
+    "closure_bundle_digest": "9ac0dfa48ef13bca57b02c0c643672efe4aae9f821607ef9ba4b0c24978a3003",
+    "catalog_report_id": "tassadar.post_article.starter_plugin_catalog.report.v1",
+    "catalog_report_digest": "e56105970e4793989c747f7ec0981f5be515932c028ca695b9689a3cbbf4d9f0",
+    "runtime_bundle_id": "tassadar.post_article.starter_plugin_catalog.runtime_bundle.v1",
+    "runtime_bundle_digest": "3af98f106e26139d574b27272fce7a441ccbd2fae183e605f8c995f5ebed361b",
+    "runtime_bundle_ref": "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/tassadar_post_article_starter_plugin_catalog_bundle.json",
+    "detail": "starter catalog eval keeps catalog_report_id=`tassadar.post_article.starter_plugin_catalog.report.v1`, runtime_bundle_id=`tassadar.post_article.starter_plugin_catalog.runtime_bundle.v1`, machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, and closure_bundle_digest=`9ac0dfa48ef13bca57b02c0c643672efe4aae9f821607ef9ba4b0c24978a3003` aligned."
+  },
+  "dependency_rows": [
+    {
+      "dependency_id": "starter_catalog_report_green",
+      "dependency_class": "catalog_precedent",
+      "satisfied": true,
+      "source_ref": "tassadar.post_article.starter_plugin_catalog.report.v1",
+      "bound_report_id": "tassadar.post_article.starter_plugin_catalog.report.v1",
+      "bound_report_digest": "e56105970e4793989c747f7ec0981f5be515932c028ca695b9689a3cbbf4d9f0",
+      "detail": "the catalog-owned starter plugin report is green and keeps the catalog digest-bound and operator-only."
+    },
+    {
+      "dependency_id": "starter_catalog_closure_bundle_bound",
+      "dependency_class": "supporting_precedent",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_closure_bundle_report.json",
+      "bound_report_id": "tassadar.post_article_canonical_machine_closure_bundle.report.v1",
+      "bound_report_digest": "cb69ea3637d8a415d869c90ce7ae46b85dabaac11a7180f2c8ad6e3271e8d06d",
+      "detail": "the eval posture inherits the same closure-bundle digest binding as the catalog report."
+    }
+  ],
+  "validation_rows": [
+    {
+      "validation_id": "starter_plugin_count_exact",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/tassadar_post_article_starter_plugin_catalog_bundle.json"
+      ],
+      "detail": "the eval report keeps the starter catalog fixed to four first-wave entries."
+    },
+    {
+      "validation_id": "local_network_distinction_explicit",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/tassadar_post_article_starter_plugin_catalog_bundle.json",
+        "tassadar.post_article.starter_plugin_catalog.report.v1"
+      ],
+      "detail": "three local deterministic plugins remain distinct from one read-only network plugin."
+    },
+    {
+      "validation_id": "composition_harness_green",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/tassadar_post_article_starter_plugin_catalog_bundle.json",
+        "tassadar.post_article.starter_plugin_catalog.report.v1"
+      ],
+      "detail": "the starter catalog still carries the two bounded composition flows required by the issue."
+    },
+    {
+      "validation_id": "operator_only_marketplace_suppressed",
+      "green": true,
+      "source_refs": [
+        "tassadar.post_article.starter_plugin_catalog.report.v1"
+      ],
+      "detail": "operator-only posture and marketplace suppression remain explicit in the eval projection."
+    }
+  ],
+  "catalog_status": "green",
+  "eval_status": "green",
+  "eval_green": true,
+  "starter_plugin_count": 4,
+  "local_deterministic_plugin_count": 3,
+  "read_only_network_plugin_count": 1,
+  "bounded_flow_count": 2,
+  "operator_internal_only_posture": true,
+  "local_network_distinction_explicit": true,
+  "composition_harness_green": true,
+  "runtime_builtins_separate": true,
+  "public_marketplace_language_suppressed": true,
+  "closure_bundle_bound_by_digest": true,
+  "rebase_claim_allowed": true,
+  "plugin_capability_claim_allowed": true,
+  "weighted_plugin_control_allowed": true,
+  "plugin_publication_allowed": false,
+  "served_public_universality_allowed": false,
+  "arbitrary_software_capability_allowed": false,
+  "next_issue_id": "TAS-217",
+  "claim_boundary": "this eval report keeps the starter catalog within the same operator-only, digest-bound, no-public-marketplace boundary as the catalog report and does not widen to served or public plugin rights.",
+  "summary": "starter catalog eval binds 4 starter plugins and 2 bounded flows to the catalog report with operator-only posture, marketplace suppression, and closure-bundle binding still explicit.",
+  "report_digest": "52237f11e9626505c6137abcd436b5764a349b4238e4299c4329c2d7fab310ae"
+}

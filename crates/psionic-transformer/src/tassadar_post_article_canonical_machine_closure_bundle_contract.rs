@@ -6,7 +6,7 @@ const CANONICAL_ARCHITECTURE_ANCHOR_CRATE: &str = "psionic-transformer";
 const CANONICAL_ARCHITECTURE_BOUNDARY_REF: &str =
     "docs/TASSADAR_ARTICLE_TRANSFORMER_STACK_BOUNDARY.md";
 const CLOSURE_BUNDLE_ISSUE_ID: &str = "TAS-215";
-const NEXT_ISSUE_ID: &str = "TAS-216";
+const NEXT_ISSUE_ID: &str = "TAS-217";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -354,6 +354,6 @@ mod tests {
         assert_eq!(contract.invalidation_laws.len(), 9);
         assert_eq!(contract.claim_inheritance_rows.len(), 5);
         assert_eq!(contract.closure_bundle_issue_id, "TAS-215");
-        assert_eq!(contract.next_issue_id, "TAS-216");
+        assert_eq!(contract.next_issue_id, "TAS-217");
     }
 }

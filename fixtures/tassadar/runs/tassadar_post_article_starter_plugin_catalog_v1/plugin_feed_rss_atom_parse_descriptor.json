@@ -1,0 +1,32 @@
+{
+  "plugin_id": "plugin.feed.rss_atom_parse",
+  "plugin_version": "v1",
+  "catalog_entry_id": "plugin.feed.rss_atom_parse@v1",
+  "manifest_id": "manifest.plugin.feed.rss_atom_parse.v1",
+  "artifact_id": "artifact.plugin.feed.rss_atom_parse.v1",
+  "artifact_digest": "ef0d739afb41ed516150f32b0ff63b5b68886b7d2220be91a8b54296ff8a7120",
+  "packet_abi_version": "packet.v1",
+  "packet_schemas": {
+    "input_schema_id": "plugin.feed.rss_atom_parse.input.v1",
+    "success_output_schema_id": "plugin.feed.rss_atom_parse.output.v1",
+    "refusal_schema_ids": [
+      "plugin.refusal.schema_invalid.v1",
+      "plugin.refusal.input_too_large.v1",
+      "plugin.refusal.unsupported_feed_format.v1"
+    ]
+  },
+  "capability_class": "local_deterministic",
+  "replay_class_id": "deterministic_replayable",
+  "trust_tier_id": "operator_curated_local_structured_ingest",
+  "evidence_posture_id": "evidence.descriptor_fixture_receipt_bound.v1",
+  "capability_namespace_ids": [],
+  "negative_claim_ids": [
+    "arbitrary_xml_support_not_claimed",
+    "opml_support_not_claimed",
+    "general_document_parsing_not_claimed"
+  ],
+  "descriptor_ref": "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_feed_rss_atom_parse_descriptor.json",
+  "fixture_bundle_ref": "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_feed_rss_atom_parse_fixture_bundle.json",
+  "sample_mount_envelope_ref": "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_feed_rss_atom_parse_mount_envelope.json",
+  "detail": "the feed parser starter plugin stays local and deterministic over already-fetched RSS 2.0 and Atom 1.0 content."
+}

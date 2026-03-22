@@ -619,8 +619,21 @@ Current honest posture:
   inheritance posture, and proof-versus-audit classification into one
   indivisible canonical machine subject; downstream stronger terminal,
   controller, receipt, publication, and bounded plugin-platform claims now
-  inherit that bundle by digest, and the next open bridge frontier is
-  `TAS-216`
+  inherit that bundle by digest
+- the repo now also has one post-article starter-plugin catalog, with a
+  runtime-owned bundle at
+  `fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/tassadar_post_article_starter_plugin_catalog_bundle.json`,
+  a catalog report at
+  `fixtures/tassadar/reports/tassadar_post_article_starter_plugin_catalog_report.json`,
+  an eval report at
+  `fixtures/tassadar/reports/tassadar_post_article_starter_plugin_catalog_eval_report.json`,
+  a disclosure-safe research summary at
+  `fixtures/tassadar/reports/tassadar_post_article_starter_plugin_catalog_summary.json`,
+  a provider-facing receipt, a dedicated checker, and an audit note that bind
+  four operator-curated starter plugins plus two bounded composition flows to
+  the canonical machine closure bundle while keeping the entire tranche
+  operator-only, runtime-builtin separate, and explicitly not a public plugin
+  marketplace; the next open bridge frontier is `TAS-217`
 - the repo now also has one machine-readable article-equivalence blocker
   matrix, with a committed eval report at
   `fixtures/tassadar/reports/tassadar_article_equivalence_blocker_matrix_report.json`,
@@ -826,7 +839,9 @@ Issue-state note:
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
 - `TAS-215` is now implemented and tracked in
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
-- `TAS-216` through `TAS-226` remain open in GitHub and are tracked via the
+- `TAS-216` is now implemented and tracked in
+  `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
+- `TAS-217` through `TAS-226` remain open in GitHub and are tracked via the
   issue bodies plus `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
 
 ## Repo-Local Companion Docs

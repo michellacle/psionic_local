@@ -1,0 +1,23 @@
+{
+  "envelope_id": "mount.plugin.http.fetch_text.read_only_http_allowlist.v1",
+  "plugin_id": "plugin.http.fetch_text",
+  "plugin_version": "v1",
+  "world_mount_id": "world_mount.starter.http_read_only_text_allowlist.v1",
+  "capability_namespace_ids": [
+    "cap.http.read_only_text.v1"
+  ],
+  "allowlisted_url_prefixes": [
+    "https://example.com/articles/",
+    "https://feeds.example.com/"
+  ],
+  "allowed_method_ids": [
+    "GET"
+  ],
+  "timeout_millis": 2500,
+  "response_size_limit_bytes": 131072,
+  "redirect_limit": 2,
+  "replay_posture_id": "replayable_with_snapshots",
+  "green": true,
+  "detail": "the fetch-text starter plugin binds allowlist, timeout, response-size, and redirect posture to one explicit host-mediated mount envelope.",
+  "envelope_digest": "0d6848fe10430b2d53da8e5ef457bc3259207c133ce7ccd8db3317612421e8e7"
+}

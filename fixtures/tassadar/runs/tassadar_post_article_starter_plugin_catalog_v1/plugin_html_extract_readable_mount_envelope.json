@@ -1,0 +1,16 @@
+{
+  "envelope_id": "mount.plugin.html.extract_readable.no_capabilities.v1",
+  "plugin_id": "plugin.html.extract_readable",
+  "plugin_version": "v1",
+  "world_mount_id": "world_mount.starter.local_no_capabilities.v1",
+  "capability_namespace_ids": [],
+  "allowlisted_url_prefixes": [],
+  "allowed_method_ids": [],
+  "timeout_millis": 1000,
+  "response_size_limit_bytes": 0,
+  "redirect_limit": 0,
+  "replay_posture_id": "deterministic_replayable",
+  "green": true,
+  "detail": "the readability extractor stays local and capability-free under one explicit no-import mount envelope.",
+  "envelope_digest": "2632595191dcf9a40fdd07d32cfc064e168611c716a9a165c05bab8ba210b902"
+}

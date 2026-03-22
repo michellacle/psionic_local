@@ -1,0 +1,16 @@
+{
+  "envelope_id": "mount.plugin.text.url_extract.no_capabilities.v1",
+  "plugin_id": "plugin.text.url_extract",
+  "plugin_version": "v1",
+  "world_mount_id": "world_mount.starter.local_no_capabilities.v1",
+  "capability_namespace_ids": [],
+  "allowlisted_url_prefixes": [],
+  "allowed_method_ids": [],
+  "timeout_millis": 1000,
+  "response_size_limit_bytes": 0,
+  "redirect_limit": 0,
+  "replay_posture_id": "deterministic_replayable",
+  "green": true,
+  "detail": "the URL extractor proves that the starter catalog can ship a capability-free deterministic plugin with an explicit zero-namespace mount envelope.",
+  "envelope_digest": "6f0670d1c009601a866a963f0147a2594cc372903bd9e4dbd4256576c8933a37"
+}

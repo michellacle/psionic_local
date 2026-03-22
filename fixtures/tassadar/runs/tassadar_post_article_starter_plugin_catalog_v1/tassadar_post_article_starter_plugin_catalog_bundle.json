@@ -1,0 +1,336 @@
+{
+  "schema_version": 1,
+  "bundle_id": "tassadar.post_article.starter_plugin_catalog.runtime_bundle.v1",
+  "packet_abi_version": "packet.v1",
+  "supporting_material_refs": [
+    "~/code/alpha/tassadar/plugin-system.md",
+    "~/code/alpha/autopilot/autopilot-extism-plugin-porting-into-rust-runtime.md",
+    "~/code/openagents-plugins/url-extractor-and-url-scraper.md",
+    "~/code/openagents-plugins/plugin-rss-feed/README.md",
+    "docs/audits/2026-03-21-multi-plugin-real-run-orchestration-audit.md"
+  ],
+  "descriptor_refs": [
+    "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_text_url_extract_descriptor.json",
+    "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_http_fetch_text_descriptor.json",
+    "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_html_extract_readable_descriptor.json",
+    "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_feed_rss_atom_parse_descriptor.json"
+  ],
+  "fixture_bundle_refs": [
+    "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_text_url_extract_fixture_bundle.json",
+    "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_http_fetch_text_fixture_bundle.json",
+    "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_html_extract_readable_fixture_bundle.json",
+    "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_feed_rss_atom_parse_fixture_bundle.json"
+  ],
+  "sample_mount_envelope_refs": [
+    "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_text_url_extract_mount_envelope.json",
+    "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_http_fetch_text_mount_envelope.json",
+    "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_html_extract_readable_mount_envelope.json",
+    "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_feed_rss_atom_parse_mount_envelope.json"
+  ],
+  "descriptor_rows": [
+    {
+      "plugin_id": "plugin.text.url_extract",
+      "plugin_version": "v1",
+      "catalog_entry_id": "plugin.text.url_extract@v1",
+      "manifest_id": "manifest.plugin.text.url_extract.v1",
+      "artifact_id": "artifact.plugin.text.url_extract.v1",
+      "artifact_digest": "5e70757481877b85a30d0ee5de3da8cbefbd104cd583fbcc3b4623ae50f13d6a",
+      "packet_abi_version": "packet.v1",
+      "packet_schemas": {
+        "input_schema_id": "plugin.text.url_extract.input.v1",
+        "success_output_schema_id": "plugin.text.url_extract.output.v1",
+        "refusal_schema_ids": [
+          "plugin.refusal.schema_invalid.v1",
+          "plugin.refusal.packet_too_large.v1",
+          "plugin.refusal.unsupported_codec.v1",
+          "plugin.refusal.runtime_resource_limit.v1"
+        ]
+      },
+      "capability_class": "local_deterministic",
+      "replay_class_id": "deterministic_replayable",
+      "trust_tier_id": "operator_curated_local_deterministic",
+      "evidence_posture_id": "evidence.descriptor_fixture_receipt_bound.v1",
+      "capability_namespace_ids": [],
+      "negative_claim_ids": [
+        "url_validation_truth_not_claimed",
+        "dns_resolution_not_claimed",
+        "redirect_truth_not_claimed",
+        "network_reachability_not_claimed"
+      ],
+      "descriptor_ref": "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_text_url_extract_descriptor.json",
+      "fixture_bundle_ref": "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_text_url_extract_fixture_bundle.json",
+      "sample_mount_envelope_ref": "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_text_url_extract_mount_envelope.json",
+      "detail": "the first starter plugin freezes left-to-right `http://` and `https://` string extraction with no deduplication and no capability mounts."
+    },
+    {
+      "plugin_id": "plugin.http.fetch_text",
+      "plugin_version": "v1",
+      "catalog_entry_id": "plugin.http.fetch_text@v1",
+      "manifest_id": "manifest.plugin.http.fetch_text.v1",
+      "artifact_id": "artifact.plugin.http.fetch_text.v1",
+      "artifact_digest": "f52fd0c0d7ef274a441539624a993d424de4e32342ad257703b18a743ada4d17",
+      "packet_abi_version": "packet.v1",
+      "packet_schemas": {
+        "input_schema_id": "plugin.http.fetch_text.input.v1",
+        "success_output_schema_id": "plugin.http.fetch_text.output.v1",
+        "refusal_schema_ids": [
+          "plugin.refusal.schema_invalid.v1",
+          "plugin.refusal.network_denied.v1",
+          "plugin.refusal.url_not_permitted.v1",
+          "plugin.refusal.timeout.v1",
+          "plugin.refusal.response_too_large.v1",
+          "plugin.refusal.content_type_unsupported.v1",
+          "plugin.refusal.decode_failed.v1",
+          "plugin.refusal.upstream_failure.v1"
+        ]
+      },
+      "capability_class": "read_only_network",
+      "replay_class_id": "replayable_with_snapshots",
+      "trust_tier_id": "operator_curated_network_read_only",
+      "evidence_posture_id": "evidence.descriptor_envelope_receipt_bound.v1",
+      "capability_namespace_ids": [
+        "cap.http.read_only_text.v1"
+      ],
+      "negative_claim_ids": [
+        "browser_execution_not_claimed",
+        "javascript_execution_not_claimed",
+        "cookie_or_auth_session_not_claimed",
+        "arbitrary_header_control_not_claimed",
+        "unrestricted_web_access_not_claimed"
+      ],
+      "descriptor_ref": "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_http_fetch_text_descriptor.json",
+      "fixture_bundle_ref": "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_http_fetch_text_fixture_bundle.json",
+      "sample_mount_envelope_ref": "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_http_fetch_text_mount_envelope.json",
+      "detail": "the first network starter plugin freezes GET-only read-only text fetch behind host-mediated allowlist, timeout, redirect, and response-size policy."
+    },
+    {
+      "plugin_id": "plugin.html.extract_readable",
+      "plugin_version": "v1",
+      "catalog_entry_id": "plugin.html.extract_readable@v1",
+      "manifest_id": "manifest.plugin.html.extract_readable.v1",
+      "artifact_id": "artifact.plugin.html.extract_readable.v1",
+      "artifact_digest": "4f3dfe8d80cf52dbe85c4c19e02240c3f81074a072eaacaa171365accb7f0918",
+      "packet_abi_version": "packet.v1",
+      "packet_schemas": {
+        "input_schema_id": "plugin.html.extract_readable.input.v1",
+        "success_output_schema_id": "plugin.html.extract_readable.output.v1",
+        "refusal_schema_ids": [
+          "plugin.refusal.schema_invalid.v1",
+          "plugin.refusal.input_too_large.v1",
+          "plugin.refusal.content_type_unsupported.v1"
+        ]
+      },
+      "capability_class": "local_deterministic",
+      "replay_class_id": "deterministic_replayable",
+      "trust_tier_id": "operator_curated_local_transform",
+      "evidence_posture_id": "evidence.descriptor_fixture_receipt_bound.v1",
+      "capability_namespace_ids": [],
+      "negative_claim_ids": [
+        "browser_rendering_not_claimed",
+        "javascript_execution_not_claimed",
+        "css_layout_truth_not_claimed",
+        "full_dom_semantics_not_claimed"
+      ],
+      "descriptor_ref": "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_html_extract_readable_descriptor.json",
+      "fixture_bundle_ref": "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_html_extract_readable_fixture_bundle.json",
+      "sample_mount_envelope_ref": "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_html_extract_readable_mount_envelope.json",
+      "detail": "the readable-html starter plugin stays local, deterministic, and packet-only while producing bounded readable text, metadata, and harvested links."
+    },
+    {
+      "plugin_id": "plugin.feed.rss_atom_parse",
+      "plugin_version": "v1",
+      "catalog_entry_id": "plugin.feed.rss_atom_parse@v1",
+      "manifest_id": "manifest.plugin.feed.rss_atom_parse.v1",
+      "artifact_id": "artifact.plugin.feed.rss_atom_parse.v1",
+      "artifact_digest": "ef0d739afb41ed516150f32b0ff63b5b68886b7d2220be91a8b54296ff8a7120",
+      "packet_abi_version": "packet.v1",
+      "packet_schemas": {
+        "input_schema_id": "plugin.feed.rss_atom_parse.input.v1",
+        "success_output_schema_id": "plugin.feed.rss_atom_parse.output.v1",
+        "refusal_schema_ids": [
+          "plugin.refusal.schema_invalid.v1",
+          "plugin.refusal.input_too_large.v1",
+          "plugin.refusal.unsupported_feed_format.v1"
+        ]
+      },
+      "capability_class": "local_deterministic",
+      "replay_class_id": "deterministic_replayable",
+      "trust_tier_id": "operator_curated_local_structured_ingest",
+      "evidence_posture_id": "evidence.descriptor_fixture_receipt_bound.v1",
+      "capability_namespace_ids": [],
+      "negative_claim_ids": [
+        "arbitrary_xml_support_not_claimed",
+        "opml_support_not_claimed",
+        "general_document_parsing_not_claimed"
+      ],
+      "descriptor_ref": "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_feed_rss_atom_parse_descriptor.json",
+      "fixture_bundle_ref": "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_feed_rss_atom_parse_fixture_bundle.json",
+      "sample_mount_envelope_ref": "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_feed_rss_atom_parse_mount_envelope.json",
+      "detail": "the feed parser starter plugin stays local and deterministic over already-fetched RSS 2.0 and Atom 1.0 content."
+    }
+  ],
+  "capability_matrix_rows": [
+    {
+      "plugin_id": "plugin.text.url_extract",
+      "catalog_entry_id": "plugin.text.url_extract@v1",
+      "capability_class": "local_deterministic",
+      "reads_network": false,
+      "deterministic_replayable": true,
+      "snapshot_backed_replay": false,
+      "filesystem_access": false,
+      "secrets_access": false,
+      "mount_required": false,
+      "host_mediated_network_only": false,
+      "schema_local_composition": true,
+      "operator_only": true,
+      "detail": "the url-extract starter plugin is purely local string processing and does not claim any external-world semantics."
+    },
+    {
+      "plugin_id": "plugin.http.fetch_text",
+      "catalog_entry_id": "plugin.http.fetch_text@v1",
+      "capability_class": "read_only_network",
+      "reads_network": true,
+      "deterministic_replayable": false,
+      "snapshot_backed_replay": true,
+      "filesystem_access": false,
+      "secrets_access": false,
+      "mount_required": true,
+      "host_mediated_network_only": true,
+      "schema_local_composition": true,
+      "operator_only": true,
+      "detail": "the fetch-text starter plugin is the only networked starter entry and remains bounded to host-mediated read-only HTTP."
+    },
+    {
+      "plugin_id": "plugin.html.extract_readable",
+      "catalog_entry_id": "plugin.html.extract_readable@v1",
+      "capability_class": "local_deterministic",
+      "reads_network": false,
+      "deterministic_replayable": true,
+      "snapshot_backed_replay": false,
+      "filesystem_access": false,
+      "secrets_access": false,
+      "mount_required": false,
+      "host_mediated_network_only": false,
+      "schema_local_composition": true,
+      "operator_only": true,
+      "detail": "the readability extractor is a local deterministic transform over already-fetched content."
+    },
+    {
+      "plugin_id": "plugin.feed.rss_atom_parse",
+      "catalog_entry_id": "plugin.feed.rss_atom_parse@v1",
+      "capability_class": "local_deterministic",
+      "reads_network": false,
+      "deterministic_replayable": true,
+      "snapshot_backed_replay": false,
+      "filesystem_access": false,
+      "secrets_access": false,
+      "mount_required": false,
+      "host_mediated_network_only": false,
+      "schema_local_composition": true,
+      "operator_only": true,
+      "detail": "the feed parser is a local deterministic structured-ingest transform over already-fetched content."
+    }
+  ],
+  "composition_case_rows": [
+    {
+      "case_id": "discover_fetch_extract_page",
+      "flow_class_id": "starter_flow.url_discovery_fetch_extract.v1",
+      "step_plugin_ids": [
+        "plugin.text.url_extract",
+        "plugin.http.fetch_text",
+        "plugin.html.extract_readable"
+      ],
+      "step_receipt_ids": [
+        "receipt.plugin.text.url_extract.extract_urls_success.v1",
+        "receipt.plugin.http.fetch_text.fetch_text_article_success.v1",
+        "receipt.plugin.html.extract_readable.extract_readable_success.v1"
+      ],
+      "hidden_host_orchestration_allowed": false,
+      "schema_repair_allowed": false,
+      "capability_leakage_allowed": false,
+      "green": true,
+      "step_rows": [
+        {
+          "step_index": 0,
+          "plugin_id": "plugin.text.url_extract",
+          "input_schema_id": "plugin.text.url_extract.input.v1",
+          "output_schema_id": "plugin.text.url_extract.output.v1",
+          "mount_envelope_id": "mount.plugin.text.url_extract.no_capabilities.v1",
+          "receipt_id": "receipt.plugin.text.url_extract.extract_urls_success.v1",
+          "replay_class_id": "deterministic_replayable",
+          "detail": "discover candidate URLs from unstructured text without hidden host preprocessing."
+        },
+        {
+          "step_index": 1,
+          "plugin_id": "plugin.http.fetch_text",
+          "input_schema_id": "plugin.http.fetch_text.input.v1",
+          "output_schema_id": "plugin.http.fetch_text.output.v1",
+          "mount_envelope_id": "mount.plugin.http.fetch_text.read_only_http_allowlist.v1",
+          "receipt_id": "receipt.plugin.http.fetch_text.fetch_text_article_success.v1",
+          "replay_class_id": "replayable_with_snapshots",
+          "detail": "fetch the allowlisted URL through the bounded read-only network mount."
+        },
+        {
+          "step_index": 2,
+          "plugin_id": "plugin.html.extract_readable",
+          "input_schema_id": "plugin.html.extract_readable.input.v1",
+          "output_schema_id": "plugin.html.extract_readable.output.v1",
+          "mount_envelope_id": "mount.plugin.html.extract_readable.no_capabilities.v1",
+          "receipt_id": "receipt.plugin.html.extract_readable.extract_readable_success.v1",
+          "replay_class_id": "deterministic_replayable",
+          "detail": "extract readable text and harvested links without browser or host-hidden readability glue."
+        }
+      ],
+      "detail": "the first starter flow proves that URL discovery, bounded fetch, and readability extraction can compose without hidden host orchestration or schema repair."
+    },
+    {
+      "case_id": "fetch_feed_then_parse",
+      "flow_class_id": "starter_flow.fetch_feed_parse.v1",
+      "step_plugin_ids": [
+        "plugin.http.fetch_text",
+        "plugin.feed.rss_atom_parse"
+      ],
+      "step_receipt_ids": [
+        "receipt.plugin.http.fetch_text.fetch_text_article_success.v1",
+        "receipt.plugin.feed.rss_atom_parse.rss_parse_success.v1"
+      ],
+      "hidden_host_orchestration_allowed": false,
+      "schema_repair_allowed": false,
+      "capability_leakage_allowed": false,
+      "green": true,
+      "step_rows": [
+        {
+          "step_index": 0,
+          "plugin_id": "plugin.http.fetch_text",
+          "input_schema_id": "plugin.http.fetch_text.input.v1",
+          "output_schema_id": "plugin.http.fetch_text.output.v1",
+          "mount_envelope_id": "mount.plugin.http.fetch_text.read_only_http_allowlist.v1",
+          "receipt_id": "receipt.plugin.http.fetch_text.fetch_text_article_success.v1",
+          "replay_class_id": "replayable_with_snapshots",
+          "detail": "fetch the feed document through the same bounded read-only network mount."
+        },
+        {
+          "step_index": 1,
+          "plugin_id": "plugin.feed.rss_atom_parse",
+          "input_schema_id": "plugin.feed.rss_atom_parse.input.v1",
+          "output_schema_id": "plugin.feed.rss_atom_parse.output.v1",
+          "mount_envelope_id": "mount.plugin.feed.rss_atom_parse.no_capabilities.v1",
+          "receipt_id": "receipt.plugin.feed.rss_atom_parse.rss_parse_success.v1",
+          "replay_class_id": "deterministic_replayable",
+          "detail": "parse feed metadata and entries locally without host-hidden XML interpretation."
+        }
+      ],
+      "detail": "the second starter flow proves that fetched feed content can enter a deterministic local parser without hidden schema repair or host-side feed parsing."
+    }
+  ],
+  "plugin_count": 4,
+  "local_deterministic_plugin_count": 3,
+  "read_only_network_plugin_count": 1,
+  "bounded_flow_count": 2,
+  "operator_only_posture": true,
+  "runtime_builtins_separate": true,
+  "public_marketplace_implication_allowed": false,
+  "claim_boundary": "this runtime-owned starter catalog freezes one small operator-curated plugin set above the canonical post-article machine closure bundle without implying served or public plugin rights, arbitrary public Wasm execution, arbitrary public tool use, or a public plugin marketplace.",
+  "summary": "starter catalog bundle publishes four operator-curated plugins, four per-plugin descriptor or fixture or mount sidecars, and two bounded composition flows across local deterministic and read-only network capability classes.",
+  "bundle_digest": "3af98f106e26139d574b27272fce7a441ccbd2fae183e605f8c995f5ebed361b"
+}

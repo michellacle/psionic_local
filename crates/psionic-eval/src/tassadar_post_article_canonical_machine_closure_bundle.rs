@@ -63,7 +63,7 @@ use crate::{
     TASSADAR_POST_ARTICLE_REBASED_UNIVERSALITY_VERDICT_SPLIT_REPORT_REF,
     TASSADAR_POST_ARTICLE_UNIVERSALITY_BRIDGE_CONTRACT_REPORT_REF,
     TASSADAR_POST_ARTICLE_UNIVERSALITY_PORTABILITY_MINIMALITY_MATRIX_REPORT_REF,
-    TASSADAR_UNIVERSAL_MACHINE_PROOF_REPORT_REF, TASSADAR_UNIVERSALITY_VERDICT_SPLIT_REPORT_REF,
+    TASSADAR_UNIVERSALITY_VERDICT_SPLIT_REPORT_REF, TASSADAR_UNIVERSAL_MACHINE_PROOF_REPORT_REF,
 };
 
 pub const TASSADAR_POST_ARTICLE_CANONICAL_MACHINE_CLOSURE_BUNDLE_REPORT_REF: &str =
@@ -79,7 +79,7 @@ const PLUGIN_SYSTEM_TURING_AUDIT_REF: &str =
     "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md";
 const CLOSURE_BUNDLE_ID: &str = "tassadar.post_article.canonical_machine.closure_bundle.v1";
 const CLOSURE_BUNDLE_ISSUE_ID: &str = "TAS-215";
-const NEXT_ISSUE_ID: &str = "TAS-216";
+const NEXT_ISSUE_ID: &str = "TAS-217";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -314,7 +314,9 @@ pub fn build_tassadar_post_article_canonical_machine_closure_bundle_report() -> 
     let continuation: TassadarPostArticleContinuationNonComputationalityContractReport =
         read_json(TASSADAR_POST_ARTICLE_CONTINUATION_NON_COMPUTATIONALITY_CONTRACT_REPORT_REF)?;
     let fast_route: TassadarPostArticleFastRouteLegitimacyAndCarrierBindingContractReport =
-        read_json(TASSADAR_POST_ARTICLE_FAST_ROUTE_LEGITIMACY_AND_CARRIER_BINDING_CONTRACT_REPORT_REF)?;
+        read_json(
+            TASSADAR_POST_ARTICLE_FAST_ROUTE_LEGITIMACY_AND_CARRIER_BINDING_CONTRACT_REPORT_REF,
+        )?;
     let equivalent_choice: TassadarPostArticleEquivalentChoiceNeutralityAndAdmissibilityContractReport =
         read_json(TASSADAR_POST_ARTICLE_EQUIVALENT_CHOICE_NEUTRALITY_AND_ADMISSIBILITY_CONTRACT_REPORT_REF)?;
     let downward: TassadarPostArticleDownwardNonInfluenceAndServedConformanceReport =
@@ -355,35 +357,41 @@ pub fn build_tassadar_post_article_canonical_machine_closure_bundle_report() -> 
         && computational_model.statement_green
         && bridge.bridge_contract_green
         && machine_lock.canonical_machine_tuple.machine_identity_id
-            == computational_model.computational_model_statement.machine_identity_id
+            == computational_model
+                .computational_model_statement
+                .machine_identity_id
         && machine_lock.canonical_machine_tuple.machine_identity_id
             == bridge.bridge_machine_identity.machine_identity_id
         && machine_lock.canonical_machine_tuple.canonical_route_id
-            == computational_model.computational_model_statement.canonical_route_id
+            == computational_model
+                .computational_model_statement
+                .canonical_route_id
         && machine_lock.canonical_machine_tuple.canonical_route_id
             == bridge.bridge_machine_identity.canonical_route_id;
 
     let proof_and_audit_classification_complete = closure_bundle_contract
         .artifact_classification_rows
         .iter()
-        .all(|row| classification_green(
-            row,
-            &runtime_contract,
-            &historical_proof,
-            &historical_witness_suite,
-            &historical_verdict_split,
-            &machine_lock,
-            &computational_model,
-            &control_plane,
-            &proof_transport,
-            &continuation,
-            &fast_route,
-            &equivalent_choice,
-            &downward,
-            &portability,
-            &plugin_charter,
-            &anti_drift,
-        ));
+        .all(|row| {
+            classification_green(
+                row,
+                &runtime_contract,
+                &historical_proof,
+                &historical_witness_suite,
+                &historical_verdict_split,
+                &machine_lock,
+                &computational_model,
+                &control_plane,
+                &proof_transport,
+                &continuation,
+                &fast_route,
+                &equivalent_choice,
+                &downward,
+                &portability,
+                &plugin_charter,
+                &anti_drift,
+            )
+        });
 
     let control_execution_and_continuation_bound = control_plane.decision_provenance_proof_complete
         && control_plane.control_plane_ownership_green
@@ -404,8 +412,9 @@ pub fn build_tassadar_post_article_canonical_machine_closure_bundle_report() -> 
         && plugin_charter.observer_model_frozen
         && plugin_charter.state_class_split_frozen;
 
-    let portability_and_minimality_bound =
-        portability.matrix_green && portability.machine_matrix_green && portability.minimality_green;
+    let portability_and_minimality_bound = portability.matrix_green
+        && portability.machine_matrix_green
+        && portability.minimality_green;
 
     let anti_drift_closeout_inherited =
         anti_drift.closeout_green && anti_drift.all_required_surface_locks_green;
@@ -860,7 +869,7 @@ pub fn build_tassadar_post_article_canonical_machine_closure_bundle_report() -> 
         ),
         validation_row(
             "next_issue_frontier_advanced",
-            NEXT_ISSUE_ID == "TAS-216",
+            NEXT_ISSUE_ID == "TAS-217",
             vec![String::from(
                 TASSADAR_POST_ARTICLE_CANONICAL_MACHINE_CLOSURE_BUNDLE_REPORT_REF,
             )],
@@ -1022,7 +1031,9 @@ fn classification_green(
         }
         "canonical_machine_identity_lock" => machine_lock.lock_green,
         "canonical_computational_model_statement" => computational_model.statement_green,
-        "control_plane_decision_provenance_proof" => control_plane.decision_provenance_proof_complete,
+        "control_plane_decision_provenance_proof" => {
+            control_plane.decision_provenance_proof_complete
+        }
         "execution_semantics_proof_transport_audit" => {
             proof_transport.audit_green && proof_transport.proof_transport_complete
         }
@@ -1240,14 +1251,14 @@ mod tests {
         assert!(report.plugin_claims_must_reference_bundle_digest);
         assert!(report.platform_claims_must_reference_bundle_digest);
         assert_eq!(report.closure_bundle_issue_id, "TAS-215");
-        assert_eq!(report.next_issue_id, "TAS-216");
+        assert_eq!(report.next_issue_id, "TAS-217");
         assert!(!report.closure_bundle_digest.is_empty());
     }
 
     #[test]
     fn canonical_machine_closure_bundle_matches_committed_truth() {
-        let expected =
-            build_tassadar_post_article_canonical_machine_closure_bundle_report().expect("expected");
+        let expected = build_tassadar_post_article_canonical_machine_closure_bundle_report()
+            .expect("expected");
         let committed: TassadarPostArticleCanonicalMachineClosureBundleReport =
             read_json(tassadar_post_article_canonical_machine_closure_bundle_report_path())
                 .expect("committed");
@@ -1265,10 +1276,9 @@ mod tests {
         let output_path = tempdir
             .path()
             .join("tassadar_post_article_canonical_machine_closure_bundle_report.json");
-        let written = write_tassadar_post_article_canonical_machine_closure_bundle_report(
-            &output_path,
-        )
-        .expect("written");
+        let written =
+            write_tassadar_post_article_canonical_machine_closure_bundle_report(&output_path)
+                .expect("written");
         let roundtrip: TassadarPostArticleCanonicalMachineClosureBundleReport =
             read_json(&output_path).expect("roundtrip");
 

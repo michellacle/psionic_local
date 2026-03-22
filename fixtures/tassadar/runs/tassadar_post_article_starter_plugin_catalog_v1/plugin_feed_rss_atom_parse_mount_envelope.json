@@ -1,0 +1,16 @@
+{
+  "envelope_id": "mount.plugin.feed.rss_atom_parse.no_capabilities.v1",
+  "plugin_id": "plugin.feed.rss_atom_parse",
+  "plugin_version": "v1",
+  "world_mount_id": "world_mount.starter.local_no_capabilities.v1",
+  "capability_namespace_ids": [],
+  "allowlisted_url_prefixes": [],
+  "allowed_method_ids": [],
+  "timeout_millis": 1000,
+  "response_size_limit_bytes": 0,
+  "redirect_limit": 0,
+  "replay_posture_id": "deterministic_replayable",
+  "green": true,
+  "detail": "the feed parser stays local and capability-free because fetching remains outside the plugin family.",
+  "envelope_digest": "aeaf13ad8f2cdb536eff564461b3460b515cc818f802cefeb2251132f095fc95"
+}

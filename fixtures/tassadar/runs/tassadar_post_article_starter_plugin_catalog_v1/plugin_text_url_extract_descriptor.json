@@ -1,0 +1,34 @@
+{
+  "plugin_id": "plugin.text.url_extract",
+  "plugin_version": "v1",
+  "catalog_entry_id": "plugin.text.url_extract@v1",
+  "manifest_id": "manifest.plugin.text.url_extract.v1",
+  "artifact_id": "artifact.plugin.text.url_extract.v1",
+  "artifact_digest": "5e70757481877b85a30d0ee5de3da8cbefbd104cd583fbcc3b4623ae50f13d6a",
+  "packet_abi_version": "packet.v1",
+  "packet_schemas": {
+    "input_schema_id": "plugin.text.url_extract.input.v1",
+    "success_output_schema_id": "plugin.text.url_extract.output.v1",
+    "refusal_schema_ids": [
+      "plugin.refusal.schema_invalid.v1",
+      "plugin.refusal.packet_too_large.v1",
+      "plugin.refusal.unsupported_codec.v1",
+      "plugin.refusal.runtime_resource_limit.v1"
+    ]
+  },
+  "capability_class": "local_deterministic",
+  "replay_class_id": "deterministic_replayable",
+  "trust_tier_id": "operator_curated_local_deterministic",
+  "evidence_posture_id": "evidence.descriptor_fixture_receipt_bound.v1",
+  "capability_namespace_ids": [],
+  "negative_claim_ids": [
+    "url_validation_truth_not_claimed",
+    "dns_resolution_not_claimed",
+    "redirect_truth_not_claimed",
+    "network_reachability_not_claimed"
+  ],
+  "descriptor_ref": "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_text_url_extract_descriptor.json",
+  "fixture_bundle_ref": "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_text_url_extract_fixture_bundle.json",
+  "sample_mount_envelope_ref": "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_text_url_extract_mount_envelope.json",
+  "detail": "the first starter plugin freezes left-to-right `http://` and `https://` string extraction with no deduplication and no capability mounts."
+}

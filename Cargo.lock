@@ -3553,6 +3553,7 @@ dependencies = [
  "hex",
  "psionic-adapters",
  "psionic-apple-fm",
+ "psionic-catalog",
  "psionic-cluster",
  "psionic-compiler",
  "psionic-core",

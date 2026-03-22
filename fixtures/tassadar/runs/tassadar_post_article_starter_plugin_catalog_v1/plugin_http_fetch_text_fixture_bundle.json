@@ -1,0 +1,73 @@
+{
+  "plugin_id": "plugin.http.fetch_text",
+  "plugin_version": "v1",
+  "fixture_bundle_id": "fixture_bundle.plugin.http.fetch_text.v1",
+  "packet_abi_version": "packet.v1",
+  "success_case_ids": [
+    "fetch_text_article_success"
+  ],
+  "malformed_case_ids": [
+    "schema_invalid_missing_url"
+  ],
+  "refusal_case_ids": [
+    "url_not_permitted_refusal",
+    "timeout_refusal"
+  ],
+  "negative_claim_ids": [
+    "browser_execution_not_claimed",
+    "javascript_execution_not_claimed",
+    "cookie_or_auth_session_not_claimed",
+    "arbitrary_header_control_not_claimed",
+    "unrestricted_web_access_not_claimed"
+  ],
+  "cases": [
+    {
+      "case_id": "fetch_text_article_success",
+      "status": "exact_success",
+      "request_schema_id": "plugin.http.fetch_text.input.v1",
+      "request_packet_digest": "3ae896fcd5ea6d05e3107fe28c1058962ddb1098382e9697183c35dc47bbe815",
+      "response_or_refusal_schema_id": "plugin.http.fetch_text.output.v1",
+      "response_or_refusal_digest": "4a5f02aa4ba485a78345215049a08947bb5cb5b7ef97723f9e2c932ca6dd0d44",
+      "replay_class_id": "replayable_with_snapshots",
+      "receipt_id": "receipt.plugin.http.fetch_text.fetch_text_article_success.v1",
+      "detail": "success receipts keep final URL, content type, charset, and truncation posture explicit for read-only network fetches."
+    },
+    {
+      "case_id": "schema_invalid_missing_url",
+      "status": "typed_malformed_packet",
+      "request_schema_id": "plugin.http.fetch_text.input.v1",
+      "request_packet_digest": "b7162362080b6d065bbfc1f848ca30fb42b62313ea1e2767190d31bc45fc6632",
+      "response_or_refusal_schema_id": "plugin.refusal.schema_invalid.v1",
+      "response_or_refusal_digest": "24943b5c24bcf0afc286624a21455d1286109d90339a887f272512e243142c78",
+      "replay_class_id": "replayable_with_snapshots",
+      "receipt_id": "receipt.plugin.http.fetch_text.schema_invalid_missing_url.v1",
+      "refusal_or_failure_class_id": "schema_invalid",
+      "detail": "fetch-text packet validation fails closed before any capability-bound HTTP call is attempted."
+    },
+    {
+      "case_id": "url_not_permitted_refusal",
+      "status": "typed_refusal",
+      "request_schema_id": "plugin.http.fetch_text.input.v1",
+      "request_packet_digest": "32d2affcc1e9a22451eebdf66ec8919e4d1963befe75e636186b00b01e225bda",
+      "response_or_refusal_schema_id": "plugin.refusal.url_not_permitted.v1",
+      "response_or_refusal_digest": "6c8f9f98cdd0b6d85bc7fa144faca7812f94d82d8fa2907de8ec968dc3271bae",
+      "replay_class_id": "replayable_with_snapshots",
+      "receipt_id": "receipt.plugin.http.fetch_text.url_not_permitted_refusal.v1",
+      "refusal_or_failure_class_id": "url_not_permitted",
+      "detail": "allowlist refusal keeps the network policy in the mount envelope rather than silently widening to ambient host HTTP."
+    },
+    {
+      "case_id": "timeout_refusal",
+      "status": "typed_refusal",
+      "request_schema_id": "plugin.http.fetch_text.input.v1",
+      "request_packet_digest": "b71153c680b134309dcd004bb4cd4c61fb47d9c807d0f5d71f0093f200698cbb",
+      "response_or_refusal_schema_id": "plugin.refusal.timeout.v1",
+      "response_or_refusal_digest": "210533ce90fa550c5b51f6cf917cafb019307775869608b76b3ea58fc9cbc223",
+      "replay_class_id": "replayable_with_snapshots",
+      "receipt_id": "receipt.plugin.http.fetch_text.timeout_refusal.v1",
+      "refusal_or_failure_class_id": "timeout",
+      "detail": "network timeout remains a typed refusal or failure surface and never degenerates into hidden retry or host-side repair."
+    }
+  ],
+  "bundle_digest": "28b99b5b2c6bc2a7a17a7e43bfeae0112d81888737d331cddf06d5d6056ef1b7"
+}

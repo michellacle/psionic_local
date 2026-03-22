@@ -1,0 +1,59 @@
+{
+  "plugin_id": "plugin.text.url_extract",
+  "plugin_version": "v1",
+  "fixture_bundle_id": "fixture_bundle.plugin.text.url_extract.v1",
+  "packet_abi_version": "packet.v1",
+  "success_case_ids": [
+    "extract_urls_success"
+  ],
+  "malformed_case_ids": [
+    "schema_invalid_missing_text"
+  ],
+  "refusal_case_ids": [
+    "packet_too_large_refusal"
+  ],
+  "negative_claim_ids": [
+    "url_validation_truth_not_claimed",
+    "dns_resolution_not_claimed",
+    "redirect_truth_not_claimed",
+    "network_reachability_not_claimed"
+  ],
+  "cases": [
+    {
+      "case_id": "extract_urls_success",
+      "status": "exact_success",
+      "request_schema_id": "plugin.text.url_extract.input.v1",
+      "request_packet_digest": "bc023b3984e0badfe33e598b8799b715bd18c757130999045453240e27c196bc",
+      "response_or_refusal_schema_id": "plugin.text.url_extract.output.v1",
+      "response_or_refusal_digest": "42e038874ba8923b7c32d10c198ab7b19065add0cf1cb578f670f6db0705828d",
+      "replay_class_id": "deterministic_replayable",
+      "receipt_id": "receipt.plugin.text.url_extract.extract_urls_success.v1",
+      "detail": "url extraction keeps left-to-right order, preserves duplicates posture, and stays bounded to literal http(s) string matches."
+    },
+    {
+      "case_id": "schema_invalid_missing_text",
+      "status": "typed_malformed_packet",
+      "request_schema_id": "plugin.text.url_extract.input.v1",
+      "request_packet_digest": "4c64fe5417a35a45fedfe20114374da9ffa5bc5869775a250037f597e2ef35c3",
+      "response_or_refusal_schema_id": "plugin.refusal.schema_invalid.v1",
+      "response_or_refusal_digest": "89c96c89706615aae877134b76371e66b2e73e8e957622c78b7c12cc459315a7",
+      "replay_class_id": "deterministic_replayable",
+      "receipt_id": "receipt.plugin.text.url_extract.schema_invalid_missing_text.v1",
+      "refusal_or_failure_class_id": "schema_invalid",
+      "detail": "malformed packets fail closed into one typed schema-invalid refusal instead of guest panic or host repair."
+    },
+    {
+      "case_id": "packet_too_large_refusal",
+      "status": "typed_refusal",
+      "request_schema_id": "plugin.text.url_extract.input.v1",
+      "request_packet_digest": "44560805d61f11ce5eeed85ce2c3d243d903c1174ba602237f1a6fa01e021a3b",
+      "response_or_refusal_schema_id": "plugin.refusal.packet_too_large.v1",
+      "response_or_refusal_digest": "b22a00e80600f5f513eee847a3ffcdbdea74714b7e3f9df965ce3a0a5ae26c77",
+      "replay_class_id": "deterministic_replayable",
+      "receipt_id": "receipt.plugin.text.url_extract.packet_too_large_refusal.v1",
+      "refusal_or_failure_class_id": "packet_too_large",
+      "detail": "the deterministic plugin keeps packet ceilings explicit rather than relying on ambient parser allocation behavior."
+    }
+  ],
+  "bundle_digest": "02f63221799bcbc8a97fea5ade90830e3afeac6fc6b5a5f12cd4a922edca5b67"
+}

@@ -203,8 +203,8 @@ mod tests {
 
     #[test]
     fn closure_bundle_summary_keeps_digest_bound_machine_explicit() {
-        let summary =
-            build_tassadar_post_article_canonical_machine_closure_bundle_summary().expect("summary");
+        let summary = build_tassadar_post_article_canonical_machine_closure_bundle_summary()
+            .expect("summary");
 
         assert_eq!(
             summary.report_id,
@@ -224,14 +224,14 @@ mod tests {
         assert!(summary.plugin_claims_must_reference_bundle_digest);
         assert!(summary.platform_claims_must_reference_bundle_digest);
         assert_eq!(summary.closure_bundle_issue_id, "TAS-215");
-        assert_eq!(summary.next_issue_id, "TAS-216");
+        assert_eq!(summary.next_issue_id, "TAS-217");
         assert!(!summary.closure_bundle_digest.is_empty());
     }
 
     #[test]
     fn closure_bundle_summary_matches_committed_truth() {
-        let expected =
-            build_tassadar_post_article_canonical_machine_closure_bundle_summary().expect("expected");
+        let expected = build_tassadar_post_article_canonical_machine_closure_bundle_summary()
+            .expect("expected");
         let committed: TassadarPostArticleCanonicalMachineClosureBundleSummary =
             read_json(tassadar_post_article_canonical_machine_closure_bundle_summary_path())
                 .expect("committed");
@@ -249,10 +249,9 @@ mod tests {
         let output_path = tempdir
             .path()
             .join("tassadar_post_article_canonical_machine_closure_bundle_summary.json");
-        let written = write_tassadar_post_article_canonical_machine_closure_bundle_summary(
-            &output_path,
-        )
-        .expect("written");
+        let written =
+            write_tassadar_post_article_canonical_machine_closure_bundle_summary(&output_path)
+                .expect("written");
         let roundtrip: TassadarPostArticleCanonicalMachineClosureBundleSummary =
             read_json(&output_path).expect("roundtrip");
 

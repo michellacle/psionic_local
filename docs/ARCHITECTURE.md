@@ -1710,7 +1710,24 @@ The current scope is:
   portability or minimality posture, plugin inheritance posture, and
   proof-versus-audit classification. Stronger terminal, controller, receipt,
   publication, and bounded plugin-platform claims now inherit this bundle by
-  digest, and the next open bridge frontier is `TAS-216`.
+  digest.
+- the current post-article starter-plugin catalog artifacts are
+  `fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/tassadar_post_article_starter_plugin_catalog_bundle.json`,
+  `fixtures/tassadar/reports/tassadar_post_article_starter_plugin_catalog_report.json`,
+  `fixtures/tassadar/reports/tassadar_post_article_starter_plugin_catalog_eval_report.json`,
+  `fixtures/tassadar/reports/tassadar_post_article_starter_plugin_catalog_summary.json`,
+  the provider receipt in
+  `crates/psionic-provider/src/tassadar_post_article_starter_plugin_catalog.rs`,
+  the checker script
+  `scripts/check-tassadar-post-article-starter-plugin-catalog.sh`,
+  and the audit note
+  `docs/audits/2026-03-21-tassadar-post-article-starter-plugin-catalog.md`,
+  which publish one small operator-curated starter catalog above the bounded
+  plugin platform with four named starter plugins, per-plugin descriptor or
+  fixture or sample-mount sidecars, and two bounded composition flows while
+  keeping the catalog closure-bundle-bound, operator-only, runtime-builtin
+  separate, and explicitly not a public plugin marketplace. The next open
+  bridge frontier is `TAS-217`.
 - the current semantic-window revision artifacts are
   `fixtures/tassadar/reports/tassadar_semantic_window_revision_receipt.json`
   and

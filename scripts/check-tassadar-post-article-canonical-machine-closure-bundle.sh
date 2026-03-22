@@ -38,7 +38,7 @@ jq -e '
   and .plugin_claims_must_reference_bundle_digest == true
   and .platform_claims_must_reference_bundle_digest == true
   and .closure_bundle_issue_id == "TAS-215"
-  and .next_issue_id == "TAS-216"
+  and .next_issue_id == "TAS-217"
   and (.closure_bundle_digest | length) > 0
 ' fixtures/tassadar/reports/tassadar_post_article_canonical_machine_closure_bundle_report.json >/dev/null
 
@@ -63,6 +63,6 @@ jq -e '
   and .plugin_claims_must_reference_bundle_digest == true
   and .platform_claims_must_reference_bundle_digest == true
   and .closure_bundle_issue_id == "TAS-215"
-  and .next_issue_id == "TAS-216"
+  and .next_issue_id == "TAS-217"
   and (.closure_bundle_digest | length) > 0
 ' fixtures/tassadar/reports/tassadar_post_article_canonical_machine_closure_bundle_summary.json >/dev/null

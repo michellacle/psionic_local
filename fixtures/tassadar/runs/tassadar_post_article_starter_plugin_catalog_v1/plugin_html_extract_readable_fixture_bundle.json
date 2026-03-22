@@ -1,0 +1,59 @@
+{
+  "plugin_id": "plugin.html.extract_readable",
+  "plugin_version": "v1",
+  "fixture_bundle_id": "fixture_bundle.plugin.html.extract_readable.v1",
+  "packet_abi_version": "packet.v1",
+  "success_case_ids": [
+    "extract_readable_success"
+  ],
+  "malformed_case_ids": [
+    "schema_invalid_missing_body_text"
+  ],
+  "refusal_case_ids": [
+    "content_type_unsupported_refusal"
+  ],
+  "negative_claim_ids": [
+    "browser_rendering_not_claimed",
+    "javascript_execution_not_claimed",
+    "css_layout_truth_not_claimed",
+    "full_dom_semantics_not_claimed"
+  ],
+  "cases": [
+    {
+      "case_id": "extract_readable_success",
+      "status": "exact_success",
+      "request_schema_id": "plugin.html.extract_readable.input.v1",
+      "request_packet_digest": "ef8ad4be3df18882808d3c5b0ca8a2e513699dc8b8e6d44ede7922cfe1649d3e",
+      "response_or_refusal_schema_id": "plugin.html.extract_readable.output.v1",
+      "response_or_refusal_digest": "81a1210c2b2377509f90e2ed5a12e1032a7a852188676d7de8effe8cc727d0a5",
+      "replay_class_id": "deterministic_replayable",
+      "receipt_id": "receipt.plugin.html.extract_readable.extract_readable_success.v1",
+      "detail": "the local readability extractor keeps title, excerpt, readable text, and harvested links typed and replayable."
+    },
+    {
+      "case_id": "schema_invalid_missing_body_text",
+      "status": "typed_malformed_packet",
+      "request_schema_id": "plugin.html.extract_readable.input.v1",
+      "request_packet_digest": "d116f4ed22b8c005ff8e3f6196663f02538e7e33c03513cb947750464ca6332d",
+      "response_or_refusal_schema_id": "plugin.refusal.schema_invalid.v1",
+      "response_or_refusal_digest": "d322cced199e704b55951439047d98022d9b6e9cd9f842c65f87096e156a4bc0",
+      "replay_class_id": "deterministic_replayable",
+      "receipt_id": "receipt.plugin.html.extract_readable.schema_invalid_missing_body_text.v1",
+      "refusal_or_failure_class_id": "schema_invalid",
+      "detail": "missing fetched document content becomes a typed malformed-packet refusal rather than hidden host-side extraction."
+    },
+    {
+      "case_id": "content_type_unsupported_refusal",
+      "status": "typed_refusal",
+      "request_schema_id": "plugin.html.extract_readable.input.v1",
+      "request_packet_digest": "ce2e901f9a1b23e6a868c3f071248c6341d81c71b899c79dc15a9b82737a9b49",
+      "response_or_refusal_schema_id": "plugin.refusal.content_type_unsupported.v1",
+      "response_or_refusal_digest": "ad22976264dee83cb62127ed5981594d3fe10518010df4a0ee328b2835477328",
+      "replay_class_id": "deterministic_replayable",
+      "receipt_id": "receipt.plugin.html.extract_readable.content_type_unsupported_refusal.v1",
+      "refusal_or_failure_class_id": "content_type_unsupported",
+      "detail": "non-HTML content stays outside the bounded extractor claim surface."
+    }
+  ],
+  "bundle_digest": "32445762f72f6ce0f8280190559d1658ecc8fcbbda96b5f06c25e9c2d8c317f6"
+}

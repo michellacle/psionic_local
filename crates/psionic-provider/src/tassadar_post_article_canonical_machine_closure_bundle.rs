@@ -80,9 +80,10 @@ mod tests {
 
     #[test]
     fn post_article_canonical_machine_closure_bundle_receipt_projects_summary() {
-        let summary =
-            build_tassadar_post_article_canonical_machine_closure_bundle_summary().expect("summary");
-        let receipt = TassadarPostArticleCanonicalMachineClosureBundleReceipt::from_summary(&summary);
+        let summary = build_tassadar_post_article_canonical_machine_closure_bundle_summary()
+            .expect("summary");
+        let receipt =
+            TassadarPostArticleCanonicalMachineClosureBundleReceipt::from_summary(&summary);
 
         assert_eq!(receipt.bundle_status, "green");
         assert_eq!(
@@ -99,7 +100,7 @@ mod tests {
         assert!(receipt.plugin_claims_must_reference_bundle_digest);
         assert!(receipt.platform_claims_must_reference_bundle_digest);
         assert_eq!(receipt.closure_bundle_issue_id, "TAS-215");
-        assert_eq!(receipt.next_issue_id, "TAS-216");
+        assert_eq!(receipt.next_issue_id, "TAS-217");
         assert!(!receipt.closure_bundle_digest.is_empty());
     }
 }

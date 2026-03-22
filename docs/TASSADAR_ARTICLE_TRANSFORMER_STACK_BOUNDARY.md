@@ -1323,7 +1323,26 @@ and the audit note at
 That bundle is now the indivisible machine object for stronger terminal,
 controller, receipt, publication, and bounded plugin-platform claims; those
 surfaces inherit it by digest instead of silently recomposing the machine from
-adjacent green artifacts. The next open bridge frontier is `TAS-216`.
+adjacent green artifacts.
+
+`TAS-216` now publishes the first operator-curated starter-plugin catalog at
+`fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/tassadar_post_article_starter_plugin_catalog_bundle.json`
+with the catalog report at
+`fixtures/tassadar/reports/tassadar_post_article_starter_plugin_catalog_report.json`,
+the eval projection at
+`fixtures/tassadar/reports/tassadar_post_article_starter_plugin_catalog_eval_report.json`,
+the disclosure-safe summary at
+`fixtures/tassadar/reports/tassadar_post_article_starter_plugin_catalog_summary.json`,
+the provider receipt at
+`crates/psionic-provider/src/tassadar_post_article_starter_plugin_catalog.rs`,
+the checker at
+`scripts/check-tassadar-post-article-starter-plugin-catalog.sh`,
+and the audit note at
+`docs/audits/2026-03-21-tassadar-post-article-starter-plugin-catalog.md`.
+That tranche keeps the starter catalog closure-bundle-bound, operator-only,
+runtime-builtin-separate, and explicitly not a public plugin marketplace while
+publishing four bounded starter entries and two bounded composition flows. The
+next open bridge frontier is `TAS-217`.
 
 ## Route Requirement
 

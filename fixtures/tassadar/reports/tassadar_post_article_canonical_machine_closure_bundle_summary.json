@@ -6,7 +6,7 @@
   "canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
   "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
   "continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
-  "closure_bundle_digest": "17aadba972ac47473f25c376b8929ee3f34f40777520f64dea759d48b6ae5a8d",
+  "closure_bundle_digest": "9ac0dfa48ef13bca57b02c0c643672efe4aae9f821607ef9ba4b0c24978a3003",
   "bundle_status": "green",
   "supporting_material_row_count": 19,
   "dependency_row_count": 8,
@@ -22,7 +22,7 @@
   "plugin_claims_must_reference_bundle_digest": true,
   "platform_claims_must_reference_bundle_digest": true,
   "closure_bundle_issue_id": "TAS-215",
-  "next_issue_id": "TAS-216",
-  "detail": "post-article canonical machine closure bundle summary keeps closure_bundle_id=`tassadar.post_article.canonical_machine.closure_bundle.v1`, machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1`, bundle_status=Green, validation_rows=9, closure_bundle_digest=`17aadba972ac47473f25c376b8929ee3f34f40777520f64dea759d48b6ae5a8d`, and next_issue_id=`TAS-216`.",
-  "summary_digest": "5f73dcc4de2234fd30df52a12bbb7a6206a05fc450a7d6eb70844d385f479e35"
+  "next_issue_id": "TAS-217",
+  "detail": "post-article canonical machine closure bundle summary keeps closure_bundle_id=`tassadar.post_article.canonical_machine.closure_bundle.v1`, machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1`, bundle_status=Green, validation_rows=9, closure_bundle_digest=`9ac0dfa48ef13bca57b02c0c643672efe4aae9f821607ef9ba4b0c24978a3003`, and next_issue_id=`TAS-217`.",
+  "summary_digest": "6c19f29e703e5268ee773e1a28b6b3b948e802f4794e72ee074b1334ac112048"
 }
