@@ -54,7 +54,7 @@ jq -e '
   and ([.route_family_rows[] | select(.route_family_id == "hull_cache")][0].carrier_relation == "canonical_direct_carrier_bound")
   and ([.route_family_rows[] | select(.route_family_id == "reference_linear")][0].carrier_relation == "historical_proof_baseline")
   and ([.route_family_rows[] | select(.route_family_id == "resumable_continuation_family")][0].carrier_relation == "continuation_carrier_only")
-  and .next_stability_issue_id == "TAS-212"
+  and .next_stability_issue_id == "TAS-213"
   and .closure_bundle_issue_id == "TAS-215"
 ' fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_report.json >/dev/null
 
@@ -74,34 +74,34 @@ jq -e '
   and .resumable_family_not_presented_as_direct_machine == true
   and .served_or_plugin_machine_overclaim_refused == true
   and .fast_route_legitimacy_complete == true
-  and .next_stability_issue_id == "TAS-212"
+  and .next_stability_issue_id == "TAS-213"
   and .closure_bundle_issue_id == "TAS-215"
 ' fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_summary.json >/dev/null
 
 jq -e '
   .report_id == "tassadar.post_article_canonical_computational_model_statement.report.v1"
-  and .next_stability_issue_id == "TAS-212"
+  and .next_stability_issue_id == "TAS-213"
   and .statement_status == "green"
   and .statement_green == true
 ' fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json >/dev/null
 
 jq -e '
   .report_id == "tassadar.post_article_execution_semantics_proof_transport_audit.report.v1"
-  and .next_stability_issue_id == "TAS-212"
+  and .next_stability_issue_id == "TAS-213"
   and .audit_status == "green"
   and .audit_green == true
 ' fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json >/dev/null
 
 jq -e '
   .report_id == "tassadar.post_article_continuation_non_computationality_contract.report.v1"
-  and .next_stability_issue_id == "TAS-212"
+  and .next_stability_issue_id == "TAS-213"
   and .contract_status == "green"
   and .contract_green == true
 ' fixtures/tassadar/reports/tassadar_post_article_continuation_non_computationality_contract_report.json >/dev/null
 
 jq -e '
   .bridge_machine_identity_id == "tassadar.post_article_universality_bridge.machine_identity.v1"
-  and (.reserved_capability_issue_ids | index("TAS-212")) != null
+  and (.reserved_capability_issue_ids | index("TAS-213")) != null
   and (.reserved_capability_issue_ids | index("TAS-211")) == null
 ' fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_summary.json >/dev/null
 

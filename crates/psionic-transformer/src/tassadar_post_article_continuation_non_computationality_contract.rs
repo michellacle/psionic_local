@@ -144,7 +144,7 @@ pub fn build_tassadar_post_article_continuation_non_computationality_contract(
         blocked_hidden_compute_ids,
         contract_rule_rows,
         invalidation_rule_rows,
-        next_stability_issue_id: String::from("TAS-212"),
+        next_stability_issue_id: String::from("TAS-213"),
         claim_boundary: String::from(
             "this transformer-owned contract freezes the continuation non-computationality boundary only. It says declared continuation surfaces extend one canonical post-article machine without becoming a second machine, but it still leaves fast-route legitimacy, anti-drift closure, served/public universality, and the final closure bundle to later issues.",
         ),
@@ -223,7 +223,7 @@ mod tests {
         assert_eq!(contract.blocked_hidden_compute_ids.len(), 7);
         assert_eq!(contract.contract_rule_rows.len(), 5);
         assert_eq!(contract.invalidation_rule_rows.len(), 7);
-        assert_eq!(contract.next_stability_issue_id, "TAS-212");
+        assert_eq!(contract.next_stability_issue_id, "TAS-213");
         assert!(contract
             .contract_rule_rows
             .iter()

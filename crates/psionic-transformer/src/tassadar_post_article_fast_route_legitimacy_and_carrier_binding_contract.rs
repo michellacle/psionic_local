@@ -155,7 +155,7 @@ pub fn build_tassadar_post_article_fast_route_legitimacy_and_carrier_binding_con
         ),
         law_row(
             "later_stability_issues_remain_open",
-            "Equivalent-choice neutrality, downward non-influence, served conformance, and final closure-bundle completion stay open after this contract.",
+            "Downward non-influence, served conformance, anti-drift closeout, and final closure-bundle completion stay open after this contract.",
         ),
     ];
     let invalidation_rule_rows = vec![
@@ -207,9 +207,9 @@ pub fn build_tassadar_post_article_fast_route_legitimacy_and_carrier_binding_con
         route_family_rows,
         contract_rule_rows,
         invalidation_rule_rows,
-        next_stability_issue_id: String::from("TAS-212"),
+        next_stability_issue_id: String::from("TAS-213"),
         claim_boundary: String::from(
-            "this transformer-owned contract freezes only fast-route legitimacy and carrier binding. It classifies which route families are inside the canonical machine carrier, which remain continuation-only, and which stay outside until later promotion. It does not itself close equivalent-choice neutrality, downward non-influence, served conformance, or the final closure bundle.",
+            "this transformer-owned contract freezes only fast-route legitimacy and carrier binding. It classifies which route families are inside the canonical machine carrier, which remain continuation-only, and which stay outside until later promotion. It does not itself close downward non-influence, served conformance, anti-drift closeout, or the final closure bundle.",
         ),
         summary: String::from(
             "Transformer fast-route legitimacy and carrier-binding contract freezes 6 route-family classifications, 6 contract rules, and 7 invalidation rules for one canonical post-article machine.",
@@ -287,7 +287,7 @@ mod tests {
         assert_eq!(contract.route_family_rows.len(), 6);
         assert_eq!(contract.contract_rule_rows.len(), 6);
         assert_eq!(contract.invalidation_rule_rows.len(), 7);
-        assert_eq!(contract.next_stability_issue_id, "TAS-212");
+        assert_eq!(contract.next_stability_issue_id, "TAS-213");
         assert_eq!(
             contract.route_family_rows[0].route_family_class,
             TassadarPostArticleFastRouteFamilyClass::ReferenceLinearBaseline

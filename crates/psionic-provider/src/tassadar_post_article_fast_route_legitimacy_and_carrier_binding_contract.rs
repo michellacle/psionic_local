@@ -88,7 +88,7 @@ mod tests {
         assert!(receipt.resumable_family_not_presented_as_direct_machine);
         assert!(receipt.served_or_plugin_machine_overclaim_refused);
         assert!(receipt.fast_route_legitimacy_complete);
-        assert_eq!(receipt.next_stability_issue_id, "TAS-212");
+        assert_eq!(receipt.next_stability_issue_id, "TAS-213");
         assert_eq!(receipt.closure_bundle_issue_id, "TAS-215");
     }
 }

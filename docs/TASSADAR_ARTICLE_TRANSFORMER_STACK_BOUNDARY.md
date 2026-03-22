@@ -1065,7 +1065,7 @@ and the dedicated checker now lives at
 This tranche turns weighted plugin control green on the canonical route,
 clears the `TAS-203A` defer pointer to empty, clears the controller defer
 pointer to empty, with the current reserved bridge capability frontier now at
-`TAS-212`, and still does not admit bounded plugin-platform closeout, plugin
+`TAS-213`, and still does not admit bounded plugin-platform closeout, plugin
 publication, served/public universality, or arbitrary software capability.
 
 `TAS-205` now closes the canonical plugin authority, promotion, publication,
@@ -1173,7 +1173,7 @@ the transformer-owned anchor contract now lives at
 and the dedicated checker now lives at
 `scripts/check-tassadar-post-article-execution-semantics-proof-transport-audit.sh`.
 This tranche closes proof transport, moves the next anti-drift stability
-frontier to `TAS-212`, keeps the final claim-bearing canonical machine closure
+frontier to `TAS-213`, keeps the final claim-bearing canonical machine closure
 bundle separate for `TAS-215`, and still does not turn plugin publication,
 served/public universality, or arbitrary software capability green.
 
@@ -1198,7 +1198,7 @@ and the dedicated checker now lives at
 This tranche closes continuation non-computationality, refreshes the dependent
 conformance, authority, bounded-platform-closeout, computational-model,
 proof-transport, and machine-lock artifacts onto the same canonical statement
-binding, moves the next anti-drift stability frontier to `TAS-212`, keeps the
+binding, moves the next anti-drift stability frontier to `TAS-213`, keeps the
 final claim-bearing canonical machine closure bundle separate for `TAS-215`,
 and still does not turn plugin publication, served/public universality, or
 arbitrary software capability green.
@@ -1223,9 +1223,37 @@ and the dedicated checker now lives at
 `scripts/check-tassadar-post-article-fast-route-legitimacy-and-carrier-binding-contract.sh`.
 This tranche closes fast-route legitimacy and carrier binding, refreshes the
 reserved bridge frontier and dependent proof-transport or continuation posture
-onto `TAS-212`, keeps the final claim-bearing canonical machine closure bundle
+onto `TAS-213`, keeps the final claim-bearing canonical machine closure bundle
 separate for `TAS-215`, and still does not turn plugin publication,
 served/public universality, or arbitrary software capability green.
+
+`TAS-212` now closes the equivalent-choice neutrality and admissibility
+contract at
+`fixtures/tassadar/reports/tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract_report.json`.
+That eval-owned artifact binds one transformer-owned equivalent-choice contract
+plus the closed admissibility compiler, runtime API report, control-plane
+decision-provenance proof, weighted-controller negative planner surface,
+fast-route carrier classification, and universality bridge to the same
+canonical post-article machine identity instead of letting equivalent plugin
+choices drift by artifact adjacency. It freezes five equivalent-choice classes,
+requires receipt-visible narrowing or filtering, keeps hidden ordering or
+ranking plus latency or cost or soft-failure steering outside the admitted
+control surface, and refuses served or plugin wording that tries to promote
+equivalence posture into wider machine or publication claims. The
+operator-readable summary now lives at
+`fixtures/tassadar/reports/tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract_summary.json`,
+the provider receipt now lives at
+`crates/psionic-provider/src/tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract.rs`,
+the transformer-owned anchor contract now lives at
+`crates/psionic-transformer/src/tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract.rs`,
+and the dedicated checker now lives at
+`scripts/check-tassadar-post-article-equivalent-choice-neutrality-and-admissibility-contract.sh`.
+This tranche closes equivalent-choice neutrality and admissibility, refreshes
+the fast-route, proof-transport, continuation, computational-model, and bridge
+frontier chain onto `TAS-213`, keeps the final claim-bearing canonical machine
+closure bundle separate for `TAS-215`, and still does not turn plugin
+publication, served/public universality, or arbitrary software capability
+green.
 
 ## Route Requirement
 

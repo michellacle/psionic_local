@@ -223,7 +223,7 @@ mod tests {
         assert!(summary.continuation_expressivity_extension_blocked);
         assert!(summary.plugin_resume_hidden_compute_refused);
         assert!(summary.continuation_non_computationality_complete);
-        assert_eq!(summary.next_stability_issue_id, "TAS-212");
+        assert_eq!(summary.next_stability_issue_id, "TAS-213");
         assert_eq!(summary.closure_bundle_issue_id, "TAS-215");
     }
 

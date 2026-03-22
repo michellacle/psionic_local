@@ -63,7 +63,7 @@ pub const TASSADAR_POST_ARTICLE_FAST_ROUTE_LEGITIMACY_AND_CARRIER_BINDING_CONTRA
 
 const TRANSFORMER_ANCHOR_CONTRACT_SOURCE_REF: &str =
     "crates/psionic-transformer/src/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract.rs";
-const NEXT_STABILITY_ISSUE_ID: &str = "TAS-212";
+const NEXT_STABILITY_ISSUE_ID: &str = "TAS-213";
 const CLOSURE_BUNDLE_ISSUE_ID: &str = "TAS-215";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -828,7 +828,7 @@ fn build_report_from_inputs(
             "fast_route_legitimacy_complete",
             fast_route_legitimacy_complete,
             &[TASSADAR_POST_ARTICLE_FAST_ROUTE_LEGITIMACY_AND_CARRIER_BINDING_CONTRACT_REPORT_REF],
-            "fast-route legitimacy and carrier binding are complete and the frontier moves to TAS-212.",
+            "fast-route legitimacy and carrier binding are complete and the frontier moves to TAS-213.",
         ),
     ];
 
@@ -902,7 +902,7 @@ fn build_report_from_inputs(
         next_stability_issue_id: String::from(NEXT_STABILITY_ISSUE_ID),
         closure_bundle_issue_id: String::from(CLOSURE_BUNDLE_ISSUE_ID),
         claim_boundary: String::from(
-            "this eval-owned contract report freezes only fast-route legitimacy and carrier binding on the canonical post-article machine. It classifies ReferenceLinear as the proof-origin baseline, HullCache as the canonical direct fast route only on explicit semantics-equivalence evidence, resumable continuation as continuation-only, and research fast families as outside the carrier. Equivalent-choice neutrality, downward non-influence, served conformance, and the final closure bundle remain later issues.",
+            "this eval-owned contract report freezes only fast-route legitimacy and carrier binding on the canonical post-article machine. It classifies ReferenceLinear as the proof-origin baseline, HullCache as the canonical direct fast route only on explicit semantics-equivalence evidence, resumable continuation as continuation-only, and research fast families as outside the carrier. Downward non-influence, served conformance, anti-drift closeout, and the final closure bundle remain later issues.",
         ),
         summary: String::new(),
         report_digest: String::new(),
@@ -1137,7 +1137,7 @@ mod tests {
         assert!(report.resumable_family_not_presented_as_direct_machine);
         assert!(report.served_or_plugin_machine_overclaim_refused);
         assert!(report.fast_route_legitimacy_complete);
-        assert_eq!(report.next_stability_issue_id, "TAS-212");
+        assert_eq!(report.next_stability_issue_id, "TAS-213");
         assert_eq!(report.closure_bundle_issue_id, "TAS-215");
         assert!(report.invalidation_rows.iter().all(|row| !row.present));
         let reference_linear = report

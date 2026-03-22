@@ -1,0 +1,795 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.post_article_equivalent_choice_neutrality_and_admissibility.report.v1",
+  "checker_script_ref": "scripts/check-tassadar-post-article-equivalent-choice-neutrality-and-admissibility-contract.sh",
+  "transformer_anchor_contract_ref": "crates/psionic-transformer/src/tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract.rs",
+  "plugin_world_mount_envelope_compiler_and_admissibility_report_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json",
+  "plugin_runtime_api_and_engine_abstraction_report_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_runtime_api_and_engine_abstraction_report.json",
+  "control_plane_decision_provenance_proof_report_ref": "fixtures/tassadar/reports/tassadar_post_article_control_plane_decision_provenance_proof_report.json",
+  "fast_route_legitimacy_and_carrier_binding_contract_report_ref": "fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_report.json",
+  "weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report_ref": "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report.json",
+  "universality_bridge_contract_report_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
+  "world_mount_compatibility_report_ref": "fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json",
+  "import_policy_matrix_report_ref": "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json",
+  "plugin_system_audit_ref": "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md",
+  "local_plugin_system_spec_ref": "~/code/alpha/tassadar/plugin-system.md",
+  "supporting_material_refs": [
+    "crates/psionic-transformer/src/tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract.rs",
+    "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json",
+    "fixtures/tassadar/reports/tassadar_post_article_plugin_runtime_api_and_engine_abstraction_report.json",
+    "fixtures/tassadar/reports/tassadar_post_article_control_plane_decision_provenance_proof_report.json",
+    "fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_report.json",
+    "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report.json",
+    "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
+    "fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json",
+    "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json",
+    "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md",
+    "~/code/alpha/tassadar/plugin-system.md"
+  ],
+  "equivalent_choice_contract": {
+    "schema_version": 1,
+    "contract_id": "tassadar.post_article.equivalent_choice_neutrality_and_admissibility.contract.v1",
+    "machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+    "tuple_id": "tassadar.post_article.canonical_machine_identity_lock.tuple.v1",
+    "boundary_id": "tassadar.post_article.equivalent_choice_neutrality_and_admissibility.boundary.v1",
+    "supporting_precedent_ids": [
+      "plugin_world_mount_envelope_compiler_and_admissibility",
+      "plugin_runtime_api_and_engine_abstraction",
+      "weighted_plugin_controller_trace_and_refusal_aware_model_loop",
+      "control_plane_decision_provenance_proof",
+      "fast_route_legitimacy_and_carrier_binding",
+      "universality_bridge_contract"
+    ],
+    "blocked_hidden_discriminator_ids": [
+      "hidden_ordering",
+      "hidden_ranking",
+      "latency_steering",
+      "cost_steering",
+      "queue_pressure_steering",
+      "scheduler_order_steering",
+      "cache_hit_steering",
+      "soft_failure_steering",
+      "candidate_precomputation",
+      "hidden_topk_filtering"
+    ],
+    "equivalent_choice_class_rows": [
+      {
+        "equivalent_choice_class_id": "choice.search_core_pair.closed_world_neutral.v1",
+        "class_kind": "closed_world_neutral_pair",
+        "bounded_candidate_count": 2,
+        "neutral_choice_required": true,
+        "receipt_visible_justification_required": true,
+        "route_and_mount_binding_required": true,
+        "hidden_ordering_allowed": false,
+        "latency_or_cost_discriminator_allowed": false,
+        "soft_failure_discriminator_allowed": false,
+        "typed_outcome_required_when_not_admitted": true,
+        "green": true,
+        "detail": "two bounded search-core candidates remain equivalent only under receipt-visible neutral choice with no hidden ordering, latency, cost, or soft-failure steering."
+      },
+      {
+        "equivalent_choice_class_id": "choice.validator_search.singleton.v1",
+        "class_kind": "singleton_exact_admissibility",
+        "bounded_candidate_count": 1,
+        "neutral_choice_required": false,
+        "receipt_visible_justification_required": true,
+        "route_and_mount_binding_required": true,
+        "hidden_ordering_allowed": false,
+        "latency_or_cost_discriminator_allowed": false,
+        "soft_failure_discriminator_allowed": false,
+        "typed_outcome_required_when_not_admitted": true,
+        "green": true,
+        "detail": "validator-search admissibility remains singleton and exact, so version skew may deny admission but may not become hidden ranking inside an equivalence class."
+      },
+      {
+        "equivalent_choice_class_id": "choice.strict_no_imports.singleton.v1",
+        "class_kind": "singleton_exact_admissibility",
+        "bounded_candidate_count": 1,
+        "neutral_choice_required": false,
+        "receipt_visible_justification_required": true,
+        "route_and_mount_binding_required": true,
+        "hidden_ordering_allowed": false,
+        "latency_or_cost_discriminator_allowed": false,
+        "soft_failure_discriminator_allowed": false,
+        "typed_outcome_required_when_not_admitted": true,
+        "green": true,
+        "detail": "strict no-import admissibility remains singleton and exact, so import posture mismatch is typed denial rather than soft steering."
+      },
+      {
+        "equivalent_choice_class_id": "choice.missing_dependency.singleton.v1",
+        "class_kind": "singleton_exact_admissibility",
+        "bounded_candidate_count": 1,
+        "neutral_choice_required": false,
+        "receipt_visible_justification_required": true,
+        "route_and_mount_binding_required": true,
+        "hidden_ordering_allowed": false,
+        "latency_or_cost_discriminator_allowed": false,
+        "soft_failure_discriminator_allowed": false,
+        "typed_outcome_required_when_not_admitted": true,
+        "green": true,
+        "detail": "missing-dependency admissibility remains singleton and exact, so quarantine stays typed and does not widen or reorder the admissible set."
+      },
+      {
+        "equivalent_choice_class_id": "choice.public_broad_family.singleton.v1",
+        "class_kind": "singleton_exact_admissibility",
+        "bounded_candidate_count": 1,
+        "neutral_choice_required": false,
+        "receipt_visible_justification_required": true,
+        "route_and_mount_binding_required": true,
+        "hidden_ordering_allowed": false,
+        "latency_or_cost_discriminator_allowed": false,
+        "soft_failure_discriminator_allowed": false,
+        "typed_outcome_required_when_not_admitted": true,
+        "green": true,
+        "detail": "served/public broad-family admissibility remains singleton and explicit while publication posture stays suppressed."
+      }
+    ],
+    "contract_rule_rows": [
+      {
+        "rule_id": "equivalent_choice_classes_must_be_explicit",
+        "green": true,
+        "detail": "Every admissible equivalent-choice class must be named explicitly and remain bound to one canonical machine identity tuple."
+      },
+      {
+        "rule_id": "receipt_visible_narrowing_required",
+        "green": true,
+        "detail": "Narrowing, filtering, or ordering inside an admissible set must remain receipt-visible and justified by explicit route, mount, version, trust, or publication posture."
+      },
+      {
+        "rule_id": "hidden_ordering_and_ranking_blocked",
+        "green": true,
+        "detail": "Ordering, ranking, precomputation, and top-k filtering may not become hidden control channels inside an equivalent-choice class."
+      },
+      {
+        "rule_id": "latency_and_cost_signals_stay_hidden_from_choice",
+        "green": true,
+        "detail": "Latency, cost, queue pressure, scheduler order, and cache-hit signals stay hidden or fixed and may not distinguish admissible equivalent choices."
+      },
+      {
+        "rule_id": "soft_failure_effects_must_stay_typed",
+        "green": true,
+        "detail": "Soft-failure effects may only appear as typed denied, suppressed, or quarantined outcomes; they may not silently steer one admissible equivalent choice over another."
+      },
+      {
+        "rule_id": "later_stability_issues_remain_open",
+        "green": true,
+        "detail": "Downward non-influence, served conformance, anti-drift closeout, and the final closure bundle stay open after this contract."
+      }
+    ],
+    "invalidation_rule_rows": [
+      {
+        "rule_id": "hidden_ordering_inside_equivalent_class_invalidates_contract",
+        "green": true,
+        "detail": "The contract fails if hidden ordering or ranking distinguishes members of an equivalent-choice class."
+      },
+      {
+        "rule_id": "latency_or_cost_steering_inside_equivalent_class_invalidates_contract",
+        "green": true,
+        "detail": "The contract fails if latency, cost, queue pressure, scheduler order, or cache-hit signals steer one equivalent admissible choice over another."
+      },
+      {
+        "rule_id": "soft_failure_steering_invalidates_contract",
+        "green": true,
+        "detail": "The contract fails if soft-failure behavior is used to prefer one equivalent admissible choice without a typed receipt-visible outcome."
+      },
+      {
+        "rule_id": "unreceipted_narrowing_invalidates_contract",
+        "green": true,
+        "detail": "The contract fails if admissibility narrowing occurs without an explicit receipt-visible justification."
+      },
+      {
+        "rule_id": "route_or_mount_rebinding_without_contract_invalidates_contract",
+        "green": true,
+        "detail": "The contract fails if route or mount rebinding changes the admissible set without explicit canonical machine binding."
+      },
+      {
+        "rule_id": "served_or_plugin_overread_invalidates_contract",
+        "green": true,
+        "detail": "The contract fails if plugin or served wording overreads admissibility neutrality into broader universality or publication claims."
+      },
+      {
+        "rule_id": "closure_bundle_overread_invalidates_contract",
+        "green": true,
+        "detail": "The final closure bundle may not be inferred from equivalent-choice neutrality and admissibility alone until later issues land explicitly."
+      }
+    ],
+    "next_stability_issue_id": "TAS-213",
+    "claim_boundary": "this transformer-owned contract freezes only equivalent-choice neutrality and admissibility on the canonical post-article machine. It makes equivalent-choice classes, receipt-visible narrowing, typed denied or suppressed outcomes, and blocked hidden discriminators explicit. It does not itself close downward non-influence, served conformance, anti-drift closeout, or the final closure bundle.",
+    "summary": "Transformer equivalent-choice neutrality and admissibility contract freezes 5 admissibility classes, 6 contract rules, and 7 invalidation rules for one canonical post-article machine."
+  },
+  "machine_identity_binding": {
+    "machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+    "tuple_id": "tassadar.post_article.canonical_machine_identity_lock.tuple.v1",
+    "canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+    "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+    "canonical_route_descriptor_digest": "00af062cccc3d1b2e42ee8e092b9ef8e1539dd3f2dfc379cff7d1cd4a008b032",
+    "admissibility_report_id": "tassadar.post_article_plugin_world_mount_envelope_compiler_and_admissibility.report.v1",
+    "admissibility_report_digest": "3ed947e17406bfbfc036e32a7199b05b4a6fdf710d6d113541dbd0792d1ffcb7",
+    "world_mount_envelope_compiler_id": "tassadar.plugin_runtime.world_mount_envelope_compiler.v1",
+    "admissibility_contract_id": "tassadar.plugin_runtime.admissibility.v1",
+    "control_plane_equivalent_choice_relation_id": "singleton_exact_control_trace.v1",
+    "runtime_api_report_id": "tassadar.post_article_plugin_runtime_api_and_engine_abstraction.report.v1",
+    "runtime_api_report_digest": "b2d255dd26e82bea66b55a5801e4d2726d2b4e0f751cc74094ad63bcd664e700",
+    "logical_time_control_neutral": true,
+    "wall_time_control_neutral": true,
+    "cost_model_invariance_required": true,
+    "detail": "machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1` canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1` admissibility_report_id=`tassadar.post_article_plugin_world_mount_envelope_compiler_and_admissibility.report.v1` control_plane_equivalent_choice_relation_id=`singleton_exact_control_trace.v1` and runtime_api_report_id=`tassadar.post_article_plugin_runtime_api_and_engine_abstraction.report.v1` remain bound together."
+  },
+  "supporting_material_rows": [
+    {
+      "material_id": "transformer_anchor_contract",
+      "material_class": "anchor",
+      "satisfied": true,
+      "source_ref": "crates/psionic-transformer/src/tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract.rs",
+      "source_artifact_id": "tassadar.post_article.equivalent_choice_neutrality_and_admissibility.contract.v1",
+      "source_artifact_digest": "7e34bc251df4a0ce64b5aca2e9caae23d506e621097fafabb2ba34a6643ab63f",
+      "detail": "the transformer-owned contract is the canonical abstract source for equivalent-choice neutrality and admissibility."
+    },
+    {
+      "material_id": "fast_route_legitimacy_and_carrier_binding",
+      "material_class": "prior_stability_closure",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_report.json",
+      "source_artifact_id": "tassadar.post_article_fast_route_legitimacy_and_carrier_binding_contract.report.v1",
+      "source_artifact_digest": "58121c16c94fa7e98471e63f35e04a3c0dd9ffc80f815a31b0660283b4197336",
+      "detail": "fast-route legitimacy must already be closed so equivalent-choice neutrality lands on one canonical carrier classification."
+    },
+    {
+      "material_id": "plugin_world_mount_admissibility",
+      "material_class": "admissibility_precedent",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json",
+      "source_artifact_id": "tassadar.post_article_plugin_world_mount_envelope_compiler_and_admissibility.report.v1",
+      "source_artifact_digest": "3ed947e17406bfbfc036e32a7199b05b4a6fdf710d6d113541dbd0792d1ffcb7",
+      "detail": "the bounded admissibility report provides the explicit equivalent-choice classes and typed denied or suppressed outcomes this contract binds."
+    },
+    {
+      "material_id": "plugin_runtime_api_and_engine_abstraction",
+      "material_class": "runtime_neutrality",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_runtime_api_and_engine_abstraction_report.json",
+      "source_artifact_id": "tassadar.post_article_plugin_runtime_api_and_engine_abstraction.report.v1",
+      "source_artifact_digest": "b2d255dd26e82bea66b55a5801e4d2726d2b4e0f751cc74094ad63bcd664e700",
+      "detail": "the runtime API report keeps time, cost, queue, and scheduling signals hidden or fixed so they cannot become hidden admissibility discriminators."
+    },
+    {
+      "material_id": "control_plane_decision_provenance_proof",
+      "material_class": "control_plane_proof",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_control_plane_decision_provenance_proof_report.json",
+      "source_artifact_id": "tassadar.post_article_control_plane_decision_provenance_proof.report.v1",
+      "source_artifact_digest": "7c8abc65a4ec0d5e1637d732fe601121ca95989621b0b7fcbaa46c8a2438e440",
+      "detail": "the control-plane proof keeps latency, cost, queue, scheduler, cache-hit, and helper-selection signals outside the model-visible choice boundary."
+    },
+    {
+      "material_id": "weighted_plugin_controller_boundary",
+      "material_class": "controller_boundary",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report.json",
+      "source_artifact_id": "tassadar.post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop.eval_report.v1",
+      "source_artifact_digest": "7bfc8ff0f503e16fcf3e4fb851df7bc0c41a6abd6879cb7541f5d39b82ff87d9",
+      "detail": "the weighted controller eval report keeps heuristic ranking, hidden top-k filtering, cached substitution, and candidate precomputation explicitly blocked."
+    },
+    {
+      "material_id": "universality_bridge_frontier",
+      "material_class": "bridge_frontier",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
+      "source_artifact_id": "tassadar.post_article_universality_bridge.contract.report.v1",
+      "source_artifact_digest": "2e389278e726968d3284ba7b86c1019797dcf6b0ea022abf13a1e0127b99af09",
+      "detail": "the bridge frontier must move past equivalent-choice neutrality so the next anti-drift issue is TAS-213 instead of leaving this contract implicit."
+    },
+    {
+      "material_id": "world_mount_compatibility_precedent",
+      "material_class": "policy_precedent",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json",
+      "detail": "world-mount compatibility remains an explicit supporting precedent for admissible candidate and envelope binding."
+    },
+    {
+      "material_id": "import_policy_matrix_precedent",
+      "material_class": "policy_precedent",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json",
+      "detail": "the import-policy matrix remains an explicit supporting precedent for admissibility narrowing and refusal posture."
+    },
+    {
+      "material_id": "plugin_system_audit",
+      "material_class": "design_input",
+      "satisfied": true,
+      "source_ref": "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md",
+      "detail": "the March 20 plugin-system audit is the public design input for this stability contract."
+    },
+    {
+      "material_id": "local_plugin_system_spec",
+      "material_class": "design_input",
+      "satisfied": true,
+      "source_ref": "~/code/alpha/tassadar/plugin-system.md",
+      "detail": "the local plugin-system spec remains the implementation-facing design input for equivalent-choice neutrality and admissibility."
+    }
+  ],
+  "dependency_rows": [
+    {
+      "dependency_id": "fast_route_legitimacy_closed",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_report.json"
+      ],
+      "detail": "fast-route legitimacy must already be green and advance the anti-drift frontier to TAS-213."
+    },
+    {
+      "dependency_id": "admissibility_contract_closed",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json"
+      ],
+      "detail": "the bounded admissibility report must already make candidate sets, equivalent-choice classes, and receipt-visible filtering explicit."
+    },
+    {
+      "dependency_id": "runtime_signal_neutrality_closed",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_runtime_api_and_engine_abstraction_report.json"
+      ],
+      "detail": "runtime time, cost, queue, and scheduling signals must already remain hidden or fixed instead of becoming choice discriminators."
+    },
+    {
+      "dependency_id": "control_plane_choice_boundary_closed",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_control_plane_decision_provenance_proof_report.json"
+      ],
+      "detail": "the control-plane proof must already keep equivalent-choice neutrality and hidden-channel closure explicit at the decision surface."
+    },
+    {
+      "dependency_id": "controller_hidden_ranking_negatives_closed",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report.json"
+      ],
+      "detail": "the weighted controller report must already block heuristic ranking, hidden top-k filtering, candidate precomputation, and cached substitution."
+    },
+    {
+      "dependency_id": "bridge_frontier_advanced_to_tas_213",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json"
+      ],
+      "detail": "the universality bridge must advance the reserved anti-drift frontier to TAS-213 once equivalent-choice neutrality is explicit."
+    },
+    {
+      "dependency_id": "typed_soft_failure_posture_explicit",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json"
+      ],
+      "detail": "typed denied, suppressed, and quarantined outcomes must stay explicit so soft-failure effects do not become hidden steering channels."
+    }
+  ],
+  "equivalent_choice_class_rows": [
+    {
+      "equivalent_choice_class_id": "choice.search_core_pair.closed_world_neutral.v1",
+      "class_kind": "closed_world_neutral_pair",
+      "candidate_set_ids": [
+        "candidate_set.benchmark_graph.v1"
+      ],
+      "representative_case_ids": [
+        "benchmark_graph_frontier_relax_core_admitted",
+        "benchmark_graph_hidden_ranking_suppressed"
+      ],
+      "bounded_candidate_count": 2,
+      "bounded_candidate_count_matches_admissibility": true,
+      "contract_neutral_choice_required": true,
+      "neutral_choice_auditable": true,
+      "receipt_visible_justification_required": true,
+      "route_and_mount_binding_required": true,
+      "hidden_ordering_allowed": false,
+      "latency_or_cost_discriminator_allowed": false,
+      "soft_failure_discriminator_allowed": false,
+      "typed_outcome_reason_ids": [
+        "equivalent_choice_neutrality_violation"
+      ],
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json",
+        "crates/psionic-transformer/src/tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract.rs",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "equivalent_choice_class_id=`choice.search_core_pair.closed_world_neutral.v1` keeps class_kind=ClosedWorldNeutralPair, candidate_sets=1, representative_cases=2, bounded_candidate_count_matches_admissibility=true, neutral_choice_auditable=true, receipt_visible_justification_required=true, and hidden_ordering_allowed=false."
+    },
+    {
+      "equivalent_choice_class_id": "choice.validator_search.singleton.v1",
+      "class_kind": "singleton_exact_admissibility",
+      "candidate_set_ids": [
+        "candidate_set.validator_search.v1"
+      ],
+      "representative_case_ids": [
+        "validator_search_candidate_select_core_admitted",
+        "validator_search_version_denied"
+      ],
+      "bounded_candidate_count": 1,
+      "bounded_candidate_count_matches_admissibility": true,
+      "contract_neutral_choice_required": false,
+      "neutral_choice_auditable": true,
+      "receipt_visible_justification_required": true,
+      "route_and_mount_binding_required": true,
+      "hidden_ordering_allowed": false,
+      "latency_or_cost_discriminator_allowed": false,
+      "soft_failure_discriminator_allowed": false,
+      "typed_outcome_reason_ids": [
+        "version_constraint_unsatisfied"
+      ],
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json",
+        "crates/psionic-transformer/src/tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract.rs",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "equivalent_choice_class_id=`choice.validator_search.singleton.v1` keeps class_kind=SingletonExactAdmissibility, candidate_sets=1, representative_cases=2, bounded_candidate_count_matches_admissibility=true, neutral_choice_auditable=true, receipt_visible_justification_required=true, and hidden_ordering_allowed=false."
+    },
+    {
+      "equivalent_choice_class_id": "choice.strict_no_imports.singleton.v1",
+      "class_kind": "singleton_exact_admissibility",
+      "candidate_set_ids": [
+        "candidate_set.strict_no_imports.v1"
+      ],
+      "representative_case_ids": [
+        "strict_no_imports_denied"
+      ],
+      "bounded_candidate_count": 1,
+      "bounded_candidate_count_matches_admissibility": true,
+      "contract_neutral_choice_required": false,
+      "neutral_choice_auditable": true,
+      "receipt_visible_justification_required": true,
+      "route_and_mount_binding_required": true,
+      "hidden_ordering_allowed": false,
+      "latency_or_cost_discriminator_allowed": false,
+      "soft_failure_discriminator_allowed": false,
+      "typed_outcome_reason_ids": [
+        "import_posture_incompatible"
+      ],
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json",
+        "crates/psionic-transformer/src/tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract.rs",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "equivalent_choice_class_id=`choice.strict_no_imports.singleton.v1` keeps class_kind=SingletonExactAdmissibility, candidate_sets=1, representative_cases=1, bounded_candidate_count_matches_admissibility=true, neutral_choice_auditable=true, receipt_visible_justification_required=true, and hidden_ordering_allowed=false."
+    },
+    {
+      "equivalent_choice_class_id": "choice.missing_dependency.singleton.v1",
+      "class_kind": "singleton_exact_admissibility",
+      "candidate_set_ids": [
+        "candidate_set.missing_dependency.v1"
+      ],
+      "representative_case_ids": [
+        "missing_dependency_quarantined"
+      ],
+      "bounded_candidate_count": 1,
+      "bounded_candidate_count_matches_admissibility": true,
+      "contract_neutral_choice_required": false,
+      "neutral_choice_auditable": true,
+      "receipt_visible_justification_required": true,
+      "route_and_mount_binding_required": true,
+      "hidden_ordering_allowed": false,
+      "latency_or_cost_discriminator_allowed": false,
+      "soft_failure_discriminator_allowed": false,
+      "typed_outcome_reason_ids": [
+        "module_dependency_missing"
+      ],
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json",
+        "crates/psionic-transformer/src/tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract.rs",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "equivalent_choice_class_id=`choice.missing_dependency.singleton.v1` keeps class_kind=SingletonExactAdmissibility, candidate_sets=1, representative_cases=1, bounded_candidate_count_matches_admissibility=true, neutral_choice_auditable=true, receipt_visible_justification_required=true, and hidden_ordering_allowed=false."
+    },
+    {
+      "equivalent_choice_class_id": "choice.public_broad_family.singleton.v1",
+      "class_kind": "singleton_exact_admissibility",
+      "candidate_set_ids": [
+        "candidate_set.public_broad_family.v1"
+      ],
+      "representative_case_ids": [
+        "public_broad_family_route_suppressed"
+      ],
+      "bounded_candidate_count": 1,
+      "bounded_candidate_count_matches_admissibility": true,
+      "contract_neutral_choice_required": false,
+      "neutral_choice_auditable": true,
+      "receipt_visible_justification_required": true,
+      "route_and_mount_binding_required": true,
+      "hidden_ordering_allowed": false,
+      "latency_or_cost_discriminator_allowed": false,
+      "soft_failure_discriminator_allowed": false,
+      "typed_outcome_reason_ids": [
+        "route_policy_suppressed"
+      ],
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json",
+        "crates/psionic-transformer/src/tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract.rs",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "equivalent_choice_class_id=`choice.public_broad_family.singleton.v1` keeps class_kind=SingletonExactAdmissibility, candidate_sets=1, representative_cases=1, bounded_candidate_count_matches_admissibility=true, neutral_choice_auditable=true, receipt_visible_justification_required=true, and hidden_ordering_allowed=false."
+    }
+  ],
+  "case_binding_rows": [
+    {
+      "case_id": "benchmark_graph_frontier_relax_core_admitted",
+      "equivalent_choice_class_id": "choice.search_core_pair.closed_world_neutral.v1",
+      "case_status": "exact_admitted_envelope",
+      "selected_plugin_id": "plugin.frontier_relax_core",
+      "selected_plugin_version": "1.0.0",
+      "filter_transform_receipt_ids": [
+        "receipt.filter.benchmark_graph.closed_world.v1",
+        "receipt.choice.search_core_pair.neutral.v1"
+      ],
+      "receipt_visible_justification_present": true,
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json",
+        "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
+      ],
+      "detail": "benchmark-graph admission stays exact because candidate enumeration, neutral choice, version constraints, and the compiled runtime envelope all remain explicit."
+    },
+    {
+      "case_id": "validator_search_candidate_select_core_admitted",
+      "equivalent_choice_class_id": "choice.validator_search.singleton.v1",
+      "case_status": "exact_admitted_envelope",
+      "selected_plugin_id": "plugin.candidate_select_core",
+      "selected_plugin_version": "1.1.0",
+      "filter_transform_receipt_ids": [
+        "receipt.filter.validator_search.singleton.v1"
+      ],
+      "receipt_visible_justification_present": true,
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json",
+        "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
+      ],
+      "detail": "validator-search admission stays exact because the route, mount, version, trust, and compiled envelope all remain explicit."
+    },
+    {
+      "case_id": "strict_no_imports_denied",
+      "equivalent_choice_class_id": "choice.strict_no_imports.singleton.v1",
+      "case_status": "exact_denied_envelope",
+      "typed_outcome_reason_id": "import_posture_incompatible",
+      "filter_transform_receipt_ids": [
+        "receipt.filter.strict_no_imports.closed_world.v1"
+      ],
+      "receipt_visible_justification_present": true,
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json",
+        "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
+      ],
+      "detail": "strict no-import admission fails closed because the world mount demands a narrower import posture than the admissible plugin route can supply."
+    },
+    {
+      "case_id": "validator_search_version_denied",
+      "equivalent_choice_class_id": "choice.validator_search.singleton.v1",
+      "case_status": "exact_denied_envelope",
+      "typed_outcome_reason_id": "version_constraint_unsatisfied",
+      "filter_transform_receipt_ids": [
+        "receipt.filter.validator_search.singleton.v1"
+      ],
+      "receipt_visible_justification_present": true,
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json",
+        "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
+      ],
+      "detail": "validator-search admission fails closed when a candidate plugin version is outside the route-bound admissible version constraint."
+    },
+    {
+      "case_id": "missing_dependency_quarantined",
+      "equivalent_choice_class_id": "choice.missing_dependency.singleton.v1",
+      "case_status": "exact_quarantined_envelope",
+      "typed_outcome_reason_id": "module_dependency_missing",
+      "filter_transform_receipt_ids": [
+        "receipt.filter.missing_dependency.closed_world.v1"
+      ],
+      "receipt_visible_justification_present": true,
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json",
+        "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
+      ],
+      "detail": "missing dependency remains a typed quarantine posture instead of silently substituting or widening the admissible candidate set."
+    },
+    {
+      "case_id": "benchmark_graph_hidden_ranking_suppressed",
+      "equivalent_choice_class_id": "choice.search_core_pair.closed_world_neutral.v1",
+      "case_status": "exact_suppressed_envelope",
+      "typed_outcome_reason_id": "equivalent_choice_neutrality_violation",
+      "filter_transform_receipt_ids": [],
+      "receipt_visible_justification_present": true,
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json",
+        "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
+      ],
+      "detail": "benchmark-graph admission is suppressed when an equivalent-choice class would require hidden ranking instead of a receipt-visible neutral selection trace."
+    },
+    {
+      "case_id": "public_broad_family_route_suppressed",
+      "equivalent_choice_class_id": "choice.public_broad_family.singleton.v1",
+      "case_status": "exact_suppressed_envelope",
+      "typed_outcome_reason_id": "route_policy_suppressed",
+      "filter_transform_receipt_ids": [
+        "receipt.filter.public_broad_family.closed_world.v1"
+      ],
+      "receipt_visible_justification_present": true,
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_v1/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_bundle.json",
+        "fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json",
+        "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
+      ],
+      "detail": "public-broad-family admission stays suppressed because the route policy is not yet allowed to widen served/public claims."
+    }
+  ],
+  "invalidation_rows": [
+    {
+      "invalidation_id": "hidden_ordering_inside_equivalent_class",
+      "present": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract.rs",
+        "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report.json"
+      ],
+      "detail": "hidden ordering or ranking inside an equivalent-choice class invalidates the contract."
+    },
+    {
+      "invalidation_id": "latency_or_cost_steering_inside_equivalent_class",
+      "present": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_runtime_api_and_engine_abstraction_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_control_plane_decision_provenance_proof_report.json"
+      ],
+      "detail": "latency, cost, queue pressure, scheduler order, or cache-hit steering inside an equivalent-choice class invalidates the contract."
+    },
+    {
+      "invalidation_id": "soft_failure_steering_inside_equivalent_class",
+      "present": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json"
+      ],
+      "detail": "soft-failure steering without typed denied, suppressed, or quarantined posture invalidates the contract."
+    },
+    {
+      "invalidation_id": "unreceipted_admissibility_narrowing",
+      "present": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json"
+      ],
+      "detail": "admissibility narrowing without receipt-visible justification invalidates the contract."
+    },
+    {
+      "invalidation_id": "route_or_mount_rebinding_without_binding",
+      "present": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract.rs",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json"
+      ],
+      "detail": "route or mount rebinding without explicit canonical-machine binding invalidates the contract."
+    },
+    {
+      "invalidation_id": "served_or_plugin_overread",
+      "present": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json"
+      ],
+      "detail": "served or plugin overread from equivalent-choice neutrality into broader universality or publication claims invalidates the contract."
+    },
+    {
+      "invalidation_id": "closure_bundle_overread",
+      "present": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract.rs"
+      ],
+      "detail": "the final closure bundle may not be inferred from equivalent-choice neutrality and admissibility alone."
+    }
+  ],
+  "validation_rows": [
+    {
+      "validation_id": "machine_identity_binding_matches_admissibility",
+      "green": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract.rs",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_report.json"
+      ],
+      "detail": "the contract, admissibility report, and fast-route report all bind to the same canonical machine identity."
+    },
+    {
+      "validation_id": "equivalent_choice_classes_match_admissibility_report",
+      "green": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract.rs",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json"
+      ],
+      "detail": "every declared equivalent-choice class remains matched to the bounded admissibility report with explicit candidate-set and case bindings."
+    },
+    {
+      "validation_id": "admissibility_narrowing_receipt_visible",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json"
+      ],
+      "detail": "every admitted or denied or suppressed or quarantined case remains justified by explicit receipts or typed reasons instead of hidden narrowing."
+    },
+    {
+      "validation_id": "route_and_mount_binding_explicit",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json"
+      ],
+      "detail": "route and mount binding remain explicit for every equivalent-choice class."
+    },
+    {
+      "validation_id": "hidden_ordering_and_ranking_quarantined",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json"
+      ],
+      "detail": "hidden ordering, ranking, top-k filtering, precomputation, and cached substitution remain blocked and fail closed."
+    },
+    {
+      "validation_id": "latency_cost_and_soft_failure_channels_blocked",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_runtime_api_and_engine_abstraction_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_control_plane_decision_provenance_proof_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json"
+      ],
+      "detail": "latency, cost, queue, scheduler, cache-hit, and soft-failure effects remain hidden or typed instead of distinguishing equivalent admissible choices."
+    },
+    {
+      "validation_id": "served_or_plugin_overclaim_refused",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json"
+      ],
+      "detail": "equivalent-choice neutrality stays bounded and does not widen plugin publication, served/public universality, or arbitrary software capability claims."
+    },
+    {
+      "validation_id": "bridge_frontier_advances_to_tas_213",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json"
+      ],
+      "detail": "the bridge now reserves TAS-213 as the next anti-drift issue after equivalent-choice neutrality closes."
+    }
+  ],
+  "contract_status": "green",
+  "contract_green": true,
+  "equivalent_choice_neutrality_complete": true,
+  "admissibility_narrowing_receipt_visible": true,
+  "hidden_ordering_or_ranking_quarantined": true,
+  "latency_cost_and_soft_failure_channels_blocked": true,
+  "served_or_plugin_equivalence_overclaim_refused": true,
+  "next_stability_issue_id": "TAS-213",
+  "closure_bundle_issue_id": "TAS-215",
+  "claim_boundary": "this eval-owned contract report freezes equivalent-choice neutrality and admissibility on the canonical post-article machine. It binds bounded equivalent-choice classes, receipt-visible admissibility narrowing, typed denied or suppressed or quarantined outcomes, runtime signal neutrality, controller negative rows, and the bridge frontier to one explicit machine-readable boundary. It does not itself close downward non-influence, served conformance, anti-drift closeout, or the final closure bundle.",
+  "summary": "Post-article equivalent-choice neutrality report keeps contract_status=Green, dependency_rows=7, equivalent_choice_class_rows=5, case_binding_rows=7, validation_rows=8, next_stability_issue_id=`TAS-213`, and closure_bundle_issue_id=`TAS-215`.",
+  "report_digest": "c6f2e223976d33bb6ca71356ce7a404556a31e8e59c02c17bed5e98a0a37f158"
+}
