@@ -377,6 +377,7 @@ main() {
   git clone "${repo_clone_url}" "${repo_dir}"
   git -C "${repo_dir}" fetch --depth=1 origin "${git_revision}"
   git -C "${repo_dir}" checkout --detach "${git_revision}"
+  git config --global --add safe.directory "${repo_dir}"
   REPO_DIR="${repo_dir}"
   emit_event "repo_checked_out" "Repo cloned and detached to the requested revision."
 
@@ -400,6 +401,7 @@ main() {
 
   if [[ "${input_materialization_mode}" == "stage_to_local_disk_overlay_repo" ]]; then
     cp -a "${input_package_root}/repo_overlay/." "${repo_dir}/"
+    git config --global --add safe.directory "${repo_dir}"
   fi
   emit_event "inputs_materialized" "Immutable input package was downloaded, verified, and overlaid."
 
