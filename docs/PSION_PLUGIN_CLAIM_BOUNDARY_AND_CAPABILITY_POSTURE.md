@@ -35,6 +35,9 @@ explicit answer to a simpler question:
   human-readable contract.
 - `docs/PSION_PLUGIN_PROGRAM_MAP.md` is the canonical dependency map and track split
   that this document sharpens into publication and route/refusal posture.
+- `docs/PSION_PLUGIN_GUEST_ARTIFACT_DIRECTION.md` is the canonical later-lane
+  direction record for guest-artifact restoration and freezes that this class
+  remains separate from current starter-plugin truth.
 - `docs/TRAIN_SYSTEM.md` is the canonical training-system authority doc that
   inherits this bounded posture for the convergence tranche.
 - `docs/PSION_SERVED_EVIDENCE.md` and `docs/PSION_SERVED_OUTPUT_CLAIMS.md`

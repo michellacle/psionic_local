@@ -104,6 +104,7 @@ The convergence tranche should consume the existing repo truth directly:
 - `docs/PSION_PLUGIN_CONDITIONED_COMPACT_DECODER_REFERENCE.md`
 - `docs/PSION_PLUGIN_HOST_NATIVE_REFERENCE_LANE.md`
 - `docs/PSION_PLUGIN_HOST_NATIVE_CAPABILITY_MATRIX_V1.md`
+- `docs/PSION_PLUGIN_GUEST_ARTIFACT_DIRECTION.md`
 - `docs/TASSADAR_MULTI_PLUGIN_ORCHESTRATION_WAVE.md`
 - `docs/TASSADAR_STARTER_PLUGIN_AUTHORING.md`
 - `docs/TASSADAR_STARTER_PLUGIN_CATALOG.md`
@@ -136,7 +137,9 @@ The current plugin-system audit already narrowed a few things that later
   substrate work until their host-mediated secret and durable-state contracts
   are explicit
 - guest-artifact restoration is still a deliberate later decision wave, not an
-  implied property of the current starter-plugin platform
+  implied property of the current starter-plugin platform, and the canonical
+  later-lane direction now lives in
+  `docs/PSION_PLUGIN_GUEST_ARTIFACT_DIRECTION.md`
 
 That means the Psion plugin convergence tranche is allowed to build learned
 plugin-use training on top of

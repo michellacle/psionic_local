@@ -425,16 +425,18 @@ The highest-value near-term additions are the ones that close missing class
 coverage from the alpha memo rather than adding more variants of already-proven
 local deterministic transforms.
 
-### 5. Decide the artifact direction explicitly
+### 5. Keep the artifact direction explicit and narrow
 
 The current repo now has a working host-native plugin system.
 
-If that is the intended long-term plugin authoring product, the docs should
-continue to say that clearly and the older Wasm-heavy planning docs should be
-treated as historical design input.
+That direction is now explicit:
 
-If guest-artifact loading still matters, it should return as a separate narrow
-issue wave with its own claim boundary:
+- current starter-plugin truth remains host-native
+- guest-artifact restoration remains later and separate
+- any future guest-artifact lane stays digest-bound, trust-tiered,
+  receipt-equivalent, and publication-blocked
+
+The follow-on guest-artifact wave should still keep its own claim boundary:
 
 - one digest-bound guest artifact
 - one bounded runtime-loading path

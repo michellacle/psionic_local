@@ -93,6 +93,10 @@ and now also has:
   substrate-proof, guest-artifact, and operator-proof split that later
   learned-plugin-use work must follow without widening publication or executor
   claims.
+- `docs/PSION_PLUGIN_GUEST_ARTIFACT_DIRECTION.md` is the canonical product
+  direction record for the later guest-artifact plugin lane and freezes that
+  guest artifacts remain a digest-bound, trust-tiered, publication-blocked,
+  later separate tranche rather than present-tense starter-plugin truth.
 - `docs/PSION_PLUGIN_CLAIM_BOUNDARY_AND_CAPABILITY_POSTURE.md` is the canonical
   claim-boundary and capability-posture contract for the convergence tranche
   and freezes which plugin classes are currently proved, not yet proved, later
