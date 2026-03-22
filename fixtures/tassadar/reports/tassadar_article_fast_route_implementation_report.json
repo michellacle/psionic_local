@@ -54,7 +54,7 @@
     "report_ref": "fixtures/tassadar/reports/tassadar_direct_model_weight_execution_proof_report.json",
     "model_id": "tassadar-article-transformer-trace-bound-trained-v0",
     "model_descriptor_digest": "f0f9055770ea186568cdf61526e568d5f98285a3d9e1602849a4f52101695a54",
-    "route_descriptor_digest": "9c3c9db9ff7c63142afce564687b9f0a6cb4286961c8296be4ebeb852b1374ec",
+    "route_descriptor_digest": "98d55f02cddd78ba320a3ce679b2059ccd55375dfaa71ed2aa6d1a3e07946d05",
     "direct_case_count": 3,
     "fallback_free_case_count": 3,
     "zero_external_call_case_count": 3,
@@ -65,5 +65,5 @@
   "article_equivalence_green": true,
   "claim_boundary": "this report closes only TAS-173. It proves the canonical trained Transformer-backed article model now owns the selected HullCache fast path at the descriptor, article-session, hybrid-route, and direct-proof surfaces. It does not yet claim fast-route no-fallback closure, throughput-floor closure, or final article-equivalence green status.",
   "summary": "Article fast-route implementation report now records selected_candidate_kind=`hull_cache_runtime`, tied_requirement_satisfied=true, fast_route_implementation_green=true, article_session_model_id=`tassadar-article-transformer-trace-bound-trained-v0`, hybrid_model_id=`tassadar-article-transformer-trace-bound-trained-v0`, and direct_proof_descriptor_binding_green=true.",
-  "report_digest": "ee91d5d07f6ee386ac7f7f0a4884a1d8e430a9a2bacd28f03038015bd027266c"
+  "report_digest": "c6303163853b87aae3c00109afdbf93dfa69af46af2d133cb74fb9b3b9a7d8ad"
 }

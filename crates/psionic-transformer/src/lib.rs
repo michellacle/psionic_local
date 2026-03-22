@@ -7,6 +7,7 @@ mod tassadar_post_article_canonical_computational_model_contract;
 mod tassadar_post_article_canonical_machine_identity_lock_contract;
 mod tassadar_post_article_continuation_non_computationality_contract;
 mod tassadar_post_article_execution_semantics_proof_transport_contract;
+mod tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract;
 mod tassadar_post_article_plugin_result_binding_contract;
 mod tassadar_post_article_weighted_plugin_controller_trace_contract;
 
@@ -21,6 +22,7 @@ pub use tassadar_post_article_canonical_computational_model_contract::*;
 pub use tassadar_post_article_canonical_machine_identity_lock_contract::*;
 pub use tassadar_post_article_continuation_non_computationality_contract::*;
 pub use tassadar_post_article_execution_semantics_proof_transport_contract::*;
+pub use tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract::*;
 pub use tassadar_post_article_plugin_result_binding_contract::*;
 pub use tassadar_post_article_weighted_plugin_controller_trace_contract::*;
 

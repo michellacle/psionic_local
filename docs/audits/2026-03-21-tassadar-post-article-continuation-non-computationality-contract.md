@@ -27,7 +27,7 @@ This tranche makes four things explicit and machine-readable:
    claim-bearing canonical machine closure bundle into this issue.
 
 This audit closes continuation non-computationality, moves the next anti-drift
-stability frontier to `TAS-211`, keeps the final claim-bearing canonical
+stability frontier to `TAS-212`, keeps the final claim-bearing canonical
 machine closure bundle separate for `TAS-215`, and still does not turn plugin
 publication, served/public universality, or arbitrary software capability
 green.

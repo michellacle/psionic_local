@@ -1065,7 +1065,7 @@ and the dedicated checker now lives at
 This tranche turns weighted plugin control green on the canonical route,
 clears the `TAS-203A` defer pointer to empty, clears the controller defer
 pointer to empty, with the current reserved bridge capability frontier now at
-`TAS-211`, and still does not admit bounded plugin-platform closeout, plugin
+`TAS-212`, and still does not admit bounded plugin-platform closeout, plugin
 publication, served/public universality, or arbitrary software capability.
 
 `TAS-205` now closes the canonical plugin authority, promotion, publication,
@@ -1173,7 +1173,7 @@ the transformer-owned anchor contract now lives at
 and the dedicated checker now lives at
 `scripts/check-tassadar-post-article-execution-semantics-proof-transport-audit.sh`.
 This tranche closes proof transport, moves the next anti-drift stability
-frontier to `TAS-211`, keeps the final claim-bearing canonical machine closure
+frontier to `TAS-212`, keeps the final claim-bearing canonical machine closure
 bundle separate for `TAS-215`, and still does not turn plugin publication,
 served/public universality, or arbitrary software capability green.
 
@@ -1198,10 +1198,34 @@ and the dedicated checker now lives at
 This tranche closes continuation non-computationality, refreshes the dependent
 conformance, authority, bounded-platform-closeout, computational-model,
 proof-transport, and machine-lock artifacts onto the same canonical statement
-binding, moves the next anti-drift stability frontier to `TAS-211`, keeps the
+binding, moves the next anti-drift stability frontier to `TAS-212`, keeps the
 final claim-bearing canonical machine closure bundle separate for `TAS-215`,
 and still does not turn plugin publication, served/public universality, or
 arbitrary software capability green.
+
+`TAS-211` now closes the fast-route legitimacy and carrier-binding contract at
+`fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_report.json`.
+That eval-owned artifact classifies `reference_linear` as the historical
+direct-proof baseline, `hull_cache` as the canonical direct carrier only while
+route selection, implementation, semantic-preservation, proof transport, and
+canonical machine locking stay jointly green, `resumable_continuation_family`
+as a continuation-only carrier extension, and the current research-only fast
+families as outside the carrier until later explicit promotion. It also
+refuses served or plugin wording that treats an unbound fast route as the
+underlying machine beneath the platform. The operator-readable summary now
+lives at
+`fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_summary.json`,
+the provider receipt now lives at
+`crates/psionic-provider/src/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract.rs`,
+the transformer-owned anchor contract now lives at
+`crates/psionic-transformer/src/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract.rs`,
+and the dedicated checker now lives at
+`scripts/check-tassadar-post-article-fast-route-legitimacy-and-carrier-binding-contract.sh`.
+This tranche closes fast-route legitimacy and carrier binding, refreshes the
+reserved bridge frontier and dependent proof-transport or continuation posture
+onto `TAS-212`, keeps the final claim-bearing canonical machine closure bundle
+separate for `TAS-215`, and still does not turn plugin publication,
+served/public universality, or arbitrary software capability green.
 
 ## Route Requirement
 

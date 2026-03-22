@@ -10,16 +10,14 @@
       "acceptance_gate_report_ref": "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json",
       "tied_requirement_id": "TAS-172",
       "tied_requirement_satisfied": true,
-      "acceptance_status": "blocked",
-      "blocked_issue_ids": [
-        "TAS-186"
-      ]
+      "acceptance_status": "green",
+      "blocked_issue_ids": []
     },
     "transformer_model_route_anchor_review": {
       "proof_report_ref": "fixtures/tassadar/reports/tassadar_direct_model_weight_execution_proof_report.json",
       "model_id": "tassadar-article-transformer-trace-bound-trained-v0",
       "benchmark_report_ref": "fixtures/tassadar/reports/tassadar_article_class_benchmark_report.json",
-      "route_descriptor_digest": "9c3c9db9ff7c63142afce564687b9f0a6cb4286961c8296be4ebeb852b1374ec",
+      "route_descriptor_digest": "98d55f02cddd78ba320a3ce679b2059ccd55375dfaa71ed2aa6d1a3e07946d05",
       "direct_case_count": 3,
       "fallback_free_case_count": 3,
       "zero_external_call_case_count": 3,
@@ -557,22 +555,22 @@
     ],
     "selected_candidate_kind": "hull_cache_runtime",
     "fast_route_selection_green": true,
-    "article_equivalence_green": false,
+    "article_equivalence_green": true,
     "claim_boundary": "this report selects exactly one fast architecture for the canonical article route without pretending that the fast path is already integrated into the owned Transformer-backed model. It keeps same-harness exactness, direct-versus-fallback posture, route-contract fit, promoted runtime truth, and research-only candidates separate so TAS-173 through TAS-175 can close the integration, no-fallback, and throughput tranches explicitly rather than collapsing them into one weak headline.",
-    "summary": "Article fast-route architecture selection now chooses `hull_cache_runtime` as the canonical fast article route with routeable_candidate_count=1, exact_article_matrix_candidate_count=3, selected_direct_module_class_count=6, selected_fallback_module_class_count=0, tied_requirement_satisfied=true, and article_equivalence_green=false.",
-    "report_digest": "de3f41db33bdb553da1a03430b766ba671a326795f8f5c5e509b96ceb3dab940"
+    "summary": "Article fast-route architecture selection now chooses `hull_cache_runtime` as the canonical fast article route with routeable_candidate_count=1, exact_article_matrix_candidate_count=3, selected_direct_module_class_count=6, selected_fallback_module_class_count=0, tied_requirement_satisfied=true, and article_equivalence_green=true.",
+    "report_digest": "21416b2c6f63127474d19382f4fe716a812b263d2cfcbf17cbf67ade0e70bf92"
   },
   "tied_requirement_id": "TAS-172",
   "tied_requirement_satisfied": true,
-  "acceptance_status": "blocked",
+  "acceptance_status": "green",
   "selected_candidate_kind": "hull_cache_runtime",
   "routeable_candidate_count": 1,
   "exact_article_matrix_candidate_count": 3,
   "selected_direct_module_class_count": 6,
   "selected_fallback_module_class_count": 0,
   "fast_route_selection_green": true,
-  "article_equivalence_green": false,
+  "article_equivalence_green": true,
   "claim_boundary": "this summary mirrors only the TAS-172 fast-route architecture selection. It keeps the chosen fast family, candidate counts, and projected routeability split operator-readable without pretending that TAS-173 through TAS-175 are already closed.",
-  "summary": "Article fast-route selection summary now records selected_candidate_kind=`hull_cache_runtime`, routeable_candidate_count=1, exact_article_matrix_candidate_count=3, selected_direct_module_class_count=6, selected_fallback_module_class_count=0, fast_route_selection_green=true, and article_equivalence_green=false.",
-  "report_digest": "fcc9e33e69ace93639f41f08867e46f6a8f6252e8d6d7ae481c6f00cc1db7e64"
+  "summary": "Article fast-route selection summary now records selected_candidate_kind=`hull_cache_runtime`, routeable_candidate_count=1, exact_article_matrix_candidate_count=3, selected_direct_module_class_count=6, selected_fallback_module_class_count=0, fast_route_selection_green=true, and article_equivalence_green=true.",
+  "report_digest": "85a3c87e4ba2e4c1734ce7471f437f47718bd3f4dd96cb228130d72eba1032d5"
 }

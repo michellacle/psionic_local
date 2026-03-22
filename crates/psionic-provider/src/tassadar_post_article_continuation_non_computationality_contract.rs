@@ -87,7 +87,7 @@ mod tests {
         assert!(receipt.continuation_expressivity_extension_blocked);
         assert!(receipt.plugin_resume_hidden_compute_refused);
         assert!(receipt.continuation_non_computationality_complete);
-        assert_eq!(receipt.next_stability_issue_id, "TAS-211");
+        assert_eq!(receipt.next_stability_issue_id, "TAS-212");
         assert_eq!(receipt.closure_bundle_issue_id, "TAS-215");
     }
 }

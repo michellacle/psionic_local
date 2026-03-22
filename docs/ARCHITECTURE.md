@@ -1470,7 +1470,7 @@ The current scope is:
   hidden top-k filtering, helper substitution, and runtime policy drift.
   This turns weighted plugin control green on the canonical route, clears the
   controller defer pointer to empty, moves the reserved bridge frontier to
-  `TAS-211`, and still leaves bounded plugin-platform closeout, publication,
+  `TAS-212`, and still leaves bounded plugin-platform closeout, publication,
   served/public universality, and arbitrary software capability blocked.
 - the current post-article plugin authority, promotion, publication, and
   trust-tier artifacts are
@@ -1566,7 +1566,7 @@ The current scope is:
   historical green `TCM.v1` continuation carrier, and the current plugin
   runtime, conformance, and weighted-controller surfaces to one explicit
   proof-bearing execution boundary. This closes proof transport, moves the
-  next anti-drift stability frontier to `TAS-211`, keeps the final closure
+  next anti-drift stability frontier to `TAS-212`, keeps the final closure
   bundle separate for `TAS-215`, and still leaves plugin publication,
   served/public universality, and arbitrary software capability blocked.
 - the current post-article continuation non-computationality artifacts are
@@ -1586,9 +1586,32 @@ The current scope is:
   computational-model statement, and the same proof-transport boundary instead
   of letting continuation inherit identity by adjacency. This closes
   continuation non-computationality, moves the next anti-drift stability
-  frontier to `TAS-211`, keeps the final closure bundle separate for
+  frontier to `TAS-212`, keeps the final closure bundle separate for
   `TAS-215`, and still leaves plugin publication, served/public universality,
   and arbitrary software capability blocked.
+- the current post-article fast-route legitimacy and carrier-binding artifacts
+  are
+  `fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_report.json`,
+  `fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_summary.json`,
+  the transformer-owned anchor contract in
+  `crates/psionic-transformer/src/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract.rs`,
+  the provider receipt in
+  `crates/psionic-provider/src/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract.rs`,
+  the checker script
+  `scripts/check-tassadar-post-article-fast-route-legitimacy-and-carrier-binding-contract.sh`,
+  and the audit note
+  `docs/audits/2026-03-21-tassadar-post-article-fast-route-legitimacy-and-carrier-binding-contract.md`,
+  which classify `reference_linear` as the historical proof baseline,
+  `hull_cache` as the canonical direct carrier only while route selection,
+  implementation, semantic-preservation, proof transport, and machine locking
+  remain jointly green, `resumable_continuation_family` as a continuation-only
+  carrier extension, and the current research-only fast families as outside the
+  carrier until later explicit promotion. This closes fast-route legitimacy and
+  carrier binding, refuses served or plugin wording that treats an unbound fast
+  route as the underlying machine, moves the next anti-drift stability frontier
+  to `TAS-212`, keeps the final closure bundle separate for `TAS-215`, and
+  still leaves plugin publication, served/public universality, and arbitrary
+  software capability blocked.
 - the current post-article Turing-completeness closeout artifacts are
   `fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json`,
   `fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_summary.json`,

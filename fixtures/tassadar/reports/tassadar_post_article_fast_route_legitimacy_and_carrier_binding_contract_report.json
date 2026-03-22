@@ -1,0 +1,596 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.post_article_fast_route_legitimacy_and_carrier_binding_contract.report.v1",
+  "checker_script_ref": "scripts/check-tassadar-post-article-fast-route-legitimacy-and-carrier-binding-contract.sh",
+  "transformer_anchor_contract_ref": "crates/psionic-transformer/src/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract.rs",
+  "article_fast_route_architecture_selection_report_ref": "fixtures/tassadar/reports/tassadar_article_fast_route_architecture_selection_report.json",
+  "article_fast_route_implementation_report_ref": "fixtures/tassadar/reports/tassadar_article_fast_route_implementation_report.json",
+  "article_equivalence_acceptance_gate_report_ref": "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json",
+  "canonical_machine_identity_lock_report_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_report.json",
+  "canonical_computational_model_statement_report_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json",
+  "execution_semantics_proof_transport_audit_report_ref": "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json",
+  "continuation_non_computationality_contract_report_ref": "fixtures/tassadar/reports/tassadar_post_article_continuation_non_computationality_contract_report.json",
+  "universality_bridge_contract_report_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
+  "supporting_material_refs": [
+    "fixtures/tassadar/reports/tassadar_article_fast_route_architecture_selection_report.json",
+    "fixtures/tassadar/reports/tassadar_article_fast_route_implementation_report.json",
+    "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json",
+    "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_report.json",
+    "fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json",
+    "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json",
+    "fixtures/tassadar/reports/tassadar_post_article_continuation_non_computationality_contract_report.json",
+    "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json"
+  ],
+  "fast_route_contract": {
+    "schema_version": 1,
+    "contract_id": "tassadar.post_article.fast_route_legitimacy_and_carrier_binding.contract.v1",
+    "machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+    "tuple_id": "tassadar.post_article.canonical_machine_identity_lock.tuple.v1",
+    "carrier_class_id": "tassadar.post_article.canonical_machine.closure_bundle_bound_rebased_route_identity.v1",
+    "boundary_id": "tassadar.post_article.fast_route_legitimacy_and_carrier_binding.boundary.v1",
+    "semantics_equivalence_evidence_ids": [
+      "article_fast_route_architecture_selection",
+      "article_fast_route_implementation",
+      "canonical_route_semantic_preservation",
+      "execution_semantics_proof_transport",
+      "canonical_machine_identity_lock"
+    ],
+    "blocked_overclaim_ids": [
+      "unproven_fast_route_inherits_proof",
+      "unproven_fast_route_inherits_universality",
+      "resumable_family_presented_as_direct_machine",
+      "served_or_plugin_wording_recomposes_machine",
+      "research_only_fast_route_promoted_inside_carrier",
+      "hidden_route_descriptor_drift"
+    ],
+    "route_family_rows": [
+      {
+        "route_family_id": "reference_linear",
+        "route_family_class": "reference_linear_baseline",
+        "carrier_relation": "historical_proof_baseline",
+        "semantics_equivalence_required_for_proof_or_universality": true,
+        "served_or_plugin_machine_claim_allowed": false,
+        "route_family_green": true,
+        "detail": "ReferenceLinear remains the historical direct-proof baseline and dense semantic anchor. It may justify later carrier inheritance only through explicit semantics-equivalence evidence rather than ambient fast-path inheritance."
+      },
+      {
+        "route_family_id": "hull_cache",
+        "route_family_class": "canonical_hull_cache",
+        "carrier_relation": "canonical_direct_carrier_bound",
+        "semantics_equivalence_required_for_proof_or_universality": true,
+        "served_or_plugin_machine_claim_allowed": true,
+        "route_family_green": true,
+        "detail": "HullCache may sit inside the canonical direct carrier only when route selection, implementation, semantic-preservation, proof-transport, and canonical-machine binding stay explicit and green."
+      },
+      {
+        "route_family_id": "resumable_continuation_family",
+        "route_family_class": "resumable_continuation_family",
+        "carrier_relation": "continuation_carrier_only",
+        "semantics_equivalence_required_for_proof_or_universality": true,
+        "served_or_plugin_machine_claim_allowed": false,
+        "route_family_green": true,
+        "detail": "Resumable continuation remains a carrier extension on the same machine, not a second direct fast route and not the underneath machine for platform wording."
+      },
+      {
+        "route_family_id": "linear_recurrent_runtime",
+        "route_family_class": "research_only_fast_route",
+        "carrier_relation": "outside_carrier",
+        "semantics_equivalence_required_for_proof_or_universality": true,
+        "served_or_plugin_machine_claim_allowed": false,
+        "route_family_green": true,
+        "detail": "The recurrent runtime stays outside the canonical carrier until it owns a canonical decode family, semantics-equivalence evidence, and explicit machine binding."
+      },
+      {
+        "route_family_id": "hierarchical_hull_research",
+        "route_family_class": "research_only_fast_route",
+        "carrier_relation": "outside_carrier",
+        "semantics_equivalence_required_for_proof_or_universality": true,
+        "served_or_plugin_machine_claim_allowed": false,
+        "route_family_green": true,
+        "detail": "Hierarchical-hull remains outside the carrier as bounded research evidence rather than a proof-bearing or platform-bearing route."
+      },
+      {
+        "route_family_id": "two_dimensional_head_hard_max_research",
+        "route_family_class": "research_only_fast_route",
+        "carrier_relation": "outside_carrier",
+        "semantics_equivalence_required_for_proof_or_universality": true,
+        "served_or_plugin_machine_claim_allowed": false,
+        "route_family_green": true,
+        "detail": "The 2D-head hard-max family remains outside the carrier because the repo still exposes it only as a bounded research lane with hull fallback."
+      }
+    ],
+    "contract_rule_rows": [
+      {
+        "rule_id": "reference_linear_is_baseline_not_ambient_machine",
+        "green": true,
+        "detail": "ReferenceLinear stays an explicit proof baseline and semantic anchor; later fast routes inherit from it only on declared evidence."
+      },
+      {
+        "rule_id": "canonical_hull_cache_requires_explicit_equivalence_and_binding",
+        "green": true,
+        "detail": "HullCache becomes canonical only while route selection, implementation, semantic-preservation, proof transport, and machine lock remain jointly green."
+      },
+      {
+        "rule_id": "resumable_family_stays_continuation_only",
+        "green": true,
+        "detail": "Resumable continuation may extend the same machine carrier, but it may not be presented as the direct compute lane or a separate proof-bearing route family."
+      },
+      {
+        "rule_id": "research_families_stay_outside_carrier_until_promoted_explicitly",
+        "green": true,
+        "detail": "Research-only fast families stay outside the carrier until they own canonical route contracts, semantics-equivalence evidence, and machine binding."
+      },
+      {
+        "rule_id": "served_and_plugin_wording_must_name_bound_machine_not_family_alias",
+        "green": true,
+        "detail": "Served or plugin wording may name only the closure-bundle-bound canonical machine tuple, not an unbound fast-family alias or research lane."
+      },
+      {
+        "rule_id": "later_stability_issues_remain_open",
+        "green": true,
+        "detail": "Equivalent-choice neutrality, downward non-influence, served conformance, and final closure-bundle completion stay open after this contract."
+      }
+    ],
+    "invalidation_rule_rows": [
+      {
+        "rule_id": "proof_inheritance_without_equivalence_invalidates_contract",
+        "green": true,
+        "detail": "The contract fails if proof status is transferred to a fast route without explicit semantics-equivalence evidence."
+      },
+      {
+        "rule_id": "universality_inheritance_without_equivalence_invalidates_contract",
+        "green": true,
+        "detail": "The contract fails if universality status is transferred to a fast route without explicit carrier binding and proof-transport evidence."
+      },
+      {
+        "rule_id": "resumable_family_presented_as_direct_machine_invalidates_contract",
+        "green": true,
+        "detail": "The contract fails if resumable continuation is presented as the underlying direct machine rather than a continuation carrier."
+      },
+      {
+        "rule_id": "research_fast_route_promoted_inside_carrier_invalidates_contract",
+        "green": true,
+        "detail": "The contract fails if a research-only fast family is promoted into production, served, or plugin wording without canonical binding."
+      },
+      {
+        "rule_id": "served_or_plugin_wording_on_unbound_route_invalidates_contract",
+        "green": true,
+        "detail": "The contract fails if served or plugin surfaces call an unbound fast family the machine underneath the platform."
+      },
+      {
+        "rule_id": "route_descriptor_drift_without_explicit_classification_invalidates_contract",
+        "green": true,
+        "detail": "The contract fails if reference, canonical fast, and continuation route descriptors drift without an explicit carrier classification that explains the relationship."
+      },
+      {
+        "rule_id": "closure_bundle_overread_invalidates_contract",
+        "green": true,
+        "detail": "The final closure bundle may not be inferred from fast-route legitimacy alone until later stability issues land explicitly."
+      }
+    ],
+    "next_stability_issue_id": "TAS-212",
+    "claim_boundary": "this transformer-owned contract freezes only fast-route legitimacy and carrier binding. It classifies which route families are inside the canonical machine carrier, which remain continuation-only, and which stay outside until later promotion. It does not itself close equivalent-choice neutrality, downward non-influence, served conformance, or the final closure bundle.",
+    "summary": "Transformer fast-route legitimacy and carrier-binding contract freezes 6 route-family classifications, 6 contract rules, and 7 invalidation rules for one canonical post-article machine."
+  },
+  "machine_identity_binding": {
+    "machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+    "tuple_id": "tassadar.post_article.canonical_machine_identity_lock.tuple.v1",
+    "canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+    "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+    "canonical_route_descriptor_digest": "00af062cccc3d1b2e42ee8e092b9ef8e1539dd3f2dfc379cff7d1cd4a008b032",
+    "canonical_fast_decode_mode": "hull_cache",
+    "reference_linear_proof_route_descriptor_digest": "98d55f02cddd78ba320a3ce679b2059ccd55375dfaa71ed2aa6d1a3e07946d05",
+    "selected_hull_cache_route_descriptor_digest": "00af062cccc3d1b2e42ee8e092b9ef8e1539dd3f2dfc379cff7d1cd4a008b032",
+    "continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+    "computational_model_statement_id": "tassadar.post_article.canonical_computational_model.statement.v1",
+    "proof_transport_boundary_id": "tassadar.post_article_universal_machine_proof.proof_transport_boundary.v1",
+    "detail": "machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1` tuple_id=`tassadar.post_article.canonical_machine_identity_lock.tuple.v1` canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1` canonical_route_descriptor_digest=`00af062cccc3d1b2e42ee8e092b9ef8e1539dd3f2dfc379cff7d1cd4a008b032` reference_linear_proof_route_descriptor_digest=`98d55f02cddd78ba320a3ce679b2059ccd55375dfaa71ed2aa6d1a3e07946d05` and proof_transport_boundary_id=`tassadar.post_article_universal_machine_proof.proof_transport_boundary.v1` remain the fast-route legitimacy tuple."
+  },
+  "supporting_material_rows": [
+    {
+      "material_id": "transformer_anchor_contract",
+      "material_class": "anchor",
+      "satisfied": true,
+      "source_ref": "crates/psionic-transformer/src/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract.rs",
+      "source_artifact_id": "tassadar.post_article.fast_route_legitimacy_and_carrier_binding.contract.v1",
+      "detail": "the transformer-owned contract names route-family classes, carrier relations, and invalidations explicitly."
+    },
+    {
+      "material_id": "article_fast_route_architecture_selection",
+      "material_class": "article_evidence",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_article_fast_route_architecture_selection_report.json",
+      "source_artifact_id": "tassadar.article_fast_route_architecture_selection.v1",
+      "source_artifact_digest": "21416b2c6f63127474d19382f4fe716a812b263d2cfcbf17cbf67ade0e70bf92",
+      "detail": "architecture selection classifies hull-cache as the only promoted article fast family and keeps research candidates explicit."
+    },
+    {
+      "material_id": "article_fast_route_implementation",
+      "material_class": "article_evidence",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_article_fast_route_implementation_report.json",
+      "source_artifact_id": "tassadar.article_fast_route_implementation.v1",
+      "source_artifact_digest": "c6303163853b87aae3c00109afdbf93dfa69af46af2d133cb74fb9b3b9a7d8ad",
+      "detail": "fast-route implementation binds descriptor, article-session, hybrid-route, and direct-proof surfaces to the owned article Transformer."
+    },
+    {
+      "material_id": "article_equivalence_acceptance_gate",
+      "material_class": "article_evidence",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json",
+      "source_artifact_id": "tassadar.article_equivalence.acceptance_gate.report.v1",
+      "source_artifact_digest": "e61112cca9b9525c33c875cb21cc0b8927047a968c92bf371fe98f3d0a859395",
+      "detail": "the article acceptance gate keeps the canonical article-equivalence boundary explicit while the post-article machine stays closure-bundle bounded."
+    },
+    {
+      "material_id": "canonical_machine_identity_lock",
+      "material_class": "machine_binding",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_report.json",
+      "source_artifact_id": "tassadar.post_article_canonical_machine_identity_lock.report.v1",
+      "source_artifact_digest": "b7e2db47c26e63e35fa26a908495883d9923a75165944033fa0c5024acab2757",
+      "detail": "the canonical machine lock binds the canonical route, weight lineage, and continuation contract into one machine tuple."
+    },
+    {
+      "material_id": "canonical_computational_model_statement",
+      "material_class": "machine_binding",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json",
+      "source_artifact_id": "tassadar.post_article_canonical_computational_model_statement.report.v1",
+      "source_artifact_digest": "95108543e7fa3dc37cad4bee1c27ce78b3c9fbcdfe9f6c18e731fa697bf3da9c",
+      "detail": "the computational-model statement names the canonical fast route and keeps plugin surfaces above the machine."
+    },
+    {
+      "material_id": "execution_semantics_proof_transport_audit",
+      "material_class": "machine_binding",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json",
+      "source_artifact_id": "tassadar.post_article_execution_semantics_proof_transport_audit.report.v1",
+      "source_artifact_digest": "e98b7417a35179fb889b32ef3afec9033babb259def03f670223c96b9bedf054",
+      "detail": "the proof-transport audit keeps plugin-facing surfaces bound to the same machine instead of inheriting proof from an arbitrary fast family."
+    },
+    {
+      "material_id": "continuation_non_computationality_contract",
+      "material_class": "continuation_boundary",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_continuation_non_computationality_contract_report.json",
+      "source_artifact_id": "tassadar.post_article_continuation_non_computationality_contract.report.v1",
+      "source_artifact_digest": "554578e3f8fb6f398b5ab31f9e7d4c4e6a99bb5bb7e968671330dadf33e89bda",
+      "detail": "the continuation contract classifies resumable continuation as an extension of one machine rather than a second direct route."
+    },
+    {
+      "material_id": "universality_bridge_contract",
+      "material_class": "machine_binding",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
+      "source_artifact_id": "tassadar.post_article_universality_bridge.contract.report.v1",
+      "source_artifact_digest": "2476a01c0321c88ee150e95e7a428f097beda40d1eadb14cb8588c0e0c0842e8",
+      "detail": "the bridge keeps direct and resumable carriers explicit and reserves later stability issues instead of collapsing them into one ambient route claim."
+    }
+  ],
+  "dependency_rows": [
+    {
+      "dependency_id": "canonical_machine_binding_complete",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_continuation_non_computationality_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json"
+      ],
+      "detail": "canonical machine identity, route identity, continuation contract, and proof-transport boundary agree across the bound post-article chain."
+    },
+    {
+      "dependency_id": "reference_linear_baseline_explicit",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_article_fast_route_architecture_selection_report.json",
+        "fixtures/tassadar/reports/tassadar_article_fast_route_implementation_report.json"
+      ],
+      "detail": "ReferenceLinear remains an explicit proof baseline because architecture selection and implementation agree on one reference proof-route digest."
+    },
+    {
+      "dependency_id": "canonical_hull_cache_binding_explicit",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_article_fast_route_architecture_selection_report.json",
+        "fixtures/tassadar/reports/tassadar_article_fast_route_implementation_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_report.json"
+      ],
+      "detail": "HullCache becomes canonical only when selection, implementation, and machine binding agree on one descriptor and one route identity."
+    },
+    {
+      "dependency_id": "resumable_family_classified_without_direct_machine_collapse",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_continuation_non_computationality_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json"
+      ],
+      "detail": "resumable continuation stays inside the same machine only as a continuation carrier and not as the direct fast route."
+    },
+    {
+      "dependency_id": "research_families_explicitly_outside_carrier",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_article_fast_route_architecture_selection_report.json"
+      ],
+      "detail": "research-only fast families stay explicit and outside the carrier until they earn route contracts and semantics-equivalence evidence."
+    },
+    {
+      "dependency_id": "served_or_plugin_wording_bound_to_canonical_machine",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_article_fast_route_implementation_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json"
+      ],
+      "detail": "served and plugin-facing wording stays bound to the canonical machine tuple instead of leaning on an unbound fast-family alias."
+    }
+  ],
+  "route_family_rows": [
+    {
+      "route_family_id": "reference_linear",
+      "route_family_class": "reference_linear_baseline",
+      "carrier_relation": "historical_proof_baseline",
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_article_fast_route_architecture_selection_report.json",
+        "fixtures/tassadar/reports/tassadar_article_fast_route_implementation_report.json"
+      ],
+      "declared_route_descriptor_digest": "98d55f02cddd78ba320a3ce679b2059ccd55375dfaa71ed2aa6d1a3e07946d05",
+      "bound_machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+      "proof_inheritance_allowed": true,
+      "universality_inheritance_allowed": false,
+      "served_or_plugin_machine_claim_allowed": false,
+      "semantics_equivalence_evidence_refs": [
+        "fixtures/tassadar/reports/tassadar_article_fast_route_architecture_selection_report.json",
+        "fixtures/tassadar/reports/tassadar_article_fast_route_implementation_report.json"
+      ],
+      "route_family_green": true,
+      "detail": "ReferenceLinear stays classified as the proof-origin baseline and semantic anchor rather than the served canonical machine."
+    },
+    {
+      "route_family_id": "hull_cache",
+      "route_family_class": "canonical_hull_cache",
+      "carrier_relation": "canonical_direct_carrier_bound",
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_article_fast_route_architecture_selection_report.json",
+        "fixtures/tassadar/reports/tassadar_article_fast_route_implementation_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json"
+      ],
+      "declared_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+      "declared_route_descriptor_digest": "00af062cccc3d1b2e42ee8e092b9ef8e1539dd3f2dfc379cff7d1cd4a008b032",
+      "bound_machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+      "proof_inheritance_allowed": true,
+      "universality_inheritance_allowed": true,
+      "served_or_plugin_machine_claim_allowed": true,
+      "semantics_equivalence_evidence_refs": [
+        "fixtures/tassadar/reports/tassadar_article_fast_route_architecture_selection_report.json",
+        "fixtures/tassadar/reports/tassadar_article_fast_route_implementation_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_report.json"
+      ],
+      "route_family_green": true,
+      "detail": "HullCache is classified as the canonical direct carrier only because semantics-equivalence, proof transport, and canonical machine lock remain explicit and green."
+    },
+    {
+      "route_family_id": "resumable_continuation_family",
+      "route_family_class": "resumable_continuation_family",
+      "carrier_relation": "continuation_carrier_only",
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_continuation_non_computationality_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json"
+      ],
+      "declared_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+      "bound_machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+      "proof_inheritance_allowed": false,
+      "universality_inheritance_allowed": true,
+      "served_or_plugin_machine_claim_allowed": false,
+      "semantics_equivalence_evidence_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_continuation_non_computationality_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json"
+      ],
+      "route_family_green": true,
+      "detail": "Resumable continuation is classified as a continuation-only carrier on the same machine and not as a direct fast route underneath served or plugin surfaces."
+    },
+    {
+      "route_family_id": "linear_recurrent_runtime",
+      "route_family_class": "research_only_fast_route",
+      "carrier_relation": "outside_carrier",
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_article_fast_route_architecture_selection_report.json"
+      ],
+      "proof_inheritance_allowed": false,
+      "universality_inheritance_allowed": false,
+      "served_or_plugin_machine_claim_allowed": false,
+      "semantics_equivalence_evidence_refs": [
+        "fixtures/tassadar/reports/tassadar_article_fast_route_architecture_selection_report.json"
+      ],
+      "route_family_green": true,
+      "detail": "The recurrent runtime stays explicitly outside the carrier because the canonical route contract still lacks a recurrent decode family."
+    },
+    {
+      "route_family_id": "hierarchical_hull_research",
+      "route_family_class": "research_only_fast_route",
+      "carrier_relation": "outside_carrier",
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_article_fast_route_architecture_selection_report.json"
+      ],
+      "proof_inheritance_allowed": false,
+      "universality_inheritance_allowed": false,
+      "served_or_plugin_machine_claim_allowed": false,
+      "semantics_equivalence_evidence_refs": [
+        "fixtures/tassadar/reports/tassadar_article_fast_route_architecture_selection_report.json"
+      ],
+      "route_family_green": true,
+      "detail": "Hierarchical-hull stays explicitly outside the carrier as research-only evidence instead of a proof-bearing or platform-bearing route."
+    },
+    {
+      "route_family_id": "two_dimensional_head_hard_max_research",
+      "route_family_class": "research_only_fast_route",
+      "carrier_relation": "outside_carrier",
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_article_fast_route_architecture_selection_report.json"
+      ],
+      "proof_inheritance_allowed": false,
+      "universality_inheritance_allowed": false,
+      "served_or_plugin_machine_claim_allowed": false,
+      "semantics_equivalence_evidence_refs": [
+        "fixtures/tassadar/reports/tassadar_article_fast_route_architecture_selection_report.json"
+      ],
+      "route_family_green": true,
+      "detail": "The bounded 2D-head hard-max research lane stays explicitly outside the carrier until it owns canonical fast-route evidence."
+    }
+  ],
+  "invalidation_rows": [
+    {
+      "invalidation_id": "canonical_machine_tuple_mismatch_detected",
+      "present": false,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json"
+      ],
+      "detail": "machine identity, route identity, or continuation contract drift invalidates the carrier-binding contract."
+    },
+    {
+      "invalidation_id": "reference_linear_anchor_drift_detected",
+      "present": false,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_article_fast_route_architecture_selection_report.json",
+        "fixtures/tassadar/reports/tassadar_article_fast_route_implementation_report.json"
+      ],
+      "detail": "the reference proof baseline may not drift silently across architecture-selection and implementation surfaces."
+    },
+    {
+      "invalidation_id": "hull_cache_binding_drift_detected",
+      "present": false,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_article_fast_route_architecture_selection_report.json",
+        "fixtures/tassadar/reports/tassadar_article_fast_route_implementation_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_report.json"
+      ],
+      "detail": "the canonical HullCache route may not inherit machine status unless selection, implementation, and canonical binding remain aligned."
+    },
+    {
+      "invalidation_id": "resumable_family_direct_machine_overclaim_detected",
+      "present": false,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_continuation_non_computationality_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json"
+      ],
+      "detail": "the resumable family may not be presented as the underlying direct machine."
+    },
+    {
+      "invalidation_id": "research_fast_route_inside_carrier_detected",
+      "present": false,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_article_fast_route_architecture_selection_report.json"
+      ],
+      "detail": "research-only fast families may not quietly move inside the carrier."
+    },
+    {
+      "invalidation_id": "served_or_plugin_unbound_route_overclaim_detected",
+      "present": false,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_article_fast_route_implementation_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json"
+      ],
+      "detail": "served or plugin wording may not treat an unbound route family as the underlying machine."
+    }
+  ],
+  "validation_rows": [
+    {
+      "validation_id": "transformer_anchor_contract_published",
+      "green": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract.rs"
+      ],
+      "detail": "the transformer-owned fast-route legitimacy contract is published."
+    },
+    {
+      "validation_id": "supporting_material_dependencies_green",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_article_fast_route_architecture_selection_report.json",
+        "fixtures/tassadar/reports/tassadar_article_fast_route_implementation_report.json",
+        "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_continuation_non_computationality_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json"
+      ],
+      "detail": "declared supporting materials stay explicit and green."
+    },
+    {
+      "validation_id": "reference_linear_baseline_classified",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_article_fast_route_architecture_selection_report.json",
+        "fixtures/tassadar/reports/tassadar_article_fast_route_implementation_report.json"
+      ],
+      "detail": "ReferenceLinear remains an explicit proof baseline and not an ambient served machine alias."
+    },
+    {
+      "validation_id": "canonical_hull_cache_route_bound",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_article_fast_route_architecture_selection_report.json",
+        "fixtures/tassadar/reports/tassadar_article_fast_route_implementation_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_report.json"
+      ],
+      "detail": "HullCache stays bound to the canonical machine only on explicit evidence."
+    },
+    {
+      "validation_id": "resumable_family_continuation_only",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_continuation_non_computationality_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json"
+      ],
+      "detail": "resumable continuation remains a continuation carrier rather than a direct fast machine."
+    },
+    {
+      "validation_id": "research_fast_routes_quarantined",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_article_fast_route_architecture_selection_report.json"
+      ],
+      "detail": "research-only fast routes stay outside the carrier and outside served or plugin wording."
+    },
+    {
+      "validation_id": "served_or_plugin_machine_overclaim_refused",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_article_fast_route_implementation_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json"
+      ],
+      "detail": "served and plugin wording stay bound to the canonical machine tuple instead of an unbound route family."
+    },
+    {
+      "validation_id": "fast_route_legitimacy_complete",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_report.json"
+      ],
+      "detail": "fast-route legitimacy and carrier binding are complete and the frontier moves to TAS-212."
+    }
+  ],
+  "contract_status": "green",
+  "contract_green": true,
+  "carrier_binding_complete": true,
+  "unproven_fast_routes_quarantined": true,
+  "resumable_family_not_presented_as_direct_machine": true,
+  "served_or_plugin_machine_overclaim_refused": true,
+  "fast_route_legitimacy_complete": true,
+  "next_stability_issue_id": "TAS-212",
+  "closure_bundle_issue_id": "TAS-215",
+  "claim_boundary": "this eval-owned contract report freezes only fast-route legitimacy and carrier binding on the canonical post-article machine. It classifies ReferenceLinear as the proof-origin baseline, HullCache as the canonical direct fast route only on explicit semantics-equivalence evidence, resumable continuation as continuation-only, and research fast families as outside the carrier. Equivalent-choice neutrality, downward non-influence, served conformance, and the final closure bundle remain later issues.",
+  "summary": "Post-article fast-route legitimacy and carrier-binding contract report keeps status=Green, supporting_material_rows=9, dependency_rows=6, route_family_rows=6, invalidation_rows=6, validation_rows=8, fast_route_legitimacy_complete=true, next_stability_issue_id=`TAS-212`, and closure_bundle_issue_id=`TAS-215`.",
+  "report_digest": "6015a27a5d151a64b1e1fa84d5717fb67ae5d96930efcb054d5d3804b1237eb1"
+}

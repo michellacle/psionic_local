@@ -117,7 +117,7 @@
         "detail": "the contract fails if continuation is presented as a second proof-bearing machine rather than an extension of the same canonical machine."
       }
     ],
-    "next_stability_issue_id": "TAS-211",
+    "next_stability_issue_id": "TAS-212",
     "claim_boundary": "this transformer-owned contract freezes the continuation non-computationality boundary only. It says declared continuation surfaces extend one canonical post-article machine without becoming a second machine, but it still leaves fast-route legitimacy, anti-drift closure, served/public universality, and the final closure bundle to later issues.",
     "summary": "Transformer continuation non-computationality contract freezes 5 contract rules and 7 invalidation rules across checkpoint, session, spill, process, installed-process, and weighted-controller continuation surfaces."
   },
@@ -151,7 +151,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_report.json",
       "source_artifact_id": "tassadar.post_article_canonical_machine_identity_lock.report.v1",
-      "source_artifact_digest": "60c2b8252611caa29837346a6dec669edc29096e2af94fbb73c57a7b80a4ee3e",
+      "source_artifact_digest": "b7e2db47c26e63e35fa26a908495883d9923a75165944033fa0c5024acab2757",
       "detail": "the canonical machine lock binds continuation to one explicit post-article machine tuple."
     },
     {
@@ -160,7 +160,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json",
       "source_artifact_id": "tassadar.post_article_canonical_computational_model_statement.report.v1",
-      "source_artifact_digest": "4a1570bc0d28016501fa568d4e455c0e9654197c7797509832dda636908dcc93",
+      "source_artifact_digest": "95108543e7fa3dc37cad4bee1c27ce78b3c9fbcdfe9f6c18e731fa697bf3da9c",
       "detail": "the computational-model statement names continuation as a property of the same canonical machine instead of a second machine."
     },
     {
@@ -169,7 +169,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json",
       "source_artifact_id": "tassadar.post_article_execution_semantics_proof_transport_audit.report.v1",
-      "source_artifact_digest": "09cfd184ee180c7ccd1500d5123280a1c037e37c1bfc5baa822b5e3ec2834fde",
+      "source_artifact_digest": "e98b7417a35179fb889b32ef3afec9033babb259def03f670223c96b9bedf054",
       "detail": "the proof-transport audit binds the continuation carrier to the same proof-bearing machine without closing this issue implicitly."
     },
     {
@@ -558,7 +558,7 @@
       "source_refs": [
         "fixtures/tassadar/reports/tassadar_post_article_continuation_non_computationality_contract_report.json"
       ],
-      "detail": "the continuation non-computationality contract is complete on one canonical machine and hands the frontier to TAS-211."
+      "detail": "the continuation non-computationality contract is complete on one canonical machine and hands the frontier to TAS-212."
     }
   ],
   "contract_status": "green",
@@ -568,9 +568,9 @@
   "continuation_expressivity_extension_blocked": true,
   "plugin_resume_hidden_compute_refused": true,
   "continuation_non_computationality_complete": true,
-  "next_stability_issue_id": "TAS-211",
+  "next_stability_issue_id": "TAS-212",
   "closure_bundle_issue_id": "TAS-215",
   "claim_boundary": "this eval-owned contract report freezes one continuation non-computationality boundary on the canonical post-article machine. It proves that declared checkpoint, spill, session, process-object, and installed-process continuation surfaces transport state and lineage without becoming a second machine, and that weighted plugin control may consume the same continuation carrier only while the host stays non-planner. It still leaves fast-route legitimacy, broader anti-drift closeout, served/public universality, and the final closure bundle to later issues.",
-  "summary": "Post-article continuation non-computationality contract report keeps status=Green, supporting_material_rows=10, dependency_rows=6, continuation_surface_rows=6, invalidation_rows=7, validation_rows=9, continuation_non_computationality_complete=true, next_stability_issue_id=`TAS-211`, and closure_bundle_issue_id=`TAS-215`.",
-  "report_digest": "ce41e26ca2020d7507187bd7c61a2bcd8171031398e754679f93dc1423a03439"
+  "summary": "Post-article continuation non-computationality contract report keeps status=Green, supporting_material_rows=10, dependency_rows=6, continuation_surface_rows=6, invalidation_rows=7, validation_rows=9, continuation_non_computationality_complete=true, next_stability_issue_id=`TAS-212`, and closure_bundle_issue_id=`TAS-215`.",
+  "report_digest": "554578e3f8fb6f398b5ab31f9e7d4c4e6a99bb5bb7e968671330dadf33e89bda"
 }

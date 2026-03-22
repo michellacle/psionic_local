@@ -420,7 +420,7 @@ Current honest posture:
   conditions, explicit determinism and external-signal boundaries, and
   explicit host-negative planner attacks; this tranche turns weighted plugin
   control green on the canonical route, clears the controller defer pointer to
-  empty, with the later bridge reservation frontier now at `TAS-211`, and still
+  empty, with the later bridge reservation frontier now at `TAS-212`, and still
   keeps bounded plugin-platform closeout, plugin publication, served/public
   universality, and arbitrary software capability blocked
 - the repo now also has one post-article plugin authority, promotion,
@@ -496,7 +496,7 @@ Current honest posture:
   computational-model statement, the historical green `TCM.v1` continuation
   contract, and the current plugin runtime, conformance, and weighted-controller
   surfaces to one explicit proof-bearing execution boundary; this tranche
-  closes proof transport, moves the next anti-drift frontier to `TAS-211`,
+  closes proof transport, moves the next anti-drift frontier to `TAS-212`,
   keeps the final claim-bearing canonical machine closure bundle separate for
   `TAS-215`, and still keeps plugin publication, served/public universality,
   and arbitrary software capability blocked
@@ -513,7 +513,25 @@ Current honest posture:
   non-computationality, refreshes the dependent conformance, authority,
   bounded-platform-closeout, computational-model, proof-transport, and
   machine-lock artifacts onto the same canonical statement binding, moves the
-  next anti-drift frontier to `TAS-211`, keeps the final claim-bearing
+  next anti-drift frontier to `TAS-212`, keeps the final claim-bearing
+  canonical machine closure bundle separate for `TAS-215`, and still keeps
+  plugin publication, served/public universality, and arbitrary software
+  capability blocked
+- the repo now also has one post-article fast-route legitimacy and
+  carrier-binding contract, with a committed eval report at
+  `fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_report.json`,
+  a disclosure-safe research summary at
+  `fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_summary.json`,
+  a transformer-owned anchor contract, a provider-facing receipt, a dedicated
+  checker script, and an audit note that classify `reference_linear` as the
+  historical proof baseline, `hull_cache` as the canonical direct carrier only
+  while route selection, implementation, semantic-preservation, proof
+  transport, and machine binding remain jointly green, `resumable_continuation_family`
+  as a continuation-only carrier extension, and the current research-only fast
+  families as outside the carrier until later explicit promotion; this tranche
+  closes fast-route legitimacy and carrier binding, refuses served or plugin
+  wording that treats an unbound fast route as the underlying machine, moves
+  the next anti-drift frontier to `TAS-212`, keeps the final claim-bearing
   canonical machine closure bundle separate for `TAS-215`, and still keeps
   plugin publication, served/public universality, and arbitrary software
   capability blocked
@@ -731,9 +749,9 @@ Issue-state note:
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
 - `TAS-157` through `TAS-205` are now implemented and tracked in
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
-- `TAS-206` through `TAS-210` are now implemented and tracked in
+- `TAS-206` through `TAS-211` are now implemented and tracked in
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
-- `TAS-211` through `TAS-226` remain open in GitHub and are tracked via the
+- `TAS-212` through `TAS-226` remain open in GitHub and are tracked via the
   issue bodies plus `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
 
 ## Repo-Local Companion Docs
