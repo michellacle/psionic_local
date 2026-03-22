@@ -9,6 +9,7 @@
 mod apple_adapter;
 mod apple_adapter_curation;
 mod parameter_golf;
+mod psion_corpus_admission;
 mod tassadar;
 mod tassadar_article_interpreter_breadth_envelope;
 mod tassadar_article_interpreter_breadth_suite;
@@ -42,6 +43,7 @@ use thiserror::Error;
 pub use apple_adapter::*;
 pub use apple_adapter_curation::*;
 pub use parameter_golf::*;
+pub use psion_corpus_admission::*;
 pub use tassadar::*;
 pub use tassadar_article_interpreter_breadth_envelope::*;
 pub use tassadar_article_interpreter_breadth_suite::*;

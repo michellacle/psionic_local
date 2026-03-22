@@ -84,6 +84,9 @@ and now also has:
   `docs/APPLE_ADAPTER_LINEAGE_SPEC.md` are the canonical
   Apple-adapter reference docs for dataset shape, package inventory, and
   lineage metadata.
+- `docs/PSION_CORPUS_ADMISSION.md` is the canonical first governance doc for
+  the `Psion` learned-model lane and freezes the versioned source-admission
+  contract that later ingestion, tokenizer, and training work must follow.
 - `docs/audits/2026-03-13-intellect-lessons-for-psionic-train-audit.md` is
   research rationale, not the canonical current-state spec.
 - `docs/audits/2026-03-14-covenant-code-lessons-for-psionic-train-audit.md`

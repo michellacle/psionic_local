@@ -22,6 +22,8 @@ clustered execution, and machine-legible execution truth.
   behavior.
 - `docs/INFERENCE_ENGINE.md` is the canonical inference-engine completion doc.
 - `docs/TRAIN_SYSTEM.md` is the canonical training subsystem spec.
+- `docs/PSION_CORPUS_ADMISSION.md` is the canonical first admission-policy doc
+  for the `Psion` learned-model lane.
 - `docs/TASSADAR_RUST_ONLY_ARTICLE_RUNBOOK.md` is the canonical one-command
   operator guide for the Rust-only Tassadar article reproduction path.
 - research audits explain direction and rationale, but they are not the
