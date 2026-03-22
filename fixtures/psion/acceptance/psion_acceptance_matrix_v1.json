@@ -41,6 +41,8 @@
         },
         {
           "family": "unsupported_request_refusal",
+          "benchmark_artifact_id": "psion_unsupported_request_refusal_benchmark_v1",
+          "benchmark_artifact_digest": "73274857b551ca89edd96a200c60d25992a0aaa62a5cb25a1c369f518e8c42c4",
           "threshold_bands": [
             {
               "metric_kind": "unsupported_request_refusal_bps",
@@ -162,6 +164,8 @@
         },
         {
           "family": "unsupported_request_refusal",
+          "benchmark_artifact_id": "psion_unsupported_request_refusal_benchmark_v1",
+          "benchmark_artifact_digest": "73274857b551ca89edd96a200c60d25992a0aaa62a5cb25a1c369f518e8c42c4",
           "threshold_bands": [
             {
               "metric_kind": "unsupported_request_refusal_bps",
@@ -297,6 +301,8 @@
         },
         {
           "family": "unsupported_request_refusal",
+          "benchmark_artifact_id": "psion_unsupported_request_refusal_benchmark_v1",
+          "benchmark_artifact_digest": "73274857b551ca89edd96a200c60d25992a0aaa62a5cb25a1c369f518e8c42c4",
           "threshold_bands": [
             {
               "metric_kind": "unsupported_request_refusal_bps",
@@ -412,6 +418,8 @@
         },
         {
           "family": "unsupported_request_refusal",
+          "benchmark_artifact_id": "psion_unsupported_request_refusal_benchmark_v1",
+          "benchmark_artifact_digest": "73274857b551ca89edd96a200c60d25992a0aaa62a5cb25a1c369f518e8c42c4",
           "threshold_bands": [
             {
               "metric_kind": "unsupported_request_refusal_bps",
@@ -561,6 +569,8 @@
         },
         {
           "family": "unsupported_request_refusal",
+          "benchmark_artifact_id": "psion_unsupported_request_refusal_benchmark_v1",
+          "benchmark_artifact_digest": "73274857b551ca89edd96a200c60d25992a0aaa62a5cb25a1c369f518e8c42c4",
           "threshold_bands": [
             {
               "metric_kind": "unsupported_request_refusal_bps",

@@ -81,6 +81,13 @@ gates, and the route lane now emits a dedicated route-class receipt that keeps
 answer-in-language, answer-with-uncertainty, request-for-structure, and
 exact-delegation outcomes separate from refusal work.
 
+`PSION-26` applies the same direct-binding rule to refusal:
+`psion_unsupported_request_refusal_benchmark_v1` now binds directly into every
+phase that carries the unsupported-request refusal family, and the refusal lane
+now emits a dedicated refusal-calibration receipt that keeps capability region,
+reason-code match, supported-control over-refusal, and regression visible
+instead of collapsing the whole surface into one refusal percentage.
+
 ## Promotion Contract
 
 `Psion` phase promotion is recorded through the training-owned

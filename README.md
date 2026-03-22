@@ -67,6 +67,9 @@ clustered execution, and machine-legible execution truth.
 - `docs/PSION_ROUTE_CLASS_EVALUATION.md` is the canonical route-class
   benchmark, receipt, and acceptance-binding doc for the `Psion` learned-model
   lane.
+- `docs/PSION_REFUSAL_CALIBRATION.md` is the canonical unsupported-envelope
+  refusal benchmark, receipt, and capability-binding doc for the `Psion`
+  learned-model lane.
 - `docs/PSION_CHECKPOINT_RECOVERY.md` is the canonical dense-versus-sharded
   checkpoint restart, rollback, and invalidation doc for the `Psion`
   learned-model lane.

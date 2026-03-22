@@ -33,6 +33,16 @@ The initial artifact includes all four on purpose. The served lane is only
 honest if route-required and refusal-required regions stay visible instead of
 being collapsed into vague “partial support” language.
 
+`PSION-26` widens the refusal-required side of the matrix with two extra
+regions:
+
+- `unsupported_exact_execution_without_executor_surface`
+- `underspecified_design_without_required_constraints`
+
+Those sit beside the earlier over-context and freshness rows so refusal
+calibration can cite concrete unsupported regions instead of only a generic
+unsupported-request percentage.
+
 ## Published Envelope
 
 The matrix publishes two top-level envelopes:
@@ -62,6 +72,14 @@ Publication is rejected when:
 - the context or latency envelope is internally inconsistent
 - a region posture is contradictory, such as a supported row with refusal
   reasons or a route-required row without explicit handoff
+
+The refusal-required rows now deliberately separate:
+
+- exactness requests that must route through an explicit executor surface
+- exactness requests that refuse because no such surface is published
+- underspecified design asks that refuse because required constraints are
+  missing
+- context overflow, freshness-sensitive asks, and generic assistant asks
 
 ## Why This Matters
 

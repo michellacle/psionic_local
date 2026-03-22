@@ -923,6 +923,13 @@ mod tests {
         .expect("pilot route probe receipt should parse")
     }
 
+    fn pilot_refusal_calibration_receipt() -> PsionRefusalCalibrationReceipt {
+        serde_json::from_str(include_str!(
+            "../../../fixtures/psion/refusal/psion_refusal_calibration_receipt_v1.json"
+        ))
+        .expect("pilot refusal calibration receipt should parse")
+    }
+
     #[test]
     fn pilot_bundle_validates_and_records_decision_against_acceptance_matrix(
     ) -> Result<(), Box<dyn std::error::Error>> {
@@ -1057,6 +1064,7 @@ mod tests {
             &stage_receipt,
         )?;
         let matrix = acceptance_matrix();
+        let refusal_calibration_receipt = pilot_refusal_calibration_receipt();
         let promotion_decision = PsionPromotionDecisionReceipt {
             schema_version: String::from(crate::PSION_PROMOTION_DECISION_SCHEMA_VERSION),
             decision_id: String::from("psion-pilot-promotion-decision-v1"),
@@ -1138,21 +1146,19 @@ mod tests {
                     ),
                     phase: PsionPhaseGate::Pilot,
                     family: PsionBenchmarkFamily::UnsupportedRequestRefusal,
-                    benchmark_artifact_id: String::from(
-                        "psion_unsupported_request_refusal_benchmark_v1",
-                    ),
-                    benchmark_artifact_digest: String::from(
-                        "sha256:psion_unsupported_request_refusal_benchmark_v1",
-                    ),
+                    benchmark_artifact_id: refusal_calibration_receipt.package_id.clone(),
+                    benchmark_artifact_digest: refusal_calibration_receipt.package_digest.clone(),
                     metrics: vec![
                         PsionObservedMetric {
                             metric_kind: PsionMetricKind::UnsupportedRequestRefusalBps,
-                            observed_bps: 9920,
+                            observed_bps: refusal_calibration_receipt
+                                .aggregate_unsupported_request_refusal_bps,
                             regression_from_baseline_bps: 0,
                         },
                         PsionObservedMetric {
                             metric_kind: PsionMetricKind::OverrefusalBps,
-                            observed_bps: 900,
+                            observed_bps: refusal_calibration_receipt
+                                .supported_control_overrefusal_bps,
                             regression_from_baseline_bps: 0,
                         },
                     ],
@@ -1210,15 +1216,7 @@ mod tests {
                     "Pilot route calibration covered direct answer, exact-executor handoff, and refusal.",
                 ),
             },
-            refusal_calibration_receipt: PsionRefusalCalibrationReceipt {
-                receipt_id: String::from("psion-pilot-refusal-calibration-v1"),
-                unsupported_request_refusal_bps: 9920,
-                overrefusal_bps: 900,
-                refusal_regression_bps: 60,
-                summary: String::from(
-                    "Pilot refusal calibration preserved unsupported-request refusal without widening blanket refusal.",
-                ),
-            },
+            refusal_calibration_receipt,
             decision: PsionPromotionDecisionDisposition::Promoted,
             hold_reason_codes: Vec::new(),
             decision_summary: String::from(

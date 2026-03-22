@@ -1,7 +1,7 @@
 {
   "schema_version": "psion.benchmark_receipt_set.v1",
   "receipt_set_id": "psion-benchmark-receipt-set-v1",
-  "catalog_digest": "9a76a8290dd84920667be084460c1ffe1461a70f0682f60d7325f5886c7da40b",
+  "catalog_digest": "448772c9171cbedb4200cbf01254316026ee3bfdc362f16e7abfe3d17b0e96a2",
   "receipts": [
     {
       "schema_version": "psion.benchmark_package_receipt.v1",
@@ -210,19 +210,19 @@
     },
     {
       "schema_version": "psion.benchmark_package_receipt.v1",
-      "receipt_id": "psion-refusal-benchmark-receipt-v1",
+      "receipt_id": "psion-unsupported-request-refusal-benchmark-receipt-v1",
       "phase": "pilot",
-      "package_id": "psion_refusal_benchmark_v1",
-      "package_digest": "0634f40bc65e8938d0d599849106daa52b2efa94bfc44a0aa4b6080f527dc3cc",
+      "package_id": "psion_unsupported_request_refusal_benchmark_v1",
+      "package_digest": "73274857b551ca89edd96a200c60d25992a0aaa62a5cb25a1c369f518e8c42c4",
       "package_family": "refusal_evaluation",
       "acceptance_family": "unsupported_request_refusal",
       "contamination_input_digest": "57caf81f4cd0d54fea05946aadb7078111414de617e3d277225e1a159d7b20b4",
-      "item_count": 1,
+      "item_count": 5,
       "grader_summary": {
         "exact_label_item_count": 0,
         "rubric_item_count": 0,
         "exact_route_item_count": 0,
-        "exact_refusal_item_count": 1
+        "exact_refusal_item_count": 5
       },
       "observed_metrics": [
         {
@@ -237,11 +237,11 @@
         }
       ],
       "evidence_receipt": {
-        "receipt_id": "psion-refusal-benchmark-receipt-v1-evidence",
+        "receipt_id": "psion-unsupported-request-refusal-benchmark-receipt-v1-evidence",
         "phase": "pilot",
         "family": "unsupported_request_refusal",
-        "benchmark_artifact_id": "psion_refusal_benchmark_v1",
-        "benchmark_artifact_digest": "0634f40bc65e8938d0d599849106daa52b2efa94bfc44a0aa4b6080f527dc3cc",
+        "benchmark_artifact_id": "psion_unsupported_request_refusal_benchmark_v1",
+        "benchmark_artifact_digest": "73274857b551ca89edd96a200c60d25992a0aaa62a5cb25a1c369f518e8c42c4",
         "metrics": [
           {
             "metric_kind": "unsupported_request_refusal_bps",
@@ -254,12 +254,12 @@
             "regression_from_baseline_bps": 0
           }
         ],
-        "summary": "Refusal benchmark receipt on the shared contract."
+        "summary": "Unsupported-request refusal benchmark receipt on the shared contract."
       },
-      "summary": "Refusal benchmark receipt on the shared contract.",
-      "receipt_digest": "f1bd9a8fd878eeccdba2184774ff90bb0fb0ab943c523a997292a348e4295656"
+      "summary": "Unsupported-request refusal benchmark receipt on the shared contract.",
+      "receipt_digest": "b29315d9d1a5b29041782d488d6afe7c0f692f0335f473da6b6dba85c99b606f"
     }
   ],
   "summary": "Canonical receipt set proving the shared Psion benchmark contract emits acceptance-ready package receipts across the main benchmark families.",
-  "receipt_set_digest": "6e1eac678aae49450649b041a44e123906ada281b020c37434d5371e98c43bcd"
+  "receipt_set_digest": "8490dc770d0e20178376d92d771366be8812b0338c83e7fcf80e6ff8f3464795"
 }

@@ -37,6 +37,8 @@ The first pilot bundle now binds:
 - one explicit run-observability receipt from `PSION-13`
 - held-out loss deltas across textbooks, normative specs, and technical docs
 - explicit route probes for direct answer, exact-executor handoff, and refusal
+- one canonical refusal-calibration receipt tied to the unsupported-request
+  refusal benchmark package and capability matrix
 - one promotion decision that is actually recordable through the canonical
   acceptance-matrix ledger
 
@@ -53,6 +55,8 @@ claim.
   docs
 - the route probe surface covers direct answer, exact-executor handoff, and
   refusal explicitly
+- the refusal evidence in the promotion decision stays bound to the canonical
+  unsupported-request refusal package digest and refusal-calibration receipt
 - the acceptance-matrix decision still targets the promoted checkpoint emitted
   by the pilot stage
 - replay evidence in the promotion decision matches the replay facts carried by

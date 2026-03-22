@@ -6,6 +6,8 @@ use psionic_data::{
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
+use crate::{PsionRefusalCalibrationError, PsionRefusalCalibrationReceipt};
+
 /// Stable schema version for the first Psion acceptance-matrix artifact.
 pub const PSION_ACCEPTANCE_MATRIX_SCHEMA_VERSION: &str = "psion.acceptance_matrix.v1";
 /// Stable schema version for the first Psion phase-promotion decision receipt.
@@ -472,6 +474,7 @@ impl PsionAcceptanceMatrix {
                         | PsionBenchmarkFamily::EngineeringSpecInterpretation
                         | PsionBenchmarkFamily::MemorizationVersusReasoning
                         | PsionBenchmarkFamily::RouteSelection
+                        | PsionBenchmarkFamily::UnsupportedRequestRefusal
                 ) {
                     return Err(PsionAcceptanceMatrixError::MissingField {
                         field: format!(
@@ -856,21 +859,6 @@ pub struct PsionRouteCalibrationReceipt {
     pub summary: String,
 }
 
-/// Refusal calibration evidence attached to one phase decision.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct PsionRefusalCalibrationReceipt {
-    /// Stable receipt identifier.
-    pub receipt_id: String,
-    /// Observed refusal rate on unsupported requests.
-    pub unsupported_request_refusal_bps: u32,
-    /// Observed over-refusal rate on supported requests.
-    pub overrefusal_bps: u32,
-    /// Regression observed against the last accepted baseline.
-    pub refusal_regression_bps: u32,
-    /// Short summary of the refusal evidence.
-    pub summary: String,
-}
-
 /// One recorded phase decision against the Psion acceptance matrix.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PsionPromotionDecisionReceipt {
@@ -1220,27 +1208,7 @@ impl PsionPromotionDecisionReceipt {
     }
 
     fn validate_refusal_receipt(&self) -> Result<(), PsionAcceptanceMatrixError> {
-        ensure_nonempty(
-            self.refusal_calibration_receipt.receipt_id.as_str(),
-            "promotion_decision.refusal_calibration_receipt.receipt_id",
-        )?;
-        ensure_nonempty(
-            self.refusal_calibration_receipt.summary.as_str(),
-            "promotion_decision.refusal_calibration_receipt.summary",
-        )?;
-        validate_bps(
-            self.refusal_calibration_receipt
-                .unsupported_request_refusal_bps,
-            "promotion_decision.refusal_calibration_receipt.unsupported_request_refusal_bps",
-        )?;
-        validate_bps(
-            self.refusal_calibration_receipt.overrefusal_bps,
-            "promotion_decision.refusal_calibration_receipt.overrefusal_bps",
-        )?;
-        validate_bps(
-            self.refusal_calibration_receipt.refusal_regression_bps,
-            "promotion_decision.refusal_calibration_receipt.refusal_regression_bps",
-        )?;
+        self.refusal_calibration_receipt.validate()?;
         Ok(())
     }
 
@@ -1320,9 +1288,11 @@ impl PsionPromotionDecisionReceipt {
         let refusal_requirement = &gate.refusal_calibration_requirement;
         if self
             .refusal_calibration_receipt
-            .unsupported_request_refusal_bps
+            .aggregate_unsupported_request_refusal_bps
             < refusal_requirement.minimum_unsupported_request_refusal_bps
-            || self.refusal_calibration_receipt.overrefusal_bps
+            || self
+                .refusal_calibration_receipt
+                .supported_control_overrefusal_bps
                 > refusal_requirement.maximum_overrefusal_bps
             || self.refusal_calibration_receipt.refusal_regression_bps
                 > refusal_requirement.maximum_refusal_regression_bps
@@ -1371,6 +1341,9 @@ impl PsionPhasePromotionLedger {
 /// Error returned by Psion acceptance-matrix and promotion-decision validation.
 #[derive(Clone, Debug, Error, PartialEq, Eq)]
 pub enum PsionAcceptanceMatrixError {
+    /// Refusal-calibration receipt validation failed.
+    #[error(transparent)]
+    RefusalCalibration(#[from] PsionRefusalCalibrationError),
     /// One required field was empty or missing.
     #[error("Psion acceptance contract field `{field}` is missing")]
     MissingField {

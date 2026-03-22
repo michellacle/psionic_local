@@ -8,17 +8,18 @@
     "acceptance_matrix_id": "psion_acceptance_matrix",
     "acceptance_matrix_version": "v1",
     "acceptance_phase": "pilot",
-    "promotion_decision_ref": "psion_pilot_promotion_decision_v1",
+    "promotion_decision_ref": "psion-pilot-promotion-decision-v1",
     "benchmark_receipt_refs": [
-      "psion_pilot_architecture_reasoning_receipt_v1",
-      "psion_pilot_held_out_reasoning_receipt_v1",
-      "psion_pilot_unsupported_request_refusal_receipt_v1"
+      "psion-pilot-architecture-reasoning-receipt-v1",
+      "psion-pilot-held-out-reasoning-receipt-v1",
+      "psion-pilot-specification-boundary-receipt-v1",
+      "psion-pilot-unsupported-request-refusal-receipt-v1"
     ],
-    "replay_receipt_ref": "psion_pilot_replay_receipt_v1",
-    "checkpoint_receipt_ref": "psion_pilot_checkpoint_recovery_receipt_v1",
-    "contamination_review_receipt_ref": "psion_pilot_contamination_review_receipt_v1",
-    "route_calibration_receipt_ref": "psion_pilot_route_calibration_receipt_v1",
-    "refusal_calibration_receipt_ref": "psion_pilot_refusal_calibration_receipt_v1"
+    "replay_receipt_ref": "psion-pilot-replay-evidence-v1",
+    "checkpoint_receipt_ref": "psion-pilot-checkpoint-recovery-v1",
+    "contamination_review_receipt_ref": "psion-pilot-contamination-review-v1",
+    "route_calibration_receipt_ref": "psion-pilot-route-calibration-v1",
+    "refusal_calibration_receipt_ref": "psion-pilot-refusal-calibration-v1"
   },
   "context_envelope": {
     "supported_prompt_tokens": 8192,
@@ -63,6 +64,30 @@
       "detail": "Exact or verifier-backed requests stay in the served envelope only through explicit executor handoff."
     },
     {
+      "region_id": "unsupported_exact_execution_without_executor_surface",
+      "posture": "refusal_required",
+      "refusal_reasons": [
+        "unsupported_exactness_request"
+      ],
+      "task_examples": [
+        "requests that demand exact answers without exposing a verifier-backed or executor-backed route",
+        "requests that try to force the learned lane to impersonate exact execution directly"
+      ],
+      "detail": "Exactness requests without a surfaced exact-executor lane must refuse instead of being treated as ordinary route-required work."
+    },
+    {
+      "region_id": "underspecified_design_without_required_constraints",
+      "posture": "refusal_required",
+      "refusal_reasons": [
+        "missing_required_constraints"
+      ],
+      "task_examples": [
+        "design asks that omit required workload, latency, or resource constraints",
+        "implementation planning requests that ask for one exact answer without the minimum input schema"
+      ],
+      "detail": "Underspecified design tasks must refuse and ask for the missing constraints through a separate route surface instead of hallucinating requirements."
+    },
+    {
       "region_id": "over_context_envelope_requests",
       "posture": "refusal_required",
       "refusal_reasons": [
@@ -100,5 +125,5 @@
       "detail": "The first served Psion lane is not a generic assistant and does not publish broad open-ended chat support."
     }
   ],
-  "claim_boundary": "This publication covers a bounded served learned lane for short-context technical reasoning, spec/manual synthesis, explicit executor handoff, and explicit refusal on over-context, freshness-sensitive, hidden-artifact, and generic-assistant regions. It does not publish a general assistant, currentness-aware, or hidden-tool-aware model."
+  "claim_boundary": "This publication covers a bounded served learned lane for short-context technical reasoning, spec/manual synthesis, explicit executor handoff, and explicit refusal on unsupported exactness, missing constraints, over-context, freshness-sensitive, hidden-artifact, and generic-assistant regions. It does not publish a general assistant, currentness-aware, hidden-tool-aware, or exact-execution-direct model."
 }

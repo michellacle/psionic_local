@@ -36,6 +36,10 @@ pub enum PsionCapabilityRegionId {
     SpecificationAndManualSynthesis,
     /// Exact or verifier-backed computation requests.
     VerifiedOrExactExecutionRequests,
+    /// Exact execution requests that do not expose a route into an exact executor surface.
+    UnsupportedExactExecutionWithoutExecutorSurface,
+    /// Design asks that omit required structured constraints.
+    UnderspecifiedDesignWithoutRequiredConstraints,
     /// Requests that exceed the published context envelope.
     OverContextEnvelopeRequests,
     /// Requests that depend on currentness or hidden run artifacts.
@@ -53,6 +57,12 @@ impl PsionCapabilityRegionId {
             }
             Self::SpecificationAndManualSynthesis => "specification_and_manual_synthesis",
             Self::VerifiedOrExactExecutionRequests => "verified_or_exact_execution_requests",
+            Self::UnsupportedExactExecutionWithoutExecutorSurface => {
+                "unsupported_exact_execution_without_executor_surface"
+            }
+            Self::UnderspecifiedDesignWithoutRequiredConstraints => {
+                "underspecified_design_without_required_constraints"
+            }
             Self::OverContextEnvelopeRequests => "over_context_envelope_requests",
             Self::FreshnessOrRunArtifactDependentRequests => {
                 "freshness_or_run_artifact_dependent_requests"
@@ -66,6 +76,10 @@ impl PsionCapabilityRegionId {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum PsionCapabilityRefusalReason {
+    /// Exact-execution requests require a surfaced exact lane and cannot be improvised directly.
+    UnsupportedExactnessRequest,
+    /// The request omitted required structured constraints.
+    MissingRequiredConstraints,
     /// Prompt or requested context exceeds the published envelope.
     UnsupportedContextLength,
     /// The request depends on current information or mutable run artifacts.

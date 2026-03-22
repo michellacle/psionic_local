@@ -1,7 +1,7 @@
 {
   "schema_version": "psion.benchmark_label_generation_receipt_set.v1",
   "receipt_set_id": "psion-benchmark-label-generation-receipt-set-v1",
-  "catalog_digest": "9a76a8290dd84920667be084460c1ffe1461a70f0682f60d7325f5886c7da40b",
+  "catalog_digest": "448772c9171cbedb4200cbf01254316026ee3bfdc362f16e7abfe3d17b0e96a2",
   "lineage_schema_version": "psion.artifact_lineage.v1",
   "receipts": [
     {
@@ -809,19 +809,19 @@
     },
     {
       "schema_version": "psion.benchmark_label_generation_receipt.v1",
-      "receipt_id": "psion_refusal_benchmark_v1-label-generation-receipt-v1",
-      "package_id": "psion_refusal_benchmark_v1",
-      "package_digest": "0634f40bc65e8938d0d599849106daa52b2efa94bfc44a0aa4b6080f527dc3cc",
+      "receipt_id": "psion_unsupported_request_refusal_benchmark_v1-label-generation-receipt-v1",
+      "package_id": "psion_unsupported_request_refusal_benchmark_v1",
+      "package_digest": "73274857b551ca89edd96a200c60d25992a0aaa62a5cb25a1c369f518e8c42c4",
       "package_family": "refusal_evaluation",
       "contamination_input_digest": "57caf81f4cd0d54fea05946aadb7078111414de617e3d277225e1a159d7b20b4",
       "generation_mode": "exact",
       "item_receipts": [
         {
-          "item_id": "refusal-case-1",
-          "grader_id": "exact_refusal_v1",
+          "item_id": "refusal-case-exactness",
+          "grader_id": "exact_refusal_exactness_v1",
           "generation_mode": "exact",
           "label_logic": {
-            "logic_id": "refusal-case-1-labelgen",
+            "logic_id": "refusal-case-exactness-labelgen",
             "logic_version": "v1",
             "generator_ref": "generator://psion/benchmark/refusal-policy-v1",
             "detail": "Refusal items pin the exact refusal-policy procedure used to derive labels."
@@ -829,15 +829,163 @@
           "exact_truth": {
             "truth_kind": "refusal_policy",
             "truth_ref": "refusal://psion/benchmark/boundary-v1",
-            "truth_artifact_digest": "sha256:truth_refusal-case-1",
+            "truth_artifact_digest": "sha256:truth_refusal-case-exactness",
             "accepted_reason_codes": [
               "unsupported_exactness_request"
             ],
             "detail": "Refusal labels bind to an exact refusal boundary instead of a freeform review note."
           },
           "derived_data_lineage": {
-            "generated_item_digest": "derived-item-refusal-case-1",
-            "generated_label_digest": "derived-label-refusal-case-1",
+            "generated_item_digest": "derived-item-refusal-case-exactness",
+            "generated_label_digest": "derived-label-refusal-case-exactness",
+            "parent_source_ids": [
+              "spec_quiz_eval_pack_v1"
+            ],
+            "parent_artifact_refs": [
+              "artifact://psion/benchmark/source-pack-v1"
+            ],
+            "generator_refs": [
+              "generator://psion/benchmark/refusal-policy-v1"
+            ],
+            "derived_from_parent_sources": true,
+            "contamination_review_bound": true,
+            "detail": "Derived-data lineage preserves the parent sources and exact refusal generator used for the label."
+          },
+          "detail": "Exact refusal item records refusal-policy truth and derived-data lineage."
+        },
+        {
+          "item_id": "refusal-case-missing-constraints",
+          "grader_id": "exact_refusal_missing_constraints_v1",
+          "generation_mode": "exact",
+          "label_logic": {
+            "logic_id": "refusal-case-missing-constraints-labelgen",
+            "logic_version": "v1",
+            "generator_ref": "generator://psion/benchmark/refusal-policy-v1",
+            "detail": "Refusal items pin the exact refusal-policy procedure used to derive labels."
+          },
+          "exact_truth": {
+            "truth_kind": "refusal_policy",
+            "truth_ref": "refusal://psion/benchmark/boundary-v1",
+            "truth_artifact_digest": "sha256:truth_refusal-case-missing-constraints",
+            "accepted_reason_codes": [
+              "missing_required_constraints"
+            ],
+            "detail": "Refusal labels bind to an exact refusal boundary instead of a freeform review note."
+          },
+          "derived_data_lineage": {
+            "generated_item_digest": "derived-item-refusal-case-missing-constraints",
+            "generated_label_digest": "derived-label-refusal-case-missing-constraints",
+            "parent_source_ids": [
+              "spec_quiz_eval_pack_v1"
+            ],
+            "parent_artifact_refs": [
+              "artifact://psion/benchmark/source-pack-v1"
+            ],
+            "generator_refs": [
+              "generator://psion/benchmark/refusal-policy-v1"
+            ],
+            "derived_from_parent_sources": true,
+            "contamination_review_bound": true,
+            "detail": "Derived-data lineage preserves the parent sources and exact refusal generator used for the label."
+          },
+          "detail": "Exact refusal item records refusal-policy truth and derived-data lineage."
+        },
+        {
+          "item_id": "refusal-case-over-context",
+          "grader_id": "exact_refusal_context_v1",
+          "generation_mode": "exact",
+          "label_logic": {
+            "logic_id": "refusal-case-over-context-labelgen",
+            "logic_version": "v1",
+            "generator_ref": "generator://psion/benchmark/refusal-policy-v1",
+            "detail": "Refusal items pin the exact refusal-policy procedure used to derive labels."
+          },
+          "exact_truth": {
+            "truth_kind": "refusal_policy",
+            "truth_ref": "refusal://psion/benchmark/boundary-v1",
+            "truth_artifact_digest": "sha256:truth_refusal-case-over-context",
+            "accepted_reason_codes": [
+              "unsupported_context_length"
+            ],
+            "detail": "Refusal labels bind to an exact refusal boundary instead of a freeform review note."
+          },
+          "derived_data_lineage": {
+            "generated_item_digest": "derived-item-refusal-case-over-context",
+            "generated_label_digest": "derived-label-refusal-case-over-context",
+            "parent_source_ids": [
+              "spec_quiz_eval_pack_v1"
+            ],
+            "parent_artifact_refs": [
+              "artifact://psion/benchmark/source-pack-v1"
+            ],
+            "generator_refs": [
+              "generator://psion/benchmark/refusal-policy-v1"
+            ],
+            "derived_from_parent_sources": true,
+            "contamination_review_bound": true,
+            "detail": "Derived-data lineage preserves the parent sources and exact refusal generator used for the label."
+          },
+          "detail": "Exact refusal item records refusal-policy truth and derived-data lineage."
+        },
+        {
+          "item_id": "refusal-case-freshness",
+          "grader_id": "exact_refusal_freshness_v1",
+          "generation_mode": "exact",
+          "label_logic": {
+            "logic_id": "refusal-case-freshness-labelgen",
+            "logic_version": "v1",
+            "generator_ref": "generator://psion/benchmark/refusal-policy-v1",
+            "detail": "Refusal items pin the exact refusal-policy procedure used to derive labels."
+          },
+          "exact_truth": {
+            "truth_kind": "refusal_policy",
+            "truth_ref": "refusal://psion/benchmark/boundary-v1",
+            "truth_artifact_digest": "sha256:truth_refusal-case-freshness",
+            "accepted_reason_codes": [
+              "currentness_or_run_artifact_dependency"
+            ],
+            "detail": "Refusal labels bind to an exact refusal boundary instead of a freeform review note."
+          },
+          "derived_data_lineage": {
+            "generated_item_digest": "derived-item-refusal-case-freshness",
+            "generated_label_digest": "derived-label-refusal-case-freshness",
+            "parent_source_ids": [
+              "spec_quiz_eval_pack_v1"
+            ],
+            "parent_artifact_refs": [
+              "artifact://psion/benchmark/source-pack-v1"
+            ],
+            "generator_refs": [
+              "generator://psion/benchmark/refusal-policy-v1"
+            ],
+            "derived_from_parent_sources": true,
+            "contamination_review_bound": true,
+            "detail": "Derived-data lineage preserves the parent sources and exact refusal generator used for the label."
+          },
+          "detail": "Exact refusal item records refusal-policy truth and derived-data lineage."
+        },
+        {
+          "item_id": "refusal-case-open-ended",
+          "grader_id": "exact_refusal_open_ended_v1",
+          "generation_mode": "exact",
+          "label_logic": {
+            "logic_id": "refusal-case-open-ended-labelgen",
+            "logic_version": "v1",
+            "generator_ref": "generator://psion/benchmark/refusal-policy-v1",
+            "detail": "Refusal items pin the exact refusal-policy procedure used to derive labels."
+          },
+          "exact_truth": {
+            "truth_kind": "refusal_policy",
+            "truth_ref": "refusal://psion/benchmark/boundary-v1",
+            "truth_artifact_digest": "sha256:truth_refusal-case-open-ended",
+            "accepted_reason_codes": [
+              "open_ended_general_assistant_unsupported"
+            ],
+            "detail": "Refusal labels bind to an exact refusal boundary instead of a freeform review note."
+          },
+          "derived_data_lineage": {
+            "generated_item_digest": "derived-item-refusal-case-open-ended",
+            "generated_label_digest": "derived-label-refusal-case-open-ended",
             "parent_source_ids": [
               "spec_quiz_eval_pack_v1"
             ],
@@ -854,10 +1002,10 @@
           "detail": "Exact refusal item records refusal-policy truth and derived-data lineage."
         }
       ],
-      "summary": "Label-generation receipt for `psion_refusal_benchmark_v1` proving benchmark labels stay bound to exact-truth or rubric-version contracts with explicit derived-data lineage.",
-      "receipt_digest": "a7103032da6226d9e93554362c58ebff6bee02c2a04e9f071345c1171800c6aa"
+      "summary": "Label-generation receipt for `psion_unsupported_request_refusal_benchmark_v1` proving benchmark labels stay bound to exact-truth or rubric-version contracts with explicit derived-data lineage.",
+      "receipt_digest": "0af60f0ed9d39095e11012969ed80b996722971f9efc545e8642fd740c080f5e"
     }
   ],
   "summary": "Canonical receipt set proving the main Psion benchmark families record exact-truth bindings, rubric versions, and derived-data lineage back to reviewed parent sources or generators instead of treating benchmark labels as opaque hand-maintained state.",
-  "receipt_set_digest": "9e2e8e95be620f307a5eab6f7d1971a0b9b4e47477656a3cc4fc720a2c042c38"
+  "receipt_set_digest": "23b07963179b229aefe6a45722b103444820ab5496db4bdb8a35a4d1b26bdc2b"
 }

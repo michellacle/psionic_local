@@ -163,6 +163,11 @@ and now also has:
   benchmark doc for the `Psion` learned-model lane and freezes the four route
   classes, typed route receipt, delegation-error accounting, and direct
   acceptance-matrix binding for the route benchmark package.
+- `docs/PSION_REFUSAL_CALIBRATION.md` is the canonical first refusal-
+  calibration doc for the `Psion` learned-model lane and freezes the
+  unsupported-envelope refusal package, capability-matrix-bound refusal
+  receipt, reason-code accounting, and direct acceptance binding for the
+  unsupported-request refusal benchmark package.
 - `docs/PSION_CHECKPOINT_RECOVERY.md` is the canonical first dense-versus-
   sharded checkpoint-recovery doc for the `Psion` learned-model lane and
   freezes the explicit restart, rollback, corruption-detection, and

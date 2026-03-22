@@ -99,8 +99,8 @@
       ]
     },
     {
-      "benchmark_id": "psion_refusal_benchmark_v1",
-      "benchmark_digest": "0634f40bc65e8938d0d599849106daa52b2efa94bfc44a0aa4b6080f527dc3cc",
+      "benchmark_id": "psion_unsupported_request_refusal_benchmark_v1",
+      "benchmark_digest": "73274857b551ca89edd96a200c60d25992a0aaa62a5cb25a1c369f518e8c42c4",
       "source_ids": [
         "spec_quiz_eval_pack_v1"
       ]

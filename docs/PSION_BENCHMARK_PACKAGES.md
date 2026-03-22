@@ -41,6 +41,11 @@ historical transfer, and spec-adjacent edge cases separate from stock recall.
 route receipt that keeps delegation, uncertainty, and structured-input requests
 separate.
 
+`docs/PSION_REFUSAL_CALIBRATION.md` now does the same for
+`psion_unsupported_request_refusal_benchmark_v1`, including the five explicit
+unsupported-envelope refusal probes and the receipt that keeps capability
+region, reason-code match, and supported-control over-refusal visible.
+
 ## Canonical Artifacts
 
 - `crates/psionic-train/src/psion_benchmark_packages.rs` owns the shared
