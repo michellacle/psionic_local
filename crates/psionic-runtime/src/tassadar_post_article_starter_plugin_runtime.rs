@@ -602,15 +602,405 @@ pub enum StarterPluginRuntimeError {
     Json(#[from] serde_json::Error),
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum StarterPluginCapabilityClass {
+    LocalDeterministic,
+    ReadOnlyNetwork,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct StarterPluginCatalogRegistration {
+    pub catalog_entry_id: &'static str,
+    pub trust_tier_id: &'static str,
+    pub evidence_posture_id: &'static str,
+    pub catalog_capability_namespace_ids: &'static [&'static str],
+    pub descriptor_ref: &'static str,
+    pub fixture_bundle_ref: &'static str,
+    pub sample_mount_envelope_ref: &'static str,
+    pub descriptor_detail: &'static str,
+    pub capability_matrix_detail: &'static str,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct StarterPluginRegistration {
+    pub plugin_id: &'static str,
+    pub plugin_version: &'static str,
+    pub tool_name: &'static str,
+    pub input_schema_id: &'static str,
+    pub success_output_schema_id: &'static str,
+    pub refusal_schema_ids: &'static [&'static str],
+    pub replay_class_id: &'static str,
+    pub capability_class: StarterPluginCapabilityClass,
+    pub capability_namespace_ids: &'static [&'static str],
+    pub negative_claim_ids: &'static [&'static str],
+    pub mount_envelope_id: &'static str,
+    pub manifest_id: &'static str,
+    pub artifact_id: &'static str,
+    pub runtime_bundle_id: &'static str,
+    pub runtime_bundle_ref: &'static str,
+    pub runtime_run_root_ref: &'static str,
+    pub tool_description: &'static str,
+    pub bridge_exposed: bool,
+    pub catalog_exposed: bool,
+    pub catalog: Option<StarterPluginCatalogRegistration>,
+}
+
+const URL_EXTRACT_REFUSAL_SCHEMA_IDS: &[&str] = &[
+    STARTER_PLUGIN_REFUSAL_SCHEMA_INVALID_ID,
+    STARTER_PLUGIN_REFUSAL_PACKET_TOO_LARGE_ID,
+    STARTER_PLUGIN_REFUSAL_UNSUPPORTED_CODEC_ID,
+    STARTER_PLUGIN_REFUSAL_RUNTIME_RESOURCE_LIMIT_ID,
+];
+const TEXT_STATS_REFUSAL_SCHEMA_IDS: &[&str] = &[
+    STARTER_PLUGIN_REFUSAL_SCHEMA_INVALID_ID,
+    STARTER_PLUGIN_REFUSAL_PACKET_TOO_LARGE_ID,
+    STARTER_PLUGIN_REFUSAL_UNSUPPORTED_CODEC_ID,
+];
+const FETCH_TEXT_REFUSAL_SCHEMA_IDS: &[&str] = &[
+    STARTER_PLUGIN_REFUSAL_SCHEMA_INVALID_ID,
+    STARTER_PLUGIN_REFUSAL_UNSUPPORTED_CODEC_ID,
+    STARTER_PLUGIN_REFUSAL_NETWORK_DENIED_ID,
+    STARTER_PLUGIN_REFUSAL_URL_NOT_PERMITTED_ID,
+    STARTER_PLUGIN_REFUSAL_TIMEOUT_ID,
+    STARTER_PLUGIN_REFUSAL_RESPONSE_TOO_LARGE_ID,
+    STARTER_PLUGIN_REFUSAL_CONTENT_TYPE_UNSUPPORTED_ID,
+    STARTER_PLUGIN_REFUSAL_DECODE_FAILED_ID,
+    STARTER_PLUGIN_REFUSAL_UPSTREAM_FAILURE_ID,
+];
+const EXTRACT_READABLE_REFUSAL_SCHEMA_IDS: &[&str] = &[
+    STARTER_PLUGIN_REFUSAL_SCHEMA_INVALID_ID,
+    STARTER_PLUGIN_REFUSAL_INPUT_TOO_LARGE_ID,
+    STARTER_PLUGIN_REFUSAL_CONTENT_TYPE_UNSUPPORTED_ID,
+];
+const FEED_PARSE_REFUSAL_SCHEMA_IDS: &[&str] = &[
+    STARTER_PLUGIN_REFUSAL_SCHEMA_INVALID_ID,
+    STARTER_PLUGIN_REFUSAL_INPUT_TOO_LARGE_ID,
+    STARTER_PLUGIN_REFUSAL_UNSUPPORTED_FEED_FORMAT_ID,
+];
+
+const URL_EXTRACT_NEGATIVE_CLAIM_IDS: &[&str] = &[
+    "url_validation_truth_not_claimed",
+    "dns_resolution_not_claimed",
+    "redirect_truth_not_claimed",
+    "network_reachability_not_claimed",
+];
+const TEXT_STATS_NEGATIVE_CLAIM_IDS: &[&str] = &[
+    "tokenizer_truth_not_claimed",
+    "language_detection_not_claimed",
+    "sentence_boundary_truth_not_claimed",
+    "semantic_structure_not_claimed",
+];
+const FETCH_TEXT_NEGATIVE_CLAIM_IDS: &[&str] = &[
+    "browser_execution_not_claimed",
+    "javascript_execution_not_claimed",
+    "cookie_or_auth_session_not_claimed",
+    "arbitrary_headers_not_claimed",
+    "general_unrestricted_web_access_not_claimed",
+];
+const EXTRACT_READABLE_NEGATIVE_CLAIM_IDS: &[&str] = &[
+    "browser_rendering_not_claimed",
+    "javascript_evaluation_not_claimed",
+    "css_layout_truth_not_claimed",
+    "full_dom_semantics_not_claimed",
+];
+const FEED_PARSE_NEGATIVE_CLAIM_IDS: &[&str] = &[
+    "arbitrary_xml_support_not_claimed",
+    "opml_support_not_claimed",
+    "general_document_parsing_not_claimed",
+];
+
+const NO_CAPABILITY_NAMESPACE_IDS: &[&str] = &[];
+const FETCH_TEXT_CAPABILITY_NAMESPACE_IDS: &[&str] = &["capability.http.read_only.v1"];
+const FETCH_TEXT_CATALOG_CAPABILITY_NAMESPACE_IDS: &[&str] = &["cap.http.read_only_text.v1"];
+
+const STARTER_PLUGIN_REGISTRATIONS: &[StarterPluginRegistration] = &[
+    StarterPluginRegistration {
+        plugin_id: STARTER_PLUGIN_TEXT_URL_EXTRACT_ID,
+        plugin_version: STARTER_PLUGIN_VERSION,
+        tool_name: STARTER_PLUGIN_TEXT_URL_EXTRACT_TOOL_NAME,
+        input_schema_id: STARTER_PLUGIN_TEXT_URL_EXTRACT_INPUT_SCHEMA_ID,
+        success_output_schema_id: STARTER_PLUGIN_TEXT_URL_EXTRACT_OUTPUT_SCHEMA_ID,
+        refusal_schema_ids: URL_EXTRACT_REFUSAL_SCHEMA_IDS,
+        replay_class_id: "deterministic_replayable",
+        capability_class: StarterPluginCapabilityClass::LocalDeterministic,
+        capability_namespace_ids: NO_CAPABILITY_NAMESPACE_IDS,
+        negative_claim_ids: URL_EXTRACT_NEGATIVE_CLAIM_IDS,
+        mount_envelope_id: "mount.plugin.text.url_extract.no_capabilities.v1",
+        manifest_id: "manifest.plugin.text.url_extract.v1",
+        artifact_id: "artifact.plugin.text.url_extract.v1",
+        runtime_bundle_id: "tassadar.post_article.plugin_text_url_extract.runtime_bundle.v1",
+        runtime_bundle_ref: TASSADAR_POST_ARTICLE_PLUGIN_TEXT_URL_EXTRACT_RUNTIME_BUNDLE_REF,
+        runtime_run_root_ref: TASSADAR_POST_ARTICLE_PLUGIN_TEXT_URL_EXTRACT_RUN_ROOT_REF,
+        tool_description: "extract literal http:// and https:// strings from packet-local text without URL validation, DNS, or network reachability claims.",
+        bridge_exposed: true,
+        catalog_exposed: true,
+        catalog: Some(StarterPluginCatalogRegistration {
+            catalog_entry_id: "plugin.text.url_extract@v1",
+            trust_tier_id: "operator_curated_local_deterministic",
+            evidence_posture_id: "evidence.descriptor_fixture_receipt_bound.v1",
+            catalog_capability_namespace_ids: NO_CAPABILITY_NAMESPACE_IDS,
+            descriptor_ref: "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_text_url_extract_descriptor.json",
+            fixture_bundle_ref: "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_text_url_extract_fixture_bundle.json",
+            sample_mount_envelope_ref: "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_text_url_extract_mount_envelope.json",
+            descriptor_detail: "the first starter plugin freezes left-to-right `http://` and `https://` string extraction with no deduplication and no capability mounts.",
+            capability_matrix_detail: "the url-extract starter plugin is purely local string processing and does not claim any external-world semantics.",
+        }),
+    },
+    StarterPluginRegistration {
+        plugin_id: STARTER_PLUGIN_TEXT_STATS_ID,
+        plugin_version: STARTER_PLUGIN_VERSION,
+        tool_name: STARTER_PLUGIN_TEXT_STATS_TOOL_NAME,
+        input_schema_id: STARTER_PLUGIN_TEXT_STATS_INPUT_SCHEMA_ID,
+        success_output_schema_id: STARTER_PLUGIN_TEXT_STATS_OUTPUT_SCHEMA_ID,
+        refusal_schema_ids: TEXT_STATS_REFUSAL_SCHEMA_IDS,
+        replay_class_id: "deterministic_replayable",
+        capability_class: StarterPluginCapabilityClass::LocalDeterministic,
+        capability_namespace_ids: NO_CAPABILITY_NAMESPACE_IDS,
+        negative_claim_ids: TEXT_STATS_NEGATIVE_CLAIM_IDS,
+        mount_envelope_id: "mount.plugin.text.stats.no_capabilities.v1",
+        manifest_id: "manifest.plugin.text.stats.v1",
+        artifact_id: "artifact.plugin.text.stats.v1",
+        runtime_bundle_id: "tassadar.post_article.plugin_text_stats.runtime_bundle.v1",
+        runtime_bundle_ref: TASSADAR_POST_ARTICLE_PLUGIN_TEXT_STATS_RUNTIME_BUNDLE_REF,
+        runtime_run_root_ref: TASSADAR_POST_ARTICLE_PLUGIN_TEXT_STATS_RUN_ROOT_REF,
+        tool_description: "count bytes, Unicode scalar values, lines, non-empty lines, and whitespace-delimited words from packet-local text without tokenizer, language, or semantic-structure claims.",
+        bridge_exposed: false,
+        catalog_exposed: false,
+        catalog: None,
+    },
+    StarterPluginRegistration {
+        plugin_id: STARTER_PLUGIN_HTTP_FETCH_TEXT_ID,
+        plugin_version: STARTER_PLUGIN_VERSION,
+        tool_name: STARTER_PLUGIN_HTTP_FETCH_TEXT_TOOL_NAME,
+        input_schema_id: STARTER_PLUGIN_HTTP_FETCH_TEXT_INPUT_SCHEMA_ID,
+        success_output_schema_id: STARTER_PLUGIN_HTTP_FETCH_TEXT_OUTPUT_SCHEMA_ID,
+        refusal_schema_ids: FETCH_TEXT_REFUSAL_SCHEMA_IDS,
+        replay_class_id: "replayable_with_snapshots",
+        capability_class: StarterPluginCapabilityClass::ReadOnlyNetwork,
+        capability_namespace_ids: FETCH_TEXT_CAPABILITY_NAMESPACE_IDS,
+        negative_claim_ids: FETCH_TEXT_NEGATIVE_CLAIM_IDS,
+        mount_envelope_id: "mount.plugin.http.fetch_text.read_only_http_allowlist.v1",
+        manifest_id: "manifest.plugin.http.fetch_text.v1",
+        artifact_id: "artifact.plugin.http.fetch_text.v1",
+        runtime_bundle_id: "tassadar.post_article.plugin_http_fetch_text.runtime_bundle.v1",
+        runtime_bundle_ref: TASSADAR_POST_ARTICLE_PLUGIN_HTTP_FETCH_TEXT_RUNTIME_BUNDLE_REF,
+        runtime_run_root_ref: TASSADAR_POST_ARTICLE_PLUGIN_HTTP_FETCH_TEXT_RUN_ROOT_REF,
+        tool_description: "fetch allowlisted text content through a host-mediated read-only HTTP mount without browser execution, cookies, auth sessions, or unrestricted network access.",
+        bridge_exposed: true,
+        catalog_exposed: true,
+        catalog: Some(StarterPluginCatalogRegistration {
+            catalog_entry_id: "plugin.http.fetch_text@v1",
+            trust_tier_id: "operator_curated_network_read_only",
+            evidence_posture_id: "evidence.descriptor_envelope_receipt_bound.v1",
+            catalog_capability_namespace_ids: FETCH_TEXT_CATALOG_CAPABILITY_NAMESPACE_IDS,
+            descriptor_ref: "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_http_fetch_text_descriptor.json",
+            fixture_bundle_ref: "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_http_fetch_text_fixture_bundle.json",
+            sample_mount_envelope_ref: "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_http_fetch_text_mount_envelope.json",
+            descriptor_detail: "the first network starter plugin freezes GET-only read-only text fetch behind host-mediated allowlist, timeout, redirect, and response-size policy.",
+            capability_matrix_detail: "the fetch-text starter plugin is the only networked starter entry and remains bounded to host-mediated read-only HTTP.",
+        }),
+    },
+    StarterPluginRegistration {
+        plugin_id: STARTER_PLUGIN_HTML_EXTRACT_READABLE_ID,
+        plugin_version: STARTER_PLUGIN_VERSION,
+        tool_name: STARTER_PLUGIN_HTML_EXTRACT_READABLE_TOOL_NAME,
+        input_schema_id: STARTER_PLUGIN_HTML_EXTRACT_READABLE_INPUT_SCHEMA_ID,
+        success_output_schema_id: STARTER_PLUGIN_HTML_EXTRACT_READABLE_OUTPUT_SCHEMA_ID,
+        refusal_schema_ids: EXTRACT_READABLE_REFUSAL_SCHEMA_IDS,
+        replay_class_id: "deterministic_replayable",
+        capability_class: StarterPluginCapabilityClass::LocalDeterministic,
+        capability_namespace_ids: NO_CAPABILITY_NAMESPACE_IDS,
+        negative_claim_ids: EXTRACT_READABLE_NEGATIVE_CLAIM_IDS,
+        mount_envelope_id: "mount.plugin.html.extract_readable.no_capabilities.v1",
+        manifest_id: "manifest.plugin.html.extract_readable.v1",
+        artifact_id: "artifact.plugin.html.extract_readable.v1",
+        runtime_bundle_id: "tassadar.post_article.plugin_html_extract_readable.runtime_bundle.v1",
+        runtime_bundle_ref: TASSADAR_POST_ARTICLE_PLUGIN_HTML_EXTRACT_READABLE_RUNTIME_BUNDLE_REF,
+        runtime_run_root_ref: TASSADAR_POST_ARTICLE_PLUGIN_HTML_EXTRACT_READABLE_RUN_ROOT_REF,
+        tool_description: "extract already-fetched HTML into bounded readable text, metadata, and harvested links without browser rendering, JavaScript, or full DOM claims.",
+        bridge_exposed: true,
+        catalog_exposed: true,
+        catalog: Some(StarterPluginCatalogRegistration {
+            catalog_entry_id: "plugin.html.extract_readable@v1",
+            trust_tier_id: "operator_curated_local_transform",
+            evidence_posture_id: "evidence.descriptor_fixture_receipt_bound.v1",
+            catalog_capability_namespace_ids: NO_CAPABILITY_NAMESPACE_IDS,
+            descriptor_ref: "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_html_extract_readable_descriptor.json",
+            fixture_bundle_ref: "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_html_extract_readable_fixture_bundle.json",
+            sample_mount_envelope_ref: "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_html_extract_readable_mount_envelope.json",
+            descriptor_detail: "the readable-html starter plugin stays local, deterministic, and packet-only while producing bounded readable text, metadata, and harvested links.",
+            capability_matrix_detail: "the readability extractor is a local deterministic transform over already-fetched content.",
+        }),
+    },
+    StarterPluginRegistration {
+        plugin_id: STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_ID,
+        plugin_version: STARTER_PLUGIN_VERSION,
+        tool_name: STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_TOOL_NAME,
+        input_schema_id: STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_INPUT_SCHEMA_ID,
+        success_output_schema_id: STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_OUTPUT_SCHEMA_ID,
+        refusal_schema_ids: FEED_PARSE_REFUSAL_SCHEMA_IDS,
+        replay_class_id: "deterministic_replayable",
+        capability_class: StarterPluginCapabilityClass::LocalDeterministic,
+        capability_namespace_ids: NO_CAPABILITY_NAMESPACE_IDS,
+        negative_claim_ids: FEED_PARSE_NEGATIVE_CLAIM_IDS,
+        mount_envelope_id: "mount.plugin.feed.rss_atom_parse.no_capabilities.v1",
+        manifest_id: "manifest.plugin.feed.rss_atom_parse.v1",
+        artifact_id: "artifact.plugin.feed.rss_atom_parse.v1",
+        runtime_bundle_id: "tassadar.post_article.plugin_feed_rss_atom_parse.runtime_bundle.v1",
+        runtime_bundle_ref: TASSADAR_POST_ARTICLE_PLUGIN_FEED_RSS_ATOM_PARSE_RUNTIME_BUNDLE_REF,
+        runtime_run_root_ref: TASSADAR_POST_ARTICLE_PLUGIN_FEED_RSS_ATOM_PARSE_RUN_ROOT_REF,
+        tool_description: "parse already-fetched RSS 2.0 or Atom 1.0 documents into bounded feed metadata and entry rows without network access or general XML claims.",
+        bridge_exposed: true,
+        catalog_exposed: true,
+        catalog: Some(StarterPluginCatalogRegistration {
+            catalog_entry_id: "plugin.feed.rss_atom_parse@v1",
+            trust_tier_id: "operator_curated_local_structured_ingest",
+            evidence_posture_id: "evidence.descriptor_fixture_receipt_bound.v1",
+            catalog_capability_namespace_ids: NO_CAPABILITY_NAMESPACE_IDS,
+            descriptor_ref: "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_feed_rss_atom_parse_descriptor.json",
+            fixture_bundle_ref: "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_feed_rss_atom_parse_fixture_bundle.json",
+            sample_mount_envelope_ref: "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_feed_rss_atom_parse_mount_envelope.json",
+            descriptor_detail: "the feed parser starter plugin stays local and deterministic over already-fetched RSS 2.0 and Atom 1.0 content.",
+            capability_matrix_detail: "the feed parser is a local deterministic structured-ingest transform over already-fetched content.",
+        }),
+    },
+];
+
+#[must_use]
+pub fn starter_plugin_registrations() -> &'static [StarterPluginRegistration] {
+    STARTER_PLUGIN_REGISTRATIONS
+}
+
+#[must_use]
+pub fn starter_plugin_registration_by_plugin_id(
+    plugin_id: &str,
+) -> Option<&'static StarterPluginRegistration> {
+    STARTER_PLUGIN_REGISTRATIONS
+        .iter()
+        .find(|registration| registration.plugin_id == plugin_id)
+}
+
+#[must_use]
+pub fn starter_plugin_registration_by_tool_name(
+    tool_name: &str,
+) -> Option<&'static StarterPluginRegistration> {
+    STARTER_PLUGIN_REGISTRATIONS
+        .iter()
+        .find(|registration| registration.tool_name == tool_name)
+}
+
+#[must_use]
+pub fn bridge_exposed_starter_plugin_registrations() -> Vec<&'static StarterPluginRegistration> {
+    STARTER_PLUGIN_REGISTRATIONS
+        .iter()
+        .filter(|registration| registration.bridge_exposed)
+        .collect()
+}
+
+#[must_use]
+pub fn catalog_exposed_starter_plugin_registrations() -> Vec<&'static StarterPluginRegistration> {
+    STARTER_PLUGIN_REGISTRATIONS
+        .iter()
+        .filter(|registration| registration.catalog_exposed)
+        .collect()
+}
+
+fn starter_plugin_registration(plugin_id: &str) -> &'static StarterPluginRegistration {
+    starter_plugin_registration_by_plugin_id(plugin_id)
+        .unwrap_or_else(|| panic!("missing starter-plugin registration for `{plugin_id}`"))
+}
+
+fn starter_plugin_tool_projection_from_registration(
+    registration: &StarterPluginRegistration,
+    arguments_schema: Value,
+) -> StarterPluginToolProjection {
+    StarterPluginToolProjection {
+        plugin_id: String::from(registration.plugin_id),
+        tool_name: String::from(registration.tool_name),
+        description: String::from(registration.tool_description),
+        arguments_schema,
+        result_schema_id: String::from(registration.success_output_schema_id),
+        refusal_schema_ids: registration
+            .refusal_schema_ids
+            .iter()
+            .map(|schema_id| String::from(*schema_id))
+            .collect(),
+        replay_class_id: String::from(registration.replay_class_id),
+    }
+}
+
+fn starter_plugin_string_ids(ids: &[&str]) -> Vec<String> {
+    ids.iter().map(|id| String::from(*id)).collect()
+}
+
+#[must_use]
+pub fn starter_plugin_tool_projection_for_plugin_id(
+    plugin_id: &str,
+) -> Option<StarterPluginToolProjection> {
+    match plugin_id {
+        STARTER_PLUGIN_TEXT_URL_EXTRACT_ID => Some(url_extract_tool_projection()),
+        STARTER_PLUGIN_TEXT_STATS_ID => Some(text_stats_tool_projection()),
+        STARTER_PLUGIN_HTTP_FETCH_TEXT_ID => Some(fetch_text_tool_projection()),
+        STARTER_PLUGIN_HTML_EXTRACT_READABLE_ID => Some(extract_readable_tool_projection()),
+        STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_ID => Some(feed_parse_tool_projection()),
+        _ => None,
+    }
+}
+
+#[must_use]
+pub fn starter_plugin_tool_projection_for_tool_name(
+    tool_name: &str,
+) -> Option<StarterPluginToolProjection> {
+    starter_plugin_registration_by_tool_name(tool_name).and_then(|registration| {
+        starter_plugin_tool_projection_for_plugin_id(registration.plugin_id)
+    })
+}
+
+fn starter_plugin_receipt_from_registration(
+    registration: &StarterPluginRegistration,
+    mount_envelope_id: &str,
+    replay_class_id: &str,
+    status: StarterPluginInvocationStatus,
+    input_packet_digest: String,
+    output_or_refusal_schema_id: &str,
+    output_or_refusal_digest: String,
+    refusal_class_id: Option<&str>,
+    detail: impl Into<String>,
+    digest_prefix: &[u8],
+) -> StarterPluginInvocationReceipt {
+    let detail = detail.into();
+    let mut receipt = StarterPluginInvocationReceipt {
+        receipt_id: format!(
+            "receipt.{}.{}.v1",
+            registration.plugin_id,
+            &input_packet_digest[..16]
+        ),
+        plugin_id: String::from(registration.plugin_id),
+        plugin_version: String::from(registration.plugin_version),
+        tool_name: String::from(registration.tool_name),
+        packet_abi_version: String::from(TASSADAR_POST_ARTICLE_PLUGIN_PACKET_ABI_VERSION),
+        mount_envelope_id: String::from(mount_envelope_id),
+        capability_namespace_ids: starter_plugin_string_ids(registration.capability_namespace_ids),
+        replay_class_id: String::from(replay_class_id),
+        status,
+        input_schema_id: String::from(registration.input_schema_id),
+        input_packet_digest,
+        output_or_refusal_schema_id: String::from(output_or_refusal_schema_id),
+        output_or_refusal_digest,
+        refusal_class_id: refusal_class_id.map(String::from),
+        detail,
+        receipt_digest: String::new(),
+    };
+    receipt.receipt_digest = stable_json_digest(digest_prefix, &receipt);
+    receipt
+}
+
 #[must_use]
 pub fn url_extract_tool_projection() -> StarterPluginToolProjection {
-    StarterPluginToolProjection {
-        plugin_id: String::from(STARTER_PLUGIN_TEXT_URL_EXTRACT_ID),
-        tool_name: String::from(STARTER_PLUGIN_TEXT_URL_EXTRACT_TOOL_NAME),
-        description: String::from(
-            "extract literal http:// and https:// strings from packet-local text without URL validation, DNS, or network reachability claims.",
-        ),
-        arguments_schema: json!({
+    starter_plugin_tool_projection_from_registration(
+        starter_plugin_registration(STARTER_PLUGIN_TEXT_URL_EXTRACT_ID),
+        json!({
             "type": "object",
             "additionalProperties": false,
             "required": ["text"],
@@ -621,15 +1011,7 @@ pub fn url_extract_tool_projection() -> StarterPluginToolProjection {
                 }
             }
         }),
-        result_schema_id: String::from(STARTER_PLUGIN_TEXT_URL_EXTRACT_OUTPUT_SCHEMA_ID),
-        refusal_schema_ids: vec![
-            String::from(STARTER_PLUGIN_REFUSAL_SCHEMA_INVALID_ID),
-            String::from(STARTER_PLUGIN_REFUSAL_PACKET_TOO_LARGE_ID),
-            String::from(STARTER_PLUGIN_REFUSAL_UNSUPPORTED_CODEC_ID),
-            String::from(STARTER_PLUGIN_REFUSAL_RUNTIME_RESOURCE_LIMIT_ID),
-        ],
-        replay_class_id: String::from("deterministic_replayable"),
-    }
+    )
 }
 
 #[must_use]
@@ -680,31 +1062,20 @@ pub fn invoke_url_extract_json_packet(
     };
     let response = UrlExtractResponse { urls };
     let output_or_refusal_digest = stable_json_digest(b"url_extract_response|", &response);
-    let mut receipt = StarterPluginInvocationReceipt {
-        receipt_id: format!(
-            "receipt.{}.{}.v1",
-            STARTER_PLUGIN_TEXT_URL_EXTRACT_ID,
-            &input_packet_digest[..16]
-        ),
-        plugin_id: String::from(STARTER_PLUGIN_TEXT_URL_EXTRACT_ID),
-        plugin_version: String::from(STARTER_PLUGIN_VERSION),
-        tool_name: String::from(STARTER_PLUGIN_TEXT_URL_EXTRACT_TOOL_NAME),
-        packet_abi_version: String::from(TASSADAR_POST_ARTICLE_PLUGIN_PACKET_ABI_VERSION),
-        mount_envelope_id: String::from("mount.plugin.text.url_extract.no_capabilities.v1"),
-        capability_namespace_ids: Vec::new(),
-        replay_class_id: String::from("deterministic_replayable"),
-        status: StarterPluginInvocationStatus::Success,
-        input_schema_id: String::from(STARTER_PLUGIN_TEXT_URL_EXTRACT_INPUT_SCHEMA_ID),
+    let receipt = starter_plugin_receipt_from_registration(
+        starter_plugin_registration(STARTER_PLUGIN_TEXT_URL_EXTRACT_ID),
+        starter_plugin_registration(STARTER_PLUGIN_TEXT_URL_EXTRACT_ID).mount_envelope_id,
+        starter_plugin_registration(STARTER_PLUGIN_TEXT_URL_EXTRACT_ID).replay_class_id,
+        StarterPluginInvocationStatus::Success,
         input_packet_digest,
-        output_or_refusal_schema_id: String::from(STARTER_PLUGIN_TEXT_URL_EXTRACT_OUTPUT_SCHEMA_ID),
+        STARTER_PLUGIN_TEXT_URL_EXTRACT_OUTPUT_SCHEMA_ID,
         output_or_refusal_digest,
-        refusal_class_id: None,
-        detail: String::from(
+        None,
+        String::from(
             "url extract keeps the legacy left-to-right https?://[^\\s]+ rule with duplicate preservation and no network semantics.",
         ),
-        receipt_digest: String::new(),
-    };
-    receipt.receipt_digest = stable_json_digest(b"url_extract_receipt|", &receipt);
+        b"url_extract_receipt|",
+    );
     UrlExtractInvocationOutcome {
         receipt,
         response: Some(response),
@@ -792,22 +1163,18 @@ pub fn build_url_extract_runtime_bundle() -> UrlExtractRuntimeBundle {
         ),
     ];
 
+    let registration = starter_plugin_registration(STARTER_PLUGIN_TEXT_URL_EXTRACT_ID);
     let mut bundle = UrlExtractRuntimeBundle {
         schema_version: 1,
-        bundle_id: String::from("tassadar.post_article.plugin_text_url_extract.runtime_bundle.v1"),
-        plugin_id: String::from(STARTER_PLUGIN_TEXT_URL_EXTRACT_ID),
-        plugin_version: String::from(STARTER_PLUGIN_VERSION),
-        manifest_id: String::from("manifest.plugin.text.url_extract.v1"),
-        artifact_id: String::from("artifact.plugin.text.url_extract.v1"),
+        bundle_id: String::from(registration.runtime_bundle_id),
+        plugin_id: String::from(registration.plugin_id),
+        plugin_version: String::from(registration.plugin_version),
+        manifest_id: String::from(registration.manifest_id),
+        artifact_id: String::from(registration.artifact_id),
         packet_abi_version: String::from(TASSADAR_POST_ARTICLE_PLUGIN_PACKET_ABI_VERSION),
-        mount_envelope_id: String::from("mount.plugin.text.url_extract.no_capabilities.v1"),
+        mount_envelope_id: String::from(registration.mount_envelope_id),
         tool_projection: url_extract_tool_projection(),
-        negative_claim_ids: vec![
-            String::from("url_validation_truth_not_claimed"),
-            String::from("dns_resolution_not_claimed"),
-            String::from("redirect_truth_not_claimed"),
-            String::from("network_reachability_not_claimed"),
-        ],
+        negative_claim_ids: starter_plugin_string_ids(registration.negative_claim_ids),
         case_rows,
         claim_boundary: String::from(
             "this runtime bundle closes one capability-free starter plugin that extracts literal http:// and https:// substrings from packet-local text under one deterministic regex rule. It does not claim URL validation, DNS truth, redirect truth, or any network semantics.",
@@ -872,13 +1239,9 @@ pub fn load_url_extract_runtime_bundle(
 
 #[must_use]
 pub fn text_stats_tool_projection() -> StarterPluginToolProjection {
-    StarterPluginToolProjection {
-        plugin_id: String::from(STARTER_PLUGIN_TEXT_STATS_ID),
-        tool_name: String::from(STARTER_PLUGIN_TEXT_STATS_TOOL_NAME),
-        description: String::from(
-            "count bytes, Unicode scalar values, lines, non-empty lines, and whitespace-delimited words from packet-local text without tokenizer, language, or semantic-structure claims.",
-        ),
-        arguments_schema: json!({
+    starter_plugin_tool_projection_from_registration(
+        starter_plugin_registration(STARTER_PLUGIN_TEXT_STATS_ID),
+        json!({
             "type": "object",
             "additionalProperties": false,
             "required": ["text"],
@@ -889,14 +1252,7 @@ pub fn text_stats_tool_projection() -> StarterPluginToolProjection {
                 }
             }
         }),
-        result_schema_id: String::from(STARTER_PLUGIN_TEXT_STATS_OUTPUT_SCHEMA_ID),
-        refusal_schema_ids: vec![
-            String::from(STARTER_PLUGIN_REFUSAL_SCHEMA_INVALID_ID),
-            String::from(STARTER_PLUGIN_REFUSAL_PACKET_TOO_LARGE_ID),
-            String::from(STARTER_PLUGIN_REFUSAL_UNSUPPORTED_CODEC_ID),
-        ],
-        replay_class_id: String::from("deterministic_replayable"),
-    }
+    )
 }
 
 #[must_use]
@@ -936,31 +1292,21 @@ pub fn invoke_text_stats_json_packet(
 
     let response = text_stats_response(&request.text);
     let output_or_refusal_digest = stable_json_digest(b"text_stats_response|", &response);
-    let mut receipt = StarterPluginInvocationReceipt {
-        receipt_id: format!(
-            "receipt.{}.{}.v1",
-            STARTER_PLUGIN_TEXT_STATS_ID,
-            &input_packet_digest[..16]
-        ),
-        plugin_id: String::from(STARTER_PLUGIN_TEXT_STATS_ID),
-        plugin_version: String::from(STARTER_PLUGIN_VERSION),
-        tool_name: String::from(STARTER_PLUGIN_TEXT_STATS_TOOL_NAME),
-        packet_abi_version: String::from(TASSADAR_POST_ARTICLE_PLUGIN_PACKET_ABI_VERSION),
-        mount_envelope_id: String::from("mount.plugin.text.stats.no_capabilities.v1"),
-        capability_namespace_ids: Vec::new(),
-        replay_class_id: String::from("deterministic_replayable"),
-        status: StarterPluginInvocationStatus::Success,
-        input_schema_id: String::from(STARTER_PLUGIN_TEXT_STATS_INPUT_SCHEMA_ID),
+    let registration = starter_plugin_registration(STARTER_PLUGIN_TEXT_STATS_ID);
+    let receipt = starter_plugin_receipt_from_registration(
+        registration,
+        registration.mount_envelope_id,
+        registration.replay_class_id,
+        StarterPluginInvocationStatus::Success,
         input_packet_digest,
-        output_or_refusal_schema_id: String::from(STARTER_PLUGIN_TEXT_STATS_OUTPUT_SCHEMA_ID),
+        STARTER_PLUGIN_TEXT_STATS_OUTPUT_SCHEMA_ID,
         output_or_refusal_digest,
-        refusal_class_id: None,
-        detail: String::from(
+        None,
+        String::from(
             "text-stats keeps byte, scalar, line, and whitespace-delimited word counts explicit and packet-local instead of borrowing tokenizer or semantic structure claims.",
         ),
-        receipt_digest: String::new(),
-    };
-    receipt.receipt_digest = stable_json_digest(b"text_stats_receipt|", &receipt);
+        b"text_stats_receipt|",
+    );
     TextStatsInvocationOutcome {
         receipt,
         response: Some(response),
@@ -1026,22 +1372,18 @@ pub fn build_text_stats_runtime_bundle() -> TextStatsRuntimeBundle {
         ),
     ];
 
+    let registration = starter_plugin_registration(STARTER_PLUGIN_TEXT_STATS_ID);
     let mut bundle = TextStatsRuntimeBundle {
         schema_version: 1,
-        bundle_id: String::from("tassadar.post_article.plugin_text_stats.runtime_bundle.v1"),
-        plugin_id: String::from(STARTER_PLUGIN_TEXT_STATS_ID),
-        plugin_version: String::from(STARTER_PLUGIN_VERSION),
-        manifest_id: String::from("manifest.plugin.text.stats.v1"),
-        artifact_id: String::from("artifact.plugin.text.stats.v1"),
+        bundle_id: String::from(registration.runtime_bundle_id),
+        plugin_id: String::from(registration.plugin_id),
+        plugin_version: String::from(registration.plugin_version),
+        manifest_id: String::from(registration.manifest_id),
+        artifact_id: String::from(registration.artifact_id),
         packet_abi_version: String::from(TASSADAR_POST_ARTICLE_PLUGIN_PACKET_ABI_VERSION),
-        mount_envelope_id: String::from("mount.plugin.text.stats.no_capabilities.v1"),
+        mount_envelope_id: String::from(registration.mount_envelope_id),
         tool_projection: text_stats_tool_projection(),
-        negative_claim_ids: vec![
-            String::from("tokenizer_truth_not_claimed"),
-            String::from("language_detection_not_claimed"),
-            String::from("sentence_boundary_truth_not_claimed"),
-            String::from("semantic_structure_not_claimed"),
-        ],
+        negative_claim_ids: starter_plugin_string_ids(registration.negative_claim_ids),
         case_rows,
         claim_boundary: String::from(
             "this runtime bundle closes one capability-free starter plugin that counts bytes, Unicode scalar values, lines, non-empty lines, and whitespace-delimited words from packet-local text. It does not claim tokenizer truth, language detection, sentence-boundary truth, or semantic structure.",
@@ -1126,13 +1468,9 @@ impl FetchTextConfig {
 
 #[must_use]
 pub fn fetch_text_tool_projection() -> StarterPluginToolProjection {
-    StarterPluginToolProjection {
-        plugin_id: String::from(STARTER_PLUGIN_HTTP_FETCH_TEXT_ID),
-        tool_name: String::from(STARTER_PLUGIN_HTTP_FETCH_TEXT_TOOL_NAME),
-        description: String::from(
-            "fetch allowlisted text content through a host-mediated read-only HTTP mount without browser execution, cookies, auth sessions, or unrestricted network access.",
-        ),
-        arguments_schema: json!({
+    starter_plugin_tool_projection_from_registration(
+        starter_plugin_registration(STARTER_PLUGIN_HTTP_FETCH_TEXT_ID),
+        json!({
             "type": "object",
             "additionalProperties": false,
             "required": ["url"],
@@ -1143,20 +1481,7 @@ pub fn fetch_text_tool_projection() -> StarterPluginToolProjection {
                 }
             }
         }),
-        result_schema_id: String::from(STARTER_PLUGIN_HTTP_FETCH_TEXT_OUTPUT_SCHEMA_ID),
-        refusal_schema_ids: vec![
-            String::from(STARTER_PLUGIN_REFUSAL_SCHEMA_INVALID_ID),
-            String::from(STARTER_PLUGIN_REFUSAL_UNSUPPORTED_CODEC_ID),
-            String::from(STARTER_PLUGIN_REFUSAL_NETWORK_DENIED_ID),
-            String::from(STARTER_PLUGIN_REFUSAL_URL_NOT_PERMITTED_ID),
-            String::from(STARTER_PLUGIN_REFUSAL_TIMEOUT_ID),
-            String::from(STARTER_PLUGIN_REFUSAL_RESPONSE_TOO_LARGE_ID),
-            String::from(STARTER_PLUGIN_REFUSAL_CONTENT_TYPE_UNSUPPORTED_ID),
-            String::from(STARTER_PLUGIN_REFUSAL_DECODE_FAILED_ID),
-            String::from(STARTER_PLUGIN_REFUSAL_UPSTREAM_FAILURE_ID),
-        ],
-        replay_class_id: String::from("replayable_with_snapshots"),
-    }
+    )
 }
 
 pub fn invoke_fetch_text_json_packet(
@@ -1219,31 +1544,20 @@ pub fn invoke_fetch_text_json_packet(
     match result {
         Ok(response) => {
             let output_or_refusal_digest = stable_json_digest(b"fetch_text_response|", &response);
-            let mut receipt = StarterPluginInvocationReceipt {
-                receipt_id: format!(
-                    "receipt.{}.{}.v1",
-                    STARTER_PLUGIN_HTTP_FETCH_TEXT_ID,
-                    &input_packet_digest[..16]
-                ),
-                plugin_id: String::from(STARTER_PLUGIN_HTTP_FETCH_TEXT_ID),
-                plugin_version: String::from(STARTER_PLUGIN_VERSION),
-                tool_name: String::from(STARTER_PLUGIN_HTTP_FETCH_TEXT_TOOL_NAME),
-                packet_abi_version: String::from(TASSADAR_POST_ARTICLE_PLUGIN_PACKET_ABI_VERSION),
-                mount_envelope_id: config.mount_envelope.envelope_id.clone(),
-                capability_namespace_ids: vec![String::from("capability.http.read_only.v1")],
-                replay_class_id: String::from(replay_class_id(config)),
-                status: StarterPluginInvocationStatus::Success,
-                input_schema_id: String::from(STARTER_PLUGIN_HTTP_FETCH_TEXT_INPUT_SCHEMA_ID),
+            let receipt = starter_plugin_receipt_from_registration(
+                starter_plugin_registration(STARTER_PLUGIN_HTTP_FETCH_TEXT_ID),
+                &config.mount_envelope.envelope_id,
+                replay_class_id(config),
+                StarterPluginInvocationStatus::Success,
                 input_packet_digest,
-                output_or_refusal_schema_id: String::from(STARTER_PLUGIN_HTTP_FETCH_TEXT_OUTPUT_SCHEMA_ID),
+                STARTER_PLUGIN_HTTP_FETCH_TEXT_OUTPUT_SCHEMA_ID,
                 output_or_refusal_digest,
-                refusal_class_id: None,
-                detail: String::from(
+                None,
+                String::from(
                     "fetch-text keeps GET-only host-mediated access explicit and returns structured text-fetch truth without browser semantics.",
                 ),
-                receipt_digest: String::new(),
-            };
-            receipt.receipt_digest = stable_json_digest(b"fetch_text_receipt|", &receipt);
+                b"fetch_text_receipt|",
+            );
             FetchTextInvocationOutcome {
                 receipt,
                 backend_id: String::from(backend_id(config)),
@@ -1455,13 +1769,14 @@ pub fn build_fetch_text_runtime_bundle() -> FetchTextRuntimeBundle {
         ),
     ];
 
+    let registration = starter_plugin_registration(STARTER_PLUGIN_HTTP_FETCH_TEXT_ID);
     let mut bundle = FetchTextRuntimeBundle {
         schema_version: 1,
-        bundle_id: String::from("tassadar.post_article.plugin_http_fetch_text.runtime_bundle.v1"),
-        plugin_id: String::from(STARTER_PLUGIN_HTTP_FETCH_TEXT_ID),
-        plugin_version: String::from(STARTER_PLUGIN_VERSION),
-        manifest_id: String::from("manifest.plugin.http.fetch_text.v1"),
-        artifact_id: String::from("artifact.plugin.http.fetch_text.v1"),
+        bundle_id: String::from(registration.runtime_bundle_id),
+        plugin_id: String::from(registration.plugin_id),
+        plugin_version: String::from(registration.plugin_version),
+        manifest_id: String::from(registration.manifest_id),
+        artifact_id: String::from(registration.artifact_id),
         packet_abi_version: String::from(TASSADAR_POST_ARTICLE_PLUGIN_PACKET_ABI_VERSION),
         sample_mount_envelope: snapshot_config.mount_envelope.clone(),
         tool_projection: fetch_text_tool_projection(),
@@ -1469,13 +1784,7 @@ pub fn build_fetch_text_runtime_bundle() -> FetchTextRuntimeBundle {
             String::from("replayable_with_snapshots"),
             String::from("operator_replay_only"),
         ],
-        negative_claim_ids: vec![
-            String::from("browser_execution_not_claimed"),
-            String::from("javascript_execution_not_claimed"),
-            String::from("cookie_or_auth_session_not_claimed"),
-            String::from("arbitrary_headers_not_claimed"),
-            String::from("general_unrestricted_web_access_not_claimed"),
-        ],
+        negative_claim_ids: starter_plugin_string_ids(registration.negative_claim_ids),
         case_rows,
         claim_boundary: String::from(
             "this runtime bundle closes one read-only network starter plugin that fetches allowlisted text content through a host-mediated HTTP mount. It does not claim browser execution, JavaScript, cookies, auth sessions, arbitrary headers, or unrestricted network access.",
@@ -1540,13 +1849,9 @@ pub fn load_fetch_text_runtime_bundle(
 
 #[must_use]
 pub fn extract_readable_tool_projection() -> StarterPluginToolProjection {
-    StarterPluginToolProjection {
-        plugin_id: String::from(STARTER_PLUGIN_HTML_EXTRACT_READABLE_ID),
-        tool_name: String::from(STARTER_PLUGIN_HTML_EXTRACT_READABLE_TOOL_NAME),
-        description: String::from(
-            "extract bounded readable text, metadata, and harvested links from already-fetched HTML without browser rendering or network access.",
-        ),
-        arguments_schema: json!({
+    starter_plugin_tool_projection_from_registration(
+        starter_plugin_registration(STARTER_PLUGIN_HTML_EXTRACT_READABLE_ID),
+        json!({
             "type": "object",
             "additionalProperties": false,
             "required": ["source_url", "content_type", "body_text"],
@@ -1556,15 +1861,7 @@ pub fn extract_readable_tool_projection() -> StarterPluginToolProjection {
                 "body_text": { "type": "string" }
             }
         }),
-        result_schema_id: String::from(STARTER_PLUGIN_HTML_EXTRACT_READABLE_OUTPUT_SCHEMA_ID),
-        refusal_schema_ids: vec![
-            String::from(STARTER_PLUGIN_REFUSAL_SCHEMA_INVALID_ID),
-            String::from(STARTER_PLUGIN_REFUSAL_UNSUPPORTED_CODEC_ID),
-            String::from(STARTER_PLUGIN_REFUSAL_INPUT_TOO_LARGE_ID),
-            String::from(STARTER_PLUGIN_REFUSAL_CONTENT_TYPE_UNSUPPORTED_ID),
-        ],
-        replay_class_id: String::from("deterministic_replayable"),
-    }
+    )
 }
 
 #[must_use]
@@ -1645,33 +1942,21 @@ pub fn invoke_extract_readable_json_packet(
         content_language,
     };
     let output_or_refusal_digest = stable_json_digest(b"extract_readable_response|", &response);
-    let mut receipt = StarterPluginInvocationReceipt {
-        receipt_id: format!(
-            "receipt.{}.{}.v1",
-            STARTER_PLUGIN_HTML_EXTRACT_READABLE_ID,
-            &input_packet_digest[..16]
-        ),
-        plugin_id: String::from(STARTER_PLUGIN_HTML_EXTRACT_READABLE_ID),
-        plugin_version: String::from(STARTER_PLUGIN_VERSION),
-        tool_name: String::from(STARTER_PLUGIN_HTML_EXTRACT_READABLE_TOOL_NAME),
-        packet_abi_version: String::from(TASSADAR_POST_ARTICLE_PLUGIN_PACKET_ABI_VERSION),
-        mount_envelope_id: String::from("mount.plugin.html.extract_readable.no_capabilities.v1"),
-        capability_namespace_ids: Vec::new(),
-        replay_class_id: String::from("deterministic_replayable"),
-        status: StarterPluginInvocationStatus::Success,
-        input_schema_id: String::from(STARTER_PLUGIN_HTML_EXTRACT_READABLE_INPUT_SCHEMA_ID),
+    let registration = starter_plugin_registration(STARTER_PLUGIN_HTML_EXTRACT_READABLE_ID);
+    let receipt = starter_plugin_receipt_from_registration(
+        registration,
+        registration.mount_envelope_id,
+        registration.replay_class_id,
+        StarterPluginInvocationStatus::Success,
         input_packet_digest,
-        output_or_refusal_schema_id: String::from(
-            STARTER_PLUGIN_HTML_EXTRACT_READABLE_OUTPUT_SCHEMA_ID,
-        ),
+        STARTER_PLUGIN_HTML_EXTRACT_READABLE_OUTPUT_SCHEMA_ID,
         output_or_refusal_digest,
-        refusal_class_id: None,
-        detail: String::from(
+        None,
+        String::from(
             "extract-readable keeps bounded readability rules explicit and local instead of hiding them in host glue or browser state.",
         ),
-        receipt_digest: String::new(),
-    };
-    receipt.receipt_digest = stable_json_digest(b"extract_readable_receipt|", &receipt);
+        b"extract_readable_receipt|",
+    );
     ExtractReadableInvocationOutcome {
         receipt,
         response: Some(response),
@@ -1817,24 +2102,18 @@ pub fn build_extract_readable_runtime_bundle() -> ExtractReadableRuntimeBundle {
         ),
     };
 
+    let registration = starter_plugin_registration(STARTER_PLUGIN_HTML_EXTRACT_READABLE_ID);
     let mut bundle = ExtractReadableRuntimeBundle {
         schema_version: 1,
-        bundle_id: String::from(
-            "tassadar.post_article.plugin_html_extract_readable.runtime_bundle.v1",
-        ),
-        plugin_id: String::from(STARTER_PLUGIN_HTML_EXTRACT_READABLE_ID),
-        plugin_version: String::from(STARTER_PLUGIN_VERSION),
-        manifest_id: String::from("manifest.plugin.html.extract_readable.v1"),
-        artifact_id: String::from("artifact.plugin.html.extract_readable.v1"),
+        bundle_id: String::from(registration.runtime_bundle_id),
+        plugin_id: String::from(registration.plugin_id),
+        plugin_version: String::from(registration.plugin_version),
+        manifest_id: String::from(registration.manifest_id),
+        artifact_id: String::from(registration.artifact_id),
         packet_abi_version: String::from(TASSADAR_POST_ARTICLE_PLUGIN_PACKET_ABI_VERSION),
-        mount_envelope_id: String::from("mount.plugin.html.extract_readable.no_capabilities.v1"),
+        mount_envelope_id: String::from(registration.mount_envelope_id),
         tool_projection: extract_readable_tool_projection(),
-        negative_claim_ids: vec![
-            String::from("browser_rendering_not_claimed"),
-            String::from("javascript_evaluation_not_claimed"),
-            String::from("css_layout_truth_not_claimed"),
-            String::from("full_dom_semantics_not_claimed"),
-        ],
+        negative_claim_ids: starter_plugin_string_ids(registration.negative_claim_ids),
         case_rows,
         composition_case,
         claim_boundary: String::from(
@@ -1885,13 +2164,9 @@ pub fn load_extract_readable_runtime_bundle(
 
 #[must_use]
 pub fn feed_parse_tool_projection() -> StarterPluginToolProjection {
-    StarterPluginToolProjection {
-        plugin_id: String::from(STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_ID),
-        tool_name: String::from(STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_TOOL_NAME),
-        description: String::from(
-            "parse already-fetched RSS 2.0 or Atom 1.0 documents into bounded feed metadata and entry rows without network access or general XML claims.",
-        ),
-        arguments_schema: json!({
+    starter_plugin_tool_projection_from_registration(
+        starter_plugin_registration(STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_ID),
+        json!({
             "type": "object",
             "additionalProperties": false,
             "required": ["source_url", "content_type", "feed_text"],
@@ -1901,14 +2176,7 @@ pub fn feed_parse_tool_projection() -> StarterPluginToolProjection {
                 "feed_text": { "type": "string" }
             }
         }),
-        result_schema_id: String::from(STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_OUTPUT_SCHEMA_ID),
-        refusal_schema_ids: vec![
-            String::from(STARTER_PLUGIN_REFUSAL_SCHEMA_INVALID_ID),
-            String::from(STARTER_PLUGIN_REFUSAL_INPUT_TOO_LARGE_ID),
-            String::from(STARTER_PLUGIN_REFUSAL_UNSUPPORTED_FEED_FORMAT_ID),
-        ],
-        replay_class_id: String::from("deterministic_replayable"),
-    }
+    )
 }
 
 #[must_use]
@@ -1968,31 +2236,21 @@ pub fn invoke_feed_parse_json_packet(
         }
     };
     let output_or_refusal_digest = stable_json_digest(b"feed_parse_response|", &response);
-    let mut receipt = StarterPluginInvocationReceipt {
-        receipt_id: format!(
-            "receipt.{}.{}.v1",
-            STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_ID,
-            &input_packet_digest[..16]
-        ),
-        plugin_id: String::from(STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_ID),
-        plugin_version: String::from(STARTER_PLUGIN_VERSION),
-        tool_name: String::from(STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_TOOL_NAME),
-        packet_abi_version: String::from(TASSADAR_POST_ARTICLE_PLUGIN_PACKET_ABI_VERSION),
-        mount_envelope_id: String::from("mount.plugin.feed.rss_atom_parse.no_capabilities.v1"),
-        capability_namespace_ids: Vec::new(),
-        replay_class_id: String::from("deterministic_replayable"),
-        status: StarterPluginInvocationStatus::Success,
-        input_schema_id: String::from(STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_INPUT_SCHEMA_ID),
+    let registration = starter_plugin_registration(STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_ID);
+    let receipt = starter_plugin_receipt_from_registration(
+        registration,
+        registration.mount_envelope_id,
+        registration.replay_class_id,
+        StarterPluginInvocationStatus::Success,
         input_packet_digest,
-        output_or_refusal_schema_id: String::from(STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_OUTPUT_SCHEMA_ID),
+        STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_OUTPUT_SCHEMA_ID,
         output_or_refusal_digest,
-        refusal_class_id: None,
-        detail: String::from(
+        None,
+        String::from(
             "feed-parse keeps RSS 2.0 and Atom 1.0 normalization explicit and local instead of hiding broader XML interpretation in host glue.",
         ),
-        receipt_digest: String::new(),
-    };
-    receipt.receipt_digest = stable_json_digest(b"feed_parse_receipt|", &receipt);
+        b"feed_parse_receipt|",
+    );
     FeedParseInvocationOutcome {
         receipt,
         response: Some(response),
@@ -2127,23 +2385,18 @@ pub fn build_feed_parse_runtime_bundle() -> FeedParseRuntimeBundle {
         ),
     };
 
+    let registration = starter_plugin_registration(STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_ID);
     let mut bundle = FeedParseRuntimeBundle {
         schema_version: 1,
-        bundle_id: String::from(
-            "tassadar.post_article.plugin_feed_rss_atom_parse.runtime_bundle.v1",
-        ),
-        plugin_id: String::from(STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_ID),
-        plugin_version: String::from(STARTER_PLUGIN_VERSION),
-        manifest_id: String::from("manifest.plugin.feed.rss_atom_parse.v1"),
-        artifact_id: String::from("artifact.plugin.feed.rss_atom_parse.v1"),
+        bundle_id: String::from(registration.runtime_bundle_id),
+        plugin_id: String::from(registration.plugin_id),
+        plugin_version: String::from(registration.plugin_version),
+        manifest_id: String::from(registration.manifest_id),
+        artifact_id: String::from(registration.artifact_id),
         packet_abi_version: String::from(TASSADAR_POST_ARTICLE_PLUGIN_PACKET_ABI_VERSION),
-        mount_envelope_id: String::from("mount.plugin.feed.rss_atom_parse.no_capabilities.v1"),
+        mount_envelope_id: String::from(registration.mount_envelope_id),
         tool_projection: feed_parse_tool_projection(),
-        negative_claim_ids: vec![
-            String::from("arbitrary_xml_support_not_claimed"),
-            String::from("opml_support_not_claimed"),
-            String::from("general_document_parsing_not_claimed"),
-        ],
+        negative_claim_ids: starter_plugin_string_ids(registration.negative_claim_ids),
         case_rows,
         composition_case,
         claim_boundary: String::from(
@@ -2204,29 +2457,19 @@ fn url_extract_refusal_outcome(
         detail: detail.into(),
     };
     let output_or_refusal_digest = stable_json_digest(b"url_extract_refusal|", &refusal);
-    let mut receipt = StarterPluginInvocationReceipt {
-        receipt_id: format!(
-            "receipt.{}.{}.v1",
-            STARTER_PLUGIN_TEXT_URL_EXTRACT_ID,
-            &input_packet_digest[..16]
-        ),
-        plugin_id: String::from(STARTER_PLUGIN_TEXT_URL_EXTRACT_ID),
-        plugin_version: String::from(STARTER_PLUGIN_VERSION),
-        tool_name: String::from(STARTER_PLUGIN_TEXT_URL_EXTRACT_TOOL_NAME),
-        packet_abi_version: String::from(TASSADAR_POST_ARTICLE_PLUGIN_PACKET_ABI_VERSION),
-        mount_envelope_id: String::from("mount.plugin.text.url_extract.no_capabilities.v1"),
-        capability_namespace_ids: Vec::new(),
-        replay_class_id: String::from("deterministic_replayable"),
-        status: StarterPluginInvocationStatus::Refusal,
-        input_schema_id: String::from(STARTER_PLUGIN_TEXT_URL_EXTRACT_INPUT_SCHEMA_ID),
-        input_packet_digest: String::from(input_packet_digest),
-        output_or_refusal_schema_id: String::from(schema_id),
+    let registration = starter_plugin_registration(STARTER_PLUGIN_TEXT_URL_EXTRACT_ID);
+    let receipt = starter_plugin_receipt_from_registration(
+        registration,
+        registration.mount_envelope_id,
+        registration.replay_class_id,
+        StarterPluginInvocationStatus::Refusal,
+        String::from(input_packet_digest),
+        schema_id,
         output_or_refusal_digest,
-        refusal_class_id: Some(String::from(refusal_class_id)),
-        detail: refusal.detail.clone(),
-        receipt_digest: String::new(),
-    };
-    receipt.receipt_digest = stable_json_digest(b"url_extract_receipt|", &receipt);
+        Some(refusal_class_id),
+        refusal.detail.clone(),
+        b"url_extract_receipt|",
+    );
     UrlExtractInvocationOutcome {
         receipt,
         response: None,
@@ -2288,29 +2531,19 @@ fn text_stats_refusal_outcome(
         detail: detail.into(),
     };
     let output_or_refusal_digest = stable_json_digest(b"text_stats_refusal|", &refusal);
-    let mut receipt = StarterPluginInvocationReceipt {
-        receipt_id: format!(
-            "receipt.{}.{}.v1",
-            STARTER_PLUGIN_TEXT_STATS_ID,
-            &input_packet_digest[..16]
-        ),
-        plugin_id: String::from(STARTER_PLUGIN_TEXT_STATS_ID),
-        plugin_version: String::from(STARTER_PLUGIN_VERSION),
-        tool_name: String::from(STARTER_PLUGIN_TEXT_STATS_TOOL_NAME),
-        packet_abi_version: String::from(TASSADAR_POST_ARTICLE_PLUGIN_PACKET_ABI_VERSION),
-        mount_envelope_id: String::from("mount.plugin.text.stats.no_capabilities.v1"),
-        capability_namespace_ids: Vec::new(),
-        replay_class_id: String::from("deterministic_replayable"),
-        status: StarterPluginInvocationStatus::Refusal,
-        input_schema_id: String::from(STARTER_PLUGIN_TEXT_STATS_INPUT_SCHEMA_ID),
-        input_packet_digest: String::from(input_packet_digest),
-        output_or_refusal_schema_id: String::from(schema_id),
+    let registration = starter_plugin_registration(STARTER_PLUGIN_TEXT_STATS_ID);
+    let receipt = starter_plugin_receipt_from_registration(
+        registration,
+        registration.mount_envelope_id,
+        registration.replay_class_id,
+        StarterPluginInvocationStatus::Refusal,
+        String::from(input_packet_digest),
+        schema_id,
         output_or_refusal_digest,
-        refusal_class_id: Some(String::from(refusal_class_id)),
-        detail: refusal.detail.clone(),
-        receipt_digest: String::new(),
-    };
-    receipt.receipt_digest = stable_json_digest(b"text_stats_receipt|", &receipt);
+        Some(refusal_class_id),
+        refusal.detail.clone(),
+        b"text_stats_receipt|",
+    );
     TextStatsInvocationOutcome {
         receipt,
         response: None,
@@ -2576,29 +2809,18 @@ fn fetch_text_refusal_outcome(
         detail: detail.into(),
     };
     let output_or_refusal_digest = stable_json_digest(b"fetch_text_refusal|", &refusal);
-    let mut receipt = StarterPluginInvocationReceipt {
-        receipt_id: format!(
-            "receipt.{}.{}.v1",
-            STARTER_PLUGIN_HTTP_FETCH_TEXT_ID,
-            &input_packet_digest[..16]
-        ),
-        plugin_id: String::from(STARTER_PLUGIN_HTTP_FETCH_TEXT_ID),
-        plugin_version: String::from(STARTER_PLUGIN_VERSION),
-        tool_name: String::from(STARTER_PLUGIN_HTTP_FETCH_TEXT_TOOL_NAME),
-        packet_abi_version: String::from(TASSADAR_POST_ARTICLE_PLUGIN_PACKET_ABI_VERSION),
-        mount_envelope_id: String::from("mount.plugin.http.fetch_text.read_only_http_allowlist.v1"),
-        capability_namespace_ids: vec![String::from("capability.http.read_only.v1")],
-        replay_class_id: String::from(replay_class_id),
-        status: StarterPluginInvocationStatus::Refusal,
-        input_schema_id: String::from(STARTER_PLUGIN_HTTP_FETCH_TEXT_INPUT_SCHEMA_ID),
-        input_packet_digest: String::from(input_packet_digest),
-        output_or_refusal_schema_id: String::from(schema_id),
+    let receipt = starter_plugin_receipt_from_registration(
+        starter_plugin_registration(STARTER_PLUGIN_HTTP_FETCH_TEXT_ID),
+        "mount.plugin.http.fetch_text.read_only_http_allowlist.v1",
+        replay_class_id,
+        StarterPluginInvocationStatus::Refusal,
+        String::from(input_packet_digest),
+        schema_id,
         output_or_refusal_digest,
-        refusal_class_id: Some(String::from(refusal_class_id)),
-        detail: refusal.detail.clone(),
-        receipt_digest: String::new(),
-    };
-    receipt.receipt_digest = stable_json_digest(b"fetch_text_receipt|", &receipt);
+        Some(refusal_class_id),
+        refusal.detail.clone(),
+        b"fetch_text_receipt|",
+    );
     FetchTextInvocationOutcome {
         receipt,
         backend_id: String::from(backend_id),
@@ -2776,29 +2998,19 @@ fn extract_readable_refusal_outcome(
         detail: detail.into(),
     };
     let output_or_refusal_digest = stable_json_digest(b"extract_readable_refusal|", &refusal);
-    let mut receipt = StarterPluginInvocationReceipt {
-        receipt_id: format!(
-            "receipt.{}.{}.v1",
-            STARTER_PLUGIN_HTML_EXTRACT_READABLE_ID,
-            &input_packet_digest[..16]
-        ),
-        plugin_id: String::from(STARTER_PLUGIN_HTML_EXTRACT_READABLE_ID),
-        plugin_version: String::from(STARTER_PLUGIN_VERSION),
-        tool_name: String::from(STARTER_PLUGIN_HTML_EXTRACT_READABLE_TOOL_NAME),
-        packet_abi_version: String::from(TASSADAR_POST_ARTICLE_PLUGIN_PACKET_ABI_VERSION),
-        mount_envelope_id: String::from("mount.plugin.html.extract_readable.no_capabilities.v1"),
-        capability_namespace_ids: Vec::new(),
-        replay_class_id: String::from("deterministic_replayable"),
-        status: StarterPluginInvocationStatus::Refusal,
-        input_schema_id: String::from(STARTER_PLUGIN_HTML_EXTRACT_READABLE_INPUT_SCHEMA_ID),
-        input_packet_digest: String::from(input_packet_digest),
-        output_or_refusal_schema_id: String::from(schema_id),
+    let registration = starter_plugin_registration(STARTER_PLUGIN_HTML_EXTRACT_READABLE_ID);
+    let receipt = starter_plugin_receipt_from_registration(
+        registration,
+        registration.mount_envelope_id,
+        registration.replay_class_id,
+        StarterPluginInvocationStatus::Refusal,
+        String::from(input_packet_digest),
+        schema_id,
         output_or_refusal_digest,
-        refusal_class_id: Some(String::from(refusal_class_id)),
-        detail: refusal.detail.clone(),
-        receipt_digest: String::new(),
-    };
-    receipt.receipt_digest = stable_json_digest(b"extract_readable_receipt|", &receipt);
+        Some(refusal_class_id),
+        refusal.detail.clone(),
+        b"extract_readable_receipt|",
+    );
     ExtractReadableInvocationOutcome {
         receipt,
         response: None,
@@ -2840,29 +3052,19 @@ fn feed_parse_refusal_outcome(
         detail: detail.into(),
     };
     let output_or_refusal_digest = stable_json_digest(b"feed_parse_refusal|", &refusal);
-    let mut receipt = StarterPluginInvocationReceipt {
-        receipt_id: format!(
-            "receipt.{}.{}.v1",
-            STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_ID,
-            &input_packet_digest[..16]
-        ),
-        plugin_id: String::from(STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_ID),
-        plugin_version: String::from(STARTER_PLUGIN_VERSION),
-        tool_name: String::from(STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_TOOL_NAME),
-        packet_abi_version: String::from(TASSADAR_POST_ARTICLE_PLUGIN_PACKET_ABI_VERSION),
-        mount_envelope_id: String::from("mount.plugin.feed.rss_atom_parse.no_capabilities.v1"),
-        capability_namespace_ids: Vec::new(),
-        replay_class_id: String::from("deterministic_replayable"),
-        status: StarterPluginInvocationStatus::Refusal,
-        input_schema_id: String::from(STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_INPUT_SCHEMA_ID),
-        input_packet_digest: String::from(input_packet_digest),
-        output_or_refusal_schema_id: String::from(schema_id),
+    let registration = starter_plugin_registration(STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_ID);
+    let receipt = starter_plugin_receipt_from_registration(
+        registration,
+        registration.mount_envelope_id,
+        registration.replay_class_id,
+        StarterPluginInvocationStatus::Refusal,
+        String::from(input_packet_digest),
+        schema_id,
         output_or_refusal_digest,
-        refusal_class_id: Some(String::from(refusal_class_id)),
-        detail: refusal.detail.clone(),
-        receipt_digest: String::new(),
-    };
-    receipt.receipt_digest = stable_json_digest(b"feed_parse_receipt|", &receipt);
+        Some(refusal_class_id),
+        refusal.detail.clone(),
+        b"feed_parse_receipt|",
+    );
     FeedParseInvocationOutcome {
         receipt,
         response: None,
@@ -3161,11 +3363,13 @@ fn read_json<T: for<'de> Deserialize<'de>>(
 #[cfg(test)]
 mod tests {
     use super::{
-        build_extract_readable_runtime_bundle, build_feed_parse_runtime_bundle,
-        build_fetch_text_runtime_bundle, build_text_stats_runtime_bundle,
-        build_url_extract_runtime_bundle, invoke_extract_readable_json_packet,
+        bridge_exposed_starter_plugin_registrations, build_extract_readable_runtime_bundle,
+        build_feed_parse_runtime_bundle, build_fetch_text_runtime_bundle,
+        build_text_stats_runtime_bundle, build_url_extract_runtime_bundle,
+        catalog_exposed_starter_plugin_registrations, invoke_extract_readable_json_packet,
         invoke_feed_parse_json_packet, invoke_fetch_text_json_packet,
         invoke_text_stats_json_packet, invoke_url_extract_json_packet,
+        starter_plugin_registration_by_plugin_id, starter_plugin_registrations,
         tassadar_post_article_plugin_feed_rss_atom_parse_runtime_bundle_path,
         tassadar_post_article_plugin_html_extract_readable_runtime_bundle_path,
         tassadar_post_article_plugin_http_fetch_text_runtime_bundle_path,
@@ -3192,6 +3396,19 @@ mod tests {
         STARTER_PLUGIN_TEXT_URL_EXTRACT_OUTPUT_SCHEMA_ID,
     };
     use tempfile::tempdir;
+
+    #[test]
+    fn starter_plugin_registry_keeps_hidden_user_plugin_out_of_bridge_and_catalog() {
+        let registration = starter_plugin_registration_by_plugin_id("plugin.text.stats")
+            .expect("text-stats registration");
+
+        assert_eq!(starter_plugin_registrations().len(), 5);
+        assert_eq!(bridge_exposed_starter_plugin_registrations().len(), 4);
+        assert_eq!(catalog_exposed_starter_plugin_registrations().len(), 4);
+        assert_eq!(registration.tool_name, "plugin_text_stats");
+        assert!(!registration.bridge_exposed);
+        assert!(!registration.catalog_exposed);
+    }
 
     #[test]
     fn url_extract_success_preserves_order_and_duplicates() {

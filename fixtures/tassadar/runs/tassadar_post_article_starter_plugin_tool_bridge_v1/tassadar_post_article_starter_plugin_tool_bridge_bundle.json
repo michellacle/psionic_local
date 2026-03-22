@@ -179,7 +179,6 @@
       "result_schema_id": "plugin.html.extract_readable.output.v1",
       "refusal_schema_ids": [
         "plugin.refusal.schema_invalid.v1",
-        "plugin.refusal.unsupported_codec.v1",
         "plugin.refusal.input_too_large.v1",
         "plugin.refusal.content_type_unsupported.v1"
       ],
@@ -187,7 +186,7 @@
       "deterministic_projection": {
         "plugin_id": "plugin.html.extract_readable",
         "tool_name": "plugin_html_extract_readable",
-        "description": "extract bounded readable text, metadata, and harvested links from already-fetched HTML without browser rendering or network access.",
+        "description": "extract already-fetched HTML into bounded readable text, metadata, and harvested links without browser rendering, JavaScript, or full DOM claims.",
         "arguments_schema": {
           "additionalProperties": false,
           "properties": {
@@ -211,7 +210,6 @@
         "result_schema_id": "plugin.html.extract_readable.output.v1",
         "refusal_schema_ids": [
           "plugin.refusal.schema_invalid.v1",
-          "plugin.refusal.unsupported_codec.v1",
           "plugin.refusal.input_too_large.v1",
           "plugin.refusal.content_type_unsupported.v1"
         ],
@@ -220,7 +218,7 @@
       "router_projection": {
         "kind": "function",
         "name": "plugin_html_extract_readable",
-        "description": "extract bounded readable text, metadata, and harvested links from already-fetched HTML without browser rendering or network access.",
+        "description": "extract already-fetched HTML into bounded readable text, metadata, and harvested links without browser rendering, JavaScript, or full DOM claims.",
         "parameters": {
           "additionalProperties": false,
           "properties": {
@@ -244,7 +242,7 @@
       },
       "apple_fm_projection": {
         "name": "plugin_html_extract_readable",
-        "description": "extract bounded readable text, metadata, and harvested links from already-fetched HTML without browser rendering or network access.",
+        "description": "extract already-fetched HTML into bounded readable text, metadata, and harvested links without browser rendering, JavaScript, or full DOM claims.",
         "arguments_schema": {
           "additionalProperties": false,
           "properties": {
@@ -431,5 +429,5 @@
   "plugin_count": 4,
   "claim_boundary": "this bundle freezes one shared starter-plugin projection and receipt bridge above the plugin runtime and below deterministic, router-owned, and Apple FM controller lanes. It keeps tool-schema derivation, structured outputs, typed refusals, and plugin receipt identity explicit without claiming weighted controller closure.",
   "summary": "starter plugin tool bridge covers projection_rows=4 and execution_cases=4 across deterministic, router-owned, and Apple FM controller surfaces.",
-  "bundle_digest": "c8feb8c7cd1caa9f340a7b2cfafacc67b2cba7bcf5d33a7c17e0c1a6058b82f4"
+  "bundle_digest": "8dee989312c02999d7327f3ba9ac5c71536c86fc090f9ceb2edb4e460b909cde"
 }

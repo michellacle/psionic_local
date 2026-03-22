@@ -68,13 +68,14 @@
       "catalog_entry_id": "plugin.http.fetch_text@v1",
       "manifest_id": "manifest.plugin.http.fetch_text.v1",
       "artifact_id": "artifact.plugin.http.fetch_text.v1",
-      "artifact_digest": "f52fd0c0d7ef274a441539624a993d424de4e32342ad257703b18a743ada4d17",
+      "artifact_digest": "6d714eabebb088d9ced5fcbb97ffc925480c68d20fc53a6a12260150ff73a391",
       "packet_abi_version": "packet.v1",
       "packet_schemas": {
         "input_schema_id": "plugin.http.fetch_text.input.v1",
         "success_output_schema_id": "plugin.http.fetch_text.output.v1",
         "refusal_schema_ids": [
           "plugin.refusal.schema_invalid.v1",
+          "plugin.refusal.unsupported_codec.v1",
           "plugin.refusal.network_denied.v1",
           "plugin.refusal.url_not_permitted.v1",
           "plugin.refusal.timeout.v1",
@@ -95,8 +96,8 @@
         "browser_execution_not_claimed",
         "javascript_execution_not_claimed",
         "cookie_or_auth_session_not_claimed",
-        "arbitrary_header_control_not_claimed",
-        "unrestricted_web_access_not_claimed"
+        "arbitrary_headers_not_claimed",
+        "general_unrestricted_web_access_not_claimed"
       ],
       "descriptor_ref": "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_http_fetch_text_descriptor.json",
       "fixture_bundle_ref": "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_http_fetch_text_fixture_bundle.json",
@@ -109,7 +110,7 @@
       "catalog_entry_id": "plugin.html.extract_readable@v1",
       "manifest_id": "manifest.plugin.html.extract_readable.v1",
       "artifact_id": "artifact.plugin.html.extract_readable.v1",
-      "artifact_digest": "4f3dfe8d80cf52dbe85c4c19e02240c3f81074a072eaacaa171365accb7f0918",
+      "artifact_digest": "62c0bf14d5dc0db65adcf2fd4997482ca7793989b09be02db5ea70688349119c",
       "packet_abi_version": "packet.v1",
       "packet_schemas": {
         "input_schema_id": "plugin.html.extract_readable.input.v1",
@@ -127,7 +128,7 @@
       "capability_namespace_ids": [],
       "negative_claim_ids": [
         "browser_rendering_not_claimed",
-        "javascript_execution_not_claimed",
+        "javascript_evaluation_not_claimed",
         "css_layout_truth_not_claimed",
         "full_dom_semantics_not_claimed"
       ],
@@ -332,5 +333,5 @@
   "public_marketplace_implication_allowed": false,
   "claim_boundary": "this runtime-owned starter catalog freezes one small operator-curated plugin set above the canonical post-article machine closure bundle without implying served or public plugin rights, arbitrary public Wasm execution, arbitrary public tool use, or a public plugin marketplace.",
   "summary": "starter catalog bundle publishes four operator-curated plugins, four per-plugin descriptor or fixture or mount sidecars, and two bounded composition flows across local deterministic and read-only network capability classes.",
-  "bundle_digest": "3af98f106e26139d574b27272fce7a441ccbd2fae183e605f8c995f5ebed361b"
+  "bundle_digest": "4729d2f4a14e97735e485241a912c142a0aaa7f3321c81a6111be3c44c474b3c"
 }

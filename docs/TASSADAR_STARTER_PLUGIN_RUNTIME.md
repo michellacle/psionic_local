@@ -14,6 +14,12 @@ The boundary is narrow on purpose:
 - read-only network plugins do not imply unrestricted network access or replay
   stability unless the mounted backend is snapshot-backed
 
+The runtime now keeps starter-plugin registration in one runtime-owned source
+of truth. Plugin identity, tool name, packet schemas, refusal schemas, replay
+class, capability posture, mount envelope identity, runtime bundle identity,
+and per-surface publication flags derive from that one registry so the runtime,
+shared bridge, and starter catalog do not drift independently.
+
 ## Implemented
 
 ### `plugin.text.url_extract`

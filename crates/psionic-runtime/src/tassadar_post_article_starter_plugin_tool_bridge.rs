@@ -11,12 +11,12 @@ use sha2::{Digest, Sha256};
 use thiserror::Error;
 
 use crate::{
+    bridge_exposed_starter_plugin_registrations, invoke_extract_readable_json_packet,
+    invoke_feed_parse_json_packet, invoke_fetch_text_json_packet, invoke_url_extract_json_packet,
+    starter_plugin_registration_by_tool_name, starter_plugin_tool_projection_for_plugin_id,
     ExtractReadableConfig, FeedParseConfig, FetchTextConfig, FetchTextSnapshotResponse,
     FetchTextSnapshotResult, StarterPluginInvocationReceipt, StarterPluginInvocationStatus,
     StarterPluginRefusal, StarterPluginToolProjection, UrlExtractConfig,
-    extract_readable_tool_projection, feed_parse_tool_projection, fetch_text_tool_projection,
-    invoke_extract_readable_json_packet, invoke_feed_parse_json_packet,
-    invoke_fetch_text_json_packet, invoke_url_extract_json_packet, url_extract_tool_projection,
 };
 
 pub const TASSADAR_POST_ARTICLE_STARTER_PLUGIN_TOOL_BRIDGE_BUNDLE_REF: &str = "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_tool_bridge_v1/tassadar_post_article_starter_plugin_tool_bridge_bundle.json";
@@ -165,12 +165,12 @@ pub enum StarterPluginToolBridgeArtifactError {
 
 #[must_use]
 pub fn starter_plugin_tool_bridge_projections() -> Vec<StarterPluginToolProjection> {
-    vec![
-        url_extract_tool_projection(),
-        fetch_text_tool_projection(),
-        extract_readable_tool_projection(),
-        feed_parse_tool_projection(),
-    ]
+    bridge_exposed_starter_plugin_registrations()
+        .into_iter()
+        .filter_map(|registration| {
+            starter_plugin_tool_projection_for_plugin_id(registration.plugin_id)
+        })
+        .collect()
 }
 
 #[must_use]
@@ -207,8 +207,18 @@ pub fn execute_starter_plugin_tool_call(
             error,
         }
     })?;
-    let envelope = match tool_name {
-        "plugin_text_url_extract" => {
+    let registration = starter_plugin_registration_by_tool_name(tool_name).ok_or_else(|| {
+        StarterPluginToolBridgeError::UnknownTool {
+            tool_name: String::from(tool_name),
+        }
+    })?;
+    if !registration.bridge_exposed {
+        return Err(StarterPluginToolBridgeError::UnknownTool {
+            tool_name: String::from(tool_name),
+        });
+    }
+    let envelope = match registration.plugin_id {
+        "plugin.text.url_extract" => {
             let outcome = invoke_url_extract_json_packet("json", &packet, &config.url_extract);
             projected_tool_result_from_outcome(
                 tool_name,
@@ -217,7 +227,7 @@ pub fn execute_starter_plugin_tool_call(
                 outcome.refusal,
             )
         }
-        "plugin_http_fetch_text" => {
+        "plugin.http.fetch_text" => {
             let outcome = invoke_fetch_text_json_packet("json", &packet, &config.fetch_text);
             projected_tool_result_from_outcome(
                 tool_name,
@@ -226,7 +236,7 @@ pub fn execute_starter_plugin_tool_call(
                 outcome.refusal,
             )
         }
-        "plugin_html_extract_readable" => {
+        "plugin.html.extract_readable" => {
             let outcome =
                 invoke_extract_readable_json_packet("json", &packet, &config.extract_readable);
             projected_tool_result_from_outcome(
@@ -236,7 +246,7 @@ pub fn execute_starter_plugin_tool_call(
                 outcome.refusal,
             )
         }
-        "plugin_feed_rss_atom_parse" => {
+        "plugin.feed.rss_atom_parse" => {
             let outcome = invoke_feed_parse_json_packet("json", &packet, &config.feed_parse);
             projected_tool_result_from_outcome(
                 tool_name,
@@ -551,11 +561,11 @@ fn read_json<T: for<'de> Deserialize<'de>>(
 #[cfg(test)]
 mod tests {
     use super::{
-        StarterPluginToolBridgeConfig, StarterPluginToolBridgeSurface,
         build_starter_plugin_tool_bridge_bundle, execute_starter_plugin_tool_call,
         load_starter_plugin_tool_bridge_bundle, starter_plugin_tool_bridge_projections,
         tassadar_post_article_starter_plugin_tool_bridge_bundle_path,
-        write_starter_plugin_tool_bridge_bundle,
+        write_starter_plugin_tool_bridge_bundle, StarterPluginToolBridgeConfig,
+        StarterPluginToolBridgeSurface,
     };
     use crate::StarterPluginInvocationStatus;
     use tempfile::tempdir;
@@ -573,12 +583,10 @@ mod tests {
                 StarterPluginToolBridgeSurface::AppleFmSession,
             ]
         );
-        assert!(
-            bundle
-                .projection_rows
-                .iter()
-                .all(|row| row.stable_across_surfaces)
-        );
+        assert!(bundle
+            .projection_rows
+            .iter()
+            .all(|row| row.stable_across_surfaces));
     }
 
     #[test]
@@ -595,12 +603,10 @@ mod tests {
         assert_eq!(envelope.plugin_id, "plugin.text.url_extract");
         assert_eq!(envelope.status, StarterPluginInvocationStatus::Success);
         assert!(!envelope.plugin_receipt.receipt_id.is_empty());
-        assert!(
-            envelope
-                .rendered_output()
-                .expect("rendered output")
-                .contains("plugin_receipt")
-        );
+        assert!(envelope
+            .rendered_output()
+            .expect("rendered output")
+            .contains("plugin_receipt"));
     }
 
     #[test]
@@ -633,18 +639,14 @@ mod tests {
 
         assert_eq!(starter_plugin_tool_bridge_projections().len(), 4);
         assert_eq!(bundle.execution_cases.len(), 4);
-        assert!(
-            bundle
-                .execution_cases
-                .iter()
-                .any(|row| row.status == StarterPluginInvocationStatus::Refusal)
-        );
-        assert!(
-            bundle
-                .execution_cases
-                .iter()
-                .all(|row| row.receipt_binding_preserved)
-        );
+        assert!(bundle
+            .execution_cases
+            .iter()
+            .any(|row| row.status == StarterPluginInvocationStatus::Refusal));
+        assert!(bundle
+            .execution_cases
+            .iter()
+            .all(|row| row.receipt_binding_preserved));
     }
 
     #[test]

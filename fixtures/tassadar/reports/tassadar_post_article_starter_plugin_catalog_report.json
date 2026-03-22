@@ -34,7 +34,7 @@
     "authority_gate_report_id": "tassadar.post_article_plugin_authority_promotion_publication_and_trust_tier_gate.report.v1",
     "authority_gate_report_digest": "1e1826667fd8aab0e314d3286d25628a940489be2eba6a5ac5f32a9dbc4871f8",
     "runtime_bundle_id": "tassadar.post_article.starter_plugin_catalog.runtime_bundle.v1",
-    "runtime_bundle_digest": "3af98f106e26139d574b27272fce7a441ccbd2fae183e605f8c995f5ebed361b",
+    "runtime_bundle_digest": "4729d2f4a14e97735e485241a912c142a0aaa7f3321c81a6111be3c44c474b3c",
     "runtime_bundle_ref": "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/tassadar_post_article_starter_plugin_catalog_bundle.json",
     "detail": "machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1` canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1` closure_bundle_digest=`9ac0dfa48ef13bca57b02c0c643672efe4aae9f821607ef9ba4b0c24978a3003` and runtime_bundle_id=`tassadar.post_article.starter_plugin_catalog.runtime_bundle.v1` stay bound together for the starter plugin catalog."
   },
@@ -45,7 +45,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/tassadar_post_article_starter_plugin_catalog_bundle.json",
       "bound_report_id": "tassadar.post_article.starter_plugin_catalog.runtime_bundle.v1",
-      "bound_report_digest": "3af98f106e26139d574b27272fce7a441ccbd2fae183e605f8c995f5ebed361b",
+      "bound_report_digest": "4729d2f4a14e97735e485241a912c142a0aaa7f3321c81a6111be3c44c474b3c",
       "detail": "the runtime-owned starter catalog bundle exists and names the four bounded starter plugins explicitly."
     },
     {
@@ -332,5 +332,5 @@
   "next_issue_id": "TAS-217",
   "claim_boundary": "this catalog report publishes one small operator-curated starter plugin set above the bounded weighted-plugin platform while keeping plugin publication suppressed, served or public universality suppressed, arbitrary public tool use suppressed, and public marketplace language refused.",
   "summary": "starter catalog report binds 4 starter plugins, 3 local deterministic entries, 1 read-only network entry, and 2 bounded composition flows to the canonical machine closure bundle while keeping operator-only posture explicit.",
-  "report_digest": "e56105970e4793989c747f7ec0981f5be515932c028ca695b9689a3cbbf4d9f0"
+  "report_digest": "0143b7eaf47aac655ea1a4270f41d5ddeea188c483656a82eac567ed474f7825"
 }

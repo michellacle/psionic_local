@@ -17,8 +17,8 @@
     "browser_execution_not_claimed",
     "javascript_execution_not_claimed",
     "cookie_or_auth_session_not_claimed",
-    "arbitrary_header_control_not_claimed",
-    "unrestricted_web_access_not_claimed"
+    "arbitrary_headers_not_claimed",
+    "general_unrestricted_web_access_not_claimed"
   ],
   "cases": [
     {
@@ -69,5 +69,5 @@
       "detail": "network timeout remains a typed refusal or failure surface and never degenerates into hidden retry or host-side repair."
     }
   ],
-  "bundle_digest": "28b99b5b2c6bc2a7a17a7e43bfeae0112d81888737d331cddf06d5d6056ef1b7"
+  "bundle_digest": "09dc4c74eedb2e0c58142ce73a80e011f86b380f3255b1fbbebea11753eccecb"
 }

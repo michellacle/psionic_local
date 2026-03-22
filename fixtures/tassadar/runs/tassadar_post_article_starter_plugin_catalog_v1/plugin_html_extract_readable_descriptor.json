@@ -4,7 +4,7 @@
   "catalog_entry_id": "plugin.html.extract_readable@v1",
   "manifest_id": "manifest.plugin.html.extract_readable.v1",
   "artifact_id": "artifact.plugin.html.extract_readable.v1",
-  "artifact_digest": "4f3dfe8d80cf52dbe85c4c19e02240c3f81074a072eaacaa171365accb7f0918",
+  "artifact_digest": "62c0bf14d5dc0db65adcf2fd4997482ca7793989b09be02db5ea70688349119c",
   "packet_abi_version": "packet.v1",
   "packet_schemas": {
     "input_schema_id": "plugin.html.extract_readable.input.v1",
@@ -22,7 +22,7 @@
   "capability_namespace_ids": [],
   "negative_claim_ids": [
     "browser_rendering_not_claimed",
-    "javascript_execution_not_claimed",
+    "javascript_evaluation_not_claimed",
     "css_layout_truth_not_claimed",
     "full_dom_semantics_not_claimed"
   ],

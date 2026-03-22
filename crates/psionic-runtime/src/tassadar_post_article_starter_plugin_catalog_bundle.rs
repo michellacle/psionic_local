@@ -9,37 +9,16 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use thiserror::Error;
 
-use crate::TASSADAR_POST_ARTICLE_PLUGIN_PACKET_ABI_VERSION;
+use crate::{
+    catalog_exposed_starter_plugin_registrations, starter_plugin_registration_by_plugin_id,
+    StarterPluginCapabilityClass, StarterPluginRegistration,
+    TASSADAR_POST_ARTICLE_PLUGIN_PACKET_ABI_VERSION,
+};
 
 pub const TASSADAR_POST_ARTICLE_STARTER_PLUGIN_CATALOG_BUNDLE_REF: &str =
     "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/tassadar_post_article_starter_plugin_catalog_bundle.json";
 pub const TASSADAR_POST_ARTICLE_STARTER_PLUGIN_CATALOG_RUN_ROOT_REF: &str =
     "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1";
-
-const URL_EXTRACT_DESCRIPTOR_REF: &str =
-    "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_text_url_extract_descriptor.json";
-const URL_EXTRACT_FIXTURE_BUNDLE_REF: &str =
-    "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_text_url_extract_fixture_bundle.json";
-const URL_EXTRACT_MOUNT_ENVELOPE_REF: &str =
-    "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_text_url_extract_mount_envelope.json";
-const FETCH_TEXT_DESCRIPTOR_REF: &str =
-    "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_http_fetch_text_descriptor.json";
-const FETCH_TEXT_FIXTURE_BUNDLE_REF: &str =
-    "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_http_fetch_text_fixture_bundle.json";
-const FETCH_TEXT_MOUNT_ENVELOPE_REF: &str =
-    "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_http_fetch_text_mount_envelope.json";
-const EXTRACT_READABLE_DESCRIPTOR_REF: &str =
-    "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_html_extract_readable_descriptor.json";
-const EXTRACT_READABLE_FIXTURE_BUNDLE_REF: &str =
-    "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_html_extract_readable_fixture_bundle.json";
-const EXTRACT_READABLE_MOUNT_ENVELOPE_REF: &str =
-    "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_html_extract_readable_mount_envelope.json";
-const RSS_ATOM_PARSE_DESCRIPTOR_REF: &str =
-    "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_feed_rss_atom_parse_descriptor.json";
-const RSS_ATOM_PARSE_FIXTURE_BUNDLE_REF: &str =
-    "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_feed_rss_atom_parse_fixture_bundle.json";
-const RSS_ATOM_PARSE_MOUNT_ENVELOPE_REF: &str =
-    "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_feed_rss_atom_parse_mount_envelope.json";
 
 const LOCAL_PLUGIN_SYSTEM_SPEC_REF: &str = "~/code/alpha/tassadar/plugin-system.md";
 const AUTOPILOT_PORTING_NOTES_REF: &str =
@@ -238,128 +217,142 @@ pub fn build_tassadar_post_article_starter_plugin_catalog_bundle(
     build_tassadar_post_article_starter_plugin_catalog_artifacts().bundle
 }
 
+fn catalog_registration(plugin_id: &str) -> &'static StarterPluginRegistration {
+    let registration = starter_plugin_registration_by_plugin_id(plugin_id)
+        .unwrap_or_else(|| panic!("missing starter-plugin registration for `{plugin_id}`"));
+    assert!(
+        registration.catalog_exposed && registration.catalog.is_some(),
+        "starter-plugin `{plugin_id}` is not catalog-exposed"
+    );
+    registration
+}
+
+fn catalog_capability_class(
+    capability_class: StarterPluginCapabilityClass,
+) -> TassadarPostArticleStarterPluginCapabilityClass {
+    match capability_class {
+        StarterPluginCapabilityClass::LocalDeterministic => {
+            TassadarPostArticleStarterPluginCapabilityClass::LocalDeterministic
+        }
+        StarterPluginCapabilityClass::ReadOnlyNetwork => {
+            TassadarPostArticleStarterPluginCapabilityClass::ReadOnlyNetwork
+        }
+    }
+}
+
+fn starter_plugin_descriptor_from_registration(
+    registration: &StarterPluginRegistration,
+) -> TassadarPostArticleStarterPluginDescriptor {
+    let catalog = registration
+        .catalog
+        .unwrap_or_else(|| panic!("missing catalog metadata for `{}`", registration.plugin_id));
+    starter_plugin_descriptor(
+        registration.plugin_id,
+        registration.manifest_id,
+        registration.artifact_id,
+        catalog_capability_class(registration.capability_class),
+        registration.replay_class_id,
+        catalog.trust_tier_id,
+        catalog.evidence_posture_id,
+        registration.input_schema_id,
+        registration.success_output_schema_id,
+        registration.refusal_schema_ids,
+        catalog.catalog_capability_namespace_ids,
+        registration.negative_claim_ids,
+        catalog.descriptor_ref,
+        catalog.fixture_bundle_ref,
+        catalog.sample_mount_envelope_ref,
+        catalog.descriptor_detail,
+    )
+}
+
+fn starter_fixture_bundle_from_registration(
+    registration: &StarterPluginRegistration,
+    cases: &[TassadarPostArticleStarterPluginFixtureCase],
+) -> TassadarPostArticleStarterPluginFixtureBundle {
+    starter_fixture_bundle(
+        registration.plugin_id,
+        cases,
+        registration.negative_claim_ids,
+    )
+}
+
+fn starter_mount_envelope_from_registration(
+    registration: &StarterPluginRegistration,
+    world_mount_id: &str,
+    allowlisted_url_prefixes: &[&str],
+    allowed_method_ids: &[&str],
+    timeout_millis: u32,
+    response_size_limit_bytes: u64,
+    redirect_limit: u8,
+    replay_posture_id: &str,
+    detail: &str,
+) -> TassadarPostArticleStarterPluginMountEnvelope {
+    let catalog = registration
+        .catalog
+        .unwrap_or_else(|| panic!("missing catalog metadata for `{}`", registration.plugin_id));
+    starter_mount_envelope(
+        registration.mount_envelope_id,
+        registration.plugin_id,
+        world_mount_id,
+        catalog.catalog_capability_namespace_ids,
+        allowlisted_url_prefixes,
+        allowed_method_ids,
+        timeout_millis,
+        response_size_limit_bytes,
+        redirect_limit,
+        replay_posture_id,
+        detail,
+    )
+}
+
+fn capability_matrix_row_from_registration(
+    registration: &StarterPluginRegistration,
+    reads_network: bool,
+    deterministic_replayable: bool,
+    snapshot_backed_replay: bool,
+    filesystem_access: bool,
+    secrets_access: bool,
+    mount_required: bool,
+    host_mediated_network_only: bool,
+    schema_local_composition: bool,
+    operator_only: bool,
+) -> TassadarPostArticleStarterPluginCapabilityMatrixRow {
+    let catalog = registration
+        .catalog
+        .unwrap_or_else(|| panic!("missing catalog metadata for `{}`", registration.plugin_id));
+    capability_matrix_row(
+        registration.plugin_id,
+        catalog.catalog_entry_id,
+        catalog_capability_class(registration.capability_class),
+        reads_network,
+        deterministic_replayable,
+        snapshot_backed_replay,
+        filesystem_access,
+        secrets_access,
+        mount_required,
+        host_mediated_network_only,
+        schema_local_composition,
+        operator_only,
+        catalog.capability_matrix_detail,
+    )
+}
+
 fn build_tassadar_post_article_starter_plugin_catalog_artifacts(
 ) -> TassadarPostArticleStarterPluginCatalogArtifacts {
-    let descriptors = vec![
-        starter_plugin_descriptor(
-            "plugin.text.url_extract",
-            "manifest.plugin.text.url_extract.v1",
-            "artifact.plugin.text.url_extract.v1",
-            TassadarPostArticleStarterPluginCapabilityClass::LocalDeterministic,
-            "deterministic_replayable",
-            "operator_curated_local_deterministic",
-            "evidence.descriptor_fixture_receipt_bound.v1",
-            "plugin.text.url_extract.input.v1",
-            "plugin.text.url_extract.output.v1",
-            &[
-                "plugin.refusal.schema_invalid.v1",
-                "plugin.refusal.packet_too_large.v1",
-                "plugin.refusal.unsupported_codec.v1",
-                "plugin.refusal.runtime_resource_limit.v1",
-            ],
-            &[],
-            &[
-                "url_validation_truth_not_claimed",
-                "dns_resolution_not_claimed",
-                "redirect_truth_not_claimed",
-                "network_reachability_not_claimed",
-            ],
-            URL_EXTRACT_DESCRIPTOR_REF,
-            URL_EXTRACT_FIXTURE_BUNDLE_REF,
-            URL_EXTRACT_MOUNT_ENVELOPE_REF,
-            "the first starter plugin freezes left-to-right `http://` and `https://` string extraction with no deduplication and no capability mounts.",
-        ),
-        starter_plugin_descriptor(
-            "plugin.http.fetch_text",
-            "manifest.plugin.http.fetch_text.v1",
-            "artifact.plugin.http.fetch_text.v1",
-            TassadarPostArticleStarterPluginCapabilityClass::ReadOnlyNetwork,
-            "replayable_with_snapshots",
-            "operator_curated_network_read_only",
-            "evidence.descriptor_envelope_receipt_bound.v1",
-            "plugin.http.fetch_text.input.v1",
-            "plugin.http.fetch_text.output.v1",
-            &[
-                "plugin.refusal.schema_invalid.v1",
-                "plugin.refusal.network_denied.v1",
-                "plugin.refusal.url_not_permitted.v1",
-                "plugin.refusal.timeout.v1",
-                "plugin.refusal.response_too_large.v1",
-                "plugin.refusal.content_type_unsupported.v1",
-                "plugin.refusal.decode_failed.v1",
-                "plugin.refusal.upstream_failure.v1",
-            ],
-            &["cap.http.read_only_text.v1"],
-            &[
-                "browser_execution_not_claimed",
-                "javascript_execution_not_claimed",
-                "cookie_or_auth_session_not_claimed",
-                "arbitrary_header_control_not_claimed",
-                "unrestricted_web_access_not_claimed",
-            ],
-            FETCH_TEXT_DESCRIPTOR_REF,
-            FETCH_TEXT_FIXTURE_BUNDLE_REF,
-            FETCH_TEXT_MOUNT_ENVELOPE_REF,
-            "the first network starter plugin freezes GET-only read-only text fetch behind host-mediated allowlist, timeout, redirect, and response-size policy.",
-        ),
-        starter_plugin_descriptor(
-            "plugin.html.extract_readable",
-            "manifest.plugin.html.extract_readable.v1",
-            "artifact.plugin.html.extract_readable.v1",
-            TassadarPostArticleStarterPluginCapabilityClass::LocalDeterministic,
-            "deterministic_replayable",
-            "operator_curated_local_transform",
-            "evidence.descriptor_fixture_receipt_bound.v1",
-            "plugin.html.extract_readable.input.v1",
-            "plugin.html.extract_readable.output.v1",
-            &[
-                "plugin.refusal.schema_invalid.v1",
-                "plugin.refusal.input_too_large.v1",
-                "plugin.refusal.content_type_unsupported.v1",
-            ],
-            &[],
-            &[
-                "browser_rendering_not_claimed",
-                "javascript_execution_not_claimed",
-                "css_layout_truth_not_claimed",
-                "full_dom_semantics_not_claimed",
-            ],
-            EXTRACT_READABLE_DESCRIPTOR_REF,
-            EXTRACT_READABLE_FIXTURE_BUNDLE_REF,
-            EXTRACT_READABLE_MOUNT_ENVELOPE_REF,
-            "the readable-html starter plugin stays local, deterministic, and packet-only while producing bounded readable text, metadata, and harvested links.",
-        ),
-        starter_plugin_descriptor(
-            "plugin.feed.rss_atom_parse",
-            "manifest.plugin.feed.rss_atom_parse.v1",
-            "artifact.plugin.feed.rss_atom_parse.v1",
-            TassadarPostArticleStarterPluginCapabilityClass::LocalDeterministic,
-            "deterministic_replayable",
-            "operator_curated_local_structured_ingest",
-            "evidence.descriptor_fixture_receipt_bound.v1",
-            "plugin.feed.rss_atom_parse.input.v1",
-            "plugin.feed.rss_atom_parse.output.v1",
-            &[
-                "plugin.refusal.schema_invalid.v1",
-                "plugin.refusal.input_too_large.v1",
-                "plugin.refusal.unsupported_feed_format.v1",
-            ],
-            &[],
-            &[
-                "arbitrary_xml_support_not_claimed",
-                "opml_support_not_claimed",
-                "general_document_parsing_not_claimed",
-            ],
-            RSS_ATOM_PARSE_DESCRIPTOR_REF,
-            RSS_ATOM_PARSE_FIXTURE_BUNDLE_REF,
-            RSS_ATOM_PARSE_MOUNT_ENVELOPE_REF,
-            "the feed parser starter plugin stays local and deterministic over already-fetched RSS 2.0 and Atom 1.0 content.",
-        ),
-    ];
+    let url_extract = catalog_registration("plugin.text.url_extract");
+    let fetch_text = catalog_registration("plugin.http.fetch_text");
+    let extract_readable = catalog_registration("plugin.html.extract_readable");
+    let feed_parse = catalog_registration("plugin.feed.rss_atom_parse");
+
+    let descriptors = catalog_exposed_starter_plugin_registrations()
+        .into_iter()
+        .map(starter_plugin_descriptor_from_registration)
+        .collect::<Vec<_>>();
 
     let fixture_bundles = vec![
-        starter_fixture_bundle(
-            "plugin.text.url_extract",
+        starter_fixture_bundle_from_registration(
+            url_extract,
             &[
                 starter_fixture_case(
                     "extract_urls_success",
@@ -415,15 +408,9 @@ fn build_tassadar_post_article_starter_plugin_catalog_artifacts(
                     "the deterministic plugin keeps packet ceilings explicit rather than relying on ambient parser allocation behavior.",
                 ),
             ],
-            &[
-                "url_validation_truth_not_claimed",
-                "dns_resolution_not_claimed",
-                "redirect_truth_not_claimed",
-                "network_reachability_not_claimed",
-            ],
         ),
-        starter_fixture_bundle(
-            "plugin.http.fetch_text",
+        starter_fixture_bundle_from_registration(
+            fetch_text,
             &[
                 starter_fixture_case(
                     "fetch_text_article_success",
@@ -498,16 +485,9 @@ fn build_tassadar_post_article_starter_plugin_catalog_artifacts(
                     "network timeout remains a typed refusal or failure surface and never degenerates into hidden retry or host-side repair.",
                 ),
             ],
-            &[
-                "browser_execution_not_claimed",
-                "javascript_execution_not_claimed",
-                "cookie_or_auth_session_not_claimed",
-                "arbitrary_header_control_not_claimed",
-                "unrestricted_web_access_not_claimed",
-            ],
         ),
-        starter_fixture_bundle(
-            "plugin.html.extract_readable",
+        starter_fixture_bundle_from_registration(
+            extract_readable,
             &[
                 starter_fixture_case(
                     "extract_readable_success",
@@ -571,15 +551,9 @@ fn build_tassadar_post_article_starter_plugin_catalog_artifacts(
                     "non-HTML content stays outside the bounded extractor claim surface.",
                 ),
             ],
-            &[
-                "browser_rendering_not_claimed",
-                "javascript_execution_not_claimed",
-                "css_layout_truth_not_claimed",
-                "full_dom_semantics_not_claimed",
-            ],
         ),
-        starter_fixture_bundle(
-            "plugin.feed.rss_atom_parse",
+        starter_fixture_bundle_from_registration(
+            feed_parse,
             &[
                 starter_fixture_case(
                     "rss_parse_success",
@@ -677,20 +651,13 @@ fn build_tassadar_post_article_starter_plugin_catalog_artifacts(
                     "opml and arbitrary xml stay outside the starter feed parser boundary.",
                 ),
             ],
-            &[
-                "arbitrary_xml_support_not_claimed",
-                "opml_support_not_claimed",
-                "general_document_parsing_not_claimed",
-            ],
         ),
     ];
 
     let mount_envelopes = vec![
-        starter_mount_envelope(
-            "mount.plugin.text.url_extract.no_capabilities.v1",
-            "plugin.text.url_extract",
+        starter_mount_envelope_from_registration(
+            url_extract,
             "world_mount.starter.local_no_capabilities.v1",
-            &[],
             &[],
             &[],
             1000,
@@ -699,11 +666,9 @@ fn build_tassadar_post_article_starter_plugin_catalog_artifacts(
             "deterministic_replayable",
             "the URL extractor proves that the starter catalog can ship a capability-free deterministic plugin with an explicit zero-namespace mount envelope.",
         ),
-        starter_mount_envelope(
-            "mount.plugin.http.fetch_text.read_only_http_allowlist.v1",
-            "plugin.http.fetch_text",
+        starter_mount_envelope_from_registration(
+            fetch_text,
             "world_mount.starter.http_read_only_text_allowlist.v1",
-            &["cap.http.read_only_text.v1"],
             &[
                 "https://example.com/articles/",
                 "https://feeds.example.com/",
@@ -715,11 +680,9 @@ fn build_tassadar_post_article_starter_plugin_catalog_artifacts(
             "replayable_with_snapshots",
             "the fetch-text starter plugin binds allowlist, timeout, response-size, and redirect posture to one explicit host-mediated mount envelope.",
         ),
-        starter_mount_envelope(
-            "mount.plugin.html.extract_readable.no_capabilities.v1",
-            "plugin.html.extract_readable",
+        starter_mount_envelope_from_registration(
+            extract_readable,
             "world_mount.starter.local_no_capabilities.v1",
-            &[],
             &[],
             &[],
             1000,
@@ -728,11 +691,9 @@ fn build_tassadar_post_article_starter_plugin_catalog_artifacts(
             "deterministic_replayable",
             "the readability extractor stays local and capability-free under one explicit no-import mount envelope.",
         ),
-        starter_mount_envelope(
-            "mount.plugin.feed.rss_atom_parse.no_capabilities.v1",
-            "plugin.feed.rss_atom_parse",
+        starter_mount_envelope_from_registration(
+            feed_parse,
             "world_mount.starter.local_no_capabilities.v1",
-            &[],
             &[],
             &[],
             1000,
@@ -744,10 +705,8 @@ fn build_tassadar_post_article_starter_plugin_catalog_artifacts(
     ];
 
     let capability_matrix_rows = vec![
-        capability_matrix_row(
-            "plugin.text.url_extract",
-            "plugin.text.url_extract@v1",
-            TassadarPostArticleStarterPluginCapabilityClass::LocalDeterministic,
+        capability_matrix_row_from_registration(
+            url_extract,
             false,
             true,
             false,
@@ -757,27 +716,12 @@ fn build_tassadar_post_article_starter_plugin_catalog_artifacts(
             false,
             true,
             true,
-            "the url-extract starter plugin is purely local string processing and does not claim any external-world semantics.",
         ),
-        capability_matrix_row(
-            "plugin.http.fetch_text",
-            "plugin.http.fetch_text@v1",
-            TassadarPostArticleStarterPluginCapabilityClass::ReadOnlyNetwork,
-            true,
-            false,
-            true,
-            false,
-            false,
-            true,
-            true,
-            true,
-            true,
-            "the fetch-text starter plugin is the only networked starter entry and remains bounded to host-mediated read-only HTTP.",
+        capability_matrix_row_from_registration(
+            fetch_text, true, false, true, false, false, true, true, true, true,
         ),
-        capability_matrix_row(
-            "plugin.html.extract_readable",
-            "plugin.html.extract_readable@v1",
-            TassadarPostArticleStarterPluginCapabilityClass::LocalDeterministic,
+        capability_matrix_row_from_registration(
+            extract_readable,
             false,
             true,
             false,
@@ -787,22 +731,9 @@ fn build_tassadar_post_article_starter_plugin_catalog_artifacts(
             false,
             true,
             true,
-            "the readability extractor is a local deterministic transform over already-fetched content.",
         ),
-        capability_matrix_row(
-            "plugin.feed.rss_atom_parse",
-            "plugin.feed.rss_atom_parse@v1",
-            TassadarPostArticleStarterPluginCapabilityClass::LocalDeterministic,
-            false,
-            true,
-            false,
-            false,
-            false,
-            false,
-            false,
-            true,
-            true,
-            "the feed parser is a local deterministic structured-ingest transform over already-fetched content.",
+        capability_matrix_row_from_registration(
+            feed_parse, false, true, false, false, false, false, false, true, true,
         ),
     ];
 
@@ -972,45 +903,23 @@ pub fn write_tassadar_post_article_starter_plugin_catalog_bundle(
             )?;
         }
         for fixture_bundle in &artifacts.fixture_bundles {
-            let output = match fixture_bundle.plugin_id.as_str() {
-                "plugin.text.url_extract" => {
-                    sibling_output_path(parent, URL_EXTRACT_FIXTURE_BUNDLE_REF)
-                }
-                "plugin.http.fetch_text" => {
-                    sibling_output_path(parent, FETCH_TEXT_FIXTURE_BUNDLE_REF)
-                }
-                "plugin.html.extract_readable" => {
-                    sibling_output_path(parent, EXTRACT_READABLE_FIXTURE_BUNDLE_REF)
-                }
-                "plugin.feed.rss_atom_parse" => {
-                    sibling_output_path(parent, RSS_ATOM_PARSE_FIXTURE_BUNDLE_REF)
-                }
-                _ => sibling_output_path(
-                    parent,
-                    TASSADAR_POST_ARTICLE_STARTER_PLUGIN_CATALOG_BUNDLE_REF,
-                ),
-            };
+            let output = sibling_output_path(
+                parent,
+                catalog_registration(&fixture_bundle.plugin_id)
+                    .catalog
+                    .expect("catalog metadata")
+                    .fixture_bundle_ref,
+            );
             write_json(output, fixture_bundle)?;
         }
         for mount_envelope in &artifacts.mount_envelopes {
-            let output = match mount_envelope.plugin_id.as_str() {
-                "plugin.text.url_extract" => {
-                    sibling_output_path(parent, URL_EXTRACT_MOUNT_ENVELOPE_REF)
-                }
-                "plugin.http.fetch_text" => {
-                    sibling_output_path(parent, FETCH_TEXT_MOUNT_ENVELOPE_REF)
-                }
-                "plugin.html.extract_readable" => {
-                    sibling_output_path(parent, EXTRACT_READABLE_MOUNT_ENVELOPE_REF)
-                }
-                "plugin.feed.rss_atom_parse" => {
-                    sibling_output_path(parent, RSS_ATOM_PARSE_MOUNT_ENVELOPE_REF)
-                }
-                _ => sibling_output_path(
-                    parent,
-                    TASSADAR_POST_ARTICLE_STARTER_PLUGIN_CATALOG_BUNDLE_REF,
-                ),
-            };
+            let output = sibling_output_path(
+                parent,
+                catalog_registration(&mount_envelope.plugin_id)
+                    .catalog
+                    .expect("catalog metadata")
+                    .sample_mount_envelope_ref,
+            );
             write_json(output, mount_envelope)?;
         }
     }

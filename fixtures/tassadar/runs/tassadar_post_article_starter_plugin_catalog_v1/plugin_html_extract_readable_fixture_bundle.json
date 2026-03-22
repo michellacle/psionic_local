@@ -14,7 +14,7 @@
   ],
   "negative_claim_ids": [
     "browser_rendering_not_claimed",
-    "javascript_execution_not_claimed",
+    "javascript_evaluation_not_claimed",
     "css_layout_truth_not_claimed",
     "full_dom_semantics_not_claimed"
   ],
@@ -55,5 +55,5 @@
       "detail": "non-HTML content stays outside the bounded extractor claim surface."
     }
   ],
-  "bundle_digest": "32445762f72f6ce0f8280190559d1658ecc8fcbbda96b5f06c25e9c2d8c317f6"
+  "bundle_digest": "6c49739995c724dadec72d4ecd71e329399fe36d8cecfeec15b2eef75b711445"
 }

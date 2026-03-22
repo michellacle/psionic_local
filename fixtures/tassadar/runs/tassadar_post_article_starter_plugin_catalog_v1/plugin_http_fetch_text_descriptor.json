@@ -4,13 +4,14 @@
   "catalog_entry_id": "plugin.http.fetch_text@v1",
   "manifest_id": "manifest.plugin.http.fetch_text.v1",
   "artifact_id": "artifact.plugin.http.fetch_text.v1",
-  "artifact_digest": "f52fd0c0d7ef274a441539624a993d424de4e32342ad257703b18a743ada4d17",
+  "artifact_digest": "6d714eabebb088d9ced5fcbb97ffc925480c68d20fc53a6a12260150ff73a391",
   "packet_abi_version": "packet.v1",
   "packet_schemas": {
     "input_schema_id": "plugin.http.fetch_text.input.v1",
     "success_output_schema_id": "plugin.http.fetch_text.output.v1",
     "refusal_schema_ids": [
       "plugin.refusal.schema_invalid.v1",
+      "plugin.refusal.unsupported_codec.v1",
       "plugin.refusal.network_denied.v1",
       "plugin.refusal.url_not_permitted.v1",
       "plugin.refusal.timeout.v1",
@@ -31,8 +32,8 @@
     "browser_execution_not_claimed",
     "javascript_execution_not_claimed",
     "cookie_or_auth_session_not_claimed",
-    "arbitrary_header_control_not_claimed",
-    "unrestricted_web_access_not_claimed"
+    "arbitrary_headers_not_claimed",
+    "general_unrestricted_web_access_not_claimed"
   ],
   "descriptor_ref": "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_http_fetch_text_descriptor.json",
   "fixture_bundle_ref": "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_http_fetch_text_fixture_bundle.json",
