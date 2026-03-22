@@ -170,12 +170,26 @@ pub struct PsionPluginArgumentSchemaGrader {
     pub tool_name: String,
     /// Required argument field paths.
     pub required_argument_paths: Vec<String>,
+    /// Expected JSON value type for each required path.
+    pub required_argument_types: BTreeMap<String, PsionPluginArgumentJsonValueType>,
     /// Field paths that must stay absent for the case.
     pub forbidden_argument_paths: Vec<String>,
     /// Whether request-for-structure is an allowed outcome.
     pub request_for_structure_allowed: bool,
     /// Short explanation of the grader.
     pub detail: String,
+}
+
+/// Expected JSON value type for one plugin argument path.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PsionPluginArgumentJsonValueType {
+    String,
+    Number,
+    Integer,
+    Boolean,
+    Object,
+    Array,
 }
 
 /// Grader for sequencing and continuation decisions.
@@ -272,6 +286,21 @@ impl PsionPluginBenchmarkGraderInterface {
                     grader.required_argument_paths.as_slice(),
                     "argument_schema_grader.required_argument_paths",
                 )?;
+                for required_path in &grader.required_argument_paths {
+                    if !grader.required_argument_types.contains_key(required_path) {
+                        return Err(PsionPluginBenchmarkPackageError::MissingField {
+                            field: format!(
+                                "argument_schema_grader.required_argument_types[{required_path}]"
+                            ),
+                        });
+                    }
+                }
+                for required_path in grader.required_argument_types.keys() {
+                    ensure_nonempty(
+                        required_path.as_str(),
+                        "argument_schema_grader.required_argument_types.key",
+                    )?;
+                }
                 reject_duplicate_strings(
                     grader.forbidden_argument_paths.as_slice(),
                     "argument_schema_grader.forbidden_argument_paths",
@@ -670,9 +699,11 @@ impl PsionPluginBenchmarkContaminationAttachment {
 pub enum PsionPluginBenchmarkMetricKind {
     RouteAccuracyBps,
     SelectionAccuracyBps,
+    ArgumentSchemaAccuracyBps,
     WrongToolRejectionAccuracyBps,
     UnsupportedToolRefusalAccuracyBps,
     RequestForStructureAccuracyBps,
+    TypedRuntimeRefusalAccuracyBps,
     InterpretationScoreBps,
 }
 

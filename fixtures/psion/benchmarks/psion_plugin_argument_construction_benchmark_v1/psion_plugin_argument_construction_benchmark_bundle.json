@@ -1,0 +1,410 @@
+{
+  "schema_version": "psionic.psion.plugin_argument_construction_benchmark_bundle.v1",
+  "package": {
+    "schema_version": "psionic.psion.plugin_benchmark_package.v1",
+    "package_id": "psion.plugin.argument_construction.v1",
+    "package_family": "argument_construction",
+    "benchmark_package": {
+      "abi_version": "psionic.benchmark.v1",
+      "key": {
+        "benchmark_ref": "benchmark://openagents/psion/plugin_argument_construction",
+        "version": "v1"
+      },
+      "display_name": "Psion Plugin Argument Construction",
+      "environment": {
+        "environment_ref": "env.psion.plugin.benchmark",
+        "version": "2026.03.22"
+      },
+      "repeat_count": 3,
+      "aggregation": "median_score",
+      "verification_policy": {
+        "require_timer_integrity": false,
+        "require_token_accounting": false,
+        "require_final_state_capture": false,
+        "require_execution_strategy": false
+      },
+      "cases": [
+        {
+          "case_id": "plugin_argument_fetch_text_success_v1"
+        },
+        {
+          "case_id": "plugin_argument_html_extract_success_v1"
+        },
+        {
+          "case_id": "plugin_argument_missing_url_request_structure_v1"
+        },
+        {
+          "case_id": "plugin_argument_invalid_url_type_request_structure_v1"
+        },
+        {
+          "case_id": "plugin_argument_html_malformed_structure_request_structure_v1"
+        },
+        {
+          "case_id": "plugin_argument_typed_runtime_refusal_v1"
+        }
+      ]
+    },
+    "prompt_formats": [
+      {
+        "format_id": "plugin_argument_construction_v1",
+        "system_instruction_ref": "prompt://psion/plugin_benchmark/system/plugin-argument-construction",
+        "user_template_ref": "prompt://psion/plugin_benchmark/user/plugin-argument-construction",
+        "envelope": "structured_plugin_arguments_json",
+        "expected_response_format": "plugin_arguments_json",
+        "preserve_receipt_boundaries": true,
+        "detail": "Argument-construction prompts force an explicit route decision plus one typed plugin packet or a request-for-structure outcome."
+      }
+    ],
+    "grader_interfaces": [
+      {
+        "grader_kind": "argument_schema",
+        "grader_id": "argument_fetch_text_success_v1",
+        "tool_name": "plugin_http_fetch_text",
+        "required_argument_paths": [
+          "url"
+        ],
+        "required_argument_types": {
+          "url": "string"
+        },
+        "forbidden_argument_paths": [],
+        "request_for_structure_allowed": false,
+        "detail": "Fetch-text success cases must emit one string `url` field and no schema drift."
+      },
+      {
+        "grader_kind": "argument_schema",
+        "grader_id": "argument_html_extract_success_v1",
+        "tool_name": "plugin_html_extract_readable",
+        "required_argument_paths": [
+          "source_url",
+          "content_type",
+          "body_text"
+        ],
+        "required_argument_types": {
+          "body_text": "string",
+          "content_type": "string",
+          "source_url": "string"
+        },
+        "forbidden_argument_paths": [],
+        "request_for_structure_allowed": false,
+        "detail": "Readable-extraction success cases must preserve the three required string fields."
+      },
+      {
+        "grader_kind": "argument_schema",
+        "grader_id": "argument_fetch_missing_url_request_structure_v1",
+        "tool_name": "plugin_http_fetch_text",
+        "required_argument_paths": [
+          "url"
+        ],
+        "required_argument_types": {
+          "url": "string"
+        },
+        "forbidden_argument_paths": [],
+        "request_for_structure_allowed": true,
+        "detail": "Missing-input cases must request structure instead of fabricating a fetch URL."
+      },
+      {
+        "grader_kind": "argument_schema",
+        "grader_id": "argument_fetch_invalid_url_type_request_structure_v1",
+        "tool_name": "plugin_http_fetch_text",
+        "required_argument_paths": [
+          "url"
+        ],
+        "required_argument_types": {
+          "url": "string"
+        },
+        "forbidden_argument_paths": [],
+        "request_for_structure_allowed": true,
+        "detail": "Wrong-type URL cases must request corrected structure instead of emitting a malformed packet."
+      },
+      {
+        "grader_kind": "argument_schema",
+        "grader_id": "argument_html_malformed_structure_request_structure_v1",
+        "tool_name": "plugin_html_extract_readable",
+        "required_argument_paths": [
+          "source_url",
+          "content_type",
+          "body_text"
+        ],
+        "required_argument_types": {
+          "body_text": "string",
+          "content_type": "string",
+          "source_url": "string"
+        },
+        "forbidden_argument_paths": [],
+        "request_for_structure_allowed": true,
+        "detail": "Malformed multi-field structure cases must request a corrected flat packet before plugin use."
+      },
+      {
+        "grader_kind": "exact_refusal",
+        "grader_id": "argument_fetch_typed_runtime_refusal_v1",
+        "accepted_reason_codes": [
+          "plugin.refusal.content_type_unsupported.v1"
+        ],
+        "request_for_structure_allowed": false,
+        "detail": "Typed runtime refusal cases preserve the content-type refusal boundary separately from model-side argument mistakes."
+      }
+    ],
+    "items": [
+      {
+        "item_id": "plugin_argument_fetch_text_success_v1",
+        "family": "argument_construction",
+        "prompt_format_id": "plugin_argument_construction_v1",
+        "grader_id": "argument_fetch_text_success_v1",
+        "prompt_digest": "390ba05b7f653e523e0daae21d4261baa4866539e0ae04b40689e58dc35b508c",
+        "contamination_attachment": {
+          "contamination_bundle_ref": "fixtures/psion/plugins/datasets/psion_plugin_contamination_controls_v1/psion_plugin_contamination_bundle.json",
+          "contamination_bundle_digest": "d6c6245e888e933079f2cb4d42999b9c30968f3393395ffbb337d05676b3eae6",
+          "authored_prompt_ref": "benchmark://openagents/psion/plugin_argument_construction/fetch_text_success_v1",
+          "parent_lineage_ids": [],
+          "source_case_ids": [],
+          "receipt_refs": [],
+          "detail": "Argument benchmark item is benchmark-authored and explicitly marked as authored provenance rather than claimed held-out execution lineage."
+        },
+        "receipt_posture": {
+          "execution_evidence_required": false,
+          "required_receipt_refs": [],
+          "forbid_unseen_execution_claims": true,
+          "detail": "Benchmark-authored argument cases score packet construction and route choice without claiming runtime execution happened."
+        },
+        "task": {
+          "task_kind": "argument_construction",
+          "tool_name": "plugin_http_fetch_text",
+          "input_schema_id": "plugin.http.fetch_text.input.v1",
+          "required_argument_paths": [
+            "url"
+          ],
+          "missing_argument_paths": [],
+          "malformed_argument_paths": [],
+          "expected_route": "delegate_to_admitted_plugin"
+        },
+        "detail": "Fetch-text success case should emit one schema-correct string URL packet."
+      },
+      {
+        "item_id": "plugin_argument_html_extract_success_v1",
+        "family": "argument_construction",
+        "prompt_format_id": "plugin_argument_construction_v1",
+        "grader_id": "argument_html_extract_success_v1",
+        "prompt_digest": "a919507e21b948ab0b73d5cc543d6d9def799d880f41c2379fcdfab7b78a2dd5",
+        "contamination_attachment": {
+          "contamination_bundle_ref": "fixtures/psion/plugins/datasets/psion_plugin_contamination_controls_v1/psion_plugin_contamination_bundle.json",
+          "contamination_bundle_digest": "d6c6245e888e933079f2cb4d42999b9c30968f3393395ffbb337d05676b3eae6",
+          "authored_prompt_ref": "benchmark://openagents/psion/plugin_argument_construction/html_extract_success_v1",
+          "parent_lineage_ids": [],
+          "source_case_ids": [],
+          "receipt_refs": [],
+          "detail": "Argument benchmark item is benchmark-authored and explicitly marked as authored provenance rather than claimed held-out execution lineage."
+        },
+        "receipt_posture": {
+          "execution_evidence_required": false,
+          "required_receipt_refs": [],
+          "forbid_unseen_execution_claims": true,
+          "detail": "Benchmark-authored argument cases score packet construction and route choice without claiming runtime execution happened."
+        },
+        "task": {
+          "task_kind": "argument_construction",
+          "tool_name": "plugin_html_extract_readable",
+          "input_schema_id": "plugin.html.extract_readable.input.v1",
+          "required_argument_paths": [
+            "source_url",
+            "content_type",
+            "body_text"
+          ],
+          "missing_argument_paths": [],
+          "malformed_argument_paths": [],
+          "expected_route": "delegate_to_admitted_plugin"
+        },
+        "detail": "Readable-extraction success case should keep all three required string fields."
+      },
+      {
+        "item_id": "plugin_argument_missing_url_request_structure_v1",
+        "family": "argument_construction",
+        "prompt_format_id": "plugin_argument_construction_v1",
+        "grader_id": "argument_fetch_missing_url_request_structure_v1",
+        "prompt_digest": "87c509817b8e9ab31b1267f2dad14bf68b1742d2a225ca36cd82e6017c45a0c2",
+        "contamination_attachment": {
+          "contamination_bundle_ref": "fixtures/psion/plugins/datasets/psion_plugin_contamination_controls_v1/psion_plugin_contamination_bundle.json",
+          "contamination_bundle_digest": "d6c6245e888e933079f2cb4d42999b9c30968f3393395ffbb337d05676b3eae6",
+          "authored_prompt_ref": "benchmark://openagents/psion/plugin_argument_construction/missing_url_request_structure_v1",
+          "parent_lineage_ids": [],
+          "source_case_ids": [],
+          "receipt_refs": [],
+          "detail": "Argument benchmark item is benchmark-authored and explicitly marked as authored provenance rather than claimed held-out execution lineage."
+        },
+        "receipt_posture": {
+          "execution_evidence_required": false,
+          "required_receipt_refs": [],
+          "forbid_unseen_execution_claims": true,
+          "detail": "Benchmark-authored argument cases score packet construction and route choice without claiming runtime execution happened."
+        },
+        "task": {
+          "task_kind": "argument_construction",
+          "tool_name": "plugin_http_fetch_text",
+          "input_schema_id": "plugin.http.fetch_text.input.v1",
+          "required_argument_paths": [
+            "url"
+          ],
+          "missing_argument_paths": [
+            "url"
+          ],
+          "malformed_argument_paths": [],
+          "expected_route": "request_missing_structure_for_plugin_use"
+        },
+        "detail": "Missing required URL should trigger request-for-structure instead of fabricated arguments."
+      },
+      {
+        "item_id": "plugin_argument_invalid_url_type_request_structure_v1",
+        "family": "argument_construction",
+        "prompt_format_id": "plugin_argument_construction_v1",
+        "grader_id": "argument_fetch_invalid_url_type_request_structure_v1",
+        "prompt_digest": "34c999da6d46caf0b739eb6072b5cbf81acfc7ba33a22b56d9584ea69a1e5fda",
+        "contamination_attachment": {
+          "contamination_bundle_ref": "fixtures/psion/plugins/datasets/psion_plugin_contamination_controls_v1/psion_plugin_contamination_bundle.json",
+          "contamination_bundle_digest": "d6c6245e888e933079f2cb4d42999b9c30968f3393395ffbb337d05676b3eae6",
+          "authored_prompt_ref": "benchmark://openagents/psion/plugin_argument_construction/invalid_url_type_request_structure_v1",
+          "parent_lineage_ids": [],
+          "source_case_ids": [],
+          "receipt_refs": [],
+          "detail": "Argument benchmark item is benchmark-authored and explicitly marked as authored provenance rather than claimed held-out execution lineage."
+        },
+        "receipt_posture": {
+          "execution_evidence_required": false,
+          "required_receipt_refs": [],
+          "forbid_unseen_execution_claims": true,
+          "detail": "Benchmark-authored argument cases score packet construction and route choice without claiming runtime execution happened."
+        },
+        "task": {
+          "task_kind": "argument_construction",
+          "tool_name": "plugin_http_fetch_text",
+          "input_schema_id": "plugin.http.fetch_text.input.v1",
+          "required_argument_paths": [
+            "url"
+          ],
+          "missing_argument_paths": [],
+          "malformed_argument_paths": [
+            "url"
+          ],
+          "expected_route": "request_missing_structure_for_plugin_use"
+        },
+        "detail": "Wrong-type URL input stays distinct from missing-input cases and must request corrected structure."
+      },
+      {
+        "item_id": "plugin_argument_html_malformed_structure_request_structure_v1",
+        "family": "argument_construction",
+        "prompt_format_id": "plugin_argument_construction_v1",
+        "grader_id": "argument_html_malformed_structure_request_structure_v1",
+        "prompt_digest": "3a26cdd935e33dc3fd4c68f04b0b27ff5ead893ea691cf63c2d3c3c6878b4fc4",
+        "contamination_attachment": {
+          "contamination_bundle_ref": "fixtures/psion/plugins/datasets/psion_plugin_contamination_controls_v1/psion_plugin_contamination_bundle.json",
+          "contamination_bundle_digest": "d6c6245e888e933079f2cb4d42999b9c30968f3393395ffbb337d05676b3eae6",
+          "authored_prompt_ref": "benchmark://openagents/psion/plugin_argument_construction/html_malformed_structure_request_structure_v1",
+          "parent_lineage_ids": [],
+          "source_case_ids": [],
+          "receipt_refs": [],
+          "detail": "Argument benchmark item is benchmark-authored and explicitly marked as authored provenance rather than claimed held-out execution lineage."
+        },
+        "receipt_posture": {
+          "execution_evidence_required": false,
+          "required_receipt_refs": [],
+          "forbid_unseen_execution_claims": true,
+          "detail": "Benchmark-authored argument cases score packet construction and route choice without claiming runtime execution happened."
+        },
+        "task": {
+          "task_kind": "argument_construction",
+          "tool_name": "plugin_html_extract_readable",
+          "input_schema_id": "plugin.html.extract_readable.input.v1",
+          "required_argument_paths": [
+            "source_url",
+            "content_type",
+            "body_text"
+          ],
+          "missing_argument_paths": [],
+          "malformed_argument_paths": [
+            "content_type",
+            "body_text"
+          ],
+          "expected_route": "request_missing_structure_for_plugin_use"
+        },
+        "detail": "Malformed multi-field structure should stay distinct from single-field type errors."
+      },
+      {
+        "item_id": "plugin_argument_typed_runtime_refusal_v1",
+        "family": "argument_construction",
+        "prompt_format_id": "plugin_argument_construction_v1",
+        "grader_id": "argument_fetch_typed_runtime_refusal_v1",
+        "prompt_digest": "fc994a813546f15c2f4804b2e42a0fc0a74272d35c9060cfae3295d23c95f686",
+        "contamination_attachment": {
+          "contamination_bundle_ref": "fixtures/psion/plugins/datasets/psion_plugin_contamination_controls_v1/psion_plugin_contamination_bundle.json",
+          "contamination_bundle_digest": "d6c6245e888e933079f2cb4d42999b9c30968f3393395ffbb337d05676b3eae6",
+          "parent_lineage_ids": [
+            "held_out.psion_plugin_training.trace_record.starter_plugin.fetch_refusal.v1.deterministic_workflow.v1"
+          ],
+          "source_case_ids": [
+            "web_content_intake_fetch_refusal"
+          ],
+          "receipt_refs": [
+            "receipt.plugin.text.url_extract.ffb40b7ac81128df.v1",
+            "receipt.plugin.http.fetch_text.c81ec5cc115ff561.v1"
+          ],
+          "detail": "Runtime-refusal argument case is bound to one held-out lineage row so the typed refusal stays receipt-backed."
+        },
+        "receipt_posture": {
+          "execution_evidence_required": true,
+          "required_receipt_refs": [
+            "receipt.plugin.http.fetch_text.c81ec5cc115ff561.v1"
+          ],
+          "forbid_unseen_execution_claims": true,
+          "detail": "Runtime-refusal argument case requires the held-out fetch receipt because the typed refusal is part of the scored truth."
+        },
+        "task": {
+          "task_kind": "argument_construction",
+          "tool_name": "plugin_http_fetch_text",
+          "input_schema_id": "plugin.http.fetch_text.input.v1",
+          "required_argument_paths": [
+            "url"
+          ],
+          "missing_argument_paths": [],
+          "malformed_argument_paths": [],
+          "expected_route": "delegate_to_admitted_plugin"
+        },
+        "detail": "Held-out content-type refusal keeps the execution-backed typed runtime-refusal path separate from argument-schema mistakes."
+      }
+    ],
+    "summary": "Argument package covers schema-correct success, missing-input request-for-structure, malformed-structure correction, and one held-out runtime-refusal case under the bounded host-native plugin set.",
+    "package_digest": "9ceec93772872c5b02f8a82bbde230aeda64a078949093a761c333a7b6b35ff0"
+  },
+  "receipt": {
+    "schema_version": "psionic.psion.plugin_benchmark_receipt.v1",
+    "receipt_id": "receipt.psion.plugin.argument_construction.reference.v1",
+    "package_id": "psion.plugin.argument_construction.v1",
+    "package_digest": "9ceec93772872c5b02f8a82bbde230aeda64a078949093a761c333a7b6b35ff0",
+    "package_family": "argument_construction",
+    "contamination_bundle_digest": "d6c6245e888e933079f2cb4d42999b9c30968f3393395ffbb337d05676b3eae6",
+    "item_count": 6,
+    "observed_metrics": [
+      {
+        "kind": "route_accuracy_bps",
+        "value_bps": 10000,
+        "detail": "Reference route labels stay aligned across delegate and request-for-structure argument cases."
+      },
+      {
+        "kind": "argument_schema_accuracy_bps",
+        "value_bps": 10000,
+        "detail": "Reference argument packets satisfy the required path and type expectations for the bounded starter-plugin schemas."
+      },
+      {
+        "kind": "request_for_structure_accuracy_bps",
+        "value_bps": 10000,
+        "detail": "Missing-input and malformed-structure cases remain distinct request-for-structure outcomes rather than silent packet fabrication."
+      },
+      {
+        "kind": "typed_runtime_refusal_accuracy_bps",
+        "value_bps": 10000,
+        "detail": "Held-out runtime-refusal cases preserve the typed refusal boundary separately from model packet errors."
+      }
+    ],
+    "summary": "Reference receipt for the first plugin argument-construction benchmark package.",
+    "receipt_digest": "36ca1bed00caba3d9ce0645f46990321ab361cc35226054cd80b7d5bfc3d1e52"
+  },
+  "summary": "Argument-construction benchmark bundle freezes benchmark-authored schema-correct and request-for-structure cases plus one held-out execution-backed runtime-refusal case.",
+  "bundle_digest": "c032d00128a34d927cfd909eaafcf0fe5181b7537cf1fa673d384b8b5505ced4"
+}
