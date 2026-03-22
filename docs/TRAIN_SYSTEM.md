@@ -89,9 +89,9 @@ and now also has:
   learned-versus-executor claim boundary that all later `Psion` docs inherit.
 - `docs/TASSION_PROGRAM_MAP.md` is the canonical convergence map for the next
   `Psion x Tassadar` plugin-conditioned training tranche and freezes the
-  dependency-ordered training, benchmark, guest-artifact, and operator-proof
-  split that later learned-plugin-use work must follow without widening
-  publication or executor claims.
+  dependency-ordered training, benchmark, `networked_read_only` substrate-
+  proof, guest-artifact, and operator-proof split that later learned-plugin-
+  use work must follow without widening publication or executor claims.
 - `docs/audits/2026-03-22-tassadar-full-plugin-system-state-audit.md` is the
   canonical current-state proof record for the bounded Tassadar plugin system
   and freezes the present authoring-class, publication, and guest-artifact

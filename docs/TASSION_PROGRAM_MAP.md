@@ -130,7 +130,7 @@ publication-blocked, non-universal claim boundary while doing so.
 
 ## Dependency Order
 
-The `TASSION` convergence program is dependency-ordered in eight tracks:
+The `TASSION` convergence program is dependency-ordered in nine tracks:
 
 1. program and claim discipline: `TASSION-1`, `TASSION-2`
 2. plugin-training data substrate:
@@ -140,14 +140,15 @@ The `TASSION` convergence program is dependency-ordered in eight tracks:
    `TASSION-12`
 4. learned plugin-use reference lane:
    `TASSION-13`, `TASSION-14`, `TASSION-15`, `TASSION-16`
-5. narrow guest-artifact Wasm restoration:
-   `TASSION-17`, `TASSION-18`, `TASSION-19`, `TASSION-20`, `TASSION-21`,
-   `TASSION-22`
-6. combined plugin-conditioned lane with guest-artifact coverage:
-   `TASSION-23`, `TASSION-24`, `TASSION-25`, `TASSION-26`, `TASSION-27`
-7. real operator proof: `TASSION-28`, `TASSION-29`
-8. follow-on scale and hardening:
-   `TASSION-30`, `TASSION-31`, `TASSION-32`
+5. `networked_read_only` substrate proof: `TASSION-17`
+6. narrow guest-artifact Wasm restoration:
+   `TASSION-18`, `TASSION-19`, `TASSION-20`, `TASSION-21`, `TASSION-22`,
+   `TASSION-23`
+7. combined plugin-conditioned lane with guest-artifact coverage:
+   `TASSION-24`, `TASSION-25`, `TASSION-26`, `TASSION-27`, `TASSION-28`
+8. real operator proof: `TASSION-29`, `TASSION-30`
+9. follow-on scale and hardening:
+   `TASSION-31`, `TASSION-32`, `TASSION-33`
 
 ## Canonical Track Map
 
@@ -177,36 +178,50 @@ The `TASSION` convergence program is dependency-ordered in eight tracks:
 - `TASSION-13`: plugin-conditioned SFT stage in `psionic-train`
 - `TASSION-14`: plugin-conditioned compact-decoder reference model config
 - `TASSION-15`: first host-native starter-plugin-conditioned reference lane
+  for the currently fully proved authoring class: host-native, capability-free,
+  local deterministic starter plugins
 - `TASSION-16`: capability matrix and served posture v1 for the host-native
-  plugin-conditioned model
+  plugin-conditioned model, explicitly distinguishing supported host-native
+  capability-free behavior from not-yet-proved `networked_read_only` behavior
+  and unsupported secret-backed, stateful, and guest-artifact classes
 
-### Track 5: Narrow guest-artifact Wasm restoration
+### Track 5: `networked_read_only` substrate proof
 
-- `TASSION-17`: freeze guest-artifact product direction
-- `TASSION-18`: digest-bound guest-artifact manifest and identity contract
-- `TASSION-19`: bounded guest-artifact runtime loading path
-- `TASSION-20`: receipt-equivalent guest-artifact invocation path
-- `TASSION-21`: one user-provided Wasm starter plugin end to end
-- `TASSION-22`: guest-artifact trust-tier and authority-gate rows
+- `TASSION-17`: prove the first end-to-end `networked_read_only`
+  user-authored plugin lane across runtime, bridge, catalog, controller, and
+  weighted-controller truth without widening publication or authoring claims
 
-### Track 6: Combined plugin-conditioned lane with guest-artifact coverage
+### Track 6: Narrow guest-artifact Wasm restoration
 
-- `TASSION-23`: extend derivation pipeline for guest-artifact traces
-- `TASSION-24`: mixed host-native plus guest-artifact dataset v1
-- `TASSION-25`: mixed plugin-conditioned model v1
-- `TASSION-26`: guest-plugin benchmark package
-- `TASSION-27`: mixed capability matrix v2
+- `TASSION-18`: make an explicit product decision that guest-artifact
+  restoration is a later separate bounded lane and not present-tense
+  starter-plugin truth
+- `TASSION-19`: digest-bound guest-artifact manifest and identity contract
+- `TASSION-20`: bounded guest-artifact runtime loading path
+- `TASSION-21`: receipt-equivalent guest-artifact invocation path
+- `TASSION-22`: one user-provided Wasm starter plugin end to end
+- `TASSION-23`: guest-artifact trust-tier and authority-gate rows
 
-### Track 7: Real operator proof
+### Track 7: Combined plugin-conditioned lane with guest-artifact coverage
 
-- `TASSION-28`: first real plugin-conditioned Google single-node training audit
-- `TASSION-29`: first real mixed guest-artifact plugin-conditioned Google audit
+- `TASSION-24`: extend derivation pipeline for guest-artifact traces
+- `TASSION-25`: mixed host-native plus guest-artifact dataset v1
+- `TASSION-26`: mixed plugin-conditioned model v1
+- `TASSION-27`: guest-plugin benchmark package
+- `TASSION-28`: mixed capability matrix v2
 
-### Track 8: Follow-on scale and hardening
+### Track 8: Real operator proof
 
-- `TASSION-30`: plugin-conditioned route/refusal hardening tranche
-- `TASSION-31`: expand weighted-controller corpus only for new plugin classes
-- `TASSION-32`: decide whether cluster-scale plugin-conditioned training is
+- `TASSION-29`: first real plugin-conditioned Google single-node training
+  audit
+- `TASSION-30`: first real mixed guest-artifact plugin-conditioned Google
+  audit
+
+### Track 9: Follow-on scale and hardening
+
+- `TASSION-31`: plugin-conditioned route/refusal hardening tranche
+- `TASSION-32`: expand weighted-controller corpus only for new plugin classes
+- `TASSION-33`: decide whether cluster-scale plugin-conditioned training is
   warranted
 
 ## Operating Rules
@@ -216,6 +231,9 @@ Every `TASSION-*` issue must preserve all of the following:
 - training examples come from real plugin-runtime truth, not mock string tool
   calls
 - plugin-use traces preserve receipt linkage and replay class
+- issue language and capability matrices distinguish proved, not-yet-proved,
+  and unsupported plugin classes instead of flattening them into one platform
+  claim
 - route and refusal remain explicit and benchmarked
 - the learned lane never implies execution without receipts
 - guest-artifact restoration stays digest-bound, trust-tiered, and publication-
