@@ -1,0 +1,730 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.post_article_canonical_machine_closure_bundle.report.v1",
+  "checker_script_ref": "scripts/check-tassadar-post-article-canonical-machine-closure-bundle.sh",
+  "transformer_anchor_contract_ref": "crates/psionic-transformer/src/tassadar_post_article_canonical_machine_closure_bundle_contract.rs",
+  "tcm_v1_runtime_contract_report_ref": "fixtures/tassadar/reports/tassadar_tcm_v1_runtime_contract_report.json",
+  "historical_universal_machine_proof_report_ref": "fixtures/tassadar/reports/tassadar_universal_machine_proof_report.json",
+  "historical_universality_witness_suite_report_ref": "fixtures/tassadar/reports/tassadar_universality_witness_suite_report.json",
+  "historical_universality_verdict_split_report_ref": "fixtures/tassadar/reports/tassadar_universality_verdict_split_report.json",
+  "universality_bridge_contract_report_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
+  "canonical_computational_model_statement_report_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json",
+  "canonical_machine_identity_lock_report_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_report.json",
+  "control_plane_decision_provenance_proof_report_ref": "fixtures/tassadar/reports/tassadar_post_article_control_plane_decision_provenance_proof_report.json",
+  "execution_semantics_proof_transport_audit_report_ref": "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json",
+  "continuation_non_computationality_contract_report_ref": "fixtures/tassadar/reports/tassadar_post_article_continuation_non_computationality_contract_report.json",
+  "fast_route_legitimacy_and_carrier_binding_contract_report_ref": "fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_report.json",
+  "equivalent_choice_neutrality_and_admissibility_contract_report_ref": "fixtures/tassadar/reports/tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract_report.json",
+  "downward_non_influence_and_served_conformance_report_ref": "fixtures/tassadar/reports/tassadar_post_article_downward_non_influence_and_served_conformance_report.json",
+  "universality_portability_minimality_matrix_report_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_portability_minimality_matrix_report.json",
+  "rebased_universality_verdict_split_report_ref": "fixtures/tassadar/reports/tassadar_post_article_rebased_universality_verdict_split_report.json",
+  "plugin_charter_authority_boundary_report_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_charter_authority_boundary_report.json",
+  "anti_drift_stability_closeout_audit_report_ref": "fixtures/tassadar/reports/tassadar_post_article_anti_drift_stability_closeout_audit_report.json",
+  "post_article_turing_audit_ref": "docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md",
+  "plugin_system_turing_audit_ref": "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md",
+  "closure_bundle_contract": {
+    "schema_version": 1,
+    "contract_id": "tassadar.post_article_canonical_machine_closure_bundle.contract.v1",
+    "machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+    "canonical_architecture_anchor_crate": "psionic-transformer",
+    "canonical_architecture_boundary_ref": "docs/TASSADAR_ARTICLE_TRANSFORMER_STACK_BOUNDARY.md",
+    "artifact_classification_rows": [
+      {
+        "artifact_id": "tcm_v1_runtime_contract",
+        "evidence_class": "runtime_contract",
+        "detail": "the historical TCM.v1 runtime contract remains the continuation and effect-carrier contract bound into the canonical closure object."
+      },
+      {
+        "artifact_id": "historical_universal_machine_proof",
+        "evidence_class": "proof_carrying",
+        "detail": "the historical universal-machine proof remains one proof-bearing ingredient of the closure object rather than a free-floating theoretical premise."
+      },
+      {
+        "artifact_id": "historical_universality_witness_suite",
+        "evidence_class": "proof_carrying",
+        "detail": "the witness suite remains one proof-bearing ingredient of the closure object so exact witness families cannot drift away from the rebased route identity."
+      },
+      {
+        "artifact_id": "historical_universality_verdict_split",
+        "evidence_class": "audit",
+        "detail": "the historical verdict split remains one cited audit input so later rebasing keeps the original theory/operator boundary explicit."
+      },
+      {
+        "artifact_id": "canonical_machine_identity_lock",
+        "evidence_class": "identity_lock",
+        "detail": "the canonical machine lock contributes the tuple-bound machine subject that every proof, audit, and later claim must inherit."
+      },
+      {
+        "artifact_id": "canonical_computational_model_statement",
+        "evidence_class": "runtime_statement",
+        "detail": "the published computational-model statement contributes the compute identity and plugin-above-machine boundary for the bundle subject."
+      },
+      {
+        "artifact_id": "control_plane_decision_provenance_proof",
+        "evidence_class": "proof_carrying",
+        "detail": "the control-plane provenance proof contributes determinism, equivalent-choice, failure semantics, time semantics, information-boundary, hidden-state, and observer rules."
+      },
+      {
+        "artifact_id": "execution_semantics_proof_transport_audit",
+        "evidence_class": "audit",
+        "detail": "the proof-transport audit contributes the rebased proof boundary that keeps the historical universal-machine proof attached to the owned route."
+      },
+      {
+        "artifact_id": "continuation_non_computationality_contract",
+        "evidence_class": "boundary_contract",
+        "detail": "the continuation contract contributes the state-carrier boundary that keeps continuation surfaces from becoming a second machine."
+      },
+      {
+        "artifact_id": "fast_route_legitimacy_and_carrier_binding_contract",
+        "evidence_class": "boundary_contract",
+        "detail": "the fast-route contract contributes the direct-versus-resumable carrier split and quarantines unproven fast families outside the machine."
+      },
+      {
+        "artifact_id": "equivalent_choice_neutrality_and_admissibility_contract",
+        "evidence_class": "boundary_contract",
+        "detail": "the equivalent-choice contract contributes the admissible divergence boundary used by the control-plane determinism class."
+      },
+      {
+        "artifact_id": "downward_non_influence_and_served_conformance_contract",
+        "evidence_class": "boundary_contract",
+        "detail": "the downward non-influence contract contributes the lower-plane truth rewrite refusal and fail-closed served envelope."
+      },
+      {
+        "artifact_id": "universality_portability_minimality_matrix",
+        "evidence_class": "audit",
+        "detail": "the portability/minimality matrix contributes the declared machine matrix and route minimality posture that the bundle must keep explicit."
+      },
+      {
+        "artifact_id": "plugin_charter_authority_boundary",
+        "evidence_class": "capability_boundary",
+        "detail": "the plugin charter contributes the observer, governance, and state-class split that keep the plugin layer above the same canonical machine."
+      },
+      {
+        "artifact_id": "anti_drift_stability_closeout",
+        "evidence_class": "audit",
+        "detail": "the anti-drift closeout contributes the explicit statement that compute, control, continuation, capability, and served posture are already locked to one machine before the closure bundle is published."
+      }
+    ],
+    "required_subject_field_rows": [
+      {
+        "field_id": "machine_identity_tuple",
+        "detail": "the closure object must bind one canonical tuple over machine id, model id, weight digests, route id, route digest, and continuation contract digests."
+      },
+      {
+        "field_id": "computational_model_statement",
+        "detail": "the closure object must name the separately published computational-model statement instead of restating compute identity implicitly."
+      },
+      {
+        "field_id": "determinism_contract",
+        "detail": "the closure object must centralize the selected determinism class, replay posture, and equivalent-choice relation."
+      },
+      {
+        "field_id": "control_plane_proof",
+        "detail": "the closure object must bind branch, retry, and stop decisions to model outputs and canonical machine identity by digest."
+      },
+      {
+        "field_id": "execution_semantics_transport",
+        "detail": "the closure object must bind the proof-transport audit so the historical proof stays attached to the rebased route."
+      },
+      {
+        "field_id": "carrier_split",
+        "detail": "the closure object must bind the explicit direct-versus-resumable carrier split instead of allowing mixed-carrier recomposition."
+      },
+      {
+        "field_id": "continuation_boundary",
+        "detail": "the closure object must bind the continuation contract and admitted continuation surfaces to the same machine."
+      },
+      {
+        "field_id": "state_classes_and_hidden_state_closure",
+        "detail": "the closure object must bind admitted state classes and the hidden-state closure instead of letting later workflow surfaces smuggle new compute."
+      },
+      {
+        "field_id": "failure_lattice_and_time_semantics",
+        "detail": "the closure object must bind the failure lattice and time semantics used by the replay-stable control proof."
+      },
+      {
+        "field_id": "information_and_training_boundaries",
+        "detail": "the closure object must bind information-boundary and training-versus-inference posture so those boundaries cannot drift across later claims."
+      },
+      {
+        "field_id": "observer_model",
+        "detail": "the closure object must bind the observer model and acceptance requirements that distinguish proof-bearing from sampled or anecdotal evidence."
+      },
+      {
+        "field_id": "portability_and_minimality",
+        "detail": "the closure object must bind portability and minimality posture so route-class and machine-class drift stay explicit."
+      },
+      {
+        "field_id": "proof_vs_audit_classification",
+        "detail": "the closure object must classify proofs, audits, and boundary contracts explicitly rather than letting later prose blur those roles."
+      }
+    ],
+    "invalidation_laws": [
+      {
+        "invalidation_id": "route_drift_rejected",
+        "detail": "route drift remains invalid: the canonical route id and route descriptor digest must stay identical across the bound proof-bearing and audit-bearing surfaces."
+      },
+      {
+        "invalidation_id": "determinism_mismatch_rejected",
+        "detail": "determinism mismatch remains invalid: the selected determinism class, replay posture, and equivalent-choice relation must stay bundle-bound."
+      },
+      {
+        "invalidation_id": "hidden_state_channel_rejected",
+        "detail": "hidden state channel drift remains invalid: hidden workflow, spill, session, process-object, or plugin surfaces may not reopen undeclared state channels."
+      },
+      {
+        "invalidation_id": "fast_route_substitution_rejected",
+        "detail": "fast-route substitution remains invalid: unproven route families may not be treated as the canonical machine by inheritance."
+      },
+      {
+        "invalidation_id": "downward_influence_rejected",
+        "detail": "downward influence remains invalid: later plugin, publication, or served layers may not rewrite lower-plane truth or machine identity."
+      },
+      {
+        "invalidation_id": "observer_model_mismatch_rejected",
+        "detail": "observer mismatch remains invalid: sampled or anecdotal observation cannot replace the bundle-bound verifier and acceptance model."
+      },
+      {
+        "invalidation_id": "portability_failure_rejected",
+        "detail": "portability failure remains invalid: machine-class posture and route portability must stay the same as the declared matrix."
+      },
+      {
+        "invalidation_id": "minimality_failure_rejected",
+        "detail": "minimality failure remains invalid: route-carrier and component-boundary minimality must stay explicit on the canonical machine."
+      },
+      {
+        "invalidation_id": "bundle_digest_mismatch_rejected",
+        "detail": "bundle digest mismatch remains invalid: downstream terminal, controller, receipt, publication, or platform claims must inherit the declared closure bundle by digest instead of silently recomposing the machine."
+      }
+    ],
+    "claim_inheritance_rows": [
+      {
+        "claim_surface_id": "terminal_universality_claim",
+        "detail": "any terminal universality claim must cite the canonical machine closure bundle by digest instead of inferring the machine from adjacent rebasing and anti-drift artifacts."
+      },
+      {
+        "claim_surface_id": "weighted_plugin_controller_claim",
+        "detail": "any weighted plugin controller claim must inherit this bundle by digest so controller ownership cannot float onto a weaker or different machine."
+      },
+      {
+        "claim_surface_id": "plugin_invocation_receipt_claim",
+        "detail": "any plugin invocation receipt or replay-class claim must inherit this bundle by digest so receipt identity remains tied to the same machine subject."
+      },
+      {
+        "claim_surface_id": "plugin_publication_claim",
+        "detail": "any plugin publication or trust-tier claim must inherit this bundle by digest so publication posture cannot silently redefine the machine."
+      },
+      {
+        "claim_surface_id": "plugin_platform_claim",
+        "detail": "any bounded platform claim must inherit this bundle by digest so operator/internal capability stays bound to one canonical machine."
+      }
+    ],
+    "closure_bundle_issue_id": "TAS-215",
+    "next_issue_id": "TAS-216",
+    "claim_boundary": "this transformer-owned contract freezes the final claim-bearing canonical machine closure-bundle boundary. It requires one digest-bound closure object to bind the published computational model, canonical machine tuple, determinism contract, control-plane proof, execution-semantics transport, continuation boundary, carrier split, state classes, hidden-state closure, failure lattice, observer model, portability/minimality posture, and explicit proof-vs-audit classification into one indivisible machine identity. It does not itself publish plugin catalogs, plugin publication, served/public universality, or arbitrary software capability.",
+    "summary": "Transformer canonical machine closure-bundle contract freezes 15 artifact classifications, 13 required subject fields, 9 invalidation laws, and 5 downstream inheritance requirements above one digest-bound post-article machine."
+  },
+  "supporting_material_rows": [
+    {
+      "material_id": "tcm_v1_runtime_contract",
+      "material_class": "runtime_contract",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_tcm_v1_runtime_contract_report.json",
+      "source_artifact_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+      "source_artifact_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
+      "detail": "the closure bundle keeps the historical TCM.v1 runtime contract explicit as the continuation and effect carrier."
+    },
+    {
+      "material_id": "historical_universal_machine_proof",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_universal_machine_proof_report.json",
+      "source_artifact_id": "tassadar.universal_machine_proof.report.v1",
+      "source_artifact_digest": "8c1f7ecbadfc51d75dd4b00590c4e0bb2752ddf06d83ca9b3b139d36fde81559",
+      "detail": "the closure bundle keeps the historical universal-machine proof explicit by digest."
+    },
+    {
+      "material_id": "historical_universality_witness_suite",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_universality_witness_suite_report.json",
+      "source_artifact_id": "tassadar.universality_witness_suite.report.v1",
+      "source_artifact_digest": "434f80150c05c44ef7bdf6d126f8e6141e2506e6a4c4da6a5178f5d415ebae3c",
+      "detail": "the closure bundle keeps the historical witness suite explicit by digest."
+    },
+    {
+      "material_id": "historical_universality_verdict_split",
+      "material_class": "audit",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_universality_verdict_split_report.json",
+      "source_artifact_id": "tassadar.universality_verdict_split.report.v1",
+      "source_artifact_digest": "c74c77968fda637f0fa73d12c0c131cac0d00ff10092cc712efb0787d9746082",
+      "detail": "the closure bundle keeps the historical theory/operator verdict split explicit by digest."
+    },
+    {
+      "material_id": "universality_bridge_contract",
+      "material_class": "boundary_contract",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
+      "source_artifact_id": "tassadar.post_article_universality_bridge.contract.report.v1",
+      "source_artifact_digest": "772d2dcad36599e1de3da1b2780b4baf8fc0722aec2c9c8ad2754f2e3525be7e",
+      "detail": "the closure bundle keeps the rebased bridge carrier split and supported machine classes explicit."
+    },
+    {
+      "material_id": "canonical_computational_model_statement",
+      "material_class": "runtime_statement",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json",
+      "source_artifact_id": "tassadar.post_article_canonical_computational_model_statement.report.v1",
+      "source_artifact_digest": "977529a10ecf4b2bbff4371b6358590679fad49cff3ebdaf487bfa2a75af42d9",
+      "detail": "the closure bundle keeps the separately published computational-model statement explicit by digest."
+    },
+    {
+      "material_id": "canonical_machine_identity_lock",
+      "material_class": "identity_lock",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_report.json",
+      "source_artifact_id": "tassadar.post_article_canonical_machine_identity_lock.report.v1",
+      "source_artifact_digest": "0854c4b6a16776490a5fca047cd93f49bc8b3d82c8077301bd7ee6ab78a21bed",
+      "detail": "the closure bundle keeps the canonical machine tuple explicit by digest."
+    },
+    {
+      "material_id": "control_plane_decision_provenance_proof",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_control_plane_decision_provenance_proof_report.json",
+      "source_artifact_id": "tassadar.post_article_control_plane_decision_provenance_proof.report.v1",
+      "source_artifact_digest": "f44870bd0b278203bdb745a5b8337003b94ae956799073cfeef034651607f62c",
+      "detail": "the closure bundle keeps determinism, equivalent-choice, failure, time, information, training/inference, hidden-state, and observer semantics explicit by digest."
+    },
+    {
+      "material_id": "execution_semantics_proof_transport_audit",
+      "material_class": "audit",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json",
+      "source_artifact_id": "tassadar.post_article_execution_semantics_proof_transport_audit.report.v1",
+      "source_artifact_digest": "76622e0f27f39bd1e2ca8eadbeec8dfeb96709fa9f49925d51ab5fea1fc2fad5",
+      "detail": "the closure bundle keeps the rebased proof-transport boundary explicit by digest."
+    },
+    {
+      "material_id": "continuation_non_computationality_contract",
+      "material_class": "boundary_contract",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_continuation_non_computationality_contract_report.json",
+      "source_artifact_id": "tassadar.post_article_continuation_non_computationality_contract.report.v1",
+      "source_artifact_digest": "7bb89f70d73b3e0436c27c94ae0b07fa4833e2c1442c9384bed7491ab7ef84d6",
+      "detail": "the closure bundle keeps continuation semantics explicit by digest."
+    },
+    {
+      "material_id": "fast_route_legitimacy_and_carrier_binding_contract",
+      "material_class": "boundary_contract",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_report.json",
+      "source_artifact_id": "tassadar.post_article_fast_route_legitimacy_and_carrier_binding_contract.report.v1",
+      "source_artifact_digest": "7398cd0332a0d710855dcac4e50768e2e9aebe9c2dd1b2ac33e1f78b1da0af8a",
+      "detail": "the closure bundle keeps fast-route carrier legitimacy explicit by digest."
+    },
+    {
+      "material_id": "equivalent_choice_neutrality_and_admissibility_contract",
+      "material_class": "boundary_contract",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract_report.json",
+      "source_artifact_id": "tassadar.post_article_equivalent_choice_neutrality_and_admissibility.report.v1",
+      "source_artifact_digest": "a3a2d269d2871512edd20e2309f8623195abf08a379c91c14b2fb9bbd357bcf0",
+      "detail": "the closure bundle keeps equivalent-choice neutrality explicit by digest."
+    },
+    {
+      "material_id": "downward_non_influence_and_served_conformance_contract",
+      "material_class": "boundary_contract",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_downward_non_influence_and_served_conformance_report.json",
+      "source_artifact_id": "tassadar.post_article_downward_non_influence_and_served_conformance.report.v1",
+      "source_artifact_digest": "cb202ef536f0f5ba86846e26cf00ad24c9b7af1ae697f499a79a755a5f3e8f0f",
+      "detail": "the closure bundle keeps downward non-influence and served conformance explicit by digest."
+    },
+    {
+      "material_id": "universality_portability_minimality_matrix",
+      "material_class": "audit",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_portability_minimality_matrix_report.json",
+      "source_artifact_id": "tassadar.post_article_universality_portability_minimality_matrix.report.v1",
+      "source_artifact_digest": "d2a7ab7a616135fa085418ccddfbbe392e1c706b8a149e2984e4be0132bb926c",
+      "detail": "the closure bundle keeps portability and minimality posture explicit by digest."
+    },
+    {
+      "material_id": "rebased_universality_verdict_split",
+      "material_class": "audit",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_rebased_universality_verdict_split_report.json",
+      "source_artifact_id": "tassadar.post_article_rebased_universality_verdict_split.report.v1",
+      "source_artifact_digest": "dec0943127b22889643d8ebd6c1b0f2816e9a51987724e0263bc90469967fdeb",
+      "detail": "the closure bundle keeps the rebased theory/operator verdict split explicit by digest."
+    },
+    {
+      "material_id": "plugin_charter_authority_boundary",
+      "material_class": "capability_boundary",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_charter_authority_boundary_report.json",
+      "source_artifact_id": "tassadar.post_article_plugin_charter_authority_boundary.report.v1",
+      "source_artifact_digest": "9ea9a56a262bdd5405ee7a10acf3746256773408dfbe05422b34d50e45cf4ffa",
+      "detail": "the closure bundle keeps the plugin charter state-class and governance boundary explicit by digest."
+    },
+    {
+      "material_id": "anti_drift_stability_closeout",
+      "material_class": "audit",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_anti_drift_stability_closeout_audit_report.json",
+      "source_artifact_id": "tassadar.post_article_anti_drift_stability_closeout_audit.report.v1",
+      "source_artifact_digest": "bf53bfb1c2bea89dd8cabdbb4493ca581cf6d50677598dd838b761c0e0cb078f",
+      "detail": "the closure bundle inherits the anti-drift verdict that these surfaces are already locked to one canonical machine."
+    },
+    {
+      "material_id": "post_article_turing_audit_context",
+      "material_class": "historical_context",
+      "satisfied": true,
+      "source_ref": "docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md",
+      "detail": "the March 20 post-article audit remains historical context for why the closure bundle must exist as one indivisible machine object."
+    },
+    {
+      "material_id": "plugin_system_turing_audit_context",
+      "material_class": "historical_context",
+      "satisfied": true,
+      "source_ref": "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md",
+      "detail": "the March 20 plugin-system audit remains historical context for why later plugin claims must inherit the closure bundle instead of recomposing the machine."
+    }
+  ],
+  "dependency_rows": [
+    {
+      "dependency_id": "machine_subject_bound",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json"
+      ],
+      "detail": "the canonical machine tuple, computational-model statement, and rebased bridge must agree on one machine subject."
+    },
+    {
+      "dependency_id": "historical_proof_chain_bound",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_tcm_v1_runtime_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_universal_machine_proof_report.json",
+        "fixtures/tassadar/reports/tassadar_universality_witness_suite_report.json",
+        "fixtures/tassadar/reports/tassadar_universality_verdict_split_report.json"
+      ],
+      "detail": "the historical proof, witness, and verdict chain must stay green before it can be rebound into one canonical closure bundle."
+    },
+    {
+      "dependency_id": "control_plane_bound",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_control_plane_decision_provenance_proof_report.json"
+      ],
+      "detail": "determinism, equivalent-choice, failure, time, information-boundary, hidden-state, and observer semantics must remain bound by the control-plane proof."
+    },
+    {
+      "dependency_id": "execution_transport_bound",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json"
+      ],
+      "detail": "the rebased proof-transport boundary must remain green before the bundle can bind proof-carrying artifacts to the owned route."
+    },
+    {
+      "dependency_id": "continuation_and_carrier_bound",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_continuation_non_computationality_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_downward_non_influence_and_served_conformance_report.json"
+      ],
+      "detail": "continuation, carrier binding, equivalent-choice, and downward non-influence boundaries must stay green on the same machine subject."
+    },
+    {
+      "dependency_id": "portability_and_minimality_bound",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_universality_portability_minimality_matrix_report.json"
+      ],
+      "detail": "portability and minimality posture must remain explicit before the machine can be published as one closure bundle."
+    },
+    {
+      "dependency_id": "plugin_charter_bound",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_charter_authority_boundary_report.json"
+      ],
+      "detail": "the plugin charter must remain frozen so later plugin claims inherit the same state-class and observer boundaries."
+    },
+    {
+      "dependency_id": "anti_drift_closeout_inherited",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_anti_drift_stability_closeout_audit_report.json"
+      ],
+      "detail": "the anti-drift closeout must already be green before the closure bundle can publish the claim-bearing machine object."
+    }
+  ],
+  "closure_subject": {
+    "closure_bundle_id": "tassadar.post_article.canonical_machine.closure_bundle.v1",
+    "machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+    "tuple_id": "tassadar.post_article.canonical_machine_identity_lock.tuple.v1",
+    "carrier_class_id": "tassadar.post_article.canonical_machine.closure_bundle_bound_rebased_route_identity.v1",
+    "canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+    "canonical_weight_bundle_digest": "99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c",
+    "canonical_weight_primary_artifact_sha256": "e24923e6fe39f0656b3f331fb935e0827a3de43b706014610e513ca5a54e9f84",
+    "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+    "canonical_route_descriptor_digest": "00af062cccc3d1b2e42ee8e092b9ef8e1539dd3f2dfc379cff7d1cd4a008b032",
+    "computational_model_statement_id": "tassadar.post_article.canonical_computational_model.statement.v1",
+    "computational_model_statement_digest": "977529a10ecf4b2bbff4371b6358590679fad49cff3ebdaf487bfa2a75af42d9",
+    "direct_decode_mode": "hull_cache",
+    "control_plane_proof_report_id": "tassadar.post_article_control_plane_decision_provenance_proof.report.v1",
+    "control_plane_proof_report_digest": "f44870bd0b278203bdb745a5b8337003b94ae956799073cfeef034651607f62c",
+    "determinism_class": "StrictDeterministic",
+    "equivalent_choice_relation_id": "singleton_exact_control_trace.v1",
+    "continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+    "continuation_contract_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
+    "execution_semantics_proof_transport_report_id": "tassadar.post_article_execution_semantics_proof_transport_audit.report.v1",
+    "execution_semantics_proof_transport_report_digest": "76622e0f27f39bd1e2ca8eadbeec8dfeb96709fa9f49925d51ab5fea1fc2fad5",
+    "carrier_split_topology": "ExplicitSplitAcrossDirectAndResumableLanes",
+    "direct_carrier_id": "tassadar.post_article_universality_bridge.direct_article_equivalent_carrier.v1",
+    "resumable_carrier_id": "tassadar.post_article_universality_bridge.resumable_universality_carrier.v1",
+    "supported_machine_class_ids": [
+      "host_cpu_aarch64",
+      "host_cpu_x86_64"
+    ],
+    "hidden_state_allowed_state_class_ids": [
+      "weights_owned_control_state",
+      "ephemeral_execution_state",
+      "resumed_continuation_state",
+      "durable_receipt_backed_state",
+      "undeclared_workflow_state_refused"
+    ],
+    "plugin_state_class_ids": [
+      "packet_local_state",
+      "instance_local_ephemeral_state",
+      "host_backed_durable_state",
+      "weights_owned_control_state"
+    ],
+    "failure_semantic_class_ids": [
+      "Refusal",
+      "PolicyFailure",
+      "SemanticFailure",
+      "CapabilityFailure",
+      "ResourceExhaustion",
+      "DeterminismViolation"
+    ],
+    "observer_verifier_roles": [
+      "artifact_replayer",
+      "receipt_verifier",
+      "gate_verdict_checker"
+    ],
+    "observer_acceptance_requirements": [
+      "machine_identity_match",
+      "decision_trace_replay_match",
+      "determinism_class_match",
+      "typed_failure_class_match"
+    ],
+    "portability_matrix_report_id": "tassadar.post_article_universality_portability_minimality_matrix.report.v1",
+    "portability_matrix_report_digest": "d2a7ab7a616135fa085418ccddfbbe392e1c706b8a149e2984e4be0132bb926c",
+    "minimality_matrix_report_id": "tassadar.post_article_universality_portability_minimality_matrix.report.v1",
+    "minimality_matrix_report_digest": "d2a7ab7a616135fa085418ccddfbbe392e1c706b8a149e2984e4be0132bb926c",
+    "plugin_charter_report_id": "tassadar.post_article_plugin_charter_authority_boundary.report.v1",
+    "plugin_charter_report_digest": "9ea9a56a262bdd5405ee7a10acf3746256773408dfbe05422b34d50e45cf4ffa",
+    "anti_drift_closeout_report_id": "tassadar.post_article_anti_drift_stability_closeout_audit.report.v1",
+    "anti_drift_closeout_report_digest": "bf53bfb1c2bea89dd8cabdbb4493ca581cf6d50677598dd838b761c0e0cb078f",
+    "detail": "closure_bundle_id=`tassadar.post_article.canonical_machine.closure_bundle.v1` machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1` tuple_id=`tassadar.post_article.canonical_machine_identity_lock.tuple.v1` canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1` determinism_class=StrictDeterministic equivalent_choice_relation_id=`singleton_exact_control_trace.v1` direct_carrier_id=`tassadar.post_article_universality_bridge.direct_article_equivalent_carrier.v1` resumable_carrier_id=`tassadar.post_article_universality_bridge.resumable_universality_carrier.v1` plugin_charter_report_id=`tassadar.post_article_plugin_charter_authority_boundary.report.v1` anti_drift_report_id=`tassadar.post_article_anti_drift_stability_closeout_audit.report.v1` next_issue_id=`TAS-216`."
+  },
+  "invalidation_rows": [
+    {
+      "invalidation_id": "route_drift_rejected",
+      "present": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_canonical_machine_closure_bundle_contract.rs"
+      ],
+      "detail": "route drift remains invalid: the canonical route id and route descriptor digest must stay identical across the bound proof-bearing and audit-bearing surfaces."
+    },
+    {
+      "invalidation_id": "determinism_mismatch_rejected",
+      "present": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_canonical_machine_closure_bundle_contract.rs"
+      ],
+      "detail": "determinism mismatch remains invalid: the selected determinism class, replay posture, and equivalent-choice relation must stay bundle-bound."
+    },
+    {
+      "invalidation_id": "hidden_state_channel_rejected",
+      "present": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_canonical_machine_closure_bundle_contract.rs"
+      ],
+      "detail": "hidden state channel drift remains invalid: hidden workflow, spill, session, process-object, or plugin surfaces may not reopen undeclared state channels."
+    },
+    {
+      "invalidation_id": "fast_route_substitution_rejected",
+      "present": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_canonical_machine_closure_bundle_contract.rs"
+      ],
+      "detail": "fast-route substitution remains invalid: unproven route families may not be treated as the canonical machine by inheritance."
+    },
+    {
+      "invalidation_id": "downward_influence_rejected",
+      "present": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_canonical_machine_closure_bundle_contract.rs"
+      ],
+      "detail": "downward influence remains invalid: later plugin, publication, or served layers may not rewrite lower-plane truth or machine identity."
+    },
+    {
+      "invalidation_id": "observer_model_mismatch_rejected",
+      "present": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_canonical_machine_closure_bundle_contract.rs"
+      ],
+      "detail": "observer mismatch remains invalid: sampled or anecdotal observation cannot replace the bundle-bound verifier and acceptance model."
+    },
+    {
+      "invalidation_id": "portability_failure_rejected",
+      "present": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_canonical_machine_closure_bundle_contract.rs"
+      ],
+      "detail": "portability failure remains invalid: machine-class posture and route portability must stay the same as the declared matrix."
+    },
+    {
+      "invalidation_id": "minimality_failure_rejected",
+      "present": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_canonical_machine_closure_bundle_contract.rs"
+      ],
+      "detail": "minimality failure remains invalid: route-carrier and component-boundary minimality must stay explicit on the canonical machine."
+    },
+    {
+      "invalidation_id": "bundle_digest_mismatch_rejected",
+      "present": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_canonical_machine_closure_bundle_contract.rs"
+      ],
+      "detail": "bundle digest mismatch remains invalid: downstream terminal, controller, receipt, publication, or platform claims must inherit the declared closure bundle by digest instead of silently recomposing the machine."
+    }
+  ],
+  "validation_rows": [
+    {
+      "validation_id": "proof_vs_audit_classification_complete",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_tcm_v1_runtime_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_universal_machine_proof_report.json",
+        "fixtures/tassadar/reports/tassadar_universality_witness_suite_report.json",
+        "fixtures/tassadar/reports/tassadar_universality_verdict_split_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_control_plane_decision_provenance_proof_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_continuation_non_computationality_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_downward_non_influence_and_served_conformance_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_portability_minimality_matrix_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_rebased_universality_verdict_split_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_charter_authority_boundary_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_anti_drift_stability_closeout_audit_report.json"
+      ],
+      "detail": "every required proof, audit, runtime statement, runtime contract, boundary contract, identity lock, and capability boundary remains explicitly classified."
+    },
+    {
+      "validation_id": "machine_subject_complete",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json"
+      ],
+      "detail": "the canonical tuple, computational-model statement, and rebased bridge now resolve to one machine subject."
+    },
+    {
+      "validation_id": "control_execution_and_continuation_bound",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_control_plane_decision_provenance_proof_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_continuation_non_computationality_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_report.json"
+      ],
+      "detail": "control, proof transport, continuation, and fast-route carrier binding are all locked onto the same machine subject."
+    },
+    {
+      "validation_id": "hidden_state_and_observer_model_bound",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_control_plane_decision_provenance_proof_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_charter_authority_boundary_report.json"
+      ],
+      "detail": "hidden-state closure and observer acceptance model are both machine-bound inside the bundle."
+    },
+    {
+      "validation_id": "portability_and_minimality_bound",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_universality_portability_minimality_matrix_report.json"
+      ],
+      "detail": "portability and minimality posture remain explicit and machine-checkable inside the bundle."
+    },
+    {
+      "validation_id": "anti_drift_closeout_inherited",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_anti_drift_stability_closeout_audit_report.json"
+      ],
+      "detail": "the anti-drift closeout remains green and is now inherited by the closure bundle instead of staying as an adjacent prerequisite only."
+    },
+    {
+      "validation_id": "terminal_claims_require_bundle_digest",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_closure_bundle_report.json"
+      ],
+      "detail": "later terminal universality claims must reference the closure bundle by digest."
+    },
+    {
+      "validation_id": "plugin_and_platform_claims_require_bundle_digest",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_closure_bundle_report.json"
+      ],
+      "detail": "later weighted-controller, receipt, publication, and platform claims must reference the closure bundle by digest."
+    },
+    {
+      "validation_id": "next_issue_frontier_advanced",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_closure_bundle_report.json"
+      ],
+      "detail": "the canonical machine closure bundle is now published, so the next open TAS issue moves to TAS-216."
+    }
+  ],
+  "bundle_status": "green",
+  "bundle_green": true,
+  "proof_and_audit_classification_complete": true,
+  "machine_subject_complete": true,
+  "control_execution_and_continuation_bound": true,
+  "hidden_state_and_observer_model_bound": true,
+  "portability_and_minimality_bound": true,
+  "anti_drift_closeout_inherited": true,
+  "terminal_claims_must_reference_bundle_digest": true,
+  "plugin_claims_must_reference_bundle_digest": true,
+  "platform_claims_must_reference_bundle_digest": true,
+  "closure_bundle_issue_id": "TAS-215",
+  "next_issue_id": "TAS-216",
+  "plugin_publication_allowed": false,
+  "served_public_universality_allowed": false,
+  "arbitrary_software_capability_allowed": false,
+  "claim_boundary": "this eval-owned report publishes one digest-bound canonical machine closure bundle for the post-article route. It binds the historical proof chain, the canonical machine tuple, the published computational model, the control-plane provenance proof, execution-semantics transport, continuation boundary, carrier split, state classes, hidden-state closure, failure lattice, observer model, portability/minimality posture, plugin charter boundary, and anti-drift closeout into one indivisible machine object. Later terminal universality, weighted plugin controller, plugin invocation receipt, plugin publication, and bounded plugin-platform claims must reference this closure bundle by digest instead of silently recomposing the machine. It still does not by itself publish plugin catalogs, plugin publication, served/public universality, or arbitrary software capability.",
+  "summary": "Post-article canonical machine closure bundle keeps supporting_material_rows=19/19, dependency_rows=8/8, invalidation_rows=9/9, validation_rows=9/9, bundle_status=Green, closure_bundle_digest=`8ff2c07511184d7b4be36ba9c513d8558286fdb86615cd0aac1643c907d8f76c`, closure_bundle_issue_id=`TAS-215`, and next_issue_id=`TAS-216`.",
+  "closure_bundle_digest": "8ff2c07511184d7b4be36ba9c513d8558286fdb86615cd0aac1643c907d8f76c",
+  "report_digest": "f38acded40f17fc92cd9c9cb8c7c8b4e0a82f9133bf3a968d1630365a0f1c74b"
+}

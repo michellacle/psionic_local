@@ -6,15 +6,16 @@ cd "$ROOT_DIR"
 
 cargo run -p psionic-eval --example tassadar_post_article_plugin_result_binding_schema_stability_and_composition_report
 cargo run -p psionic-research --example tassadar_post_article_plugin_result_binding_schema_stability_and_composition_summary
+cargo run -p psionic-eval --example tassadar_post_article_canonical_machine_closure_bundle_report
 cargo run -p psionic-eval --example tassadar_post_article_universality_bridge_contract_report
 cargo run -p psionic-research --example tassadar_post_article_universality_bridge_contract_summary
 cargo run -p psionic-runtime --example tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_bundle
 cargo run -p psionic-sandbox --example tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_report
 cargo run -p psionic-eval --example tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report
 cargo run -p psionic-research --example tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_summary
-cargo test -p psionic-provider post_article_plugin_result_binding_receipt_projects_summary -- --nocapture
-cargo test -p psionic-provider post_article_universality_bridge_contract -- --nocapture
-cargo test -p psionic-provider post_article_weighted_plugin_controller_receipt_projects_summary -- --nocapture
+cargo test -p psionic-provider --lib post_article_plugin_result_binding_receipt_projects_summary -- --nocapture
+cargo test -p psionic-provider --lib post_article_universality_bridge_contract -- --nocapture
+cargo test -p psionic-provider --lib post_article_weighted_plugin_controller_receipt_projects_summary -- --nocapture
 
 jq -e '
   .bundle_id == "tassadar.post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop.runtime_bundle.v1"
@@ -59,6 +60,7 @@ jq -e '
   and .typed_refusal_loop_closed == true
   and .host_not_planner_green == true
   and .adversarial_negative_rows_green == true
+  and .closure_bundle_bound_by_digest == true
   and .weighted_plugin_control_allowed == true
   and .plugin_capability_claim_allowed == false
   and .plugin_publication_allowed == false
@@ -73,11 +75,12 @@ jq -e '
   and .control_trace_profile_id == "tassadar.weighted_plugin.control_trace_profile.v1"
   and .determinism_profile_id == "tassadar.weighted_plugin.controller_determinism_profile.v1"
   and .contract_status == "green"
-  and .dependency_row_count == 4
+  and .dependency_row_count == 5
   and .controller_case_row_count == 4
   and .control_trace_row_count == 34
   and .host_negative_row_count == 10
-  and .validation_row_count == 9
+  and .validation_row_count == 10
+  and .closure_bundle_bound_by_digest == true
   and .control_trace_contract_green == true
   and .determinism_profile_explicit == true
   and .typed_refusal_loop_closed == true
@@ -105,7 +108,7 @@ jq -e '
 
 jq -e '
   (.reserved_capability_issue_ids | index("TAS-195")) != null
-  and (.reserved_capability_issue_ids | index("TAS-215")) != null
+  and (.reserved_capability_issue_ids | index("TAS-216")) != null
   and (.reserved_capability_issue_ids | index("TAS-206")) == null
   and (.reserved_capability_issue_ids | index("TAS-207")) == null
   and (.reserved_capability_issue_ids | index("TAS-204")) == null

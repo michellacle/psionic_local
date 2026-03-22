@@ -8,12 +8,13 @@ cargo run -p psionic-runtime --example tassadar_post_article_plugin_runtime_api_
 cargo run -p psionic-sandbox --example tassadar_post_article_plugin_runtime_api_and_engine_abstraction_report
 cargo run -p psionic-research --example tassadar_post_article_plugin_runtime_api_and_engine_abstraction_summary
 cargo run -p psionic-serve --example tassadar_post_article_plugin_runtime_api_and_engine_abstraction_publication
+cargo run -p psionic-eval --example tassadar_post_article_canonical_machine_closure_bundle_report
 cargo run -p psionic-runtime --example tassadar_post_article_plugin_invocation_receipts_and_replay_classes_bundle
 cargo run -p psionic-eval --example tassadar_post_article_plugin_invocation_receipts_and_replay_classes_report
 cargo run -p psionic-research --example tassadar_post_article_plugin_invocation_receipts_and_replay_classes_summary
-cargo test -p psionic-provider post_article_plugin_runtime_api_receipt_projects_summary -- --nocapture
-cargo test -p psionic-provider post_article_plugin_invocation_receipts_receipt_projects_summary -- --nocapture
-cargo test -p psionic-serve post_article_plugin_runtime_api_publication_keeps_served_surface_blocked -- --nocapture
+cargo test -p psionic-provider --lib post_article_plugin_runtime_api_receipt_projects_summary -- --nocapture
+cargo test -p psionic-provider --lib post_article_plugin_invocation_receipts_receipt_projects_summary -- --nocapture
+cargo test -p psionic-serve --lib post_article_plugin_runtime_api_publication_keeps_served_surface_blocked -- --nocapture
 
 jq -e '
   .bundle_id == "tassadar.post_article_plugin_invocation_receipts_and_replay_classes.runtime_bundle.v1"
@@ -39,11 +40,11 @@ jq -e '
   and .machine_identity_binding.host_owned_runtime_api_id == "tassadar.plugin_runtime.host_owned_api.v1"
   and .machine_identity_binding.engine_abstraction_id == "tassadar.plugin_runtime.engine_abstraction.v1"
   and .machine_identity_binding.invocation_receipt_profile_id == "tassadar.plugin_runtime.invocation_receipts.v1"
-  and ((.dependency_rows | length) == 5)
+  and ((.dependency_rows | length) == 6)
   and ((.receipt_identity_rows | length) == 18)
   and ((.replay_class_rows | length) == 4)
   and ((.failure_class_rows | length) == 12)
-  and ((.validation_rows | length) == 9)
+  and ((.validation_rows | length) == 10)
   and .operator_internal_only_posture == true
   and .receipt_identity_frozen == true
   and .resource_summary_required == true
@@ -55,6 +56,7 @@ jq -e '
   and .route_evidence_binding_required == true
   and .challenge_receipt_binding_required == true
   and .replay_retry_propagation_typed == true
+  and .closure_bundle_bound_by_digest == true
   and .rebase_claim_allowed == true
   and .plugin_capability_claim_allowed == false
   and .weighted_plugin_control_allowed == false
@@ -71,12 +73,13 @@ jq -e '
   and .engine_abstraction_id == "tassadar.plugin_runtime.engine_abstraction.v1"
   and .invocation_receipt_profile_id == "tassadar.plugin_runtime.invocation_receipts.v1"
   and .contract_status == "green"
-  and .dependency_row_count == 5
+  and .dependency_row_count == 6
   and .receipt_identity_row_count == 18
   and .replay_class_row_count == 4
   and .failure_class_row_count == 12
-  and .validation_row_count == 9
+  and .validation_row_count == 10
   and (.deferred_issue_ids == [])
+  and .closure_bundle_bound_by_digest == true
   and .operator_internal_only_posture == true
   and .rebase_claim_allowed == true
   and .plugin_capability_claim_allowed == false

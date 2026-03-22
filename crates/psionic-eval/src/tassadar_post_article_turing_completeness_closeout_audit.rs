@@ -61,6 +61,8 @@ const TASSADAR_TURING_COMPLETENESS_CLOSEOUT_SUMMARY_REF_LOCAL: &str =
     "fixtures/tassadar/reports/tassadar_turing_completeness_closeout_summary.json";
 const TASSADAR_POST_ARTICLE_PLUGIN_CAPABILITY_BOUNDARY_REPORT_REF_LOCAL: &str =
     "fixtures/tassadar/reports/tassadar_post_article_plugin_capability_boundary_report.json";
+const TASSADAR_POST_ARTICLE_CANONICAL_MACHINE_CLOSURE_BUNDLE_REPORT_REF_LOCAL: &str =
+    "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_closure_bundle_report.json";
 const POST_ARTICLE_TURING_AUDIT_REF: &str =
     "docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md";
 const PLUGIN_SYSTEM_TURING_AUDIT_REF: &str =
@@ -114,6 +116,9 @@ pub struct TassadarPostArticleTuringCompletenessMachineIdentityBinding {
     pub rebased_verdict_report_digest: String,
     pub plugin_boundary_report_id: String,
     pub plugin_boundary_report_digest: String,
+    pub closure_bundle_report_id: String,
+    pub closure_bundle_report_digest: String,
+    pub closure_bundle_digest: String,
     pub detail: String,
 }
 
@@ -150,6 +155,7 @@ pub struct TassadarPostArticleTuringCompletenessCloseoutAuditReport {
     pub universality_portability_minimality_matrix_report_ref: String,
     pub rebased_universality_verdict_split_report_ref: String,
     pub plugin_capability_boundary_report_ref: String,
+    pub canonical_machine_closure_bundle_report_ref: String,
     pub post_article_turing_audit_ref: String,
     pub plugin_system_turing_audit_ref: String,
     pub supporting_material_rows: Vec<TassadarPostArticleTuringCompletenessSupportingMaterialRow>,
@@ -162,6 +168,7 @@ pub struct TassadarPostArticleTuringCompletenessCloseoutAuditReport {
     pub canonical_route_truth_carrier: bool,
     pub control_plane_proof_part_of_truth_carrier: bool,
     pub closure_bundle_embedded_here: bool,
+    pub closure_bundle_bound_by_digest: bool,
     pub closure_bundle_issue_id: String,
     pub theory_green: bool,
     pub operator_green: bool,
@@ -258,6 +265,21 @@ struct TassadarPostArticlePluginCapabilityMachineIdentityInput {
     canonical_architecture_boundary_ref: String,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+struct CanonicalMachineClosureBundleInput {
+    report_id: String,
+    report_digest: String,
+    closure_bundle_digest: String,
+    bundle_green: bool,
+    closure_subject: CanonicalMachineClosureBundleSubjectInput,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+struct CanonicalMachineClosureBundleSubjectInput {
+    machine_identity_id: String,
+    canonical_route_id: String,
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct SupportingDocumentSnapshot {
     source_ref: String,
@@ -286,10 +308,14 @@ pub fn build_tassadar_post_article_turing_completeness_closeout_audit_report() -
         read_repo_json(TASSADAR_TURING_COMPLETENESS_CLOSEOUT_SUMMARY_REF_LOCAL)?;
     let plugin_boundary: TassadarPostArticlePluginCapabilityBoundaryInput =
         read_repo_json(TASSADAR_POST_ARTICLE_PLUGIN_CAPABILITY_BOUNDARY_REPORT_REF_LOCAL)?;
+    let closure_bundle: CanonicalMachineClosureBundleInput = read_repo_json(
+        TASSADAR_POST_ARTICLE_CANONICAL_MACHINE_CLOSURE_BUNDLE_REPORT_REF_LOCAL,
+    )?;
     let post_article_turing_audit = read_supporting_document(POST_ARTICLE_TURING_AUDIT_REF)?;
     let plugin_system_turing_audit = read_supporting_document(PLUGIN_SYSTEM_TURING_AUDIT_REF)?;
 
     Ok(build_report_from_inputs(
+        closure_bundle,
         historical_closeout,
         historical_summary,
         bridge,
@@ -309,6 +335,7 @@ pub fn build_tassadar_post_article_turing_completeness_closeout_audit_report() -
 
 #[allow(clippy::too_many_arguments)]
 fn build_report_from_inputs(
+    closure_bundle: CanonicalMachineClosureBundleInput,
     historical_closeout: TassadarTuringCompletenessCloseoutAuditReport,
     historical_summary: TassadarTuringCompletenessCloseoutSummaryInput,
     bridge: TassadarPostArticleUniversalityBridgeContractReport,
@@ -342,6 +369,11 @@ fn build_report_from_inputs(
         && control_plane.control_plane_ownership_green
         && control_plane.decision_provenance_proof_complete;
     let closure_bundle_embedded_here = false;
+    let closure_bundle_bound_by_digest = closure_bundle.bundle_green
+        && closure_bundle.closure_subject.machine_identity_id
+            == bridge.bridge_machine_identity.machine_identity_id
+        && closure_bundle.closure_subject.canonical_route_id
+            == bridge.bridge_machine_identity.canonical_route_id;
     let theory_green = rebased_verdict.theory_green;
     let operator_green = rebased_verdict.operator_green;
     let served_green = rebased_verdict.served_green;
@@ -402,11 +434,15 @@ fn build_report_from_inputs(
             .clone(),
         plugin_boundary_report_id: plugin_boundary.report_id.clone(),
         plugin_boundary_report_digest: plugin_boundary.report_digest.clone(),
+        closure_bundle_report_id: closure_bundle.report_id.clone(),
+        closure_bundle_report_digest: closure_bundle.report_digest.clone(),
+        closure_bundle_digest: closure_bundle.closure_bundle_digest.clone(),
         detail: format!(
-            "machine_identity_id=`{}` canonical_model_id=`{}` canonical_route_id=`{}` keeps the historical closeout bound to the post-`TAS-186` canonical route while carrying the control-plane proof, rebased verdict, and plugin boundary on the same machine identity without embedding the later closure bundle here.",
+            "machine_identity_id=`{}` canonical_model_id=`{}` canonical_route_id=`{}` keeps the historical closeout bound to the post-`TAS-186` canonical route while carrying the control-plane proof, rebased verdict, plugin boundary, and closure_bundle_digest=`{}` on the same machine identity without embedding the closure bundle here.",
             bridge.bridge_machine_identity.machine_identity_id,
             bridge.bridge_machine_identity.canonical_model_id,
             bridge.bridge_machine_identity.canonical_route_id,
+            closure_bundle.closure_bundle_digest,
         ),
     };
 
@@ -438,6 +474,7 @@ fn build_report_from_inputs(
         &portability_matrix,
         &rebased_verdict,
         &plugin_boundary,
+        &closure_bundle,
     );
     let validation_rows = build_validation_rows(
         &supporting_material_rows,
@@ -449,6 +486,7 @@ fn build_report_from_inputs(
         &portability_matrix,
         &rebased_verdict,
         &plugin_boundary,
+        closure_bundle_bound_by_digest,
         closure_bundle_embedded_here,
     );
 
@@ -457,6 +495,7 @@ fn build_report_from_inputs(
         && historical_tas_156_still_stands
         && canonical_route_truth_carrier
         && control_plane_proof_part_of_truth_carrier
+        && closure_bundle_bound_by_digest
         && theory_green
         && operator_green
         && !served_green
@@ -516,6 +555,9 @@ fn build_report_from_inputs(
         plugin_capability_boundary_report_ref: String::from(
             TASSADAR_POST_ARTICLE_PLUGIN_CAPABILITY_BOUNDARY_REPORT_REF_LOCAL,
         ),
+        canonical_machine_closure_bundle_report_ref: String::from(
+            TASSADAR_POST_ARTICLE_CANONICAL_MACHINE_CLOSURE_BUNDLE_REPORT_REF_LOCAL,
+        ),
         post_article_turing_audit_ref: String::from(POST_ARTICLE_TURING_AUDIT_REF),
         plugin_system_turing_audit_ref: String::from(PLUGIN_SYSTEM_TURING_AUDIT_REF),
         supporting_material_rows,
@@ -528,6 +570,7 @@ fn build_report_from_inputs(
         canonical_route_truth_carrier,
         control_plane_proof_part_of_truth_carrier,
         closure_bundle_embedded_here,
+        closure_bundle_bound_by_digest,
         closure_bundle_issue_id: String::from(CLOSURE_BUNDLE_ISSUE_ID),
         theory_green,
         operator_green,
@@ -539,14 +582,14 @@ fn build_report_from_inputs(
         served_public_universality_allowed,
         arbitrary_software_capability_allowed,
         claim_boundary: format!(
-            "this audit keeps the historical `TAS-156` closeout standing, reissues the bounded Turing-completeness claim on the canonical post-`TAS-186` route, and states machine-readably that control-plane ownership plus decision provenance are part of that truth carrier; it is not the canonical machine closure bundle itself, which remains separated into `{}`.",
+            "this audit keeps the historical `TAS-156` closeout standing, reissues the bounded Turing-completeness claim on the canonical post-`TAS-186` route, states machine-readably that control-plane ownership plus decision provenance are part of that truth carrier, and now inherits the canonical machine closure bundle by report id and digest. It is not the canonical machine closure bundle itself, which remains a separate artifact published under `{}`.",
             CLOSURE_BUNDLE_ISSUE_ID,
         ),
         summary: String::new(),
         report_digest: String::new(),
     };
     report.summary = format!(
-        "Post-article turing-completeness closeout audit keeps supporting_materials={}/{}, dependency_rows={}/{}, validation_rows={}/{}, closeout_status={:?}, and closure_bundle_issue_id=`{}`.",
+        "Post-article turing-completeness closeout audit keeps supporting_materials={}/{}, dependency_rows={}/{}, validation_rows={}/{}, closeout_status={:?}, closure_bundle_digest=`{}`, and closure_bundle_issue_id=`{}`.",
         report
             .supporting_material_rows
             .iter()
@@ -558,6 +601,7 @@ fn build_report_from_inputs(
         report.validation_rows.iter().filter(|row| row.green).count(),
         report.validation_rows.len(),
         report.closeout_status,
+        report.machine_identity_binding.closure_bundle_digest,
         report.closure_bundle_issue_id,
     );
     report.report_digest = stable_digest(
@@ -732,6 +776,7 @@ fn build_dependency_rows(
     portability_matrix: &TassadarPostArticleUniversalityPortabilityMinimalityMatrixReport,
     rebased_verdict: &TassadarPostArticleRebasedUniversalityVerdictSplitReport,
     plugin_boundary: &TassadarPostArticlePluginCapabilityBoundaryInput,
+    closure_bundle: &CanonicalMachineClosureBundleInput,
 ) -> Vec<TassadarPostArticleTuringCompletenessDependencyRow> {
     let historical_binding_preserved = bridge.historical_binding_rows.iter().any(|row| {
         row.historical_artifact_ref == TASSADAR_TURING_COMPLETENESS_CLOSEOUT_AUDIT_REPORT_REF
@@ -835,6 +880,14 @@ fn build_dependency_rows(
             )],
             "the closeout remains plugin-aware only because the plugin boundary keeps weighted/plugin/public widening explicitly out of scope",
         ),
+        dependency_row(
+            "canonical_machine_closure_bundle_published",
+            closure_bundle.bundle_green,
+            vec![String::from(
+                TASSADAR_POST_ARTICLE_CANONICAL_MACHINE_CLOSURE_BUNDLE_REPORT_REF_LOCAL,
+            )],
+            "the terminal bounded Turing-completeness claim must reference the canonical machine closure bundle by digest instead of recomposing the machine from adjacent proof and boundary artifacts.",
+        ),
     ]
 }
 
@@ -849,6 +902,7 @@ fn build_validation_rows(
     portability_matrix: &TassadarPostArticleUniversalityPortabilityMinimalityMatrixReport,
     rebased_verdict: &TassadarPostArticleRebasedUniversalityVerdictSplitReport,
     plugin_boundary: &TassadarPostArticlePluginCapabilityBoundaryInput,
+    closure_bundle_bound_by_digest: bool,
     closure_bundle_embedded_here: bool,
 ) -> Vec<TassadarPostArticleTuringCompletenessValidationRow> {
     let helper_substitution_green =
@@ -1069,7 +1123,15 @@ fn build_validation_rows(
             "closure_bundle_remains_separate",
             !closure_bundle_embedded_here,
             vec![String::from(POST_ARTICLE_TURING_AUDIT_REF)],
-            "the final claim-bearing canonical machine closure bundle remains separate from this audit and is deferred to `TAS-215`",
+            "the final claim-bearing canonical machine closure bundle remains separate from this audit even though the audit now inherits it by digest",
+        ),
+        validation_row(
+            "closure_bundle_bound_by_digest",
+            closure_bundle_bound_by_digest,
+            vec![String::from(
+                TASSADAR_POST_ARTICLE_CANONICAL_MACHINE_CLOSURE_BUNDLE_REPORT_REF_LOCAL,
+            )],
+            "the bounded Turing-completeness claim now inherits the canonical machine closure bundle by digest instead of relying on adjacent machine fields only",
         ),
         validation_row(
             "historical_closeout_preserved_without_rewrite",
@@ -1333,11 +1395,12 @@ mod tests {
         );
         assert!(report.closeout_green);
         assert_eq!(report.supporting_material_rows.len(), 14);
-        assert_eq!(report.dependency_rows.len(), 11);
-        assert_eq!(report.validation_rows.len(), 10);
+        assert_eq!(report.dependency_rows.len(), 12);
+        assert_eq!(report.validation_rows.len(), 11);
         assert!(report.historical_tas_156_still_stands);
         assert!(report.canonical_route_truth_carrier);
         assert!(report.control_plane_proof_part_of_truth_carrier);
+        assert!(report.closure_bundle_bound_by_digest);
         assert!(!report.closure_bundle_embedded_here);
         assert_eq!(report.closure_bundle_issue_id, "TAS-215");
         assert!(report.theory_green);

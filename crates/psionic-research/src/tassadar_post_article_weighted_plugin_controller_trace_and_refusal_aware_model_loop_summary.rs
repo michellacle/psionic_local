@@ -36,6 +36,9 @@ pub struct TassadarPostArticleWeightedPluginControllerTraceAndRefusalAwareModelL
     pub control_trace_contract_id: String,
     pub control_trace_profile_id: String,
     pub determinism_profile_id: String,
+    pub closure_bundle_report_id: String,
+    pub closure_bundle_report_digest: String,
+    pub closure_bundle_digest: String,
     pub runtime_bundle_id: String,
     pub contract_status:
         TassadarPostArticleWeightedPluginControllerTraceAndRefusalAwareModelLoopEvalStatus,
@@ -50,6 +53,7 @@ pub struct TassadarPostArticleWeightedPluginControllerTraceAndRefusalAwareModelL
     pub typed_refusal_loop_closed: bool,
     pub host_not_planner_green: bool,
     pub adversarial_negative_rows_green: bool,
+    pub closure_bundle_bound_by_digest: bool,
     pub operator_internal_only_posture: bool,
     pub rebase_claim_allowed: bool,
     pub plugin_capability_claim_allowed: bool,
@@ -133,6 +137,18 @@ fn build_summary_from_report(
                 .machine_identity_binding
                 .determinism_profile_id
                 .clone(),
+            closure_bundle_report_id: report
+                .machine_identity_binding
+                .closure_bundle_report_id
+                .clone(),
+            closure_bundle_report_digest: report
+                .machine_identity_binding
+                .closure_bundle_report_digest
+                .clone(),
+            closure_bundle_digest: report
+                .machine_identity_binding
+                .closure_bundle_digest
+                .clone(),
             runtime_bundle_id: report.machine_identity_binding.runtime_bundle_id.clone(),
             contract_status: report.contract_status,
             dependency_row_count: report.dependency_rows.len() as u32,
@@ -146,6 +162,7 @@ fn build_summary_from_report(
             typed_refusal_loop_closed: report.typed_refusal_loop_closed,
             host_not_planner_green: report.host_not_planner_green,
             adversarial_negative_rows_green: report.adversarial_negative_rows_green,
+            closure_bundle_bound_by_digest: report.closure_bundle_bound_by_digest,
             operator_internal_only_posture: report.operator_internal_only_posture,
             rebase_claim_allowed: report.rebase_claim_allowed,
             plugin_capability_claim_allowed: report.plugin_capability_claim_allowed,
@@ -155,13 +172,14 @@ fn build_summary_from_report(
             arbitrary_software_capability_allowed: report
                 .arbitrary_software_capability_allowed,
             detail: format!(
-                "post-article weighted plugin controller summary keeps machine_identity_id=`{}`, control_trace_contract_id=`{}`, contract_status={:?}, controller_case_rows={}, control_trace_rows={}, validation_rows={}, weighted_plugin_control_allowed={}, and deferred_issue_ids={}.",
+                "post-article weighted plugin controller summary keeps machine_identity_id=`{}`, control_trace_contract_id=`{}`, contract_status={:?}, controller_case_rows={}, control_trace_rows={}, validation_rows={}, closure_bundle_digest=`{}`, weighted_plugin_control_allowed={}, and deferred_issue_ids={}.",
                 report.machine_identity_binding.machine_identity_id,
                 report.machine_identity_binding.control_trace_contract_id,
                 report.contract_status,
                 report.controller_case_rows.len(),
                 report.control_trace_rows.len(),
                 report.validation_rows.len(),
+                report.machine_identity_binding.closure_bundle_digest,
                 report.weighted_plugin_control_allowed,
                 report.deferred_issue_ids.len(),
             ),
@@ -263,11 +281,12 @@ mod tests {
             build_tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_summary()
                 .expect("summary");
 
-        assert_eq!(summary.dependency_row_count, 4);
+        assert_eq!(summary.dependency_row_count, 5);
         assert_eq!(summary.controller_case_row_count, 4);
         assert_eq!(summary.control_trace_row_count, 34);
         assert_eq!(summary.host_negative_row_count, 10);
-        assert_eq!(summary.validation_row_count, 9);
+        assert_eq!(summary.validation_row_count, 10);
+        assert!(summary.closure_bundle_bound_by_digest);
         assert!(summary.control_trace_contract_green);
         assert!(summary.determinism_profile_explicit);
         assert!(summary.typed_refusal_loop_closed);

@@ -7,10 +7,14 @@ pub struct TassadarPostArticleTuringCompletenessCloseoutReceipt {
     pub report_id: String,
     pub machine_identity_id: String,
     pub canonical_route_id: String,
+    pub closure_bundle_report_id: String,
+    pub closure_bundle_report_digest: String,
+    pub closure_bundle_digest: String,
     pub closeout_status: String,
     pub historical_tas_156_still_stands: bool,
     pub canonical_route_truth_carrier: bool,
     pub control_plane_proof_part_of_truth_carrier: bool,
+    pub closure_bundle_bound_by_digest: bool,
     pub closure_bundle_issue_id: String,
     pub theory_green: bool,
     pub operator_green: bool,
@@ -29,6 +33,9 @@ impl TassadarPostArticleTuringCompletenessCloseoutReceipt {
             report_id: summary.report_id.clone(),
             machine_identity_id: summary.machine_identity_id.clone(),
             canonical_route_id: summary.canonical_route_id.clone(),
+            closure_bundle_report_id: summary.closure_bundle_report_id.clone(),
+            closure_bundle_report_digest: summary.closure_bundle_report_digest.clone(),
+            closure_bundle_digest: summary.closure_bundle_digest.clone(),
             closeout_status: match summary.closeout_status {
                 psionic_eval::TassadarPostArticleTuringCompletenessCloseoutStatus::TheoryGreenOperatorGreenServedSuppressed => {
                     String::from("theory_green_operator_green_served_suppressed")
@@ -41,6 +48,7 @@ impl TassadarPostArticleTuringCompletenessCloseoutReceipt {
             canonical_route_truth_carrier: summary.canonical_route_truth_carrier,
             control_plane_proof_part_of_truth_carrier: summary
                 .control_plane_proof_part_of_truth_carrier,
+            closure_bundle_bound_by_digest: summary.closure_bundle_bound_by_digest,
             closure_bundle_issue_id: summary.closure_bundle_issue_id.clone(),
             theory_green: summary.theory_green,
             operator_green: summary.operator_green,
@@ -50,12 +58,13 @@ impl TassadarPostArticleTuringCompletenessCloseoutReceipt {
             plugin_publication_allowed: summary.plugin_publication_allowed,
             served_public_universality_allowed: summary.served_public_universality_allowed,
             detail: format!(
-                "post-article turing-completeness closeout summary `{}` keeps closeout_status={:?}, historical_tas_156_still_stands={}, canonical_route_truth_carrier={}, control_plane_truth_carrier={}, and closure_bundle_issue_id=`{}`.",
+                "post-article turing-completeness closeout summary `{}` keeps closeout_status={:?}, historical_tas_156_still_stands={}, canonical_route_truth_carrier={}, control_plane_truth_carrier={}, closure_bundle_digest=`{}`, and closure_bundle_issue_id=`{}`.",
                 summary.report_id,
                 summary.closeout_status,
                 summary.historical_tas_156_still_stands,
                 summary.canonical_route_truth_carrier,
                 summary.control_plane_proof_part_of_truth_carrier,
+                summary.closure_bundle_digest,
                 summary.closure_bundle_issue_id,
             ),
         }

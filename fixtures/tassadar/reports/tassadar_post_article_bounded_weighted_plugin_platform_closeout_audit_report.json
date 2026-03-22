@@ -13,6 +13,7 @@
   "plugin_result_binding_schema_stability_and_composition_report_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_report.json",
   "weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report_ref": "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report.json",
   "plugin_authority_promotion_publication_and_trust_tier_gate_report_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_authority_promotion_publication_and_trust_tier_gate_report.json",
+  "canonical_machine_closure_bundle_report_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_closure_bundle_report.json",
   "post_article_turing_audit_ref": "docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md",
   "plugin_system_turing_audit_ref": "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md",
   "local_plugin_system_spec_ref": "~/code/alpha/tassadar/plugin-system.md",
@@ -23,8 +24,17 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json",
       "source_artifact_id": "tassadar.post_article_turing_completeness_closeout_audit.report.v1",
-      "source_artifact_digest": "ca6bc24fec901870cfd46fc1405b7499852baaa3617d2094f98804d4aae3ed45",
+      "source_artifact_digest": "2404fc73ceb6293447762a56489b34439f94351360f68213dfb99dd0c7b25c7b",
       "detail": "the bounded plugin-platform closeout inherits the post-article bounded Turing-completeness closeout as its lower-plane proof-bearing compute and control carrier instead of recomputing that claim locally."
+    },
+    {
+      "material_id": "canonical_machine_closure_bundle",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_closure_bundle_report.json",
+      "source_artifact_id": "tassadar.post_article_canonical_machine_closure_bundle.report.v1",
+      "source_artifact_digest": "f38acded40f17fc92cd9c9cb8c7c8b4e0a82f9133bf3a968d1630365a0f1c74b",
+      "detail": "the bounded plugin-platform closeout inherits the canonical machine closure bundle by digest instead of reconstructing machine identity from the lower-plane proof and plugin surfaces alone."
     },
     {
       "material_id": "plugin_charter_authority_boundary",
@@ -68,7 +78,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_invocation_receipts_and_replay_classes_report.json",
       "source_artifact_id": "tassadar.post_article_plugin_invocation_receipts_and_replay_classes.report.v1",
-      "source_artifact_digest": "63bc622a0dbbadef147d703f6eb6a57044300191e487f20060490c11ef0ef637",
+      "source_artifact_digest": "c9094a5c96a7cb8ae698b49a9a55eafc45d81fd46b935f76019be92e2ce5cc4a",
       "detail": "invocation receipts keep install/export/packet/replay identity machine-readable so later publication or benchmarking claims cannot erase what actually executed."
     },
     {
@@ -95,7 +105,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_report.json",
       "source_artifact_id": "tassadar.post_article_plugin_result_binding_schema_stability_and_composition.report.v1",
-      "source_artifact_digest": "3edd7f5f28f65a3072c9e679230bfca882a19b017eb37e754812588dbd8b0343",
+      "source_artifact_digest": "6636e5308cdb9cc5b3dbab141a7faae0f5e48c056ff45d7007e5a30981d62a6c",
       "detail": "result binding keeps schema stability, typed refusal normalization, and proof-versus-observational result boundaries explicit before weighted controller ownership turns into platform closure."
     },
     {
@@ -104,7 +114,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report.json",
       "source_artifact_id": "tassadar.post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop.eval_report.v1",
-      "source_artifact_digest": "f1a06b77a988f80767b24f035a8776d46d20ca46484b563d6c8c6a25511151bf",
+      "source_artifact_digest": "b59ef6e00e8db84a767a4ac15617d90c1431922898fc68d489b8bb9debb62ef0",
       "detail": "the weighted controller trace is the plugin-specific proof-bearing extension above the inherited control-plane proof; the platform closeout must cite that extension explicitly."
     },
     {
@@ -113,7 +123,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_authority_promotion_publication_and_trust_tier_gate_report.json",
       "source_artifact_id": "tassadar.post_article_plugin_authority_promotion_publication_and_trust_tier_gate.report.v1",
-      "source_artifact_digest": "ee083cad516d06573d5af935199ac503e4c3fa3c615748cf62198e82de4f4599",
+      "source_artifact_digest": "adcc42318d8ef6d7aeecc4704457ba6ce9c5fd05cde3d9d6d28c3c967d854c26",
       "detail": "the authority gate freezes trust tiers, publication posture, validator hooks, and challengeability so the closeout can say exactly what platform capability does and does not imply."
     },
     {
@@ -152,14 +162,17 @@
     "control_plane_proof_report_digest": "f44870bd0b278203bdb745a5b8337003b94ae956799073cfeef034651607f62c",
     "control_trace_contract_id": "tassadar.weighted_plugin.controller_trace_contract.v1",
     "controller_eval_report_id": "tassadar.post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop.eval_report.v1",
-    "controller_eval_report_digest": "f1a06b77a988f80767b24f035a8776d46d20ca46484b563d6c8c6a25511151bf",
+    "controller_eval_report_digest": "b59ef6e00e8db84a767a4ac15617d90c1431922898fc68d489b8bb9debb62ef0",
     "authority_gate_report_id": "tassadar.post_article_plugin_authority_promotion_publication_and_trust_tier_gate.report.v1",
-    "authority_gate_report_digest": "ee083cad516d06573d5af935199ac503e4c3fa3c615748cf62198e82de4f4599",
+    "authority_gate_report_digest": "adcc42318d8ef6d7aeecc4704457ba6ce9c5fd05cde3d9d6d28c3c967d854c26",
     "turing_closeout_report_id": "tassadar.post_article_turing_completeness_closeout_audit.report.v1",
-    "turing_closeout_report_digest": "ca6bc24fec901870cfd46fc1405b7499852baaa3617d2094f98804d4aae3ed45",
+    "turing_closeout_report_digest": "2404fc73ceb6293447762a56489b34439f94351360f68213dfb99dd0c7b25c7b",
+    "closure_bundle_report_id": "tassadar.post_article_canonical_machine_closure_bundle.report.v1",
+    "closure_bundle_report_digest": "f38acded40f17fc92cd9c9cb8c7c8b4e0a82f9133bf3a968d1630365a0f1c74b",
+    "closure_bundle_digest": "8ff2c07511184d7b4be36ba9c513d8558286fdb86615cd0aac1643c907d8f76c",
     "canonical_architecture_anchor_crate": "psionic-transformer",
     "canonical_architecture_boundary_ref": "docs/TASSADAR_ARTICLE_TRANSFORMER_STACK_BOUNDARY.md",
-    "detail": "machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1` canonical_model_id=`tassadar-article-transformer-trace-bound-trained-v0` canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1` computational_model_statement_id=`tassadar.post_article.canonical_computational_model.statement.v1` control_plane_proof_report_id=`tassadar.post_article_control_plane_decision_provenance_proof.report.v1` control_trace_contract_id=`tassadar.weighted_plugin.controller_trace_contract.v1` authority_gate_report_id=`tassadar.post_article_plugin_authority_promotion_publication_and_trust_tier_gate.report.v1` and turing_closeout_report_id=`tassadar.post_article_turing_completeness_closeout_audit.report.v1` stay bound to `psionic-transformer`."
+    "detail": "machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1` canonical_model_id=`tassadar-article-transformer-trace-bound-trained-v0` canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1` computational_model_statement_id=`tassadar.post_article.canonical_computational_model.statement.v1` control_plane_proof_report_id=`tassadar.post_article_control_plane_decision_provenance_proof.report.v1` control_trace_contract_id=`tassadar.weighted_plugin.controller_trace_contract.v1` authority_gate_report_id=`tassadar.post_article_plugin_authority_promotion_publication_and_trust_tier_gate.report.v1` turing_closeout_report_id=`tassadar.post_article_turing_completeness_closeout_audit.report.v1` and closure_bundle_digest=`8ff2c07511184d7b4be36ba9c513d8558286fdb86615cd0aac1643c907d8f76c` stay bound to `psionic-transformer`."
   },
   "dependency_rows": [
     {
@@ -169,6 +182,14 @@
         "fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json"
       ],
       "detail": "the plugin-platform closeout sits above the rebased Turing-completeness closeout and inherits its canonical-route plus control-plane truth carrier without treating this report as the final machine bundle."
+    },
+    {
+      "dependency_id": "canonical_machine_closure_bundle_published",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_closure_bundle_report.json"
+      ],
+      "detail": "the bounded plugin-platform claim must inherit the canonical machine closure bundle by report id and digest instead of recomposing the machine from lower-plane proofs and plugin contracts."
     },
     {
       "dependency_id": "plugin_charter_boundary",
@@ -341,7 +362,15 @@
       "source_refs": [
         "fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json"
       ],
-      "detail": "the final claim-bearing canonical machine closure bundle stays separate from this platform closeout and remains explicitly deferred to `TAS-215`."
+      "detail": "the final claim-bearing canonical machine closure bundle stays separate from this platform closeout even though the platform claim now inherits it by digest."
+    },
+    {
+      "validation_id": "closure_bundle_bound_by_digest",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_closure_bundle_report.json"
+      ],
+      "detail": "the bounded plugin-platform claim now inherits the canonical machine closure bundle by digest instead of relying on adjacent machine fields only."
     }
   ],
   "closeout_status": "operator_green_served_suppressed",
@@ -349,6 +378,7 @@
   "operator_internal_only_posture": true,
   "served_plugin_envelope_published": false,
   "closure_bundle_embedded_here": false,
+  "closure_bundle_bound_by_digest": true,
   "closure_bundle_issue_id": "TAS-215",
   "rebase_claim_allowed": true,
   "plugin_capability_claim_allowed": true,
@@ -356,7 +386,7 @@
   "plugin_publication_allowed": false,
   "served_public_universality_allowed": false,
   "arbitrary_software_capability_allowed": false,
-  "claim_boundary": "this closeout audit states the first honest bounded weighted plugin-platform claim above the canonical post-`TAS-186` machine. It binds the lower-plane Turing closeout, plugin charter, manifest, ABI, runtime API, invocation receipts, admissibility envelope compiler, conformance harness, result-binding contract, weighted controller trace, and authority or promotion or publication gate into one operator/internal-only platform statement. It still keeps the final claim-bearing canonical machine closure bundle separate, keeps served or public plugin publication suppressed, refuses any implication of arbitrary public Wasm or arbitrary public tool use, and does not imply served/public universality or arbitrary software capability.",
-  "summary": "Post-article bounded weighted plugin-platform closeout audit keeps supporting_materials=14/14, dependency_rows=11/11, validation_rows=10/10, closeout_status=OperatorGreenServedSuppressed, closure_bundle_issue_id=`TAS-215`, and plugin_capability_claim_allowed=true.",
-  "report_digest": "b3233512f2390e3a80c0f9eb6c1bb864e30499547fd4f7ce36541bd58fc9a00f"
+  "claim_boundary": "this closeout audit states the first honest bounded weighted plugin-platform claim above the canonical post-`TAS-186` machine. It binds the lower-plane Turing closeout, plugin charter, manifest, ABI, runtime API, invocation receipts, admissibility envelope compiler, conformance harness, result-binding contract, weighted controller trace, and authority or promotion or publication gate into one operator/internal-only platform statement while inheriting the canonical machine closure bundle by report id and digest. It still keeps the closure bundle as a separate artifact, keeps served or public plugin publication suppressed, refuses any implication of arbitrary public Wasm or arbitrary public tool use, and does not imply served/public universality or arbitrary software capability.",
+  "summary": "Post-article bounded weighted plugin-platform closeout audit keeps supporting_materials=15/15, dependency_rows=12/12, validation_rows=11/11, closeout_status=OperatorGreenServedSuppressed, closure_bundle_digest=`8ff2c07511184d7b4be36ba9c513d8558286fdb86615cd0aac1643c907d8f76c`, closure_bundle_issue_id=`TAS-215`, and plugin_capability_claim_allowed=true.",
+  "report_digest": "1fcacdf607a66815fad1a14998386b387c41cf763c95d2e6530cce833180441e"
 }

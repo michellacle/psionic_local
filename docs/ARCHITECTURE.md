@@ -1470,7 +1470,7 @@ The current scope is:
   hidden top-k filtering, helper substitution, and runtime policy drift.
   This turns weighted plugin control green on the canonical route, clears the
   controller defer pointer to empty, moves the reserved bridge frontier to
-  `TAS-215`, and still leaves bounded plugin-platform closeout, publication,
+  `TAS-216`, and still leaves bounded plugin-platform closeout, publication,
   served/public universality, and arbitrary software capability blocked.
 - the current post-article plugin authority, promotion, publication, and
   trust-tier artifacts are
@@ -1508,8 +1508,8 @@ The current scope is:
   bounded plugin-platform statement on the canonical rebased machine. This
   turns `plugin_capability_claim_allowed=true`, keeps plugin publication
   suppressed, keeps served/public universality false, keeps arbitrary
-  software capability false, and still keeps the final canonical machine
-  closure bundle separate for `TAS-215`.
+  software capability false, and now requires the published canonical machine
+  closure bundle from `TAS-215` by digest.
 - the current post-article canonical machine identity lock artifacts are
   `fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_report.json`,
   `fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_summary.json`,
@@ -1673,10 +1673,10 @@ The current scope is:
   charter authority boundary, and bounded weighted plugin-platform closeout
   into one explicit anti-drift verdict over one canonical post-article
   machine. These artifacts keep sampled audits distinct from proof-carrying
-  surfaces, move the next closure frontier to `TAS-215`, keep stronger
-  terminal and stronger plugin-platform claims closure-bundle-bound to
-  `TAS-215`, and still leave plugin publication, served/public universality,
-  and arbitrary software capability blocked.
+  surfaces and now sit beneath the published canonical machine closure bundle
+  from `TAS-215`, which binds stronger terminal and stronger plugin-platform
+  claims by digest while still leaving plugin publication, served/public
+  universality, and arbitrary software capability blocked.
 - the current post-article Turing-completeness closeout artifacts are
   `fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json`,
   `fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_summary.json`,
@@ -1688,10 +1688,29 @@ The current scope is:
   `docs/audits/2026-03-21-tassadar-post-article-turing-completeness-closeout-audit.md`,
   which keep the historical `TAS-156` closeout standing, make the canonical
   post-`TAS-186` route plus control-plane provenance the current truth carrier
-  for bounded Turing-completeness on the owned route, keep the final canonical
-  machine closure bundle separate for `TAS-215`, and keep weighted plugin
-  control, plugin publication, served/public universality, and arbitrary
-  software capability out of scope
+  for bounded Turing-completeness on the owned route, bind that stronger
+  terminal claim to the separately published canonical machine closure bundle
+  from `TAS-215`, and keep weighted plugin control, plugin publication,
+  served/public universality, and arbitrary software capability out of scope
+- the current post-article canonical machine closure bundle artifacts are
+  `fixtures/tassadar/reports/tassadar_post_article_canonical_machine_closure_bundle_report.json`,
+  `fixtures/tassadar/reports/tassadar_post_article_canonical_machine_closure_bundle_summary.json`,
+  the transformer-owned anchor contract in
+  `crates/psionic-transformer/src/tassadar_post_article_canonical_machine_closure_bundle_contract.rs`,
+  the provider receipt in
+  `crates/psionic-provider/src/tassadar_post_article_canonical_machine_closure_bundle.rs`,
+  the checker script
+  `scripts/check-tassadar-post-article-canonical-machine-closure-bundle.sh`,
+  and the audit note
+  `docs/audits/2026-03-21-tassadar-post-article-canonical-machine-closure-bundle.md`,
+  which publish one digest-bound closure object over the post-article machine
+  identity, computational-model statement, determinism and equivalent-choice
+  posture, control-plane provenance, execution-semantics proof transport,
+  continuation boundary, carrier split, hidden-state and observer model,
+  portability or minimality posture, plugin inheritance posture, and
+  proof-versus-audit classification. Stronger terminal, controller, receipt,
+  publication, and bounded plugin-platform claims now inherit this bundle by
+  digest, and the next open bridge frontier is `TAS-216`.
 - the current semantic-window revision artifacts are
   `fixtures/tassadar/reports/tassadar_semantic_window_revision_receipt.json`
   and

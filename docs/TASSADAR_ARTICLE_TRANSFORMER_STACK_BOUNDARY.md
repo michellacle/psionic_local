@@ -1306,6 +1306,25 @@ claims closure-bundle-bound to `TAS-215`, and still does not turn plugin
 publication, served/public universality, or arbitrary software capability
 green.
 
+## Canonical Machine Closure Bundle
+
+`TAS-215` now publishes the digest-bound canonical machine closure bundle at
+`fixtures/tassadar/reports/tassadar_post_article_canonical_machine_closure_bundle_report.json`
+with the disclosure-safe summary at
+`fixtures/tassadar/reports/tassadar_post_article_canonical_machine_closure_bundle_summary.json`,
+the transformer-owned anchor contract at
+`crates/psionic-transformer/src/tassadar_post_article_canonical_machine_closure_bundle_contract.rs`,
+the provider receipt at
+`crates/psionic-provider/src/tassadar_post_article_canonical_machine_closure_bundle.rs`,
+the checker at
+`scripts/check-tassadar-post-article-canonical-machine-closure-bundle.sh`,
+and the audit note at
+`docs/audits/2026-03-21-tassadar-post-article-canonical-machine-closure-bundle.md`.
+That bundle is now the indivisible machine object for stronger terminal,
+controller, receipt, publication, and bounded plugin-platform claims; those
+surfaces inherit it by digest instead of silently recomposing the machine from
+adjacent green artifacts. The next open bridge frontier is `TAS-216`.
+
 ## Route Requirement
 
 Any canonical article-equivalence Transformer route must use this boundary.

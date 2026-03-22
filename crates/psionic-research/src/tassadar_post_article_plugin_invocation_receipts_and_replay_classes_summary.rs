@@ -31,6 +31,9 @@ pub struct TassadarPostArticlePluginInvocationReceiptsAndReplayClassesSummary {
     pub host_owned_runtime_api_id: String,
     pub engine_abstraction_id: String,
     pub invocation_receipt_profile_id: String,
+    pub closure_bundle_report_id: String,
+    pub closure_bundle_report_digest: String,
+    pub closure_bundle_digest: String,
     pub contract_status: TassadarPostArticlePluginInvocationReceiptsAndReplayClassesStatus,
     pub dependency_row_count: u32,
     pub receipt_identity_row_count: u32,
@@ -39,6 +42,7 @@ pub struct TassadarPostArticlePluginInvocationReceiptsAndReplayClassesSummary {
     pub validation_row_count: u32,
     pub deferred_issue_ids: Vec<String>,
     pub operator_internal_only_posture: bool,
+    pub closure_bundle_bound_by_digest: bool,
     pub rebase_claim_allowed: bool,
     pub plugin_capability_claim_allowed: bool,
     pub weighted_plugin_control_allowed: bool,
@@ -103,6 +107,18 @@ fn build_summary_from_report(
             .machine_identity_binding
             .invocation_receipt_profile_id
             .clone(),
+        closure_bundle_report_id: report
+            .machine_identity_binding
+            .closure_bundle_report_id
+            .clone(),
+        closure_bundle_report_digest: report
+            .machine_identity_binding
+            .closure_bundle_report_digest
+            .clone(),
+        closure_bundle_digest: report
+            .machine_identity_binding
+            .closure_bundle_digest
+            .clone(),
         contract_status: report.contract_status,
         dependency_row_count: report.dependency_rows.len() as u32,
         receipt_identity_row_count: report.receipt_identity_rows.len() as u32,
@@ -111,6 +127,7 @@ fn build_summary_from_report(
         validation_row_count: report.validation_rows.len() as u32,
         deferred_issue_ids: report.deferred_issue_ids.clone(),
         operator_internal_only_posture: report.operator_internal_only_posture,
+        closure_bundle_bound_by_digest: report.closure_bundle_bound_by_digest,
         rebase_claim_allowed: report.rebase_claim_allowed,
         plugin_capability_claim_allowed: report.plugin_capability_claim_allowed,
         weighted_plugin_control_allowed: report.weighted_plugin_control_allowed,
@@ -118,12 +135,13 @@ fn build_summary_from_report(
         served_public_universality_allowed: report.served_public_universality_allowed,
         arbitrary_software_capability_allowed: report.arbitrary_software_capability_allowed,
         detail: format!(
-            "post-article plugin invocation-receipt summary keeps machine_identity_id=`{}`, invocation_receipt_profile_id=`{}`, contract_status={:?}, receipt_identity_rows={}, replay_class_rows={}, and deferred_issue_ids={}.",
+            "post-article plugin invocation-receipt summary keeps machine_identity_id=`{}`, invocation_receipt_profile_id=`{}`, contract_status={:?}, receipt_identity_rows={}, replay_class_rows={}, closure_bundle_digest=`{}`, and deferred_issue_ids={}.",
             report.machine_identity_binding.machine_identity_id,
             report.machine_identity_binding.invocation_receipt_profile_id,
             report.contract_status,
             report.receipt_identity_rows.len(),
             report.replay_class_rows.len(),
+            report.machine_identity_binding.closure_bundle_digest,
             report.deferred_issue_ids.len(),
         ),
         summary_digest: String::new(),
@@ -227,12 +245,13 @@ mod tests {
             summary.contract_status,
             TassadarPostArticlePluginInvocationReceiptsAndReplayClassesStatus::Green
         );
-        assert_eq!(summary.dependency_row_count, 5);
+        assert_eq!(summary.dependency_row_count, 6);
         assert_eq!(summary.receipt_identity_row_count, 18);
         assert_eq!(summary.replay_class_row_count, 4);
         assert_eq!(summary.failure_class_row_count, 12);
-        assert_eq!(summary.validation_row_count, 9);
+        assert_eq!(summary.validation_row_count, 10);
         assert!(summary.deferred_issue_ids.is_empty());
+        assert!(summary.closure_bundle_bound_by_digest);
         assert!(summary.operator_internal_only_posture);
         assert!(summary.rebase_claim_allowed);
         assert!(!summary.plugin_capability_claim_allowed);

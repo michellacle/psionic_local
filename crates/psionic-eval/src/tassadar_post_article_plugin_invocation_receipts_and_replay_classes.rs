@@ -3,7 +3,6 @@ use std::{
     path::{Path, PathBuf},
 };
 
-#[cfg(test)]
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -36,6 +35,23 @@ pub const TASSADAR_POST_ARTICLE_PLUGIN_INVOCATION_RECEIPTS_AND_REPLAY_CLASSES_CH
     "scripts/check-tassadar-post-article-plugin-invocation-receipts-and-replay-classes.sh";
 
 const LOCAL_PLUGIN_SYSTEM_SPEC_REF: &str = "~/code/alpha/tassadar/plugin-system.md";
+const CANONICAL_MACHINE_CLOSURE_BUNDLE_REPORT_REF: &str =
+    "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_closure_bundle_report.json";
+
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+struct CanonicalMachineClosureBundleFixture {
+    report_id: String,
+    report_digest: String,
+    closure_bundle_digest: String,
+    bundle_green: bool,
+    closure_subject: CanonicalMachineClosureBundleSubjectFixture,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+struct CanonicalMachineClosureBundleSubjectFixture {
+    machine_identity_id: String,
+    canonical_route_id: String,
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -51,6 +67,7 @@ pub enum TassadarPostArticlePluginInvocationReceiptsDependencyClass {
     ReplayPrecedent,
     EvidencePrecedent,
     PromotionPrecedent,
+    ClosureBundle,
     DesignInput,
 }
 
@@ -71,6 +88,9 @@ pub struct TassadarPostArticlePluginInvocationReceiptsMachineIdentityBinding {
     pub host_owned_runtime_api_id: String,
     pub engine_abstraction_id: String,
     pub invocation_receipt_profile_id: String,
+    pub closure_bundle_report_id: String,
+    pub closure_bundle_report_digest: String,
+    pub closure_bundle_digest: String,
     pub runtime_bundle_id: String,
     pub runtime_bundle_digest: String,
     pub runtime_bundle_ref: String,
@@ -142,6 +162,7 @@ pub struct TassadarPostArticlePluginInvocationReceiptsAndReplayClassesReport {
     pub effectful_replay_audit_report_ref: String,
     pub installed_module_evidence_report_ref: String,
     pub module_promotion_state_report_ref: String,
+    pub canonical_machine_closure_bundle_report_ref: String,
     pub local_plugin_system_spec_ref: String,
     pub supporting_material_refs: Vec<String>,
     pub machine_identity_binding: TassadarPostArticlePluginInvocationReceiptsMachineIdentityBinding,
@@ -165,6 +186,7 @@ pub struct TassadarPostArticlePluginInvocationReceiptsAndReplayClassesReport {
     pub route_evidence_binding_required: bool,
     pub challenge_receipt_binding_required: bool,
     pub replay_retry_propagation_typed: bool,
+    pub closure_bundle_bound_by_digest: bool,
     pub rebase_claim_allowed: bool,
     pub plugin_capability_claim_allowed: bool,
     pub weighted_plugin_control_allowed: bool,
@@ -208,6 +230,8 @@ pub fn build_tassadar_post_article_plugin_invocation_receipts_and_replay_classes
 > {
     let runtime_api =
         build_tassadar_post_article_plugin_runtime_api_and_engine_abstraction_report()?;
+    let closure_bundle: CanonicalMachineClosureBundleFixture =
+        read_json(CANONICAL_MACHINE_CLOSURE_BUNDLE_REPORT_REF)?;
     let replay_audit = build_tassadar_effectful_replay_audit_report()?;
     let installed_evidence = build_tassadar_installed_module_evidence_report()?;
     let module_promotion = build_tassadar_module_promotion_state_report()?;
@@ -295,20 +319,32 @@ pub fn build_tassadar_post_article_plugin_invocation_receipts_and_replay_classes
         invocation_receipt_profile_id: String::from(
             TASSADAR_POST_ARTICLE_PLUGIN_INVOCATION_RECEIPT_PROFILE_ID,
         ),
+        closure_bundle_report_id: closure_bundle.report_id.clone(),
+        closure_bundle_report_digest: closure_bundle.report_digest.clone(),
+        closure_bundle_digest: closure_bundle.closure_bundle_digest.clone(),
         runtime_bundle_id: runtime_bundle.bundle_id.clone(),
         runtime_bundle_digest: runtime_bundle.bundle_digest.clone(),
         runtime_bundle_ref: String::from(
             TASSADAR_POST_ARTICLE_PLUGIN_INVOCATION_RECEIPTS_AND_REPLAY_CLASSES_BUNDLE_REF,
         ),
         detail: format!(
-            "machine_identity_id=`{}` canonical_route_id=`{}` runtime_api_report_id=`{}` invocation_receipt_profile_id=`{}` and runtime_bundle_id=`{}` remain bound together.",
+            "machine_identity_id=`{}` canonical_route_id=`{}` runtime_api_report_id=`{}` invocation_receipt_profile_id=`{}` runtime_bundle_id=`{}` and closure_bundle_digest=`{}` remain bound together.",
             runtime_api.machine_identity_binding.machine_identity_id,
             runtime_api.machine_identity_binding.canonical_route_id,
             runtime_api.report_id,
             TASSADAR_POST_ARTICLE_PLUGIN_INVOCATION_RECEIPT_PROFILE_ID,
             runtime_bundle.bundle_id,
+            closure_bundle.closure_bundle_digest,
         ),
     };
+    let closure_bundle_bound_by_digest = closure_bundle.bundle_green
+        && closure_bundle.closure_subject.machine_identity_id
+            == machine_identity_binding.machine_identity_id
+        && closure_bundle.closure_subject.canonical_route_id
+            == machine_identity_binding.canonical_route_id
+        && machine_identity_binding.closure_bundle_report_id == closure_bundle.report_id
+        && machine_identity_binding.closure_bundle_report_digest == closure_bundle.report_digest
+        && machine_identity_binding.closure_bundle_digest == closure_bundle.closure_bundle_digest;
 
     let dependency_rows = vec![
         dependency_row(
@@ -346,6 +382,15 @@ pub fn build_tassadar_post_article_plugin_invocation_receipts_and_replay_classes
             Some(module_promotion.report_id.clone()),
             Some(module_promotion.report_digest.clone()),
             "promotion state keeps active, challenge-open, quarantined, and revoked posture explicit for plugin receipts.",
+        ),
+        dependency_row(
+            "canonical_machine_closure_bundle_published",
+            TassadarPostArticlePluginInvocationReceiptsDependencyClass::ClosureBundle,
+            closure_bundle_bound_by_digest,
+            CANONICAL_MACHINE_CLOSURE_BUNDLE_REPORT_REF,
+            Some(closure_bundle.report_id.clone()),
+            Some(closure_bundle.report_digest.clone()),
+            "the plugin invocation receipt claim must inherit the canonical machine closure bundle by report id and digest instead of reconstructing machine identity from the runtime API alone.",
         ),
         dependency_row(
             "plugin_system_receipt_spec_cited",
@@ -542,6 +587,15 @@ pub fn build_tassadar_post_article_plugin_invocation_receipts_and_replay_classes
             ],
             "the receipt contract stays operator/internal-only and does not imply weighted plugin control, publication rights, or public software capability.",
         ),
+        validation_row(
+            "closure_bundle_bound_by_digest",
+            closure_bundle_bound_by_digest,
+            &[
+                CANONICAL_MACHINE_CLOSURE_BUNDLE_REPORT_REF,
+                TASSADAR_POST_ARTICLE_PLUGIN_RUNTIME_API_AND_ENGINE_ABSTRACTION_REPORT_REF,
+            ],
+            "the invocation receipt claim now inherits the canonical machine closure bundle by digest instead of relying on adjacent machine fields only.",
+        ),
     ];
 
     let contract_green = dependency_rows.iter().all(|row| row.satisfied)
@@ -582,8 +636,12 @@ pub fn build_tassadar_post_article_plugin_invocation_receipts_and_replay_classes
         module_promotion_state_report_ref: String::from(
             TASSADAR_MODULE_PROMOTION_STATE_REPORT_REF,
         ),
+        canonical_machine_closure_bundle_report_ref: String::from(
+            CANONICAL_MACHINE_CLOSURE_BUNDLE_REPORT_REF,
+        ),
         local_plugin_system_spec_ref: String::from(LOCAL_PLUGIN_SYSTEM_SPEC_REF),
         supporting_material_refs: vec![
+            String::from(CANONICAL_MACHINE_CLOSURE_BUNDLE_REPORT_REF),
             String::from(TASSADAR_POST_ARTICLE_PLUGIN_RUNTIME_API_AND_ENGINE_ABSTRACTION_REPORT_REF),
             String::from(TASSADAR_EFFECTFUL_REPLAY_AUDIT_REPORT_REF),
             String::from(TASSADAR_INSTALLED_MODULE_EVIDENCE_REPORT_REF),
@@ -613,6 +671,7 @@ pub fn build_tassadar_post_article_plugin_invocation_receipts_and_replay_classes
         route_evidence_binding_required,
         challenge_receipt_binding_required,
         replay_retry_propagation_typed,
+        closure_bundle_bound_by_digest,
         rebase_claim_allowed,
         plugin_capability_claim_allowed: false,
         weighted_plugin_control_allowed: false,
@@ -621,19 +680,20 @@ pub fn build_tassadar_post_article_plugin_invocation_receipts_and_replay_classes
         arbitrary_software_capability_allowed: false,
         deferred_issue_ids: Vec::new(),
         claim_boundary: String::from(
-            "this eval report freezes the canonical post-article plugin invocation-receipt identity and replay-class lattice above the host-owned runtime API and the earlier replay/evidence/promotion precedents. It keeps receipt identity, typed retry and propagation posture, route-integrated evidence, challenge bindings, and operator-only or publication-refused lanes machine-readable while keeping weighted plugin control, plugin publication, served/public universality, and arbitrary software capability blocked.",
+            "this eval report freezes the canonical post-article plugin invocation-receipt identity and replay-class lattice above the host-owned runtime API and the earlier replay/evidence/promotion precedents. The receipt claim now inherits the canonical machine closure bundle by report id and digest instead of reconstructing machine identity from the runtime API alone. It keeps receipt identity, typed retry and propagation posture, route-integrated evidence, challenge bindings, and operator-only or publication-refused lanes machine-readable while keeping weighted plugin control, plugin publication, served/public universality, and arbitrary software capability blocked.",
         ),
         summary: String::new(),
         report_digest: String::new(),
     };
     report.summary = format!(
-        "Post-article plugin invocation receipts report keeps contract_status={:?}, dependency_rows={}, receipt_identity_rows={}, replay_class_rows={}, failure_class_rows={}, validation_rows={}, and deferred_issue_ids={}.",
+        "Post-article plugin invocation receipts report keeps contract_status={:?}, dependency_rows={}, receipt_identity_rows={}, replay_class_rows={}, failure_class_rows={}, validation_rows={}, closure_bundle_digest=`{}`, and deferred_issue_ids={}.",
         report.contract_status,
         report.dependency_rows.len(),
         report.receipt_identity_rows.len(),
         report.replay_class_rows.len(),
         report.failure_class_rows.len(),
         report.validation_rows.len(),
+        report.machine_identity_binding.closure_bundle_digest,
         report.deferred_issue_ids.len(),
     );
     report.report_digest = stable_digest(
@@ -808,20 +868,24 @@ fn stable_digest<T: Serialize>(prefix: &[u8], value: &T) -> String {
     hex::encode(hasher.finalize())
 }
 
-#[cfg(test)]
 fn read_json<T: DeserializeOwned>(
     path: impl AsRef<Path>,
 ) -> Result<T, TassadarPostArticlePluginInvocationReceiptsAndReplayClassesReportError> {
     let path = path.as_ref();
-    let bytes = fs::read(path).map_err(|error| {
+    let resolved_path = if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        repo_root().join(path)
+    };
+    let bytes = fs::read(&resolved_path).map_err(|error| {
         TassadarPostArticlePluginInvocationReceiptsAndReplayClassesReportError::Read {
-            path: path.display().to_string(),
+            path: resolved_path.display().to_string(),
             error,
         }
     })?;
     serde_json::from_slice(&bytes).map_err(|error| {
         TassadarPostArticlePluginInvocationReceiptsAndReplayClassesReportError::Decode {
-            path: path.display().to_string(),
+            path: resolved_path.display().to_string(),
             error,
         }
     })
@@ -871,11 +935,11 @@ mod tests {
                 .invocation_receipt_profile_id,
             TASSADAR_POST_ARTICLE_PLUGIN_INVOCATION_RECEIPT_PROFILE_ID
         );
-        assert_eq!(report.dependency_rows.len(), 5);
+        assert_eq!(report.dependency_rows.len(), 6);
         assert_eq!(report.receipt_identity_rows.len(), 18);
         assert_eq!(report.replay_class_rows.len(), 4);
         assert_eq!(report.failure_class_rows.len(), 12);
-        assert_eq!(report.validation_rows.len(), 9);
+        assert_eq!(report.validation_rows.len(), 10);
         assert!(report.deferred_issue_ids.is_empty());
         assert!(report.operator_internal_only_posture);
         assert!(report.receipt_identity_frozen);
@@ -888,6 +952,7 @@ mod tests {
         assert!(report.route_evidence_binding_required);
         assert!(report.challenge_receipt_binding_required);
         assert!(report.replay_retry_propagation_typed);
+        assert!(report.closure_bundle_bound_by_digest);
         assert!(report.rebase_claim_allowed);
         assert!(!report.plugin_capability_claim_allowed);
         assert!(!report.weighted_plugin_control_allowed);

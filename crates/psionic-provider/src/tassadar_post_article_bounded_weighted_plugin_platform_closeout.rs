@@ -9,9 +9,13 @@ pub struct TassadarPostArticleBoundedWeightedPluginPlatformCloseoutReceipt {
     pub canonical_route_id: String,
     pub computational_model_statement_id: String,
     pub control_trace_contract_id: String,
+    pub closure_bundle_report_id: String,
+    pub closure_bundle_report_digest: String,
+    pub closure_bundle_digest: String,
     pub closeout_status: String,
     pub operator_internal_only_posture: bool,
     pub served_plugin_envelope_published: bool,
+    pub closure_bundle_bound_by_digest: bool,
     pub closure_bundle_issue_id: String,
     pub rebase_claim_allowed: bool,
     pub plugin_capability_claim_allowed: bool,
@@ -33,6 +37,9 @@ impl TassadarPostArticleBoundedWeightedPluginPlatformCloseoutReceipt {
             canonical_route_id: summary.canonical_route_id.clone(),
             computational_model_statement_id: summary.computational_model_statement_id.clone(),
             control_trace_contract_id: summary.control_trace_contract_id.clone(),
+            closure_bundle_report_id: summary.closure_bundle_report_id.clone(),
+            closure_bundle_report_digest: summary.closure_bundle_report_digest.clone(),
+            closure_bundle_digest: summary.closure_bundle_digest.clone(),
             closeout_status: match summary.closeout_status {
                 psionic_eval::TassadarPostArticleBoundedWeightedPluginPlatformCloseoutStatus::OperatorGreenServedSuppressed => {
                     String::from("operator_green_served_suppressed")
@@ -43,6 +50,7 @@ impl TassadarPostArticleBoundedWeightedPluginPlatformCloseoutReceipt {
             },
             operator_internal_only_posture: summary.operator_internal_only_posture,
             served_plugin_envelope_published: summary.served_plugin_envelope_published,
+            closure_bundle_bound_by_digest: summary.closure_bundle_bound_by_digest,
             closure_bundle_issue_id: summary.closure_bundle_issue_id.clone(),
             rebase_claim_allowed: summary.rebase_claim_allowed,
             plugin_capability_claim_allowed: summary.plugin_capability_claim_allowed,
@@ -51,11 +59,12 @@ impl TassadarPostArticleBoundedWeightedPluginPlatformCloseoutReceipt {
             served_public_universality_allowed: summary.served_public_universality_allowed,
             arbitrary_software_capability_allowed: summary.arbitrary_software_capability_allowed,
             detail: format!(
-                "post-article bounded weighted plugin-platform closeout summary `{}` keeps closeout_status={:?}, control_trace_contract_id=`{}`, operator_internal_only_posture={}, and closure_bundle_issue_id=`{}`.",
+                "post-article bounded weighted plugin-platform closeout summary `{}` keeps closeout_status={:?}, control_trace_contract_id=`{}`, operator_internal_only_posture={}, closure_bundle_digest=`{}`, and closure_bundle_issue_id=`{}`.",
                 summary.report_id,
                 summary.closeout_status,
                 summary.control_trace_contract_id,
                 summary.operator_internal_only_posture,
+                summary.closure_bundle_digest,
                 summary.closure_bundle_issue_id,
             ),
         }

@@ -420,7 +420,7 @@ Current honest posture:
   conditions, explicit determinism and external-signal boundaries, and
   explicit host-negative planner attacks; this tranche turns weighted plugin
   control green on the canonical route, clears the controller defer pointer to
-  empty, with the later bridge reservation frontier now at `TAS-215`, and still
+  empty, with the later bridge reservation frontier now at `TAS-216`, and still
   keeps bounded plugin-platform closeout, plugin publication, served/public
   universality, and arbitrary software capability blocked
 - the repo now also has one post-article plugin authority, promotion,
@@ -453,8 +453,8 @@ Current honest posture:
   machine instead of letting adjacent green artifacts imply that platform by
   recomposition; this tranche turns `plugin_capability_claim_allowed=true`,
   keeps plugin publication suppressed, keeps served/public universality false,
-  keeps arbitrary software capability false, and still keeps the final
-  canonical machine closure bundle separate for `TAS-215`
+  keeps arbitrary software capability false, and now requires the published
+  canonical machine closure bundle from `TAS-215` by digest
 - the repo now also has one post-article canonical machine identity lock, with
   a committed eval report at
   `fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_report.json`,
@@ -587,10 +587,10 @@ Current honest posture:
   bounded weighted plugin-platform closeout into one explicit anti-drift
   verdict over one canonical post-article machine; this tranche closes
   anti-drift stability, keeps sampled audits distinct from proof-carrying
-  artifacts, moves the next closure frontier to `TAS-215`, keeps stronger
-  terminal and stronger plugin-platform claims closure-bundle-bound to
-  `TAS-215`, and still does not turn plugin publication, served/public
-  universality, or arbitrary software capability green
+  artifacts, and now sits beneath the published canonical machine closure
+  bundle from `TAS-215`, which binds stronger terminal and stronger
+  plugin-platform claims by digest while still not turning plugin publication,
+  served/public universality, or arbitrary software capability green
 - the repo now also has one post-article Turing-completeness closeout audit,
   with a committed eval report at
   `fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json`,
@@ -600,10 +600,27 @@ Current honest posture:
   historical `TAS-156` closeout standing while stating machine-readably that
   the canonical post-`TAS-186` route is now the truth carrier for the bounded
   Turing-completeness claim and that control-plane ownership plus
-  decision-provenance proof are part of that truth carrier; this tranche keeps
-  the final canonical machine closure bundle separate for `TAS-215` and still
-  does not imply weighted plugin control, plugin publication, served/public
-  universality, or arbitrary software capability
+  decision-provenance proof are part of that truth carrier; this tranche now
+  binds that stronger terminal claim to the separately published canonical
+  machine closure bundle from `TAS-215` and still does not imply weighted
+  plugin control, plugin publication, served/public universality, or
+  arbitrary software capability
+- the repo now also has one post-article canonical machine closure bundle,
+  with a committed eval report at
+  `fixtures/tassadar/reports/tassadar_post_article_canonical_machine_closure_bundle_report.json`,
+  a disclosure-safe research summary at
+  `fixtures/tassadar/reports/tassadar_post_article_canonical_machine_closure_bundle_summary.json`,
+  a transformer-owned anchor contract, a provider-facing receipt, a dedicated
+  checker script, and an audit note that publish one digest-bound closure
+  object binding machine identity, the computational-model statement,
+  determinism and equivalent-choice posture, control-plane provenance,
+  execution-semantics proof transport, continuation boundary, carrier split,
+  hidden-state and observer model, portability or minimality posture, plugin
+  inheritance posture, and proof-versus-audit classification into one
+  indivisible canonical machine subject; downstream stronger terminal,
+  controller, receipt, publication, and bounded plugin-platform claims now
+  inherit that bundle by digest, and the next open bridge frontier is
+  `TAS-216`
 - the repo now also has one machine-readable article-equivalence blocker
   matrix, with a committed eval report at
   `fixtures/tassadar/reports/tassadar_article_equivalence_blocker_matrix_report.json`,
@@ -807,7 +824,9 @@ Issue-state note:
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
 - `TAS-206` through `TAS-213` are now implemented and tracked in
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
-- `TAS-215` through `TAS-226` remain open in GitHub and are tracked via the
+- `TAS-215` is now implemented and tracked in
+  `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
+- `TAS-216` through `TAS-226` remain open in GitHub and are tracked via the
   issue bodies plus `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
 
 ## Repo-Local Companion Docs

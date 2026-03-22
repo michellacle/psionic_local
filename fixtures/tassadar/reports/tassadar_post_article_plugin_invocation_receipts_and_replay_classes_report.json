@@ -6,8 +6,10 @@
   "effectful_replay_audit_report_ref": "fixtures/tassadar/reports/tassadar_effectful_replay_audit_report.json",
   "installed_module_evidence_report_ref": "fixtures/tassadar/reports/tassadar_installed_module_evidence_report.json",
   "module_promotion_state_report_ref": "fixtures/tassadar/reports/tassadar_module_promotion_state_report.json",
+  "canonical_machine_closure_bundle_report_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_closure_bundle_report.json",
   "local_plugin_system_spec_ref": "~/code/alpha/tassadar/plugin-system.md",
   "supporting_material_refs": [
+    "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_closure_bundle_report.json",
     "fixtures/tassadar/reports/tassadar_post_article_plugin_runtime_api_and_engine_abstraction_report.json",
     "fixtures/tassadar/reports/tassadar_effectful_replay_audit_report.json",
     "fixtures/tassadar/reports/tassadar_installed_module_evidence_report.json",
@@ -30,10 +32,13 @@
     "host_owned_runtime_api_id": "tassadar.plugin_runtime.host_owned_api.v1",
     "engine_abstraction_id": "tassadar.plugin_runtime.engine_abstraction.v1",
     "invocation_receipt_profile_id": "tassadar.plugin_runtime.invocation_receipts.v1",
+    "closure_bundle_report_id": "tassadar.post_article_canonical_machine_closure_bundle.report.v1",
+    "closure_bundle_report_digest": "8ec81eb55d0f1e86a3e2a0e6c2b55595de0718423b4920a9d312112fea90d1ef",
+    "closure_bundle_digest": "0cc5b617bce97feec0fa25981786a4ef3b0d1ba6b8bbf7bceff2c1928a67d26a",
     "runtime_bundle_id": "tassadar.post_article_plugin_invocation_receipts_and_replay_classes.runtime_bundle.v1",
     "runtime_bundle_digest": "ecb374492e4642919f57ce37fed77d31e6e0fd57333e6ecb34a9feb24ba658f2",
     "runtime_bundle_ref": "fixtures/tassadar/runs/tassadar_post_article_plugin_invocation_receipts_and_replay_classes_v1/tassadar_post_article_plugin_invocation_receipts_and_replay_classes_bundle.json",
-    "detail": "machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1` canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1` runtime_api_report_id=`tassadar.post_article_plugin_runtime_api_and_engine_abstraction.report.v1` invocation_receipt_profile_id=`tassadar.plugin_runtime.invocation_receipts.v1` and runtime_bundle_id=`tassadar.post_article_plugin_invocation_receipts_and_replay_classes.runtime_bundle.v1` remain bound together."
+    "detail": "machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1` canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1` runtime_api_report_id=`tassadar.post_article_plugin_runtime_api_and_engine_abstraction.report.v1` invocation_receipt_profile_id=`tassadar.plugin_runtime.invocation_receipts.v1` runtime_bundle_id=`tassadar.post_article_plugin_invocation_receipts_and_replay_classes.runtime_bundle.v1` and closure_bundle_digest=`0cc5b617bce97feec0fa25981786a4ef3b0d1ba6b8bbf7bceff2c1928a67d26a` remain bound together."
   },
   "runtime_bundle_ref": "fixtures/tassadar/runs/tassadar_post_article_plugin_invocation_receipts_and_replay_classes_v1/tassadar_post_article_plugin_invocation_receipts_and_replay_classes_bundle.json",
   "runtime_bundle": {
@@ -554,6 +559,15 @@
       "detail": "promotion state keeps active, challenge-open, quarantined, and revoked posture explicit for plugin receipts."
     },
     {
+      "dependency_id": "canonical_machine_closure_bundle_published",
+      "dependency_class": "closure_bundle",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_closure_bundle_report.json",
+      "bound_report_id": "tassadar.post_article_canonical_machine_closure_bundle.report.v1",
+      "bound_report_digest": "8ec81eb55d0f1e86a3e2a0e6c2b55595de0718423b4920a9d312112fea90d1ef",
+      "detail": "the plugin invocation receipt claim must inherit the canonical machine closure bundle by report id and digest instead of reconstructing machine identity from the runtime API alone."
+    },
+    {
       "dependency_id": "plugin_system_receipt_spec_cited",
       "dependency_class": "design_input",
       "satisfied": true,
@@ -1038,6 +1052,15 @@
         "fixtures/tassadar/runs/tassadar_post_article_plugin_invocation_receipts_and_replay_classes_v1/tassadar_post_article_plugin_invocation_receipts_and_replay_classes_bundle.json"
       ],
       "detail": "the receipt contract stays operator/internal-only and does not imply weighted plugin control, publication rights, or public software capability."
+    },
+    {
+      "validation_id": "closure_bundle_bound_by_digest",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_closure_bundle_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_runtime_api_and_engine_abstraction_report.json"
+      ],
+      "detail": "the invocation receipt claim now inherits the canonical machine closure bundle by digest instead of relying on adjacent machine fields only."
     }
   ],
   "contract_status": "green",
@@ -1053,6 +1076,7 @@
   "route_evidence_binding_required": true,
   "challenge_receipt_binding_required": true,
   "replay_retry_propagation_typed": true,
+  "closure_bundle_bound_by_digest": true,
   "rebase_claim_allowed": true,
   "plugin_capability_claim_allowed": false,
   "weighted_plugin_control_allowed": false,
@@ -1060,7 +1084,7 @@
   "served_public_universality_allowed": false,
   "arbitrary_software_capability_allowed": false,
   "deferred_issue_ids": [],
-  "claim_boundary": "this eval report freezes the canonical post-article plugin invocation-receipt identity and replay-class lattice above the host-owned runtime API and the earlier replay/evidence/promotion precedents. It keeps receipt identity, typed retry and propagation posture, route-integrated evidence, challenge bindings, and operator-only or publication-refused lanes machine-readable while keeping weighted plugin control, plugin publication, served/public universality, and arbitrary software capability blocked.",
-  "summary": "Post-article plugin invocation receipts report keeps contract_status=Green, dependency_rows=5, receipt_identity_rows=18, replay_class_rows=4, failure_class_rows=12, validation_rows=9, and deferred_issue_ids=0.",
-  "report_digest": "63bc622a0dbbadef147d703f6eb6a57044300191e487f20060490c11ef0ef637"
+  "claim_boundary": "this eval report freezes the canonical post-article plugin invocation-receipt identity and replay-class lattice above the host-owned runtime API and the earlier replay/evidence/promotion precedents. The receipt claim now inherits the canonical machine closure bundle by report id and digest instead of reconstructing machine identity from the runtime API alone. It keeps receipt identity, typed retry and propagation posture, route-integrated evidence, challenge bindings, and operator-only or publication-refused lanes machine-readable while keeping weighted plugin control, plugin publication, served/public universality, and arbitrary software capability blocked.",
+  "summary": "Post-article plugin invocation receipts report keeps contract_status=Green, dependency_rows=6, receipt_identity_rows=18, replay_class_rows=4, failure_class_rows=12, validation_rows=10, closure_bundle_digest=`0cc5b617bce97feec0fa25981786a4ef3b0d1ba6b8bbf7bceff2c1928a67d26a`, and deferred_issue_ids=0.",
+  "report_digest": "c9094a5c96a7cb8ae698b49a9a55eafc45d81fd46b935f76019be92e2ce5cc4a"
 }

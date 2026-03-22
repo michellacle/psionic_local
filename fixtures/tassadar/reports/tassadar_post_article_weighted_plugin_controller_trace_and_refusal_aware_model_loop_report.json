@@ -25,9 +25,9 @@
     "continuation_contract_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
     "computational_model_statement_id": "tassadar.post_article.canonical_computational_model.statement.v1",
     "result_binding_report_id": "tassadar.post_article_plugin_result_binding_schema_stability_and_composition.report.v1",
-    "result_binding_report_digest": "3edd7f5f28f65a3072c9e679230bfca882a19b017eb37e754812588dbd8b0343",
+    "result_binding_report_digest": "6636e5308cdb9cc5b3dbab141a7faae0f5e48c056ff45d7007e5a30981d62a6c",
     "control_plane_report_id": "tassadar.post_article_control_plane_decision_provenance_proof.report.v1",
-    "control_plane_report_digest": "6e2ee7d74812a896d76f878dbad372fe2f3acaf44436adbe4d8c7091f5960ba1",
+    "control_plane_report_digest": "f44870bd0b278203bdb745a5b8337003b94ae956799073cfeef034651607f62c",
     "packet_abi_version": "packet.v1",
     "host_owned_runtime_api_id": "tassadar.plugin_runtime.host_owned_api.v1",
     "engine_abstraction_id": "tassadar.plugin_runtime.engine_abstraction.v1",
@@ -850,7 +850,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_report.json",
       "bound_report_id": "tassadar.post_article_plugin_result_binding_schema_stability_and_composition.report.v1",
-      "bound_report_digest": "3edd7f5f28f65a3072c9e679230bfca882a19b017eb37e754812588dbd8b0343",
+      "bound_report_digest": "6636e5308cdb9cc5b3dbab141a7faae0f5e48c056ff45d7007e5a30981d62a6c",
       "detail": "the result-binding contract must be green and no longer carry the controller defer pointer before weighted controller ownership can close honestly."
     },
     {
@@ -859,7 +859,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_control_plane_decision_provenance_proof_report.json",
       "bound_report_id": "tassadar.post_article_control_plane_decision_provenance_proof.report.v1",
-      "bound_report_digest": "6e2ee7d74812a896d76f878dbad372fe2f3acaf44436adbe4d8c7091f5960ba1",
+      "bound_report_digest": "f44870bd0b278203bdb745a5b8337003b94ae956799073cfeef034651607f62c",
       "detail": "the earlier control-plane proof must stay green so plugin selection, retry, and stop ownership extend an existing control proof instead of inventing a new one."
     },
     {
@@ -1812,5 +1812,5 @@
   "deferred_issue_ids": [],
   "claim_boundary": "this sandbox report closes the bounded weighted plugin controller trace on the canonical post-article machine identity. It proves that plugin selection, export selection, packet encoding, sequencing, typed-refusal handling, retry, and stop conditions remain model-owned while the host validates and executes declared calls without becoming the planner. It still does not widen plugin authority into publication, trust-tier promotion, served/public universality, or arbitrary public software execution.",
   "summary": "Post-article weighted plugin controller sandbox report keeps contract_status=Green, dependency_rows=6, controller_case_rows=4, control_trace_rows=34, host_negative_rows=10, validation_rows=12, weighted_plugin_control_allowed=true, and deferred_issue_ids=0.",
-  "report_digest": "6a79bc2a5cddbbe82be4565c91e84585986ae18cd9f811280827985c5bfb271b"
+  "report_digest": "35bed89f219b5d57718ffaf191da0d26ca0ecc8ca586c000233133804c0d1eb8"
 }

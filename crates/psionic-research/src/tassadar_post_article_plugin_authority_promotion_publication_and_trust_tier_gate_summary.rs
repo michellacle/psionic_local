@@ -29,6 +29,9 @@ pub struct TassadarPostArticlePluginAuthorityPromotionPublicationAndTrustTierGat
     pub canonical_route_id: String,
     pub computational_model_statement_id: String,
     pub control_trace_contract_id: String,
+    pub closure_bundle_report_id: String,
+    pub closure_bundle_report_digest: String,
+    pub closure_bundle_digest: String,
     pub contract_status:
         TassadarPostArticlePluginAuthorityPromotionPublicationAndTrustTierGateStatus,
     pub dependency_row_count: u32,
@@ -47,6 +50,7 @@ pub struct TassadarPostArticlePluginAuthorityPromotionPublicationAndTrustTierGat
     pub operator_internal_only_posture: bool,
     pub profile_specific_named_routes_explicit: bool,
     pub broader_publication_refused: bool,
+    pub closure_bundle_bound_by_digest: bool,
     pub rebase_claim_allowed: bool,
     pub plugin_capability_claim_allowed: bool,
     pub weighted_plugin_control_allowed: bool,
@@ -106,6 +110,18 @@ fn build_summary_from_report(
                 .machine_identity_binding
                 .control_trace_contract_id
                 .clone(),
+            closure_bundle_report_id: report
+                .machine_identity_binding
+                .closure_bundle_report_id
+                .clone(),
+            closure_bundle_report_digest: report
+                .machine_identity_binding
+                .closure_bundle_report_digest
+                .clone(),
+            closure_bundle_digest: report
+                .machine_identity_binding
+                .closure_bundle_digest
+                .clone(),
             contract_status: report.contract_status,
             dependency_row_count: report.dependency_rows.len() as u32,
             trust_tier_row_count: report.trust_tier_rows.len() as u32,
@@ -123,6 +139,7 @@ fn build_summary_from_report(
             operator_internal_only_posture: report.operator_internal_only_posture,
             profile_specific_named_routes_explicit: report.profile_specific_named_routes_explicit,
             broader_publication_refused: report.broader_publication_refused,
+            closure_bundle_bound_by_digest: report.closure_bundle_bound_by_digest,
             rebase_claim_allowed: report.rebase_claim_allowed,
             plugin_capability_claim_allowed: report.plugin_capability_claim_allowed,
             weighted_plugin_control_allowed: report.weighted_plugin_control_allowed,
@@ -130,13 +147,14 @@ fn build_summary_from_report(
             served_public_universality_allowed: report.served_public_universality_allowed,
             arbitrary_software_capability_allowed: report.arbitrary_software_capability_allowed,
             detail: format!(
-                "post-article plugin authority summary keeps machine_identity_id=`{}`, control_trace_contract_id=`{}`, contract_status={:?}, trust_tier_rows={}, publication_posture_rows={}, validation_rows={}, weighted_plugin_control_allowed={}, and deferred_issue_ids={}.",
+                "post-article plugin authority summary keeps machine_identity_id=`{}`, control_trace_contract_id=`{}`, contract_status={:?}, trust_tier_rows={}, publication_posture_rows={}, validation_rows={}, closure_bundle_digest=`{}`, weighted_plugin_control_allowed={}, and deferred_issue_ids={}.",
                 report.machine_identity_binding.machine_identity_id,
                 report.machine_identity_binding.control_trace_contract_id,
                 report.contract_status,
                 report.trust_tier_rows.len(),
                 report.publication_posture_rows.len(),
                 report.validation_rows.len(),
+                report.machine_identity_binding.closure_bundle_digest,
                 report.weighted_plugin_control_allowed,
                 report.deferred_issue_ids.len(),
             ),
@@ -241,12 +259,12 @@ mod tests {
             summary.contract_status,
             TassadarPostArticlePluginAuthorityPromotionPublicationAndTrustTierGateStatus::Green
         );
-        assert_eq!(summary.dependency_row_count, 8);
+        assert_eq!(summary.dependency_row_count, 9);
         assert_eq!(summary.trust_tier_row_count, 4);
         assert_eq!(summary.promotion_row_count, 5);
         assert_eq!(summary.publication_posture_row_count, 5);
         assert_eq!(summary.observer_row_count, 4);
-        assert_eq!(summary.validation_row_count, 8);
+        assert_eq!(summary.validation_row_count, 9);
         assert!(summary.deferred_issue_ids.is_empty());
         assert!(summary.trust_tier_gate_green);
         assert!(summary.promotion_receipts_explicit);
@@ -257,6 +275,7 @@ mod tests {
         assert!(summary.operator_internal_only_posture);
         assert!(summary.profile_specific_named_routes_explicit);
         assert!(summary.broader_publication_refused);
+        assert!(summary.closure_bundle_bound_by_digest);
         assert!(summary.rebase_claim_allowed);
         assert!(summary.weighted_plugin_control_allowed);
         assert!(!summary.plugin_capability_claim_allowed);

@@ -27,6 +27,9 @@ pub struct TassadarPostArticleTuringCompletenessCloseoutSummary {
     pub canonical_model_id: String,
     pub canonical_route_id: String,
     pub canonical_architecture_anchor_crate: String,
+    pub closure_bundle_report_id: String,
+    pub closure_bundle_report_digest: String,
+    pub closure_bundle_digest: String,
     pub closeout_status: TassadarPostArticleTuringCompletenessCloseoutStatus,
     pub supporting_material_row_count: u32,
     pub dependency_row_count: u32,
@@ -35,6 +38,7 @@ pub struct TassadarPostArticleTuringCompletenessCloseoutSummary {
     pub canonical_route_truth_carrier: bool,
     pub control_plane_proof_part_of_truth_carrier: bool,
     pub closure_bundle_embedded_here: bool,
+    pub closure_bundle_bound_by_digest: bool,
     pub closure_bundle_issue_id: String,
     pub theory_green: bool,
     pub operator_green: bool,
@@ -89,6 +93,18 @@ fn build_summary_from_report(
             .machine_identity_binding
             .canonical_architecture_anchor_crate
             .clone(),
+        closure_bundle_report_id: report
+            .machine_identity_binding
+            .closure_bundle_report_id
+            .clone(),
+        closure_bundle_report_digest: report
+            .machine_identity_binding
+            .closure_bundle_report_digest
+            .clone(),
+        closure_bundle_digest: report
+            .machine_identity_binding
+            .closure_bundle_digest
+            .clone(),
         closeout_status: report.closeout_status,
         supporting_material_row_count: report.supporting_material_rows.len() as u32,
         dependency_row_count: report.dependency_rows.len() as u32,
@@ -98,6 +114,7 @@ fn build_summary_from_report(
         control_plane_proof_part_of_truth_carrier: report
             .control_plane_proof_part_of_truth_carrier,
         closure_bundle_embedded_here: report.closure_bundle_embedded_here,
+        closure_bundle_bound_by_digest: report.closure_bundle_bound_by_digest,
         closure_bundle_issue_id: report.closure_bundle_issue_id.clone(),
         theory_green: report.theory_green,
         operator_green: report.operator_green,
@@ -109,11 +126,12 @@ fn build_summary_from_report(
         served_public_universality_allowed: report.served_public_universality_allowed,
         arbitrary_software_capability_allowed: report.arbitrary_software_capability_allowed,
         detail: format!(
-            "post-article turing-completeness closeout summary keeps machine_identity_id=`{}`, canonical_route_id=`{}`, closeout_status={:?}, historical_tas_156_still_stands={}, and closure_bundle_issue_id=`{}`.",
+            "post-article turing-completeness closeout summary keeps machine_identity_id=`{}`, canonical_route_id=`{}`, closeout_status={:?}, historical_tas_156_still_stands={}, closure_bundle_digest=`{}`, and closure_bundle_issue_id=`{}`.",
             report.machine_identity_binding.machine_identity_id,
             report.machine_identity_binding.canonical_route_id,
             report.closeout_status,
             report.historical_tas_156_still_stands,
+            report.machine_identity_binding.closure_bundle_digest,
             report.closure_bundle_issue_id,
         ),
         summary_digest: String::new(),
@@ -212,11 +230,12 @@ mod tests {
             TassadarPostArticleTuringCompletenessCloseoutStatus::TheoryGreenOperatorGreenServedSuppressed
         );
         assert_eq!(summary.supporting_material_row_count, 14);
-        assert_eq!(summary.dependency_row_count, 11);
-        assert_eq!(summary.validation_row_count, 10);
+        assert_eq!(summary.dependency_row_count, 12);
+        assert_eq!(summary.validation_row_count, 11);
         assert!(summary.historical_tas_156_still_stands);
         assert!(summary.canonical_route_truth_carrier);
         assert!(summary.control_plane_proof_part_of_truth_carrier);
+        assert!(summary.closure_bundle_bound_by_digest);
         assert!(!summary.closure_bundle_embedded_here);
         assert_eq!(summary.closure_bundle_issue_id, "TAS-215");
         assert!(summary.theory_green);

@@ -9,6 +9,9 @@ pub struct TassadarPostArticlePluginAuthorityPromotionPublicationAndTrustTierGat
     pub canonical_route_id: String,
     pub computational_model_statement_id: String,
     pub control_trace_contract_id: String,
+    pub closure_bundle_report_id: String,
+    pub closure_bundle_report_digest: String,
+    pub closure_bundle_digest: String,
     pub contract_status: String,
     pub trust_tier_row_count: u32,
     pub promotion_row_count: u32,
@@ -25,6 +28,7 @@ pub struct TassadarPostArticlePluginAuthorityPromotionPublicationAndTrustTierGat
     pub operator_internal_only_posture: bool,
     pub profile_specific_named_routes_explicit: bool,
     pub broader_publication_refused: bool,
+    pub closure_bundle_bound_by_digest: bool,
     pub rebase_claim_allowed: bool,
     pub plugin_capability_claim_allowed: bool,
     pub weighted_plugin_control_allowed: bool,
@@ -45,6 +49,9 @@ impl TassadarPostArticlePluginAuthorityPromotionPublicationAndTrustTierGateRecei
             canonical_route_id: summary.canonical_route_id.clone(),
             computational_model_statement_id: summary.computational_model_statement_id.clone(),
             control_trace_contract_id: summary.control_trace_contract_id.clone(),
+            closure_bundle_report_id: summary.closure_bundle_report_id.clone(),
+            closure_bundle_report_digest: summary.closure_bundle_report_digest.clone(),
+            closure_bundle_digest: summary.closure_bundle_digest.clone(),
             contract_status: format!("{:?}", summary.contract_status).to_lowercase(),
             trust_tier_row_count: summary.trust_tier_row_count,
             promotion_row_count: summary.promotion_row_count,
@@ -61,6 +68,7 @@ impl TassadarPostArticlePluginAuthorityPromotionPublicationAndTrustTierGateRecei
             operator_internal_only_posture: summary.operator_internal_only_posture,
             profile_specific_named_routes_explicit: summary.profile_specific_named_routes_explicit,
             broader_publication_refused: summary.broader_publication_refused,
+            closure_bundle_bound_by_digest: summary.closure_bundle_bound_by_digest,
             rebase_claim_allowed: summary.rebase_claim_allowed,
             plugin_capability_claim_allowed: summary.plugin_capability_claim_allowed,
             weighted_plugin_control_allowed: summary.weighted_plugin_control_allowed,
@@ -68,12 +76,13 @@ impl TassadarPostArticlePluginAuthorityPromotionPublicationAndTrustTierGateRecei
             served_public_universality_allowed: summary.served_public_universality_allowed,
             arbitrary_software_capability_allowed: summary.arbitrary_software_capability_allowed,
             detail: format!(
-                "post-article plugin authority summary `{}` keeps contract_status={:?}, control_trace_contract_id=`{}`, trust_tier_rows={}, publication_posture_rows={}, weighted_plugin_control_allowed={}, and deferred_issue_ids={}.",
+                "post-article plugin authority summary `{}` keeps contract_status={:?}, control_trace_contract_id=`{}`, trust_tier_rows={}, publication_posture_rows={}, closure_bundle_digest=`{}`, weighted_plugin_control_allowed={}, and deferred_issue_ids={}.",
                 summary.report_id,
                 summary.contract_status,
                 summary.control_trace_contract_id,
                 summary.trust_tier_row_count,
                 summary.publication_posture_row_count,
+                summary.closure_bundle_digest,
                 summary.weighted_plugin_control_allowed,
                 summary.deferred_issue_ids.len(),
             ),
@@ -105,7 +114,7 @@ mod tests {
         assert_eq!(receipt.promotion_row_count, 5);
         assert_eq!(receipt.publication_posture_row_count, 5);
         assert_eq!(receipt.observer_row_count, 4);
-        assert_eq!(receipt.validation_row_count, 8);
+        assert_eq!(receipt.validation_row_count, 9);
         assert!(receipt.deferred_issue_ids.is_empty());
         assert!(receipt.trust_tier_gate_green);
         assert!(receipt.promotion_receipts_explicit);

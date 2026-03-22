@@ -16,6 +16,9 @@ pub struct TassadarPostArticleWeightedPluginControllerTraceAndRefusalAwareModelL
     pub control_trace_contract_id: String,
     pub control_trace_profile_id: String,
     pub determinism_profile_id: String,
+    pub closure_bundle_report_id: String,
+    pub closure_bundle_report_digest: String,
+    pub closure_bundle_digest: String,
     pub runtime_bundle_id: String,
     pub contract_status: String,
     pub controller_case_row_count: u32,
@@ -28,6 +31,7 @@ pub struct TassadarPostArticleWeightedPluginControllerTraceAndRefusalAwareModelL
     pub typed_refusal_loop_closed: bool,
     pub host_not_planner_green: bool,
     pub adversarial_negative_rows_green: bool,
+    pub closure_bundle_bound_by_digest: bool,
     pub operator_internal_only_posture: bool,
     pub rebase_claim_allowed: bool,
     pub plugin_capability_claim_allowed: bool,
@@ -56,6 +60,9 @@ impl TassadarPostArticleWeightedPluginControllerTraceAndRefusalAwareModelLoopRec
             control_trace_contract_id: summary.control_trace_contract_id.clone(),
             control_trace_profile_id: summary.control_trace_profile_id.clone(),
             determinism_profile_id: summary.determinism_profile_id.clone(),
+            closure_bundle_report_id: summary.closure_bundle_report_id.clone(),
+            closure_bundle_report_digest: summary.closure_bundle_report_digest.clone(),
+            closure_bundle_digest: summary.closure_bundle_digest.clone(),
             runtime_bundle_id: summary.runtime_bundle_id.clone(),
             contract_status: format!("{:?}", summary.contract_status).to_lowercase(),
             controller_case_row_count: summary.controller_case_row_count,
@@ -68,6 +75,7 @@ impl TassadarPostArticleWeightedPluginControllerTraceAndRefusalAwareModelLoopRec
             typed_refusal_loop_closed: summary.typed_refusal_loop_closed,
             host_not_planner_green: summary.host_not_planner_green,
             adversarial_negative_rows_green: summary.adversarial_negative_rows_green,
+            closure_bundle_bound_by_digest: summary.closure_bundle_bound_by_digest,
             operator_internal_only_posture: summary.operator_internal_only_posture,
             rebase_claim_allowed: summary.rebase_claim_allowed,
             plugin_capability_claim_allowed: summary.plugin_capability_claim_allowed,
@@ -77,12 +85,13 @@ impl TassadarPostArticleWeightedPluginControllerTraceAndRefusalAwareModelLoopRec
             arbitrary_software_capability_allowed: summary
                 .arbitrary_software_capability_allowed,
             detail: format!(
-                "post-article weighted plugin controller summary `{}` keeps contract_status={:?}, control_trace_contract_id=`{}`, control_trace_rows={}, validation_rows={}, weighted_plugin_control_allowed={}, and deferred_issue_ids={}.",
+                "post-article weighted plugin controller summary `{}` keeps contract_status={:?}, control_trace_contract_id=`{}`, control_trace_rows={}, validation_rows={}, closure_bundle_digest=`{}`, weighted_plugin_control_allowed={}, and deferred_issue_ids={}.",
                 summary.report_id,
                 summary.contract_status,
                 summary.control_trace_contract_id,
                 summary.control_trace_row_count,
                 summary.validation_row_count,
+                summary.closure_bundle_digest,
                 summary.weighted_plugin_control_allowed,
                 summary.deferred_issue_ids.len(),
             ),
@@ -109,7 +118,7 @@ mod tests {
         assert_eq!(receipt.controller_case_row_count, 4);
         assert_eq!(receipt.control_trace_row_count, 34);
         assert_eq!(receipt.host_negative_row_count, 10);
-        assert_eq!(receipt.validation_row_count, 9);
+        assert_eq!(receipt.validation_row_count, 10);
         assert!(receipt.deferred_issue_ids.is_empty());
         assert!(receipt.control_trace_contract_green);
         assert!(receipt.determinism_profile_explicit);

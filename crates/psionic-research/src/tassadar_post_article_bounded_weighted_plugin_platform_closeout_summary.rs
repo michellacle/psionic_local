@@ -29,6 +29,9 @@ pub struct TassadarPostArticleBoundedWeightedPluginPlatformCloseoutSummary {
     pub computational_model_statement_id: String,
     pub control_trace_contract_id: String,
     pub canonical_architecture_anchor_crate: String,
+    pub closure_bundle_report_id: String,
+    pub closure_bundle_report_digest: String,
+    pub closure_bundle_digest: String,
     pub closeout_status: TassadarPostArticleBoundedWeightedPluginPlatformCloseoutStatus,
     pub supporting_material_row_count: u32,
     pub dependency_row_count: u32,
@@ -36,6 +39,7 @@ pub struct TassadarPostArticleBoundedWeightedPluginPlatformCloseoutSummary {
     pub operator_internal_only_posture: bool,
     pub served_plugin_envelope_published: bool,
     pub closure_bundle_embedded_here: bool,
+    pub closure_bundle_bound_by_digest: bool,
     pub closure_bundle_issue_id: String,
     pub rebase_claim_allowed: bool,
     pub plugin_capability_claim_allowed: bool,
@@ -95,6 +99,18 @@ fn build_summary_from_report(
             .machine_identity_binding
             .canonical_architecture_anchor_crate
             .clone(),
+        closure_bundle_report_id: report
+            .machine_identity_binding
+            .closure_bundle_report_id
+            .clone(),
+        closure_bundle_report_digest: report
+            .machine_identity_binding
+            .closure_bundle_report_digest
+            .clone(),
+        closure_bundle_digest: report
+            .machine_identity_binding
+            .closure_bundle_digest
+            .clone(),
         closeout_status: report.closeout_status,
         supporting_material_row_count: report.supporting_material_rows.len() as u32,
         dependency_row_count: report.dependency_rows.len() as u32,
@@ -102,6 +118,7 @@ fn build_summary_from_report(
         operator_internal_only_posture: report.operator_internal_only_posture,
         served_plugin_envelope_published: report.served_plugin_envelope_published,
         closure_bundle_embedded_here: report.closure_bundle_embedded_here,
+        closure_bundle_bound_by_digest: report.closure_bundle_bound_by_digest,
         closure_bundle_issue_id: report.closure_bundle_issue_id.clone(),
         rebase_claim_allowed: report.rebase_claim_allowed,
         plugin_capability_claim_allowed: report.plugin_capability_claim_allowed,
@@ -110,12 +127,13 @@ fn build_summary_from_report(
         served_public_universality_allowed: report.served_public_universality_allowed,
         arbitrary_software_capability_allowed: report.arbitrary_software_capability_allowed,
         detail: format!(
-            "post-article bounded weighted plugin-platform closeout summary keeps machine_identity_id=`{}`, control_trace_contract_id=`{}`, closeout_status={:?}, dependency_rows={}, validation_rows={}, and closure_bundle_issue_id=`{}`.",
+            "post-article bounded weighted plugin-platform closeout summary keeps machine_identity_id=`{}`, control_trace_contract_id=`{}`, closeout_status={:?}, dependency_rows={}, validation_rows={}, closure_bundle_digest=`{}`, and closure_bundle_issue_id=`{}`.",
             report.machine_identity_binding.machine_identity_id,
             report.machine_identity_binding.control_trace_contract_id,
             report.closeout_status,
             report.dependency_rows.len(),
             report.validation_rows.len(),
+            report.machine_identity_binding.closure_bundle_digest,
             report.closure_bundle_issue_id,
         ),
         summary_digest: String::new(),
@@ -215,10 +233,11 @@ mod tests {
             TassadarPostArticleBoundedWeightedPluginPlatformCloseoutStatus::OperatorGreenServedSuppressed
         );
         assert_eq!(summary.supporting_material_row_count, 14);
-        assert_eq!(summary.dependency_row_count, 11);
+        assert_eq!(summary.dependency_row_count, 12);
         assert_eq!(summary.validation_row_count, 10);
         assert!(summary.operator_internal_only_posture);
         assert!(!summary.served_plugin_envelope_published);
+        assert!(summary.closure_bundle_bound_by_digest);
         assert!(!summary.closure_bundle_embedded_here);
         assert_eq!(summary.closure_bundle_issue_id, "TAS-215");
         assert!(summary.rebase_claim_allowed);

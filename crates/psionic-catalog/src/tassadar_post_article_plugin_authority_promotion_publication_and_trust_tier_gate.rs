@@ -28,6 +28,8 @@ const BROAD_INTERNAL_COMPUTE_PROFILE_PUBLICATION_REPORT_REF: &str =
     "fixtures/tassadar/reports/tassadar_broad_internal_compute_profile_publication_report.json";
 const BROAD_INTERNAL_COMPUTE_ROUTE_POLICY_REPORT_REF: &str =
     "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json";
+const CANONICAL_MACHINE_CLOSURE_BUNDLE_REPORT_REF: &str =
+    "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_closure_bundle_report.json";
 const LOCAL_PLUGIN_SYSTEM_SPEC_REF: &str = "~/code/alpha/tassadar/plugin-system.md";
 const PLUGIN_SYSTEM_AUDIT_REF: &str =
     "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md";
@@ -63,6 +65,7 @@ pub enum TassadarPostArticlePluginAuthorityDependencyClass {
     TrustDependency,
     PublicationDependency,
     RoutePolicyDependency,
+    ClosureBundle,
     DesignInput,
     AuditInput,
 }
@@ -81,6 +84,9 @@ pub struct TassadarPostArticlePluginAuthorityMachineIdentityBinding {
     pub controller_eval_report_id: String,
     pub controller_eval_report_digest: String,
     pub control_trace_contract_id: String,
+    pub closure_bundle_report_id: String,
+    pub closure_bundle_report_digest: String,
+    pub closure_bundle_digest: String,
     pub manifest_contract_report_id: String,
     pub manifest_contract_report_digest: String,
     pub canonical_architecture_anchor_crate: String,
@@ -162,6 +168,7 @@ pub struct TassadarPostArticlePluginAuthorityPromotionPublicationAndTrustTierGat
     pub module_trust_isolation_report_ref: String,
     pub broad_internal_compute_profile_publication_report_ref: String,
     pub broad_internal_compute_route_policy_report_ref: String,
+    pub canonical_machine_closure_bundle_report_ref: String,
     pub local_plugin_system_spec_ref: String,
     pub supporting_material_refs: Vec<String>,
     pub machine_identity_binding: TassadarPostArticlePluginAuthorityMachineIdentityBinding,
@@ -183,6 +190,7 @@ pub struct TassadarPostArticlePluginAuthorityPromotionPublicationAndTrustTierGat
     pub operator_internal_only_posture: bool,
     pub profile_specific_named_routes_explicit: bool,
     pub broader_publication_refused: bool,
+    pub closure_bundle_bound_by_digest: bool,
     pub rebase_claim_allowed: bool,
     pub plugin_capability_claim_allowed: bool,
     pub weighted_plugin_control_allowed: bool,
@@ -225,6 +233,8 @@ pub fn build_tassadar_post_article_plugin_authority_promotion_publication_and_tr
         read_repo_json(BROAD_INTERNAL_COMPUTE_PROFILE_PUBLICATION_REPORT_REF)?;
     let route_policy: BroadInternalComputeRoutePolicyFixture =
         read_repo_json(BROAD_INTERNAL_COMPUTE_ROUTE_POLICY_REPORT_REF)?;
+    let closure_bundle: CanonicalMachineClosureBundleFixture =
+        read_repo_json(CANONICAL_MACHINE_CLOSURE_BUNDLE_REPORT_REF)?;
 
     let operator_internal_only_posture = controller.operator_internal_only_posture
         && manifest.operator_internal_only_posture
@@ -306,19 +316,31 @@ pub fn build_tassadar_post_article_plugin_authority_promotion_publication_and_tr
             .machine_identity_binding
             .control_trace_contract_id
             .clone(),
+        closure_bundle_report_id: closure_bundle.report_id.clone(),
+        closure_bundle_report_digest: closure_bundle.report_digest.clone(),
+        closure_bundle_digest: closure_bundle.closure_bundle_digest.clone(),
         manifest_contract_report_id: manifest.report_id.clone(),
         manifest_contract_report_digest: manifest.report_digest.clone(),
         canonical_architecture_anchor_crate: String::from(CANONICAL_ARCHITECTURE_ANCHOR_CRATE),
         canonical_architecture_boundary_ref: String::from(CANONICAL_ARCHITECTURE_BOUNDARY_REF),
         detail: format!(
-            "machine_identity_id=`{}` canonical_route_id=`{}` controller_eval_report_id=`{}` and manifest_contract_report_id=`{}` remain the authority-gate anchor in `{}`.",
+            "machine_identity_id=`{}` canonical_route_id=`{}` controller_eval_report_id=`{}` manifest_contract_report_id=`{}` and closure_bundle_digest=`{}` remain the authority-gate anchor in `{}`.",
             controller.machine_identity_binding.machine_identity_id,
             controller.machine_identity_binding.canonical_route_id,
             controller.report_id,
             manifest.report_id,
+            closure_bundle.closure_bundle_digest,
             CANONICAL_ARCHITECTURE_ANCHOR_CRATE,
         ),
     };
+    let closure_bundle_bound_by_digest = closure_bundle.bundle_green
+        && closure_bundle.closure_subject.machine_identity_id
+            == machine_identity_binding.machine_identity_id
+        && closure_bundle.closure_subject.canonical_route_id
+            == machine_identity_binding.canonical_route_id
+        && machine_identity_binding.closure_bundle_report_id == closure_bundle.report_id
+        && machine_identity_binding.closure_bundle_report_digest == closure_bundle.report_digest
+        && machine_identity_binding.closure_bundle_digest == closure_bundle.closure_bundle_digest;
 
     let dependency_rows = vec![
         dependency_row(
@@ -330,6 +352,7 @@ pub fn build_tassadar_post_article_plugin_authority_promotion_publication_and_tr
                 && controller.typed_refusal_loop_closed
                 && controller.host_not_planner_green
                 && controller.adversarial_negative_rows_green
+                && controller.closure_bundle_bound_by_digest
                 && controller.weighted_plugin_control_allowed
                 && controller.deferred_issue_ids.is_empty(),
             CONTROLLER_EVAL_REPORT_REF,
@@ -351,6 +374,15 @@ pub fn build_tassadar_post_article_plugin_authority_promotion_publication_and_tr
             Some(manifest.report_id.clone()),
             Some(manifest.report_digest.clone()),
             "the manifest and invocation identity contract must already be green so authority widening cannot bypass canonical declaration, packaging, or hot-swap rules.",
+        ),
+        dependency_row(
+            "canonical_machine_closure_bundle_published",
+            TassadarPostArticlePluginAuthorityDependencyClass::ClosureBundle,
+            closure_bundle_bound_by_digest,
+            CANONICAL_MACHINE_CLOSURE_BUNDLE_REPORT_REF,
+            Some(closure_bundle.report_id.clone()),
+            Some(closure_bundle.report_digest.clone()),
+            "the authority and publication claim must inherit the canonical machine closure bundle by report id and digest instead of reconstructing machine identity from the controller and manifest pair alone.",
         ),
         dependency_row(
             "promotion_receipts_present",
@@ -775,6 +807,16 @@ pub fn build_tassadar_post_article_plugin_authority_promotion_publication_and_tr
             ],
             "the gate keeps bounded controller closure distinct from plugin-platform closeout and refuses any claim of arbitrary public Wasm or arbitrary public tool use.",
         ),
+        validation_row(
+            "closure_bundle_bound_by_digest",
+            closure_bundle_bound_by_digest,
+            vec![
+                String::from(CANONICAL_MACHINE_CLOSURE_BUNDLE_REPORT_REF),
+                String::from(CONTROLLER_EVAL_REPORT_REF),
+                String::from(MANIFEST_CONTRACT_REPORT_REF),
+            ],
+            "the authority and publication claim now inherits the canonical machine closure bundle by digest instead of relying on adjacent machine fields only.",
+        ),
     ];
 
     let contract_green = dependency_rows.iter().all(|row| row.satisfied)
@@ -819,8 +861,12 @@ pub fn build_tassadar_post_article_plugin_authority_promotion_publication_and_tr
             broad_internal_compute_route_policy_report_ref: String::from(
                 BROAD_INTERNAL_COMPUTE_ROUTE_POLICY_REPORT_REF,
             ),
+            canonical_machine_closure_bundle_report_ref: String::from(
+                CANONICAL_MACHINE_CLOSURE_BUNDLE_REPORT_REF,
+            ),
             local_plugin_system_spec_ref: String::from(LOCAL_PLUGIN_SYSTEM_SPEC_REF),
             supporting_material_refs: vec![
+                String::from(CANONICAL_MACHINE_CLOSURE_BUNDLE_REPORT_REF),
                 String::from(CONTROLLER_EVAL_REPORT_REF),
                 String::from(MANIFEST_CONTRACT_REPORT_REF),
                 String::from(MODULE_PROMOTION_STATE_REPORT_REF),
@@ -847,6 +893,7 @@ pub fn build_tassadar_post_article_plugin_authority_promotion_publication_and_tr
             operator_internal_only_posture,
             profile_specific_named_routes_explicit,
             broader_publication_refused,
+            closure_bundle_bound_by_digest,
             rebase_claim_allowed,
             plugin_capability_claim_allowed,
             weighted_plugin_control_allowed,
@@ -855,13 +902,13 @@ pub fn build_tassadar_post_article_plugin_authority_promotion_publication_and_tr
             arbitrary_software_capability_allowed,
             deferred_issue_ids: Vec::new(),
             claim_boundary: String::from(
-                "this catalog report freezes plugin authority, promotion, publication posture, and trust tiers above the canonical weighted controller without widening the claim surface. It keeps operator/internal posture, profile-specific named-but-suppressed routes, validator and accepted-outcome hook requirements, promotion challengeability, quarantine, revocation, and broader public refusal explicit instead of implying a served/public plugin platform or arbitrary public software execution.",
+                "this catalog report freezes plugin authority, promotion, publication posture, and trust tiers above the canonical weighted controller without widening the claim surface. The authority and publication claim now inherits the canonical machine closure bundle by report id and digest instead of reconstructing machine identity from the controller and manifest pair alone. It keeps operator/internal posture, profile-specific named-but-suppressed routes, validator and accepted-outcome hook requirements, promotion challengeability, quarantine, revocation, and broader public refusal explicit instead of implying a served/public plugin platform or arbitrary public software execution.",
             ),
             summary: String::new(),
             report_digest: String::new(),
         };
     report.summary = format!(
-        "post-article plugin authority gate binds machine_identity_id=`{}`, canonical_route_id=`{}`, contract_status={:?}, trust_tier_rows={}, promotion_rows={}, publication_posture_rows={}, observer_rows={}, validation_rows={}, weighted_plugin_control_allowed={}, and deferred_issue_ids={}.",
+        "post-article plugin authority gate binds machine_identity_id=`{}`, canonical_route_id=`{}`, contract_status={:?}, trust_tier_rows={}, promotion_rows={}, publication_posture_rows={}, observer_rows={}, validation_rows={}, closure_bundle_digest=`{}`, weighted_plugin_control_allowed={}, and deferred_issue_ids={}.",
         report.machine_identity_binding.machine_identity_id,
         report.machine_identity_binding.canonical_route_id,
         report.contract_status,
@@ -870,6 +917,7 @@ pub fn build_tassadar_post_article_plugin_authority_promotion_publication_and_tr
         report.publication_posture_rows.len(),
         report.observer_rows.len(),
         report.validation_rows.len(),
+        report.machine_identity_binding.closure_bundle_digest,
         report.weighted_plugin_control_allowed,
         report.deferred_issue_ids.len(),
     );
@@ -1156,6 +1204,7 @@ struct ControllerEvalFixture {
     typed_refusal_loop_closed: bool,
     host_not_planner_green: bool,
     adversarial_negative_rows_green: bool,
+    closure_bundle_bound_by_digest: bool,
     operator_internal_only_posture: bool,
     rebase_claim_allowed: bool,
     plugin_capability_claim_allowed: bool,
@@ -1176,6 +1225,21 @@ struct ControllerMachineIdentityFixture {
     continuation_contract_digest: String,
     computational_model_statement_id: String,
     control_trace_contract_id: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+struct CanonicalMachineClosureBundleFixture {
+    report_id: String,
+    report_digest: String,
+    closure_bundle_digest: String,
+    bundle_green: bool,
+    closure_subject: CanonicalMachineClosureBundleSubjectFixture,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+struct CanonicalMachineClosureBundleSubjectFixture {
+    machine_identity_id: String,
+    canonical_route_id: String,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
@@ -1327,18 +1391,19 @@ mod tests {
         assert!(report.operator_internal_only_posture);
         assert!(report.profile_specific_named_routes_explicit);
         assert!(report.broader_publication_refused);
+        assert!(report.closure_bundle_bound_by_digest);
         assert!(report.rebase_claim_allowed);
         assert!(report.weighted_plugin_control_allowed);
         assert!(!report.plugin_capability_claim_allowed);
         assert!(!report.plugin_publication_allowed);
         assert!(!report.served_public_universality_allowed);
         assert!(!report.arbitrary_software_capability_allowed);
-        assert_eq!(report.dependency_rows.len(), 8);
+        assert_eq!(report.dependency_rows.len(), 9);
         assert_eq!(report.trust_tier_rows.len(), 4);
         assert_eq!(report.promotion_rows.len(), 5);
         assert_eq!(report.publication_posture_rows.len(), 5);
         assert_eq!(report.observer_rows.len(), 4);
-        assert_eq!(report.validation_rows.len(), 8);
+        assert_eq!(report.validation_rows.len(), 9);
         assert!(report.deferred_issue_ids.is_empty());
     }
 

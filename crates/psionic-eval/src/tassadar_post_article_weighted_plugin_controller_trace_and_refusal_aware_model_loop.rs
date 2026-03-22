@@ -3,7 +3,6 @@ use std::{
     path::{Path, PathBuf},
 };
 
-#[cfg(test)]
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -22,6 +21,21 @@ use psionic_transformer::{
     TASSADAR_POST_ARTICLE_WEIGHTED_PLUGIN_CONTROL_TRACE_PROFILE_ID,
 };
 
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+struct CanonicalMachineClosureBundleFixture {
+    report_id: String,
+    report_digest: String,
+    closure_bundle_digest: String,
+    bundle_green: bool,
+    closure_subject: CanonicalMachineClosureBundleSubjectFixture,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+struct CanonicalMachineClosureBundleSubjectFixture {
+    machine_identity_id: String,
+    canonical_route_id: String,
+}
+
 pub const TASSADAR_POST_ARTICLE_WEIGHTED_PLUGIN_CONTROLLER_TRACE_AND_REFUSAL_AWARE_MODEL_LOOP_EVAL_REPORT_REF:
     &str =
     "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report.json";
@@ -34,6 +48,8 @@ const PLUGIN_SYSTEM_AUDIT_REF: &str =
     "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md";
 const TRANSFORMER_CONTRACT_SOURCE_REF: &str =
     "crates/psionic-transformer/src/tassadar_post_article_weighted_plugin_controller_trace_contract.rs";
+const CANONICAL_MACHINE_CLOSURE_BUNDLE_REPORT_REF: &str =
+    "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_closure_bundle_report.json";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -47,6 +63,7 @@ pub enum TassadarPostArticleWeightedPluginControllerTraceAndRefusalAwareModelLoo
 pub enum TassadarPostArticleWeightedPluginControllerTraceEvalDependencyClass {
     SandboxPrecedent,
     TransformerContract,
+    ClosureBundle,
     DesignInput,
     AuditInput,
 }
@@ -72,6 +89,9 @@ pub struct TassadarPostArticleWeightedPluginControllerTraceEvalMachineIdentityBi
     pub control_trace_contract_digest: String,
     pub control_trace_profile_id: String,
     pub determinism_profile_id: String,
+    pub closure_bundle_report_id: String,
+    pub closure_bundle_report_digest: String,
+    pub closure_bundle_digest: String,
     pub sandbox_report_id: String,
     pub sandbox_report_digest: String,
     pub runtime_bundle_id: String,
@@ -106,6 +126,7 @@ pub struct TassadarPostArticleWeightedPluginControllerTraceAndRefusalAwareModelL
     pub report_id: String,
     pub checker_script_ref: String,
     pub sandbox_report_ref: String,
+    pub canonical_machine_closure_bundle_report_ref: String,
     pub local_plugin_system_spec_ref: String,
     pub supporting_material_refs: Vec<String>,
     pub machine_identity_binding:
@@ -125,6 +146,7 @@ pub struct TassadarPostArticleWeightedPluginControllerTraceAndRefusalAwareModelL
     pub typed_refusal_loop_closed: bool,
     pub host_not_planner_green: bool,
     pub adversarial_negative_rows_green: bool,
+    pub closure_bundle_bound_by_digest: bool,
     pub operator_internal_only_posture: bool,
     pub rebase_claim_allowed: bool,
     pub plugin_capability_claim_allowed: bool,
@@ -166,6 +188,8 @@ pub fn build_tassadar_post_article_weighted_plugin_controller_trace_and_refusal_
 > {
     let sandbox =
         build_tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_report()?;
+    let closure_bundle: CanonicalMachineClosureBundleFixture =
+        read_repo_json(CANONICAL_MACHINE_CLOSURE_BUNDLE_REPORT_REF)?;
     let transformer_contract =
         build_tassadar_post_article_weighted_plugin_controller_trace_contract();
     let transformer_contract_digest = stable_digest(
@@ -233,18 +257,30 @@ pub fn build_tassadar_post_article_weighted_plugin_controller_trace_and_refusal_
             determinism_profile_id: String::from(
                 TASSADAR_POST_ARTICLE_WEIGHTED_PLUGIN_CONTROLLER_DETERMINISM_PROFILE_ID,
             ),
+            closure_bundle_report_id: closure_bundle.report_id.clone(),
+            closure_bundle_report_digest: closure_bundle.report_digest.clone(),
+            closure_bundle_digest: closure_bundle.closure_bundle_digest.clone(),
             sandbox_report_id: sandbox.report_id.clone(),
             sandbox_report_digest: sandbox.report_digest.clone(),
             runtime_bundle_id: sandbox.machine_identity_binding.runtime_bundle_id.clone(),
             runtime_bundle_digest: sandbox.machine_identity_binding.runtime_bundle_digest.clone(),
             detail: format!(
-                "machine_identity_id=`{}` canonical_route_id=`{}` sandbox_report_id=`{}` and control_trace_contract_id=`{}` remain bound together.",
+                "machine_identity_id=`{}` canonical_route_id=`{}` sandbox_report_id=`{}` control_trace_contract_id=`{}` and closure_bundle_digest=`{}` remain bound together.",
                 sandbox.machine_identity_binding.machine_identity_id,
                 sandbox.machine_identity_binding.canonical_route_id,
                 sandbox.report_id,
                 TASSADAR_POST_ARTICLE_WEIGHTED_PLUGIN_CONTROLLER_TRACE_CONTRACT_ID,
+                closure_bundle.closure_bundle_digest,
             ),
         };
+    let closure_bundle_bound_by_digest = closure_bundle.bundle_green
+        && closure_bundle.closure_subject.machine_identity_id
+            == machine_identity_binding.machine_identity_id
+        && closure_bundle.closure_subject.canonical_route_id
+            == machine_identity_binding.canonical_route_id
+        && machine_identity_binding.closure_bundle_report_id == closure_bundle.report_id
+        && machine_identity_binding.closure_bundle_report_digest == closure_bundle.report_digest
+        && machine_identity_binding.closure_bundle_digest == closure_bundle.closure_bundle_digest;
 
     let dependency_rows = vec![
         dependency_row(
@@ -269,6 +305,15 @@ pub fn build_tassadar_post_article_weighted_plugin_controller_trace_and_refusal_
             Some(transformer_contract.contract_id.clone()),
             Some(transformer_contract_digest.clone()),
             "the transformer-owned controller contract must be the canonical abstract source for the weighted plugin control trace.",
+        ),
+        dependency_row(
+            "canonical_machine_closure_bundle_published",
+            TassadarPostArticleWeightedPluginControllerTraceEvalDependencyClass::ClosureBundle,
+            closure_bundle_bound_by_digest,
+            CANONICAL_MACHINE_CLOSURE_BUNDLE_REPORT_REF,
+            Some(closure_bundle.report_id.clone()),
+            Some(closure_bundle.report_digest.clone()),
+            "the weighted controller claim must inherit the canonical machine closure bundle by report id and digest instead of reconstructing machine identity from the sandbox report alone.",
         ),
         dependency_row(
             "plugin_system_spec_declared",
@@ -393,6 +438,15 @@ pub fn build_tassadar_post_article_weighted_plugin_controller_trace_and_refusal_
             ],
             "adversarial host behaviors remain explicitly blocked instead of becoming planner-indistinguishable shortcuts.",
         ),
+        validation_row(
+            "closure_bundle_bound_by_digest",
+            closure_bundle_bound_by_digest,
+            &[
+                CANONICAL_MACHINE_CLOSURE_BUNDLE_REPORT_REF,
+                TASSADAR_POST_ARTICLE_WEIGHTED_PLUGIN_CONTROLLER_TRACE_AND_REFUSAL_AWARE_MODEL_LOOP_REPORT_REF,
+            ],
+            "the weighted controller claim now inherits the canonical machine closure bundle by digest instead of relying on adjacent machine fields only.",
+        ),
     ];
 
     let contract_green = dependency_rows.iter().all(|row| row.satisfied)
@@ -412,6 +466,7 @@ pub fn build_tassadar_post_article_weighted_plugin_controller_trace_and_refusal_
         String::from(
             TASSADAR_POST_ARTICLE_WEIGHTED_PLUGIN_CONTROLLER_TRACE_AND_REFUSAL_AWARE_MODEL_LOOP_REPORT_REF,
         ),
+        String::from(CANONICAL_MACHINE_CLOSURE_BUNDLE_REPORT_REF),
         String::from(TRANSFORMER_CONTRACT_SOURCE_REF),
         String::from(LOCAL_PLUGIN_SYSTEM_SPEC_REF),
         String::from(PLUGIN_SYSTEM_AUDIT_REF),
@@ -429,6 +484,9 @@ pub fn build_tassadar_post_article_weighted_plugin_controller_trace_and_refusal_
             sandbox_report_ref: String::from(
                 TASSADAR_POST_ARTICLE_WEIGHTED_PLUGIN_CONTROLLER_TRACE_AND_REFUSAL_AWARE_MODEL_LOOP_REPORT_REF,
             ),
+            canonical_machine_closure_bundle_report_ref: String::from(
+                CANONICAL_MACHINE_CLOSURE_BUNDLE_REPORT_REF,
+            ),
             local_plugin_system_spec_ref: String::from(LOCAL_PLUGIN_SYSTEM_SPEC_REF),
             supporting_material_refs,
             machine_identity_binding,
@@ -445,6 +503,7 @@ pub fn build_tassadar_post_article_weighted_plugin_controller_trace_and_refusal_
             typed_refusal_loop_closed,
             host_not_planner_green,
             adversarial_negative_rows_green,
+            closure_bundle_bound_by_digest,
             operator_internal_only_posture: sandbox.operator_internal_only_posture,
             rebase_claim_allowed: sandbox.rebase_claim_allowed,
             plugin_capability_claim_allowed: false,
@@ -454,19 +513,20 @@ pub fn build_tassadar_post_article_weighted_plugin_controller_trace_and_refusal_
             arbitrary_software_capability_allowed: false,
             deferred_issue_ids: Vec::new(),
             claim_boundary: String::from(
-                "this eval-owned closure report makes the weighted plugin controller trace true on the canonical post-article route. It closes model ownership over plugin selection, export selection, packet argument construction, sequencing, typed-refusal handling, retry, and stop conditions while keeping plugin authority, publication, trust-tier promotion, served/public universality, and arbitrary public software execution deferred to the later platform gate.",
+                "this eval-owned closure report makes the weighted plugin controller trace true on the canonical post-article route. It closes model ownership over plugin selection, export selection, packet argument construction, sequencing, typed-refusal handling, retry, and stop conditions while inheriting the canonical machine closure bundle by report id and digest instead of reconstructing machine identity locally. It still keeps plugin authority, publication, trust-tier promotion, served/public universality, and arbitrary public software execution deferred to the later platform gate.",
             ),
             summary: String::new(),
             report_digest: String::new(),
         };
     report.summary = format!(
-        "Post-article weighted plugin controller eval report keeps contract_status={:?}, dependency_rows={}, controller_case_rows={}, control_trace_rows={}, host_negative_rows={}, validation_rows={}, weighted_plugin_control_allowed={}, and deferred_issue_ids={}.",
+        "Post-article weighted plugin controller eval report keeps contract_status={:?}, dependency_rows={}, controller_case_rows={}, control_trace_rows={}, host_negative_rows={}, validation_rows={}, closure_bundle_digest=`{}`, weighted_plugin_control_allowed={}, and deferred_issue_ids={}.",
         report.contract_status,
         report.dependency_rows.len(),
         report.controller_case_rows.len(),
         report.control_trace_rows.len(),
         report.host_negative_rows.len(),
         report.validation_rows.len(),
+        report.machine_identity_binding.closure_bundle_digest,
         report.weighted_plugin_control_allowed,
         report.deferred_issue_ids.len(),
     );
@@ -565,7 +625,6 @@ fn stable_digest<T: Serialize>(prefix: &[u8], value: &T) -> String {
     hex::encode(hasher.finalize())
 }
 
-#[cfg(test)]
 fn read_repo_json<T: DeserializeOwned>(
     relative_path: &str,
 ) -> Result<
@@ -610,12 +669,13 @@ mod tests {
             report.report_id,
             "tassadar.post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop.eval_report.v1"
         );
-        assert_eq!(report.dependency_rows.len(), 4);
+        assert_eq!(report.dependency_rows.len(), 5);
         assert_eq!(report.controller_case_rows.len(), 4);
         assert_eq!(report.control_trace_rows.len(), 34);
         assert_eq!(report.host_negative_rows.len(), 10);
         assert_eq!(report.validation_rows.len(), 9);
         assert!(report.contract_green);
+        assert!(report.closure_bundle_bound_by_digest);
         assert!(report.weighted_plugin_control_allowed);
         assert!(!report.plugin_capability_claim_allowed);
         assert!(report.deferred_issue_ids.is_empty());

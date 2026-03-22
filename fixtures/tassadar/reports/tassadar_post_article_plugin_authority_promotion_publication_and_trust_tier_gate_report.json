@@ -8,8 +8,10 @@
   "module_trust_isolation_report_ref": "fixtures/tassadar/reports/tassadar_module_trust_isolation_report.json",
   "broad_internal_compute_profile_publication_report_ref": "fixtures/tassadar/reports/tassadar_broad_internal_compute_profile_publication_report.json",
   "broad_internal_compute_route_policy_report_ref": "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json",
+  "canonical_machine_closure_bundle_report_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_closure_bundle_report.json",
   "local_plugin_system_spec_ref": "~/code/alpha/tassadar/plugin-system.md",
   "supporting_material_refs": [
+    "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_closure_bundle_report.json",
     "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report.json",
     "fixtures/tassadar/reports/tassadar_post_article_plugin_manifest_identity_contract_report.json",
     "fixtures/tassadar/reports/tassadar_module_promotion_state_report.json",
@@ -29,13 +31,16 @@
     "continuation_contract_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
     "computational_model_statement_id": "tassadar.post_article.canonical_computational_model.statement.v1",
     "controller_eval_report_id": "tassadar.post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop.eval_report.v1",
-    "controller_eval_report_digest": "f1a06b77a988f80767b24f035a8776d46d20ca46484b563d6c8c6a25511151bf",
+    "controller_eval_report_digest": "b59ef6e00e8db84a767a4ac15617d90c1431922898fc68d489b8bb9debb62ef0",
     "control_trace_contract_id": "tassadar.weighted_plugin.controller_trace_contract.v1",
+    "closure_bundle_report_id": "tassadar.post_article_canonical_machine_closure_bundle.report.v1",
+    "closure_bundle_report_digest": "f38acded40f17fc92cd9c9cb8c7c8b4e0a82f9133bf3a968d1630365a0f1c74b",
+    "closure_bundle_digest": "8ff2c07511184d7b4be36ba9c513d8558286fdb86615cd0aac1643c907d8f76c",
     "manifest_contract_report_id": "tassadar.post_article_plugin_manifest_identity_contract.report.v1",
     "manifest_contract_report_digest": "d5171cef01418006cd93b7d48ba165566a036a6c62cba74fddda744f3ea96cf5",
     "canonical_architecture_anchor_crate": "psionic-transformer",
     "canonical_architecture_boundary_ref": "docs/TASSADAR_ARTICLE_TRANSFORMER_STACK_BOUNDARY.md",
-    "detail": "machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1` canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1` controller_eval_report_id=`tassadar.post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop.eval_report.v1` and manifest_contract_report_id=`tassadar.post_article_plugin_manifest_identity_contract.report.v1` remain the authority-gate anchor in `psionic-transformer`."
+    "detail": "machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1` canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1` controller_eval_report_id=`tassadar.post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop.eval_report.v1` manifest_contract_report_id=`tassadar.post_article_plugin_manifest_identity_contract.report.v1` and closure_bundle_digest=`8ff2c07511184d7b4be36ba9c513d8558286fdb86615cd0aac1643c907d8f76c` remain the authority-gate anchor in `psionic-transformer`."
   },
   "dependency_rows": [
     {
@@ -44,7 +49,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report.json",
       "bound_report_id": "tassadar.post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop.eval_report.v1",
-      "bound_report_digest": "f1a06b77a988f80767b24f035a8776d46d20ca46484b563d6c8c6a25511151bf",
+      "bound_report_digest": "b59ef6e00e8db84a767a4ac15617d90c1431922898fc68d489b8bb9debb62ef0",
       "detail": "the inherited controller proof must already be green, keep weighted plugin control explicit, and clear its TAS-204 frontier before the authority gate can rely on it."
     },
     {
@@ -55,6 +60,15 @@
       "bound_report_id": "tassadar.post_article_plugin_manifest_identity_contract.report.v1",
       "bound_report_digest": "d5171cef01418006cd93b7d48ba165566a036a6c62cba74fddda744f3ea96cf5",
       "detail": "the manifest and invocation identity contract must already be green so authority widening cannot bypass canonical declaration, packaging, or hot-swap rules."
+    },
+    {
+      "dependency_id": "canonical_machine_closure_bundle_published",
+      "dependency_class": "closure_bundle",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_closure_bundle_report.json",
+      "bound_report_id": "tassadar.post_article_canonical_machine_closure_bundle.report.v1",
+      "bound_report_digest": "f38acded40f17fc92cd9c9cb8c7c8b4e0a82f9133bf3a968d1630365a0f1c74b",
+      "detail": "the authority and publication claim must inherit the canonical machine closure bundle by report id and digest instead of reconstructing machine identity from the controller and manifest pair alone."
     },
     {
       "dependency_id": "promotion_receipts_present",
@@ -396,6 +410,16 @@
         "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
       ],
       "detail": "the gate keeps bounded controller closure distinct from plugin-platform closeout and refuses any claim of arbitrary public Wasm or arbitrary public tool use."
+    },
+    {
+      "validation_id": "closure_bundle_bound_by_digest",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_closure_bundle_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_manifest_identity_contract_report.json"
+      ],
+      "detail": "the authority and publication claim now inherits the canonical machine closure bundle by digest instead of relying on adjacent machine fields only."
     }
   ],
   "contract_status": "green",
@@ -409,6 +433,7 @@
   "operator_internal_only_posture": true,
   "profile_specific_named_routes_explicit": true,
   "broader_publication_refused": true,
+  "closure_bundle_bound_by_digest": true,
   "rebase_claim_allowed": true,
   "plugin_capability_claim_allowed": false,
   "weighted_plugin_control_allowed": true,
@@ -416,7 +441,7 @@
   "served_public_universality_allowed": false,
   "arbitrary_software_capability_allowed": false,
   "deferred_issue_ids": [],
-  "claim_boundary": "this catalog report freezes plugin authority, promotion, publication posture, and trust tiers above the canonical weighted controller without widening the claim surface. It keeps operator/internal posture, profile-specific named-but-suppressed routes, validator and accepted-outcome hook requirements, promotion challengeability, quarantine, revocation, and broader public refusal explicit instead of implying a served/public plugin platform or arbitrary public software execution.",
-  "summary": "post-article plugin authority gate binds machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1`, contract_status=Green, trust_tier_rows=4, promotion_rows=5, publication_posture_rows=5, observer_rows=4, validation_rows=8, weighted_plugin_control_allowed=true, and deferred_issue_ids=0.",
-  "report_digest": "ee083cad516d06573d5af935199ac503e4c3fa3c615748cf62198e82de4f4599"
+  "claim_boundary": "this catalog report freezes plugin authority, promotion, publication posture, and trust tiers above the canonical weighted controller without widening the claim surface. The authority and publication claim now inherits the canonical machine closure bundle by report id and digest instead of reconstructing machine identity from the controller and manifest pair alone. It keeps operator/internal posture, profile-specific named-but-suppressed routes, validator and accepted-outcome hook requirements, promotion challengeability, quarantine, revocation, and broader public refusal explicit instead of implying a served/public plugin platform or arbitrary public software execution.",
+  "summary": "post-article plugin authority gate binds machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1`, contract_status=Green, trust_tier_rows=4, promotion_rows=5, publication_posture_rows=5, observer_rows=4, validation_rows=9, closure_bundle_digest=`8ff2c07511184d7b4be36ba9c513d8558286fdb86615cd0aac1643c907d8f76c`, weighted_plugin_control_allowed=true, and deferred_issue_ids=0.",
+  "report_digest": "adcc42318d8ef6d7aeecc4704457ba6ce9c5fd05cde3d9d6d28c3c967d854c26"
 }
