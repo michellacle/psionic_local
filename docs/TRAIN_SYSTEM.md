@@ -130,6 +130,11 @@ and now also has:
   freezes the packet-schema-aware argument package, missing-input versus
   malformed-structure distinction, and held-out typed-runtime-refusal evidence
   surface for the first host-native argument family.
+- `docs/PSION_PLUGIN_SEQUENCING_BENCHMARK.md` is the canonical third
+  package-specific plugin benchmark doc for the convergence tranche and
+  freezes the serial-versus-parallel plan package, explicit continuation
+  posture contract, and held-out refusal-stop evidence surface for the first
+  host-native sequencing family.
 - `docs/audits/2026-03-22-tassadar-full-plugin-system-state-audit.md` is the
   canonical current-state proof record for the bounded Tassadar plugin system
   and freezes the present authoring-class, publication, and guest-artifact

@@ -8,8 +8,7 @@
 This document freezes the shared benchmark contract for plugin-conditioned
 evaluation.
 
-It is not the package-specific content for sequencing, refusal, or
-interpretation.
+It is not the package-specific content for refusal or interpretation.
 
 It is the common contract that those package families must now share.
 
@@ -20,6 +19,10 @@ surface instead of inventing a new one.
 The first package-specific argument-construction contract now also lives in
 `docs/PSION_PLUGIN_ARGUMENT_CONSTRUCTION_BENCHMARK.md` and reuses the same
 shared item, receipt, and grader surfaces.
+
+The first package-specific sequencing contract now also lives in
+`docs/PSION_PLUGIN_SEQUENCING_BENCHMARK.md` and reuses the same shared item,
+receipt, and grader surfaces.
 
 ## Canonical Artifacts
 
@@ -32,6 +35,8 @@ shared item, receipt, and grader surfaces.
   specific child contract built on top of this shared surface.
 - `docs/PSION_PLUGIN_ARGUMENT_CONSTRUCTION_BENCHMARK.md` is the second
   package-specific child contract built on top of this shared surface.
+- `docs/PSION_PLUGIN_SEQUENCING_BENCHMARK.md` is the third package-specific
+  child contract built on top of this shared surface.
 
 The stable schema version is
 `psionic.psion.plugin_benchmark_package.v1`.
@@ -62,6 +67,10 @@ The shared contract now freezes:
 The shared argument-schema grader now also freezes required JSON value types
 for each required argument path so later argument benchmarks stay packet-schema
 aware instead of path-only.
+
+The shared sequencing contract now also freezes a third continuation posture,
+`stop_on_typed_runtime_refusal`, so receipt-backed stop boundaries remain
+machine-readable instead of being flattened into generic “stop” behavior.
 
 This means later plugin-use benchmark packages no longer get to invent their
 own incompatible item or grader schemas.

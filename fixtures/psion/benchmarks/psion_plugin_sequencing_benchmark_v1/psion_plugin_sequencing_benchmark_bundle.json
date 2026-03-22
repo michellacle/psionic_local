@@ -1,0 +1,344 @@
+{
+  "schema_version": "psionic.psion.plugin_sequencing_benchmark_bundle.v1",
+  "package": {
+    "schema_version": "psionic.psion.plugin_benchmark_package.v1",
+    "package_id": "psion.plugin.sequencing.v1",
+    "package_family": "sequencing_multi_call",
+    "benchmark_package": {
+      "abi_version": "psionic.benchmark.v1",
+      "key": {
+        "benchmark_ref": "benchmark://openagents/psion/plugin_sequencing",
+        "version": "v1"
+      },
+      "display_name": "Psion Plugin Sequencing And Multi-Call",
+      "environment": {
+        "environment_ref": "env.psion.plugin.benchmark",
+        "version": "2026.03.22"
+      },
+      "repeat_count": 3,
+      "aggregation": "median_score",
+      "verification_policy": {
+        "require_timer_integrity": false,
+        "require_token_accounting": false,
+        "require_final_state_capture": false,
+        "require_execution_strategy": false
+      },
+      "cases": [
+        {
+          "case_id": "plugin_sequence_fetch_then_extract_readable_v1"
+        },
+        {
+          "case_id": "plugin_sequence_fetch_then_parse_feed_v1"
+        },
+        {
+          "case_id": "plugin_sequence_parallel_fetch_and_url_extract_v1"
+        },
+        {
+          "case_id": "plugin_sequence_full_pipeline_continue_v1"
+        },
+        {
+          "case_id": "plugin_sequence_runtime_refusal_stop_v1"
+        }
+      ]
+    },
+    "prompt_formats": [
+      {
+        "format_id": "plugin_sequence_plan_v1",
+        "system_instruction_ref": "prompt://psion/plugin_benchmark/system/plugin-sequence-plan",
+        "user_template_ref": "prompt://psion/plugin_benchmark/user/plugin-sequence-plan",
+        "envelope": "structured_plugin_sequence_json",
+        "expected_response_format": "plugin_sequence_plan_json",
+        "preserve_receipt_boundaries": true,
+        "detail": "Sequencing prompts force one explicit multi-call plan, one sequence-mode declaration, and one continuation posture."
+      }
+    ],
+    "grader_interfaces": [
+      {
+        "grader_kind": "sequence_plan",
+        "grader_id": "sequence_fetch_then_extract_readable_v1",
+        "expected_tool_names": [
+          "plugin_http_fetch_text",
+          "plugin_html_extract_readable"
+        ],
+        "sequence_mode": "serial",
+        "continuation_posture": "stop_after_goal_satisfied",
+        "detail": "Readable extraction requires a serial fetch-then-extract plan and should stop after the requested article text is produced."
+      },
+      {
+        "grader_kind": "sequence_plan",
+        "grader_id": "sequence_fetch_then_parse_feed_v1",
+        "expected_tool_names": [
+          "plugin_http_fetch_text",
+          "plugin_feed_rss_atom_parse"
+        ],
+        "sequence_mode": "serial",
+        "continuation_posture": "stop_after_goal_satisfied",
+        "detail": "Feed parsing requires a serial fetch-then-parse plan and should stop when the feed entries are available."
+      },
+      {
+        "grader_kind": "sequence_plan",
+        "grader_id": "sequence_parallel_fetch_and_url_extract_v1",
+        "expected_tool_names": [
+          "plugin_http_fetch_text",
+          "plugin_text_url_extract"
+        ],
+        "sequence_mode": "parallelizable",
+        "continuation_posture": "stop_after_goal_satisfied",
+        "detail": "Independent fetch and URL-extraction work should not be overconstrained to one serial order."
+      },
+      {
+        "grader_kind": "sequence_plan",
+        "grader_id": "sequence_full_pipeline_continue_v1",
+        "expected_tool_names": [
+          "plugin_text_url_extract",
+          "plugin_http_fetch_text",
+          "plugin_html_extract_readable"
+        ],
+        "sequence_mode": "serial",
+        "continuation_posture": "continue_until_admission_set_exhausted",
+        "detail": "Full-pipeline cases should continue through all requested bounded stages instead of stopping after the first partial success."
+      },
+      {
+        "grader_kind": "sequence_plan",
+        "grader_id": "sequence_runtime_refusal_stop_v1",
+        "expected_tool_names": [
+          "plugin_text_url_extract",
+          "plugin_http_fetch_text"
+        ],
+        "sequence_mode": "serial",
+        "continuation_posture": "stop_on_typed_runtime_refusal",
+        "detail": "Receipt-backed refusal cases must stop on the typed runtime refusal boundary rather than continuing past it."
+      }
+    ],
+    "items": [
+      {
+        "item_id": "plugin_sequence_fetch_then_extract_readable_v1",
+        "family": "sequencing_multi_call",
+        "prompt_format_id": "plugin_sequence_plan_v1",
+        "grader_id": "sequence_fetch_then_extract_readable_v1",
+        "prompt_digest": "f801df5763ff44a767b0255240d23e124e4bfc6e0a7dd97a0c27602fe13239f4",
+        "contamination_attachment": {
+          "contamination_bundle_ref": "fixtures/psion/plugins/datasets/psion_plugin_contamination_controls_v1/psion_plugin_contamination_bundle.json",
+          "contamination_bundle_digest": "d6c6245e888e933079f2cb4d42999b9c30968f3393395ffbb337d05676b3eae6",
+          "authored_prompt_ref": "benchmark://openagents/psion/plugin_sequencing/fetch_then_extract_readable_v1",
+          "parent_lineage_ids": [],
+          "source_case_ids": [],
+          "receipt_refs": [],
+          "detail": "Sequencing benchmark item is benchmark-authored and explicitly marked as authored provenance rather than claimed held-out execution lineage."
+        },
+        "receipt_posture": {
+          "execution_evidence_required": false,
+          "required_receipt_refs": [],
+          "forbid_unseen_execution_claims": true,
+          "detail": "Benchmark-authored sequencing cases score plan structure and continuation without claiming runtime execution happened."
+        },
+        "task": {
+          "task_kind": "sequencing_multi_call",
+          "admitted_tool_names": [
+            "plugin_http_fetch_text",
+            "plugin_html_extract_readable"
+          ],
+          "expected_tool_names": [
+            "plugin_http_fetch_text",
+            "plugin_html_extract_readable"
+          ],
+          "sequence_mode": "serial",
+          "continuation_posture": "stop_after_goal_satisfied",
+          "expected_route": "delegate_to_admitted_plugin"
+        },
+        "detail": "Readable extraction should fetch first and then extract readable text before stopping."
+      },
+      {
+        "item_id": "plugin_sequence_fetch_then_parse_feed_v1",
+        "family": "sequencing_multi_call",
+        "prompt_format_id": "plugin_sequence_plan_v1",
+        "grader_id": "sequence_fetch_then_parse_feed_v1",
+        "prompt_digest": "31dc8ee8db2554b7fd282681a54d8f4176998e4ad8fadc14b8820549b150d666",
+        "contamination_attachment": {
+          "contamination_bundle_ref": "fixtures/psion/plugins/datasets/psion_plugin_contamination_controls_v1/psion_plugin_contamination_bundle.json",
+          "contamination_bundle_digest": "d6c6245e888e933079f2cb4d42999b9c30968f3393395ffbb337d05676b3eae6",
+          "authored_prompt_ref": "benchmark://openagents/psion/plugin_sequencing/fetch_then_parse_feed_v1",
+          "parent_lineage_ids": [],
+          "source_case_ids": [],
+          "receipt_refs": [],
+          "detail": "Sequencing benchmark item is benchmark-authored and explicitly marked as authored provenance rather than claimed held-out execution lineage."
+        },
+        "receipt_posture": {
+          "execution_evidence_required": false,
+          "required_receipt_refs": [],
+          "forbid_unseen_execution_claims": true,
+          "detail": "Benchmark-authored sequencing cases score plan structure and continuation without claiming runtime execution happened."
+        },
+        "task": {
+          "task_kind": "sequencing_multi_call",
+          "admitted_tool_names": [
+            "plugin_http_fetch_text",
+            "plugin_feed_rss_atom_parse"
+          ],
+          "expected_tool_names": [
+            "plugin_http_fetch_text",
+            "plugin_feed_rss_atom_parse"
+          ],
+          "sequence_mode": "serial",
+          "continuation_posture": "stop_after_goal_satisfied",
+          "expected_route": "delegate_to_admitted_plugin"
+        },
+        "detail": "Feed parsing should fetch the feed text before running the parser and then stop."
+      },
+      {
+        "item_id": "plugin_sequence_parallel_fetch_and_url_extract_v1",
+        "family": "sequencing_multi_call",
+        "prompt_format_id": "plugin_sequence_plan_v1",
+        "grader_id": "sequence_parallel_fetch_and_url_extract_v1",
+        "prompt_digest": "c9b535455910be7a7e4c4e7c15a4e2ecab40fcf2d1fd095c6ec7905ad46843f3",
+        "contamination_attachment": {
+          "contamination_bundle_ref": "fixtures/psion/plugins/datasets/psion_plugin_contamination_controls_v1/psion_plugin_contamination_bundle.json",
+          "contamination_bundle_digest": "d6c6245e888e933079f2cb4d42999b9c30968f3393395ffbb337d05676b3eae6",
+          "authored_prompt_ref": "benchmark://openagents/psion/plugin_sequencing/parallel_fetch_and_url_extract_v1",
+          "parent_lineage_ids": [],
+          "source_case_ids": [],
+          "receipt_refs": [],
+          "detail": "Sequencing benchmark item is benchmark-authored and explicitly marked as authored provenance rather than claimed held-out execution lineage."
+        },
+        "receipt_posture": {
+          "execution_evidence_required": false,
+          "required_receipt_refs": [],
+          "forbid_unseen_execution_claims": true,
+          "detail": "Benchmark-authored sequencing cases score plan structure and continuation without claiming runtime execution happened."
+        },
+        "task": {
+          "task_kind": "sequencing_multi_call",
+          "admitted_tool_names": [
+            "plugin_http_fetch_text",
+            "plugin_text_url_extract"
+          ],
+          "expected_tool_names": [
+            "plugin_http_fetch_text",
+            "plugin_text_url_extract"
+          ],
+          "sequence_mode": "parallelizable",
+          "continuation_posture": "stop_after_goal_satisfied",
+          "expected_route": "delegate_to_admitted_plugin"
+        },
+        "detail": "Independent fetch and URL-extraction work should stay parallelizable instead of being needlessly serialized."
+      },
+      {
+        "item_id": "plugin_sequence_full_pipeline_continue_v1",
+        "family": "sequencing_multi_call",
+        "prompt_format_id": "plugin_sequence_plan_v1",
+        "grader_id": "sequence_full_pipeline_continue_v1",
+        "prompt_digest": "82f38c6abd0172a3343ae562975fce5016812daf33b9bcffa2bc7d88df5d102a",
+        "contamination_attachment": {
+          "contamination_bundle_ref": "fixtures/psion/plugins/datasets/psion_plugin_contamination_controls_v1/psion_plugin_contamination_bundle.json",
+          "contamination_bundle_digest": "d6c6245e888e933079f2cb4d42999b9c30968f3393395ffbb337d05676b3eae6",
+          "authored_prompt_ref": "benchmark://openagents/psion/plugin_sequencing/full_pipeline_continue_v1",
+          "parent_lineage_ids": [],
+          "source_case_ids": [],
+          "receipt_refs": [],
+          "detail": "Sequencing benchmark item is benchmark-authored and explicitly marked as authored provenance rather than claimed held-out execution lineage."
+        },
+        "receipt_posture": {
+          "execution_evidence_required": false,
+          "required_receipt_refs": [],
+          "forbid_unseen_execution_claims": true,
+          "detail": "Benchmark-authored sequencing cases score plan structure and continuation without claiming runtime execution happened."
+        },
+        "task": {
+          "task_kind": "sequencing_multi_call",
+          "admitted_tool_names": [
+            "plugin_text_url_extract",
+            "plugin_http_fetch_text",
+            "plugin_html_extract_readable"
+          ],
+          "expected_tool_names": [
+            "plugin_text_url_extract",
+            "plugin_http_fetch_text",
+            "plugin_html_extract_readable"
+          ],
+          "sequence_mode": "serial",
+          "continuation_posture": "continue_until_admission_set_exhausted",
+          "expected_route": "delegate_to_admitted_plugin"
+        },
+        "detail": "Full-pipeline requests should continue through each requested bounded stage instead of stopping after the first partial result."
+      },
+      {
+        "item_id": "plugin_sequence_runtime_refusal_stop_v1",
+        "family": "sequencing_multi_call",
+        "prompt_format_id": "plugin_sequence_plan_v1",
+        "grader_id": "sequence_runtime_refusal_stop_v1",
+        "prompt_digest": "a14a0acf61a5529e48c1cc9d7609317d8630a9bc17b8137960769c0d2efb5a90",
+        "contamination_attachment": {
+          "contamination_bundle_ref": "fixtures/psion/plugins/datasets/psion_plugin_contamination_controls_v1/psion_plugin_contamination_bundle.json",
+          "contamination_bundle_digest": "d6c6245e888e933079f2cb4d42999b9c30968f3393395ffbb337d05676b3eae6",
+          "parent_lineage_ids": [
+            "held_out.psion_plugin_training.trace_record.starter_plugin.fetch_refusal.v1.deterministic_workflow.v1"
+          ],
+          "source_case_ids": [
+            "web_content_intake_fetch_refusal"
+          ],
+          "receipt_refs": [
+            "receipt.plugin.text.url_extract.ffb40b7ac81128df.v1",
+            "receipt.plugin.http.fetch_text.c81ec5cc115ff561.v1"
+          ],
+          "detail": "Runtime-refusal sequencing case is bound to one held-out lineage row so the stop boundary remains receipt-backed."
+        },
+        "receipt_posture": {
+          "execution_evidence_required": true,
+          "required_receipt_refs": [
+            "receipt.plugin.text.url_extract.ffb40b7ac81128df.v1",
+            "receipt.plugin.http.fetch_text.c81ec5cc115ff561.v1"
+          ],
+          "forbid_unseen_execution_claims": true,
+          "detail": "Runtime-refusal sequencing case requires the held-out sequence receipts because the stop boundary is part of the scored truth."
+        },
+        "task": {
+          "task_kind": "sequencing_multi_call",
+          "admitted_tool_names": [
+            "plugin_text_url_extract",
+            "plugin_http_fetch_text"
+          ],
+          "expected_tool_names": [
+            "plugin_text_url_extract",
+            "plugin_http_fetch_text"
+          ],
+          "sequence_mode": "serial",
+          "continuation_posture": "stop_on_typed_runtime_refusal",
+          "expected_route": "delegate_to_admitted_plugin"
+        },
+        "detail": "Held-out refusal-stop case keeps the sequence and stop boundary tied to real runtime receipts."
+      }
+    ],
+    "summary": "Sequencing package covers serial pipelines, parallelizable multi-call work, continuation posture, and one held-out typed-runtime-refusal stop boundary.",
+    "package_digest": "76ddb102b9a3701e7456de025708cf5740e2d8a2cd8656b705593cd19476925f"
+  },
+  "receipt": {
+    "schema_version": "psionic.psion.plugin_benchmark_receipt.v1",
+    "receipt_id": "receipt.psion.plugin.sequencing.reference.v1",
+    "package_id": "psion.plugin.sequencing.v1",
+    "package_digest": "76ddb102b9a3701e7456de025708cf5740e2d8a2cd8656b705593cd19476925f",
+    "package_family": "sequencing_multi_call",
+    "contamination_bundle_digest": "d6c6245e888e933079f2cb4d42999b9c30968f3393395ffbb337d05676b3eae6",
+    "item_count": 5,
+    "observed_metrics": [
+      {
+        "kind": "sequence_plan_accuracy_bps",
+        "value_bps": 10000,
+        "detail": "Reference sequence plans stay aligned for serial and parallelizable multi-call cases."
+      },
+      {
+        "kind": "continuation_boundary_accuracy_bps",
+        "value_bps": 10000,
+        "detail": "Reference continuation choices keep stop-after-goal, continue-until-exhausted, and stop-on-refusal boundaries distinct."
+      },
+      {
+        "kind": "typed_runtime_refusal_accuracy_bps",
+        "value_bps": 10000,
+        "detail": "Receipt-backed refusal stop boundaries remain visible as a separate scored surface."
+      }
+    ],
+    "summary": "Reference receipt for the first plugin sequencing and multi-call benchmark package.",
+    "receipt_digest": "3e7161d249c5da237597e9581c99e5da5a26e34affebf445c7292cad38dea5e0"
+  },
+  "summary": "Sequencing benchmark bundle freezes benchmark-authored serial and parallelizable plans plus one held-out receipt-backed refusal-stop case.",
+  "bundle_digest": "8fe231c6a1a66739b05aaa92597035db8d64f582c672aa1bd7cc68aedd0913c3"
+}

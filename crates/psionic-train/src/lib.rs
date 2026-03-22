@@ -65,6 +65,7 @@ mod psion_pilot_pretraining_run;
 mod psion_plugin_argument_construction_benchmark;
 mod psion_plugin_benchmark_packages;
 mod psion_plugin_discovery_selection_benchmark;
+mod psion_plugin_sequencing_benchmark;
 mod psion_pretrain_stage;
 mod psion_reasoning_sft;
 mod psion_reference_pilot;
@@ -174,6 +175,7 @@ pub use psion_pilot_pretraining_run::*;
 pub use psion_plugin_argument_construction_benchmark::*;
 pub use psion_plugin_benchmark_packages::*;
 pub use psion_plugin_discovery_selection_benchmark::*;
+pub use psion_plugin_sequencing_benchmark::*;
 pub use psion_pretrain_stage::*;
 pub use psion_reasoning_sft::*;
 pub use psion_reference_pilot::*;
@@ -1114,8 +1116,8 @@ mod tests {
     }
 
     #[test]
-    fn observe_membership_advances_epoch_only_when_truth_changes()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn observe_membership_advances_epoch_only_when_truth_changes(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let stable = cluster_state(&[
             ("worker-a", ClusterMembershipStatus::Ready),
             ("worker-b", ClusterMembershipStatus::Ready),
@@ -1145,8 +1147,8 @@ mod tests {
     }
 
     #[test]
-    fn live_recovery_plan_exposes_recovery_and_late_join_semantics()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn live_recovery_plan_exposes_recovery_and_late_join_semantics(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let state = cluster_state(&[
             ("worker-a", ClusterMembershipStatus::Ready),
             ("worker-b", ClusterMembershipStatus::Ready),
@@ -1189,18 +1191,15 @@ mod tests {
             plan.recovery_context.late_joiner_node_ids,
             vec![String::from("worker-c")]
         );
-        assert!(
-            plan.actions
-                .contains(&TrainingRecoveryAction::ResumeFromDurableCheckpoint)
-        );
-        assert!(
-            plan.actions
-                .contains(&TrainingRecoveryAction::StageCheckpointForLateJoiners)
-        );
-        assert!(
-            plan.actions
-                .contains(&TrainingRecoveryAction::RebalanceWorldSize)
-        );
+        assert!(plan
+            .actions
+            .contains(&TrainingRecoveryAction::ResumeFromDurableCheckpoint));
+        assert!(plan
+            .actions
+            .contains(&TrainingRecoveryAction::StageCheckpointForLateJoiners));
+        assert!(plan
+            .actions
+            .contains(&TrainingRecoveryAction::RebalanceWorldSize));
         assert_eq!(plan.checkpoint_streams.len(), 1);
         assert!(!plan.plan_digest.is_empty());
         Ok(())

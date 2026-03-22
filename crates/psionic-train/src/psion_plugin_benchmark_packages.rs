@@ -63,6 +63,7 @@ pub enum PsionPluginSequenceMode {
 pub enum PsionPluginContinuationPosture {
     StopAfterGoalSatisfied,
     ContinueUntilAdmissionSetExhausted,
+    StopOnTypedRuntimeRefusal,
 }
 
 /// Negative-case shape for discovery and selection items.
@@ -700,6 +701,8 @@ pub enum PsionPluginBenchmarkMetricKind {
     RouteAccuracyBps,
     SelectionAccuracyBps,
     ArgumentSchemaAccuracyBps,
+    SequencePlanAccuracyBps,
+    ContinuationBoundaryAccuracyBps,
     WrongToolRejectionAccuracyBps,
     UnsupportedToolRefusalAccuracyBps,
     RequestForStructureAccuracyBps,
@@ -1280,18 +1283,18 @@ fn stable_receipt_digest(receipt: &PsionPluginBenchmarkPackageReceipt) -> String
 #[cfg(test)]
 mod tests {
     use super::{
-        PSION_PLUGIN_BENCHMARK_PACKAGE_SCHEMA_VERSION, PsionPluginBenchmarkContaminationAttachment,
+        stable_package_digest, PsionPluginBenchmarkContaminationAttachment,
         PsionPluginBenchmarkExpectedResponseFormat, PsionPluginBenchmarkFamily,
         PsionPluginBenchmarkGraderInterface, PsionPluginBenchmarkItem,
         PsionPluginBenchmarkPackageContract, PsionPluginBenchmarkPackageError,
         PsionPluginBenchmarkPromptEnvelope, PsionPluginBenchmarkPromptFormat,
         PsionPluginBenchmarkReceiptPosture, PsionPluginBenchmarkTaskContract,
         PsionPluginDiscoverySelectionTask, PsionPluginExactRouteGrader,
-        PsionPluginSelectionDecisionGrader, stable_package_digest,
+        PsionPluginSelectionDecisionGrader, PSION_PLUGIN_BENCHMARK_PACKAGE_SCHEMA_VERSION,
     };
     use psionic_data::{
-        PsionPluginContaminationBundle, PsionPluginRouteLabel,
-        build_psion_plugin_contamination_bundle,
+        build_psion_plugin_contamination_bundle, PsionPluginContaminationBundle,
+        PsionPluginRouteLabel,
     };
     use psionic_environments::EnvironmentPackageKey;
     use psionic_eval::{
@@ -1308,8 +1311,8 @@ mod tests {
     }
 
     #[test]
-    fn shared_plugin_benchmark_contract_rejects_unknown_contamination_lineage()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn shared_plugin_benchmark_contract_rejects_unknown_contamination_lineage(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let contamination = build_psion_plugin_contamination_bundle()?;
         let mut package = synthetic_discovery_selection_package(&contamination);
         package.items[0].contamination_attachment.parent_lineage_ids =
@@ -1427,8 +1430,8 @@ mod tests {
     }
 
     #[test]
-    fn exact_route_grader_is_compatible_with_discovery_selection_items()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn exact_route_grader_is_compatible_with_discovery_selection_items(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let contamination = build_psion_plugin_contamination_bundle()?;
         let mut package = synthetic_discovery_selection_package(&contamination);
         package.grader_interfaces = vec![PsionPluginBenchmarkGraderInterface::ExactRoute(
