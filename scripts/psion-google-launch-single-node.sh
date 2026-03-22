@@ -115,6 +115,7 @@ training_command="$(jq -r '.startup_policy.training_command' "${LAUNCH_FILE}")"
 rust_toolchain="$(jq -r '.startup_policy.rustup_default_toolchain' "${LAUNCH_FILE}")"
 apt_packages="$(jq -r '.startup_policy.package_install | join(" ")' "${LAUNCH_FILE}")"
 final_manifest_object="$(jq -r '.teardown_policy.final_manifest_object' "${LAUNCH_FILE}")"
+input_package_descriptor_uri="$(jq -r '.default_input_package_descriptor_uri' "${LAUNCH_FILE}")"
 
 profile_label="$(jq -r '.profile_label' <<<"${profile_json}")"
 machine_type="$(jq -r '.machine_type' <<<"${profile_json}")"
@@ -182,6 +183,14 @@ manifest_uri="${launch_prefix}/psion_google_single_node_launch_manifest.json"
 startup_script_uri="${launch_prefix}/psion-google-single-node-startup.sh"
 preflight_uri="${launch_prefix}/psion_google_quota_preflight.json"
 final_manifest_uri="${run_prefix}/${final_manifest_object}"
+wait_for_object "${input_package_descriptor_uri}"
+input_package_descriptor_json="$(gcloud storage cat "${input_package_descriptor_uri}")"
+input_package_archive_uri="$(jq -r '.archive_uri' <<<"${input_package_descriptor_json}")"
+input_package_archive_sha256="$(jq -r '.archive_sha256' <<<"${input_package_descriptor_json}")"
+input_package_manifest_sha256="$(jq -r '.manifest_sha256' <<<"${input_package_descriptor_json}")"
+input_materialization_mode="$(jq -r '.materialization.mode' <<<"${input_package_descriptor_json}")"
+input_materialization_max_local_gb="$(jq -r '.materialization.max_local_working_set_gb' <<<"${input_package_descriptor_json}")"
+wait_for_object "${input_package_archive_uri}"
 
 manifest_file="${tmpdir}/psion_google_single_node_launch_manifest.json"
 training_command_file="${tmpdir}/training_command.sh"
@@ -211,6 +220,14 @@ jq -n \
   --arg startup_script_uri "${startup_script_uri}" \
   --arg preflight_uri "${preflight_uri}" \
   --arg final_manifest_uri "${final_manifest_uri}" \
+  --arg input_package_descriptor_uri "${input_package_descriptor_uri}" \
+  --arg input_package_archive_uri "${input_package_archive_uri}" \
+  --arg input_package_archive_sha256 "${input_package_archive_sha256}" \
+  --arg input_package_manifest_sha256 "${input_package_manifest_sha256}" \
+  --arg input_materialization_mode "${input_materialization_mode}" \
+  --argjson input_materialization_max_local_gb "${input_materialization_max_local_gb}" \
+  --argjson input_benchmark_execution_posture "$(jq '.benchmark_execution_posture' <<<"${input_package_descriptor_json}")" \
+  --argjson input_key_digests "$(jq '.key_digests' <<<"${input_package_descriptor_json}")" \
   --arg image_project "${image_project}" \
   --arg image_family "${image_family}" \
   --arg image_name "${image_name}" \
@@ -283,6 +300,16 @@ jq -n \
       run_prefix: ($bucket_url + "/runs/" + $run_id),
       final_manifest_uri: $final_manifest_uri
     },
+    input_package: {
+      descriptor_uri: $input_package_descriptor_uri,
+      archive_uri: $input_package_archive_uri,
+      archive_sha256: $input_package_archive_sha256,
+      manifest_sha256: $input_package_manifest_sha256,
+      materialization_mode: $input_materialization_mode,
+      max_local_working_set_gb: $input_materialization_max_local_gb,
+      benchmark_execution_posture: $input_benchmark_execution_posture,
+      key_digests: $input_key_digests
+    },
     repo: {
       clone_url: $repo_clone_url,
       git_revision: $git_revision
@@ -339,7 +366,7 @@ gcloud compute instances create "${INSTANCE_NAME}" \
   --boot-disk-type="${boot_disk_type}" \
   --image="${image_name}" \
   --image-project="${image_project}" \
-  --metadata="enable-oslogin=TRUE,psion-run-id=${RUN_ID},psion-bucket-url=${bucket_url},psion-repo-clone-url=${repo_clone_url},psion-git-revision=${git_revision},psion-workspace-root=${workspace_root},psion-output-subdir=output,psion-log-subdir=logs,psion-scratch-subdir=scratch,psion-repo-subdir=repo,psion-low-disk-watermark-gb=${low_disk_watermark_gb},psion-rust-toolchain=${rust_toolchain}" \
+  --metadata="enable-oslogin=TRUE,psion-run-id=${RUN_ID},psion-bucket-url=${bucket_url},psion-repo-clone-url=${repo_clone_url},psion-git-revision=${git_revision},psion-workspace-root=${workspace_root},psion-output-subdir=output,psion-log-subdir=logs,psion-scratch-subdir=scratch,psion-repo-subdir=repo,psion-low-disk-watermark-gb=${low_disk_watermark_gb},psion-rust-toolchain=${rust_toolchain},psion-input-package-descriptor-uri=${input_package_descriptor_uri},psion-input-package-archive-uri=${input_package_archive_uri},psion-input-package-archive-sha256=${input_package_archive_sha256},psion-input-package-manifest-sha256=${input_package_manifest_sha256},psion-input-materialization-mode=${input_materialization_mode}" \
   --metadata-from-file="startup-script=${STARTUP_SCRIPT},psion-training-command=${training_command_file},psion-apt-packages=${apt_packages_file}" >/dev/null
 
 echo "instance launched:"

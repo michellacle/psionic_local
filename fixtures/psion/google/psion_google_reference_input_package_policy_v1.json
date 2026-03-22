@@ -1,0 +1,34 @@
+{
+  "schema_version": "psion.google_reference_input_package_policy.v1",
+  "policy_id": "openagentsgemini-psion-google-reference-inputs-v1",
+  "bucket_url": "gs://openagentsgemini-psion-train-us-central1",
+  "descriptor_uri": "gs://openagentsgemini-psion-train-us-central1/manifests/psion_google_reference_input_package_v1.json",
+  "archive_prefix": "gs://openagentsgemini-psion-train-us-central1/runs/staging/input_packages",
+  "package_id_prefix": "psion-google-reference-inputs",
+  "materialization": {
+    "mode": "stage_to_local_disk_overlay_repo",
+    "max_local_working_set_gb": 4,
+    "overlay_target": "repo_clone"
+  },
+  "benchmark_execution_posture": {
+    "on_host": [
+      "psion_architecture_reasoning_benchmark_v1",
+      "psion_normative_spec_benchmark_v1",
+      "psion_route_benchmark_v1",
+      "psion_unsupported_request_refusal_benchmark_v1",
+      "psion_reference_held_out_reasoning_benchmark_v1"
+    ],
+    "post_hoc_allowed": [
+      "heavier benchmark families beyond the bounded reference pilot may run later from the archived checkpoint instead of during the first Google pilot."
+    ]
+  },
+  "repo_overlay_paths": [
+    "fixtures/psion/reference_corpus/raw_sources",
+    "fixtures/psion/acceptance/psion_acceptance_matrix_v1.json",
+    "fixtures/psion/benchmarks/psion_benchmark_catalog_v1.json",
+    "fixtures/psion/lifecycle/psion_source_lifecycle_manifest_v1.json",
+    "fixtures/psion/isolation/psion_exclusion_manifest_v1.json",
+    "fixtures/psion/capability/psion_capability_matrix_v1.json",
+    "fixtures/psion/lifecycle/psion_artifact_lineage_manifest_v1.json"
+  ]
+}

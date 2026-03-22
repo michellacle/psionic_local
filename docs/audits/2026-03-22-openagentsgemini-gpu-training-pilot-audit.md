@@ -215,13 +215,16 @@ What is green:
 - the repo now has one committed single-node Google launch surface with pinned
   image-family resolution, machine-profile authority, low-disk policy, and a
   teardown companion
+- the repo now has one committed immutable reference input package path with a
+  stable descriptor URI, archive digests, benchmark posture, and launch-manifest
+  binding for remote execution
 
 What is still only `partial`:
 
 - no runbook exists yet for preserving the full infra evidence bundle around a
   GPU launch
-- there is still no immutable remote input package, checkpoint archive proof,
-  or Google-host evidence collector yet
+- there is still no checkpoint archive proof or Google-host evidence collector
+  yet
 - exact Cloud Billing export to BigQuery is still console-managed; the current
   repo-owned machine-queryable cost sink is the live price-catalog table plus
   budget notifications rather than invoice-grade billing-export rows
@@ -274,8 +277,8 @@ decision before changing machine profile.
 
 ## Minimum Setup Before Launch
 
-- define the immutable remote input package, checkpoint archive path, and final
-  evidence collector before the first paid run
+- define the checkpoint archive path and final evidence collector before the
+  first paid run
 - decide whether the first bounded pilot needs console-managed Cloud Billing
   export in addition to the repo-owned budget-plus-price-catalog cost sink
 
@@ -315,6 +318,11 @@ The missing work splits into infra setup issues and repo-owned execution issues.
 
 These issues are the minimum program I would use before saying Google infra is
 ready for the first real Psion pretraining run.
+
+Progress note:
+
+- Issues 1 through 6 are now implemented in the repo and project
+- Issues 7 through 10 remain the live pretraining-readiness gap
 
 The intended claim boundary stays narrow:
 

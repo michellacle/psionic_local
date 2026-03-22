@@ -3,6 +3,7 @@
   "launch_bundle_id": "openagentsgemini-psion-google-single-node-launch-v1",
   "project_id": "openagentsgemini",
   "bucket_url": "gs://openagentsgemini-psion-train-us-central1",
+  "default_input_package_descriptor_uri": "gs://openagentsgemini-psion-train-us-central1/manifests/psion_google_reference_input_package_v1.json",
   "repo_clone_url": "https://github.com/OpenAgentsInc/psionic.git",
   "service_account_email": "psion-train-single-node@openagentsgemini.iam.gserviceaccount.com",
   "network": "oa-lightning",
@@ -32,7 +33,8 @@
       "git",
       "curl",
       "jq",
-      "ca-certificates"
+      "ca-certificates",
+      "python3"
     ],
     "rustup_default_toolchain": "stable",
     "training_command": "cargo run -p psionic-train --example psion_reference_pilot_bundle -- \"$PSION_OUTPUT_DIR\""
