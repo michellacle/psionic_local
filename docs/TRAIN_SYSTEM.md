@@ -150,6 +150,11 @@ and now also has:
   freezes the stage manifest, canonical dataset binding, benchmark-hook
   posture, replay-class coverage, stage receipt, and bounded output bundle for
   the first learned plugin-use stage contract.
+- `docs/PSION_PLUGIN_CONDITIONED_COMPACT_DECODER_REFERENCE.md` is the
+  canonical first plugin-conditioned compact-decoder config doc for the
+  convergence tranche and freezes the lane-specific reference descriptor,
+  context-budget assumptions, no-custom-plugin-token serialization posture,
+  and checkpoint/export naming for the first learned plugin-use model config.
 - `docs/audits/2026-03-22-tassadar-full-plugin-system-state-audit.md` is the
   canonical current-state proof record for the bounded Tassadar plugin system
   and freezes the present authoring-class, publication, and guest-artifact

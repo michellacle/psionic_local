@@ -17,6 +17,9 @@ substrate instead of introducing a separate trainer-owned model stack.
   the canonical pilot-anchor descriptor fixture.
 - `fixtures/psion/models/psion_compact_decoder_internal_descriptor_v1.json`
   is the canonical first internal-anchor descriptor fixture.
+- `docs/PSION_PLUGIN_CONDITIONED_COMPACT_DECODER_REFERENCE.md` is the first
+  lane-specific child config built on top of this shared compact-decoder
+  family for the host-native plugin-conditioned reference lane.
 
 The stable schema version is `psion.compact_decoder_descriptor.v1`.
 
