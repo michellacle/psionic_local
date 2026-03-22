@@ -1,0 +1,307 @@
+# Psion Google Single-GPU Runbook
+
+> Status: canonical `PSION-44` / `#410` runbook, written 2026-03-22 after the
+> Google launch bundle, immutable input package, checkpoint archive, host
+> observability finalizer, and validation folders landed on `main`.
+
+This runbook is the operator entrypoint for the first truthful Google-hosted
+`Psion` pilot.
+
+It is intentionally narrow:
+
+- one project: `openagentsgemini`
+- one region family: `us-central1`
+- one node at a time
+- one Google Compute Engine VM, not a trusted cluster
+- one bounded reference-pilot lane with retained evidence
+
+It does not claim broader pretraining completion, trusted-cluster readiness,
+cross-region orchestration, or production serving readiness for trained
+checkpoints.
+
+## Canonical Artifacts
+
+- launch authority:
+  `fixtures/psion/google/psion_google_single_node_launch_profiles_v1.json`
+- local operator preflight:
+  `fixtures/psion/google/psion_google_operator_preflight_policy_v1.json`
+- host observability and final-manifest authority:
+  `fixtures/psion/google/psion_google_host_observability_policy_v1.json`
+- local operator preflight command:
+  `scripts/psion-google-operator-preflight.sh`
+- quota and cost preflight:
+  `scripts/psion-google-quota-preflight.sh`
+- launch command:
+  `scripts/psion-google-launch-single-node.sh`
+- host startup:
+  `scripts/psion-google-single-node-startup.sh`
+- host finalizer:
+  `scripts/psion-google-finalize-run.sh`
+- checkpoint archive:
+  `scripts/psion-google-archive-reference-pilot-checkpoint.sh`
+- checkpoint cold restore:
+  `scripts/psion-google-cold-restore-reference-pilot.sh`
+- teardown:
+  `scripts/psion-google-delete-single-node.sh`
+- readiness audit:
+  `docs/audits/2026-03-22-openagentsgemini-gpu-training-pilot-audit.md`
+
+## Local Requirements
+
+Required local commands:
+
+- `gcloud`
+- `bq`
+- `jq`
+- `git`
+
+Minimum local CLI versions:
+
+- `gcloud >= 470.0.0`
+- `bq >= 2.1.0`
+
+Current validated local versions at the time this runbook landed:
+
+- `gcloud 556.0.0`
+- `bq 2.1.28`
+
+Required auth posture:
+
+- active `gcloud` account must be able to mint an access token
+- active `gcloud` project must be `openagentsgemini`
+- the operator must be able to read
+  `gs://openagentsgemini-psion-train-us-central1`
+- the operator must be able to read
+  `openagentsgemini:psion_training_finops`
+- the operator must be able to describe
+  `psion-train-single-node@openagentsgemini.iam.gserviceaccount.com`
+
+Environment variables:
+
+- no override is required for the default lane
+- optional overrides:
+  `PROJECT_ID`, `PROFILE_ID`, `ZONE`, `RUN_ID`, `INSTANCE_NAME`
+- this runbook only authorizes `PROJECT_ID=openagentsgemini`
+
+Secret posture:
+
+- prefer attached-service-account access on the VM
+- do not inject runtime secrets unless strictly required by a later issue
+- if a future run depends on one secret, record the dependency in the launch or
+  follow-up audit without recording the secret value
+
+## Claim Boundary
+
+This runbook covers one bounded Google single-node pilot only.
+
+It still refuses to claim:
+
+- trusted-cluster training
+- cross-region or multi-node training
+- arbitrary machine-family support beyond the committed launch profiles
+- broad cost optimality across Google GPU families
+- broader pretraining completion for `Psion`
+
+## 1. Local Preflight
+
+Run the repo-owned operator gate before any paid launch:
+
+```bash
+bash scripts/psion-google-operator-preflight.sh --profile g2_l4_single_node
+```
+
+Optional explicit zone override:
+
+```bash
+bash scripts/psion-google-operator-preflight.sh \
+  --profile g2_l4_single_node \
+  --zone us-central1-a
+```
+
+This command rejects:
+
+- missing local CLI dependencies
+- stale `gcloud` or `bq`
+- missing or mismatched `gcloud` auth
+- missing bucket access
+- missing BigQuery FinOps access
+- missing training service-account visibility
+- quota-unready launch profiles
+
+Do not continue if the result is not `ready`.
+
+## 2. Optional Manifest-Only Rehearsal
+
+Before the paid launch, you may upload only the launch manifest, startup-script
+snapshot, and quota-preflight receipt:
+
+```bash
+RUN_ID="psion-g2-l4-$(date -u +%Y%m%dt%H%M%Sz | tr '[:upper:]' '[:lower:]')"
+
+bash scripts/psion-google-launch-single-node.sh \
+  --manifest-only \
+  --run-id "${RUN_ID}" \
+  --instance-name "${RUN_ID}"
+```
+
+Expected launch artifacts:
+
+- `gs://openagentsgemini-psion-train-us-central1/runs/${RUN_ID}/launch/psion_google_single_node_launch_manifest.json`
+- `gs://openagentsgemini-psion-train-us-central1/runs/${RUN_ID}/launch/psion-google-single-node-startup.sh`
+- `gs://openagentsgemini-psion-train-us-central1/runs/${RUN_ID}/launch/psion_google_quota_preflight.json`
+
+## 3. Paid Launch
+
+Default first lane:
+
+- profile: `g2_l4_single_node`
+- fallback order:
+  `us-central1-a`, `us-central1-b`, `us-central1-c`
+
+Launch:
+
+```bash
+RUN_ID="psion-g2-l4-$(date -u +%Y%m%dt%H%M%Sz | tr '[:upper:]' '[:lower:]')"
+
+bash scripts/psion-google-launch-single-node.sh \
+  --profile g2_l4_single_node \
+  --run-id "${RUN_ID}" \
+  --instance-name "${RUN_ID}"
+```
+
+What happens:
+
+- the launcher resolves the pinned GPU image from
+  `deeplearning-platform-release`
+- one launch manifest is uploaded before the VM request
+- the VM boots without an external IP on `oa-lightning`
+- the startup script owns bootstrap, repo checkout, input materialization,
+  training, checkpoint archive, cold restore, and final evidence upload
+
+If `gcloud compute instances create` fails before the VM exists, the launch
+folder still retains:
+
+- a typed `launch_capacity_failure` final manifest
+- the launch-failure log
+- the launch manifest, startup snapshot, and quota-preflight receipt
+
+## 4. Monitoring
+
+Describe the instance:
+
+```bash
+gcloud compute instances describe "${RUN_ID}" \
+  --project=openagentsgemini \
+  --zone=us-central1-a \
+  --format='value(status)'
+```
+
+IAP SSH if you need interactive inspection:
+
+```bash
+gcloud compute ssh "${RUN_ID}" \
+  --project=openagentsgemini \
+  --zone=us-central1-a \
+  --tunnel-through-iap
+```
+
+Watch the run folder:
+
+```bash
+gcloud storage ls \
+  "gs://openagentsgemini-psion-train-us-central1/runs/${RUN_ID}/**"
+```
+
+Expected host-emitted artifacts:
+
+- `host/psion_google_host_facts.json`
+- `host/psion_google_runtime_snapshot.json`
+- `host/psion_google_gpu_summary.json`
+- `host/psion_google_run_timeline.json`
+- `host/psion_google_run_outcome.json`
+- `logs/psion_google_run_events.jsonl`
+- `logs/training.stdout.log`
+- `logs/training.stderr.log`
+- `logs/psion_google_gpu_samples.csv`
+- `receipts/...`
+- `artifacts/psion_reference_pilot_checkpoint.safetensors`
+- `final/psion_google_run_manifest_of_manifests.json`
+- `final/psion_google_run_final_manifest.json`
+
+## 5. Checkpoint Archive And Restore
+
+The host startup now runs these automatically after a green reference-pilot
+bundle:
+
+- `scripts/psion-google-archive-reference-pilot-checkpoint.sh`
+- `scripts/psion-google-cold-restore-reference-pilot.sh`
+
+Operator verification after the run:
+
+```bash
+gcloud storage cat \
+  "gs://openagentsgemini-psion-train-us-central1/runs/${RUN_ID}/final/psion_google_run_final_manifest.json" \
+  | jq '.checkpoint_recovery'
+```
+
+Manual restore drill against a known archive manifest remains available:
+
+```bash
+bash scripts/psion-google-cold-restore-reference-pilot.sh \
+  "gs://openagentsgemini-psion-train-us-central1/checkpoints/reference_pilot/psion-reference-pilot-run/psion-reference-pilot-step-16/archive/psion_google_reference_checkpoint_archive_manifest.json"
+```
+
+Do not treat local VM disks as durable checkpoint authority. The archive
+manifest and cold-restore manifest are the durable recovery surfaces.
+
+## 6. Evidence Bundle Verification
+
+The single source of truth after the VM is gone is:
+
+```bash
+gcloud storage cat \
+  "gs://openagentsgemini-psion-train-us-central1/runs/${RUN_ID}/final/psion_google_run_final_manifest.json" \
+  | jq '.result_classification, .timeline, .manifest_of_manifests, .retained_objects | length'
+```
+
+What the final manifest must preserve:
+
+- launch topology and machine profile
+- image identity
+- input package bindings and digests
+- host facts and runtime snapshot
+- GPU summary and raw GPU samples
+- structured event log plus stdout and stderr
+- pilot receipts and benchmark outputs
+- checkpoint archive and cold-restore references
+- one manifest-of-manifests checksum
+- one retained-object list with per-object digests
+
+Deletion is refused by default if the final manifest is missing.
+
+## 7. Teardown
+
+After the final manifest exists:
+
+```bash
+bash scripts/psion-google-delete-single-node.sh --run-id "${RUN_ID}"
+```
+
+Only bypass the retention guard if you are intentionally preserving a failed
+partial launch folder and the VM is already absent:
+
+```bash
+bash scripts/psion-google-delete-single-node.sh --run-id "${RUN_ID}" --force
+```
+
+## 8. Known Refusals After The First Google Run
+
+Even after one successful bounded Google run, this repo still refuses to claim:
+
+- multi-node data parallel or model parallel Google training
+- cross-region or failover-ready Google orchestration
+- trusted-cluster promotion
+- broader `Psion` pretraining completion
+- production serving readiness for the resulting checkpoint
+
+Those claims stay blocked on later issues and later audits.

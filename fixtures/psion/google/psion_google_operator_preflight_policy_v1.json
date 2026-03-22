@@ -1,0 +1,24 @@
+{
+  "schema_version": "psion.google_operator_preflight_policy.v1",
+  "policy_id": "openagentsgemini-psion-google-operator-preflight-v1",
+  "project_id": "openagentsgemini",
+  "bucket_url": "gs://openagentsgemini-psion-train-us-central1",
+  "finops_dataset": "psion_training_finops",
+  "finops_price_profile_table": "single_node_price_profiles_v1",
+  "training_service_account": "psion-train-single-node@openagentsgemini.iam.gserviceaccount.com",
+  "minimum_tool_versions": {
+    "gcloud": "470.0.0",
+    "bq": "2.1.0"
+  },
+  "required_commands": [
+    "gcloud",
+    "bq",
+    "jq",
+    "git"
+  ],
+  "supported_profiles": [
+    "g2_l4_single_node",
+    "a2_a100_single_node"
+  ],
+  "detail": "The local Google operator preflight must reject stale CLI tooling, missing auth, missing bucket or FinOps access, absent service-account visibility, and quota-unready launch profiles before any paid Psion launch begins."
+}

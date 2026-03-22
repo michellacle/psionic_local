@@ -252,11 +252,12 @@ What is green:
   path that retains machine facts, GPU summaries, structured run events,
   training receipts, checkpoint-recovery references, and one integrity-linked
   final manifest for both bounded-success and pre-VM failure cases
+- the repo now has one committed Google single-node operator runbook plus one
+  local operator preflight command that rejects stale tooling, auth drift, and
+  quota-unready launch posture before any paid launch begins
 
 What is still only `partial`:
 
-- no runbook exists yet for preserving the full infra evidence bundle around a
-  GPU launch
 - exact Cloud Billing export to BigQuery is still console-managed; the current
   repo-owned machine-queryable cost sink is the live price-catalog table plus
   budget notifications rather than invoice-grade billing-export rows
@@ -265,8 +266,9 @@ Blunt conclusion:
 
 - yes, this project appears capable of launching a bounded single-GPU Psion
   pilot, subject to live zonal stock and a short setup pass
-- it is now prepared to preserve run evidence honestly, but it still needs the
-  operator runbook before I would call the Google lane fully ready to execute
+- it is now prepared to preserve run evidence honestly and has one repo-owned
+  operator runbook, but it still does not claim the first real Google-hosted
+  pilot until that run exists
 
 ## Recommended First GPU Pilot
 
@@ -649,9 +651,15 @@ Issues 1, 5, 6, and 7
 ### Issue 9: Publish A Google Single-GPU Psion Operator Runbook
 
 Description:
-There is no repo-owned operator runbook for a Google single-node Psion training
-run yet. The first truthful run should be executable from docs and committed
-scripts rather than from remembered terminal history.
+Closed. The canonical operator runbook now lives at:
+
+- `docs/PSION_GOOGLE_SINGLE_GPU_RUNBOOK.md`
+- `scripts/psion-google-operator-preflight.sh`
+- `fixtures/psion/google/psion_google_operator_preflight_policy_v1.json`
+
+The runbook now binds the exact local preflight, launch, monitoring, evidence,
+checkpoint-recovery, and teardown commands for the bounded Google single-node
+lane, and it keeps the refusal boundary explicit.
 
 Required details:
 

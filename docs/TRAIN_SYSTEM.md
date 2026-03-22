@@ -196,6 +196,12 @@ and now also has:
   freezes the storage persistence, preemption downgrade, cost stop-condition,
   and infra-mode refusal contract that later trusted-cluster work must not
   silently widen.
+- `docs/PSION_GOOGLE_SINGLE_GPU_RUNBOOK.md` is the canonical first Google
+  single-region single-node operator runbook for the `Psion` learned-model
+  lane and freezes the local preflight, launch, host evidence, checkpoint
+  archive, cold-restore, and teardown procedure for the bounded Google pilot
+  without widening the claim boundary to trusted-cluster or broader-pretrain
+  posture.
 - `docs/PSION_TRUSTED_CLUSTER_RUN.md` is the canonical first trusted-cluster
   multi-host run doc for the `Psion` learned-model lane and freezes the
   bounded topology contract, distributed-group receipt, replay receipt, and
