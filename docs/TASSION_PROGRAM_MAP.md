@@ -91,6 +91,7 @@ The convergence tranche should consume the existing repo truth directly:
 
 - `docs/PSION_PROGRAM_MAP.md`
 - `docs/TRAIN_SYSTEM.md`
+- `docs/TASSION_CLAIM_BOUNDARY_AND_CAPABILITY_POSTURE.md`
 - `docs/TASSADAR_MULTI_PLUGIN_ORCHESTRATION_WAVE.md`
 - `docs/TASSADAR_STARTER_PLUGIN_AUTHORING.md`
 - `docs/TASSADAR_STARTER_PLUGIN_CATALOG.md`

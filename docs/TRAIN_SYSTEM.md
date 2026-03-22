@@ -92,6 +92,11 @@ and now also has:
   dependency-ordered training, benchmark, `networked_read_only` substrate-
   proof, guest-artifact, and operator-proof split that later learned-plugin-
   use work must follow without widening publication or executor claims.
+- `docs/TASSION_CLAIM_BOUNDARY_AND_CAPABILITY_POSTURE.md` is the canonical
+  claim-boundary and capability-posture contract for the convergence tranche
+  and freezes which plugin classes are currently proved, not yet proved, later
+  separate, or out of scope before any trained model capability matrix is
+  honest.
 - `docs/audits/2026-03-22-tassadar-full-plugin-system-state-audit.md` is the
   canonical current-state proof record for the bounded Tassadar plugin system
   and freezes the present authoring-class, publication, and guest-artifact
