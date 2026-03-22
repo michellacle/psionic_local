@@ -609,6 +609,13 @@ pub enum StarterPluginCapabilityClass {
     ReadOnlyNetwork,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum StarterPluginAuthoringClass {
+    CapabilityFreeLocalDeterministic,
+    NetworkedReadOnly,
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct StarterPluginCatalogRegistration {
     pub catalog_entry_id: &'static str,
@@ -632,6 +639,7 @@ pub struct StarterPluginRegistration {
     pub refusal_schema_ids: &'static [&'static str],
     pub replay_class_id: &'static str,
     pub capability_class: StarterPluginCapabilityClass,
+    pub authoring_class: StarterPluginAuthoringClass,
     pub capability_namespace_ids: &'static [&'static str],
     pub negative_claim_ids: &'static [&'static str],
     pub mount_envelope_id: &'static str,
@@ -724,6 +732,7 @@ const STARTER_PLUGIN_REGISTRATIONS: &[StarterPluginRegistration] = &[
         refusal_schema_ids: URL_EXTRACT_REFUSAL_SCHEMA_IDS,
         replay_class_id: "deterministic_replayable",
         capability_class: StarterPluginCapabilityClass::LocalDeterministic,
+        authoring_class: StarterPluginAuthoringClass::CapabilityFreeLocalDeterministic,
         capability_namespace_ids: NO_CAPABILITY_NAMESPACE_IDS,
         negative_claim_ids: URL_EXTRACT_NEGATIVE_CLAIM_IDS,
         mount_envelope_id: "mount.plugin.text.url_extract.no_capabilities.v1",
@@ -756,6 +765,7 @@ const STARTER_PLUGIN_REGISTRATIONS: &[StarterPluginRegistration] = &[
         refusal_schema_ids: TEXT_STATS_REFUSAL_SCHEMA_IDS,
         replay_class_id: "deterministic_replayable",
         capability_class: StarterPluginCapabilityClass::LocalDeterministic,
+        authoring_class: StarterPluginAuthoringClass::CapabilityFreeLocalDeterministic,
         capability_namespace_ids: NO_CAPABILITY_NAMESPACE_IDS,
         negative_claim_ids: TEXT_STATS_NEGATIVE_CLAIM_IDS,
         mount_envelope_id: "mount.plugin.text.stats.no_capabilities.v1",
@@ -788,6 +798,7 @@ const STARTER_PLUGIN_REGISTRATIONS: &[StarterPluginRegistration] = &[
         refusal_schema_ids: FETCH_TEXT_REFUSAL_SCHEMA_IDS,
         replay_class_id: "replayable_with_snapshots",
         capability_class: StarterPluginCapabilityClass::ReadOnlyNetwork,
+        authoring_class: StarterPluginAuthoringClass::NetworkedReadOnly,
         capability_namespace_ids: FETCH_TEXT_CAPABILITY_NAMESPACE_IDS,
         negative_claim_ids: FETCH_TEXT_NEGATIVE_CLAIM_IDS,
         mount_envelope_id: "mount.plugin.http.fetch_text.read_only_http_allowlist.v1",
@@ -820,6 +831,7 @@ const STARTER_PLUGIN_REGISTRATIONS: &[StarterPluginRegistration] = &[
         refusal_schema_ids: EXTRACT_READABLE_REFUSAL_SCHEMA_IDS,
         replay_class_id: "deterministic_replayable",
         capability_class: StarterPluginCapabilityClass::LocalDeterministic,
+        authoring_class: StarterPluginAuthoringClass::CapabilityFreeLocalDeterministic,
         capability_namespace_ids: NO_CAPABILITY_NAMESPACE_IDS,
         negative_claim_ids: EXTRACT_READABLE_NEGATIVE_CLAIM_IDS,
         mount_envelope_id: "mount.plugin.html.extract_readable.no_capabilities.v1",
@@ -852,6 +864,7 @@ const STARTER_PLUGIN_REGISTRATIONS: &[StarterPluginRegistration] = &[
         refusal_schema_ids: FEED_PARSE_REFUSAL_SCHEMA_IDS,
         replay_class_id: "deterministic_replayable",
         capability_class: StarterPluginCapabilityClass::LocalDeterministic,
+        authoring_class: StarterPluginAuthoringClass::CapabilityFreeLocalDeterministic,
         capability_namespace_ids: NO_CAPABILITY_NAMESPACE_IDS,
         negative_claim_ids: FEED_PARSE_NEGATIVE_CLAIM_IDS,
         mount_envelope_id: "mount.plugin.feed.rss_atom_parse.no_capabilities.v1",
@@ -913,6 +926,27 @@ pub fn catalog_exposed_starter_plugin_registrations() -> Vec<&'static StarterPlu
     STARTER_PLUGIN_REGISTRATIONS
         .iter()
         .filter(|registration| registration.catalog_exposed)
+        .collect()
+}
+
+#[must_use]
+pub fn capability_free_starter_plugin_registrations() -> Vec<&'static StarterPluginRegistration> {
+    STARTER_PLUGIN_REGISTRATIONS
+        .iter()
+        .filter(|registration| {
+            registration.authoring_class
+                == StarterPluginAuthoringClass::CapabilityFreeLocalDeterministic
+        })
+        .collect()
+}
+
+#[must_use]
+pub fn networked_starter_plugin_registrations() -> Vec<&'static StarterPluginRegistration> {
+    STARTER_PLUGIN_REGISTRATIONS
+        .iter()
+        .filter(|registration| {
+            registration.authoring_class == StarterPluginAuthoringClass::NetworkedReadOnly
+        })
         .collect()
 }
 
@@ -3376,9 +3410,10 @@ mod tests {
         bridge_exposed_starter_plugin_registrations, build_extract_readable_runtime_bundle,
         build_feed_parse_runtime_bundle, build_fetch_text_runtime_bundle,
         build_text_stats_runtime_bundle, build_url_extract_runtime_bundle,
-        catalog_exposed_starter_plugin_registrations, invoke_extract_readable_json_packet,
-        invoke_feed_parse_json_packet, invoke_fetch_text_json_packet,
-        invoke_text_stats_json_packet, invoke_url_extract_json_packet,
+        capability_free_starter_plugin_registrations, catalog_exposed_starter_plugin_registrations,
+        invoke_extract_readable_json_packet, invoke_feed_parse_json_packet,
+        invoke_fetch_text_json_packet, invoke_text_stats_json_packet,
+        invoke_url_extract_json_packet, networked_starter_plugin_registrations,
         starter_plugin_registration_by_plugin_id, starter_plugin_registrations,
         tassadar_post_article_plugin_feed_rss_atom_parse_runtime_bundle_path,
         tassadar_post_article_plugin_html_extract_readable_runtime_bundle_path,
@@ -3389,8 +3424,8 @@ mod tests {
         write_fetch_text_runtime_bundle, write_text_stats_runtime_bundle,
         write_url_extract_runtime_bundle, ExtractReadableConfig, ExtractReadableRuntimeCaseStatus,
         FeedParseConfig, FeedParseRuntimeCaseStatus, FetchTextConfig, FetchTextRuntimeCaseStatus,
-        FetchTextSnapshotResponse, FetchTextSnapshotResult, TextStatsConfig,
-        TextStatsRuntimeCaseStatus, UrlExtractConfig, UrlExtractRuntimeCaseStatus,
+        FetchTextSnapshotResponse, FetchTextSnapshotResult, StarterPluginAuthoringClass,
+        TextStatsConfig, TextStatsRuntimeCaseStatus, UrlExtractConfig, UrlExtractRuntimeCaseStatus,
         STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_OUTPUT_SCHEMA_ID,
         STARTER_PLUGIN_HTML_EXTRACT_READABLE_OUTPUT_SCHEMA_ID,
         STARTER_PLUGIN_HTTP_FETCH_TEXT_OUTPUT_SCHEMA_ID,
@@ -3415,7 +3450,13 @@ mod tests {
         assert_eq!(starter_plugin_registrations().len(), 5);
         assert_eq!(bridge_exposed_starter_plugin_registrations().len(), 5);
         assert_eq!(catalog_exposed_starter_plugin_registrations().len(), 5);
+        assert_eq!(capability_free_starter_plugin_registrations().len(), 4);
+        assert_eq!(networked_starter_plugin_registrations().len(), 1);
         assert_eq!(registration.tool_name, "plugin_text_stats");
+        assert_eq!(
+            registration.authoring_class,
+            StarterPluginAuthoringClass::CapabilityFreeLocalDeterministic
+        );
         assert!(registration.bridge_exposed);
         assert!(registration.catalog_exposed);
     }

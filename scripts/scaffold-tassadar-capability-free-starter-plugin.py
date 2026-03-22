@@ -21,6 +21,12 @@ def parse_args() -> argparse.Namespace:
         help="Plugin id shaped like plugin.<domain>.<name>",
     )
     parser.add_argument(
+        "--authoring-class",
+        required=True,
+        choices=["capability_free_local_deterministic", "networked_read_only"],
+        help="Starter-plugin authoring class to scaffold or refuse explicitly",
+    )
+    parser.add_argument(
         "--output-dir",
         required=True,
         help="Directory where the scaffold files should be written",
@@ -42,12 +48,14 @@ def write(path: Path, contents: str) -> None:
     path.write_text(contents, encoding="utf-8")
 
 
-def manifest(plugin_id: str, tool_name: str, output_files: list[str]) -> str:
+def manifest(
+    plugin_id: str, tool_name: str, authoring_class: str, output_files: list[str]
+) -> str:
     payload = {
         "schema_version": 1,
         "plugin_id": plugin_id,
         "tool_name": tool_name,
-        "authoring_class": "capability_free_local_deterministic",
+        "authoring_class": authoring_class,
         "bridge_exposed_default": False,
         "catalog_exposed_default": False,
         "generated_files": output_files,
@@ -315,6 +323,12 @@ What it does not do:
 def main() -> None:
     args = parse_args()
     parts = validate_plugin_id(args.plugin_id)
+    if args.authoring_class != "capability_free_local_deterministic":
+        raise SystemExit(
+            "networked_read_only is intentionally not scaffolded; "
+            "networked starter plugins must keep mount, replay, and policy truth "
+            "explicit through manual authoring"
+        )
     name_parts = parts[1:]
     snake = "_".join(name_parts)
     tool_name = f"plugin_{snake}"
@@ -339,7 +353,7 @@ def main() -> None:
     )
     write(
         output_dir / "scaffold_manifest.json",
-        manifest(args.plugin_id, tool_name, output_files),
+        manifest(args.plugin_id, tool_name, args.authoring_class, output_files),
     )
     write(
         output_dir / f"plugin_{snake}_runtime_snippet.rs",

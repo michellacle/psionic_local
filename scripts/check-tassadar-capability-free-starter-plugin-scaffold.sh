@@ -12,6 +12,7 @@ trap 'rm -rf "$tempdir"' EXIT
 
 python3 "$GENERATOR" \
   --plugin-id "plugin.example.words" \
+  --authoring-class "capability_free_local_deterministic" \
   --output-dir "$tempdir"
 
 diff -ru "$FIXTURE_DIR" "$tempdir"
@@ -29,3 +30,15 @@ rg -n "bridge_exposed: false" "$FIXTURE_DIR/plugin_example_words_runtime_snippet
 rg -n "catalog_exposed: false" "$FIXTURE_DIR/plugin_example_words_runtime_snippet.rs" >/dev/null
 rg -n 'todo!\("implement invoke_example_words_json_packet"\)' "$FIXTURE_DIR/plugin_example_words_runtime_snippet.rs" >/dev/null
 rg -n "cargo run -p psionic-runtime --example tassadar_post_article_example_words_bundle" "$FIXTURE_DIR/check-example_words.sh" >/dev/null
+
+if python3 "$GENERATOR" \
+  --plugin-id "plugin.example.fetch" \
+  --authoring-class "networked_read_only" \
+  --output-dir "$tempdir/networked" \
+  2>"$tempdir/networked.stderr"; then
+  echo "expected networked_read_only scaffold request to refuse" >&2
+  exit 1
+fi
+
+rg -n "networked starter plugins must keep mount, replay, and policy truth explicit" \
+  "$tempdir/networked.stderr" >/dev/null

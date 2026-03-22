@@ -13,6 +13,30 @@ The first-class path in this pass is intentionally narrow:
 If a contributor can follow this document, they should be able to add a new
 capability-free starter plugin without reverse engineering unrelated files.
 
+## Authoring Classes
+
+Two starter-plugin authoring classes now matter explicitly:
+
+### `capability_free_local_deterministic`
+
+- no capability namespaces
+- no network mount envelope configuration
+- deterministic replay posture
+- standard capability-free refusal and negative-claim pattern
+- scaffold helper supported
+
+### `networked_read_only`
+
+- explicit capability namespace and mount envelope required
+- replay posture must stay explicit, usually snapshot-backed or operator-only
+- network-policy, timeout, redirect, and response-size truth must stay
+  machine-legible
+- no scaffold helper in this first pass
+
+The low-risk class is intentionally easier. The networked class keeps its extra
+policy burden explicit instead of inheriting unsafe defaults from the
+capability-free path.
+
 ## Naming Contract
 
 Choose one stable naming family and keep it consistent everywhere:
@@ -135,11 +159,13 @@ For a new capability-free plugin, the normal sequence is:
 
 ## Scaffold Helper
 
-The repo now also ships one narrow scaffold helper for this class:
+The repo now also ships one narrow scaffold helper for the
+`capability_free_local_deterministic` class:
 
 ```bash
 python3 scripts/scaffold-tassadar-capability-free-starter-plugin.py \
   --plugin-id plugin.example.words \
+  --authoring-class capability_free_local_deterministic \
   --output-dir /tmp/plugin-example-words
 ```
 
@@ -153,6 +179,9 @@ The scaffold writes a bounded stub tree:
 
 It does not patch live runtime files for you. The generated output is a
 starting point that still requires explicit review and TODO completion.
+
+If you pass `--authoring-class networked_read_only`, the scaffold refuses
+generation on purpose and tells you to use the manual networked path instead.
 
 ## Example Path
 
