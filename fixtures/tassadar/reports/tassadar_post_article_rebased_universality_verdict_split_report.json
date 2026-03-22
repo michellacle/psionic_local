@@ -40,7 +40,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
       "source_artifact_id": "tassadar.post_article_universality_bridge.contract.report.v1",
-      "source_artifact_digest": "2908d3a3b0a47f76c60fcf61726f8f37fc366b9ffe9ba3d3ddad75f08a012e10",
+      "source_artifact_digest": "bfa5dd15373b0373cf6c4da821d3e37b34dc4b4f965d39b9fc0fb0d9ccd01ada",
       "detail": "the bridge contract must stay green so the rebased split binds to one canonical machine identity instead of a mixed historical reconstruction."
     },
     {
@@ -49,7 +49,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_route_universal_substrate_gate_report.json",
       "source_artifact_id": "tassadar.post_article_canonical_route_universal_substrate_gate.report.v1",
-      "source_artifact_digest": "4a81f409aa1be57cba2df1c9a4d04e518902c53ddd772de5c4f9919275452b98",
+      "source_artifact_digest": "e81eefa76b21523a820e6f1209d6ca0e6c67047930047f5ad0b5d2e35ddc10c4",
       "detail": "the canonical-route universal-substrate gate must stay green before the rebased verdict split can publish theory/operator truth on the canonical route."
     },
     {
@@ -58,7 +58,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_portability_minimality_matrix_report.json",
       "source_artifact_id": "tassadar.post_article_universality_portability_minimality_matrix.report.v1",
-      "source_artifact_digest": "c2fdf6afbcc46642c1a8f494264e595b1def5145a2200946b2aff963a8d6469b",
+      "source_artifact_digest": "7fadc3d15dc5113f72cb3e97bfd55de527adb23c640f22f8129d2f6734ba00fe",
       "detail": "the portability/minimality matrix must stay green so theory/operator truth remains bound to the declared CPU machine matrix and explicit route-carrier classification."
     },
     {
@@ -235,5 +235,5 @@
   ],
   "claim_boundary": "this report reissues the theory/operator/served universality verdict split on the post-`TAS-186` canonical machine identity. It binds the historical verdict split to the canonical owned route, the canonical weight artifact, the continuation contract, the portability/minimality matrix, and the served conformance envelope. It allows the rebased theory/operator claim only for the canonical route and still does not imply weighted plugin control, served/public universality, or arbitrary software capability.",
   "summary": "Post-article rebased universality verdict split keeps supporting_materials=7/7, validation_rows=8/8, verdict_split_status=TheoryGreenOperatorGreenServedSuppressed, rebase_claim_allowed=true, and served_green=false.",
-  "report_digest": "8494555b354367ac81aa71f015db3898defa41c7ff7b09435c9265c580d960d1"
+  "report_digest": "81c4bed1a4b97c48b2cf79172bdc08ff901691622932eff3805bc47a02dc8588"
 }

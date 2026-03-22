@@ -62,7 +62,7 @@ pub const TASSADAR_POST_ARTICLE_CONTINUATION_NON_COMPUTATIONALITY_CONTRACT_CHECK
 const TRANSFORMER_ANCHOR_CONTRACT_SOURCE_REF: &str =
     "crates/psionic-transformer/src/tassadar_post_article_continuation_non_computationality_contract.rs";
 const CLOSURE_BUNDLE_ISSUE_ID: &str = "TAS-215";
-const NEXT_STABILITY_ISSUE_ID: &str = "TAS-213";
+const NEXT_STABILITY_ISSUE_ID: &str = "TAS-214";
 const SUSPICIOUS_KEY_FRAGMENTS: &[&str] = &[
     "workflow",
     "planner",
@@ -1141,7 +1141,7 @@ fn build_validation_rows(
             "continuation_non_computationality_complete",
             continuation_non_computationality_complete,
             &[TASSADAR_POST_ARTICLE_CONTINUATION_NON_COMPUTATIONALITY_CONTRACT_REPORT_REF],
-            "the continuation non-computationality contract is complete on one canonical machine and hands the frontier to TAS-213.",
+            "the continuation non-computationality contract is complete on one canonical machine and hands the frontier to TAS-214.",
         ),
     ]
 }
@@ -1403,7 +1403,7 @@ mod tests {
         assert!(report.continuation_expressivity_extension_blocked);
         assert!(report.plugin_resume_hidden_compute_refused);
         assert!(report.continuation_non_computationality_complete);
-        assert_eq!(report.next_stability_issue_id, "TAS-213");
+        assert_eq!(report.next_stability_issue_id, "TAS-214");
         assert_eq!(report.closure_bundle_issue_id, "TAS-215");
         assert!(report
             .continuation_surface_rows

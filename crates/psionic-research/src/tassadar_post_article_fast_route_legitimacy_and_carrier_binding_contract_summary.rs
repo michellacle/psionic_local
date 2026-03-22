@@ -233,7 +233,7 @@ mod tests {
         assert!(summary.resumable_family_not_presented_as_direct_machine);
         assert!(summary.served_or_plugin_machine_overclaim_refused);
         assert!(summary.fast_route_legitimacy_complete);
-        assert_eq!(summary.next_stability_issue_id, "TAS-213");
+        assert_eq!(summary.next_stability_issue_id, "TAS-214");
         assert_eq!(summary.closure_bundle_issue_id, "TAS-215");
     }
 

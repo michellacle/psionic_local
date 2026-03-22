@@ -274,6 +274,8 @@ mod tassadar_post_article_carrier_split_contract;
 mod tassadar_post_article_continuation_non_computationality_contract_report;
 #[path = "tassadar_post_article_control_plane_decision_provenance_proof.rs"]
 mod tassadar_post_article_control_plane_decision_provenance_proof;
+#[path = "tassadar_post_article_downward_non_influence_and_served_conformance_report.rs"]
+mod tassadar_post_article_downward_non_influence_and_served_conformance_report;
 #[path = "tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract_report.rs"]
 mod tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract_report;
 #[path = "tassadar_post_article_execution_semantics_proof_transport_audit.rs"]
@@ -540,6 +542,7 @@ pub use tassadar_post_article_canonical_route_universal_substrate_gate::*;
 pub use tassadar_post_article_carrier_split_contract::*;
 pub use tassadar_post_article_continuation_non_computationality_contract_report::*;
 pub use tassadar_post_article_control_plane_decision_provenance_proof::*;
+pub use tassadar_post_article_downward_non_influence_and_served_conformance_report::*;
 pub use tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract_report::*;
 pub use tassadar_post_article_execution_semantics_proof_transport_audit::*;
 pub use tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_report::*;

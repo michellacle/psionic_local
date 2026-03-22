@@ -61,7 +61,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json",
       "source_artifact_id": "tassadar.post_article_canonical_computational_model_statement.report.v1",
-      "source_artifact_digest": "3ce3902cf5e0a4f693f259fed80f91860e1462b9a05618aa664aeb9f80401875",
+      "source_artifact_digest": "c6d490228b3436acd10829b05422c084a9284d78c9a194bff72125670d882eb9",
       "detail": "the canonical computational-model statement names the direct route, continuation carrier, effect boundary, and plugin-overlay posture that proof transport must preserve."
     },
     {
@@ -414,7 +414,7 @@
   "proof_transport_issue_id": "TAS-209",
   "proof_transport_complete": true,
   "plugin_execution_transport_bound": true,
-  "next_stability_issue_id": "TAS-213",
+  "next_stability_issue_id": "TAS-214",
   "closure_bundle_issue_id": "TAS-215",
   "closure_bundle_embedded_here": false,
   "rebase_claim_allowed": false,
@@ -422,6 +422,6 @@
   "served_public_universality_allowed": false,
   "arbitrary_software_capability_allowed": false,
   "claim_boundary": "this eval-owned audit freezes one canonical execution-semantics proof-transport boundary for the post-article machine. It binds the historical universal-machine proof, the post-article rebinding receipts, the canonical computational-model statement, the declared TCM.v1 continuation carrier, and the current plugin-facing runtime/conformance/controller surfaces to the same proof-bearing machine without overclaiming a stronger machine. It still leaves fast-route legitimacy, downward non-influence, anti-drift closeout, and the final closure bundle as later issues.",
-  "summary": "Post-article execution-semantics proof-transport audit keeps status=Green, supporting_material_rows=11, dependency_rows=9, plugin_surface_rows=3, invalidation_rows=6, validation_rows=9, next_stability_issue_id=`TAS-213`, and closure_bundle_issue_id=`TAS-215`.",
-  "report_digest": "ebc9627436f864a7523e2feb8f8f6ae7b3f5dbadc9434e98fc483453b3610d07"
+  "summary": "Post-article execution-semantics proof-transport audit keeps status=Green, supporting_material_rows=11, dependency_rows=9, plugin_surface_rows=3, invalidation_rows=6, validation_rows=9, next_stability_issue_id=`TAS-214`, and closure_bundle_issue_id=`TAS-215`.",
+  "report_digest": "560eedc5e99d9e6c6c380188df89def036257207d2a49000b8a600ba322a2f47"
 }

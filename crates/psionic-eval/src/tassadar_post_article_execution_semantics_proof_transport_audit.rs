@@ -58,7 +58,7 @@ const POST_ARTICLE_TURING_AUDIT_REF: &str =
     "docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md";
 const PLUGIN_SYSTEM_TURING_AUDIT_REF: &str =
     "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md";
-const NEXT_STABILITY_ISSUE_ID: &str = "TAS-213";
+const NEXT_STABILITY_ISSUE_ID: &str = "TAS-214";
 const CLOSURE_BUNDLE_ISSUE_ID: &str = "TAS-215";
 const PROOF_TRANSPORT_ISSUE_ID: &str = "TAS-209";
 
@@ -1236,7 +1236,7 @@ mod tests {
         assert!(report.proof_transport_complete);
         assert!(report.plugin_execution_transport_bound);
         assert_eq!(report.proof_transport_issue_id, "TAS-209");
-        assert_eq!(report.next_stability_issue_id, "TAS-213");
+        assert_eq!(report.next_stability_issue_id, "TAS-214");
         assert_eq!(report.closure_bundle_issue_id, "TAS-215");
         assert!(!report.closure_bundle_embedded_here);
         assert!(!report.rebase_claim_allowed);

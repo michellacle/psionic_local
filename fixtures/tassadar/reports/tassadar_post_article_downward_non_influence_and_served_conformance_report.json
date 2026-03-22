@@ -1,0 +1,725 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.post_article_downward_non_influence_and_served_conformance.report.v1",
+  "checker_script_ref": "scripts/check-tassadar-post-article-downward-non-influence-and-served-conformance.sh",
+  "transformer_anchor_contract_ref": "crates/psionic-transformer/src/tassadar_post_article_downward_non_influence_and_served_conformance_contract.rs",
+  "canonical_computational_model_statement_report_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json",
+  "canonical_machine_identity_lock_report_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_report.json",
+  "execution_semantics_proof_transport_audit_report_ref": "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json",
+  "continuation_non_computationality_contract_report_ref": "fixtures/tassadar/reports/tassadar_post_article_continuation_non_computationality_contract_report.json",
+  "fast_route_legitimacy_and_carrier_binding_contract_report_ref": "fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_report.json",
+  "equivalent_choice_neutrality_and_admissibility_contract_report_ref": "fixtures/tassadar/reports/tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract_report.json",
+  "rebased_universality_verdict_split_report_ref": "fixtures/tassadar/reports/tassadar_post_article_rebased_universality_verdict_split_report.json",
+  "historical_universality_verdict_split_report_ref": "fixtures/tassadar/reports/tassadar_universality_verdict_split_report.json",
+  "served_conformance_envelope_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_served_conformance_envelope.json",
+  "broad_internal_compute_profile_publication_report_ref": "fixtures/tassadar/reports/tassadar_broad_internal_compute_profile_publication_report.json",
+  "plugin_system_audit_ref": "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md",
+  "post_article_turing_audit_ref": "docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md",
+  "supporting_material_refs": [
+    "fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json",
+    "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_report.json",
+    "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json",
+    "fixtures/tassadar/reports/tassadar_post_article_continuation_non_computationality_contract_report.json",
+    "fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_report.json",
+    "fixtures/tassadar/reports/tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract_report.json",
+    "fixtures/tassadar/reports/tassadar_post_article_rebased_universality_verdict_split_report.json",
+    "fixtures/tassadar/reports/tassadar_universality_verdict_split_report.json",
+    "fixtures/tassadar/reports/tassadar_post_article_universality_served_conformance_envelope.json",
+    "fixtures/tassadar/reports/tassadar_broad_internal_compute_profile_publication_report.json",
+    "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md",
+    "docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md"
+  ],
+  "downward_non_influence_contract": {
+    "schema_version": 1,
+    "contract_id": "tassadar.post_article.downward_non_influence_and_served_conformance.contract.v1",
+    "machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+    "tuple_id": "tassadar.post_article.canonical_machine_identity_lock.tuple.v1",
+    "boundary_id": "tassadar.post_article.downward_non_influence_and_served_conformance.boundary.v1",
+    "supporting_precedent_ids": [
+      "canonical_computational_model_statement",
+      "canonical_machine_identity_lock",
+      "execution_semantics_proof_transport",
+      "continuation_non_computationality",
+      "fast_route_legitimacy_and_carrier_binding",
+      "equivalent_choice_neutrality_and_admissibility",
+      "rebased_universality_verdict_split",
+      "served_conformance_envelope"
+    ],
+    "lower_plane_truth_rows": [
+      {
+        "truth_surface_id": "canonical_computational_model_statement",
+        "truth_kind": "canonical_computational_model",
+        "canonical_machine_binding_required": true,
+        "plugin_or_served_rewrite_forbidden": true,
+        "broader_claim_inheritance_allowed": false,
+        "green": true,
+        "detail": "the canonical computational-model statement names the machine, direct route, continuation inheritance, and effect boundary that later plugin or served surfaces may cite but may not rewrite."
+      },
+      {
+        "truth_surface_id": "canonical_machine_identity_lock",
+        "truth_kind": "canonical_machine_identity_lock",
+        "canonical_machine_binding_required": true,
+        "plugin_or_served_rewrite_forbidden": true,
+        "broader_claim_inheritance_allowed": false,
+        "green": true,
+        "detail": "the canonical machine lock binds one machine tuple, one route descriptor digest, and one continuation contract that later surfaces may project but may not recompute."
+      },
+      {
+        "truth_surface_id": "execution_semantics_proof_transport",
+        "truth_kind": "execution_semantics_proof_transport",
+        "canonical_machine_binding_required": true,
+        "plugin_or_served_rewrite_forbidden": true,
+        "broader_claim_inheritance_allowed": false,
+        "green": true,
+        "detail": "the proof-transport boundary freezes which execution semantics survive rebinding and blocks later helper or plugin drift from becoming a stronger machine."
+      },
+      {
+        "truth_surface_id": "continuation_non_computationality",
+        "truth_kind": "continuation_boundary",
+        "canonical_machine_binding_required": true,
+        "plugin_or_served_rewrite_forbidden": true,
+        "broader_claim_inheritance_allowed": false,
+        "green": true,
+        "detail": "continuation stays transport-only and may not be widened by plugin or served ergonomics into hidden workflow logic or second-machine computation."
+      },
+      {
+        "truth_surface_id": "fast_route_legitimacy_and_carrier_binding",
+        "truth_kind": "fast_route_carrier_binding",
+        "canonical_machine_binding_required": true,
+        "plugin_or_served_rewrite_forbidden": true,
+        "broader_claim_inheritance_allowed": false,
+        "green": true,
+        "detail": "fast-route carrier binding keeps only the declared direct route inside the canonical machine while other families remain explicitly narrower or out of carrier."
+      },
+      {
+        "truth_surface_id": "equivalent_choice_neutrality_and_admissibility",
+        "truth_kind": "equivalent_choice_boundary",
+        "canonical_machine_binding_required": true,
+        "plugin_or_served_rewrite_forbidden": true,
+        "broader_claim_inheritance_allowed": false,
+        "green": true,
+        "detail": "equivalent-choice neutrality keeps admissibility, narrowing, and typed denial explicit so later served posture cannot smuggle hidden steering back into the lower plane."
+      }
+    ],
+    "allowed_narrower_deviation_ids": [
+      "served_posture_may_remain_narrower_than_operator_universality",
+      "served_posture_may_expose_only_direct_article_route",
+      "served_posture_may_remain_cpu_only_with_explicit_suppression_elsewhere"
+    ],
+    "blocked_rewrite_ids": [
+      "plugin_or_served_rewrites_compute_substrate_rules",
+      "plugin_or_served_rewrites_proof_assumptions",
+      "plugin_or_served_rewrites_continuation_semantics",
+      "plugin_or_served_rewrites_carrier_identity",
+      "plugin_or_served_rewrites_equivalent_choice_boundary",
+      "served_posture_escapes_declared_conformance_envelope",
+      "plugin_capability_or_public_universality_laundered_from_served_posture"
+    ],
+    "fail_closed_condition_ids": [
+      "route_drift_or_descriptor_change",
+      "machine_outside_declared_cpu_matrix",
+      "nonselected_fast_route_claimed_as_universal",
+      "resumable_or_public_universality_widening_attempted",
+      "plugin_capability_implication_attempted"
+    ],
+    "contract_rule_rows": [
+      {
+        "rule_id": "lower_plane_truth_rows_must_stay_explicit",
+        "green": true,
+        "detail": "Every lower-plane truth surface must stay named explicitly and bound to one canonical machine identity tuple before later capability or served layers may cite it."
+      },
+      {
+        "rule_id": "plugin_and_served_layers_may_project_but_not_rewrite",
+        "green": true,
+        "detail": "Plugin and served layers may project lower-plane truth into receipts or narrower posture, but they may not rewrite compute-substrate rules, proof assumptions, continuation semantics, carrier identity, or equivalent-choice boundaries."
+      },
+      {
+        "rule_id": "served_posture_may_only_narrow_inside_declared_envelope",
+        "green": true,
+        "detail": "Served posture may remain narrower than operator truth only through the declared conformance envelope and only by the listed narrower-deviation ids."
+      },
+      {
+        "rule_id": "served_widening_must_fail_closed",
+        "green": true,
+        "detail": "Any attempt to widen served posture beyond the declared route, machine matrix, decode mode, or publication boundary must fail closed through explicit condition ids."
+      },
+      {
+        "rule_id": "historical_and_rebased_verdict_splits_must_agree_on_suppression",
+        "green": true,
+        "detail": "Historical and rebased verdict-split surfaces must continue to keep served/public universality, plugin capability, and arbitrary software capability blocked."
+      },
+      {
+        "rule_id": "anti_drift_closeout_and_closure_bundle_remain_open",
+        "green": true,
+        "detail": "This contract closes downward non-influence and served conformance only; anti-drift closeout and the final closure bundle remain explicit later issues."
+      }
+    ],
+    "invalidation_rule_rows": [
+      {
+        "rule_id": "plugin_or_served_rewrites_compute_substrate_invalidates_contract",
+        "green": true,
+        "detail": "The contract fails if plugin or served layers redefine the computational model, proof-bearing execution boundary, or lower-plane compute-substrate rules."
+      },
+      {
+        "rule_id": "plugin_or_served_rewrites_continuation_invalidates_contract",
+        "green": true,
+        "detail": "The contract fails if continuation semantics are widened into hidden workflow logic, second-machine behavior, or stronger execution than the lower plane allows."
+      },
+      {
+        "rule_id": "plugin_or_served_rewrites_carrier_identity_invalidates_contract",
+        "green": true,
+        "detail": "The contract fails if route-carrier identity, route descriptor digest, decode mode, or machine tuple drift beneath later served or plugin posture."
+      },
+      {
+        "rule_id": "plugin_or_served_rewrites_equivalent_choice_invalidates_contract",
+        "green": true,
+        "detail": "The contract fails if equivalent-choice or admissibility neutrality is reinterpreted through hidden ordering, ranking, or steering in later layers."
+      },
+      {
+        "rule_id": "served_posture_outside_declared_envelope_invalidates_contract",
+        "green": true,
+        "detail": "The contract fails if served posture escapes the declared conformance envelope instead of staying narrower and fail-closed."
+      },
+      {
+        "rule_id": "served_or_plugin_overclaim_invalidates_contract",
+        "green": true,
+        "detail": "The contract fails if narrower served posture is laundered into plugin capability, public universality, or arbitrary software capability claims."
+      },
+      {
+        "rule_id": "closure_bundle_overread_invalidates_contract",
+        "green": true,
+        "detail": "The final closure bundle may not be inferred from downward non-influence and served conformance alone until later anti-drift closeout and bundle publication land explicitly."
+      }
+    ],
+    "next_stability_issue_id": "TAS-214",
+    "claim_boundary": "this transformer-owned contract freezes only downward non-influence and served conformance for the canonical post-article machine. It binds lower-plane truth surfaces, the allowed narrower served deviations, the fail-closed widening conditions, and the blocked rewrite classes explicitly. It does not itself close anti-drift publication, the canonical machine closure bundle, plugin publication, served/public universality, or arbitrary software capability.",
+    "summary": "Transformer downward non-influence and served conformance contract freezes 6 lower-plane truth rows, 3 allowed served deviations, 7 blocked rewrite ids, 5 fail-closed conditions, and 7 invalidation laws for one canonical post-article machine."
+  },
+  "machine_identity_binding": {
+    "machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+    "tuple_id": "tassadar.post_article.canonical_machine_identity_lock.tuple.v1",
+    "canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+    "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+    "canonical_route_descriptor_digest": "00af062cccc3d1b2e42ee8e092b9ef8e1539dd3f2dfc379cff7d1cd4a008b032",
+    "direct_decode_mode": "hull_cache",
+    "current_served_internal_compute_profile_id": "tassadar.internal_compute.article_closeout.v1",
+    "computational_model_statement_id": "tassadar.post_article.canonical_computational_model.statement.v1",
+    "continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+    "proof_transport_boundary_id": "tassadar.post_article_universal_machine_proof.proof_transport_boundary.v1",
+    "equivalent_choice_boundary_id": "tassadar.post_article.equivalent_choice_neutrality_and_admissibility.boundary.v1",
+    "served_conformance_envelope_id": "tassadar.post_article_universality_served_conformance_envelope.v1",
+    "detail": "machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1` tuple_id=`tassadar.post_article.canonical_machine_identity_lock.tuple.v1` canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1` direct_decode_mode=`hull_cache` served_profile_id=`tassadar.internal_compute.article_closeout.v1` proof_transport_boundary_id=`tassadar.post_article_universal_machine_proof.proof_transport_boundary.v1`"
+  },
+  "supporting_material_rows": [
+    {
+      "material_id": "transformer_anchor_contract",
+      "material_class": "anchor",
+      "satisfied": true,
+      "source_ref": "crates/psionic-transformer/src/tassadar_post_article_downward_non_influence_and_served_conformance_contract.rs",
+      "source_artifact_id": "tassadar.post_article.downward_non_influence_and_served_conformance.contract.v1",
+      "detail": "the transformer-owned anchor freezes the lower-plane truth rows, allowed served deviations, blocked rewrite ids, and fail-closed conditions explicitly."
+    },
+    {
+      "material_id": "canonical_computational_model_statement",
+      "material_class": "lower_plane_truth",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json",
+      "source_artifact_id": "tassadar.post_article_canonical_computational_model_statement.report.v1",
+      "source_artifact_digest": "c6d490228b3436acd10829b05422c084a9284d78c9a194bff72125670d882eb9",
+      "detail": "the canonical computational-model statement names the lower-plane machine, direct route, continuation inheritance, and plugin-above-machine boundary."
+    },
+    {
+      "material_id": "canonical_machine_identity_lock",
+      "material_class": "lower_plane_truth",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_report.json",
+      "source_artifact_id": "tassadar.post_article_canonical_machine_identity_lock.report.v1",
+      "source_artifact_digest": "ec4f4d555ca5f77b3524d25f2dbdede77645c73df8119cd7520bf07be922fef9",
+      "detail": "the machine lock binds one tuple and route descriptor digest that later served or plugin layers may not recompute."
+    },
+    {
+      "material_id": "execution_semantics_proof_transport",
+      "material_class": "lower_plane_truth",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json",
+      "source_artifact_id": "tassadar.post_article_execution_semantics_proof_transport_audit.report.v1",
+      "source_artifact_digest": "560eedc5e99d9e6c6c380188df89def036257207d2a49000b8a600ba322a2f47",
+      "detail": "the proof-transport audit freezes which transition classes survive rebinding and blocks stronger-machine drift."
+    },
+    {
+      "material_id": "continuation_non_computationality",
+      "material_class": "lower_plane_truth",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_continuation_non_computationality_contract_report.json",
+      "source_artifact_id": "tassadar.post_article_continuation_non_computationality_contract.report.v1",
+      "source_artifact_digest": "6db2c8c0b3c4977010a91a31d4236594ae7b3d782c2257c90015f7fbb94a8c26",
+      "detail": "the continuation contract keeps checkpoint, spill, session, and process surfaces transport-only on the same machine tuple."
+    },
+    {
+      "material_id": "fast_route_legitimacy_and_carrier_binding",
+      "material_class": "lower_plane_truth",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_report.json",
+      "source_artifact_id": "tassadar.post_article_fast_route_legitimacy_and_carrier_binding_contract.report.v1",
+      "source_artifact_digest": "2e0b5be06c4346abb188b331c103fd26c5ec0ba5f7f458bf6c2fd809726ac0e7",
+      "detail": "the fast-route contract keeps only the declared direct carrier inside the machine while other families remain narrower or outside carrier."
+    },
+    {
+      "material_id": "equivalent_choice_neutrality_and_admissibility",
+      "material_class": "lower_plane_truth",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract_report.json",
+      "source_artifact_id": "tassadar.post_article_equivalent_choice_neutrality_and_admissibility.report.v1",
+      "source_artifact_digest": "093cc194c6b27a3a0d0e5774a3af292e19ad27d890dcb3b10b896e0b1c171204",
+      "detail": "equivalent-choice neutrality prevents later layers from laundering hidden steering back into the lower plane."
+    },
+    {
+      "material_id": "served_conformance_envelope",
+      "material_class": "served_envelope",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_served_conformance_envelope.json",
+      "source_artifact_id": "tassadar.post_article_universality_served_conformance_envelope.v1",
+      "source_artifact_digest": "18acdafa84adfc0295205334fc64eec765c70537d15c3a063ab72bc0532ef73a",
+      "detail": "the served conformance envelope names the only allowed narrower deviations and the fail-closed widening conditions for served posture."
+    },
+    {
+      "material_id": "rebased_universality_verdict_split",
+      "material_class": "verdict_boundary",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_rebased_universality_verdict_split_report.json",
+      "source_artifact_id": "tassadar.post_article_rebased_universality_verdict_split.report.v1",
+      "source_artifact_digest": "81c4bed1a4b97c48b2cf79172bdc08ff901691622932eff3805bc47a02dc8588",
+      "detail": "the rebased verdict split keeps theory/operator green while served remains suppressed and public or plugin widening remains blocked."
+    },
+    {
+      "material_id": "historical_universality_verdict_split",
+      "material_class": "historical_context",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_universality_verdict_split_report.json",
+      "source_artifact_id": "tassadar.universality_verdict_split.report.v1",
+      "source_artifact_digest": "c74c77968fda637f0fa73d12c0c131cac0d00ff10092cc712efb0787d9746082",
+      "detail": "the historical verdict split remains the earlier theory/operator green, served suppressed boundary that later served posture must not overread."
+    },
+    {
+      "material_id": "broad_internal_compute_profile_publication",
+      "material_class": "served_envelope",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_broad_internal_compute_profile_publication_report.json",
+      "source_artifact_id": "tassadar.broad_internal_compute_profile_publication.report.v1",
+      "source_artifact_digest": "e97275c6c640e4a17e33ff4e38ff7a49753c97554e7681ee676dd35254c535a3",
+      "detail": "the broad internal-compute profile publication still names the article-closeout served profile instead of a stronger served universality profile."
+    },
+    {
+      "material_id": "plugin_system_turing_audit",
+      "material_class": "audit_context",
+      "satisfied": true,
+      "source_ref": "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md",
+      "detail": "the plugin-system audit is retained as supporting context for the downward non-influence and served-envelope boundary."
+    },
+    {
+      "material_id": "post_article_turing_audit",
+      "material_class": "audit_context",
+      "satisfied": true,
+      "source_ref": "docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md",
+      "detail": "the post-article Turing-completeness audit is retained as supporting context for the post-article machine and served suppression posture."
+    }
+  ],
+  "dependency_rows": [
+    {
+      "dependency_id": "canonical_machine_identity_consistent",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_continuation_non_computationality_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_rebased_universality_verdict_split_report.json"
+      ],
+      "detail": "all lower-plane truth artifacts and the rebased verdict split must cite one canonical machine identity."
+    },
+    {
+      "dependency_id": "canonical_route_identity_consistent",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_continuation_non_computationality_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_served_conformance_envelope.json"
+      ],
+      "detail": "all lower-plane truth artifacts plus the served envelope must keep the same canonical route id and route descriptor digest."
+    },
+    {
+      "dependency_id": "proof_transport_boundary_consistent",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_continuation_non_computationality_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_report.json"
+      ],
+      "detail": "continuation and fast-route posture must inherit the same proof-transport boundary instead of redefining execution semantics later."
+    },
+    {
+      "dependency_id": "served_allowed_deviations_explicit",
+      "satisfied": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_downward_non_influence_and_served_conformance_contract.rs",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_served_conformance_envelope.json"
+      ],
+      "detail": "the served envelope must list exactly the allowed narrower deviations declared by the anchor contract."
+    },
+    {
+      "dependency_id": "served_fail_closed_conditions_explicit",
+      "satisfied": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_downward_non_influence_and_served_conformance_contract.rs",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_served_conformance_envelope.json"
+      ],
+      "detail": "the served envelope must list exactly the fail-closed widening conditions declared by the anchor contract."
+    },
+    {
+      "dependency_id": "served_profile_matches_publication",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_profile_publication_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_served_conformance_envelope.json",
+        "fixtures/tassadar/reports/tassadar_post_article_rebased_universality_verdict_split_report.json"
+      ],
+      "detail": "the served profile named by the publication, served envelope, and rebased verdict split must stay the same narrower article-closeout profile."
+    },
+    {
+      "dependency_id": "served_suppression_and_overclaim_blocked",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_universality_verdict_split_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_rebased_universality_verdict_split_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_served_conformance_envelope.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_profile_publication_report.json"
+      ],
+      "detail": "historical and rebased verdict surfaces must keep served/public universality and plugin capability blocked while served posture stays narrower than operator truth."
+    },
+    {
+      "dependency_id": "frontier_advances_to_tas_214",
+      "satisfied": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_downward_non_influence_and_served_conformance_contract.rs",
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_continuation_non_computationality_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract_report.json"
+      ],
+      "detail": "closing this issue must move the lower-plane anti-drift frontier to TAS-214 rather than leaving TAS-213 open implicitly."
+    }
+  ],
+  "lower_plane_truth_rows": [
+    {
+      "truth_surface_id": "canonical_computational_model_statement",
+      "truth_kind": "canonical_computational_model",
+      "source_artifact_id": "tassadar.post_article_canonical_computational_model_statement.report.v1",
+      "source_artifact_digest": "c6d490228b3436acd10829b05422c084a9284d78c9a194bff72125670d882eb9",
+      "canonical_machine_bound": true,
+      "canonical_route_bound": true,
+      "plugin_or_served_rewrite_forbidden": true,
+      "broader_claim_inheritance_allowed": false,
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json"
+      ],
+      "detail": "the published computational-model statement is a lower-plane truth row and remains canonically bound."
+    },
+    {
+      "truth_surface_id": "canonical_machine_identity_lock",
+      "truth_kind": "canonical_machine_identity_lock",
+      "source_artifact_id": "tassadar.post_article_canonical_machine_identity_lock.report.v1",
+      "source_artifact_digest": "ec4f4d555ca5f77b3524d25f2dbdede77645c73df8119cd7520bf07be922fef9",
+      "canonical_machine_bound": true,
+      "canonical_route_bound": true,
+      "plugin_or_served_rewrite_forbidden": true,
+      "broader_claim_inheritance_allowed": false,
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_report.json"
+      ],
+      "detail": "the machine lock keeps tuple, route, and continuation identity frozen against later rewrite."
+    },
+    {
+      "truth_surface_id": "execution_semantics_proof_transport",
+      "truth_kind": "execution_semantics_proof_transport",
+      "source_artifact_id": "tassadar.post_article_execution_semantics_proof_transport_audit.report.v1",
+      "source_artifact_digest": "560eedc5e99d9e6c6c380188df89def036257207d2a49000b8a600ba322a2f47",
+      "canonical_machine_bound": true,
+      "canonical_route_bound": true,
+      "plugin_or_served_rewrite_forbidden": true,
+      "broader_claim_inheritance_allowed": false,
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json"
+      ],
+      "detail": "the proof-transport boundary remains part of lower-plane truth and stays bound to the canonical machine rather than a later plugin or served layer."
+    },
+    {
+      "truth_surface_id": "continuation_non_computationality",
+      "truth_kind": "continuation_boundary",
+      "source_artifact_id": "tassadar.post_article_continuation_non_computationality_contract.report.v1",
+      "source_artifact_digest": "6db2c8c0b3c4977010a91a31d4236594ae7b3d782c2257c90015f7fbb94a8c26",
+      "canonical_machine_bound": true,
+      "canonical_route_bound": true,
+      "plugin_or_served_rewrite_forbidden": true,
+      "broader_claim_inheritance_allowed": false,
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_continuation_non_computationality_contract_report.json"
+      ],
+      "detail": "continuation remains transport-only on the canonical machine and may not be widened into hidden compute by later layers."
+    },
+    {
+      "truth_surface_id": "fast_route_legitimacy_and_carrier_binding",
+      "truth_kind": "fast_route_carrier_binding",
+      "source_artifact_id": "tassadar.post_article_fast_route_legitimacy_and_carrier_binding_contract.report.v1",
+      "source_artifact_digest": "2e0b5be06c4346abb188b331c103fd26c5ec0ba5f7f458bf6c2fd809726ac0e7",
+      "canonical_machine_bound": true,
+      "canonical_route_bound": true,
+      "plugin_or_served_rewrite_forbidden": true,
+      "broader_claim_inheritance_allowed": false,
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_report.json"
+      ],
+      "detail": "fast-route carrier identity remains frozen in the lower plane and is not widened by served or plugin posture."
+    },
+    {
+      "truth_surface_id": "equivalent_choice_neutrality_and_admissibility",
+      "truth_kind": "equivalent_choice_boundary",
+      "source_artifact_id": "tassadar.post_article_equivalent_choice_neutrality_and_admissibility.report.v1",
+      "source_artifact_digest": "093cc194c6b27a3a0d0e5774a3af292e19ad27d890dcb3b10b896e0b1c171204",
+      "canonical_machine_bound": true,
+      "canonical_route_bound": true,
+      "plugin_or_served_rewrite_forbidden": true,
+      "broader_claim_inheritance_allowed": false,
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract_report.json"
+      ],
+      "detail": "equivalent-choice and admissibility neutrality stay lower-plane truth instead of becoming a host-side steering channel."
+    }
+  ],
+  "served_deviation_rows": [
+    {
+      "deviation_id": "served_posture_may_remain_narrower_than_operator_universality",
+      "explicit_in_contract": true,
+      "explicit_in_served_envelope": true,
+      "operator_truth_remains_broader": true,
+      "fail_closed_if_widened": true,
+      "green": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_downward_non_influence_and_served_conformance_contract.rs",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_served_conformance_envelope.json",
+        "fixtures/tassadar/reports/tassadar_post_article_rebased_universality_verdict_split_report.json"
+      ],
+      "detail": "served deviation `served_posture_may_remain_narrower_than_operator_universality` is allowed only as an explicit narrower-than-operator posture inside the declared served conformance envelope."
+    },
+    {
+      "deviation_id": "served_posture_may_expose_only_direct_article_route",
+      "explicit_in_contract": true,
+      "explicit_in_served_envelope": true,
+      "operator_truth_remains_broader": true,
+      "fail_closed_if_widened": true,
+      "green": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_downward_non_influence_and_served_conformance_contract.rs",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_served_conformance_envelope.json",
+        "fixtures/tassadar/reports/tassadar_post_article_rebased_universality_verdict_split_report.json"
+      ],
+      "detail": "served deviation `served_posture_may_expose_only_direct_article_route` is allowed only as an explicit narrower-than-operator posture inside the declared served conformance envelope."
+    },
+    {
+      "deviation_id": "served_posture_may_remain_cpu_only_with_explicit_suppression_elsewhere",
+      "explicit_in_contract": true,
+      "explicit_in_served_envelope": true,
+      "operator_truth_remains_broader": true,
+      "fail_closed_if_widened": true,
+      "green": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_downward_non_influence_and_served_conformance_contract.rs",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_served_conformance_envelope.json",
+        "fixtures/tassadar/reports/tassadar_post_article_rebased_universality_verdict_split_report.json"
+      ],
+      "detail": "served deviation `served_posture_may_remain_cpu_only_with_explicit_suppression_elsewhere` is allowed only as an explicit narrower-than-operator posture inside the declared served conformance envelope."
+    }
+  ],
+  "invalidation_rows": [
+    {
+      "invalidation_id": "plugin_or_served_rewrites_compute_substrate_invalidates_contract",
+      "present": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_downward_non_influence_and_served_conformance_contract.rs",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_served_conformance_envelope.json",
+        "fixtures/tassadar/reports/tassadar_post_article_rebased_universality_verdict_split_report.json"
+      ],
+      "detail": "The contract fails if plugin or served layers redefine the computational model, proof-bearing execution boundary, or lower-plane compute-substrate rules."
+    },
+    {
+      "invalidation_id": "plugin_or_served_rewrites_continuation_invalidates_contract",
+      "present": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_downward_non_influence_and_served_conformance_contract.rs",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_served_conformance_envelope.json",
+        "fixtures/tassadar/reports/tassadar_post_article_rebased_universality_verdict_split_report.json"
+      ],
+      "detail": "The contract fails if continuation semantics are widened into hidden workflow logic, second-machine behavior, or stronger execution than the lower plane allows."
+    },
+    {
+      "invalidation_id": "plugin_or_served_rewrites_carrier_identity_invalidates_contract",
+      "present": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_downward_non_influence_and_served_conformance_contract.rs",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_served_conformance_envelope.json",
+        "fixtures/tassadar/reports/tassadar_post_article_rebased_universality_verdict_split_report.json"
+      ],
+      "detail": "The contract fails if route-carrier identity, route descriptor digest, decode mode, or machine tuple drift beneath later served or plugin posture."
+    },
+    {
+      "invalidation_id": "plugin_or_served_rewrites_equivalent_choice_invalidates_contract",
+      "present": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_downward_non_influence_and_served_conformance_contract.rs",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_served_conformance_envelope.json",
+        "fixtures/tassadar/reports/tassadar_post_article_rebased_universality_verdict_split_report.json"
+      ],
+      "detail": "The contract fails if equivalent-choice or admissibility neutrality is reinterpreted through hidden ordering, ranking, or steering in later layers."
+    },
+    {
+      "invalidation_id": "served_posture_outside_declared_envelope_invalidates_contract",
+      "present": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_downward_non_influence_and_served_conformance_contract.rs",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_served_conformance_envelope.json",
+        "fixtures/tassadar/reports/tassadar_post_article_rebased_universality_verdict_split_report.json"
+      ],
+      "detail": "The contract fails if served posture escapes the declared conformance envelope instead of staying narrower and fail-closed."
+    },
+    {
+      "invalidation_id": "served_or_plugin_overclaim_invalidates_contract",
+      "present": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_downward_non_influence_and_served_conformance_contract.rs",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_served_conformance_envelope.json",
+        "fixtures/tassadar/reports/tassadar_post_article_rebased_universality_verdict_split_report.json"
+      ],
+      "detail": "The contract fails if narrower served posture is laundered into plugin capability, public universality, or arbitrary software capability claims."
+    },
+    {
+      "invalidation_id": "closure_bundle_overread_invalidates_contract",
+      "present": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_downward_non_influence_and_served_conformance_contract.rs",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_served_conformance_envelope.json",
+        "fixtures/tassadar/reports/tassadar_post_article_rebased_universality_verdict_split_report.json"
+      ],
+      "detail": "The final closure bundle may not be inferred from downward non-influence and served conformance alone until later anti-drift closeout and bundle publication land explicitly."
+    }
+  ],
+  "validation_rows": [
+    {
+      "validation_id": "lower_plane_truth_rows_all_green",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_continuation_non_computationality_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract_report.json"
+      ],
+      "detail": "every declared lower-plane truth row must stay green on the same canonical machine."
+    },
+    {
+      "validation_id": "canonical_route_and_decode_mode_bound",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_served_conformance_envelope.json"
+      ],
+      "detail": "the served envelope must keep the same route id, route descriptor digest, and direct decode mode as lower-plane truth."
+    },
+    {
+      "validation_id": "served_allowed_deviations_explicit",
+      "green": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_downward_non_influence_and_served_conformance_contract.rs",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_served_conformance_envelope.json"
+      ],
+      "detail": "the served envelope must enumerate exactly the allowed narrower deviation ids declared by the anchor contract."
+    },
+    {
+      "validation_id": "served_fail_closed_conditions_explicit",
+      "green": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_downward_non_influence_and_served_conformance_contract.rs",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_served_conformance_envelope.json"
+      ],
+      "detail": "the served envelope must enumerate the declared fail-closed conditions and keep the canonical-route identity properties explicit."
+    },
+    {
+      "validation_id": "served_posture_remains_narrower_than_operator_truth",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_universality_verdict_split_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_rebased_universality_verdict_split_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_served_conformance_envelope.json"
+      ],
+      "detail": "served posture must remain explicitly narrower than operator truth rather than silently inheriting operator-green universality."
+    },
+    {
+      "validation_id": "plugin_and_public_overclaim_blocked",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_rebased_universality_verdict_split_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_served_conformance_envelope.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_profile_publication_report.json"
+      ],
+      "detail": "plugin capability, served/public universality, and arbitrary software capability must remain blocked from this narrower served posture."
+    },
+    {
+      "validation_id": "served_profile_matches_publication",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_profile_publication_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_served_conformance_envelope.json",
+        "fixtures/tassadar/reports/tassadar_post_article_rebased_universality_verdict_split_report.json"
+      ],
+      "detail": "the current served profile id must remain the same narrower article-closeout profile across publication, envelope, and rebased verdict split surfaces."
+    },
+    {
+      "validation_id": "anti_drift_frontier_moves_to_tas_214",
+      "green": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_downward_non_influence_and_served_conformance_contract.rs",
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_continuation_non_computationality_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract_report.json"
+      ],
+      "detail": "closing downward non-influence and served conformance must hand the frontier to TAS-214."
+    }
+  ],
+  "contract_status": "green",
+  "contract_green": true,
+  "downward_non_influence_complete": true,
+  "served_conformance_envelope_complete": true,
+  "lower_plane_truth_rewrite_refused": true,
+  "served_posture_narrower_than_operator_truth": true,
+  "served_posture_fail_closed": true,
+  "plugin_or_served_overclaim_refused": true,
+  "next_stability_issue_id": "TAS-214",
+  "closure_bundle_issue_id": "TAS-215",
+  "claim_boundary": "this eval-owned artifact closes only the downward non-influence and served conformance envelope boundary for the canonical post-article machine. It makes lower-plane truth rows, served narrowing allowances, fail-closed widening conditions, and blocked overclaim posture machine-checkable. It does not itself close anti-drift publication, the canonical machine closure bundle, plugin publication, served/public universality, or arbitrary software capability.",
+  "summary": "Post-article downward non-influence and served conformance report keeps contract_status=Green, lower_plane_truth_rows=6, served_deviation_rows=3, validation_rows=8, next_stability_issue_id=`TAS-214`, and closure_bundle_issue_id=`TAS-215`.",
+  "report_digest": "a1b1131c9b753e1dad216f24310e475f43baf6016f0d5d86daec5dca474d53ec"
+}

@@ -96,7 +96,7 @@ mod tests {
         assert!(receipt.hidden_ordering_or_ranking_quarantined);
         assert!(receipt.latency_cost_and_soft_failure_channels_blocked);
         assert!(receipt.served_or_plugin_equivalence_overclaim_refused);
-        assert_eq!(receipt.next_stability_issue_id, "TAS-213");
+        assert_eq!(receipt.next_stability_issue_id, "TAS-214");
         assert_eq!(receipt.closure_bundle_issue_id, "TAS-215");
     }
 }
