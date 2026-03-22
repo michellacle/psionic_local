@@ -102,6 +102,11 @@ and now also has:
   digest-bound manifest fields, provenance fields, trust tier, publication
   posture, and fail-closed validation rules that later runtime loading and
   receipt issues must reuse.
+- `docs/PSION_PLUGIN_GUEST_ARTIFACT_RUNTIME_LOADING.md` is the canonical first
+  bounded guest-artifact runtime-loading contract for the later lane and
+  freezes that load means manifest-bound byte admission, digest verification,
+  minimal Wasm header checks, host-owned capability mediation, and typed
+  load-time refusals rather than present-tense guest execution.
 - `docs/PSION_PLUGIN_CLAIM_BOUNDARY_AND_CAPABILITY_POSTURE.md` is the canonical
   claim-boundary and capability-posture contract for the convergence tranche
   and freezes which plugin classes are currently proved, not yet proved, later

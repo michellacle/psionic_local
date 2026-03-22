@@ -438,6 +438,17 @@ pub fn reference_psion_plugin_guest_artifact_manifest() -> PsionPluginGuestArtif
     manifest
 }
 
+#[must_use]
+pub fn reference_psion_plugin_guest_artifact_bytes() -> &'static [u8] {
+    REFERENCE_WASM_BYTES
+}
+
+pub fn refresh_psion_plugin_guest_artifact_manifest_digest(
+    manifest: &mut PsionPluginGuestArtifactManifest,
+) {
+    manifest.manifest_digest = stable_manifest_digest(manifest);
+}
+
 pub fn record_psion_plugin_guest_artifact_identity(
     manifest: &PsionPluginGuestArtifactManifest,
 ) -> Result<PsionPluginGuestArtifactIdentity, PsionPluginGuestArtifactManifestError> {

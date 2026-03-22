@@ -7,6 +7,7 @@ mod local_multi_device;
 mod parity;
 mod proof;
 mod psion_plugin_guest_artifact_manifest;
+mod psion_plugin_guest_artifact_runtime_loading;
 mod structured_output;
 mod tassadar;
 mod tassadar_approximate_attention_closure;
@@ -107,6 +108,7 @@ pub use local_multi_device::*;
 pub use parity::*;
 pub use proof::*;
 pub use psion_plugin_guest_artifact_manifest::*;
+pub use psion_plugin_guest_artifact_runtime_loading::*;
 use psionic_core::{
     BackendExtensionKind, DType, Device, DeviceKind, PsionicRefusal, PsionicRefusalCode,
     PsionicRefusalScope, QuantizationMode, QuantizedBlockLayout, TensorId, TensorSpec,

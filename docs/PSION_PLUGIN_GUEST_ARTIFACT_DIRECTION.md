@@ -83,6 +83,8 @@ The first concrete contract for that lane now lives in:
 
 - `docs/PSION_PLUGIN_GUEST_ARTIFACT_MANIFEST.md`
 - `crates/psionic-runtime/src/psion_plugin_guest_artifact_manifest.rs`
+- `docs/PSION_PLUGIN_GUEST_ARTIFACT_RUNTIME_LOADING.md`
+- `crates/psionic-runtime/src/psion_plugin_guest_artifact_runtime_loading.rs`
 
 They are not authorization for:
 
