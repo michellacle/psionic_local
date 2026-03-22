@@ -1,0 +1,47 @@
+{
+  "schema_version": "psion.google_training_storage_profile.v1",
+  "profile_id": "openagentsgemini-psion-train-us-central1-v1",
+  "project_id": "openagentsgemini",
+  "bucket_name": "openagentsgemini-psion-train-us-central1",
+  "bucket_url": "gs://openagentsgemini-psion-train-us-central1",
+  "location": "us-central1",
+  "default_storage_class": "STANDARD",
+  "public_access_prevention": "enforced",
+  "uniform_bucket_level_access": true,
+  "versioning": true,
+  "retention_period": "7d",
+  "soft_delete_duration": "14d",
+  "lifecycle_policy_ref": "fixtures/psion/google/psion_google_training_bucket_lifecycle_v1.json",
+  "layout": [
+    {
+      "prefix": "runs/",
+      "durability_class": "retained",
+      "detail": "Top-level run folders and final bundle references remain durable by default."
+    },
+    {
+      "prefix": "runs/staging/",
+      "durability_class": "transient",
+      "detail": "Transient staging objects may be deleted after 14 days."
+    },
+    {
+      "prefix": "checkpoints/",
+      "durability_class": "durable",
+      "detail": "Checkpoint artifacts and manifests are durable authority for cold restore."
+    },
+    {
+      "prefix": "receipts/",
+      "durability_class": "durable",
+      "detail": "Stage, observability, replay, benchmark, and pilot receipts remain durable by default."
+    },
+    {
+      "prefix": "manifests/",
+      "durability_class": "durable",
+      "detail": "Launch manifests, storage profiles, and upload manifests remain durable by default."
+    },
+    {
+      "prefix": "logs/",
+      "durability_class": "transient",
+      "detail": "Transient logs are retained for 30 days before lifecycle deletion."
+    }
+  ]
+}
