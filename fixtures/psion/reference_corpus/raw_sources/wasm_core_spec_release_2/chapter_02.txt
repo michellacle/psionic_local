@@ -1,0 +1,5 @@
+[[SECTION:wasm_core_spec_release_2:4.2.15|4.2.15 Execution Guarantees]]
+execution_guarantee names the safety property the engine preserves once validation succeeds and it must be reported as a guarantee rather than an implementation guess.
+
+[[SECTION:wasm_core_spec_release_2:4.2.16|4.2.16 Validation Boundaries]]
+instruction_validation must separate guaranteed behavior from inferred scheduler_behavior when the text does not promise a throughput outcome.
