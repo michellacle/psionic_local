@@ -99,6 +99,10 @@ and now also has:
   promotion-decision doc for the `Psion` learned-model lane and freezes the
   acceptance-matrix plus evidence-bound promotion contract that later pilot,
   pretraining, SFT, serving, and cluster issues must satisfy.
+- `docs/PSION_CAPABILITY_MATRIX.md` is the canonical first served capability
+  and publication doc for the `Psion` learned-model lane and freezes the
+  explicit supported, route-required, refusal-required, and unsupported
+  publication surface that later serving issues must satisfy.
 - `docs/audits/2026-03-13-intellect-lessons-for-psionic-train-audit.md` is
   research rationale, not the canonical current-state spec.
 - `docs/audits/2026-03-14-covenant-code-lessons-for-psionic-train-audit.md`

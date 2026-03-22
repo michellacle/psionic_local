@@ -30,6 +30,8 @@ clustered execution, and machine-legible execution truth.
   contamination-control doc for the `Psion` learned-model lane.
 - `docs/PSION_ACCEPTANCE_MATRIX.md` is the canonical phase-gate and
   promotion-decision doc for the `Psion` learned-model lane.
+- `docs/PSION_CAPABILITY_MATRIX.md` is the canonical served capability and
+  publication doc for the `Psion` learned-model lane.
 - `docs/TASSADAR_RUST_ONLY_ARTICLE_RUNBOOK.md` is the canonical one-command
   operator guide for the Rust-only Tassadar article reproduction path.
 - research audits explain direction and rationale, but they are not the

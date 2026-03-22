@@ -21,6 +21,7 @@ mod conformance;
 mod gguf;
 mod gpt_oss;
 mod openai_http;
+mod psion_capability_matrix;
 mod tassadar;
 mod tassadar_article_transformer_minimal_frontier;
 mod tassadar_article_cross_machine_reproducibility_publication;
@@ -56,6 +57,7 @@ pub use conformance::*;
 pub use gguf::*;
 pub use gpt_oss::*;
 pub use openai_http::*;
+pub use psion_capability_matrix::*;
 pub use psionic_adapters::*;
 use psionic_backend_cpu::CpuBackend;
 use psionic_backend_cuda::{

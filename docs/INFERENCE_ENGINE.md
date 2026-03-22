@@ -11,6 +11,9 @@ than just run tensor math.
 - KV cache lifecycle
 - deterministic execution metadata
 - backend capability gating
+- served capability publication that keeps supported, route-required,
+  refusal-required, and unsupported regions explicit together with context and
+  latency envelopes
 
 ## Embeddings Requirements
 
