@@ -131,6 +131,10 @@ and now also has:
   the `Psion` learned-model lane and freezes the explicit assumption,
   uncertainty, normative-versus-inference, and style-plurality contract that
   bounded post-pretrain tuning must satisfy.
+- `docs/PSION_BENCHMARK_PACKAGES.md` is the canonical first benchmark-package
+  doc for the `Psion` learned-model lane and freezes the shared item schema,
+  prompt-format, grader-interface, contamination-input, and receipt contract
+  that later acceptance evidence must build on.
 - `docs/PSION_CHECKPOINT_RECOVERY.md` is the canonical first dense-versus-
   sharded checkpoint-recovery doc for the `Psion` learned-model lane and
   freezes the explicit restart, rollback, corruption-detection, and

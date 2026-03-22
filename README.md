@@ -47,6 +47,8 @@ clustered execution, and machine-legible execution truth.
   promotion-evidence doc for the `Psion` learned-model lane.
 - `docs/PSION_REASONING_SFT.md` is the canonical bounded reasoning-SFT and
   style-control doc for the `Psion` learned-model lane.
+- `docs/PSION_BENCHMARK_PACKAGES.md` is the canonical shared benchmark item,
+  grader, and receipt doc for the `Psion` learned-model lane.
 - `docs/PSION_CHECKPOINT_RECOVERY.md` is the canonical dense-versus-sharded
   checkpoint restart, rollback, and invalidation doc for the `Psion`
   learned-model lane.
