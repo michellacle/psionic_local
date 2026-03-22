@@ -27,6 +27,8 @@ clustered execution, and machine-legible execution truth.
 - `docs/TASSADAR_MULTI_PLUGIN_ORCHESTRATION_WAVE.md` is the canonical umbrella
   closeout doc for the first real-run multi-plugin controller tranche above
   the shared starter-plugin runtime.
+- `docs/TASSADAR_STARTER_PLUGIN_USER_AUTHORING_WAVE.md` is the canonical
+  umbrella closeout doc for the bounded starter-plugin user-authoring wave.
 - `docs/TASSADAR_STARTER_PLUGIN_AUTHORING.md` is the canonical bounded
   authoring template for adding a new capability-free starter plugin inside
   this repository.
