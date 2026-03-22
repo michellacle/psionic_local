@@ -160,6 +160,11 @@ and now also has:
   tranche and freezes the proved-class-only training boundary, the retained
   stage and learned-artifact receipts, and the benchmark-delta reporting
   posture against the named non-plugin baseline.
+- `docs/PSION_PLUGIN_HOST_NATIVE_CAPABILITY_MATRIX_V1.md` is the canonical
+  first publication doc for the host-native plugin-conditioned learned lane
+  and freezes the served capability rows, explicit not-yet-proved versus
+  unsupported versus blocked plugin-class split, and the executor-backed
+  statement posture for outputs that cite the bounded host-native matrix.
 - `docs/audits/2026-03-22-tassadar-full-plugin-system-state-audit.md` is the
   canonical current-state proof record for the bounded Tassadar plugin system
   and freezes the present authoring-class, publication, and guest-artifact

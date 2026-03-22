@@ -17,6 +17,12 @@ That later publication is owned by:
 - `PSION_PLUGIN-16` for the first host-native plugin-conditioned model
 - `PSION_PLUGIN-28` for the mixed host-native plus guest-artifact model
 
+The first `PSION_PLUGIN-16` publication now lives at:
+
+- `docs/PSION_PLUGIN_HOST_NATIVE_CAPABILITY_MATRIX_V1.md`
+- `fixtures/psion/plugins/capability/psion_plugin_host_native_capability_matrix_v1.json`
+- `fixtures/psion/plugins/serve/psion_plugin_host_native_served_posture_v1.json`
+
 This document exists earlier because the convergence tranche already needs one
 explicit answer to a simpler question:
 
