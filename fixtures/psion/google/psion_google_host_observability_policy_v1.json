@@ -1,0 +1,41 @@
+{
+  "schema_version": "psion.google_host_observability_policy.v1",
+  "policy_id": "openagentsgemini-psion-google-host-observability-v1",
+  "project_id": "openagentsgemini",
+  "bucket_url": "gs://openagentsgemini-psion-train-us-central1",
+  "gpu_sample_interval_seconds": 5,
+  "event_log_name": "psion_google_run_events.jsonl",
+  "timeline_name": "psion_google_run_timeline.json",
+  "host_facts_name": "psion_google_host_facts.json",
+  "runtime_snapshot_name": "psion_google_runtime_snapshot.json",
+  "gpu_samples_name": "psion_google_gpu_samples.csv",
+  "gpu_summary_name": "psion_google_gpu_summary.json",
+  "outcome_name": "psion_google_run_outcome.json",
+  "manifest_of_manifests_name": "psion_google_run_manifest_of_manifests.json",
+  "final_manifest_name": "psion_google_run_final_manifest.json",
+  "launch_failure_log_name": "psion_google_launch_failure.log",
+  "artifact_paths": {
+    "host_prefix": "host",
+    "logs_prefix": "logs",
+    "receipts_prefix": "receipts",
+    "artifacts_prefix": "artifacts",
+    "final_prefix": "final"
+  },
+  "failure_codes": [
+    "launch_capacity_failure",
+    "bootstrap_failure",
+    "driver_runtime_failure",
+    "artifact_upload_failure",
+    "training_divergence",
+    "checkpoint_restore_failure",
+    "cost_guardrail_abort",
+    "operator_abort",
+    "bounded_success"
+  ],
+  "required_launch_reference_objects": [
+    "launch_manifest",
+    "startup_script_snapshot",
+    "quota_preflight"
+  ],
+  "detail": "Every bounded Google Psion run must preserve launch truth, machine facts, structured run events, remote-receipt outputs, and one integrity-linked final manifest so the run remains auditable after the VM is gone."
+}

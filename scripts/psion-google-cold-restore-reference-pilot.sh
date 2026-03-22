@@ -4,13 +4,40 @@ set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 POLICY_FILE="${REPO_ROOT}/fixtures/psion/google/psion_google_checkpoint_archive_policy_v1.json"
-ARCHIVE_MANIFEST_URI="${1:-}"
+ARCHIVE_MANIFEST_URI=""
+MANIFEST_OUT=""
 
 usage() {
   cat <<'EOF'
-Usage: psion-google-cold-restore-reference-pilot.sh <archive_manifest_uri>
+Usage: psion-google-cold-restore-reference-pilot.sh [options] <archive_manifest_uri>
+
+Options:
+  --manifest-out <path>      Write the generated cold-restore manifest to one local path.
 EOF
 }
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --manifest-out)
+      MANIFEST_OUT="$2"
+      shift 2
+      ;;
+    --help|-h)
+      usage
+      exit 0
+      ;;
+    *)
+      if [[ -z "${ARCHIVE_MANIFEST_URI}" ]]; then
+        ARCHIVE_MANIFEST_URI="$1"
+        shift
+      else
+        echo "error: unexpected extra argument $1" >&2
+        usage >&2
+        exit 1
+      fi
+      ;;
+  esac
+done
 
 if [[ -z "${ARCHIVE_MANIFEST_URI}" ]]; then
   usage >&2
@@ -114,6 +141,7 @@ jq -n \
   --arg checkpoint_ref "${checkpoint_ref}" \
   --arg recovery_mode "${recovery_mode}" \
   --arg resume_probe_uri "${resume_probe_uri}" \
+  --arg cold_restore_manifest_uri "${cold_restore_manifest_uri}" \
   --arg resume_probe_sha256 "${resume_probe_sha256}" \
   '{
     schema_version: $schema_version,
@@ -124,6 +152,7 @@ jq -n \
     checkpoint_ref: $checkpoint_ref,
     recovery_mode: $recovery_mode,
     result: "bounded_success",
+    cold_restore_manifest_uri: $cold_restore_manifest_uri,
     resume_probe_uri: $resume_probe_uri,
     resume_probe_sha256: $resume_probe_sha256,
     detail: "Cold restore downloaded the archived checkpoint bundle from GCS, verified object digests, and replayed resume_from_last_stable_checkpoint through the reference pilot resume probe."
@@ -133,6 +162,10 @@ gcloud storage cp --quiet "${resume_probe_file}" "${resume_probe_uri}" >/dev/nul
 gcloud storage cp --quiet "${cold_restore_manifest_file}" "${cold_restore_manifest_uri}" >/dev/null
 wait_for_object "${resume_probe_uri}"
 wait_for_object "${cold_restore_manifest_uri}"
+
+if [[ -n "${MANIFEST_OUT}" ]]; then
+  cp "${cold_restore_manifest_file}" "${MANIFEST_OUT}"
+fi
 
 echo "cold restore manifest:"
 cat "${cold_restore_manifest_file}"

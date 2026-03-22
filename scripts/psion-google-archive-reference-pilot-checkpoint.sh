@@ -4,7 +4,34 @@ set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 POLICY_FILE="${REPO_ROOT}/fixtures/psion/google/psion_google_checkpoint_archive_policy_v1.json"
-PILOT_OUTPUT_DIR="${1:-${REPO_ROOT}/target/psion_reference_pilot_bundle}"
+PILOT_OUTPUT_DIR="${REPO_ROOT}/target/psion_reference_pilot_bundle"
+MANIFEST_OUT=""
+
+usage() {
+  cat <<'EOF'
+Usage: psion-google-archive-reference-pilot-checkpoint.sh [options] [pilot_output_dir]
+
+Options:
+  --manifest-out <path>      Write the generated archive manifest to one local path.
+EOF
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --manifest-out)
+      MANIFEST_OUT="$2"
+      shift 2
+      ;;
+    --help|-h)
+      usage
+      exit 0
+      ;;
+    *)
+      PILOT_OUTPUT_DIR="$1"
+      shift
+      ;;
+  esac
+done
 
 if ! command -v jq >/dev/null 2>&1; then
   echo "error: jq is required" >&2
@@ -175,6 +202,10 @@ jq -n \
 
 gcloud storage cp --quiet "${archive_manifest_file}" "${archive_manifest_uri}" >/dev/null
 wait_for_object "${archive_manifest_uri}"
+
+if [[ -n "${MANIFEST_OUT}" ]]; then
+  cp "${archive_manifest_file}" "${MANIFEST_OUT}"
+fi
 
 echo "checkpoint archive manifest:"
 cat "${archive_manifest_file}"

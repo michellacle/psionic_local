@@ -164,16 +164,43 @@ Current launch bundle:
   `scripts/psion-google-launch-single-node.sh`
 - the repo now has the startup path
   `scripts/psion-google-single-node-startup.sh`
+- the repo now has the host finalizer
+  `scripts/psion-google-finalize-run.sh`
 - the repo now has the teardown companion
   `scripts/psion-google-delete-single-node.sh`
 - the committed launch-profile authority now lives at
   `fixtures/psion/google/psion_google_single_node_launch_profiles_v1.json`
+- the committed host-observability authority now lives at
+  `fixtures/psion/google/psion_google_host_observability_policy_v1.json`
 - the launch bundle now resolves and records the exact GPU image from
   `deeplearning-platform-release` family
   `common-cu128-ubuntu-2204-nvidia-570`
 - a manifest-only run now uploads a full launch manifest, startup-script
   snapshot, and quota-preflight receipt into the training bucket without yet
   allocating a GPU host
+- a failed `gcloud compute instances create` attempt now also uploads a typed
+  final manifest plus a retained launch-failure log instead of only returning
+  terminal stderr
+
+Current observability and evidence path:
+
+- startup now owns the full bounded run lifecycle instead of detaching
+  immediately, so bootstrap, training, archive, cold-restore, and teardown
+  timestamps remain explicit
+- the host path now records structured run events, host facts, runtime
+  snapshots, GPU utilization samples, GPU summary stats, stdout, stderr, and
+  the exact pilot output files into one run folder
+- the host finalizer now uploads one manifest-of-manifests plus one final
+  manifest listing retained objects, object digests, topology, input package
+  bindings, checkpoint-recovery references, and the typed result classification
+- the repo-owned checkpoint archive and cold-restore helpers are now machine-
+  readable enough for the startup path to bind their manifest URIs into the
+  final run folder
+- validation now exists for both:
+  one bounded success-style evidence folder at
+  `runs/psion-g2-l4-observability-validation-20260322t172627z/`
+  and one pre-VM typed failure folder at
+  `runs/psion-g2-l4-launch-failure-validation-20260322t173300z/`
 
 Current service-account posture:
 
@@ -221,12 +248,15 @@ What is green:
 - the repo now has one committed checkpoint archive path with GCS-backed weights,
   manifest, optimizer-state retention, and a repo-owned cold-restore drill for
   `resume_from_last_stable_checkpoint`
+- the repo now has one committed Google-host evidence collector and finalizer
+  path that retains machine facts, GPU summaries, structured run events,
+  training receipts, checkpoint-recovery references, and one integrity-linked
+  final manifest for both bounded-success and pre-VM failure cases
 
 What is still only `partial`:
 
 - no runbook exists yet for preserving the full infra evidence bundle around a
   GPU launch
-- there is still no Google-host evidence collector yet
 - exact Cloud Billing export to BigQuery is still console-managed; the current
   repo-owned machine-queryable cost sink is the live price-catalog table plus
   budget notifications rather than invoice-grade billing-export rows
@@ -235,8 +265,8 @@ Blunt conclusion:
 
 - yes, this project appears capable of launching a bounded single-GPU Psion
   pilot, subject to live zonal stock and a short setup pass
-- no, it is not yet cleanly prepared to do that and preserve all relevant run
-  evidence without a short setup pass first
+- it is now prepared to preserve run evidence honestly, but it still needs the
+  operator runbook before I would call the Google lane fully ready to execute
 
 ## Recommended First GPU Pilot
 
@@ -570,10 +600,18 @@ Issues 1, 5, and 6
 ### Issue 8: Add Google-Host Observability And Evidence Export
 
 Description:
-The repo already has the canonical `PSION-13` observability receipt and the
-pilot bundle contract, but there is no Google-host collector that captures the
-hardware and infra facts needed to populate those receipts honestly on a real
-cloud run.
+Closed. The repo now has the canonical Google-host collector and final-manifest
+path through:
+
+- `fixtures/psion/google/psion_google_host_observability_policy_v1.json`
+- `scripts/psion-google-single-node-startup.sh`
+- `scripts/psion-google-finalize-run.sh`
+- `scripts/psion-google-launch-single-node.sh`
+
+Validation folder proofs now exist at:
+
+- `gs://openagentsgemini-psion-train-us-central1/runs/psion-g2-l4-observability-validation-20260322t172627z/final/psion_google_run_final_manifest.json`
+- `gs://openagentsgemini-psion-train-us-central1/runs/psion-g2-l4-launch-failure-validation-20260322t173300z/final/psion_google_run_final_manifest.json`
 
 Required details:
 

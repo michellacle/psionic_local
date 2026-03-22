@@ -58,6 +58,7 @@ done
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 LAUNCH_FILE="${REPO_ROOT}/fixtures/psion/google/psion_google_single_node_launch_profiles_v1.json"
+OBSERVABILITY_FILE="${REPO_ROOT}/fixtures/psion/google/psion_google_host_observability_policy_v1.json"
 STARTUP_SCRIPT="${REPO_ROOT}/scripts/psion-google-single-node-startup.sh"
 QUOTA_PREFLIGHT="${REPO_ROOT}/scripts/psion-google-quota-preflight.sh"
 
@@ -90,6 +91,165 @@ wait_for_object() {
   done
   echo "error: object ${object_path} did not become visible" >&2
   exit 1
+}
+
+write_launch_failure_manifest() {
+  local failure_code="$1"
+  local failure_detail="$2"
+  local failure_log_file="$3"
+  local created_at_utc manifest_of_manifests_uri launch_failure_log_uri
+  local manifest_of_manifests_file manifest_of_manifests_sha256 final_manifest_file
+
+  created_at_utc="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+  launch_failure_log_uri="${run_prefix}/$(jq -r '.artifact_paths.final_prefix' "${OBSERVABILITY_FILE}")/$(jq -r '.launch_failure_log_name' "${OBSERVABILITY_FILE}")"
+  manifest_of_manifests_uri="${run_prefix}/$(jq -r '.artifact_paths.final_prefix' "${OBSERVABILITY_FILE}")/$(jq -r '.manifest_of_manifests_name' "${OBSERVABILITY_FILE}")"
+  manifest_of_manifests_file="${tmpdir}/$(jq -r '.manifest_of_manifests_name' "${OBSERVABILITY_FILE}")"
+  final_manifest_file="${tmpdir}/$(jq -r '.final_manifest_name' "${OBSERVABILITY_FILE}")"
+
+  gcloud storage cp --quiet "${failure_log_file}" "${launch_failure_log_uri}" >/dev/null
+  wait_for_object "${launch_failure_log_uri}"
+
+  jq -n \
+    --arg schema_version "psion.google_run_manifest_of_manifests.v1" \
+    --arg created_at_utc "${created_at_utc}" \
+    --arg run_id "${RUN_ID}" \
+    --arg manifest_uri "${manifest_uri}" \
+    --arg manifest_sha256 "$(compute_sha256 "${manifest_file}")" \
+    --arg manifest_bytes "$(wc -c < "${manifest_file}" | tr -d ' ')" \
+    --arg preflight_uri "${preflight_uri}" \
+    --arg preflight_sha256 "$(compute_sha256 "${preflight_report_file}")" \
+    --arg preflight_bytes "$(wc -c < "${preflight_report_file}" | tr -d ' ')" \
+    '{
+      schema_version: $schema_version,
+      created_at_utc: $created_at_utc,
+      run_id: $run_id,
+      manifests: [
+        {
+          artifact_kind: "launch_manifest",
+          evidence_role: "manifest",
+          remote_uri: $manifest_uri,
+          sha256: $manifest_sha256,
+          byte_length: ($manifest_bytes | tonumber),
+          source_mode: "local_upload"
+        },
+        {
+          artifact_kind: "quota_preflight",
+          evidence_role: "manifest",
+          remote_uri: $preflight_uri,
+          sha256: $preflight_sha256,
+          byte_length: ($preflight_bytes | tonumber),
+          source_mode: "local_upload"
+        }
+      ]
+    }' > "${manifest_of_manifests_file}"
+  manifest_of_manifests_sha256="$(compute_sha256 "${manifest_of_manifests_file}")"
+  gcloud storage cp --quiet "${manifest_of_manifests_file}" "${manifest_of_manifests_uri}" >/dev/null
+  wait_for_object "${manifest_of_manifests_uri}"
+
+  jq -n \
+    --arg schema_version "psion.google_run_final_manifest.v1" \
+    --arg created_at_utc "${created_at_utc}" \
+    --arg run_id "${RUN_ID}" \
+    --arg project_id "${PROJECT_ID}" \
+    --arg zone "${selected_zone}" \
+    --arg instance_name "${INSTANCE_NAME}" \
+    --arg profile_id "${PROFILE_ID}" \
+    --arg profile_label "${profile_label}" \
+    --arg machine_type "${machine_type}" \
+    --arg accelerator_type "${accelerator_type}" \
+    --argjson accelerator_count "${accelerator_count}" \
+    --arg result_classification "${failure_code}" \
+    --arg failure_detail "${failure_detail}" \
+    --arg launch_manifest_uri "${manifest_uri}" \
+    --arg startup_script_uri "${startup_script_uri}" \
+    --arg quota_preflight_uri "${preflight_uri}" \
+    --arg launch_failure_log_uri "${launch_failure_log_uri}" \
+    --arg manifest_of_manifests_uri "${manifest_of_manifests_uri}" \
+    --arg manifest_of_manifests_sha256 "${manifest_of_manifests_sha256}" \
+    --arg launch_created_at_utc "$(jq -r '.created_at_utc' "${manifest_file}")" \
+    --arg manifest_sha256 "$(compute_sha256 "${manifest_file}")" \
+    --arg manifest_bytes "$(wc -c < "${manifest_file}" | tr -d ' ')" \
+    --arg startup_script_sha256 "${startup_script_sha256}" \
+    --arg startup_script_bytes "$(wc -c < "${STARTUP_SCRIPT}" | tr -d ' ')" \
+    --arg preflight_sha256 "$(compute_sha256 "${preflight_report_file}")" \
+    --arg preflight_bytes "$(wc -c < "${preflight_report_file}" | tr -d ' ')" \
+    --arg launch_failure_log_sha256 "$(compute_sha256 "${failure_log_file}")" \
+    --arg launch_failure_log_bytes "$(wc -c < "${failure_log_file}" | tr -d ' ')" \
+    '{
+      schema_version: $schema_version,
+      created_at_utc: $created_at_utc,
+      run_id: $run_id,
+      project_id: $project_id,
+      topology: {
+        zone: $zone,
+        instance_name: $instance_name,
+        profile_id: $profile_id,
+        profile_label: $profile_label,
+        machine_type: $machine_type,
+        accelerator_type: $accelerator_type,
+        accelerator_count: $accelerator_count
+      },
+      result_classification: $result_classification,
+      failure_detail: $failure_detail,
+      launch_artifacts: {
+        launch_manifest_uri: $launch_manifest_uri,
+        startup_script_uri: $startup_script_uri,
+        quota_preflight_uri: $quota_preflight_uri
+      },
+      timeline: {
+        launch_created_at_utc: $launch_created_at_utc,
+        launch_failure_at_utc: $created_at_utc
+      },
+      manifest_of_manifests: {
+        remote_uri: $manifest_of_manifests_uri,
+        sha256: $manifest_of_manifests_sha256
+      },
+      retained_objects: [
+        {
+          artifact_kind: "launch_manifest",
+          evidence_role: "manifest",
+          remote_uri: $launch_manifest_uri,
+          sha256: $manifest_sha256,
+          byte_length: ($manifest_bytes | tonumber),
+          source_mode: "local_upload"
+        },
+        {
+          artifact_kind: "startup_script_snapshot",
+          evidence_role: "artifact",
+          remote_uri: $startup_script_uri,
+          sha256: $startup_script_sha256,
+          byte_length: ($startup_script_bytes | tonumber),
+          source_mode: "local_upload"
+        },
+        {
+          artifact_kind: "quota_preflight",
+          evidence_role: "manifest",
+          remote_uri: $quota_preflight_uri,
+          sha256: $preflight_sha256,
+          byte_length: ($preflight_bytes | tonumber),
+          source_mode: "local_upload"
+        },
+        {
+          artifact_kind: "launch_failure_log",
+          evidence_role: "log",
+          remote_uri: $launch_failure_log_uri,
+          sha256: $launch_failure_log_sha256,
+          byte_length: ($launch_failure_log_bytes | tonumber),
+          source_mode: "local_upload"
+        },
+        {
+          artifact_kind: "manifest_of_manifests",
+          evidence_role: "manifest",
+          remote_uri: $manifest_of_manifests_uri,
+          sha256: $manifest_of_manifests_sha256,
+          byte_length: null,
+          source_mode: "local_upload"
+        }
+      ],
+      detail: "The run failed before the VM became available, but the launch folder still preserves the selected profile, quota preflight, startup snapshot, and typed launch failure classification."
+    }' > "${final_manifest_file}"
+  gcloud storage cp --quiet "${final_manifest_file}" "${final_manifest_uri}" >/dev/null
+  wait_for_object "${final_manifest_uri}"
 }
 
 profile_json="$(
@@ -349,7 +509,9 @@ if [[ "${MANIFEST_ONLY}" == "true" ]]; then
   exit 0
 fi
 
-gcloud compute instances create "${INSTANCE_NAME}" \
+create_stdout_file="${tmpdir}/gcloud-create.stdout"
+create_stderr_file="${tmpdir}/gcloud-create.stderr"
+if ! gcloud compute instances create "${INSTANCE_NAME}" \
   --project="${PROJECT_ID}" \
   --zone="${selected_zone}" \
   --machine-type="${machine_type}" \
@@ -366,8 +528,13 @@ gcloud compute instances create "${INSTANCE_NAME}" \
   --boot-disk-type="${boot_disk_type}" \
   --image="${image_name}" \
   --image-project="${image_project}" \
-  --metadata="enable-oslogin=TRUE,psion-run-id=${RUN_ID},psion-bucket-url=${bucket_url},psion-repo-clone-url=${repo_clone_url},psion-git-revision=${git_revision},psion-workspace-root=${workspace_root},psion-output-subdir=output,psion-log-subdir=logs,psion-scratch-subdir=scratch,psion-repo-subdir=repo,psion-low-disk-watermark-gb=${low_disk_watermark_gb},psion-rust-toolchain=${rust_toolchain},psion-input-package-descriptor-uri=${input_package_descriptor_uri},psion-input-package-archive-uri=${input_package_archive_uri},psion-input-package-archive-sha256=${input_package_archive_sha256},psion-input-package-manifest-sha256=${input_package_manifest_sha256},psion-input-materialization-mode=${input_materialization_mode}" \
-  --metadata-from-file="startup-script=${STARTUP_SCRIPT},psion-training-command=${training_command_file},psion-apt-packages=${apt_packages_file}" >/dev/null
+  --metadata="enable-oslogin=TRUE,psion-run-id=${RUN_ID},psion-bucket-url=${bucket_url},psion-repo-clone-url=${repo_clone_url},psion-git-revision=${git_revision},psion-workspace-root=${workspace_root},psion-output-subdir=output,psion-log-subdir=logs,psion-scratch-subdir=scratch,psion-repo-subdir=repo,psion-low-disk-watermark-gb=${low_disk_watermark_gb},psion-rust-toolchain=${rust_toolchain},psion-input-package-descriptor-uri=${input_package_descriptor_uri},psion-input-package-archive-uri=${input_package_archive_uri},psion-input-package-archive-sha256=${input_package_archive_sha256},psion-input-package-manifest-sha256=${input_package_manifest_sha256},psion-input-materialization-mode=${input_materialization_mode},psion-launch-manifest-uri=${manifest_uri}" \
+  --metadata-from-file="startup-script=${STARTUP_SCRIPT},psion-training-command=${training_command_file},psion-apt-packages=${apt_packages_file}" >"${create_stdout_file}" 2>"${create_stderr_file}"; then
+  failure_detail="$(tr '\n' ' ' < "${create_stderr_file}" | sed 's/[[:space:]]\+/ /g; s/^ //; s/ $//')"
+  write_launch_failure_manifest "launch_capacity_failure" "${failure_detail}" "${create_stderr_file}"
+  cat "${create_stderr_file}" >&2
+  exit 1
+fi
 
 echo "instance launched:"
 gcloud compute instances describe "${INSTANCE_NAME}" \
