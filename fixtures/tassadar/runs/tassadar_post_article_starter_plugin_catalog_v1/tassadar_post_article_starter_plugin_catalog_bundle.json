@@ -11,18 +11,21 @@
   ],
   "descriptor_refs": [
     "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_text_url_extract_descriptor.json",
+    "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_text_stats_descriptor.json",
     "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_http_fetch_text_descriptor.json",
     "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_html_extract_readable_descriptor.json",
     "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_feed_rss_atom_parse_descriptor.json"
   ],
   "fixture_bundle_refs": [
     "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_text_url_extract_fixture_bundle.json",
+    "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_text_stats_fixture_bundle.json",
     "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_http_fetch_text_fixture_bundle.json",
     "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_html_extract_readable_fixture_bundle.json",
     "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_feed_rss_atom_parse_fixture_bundle.json"
   ],
   "sample_mount_envelope_refs": [
     "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_text_url_extract_mount_envelope.json",
+    "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_text_stats_mount_envelope.json",
     "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_http_fetch_text_mount_envelope.json",
     "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_html_extract_readable_mount_envelope.json",
     "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_feed_rss_atom_parse_mount_envelope.json"
@@ -61,6 +64,39 @@
       "fixture_bundle_ref": "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_text_url_extract_fixture_bundle.json",
       "sample_mount_envelope_ref": "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_text_url_extract_mount_envelope.json",
       "detail": "the first starter plugin freezes left-to-right `http://` and `https://` string extraction with no deduplication and no capability mounts."
+    },
+    {
+      "plugin_id": "plugin.text.stats",
+      "plugin_version": "v1",
+      "catalog_entry_id": "plugin.text.stats@v1",
+      "manifest_id": "manifest.plugin.text.stats.v1",
+      "artifact_id": "artifact.plugin.text.stats.v1",
+      "artifact_digest": "440bbf3f94ddc1895d44f180e763fe293b7d0a9ee2a54726e7c6d7b99277f518",
+      "packet_abi_version": "packet.v1",
+      "packet_schemas": {
+        "input_schema_id": "plugin.text.stats.input.v1",
+        "success_output_schema_id": "plugin.text.stats.output.v1",
+        "refusal_schema_ids": [
+          "plugin.refusal.schema_invalid.v1",
+          "plugin.refusal.packet_too_large.v1",
+          "plugin.refusal.unsupported_codec.v1"
+        ]
+      },
+      "capability_class": "local_deterministic",
+      "replay_class_id": "deterministic_replayable",
+      "trust_tier_id": "operator_curated_local_deterministic",
+      "evidence_posture_id": "evidence.descriptor_fixture_receipt_bound.v1",
+      "capability_namespace_ids": [],
+      "negative_claim_ids": [
+        "tokenizer_truth_not_claimed",
+        "language_detection_not_claimed",
+        "sentence_boundary_truth_not_claimed",
+        "semantic_structure_not_claimed"
+      ],
+      "descriptor_ref": "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_text_stats_descriptor.json",
+      "fixture_bundle_ref": "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_text_stats_fixture_bundle.json",
+      "sample_mount_envelope_ref": "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_text_stats_mount_envelope.json",
+      "detail": "the first user-added starter plugin stays local, deterministic, and capability-free while exposing bounded packet-local counting truth."
     },
     {
       "plugin_id": "plugin.http.fetch_text",
@@ -185,6 +221,21 @@
       "schema_local_composition": true,
       "operator_only": true,
       "detail": "the url-extract starter plugin is purely local string processing and does not claim any external-world semantics."
+    },
+    {
+      "plugin_id": "plugin.text.stats",
+      "catalog_entry_id": "plugin.text.stats@v1",
+      "capability_class": "local_deterministic",
+      "reads_network": false,
+      "deterministic_replayable": true,
+      "snapshot_backed_replay": false,
+      "filesystem_access": false,
+      "secrets_access": false,
+      "mount_required": false,
+      "host_mediated_network_only": false,
+      "schema_local_composition": true,
+      "operator_only": true,
+      "detail": "the text-stats starter plugin is a capability-free deterministic local transform over packet-local text only."
     },
     {
       "plugin_id": "plugin.http.fetch_text",
@@ -324,8 +375,8 @@
       "detail": "the second starter flow proves that fetched feed content can enter a deterministic local parser without hidden schema repair or host-side feed parsing."
     }
   ],
-  "plugin_count": 4,
-  "local_deterministic_plugin_count": 3,
+  "plugin_count": 5,
+  "local_deterministic_plugin_count": 4,
   "read_only_network_plugin_count": 1,
   "bounded_flow_count": 2,
   "operator_only_posture": true,
@@ -333,5 +384,5 @@
   "public_marketplace_implication_allowed": false,
   "claim_boundary": "this runtime-owned starter catalog freezes one small operator-curated plugin set above the canonical post-article machine closure bundle without implying served or public plugin rights, arbitrary public Wasm execution, arbitrary public tool use, or a public plugin marketplace.",
   "summary": "starter catalog bundle publishes four operator-curated plugins, four per-plugin descriptor or fixture or mount sidecars, and two bounded composition flows across local deterministic and read-only network capability classes.",
-  "bundle_digest": "4729d2f4a14e97735e485241a912c142a0aaa7f3321c81a6111be3c44c474b3c"
+  "bundle_digest": "241b524b65e4de7b1aedf72c8650924a52ffe6fd0518fdc30be5c395b2aeb353"
 }

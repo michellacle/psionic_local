@@ -6,8 +6,8 @@
   "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
   "closure_bundle_digest": "9ac0dfa48ef13bca57b02c0c643672efe4aae9f821607ef9ba4b0c24978a3003",
   "eval_status": "green",
-  "starter_plugin_count": 4,
-  "local_deterministic_plugin_count": 3,
+  "starter_plugin_count": 5,
+  "local_deterministic_plugin_count": 4,
   "read_only_network_plugin_count": 1,
   "bounded_flow_count": 2,
   "operator_internal_only_posture": true,
@@ -19,6 +19,6 @@
   "served_public_universality_allowed": false,
   "arbitrary_software_capability_allowed": false,
   "next_issue_id": "TAS-217",
-  "detail": "starter catalog summary keeps machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1`, starter_plugin_count=4, bounded_flow_count=2, operator_internal_only_posture=true, closure_bundle_digest=`9ac0dfa48ef13bca57b02c0c643672efe4aae9f821607ef9ba4b0c24978a3003`, and next_issue_id=`TAS-217` explicit.",
-  "summary_digest": "481681b50a7e9e8eb778b5fd8c2101a71c73386c3645d337d2ae58d07f7ebb48"
+  "detail": "starter catalog summary keeps machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1`, starter_plugin_count=5, bounded_flow_count=2, operator_internal_only_posture=true, closure_bundle_digest=`9ac0dfa48ef13bca57b02c0c643672efe4aae9f821607ef9ba4b0c24978a3003`, and next_issue_id=`TAS-217` explicit.",
+  "summary_digest": "cd95f6978d9b7cc1433be1f770882227b2a4966059230f55e797b4c68348ca05"
 }

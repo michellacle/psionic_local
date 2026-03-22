@@ -1,0 +1,33 @@
+{
+  "plugin_id": "plugin.text.stats",
+  "plugin_version": "v1",
+  "catalog_entry_id": "plugin.text.stats@v1",
+  "manifest_id": "manifest.plugin.text.stats.v1",
+  "artifact_id": "artifact.plugin.text.stats.v1",
+  "artifact_digest": "440bbf3f94ddc1895d44f180e763fe293b7d0a9ee2a54726e7c6d7b99277f518",
+  "packet_abi_version": "packet.v1",
+  "packet_schemas": {
+    "input_schema_id": "plugin.text.stats.input.v1",
+    "success_output_schema_id": "plugin.text.stats.output.v1",
+    "refusal_schema_ids": [
+      "plugin.refusal.schema_invalid.v1",
+      "plugin.refusal.packet_too_large.v1",
+      "plugin.refusal.unsupported_codec.v1"
+    ]
+  },
+  "capability_class": "local_deterministic",
+  "replay_class_id": "deterministic_replayable",
+  "trust_tier_id": "operator_curated_local_deterministic",
+  "evidence_posture_id": "evidence.descriptor_fixture_receipt_bound.v1",
+  "capability_namespace_ids": [],
+  "negative_claim_ids": [
+    "tokenizer_truth_not_claimed",
+    "language_detection_not_claimed",
+    "sentence_boundary_truth_not_claimed",
+    "semantic_structure_not_claimed"
+  ],
+  "descriptor_ref": "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_text_stats_descriptor.json",
+  "fixture_bundle_ref": "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_text_stats_fixture_bundle.json",
+  "sample_mount_envelope_ref": "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_text_stats_mount_envelope.json",
+  "detail": "the first user-added starter plugin stays local, deterministic, and capability-free while exposing bounded packet-local counting truth."
+}

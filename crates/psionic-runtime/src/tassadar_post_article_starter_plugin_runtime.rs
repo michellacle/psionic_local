@@ -766,8 +766,18 @@ const STARTER_PLUGIN_REGISTRATIONS: &[StarterPluginRegistration] = &[
         runtime_run_root_ref: TASSADAR_POST_ARTICLE_PLUGIN_TEXT_STATS_RUN_ROOT_REF,
         tool_description: "count bytes, Unicode scalar values, lines, non-empty lines, and whitespace-delimited words from packet-local text without tokenizer, language, or semantic-structure claims.",
         bridge_exposed: true,
-        catalog_exposed: false,
-        catalog: None,
+        catalog_exposed: true,
+        catalog: Some(StarterPluginCatalogRegistration {
+            catalog_entry_id: "plugin.text.stats@v1",
+            trust_tier_id: "operator_curated_local_deterministic",
+            evidence_posture_id: "evidence.descriptor_fixture_receipt_bound.v1",
+            catalog_capability_namespace_ids: NO_CAPABILITY_NAMESPACE_IDS,
+            descriptor_ref: "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_text_stats_descriptor.json",
+            fixture_bundle_ref: "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_text_stats_fixture_bundle.json",
+            sample_mount_envelope_ref: "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/plugin_text_stats_mount_envelope.json",
+            descriptor_detail: "the first user-added starter plugin stays local, deterministic, and capability-free while exposing bounded packet-local counting truth.",
+            capability_matrix_detail: "the text-stats starter plugin is a capability-free deterministic local transform over packet-local text only.",
+        }),
     },
     StarterPluginRegistration {
         plugin_id: STARTER_PLUGIN_HTTP_FETCH_TEXT_ID,
@@ -3398,16 +3408,16 @@ mod tests {
     use tempfile::tempdir;
 
     #[test]
-    fn starter_plugin_registry_keeps_user_plugin_bridge_visible_but_catalog_hidden() {
+    fn starter_plugin_registry_keeps_user_plugin_visible_across_bridge_and_catalog() {
         let registration = starter_plugin_registration_by_plugin_id("plugin.text.stats")
             .expect("text-stats registration");
 
         assert_eq!(starter_plugin_registrations().len(), 5);
         assert_eq!(bridge_exposed_starter_plugin_registrations().len(), 5);
-        assert_eq!(catalog_exposed_starter_plugin_registrations().len(), 4);
+        assert_eq!(catalog_exposed_starter_plugin_registrations().len(), 5);
         assert_eq!(registration.tool_name, "plugin_text_stats");
         assert!(registration.bridge_exposed);
-        assert!(!registration.catalog_exposed);
+        assert!(registration.catalog_exposed);
     }
 
     #[test]

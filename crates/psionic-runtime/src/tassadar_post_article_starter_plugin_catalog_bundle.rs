@@ -341,6 +341,7 @@ fn capability_matrix_row_from_registration(
 fn build_tassadar_post_article_starter_plugin_catalog_artifacts(
 ) -> TassadarPostArticleStarterPluginCatalogArtifacts {
     let url_extract = catalog_registration("plugin.text.url_extract");
+    let text_stats = catalog_registration("plugin.text.stats");
     let fetch_text = catalog_registration("plugin.http.fetch_text");
     let extract_readable = catalog_registration("plugin.html.extract_readable");
     let feed_parse = catalog_registration("plugin.feed.rss_atom_parse");
@@ -406,6 +407,82 @@ fn build_tassadar_post_article_starter_plugin_catalog_artifacts(
                     "receipt.plugin.text.url_extract.packet_too_large_refusal.v1",
                     Some("packet_too_large"),
                     "the deterministic plugin keeps packet ceilings explicit rather than relying on ambient parser allocation behavior.",
+                ),
+            ],
+        ),
+        starter_fixture_bundle_from_registration(
+            text_stats,
+            &[
+                starter_fixture_case(
+                    "text_stats_success",
+                    TassadarPostArticleStarterPluginFixtureStatus::ExactSuccess,
+                    "plugin.text.stats.input.v1",
+                    &serde_json::json!({
+                        "text": "alpha beta\n\ngamma delta"
+                    }),
+                    "plugin.text.stats.output.v1",
+                    &serde_json::json!({
+                        "byte_count": 23,
+                        "unicode_scalar_count": 23,
+                        "line_count": 3,
+                        "non_empty_line_count": 2,
+                        "word_count": 4
+                    }),
+                    "deterministic_replayable",
+                    "receipt.plugin.text.stats.text_stats_success.v1",
+                    None,
+                    "the bounded user-added starter plugin publishes explicit packet-local counting truth without tokenizer or semantic claims.",
+                ),
+                starter_fixture_case(
+                    "schema_invalid_missing_text",
+                    TassadarPostArticleStarterPluginFixtureStatus::TypedMalformedPacket,
+                    "plugin.text.stats.input.v1",
+                    &serde_json::json!({
+                        "body": "missing the required field"
+                    }),
+                    "plugin.refusal.schema_invalid.v1",
+                    &serde_json::json!({
+                        "reason_id": "schema_invalid",
+                        "missing_field_ids": ["text"]
+                    }),
+                    "deterministic_replayable",
+                    "receipt.plugin.text.stats.schema_invalid_missing_text.v1",
+                    Some("schema_invalid"),
+                    "missing text stays a typed malformed-packet refusal instead of ambient host repair.",
+                ),
+                starter_fixture_case(
+                    "packet_too_large_refusal",
+                    TassadarPostArticleStarterPluginFixtureStatus::TypedRefusal,
+                    "plugin.text.stats.input.v1",
+                    &serde_json::json!({
+                        "text_digest": "input.exceeds.text_stats.packet_limit.v1"
+                    }),
+                    "plugin.refusal.packet_too_large.v1",
+                    &serde_json::json!({
+                        "reason_id": "packet_too_large",
+                        "ceiling_bytes": 16384
+                    }),
+                    "deterministic_replayable",
+                    "receipt.plugin.text.stats.packet_too_large_refusal.v1",
+                    Some("packet_too_large"),
+                    "packet ceilings remain typed and explicit for the user-added plugin path as well.",
+                ),
+                starter_fixture_case(
+                    "unsupported_codec_refusal",
+                    TassadarPostArticleStarterPluginFixtureStatus::TypedRefusal,
+                    "plugin.text.stats.input.v1",
+                    &serde_json::json!({
+                        "text": "alpha beta"
+                    }),
+                    "plugin.refusal.unsupported_codec.v1",
+                    &serde_json::json!({
+                        "reason_id": "unsupported_codec",
+                        "supported_codec_ids": ["json"]
+                    }),
+                    "deterministic_replayable",
+                    "receipt.plugin.text.stats.unsupported_codec_refusal.v1",
+                    Some("unsupported_codec"),
+                    "unsupported codecs remain typed refusals instead of hidden alternate decoding paths.",
                 ),
             ],
         ),
@@ -667,6 +744,17 @@ fn build_tassadar_post_article_starter_plugin_catalog_artifacts(
             "the URL extractor proves that the starter catalog can ship a capability-free deterministic plugin with an explicit zero-namespace mount envelope.",
         ),
         starter_mount_envelope_from_registration(
+            text_stats,
+            "world_mount.starter.local_no_capabilities.v1",
+            &[],
+            &[],
+            1000,
+            0,
+            0,
+            "deterministic_replayable",
+            "the user-added text-stats starter plugin remains capability-free under the same explicit no-import mount class as the built-in local deterministic entries.",
+        ),
+        starter_mount_envelope_from_registration(
             fetch_text,
             "world_mount.starter.http_read_only_text_allowlist.v1",
             &[
@@ -716,6 +804,9 @@ fn build_tassadar_post_article_starter_plugin_catalog_artifacts(
             false,
             true,
             true,
+        ),
+        capability_matrix_row_from_registration(
+            text_stats, false, true, false, false, false, false, false, true, true,
         ),
         capability_matrix_row_from_registration(
             fetch_text, true, false, true, false, false, true, true, true, true,
@@ -1265,8 +1356,8 @@ mod tests {
             bundle.bundle_id,
             "tassadar.post_article.starter_plugin_catalog.runtime_bundle.v1"
         );
-        assert_eq!(bundle.plugin_count, 4);
-        assert_eq!(bundle.local_deterministic_plugin_count, 3);
+        assert_eq!(bundle.plugin_count, 5);
+        assert_eq!(bundle.local_deterministic_plugin_count, 4);
         assert_eq!(bundle.read_only_network_plugin_count, 1);
         assert_eq!(bundle.bounded_flow_count, 2);
         assert!(bundle.operator_only_posture);
@@ -1276,6 +1367,10 @@ mod tests {
             .descriptor_rows
             .iter()
             .any(|row| row.plugin_id == "plugin.text.url_extract"));
+        assert!(bundle
+            .descriptor_rows
+            .iter()
+            .any(|row| row.plugin_id == "plugin.text.stats"));
         assert!(bundle
             .descriptor_rows
             .iter()
@@ -1304,6 +1399,10 @@ mod tests {
             )
             .expect("url extract descriptor"),
             read_json::<TassadarPostArticleStarterPluginDescriptor>(
+                output_dir.join("plugin_text_stats_descriptor.json"),
+            )
+            .expect("text-stats descriptor"),
+            read_json::<TassadarPostArticleStarterPluginDescriptor>(
                 output_dir.join("plugin_http_fetch_text_descriptor.json"),
             )
             .expect("fetch text descriptor"),
@@ -1322,6 +1421,10 @@ mod tests {
             )
             .expect("url extract fixture bundle"),
             read_json::<TassadarPostArticleStarterPluginFixtureBundle>(
+                output_dir.join("plugin_text_stats_fixture_bundle.json"),
+            )
+            .expect("text-stats fixture bundle"),
+            read_json::<TassadarPostArticleStarterPluginFixtureBundle>(
                 output_dir.join("plugin_http_fetch_text_fixture_bundle.json"),
             )
             .expect("fetch text fixture bundle"),
@@ -1339,6 +1442,10 @@ mod tests {
                 output_dir.join("plugin_text_url_extract_mount_envelope.json"),
             )
             .expect("url extract mount"),
+            read_json::<TassadarPostArticleStarterPluginMountEnvelope>(
+                output_dir.join("plugin_text_stats_mount_envelope.json"),
+            )
+            .expect("text-stats mount"),
             read_json::<TassadarPostArticleStarterPluginMountEnvelope>(
                 output_dir.join("plugin_http_fetch_text_mount_envelope.json"),
             )
@@ -1395,6 +1502,10 @@ mod tests {
         assert!(tempdir
             .path()
             .join("plugin_http_fetch_text_descriptor.json")
+            .exists());
+        assert!(tempdir
+            .path()
+            .join("plugin_text_stats_mount_envelope.json")
             .exists());
         assert!(tempdir
             .path()

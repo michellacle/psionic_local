@@ -1,0 +1,16 @@
+{
+  "envelope_id": "mount.plugin.text.stats.no_capabilities.v1",
+  "plugin_id": "plugin.text.stats",
+  "plugin_version": "v1",
+  "world_mount_id": "world_mount.starter.local_no_capabilities.v1",
+  "capability_namespace_ids": [],
+  "allowlisted_url_prefixes": [],
+  "allowed_method_ids": [],
+  "timeout_millis": 1000,
+  "response_size_limit_bytes": 0,
+  "redirect_limit": 0,
+  "replay_posture_id": "deterministic_replayable",
+  "green": true,
+  "detail": "the user-added text-stats starter plugin remains capability-free under the same explicit no-import mount class as the built-in local deterministic entries.",
+  "envelope_digest": "79cdf00c3f32154915d1670ae8054d06d645e58cdbd6689e771bb8ae48c7c798"
+}
