@@ -1,9 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use psionic_research::TassadarPostArticlePluginWorldMountEnvelopeCompilerAndAdmissibilitySummary;
+use psionic_research::TassadarPostArticlePluginConformanceSandboxAndBenchmarkHarnessSummary;
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct TassadarPostArticlePluginWorldMountEnvelopeCompilerAndAdmissibilityReceipt {
+pub struct TassadarPostArticlePluginConformanceSandboxAndBenchmarkHarnessReceipt {
     pub report_id: String,
     pub machine_identity_id: String,
     pub canonical_route_id: String,
@@ -11,14 +11,16 @@ pub struct TassadarPostArticlePluginWorldMountEnvelopeCompilerAndAdmissibilityRe
     pub host_owned_runtime_api_id: String,
     pub engine_abstraction_id: String,
     pub invocation_receipt_profile_id: String,
-    pub world_mount_envelope_compiler_id: String,
-    pub admissibility_contract_id: String,
+    pub conformance_harness_id: String,
+    pub benchmark_harness_id: String,
     pub contract_status: String,
-    pub candidate_set_row_count: u32,
-    pub equivalent_choice_row_count: u32,
-    pub envelope_row_count: u32,
+    pub conformance_row_count: u32,
+    pub workflow_row_count: u32,
+    pub isolation_negative_row_count: u32,
+    pub benchmark_row_count: u32,
     pub validation_row_count: u32,
     pub deferred_issue_ids: Vec<String>,
+    pub conformance_sandbox_green: bool,
     pub operator_internal_only_posture: bool,
     pub rebase_claim_allowed: bool,
     pub plugin_capability_claim_allowed: bool,
@@ -29,10 +31,10 @@ pub struct TassadarPostArticlePluginWorldMountEnvelopeCompilerAndAdmissibilityRe
     pub detail: String,
 }
 
-impl TassadarPostArticlePluginWorldMountEnvelopeCompilerAndAdmissibilityReceipt {
+impl TassadarPostArticlePluginConformanceSandboxAndBenchmarkHarnessReceipt {
     #[must_use]
     pub fn from_summary(
-        summary: &TassadarPostArticlePluginWorldMountEnvelopeCompilerAndAdmissibilitySummary,
+        summary: &TassadarPostArticlePluginConformanceSandboxAndBenchmarkHarnessSummary,
     ) -> Self {
         Self {
             report_id: summary.report_id.clone(),
@@ -42,14 +44,16 @@ impl TassadarPostArticlePluginWorldMountEnvelopeCompilerAndAdmissibilityReceipt 
             host_owned_runtime_api_id: summary.host_owned_runtime_api_id.clone(),
             engine_abstraction_id: summary.engine_abstraction_id.clone(),
             invocation_receipt_profile_id: summary.invocation_receipt_profile_id.clone(),
-            world_mount_envelope_compiler_id: summary.world_mount_envelope_compiler_id.clone(),
-            admissibility_contract_id: summary.admissibility_contract_id.clone(),
+            conformance_harness_id: summary.conformance_harness_id.clone(),
+            benchmark_harness_id: summary.benchmark_harness_id.clone(),
             contract_status: format!("{:?}", summary.contract_status).to_lowercase(),
-            candidate_set_row_count: summary.candidate_set_row_count,
-            equivalent_choice_row_count: summary.equivalent_choice_row_count,
-            envelope_row_count: summary.envelope_row_count,
+            conformance_row_count: summary.conformance_row_count,
+            workflow_row_count: summary.workflow_row_count,
+            isolation_negative_row_count: summary.isolation_negative_row_count,
+            benchmark_row_count: summary.benchmark_row_count,
             validation_row_count: summary.validation_row_count,
             deferred_issue_ids: summary.deferred_issue_ids.clone(),
+            conformance_sandbox_green: summary.conformance_sandbox_green,
             operator_internal_only_posture: summary.operator_internal_only_posture,
             rebase_claim_allowed: summary.rebase_claim_allowed,
             plugin_capability_claim_allowed: summary.plugin_capability_claim_allowed,
@@ -58,12 +62,12 @@ impl TassadarPostArticlePluginWorldMountEnvelopeCompilerAndAdmissibilityReceipt 
             served_public_universality_allowed: summary.served_public_universality_allowed,
             arbitrary_software_capability_allowed: summary.arbitrary_software_capability_allowed,
             detail: format!(
-                "post-article plugin world-mount admissibility summary `{}` keeps contract_status={:?}, world_mount_envelope_compiler_id=`{}`, candidate_set_rows={}, envelope_rows={}, and deferred_issue_ids={}.",
+                "post-article plugin conformance summary `{}` keeps contract_status={:?}, conformance_harness_id=`{}`, conformance_rows={}, benchmark_rows={}, and deferred_issue_ids={}.",
                 summary.report_id,
                 summary.contract_status,
-                summary.world_mount_envelope_compiler_id,
-                summary.candidate_set_row_count,
-                summary.envelope_row_count,
+                summary.conformance_harness_id,
+                summary.conformance_row_count,
+                summary.benchmark_row_count,
                 summary.deferred_issue_ids.len(),
             ),
         }
@@ -72,16 +76,16 @@ impl TassadarPostArticlePluginWorldMountEnvelopeCompilerAndAdmissibilityReceipt 
 
 #[cfg(test)]
 mod tests {
-    use super::TassadarPostArticlePluginWorldMountEnvelopeCompilerAndAdmissibilityReceipt;
-    use psionic_research::build_tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_summary;
+    use super::TassadarPostArticlePluginConformanceSandboxAndBenchmarkHarnessReceipt;
+    use psionic_research::build_tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_summary;
 
     #[test]
-    fn post_article_plugin_world_mount_admissibility_receipt_projects_summary() {
+    fn post_article_plugin_conformance_harness_receipt_projects_summary() {
         let summary =
-            build_tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_summary()
+            build_tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_summary()
                 .expect("summary");
         let receipt =
-            TassadarPostArticlePluginWorldMountEnvelopeCompilerAndAdmissibilityReceipt::from_summary(
+            TassadarPostArticlePluginConformanceSandboxAndBenchmarkHarnessReceipt::from_summary(
                 &summary,
             );
 
@@ -100,14 +104,15 @@ mod tests {
             "tassadar.plugin_runtime.invocation_receipts.v1"
         );
         assert_eq!(
-            receipt.world_mount_envelope_compiler_id,
-            "tassadar.plugin_runtime.world_mount_envelope_compiler.v1"
+            receipt.conformance_harness_id,
+            "tassadar.plugin_runtime.conformance_harness.v1"
         );
         assert_eq!(
-            receipt.admissibility_contract_id,
-            "tassadar.plugin_runtime.admissibility.v1"
+            receipt.benchmark_harness_id,
+            "tassadar.plugin_runtime.benchmark_harness.v1"
         );
-        assert!(receipt.deferred_issue_ids.is_empty());
+        assert_eq!(receipt.deferred_issue_ids, vec![String::from("TAS-203A")]);
+        assert!(receipt.conformance_sandbox_green);
         assert!(receipt.operator_internal_only_posture);
         assert!(receipt.rebase_claim_allowed);
         assert!(!receipt.plugin_capability_claim_allowed);

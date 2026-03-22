@@ -981,9 +981,38 @@ the provider receipt now lives at
 and the dedicated checker now lives at
 `scripts/check-tassadar-post-article-plugin-world-mount-envelope-compiler-and-admissibility.sh`.
 This tranche keeps admissibility posture bounded and machine-legible, clears
-the invocation-receipt defer pointer to empty, moves the deferred frontier to
-`TAS-203`, and still does not admit weighted plugin control, plugin
+the invocation-receipt defer pointer to empty, now also clears its own defer
+pointer to empty after `TAS-203`, and still does not admit weighted plugin control, plugin
 publication, served/public universality, or arbitrary software capability.
+
+`TAS-203` now closes the canonical plugin conformance sandbox and benchmark
+harness tranche at
+`fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_eval_report.json`.
+That eval-owned harness freezes the first conformance and benchmark evidence
+above the now-closed admissibility layer by inheriting the now-closed
+admissibility contract plus the earlier async-lifecycle, effectful-replay,
+module-trust-isolation, and world-mount precedents, binding static
+host-scripted roundtrip and typed refusal traces, explicit timeout and
+memory-limit behavior, explicit packet-size and digest-mismatch refusal,
+explicit replay and hot-swap compatibility, composed workflow integrity,
+refusal propagation, envelope intersection, partial-cancellation replay,
+failure-domain isolation, side-channel and covert-channel negatives, and cold
+or warm or pooled or queued or cancelled benchmark evidence to the same
+canonical machine identity and computational-model statement as the earlier
+plugin tranche. The supporting sandbox report now lives at
+`fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_report.json`,
+the operator-readable summary now lives at
+`fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_summary.json`,
+the runtime bundle now lives at
+`fixtures/tassadar/runs/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_v1/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_bundle.json`,
+the provider receipt now lives at
+`crates/psionic-provider/src/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness.rs`,
+and the dedicated checker now lives at
+`scripts/check-tassadar-post-article-plugin-conformance-sandbox-and-benchmark-harness.sh`.
+This tranche keeps plugin conformance posture bounded and machine-legible,
+moves the deferred frontier to `TAS-203A`, and still does not admit weighted
+plugin sequencing, plugin publication, served/public universality, or
+arbitrary software capability.
 
 ## Route Requirement
 

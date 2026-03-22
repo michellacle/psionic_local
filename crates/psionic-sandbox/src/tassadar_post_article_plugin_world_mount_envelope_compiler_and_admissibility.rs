@@ -794,7 +794,7 @@ pub fn build_tassadar_post_article_plugin_world_mount_envelope_compiler_and_admi
             plugin_publication_allowed: false,
             served_public_universality_allowed: false,
             arbitrary_software_capability_allowed: false,
-            deferred_issue_ids: vec![String::from("TAS-203")],
+            deferred_issue_ids: Vec::new(),
             claim_boundary: String::from(
                 "this sandbox report freezes the canonical post-article plugin admissibility contract above the invocation-receipt layer and the earlier world-mount, import-policy, and route-policy precedents. It keeps closed-world candidate sets, equivalent-choice classes, route and mount binding, version constraints, trust posture, publication posture, compiled runtime envelopes, and typed denied or quarantined outcomes machine-readable while keeping weighted plugin control, plugin publication, served/public universality, and arbitrary software capability blocked.",
             ),
@@ -1121,7 +1121,7 @@ mod tests {
         assert_eq!(report.envelope_rows.len(), 2);
         assert_eq!(report.case_rows.len(), 7);
         assert_eq!(report.validation_rows.len(), 9);
-        assert_eq!(report.deferred_issue_ids, vec![String::from("TAS-203")]);
+        assert!(report.deferred_issue_ids.is_empty());
         assert!(report.operator_internal_only_posture);
         assert!(report.admissibility_frozen);
         assert!(report.candidate_set_enumeration_frozen);

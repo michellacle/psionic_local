@@ -1075,10 +1075,8 @@
   "plugin_publication_allowed": false,
   "served_public_universality_allowed": false,
   "arbitrary_software_capability_allowed": false,
-  "deferred_issue_ids": [
-    "TAS-203"
-  ],
+  "deferred_issue_ids": [],
   "claim_boundary": "this sandbox report freezes the canonical post-article plugin admissibility contract above the invocation-receipt layer and the earlier world-mount, import-policy, and route-policy precedents. It keeps closed-world candidate sets, equivalent-choice classes, route and mount binding, version constraints, trust posture, publication posture, compiled runtime envelopes, and typed denied or quarantined outcomes machine-readable while keeping weighted plugin control, plugin publication, served/public universality, and arbitrary software capability blocked.",
-  "summary": "Post-article plugin world-mount admissibility report keeps contract_status=Green, dependency_rows=5, candidate_set_rows=5, equivalent_choice_rows=5, envelope_rows=2, case_rows=7, validation_rows=9, and deferred_issue_ids=1.",
-  "report_digest": "79e1f2092f8ccc49ec7129843fbedb2d9ee87fac0f5fd36611ecf1f5cb1bb09f"
+  "summary": "Post-article plugin world-mount admissibility report keeps contract_status=Green, dependency_rows=5, candidate_set_rows=5, equivalent_choice_rows=5, envelope_rows=2, case_rows=7, validation_rows=9, and deferred_issue_ids=0.",
+  "report_digest": "dd28644b1fd07eded8837a5f9b792225d6a575b5958e0d68ebb4deefc8486bda"
 }

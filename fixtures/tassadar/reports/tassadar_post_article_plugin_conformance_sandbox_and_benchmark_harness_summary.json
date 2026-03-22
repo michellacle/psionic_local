@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "report_id": "tassadar.post_article_plugin_world_mount_envelope_compiler_and_admissibility.report.v1",
+  "report_id": "tassadar.post_article_plugin_conformance_sandbox_and_benchmark_harness.eval_report.v1",
   "machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
   "canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
   "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
@@ -9,17 +9,19 @@
   "host_owned_runtime_api_id": "tassadar.plugin_runtime.host_owned_api.v1",
   "engine_abstraction_id": "tassadar.plugin_runtime.engine_abstraction.v1",
   "invocation_receipt_profile_id": "tassadar.plugin_runtime.invocation_receipts.v1",
-  "world_mount_envelope_compiler_id": "tassadar.plugin_runtime.world_mount_envelope_compiler.v1",
-  "admissibility_contract_id": "tassadar.plugin_runtime.admissibility.v1",
+  "conformance_harness_id": "tassadar.plugin_runtime.conformance_harness.v1",
+  "benchmark_harness_id": "tassadar.plugin_runtime.benchmark_harness.v1",
   "contract_status": "green",
-  "dependency_row_count": 5,
-  "admissibility_rule_row_count": 9,
-  "candidate_set_row_count": 5,
-  "equivalent_choice_row_count": 5,
-  "envelope_row_count": 2,
-  "case_row_count": 7,
-  "validation_row_count": 9,
-  "deferred_issue_ids": [],
+  "dependency_row_count": 7,
+  "conformance_row_count": 9,
+  "workflow_row_count": 5,
+  "isolation_negative_row_count": 8,
+  "benchmark_row_count": 7,
+  "validation_row_count": 11,
+  "deferred_issue_ids": [
+    "TAS-203A"
+  ],
+  "conformance_sandbox_green": true,
   "operator_internal_only_posture": true,
   "rebase_claim_allowed": true,
   "plugin_capability_claim_allowed": false,
@@ -27,6 +29,6 @@
   "plugin_publication_allowed": false,
   "served_public_universality_allowed": false,
   "arbitrary_software_capability_allowed": false,
-  "detail": "post-article plugin world-mount admissibility summary keeps machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, world_mount_envelope_compiler_id=`tassadar.plugin_runtime.world_mount_envelope_compiler.v1`, contract_status=Green, candidate_set_rows=5, envelope_rows=2, and deferred_issue_ids=0.",
-  "summary_digest": "9c0ca2427b41d57da2bba73aee268a3a794a488b66f457c106ba0b5c4eaa7635"
+  "detail": "post-article plugin conformance summary keeps machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, conformance_harness_id=`tassadar.plugin_runtime.conformance_harness.v1`, contract_status=Green, conformance_rows=9, benchmark_rows=7, and deferred_issue_ids=1.",
+  "summary_digest": "3cb3f9e13eb3cb98de6264f90454278b8a730853c64bf32ca67af2a01fa94438"
 }

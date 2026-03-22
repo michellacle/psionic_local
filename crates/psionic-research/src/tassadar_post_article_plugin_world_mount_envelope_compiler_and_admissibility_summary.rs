@@ -262,7 +262,7 @@ mod tests {
         assert_eq!(summary.envelope_row_count, 2);
         assert_eq!(summary.case_row_count, 7);
         assert_eq!(summary.validation_row_count, 9);
-        assert_eq!(summary.deferred_issue_ids, vec![String::from("TAS-203")]);
+        assert!(summary.deferred_issue_ids.is_empty());
         assert!(summary.operator_internal_only_posture);
         assert!(summary.rebase_claim_allowed);
         assert!(!summary.plugin_capability_claim_allowed);

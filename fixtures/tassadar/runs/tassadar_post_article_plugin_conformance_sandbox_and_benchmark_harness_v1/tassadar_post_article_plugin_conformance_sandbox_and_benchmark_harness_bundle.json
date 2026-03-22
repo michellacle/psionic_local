@@ -1,0 +1,591 @@
+{
+  "schema_version": 1,
+  "bundle_id": "tassadar.post_article_plugin_conformance_sandbox_and_benchmark_harness.runtime_bundle.v1",
+  "host_owned_runtime_api_id": "tassadar.plugin_runtime.host_owned_api.v1",
+  "invocation_receipt_profile_id": "tassadar.plugin_runtime.invocation_receipts.v1",
+  "conformance_harness_id": "tassadar.plugin_runtime.conformance_harness.v1",
+  "benchmark_harness_id": "tassadar.plugin_runtime.benchmark_harness.v1",
+  "conformance_rows": [
+    {
+      "case_id": "roundtrip_frontier_relax_success",
+      "trace_surface_id": "trace.roundtrip.frontier_relax.v1",
+      "plugin_id": "plugin.frontier_relax_core",
+      "plugin_version": "1.0.0",
+      "world_mount_id": "mount.benchmark_graph",
+      "outcome": "exact_roundtrip_success",
+      "trace_receipt_id": "trace_receipt.plugin_roundtrip.success.v1",
+      "receipt_integrity_required": true,
+      "envelope_compatibility_explicit": true,
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "replay_class_id": "deterministic_replayable",
+      "hot_swap_rule_ids": [],
+      "detail": "frontier-relax roundtrip stays exact under one static scripted harness with explicit receipt and envelope identity."
+    },
+    {
+      "case_id": "malformed_packet_refused",
+      "trace_surface_id": "trace.packet.malformed.validator_search.v1",
+      "plugin_id": "plugin.candidate_select_core",
+      "plugin_version": "1.1.0",
+      "world_mount_id": "mount.validator_search",
+      "outcome": "malformed_packet_refused",
+      "trace_receipt_id": "trace_receipt.plugin_packet.refusal.v1",
+      "receipt_integrity_required": true,
+      "envelope_compatibility_explicit": true,
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "replay_class_id": "publication_refusal",
+      "hot_swap_rule_ids": [],
+      "typed_refusal_reason_id": "packet_schema_invalid",
+      "detail": "malformed packets stay typed refusals instead of falling back to hidden host repair."
+    },
+    {
+      "case_id": "capability_denial_refused",
+      "trace_surface_id": "trace.capability.denied.strict_no_imports.v1",
+      "plugin_id": "plugin.frontier_relax_core",
+      "plugin_version": "1.0.0",
+      "world_mount_id": "mount.strict_no_imports",
+      "outcome": "capability_denied",
+      "trace_receipt_id": "trace_receipt.plugin_capability.refusal.v1",
+      "receipt_integrity_required": true,
+      "envelope_compatibility_explicit": true,
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "replay_class_id": "publication_refusal",
+      "hot_swap_rule_ids": [],
+      "typed_refusal_reason_id": "capability_namespace_denied",
+      "detail": "capability denial stays explicit when a scripted trace requests a namespace outside the compiled envelope."
+    },
+    {
+      "case_id": "timeout_limit_enforced",
+      "trace_surface_id": "trace.timeout.checkpoint_backtrack.v1",
+      "plugin_id": "plugin.checkpoint_backtrack_core",
+      "plugin_version": "1.0.0",
+      "world_mount_id": "mount.benchmark_graph",
+      "outcome": "timed_out",
+      "trace_receipt_id": "trace_receipt.plugin_timeout.limit.v1",
+      "receipt_integrity_required": true,
+      "envelope_compatibility_explicit": true,
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "replay_class_id": "operator_replay_only",
+      "hot_swap_rule_ids": [],
+      "typed_refusal_reason_id": "runtime_timeout",
+      "detail": "timeout enforcement remains typed, bounded, and receipt-visible under static scripted saturation."
+    },
+    {
+      "case_id": "memory_limit_enforced",
+      "trace_surface_id": "trace.memory.validator_search.v1",
+      "plugin_id": "plugin.candidate_select_core",
+      "plugin_version": "1.1.0",
+      "world_mount_id": "mount.validator_search",
+      "outcome": "memory_limited",
+      "trace_receipt_id": "trace_receipt.plugin_memory.limit.v1",
+      "receipt_integrity_required": true,
+      "envelope_compatibility_explicit": true,
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "replay_class_id": "operator_replay_only",
+      "hot_swap_rule_ids": [],
+      "typed_refusal_reason_id": "runtime_memory_limit",
+      "detail": "memory-limit enforcement remains typed and replay-stable instead of collapsing into one generic crash."
+    },
+    {
+      "case_id": "packet_size_refused",
+      "trace_surface_id": "trace.packet.oversize.validator_search.v1",
+      "plugin_id": "plugin.candidate_select_core",
+      "plugin_version": "1.1.0",
+      "world_mount_id": "mount.validator_search",
+      "outcome": "packet_size_refused",
+      "trace_receipt_id": "trace_receipt.plugin_packet.refusal.v1",
+      "receipt_integrity_required": true,
+      "envelope_compatibility_explicit": true,
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "replay_class_id": "publication_refusal",
+      "hot_swap_rule_ids": [],
+      "typed_refusal_reason_id": "packet_size_exceeded",
+      "detail": "oversized packets stay typed refusals instead of invoking hidden truncation or schema repair."
+    },
+    {
+      "case_id": "digest_mismatch_refused",
+      "trace_surface_id": "trace.digest.mismatch.frontier_relax.v1",
+      "plugin_id": "plugin.frontier_relax_core",
+      "plugin_version": "1.0.0",
+      "world_mount_id": "mount.benchmark_graph",
+      "outcome": "digest_mismatch_refused",
+      "trace_receipt_id": "trace_receipt.plugin_digest.refusal.v1",
+      "receipt_integrity_required": true,
+      "envelope_compatibility_explicit": true,
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "replay_class_id": "publication_refusal",
+      "hot_swap_rule_ids": [],
+      "typed_refusal_reason_id": "artifact_mismatch",
+      "detail": "artifact digest mismatch stays typed and fails closed before load or invoke."
+    },
+    {
+      "case_id": "replay_receipt_stable",
+      "trace_surface_id": "trace.replay.validator_search.v1",
+      "plugin_id": "plugin.candidate_select_core",
+      "plugin_version": "1.1.0",
+      "world_mount_id": "mount.validator_search",
+      "outcome": "replay_stable",
+      "trace_receipt_id": "trace_receipt.plugin_replay.stable.v1",
+      "receipt_integrity_required": true,
+      "envelope_compatibility_explicit": true,
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "replay_class_id": "deterministic_replayable",
+      "hot_swap_rule_ids": [],
+      "detail": "replay posture stays stable across repeated host-scripted invocations with the same receipt line."
+    },
+    {
+      "case_id": "hot_swap_compatibility_green",
+      "trace_surface_id": "trace.hot_swap.validator_search.v1",
+      "plugin_id": "plugin.candidate_select_core",
+      "plugin_version": "1.1.1",
+      "world_mount_id": "mount.validator_search",
+      "outcome": "hot_swap_compatible",
+      "trace_receipt_id": "trace_receipt.plugin_hot_swap.compatible.v1",
+      "receipt_integrity_required": true,
+      "envelope_compatibility_explicit": true,
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "replay_class_id": "deterministic_replayable",
+      "hot_swap_rule_ids": [
+        "same_plugin_id_versioned_replacement_only",
+        "abi_and_schema_shape_compatibility_required",
+        "trust_posture_widening_requires_receipts",
+        "replay_and_evidence_posture_compatibility_required"
+      ],
+      "detail": "hot-swap stays bounded to one stable plugin identity, compatible ABI and schema shape, and explicit replay or evidence posture."
+    }
+  ],
+  "workflow_rows": [
+    {
+      "workflow_case_id": "search_pair_workflow_integrity",
+      "plugin_chain_ids": [
+        "plugin.frontier_relax_core",
+        "plugin.checkpoint_backtrack_core"
+      ],
+      "world_mount_ids": [
+        "mount.benchmark_graph",
+        "mount.benchmark_graph"
+      ],
+      "outcome": "exact_workflow_integrity",
+      "trace_receipt_id": "trace_receipt.plugin_workflow.composed.v1",
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "receipt_integrity_required": true,
+      "envelope_intersection_explicit": true,
+      "partial_cancellation_replay_stable": false,
+      "failure_domain_scope_id": "per_step_isolation",
+      "hot_swap_rule_ids": [],
+      "detail": "two-step benchmark search stays exact under one host-scripted composition trace with explicit receipt carry-through."
+    },
+    {
+      "workflow_case_id": "strict_no_imports_refusal_propagation",
+      "plugin_chain_ids": [
+        "plugin.frontier_relax_core",
+        "plugin.candidate_select_core"
+      ],
+      "world_mount_ids": [
+        "mount.strict_no_imports",
+        "mount.validator_search"
+      ],
+      "outcome": "refusal_propagated",
+      "trace_receipt_id": "trace_receipt.plugin_workflow.composed.v1",
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "receipt_integrity_required": true,
+      "envelope_intersection_explicit": true,
+      "partial_cancellation_replay_stable": false,
+      "failure_domain_scope_id": "per_plugin_isolation",
+      "hot_swap_rule_ids": [],
+      "typed_refusal_reason_id": "capability_namespace_denied",
+      "detail": "typed refusal remains visible to the next workflow step instead of being erased by host-side continuation."
+    },
+    {
+      "workflow_case_id": "envelope_intersection_operator_internal",
+      "plugin_chain_ids": [
+        "plugin.candidate_select_core",
+        "plugin.frontier_relax_core"
+      ],
+      "world_mount_ids": [
+        "mount.validator_search",
+        "mount.benchmark_graph"
+      ],
+      "outcome": "envelope_intersection_explicit",
+      "trace_receipt_id": "trace_receipt.plugin_workflow.composed.v1",
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "receipt_integrity_required": true,
+      "envelope_intersection_explicit": true,
+      "partial_cancellation_replay_stable": false,
+      "failure_domain_scope_id": "per_workflow_isolation",
+      "hot_swap_rule_ids": [],
+      "detail": "composed workflows stay inside the explicit intersection of both envelopes instead of inheriting ambient authority."
+    },
+    {
+      "workflow_case_id": "hot_swap_inside_composed_workflow",
+      "plugin_chain_ids": [
+        "plugin.candidate_select_core",
+        "plugin.frontier_relax_core"
+      ],
+      "world_mount_ids": [
+        "mount.validator_search",
+        "mount.benchmark_graph"
+      ],
+      "outcome": "hot_swap_compatible",
+      "trace_receipt_id": "trace_receipt.plugin_hot_swap.compatible.v1",
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "receipt_integrity_required": true,
+      "envelope_intersection_explicit": true,
+      "partial_cancellation_replay_stable": false,
+      "failure_domain_scope_id": "per_workflow_isolation",
+      "hot_swap_rule_ids": [
+        "same_plugin_id_versioned_replacement_only",
+        "abi_and_schema_shape_compatibility_required",
+        "trust_posture_widening_requires_receipts",
+        "replay_and_evidence_posture_compatibility_required"
+      ],
+      "detail": "composed workflows keep hot-swap compatibility explicit instead of letting later steps silently widen the trusted plugin surface."
+    },
+    {
+      "workflow_case_id": "partial_cancellation_replay_stable",
+      "plugin_chain_ids": [
+        "plugin.candidate_select_core",
+        "plugin.checkpoint_backtrack_core"
+      ],
+      "world_mount_ids": [
+        "mount.validator_search",
+        "mount.benchmark_graph"
+      ],
+      "outcome": "partial_cancellation_replay_stable",
+      "trace_receipt_id": "trace_receipt.plugin_workflow.composed.v1",
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "receipt_integrity_required": true,
+      "envelope_intersection_explicit": true,
+      "partial_cancellation_replay_stable": true,
+      "failure_domain_scope_id": "per_workflow_isolation",
+      "hot_swap_rule_ids": [],
+      "detail": "partial cancellation keeps replay posture explicit and does not leak intermediate hidden host state into resumed workflow steps."
+    }
+  ],
+  "isolation_negative_rows": [
+    {
+      "check_id": "per_plugin_failure_domain_isolated",
+      "isolation_scope_id": "per_plugin",
+      "negative_class_id": "plugin_failure_domain_leak",
+      "green": true,
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "typed_refusal_reason_id": "plugin_failure_domain_isolation_required",
+      "detail": "one plugin failure must not corrupt sibling plugin state or receipts."
+    },
+    {
+      "check_id": "per_step_failure_domain_isolated",
+      "isolation_scope_id": "per_step",
+      "negative_class_id": "step_failure_domain_leak",
+      "green": true,
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "typed_refusal_reason_id": "step_failure_domain_isolation_required",
+      "detail": "one workflow step failure must not silently rewrite the next step input or receipt line."
+    },
+    {
+      "check_id": "per_workflow_failure_domain_isolated",
+      "isolation_scope_id": "per_workflow",
+      "negative_class_id": "workflow_failure_domain_leak",
+      "green": true,
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "typed_refusal_reason_id": "workflow_failure_domain_isolation_required",
+      "detail": "one workflow failure domain must not contaminate a distinct workflow run."
+    },
+    {
+      "check_id": "shared_cache_channel_denied",
+      "isolation_scope_id": "shared_cache",
+      "negative_class_id": "hidden_shared_cache_channel",
+      "green": true,
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "typed_refusal_reason_id": "shared_cache_isolation_required",
+      "detail": "plugins may not communicate through hidden shared cache state."
+    },
+    {
+      "check_id": "shared_store_channel_denied",
+      "isolation_scope_id": "shared_store",
+      "negative_class_id": "hidden_shared_store_channel",
+      "green": true,
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "typed_refusal_reason_id": "shared_store_isolation_required",
+      "detail": "plugins may not communicate through hidden shared store mutation outside declared receipts."
+    },
+    {
+      "check_id": "timing_channel_denied",
+      "isolation_scope_id": "timing_channel",
+      "negative_class_id": "timing_channel_leak",
+      "green": true,
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "typed_refusal_reason_id": "timing_channel_isolation_required",
+      "detail": "timing deltas remain a negative row and do not widen the current proof surface."
+    },
+    {
+      "check_id": "covert_latent_representation_denied",
+      "isolation_scope_id": "covert_channel",
+      "negative_class_id": "latent_shared_representation_channel",
+      "green": true,
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "typed_refusal_reason_id": "covert_channel_isolation_required",
+      "detail": "latent shared representations remain an explicit negative row instead of an implicit return path."
+    },
+    {
+      "check_id": "covert_incomplete_schema_denied",
+      "isolation_scope_id": "covert_channel",
+      "negative_class_id": "semantically_incomplete_schema_channel",
+      "green": true,
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "typed_refusal_reason_id": "schema_semantics_closure_required",
+      "detail": "semantically incomplete schemas stay a fail-closed negative row instead of a lossy covert channel."
+    }
+  ],
+  "benchmark_rows": [
+    {
+      "benchmark_id": "cold_instantiate_path",
+      "path_class_id": "cold_instantiate",
+      "plugin_id": "plugin.frontier_relax_core",
+      "sample_count": 21,
+      "queue_depth": 0,
+      "p50_micros": 3840,
+      "p95_micros": 4220,
+      "bounded_limit_observed": true,
+      "receipt_emitted": true,
+      "cancel_visible": false,
+      "detail": "cold instantiation cost stays explicitly benchmarked for the first promoted plugin tranche."
+    },
+    {
+      "benchmark_id": "warm_invoke_path",
+      "path_class_id": "warm_invoke",
+      "plugin_id": "plugin.frontier_relax_core",
+      "sample_count": 21,
+      "queue_depth": 0,
+      "p50_micros": 1460,
+      "p95_micros": 1710,
+      "bounded_limit_observed": true,
+      "receipt_emitted": true,
+      "cancel_visible": false,
+      "detail": "warm invocation cost remains separate from cold instantiation and pool reuse."
+    },
+    {
+      "benchmark_id": "pooled_reuse_path",
+      "path_class_id": "pooled_reuse",
+      "plugin_id": "plugin.candidate_select_core",
+      "sample_count": 21,
+      "queue_depth": 0,
+      "p50_micros": 910,
+      "p95_micros": 1080,
+      "bounded_limit_observed": true,
+      "receipt_emitted": true,
+      "cancel_visible": false,
+      "detail": "pool reuse benefit stays explicit instead of being hidden inside one aggregate runtime number."
+    },
+    {
+      "benchmark_id": "queued_saturation_path",
+      "path_class_id": "queued_saturation",
+      "plugin_id": "plugin.checkpoint_backtrack_core",
+      "sample_count": 21,
+      "queue_depth": 4,
+      "p50_micros": 5800,
+      "p95_micros": 6420,
+      "bounded_limit_observed": true,
+      "receipt_emitted": true,
+      "cancel_visible": false,
+      "detail": "queue latency under bounded saturation remains an explicit benchmark row with visible depth."
+    },
+    {
+      "benchmark_id": "cancelled_path",
+      "path_class_id": "cancelled_path",
+      "plugin_id": "plugin.candidate_select_core",
+      "sample_count": 21,
+      "queue_depth": 1,
+      "p50_micros": 620,
+      "p95_micros": 760,
+      "bounded_limit_observed": true,
+      "receipt_emitted": true,
+      "cancel_visible": true,
+      "detail": "cancellation latency remains measured and visibly different from ordinary success or refusal paths."
+    },
+    {
+      "benchmark_id": "evidence_overhead_path",
+      "path_class_id": "evidence_overhead",
+      "plugin_id": "plugin.frontier_relax_core",
+      "sample_count": 21,
+      "queue_depth": 0,
+      "p50_micros": 180,
+      "p95_micros": 240,
+      "bounded_limit_observed": true,
+      "receipt_emitted": true,
+      "cancel_visible": false,
+      "detail": "receipt and evidence overhead stays explicit rather than being hidden inside success-path timing."
+    },
+    {
+      "benchmark_id": "timeout_enforcement_path",
+      "path_class_id": "timeout_enforcement",
+      "plugin_id": "plugin.checkpoint_backtrack_core",
+      "sample_count": 21,
+      "queue_depth": 2,
+      "p50_micros": 150,
+      "p95_micros": 210,
+      "bounded_limit_observed": true,
+      "receipt_emitted": true,
+      "cancel_visible": false,
+      "detail": "timeout enforcement behavior stays measured instead of inferred from one refusal row."
+    }
+  ],
+  "trace_receipts": [
+    {
+      "trace_receipt_id": "trace_receipt.plugin_roundtrip.success.v1",
+      "trace_class_id": "plugin_roundtrip",
+      "plugin_chain_ids": [
+        "plugin.frontier_relax_core"
+      ],
+      "receipt_kind": "conformance",
+      "envelope_ids": [
+        "envelope.benchmark_graph.internal_search.v1"
+      ],
+      "replay_token": "replay_token.plugin_roundtrip.success.v1",
+      "result_digest": "52808a59165c26748fa5ace85e8786355f07387cb59cc3138a7f4688ab5e00c7",
+      "receipt_digest": "391f0067010565c1adf0dd4d6737bddcafd2a8a5bb8be34df8bba63c404d492d",
+      "detail": "bounded roundtrip success stays receipt-visible under one static scripted trace."
+    },
+    {
+      "trace_receipt_id": "trace_receipt.plugin_packet.refusal.v1",
+      "trace_class_id": "plugin_packet_refusal",
+      "plugin_chain_ids": [
+        "plugin.candidate_select_core"
+      ],
+      "receipt_kind": "typed_refusal",
+      "envelope_ids": [
+        "envelope.validator_search.operator_internal.v1"
+      ],
+      "replay_token": "replay_token.plugin_packet.refusal.v1",
+      "result_digest": "5cb721d84b85c6339c6048217b626f0284c8578fa9075d87740e22f7345f1454",
+      "receipt_digest": "6693e38d9ce8d78fb693e7d5cfd9f3a77b414a587768dc872b25f2bb535fdb11",
+      "detail": "packet-shape refusal stays typed and replayable under one host-scripted trace."
+    },
+    {
+      "trace_receipt_id": "trace_receipt.plugin_capability.refusal.v1",
+      "trace_class_id": "plugin_capability_refusal",
+      "plugin_chain_ids": [
+        "plugin.frontier_relax_core"
+      ],
+      "receipt_kind": "typed_refusal",
+      "envelope_ids": [],
+      "replay_token": "replay_token.plugin_capability.refusal.v1",
+      "result_digest": "d74e600e3f5348801f148544b56d400c965a600711e5716d27b455b0d98e5035",
+      "receipt_digest": "aed6e3151dc69d912aca3456566b6b677f97e0d977a5175a1a78c4522733d3f8",
+      "detail": "capability denial stays typed and visible without widening the envelope."
+    },
+    {
+      "trace_receipt_id": "trace_receipt.plugin_timeout.limit.v1",
+      "trace_class_id": "plugin_timeout_limit",
+      "plugin_chain_ids": [
+        "plugin.checkpoint_backtrack_core"
+      ],
+      "receipt_kind": "timeout_limit",
+      "envelope_ids": [
+        "envelope.benchmark_graph.internal_search.v1"
+      ],
+      "replay_token": "replay_token.plugin_timeout.limit.v1",
+      "result_digest": "cae4ca94b6012fbafeebacbd110b7bf26dc7a426f3a2ce6a9721966edc55e9d8",
+      "receipt_digest": "709dfa697095158c3d9d63a10e1717b91a8fbd828c7aebaa59616836830bf990",
+      "detail": "timeout enforcement stays receipt-visible and replay-stable."
+    },
+    {
+      "trace_receipt_id": "trace_receipt.plugin_memory.limit.v1",
+      "trace_class_id": "plugin_memory_limit",
+      "plugin_chain_ids": [
+        "plugin.candidate_select_core"
+      ],
+      "receipt_kind": "memory_limit",
+      "envelope_ids": [
+        "envelope.validator_search.operator_internal.v1"
+      ],
+      "replay_token": "replay_token.plugin_memory.limit.v1",
+      "result_digest": "698102f8a62a54089d1f2a19c9c474d0e9900d47a11213f4834de54e228266d3",
+      "receipt_digest": "47c86cf1e6d436642a126b4253562fc299c6b90bf6a6db522e4a2d654b57ea59",
+      "detail": "memory ceilings stay explicit and replay-stable."
+    },
+    {
+      "trace_receipt_id": "trace_receipt.plugin_digest.refusal.v1",
+      "trace_class_id": "plugin_digest_refusal",
+      "plugin_chain_ids": [
+        "plugin.frontier_relax_core"
+      ],
+      "receipt_kind": "artifact_mismatch",
+      "envelope_ids": [],
+      "replay_token": "replay_token.plugin_digest.refusal.v1",
+      "result_digest": "4b33b0ee961b3999452aa1f0b9e79fa1b4e4652cb83b38eb4ba9f8d5d85c98f1",
+      "receipt_digest": "daee563669736baf2825d96e60c06a9342a1e38fdc34a3afcdc68aeba5beaa70",
+      "detail": "artifact-digest mismatch stays typed instead of silently loading a substitute."
+    },
+    {
+      "trace_receipt_id": "trace_receipt.plugin_replay.stable.v1",
+      "trace_class_id": "plugin_replay_stable",
+      "plugin_chain_ids": [
+        "plugin.candidate_select_core"
+      ],
+      "receipt_kind": "replay_check",
+      "envelope_ids": [
+        "envelope.validator_search.operator_internal.v1"
+      ],
+      "replay_token": "replay_token.plugin_replay.stable.v1",
+      "result_digest": "49e6699422b96ff7ab2cb5e72be098911e48735a1dff357e8271fe3c448c6294",
+      "receipt_digest": "816d4fd24b6afe8b5cdaa576faff05f06272029d6fab841cecfb69bab792a478",
+      "detail": "the replay-class lane stays stable for repeated host-scripted plugin invocations."
+    },
+    {
+      "trace_receipt_id": "trace_receipt.plugin_hot_swap.compatible.v1",
+      "trace_class_id": "plugin_hot_swap_compatible",
+      "plugin_chain_ids": [
+        "plugin.candidate_select_core"
+      ],
+      "receipt_kind": "hot_swap_check",
+      "envelope_ids": [
+        "envelope.validator_search.operator_internal.v1"
+      ],
+      "replay_token": "replay_token.plugin_hot_swap.compatible.v1",
+      "result_digest": "4effb2d492b365f4fa068571fb93f5cf997d670f983ae20ef906d388503bb8e3",
+      "receipt_digest": "96d29bd0e6e0253dbf18f9541d82986c5efc083138666ec773cd6fb75056791a",
+      "detail": "hot-swap compatibility stays explicit under one stable plugin identity and declared schema line."
+    },
+    {
+      "trace_receipt_id": "trace_receipt.plugin_workflow.composed.v1",
+      "trace_class_id": "plugin_workflow_composed",
+      "plugin_chain_ids": [
+        "plugin.frontier_relax_core",
+        "plugin.candidate_select_core"
+      ],
+      "receipt_kind": "workflow_trace",
+      "envelope_ids": [
+        "envelope.benchmark_graph.internal_search.v1",
+        "envelope.validator_search.operator_internal.v1"
+      ],
+      "replay_token": "replay_token.plugin_workflow.composed.v1",
+      "result_digest": "38fbb6476ca4114ce33fdb6840e9c31af9c5fe16138e2467877342ac6b2ba25a",
+      "receipt_digest": "69e415f6bd2686f5c89f526cb52f082b59df4b8ef60d2f676ff7fcf7d59c4c3a",
+      "detail": "composed workflow traces stay host-scripted, receipt-visible, and bounded."
+    }
+  ],
+  "claim_boundary": "this runtime bundle freezes the canonical post-article plugin conformance sandbox and benchmark harness above the host-owned runtime API, invocation-receipt contract, and world-mount admissibility contract. It keeps static host-scripted conformance traces, typed refusal and limit behavior, composed workflow integrity, failure-domain isolation, side-channel and covert-channel negatives, and cold or warm or pooled or queued or cancelled benchmark evidence machine-readable while keeping weighted plugin sequencing, plugin publication, served/public universality, and arbitrary software capability blocked.",
+  "summary": "Post-article plugin conformance bundle covers conformance_rows=9, workflow_rows=5, isolation_negative_rows=8, benchmark_rows=7, trace_receipts=9.",
+  "bundle_digest": "c48c11fb006e048748558119c9a8a13adf81a68429aa2fec73976cc6209eb2d7"
+}

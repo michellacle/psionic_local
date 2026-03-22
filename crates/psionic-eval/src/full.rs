@@ -270,6 +270,8 @@ mod tassadar_post_article_carrier_split_contract;
 mod tassadar_post_article_control_plane_decision_provenance_proof;
 #[path = "tassadar_post_article_plugin_invocation_receipts_and_replay_classes.rs"]
 mod tassadar_post_article_plugin_invocation_receipts_and_replay_classes;
+#[path = "tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness.rs"]
+mod tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness;
 #[path = "tassadar_post_article_rebased_universality_verdict_split.rs"]
 mod tassadar_post_article_rebased_universality_verdict_split;
 #[path = "tassadar_post_article_turing_completeness_closeout_audit.rs"]
@@ -520,6 +522,7 @@ pub use tassadar_post_article_canonical_route_universal_substrate_gate::*;
 pub use tassadar_post_article_carrier_split_contract::*;
 pub use tassadar_post_article_control_plane_decision_provenance_proof::*;
 pub use tassadar_post_article_plugin_invocation_receipts_and_replay_classes::*;
+pub use tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness::*;
 pub use tassadar_post_article_rebased_universality_verdict_split::*;
 pub use tassadar_post_article_turing_completeness_closeout_audit::*;
 pub use tassadar_post_article_universal_machine_proof_rebinding::*;

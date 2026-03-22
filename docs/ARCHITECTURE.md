@@ -1404,6 +1404,28 @@ The current scope is:
   and quarantined outcomes while keeping the current lane operator/internal-
   only and leaving weighted plugin control, plugin publication,
   served/public universality, and arbitrary software capability blocked
+- the current post-article plugin conformance sandbox and benchmark harness
+  artifacts are
+  `fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_report.json`,
+  `fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_eval_report.json`,
+  `fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_summary.json`,
+  the runtime bundle in
+  `fixtures/tassadar/runs/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_v1/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_bundle.json`,
+  the provider receipt in
+  `crates/psionic-provider/src/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness.rs`,
+  the checker script
+  `scripts/check-tassadar-post-article-plugin-conformance-sandbox-and-benchmark-harness.sh`,
+  and the audit note
+  `docs/audits/2026-03-21-tassadar-post-article-plugin-conformance-sandbox-and-benchmark-harness.md`,
+  which freeze the first plugin conformance and benchmark harness above the
+  admissibility layer by requiring static host-scripted conformance traces,
+  typed refusal and limit behavior, explicit workflow integrity and envelope
+  intersection, hot-swap compatibility, failure-domain isolation, side-channel
+  and covert-channel negatives, and cold or warm or pooled or queued or
+  cancelled benchmark evidence while keeping the current lane
+  operator/internal-only and leaving weighted plugin sequencing, plugin
+  publication, served/public universality, and arbitrary software capability
+  blocked
 - the current post-article Turing-completeness closeout artifacts are
   `fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json`,
   `fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_summary.json`,

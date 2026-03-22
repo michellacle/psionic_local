@@ -368,6 +368,23 @@ Current honest posture:
   denied, suppressed, and quarantined outcomes; this tranche still keeps
   weighted plugin control, plugin publication, served/public universality, and
   arbitrary software capability blocked
+- the repo now also has one post-article plugin conformance sandbox and
+  benchmark harness, with a committed sandbox-owned report at
+  `fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_report.json`,
+  a committed eval-owned closure report at
+  `fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_eval_report.json`,
+  a disclosure-safe research summary at
+  `fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_summary.json`,
+  a committed runtime bundle, a provider-facing receipt, a checker script, and
+  an audit note that freeze the first plugin conformance and benchmark harness
+  above the admissibility layer, including static host-scripted conformance
+  traces, roundtrip and typed refusal or limit behavior, explicit workflow
+  integrity and envelope intersection, hot-swap compatibility, failure-domain
+  isolation, side-channel and covert-channel negatives, and cold or warm or
+  pooled or queued or cancelled benchmark evidence; this tranche clears the
+  admissibility defer pointer to empty, moves the deferred frontier to
+  `TAS-203A`, and still keeps weighted plugin sequencing, plugin publication,
+  served/public universality, and arbitrary software capability blocked
 - the repo now also has one post-article Turing-completeness closeout audit,
   with a committed eval report at
   `fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json`,
@@ -580,9 +597,9 @@ Issue-state note:
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
 - `TAS-156` is now implemented and tracked in
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
-- `TAS-157` through `TAS-201` are now implemented and tracked in
+- `TAS-157` through `TAS-203` are now implemented and tracked in
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
-- `TAS-202` through `TAS-216` remain open in GitHub and are tracked via the
+- `TAS-203A` through `TAS-226` remain open in GitHub and are tracked via the
   issue bodies plus `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
 
 ## Repo-Local Companion Docs

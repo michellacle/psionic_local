@@ -1,0 +1,836 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.post_article_plugin_conformance_sandbox_and_benchmark_harness.eval_report.v1",
+  "checker_script_ref": "scripts/check-tassadar-post-article-plugin-conformance-sandbox-and-benchmark-harness.sh",
+  "sandbox_report_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_report.json",
+  "local_plugin_system_spec_ref": "~/code/alpha/tassadar/plugin-system.md",
+  "supporting_material_refs": [
+    "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json",
+    "fixtures/tassadar/reports/tassadar_async_lifecycle_profile_report.json",
+    "fixtures/tassadar/reports/tassadar_effectful_replay_audit_report.json",
+    "fixtures/tassadar/reports/tassadar_module_trust_isolation_report.json",
+    "fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json",
+    "~/code/alpha/tassadar/plugin-system.md",
+    "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_report.json"
+  ],
+  "machine_identity_binding": {
+    "machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+    "canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+    "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+    "canonical_route_descriptor_digest": "00af062cccc3d1b2e42ee8e092b9ef8e1539dd3f2dfc379cff7d1cd4a008b032",
+    "canonical_weight_bundle_digest": "99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c",
+    "canonical_weight_primary_artifact_sha256": "e24923e6fe39f0656b3f331fb935e0827a3de43b706014610e513ca5a54e9f84",
+    "continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+    "continuation_contract_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
+    "computational_model_statement_id": "tassadar.post_article_universality_bridge.computational_model_statement.v1",
+    "sandbox_report_id": "tassadar.post_article_plugin_conformance_sandbox_and_benchmark_harness.report.v1",
+    "sandbox_report_digest": "d068d787d8d83d1d16ce6bfd23dac132d3e55308bbe33ceff2c322094263144e",
+    "packet_abi_version": "packet.v1",
+    "host_owned_runtime_api_id": "tassadar.plugin_runtime.host_owned_api.v1",
+    "engine_abstraction_id": "tassadar.plugin_runtime.engine_abstraction.v1",
+    "invocation_receipt_profile_id": "tassadar.plugin_runtime.invocation_receipts.v1",
+    "world_mount_envelope_compiler_id": "tassadar.plugin_runtime.world_mount_envelope_compiler.v1",
+    "admissibility_contract_id": "tassadar.plugin_runtime.admissibility.v1",
+    "conformance_harness_id": "tassadar.plugin_runtime.conformance_harness.v1",
+    "benchmark_harness_id": "tassadar.plugin_runtime.benchmark_harness.v1",
+    "runtime_bundle_id": "tassadar.post_article_plugin_conformance_sandbox_and_benchmark_harness.runtime_bundle.v1",
+    "runtime_bundle_digest": "c48c11fb006e048748558119c9a8a13adf81a68429aa2fec73976cc6209eb2d7",
+    "runtime_bundle_ref": "fixtures/tassadar/runs/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_v1/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_bundle.json",
+    "detail": "machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1` canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1` sandbox_report_id=`tassadar.post_article_plugin_conformance_sandbox_and_benchmark_harness.report.v1` and runtime_bundle_id=`tassadar.post_article_plugin_conformance_sandbox_and_benchmark_harness.runtime_bundle.v1` remain bound together."
+  },
+  "dependency_rows": [
+    {
+      "dependency_id": "sandbox_contract_green",
+      "dependency_class": "sandbox_precedent",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_report.json",
+      "bound_report_id": "tassadar.post_article_plugin_conformance_sandbox_and_benchmark_harness.report.v1",
+      "bound_report_digest": "d068d787d8d83d1d16ce6bfd23dac132d3e55308bbe33ceff2c322094263144e",
+      "detail": "the sandbox-owned conformance contract is green and carries the declared conformance, workflow, isolation, and benchmark rows."
+    },
+    {
+      "dependency_id": "sandbox.admissibility_contract_closed",
+      "dependency_class": "supporting_precedent",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json",
+      "bound_report_id": "tassadar.post_article_plugin_world_mount_envelope_compiler_and_admissibility.report.v1",
+      "bound_report_digest": "dd28644b1fd07eded8837a5f9b792225d6a575b5958e0d68ebb4deefc8486bda",
+      "detail": "the earlier admissibility contract is green and no longer defers TAS-203."
+    },
+    {
+      "dependency_id": "sandbox.async_lifecycle_precedent_bound",
+      "dependency_class": "supporting_precedent",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_async_lifecycle_profile_report.json",
+      "bound_report_id": "tassadar.async_lifecycle_profile.report.v1",
+      "bound_report_digest": "57f49e6c27f81058d3846420be8c4475e0cad4b1c8f9b56480ed9fc97f351fbd",
+      "detail": "async lifecycle precedent keeps interruptible, timeout-retry, and cancellation surfaces explicit for queued and cancelled benchmark paths."
+    },
+    {
+      "dependency_id": "sandbox.effectful_replay_precedent_bound",
+      "dependency_class": "supporting_precedent",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_effectful_replay_audit_report.json",
+      "bound_report_id": "tassadar.effectful_replay_audit.report.v1",
+      "bound_report_digest": "eef9f54ce5f9c131a5b70ada6f63dbc30ee0c9d201a8cf78dd42a55c26145da5",
+      "detail": "effectful replay precedent keeps replay-safe effect families and typed refusal classes explicit for the plugin conformance harness."
+    },
+    {
+      "dependency_id": "sandbox.module_trust_isolation_precedent_bound",
+      "dependency_class": "supporting_precedent",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_module_trust_isolation_report.json",
+      "bound_report_id": "tassadar.module_trust_isolation.report.v1",
+      "bound_report_digest": "d669cb8959dfad7df9295c24646bf2ca00f8842792004096648e8b6d0b5ccb1a",
+      "detail": "module trust isolation precedent keeps cross-tier, privilege-escalation, and mount-policy refusal lines explicit for plugin failure-domain isolation."
+    },
+    {
+      "dependency_id": "sandbox.world_mount_precedent_bound",
+      "dependency_class": "supporting_precedent",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_world_mount_compatibility_report.json",
+      "bound_report_id": "tassadar.world_mount_compatibility.report.v1",
+      "bound_report_digest": "ab62499732e3692564b323a9e0dd8c0446a5bc2bfc9c4eca28db44d4024a2fb4",
+      "detail": "world-mount compatibility precedent keeps allowed, denied, and unresolved mount posture explicit for plugin conformance traces."
+    },
+    {
+      "dependency_id": "sandbox.plugin_system_conformance_shape_cited",
+      "dependency_class": "design_input",
+      "satisfied": true,
+      "source_ref": "~/code/alpha/tassadar/plugin-system.md",
+      "detail": "the local plugin-system note remains the cited design input for conformance, benchmark, hot-swap, refusal, and isolation requirements."
+    }
+  ],
+  "conformance_rows": [
+    {
+      "case_id": "roundtrip_frontier_relax_success",
+      "trace_surface_id": "trace.roundtrip.frontier_relax.v1",
+      "plugin_id": "plugin.frontier_relax_core",
+      "plugin_version": "1.0.0",
+      "world_mount_id": "mount.benchmark_graph",
+      "outcome": "exact_roundtrip_success",
+      "trace_receipt_id": "trace_receipt.plugin_roundtrip.success.v1",
+      "receipt_integrity_required": true,
+      "envelope_compatibility_explicit": true,
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "replay_class_id": "deterministic_replayable",
+      "hot_swap_rule_ids": [],
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_v1/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_bundle.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "frontier-relax roundtrip stays exact under one static scripted harness with explicit receipt and envelope identity."
+    },
+    {
+      "case_id": "malformed_packet_refused",
+      "trace_surface_id": "trace.packet.malformed.validator_search.v1",
+      "plugin_id": "plugin.candidate_select_core",
+      "plugin_version": "1.1.0",
+      "world_mount_id": "mount.validator_search",
+      "outcome": "malformed_packet_refused",
+      "trace_receipt_id": "trace_receipt.plugin_packet.refusal.v1",
+      "receipt_integrity_required": true,
+      "envelope_compatibility_explicit": true,
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "replay_class_id": "publication_refusal",
+      "hot_swap_rule_ids": [],
+      "typed_refusal_reason_id": "packet_schema_invalid",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_v1/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_bundle.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "malformed packets stay typed refusals instead of falling back to hidden host repair."
+    },
+    {
+      "case_id": "capability_denial_refused",
+      "trace_surface_id": "trace.capability.denied.strict_no_imports.v1",
+      "plugin_id": "plugin.frontier_relax_core",
+      "plugin_version": "1.0.0",
+      "world_mount_id": "mount.strict_no_imports",
+      "outcome": "capability_denied",
+      "trace_receipt_id": "trace_receipt.plugin_capability.refusal.v1",
+      "receipt_integrity_required": true,
+      "envelope_compatibility_explicit": true,
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "replay_class_id": "publication_refusal",
+      "hot_swap_rule_ids": [],
+      "typed_refusal_reason_id": "capability_namespace_denied",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_v1/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_bundle.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "capability denial stays explicit when a scripted trace requests a namespace outside the compiled envelope."
+    },
+    {
+      "case_id": "timeout_limit_enforced",
+      "trace_surface_id": "trace.timeout.checkpoint_backtrack.v1",
+      "plugin_id": "plugin.checkpoint_backtrack_core",
+      "plugin_version": "1.0.0",
+      "world_mount_id": "mount.benchmark_graph",
+      "outcome": "timed_out",
+      "trace_receipt_id": "trace_receipt.plugin_timeout.limit.v1",
+      "receipt_integrity_required": true,
+      "envelope_compatibility_explicit": true,
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "replay_class_id": "operator_replay_only",
+      "hot_swap_rule_ids": [],
+      "typed_refusal_reason_id": "runtime_timeout",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_v1/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_bundle.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "timeout enforcement remains typed, bounded, and receipt-visible under static scripted saturation."
+    },
+    {
+      "case_id": "memory_limit_enforced",
+      "trace_surface_id": "trace.memory.validator_search.v1",
+      "plugin_id": "plugin.candidate_select_core",
+      "plugin_version": "1.1.0",
+      "world_mount_id": "mount.validator_search",
+      "outcome": "memory_limited",
+      "trace_receipt_id": "trace_receipt.plugin_memory.limit.v1",
+      "receipt_integrity_required": true,
+      "envelope_compatibility_explicit": true,
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "replay_class_id": "operator_replay_only",
+      "hot_swap_rule_ids": [],
+      "typed_refusal_reason_id": "runtime_memory_limit",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_v1/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_bundle.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "memory-limit enforcement remains typed and replay-stable instead of collapsing into one generic crash."
+    },
+    {
+      "case_id": "packet_size_refused",
+      "trace_surface_id": "trace.packet.oversize.validator_search.v1",
+      "plugin_id": "plugin.candidate_select_core",
+      "plugin_version": "1.1.0",
+      "world_mount_id": "mount.validator_search",
+      "outcome": "packet_size_refused",
+      "trace_receipt_id": "trace_receipt.plugin_packet.refusal.v1",
+      "receipt_integrity_required": true,
+      "envelope_compatibility_explicit": true,
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "replay_class_id": "publication_refusal",
+      "hot_swap_rule_ids": [],
+      "typed_refusal_reason_id": "packet_size_exceeded",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_v1/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_bundle.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "oversized packets stay typed refusals instead of invoking hidden truncation or schema repair."
+    },
+    {
+      "case_id": "digest_mismatch_refused",
+      "trace_surface_id": "trace.digest.mismatch.frontier_relax.v1",
+      "plugin_id": "plugin.frontier_relax_core",
+      "plugin_version": "1.0.0",
+      "world_mount_id": "mount.benchmark_graph",
+      "outcome": "digest_mismatch_refused",
+      "trace_receipt_id": "trace_receipt.plugin_digest.refusal.v1",
+      "receipt_integrity_required": true,
+      "envelope_compatibility_explicit": true,
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "replay_class_id": "publication_refusal",
+      "hot_swap_rule_ids": [],
+      "typed_refusal_reason_id": "artifact_mismatch",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_v1/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_bundle.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "artifact digest mismatch stays typed and fails closed before load or invoke."
+    },
+    {
+      "case_id": "replay_receipt_stable",
+      "trace_surface_id": "trace.replay.validator_search.v1",
+      "plugin_id": "plugin.candidate_select_core",
+      "plugin_version": "1.1.0",
+      "world_mount_id": "mount.validator_search",
+      "outcome": "replay_stable",
+      "trace_receipt_id": "trace_receipt.plugin_replay.stable.v1",
+      "receipt_integrity_required": true,
+      "envelope_compatibility_explicit": true,
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "replay_class_id": "deterministic_replayable",
+      "hot_swap_rule_ids": [],
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_v1/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_bundle.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "replay posture stays stable across repeated host-scripted invocations with the same receipt line."
+    },
+    {
+      "case_id": "hot_swap_compatibility_green",
+      "trace_surface_id": "trace.hot_swap.validator_search.v1",
+      "plugin_id": "plugin.candidate_select_core",
+      "plugin_version": "1.1.1",
+      "world_mount_id": "mount.validator_search",
+      "outcome": "hot_swap_compatible",
+      "trace_receipt_id": "trace_receipt.plugin_hot_swap.compatible.v1",
+      "receipt_integrity_required": true,
+      "envelope_compatibility_explicit": true,
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "replay_class_id": "deterministic_replayable",
+      "hot_swap_rule_ids": [
+        "same_plugin_id_versioned_replacement_only",
+        "abi_and_schema_shape_compatibility_required",
+        "trust_posture_widening_requires_receipts",
+        "replay_and_evidence_posture_compatibility_required"
+      ],
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_v1/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_bundle.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "hot-swap stays bounded to one stable plugin identity, compatible ABI and schema shape, and explicit replay or evidence posture."
+    }
+  ],
+  "workflow_rows": [
+    {
+      "workflow_case_id": "search_pair_workflow_integrity",
+      "plugin_chain_ids": [
+        "plugin.frontier_relax_core",
+        "plugin.checkpoint_backtrack_core"
+      ],
+      "world_mount_ids": [
+        "mount.benchmark_graph",
+        "mount.benchmark_graph"
+      ],
+      "outcome": "exact_workflow_integrity",
+      "trace_receipt_id": "trace_receipt.plugin_workflow.composed.v1",
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "receipt_integrity_required": true,
+      "envelope_intersection_explicit": true,
+      "partial_cancellation_replay_stable": false,
+      "failure_domain_scope_id": "per_step_isolation",
+      "hot_swap_rule_ids": [],
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_v1/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_bundle.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json",
+        "fixtures/tassadar/reports/tassadar_effectful_replay_audit_report.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "two-step benchmark search stays exact under one host-scripted composition trace with explicit receipt carry-through."
+    },
+    {
+      "workflow_case_id": "strict_no_imports_refusal_propagation",
+      "plugin_chain_ids": [
+        "plugin.frontier_relax_core",
+        "plugin.candidate_select_core"
+      ],
+      "world_mount_ids": [
+        "mount.strict_no_imports",
+        "mount.validator_search"
+      ],
+      "outcome": "refusal_propagated",
+      "trace_receipt_id": "trace_receipt.plugin_workflow.composed.v1",
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "receipt_integrity_required": true,
+      "envelope_intersection_explicit": true,
+      "partial_cancellation_replay_stable": false,
+      "failure_domain_scope_id": "per_plugin_isolation",
+      "hot_swap_rule_ids": [],
+      "typed_refusal_reason_id": "capability_namespace_denied",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_v1/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_bundle.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json",
+        "fixtures/tassadar/reports/tassadar_effectful_replay_audit_report.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "typed refusal remains visible to the next workflow step instead of being erased by host-side continuation."
+    },
+    {
+      "workflow_case_id": "envelope_intersection_operator_internal",
+      "plugin_chain_ids": [
+        "plugin.candidate_select_core",
+        "plugin.frontier_relax_core"
+      ],
+      "world_mount_ids": [
+        "mount.validator_search",
+        "mount.benchmark_graph"
+      ],
+      "outcome": "envelope_intersection_explicit",
+      "trace_receipt_id": "trace_receipt.plugin_workflow.composed.v1",
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "receipt_integrity_required": true,
+      "envelope_intersection_explicit": true,
+      "partial_cancellation_replay_stable": false,
+      "failure_domain_scope_id": "per_workflow_isolation",
+      "hot_swap_rule_ids": [],
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_v1/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_bundle.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json",
+        "fixtures/tassadar/reports/tassadar_effectful_replay_audit_report.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "composed workflows stay inside the explicit intersection of both envelopes instead of inheriting ambient authority."
+    },
+    {
+      "workflow_case_id": "hot_swap_inside_composed_workflow",
+      "plugin_chain_ids": [
+        "plugin.candidate_select_core",
+        "plugin.frontier_relax_core"
+      ],
+      "world_mount_ids": [
+        "mount.validator_search",
+        "mount.benchmark_graph"
+      ],
+      "outcome": "hot_swap_compatible",
+      "trace_receipt_id": "trace_receipt.plugin_hot_swap.compatible.v1",
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "receipt_integrity_required": true,
+      "envelope_intersection_explicit": true,
+      "partial_cancellation_replay_stable": false,
+      "failure_domain_scope_id": "per_workflow_isolation",
+      "hot_swap_rule_ids": [
+        "same_plugin_id_versioned_replacement_only",
+        "abi_and_schema_shape_compatibility_required",
+        "trust_posture_widening_requires_receipts",
+        "replay_and_evidence_posture_compatibility_required"
+      ],
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_v1/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_bundle.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json",
+        "fixtures/tassadar/reports/tassadar_effectful_replay_audit_report.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "composed workflows keep hot-swap compatibility explicit instead of letting later steps silently widen the trusted plugin surface."
+    },
+    {
+      "workflow_case_id": "partial_cancellation_replay_stable",
+      "plugin_chain_ids": [
+        "plugin.candidate_select_core",
+        "plugin.checkpoint_backtrack_core"
+      ],
+      "world_mount_ids": [
+        "mount.validator_search",
+        "mount.benchmark_graph"
+      ],
+      "outcome": "partial_cancellation_replay_stable",
+      "trace_receipt_id": "trace_receipt.plugin_workflow.composed.v1",
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "receipt_integrity_required": true,
+      "envelope_intersection_explicit": true,
+      "partial_cancellation_replay_stable": true,
+      "failure_domain_scope_id": "per_workflow_isolation",
+      "hot_swap_rule_ids": [],
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_v1/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_bundle.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json",
+        "fixtures/tassadar/reports/tassadar_effectful_replay_audit_report.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "partial cancellation keeps replay posture explicit and does not leak intermediate hidden host state into resumed workflow steps."
+    }
+  ],
+  "isolation_negative_rows": [
+    {
+      "check_id": "per_plugin_failure_domain_isolated",
+      "isolation_scope_id": "per_plugin",
+      "negative_class_id": "plugin_failure_domain_leak",
+      "green": true,
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "typed_refusal_reason_id": "plugin_failure_domain_isolation_required",
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_v1/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_bundle.json",
+        "fixtures/tassadar/reports/tassadar_module_trust_isolation_report.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "one plugin failure must not corrupt sibling plugin state or receipts."
+    },
+    {
+      "check_id": "per_step_failure_domain_isolated",
+      "isolation_scope_id": "per_step",
+      "negative_class_id": "step_failure_domain_leak",
+      "green": true,
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "typed_refusal_reason_id": "step_failure_domain_isolation_required",
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_v1/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_bundle.json",
+        "fixtures/tassadar/reports/tassadar_module_trust_isolation_report.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "one workflow step failure must not silently rewrite the next step input or receipt line."
+    },
+    {
+      "check_id": "per_workflow_failure_domain_isolated",
+      "isolation_scope_id": "per_workflow",
+      "negative_class_id": "workflow_failure_domain_leak",
+      "green": true,
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "typed_refusal_reason_id": "workflow_failure_domain_isolation_required",
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_v1/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_bundle.json",
+        "fixtures/tassadar/reports/tassadar_module_trust_isolation_report.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "one workflow failure domain must not contaminate a distinct workflow run."
+    },
+    {
+      "check_id": "shared_cache_channel_denied",
+      "isolation_scope_id": "shared_cache",
+      "negative_class_id": "hidden_shared_cache_channel",
+      "green": true,
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "typed_refusal_reason_id": "shared_cache_isolation_required",
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_v1/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_bundle.json",
+        "fixtures/tassadar/reports/tassadar_module_trust_isolation_report.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "plugins may not communicate through hidden shared cache state."
+    },
+    {
+      "check_id": "shared_store_channel_denied",
+      "isolation_scope_id": "shared_store",
+      "negative_class_id": "hidden_shared_store_channel",
+      "green": true,
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "typed_refusal_reason_id": "shared_store_isolation_required",
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_v1/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_bundle.json",
+        "fixtures/tassadar/reports/tassadar_module_trust_isolation_report.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "plugins may not communicate through hidden shared store mutation outside declared receipts."
+    },
+    {
+      "check_id": "timing_channel_denied",
+      "isolation_scope_id": "timing_channel",
+      "negative_class_id": "timing_channel_leak",
+      "green": true,
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "typed_refusal_reason_id": "timing_channel_isolation_required",
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_v1/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_bundle.json",
+        "fixtures/tassadar/reports/tassadar_module_trust_isolation_report.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "timing deltas remain a negative row and do not widen the current proof surface."
+    },
+    {
+      "check_id": "covert_latent_representation_denied",
+      "isolation_scope_id": "covert_channel",
+      "negative_class_id": "latent_shared_representation_channel",
+      "green": true,
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "typed_refusal_reason_id": "covert_channel_isolation_required",
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_v1/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_bundle.json",
+        "fixtures/tassadar/reports/tassadar_module_trust_isolation_report.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "latent shared representations remain an explicit negative row instead of an implicit return path."
+    },
+    {
+      "check_id": "covert_incomplete_schema_denied",
+      "isolation_scope_id": "covert_channel",
+      "negative_class_id": "semantically_incomplete_schema_channel",
+      "green": true,
+      "static_harness_only": true,
+      "host_scripted_trace_only": true,
+      "typed_refusal_reason_id": "schema_semantics_closure_required",
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_v1/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_bundle.json",
+        "fixtures/tassadar/reports/tassadar_module_trust_isolation_report.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "semantically incomplete schemas stay a fail-closed negative row instead of a lossy covert channel."
+    }
+  ],
+  "benchmark_rows": [
+    {
+      "benchmark_id": "cold_instantiate_path",
+      "path_class_id": "cold_instantiate",
+      "plugin_id": "plugin.frontier_relax_core",
+      "sample_count": 21,
+      "queue_depth": 0,
+      "p50_micros": 3840,
+      "p95_micros": 4220,
+      "bounded_limit_observed": true,
+      "receipt_emitted": true,
+      "cancel_visible": false,
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_v1/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_bundle.json",
+        "fixtures/tassadar/reports/tassadar_async_lifecycle_profile_report.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "cold instantiation cost stays explicitly benchmarked for the first promoted plugin tranche."
+    },
+    {
+      "benchmark_id": "warm_invoke_path",
+      "path_class_id": "warm_invoke",
+      "plugin_id": "plugin.frontier_relax_core",
+      "sample_count": 21,
+      "queue_depth": 0,
+      "p50_micros": 1460,
+      "p95_micros": 1710,
+      "bounded_limit_observed": true,
+      "receipt_emitted": true,
+      "cancel_visible": false,
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_v1/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_bundle.json",
+        "fixtures/tassadar/reports/tassadar_async_lifecycle_profile_report.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "warm invocation cost remains separate from cold instantiation and pool reuse."
+    },
+    {
+      "benchmark_id": "pooled_reuse_path",
+      "path_class_id": "pooled_reuse",
+      "plugin_id": "plugin.candidate_select_core",
+      "sample_count": 21,
+      "queue_depth": 0,
+      "p50_micros": 910,
+      "p95_micros": 1080,
+      "bounded_limit_observed": true,
+      "receipt_emitted": true,
+      "cancel_visible": false,
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_v1/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_bundle.json",
+        "fixtures/tassadar/reports/tassadar_async_lifecycle_profile_report.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "pool reuse benefit stays explicit instead of being hidden inside one aggregate runtime number."
+    },
+    {
+      "benchmark_id": "queued_saturation_path",
+      "path_class_id": "queued_saturation",
+      "plugin_id": "plugin.checkpoint_backtrack_core",
+      "sample_count": 21,
+      "queue_depth": 4,
+      "p50_micros": 5800,
+      "p95_micros": 6420,
+      "bounded_limit_observed": true,
+      "receipt_emitted": true,
+      "cancel_visible": false,
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_v1/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_bundle.json",
+        "fixtures/tassadar/reports/tassadar_async_lifecycle_profile_report.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "queue latency under bounded saturation remains an explicit benchmark row with visible depth."
+    },
+    {
+      "benchmark_id": "cancelled_path",
+      "path_class_id": "cancelled_path",
+      "plugin_id": "plugin.candidate_select_core",
+      "sample_count": 21,
+      "queue_depth": 1,
+      "p50_micros": 620,
+      "p95_micros": 760,
+      "bounded_limit_observed": true,
+      "receipt_emitted": true,
+      "cancel_visible": true,
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_v1/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_bundle.json",
+        "fixtures/tassadar/reports/tassadar_async_lifecycle_profile_report.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "cancellation latency remains measured and visibly different from ordinary success or refusal paths."
+    },
+    {
+      "benchmark_id": "evidence_overhead_path",
+      "path_class_id": "evidence_overhead",
+      "plugin_id": "plugin.frontier_relax_core",
+      "sample_count": 21,
+      "queue_depth": 0,
+      "p50_micros": 180,
+      "p95_micros": 240,
+      "bounded_limit_observed": true,
+      "receipt_emitted": true,
+      "cancel_visible": false,
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_v1/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_bundle.json",
+        "fixtures/tassadar/reports/tassadar_async_lifecycle_profile_report.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "receipt and evidence overhead stays explicit rather than being hidden inside success-path timing."
+    },
+    {
+      "benchmark_id": "timeout_enforcement_path",
+      "path_class_id": "timeout_enforcement",
+      "plugin_id": "plugin.checkpoint_backtrack_core",
+      "sample_count": 21,
+      "queue_depth": 2,
+      "p50_micros": 150,
+      "p95_micros": 210,
+      "bounded_limit_observed": true,
+      "receipt_emitted": true,
+      "cancel_visible": false,
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_v1/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_bundle.json",
+        "fixtures/tassadar/reports/tassadar_async_lifecycle_profile_report.json",
+        "~/code/alpha/tassadar/plugin-system.md"
+      ],
+      "detail": "timeout enforcement behavior stays measured instead of inferred from one refusal row."
+    }
+  ],
+  "validation_rows": [
+    {
+      "validation_id": "sandbox_contract_green",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_report.json"
+      ],
+      "detail": "the sandbox-owned conformance harness remains green and machine-legible."
+    },
+    {
+      "validation_id": "supporting_material_dependencies_green",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_report.json"
+      ],
+      "detail": "the supporting-material dependency rows carried through the sandbox report remain green."
+    },
+    {
+      "validation_id": "roundtrip_and_refusal_rows_green",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_report.json"
+      ],
+      "detail": "roundtrip, refusal, timeout, memory-limit, packet-size, digest-mismatch, replay, and hot-swap rows remain green."
+    },
+    {
+      "validation_id": "workflow_integrity_rows_green",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_report.json"
+      ],
+      "detail": "workflow integrity, refusal propagation, envelope intersection, hot-swap, and partial-cancellation replay rows remain green."
+    },
+    {
+      "validation_id": "isolation_negative_rows_green",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_report.json"
+      ],
+      "detail": "failure-domain, side-channel, and covert-channel negative rows remain green."
+    },
+    {
+      "validation_id": "benchmark_paths_measured",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_report.json"
+      ],
+      "detail": "cold, warm, pooled, queued, and cancelled benchmark paths remain explicit and green."
+    },
+    {
+      "validation_id": "queue_and_cancellation_explicit",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_report.json"
+      ],
+      "detail": "queue saturation and cancellation latency remain explicit instead of being inferred from generic success rows."
+    },
+    {
+      "validation_id": "evidence_overhead_and_timeout_explicit",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_report.json"
+      ],
+      "detail": "evidence overhead and timeout enforcement remain explicit benchmark rows."
+    },
+    {
+      "validation_id": "receipt_integrity_and_envelope_compatibility_explicit",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_report.json"
+      ],
+      "detail": "receipt integrity and envelope compatibility remain explicit across conformance and workflow rows."
+    },
+    {
+      "validation_id": "host_scripted_conformance_only",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_report.json"
+      ],
+      "detail": "the conformance harness stays static and host-scripted rather than model-owned sequencing."
+    },
+    {
+      "validation_id": "overclaim_posture_blocked",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_report.json"
+      ],
+      "detail": "the eval-owned harness stays operator/internal-only and does not imply weighted plugin sequencing, publication, served/public universality, or arbitrary software capability."
+    }
+  ],
+  "contract_status": "green",
+  "contract_green": true,
+  "conformance_sandbox_green": true,
+  "cold_path_benchmarked": true,
+  "warm_path_benchmarked": true,
+  "pooled_path_benchmarked": true,
+  "queued_path_benchmarked": true,
+  "cancelled_path_benchmarked": true,
+  "queue_saturation_explicit": true,
+  "cancellation_latency_bounded": true,
+  "evidence_overhead_explicit": true,
+  "timeout_enforcement_measured": true,
+  "receipt_integrity_and_envelope_compatibility_explicit": true,
+  "operator_internal_only_posture": true,
+  "rebase_claim_allowed": true,
+  "plugin_capability_claim_allowed": false,
+  "weighted_plugin_control_allowed": false,
+  "plugin_publication_allowed": false,
+  "served_public_universality_allowed": false,
+  "arbitrary_software_capability_allowed": false,
+  "deferred_issue_ids": [
+    "TAS-203A"
+  ],
+  "claim_boundary": "this eval-owned harness freezes the canonical post-article plugin conformance sandbox and benchmark evidence above the admissibility contract. It keeps static host-scripted conformance rows, workflow rows, failure-domain and side-channel negative rows, and cold or warm or pooled or queued or cancelled benchmark paths machine-readable while keeping weighted plugin sequencing, plugin publication, served/public universality, and arbitrary software capability blocked.",
+  "summary": "Post-article plugin conformance eval report keeps contract_status=Green, dependency_rows=7, conformance_rows=9, workflow_rows=5, isolation_negative_rows=8, benchmark_rows=7, validation_rows=11, and deferred_issue_ids=1.",
+  "report_digest": "79d81b0c131bf5d132cf7d4b015da6f55a1ddfa9c4db7722918524f362a132a0"
+}
