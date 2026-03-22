@@ -193,6 +193,316 @@ Recommended order:
 - define one launch wrapper that snapshots quota, instance metadata, machine
   details, and training outputs into the bucket
 
+## Required Issue Program
+
+The missing work splits into infra setup issues and repo-owned execution issues.
+
+These issues are the minimum program I would use before saying Google infra is
+ready for the first real Psion pretraining run.
+
+The intended claim boundary stays narrow:
+
+- single project: `openagentsgemini`
+- single region: `us-central1`
+- single node first, not trusted-cluster scale-up
+- on-demand first, with Spot or preemptible only after checkpoint restore is
+  proven
+- one bounded Psion pretraining run with full evidence retention, not a broad
+  pretraining-completion claim
+
+### Issue 1: Provision A Dedicated Psion Training Artifact Bucket
+
+Description:
+The project only has `gs://openagentsgemini_cloudbuild`. That bucket is not a
+clean training artifact authority, and the rented-cluster runbook explicitly
+requires checkpoints to survive ephemeral hosts.
+
+Required details:
+
+- create a dedicated bucket in the training region or a compatible low-latency
+  location for the first run
+- use a stable naming scheme such as
+  `gs://openagentsgemini-psion-train-us-central1`
+- enable uniform bucket-level access
+- enable object versioning
+- define one layout at minimum:
+  `runs/`, `checkpoints/`, `receipts/`, `logs/`, and `manifests/`
+- set retention and lifecycle policy intentionally instead of leaving retention
+  behavior implicit
+- keep checkpoint artifacts and final run bundles more durable than transient
+  logs
+
+Acceptance details:
+
+- the eventual training host can upload and read back checkpoint and receipt
+  objects
+- deleting the VM does not delete the durable run artifacts
+- the bucket path is recorded in the launch manifest and final run bundle
+
+Dependencies:
+none
+
+### Issue 2: Create A Dedicated Training Service Account And Project Hygiene Baseline
+
+Description:
+There is no dedicated Psion training service account, and the project currently
+has no `environment` tag bindings. The first real run should not borrow broad
+app runtime identities or leave metadata hygiene implicit.
+
+Required details:
+
+- create a dedicated service account for the training VM
+- grant only the roles needed for bucket writes, log writes, metric writes, and
+  any required read access for launch assets
+- keep operator launch rights with the human owner account instead of teaching
+  the VM service account to mutate unrelated project resources
+- add explicit labels or tags for training hosts, buckets, and run folders
+- add the missing project `environment` tag or an equivalent bounded project
+  hygiene marker
+
+Acceptance details:
+
+- the training VM can write its artifacts and telemetry without using the
+  default compute service account
+- the training service account cannot administer unrelated project infra
+- training resources are machine-filterable by labels or tags
+
+Dependencies:
+Issue 1
+
+### Issue 3: Define The Training Network And Operator Access Posture
+
+Description:
+The project has `default` plus `oa-lightning`, but neither is already shaped as
+an explicit training network. `default` still carries broad SSH posture, while
+`oa-lightning` only has IAP SSH for existing app target tags.
+
+Required details:
+
+- choose the first-run network posture explicitly instead of inheriting one by
+  accident
+- if `default` is used for speed, state that it is a temporary bootstrap choice
+  and not the long-term training network posture
+- if `oa-lightning` is used, add a dedicated training tag and IAP SSH rule
+  instead of reusing the existing operational node tags
+- document whether the first training VM should have an external IP or rely on
+  IAP plus private egress
+- preserve OS Login and IAP-based access truth if the host stays on the custom
+  network
+- keep the training host separate from the existing operational node tag set
+
+Acceptance details:
+
+- an operator can reach the training VM through the documented path
+- the training host does not silently inherit unrelated app firewall posture
+- the network and tag choice is captured in the run manifest
+
+Dependencies:
+Issue 2
+
+### Issue 4: Add Billing Export, Budget Guardrails, And Quota Preflight
+
+Description:
+The project has billing enabled, but this audit did not find a visible billing
+export dataset, budget artifact, or training-specific quota preflight wrapper.
+That leaves credit burn and overrun detection too implicit for a rented run.
+
+Required details:
+
+- create a Cloud Billing budget with alert thresholds
+- export billing data to BigQuery or another machine-queryable cost sink
+- define one quota-preflight command that checks region, zone, accelerator, CPU,
+  and disk headroom before launch
+- define an estimated max-cost envelope for the first run and bind it to the
+  launch manifest
+- align stop conditions with the rented-cluster runbook cost posture rather
+  than inventing a separate cloud-only policy
+
+Acceptance details:
+
+- launch fails early when quota or estimated cost is outside the declared
+  bounds
+- run cost can be reconstructed after the fact without reading the Cloud
+  Console manually
+- the final run bundle carries enough cost facts to support a
+  `PSION-13`-class observability receipt
+
+Dependencies:
+none
+
+### Issue 5: Land A Repo-Owned Google Single-Node Launch Bundle
+
+Description:
+There is no repo-owned GCP launch script, manifest writer, startup script, or
+machine-profile authority yet. Today the repo can run the Psion reference pilot
+locally, but not through one committed Google-infra operator surface.
+
+Required details:
+
+- add one repo-owned launch entrypoint for the first Google single-node pilot
+- bind the chosen machine profile into a manifest instead of making the
+  operator remember the shape manually
+- carry at least these machine profiles explicitly:
+  `g2-standard-*` plus `1x L4`, and `a2-highgpu-1g` plus `1x A100`
+- capture zone, machine type, accelerator type, disk type, disk size, bucket
+  path, git revision, and training command in one launch manifest
+- use a startup script or equivalent reproducible bootstrap path that can:
+  install or verify NVIDIA driver state, fetch the repo at the selected
+  revision, materialize run directories, and start the bounded training command
+- add a cleanup or teardown companion so abandoned VMs do not become backlog
+
+Acceptance details:
+
+- one command launches the declared training VM shape
+- one manifest object records the exact infra and code inputs
+- one command tears down the host after artifacts are safely retained
+
+Dependencies:
+Issues 1 through 4
+
+### Issue 6: Package And Bind Immutable Training Inputs For Remote Execution
+
+Description:
+A real cloud run needs more than a machine launch. It also needs a stable input
+package so the remote host is provably running the intended corpus, tokenizer,
+stage config, benchmark package set, and code revision.
+
+Required details:
+
+- define the exact remote input package for the first run
+- include digests for:
+  source or tokenized corpus inputs, tokenizer artifacts, stage config,
+  benchmark fixtures, and the exact code revision
+- teach the launch path to fetch those exact artifacts, not floating local
+  state
+- write one manifest that ties all input digests to the run id
+- keep the Google operator lane aligned with the canonical Psion stage and pilot
+  docs instead of inventing a second cloud-specific training schema
+
+Acceptance details:
+
+- rerunning the same manifest on a fresh VM reproduces the same input digests
+- the stage receipt and final run bundle point back to the immutable input
+  package
+- there is no hidden dependency on the operator’s unstated local workspace
+
+Dependencies:
+Issues 1 and 5
+
+### Issue 7: Add GCS-Backed Checkpoint Archive And Cold-Restore Validation
+
+Description:
+The rented-cluster runbook explicitly rejects ephemeral checkpoint truth. A real
+Google run therefore needs GCS-backed checkpoint persistence plus a restore path
+validated on a fresh host.
+
+Required details:
+
+- upload stable checkpoints and checkpoint manifests to the training bucket
+- keep local VM disks as cache or working state, not the only durable copy
+- implement or script cold restore onto a new VM from the archived checkpoint
+- record restore success or failure with the same checkpoint-lineage discipline
+  used by the existing Psion training artifacts
+- explicitly test the required rented-cluster downgrade path:
+  `resume_from_last_stable_checkpoint`
+
+Acceptance details:
+
+- a checkpoint archived during the run can be restored on a fresh host
+- resumed training can prove which checkpoint was resumed and why
+- VM deletion does not destroy the only recoverable training state
+
+Dependencies:
+Issues 1, 5, and 6
+
+### Issue 8: Add Google-Host Observability And Evidence Export
+
+Description:
+The repo already has the canonical `PSION-13` observability receipt and the
+pilot bundle contract, but there is no Google-host collector that captures the
+hardware and infra facts needed to populate those receipts honestly on a real
+cloud run.
+
+Required details:
+
+- capture instance metadata:
+  project, zone, machine type, accelerator type, disk shape, and network mode
+- capture runtime metadata:
+  NVIDIA driver, CUDA runtime, `nvidia-smi`, CPU, memory, disk, and uptime
+- retain stdout, stderr, and structured training logs
+- emit or assemble the Psion stage receipt, observability receipt, replay
+  receipt, checkpoint lineage, benchmark receipts, and pilot bundle from the
+  actual remote run
+- upload one final manifest listing every retained object for the run
+
+Acceptance details:
+
+- every Google training run produces one bucket folder that is self-describing
+- the observability receipt can be regenerated from retained machine facts
+- the final run folder is enough to audit cost, topology, checkpoint identity,
+  and run outcome after the VM is gone
+
+Dependencies:
+Issues 1, 5, 6, and 7
+
+### Issue 9: Publish A Google Single-GPU Psion Operator Runbook
+
+Description:
+There is no repo-owned operator runbook for a Google single-node Psion training
+run yet. The first truthful run should be executable from docs and committed
+scripts rather than from remembered terminal history.
+
+Required details:
+
+- add one dedicated runbook under `docs/`
+- document preflight, launch, monitoring, checkpoint archive, restore drill,
+  evidence upload, and teardown
+- keep the claim boundary explicit:
+  single-region, single-node, Google Compute Engine first
+- document refusal boundaries too:
+  no trusted-cluster claim, no cross-region cluster claim, no broader
+  pretraining completion claim
+- point the runbook at the exact scripts, manifests, and evidence bundle
+  expected by the repo’s existing training docs
+
+Acceptance details:
+
+- one operator can run the full bounded procedure from the repo without hidden
+  tribal knowledge
+- every command and artifact path in the runbook is still executable
+- the runbook states what remains refused after the first Google run
+
+Dependencies:
+Issues 1 through 8
+
+### Issue 10: Execute The First Real Google Single-GPU Psion Pretraining Run
+
+Description:
+After the setup issues are closed, the repo still needs one actual bounded run
+on Google infra. Until that exists, the project only has inferred launch
+readiness, not proved execution readiness.
+
+Required details:
+
+- use the preferred first-run shape:
+  one L4-backed `g2` instance unless memory pressure forces `a2-highgpu-1g`
+- keep the run bounded by explicit cost, time, step, or token ceilings
+- archive the full evidence bundle into the dedicated training bucket
+- validate the emitted stage receipt, observability receipt, replay facts,
+  checkpoint lineage, and pilot bundle from the real run
+- write a follow-up audit that states whether the run stayed green or exposed
+  blockers for the next attempt
+
+Acceptance details:
+
+- one actual Google-hosted run completes or fails with explicit preserved cause
+- the final evidence bundle is enough to support a truthful go or no-go call on
+  the next pretraining step
+- the repo has a committed audit of the result, not just a console anecdote
+
+Dependencies:
+Issues 1 through 9
+
 ## Evidence Bundle The Pilot Should Save
 
 At minimum, the first run should upload one bucket path containing:
