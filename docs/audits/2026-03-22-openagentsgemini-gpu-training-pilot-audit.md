@@ -120,30 +120,42 @@ Current subnets:
 Current firewall posture:
 
 - `default` still has the broad default SSH rule from `0.0.0.0/0`
-- `oa-lightning` already has IAP SSH rules, but only for existing target tags
-  such as `nexus-host`
-- a new training VM on `oa-lightning` would need its own target tag and SSH
-  rule, or the launch should use the `default` network instead
+- `oa-lightning` now has the dedicated
+  `oa-allow-psion-train-iap-ssh` firewall rule scoped to
+  `35.235.240.0/20 -> tcp:22` on target tag `psion-train-host`
+- `oa-lightning` still also carries broader existing IAP SSH rules for other
+  operational target tags, so the training lane should keep using its explicit
+  dedicated tag rather than piggybacking on those rules
 
 Current storage and recordkeeping:
 
-- the only bucket listed is `gs://openagentsgemini_cloudbuild`
-- there is no dedicated training artifact bucket
+- the project now has a dedicated training bucket:
+  `gs://openagentsgemini-psion-train-us-central1`
+- that bucket now carries uniform access, public-access prevention, object
+  versioning, a 7-day retention policy, a 14-day soft-delete window, and the
+  committed top-level layout for `runs/`, `checkpoints/`, `receipts/`, `logs/`,
+  and `manifests/`
 - there are no BigQuery datasets listed, so there is no obvious billing-export
   dataset or training-metrics dataset already in place
 - logging only has the default `_Required` and `_Default` sinks
 
 Current service-account posture:
 
-- the project has the default Compute Engine service account plus a small set of
-  app-specific service accounts
-- there is no dedicated Psion training service account yet
+- the project now has the dedicated training service account
+  `psion-train-single-node@openagentsgemini.iam.gserviceaccount.com`
+- that service account has the bounded writer roles needed for logs, metrics,
+  and artifact writes into the dedicated training bucket
+- the project still has the default Compute Engine service account plus a small
+  set of app-specific service accounts, but the Psion lane no longer needs to
+  rely on them
 
 Current governance hygiene:
 
 - the project has no resource-manager tag bindings
 - the `gcloud` config warning about a missing `environment` tag is accurate
-- this is not a launch blocker, but it is a small hygiene gap
+- the project and bucket now carry bounded labels for the training lane even
+  though org-level tags remain unavailable from the active account
+- this is not a launch blocker, but it remains a small hygiene gap
 
 ## Status Call
 
@@ -156,16 +168,21 @@ What is green:
 - Compute Engine, storage, logging, monitoring, and Vertex APIs are already on
 - `us-central1` quota is sufficient for a bounded single-GPU pilot
 - the zone catalog shows realistic T4, L4, and A100 launch targets
+- a dedicated training artifact bucket now exists with committed retention and
+  lifecycle policy
+- a dedicated single-node Psion training service account now exists with
+  bounded bucket, logging, and metrics write rights
+- the first training network posture is now explicit: private `oa-lightning`
+  host, Cloud NAT egress, and IAP-only SSH through `psion-train-host`
 
 What is still only `partial`:
 
-- no dedicated training artifact bucket exists
-- no dedicated training service account exists
 - no billing-export dataset or budget surface was found from the queried CLI
   views
-- no explicit training-host network and SSH posture exists yet
 - no runbook exists yet for preserving the full infra evidence bundle around a
   GPU launch
+- there is still no repo-owned launch bundle, immutable remote input package,
+  checkpoint archive proof, or Google-host evidence collector yet
 
 Blunt conclusion:
 
@@ -215,17 +232,12 @@ decision before changing machine profile.
 
 ## Minimum Setup Before Launch
 
-- create a dedicated regional bucket for training artifacts, checkpoints, and
-  receipts instead of reusing the Cloud Build bucket
-- create a dedicated service account for the pilot instead of reusing the
-  existing app runtime accounts
-- choose the network posture explicitly:
-  `default` for the fastest bring-up, or `oa-lightning` plus a new IAP SSH tag
-  and rule for a cleaner private-network story
 - create either a Cloud Billing budget or a billing export dataset so credits
   and cost drift are not invisible during the run
 - define one launch wrapper that snapshots quota, instance metadata, machine
   details, and training outputs into the bucket
+- define the immutable remote input package, checkpoint archive path, and final
+  evidence collector before the first paid run
 
 ## Launch Decision Rule
 

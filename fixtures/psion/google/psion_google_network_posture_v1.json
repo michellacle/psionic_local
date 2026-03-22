@@ -1,0 +1,32 @@
+{
+  "schema_version": "psion.google_training_network_posture.v1",
+  "posture_id": "openagentsgemini-psion-train-network-v1",
+  "project_id": "openagentsgemini",
+  "region": "us-central1",
+  "network": "oa-lightning",
+  "subnetwork": "oa-lightning-us-central1",
+  "egress_posture": {
+    "class": "private_vm_via_cloud_nat",
+    "router": "oa-nat-router-us-central1",
+    "nat": "oa-nat-us-central1",
+    "external_ip_required": false
+  },
+  "ssh_posture": {
+    "class": "iap_tcp_forwarding",
+    "firewall_rule_name": "oa-allow-psion-train-iap-ssh",
+    "source_ranges": [
+      "35.235.240.0/20"
+    ],
+    "allowed": [
+      "tcp:22"
+    ],
+    "target_tags": [
+      "psion-train-host"
+    ],
+    "os_login_required": true
+  },
+  "notes": [
+    "The first Google training host should launch without an external IP and rely on Cloud NAT for egress.",
+    "The project currently also has a broader oa-lightning IAP SSH rule; the Psion lane still records and applies its own dedicated target tag and firewall rule explicitly."
+  ]
+}
