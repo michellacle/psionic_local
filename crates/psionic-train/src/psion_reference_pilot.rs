@@ -4,11 +4,15 @@ use std::{
     path::Path,
 };
 
+use psionic_cluster::NodeId;
 use psionic_core::{DType, Device, Shape, TensorData, TensorSpec};
 use psionic_data::{
     build_psion_reference_corpus, DatasetSplitKind, PsionArtifactLineageManifest,
     PsionReferenceCorpusBundle, PsionReferenceCorpusError, PsionReferenceEncodedSequence,
     PSION_REFERENCE_DATASET_IDENTITY, PSION_REFERENCE_MAX_SEQUENCE_TOKENS,
+};
+use psionic_datastream::{
+    DatastreamCheckpointBinding, DatastreamEncoding, DatastreamManifestRef, DatastreamSubjectKind,
 };
 use psionic_models::{
     PsionCompactDecoderDescriptor, PsionCompactDecoderError, PsionCompactDecoderSizeAnchor,
@@ -27,18 +31,23 @@ use crate::{
     record_psion_pilot_held_out_loss, record_psion_pilot_pretraining_run,
     record_psion_pilot_route_probe, record_psion_refusal_calibration_receipt,
     record_psion_route_class_evaluation_receipt,
-    record_psion_pretrain_run_observability, run_psion_pretrain_stage, FixedBudgetTrainingRun,
-    PsionAcceptanceMatrix, PsionAcceptanceMatrixError, PsionBenchmarkCatalog,
-    PsionBenchmarkEvidenceReceipt, PsionBenchmarkFamily, PsionBenchmarkPackageContract,
-    PsionBenchmarkPackageError, PsionBenchmarkTaskContract, PsionCapabilityMatrixView,
-    PsionCheckpointRecoveryReceipt, PsionContaminationReviewDisposition,
-    PsionContaminationReviewReceipt, PsionMetricKind, PsionObservedMetric, PsionPhaseGate,
-    PsionPilotHeldOutLossFamily, PsionPilotHeldOutLossRow, PsionPilotPretrainingRunBundle,
-    PsionPilotPretrainingRunError, PsionPilotRouteProbeKind, PsionPilotRouteProbeRow,
-    PsionPretrainCheckpointArtifactReceipt, PsionPretrainCheckpointLineageReceipt,
-    PsionPretrainHardwareTopologyReceipt, PsionPretrainLossNormalization,
-    PsionPretrainObjectiveConfig, PsionPretrainObjectiveKind, PsionPretrainReplayReceipt,
-    PsionPretrainRunCostBasis, PsionPretrainRunCostReceipt, PsionPretrainRunObservabilityError,
+    record_psion_pretrain_run_observability, run_psion_pretrain_stage, ArtifactArchiveClass,
+    ArtifactColdRestoreReceipt, ArtifactRetentionProfile, ArtifactStorageSweepReceipt,
+    CheckpointDurabilityPosture, CheckpointManifest, CheckpointPointer, CheckpointScopeBinding,
+    CheckpointRecoveryError, CheckpointScopeKind, CheckpointShardManifest,
+    CheckpointStoreReadOptions, FixedBudgetTrainingRun, InMemoryCheckpointStore,
+    PsionAcceptanceMatrix,
+    PsionAcceptanceMatrixError, PsionBenchmarkCatalog, PsionBenchmarkEvidenceReceipt,
+    PsionBenchmarkFamily, PsionBenchmarkPackageContract, PsionBenchmarkPackageError,
+    PsionBenchmarkTaskContract, PsionCapabilityMatrixView, PsionCheckpointRecoveryReceipt,
+    PsionContaminationReviewDisposition, PsionContaminationReviewReceipt, PsionMetricKind,
+    PsionObservedMetric, PsionPhaseGate, PsionPilotHeldOutLossFamily,
+    PsionPilotHeldOutLossRow, PsionPilotPretrainingRunBundle, PsionPilotPretrainingRunError,
+    PsionPilotRouteProbeKind, PsionPilotRouteProbeRow, PsionPretrainCheckpointArtifactReceipt,
+    PsionPretrainCheckpointLineageReceipt, PsionPretrainHardwareTopologyReceipt,
+    PsionPretrainLossNormalization, PsionPretrainObjectiveConfig,
+    PsionPretrainObjectiveKind, PsionPretrainReplayReceipt, PsionPretrainRunCostBasis,
+    PsionPretrainRunCostReceipt, PsionPretrainRunObservabilityError,
     PsionPretrainRunObservabilityReceipt, PsionPretrainRunScaleProfile,
     PsionPretrainRunThroughputReceipt, PsionPretrainSourceFamilyReportRow,
     PsionPretrainStageConfig, PsionPretrainStageError, PsionPretrainStageRunReceipt,
@@ -48,11 +57,12 @@ use crate::{
     PsionRefusalCalibrationError, PsionRefusalCalibrationReceipt, PsionRefusalCalibrationRow,
     PsionReplayEvidenceReceipt, PsionRouteCalibrationReceipt, PsionRouteClass,
     PsionRouteClassEvaluationError, PsionRouteClassEvaluationReceipt,
-    PsionRouteClassEvaluationRow, PsionRouteKind,
-    PsionSourceContributionCap, PsionSourceFamilySamplingWeight, TrainingCoreError,
-    TrainingLoopBudget, TrainingOptimizerConfig, TrainingOptimizerResidencyPolicy,
-    TrainingParameterClass, TrainingParameterGroupState, TrainingStepInput, TrainingStepReceipt,
-    TrainingTensorBuffer,
+    PsionRouteClassEvaluationRow, PsionRouteKind, PsionSourceContributionCap,
+    PsionSourceFamilySamplingWeight, TrainArtifactClass, TrainArtifactStorageController,
+    TrainArtifactStorageError, TrainingCoreError, TrainingLoopBudget, TrainingOptimizerConfig,
+    TrainingOptimizerResidencyPolicy, TrainingParameterClass, TrainingParameterGroupState,
+    TrainingRecoveryMode, TrainingRunSummary, TrainingSessionState, TrainingStepInput,
+    TrainingStepReceipt, TrainingTensorBuffer,
 };
 
 const TOKEN_EMBEDDING_GROUP_ID: &str = "decoder.embed_tokens.weight";
@@ -90,6 +100,55 @@ pub struct PsionReferencePilotCheckpointArtifact {
     pub checkpoint: TrainingCheckpointReference,
 }
 
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct PsionReferencePilotOptimizerStateArtifact {
+    pub schema_version: String,
+    pub run_id: String,
+    pub stage_id: String,
+    pub checkpoint_ref: String,
+    pub checkpoint_family: String,
+    pub completed_steps: u64,
+    pub parameter_state_digest: String,
+    pub parameter_groups: Vec<TrainingParameterGroupState>,
+    pub summary: String,
+    pub artifact_digest: String,
+}
+
+impl PsionReferencePilotOptimizerStateArtifact {
+    #[must_use]
+    pub fn stable_digest(&self) -> String {
+        stable_digest(b"psion_reference_pilot_optimizer_state_artifact|", self)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct PsionReferencePilotResumeProbe {
+    pub schema_version: String,
+    pub run_id: String,
+    pub stage_id: String,
+    pub checkpoint_ref: String,
+    pub checkpoint_family: String,
+    pub checkpoint_lineage_digest: String,
+    pub recovery_mode: TrainingRecoveryMode,
+    pub checkpoint_manifest: CheckpointManifest,
+    pub checkpoint_pointer: CheckpointPointer,
+    pub checkpoint_storage_artifact_id: String,
+    pub checkpoint_storage_sweep_receipts: Vec<ArtifactStorageSweepReceipt>,
+    pub checkpoint_cold_restore_receipts: Vec<ArtifactColdRestoreReceipt>,
+    pub restore_receipt: crate::CheckpointRestoreReceipt,
+    pub resumed_step_receipt: TrainingStepReceipt,
+    pub resumed_run_summary: TrainingRunSummary,
+    pub detail: String,
+    pub probe_digest: String,
+}
+
+impl PsionReferencePilotResumeProbe {
+    #[must_use]
+    pub fn stable_digest(&self) -> String {
+        stable_digest(b"psion_reference_pilot_resume_probe|", self)
+    }
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct PsionReferencePilotConfig {
     pub run_id: String,
@@ -124,6 +183,7 @@ pub struct PsionReferencePilotRun {
     pub stage_receipt: PsionPretrainStageRunReceipt,
     pub observability_receipt: PsionPretrainRunObservabilityReceipt,
     pub checkpoint_artifact: PsionReferencePilotCheckpointArtifact,
+    pub optimizer_state_artifact: PsionReferencePilotOptimizerStateArtifact,
     pub initial_validation_loss_milli_by_family: BTreeMap<String, u32>,
     pub final_validation_loss_milli_by_family: BTreeMap<String, u32>,
     pub initial_held_out_loss_milli: u32,
@@ -157,11 +217,18 @@ impl PsionReferencePilotRun {
             &self.checkpoint_artifact.manifest,
         )?;
         write_json(
+            output_dir
+                .join("psion_reference_pilot_optimizer_state.json")
+                .as_path(),
+            &self.optimizer_state_artifact,
+        )?;
+        write_json(
             output_dir.join("psion_reference_pilot_summary.json").as_path(),
             &serde_json::json!({
                 "run_id": self.stage_receipt.run_id,
                 "stage_id": self.stage_receipt.stage_id,
                 "checkpoint_ref": self.checkpoint_artifact.manifest.checkpoint_ref,
+                "optimizer_state_digest": self.optimizer_state_artifact.artifact_digest,
                 "optimizer_steps": self.step_receipts.len(),
                 "initial_validation_loss_milli_by_family": self.initial_validation_loss_milli_by_family,
                 "final_validation_loss_milli_by_family": self.final_validation_loss_milli_by_family,
@@ -287,6 +354,8 @@ pub enum PsionReferencePilotError {
     #[error(transparent)]
     Corpus(#[from] PsionReferenceCorpusError),
     #[error(transparent)]
+    CheckpointRecovery(#[from] CheckpointRecoveryError),
+    #[error(transparent)]
     SamplingPolicy(#[from] PsionSamplingPolicyError),
     #[error(transparent)]
     Descriptor(#[from] PsionCompactDecoderError),
@@ -295,11 +364,17 @@ pub enum PsionReferencePilotError {
     #[error(transparent)]
     Observability(#[from] PsionPretrainRunObservabilityError),
     #[error(transparent)]
+    ArtifactStorage(#[from] TrainArtifactStorageError),
+    #[error(transparent)]
     TrainingCore(#[from] TrainingCoreError),
     #[error("reference pilot checkpoint serialization failed: {message}")]
     Serialization { message: String },
+    #[error("reference pilot parameter-state digest mismatch: expected `{expected}`, found `{actual}`")]
+    ParameterStateDigestMismatch { expected: String, actual: String },
     #[error("reference pilot is missing parameter group `{group_id}`")]
     MissingParameterGroup { group_id: String },
+    #[error("reference pilot resume probe is missing restore lineage on the resumed step")]
+    MissingRestoreSource,
     #[error("reference pilot parameter group `{group_id}` is not dense f32")]
     NonDenseParameterGroup { group_id: String },
 }
@@ -373,6 +448,7 @@ pub fn run_psion_reference_pilot(
         &model_descriptor,
         config.started_at_ms.saturating_add(config.budget.max_steps.saturating_mul(config.step_duration_ms)),
     )?;
+    let optimizer_state_artifact = build_optimizer_state_artifact(&run, &checkpoint_artifact, config)?;
 
     let stage_config = PsionPretrainStageConfig::new(
         config.run_id.clone(),
@@ -427,12 +503,164 @@ pub fn run_psion_reference_pilot(
         stage_receipt,
         observability_receipt,
         checkpoint_artifact,
+        optimizer_state_artifact,
         initial_validation_loss_milli_by_family: initial_validation_summary.loss_by_family_milli,
         final_validation_loss_milli_by_family: final_validation_summary.loss_by_family_milli,
         initial_held_out_loss_milli: milli_loss(initial_held_out_summary.mean_loss),
         final_held_out_loss_milli: milli_loss(final_held_out_summary.mean_loss),
         step_receipts,
     })
+}
+
+pub fn probe_psion_reference_pilot_resume(
+    repo_root: &Path,
+    checkpoint_dir: &Path,
+) -> Result<PsionReferencePilotResumeProbe, PsionReferencePilotError> {
+    let stage_receipt: PsionPretrainStageRunReceipt =
+        read_json_artifact(checkpoint_dir.join("psion_reference_pilot_stage_receipt.json").as_path())?;
+    let observability_receipt: PsionPretrainRunObservabilityReceipt = read_json_artifact(
+        checkpoint_dir
+            .join("psion_reference_pilot_observability_receipt.json")
+            .as_path(),
+    )?;
+    observability_receipt.validate_against_stage(&stage_receipt)?;
+    let checkpoint_manifest_artifact: PsionReferencePilotCheckpointManifest = read_json_artifact(
+        checkpoint_dir
+            .join("psion_reference_pilot_checkpoint_manifest.json")
+            .as_path(),
+    )?;
+    let optimizer_state_artifact: PsionReferencePilotOptimizerStateArtifact = read_json_artifact(
+        checkpoint_dir
+            .join("psion_reference_pilot_optimizer_state.json")
+            .as_path(),
+    )?;
+    let checkpoint_bytes = fs::read(
+        checkpoint_dir.join("psion_reference_pilot_checkpoint.safetensors"),
+    )
+    .map_err(|error| PsionReferencePilotError::Serialization {
+        message: error.to_string(),
+    })?;
+
+    let parameter_state_digest =
+        parameter_state_digest_from_groups(optimizer_state_artifact.parameter_groups.as_slice())?;
+    if parameter_state_digest != checkpoint_manifest_artifact.parameter_state_digest {
+        return Err(PsionReferencePilotError::ParameterStateDigestMismatch {
+            expected: checkpoint_manifest_artifact.parameter_state_digest.clone(),
+            actual: parameter_state_digest,
+        });
+    }
+    if optimizer_state_artifact.parameter_state_digest
+        != checkpoint_manifest_artifact.parameter_state_digest
+    {
+        return Err(PsionReferencePilotError::ParameterStateDigestMismatch {
+            expected: checkpoint_manifest_artifact.parameter_state_digest.clone(),
+            actual: optimizer_state_artifact.parameter_state_digest.clone(),
+        });
+    }
+
+    let corpus_bundle = build_psion_reference_corpus(repo_root)?;
+    let model_descriptor = build_reference_model_descriptor(&corpus_bundle)?;
+    let restored_checkpoint_model = restore_psion_reference_pilot_checkpoint(
+        &model_descriptor,
+        &checkpoint_manifest_artifact,
+        &checkpoint_bytes,
+    )?;
+    let restored_checkpoint_digest = stable_digest(
+        b"psion_reference_pilot_parameter_state|",
+        &restored_checkpoint_model.parameter_values(),
+    );
+    if restored_checkpoint_digest != checkpoint_manifest_artifact.parameter_state_digest {
+        return Err(PsionReferencePilotError::ParameterStateDigestMismatch {
+            expected: checkpoint_manifest_artifact.parameter_state_digest.clone(),
+            actual: restored_checkpoint_digest,
+        });
+    }
+
+    let promoted_checkpoint = stage_receipt.checkpoint_lineage.promoted_checkpoint.clone();
+    let dense_manifest_ref = checkpoint_manifest_ref(
+        &checkpoint_manifest_artifact,
+        &promoted_checkpoint,
+        checkpoint_bytes.len() as u64,
+    );
+    let scope = CheckpointScopeBinding::new(CheckpointScopeKind::Run, stage_receipt.run_id.clone());
+    let checkpoint_manifest = CheckpointManifest::new(
+        scope.clone(),
+        promoted_checkpoint.checkpoint_family.clone(),
+        promoted_checkpoint.clone(),
+        vec![CheckpointShardManifest {
+            shard_id: String::from("dense-shard-0"),
+            manifest: dense_manifest_ref.clone(),
+            writer_node_id: String::from("google-single-node-0"),
+        }],
+        CheckpointDurabilityPosture::Durable,
+        promoted_checkpoint.durable_at_ms.unwrap_or(0),
+    )?;
+    let checkpoint_pointer = CheckpointPointer::new(
+        scope.clone(),
+        promoted_checkpoint.checkpoint_family.clone(),
+        promoted_checkpoint.clone(),
+        checkpoint_manifest.manifest_digest.clone(),
+        promoted_checkpoint.durable_at_ms.unwrap_or(0),
+    )?;
+    let (checkpoint_storage_artifact_id, checkpoint_storage_sweep_receipts, checkpoint_cold_restore_receipts) =
+        checkpoint_storage_rehearsal_receipts(&dense_manifest_ref, &promoted_checkpoint)?;
+    let restore_receipt = restore_receipt(
+        checkpoint_manifest.clone(),
+        checkpoint_pointer.clone(),
+        TrainingRecoveryMode::ResumeFromLastStableCheckpoint,
+    )?;
+
+    let resume_model = materialize_model_from_parameter_groups(
+        &model_descriptor,
+        optimizer_state_artifact.parameter_groups.as_slice(),
+    )?;
+    let train_examples = split_examples(&corpus_bundle, DatasetSplitKind::Train);
+    let mut session =
+        TrainingSessionState::new("psion-google-single-node", promoted_checkpoint.checkpoint_family.clone());
+    session.latest_durable_checkpoint = Some(promoted_checkpoint.clone());
+    session.latest_durable_manifest = Some(dense_manifest_ref);
+    let mut resumed_run = session.restore_fixed_budget_run(
+        format!("{}-resume", stage_receipt.run_id),
+        TrainingLoopBudget::new(1, 1, 1)?,
+        optimizer_state_artifact.parameter_groups.clone(),
+    )?;
+    let started_at_ms = promoted_checkpoint.durable_at_ms.unwrap_or(0).saturating_add(1_000);
+    let resumed_step_receipt = resumed_run.apply_step(TrainingStepInput::new(
+        build_gradient_batch(&resume_model, &train_examples)?,
+        started_at_ms,
+        started_at_ms.saturating_add(40),
+    ))?;
+    if resumed_step_receipt.restore_source.is_none() {
+        return Err(PsionReferencePilotError::MissingRestoreSource);
+    }
+    let resumed_run_summary = resumed_run.summary();
+
+    let mut probe = PsionReferencePilotResumeProbe {
+        schema_version: String::from("psion.reference_pilot_resume_probe.v1"),
+        run_id: stage_receipt.run_id.clone(),
+        stage_id: stage_receipt.stage_id.clone(),
+        checkpoint_ref: checkpoint_manifest_artifact.checkpoint_ref.clone(),
+        checkpoint_family: checkpoint_manifest_artifact.checkpoint_family.clone(),
+        checkpoint_lineage_digest: stage_receipt
+            .checkpoint_lineage
+            .checkpoint_lineage_digest
+            .clone(),
+        recovery_mode: TrainingRecoveryMode::ResumeFromLastStableCheckpoint,
+        checkpoint_manifest,
+        checkpoint_pointer,
+        checkpoint_storage_artifact_id,
+        checkpoint_storage_sweep_receipts,
+        checkpoint_cold_restore_receipts,
+        restore_receipt,
+        resumed_step_receipt,
+        resumed_run_summary,
+        detail: String::from(
+            "Reference pilot resume probe restored the last stable checkpoint, replayed resume_from_last_stable_checkpoint through the fixed-budget trainer, and applied one resumed optimizer step.",
+        ),
+        probe_digest: String::new(),
+    };
+    probe.probe_digest = probe.stable_digest();
+    Ok(probe)
 }
 
 pub fn run_psion_reference_pilot_evidence_bundle(
@@ -2129,6 +2357,30 @@ fn export_checkpoint(
     })
 }
 
+fn build_optimizer_state_artifact(
+    run: &FixedBudgetTrainingRun,
+    checkpoint_artifact: &PsionReferencePilotCheckpointArtifact,
+    config: &PsionReferencePilotConfig,
+) -> Result<PsionReferencePilotOptimizerStateArtifact, PsionReferencePilotError> {
+    let parameter_groups = run.parameter_groups().cloned().collect::<Vec<_>>();
+    let mut artifact = PsionReferencePilotOptimizerStateArtifact {
+        schema_version: String::from("psion.reference_pilot_optimizer_state_artifact.v1"),
+        run_id: config.run_id.clone(),
+        stage_id: config.stage_id.clone(),
+        checkpoint_ref: checkpoint_artifact.manifest.checkpoint_ref.clone(),
+        checkpoint_family: checkpoint_artifact.manifest.checkpoint_family.clone(),
+        completed_steps: run.completed_steps(),
+        parameter_state_digest: parameter_state_digest_from_groups(parameter_groups.as_slice())?,
+        parameter_groups,
+        summary: String::from(
+            "Reference pilot optimizer-state artifact preserves exact parameter tensors and optimizer moments for resume_from_last_stable_checkpoint.",
+        ),
+        artifact_digest: String::new(),
+    };
+    artifact.artifact_digest = artifact.stable_digest();
+    Ok(artifact)
+}
+
 pub(crate) fn restore_psion_reference_pilot_checkpoint(
     descriptor: &PsionCompactDecoderDescriptor,
     manifest: &PsionReferencePilotCheckpointManifest,
@@ -2155,12 +2407,160 @@ pub(crate) fn restore_psion_reference_pilot_checkpoint(
     base_model.with_parameter_overrides(&overrides)
 }
 
+fn materialize_model_from_parameter_groups(
+    descriptor: &PsionCompactDecoderDescriptor,
+    groups: &[TrainingParameterGroupState],
+) -> Result<PsionCompactDecoderReferencePilotModel, PsionReferencePilotError> {
+    let values = groups
+        .iter()
+        .map(|group| {
+            let values = match &group.parameter.data {
+                TensorData::F32(values) => values.clone(),
+                _ => {
+                    return Err(PsionReferencePilotError::NonDenseParameterGroup {
+                        group_id: group.group_id.clone(),
+                    });
+                }
+            };
+            Ok((group.group_id.clone(), values))
+        })
+        .collect::<Result<BTreeMap<_, _>, _>>()?;
+    Ok(PsionCompactDecoderReferencePilotModel {
+        descriptor: descriptor.clone(),
+        token_embeddings: values
+            .get(TOKEN_EMBEDDING_GROUP_ID)
+            .cloned()
+            .ok_or_else(|| PsionReferencePilotError::MissingParameterGroup {
+                group_id: String::from(TOKEN_EMBEDDING_GROUP_ID),
+            })?,
+        position_embeddings: values
+            .get(POSITION_EMBEDDING_GROUP_ID)
+            .cloned()
+            .ok_or_else(|| PsionReferencePilotError::MissingParameterGroup {
+                group_id: String::from(POSITION_EMBEDDING_GROUP_ID),
+            })?,
+        lm_head_bias: values
+            .get(LM_HEAD_BIAS_GROUP_ID)
+            .cloned()
+            .ok_or_else(|| PsionReferencePilotError::MissingParameterGroup {
+                group_id: String::from(LM_HEAD_BIAS_GROUP_ID),
+            })?,
+    })
+}
+
+fn parameter_state_digest_from_groups(
+    groups: &[TrainingParameterGroupState],
+) -> Result<String, PsionReferencePilotError> {
+    let values = groups
+        .iter()
+        .map(|group| {
+            let values = match &group.parameter.data {
+                TensorData::F32(values) => values.clone(),
+                _ => {
+                    return Err(PsionReferencePilotError::NonDenseParameterGroup {
+                        group_id: group.group_id.clone(),
+                    });
+                }
+            };
+            Ok((group.group_id.clone(), values))
+        })
+        .collect::<Result<BTreeMap<_, _>, _>>()?;
+    Ok(stable_digest(
+        b"psion_reference_pilot_parameter_state|",
+        &values,
+    ))
+}
+
+fn checkpoint_manifest_ref(
+    checkpoint_manifest: &PsionReferencePilotCheckpointManifest,
+    checkpoint: &TrainingCheckpointReference,
+    total_bytes: u64,
+) -> DatastreamManifestRef {
+    DatastreamManifestRef {
+        stream_id: format!(
+            "psion-google-reference-pilot://{}/{}",
+            checkpoint_manifest.run_id, checkpoint_manifest.checkpoint_ref
+        ),
+        manifest_digest: checkpoint_manifest.stable_digest(),
+        subject: DatastreamSubjectKind::Checkpoint,
+        object_digest: checkpoint.object_digest.clone(),
+        total_bytes,
+        chunk_count: 1,
+        chunk_bytes: total_bytes.max(1) as usize,
+        encoding: DatastreamEncoding::Safetensors,
+        compression: None,
+        provenance_digest: Some(checkpoint_manifest.parameter_state_digest.clone()),
+        dataset_binding: None,
+        checkpoint_binding: Some(
+            DatastreamCheckpointBinding::new(checkpoint_manifest.checkpoint_family.clone())
+                .with_checkpoint_ref(checkpoint_manifest.checkpoint_ref.clone())
+                .with_step(checkpoint_manifest.step),
+        ),
+        policy_weight_binding: None,
+        mirrors: Vec::new(),
+    }
+}
+
+fn checkpoint_storage_rehearsal_receipts(
+    manifest_ref: &DatastreamManifestRef,
+    checkpoint: &TrainingCheckpointReference,
+) -> Result<
+    (
+        String,
+        Vec<ArtifactStorageSweepReceipt>,
+        Vec<ArtifactColdRestoreReceipt>,
+    ),
+    PsionReferencePilotError,
+> {
+    let mut controller = TrainArtifactStorageController::new(BTreeMap::from([(
+        TrainArtifactClass::Checkpoint,
+        ArtifactRetentionProfile::new(5_000, 30_000, ArtifactArchiveClass::Restorable, 45_000),
+    )]))?;
+    let artifact_id = controller.register_checkpoint(
+        manifest_ref.clone(),
+        checkpoint.clone(),
+        manifest_ref.total_bytes,
+        0,
+    )?;
+    let warm = controller.sweep(6_000)?;
+    let archived = controller.sweep(40_000)?;
+    let requested = controller.request_cold_restore(artifact_id.as_str(), 42_000)?;
+    let completed = controller.complete_cold_restore(artifact_id.as_str(), 60_000)?;
+    Ok((artifact_id, vec![warm, archived], vec![requested, completed]))
+}
+
+fn restore_receipt(
+    manifest: CheckpointManifest,
+    pointer: CheckpointPointer,
+    recovery_mode: TrainingRecoveryMode,
+) -> Result<crate::CheckpointRestoreReceipt, PsionReferencePilotError> {
+    let mut store = InMemoryCheckpointStore::default();
+    store.store_manifest(manifest.clone());
+    store.store_pointer(pointer);
+    Ok(store.plan_restore(
+        &manifest.scope,
+        manifest.checkpoint_family.as_str(),
+        recovery_mode,
+        &[NodeId::new("google-single-node-0")],
+        CheckpointStoreReadOptions::default(),
+    )?)
+}
+
 fn write_json(path: &Path, value: &impl Serialize) -> Result<(), PsionReferencePilotError> {
     let payload =
         serde_json::to_vec_pretty(value).map_err(|error| PsionReferencePilotError::Serialization {
             message: error.to_string(),
         })?;
     fs::write(path, payload).map_err(|error| PsionReferencePilotError::Serialization {
+        message: error.to_string(),
+    })
+}
+
+fn read_json_artifact<T: DeserializeOwned>(path: &Path) -> Result<T, PsionReferencePilotError> {
+    let payload = fs::read(path).map_err(|error| PsionReferencePilotError::Serialization {
+        message: error.to_string(),
+    })?;
+    serde_json::from_slice(&payload).map_err(|error| PsionReferencePilotError::Serialization {
         message: error.to_string(),
     })
 }
@@ -2368,6 +2768,42 @@ mod tests {
         run.observability_receipt
             .validate_against_stage(&run.stage_receipt)
             .expect("observability receipt should validate");
+    }
+
+    #[test]
+    fn reference_pilot_resume_probe_restores_from_last_stable_checkpoint() {
+        let config = PsionReferencePilotConfig::reference().expect("config");
+        let run =
+            run_psion_reference_pilot(repo_root().as_path(), &config).expect("pilot should run");
+        let output_dir = std::env::temp_dir().join(format!(
+            "psion-reference-pilot-resume-probe-{}",
+            std::process::id()
+        ));
+        if output_dir.exists() {
+            fs::remove_dir_all(&output_dir).expect("stale temp output should be removable");
+        }
+        fs::create_dir_all(&output_dir).expect("temp output should be creatable");
+        run.write_to_dir(output_dir.as_path())
+            .expect("run artifacts should write");
+
+        let probe = probe_psion_reference_pilot_resume(repo_root().as_path(), output_dir.as_path())
+            .expect("resume probe should succeed");
+        assert_eq!(
+            probe.recovery_mode,
+            TrainingRecoveryMode::ResumeFromLastStableCheckpoint
+        );
+        assert_eq!(
+            probe.restore_receipt.recovery_mode,
+            TrainingRecoveryMode::ResumeFromLastStableCheckpoint
+        );
+        assert!(
+            probe.resumed_step_receipt.restore_source.is_some(),
+            "resumed step should carry restore lineage"
+        );
+        assert_eq!(probe.checkpoint_cold_restore_receipts.len(), 2);
+        assert_eq!(probe.resumed_run_summary.completed_steps, 1);
+
+        fs::remove_dir_all(&output_dir).expect("temp output should be removable");
     }
 
     #[test]

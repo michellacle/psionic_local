@@ -1,0 +1,18 @@
+{
+  "schema_version": "psion.google_checkpoint_archive_policy.v1",
+  "policy_id": "openagentsgemini-psion-google-checkpoint-archive-v1",
+  "project_id": "openagentsgemini",
+  "bucket_url": "gs://openagentsgemini-psion-train-us-central1",
+  "input_package_descriptor_uri": "gs://openagentsgemini-psion-train-us-central1/manifests/psion_google_reference_input_package_v1.json",
+  "checkpoint_archive_prefix": "gs://openagentsgemini-psion-train-us-central1/checkpoints/reference_pilot",
+  "archive_manifest_name": "psion_google_reference_checkpoint_archive_manifest.json",
+  "cold_restore_prefix": "cold_restore",
+  "cold_restore_manifest_name": "psion_google_reference_checkpoint_cold_restore_manifest.json",
+  "recovery_mode": "resume_from_last_stable_checkpoint",
+  "storage_profile": {
+    "hot_retention_ms": 5000,
+    "warm_retention_ms": 30000,
+    "archive_class": "restorable",
+    "cold_restore_sla_ms": 45000
+  }
+}

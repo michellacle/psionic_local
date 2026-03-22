@@ -1061,6 +1061,11 @@ impl FixedBudgetTrainingRun {
         self.parameter_groups.get(group_id)
     }
 
+    /// Returns the current parameter groups in stable identifier order.
+    pub fn parameter_groups(&self) -> impl Iterator<Item = &TrainingParameterGroupState> {
+        self.parameter_groups.values()
+    }
+
     /// Returns the number of completed steps.
     #[must_use]
     pub const fn completed_steps(&self) -> u64 {
