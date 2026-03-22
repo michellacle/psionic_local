@@ -97,6 +97,11 @@ and now also has:
   and freezes which plugin classes are currently proved, not yet proved, later
   separate, or out of scope before any trained model capability matrix is
   honest.
+- `docs/TASSION_PLUGIN_TRAINING_RECORD_SCHEMA.md` is the canonical first
+  plugin-conditioned training-record contract for the convergence tranche and
+  freezes the admitted-plugin-set, controller-context, invocation-receipt,
+  route-label, and outcome-label shape that later derivation, dataset, and
+  benchmark work must reuse.
 - `docs/audits/2026-03-22-tassadar-full-plugin-system-state-audit.md` is the
   canonical current-state proof record for the bounded Tassadar plugin system
   and freezes the present authoring-class, publication, and guest-artifact
