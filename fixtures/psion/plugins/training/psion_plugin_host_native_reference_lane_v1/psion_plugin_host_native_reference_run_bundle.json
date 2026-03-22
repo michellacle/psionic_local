@@ -1,0 +1,2173 @@
+{
+  "schema_version": "psionic.psion.plugin_host_native_reference_run_bundle.v1",
+  "bundle_id": "bundle.psion.plugin_host_native_reference.v1",
+  "lane_id": "psion_plugin_conditioned_host_native_reference",
+  "stage_bundle": {
+    "schema_version": "psionic.psion.plugin_conditioned_sft_run_bundle.v1",
+    "bundle_id": "bundle.psion.plugin_host_native_reference.stage.v1",
+    "run_id": "run-psion-plugin-host-native-reference",
+    "checkpoint_family": "train.psion.plugin_host_native_reference",
+    "stage_program": {
+      "run_id": "run-psion-plugin-host-native-reference",
+      "checkpoint_family": "train.psion.plugin_host_native_reference",
+      "stages": [
+        {
+          "stage_id": "run-psion-plugin-host-native-reference-stage-1-general_sft",
+          "kind": "general_sft",
+          "environment": {
+            "environment_ref": "env.psion.plugin_host_native_reference",
+            "version": "2026.03.22"
+          },
+          "status": "completed",
+          "ingested_traces": [
+            {
+              "run_id": "run-psion-plugin-host-native-reference",
+              "stage_id": "run-psion-plugin-host-native-reference-stage-1-general_sft",
+              "trace_id": "general-sft-host-native-bridge-trace",
+              "trace_kind": "long_context",
+              "lineage_digest": "2cf0c3ffd2ac2f15738ba094f725232217182f6d413a47754e0adca5ea4ad83f",
+              "accepted_at_ms": 1774216873271
+            }
+          ]
+        },
+        {
+          "stage_id": "run-psion-plugin-host-native-reference-stage-2-agentic_sft",
+          "kind": "agentic_sft",
+          "environment": {
+            "environment_ref": "env.psion.plugin_host_native_reference",
+            "version": "2026.03.22"
+          },
+          "status": "completed",
+          "base_checkpoint": {
+            "checkpoint_family": "train.psion.plugin_host_native_reference",
+            "stream_id": "stream-1",
+            "manifest_digest": "manifest-1",
+            "object_digest": "object-1",
+            "writer_node_id": "node-a",
+            "membership_epoch": 1,
+            "cluster_state_digest": "cluster-digest",
+            "topology_digest": "topology-digest",
+            "started_at_ms": 1001,
+            "checkpoint_ref": "checkpoint://psion/plugin_host_native_reference/1",
+            "step": 1,
+            "durable_at_ms": 2001
+          },
+          "ingested_traces": [
+            {
+              "run_id": "run-psion-plugin-host-native-reference",
+              "stage_id": "run-psion-plugin-host-native-reference-stage-2-agentic_sft",
+              "trace_id": "trace://psion_plugin_training.trace_record.starter_plugin.web_content_success.v1.apple_fm_session.v1",
+              "trace_kind": "tool_call",
+              "lineage_digest": "eae6e461be4af1489d0b8624a7c92495f8711767f1218d8897b778bd3073d620",
+              "accepted_at_ms": 1774216873271
+            },
+            {
+              "run_id": "run-psion-plugin-host-native-reference",
+              "stage_id": "run-psion-plugin-host-native-reference-stage-2-agentic_sft",
+              "trace_id": "trace://psion_plugin_training.trace_record.starter_plugin.web_content_success.v1.deterministic_workflow.v1",
+              "trace_kind": "tool_call",
+              "lineage_digest": "c2ff761dec576a8921850a6763194b73f485a3d132c9f0f0a77837a1a1f6b19c",
+              "accepted_at_ms": 1774216873271
+            },
+            {
+              "run_id": "run-psion-plugin-host-native-reference",
+              "stage_id": "run-psion-plugin-host-native-reference-stage-2-agentic_sft",
+              "trace_id": "trace://psion_plugin_training.trace_record.starter_plugin.web_content_success.v1.router_responses.v1",
+              "trace_kind": "tool_call",
+              "lineage_digest": "21376c2599cfc6dd6f0e0220cc9ed8a16c47558718f4157e93e735788964f830",
+              "accepted_at_ms": 1774216873271
+            }
+          ]
+        }
+      ],
+      "completions": [
+        {
+          "run_id": "run-psion-plugin-host-native-reference",
+          "stage_id": "run-psion-plugin-host-native-reference-stage-1-general_sft",
+          "kind": "general_sft",
+          "ingested_trace_count": 1,
+          "pretrain_run_count": 0,
+          "completed_at_ms": 1774216873271,
+          "completion_digest": "110e062a4fe458d6890bd318d89c196a2ed2f14e0ce1f3957f62a0e83e2a66e0"
+        },
+        {
+          "run_id": "run-psion-plugin-host-native-reference",
+          "stage_id": "run-psion-plugin-host-native-reference-stage-2-agentic_sft",
+          "kind": "agentic_sft",
+          "ingested_trace_count": 3,
+          "pretrain_run_count": 0,
+          "completed_at_ms": 1774216873271,
+          "completion_digest": "5473de80d76f16fd4ce2675495fd65c336c56c223111ff856b7f9381328cea56"
+        }
+      ],
+      "promotions": [
+        {
+          "run_id": "run-psion-plugin-host-native-reference",
+          "from_stage_id": "run-psion-plugin-host-native-reference-stage-1-general_sft",
+          "from_stage_kind": "general_sft",
+          "to_stage_kind": "agentic_sft",
+          "checkpoint": {
+            "checkpoint_family": "train.psion.plugin_host_native_reference",
+            "stream_id": "stream-1",
+            "manifest_digest": "manifest-1",
+            "object_digest": "object-1",
+            "writer_node_id": "node-a",
+            "membership_epoch": 1,
+            "cluster_state_digest": "cluster-digest",
+            "topology_digest": "topology-digest",
+            "started_at_ms": 1001,
+            "checkpoint_ref": "checkpoint://psion/plugin_host_native_reference/1",
+            "step": 1,
+            "durable_at_ms": 2001
+          },
+          "promotion_digest": "a79608c94397eb7d50202554b86035729631d1dc195942a21efcd7f8aa536889"
+        }
+      ],
+      "transitions": [
+        {
+          "run_id": "run-psion-plugin-host-native-reference",
+          "next_stage_id": "run-psion-plugin-host-native-reference-stage-1-general_sft",
+          "next_stage_kind": "general_sft",
+          "transitioned_at_ms": 1774216873271,
+          "transition_digest": "26ab347929e6d4ccb72678d7196087d29d22628348d7e23cd25b287eb0f5e0bd"
+        },
+        {
+          "run_id": "run-psion-plugin-host-native-reference",
+          "previous_stage_id": "run-psion-plugin-host-native-reference-stage-1-general_sft",
+          "next_stage_id": "run-psion-plugin-host-native-reference-stage-2-agentic_sft",
+          "next_stage_kind": "agentic_sft",
+          "base_checkpoint": {
+            "checkpoint_family": "train.psion.plugin_host_native_reference",
+            "stream_id": "stream-1",
+            "manifest_digest": "manifest-1",
+            "object_digest": "object-1",
+            "writer_node_id": "node-a",
+            "membership_epoch": 1,
+            "cluster_state_digest": "cluster-digest",
+            "topology_digest": "topology-digest",
+            "started_at_ms": 1001,
+            "checkpoint_ref": "checkpoint://psion/plugin_host_native_reference/1",
+            "step": 1,
+            "durable_at_ms": 2001
+          },
+          "transitioned_at_ms": 1774216873271,
+          "transition_digest": "8c92c36255fdc27e2cf38aca3212bd2702b4329a648017a0637d665aa24db89d"
+        }
+      ]
+    },
+    "stage_manifest": {
+      "schema_version": "psionic.psion.plugin_conditioned_sft_stage_manifest.v1",
+      "run_id": "run-psion-plugin-host-native-reference",
+      "stage_id": "run-psion-plugin-host-native-reference-stage-2-agentic_sft",
+      "previous_stage_id": "run-psion-plugin-host-native-reference-stage-1-general_sft",
+      "checkpoint_family": "train.psion.plugin_host_native_reference",
+      "dataset_binding": {
+        "dataset_ref": "fixtures/psion/plugins/datasets/psion_plugin_conditioned_dataset_v1/psion_plugin_conditioned_dataset_bundle.json",
+        "stable_dataset_identity": "dataset://openagents/psion/plugin_conditioned_host_native_reference",
+        "dataset_key": {
+          "dataset_ref": "dataset://openagents/psion/plugin_conditioned_host_native_reference",
+          "version": "2026.03.22.v1"
+        },
+        "dataset_bundle_digest": "9e4bc8b26ed7bb71a19e6f48f37904986e321d51e9af5f6282fa50e61fc821b6",
+        "train_record_count": 3,
+        "held_out_record_count": 3,
+        "held_out_workflow_case_ids": [
+          "starter_plugin.fetch_refusal.v1"
+        ],
+        "detail": "The plugin-conditioned stage binds directly to the committed host-native dataset identity and preserves the held-out workflow split for later audits."
+      },
+      "trace_bindings": [
+        {
+          "record_id": "psion_plugin_training.trace_record.starter_plugin.web_content_success.v1.apple_fm_session.v1",
+          "trace_id": "trace://psion_plugin_training.trace_record.starter_plugin.web_content_success.v1.apple_fm_session.v1",
+          "trace_lineage_digest": "eae6e461be4af1489d0b8624a7c92495f8711767f1218d8897b778bd3073d620",
+          "controller_surface": "apple_fm_session",
+          "route_label": "delegate_to_admitted_plugin",
+          "outcome_label": "completed_success",
+          "replay_class_ids": [
+            "deterministic_replayable"
+          ],
+          "receipt_refs": [
+            "receipt.plugin.text.url_extract.62157e9942c049fa.v1",
+            "receipt.plugin.html.extract_readable.2e53ee21f594f758.v1",
+            "receipt.plugin.feed.rss_atom_parse.122c9fad2c22555f.v1"
+          ],
+          "detail": "The host-native reference lane keeps only the proved local-deterministic plugin subtrace from `psion_plugin_training.trace_record.starter_plugin.web_content_success.v1.apple_fm_session.v1`."
+        },
+        {
+          "record_id": "psion_plugin_training.trace_record.starter_plugin.web_content_success.v1.deterministic_workflow.v1",
+          "trace_id": "trace://psion_plugin_training.trace_record.starter_plugin.web_content_success.v1.deterministic_workflow.v1",
+          "trace_lineage_digest": "c2ff761dec576a8921850a6763194b73f485a3d132c9f0f0a77837a1a1f6b19c",
+          "controller_surface": "deterministic_workflow",
+          "route_label": "delegate_to_admitted_plugin",
+          "outcome_label": "completed_success",
+          "replay_class_ids": [
+            "deterministic_replayable"
+          ],
+          "receipt_refs": [
+            "receipt.plugin.text.url_extract.4b99d49a956f5fb3.v1",
+            "receipt.plugin.html.extract_readable.e1417d028da0461a.v1",
+            "receipt.plugin.feed.rss_atom_parse.122c9fad2c22555f.v1"
+          ],
+          "detail": "The host-native reference lane keeps only the proved local-deterministic plugin subtrace from `psion_plugin_training.trace_record.starter_plugin.web_content_success.v1.deterministic_workflow.v1`."
+        },
+        {
+          "record_id": "psion_plugin_training.trace_record.starter_plugin.web_content_success.v1.router_responses.v1",
+          "trace_id": "trace://psion_plugin_training.trace_record.starter_plugin.web_content_success.v1.router_responses.v1",
+          "trace_lineage_digest": "21376c2599cfc6dd6f0e0220cc9ed8a16c47558718f4157e93e735788964f830",
+          "controller_surface": "router_responses",
+          "route_label": "delegate_to_admitted_plugin",
+          "outcome_label": "completed_success",
+          "replay_class_ids": [
+            "deterministic_replayable"
+          ],
+          "receipt_refs": [
+            "receipt.plugin.text.url_extract.62157e9942c049fa.v1",
+            "receipt.plugin.html.extract_readable.1646205d55c61941.v1",
+            "receipt.plugin.feed.rss_atom_parse.3430f94093b76c67.v1"
+          ],
+          "detail": "The host-native reference lane keeps only the proved local-deterministic plugin subtrace from `psion_plugin_training.trace_record.starter_plugin.web_content_success.v1.router_responses.v1`."
+        }
+      ],
+      "benchmark_bindings": [
+        {
+          "benchmark_family": "discovery_selection",
+          "bundle_ref": "fixtures/psion/benchmarks/psion_plugin_discovery_selection_benchmark_v1/psion_plugin_discovery_selection_benchmark_bundle.json",
+          "bundle_digest": "7927ae708ea8464a2768e40ea7e8e65e0f2d9fa006ce0983a24ea146d19fbb4f",
+          "package_id": "psion.plugin.discovery_selection.v1",
+          "package_digest": "8d73fd11115d3d2b14be8fe73cfe0d296866519020fc8cb20a6d3103ff88df6b",
+          "receipt_digest": "b7899863d58f91ca656505c54a8fcc211cf82ff8ecd549ba99808ea25b7a53ab",
+          "execution_evidence_required": false,
+          "detail": "Discovery benchmark bundle freezes one authored package plus one shared receipt for direct-answer, plugin-delegate, wrong-tool, and unsupported-tool selection decisions."
+        },
+        {
+          "benchmark_family": "argument_construction",
+          "bundle_ref": "fixtures/psion/benchmarks/psion_plugin_argument_construction_benchmark_v1/psion_plugin_argument_construction_benchmark_bundle.json",
+          "bundle_digest": "c032d00128a34d927cfd909eaafcf0fe5181b7537cf1fa673d384b8b5505ced4",
+          "package_id": "psion.plugin.argument_construction.v1",
+          "package_digest": "9ceec93772872c5b02f8a82bbde230aeda64a078949093a761c333a7b6b35ff0",
+          "receipt_digest": "36ca1bed00caba3d9ce0645f46990321ab361cc35226054cd80b7d5bfc3d1e52",
+          "execution_evidence_required": true,
+          "detail": "Argument-construction benchmark bundle freezes benchmark-authored schema-correct and request-for-structure cases plus one held-out execution-backed runtime-refusal case."
+        },
+        {
+          "benchmark_family": "sequencing_multi_call",
+          "bundle_ref": "fixtures/psion/benchmarks/psion_plugin_sequencing_benchmark_v1/psion_plugin_sequencing_benchmark_bundle.json",
+          "bundle_digest": "8fe231c6a1a66739b05aaa92597035db8d64f582c672aa1bd7cc68aedd0913c3",
+          "package_id": "psion.plugin.sequencing.v1",
+          "package_digest": "76ddb102b9a3701e7456de025708cf5740e2d8a2cd8656b705593cd19476925f",
+          "receipt_digest": "3e7161d249c5da237597e9581c99e5da5a26e34affebf445c7292cad38dea5e0",
+          "execution_evidence_required": true,
+          "detail": "Sequencing benchmark bundle freezes benchmark-authored serial and parallelizable plans plus one held-out receipt-backed refusal-stop case."
+        },
+        {
+          "benchmark_family": "refusal_request_structure",
+          "bundle_ref": "fixtures/psion/benchmarks/psion_plugin_refusal_request_structure_benchmark_v1/psion_plugin_refusal_request_structure_benchmark_bundle.json",
+          "bundle_digest": "88e7305ce2e3b2eb2c27b807506369baf9b5c7fb2b961c8367eff51b7ef9207f",
+          "package_id": "psion.plugin.refusal_request_structure.v1",
+          "package_digest": "bc5aee7de4d7a7c99be20789314596e54b9805ab540b13708283e3339d89e32f",
+          "receipt_digest": "8ce25b41d8d8c5bb49ef19fa0ed644c81c09c48f3e9b8e079cb0fe2827b05a20",
+          "execution_evidence_required": false,
+          "detail": "Refusal/request-structure benchmark bundle freezes benchmark-authored unsupported-capability, missing-input, and overdelegation-negative cases for the bounded host-native plugin lane."
+        },
+        {
+          "benchmark_family": "result_interpretation",
+          "bundle_ref": "fixtures/psion/benchmarks/psion_plugin_result_interpretation_benchmark_v1/psion_plugin_result_interpretation_benchmark_bundle.json",
+          "bundle_digest": "181d3110ba4eb54a49437d8b2c9e4fa970ac874719ab00607f6ba3042d4b64b8",
+          "package_id": "psion.plugin.result_interpretation.v1",
+          "package_digest": "e1093bd33dda25db5c9a022fec2433adc1b8fd0c7cfb2808896e2399556a2e13",
+          "receipt_digest": "9bfd9fb4000650b8e56dacfcafaa563611e6a101427da1a78d408f8804f24e83",
+          "execution_evidence_required": true,
+          "detail": "Result-interpretation benchmark bundle freezes held-out receipt-backed success and refusal interpretation cases for the bounded host-native plugin lane."
+        }
+      ],
+      "eval_hooks": [
+        {
+          "hook_id": "hook.psion.plugin_host_native_reference.discoveryselection.post_stage",
+          "hook_kind": "benchmark_sweep",
+          "trigger": "post_stage_completion",
+          "benchmark_family": "discovery_selection",
+          "benchmark_bundle_ref": "fixtures/psion/benchmarks/psion_plugin_discovery_selection_benchmark_v1/psion_plugin_discovery_selection_benchmark_bundle.json",
+          "benchmark_receipt_digest": "b7899863d58f91ca656505c54a8fcc211cf82ff8ecd549ba99808ea25b7a53ab",
+          "execution_evidence_required": false,
+          "detail": "Run DiscoverySelection only inside the proved host-native local deterministic boundary and exclude out-of-scope items explicitly."
+        },
+        {
+          "hook_id": "hook.psion.plugin_host_native_reference.argumentconstruction.post_stage",
+          "hook_kind": "benchmark_sweep",
+          "trigger": "post_stage_completion",
+          "benchmark_family": "argument_construction",
+          "benchmark_bundle_ref": "fixtures/psion/benchmarks/psion_plugin_argument_construction_benchmark_v1/psion_plugin_argument_construction_benchmark_bundle.json",
+          "benchmark_receipt_digest": "36ca1bed00caba3d9ce0645f46990321ab361cc35226054cd80b7d5bfc3d1e52",
+          "execution_evidence_required": true,
+          "detail": "Run ArgumentConstruction only inside the proved host-native local deterministic boundary and exclude out-of-scope items explicitly."
+        },
+        {
+          "hook_id": "hook.psion.plugin_host_native_reference.sequencingmulticall.post_stage",
+          "hook_kind": "benchmark_sweep",
+          "trigger": "post_stage_completion",
+          "benchmark_family": "sequencing_multi_call",
+          "benchmark_bundle_ref": "fixtures/psion/benchmarks/psion_plugin_sequencing_benchmark_v1/psion_plugin_sequencing_benchmark_bundle.json",
+          "benchmark_receipt_digest": "3e7161d249c5da237597e9581c99e5da5a26e34affebf445c7292cad38dea5e0",
+          "execution_evidence_required": true,
+          "detail": "Run SequencingMultiCall only inside the proved host-native local deterministic boundary and exclude out-of-scope items explicitly."
+        },
+        {
+          "hook_id": "hook.psion.plugin_host_native_reference.refusalrequeststructure.post_stage",
+          "hook_kind": "benchmark_sweep",
+          "trigger": "post_stage_completion",
+          "benchmark_family": "refusal_request_structure",
+          "benchmark_bundle_ref": "fixtures/psion/benchmarks/psion_plugin_refusal_request_structure_benchmark_v1/psion_plugin_refusal_request_structure_benchmark_bundle.json",
+          "benchmark_receipt_digest": "8ce25b41d8d8c5bb49ef19fa0ed644c81c09c48f3e9b8e079cb0fe2827b05a20",
+          "execution_evidence_required": false,
+          "detail": "Run RefusalRequestStructure only inside the proved host-native local deterministic boundary and exclude out-of-scope items explicitly."
+        },
+        {
+          "hook_id": "hook.psion.plugin_host_native_reference.resultinterpretation.post_stage",
+          "hook_kind": "benchmark_sweep",
+          "trigger": "post_stage_completion",
+          "benchmark_family": "result_interpretation",
+          "benchmark_bundle_ref": "fixtures/psion/benchmarks/psion_plugin_result_interpretation_benchmark_v1/psion_plugin_result_interpretation_benchmark_bundle.json",
+          "benchmark_receipt_digest": "9bfd9fb4000650b8e56dacfcafaa563611e6a101427da1a78d408f8804f24e83",
+          "execution_evidence_required": true,
+          "detail": "Run ResultInterpretation only inside the proved host-native local deterministic boundary and exclude out-of-scope items explicitly."
+        },
+        {
+          "hook_id": "hook.psion.plugin_host_native_reference.pre_promotion_suite",
+          "hook_kind": "benchmark_sweep",
+          "trigger": "pre_promotion_audit",
+          "benchmark_family": "discovery_selection",
+          "benchmark_bundle_ref": "fixtures/psion/benchmarks/psion_plugin_discovery_selection_benchmark_v1/psion_plugin_discovery_selection_benchmark_bundle.json",
+          "benchmark_receipt_digest": "b7899863d58f91ca656505c54a8fcc211cf82ff8ecd549ba99808ea25b7a53ab",
+          "execution_evidence_required": false,
+          "detail": "Rerun one family before promotion so the host-native reference lane keeps a machine-checkable held-out gate."
+        },
+        {
+          "hook_id": "hook.psion.plugin_host_native_reference.replay_review",
+          "hook_kind": "replay_receipt_review",
+          "trigger": "pre_promotion_audit",
+          "execution_evidence_required": true,
+          "detail": "Review local deterministic replay classes and receipt refs before any broader capability claim is made."
+        }
+      ],
+      "config": {
+        "max_plugin_calls_per_trace": 3,
+        "preserve_receipt_boundaries": true,
+        "require_replay_class_coverage": true,
+        "require_held_out_benchmark_hooks": true,
+        "detail": "The host-native reference lane keeps only the proved capability-free local deterministic plugin subtraces, preserves receipt boundaries, and retains held-out benchmark hooks for later audits."
+      },
+      "summary": "The host-native reference stage is explicitly limited to the currently fully proved capability-free local deterministic starter-plugin class.",
+      "manifest_digest": "afd4bccc63540ad3fc10a19af5fd347c23d39d3d7c4be23ae17adf8bd590d3fd"
+    },
+    "stage_receipt": {
+      "schema_version": "psionic.psion.plugin_conditioned_sft_stage_receipt.v1",
+      "receipt_id": "receipt.psion.plugin_host_native_reference.stage.v1",
+      "run_id": "run-psion-plugin-host-native-reference",
+      "stage_id": "run-psion-plugin-host-native-reference-stage-2-agentic_sft",
+      "checkpoint_family": "train.psion.plugin_host_native_reference",
+      "stage_manifest_digest": "afd4bccc63540ad3fc10a19af5fd347c23d39d3d7c4be23ae17adf8bd590d3fd",
+      "dataset_bundle_digest": "9e4bc8b26ed7bb71a19e6f48f37904986e321d51e9af5f6282fa50e61fc821b6",
+      "agentic_sft_transition_digest": "8c92c36255fdc27e2cf38aca3212bd2702b4329a648017a0637d665aa24db89d",
+      "general_sft_completion_digest": "110e062a4fe458d6890bd318d89c196a2ed2f14e0ce1f3957f62a0e83e2a66e0",
+      "agentic_sft_completion_digest": "5473de80d76f16fd4ce2675495fd65c336c56c223111ff856b7f9381328cea56",
+      "ingested_trace_count": 3,
+      "execution_evidence_trace_count": 3,
+      "eval_hook_count": 7,
+      "controller_coverage": [
+        {
+          "controller_surface": "deterministic_workflow",
+          "trace_count": 1,
+          "detail": "The stage preserves 1 accepted plugin-conditioned traces from DeterministicWorkflow."
+        },
+        {
+          "controller_surface": "router_responses",
+          "trace_count": 1,
+          "detail": "The stage preserves 1 accepted plugin-conditioned traces from RouterResponses."
+        },
+        {
+          "controller_surface": "apple_fm_session",
+          "trace_count": 1,
+          "detail": "The stage preserves 1 accepted plugin-conditioned traces from AppleFmSession."
+        }
+      ],
+      "route_coverage": [
+        {
+          "route_label": "delegate_to_admitted_plugin",
+          "trace_count": 3,
+          "detail": "The stage preserves 3 traces carrying DelegateToAdmittedPlugin."
+        }
+      ],
+      "replay_class_coverage": [
+        {
+          "replay_class_id": "deterministic_replayable",
+          "trace_count": 3,
+          "detail": "Replay class `deterministic_replayable` stays explicit on 3 accepted traces."
+        }
+      ],
+      "summary": "The host-native reference stage completed with one accepted capability-free local deterministic trace per committed train record.",
+      "receipt_digest": "a5004ec4002b0c301d9d5b75f008a0f541a90212a39695f2c69bb2a4b468ddc9"
+    },
+    "summary": "Bounded stage bundle for the first host-native capability-free local deterministic plugin-conditioned reference lane.",
+    "bundle_digest": "1f9588e9107e6f3789d2fb79b78e28d6c0d2881b7382256635345934eccb4480"
+  },
+  "model_config": {
+    "schema_version": "psionic.psion.plugin_conditioned_compact_decoder_reference.v1",
+    "lane_id": "psion_plugin_conditioned_host_native_reference",
+    "stage_manifest_digest": "afd4bccc63540ad3fc10a19af5fd347c23d39d3d7c4be23ae17adf8bd590d3fd",
+    "stage_dataset_identity": "dataset://openagents/psion/plugin_conditioned_host_native_reference",
+    "descriptor": {
+      "schema_version": "psion.compact_decoder_descriptor.v1",
+      "model": {
+        "model_id": "psion-plugin-conditioned-compact-decoder-reference-v1",
+        "family": "psion_decoder",
+        "revision": "plugin-conditioned-v1"
+      },
+      "size_anchor": "pilot32m",
+      "position_encoding": "learned_absolute_embeddings",
+      "norm_kind": "layer_norm",
+      "weight_tying": "input_embedding_and_lm_head_tied",
+      "config": {
+        "hidden_size": 384,
+        "layer_count": 8,
+        "vocab_size": 32768,
+        "max_context": 8192,
+        "block": {
+          "attention": {
+            "head_count": 6,
+            "kv_head_count": 6,
+            "head_dim": 64,
+            "rotary_dim": 64
+          },
+          "feed_forward": {
+            "intermediate_size": 1536,
+            "activation": "Silu"
+          }
+        }
+      },
+      "tokenizer_binding": {
+        "tokenizer_id": "psion_sentencepiece_seed",
+        "tokenizer_version": "v1",
+        "tokenizer_family": "sentence_piece",
+        "tokenizer_digest": "sha256:psion_sentencepiece_seed_tokenizer_digest_v1",
+        "vocab_size": 32768,
+        "special_tokens_digest": "sha256:psion_sentencepiece_seed_added_tokens_digest_v1",
+        "template_digest": "sha256:psion_plugin_conditioned_prompt_template_digest_v1"
+      },
+      "checkpoint_contract": {
+        "checkpoint_format": "SafeTensors",
+        "checkpoint_file_name": "model.safetensors",
+        "state_dict_namespace": "decoder",
+        "tensor_layout": [
+          {
+            "name": "decoder.embed_tokens.weight",
+            "shape": {
+              "dims": [
+                32768,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.embed_positions.weight",
+            "shape": {
+              "dims": [
+                8192,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.0.attention_norm.gamma",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.0.attention_norm.beta",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.0.attention.q_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.0.attention.q_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.0.attention.k_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.0.attention.k_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.0.attention.v_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.0.attention.v_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.0.attention.o_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.0.attention.o_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.0.feed_forward_norm.gamma",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.0.feed_forward_norm.beta",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.0.feed_forward.gate_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                1536
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.0.feed_forward.gate_proj.bias",
+            "shape": {
+              "dims": [
+                1536
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.0.feed_forward.up_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                1536
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.0.feed_forward.up_proj.bias",
+            "shape": {
+              "dims": [
+                1536
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.0.feed_forward.down_proj.weight",
+            "shape": {
+              "dims": [
+                1536,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.0.feed_forward.down_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.1.attention_norm.gamma",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.1.attention_norm.beta",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.1.attention.q_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.1.attention.q_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.1.attention.k_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.1.attention.k_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.1.attention.v_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.1.attention.v_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.1.attention.o_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.1.attention.o_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.1.feed_forward_norm.gamma",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.1.feed_forward_norm.beta",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.1.feed_forward.gate_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                1536
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.1.feed_forward.gate_proj.bias",
+            "shape": {
+              "dims": [
+                1536
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.1.feed_forward.up_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                1536
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.1.feed_forward.up_proj.bias",
+            "shape": {
+              "dims": [
+                1536
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.1.feed_forward.down_proj.weight",
+            "shape": {
+              "dims": [
+                1536,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.1.feed_forward.down_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.2.attention_norm.gamma",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.2.attention_norm.beta",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.2.attention.q_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.2.attention.q_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.2.attention.k_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.2.attention.k_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.2.attention.v_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.2.attention.v_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.2.attention.o_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.2.attention.o_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.2.feed_forward_norm.gamma",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.2.feed_forward_norm.beta",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.2.feed_forward.gate_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                1536
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.2.feed_forward.gate_proj.bias",
+            "shape": {
+              "dims": [
+                1536
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.2.feed_forward.up_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                1536
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.2.feed_forward.up_proj.bias",
+            "shape": {
+              "dims": [
+                1536
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.2.feed_forward.down_proj.weight",
+            "shape": {
+              "dims": [
+                1536,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.2.feed_forward.down_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.3.attention_norm.gamma",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.3.attention_norm.beta",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.3.attention.q_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.3.attention.q_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.3.attention.k_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.3.attention.k_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.3.attention.v_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.3.attention.v_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.3.attention.o_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.3.attention.o_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.3.feed_forward_norm.gamma",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.3.feed_forward_norm.beta",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.3.feed_forward.gate_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                1536
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.3.feed_forward.gate_proj.bias",
+            "shape": {
+              "dims": [
+                1536
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.3.feed_forward.up_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                1536
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.3.feed_forward.up_proj.bias",
+            "shape": {
+              "dims": [
+                1536
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.3.feed_forward.down_proj.weight",
+            "shape": {
+              "dims": [
+                1536,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.3.feed_forward.down_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.4.attention_norm.gamma",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.4.attention_norm.beta",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.4.attention.q_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.4.attention.q_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.4.attention.k_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.4.attention.k_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.4.attention.v_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.4.attention.v_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.4.attention.o_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.4.attention.o_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.4.feed_forward_norm.gamma",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.4.feed_forward_norm.beta",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.4.feed_forward.gate_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                1536
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.4.feed_forward.gate_proj.bias",
+            "shape": {
+              "dims": [
+                1536
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.4.feed_forward.up_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                1536
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.4.feed_forward.up_proj.bias",
+            "shape": {
+              "dims": [
+                1536
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.4.feed_forward.down_proj.weight",
+            "shape": {
+              "dims": [
+                1536,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.4.feed_forward.down_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.5.attention_norm.gamma",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.5.attention_norm.beta",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.5.attention.q_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.5.attention.q_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.5.attention.k_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.5.attention.k_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.5.attention.v_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.5.attention.v_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.5.attention.o_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.5.attention.o_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.5.feed_forward_norm.gamma",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.5.feed_forward_norm.beta",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.5.feed_forward.gate_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                1536
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.5.feed_forward.gate_proj.bias",
+            "shape": {
+              "dims": [
+                1536
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.5.feed_forward.up_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                1536
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.5.feed_forward.up_proj.bias",
+            "shape": {
+              "dims": [
+                1536
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.5.feed_forward.down_proj.weight",
+            "shape": {
+              "dims": [
+                1536,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.5.feed_forward.down_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.6.attention_norm.gamma",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.6.attention_norm.beta",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.6.attention.q_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.6.attention.q_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.6.attention.k_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.6.attention.k_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.6.attention.v_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.6.attention.v_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.6.attention.o_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.6.attention.o_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.6.feed_forward_norm.gamma",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.6.feed_forward_norm.beta",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.6.feed_forward.gate_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                1536
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.6.feed_forward.gate_proj.bias",
+            "shape": {
+              "dims": [
+                1536
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.6.feed_forward.up_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                1536
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.6.feed_forward.up_proj.bias",
+            "shape": {
+              "dims": [
+                1536
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.6.feed_forward.down_proj.weight",
+            "shape": {
+              "dims": [
+                1536,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.6.feed_forward.down_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.7.attention_norm.gamma",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.7.attention_norm.beta",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.7.attention.q_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.7.attention.q_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.7.attention.k_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.7.attention.k_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.7.attention.v_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.7.attention.v_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.7.attention.o_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.7.attention.o_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.7.feed_forward_norm.gamma",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.7.feed_forward_norm.beta",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.7.feed_forward.gate_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                1536
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.7.feed_forward.gate_proj.bias",
+            "shape": {
+              "dims": [
+                1536
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.7.feed_forward.up_proj.weight",
+            "shape": {
+              "dims": [
+                384,
+                1536
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.7.feed_forward.up_proj.bias",
+            "shape": {
+              "dims": [
+                1536
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.7.feed_forward.down_proj.weight",
+            "shape": {
+              "dims": [
+                1536,
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.layers.7.feed_forward.down_proj.bias",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.final_norm.gamma",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "decoder.final_norm.beta",
+            "shape": {
+              "dims": [
+                384
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          },
+          {
+            "name": "lm_head.bias",
+            "shape": {
+              "dims": [
+                32768
+              ]
+            },
+            "dtype": "F32",
+            "quantization": "none"
+          }
+        ],
+        "tensor_layout_digest": "58d5c38b7cb559d672f0d130c48f6b367beb2c1469169ab08f1af452da5ef98c"
+      },
+      "export_contract": {
+        "descriptor_file_name": "descriptor.json",
+        "checkpoint_file_name": "model.safetensors",
+        "export_format_id": "psionic.decoder_state_dict.safetensors.v1",
+        "checkpoint_format": "SafeTensors",
+        "tensor_layout_digest": "58d5c38b7cb559d672f0d130c48f6b367beb2c1469169ab08f1af452da5ef98c"
+      },
+      "parameter_count_estimate": 34688768
+    },
+    "context_assumptions": {
+      "max_context_tokens": 8192,
+      "max_plugin_calls_per_trace": 3,
+      "reserved_directive_tokens": 1024,
+      "reserved_schema_tokens": 2048,
+      "reserved_receipt_anchor_tokens": 1024,
+      "reserved_completion_tokens": 2048,
+      "detail": "The first plugin-conditioned lane reserves explicit budget for directives, structured packet/schema text, receipt anchors, and the assistant completion inside one 8192-token pilot context window."
+    },
+    "serialization_contract": {
+      "strategy": "structured_json_with_schema_ids_and_receipt_refs",
+      "custom_plugin_tokens_admitted": false,
+      "schema_ids_serialized_verbatim": true,
+      "tool_names_serialized_verbatim": true,
+      "receipt_refs_serialized_verbatim": true,
+      "detail": "The first plugin-conditioned compact decoder uses the existing tokenizer and serializes plugin-use supervision as structured JSON with schema ids, tool names, and receipt refs in ordinary token space instead of adding bespoke plugin tokens."
+    },
+    "checkpoint_naming": {
+      "checkpoint_family": "train.psion.plugin_host_native_reference",
+      "stage_run_bundle_ref": "fixtures/psion/plugins/training/psion_plugin_conditioned_sft_v1/psion_plugin_conditioned_sft_run_bundle.json",
+      "stage_manifest_digest": "afd4bccc63540ad3fc10a19af5fd347c23d39d3d7c4be23ae17adf8bd590d3fd",
+      "checkpoint_ref_prefix": "checkpoint://psion/plugin_conditioned_host_native_reference",
+      "export_directory_name": "psion_plugin_conditioned_compact_decoder_reference",
+      "descriptor_file_name": "descriptor.json",
+      "checkpoint_file_name": "model.safetensors",
+      "export_format_id": "psionic.decoder_state_dict.safetensors.v1",
+      "detail": "Checkpoint and export naming stay on the shared compact-decoder file contract while the checkpoint family and export directory are explicitly bound to the plugin-conditioned host-native lane."
+    },
+    "summary": "The first host-native reference lane reuses the plugin-conditioned compact-decoder config while staying explicitly bounded to the proved capability-free local deterministic plugin class.",
+    "config_digest": "c7edcb4f8bb6fa043a668efa4164b18b35a7a77159b287fe16889f03a0434988"
+  },
+  "model_artifact": {
+    "schema_version": "psionic.psion.plugin_host_native_reference_model_artifact.v1",
+    "artifact_id": "artifact.psion.plugin_host_native_reference.model.v1",
+    "lane_id": "psion_plugin_conditioned_host_native_reference",
+    "model_config_digest": "c7edcb4f8bb6fa043a668efa4164b18b35a7a77159b287fe16889f03a0434988",
+    "stage_receipt_digest": "a5004ec4002b0c301d9d5b75f008a0f541a90212a39695f2c69bb2a4b468ddc9",
+    "training_example_count": 3,
+    "training_step_count": 3,
+    "learned_plugin_ids": [
+      "plugin.feed.rss_atom_parse",
+      "plugin.html.extract_readable",
+      "plugin.text.url_extract"
+    ],
+    "learned_tool_names": [
+      "plugin_feed_rss_atom_parse",
+      "plugin_html_extract_readable",
+      "plugin_text_url_extract"
+    ],
+    "prompt_route_rows": [
+      {
+        "source_record_id": "psion_plugin_training.trace_record.starter_plugin.web_content_success.v1.apple_fm_session.v1",
+        "prompt_digest": "166517a68f4112e4746bc7eeecef359d35572d94b01cf14bd9f075e146afddd6",
+        "route_label": "delegate_to_admitted_plugin",
+        "tool_names": [
+          "plugin_text_url_extract",
+          "plugin_html_extract_readable",
+          "plugin_feed_rss_atom_parse"
+        ],
+        "response_digest": "1c8c9a5e653f01268f9dcfb60a394464f7f3e1cf62627c7e887595f379f67ff5",
+        "detail": "The bounded host-native artifact memorizes the proved local-deterministic route for `psion_plugin_training.trace_record.starter_plugin.web_content_success.v1.apple_fm_session.v1`."
+      },
+      {
+        "source_record_id": "psion_plugin_training.trace_record.starter_plugin.web_content_success.v1.deterministic_workflow.v1",
+        "prompt_digest": "1bf870fe86d09cf153fe70dc914a22f15dbe0690a407214a6b22e16a83ff3ace",
+        "route_label": "delegate_to_admitted_plugin",
+        "tool_names": [
+          "plugin_text_url_extract",
+          "plugin_html_extract_readable",
+          "plugin_feed_rss_atom_parse"
+        ],
+        "response_digest": "9c3d36510cea711c55b3d255a31cfb044bd1dc32de37b01696efe873e6aa7914",
+        "detail": "The bounded host-native artifact memorizes the proved local-deterministic route for `psion_plugin_training.trace_record.starter_plugin.web_content_success.v1.deterministic_workflow.v1`."
+      },
+      {
+        "source_record_id": "psion_plugin_training.trace_record.starter_plugin.web_content_success.v1.router_responses.v1",
+        "prompt_digest": "166517a68f4112e4746bc7eeecef359d35572d94b01cf14bd9f075e146afddd6",
+        "route_label": "delegate_to_admitted_plugin",
+        "tool_names": [
+          "plugin_text_url_extract",
+          "plugin_html_extract_readable",
+          "plugin_feed_rss_atom_parse"
+        ],
+        "response_digest": "15f089c3988fd32cfb69c05ad89eb891643f0cae31816ed36c0f2a8d9b6ef929",
+        "detail": "The bounded host-native artifact memorizes the proved local-deterministic route for `psion_plugin_training.trace_record.starter_plugin.web_content_success.v1.router_responses.v1`."
+      }
+    ],
+    "summary": "The first host-native reference artifact learns only the proved capability-free local deterministic plugin subplans and keeps that limitation explicit.",
+    "artifact_digest": "28d456a924fc8ef60c9e3029ead06debad7b8b654f402770dbbe039185bc8913"
+  },
+  "evaluation_receipt": {
+    "schema_version": "psionic.psion.plugin_host_native_reference_evaluation_receipt.v1",
+    "receipt_id": "receipt.psion.plugin_host_native_reference.evaluation.v1",
+    "lane_id": "psion_plugin_conditioned_host_native_reference",
+    "stage_receipt_digest": "a5004ec4002b0c301d9d5b75f008a0f541a90212a39695f2c69bb2a4b468ddc9",
+    "model_artifact_digest": "28d456a924fc8ef60c9e3029ead06debad7b8b654f402770dbbe039185bc8913",
+    "baseline_label": "non_plugin_conditioned_baseline_v1",
+    "limited_to_proved_authoring_class": true,
+    "proved_authoring_class_label": "host_native_capability_free_local_deterministic",
+    "benchmark_deltas": [
+      {
+        "benchmark_family": "discovery_selection",
+        "eligible_item_count": 3,
+        "out_of_scope_item_count": 2,
+        "baseline_score_bps": 6666,
+        "trained_score_bps": 10000,
+        "delta_bps": 3334,
+        "detail": "DiscoverySelection is scored only on items inside the proved host-native capability-free local deterministic boundary; excluded items remain explicit rather than being flattened into failure or competence claims."
+      },
+      {
+        "benchmark_family": "argument_construction",
+        "eligible_item_count": 2,
+        "out_of_scope_item_count": 4,
+        "baseline_score_bps": 0,
+        "trained_score_bps": 10000,
+        "delta_bps": 10000,
+        "detail": "ArgumentConstruction is scored only on items inside the proved host-native capability-free local deterministic boundary; excluded items remain explicit rather than being flattened into failure or competence claims."
+      },
+      {
+        "benchmark_family": "sequencing_multi_call",
+        "eligible_item_count": 0,
+        "out_of_scope_item_count": 5,
+        "baseline_score_bps": 0,
+        "trained_score_bps": 0,
+        "delta_bps": 0,
+        "detail": "SequencingMultiCall is scored only on items inside the proved host-native capability-free local deterministic boundary; excluded items remain explicit rather than being flattened into failure or competence claims."
+      },
+      {
+        "benchmark_family": "refusal_request_structure",
+        "eligible_item_count": 5,
+        "out_of_scope_item_count": 0,
+        "baseline_score_bps": 6000,
+        "trained_score_bps": 10000,
+        "delta_bps": 4000,
+        "detail": "RefusalRequestStructure is scored only on items inside the proved host-native capability-free local deterministic boundary; excluded items remain explicit rather than being flattened into failure or competence claims."
+      },
+      {
+        "benchmark_family": "result_interpretation",
+        "eligible_item_count": 1,
+        "out_of_scope_item_count": 2,
+        "baseline_score_bps": 0,
+        "trained_score_bps": 10000,
+        "delta_bps": 10000,
+        "detail": "ResultInterpretation is scored only on items inside the proved host-native capability-free local deterministic boundary; excluded items remain explicit rather than being flattened into failure or competence claims."
+      }
+    ],
+    "summary": "Benchmark deltas are reported only inside the currently proved capability-free local deterministic plugin boundary; out-of-scope networked items are excluded explicitly instead of being misrepresented as learned competence.",
+    "receipt_digest": "dd3b8ce598afbf986f76103120c8cca4640aafacf3497f41544d5b2f326bc1b3"
+  },
+  "summary": "The first host-native starter-plugin-conditioned reference lane is explicitly limited to the currently proved capability-free local deterministic authoring class and reports benchmark deltas only inside that boundary.",
+  "bundle_digest": "0d80f989bfd010fdd789589d5bbd1e6069158c533a2ae6928a65e84fc575eae5"
+}

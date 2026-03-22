@@ -83,8 +83,9 @@ For each accepted trace, the manifest preserves:
 - controller surface
 - route label
 - outcome label
-- replay-class ids
-- runtime receipt refs
+- replay-class ids for the preserved full record or bounded admitted subtrace
+- runtime receipt refs for the preserved full record or bounded admitted
+  subtrace
 
 That keeps stage inputs tied to real plugin-runtime truth rather than synthetic
 string tool calls.

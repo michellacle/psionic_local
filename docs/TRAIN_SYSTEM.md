@@ -155,6 +155,11 @@ and now also has:
   convergence tranche and freezes the lane-specific reference descriptor,
   context-budget assumptions, no-custom-plugin-token serialization posture,
   and checkpoint/export naming for the first learned plugin-use model config.
+- `docs/PSION_PLUGIN_HOST_NATIVE_REFERENCE_LANE.md` is the canonical first
+  bounded trained host-native plugin-conditioned lane doc for the convergence
+  tranche and freezes the proved-class-only training boundary, the retained
+  stage and learned-artifact receipts, and the benchmark-delta reporting
+  posture against the named non-plugin baseline.
 - `docs/audits/2026-03-22-tassadar-full-plugin-system-state-audit.md` is the
   canonical current-state proof record for the bounded Tassadar plugin system
   and freezes the present authoring-class, publication, and guest-artifact

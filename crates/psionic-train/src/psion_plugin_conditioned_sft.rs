@@ -471,13 +471,13 @@ impl PsionPluginConditionedTraceBinding {
             .iter()
             .cloned()
             .collect::<BTreeSet<_>>();
-        if observed_replay_class_ids != expected_replay_class_ids {
+        if !observed_replay_class_ids.is_subset(&expected_replay_class_ids) {
             return Err(PsionPluginConditionedSftError::FieldMismatch {
                 field: format!(
                     "plugin_conditioned_trace_binding[{}].replay_class_ids",
                     self.record_id
                 ),
-                expected: format!("{expected_replay_class_ids:?}"),
+                expected: format!("subset of {expected_replay_class_ids:?}"),
                 actual: format!("{observed_replay_class_ids:?}"),
             });
         }
@@ -486,13 +486,15 @@ impl PsionPluginConditionedTraceBinding {
             .iter()
             .map(|invocation| invocation.receipt_ref.clone())
             .collect::<Vec<_>>();
-        if self.receipt_refs != expected_receipt_refs {
+        let expected_receipt_ref_set = expected_receipt_refs.iter().collect::<BTreeSet<_>>();
+        let observed_receipt_ref_set = self.receipt_refs.iter().collect::<BTreeSet<_>>();
+        if !observed_receipt_ref_set.is_subset(&expected_receipt_ref_set) {
             return Err(PsionPluginConditionedSftError::FieldMismatch {
                 field: format!(
                     "plugin_conditioned_trace_binding[{}].receipt_refs",
                     self.record_id
                 ),
-                expected: format!("{expected_receipt_refs:?}"),
+                expected: format!("subset of {expected_receipt_refs:?}"),
                 actual: format!("{:?}", self.receipt_refs),
             });
         }
