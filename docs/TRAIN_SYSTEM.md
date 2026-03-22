@@ -103,6 +103,10 @@ and now also has:
   and artifact-bundle doc for the `Psion` learned-model lane and freezes the
   admitted/excluded source lists, tokenizer digest, config, and tokenizer-only
   exposure reporting that later tokenized datasets and checkpoints must follow.
+- `docs/PSION_TOKENIZED_CORPUS.md` is the canonical first tokenized dataset and
+  replay-identity doc for the `Psion` learned-model lane and freezes the shard
+  lineage, source-family binding, packing-policy version, and replay-safe
+  dataset identity that later training stages must follow.
 - `docs/PSION_ACCEPTANCE_MATRIX.md` is the canonical first phase-gate and
   promotion-decision doc for the `Psion` learned-model lane and freezes the
   acceptance-matrix plus evidence-bound promotion contract that later pilot,

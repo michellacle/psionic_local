@@ -32,6 +32,8 @@ clustered execution, and machine-legible execution truth.
   normalization doc for the `Psion` learned-model lane.
 - `docs/PSION_TOKENIZER_TRAINING.md` is the canonical tokenizer manifest and
   artifact-bundle doc for the `Psion` learned-model lane.
+- `docs/PSION_TOKENIZED_CORPUS.md` is the canonical tokenized dataset and
+  replay-identity doc for the `Psion` learned-model lane.
 - `docs/PSION_ACCEPTANCE_MATRIX.md` is the canonical phase-gate and
   promotion-decision doc for the `Psion` learned-model lane.
 - `docs/PSION_CAPABILITY_MATRIX.md` is the canonical served capability and
