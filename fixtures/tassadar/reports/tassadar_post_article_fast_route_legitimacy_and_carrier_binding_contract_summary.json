@@ -18,8 +18,8 @@
   "resumable_family_not_presented_as_direct_machine": true,
   "served_or_plugin_machine_overclaim_refused": true,
   "fast_route_legitimacy_complete": true,
-  "next_stability_issue_id": "TAS-214",
+  "next_stability_issue_id": "TAS-215",
   "closure_bundle_issue_id": "TAS-215",
-  "detail": "post-article fast-route legitimacy summary keeps machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1`, contract_status=Green, route_family_rows=6, fast_route_legitimacy_complete=true, next_stability_issue_id=`TAS-214`, and closure_bundle_issue_id=`TAS-215`.",
-  "summary_digest": "a2d241cd916f61eabd5fc6fee80f892b67231442809837921bcdbecd95f42268"
+  "detail": "post-article fast-route legitimacy summary keeps machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1`, contract_status=Green, route_family_rows=6, fast_route_legitimacy_complete=true, next_stability_issue_id=`TAS-215`, and closure_bundle_issue_id=`TAS-215`.",
+  "summary_digest": "3c7ae6551d9d451f815b3c97c4ee6ccb3dda186466d869ea3dc831cd5c5b47e0"
 }

@@ -1470,7 +1470,7 @@ The current scope is:
   hidden top-k filtering, helper substitution, and runtime policy drift.
   This turns weighted plugin control green on the canonical route, clears the
   controller defer pointer to empty, moves the reserved bridge frontier to
-  `TAS-214`, and still leaves bounded plugin-platform closeout, publication,
+  `TAS-215`, and still leaves bounded plugin-platform closeout, publication,
   served/public universality, and arbitrary software capability blocked.
 - the current post-article plugin authority, promotion, publication, and
   trust-tier artifacts are
@@ -1566,7 +1566,7 @@ The current scope is:
   historical green `TCM.v1` continuation carrier, and the current plugin
   runtime, conformance, and weighted-controller surfaces to one explicit
   proof-bearing execution boundary. This closes proof transport, moves the
-  next anti-drift stability frontier to `TAS-214`, keeps the final closure
+  next anti-drift stability frontier to `TAS-215`, keeps the final closure
   bundle separate for `TAS-215`, and still leaves plugin publication,
   served/public universality, and arbitrary software capability blocked.
 - the current post-article continuation non-computationality artifacts are
@@ -1586,7 +1586,7 @@ The current scope is:
   computational-model statement, and the same proof-transport boundary instead
   of letting continuation inherit identity by adjacency. This closes
   continuation non-computationality, moves the next anti-drift stability
-  frontier to `TAS-214`, keeps the final closure bundle separate for
+  frontier to `TAS-215`, keeps the final closure bundle separate for
   `TAS-215`, and still leaves plugin publication, served/public universality,
   and arbitrary software capability blocked.
 - the current post-article fast-route legitimacy and carrier-binding artifacts
@@ -1609,7 +1609,7 @@ The current scope is:
   carrier until later explicit promotion. This closes fast-route legitimacy and
   carrier binding, refuses served or plugin wording that treats an unbound fast
   route as the underlying machine, moves the next anti-drift stability frontier
-  to `TAS-214`, keeps the final closure bundle separate for `TAS-215`, and
+  to `TAS-215`, keeps the final closure bundle separate for `TAS-215`, and
   still leaves plugin publication, served/public universality, and arbitrary
   software capability blocked.
 - the current post-article equivalent-choice neutrality and admissibility
@@ -1629,7 +1629,7 @@ The current scope is:
   tuple. This makes receipt-visible narrowing mandatory, keeps hidden ordering
   or ranking plus latency or cost or soft-failure steering outside the admitted
   control surface, refuses served or plugin overread from equivalence posture
-  alone, moves the next anti-drift stability frontier to `TAS-214`, keeps the
+  alone, moves the next anti-drift stability frontier to `TAS-215`, keeps the
   final closure bundle separate for `TAS-215`, and still leaves plugin
   publication, served/public universality, and arbitrary software capability
   blocked.
@@ -1651,9 +1651,32 @@ The current scope is:
   assumptions, continuation semantics, carrier identity, or equivalent-choice
   boundaries; keep served posture explicitly narrower than operator truth
   inside one fail-closed envelope; move the next anti-drift stability frontier
-  to `TAS-214`; keep the final closure bundle separate for `TAS-215`; and
+  to `TAS-215`; keep the final closure bundle separate for `TAS-215`; and
   still leave plugin publication, served/public universality, and arbitrary
   software capability blocked.
+- the current post-article anti-drift stability closeout artifacts are
+  `fixtures/tassadar/reports/tassadar_post_article_anti_drift_stability_closeout_audit_report.json`,
+  `fixtures/tassadar/reports/tassadar_post_article_anti_drift_stability_closeout_summary.json`,
+  the transformer-owned anchor contract in
+  `crates/psionic-transformer/src/tassadar_post_article_anti_drift_stability_closeout_contract.rs`,
+  the provider receipt in
+  `crates/psionic-provider/src/tassadar_post_article_anti_drift_stability_closeout.rs`,
+  the checker script
+  `scripts/check-tassadar-post-article-anti-drift-stability-closeout.sh`,
+  and the audit note
+  `docs/audits/2026-03-21-tassadar-post-article-anti-drift-stability-closeout.md`,
+  which bind the published computational-model statement, canonical machine
+  identity lock, control-plane decision-provenance proof, proof-transport
+  boundary, continuation boundary, fast-route carrier boundary,
+  equivalent-choice boundary, downward non-influence and served conformance
+  boundary, rebased verdict split, portability/minimality matrix, plugin
+  charter authority boundary, and bounded weighted plugin-platform closeout
+  into one explicit anti-drift verdict over one canonical post-article
+  machine. These artifacts keep sampled audits distinct from proof-carrying
+  surfaces, move the next closure frontier to `TAS-215`, keep stronger
+  terminal and stronger plugin-platform claims closure-bundle-bound to
+  `TAS-215`, and still leave plugin publication, served/public universality,
+  and arbitrary software capability blocked.
 - the current post-article Turing-completeness closeout artifacts are
   `fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json`,
   `fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_summary.json`,

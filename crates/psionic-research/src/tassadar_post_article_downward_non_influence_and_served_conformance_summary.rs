@@ -218,7 +218,7 @@ mod tests {
         assert!(summary.plugin_or_served_overclaim_refused);
         assert_eq!(summary.lower_plane_truth_row_count, 6);
         assert_eq!(summary.served_deviation_row_count, 3);
-        assert_eq!(summary.next_stability_issue_id, "TAS-214");
+        assert_eq!(summary.next_stability_issue_id, "TAS-215");
         assert_eq!(summary.closure_bundle_issue_id, "TAS-215");
     }
 

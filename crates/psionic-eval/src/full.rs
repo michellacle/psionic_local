@@ -262,6 +262,8 @@ mod tassadar_owned_transformer_stack_audit;
 mod tassadar_pointer_memory_scratchpad;
 #[path = "tassadar_post_article_bounded_weighted_plugin_platform_closeout_audit.rs"]
 mod tassadar_post_article_bounded_weighted_plugin_platform_closeout_audit;
+#[path = "tassadar_post_article_anti_drift_stability_closeout_audit.rs"]
+mod tassadar_post_article_anti_drift_stability_closeout_audit;
 #[path = "tassadar_post_article_canonical_machine_identity_lock.rs"]
 mod tassadar_post_article_canonical_machine_identity_lock;
 #[path = "tassadar_post_article_canonical_route_semantic_preservation_audit.rs"]
@@ -536,6 +538,7 @@ pub use tassadar_numeric_portability::*;
 pub use tassadar_owned_transformer_stack_audit::*;
 pub use tassadar_pointer_memory_scratchpad::*;
 pub use tassadar_post_article_bounded_weighted_plugin_platform_closeout_audit::*;
+pub use tassadar_post_article_anti_drift_stability_closeout_audit::*;
 pub use tassadar_post_article_canonical_machine_identity_lock::*;
 pub use tassadar_post_article_canonical_route_semantic_preservation_audit::*;
 pub use tassadar_post_article_canonical_route_universal_substrate_gate::*;

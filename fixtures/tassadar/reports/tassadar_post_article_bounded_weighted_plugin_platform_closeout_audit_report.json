@@ -32,7 +32,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_charter_authority_boundary_report.json",
       "source_artifact_id": "tassadar.post_article_plugin_charter_authority_boundary.report.v1",
-      "source_artifact_digest": "571adf72304e8ba0347cf8d89fd321dd59f7a5976bed48d64cc7189012b050ad",
+      "source_artifact_digest": "9ea9a56a262bdd5405ee7a10acf3746256773408dfbe05422b34d50e45cf4ffa",
       "detail": "the plugin charter binds the capability lane to the canonical rebased machine identity, computational-model statement, and inherited control-plane proof before any later platform closeout may turn green."
     },
     {
@@ -149,7 +149,7 @@
     "continuation_contract_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
     "computational_model_statement_id": "tassadar.post_article.canonical_computational_model.statement.v1",
     "control_plane_proof_report_id": "tassadar.post_article_control_plane_decision_provenance_proof.report.v1",
-    "control_plane_proof_report_digest": "6e2ee7d74812a896d76f878dbad372fe2f3acaf44436adbe4d8c7091f5960ba1",
+    "control_plane_proof_report_digest": "f44870bd0b278203bdb745a5b8337003b94ae956799073cfeef034651607f62c",
     "control_trace_contract_id": "tassadar.weighted_plugin.controller_trace_contract.v1",
     "controller_eval_report_id": "tassadar.post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop.eval_report.v1",
     "controller_eval_report_digest": "f1a06b77a988f80767b24f035a8776d46d20ca46484b563d6c8c6a25511151bf",
@@ -358,5 +358,5 @@
   "arbitrary_software_capability_allowed": false,
   "claim_boundary": "this closeout audit states the first honest bounded weighted plugin-platform claim above the canonical post-`TAS-186` machine. It binds the lower-plane Turing closeout, plugin charter, manifest, ABI, runtime API, invocation receipts, admissibility envelope compiler, conformance harness, result-binding contract, weighted controller trace, and authority or promotion or publication gate into one operator/internal-only platform statement. It still keeps the final claim-bearing canonical machine closure bundle separate, keeps served or public plugin publication suppressed, refuses any implication of arbitrary public Wasm or arbitrary public tool use, and does not imply served/public universality or arbitrary software capability.",
   "summary": "Post-article bounded weighted plugin-platform closeout audit keeps supporting_materials=14/14, dependency_rows=11/11, validation_rows=10/10, closeout_status=OperatorGreenServedSuppressed, closure_bundle_issue_id=`TAS-215`, and plugin_capability_claim_allowed=true.",
-  "report_digest": "11ceeec8d8886182deb64264fe1168ca2db3ac6ffc97e4b7f3ccb8840d46ecb6"
+  "report_digest": "b3233512f2390e3a80c0f9eb6c1bb864e30499547fd4f7ce36541bd58fc9a00f"
 }

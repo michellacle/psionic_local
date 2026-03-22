@@ -139,7 +139,7 @@ pub fn build_tassadar_post_article_execution_semantics_proof_transport_contract(
         plugin_projection_surface_ids,
         transport_rule_rows,
         invalidation_rule_rows,
-        next_stability_issue_id: String::from("TAS-214"),
+        next_stability_issue_id: String::from("TAS-215"),
         claim_boundary: String::from(
             "this transformer-owned contract names the execution-semantics proof-transport boundary only. It does not itself prove fast-route legitimacy, served/public conformance, anti-drift closeout, or the final closure bundle.",
         ),
@@ -219,7 +219,7 @@ mod tests {
         );
         assert_eq!(contract.transport_rule_rows.len(), 5);
         assert_eq!(contract.invalidation_rule_rows.len(), 7);
-        assert_eq!(contract.next_stability_issue_id, "TAS-214");
+        assert_eq!(contract.next_stability_issue_id, "TAS-215");
         assert!(contract
             .transport_rule_rows
             .iter()

@@ -50,7 +50,7 @@ jq -e '
   and (([.invalidation_rows[] | select(.present == true)] | length) == 0)
   and (([.validation_rows[] | select(.green == false)] | length) == 0)
   and (.continuation_surface_rows | all(.surface_green == true))
-  and .next_stability_issue_id == "TAS-214"
+  and .next_stability_issue_id == "TAS-215"
   and .closure_bundle_issue_id == "TAS-215"
 ' fixtures/tassadar/reports/tassadar_post_article_continuation_non_computationality_contract_report.json >/dev/null
 
@@ -73,20 +73,20 @@ jq -e '
   and .continuation_expressivity_extension_blocked == true
   and .plugin_resume_hidden_compute_refused == true
   and .continuation_non_computationality_complete == true
-  and .next_stability_issue_id == "TAS-214"
+  and .next_stability_issue_id == "TAS-215"
   and .closure_bundle_issue_id == "TAS-215"
 ' fixtures/tassadar/reports/tassadar_post_article_continuation_non_computationality_contract_summary.json >/dev/null
 
 jq -e '
   .report_id == "tassadar.post_article_execution_semantics_proof_transport_audit.report.v1"
-  and .next_stability_issue_id == "TAS-214"
+  and .next_stability_issue_id == "TAS-215"
   and .audit_status == "green"
   and .audit_green == true
 ' fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json >/dev/null
 
 jq -e '
   .report_id == "tassadar.post_article_canonical_computational_model_statement.report.v1"
-  and .next_stability_issue_id == "TAS-214"
+  and .next_stability_issue_id == "TAS-215"
   and .statement_status == "green"
   and .statement_green == true
 ' fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json >/dev/null
@@ -119,6 +119,6 @@ jq -e '
 
 jq -e '
   .bridge_machine_identity_id == "tassadar.post_article_universality_bridge.machine_identity.v1"
-  and (.reserved_capability_issue_ids | index("TAS-214")) != null
+  and (.reserved_capability_issue_ids | index("TAS-215")) != null
   and (.reserved_capability_issue_ids | index("TAS-210")) == null
 ' fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_summary.json >/dev/null

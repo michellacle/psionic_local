@@ -69,7 +69,7 @@ const PLUGIN_SYSTEM_AUDIT_REF: &str =
     "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md";
 const POST_ARTICLE_TURING_AUDIT_REF: &str =
     "docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md";
-const NEXT_STABILITY_ISSUE_ID: &str = "TAS-214";
+const NEXT_STABILITY_ISSUE_ID: &str = "TAS-215";
 const CLOSURE_BUNDLE_ISSUE_ID: &str = "TAS-215";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -702,7 +702,7 @@ fn build_report_from_inputs(
                 TASSADAR_POST_ARTICLE_FAST_ROUTE_LEGITIMACY_AND_CARRIER_BINDING_CONTRACT_REPORT_REF,
                 TASSADAR_POST_ARTICLE_EQUIVALENT_CHOICE_NEUTRALITY_AND_ADMISSIBILITY_CONTRACT_REPORT_REF,
             ],
-            "closing this issue must move the lower-plane anti-drift frontier to TAS-214 rather than leaving TAS-213 open implicitly.",
+            "closing this issue must move the lower-plane anti-drift frontier to TAS-215 rather than leaving TAS-213 open implicitly.",
         ),
     ];
 
@@ -924,7 +924,7 @@ fn build_report_from_inputs(
                 TASSADAR_POST_ARTICLE_FAST_ROUTE_LEGITIMACY_AND_CARRIER_BINDING_CONTRACT_REPORT_REF,
                 TASSADAR_POST_ARTICLE_EQUIVALENT_CHOICE_NEUTRALITY_AND_ADMISSIBILITY_CONTRACT_REPORT_REF,
             ],
-            "closing downward non-influence and served conformance must hand the frontier to TAS-214.",
+            "closing downward non-influence and served conformance must hand the frontier to TAS-215.",
         ),
     ];
 
@@ -1241,7 +1241,7 @@ mod tests {
         assert!(report.plugin_or_served_overclaim_refused);
         assert_eq!(report.lower_plane_truth_rows.len(), 6);
         assert_eq!(report.served_deviation_rows.len(), 3);
-        assert_eq!(report.next_stability_issue_id, "TAS-214");
+        assert_eq!(report.next_stability_issue_id, "TAS-215");
         assert_eq!(report.closure_bundle_issue_id, "TAS-215");
     }
 

@@ -188,7 +188,7 @@ pub fn build_tassadar_post_article_equivalent_choice_neutrality_and_admissibilit
         equivalent_choice_class_rows,
         contract_rule_rows,
         invalidation_rule_rows,
-        next_stability_issue_id: String::from("TAS-214"),
+        next_stability_issue_id: String::from("TAS-215"),
         claim_boundary: String::from(
             "this transformer-owned contract freezes only equivalent-choice neutrality and admissibility on the canonical post-article machine. It makes equivalent-choice classes, receipt-visible narrowing, typed denied or suppressed outcomes, and blocked hidden discriminators explicit. It does not itself close downward non-influence, served conformance, anti-drift closeout, or the final closure bundle.",
         ),
@@ -273,6 +273,6 @@ mod tests {
         }));
         assert_eq!(contract.contract_rule_rows.len(), 6);
         assert_eq!(contract.invalidation_rule_rows.len(), 7);
-        assert_eq!(contract.next_stability_issue_id, "TAS-214");
+        assert_eq!(contract.next_stability_issue_id, "TAS-215");
     }
 }

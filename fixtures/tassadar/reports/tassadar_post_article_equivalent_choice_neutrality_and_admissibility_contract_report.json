@@ -193,7 +193,7 @@
         "detail": "The final closure bundle may not be inferred from equivalent-choice neutrality and admissibility alone until later issues land explicitly."
       }
     ],
-    "next_stability_issue_id": "TAS-214",
+    "next_stability_issue_id": "TAS-215",
     "claim_boundary": "this transformer-owned contract freezes only equivalent-choice neutrality and admissibility on the canonical post-article machine. It makes equivalent-choice classes, receipt-visible narrowing, typed denied or suppressed outcomes, and blocked hidden discriminators explicit. It does not itself close downward non-influence, served conformance, anti-drift closeout, or the final closure bundle.",
     "summary": "Transformer equivalent-choice neutrality and admissibility contract freezes 5 admissibility classes, 6 contract rules, and 7 invalidation rules for one canonical post-article machine."
   },
@@ -222,7 +222,7 @@
       "satisfied": true,
       "source_ref": "crates/psionic-transformer/src/tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract.rs",
       "source_artifact_id": "tassadar.post_article.equivalent_choice_neutrality_and_admissibility.contract.v1",
-      "source_artifact_digest": "39db4af9c19e5ccd076c8064eb283278d22100176030bdd4811090779f5acc6f",
+      "source_artifact_digest": "a669337c51ba8a1233d6d3c3714bfb86329d372b313c572bf46f80c9ae5db8ea",
       "detail": "the transformer-owned contract is the canonical abstract source for equivalent-choice neutrality and admissibility."
     },
     {
@@ -231,7 +231,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_report.json",
       "source_artifact_id": "tassadar.post_article_fast_route_legitimacy_and_carrier_binding_contract.report.v1",
-      "source_artifact_digest": "2e0b5be06c4346abb188b331c103fd26c5ec0ba5f7f458bf6c2fd809726ac0e7",
+      "source_artifact_digest": "7398cd0332a0d710855dcac4e50768e2e9aebe9c2dd1b2ac33e1f78b1da0af8a",
       "detail": "fast-route legitimacy must already be closed so equivalent-choice neutrality lands on one canonical carrier classification."
     },
     {
@@ -258,7 +258,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_control_plane_decision_provenance_proof_report.json",
       "source_artifact_id": "tassadar.post_article_control_plane_decision_provenance_proof.report.v1",
-      "source_artifact_digest": "ab5b0593746926204e002fa69c44279e484ee757971c7a038401c6973d2fff28",
+      "source_artifact_digest": "5f67d1504a3dad3e57c010e19b1e8e531bf0b64345c70f76360e047e247c9790",
       "detail": "the control-plane proof keeps latency, cost, queue, scheduler, cache-hit, and helper-selection signals outside the model-visible choice boundary."
     },
     {
@@ -267,7 +267,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report.json",
       "source_artifact_id": "tassadar.post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop.eval_report.v1",
-      "source_artifact_digest": "7bfc8ff0f503e16fcf3e4fb851df7bc0c41a6abd6879cb7541f5d39b82ff87d9",
+      "source_artifact_digest": "78f05e40d83b9f0ef110d105019d6ec9f3a691649b3f80da5bd2b151ca3ec233",
       "detail": "the weighted controller eval report keeps heuristic ranking, hidden top-k filtering, cached substitution, and candidate precomputation explicitly blocked."
     },
     {
@@ -276,8 +276,8 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
       "source_artifact_id": "tassadar.post_article_universality_bridge.contract.report.v1",
-      "source_artifact_digest": "bfa5dd15373b0373cf6c4da821d3e37b34dc4b4f965d39b9fc0fb0d9ccd01ada",
-      "detail": "the bridge frontier must move past equivalent-choice neutrality so the next anti-drift issue is TAS-214 instead of leaving this contract implicit."
+      "source_artifact_digest": "04b3cdd61b535e20b4701fd9f9331b3eab83652e9792ae9dfae580b38ceb91c0",
+      "detail": "the bridge frontier must move past equivalent-choice neutrality so the next anti-drift issue is TAS-215 instead of leaving this contract implicit."
     },
     {
       "material_id": "world_mount_compatibility_precedent",
@@ -315,7 +315,7 @@
       "source_refs": [
         "fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_report.json"
       ],
-      "detail": "fast-route legitimacy must already be green and advance the anti-drift frontier to TAS-214."
+      "detail": "fast-route legitimacy must already be green and advance the anti-drift frontier to TAS-215."
     },
     {
       "dependency_id": "admissibility_contract_closed",
@@ -355,7 +355,7 @@
       "source_refs": [
         "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json"
       ],
-      "detail": "the universality bridge must advance the reserved anti-drift frontier to TAS-214 once equivalent-choice neutrality is explicit."
+      "detail": "the universality bridge must advance the reserved anti-drift frontier to TAS-215 once equivalent-choice neutrality is explicit."
     },
     {
       "dependency_id": "typed_soft_failure_posture_explicit",
@@ -777,7 +777,7 @@
       "source_refs": [
         "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json"
       ],
-      "detail": "the bridge now reserves TAS-214 as the next anti-drift issue after equivalent-choice neutrality closes."
+      "detail": "the bridge now reserves TAS-215 as the next anti-drift issue after equivalent-choice neutrality closes."
     }
   ],
   "contract_status": "green",
@@ -787,9 +787,9 @@
   "hidden_ordering_or_ranking_quarantined": true,
   "latency_cost_and_soft_failure_channels_blocked": true,
   "served_or_plugin_equivalence_overclaim_refused": true,
-  "next_stability_issue_id": "TAS-214",
+  "next_stability_issue_id": "TAS-215",
   "closure_bundle_issue_id": "TAS-215",
   "claim_boundary": "this eval-owned contract report freezes equivalent-choice neutrality and admissibility on the canonical post-article machine. It binds bounded equivalent-choice classes, receipt-visible admissibility narrowing, typed denied or suppressed or quarantined outcomes, runtime signal neutrality, controller negative rows, and the bridge frontier to one explicit machine-readable boundary. It does not itself close downward non-influence, served conformance, anti-drift closeout, or the final closure bundle.",
-  "summary": "Post-article equivalent-choice neutrality report keeps contract_status=Green, dependency_rows=7, equivalent_choice_class_rows=5, case_binding_rows=7, validation_rows=8, next_stability_issue_id=`TAS-214`, and closure_bundle_issue_id=`TAS-215`.",
-  "report_digest": "093cc194c6b27a3a0d0e5774a3af292e19ad27d890dcb3b10b896e0b1c171204"
+  "summary": "Post-article equivalent-choice neutrality report keeps contract_status=Green, dependency_rows=7, equivalent_choice_class_rows=5, case_binding_rows=7, validation_rows=8, next_stability_issue_id=`TAS-215`, and closure_bundle_issue_id=`TAS-215`.",
+  "report_digest": "a3a2d269d2871512edd20e2309f8623195abf08a379c91c14b2fb9bbd357bcf0"
 }

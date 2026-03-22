@@ -1065,7 +1065,7 @@ and the dedicated checker now lives at
 This tranche turns weighted plugin control green on the canonical route,
 clears the `TAS-203A` defer pointer to empty, clears the controller defer
 pointer to empty, with the current reserved bridge capability frontier now at
-`TAS-214`, and still does not admit bounded plugin-platform closeout, plugin
+`TAS-215`, and still does not admit bounded plugin-platform closeout, plugin
 publication, served/public universality, or arbitrary software capability.
 
 `TAS-205` now closes the canonical plugin authority, promotion, publication,
@@ -1173,7 +1173,7 @@ the transformer-owned anchor contract now lives at
 and the dedicated checker now lives at
 `scripts/check-tassadar-post-article-execution-semantics-proof-transport-audit.sh`.
 This tranche closes proof transport, moves the next anti-drift stability
-frontier to `TAS-214`, keeps the final claim-bearing canonical machine closure
+frontier to `TAS-215`, keeps the final claim-bearing canonical machine closure
 bundle separate for `TAS-215`, and still does not turn plugin publication,
 served/public universality, or arbitrary software capability green.
 
@@ -1198,7 +1198,7 @@ and the dedicated checker now lives at
 This tranche closes continuation non-computationality, refreshes the dependent
 conformance, authority, bounded-platform-closeout, computational-model,
 proof-transport, and machine-lock artifacts onto the same canonical statement
-binding, moves the next anti-drift stability frontier to `TAS-214`, keeps the
+binding, moves the next anti-drift stability frontier to `TAS-215`, keeps the
 final claim-bearing canonical machine closure bundle separate for `TAS-215`,
 and still does not turn plugin publication, served/public universality, or
 arbitrary software capability green.
@@ -1223,7 +1223,7 @@ and the dedicated checker now lives at
 `scripts/check-tassadar-post-article-fast-route-legitimacy-and-carrier-binding-contract.sh`.
 This tranche closes fast-route legitimacy and carrier binding, refreshes the
 reserved bridge frontier and dependent proof-transport or continuation posture
-onto `TAS-214`, keeps the final claim-bearing canonical machine closure bundle
+onto `TAS-215`, keeps the final claim-bearing canonical machine closure bundle
 separate for `TAS-215`, and still does not turn plugin publication,
 served/public universality, or arbitrary software capability green.
 
@@ -1250,7 +1250,7 @@ and the dedicated checker now lives at
 `scripts/check-tassadar-post-article-equivalent-choice-neutrality-and-admissibility-contract.sh`.
 This tranche closes equivalent-choice neutrality and admissibility, refreshes
 the fast-route, proof-transport, continuation, computational-model, and bridge
-frontier chain onto `TAS-214`, keeps the final claim-bearing canonical machine
+frontier chain onto `TAS-215`, keeps the final claim-bearing canonical machine
 closure bundle separate for `TAS-215`, and still does not turn plugin
 publication, served/public universality, or arbitrary software capability
 green.
@@ -1278,10 +1278,33 @@ and the dedicated checker now lives at
 `scripts/check-tassadar-post-article-downward-non-influence-and-served-conformance.sh`.
 This tranche closes downward non-influence and served conformance, refreshes
 the computational-model, proof-transport, continuation, fast-route,
-equivalent-choice, and bridge frontier chain onto `TAS-214`, keeps the final
+equivalent-choice, and bridge frontier chain onto `TAS-215`, keeps the final
 claim-bearing canonical machine closure bundle separate for `TAS-215`, and
 still does not turn plugin publication, served/public universality, or
 arbitrary software capability green.
+
+`TAS-214` closes the anti-drift stability tranche with the eval-owned audit at
+`fixtures/tassadar/reports/tassadar_post_article_anti_drift_stability_closeout_audit_report.json`.
+That artifact binds the published computational-model statement, canonical
+machine identity lock, control-plane decision-provenance proof, proof-transport
+boundary, continuation boundary, fast-route carrier boundary,
+equivalent-choice neutrality boundary, downward non-influence and served
+conformance boundary, rebased verdict split, portability/minimality matrix,
+plugin charter authority boundary, and bounded weighted plugin-platform
+closeout into one explicit verdict that those surfaces remain locked to one
+canonical post-article machine. The operator-readable summary now lives at
+`fixtures/tassadar/reports/tassadar_post_article_anti_drift_stability_closeout_summary.json`,
+the transformer-owned anchor contract now lives at
+`crates/psionic-transformer/src/tassadar_post_article_anti_drift_stability_closeout_contract.rs`,
+the provider receipt now lives at
+`crates/psionic-provider/src/tassadar_post_article_anti_drift_stability_closeout.rs`,
+and the dedicated checker now lives at
+`scripts/check-tassadar-post-article-anti-drift-stability-closeout.sh`.
+This tranche closes anti-drift stability, refreshes the machine-frontier
+surfaces onto `TAS-215`, keeps stronger terminal and stronger plugin-platform
+claims closure-bundle-bound to `TAS-215`, and still does not turn plugin
+publication, served/public universality, or arbitrary software capability
+green.
 
 ## Route Requirement
 

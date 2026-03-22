@@ -42,9 +42,9 @@
     "computational_model_substrate_model_id": "tcm.v1",
     "computational_model_substrate_model_digest": "259cab92c74b71b0135d4d2efee3212d4c8efe8ae6a62165f9560cbd509fe3c6",
     "control_plane_proof_report_id": "tassadar.post_article_control_plane_decision_provenance_proof.report.v1",
-    "control_plane_proof_report_digest": "6e2ee7d74812a896d76f878dbad372fe2f3acaf44436adbe4d8c7091f5960ba1",
+    "control_plane_proof_report_digest": "f44870bd0b278203bdb745a5b8337003b94ae956799073cfeef034651607f62c",
     "plugin_boundary_report_id": "tassadar.post_article_plugin_capability_boundary.report.v1",
-    "plugin_boundary_report_digest": "b5ecca765132cf2fe24ff4098308287aebee458539301dd41c4314efbc462f6e",
+    "plugin_boundary_report_digest": "7402fa5f9451f38da910a39ebdc21fa6724c8842545114ef910a81e07d082659",
     "closeout_audit_report_id": "tassadar.post_article_turing_completeness_closeout_audit.report.v1",
     "closeout_audit_report_digest": "ca6bc24fec901870cfd46fc1405b7499852baaa3617d2094f98804d4aae3ed45",
     "canonical_architecture_anchor_crate": "psionic-transformer",
@@ -58,7 +58,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_capability_boundary_report.json",
       "bound_report_id": "tassadar.post_article_plugin_capability_boundary.report.v1",
-      "bound_report_digest": "b5ecca765132cf2fe24ff4098308287aebee458539301dd41c4314efbc462f6e",
+      "bound_report_digest": "7402fa5f9451f38da910a39ebdc21fa6724c8842545114ef910a81e07d082659",
       "detail": "the charter inherits the already-green plugin-capability boundary instead of reconstructing the capability-plane split ad hoc."
     },
     {
@@ -67,7 +67,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
       "bound_report_id": "tassadar.post_article_universality_bridge.contract.report.v1",
-      "bound_report_digest": "d3b25809e166e790b436511b1c0da3cdbdddcf112c6458117d5b0d575fd9a75c",
+      "bound_report_digest": "95db8fb93346ab60ad196fd86d88f83e27612e7df864bd022bbdfe9351eedf40",
       "detail": "the charter inherits one canonical machine identity and one computational-model statement from the rebased bridge instead of mutating `TCM.v1`."
     },
     {
@@ -76,7 +76,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_control_plane_decision_provenance_proof_report.json",
       "bound_report_id": "tassadar.post_article_control_plane_decision_provenance_proof.report.v1",
-      "bound_report_digest": "6e2ee7d74812a896d76f878dbad372fe2f3acaf44436adbe4d8c7091f5960ba1",
+      "bound_report_digest": "f44870bd0b278203bdb745a5b8337003b94ae956799073cfeef034651607f62c",
       "detail": "plugin control inheritance stays downstream of the pre-plugin control-plane proof rather than being claimed fresh here."
     },
     {
@@ -539,5 +539,5 @@
   "deferred_issue_ids": [],
   "claim_boundary": "this report freezes the bounded post-article plugin charter above the canonical rebased Transformer carrier without mutating `TCM.v1` or widening the current public claim surface. It binds the plugin lane to one canonical machine identity and computational-model statement, inherits the pre-plugin control-plane proof as a hard dependency, freezes operator/internal-only publication posture, explicit state ownership, semantic-preservation and scheduling laws, adversarial-host and anti-interpreter-smuggling posture, and governance receipts, and still leaves weighted plugin capability, plugin publication, served/public universality, and arbitrary software capability blocked until later manifest/runtime/controller/platform issues land.",
   "summary": "post-article plugin charter report binds machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1`, charter_status=Green, dependency_rows=11, law_rows=17, governance_rows=4, rebase_claim_allowed=true, plugin_capability_claim_allowed=false, and deferred_issue_ids=0.",
-  "report_digest": "571adf72304e8ba0347cf8d89fd321dd59f7a5976bed48d64cc7189012b050ad"
+  "report_digest": "9ea9a56a262bdd5405ee7a10acf3746256773408dfbe05422b34d50e45cf4ffa"
 }

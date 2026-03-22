@@ -105,7 +105,7 @@ jq -e '
 
 jq -e '
   (.reserved_capability_issue_ids | index("TAS-195")) != null
-  and (.reserved_capability_issue_ids | index("TAS-214")) != null
+  and (.reserved_capability_issue_ids | index("TAS-215")) != null
   and (.reserved_capability_issue_ids | index("TAS-206")) == null
   and (.reserved_capability_issue_ids | index("TAS-207")) == null
   and (.reserved_capability_issue_ids | index("TAS-204")) == null

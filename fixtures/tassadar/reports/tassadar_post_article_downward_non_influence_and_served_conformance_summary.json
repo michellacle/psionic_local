@@ -17,8 +17,8 @@
   "served_posture_narrower_than_operator_truth": true,
   "served_posture_fail_closed": true,
   "plugin_or_served_overclaim_refused": true,
-  "next_stability_issue_id": "TAS-214",
+  "next_stability_issue_id": "TAS-215",
   "closure_bundle_issue_id": "TAS-215",
-  "detail": "post-article downward non-influence summary keeps machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1`, contract_status=Green, lower_plane_truth_rows=6, served_deviation_rows=3, next_stability_issue_id=`TAS-214`, and closure_bundle_issue_id=`TAS-215`.",
-  "summary_digest": "2bcd19a2dd85f6c25ad3a5ab07d173eb5a144bb51ece743da0a801f9290caa30"
+  "detail": "post-article downward non-influence summary keeps machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1`, contract_status=Green, lower_plane_truth_rows=6, served_deviation_rows=3, next_stability_issue_id=`TAS-215`, and closure_bundle_issue_id=`TAS-215`.",
+  "summary_digest": "2e9f83153acf6fc86d7f98ec47abe5db2baad1cf24f4de2324effea08f43075d"
 }

@@ -763,13 +763,13 @@ pub fn build_tassadar_post_article_universality_bridge_contract_report() -> Resu
             purpose: String::from(
                 "keep schema-version negotiation and canonical-machine inheritance explicit above the bridge while the later stability frontier remains separate",
             ),
-            reserved_issue_ids: vec![String::from("TAS-214")],
+            reserved_issue_ids: vec![String::from("TAS-215")],
             current_posture: String::from("reserved_after_bounded_plugin_platform_closeout"),
             source_refs: vec![String::from(
                 "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md",
             )],
             detail: String::from(
-                "the bridge now delegates schema stability, weighted-controller ownership, bounded plugin-platform closeout, canonical-machine locking, the published computational-model statement, the execution-semantics proof-transport audit, the closed continuation non-computationality boundary, the closed fast-route legitimacy, equivalent-choice neutrality, and downward non-influence contracts, and the later anti-drift closeout to TAS-203A through TAS-214 instead of widening the bridge itself into the terminal machine or publication surface",
+                "the bridge now delegates schema stability, weighted-controller ownership, bounded plugin-platform closeout, canonical-machine locking, the published computational-model statement, the execution-semantics proof-transport audit, the closed continuation non-computationality boundary, the closed fast-route legitimacy, equivalent-choice neutrality, and downward non-influence contracts, and the later anti-drift closeout to TAS-203A through TAS-215 instead of widening the bridge itself into the terminal machine or publication surface",
             ),
         },
     ];

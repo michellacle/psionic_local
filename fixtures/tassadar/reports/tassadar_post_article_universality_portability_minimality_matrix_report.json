@@ -21,7 +21,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_route_universal_substrate_gate_report.json",
       "source_artifact_id": "tassadar.post_article_canonical_route_universal_substrate_gate.report.v1",
-      "source_artifact_digest": "4a81f409aa1be57cba2df1c9a4d04e518902c53ddd772de5c4f9919275452b98",
+      "source_artifact_digest": "6132a2e307de41f129cf6ddab64d4e5c1d4f94f9c30d55311c472e88676ec5fa",
       "detail": "the canonical-route universal-substrate gate must stay green before the portability/minimality matrix can inherit any bounded universality story on the canonical route."
     },
     {
@@ -57,7 +57,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
       "source_artifact_id": "tassadar.post_article_universality_bridge.contract.report.v1",
-      "source_artifact_digest": "2908d3a3b0a47f76c60fcf61726f8f37fc366b9ffe9ba3d3ddad75f08a012e10",
+      "source_artifact_digest": "04b3cdd61b535e20b4701fd9f9331b3eab83652e9792ae9dfae580b38ceb91c0",
       "detail": "the bridge contract must stay green so machine classes, carrier split, and canonical route identity remain frozen while the machine matrix is extended."
     },
     {
@@ -277,5 +277,5 @@
   ],
   "claim_boundary": "this matrix proves that the post-`TAS-186` bounded universality lane is attached to one declared machine matrix and one explicit route-carrier classification. It keeps current-host and declared-class machine cells, explicit suppression outside the declared envelope, explicit carrier binding for the selected canonical HullCache route, explicit acceleration-only or research-only posture for non-selected fast routes, and explicit minimality over machine components, semantics, and preserved transforms. It does not by itself publish the rebased theory/operator/served verdict split, admit served/public universality, admit weighted plugin control, or admit arbitrary software capability.",
   "summary": "Post-article universality portability/minimality matrix keeps supporting_materials=8/8, machine_rows=3/3, route_rows=4/4, minimality_rows=3/3, validation_rows=8/8, served_suppression_boundary_preserved=true, and matrix_status=Green.",
-  "report_digest": "c2fdf6afbcc46642c1a8f494264e595b1def5145a2200946b2aff963a8d6469b"
+  "report_digest": "d2a7ab7a616135fa085418ccddfbbe392e1c706b8a149e2984e4be0132bb926c"
 }

@@ -197,7 +197,7 @@ pub fn build_tassadar_post_article_downward_non_influence_and_served_conformance
         fail_closed_condition_ids,
         contract_rule_rows,
         invalidation_rule_rows,
-        next_stability_issue_id: String::from("TAS-214"),
+        next_stability_issue_id: String::from("TAS-215"),
         claim_boundary: String::from(
             "this transformer-owned contract freezes only downward non-influence and served conformance for the canonical post-article machine. It binds lower-plane truth surfaces, the allowed narrower served deviations, the fail-closed widening conditions, and the blocked rewrite classes explicitly. It does not itself close anti-drift publication, the canonical machine closure bundle, plugin publication, served/public universality, or arbitrary software capability.",
         ),
@@ -268,6 +268,6 @@ mod tests {
         assert!(contract
             .blocked_rewrite_ids
             .contains(&String::from("served_posture_escapes_declared_conformance_envelope")));
-        assert_eq!(contract.next_stability_issue_id, "TAS-214");
+        assert_eq!(contract.next_stability_issue_id, "TAS-215");
     }
 }

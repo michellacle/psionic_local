@@ -62,7 +62,7 @@ const IMPORT_POLICY_MATRIX_REPORT_REF: &str =
 const PLUGIN_SYSTEM_AUDIT_REF: &str =
     "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md";
 const LOCAL_PLUGIN_SYSTEM_SPEC_REF: &str = "~/code/alpha/tassadar/plugin-system.md";
-const NEXT_STABILITY_ISSUE_ID: &str = "TAS-214";
+const NEXT_STABILITY_ISSUE_ID: &str = "TAS-215";
 const CLOSURE_BUNDLE_ISSUE_ID: &str = "TAS-215";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -410,7 +410,7 @@ fn build_report_from_inputs(
             TASSADAR_POST_ARTICLE_UNIVERSALITY_BRIDGE_CONTRACT_REPORT_REF,
             Some(bridge.report_id.clone()),
             Some(bridge.report_digest.clone()),
-            "the bridge frontier must move past equivalent-choice neutrality so the next anti-drift issue is TAS-214 instead of leaving this contract implicit.",
+            "the bridge frontier must move past equivalent-choice neutrality so the next anti-drift issue is TAS-215 instead of leaving this contract implicit.",
         ),
         supporting_material_row(
             "world_mount_compatibility_precedent",
@@ -493,7 +493,7 @@ fn build_report_from_inputs(
             &[
                 TASSADAR_POST_ARTICLE_FAST_ROUTE_LEGITIMACY_AND_CARRIER_BINDING_CONTRACT_REPORT_REF,
             ],
-            "fast-route legitimacy must already be green and advance the anti-drift frontier to TAS-214.",
+            "fast-route legitimacy must already be green and advance the anti-drift frontier to TAS-215.",
         ),
         dependency_row(
             "admissibility_contract_closed",
@@ -532,7 +532,7 @@ fn build_report_from_inputs(
             "bridge_frontier_advanced_to_tas_213",
             bridge.bridge_contract_green && bridge_frontier_advanced,
             &[TASSADAR_POST_ARTICLE_UNIVERSALITY_BRIDGE_CONTRACT_REPORT_REF],
-            "the universality bridge must advance the reserved anti-drift frontier to TAS-214 once equivalent-choice neutrality is explicit.",
+            "the universality bridge must advance the reserved anti-drift frontier to TAS-215 once equivalent-choice neutrality is explicit.",
         ),
         dependency_row(
             "typed_soft_failure_posture_explicit",
@@ -702,7 +702,7 @@ fn build_report_from_inputs(
             "bridge_frontier_advances_to_tas_213",
             bridge_frontier_advanced,
             &[TASSADAR_POST_ARTICLE_UNIVERSALITY_BRIDGE_CONTRACT_REPORT_REF],
-            "the bridge now reserves TAS-214 as the next anti-drift issue after equivalent-choice neutrality closes.",
+            "the bridge now reserves TAS-215 as the next anti-drift issue after equivalent-choice neutrality closes.",
         ),
     ];
 
@@ -1139,7 +1139,7 @@ mod tests {
                     && row.neutral_choice_auditable
                     && !row.hidden_ordering_allowed)
         );
-        assert_eq!(report.next_stability_issue_id, "TAS-214");
+        assert_eq!(report.next_stability_issue_id, "TAS-215");
         assert_eq!(report.closure_bundle_issue_id, "TAS-215");
     }
 

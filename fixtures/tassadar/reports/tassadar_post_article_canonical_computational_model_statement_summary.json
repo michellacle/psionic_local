@@ -18,13 +18,13 @@
   "plugin_layer_scoped_above_machine": true,
   "proof_transport_complete": true,
   "proof_transport_audit_issue_id": "TAS-209",
-  "next_stability_issue_id": "TAS-214",
+  "next_stability_issue_id": "TAS-215",
   "closure_bundle_embedded_here": false,
   "closure_bundle_issue_id": "TAS-215",
   "weighted_plugin_control_part_of_model": false,
   "plugin_publication_allowed": false,
   "served_public_universality_allowed": false,
   "arbitrary_software_capability_allowed": false,
-  "detail": "post-article canonical computational-model summary keeps statement_id=`tassadar.post_article.canonical_computational_model.statement.v1`, machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, statement_status=Green, dependency_rows=7, invalidation_rows=5, validation_rows=7, proof_transport_complete=true, proof_transport_audit_issue_id=`TAS-209`, next_stability_issue_id=`TAS-214`, and closure_bundle_issue_id=`TAS-215`.",
-  "summary_digest": "a23d21eb3c3c5b2d9ce7fd41e59eedad69454781ae9199355f620cde3ace741c"
+  "detail": "post-article canonical computational-model summary keeps statement_id=`tassadar.post_article.canonical_computational_model.statement.v1`, machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, statement_status=Green, dependency_rows=7, invalidation_rows=5, validation_rows=7, proof_transport_complete=true, proof_transport_audit_issue_id=`TAS-209`, next_stability_issue_id=`TAS-215`, and closure_bundle_issue_id=`TAS-215`.",
+  "summary_digest": "a054f8941555777b4c3af694654c17a0eeccf5abfb6d4a65f92cf4dca603e97d"
 }

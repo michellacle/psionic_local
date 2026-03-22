@@ -228,7 +228,7 @@ mod tests {
         assert!(summary.latency_cost_and_soft_failure_channels_blocked);
         assert!(summary.served_or_plugin_equivalence_overclaim_refused);
         assert_eq!(summary.equivalent_choice_class_row_count, 5);
-        assert_eq!(summary.next_stability_issue_id, "TAS-214");
+        assert_eq!(summary.next_stability_issue_id, "TAS-215");
         assert_eq!(summary.closure_bundle_issue_id, "TAS-215");
     }
 

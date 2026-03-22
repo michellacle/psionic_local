@@ -94,7 +94,7 @@ mod tests {
         assert!(receipt.served_posture_narrower_than_operator_truth);
         assert!(receipt.served_posture_fail_closed);
         assert!(receipt.plugin_or_served_overclaim_refused);
-        assert_eq!(receipt.next_stability_issue_id, "TAS-214");
+        assert_eq!(receipt.next_stability_issue_id, "TAS-215");
         assert_eq!(receipt.closure_bundle_issue_id, "TAS-215");
     }
 }

@@ -168,7 +168,7 @@
         "detail": "The final closure bundle may not be inferred from fast-route legitimacy alone until later stability issues land explicitly."
       }
     ],
-    "next_stability_issue_id": "TAS-214",
+    "next_stability_issue_id": "TAS-215",
     "claim_boundary": "this transformer-owned contract freezes only fast-route legitimacy and carrier binding. It classifies which route families are inside the canonical machine carrier, which remain continuation-only, and which stay outside until later promotion. It does not itself close downward non-influence, served conformance, anti-drift closeout, or the final closure bundle.",
     "summary": "Transformer fast-route legitimacy and carrier-binding contract freezes 6 route-family classifications, 6 contract rules, and 7 invalidation rules for one canonical post-article machine."
   },
@@ -228,7 +228,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_report.json",
       "source_artifact_id": "tassadar.post_article_canonical_machine_identity_lock.report.v1",
-      "source_artifact_digest": "ec4f4d555ca5f77b3524d25f2dbdede77645c73df8119cd7520bf07be922fef9",
+      "source_artifact_digest": "0854c4b6a16776490a5fca047cd93f49bc8b3d82c8077301bd7ee6ab78a21bed",
       "detail": "the canonical machine lock binds the canonical route, weight lineage, and continuation contract into one machine tuple."
     },
     {
@@ -237,7 +237,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json",
       "source_artifact_id": "tassadar.post_article_canonical_computational_model_statement.report.v1",
-      "source_artifact_digest": "c6d490228b3436acd10829b05422c084a9284d78c9a194bff72125670d882eb9",
+      "source_artifact_digest": "977529a10ecf4b2bbff4371b6358590679fad49cff3ebdaf487bfa2a75af42d9",
       "detail": "the computational-model statement names the canonical fast route and keeps plugin surfaces above the machine."
     },
     {
@@ -246,7 +246,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json",
       "source_artifact_id": "tassadar.post_article_execution_semantics_proof_transport_audit.report.v1",
-      "source_artifact_digest": "560eedc5e99d9e6c6c380188df89def036257207d2a49000b8a600ba322a2f47",
+      "source_artifact_digest": "76622e0f27f39bd1e2ca8eadbeec8dfeb96709fa9f49925d51ab5fea1fc2fad5",
       "detail": "the proof-transport audit keeps plugin-facing surfaces bound to the same machine instead of inheriting proof from an arbitrary fast family."
     },
     {
@@ -255,7 +255,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_continuation_non_computationality_contract_report.json",
       "source_artifact_id": "tassadar.post_article_continuation_non_computationality_contract.report.v1",
-      "source_artifact_digest": "6db2c8c0b3c4977010a91a31d4236594ae7b3d782c2257c90015f7fbb94a8c26",
+      "source_artifact_digest": "7bb89f70d73b3e0436c27c94ae0b07fa4833e2c1442c9384bed7491ab7ef84d6",
       "detail": "the continuation contract classifies resumable continuation as an extension of one machine rather than a second direct route."
     },
     {
@@ -264,7 +264,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
       "source_artifact_id": "tassadar.post_article_universality_bridge.contract.report.v1",
-      "source_artifact_digest": "bfa5dd15373b0373cf6c4da821d3e37b34dc4b4f965d39b9fc0fb0d9ccd01ada",
+      "source_artifact_digest": "04b3cdd61b535e20b4701fd9f9331b3eab83652e9792ae9dfae580b38ceb91c0",
       "detail": "the bridge keeps direct and resumable carriers explicit and reserves later stability issues instead of collapsing them into one ambient route claim."
     }
   ],
@@ -578,7 +578,7 @@
       "source_refs": [
         "fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_report.json"
       ],
-      "detail": "fast-route legitimacy and carrier binding are complete and the frontier moves to TAS-214."
+      "detail": "fast-route legitimacy and carrier binding are complete and the frontier moves to TAS-215."
     }
   ],
   "contract_status": "green",
@@ -588,9 +588,9 @@
   "resumable_family_not_presented_as_direct_machine": true,
   "served_or_plugin_machine_overclaim_refused": true,
   "fast_route_legitimacy_complete": true,
-  "next_stability_issue_id": "TAS-214",
+  "next_stability_issue_id": "TAS-215",
   "closure_bundle_issue_id": "TAS-215",
   "claim_boundary": "this eval-owned contract report freezes only fast-route legitimacy and carrier binding on the canonical post-article machine. It classifies ReferenceLinear as the proof-origin baseline, HullCache as the canonical direct fast route only on explicit semantics-equivalence evidence, resumable continuation as continuation-only, and research fast families as outside the carrier. Downward non-influence, served conformance, anti-drift closeout, and the final closure bundle remain later issues.",
-  "summary": "Post-article fast-route legitimacy and carrier-binding contract report keeps status=Green, supporting_material_rows=9, dependency_rows=6, route_family_rows=6, invalidation_rows=6, validation_rows=8, fast_route_legitimacy_complete=true, next_stability_issue_id=`TAS-214`, and closure_bundle_issue_id=`TAS-215`.",
-  "report_digest": "2e0b5be06c4346abb188b331c103fd26c5ec0ba5f7f458bf6c2fd809726ac0e7"
+  "summary": "Post-article fast-route legitimacy and carrier-binding contract report keeps status=Green, supporting_material_rows=9, dependency_rows=6, route_family_rows=6, invalidation_rows=6, validation_rows=8, fast_route_legitimacy_complete=true, next_stability_issue_id=`TAS-215`, and closure_bundle_issue_id=`TAS-215`.",
+  "report_digest": "7398cd0332a0d710855dcac4e50768e2e9aebe9c2dd1b2ac33e1f78b1da0af8a"
 }

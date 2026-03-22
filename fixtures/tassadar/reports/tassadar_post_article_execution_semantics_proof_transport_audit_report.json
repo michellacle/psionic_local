@@ -61,7 +61,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json",
       "source_artifact_id": "tassadar.post_article_canonical_computational_model_statement.report.v1",
-      "source_artifact_digest": "c6d490228b3436acd10829b05422c084a9284d78c9a194bff72125670d882eb9",
+      "source_artifact_digest": "977529a10ecf4b2bbff4371b6358590679fad49cff3ebdaf487bfa2a75af42d9",
       "detail": "the canonical computational-model statement names the direct route, continuation carrier, effect boundary, and plugin-overlay posture that proof transport must preserve."
     },
     {
@@ -97,7 +97,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_report.json",
       "source_artifact_id": "tassadar.post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop.report.v1",
-      "source_artifact_digest": "d32890152ebb27855f072fa5e518da2b0793915c16370f9ea067f8fe38bd992f",
+      "source_artifact_digest": "b625b1189850ada0f6ccb89b803058b9a12c9d37e3c4a54725358c76a4b04578",
       "detail": "the weighted controller trace proves plugin-facing sequencing stays model-owned and host-executes-but-is-not-planner on the same canonical machine."
     },
     {
@@ -262,7 +262,7 @@
       "surface_class": "weighted_controller_trace",
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_report.json",
       "source_artifact_id": "tassadar.post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop.report.v1",
-      "source_artifact_digest": "d32890152ebb27855f072fa5e518da2b0793915c16370f9ea067f8fe38bd992f",
+      "source_artifact_digest": "b625b1189850ada0f6ccb89b803058b9a12c9d37e3c4a54725358c76a4b04578",
       "machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
       "canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
       "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
@@ -414,7 +414,7 @@
   "proof_transport_issue_id": "TAS-209",
   "proof_transport_complete": true,
   "plugin_execution_transport_bound": true,
-  "next_stability_issue_id": "TAS-214",
+  "next_stability_issue_id": "TAS-215",
   "closure_bundle_issue_id": "TAS-215",
   "closure_bundle_embedded_here": false,
   "rebase_claim_allowed": false,
@@ -422,6 +422,6 @@
   "served_public_universality_allowed": false,
   "arbitrary_software_capability_allowed": false,
   "claim_boundary": "this eval-owned audit freezes one canonical execution-semantics proof-transport boundary for the post-article machine. It binds the historical universal-machine proof, the post-article rebinding receipts, the canonical computational-model statement, the declared TCM.v1 continuation carrier, and the current plugin-facing runtime/conformance/controller surfaces to the same proof-bearing machine without overclaiming a stronger machine. It still leaves fast-route legitimacy, downward non-influence, anti-drift closeout, and the final closure bundle as later issues.",
-  "summary": "Post-article execution-semantics proof-transport audit keeps status=Green, supporting_material_rows=11, dependency_rows=9, plugin_surface_rows=3, invalidation_rows=6, validation_rows=9, next_stability_issue_id=`TAS-214`, and closure_bundle_issue_id=`TAS-215`.",
-  "report_digest": "560eedc5e99d9e6c6c380188df89def036257207d2a49000b8a600ba322a2f47"
+  "summary": "Post-article execution-semantics proof-transport audit keeps status=Green, supporting_material_rows=11, dependency_rows=9, plugin_surface_rows=3, invalidation_rows=6, validation_rows=9, next_stability_issue_id=`TAS-215`, and closure_bundle_issue_id=`TAS-215`.",
+  "report_digest": "76622e0f27f39bd1e2ca8eadbeec8dfeb96709fa9f49925d51ab5fea1fc2fad5"
 }

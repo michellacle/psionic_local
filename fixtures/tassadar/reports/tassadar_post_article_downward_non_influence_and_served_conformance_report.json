@@ -191,7 +191,7 @@
         "detail": "The final closure bundle may not be inferred from downward non-influence and served conformance alone until later anti-drift closeout and bundle publication land explicitly."
       }
     ],
-    "next_stability_issue_id": "TAS-214",
+    "next_stability_issue_id": "TAS-215",
     "claim_boundary": "this transformer-owned contract freezes only downward non-influence and served conformance for the canonical post-article machine. It binds lower-plane truth surfaces, the allowed narrower served deviations, the fail-closed widening conditions, and the blocked rewrite classes explicitly. It does not itself close anti-drift publication, the canonical machine closure bundle, plugin publication, served/public universality, or arbitrary software capability.",
     "summary": "Transformer downward non-influence and served conformance contract freezes 6 lower-plane truth rows, 3 allowed served deviations, 7 blocked rewrite ids, 5 fail-closed conditions, and 7 invalidation laws for one canonical post-article machine."
   },
@@ -225,7 +225,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json",
       "source_artifact_id": "tassadar.post_article_canonical_computational_model_statement.report.v1",
-      "source_artifact_digest": "c6d490228b3436acd10829b05422c084a9284d78c9a194bff72125670d882eb9",
+      "source_artifact_digest": "977529a10ecf4b2bbff4371b6358590679fad49cff3ebdaf487bfa2a75af42d9",
       "detail": "the canonical computational-model statement names the lower-plane machine, direct route, continuation inheritance, and plugin-above-machine boundary."
     },
     {
@@ -234,7 +234,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_report.json",
       "source_artifact_id": "tassadar.post_article_canonical_machine_identity_lock.report.v1",
-      "source_artifact_digest": "ec4f4d555ca5f77b3524d25f2dbdede77645c73df8119cd7520bf07be922fef9",
+      "source_artifact_digest": "0854c4b6a16776490a5fca047cd93f49bc8b3d82c8077301bd7ee6ab78a21bed",
       "detail": "the machine lock binds one tuple and route descriptor digest that later served or plugin layers may not recompute."
     },
     {
@@ -243,7 +243,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json",
       "source_artifact_id": "tassadar.post_article_execution_semantics_proof_transport_audit.report.v1",
-      "source_artifact_digest": "560eedc5e99d9e6c6c380188df89def036257207d2a49000b8a600ba322a2f47",
+      "source_artifact_digest": "76622e0f27f39bd1e2ca8eadbeec8dfeb96709fa9f49925d51ab5fea1fc2fad5",
       "detail": "the proof-transport audit freezes which transition classes survive rebinding and blocks stronger-machine drift."
     },
     {
@@ -252,7 +252,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_continuation_non_computationality_contract_report.json",
       "source_artifact_id": "tassadar.post_article_continuation_non_computationality_contract.report.v1",
-      "source_artifact_digest": "6db2c8c0b3c4977010a91a31d4236594ae7b3d782c2257c90015f7fbb94a8c26",
+      "source_artifact_digest": "7bb89f70d73b3e0436c27c94ae0b07fa4833e2c1442c9384bed7491ab7ef84d6",
       "detail": "the continuation contract keeps checkpoint, spill, session, and process surfaces transport-only on the same machine tuple."
     },
     {
@@ -261,7 +261,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_report.json",
       "source_artifact_id": "tassadar.post_article_fast_route_legitimacy_and_carrier_binding_contract.report.v1",
-      "source_artifact_digest": "2e0b5be06c4346abb188b331c103fd26c5ec0ba5f7f458bf6c2fd809726ac0e7",
+      "source_artifact_digest": "7398cd0332a0d710855dcac4e50768e2e9aebe9c2dd1b2ac33e1f78b1da0af8a",
       "detail": "the fast-route contract keeps only the declared direct carrier inside the machine while other families remain narrower or outside carrier."
     },
     {
@@ -270,7 +270,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract_report.json",
       "source_artifact_id": "tassadar.post_article_equivalent_choice_neutrality_and_admissibility.report.v1",
-      "source_artifact_digest": "093cc194c6b27a3a0d0e5774a3af292e19ad27d890dcb3b10b896e0b1c171204",
+      "source_artifact_digest": "a3a2d269d2871512edd20e2309f8623195abf08a379c91c14b2fb9bbd357bcf0",
       "detail": "equivalent-choice neutrality prevents later layers from laundering hidden steering back into the lower plane."
     },
     {
@@ -288,7 +288,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_rebased_universality_verdict_split_report.json",
       "source_artifact_id": "tassadar.post_article_rebased_universality_verdict_split.report.v1",
-      "source_artifact_digest": "81c4bed1a4b97c48b2cf79172bdc08ff901691622932eff3805bc47a02dc8588",
+      "source_artifact_digest": "dec0943127b22889643d8ebd6c1b0f2816e9a51987724e0263bc90469967fdeb",
       "detail": "the rebased verdict split keeps theory/operator green while served remains suppressed and public or plugin widening remains blocked."
     },
     {
@@ -412,7 +412,7 @@
         "fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_report.json",
         "fixtures/tassadar/reports/tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract_report.json"
       ],
-      "detail": "closing this issue must move the lower-plane anti-drift frontier to TAS-214 rather than leaving TAS-213 open implicitly."
+      "detail": "closing this issue must move the lower-plane anti-drift frontier to TAS-215 rather than leaving TAS-213 open implicitly."
     }
   ],
   "lower_plane_truth_rows": [
@@ -420,7 +420,7 @@
       "truth_surface_id": "canonical_computational_model_statement",
       "truth_kind": "canonical_computational_model",
       "source_artifact_id": "tassadar.post_article_canonical_computational_model_statement.report.v1",
-      "source_artifact_digest": "c6d490228b3436acd10829b05422c084a9284d78c9a194bff72125670d882eb9",
+      "source_artifact_digest": "977529a10ecf4b2bbff4371b6358590679fad49cff3ebdaf487bfa2a75af42d9",
       "canonical_machine_bound": true,
       "canonical_route_bound": true,
       "plugin_or_served_rewrite_forbidden": true,
@@ -435,7 +435,7 @@
       "truth_surface_id": "canonical_machine_identity_lock",
       "truth_kind": "canonical_machine_identity_lock",
       "source_artifact_id": "tassadar.post_article_canonical_machine_identity_lock.report.v1",
-      "source_artifact_digest": "ec4f4d555ca5f77b3524d25f2dbdede77645c73df8119cd7520bf07be922fef9",
+      "source_artifact_digest": "0854c4b6a16776490a5fca047cd93f49bc8b3d82c8077301bd7ee6ab78a21bed",
       "canonical_machine_bound": true,
       "canonical_route_bound": true,
       "plugin_or_served_rewrite_forbidden": true,
@@ -450,7 +450,7 @@
       "truth_surface_id": "execution_semantics_proof_transport",
       "truth_kind": "execution_semantics_proof_transport",
       "source_artifact_id": "tassadar.post_article_execution_semantics_proof_transport_audit.report.v1",
-      "source_artifact_digest": "560eedc5e99d9e6c6c380188df89def036257207d2a49000b8a600ba322a2f47",
+      "source_artifact_digest": "76622e0f27f39bd1e2ca8eadbeec8dfeb96709fa9f49925d51ab5fea1fc2fad5",
       "canonical_machine_bound": true,
       "canonical_route_bound": true,
       "plugin_or_served_rewrite_forbidden": true,
@@ -465,7 +465,7 @@
       "truth_surface_id": "continuation_non_computationality",
       "truth_kind": "continuation_boundary",
       "source_artifact_id": "tassadar.post_article_continuation_non_computationality_contract.report.v1",
-      "source_artifact_digest": "6db2c8c0b3c4977010a91a31d4236594ae7b3d782c2257c90015f7fbb94a8c26",
+      "source_artifact_digest": "7bb89f70d73b3e0436c27c94ae0b07fa4833e2c1442c9384bed7491ab7ef84d6",
       "canonical_machine_bound": true,
       "canonical_route_bound": true,
       "plugin_or_served_rewrite_forbidden": true,
@@ -480,7 +480,7 @@
       "truth_surface_id": "fast_route_legitimacy_and_carrier_binding",
       "truth_kind": "fast_route_carrier_binding",
       "source_artifact_id": "tassadar.post_article_fast_route_legitimacy_and_carrier_binding_contract.report.v1",
-      "source_artifact_digest": "2e0b5be06c4346abb188b331c103fd26c5ec0ba5f7f458bf6c2fd809726ac0e7",
+      "source_artifact_digest": "7398cd0332a0d710855dcac4e50768e2e9aebe9c2dd1b2ac33e1f78b1da0af8a",
       "canonical_machine_bound": true,
       "canonical_route_bound": true,
       "plugin_or_served_rewrite_forbidden": true,
@@ -495,7 +495,7 @@
       "truth_surface_id": "equivalent_choice_neutrality_and_admissibility",
       "truth_kind": "equivalent_choice_boundary",
       "source_artifact_id": "tassadar.post_article_equivalent_choice_neutrality_and_admissibility.report.v1",
-      "source_artifact_digest": "093cc194c6b27a3a0d0e5774a3af292e19ad27d890dcb3b10b896e0b1c171204",
+      "source_artifact_digest": "a3a2d269d2871512edd20e2309f8623195abf08a379c91c14b2fb9bbd357bcf0",
       "canonical_machine_bound": true,
       "canonical_route_bound": true,
       "plugin_or_served_rewrite_forbidden": true,
@@ -706,7 +706,7 @@
         "fixtures/tassadar/reports/tassadar_post_article_fast_route_legitimacy_and_carrier_binding_contract_report.json",
         "fixtures/tassadar/reports/tassadar_post_article_equivalent_choice_neutrality_and_admissibility_contract_report.json"
       ],
-      "detail": "closing downward non-influence and served conformance must hand the frontier to TAS-214."
+      "detail": "closing downward non-influence and served conformance must hand the frontier to TAS-215."
     }
   ],
   "contract_status": "green",
@@ -717,9 +717,9 @@
   "served_posture_narrower_than_operator_truth": true,
   "served_posture_fail_closed": true,
   "plugin_or_served_overclaim_refused": true,
-  "next_stability_issue_id": "TAS-214",
+  "next_stability_issue_id": "TAS-215",
   "closure_bundle_issue_id": "TAS-215",
   "claim_boundary": "this eval-owned artifact closes only the downward non-influence and served conformance envelope boundary for the canonical post-article machine. It makes lower-plane truth rows, served narrowing allowances, fail-closed widening conditions, and blocked overclaim posture machine-checkable. It does not itself close anti-drift publication, the canonical machine closure bundle, plugin publication, served/public universality, or arbitrary software capability.",
-  "summary": "Post-article downward non-influence and served conformance report keeps contract_status=Green, lower_plane_truth_rows=6, served_deviation_rows=3, validation_rows=8, next_stability_issue_id=`TAS-214`, and closure_bundle_issue_id=`TAS-215`.",
-  "report_digest": "a1b1131c9b753e1dad216f24310e475f43baf6016f0d5d86daec5dca474d53ec"
+  "summary": "Post-article downward non-influence and served conformance report keeps contract_status=Green, lower_plane_truth_rows=6, served_deviation_rows=3, validation_rows=8, next_stability_issue_id=`TAS-215`, and closure_bundle_issue_id=`TAS-215`.",
+  "report_digest": "cb202ef536f0f5ba86846e26cf00ad24c9b7af1ae697f499a79a755a5f3e8f0f"
 }

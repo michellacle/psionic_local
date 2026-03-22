@@ -13,7 +13,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
       "source_report_id": "tassadar.post_article_universality_bridge.contract.report.v1",
-      "source_report_digest": "0a26cedb3a32a121dbdcb3c8dde0dcfab599d997fd13f1b45e9e365ec1fa434e",
+      "source_report_digest": "95db8fb93346ab60ad196fd86d88f83e27612e7df864bd022bbdfe9351eedf40",
       "detail": "the bridge contract must stay green before branch, retry, and stop decisions can be bound to one canonical machine identity tuple"
     },
     {
@@ -22,7 +22,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_route_semantic_preservation_audit_report.json",
       "source_report_id": "tassadar.post_article_canonical_route_semantic_preservation_audit.report.v1",
-      "source_report_digest": "a85c55bd1f04b998e75bb3018696e28931b52b726620487abaff9ff37f9dd625",
+      "source_report_digest": "40c34bb67f11901e9bb8062f2c8d101fcd8a291939e5ef2daabe627012386003",
       "detail": "the semantic-preservation audit must stay green before control-plane proof can rely on the declared state taxonomy and continuation semantics"
     },
     {
@@ -345,5 +345,5 @@
   "arbitrary_software_capability_allowed": false,
   "claim_boundary": "this proof artifact closes only the post-`TAS-186` control-plane ownership and decision-provenance tranche on the bridge machine identity. It binds branch, retry, and stop decisions to model outputs, canonical route identity, and one replay-stable control contract while freezing determinism, equivalent-choice, failure semantics, time semantics, information boundaries, training-versus-inference boundaries, hidden-state closure, and observer acceptance requirements. It does not by itself publish the final direct-versus-resumable carrier split, admit the rebased Turing-completeness claim, admit weighted plugin control, admit served/public universality, or admit arbitrary software capability.",
   "summary": "Post-article control-plane decision-provenance proof keeps supporting_materials=7/7, decision_bindings=3/3, hidden_control_channels=6/6, validation_rows=7/7, control_plane_ownership_status=Green, decision_provenance_proof_complete=true, and carrier_split_publication_complete=false.",
-  "report_digest": "d375754ca2bde12b609db836749d72d5359bcbc2d643df1e05e8029a0d86e9fc"
+  "report_digest": "f44870bd0b278203bdb745a5b8337003b94ae956799073cfeef034651607f62c"
 }
