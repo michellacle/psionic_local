@@ -19,7 +19,7 @@
     "canonical_weight_primary_artifact_sha256": "e24923e6fe39f0656b3f331fb935e0827a3de43b706014610e513ca5a54e9f84",
     "continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
     "continuation_contract_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
-    "computational_model_statement_id": "tassadar.post_article_universality_bridge.computational_model_statement.v1",
+    "computational_model_statement_id": "tassadar.post_article.canonical_computational_model.statement.v1",
     "packet_abi_version": "packet.v1",
     "host_owned_runtime_api_id": "tassadar.plugin_runtime.host_owned_api.v1",
     "engine_abstraction_id": "tassadar.plugin_runtime.engine_abstraction.v1",
@@ -31,7 +31,7 @@
     "control_trace_profile_id": "tassadar.weighted_plugin.control_trace_profile.v1",
     "determinism_profile_id": "tassadar.weighted_plugin.controller_determinism_profile.v1",
     "sandbox_report_id": "tassadar.post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop.report.v1",
-    "sandbox_report_digest": "fbe485613d897886ac5852ab95756168e14ace975ec8543a9bc8d9fd786f7d4f",
+    "sandbox_report_digest": "6a79bc2a5cddbbe82be4565c91e84585986ae18cd9f811280827985c5bfb271b",
     "runtime_bundle_id": "tassadar.post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop.runtime_bundle.v1",
     "runtime_bundle_digest": "ae20cf8b4a57c592a29d73558e0e739eba449491dad32d7dd93613293e5c961e",
     "detail": "machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1` canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1` sandbox_report_id=`tassadar.post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop.report.v1` and control_trace_contract_id=`tassadar.weighted_plugin.controller_trace_contract.v1` remain bound together."
@@ -157,7 +157,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_report.json",
       "bound_report_id": "tassadar.post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop.report.v1",
-      "bound_report_digest": "fbe485613d897886ac5852ab95756168e14ace975ec8543a9bc8d9fd786f7d4f",
+      "bound_report_digest": "6a79bc2a5cddbbe82be4565c91e84585986ae18cd9f811280827985c5bfb271b",
       "detail": "the sandbox report must already close the bounded controller trace and turn weighted plugin control green on the canonical route."
     },
     {
@@ -1063,5 +1063,5 @@
   "deferred_issue_ids": [],
   "claim_boundary": "this eval-owned closure report makes the weighted plugin controller trace true on the canonical post-article route. It closes model ownership over plugin selection, export selection, packet argument construction, sequencing, typed-refusal handling, retry, and stop conditions while keeping plugin authority, publication, trust-tier promotion, served/public universality, and arbitrary public software execution deferred to the later platform gate.",
   "summary": "Post-article weighted plugin controller eval report keeps contract_status=Green, dependency_rows=4, controller_case_rows=4, control_trace_rows=34, host_negative_rows=10, validation_rows=9, weighted_plugin_control_allowed=true, and deferred_issue_ids=0.",
-  "report_digest": "a95d9aa0abf8d530cf8947caf1b04c7ea1fd49e372dce7807de43f59e87b6275"
+  "report_digest": "f1a06b77a988f80767b24f035a8776d46d20ca46484b563d6c8c6a25511151bf"
 }

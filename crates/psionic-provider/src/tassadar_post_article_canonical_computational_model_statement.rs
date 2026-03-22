@@ -16,7 +16,8 @@ pub struct TassadarPostArticleCanonicalComputationalModelStatementReceipt {
     pub declared_effect_boundary_named: bool,
     pub plugin_layer_scoped_above_machine: bool,
     pub proof_transport_complete: bool,
-    pub next_proof_transport_issue_id: String,
+    pub proof_transport_audit_issue_id: String,
+    pub next_stability_issue_id: String,
     pub closure_bundle_issue_id: String,
     pub weighted_plugin_control_part_of_model: bool,
     pub plugin_publication_allowed: bool,
@@ -50,19 +51,22 @@ impl TassadarPostArticleCanonicalComputationalModelStatementReceipt {
             declared_effect_boundary_named: summary.declared_effect_boundary_named,
             plugin_layer_scoped_above_machine: summary.plugin_layer_scoped_above_machine,
             proof_transport_complete: summary.proof_transport_complete,
-            next_proof_transport_issue_id: summary.next_proof_transport_issue_id.clone(),
+            proof_transport_audit_issue_id: summary.proof_transport_audit_issue_id.clone(),
+            next_stability_issue_id: summary.next_stability_issue_id.clone(),
             closure_bundle_issue_id: summary.closure_bundle_issue_id.clone(),
             weighted_plugin_control_part_of_model: summary.weighted_plugin_control_part_of_model,
             plugin_publication_allowed: summary.plugin_publication_allowed,
             served_public_universality_allowed: summary.served_public_universality_allowed,
             arbitrary_software_capability_allowed: summary.arbitrary_software_capability_allowed,
             detail: format!(
-                "post-article canonical computational-model summary `{}` keeps statement_status={:?}, machine_identity_id=`{}`, plugin_layer_scoped_above_machine={}, and next_proof_transport_issue_id=`{}`.",
+                "post-article canonical computational-model summary `{}` keeps statement_status={:?}, machine_identity_id=`{}`, plugin_layer_scoped_above_machine={}, proof_transport_complete={}, proof_transport_audit_issue_id=`{}`, and next_stability_issue_id=`{}`.",
                 summary.report_id,
                 summary.statement_status,
                 summary.machine_identity_id,
                 summary.plugin_layer_scoped_above_machine,
-                summary.next_proof_transport_issue_id,
+                summary.proof_transport_complete,
+                summary.proof_transport_audit_issue_id,
+                summary.next_stability_issue_id,
             ),
         }
     }
@@ -85,8 +89,9 @@ mod tests {
         assert!(receipt.tcm_v1_continuation_named);
         assert!(receipt.declared_effect_boundary_named);
         assert!(receipt.plugin_layer_scoped_above_machine);
-        assert!(!receipt.proof_transport_complete);
-        assert_eq!(receipt.next_proof_transport_issue_id, "TAS-209");
+        assert!(receipt.proof_transport_complete);
+        assert_eq!(receipt.proof_transport_audit_issue_id, "TAS-209");
+        assert_eq!(receipt.next_stability_issue_id, "TAS-210");
         assert_eq!(receipt.closure_bundle_issue_id, "TAS-215");
         assert!(!receipt.weighted_plugin_control_part_of_model);
         assert!(!receipt.plugin_publication_allowed);

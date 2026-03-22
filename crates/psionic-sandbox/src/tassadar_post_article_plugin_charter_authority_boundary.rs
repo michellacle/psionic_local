@@ -1399,6 +1399,7 @@ struct BridgeMachineIdentityFixture {
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
 struct ComputationalModelStatementFixture {
     statement_id: String,
+    #[serde(alias = "machine_identity_id")]
     canonical_machine_identity_id: String,
     substrate_model_id: String,
     substrate_model_digest: String,

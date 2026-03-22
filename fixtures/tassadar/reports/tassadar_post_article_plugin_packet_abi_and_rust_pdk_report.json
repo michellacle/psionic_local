@@ -23,9 +23,9 @@
     "canonical_weight_primary_artifact_sha256": "e24923e6fe39f0656b3f331fb935e0827a3de43b706014610e513ca5a54e9f84",
     "continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
     "continuation_contract_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
-    "computational_model_statement_id": "tassadar.post_article_universality_bridge.computational_model_statement.v1",
+    "computational_model_statement_id": "tassadar.post_article.canonical_computational_model.statement.v1",
     "plugin_manifest_report_id": "tassadar.post_article_plugin_manifest_identity_contract.report.v1",
-    "plugin_manifest_report_digest": "28bf89089addd674b19f5298dd4adc409429a08f3679ab9e2e7edbde6b168107",
+    "plugin_manifest_report_digest": "d5171cef01418006cd93b7d48ba165566a036a6c62cba74fddda744f3ea96cf5",
     "packet_abi_version": "packet.v1",
     "rust_first_pdk_id": "tassadar.plugin.rust_first_pdk.v1",
     "compiler_contract_id": "tassadar.post_article_plugin_packet_abi_and_rust_pdk.compilation_contract.v1",
@@ -412,7 +412,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_manifest_identity_contract_report.json",
       "bound_report_id": "tassadar.post_article_plugin_manifest_identity_contract.report.v1",
-      "bound_report_digest": "28bf89089addd674b19f5298dd4adc409429a08f3679ab9e2e7edbde6b168107",
+      "bound_report_digest": "d5171cef01418006cd93b7d48ba165566a036a6c62cba74fddda744f3ea96cf5",
       "detail": "the packet ABI inherits the closed manifest contract so packet identity and hot-swap posture are not redefined in the runtime layer."
     },
     {
@@ -666,5 +666,5 @@
   "deferred_issue_ids": [],
   "claim_boundary": "this report freezes the first post-article plugin packet ABI and Rust-first PDK above the rebased machine without widening the current claim surface. It defines a single packet-shaped invocation contract, explicit typed refusal and host-error channels, a host-owned receipt channel, and a narrow Rust-first guest import surface while keeping weighted plugin control, plugin publication, served/public universality, and arbitrary software capability blocked until the later runtime API, engine-abstraction, and controller tranches land.",
   "summary": "post-article plugin packet ABI report binds machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1`, contract_status=Green, abi_rows=8, pdk_rows=6, validation_rows=8, and deferred_issue_ids=0.",
-  "report_digest": "7b442f95f77893fcd0a1205e2932b88e3f0fd9234937ae3f8b19f2ff472299ed"
+  "report_digest": "d0ec82359f1a6de6d208ffc60488a4ec8e3bf71c610a1346e3fb651643b574ca"
 }

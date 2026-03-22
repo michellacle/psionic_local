@@ -1,0 +1,427 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.post_article_execution_semantics_proof_transport_audit.report.v1",
+  "checker_script_ref": "scripts/check-tassadar-post-article-execution-semantics-proof-transport-audit.sh",
+  "transformer_anchor_contract_ref": "crates/psionic-transformer/src/tassadar_post_article_execution_semantics_proof_transport_contract.rs",
+  "universal_machine_proof_report_ref": "fixtures/tassadar/reports/tassadar_universal_machine_proof_report.json",
+  "universal_machine_proof_rebinding_report_ref": "fixtures/tassadar/reports/tassadar_post_article_universal_machine_proof_rebinding_report.json",
+  "article_equivalence_acceptance_gate_report_ref": "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json",
+  "canonical_computational_model_statement_report_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json",
+  "tcm_v1_runtime_contract_report_ref": "fixtures/tassadar/reports/tassadar_tcm_v1_runtime_contract_report.json",
+  "plugin_runtime_api_and_engine_abstraction_report_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_runtime_api_and_engine_abstraction_report.json",
+  "plugin_conformance_sandbox_and_benchmark_harness_report_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_report.json",
+  "weighted_plugin_controller_trace_report_ref": "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_report.json",
+  "post_article_turing_audit_ref": "docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md",
+  "plugin_system_turing_audit_ref": "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md",
+  "machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+  "canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+  "canonical_weight_artifact_id": "tassadar://article_transformer/weights/tassadar-article-transformer-trace-bound-trained-v0/99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c",
+  "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+  "continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+  "computational_model_statement_id": "tassadar.post_article.canonical_computational_model.statement.v1",
+  "supporting_material_rows": [
+    {
+      "material_id": "transformer_anchor_contract",
+      "material_class": "anchor",
+      "satisfied": true,
+      "source_ref": "crates/psionic-transformer/src/tassadar_post_article_execution_semantics_proof_transport_contract.rs",
+      "source_artifact_id": "tassadar.post_article.execution_semantics_proof_transport.contract.v1",
+      "detail": "the transformer-owned contract freezes the canonical proof-transport boundary and plugin-surface projection ids for this audit."
+    },
+    {
+      "material_id": "historical_universal_machine_proof",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_universal_machine_proof_report.json",
+      "source_artifact_id": "tassadar.universal_machine_proof.report.v1",
+      "source_artifact_digest": "8c1f7ecbadfc51d75dd4b00590c4e0bb2752ddf06d83ca9b3b139d36fde81559",
+      "detail": "the historical universal-machine proof remains the proof-carrying origin instead of being rewritten into a new post-article witness family."
+    },
+    {
+      "material_id": "post_article_universal_machine_proof_rebinding",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_universal_machine_proof_rebinding_report.json",
+      "source_artifact_id": "tassadar.post_article_universal_machine_proof_rebinding.report.v1",
+      "source_artifact_digest": "624319869c9f792273fe1bd09aa397e9c4b7116483d1c748f1e1fd89d0bb2c5a",
+      "detail": "the proof-rebinding surface carries the explicit transport boundary and rebound receipts that this audit must bind to the canonical machine."
+    },
+    {
+      "material_id": "article_equivalence_acceptance_gate",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json",
+      "source_artifact_id": "tassadar.article_equivalence.acceptance_gate.report.v1",
+      "source_artifact_digest": "e61112cca9b9525c33c875cb21cc0b8927047a968c92bf371fe98f3d0a859395",
+      "detail": "the proof-transport audit may attach only to the already-green canonical article-equivalence route."
+    },
+    {
+      "material_id": "canonical_computational_model_statement",
+      "material_class": "runtime_boundary",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json",
+      "source_artifact_id": "tassadar.post_article_canonical_computational_model_statement.report.v1",
+      "source_artifact_digest": "c43671ba6d2954fd3668281c65a3a2703a0e6ee0c31352e099232686a8e932de",
+      "detail": "the canonical computational-model statement names the direct route, continuation carrier, effect boundary, and plugin-overlay posture that proof transport must preserve."
+    },
+    {
+      "material_id": "tcm_v1_runtime_contract",
+      "material_class": "runtime_boundary",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_tcm_v1_runtime_contract_report.json",
+      "source_artifact_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+      "source_artifact_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
+      "detail": "the historical TCM.v1 runtime contract remains the declared continuation and effect carrier beneath the proof-transport audit."
+    },
+    {
+      "material_id": "plugin_runtime_api_and_engine_abstraction",
+      "material_class": "plugin_surface",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_runtime_api_and_engine_abstraction_report.json",
+      "source_artifact_id": "tassadar.post_article_plugin_runtime_api_and_engine_abstraction.report.v1",
+      "source_artifact_digest": "b2d255dd26e82bea66b55a5801e4d2726d2b4e0f751cc74094ad63bcd664e700",
+      "detail": "the plugin runtime API and engine abstraction project the same canonical machine while keeping runtime control, timing, and failure boundaries explicit."
+    },
+    {
+      "material_id": "plugin_conformance_sandbox_and_benchmark_harness",
+      "material_class": "plugin_surface",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_report.json",
+      "source_artifact_id": "tassadar.post_article_plugin_conformance_sandbox_and_benchmark_harness.report.v1",
+      "source_artifact_digest": "58d9edbb99eff075439981b16dfd1008848a527734462729d94def2e3c03e931",
+      "detail": "the plugin conformance harness stays static, receipt-bound, and operator/internal-only while projecting the same canonical machine identity."
+    },
+    {
+      "material_id": "weighted_plugin_controller_trace",
+      "material_class": "plugin_surface",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_report.json",
+      "source_artifact_id": "tassadar.post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop.report.v1",
+      "source_artifact_digest": "6a79bc2a5cddbbe82be4565c91e84585986ae18cd9f811280827985c5bfb271b",
+      "detail": "the weighted controller trace proves plugin-facing sequencing stays model-owned and host-executes-but-is-not-planner on the same canonical machine."
+    },
+    {
+      "material_id": "post_article_audit_context",
+      "material_class": "audit_context",
+      "satisfied": true,
+      "source_ref": "docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md",
+      "detail": "the March 20 post-article audit remains the motivating context for freezing execution-semantics transport as a separate machine-readable object before terminal closure."
+    },
+    {
+      "material_id": "plugin_system_audit_context",
+      "material_class": "audit_context",
+      "satisfied": true,
+      "source_ref": "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md",
+      "detail": "the March 20 plugin-system audit remains the motivating context for binding plugin-facing execution to the same proof boundary without overclaiming a stronger machine."
+    }
+  ],
+  "dependency_rows": [
+    {
+      "dependency_id": "transformer_proof_transport_contract_green",
+      "satisfied": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_execution_semantics_proof_transport_contract.rs"
+      ],
+      "detail": "the audit depends on a transformer-owned proof-transport contract so the equivalence class is code-owned instead of prose-only."
+    },
+    {
+      "dependency_id": "historical_universal_machine_proof_green",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_universal_machine_proof_report.json"
+      ],
+      "detail": "the historical proof must stay green so proof transport remains bound to real proof-carrying encodings instead of sampled observation only."
+    },
+    {
+      "dependency_id": "proof_rebinding_boundary_matches_contract",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_universal_machine_proof_rebinding_report.json"
+      ],
+      "detail": "the post-article proof-rebinding boundary and rebound receipts must match the transformer-owned proof-transport contract exactly."
+    },
+    {
+      "dependency_id": "article_equivalence_acceptance_gate_green",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json"
+      ],
+      "detail": "the proof-transport audit may only attach to the already-closed canonical article-equivalence route."
+    },
+    {
+      "dependency_id": "canonical_computational_model_statement_green",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json"
+      ],
+      "detail": "the proof-transport audit depends on the separately published computational-model statement rather than inventing a fresh machine description."
+    },
+    {
+      "dependency_id": "tcm_v1_runtime_contract_green",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_tcm_v1_runtime_contract_report.json"
+      ],
+      "detail": "the declared continuation and effect boundary must stay the committed TCM.v1 runtime contract for proof transport to remain honest."
+    },
+    {
+      "dependency_id": "plugin_runtime_api_projection_bound",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_runtime_api_and_engine_abstraction_report.json"
+      ],
+      "detail": "the plugin runtime API may project the same machine only while machine identity, runtime boundary, and operator/internal posture stay explicit."
+    },
+    {
+      "dependency_id": "plugin_conformance_projection_bound",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_report.json"
+      ],
+      "detail": "the plugin conformance harness may project the same machine only while static host-scripted traces, receipt integrity, and explicit envelope boundaries remain frozen."
+    },
+    {
+      "dependency_id": "weighted_controller_projection_bound",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_report.json"
+      ],
+      "detail": "the weighted controller trace may project the same machine only while the host remains execution-only and control decisions remain model-owned."
+    }
+  ],
+  "transport_boundary": {
+    "boundary_id": "tassadar.post_article_universal_machine_proof.proof_transport_boundary.v1",
+    "contract_id": "tassadar.post_article.execution_semantics_proof_transport.contract.v1",
+    "machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+    "tuple_id": "tassadar.post_article.canonical_machine_identity_lock.tuple.v1",
+    "carrier_class_id": "tassadar.post_article.canonical_machine.closure_bundle_bound_rebased_route_identity.v1",
+    "preserved_transition_class_ids": [
+      "bounded_small_step_control_updates",
+      "declared_memory_state_updates",
+      "declared_continuation_resume_equivalence",
+      "declared_effect_boundary_only"
+    ],
+    "admitted_variance_ids": [
+      "canonical_machine_identity_binding",
+      "canonical_model_and_weight_identity_binding",
+      "canonical_route_identity_binding",
+      "carrier_split_publication_without_claim_collapse"
+    ],
+    "blocked_drift_ids": [
+      "helper_substitution",
+      "route_family_drift",
+      "undeclared_cache_owned_control",
+      "undeclared_batching_semantics",
+      "semantic_drift_outside_declared_proof_boundary"
+    ],
+    "plugin_projection_surface_ids": [
+      "tassadar.post_article.execution_semantics_proof_transport.plugin_runtime_api_projection.v1",
+      "tassadar.post_article.execution_semantics_proof_transport.plugin_conformance_projection.v1",
+      "tassadar.post_article.execution_semantics_proof_transport.weighted_controller_projection.v1"
+    ],
+    "boundary_green": true,
+    "detail": "boundary_id=`tassadar.post_article_universal_machine_proof.proof_transport_boundary.v1` machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1` preserved_transition_classes=4 admitted_variance_ids=4 blocked_drift_ids=5 plugin_projection_surface_ids=3."
+  },
+  "plugin_surface_rows": [
+    {
+      "surface_id": "plugin_runtime_api_and_engine_abstraction",
+      "surface_class": "runtime_api_and_engine_abstraction",
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_runtime_api_and_engine_abstraction_report.json",
+      "source_artifact_id": "tassadar.post_article_plugin_runtime_api_and_engine_abstraction.report.v1",
+      "source_artifact_digest": "b2d255dd26e82bea66b55a5801e4d2726d2b4e0f751cc74094ad63bcd664e700",
+      "machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+      "canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+      "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+      "continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+      "continuation_contract_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
+      "computational_model_statement_id": "tassadar.post_article.canonical_computational_model.statement.v1",
+      "proof_transport_boundary_id": "tassadar.post_article_universal_machine_proof.proof_transport_boundary.v1",
+      "surface_green": true,
+      "stronger_machine_overclaim_refused": true,
+      "detail": "the plugin runtime API projects the same machine identity and continuation contract while keeping runtime and timing boundaries explicit."
+    },
+    {
+      "surface_id": "plugin_conformance_sandbox_and_benchmark_harness",
+      "surface_class": "conformance_sandbox_and_benchmark_harness",
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_report.json",
+      "source_artifact_id": "tassadar.post_article_plugin_conformance_sandbox_and_benchmark_harness.report.v1",
+      "source_artifact_digest": "58d9edbb99eff075439981b16dfd1008848a527734462729d94def2e3c03e931",
+      "machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+      "canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+      "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+      "continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+      "continuation_contract_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
+      "computational_model_statement_id": "tassadar.post_article.canonical_computational_model.statement.v1",
+      "proof_transport_boundary_id": "tassadar.post_article_universal_machine_proof.proof_transport_boundary.v1",
+      "surface_green": true,
+      "stronger_machine_overclaim_refused": true,
+      "detail": "the conformance harness projects the same machine while staying static, receipt-bound, and explicit about workflow and benchmark envelopes."
+    },
+    {
+      "surface_id": "weighted_plugin_controller_trace",
+      "surface_class": "weighted_controller_trace",
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_report.json",
+      "source_artifact_id": "tassadar.post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop.report.v1",
+      "source_artifact_digest": "6a79bc2a5cddbbe82be4565c91e84585986ae18cd9f811280827985c5bfb271b",
+      "machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+      "canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+      "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+      "continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+      "continuation_contract_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
+      "computational_model_statement_id": "tassadar.post_article.canonical_computational_model.statement.v1",
+      "proof_transport_boundary_id": "tassadar.post_article_universal_machine_proof.proof_transport_boundary.v1",
+      "surface_green": true,
+      "stronger_machine_overclaim_refused": true,
+      "detail": "the weighted controller trace projects the same machine while keeping sequencing, refusal handling, and stop decisions model-owned and host execution-only."
+    }
+  ],
+  "invalidation_rows": [
+    {
+      "invalidation_id": "helper_or_route_family_drift_present",
+      "present": false,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_universal_machine_proof_rebinding_report.json"
+      ],
+      "detail": "helper substitution and route-family drift remain blocked by the proof-rebinding boundary and are not present in the current proof-transport audit."
+    },
+    {
+      "invalidation_id": "cache_or_batching_control_drift_present",
+      "present": false,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_universal_machine_proof_rebinding_report.json"
+      ],
+      "detail": "undeclared cache-owned or batching-owned control drift remains blocked and is not present in the current proof-transport audit."
+    },
+    {
+      "invalidation_id": "continuation_contract_recomposition_present",
+      "present": false,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_tcm_v1_runtime_contract_report.json"
+      ],
+      "detail": "the continuation contract still matches the canonical computational-model statement and has not been recomposed into a different machine."
+    },
+    {
+      "invalidation_id": "plugin_surface_machine_mismatch_present",
+      "present": false,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_runtime_api_and_engine_abstraction_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_report.json"
+      ],
+      "detail": "plugin-facing runtime, conformance, and controller surfaces still project the same canonical machine instead of drifting onto a second machine."
+    },
+    {
+      "invalidation_id": "plugin_surface_overclaim_present",
+      "present": false,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_runtime_api_and_engine_abstraction_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_report.json"
+      ],
+      "detail": "plugin-facing surfaces do not claim a stronger machine, broader publication posture, or stronger proof class than the proof-transport boundary binds."
+    },
+    {
+      "invalidation_id": "closure_bundle_overread_present",
+      "present": false,
+      "source_refs": [
+        "docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md",
+        "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md"
+      ],
+      "detail": "the proof-transport audit remains separate from the later stability issues and the final closure bundle."
+    }
+  ],
+  "validation_rows": [
+    {
+      "validation_id": "proof_transport_boundary_matches_transformer_contract",
+      "green": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_execution_semantics_proof_transport_contract.rs",
+        "fixtures/tassadar/reports/tassadar_post_article_universal_machine_proof_rebinding_report.json"
+      ],
+      "detail": "the transformer-owned boundary matches the proof-rebinding boundary exactly instead of widening transport semantics after the fact."
+    },
+    {
+      "validation_id": "historical_proof_receipts_remain_proof_carrying",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_universal_machine_proof_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universal_machine_proof_rebinding_report.json"
+      ],
+      "detail": "the rebound proof receipts remain tied to the historical proof-carrying encodings instead of sampled output parity alone."
+    },
+    {
+      "validation_id": "canonical_computational_model_statement_bound",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json"
+      ],
+      "detail": "the proof-transport audit binds to the separately published computational-model statement instead of inventing a stronger machine description."
+    },
+    {
+      "validation_id": "runtime_contract_and_substrate_bound",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_tcm_v1_runtime_contract_report.json"
+      ],
+      "detail": "the proof-transport audit keeps the declared TCM.v1 continuation and effect carrier bound by id and digest."
+    },
+    {
+      "validation_id": "plugin_runtime_api_projects_same_machine",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_runtime_api_and_engine_abstraction_report.json"
+      ],
+      "detail": "the plugin runtime API projects the same machine without widening runtime timing or failure semantics into a stronger proof claim."
+    },
+    {
+      "validation_id": "plugin_conformance_harness_projects_same_machine",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_report.json"
+      ],
+      "detail": "the conformance harness projects the same machine while keeping workflow traces static and host-scripted instead of implying stronger semantic transport."
+    },
+    {
+      "validation_id": "weighted_controller_trace_projects_same_machine",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_report.json"
+      ],
+      "detail": "the weighted controller trace projects the same machine while keeping planning decisions model-owned and the host execution-only."
+    },
+    {
+      "validation_id": "plugin_surfaces_do_not_claim_stronger_machine",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_runtime_api_and_engine_abstraction_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_report.json"
+      ],
+      "detail": "plugin-facing wording remains bounded to the declared proof boundary instead of claiming a stronger machine than proof transport actually binds."
+    },
+    {
+      "validation_id": "later_stability_frontier_and_closure_bundle_remain_explicit",
+      "green": true,
+      "source_refs": [
+        "docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md",
+        "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md"
+      ],
+      "detail": "closing proof transport here still leaves continuation non-computationality, later stability issues, and the final closure bundle explicit and separate."
+    }
+  ],
+  "audit_status": "green",
+  "audit_green": true,
+  "proof_transport_issue_id": "TAS-209",
+  "proof_transport_complete": true,
+  "plugin_execution_transport_bound": true,
+  "next_stability_issue_id": "TAS-210",
+  "closure_bundle_issue_id": "TAS-215",
+  "closure_bundle_embedded_here": false,
+  "rebase_claim_allowed": false,
+  "plugin_capability_claim_allowed": false,
+  "served_public_universality_allowed": false,
+  "arbitrary_software_capability_allowed": false,
+  "claim_boundary": "this eval-owned audit freezes one canonical execution-semantics proof-transport boundary for the post-article machine. It binds the historical universal-machine proof, the post-article rebinding receipts, the canonical computational-model statement, the declared TCM.v1 continuation carrier, and the current plugin-facing runtime/conformance/controller surfaces to the same proof-bearing machine without overclaiming a stronger machine. It still leaves continuation non-computationality, fast-route legitimacy, equivalent-choice neutrality, downward non-influence, anti-drift closeout, and the final closure bundle as later issues.",
+  "summary": "Post-article execution-semantics proof-transport audit keeps status=Green, supporting_material_rows=11, dependency_rows=9, plugin_surface_rows=3, invalidation_rows=6, validation_rows=9, next_stability_issue_id=`TAS-210`, and closure_bundle_issue_id=`TAS-215`.",
+  "report_digest": "83b1d3398c2ac21a4bf205ead4d4c859c00e31800b6aea58dc29212850d18565"
+}

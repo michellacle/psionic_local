@@ -47,7 +47,12 @@ const POST_ARTICLE_TURING_AUDIT_REF: &str =
     "docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md";
 const PLUGIN_SYSTEM_TURING_AUDIT_REF: &str =
     "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md";
-const NEXT_PROOF_TRANSPORT_ISSUE_ID: &str = "TAS-209";
+const PROOF_TRANSPORT_AUDIT_REPORT_REF: &str =
+    "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json";
+const PROOF_TRANSPORT_AUDIT_REPORT_ID: &str =
+    "tassadar.post_article_execution_semantics_proof_transport_audit.report.v1";
+const PROOF_TRANSPORT_AUDIT_ISSUE_ID: &str = "TAS-209";
+const NEXT_STABILITY_ISSUE_ID: &str = "TAS-210";
 const CLOSURE_BUNDLE_ISSUE_ID: &str = "TAS-215";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -144,6 +149,7 @@ pub struct TassadarPostArticleCanonicalComputationalModelStatementReport {
     pub article_transformer_stack_boundary_ref: String,
     pub post_article_turing_audit_ref: String,
     pub plugin_system_turing_audit_ref: String,
+    pub proof_transport_audit_report_ref: String,
     pub supporting_material_rows:
         Vec<TassadarPostArticleCanonicalComputationalModelSupportingMaterialRow>,
     pub dependency_rows: Vec<TassadarPostArticleCanonicalComputationalModelDependencyRow>,
@@ -157,7 +163,8 @@ pub struct TassadarPostArticleCanonicalComputationalModelStatementReport {
     pub declared_effect_boundary_named: bool,
     pub plugin_layer_scoped_above_machine: bool,
     pub proof_transport_complete: bool,
-    pub next_proof_transport_issue_id: String,
+    pub proof_transport_audit_issue_id: String,
+    pub next_stability_issue_id: String,
     pub closure_bundle_embedded_here: bool,
     pub closure_bundle_issue_id: String,
     pub weighted_plugin_control_part_of_model: bool,
@@ -392,6 +399,14 @@ fn build_report_from_inputs(
             None,
             "the boundary doc carries the public repo-local explanation of the owned route, bridge, plugin overlay, and deferred closure posture.",
         ),
+        supporting_row(
+            "execution_semantics_proof_transport_audit",
+            TassadarPostArticleCanonicalComputationalModelSupportingMaterialClass::AuditContext,
+            PROOF_TRANSPORT_AUDIT_REPORT_REF,
+            Some(String::from(PROOF_TRANSPORT_AUDIT_REPORT_ID)),
+            None,
+            "the separate TAS-209 audit now carries execution-semantics proof transport above this runtime-owned statement without collapsing it into the statement itself.",
+        ),
     ];
 
     let continuation_semantics_declared =
@@ -457,6 +472,15 @@ fn build_report_from_inputs(
             ],
             "publication and served/public posture remain outside the computational model unless later gates turn them green explicitly.",
         ),
+        dependency_row(
+            "execution_semantics_proof_transport_audit_published",
+            true,
+            vec![
+                String::from(PROOF_TRANSPORT_AUDIT_REPORT_REF),
+                String::from(POST_ARTICLE_TURING_AUDIT_REF),
+            ],
+            "execution-semantics proof transport now arrives from the separate TAS-209 audit instead of remaining an implied or deferred property of this statement.",
+        ),
     ];
 
     let invalidation_rows = vec![
@@ -494,10 +518,11 @@ fn build_report_from_inputs(
             "proof_transport_or_terminal_closure_overread_present",
             false,
             vec![
+                String::from(PROOF_TRANSPORT_AUDIT_REPORT_REF),
                 String::from(POST_ARTICLE_TURING_AUDIT_REF),
                 String::from(ARTICLE_TRANSFORMER_STACK_BOUNDARY_REF),
             ],
-            "execution-semantics proof transport and the final closure bundle remain explicitly deferred.",
+            "the proof-transport audit is now separate and explicit, while the final closure bundle still may not be inferred from this statement.",
         ),
     ];
 
@@ -515,7 +540,7 @@ fn build_report_from_inputs(
     let plugin_layer_scoped_above_machine = statement
         .plugin_layer_statement
         .contains("above the same canonical machine identity");
-    let proof_transport_complete = false;
+    let proof_transport_complete = true;
     let weighted_plugin_control_part_of_model = false;
     let plugin_publication_allowed = false;
     let served_public_universality_allowed = false;
@@ -579,16 +604,17 @@ fn build_report_from_inputs(
             "the plugin layer is stated as a bounded overlay above the machine instead of part of the machine substrate.",
         ),
         validation_row(
-            "later_proof_transport_and_terminal_closure_remain_explicitly_deferred",
-            !proof_transport_complete
+            "proof_transport_closed_and_later_stability_frontier_explicit",
+            proof_transport_complete
                 && !plugin_publication_allowed
                 && !served_public_universality_allowed
                 && !arbitrary_software_capability_allowed,
             vec![
+                String::from(PROOF_TRANSPORT_AUDIT_REPORT_REF),
                 String::from(POST_ARTICLE_TURING_AUDIT_REF),
                 String::from(ARTICLE_TRANSFORMER_STACK_BOUNDARY_REF),
             ],
-            "the statement stays green while still deferring execution-semantics proof transport, publication, served/public universality, arbitrary software capability, and the final closure bundle.",
+            "execution-semantics proof transport is now carried by the separate audit, while publication, served/public universality, arbitrary software capability, the later stability frontier, and the final closure bundle remain explicit and separate.",
         ),
     ];
 
@@ -624,6 +650,7 @@ fn build_report_from_inputs(
         ),
         post_article_turing_audit_ref: String::from(POST_ARTICLE_TURING_AUDIT_REF),
         plugin_system_turing_audit_ref: String::from(PLUGIN_SYSTEM_TURING_AUDIT_REF),
+        proof_transport_audit_report_ref: String::from(PROOF_TRANSPORT_AUDIT_REPORT_REF),
         supporting_material_rows,
         dependency_rows,
         computational_model_statement: statement,
@@ -636,7 +663,8 @@ fn build_report_from_inputs(
         declared_effect_boundary_named,
         plugin_layer_scoped_above_machine,
         proof_transport_complete,
-        next_proof_transport_issue_id: String::from(NEXT_PROOF_TRANSPORT_ISSUE_ID),
+        proof_transport_audit_issue_id: String::from(PROOF_TRANSPORT_AUDIT_ISSUE_ID),
+        next_stability_issue_id: String::from(NEXT_STABILITY_ISSUE_ID),
         closure_bundle_embedded_here: false,
         closure_bundle_issue_id: String::from(CLOSURE_BUNDLE_ISSUE_ID),
         weighted_plugin_control_part_of_model,
@@ -644,19 +672,21 @@ fn build_report_from_inputs(
         served_public_universality_allowed,
         arbitrary_software_capability_allowed,
         claim_boundary: String::from(
-            "this runtime-owned report publishes the canonical post-article computational model statement: one owned direct Transformer route supplies compute identity, TCM.v1 supplies continuation and effect boundaries, and any plugin layer stays above that machine instead of redefining it. Execution-semantics proof transport, plugin publication, served/public universality, arbitrary software capability, and the final closure bundle remain deferred.",
+            "this runtime-owned report publishes the canonical post-article computational model statement: one owned direct Transformer route supplies compute identity, TCM.v1 supplies continuation and effect boundaries, and any plugin layer stays above that machine instead of redefining it. Execution-semantics proof transport is now carried by the separate TAS-209 audit, while publication, served/public universality, arbitrary software capability, the later anti-drift stability frontier, and the final closure bundle remain separate.",
         ),
         summary: String::new(),
         report_digest: String::new(),
     };
     report.summary = format!(
-        "Post-article canonical computational-model statement keeps status={:?}, supporting_material_rows={}, dependency_rows={}, invalidation_rows={}, validation_rows={}, next_proof_transport_issue_id=`{}`, and closure_bundle_issue_id=`{}`.",
+        "Post-article canonical computational-model statement keeps status={:?}, supporting_material_rows={}, dependency_rows={}, invalidation_rows={}, validation_rows={}, proof_transport_complete={}, proof_transport_audit_issue_id=`{}`, next_stability_issue_id=`{}`, and closure_bundle_issue_id=`{}`.",
         report.statement_status,
         report.supporting_material_rows.len(),
         report.dependency_rows.len(),
         report.invalidation_rows.len(),
         report.validation_rows.len(),
-        report.next_proof_transport_issue_id,
+        report.proof_transport_complete,
+        report.proof_transport_audit_issue_id,
+        report.next_stability_issue_id,
         report.closure_bundle_issue_id,
     );
     report.report_digest = stable_digest(
@@ -839,16 +869,21 @@ mod tests {
             report.computational_model_statement.statement_id,
             "tassadar.post_article.canonical_computational_model.statement.v1"
         );
-        assert_eq!(report.supporting_material_rows.len(), 10);
-        assert_eq!(report.dependency_rows.len(), 6);
+        assert_eq!(report.supporting_material_rows.len(), 11);
+        assert_eq!(report.dependency_rows.len(), 7);
         assert_eq!(report.invalidation_rows.len(), 5);
         assert_eq!(report.validation_rows.len(), 7);
         assert!(report.article_equivalent_compute_named);
         assert!(report.tcm_v1_continuation_named);
         assert!(report.declared_effect_boundary_named);
         assert!(report.plugin_layer_scoped_above_machine);
-        assert!(!report.proof_transport_complete);
-        assert_eq!(report.next_proof_transport_issue_id, "TAS-209");
+        assert!(report.proof_transport_complete);
+        assert_eq!(
+            report.proof_transport_audit_report_ref,
+            "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json"
+        );
+        assert_eq!(report.proof_transport_audit_issue_id, "TAS-209");
+        assert_eq!(report.next_stability_issue_id, "TAS-210");
         assert!(!report.closure_bundle_embedded_here);
         assert_eq!(report.closure_bundle_issue_id, "TAS-215");
         assert!(!report.weighted_plugin_control_part_of_model);

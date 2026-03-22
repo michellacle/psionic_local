@@ -32,7 +32,7 @@
     "controller_eval_report_digest": "a95d9aa0abf8d530cf8947caf1b04c7ea1fd49e372dce7807de43f59e87b6275",
     "control_trace_contract_id": "tassadar.weighted_plugin.controller_trace_contract.v1",
     "manifest_contract_report_id": "tassadar.post_article_plugin_manifest_identity_contract.report.v1",
-    "manifest_contract_report_digest": "28bf89089addd674b19f5298dd4adc409429a08f3679ab9e2e7edbde6b168107",
+    "manifest_contract_report_digest": "d5171cef01418006cd93b7d48ba165566a036a6c62cba74fddda744f3ea96cf5",
     "canonical_architecture_anchor_crate": "psionic-transformer",
     "canonical_architecture_boundary_ref": "docs/TASSADAR_ARTICLE_TRANSFORMER_STACK_BOUNDARY.md",
     "detail": "machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1` canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1` controller_eval_report_id=`tassadar.post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop.eval_report.v1` and manifest_contract_report_id=`tassadar.post_article_plugin_manifest_identity_contract.report.v1` remain the authority-gate anchor in `psionic-transformer`."
@@ -53,7 +53,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_manifest_identity_contract_report.json",
       "bound_report_id": "tassadar.post_article_plugin_manifest_identity_contract.report.v1",
-      "bound_report_digest": "28bf89089addd674b19f5298dd4adc409429a08f3679ab9e2e7edbde6b168107",
+      "bound_report_digest": "d5171cef01418006cd93b7d48ba165566a036a6c62cba74fddda744f3ea96cf5",
       "detail": "the manifest and invocation identity contract must already be green so authority widening cannot bypass canonical declaration, packaging, or hot-swap rules."
     },
     {
@@ -418,5 +418,5 @@
   "deferred_issue_ids": [],
   "claim_boundary": "this catalog report freezes plugin authority, promotion, publication posture, and trust tiers above the canonical weighted controller without widening the claim surface. It keeps operator/internal posture, profile-specific named-but-suppressed routes, validator and accepted-outcome hook requirements, promotion challengeability, quarantine, revocation, and broader public refusal explicit instead of implying a served/public plugin platform or arbitrary public software execution.",
   "summary": "post-article plugin authority gate binds machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1`, contract_status=Green, trust_tier_rows=4, promotion_rows=5, publication_posture_rows=5, observer_rows=4, validation_rows=8, weighted_plugin_control_allowed=true, and deferred_issue_ids=0.",
-  "report_digest": "d813236bb30fa342550de38460ac35aab291ad0f1684d7f1ddc3ddfa67e55eeb"
+  "report_digest": "b84cadce8ce39aa0c70715003283eebbec83026ede05b998ba2355a2afd0d686"
 }

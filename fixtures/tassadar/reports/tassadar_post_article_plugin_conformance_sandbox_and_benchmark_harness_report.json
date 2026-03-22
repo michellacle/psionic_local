@@ -25,9 +25,9 @@
     "canonical_weight_primary_artifact_sha256": "e24923e6fe39f0656b3f331fb935e0827a3de43b706014610e513ca5a54e9f84",
     "continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
     "continuation_contract_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
-    "computational_model_statement_id": "tassadar.post_article_universality_bridge.computational_model_statement.v1",
+    "computational_model_statement_id": "tassadar.post_article.canonical_computational_model.statement.v1",
     "admissibility_report_id": "tassadar.post_article_plugin_world_mount_envelope_compiler_and_admissibility.report.v1",
-    "admissibility_report_digest": "dd28644b1fd07eded8837a5f9b792225d6a575b5958e0d68ebb4deefc8486bda",
+    "admissibility_report_digest": "3ed947e17406bfbfc036e32a7199b05b4a6fdf710d6d113541dbd0792d1ffcb7",
     "packet_abi_version": "packet.v1",
     "host_owned_runtime_api_id": "tassadar.plugin_runtime.host_owned_api.v1",
     "engine_abstraction_id": "tassadar.plugin_runtime.engine_abstraction.v1",
@@ -640,7 +640,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json",
       "bound_report_id": "tassadar.post_article_plugin_world_mount_envelope_compiler_and_admissibility.report.v1",
-      "bound_report_digest": "dd28644b1fd07eded8837a5f9b792225d6a575b5958e0d68ebb4deefc8486bda",
+      "bound_report_digest": "3ed947e17406bfbfc036e32a7199b05b4a6fdf710d6d113541dbd0792d1ffcb7",
       "detail": "the earlier admissibility contract is green and no longer defers TAS-203."
     },
     {
@@ -1434,5 +1434,5 @@
   "deferred_issue_ids": [],
   "claim_boundary": "this sandbox report freezes the canonical post-article plugin conformance sandbox and benchmark harness above the admissibility contract. It keeps static host-scripted conformance traces, typed refusal and limit behavior, workflow integrity, explicit envelope intersection, hot-swap compatibility, failure-domain isolation, side-channel and covert-channel negatives, and benchmark-path evidence machine-readable while keeping weighted plugin sequencing, plugin publication, served/public universality, and arbitrary software capability blocked.",
   "summary": "Post-article plugin conformance sandbox report keeps contract_status=Green, dependency_rows=6, conformance_rows=9, workflow_rows=5, isolation_negative_rows=8, benchmark_rows=7, validation_rows=12, and deferred_issue_ids=0.",
-  "report_digest": "3d004f48e19cc24435e539fada7d24562f77bc093ee2c5c690aa2098b25dc34b"
+  "report_digest": "58d9edbb99eff075439981b16dfd1008848a527734462729d94def2e3c03e931"
 }

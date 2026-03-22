@@ -12,6 +12,7 @@
   "article_transformer_stack_boundary_ref": "docs/TASSADAR_ARTICLE_TRANSFORMER_STACK_BOUNDARY.md",
   "post_article_turing_audit_ref": "docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md",
   "plugin_system_turing_audit_ref": "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md",
+  "proof_transport_audit_report_ref": "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json",
   "supporting_material_rows": [
     {
       "material_id": "transformer_anchor_contract",
@@ -95,6 +96,14 @@
       "satisfied": true,
       "source_ref": "docs/TASSADAR_ARTICLE_TRANSFORMER_STACK_BOUNDARY.md",
       "detail": "the boundary doc carries the public repo-local explanation of the owned route, bridge, plugin overlay, and deferred closure posture."
+    },
+    {
+      "material_id": "execution_semantics_proof_transport_audit",
+      "material_class": "audit_context",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json",
+      "source_artifact_id": "tassadar.post_article_execution_semantics_proof_transport_audit.report.v1",
+      "detail": "the separate TAS-209 audit now carries execution-semantics proof transport above this runtime-owned statement without collapsing it into the statement itself."
     }
   ],
   "dependency_rows": [
@@ -149,6 +158,15 @@
         "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md"
       ],
       "detail": "publication and served/public posture remain outside the computational model unless later gates turn them green explicitly."
+    },
+    {
+      "dependency_id": "execution_semantics_proof_transport_audit_published",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json",
+        "docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md"
+      ],
+      "detail": "execution-semantics proof transport now arrives from the separate TAS-209 audit instead of remaining an implied or deferred property of this statement."
     }
   ],
   "computational_model_statement": {
@@ -214,10 +232,11 @@
       "invalidation_id": "proof_transport_or_terminal_closure_overread_present",
       "present": false,
       "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json",
         "docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md",
         "docs/TASSADAR_ARTICLE_TRANSFORMER_STACK_BOUNDARY.md"
       ],
-      "detail": "execution-semantics proof transport and the final closure bundle remain explicitly deferred."
+      "detail": "the proof-transport audit is now separate and explicit, while the final closure bundle still may not be inferred from this statement."
     }
   ],
   "validation_rows": [
@@ -273,13 +292,14 @@
       "detail": "the plugin layer is stated as a bounded overlay above the machine instead of part of the machine substrate."
     },
     {
-      "validation_id": "later_proof_transport_and_terminal_closure_remain_explicitly_deferred",
+      "validation_id": "proof_transport_closed_and_later_stability_frontier_explicit",
       "green": true,
       "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json",
         "docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md",
         "docs/TASSADAR_ARTICLE_TRANSFORMER_STACK_BOUNDARY.md"
       ],
-      "detail": "the statement stays green while still deferring execution-semantics proof transport, publication, served/public universality, arbitrary software capability, and the final closure bundle."
+      "detail": "execution-semantics proof transport is now carried by the separate audit, while publication, served/public universality, arbitrary software capability, the later stability frontier, and the final closure bundle remain explicit and separate."
     }
   ],
   "statement_status": "green",
@@ -288,15 +308,16 @@
   "tcm_v1_continuation_named": true,
   "declared_effect_boundary_named": true,
   "plugin_layer_scoped_above_machine": true,
-  "proof_transport_complete": false,
-  "next_proof_transport_issue_id": "TAS-209",
+  "proof_transport_complete": true,
+  "proof_transport_audit_issue_id": "TAS-209",
+  "next_stability_issue_id": "TAS-210",
   "closure_bundle_embedded_here": false,
   "closure_bundle_issue_id": "TAS-215",
   "weighted_plugin_control_part_of_model": false,
   "plugin_publication_allowed": false,
   "served_public_universality_allowed": false,
   "arbitrary_software_capability_allowed": false,
-  "claim_boundary": "this runtime-owned report publishes the canonical post-article computational model statement: one owned direct Transformer route supplies compute identity, TCM.v1 supplies continuation and effect boundaries, and any plugin layer stays above that machine instead of redefining it. Execution-semantics proof transport, plugin publication, served/public universality, arbitrary software capability, and the final closure bundle remain deferred.",
-  "summary": "Post-article canonical computational-model statement keeps status=Green, supporting_material_rows=10, dependency_rows=6, invalidation_rows=5, validation_rows=7, next_proof_transport_issue_id=`TAS-209`, and closure_bundle_issue_id=`TAS-215`.",
-  "report_digest": "97bd70cf2f74d37a3e41b0f4766963aaa34de992d287f36da39076cb11fdc5f2"
+  "claim_boundary": "this runtime-owned report publishes the canonical post-article computational model statement: one owned direct Transformer route supplies compute identity, TCM.v1 supplies continuation and effect boundaries, and any plugin layer stays above that machine instead of redefining it. Execution-semantics proof transport is now carried by the separate TAS-209 audit, while publication, served/public universality, arbitrary software capability, the later anti-drift stability frontier, and the final closure bundle remain separate.",
+  "summary": "Post-article canonical computational-model statement keeps status=Green, supporting_material_rows=11, dependency_rows=7, invalidation_rows=5, validation_rows=7, proof_transport_complete=true, proof_transport_audit_issue_id=`TAS-209`, next_stability_issue_id=`TAS-210`, and closure_bundle_issue_id=`TAS-215`.",
+  "report_digest": "c43671ba6d2954fd3668281c65a3a2703a0e6ee0c31352e099232686a8e932de"
 }

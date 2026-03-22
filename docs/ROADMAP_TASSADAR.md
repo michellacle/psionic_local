@@ -420,7 +420,7 @@ Current honest posture:
   conditions, explicit determinism and external-signal boundaries, and
   explicit host-negative planner attacks; this tranche turns weighted plugin
   control green on the canonical route, clears the controller defer pointer to
-  empty, with the later bridge reservation frontier now at `TAS-209`, and still
+  empty, with the later bridge reservation frontier now at `TAS-210`, and still
   keeps bounded plugin-platform closeout, plugin publication, served/public
   universality, and arbitrary software capability blocked
 - the repo now also has one post-article plugin authority, promotion,
@@ -480,10 +480,26 @@ Current honest posture:
   route, resumable continuation semantics and effect boundaries attach only
   through the historical green `TCM.v1` runtime contract, and any plugin layer
   sits above that machine as a bounded software-capability overlay instead of
-  redefining the substrate; this tranche moves the next anti-drift frontier to
-  `TAS-209`, keeps the final claim-bearing canonical machine closure bundle
-  separate for `TAS-215`, and still keeps plugin publication, served/public
-  universality, and arbitrary software capability blocked
+  redefining the substrate; this tranche now sits beneath the separate
+  `TAS-209` proof-transport audit, keeps the final claim-bearing canonical
+  machine closure bundle separate for `TAS-215`, and still keeps plugin
+  publication, served/public universality, and arbitrary software capability
+  blocked
+- the repo now also has one post-article execution-semantics proof-transport
+  audit, with a committed eval report at
+  `fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_report.json`,
+  a disclosure-safe research summary at
+  `fixtures/tassadar/reports/tassadar_post_article_execution_semantics_proof_transport_audit_summary.json`,
+  a transformer-owned anchor contract, a provider-facing receipt, a dedicated
+  checker script, and an audit note that bind the historical universal-machine
+  proof, the post-article proof-rebinding receipts, the published
+  computational-model statement, the historical green `TCM.v1` continuation
+  contract, and the current plugin runtime, conformance, and weighted-controller
+  surfaces to one explicit proof-bearing execution boundary; this tranche
+  closes proof transport, moves the next anti-drift frontier to `TAS-210`,
+  keeps the final claim-bearing canonical machine closure bundle separate for
+  `TAS-215`, and still keeps plugin publication, served/public universality,
+  and arbitrary software capability blocked
 - the repo now also has one post-article Turing-completeness closeout audit,
   with a committed eval report at
   `fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json`,
@@ -698,9 +714,9 @@ Issue-state note:
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
 - `TAS-157` through `TAS-205` are now implemented and tracked in
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
-- `TAS-208` is now implemented and tracked in
+- `TAS-206` through `TAS-209` are now implemented and tracked in
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
-- `TAS-209` through `TAS-226` remain open in GitHub and are tracked via the
+- `TAS-210` through `TAS-226` remain open in GitHub and are tracked via the
   issue bodies plus `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
 
 ## Repo-Local Companion Docs

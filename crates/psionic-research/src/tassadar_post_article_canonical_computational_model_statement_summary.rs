@@ -39,7 +39,8 @@ pub struct TassadarPostArticleCanonicalComputationalModelStatementSummary {
     pub declared_effect_boundary_named: bool,
     pub plugin_layer_scoped_above_machine: bool,
     pub proof_transport_complete: bool,
-    pub next_proof_transport_issue_id: String,
+    pub proof_transport_audit_issue_id: String,
+    pub next_stability_issue_id: String,
     pub closure_bundle_embedded_here: bool,
     pub closure_bundle_issue_id: String,
     pub weighted_plugin_control_part_of_model: bool,
@@ -102,7 +103,8 @@ fn build_summary_from_report(
         declared_effect_boundary_named: report.declared_effect_boundary_named,
         plugin_layer_scoped_above_machine: report.plugin_layer_scoped_above_machine,
         proof_transport_complete: report.proof_transport_complete,
-        next_proof_transport_issue_id: report.next_proof_transport_issue_id.clone(),
+        proof_transport_audit_issue_id: report.proof_transport_audit_issue_id.clone(),
+        next_stability_issue_id: report.next_stability_issue_id.clone(),
         closure_bundle_embedded_here: report.closure_bundle_embedded_here,
         closure_bundle_issue_id: report.closure_bundle_issue_id.clone(),
         weighted_plugin_control_part_of_model: report.weighted_plugin_control_part_of_model,
@@ -110,14 +112,16 @@ fn build_summary_from_report(
         served_public_universality_allowed: report.served_public_universality_allowed,
         arbitrary_software_capability_allowed: report.arbitrary_software_capability_allowed,
         detail: format!(
-            "post-article canonical computational-model summary keeps statement_id=`{}`, machine_identity_id=`{}`, statement_status={:?}, dependency_rows={}, invalidation_rows={}, validation_rows={}, next_proof_transport_issue_id=`{}`, and closure_bundle_issue_id=`{}`.",
+            "post-article canonical computational-model summary keeps statement_id=`{}`, machine_identity_id=`{}`, statement_status={:?}, dependency_rows={}, invalidation_rows={}, validation_rows={}, proof_transport_complete={}, proof_transport_audit_issue_id=`{}`, next_stability_issue_id=`{}`, and closure_bundle_issue_id=`{}`.",
             report.computational_model_statement.statement_id,
             report.computational_model_statement.machine_identity_id,
             report.statement_status,
             report.dependency_rows.len(),
             report.invalidation_rows.len(),
             report.validation_rows.len(),
-            report.next_proof_transport_issue_id,
+            report.proof_transport_complete,
+            report.proof_transport_audit_issue_id,
+            report.next_stability_issue_id,
             report.closure_bundle_issue_id,
         ),
         summary_digest: String::new(),
@@ -243,16 +247,17 @@ mod tests {
             summary.machine_identity_id,
             "tassadar.post_article_universality_bridge.machine_identity.v1"
         );
-        assert_eq!(summary.supporting_material_row_count, 10);
-        assert_eq!(summary.dependency_row_count, 6);
+        assert_eq!(summary.supporting_material_row_count, 11);
+        assert_eq!(summary.dependency_row_count, 7);
         assert_eq!(summary.invalidation_row_count, 5);
         assert_eq!(summary.validation_row_count, 7);
         assert!(summary.article_equivalent_compute_named);
         assert!(summary.tcm_v1_continuation_named);
         assert!(summary.declared_effect_boundary_named);
         assert!(summary.plugin_layer_scoped_above_machine);
-        assert!(!summary.proof_transport_complete);
-        assert_eq!(summary.next_proof_transport_issue_id, "TAS-209");
+        assert!(summary.proof_transport_complete);
+        assert_eq!(summary.proof_transport_audit_issue_id, "TAS-209");
+        assert_eq!(summary.next_stability_issue_id, "TAS-210");
         assert!(!summary.closure_bundle_embedded_here);
         assert_eq!(summary.closure_bundle_issue_id, "TAS-215");
         assert!(!summary.weighted_plugin_control_part_of_model);

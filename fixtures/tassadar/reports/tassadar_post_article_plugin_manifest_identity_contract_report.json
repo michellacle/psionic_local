@@ -26,12 +26,12 @@
     "canonical_weight_primary_artifact_sha256": "e24923e6fe39f0656b3f331fb935e0827a3de43b706014610e513ca5a54e9f84",
     "continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
     "continuation_contract_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
-    "computational_model_statement_id": "tassadar.post_article_universality_bridge.computational_model_statement.v1",
+    "computational_model_statement_id": "tassadar.post_article.canonical_computational_model.statement.v1",
     "plugin_charter_report_id": "tassadar.post_article_plugin_charter_authority_boundary.report.v1",
-    "plugin_charter_report_digest": "e95e6163bb3521805674473814449fcf0a2e9e32ab4ddf01f83a28399cc483c0",
+    "plugin_charter_report_digest": "571adf72304e8ba0347cf8d89fd321dd59f7a5976bed48d64cc7189012b050ad",
     "canonical_architecture_anchor_crate": "psionic-transformer",
     "canonical_architecture_boundary_ref": "docs/TASSADAR_ARTICLE_TRANSFORMER_STACK_BOUNDARY.md",
-    "detail": "machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1` canonical_model_id=`tassadar-article-transformer-trace-bound-trained-v0` canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1` computational_model_statement_id=`tassadar.post_article_universality_bridge.computational_model_statement.v1` and plugin_charter_report_id=`tassadar.post_article_plugin_charter_authority_boundary.report.v1` remain the manifest contract anchor in `psionic-transformer`."
+    "detail": "machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1` canonical_model_id=`tassadar-article-transformer-trace-bound-trained-v0` canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1` computational_model_statement_id=`tassadar.post_article.canonical_computational_model.statement.v1` and plugin_charter_report_id=`tassadar.post_article_plugin_charter_authority_boundary.report.v1` remain the manifest contract anchor in `psionic-transformer`."
   },
   "dependency_rows": [
     {
@@ -40,7 +40,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_charter_authority_boundary_report.json",
       "bound_report_id": "tassadar.post_article_plugin_charter_authority_boundary.report.v1",
-      "bound_report_digest": "e95e6163bb3521805674473814449fcf0a2e9e32ab4ddf01f83a28399cc483c0",
+      "bound_report_digest": "571adf72304e8ba0347cf8d89fd321dd59f7a5976bed48d64cc7189012b050ad",
       "detail": "the manifest contract inherits the green plugin charter instead of inventing a parallel plugin authority story."
     },
     {
@@ -421,5 +421,5 @@
   "deferred_issue_ids": [],
   "claim_boundary": "this report freezes the canonical plugin manifest, identity, and hot-swap contract above the rebased post-article machine without widening the current claim surface. It defines the required manifest fields, canonical invocation identity, compatibility and hot-swap rules, and explicit linked-bundle packaging posture for named plugin artifacts while preserving operator/internal-only release posture and leaving weighted plugin capability, plugin publication, served/public universality, and arbitrary software capability blocked until later ABI/runtime/controller/platform issues land.",
   "summary": "post-article plugin manifest contract binds machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1`, contract_status=Green, dependency_rows=6, manifest_field_rows=12, hot_swap_rule_rows=4, and deferred_issue_ids=0.",
-  "report_digest": "28bf89089addd674b19f5298dd4adc409429a08f3679ab9e2e7edbde6b168107"
+  "report_digest": "d5171cef01418006cd93b7d48ba165566a036a6c62cba74fddda744f3ea96cf5"
 }
