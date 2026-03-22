@@ -42,5 +42,5 @@ catalog shell and the new starter-runtime substrate.
 `plugin.html.extract_readable` runtime bundle in
 `fixtures/tassadar/runs/tassadar_post_article_plugin_html_extract_readable_v1/tassadar_post_article_plugin_html_extract_readable_bundle.json`.
 
-The next open orchestration frontier above the shared starter-plugin bridge is
-`TAS-223`: the deterministic starter workflow controller and web-content pilot.
+The next open orchestration frontier above the deterministic starter controller
+is `TAS-224`: router-owned plugin tool-loop integration on `/v1/responses`.

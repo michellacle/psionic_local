@@ -1779,8 +1779,18 @@ The current scope is:
   `docs/audits/2026-03-22-tassadar-post-article-starter-plugin-tool-bridge.md`,
   which publish one shared projection and receipt bridge above the starter
   runtime, keep tool-schema derivation stable across deterministic,
-  router-owned, and Apple FM controller surfaces, and move the next open
-  orchestration frontier to `TAS-223`.
+  router-owned, and Apple FM controller surfaces
+- the current deterministic starter-workflow controller artifacts are
+  `fixtures/tassadar/runs/tassadar_post_article_starter_plugin_workflow_controller_v1/tassadar_post_article_starter_plugin_workflow_controller_bundle.json`,
+  the checker
+  `scripts/check-tassadar-post-article-starter-plugin-workflow-controller.sh`,
+  the controller doc `docs/TASSADAR_STARTER_PLUGIN_WORKFLOW_CONTROLLER.md`, and
+  the audit note
+  `docs/audits/2026-03-22-tassadar-post-article-starter-plugin-workflow-controller.md`,
+  which publish one host-owned deterministic web-content intake graph above the
+  shared bridge, keep branch and stop decisions explicit, freeze one success
+  pilot plus one refusal pilot, and move the next open orchestration frontier
+  to `TAS-224`.
 - the current semantic-window revision artifacts are
   `fixtures/tassadar/reports/tassadar_semantic_window_revision_receipt.json`
   and

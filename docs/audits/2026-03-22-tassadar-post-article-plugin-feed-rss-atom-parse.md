@@ -37,5 +37,5 @@ the fetch-text lane.
 
 ## Next Frontier
 
-The next open orchestration frontier above the shared starter-plugin bridge is
-`TAS-223`: the deterministic starter workflow controller and web-content pilot.
+The next open orchestration frontier above the deterministic starter controller
+is `TAS-224`: router-owned plugin tool-loop integration on `/v1/responses`.

@@ -1387,6 +1387,15 @@ That closes the shared projection and receipt bridge across deterministic,
 router-owned, and Apple FM controller surfaces without widening the boundary to
 weighted controller closure, and moves the next open bridge frontier to
 `TAS-223`.
+`TAS-223` now adds the deterministic starter-plugin workflow controller in
+`crates/psionic-runtime/src/tassadar_post_article_starter_plugin_workflow_controller.rs`,
+with committed evidence at
+`fixtures/tassadar/runs/tassadar_post_article_starter_plugin_workflow_controller_v1/tassadar_post_article_starter_plugin_workflow_controller_bundle.json`
+plus the checker
+`scripts/check-tassadar-post-article-starter-plugin-workflow-controller.sh`.
+That closes one host-owned multi-plugin web-content intake graph above the
+shared bridge without widening the boundary to open-ended planning or weighted
+controller closure, and moves the next open bridge frontier to `TAS-224`.
 
 ## Route Requirement
 

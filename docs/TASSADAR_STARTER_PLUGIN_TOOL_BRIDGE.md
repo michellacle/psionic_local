@@ -65,9 +65,15 @@ lanes.
 - typed refusals that remain structured instead of collapsing into free-form
   tool text
 
+## Adjacent Surface
+
+The first deterministic controller above this bridge now lives in
+`docs/TASSADAR_STARTER_PLUGIN_WORKFLOW_CONTROLLER.md`. That controller keeps
+its workflow graph, branch rows, refusal rows, and stop conditions host-owned
+and explicit while reusing this bridge for every tool call.
+
 ## Planned
 
-- deterministic starter-workflow controller and pilot above this shared bridge
 - router-owned `/v1/responses` plugin tool-loop integration above this shared
   bridge
 - Apple FM session tool integration above this shared bridge

@@ -82,6 +82,12 @@ bundle at
 and its committed bundle at
 `fixtures/tassadar/runs/tassadar_post_article_starter_plugin_tool_bridge_v1/tassadar_post_article_starter_plugin_tool_bridge_bundle.json`.
 
-The next open orchestration frontier above this starter catalog is `TAS-223`,
-which begins the deterministic starter workflow controller and web-content
-pilot.
+`TAS-223` is now also closed by the deterministic starter workflow controller
+in
+`crates/psionic-runtime/src/tassadar_post_article_starter_plugin_workflow_controller.rs`
+and its committed bundle at
+`fixtures/tassadar/runs/tassadar_post_article_starter_plugin_workflow_controller_v1/tassadar_post_article_starter_plugin_workflow_controller_bundle.json`.
+
+The next open orchestration frontier above this starter catalog is `TAS-224`,
+which begins the router-owned plugin tool-loop integration on
+`/v1/responses`.
