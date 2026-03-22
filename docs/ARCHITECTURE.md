@@ -1472,11 +1472,16 @@ The current scope is:
   while keeping host execution-only steps explicit and blocking hidden host
   sequencing, auto-retry, fallback export selection, heuristic ranking,
   schema auto-repair, cached result substitution, candidate precomputation,
-  hidden top-k filtering, helper substitution, and runtime policy drift.
-  This turns weighted plugin control green on the canonical route, clears the
-  controller defer pointer to empty, moves the reserved bridge frontier to
-  `TAS-216`, and still leaves bounded plugin-platform closeout, publication,
-  served/public universality, and arbitrary software capability blocked.
+  hidden top-k filtering, helper substitution, and runtime policy drift. The
+  same runtime bundle now also freezes one bounded admission row for the
+  shared-registry `plugin.text.stats` user-added starter plugin plus one
+  explicit model-selected `plugin.text.stats` success trace, proving that a
+  user-added capability-free starter plugin can reach the canonical weighted
+  controller lane without widening into arbitrary plugin admission. This turns
+  weighted plugin control green on the canonical route, clears the controller
+  defer pointer to empty, moves the reserved bridge frontier to `TAS-216`, and
+  still leaves bounded plugin-platform closeout, publication, served/public
+  universality, and arbitrary software capability blocked.
 - the current post-article plugin authority, promotion, publication, and
   trust-tier artifacts are
   `fixtures/tassadar/reports/tassadar_post_article_plugin_authority_promotion_publication_and_trust_tier_gate_report.json`,

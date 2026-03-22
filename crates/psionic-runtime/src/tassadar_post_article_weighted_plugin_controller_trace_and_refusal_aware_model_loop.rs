@@ -10,6 +10,11 @@ use sha2::{Digest, Sha256};
 use thiserror::Error;
 
 use crate::{
+    invoke_text_stats_json_packet,
+    weighted_controller_admissible_user_added_starter_plugin_registrations,
+    StarterPluginAuthoringClass, StarterPluginOriginClass, StarterPluginRegistration,
+    TextStatsConfig, TextStatsRequest, STARTER_PLUGIN_TEXT_STATS_ID,
+    STARTER_PLUGIN_TEXT_STATS_INPUT_SCHEMA_ID,
     TASSADAR_POST_ARTICLE_PLUGIN_HOST_OWNED_RUNTIME_API_ID,
     TASSADAR_POST_ARTICLE_PLUGIN_INVOCATION_RECEIPT_PROFILE_ID,
 };
@@ -128,6 +133,18 @@ pub struct TassadarPostArticleWeightedPluginHostNegativeRow {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TassadarPostArticleWeightedPluginStarterPluginAdmissionRow {
+    pub plugin_id: String,
+    pub tool_name: String,
+    pub authoring_class_id: String,
+    pub origin_class_id: String,
+    pub catalog_entry_id: String,
+    pub derived_from_shared_registration: bool,
+    pub derived_from_catalog_exposure: bool,
+    pub detail: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TassadarPostArticleWeightedPluginControllerTraceAndRefusalAwareModelLoopBundle {
     pub schema_version: u16,
     pub bundle_id: String,
@@ -142,6 +159,8 @@ pub struct TassadarPostArticleWeightedPluginControllerTraceAndRefusalAwareModelL
     pub failure_semantics_lattice_id: String,
     pub time_semantics_contract_id: String,
     pub information_boundary_id: String,
+    pub starter_plugin_admission_rows:
+        Vec<TassadarPostArticleWeightedPluginStarterPluginAdmissionRow>,
     pub controller_case_rows: Vec<TassadarPostArticleWeightedPluginControllerCaseRow>,
     pub control_trace_rows: Vec<TassadarPostArticleWeightedPluginControlTraceRow>,
     pub host_negative_rows: Vec<TassadarPostArticleWeightedPluginHostNegativeRow>,
@@ -170,6 +189,12 @@ pub enum TassadarPostArticleWeightedPluginControllerTraceAndRefusalAwareModelLoo
 #[must_use]
 pub fn build_tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_bundle(
 ) -> TassadarPostArticleWeightedPluginControllerTraceAndRefusalAwareModelLoopBundle {
+    let starter_plugin_admission_rows =
+        weighted_controller_admissible_user_added_starter_plugin_registrations()
+            .into_iter()
+            .map(starter_plugin_admission_row)
+            .collect::<Vec<_>>();
+    let text_stats_trace = weighted_text_stats_success_trace_fixture();
     let controller_case_rows = vec![
         controller_case(
             "fetch_text_stop_after_success",
@@ -208,6 +233,14 @@ pub fn build_tassadar_post_article_weighted_plugin_controller_trace_and_refusal_
             ],
             false,
             "the model continues from `plugin.http_fetch_text` into `plugin.html_extract`, accepts both typed result packets, and then stops on the same deterministic controller trace.",
+        ),
+        controller_case(
+            "text_stats_stop_after_success",
+            TassadarPostArticleWeightedPluginControllerCaseOutcome::StopAfterSuccess,
+            &[STARTER_PLUGIN_TEXT_STATS_ID],
+            &["text_stats_exact_binding"],
+            true,
+            "the model selects the user-added capability-free `plugin.text.stats` entry admitted from the shared starter-plugin registration and catalog path, accepts the typed result packet, and stops without host-authored continuation.",
         ),
     ];
 
@@ -724,6 +757,90 @@ pub fn build_tassadar_post_article_weighted_plugin_controller_trace_and_refusal_
             None,
             "the model stops after the second accepted result instead of relying on hidden host workflow completion.",
         ),
+        trace_row(
+            "text_stats_stop_after_success",
+            0,
+            TassadarPostArticleWeightedPluginControlTokenKind::PluginSelect,
+            "model_weights",
+            Some(STARTER_PLUGIN_TEXT_STATS_ID),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            "the model selects the admitted user-added text-stats plugin from the shared starter-plugin registry instead of a host-curated one-off whitelist.",
+        ),
+        trace_row(
+            "text_stats_stop_after_success",
+            1,
+            TassadarPostArticleWeightedPluginControlTokenKind::ExportSelect,
+            "model_weights",
+            Some(STARTER_PLUGIN_TEXT_STATS_ID),
+            Some("handle_packet"),
+            None,
+            None,
+            None,
+            None,
+            None,
+            "the model keeps export choice explicit on the user-added plugin path.",
+        ),
+        trace_row(
+            "text_stats_stop_after_success",
+            2,
+            TassadarPostArticleWeightedPluginControlTokenKind::PacketEncode,
+            "model_weights",
+            Some(STARTER_PLUGIN_TEXT_STATS_ID),
+            Some("handle_packet"),
+            Some(STARTER_PLUGIN_TEXT_STATS_INPUT_SCHEMA_ID),
+            Some(text_stats_trace.packet_digest.clone()),
+            None,
+            None,
+            None,
+            "the model encodes one packet-local text-stats request under the canonical packet ABI without host-authored argument synthesis.",
+        ),
+        trace_row(
+            "text_stats_stop_after_success",
+            3,
+            TassadarPostArticleWeightedPluginControlTokenKind::InvocationCommit,
+            "host_runtime",
+            Some(STARTER_PLUGIN_TEXT_STATS_ID),
+            Some("handle_packet"),
+            Some(STARTER_PLUGIN_TEXT_STATS_INPUT_SCHEMA_ID),
+            Some(text_stats_trace.packet_digest.clone()),
+            Some(text_stats_trace.receipt_id.as_str()),
+            None,
+            None,
+            "the host validates and executes the declared user-added text-stats call without changing the selected plugin or next step.",
+        ),
+        trace_row(
+            "text_stats_stop_after_success",
+            4,
+            TassadarPostArticleWeightedPluginControlTokenKind::ResultAccept,
+            "host_runtime",
+            Some(STARTER_PLUGIN_TEXT_STATS_ID),
+            Some("handle_packet"),
+            None,
+            None,
+            Some(text_stats_trace.receipt_id.as_str()),
+            Some("text_stats_exact_binding"),
+            None,
+            "the host returns one typed text-stats result packet to the model loop under the shared result-binding contract.",
+        ),
+        trace_row(
+            "text_stats_stop_after_success",
+            5,
+            TassadarPostArticleWeightedPluginControlTokenKind::Stop,
+            "model_weights",
+            None,
+            None,
+            None,
+            None,
+            Some(text_stats_trace.receipt_id.as_str()),
+            Some("text_stats_exact_binding"),
+            None,
+            "the model stops after accepting the user-added text-stats result instead of relying on hidden host chaining.",
+        ),
     ];
 
     let host_negative_rows = vec![
@@ -838,17 +955,19 @@ pub fn build_tassadar_post_article_weighted_plugin_controller_trace_and_refusal_
             information_boundary_id: String::from(
                 TASSADAR_POST_ARTICLE_WEIGHTED_PLUGIN_INFORMATION_BOUNDARY_ID,
             ),
+            starter_plugin_admission_rows,
             controller_case_rows,
             control_trace_rows,
             host_negative_rows,
             claim_boundary: String::from(
-                "this runtime bundle freezes the canonical post-article weighted plugin controller trace above the result-binding contract, host-owned runtime API, and invocation-receipt layer. It keeps plugin selection, export selection, packet encoding, multi-step continuation, retry, typed refusal return, and stop conditions machine-readable while making host execution-only steps explicit and keeping publication, served/public universality, and arbitrary software capability blocked.",
+                "this runtime bundle freezes the canonical post-article weighted plugin controller trace above the result-binding contract, host-owned runtime API, and invocation-receipt layer. It keeps plugin selection, export selection, packet encoding, multi-step continuation, retry, typed refusal return, stop conditions, and bounded user-added capability-free starter-plugin admission from the shared registration and catalog path machine-readable while making host execution-only steps explicit and keeping publication, served/public universality, and arbitrary software capability blocked.",
             ),
             summary: String::new(),
             bundle_digest: String::new(),
         };
     bundle.summary = format!(
-        "Post-article weighted plugin controller bundle covers controller_case_rows={}, control_trace_rows={}, host_negative_rows={}.",
+        "Post-article weighted plugin controller bundle covers starter_plugin_admission_rows={}, controller_case_rows={}, control_trace_rows={}, host_negative_rows={}.",
+        bundle.starter_plugin_admission_rows.len(),
         bundle.controller_case_rows.len(),
         bundle.control_trace_rows.len(),
         bundle.host_negative_rows.len(),
@@ -1018,6 +1137,68 @@ fn negative_row(
     }
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct WeightedTextStatsTraceFixture {
+    packet_digest: String,
+    receipt_id: String,
+}
+
+fn starter_plugin_admission_row(
+    registration: &StarterPluginRegistration,
+) -> TassadarPostArticleWeightedPluginStarterPluginAdmissionRow {
+    let catalog = registration
+        .catalog
+        .expect("weighted controller admission requires catalog metadata");
+    TassadarPostArticleWeightedPluginStarterPluginAdmissionRow {
+        plugin_id: String::from(registration.plugin_id),
+        tool_name: String::from(registration.tool_name),
+        authoring_class_id: authoring_class_id(registration.authoring_class),
+        origin_class_id: origin_class_id(registration.origin_class),
+        catalog_entry_id: String::from(catalog.catalog_entry_id),
+        derived_from_shared_registration: true,
+        derived_from_catalog_exposure: registration.catalog_exposed,
+        detail: format!(
+            "`{}` is admitted to the canonical weighted controller lane because it is a shared-registry user-added starter plugin with capability-free authoring class, bridge exposure, and catalog entry `{}`.",
+            registration.plugin_id,
+            catalog.catalog_entry_id,
+        ),
+    }
+}
+
+fn authoring_class_id(authoring_class: StarterPluginAuthoringClass) -> String {
+    String::from(match authoring_class {
+        StarterPluginAuthoringClass::CapabilityFreeLocalDeterministic => {
+            "capability_free_local_deterministic"
+        }
+        StarterPluginAuthoringClass::NetworkedReadOnly => "networked_read_only",
+    })
+}
+
+fn origin_class_id(origin_class: StarterPluginOriginClass) -> String {
+    String::from(match origin_class {
+        StarterPluginOriginClass::OperatorBuiltin => "operator_builtin",
+        StarterPluginOriginClass::UserAdded => "user_added",
+    })
+}
+
+fn weighted_text_stats_success_trace_fixture() -> WeightedTextStatsTraceFixture {
+    let packet = serde_json::to_vec(&TextStatsRequest {
+        text: String::from(
+            "Weighted controller runtime proof surface.\nA user-added starter plugin is admitted here.",
+        ),
+    })
+    .expect("serialize weighted text-stats request");
+    let outcome = invoke_text_stats_json_packet("json", &packet, &TextStatsConfig::default());
+    assert!(
+        outcome.refusal.is_none() && outcome.response.is_some(),
+        "weighted text-stats trace fixture must stay successful",
+    );
+    WeightedTextStatsTraceFixture {
+        packet_digest: outcome.receipt.input_packet_digest.clone(),
+        receipt_id: outcome.receipt.receipt_id,
+    }
+}
+
 fn packet_digest(case_id: &str, packet_schema_id: &str) -> String {
     synthetic_digest(
         b"psionic_tassadar_post_article_weighted_plugin_controller_packet|",
@@ -1088,9 +1269,15 @@ mod tests {
             bundle.bundle_id,
             "tassadar.post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop.runtime_bundle.v1"
         );
-        assert_eq!(bundle.controller_case_rows.len(), 4);
-        assert_eq!(bundle.control_trace_rows.len(), 34);
+        assert_eq!(bundle.starter_plugin_admission_rows.len(), 1);
+        assert_eq!(bundle.controller_case_rows.len(), 5);
+        assert_eq!(bundle.control_trace_rows.len(), 40);
         assert_eq!(bundle.host_negative_rows.len(), 10);
+        assert!(bundle.starter_plugin_admission_rows.iter().any(|row| {
+            row.plugin_id == "plugin.text.stats"
+                && row.derived_from_shared_registration
+                && row.derived_from_catalog_exposure
+        }));
         assert!(bundle.controller_case_rows.iter().all(|row| {
             row.model_selects_plugin
                 && row.model_selects_export
@@ -1104,6 +1291,10 @@ mod tests {
         assert!(bundle.control_trace_rows.iter().any(|row| {
             row.control_token_kind == TassadarPostArticleWeightedPluginControlTokenKind::Retry
                 && row.decision_owner_id == "model_weights"
+        }));
+        assert!(bundle.control_trace_rows.iter().any(|row| {
+            row.case_id == "text_stats_stop_after_success"
+                && row.plugin_id.as_deref() == Some("plugin.text.stats")
         }));
         assert!(bundle.controller_case_rows.iter().any(|row| {
             row.case_outcome

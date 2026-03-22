@@ -17,8 +17,9 @@ The boundary is narrow on purpose:
 The runtime now keeps starter-plugin registration in one runtime-owned source
 of truth. Plugin identity, tool name, packet schemas, refusal schemas, replay
 class, capability posture, mount envelope identity, runtime bundle identity,
-and per-surface publication flags derive from that one registry so the runtime,
-shared bridge, and starter catalog do not drift independently.
+origin class, and per-surface publication flags derive from that one registry
+so the runtime, shared bridge, starter catalog, and bounded weighted-controller
+admission path do not drift independently.
 
 The human-readable contributor contract for adding a new capability-free
 starter plugin now lives in `docs/TASSADAR_STARTER_PLUGIN_AUTHORING.md`.
@@ -104,6 +105,10 @@ Negative claims stay explicit:
 - no language detection truth
 - no sentence boundary truth
 - no semantic structure truth
+
+`plugin.text.stats` is also the first user-added starter plugin admitted into
+the canonical weighted controller lane through the shared registration plus
+catalog path, rather than a controller-local one-off whitelist.
 
 ### `plugin.http.fetch_text`
 

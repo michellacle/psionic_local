@@ -1052,7 +1052,11 @@ explicit external-signal boundary, and one explicit host-negative planner
 surface covering hidden host sequencing, auto-retry, fallback export
 selection, heuristic ranking, schema auto-repair, cached-result substitution,
 candidate precomputation, hidden top-k filtering, helper substitution, and
-runtime policy drift. The supporting sandbox report now lives at
+runtime policy drift. The same canonical bundle now also admits the
+shared-registry `plugin.text.stats` user-added starter plugin through one
+bounded capability-free admission row and one explicit model-selected
+`plugin.text.stats` success trace rather than a controller-local whitelist.
+The supporting sandbox report now lives at
 `fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_report.json`,
 the operator-readable summary now lives at
 `fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_summary.json`,

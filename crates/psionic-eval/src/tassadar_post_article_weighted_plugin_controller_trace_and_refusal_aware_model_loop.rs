@@ -670,10 +670,10 @@ mod tests {
             "tassadar.post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop.eval_report.v1"
         );
         assert_eq!(report.dependency_rows.len(), 5);
-        assert_eq!(report.controller_case_rows.len(), 4);
-        assert_eq!(report.control_trace_rows.len(), 34);
+        assert_eq!(report.controller_case_rows.len(), 5);
+        assert_eq!(report.control_trace_rows.len(), 40);
         assert_eq!(report.host_negative_rows.len(), 10);
-        assert_eq!(report.validation_rows.len(), 9);
+        assert_eq!(report.validation_rows.len(), 10);
         assert!(report.contract_green);
         assert!(report.closure_bundle_bound_by_digest);
         assert!(report.weighted_plugin_control_allowed);

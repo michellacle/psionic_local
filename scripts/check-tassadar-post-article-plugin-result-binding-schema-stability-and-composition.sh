@@ -52,10 +52,11 @@ jq -e '
   .bundle_id == "tassadar.post_article_plugin_result_binding_schema_stability_and_composition.runtime_bundle.v1"
   and .result_binding_contract_id == "tassadar.weighted_plugin.result_binding_contract.v1"
   and .model_loop_return_profile_id == "tassadar.weighted_plugin.model_loop_return_profile.v1"
-  and ((.binding_rows | length) == 5)
-  and ((.evidence_boundary_rows | length) == 3)
+  and ((.binding_rows | length) == 6)
+  and ((.evidence_boundary_rows | length) == 4)
   and ((.composition_rows | length) == 4)
   and ((.negative_rows | length) == 4)
+  and (.binding_rows | any(.case_id == "text_stats_exact_binding" and .plugin_id == "plugin.text.stats"))
 ' fixtures/tassadar/runs/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_v1/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_bundle.json >/dev/null
 
 jq -e '
@@ -65,8 +66,8 @@ jq -e '
   and .machine_identity_binding.result_binding_contract_id == "tassadar.weighted_plugin.result_binding_contract.v1"
   and .machine_identity_binding.model_loop_return_profile_id == "tassadar.weighted_plugin.model_loop_return_profile.v1"
   and ((.dependency_rows | length) == 7)
-  and ((.binding_rows | length) == 5)
-  and ((.evidence_boundary_rows | length) == 3)
+  and ((.binding_rows | length) == 6)
+  and ((.evidence_boundary_rows | length) == 4)
   and ((.composition_rows | length) == 4)
   and ((.negative_rows | length) == 4)
   and ((.validation_rows | length) == 12)
@@ -96,8 +97,8 @@ jq -e '
   and .model_loop_return_profile_id == "tassadar.weighted_plugin.model_loop_return_profile.v1"
   and .contract_status == "green"
   and .dependency_row_count == 7
-  and .binding_row_count == 5
-  and .evidence_boundary_row_count == 3
+  and .binding_row_count == 6
+  and .evidence_boundary_row_count == 4
   and .composition_row_count == 4
   and .negative_row_count == 4
   and .validation_row_count == 12

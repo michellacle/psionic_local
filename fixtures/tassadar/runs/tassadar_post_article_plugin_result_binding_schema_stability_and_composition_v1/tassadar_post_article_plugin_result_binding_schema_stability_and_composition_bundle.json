@@ -23,6 +23,22 @@
       "detail": "exact fetch-text outputs stay digest-bound to one explicit model-visible state without adapter rewriting."
     },
     {
+      "case_id": "text_stats_exact_binding",
+      "plugin_id": "plugin.text.stats",
+      "model_version_id": "tassadar.weighted_plugin_controller.schema_set.v1",
+      "plugin_output_schema_id": "plugin.text.stats.output.v1",
+      "projected_model_state_schema_id": "model_state.plugin_result.text_stats.v1",
+      "output_digest": "35211fdc96ecc82bf24717c03150e85da22f082b21bf48b0c56959cc2cda406f",
+      "next_model_visible_state_id": "state_projection.text_stats_exact_binding.v1",
+      "next_model_visible_state_digest": "38ff6821688c9251b13eadc364abcdc849f0914e11af8d613a8ff73663fdee05",
+      "schema_transition_class_id": "schema_transition.exact_identity.v1",
+      "compatibility_status": "exact_compatible",
+      "proof_receipt_id": "proof.plugin_result.text_stats.v1",
+      "observational_audit_id": "audit.plugin_result.text_stats.observed.v1",
+      "semantic_closure_preserved": true,
+      "detail": "exact text-stats outputs stay digest-bound to one explicit model-visible state without widening packet-local counting into tokenizer or semantic claims."
+    },
+    {
       "case_id": "html_extract_backward_compatible_binding",
       "plugin_id": "plugin.html_extract",
       "model_version_id": "tassadar.weighted_plugin_controller.schema_set.v1",
@@ -96,6 +112,16 @@
       "observational_audit_kind_id": "observational_audit.replayed_output_observation.v1",
       "proof_required_for_reinjection": true,
       "detail": "fetch-text reinjection requires the proof-carrying receipt while keeping the observational audit separate and non-authoritative."
+    },
+    {
+      "boundary_id": "proof_vs_observational_text_stats",
+      "case_id": "text_stats_exact_binding",
+      "proof_receipt_id": "proof.plugin_result.text_stats.v1",
+      "observational_audit_id": "audit.plugin_result.text_stats.observed.v1",
+      "proof_carrying_guarantee_id": "proof_guarantee.digest_bound_result_binding.v1",
+      "observational_audit_kind_id": "observational_audit.replayed_output_observation.v1",
+      "proof_required_for_reinjection": true,
+      "detail": "text-stats reinjection requires a proof-carrying receipt while keeping observational confirmation separate from authoritative binding truth."
     },
     {
       "boundary_id": "observational_only_backward_compatibility_projection",
@@ -219,6 +245,6 @@
     }
   ],
   "claim_boundary": "this runtime bundle freezes the canonical post-article plugin result-binding, schema-stability, and composition evidence above the host-owned runtime API and invocation-receipt layer. It keeps explicit output-to-state digest binding, backward-compatible schema evolution, typed refusal normalization, proof-versus-observational result boundaries, semantic closure under multi-step chaining, non-lossy schema transitions, and fail-closed ambiguity or coercion posture machine-readable while keeping weighted plugin sequencing, plugin publication, served/public universality, and arbitrary software capability blocked.",
-  "summary": "Post-article plugin result-binding bundle covers binding_rows=5, evidence_boundary_rows=3, composition_rows=4, negative_rows=4.",
-  "bundle_digest": "9fe1b2f74abc43b6032198fcf5d5ebae3fb663bc13cbd17c96e90b5e1a1b1cd9"
+  "summary": "Post-article plugin result-binding bundle covers binding_rows=6, evidence_boundary_rows=4, composition_rows=4, negative_rows=4.",
+  "bundle_digest": "5b6443f778b979ea119e6fe4f134232b8cc6bfc4140279846318a865c84b5d9e"
 }

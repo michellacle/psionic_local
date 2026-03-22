@@ -27,7 +27,7 @@
     "continuation_contract_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
     "computational_model_statement_id": "tassadar.post_article.canonical_computational_model.statement.v1",
     "admissibility_report_id": "tassadar.post_article_plugin_world_mount_envelope_compiler_and_admissibility.report.v1",
-    "admissibility_report_digest": "3ed947e17406bfbfc036e32a7199b05b4a6fdf710d6d113541dbd0792d1ffcb7",
+    "admissibility_report_digest": "1d3fb2744cc81b6c965c914ce7593fb369b6a1382a1c70e0b343340b037b7879",
     "packet_abi_version": "packet.v1",
     "host_owned_runtime_api_id": "tassadar.plugin_runtime.host_owned_api.v1",
     "engine_abstraction_id": "tassadar.plugin_runtime.engine_abstraction.v1",
@@ -640,7 +640,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json",
       "bound_report_id": "tassadar.post_article_plugin_world_mount_envelope_compiler_and_admissibility.report.v1",
-      "bound_report_digest": "3ed947e17406bfbfc036e32a7199b05b4a6fdf710d6d113541dbd0792d1ffcb7",
+      "bound_report_digest": "1d3fb2744cc81b6c965c914ce7593fb369b6a1382a1c70e0b343340b037b7879",
       "detail": "the earlier admissibility contract is green and no longer defers TAS-203."
     },
     {
@@ -1434,5 +1434,5 @@
   "deferred_issue_ids": [],
   "claim_boundary": "this sandbox report freezes the canonical post-article plugin conformance sandbox and benchmark harness above the admissibility contract. It keeps static host-scripted conformance traces, typed refusal and limit behavior, workflow integrity, explicit envelope intersection, hot-swap compatibility, failure-domain isolation, side-channel and covert-channel negatives, and benchmark-path evidence machine-readable while keeping weighted plugin sequencing, plugin publication, served/public universality, and arbitrary software capability blocked.",
   "summary": "Post-article plugin conformance sandbox report keeps contract_status=Green, dependency_rows=6, conformance_rows=9, workflow_rows=5, isolation_negative_rows=8, benchmark_rows=7, validation_rows=12, and deferred_issue_ids=0.",
-  "report_digest": "58d9edbb99eff075439981b16dfd1008848a527734462729d94def2e3c03e931"
+  "report_digest": "119ce6b0498465ff821f0162f22b3435734a7aabb273052deb9cb33bf910af58"
 }

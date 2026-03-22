@@ -282,8 +282,8 @@ mod tests {
                 .expect("summary");
 
         assert_eq!(summary.dependency_row_count, 5);
-        assert_eq!(summary.controller_case_row_count, 4);
-        assert_eq!(summary.control_trace_row_count, 34);
+        assert_eq!(summary.controller_case_row_count, 5);
+        assert_eq!(summary.control_trace_row_count, 40);
         assert_eq!(summary.host_negative_row_count, 10);
         assert_eq!(summary.validation_row_count, 10);
         assert!(summary.closure_bundle_bound_by_digest);

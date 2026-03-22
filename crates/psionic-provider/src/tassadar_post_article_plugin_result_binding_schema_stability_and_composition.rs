@@ -115,8 +115,8 @@ mod tests {
             receipt.model_loop_return_profile_id,
             "tassadar.weighted_plugin.model_loop_return_profile.v1"
         );
-        assert_eq!(receipt.binding_row_count, 5);
-        assert_eq!(receipt.evidence_boundary_row_count, 3);
+        assert_eq!(receipt.binding_row_count, 6);
+        assert_eq!(receipt.evidence_boundary_row_count, 4);
         assert_eq!(receipt.composition_row_count, 4);
         assert_eq!(receipt.negative_row_count, 4);
         assert_eq!(receipt.validation_row_count, 12);

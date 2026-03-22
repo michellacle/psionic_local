@@ -304,14 +304,26 @@ pub fn build_tassadar_post_article_weighted_plugin_controller_trace_and_refusal_
                 == result_binding.machine_identity_binding.result_binding_contract_id
                 && runtime_bundle.model_loop_return_profile_id
                     == result_binding.machine_identity_binding.model_loop_return_profile_id
+                && runtime_bundle.starter_plugin_admission_rows.iter().any(|row| {
+                    row.plugin_id == "plugin.text.stats"
+                        && row.derived_from_shared_registration
+                        && row.derived_from_catalog_exposure
+                })
                 && runtime_bundle.control_trace_rows.iter().any(|row| {
                     row.control_token_kind == TassadarPostArticleWeightedPluginControlTokenKind::Retry
                         && row.decision_owner_id == "model_weights"
+                })
+                && runtime_bundle.control_trace_rows.iter().any(|row| {
+                    row.case_id == "text_stats_stop_after_success"
+                        && row.control_token_kind
+                            == TassadarPostArticleWeightedPluginControlTokenKind::PluginSelect
+                        && row.decision_owner_id == "model_weights"
+                        && row.plugin_id.as_deref() == Some("plugin.text.stats")
                 }),
             TASSADAR_POST_ARTICLE_WEIGHTED_PLUGIN_CONTROLLER_TRACE_AND_REFUSAL_AWARE_MODEL_LOOP_BUNDLE_REF,
             Some(runtime_bundle.bundle_id.clone()),
             Some(runtime_bundle.bundle_digest.clone()),
-            "the runtime bundle must carry explicit plugin selection, refusal, retry, continue, and stop rows against the same result-binding contract ids.",
+            "the runtime bundle must carry explicit plugin selection, refusal, retry, continue, and stop rows against the same result-binding contract ids, and it must admit at least one user-added capability-free starter plugin from the shared registration and catalog path into the canonical weighted controller lane.",
         ),
         dependency_row(
             "plugin_system_spec_declared",
@@ -940,14 +952,20 @@ mod tests {
             "tassadar.post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop.report.v1"
         );
         assert_eq!(report.dependency_rows.len(), 6);
-        assert_eq!(report.controller_case_rows.len(), 4);
-        assert_eq!(report.control_trace_rows.len(), 34);
+        assert_eq!(report.runtime_bundle.starter_plugin_admission_rows.len(), 1);
+        assert_eq!(report.controller_case_rows.len(), 5);
+        assert_eq!(report.control_trace_rows.len(), 40);
         assert_eq!(report.host_negative_rows.len(), 10);
         assert_eq!(report.validation_rows.len(), 12);
         assert!(report.contract_green);
         assert!(report.weighted_plugin_control_allowed);
         assert!(!report.plugin_capability_claim_allowed);
         assert!(report.deferred_issue_ids.is_empty());
+        assert!(report
+            .runtime_bundle
+            .starter_plugin_admission_rows
+            .iter()
+            .any(|row| row.plugin_id == "plugin.text.stats"));
         assert_eq!(
             report.machine_identity_binding.control_trace_contract_id,
             "tassadar.weighted_plugin.controller_trace_contract.v1"

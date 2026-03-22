@@ -33,6 +33,9 @@ trace that:
   heuristic ranking, schema auto-repair, cached result substitution, candidate
   precomputation, hidden top-k filtering, helper substitution, and runtime
   policy drift on explicit blocked lanes
+- now also admits one shared-registry user-added capability-free starter
+  plugin, `plugin.text.stats`, through one bounded admission row and one
+  explicit model-selected success trace on the canonical weighted lane
 
 ## What This Still Does Not Claim
 

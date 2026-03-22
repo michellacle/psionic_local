@@ -13,8 +13,8 @@
   "runtime_bundle_id": "tassadar.post_article_plugin_result_binding_schema_stability_and_composition.runtime_bundle.v1",
   "contract_status": "green",
   "dependency_row_count": 7,
-  "binding_row_count": 5,
-  "evidence_boundary_row_count": 3,
+  "binding_row_count": 6,
+  "evidence_boundary_row_count": 4,
   "composition_row_count": 4,
   "negative_row_count": 4,
   "validation_row_count": 12,
@@ -28,6 +28,6 @@
   "plugin_publication_allowed": false,
   "served_public_universality_allowed": false,
   "arbitrary_software_capability_allowed": false,
-  "detail": "post-article plugin result-binding summary keeps machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, result_binding_contract_id=`tassadar.weighted_plugin.result_binding_contract.v1`, contract_status=Green, binding_rows=5, composition_rows=4, and deferred_issue_ids=0.",
-  "summary_digest": "c865e3bcf6f7596d37f038bdfa199f19b1d0e238138e721655a34d53d8d57938"
+  "detail": "post-article plugin result-binding summary keeps machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, result_binding_contract_id=`tassadar.weighted_plugin.result_binding_contract.v1`, contract_status=Green, binding_rows=6, composition_rows=4, and deferred_issue_ids=0.",
+  "summary_digest": "45b76531aac90686bd186f79658423fb4f6d4efe93091d049cd63ea554435eae"
 }

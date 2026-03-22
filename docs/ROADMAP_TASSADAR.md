@@ -418,11 +418,14 @@ Current honest posture:
   including explicit model ownership over plugin selection, export selection,
   packet-argument construction, continuation, retry, refusal, and stop
   conditions, explicit determinism and external-signal boundaries, and
-  explicit host-negative planner attacks; this tranche turns weighted plugin
-  control green on the canonical route, clears the controller defer pointer to
-  empty, with the later bridge reservation frontier now at `TAS-216`, and still
-  keeps bounded plugin-platform closeout, plugin publication, served/public
-  universality, and arbitrary software capability blocked
+  explicit host-negative planner attacks. The same bundle now also admits the
+  shared-registry `plugin.text.stats` user-added starter plugin through one
+  bounded capability-free admission row and one explicit model-selected
+  success trace; this tranche turns weighted plugin control green on the
+  canonical route, clears the controller defer pointer to empty, with the
+  later bridge reservation frontier now at `TAS-216`, and still keeps bounded
+  plugin-platform closeout, plugin publication, served/public universality,
+  and arbitrary software capability blocked
 - the repo now also has one post-article plugin authority, promotion,
   publication, and trust-tier gate, with a committed catalog-owned report at
   `fixtures/tassadar/reports/tassadar_post_article_plugin_authority_promotion_publication_and_trust_tier_gate_report.json`,

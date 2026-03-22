@@ -616,6 +616,13 @@ pub enum StarterPluginAuthoringClass {
     NetworkedReadOnly,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum StarterPluginOriginClass {
+    OperatorBuiltin,
+    UserAdded,
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct StarterPluginCatalogRegistration {
     pub catalog_entry_id: &'static str,
@@ -640,6 +647,7 @@ pub struct StarterPluginRegistration {
     pub replay_class_id: &'static str,
     pub capability_class: StarterPluginCapabilityClass,
     pub authoring_class: StarterPluginAuthoringClass,
+    pub origin_class: StarterPluginOriginClass,
     pub capability_namespace_ids: &'static [&'static str],
     pub negative_claim_ids: &'static [&'static str],
     pub mount_envelope_id: &'static str,
@@ -733,6 +741,7 @@ const STARTER_PLUGIN_REGISTRATIONS: &[StarterPluginRegistration] = &[
         replay_class_id: "deterministic_replayable",
         capability_class: StarterPluginCapabilityClass::LocalDeterministic,
         authoring_class: StarterPluginAuthoringClass::CapabilityFreeLocalDeterministic,
+        origin_class: StarterPluginOriginClass::OperatorBuiltin,
         capability_namespace_ids: NO_CAPABILITY_NAMESPACE_IDS,
         negative_claim_ids: URL_EXTRACT_NEGATIVE_CLAIM_IDS,
         mount_envelope_id: "mount.plugin.text.url_extract.no_capabilities.v1",
@@ -766,6 +775,7 @@ const STARTER_PLUGIN_REGISTRATIONS: &[StarterPluginRegistration] = &[
         replay_class_id: "deterministic_replayable",
         capability_class: StarterPluginCapabilityClass::LocalDeterministic,
         authoring_class: StarterPluginAuthoringClass::CapabilityFreeLocalDeterministic,
+        origin_class: StarterPluginOriginClass::UserAdded,
         capability_namespace_ids: NO_CAPABILITY_NAMESPACE_IDS,
         negative_claim_ids: TEXT_STATS_NEGATIVE_CLAIM_IDS,
         mount_envelope_id: "mount.plugin.text.stats.no_capabilities.v1",
@@ -799,6 +809,7 @@ const STARTER_PLUGIN_REGISTRATIONS: &[StarterPluginRegistration] = &[
         replay_class_id: "replayable_with_snapshots",
         capability_class: StarterPluginCapabilityClass::ReadOnlyNetwork,
         authoring_class: StarterPluginAuthoringClass::NetworkedReadOnly,
+        origin_class: StarterPluginOriginClass::OperatorBuiltin,
         capability_namespace_ids: FETCH_TEXT_CAPABILITY_NAMESPACE_IDS,
         negative_claim_ids: FETCH_TEXT_NEGATIVE_CLAIM_IDS,
         mount_envelope_id: "mount.plugin.http.fetch_text.read_only_http_allowlist.v1",
@@ -832,6 +843,7 @@ const STARTER_PLUGIN_REGISTRATIONS: &[StarterPluginRegistration] = &[
         replay_class_id: "deterministic_replayable",
         capability_class: StarterPluginCapabilityClass::LocalDeterministic,
         authoring_class: StarterPluginAuthoringClass::CapabilityFreeLocalDeterministic,
+        origin_class: StarterPluginOriginClass::OperatorBuiltin,
         capability_namespace_ids: NO_CAPABILITY_NAMESPACE_IDS,
         negative_claim_ids: EXTRACT_READABLE_NEGATIVE_CLAIM_IDS,
         mount_envelope_id: "mount.plugin.html.extract_readable.no_capabilities.v1",
@@ -865,6 +877,7 @@ const STARTER_PLUGIN_REGISTRATIONS: &[StarterPluginRegistration] = &[
         replay_class_id: "deterministic_replayable",
         capability_class: StarterPluginCapabilityClass::LocalDeterministic,
         authoring_class: StarterPluginAuthoringClass::CapabilityFreeLocalDeterministic,
+        origin_class: StarterPluginOriginClass::OperatorBuiltin,
         capability_namespace_ids: NO_CAPABILITY_NAMESPACE_IDS,
         negative_claim_ids: FEED_PARSE_NEGATIVE_CLAIM_IDS,
         mount_envelope_id: "mount.plugin.feed.rss_atom_parse.no_capabilities.v1",
@@ -946,6 +959,30 @@ pub fn networked_starter_plugin_registrations() -> Vec<&'static StarterPluginReg
         .iter()
         .filter(|registration| {
             registration.authoring_class == StarterPluginAuthoringClass::NetworkedReadOnly
+        })
+        .collect()
+}
+
+#[must_use]
+pub fn user_added_starter_plugin_registrations() -> Vec<&'static StarterPluginRegistration> {
+    STARTER_PLUGIN_REGISTRATIONS
+        .iter()
+        .filter(|registration| registration.origin_class == StarterPluginOriginClass::UserAdded)
+        .collect()
+}
+
+#[must_use]
+pub fn weighted_controller_admissible_user_added_starter_plugin_registrations(
+) -> Vec<&'static StarterPluginRegistration> {
+    STARTER_PLUGIN_REGISTRATIONS
+        .iter()
+        .filter(|registration| {
+            registration.origin_class == StarterPluginOriginClass::UserAdded
+                && registration.authoring_class
+                    == StarterPluginAuthoringClass::CapabilityFreeLocalDeterministic
+                && registration.bridge_exposed
+                && registration.catalog_exposed
+                && registration.catalog.is_some()
         })
         .collect()
 }
@@ -3420,13 +3457,15 @@ mod tests {
         tassadar_post_article_plugin_http_fetch_text_runtime_bundle_path,
         tassadar_post_article_plugin_text_stats_runtime_bundle_path,
         tassadar_post_article_plugin_text_url_extract_runtime_bundle_path,
+        user_added_starter_plugin_registrations,
+        weighted_controller_admissible_user_added_starter_plugin_registrations,
         write_extract_readable_runtime_bundle, write_feed_parse_runtime_bundle,
         write_fetch_text_runtime_bundle, write_text_stats_runtime_bundle,
         write_url_extract_runtime_bundle, ExtractReadableConfig, ExtractReadableRuntimeCaseStatus,
         FeedParseConfig, FeedParseRuntimeCaseStatus, FetchTextConfig, FetchTextRuntimeCaseStatus,
         FetchTextSnapshotResponse, FetchTextSnapshotResult, StarterPluginAuthoringClass,
-        TextStatsConfig, TextStatsRuntimeCaseStatus, UrlExtractConfig, UrlExtractRuntimeCaseStatus,
-        STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_OUTPUT_SCHEMA_ID,
+        StarterPluginOriginClass, TextStatsConfig, TextStatsRuntimeCaseStatus, UrlExtractConfig,
+        UrlExtractRuntimeCaseStatus, STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_OUTPUT_SCHEMA_ID,
         STARTER_PLUGIN_HTML_EXTRACT_READABLE_OUTPUT_SCHEMA_ID,
         STARTER_PLUGIN_HTTP_FETCH_TEXT_OUTPUT_SCHEMA_ID,
         STARTER_PLUGIN_REFUSAL_CONTENT_TYPE_UNSUPPORTED_ID,
@@ -3452,10 +3491,19 @@ mod tests {
         assert_eq!(catalog_exposed_starter_plugin_registrations().len(), 5);
         assert_eq!(capability_free_starter_plugin_registrations().len(), 4);
         assert_eq!(networked_starter_plugin_registrations().len(), 1);
+        assert_eq!(user_added_starter_plugin_registrations().len(), 1);
+        assert_eq!(
+            weighted_controller_admissible_user_added_starter_plugin_registrations().len(),
+            1
+        );
         assert_eq!(registration.tool_name, "plugin_text_stats");
         assert_eq!(
             registration.authoring_class,
             StarterPluginAuthoringClass::CapabilityFreeLocalDeterministic
+        );
+        assert_eq!(
+            registration.origin_class,
+            StarterPluginOriginClass::UserAdded
         );
         assert!(registration.bridge_exposed);
         assert!(registration.catalog_exposed);

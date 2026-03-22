@@ -82,6 +82,10 @@ Every capability-free starter plugin needs the same bounded runtime pieces in
 The runtime is the source of truth. Bridge, catalog, and later controller
 surfaces derive from that registration instead of inventing parallel metadata.
 
+The registry now also carries a machine-readable `origin_class`. Use
+`operator_builtin` for the original repo-owned starter set and `user_added`
+for new contributor-authored starter plugins such as `plugin.text.stats`.
+
 ## Minimum Registration Template
 
 Use the central registry row as the canonical contract:
@@ -97,6 +101,7 @@ StarterPluginRegistration {
     replay_class_id: "deterministic_replayable",
     capability_class: StarterPluginCapabilityClass::LocalDeterministic,
     capability_namespace_ids: NO_CAPABILITY_NAMESPACE_IDS,
+    origin_class: StarterPluginOriginClass::UserAdded,
     negative_claim_ids: EXAMPLE_NEGATIVE_CLAIM_IDS,
     mount_envelope_id: "mount.plugin.example.words.no_capabilities.v1",
     manifest_id: "manifest.plugin.example.words.v1",
@@ -114,6 +119,12 @@ StarterPluginRegistration {
 Start with `bridge_exposed = false` and `catalog_exposed = false` if the new
 plugin is runtime-only. Later issues or explicit follow-on work can widen it to
 the shared bridge, catalog, and controller lanes.
+
+For the bounded canonical weighted-controller lane, the current admission rule
+is also explicit: only `user_added` starter plugins that are
+`capability_free_local_deterministic`, bridge-exposed, and catalog-exposed are
+eligible for the shared admission helper consumed by the weighted-controller
+trace.
 
 ## Refusal Contract
 

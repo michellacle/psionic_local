@@ -147,6 +147,20 @@ pub fn build_tassadar_post_article_plugin_result_binding_schema_stability_and_co
             "exact fetch-text outputs stay digest-bound to one explicit model-visible state without adapter rewriting.",
         ),
         binding_case(
+            "text_stats_exact_binding",
+            "plugin.text.stats",
+            "tassadar.weighted_plugin_controller.schema_set.v1",
+            "plugin.text.stats.output.v1",
+            "model_state.plugin_result.text_stats.v1",
+            "schema_transition.exact_identity.v1",
+            TassadarPostArticlePluginResultBindingCompatibilityStatus::ExactCompatible,
+            Some("proof.plugin_result.text_stats.v1"),
+            Some("audit.plugin_result.text_stats.observed.v1"),
+            None,
+            true,
+            "exact text-stats outputs stay digest-bound to one explicit model-visible state without widening packet-local counting into tokenizer or semantic claims.",
+        ),
+        binding_case(
             "html_extract_backward_compatible_binding",
             "plugin.html_extract",
             "tassadar.weighted_plugin_controller.schema_set.v1",
@@ -214,6 +228,16 @@ pub fn build_tassadar_post_article_plugin_result_binding_schema_stability_and_co
             "observational_audit.replayed_output_observation.v1",
             true,
             "fetch-text reinjection requires the proof-carrying receipt while keeping the observational audit separate and non-authoritative.",
+        ),
+        evidence_boundary(
+            "proof_vs_observational_text_stats",
+            "text_stats_exact_binding",
+            Some("proof.plugin_result.text_stats.v1"),
+            Some("audit.plugin_result.text_stats.observed.v1"),
+            "proof_guarantee.digest_bound_result_binding.v1",
+            "observational_audit.replayed_output_observation.v1",
+            true,
+            "text-stats reinjection requires a proof-carrying receipt while keeping observational confirmation separate from authoritative binding truth.",
         ),
         evidence_boundary(
             "observational_only_backward_compatibility_projection",
@@ -606,14 +630,19 @@ mod tests {
             bundle.model_loop_return_profile_id,
             TASSADAR_POST_ARTICLE_PLUGIN_MODEL_LOOP_RETURN_PROFILE_ID
         );
-        assert_eq!(bundle.binding_rows.len(), 5);
-        assert_eq!(bundle.evidence_boundary_rows.len(), 3);
+        assert_eq!(bundle.binding_rows.len(), 6);
+        assert_eq!(bundle.evidence_boundary_rows.len(), 4);
         assert_eq!(bundle.composition_rows.len(), 4);
         assert_eq!(bundle.negative_rows.len(), 4);
         assert!(bundle
             .binding_rows
             .iter()
             .all(|row| row.semantic_closure_preserved));
+        assert!(bundle
+            .binding_rows
+            .iter()
+            .any(|row| row.case_id == "text_stats_exact_binding"
+                && row.plugin_id == "plugin.text.stats"));
         assert!(bundle.binding_rows.iter().any(|row| {
             row.compatibility_status
                 == TassadarPostArticlePluginResultBindingCompatibilityStatus::VersionSkewBlocked

@@ -24,7 +24,7 @@
     "continuation_contract_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
     "computational_model_statement_id": "tassadar.post_article.canonical_computational_model.statement.v1",
     "sandbox_report_id": "tassadar.post_article_plugin_conformance_sandbox_and_benchmark_harness.report.v1",
-    "sandbox_report_digest": "58d9edbb99eff075439981b16dfd1008848a527734462729d94def2e3c03e931",
+    "sandbox_report_digest": "119ce6b0498465ff821f0162f22b3435734a7aabb273052deb9cb33bf910af58",
     "packet_abi_version": "packet.v1",
     "host_owned_runtime_api_id": "tassadar.plugin_runtime.host_owned_api.v1",
     "engine_abstraction_id": "tassadar.plugin_runtime.engine_abstraction.v1",
@@ -45,7 +45,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_report.json",
       "bound_report_id": "tassadar.post_article_plugin_conformance_sandbox_and_benchmark_harness.report.v1",
-      "bound_report_digest": "58d9edbb99eff075439981b16dfd1008848a527734462729d94def2e3c03e931",
+      "bound_report_digest": "119ce6b0498465ff821f0162f22b3435734a7aabb273052deb9cb33bf910af58",
       "detail": "the sandbox-owned conformance contract is green and carries the declared conformance, workflow, isolation, and benchmark rows."
     },
     {
@@ -54,7 +54,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility_report.json",
       "bound_report_id": "tassadar.post_article_plugin_world_mount_envelope_compiler_and_admissibility.report.v1",
-      "bound_report_digest": "3ed947e17406bfbfc036e32a7199b05b4a6fdf710d6d113541dbd0792d1ffcb7",
+      "bound_report_digest": "1d3fb2744cc81b6c965c914ce7593fb369b6a1382a1c70e0b343340b037b7879",
       "detail": "the earlier admissibility contract is green and no longer defers TAS-203."
     },
     {
@@ -830,5 +830,5 @@
   "deferred_issue_ids": [],
   "claim_boundary": "this eval-owned harness freezes the canonical post-article plugin conformance sandbox and benchmark evidence above the admissibility contract. It keeps static host-scripted conformance rows, workflow rows, failure-domain and side-channel negative rows, and cold or warm or pooled or queued or cancelled benchmark paths machine-readable while keeping weighted plugin sequencing, plugin publication, served/public universality, and arbitrary software capability blocked.",
   "summary": "Post-article plugin conformance eval report keeps contract_status=Green, dependency_rows=7, conformance_rows=9, workflow_rows=5, isolation_negative_rows=8, benchmark_rows=7, validation_rows=11, and deferred_issue_ids=0.",
-  "report_digest": "3970864b77253dcce9ca28fce3d4057f3e71824f61e6941e9af4672ebbf5a3db"
+  "report_digest": "333963010f7fbc04b4f220ca47d95ea4827517aacf3f59ec6ae9975c40afe101"
 }

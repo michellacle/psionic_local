@@ -800,8 +800,8 @@ mod tests {
             "tassadar.weighted_plugin.model_loop_return_profile.v1"
         );
         assert_eq!(report.dependency_rows.len(), 7);
-        assert_eq!(report.binding_rows.len(), 5);
-        assert_eq!(report.evidence_boundary_rows.len(), 3);
+        assert_eq!(report.binding_rows.len(), 6);
+        assert_eq!(report.evidence_boundary_rows.len(), 4);
         assert_eq!(report.composition_rows.len(), 4);
         assert_eq!(report.negative_rows.len(), 4);
         assert_eq!(report.validation_rows.len(), 12);
