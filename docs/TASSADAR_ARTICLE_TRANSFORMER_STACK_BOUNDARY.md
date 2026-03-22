@@ -1064,8 +1064,8 @@ and the dedicated checker now lives at
 `scripts/check-tassadar-post-article-weighted-plugin-controller-trace-and-refusal-aware-model-loop.sh`.
 This tranche turns weighted plugin control green on the canonical route,
 clears the `TAS-203A` defer pointer to empty, clears the controller defer
-pointer to empty, moves the reserved bridge capability frontier to `TAS-207`,
-and still does not admit bounded plugin-platform closeout, plugin
+pointer to empty, with the current reserved bridge capability frontier now at
+`TAS-208`, and still does not admit bounded plugin-platform closeout, plugin
 publication, served/public universality, or arbitrary software capability.
 
 `TAS-205` now closes the canonical plugin authority, promotion, publication,
@@ -1110,6 +1110,29 @@ operator/internal plugin platform, clears the TAS-205 defer pointer to empty,
 keeps plugin publication suppressed, keeps served/public universality false,
 keeps arbitrary software capability false, and still keeps the final
 claim-bearing canonical machine closure bundle separate for `TAS-215`.
+
+`TAS-207` now closes the canonical machine identity lock at
+`fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_report.json`.
+That eval-owned contract freezes one globally named post-article machine tuple
+over model id, weight digest, route digest, continuation contract, and a
+transformer-owned carrier class, then binds the bridge, bounded article
+benchmark route, route-preservation audit, carrier split, control-plane proof,
+universal-machine proof rebinding, witness-suite reissue, universal-substrate
+gate, portability/minimality matrix, rebased verdict split, post-article
+Turing closeout, plugin receipts, weighted controller trace, conformance
+harness, authority gate, and bounded platform closeout to that same tuple. It
+also keeps legacy partial-tuple artifacts explicit by rebinding them through
+machine-readable lock rows instead of implying inheritance, refuses mixed-
+carrier recomposition, keeps plugin publication and served/public universality
+suppressed, and still keeps the final claim-bearing canonical machine closure
+bundle separate for `TAS-215`. The operator-readable summary now lives at
+`fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_summary.json`,
+the provider receipt now lives at
+`crates/psionic-provider/src/tassadar_post_article_canonical_machine_identity_lock.rs`,
+the transformer-owned anchor contract now lives at
+`crates/psionic-transformer/src/tassadar_post_article_canonical_machine_identity_lock_contract.rs`,
+and the dedicated checker now lives at
+`scripts/check-tassadar-post-article-canonical-machine-identity-lock.sh`.
 
 ## Route Requirement
 

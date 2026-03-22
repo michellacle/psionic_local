@@ -420,7 +420,7 @@ Current honest posture:
   conditions, explicit determinism and external-signal boundaries, and
   explicit host-negative planner attacks; this tranche turns weighted plugin
   control green on the canonical route, clears the controller defer pointer to
-  empty, moves the later bridge reservation frontier to `TAS-207`, and still
+  empty, with the later bridge reservation frontier now at `TAS-208`, and still
   keeps bounded plugin-platform closeout, plugin publication, served/public
   universality, and arbitrary software capability blocked
 - the repo now also has one post-article plugin authority, promotion,
@@ -455,6 +455,20 @@ Current honest posture:
   keeps plugin publication suppressed, keeps served/public universality false,
   keeps arbitrary software capability false, and still keeps the final
   canonical machine closure bundle separate for `TAS-215`
+- the repo now also has one post-article canonical machine identity lock, with
+  a committed eval report at
+  `fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_report.json`,
+  a disclosure-safe research summary at
+  `fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_summary.json`,
+  a transformer-owned anchor contract, a provider-facing receipt, a dedicated
+  checker script, and an audit note that freeze one globally named machine
+  tuple above the bridge, benchmark route, proof and witness chain, plugin
+  receipts, controller traces, authority posture, and bounded platform
+  closeout, explicitly rebind legacy partial-tuple artifacts by digest
+  instead of leaving identity inheritance implicit, refuse mixed-carrier
+  recomposition, and still keep plugin publication, served/public
+  universality, arbitrary software capability, and the final claim-bearing
+  canonical machine closure bundle out of scope
 - the repo now also has one post-article Turing-completeness closeout audit,
   with a committed eval report at
   `fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json`,
@@ -669,7 +683,7 @@ Issue-state note:
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
 - `TAS-157` through `TAS-205` are now implemented and tracked in
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
-- `TAS-207` through `TAS-226` remain open in GitHub and are tracked via the
+- `TAS-208` through `TAS-226` remain open in GitHub and are tracked via the
   issue bodies plus `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
 
 ## Repo-Local Companion Docs

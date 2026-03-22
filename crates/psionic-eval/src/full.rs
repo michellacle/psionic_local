@@ -260,10 +260,12 @@ mod tassadar_numeric_portability;
 mod tassadar_owned_transformer_stack_audit;
 #[path = "tassadar_pointer_memory_scratchpad.rs"]
 mod tassadar_pointer_memory_scratchpad;
-#[path = "tassadar_post_article_canonical_route_semantic_preservation_audit.rs"]
-mod tassadar_post_article_canonical_route_semantic_preservation_audit;
 #[path = "tassadar_post_article_bounded_weighted_plugin_platform_closeout_audit.rs"]
 mod tassadar_post_article_bounded_weighted_plugin_platform_closeout_audit;
+#[path = "tassadar_post_article_canonical_machine_identity_lock.rs"]
+mod tassadar_post_article_canonical_machine_identity_lock;
+#[path = "tassadar_post_article_canonical_route_semantic_preservation_audit.rs"]
+mod tassadar_post_article_canonical_route_semantic_preservation_audit;
 #[path = "tassadar_post_article_canonical_route_universal_substrate_gate.rs"]
 mod tassadar_post_article_canonical_route_universal_substrate_gate;
 #[path = "tassadar_post_article_carrier_split_contract.rs"]
@@ -524,6 +526,7 @@ pub use tassadar_numeric_portability::*;
 pub use tassadar_owned_transformer_stack_audit::*;
 pub use tassadar_pointer_memory_scratchpad::*;
 pub use tassadar_post_article_bounded_weighted_plugin_platform_closeout_audit::*;
+pub use tassadar_post_article_canonical_machine_identity_lock::*;
 pub use tassadar_post_article_canonical_route_semantic_preservation_audit::*;
 pub use tassadar_post_article_canonical_route_universal_substrate_gate::*;
 pub use tassadar_post_article_carrier_split_contract::*;

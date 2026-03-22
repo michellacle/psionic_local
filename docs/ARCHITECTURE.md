@@ -1470,7 +1470,7 @@ The current scope is:
   hidden top-k filtering, helper substitution, and runtime policy drift.
   This turns weighted plugin control green on the canonical route, clears the
   controller defer pointer to empty, moves the reserved bridge frontier to
-  `TAS-207`, and still leaves bounded plugin-platform closeout, publication,
+  `TAS-208`, and still leaves bounded plugin-platform closeout, publication,
   served/public universality, and arbitrary software capability blocked.
 - the current post-article plugin authority, promotion, publication, and
   trust-tier artifacts are
@@ -1510,6 +1510,25 @@ The current scope is:
   suppressed, keeps served/public universality false, keeps arbitrary
   software capability false, and still keeps the final canonical machine
   closure bundle separate for `TAS-215`.
+- the current post-article canonical machine identity lock artifacts are
+  `fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_report.json`,
+  `fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_summary.json`,
+  the transformer-owned anchor contract in
+  `crates/psionic-transformer/src/tassadar_post_article_canonical_machine_identity_lock_contract.rs`,
+  the provider receipt in
+  `crates/psionic-provider/src/tassadar_post_article_canonical_machine_identity_lock.rs`,
+  the checker script
+  `scripts/check-tassadar-post-article-canonical-machine-identity-lock.sh`,
+  and the audit note
+  `docs/audits/2026-03-21-tassadar-post-article-canonical-machine-identity-lock.md`,
+  which freeze one globally named canonical machine tuple above the bridge,
+  route, proof, witness, receipt, controller, and bounded platform surfaces,
+  explicitly rebind legacy partial-tuple artifacts by digest instead of
+  leaving inheritance implicit, refuse mixed-carrier recomposition, keep the
+  current claim posture bounded to the already-green rebased and bounded
+  plugin-platform statements, and still leave plugin publication, served/public
+  universality, arbitrary software capability, and the final claim-bearing
+  canonical machine closure bundle blocked or separated.
 - the current post-article Turing-completeness closeout artifacts are
   `fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json`,
   `fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_summary.json`,

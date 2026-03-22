@@ -1,0 +1,991 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.post_article_canonical_machine_identity_lock.report.v1",
+  "checker_script_ref": "scripts/check-tassadar-post-article-canonical-machine-identity-lock.sh",
+  "transformer_anchor_contract_ref": "crates/psionic-transformer/src/tassadar_post_article_canonical_machine_identity_lock_contract.rs",
+  "tcm_v1_model_ref": "fixtures/tassadar/reports/tassadar_tcm_v1_model.json",
+  "article_equivalence_acceptance_gate_report_ref": "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json",
+  "bridge_contract_report_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
+  "canonical_route_semantic_preservation_audit_report_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_route_semantic_preservation_audit_report.json",
+  "carrier_split_contract_report_ref": "fixtures/tassadar/reports/tassadar_post_article_carrier_split_contract_report.json",
+  "control_plane_decision_provenance_proof_report_ref": "fixtures/tassadar/reports/tassadar_post_article_control_plane_decision_provenance_proof_report.json",
+  "universal_machine_proof_rebinding_report_ref": "fixtures/tassadar/reports/tassadar_post_article_universal_machine_proof_rebinding_report.json",
+  "universality_witness_suite_reissue_report_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_witness_suite_reissue_report.json",
+  "canonical_route_universal_substrate_gate_report_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_route_universal_substrate_gate_report.json",
+  "universality_portability_minimality_matrix_report_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_portability_minimality_matrix_report.json",
+  "rebased_universality_verdict_split_report_ref": "fixtures/tassadar/reports/tassadar_post_article_rebased_universality_verdict_split_report.json",
+  "turing_completeness_closeout_audit_report_ref": "fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json",
+  "plugin_invocation_receipts_and_replay_classes_report_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_invocation_receipts_and_replay_classes_report.json",
+  "weighted_plugin_controller_trace_eval_report_ref": "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report.json",
+  "plugin_conformance_sandbox_and_benchmark_harness_eval_report_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_eval_report.json",
+  "plugin_authority_promotion_publication_and_trust_tier_gate_report_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_authority_promotion_publication_and_trust_tier_gate_report.json",
+  "bounded_weighted_plugin_platform_closeout_audit_report_ref": "fixtures/tassadar/reports/tassadar_post_article_bounded_weighted_plugin_platform_closeout_audit_report.json",
+  "post_article_turing_audit_ref": "docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md",
+  "plugin_system_turing_audit_ref": "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md",
+  "canonical_machine_lock_contract": {
+    "schema_version": 1,
+    "contract_id": "tassadar.post_article.canonical_machine_identity_lock.contract.v1",
+    "tuple_id": "tassadar.post_article.canonical_machine_identity_lock.tuple.v1",
+    "carrier_class_id": "tassadar.post_article.canonical_machine.closure_bundle_bound_rebased_route_identity.v1",
+    "carrier_class_statement": "the canonical machine carrier class is one closure-bundle-bound rebased route identity above the owned transformer stack; direct-route, resumable, control, and capability artifacts are projections of that same machine rather than separate underlying machines.",
+    "identity_rule_rows": [
+      {
+        "rule_id": "one_globally_named_machine_tuple_required",
+        "green": true,
+        "detail": "all post-article proofs, witnesses, benchmarks, routes, receipts, controller traces, and closeouts must bind to one globally named machine tuple instead of inheriting identity implicitly."
+      },
+      {
+        "rule_id": "tuple_fields_must_name_model_weight_route_and_continuation",
+        "green": true,
+        "detail": "the canonical tuple must name the model id, weight digest, route digest, continuation contract, and carrier class instead of relying on prose-only identity claims."
+      },
+      {
+        "rule_id": "legacy_partial_artifacts_must_be_rebound_explicitly",
+        "green": true,
+        "detail": "older partial-tuple artifacts may stay as historical reports only if one later machine-readable lock explicitly rebinds them to the canonical tuple."
+      },
+      {
+        "rule_id": "plugin_receipts_and_controller_traces_must_inherit_the_tuple",
+        "green": true,
+        "detail": "plugin-facing receipts, controller traces, and bounded capability closeouts must inherit the same canonical tuple instead of floating on adjacent runtime or sandbox observations."
+      },
+      {
+        "rule_id": "closure_bundle_separation_must_remain_explicit",
+        "green": true,
+        "detail": "freezing the canonical machine identity does not by itself publish the final closure bundle, served/public universality, or arbitrary software capability."
+      }
+    ],
+    "invalidation_rule_rows": [
+      {
+        "rule_id": "model_identity_drift_invalidates_lock",
+        "green": true,
+        "detail": "a changed model id or weight lineage invalidates the lock instead of being silently treated as the same machine."
+      },
+      {
+        "rule_id": "weight_digest_drift_invalidates_lock",
+        "green": true,
+        "detail": "a changed canonical weight bundle digest invalidates the lock instead of being treated as a harmless refresh."
+      },
+      {
+        "rule_id": "route_digest_drift_invalidates_lock",
+        "green": true,
+        "detail": "a changed canonical route or route descriptor digest invalidates the lock instead of being merged into the same truth carrier."
+      },
+      {
+        "rule_id": "continuation_contract_drift_invalidates_lock",
+        "green": true,
+        "detail": "a changed continuation contract invalidates the lock instead of being inherited as ambient runtime behavior."
+      },
+      {
+        "rule_id": "dual_truth_carrier_recomposition_invalidates_lock",
+        "green": true,
+        "detail": "mixing direct, resumable, and capability evidence without one explicit lock invalidates the claim instead of creating a larger implied machine."
+      },
+      {
+        "rule_id": "publication_or_served_overread_invalidates_lock",
+        "green": true,
+        "detail": "plugin publication, served/public universality, or arbitrary software capability may not be inferred from the lock unless separately green elsewhere."
+      }
+    ],
+    "claim_boundary": "this transformer-owned contract names the canonical machine-identity lock surface only. It does not itself publish the computational-model statement, the final closure bundle, plugin publication, served/public universality, or arbitrary software capability.",
+    "summary": "Transformer canonical-machine lock contract freezes 5 identity rules and 6 invalidation rules for one globally named post-article machine tuple."
+  },
+  "supporting_material_rows": [
+    {
+      "material_id": "transformer_anchor_contract",
+      "material_class": "contract",
+      "satisfied": true,
+      "source_ref": "crates/psionic-transformer/src/tassadar_post_article_canonical_machine_identity_lock_contract.rs",
+      "source_artifact_id": "tassadar.post_article.canonical_machine_identity_lock.contract.v1",
+      "detail": "the transformer-owned lock contract is the code-owned anchor for the globally named machine tuple and its invalidation laws."
+    },
+    {
+      "material_id": "tcm_v1_model",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_tcm_v1_model.json",
+      "source_artifact_id": "tcm.v1",
+      "source_artifact_digest": "259cab92c74b71b0135d4d2efee3212d4c8efe8ae6a62165f9560cbd509fe3c6",
+      "detail": "the historical `TCM.v1` model remains the declared substrate below the canonical machine lock and must match the bridge computational-model statement by id and digest."
+    },
+    {
+      "material_id": "article_equivalence_acceptance_gate",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json",
+      "source_artifact_id": "tassadar.article_equivalence.acceptance_gate.report.v1",
+      "source_artifact_digest": "e61112cca9b9525c33c875cb21cc0b8927047a968c92bf371fe98f3d0a859395",
+      "detail": "the canonical machine lock may only attach to the already-closed bounded article-equivalence route instead of floating above an unclosed benchmark surface."
+    },
+    {
+      "material_id": "post_article_universality_bridge",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
+      "source_artifact_id": "tassadar.post_article_universality_bridge.contract.report.v1",
+      "source_artifact_digest": "e932fb632fecd6cd2431e923742e43f64b89396a1040e0a8326dc70d4ed1230e",
+      "detail": "the universality bridge still names the machine identity, route identity, continuation contract, and computational-model statement that the lock is freezing."
+    },
+    {
+      "material_id": "post_article_turing_closeout",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json",
+      "source_artifact_id": "tassadar.post_article_turing_completeness_closeout_audit.report.v1",
+      "source_artifact_digest": "ca6bc24fec901870cfd46fc1405b7499852baaa3617d2094f98804d4aae3ed45",
+      "detail": "the rebased Turing closeout remains one proof-bearing compute/control carrier beneath the machine lock instead of being recomputed here."
+    },
+    {
+      "material_id": "bounded_weighted_plugin_platform_closeout",
+      "material_class": "proof_carrying",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_bounded_weighted_plugin_platform_closeout_audit_report.json",
+      "source_artifact_id": "tassadar.post_article_bounded_weighted_plugin_platform_closeout_audit.report.v1",
+      "source_artifact_digest": "98c759210f01fcc26c8cf0d871d44a441448eb8503bbba3df680e2d040bdcdf1",
+      "detail": "the bounded weighted plugin-platform closeout remains the highest current capability-bearing surface that must inherit the same canonical machine tuple."
+    },
+    {
+      "material_id": "post_article_turing_audit_context",
+      "material_class": "observational_context",
+      "satisfied": true,
+      "source_ref": "docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md",
+      "detail": "the March 20 post-article audit remains observational context that explains why machine identity, continuation, and closure-bundle separation must stay explicit."
+    },
+    {
+      "material_id": "plugin_system_turing_audit_context",
+      "material_class": "observational_context",
+      "satisfied": true,
+      "source_ref": "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md",
+      "detail": "the March 20 plugin-system audit remains observational context that explains why plugin receipts and controller traces must inherit the same machine lock rather than float on adjacent runtime observations."
+    }
+  ],
+  "dependency_rows": [
+    {
+      "dependency_id": "transformer_anchor_contract_green",
+      "satisfied": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_canonical_machine_identity_lock_contract.rs"
+      ],
+      "detail": "the canonical machine lock depends on the transformer-owned anchor contract so the tuple and invalidation laws are code-owned rather than comment-only."
+    },
+    {
+      "dependency_id": "tcm_v1_model_matches_bridge_statement",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_tcm_v1_model.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json"
+      ],
+      "detail": "the historical `TCM.v1` substrate and the bridge computational-model statement must agree by id and digest before the machine lock can name one machine honestly."
+    },
+    {
+      "dependency_id": "article_equivalence_acceptance_gate_green",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json"
+      ],
+      "detail": "the canonical machine lock still depends on the bounded article-equivalence benchmark and route closure rather than bypassing it."
+    },
+    {
+      "dependency_id": "post_article_bridge_green",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json"
+      ],
+      "detail": "the machine tuple still comes from the green bridge artifact instead of inventing a second route identity surface."
+    },
+    {
+      "dependency_id": "turing_closeout_remains_separate",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json"
+      ],
+      "detail": "the machine lock depends on the rebased Turing closeout staying green while still keeping the final closure bundle separate for `TAS-215`."
+    },
+    {
+      "dependency_id": "plugin_platform_closeout_inherits_same_machine",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_invocation_receipts_and_replay_classes_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_eval_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_authority_promotion_publication_and_trust_tier_gate_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_bounded_weighted_plugin_platform_closeout_audit_report.json"
+      ],
+      "detail": "the canonical machine lock depends on plugin receipts, controller traces, conformance evidence, authority posture, and bounded platform closeout inheriting the same tuple instead of floating on a second machine."
+    }
+  ],
+  "canonical_machine_tuple": {
+    "tuple_id": "tassadar.post_article.canonical_machine_identity_lock.tuple.v1",
+    "carrier_class_id": "tassadar.post_article.canonical_machine.closure_bundle_bound_rebased_route_identity.v1",
+    "machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+    "canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+    "canonical_weight_artifact_id": "tassadar://article_transformer/weights/tassadar-article-transformer-trace-bound-trained-v0/99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c",
+    "canonical_weight_bundle_digest": "99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c",
+    "canonical_weight_primary_artifact_sha256": "e24923e6fe39f0656b3f331fb935e0827a3de43b706014610e513ca5a54e9f84",
+    "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+    "canonical_route_descriptor_digest": "00af062cccc3d1b2e42ee8e092b9ef8e1539dd3f2dfc379cff7d1cd4a008b032",
+    "continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+    "continuation_contract_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
+    "computational_model_statement_id": "tassadar.post_article_universality_bridge.computational_model_statement.v1",
+    "canonical_machine_lock_contract_id": "tassadar.post_article.canonical_machine_identity_lock.contract.v1",
+    "bridge_contract_report_id": "tassadar.post_article_universality_bridge.contract.report.v1",
+    "bridge_contract_report_digest": "e932fb632fecd6cd2431e923742e43f64b89396a1040e0a8326dc70d4ed1230e",
+    "tcm_v1_model_id": "tcm.v1",
+    "tcm_v1_model_digest": "259cab92c74b71b0135d4d2efee3212d4c8efe8ae6a62165f9560cbd509fe3c6",
+    "detail": "tuple_id=`tassadar.post_article.canonical_machine_identity_lock.tuple.v1` carrier_class_id=`tassadar.post_article.canonical_machine.closure_bundle_bound_rebased_route_identity.v1` machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1` canonical_model_id=`tassadar-article-transformer-trace-bound-trained-v0` canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1` continuation_contract_id=`tassadar.tcm_v1.runtime_contract.report.v1` binds the post-article machine lock above `tassadar.post_article_universality_bridge.contract.report.v1`."
+  },
+  "artifact_binding_rows": [
+    {
+      "binding_id": "bridge_contract_anchor",
+      "scope_kind": "bridge",
+      "carrier_projection_id": "canonical_bridge_anchor",
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
+      "source_artifact_id": "tassadar.post_article_universality_bridge.contract.report.v1",
+      "source_artifact_digest": "e932fb632fecd6cd2431e923742e43f64b89396a1040e0a8326dc70d4ed1230e",
+      "declared_machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+      "declared_canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+      "declared_canonical_weight_bundle_digest": "99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c",
+      "declared_canonical_weight_primary_artifact_sha256": "e24923e6fe39f0656b3f331fb935e0827a3de43b706014610e513ca5a54e9f84",
+      "declared_canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+      "declared_canonical_route_descriptor_digest": "00af062cccc3d1b2e42ee8e092b9ef8e1539dd3f2dfc379cff7d1cd4a008b032",
+      "declared_continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+      "declared_continuation_contract_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
+      "source_tuple_field_ids": [
+        "machine_identity_id",
+        "canonical_model_id",
+        "canonical_weight_bundle_digest",
+        "canonical_weight_primary_artifact_sha256",
+        "canonical_route_id",
+        "canonical_route_descriptor_digest",
+        "continuation_contract_id",
+        "continuation_contract_digest"
+      ],
+      "lock_projected_field_ids": [
+        "carrier_class_id"
+      ],
+      "self_carries_full_tuple": true,
+      "bound_by_lock": true,
+      "tuple_matches_canonical_lock": true,
+      "green": true,
+      "detail": "the bridge artifact already carries the full canonical tuple and remains the anchor that later projections must match. source_tuple_fields=8 projected_fields=1 carrier_projection_id=`canonical_bridge_anchor`."
+    },
+    {
+      "binding_id": "article_equivalence_acceptance_gate",
+      "scope_kind": "benchmark_route",
+      "carrier_projection_id": "direct_benchmark_route",
+      "source_ref": "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json",
+      "source_artifact_id": "tassadar.article_equivalence.acceptance_gate.report.v1",
+      "source_artifact_digest": "e61112cca9b9525c33c875cb21cc0b8927047a968c92bf371fe98f3d0a859395",
+      "source_tuple_field_ids": [],
+      "lock_projected_field_ids": [
+        "machine_identity_id",
+        "canonical_model_id",
+        "canonical_weight_bundle_digest",
+        "canonical_weight_primary_artifact_sha256",
+        "canonical_route_id",
+        "canonical_route_descriptor_digest",
+        "continuation_contract_id",
+        "continuation_contract_digest",
+        "carrier_class_id"
+      ],
+      "self_carries_full_tuple": false,
+      "bound_by_lock": true,
+      "tuple_matches_canonical_lock": true,
+      "green": true,
+      "detail": "the acceptance gate remains the bounded benchmark-bearing route gate and is explicitly bound here to the canonical tuple instead of inheriting route identity by proximity. source_tuple_fields=0 projected_fields=9 carrier_projection_id=`direct_benchmark_route`."
+    },
+    {
+      "binding_id": "canonical_route_semantic_preservation",
+      "scope_kind": "route_audit",
+      "carrier_projection_id": "route_continuation_audit",
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_route_semantic_preservation_audit_report.json",
+      "source_artifact_id": "tassadar.post_article_canonical_route_semantic_preservation_audit.report.v1",
+      "source_artifact_digest": "43e448b14eefefbc80745a93960d4cc591d930c16e3a7abb083421e499a97467",
+      "declared_machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+      "declared_canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+      "declared_canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+      "declared_canonical_route_descriptor_digest": "00af062cccc3d1b2e42ee8e092b9ef8e1539dd3f2dfc379cff7d1cd4a008b032",
+      "declared_continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+      "declared_continuation_contract_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
+      "source_tuple_field_ids": [
+        "machine_identity_id",
+        "canonical_model_id",
+        "canonical_route_id",
+        "canonical_route_descriptor_digest",
+        "continuation_contract_id",
+        "continuation_contract_digest"
+      ],
+      "lock_projected_field_ids": [
+        "canonical_weight_bundle_digest",
+        "canonical_weight_primary_artifact_sha256",
+        "carrier_class_id"
+      ],
+      "self_carries_full_tuple": false,
+      "bound_by_lock": true,
+      "tuple_matches_canonical_lock": true,
+      "green": true,
+      "detail": "the semantic-preservation audit already carries the route and continuation identity review and is locked here as the continuation-bearing route audit surface. source_tuple_fields=6 projected_fields=3 carrier_projection_id=`route_continuation_audit`."
+    },
+    {
+      "binding_id": "carrier_split_contract",
+      "scope_kind": "gate",
+      "carrier_projection_id": "carrier_split_contract",
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_carrier_split_contract_report.json",
+      "source_artifact_id": "tassadar.post_article_carrier_split.contract.report.v1",
+      "source_artifact_digest": "fe9d679ae954ffe4d844844568fcdba0f5afee2acc8056081690f2a364309cd4",
+      "declared_machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+      "declared_canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+      "source_tuple_field_ids": [
+        "machine_identity_id",
+        "canonical_route_id"
+      ],
+      "lock_projected_field_ids": [
+        "canonical_model_id",
+        "canonical_weight_bundle_digest",
+        "canonical_weight_primary_artifact_sha256",
+        "canonical_route_descriptor_digest",
+        "continuation_contract_id",
+        "continuation_contract_digest",
+        "carrier_class_id"
+      ],
+      "self_carries_full_tuple": false,
+      "bound_by_lock": true,
+      "tuple_matches_canonical_lock": true,
+      "green": true,
+      "detail": "the carrier-split contract keeps direct and resumable truth classes explicit and is bound here so mixed-carrier recomposition stays machine-checkable. source_tuple_fields=2 projected_fields=7 carrier_projection_id=`carrier_split_contract`."
+    },
+    {
+      "binding_id": "control_plane_decision_provenance_proof",
+      "scope_kind": "proof",
+      "carrier_projection_id": "control_plane_proof",
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_control_plane_decision_provenance_proof_report.json",
+      "source_artifact_id": "tassadar.post_article_control_plane_decision_provenance_proof.report.v1",
+      "source_artifact_digest": "6e2ee7d74812a896d76f878dbad372fe2f3acaf44436adbe4d8c7091f5960ba1",
+      "declared_machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+      "declared_canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+      "source_tuple_field_ids": [
+        "machine_identity_id",
+        "canonical_route_id"
+      ],
+      "lock_projected_field_ids": [
+        "canonical_model_id",
+        "canonical_weight_bundle_digest",
+        "canonical_weight_primary_artifact_sha256",
+        "canonical_route_descriptor_digest",
+        "continuation_contract_id",
+        "continuation_contract_digest",
+        "carrier_class_id"
+      ],
+      "self_carries_full_tuple": false,
+      "bound_by_lock": true,
+      "tuple_matches_canonical_lock": true,
+      "green": true,
+      "detail": "the control-plane proof still carries only a partial tuple itself, so the lock explicitly rebinds it onto the full canonical machine tuple. source_tuple_fields=2 projected_fields=7 carrier_projection_id=`control_plane_proof`."
+    },
+    {
+      "binding_id": "universal_machine_proof_rebinding",
+      "scope_kind": "proof",
+      "carrier_projection_id": "resumable_universal_proof",
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_universal_machine_proof_rebinding_report.json",
+      "source_artifact_id": "tassadar.post_article_universal_machine_proof_rebinding.report.v1",
+      "source_artifact_digest": "624319869c9f792273fe1bd09aa397e9c4b7116483d1c748f1e1fd89d0bb2c5a",
+      "declared_machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+      "declared_canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+      "declared_canonical_weight_bundle_digest": "99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c",
+      "declared_canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+      "declared_canonical_route_descriptor_digest": "00af062cccc3d1b2e42ee8e092b9ef8e1539dd3f2dfc379cff7d1cd4a008b032",
+      "declared_continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+      "source_tuple_field_ids": [
+        "machine_identity_id",
+        "canonical_model_id",
+        "canonical_weight_bundle_digest",
+        "canonical_route_id",
+        "canonical_route_descriptor_digest",
+        "continuation_contract_id"
+      ],
+      "lock_projected_field_ids": [
+        "canonical_weight_primary_artifact_sha256",
+        "continuation_contract_digest",
+        "carrier_class_id"
+      ],
+      "self_carries_full_tuple": false,
+      "bound_by_lock": true,
+      "tuple_matches_canonical_lock": true,
+      "green": true,
+      "detail": "the universal-machine proof rebinding already carries most of the tuple and is explicitly frozen here as a resumable proof projection of the same machine. source_tuple_fields=6 projected_fields=3 carrier_projection_id=`resumable_universal_proof`."
+    },
+    {
+      "binding_id": "universality_witness_suite_reissue",
+      "scope_kind": "witness",
+      "carrier_projection_id": "resumable_witness_suite",
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_witness_suite_reissue_report.json",
+      "source_artifact_id": "tassadar.post_article_universality_witness_suite_reissue.report.v1",
+      "source_artifact_digest": "3fa3693d4068f2ad3b7189a33fb1ff175f74a8b7581273ec10c3f99cda47c728",
+      "declared_machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+      "declared_canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+      "declared_canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+      "declared_continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+      "source_tuple_field_ids": [
+        "machine_identity_id",
+        "canonical_model_id",
+        "canonical_route_id",
+        "continuation_contract_id"
+      ],
+      "lock_projected_field_ids": [
+        "canonical_weight_bundle_digest",
+        "canonical_weight_primary_artifact_sha256",
+        "canonical_route_descriptor_digest",
+        "continuation_contract_digest",
+        "carrier_class_id"
+      ],
+      "self_carries_full_tuple": false,
+      "bound_by_lock": true,
+      "tuple_matches_canonical_lock": true,
+      "green": true,
+      "detail": "the witness-suite reissue is explicitly rebound here so exact and refusal-boundary witness families cannot drift onto a second effective machine. source_tuple_fields=4 projected_fields=5 carrier_projection_id=`resumable_witness_suite`."
+    },
+    {
+      "binding_id": "canonical_route_universal_substrate_gate",
+      "scope_kind": "gate",
+      "carrier_projection_id": "universal_substrate_gate",
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_route_universal_substrate_gate_report.json",
+      "source_artifact_id": "tassadar.post_article_canonical_route_universal_substrate_gate.report.v1",
+      "source_artifact_digest": "4a81f409aa1be57cba2df1c9a4d04e518902c53ddd772de5c4f9919275452b98",
+      "declared_machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+      "declared_canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+      "declared_canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+      "declared_continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+      "source_tuple_field_ids": [
+        "machine_identity_id",
+        "canonical_model_id",
+        "canonical_route_id",
+        "continuation_contract_id"
+      ],
+      "lock_projected_field_ids": [
+        "canonical_weight_bundle_digest",
+        "canonical_weight_primary_artifact_sha256",
+        "canonical_route_descriptor_digest",
+        "continuation_contract_digest",
+        "carrier_class_id"
+      ],
+      "self_carries_full_tuple": false,
+      "bound_by_lock": true,
+      "tuple_matches_canonical_lock": true,
+      "green": true,
+      "detail": "the universal-substrate gate is explicitly locked to the same machine tuple so the universality story cannot drift away from the route and proof surfaces below it. source_tuple_fields=4 projected_fields=5 carrier_projection_id=`universal_substrate_gate`."
+    },
+    {
+      "binding_id": "universality_portability_minimality_matrix",
+      "scope_kind": "gate",
+      "carrier_projection_id": "portability_minimality_matrix",
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_portability_minimality_matrix_report.json",
+      "source_artifact_id": "tassadar.post_article_universality_portability_minimality_matrix.report.v1",
+      "source_artifact_digest": "c2fdf6afbcc46642c1a8f494264e595b1def5145a2200946b2aff963a8d6469b",
+      "declared_machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+      "declared_canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+      "declared_canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+      "declared_continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+      "source_tuple_field_ids": [
+        "machine_identity_id",
+        "canonical_model_id",
+        "canonical_route_id",
+        "continuation_contract_id"
+      ],
+      "lock_projected_field_ids": [
+        "canonical_weight_bundle_digest",
+        "canonical_weight_primary_artifact_sha256",
+        "canonical_route_descriptor_digest",
+        "continuation_contract_digest",
+        "carrier_class_id"
+      ],
+      "self_carries_full_tuple": false,
+      "bound_by_lock": true,
+      "tuple_matches_canonical_lock": true,
+      "green": true,
+      "detail": "the portability and minimality matrix is explicitly locked to the same machine so later machine-class or route drift stays visible. source_tuple_fields=4 projected_fields=5 carrier_projection_id=`portability_minimality_matrix`."
+    },
+    {
+      "binding_id": "rebased_universality_verdict_split",
+      "scope_kind": "closeout",
+      "carrier_projection_id": "rebased_verdict_split",
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_rebased_universality_verdict_split_report.json",
+      "source_artifact_id": "tassadar.post_article_rebased_universality_verdict_split.report.v1",
+      "source_artifact_digest": "8494555b354367ac81aa71f015db3898defa41c7ff7b09435c9265c580d960d1",
+      "declared_machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+      "declared_canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+      "declared_canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+      "declared_canonical_route_descriptor_digest": "00af062cccc3d1b2e42ee8e092b9ef8e1539dd3f2dfc379cff7d1cd4a008b032",
+      "declared_continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+      "source_tuple_field_ids": [
+        "machine_identity_id",
+        "canonical_model_id",
+        "canonical_route_id",
+        "canonical_route_descriptor_digest",
+        "continuation_contract_id"
+      ],
+      "lock_projected_field_ids": [
+        "canonical_weight_bundle_digest",
+        "canonical_weight_primary_artifact_sha256",
+        "continuation_contract_digest",
+        "carrier_class_id"
+      ],
+      "self_carries_full_tuple": false,
+      "bound_by_lock": true,
+      "tuple_matches_canonical_lock": true,
+      "green": true,
+      "detail": "the rebased verdict split is explicitly locked to the same machine so theory/operator truth cannot drift onto a different route or continuation contract. source_tuple_fields=5 projected_fields=4 carrier_projection_id=`rebased_verdict_split`."
+    },
+    {
+      "binding_id": "turing_completeness_closeout",
+      "scope_kind": "closeout",
+      "carrier_projection_id": "turing_closeout",
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json",
+      "source_artifact_id": "tassadar.post_article_turing_completeness_closeout_audit.report.v1",
+      "source_artifact_digest": "ca6bc24fec901870cfd46fc1405b7499852baaa3617d2094f98804d4aae3ed45",
+      "declared_machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+      "declared_canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+      "declared_canonical_weight_bundle_digest": "99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c",
+      "declared_canonical_weight_primary_artifact_sha256": "e24923e6fe39f0656b3f331fb935e0827a3de43b706014610e513ca5a54e9f84",
+      "declared_canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+      "declared_canonical_route_descriptor_digest": "00af062cccc3d1b2e42ee8e092b9ef8e1539dd3f2dfc379cff7d1cd4a008b032",
+      "declared_continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+      "declared_continuation_contract_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
+      "source_tuple_field_ids": [
+        "machine_identity_id",
+        "canonical_model_id",
+        "canonical_weight_bundle_digest",
+        "canonical_weight_primary_artifact_sha256",
+        "canonical_route_id",
+        "canonical_route_descriptor_digest",
+        "continuation_contract_id",
+        "continuation_contract_digest"
+      ],
+      "lock_projected_field_ids": [
+        "carrier_class_id"
+      ],
+      "self_carries_full_tuple": true,
+      "bound_by_lock": true,
+      "tuple_matches_canonical_lock": true,
+      "green": true,
+      "detail": "the post-article Turing closeout is one proof-bearing closeout that must stay bound to the same canonical tuple while still leaving the final closure bundle separate. source_tuple_fields=8 projected_fields=1 carrier_projection_id=`turing_closeout`."
+    },
+    {
+      "binding_id": "plugin_invocation_receipts",
+      "scope_kind": "receipt",
+      "carrier_projection_id": "plugin_invocation_receipt_projection",
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_invocation_receipts_and_replay_classes_report.json",
+      "source_artifact_id": "tassadar.post_article_plugin_invocation_receipts_and_replay_classes.report.v1",
+      "source_artifact_digest": "30b5ea1337daa25afc5de192fa03e042bd16780e91928657a3856e298dcee955",
+      "declared_machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+      "declared_canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+      "declared_canonical_weight_bundle_digest": "99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c",
+      "declared_canonical_weight_primary_artifact_sha256": "e24923e6fe39f0656b3f331fb935e0827a3de43b706014610e513ca5a54e9f84",
+      "declared_canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+      "declared_canonical_route_descriptor_digest": "00af062cccc3d1b2e42ee8e092b9ef8e1539dd3f2dfc379cff7d1cd4a008b032",
+      "declared_continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+      "declared_continuation_contract_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
+      "source_tuple_field_ids": [
+        "machine_identity_id",
+        "canonical_model_id",
+        "canonical_weight_bundle_digest",
+        "canonical_weight_primary_artifact_sha256",
+        "canonical_route_id",
+        "canonical_route_descriptor_digest",
+        "continuation_contract_id",
+        "continuation_contract_digest"
+      ],
+      "lock_projected_field_ids": [
+        "carrier_class_id"
+      ],
+      "self_carries_full_tuple": true,
+      "bound_by_lock": true,
+      "tuple_matches_canonical_lock": true,
+      "green": true,
+      "detail": "plugin invocation receipts already carry the full tuple and are locked here as one receipt-bearing projection of the same machine. source_tuple_fields=8 projected_fields=1 carrier_projection_id=`plugin_invocation_receipt_projection`."
+    },
+    {
+      "binding_id": "weighted_plugin_controller_trace_eval",
+      "scope_kind": "controller",
+      "carrier_projection_id": "weighted_controller_trace_projection",
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report.json",
+      "source_artifact_id": "tassadar.post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop.eval_report.v1",
+      "source_artifact_digest": "a95d9aa0abf8d530cf8947caf1b04c7ea1fd49e372dce7807de43f59e87b6275",
+      "declared_machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+      "declared_canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+      "declared_canonical_weight_bundle_digest": "99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c",
+      "declared_canonical_weight_primary_artifact_sha256": "e24923e6fe39f0656b3f331fb935e0827a3de43b706014610e513ca5a54e9f84",
+      "declared_canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+      "declared_canonical_route_descriptor_digest": "00af062cccc3d1b2e42ee8e092b9ef8e1539dd3f2dfc379cff7d1cd4a008b032",
+      "declared_continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+      "declared_continuation_contract_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
+      "source_tuple_field_ids": [
+        "machine_identity_id",
+        "canonical_model_id",
+        "canonical_weight_bundle_digest",
+        "canonical_weight_primary_artifact_sha256",
+        "canonical_route_id",
+        "canonical_route_descriptor_digest",
+        "continuation_contract_id",
+        "continuation_contract_digest"
+      ],
+      "lock_projected_field_ids": [
+        "carrier_class_id"
+      ],
+      "self_carries_full_tuple": true,
+      "bound_by_lock": true,
+      "tuple_matches_canonical_lock": true,
+      "green": true,
+      "detail": "the weighted controller trace already carries the full tuple and is locked here as the controller-bearing projection above the same canonical machine. source_tuple_fields=8 projected_fields=1 carrier_projection_id=`weighted_controller_trace_projection`."
+    },
+    {
+      "binding_id": "plugin_conformance_benchmark_harness",
+      "scope_kind": "benchmark_route",
+      "carrier_projection_id": "plugin_conformance_benchmark_projection",
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_eval_report.json",
+      "source_artifact_id": "tassadar.post_article_plugin_conformance_sandbox_and_benchmark_harness.eval_report.v1",
+      "source_artifact_digest": "38a301b3df169ba72d7a1cb6a13e1df4e9c308cd0e4399eec33398567c7e517b",
+      "declared_machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+      "declared_canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+      "declared_canonical_weight_bundle_digest": "99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c",
+      "declared_canonical_weight_primary_artifact_sha256": "e24923e6fe39f0656b3f331fb935e0827a3de43b706014610e513ca5a54e9f84",
+      "declared_canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+      "declared_canonical_route_descriptor_digest": "00af062cccc3d1b2e42ee8e092b9ef8e1539dd3f2dfc379cff7d1cd4a008b032",
+      "declared_continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+      "declared_continuation_contract_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
+      "source_tuple_field_ids": [
+        "machine_identity_id",
+        "canonical_model_id",
+        "canonical_weight_bundle_digest",
+        "canonical_weight_primary_artifact_sha256",
+        "canonical_route_id",
+        "canonical_route_descriptor_digest",
+        "continuation_contract_id",
+        "continuation_contract_digest"
+      ],
+      "lock_projected_field_ids": [
+        "carrier_class_id"
+      ],
+      "self_carries_full_tuple": true,
+      "bound_by_lock": true,
+      "tuple_matches_canonical_lock": true,
+      "green": true,
+      "detail": "the plugin conformance benchmark harness already carries the full tuple and is locked here as the benchmark-bearing capability projection of the same machine. source_tuple_fields=8 projected_fields=1 carrier_projection_id=`plugin_conformance_benchmark_projection`."
+    },
+    {
+      "binding_id": "plugin_authority_gate",
+      "scope_kind": "gate",
+      "carrier_projection_id": "plugin_authority_gate_projection",
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_authority_promotion_publication_and_trust_tier_gate_report.json",
+      "source_artifact_id": "tassadar.post_article_plugin_authority_promotion_publication_and_trust_tier_gate.report.v1",
+      "source_artifact_digest": "d813236bb30fa342550de38460ac35aab291ad0f1684d7f1ddc3ddfa67e55eeb",
+      "declared_machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+      "declared_canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+      "declared_canonical_weight_bundle_digest": "99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c",
+      "declared_canonical_weight_primary_artifact_sha256": "e24923e6fe39f0656b3f331fb935e0827a3de43b706014610e513ca5a54e9f84",
+      "declared_canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+      "declared_canonical_route_descriptor_digest": "00af062cccc3d1b2e42ee8e092b9ef8e1539dd3f2dfc379cff7d1cd4a008b032",
+      "declared_continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+      "declared_continuation_contract_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
+      "source_tuple_field_ids": [
+        "machine_identity_id",
+        "canonical_model_id",
+        "canonical_weight_bundle_digest",
+        "canonical_weight_primary_artifact_sha256",
+        "canonical_route_id",
+        "canonical_route_descriptor_digest",
+        "continuation_contract_id",
+        "continuation_contract_digest"
+      ],
+      "lock_projected_field_ids": [
+        "carrier_class_id"
+      ],
+      "self_carries_full_tuple": true,
+      "bound_by_lock": true,
+      "tuple_matches_canonical_lock": true,
+      "green": true,
+      "detail": "the authority gate already carries the full tuple and is locked here so trust-tier and publication posture stay tied to the same machine identity. source_tuple_fields=8 projected_fields=1 carrier_projection_id=`plugin_authority_gate_projection`."
+    },
+    {
+      "binding_id": "bounded_weighted_plugin_platform_closeout",
+      "scope_kind": "closeout",
+      "carrier_projection_id": "bounded_plugin_platform_closeout_projection",
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_bounded_weighted_plugin_platform_closeout_audit_report.json",
+      "source_artifact_id": "tassadar.post_article_bounded_weighted_plugin_platform_closeout_audit.report.v1",
+      "source_artifact_digest": "98c759210f01fcc26c8cf0d871d44a441448eb8503bbba3df680e2d040bdcdf1",
+      "declared_machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+      "declared_canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+      "declared_canonical_weight_bundle_digest": "99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c",
+      "declared_canonical_weight_primary_artifact_sha256": "e24923e6fe39f0656b3f331fb935e0827a3de43b706014610e513ca5a54e9f84",
+      "declared_canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+      "declared_canonical_route_descriptor_digest": "00af062cccc3d1b2e42ee8e092b9ef8e1539dd3f2dfc379cff7d1cd4a008b032",
+      "declared_continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+      "declared_continuation_contract_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
+      "source_tuple_field_ids": [
+        "machine_identity_id",
+        "canonical_model_id",
+        "canonical_weight_bundle_digest",
+        "canonical_weight_primary_artifact_sha256",
+        "canonical_route_id",
+        "canonical_route_descriptor_digest",
+        "continuation_contract_id",
+        "continuation_contract_digest"
+      ],
+      "lock_projected_field_ids": [
+        "carrier_class_id"
+      ],
+      "self_carries_full_tuple": true,
+      "bound_by_lock": true,
+      "tuple_matches_canonical_lock": true,
+      "green": true,
+      "detail": "the bounded weighted plugin-platform closeout already carries the full tuple and is locked here as the highest current capability-bearing closeout on the same machine. source_tuple_fields=8 projected_fields=1 carrier_projection_id=`bounded_plugin_platform_closeout_projection`."
+    }
+  ],
+  "invalidation_rows": [
+    {
+      "invalidation_id": "machine_identity_drift_present",
+      "present": false,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_route_semantic_preservation_audit_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_carrier_split_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_control_plane_decision_provenance_proof_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universal_machine_proof_rebinding_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_witness_suite_reissue_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_route_universal_substrate_gate_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_portability_minimality_matrix_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_rebased_universality_verdict_split_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_invocation_receipts_and_replay_classes_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_eval_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_authority_promotion_publication_and_trust_tier_gate_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_bounded_weighted_plugin_platform_closeout_audit_report.json"
+      ],
+      "detail": "any machine-identity mismatch across bound artifacts invalidates the canonical machine lock."
+    },
+    {
+      "invalidation_id": "model_or_weight_drift_present",
+      "present": false,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_route_semantic_preservation_audit_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_carrier_split_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_control_plane_decision_provenance_proof_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universal_machine_proof_rebinding_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_witness_suite_reissue_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_route_universal_substrate_gate_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_portability_minimality_matrix_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_rebased_universality_verdict_split_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_invocation_receipts_and_replay_classes_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_eval_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_authority_promotion_publication_and_trust_tier_gate_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_bounded_weighted_plugin_platform_closeout_audit_report.json"
+      ],
+      "detail": "any model-id or weight-digest drift across bound artifacts invalidates the canonical machine lock."
+    },
+    {
+      "invalidation_id": "route_or_continuation_drift_present",
+      "present": false,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_route_semantic_preservation_audit_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_carrier_split_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_control_plane_decision_provenance_proof_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universal_machine_proof_rebinding_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_witness_suite_reissue_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_route_universal_substrate_gate_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_portability_minimality_matrix_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_rebased_universality_verdict_split_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_invocation_receipts_and_replay_classes_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_eval_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_authority_promotion_publication_and_trust_tier_gate_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_bounded_weighted_plugin_platform_closeout_audit_report.json"
+      ],
+      "detail": "any route-id, route-digest, or continuation-contract drift across bound artifacts invalidates the canonical machine lock."
+    },
+    {
+      "invalidation_id": "dual_truth_carrier_recomposition_present",
+      "present": false,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_carrier_split_contract_report.json"
+      ],
+      "detail": "collapsing direct and resumable truth carriers back into one ambient machine invalidates the lock instead of creating a larger implied machine."
+    },
+    {
+      "invalidation_id": "plugin_receipt_or_controller_tuple_drift_present",
+      "present": false,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_invocation_receipts_and_replay_classes_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_eval_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_authority_promotion_publication_and_trust_tier_gate_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_bounded_weighted_plugin_platform_closeout_audit_report.json"
+      ],
+      "detail": "plugin receipts, controller traces, conformance evidence, authority posture, and bounded platform closeout must stay on the same tuple instead of floating on a second machine."
+    },
+    {
+      "invalidation_id": "publication_or_served_overread_present",
+      "present": false,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_authority_promotion_publication_and_trust_tier_gate_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_bounded_weighted_plugin_platform_closeout_audit_report.json"
+      ],
+      "detail": "plugin publication, served/public universality, and arbitrary software capability remain out of scope here and would invalidate the lock if implied."
+    },
+    {
+      "invalidation_id": "closure_bundle_embedded_here_present",
+      "present": false,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_identity_lock_report.json"
+      ],
+      "detail": "the canonical machine identity lock is not the final closure bundle and must keep that separation explicit."
+    }
+  ],
+  "validation_rows": [
+    {
+      "validation_id": "one_canonical_machine_named",
+      "green": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_canonical_machine_identity_lock_contract.rs",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json"
+      ],
+      "detail": "one globally named canonical machine tuple now exists over model id, weight digest, route digest, continuation contract, and the transformer-owned carrier class."
+    },
+    {
+      "validation_id": "route_and_proof_chain_bound",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_route_semantic_preservation_audit_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_carrier_split_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_control_plane_decision_provenance_proof_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universal_machine_proof_rebinding_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_witness_suite_reissue_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_route_universal_substrate_gate_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_portability_minimality_matrix_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_rebased_universality_verdict_split_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_invocation_receipts_and_replay_classes_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_eval_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_authority_promotion_publication_and_trust_tier_gate_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_bounded_weighted_plugin_platform_closeout_audit_report.json"
+      ],
+      "detail": "route, benchmark, proof, witness, and gate surfaces are explicitly bound to the canonical tuple instead of inheriting identity implicitly."
+    },
+    {
+      "validation_id": "plugin_receipts_controller_and_closeout_bound",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_route_semantic_preservation_audit_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_carrier_split_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_control_plane_decision_provenance_proof_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universal_machine_proof_rebinding_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_witness_suite_reissue_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_route_universal_substrate_gate_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_portability_minimality_matrix_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_rebased_universality_verdict_split_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_invocation_receipts_and_replay_classes_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_eval_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_authority_promotion_publication_and_trust_tier_gate_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_bounded_weighted_plugin_platform_closeout_audit_report.json"
+      ],
+      "detail": "plugin receipts, controller traces, conformance evidence, authority posture, and bounded platform closeout are explicitly bound to the same canonical tuple."
+    },
+    {
+      "validation_id": "legacy_projection_binding_complete",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_route_semantic_preservation_audit_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_carrier_split_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_control_plane_decision_provenance_proof_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universal_machine_proof_rebinding_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_witness_suite_reissue_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_route_universal_substrate_gate_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_portability_minimality_matrix_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_rebased_universality_verdict_split_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_invocation_receipts_and_replay_classes_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_eval_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_authority_promotion_publication_and_trust_tier_gate_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_bounded_weighted_plugin_platform_closeout_audit_report.json"
+      ],
+      "detail": "legacy partial-tuple artifacts are explicitly rebound by the lock instead of relying on implied inheritance from adjacent issues."
+    },
+    {
+      "validation_id": "mixed_carrier_evidence_bundle_refused",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_carrier_split_contract_report.json"
+      ],
+      "detail": "mixed direct-versus-resumable evidence bundles stay explicit and fail-closed instead of silently recomposing one larger machine."
+    },
+    {
+      "validation_id": "dependency_rows_green",
+      "green": true,
+      "source_refs": [
+        "crates/psionic-transformer/src/tassadar_post_article_canonical_machine_identity_lock_contract.rs",
+        "fixtures/tassadar/reports/tassadar_tcm_v1_model.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_invocation_receipts_and_replay_classes_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_conformance_sandbox_and_benchmark_harness_eval_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_authority_promotion_publication_and_trust_tier_gate_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_bounded_weighted_plugin_platform_closeout_audit_report.json"
+      ],
+      "detail": "the declared dependency rows from the supporting-material surfaces remain satisfied and machine-checkable."
+    },
+    {
+      "validation_id": "suppression_boundary_preserved",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_authority_promotion_publication_and_trust_tier_gate_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_bounded_weighted_plugin_platform_closeout_audit_report.json"
+      ],
+      "detail": "plugin publication, served/public universality, and arbitrary software capability remain explicitly out of scope while the lock is green."
+    },
+    {
+      "validation_id": "closure_bundle_separation_preserved",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_bounded_weighted_plugin_platform_closeout_audit_report.json"
+      ],
+      "detail": "the machine-identity lock stays separate from the final claim-bearing closure bundle, which remains deferred to `TAS-215`."
+    }
+  ],
+  "lock_status": "green",
+  "lock_green": true,
+  "one_canonical_machine_named": true,
+  "mixed_carrier_evidence_bundle_refused": true,
+  "legacy_projection_binding_complete": true,
+  "closure_bundle_embedded_here": false,
+  "closure_bundle_issue_id": "TAS-215",
+  "rebase_claim_allowed": true,
+  "plugin_capability_claim_allowed": true,
+  "weighted_plugin_control_allowed": true,
+  "plugin_publication_allowed": false,
+  "served_public_universality_allowed": false,
+  "arbitrary_software_capability_allowed": false,
+  "claim_boundary": "this contract freezes one canonical machine identity lock across the post-article bridge, route audits, proof and witness surfaces, plugin receipts, controller traces, conformance harnesses, authority posture, and bounded platform closeout. It binds each cited artifact to one globally named tuple over model id, weight digest, route digest, continuation contract, and a transformer-owned carrier class, explicitly rebinds legacy partial-tuple artifacts through machine-readable lock rows instead of implied inheritance, refuses mixed-carrier recomposition, and still keeps plugin publication, served/public universality, arbitrary software capability, and the final claim-bearing closure bundle out of scope here.",
+  "summary": "Post-article canonical machine identity lock keeps supporting_materials=8/8, dependency_rows=6/6, artifact_binding_rows=16/16, invalidation_rows=7 present=0, validation_rows=8/8, lock_status=Green, and closure_bundle_issue_id=`TAS-215`.",
+  "report_digest": "1e019d735b5fbd47da72ba3dc87072004dc9f779708027e8643e96339d11345f"
+}
