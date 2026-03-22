@@ -2,6 +2,7 @@
 
 mod ollama;
 mod registry;
+mod tassadar_post_article_plugin_authority_promotion_publication_and_trust_tier_gate;
 mod tassadar_post_article_plugin_manifest_identity_contract;
 
 use std::{
@@ -17,6 +18,7 @@ use thiserror::Error;
 
 pub use ollama::*;
 pub use registry::*;
+pub use tassadar_post_article_plugin_authority_promotion_publication_and_trust_tier_gate::*;
 pub use tassadar_post_article_plugin_manifest_identity_contract::*;
 
 /// Human-readable crate ownership summary.
@@ -189,7 +191,9 @@ pub enum BlobError {
         actual: String,
     },
     /// The requested byte range is outside the blob bounds.
-    #[error("blob range [{offset}, {end}) is out of bounds for `{path}` with length {byte_length}")]
+    #[error(
+        "blob range [{offset}, {end}) is out of bounds for `{path}` with length {byte_length}"
+    )]
     RangeOutOfBounds {
         /// Blob path.
         path: String,
@@ -575,8 +579,8 @@ mod tests {
     use tempfile::tempdir;
 
     use super::{
-        BlobError, BlobIntegrityPolicy, BlobReadPath, BlobReadPreference, LocalBlob, LocalBlobKind,
-        LocalBlobOpenOptions, ollama_blob_path,
+        ollama_blob_path, BlobError, BlobIntegrityPolicy, BlobReadPath, BlobReadPreference,
+        LocalBlob, LocalBlobKind, LocalBlobOpenOptions,
     };
 
     fn write_blob(path: &Path, bytes: &[u8]) -> Result<(), Box<dyn std::error::Error>> {
@@ -645,8 +649,8 @@ mod tests {
     }
 
     #[test]
-    fn paged_blob_range_supports_partial_and_repeated_reads()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn paged_blob_range_supports_partial_and_repeated_reads(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let temp = tempdir()?;
         let path = temp.path().join("paged.gguf");
         let bytes = (0_u8..48).collect::<Vec<_>>();
@@ -689,8 +693,8 @@ mod tests {
     }
 
     #[test]
-    fn local_blob_can_skip_full_sha256_for_unverified_local_paths()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn local_blob_can_skip_full_sha256_for_unverified_local_paths(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let temp = tempdir()?;
         let path = temp.path().join("fast-local.gguf");
         write_blob(&path, b"psionic")?;

@@ -1809,10 +1809,8 @@
   "plugin_publication_allowed": false,
   "served_public_universality_allowed": false,
   "arbitrary_software_capability_allowed": false,
-  "deferred_issue_ids": [
-    "TAS-205"
-  ],
+  "deferred_issue_ids": [],
   "claim_boundary": "this sandbox report closes the bounded weighted plugin controller trace on the canonical post-article machine identity. It proves that plugin selection, export selection, packet encoding, sequencing, typed-refusal handling, retry, and stop conditions remain model-owned while the host validates and executes declared calls without becoming the planner. It still does not widen plugin authority into publication, trust-tier promotion, served/public universality, or arbitrary public software execution.",
-  "summary": "Post-article weighted plugin controller sandbox report keeps contract_status=Green, dependency_rows=6, controller_case_rows=4, control_trace_rows=34, host_negative_rows=10, validation_rows=12, weighted_plugin_control_allowed=true, and deferred_issue_ids=1.",
-  "report_digest": "e0545f05fb6cf645d82925236d0bf78badc9ce9d232ed3c681311cb10e8e401a"
+  "summary": "Post-article weighted plugin controller sandbox report keeps contract_status=Green, dependency_rows=6, controller_case_rows=4, control_trace_rows=34, host_negative_rows=10, validation_rows=12, weighted_plugin_control_allowed=true, and deferred_issue_ids=0.",
+  "report_digest": "fbe485613d897886ac5852ab95756168e14ace975ec8543a9bc8d9fd786f7d4f"
 }

@@ -274,7 +274,7 @@ mod tests {
         assert!(summary.host_not_planner_green);
         assert!(summary.adversarial_negative_rows_green);
         assert!(summary.weighted_plugin_control_allowed);
-        assert_eq!(summary.deferred_issue_ids, vec![String::from("TAS-205")]);
+        assert!(summary.deferred_issue_ids.is_empty());
     }
 
     #[test]

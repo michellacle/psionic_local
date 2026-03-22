@@ -47,7 +47,7 @@ jq -e '
   and .plugin_publication_allowed == false
   and .served_public_universality_allowed == false
   and .arbitrary_software_capability_allowed == false
-  and (.deferred_issue_ids == ["TAS-205"])
+  and (.deferred_issue_ids == [])
 ' fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_report.json >/dev/null
 
 jq -e '
@@ -64,7 +64,7 @@ jq -e '
   and .plugin_publication_allowed == false
   and .served_public_universality_allowed == false
   and .arbitrary_software_capability_allowed == false
-  and (.deferred_issue_ids == ["TAS-205"])
+  and (.deferred_issue_ids == [])
 ' fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report.json >/dev/null
 
 jq -e '
@@ -88,7 +88,7 @@ jq -e '
   and .plugin_publication_allowed == false
   and .served_public_universality_allowed == false
   and .arbitrary_software_capability_allowed == false
-  and (.deferred_issue_ids == ["TAS-205"])
+  and (.deferred_issue_ids == [])
 ' fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_summary.json >/dev/null
 
 jq -e '
@@ -105,6 +105,6 @@ jq -e '
 
 jq -e '
   (.reserved_capability_issue_ids | index("TAS-195")) != null
-  and (.reserved_capability_issue_ids | index("TAS-205")) != null
+  and (.reserved_capability_issue_ids | index("TAS-206")) != null
   and (.reserved_capability_issue_ids | index("TAS-204")) == null
 ' fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_summary.json >/dev/null

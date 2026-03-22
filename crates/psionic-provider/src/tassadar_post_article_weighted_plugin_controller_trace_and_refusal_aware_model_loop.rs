@@ -110,7 +110,7 @@ mod tests {
         assert_eq!(receipt.control_trace_row_count, 34);
         assert_eq!(receipt.host_negative_row_count, 10);
         assert_eq!(receipt.validation_row_count, 9);
-        assert_eq!(receipt.deferred_issue_ids, vec![String::from("TAS-205")]);
+        assert!(receipt.deferred_issue_ids.is_empty());
         assert!(receipt.control_trace_contract_green);
         assert!(receipt.determinism_profile_explicit);
         assert!(receipt.typed_refusal_loop_closed);

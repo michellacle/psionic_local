@@ -31,7 +31,7 @@
     "control_trace_profile_id": "tassadar.weighted_plugin.control_trace_profile.v1",
     "determinism_profile_id": "tassadar.weighted_plugin.controller_determinism_profile.v1",
     "sandbox_report_id": "tassadar.post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop.report.v1",
-    "sandbox_report_digest": "e0545f05fb6cf645d82925236d0bf78badc9ce9d232ed3c681311cb10e8e401a",
+    "sandbox_report_digest": "fbe485613d897886ac5852ab95756168e14ace975ec8543a9bc8d9fd786f7d4f",
     "runtime_bundle_id": "tassadar.post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop.runtime_bundle.v1",
     "runtime_bundle_digest": "ae20cf8b4a57c592a29d73558e0e739eba449491dad32d7dd93613293e5c961e",
     "detail": "machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1` canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1` sandbox_report_id=`tassadar.post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop.report.v1` and control_trace_contract_id=`tassadar.weighted_plugin.controller_trace_contract.v1` remain bound together."
@@ -157,7 +157,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_report.json",
       "bound_report_id": "tassadar.post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop.report.v1",
-      "bound_report_digest": "e0545f05fb6cf645d82925236d0bf78badc9ce9d232ed3c681311cb10e8e401a",
+      "bound_report_digest": "fbe485613d897886ac5852ab95756168e14ace975ec8543a9bc8d9fd786f7d4f",
       "detail": "the sandbox report must already close the bounded controller trace and turn weighted plugin control green on the canonical route."
     },
     {
@@ -1060,10 +1060,8 @@
   "plugin_publication_allowed": false,
   "served_public_universality_allowed": false,
   "arbitrary_software_capability_allowed": false,
-  "deferred_issue_ids": [
-    "TAS-205"
-  ],
+  "deferred_issue_ids": [],
   "claim_boundary": "this eval-owned closure report makes the weighted plugin controller trace true on the canonical post-article route. It closes model ownership over plugin selection, export selection, packet argument construction, sequencing, typed-refusal handling, retry, and stop conditions while keeping plugin authority, publication, trust-tier promotion, served/public universality, and arbitrary public software execution deferred to the later platform gate.",
-  "summary": "Post-article weighted plugin controller eval report keeps contract_status=Green, dependency_rows=4, controller_case_rows=4, control_trace_rows=34, host_negative_rows=10, validation_rows=9, weighted_plugin_control_allowed=true, and deferred_issue_ids=1.",
-  "report_digest": "0cbc461f3ef594a7148866994e13d8bad4c10c94cbecb02a6fccc0b098013c53"
+  "summary": "Post-article weighted plugin controller eval report keeps contract_status=Green, dependency_rows=4, controller_case_rows=4, control_trace_rows=34, host_negative_rows=10, validation_rows=9, weighted_plugin_control_allowed=true, and deferred_issue_ids=0.",
+  "report_digest": "a95d9aa0abf8d530cf8947caf1b04c7ea1fd49e372dce7807de43f59e87b6275"
 }

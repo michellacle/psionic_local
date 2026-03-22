@@ -1468,9 +1468,29 @@ The current scope is:
   sequencing, auto-retry, fallback export selection, heuristic ranking,
   schema auto-repair, cached result substitution, candidate precomputation,
   hidden top-k filtering, helper substitution, and runtime policy drift.
-  This turns weighted plugin control green on the canonical route while still
-  leaving plugin authority, publication, served/public universality, and
-  arbitrary software capability blocked.
+  This turns weighted plugin control green on the canonical route, clears the
+  controller defer pointer to empty, moves the reserved bridge frontier to
+  `TAS-206`, and still leaves bounded plugin-platform closeout, publication,
+  served/public universality, and arbitrary software capability blocked.
+- the current post-article plugin authority, promotion, publication, and
+  trust-tier artifacts are
+  `fixtures/tassadar/reports/tassadar_post_article_plugin_authority_promotion_publication_and_trust_tier_gate_report.json`,
+  `fixtures/tassadar/reports/tassadar_post_article_plugin_authority_promotion_publication_and_trust_tier_gate_summary.json`,
+  the provider receipt in
+  `crates/psionic-provider/src/tassadar_post_article_plugin_authority_promotion_publication_and_trust_tier_gate.rs`,
+  the checker script
+  `scripts/check-tassadar-post-article-plugin-authority-promotion-publication-and-trust-tier-gate.sh`,
+  and the audit note
+  `docs/audits/2026-03-21-tassadar-post-article-plugin-authority-promotion-publication-and-trust-tier-gate.md`,
+  which bind the green weighted controller to explicit research-only,
+  benchmark-gated-internal, and challenge-gated-install trust tiers, explicit
+  promotion, quarantine, revocation, and supersession receipts, explicit
+  operator/internal-only posture, explicit profile-specific deterministic
+  import and runtime-support route hooks, and explicit broader public
+  suppression or refusal. This freezes bounded plugin authority and posture
+  change mechanics without yet turning bounded plugin-platform closeout,
+  publication, served/public universality, or arbitrary software capability
+  green.
 - the current post-article Turing-completeness closeout artifacts are
   `fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json`,
   `fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_summary.json`,

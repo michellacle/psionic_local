@@ -1063,9 +1063,33 @@ the provider receipt now lives at
 and the dedicated checker now lives at
 `scripts/check-tassadar-post-article-weighted-plugin-controller-trace-and-refusal-aware-model-loop.sh`.
 This tranche turns weighted plugin control green on the canonical route,
-clears the `TAS-203A` defer pointer to empty, moves the reserved bridge
-capability frontier to `TAS-205`, and still does not admit plugin
+clears the `TAS-203A` defer pointer to empty, clears the controller defer
+pointer to empty, moves the reserved bridge capability frontier to `TAS-206`,
+and still does not admit bounded plugin-platform closeout, plugin
 publication, served/public universality, or arbitrary software capability.
+
+`TAS-205` now closes the canonical plugin authority, promotion, publication,
+and trust-tier gate at
+`fixtures/tassadar/reports/tassadar_post_article_plugin_authority_promotion_publication_and_trust_tier_gate_report.json`.
+That catalog-owned report binds the green weighted-plugin controller to one
+explicit authority gate over research-only, benchmark-gated-internal, and
+challenge-gated-install trust tiers, explicit promotion or challenge or
+quarantine or revocation or supersession receipts, explicit observer rights,
+and explicit validator plus accepted-outcome hook requirements for the
+profile-specific deterministic-import and runtime-support lanes. It also keeps
+the current posture operator/internal only, keeps broader public publication
+explicitly suppressed or refused, and preserves the separation between the
+weighted-controller proof and the later bounded plugin-platform closeout. The
+operator-readable summary now lives at
+`fixtures/tassadar/reports/tassadar_post_article_plugin_authority_promotion_publication_and_trust_tier_gate_summary.json`,
+the provider receipt now lives at
+`crates/psionic-provider/src/tassadar_post_article_plugin_authority_promotion_publication_and_trust_tier_gate.rs`,
+and the dedicated checker now lives at
+`scripts/check-tassadar-post-article-plugin-authority-promotion-publication-and-trust-tier-gate.sh`.
+This tranche turns the bounded plugin authority and posture gate green while
+still deferring the first bounded plugin-platform closeout claim to `TAS-206`
+and still does not admit served/public universality or arbitrary software
+capability.
 
 ## Route Requirement
 

@@ -20,9 +20,7 @@
   "control_trace_row_count": 34,
   "host_negative_row_count": 10,
   "validation_row_count": 9,
-  "deferred_issue_ids": [
-    "TAS-205"
-  ],
+  "deferred_issue_ids": [],
   "control_trace_contract_green": true,
   "determinism_profile_explicit": true,
   "typed_refusal_loop_closed": true,
@@ -35,6 +33,6 @@
   "plugin_publication_allowed": false,
   "served_public_universality_allowed": false,
   "arbitrary_software_capability_allowed": false,
-  "detail": "post-article weighted plugin controller summary keeps machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, control_trace_contract_id=`tassadar.weighted_plugin.controller_trace_contract.v1`, contract_status=Green, controller_case_rows=4, control_trace_rows=34, validation_rows=9, weighted_plugin_control_allowed=true, and deferred_issue_ids=1.",
-  "summary_digest": "5eab73b86f10426edbe41c39c99d487c0b9f889ed9185c584018f87b74df58e7"
+  "detail": "post-article weighted plugin controller summary keeps machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, control_trace_contract_id=`tassadar.weighted_plugin.controller_trace_contract.v1`, contract_status=Green, controller_case_rows=4, control_trace_rows=34, validation_rows=9, weighted_plugin_control_allowed=true, and deferred_issue_ids=0.",
+  "summary_digest": "9b809dbccdc888042d83e9433c24a31638a000c6ce3a065f33f1be43b39722cd"
 }

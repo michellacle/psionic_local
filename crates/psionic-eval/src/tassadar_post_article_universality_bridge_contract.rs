@@ -759,13 +759,13 @@ pub fn build_tassadar_post_article_universality_bridge_contract_report() -> Resu
             purpose: String::from(
                 "keep schema-version negotiation explicit above the bridge while result binding stays contract-owned and weighted controller ownership remains later",
             ),
-            reserved_issue_ids: vec![String::from("TAS-205")],
+            reserved_issue_ids: vec![String::from("TAS-206")],
             current_posture: String::from("reserved_after_weighted_controller_contract"),
             source_refs: vec![String::from(
                 "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md",
             )],
             detail: String::from(
-                "the bridge now delegates schema-stability and weighted-controller ownership to TAS-203A plus TAS-204 while keeping the later authority and promotion boundary explicit instead of widening the bridge itself into a publication or trust-tier contract",
+                "the bridge now delegates schema-stability, weighted-controller ownership, and bounded plugin authority gating to TAS-203A through TAS-205 while keeping the later plugin-platform closeout boundary explicit instead of widening the bridge itself into a publication or trust-tier contract",
             ),
         },
     ];

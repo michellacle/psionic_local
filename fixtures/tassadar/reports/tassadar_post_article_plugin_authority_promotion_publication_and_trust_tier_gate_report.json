@@ -1,0 +1,424 @@
+{
+  "schema_version": 1,
+  "report_id": "tassadar.post_article_plugin_authority_promotion_publication_and_trust_tier_gate.report.v1",
+  "checker_script_ref": "scripts/check-tassadar-post-article-plugin-authority-promotion-publication-and-trust-tier-gate.sh",
+  "controller_eval_report_ref": "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report.json",
+  "manifest_contract_report_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_manifest_identity_contract_report.json",
+  "module_promotion_state_report_ref": "fixtures/tassadar/reports/tassadar_module_promotion_state_report.json",
+  "module_trust_isolation_report_ref": "fixtures/tassadar/reports/tassadar_module_trust_isolation_report.json",
+  "broad_internal_compute_profile_publication_report_ref": "fixtures/tassadar/reports/tassadar_broad_internal_compute_profile_publication_report.json",
+  "broad_internal_compute_route_policy_report_ref": "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json",
+  "local_plugin_system_spec_ref": "~/code/alpha/tassadar/plugin-system.md",
+  "supporting_material_refs": [
+    "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report.json",
+    "fixtures/tassadar/reports/tassadar_post_article_plugin_manifest_identity_contract_report.json",
+    "fixtures/tassadar/reports/tassadar_module_promotion_state_report.json",
+    "fixtures/tassadar/reports/tassadar_module_trust_isolation_report.json",
+    "fixtures/tassadar/reports/tassadar_broad_internal_compute_profile_publication_report.json",
+    "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json",
+    "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md"
+  ],
+  "machine_identity_binding": {
+    "machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+    "canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+    "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+    "canonical_route_descriptor_digest": "00af062cccc3d1b2e42ee8e092b9ef8e1539dd3f2dfc379cff7d1cd4a008b032",
+    "canonical_weight_bundle_digest": "99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c",
+    "canonical_weight_primary_artifact_sha256": "e24923e6fe39f0656b3f331fb935e0827a3de43b706014610e513ca5a54e9f84",
+    "continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+    "continuation_contract_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
+    "computational_model_statement_id": "tassadar.post_article_universality_bridge.computational_model_statement.v1",
+    "controller_eval_report_id": "tassadar.post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop.eval_report.v1",
+    "controller_eval_report_digest": "a95d9aa0abf8d530cf8947caf1b04c7ea1fd49e372dce7807de43f59e87b6275",
+    "control_trace_contract_id": "tassadar.weighted_plugin.controller_trace_contract.v1",
+    "manifest_contract_report_id": "tassadar.post_article_plugin_manifest_identity_contract.report.v1",
+    "manifest_contract_report_digest": "28bf89089addd674b19f5298dd4adc409429a08f3679ab9e2e7edbde6b168107",
+    "canonical_architecture_anchor_crate": "psionic-transformer",
+    "canonical_architecture_boundary_ref": "docs/TASSADAR_ARTICLE_TRANSFORMER_STACK_BOUNDARY.md",
+    "detail": "machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1` canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1` controller_eval_report_id=`tassadar.post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop.eval_report.v1` and manifest_contract_report_id=`tassadar.post_article_plugin_manifest_identity_contract.report.v1` remain the authority-gate anchor in `psionic-transformer`."
+  },
+  "dependency_rows": [
+    {
+      "dependency_id": "controller_eval_green",
+      "dependency_class": "controller_precedent",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report.json",
+      "bound_report_id": "tassadar.post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop.eval_report.v1",
+      "bound_report_digest": "a95d9aa0abf8d530cf8947caf1b04c7ea1fd49e372dce7807de43f59e87b6275",
+      "detail": "the inherited controller proof must already be green, keep weighted plugin control explicit, and clear its TAS-204 frontier before the authority gate can rely on it."
+    },
+    {
+      "dependency_id": "manifest_contract_green",
+      "dependency_class": "catalog_precedent",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_post_article_plugin_manifest_identity_contract_report.json",
+      "bound_report_id": "tassadar.post_article_plugin_manifest_identity_contract.report.v1",
+      "bound_report_digest": "28bf89089addd674b19f5298dd4adc409429a08f3679ab9e2e7edbde6b168107",
+      "detail": "the manifest and invocation identity contract must already be green so authority widening cannot bypass canonical declaration, packaging, or hot-swap rules."
+    },
+    {
+      "dependency_id": "promotion_receipts_present",
+      "dependency_class": "promotion_dependency",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_module_promotion_state_report.json",
+      "bound_report_id": "tassadar.module_promotion_state.report.v1",
+      "bound_report_digest": "966367515d664914f84ed60b9a1f069da44128218e6fae3357acbc01c383b1ac",
+      "detail": "promotion, challenge, quarantine, revocation, and supersession must all remain explicit instead of collapsing promotion into one irreversible success flag."
+    },
+    {
+      "dependency_id": "trust_tiers_present",
+      "dependency_class": "trust_dependency",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_module_trust_isolation_report.json",
+      "bound_report_id": "tassadar.module_trust_isolation.report.v1",
+      "bound_report_digest": "d669cb8959dfad7df9295c24646bf2ca00f8842792004096648e8b6d0b5ccb1a",
+      "detail": "the module trust report must keep research-only, benchmark-gated, and challenge-gated tiers distinct while refusing cross-tier escalation and mount-policy leakage."
+    },
+    {
+      "dependency_id": "publication_report_present",
+      "dependency_class": "publication_dependency",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_broad_internal_compute_profile_publication_report.json",
+      "bound_report_id": "tassadar.broad_internal_compute_profile_publication.report.v1",
+      "bound_report_digest": "e97275c6c640e4a17e33ff4e38ff7a49753c97554e7681ee676dd35254c535a3",
+      "detail": "the broader publication report must keep the current served lane article-only while exposing explicit suppressed profile-specific routes for bounded widening."
+    },
+    {
+      "dependency_id": "route_policy_present",
+      "dependency_class": "route_policy_dependency",
+      "satisfied": true,
+      "source_ref": "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json",
+      "bound_report_id": "tassadar.broad_internal_compute_route_policy.report.v1",
+      "bound_report_digest": "a7fabcb7159ca0c6ffd4658777976121b4c943232a128976a935f6a9e29056c2",
+      "detail": "the broader route-policy report must keep profile-specific widening and broader public refusal machine-readable instead of implying one default public plugin lane."
+    },
+    {
+      "dependency_id": "plugin_system_spec_cited",
+      "dependency_class": "design_input",
+      "satisfied": true,
+      "source_ref": "~/code/alpha/tassadar/plugin-system.md",
+      "detail": "the local plugin-system spec remains a cited design input for the authority and trust-tier gate."
+    },
+    {
+      "dependency_id": "plugin_system_audit_cited",
+      "dependency_class": "audit_input",
+      "satisfied": true,
+      "source_ref": "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md",
+      "detail": "the public plugin-system audit remains a cited audit input so proof-carrying artifacts stay distinct from narrative review."
+    }
+  ],
+  "trust_tier_rows": [
+    {
+      "tier_id": "research_only_contained",
+      "current_posture": "research_only",
+      "benchmark_bar": "1 benchmark-equivalent seeded evidence row and zero authority widening",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_module_trust_isolation_report.json"
+      ],
+      "detail": "research-only plugin experiments stay contained and may not silently promote into benchmark or install-grade authority."
+    },
+    {
+      "tier_id": "benchmark_gated_internal_requires_two_benchmarks",
+      "current_posture": "benchmark_gated_internal",
+      "benchmark_bar": "at least 2 benchmark refs and benchmark-only isolation",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_module_trust_isolation_report.json"
+      ],
+      "detail": "benchmark-gated plugins require explicit two-benchmark posture and remain isolated from research-only and challenge-gated mounts unless separately declared."
+    },
+    {
+      "tier_id": "challenge_gated_install_requires_explicit_mount",
+      "current_posture": "challenge_gated_install",
+      "benchmark_bar": "at least 2 benchmark refs plus challenge-aware mount posture",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_module_trust_isolation_report.json",
+        "fixtures/tassadar/reports/tassadar_module_promotion_state_report.json"
+      ],
+      "detail": "challenge-gated installs remain bounded to explicit mounts and challenge windows rather than inheriting broad publication authority."
+    },
+    {
+      "tier_id": "cross_tier_escalation_refusals_explicit",
+      "current_posture": "refusal_surface",
+      "benchmark_bar": "cross-tier, privilege-escalation, and mount-policy refusals are all present",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_module_trust_isolation_report.json"
+      ],
+      "detail": "cross-tier composition, privilege escalation, and mount-policy bypass remain typed refusals instead of implicit host-side policy."
+    }
+  ],
+  "promotion_rows": [
+    {
+      "authority_id": "active_promotion_receipt",
+      "lifecycle_state": "active_promoted",
+      "receipt_required": true,
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_module_promotion_state_report.json"
+      ],
+      "detail": "at least one active promoted record remains explicit and challengeable rather than silently becoming irreversible closure."
+    },
+    {
+      "authority_id": "challenge_window_receipt",
+      "lifecycle_state": "challenge_open",
+      "receipt_required": true,
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_module_promotion_state_report.json"
+      ],
+      "detail": "promotion remains challenge-open where declared instead of hiding the review window behind one benchmark pass."
+    },
+    {
+      "authority_id": "quarantine_receipt",
+      "lifecycle_state": "quarantined",
+      "receipt_required": true,
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_module_promotion_state_report.json"
+      ],
+      "detail": "missing evidence still produces explicit quarantine posture instead of optimistic publication."
+    },
+    {
+      "authority_id": "revocation_receipt",
+      "lifecycle_state": "revoked",
+      "receipt_required": true,
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_module_promotion_state_report.json"
+      ],
+      "detail": "stale or invalid evidence still yields a revocation receipt instead of retroactively erasing prior lineage."
+    },
+    {
+      "authority_id": "supersession_receipt",
+      "lifecycle_state": "superseded",
+      "receipt_required": true,
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_module_promotion_state_report.json"
+      ],
+      "detail": "reinstall and supersession remain explicit so upgraded plugin posture cannot smuggle authority through ambiguous lineage."
+    }
+  ],
+  "publication_posture_rows": [
+    {
+      "posture_id": "operator_internal_only_current",
+      "publication_posture": "operator_internal_only",
+      "publication_status": "article_closeout_only",
+      "validator_hook_status": "not_applicable",
+      "accepted_outcome_hook_status": "not_applicable",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_manifest_identity_contract_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_profile_publication_report.json"
+      ],
+      "detail": "the current served posture remains article-only and operator/internal for plugin authority; no public plugin lane is implied by weighted control alone."
+    },
+    {
+      "posture_id": "deterministic_import_profile_specific_template",
+      "publication_posture": "profile_specific_named_but_suppressed",
+      "publication_status": "suppressed",
+      "validator_hook_status": "profile_specific_mount_template_available",
+      "accepted_outcome_hook_status": "profile_specific_accepted_outcome_template_available",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_profile_publication_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
+      ],
+      "detail": "the deterministic-import subset is explicitly nameable only through a suppressed profile-specific lane with mount and accepted-outcome templates kept explicit."
+    },
+    {
+      "posture_id": "runtime_support_profile_specific_template",
+      "publication_posture": "profile_specific_named_but_suppressed",
+      "publication_status": "suppressed",
+      "validator_hook_status": "profile_specific_mount_template_available",
+      "accepted_outcome_hook_status": "profile_specific_accepted_outcome_template_available",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_profile_publication_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
+      ],
+      "detail": "the runtime-support subset is explicitly nameable only through a suppressed profile-specific lane with validator and accepted-outcome hooks kept machine-readable."
+    },
+    {
+      "posture_id": "public_broad_publication_suppressed",
+      "publication_posture": "served_public_plugin_lane",
+      "publication_status": "suppressed",
+      "validator_hook_status": "broad_profile_publication_and_route_policy",
+      "accepted_outcome_hook_status": "requires_profile_specific_accepted_outcome_template",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_profile_publication_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
+      ],
+      "detail": "any broader served/public plugin publication remains explicitly suppressed until later platform-closeout work lands."
+    },
+    {
+      "posture_id": "portable_broad_family_refused",
+      "publication_posture": "portable_broad_family",
+      "publication_status": "refused",
+      "validator_hook_status": "refused_pending_profile_evidence",
+      "accepted_outcome_hook_status": "refused_pending_profile_evidence",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_profile_publication_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
+      ],
+      "detail": "the portable broad family remains explicitly refused rather than renamed into a public plugin platform claim."
+    }
+  ],
+  "observer_rows": [
+    {
+      "observer_id": "operator_internal_curator_accepts_internal_results",
+      "permitted_actions": [
+        "accept_internal_conformance",
+        "promote_with_receipts"
+      ],
+      "publication_posture": "operator_internal_only",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_module_promotion_state_report.json",
+        "fixtures/tassadar/reports/tassadar_module_trust_isolation_report.json"
+      ],
+      "detail": "internal operators may accept bounded plugin conformance only when the promotion and trust receipts remain explicit."
+    },
+    {
+      "observer_id": "challenge_observer_may_quarantine_and_revoke",
+      "permitted_actions": [
+        "challenge",
+        "quarantine",
+        "revoke"
+      ],
+      "publication_posture": "challenge_window",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_module_promotion_state_report.json"
+      ],
+      "detail": "challenge observers may challenge, quarantine, and revoke bounded plugin posture through explicit receipts instead of implicit host trust."
+    },
+    {
+      "observer_id": "served_public_observer_cannot_publish_plugin_lane",
+      "permitted_actions": [
+        "observe_article_only",
+        "cannot_publish_plugin_conformance"
+      ],
+      "publication_posture": "served_public_suppressed",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_profile_publication_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
+      ],
+      "detail": "served/public observers may see the article lane but cannot infer a published plugin lane from the bounded weighted-controller proof."
+    },
+    {
+      "observer_id": "external_publication_owners_explicit",
+      "permitted_actions": [
+        "externalize_publication_authority",
+        "externalize_settlement_accepted_outcomes"
+      ],
+      "publication_posture": "externalized_outside_psionic",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_module_promotion_state_report.json",
+        "fixtures/tassadar/reports/tassadar_module_trust_isolation_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_profile_publication_report.json"
+      ],
+      "detail": "public publication, settlement-grade acceptance, and cluster/provider authority remain explicitly externalized outside standalone psionic."
+    }
+  ],
+  "validation_rows": [
+    {
+      "validation_id": "hidden_host_orchestration_negative_rows_carried",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report.json"
+      ],
+      "detail": "hidden host orchestration remains refused by the inherited controller proof rather than being reintroduced inside promotion or publication policy."
+    },
+    {
+      "validation_id": "controller_frontier_cleared",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report.json"
+      ],
+      "detail": "the TAS-204 controller artifact now clears its defer pointer so TAS-205 is the live frontier instead of keeping authority work hidden behind controller status."
+    },
+    {
+      "validation_id": "manifest_frontier_cleared",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_manifest_identity_contract_report.json"
+      ],
+      "detail": "the earlier manifest contract has no remaining defer pointer, so authority widening cannot rely on implied future declaration work."
+    },
+    {
+      "validation_id": "schema_and_identity_drift_refused",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_manifest_identity_contract_report.json"
+      ],
+      "detail": "schema drift and invocation-identity drift remain refused through the earlier manifest and hot-swap contract."
+    },
+    {
+      "validation_id": "promotion_quarantine_revocation_receipts_explicit",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_module_promotion_state_report.json"
+      ],
+      "detail": "promotion, quarantine, revocation, and supersession receipts remain explicit instead of optimistic widening."
+    },
+    {
+      "validation_id": "trust_tiers_machine_checkable",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_module_trust_isolation_report.json"
+      ],
+      "detail": "trust tiers remain machine-checkable rather than being inferred from benchmark counts or host posture."
+    },
+    {
+      "validation_id": "validator_and_accepted_outcome_hooks_bound",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_profile_publication_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
+      ],
+      "detail": "profile-specific widening keeps validator and accepted-outcome hooks explicit where required instead of silently reusing the default served lane."
+    },
+    {
+      "validation_id": "overclaim_posture_refused",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_profile_publication_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
+      ],
+      "detail": "the gate keeps bounded controller closure distinct from plugin-platform closeout and refuses any claim of arbitrary public Wasm or arbitrary public tool use."
+    }
+  ],
+  "contract_status": "green",
+  "contract_green": true,
+  "trust_tier_gate_green": true,
+  "promotion_receipts_explicit": true,
+  "publication_posture_explicit": true,
+  "observer_rights_explicit": true,
+  "validator_hooks_explicit": true,
+  "accepted_outcome_hooks_explicit": true,
+  "operator_internal_only_posture": true,
+  "profile_specific_named_routes_explicit": true,
+  "broader_publication_refused": true,
+  "rebase_claim_allowed": true,
+  "plugin_capability_claim_allowed": false,
+  "weighted_plugin_control_allowed": true,
+  "plugin_publication_allowed": false,
+  "served_public_universality_allowed": false,
+  "arbitrary_software_capability_allowed": false,
+  "deferred_issue_ids": [
+    "TAS-206"
+  ],
+  "claim_boundary": "this catalog report freezes plugin authority, promotion, publication posture, and trust tiers above the canonical weighted controller without widening the claim surface. It keeps operator/internal posture, profile-specific named-but-suppressed routes, validator and accepted-outcome hook requirements, promotion challengeability, quarantine, revocation, and broader public refusal explicit instead of implying a served/public plugin platform or arbitrary public software execution.",
+  "summary": "post-article plugin authority gate binds machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1`, contract_status=Green, trust_tier_rows=4, promotion_rows=5, publication_posture_rows=5, observer_rows=4, validation_rows=8, weighted_plugin_control_allowed=true, and deferred_issue_ids=1.",
+  "report_digest": "73ea3bc84c8ca2371048ec532d9f4691ec6ad62290372dd67cc20cfb8cb8c7e6"
+}

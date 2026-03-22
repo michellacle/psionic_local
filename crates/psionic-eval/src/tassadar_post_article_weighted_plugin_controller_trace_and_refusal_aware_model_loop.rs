@@ -452,7 +452,7 @@ pub fn build_tassadar_post_article_weighted_plugin_controller_trace_and_refusal_
             plugin_publication_allowed: false,
             served_public_universality_allowed: false,
             arbitrary_software_capability_allowed: false,
-            deferred_issue_ids: vec![String::from("TAS-205")],
+            deferred_issue_ids: Vec::new(),
             claim_boundary: String::from(
                 "this eval-owned closure report makes the weighted plugin controller trace true on the canonical post-article route. It closes model ownership over plugin selection, export selection, packet argument construction, sequencing, typed-refusal handling, retry, and stop conditions while keeping plugin authority, publication, trust-tier promotion, served/public universality, and arbitrary public software execution deferred to the later platform gate.",
             ),
@@ -618,7 +618,7 @@ mod tests {
         assert!(report.contract_green);
         assert!(report.weighted_plugin_control_allowed);
         assert!(!report.plugin_capability_claim_allowed);
-        assert_eq!(report.deferred_issue_ids, vec![String::from("TAS-205")]);
+        assert!(report.deferred_issue_ids.is_empty());
     }
 
     #[test]

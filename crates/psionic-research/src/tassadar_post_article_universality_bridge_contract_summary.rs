@@ -247,7 +247,7 @@ mod tests {
             .contains(&String::from("TAS-195")));
         assert!(summary
             .reserved_capability_issue_ids
-            .contains(&String::from("TAS-205")));
+            .contains(&String::from("TAS-206")));
     }
 
     #[test]

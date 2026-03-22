@@ -711,7 +711,7 @@ pub fn build_tassadar_post_article_weighted_plugin_controller_trace_and_refusal_
             plugin_publication_allowed: false,
             served_public_universality_allowed: false,
             arbitrary_software_capability_allowed: false,
-            deferred_issue_ids: vec![String::from("TAS-205")],
+            deferred_issue_ids: Vec::new(),
             claim_boundary: String::from(
                 "this sandbox report closes the bounded weighted plugin controller trace on the canonical post-article machine identity. It proves that plugin selection, export selection, packet encoding, sequencing, typed-refusal handling, retry, and stop conditions remain model-owned while the host validates and executes declared calls without becoming the planner. It still does not widen plugin authority into publication, trust-tier promotion, served/public universality, or arbitrary public software execution.",
             ),
@@ -947,7 +947,7 @@ mod tests {
         assert!(report.contract_green);
         assert!(report.weighted_plugin_control_allowed);
         assert!(!report.plugin_capability_claim_allowed);
-        assert_eq!(report.deferred_issue_ids, vec![String::from("TAS-205")]);
+        assert!(report.deferred_issue_ids.is_empty());
         assert_eq!(
             report.machine_identity_binding.control_trace_contract_id,
             "tassadar.weighted_plugin.controller_trace_contract.v1"
