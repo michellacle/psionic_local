@@ -9,7 +9,7 @@ use std::{
 #[cfg(test)]
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 use thiserror::Error;
 use url::Url;
@@ -27,6 +27,10 @@ pub const TASSADAR_POST_ARTICLE_PLUGIN_HTML_EXTRACT_READABLE_RUNTIME_BUNDLE_REF:
     "fixtures/tassadar/runs/tassadar_post_article_plugin_html_extract_readable_v1/tassadar_post_article_plugin_html_extract_readable_bundle.json";
 pub const TASSADAR_POST_ARTICLE_PLUGIN_HTML_EXTRACT_READABLE_RUN_ROOT_REF: &str =
     "fixtures/tassadar/runs/tassadar_post_article_plugin_html_extract_readable_v1";
+pub const TASSADAR_POST_ARTICLE_PLUGIN_FEED_RSS_ATOM_PARSE_RUNTIME_BUNDLE_REF: &str =
+    "fixtures/tassadar/runs/tassadar_post_article_plugin_feed_rss_atom_parse_v1/tassadar_post_article_plugin_feed_rss_atom_parse_bundle.json";
+pub const TASSADAR_POST_ARTICLE_PLUGIN_FEED_RSS_ATOM_PARSE_RUN_ROOT_REF: &str =
+    "fixtures/tassadar/runs/tassadar_post_article_plugin_feed_rss_atom_parse_v1";
 
 pub const STARTER_PLUGIN_VERSION: &str = "v1";
 pub const STARTER_PLUGIN_TEXT_URL_EXTRACT_ID: &str = "plugin.text.url_extract";
@@ -42,31 +46,33 @@ pub const STARTER_PLUGIN_REFUSAL_RUNTIME_RESOURCE_LIMIT_ID: &str =
     "plugin.refusal.runtime_resource_limit.v1";
 pub const STARTER_PLUGIN_HTTP_FETCH_TEXT_ID: &str = "plugin.http.fetch_text";
 pub const STARTER_PLUGIN_HTTP_FETCH_TEXT_TOOL_NAME: &str = "plugin_http_fetch_text";
-pub const STARTER_PLUGIN_HTTP_FETCH_TEXT_INPUT_SCHEMA_ID: &str =
-    "plugin.http.fetch_text.input.v1";
+pub const STARTER_PLUGIN_HTTP_FETCH_TEXT_INPUT_SCHEMA_ID: &str = "plugin.http.fetch_text.input.v1";
 pub const STARTER_PLUGIN_HTTP_FETCH_TEXT_OUTPUT_SCHEMA_ID: &str =
     "plugin.http.fetch_text.output.v1";
 pub const STARTER_PLUGIN_HTML_EXTRACT_READABLE_ID: &str = "plugin.html.extract_readable";
-pub const STARTER_PLUGIN_HTML_EXTRACT_READABLE_TOOL_NAME: &str =
-    "plugin_html_extract_readable";
+pub const STARTER_PLUGIN_HTML_EXTRACT_READABLE_TOOL_NAME: &str = "plugin_html_extract_readable";
 pub const STARTER_PLUGIN_HTML_EXTRACT_READABLE_INPUT_SCHEMA_ID: &str =
     "plugin.html.extract_readable.input.v1";
 pub const STARTER_PLUGIN_HTML_EXTRACT_READABLE_OUTPUT_SCHEMA_ID: &str =
     "plugin.html.extract_readable.output.v1";
+pub const STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_ID: &str = "plugin.feed.rss_atom_parse";
+pub const STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_TOOL_NAME: &str = "plugin_feed_rss_atom_parse";
+pub const STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_INPUT_SCHEMA_ID: &str =
+    "plugin.feed.rss_atom_parse.input.v1";
+pub const STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_OUTPUT_SCHEMA_ID: &str =
+    "plugin.feed.rss_atom_parse.output.v1";
 pub const STARTER_PLUGIN_REFUSAL_NETWORK_DENIED_ID: &str = "plugin.refusal.network_denied.v1";
-pub const STARTER_PLUGIN_REFUSAL_URL_NOT_PERMITTED_ID: &str =
-    "plugin.refusal.url_not_permitted.v1";
+pub const STARTER_PLUGIN_REFUSAL_URL_NOT_PERMITTED_ID: &str = "plugin.refusal.url_not_permitted.v1";
 pub const STARTER_PLUGIN_REFUSAL_TIMEOUT_ID: &str = "plugin.refusal.timeout.v1";
 pub const STARTER_PLUGIN_REFUSAL_RESPONSE_TOO_LARGE_ID: &str =
     "plugin.refusal.response_too_large.v1";
 pub const STARTER_PLUGIN_REFUSAL_CONTENT_TYPE_UNSUPPORTED_ID: &str =
     "plugin.refusal.content_type_unsupported.v1";
-pub const STARTER_PLUGIN_REFUSAL_DECODE_FAILED_ID: &str =
-    "plugin.refusal.decode_failed.v1";
-pub const STARTER_PLUGIN_REFUSAL_UPSTREAM_FAILURE_ID: &str =
-    "plugin.refusal.upstream_failure.v1";
-pub const STARTER_PLUGIN_REFUSAL_INPUT_TOO_LARGE_ID: &str =
-    "plugin.refusal.input_too_large.v1";
+pub const STARTER_PLUGIN_REFUSAL_DECODE_FAILED_ID: &str = "plugin.refusal.decode_failed.v1";
+pub const STARTER_PLUGIN_REFUSAL_UPSTREAM_FAILURE_ID: &str = "plugin.refusal.upstream_failure.v1";
+pub const STARTER_PLUGIN_REFUSAL_INPUT_TOO_LARGE_ID: &str = "plugin.refusal.input_too_large.v1";
+pub const STARTER_PLUGIN_REFUSAL_UNSUPPORTED_FEED_FORMAT_ID: &str =
+    "plugin.refusal.unsupported_feed_format.v1";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -387,6 +393,112 @@ pub struct ExtractReadableRuntimeBundle {
     pub negative_claim_ids: Vec<String>,
     pub case_rows: Vec<ExtractReadableRuntimeCase>,
     pub composition_case: ExtractReadableCompositionCase,
+    pub claim_boundary: String,
+    pub summary: String,
+    pub bundle_digest: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct FeedParseRequest {
+    pub source_url: String,
+    pub content_type: String,
+    pub feed_text: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct FeedParseEntry {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub title: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub link: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub published_time: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub summary: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub content_excerpt: Option<String>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct FeedParseResponse {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub feed_title: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub feed_homepage_url: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub feed_description: Option<String>,
+    pub entries: Vec<FeedParseEntry>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct FeedParseConfig {
+    pub input_size_limit_bytes: usize,
+    pub max_entries: usize,
+}
+
+impl Default for FeedParseConfig {
+    fn default() -> Self {
+        Self {
+            input_size_limit_bytes: 64 * 1024,
+            max_entries: 64,
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct FeedParseInvocationOutcome {
+    pub receipt: StarterPluginInvocationReceipt,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub response: Option<FeedParseResponse>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub refusal: Option<StarterPluginRefusal>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum FeedParseRuntimeCaseStatus {
+    ExactSuccess,
+    TypedMalformedPacket,
+    TypedRefusal,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct FeedParseRuntimeCase {
+    pub case_id: String,
+    pub status: FeedParseRuntimeCaseStatus,
+    pub codec_id: String,
+    pub request_packet_digest: String,
+    pub response_or_refusal_schema_id: String,
+    pub response_or_refusal_digest: String,
+    pub receipt: StarterPluginInvocationReceipt,
+    pub detail: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct FeedParseCompositionCase {
+    pub case_id: String,
+    pub step_plugin_ids: Vec<String>,
+    pub step_receipt_ids: Vec<String>,
+    pub schema_repair_allowed: bool,
+    pub hidden_host_parsing_allowed: bool,
+    pub green: bool,
+    pub detail: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct FeedParseRuntimeBundle {
+    pub schema_version: u16,
+    pub bundle_id: String,
+    pub plugin_id: String,
+    pub plugin_version: String,
+    pub manifest_id: String,
+    pub artifact_id: String,
+    pub packet_abi_version: String,
+    pub mount_envelope_id: String,
+    pub tool_projection: StarterPluginToolProjection,
+    pub negative_claim_ids: Vec<String>,
+    pub case_rows: Vec<FeedParseRuntimeCase>,
+    pub composition_case: FeedParseCompositionCase,
     pub claim_boundary: String,
     pub summary: String,
     pub bundle_digest: String,
@@ -907,12 +1019,10 @@ pub fn build_fetch_text_runtime_bundle() -> FetchTextRuntimeBundle {
     let blocked = invoke_fetch_text_json_packet("json", blocked_packet, &snapshot_config);
     let timeout = invoke_fetch_text_json_packet("json", timeout_packet, &snapshot_config);
     let network_denied = invoke_fetch_text_json_packet("json", missing_packet, &snapshot_config);
-    let response_too_large =
-        invoke_fetch_text_json_packet("json", large_packet, &snapshot_config);
+    let response_too_large = invoke_fetch_text_json_packet("json", large_packet, &snapshot_config);
     let content_type_unsupported =
         invoke_fetch_text_json_packet("json", bad_type_packet, &snapshot_config);
-    let decode_failed =
-        invoke_fetch_text_json_packet("json", bad_decode_packet, &snapshot_config);
+    let decode_failed = invoke_fetch_text_json_packet("json", bad_decode_packet, &snapshot_config);
     let upstream_failure =
         invoke_fetch_text_json_packet("json", upstream_failure_packet, &snapshot_config);
 
@@ -1271,7 +1381,8 @@ pub fn build_extract_readable_runtime_bundle() -> ExtractReadableRuntimeBundle {
         "body_text": malformed_html
     }))
     .unwrap_or_else(|_| Vec::new());
-    let missing_packet = br#"{"source_url":"https://snapshot.example/article","content_type":"text/html"}"#.to_vec();
+    let missing_packet =
+        br#"{"source_url":"https://snapshot.example/article","content_type":"text/html"}"#.to_vec();
     let wrong_type_packet = serde_json::to_vec(&json!({
         "source_url": "https://snapshot.example/article",
         "content_type": "application/json",
@@ -1285,8 +1396,11 @@ pub fn build_extract_readable_runtime_bundle() -> ExtractReadableRuntimeBundle {
     }))
     .unwrap_or_else(|_| Vec::new());
 
-    let success =
-        invoke_extract_readable_json_packet("json", &success_packet, &ExtractReadableConfig::default());
+    let success = invoke_extract_readable_json_packet(
+        "json",
+        &success_packet,
+        &ExtractReadableConfig::default(),
+    );
     let malformed = invoke_extract_readable_json_packet(
         "json",
         &malformed_packet,
@@ -1451,6 +1565,315 @@ pub fn write_extract_readable_runtime_bundle(
 pub fn load_extract_readable_runtime_bundle(
     path: impl AsRef<Path>,
 ) -> Result<ExtractReadableRuntimeBundle, StarterPluginRuntimeError> {
+    read_json(path)
+}
+
+#[must_use]
+pub fn feed_parse_tool_projection() -> StarterPluginToolProjection {
+    StarterPluginToolProjection {
+        plugin_id: String::from(STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_ID),
+        tool_name: String::from(STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_TOOL_NAME),
+        description: String::from(
+            "parse already-fetched RSS 2.0 or Atom 1.0 documents into bounded feed metadata and entry rows without network access or general XML claims.",
+        ),
+        arguments_schema: json!({
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["source_url", "content_type", "feed_text"],
+            "properties": {
+                "source_url": { "type": "string" },
+                "content_type": { "type": "string" },
+                "feed_text": { "type": "string" }
+            }
+        }),
+        result_schema_id: String::from(STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_OUTPUT_SCHEMA_ID),
+        refusal_schema_ids: vec![
+            String::from(STARTER_PLUGIN_REFUSAL_SCHEMA_INVALID_ID),
+            String::from(STARTER_PLUGIN_REFUSAL_INPUT_TOO_LARGE_ID),
+            String::from(STARTER_PLUGIN_REFUSAL_UNSUPPORTED_FEED_FORMAT_ID),
+        ],
+        replay_class_id: String::from("deterministic_replayable"),
+    }
+}
+
+#[must_use]
+pub fn invoke_feed_parse_json_packet(
+    codec_id: &str,
+    packet_bytes: &[u8],
+    config: &FeedParseConfig,
+) -> FeedParseInvocationOutcome {
+    let input_packet_digest = sha256_digest(packet_bytes);
+    if codec_id != "json" {
+        return feed_parse_refusal_outcome(
+            &input_packet_digest,
+            STARTER_PLUGIN_REFUSAL_SCHEMA_INVALID_ID,
+            "schema_invalid",
+            "feed-parse accepts only json packet input under packet.v1.",
+        );
+    }
+    if packet_bytes.len() > config.input_size_limit_bytes {
+        return feed_parse_refusal_outcome(
+            &input_packet_digest,
+            STARTER_PLUGIN_REFUSAL_INPUT_TOO_LARGE_ID,
+            "input_too_large",
+            "feed-parse keeps input size ceilings explicit instead of relying on parser allocation behavior.",
+        );
+    }
+    let request = match serde_json::from_slice::<FeedParseRequest>(packet_bytes) {
+        Ok(request) => request,
+        Err(_) => {
+            return feed_parse_refusal_outcome(
+                &input_packet_digest,
+                STARTER_PLUGIN_REFUSAL_SCHEMA_INVALID_ID,
+                "schema_invalid",
+                "feed-parse refuses malformed packets without host-side schema repair.",
+            );
+        }
+    };
+    let source_url = match Url::parse(&request.source_url) {
+        Ok(url) => url,
+        Err(_) => {
+            return feed_parse_refusal_outcome(
+                &input_packet_digest,
+                STARTER_PLUGIN_REFUSAL_SCHEMA_INVALID_ID,
+                "schema_invalid",
+                "feed-parse requires one absolute `source_url` for bounded link resolution.",
+            );
+        }
+    };
+    let response = match parse_feed_response(&source_url, &request.feed_text, config.max_entries) {
+        Ok(response) => response,
+        Err(detail) => {
+            return feed_parse_refusal_outcome(
+                &input_packet_digest,
+                STARTER_PLUGIN_REFUSAL_UNSUPPORTED_FEED_FORMAT_ID,
+                "unsupported_feed_format",
+                detail,
+            );
+        }
+    };
+    let output_or_refusal_digest = stable_json_digest(b"feed_parse_response|", &response);
+    let mut receipt = StarterPluginInvocationReceipt {
+        receipt_id: format!(
+            "receipt.{}.{}.v1",
+            STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_ID,
+            &input_packet_digest[..16]
+        ),
+        plugin_id: String::from(STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_ID),
+        plugin_version: String::from(STARTER_PLUGIN_VERSION),
+        tool_name: String::from(STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_TOOL_NAME),
+        packet_abi_version: String::from(TASSADAR_POST_ARTICLE_PLUGIN_PACKET_ABI_VERSION),
+        mount_envelope_id: String::from("mount.plugin.feed.rss_atom_parse.no_capabilities.v1"),
+        capability_namespace_ids: Vec::new(),
+        replay_class_id: String::from("deterministic_replayable"),
+        status: StarterPluginInvocationStatus::Success,
+        input_schema_id: String::from(STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_INPUT_SCHEMA_ID),
+        input_packet_digest,
+        output_or_refusal_schema_id: String::from(STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_OUTPUT_SCHEMA_ID),
+        output_or_refusal_digest,
+        refusal_class_id: None,
+        detail: String::from(
+            "feed-parse keeps RSS 2.0 and Atom 1.0 normalization explicit and local instead of hiding broader XML interpretation in host glue.",
+        ),
+        receipt_digest: String::new(),
+    };
+    receipt.receipt_digest = stable_json_digest(b"feed_parse_receipt|", &receipt);
+    FeedParseInvocationOutcome {
+        receipt,
+        response: Some(response),
+        refusal: None,
+    }
+}
+
+#[must_use]
+pub fn build_feed_parse_runtime_bundle() -> FeedParseRuntimeBundle {
+    let fetch_packet = br#"{"url":"https://snapshot.example/feed.rss"}"#;
+    let fetch_result = invoke_fetch_text_json_packet(
+        "json",
+        fetch_packet,
+        &FetchTextConfig::snapshot(sample_fetch_text_snapshot_entries()),
+    );
+    let rss_packet = fetch_result
+        .response
+        .as_ref()
+        .and_then(|response| {
+            serde_json::to_vec(&json!({
+                "source_url": response.final_url,
+                "content_type": response.content_type,
+                "feed_text": response.body_text
+            }))
+            .ok()
+        })
+        .unwrap_or_default();
+    let atom_packet = serde_json::to_vec(&json!({
+        "source_url": "https://snapshot.example/feed.atom",
+        "content_type": "application/atom+xml",
+        "feed_text": r#"<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom"><title>Snapshot Atom Feed</title><subtitle>Atom updates from the snapshot fixture.</subtitle><link href="https://snapshot.example/" /><entry><title>Atom Entry</title><link href="/posts/atom-entry" /><updated>2026-03-22T00:00:00Z</updated><summary>Atom summary text.</summary></entry></feed>"#
+    }))
+    .unwrap_or_else(|_| Vec::new());
+    let malformed_packet = br#"{"source_url":"https://snapshot.example/feed.rss","content_type":"application/rss+xml"}"#.to_vec();
+    let unsupported_packet = serde_json::to_vec(&json!({
+        "source_url": "https://snapshot.example/opml.xml",
+        "content_type": "text/xml",
+        "feed_text": "<opml version=\"2.0\"><body></body></opml>"
+    }))
+    .unwrap_or_else(|_| Vec::new());
+    let oversized_packet = serde_json::to_vec(&json!({
+        "source_url": "https://snapshot.example/feed.rss",
+        "content_type": "application/rss+xml",
+        "feed_text": "x".repeat(64 * 1024)
+    }))
+    .unwrap_or_else(|_| Vec::new());
+
+    let rss_success =
+        invoke_feed_parse_json_packet("json", &rss_packet, &FeedParseConfig::default());
+    let atom_success =
+        invoke_feed_parse_json_packet("json", &atom_packet, &FeedParseConfig::default());
+    let schema_invalid =
+        invoke_feed_parse_json_packet("json", &malformed_packet, &FeedParseConfig::default());
+    let unsupported_format =
+        invoke_feed_parse_json_packet("json", &unsupported_packet, &FeedParseConfig::default());
+    let input_too_large = invoke_feed_parse_json_packet(
+        "json",
+        &oversized_packet,
+        &FeedParseConfig {
+            input_size_limit_bytes: 1024,
+            max_entries: 64,
+        },
+    );
+
+    let case_rows = vec![
+        feed_parse_case(
+            "rss_parse_success",
+            FeedParseRuntimeCaseStatus::ExactSuccess,
+            "json",
+            sha256_digest(&rss_packet),
+            STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_OUTPUT_SCHEMA_ID,
+            rss_success.receipt.output_or_refusal_digest.clone(),
+            rss_success.receipt.clone(),
+            "rss 2.0 parsing stays deterministic and packet-local over already-fetched content.",
+        ),
+        feed_parse_case(
+            "atom_parse_success",
+            FeedParseRuntimeCaseStatus::ExactSuccess,
+            "json",
+            sha256_digest(&atom_packet),
+            STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_OUTPUT_SCHEMA_ID,
+            atom_success.receipt.output_or_refusal_digest.clone(),
+            atom_success.receipt.clone(),
+            "atom 1.0 parsing stays inside the same deterministic bounded format window.",
+        ),
+        feed_parse_case(
+            "schema_invalid_missing_feed_text",
+            FeedParseRuntimeCaseStatus::TypedMalformedPacket,
+            "json",
+            sha256_digest(&malformed_packet),
+            STARTER_PLUGIN_REFUSAL_SCHEMA_INVALID_ID,
+            schema_invalid.receipt.output_or_refusal_digest.clone(),
+            schema_invalid.receipt.clone(),
+            "missing `feed_text` fails closed into a typed schema-invalid refusal.",
+        ),
+        feed_parse_case(
+            "unsupported_feed_format_refusal",
+            FeedParseRuntimeCaseStatus::TypedRefusal,
+            "json",
+            sha256_digest(&unsupported_packet),
+            STARTER_PLUGIN_REFUSAL_UNSUPPORTED_FEED_FORMAT_ID,
+            unsupported_format.receipt.output_or_refusal_digest.clone(),
+            unsupported_format.receipt.clone(),
+            "opml and arbitrary xml stay outside the bounded RSS 2.0 and Atom 1.0 claim surface.",
+        ),
+        feed_parse_case(
+            "input_too_large_refusal",
+            FeedParseRuntimeCaseStatus::TypedRefusal,
+            "json",
+            sha256_digest(&oversized_packet),
+            STARTER_PLUGIN_REFUSAL_INPUT_TOO_LARGE_ID,
+            input_too_large.receipt.output_or_refusal_digest.clone(),
+            input_too_large.receipt.clone(),
+            "input ceilings stay explicit instead of letting XML parser allocation define semantics.",
+        ),
+    ];
+    let composition_case = FeedParseCompositionCase {
+        case_id: String::from("fetch_then_parse_feed"),
+        step_plugin_ids: vec![
+            String::from(STARTER_PLUGIN_HTTP_FETCH_TEXT_ID),
+            String::from(STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_ID),
+        ],
+        step_receipt_ids: vec![
+            fetch_result.receipt.receipt_id.clone(),
+            rss_success.receipt.receipt_id.clone(),
+        ],
+        schema_repair_allowed: false,
+        hidden_host_parsing_allowed: false,
+        green: fetch_result.response.is_some() && rss_success.response.is_some(),
+        detail: String::from(
+            "the fetch-text response binds directly into feed-parse input fields without hidden host schema repair or host-side feed parsing.",
+        ),
+    };
+
+    let mut bundle = FeedParseRuntimeBundle {
+        schema_version: 1,
+        bundle_id: String::from(
+            "tassadar.post_article.plugin_feed_rss_atom_parse.runtime_bundle.v1",
+        ),
+        plugin_id: String::from(STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_ID),
+        plugin_version: String::from(STARTER_PLUGIN_VERSION),
+        manifest_id: String::from("manifest.plugin.feed.rss_atom_parse.v1"),
+        artifact_id: String::from("artifact.plugin.feed.rss_atom_parse.v1"),
+        packet_abi_version: String::from(TASSADAR_POST_ARTICLE_PLUGIN_PACKET_ABI_VERSION),
+        mount_envelope_id: String::from("mount.plugin.feed.rss_atom_parse.no_capabilities.v1"),
+        tool_projection: feed_parse_tool_projection(),
+        negative_claim_ids: vec![
+            String::from("arbitrary_xml_support_not_claimed"),
+            String::from("opml_support_not_claimed"),
+            String::from("general_document_parsing_not_claimed"),
+        ],
+        case_rows,
+        composition_case,
+        claim_boundary: String::from(
+            "this runtime bundle closes one local deterministic starter plugin over already-fetched RSS 2.0 and Atom 1.0 content. It does not claim arbitrary XML support, OPML support, or general document parsing closure.",
+        ),
+        summary: String::new(),
+        bundle_digest: String::new(),
+    };
+    bundle.summary = format!(
+        "feed-parse runtime bundle covers {} cases plus one green fetch-to-feed composition harness.",
+        bundle.case_rows.len(),
+    );
+    bundle.bundle_digest = stable_json_digest(b"feed_parse_runtime_bundle|", &bundle);
+    bundle
+}
+
+#[must_use]
+pub fn tassadar_post_article_plugin_feed_rss_atom_parse_runtime_bundle_path() -> PathBuf {
+    repo_root().join(TASSADAR_POST_ARTICLE_PLUGIN_FEED_RSS_ATOM_PARSE_RUNTIME_BUNDLE_REF)
+}
+
+pub fn write_feed_parse_runtime_bundle(
+    output_path: impl AsRef<Path>,
+) -> Result<FeedParseRuntimeBundle, StarterPluginRuntimeError> {
+    let output_path = output_path.as_ref();
+    if let Some(parent) = output_path.parent() {
+        fs::create_dir_all(parent).map_err(|error| StarterPluginRuntimeError::CreateDir {
+            path: parent.display().to_string(),
+            error,
+        })?;
+    }
+    let bundle = build_feed_parse_runtime_bundle();
+    let json = serde_json::to_string_pretty(&bundle)?;
+    fs::write(output_path, format!("{json}\n")).map_err(|error| {
+        StarterPluginRuntimeError::Write {
+            path: output_path.display().to_string(),
+            error,
+        }
+    })?;
+    Ok(bundle)
+}
+
+pub fn load_feed_parse_runtime_bundle(
+    path: impl AsRef<Path>,
+) -> Result<FeedParseRuntimeBundle, StarterPluginRuntimeError> {
     read_json(path)
 }
 
@@ -1661,13 +2084,15 @@ fn invoke_live_fetch(
         return Err((
             STARTER_PLUGIN_REFUSAL_UPSTREAM_FAILURE_ID,
             "upstream_failure",
-            format!("upstream returned HTTP status {}.", response.status().as_u16()),
+            format!(
+                "upstream returned HTTP status {}.",
+                response.status().as_u16()
+            ),
         ));
     }
     let final_url = response.url().to_string();
     let status_code = response.status().as_u16();
-    let mut limited = response
-        .take((mount_envelope.response_size_limit_bytes + 1) as u64);
+    let mut limited = response.take((mount_envelope.response_size_limit_bytes + 1) as u64);
     let mut body_bytes = Vec::new();
     limited.read_to_end(&mut body_bytes).map_err(|error| {
         (
@@ -1828,23 +2253,29 @@ fn parse_content_type(header_value: &str) -> (String, Option<String>) {
 }
 
 fn content_type_supported(content_type: &str, mount_envelope: &FetchTextMountEnvelope) -> bool {
-    mount_envelope.allowed_content_type_ids.iter().any(|allowed| {
-        if allowed.ends_with('/') {
-            content_type.starts_with(allowed)
-        } else {
-            content_type == allowed
-        }
-    })
+    mount_envelope
+        .allowed_content_type_ids
+        .iter()
+        .any(|allowed| {
+            if allowed.ends_with('/') {
+                content_type.starts_with(allowed)
+            } else {
+                content_type == allowed
+            }
+        })
 }
 
 fn decode_text_body(bytes: &[u8], charset: Option<&str>) -> Result<String, String> {
     match charset.unwrap_or("utf-8") {
-        "utf-8" | "utf8" => String::from_utf8(bytes.to_vec())
-            .map_err(|_| String::from("the response body failed utf-8 decoding under the declared charset.")),
+        "utf-8" | "utf8" => String::from_utf8(bytes.to_vec()).map_err(|_| {
+            String::from("the response body failed utf-8 decoding under the declared charset.")
+        }),
         "us-ascii" | "ascii" => {
             if bytes.iter().all(|byte| byte.is_ascii()) {
                 String::from_utf8(bytes.to_vec()).map_err(|_| {
-                    String::from("the response body failed ascii decoding under the declared charset.")
+                    String::from(
+                        "the response body failed ascii decoding under the declared charset.",
+                    )
                 })
             } else {
                 Err(String::from(
@@ -1912,6 +2343,26 @@ fn sample_fetch_text_snapshot_entries() -> BTreeMap<String, FetchTextSnapshotRes
                 ),
             },
         ),
+        (
+            String::from("https://snapshot.example/feed.rss"),
+            FetchTextSnapshotResult::Success(FetchTextSnapshotResponse {
+                final_url: String::from("https://snapshot.example/feed.rss"),
+                status_code: 200,
+                content_type: String::from("application/rss+xml"),
+                charset: Some(String::from("utf-8")),
+                body_bytes: br#"<?xml version="1.0" encoding="utf-8"?><rss version="2.0"><channel><title>Snapshot Feed</title><link>https://snapshot.example/</link><description>Snapshot feed updates.</description><item><title>Feed Entry</title><link>/posts/feed-entry</link><pubDate>Sat, 22 Mar 2026 00:00:00 GMT</pubDate><description>Snapshot entry summary.</description></item></channel></rss>"#.to_vec(),
+            }),
+        ),
+        (
+            String::from("https://snapshot.example/feed.atom"),
+            FetchTextSnapshotResult::Success(FetchTextSnapshotResponse {
+                final_url: String::from("https://snapshot.example/feed.atom"),
+                status_code: 200,
+                content_type: String::from("application/atom+xml"),
+                charset: Some(String::from("utf-8")),
+                body_bytes: br#"<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom"><title>Snapshot Atom Feed</title><subtitle>Atom updates from the snapshot fixture.</subtitle><link href="https://snapshot.example/" /><entry><title>Atom Entry</title><link href="/posts/atom-entry" /><updated>2026-03-22T00:00:00Z</updated><summary>Atom summary text.</summary></entry></feed>"#.to_vec(),
+            }),
+        ),
     ])
 }
 
@@ -1977,6 +2428,207 @@ fn extract_readable_case(
         receipt,
         detail: String::from(detail),
     }
+}
+
+fn feed_parse_refusal_outcome(
+    input_packet_digest: &str,
+    schema_id: &str,
+    refusal_class_id: &str,
+    detail: impl Into<String>,
+) -> FeedParseInvocationOutcome {
+    let refusal = StarterPluginRefusal {
+        schema_id: String::from(schema_id),
+        refusal_class_id: String::from(refusal_class_id),
+        detail: detail.into(),
+    };
+    let output_or_refusal_digest = stable_json_digest(b"feed_parse_refusal|", &refusal);
+    let mut receipt = StarterPluginInvocationReceipt {
+        receipt_id: format!(
+            "receipt.{}.{}.v1",
+            STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_ID,
+            &input_packet_digest[..16]
+        ),
+        plugin_id: String::from(STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_ID),
+        plugin_version: String::from(STARTER_PLUGIN_VERSION),
+        tool_name: String::from(STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_TOOL_NAME),
+        packet_abi_version: String::from(TASSADAR_POST_ARTICLE_PLUGIN_PACKET_ABI_VERSION),
+        mount_envelope_id: String::from("mount.plugin.feed.rss_atom_parse.no_capabilities.v1"),
+        capability_namespace_ids: Vec::new(),
+        replay_class_id: String::from("deterministic_replayable"),
+        status: StarterPluginInvocationStatus::Refusal,
+        input_schema_id: String::from(STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_INPUT_SCHEMA_ID),
+        input_packet_digest: String::from(input_packet_digest),
+        output_or_refusal_schema_id: String::from(schema_id),
+        output_or_refusal_digest,
+        refusal_class_id: Some(String::from(refusal_class_id)),
+        detail: refusal.detail.clone(),
+        receipt_digest: String::new(),
+    };
+    receipt.receipt_digest = stable_json_digest(b"feed_parse_receipt|", &receipt);
+    FeedParseInvocationOutcome {
+        receipt,
+        response: None,
+        refusal: Some(refusal),
+    }
+}
+
+fn feed_parse_case(
+    case_id: &str,
+    status: FeedParseRuntimeCaseStatus,
+    codec_id: &str,
+    request_packet_digest: String,
+    response_or_refusal_schema_id: &str,
+    response_or_refusal_digest: String,
+    receipt: StarterPluginInvocationReceipt,
+    detail: &str,
+) -> FeedParseRuntimeCase {
+    FeedParseRuntimeCase {
+        case_id: String::from(case_id),
+        status,
+        codec_id: String::from(codec_id),
+        request_packet_digest,
+        response_or_refusal_schema_id: String::from(response_or_refusal_schema_id),
+        response_or_refusal_digest,
+        receipt,
+        detail: String::from(detail),
+    }
+}
+
+fn parse_feed_response(
+    source_url: &Url,
+    feed_text: &str,
+    max_entries: usize,
+) -> Result<FeedParseResponse, String> {
+    let document = roxmltree::Document::parse(feed_text).map_err(|_| {
+        String::from("feed-parse stays bounded to well-formed RSS 2.0 and Atom 1.0 XML documents.")
+    })?;
+    let root = document.root_element();
+    if root.tag_name().name() == "rss" && root.attribute("version") == Some("2.0") {
+        return parse_rss_feed(root, source_url, max_entries);
+    }
+    if root.tag_name().name() == "feed"
+        && root.tag_name().namespace() == Some("http://www.w3.org/2005/Atom")
+    {
+        return parse_atom_feed(root, source_url, max_entries);
+    }
+    Err(String::from(
+        "feed-parse stays bounded to RSS 2.0 and Atom 1.0 and refuses OPML or arbitrary XML documents.",
+    ))
+}
+
+fn parse_rss_feed(
+    root: roxmltree::Node<'_, '_>,
+    source_url: &Url,
+    max_entries: usize,
+) -> Result<FeedParseResponse, String> {
+    let channel = first_xml_child(root, "channel").ok_or_else(|| {
+        String::from("rss parsing requires one `<channel>` element under an RSS 2.0 root.")
+    })?;
+    let entries = channel
+        .children()
+        .filter(|node| node.is_element() && node.tag_name().name() == "item")
+        .take(max_entries)
+        .map(|item| {
+            let summary = first_xml_child_text(item, "description");
+            let content_excerpt = first_xml_child_text(item, "encoded")
+                .as_deref()
+                .and_then(excerpt_from_text)
+                .or_else(|| summary.as_deref().and_then(excerpt_from_text));
+            FeedParseEntry {
+                title: first_xml_child_text(item, "title"),
+                link: first_xml_child_text(item, "link")
+                    .map(|href| resolve_link(source_url, href.as_str())),
+                published_time: first_xml_child_text(item, "pubDate")
+                    .or_else(|| first_xml_child_text(item, "date")),
+                summary,
+                content_excerpt,
+            }
+        })
+        .collect();
+    Ok(FeedParseResponse {
+        feed_title: first_xml_child_text(channel, "title"),
+        feed_homepage_url: first_xml_child_text(channel, "link")
+            .map(|href| resolve_link(source_url, href.as_str())),
+        feed_description: first_xml_child_text(channel, "description"),
+        entries,
+    })
+}
+
+fn parse_atom_feed(
+    root: roxmltree::Node<'_, '_>,
+    source_url: &Url,
+    max_entries: usize,
+) -> Result<FeedParseResponse, String> {
+    let entries = root
+        .children()
+        .filter(|node| node.is_element() && node.tag_name().name() == "entry")
+        .take(max_entries)
+        .map(|entry| {
+            let summary = first_xml_child_text(entry, "summary");
+            let content_excerpt = first_xml_child_text(entry, "content")
+                .as_deref()
+                .and_then(excerpt_from_text)
+                .or_else(|| summary.as_deref().and_then(excerpt_from_text));
+            FeedParseEntry {
+                title: first_xml_child_text(entry, "title"),
+                link: atom_link_href(entry, source_url),
+                published_time: first_xml_child_text(entry, "published")
+                    .or_else(|| first_xml_child_text(entry, "updated")),
+                summary,
+                content_excerpt,
+            }
+        })
+        .collect();
+    Ok(FeedParseResponse {
+        feed_title: first_xml_child_text(root, "title"),
+        feed_homepage_url: atom_link_href(root, source_url),
+        feed_description: first_xml_child_text(root, "subtitle"),
+        entries,
+    })
+}
+
+fn first_xml_child<'a, 'input>(
+    node: roxmltree::Node<'a, 'input>,
+    local_name: &str,
+) -> Option<roxmltree::Node<'a, 'input>> {
+    node.children()
+        .find(|child| child.is_element() && child.tag_name().name() == local_name)
+}
+
+fn first_xml_child_text(node: roxmltree::Node<'_, '_>, local_name: &str) -> Option<String> {
+    first_xml_child(node, local_name).and_then(xml_node_text)
+}
+
+fn xml_node_text(node: roxmltree::Node<'_, '_>) -> Option<String> {
+    let value = node
+        .descendants()
+        .filter(|child| child.is_text())
+        .filter_map(|child| child.text())
+        .collect::<Vec<_>>()
+        .join(" ");
+    let normalized = normalize_text(&value);
+    (!normalized.is_empty()).then_some(normalized)
+}
+
+fn atom_link_href(node: roxmltree::Node<'_, '_>, base_url: &Url) -> Option<String> {
+    let mut fallback = None;
+    for child in node.children() {
+        if !child.is_element() || child.tag_name().name() != "link" {
+            continue;
+        }
+        let Some(href) = child.attribute("href") else {
+            continue;
+        };
+        let resolved = resolve_link(base_url, href);
+        let rel = child.attribute("rel").unwrap_or("alternate");
+        if rel == "alternate" {
+            return Some(resolved);
+        }
+        if fallback.is_none() {
+            fallback = Some(resolved);
+        }
+    }
+    fallback
 }
 
 fn readable_text_from_document(document: &scraper::Html) -> String {
@@ -2111,28 +2763,31 @@ fn read_json<T: for<'de> Deserialize<'de>>(
 #[cfg(test)]
 mod tests {
     use super::{
-        ExtractReadableConfig, ExtractReadableRuntimeCaseStatus, FetchTextConfig,
-        FetchTextRuntimeCaseStatus, FetchTextSnapshotResponse, FetchTextSnapshotResult,
-        STARTER_PLUGIN_HTML_EXTRACT_READABLE_OUTPUT_SCHEMA_ID,
-        STARTER_PLUGIN_HTTP_FETCH_TEXT_OUTPUT_SCHEMA_ID,
-        STARTER_PLUGIN_REFUSAL_CONTENT_TYPE_UNSUPPORTED_ID,
-        STARTER_PLUGIN_REFUSAL_DECODE_FAILED_ID, STARTER_PLUGIN_REFUSAL_NETWORK_DENIED_ID,
-        STARTER_PLUGIN_REFUSAL_INPUT_TOO_LARGE_ID,
-        STARTER_PLUGIN_REFUSAL_PACKET_TOO_LARGE_ID,
-        STARTER_PLUGIN_REFUSAL_RESPONSE_TOO_LARGE_ID,
-        STARTER_PLUGIN_REFUSAL_RUNTIME_RESOURCE_LIMIT_ID, STARTER_PLUGIN_REFUSAL_SCHEMA_INVALID_ID,
-        STARTER_PLUGIN_REFUSAL_TIMEOUT_ID, STARTER_PLUGIN_REFUSAL_UNSUPPORTED_CODEC_ID,
-        STARTER_PLUGIN_REFUSAL_UPSTREAM_FAILURE_ID, STARTER_PLUGIN_REFUSAL_URL_NOT_PERMITTED_ID,
-        STARTER_PLUGIN_TEXT_URL_EXTRACT_OUTPUT_SCHEMA_ID, UrlExtractConfig,
-        UrlExtractRuntimeCaseStatus, build_extract_readable_runtime_bundle,
+        build_extract_readable_runtime_bundle, build_feed_parse_runtime_bundle,
         build_fetch_text_runtime_bundle, build_url_extract_runtime_bundle,
-        invoke_extract_readable_json_packet, invoke_fetch_text_json_packet,
-        invoke_url_extract_json_packet,
+        invoke_extract_readable_json_packet, invoke_feed_parse_json_packet,
+        invoke_fetch_text_json_packet, invoke_url_extract_json_packet,
+        tassadar_post_article_plugin_feed_rss_atom_parse_runtime_bundle_path,
         tassadar_post_article_plugin_html_extract_readable_runtime_bundle_path,
         tassadar_post_article_plugin_http_fetch_text_runtime_bundle_path,
         tassadar_post_article_plugin_text_url_extract_runtime_bundle_path,
-        write_extract_readable_runtime_bundle, write_fetch_text_runtime_bundle,
-        write_url_extract_runtime_bundle,
+        write_extract_readable_runtime_bundle, write_feed_parse_runtime_bundle,
+        write_fetch_text_runtime_bundle, write_url_extract_runtime_bundle, ExtractReadableConfig,
+        ExtractReadableRuntimeCaseStatus, FeedParseConfig, FeedParseRuntimeCaseStatus,
+        FetchTextConfig, FetchTextRuntimeCaseStatus, FetchTextSnapshotResponse,
+        FetchTextSnapshotResult, UrlExtractConfig, UrlExtractRuntimeCaseStatus,
+        STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_OUTPUT_SCHEMA_ID,
+        STARTER_PLUGIN_HTML_EXTRACT_READABLE_OUTPUT_SCHEMA_ID,
+        STARTER_PLUGIN_HTTP_FETCH_TEXT_OUTPUT_SCHEMA_ID,
+        STARTER_PLUGIN_REFUSAL_CONTENT_TYPE_UNSUPPORTED_ID,
+        STARTER_PLUGIN_REFUSAL_DECODE_FAILED_ID, STARTER_PLUGIN_REFUSAL_INPUT_TOO_LARGE_ID,
+        STARTER_PLUGIN_REFUSAL_NETWORK_DENIED_ID, STARTER_PLUGIN_REFUSAL_PACKET_TOO_LARGE_ID,
+        STARTER_PLUGIN_REFUSAL_RESPONSE_TOO_LARGE_ID,
+        STARTER_PLUGIN_REFUSAL_RUNTIME_RESOURCE_LIMIT_ID, STARTER_PLUGIN_REFUSAL_SCHEMA_INVALID_ID,
+        STARTER_PLUGIN_REFUSAL_TIMEOUT_ID, STARTER_PLUGIN_REFUSAL_UNSUPPORTED_CODEC_ID,
+        STARTER_PLUGIN_REFUSAL_UNSUPPORTED_FEED_FORMAT_ID,
+        STARTER_PLUGIN_REFUSAL_UPSTREAM_FAILURE_ID, STARTER_PLUGIN_REFUSAL_URL_NOT_PERMITTED_ID,
+        STARTER_PLUGIN_TEXT_URL_EXTRACT_OUTPUT_SCHEMA_ID,
     };
     use tempfile::tempdir;
 
@@ -2219,12 +2874,10 @@ mod tests {
         let bundle = build_url_extract_runtime_bundle();
 
         assert_eq!(bundle.case_rows.len(), 5);
-        assert!(
-            bundle
-                .case_rows
-                .iter()
-                .any(|row| row.status == UrlExtractRuntimeCaseStatus::ExactSuccess)
-        );
+        assert!(bundle
+            .case_rows
+            .iter()
+            .any(|row| row.status == UrlExtractRuntimeCaseStatus::ExactSuccess));
         assert!(bundle.case_rows.iter().any(|row| {
             row.status == UrlExtractRuntimeCaseStatus::TypedMalformedPacket
                 && row.response_or_refusal_schema_id == STARTER_PLUGIN_REFUSAL_SCHEMA_INVALID_ID
@@ -2419,12 +3072,10 @@ mod tests {
         let bundle = build_fetch_text_runtime_bundle();
 
         assert_eq!(bundle.case_rows.len(), 9);
-        assert!(
-            bundle
-                .case_rows
-                .iter()
-                .any(|row| row.status == FetchTextRuntimeCaseStatus::ExactSuccess)
-        );
+        assert!(bundle
+            .case_rows
+            .iter()
+            .any(|row| row.status == FetchTextRuntimeCaseStatus::ExactSuccess));
         assert!(bundle.case_rows.iter().any(|row| {
             row.status == FetchTextRuntimeCaseStatus::TypedMalformedPacket
                 && row.response_or_refusal_schema_id == STARTER_PLUGIN_REFUSAL_SCHEMA_INVALID_ID
@@ -2432,9 +3083,10 @@ mod tests {
         assert!(bundle.case_rows.iter().any(|row| {
             row.response_or_refusal_schema_id == STARTER_PLUGIN_REFUSAL_URL_NOT_PERMITTED_ID
         }));
-        assert!(bundle.case_rows.iter().any(|row| {
-            row.response_or_refusal_schema_id == STARTER_PLUGIN_REFUSAL_TIMEOUT_ID
-        }));
+        assert!(bundle
+            .case_rows
+            .iter()
+            .any(|row| { row.response_or_refusal_schema_id == STARTER_PLUGIN_REFUSAL_TIMEOUT_ID }));
         assert!(bundle.case_rows.iter().any(|row| {
             row.response_or_refusal_schema_id == STARTER_PLUGIN_REFUSAL_NETWORK_DENIED_ID
         }));
@@ -2442,8 +3094,7 @@ mod tests {
             row.response_or_refusal_schema_id == STARTER_PLUGIN_REFUSAL_RESPONSE_TOO_LARGE_ID
         }));
         assert!(bundle.case_rows.iter().any(|row| {
-            row.response_or_refusal_schema_id
-                == STARTER_PLUGIN_REFUSAL_CONTENT_TYPE_UNSUPPORTED_ID
+            row.response_or_refusal_schema_id == STARTER_PLUGIN_REFUSAL_CONTENT_TYPE_UNSUPPORTED_ID
         }));
         assert!(bundle.case_rows.iter().any(|row| {
             row.response_or_refusal_schema_id == STARTER_PLUGIN_REFUSAL_DECODE_FAILED_ID
@@ -2481,11 +3132,8 @@ mod tests {
             "body_text": "<html lang=\"en\"><head><title>Example</title><meta name=\"description\" content=\"summary\" /><link rel=\"canonical\" href=\"/article\" /></head><body><main><h1>Example</h1><p>Readable body.</p><a href=\"/alpha\">Alpha</a></main></body></html>"
         }))
         .expect("packet");
-        let outcome = invoke_extract_readable_json_packet(
-            "json",
-            &packet,
-            &ExtractReadableConfig::default(),
-        );
+        let outcome =
+            invoke_extract_readable_json_packet("json", &packet, &ExtractReadableConfig::default());
 
         assert_eq!(
             outcome.receipt.output_or_refusal_schema_id,
@@ -2493,7 +3141,10 @@ mod tests {
         );
         let response = outcome.response.expect("response");
         assert_eq!(response.title.as_deref(), Some("Example"));
-        assert_eq!(response.canonical_url.as_deref(), Some("https://snapshot.example/article"));
+        assert_eq!(
+            response.canonical_url.as_deref(),
+            Some("https://snapshot.example/article")
+        );
         assert_eq!(response.content_language.as_deref(), Some("en"));
         assert_eq!(
             response.harvested_links,
@@ -2551,8 +3202,7 @@ mod tests {
                 && row.response_or_refusal_schema_id == STARTER_PLUGIN_REFUSAL_SCHEMA_INVALID_ID
         }));
         assert!(bundle.case_rows.iter().any(|row| {
-            row.response_or_refusal_schema_id
-                == STARTER_PLUGIN_REFUSAL_CONTENT_TYPE_UNSUPPORTED_ID
+            row.response_or_refusal_schema_id == STARTER_PLUGIN_REFUSAL_CONTENT_TYPE_UNSUPPORTED_ID
         }));
         assert!(bundle.case_rows.iter().any(|row| {
             row.response_or_refusal_schema_id == STARTER_PLUGIN_REFUSAL_INPUT_TOO_LARGE_ID
@@ -2584,6 +3234,141 @@ mod tests {
         let path = tassadar_post_article_plugin_html_extract_readable_runtime_bundle_path();
         assert!(path.ends_with(
             "fixtures/tassadar/runs/tassadar_post_article_plugin_html_extract_readable_v1/tassadar_post_article_plugin_html_extract_readable_bundle.json"
+        ));
+    }
+
+    #[test]
+    fn feed_parse_success_returns_feed_metadata_and_entries() {
+        let packet = serde_json::to_vec(&serde_json::json!({
+            "source_url": "https://snapshot.example/feed.rss",
+            "content_type": "application/rss+xml",
+            "feed_text": r#"<?xml version="1.0" encoding="utf-8"?><rss version="2.0"><channel><title>Snapshot Feed</title><link>https://snapshot.example/</link><description>Snapshot feed updates.</description><item><title>Feed Entry</title><link>/posts/feed-entry</link><pubDate>Sat, 22 Mar 2026 00:00:00 GMT</pubDate><description>Snapshot entry summary.</description></item></channel></rss>"#
+        }))
+        .expect("packet");
+        let outcome = invoke_feed_parse_json_packet("json", &packet, &FeedParseConfig::default());
+
+        assert_eq!(
+            outcome.receipt.output_or_refusal_schema_id,
+            STARTER_PLUGIN_FEED_RSS_ATOM_PARSE_OUTPUT_SCHEMA_ID
+        );
+        let response = outcome.response.expect("response");
+        assert_eq!(response.feed_title.as_deref(), Some("Snapshot Feed"));
+        assert_eq!(
+            response.feed_homepage_url.as_deref(),
+            Some("https://snapshot.example/")
+        );
+        assert_eq!(response.entries.len(), 1);
+        assert_eq!(
+            response.entries[0].link.as_deref(),
+            Some("https://snapshot.example/posts/feed-entry")
+        );
+    }
+
+    #[test]
+    fn feed_parse_atom_success_resolves_links() {
+        let packet = serde_json::to_vec(&serde_json::json!({
+            "source_url": "https://snapshot.example/feed.atom",
+            "content_type": "application/atom+xml",
+            "feed_text": r#"<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom"><title>Snapshot Atom Feed</title><subtitle>Atom updates from the snapshot fixture.</subtitle><link href="https://snapshot.example/" /><entry><title>Atom Entry</title><link href="/posts/atom-entry" /><updated>2026-03-22T00:00:00Z</updated><summary>Atom summary text.</summary></entry></feed>"#
+        }))
+        .expect("packet");
+        let outcome = invoke_feed_parse_json_packet("json", &packet, &FeedParseConfig::default());
+
+        let response = outcome.response.expect("response");
+        assert_eq!(response.feed_title.as_deref(), Some("Snapshot Atom Feed"));
+        assert_eq!(response.entries.len(), 1);
+        assert_eq!(
+            response.entries[0].link.as_deref(),
+            Some("https://snapshot.example/posts/atom-entry")
+        );
+        assert_eq!(
+            response.entries[0].published_time.as_deref(),
+            Some("2026-03-22T00:00:00Z")
+        );
+    }
+
+    #[test]
+    fn feed_parse_refuses_schema_invalid_unsupported_and_large_inputs() {
+        let schema_invalid = invoke_feed_parse_json_packet(
+            "json",
+            br#"{"source_url":"https://snapshot.example/feed.rss","content_type":"application/rss+xml"}"#,
+            &FeedParseConfig::default(),
+        );
+        assert_eq!(
+            schema_invalid.receipt.output_or_refusal_schema_id,
+            STARTER_PLUGIN_REFUSAL_SCHEMA_INVALID_ID
+        );
+
+        let unsupported = invoke_feed_parse_json_packet(
+            "json",
+            br#"{"source_url":"https://snapshot.example/opml.xml","content_type":"text/xml","feed_text":"<opml version=\"2.0\"></opml>"}"#,
+            &FeedParseConfig::default(),
+        );
+        assert_eq!(
+            unsupported.receipt.output_or_refusal_schema_id,
+            STARTER_PLUGIN_REFUSAL_UNSUPPORTED_FEED_FORMAT_ID
+        );
+
+        let oversized = invoke_feed_parse_json_packet(
+            "json",
+            br#"{"source_url":"https://snapshot.example/feed.rss","content_type":"application/rss+xml","feed_text":"xxxxxxxxxxxxxxxx"}"#,
+            &FeedParseConfig {
+                input_size_limit_bytes: 8,
+                max_entries: 8,
+            },
+        );
+        assert_eq!(
+            oversized.receipt.output_or_refusal_schema_id,
+            STARTER_PLUGIN_REFUSAL_INPUT_TOO_LARGE_ID
+        );
+    }
+
+    #[test]
+    fn feed_parse_runtime_bundle_covers_declared_cases() {
+        let bundle = build_feed_parse_runtime_bundle();
+
+        assert_eq!(bundle.case_rows.len(), 5);
+        assert!(bundle
+            .case_rows
+            .iter()
+            .any(|row| row.status == FeedParseRuntimeCaseStatus::ExactSuccess));
+        assert!(bundle.case_rows.iter().any(|row| {
+            row.status == FeedParseRuntimeCaseStatus::TypedMalformedPacket
+                && row.response_or_refusal_schema_id == STARTER_PLUGIN_REFUSAL_SCHEMA_INVALID_ID
+        }));
+        assert!(bundle.case_rows.iter().any(|row| {
+            row.response_or_refusal_schema_id == STARTER_PLUGIN_REFUSAL_UNSUPPORTED_FEED_FORMAT_ID
+        }));
+        assert!(bundle.case_rows.iter().any(|row| {
+            row.response_or_refusal_schema_id == STARTER_PLUGIN_REFUSAL_INPUT_TOO_LARGE_ID
+        }));
+        assert!(bundle.composition_case.green);
+        assert_eq!(
+            bundle.composition_case.step_plugin_ids,
+            vec![
+                String::from("plugin.http.fetch_text"),
+                String::from("plugin.feed.rss_atom_parse"),
+            ]
+        );
+    }
+
+    #[test]
+    fn feed_parse_runtime_bundle_writes_and_loads() {
+        let tempdir = tempdir().expect("tempdir");
+        let output_path = tempdir.path().join("feed_parse_bundle.json");
+        let written = write_feed_parse_runtime_bundle(&output_path).expect("write bundle");
+        let loaded: super::FeedParseRuntimeBundle =
+            super::load_feed_parse_runtime_bundle(&output_path).expect("load bundle");
+
+        assert_eq!(written, loaded);
+        assert!(output_path.exists());
+    }
+
+    #[test]
+    fn feed_parse_runtime_bundle_repo_path_is_under_fixtures() {
+        let path = tassadar_post_article_plugin_feed_rss_atom_parse_runtime_bundle_path();
+        assert!(path.ends_with(
+            "fixtures/tassadar/runs/tassadar_post_article_plugin_feed_rss_atom_parse_v1/tassadar_post_article_plugin_feed_rss_atom_parse_bundle.json"
         ));
     }
 }

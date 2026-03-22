@@ -670,8 +670,20 @@ Current honest posture:
   audit note at
   `docs/audits/2026-03-22-tassadar-post-article-plugin-html-extract-readable.md`;
   this keeps the first readability transform deterministic, capability-free,
-  and composition-explicit while moving the next open bridge frontier to
-  `TAS-220`
+  and composition-explicit
+- the repo now also has one real runtime-owned `plugin.feed.rss_atom_parse`
+  starter plugin, with reusable execution and bundle-writing code in
+  `crates/psionic-runtime/src/tassadar_post_article_starter_plugin_runtime.rs`,
+  a committed runtime bundle at
+  `fixtures/tassadar/runs/tassadar_post_article_plugin_feed_rss_atom_parse_v1/tassadar_post_article_plugin_feed_rss_atom_parse_bundle.json`,
+  a dedicated checker at
+  `scripts/check-tassadar-post-article-plugin-feed-rss-atom-parse.sh`, a
+  starter-runtime doc at `docs/TASSADAR_STARTER_PLUGIN_RUNTIME.md`, and an
+  audit note at
+  `docs/audits/2026-03-22-tassadar-post-article-plugin-feed-rss-atom-parse.md`;
+  this keeps the first structured-ingest transform deterministic,
+  capability-free, and composition-explicit while moving the next open bridge
+  frontier to `TAS-222`
 - the repo now also has one machine-readable article-equivalence blocker
   matrix, with a committed eval report at
   `fixtures/tassadar/reports/tassadar_article_equivalence_blocker_matrix_report.json`,
@@ -885,7 +897,9 @@ Issue-state note:
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
 - `TAS-219` is now implemented and tracked in
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
-- `TAS-220` through `TAS-226` remain open in GitHub and are tracked via the
+- `TAS-220` is now implemented and tracked in
+  `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
+- `TAS-221` through `TAS-226` remain open in GitHub and are tracked via the
   issue bodies plus `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
 
 ## Repo-Local Companion Docs

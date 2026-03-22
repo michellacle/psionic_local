@@ -1,0 +1,200 @@
+{
+  "schema_version": 1,
+  "bundle_id": "tassadar.post_article.plugin_feed_rss_atom_parse.runtime_bundle.v1",
+  "plugin_id": "plugin.feed.rss_atom_parse",
+  "plugin_version": "v1",
+  "manifest_id": "manifest.plugin.feed.rss_atom_parse.v1",
+  "artifact_id": "artifact.plugin.feed.rss_atom_parse.v1",
+  "packet_abi_version": "packet.v1",
+  "mount_envelope_id": "mount.plugin.feed.rss_atom_parse.no_capabilities.v1",
+  "tool_projection": {
+    "plugin_id": "plugin.feed.rss_atom_parse",
+    "tool_name": "plugin_feed_rss_atom_parse",
+    "description": "parse already-fetched RSS 2.0 or Atom 1.0 documents into bounded feed metadata and entry rows without network access or general XML claims.",
+    "arguments_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "content_type": {
+          "type": "string"
+        },
+        "feed_text": {
+          "type": "string"
+        },
+        "source_url": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_url",
+        "content_type",
+        "feed_text"
+      ],
+      "type": "object"
+    },
+    "result_schema_id": "plugin.feed.rss_atom_parse.output.v1",
+    "refusal_schema_ids": [
+      "plugin.refusal.schema_invalid.v1",
+      "plugin.refusal.input_too_large.v1",
+      "plugin.refusal.unsupported_feed_format.v1"
+    ],
+    "replay_class_id": "deterministic_replayable"
+  },
+  "negative_claim_ids": [
+    "arbitrary_xml_support_not_claimed",
+    "opml_support_not_claimed",
+    "general_document_parsing_not_claimed"
+  ],
+  "case_rows": [
+    {
+      "case_id": "rss_parse_success",
+      "status": "exact_success",
+      "codec_id": "json",
+      "request_packet_digest": "9e11d452d8c2cad10a34516dda9c3ed2ed54eaf67095ec668d5e89a7092b64fd",
+      "response_or_refusal_schema_id": "plugin.feed.rss_atom_parse.output.v1",
+      "response_or_refusal_digest": "e3207c208ca278c9677cfa94ed38a590fac921c9c9f52dce53477ab3094b3d69",
+      "receipt": {
+        "receipt_id": "receipt.plugin.feed.rss_atom_parse.9e11d452d8c2cad1.v1",
+        "plugin_id": "plugin.feed.rss_atom_parse",
+        "plugin_version": "v1",
+        "tool_name": "plugin_feed_rss_atom_parse",
+        "packet_abi_version": "packet.v1",
+        "mount_envelope_id": "mount.plugin.feed.rss_atom_parse.no_capabilities.v1",
+        "capability_namespace_ids": [],
+        "replay_class_id": "deterministic_replayable",
+        "status": "success",
+        "input_schema_id": "plugin.feed.rss_atom_parse.input.v1",
+        "input_packet_digest": "9e11d452d8c2cad10a34516dda9c3ed2ed54eaf67095ec668d5e89a7092b64fd",
+        "output_or_refusal_schema_id": "plugin.feed.rss_atom_parse.output.v1",
+        "output_or_refusal_digest": "e3207c208ca278c9677cfa94ed38a590fac921c9c9f52dce53477ab3094b3d69",
+        "detail": "feed-parse keeps RSS 2.0 and Atom 1.0 normalization explicit and local instead of hiding broader XML interpretation in host glue.",
+        "receipt_digest": "db45c624a08f4fbadc6d2e31403b2da4d90ea097b54744be330566f7c33f45de"
+      },
+      "detail": "rss 2.0 parsing stays deterministic and packet-local over already-fetched content."
+    },
+    {
+      "case_id": "atom_parse_success",
+      "status": "exact_success",
+      "codec_id": "json",
+      "request_packet_digest": "b02aa8b54bfb702f7f1e8680eaee527c72df9fad20f21c6e53380c4b9ebfe1ee",
+      "response_or_refusal_schema_id": "plugin.feed.rss_atom_parse.output.v1",
+      "response_or_refusal_digest": "a1a3b531b95d485a5f7c9fb897cd8fa63bb761dbc9f62fbde1eebc9995ae572f",
+      "receipt": {
+        "receipt_id": "receipt.plugin.feed.rss_atom_parse.b02aa8b54bfb702f.v1",
+        "plugin_id": "plugin.feed.rss_atom_parse",
+        "plugin_version": "v1",
+        "tool_name": "plugin_feed_rss_atom_parse",
+        "packet_abi_version": "packet.v1",
+        "mount_envelope_id": "mount.plugin.feed.rss_atom_parse.no_capabilities.v1",
+        "capability_namespace_ids": [],
+        "replay_class_id": "deterministic_replayable",
+        "status": "success",
+        "input_schema_id": "plugin.feed.rss_atom_parse.input.v1",
+        "input_packet_digest": "b02aa8b54bfb702f7f1e8680eaee527c72df9fad20f21c6e53380c4b9ebfe1ee",
+        "output_or_refusal_schema_id": "plugin.feed.rss_atom_parse.output.v1",
+        "output_or_refusal_digest": "a1a3b531b95d485a5f7c9fb897cd8fa63bb761dbc9f62fbde1eebc9995ae572f",
+        "detail": "feed-parse keeps RSS 2.0 and Atom 1.0 normalization explicit and local instead of hiding broader XML interpretation in host glue.",
+        "receipt_digest": "37f06e3650e8ba88998d26199ccd7562e7e9c863aa697ef7f0b198fc1f5bbf91"
+      },
+      "detail": "atom 1.0 parsing stays inside the same deterministic bounded format window."
+    },
+    {
+      "case_id": "schema_invalid_missing_feed_text",
+      "status": "typed_malformed_packet",
+      "codec_id": "json",
+      "request_packet_digest": "ac06e62f6642603ef8bfec31a41efdd7552bd1e13944c14d2c18d57f3ab9884f",
+      "response_or_refusal_schema_id": "plugin.refusal.schema_invalid.v1",
+      "response_or_refusal_digest": "7682e79335d2c7100239f26e5cbc51396e76aa802c8a8a14e0689808808c7575",
+      "receipt": {
+        "receipt_id": "receipt.plugin.feed.rss_atom_parse.ac06e62f6642603e.v1",
+        "plugin_id": "plugin.feed.rss_atom_parse",
+        "plugin_version": "v1",
+        "tool_name": "plugin_feed_rss_atom_parse",
+        "packet_abi_version": "packet.v1",
+        "mount_envelope_id": "mount.plugin.feed.rss_atom_parse.no_capabilities.v1",
+        "capability_namespace_ids": [],
+        "replay_class_id": "deterministic_replayable",
+        "status": "refusal",
+        "input_schema_id": "plugin.feed.rss_atom_parse.input.v1",
+        "input_packet_digest": "ac06e62f6642603ef8bfec31a41efdd7552bd1e13944c14d2c18d57f3ab9884f",
+        "output_or_refusal_schema_id": "plugin.refusal.schema_invalid.v1",
+        "output_or_refusal_digest": "7682e79335d2c7100239f26e5cbc51396e76aa802c8a8a14e0689808808c7575",
+        "refusal_class_id": "schema_invalid",
+        "detail": "feed-parse refuses malformed packets without host-side schema repair.",
+        "receipt_digest": "d76136c75cacf9e563c7267a3b555dad258b75e95539bb8666dfcee336dfa1f0"
+      },
+      "detail": "missing `feed_text` fails closed into a typed schema-invalid refusal."
+    },
+    {
+      "case_id": "unsupported_feed_format_refusal",
+      "status": "typed_refusal",
+      "codec_id": "json",
+      "request_packet_digest": "ab5ec51ee587ed447ec3207af5ff270707edf6c52ae11ba226a937e16048c818",
+      "response_or_refusal_schema_id": "plugin.refusal.unsupported_feed_format.v1",
+      "response_or_refusal_digest": "063dbadc1b04726dcdb695a2dffaa7530b9faf73dc81df2e0a60957d0ff7210e",
+      "receipt": {
+        "receipt_id": "receipt.plugin.feed.rss_atom_parse.ab5ec51ee587ed44.v1",
+        "plugin_id": "plugin.feed.rss_atom_parse",
+        "plugin_version": "v1",
+        "tool_name": "plugin_feed_rss_atom_parse",
+        "packet_abi_version": "packet.v1",
+        "mount_envelope_id": "mount.plugin.feed.rss_atom_parse.no_capabilities.v1",
+        "capability_namespace_ids": [],
+        "replay_class_id": "deterministic_replayable",
+        "status": "refusal",
+        "input_schema_id": "plugin.feed.rss_atom_parse.input.v1",
+        "input_packet_digest": "ab5ec51ee587ed447ec3207af5ff270707edf6c52ae11ba226a937e16048c818",
+        "output_or_refusal_schema_id": "plugin.refusal.unsupported_feed_format.v1",
+        "output_or_refusal_digest": "063dbadc1b04726dcdb695a2dffaa7530b9faf73dc81df2e0a60957d0ff7210e",
+        "refusal_class_id": "unsupported_feed_format",
+        "detail": "feed-parse stays bounded to RSS 2.0 and Atom 1.0 and refuses OPML or arbitrary XML documents.",
+        "receipt_digest": "c1bda91d5a6fdfef9f37ca3c02e742e755235c5cece83eda01c36e204d8c2946"
+      },
+      "detail": "opml and arbitrary xml stay outside the bounded RSS 2.0 and Atom 1.0 claim surface."
+    },
+    {
+      "case_id": "input_too_large_refusal",
+      "status": "typed_refusal",
+      "codec_id": "json",
+      "request_packet_digest": "125dba4e0803c8ba609da4b8fe4123ed144c24e05d75ffc6014beed3f8fdfcb5",
+      "response_or_refusal_schema_id": "plugin.refusal.input_too_large.v1",
+      "response_or_refusal_digest": "fb597c669094101084d872961fbb74e23dd34b0efd1a9f9230233410ca99defd",
+      "receipt": {
+        "receipt_id": "receipt.plugin.feed.rss_atom_parse.125dba4e0803c8ba.v1",
+        "plugin_id": "plugin.feed.rss_atom_parse",
+        "plugin_version": "v1",
+        "tool_name": "plugin_feed_rss_atom_parse",
+        "packet_abi_version": "packet.v1",
+        "mount_envelope_id": "mount.plugin.feed.rss_atom_parse.no_capabilities.v1",
+        "capability_namespace_ids": [],
+        "replay_class_id": "deterministic_replayable",
+        "status": "refusal",
+        "input_schema_id": "plugin.feed.rss_atom_parse.input.v1",
+        "input_packet_digest": "125dba4e0803c8ba609da4b8fe4123ed144c24e05d75ffc6014beed3f8fdfcb5",
+        "output_or_refusal_schema_id": "plugin.refusal.input_too_large.v1",
+        "output_or_refusal_digest": "fb597c669094101084d872961fbb74e23dd34b0efd1a9f9230233410ca99defd",
+        "refusal_class_id": "input_too_large",
+        "detail": "feed-parse keeps input size ceilings explicit instead of relying on parser allocation behavior.",
+        "receipt_digest": "e2ba473a63a9389f7ce00139d8f149feef64a032d95802de57777a60eea26a9c"
+      },
+      "detail": "input ceilings stay explicit instead of letting XML parser allocation define semantics."
+    }
+  ],
+  "composition_case": {
+    "case_id": "fetch_then_parse_feed",
+    "step_plugin_ids": [
+      "plugin.http.fetch_text",
+      "plugin.feed.rss_atom_parse"
+    ],
+    "step_receipt_ids": [
+      "receipt.plugin.http.fetch_text.818e6c686ecfff73.v1",
+      "receipt.plugin.feed.rss_atom_parse.9e11d452d8c2cad1.v1"
+    ],
+    "schema_repair_allowed": false,
+    "hidden_host_parsing_allowed": false,
+    "green": true,
+    "detail": "the fetch-text response binds directly into feed-parse input fields without hidden host schema repair or host-side feed parsing."
+  },
+  "claim_boundary": "this runtime bundle closes one local deterministic starter plugin over already-fetched RSS 2.0 and Atom 1.0 content. It does not claim arbitrary XML support, OPML support, or general document parsing closure.",
+  "summary": "feed-parse runtime bundle covers 5 cases plus one green fetch-to-feed composition harness.",
+  "bundle_digest": "ad78d3b32efe5829f0e01dcc17e548ea95b63222060faeb9cfb03659f8dd99c3"
+}

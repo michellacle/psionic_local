@@ -72,6 +72,10 @@ implementation in the same starter-runtime module and its committed bundle at
 starter-runtime module and its committed bundle at
 `fixtures/tassadar/runs/tassadar_post_article_plugin_html_extract_readable_v1/tassadar_post_article_plugin_html_extract_readable_bundle.json`.
 
-The next open starter-plugin frontier is `TAS-220`, which continues the
-plugin-by-plugin runtime wave on top of this catalog shell with
-`plugin.feed.rss_atom_parse`.
+`TAS-220` is now also closed by the dedicated `plugin.feed.rss_atom_parse`
+runtime implementation in the same starter-runtime module and its committed
+bundle at
+`fixtures/tassadar/runs/tassadar_post_article_plugin_feed_rss_atom_parse_v1/tassadar_post_article_plugin_feed_rss_atom_parse_bundle.json`.
+
+The next open orchestration frontier above this starter catalog is `TAS-222`,
+which begins the shared plugin-to-tool projection and receipt bridge.

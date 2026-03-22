@@ -36,5 +36,5 @@ plugin above the fetch-text lane.
 
 ## Next Frontier
 
-The next starter-plugin runtime frontier is `TAS-220`:
-`plugin.feed.rss_atom_parse`.
+The next open orchestration frontier above the starter-plugin runtime tranche is
+`TAS-222`: the shared plugin-to-tool projection and receipt bridge.

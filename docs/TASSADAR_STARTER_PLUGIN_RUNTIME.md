@@ -158,9 +158,54 @@ Negative claims stay explicit:
 - no CSS layout truth
 - no full DOM-semantics claim
 
+### `plugin.feed.rss_atom_parse`
+
+- runtime bundle:
+  `fixtures/tassadar/runs/tassadar_post_article_plugin_feed_rss_atom_parse_v1/tassadar_post_article_plugin_feed_rss_atom_parse_bundle.json`
+- example writer:
+  `cargo run -p psionic-runtime --example tassadar_post_article_plugin_feed_rss_atom_parse_bundle`
+- checker:
+  `scripts/check-tassadar-post-article-plugin-feed-rss-atom-parse.sh`
+
+`plugin.feed.rss_atom_parse` is now a real local deterministic structured-ingest
+starter plugin. It accepts already-fetched feed-shaped input:
+
+- `source_url`
+- `content_type`
+- `feed_text`
+
+and returns bounded feed metadata plus normalized entry rows:
+
+- `feed_title`
+- `feed_homepage_url`
+- `feed_description`
+- `entries[]` with title, link, published time, summary, and content excerpt
+
+The committed bundle also freezes one green composition case where
+`plugin.http.fetch_text` output feeds this parser without hidden host schema
+repair or host-side feed parsing.
+
+Typed refusal surface:
+
+- `plugin.refusal.schema_invalid.v1`
+- `plugin.refusal.input_too_large.v1`
+- `plugin.refusal.unsupported_feed_format.v1`
+
+Tool projection is explicit and stable:
+
+- tool name: `plugin_feed_rss_atom_parse`
+- argument schema remains JSON-schema-shaped and packet-derived
+- replay class remains `deterministic_replayable`
+- mount envelope remains `mount.plugin.feed.rss_atom_parse.no_capabilities.v1`
+
+Negative claims stay explicit:
+
+- no arbitrary XML support
+- no OPML support
+- no general document-parsing closure
+
 ## Planned
 
-- `plugin.feed.rss_atom_parse`
 - shared plugin-to-tool projection across deterministic, router-owned, and Apple
   FM controller lanes
 - deterministic, served, and Apple FM multi-plugin pilot traces above the same

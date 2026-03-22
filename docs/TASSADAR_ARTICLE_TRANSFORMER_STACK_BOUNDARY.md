@@ -1368,6 +1368,15 @@ That closes one bounded readability extractor plus one green fetch-to-extract
 composition case without widening the boundary to browser rendering,
 JavaScript, CSS layout truth, or DOM-event semantics, and moves the next open
 bridge frontier to `TAS-220`.
+`TAS-220` now adds the real `plugin.feed.rss_atom_parse` runtime in the same
+starter-runtime module, with committed evidence at
+`fixtures/tassadar/runs/tassadar_post_article_plugin_feed_rss_atom_parse_v1/tassadar_post_article_plugin_feed_rss_atom_parse_bundle.json`
+plus the checker
+`scripts/check-tassadar-post-article-plugin-feed-rss-atom-parse.sh`.
+That closes one bounded RSS 2.0 or Atom 1.0 feed parser plus one green
+fetch-to-feed composition case without widening the boundary to arbitrary XML,
+OPML, or general document-parsing closure, and moves the next open bridge
+frontier to `TAS-222`.
 
 ## Route Requirement
 

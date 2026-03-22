@@ -1761,8 +1761,17 @@ The current scope is:
   the audit note
   `docs/audits/2026-03-22-tassadar-post-article-plugin-html-extract-readable.md`,
   which freeze one bounded readability-oriented HTML extraction path plus one
-  green fetch-to-extract composition case while moving the next open bridge
-  frontier to `TAS-220`.
+  green fetch-to-extract composition case
+- the same starter-runtime surface now also closes one local deterministic
+  `plugin.feed.rss_atom_parse` plugin with the runtime bundle
+  `fixtures/tassadar/runs/tassadar_post_article_plugin_feed_rss_atom_parse_v1/tassadar_post_article_plugin_feed_rss_atom_parse_bundle.json`,
+  the checker
+  `scripts/check-tassadar-post-article-plugin-feed-rss-atom-parse.sh`, and the
+  audit note
+  `docs/audits/2026-03-22-tassadar-post-article-plugin-feed-rss-atom-parse.md`,
+  which freeze one bounded RSS 2.0 or Atom 1.0 ingestion path plus one green
+  fetch-to-feed composition case while moving the next open bridge frontier to
+  `TAS-222`.
 - the current semantic-window revision artifacts are
   `fixtures/tassadar/reports/tassadar_semantic_window_revision_receipt.json`
   and
