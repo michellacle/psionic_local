@@ -45,6 +45,8 @@ clustered execution, and machine-legible execution truth.
   learned-model lane.
 - `docs/PSION_PILOT_PRETRAINING_RUN.md` is the canonical first pilot-run and
   promotion-evidence doc for the `Psion` learned-model lane.
+- `docs/PSION_REASONING_SFT.md` is the canonical bounded reasoning-SFT and
+  style-control doc for the `Psion` learned-model lane.
 - `docs/PSION_CHECKPOINT_RECOVERY.md` is the canonical dense-versus-sharded
   checkpoint restart, rollback, and invalidation doc for the `Psion`
   learned-model lane.

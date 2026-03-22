@@ -1,0 +1,122 @@
+{
+  "schema_version": "psion.reasoning_sft_dataset_bundle.v1",
+  "run_id": "run-psion-pilot",
+  "stage_id": "run-psion-pilot-stage-2-general_sft",
+  "model_id": "psion-compact-decoder-pilot-v1",
+  "pretrain_stage_receipt_digest": "0170d57acd38021560eb4ee389daee573dbf65f037b36769c10586faa462ce31",
+  "sft_artifact_lineage": {
+    "artifact_id": "psion_reasoning_sft_seed_v1",
+    "artifact_digest": "sha256:4e70445d9956523ed129d4af1e3ecb728ea708134bf3000219de960b0b1d4f54",
+    "tokenized_corpus_ids": [
+      "psion_seed_corpus_v1"
+    ],
+    "source_ids": [
+      "wasm_core_spec_release_2"
+    ]
+  },
+  "control_surface": {
+    "explicit_assumptions_required": true,
+    "explicit_uncertainty_language_required": true,
+    "normative_vs_inference_separation_required": true,
+    "detail": "Reasoning SFT keeps assumptions, uncertainty, and normative-versus-inference separation explicit instead of deleting them during style shaping."
+  },
+  "style_profiles": [
+    {
+      "style_id": "assumptions_then_mechanism_concrete",
+      "decomposition_strategy": "assumptions_then_mechanism",
+      "explanation_order": "premises_then_conclusion",
+      "abstraction_level": "concrete",
+      "detail": "Surface the bounded assumptions first, then explain the concrete mechanism."
+    },
+    {
+      "style_id": "answer_then_evidence_hybrid",
+      "decomposition_strategy": "answer_then_evidence",
+      "explanation_order": "conclusion_then_premises",
+      "abstraction_level": "hybrid",
+      "detail": "State the bounded answer first, then mix conceptual and concrete support."
+    },
+    {
+      "style_id": "constraints_then_tradeoffs_conceptual",
+      "decomposition_strategy": "constraints_then_tradeoffs",
+      "explanation_order": "top_down_then_concrete",
+      "abstraction_level": "conceptual",
+      "detail": "Frame the constraints first, then discuss tradeoffs from the conceptual level down."
+    }
+  ],
+  "trace_bindings": [
+    {
+      "trace_id": "psion-reasoning-trace-1",
+      "trace_kind": "plain_completion",
+      "trace_lineage_digest": "78cb984dac45e215c85dba45fd817272811c2c756db0c731632565e2b7e70371",
+      "style_profile_id": "assumptions_then_mechanism_concrete",
+      "parent_source_ids": [
+        "wasm_core_spec_release_2"
+      ],
+      "parent_tokenized_corpus_ids": [
+        "psion_seed_corpus_v1"
+      ],
+      "derived_from_parent_sources": true,
+      "held_out_exclusion_checked": true,
+      "explicit_assumptions_present": true,
+      "explicit_uncertainty_language_present": true,
+      "normative_vs_inference_separated": true,
+      "detail": "Concrete reasoning trace keeps assumptions and uncertainty explicit while separating normative source reading from engineering commentary."
+    },
+    {
+      "trace_id": "psion-reasoning-trace-2",
+      "trace_kind": "long_context",
+      "trace_lineage_digest": "7ba48d69159114b7f5bf97c277aaf9af147d06df953c0bdca182b318495773de",
+      "style_profile_id": "answer_then_evidence_hybrid",
+      "parent_source_ids": [
+        "wasm_core_spec_release_2"
+      ],
+      "parent_tokenized_corpus_ids": [
+        "psion_seed_corpus_v1"
+      ],
+      "derived_from_parent_sources": true,
+      "held_out_exclusion_checked": true,
+      "explicit_assumptions_present": true,
+      "explicit_uncertainty_language_present": true,
+      "normative_vs_inference_separated": true,
+      "detail": "Hybrid long-context reasoning trace starts with the bounded answer and then cites supporting spec segments."
+    },
+    {
+      "trace_id": "psion-reasoning-trace-3",
+      "trace_kind": "plain_completion",
+      "trace_lineage_digest": "8fc03eff57721a3ad2ffc4afe8050f06049f06bec0a67e6437d6f818e517770a",
+      "style_profile_id": "constraints_then_tradeoffs_conceptual",
+      "parent_source_ids": [
+        "wasm_core_spec_release_2"
+      ],
+      "parent_tokenized_corpus_ids": [
+        "psion_seed_corpus_v1"
+      ],
+      "derived_from_parent_sources": true,
+      "held_out_exclusion_checked": true,
+      "explicit_assumptions_present": true,
+      "explicit_uncertainty_language_present": true,
+      "normative_vs_inference_separated": true,
+      "detail": "Conceptual reasoning trace stays explicit about constraints and tradeoffs rather than forcing one narration template."
+    },
+    {
+      "trace_id": "psion-reasoning-trace-4",
+      "trace_kind": "long_context",
+      "trace_lineage_digest": "cd2ed7ae5d18ac066cf03d224d05728d48c8050f89bc68b9c0d1dbbc71a72aa2",
+      "style_profile_id": "assumptions_then_mechanism_concrete",
+      "parent_source_ids": [
+        "wasm_core_spec_release_2"
+      ],
+      "parent_tokenized_corpus_ids": [
+        "psion_seed_corpus_v1"
+      ],
+      "derived_from_parent_sources": true,
+      "held_out_exclusion_checked": true,
+      "explicit_assumptions_present": true,
+      "explicit_uncertainty_language_present": true,
+      "normative_vs_inference_separated": true,
+      "detail": "A second concrete trace proves the lane can preserve more than one example without collapsing every answer shape into one exact outline."
+    }
+  ],
+  "summary": "The bounded reasoning-SFT dataset ties derived traces back to the canonical seed SFT lineage row and requires explicit assumptions, uncertainty language, and normative-versus-inference separation across multiple valid reasoning styles.",
+  "bundle_digest": "58bbbfcc6f9c7600d6fe499ba515dc3b274711e4c67ac7ab40e4331f2169cc1b"
+}

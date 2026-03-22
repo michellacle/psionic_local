@@ -127,6 +127,10 @@ and now also has:
   for the `Psion` learned-model lane and freezes the bounded pilot bundle,
   held-out-loss receipt, route/refusal probes, and acceptance-matrix promotion
   decision that must exist before broader pretraining is honest.
+- `docs/PSION_REASONING_SFT.md` is the canonical first reasoning-SFT doc for
+  the `Psion` learned-model lane and freezes the explicit assumption,
+  uncertainty, normative-versus-inference, and style-plurality contract that
+  bounded post-pretrain tuning must satisfy.
 - `docs/PSION_CHECKPOINT_RECOVERY.md` is the canonical first dense-versus-
   sharded checkpoint-recovery doc for the `Psion` learned-model lane and
   freezes the explicit restart, rollback, corruption-detection, and

@@ -1,0 +1,46 @@
+{
+  "schema_version": "psion.reasoning_sft_stage_receipt.v1",
+  "receipt_id": "psion-reasoning-sft-stage-receipt-v1",
+  "run_id": "run-psion-pilot",
+  "stage_id": "run-psion-pilot-stage-2-general_sft",
+  "model_id": "psion-compact-decoder-pilot-v1",
+  "pretrain_stage_receipt_digest": "0170d57acd38021560eb4ee389daee573dbf65f037b36769c10586faa462ce31",
+  "dataset_bundle_digest": "58bbbfcc6f9c7600d6fe499ba515dc3b274711e4c67ac7ab40e4331f2169cc1b",
+  "general_sft_transition_digest": "d36cb3a97ad9b0d27d599a6e4abee594050804ac7ad39c6b7f030bef91c3184c",
+  "general_sft_completion_digest": "754387dc03dbfc03141170a1ee64eec05d52197e889656dcadaa59d20c976dc4",
+  "control_surface": {
+    "explicit_assumptions_required": true,
+    "explicit_uncertainty_language_required": true,
+    "normative_vs_inference_separation_required": true,
+    "detail": "Reasoning SFT keeps assumptions, uncertainty, and normative-versus-inference separation explicit instead of deleting them during style shaping."
+  },
+  "style_coverage": [
+    {
+      "style_id": "assumptions_then_mechanism_concrete",
+      "trace_count": 2,
+      "share_bps": 5000,
+      "detail": "Style `assumptions_then_mechanism_concrete` preserves one valid assumptions_then_mechanism / premises_then_conclusion / concrete reasoning narration path inside the bounded SFT lane."
+    },
+    {
+      "style_id": "answer_then_evidence_hybrid",
+      "trace_count": 1,
+      "share_bps": 2500,
+      "detail": "Style `answer_then_evidence_hybrid` preserves one valid answer_then_evidence / conclusion_then_premises / hybrid reasoning narration path inside the bounded SFT lane."
+    },
+    {
+      "style_id": "constraints_then_tradeoffs_conceptual",
+      "trace_count": 1,
+      "share_bps": 2500,
+      "detail": "Style `constraints_then_tradeoffs_conceptual` preserves one valid constraints_then_tradeoffs / top_down_then_concrete / conceptual reasoning narration path inside the bounded SFT lane."
+    }
+  ],
+  "sanity_probe_count": 4,
+  "assumption_retained_probe_count": 4,
+  "uncertainty_retained_probe_count": 4,
+  "normative_vs_inference_separated_probe_count": 4,
+  "assumption_retention_bps": 10000,
+  "uncertainty_retention_bps": 10000,
+  "normative_vs_inference_separation_bps": 10000,
+  "summary": "The first bounded reasoning-SFT stage preserves explicit assumptions, uncertainty language, and normative-versus-inference separation while keeping three valid style families live in the accepted trace mix.",
+  "receipt_digest": "7df5de5f49a1f60f3922eae8dc78dda548c10156ddae9d2f4f7896d3c96dada0"
+}
