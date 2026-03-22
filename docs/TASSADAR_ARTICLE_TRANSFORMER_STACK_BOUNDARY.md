@@ -1038,6 +1038,35 @@ the deferred frontier to `TAS-204`, and still does not admit weighted plugin
 sequencing, plugin publication, served/public universality, or arbitrary
 software capability.
 
+`TAS-204` now closes the canonical weighted plugin controller trace and
+refusal-aware model loop at
+`fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report.json`.
+That eval-owned report binds one transformer-owned controller contract plus
+one runtime-owned controller-trace bundle to the same canonical machine
+identity and computational-model statement as the earlier post-article plugin
+tranche while freezing explicit model ownership over plugin selection, export
+selection, packet-argument construction, multi-step continuation, retry,
+typed-refusal handling, and stop conditions. It also freezes one explicit
+determinism profile, one explicit sampling and randomness posture, one
+explicit external-signal boundary, and one explicit host-negative planner
+surface covering hidden host sequencing, auto-retry, fallback export
+selection, heuristic ranking, schema auto-repair, cached-result substitution,
+candidate precomputation, hidden top-k filtering, helper substitution, and
+runtime policy drift. The supporting sandbox report now lives at
+`fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_report.json`,
+the operator-readable summary now lives at
+`fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_summary.json`,
+the runtime bundle now lives at
+`fixtures/tassadar/runs/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_v1/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_bundle.json`,
+the provider receipt now lives at
+`crates/psionic-provider/src/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop.rs`,
+and the dedicated checker now lives at
+`scripts/check-tassadar-post-article-weighted-plugin-controller-trace-and-refusal-aware-model-loop.sh`.
+This tranche turns weighted plugin control green on the canonical route,
+clears the `TAS-203A` defer pointer to empty, moves the reserved bridge
+capability frontier to `TAS-205`, and still does not admit plugin
+publication, served/public universality, or arbitrary software capability.
+
 ## Route Requirement
 
 Any canonical article-equivalence Transformer route must use this boundary.

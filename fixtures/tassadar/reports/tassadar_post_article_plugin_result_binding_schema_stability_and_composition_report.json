@@ -518,10 +518,8 @@
   "plugin_publication_allowed": false,
   "served_public_universality_allowed": false,
   "arbitrary_software_capability_allowed": false,
-  "deferred_issue_ids": [
-    "TAS-204"
-  ],
-  "claim_boundary": "this eval-owned closure report binds the transformer-owned plugin result-binding contract plus the runtime-owned schema-stability and composition evidence to the canonical post-article machine identity. It proves stable output-to-state digest binding, fail-closed schema evolution, typed refusal normalization, proof-versus-observational separation, and semantic closure under bounded multi-step composition while still refusing to treat weighted plugin sequencing, plugin publication, served/public universality, or arbitrary software capability as closed before the later controller and platform issues land.",
-  "summary": "Post-article plugin result-binding report keeps contract_status=Green, dependency_rows=7, binding_rows=5, evidence_boundary_rows=3, composition_rows=4, negative_rows=4, validation_rows=12, and deferred_issue_ids=1.",
-  "report_digest": "1827de3836eeab7fee446c10fbe6876d60bb9b638816ce4514de8ca2f8f94f21"
+  "deferred_issue_ids": [],
+  "claim_boundary": "this eval-owned closure report binds the transformer-owned plugin result-binding contract plus the runtime-owned schema-stability and composition evidence to the canonical post-article machine identity. It proves stable output-to-state digest binding, fail-closed schema evolution, typed refusal normalization, proof-versus-observational separation, and semantic closure under bounded multi-step composition while still refusing to treat plugin publication, served/public universality, or arbitrary software capability as closed. Weighted controller ownership now closes in the dedicated `TAS-204` controller-trace artifact instead of being implied by this result-binding report alone.",
+  "summary": "Post-article plugin result-binding report keeps contract_status=Green, dependency_rows=7, binding_rows=5, evidence_boundary_rows=3, composition_rows=4, negative_rows=4, validation_rows=12, and deferred_issue_ids=0.",
+  "report_digest": "c82c71b5545e1d9e47853123cbe4dae1d80beac4c4b51fae902ff84c9e41ea92"
 }

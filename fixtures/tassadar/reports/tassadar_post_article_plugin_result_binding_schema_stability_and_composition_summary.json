@@ -18,9 +18,7 @@
   "composition_row_count": 4,
   "negative_row_count": 4,
   "validation_row_count": 12,
-  "deferred_issue_ids": [
-    "TAS-204"
-  ],
+  "deferred_issue_ids": [],
   "result_binding_contract_green": true,
   "semantic_composition_closure_green": true,
   "operator_internal_only_posture": true,
@@ -30,6 +28,6 @@
   "plugin_publication_allowed": false,
   "served_public_universality_allowed": false,
   "arbitrary_software_capability_allowed": false,
-  "detail": "post-article plugin result-binding summary keeps machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, result_binding_contract_id=`tassadar.weighted_plugin.result_binding_contract.v1`, contract_status=Green, binding_rows=5, composition_rows=4, and deferred_issue_ids=1.",
-  "summary_digest": "cdcc47b6ef00cdf48f5b1e133b26edd66acbe0463d9ca735cdf014443ae104c0"
+  "detail": "post-article plugin result-binding summary keeps machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, result_binding_contract_id=`tassadar.weighted_plugin.result_binding_contract.v1`, contract_status=Green, binding_rows=5, composition_rows=4, and deferred_issue_ids=0.",
+  "summary_digest": "c865e3bcf6f7596d37f038bdfa199f19b1d0e238138e721655a34d53d8d57938"
 }

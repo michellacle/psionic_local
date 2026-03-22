@@ -615,9 +615,9 @@ pub fn build_tassadar_post_article_plugin_result_binding_schema_stability_and_co
         plugin_publication_allowed: false,
         served_public_universality_allowed: false,
         arbitrary_software_capability_allowed: false,
-        deferred_issue_ids: vec![String::from("TAS-204")],
+        deferred_issue_ids: Vec::new(),
         claim_boundary: String::from(
-            "this eval-owned closure report binds the transformer-owned plugin result-binding contract plus the runtime-owned schema-stability and composition evidence to the canonical post-article machine identity. It proves stable output-to-state digest binding, fail-closed schema evolution, typed refusal normalization, proof-versus-observational separation, and semantic closure under bounded multi-step composition while still refusing to treat weighted plugin sequencing, plugin publication, served/public universality, or arbitrary software capability as closed before the later controller and platform issues land.",
+            "this eval-owned closure report binds the transformer-owned plugin result-binding contract plus the runtime-owned schema-stability and composition evidence to the canonical post-article machine identity. It proves stable output-to-state digest binding, fail-closed schema evolution, typed refusal normalization, proof-versus-observational separation, and semantic closure under bounded multi-step composition while still refusing to treat plugin publication, served/public universality, or arbitrary software capability as closed. Weighted controller ownership now closes in the dedicated `TAS-204` controller-trace artifact instead of being implied by this result-binding report alone.",
         ),
         summary: String::new(),
         report_digest: String::new(),
@@ -816,7 +816,7 @@ mod tests {
         assert!(report.non_lossy_schema_transition_required);
         assert!(report.ambiguous_composition_blocked);
         assert!(report.adapter_defined_return_path_blocked);
-        assert_eq!(report.deferred_issue_ids, vec![String::from("TAS-204")]);
+        assert!(report.deferred_issue_ids.is_empty());
         assert!(report.operator_internal_only_posture);
         assert!(report.rebase_claim_allowed);
         assert!(!report.plugin_capability_claim_allowed);

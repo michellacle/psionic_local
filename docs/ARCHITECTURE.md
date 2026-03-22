@@ -1448,6 +1448,29 @@ The current scope is:
   semantically incomplete reinjection while still leaving weighted plugin
   control, plugin publication, served/public universality, and arbitrary
   software capability blocked
+- the current post-article weighted plugin controller-trace artifacts are
+  `fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_report.json`,
+  `fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report.json`,
+  `fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_summary.json`,
+  the runtime bundle in
+  `fixtures/tassadar/runs/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_v1/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_bundle.json`,
+  the provider receipt in
+  `crates/psionic-provider/src/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop.rs`,
+  the checker script
+  `scripts/check-tassadar-post-article-weighted-plugin-controller-trace-and-refusal-aware-model-loop.sh`,
+  and the audit note
+  `docs/audits/2026-03-21-tassadar-post-article-weighted-plugin-controller-trace-and-refusal-aware-model-loop.md`,
+  which freeze the canonical weighted plugin controller trace by requiring
+  model-owned plugin selection, export selection, packet-argument
+  construction, continuation, retry, refusal, and stop conditions plus
+  explicit determinism, sampling, randomness, and external-signal boundaries,
+  while keeping host execution-only steps explicit and blocking hidden host
+  sequencing, auto-retry, fallback export selection, heuristic ranking,
+  schema auto-repair, cached result substitution, candidate precomputation,
+  hidden top-k filtering, helper substitution, and runtime policy drift.
+  This turns weighted plugin control green on the canonical route while still
+  leaving plugin authority, publication, served/public universality, and
+  arbitrary software capability blocked.
 - the current post-article Turing-completeness closeout artifacts are
   `fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json`,
   `fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_summary.json`,

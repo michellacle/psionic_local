@@ -4,6 +4,7 @@ mod attention;
 mod blocks;
 mod encoder_decoder;
 mod tassadar_post_article_plugin_result_binding_contract;
+mod tassadar_post_article_weighted_plugin_controller_trace_contract;
 
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -13,6 +14,7 @@ pub use blocks::*;
 pub use encoder_decoder::*;
 pub use psionic_nn::{ActivationKind, LayerError, LayerNorm, Linear};
 pub use tassadar_post_article_plugin_result_binding_contract::*;
+pub use tassadar_post_article_weighted_plugin_controller_trace_contract::*;
 
 /// Human-readable crate ownership summary.
 pub const CRATE_ROLE: &str = "reusable transformer architecture primitives";

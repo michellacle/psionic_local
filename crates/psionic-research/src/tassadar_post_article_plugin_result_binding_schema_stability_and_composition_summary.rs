@@ -252,7 +252,7 @@ mod tests {
         assert_eq!(summary.composition_row_count, 4);
         assert_eq!(summary.negative_row_count, 4);
         assert_eq!(summary.validation_row_count, 12);
-        assert_eq!(summary.deferred_issue_ids, vec![String::from("TAS-204")]);
+        assert!(summary.deferred_issue_ids.is_empty());
         assert!(summary.result_binding_contract_green);
         assert!(summary.semantic_composition_closure_green);
         assert!(summary.operator_internal_only_posture);

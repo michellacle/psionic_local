@@ -399,10 +399,29 @@ Current honest posture:
   schema evolution, typed refusal normalization, proof-versus-observational
   result boundaries, non-lossy multi-step semantic closure, and fail-closed
   posture on lossy coercion, schema auto-repair, ambiguous composition, and
-  semantically incomplete reinjection; this tranche moves the deferred
-  frontier to `TAS-204` and still keeps weighted plugin sequencing, plugin
+  semantically incomplete reinjection; this tranche now clears its deferred
+  frontier to empty after `TAS-204` and still keeps weighted plugin
+  sequencing local to the dedicated controller artifact rather than this
+  result-binding proof alone, plugin
   publication, served/public universality, and arbitrary software capability
   blocked
+- the repo now also has one post-article weighted plugin controller trace and
+  refusal-aware model loop, with a committed sandbox-owned report at
+  `fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_report.json`,
+  a committed eval-owned closure report at
+  `fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_eval_report.json`,
+  a disclosure-safe research summary at
+  `fixtures/tassadar/reports/tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop_summary.json`,
+  a committed runtime bundle, a provider-facing receipt, a checker script, and
+  an audit note that freeze the first canonical weighted plugin controller
+  trace above the result-binding and pre-plugin control-plane proofs,
+  including explicit model ownership over plugin selection, export selection,
+  packet-argument construction, continuation, retry, refusal, and stop
+  conditions, explicit determinism and external-signal boundaries, and
+  explicit host-negative planner attacks; this tranche turns weighted plugin
+  control green on the canonical route, moves the later bridge reservation
+  frontier to `TAS-205`, and still keeps plugin publication, served/public
+  universality, and arbitrary software capability blocked
 - the repo now also has one post-article Turing-completeness closeout audit,
   with a committed eval report at
   `fixtures/tassadar/reports/tassadar_post_article_turing_completeness_closeout_audit_report.json`,
@@ -615,9 +634,9 @@ Issue-state note:
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
 - `TAS-156` is now implemented and tracked in
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
-- `TAS-157` through `TAS-203A` are now implemented and tracked in
+- `TAS-157` through `TAS-204` are now implemented and tracked in
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
-- `TAS-204` through `TAS-226` remain open in GitHub and are tracked via the
+- `TAS-205` through `TAS-226` remain open in GitHub and are tracked via the
   issue bodies plus `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
 
 ## Repo-Local Companion Docs

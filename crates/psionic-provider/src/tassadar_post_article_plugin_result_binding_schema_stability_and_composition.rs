@@ -120,7 +120,7 @@ mod tests {
         assert_eq!(receipt.composition_row_count, 4);
         assert_eq!(receipt.negative_row_count, 4);
         assert_eq!(receipt.validation_row_count, 12);
-        assert_eq!(receipt.deferred_issue_ids, vec![String::from("TAS-204")]);
+        assert!(receipt.deferred_issue_ids.is_empty());
         assert!(receipt.result_binding_contract_green);
         assert!(receipt.semantic_composition_closure_green);
         assert!(receipt.operator_internal_only_posture);

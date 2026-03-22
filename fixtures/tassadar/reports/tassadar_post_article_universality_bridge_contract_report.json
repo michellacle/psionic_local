@@ -11258,13 +11258,13 @@
       "hook_id": "schema_version_negotiation_hook",
       "purpose": "keep schema-version negotiation explicit above the bridge while result binding stays contract-owned and weighted controller ownership remains later",
       "reserved_issue_ids": [
-        "TAS-204"
+        "TAS-205"
       ],
-      "current_posture": "reserved_after_result_binding_contract",
+      "current_posture": "reserved_after_weighted_controller_contract",
       "source_refs": [
         "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md"
       ],
-      "detail": "the bridge now delegates schema-stability and result-binding ownership to TAS-203A while keeping the later weighted-controller continuation boundary explicit instead of widening the bridge itself into a controller contract"
+      "detail": "the bridge now delegates schema-stability and weighted-controller ownership to TAS-203A plus TAS-204 while keeping the later authority and promotion boundary explicit instead of widening the bridge itself into a publication or trust-tier contract"
     }
   ],
   "validation_rows": [
@@ -11332,5 +11332,5 @@
   "served_public_universality_allowed": false,
   "claim_boundary": "this bridge contract freezes only the post-`TAS-186` rebasing boundary between the historical `TCM.v1` universality closeout and the canonical owned article-equivalence route. It binds the old closeout to one explicit post-article machine identity tuple, one coarse direct-vs-resumable carrier topology, one bridge-scoped computational model statement, and one explicit three-plane contract. It does not by itself prove continuation semantic preservation, control-plane provenance, final canonical carrier binding, served/public universality, weighted plugin control, or arbitrary software capability.",
   "summary": "Post-article universality bridge contract keeps dependencies=7/7, historical_bindings=4, carrier_topology=ExplicitSplitAcrossDirectAndResumableLanes, validation_rows=6/6, bridge_status=Green, rebase_claim_allowed=false, and reserved_capability_hooks=4.",
-  "report_digest": "6960f7c509947db8c1c320b15c21acd128da7ab1ad15847b21cdb492a5266249"
+  "report_digest": "2967ffca408a342a1b757f7ecf12e97d0f574e34b7f6c4bbefe7eda955a462af"
 }

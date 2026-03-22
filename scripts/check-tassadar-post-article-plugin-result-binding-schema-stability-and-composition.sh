@@ -87,7 +87,7 @@ jq -e '
   and .plugin_publication_allowed == false
   and .served_public_universality_allowed == false
   and .arbitrary_software_capability_allowed == false
-  and (.deferred_issue_ids == ["TAS-204"])
+  and (.deferred_issue_ids == [])
 ' fixtures/tassadar/reports/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_report.json >/dev/null
 
 jq -e '
@@ -110,5 +110,5 @@ jq -e '
   and .plugin_publication_allowed == false
   and .served_public_universality_allowed == false
   and .arbitrary_software_capability_allowed == false
-  and (.deferred_issue_ids == ["TAS-204"])
+  and (.deferred_issue_ids == [])
 ' fixtures/tassadar/reports/tassadar_post_article_plugin_result_binding_schema_stability_and_composition_summary.json >/dev/null

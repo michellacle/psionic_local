@@ -286,6 +286,8 @@ mod tassadar_post_article_universality_bridge_contract;
 mod tassadar_post_article_universality_portability_minimality_matrix;
 #[path = "tassadar_post_article_universality_witness_suite_reissue.rs"]
 mod tassadar_post_article_universality_witness_suite_reissue;
+#[path = "tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop.rs"]
+mod tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop;
 #[path = "tassadar_pre_closeout_universality_audit.rs"]
 mod tassadar_pre_closeout_universality_audit;
 #[path = "tassadar_precision_attention_robustness_audit.rs"]
@@ -532,6 +534,7 @@ pub use tassadar_post_article_universal_machine_proof_rebinding::*;
 pub use tassadar_post_article_universality_bridge_contract::*;
 pub use tassadar_post_article_universality_portability_minimality_matrix::*;
 pub use tassadar_post_article_universality_witness_suite_reissue::*;
+pub use tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop::*;
 pub use tassadar_pre_closeout_universality_audit::*;
 pub use tassadar_precision_attention_robustness_audit::*;
 pub use tassadar_preemptive_job_profile::*;
