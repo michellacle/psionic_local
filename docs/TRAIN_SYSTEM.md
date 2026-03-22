@@ -84,6 +84,9 @@ and now also has:
   `docs/APPLE_ADAPTER_LINEAGE_SPEC.md` are the canonical
   Apple-adapter reference docs for dataset shape, package inventory, and
   lineage metadata.
+- `docs/PSION_PROGRAM_MAP.md` is the canonical umbrella map for the `Psion`
+  learned-model lane and freezes the dependency-ordered track split plus the
+  learned-versus-executor claim boundary that all later `Psion` docs inherit.
 - `docs/PSION_CORPUS_ADMISSION.md` is the canonical first governance doc for
   the `Psion` learned-model lane and freezes the versioned source-admission
   contract that later ingestion, tokenizer, and training work must follow.

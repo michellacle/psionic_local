@@ -22,6 +22,8 @@ clustered execution, and machine-legible execution truth.
   behavior.
 - `docs/INFERENCE_ENGINE.md` is the canonical inference-engine completion doc.
 - `docs/TRAIN_SYSTEM.md` is the canonical training subsystem spec.
+- `docs/PSION_PROGRAM_MAP.md` is the canonical umbrella map for the `Psion`
+  learned-model lane.
 - `docs/PSION_CORPUS_ADMISSION.md` is the canonical first admission-policy doc
   for the `Psion` learned-model lane.
 - `docs/PSION_SOURCE_LIFECYCLE.md` is the canonical source-lifecycle and
