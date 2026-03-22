@@ -41,4 +41,5 @@
 ## Next Frontier
 
 The next open orchestration frontier above the router-owned served lane is
-`TAS-225`: Apple FM plugin tool integration and macOS local pilot.
+`TAS-226`: multi-plugin trace corpus, parity matrix, and training-bootstrap
+contract.

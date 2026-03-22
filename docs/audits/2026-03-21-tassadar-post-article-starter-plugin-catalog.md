@@ -92,5 +92,6 @@ and its committed bundle at
 `docs/TASSADAR_ROUTER_PLUGIN_TOOL_LOOP.md`.
 
 The next open orchestration frontier above this starter catalog is now
-`TAS-225`, which begins the Apple FM plugin tool integration and macOS local
-pilot.
+`TAS-226`, which freezes the first multi-lane trace corpus, parity matrix, and
+training-bootstrap contract above the deterministic, router-owned, and Apple FM
+controller lanes.

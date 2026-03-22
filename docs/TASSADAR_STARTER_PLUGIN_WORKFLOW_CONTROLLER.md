@@ -57,6 +57,7 @@ Each case carries:
 
 - router-owned `/v1/responses` pilot now lands separately in
   `docs/TASSADAR_ROUTER_PLUGIN_TOOL_LOOP.md`
-- Apple FM local plugin-session integration above the same shared bridge
+- Apple FM local plugin-session integration now lands separately in
+  `docs/TASSADAR_APPLE_FM_PLUGIN_SESSION.md`
 - parity and training-bootstrap artifacts above the deterministic, router, and
   Apple FM controller lanes

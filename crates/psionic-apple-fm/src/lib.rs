@@ -9,12 +9,21 @@ pub mod client;
 pub mod contract;
 pub mod error;
 pub mod structured;
+mod tassadar_post_article_starter_plugin_tools;
 pub mod tool;
 pub mod transcript;
 
 pub use client::{
     AppleFmAsyncBridgeClient, AppleFmBridgeClient, AppleFmBridgeClientError,
     AppleFmBridgeStreamError, AppleFmTextResponseStream,
+    TASSADAR_POST_ARTICLE_APPLE_FM_PLUGIN_SESSION_PILOT_BUNDLE_REF,
+    TASSADAR_POST_ARTICLE_APPLE_FM_PLUGIN_SESSION_PILOT_RUN_ROOT_REF,
+    TassadarPostArticleAppleFmPluginSessionPilotBundle,
+    TassadarPostArticleAppleFmPluginSessionPilotError, TassadarPostArticleAppleFmSessionCaseRow,
+    TassadarPostArticleAppleFmSessionStepRow, TassadarPostArticleAppleFmToolDefinitionRow,
+    build_tassadar_post_article_apple_fm_plugin_session_pilot_bundle,
+    tassadar_post_article_apple_fm_plugin_session_pilot_bundle_path,
+    write_tassadar_post_article_apple_fm_plugin_session_pilot_bundle,
 };
 pub use contract::{
     APPLE_FM_BRIDGE_ADAPTER_SUFFIX, APPLE_FM_BRIDGE_ADAPTERS_PATH,
@@ -44,6 +53,10 @@ pub use error::AppleFmFoundationModelsError;
 pub use structured::{
     AppleFmGeneratedContent, AppleFmGenerationId, AppleFmGenerationSchema, AppleFmStructuredType,
     AppleFmStructuredValueError,
+};
+pub use tassadar_post_article_starter_plugin_tools::{
+    TassadarStarterPluginAppleFmTool, TassadarStarterPluginAppleFmToolError,
+    tassadar_starter_plugin_apple_fm_tool_definitions, tassadar_starter_plugin_apple_fm_tools,
 };
 pub use tool::AppleFmTool;
 pub use transcript::{

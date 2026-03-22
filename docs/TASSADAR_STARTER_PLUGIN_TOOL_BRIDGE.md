@@ -78,8 +78,12 @@ definitions, router-owned tool execution, structured envelopes, plugin
 receipts, and response-state continuation explicit without claiming weighted
 controller closure.
 
+The first local Apple FM controller above the same bridge now lives in
+`docs/TASSADAR_APPLE_FM_PLUGIN_SESSION.md`. That pilot keeps session-aware tool
+callbacks, transcript truth, projected envelopes, and plugin receipts explicit
+without claiming served-model closure or weighted controller closure.
+
 ## Planned
 
-- Apple FM session tool integration above this shared bridge
 - trace-corpus and parity-matrix freezing above the deterministic, router, and
   Apple FM controller lanes

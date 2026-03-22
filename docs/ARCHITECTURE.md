@@ -1799,7 +1799,16 @@ The current scope is:
   which publish one real `/v1/responses` seed response, one router-owned tool
   gateway above the shared bridge, one multi-step success pilot, one typed
   refusal pilot, one continuation row with explicit route truth, and move the
-  next open orchestration frontier to `TAS-225`.
+  next open orchestration frontier to `TAS-225`
+- the current Apple FM starter-plugin session artifacts are
+  `fixtures/tassadar/runs/tassadar_post_article_apple_fm_plugin_session_pilot_v1/tassadar_post_article_apple_fm_plugin_session_pilot_bundle.json`,
+  the checker
+  `scripts/check-tassadar-post-article-apple-fm-plugin-pilot.sh`, the Apple FM
+  controller doc `docs/TASSADAR_APPLE_FM_PLUGIN_SESSION.md`, and the audit note
+  `docs/audits/2026-03-22-tassadar-post-article-apple-fm-plugin-session.md`,
+  which publish one session-aware local Apple FM controller lane above the same
+  shared bridge, keep transcript truth and plugin receipt truth explicit, and
+  move the next open orchestration frontier to `TAS-226`
 - the current semantic-window revision artifacts are
   `fixtures/tassadar/reports/tassadar_semantic_window_revision_receipt.json`
   and

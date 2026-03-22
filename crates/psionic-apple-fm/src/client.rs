@@ -37,6 +37,10 @@ use crate::structured::{AppleFmStructuredType, AppleFmStructuredValueError};
 use crate::tool::AppleFmTool;
 use crate::transcript::{AppleFmTranscript, AppleFmTranscriptError};
 
+mod tassadar_post_article_starter_plugin_session_pilot;
+
+pub use tassadar_post_article_starter_plugin_session_pilot::*;
+
 static NEXT_TOOL_SESSION_TOKEN: AtomicU64 = AtomicU64::new(1);
 
 /// Reusable blocking client for the current Apple FM bridge contract.

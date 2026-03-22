@@ -39,4 +39,5 @@ above the shared starter-plugin bridge.
 `fixtures/tassadar/runs/tassadar_post_article_router_plugin_tool_loop_pilot_v1/tassadar_post_article_router_plugin_tool_loop_pilot_bundle.json`.
 
 The next open orchestration frontier above the deterministic controller is now
-`TAS-225`: Apple FM plugin tool integration and macOS local pilot.
+`TAS-226`: multi-plugin trace corpus, parity matrix, and training-bootstrap
+contract.

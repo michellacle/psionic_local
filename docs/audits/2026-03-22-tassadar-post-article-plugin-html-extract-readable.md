@@ -40,4 +40,5 @@ plugin above the fetch-text lane.
 `docs/TASSADAR_ROUTER_PLUGIN_TOOL_LOOP.md`.
 
 The next open orchestration frontier above the deterministic starter controller
-is `TAS-225`: Apple FM plugin tool integration and macOS local pilot.
+is `TAS-226`: multi-plugin trace corpus, parity matrix, and training-bootstrap
+contract.

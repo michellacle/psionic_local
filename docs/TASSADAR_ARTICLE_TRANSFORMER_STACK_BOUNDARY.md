@@ -1405,6 +1405,15 @@ and the checker
 That closes the first router-owned `/v1/responses` plugin lane above the shared
 bridge without widening the boundary to weighted controller closure, and moves
 the next open bridge frontier to `TAS-225`.
+`TAS-225` now adds the local Apple FM starter-plugin controller lane in
+`crates/psionic-apple-fm/src/tassadar_post_article_starter_plugin_tools.rs`
+plus the committed pilot bundle in
+`fixtures/tassadar/runs/tassadar_post_article_apple_fm_plugin_session_pilot_v1/tassadar_post_article_apple_fm_plugin_session_pilot_bundle.json`
+and the checker
+`scripts/check-tassadar-post-article-apple-fm-plugin-pilot.sh`.
+That closes the first session-aware local Apple FM plugin lane above the shared
+bridge without widening the boundary to served-model closure or weighted
+controller closure, and moves the next open bridge frontier to `TAS-226`.
 
 ## Route Requirement
 

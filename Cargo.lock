@@ -3934,10 +3934,13 @@ name = "psionic-apple-fm"
 version = "0.1.1"
 dependencies = [
  "futures-util",
+ "psionic-runtime",
  "reqwest",
  "schemars 1.2.1",
  "serde",
  "serde_json",
+ "sha2",
+ "tempfile",
  "thiserror 2.0.18",
  "tokio",
  "tokio-stream",

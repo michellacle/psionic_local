@@ -720,6 +720,19 @@ Current honest posture:
   this keeps the first served `/v1/responses` plugin lane router-owned,
   receipt-bound, refusal-explicit, and response-state-explicit while moving
   the next open bridge frontier to `TAS-225`
+- the repo now also has one local Apple FM starter-plugin session lane, with
+  reusable tool-projection code in
+  `crates/psionic-apple-fm/src/tassadar_post_article_starter_plugin_tools.rs`,
+  a committed local pilot bundle at
+  `fixtures/tassadar/runs/tassadar_post_article_apple_fm_plugin_session_pilot_v1/tassadar_post_article_apple_fm_plugin_session_pilot_bundle.json`,
+  a dedicated checker at
+  `scripts/check-tassadar-post-article-apple-fm-plugin-pilot.sh`, an Apple FM
+  controller doc at `docs/TASSADAR_APPLE_FM_PLUGIN_SESSION.md`, and an audit
+  note at
+  `docs/audits/2026-03-22-tassadar-post-article-apple-fm-plugin-session.md`;
+  this keeps the first local Apple FM plugin lane session-aware, receipt-bound,
+  transcript-explicit, and refusal-explicit while moving the next open bridge
+  frontier to `TAS-226`
 - the repo now also has one machine-readable article-equivalence blocker
   matrix, with a committed eval report at
   `fixtures/tassadar/reports/tassadar_article_equivalence_blocker_matrix_report.json`,
@@ -941,10 +954,12 @@ Issue-state note:
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
 - `TAS-224` is now implemented and tracked in
   `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
+- `TAS-225` is now implemented and tracked in
+  `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
 - `TAS-221` remains open in GitHub as the umbrella issue and is tracked via
   the issue body plus `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
-- `TAS-225` through `TAS-226` remain open in GitHub and are tracked via the
-  issue bodies plus `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
+- `TAS-226` remains open in GitHub and is tracked via the issue body plus
+  `docs/ROADMAP_TASSADAR_TAS_SYNC.md`
 
 ## Repo-Local Companion Docs
 

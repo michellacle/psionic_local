@@ -51,6 +51,7 @@ The committed bundle freezes:
 
 ## Planned
 
-- Apple FM plugin-session integration above the same shared bridge
+- Apple FM local plugin-session integration now lands separately in
+  `docs/TASSADAR_APPLE_FM_PLUGIN_SESSION.md`
 - cross-lane parity and training-bootstrap artifacts over deterministic,
   router-owned, and Apple FM controller traces
