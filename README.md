@@ -40,6 +40,9 @@ clustered execution, and machine-legible execution truth.
   checkpoint/export naming doc for the `Psion` learned-model lane.
 - `docs/PSION_PRETRAIN_STAGE.md` is the canonical pretrain-stage and receipt
   doc for the `Psion` learned-model lane.
+- `docs/PSION_RUN_OBSERVABILITY.md` is the canonical cost, throughput,
+  checkpoint-size, and topology-observability doc for the `Psion`
+  learned-model lane.
 - `docs/PSION_ACCEPTANCE_MATRIX.md` is the canonical phase-gate and
   promotion-decision doc for the `Psion` learned-model lane.
 - `docs/PSION_CAPABILITY_MATRIX.md` is the canonical served capability and
