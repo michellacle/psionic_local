@@ -3,6 +3,7 @@
 mod attention;
 mod blocks;
 mod encoder_decoder;
+mod tassadar_post_article_canonical_computational_model_contract;
 mod tassadar_post_article_canonical_machine_identity_lock_contract;
 mod tassadar_post_article_plugin_result_binding_contract;
 mod tassadar_post_article_weighted_plugin_controller_trace_contract;
@@ -14,6 +15,7 @@ pub use attention::*;
 pub use blocks::*;
 pub use encoder_decoder::*;
 pub use psionic_nn::{ActivationKind, LayerError, LayerNorm, Linear};
+pub use tassadar_post_article_canonical_computational_model_contract::*;
 pub use tassadar_post_article_canonical_machine_identity_lock_contract::*;
 pub use tassadar_post_article_plugin_result_binding_contract::*;
 pub use tassadar_post_article_weighted_plugin_controller_trace_contract::*;

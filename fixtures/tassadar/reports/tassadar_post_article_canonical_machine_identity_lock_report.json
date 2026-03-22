@@ -123,7 +123,7 @@
       "satisfied": true,
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
       "source_artifact_id": "tassadar.post_article_universality_bridge.contract.report.v1",
-      "source_artifact_digest": "e932fb632fecd6cd2431e923742e43f64b89396a1040e0a8326dc70d4ed1230e",
+      "source_artifact_digest": "d3b25809e166e790b436511b1c0da3cdbdddcf112c6458117d5b0d575fd9a75c",
       "detail": "the universality bridge still names the machine identity, route identity, continuation contract, and computational-model statement that the lock is freezing."
     },
     {
@@ -226,10 +226,10 @@
     "canonical_route_descriptor_digest": "00af062cccc3d1b2e42ee8e092b9ef8e1539dd3f2dfc379cff7d1cd4a008b032",
     "continuation_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
     "continuation_contract_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
-    "computational_model_statement_id": "tassadar.post_article_universality_bridge.computational_model_statement.v1",
+    "computational_model_statement_id": "tassadar.post_article.canonical_computational_model.statement.v1",
     "canonical_machine_lock_contract_id": "tassadar.post_article.canonical_machine_identity_lock.contract.v1",
     "bridge_contract_report_id": "tassadar.post_article_universality_bridge.contract.report.v1",
-    "bridge_contract_report_digest": "e932fb632fecd6cd2431e923742e43f64b89396a1040e0a8326dc70d4ed1230e",
+    "bridge_contract_report_digest": "d3b25809e166e790b436511b1c0da3cdbdddcf112c6458117d5b0d575fd9a75c",
     "tcm_v1_model_id": "tcm.v1",
     "tcm_v1_model_digest": "259cab92c74b71b0135d4d2efee3212d4c8efe8ae6a62165f9560cbd509fe3c6",
     "detail": "tuple_id=`tassadar.post_article.canonical_machine_identity_lock.tuple.v1` carrier_class_id=`tassadar.post_article.canonical_machine.closure_bundle_bound_rebased_route_identity.v1` machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1` canonical_model_id=`tassadar-article-transformer-trace-bound-trained-v0` canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1` continuation_contract_id=`tassadar.tcm_v1.runtime_contract.report.v1` binds the post-article machine lock above `tassadar.post_article_universality_bridge.contract.report.v1`."
@@ -241,7 +241,7 @@
       "carrier_projection_id": "canonical_bridge_anchor",
       "source_ref": "fixtures/tassadar/reports/tassadar_post_article_universality_bridge_contract_report.json",
       "source_artifact_id": "tassadar.post_article_universality_bridge.contract.report.v1",
-      "source_artifact_digest": "e932fb632fecd6cd2431e923742e43f64b89396a1040e0a8326dc70d4ed1230e",
+      "source_artifact_digest": "d3b25809e166e790b436511b1c0da3cdbdddcf112c6458117d5b0d575fd9a75c",
       "declared_machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
       "declared_canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
       "declared_canonical_weight_bundle_digest": "99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c",
@@ -987,5 +987,5 @@
   "arbitrary_software_capability_allowed": false,
   "claim_boundary": "this contract freezes one canonical machine identity lock across the post-article bridge, route audits, proof and witness surfaces, plugin receipts, controller traces, conformance harnesses, authority posture, and bounded platform closeout. It binds each cited artifact to one globally named tuple over model id, weight digest, route digest, continuation contract, and a transformer-owned carrier class, explicitly rebinds legacy partial-tuple artifacts through machine-readable lock rows instead of implied inheritance, refuses mixed-carrier recomposition, and still keeps plugin publication, served/public universality, arbitrary software capability, and the final claim-bearing closure bundle out of scope here.",
   "summary": "Post-article canonical machine identity lock keeps supporting_materials=8/8, dependency_rows=6/6, artifact_binding_rows=16/16, invalidation_rows=7 present=0, validation_rows=8/8, lock_status=Green, and closure_bundle_issue_id=`TAS-215`.",
-  "report_digest": "1e019d735b5fbd47da72ba3dc87072004dc9f779708027e8643e96339d11345f"
+  "report_digest": "ae0431cbf1e4fb68208e8ab051f7776fe54920fcf4ffce0891ab66f4c7eba17b"
 }

@@ -295,7 +295,8 @@ struct BridgeMachineIdentityInput {
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
 struct BridgeComputationalModelStatementInput {
     statement_id: String,
-    canonical_machine_identity_id: String,
+    #[serde(alias = "canonical_machine_identity_id")]
+    machine_identity_id: String,
     substrate_model_id: String,
     substrate_model_digest: String,
     runtime_contract_id: String,
@@ -543,9 +544,7 @@ pub fn build_tassadar_post_article_canonical_machine_identity_lock_report() -> R
     let tcm_model_matches_bridge = tcm_v1_model.model_id
         == bridge.computational_model_statement.substrate_model_id
         && tcm_v1_model.model_digest == bridge.computational_model_statement.substrate_model_digest
-        && bridge
-            .computational_model_statement
-            .canonical_machine_identity_id
+        && bridge.computational_model_statement.machine_identity_id
             == canonical_machine_tuple.machine_identity_id
         && bridge.computational_model_statement.runtime_contract_id
             == canonical_machine_tuple.continuation_contract_id

@@ -8,6 +8,7 @@
     "docs/TASSADAR_ARTICLE_TRANSFORMER_STACK_BOUNDARY.md",
     "fixtures/tassadar/reports/tassadar_tcm_v1_model.json",
     "fixtures/tassadar/reports/tassadar_tcm_v1_runtime_contract_report.json",
+    "fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json",
     "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json",
     "fixtures/tassadar/reports/tassadar_article_equivalence_final_audit_report.json",
     "fixtures/tassadar/reports/tassadar_article_route_minimality_audit_report.json",
@@ -17,6 +18,7 @@
   "article_equivalence_acceptance_gate_report_ref": "fixtures/tassadar/reports/tassadar_article_equivalence_acceptance_gate_report.json",
   "article_equivalence_final_audit_report_ref": "fixtures/tassadar/reports/tassadar_article_equivalence_final_audit_report.json",
   "article_route_minimality_audit_report_ref": "fixtures/tassadar/reports/tassadar_article_route_minimality_audit_report.json",
+  "canonical_computational_model_statement_report_ref": "fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json",
   "tcm_v1_runtime_contract_report_ref": "fixtures/tassadar/reports/tassadar_tcm_v1_runtime_contract_report.json",
   "universality_verdict_split_report_ref": "fixtures/tassadar/reports/tassadar_universality_verdict_split_report.json",
   "turing_completeness_closeout_audit_report_ref": "fixtures/tassadar/reports/tassadar_turing_completeness_closeout_audit_report.json",
@@ -4786,6 +4788,308 @@
     "claim_boundary": "this report closes TAS-185A only. It freezes the minimal final article claim route as the direct HullCache runtime path on the canonical article model, excludes checkpoint, spill, persisted continuation, hidden helper mediation, and planner-owned hybrid orchestration from that claim route, and publishes one explicit operator versus bounded-public verdict. It remains one prerequisite surface for the final article-equivalence audit rather than a substitute for it.",
     "summary": "Article route-minimality audit now records tied_requirement_satisfied=true, operator_verdict_green=true, public_verdict_green=true, public_blocked_issue_count=0, route_minimality_audit_green=true, and article_equivalence_green=true.",
     "report_digest": "d36fb661d9133f1e130c59db2fc3ec1cb1e9d9055316724d19e10a1198dad16e"
+  },
+  "canonical_computational_model_statement_report": {
+    "schema_version": 1,
+    "report_id": "tassadar.post_article_canonical_computational_model_statement.report.v1",
+    "checker_script_ref": "scripts/check-tassadar-post-article-canonical-computational-model-statement.sh",
+    "transformer_anchor_contract_ref": "crates/psionic-transformer/src/tassadar_post_article_canonical_computational_model_contract.rs",
+    "article_equivalence_final_audit_report_ref": "fixtures/tassadar/reports/tassadar_article_equivalence_final_audit_report.json",
+    "tcm_v1_runtime_contract_report_ref": "fixtures/tassadar/reports/tassadar_tcm_v1_runtime_contract_report.json",
+    "effectful_replay_audit_report_ref": "fixtures/tassadar/reports/tassadar_effectful_replay_audit_report.json",
+    "import_policy_matrix_report_ref": "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json",
+    "virtual_fs_mount_profile_report_ref": "fixtures/tassadar/reports/tassadar_virtual_fs_mount_profile_report.json",
+    "simulator_effect_profile_report_ref": "fixtures/tassadar/reports/tassadar_simulator_effect_profile_report.json",
+    "article_transformer_stack_boundary_ref": "docs/TASSADAR_ARTICLE_TRANSFORMER_STACK_BOUNDARY.md",
+    "post_article_turing_audit_ref": "docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md",
+    "plugin_system_turing_audit_ref": "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md",
+    "supporting_material_rows": [
+      {
+        "material_id": "transformer_anchor_contract",
+        "material_class": "anchor",
+        "satisfied": true,
+        "source_ref": "crates/psionic-transformer/src/tassadar_post_article_canonical_computational_model_contract.rs",
+        "source_artifact_id": "tassadar.post_article.canonical_computational_model.contract.v1",
+        "detail": "the transformer-owned anchor contract freezes the canonical machine id, tuple id, statement id, and invalidation rules for this published computational-model statement."
+      },
+      {
+        "material_id": "article_equivalence_final_audit",
+        "material_class": "contract",
+        "satisfied": true,
+        "source_ref": "fixtures/tassadar/reports/tassadar_article_equivalence_final_audit_report.json",
+        "source_artifact_id": "tassadar.article_equivalence.final_audit.report.v1",
+        "source_artifact_digest": "d6d43e789a28fb15a87faca85a726c75e2aab33a49c3f97cb254e4cc661cb155",
+        "detail": "the canonical model id, weight lineage, route id, and direct decode mode arrive from the closed bounded article-equivalence route rather than from a recomposed later surface."
+      },
+      {
+        "material_id": "tcm_v1_runtime_contract",
+        "material_class": "contract",
+        "satisfied": true,
+        "source_ref": "fixtures/tassadar/reports/tassadar_tcm_v1_runtime_contract_report.json",
+        "source_artifact_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+        "source_artifact_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
+        "detail": "the declared continuation semantics and effect boundaries remain anchored in the historical TCM.v1 runtime contract."
+      },
+      {
+        "material_id": "effectful_replay_audit",
+        "material_class": "operational_boundary",
+        "satisfied": true,
+        "source_ref": "fixtures/tassadar/reports/tassadar_effectful_replay_audit_report.json",
+        "source_artifact_id": "tassadar.effectful_replay_audit.report.v1",
+        "source_artifact_digest": "eef9f54ce5f9c131a5b70ada6f63dbc30ee0c9d201a8cf78dd42a55c26145da5",
+        "detail": "effectful replay remains explicit and bounded rather than becoming an ambient execution privilege."
+      },
+      {
+        "material_id": "import_policy_matrix",
+        "material_class": "operational_boundary",
+        "satisfied": true,
+        "source_ref": "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json",
+        "source_artifact_id": "tassadar.import_policy_matrix.report.v1",
+        "source_artifact_digest": "62d7e2eb8bc8bdcef179f6150a1694ff1dd150cdea39d92cb8dbac2c845f50e3",
+        "detail": "undeclared imports remain outside the computational model and continue to refuse explicitly."
+      },
+      {
+        "material_id": "virtual_fs_mount_profile",
+        "material_class": "operational_boundary",
+        "satisfied": true,
+        "source_ref": "fixtures/tassadar/reports/tassadar_virtual_fs_mount_profile_report.json",
+        "source_artifact_id": "tassadar.virtual_fs_mount.profile_report.v1",
+        "source_artifact_digest": "8b7292c0e1ab227c2e6e132702e43582ebe91132316a2e016c594bf955084141",
+        "detail": "virtual-fs effects remain one declared profile under the model instead of a hidden host side channel."
+      },
+      {
+        "material_id": "simulator_effect_profile",
+        "material_class": "operational_boundary",
+        "satisfied": true,
+        "source_ref": "fixtures/tassadar/reports/tassadar_simulator_effect_profile_report.json",
+        "source_artifact_id": "tassadar.simulator_effect.profile_report.v1",
+        "source_artifact_digest": "f09e92f6ec448bb8a2b51c4938a7bd5c4b70f18a5351bd4c7401067ebd07245b",
+        "detail": "simulator effects remain declared and replay-audited rather than silently broadening the machine."
+      },
+      {
+        "material_id": "post_article_turing_audit_note",
+        "material_class": "audit_context",
+        "satisfied": true,
+        "source_ref": "docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md",
+        "detail": "the post-article Turing audit states the rebased route continues to inherit bounded TCM.v1 semantics without implying plugin or publication closure."
+      },
+      {
+        "material_id": "plugin_system_turing_audit_note",
+        "material_class": "audit_context",
+        "satisfied": true,
+        "source_ref": "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md",
+        "detail": "the plugin-system audit keeps plugin capability above the machine substrate rather than redefining what the machine is."
+      },
+      {
+        "material_id": "article_transformer_stack_boundary_doc",
+        "material_class": "audit_context",
+        "satisfied": true,
+        "source_ref": "docs/TASSADAR_ARTICLE_TRANSFORMER_STACK_BOUNDARY.md",
+        "detail": "the boundary doc carries the public repo-local explanation of the owned route, bridge, plugin overlay, and deferred closure posture."
+      }
+    ],
+    "dependency_rows": [
+      {
+        "dependency_id": "canonical_article_equivalence_final_audit_green",
+        "satisfied": true,
+        "source_refs": [
+          "fixtures/tassadar/reports/tassadar_article_equivalence_final_audit_report.json"
+        ],
+        "detail": "the computational-model statement may only attach to the already-closed canonical article-equivalent route."
+      },
+      {
+        "dependency_id": "tcm_v1_runtime_contract_green",
+        "satisfied": true,
+        "source_refs": [
+          "fixtures/tassadar/reports/tassadar_tcm_v1_runtime_contract_report.json"
+        ],
+        "detail": "the computational-model statement inherits continuation semantics only through the committed green TCM.v1 runtime contract."
+      },
+      {
+        "dependency_id": "declared_effect_profiles_only",
+        "satisfied": true,
+        "source_refs": [
+          "fixtures/tassadar/reports/tassadar_tcm_v1_runtime_contract_report.json"
+        ],
+        "detail": "declared effect profiles stay explicit inside the computational model rather than arriving from ambient runtime behavior."
+      },
+      {
+        "dependency_id": "ambient_host_effects_refused",
+        "satisfied": true,
+        "source_refs": [
+          "fixtures/tassadar/reports/tassadar_tcm_v1_runtime_contract_report.json",
+          "fixtures/tassadar/reports/tassadar_effectful_replay_audit_report.json",
+          "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json"
+        ],
+        "detail": "ambient host effects and undeclared imports remain outside the computational model."
+      },
+      {
+        "dependency_id": "plugin_layer_scoped_above_machine",
+        "satisfied": true,
+        "source_refs": [
+          "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md",
+          "docs/TASSADAR_ARTICLE_TRANSFORMER_STACK_BOUNDARY.md"
+        ],
+        "detail": "the plugin layer is named only as a bounded overlay above the canonical machine identity, not as part of the base compute substrate."
+      },
+      {
+        "dependency_id": "publication_and_served_overread_refused",
+        "satisfied": true,
+        "source_refs": [
+          "fixtures/tassadar/reports/tassadar_tcm_v1_runtime_contract_report.json",
+          "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md"
+        ],
+        "detail": "publication and served/public posture remain outside the computational model unless later gates turn them green explicitly."
+      }
+    ],
+    "computational_model_statement": {
+      "statement_id": "tassadar.post_article.canonical_computational_model.statement.v1",
+      "machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+      "tuple_id": "tassadar.post_article.canonical_machine_identity_lock.tuple.v1",
+      "carrier_class_id": "tassadar.post_article.canonical_machine.closure_bundle_bound_rebased_route_identity.v1",
+      "canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+      "canonical_weight_artifact_id": "tassadar://article_transformer/weights/tassadar-article-transformer-trace-bound-trained-v0/99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c",
+      "canonical_weight_bundle_digest": "99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c",
+      "canonical_weight_primary_artifact_sha256": "e24923e6fe39f0656b3f331fb935e0827a3de43b706014610e513ca5a54e9f84",
+      "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+      "canonical_route_descriptor_digest": "00af062cccc3d1b2e42ee8e092b9ef8e1539dd3f2dfc379cff7d1cd4a008b032",
+      "direct_decode_mode": "hull_cache",
+      "substrate_model_id": "tcm.v1",
+      "substrate_model_digest": "259cab92c74b71b0135d4d2efee3212d4c8efe8ae6a62165f9560cbd509fe3c6",
+      "runtime_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
+      "runtime_contract_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
+      "statement": "the canonical post-article machine is one owned direct `tassadar.article_route.direct_hull_cache_runtime.v1` Transformer route on model `tassadar-article-transformer-trace-bound-trained-v0` and weight bundle `99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c`; resumable continuation semantics attach to that same machine only through `tassadar.tcm_v1.runtime_contract.report.v1` under the declared `tcm.v1` substrate, and any plugin layer sits above that machine without becoming part of its compute substrate.",
+      "continuation_semantics": "bounded small-step resumable machine with persistent state, checkpoint-backed continuation, spill-tape extension, and explicit refusal on out-of-model effects",
+      "effect_boundary": "features outside the declared control, memory, continuation, and effect rows are not implicit extensions of TCM.v1. They require either an explicit later semantic row or a typed refusal.",
+      "carrier_topology_statement": "the canonical machine is one rebased route identity whose direct article-equivalent compute lane and resumable continuation lane stay attached to the same machine identity rather than becoming separate machines.",
+      "proof_class_statement": "direct-route article evidence, resumable bounded-universality evidence, and plugin-overlay evidence remain distinct proof classes; this statement names one machine they attach to without claiming execution-semantics transport or final closure-bundle completion.",
+      "plugin_layer_statement": "the plugin layer is a bounded software-capability overlay above the same canonical machine identity; it may consume declared continuation and effect envelopes, but it may not rewrite the machine substrate, continuation carrier, or publication posture.",
+      "detail": "statement_id=`tassadar.post_article.canonical_computational_model.statement.v1` machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1` canonical_model_id=`tassadar-article-transformer-trace-bound-trained-v0` canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1` runtime_contract_id=`tassadar.tcm_v1.runtime_contract.report.v1` and substrate_model_id=`tcm.v1` remain the published computational-model tuple."
+    },
+    "invalidation_rows": [
+      {
+        "invalidation_id": "canonical_route_or_weight_drift_present",
+        "present": false,
+        "source_refs": [
+          "fixtures/tassadar/reports/tassadar_article_equivalence_final_audit_report.json"
+        ],
+        "detail": "no canonical model, weight, or route drift is present in the published statement inputs."
+      },
+      {
+        "invalidation_id": "continuation_contract_drift_present",
+        "present": false,
+        "source_refs": [
+          "fixtures/tassadar/reports/tassadar_tcm_v1_runtime_contract_report.json"
+        ],
+        "detail": "the continuation contract and substrate digest remain the committed TCM.v1 values."
+      },
+      {
+        "invalidation_id": "effect_boundary_widening_present",
+        "present": false,
+        "source_refs": [
+          "fixtures/tassadar/reports/tassadar_effectful_replay_audit_report.json",
+          "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json"
+        ],
+        "detail": "declared effect boundaries have not widened into implicit host effects or undeclared imports."
+      },
+      {
+        "invalidation_id": "plugin_overlay_recomposition_present",
+        "present": false,
+        "source_refs": [
+          "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md",
+          "docs/TASSADAR_ARTICLE_TRANSFORMER_STACK_BOUNDARY.md"
+        ],
+        "detail": "the plugin overlay is still described as a later bounded layer above the machine rather than as substrate truth."
+      },
+      {
+        "invalidation_id": "proof_transport_or_terminal_closure_overread_present",
+        "present": false,
+        "source_refs": [
+          "docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md",
+          "docs/TASSADAR_ARTICLE_TRANSFORMER_STACK_BOUNDARY.md"
+        ],
+        "detail": "execution-semantics proof transport and the final closure bundle remain explicitly deferred."
+      }
+    ],
+    "validation_rows": [
+      {
+        "validation_id": "statement_id_matches_transformer_anchor_contract",
+        "green": true,
+        "source_refs": [
+          "crates/psionic-transformer/src/tassadar_post_article_canonical_computational_model_contract.rs"
+        ],
+        "detail": "the published statement id matches the transformer-owned anchor contract instead of inventing a parallel model identifier."
+      },
+      {
+        "validation_id": "canonical_identity_matches_anchor_machine",
+        "green": true,
+        "source_refs": [
+          "crates/psionic-transformer/src/tassadar_post_article_canonical_computational_model_contract.rs"
+        ],
+        "detail": "the published statement is bound to the same canonical machine identity, tuple id, and carrier class as the transformer-owned anchor."
+      },
+      {
+        "validation_id": "runtime_contract_and_substrate_bound",
+        "green": true,
+        "source_refs": [
+          "fixtures/tassadar/reports/tassadar_tcm_v1_runtime_contract_report.json"
+        ],
+        "detail": "the continuation carrier and substrate model are bound by explicit id and digest rather than by prose inheritance."
+      },
+      {
+        "validation_id": "article_equivalent_route_bound",
+        "green": true,
+        "source_refs": [
+          "fixtures/tassadar/reports/tassadar_article_equivalence_final_audit_report.json"
+        ],
+        "detail": "the owned direct-route article carrier remains the exact compute route named in the final article-equivalence audit."
+      },
+      {
+        "validation_id": "declared_effect_boundary_named",
+        "green": true,
+        "source_refs": [
+          "fixtures/tassadar/reports/tassadar_tcm_v1_runtime_contract_report.json",
+          "fixtures/tassadar/reports/tassadar_effectful_replay_audit_report.json",
+          "fixtures/tassadar/reports/tassadar_import_policy_matrix_report.json"
+        ],
+        "detail": "declared effect boundaries and host-effect refusals remain explicit in the published computational-model statement."
+      },
+      {
+        "validation_id": "plugin_layer_scoped_above_machine",
+        "green": true,
+        "source_refs": [
+          "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md",
+          "docs/TASSADAR_ARTICLE_TRANSFORMER_STACK_BOUNDARY.md"
+        ],
+        "detail": "the plugin layer is stated as a bounded overlay above the machine instead of part of the machine substrate."
+      },
+      {
+        "validation_id": "later_proof_transport_and_terminal_closure_remain_explicitly_deferred",
+        "green": true,
+        "source_refs": [
+          "docs/audits/2026-03-20-tassadar-post-article-turing-completeness-audit.md",
+          "docs/TASSADAR_ARTICLE_TRANSFORMER_STACK_BOUNDARY.md"
+        ],
+        "detail": "the statement stays green while still deferring execution-semantics proof transport, publication, served/public universality, arbitrary software capability, and the final closure bundle."
+      }
+    ],
+    "statement_status": "green",
+    "statement_green": true,
+    "article_equivalent_compute_named": true,
+    "tcm_v1_continuation_named": true,
+    "declared_effect_boundary_named": true,
+    "plugin_layer_scoped_above_machine": true,
+    "proof_transport_complete": false,
+    "next_proof_transport_issue_id": "TAS-209",
+    "closure_bundle_embedded_here": false,
+    "closure_bundle_issue_id": "TAS-215",
+    "weighted_plugin_control_part_of_model": false,
+    "plugin_publication_allowed": false,
+    "served_public_universality_allowed": false,
+    "arbitrary_software_capability_allowed": false,
+    "claim_boundary": "this runtime-owned report publishes the canonical post-article computational model statement: one owned direct Transformer route supplies compute identity, TCM.v1 supplies continuation and effect boundaries, and any plugin layer stays above that machine instead of redefining it. Execution-semantics proof transport, plugin publication, served/public universality, arbitrary software capability, and the final closure bundle remain deferred.",
+    "summary": "Post-article canonical computational-model statement keeps status=Green, supporting_material_rows=10, dependency_rows=6, invalidation_rows=5, validation_rows=7, next_proof_transport_issue_id=`TAS-209`, and closure_bundle_issue_id=`TAS-215`.",
+    "report_digest": "97bd70cf2f74d37a3e41b0f4766963aaa34de992d287f36da39076cb11fdc5f2"
   },
   "tcm_v1_runtime_contract_report": {
     "schema_version": 1,
@@ -10971,6 +11275,14 @@
       "detail": "the canonical model id, route id, and route digest must stay identical across the final article-equivalence closeout and the route-minimality audit before historical universality artifacts can be rebound to that machine identity"
     },
     {
+      "dependency_id": "canonical_computational_model_statement_published",
+      "satisfied": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json"
+      ],
+      "detail": "the bridge now projects the separately published canonical computational-model statement instead of inventing a bridge-local model statement."
+    },
+    {
       "dependency_id": "historical_tcm_v1_substrate_present",
       "satisfied": true,
       "source_refs": [
@@ -11152,18 +11464,28 @@
     }
   ],
   "computational_model_statement": {
-    "statement_id": "tassadar.post_article_universality_bridge.computational_model_statement.v1",
-    "canonical_machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+    "statement_id": "tassadar.post_article.canonical_computational_model.statement.v1",
+    "machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
+    "tuple_id": "tassadar.post_article.canonical_machine_identity_lock.tuple.v1",
+    "carrier_class_id": "tassadar.post_article.canonical_machine.closure_bundle_bound_rebased_route_identity.v1",
+    "canonical_model_id": "tassadar-article-transformer-trace-bound-trained-v0",
+    "canonical_weight_artifact_id": "tassadar://article_transformer/weights/tassadar-article-transformer-trace-bound-trained-v0/99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c",
+    "canonical_weight_bundle_digest": "99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c",
+    "canonical_weight_primary_artifact_sha256": "e24923e6fe39f0656b3f331fb935e0827a3de43b706014610e513ca5a54e9f84",
+    "canonical_route_id": "tassadar.article_route.direct_hull_cache_runtime.v1",
+    "canonical_route_descriptor_digest": "00af062cccc3d1b2e42ee8e092b9ef8e1539dd3f2dfc379cff7d1cd4a008b032",
+    "direct_decode_mode": "hull_cache",
     "substrate_model_id": "tcm.v1",
     "substrate_model_digest": "259cab92c74b71b0135d4d2efee3212d4c8efe8ae6a62165f9560cbd509fe3c6",
     "runtime_contract_id": "tassadar.tcm_v1.runtime_contract.report.v1",
     "runtime_contract_digest": "435d8e13f17854acc785f5b18ec4ac4e4a5d489a61b511b1e18e9a6a25d1e017",
-    "statement": "the rebased bridge treats the canonical machine as one explicit split carrier: direct article-equivalent truth lives only on the direct deterministic `tassadar.article_route.direct_hull_cache_runtime.v1` route of the canonical trained Transformer model, while bounded universality truth lives only on a resumable carrier that preserves the same model, weight, and route identity and then applies the declared `tcm.v1` substrate semantics without widening effects or capabilities",
+    "statement": "the canonical post-article machine is one owned direct `tassadar.article_route.direct_hull_cache_runtime.v1` Transformer route on model `tassadar-article-transformer-trace-bound-trained-v0` and weight bundle `99df3f08d8e881989dd1e9b3a96165865facf8374aecc72c59e3b23f0c1a792c`; resumable continuation semantics attach to that same machine only through `tassadar.tcm_v1.runtime_contract.report.v1` under the declared `tcm.v1` substrate, and any plugin layer sits above that machine without becoming part of its compute substrate.",
     "continuation_semantics": "bounded small-step resumable machine with persistent state, checkpoint-backed continuation, spill-tape extension, and explicit refusal on out-of-model effects",
     "effect_boundary": "features outside the declared control, memory, continuation, and effect rows are not implicit extensions of TCM.v1. They require either an explicit later semantic row or a typed refusal.",
-    "carrier_topology_statement": "the bridge carrier is not one undifferentiated route; it is an explicit split between the direct article-equivalent lane and the resumable universality lane above the same canonical machine identity",
-    "proof_class_statement": "mechanistic direct-route article proofs and resumable universality closeout artifacts remain distinct proof classes; this bridge binds them by canonical identity but does not rewrite or collapse them into one observational summary",
-    "detail": "statement_id=`tassadar.post_article_universality_bridge.computational_model_statement.v1` substrate_model_id=`tcm.v1` runtime_contract_id=`tassadar.tcm_v1.runtime_contract.report.v1` carrier_topology=ExplicitSplitAcrossDirectAndResumableLanes"
+    "carrier_topology_statement": "the canonical machine is one rebased route identity whose direct article-equivalent compute lane and resumable continuation lane stay attached to the same machine identity rather than becoming separate machines.",
+    "proof_class_statement": "direct-route article evidence, resumable bounded-universality evidence, and plugin-overlay evidence remain distinct proof classes; this statement names one machine they attach to without claiming execution-semantics transport or final closure-bundle completion.",
+    "plugin_layer_statement": "the plugin layer is a bounded software-capability overlay above the same canonical machine identity; it may consume declared continuation and effect envelopes, but it may not rewrite the machine substrate, continuation carrier, or publication posture.",
+    "detail": "statement_id=`tassadar.post_article.canonical_computational_model.statement.v1` machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1` canonical_model_id=`tassadar-article-transformer-trace-bound-trained-v0` canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1` runtime_contract_id=`tassadar.tcm_v1.runtime_contract.report.v1` and substrate_model_id=`tcm.v1` remain the published computational-model tuple."
   },
   "plane_contract_rows": [
     {
@@ -11256,18 +11578,26 @@
     },
     {
       "hook_id": "schema_version_negotiation_hook",
-      "purpose": "keep schema-version negotiation and canonical-machine inheritance explicit above the bridge while the anti-drift tranche remains later",
+      "purpose": "keep schema-version negotiation and canonical-machine inheritance explicit above the bridge while execution-semantics transport remains later",
       "reserved_issue_ids": [
-        "TAS-208"
+        "TAS-209"
       ],
       "current_posture": "reserved_after_bounded_plugin_platform_closeout",
       "source_refs": [
         "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md"
       ],
-      "detail": "the bridge now delegates schema stability, weighted-controller ownership, bounded plugin-platform closeout, the canonical-machine lock, and the later computational-model statement publication to TAS-203A through TAS-208 instead of widening the bridge itself into the terminal machine or publication surface"
+      "detail": "the bridge now delegates schema stability, weighted-controller ownership, bounded plugin-platform closeout, canonical-machine locking, the published computational-model statement, and the later execution-semantics proof-transport audit to TAS-203A through TAS-209 instead of widening the bridge itself into the terminal machine or publication surface"
     }
   ],
   "validation_rows": [
+    {
+      "validation_id": "canonical_computational_model_statement_published",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json"
+      ],
+      "detail": "the bridge now projects the separately published canonical computational-model statement instead of carrying a bridge-local shadow copy."
+    },
     {
       "validation_id": "helper_substitution_quarantined",
       "green": true,
@@ -11330,7 +11660,7 @@
   "rebase_claim_allowed": false,
   "plugin_capability_claim_allowed": false,
   "served_public_universality_allowed": false,
-  "claim_boundary": "this bridge contract freezes only the post-`TAS-186` rebasing boundary between the historical `TCM.v1` universality closeout and the canonical owned article-equivalence route. It binds the old closeout to one explicit post-article machine identity tuple, one coarse direct-vs-resumable carrier topology, one bridge-scoped computational model statement, and one explicit three-plane contract. It does not by itself prove continuation semantic preservation, control-plane provenance, final canonical carrier binding, served/public universality, weighted plugin control, or arbitrary software capability.",
-  "summary": "Post-article universality bridge contract keeps dependencies=7/7, historical_bindings=4, carrier_topology=ExplicitSplitAcrossDirectAndResumableLanes, validation_rows=6/6, bridge_status=Green, rebase_claim_allowed=false, and reserved_capability_hooks=4.",
-  "report_digest": "e932fb632fecd6cd2431e923742e43f64b89396a1040e0a8326dc70d4ed1230e"
+  "claim_boundary": "this bridge contract freezes only the post-`TAS-186` rebasing boundary between the historical `TCM.v1` universality closeout and the canonical owned article-equivalence route. It binds the old closeout to one explicit post-article machine identity tuple, one coarse direct-vs-resumable carrier topology, one separately published canonical computational-model statement, and one explicit three-plane contract. It does not by itself prove continuation semantic preservation, execution-semantics proof transport, control-plane provenance, final canonical carrier binding, served/public universality, weighted plugin control, or arbitrary software capability.",
+  "summary": "Post-article universality bridge contract keeps dependencies=8/8, historical_bindings=4, carrier_topology=ExplicitSplitAcrossDirectAndResumableLanes, validation_rows=7/7, bridge_status=Green, rebase_claim_allowed=false, and reserved_capability_hooks=4.",
+  "report_digest": "d3b25809e166e790b436511b1c0da3cdbdddcf112c6458117d5b0d575fd9a75c"
 }

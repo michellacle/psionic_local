@@ -10,8 +10,14 @@ use sha2::{Digest, Sha256};
 use thiserror::Error;
 
 use psionic_runtime::{
-    build_tassadar_tcm_v1_runtime_contract_report, TassadarTcmV1RuntimeContractReport,
-    TassadarTcmV1RuntimeContractReportError, TASSADAR_TCM_V1_RUNTIME_CONTRACT_REPORT_REF,
+    build_tassadar_post_article_canonical_computational_model_statement_report,
+    build_tassadar_tcm_v1_runtime_contract_report,
+    TassadarPostArticleCanonicalComputationalModelStatement,
+    TassadarPostArticleCanonicalComputationalModelStatementReport,
+    TassadarPostArticleCanonicalComputationalModelStatementReportError,
+    TassadarTcmV1RuntimeContractReport, TassadarTcmV1RuntimeContractReportError,
+    TASSADAR_POST_ARTICLE_CANONICAL_COMPUTATIONAL_MODEL_STATEMENT_REPORT_REF,
+    TASSADAR_TCM_V1_RUNTIME_CONTRACT_REPORT_REF,
 };
 
 use crate::{
@@ -46,8 +52,6 @@ const RESUMABLE_CARRIER_ID: &str =
     "tassadar.post_article_universality_bridge.resumable_universality_carrier.v1";
 const RESERVED_CAPABILITY_PLANE_ID: &str =
     "tassadar.post_article_universality_bridge.reserved_capability_plane.v1";
-const COMPUTATIONAL_MODEL_STATEMENT_ID: &str =
-    "tassadar.post_article_universality_bridge.computational_model_statement.v1";
 const DATA_PLANE_ID: &str = "tassadar.post_article_universality_bridge.data_plane.v1";
 const CONTROL_PLANE_ID: &str = "tassadar.post_article_universality_bridge.control_plane.v1";
 const CAPABILITY_PLANE_ID: &str = "tassadar.post_article_universality_bridge.capability_plane.v1";
@@ -135,22 +139,6 @@ pub struct TassadarPostArticleCarrierRow {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct TassadarPostArticleComputationalModelStatement {
-    pub statement_id: String,
-    pub canonical_machine_identity_id: String,
-    pub substrate_model_id: String,
-    pub substrate_model_digest: String,
-    pub runtime_contract_id: String,
-    pub runtime_contract_digest: String,
-    pub statement: String,
-    pub continuation_semantics: String,
-    pub effect_boundary: String,
-    pub carrier_topology_statement: String,
-    pub proof_class_statement: String,
-    pub detail: String,
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TassadarPostArticlePlaneContractRow {
     pub plane_id: String,
     pub plane_kind: TassadarPostArticlePlaneKind,
@@ -189,12 +177,15 @@ pub struct TassadarPostArticleUniversalityBridgeContractReport {
     pub article_equivalence_acceptance_gate_report_ref: String,
     pub article_equivalence_final_audit_report_ref: String,
     pub article_route_minimality_audit_report_ref: String,
+    pub canonical_computational_model_statement_report_ref: String,
     pub tcm_v1_runtime_contract_report_ref: String,
     pub universality_verdict_split_report_ref: String,
     pub turing_completeness_closeout_audit_report_ref: String,
     pub article_equivalence_acceptance_gate_report: TassadarArticleEquivalenceAcceptanceGateReport,
     pub article_equivalence_final_audit_report: TassadarArticleEquivalenceFinalAuditReport,
     pub article_route_minimality_audit_report: TassadarArticleRouteMinimalityAuditReport,
+    pub canonical_computational_model_statement_report:
+        TassadarPostArticleCanonicalComputationalModelStatementReport,
     pub tcm_v1_runtime_contract_report: TassadarTcmV1RuntimeContractReport,
     pub universality_verdict_split_report: TassadarUniversalityVerdictSplitReport,
     pub turing_completeness_closeout_audit_report: TassadarTuringCompletenessCloseoutAuditReport,
@@ -203,7 +194,7 @@ pub struct TassadarPostArticleUniversalityBridgeContractReport {
     pub historical_binding_rows: Vec<TassadarPostArticleHistoricalBindingRow>,
     pub carrier_topology: TassadarPostArticleCarrierTopology,
     pub carrier_rows: Vec<TassadarPostArticleCarrierRow>,
-    pub computational_model_statement: TassadarPostArticleComputationalModelStatement,
+    pub computational_model_statement: TassadarPostArticleCanonicalComputationalModelStatement,
     pub plane_contract_rows: Vec<TassadarPostArticlePlaneContractRow>,
     pub reserved_later_invariant_ids: Vec<String>,
     pub reservation_hook_rows: Vec<TassadarPostArticleReservationHookRow>,
@@ -226,6 +217,10 @@ pub enum TassadarPostArticleUniversalityBridgeContractReportError {
     FinalAudit(#[from] TassadarArticleEquivalenceFinalAuditError),
     #[error(transparent)]
     RouteMinimality(#[from] TassadarArticleRouteMinimalityAuditError),
+    #[error(transparent)]
+    CanonicalComputationalModel(
+        #[from] TassadarPostArticleCanonicalComputationalModelStatementReportError,
+    ),
     #[error(transparent)]
     RuntimeContract(#[from] TassadarTcmV1RuntimeContractReportError),
     #[error(transparent)]
@@ -257,6 +252,8 @@ pub fn build_tassadar_post_article_universality_bridge_contract_report() -> Resu
         build_tassadar_article_equivalence_final_audit_report()?;
     let article_route_minimality_audit_report =
         build_tassadar_article_route_minimality_audit_report()?;
+    let canonical_computational_model_statement_report =
+        build_tassadar_post_article_canonical_computational_model_statement_report()?;
     let tcm_v1_runtime_contract_report = build_tassadar_tcm_v1_runtime_contract_report()?;
     let universality_verdict_split_report = build_tassadar_universality_verdict_split_report()?;
     let turing_completeness_closeout_audit_report =
@@ -380,6 +377,20 @@ pub fn build_tassadar_post_article_universality_bridge_contract_report() -> Resu
             ],
             detail: String::from(
                 "the canonical model id, route id, and route digest must stay identical across the final article-equivalence closeout and the route-minimality audit before historical universality artifacts can be rebound to that machine identity",
+            ),
+        },
+        TassadarPostArticleBridgeDependencyRow {
+            dependency_id: String::from("canonical_computational_model_statement_published"),
+            satisfied: canonical_computational_model_statement_report.statement_green
+                && canonical_computational_model_statement_report
+                    .computational_model_statement
+                    .machine_identity_id
+                    == BRIDGE_MACHINE_IDENTITY_ID,
+            source_refs: vec![String::from(
+                TASSADAR_POST_ARTICLE_CANONICAL_COMPUTATIONAL_MODEL_STATEMENT_REPORT_REF,
+            )],
+            detail: String::from(
+                "the bridge now projects the separately published canonical computational-model statement instead of inventing a bridge-local model statement.",
             ),
         },
         TassadarPostArticleBridgeDependencyRow {
@@ -606,45 +617,9 @@ pub fn build_tassadar_post_article_universality_bridge_contract_report() -> Resu
         },
     ];
 
-    let computational_model_statement = TassadarPostArticleComputationalModelStatement {
-        statement_id: String::from(COMPUTATIONAL_MODEL_STATEMENT_ID),
-        canonical_machine_identity_id: String::from(BRIDGE_MACHINE_IDENTITY_ID),
-        substrate_model_id: tcm_v1_runtime_contract_report.substrate_model.model_id.clone(),
-        substrate_model_digest: tcm_v1_runtime_contract_report
-            .substrate_model
-            .model_digest
-            .clone(),
-        runtime_contract_id: tcm_v1_runtime_contract_report.report_id.clone(),
-        runtime_contract_digest: tcm_v1_runtime_contract_report.report_digest.clone(),
-        statement: format!(
-            "the rebased bridge treats the canonical machine as one explicit split carrier: direct article-equivalent truth lives only on the direct deterministic `{}` route of the canonical trained Transformer model, while bounded universality truth lives only on a resumable carrier that preserves the same model, weight, and route identity and then applies the declared `{}` substrate semantics without widening effects or capabilities",
-            article_equivalence_final_audit_report
-                .canonical_closure_review
-                .canonical_route_id,
-            tcm_v1_runtime_contract_report.substrate_model.model_id,
-        ),
-        continuation_semantics: tcm_v1_runtime_contract_report
-            .substrate_model
-            .computation_style
-            .clone(),
-        effect_boundary: tcm_v1_runtime_contract_report
-            .substrate_model
-            .refusal_boundary
-            .clone(),
-        carrier_topology_statement: String::from(
-            "the bridge carrier is not one undifferentiated route; it is an explicit split between the direct article-equivalent lane and the resumable universality lane above the same canonical machine identity",
-        ),
-        proof_class_statement: String::from(
-            "mechanistic direct-route article proofs and resumable universality closeout artifacts remain distinct proof classes; this bridge binds them by canonical identity but does not rewrite or collapse them into one observational summary",
-        ),
-        detail: format!(
-            "statement_id=`{}` substrate_model_id=`{}` runtime_contract_id=`{}` carrier_topology={:?}",
-            COMPUTATIONAL_MODEL_STATEMENT_ID,
-            tcm_v1_runtime_contract_report.substrate_model.model_id,
-            tcm_v1_runtime_contract_report.report_id,
-            carrier_topology,
-        ),
-    };
+    let computational_model_statement = canonical_computational_model_statement_report
+        .computational_model_statement
+        .clone();
 
     let plane_contract_rows = vec![
         TassadarPostArticlePlaneContractRow {
@@ -757,15 +732,15 @@ pub fn build_tassadar_post_article_universality_bridge_contract_report() -> Resu
         TassadarPostArticleReservationHookRow {
             hook_id: String::from("schema_version_negotiation_hook"),
             purpose: String::from(
-                "keep schema-version negotiation and canonical-machine inheritance explicit above the bridge while the anti-drift tranche remains later",
+                "keep schema-version negotiation and canonical-machine inheritance explicit above the bridge while execution-semantics transport remains later",
             ),
-            reserved_issue_ids: vec![String::from("TAS-208")],
+            reserved_issue_ids: vec![String::from("TAS-209")],
             current_posture: String::from("reserved_after_bounded_plugin_platform_closeout"),
             source_refs: vec![String::from(
                 "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md",
             )],
             detail: String::from(
-                "the bridge now delegates schema stability, weighted-controller ownership, bounded plugin-platform closeout, the canonical-machine lock, and the later computational-model statement publication to TAS-203A through TAS-208 instead of widening the bridge itself into the terminal machine or publication surface",
+                "the bridge now delegates schema stability, weighted-controller ownership, bounded plugin-platform closeout, canonical-machine locking, the published computational-model statement, and the later execution-semantics proof-transport audit to TAS-203A through TAS-209 instead of widening the bridge itself into the terminal machine or publication surface",
             ),
         },
     ];
@@ -778,6 +753,7 @@ pub fn build_tassadar_post_article_universality_bridge_contract_report() -> Resu
         String::from("docs/TASSADAR_ARTICLE_TRANSFORMER_STACK_BOUNDARY.md"),
         tcm_v1_runtime_contract_report.substrate_model_ref.clone(),
         String::from(TASSADAR_TCM_V1_RUNTIME_CONTRACT_REPORT_REF),
+        String::from(TASSADAR_POST_ARTICLE_CANONICAL_COMPUTATIONAL_MODEL_STATEMENT_REPORT_REF),
         String::from(TASSADAR_ARTICLE_EQUIVALENCE_ACCEPTANCE_GATE_REPORT_REF),
         String::from(TASSADAR_ARTICLE_EQUIVALENCE_FINAL_AUDIT_REPORT_REF),
         String::from(TASSADAR_ARTICLE_ROUTE_MINIMALITY_AUDIT_REPORT_REF),
@@ -786,6 +762,17 @@ pub fn build_tassadar_post_article_universality_bridge_contract_report() -> Resu
     ];
 
     let validation_rows = vec![
+        TassadarPostArticleBridgeValidationRow {
+            validation_id: String::from("canonical_computational_model_statement_published"),
+            green: canonical_computational_model_statement_report.statement_green
+                && computational_model_statement.machine_identity_id == BRIDGE_MACHINE_IDENTITY_ID,
+            source_refs: vec![String::from(
+                TASSADAR_POST_ARTICLE_CANONICAL_COMPUTATIONAL_MODEL_STATEMENT_REPORT_REF,
+            )],
+            detail: String::from(
+                "the bridge now projects the separately published canonical computational-model statement instead of carrying a bridge-local shadow copy.",
+            ),
+        },
         TassadarPostArticleBridgeValidationRow {
             validation_id: String::from("helper_substitution_quarantined"),
             green: article_route_minimality_audit_report
@@ -912,6 +899,9 @@ pub fn build_tassadar_post_article_universality_bridge_contract_report() -> Resu
         article_route_minimality_audit_report_ref: String::from(
             TASSADAR_ARTICLE_ROUTE_MINIMALITY_AUDIT_REPORT_REF,
         ),
+        canonical_computational_model_statement_report_ref: String::from(
+            TASSADAR_POST_ARTICLE_CANONICAL_COMPUTATIONAL_MODEL_STATEMENT_REPORT_REF,
+        ),
         tcm_v1_runtime_contract_report_ref: String::from(
             TASSADAR_TCM_V1_RUNTIME_CONTRACT_REPORT_REF,
         ),
@@ -924,6 +914,7 @@ pub fn build_tassadar_post_article_universality_bridge_contract_report() -> Resu
         article_equivalence_acceptance_gate_report,
         article_equivalence_final_audit_report,
         article_route_minimality_audit_report,
+        canonical_computational_model_statement_report,
         tcm_v1_runtime_contract_report,
         universality_verdict_split_report,
         turing_completeness_closeout_audit_report,
@@ -943,7 +934,7 @@ pub fn build_tassadar_post_article_universality_bridge_contract_report() -> Resu
         plugin_capability_claim_allowed: false,
         served_public_universality_allowed: false,
         claim_boundary: String::from(
-            "this bridge contract freezes only the post-`TAS-186` rebasing boundary between the historical `TCM.v1` universality closeout and the canonical owned article-equivalence route. It binds the old closeout to one explicit post-article machine identity tuple, one coarse direct-vs-resumable carrier topology, one bridge-scoped computational model statement, and one explicit three-plane contract. It does not by itself prove continuation semantic preservation, control-plane provenance, final canonical carrier binding, served/public universality, weighted plugin control, or arbitrary software capability.",
+            "this bridge contract freezes only the post-`TAS-186` rebasing boundary between the historical `TCM.v1` universality closeout and the canonical owned article-equivalence route. It binds the old closeout to one explicit post-article machine identity tuple, one coarse direct-vs-resumable carrier topology, one separately published canonical computational-model statement, and one explicit three-plane contract. It does not by itself prove continuation semantic preservation, execution-semantics proof transport, control-plane provenance, final canonical carrier binding, served/public universality, weighted plugin control, or arbitrary software capability.",
         ),
         summary: String::new(),
         report_digest: String::new(),

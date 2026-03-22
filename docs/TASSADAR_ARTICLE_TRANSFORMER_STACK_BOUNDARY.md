@@ -1065,7 +1065,7 @@ and the dedicated checker now lives at
 This tranche turns weighted plugin control green on the canonical route,
 clears the `TAS-203A` defer pointer to empty, clears the controller defer
 pointer to empty, with the current reserved bridge capability frontier now at
-`TAS-208`, and still does not admit bounded plugin-platform closeout, plugin
+`TAS-209`, and still does not admit bounded plugin-platform closeout, plugin
 publication, served/public universality, or arbitrary software capability.
 
 `TAS-205` now closes the canonical plugin authority, promotion, publication,
@@ -1133,6 +1133,28 @@ the transformer-owned anchor contract now lives at
 `crates/psionic-transformer/src/tassadar_post_article_canonical_machine_identity_lock_contract.rs`,
 and the dedicated checker now lives at
 `scripts/check-tassadar-post-article-canonical-machine-identity-lock.sh`.
+
+`TAS-208` now publishes the canonical computational-model statement at
+`fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_report.json`.
+That runtime-owned artifact says explicitly that the canonical post-article
+machine is one owned direct `tassadar.article_route.direct_hull_cache_runtime.v1`
+Transformer route on the closed article-equivalence model and weight lineage,
+that resumable continuation semantics and effect boundaries attach to that
+same machine only through the historical green `TCM.v1` runtime contract, and
+that any plugin layer sits above that machine as a bounded capability overlay
+instead of redefining the machine substrate. The operator-readable summary now
+lives at
+`fixtures/tassadar/reports/tassadar_post_article_canonical_computational_model_statement_summary.json`,
+the provider receipt now lives at
+`crates/psionic-provider/src/tassadar_post_article_canonical_computational_model_statement.rs`,
+the transformer-owned anchor contract now lives at
+`crates/psionic-transformer/src/tassadar_post_article_canonical_computational_model_contract.rs`,
+and the dedicated checker now lives at
+`scripts/check-tassadar-post-article-canonical-computational-model-statement.sh`.
+This tranche keeps execution-semantics proof transport deferred to `TAS-209`,
+keeps the final claim-bearing canonical machine closure bundle separate for
+`TAS-215`, and still does not turn plugin publication, served/public
+universality, or arbitrary software capability green.
 
 ## Route Requirement
 
