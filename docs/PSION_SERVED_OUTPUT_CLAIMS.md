@@ -121,3 +121,9 @@ This is the discipline bar for the served learned lane:
 - no verification implication at all on the current learned lane
 - explicit assumptions and explicit route or refusal behavior in the served
   output contract
+
+`PSION-29` now adds the matching downgrade history in
+`docs/PSION_CAPABILITY_WITHDRAWAL.md`. When rights, contamination, replay,
+route, or refusal posture regress, the served claim surface is now required to
+show an explicit depublish, narrowing, or behavior-change record instead of
+quietly drifting while the old claim posture remains on paper.

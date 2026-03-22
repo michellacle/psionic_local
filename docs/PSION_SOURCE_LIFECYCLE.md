@@ -132,3 +132,8 @@ The validation path rejects:
 The impact-analysis path turns one source change into a bounded action list
 instead of leaving retraining, benchmark invalidation, or served-claim
 withdrawal to operator memory.
+
+`PSION-29` now consumes these impact receipts directly in
+`docs/PSION_CAPABILITY_WITHDRAWAL.md`, so rights and contamination changes no
+longer stop at "review required." They now feed one explicit checkpoint,
+matrix, and served-claim rollback contract.

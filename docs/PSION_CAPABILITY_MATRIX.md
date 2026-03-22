@@ -99,3 +99,9 @@ the first explicit capability publication contract.
 `fixtures/psion/serve/`, so route-required, refusal-required, and supported
 region ids do not have to be restated ad hoc in later serve or provider
 surfaces.
+
+`PSION-29` now adds the corresponding downgrade path in
+`docs/PSION_CAPABILITY_WITHDRAWAL.md`, so this publication is no longer
+one-way. Rights changes, contamination findings, replay failures, and route or
+refusal regressions now have one typed history surface for withdrawing the
+matrix or downgrading individual regions without silent deletion.

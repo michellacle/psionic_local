@@ -201,6 +201,10 @@ and now also has:
   and publication doc for the `Psion` learned-model lane and freezes the
   explicit supported, route-required, refusal-required, and unsupported
   publication surface that later serving issues must satisfy.
+- `docs/PSION_CAPABILITY_WITHDRAWAL.md` is the canonical first rollback and
+  downgrade-history doc for the `Psion` learned-model lane and freezes how
+  rights, contamination, replay, route, and refusal regressions withdraw or
+  narrow checkpoints, capability matrices, and served claim surfaces.
 - `docs/audits/2026-03-13-intellect-lessons-for-psionic-train-audit.md` is
   research rationale, not the canonical current-state spec.
 - `docs/audits/2026-03-14-covenant-code-lessons-for-psionic-train-audit.md`
