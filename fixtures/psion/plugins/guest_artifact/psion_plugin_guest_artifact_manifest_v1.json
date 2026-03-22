@@ -1,0 +1,35 @@
+{
+  "schema_version": "psionic.psion.plugin_guest_artifact_manifest.v1",
+  "manifest_id": "psion_plugin_guest_artifact_manifest_reference",
+  "plugin_id": "plugin.example.echo_guest",
+  "plugin_version": "v1",
+  "artifact_id": "artifact.plugin.example.echo_guest.v1",
+  "artifact_format": "wasm_module_packet_v1",
+  "artifact_digest": "93a44bbb96c751218e4c00d479e4c14358122a389acca16205b1e4d0dc5f9476",
+  "artifact_byte_len": 8,
+  "packet_abi_version": "packet.v1",
+  "guest_export_name": "handle_packet",
+  "input_schema_id": "plugin.example.echo_guest.input.v1",
+  "success_output_schema_id": "plugin.example.echo_guest.output.v1",
+  "refusal_schema_ids": [
+    "plugin.refusal.schema_invalid.v1",
+    "plugin.refusal.runtime_resource_limit.v1"
+  ],
+  "replay_class_id": "guest_artifact_digest_replay_only.v1",
+  "trust_tier": "operator_reviewed_digest_bound_internal_only",
+  "publication_posture": "operator_internal_only_publication_blocked",
+  "provenance": {
+    "source_kind": "operator_provided_wasm_bundle",
+    "source_bundle_digest": "04e0a970eb8f195a26c9d74b3972d275ad2339dc820df4237c85b3d3d9d8d524",
+    "build_recipe_digest": "0ba3c9fe3464dbe4f49573bea08257ed545c3dda1f71898dbe1d0e63b824d9c3",
+    "declared_artifact_ref": "artifacts/operator_internal/plugin_example_echo_guest.wasm",
+    "detail": "Reference guest-artifact provenance stays digest-bound to one operator-provided source bundle and one explicit build recipe without claiming that the artifact is already runnable."
+  },
+  "evidence_settings": {
+    "input_digest_required": true,
+    "output_digest_required": true,
+    "receipt_emission_required": true
+  },
+  "detail": "This reference manifest freezes the minimum digest-bound guest-artifact contract for one later user-provided Wasm lane without claiming runtime loading, controller admission, or publication support in the present tense.",
+  "manifest_digest": "ce47b86bae51eba7598b5cc73f3ab69c7992732a4f710c12e7726b3622f34395"
+}

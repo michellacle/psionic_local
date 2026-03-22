@@ -97,6 +97,11 @@ and now also has:
   direction record for the later guest-artifact plugin lane and freezes that
   guest artifacts remain a digest-bound, trust-tiered, publication-blocked,
   later separate tranche rather than present-tense starter-plugin truth.
+- `docs/PSION_PLUGIN_GUEST_ARTIFACT_MANIFEST.md` is the canonical first guest-
+  artifact manifest and identity contract for the later lane and freezes the
+  digest-bound manifest fields, provenance fields, trust tier, publication
+  posture, and fail-closed validation rules that later runtime loading and
+  receipt issues must reuse.
 - `docs/PSION_PLUGIN_CLAIM_BOUNDARY_AND_CAPABILITY_POSTURE.md` is the canonical
   claim-boundary and capability-posture contract for the convergence tranche
   and freezes which plugin classes are currently proved, not yet proved, later

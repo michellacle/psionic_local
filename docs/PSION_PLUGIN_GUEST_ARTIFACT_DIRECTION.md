@@ -79,6 +79,11 @@ The next guest-artifact issues remain valid only inside this bounded direction:
 
 Those issues are for one narrow admitted guest-artifact class only.
 
+The first concrete contract for that lane now lives in:
+
+- `docs/PSION_PLUGIN_GUEST_ARTIFACT_MANIFEST.md`
+- `crates/psionic-runtime/src/psion_plugin_guest_artifact_manifest.rs`
+
 They are not authorization for:
 
 - generic Wasm plugin support
@@ -110,4 +115,3 @@ Disallowed:
 - “the repo supports Wasm plugins” in the present tense
 - “user-provided plugins are supported” without class qualifiers
 - “guest plugins are part of the current starter-plugin platform”
-
