@@ -93,3 +93,9 @@ This closes the next governance step for the learned lane:
 Later issues still own richer serving behavior, public UI copy, broader route
 selection, and capability withdrawal after real runs. This document only freezes
 the first explicit capability publication contract.
+
+`PSION-27` now binds per-output served provenance back to this matrix through
+`docs/PSION_SERVED_EVIDENCE.md` and the example bundles in
+`fixtures/psion/serve/`, so route-required, refusal-required, and supported
+region ids do not have to be restated ad hoc in later serve or provider
+surfaces.

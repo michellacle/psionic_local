@@ -168,6 +168,11 @@ and now also has:
   unsupported-envelope refusal package, capability-matrix-bound refusal
   receipt, reason-code accounting, and direct acceptance binding for the
   unsupported-request refusal benchmark package.
+- `docs/PSION_SERVED_EVIDENCE.md` is the canonical first served-evidence and
+  provenance doc for the `Psion` learned-model lane and freezes the shared
+  learned-judgment, source-grounded, executor-backed, and benchmark-backed
+  schema plus the route/refusal and no-implicit-execution binding that later
+  serving and provider work must reuse.
 - `docs/PSION_CHECKPOINT_RECOVERY.md` is the canonical first dense-versus-
   sharded checkpoint-recovery doc for the `Psion` learned-model lane and
   freezes the explicit restart, rollback, corruption-detection, and

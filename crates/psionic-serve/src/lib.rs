@@ -22,6 +22,7 @@ mod gguf;
 mod gpt_oss;
 mod openai_http;
 mod psion_capability_matrix;
+mod psion_served_evidence;
 mod tassadar;
 mod tassadar_article_transformer_minimal_frontier;
 mod tassadar_article_cross_machine_reproducibility_publication;
@@ -58,6 +59,7 @@ pub use gguf::*;
 pub use gpt_oss::*;
 pub use openai_http::*;
 pub use psion_capability_matrix::*;
+pub use psion_served_evidence::*;
 pub use psionic_adapters::*;
 use psionic_backend_cpu::CpuBackend;
 use psionic_backend_cuda::{
@@ -1784,6 +1786,9 @@ pub struct GenerationProvenance {
     /// Structured-output fallback report when the request used constrained generation.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub structured_output: Option<StructuredOutputExecutionReport>,
+    /// Shared Psion served-evidence bundle when the output belongs to the learned-model lane.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub psion_served_evidence: Option<PsionServedEvidenceBundle>,
 }
 
 impl GenerationProvenance {
@@ -1798,6 +1803,16 @@ impl GenerationProvenance {
     #[must_use]
     pub fn with_adapter_serving(mut self, adapter_serving: AdapterServingBinding) -> Self {
         self.adapter_serving = Some(adapter_serving);
+        self
+    }
+
+    /// Attaches shared Psion served-evidence to the response provenance.
+    #[must_use]
+    pub fn with_psion_served_evidence(
+        mut self,
+        psion_served_evidence: PsionServedEvidenceBundle,
+    ) -> Self {
+        self.psion_served_evidence = Some(psion_served_evidence);
         self
     }
 }
@@ -6010,6 +6025,7 @@ where
             ),
             scheduler,
             structured_output: self.sampler.structured_output_report(),
+            psion_served_evidence: None,
         };
         let structured_output_value = self.sampler.structured_output_value(text.as_str())?;
         let response = GenerationResponse::new(
@@ -6919,6 +6935,7 @@ where
             ),
             scheduler: None,
             structured_output: self.sampler.structured_output_report(),
+            psion_served_evidence: None,
         };
         let text = self.loaded_model.model().tokenizer().decode(output_tokens);
         let structured_output_value = self
@@ -7586,6 +7603,7 @@ where
             ),
             scheduler: None,
             structured_output: structured_output_report,
+            psion_served_evidence: None,
         };
         let structured_output_value = sampler.structured_output_value(text.as_str())?;
         let response = GenerationResponse::new(

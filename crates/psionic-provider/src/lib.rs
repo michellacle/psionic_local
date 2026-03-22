@@ -277,10 +277,10 @@ use psionic_serve::{
     EmbeddingModelDescriptor, EmbeddingNormalization, EmbeddingRequest, EmbeddingResponse,
     GenerationInput, GenerationLoadState, GenerationRequest, GenerationResponse,
     GenerationStreamStatus, GenerationStreamTerminal, GenerationStreamingPolicy,
-    ModelArtifactGovernance, ModelArtifactProvenanceKind, QuantizationMode, SessionId,
-    TassadarExecutorCapabilityPublication, TerminationReason, WeightArtifactMetadata,
-    WeightBundleMetadata, WeightFormat, WeightSource, EMBEDDINGS_PRODUCT_ID,
-    TEXT_GENERATION_PRODUCT_ID,
+    ModelArtifactGovernance, ModelArtifactProvenanceKind, PsionServedEvidenceBundle,
+    QuantizationMode, SessionId, TassadarExecutorCapabilityPublication, TerminationReason,
+    WeightArtifactMetadata, WeightBundleMetadata, WeightFormat, WeightSource,
+    EMBEDDINGS_PRODUCT_ID, TEXT_GENERATION_PRODUCT_ID,
 };
 
 /// Human-readable crate ownership summary.
@@ -3390,6 +3390,9 @@ pub struct TextGenerationReceipt {
     /// Explicit adapter-serving binding when the request targeted a hosted adapter product.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub adapter_serving: Option<AdapterServingBinding>,
+    /// Shared Psion served-evidence bundle when the response belongs to the learned-model lane.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub psion_served_evidence: Option<PsionServedEvidenceBundle>,
     /// Explicit cache actions surfaced for the request path.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub cache_observations: Vec<CacheObservation>,
@@ -3583,6 +3586,10 @@ impl TextGenerationReceipt {
             weight_bundle: WeightBundleEvidence::from_metadata(&request.model.weights),
             served_artifact,
             adapter_serving,
+            psion_served_evidence: response
+                .provenance
+                .as_ref()
+                .and_then(|value| value.psion_served_evidence.clone()),
             cache_observations: response
                 .provenance
                 .as_ref()
@@ -3737,6 +3744,7 @@ impl TextGenerationReceipt {
             weight_bundle: WeightBundleEvidence::from_metadata(&request.model.weights),
             served_artifact,
             adapter_serving: request.adapter_serving.clone(),
+            psion_served_evidence: None,
             cache_observations: failed_generation_cache_observations(request),
             compile_path: None,
             delivery_proof: None,
@@ -4241,8 +4249,8 @@ mod tests {
         GenerationStreamStatus, GenerationStreamTerminal, LocalTassadarExecutorService,
         LocalTassadarPlannerRouter, ModelArtifactGovernance, ModelArtifactLicenseEntry,
         ModelArtifactLicenseFacts, ModelArtifactProvenance, ModelArtifactProvenanceKind,
-        ReferenceWordDecoder, SessionId, SmokeByteEmbedder, TerminationReason, TokenSequence,
-        WeightArtifactMetadata, WeightSource,
+        PsionServedEvidenceBundle, ReferenceWordDecoder, SessionId, SmokeByteEmbedder,
+        TerminationReason, TokenSequence, WeightArtifactMetadata, WeightSource,
     };
     use serde_json::json;
     use tempfile::tempdir;
@@ -6737,6 +6745,7 @@ mod tests {
                 prefix_cache_control: None,
                 prefix_cache_refusal_reason: None,
                 structured_output: None,
+                psion_served_evidence: None,
             },
         );
         let receipt = TextGenerationReceipt::succeeded_for_response(
@@ -6798,6 +6807,107 @@ mod tests {
                 .as_ref()
                 .and_then(|value| value.cluster_id.as_deref()),
             Some("cluster-alpha")
+        );
+        assert_eq!(
+            serde_json::from_value::<TextGenerationReceipt>(encoded)?,
+            receipt
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn text_generation_receipt_preserves_psion_served_evidence_bundle(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let request = GenerationRequest::new_text(
+            "gen-psion-evidence-1",
+            sample_decoder_descriptor(),
+            Some(SessionId::new("sess-psion-evidence-1")),
+            "hello",
+            GenerationOptions::greedy(2),
+        );
+        let psion_served_evidence: PsionServedEvidenceBundle = serde_json::from_str(include_str!(
+            "../../../fixtures/psion/serve/psion_served_evidence_direct_grounded_v1.json"
+        ))?;
+        let response = GenerationResponse::new(
+            &request,
+            request.session_id.clone(),
+            TokenSequence::new(vec![psionic_serve::FixtureWordTokenizer::OPEN_ID]),
+            "open",
+            1,
+            2,
+            psionic_serve::TerminationReason::EndOfSequence,
+        )
+        .with_metrics_and_provenance(
+            GenerationMetrics {
+                total_duration_ns: Some(75),
+                load_duration_ns: Some(25),
+                prompt_eval_count: Some(1),
+                prompt_eval_duration_ns: Some(15),
+                context_window: None,
+                eval_count: Some(1),
+                eval_duration_ns: Some(60),
+                time_to_first_token_ns: None,
+                inter_token_latency_ns: None,
+                kv_cache: None,
+                kv_residency: None,
+                prefix_tokens_reused: Some(0),
+                gpt_oss_perf: None,
+            },
+            GenerationProvenance {
+                served_artifact: served_artifact_identity_for_decoder_model(
+                    &request.model,
+                    &cpu_backend_selection(),
+                ),
+                adapter_serving: None,
+                execution_plan_digest: String::from("psion-evidence-plan"),
+                cluster_execution: None,
+                load_state: GenerationLoadState::Cold,
+                isolation_policy: LocalServingIsolationPolicy::in_process_runtime(),
+                streaming_policy: None,
+                memory_plan: Some(default_decoder_memory_plan(&request.model, None, None)),
+                residency_policy: Some(ModelResidencyPolicy::default()),
+                residency_snapshot: None,
+                kv_cache_policy: Some(default_decoder_kv_cache_policy(&request.model)),
+                prefix_cache_state: Some(PrefixCacheState::None),
+                prefix_cache_policy: Some(default_prefix_cache_policy()),
+                prefix_cache_identity: None,
+                compile_path: None,
+                delivery_proof: Some(ExecutionDeliveryProof {
+                    execution_plan_digest: String::from("psion-evidence-plan"),
+                    kernel_count: 2,
+                    bytes_moved: 768,
+                    plan_cache_hits: 1,
+                    plan_cache_misses: 0,
+                    kv_growth: None,
+                    prefill_decode_handoff: None,
+                    kv_residency: None,
+                }),
+                cache_observations: Vec::new(),
+                scheduler: None,
+                kv_ownership: None,
+                prefix_cache_control: None,
+                prefix_cache_refusal_reason: None,
+                structured_output: None,
+                psion_served_evidence: Some(psion_served_evidence.clone()),
+            },
+        );
+        let receipt = TextGenerationReceipt::succeeded_for_response(
+            cpu_backend_selection(),
+            &request,
+            &response,
+            "psion-evidence-plan",
+            100,
+            120,
+        );
+
+        assert_eq!(
+            receipt.psion_served_evidence,
+            Some(psion_served_evidence.clone())
+        );
+        let encoded = serde_json::to_value(&receipt)?;
+        assert_eq!(
+            encoded["psion_served_evidence"]["bundle_id"],
+            json!("psion-served-evidence-direct-grounded-v1")
         );
         assert_eq!(
             serde_json::from_value::<TextGenerationReceipt>(encoded)?,
@@ -6877,6 +6987,7 @@ mod tests {
                 prefix_cache_control: None,
                 prefix_cache_refusal_reason: None,
                 structured_output: None,
+                psion_served_evidence: None,
             },
         );
         let receipt = TextGenerationReceipt::succeeded_for_response(
@@ -6983,6 +7094,7 @@ mod tests {
                 prefix_cache_control: None,
                 prefix_cache_refusal_reason: None,
                 structured_output: None,
+                psion_served_evidence: None,
             },
         );
         let receipt = TextGenerationReceipt::succeeded_for_response(
@@ -7080,6 +7192,7 @@ mod tests {
                 prefix_cache_control: None,
                 prefix_cache_refusal_reason: None,
                 structured_output: None,
+                psion_served_evidence: None,
             },
         );
         let receipt = TextGenerationReceipt::succeeded_for_response(
@@ -7198,6 +7311,7 @@ mod tests {
                 prefix_cache_control: None,
                 prefix_cache_refusal_reason: None,
                 structured_output: None,
+                psion_served_evidence: None,
             },
         );
         let receipt = TextGenerationReceipt::succeeded_for_response(
@@ -7323,6 +7437,7 @@ mod tests {
                 prefix_cache_control: None,
                 prefix_cache_refusal_reason: None,
                 structured_output: None,
+                psion_served_evidence: None,
             },
         );
         let receipt = TextGenerationReceipt::succeeded_for_response(
@@ -7445,6 +7560,7 @@ mod tests {
                 prefix_cache_control: None,
                 prefix_cache_refusal_reason: None,
                 structured_output: None,
+                psion_served_evidence: None,
             },
         );
         let receipt = TextGenerationReceipt::succeeded_for_response(
@@ -7632,6 +7748,7 @@ mod tests {
                 prefix_cache_control: None,
                 prefix_cache_refusal_reason: None,
                 structured_output: None,
+                psion_served_evidence: None,
             },
         );
         let receipt = TextGenerationReceipt::succeeded_for_response(
@@ -7920,6 +8037,7 @@ mod tests {
                 prefix_cache_control: None,
                 prefix_cache_refusal_reason: None,
                 structured_output: None,
+                psion_served_evidence: None,
             },
         );
         let terminal = GenerationStreamTerminal {
