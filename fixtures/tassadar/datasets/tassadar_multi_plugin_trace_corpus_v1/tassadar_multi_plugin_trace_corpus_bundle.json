@@ -89,7 +89,6 @@
       "result_schema_id": "plugin.html.extract_readable.output.v1",
       "refusal_schema_ids": [
         "plugin.refusal.schema_invalid.v1",
-        "plugin.refusal.unsupported_codec.v1",
         "plugin.refusal.input_too_large.v1",
         "plugin.refusal.content_type_unsupported.v1"
       ],
@@ -234,7 +233,6 @@
           "result_schema_id": "plugin.html.extract_readable.output.v1",
           "refusal_schema_ids": [
             "plugin.refusal.schema_invalid.v1",
-            "plugin.refusal.unsupported_codec.v1",
             "plugin.refusal.input_too_large.v1",
             "plugin.refusal.content_type_unsupported.v1"
           ],
@@ -497,7 +495,6 @@
           "result_schema_id": "plugin.html.extract_readable.output.v1",
           "refusal_schema_ids": [
             "plugin.refusal.schema_invalid.v1",
-            "plugin.refusal.unsupported_codec.v1",
             "plugin.refusal.input_too_large.v1",
             "plugin.refusal.content_type_unsupported.v1"
           ],
@@ -760,7 +757,6 @@
           "result_schema_id": "plugin.html.extract_readable.output.v1",
           "refusal_schema_ids": [
             "plugin.refusal.schema_invalid.v1",
-            "plugin.refusal.unsupported_codec.v1",
             "plugin.refusal.input_too_large.v1",
             "plugin.refusal.content_type_unsupported.v1"
           ],
@@ -1023,7 +1019,6 @@
           "result_schema_id": "plugin.html.extract_readable.output.v1",
           "refusal_schema_ids": [
             "plugin.refusal.schema_invalid.v1",
-            "plugin.refusal.unsupported_codec.v1",
             "plugin.refusal.input_too_large.v1",
             "plugin.refusal.content_type_unsupported.v1"
           ],
@@ -1456,7 +1451,6 @@
           "result_schema_id": "plugin.html.extract_readable.output.v1",
           "refusal_schema_ids": [
             "plugin.refusal.schema_invalid.v1",
-            "plugin.refusal.unsupported_codec.v1",
             "plugin.refusal.input_too_large.v1",
             "plugin.refusal.content_type_unsupported.v1"
           ],
@@ -1903,7 +1897,6 @@
           "result_schema_id": "plugin.html.extract_readable.output.v1",
           "refusal_schema_ids": [
             "plugin.refusal.schema_invalid.v1",
-            "plugin.refusal.unsupported_codec.v1",
             "plugin.refusal.input_too_large.v1",
             "plugin.refusal.content_type_unsupported.v1"
           ],

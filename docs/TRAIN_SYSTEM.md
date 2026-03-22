@@ -102,6 +102,10 @@ and now also has:
   freezes the admitted-plugin-set, controller-context, invocation-receipt,
   route-label, and outcome-label shape that later derivation, dataset, and
   benchmark work must reuse.
+- `docs/TASSION_PLUGIN_TRACE_DERIVATION.md` is the canonical first
+  plugin-conditioned trace-normalization contract for the convergence tranche
+  and freezes the runtime-drift-checked derivation path from the committed
+  multi-plugin trace corpus into canonical training records.
 - `docs/audits/2026-03-22-tassadar-full-plugin-system-state-audit.md` is the
   canonical current-state proof record for the bounded Tassadar plugin system
   and freezes the present authoring-class, publication, and guest-artifact
