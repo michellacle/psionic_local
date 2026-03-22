@@ -205,6 +205,11 @@ and now also has:
   downgrade-history doc for the `Psion` learned-model lane and freezes how
   rights, contamination, replay, route, and refusal regressions withdraw or
   narrow checkpoints, capability matrices, and served claim surfaces.
+- `docs/PSION_DECENTRALIZED_CONTRIBUTION.md` is the canonical first bounded
+  decentralized-contribution doc for the `Psion` learned-model lane and
+  freezes how adapter-delta contribution windows inherit the same trusted-
+  cluster, reasoning-SFT, acceptance, capability, and rollback discipline as
+  the main lane.
 - `docs/audits/2026-03-13-intellect-lessons-for-psionic-train-audit.md` is
   research rationale, not the canonical current-state spec.
 - `docs/audits/2026-03-14-covenant-code-lessons-for-psionic-train-audit.md`

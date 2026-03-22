@@ -81,3 +81,9 @@ That boundary is deliberate: `psionic-distributed` already depends on
 `psionic-train`, so reversing the dependency would create a workspace cycle.
 The receipt keeps the required public distributed-group truth explicit and
 machine-checkable without pretending the cycle does not exist.
+
+`PSION-30` now reuses this trusted-cluster bundle as the cluster substrate for
+the first bounded decentralized contribution lane in
+`docs/PSION_DECENTRALIZED_CONTRIBUTION.md`. That new lane still stays bounded
+to adapter-delta windows and does not widen this trusted-cluster contract into
+arbitrary public all-reduce closure.

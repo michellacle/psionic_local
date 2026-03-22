@@ -172,3 +172,8 @@ This closes the first downgrade-governance step for the learned lane:
 - matrix history and serving-surface claim history are preserved together
 - bounded retraining and depublication analysis can now be triggered directly
   from recorded rollback artifacts
+
+`PSION-30` now binds the same rollback schema into the first bounded
+decentralized contribution bundle in
+`docs/PSION_DECENTRALIZED_CONTRIBUTION.md`, so contributed outputs do not get
+their own weaker downgrade path.

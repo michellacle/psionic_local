@@ -120,3 +120,8 @@ This closes the first promotion-governance step for the learned-model lane:
 Later issues still own the actual benchmark packages, pilot runs, larger
 training runs, and trusted-cluster receipts. This doc only freezes the gate
 that those later artifacts have to satisfy.
+
+`PSION-30` now explicitly reuses this same acceptance contract for contributed
+outputs through `docs/PSION_DECENTRALIZED_CONTRIBUTION.md`. Local window
+promotion in the bounded decentralized lane is therefore not treated as a
+replacement for `Psion` phase promotion.

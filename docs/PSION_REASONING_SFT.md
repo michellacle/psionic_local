@@ -84,3 +84,9 @@ This closes one bounded reasoning-SFT step. It does not claim:
 - hidden execution or tool use
 - that every future SFT stage may ignore the lifecycle, exclusion, or artifact
   lineage contracts this bundle depends on
+
+`PSION-30` now binds this reasoning-SFT run into the first bounded
+decentralized contribution bundle in
+`docs/PSION_DECENTRALIZED_CONTRIBUTION.md`. Contributed outputs sit above this
+SFT baseline, but they still need the same later acceptance, capability, and
+rollback discipline before they can become served `Psion` outputs.

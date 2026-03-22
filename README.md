@@ -87,6 +87,8 @@ clustered execution, and machine-legible execution truth.
   publication doc for the `Psion` learned-model lane.
 - `docs/PSION_CAPABILITY_WITHDRAWAL.md` is the canonical rollback and
   downgrade-history doc for the `Psion` learned-model lane.
+- `docs/PSION_DECENTRALIZED_CONTRIBUTION.md` is the canonical bounded
+  decentralized-contribution doc for the `Psion` learned-model lane.
 - `docs/TASSADAR_RUST_ONLY_ARTICLE_RUNBOOK.md` is the canonical one-command
   operator guide for the Rust-only Tassadar article reproduction path.
 - research audits explain direction and rationale, but they are not the
