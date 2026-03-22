@@ -106,6 +106,11 @@ and now also has:
   plugin-conditioned trace-normalization contract for the convergence tranche
   and freezes the runtime-drift-checked derivation path from the committed
   multi-plugin trace corpus into canonical training records.
+- `docs/TASSION_PLUGIN_CONDITIONED_DATASET.md` is the canonical first
+  plugin-conditioned dataset-bundle contract for the convergence tranche and
+  freezes the stable dataset identity, workflow-case-disjoint split rule, and
+  preserved controller-surface plus plugin-class label contract for the first
+  host-native dataset build.
 - `docs/audits/2026-03-22-tassadar-full-plugin-system-state-audit.md` is the
   canonical current-state proof record for the bounded Tassadar plugin system
   and freezes the present authoring-class, publication, and guest-artifact
