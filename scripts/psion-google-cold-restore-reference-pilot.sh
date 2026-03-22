@@ -2,7 +2,8 @@
 
 set -euo pipefail
 
-REPO_ROOT="$(git rev-parse --show-toplevel)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(git -C "${SCRIPT_DIR}" rev-parse --show-toplevel)"
 POLICY_FILE="${REPO_ROOT}/fixtures/psion/google/psion_google_checkpoint_archive_policy_v1.json"
 ARCHIVE_MANIFEST_URI=""
 MANIFEST_OUT=""
@@ -89,7 +90,7 @@ archive_manifest_file="${tmpdir}/archive_manifest.json"
 gcloud storage cp --quiet "${ARCHIVE_MANIFEST_URI}" "${archive_manifest_file}" >/dev/null
 
 repo_git_revision="$(jq -r '.repo_git_revision' "${archive_manifest_file}")"
-current_revision="$(git rev-parse HEAD)"
+current_revision="$(git -C "${REPO_ROOT}" rev-parse HEAD)"
 if [[ "${repo_git_revision}" != "${current_revision}" ]]; then
   echo "error: archive manifest revision ${repo_git_revision} does not match current checkout ${current_revision}" >&2
   exit 1

@@ -2,7 +2,8 @@
 
 set -euo pipefail
 
-REPO_ROOT="$(git rev-parse --show-toplevel)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(git -C "${SCRIPT_DIR}" rev-parse --show-toplevel)"
 POLICY_FILE="${REPO_ROOT}/fixtures/psion/google/psion_google_checkpoint_archive_policy_v1.json"
 PILOT_OUTPUT_DIR="${REPO_ROOT}/target/psion_reference_pilot_bundle"
 MANIFEST_OUT=""
@@ -100,8 +101,8 @@ input_package_descriptor_uri="$(jq -r '.input_package_descriptor_uri' "${POLICY_
 recovery_mode="$(jq -r '.recovery_mode' "${POLICY_FILE}")"
 storage_profile_json="$(jq '.storage_profile' "${POLICY_FILE}")"
 created_at_utc="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
-git_revision="$(git rev-parse HEAD)"
-git_revision_short="$(git rev-parse --short=12 HEAD)"
+git_revision="$(git -C "${REPO_ROOT}" rev-parse HEAD)"
+git_revision_short="$(git -C "${REPO_ROOT}" rev-parse --short=12 HEAD)"
 
 run_id="$(jq -r '.run_id' "${stage_receipt_file}")"
 stage_id="$(jq -r '.stage_id' "${stage_receipt_file}")"
