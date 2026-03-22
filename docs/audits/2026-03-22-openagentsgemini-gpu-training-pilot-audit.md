@@ -135,9 +135,28 @@ Current storage and recordkeeping:
   versioning, a 7-day retention policy, a 14-day soft-delete window, and the
   committed top-level layout for `runs/`, `checkpoints/`, `receipts/`, `logs/`,
   and `manifests/`
-- there are no BigQuery datasets listed, so there is no obvious billing-export
-  dataset or training-metrics dataset already in place
+- the project now has the BigQuery dataset
+  `openagentsgemini:psion_training_finops` for the repo-owned training FinOps
+  lane
 - logging only has the default `_Required` and `_Default` sinks
+
+Current billing guardrails:
+
+- the project now has the monthly Cloud Billing budget
+  `Psion Google Single-Node Pilot` under
+  `billingAccounts/01D15C-64524A-1062EA`
+- the budget amount is `150 USD` with thresholds at `50%`, `75%`, `90%`, and
+  `100% forecasted spend`
+- budget notifications now publish to
+  `projects/openagentsgemini/topics/psion-google-budget-alerts`
+- the project now has the BigQuery dataset
+  `openagentsgemini:psion_training_finops`
+- the repo-owned cost sink table
+  `openagentsgemini.psion_training_finops.single_node_price_profiles_v1` now
+  holds the live us-central1 price envelope for the first `g2 + L4` and
+  `a2 + A100` single-node profiles
+- the repo now has the quota preflight command
+  `scripts/psion-google-quota-preflight.sh` for those two first-launch profiles
 
 Current service-account posture:
 
@@ -174,15 +193,18 @@ What is green:
   bounded bucket, logging, and metrics write rights
 - the first training network posture is now explicit: private `oa-lightning`
   host, Cloud NAT egress, and IAP-only SSH through `psion-train-host`
+- a monthly billing budget, Pub/Sub budget-notification topic, BigQuery FinOps
+  dataset, and repo-owned quota preflight now exist for the first bounded run
 
 What is still only `partial`:
 
-- no billing-export dataset or budget surface was found from the queried CLI
-  views
 - no runbook exists yet for preserving the full infra evidence bundle around a
   GPU launch
 - there is still no repo-owned launch bundle, immutable remote input package,
   checkpoint archive proof, or Google-host evidence collector yet
+- exact Cloud Billing export to BigQuery is still console-managed; the current
+  repo-owned machine-queryable cost sink is the live price-catalog table plus
+  budget notifications rather than invoice-grade billing-export rows
 
 Blunt conclusion:
 
@@ -232,12 +254,12 @@ decision before changing machine profile.
 
 ## Minimum Setup Before Launch
 
-- create either a Cloud Billing budget or a billing export dataset so credits
-  and cost drift are not invisible during the run
 - define one launch wrapper that snapshots quota, instance metadata, machine
   details, and training outputs into the bucket
 - define the immutable remote input package, checkpoint archive path, and final
   evidence collector before the first paid run
+- decide whether the first bounded pilot needs console-managed Cloud Billing
+  export in addition to the repo-owned budget-plus-price-catalog cost sink
 
 ## Launch Decision Rule
 
