@@ -3,7 +3,8 @@
 > Status: canonical `PSION_PLUGIN-6` contamination-control contract for the first
 > plugin-conditioned convergence tranche, written 2026-03-22 after landing the
 > first repo-owned parent-lineage and exclusion bundle above the committed
-> dataset and derivation artifacts.
+> dataset and derivation artifacts, and extended the same day after landing the
+> first mixed host-native plus guest-artifact contamination bundle.
 
 This document freezes the first plugin-aware contamination-control surface for
 the Psion plugin lane.
@@ -22,9 +23,13 @@ one smaller artifact that later SFT and benchmark stages can cite directly.
 - `crates/psionic-data/src/psion_plugin_contamination_controls.rs` owns the
   typed bundle, parent-lineage rows, and exclusion manifest validation.
 - `crates/psionic-data/examples/psion_plugin_contamination_controls.rs`
-  writes the canonical contamination bundle.
+  writes the host-native reference contamination bundle.
+- `crates/psionic-data/examples/psion_plugin_mixed_contamination_controls.rs`
+  writes the mixed contamination bundle.
 - `fixtures/psion/plugins/datasets/psion_plugin_contamination_controls_v1/` carries
-  the first committed machine-readable artifact.
+  the first committed host-native machine-readable artifact.
+- `fixtures/psion/plugins/datasets/psion_plugin_mixed_contamination_controls_v1/`
+  carries the first committed mixed machine-readable artifact.
 
 The stable bundle schema version is
 `psionic.psion.plugin_contamination_bundle.v1`.
@@ -107,3 +112,21 @@ The bundle carries:
 
 That gives later training and benchmark builders one direct machine-readable
 surface for contamination review and failure checks.
+
+## Mixed Dataset Follow-On
+
+`PSION_PLUGIN-25` adds one second contamination artifact for the mixed dataset.
+
+That mixed contamination bundle keeps the same parent-lineage and exclusion
+schema, but it now includes one guest-artifact lineage row in the `train`
+split.
+
+The mixed bundle remains explicit that:
+
+- the guest-artifact lineage is train-only in mixed v1
+- held-out lineage is still host-native only
+- benchmark exclusion now also carries the guest-artifact receipt and source
+  ancestry from the mixed train split
+
+This keeps the first mixed training lane honest without pretending that the repo
+already has a broader held-out guest-artifact benchmark family.

@@ -131,14 +131,15 @@ and now also has:
   multi-plugin trace corpus into canonical training records.
 - `docs/PSION_PLUGIN_CONDITIONED_DATASET.md` is the canonical first
   plugin-conditioned dataset-bundle contract for the convergence tranche and
-  freezes the stable dataset identity, workflow-case-disjoint split rule, and
+  freezes the stable dataset identities, workflow-case-disjoint split rule, and
   preserved controller-surface plus plugin-class label contract for the first
-  host-native dataset build.
+  host-native reference build plus the first mixed host-native and
+  guest-artifact dataset build.
 - `docs/PSION_PLUGIN_CONTAMINATION_CONTROLS.md` is the canonical first
   plugin-aware contamination-control contract for the convergence tranche and
   freezes the parent-lineage rows, plugin-trace plus plugin-receipt exclusion
   manifest, and trace-disjoint train-vs-held-out review posture for the first
-  host-native dataset build.
+  host-native dataset build plus the first mixed dataset follow-on.
 - `docs/PSION_PLUGIN_BENCHMARK_PACKAGES.md` is the canonical shared plugin
   benchmark contract for the convergence tranche and freezes the common
   item-schema, contamination-attachment, receipt-posture, task-contract, and

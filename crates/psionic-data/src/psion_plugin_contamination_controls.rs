@@ -9,9 +9,10 @@ use sha2::{Digest, Sha256};
 use thiserror::Error;
 
 use crate::{
-    DatasetSplitKind, PsionPluginControllerSurface, PsionPluginConditionedDatasetBundle,
-    PsionPluginConditionedDatasetError, PsionPluginTrainingDerivationBundle,
-    PsionPluginTrainingDerivationError, build_psion_plugin_conditioned_dataset_bundle_from_derivation,
+    DatasetSplitKind, PsionPluginConditionedDatasetBundle, PsionPluginConditionedDatasetError,
+    PsionPluginControllerSurface, PsionPluginTrainingDerivationBundle,
+    PsionPluginTrainingDerivationError,
+    build_psion_plugin_conditioned_dataset_bundle_from_derivation,
     build_psion_plugin_training_derivation_bundle,
 };
 
@@ -19,8 +20,9 @@ use crate::{
 pub const PSION_PLUGIN_CONTAMINATION_BUNDLE_SCHEMA_VERSION: &str =
     "psionic.psion.plugin_contamination_bundle.v1";
 /// Stable committed output ref for the first contamination bundle.
-pub const PSION_PLUGIN_CONTAMINATION_BUNDLE_REF: &str =
-    "fixtures/psion/plugins/datasets/psion_plugin_contamination_controls_v1/psion_plugin_contamination_bundle.json";
+pub const PSION_PLUGIN_CONTAMINATION_BUNDLE_REF: &str = "fixtures/psion/plugins/datasets/psion_plugin_contamination_controls_v1/psion_plugin_contamination_bundle.json";
+/// Stable committed output ref for the first mixed contamination bundle.
+pub const PSION_PLUGIN_MIXED_CONTAMINATION_BUNDLE_REF: &str = "fixtures/psion/plugins/datasets/psion_plugin_mixed_contamination_controls_v1/psion_plugin_mixed_contamination_bundle.json";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -239,17 +241,19 @@ impl PsionPluginContaminationBundle {
                 field: String::from("contamination_bundle.held_out_rows"),
             });
         }
-        if train_rows.iter().any(|row| {
-            row.item_kind != PsionPluginContaminationItemKind::SftTrainRecord
-        }) {
+        if train_rows
+            .iter()
+            .any(|row| row.item_kind != PsionPluginContaminationItemKind::SftTrainRecord)
+        {
             return Err(PsionPluginContaminationError::SplitKindItemKindMismatch {
                 split_kind: String::from("train"),
                 expected_item_kind: String::from("sft_train_record"),
             });
         }
-        if held_out_rows.iter().any(|row| {
-            row.item_kind != PsionPluginContaminationItemKind::HeldOutEvalRecord
-        }) {
+        if held_out_rows
+            .iter()
+            .any(|row| row.item_kind != PsionPluginContaminationItemKind::HeldOutEvalRecord)
+        {
             return Err(PsionPluginContaminationError::SplitKindItemKindMismatch {
                 split_kind: String::from("held_out"),
                 expected_item_kind: String::from("held_out_eval_record"),
@@ -382,8 +386,8 @@ pub fn psion_plugin_contamination_bundle_path() -> PathBuf {
     repo_root().join(PSION_PLUGIN_CONTAMINATION_BUNDLE_REF)
 }
 
-pub fn build_psion_plugin_contamination_bundle(
-) -> Result<PsionPluginContaminationBundle, PsionPluginContaminationError> {
+pub fn build_psion_plugin_contamination_bundle()
+-> Result<PsionPluginContaminationBundle, PsionPluginContaminationError> {
     let derivation = build_psion_plugin_training_derivation_bundle()?;
     let dataset = build_psion_plugin_conditioned_dataset_bundle_from_derivation(&derivation)?;
     build_psion_plugin_contamination_bundle_from_inputs(&derivation, &dataset)
@@ -401,6 +405,53 @@ pub fn build_psion_plugin_contamination_bundle_from_inputs(
     derivation: &PsionPluginTrainingDerivationBundle,
     dataset: &PsionPluginConditionedDatasetBundle,
 ) -> Result<PsionPluginContaminationBundle, PsionPluginContaminationError> {
+    build_psion_plugin_contamination_bundle_from_inputs_with_ref(
+        derivation,
+        dataset,
+        crate::PSION_PLUGIN_CONDITIONED_DATASET_BUNDLE_REF,
+        "this bundle projects the committed plugin-conditioned derivation and dataset artifacts into one smaller contamination-review surface. It preserves parent training-record lineage, plugin-trace source identity, and plugin runtime receipt ancestry for the bounded train and held-out splits. It does not claim broader benchmark-family closure, mixed guest-artifact coverage, or universal plugin contamination rules by itself.",
+    )
+}
+
+#[must_use]
+pub fn psion_plugin_mixed_contamination_bundle_path() -> PathBuf {
+    repo_root().join(PSION_PLUGIN_MIXED_CONTAMINATION_BUNDLE_REF)
+}
+
+pub fn build_psion_plugin_mixed_contamination_bundle()
+-> Result<PsionPluginContaminationBundle, PsionPluginContaminationError> {
+    let derivation = build_psion_plugin_training_derivation_bundle()?;
+    let dataset =
+        crate::build_psion_plugin_mixed_conditioned_dataset_bundle_from_derivation(&derivation)?;
+    build_psion_plugin_mixed_contamination_bundle_from_inputs(&derivation, &dataset)
+}
+
+pub fn write_psion_plugin_mixed_contamination_bundle(
+    output_path: impl AsRef<Path>,
+) -> Result<PsionPluginContaminationBundle, PsionPluginContaminationError> {
+    let bundle = build_psion_plugin_mixed_contamination_bundle()?;
+    bundle.write_to_path(output_path)?;
+    Ok(bundle)
+}
+
+pub fn build_psion_plugin_mixed_contamination_bundle_from_inputs(
+    derivation: &PsionPluginTrainingDerivationBundle,
+    dataset: &PsionPluginConditionedDatasetBundle,
+) -> Result<PsionPluginContaminationBundle, PsionPluginContaminationError> {
+    build_psion_plugin_contamination_bundle_from_inputs_with_ref(
+        derivation,
+        dataset,
+        crate::PSION_PLUGIN_MIXED_CONDITIONED_DATASET_BUNDLE_REF,
+        "this bundle projects the committed plugin-conditioned derivation and the first mixed dataset artifact into one smaller contamination-review surface. It preserves the added guest-artifact train lineage, keeps the held-out split host-native, and records the plugin-trace plus plugin-receipt exclusions the mixed training lane must preserve. It does not claim held-out guest-artifact benchmarks, publication widening, or universal plugin contamination rules by itself.",
+    )
+}
+
+fn build_psion_plugin_contamination_bundle_from_inputs_with_ref(
+    derivation: &PsionPluginTrainingDerivationBundle,
+    dataset: &PsionPluginConditionedDatasetBundle,
+    dataset_bundle_ref: &str,
+    claim_boundary: &str,
+) -> Result<PsionPluginContaminationBundle, PsionPluginContaminationError> {
     let record_map = derivation
         .records
         .iter()
@@ -411,7 +462,10 @@ pub fn build_psion_plugin_contamination_bundle_from_inputs(
         for record in &split.records {
             let Some(parent_record) = record_map.get(record.record_id.as_str()) else {
                 return Err(PsionPluginContaminationError::FieldMismatch {
-                    field: format!("dataset.split_rows.{:?}.records[].record_id", split.split_kind),
+                    field: format!(
+                        "dataset.split_rows.{:?}.records[].record_id",
+                        split.split_kind
+                    ),
                     expected: String::from("record present in derivation bundle"),
                     actual: format!("missing `{}`", record.record_id),
                 });
@@ -426,16 +480,16 @@ pub fn build_psion_plugin_contamination_bundle_from_inputs(
                     actual: record.record_digest.clone(),
                 });
             }
-            let workflow_case_id = record.controller_context.workflow_case_id.clone().ok_or_else(
-                || PsionPluginContaminationError::MissingField {
+            let workflow_case_id = record
+                .controller_context
+                .workflow_case_id
+                .clone()
+                .ok_or_else(|| PsionPluginContaminationError::MissingField {
                     field: format!("lineage_row.workflow_case_id.{}", record.record_id),
-                },
-            )?;
+                })?;
             let item_kind = match split.split_kind {
                 DatasetSplitKind::Train => PsionPluginContaminationItemKind::SftTrainRecord,
-                DatasetSplitKind::HeldOut => {
-                    PsionPluginContaminationItemKind::HeldOutEvalRecord
-                }
+                DatasetSplitKind::HeldOut => PsionPluginContaminationItemKind::HeldOutEvalRecord,
                 _ => {
                     return Err(PsionPluginContaminationError::TraceDisjointnessBroken {
                         detail: format!(
@@ -446,11 +500,7 @@ pub fn build_psion_plugin_contamination_bundle_from_inputs(
                 }
             };
             parent_lineage_rows.push(PsionPluginParentLineageRow {
-                lineage_id: format!(
-                    "{}.{}",
-                    split_kind_key(split.split_kind),
-                    record.record_id
-                ),
+                lineage_id: format!("{}.{}", split_kind_key(split.split_kind), record.record_id),
                 item_ref: format!(
                     "{}#{}:{}",
                     dataset.stable_dataset_identity,
@@ -515,15 +565,13 @@ pub fn build_psion_plugin_contamination_bundle_from_inputs(
             crate::PSION_PLUGIN_TRAINING_DERIVATION_BUNDLE_REF,
         ),
         source_derivation_bundle_digest: derivation.bundle_digest.clone(),
-        dataset_bundle_ref: String::from(crate::PSION_PLUGIN_CONDITIONED_DATASET_BUNDLE_REF),
+        dataset_bundle_ref: String::from(dataset_bundle_ref),
         dataset_bundle_digest: dataset.bundle_digest.clone(),
         dataset_identity: dataset.stable_dataset_identity.clone(),
         parent_lineage_rows,
         trace_disjoint_groups,
         exclusion_manifest,
-        claim_boundary: String::from(
-            "this bundle projects the committed plugin-conditioned derivation and dataset artifacts into one smaller contamination-review surface. It preserves parent training-record lineage, plugin-trace source identity, and plugin runtime receipt ancestry for the bounded train and held-out splits. It does not claim broader benchmark-family closure, mixed guest-artifact coverage, or universal plugin contamination rules by itself.",
-        ),
+        claim_boundary: String::from(claim_boundary),
         summary: String::new(),
         bundle_digest: String::new(),
     };
@@ -575,7 +623,10 @@ fn validate_lineage_row(
     let mut seen_receipts = BTreeSet::new();
     if row.receipt_refs.len() != row.receipt_digests.len() {
         return Err(PsionPluginContaminationError::TraceDisjointnessBroken {
-            detail: format!("receipt ref and digest counts drift for `{}`", row.lineage_id),
+            detail: format!(
+                "receipt ref and digest counts drift for `{}`",
+                row.lineage_id
+            ),
         });
     }
     for (receipt_ref, receipt_digest) in row.receipt_refs.iter().zip(&row.receipt_digests) {
@@ -583,7 +634,10 @@ fn validate_lineage_row(
         ensure_nonempty(receipt_digest.as_str(), "lineage_row.receipt_digests[]")?;
         if !seen_receipts.insert(receipt_ref.as_str()) {
             return Err(PsionPluginContaminationError::TraceDisjointnessBroken {
-                detail: format!("duplicate receipt ref `{receipt_ref}` on `{}`", row.lineage_id),
+                detail: format!(
+                    "duplicate receipt ref `{receipt_ref}` on `{}`",
+                    row.lineage_id
+                ),
             });
         }
     }
@@ -685,9 +739,7 @@ fn expected_trace_disjoint_groups(
     groups
 }
 
-fn unique_trace_sources(
-    rows: &[&PsionPluginParentLineageRow],
-) -> Vec<PsionPluginTraceSourceRef> {
+fn unique_trace_sources(rows: &[&PsionPluginParentLineageRow]) -> Vec<PsionPluginTraceSourceRef> {
     rows.iter()
         .map(|row| row.source_trace.clone())
         .collect::<BTreeSet<_>>()
@@ -703,10 +755,7 @@ fn unique_receipt_refs(rows: &[&PsionPluginParentLineageRow]) -> Vec<String> {
         .collect()
 }
 
-fn ensure_nonempty(
-    value: &str,
-    field: &str,
-) -> Result<(), PsionPluginContaminationError> {
+fn ensure_nonempty(value: &str, field: &str) -> Result<(), PsionPluginContaminationError> {
     if value.trim().is_empty() {
         return Err(PsionPluginContaminationError::MissingField {
             field: String::from(field),
@@ -749,9 +798,9 @@ mod tests {
 
     use super::{
         PSION_PLUGIN_CONTAMINATION_BUNDLE_SCHEMA_VERSION, PsionPluginContaminationError,
-        build_psion_plugin_contamination_bundle,
+        build_psion_plugin_contamination_bundle, build_psion_plugin_mixed_contamination_bundle,
     };
-    use crate::DatasetSplitKind;
+    use crate::{DatasetSplitKind, PSION_PLUGIN_MIXED_CONDITIONED_DATASET_BUNDLE_REF};
 
     #[test]
     fn contamination_bundle_builds() -> Result<(), Box<dyn std::error::Error>> {
@@ -767,8 +816,41 @@ mod tests {
     }
 
     #[test]
-    fn contamination_bundle_rejects_overlapping_source_case_sets(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn mixed_contamination_bundle_keeps_guest_lineage_in_train_only()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let bundle = build_psion_plugin_mixed_contamination_bundle()?;
+        assert_eq!(
+            bundle.dataset_bundle_ref,
+            PSION_PLUGIN_MIXED_CONDITIONED_DATASET_BUNDLE_REF
+        );
+        let guest_rows = bundle
+            .parent_lineage_rows
+            .iter()
+            .filter(|row| {
+                row.receipt_refs
+                    .iter()
+                    .any(|receipt_ref| receipt_ref.contains("plugin.example.echo_guest"))
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(guest_rows.len(), 1);
+        assert!(
+            guest_rows
+                .iter()
+                .all(|row| row.split_kind == DatasetSplitKind::Train)
+        );
+        assert!(
+            bundle
+                .exclusion_manifest
+                .benchmark_excluded_receipt_refs
+                .iter()
+                .any(|receipt_ref| receipt_ref.contains("plugin.example.echo_guest"))
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn contamination_bundle_rejects_overlapping_source_case_sets()
+    -> Result<(), Box<dyn std::error::Error>> {
         let mut bundle = build_psion_plugin_contamination_bundle()?;
         let train_source_case_id = bundle
             .parent_lineage_rows
