@@ -33,6 +33,10 @@ The first package-specific result-interpretation contract now also lives in
 `docs/PSION_PLUGIN_RESULT_INTERPRETATION_BENCHMARK.md` and reuses the same
 shared item, receipt, and grader surfaces.
 
+The first guest-plugin capability-boundary contract now also lives in
+`docs/PSION_PLUGIN_GUEST_PLUGIN_BENCHMARK.md` and reuses the same shared
+package, receipt, contamination, and grader surfaces.
+
 ## Canonical Artifacts
 
 - `docs/PSION_PLUGIN_BENCHMARK_PACKAGES.md` is the canonical human-readable
@@ -50,6 +54,8 @@ shared item, receipt, and grader surfaces.
   package-specific child contract built on top of this shared surface.
 - `docs/PSION_PLUGIN_RESULT_INTERPRETATION_BENCHMARK.md` is the fifth
   package-specific child contract built on top of this shared surface.
+- `docs/PSION_PLUGIN_GUEST_PLUGIN_BENCHMARK.md` is the sixth package-specific
+  child contract built on top of this shared surface.
 
 The stable schema version is
 `psionic.psion.plugin_benchmark_package.v1`.
@@ -69,6 +75,7 @@ The shared contract now freezes:
   - sequencing and multi-call planning
   - refusal and request-for-structure
   - post-plugin result interpretation
+  - guest capability-boundary decisions
 - one shared grader-interface surface spanning:
   - selection decision
   - argument schema
@@ -76,6 +83,7 @@ The shared contract now freezes:
   - sequencing plan
   - exact refusal
   - interpretation rubric
+  - guest capability-boundary grading
 
 The shared argument-schema grader now also freezes required JSON value types
 for each required argument path so later argument benchmarks stay packet-schema
@@ -84,6 +92,13 @@ aware instead of path-only.
 The shared sequencing contract now also freezes a third continuation posture,
 `stop_on_typed_runtime_refusal`, so receipt-backed stop boundaries remain
 machine-readable instead of being flattened into generic “stop” behavior.
+
+The shared guest capability-boundary contract now also freezes:
+
+- one dedicated guest capability-boundary task kind
+- one dedicated guest capability-boundary grader
+- one dedicated guest capability-boundary response format
+- explicit required-versus-forbidden capability-boundary ids for each item
 
 This means later plugin-use benchmark packages no longer get to invent their
 own incompatible item or grader schemas.
@@ -108,11 +123,12 @@ training substrate.
 
 ## Family Boundary
 
-The first shared contract covers only the bounded host-native plugin tranche.
+The shared contract now covers the bounded host-native plugin tranche plus one
+bounded guest capability-boundary benchmark family.
 
-It does not yet claim:
+It still does not yet claim:
 
-- guest-artifact plugin benchmark coverage
+- held-out guest-artifact execution-backed benchmark coverage
 - secret-backed or stateful plugin benchmark coverage
 - broad controller-specific grading forks
 - package-specific benchmark thresholds or green results

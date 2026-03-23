@@ -24,6 +24,7 @@ pub enum PsionPluginBenchmarkFamily {
     SequencingMultiCall,
     RefusalRequestStructure,
     ResultInterpretation,
+    GuestPluginCapabilityBoundary,
 }
 
 /// Prompt envelope admitted by the shared plugin-conditioned contract.
@@ -36,6 +37,7 @@ pub enum PsionPluginBenchmarkPromptEnvelope {
     StructuredPluginSequenceJson,
     StructuredPluginRefusalJson,
     StructuredPluginInterpretationJson,
+    StructuredGuestPluginCapabilityJson,
 }
 
 /// Expected response shape for one plugin-conditioned prompt format.
@@ -47,6 +49,7 @@ pub enum PsionPluginBenchmarkExpectedResponseFormat {
     PluginSequencePlanJson,
     PluginRefusalDecisionJson,
     PluginInterpretationJson,
+    GuestPluginCapabilityDecisionJson,
 }
 
 /// Serial versus parallel expectation for sequencing tasks.
@@ -236,6 +239,25 @@ pub struct PsionPluginInterpretationRubricGrader {
     pub detail: String,
 }
 
+/// Grader for guest-plugin capability-boundary decisions.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PsionPluginGuestCapabilityBoundaryGrader {
+    /// Stable grader id.
+    pub grader_id: String,
+    /// Expected route label.
+    pub expected_route: PsionPluginRouteLabel,
+    /// Expected delegated plugin ids when guest use is admitted.
+    pub expected_plugin_ids: Vec<String>,
+    /// Accepted reason codes when refusal is required.
+    pub accepted_reason_codes: Vec<String>,
+    /// Capability-boundary ids that must remain explicit in the answer.
+    pub required_capability_boundary_ids: Vec<String>,
+    /// Capability-boundary ids that must stay absent.
+    pub forbidden_capability_boundary_ids: Vec<String>,
+    /// Short explanation of the grader.
+    pub detail: String,
+}
+
 /// Shared grader interfaces for plugin-conditioned benchmark tasks.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "grader_kind", rename_all = "snake_case")]
@@ -246,6 +268,7 @@ pub enum PsionPluginBenchmarkGraderInterface {
     SequencePlan(PsionPluginSequencePlanGrader),
     ExactRefusal(PsionPluginExactRefusalGrader),
     InterpretationRubric(PsionPluginInterpretationRubricGrader),
+    GuestCapabilityBoundary(PsionPluginGuestCapabilityBoundaryGrader),
 }
 
 impl PsionPluginBenchmarkGraderInterface {
@@ -369,6 +392,61 @@ impl PsionPluginBenchmarkGraderInterface {
                     });
                 }
             }
+            Self::GuestCapabilityBoundary(grader) => {
+                ensure_nonempty(
+                    grader.grader_id.as_str(),
+                    "guest_capability_boundary_grader.grader_id",
+                )?;
+                ensure_nonempty(
+                    grader.detail.as_str(),
+                    "guest_capability_boundary_grader.detail",
+                )?;
+                reject_duplicate_strings(
+                    grader.expected_plugin_ids.as_slice(),
+                    "guest_capability_boundary_grader.expected_plugin_ids",
+                )?;
+                reject_duplicate_strings(
+                    grader.accepted_reason_codes.as_slice(),
+                    "guest_capability_boundary_grader.accepted_reason_codes",
+                )?;
+                reject_duplicate_strings(
+                    grader.required_capability_boundary_ids.as_slice(),
+                    "guest_capability_boundary_grader.required_capability_boundary_ids",
+                )?;
+                reject_duplicate_strings(
+                    grader.forbidden_capability_boundary_ids.as_slice(),
+                    "guest_capability_boundary_grader.forbidden_capability_boundary_ids",
+                )?;
+                if matches!(
+                    grader.expected_route,
+                    PsionPluginRouteLabel::DelegateToAdmittedPlugin
+                ) && grader.expected_plugin_ids.is_empty()
+                {
+                    return Err(PsionPluginBenchmarkPackageError::MissingField {
+                        field: String::from(
+                            "guest_capability_boundary_grader.expected_plugin_ids",
+                        ),
+                    });
+                }
+                if matches!(
+                    grader.expected_route,
+                    PsionPluginRouteLabel::RefuseUnsupportedPluginOrCapability
+                ) && grader.accepted_reason_codes.is_empty()
+                {
+                    return Err(PsionPluginBenchmarkPackageError::MissingField {
+                        field: String::from(
+                            "guest_capability_boundary_grader.accepted_reason_codes",
+                        ),
+                    });
+                }
+                if grader.required_capability_boundary_ids.is_empty() {
+                    return Err(PsionPluginBenchmarkPackageError::MissingField {
+                        field: String::from(
+                            "guest_capability_boundary_grader.required_capability_boundary_ids",
+                        ),
+                    });
+                }
+            }
         }
         Ok(())
     }
@@ -381,6 +459,7 @@ impl PsionPluginBenchmarkGraderInterface {
             Self::SequencePlan(grader) => grader.grader_id.as_str(),
             Self::ExactRefusal(grader) => grader.grader_id.as_str(),
             Self::InterpretationRubric(grader) => grader.grader_id.as_str(),
+            Self::GuestCapabilityBoundary(grader) => grader.grader_id.as_str(),
         }
     }
 }
@@ -459,6 +538,36 @@ pub struct PsionPluginResultInterpretationTask {
     pub continuation_after_failure_or_refusal: bool,
 }
 
+/// Scenario type for guest-plugin capability-boundary items.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PsionPluginGuestCapabilityScenarioKind {
+    AdmittedDigestBoundUse,
+    UnsupportedDigestLoadClaim,
+    PublicationOverclaim,
+    ArbitraryBinaryOverclaim,
+    ServedUniversalityOverclaim,
+}
+
+/// Capability-boundary task contract for guest-plugin prompts.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PsionPluginGuestCapabilityBoundaryTask {
+    /// Admitted guest plugin ids visible to the task.
+    pub admitted_guest_plugin_ids: Vec<String>,
+    /// Expected route for the task.
+    pub expected_route: PsionPluginRouteLabel,
+    /// Expected delegated plugin ids when guest use is admitted.
+    pub expected_plugin_ids: Vec<String>,
+    /// Accepted refusal reason codes when refusal is required.
+    pub accepted_reason_codes: Vec<String>,
+    /// Scenario kind being tested.
+    pub scenario_kind: PsionPluginGuestCapabilityScenarioKind,
+    /// Capability-boundary ids that must remain explicit in the answer.
+    pub required_capability_boundary_ids: Vec<String>,
+    /// Capability-boundary ids that must stay absent.
+    pub forbidden_capability_boundary_ids: Vec<String>,
+}
+
 /// Shared task contract for plugin-conditioned benchmark items.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "task_kind", rename_all = "snake_case")]
@@ -468,6 +577,7 @@ pub enum PsionPluginBenchmarkTaskContract {
     SequencingMultiCall(PsionPluginSequencingTask),
     RefusalRequestStructure(PsionPluginRefusalTask),
     ResultInterpretation(PsionPluginResultInterpretationTask),
+    GuestPluginCapabilityBoundary(PsionPluginGuestCapabilityBoundaryTask),
 }
 
 impl PsionPluginBenchmarkTaskContract {
@@ -478,6 +588,9 @@ impl PsionPluginBenchmarkTaskContract {
             Self::SequencingMultiCall(_) => PsionPluginBenchmarkFamily::SequencingMultiCall,
             Self::RefusalRequestStructure(_) => PsionPluginBenchmarkFamily::RefusalRequestStructure,
             Self::ResultInterpretation(_) => PsionPluginBenchmarkFamily::ResultInterpretation,
+            Self::GuestPluginCapabilityBoundary(_) => {
+                PsionPluginBenchmarkFamily::GuestPluginCapabilityBoundary
+            }
         }
     }
 
@@ -563,6 +676,57 @@ impl PsionPluginBenchmarkTaskContract {
                     task.referenced_receipt_refs.as_slice(),
                     "result_interpretation_task.referenced_receipt_refs",
                 )?;
+            }
+            Self::GuestPluginCapabilityBoundary(task) => {
+                reject_duplicate_strings(
+                    task.admitted_guest_plugin_ids.as_slice(),
+                    "guest_capability_boundary_task.admitted_guest_plugin_ids",
+                )?;
+                reject_duplicate_strings(
+                    task.expected_plugin_ids.as_slice(),
+                    "guest_capability_boundary_task.expected_plugin_ids",
+                )?;
+                reject_duplicate_strings(
+                    task.accepted_reason_codes.as_slice(),
+                    "guest_capability_boundary_task.accepted_reason_codes",
+                )?;
+                reject_duplicate_strings(
+                    task.required_capability_boundary_ids.as_slice(),
+                    "guest_capability_boundary_task.required_capability_boundary_ids",
+                )?;
+                reject_duplicate_strings(
+                    task.forbidden_capability_boundary_ids.as_slice(),
+                    "guest_capability_boundary_task.forbidden_capability_boundary_ids",
+                )?;
+                if matches!(
+                    task.expected_route,
+                    PsionPluginRouteLabel::DelegateToAdmittedPlugin
+                ) && task.expected_plugin_ids.is_empty()
+                {
+                    return Err(PsionPluginBenchmarkPackageError::MissingField {
+                        field: String::from(
+                            "guest_capability_boundary_task.expected_plugin_ids",
+                        ),
+                    });
+                }
+                if matches!(
+                    task.expected_route,
+                    PsionPluginRouteLabel::RefuseUnsupportedPluginOrCapability
+                ) && task.accepted_reason_codes.is_empty()
+                {
+                    return Err(PsionPluginBenchmarkPackageError::MissingField {
+                        field: String::from(
+                            "guest_capability_boundary_task.accepted_reason_codes",
+                        ),
+                    });
+                }
+                if task.required_capability_boundary_ids.is_empty() {
+                    return Err(PsionPluginBenchmarkPackageError::MissingField {
+                        field: String::from(
+                            "guest_capability_boundary_task.required_capability_boundary_ids",
+                        ),
+                    });
+                }
             }
         }
         Ok(())
@@ -711,6 +875,11 @@ pub enum PsionPluginBenchmarkMetricKind {
     TypedRuntimeRefusalAccuracyBps,
     ExecutionBackedBoundaryAccuracyBps,
     InterpretationScoreBps,
+    GuestPluginAdmittedUseAccuracyBps,
+    GuestPluginUnsupportedLoadRefusalAccuracyBps,
+    GuestPluginPublicationBoundaryAccuracyBps,
+    GuestPluginArbitraryBinaryBoundaryAccuracyBps,
+    GuestPluginServedUniversalityBoundaryAccuracyBps,
 }
 
 /// One observed metric preserved on one plugin benchmark receipt.
@@ -1179,6 +1348,10 @@ fn validate_item_prompt_compatibility(
             prompt_format.expected_response_format
                 == PsionPluginBenchmarkExpectedResponseFormat::PluginInterpretationJson
         }
+        PsionPluginBenchmarkTaskContract::GuestPluginCapabilityBoundary(_) => {
+            prompt_format.expected_response_format
+                == PsionPluginBenchmarkExpectedResponseFormat::GuestPluginCapabilityDecisionJson
+        }
     };
     if !compatible {
         return Err(PsionPluginBenchmarkPackageError::PromptFormatIncompatible {
@@ -1216,6 +1389,10 @@ fn validate_item_grader_compatibility(
         (
             PsionPluginBenchmarkTaskContract::ResultInterpretation(_),
             PsionPluginBenchmarkGraderInterface::InterpretationRubric(_),
+        ) => true,
+        (
+            PsionPluginBenchmarkTaskContract::GuestPluginCapabilityBoundary(_),
+            PsionPluginBenchmarkGraderInterface::GuestCapabilityBoundary(_),
         ) => true,
         _ => false,
     };

@@ -169,6 +169,11 @@ and now also has:
   freezes the receipt-backed result-interpretation package, execution-backed
   versus inferred statement boundary, and refusal-continuation scoring surface
   for the first host-native interpretation family.
+- `docs/PSION_PLUGIN_GUEST_PLUGIN_BENCHMARK.md` is the canonical sixth
+  package-specific plugin benchmark doc for the convergence tranche and
+  freezes the authored guest capability-boundary package, admitted guest use
+  versus unsupported load/publication/arbitrary-binary/served-universality
+  split, and the dedicated receipt metrics for the bounded guest lane.
 - `docs/PSION_PLUGIN_CONDITIONED_SFT.md` is the canonical first
   plugin-conditioned `agentic_sft` stage doc for the convergence tranche and
   freezes the stage manifest, canonical dataset binding, benchmark-hook
