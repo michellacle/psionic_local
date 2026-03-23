@@ -443,12 +443,18 @@ struct PilotLossSummary {
 
 #[derive(Clone, Debug)]
 struct PsionAcceleratedGradientProgram {
-    graph: AutodiffGraph,
-    backward_plan: AutodiffBackwardPlan,
-    hidden_input_tensor_id: TensorId,
-    token_embeddings_tensor_id: TensorId,
-    lm_head_bias_tensor_id: TensorId,
+    logits_graph: AutodiffGraph,
+    logits_hidden_input_tensor_id: TensorId,
+    logits_token_embeddings_tensor_id: TensorId,
     logits_tensor_id: TensorId,
+    weight_gradient_graph: AutodiffGraph,
+    weight_gradient_hidden_input_transposed_tensor_id: TensorId,
+    weight_gradient_logits_seed_tensor_id: TensorId,
+    weight_gradient_tensor_id: TensorId,
+    hidden_gradient_graph: AutodiffGraph,
+    hidden_gradient_logits_seed_tensor_id: TensorId,
+    hidden_gradient_token_embeddings_vh_tensor_id: TensorId,
+    hidden_gradient_tensor_id: TensorId,
 }
 
 pub fn run_psion_reference_pilot(
@@ -2182,36 +2188,70 @@ fn build_accelerated_gradient_program(
 ) -> Result<PsionAcceleratedGradientProgram, PsionReferencePilotError> {
     let hidden_size = descriptor.config.hidden_size;
     let vocab_size = descriptor.config.vocab_size;
-    let mut builder = AutodiffGraphBuilder::with_context(device, AutodiffContext::training());
-    let hidden_inputs = builder.input(
+    let mut logits_builder = AutodiffGraphBuilder::with_context(device.clone(), AutodiffContext::training());
+    let hidden_inputs = logits_builder.input(
         "psion_accelerated_hidden_inputs",
         Shape::new(vec![batch_size, hidden_size]),
         DType::F32,
-        true,
+        false,
     );
-    let token_embeddings = builder.input(
+    let token_embeddings = logits_builder.input(
         TOKEN_EMBEDDING_GROUP_ID,
         Shape::new(vec![hidden_size, vocab_size]),
         DType::F32,
-        true,
+        false,
     );
-    let lm_head_bias = builder.input(
-        LM_HEAD_BIAS_GROUP_ID,
-        Shape::new(vec![vocab_size]),
+    let logits = logits_builder.matmul(&hidden_inputs, &token_embeddings)?;
+    let logits_graph = logits_builder.finish(vec![logits.clone()]);
+
+    let mut weight_gradient_builder =
+        AutodiffGraphBuilder::with_context(device.clone(), AutodiffContext::training());
+    let hidden_inputs_transposed = weight_gradient_builder.input(
+        "psion_accelerated_hidden_inputs_transposed",
+        Shape::new(vec![hidden_size, batch_size]),
         DType::F32,
-        true,
+        false,
     );
-    let logits_2d = builder.matmul(&hidden_inputs, &token_embeddings)?;
-    let logits = builder.add(&logits_2d, &lm_head_bias)?;
-    let graph = builder.finish(vec![logits.clone()]);
-    let backward_plan = graph.backward_plan(logits.id())?;
+    let logits_seed = weight_gradient_builder.input(
+        "psion_accelerated_logits_seed",
+        Shape::new(vec![batch_size, vocab_size]),
+        DType::F32,
+        false,
+    );
+    let weight_gradient = weight_gradient_builder.matmul(&hidden_inputs_transposed, &logits_seed)?;
+    let weight_gradient_graph = weight_gradient_builder.finish(vec![weight_gradient.clone()]);
+
+    let mut hidden_gradient_builder =
+        AutodiffGraphBuilder::with_context(device, AutodiffContext::training());
+    let logits_seed_for_hidden = hidden_gradient_builder.input(
+        "psion_accelerated_logits_seed_for_hidden",
+        Shape::new(vec![batch_size, vocab_size]),
+        DType::F32,
+        false,
+    );
+    let token_embeddings_vh = hidden_gradient_builder.input(
+        "psion_accelerated_token_embeddings_vh",
+        Shape::new(vec![vocab_size, hidden_size]),
+        DType::F32,
+        false,
+    );
+    let hidden_gradient =
+        hidden_gradient_builder.matmul(&logits_seed_for_hidden, &token_embeddings_vh)?;
+    let hidden_gradient_graph = hidden_gradient_builder.finish(vec![hidden_gradient.clone()]);
+
     Ok(PsionAcceleratedGradientProgram {
-        graph,
-        backward_plan,
-        hidden_input_tensor_id: hidden_inputs.id(),
-        token_embeddings_tensor_id: token_embeddings.id(),
-        lm_head_bias_tensor_id: lm_head_bias.id(),
+        logits_graph,
+        logits_hidden_input_tensor_id: hidden_inputs.id(),
+        logits_token_embeddings_tensor_id: token_embeddings.id(),
         logits_tensor_id: logits.id(),
+        weight_gradient_graph,
+        weight_gradient_hidden_input_transposed_tensor_id: hidden_inputs_transposed.id(),
+        weight_gradient_logits_seed_tensor_id: logits_seed.id(),
+        weight_gradient_tensor_id: weight_gradient.id(),
+        hidden_gradient_graph,
+        hidden_gradient_logits_seed_tensor_id: logits_seed_for_hidden.id(),
+        hidden_gradient_token_embeddings_vh_tensor_id: token_embeddings_vh.id(),
+        hidden_gradient_tensor_id: hidden_gradient.id(),
     })
 }
 
@@ -2223,128 +2263,73 @@ fn build_accelerated_gradient_batch(
     device: &Device,
 ) -> Result<crate::TrainingGradientBatch, PsionReferencePilotError> {
     let hidden_inputs = build_accelerated_hidden_inputs(model, examples);
-    let primal_inputs = BTreeMap::from([
-        (
-            program.hidden_input_tensor_id,
-            TensorData::F32(hidden_inputs.clone()),
-        ),
-        (
-            program.token_embeddings_tensor_id,
-            TensorData::F32(transpose_matrix(
-                model.token_embeddings.as_slice(),
-                model.descriptor.config.vocab_size,
-                model.descriptor.config.hidden_size,
-            )?),
-        ),
-        (
-            program.lm_head_bias_tensor_id,
-            TensorData::F32(model.lm_head_bias.clone()),
-        ),
-    ]);
-    let forward_values = evaluate_graph(program.graph.graph(), &primal_inputs)?;
+    let token_embeddings_hv = transpose_matrix(
+        model.token_embeddings.as_slice(),
+        model.descriptor.config.vocab_size,
+        model.descriptor.config.hidden_size,
+    )?;
+    let logits_result = execute_cuda_graph(
+        cuda_backend,
+        program.logits_graph.graph(),
+        [
+            (program.logits_hidden_input_tensor_id, hidden_inputs.clone()),
+            (
+                program.logits_token_embeddings_tensor_id,
+                token_embeddings_hv.clone(),
+            ),
+        ]
+        .as_slice(),
+    )?;
     let (loss_value, logits_seed) = dense_logits_loss_seed(
-        forward_values.get(&program.logits_tensor_id).ok_or_else(|| {
-            PsionReferencePilotError::Serialization {
-                message: String::from(
-                    "accelerated gradient forward pass did not materialize logits",
-                ),
-            }
-        })?,
+        &TensorData::F32(add_bias_rows(
+            logits_result.as_slice(),
+            model.lm_head_bias.as_slice(),
+            model.descriptor.config.vocab_size,
+        )?),
         examples,
         model.descriptor.config.vocab_size,
     )?;
-
-    let mut backward_inputs = BTreeMap::new();
-    for binding in &program.backward_plan.primal_bindings {
-        let value = forward_values
-            .get(&binding.primal_tensor)
-            .ok_or_else(|| PsionReferencePilotError::Serialization {
-                message: format!(
-                    "accelerated gradient pass is missing forward value for tensor {}",
-                    binding.primal_tensor
-                ),
-            })?;
-        let spec = program
-            .backward_plan
-            .gradient_graph
-            .node(binding.gradient_graph_input)
-            .ok_or_else(|| PsionReferencePilotError::Serialization {
-                message: format!(
-                    "accelerated gradient pass is missing backward input tensor {}",
-                    binding.gradient_graph_input
-                ),
-            })?
-            .tensor()
-            .spec()
-            .shape()
-            .clone();
-        backward_inputs.insert(
-            binding.gradient_graph_input,
-            cuda_backend.input_buffer(
-                spec,
-                dense_values(
-                    value,
-                    format!("accelerated forward tensor {}", binding.primal_tensor).as_str(),
-                )?,
-            )?,
-        );
-    }
-    let seed_shape = program
-        .backward_plan
-        .gradient_graph
-        .node(program.backward_plan.seed_input)
-        .ok_or_else(|| PsionReferencePilotError::Serialization {
-            message: String::from("accelerated gradient pass is missing backward seed tensor"),
-        })?
-        .tensor()
-        .spec()
-        .shape()
-        .clone();
-    backward_inputs.insert(
-        program.backward_plan.seed_input,
-        cuda_backend.input_buffer(seed_shape, logits_seed)?,
-    );
-
-    let backward_result =
-        cuda_backend.compile_and_execute(&program.backward_plan.gradient_graph, &backward_inputs)?;
-    let transposed_token_gradients = read_cuda_gradient(
-        &backward_result.outputs,
-        program
-            .backward_plan
-            .gradient_for(program.token_embeddings_tensor_id)
-            .ok_or_else(|| PsionReferencePilotError::Serialization {
-                message: String::from(
-                    "accelerated gradient pass is missing token-embedding gradient target",
-                ),
-            })?,
-        TOKEN_EMBEDDING_GROUP_ID,
+    let hidden_inputs_transposed = transpose_matrix(
+        hidden_inputs.as_slice(),
+        examples.len(),
+        model.descriptor.config.hidden_size,
+    )?;
+    let transposed_token_gradients = execute_cuda_graph(
+        cuda_backend,
+        program.weight_gradient_graph.graph(),
+        [
+            (
+                program.weight_gradient_hidden_input_transposed_tensor_id,
+                hidden_inputs_transposed,
+            ),
+            (
+                program.weight_gradient_logits_seed_tensor_id,
+                logits_seed.clone(),
+            ),
+        ]
+        .as_slice(),
     )?;
     let mut token_gradients = transpose_matrix(
         transposed_token_gradients.as_slice(),
         model.descriptor.config.hidden_size,
         model.descriptor.config.vocab_size,
     )?;
-    let hidden_input_gradients = read_cuda_gradient(
-        &backward_result.outputs,
-        program
-            .backward_plan
-            .gradient_for(program.hidden_input_tensor_id)
-            .ok_or_else(|| PsionReferencePilotError::Serialization {
-                message: String::from(
-                    "accelerated gradient pass is missing hidden-input gradient target",
-                ),
-            })?,
-        "psion_accelerated_hidden_inputs",
+    let hidden_input_gradients = execute_cuda_graph(
+        cuda_backend,
+        program.hidden_gradient_graph.graph(),
+        [
+            (program.hidden_gradient_logits_seed_tensor_id, logits_seed.clone()),
+            (
+                program.hidden_gradient_token_embeddings_vh_tensor_id,
+                model.token_embeddings.clone(),
+            ),
+        ]
+        .as_slice(),
     )?;
-    let bias_gradients = read_cuda_gradient(
-        &backward_result.outputs,
-        program
-            .backward_plan
-            .gradient_for(program.lm_head_bias_tensor_id)
-            .ok_or_else(|| PsionReferencePilotError::Serialization {
-                message: String::from("accelerated gradient pass is missing bias gradient target"),
-            })?,
-        LM_HEAD_BIAS_GROUP_ID,
+    let bias_gradients = sum_logits_seed_rows(
+        logits_seed.as_slice(),
+        examples.len(),
+        model.descriptor.config.vocab_size,
     )?;
     let mut position_gradients = vec![0.0; model.position_embeddings.len()];
     scatter_accelerated_hidden_input_gradients(
@@ -2530,15 +2515,96 @@ fn dense_logits_loss_seed(
     Ok((total_loss * example_scale, logits_seed))
 }
 
-fn read_cuda_gradient(
-    outputs: &BTreeMap<TensorId, psionic_backend_cuda::CudaBuffer>,
-    tensor_id: TensorId,
-    context: &str,
+fn add_bias_rows(
+    logits: &[f32],
+    bias: &[f32],
+    vocab_size: usize,
 ) -> Result<Vec<f32>, PsionReferencePilotError> {
-    outputs
-        .get(&tensor_id)
+    if bias.len() != vocab_size {
+        return Err(PsionReferencePilotError::Serialization {
+            message: format!(
+                "accelerated bias length mismatch: expected {}, found {}",
+                vocab_size,
+                bias.len()
+            ),
+        });
+    }
+    if logits.len() % vocab_size != 0 {
+        return Err(PsionReferencePilotError::Serialization {
+            message: format!(
+                "accelerated logits length {} is not divisible by vocab size {}",
+                logits.len(),
+                vocab_size
+            ),
+        });
+    }
+    let mut biased = logits.to_vec();
+    for row in biased.chunks_mut(vocab_size) {
+        for (value, bias_value) in row.iter_mut().zip(bias.iter()) {
+            *value += *bias_value;
+        }
+    }
+    Ok(biased)
+}
+
+fn sum_logits_seed_rows(
+    logits_seed: &[f32],
+    batch_size: usize,
+    vocab_size: usize,
+) -> Result<Vec<f32>, PsionReferencePilotError> {
+    let expected_len = batch_size.saturating_mul(vocab_size);
+    if logits_seed.len() != expected_len {
+        return Err(PsionReferencePilotError::Serialization {
+            message: format!(
+                "accelerated logits seed length mismatch: expected {}, found {}",
+                expected_len,
+                logits_seed.len()
+            ),
+        });
+    }
+    let mut sums = vec![0.0_f32; vocab_size];
+    for row in logits_seed.chunks(vocab_size) {
+        for (sum, value) in sums.iter_mut().zip(row.iter()) {
+            *sum += *value;
+        }
+    }
+    Ok(sums)
+}
+
+fn execute_cuda_graph(
+    cuda_backend: &mut CudaBackend,
+    graph: &psionic_ir::Graph,
+    inputs: &[(TensorId, Vec<f32>)],
+) -> Result<Vec<f32>, PsionReferencePilotError> {
+    let mut buffers = BTreeMap::new();
+    for (tensor_id, values) in inputs {
+        let shape = graph
+            .node(*tensor_id)
+            .ok_or_else(|| PsionReferencePilotError::Serialization {
+                message: format!("accelerated CUDA graph is missing input tensor {}", tensor_id),
+            })?
+            .tensor()
+            .spec()
+            .shape()
+            .clone();
+        buffers.insert(*tensor_id, cuda_backend.input_buffer(shape, values.clone())?);
+    }
+    let output_tensor_id = graph
+        .outputs()
+        .first()
+        .copied()
         .ok_or_else(|| PsionReferencePilotError::Serialization {
-            message: format!("accelerated gradient pass is missing CUDA output for {context}"),
+            message: String::from("accelerated CUDA graph is missing an output tensor"),
+        })?;
+    let result = cuda_backend.compile_and_execute(graph, &buffers)?;
+    result
+        .outputs
+        .get(&output_tensor_id)
+        .ok_or_else(|| PsionReferencePilotError::Serialization {
+            message: format!(
+                "accelerated CUDA graph did not materialize output tensor {}",
+                output_tensor_id
+            ),
         })?
         .read_f32()
         .map_err(PsionReferencePilotError::from)
