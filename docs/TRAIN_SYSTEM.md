@@ -347,6 +347,13 @@ and now also has:
   Google single-node `Psion` run and freezes the actual trainer path, backend
   truth, GPU-sample truth, throughput truth, checkpoint truth, and post-run VM
   deletion boundary for the bounded single-node accelerator lane.
+- `docs/audits/2026-03-23-openagentsgemini-first-google-accelerator-backed-host-native-plugin-conditioned-run-audit.md`
+  is the canonical proof record for the first truthful accelerator-backed
+  Google host-native plugin-conditioned `Psion` run and freezes the actual
+  plugin-conditioned trainer path, backend truth, GPU-sample truth, proved
+  authoring-class boundary, benchmark provenance shift away from the old
+  metadata-only reference artifact, and post-run VM deletion boundary for the
+  bounded accelerated host-native plugin lane.
 - `docs/audits/2026-03-22-openagentsgemini-first-google-single-gpu-pilot-run-audit.md`
   is the canonical proof record for the first bounded Google single-node
   `Psion` pilot and freezes the typed live-attempt history, retained evidence,

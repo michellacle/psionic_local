@@ -131,6 +131,8 @@ The committed retained accelerator evidence now includes:
   `docs/audits/2026-03-22-openagentsgemini-first-google-single-gpu-pilot-run-audit.md`
 - first real accelerator-backed single-node run audit:
   `docs/audits/2026-03-23-openagentsgemini-first-google-accelerator-backed-single-node-psion-training-audit.md`
+- first real accelerator-backed host-native plugin-conditioned run audit:
+  `docs/audits/2026-03-23-openagentsgemini-first-google-accelerator-backed-host-native-plugin-conditioned-run-audit.md`
 - first real host-native plugin-conditioned run audit:
   `docs/audits/2026-03-22-openagentsgemini-first-google-host-native-plugin-conditioned-run-audit.md`
 - first real mixed plugin-conditioned run audit:
