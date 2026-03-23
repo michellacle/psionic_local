@@ -21,7 +21,8 @@ weighted-plugin controller proof, and the manifest identity contract, then
 binds them to explicit module trust tiers, promotion lifecycle receipts,
 profile-specific publication posture, observer rights, and validator plus
 accepted-outcome hook requirements. The current posture remains
-operator/internal only, keeps profile-specific deterministic-import and
-runtime-support lanes explicitly suppressed behind named policy hooks, refuses
-broader public publication, and now serves as one prerequisite beneath the
-separate `TAS-206` bounded plugin-platform closeout audit.
+operator/internal only, keeps one digest-bound guest-artifact trust tier and
+blocked-publication row explicit, keeps profile-specific deterministic-import
+and runtime-support lanes explicitly suppressed behind named policy hooks,
+refuses broader public publication, and now serves as one prerequisite beneath
+the separate `TAS-206` bounded plugin-platform closeout audit.

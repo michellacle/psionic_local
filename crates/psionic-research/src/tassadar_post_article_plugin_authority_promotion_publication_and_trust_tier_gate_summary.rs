@@ -260,11 +260,11 @@ mod tests {
             TassadarPostArticlePluginAuthorityPromotionPublicationAndTrustTierGateStatus::Green
         );
         assert_eq!(summary.dependency_row_count, 9);
-        assert_eq!(summary.trust_tier_row_count, 4);
+        assert_eq!(summary.trust_tier_row_count, 5);
         assert_eq!(summary.promotion_row_count, 5);
-        assert_eq!(summary.publication_posture_row_count, 5);
+        assert_eq!(summary.publication_posture_row_count, 6);
         assert_eq!(summary.observer_row_count, 4);
-        assert_eq!(summary.validation_row_count, 9);
+        assert_eq!(summary.validation_row_count, 10);
         assert!(summary.deferred_issue_ids.is_empty());
         assert!(summary.trust_tier_gate_green);
         assert!(summary.promotion_receipts_explicit);

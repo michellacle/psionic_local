@@ -30,6 +30,8 @@ const BROAD_INTERNAL_COMPUTE_ROUTE_POLICY_REPORT_REF: &str =
     "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json";
 const CANONICAL_MACHINE_CLOSURE_BUNDLE_REPORT_REF: &str =
     "fixtures/tassadar/reports/tassadar_post_article_canonical_machine_closure_bundle_report.json";
+const STARTER_PLUGIN_CATALOG_RUNTIME_BUNDLE_REF: &str =
+    "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/tassadar_post_article_starter_plugin_catalog_bundle.json";
 const LOCAL_PLUGIN_SYSTEM_SPEC_REF: &str = "~/code/alpha/tassadar/plugin-system.md";
 const PLUGIN_SYSTEM_AUDIT_REF: &str =
     "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md";
@@ -48,6 +50,18 @@ const ROUTE_DETERMINISTIC_IMPORT: &str = "route.deterministic_import.subset";
 const ROUTE_RUNTIME_SUPPORT: &str = "route.runtime_support.linked_bundle";
 const ROUTE_PORTABLE_BROAD: &str = "route.portable_broad_family.declared_matrix";
 const ROUTE_PUBLIC_BROAD: &str = "route.public_broad_family.publication";
+const GUEST_ARTIFACT_PLUGIN_ID: &str = "plugin.example.echo_guest";
+const GUEST_ARTIFACT_REPLAY_CLASS_ID: &str = "guest_artifact_digest_replay_only.v1";
+const GUEST_ARTIFACT_TRUST_TIER_ID: &str =
+    "operator_reviewed_guest_artifact_digest_bound_internal_only";
+const GUEST_ARTIFACT_EVIDENCE_POSTURE_ID: &str =
+    "evidence.manifest_digest_invocation_receipt_bound.v1";
+const GUEST_ARTIFACT_PUBLICATION_NOT_CLAIMED_NEGATIVE_CLAIM_ID: &str =
+    "guest_artifact_publication_not_claimed";
+const GUEST_ARTIFACT_ARBITRARY_WASM_NOT_CLAIMED_NEGATIVE_CLAIM_ID: &str =
+    "arbitrary_wasm_plugin_support_not_claimed";
+const GUEST_ARTIFACT_SECRET_OR_STATEFUL_NOT_CLAIMED_NEGATIVE_CLAIM_ID: &str =
+    "secret_or_stateful_guest_capability_not_claimed";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -235,13 +249,17 @@ pub fn build_tassadar_post_article_plugin_authority_promotion_publication_and_tr
         read_repo_json(BROAD_INTERNAL_COMPUTE_ROUTE_POLICY_REPORT_REF)?;
     let closure_bundle: CanonicalMachineClosureBundleFixture =
         read_repo_json(CANONICAL_MACHINE_CLOSURE_BUNDLE_REPORT_REF)?;
+    let starter_catalog_runtime: StarterPluginCatalogRuntimeBundleFixture =
+        read_repo_json(STARTER_PLUGIN_CATALOG_RUNTIME_BUNDLE_REF)?;
 
     let operator_internal_only_posture = controller.operator_internal_only_posture
         && manifest.operator_internal_only_posture
         && publication.current_served_profile_id == ARTICLE_CLOSEOUT_PROFILE_ID
         && publication.published_profile_ids == [String::from(ARTICLE_CLOSEOUT_PROFILE_ID)]
         && !controller.plugin_capability_claim_allowed
-        && !controller.plugin_publication_allowed;
+        && !controller.plugin_publication_allowed
+        && starter_catalog_runtime.operator_only_posture
+        && !starter_catalog_runtime.public_marketplace_implication_allowed;
     let rebase_claim_allowed = controller.rebase_claim_allowed && manifest.rebase_claim_allowed;
     let weighted_plugin_control_allowed = controller.weighted_plugin_control_allowed;
     let plugin_capability_claim_allowed = false;
@@ -278,6 +296,12 @@ pub fn build_tassadar_post_article_plugin_authority_promotion_publication_and_tr
             && route_policy.refused_route_count >= 1;
     let validator_hooks_explicit = profile_specific_named_routes_explicit;
     let accepted_outcome_hooks_explicit = profile_specific_named_routes_explicit;
+    let guest_artifact_trust_tier_green =
+        guest_artifact_trust_tier_green(&starter_catalog_runtime);
+    let guest_artifact_publication_blocked =
+        guest_artifact_publication_blocked(&starter_catalog_runtime)
+            && !plugin_publication_allowed
+            && broader_publication_refused;
 
     let machine_identity_binding = TassadarPostArticlePluginAuthorityMachineIdentityBinding {
         machine_identity_id: controller
@@ -418,13 +442,14 @@ pub fn build_tassadar_post_article_plugin_authority_promotion_publication_and_tr
                 "challenge_gated_install",
                 "challenge_gated_install",
                 2,
-            ) && trust.cross_tier_refusal_count >= 1
+            ) && guest_artifact_trust_tier_green
+                && trust.cross_tier_refusal_count >= 1
                 && trust.privilege_escalation_refusal_count >= 1
                 && trust.mount_policy_refusal_count >= 1,
             MODULE_TRUST_ISOLATION_REPORT_REF,
             Some(trust.report_id.clone()),
             Some(trust.report_digest.clone()),
-            "the module trust report must keep research-only, benchmark-gated, and challenge-gated tiers distinct while refusing cross-tier escalation and mount-policy leakage.",
+            "the authority gate must keep research-only, benchmark-gated, challenge-gated, and the one admitted digest-bound guest-artifact tier distinct while still refusing cross-tier escalation and mount-policy leakage.",
         ),
         dependency_row(
             "publication_report_present",
@@ -530,6 +555,17 @@ pub fn build_tassadar_post_article_plugin_authority_promotion_publication_and_tr
             "challenge-gated installs remain bounded to explicit mounts and challenge windows rather than inheriting broad publication authority.",
         ),
         trust_tier_row(
+            "guest_artifact_digest_bound_internal_only",
+            "operator_reviewed_guest_artifact_digest_bound_internal_only",
+            "digest-bound manifest, explicit publication-negative claims, operator-reviewed internal-only posture",
+            guest_artifact_trust_tier_green,
+            vec![
+                String::from(STARTER_PLUGIN_CATALOG_RUNTIME_BUNDLE_REF),
+                String::from(MANIFEST_CONTRACT_REPORT_REF),
+            ],
+            "the admitted guest-artifact row stays digest-bound, operator-reviewed, and publication-blocked instead of inheriting host-native trust or publication posture.",
+        ),
+        trust_tier_row(
             "cross_tier_escalation_refusals_explicit",
             "refusal_surface",
             "cross-tier, privilege-escalation, and mount-policy refusals are all present",
@@ -601,6 +637,28 @@ pub fn build_tassadar_post_article_plugin_authority_promotion_publication_and_tr
                 String::from(BROAD_INTERNAL_COMPUTE_PROFILE_PUBLICATION_REPORT_REF),
             ],
             "the current served posture remains article-only and operator/internal for plugin authority; no public plugin lane is implied by weighted control alone.",
+        ),
+        publication_posture_row(
+            "guest_artifact_digest_bound_publication_blocked",
+            "guest_artifact_digest_bound_internal_only",
+            "blocked",
+            if guest_artifact_trust_tier_green {
+                GUEST_ARTIFACT_EVIDENCE_POSTURE_ID
+            } else {
+                "missing"
+            },
+            if guest_artifact_publication_blocked {
+                "depublication_review_required"
+            } else {
+                "missing"
+            },
+            guest_artifact_publication_blocked,
+            vec![
+                String::from(STARTER_PLUGIN_CATALOG_RUNTIME_BUNDLE_REF),
+                String::from(BROAD_INTERNAL_COMPUTE_PROFILE_PUBLICATION_REPORT_REF),
+                String::from(BROAD_INTERNAL_COMPUTE_ROUTE_POLICY_REPORT_REF),
+            ],
+            "the digest-bound guest-artifact class stays explicitly publication-blocked and operator-internal until a later tranche proves any broader lane.",
         ),
         publication_posture_row(
             "deterministic_import_profile_specific_template",
@@ -780,8 +838,11 @@ pub fn build_tassadar_post_article_plugin_authority_promotion_publication_and_tr
         validation_row(
             "trust_tiers_machine_checkable",
             trust_tier_gate_green,
-            vec![String::from(MODULE_TRUST_ISOLATION_REPORT_REF)],
-            "trust tiers remain machine-checkable rather than being inferred from benchmark counts or host posture.",
+            vec![
+                String::from(MODULE_TRUST_ISOLATION_REPORT_REF),
+                String::from(STARTER_PLUGIN_CATALOG_RUNTIME_BUNDLE_REF),
+            ],
+            "trust tiers remain machine-checkable rather than being inferred from benchmark counts or host posture, including the distinct digest-bound guest-artifact class.",
         ),
         validation_row(
             "validator_and_accepted_outcome_hooks_bound",
@@ -806,6 +867,20 @@ pub fn build_tassadar_post_article_plugin_authority_promotion_publication_and_tr
                 String::from(BROAD_INTERNAL_COMPUTE_ROUTE_POLICY_REPORT_REF),
             ],
             "the gate keeps bounded controller closure distinct from plugin-platform closeout and refuses any claim of arbitrary public Wasm or arbitrary public tool use.",
+        ),
+        validation_row(
+            "guest_artifact_revocation_and_depublication_posture_explicit",
+            guest_artifact_publication_blocked
+                && promotion.revoked_count >= 1
+                && !plugin_publication_allowed
+                && broader_publication_refused,
+            vec![
+                String::from(STARTER_PLUGIN_CATALOG_RUNTIME_BUNDLE_REF),
+                String::from(MODULE_PROMOTION_STATE_REPORT_REF),
+                String::from(BROAD_INTERNAL_COMPUTE_PROFILE_PUBLICATION_REPORT_REF),
+                String::from(BROAD_INTERNAL_COMPUTE_ROUTE_POLICY_REPORT_REF),
+            ],
+            "the digest-bound guest-artifact lane stays publication-blocked, revocable, and subject to later depublication review instead of inheriting host-native promotion or publication closure.",
         ),
         validation_row(
             "closure_bundle_bound_by_digest",
@@ -874,6 +949,7 @@ pub fn build_tassadar_post_article_plugin_authority_promotion_publication_and_tr
                 String::from(BROAD_INTERNAL_COMPUTE_PROFILE_PUBLICATION_REPORT_REF),
                 String::from(BROAD_INTERNAL_COMPUTE_ROUTE_POLICY_REPORT_REF),
                 String::from(PLUGIN_SYSTEM_AUDIT_REF),
+                String::from(STARTER_PLUGIN_CATALOG_RUNTIME_BUNDLE_REF),
             ],
             machine_identity_binding,
             dependency_rows,
@@ -902,7 +978,7 @@ pub fn build_tassadar_post_article_plugin_authority_promotion_publication_and_tr
             arbitrary_software_capability_allowed,
             deferred_issue_ids: Vec::new(),
             claim_boundary: String::from(
-                "this catalog report freezes plugin authority, promotion, publication posture, and trust tiers above the canonical weighted controller without widening the claim surface. The authority and publication claim now inherits the canonical machine closure bundle by report id and digest instead of reconstructing machine identity from the controller and manifest pair alone. It keeps operator/internal posture, profile-specific named-but-suppressed routes, validator and accepted-outcome hook requirements, promotion challengeability, quarantine, revocation, and broader public refusal explicit instead of implying a served/public plugin platform or arbitrary public software execution.",
+                "this catalog report freezes plugin authority, promotion, publication posture, and trust tiers above the canonical weighted controller without widening the claim surface. The authority and publication claim now inherits the canonical machine closure bundle by report id and digest instead of reconstructing machine identity from the controller and manifest pair alone. It keeps operator/internal posture, the one admitted digest-bound guest-artifact trust tier and blocked-publication row, profile-specific named-but-suppressed routes, validator and accepted-outcome hook requirements, promotion challengeability, quarantine, revocation, and broader public refusal explicit instead of implying a served/public plugin platform or arbitrary public software execution.",
             ),
             summary: String::new(),
             report_digest: String::new(),
@@ -1339,6 +1415,71 @@ struct BroadInternalComputeRoutePolicyRowFixture {
     required_runtime_support_id: Option<String>,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+struct StarterPluginCatalogRuntimeBundleFixture {
+    plugin_count: u32,
+    operator_only_posture: bool,
+    public_marketplace_implication_allowed: bool,
+    descriptor_rows: Vec<StarterPluginCatalogRuntimeDescriptorFixture>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+struct StarterPluginCatalogRuntimeDescriptorFixture {
+    plugin_id: String,
+    capability_class: String,
+    replay_class_id: String,
+    trust_tier_id: String,
+    evidence_posture_id: String,
+    negative_claim_ids: Vec<String>,
+}
+
+fn guest_artifact_trust_tier_green(
+    runtime: &StarterPluginCatalogRuntimeBundleFixture,
+) -> bool {
+    runtime.plugin_count >= 6
+        && runtime.operator_only_posture
+        && !runtime.public_marketplace_implication_allowed
+        && guest_artifact_descriptor(runtime).is_some_and(|descriptor| {
+            descriptor.capability_class == "local_deterministic"
+                && descriptor.replay_class_id == GUEST_ARTIFACT_REPLAY_CLASS_ID
+                && descriptor.trust_tier_id == GUEST_ARTIFACT_TRUST_TIER_ID
+                && descriptor.evidence_posture_id == GUEST_ARTIFACT_EVIDENCE_POSTURE_ID
+                && descriptor
+                    .negative_claim_ids
+                    .iter()
+                    .any(|claim| {
+                        claim == GUEST_ARTIFACT_PUBLICATION_NOT_CLAIMED_NEGATIVE_CLAIM_ID
+                    })
+                && descriptor
+                    .negative_claim_ids
+                    .iter()
+                    .any(|claim| {
+                        claim == GUEST_ARTIFACT_ARBITRARY_WASM_NOT_CLAIMED_NEGATIVE_CLAIM_ID
+                    })
+                && descriptor
+                    .negative_claim_ids
+                    .iter()
+                    .any(|claim| {
+                        claim == GUEST_ARTIFACT_SECRET_OR_STATEFUL_NOT_CLAIMED_NEGATIVE_CLAIM_ID
+                    })
+        })
+}
+
+fn guest_artifact_publication_blocked(
+    runtime: &StarterPluginCatalogRuntimeBundleFixture,
+) -> bool {
+    guest_artifact_trust_tier_green(runtime)
+}
+
+fn guest_artifact_descriptor(
+    runtime: &StarterPluginCatalogRuntimeBundleFixture,
+) -> Option<&StarterPluginCatalogRuntimeDescriptorFixture> {
+    runtime
+        .descriptor_rows
+        .iter()
+        .find(|descriptor| descriptor.plugin_id == GUEST_ARTIFACT_PLUGIN_ID)
+}
+
 #[cfg(test)]
 fn read_json<T: DeserializeOwned>(
     path: impl AsRef<Path>,
@@ -1399,11 +1540,11 @@ mod tests {
         assert!(!report.served_public_universality_allowed);
         assert!(!report.arbitrary_software_capability_allowed);
         assert_eq!(report.dependency_rows.len(), 9);
-        assert_eq!(report.trust_tier_rows.len(), 4);
+        assert_eq!(report.trust_tier_rows.len(), 5);
         assert_eq!(report.promotion_rows.len(), 5);
-        assert_eq!(report.publication_posture_rows.len(), 5);
+        assert_eq!(report.publication_posture_rows.len(), 6);
         assert_eq!(report.observer_rows.len(), 4);
-        assert_eq!(report.validation_rows.len(), 9);
+        assert_eq!(report.validation_rows.len(), 10);
         assert!(report.deferred_issue_ids.is_empty());
     }
 

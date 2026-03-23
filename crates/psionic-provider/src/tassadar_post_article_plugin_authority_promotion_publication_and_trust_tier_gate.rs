@@ -110,11 +110,11 @@ mod tests {
             receipt.control_trace_contract_id,
             "tassadar.weighted_plugin.controller_trace_contract.v1"
         );
-        assert_eq!(receipt.trust_tier_row_count, 4);
+        assert_eq!(receipt.trust_tier_row_count, 5);
         assert_eq!(receipt.promotion_row_count, 5);
-        assert_eq!(receipt.publication_posture_row_count, 5);
+        assert_eq!(receipt.publication_posture_row_count, 6);
         assert_eq!(receipt.observer_row_count, 4);
-        assert_eq!(receipt.validation_row_count, 9);
+        assert_eq!(receipt.validation_row_count, 10);
         assert!(receipt.deferred_issue_ids.is_empty());
         assert!(receipt.trust_tier_gate_green);
         assert!(receipt.promotion_receipts_explicit);

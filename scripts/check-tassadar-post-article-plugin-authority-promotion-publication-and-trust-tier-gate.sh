@@ -23,11 +23,11 @@ jq -e '
   and .machine_identity_binding.computational_model_statement_id == "tassadar.post_article.canonical_computational_model.statement.v1"
   and .machine_identity_binding.control_trace_contract_id == "tassadar.weighted_plugin.controller_trace_contract.v1"
   and ((.dependency_rows | length) == 9)
-  and ((.trust_tier_rows | length) == 4)
+  and ((.trust_tier_rows | length) == 5)
   and ((.promotion_rows | length) == 5)
-  and ((.publication_posture_rows | length) == 5)
+  and ((.publication_posture_rows | length) == 6)
   and ((.observer_rows | length) == 4)
-  and ((.validation_rows | length) == 9)
+  and ((.validation_rows | length) == 10)
   and .trust_tier_gate_green == true
   and .promotion_receipts_explicit == true
   and .publication_posture_explicit == true
@@ -55,11 +55,11 @@ jq -e '
   and .computational_model_statement_id == "tassadar.post_article.canonical_computational_model.statement.v1"
   and .control_trace_contract_id == "tassadar.weighted_plugin.controller_trace_contract.v1"
   and .dependency_row_count == 9
-  and .trust_tier_row_count == 4
+  and .trust_tier_row_count == 5
   and .promotion_row_count == 5
-  and .publication_posture_row_count == 5
+  and .publication_posture_row_count == 6
   and .observer_row_count == 4
-  and .validation_row_count == 9
+  and .validation_row_count == 10
   and (.deferred_issue_ids == [])
   and .trust_tier_gate_green == true
   and .promotion_receipts_explicit == true

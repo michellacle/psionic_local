@@ -1493,14 +1493,15 @@ The current scope is:
   and the audit note
   `docs/audits/2026-03-21-tassadar-post-article-plugin-authority-promotion-publication-and-trust-tier-gate.md`,
   which bind the green weighted controller to explicit research-only,
-  benchmark-gated-internal, and challenge-gated-install trust tiers, explicit
-  promotion, quarantine, revocation, and supersession receipts, explicit
-  operator/internal-only posture, explicit profile-specific deterministic
-  import and runtime-support route hooks, and explicit broader public
-  suppression or refusal. This freezes bounded plugin authority and posture
-  change mechanics beneath the separate bounded plugin-platform closeout audit
-  and still does not by itself turn publication, served/public universality,
-  or arbitrary software capability green.
+  benchmark-gated-internal, challenge-gated-install, and one operator-reviewed
+  digest-bound guest-artifact trust tier, explicit promotion, quarantine,
+  revocation, and supersession receipts, explicit guest-artifact blocked-
+  publication posture, explicit operator/internal-only posture, explicit
+  profile-specific deterministic import and runtime-support route hooks, and
+  explicit broader public suppression or refusal. This freezes bounded plugin
+  authority and posture change mechanics beneath the separate bounded plugin-
+  platform closeout audit and still does not by itself turn publication,
+  served/public universality, or arbitrary software capability green.
 - the current post-article bounded weighted plugin-platform closeout artifacts
   are
   `fixtures/tassadar/reports/tassadar_post_article_bounded_weighted_plugin_platform_closeout_audit_report.json`,

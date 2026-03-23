@@ -18,7 +18,8 @@
     "fixtures/tassadar/reports/tassadar_module_trust_isolation_report.json",
     "fixtures/tassadar/reports/tassadar_broad_internal_compute_profile_publication_report.json",
     "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json",
-    "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md"
+    "docs/audits/2026-03-20-tassadar-plugin-system-and-turing-completeness-audit.md",
+    "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/tassadar_post_article_starter_plugin_catalog_bundle.json"
   ],
   "machine_identity_binding": {
     "machine_identity_id": "tassadar.post_article_universality_bridge.machine_identity.v1",
@@ -86,7 +87,7 @@
       "source_ref": "fixtures/tassadar/reports/tassadar_module_trust_isolation_report.json",
       "bound_report_id": "tassadar.module_trust_isolation.report.v1",
       "bound_report_digest": "d669cb8959dfad7df9295c24646bf2ca00f8842792004096648e8b6d0b5ccb1a",
-      "detail": "the module trust report must keep research-only, benchmark-gated, and challenge-gated tiers distinct while refusing cross-tier escalation and mount-policy leakage."
+      "detail": "the authority gate must keep research-only, benchmark-gated, challenge-gated, and the one admitted digest-bound guest-artifact tier distinct while still refusing cross-tier escalation and mount-policy leakage."
     },
     {
       "dependency_id": "publication_report_present",
@@ -152,6 +153,17 @@
         "fixtures/tassadar/reports/tassadar_module_promotion_state_report.json"
       ],
       "detail": "challenge-gated installs remain bounded to explicit mounts and challenge windows rather than inheriting broad publication authority."
+    },
+    {
+      "tier_id": "guest_artifact_digest_bound_internal_only",
+      "current_posture": "operator_reviewed_guest_artifact_digest_bound_internal_only",
+      "benchmark_bar": "digest-bound manifest, explicit publication-negative claims, operator-reviewed internal-only posture",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/tassadar_post_article_starter_plugin_catalog_bundle.json",
+        "fixtures/tassadar/reports/tassadar_post_article_plugin_manifest_identity_contract_report.json"
+      ],
+      "detail": "the admitted guest-artifact row stays digest-bound, operator-reviewed, and publication-blocked instead of inheriting host-native trust or publication posture."
     },
     {
       "tier_id": "cross_tier_escalation_refusals_explicit",
@@ -230,6 +242,20 @@
         "fixtures/tassadar/reports/tassadar_broad_internal_compute_profile_publication_report.json"
       ],
       "detail": "the current served posture remains article-only and operator/internal for plugin authority; no public plugin lane is implied by weighted control alone."
+    },
+    {
+      "posture_id": "guest_artifact_digest_bound_publication_blocked",
+      "publication_posture": "guest_artifact_digest_bound_internal_only",
+      "publication_status": "blocked",
+      "validator_hook_status": "evidence.manifest_digest_invocation_receipt_bound.v1",
+      "accepted_outcome_hook_status": "depublication_review_required",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/tassadar_post_article_starter_plugin_catalog_bundle.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_profile_publication_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
+      ],
+      "detail": "the digest-bound guest-artifact class stays explicitly publication-blocked and operator-internal until a later tranche proves any broader lane."
     },
     {
       "posture_id": "deterministic_import_profile_specific_template",
@@ -388,9 +414,10 @@
       "validation_id": "trust_tiers_machine_checkable",
       "green": true,
       "source_refs": [
-        "fixtures/tassadar/reports/tassadar_module_trust_isolation_report.json"
+        "fixtures/tassadar/reports/tassadar_module_trust_isolation_report.json",
+        "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/tassadar_post_article_starter_plugin_catalog_bundle.json"
       ],
-      "detail": "trust tiers remain machine-checkable rather than being inferred from benchmark counts or host posture."
+      "detail": "trust tiers remain machine-checkable rather than being inferred from benchmark counts or host posture, including the distinct digest-bound guest-artifact class."
     },
     {
       "validation_id": "validator_and_accepted_outcome_hooks_bound",
@@ -410,6 +437,17 @@
         "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
       ],
       "detail": "the gate keeps bounded controller closure distinct from plugin-platform closeout and refuses any claim of arbitrary public Wasm or arbitrary public tool use."
+    },
+    {
+      "validation_id": "guest_artifact_revocation_and_depublication_posture_explicit",
+      "green": true,
+      "source_refs": [
+        "fixtures/tassadar/runs/tassadar_post_article_starter_plugin_catalog_v1/tassadar_post_article_starter_plugin_catalog_bundle.json",
+        "fixtures/tassadar/reports/tassadar_module_promotion_state_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_profile_publication_report.json",
+        "fixtures/tassadar/reports/tassadar_broad_internal_compute_route_policy_report.json"
+      ],
+      "detail": "the digest-bound guest-artifact lane stays publication-blocked, revocable, and subject to later depublication review instead of inheriting host-native promotion or publication closure."
     },
     {
       "validation_id": "closure_bundle_bound_by_digest",
@@ -441,7 +479,7 @@
   "served_public_universality_allowed": false,
   "arbitrary_software_capability_allowed": false,
   "deferred_issue_ids": [],
-  "claim_boundary": "this catalog report freezes plugin authority, promotion, publication posture, and trust tiers above the canonical weighted controller without widening the claim surface. The authority and publication claim now inherits the canonical machine closure bundle by report id and digest instead of reconstructing machine identity from the controller and manifest pair alone. It keeps operator/internal posture, profile-specific named-but-suppressed routes, validator and accepted-outcome hook requirements, promotion challengeability, quarantine, revocation, and broader public refusal explicit instead of implying a served/public plugin platform or arbitrary public software execution.",
-  "summary": "post-article plugin authority gate binds machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1`, contract_status=Green, trust_tier_rows=4, promotion_rows=5, publication_posture_rows=5, observer_rows=4, validation_rows=9, closure_bundle_digest=`6dc5a888f301649cee10ccf61129784eac4337e93041c86a384a94451ac26bd9`, weighted_plugin_control_allowed=true, and deferred_issue_ids=0.",
-  "report_digest": "2e2223513ef6c9c6807a4677666a78f6c3a4428d0f8d16a10d49a2dff475d7a3"
+  "claim_boundary": "this catalog report freezes plugin authority, promotion, publication posture, and trust tiers above the canonical weighted controller without widening the claim surface. The authority and publication claim now inherits the canonical machine closure bundle by report id and digest instead of reconstructing machine identity from the controller and manifest pair alone. It keeps operator/internal posture, the one admitted digest-bound guest-artifact trust tier and blocked-publication row, profile-specific named-but-suppressed routes, validator and accepted-outcome hook requirements, promotion challengeability, quarantine, revocation, and broader public refusal explicit instead of implying a served/public plugin platform or arbitrary public software execution.",
+  "summary": "post-article plugin authority gate binds machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, canonical_route_id=`tassadar.article_route.direct_hull_cache_runtime.v1`, contract_status=Green, trust_tier_rows=5, promotion_rows=5, publication_posture_rows=6, observer_rows=4, validation_rows=10, closure_bundle_digest=`6dc5a888f301649cee10ccf61129784eac4337e93041c86a384a94451ac26bd9`, weighted_plugin_control_allowed=true, and deferred_issue_ids=0.",
+  "report_digest": "662bc8bd6c6edf663e8cfe36ca7e073c554de8babc469ed834943b6bd752e08c"
 }

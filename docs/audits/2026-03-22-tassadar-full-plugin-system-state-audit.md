@@ -90,20 +90,21 @@ explicit:
 The authority gate also stays explicit about posture instead of hiding it
 behind green implementation detail:
 
-- 4 trust-tier rows
-- 5 publication-posture rows
+- 5 trust-tier rows
+- 6 publication-posture rows
 - weighted plugin control allowed
 - plugin publication still blocked
 
 ### 2. Starter-plugin runtime
 
-The runtime-owned starter-plugin layer now has five real starter plugins:
+The runtime-owned starter-plugin layer now has six real starter plugins:
 
 - `plugin.text.url_extract`
 - `plugin.text.stats`
 - `plugin.http.fetch_text`
 - `plugin.html.extract_readable`
 - `plugin.feed.rss_atom_parse`
+- `plugin.example.echo_guest`
 
 This is not a mock catalog. Each plugin has:
 
@@ -135,15 +136,18 @@ metadata tables.
 
 ### 3. User-added starter-plugin path
 
-The repo now has two real user-added starter-plugin proofs:
+The repo now has three real user-added starter-plugin proofs:
 
 - `plugin.text.stats` for the capability-free local deterministic class
 - `plugin.http.fetch_text` for the first manual `networked_read_only` class
+- `plugin.example.echo_guest` for the bounded digest-bound guest-artifact class
 
-Together they prove two different bounded authoring paths:
+Together they prove three different bounded authoring paths:
 
 - one low-friction capability-free local deterministic path
 - one narrower manual networked path with explicit mount and replay policy
+- one digest-bound guest-artifact path with explicit trust-tier and
+  publication-blocked posture
 
 The shared proof shape is:
 
@@ -189,15 +193,16 @@ surfaces:
 The current weighted controller report keeps the strongest controller facts
 machine-legible:
 
-- 5 controller-case rows
-- 40 control-trace rows
+- 6 controller-case rows
+- 46 control-trace rows
 - 10 explicit host-negative rows
 - `weighted_plugin_control_allowed = true`
 
-The weighted controller lane also now includes two bounded admission rows:
+The weighted controller lane also now includes three bounded admission rows:
 
 - `plugin.text.stats`
 - `plugin.http.fetch_text`
+- `plugin.example.echo_guest`
 
 and it still carries explicit model-selected success traces instead of hidden
 host-only admission logic.
@@ -206,8 +211,8 @@ host-only admission logic.
 
 The starter catalog report currently freezes:
 
-- 5 starter-plugin entries
-- 5 capability rows
+- 6 starter-plugin entries
+- 6 capability rows
 - 2 bounded composition rows
 - 8 validation rows
 
@@ -376,8 +381,8 @@ The strongest honest negative statement today is:
 - the repo has not yet closed secret-backed or stateful starter-plugin
   authoring
 - the repo has not yet closed a public or general external plugin platform
-- the repo has not yet reintroduced a guest-artifact plugin path if that still
-  matters
+- the repo has not widened the guest-artifact lane beyond one narrow digest-
+  bound operator-internal proof
 
 ## Recommended Next Steps
 
@@ -417,7 +422,7 @@ automation or relaxed policy.
 
 ### 4. Expand the starter suite deliberately, not by one-off exceptions
 
-The current five-plugin starter set is coherent. The next additions should
+The current six-plugin starter set is coherent. The next additions should
 still come through the central registry and the shared derivation path instead
 of reintroducing per-surface custom wiring.
 
@@ -425,22 +430,24 @@ The highest-value near-term additions are the ones that close missing class
 coverage from the alpha memo rather than adding more variants of already-proven
 local deterministic transforms.
 
-### 5. Keep the artifact direction explicit and narrow
+### 5. Keep the guest-artifact direction explicit and narrow
 
-The current repo now has a working host-native plugin system.
+The current repo now has a working host-native plugin system plus one bounded
+digest-bound guest-artifact proof.
 
 That direction is now explicit:
 
 - current starter-plugin truth remains host-native
-- guest-artifact restoration remains later and separate
-- any future guest-artifact lane stays digest-bound, trust-tiered,
-  receipt-equivalent, and publication-blocked
+- one narrow guest-artifact starter-plugin lane now exists
+- any future guest-artifact widening still stays digest-bound, trust-tiered,
+  receipt-equivalent, revocable, and publication-blocked
 
 The follow-on guest-artifact wave should still keep its own claim boundary:
 
-- one digest-bound guest artifact
-- one bounded runtime-loading path
-- one receipt-equivalent invocation path
+- no widening beyond the single admitted digest-bound guest artifact without a
+  later explicit tranche
+- no broader runtime-loading breadth by implication
+- no broader publication posture by implication
 - no publication widening by implication
 
 That should be a deliberate product decision, not an accidental leftover from

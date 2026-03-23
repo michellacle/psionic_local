@@ -69,9 +69,9 @@ The future lane must not rely on:
 - public plugin marketplace language
 - arbitrary external binary execution claims
 
-## Direction For The Follow-On Issues
+## Current Boundaries In Repo Truth
 
-The next guest-artifact issues remain valid only inside this bounded direction:
+The bounded guest-artifact foundation now lives in:
 
 1. digest-bound manifest and identity contract
 2. bounded runtime loading path
@@ -79,7 +79,7 @@ The next guest-artifact issues remain valid only inside this bounded direction:
 4. one user-provided Wasm plugin end to end
 5. trust-tier and authority-gate rows
 
-Those issues are for one narrow admitted guest-artifact class only.
+Those contracts are for one narrow admitted guest-artifact class only.
 
 The first concrete contract for that lane now lives in:
 
@@ -89,6 +89,14 @@ The first concrete contract for that lane now lives in:
 - `crates/psionic-runtime/src/psion_plugin_guest_artifact_runtime_loading.rs`
 - `docs/PSION_PLUGIN_GUEST_ARTIFACT_INVOCATION.md`
 - `crates/psionic-runtime/src/psion_plugin_guest_artifact_invocation.rs`
+- `fixtures/tassadar/reports/tassadar_post_article_plugin_authority_promotion_publication_and_trust_tier_gate_report.json`
+- `docs/audits/2026-03-21-tassadar-post-article-plugin-authority-promotion-publication-and-trust-tier-gate.md`
+
+That means the current repo truth now includes:
+
+- one operator-reviewed digest-bound guest-artifact trust tier
+- one explicit guest-artifact blocked-publication row
+- one explicit guest-artifact revocation and later depublication-review posture
 
 The current proof is not authorization for:
 

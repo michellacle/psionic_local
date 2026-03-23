@@ -11,11 +11,11 @@
   "closure_bundle_digest": "6dc5a888f301649cee10ccf61129784eac4337e93041c86a384a94451ac26bd9",
   "contract_status": "green",
   "dependency_row_count": 9,
-  "trust_tier_row_count": 4,
+  "trust_tier_row_count": 5,
   "promotion_row_count": 5,
-  "publication_posture_row_count": 5,
+  "publication_posture_row_count": 6,
   "observer_row_count": 4,
-  "validation_row_count": 9,
+  "validation_row_count": 10,
   "deferred_issue_ids": [],
   "trust_tier_gate_green": true,
   "promotion_receipts_explicit": true,
@@ -33,6 +33,6 @@
   "plugin_publication_allowed": false,
   "served_public_universality_allowed": false,
   "arbitrary_software_capability_allowed": false,
-  "detail": "post-article plugin authority summary keeps machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, control_trace_contract_id=`tassadar.weighted_plugin.controller_trace_contract.v1`, contract_status=Green, trust_tier_rows=4, publication_posture_rows=5, validation_rows=9, closure_bundle_digest=`6dc5a888f301649cee10ccf61129784eac4337e93041c86a384a94451ac26bd9`, weighted_plugin_control_allowed=true, and deferred_issue_ids=0.",
-  "summary_digest": "4fe75d0a2be8599759ee2e9b7685919fc225510d3f20b1dd8997e69230eab41f"
+  "detail": "post-article plugin authority summary keeps machine_identity_id=`tassadar.post_article_universality_bridge.machine_identity.v1`, control_trace_contract_id=`tassadar.weighted_plugin.controller_trace_contract.v1`, contract_status=Green, trust_tier_rows=5, publication_posture_rows=6, validation_rows=10, closure_bundle_digest=`6dc5a888f301649cee10ccf61129784eac4337e93041c86a384a94451ac26bd9`, weighted_plugin_control_allowed=true, and deferred_issue_ids=0.",
+  "summary_digest": "cd17dfd68f0cf43ef4f5742be60c449455b336ea7d6436d3eb933bc979df3fe6"
 }
