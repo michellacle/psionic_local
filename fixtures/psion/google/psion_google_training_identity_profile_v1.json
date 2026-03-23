@@ -22,6 +22,8 @@
     "workload": "train"
   },
   "required_project_roles": [
+    "roles/bigquery.dataViewer",
+    "roles/bigquery.jobUser",
     "roles/logging.logWriter",
     "roles/monitoring.metricWriter"
   ],

@@ -4,7 +4,8 @@
 > after the Google launch bundle, immutable input package, checkpoint archive,
 > host observability finalizer, and validation folders landed on `main`, then
 > extended on March 23, 2026 after the first truthful accelerator-backed
-> single-node follow-up audit landed.
+> single-node follow-up audits and the query-backed run-cost follow-up audit
+> landed.
 
 This runbook is the operator entrypoint for the bounded Google-hosted `Psion`
 pilot lane.
@@ -105,9 +106,42 @@ The committed retained accelerator evidence now includes:
 - `psion_google_gpu_samples.csv`
 - `psion_google_gpu_summary.json`
 - `psion_google_accelerator_validation_receipt.json`
+- `psion_google_run_cost_receipt.json`
 - the training stage receipt
 - the training observability receipt
 - the final manifest that links all of the above by digest and remote URI
+
+## Machine-Queryable Run Cost Receipts
+
+The bounded Google lane now retains one machine-queryable per-run cost receipt
+for accelerated single-node runs.
+
+That receipt is:
+
+- `psion_google_run_cost_receipt.json`
+
+It binds:
+
+- the launch profile id
+- the observed runtime windows from the retained run timeline
+- the committed BigQuery price-profile row for that profile
+- a bounded runtime-priced estimate based on
+  `catalog profile x observed runtime`
+
+The first successful retained proofs for this receipt class are:
+
+- host-native accelerated plugin-conditioned lane:
+  `psion-g2-l4-plugin-host-native-accelerated-20260323t092812z`
+- generic accelerated single-node lane:
+  `psion-g2-l4-accelerated-20260323t094345z`
+
+This is strong enough for bounded single-node operator truth.
+
+It is not the same as:
+
+- invoice-grade billing-export truth
+- cluster-scale cost accounting
+- broad cost optimality across machine families
 
 ## Canonical Artifacts
 
@@ -141,6 +175,8 @@ The committed retained accelerator evidence now includes:
   `docs/audits/2026-03-23-openagentsgemini-first-google-accelerator-backed-single-node-psion-training-audit.md`
 - first real accelerator-backed host-native plugin-conditioned run audit:
   `docs/audits/2026-03-23-openagentsgemini-first-google-accelerator-backed-host-native-plugin-conditioned-run-audit.md`
+- query-backed Google run-cost receipt follow-up audit:
+  `docs/audits/2026-03-23-openagentsgemini-query-backed-google-single-node-cost-receipt-audit.md`
 - first real host-native plugin-conditioned run audit:
   `docs/audits/2026-03-22-openagentsgemini-first-google-host-native-plugin-conditioned-run-audit.md`
 - first real mixed plugin-conditioned run audit:
@@ -175,6 +211,18 @@ Required auth posture:
   `openagentsgemini:psion_training_finops`
 - the operator must be able to describe
   `psion-train-single-node@openagentsgemini.iam.gserviceaccount.com`
+
+Required training service-account project roles:
+
+- `roles/bigquery.dataViewer`
+- `roles/bigquery.jobUser`
+- `roles/logging.logWriter`
+- `roles/monitoring.metricWriter`
+
+Required training service-account bucket roles:
+
+- `roles/storage.objectAdmin`
+- `roles/storage.legacyBucketReader`
 
 Environment variables:
 
@@ -263,6 +311,8 @@ This command rejects:
 - missing bucket access
 - missing BigQuery FinOps access
 - missing training service-account visibility
+- missing training service-account project roles
+- missing training service-account bucket roles
 - quota-unready launch profiles
 
 Do not continue if the result is not `ready`.

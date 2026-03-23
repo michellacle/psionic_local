@@ -4,6 +4,7 @@ set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 POLICY_FILE="${REPO_ROOT}/fixtures/psion/google/psion_google_operator_preflight_policy_v1.json"
+IDENTITY_PROFILE_FILE="${REPO_ROOT}/fixtures/psion/google/psion_google_training_identity_profile_v1.json"
 QUOTA_PREFLIGHT="${REPO_ROOT}/scripts/psion-google-quota-preflight.sh"
 
 if ! command -v jq >/dev/null 2>&1; then
@@ -125,6 +126,30 @@ fi
 training_service_account="$(jq -r '.training_service_account' "${POLICY_FILE}")"
 if ! gcloud iam service-accounts describe "${training_service_account}" --format='value(email)' >/dev/null 2>&1; then
   record_error "training_service_account" "failed to describe ${training_service_account}"
+fi
+
+if [[ -f "${IDENTITY_PROFILE_FILE}" ]]; then
+  while IFS= read -r required_project_role; do
+    if ! gcloud projects get-iam-policy "${PROJECT_ID}" \
+      --flatten='bindings[].members' \
+      --filter="bindings.members:serviceAccount:${training_service_account} AND bindings.role:${required_project_role}" \
+      --format='value(bindings.role)' | grep -qx "${required_project_role}"; then
+      record_error "training_service_account_project_role" "${training_service_account} is missing required project role ${required_project_role}"
+    fi
+  done < <(jq -r '.required_project_roles[]' "${IDENTITY_PROFILE_FILE}")
+fi
+
+if [[ -f "${IDENTITY_PROFILE_FILE}" ]]; then
+  storage_bucket_url="$(jq -r '.bucket_url' "${IDENTITY_PROFILE_FILE}")"
+  while IFS= read -r required_bucket_role; do
+    if ! gcloud storage buckets get-iam-policy "${storage_bucket_url}" --format=json | \
+      jq -e \
+        --arg member "serviceAccount:${training_service_account}" \
+        --arg role "${required_bucket_role}" \
+        '.bindings[] | select(.role == $role and (.members[]? == $member))' >/dev/null; then
+      record_error "training_service_account_bucket_role" "${training_service_account} is missing required bucket role ${required_bucket_role} on ${storage_bucket_url}"
+    fi
+  done < <(jq -r '.required_bucket_roles[]' "${IDENTITY_PROFILE_FILE}")
 fi
 
 quota_preflight_json=""

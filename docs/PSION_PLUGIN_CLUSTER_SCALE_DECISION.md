@@ -5,7 +5,8 @@
 > a bounded trusted-cluster run, written 2026-03-22 after the host-native and
 > mixed Google audits plus the route/refusal hardening tranche landed, then
 > updated 2026-03-23 after the first generic and host-native accelerated
-> single-node Google audits closed.
+> single-node Google audits closed and the query-backed single-node cost
+> receipt follow-up audit landed.
 
 ## Decision
 
@@ -24,6 +25,7 @@ This decision is based directly on:
 
 - `docs/audits/2026-03-23-openagentsgemini-first-google-accelerator-backed-single-node-psion-training-audit.md`
 - `docs/audits/2026-03-23-openagentsgemini-first-google-accelerator-backed-host-native-plugin-conditioned-run-audit.md`
+- `docs/audits/2026-03-23-openagentsgemini-query-backed-google-single-node-cost-receipt-audit.md`
 - `docs/audits/2026-03-22-openagentsgemini-first-google-host-native-plugin-conditioned-run-audit.md`
 - `docs/audits/2026-03-22-openagentsgemini-first-google-mixed-plugin-conditioned-run-audit.md`
 - `docs/PSION_GOOGLE_SINGLE_GPU_RUNBOOK.md`
@@ -76,16 +78,29 @@ So the single-node accelerator prerequisite is now satisfied in the narrow
 generic and host-native form, but not in the mixed guest-artifact form that a
 stronger cluster-scale plugin claim would naturally invite.
 
-### 2. Cost truth is still partial
+### 2. Cost truth is now good enough for bounded single-node decisions, but not cluster truth
 
-Both Google audits kept the same cost boundary explicit:
+The March 23 follow-up cost audit closed the earlier single-node blind spot:
 
-- the expected billing-export table was not present
-- query-backed realized cost truth for the runs was therefore missing
+- the generic accelerated lane now retains a machine-queryable run-cost
+  receipt
+- the host-native accelerated lane now retains a machine-queryable run-cost
+  receipt
+- both receipts bind a BigQuery price-profile row to the observed runtime
+  windows for the run
 
-Cluster-scale work without query-backed realized cost truth would widen spend
-before the repo can honestly say what the single-node plugin-conditioned runs
-actually cost.
+That means the repo can now speak honestly about bounded runtime-priced
+single-node cost for the two real accelerated lanes.
+
+What is still not closed:
+
+- invoice-grade billing-export truth
+- any cluster-scale cost surface
+- a mixed guest-artifact accelerated cost baseline
+
+So cost truth is no longer the main blocker for the current single-node
+plugin-conditioned lane, but it still needs to remain explicit if the repo ever
+widens into larger or multi-host runs.
 
 ### 3. The current learned lanes are still tiny bounded lanes
 
@@ -126,8 +141,9 @@ Cluster-scale plugin-conditioned training becomes worth reconsidering only after
 all of the following are true:
 
 1. Query-backed realized cost truth exists for the generic and host-native
-   accelerated single-node lanes through billing export or an equivalent
-   machine-queryable surface.
+   accelerated single-node lanes through an equivalent machine-queryable
+   surface, and any future cluster candidate preserves at least that much
+   machine-queryable cost evidence.
 2. The mixed guest-artifact lane is either kept explicitly out of any
    scale-up claim or lands its own accelerated single-node proof with the same
    backend, utilization, and residency gates as the host-native accelerated
@@ -153,20 +169,20 @@ This decision does **not** mean:
 
 It means only this:
 
-- the next honest frontier for plugin-conditioned training is still better
-  single-node cost truth plus a clear mixed-lane acceleration decision, not a
-  trusted-cluster launch
+- the next honest frontier for plugin-conditioned training is now a clear
+  mixed-lane acceleration decision plus a materially larger curated corpus, not
+  a trusted-cluster launch
 
 ## Follow-On Direction
 
 The next plugin-conditioned execution priorities should be:
 
-1. close query-backed realized cost truth for the generic and host-native
-   accelerated single-node lanes
-2. decide whether to keep mixed guest-artifact training explicitly bounded or
+1. decide whether to keep mixed guest-artifact training explicitly bounded or
    land a real accelerated mixed lane
-3. grow the plugin-conditioned corpus beyond the current proof-sized bounded
+2. grow the plugin-conditioned corpus beyond the current proof-sized bounded
    datasets
+3. preserve the current machine-queryable single-node cost-receipt posture for
+   any later larger plugin-conditioned candidate profile
 4. rerun the cluster-scale decision only after those three facts are real
 
 Until then, the default posture stays:

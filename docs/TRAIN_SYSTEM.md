@@ -215,9 +215,10 @@ and now also has:
   record for whether plugin-conditioned training should widen from the first
   single-node Google proofs to a trusted-cluster run and currently freezes the
   answer as `not_warranted_yet` even after the first generic and host-native
-  accelerated single-node proofs, because query-backed realized cost truth, a
-  materially larger plugin-conditioned corpus, and any mixed guest-artifact
-  acceleration decision are still not closed.
+  accelerated single-node proofs, because a materially larger
+  plugin-conditioned corpus and any mixed guest-artifact acceleration decision
+  are still not closed even though the generic and host-native accelerated
+  single-node lanes now retain machine-queryable bounded run-cost receipts.
 - `docs/audits/2026-03-22-tassadar-full-plugin-system-state-audit.md` is the
   canonical current-state proof record for the bounded Tassadar plugin system
   and freezes the present authoring-class, publication, and guest-artifact
@@ -356,6 +357,12 @@ and now also has:
   authoring-class boundary, benchmark provenance shift away from the old
   metadata-only reference artifact, and post-run VM deletion boundary for the
   bounded accelerated host-native plugin lane.
+- `docs/audits/2026-03-23-openagentsgemini-query-backed-google-single-node-cost-receipt-audit.md`
+  is the canonical follow-up proof record for the Google single-node
+  machine-queryable run-cost receipt path and freezes the IAM root cause of the
+  first failed pricing lookups, the identity and preflight hardening needed to
+  close that gap, and the first retained priced follow-up runs for the generic
+  and host-native accelerated lanes.
 - `docs/audits/2026-03-22-openagentsgemini-first-google-single-gpu-pilot-run-audit.md`
   is the canonical proof record for the first bounded Google single-node
   `Psion` pilot and freezes the typed live-attempt history, retained evidence,

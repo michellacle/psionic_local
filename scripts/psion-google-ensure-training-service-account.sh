@@ -48,15 +48,15 @@ gcloud iam service-accounts add-iam-policy-binding "${SERVICE_ACCOUNT_EMAIL}" \
   --quiet >/dev/null
 
 echo "granting project roles to ${SERVICE_ACCOUNT_EMAIL}"
-for role in roles/logging.logWriter roles/monitoring.metricWriter; do
+while IFS= read -r role; do
   gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
     --member="serviceAccount:${SERVICE_ACCOUNT_EMAIL}" \
     --role="${role}" \
     --quiet >/dev/null
-done
+done < <(jq -r '.required_project_roles[]' "${IDENTITY_PROFILE_FILE}")
 
 echo "granting bucket roles to ${SERVICE_ACCOUNT_EMAIL}"
-for role in roles/storage.objectAdmin roles/storage.legacyBucketReader; do
+while IFS= read -r role; do
   applied_binding=0
   for _ in $(seq 1 10); do
     if gcloud storage buckets add-iam-policy-binding "${BUCKET_URL}" \
@@ -72,7 +72,7 @@ for role in roles/storage.objectAdmin roles/storage.legacyBucketReader; do
     echo "error: failed to bind ${role} on ${BUCKET_URL} to ${SERVICE_ACCOUNT_EMAIL}" >&2
     exit 1
   fi
-done
+done < <(jq -r '.required_bucket_roles[]' "${IDENTITY_PROFILE_FILE}")
 
 echo "updating project hygiene labels"
 project_json="$(gcloud projects describe "${PROJECT_ID}" --format=json)"
