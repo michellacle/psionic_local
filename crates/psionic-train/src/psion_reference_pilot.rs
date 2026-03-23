@@ -2191,7 +2191,7 @@ fn build_accelerated_gradient_program(
     );
     let token_embeddings = builder.input(
         TOKEN_EMBEDDING_GROUP_ID,
-        Shape::new(vec![vocab_size, hidden_size]),
+        Shape::new(vec![hidden_size, vocab_size]),
         DType::F32,
         true,
     );
@@ -2201,8 +2201,7 @@ fn build_accelerated_gradient_program(
         DType::F32,
         true,
     );
-    let transposed_embeddings = builder.permute(&token_embeddings, vec![1, 0])?;
-    let logits_2d = builder.matmul(&hidden_inputs, &transposed_embeddings)?;
+    let logits_2d = builder.matmul(&hidden_inputs, &token_embeddings)?;
     let logits = builder.add(&logits_2d, &lm_head_bias)?;
     let graph = builder.finish(vec![logits.clone()]);
     let backward_plan = graph.backward_plan(logits.id())?;
@@ -2231,7 +2230,11 @@ fn build_accelerated_gradient_batch(
         ),
         (
             program.token_embeddings_tensor_id,
-            TensorData::F32(model.token_embeddings.clone()),
+            TensorData::F32(transpose_matrix(
+                model.token_embeddings.as_slice(),
+                model.descriptor.config.vocab_size,
+                model.descriptor.config.hidden_size,
+            )?),
         ),
         (
             program.lm_head_bias_tensor_id,
@@ -2304,7 +2307,7 @@ fn build_accelerated_gradient_batch(
 
     let backward_result =
         cuda_backend.compile_and_execute(&program.backward_plan.gradient_graph, &backward_inputs)?;
-    let mut token_gradients = read_cuda_gradient(
+    let transposed_token_gradients = read_cuda_gradient(
         &backward_result.outputs,
         program
             .backward_plan
@@ -2315,6 +2318,11 @@ fn build_accelerated_gradient_batch(
                 ),
             })?,
         TOKEN_EMBEDDING_GROUP_ID,
+    )?;
+    let mut token_gradients = transpose_matrix(
+        transposed_token_gradients.as_slice(),
+        model.descriptor.config.hidden_size,
+        model.descriptor.config.vocab_size,
     )?;
     let hidden_input_gradients = read_cuda_gradient(
         &backward_result.outputs,
@@ -2459,6 +2467,30 @@ fn dense_values(data: &TensorData, context: &str) -> Result<Vec<f32>, PsionRefer
             message: format!("{context} must be dense f32"),
         }),
     }
+}
+
+fn transpose_matrix(
+    values: &[f32],
+    rows: usize,
+    cols: usize,
+) -> Result<Vec<f32>, PsionReferencePilotError> {
+    let expected_len = rows.saturating_mul(cols);
+    if values.len() != expected_len {
+        return Err(PsionReferencePilotError::Serialization {
+            message: format!(
+                "matrix transpose length mismatch: expected {}, found {}",
+                expected_len,
+                values.len()
+            ),
+        });
+    }
+    let mut transposed = vec![0.0_f32; expected_len];
+    for row in 0..rows {
+        for col in 0..cols {
+            transposed[col * rows + row] = values[row * cols + col];
+        }
+    }
+    Ok(transposed)
 }
 
 fn dense_logits_loss_seed(
