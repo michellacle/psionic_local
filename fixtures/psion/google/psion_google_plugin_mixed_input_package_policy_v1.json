@@ -1,0 +1,49 @@
+{
+  "schema_version": "psion.google_plugin_conditioned_input_package_policy.v1",
+  "policy_id": "openagentsgemini-psion-google-plugin-mixed-inputs-v1",
+  "bucket_url": "gs://openagentsgemini-psion-train-us-central1",
+  "descriptor_uri": "gs://openagentsgemini-psion-train-us-central1/manifests/psion_google_plugin_mixed_input_package_v1.json",
+  "archive_prefix": "gs://openagentsgemini-psion-train-us-central1/runs/staging/input_packages",
+  "package_id_prefix": "psion-google-plugin-mixed-inputs",
+  "materialization": {
+    "mode": "stage_to_local_disk_overlay_repo",
+    "max_local_working_set_gb": 3,
+    "overlay_target": "repo_clone"
+  },
+  "benchmark_execution_posture": {
+    "on_host": [
+      "psion_plugin_discovery_selection_benchmark_v1",
+      "psion_plugin_argument_construction_benchmark_v1",
+      "psion_plugin_sequencing_benchmark_v1",
+      "psion_plugin_refusal_request_structure_benchmark_v1",
+      "psion_plugin_result_interpretation_benchmark_v1",
+      "psion_plugin_guest_plugin_benchmark_v1"
+    ],
+    "post_hoc_allowed": [
+      "Mixed capability publication may cite the retained guest benchmark bundle and the retained mixed capability matrix after the bounded Google run completes."
+    ]
+  },
+  "repo_overlay_paths": [
+    "fixtures/psion/plugins",
+    "fixtures/psion/benchmarks/psion_plugin_argument_construction_benchmark_v1",
+    "fixtures/psion/benchmarks/psion_plugin_discovery_selection_benchmark_v1",
+    "fixtures/psion/benchmarks/psion_plugin_refusal_request_structure_benchmark_v1",
+    "fixtures/psion/benchmarks/psion_plugin_result_interpretation_benchmark_v1",
+    "fixtures/psion/benchmarks/psion_plugin_sequencing_benchmark_v1",
+    "fixtures/psion/benchmarks/psion_plugin_guest_plugin_benchmark_v1"
+  ],
+  "key_digest_paths": {
+    "plugin_mixed_dataset_bundle_sha256": "fixtures/psion/plugins/datasets/psion_plugin_mixed_conditioned_dataset_v1/psion_plugin_mixed_conditioned_dataset_bundle.json",
+    "plugin_mixed_contamination_bundle_sha256": "fixtures/psion/plugins/datasets/psion_plugin_mixed_contamination_controls_v1/psion_plugin_mixed_contamination_bundle.json",
+    "plugin_mixed_reference_run_bundle_sha256": "fixtures/psion/plugins/training/psion_plugin_mixed_reference_lane_v1/psion_plugin_mixed_reference_run_bundle.json",
+    "plugin_mixed_capability_matrix_sha256": "fixtures/psion/plugins/capability/psion_plugin_mixed_capability_matrix_v2.json",
+    "plugin_mixed_served_posture_sha256": "fixtures/psion/plugins/serve/psion_plugin_mixed_served_posture_v2.json",
+    "plugin_mixed_compact_decoder_config_sha256": "fixtures/psion/plugins/models/psion_plugin_conditioned_mixed_compact_decoder_reference_config_v1.json",
+    "plugin_guest_benchmark_bundle_sha256": "fixtures/psion/benchmarks/psion_plugin_guest_plugin_benchmark_v1/psion_plugin_guest_plugin_benchmark_bundle.json",
+    "plugin_discovery_benchmark_bundle_sha256": "fixtures/psion/benchmarks/psion_plugin_discovery_selection_benchmark_v1/psion_plugin_discovery_selection_benchmark_bundle.json",
+    "plugin_argument_benchmark_bundle_sha256": "fixtures/psion/benchmarks/psion_plugin_argument_construction_benchmark_v1/psion_plugin_argument_construction_benchmark_bundle.json",
+    "plugin_sequencing_benchmark_bundle_sha256": "fixtures/psion/benchmarks/psion_plugin_sequencing_benchmark_v1/psion_plugin_sequencing_benchmark_bundle.json",
+    "plugin_refusal_benchmark_bundle_sha256": "fixtures/psion/benchmarks/psion_plugin_refusal_request_structure_benchmark_v1/psion_plugin_refusal_request_structure_benchmark_bundle.json",
+    "plugin_result_interpretation_benchmark_bundle_sha256": "fixtures/psion/benchmarks/psion_plugin_result_interpretation_benchmark_v1/psion_plugin_result_interpretation_benchmark_bundle.json"
+  }
+}
