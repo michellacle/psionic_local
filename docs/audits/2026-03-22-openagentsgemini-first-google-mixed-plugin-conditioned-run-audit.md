@@ -4,6 +4,11 @@
 > real Google-hosted mixed host-native plus guest-artifact plugin-conditioned
 > Psion run completed on `openagentsgemini` and the instance was deleted.
 
+Later March 23 accelerated audits for the generic `Psion` lane and the
+host-native plugin-conditioned lane do **not** widen this document into an
+accelerator-backed mixed proof. This audit remains the canonical CPU-bound
+mixed operator and boundary proof only.
+
 ## Scope
 
 This audit covers one bounded real Google single-node execution of the mixed

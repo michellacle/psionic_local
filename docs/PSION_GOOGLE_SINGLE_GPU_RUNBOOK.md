@@ -61,12 +61,20 @@ The first plugin-conditioned accelerated Google profile is also committed:
 - trainer lane: `psion_plugin_host_native_accelerated`
 - expected execution backend: `cuda`
 
-The first successful retained run on that lane is:
+The first successful retained run on the default accelerated lane is:
 
 - Google run id: `psion-g2-l4-accelerated-20260323t074419z`
 - result classification: `bounded_success`
 - audit:
   `docs/audits/2026-03-23-openagentsgemini-first-google-accelerator-backed-single-node-psion-training-audit.md`
+
+The first successful retained run on the host-native plugin-conditioned
+accelerated lane is:
+
+- Google run id: `psion-g2-l4-plugin-host-native-accelerated-20260323t082304z`
+- result classification: `bounded_success`
+- audit:
+  `docs/audits/2026-03-23-openagentsgemini-first-google-accelerator-backed-host-native-plugin-conditioned-run-audit.md`
 
 ## Accelerator-Backed Pass Criteria
 
@@ -360,6 +368,10 @@ bash scripts/psion-google-launch-single-node.sh \
 This lane keeps the same single-node archive, observability, and teardown
 policy but swaps the CPU-reference plugin receipt path for the real accelerated
 host-native plugin-conditioned trainer.
+
+It does not widen the mixed guest-artifact lane by implication. The committed
+mixed Google lane remains CPU-bound and is still not a valid accelerator-backed
+training proof target until a later accelerated mixed lane exists.
 
 This historical lane remains acceptable for bounded operator rehearsals and
 CPU-reference evidence retention. It is no longer an acceptable primary target

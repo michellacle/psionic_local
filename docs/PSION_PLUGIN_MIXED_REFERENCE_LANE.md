@@ -10,14 +10,19 @@ same retained run bundle.
 
 It is still intentionally narrow.
 
+As of 2026-03-23, the repo also has a truthful accelerated single-node
+host-native plugin-conditioned proof. That newer host-native accelerated proof
+does not widen this mixed reference lane into accelerator-backed mixed
+training.
+
 The lane does **not** widen publication posture or claim broad guest-artifact
 competence. It only proves that the current bounded training substrate can bind
 to the mixed dataset identity, train one mixed learned artifact, and compare
 that bounded result against the committed host-native reference lane.
 
-It also does **not** claim accelerator-backed plugin-conditioned training. The
-current mixed reference lane is a bounded learned comparison artifact and
-evidence lane, not a valid Google GPU training proof target.
+It also does **not** claim accelerator-backed mixed plugin-conditioned
+training. The current mixed reference lane is a bounded learned comparison
+artifact and evidence lane, not a valid Google GPU training proof target.
 
 ## Canonical Artifacts
 
@@ -79,6 +84,7 @@ This issue does not yet claim:
 - `networked_read_only` authoring closure
 - secret-backed or stateful plugin competence
 - Google operator proof for the mixed lane
+- accelerator-backed mixed guest-artifact training proof
 - cluster-scale plugin-conditioned training readiness
 
 It is only the first truthful bounded mixed reference lane.
@@ -98,6 +104,14 @@ and served posture, and keeps the claim boundary explicit:
 - the lane was still CPU-bound on the L4 host, so this is not yet
   accelerator-backed throughput proof
 
-That CPU-bound mixed run remains valid as an operator and boundary proof. It is
-not a valid GPU-backed training proof until a later accelerated mixed or
-host-native lane is wired to a real CUDA trainer.
+The later host-native accelerated proof now lives at:
+
+- `docs/audits/2026-03-23-openagentsgemini-first-google-accelerator-backed-host-native-plugin-conditioned-run-audit.md`
+
+That newer host-native proof closes the single-node accelerator prerequisite
+for the proved host-native class only. It does not turn the mixed lane into an
+accelerator-backed mixed proof by implication.
+
+This CPU-bound mixed run remains valid as an operator and boundary proof. It is
+not a valid GPU-backed mixed training proof until a later accelerated mixed
+lane exists.
