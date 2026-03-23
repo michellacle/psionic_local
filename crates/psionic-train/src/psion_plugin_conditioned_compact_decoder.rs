@@ -28,12 +28,18 @@ pub const PSION_PLUGIN_CONDITIONED_REFERENCE_LANE_ID: &str =
 /// Stable lane identifier for the first mixed plugin-conditioned compact-decoder config.
 pub const PSION_PLUGIN_CONDITIONED_MIXED_REFERENCE_LANE_ID: &str =
     "psion_plugin_conditioned_mixed_reference";
+/// Stable lane identifier for the first accelerated host-native plugin-conditioned compact-decoder config.
+pub const PSION_PLUGIN_CONDITIONED_HOST_NATIVE_ACCELERATED_LANE_ID: &str =
+    "psion_plugin_host_native_accelerated";
 /// Stable model id for the first plugin-conditioned compact-decoder reference config.
 pub const PSION_PLUGIN_CONDITIONED_REFERENCE_MODEL_ID: &str =
     "psion-plugin-conditioned-compact-decoder-reference-v1";
 /// Stable model id for the first mixed plugin-conditioned compact-decoder reference config.
 pub const PSION_PLUGIN_CONDITIONED_MIXED_REFERENCE_MODEL_ID: &str =
     "psion-plugin-conditioned-mixed-compact-decoder-reference-v1";
+/// Stable model id for the first accelerated host-native plugin-conditioned compact-decoder config.
+pub const PSION_PLUGIN_CONDITIONED_HOST_NATIVE_ACCELERATED_MODEL_ID: &str =
+    "psion-plugin-conditioned-host-native-accelerated-v1";
 /// Stable revision for the first plugin-conditioned compact-decoder reference config.
 pub const PSION_PLUGIN_CONDITIONED_REFERENCE_REVISION: &str = "plugin-conditioned-v1";
 /// Stable tokenizer id reused for the first plugin-conditioned compact-decoder reference config.
@@ -461,6 +467,30 @@ pub fn record_psion_plugin_conditioned_mixed_compact_decoder_reference_config(
             export_directory_name: "psion_plugin_conditioned_mixed_compact_decoder_reference",
             checkpoint_detail:
                 "Checkpoint and export naming stay on the shared compact-decoder file contract while the checkpoint family and export directory are explicitly bound to the first mixed host-native plus guest-artifact lane.",
+        },
+        summary,
+    )
+}
+
+/// Records the first accelerated host-native plugin-conditioned compact-decoder config.
+pub fn record_psion_plugin_conditioned_host_native_accelerated_compact_decoder_config(
+    stage_manifest: &PsionPluginConditionedSftStageManifest,
+    stage_run_bundle_ref: &str,
+    summary: impl Into<String>,
+) -> Result<
+    PsionPluginConditionedCompactDecoderReferenceConfig,
+    PsionPluginConditionedCompactDecoderError,
+> {
+    record_psion_plugin_conditioned_compact_decoder_reference_config_for_lane(
+        stage_manifest,
+        PsionPluginConditionedReferenceLaneProfile {
+            lane_id: PSION_PLUGIN_CONDITIONED_HOST_NATIVE_ACCELERATED_LANE_ID,
+            model_id: PSION_PLUGIN_CONDITIONED_HOST_NATIVE_ACCELERATED_MODEL_ID,
+            stage_run_bundle_ref,
+            checkpoint_ref_prefix: "checkpoint://psion/plugin_host_native_accelerated",
+            export_directory_name: "psion_plugin_host_native_accelerated",
+            checkpoint_detail:
+                "Checkpoint and export naming stay on the shared compact-decoder file contract while the checkpoint family and export directory are explicitly bound to the first accelerated host-native plugin-conditioned lane.",
         },
         summary,
     )

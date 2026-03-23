@@ -89,6 +89,31 @@
       }
     },
     {
+      "profile_id": "g2_l4_single_node_plugin_host_native_accelerated",
+      "profile_label": "g2-l4-plugin-host-native-accelerated",
+      "trainer_lane_id": "psion_plugin_host_native_accelerated",
+      "expected_execution_backend": "cuda",
+      "input_package_descriptor_uri": "gs://openagentsgemini-psion-train-us-central1/manifests/psion_google_plugin_host_native_accelerated_input_package_v1.json",
+      "machine_type": "g2-standard-8",
+      "accelerator_type": "nvidia-l4",
+      "accelerator_count": 1,
+      "boot_disk_type": "pd-balanced",
+      "boot_disk_gb": 200,
+      "low_disk_watermark_gb": 40,
+      "zone_fallback_order": [
+        "us-central1-a",
+        "us-central1-b",
+        "us-central1-c"
+      ],
+      "declared_run_cost_ceiling_usd": 25.0,
+      "startup_policy_overrides": {
+        "pre_training_command": "cargo build -p psionic-train --example psion_google_plugin_host_native_accelerated_run",
+        "training_command": "\"$CARGO_TARGET_DIR/debug/examples/psion_google_plugin_host_native_accelerated_run\" \"$PSION_OUTPUT_DIR\"",
+        "post_training_archive_command": "bash \"$PSION_REPO_DIR/scripts/psion-google-archive-plugin-conditioned-run.sh\" --stem psion_plugin_host_native_accelerated --manifest-out \"$PSION_SCRATCH_DIR/psion_google_checkpoint_archive_manifest.json\" \"$PSION_OUTPUT_DIR\"",
+        "post_training_restore_command": "__none__"
+      }
+    },
+    {
       "profile_id": "a2_a100_single_node",
       "profile_label": "a2-a100",
       "trainer_lane_id": "psion_reference_pilot_bundle",

@@ -324,12 +324,18 @@ boot_disk_type="$(jq -r '.boot_disk_type' <<<"${profile_json}")"
 boot_disk_gb="$(jq -r '.boot_disk_gb' <<<"${profile_json}")"
 low_disk_watermark_gb="$(jq -r '.low_disk_watermark_gb' <<<"${profile_json}")"
 declared_run_cost_ceiling_usd="$(jq -r '.declared_run_cost_ceiling_usd' <<<"${profile_json}")"
+profile_input_package_descriptor_uri="$(
+  jq -r '.input_package_descriptor_uri // empty' <<<"${profile_json}"
+)"
 profile_pre_training_command="$(jq -r '.startup_policy_overrides.pre_training_command // empty' <<<"${profile_json}")"
 profile_training_command="$(jq -r '.startup_policy_overrides.training_command // empty' <<<"${profile_json}")"
 profile_post_training_archive_command="$(jq -r '.startup_policy_overrides.post_training_archive_command // empty' <<<"${profile_json}")"
 profile_post_training_restore_command="$(jq -r '.startup_policy_overrides.post_training_restore_command // empty' <<<"${profile_json}")"
 if [[ -n "${profile_pre_training_command}" ]]; then
   pre_training_command="${profile_pre_training_command}"
+fi
+if [[ -n "${profile_input_package_descriptor_uri}" ]]; then
+  input_package_descriptor_uri="${profile_input_package_descriptor_uri}"
 fi
 if [[ -n "${profile_training_command}" ]]; then
   training_command="${profile_training_command}"
