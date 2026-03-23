@@ -328,10 +328,14 @@ fi
 if [[ -n "${TRAINING_COMMAND_OVERRIDE}" ]]; then
   training_command="${TRAINING_COMMAND_OVERRIDE}"
 fi
-if [[ -n "${POST_TRAINING_ARCHIVE_COMMAND_OVERRIDE}" ]]; then
+if [[ "${POST_TRAINING_ARCHIVE_COMMAND_OVERRIDE}" == "__none__" ]]; then
+  post_training_archive_command=""
+elif [[ -n "${POST_TRAINING_ARCHIVE_COMMAND_OVERRIDE}" ]]; then
   post_training_archive_command="${POST_TRAINING_ARCHIVE_COMMAND_OVERRIDE}"
 fi
-if [[ -n "${POST_TRAINING_RESTORE_COMMAND_OVERRIDE}" ]]; then
+if [[ "${POST_TRAINING_RESTORE_COMMAND_OVERRIDE}" == "__none__" ]]; then
+  post_training_restore_command=""
+elif [[ -n "${POST_TRAINING_RESTORE_COMMAND_OVERRIDE}" ]]; then
   post_training_restore_command="${POST_TRAINING_RESTORE_COMMAND_OVERRIDE}"
 fi
 
