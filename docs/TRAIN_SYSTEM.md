@@ -211,6 +211,11 @@ and now also has:
   committed regression rows, explicit zero-bps overdelegation budget, and
   no-implicit-execution failure cases that later operator or cluster decisions
   must cite instead of narrative-only confidence.
+- `docs/PSION_PLUGIN_CLUSTER_SCALE_DECISION.md` is the canonical decision
+  record for whether plugin-conditioned training should widen from the first
+  single-node Google proofs to a trusted-cluster run and currently freezes the
+  answer as `not_warranted_yet` until accelerator-backed single-node throughput
+  and query-backed realized cost truth both exist.
 - `docs/audits/2026-03-22-tassadar-full-plugin-system-state-audit.md` is the
   canonical current-state proof record for the bounded Tassadar plugin system
   and freezes the present authoring-class, publication, and guest-artifact
