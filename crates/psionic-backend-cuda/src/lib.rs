@@ -2940,6 +2940,17 @@ struct CudaHostFallbackOpProfile {
     count: u64,
     logical_values: u64,
     elapsed_ms: u64,
+    cases: BTreeMap<String, CudaHostFallbackCaseProfile>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct CudaHostFallbackCaseProfile {
+    detail: String,
+    output_shape: Vec<usize>,
+    output_dtype: DType,
+    count: u64,
+    logical_values: u64,
+    elapsed_ms: u64,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
@@ -2948,11 +2959,36 @@ struct CudaHostFallbackExecutionProfile {
 }
 
 impl CudaHostFallbackExecutionProfile {
-    fn record(&mut self, label: &str, logical_values: u64, elapsed: Duration) {
+    fn record(&mut self, step: &ExecutionStep, elapsed: Duration) {
+        let label = step.op.label();
+        let logical_values = step.spec.shape().element_count() as u64;
         let entry = self.ops.entry(label.to_string()).or_default();
         entry.count = entry.count.saturating_add(1);
         entry.logical_values = entry.logical_values.saturating_add(logical_values);
         entry.elapsed_ms = entry
+            .elapsed_ms
+            .saturating_add(elapsed.as_millis().try_into().unwrap_or(u64::MAX));
+        let detail = host_fallback_step_detail(&step.op);
+        let case_key = format!(
+            "{}|{:?}|{:?}",
+            detail,
+            step.spec.shape().dims(),
+            step.spec.dtype()
+        );
+        let case = entry
+            .cases
+            .entry(case_key)
+            .or_insert_with(|| CudaHostFallbackCaseProfile {
+                detail,
+                output_shape: step.spec.shape().dims().to_vec(),
+                output_dtype: step.spec.dtype(),
+                count: 0,
+                logical_values: 0,
+                elapsed_ms: 0,
+            });
+        case.count = case.count.saturating_add(1);
+        case.logical_values = case.logical_values.saturating_add(logical_values);
+        case.elapsed_ms = case
             .elapsed_ms
             .saturating_add(elapsed.as_millis().try_into().unwrap_or(u64::MAX));
     }
@@ -2981,7 +3017,7 @@ fn append_host_fallback_profile_report(
         return Ok(());
     }
     let mut report = format!(
-        "{{\"scope_window\":\"psionic_cuda_host_fallback_profile_v1\",\"pid\":{},\"plan_steps\":{},\"plan_outputs\":{},\"total_host_fallback_ms\":{},\"ops\":[",
+        "{{\"scope_window\":\"psionic_cuda_host_fallback_profile_v2\",\"pid\":{},\"plan_steps\":{},\"plan_outputs\":{},\"total_host_fallback_ms\":{},\"ops\":[",
         std::process::id(),
         plan.steps.len(),
         plan.outputs.len(),
@@ -2992,9 +3028,24 @@ fn append_host_fallback_profile_report(
             report.push(',');
         }
         report.push_str(&format!(
-            "{{\"label\":\"{}\",\"count\":{},\"logical_values\":{},\"elapsed_ms\":{}}}",
+            "{{\"label\":\"{}\",\"count\":{},\"logical_values\":{},\"elapsed_ms\":{},\"cases\":[",
             label, op_profile.count, op_profile.logical_values, op_profile.elapsed_ms
         ));
+        for (case_index, case) in op_profile.cases.values().enumerate() {
+            if case_index > 0 {
+                report.push(',');
+            }
+            report.push_str(&format!(
+                "{{\"detail\":\"{}\",\"output_shape\":{},\"output_dtype\":\"{}\",\"count\":{},\"logical_values\":{},\"elapsed_ms\":{}}}",
+                case.detail,
+                json_usize_array(case.output_shape.as_slice()),
+                dtype_label(case.output_dtype),
+                case.count,
+                case.logical_values,
+                case.elapsed_ms
+            ));
+        }
+        report.push_str("]}");
     }
     report.push_str("]}");
     let mut file = OpenOptions::new()
@@ -3024,13 +3075,44 @@ where
     let started = Instant::now();
     let output = op()?;
     if let Some(profile) = profile.as_mut() {
-        profile.record(
-            step.op.label(),
-            step.spec.shape().element_count() as u64,
-            started.elapsed(),
-        );
+        profile.record(step, started.elapsed());
     }
     Ok(output)
+}
+
+fn host_fallback_step_detail(op: &ExecutionOp) -> String {
+    match op {
+        ExecutionOp::Permute { axes } => format!("axes={}", json_usize_csv(axes)),
+        ExecutionOp::ReduceSum { axis } => match axis {
+            Some(axis) => format!("axis={axis}"),
+            None => String::from("axis=all"),
+        },
+        ExecutionOp::Cast { dtype } => format!("target_dtype={}", dtype_label(*dtype)),
+        ExecutionOp::BackendExtension { op } => format!("{op:?}"),
+        _ => String::from("default"),
+    }
+}
+
+fn json_usize_csv(values: &[usize]) -> String {
+    values
+        .iter()
+        .map(ToString::to_string)
+        .collect::<Vec<_>>()
+        .join(",")
+}
+
+fn json_usize_array(values: &[usize]) -> String {
+    format!("[{}]", json_usize_csv(values))
+}
+
+fn dtype_label(dtype: DType) -> &'static str {
+    match dtype {
+        DType::F32 => "f32",
+        DType::F16 => "f16",
+        DType::BF16 => "bf16",
+        DType::I32 => "i32",
+        DType::I8 => "i8",
+    }
 }
 
 impl AvailableCudaBackend {

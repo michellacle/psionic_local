@@ -76,6 +76,12 @@ The important narrowed conclusion is:
   replay family: `permute`, `reduce_sum`, the attention backward family, and
   `rotary_embedding_backward`
 
+The profile sink itself is now also wider than the receipts captured in this
+audit. Current `main` emits `psionic_cuda_host_fallback_profile_v2`, which
+keeps the per-op totals above and also preserves per-case output shape, dtype,
+and op-detail signatures so later H100 reruns can target the remaining
+fallback family mechanically instead of inferring shapes by log reading.
+
 ## Honest Boundary
 
 This does not close `#454`.
