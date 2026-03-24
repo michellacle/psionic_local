@@ -20,6 +20,11 @@ submit this?” decision.
 - `ParameterGolfFinalReadinessAuditReport`
 - `build_parameter_golf_final_readiness_audit_report(...)`
 
+`psionic-train` now also ships:
+
+- `crates/psionic-train/examples/parameter_golf_record_candidate_campaign_report.rs`
+- `crates/psionic-train/examples/parameter_golf_final_readiness_audit.rs`
+
 These surfaces are intentionally narrower than a green contest claim. They do
 not replace the real hardware evidence. They keep the later campaign and final
 readiness steps machine-readable once that evidence exists.
@@ -47,6 +52,18 @@ The resulting campaign report makes the remaining gap explicit:
 - `ready_for_readiness_audit`
 - or `blocked` with ordered blocked reasons
 
+Build one campaign report directly from the frozen candidate config plus paired
+run-evidence and promotion-receipt JSONs:
+
+```bash
+cargo run -p psionic-train --example parameter_golf_record_candidate_campaign_report -- \
+  campaign.parameter_golf.record_candidate.v1 \
+  /tmp/frozen_candidate.json \
+  /tmp/parameter_golf_record_candidate_campaign.json \
+  /tmp/run_evidence_1.json /tmp/promotion_receipt_1.json \
+  /tmp/run_evidence_2.json /tmp/promotion_receipt_2.json
+```
+
 ## Final Readiness Audit
 
 The final readiness audit composes:
@@ -67,6 +84,17 @@ The audit then emits:
 
 - `ready_to_submit`
 - or `blocked` with ordered blocked reasons
+
+Build the final readiness audit directly from the campaign report plus the
+existing PR-bundle and local-clone dry-run reports:
+
+```bash
+cargo run -p psionic-train --example parameter_golf_final_readiness_audit -- \
+  /tmp/parameter_golf_record_candidate_campaign.json \
+  fixtures/parameter_golf/reports/parameter_golf_final_pr_bundle.json \
+  fixtures/parameter_golf/reports/parameter_golf_local_clone_dry_run.json \
+  /tmp/parameter_golf_final_readiness_audit.json
+```
 
 This is the intended boundary. Psionic now has one typed final decision
 surface, but the surface only turns green when the upstream evidence is
