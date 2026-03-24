@@ -11049,6 +11049,48 @@ mod platform {
             )))
         }
 
+        pub(super) fn encode_parameter_golf_token_embedding_lookup(
+            &mut self,
+            _token_ids: &PlatformBuffer,
+            _token_embedding: &PlatformBuffer,
+            _row_count: usize,
+            _vocab_size: usize,
+            _width: usize,
+            _output: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            Err(RuntimeError::Backend(String::from(
+                "cuda quantized text-generation kernels require Linux CUDA support",
+            )))
+        }
+
+        pub(super) fn encode_parameter_golf_token_embedding_lookup_bf16_to_f32(
+            &mut self,
+            _token_ids: &PlatformBuffer,
+            _token_embedding: &PlatformBuffer,
+            _row_count: usize,
+            _vocab_size: usize,
+            _width: usize,
+            _output: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            Err(RuntimeError::Backend(String::from(
+                "cuda quantized text-generation kernels require Linux CUDA support",
+            )))
+        }
+
+        pub(super) fn encode_parameter_golf_token_embedding_lookup_backward(
+            &mut self,
+            _token_ids: &PlatformBuffer,
+            _grad_output: &PlatformBuffer,
+            _row_count: usize,
+            _vocab_size: usize,
+            _width: usize,
+            _output: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            Err(RuntimeError::Backend(String::from(
+                "cuda quantized text-generation kernels require Linux CUDA support",
+            )))
+        }
+
         pub(super) fn encode_parameter_golf_projection_loss_backward(
             &mut self,
             _logits: &PlatformBuffer,
