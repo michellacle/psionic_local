@@ -78,6 +78,18 @@ impl ParameterGolfDistributedStepObservation {
     }
 }
 
+/// One observed runtime memory posture used to widen the distributed receipt
+/// beyond the earlier analytic-only peak estimate.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ParameterGolfDistributedMemoryObservation {
+    /// Observed peak device bytes per worker.
+    pub peak_device_bytes_per_worker: u64,
+    /// Observed peak host bytes per worker.
+    pub peak_host_bytes_per_worker: u64,
+    /// Plain-language source for the observation.
+    pub source: String,
+}
+
 /// Config for the distributed `8xH100` Parameter Golf receipt lane.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ParameterGolfDistributed8xH100Config {
@@ -91,6 +103,10 @@ pub struct ParameterGolfDistributed8xH100Config {
     pub thresholds: ParameterGolfDistributedChallengeThresholds,
     /// Ordered measured step observations.
     pub step_observations: Vec<ParameterGolfDistributedStepObservation>,
+    /// Observed runtime memory posture when the lane has real execution
+    /// telemetry instead of only the analytic optimizer-contract estimate.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub memory_observation: Option<ParameterGolfDistributedMemoryObservation>,
     /// Observed validation duration.
     pub validation_observed_ms: u64,
     /// Observed export or roundtrip duration.
@@ -107,6 +123,7 @@ impl ParameterGolfDistributed8xH100Config {
             geometry: ParameterGolfBatchGeometry::challenge_distributed_8xh100_defaults(),
             thresholds: ParameterGolfDistributedChallengeThresholds::challenge_8xh100(),
             step_observations: Vec::new(),
+            memory_observation: None,
             validation_observed_ms: 0,
             export_observed_ms: 0,
         }
@@ -130,6 +147,15 @@ impl ParameterGolfDistributed8xH100Config {
                         observation.global_step,
                         observation.finished_at_ms,
                         observation.started_at_ms
+                    ),
+                });
+            }
+        }
+        if let Some(memory_observation) = &self.memory_observation {
+            if memory_observation.source.trim().is_empty() {
+                return Err(ParameterGolfDistributedLaneError::InvalidConfig {
+                    message: String::from(
+                        "memory_observation.source must be non-empty when observed memory is supplied",
                     ),
                 });
             }
@@ -227,15 +253,23 @@ pub fn benchmark_parameter_golf_distributed_8xh100(
         &config.geometry,
         &config.thresholds,
         total_parameter_count,
+        config.memory_observation.as_ref(),
     )?;
     let timing = build_timing_receipt(config);
     let mut boundary_notes = vec![String::from(
         "This receipt mirrors the public train_gpt.py 8xH100 posture: replicated DDP, WORLD_SIZE=8, grad_accum_steps=1, NCCL-style all-reduce for training and validation.",
     )];
     boundary_notes.extend(cuda_coverage_report.boundary_notes());
-    boundary_notes.push(String::from(
-        "The memory receipt is an analytic upper bound over the distributed optimizer contract; it is not a direct CUDA allocator trace.",
-    ));
+    if let Some(memory_observation) = config.memory_observation.as_ref() {
+        boundary_notes.push(format!(
+            "The memory receipt binds observed runtime peak bytes from `{}` while still using the analytic optimizer contract for the logical parameter, gradient, optimizer-state, master-weight, and activation breakdown.",
+            memory_observation.source
+        ));
+    } else {
+        boundary_notes.push(String::from(
+            "The memory receipt is an analytic upper bound over the distributed optimizer contract; it is not a direct CUDA allocator trace.",
+        ));
+    }
 
     let refusal = inventory_refusal
         .or_else(|| {
@@ -566,6 +600,7 @@ fn build_memory_receipt(
     geometry: &ParameterGolfBatchGeometry,
     thresholds: &ParameterGolfDistributedChallengeThresholds,
     total_parameter_count: u64,
+    memory_observation: Option<&ParameterGolfDistributedMemoryObservation>,
 ) -> Result<ParameterGolfDistributedMemoryReceipt, ParameterGolfDistributedLaneError> {
     let optimizer_plan = parameter_golf_optimizer_plan(descriptor, hyperparameters)?;
     let parameter_groups = optimizer_plan
@@ -663,8 +698,21 @@ fn build_memory_receipt(
         contract,
     )?;
     let memory_plan = run.memory_plan;
+    let (measurement_posture, peak_device_bytes_per_worker, peak_host_bytes_per_worker) =
+        match memory_observation {
+            Some(observation) => (
+                String::from("observed_runtime_peak_plus_analytic_state_breakdown"),
+                observation.peak_device_bytes_per_worker,
+                observation.peak_host_bytes_per_worker,
+            ),
+            None => (
+                String::from("analytic_optimizer_contract_upper_bound"),
+                memory_plan.peak_device_bytes_per_worker,
+                memory_plan.peak_host_bytes_per_worker,
+            ),
+        };
     Ok(ParameterGolfDistributedMemoryReceipt {
-        measurement_posture: String::from("analytic_optimizer_contract_upper_bound"),
+        measurement_posture,
         declared_device_budget_bytes_per_worker: thresholds.max_peak_device_bytes_per_worker,
         declared_host_budget_bytes_per_worker: thresholds.max_peak_host_bytes_per_worker,
         parameter_logical_bytes: memory_plan.parameter_logical_bytes,
@@ -673,13 +721,12 @@ fn build_memory_receipt(
         master_weight_logical_bytes: memory_plan.master_weight_logical_bytes,
         activation_peak_bytes: memory_plan.activation_peak_bytes,
         activation_bytes_saved: memory_plan.activation_bytes_saved,
-        peak_device_bytes_per_worker: memory_plan.peak_device_bytes_per_worker,
-        peak_host_bytes_per_worker: memory_plan.peak_host_bytes_per_worker,
+        peak_device_bytes_per_worker,
+        peak_host_bytes_per_worker,
         remote_offloaded_optimizer_bytes: memory_plan.remote_offloaded_optimizer_bytes,
-        within_device_budget: memory_plan.peak_device_bytes_per_worker
+        within_device_budget: peak_device_bytes_per_worker
             <= thresholds.max_peak_device_bytes_per_worker,
-        within_host_budget: memory_plan.peak_host_bytes_per_worker
-            <= thresholds.max_peak_host_bytes_per_worker,
+        within_host_budget: peak_host_bytes_per_worker <= thresholds.max_peak_host_bytes_per_worker,
         planner_receipt_digest: memory_plan.receipt_digest,
     })
 }
@@ -824,8 +871,8 @@ mod tests {
     use crate::{
         benchmark_parameter_golf_distributed_8xh100, ParameterGolfBatchGeometry,
         ParameterGolfDistributed8xH100Config, ParameterGolfDistributedLaneError,
-        ParameterGolfDistributedStepObservation, ParameterGolfTrainingHyperparameters,
-        PARAMETER_GOLF_DISTRIBUTED_8XH100_VERSION,
+        ParameterGolfDistributedMemoryObservation, ParameterGolfDistributedStepObservation,
+        ParameterGolfTrainingHyperparameters, PARAMETER_GOLF_DISTRIBUTED_8XH100_VERSION,
     };
     use psionic_eval::{
         ParameterGolfDistributedLaneDisposition, ParameterGolfDistributedLaneRefusalKind,
@@ -937,6 +984,7 @@ mod tests {
             ParameterGolfDistributedStepObservation::new(1, 0, 40, 128),
             ParameterGolfDistributedStepObservation::new(2, 40, 85, 128),
         ];
+        config.memory_observation = None;
         config.validation_observed_ms = 10;
         config.export_observed_ms = 5;
         config
@@ -1040,6 +1088,70 @@ mod tests {
         assert_eq!(
             refusal.refusal_kind,
             ParameterGolfDistributedLaneRefusalKind::WallclockExceeded
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn parameter_golf_distributed_8xh100_lane_uses_observed_runtime_memory_when_supplied(
+    ) -> Result<(), Box<dyn Error>> {
+        let model = sample_model()?;
+        let devices = (0..8).map(sample_h100_device).collect::<Vec<_>>();
+        let mut config = measured_config();
+        config.memory_observation = Some(ParameterGolfDistributedMemoryObservation {
+            peak_device_bytes_per_worker: 70 * 1024 * 1024 * 1024,
+            peak_host_bytes_per_worker: 8 * 1024 * 1024 * 1024,
+            source: String::from("runpod cuda allocator telemetry"),
+        });
+        let receipt = benchmark_parameter_golf_distributed_8xh100(
+            model.descriptor(),
+            &ParameterGolfTrainingHyperparameters::baseline_defaults(),
+            devices.as_slice(),
+            &capability_profile(),
+            &config,
+        )?;
+        let memory = receipt.memory.expect("memory receipt should be present");
+        assert_eq!(
+            memory.measurement_posture,
+            "observed_runtime_peak_plus_analytic_state_breakdown"
+        );
+        assert_eq!(memory.peak_device_bytes_per_worker, 70 * 1024 * 1024 * 1024);
+        assert_eq!(memory.peak_host_bytes_per_worker, 8 * 1024 * 1024 * 1024);
+        assert!(memory.within_device_budget);
+        assert!(memory.within_host_budget);
+        assert!(receipt
+            .boundary_notes
+            .iter()
+            .any(|note| note.contains("runpod cuda allocator telemetry")));
+        Ok(())
+    }
+
+    #[test]
+    fn parameter_golf_distributed_8xh100_lane_refuses_observed_runtime_memory_overflow(
+    ) -> Result<(), Box<dyn Error>> {
+        let model = sample_model()?;
+        let devices = (0..8).map(sample_h100_device).collect::<Vec<_>>();
+        let mut config = measured_config();
+        config.memory_observation = Some(ParameterGolfDistributedMemoryObservation {
+            peak_device_bytes_per_worker: 96 * 1024 * 1024 * 1024,
+            peak_host_bytes_per_worker: 8 * 1024 * 1024 * 1024,
+            source: String::from("synthetic over-budget runtime telemetry"),
+        });
+        let receipt = benchmark_parameter_golf_distributed_8xh100(
+            model.descriptor(),
+            &ParameterGolfTrainingHyperparameters::baseline_defaults(),
+            devices.as_slice(),
+            &capability_profile(),
+            &config,
+        )?;
+        assert_eq!(
+            receipt.disposition,
+            ParameterGolfDistributedLaneDisposition::Refused
+        );
+        let refusal = receipt.refusal.expect("refusal should be present");
+        assert_eq!(
+            refusal.refusal_kind,
+            ParameterGolfDistributedLaneRefusalKind::MemoryBudgetExceeded
         );
         Ok(())
     }

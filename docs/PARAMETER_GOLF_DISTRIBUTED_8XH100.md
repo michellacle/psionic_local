@@ -28,8 +28,14 @@ Psionic now encodes that exact posture explicitly instead of treating
 - `psionic-train` now ships
   `benchmark_parameter_golf_distributed_8xh100(...)`
 - `psionic-train` now exposes
-  `ParameterGolfDistributed8xH100Config` and
-  `ParameterGolfDistributedStepObservation`
+  `ParameterGolfDistributed8xH100Config`,
+  `ParameterGolfDistributedStepObservation`, and
+  `ParameterGolfDistributedMemoryObservation`
+- `psionic-train` now also ships the example
+  `crates/psionic-train/examples/parameter_golf_distributed_8xh100_receipt.rs`
+  so later pod runs can bind JSON-collected device inventory, clustered
+  capability profile, and observed timing or memory telemetry directly into the
+  typed receipt without another schema pass
 - `psionic-eval` now exposes
   `ParameterGolfDistributedThroughputReceipt` plus the supporting topology,
   communication, timing, memory, threshold, and refusal types
@@ -78,11 +84,29 @@ The lane now preserves:
 - observed validation duration
 - observed export or roundtrip duration
 - total wallclock versus the declared challenge cap
-- analytic optimizer-contract memory facts for parameters, gradients,
-  optimizer state, master weights, and activation upper bound
+- either:
+  - observed runtime peak device or host bytes per worker plus the analytic
+    logical tensor-state breakdown, when real runtime memory telemetry exists
+  - or the older analytic optimizer-contract upper bound when no runtime
+    memory telemetry exists yet
 
-The memory lane is deliberately explicit about being an analytic upper bound,
-not a direct CUDA allocator trace.
+The memory lane stays deliberately explicit about which parts are measured and
+which parts remain analytic:
+
+- runtime peaks can now be observed directly
+- logical parameter, gradient, optimizer-state, master-weight, and activation
+  accounting still come from the distributed optimizer contract
+
+You can now build one distributed receipt directly from JSON-collected runtime
+facts:
+
+```bash
+cargo run -p psionic-train --example parameter_golf_distributed_8xh100_receipt -- \
+  /tmp/parameter_golf_distributed_devices.json \
+  /tmp/parameter_golf_cluster_capability_profile.json \
+  /tmp/parameter_golf_distributed_8xh100_config.json \
+  /tmp/parameter_golf_distributed_8xh100_receipt.json
+```
 
 ## Refusal Posture
 
