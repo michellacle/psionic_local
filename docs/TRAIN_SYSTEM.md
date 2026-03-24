@@ -73,6 +73,14 @@ The Mac node now also has a dedicated bring-up report seam in
 real local Mac identity plus the bounded Metal array surface while keeping the
 missing MLX open-adapter training backend explicit.
 
+The Linux node now also has a dedicated RTX 4080 bring-up seam in
+`crates/psionic-train/src/swarm_cuda_bringup.rs`, the binary
+`swarm_linux_cuda_bringup`, the verification runner
+`scripts/check-swarm-linux-4080-bringup.sh`, and the committed report
+`fixtures/swarm/reports/swarm_linux_rtx4080_bringup_v1.json`. That report
+binds the lane to retained RTX 4080 CUDA inventory truth plus a deterministic
+open-adapter same-node harness with explicit unsupported-precision refusal.
+
 Apple-specific adapter work is no longer only later-family planning. The repo
 now owns a canonical spec-and-fixture baseline for it in:
 
