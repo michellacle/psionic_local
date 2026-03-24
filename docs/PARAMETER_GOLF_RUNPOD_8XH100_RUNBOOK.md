@@ -132,6 +132,17 @@ When the measurements JSON is also absent but the run root still preserves
 then lifts the resulting measurements plus `nvidia_smi_inventory.txt` into the
 typed distributed receipt.
 
+When `execution.log` is a fail-closed distributed refusal instead of a real
+training log, the finalizer now skips measurement derivation explicitly and
+still seals a retained refusal report with:
+
+- the launcher receipt path and digest
+- the execution-log path and digest
+- an explicit `execution_log_measurement_status` classification
+
+This keeps the refusal surface machine-readable instead of crashing while
+trying to fabricate distributed measurements from a non-training log.
+
 This is intentional. `#460` closes the RunPod lane definition and rehearsal,
 not the later real `8xH100` evidence bundle.
 

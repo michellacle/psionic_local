@@ -99,6 +99,19 @@ mkdir -p "${run_root}" "$(dirname -- "${output_path}")"
 
 inventory_file="${run_root}/nvidia_smi_inventory.txt"
 topology_file="${run_root}/nvidia_smi_topology.txt"
+launch_receipt_path="${run_root}/parameter_golf_runpod_8xh100_launch_receipt.json"
+execution_log_path="${run_root}/execution.log"
+execution_log_measurement_status="missing_execution_log"
+
+if [[ -f "${execution_log_path}" ]]; then
+  if grep -Eq '^step:[0-9]+/[0-9]+ train_loss:' "${execution_log_path}"; then
+    execution_log_measurement_status="train_steps_present"
+  elif grep -Fq "parameter golf submission runtime does not ship a distributed 8xH100 trainer payload yet" "${execution_log_path}"; then
+    execution_log_measurement_status="explicit_runtime_refusal"
+  else
+    execution_log_measurement_status="no_train_steps_present"
+  fi
+fi
 
 nvidia-smi \
   --query-gpu=index,name,memory.total,memory.used,utilization.gpu \
@@ -112,12 +125,15 @@ if [[ ! -f "${distributed_receipt_path}" && -f "${distributed_measurements_path}
     --output "${distributed_receipt_path}"
 fi
 
-execution_log_path="${run_root}/execution.log"
 if [[ ! -f "${distributed_measurements_path}" && -f "${execution_log_path}" ]]; then
-  bash "${repo_root}/scripts/parameter-golf-runpod-build-8xh100-measurements.sh" \
-    --run-root "${run_root}" \
-    --log "${execution_log_path}" \
-    --output "${distributed_measurements_path}"
+  if [[ "${execution_log_measurement_status}" == "train_steps_present" ]]; then
+    bash "${repo_root}/scripts/parameter-golf-runpod-build-8xh100-measurements.sh" \
+      --run-root "${run_root}" \
+      --log "${execution_log_path}" \
+      --output "${distributed_measurements_path}"
+  else
+    echo "finalizer: skipping distributed measurement extraction from ${execution_log_path} (${execution_log_measurement_status})" >&2
+  fi
 fi
 
 if [[ ! -f "${distributed_receipt_path}" && -f "${distributed_measurements_path}" ]]; then
@@ -167,7 +183,7 @@ distributed_receipt_path.write_text(
 )
 PY
 
-python3 - "${run_root}" "${submission_dir}" "${output_path}" "${inventory_file}" "${topology_file}" "${entrypoint_path}" "${manifest_path}" "${run_evidence_path}" "${distributed_receipt_path}" "${distributed_measurements_path}" "${created_at_utc}" "${run_id}" "${profile_id}" "${trainer_lane_id}" <<'PY'
+python3 - "${run_root}" "${submission_dir}" "${output_path}" "${inventory_file}" "${topology_file}" "${entrypoint_path}" "${manifest_path}" "${run_evidence_path}" "${distributed_receipt_path}" "${distributed_measurements_path}" "${created_at_utc}" "${run_id}" "${profile_id}" "${trainer_lane_id}" "${launch_receipt_path}" "${execution_log_path}" "${execution_log_measurement_status}" <<'PY'
 import json
 import sys
 from hashlib import sha256 as sha256_hash
@@ -187,11 +203,21 @@ created_at_utc = sys.argv[11]
 run_id = sys.argv[12]
 profile_id = sys.argv[13]
 trainer_lane_id = sys.argv[14]
+launch_receipt_path = Path(sys.argv[15])
+execution_log_path = Path(sys.argv[16])
+execution_log_measurement_status = sys.argv[17]
 
 def sha256(path: Path) -> str | None:
     if not path.is_file():
         return None
     return sha256_hash(path.read_bytes()).hexdigest()
+
+def load_json(path: Path) -> dict | None:
+    if not path.is_file():
+        return None
+    return json.loads(path.read_text(encoding="utf-8"))
+
+launch_receipt = load_json(launch_receipt_path)
 
 report = {
     "schema_version": "parameter_golf.runpod_8xh100_finalizer.v1",
@@ -208,6 +234,16 @@ report = {
       "inventory_path": str(inventory_file),
       "topology_path": str(topology_file),
       "inventory_line_count": len([line for line in inventory_file.read_text(encoding="utf-8").splitlines() if line.strip()]),
+    },
+    "operator_surface": {
+      "launch_receipt_path": str(launch_receipt_path) if launch_receipt_path.exists() else None,
+      "launch_receipt_sha256": sha256(launch_receipt_path),
+      "launch_status": None if launch_receipt is None else launch_receipt.get("status"),
+      "failed_phase": None if launch_receipt is None else launch_receipt.get("failed_phase"),
+      "failed_exit_code": None if launch_receipt is None else launch_receipt.get("failed_exit_code"),
+      "execution_log_path": str(execution_log_path) if execution_log_path.exists() else None,
+      "execution_log_sha256": sha256(execution_log_path),
+      "execution_log_measurement_status": execution_log_measurement_status,
     },
     "exported_folder_evidence": {
       "entrypoint_path": str(entrypoint_path),
