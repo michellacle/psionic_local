@@ -6,7 +6,9 @@ use std::time::Instant;
 
 use half::bf16;
 use psionic_backend_cuda::CudaBackend;
-use psionic_core::{PsionicRefusal, PsionicRefusalCode, PsionicRefusalScope, TensorData, TensorId};
+use psionic_core::{
+    DType, PsionicRefusal, PsionicRefusalCode, PsionicRefusalScope, TensorData, TensorId,
+};
 use psionic_data::{
     builtin_parameter_golf_sentencepiece_byte_luts,
     load_parameter_golf_validation_tokens_from_paths, materialize_parameter_golf_token_window,
@@ -1442,7 +1444,7 @@ fn execute_training_step(
 
         let materialize_started = Instant::now();
         let backward_result =
-            backward_result_from_outputs(&backward_plan, backward_outputs.as_slice());
+            backward_result_from_outputs(&backward_plan, backward_outputs.as_slice())?;
         let gradients = materialize_parameter_golf_baseline_training_gradients(
             graph,
             &backward_result,
@@ -1686,12 +1688,33 @@ fn execute_backward_plan(
                 tensor_id: binding.primal_tensor,
             },
         )?;
+        let input_dtype = backward_plan
+            .gradient_graph
+            .node(binding.gradient_graph_input)
+            .ok_or(ParameterGolfSingleH100TrainingError::MissingGraphTensor {
+                tensor_id: binding.gradient_graph_input,
+            })?
+            .tensor()
+            .spec()
+            .dtype();
         inputs.push((
             binding.gradient_graph_input,
-            TensorData::F32(values.clone()),
+            floating_tensor_data_for_dtype(input_dtype, values.clone())?,
         ));
     }
-    inputs.push((backward_plan.seed_input, TensorData::F32(vec![1.0_f32])));
+    let seed_dtype = backward_plan
+        .gradient_graph
+        .node(backward_plan.seed_input)
+        .ok_or(ParameterGolfSingleH100TrainingError::MissingGraphTensor {
+            tensor_id: backward_plan.seed_input,
+        })?
+        .tensor()
+        .spec()
+        .dtype();
+    inputs.push((
+        backward_plan.seed_input,
+        floating_tensor_data_for_dtype(seed_dtype, vec![1.0_f32])?,
+    ));
     execute_cuda_graph_outputs(
         cuda_backend,
         &backward_plan.gradient_graph,
@@ -1699,28 +1722,59 @@ fn execute_backward_plan(
     )
 }
 
+fn floating_tensor_data_for_dtype(
+    dtype: DType,
+    values: Vec<f32>,
+) -> Result<TensorData, ParameterGolfSingleH100TrainingError> {
+    match dtype {
+        DType::F32 => Ok(TensorData::F32(values)),
+        DType::BF16 => Ok(TensorData::BF16(values)),
+        actual => Err(ParameterGolfSingleH100TrainingError::Serialization {
+            message: format!("unsupported floating tensor dtype {actual:?}"),
+        }),
+    }
+}
+
 fn backward_result_from_outputs(
     backward_plan: &psionic_ir::AutodiffBackwardPlan,
     outputs: &[(TensorId, Vec<f32>)],
-) -> AutodiffBackwardResult {
+) -> Result<AutodiffBackwardResult, ParameterGolfSingleH100TrainingError> {
     let gradient_targets = backward_plan
         .gradient_targets
         .iter()
         .map(|target| (target.gradient_tensor, target.primal_tensor))
         .collect::<BTreeMap<_, _>>();
-    AutodiffBackwardResult {
+    let gradients = outputs
+        .iter()
+        .filter_map(|(tensor_id, values)| {
+            gradient_targets
+                .get(tensor_id)
+                .copied()
+                .map(|primal_tensor| (*tensor_id, primal_tensor, values.clone()))
+        })
+        .map(
+            |(gradient_tensor_id, primal_tensor, values)| -> Result<_, ParameterGolfSingleH100TrainingError> {
+                let dtype = backward_plan
+                    .gradient_graph
+                    .node(gradient_tensor_id)
+                    .ok_or(ParameterGolfSingleH100TrainingError::MissingGraphTensor {
+                        tensor_id: gradient_tensor_id,
+                    })?
+                    .tensor()
+                    .spec()
+                    .dtype();
+                Ok((
+                    primal_tensor,
+                    floating_tensor_data_for_dtype(dtype, values)?,
+                ))
+            },
+        )
+        .collect::<Result<BTreeMap<_, _>, _>>()?;
+    Ok(AutodiffBackwardResult {
         forward_values: BTreeMap::new(),
         plan: backward_plan.clone(),
-        gradients: outputs
-            .iter()
-            .filter_map(|(tensor_id, values)| {
-                gradient_targets
-                    .get(tensor_id)
-                    .copied()
-                    .map(|primal_tensor| (primal_tensor, TensorData::F32(values.clone())))
-            })
-            .collect(),
-    }
+        gradients,
+    })
 }
 
 fn execute_cuda_graph_outputs(
@@ -1737,22 +1791,50 @@ fn execute_cuda_graph_outputs(
             })?
             .tensor()
             .clone();
-        let buffer = match data {
-            TensorData::F32(values) => {
-                cuda_backend.input_buffer(spec.spec().shape().clone(), values.clone())?
-            }
-            TensorData::BF16(values) => {
-                cuda_backend.input_bf16_buffer(spec.spec().shape().clone(), values.clone())?
-            }
-            TensorData::I32(values) => {
-                cuda_backend.input_i32_buffer(spec.spec().shape().clone(), values.clone())?
-            }
-            TensorData::QuantizedBlocks(_) => {
-                return Err(ParameterGolfSingleH100TrainingError::Serialization {
-                    message: format!("unsupported quantized input buffer for tensor {tensor_id}"),
-                })
-            }
-        };
+        let buffer =
+            match spec.spec().dtype() {
+                psionic_core::DType::F32 => match data {
+                    TensorData::F32(values) | TensorData::BF16(values) => {
+                        cuda_backend.input_buffer(spec.spec().shape().clone(), values.clone())?
+                    }
+                    TensorData::I32(_) | TensorData::QuantizedBlocks(_) => {
+                        return Err(ParameterGolfSingleH100TrainingError::Serialization {
+                            message: format!(
+                                "tensor {tensor_id} expected dense F32 host values for graph input"
+                            ),
+                        })
+                    }
+                },
+                psionic_core::DType::BF16 => match data {
+                    TensorData::F32(values) | TensorData::BF16(values) => cuda_backend
+                        .input_bf16_buffer(spec.spec().shape().clone(), values.clone())?,
+                    TensorData::I32(_) | TensorData::QuantizedBlocks(_) => {
+                        return Err(ParameterGolfSingleH100TrainingError::Serialization {
+                            message: format!(
+                            "tensor {tensor_id} expected dense BF16 host values for graph input"
+                        ),
+                        })
+                    }
+                },
+                psionic_core::DType::I32 => match data {
+                    TensorData::I32(values) => cuda_backend
+                        .input_i32_buffer(spec.spec().shape().clone(), values.clone())?,
+                    TensorData::F32(_) | TensorData::BF16(_) | TensorData::QuantizedBlocks(_) => {
+                        return Err(ParameterGolfSingleH100TrainingError::Serialization {
+                            message: format!(
+                                "tensor {tensor_id} expected dense I32 host values for graph input"
+                            ),
+                        })
+                    }
+                },
+                actual => {
+                    return Err(ParameterGolfSingleH100TrainingError::Serialization {
+                        message: format!(
+                            "unsupported graph input dtype {actual:?} for tensor {tensor_id}"
+                        ),
+                    })
+                }
+            };
         buffers.insert(*tensor_id, buffer);
     }
     let result = cuda_backend.compile_and_execute(graph, &buffers)?;
@@ -1863,7 +1945,7 @@ mod tests {
             .ok_or("missing input gradient target")?;
 
         let backward_result =
-            backward_result_from_outputs(&backward_plan, &[(gradient_tensor_id, vec![42.0_f32])]);
+            backward_result_from_outputs(&backward_plan, &[(gradient_tensor_id, vec![42.0_f32])])?;
 
         assert_eq!(
             backward_result
@@ -1871,6 +1953,29 @@ mod tests {
                 .and_then(TensorData::as_f32_slice),
             Some(&[42.0_f32][..])
         );
+        Ok(())
+    }
+
+    #[test]
+    fn backward_result_from_outputs_preserves_bf16_gradient_dtype(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let mut builder =
+            AutodiffGraphBuilder::with_context(Device::cpu(), AutodiffContext::training());
+        let input = builder.input("x", Shape::new(vec![1, 1]), DType::BF16, true);
+        let squared = builder.mul(&input, &input)?;
+        let graph = builder.finish(vec![squared.clone()]);
+        let backward_plan = graph.backward_plan(squared.id())?;
+        let gradient_tensor_id = backward_plan
+            .gradient_for(input.id())
+            .ok_or("missing input gradient target")?;
+
+        let backward_result =
+            backward_result_from_outputs(&backward_plan, &[(gradient_tensor_id, vec![42.0_f32])])?;
+
+        assert!(matches!(
+            backward_result.gradient(input.id()),
+            Some(TensorData::BF16(values)) if values == &vec![42.0_f32]
+        ));
         Ok(())
     }
 

@@ -319,7 +319,8 @@ pub enum AutodiffError {
         /// Stable tensor identifier.
         tensor_id: TensorId,
     },
-    /// The current autodiff reference layer only supports dense `f32` gradients.
+    /// The current autodiff reference layer only supports dense `f32` or
+    /// dense `bf16` gradients.
     #[error("tensor `{tensor_id}` uses unsupported gradient dtype `{dtype:?}`")]
     UnsupportedGradientDType {
         /// Stable tensor identifier.
@@ -3519,7 +3520,10 @@ fn resolve_backward_seed(
     let output_len = output_node.tensor().spec().shape().element_count();
     let seed = match seed {
         Some(seed) => seed,
-        None if output_len == 1 => TensorData::F32(vec![1.0]),
+        None if output_len == 1 => match output_node.tensor().spec().dtype() {
+            DType::BF16 => TensorData::BF16(vec![1.0]),
+            _ => TensorData::F32(vec![1.0]),
+        },
         None => {
             return Err(AutodiffError::NonScalarOutputRequiresSeed {
                 tensor_id: output,
@@ -4746,7 +4750,7 @@ fn release_tensor_if_dead(
 }
 
 fn ensure_supported_gradient_dtype(tensor: &Tensor) -> Result<(), AutodiffError> {
-    if tensor.spec().dtype() == DType::F32 {
+    if tensor.spec().dtype() == DType::F32 || tensor.spec().dtype() == DType::BF16 {
         Ok(())
     } else {
         Err(AutodiffError::UnsupportedGradientDType {
@@ -6961,6 +6965,23 @@ mod tests {
         let result = graph.backward_materialized_with_seed(axis_sum.id(), &inputs, seed)?;
 
         assert_eq!(dense_gradient(&result, x.id()), vec![1.0, 2.0, 1.0, 2.0]);
+        Ok(())
+    }
+
+    #[test]
+    fn reverse_mode_autodiff_accepts_bf16_training_targets() -> Result<(), Box<dyn Error>> {
+        let mut builder =
+            AutodiffGraphBuilder::with_context(Device::cpu(), AutodiffContext::training());
+        let x = builder.input("x", Shape::new(vec![1]), DType::BF16, true);
+        let squared = builder.mul(&x, &x)?;
+        let graph = builder.finish(vec![squared.clone()]);
+
+        let result = graph.backward_materialized(
+            squared.id(),
+            &BTreeMap::from([(x.id(), TensorData::BF16(vec![3.0]))]),
+        )?;
+
+        assert_eq!(dense_gradient(&result, x.id()), vec![6.0]);
         Ok(())
     }
 

@@ -102,6 +102,10 @@ The command is explicit about what it treats as trainer truth. It binds:
   surface, with the CUDA path now widening BF16 embedding tables and casting
   F32 activations to BF16 on-device before the existing BF16 matmul lane so
   the hot-path weight residency is no longer dense `f32` end to end
+- BF16 autodiff admission for that same train-visible weight surface, so the
+  single-H100 backward launcher now binds retained BF16 primal values and BF16
+  seed or gradient tensors through the graph-declared dtype instead of
+  silently forcing the hot path back to dense `f32`
 - the same single-device warmup-and-restore, repeated-step, periodic
   validation, train-log, and wallclock-stop control-loop shape the public
   `train_gpt.py` path uses
