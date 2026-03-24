@@ -71,32 +71,33 @@
     }
   ],
   "legacy": {
-    "mean_loss": 8.266876697540283,
-    "bits_per_byte": 195405.11973674022,
-    "observed_ms": 15149,
-    "average_batch_ms": 7574.5
+    "mean_loss": 8.266972064971924,
+    "bits_per_byte": 195407.3739477416,
+    "observed_ms": 6862,
+    "average_batch_ms": 3431.0
   },
   "device_resident": {
-    "mean_loss": 8.266877174377441,
-    "bits_per_byte": 195405.13100779522,
-    "observed_ms": 14784,
-    "average_batch_ms": 7392.0,
+    "mean_loss": 8.266834259033203,
+    "bits_per_byte": 195404.1166128446,
+    "observed_ms": 6483,
+    "average_batch_ms": 3241.5,
     "runtime_receipt": {
-      "path": "device_resident_cuda_validation_v1",
+      "path": "device_resident_cuda_eval_graph_v1",
+      "graph_surface": "parameter_golf_baseline_eval_graph_v1",
       "session_count": 1,
       "total_batches": 2,
       "persistent_parameter_buffer_count": 92,
       "persistent_parameter_value_count": 17059912,
-      "resident_parameter_upload_us": 59863,
+      "resident_parameter_upload_us": 61231,
       "per_batch_stable_parameter_buffer_allocations": 0,
       "reusable_input_token_buffer": true,
       "reusable_target_token_buffer": true,
-      "total_input_token_write_us": 61,
-      "total_target_token_write_us": 52,
+      "total_input_token_write_us": 63,
+      "total_target_token_write_us": 51,
       "byte_accounting_mode": "precomputed_batch_target_bytes",
-      "total_byte_accounting_us": 23
+      "total_byte_accounting_us": 22
     }
   },
-  "summary": "Compared the legacy host-rebind validation path against the device-resident validation path on the local CUDA node over 2 batch(es) of 8 sequence(s); average batch time moved from 7574.50ms to 7392.00ms.",
-  "receipt_digest": "eee414c6404a1ce296100007227244b9f93bfe78c01cdf2a5d4e9d1dcaae8151"
+  "summary": "Compared the legacy host-rebind validation path against the device-resident validation path on the local CUDA node over 2 batch(es) of 8 sequence(s); average batch time moved from 3431.00ms to 3241.50ms.",
+  "receipt_digest": "4fc1897fd9e86d49d433b3e90825034ebce32ec742a33d261f06baa406f702cc"
 }

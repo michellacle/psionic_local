@@ -33,11 +33,12 @@ use thiserror::Error;
 use crate::{
     apply_parameter_golf_cuda_bf16_master_weight_optimizer_step,
     apply_parameter_golf_cuda_muon_step, bind_parameter_golf_baseline_training_graph_inputs,
-    build_parameter_golf_baseline_training_graph, build_tokenizer_digest,
-    builtin_parameter_golf_cuda_training_capability_report, device_matches_single_h100,
-    export_parameter_golf_int8_zlib_model_artifact, inspect_local_single_h100_machine,
-    materialize_parameter_golf_baseline_training_gradients, parameter_golf_optimizer_plan,
-    restore_parameter_golf_model_from_int8_zlib, training_batch_from_window_tokens,
+    build_parameter_golf_baseline_eval_graph, build_parameter_golf_baseline_training_graph,
+    build_tokenizer_digest, builtin_parameter_golf_cuda_training_capability_report,
+    device_matches_single_h100, export_parameter_golf_int8_zlib_model_artifact,
+    inspect_local_single_h100_machine, materialize_parameter_golf_baseline_training_gradients,
+    parameter_golf_optimizer_plan, restore_parameter_golf_model_from_int8_zlib,
+    training_batch_from_window_tokens, ParameterGolfBaselineEvalGraph,
     ParameterGolfBaselineTrainingGraph, ParameterGolfBatchGeometry,
     ParameterGolfBf16MasterWeightStepReceipt, ParameterGolfOptimizerExecution,
     ParameterGolfOptimizerGroupKind, ParameterGolfOptimizerPlan,
@@ -324,6 +325,7 @@ pub struct ParameterGolfSingleH100ValidationSummary {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ParameterGolfSingleH100ValidationRuntimeReceipt {
     pub path: String,
+    pub graph_surface: String,
     pub session_count: usize,
     pub total_batches: usize,
     pub persistent_parameter_buffer_count: usize,
@@ -586,7 +588,7 @@ struct ParameterGolfValidationBatchRuntime {
 
 #[derive(Clone, Debug)]
 struct ParameterGolfCudaValidationSession {
-    graph: ParameterGolfBaselineTrainingGraph,
+    graph: ParameterGolfBaselineEvalGraph,
     static_inputs: BTreeMap<TensorId, CudaBuffer>,
     input_token_buffer: CudaBuffer,
     target_token_buffer: CudaBuffer,
@@ -1056,6 +1058,7 @@ pub fn build_parameter_golf_single_h100_training_report(
         config.geometry.train_sequence_length,
     )?;
     let mut train_graph_cache = BTreeMap::new();
+    let mut eval_graph_cache = BTreeMap::new();
 
     let mut trainer_state = seed_parameter_states(&initial_model, &optimizer_plan)?;
     let train_contract = ParameterGolfTokenStreamContract::new(
@@ -1163,7 +1166,7 @@ pub fn build_parameter_golf_single_h100_training_report(
                 &byte_luts,
                 config.geometry.train_sequence_length,
                 config.geometry.local_validation_batch_sequences(),
-                &mut train_graph_cache,
+                &mut eval_graph_cache,
                 &stage_label,
             )?;
             let observed_validation_ms = duration_ms(validation_started);
@@ -1280,7 +1283,7 @@ pub fn build_parameter_golf_single_h100_training_report(
             &byte_luts,
             config.geometry.train_sequence_length,
             config.geometry.local_validation_batch_sequences(),
-            &mut train_graph_cache,
+            &mut eval_graph_cache,
             "final_int8_zlib_roundtrip",
         )?;
         let roundtrip_observed_ms = duration_ms(roundtrip_validation_started);
@@ -1908,7 +1911,7 @@ fn evaluate_validation_on_cuda(
     byte_luts: &ParameterGolfSentencePieceByteLuts,
     sequence_length: usize,
     batch_sequences: usize,
-    graph_cache: &mut BTreeMap<usize, ParameterGolfBaselineTrainingGraph>,
+    graph_cache: &mut BTreeMap<usize, ParameterGolfBaselineEvalGraph>,
     stage_label: &str,
 ) -> Result<ParameterGolfSingleH100ValidationSummary, ParameterGolfSingleH100TrainingError> {
     if validation_tokens.len() <= sequence_length {
@@ -1988,7 +1991,8 @@ fn evaluate_validation_on_cuda(
     let bits_per_byte = (mean_loss / std::f64::consts::LN_2)
         * (total_token_count as f64 / total_byte_count.max(1) as f64);
     let runtime_receipt = ParameterGolfSingleH100ValidationRuntimeReceipt {
-        path: String::from("device_resident_cuda_validation_v1"),
+        path: String::from("device_resident_cuda_eval_graph_v1"),
+        graph_surface: String::from("parameter_golf_baseline_eval_graph_v1"),
         session_count: session_cache.len(),
         total_batches,
         persistent_parameter_buffer_count,
@@ -2003,9 +2007,10 @@ fn evaluate_validation_on_cuda(
         total_byte_accounting_us,
     };
     emit_progress_line(format!(
-        "validation_runtime_receipt stage={} path={} sessions={} stable_parameter_buffers={} stable_parameter_values={} resident_parameter_upload_us={} input_token_write_us={} target_token_write_us={} byte_accounting_us={}",
+        "validation_runtime_receipt stage={} path={} graph_surface={} sessions={} stable_parameter_buffers={} stable_parameter_values={} resident_parameter_upload_us={} input_token_write_us={} target_token_write_us={} byte_accounting_us={}",
         stage_label,
         runtime_receipt.path,
+        runtime_receipt.graph_surface,
         runtime_receipt.session_count,
         runtime_receipt.persistent_parameter_buffer_count,
         runtime_receipt.persistent_parameter_value_count,
@@ -2189,7 +2194,7 @@ fn build_validation_batch_plans(
 fn validation_session_for_batch<'a>(
     cache: &'a mut BTreeMap<usize, ParameterGolfCudaValidationSession>,
     cuda_backend: &mut CudaBackend,
-    graph_cache: &mut BTreeMap<usize, ParameterGolfBaselineTrainingGraph>,
+    graph_cache: &mut BTreeMap<usize, ParameterGolfBaselineEvalGraph>,
     device: psionic_core::Device,
     descriptor: &psionic_models::ParameterGolfModelDescriptor,
     model: &ParameterGolfReferenceModel,
@@ -2197,7 +2202,7 @@ fn validation_session_for_batch<'a>(
     sequence_length: usize,
 ) -> Result<&'a mut ParameterGolfCudaValidationSession, ParameterGolfSingleH100TrainingError> {
     if !cache.contains_key(&batch_sequences) {
-        let graph = training_graph_for_batch(
+        let graph = eval_graph_for_batch(
             graph_cache,
             device,
             descriptor,
@@ -2246,10 +2251,33 @@ fn training_graph_for_batch<'a>(
         })
 }
 
+fn eval_graph_for_batch<'a>(
+    cache: &'a mut BTreeMap<usize, ParameterGolfBaselineEvalGraph>,
+    device: psionic_core::Device,
+    descriptor: &psionic_models::ParameterGolfModelDescriptor,
+    batch_size: usize,
+    sequence_length: usize,
+) -> Result<&'a ParameterGolfBaselineEvalGraph, ParameterGolfSingleH100TrainingError> {
+    if !cache.contains_key(&batch_size) {
+        let graph = build_parameter_golf_baseline_eval_graph(
+            device,
+            descriptor,
+            batch_size,
+            sequence_length,
+        )?;
+        cache.insert(batch_size, graph);
+    }
+    cache
+        .get(&batch_size)
+        .ok_or_else(|| ParameterGolfSingleH100TrainingError::Serialization {
+            message: format!("missing cached eval graph for batch_size={batch_size}"),
+        })
+}
+
 impl ParameterGolfCudaValidationSession {
     fn new(
         cuda_backend: &mut CudaBackend,
-        graph: ParameterGolfBaselineTrainingGraph,
+        graph: ParameterGolfBaselineEvalGraph,
         model: &ParameterGolfReferenceModel,
         batch_sequences: usize,
         sequence_length: usize,
@@ -2363,11 +2391,8 @@ impl ParameterGolfCudaValidationSession {
             self.graph.target_ids_tensor_id,
             self.target_token_buffer.clone(),
         );
-        let outputs = execute_cuda_graph_outputs_from_buffers(
-            cuda_backend,
-            self.graph.graph.graph(),
-            &inputs,
-        )?;
+        let outputs =
+            execute_cuda_graph_outputs_from_buffers(cuda_backend, &self.graph.graph, &inputs)?;
         let batch_loss = scalar_float_graph_output(&outputs, self.graph.loss_tensor_id)?;
         Ok((
             batch_loss,

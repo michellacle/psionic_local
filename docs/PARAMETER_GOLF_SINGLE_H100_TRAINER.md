@@ -141,9 +141,11 @@ The command is explicit about what it treats as trainer truth. It binds:
   roundtrip validation, or both were requested
 - a device-resident validation runner that keeps the stable parameter surface
   resident on device across validation batches, reuses mutable token buffers,
-  and records a machine-readable validation runtime receipt with the resident
-  parameter buffer count, stable-buffer allocation posture, token-write cost,
-  and byte-accounting cost for each validation pass
+  runs through the explicit `parameter_golf_baseline_eval_graph_v1` surface
+  instead of the training-graph surface, and records a machine-readable
+  validation runtime receipt with the resident parameter buffer count,
+  stable-buffer allocation posture, named eval graph surface, token-write
+  cost, and byte-accounting cost for each validation pass
 - preserved initial, periodic, and final validation receipts directly from the
   Psionic path, with the pre-export live-model validation retained separately
   whenever that posture is requested
