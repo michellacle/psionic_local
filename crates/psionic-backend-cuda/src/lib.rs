@@ -17,7 +17,14 @@
     )
 )]
 
-use std::{collections::BTreeMap, fmt, io::ErrorKind, process::Command};
+use std::{
+    collections::BTreeMap,
+    env, fmt,
+    fs::OpenOptions,
+    io::{ErrorKind, Write},
+    process::Command,
+    time::{Duration, Instant},
+};
 
 use half::bf16;
 use psionic_compiler::compile_graph;
@@ -36,6 +43,7 @@ use psionic_runtime::{
     NvidiaDeviceMetadata, NvidiaRecoveryAction, NvidiaRecoveryProfile, NvidiaRiskLevel,
     NvidiaRiskProfile, NvidiaTopologyInfo, RuntimeError, RuntimeHealth, ServedProductBackendPolicy,
 };
+use rayon::prelude::*;
 
 /// Human-readable crate ownership summary.
 pub const CRATE_ROLE: &str = "CUDA backend discovery, allocation, and submission";
@@ -51,6 +59,8 @@ const CUDA_POOL_MAX_CACHED_BUFFERS: usize = 128;
 const CUDA_POOL_MAX_CACHED_BYTES: u64 = 64 * 1024 * 1024;
 const CUDA_EXECUTION_PLAN_CACHE_MAX_ENTRIES: usize = 64;
 const CUDA_EXECUTION_PLAN_CACHE_MAX_CACHED_BYTES: u64 = 1024 * 1024;
+const HOST_FALLBACK_PARALLEL_MIN_ELEMENTS: usize = 16 * 1024;
+const HOST_FALLBACK_PARALLEL_MIN_CHUNK_ELEMENTS: usize = 1024;
 
 /// Exact plan surface currently covered by the first CUDA-backed served-product
 /// milestone.
@@ -85,7 +95,7 @@ pub const TEXT_GENERATION_SUPPORTED_OPS: &[&str] =
     &["quantized_matvec_q8_0", "quantized_matvec_mxfp4"];
 pub const GGML_Q8_1_BLOCK_ELEMENTS: usize = 32;
 pub const GGML_Q8_1_BLOCK_BYTES: usize = 36;
-const CUDA_PUBLIC_ATTENTION_MAX_SEQUENCE: usize = 512;
+const CUDA_PUBLIC_ATTENTION_MAX_SEQUENCE: usize = 1024;
 const CUDA_PUBLIC_STANDARD_ROPE_BASE: f32 = 10_000.0;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -277,6 +287,35 @@ impl CudaBuffer {
     #[must_use]
     pub fn allocation_identity(&self) -> usize {
         self.platform.allocation_identity()
+    }
+
+    fn alias_with_spec(&self, spec: &TensorSpec) -> Result<Self, RuntimeError> {
+        let expected_byte_len = spec
+            .storage_size()
+            .checked_mul(size_of_dtype(spec.dtype()))
+            .ok_or_else(|| {
+                RuntimeError::Backend(format!(
+                    "cuda buffer alias size overflow for tensor storage size {}",
+                    spec.storage_size()
+                ))
+            })?;
+        if spec.dtype() != self.spec.dtype()
+            || spec.storage_size() != self.spec.storage_size()
+            || spec.device() != self.spec.device()
+            || expected_byte_len != self.byte_len
+        {
+            return Err(RuntimeError::Backend(format!(
+                "cuda buffer alias requires identical dtype, storage size, device, and byte length: source={:?} alias={:?}",
+                self.spec, spec
+            )));
+        }
+        Ok(Self {
+            spec: spec.clone(),
+            byte_len: self.byte_len,
+            memory_space: self.memory_space,
+            host_visible: self.host_visible,
+            platform: self.platform.clone(),
+        })
     }
 
     /// Writes raw bytes into the CUDA buffer via an explicit host-to-device transfer.
@@ -2534,6 +2573,104 @@ impl ExecutionBackend for CudaBackend {
     }
 }
 
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+struct CudaHostFallbackOpProfile {
+    count: u64,
+    logical_values: u64,
+    elapsed_ms: u64,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+struct CudaHostFallbackExecutionProfile {
+    ops: BTreeMap<String, CudaHostFallbackOpProfile>,
+}
+
+impl CudaHostFallbackExecutionProfile {
+    fn record(&mut self, label: &str, logical_values: u64, elapsed: Duration) {
+        let entry = self.ops.entry(label.to_string()).or_default();
+        entry.count = entry.count.saturating_add(1);
+        entry.logical_values = entry.logical_values.saturating_add(logical_values);
+        entry.elapsed_ms = entry
+            .elapsed_ms
+            .saturating_add(elapsed.as_millis().try_into().unwrap_or(u64::MAX));
+    }
+
+    fn total_elapsed_ms(&self) -> u64 {
+        self.ops
+            .values()
+            .map(|profile| profile.elapsed_ms)
+            .sum::<u64>()
+    }
+}
+
+fn host_fallback_profile_path() -> Option<String> {
+    env::var("PSIONIC_CUDA_HOST_FALLBACK_PROFILE_PATH")
+        .ok()
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty())
+}
+
+fn append_host_fallback_profile_report(
+    path: &str,
+    plan: &ExecutionPlan,
+    profile: &CudaHostFallbackExecutionProfile,
+) -> Result<(), RuntimeError> {
+    if profile.ops.is_empty() {
+        return Ok(());
+    }
+    let mut report = format!(
+        "{{\"scope_window\":\"psionic_cuda_host_fallback_profile_v1\",\"pid\":{},\"plan_steps\":{},\"plan_outputs\":{},\"total_host_fallback_ms\":{},\"ops\":[",
+        std::process::id(),
+        plan.steps.len(),
+        plan.outputs.len(),
+        profile.total_elapsed_ms(),
+    );
+    for (index, (label, op_profile)) in profile.ops.iter().enumerate() {
+        if index > 0 {
+            report.push(',');
+        }
+        report.push_str(&format!(
+            "{{\"label\":\"{}\",\"count\":{},\"logical_values\":{},\"elapsed_ms\":{}}}",
+            label, op_profile.count, op_profile.logical_values, op_profile.elapsed_ms
+        ));
+    }
+    report.push_str("]}");
+    let mut file = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(path)
+        .map_err(|error| {
+            RuntimeError::Backend(format!(
+                "failed to open cuda host fallback profile sink `{path}`: {error}"
+            ))
+        })?;
+    writeln!(file, "{report}").map_err(|error| {
+        RuntimeError::Backend(format!(
+            "failed to append cuda host fallback profile report `{path}`: {error}"
+        ))
+    })
+}
+
+fn execute_profiled_host_fallback<F>(
+    profile: &mut Option<CudaHostFallbackExecutionProfile>,
+    step: &ExecutionStep,
+    op: F,
+) -> Result<CudaBuffer, RuntimeError>
+where
+    F: FnOnce() -> Result<CudaBuffer, RuntimeError>,
+{
+    let started = Instant::now();
+    let output = op()?;
+    if let Some(profile) = profile.as_mut() {
+        profile.record(
+            step.op.label(),
+            step.spec.shape().element_count() as u64,
+            started.elapsed(),
+        );
+    }
+    Ok(output)
+}
+
 impl AvailableCudaBackend {
     fn lookup_or_compile(
         &mut self,
@@ -2619,6 +2756,33 @@ impl AvailableCudaBackend {
         let mut buffer = self.allocate(spec)?;
         buffer.write_f32(values)?;
         Ok(buffer)
+    }
+
+    fn materialize_host_view_step(
+        &self,
+        step: &ExecutionStep,
+        values: &[f32],
+    ) -> Result<CudaBuffer, RuntimeError> {
+        if step.spec.dtype() != DType::F32 {
+            return Err(RuntimeError::UnsupportedStep(format!(
+                "{} host fallback currently supports only f32 tensors",
+                step.op.label()
+            )));
+        }
+        let contiguous = TensorSpec::new(
+            step.spec.shape().clone(),
+            step.spec.dtype(),
+            step.spec.device().clone(),
+        );
+        if values.len() != contiguous.element_count() {
+            return Err(RuntimeError::Backend(format!(
+                "{} host fallback expected {} logical values, found {}",
+                step.op.label(),
+                contiguous.element_count(),
+                values.len()
+            )));
+        }
+        self.buffer_from_tensor_data(&contiguous, &TensorData::F32(values.to_vec()))
     }
 
     fn execute_rotary_embedding_step(
@@ -3157,6 +3321,11 @@ impl AvailableCudaBackend {
             platform: self.platform.begin_submission()?,
         };
         let mut values = BTreeMap::new();
+        let mut retain_counts = execution_value_retain_counts(plan);
+        let profile_path = host_fallback_profile_path();
+        let mut host_fallback_profile = profile_path
+            .as_ref()
+            .map(|_| CudaHostFallbackExecutionProfile::default());
 
         for step in &plan.steps {
             match &step.op {
@@ -3175,6 +3344,133 @@ impl AvailableCudaBackend {
                 }
                 ExecutionOp::Constant { data } => {
                     values.insert(step.output, self.buffer_from_tensor_data(&step.spec, data)?);
+                }
+                ExecutionOp::Detach => {
+                    let input = step_input(step, &values, 0)?;
+                    let output = input.alias_with_spec(&step.spec)?;
+                    values.insert(step.output, output);
+                }
+                ExecutionOp::Reshape => {
+                    let input = step_input(step, &values, 0)?;
+                    let output = input.alias_with_spec(&step.spec)?;
+                    values.insert(step.output, output);
+                }
+                ExecutionOp::Permute { axes } => {
+                    let output =
+                        execute_profiled_host_fallback(&mut host_fallback_profile, step, || {
+                            let input = step_input(step, &values, 0)?;
+                            let values_out = permute_contiguous_values(
+                                &input.read_f32()?,
+                                input.spec().shape().dims(),
+                                axes,
+                            )?;
+                            self.materialize_host_view_step(step, &values_out)
+                        })?;
+                    values.insert(step.output, output);
+                }
+                ExecutionOp::Slice { axis, start, end } => {
+                    let output =
+                        execute_profiled_host_fallback(&mut host_fallback_profile, step, || {
+                            let input = step_input(step, &values, 0)?;
+                            let values_out = slice_contiguous_values(
+                                &input.read_f32()?,
+                                input.spec().shape().dims(),
+                                *axis,
+                                *start,
+                                *end,
+                            )?;
+                            self.materialize_host_view_step(step, &values_out)
+                        })?;
+                    values.insert(step.output, output);
+                }
+                ExecutionOp::Select { axis, index } => {
+                    let output =
+                        execute_profiled_host_fallback(&mut host_fallback_profile, step, || {
+                            let input = step_input(step, &values, 0)?;
+                            let values_out = select_contiguous_values(
+                                &input.read_f32()?,
+                                input.spec().shape().dims(),
+                                *axis,
+                                *index,
+                            )?;
+                            self.materialize_host_view_step(step, &values_out)
+                        })?;
+                    values.insert(step.output, output);
+                }
+                ExecutionOp::Concat { axis } => {
+                    let output =
+                        execute_profiled_host_fallback(&mut host_fallback_profile, step, || {
+                            let tensors = step
+                                .inputs
+                                .iter()
+                                .map(|tensor_id| {
+                                    values
+                                        .get(tensor_id)
+                                        .ok_or(RuntimeError::MissingInput(*tensor_id))
+                                })
+                                .collect::<Result<Vec<_>, _>>()?;
+                            let value_slices = tensors
+                                .iter()
+                                .map(|buffer| buffer.read_f32())
+                                .collect::<Result<Vec<_>, _>>()?;
+                            let shape_slices = tensors
+                                .iter()
+                                .map(|buffer| buffer.spec().shape().dims().to_vec())
+                                .collect::<Vec<_>>();
+                            let value_refs =
+                                value_slices.iter().map(Vec::as_slice).collect::<Vec<_>>();
+                            let shape_refs =
+                                shape_slices.iter().map(Vec::as_slice).collect::<Vec<_>>();
+                            let values_out = concat_contiguous_values(
+                                value_refs.as_slice(),
+                                shape_refs.as_slice(),
+                                *axis,
+                            )?;
+                            self.materialize_host_view_step(step, &values_out)
+                        })?;
+                    values.insert(step.output, output);
+                }
+                ExecutionOp::Expand { shape } => {
+                    let output =
+                        execute_profiled_host_fallback(&mut host_fallback_profile, step, || {
+                            let input = step_input(step, &values, 0)?;
+                            let values_out = expand_contiguous_values(
+                                &input.read_f32()?,
+                                input.spec().shape().dims(),
+                                shape.dims(),
+                            )?;
+                            self.materialize_host_view_step(step, &values_out)
+                        })?;
+                    values.insert(step.output, output);
+                }
+                ExecutionOp::Cast { dtype } => {
+                    let input = step_input(step, &values, 0)?;
+                    let output = if input.spec().dtype() == *dtype {
+                        input.alias_with_spec(&step.spec)?
+                    } else {
+                        execute_profiled_host_fallback(&mut host_fallback_profile, step, || {
+                            let values_out = cast_contiguous_values(
+                                &input.read_f32()?,
+                                input.spec().dtype(),
+                                *dtype,
+                            )?;
+                            self.materialize_host_view_step(step, &values_out)
+                        })?
+                    };
+                    values.insert(step.output, output);
+                }
+                ExecutionOp::ReduceSum { axis } => {
+                    let output =
+                        execute_profiled_host_fallback(&mut host_fallback_profile, step, || {
+                            let input = step_input(step, &values, 0)?;
+                            let values_out = reduce_sum_contiguous_values(
+                                &input.read_f32()?,
+                                input.spec().shape().dims(),
+                                *axis,
+                            )?;
+                            self.materialize_host_view_step(step, &values_out)
+                        })?;
+                    values.insert(step.output, output);
                 }
                 ExecutionOp::Add => {
                     let (left, right) = binary_inputs(step, &values)?;
@@ -3368,10 +3664,16 @@ impl AvailableCudaBackend {
                         values.insert(step.output, output);
                     }
                     BackendExtensionOp::RotaryEmbeddingBackward { interleaved } => {
-                        let output = self.execute_rotary_embedding_backward_step(
+                        let output = execute_profiled_host_fallback(
+                            &mut host_fallback_profile,
                             step,
-                            &values,
-                            *interleaved,
+                            || {
+                                self.execute_rotary_embedding_backward_step(
+                                    step,
+                                    &values,
+                                    *interleaved,
+                                )
+                            },
                         )?;
                         values.insert(step.output, output);
                     }
@@ -3389,22 +3691,34 @@ impl AvailableCudaBackend {
                         scale,
                         causal,
                     } => {
-                        let output = self.execute_scaled_dot_product_attention_backward_step(
+                        let output = execute_profiled_host_fallback(
+                            &mut host_fallback_profile,
                             step,
-                            &values,
-                            scale.to_f32(),
-                            *causal,
-                            ScaledDotProductAttentionBackwardTarget::Query,
+                            || {
+                                self.execute_scaled_dot_product_attention_backward_step(
+                                    step,
+                                    &values,
+                                    scale.to_f32(),
+                                    *causal,
+                                    ScaledDotProductAttentionBackwardTarget::Query,
+                                )
+                            },
                         )?;
                         values.insert(step.output, output);
                     }
                     BackendExtensionOp::ScaledDotProductAttentionKeyBackward { scale, causal } => {
-                        let output = self.execute_scaled_dot_product_attention_backward_step(
+                        let output = execute_profiled_host_fallback(
+                            &mut host_fallback_profile,
                             step,
-                            &values,
-                            scale.to_f32(),
-                            *causal,
-                            ScaledDotProductAttentionBackwardTarget::Key,
+                            || {
+                                self.execute_scaled_dot_product_attention_backward_step(
+                                    step,
+                                    &values,
+                                    scale.to_f32(),
+                                    *causal,
+                                    ScaledDotProductAttentionBackwardTarget::Key,
+                                )
+                            },
                         )?;
                         values.insert(step.output, output);
                     }
@@ -3412,12 +3726,18 @@ impl AvailableCudaBackend {
                         scale,
                         causal,
                     } => {
-                        let output = self.execute_scaled_dot_product_attention_backward_step(
+                        let output = execute_profiled_host_fallback(
+                            &mut host_fallback_profile,
                             step,
-                            &values,
-                            scale.to_f32(),
-                            *causal,
-                            ScaledDotProductAttentionBackwardTarget::Value,
+                            || {
+                                self.execute_scaled_dot_product_attention_backward_step(
+                                    step,
+                                    &values,
+                                    scale.to_f32(),
+                                    *causal,
+                                    ScaledDotProductAttentionBackwardTarget::Value,
+                                )
+                            },
                         )?;
                         values.insert(step.output, output);
                     }
@@ -3429,9 +3749,15 @@ impl AvailableCudaBackend {
                     return Err(RuntimeError::UnsupportedStep(step.op.label().to_string()));
                 }
             }
+            release_dead_execution_values(&mut values, &mut retain_counts, step);
         }
 
         let _report = submission.commit(CudaCommandWait::Completed)?;
+        if let (Some(path), Some(profile)) =
+            (profile_path.as_deref(), host_fallback_profile.as_ref())
+        {
+            let _ = append_host_fallback_profile_report(path, plan, profile);
+        }
         let mut outputs = BTreeMap::new();
         for output_id in &plan.outputs {
             let Some(buffer) = values.remove(output_id) else {
@@ -3451,6 +3777,40 @@ impl AvailableCudaBackend {
                 compile_path: None,
             },
         })
+    }
+}
+
+fn execution_value_retain_counts(plan: &ExecutionPlan) -> BTreeMap<TensorId, usize> {
+    let mut retain_counts = BTreeMap::new();
+    for step in &plan.steps {
+        for input in &step.inputs {
+            *retain_counts.entry(*input).or_insert(0) += 1;
+        }
+    }
+    for output in &plan.outputs {
+        *retain_counts.entry(*output).or_insert(0) += 1;
+    }
+    retain_counts
+}
+
+fn release_dead_execution_values(
+    values: &mut BTreeMap<TensorId, CudaBuffer>,
+    retain_counts: &mut BTreeMap<TensorId, usize>,
+    step: &ExecutionStep,
+) {
+    for input in &step.inputs {
+        let Some(count) = retain_counts.get_mut(input) else {
+            continue;
+        };
+        *count = count.saturating_sub(1);
+        if *count == 0 {
+            retain_counts.remove(input);
+            values.remove(input);
+        }
+    }
+
+    if retain_counts.get(&step.output).copied().unwrap_or(0) == 0 {
+        values.remove(&step.output);
     }
 }
 
@@ -3819,6 +4179,381 @@ fn validate_supported_step(step: &ExecutionStep) -> Result<(), RuntimeError> {
     Ok(())
 }
 
+fn cast_contiguous_values(
+    values: &[f32],
+    input_dtype: DType,
+    output_dtype: DType,
+) -> Result<Vec<f32>, RuntimeError> {
+    if input_dtype != DType::F32 || output_dtype != DType::F32 {
+        return Err(RuntimeError::UnsupportedStep(format!(
+            "cast {:?}->{:?}",
+            input_dtype, output_dtype
+        )));
+    }
+    Ok(values.to_vec())
+}
+
+fn permute_contiguous_values(
+    values: &[f32],
+    input_shape: &[usize],
+    axes: &[usize],
+) -> Result<Vec<f32>, RuntimeError> {
+    if input_shape.len() != axes.len() {
+        return Err(RuntimeError::Backend(format!(
+            "permute rank mismatch: shape rank {} axes {}",
+            input_shape.len(),
+            axes.len()
+        )));
+    }
+    let output_shape = axes
+        .iter()
+        .map(|&axis| input_shape[axis])
+        .collect::<Vec<_>>();
+    let input_strides = contiguous_strides(input_shape);
+    let output_strides = contiguous_strides(&output_shape);
+    let mut output = vec![0.0_f32; output_shape.iter().product()];
+    let chunk_len = host_fallback_chunk_len(output.len());
+    let fill_chunk = |chunk_index: usize, chunk: &mut [f32]| {
+        let start_linear = chunk_index.saturating_mul(chunk_len);
+        let last_offset = chunk.len().saturating_sub(1);
+        let mut output_coords = vec![0_usize; output_shape.len()];
+        linear_to_coords_in_place(
+            start_linear,
+            &output_shape,
+            &output_strides,
+            output_coords.as_mut_slice(),
+        );
+        for (offset, output_value) in chunk.iter_mut().enumerate() {
+            let mut input_linear = 0_usize;
+            for (output_axis, &input_axis) in axes.iter().enumerate() {
+                input_linear = input_linear.saturating_add(
+                    output_coords[output_axis].saturating_mul(input_strides[input_axis]),
+                );
+            }
+            *output_value = values[input_linear];
+            if offset != last_offset {
+                advance_coords(output_coords.as_mut_slice(), &output_shape);
+            }
+        }
+    };
+    if output.len() >= HOST_FALLBACK_PARALLEL_MIN_ELEMENTS {
+        output
+            .par_chunks_mut(chunk_len)
+            .enumerate()
+            .for_each(|(chunk_index, chunk)| fill_chunk(chunk_index, chunk));
+    } else {
+        for (chunk_index, chunk) in output.chunks_mut(chunk_len).enumerate() {
+            fill_chunk(chunk_index, chunk);
+        }
+    }
+    Ok(output)
+}
+
+fn slice_contiguous_values(
+    values: &[f32],
+    input_shape: &[usize],
+    axis: usize,
+    start: usize,
+    end: usize,
+) -> Result<Vec<f32>, RuntimeError> {
+    if axis >= input_shape.len() || start > end || end > input_shape[axis] {
+        return Err(RuntimeError::Backend(format!(
+            "invalid slice axis={axis} start={start} end={end} for shape {input_shape:?}"
+        )));
+    }
+    let mut output_shape = input_shape.to_vec();
+    output_shape[axis] = end - start;
+    let input_strides = contiguous_strides(input_shape);
+    let output_strides = contiguous_strides(&output_shape);
+    let mut output = vec![0.0_f32; output_shape.iter().product()];
+    for output_linear in 0..output.len() {
+        let mut input_coords = linear_to_coords(output_linear, &output_shape, &output_strides);
+        input_coords[axis] += start;
+        let input_linear = coords_to_linear(&input_coords, &input_strides);
+        output[output_linear] = values[input_linear];
+    }
+    Ok(output)
+}
+
+fn select_contiguous_values(
+    values: &[f32],
+    input_shape: &[usize],
+    axis: usize,
+    index: usize,
+) -> Result<Vec<f32>, RuntimeError> {
+    if axis >= input_shape.len() || index >= input_shape[axis] {
+        return Err(RuntimeError::Backend(format!(
+            "invalid select axis={axis} index={index} for shape {input_shape:?}"
+        )));
+    }
+    let mut output_shape = input_shape.to_vec();
+    output_shape.remove(axis);
+    let input_strides = contiguous_strides(input_shape);
+    let output_strides = contiguous_strides(&output_shape);
+    let mut output = vec![0.0_f32; output_shape.iter().product::<usize>().max(1)];
+    for output_linear in 0..output.len() {
+        let output_coords = linear_to_coords(output_linear, &output_shape, &output_strides);
+        let mut input_coords = Vec::with_capacity(input_shape.len());
+        let mut output_axis = 0;
+        for input_axis in 0..input_shape.len() {
+            if input_axis == axis {
+                input_coords.push(index);
+            } else {
+                input_coords.push(output_coords[output_axis]);
+                output_axis += 1;
+            }
+        }
+        let input_linear = coords_to_linear(&input_coords, &input_strides);
+        output[output_linear] = values[input_linear];
+    }
+    Ok(output)
+}
+
+fn concat_contiguous_values(
+    values: &[&[f32]],
+    shapes: &[&[usize]],
+    axis: usize,
+) -> Result<Vec<f32>, RuntimeError> {
+    let Some(first_shape) = shapes.first() else {
+        return Err(RuntimeError::Backend(String::from(
+            "concat requires at least one input",
+        )));
+    };
+    if axis >= first_shape.len() {
+        return Err(RuntimeError::Backend(format!(
+            "invalid concat axis={axis} for shape {first_shape:?}"
+        )));
+    }
+    let rank = first_shape.len();
+    if shapes.iter().any(|shape| shape.len() != rank) {
+        return Err(RuntimeError::Backend(String::from(
+            "concat requires matching input ranks",
+        )));
+    }
+    let mut output_shape = first_shape.to_vec();
+    output_shape[axis] = 0;
+    for shape in shapes {
+        for check_axis in 0..rank {
+            if check_axis != axis && shape[check_axis] != first_shape[check_axis] {
+                return Err(RuntimeError::Backend(String::from(
+                    "concat requires matching non-concatenated dimensions",
+                )));
+            }
+        }
+        output_shape[axis] += shape[axis];
+    }
+    let output_strides = contiguous_strides(&output_shape);
+    let input_strides = shapes
+        .iter()
+        .map(|shape| contiguous_strides(shape))
+        .collect::<Vec<_>>();
+    let mut output = vec![0.0_f32; output_shape.iter().product()];
+    let mut axis_offset = 0;
+    for ((input_values, input_shape), input_stride) in values.iter().zip(shapes).zip(&input_strides)
+    {
+        let input_len = input_shape.iter().product();
+        for input_linear in 0..input_len {
+            let mut output_coords = linear_to_coords(input_linear, input_shape, input_stride);
+            output_coords[axis] += axis_offset;
+            let output_linear = coords_to_linear(&output_coords, &output_strides);
+            output[output_linear] = input_values[input_linear];
+        }
+        axis_offset += input_shape[axis];
+    }
+    Ok(output)
+}
+
+fn expand_contiguous_values(
+    values: &[f32],
+    input_shape: &[usize],
+    output_shape: &[usize],
+) -> Result<Vec<f32>, RuntimeError> {
+    if output_shape.len() < input_shape.len() {
+        return Err(RuntimeError::Backend(format!(
+            "expand requires output rank >= input rank, found input={input_shape:?} output={output_shape:?}"
+        )));
+    }
+    let input_padding = output_shape.len() - input_shape.len();
+    let padded_input = std::iter::repeat_n(1_usize, input_padding)
+        .chain(input_shape.iter().copied())
+        .collect::<Vec<_>>();
+    for (&input_dim, &output_dim) in padded_input.iter().zip(output_shape) {
+        if input_dim != output_dim && input_dim != 1 {
+            return Err(RuntimeError::Backend(format!(
+                "invalid expand from {input_shape:?} to {output_shape:?}"
+            )));
+        }
+    }
+    let input_strides = contiguous_strides(&padded_input);
+    let output_strides = contiguous_strides(output_shape);
+    let mut output = vec![0.0_f32; output_shape.iter().product()];
+    let chunk_len = host_fallback_chunk_len(output.len());
+    let fill_chunk = |chunk_index: usize, chunk: &mut [f32]| {
+        let start_linear = chunk_index.saturating_mul(chunk_len);
+        let last_offset = chunk.len().saturating_sub(1);
+        let mut output_coords = vec![0_usize; output_shape.len()];
+        linear_to_coords_in_place(
+            start_linear,
+            output_shape,
+            &output_strides,
+            output_coords.as_mut_slice(),
+        );
+        for (offset, output_value) in chunk.iter_mut().enumerate() {
+            let mut input_linear = 0_usize;
+            for axis in 0..output_shape.len() {
+                if padded_input[axis] != 1 {
+                    input_linear = input_linear
+                        .saturating_add(output_coords[axis].saturating_mul(input_strides[axis]));
+                }
+            }
+            *output_value = values[input_linear];
+            if offset != last_offset {
+                advance_coords(output_coords.as_mut_slice(), output_shape);
+            }
+        }
+    };
+    if output.len() >= HOST_FALLBACK_PARALLEL_MIN_ELEMENTS {
+        output
+            .par_chunks_mut(chunk_len)
+            .enumerate()
+            .for_each(|(chunk_index, chunk)| fill_chunk(chunk_index, chunk));
+    } else {
+        for (chunk_index, chunk) in output.chunks_mut(chunk_len).enumerate() {
+            fill_chunk(chunk_index, chunk);
+        }
+    }
+    Ok(output)
+}
+
+fn reduce_sum_contiguous_values(
+    values: &[f32],
+    input_shape: &[usize],
+    axis: Option<usize>,
+) -> Result<Vec<f32>, RuntimeError> {
+    let Some(axis) = axis else {
+        return Ok(vec![values.iter().copied().sum()]);
+    };
+    if axis >= input_shape.len() {
+        return Err(RuntimeError::Backend(format!(
+            "invalid reduce_sum axis={axis} for shape {input_shape:?}"
+        )));
+    }
+    let mut output_shape = input_shape.to_vec();
+    output_shape.remove(axis);
+    let input_strides = contiguous_strides(input_shape);
+    let output_strides = contiguous_strides(&output_shape);
+    let mut output = vec![0.0_f32; output_shape.iter().product::<usize>().max(1)];
+    let reduction_len = input_shape[axis];
+    let reduction_stride = input_strides[axis];
+    let chunk_len = host_fallback_chunk_len(output.len());
+    let fill_chunk = |chunk_index: usize, chunk: &mut [f32]| {
+        let start_linear = chunk_index.saturating_mul(chunk_len);
+        let last_offset = chunk.len().saturating_sub(1);
+        let mut output_coords = vec![0_usize; output_shape.len()];
+        linear_to_coords_in_place(
+            start_linear,
+            &output_shape,
+            &output_strides,
+            output_coords.as_mut_slice(),
+        );
+        for (offset, output_value) in chunk.iter_mut().enumerate() {
+            let mut base_linear = 0_usize;
+            let mut output_axis = 0;
+            for input_axis in 0..input_shape.len() {
+                if input_axis == axis {
+                    continue;
+                }
+                base_linear = base_linear.saturating_add(
+                    output_coords[output_axis].saturating_mul(input_strides[input_axis]),
+                );
+                output_axis += 1;
+            }
+
+            let mut sum = 0.0_f32;
+            for reduced_index in 0..reduction_len {
+                sum += values
+                    [base_linear.saturating_add(reduced_index.saturating_mul(reduction_stride))];
+            }
+            *output_value = sum;
+            if offset != last_offset {
+                advance_coords(output_coords.as_mut_slice(), &output_shape);
+            }
+        }
+    };
+    if output.len() >= HOST_FALLBACK_PARALLEL_MIN_ELEMENTS {
+        output
+            .par_chunks_mut(chunk_len)
+            .enumerate()
+            .for_each(|(chunk_index, chunk)| fill_chunk(chunk_index, chunk));
+    } else {
+        for (chunk_index, chunk) in output.chunks_mut(chunk_len).enumerate() {
+            fill_chunk(chunk_index, chunk);
+        }
+    }
+    Ok(output)
+}
+
+fn contiguous_strides(shape: &[usize]) -> Vec<usize> {
+    let mut strides = vec![0; shape.len()];
+    let mut running = 1;
+    for (index, dim) in shape.iter().enumerate().rev() {
+        strides[index] = running;
+        running *= *dim;
+    }
+    strides
+}
+
+fn host_fallback_chunk_len(total_elements: usize) -> usize {
+    if total_elements <= 1 {
+        return 1;
+    }
+    let target_chunks = rayon::current_num_threads().max(1).saturating_mul(4);
+    total_elements
+        .div_ceil(target_chunks)
+        .max(HOST_FALLBACK_PARALLEL_MIN_CHUNK_ELEMENTS)
+        .min(total_elements)
+}
+
+fn linear_to_coords_in_place(
+    linear: usize,
+    shape: &[usize],
+    strides: &[usize],
+    coords: &mut [usize],
+) {
+    if shape.is_empty() {
+        return;
+    }
+    let mut remaining = linear;
+    for axis in 0..shape.len() {
+        coords[axis] = remaining / strides[axis];
+        remaining %= strides[axis];
+    }
+}
+
+fn advance_coords(coords: &mut [usize], shape: &[usize]) {
+    for axis in (0..coords.len()).rev() {
+        coords[axis] += 1;
+        if coords[axis] < shape[axis] {
+            return;
+        }
+        coords[axis] = 0;
+    }
+}
+
+fn linear_to_coords(linear: usize, shape: &[usize], strides: &[usize]) -> Vec<usize> {
+    let mut coords = vec![0; shape.len()];
+    linear_to_coords_in_place(linear, shape, strides, coords.as_mut_slice());
+    coords
+}
+
+fn coords_to_linear(coords: &[usize], strides: &[usize]) -> usize {
+    coords
+        .iter()
+        .zip(strides.iter())
+        .map(|(coord, stride)| coord.saturating_mul(*stride))
+        .sum()
+}
+
 fn relu_squared_forward_values(input: &[f32]) -> Vec<f32> {
     input
         .iter()
@@ -4125,99 +4860,115 @@ fn scaled_dot_product_attention_backward_host_values(
     let mut query_gradient = vec![0.0_f32; query.len()];
     let mut key_gradient = vec![0.0_f32; key.len()];
     let mut value_gradient = vec![0.0_f32; value.len()];
-    let mut scores = vec![0.0_f32; sequence_length];
-    let mut weights = vec![0.0_f32; sequence_length];
+    let query_batch_width = query_heads
+        .checked_mul(sequence_length)
+        .and_then(|value| value.checked_mul(head_dim))
+        .ok_or_else(|| {
+            RuntimeError::Backend(String::from(
+                "cuda scaled_dot_product_attention backward query batch width overflow",
+            ))
+        })?;
+    let kv_batch_width = kv_heads
+        .checked_mul(sequence_length)
+        .and_then(|value| value.checked_mul(head_dim))
+        .ok_or_else(|| {
+            RuntimeError::Backend(String::from(
+                "cuda scaled_dot_product_attention backward kv batch width overflow",
+            ))
+        })?;
 
-    for batch_index in 0..batch_size {
-        for query_head in 0..query_heads {
-            let kv_head = query_head / group_size;
-            for query_position in 0..sequence_length {
-                let query_base = rank4_token_head_element_offset(
-                    query_dims,
-                    batch_index,
-                    query_head,
-                    query_position,
-                )?;
-                let grad_output_base = rank4_token_head_element_offset(
-                    query_dims,
-                    batch_index,
-                    query_head,
-                    query_position,
-                )?;
-                let valid_scores = query_position + 1;
-                let mut max_score = f32::NEG_INFINITY;
-                for key_position in 0..valid_scores {
-                    let key_base = rank4_token_head_element_offset(
-                        key_dims,
-                        batch_index,
-                        kv_head,
-                        key_position,
-                    )?;
-                    let mut dot = 0.0_f32;
-                    for feature in 0..head_dim {
-                        dot += query[query_base + feature] * key[key_base + feature];
-                    }
-                    let score = dot * scale;
-                    scores[key_position] = score;
-                    max_score = max_score.max(score);
-                }
-                let mut denom = 0.0_f32;
-                for key_position in 0..valid_scores {
-                    let weight = (scores[key_position] - max_score).exp();
-                    weights[key_position] = weight;
-                    denom += weight;
-                }
-                for key_position in 0..valid_scores {
-                    weights[key_position] /= denom;
-                }
+    query_gradient
+        .par_chunks_mut(query_batch_width)
+        .zip(key_gradient.par_chunks_mut(kv_batch_width))
+        .zip(value_gradient.par_chunks_mut(kv_batch_width))
+        .enumerate()
+        .try_for_each(
+            |(batch_index, ((query_gradient_batch, key_gradient_batch), value_gradient_batch))| {
+                let query_batch_start = batch_index
+                    .checked_mul(query_batch_width)
+                    .ok_or_else(|| {
+                        RuntimeError::Backend(String::from(
+                            "cuda scaled_dot_product_attention backward query batch offset overflow",
+                        ))
+                    })?;
+                let kv_batch_start = batch_index.checked_mul(kv_batch_width).ok_or_else(|| {
+                    RuntimeError::Backend(String::from(
+                        "cuda scaled_dot_product_attention backward kv batch offset overflow",
+                    ))
+                })?;
+                let query_batch = &query[query_batch_start..query_batch_start + query_batch_width];
+                let key_batch = &key[kv_batch_start..kv_batch_start + kv_batch_width];
+                let value_batch = &value[kv_batch_start..kv_batch_start + kv_batch_width];
+                let grad_output_batch =
+                    &grad_output[query_batch_start..query_batch_start + query_batch_width];
+                let mut scores = vec![0.0_f32; sequence_length];
+                let mut weights = vec![0.0_f32; sequence_length];
 
-                let mut weighted_grad_sum = 0.0_f32;
-                for key_position in 0..valid_scores {
-                    let value_base = rank4_token_head_element_offset(
-                        value_dims,
-                        batch_index,
-                        kv_head,
-                        key_position,
-                    )?;
-                    let mut grad_weight = 0.0_f32;
-                    for feature in 0..head_dim {
-                        grad_weight +=
-                            grad_output[grad_output_base + feature] * value[value_base + feature];
-                    }
-                    weighted_grad_sum += weights[key_position] * grad_weight;
-                }
+                for query_head in 0..query_heads {
+                    let kv_head = query_head / group_size;
+                    let query_head_offset = query_head * sequence_length * head_dim;
+                    let kv_head_offset = kv_head * sequence_length * head_dim;
+                    for query_position in 0..sequence_length {
+                        let query_base = query_head_offset + query_position * head_dim;
+                        let valid_scores = query_position + 1;
+                        let mut max_score = f32::NEG_INFINITY;
+                        for key_position in 0..valid_scores {
+                            let key_base = kv_head_offset + key_position * head_dim;
+                            let mut dot = 0.0_f32;
+                            for feature in 0..head_dim {
+                                dot += query_batch[query_base + feature]
+                                    * key_batch[key_base + feature];
+                            }
+                            let score = dot * scale;
+                            scores[key_position] = score;
+                            max_score = max_score.max(score);
+                        }
+                        let mut denom = 0.0_f32;
+                        for key_position in 0..valid_scores {
+                            let weight = (scores[key_position] - max_score).exp();
+                            weights[key_position] = weight;
+                            denom += weight;
+                        }
+                        for key_position in 0..valid_scores {
+                            weights[key_position] /= denom;
+                        }
 
-                for key_position in 0..valid_scores {
-                    let key_base = rank4_token_head_element_offset(
-                        key_dims,
-                        batch_index,
-                        kv_head,
-                        key_position,
-                    )?;
-                    let value_base = rank4_token_head_element_offset(
-                        value_dims,
-                        batch_index,
-                        kv_head,
-                        key_position,
-                    )?;
-                    let mut grad_weight = 0.0_f32;
-                    for feature in 0..head_dim {
-                        grad_weight +=
-                            grad_output[grad_output_base + feature] * value[value_base + feature];
-                    }
-                    let grad_score = weights[key_position] * (grad_weight - weighted_grad_sum);
-                    for feature in 0..head_dim {
-                        query_gradient[query_base + feature] +=
-                            grad_score * scale * key[key_base + feature];
-                        key_gradient[key_base + feature] +=
-                            grad_score * scale * query[query_base + feature];
-                        value_gradient[value_base + feature] +=
-                            weights[key_position] * grad_output[grad_output_base + feature];
+                        let mut weighted_grad_sum = 0.0_f32;
+                        for key_position in 0..valid_scores {
+                            let value_base = kv_head_offset + key_position * head_dim;
+                            let mut grad_weight = 0.0_f32;
+                            for feature in 0..head_dim {
+                                grad_weight += grad_output_batch[query_base + feature]
+                                    * value_batch[value_base + feature];
+                            }
+                            weighted_grad_sum += weights[key_position] * grad_weight;
+                        }
+
+                        for key_position in 0..valid_scores {
+                            let key_base = kv_head_offset + key_position * head_dim;
+                            let value_base = kv_head_offset + key_position * head_dim;
+                            let mut grad_weight = 0.0_f32;
+                            for feature in 0..head_dim {
+                                grad_weight += grad_output_batch[query_base + feature]
+                                    * value_batch[value_base + feature];
+                            }
+                            let grad_score =
+                                weights[key_position] * (grad_weight - weighted_grad_sum);
+                            for feature in 0..head_dim {
+                                query_gradient_batch[query_base + feature] +=
+                                    grad_score * scale * key_batch[key_base + feature];
+                                key_gradient_batch[key_base + feature] +=
+                                    grad_score * scale * query_batch[query_base + feature];
+                                value_gradient_batch[value_base + feature] +=
+                                    weights[key_position]
+                                        * grad_output_batch[query_base + feature];
+                            }
+                        }
                     }
                 }
-            }
-        }
-    }
+                Ok::<(), RuntimeError>(())
+            },
+        )?;
 
     Ok(ScaledDotProductAttentionBackwardHostValues {
         query: query_gradient,
@@ -9279,6 +10030,57 @@ mod tests {
         assert_eq!(
             error,
             psionic_runtime::RuntimeError::UnsupportedStep(String::from("reshape"))
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn execution_value_retain_counts_track_consumers_and_final_outputs(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let device = Device::new(DeviceKind::Cuda, 0, Some(String::from("cuda:0")));
+        let mut builder = GraphBuilder::new(device);
+        let left = builder.input("left", Shape::new(vec![1, 2]), DType::F32);
+        let right = builder.input("right", Shape::new(vec![1, 2]), DType::F32);
+        let summed = builder.add(&left, &right)?;
+        let scaled = builder.mul(&summed, &right)?;
+        let graph = builder.finish(vec![scaled.clone()]);
+        let plan = compile_graph(&graph)?;
+        let retain_counts = super::execution_value_retain_counts(&plan);
+
+        assert_eq!(retain_counts.get(&left.id()).copied(), Some(1));
+        assert_eq!(retain_counts.get(&right.id()).copied(), Some(2));
+        assert_eq!(retain_counts.get(&summed.id()).copied(), Some(1));
+        assert_eq!(retain_counts.get(&scaled.id()).copied(), Some(1));
+        Ok(())
+    }
+
+    #[test]
+    fn permute_contiguous_values_matches_expected_layout() -> Result<(), Box<dyn std::error::Error>>
+    {
+        let values = vec![0.0_f32, 1.0, 2.0, 3.0, 4.0, 5.0];
+        let permuted = super::permute_contiguous_values(&values, &[2, 3], &[1, 0])?;
+        assert_eq!(permuted, vec![0.0, 3.0, 1.0, 4.0, 2.0, 5.0]);
+        Ok(())
+    }
+
+    #[test]
+    fn expand_contiguous_values_repeats_broadcast_dimensions(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let values = vec![10.0_f32, 20.0];
+        let expanded = super::expand_contiguous_values(&values, &[1, 2], &[3, 2])?;
+        assert_eq!(expanded, vec![10.0, 20.0, 10.0, 20.0, 10.0, 20.0]);
+        Ok(())
+    }
+
+    #[test]
+    fn reduce_sum_contiguous_values_reduces_requested_axis(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let values = vec![1.0_f32, 2.0, 3.0, 4.0, 5.0, 6.0];
+        let reduced = super::reduce_sum_contiguous_values(&values, &[2, 3], Some(1))?;
+        assert_eq!(reduced, vec![6.0, 15.0]);
+        assert_eq!(
+            super::reduce_sum_contiguous_values(&values, &[2, 3], None)?,
+            vec![21.0]
         );
         Ok(())
     }

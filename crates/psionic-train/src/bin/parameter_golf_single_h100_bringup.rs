@@ -1,7 +1,7 @@
 use std::{env, path::PathBuf};
 
 use psionic_train::{
-    write_parameter_golf_single_h100_bringup_report, ParameterGolfSingleH100BringupConfig,
+    ParameterGolfSingleH100BringupConfig, write_parameter_golf_single_h100_bringup_report,
 };
 
 fn main() {
