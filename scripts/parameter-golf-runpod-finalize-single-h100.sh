@@ -2,6 +2,9 @@
 
 set -euo pipefail
 
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+repo_root="$(cd -- "${script_dir}/.." && pwd)"
+
 run_root=""
 output_path=""
 training_report_path=""
@@ -107,6 +110,13 @@ if [[ -z "${training_report_path}" ]]; then
 fi
 if [[ -z "${training_log_path}" ]]; then
   training_log_path="${run_root}/parameter_golf_single_h100_train.log"
+fi
+
+repo_revision="$(git -C "${repo_root}" rev-parse HEAD 2>/dev/null || true)"
+if [[ -z "${repo_revision}" ]]; then
+  repo_revision="workspace@unknown"
+else
+  repo_revision="workspace@${repo_revision}"
 fi
 
 inventory_file="${run_root}/nvidia_smi_inventory.txt"
@@ -321,6 +331,92 @@ report = {
     "claim_boundary": "This audit preserves the exact RunPod single-H100 run root, pod identity, accelerator evidence, trainer report metrics when present, and the latest retained log progress or failure cause. It does not by itself promote the lane beyond the exact preserved single-H100 outcome.",
 }
 
+output_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+print(json.dumps(report, indent=2))
+PY
+
+audit_status="$(
+  python3 - "${output_path}" <<'PY'
+import json
+import sys
+
+print(json.loads(open(sys.argv[1], encoding="utf-8").read())["audit_status"])
+PY
+)"
+
+case "${audit_status}" in
+  succeeded)
+    visualization_result_classification="completed_success"
+    ;;
+  refused)
+    visualization_result_classification="refused"
+    ;;
+  in_progress)
+    visualization_result_classification="active"
+    ;;
+  *)
+    visualization_result_classification="completed_failure"
+    ;;
+esac
+
+(
+  cd "${repo_root}"
+  cargo run -q -p psionic-train --bin parameter_golf_single_h100_visualization -- \
+    --run-root "${run_root}" \
+    --training-report "${training_report_path}" \
+    --training-log "${training_log_path}" \
+    --provider run_pod \
+    --profile-id runpod_h100_single_gpu \
+    --lane-id parameter_golf.runpod_single_h100 \
+    --repo-revision "${repo_revision}" \
+    --result-classification "${visualization_result_classification}"
+)
+
+python3 - "${output_path}" "${run_root}" <<'PY'
+import hashlib
+import json
+import sys
+from pathlib import Path
+
+output_path = Path(sys.argv[1])
+run_root = Path(sys.argv[2])
+visualization_dir = run_root / "training_visualization"
+bundle_path = visualization_dir / "parameter_golf_single_h100_remote_training_visualization_bundle_v1.json"
+run_index_path = visualization_dir / "remote_training_run_index_v1.json"
+
+
+def sha256(path: Path) -> str | None:
+    if not path.is_file():
+        return None
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def read_json(path: Path) -> dict | None:
+    if not path.is_file():
+        return None
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+report = read_json(output_path) or {}
+bundle = read_json(bundle_path) or {}
+run_index = read_json(run_index_path) or {}
+report["remote_training_visualization"] = {
+    "bundle_path": str(bundle_path),
+    "bundle_exists": bundle_path.is_file(),
+    "bundle_sha256": sha256(bundle_path),
+    "bundle_digest": bundle.get("bundle_digest"),
+    "run_index_path": str(run_index_path),
+    "run_index_exists": run_index_path.is_file(),
+    "run_index_sha256": sha256(run_index_path),
+    "run_index_digest": run_index.get("index_digest"),
+    "provider": bundle.get("provider"),
+    "profile_id": bundle.get("profile_id"),
+    "lane_id": bundle.get("lane_id"),
+    "result_classification": bundle.get("result_classification"),
+    "series_status": bundle.get("series_status"),
+    "last_heartbeat_at_ms": ((bundle.get("refresh_contract") or {}).get("last_heartbeat_at_ms")),
+    "heartbeat_seq": ((bundle.get("refresh_contract") or {}).get("heartbeat_seq")),
+}
 output_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
 print(json.dumps(report, indent=2))
 PY

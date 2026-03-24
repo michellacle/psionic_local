@@ -24,6 +24,8 @@ The finalizer writes one machine-readable audit JSON that binds:
 - retained `nvidia-smi` inventory and topology captures when available
 - the trainer JSON report when present
 - the trainer log, its SHA-256, and the latest retained micro-step progress
+- the provider-neutral visualization bundle and run index under
+  `training_visualization/`
 - one explicit audit outcome:
   - `succeeded`
   - `refused`
@@ -34,6 +36,16 @@ The finalizer writes one machine-readable audit JSON that binds:
 
 That gives `#458` one deterministic closeout surface whether the run succeeds,
 refuses, is still executing, or dies before the final report lands.
+
+The same finalizer now also materializes:
+
+- `training_visualization/parameter_golf_single_h100_remote_training_visualization_bundle_v1.json`
+- `training_visualization/remote_training_run_index_v1.json`
+
+It does that by calling the Rust-owned visualization materializer against the
+trainer report, the existing live bundle, or the retained trainer log.
+
+That keeps the RunPod lane on the same typed app contract as the Google lane.
 
 ## Command
 
@@ -63,5 +75,6 @@ This audit surface does not claim:
 It closes one narrower but important thing:
 
 - the repo now has one deterministic RunPod single-H100 audit finalizer that
-  can turn the live run root into a preserved evidence bundle or preserved
-  failure cause without inventing a second ad hoc reporting path at closeout
+  can turn the live run root into one preserved evidence bundle, one preserved
+  app-facing visualization mirror, or one explicit partial-series failure cause
+  without inventing a provider-specific reporting path at closeout

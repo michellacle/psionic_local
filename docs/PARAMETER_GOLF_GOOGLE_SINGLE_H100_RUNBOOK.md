@@ -67,10 +67,23 @@ The launch manifest is also explicit about the Rust-owned trainer command:
 
 - pre-training command:
   materialize the public Parameter Golf cache, validate it with the committed
-  bring-up checker, then build `parameter_golf_single_h100_train` in `--release`
+  bring-up checker, then build `parameter_golf_single_h100_train` and
+  `parameter_golf_single_h100_visualization` in `--release`
 - training command:
   run `parameter_golf_single_h100_train` directly against the materialized
-  `fineweb10B_sp1024` cache and `fineweb_1024_bpe.model`
+  `fineweb10B_sp1024` cache and `fineweb_1024_bpe.model`, while exporting the
+  provider, profile, lane, and repo revision metadata that turn on the
+  one-second live visualization mirror under
+  `output/training_visualization/`
+
+The Google finalizer now re-materializes or preserves the same typed
+visualization bundle and run index under:
+
+- `output/training_visualization/parameter_golf_single_h100_remote_training_visualization_bundle_v1.json`
+- `output/training_visualization/remote_training_run_index_v1.json`
+
+It also surfaces those paths, remote URIs, digests, and heartbeat posture in
+the Google outcome and final manifest JSON.
 
 ## Immutable Input Package Contract
 

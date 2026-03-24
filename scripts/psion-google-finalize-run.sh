@@ -314,6 +314,18 @@ gpu_summary_path="${scratch_dir}/${gpu_summary_name}"
 run_cost_receipt_path="${scratch_dir}/${run_cost_receipt_name}"
 accelerator_validation_path="${scratch_dir}/${accelerator_validation_receipt_name}"
 outcome_path="${scratch_dir}/${outcome_name}"
+remote_training_visualization_bundle_path=""
+remote_training_visualization_bundle_remote_uri=""
+remote_training_visualization_bundle_sha256=""
+remote_training_visualization_bundle_digest=""
+remote_training_visualization_run_index_path=""
+remote_training_visualization_run_index_remote_uri=""
+remote_training_visualization_run_index_sha256=""
+remote_training_visualization_run_index_digest=""
+remote_training_visualization_result=""
+remote_training_visualization_series_status=""
+remote_training_visualization_last_heartbeat_at_ms=""
+remote_training_visualization_heartbeat_seq=""
 
 mkdir -p "${log_dir}" "${scratch_dir}"
 
@@ -774,6 +786,71 @@ if [[ "${accelerator_validation_required}" == "true" && "${accelerator_backed_pa
   fi
 fi
 
+if [[ "${trainer_lane_id}" == "parameter_golf_single_h100" ]]; then
+  visualization_result_classification="completed_failure"
+  if [[ "${final_result_classification}" == "bounded_success" ]]; then
+    visualization_result_classification="completed_success"
+  fi
+  repo_revision="$(git -C "${REPO_DIR}" rev-parse HEAD 2>/dev/null || true)"
+  if [[ -z "${repo_revision}" ]]; then
+    repo_revision="workspace@unknown"
+  else
+    repo_revision="workspace@${repo_revision}"
+  fi
+  visualization_bin="${scratch_dir}/cargo-target/release/parameter_golf_single_h100_visualization"
+  if [[ -x "${visualization_bin}" ]]; then
+    visualization_cmd=("${visualization_bin}")
+  else
+    visualization_cmd=(
+      cargo run -q -p psionic-train --bin parameter_golf_single_h100_visualization --
+    )
+  fi
+  (
+    cd "${REPO_DIR}"
+    "${visualization_cmd[@]}" \
+      --run-root "${output_dir}" \
+      --training-report "${output_dir}/parameter_golf_single_h100_training.json" \
+      --training-log "${log_dir}/training.stdout.log" \
+      --provider google_cloud \
+      --profile-id "${profile_id}" \
+      --lane-id parameter_golf.google_single_h100 \
+      --repo-revision "${repo_revision}" \
+      --result-classification "${visualization_result_classification}"
+  )
+  remote_training_visualization_bundle_path="${output_dir}/training_visualization/parameter_golf_single_h100_remote_training_visualization_bundle_v1.json"
+  remote_training_visualization_bundle_remote_uri="${receipts_prefix}/training_visualization/parameter_golf_single_h100_remote_training_visualization_bundle_v1.json"
+  remote_training_visualization_run_index_path="${output_dir}/training_visualization/remote_training_run_index_v1.json"
+  remote_training_visualization_run_index_remote_uri="${receipts_prefix}/training_visualization/remote_training_run_index_v1.json"
+  if [[ -f "${remote_training_visualization_bundle_path}" ]]; then
+    remote_training_visualization_bundle_sha256="$(
+      compute_sha256 "${remote_training_visualization_bundle_path}"
+    )"
+    remote_training_visualization_bundle_digest="$(
+      jq -r '.bundle_digest // empty' "${remote_training_visualization_bundle_path}"
+    )"
+    remote_training_visualization_result="$(
+      jq -r '.result_classification // empty' "${remote_training_visualization_bundle_path}"
+    )"
+    remote_training_visualization_series_status="$(
+      jq -r '.series_status // empty' "${remote_training_visualization_bundle_path}"
+    )"
+    remote_training_visualization_last_heartbeat_at_ms="$(
+      jq -r '.refresh_contract.last_heartbeat_at_ms // empty' "${remote_training_visualization_bundle_path}"
+    )"
+    remote_training_visualization_heartbeat_seq="$(
+      jq -r '.refresh_contract.heartbeat_seq // empty' "${remote_training_visualization_bundle_path}"
+    )"
+  fi
+  if [[ -f "${remote_training_visualization_run_index_path}" ]]; then
+    remote_training_visualization_run_index_sha256="$(
+      compute_sha256 "${remote_training_visualization_run_index_path}"
+    )"
+    remote_training_visualization_run_index_digest="$(
+      jq -r '.index_digest // empty' "${remote_training_visualization_run_index_path}"
+    )"
+  fi
+fi
+
 jq -n \
   --arg schema_version "psion.google_accelerator_validation_receipt.v1" \
   --arg created_at_utc "$(timestamp_utc)" \
@@ -1008,6 +1085,18 @@ jq -n \
   --arg training_exit_code "${TRAINING_EXIT_CODE}" \
   --arg archive_manifest_uri "${ARCHIVE_MANIFEST_URI}" \
   --arg cold_restore_manifest_uri "${COLD_RESTORE_MANIFEST_URI}" \
+  --arg visualization_bundle_path "${remote_training_visualization_bundle_path}" \
+  --arg visualization_bundle_remote_uri "${remote_training_visualization_bundle_remote_uri}" \
+  --arg visualization_bundle_sha256 "${remote_training_visualization_bundle_sha256}" \
+  --arg visualization_bundle_digest "${remote_training_visualization_bundle_digest}" \
+  --arg visualization_run_index_path "${remote_training_visualization_run_index_path}" \
+  --arg visualization_run_index_remote_uri "${remote_training_visualization_run_index_remote_uri}" \
+  --arg visualization_run_index_sha256 "${remote_training_visualization_run_index_sha256}" \
+  --arg visualization_run_index_digest "${remote_training_visualization_run_index_digest}" \
+  --arg visualization_result_classification "${remote_training_visualization_result}" \
+  --arg visualization_series_status "${remote_training_visualization_series_status}" \
+  --arg visualization_last_heartbeat_at_ms "${remote_training_visualization_last_heartbeat_at_ms}" \
+  --arg visualization_heartbeat_seq "${remote_training_visualization_heartbeat_seq}" \
   --argjson accelerator_validation "$(cat "${accelerator_validation_path}")" \
   '{
     schema_version: $schema_version,
@@ -1018,6 +1107,26 @@ jq -n \
     failure_detail: (if $failure_detail == "" then null else $failure_detail end),
     archive_manifest_uri: (if $archive_manifest_uri == "" then null else $archive_manifest_uri end),
     cold_restore_manifest_uri: (if $cold_restore_manifest_uri == "" then null else $cold_restore_manifest_uri end),
+    remote_training_visualization: (
+      if $visualization_bundle_path == "" then
+        null
+      else
+        {
+          bundle_path: $visualization_bundle_path,
+          bundle_remote_uri: (if $visualization_bundle_remote_uri == "" then null else $visualization_bundle_remote_uri end),
+          bundle_sha256: (if $visualization_bundle_sha256 == "" then null else $visualization_bundle_sha256 end),
+          bundle_digest: (if $visualization_bundle_digest == "" then null else $visualization_bundle_digest end),
+          run_index_path: (if $visualization_run_index_path == "" then null else $visualization_run_index_path end),
+          run_index_remote_uri: (if $visualization_run_index_remote_uri == "" then null else $visualization_run_index_remote_uri end),
+          run_index_sha256: (if $visualization_run_index_sha256 == "" then null else $visualization_run_index_sha256 end),
+          run_index_digest: (if $visualization_run_index_digest == "" then null else $visualization_run_index_digest end),
+          result_classification: (if $visualization_result_classification == "" then null else $visualization_result_classification end),
+          series_status: (if $visualization_series_status == "" then null else $visualization_series_status end),
+          last_heartbeat_at_ms: (if $visualization_last_heartbeat_at_ms == "" then null else ($visualization_last_heartbeat_at_ms | tonumber) end),
+          heartbeat_seq: (if $visualization_heartbeat_seq == "" then null else ($visualization_heartbeat_seq | tonumber) end)
+        }
+      end
+    ),
     accelerator_validation: $accelerator_validation
   }' > "${outcome_path}"
 
@@ -1128,6 +1237,18 @@ jq -n \
   --arg cold_restore_manifest_uri "${COLD_RESTORE_MANIFEST_URI}" \
   --arg manifest_of_manifests_uri "${manifest_of_manifests_uri}" \
   --arg manifest_of_manifests_sha256 "${manifest_of_manifests_sha256}" \
+  --arg visualization_bundle_path "${remote_training_visualization_bundle_path}" \
+  --arg visualization_bundle_remote_uri "${remote_training_visualization_bundle_remote_uri}" \
+  --arg visualization_bundle_sha256 "${remote_training_visualization_bundle_sha256}" \
+  --arg visualization_bundle_digest "${remote_training_visualization_bundle_digest}" \
+  --arg visualization_run_index_path "${remote_training_visualization_run_index_path}" \
+  --arg visualization_run_index_remote_uri "${remote_training_visualization_run_index_remote_uri}" \
+  --arg visualization_run_index_sha256 "${remote_training_visualization_run_index_sha256}" \
+  --arg visualization_run_index_digest "${remote_training_visualization_run_index_digest}" \
+  --arg visualization_result_classification "${remote_training_visualization_result}" \
+  --arg visualization_series_status "${remote_training_visualization_series_status}" \
+  --arg visualization_last_heartbeat_at_ms "${remote_training_visualization_last_heartbeat_at_ms}" \
+  --arg visualization_heartbeat_seq "${remote_training_visualization_heartbeat_seq}" \
   --argjson timeline "$(cat "${timeline_path}")" \
   --argjson gpu_summary "$(cat "${gpu_summary_path}")" \
   --argjson run_cost_receipt "$(cat "${run_cost_receipt_path}")" \
@@ -1170,6 +1291,26 @@ jq -n \
     run_cost_receipt: $run_cost_receipt,
     accelerator_validation: $accelerator_validation,
     outcome: $outcome,
+    remote_training_visualization: (
+      if $visualization_bundle_path == "" then
+        null
+      else
+        {
+          bundle_path: $visualization_bundle_path,
+          bundle_remote_uri: (if $visualization_bundle_remote_uri == "" then null else $visualization_bundle_remote_uri end),
+          bundle_sha256: (if $visualization_bundle_sha256 == "" then null else $visualization_bundle_sha256 end),
+          bundle_digest: (if $visualization_bundle_digest == "" then null else $visualization_bundle_digest end),
+          run_index_path: (if $visualization_run_index_path == "" then null else $visualization_run_index_path end),
+          run_index_remote_uri: (if $visualization_run_index_remote_uri == "" then null else $visualization_run_index_remote_uri end),
+          run_index_sha256: (if $visualization_run_index_sha256 == "" then null else $visualization_run_index_sha256 end),
+          run_index_digest: (if $visualization_run_index_digest == "" then null else $visualization_run_index_digest end),
+          result_classification: (if $visualization_result_classification == "" then null else $visualization_result_classification end),
+          series_status: (if $visualization_series_status == "" then null else $visualization_series_status end),
+          last_heartbeat_at_ms: (if $visualization_last_heartbeat_at_ms == "" then null else ($visualization_last_heartbeat_at_ms | tonumber) end),
+          heartbeat_seq: (if $visualization_heartbeat_seq == "" then null else ($visualization_heartbeat_seq | tonumber) end)
+        }
+      end
+    ),
     manifest_of_manifests: {
       remote_uri: $manifest_of_manifests_uri,
       sha256: $manifest_of_manifests_sha256

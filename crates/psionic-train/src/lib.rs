@@ -56,6 +56,7 @@ mod parameter_golf_reference;
 mod parameter_golf_same_node_parity;
 mod parameter_golf_single_h100_bringup;
 mod parameter_golf_single_h100_training;
+mod parameter_golf_single_h100_visualization;
 mod parameter_golf_submission;
 mod parameter_golf_submission_pr;
 mod parameter_golf_submission_runtime;
@@ -181,6 +182,7 @@ pub use parameter_golf_reference::*;
 pub use parameter_golf_same_node_parity::*;
 pub use parameter_golf_single_h100_bringup::*;
 pub use parameter_golf_single_h100_training::*;
+pub use parameter_golf_single_h100_visualization::*;
 pub use parameter_golf_submission::*;
 pub use parameter_golf_submission_pr::*;
 pub use parameter_golf_submission_runtime::*;
@@ -1146,8 +1148,8 @@ mod tests {
     }
 
     #[test]
-    fn observe_membership_advances_epoch_only_when_truth_changes()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn observe_membership_advances_epoch_only_when_truth_changes(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let stable = cluster_state(&[
             ("worker-a", ClusterMembershipStatus::Ready),
             ("worker-b", ClusterMembershipStatus::Ready),
@@ -1177,8 +1179,8 @@ mod tests {
     }
 
     #[test]
-    fn live_recovery_plan_exposes_recovery_and_late_join_semantics()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn live_recovery_plan_exposes_recovery_and_late_join_semantics(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let state = cluster_state(&[
             ("worker-a", ClusterMembershipStatus::Ready),
             ("worker-b", ClusterMembershipStatus::Ready),
@@ -1221,18 +1223,15 @@ mod tests {
             plan.recovery_context.late_joiner_node_ids,
             vec![String::from("worker-c")]
         );
-        assert!(
-            plan.actions
-                .contains(&TrainingRecoveryAction::ResumeFromDurableCheckpoint)
-        );
-        assert!(
-            plan.actions
-                .contains(&TrainingRecoveryAction::StageCheckpointForLateJoiners)
-        );
-        assert!(
-            plan.actions
-                .contains(&TrainingRecoveryAction::RebalanceWorldSize)
-        );
+        assert!(plan
+            .actions
+            .contains(&TrainingRecoveryAction::ResumeFromDurableCheckpoint));
+        assert!(plan
+            .actions
+            .contains(&TrainingRecoveryAction::StageCheckpointForLateJoiners));
+        assert!(plan
+            .actions
+            .contains(&TrainingRecoveryAction::RebalanceWorldSize));
         assert_eq!(plan.checkpoint_streams.len(), 1);
         assert!(!plan.plan_digest.is_empty());
         Ok(())

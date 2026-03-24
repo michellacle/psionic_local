@@ -307,6 +307,22 @@ pub struct ParameterGolfSingleH100TrainingStepMetrics {
     pub muon_momentum: f32,
     pub observed_wallclock_ms: u64,
     pub phase_timings: ParameterGolfSingleH100PhaseTimings,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub effective_learning_rate: Option<f32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub gradient_norm_after_clip: Option<f32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub parameter_norm_after_step: Option<f32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub update_norm: Option<f32>,
+    #[serde(default)]
+    pub clip_applied: bool,
+    #[serde(default)]
+    pub non_finite_gradient_count: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tokens_per_second: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub samples_per_second_milli: Option<u32>,
 }
 
 /// Machine-readable validation summary for the accelerated single-H100 lane.
@@ -567,8 +583,8 @@ pub struct ParameterGolfSingleH100ValidationRuntimeComparisonReceipt {
 }
 
 #[derive(Clone, Debug)]
-struct ParameterGolfSingleH100TrainerState {
-    parameter_states: BTreeMap<String, ParameterGolfParameterState>,
+pub(crate) struct ParameterGolfSingleH100TrainerState {
+    pub(crate) parameter_states: BTreeMap<String, ParameterGolfParameterState>,
 }
 
 #[derive(Clone, Debug)]
@@ -600,7 +616,7 @@ struct ParameterGolfCudaValidationSession {
 }
 
 #[derive(Clone, Debug)]
-enum ParameterGolfParameterState {
+pub(crate) enum ParameterGolfParameterState {
     AdamBf16Master {
         shape: Vec<usize>,
         train_visible_values: Vec<f32>,
@@ -624,7 +640,7 @@ enum ParameterGolfParameterState {
 }
 
 impl ParameterGolfParameterState {
-    fn values(&self) -> &[f32] {
+    pub(crate) fn values(&self) -> &[f32] {
         match self {
             Self::AdamBf16Master {
                 train_visible_values,
@@ -775,6 +791,8 @@ pub enum ParameterGolfSingleH100TrainingError {
     Runtime(#[from] RuntimeError),
     #[error(transparent)]
     Io(#[from] std::io::Error),
+    #[error(transparent)]
+    Visualization(#[from] crate::ParameterGolfSingleH100VisualizationError),
 }
 
 /// Writes the bounded single-H100 training report to disk.
@@ -782,7 +800,8 @@ pub fn write_parameter_golf_single_h100_training_report(
     output_path: &Path,
     config: &ParameterGolfSingleH100TrainingConfig,
 ) -> Result<ParameterGolfSingleH100TrainingReport, ParameterGolfSingleH100TrainingError> {
-    let report = build_parameter_golf_single_h100_training_report(config)?;
+    let (report, mut live_visualization_writer) =
+        build_parameter_golf_single_h100_training_report_inner(config, Some(output_path))?;
     if let Some(parent) = output_path.parent() {
         fs::create_dir_all(parent)?;
     }
@@ -792,6 +811,9 @@ pub fn write_parameter_golf_single_h100_training_report(
         }
     })?;
     fs::write(output_path, encoded)?;
+    if let Some(writer) = live_visualization_writer.as_mut() {
+        writer.finish_with_report(&report)?;
+    }
     Ok(report)
 }
 
@@ -881,6 +903,7 @@ pub fn build_parameter_golf_single_h100_validation_runtime_comparison_receipt(
         config.batch_sequences,
         &mut legacy_graph_cache,
         "legacy_validation_runtime_comparison",
+        None,
     )?;
     let legacy_observed_ms = duration_ms(legacy_started);
 
@@ -896,6 +919,7 @@ pub fn build_parameter_golf_single_h100_validation_runtime_comparison_receipt(
         config.batch_sequences,
         &mut device_resident_graph_cache,
         "device_resident_validation_runtime_comparison",
+        None,
     )?;
     let device_resident_observed_ms = duration_ms(device_resident_started);
     let selected_batch_count = selected_sequences.div_ceil(config.batch_sequences.max(1));
@@ -952,6 +976,20 @@ pub fn build_parameter_golf_single_h100_validation_runtime_comparison_receipt(
 pub fn build_parameter_golf_single_h100_training_report(
     config: &ParameterGolfSingleH100TrainingConfig,
 ) -> Result<ParameterGolfSingleH100TrainingReport, ParameterGolfSingleH100TrainingError> {
+    let (report, _) = build_parameter_golf_single_h100_training_report_inner(config, None)?;
+    Ok(report)
+}
+
+fn build_parameter_golf_single_h100_training_report_inner(
+    config: &ParameterGolfSingleH100TrainingConfig,
+    output_path: Option<&Path>,
+) -> Result<
+    (
+        ParameterGolfSingleH100TrainingReport,
+        Option<crate::ParameterGolfSingleH100LiveVisualizationWriter>,
+    ),
+    ParameterGolfSingleH100TrainingError,
+> {
     config.validate()?;
     let tokenizer_bytes = fs::read(&config.tokenizer_path)?;
     let tokenizer_digest = build_tokenizer_digest(tokenizer_bytes.as_slice());
@@ -974,51 +1012,57 @@ pub fn build_parameter_golf_single_h100_training_report(
     let started_at_ms = unix_time_ms();
 
     if !machine_observation.machine_contract_satisfied {
-        return Ok(refusal_report(
-            config,
-            tokenizer_digest,
-            &bundle,
-            &machine_observation,
-            &initial_model,
-            optimizer_plan_digest,
-            precision_receipt.clone(),
-            capability_report.report_digest.clone(),
-            capability_report.challenge_kernel_blockers().to_vec(),
-            ParameterGolfSingleH100TrainingDisposition::RefusedMachineContract,
-            machine_observation.refusal.clone(),
-            started_at_ms,
-            String::from(
-                "The Rust-owned single-H100 trainer path is now implemented, but this run still refused because the local machine contract does not satisfy the non-MIG H100 requirement.",
+        return Ok((
+            refusal_report(
+                config,
+                tokenizer_digest,
+                &bundle,
+                &machine_observation,
+                &initial_model,
+                optimizer_plan_digest,
+                precision_receipt.clone(),
+                capability_report.report_digest.clone(),
+                capability_report.challenge_kernel_blockers().to_vec(),
+                ParameterGolfSingleH100TrainingDisposition::RefusedMachineContract,
+                machine_observation.refusal.clone(),
+                started_at_ms,
+                String::from(
+                    "The Rust-owned single-H100 trainer path is now implemented, but this run still refused because the local machine contract does not satisfy the non-MIG H100 requirement.",
+                ),
             ),
+            None,
         ));
     }
     if !capability_report.challenge_kernel_blockers().is_empty() {
-        return Ok(refusal_report(
-            config,
-            tokenizer_digest,
-            &bundle,
-            &machine_observation,
-            &initial_model,
-            optimizer_plan_digest,
-            precision_receipt.clone(),
-            capability_report.report_digest.clone(),
-            capability_report.challenge_kernel_blockers().to_vec(),
-            ParameterGolfSingleH100TrainingDisposition::RefusedCudaBlockers,
-            Some(
-                PsionicRefusal::new(
-                    PsionicRefusalCode::UnsupportedBackendCapability,
-                    PsionicRefusalScope::Runtime,
-                    format!(
-                        "single-H100 trainer requires an empty Parameter Golf CUDA blocker list, found {:?}",
-                        capability_report.challenge_kernel_blockers()
-                    ),
-                )
-                .with_subject(String::from("parameter_golf_single_h100_cuda_blockers")),
+        return Ok((
+            refusal_report(
+                config,
+                tokenizer_digest,
+                &bundle,
+                &machine_observation,
+                &initial_model,
+                optimizer_plan_digest,
+                precision_receipt.clone(),
+                capability_report.report_digest.clone(),
+                capability_report.challenge_kernel_blockers().to_vec(),
+                ParameterGolfSingleH100TrainingDisposition::RefusedCudaBlockers,
+                Some(
+                    PsionicRefusal::new(
+                        PsionicRefusalCode::UnsupportedBackendCapability,
+                        PsionicRefusalScope::Runtime,
+                        format!(
+                            "single-H100 trainer requires an empty Parameter Golf CUDA blocker list, found {:?}",
+                            capability_report.challenge_kernel_blockers()
+                        ),
+                    )
+                    .with_subject(String::from("parameter_golf_single_h100_cuda_blockers")),
+                ),
+                started_at_ms,
+                String::from(
+                    "The Rust-owned single-H100 trainer path refuses explicitly when the committed Parameter Golf CUDA capability report still carries challenge blockers.",
+                ),
             ),
-            started_at_ms,
-            String::from(
-                "The Rust-owned single-H100 trainer path refuses explicitly when the committed Parameter Golf CUDA capability report still carries challenge blockers.",
-            ),
+            None,
         ));
     }
 
@@ -1031,6 +1075,15 @@ pub fn build_parameter_golf_single_h100_training_report(
     }
     let delivered_execution =
         DeliveredExecutionContext::new("cuda", None, vec![selected_device.inventory_qualifiers()]);
+    let mut live_visualization_writer = if let Some(output_path) = output_path {
+        crate::ParameterGolfSingleH100LiveVisualizationWriter::try_start(
+            config,
+            output_path,
+            started_at_ms,
+        )?
+    } else {
+        None
+    };
 
     emit_progress_line(format!(
         "single_h100_train_start run_id={} device={} max_steps={} iterations={} warmup_steps={} grad_accum_steps={} val_loss_every={} train_log_every={} final_validation_mode={} local_train_sequences={} local_validation_sequences={} max_wallclock_seconds={}",
@@ -1047,6 +1100,17 @@ pub fn build_parameter_golf_single_h100_training_report(
         config.geometry.local_validation_batch_sequences(),
         config.hyperparameters.max_wallclock_seconds.unwrap_or(0.0),
     ));
+    if let Some(writer) = live_visualization_writer.as_mut() {
+        writer.record_phase(
+            "training",
+            Some(String::from("warmup")),
+            "The single-H100 trainer started and entered warmup or measured training.",
+            vec![String::from("dataloader"), String::from("trainer_boot")],
+            None,
+            None,
+            true,
+        )?;
+    }
 
     let byte_luts = builtin_parameter_golf_sentencepiece_byte_luts()?;
     let validation_tokens = load_parameter_golf_validation_tokens_from_paths(
@@ -1083,6 +1147,12 @@ pub fn build_parameter_golf_single_h100_training_report(
         for warmup_step in 0..config.warmup_steps {
             let learning_rate_multiplier = 1.0;
             let muon_momentum = config.hyperparameters.muon_momentum_at_step(warmup_step);
+            let effective_learning_rate = Some(
+                config
+                    .hyperparameters
+                    .token_learning_rate(current_model.descriptor().config.tie_embeddings)
+                    * learning_rate_multiplier,
+            );
             execute_training_step(
                 &mut cuda_backend,
                 &selected_device.device,
@@ -1100,7 +1170,9 @@ pub fn build_parameter_golf_single_h100_training_report(
                 config.hyperparameters.grad_clip_norm,
                 learning_rate_multiplier,
                 muon_momentum,
+                effective_learning_rate,
                 false,
+                &mut live_visualization_writer,
             )?;
             if config.warmup_steps <= 20
                 || (warmup_step + 1) % 10 == 0
@@ -1112,6 +1184,21 @@ pub fn build_parameter_golf_single_h100_training_report(
                     config.warmup_steps
                 ));
             }
+            if let Some(writer) = live_visualization_writer.as_mut() {
+                writer.record_phase(
+                    "training",
+                    Some(String::from("warmup")),
+                    format!(
+                        "Warmup step {} of {} completed.",
+                        warmup_step + 1,
+                        config.warmup_steps
+                    ),
+                    vec![String::from("warmup"), String::from("dataloader")],
+                    Some(warmup_step + 1),
+                    Some(config.geometry.grad_accum_steps as u32),
+                    false,
+                )?;
+            }
         }
         warmup_observed_ms = duration_ms(warmup_started);
         trainer_state = trainer_state_checkpoint;
@@ -1121,6 +1208,25 @@ pub fn build_parameter_golf_single_h100_training_report(
             "warmup_restore_complete steps={} elapsed_ms={}",
             config.warmup_steps, warmup_observed_ms
         ));
+        if let Some(writer) = live_visualization_writer.as_mut() {
+            writer.record_event(
+                crate::RemoteTrainingEventSeverity::Info,
+                "warmup_completed",
+                format!(
+                    "Warmup completed and the trainer restored the measured-state checkpoint after {} ms.",
+                    warmup_observed_ms
+                ),
+            );
+            writer.record_phase(
+                "training",
+                Some(String::from("optimizer_step")),
+                "Warmup completed and the trainer resumed measured optimizer steps.",
+                vec![String::from("dataloader"), String::from("optimizer")],
+                None,
+                None,
+                true,
+            )?;
+        }
     }
 
     let max_wallclock_ms = config
@@ -1156,6 +1262,25 @@ pub fn build_parameter_golf_single_h100_training_report(
                 (validation_tokens.len() - 1) / config.geometry.train_sequence_length,
                 config.geometry.local_validation_batch_sequences(),
             ));
+            if let Some(writer) = live_visualization_writer.as_mut() {
+                writer.record_phase(
+                    "training",
+                    Some(String::from("validation")),
+                    format!(
+                        "Validation stage `{stage_label}` started for step {}.",
+                        step
+                    ),
+                    vec![String::from("validation"), String::from("gpu_sampling")],
+                    Some(step.max(1)),
+                    Some(0),
+                    true,
+                )?;
+                writer.record_event(
+                    crate::RemoteTrainingEventSeverity::Info,
+                    "validation_started",
+                    format!("Validation stage `{stage_label}` started."),
+                );
+            }
             let validation_started = Instant::now();
             let validation_summary = evaluate_validation_on_cuda(
                 &mut cuda_backend,
@@ -1168,14 +1293,39 @@ pub fn build_parameter_golf_single_h100_training_report(
                 config.geometry.local_validation_batch_sequences(),
                 &mut eval_graph_cache,
                 &stage_label,
+                live_visualization_writer.as_mut(),
             )?;
             let observed_validation_ms = duration_ms(validation_started);
             if last_step {
                 pre_export_final_validation_observed_ms = Some(observed_validation_ms);
-                pre_export_final_validation = Some(validation_summary);
+                pre_export_final_validation = Some(validation_summary.clone());
+                if let Some(writer) = live_visualization_writer.as_mut() {
+                    writer.record_validation_checkpoint(
+                        ParameterGolfSingleH100ValidationCheckpoint {
+                            stage_label: stage_label.clone(),
+                            trigger_step: step,
+                            observed_training_time_ms: training_time_ms,
+                            observed_validation_ms,
+                            summary: validation_summary,
+                        },
+                        crate::ValidationSlot::PreExportFinal,
+                    )?;
+                }
             } else {
                 if step == 0 {
                     initial_validation = Some(validation_summary.clone());
+                    if let Some(writer) = live_visualization_writer.as_mut() {
+                        writer.record_validation_checkpoint(
+                            ParameterGolfSingleH100ValidationCheckpoint {
+                                stage_label: stage_label.clone(),
+                                trigger_step: step,
+                                observed_training_time_ms: training_time_ms,
+                                observed_validation_ms,
+                                summary: validation_summary.clone(),
+                            },
+                            crate::ValidationSlot::Initial,
+                        )?;
+                    }
                 }
                 validation_checkpoints.push(ParameterGolfSingleH100ValidationCheckpoint {
                     stage_label,
@@ -1184,6 +1334,15 @@ pub fn build_parameter_golf_single_h100_training_report(
                     observed_validation_ms,
                     summary: validation_summary,
                 });
+                if let Some(writer) = live_visualization_writer.as_mut() {
+                    writer.record_validation_checkpoint(
+                        validation_checkpoints
+                            .last()
+                            .expect("validation checkpoint should exist")
+                            .clone(),
+                        crate::ValidationSlot::Periodic,
+                    )?;
+                }
             }
         } else if last_step {
             emit_progress_line(format!(
@@ -1208,6 +1367,12 @@ pub fn build_parameter_golf_single_h100_training_report(
             .hyperparameters
             .learning_rate_multiplier(step, training_time_ms as f32);
         let muon_momentum = config.hyperparameters.muon_momentum_at_step(step);
+        let effective_learning_rate = Some(
+            config
+                .hyperparameters
+                .token_learning_rate(current_model.descriptor().config.tie_embeddings)
+                * learning_rate_multiplier,
+        );
         let step_metrics_next = execute_training_step(
             &mut cuda_backend,
             &selected_device.device,
@@ -1225,10 +1390,15 @@ pub fn build_parameter_golf_single_h100_training_report(
             config.hyperparameters.grad_clip_norm,
             learning_rate_multiplier,
             muon_momentum,
+            effective_learning_rate,
             true,
+            &mut live_visualization_writer,
         )?;
         training_time_ms = training_time_ms.saturating_add(step_metrics_next.observed_wallclock_ms);
         aggregate_phase_timings.accumulate(&step_metrics_next.phase_timings);
+        if let Some(writer) = live_visualization_writer.as_mut() {
+            writer.record_step(step_metrics_next.clone())?;
+        }
         step_metrics.push(step_metrics_next);
         step += 1;
 
@@ -1285,7 +1455,8 @@ pub fn build_parameter_golf_single_h100_training_report(
             config.geometry.local_validation_batch_sequences(),
             &mut eval_graph_cache,
             "final_int8_zlib_roundtrip",
-        )?;
+        live_visualization_writer.as_mut(),
+    )?;
         let roundtrip_observed_ms = duration_ms(roundtrip_validation_started);
         emit_progress_line(format!(
             "final_int8_zlib_roundtrip val_loss:{:.4} val_bpb:{:.4} eval_time:{}ms compressed_model_bytes={} artifact_ref={} artifact_digest={}",
@@ -1310,6 +1481,25 @@ pub fn build_parameter_golf_single_h100_training_report(
             compressed_model_artifact_ref: compressed_model_artifact.artifact_ref.clone(),
             compressed_model_artifact_digest: compressed_model_artifact.artifact_digest.clone(),
         });
+        if let Some(writer) = live_visualization_writer.as_mut() {
+            writer.record_roundtrip_receipt(
+                final_roundtrip_receipt
+                    .clone()
+                    .expect("roundtrip receipt should be present"),
+            )?;
+            writer.record_validation_checkpoint(
+                ParameterGolfSingleH100ValidationCheckpoint {
+                    stage_label: String::from("final_roundtrip"),
+                    trigger_step: step,
+                    observed_training_time_ms: training_time_ms,
+                    observed_validation_ms: roundtrip_observed_ms,
+                    summary: final_validation
+                        .clone()
+                        .expect("final validation should exist for roundtrip"),
+                },
+                crate::ValidationSlot::FinalRoundtrip,
+            )?;
+        }
     } else {
         emit_progress_line(format!(
             "final_int8_zlib_roundtrip_skipped mode={} reason=explicit_final_validation_mode compressed_model_bytes={} artifact_ref={} artifact_digest={}",
@@ -1318,6 +1508,16 @@ pub fn build_parameter_golf_single_h100_training_report(
             compressed_model_artifact.artifact_ref,
             compressed_model_artifact.artifact_digest,
         ));
+        if let Some(writer) = live_visualization_writer.as_mut() {
+            writer.record_event(
+                crate::RemoteTrainingEventSeverity::Info,
+                "final_roundtrip_skipped",
+                format!(
+                    "The final int8+zlib roundtrip validation was skipped because final_validation_mode={}.",
+                    config.final_validation_mode.as_str()
+                ),
+            );
+        }
     }
 
     let finished_at_ms = unix_time_ms();
@@ -1411,7 +1611,7 @@ pub fn build_parameter_golf_single_h100_training_report(
         b"psionic_parameter_golf_single_h100_training_report|",
         &report_without_digest(&report),
     );
-    Ok(report)
+    Ok((report, live_visualization_writer))
 }
 
 fn refusal_report(
@@ -1749,7 +1949,9 @@ fn execute_training_step(
     grad_clip_norm: f32,
     learning_rate_multiplier: f32,
     muon_momentum: f32,
+    effective_learning_rate: Option<f32>,
     emit_micro_step_logs: bool,
+    live_visualization_writer: &mut Option<crate::ParameterGolfSingleH100LiveVisualizationWriter>,
 ) -> Result<ParameterGolfSingleH100TrainingStepMetrics, ParameterGolfSingleH100TrainingError> {
     let step_started = Instant::now();
     if emit_micro_step_logs {
@@ -1757,6 +1959,21 @@ fn execute_training_step(
             "train_step_start step={}/{} grad_accum_steps={}",
             global_step, max_steps, geometry.grad_accum_steps,
         ));
+    }
+    if let Some(writer) = live_visualization_writer.as_mut() {
+        writer.record_phase(
+            "training",
+            Some(String::from("optimizer_step")),
+            format!("Optimizer step {} of {} started.", global_step, max_steps),
+            vec![
+                String::from("dataloader"),
+                String::from("forward"),
+                String::from("optimizer"),
+            ],
+            Some(global_step),
+            Some(0),
+            true,
+        )?;
     }
 
     let mut accumulated_gradients = zero_gradients(trainer_state);
@@ -1866,9 +2083,29 @@ fn execute_training_step(
                 step_profile.gradient_f32_count,
             ));
         }
+        if let Some(writer) = live_visualization_writer.as_mut() {
+            writer.record_phase(
+                "training",
+                Some(String::from("optimizer_step")),
+                format!(
+                    "Micro-step {} of {} completed for optimizer step {}.",
+                    micro_step + 1,
+                    geometry.grad_accum_steps,
+                    global_step
+                ),
+                vec![
+                    String::from("forward"),
+                    String::from("backward"),
+                    String::from("optimizer"),
+                ],
+                Some(global_step),
+                Some((micro_step + 1) as u32),
+                false,
+            )?;
+        }
     }
 
-    clip_gradients(accumulated_gradients.as_mut_slice(), grad_clip_norm);
+    let clip_observation = clip_gradients(accumulated_gradients.as_mut_slice(), grad_clip_norm);
     let optimizer_started = Instant::now();
     apply_gradients_to_state(
         trainer_state,
@@ -1879,14 +2116,29 @@ fn execute_training_step(
     )?;
     *current_model = materialize_current_model(baseline_model, trainer_state)?;
     step_profile.optimizer_step_ms = duration_ms(optimizer_started);
+    let observed_wallclock_ms = duration_ms(step_started);
     let step_metrics = ParameterGolfSingleH100TrainingStepMetrics {
         global_step,
         train_window_ids: window_ids,
         mean_microbatch_loss: microbatch_loss_sum / geometry.grad_accum_steps as f32,
         learning_rate_multiplier,
         muon_momentum,
-        observed_wallclock_ms: duration_ms(step_started),
+        observed_wallclock_ms,
         phase_timings: step_profile,
+        effective_learning_rate,
+        gradient_norm_after_clip: clip_observation.gradient_norm_after_clip,
+        parameter_norm_after_step: crate::state_parameter_norm(trainer_state),
+        update_norm: None,
+        clip_applied: clip_observation.clip_applied,
+        non_finite_gradient_count: clip_observation.non_finite_count,
+        tokens_per_second: crate::throughput_tokens_per_second(
+            geometry.local_train_batch_tokens(),
+            observed_wallclock_ms,
+        ),
+        samples_per_second_milli: crate::throughput_samples_per_second_milli(
+            geometry.local_train_batch_sequences(),
+            observed_wallclock_ms,
+        ),
     };
     if emit_micro_step_logs {
         emit_progress_line(format!(
@@ -1913,6 +2165,7 @@ fn evaluate_validation_on_cuda(
     batch_sequences: usize,
     graph_cache: &mut BTreeMap<usize, ParameterGolfBaselineEvalGraph>,
     stage_label: &str,
+    live_visualization_writer: Option<&mut crate::ParameterGolfSingleH100LiveVisualizationWriter>,
 ) -> Result<ParameterGolfSingleH100ValidationSummary, ParameterGolfSingleH100TrainingError> {
     if validation_tokens.len() <= sequence_length {
         return Err(ParameterGolfSingleH100TrainingError::InvalidConfig {
@@ -1937,6 +2190,7 @@ fn evaluate_validation_on_cuda(
     let total_batches = batch_plans.len();
     let validation_started = Instant::now();
     let mut session_cache = BTreeMap::new();
+    let mut live_visualization_writer = live_visualization_writer;
     let mut total_input_token_write_us = 0_u64;
     let mut total_target_token_write_us = 0_u64;
     let mut resident_parameter_upload_us = 0_u64;
@@ -1975,6 +2229,21 @@ fn evaluate_validation_on_cuda(
                 total_token_count,
                 duration_ms(validation_started),
             ));
+        }
+        if let Some(writer) = live_visualization_writer.as_mut() {
+            writer.record_phase(
+                "training",
+                Some(String::from("validation")),
+                format!(
+                    "Validation stage `{stage_label}` processed batch {} of {}.",
+                    batch_index + 1,
+                    total_batches
+                ),
+                vec![String::from("validation"), String::from("gpu_sampling")],
+                None,
+                Some(0),
+                false,
+            )?;
         }
     }
 
@@ -2049,6 +2318,7 @@ fn evaluate_validation_on_cuda_legacy(
     batch_sequences: usize,
     graph_cache: &mut BTreeMap<usize, ParameterGolfBaselineTrainingGraph>,
     stage_label: &str,
+    live_visualization_writer: Option<&mut crate::ParameterGolfSingleH100LiveVisualizationWriter>,
 ) -> Result<ParameterGolfSingleH100ValidationSummary, ParameterGolfSingleH100TrainingError> {
     if validation_tokens.len() <= sequence_length {
         return Err(ParameterGolfSingleH100TrainingError::InvalidConfig {
@@ -2064,6 +2334,7 @@ fn evaluate_validation_on_cuda_legacy(
     let validation_batch_sequences = batch_sequences.max(1);
     let total_batches = total_sequences.div_ceil(validation_batch_sequences);
     let validation_started = Instant::now();
+    let mut live_visualization_writer = live_visualization_writer;
 
     for (batch_index, batch_start) in (0..total_sequences)
         .step_by(validation_batch_sequences)
@@ -2131,6 +2402,21 @@ fn evaluate_validation_on_cuda_legacy(
                 total_token_count,
                 duration_ms(validation_started),
             ));
+        }
+        if let Some(writer) = live_visualization_writer.as_mut() {
+            writer.record_phase(
+                "training",
+                Some(String::from("validation")),
+                format!(
+                    "Validation stage `{stage_label}` processed batch {} of {}.",
+                    batch_index + 1,
+                    total_batches
+                ),
+                vec![String::from("validation"), String::from("gpu_sampling")],
+                None,
+                Some(0),
+                false,
+            )?;
         }
     }
 
@@ -2699,9 +2985,17 @@ fn count_gradient_elements(
         })
 }
 
-fn clip_gradients(gradients: &mut [(String, Vec<f32>)], max_norm: f32) {
+fn clip_gradients(
+    gradients: &mut [(String, Vec<f32>)],
+    max_norm: f32,
+) -> crate::GradientClipObservation {
+    let non_finite_count = crate::non_finite_value_count(gradients);
     if !(max_norm.is_finite() && max_norm > 0.0) {
-        return;
+        return crate::GradientClipObservation {
+            gradient_norm_after_clip: crate::finite_l2_norm(gradients),
+            clip_applied: false,
+            non_finite_count,
+        };
     }
     let norm = gradients
         .iter()
@@ -2709,14 +3003,19 @@ fn clip_gradients(gradients: &mut [(String, Vec<f32>)], max_norm: f32) {
         .map(|value| value * value)
         .sum::<f32>()
         .sqrt();
-    if norm <= max_norm || norm <= f32::EPSILON {
-        return;
-    }
-    let scale = max_norm / norm;
-    for (_, values) in gradients {
-        for value in values {
-            *value *= scale;
+    let clip_applied = norm > max_norm && norm > f32::EPSILON;
+    if clip_applied {
+        let scale = max_norm / norm;
+        for (_, values) in &mut *gradients {
+            for value in values {
+                *value *= scale;
+            }
         }
+    }
+    crate::GradientClipObservation {
+        gradient_norm_after_clip: crate::finite_l2_norm(gradients),
+        clip_applied,
+        non_finite_count,
     }
 }
 

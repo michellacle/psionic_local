@@ -18,8 +18,11 @@ same public single-device control-loop shape as `train_gpt.py` by default.
 - `ParameterGolfSingleH100TrainingConfig`
 - `ParameterGolfSingleH100TrainingDisposition`
 - `ParameterGolfSingleH100TrainingReport`
+- `ParameterGolfSingleH100LiveVisualizationWriter`
 - `build_parameter_golf_single_h100_training_report(...)`
 - `write_parameter_golf_single_h100_training_report(...)`
+- `parameter_golf_single_h100_visualization` as a Rust materializer for the
+  provider-neutral app mirror
 - `parameter_golf_single_h100_train` as a Rust binary entrypoint
 
 That means the repo now owns one real Rust entrypoint for the public
@@ -163,6 +166,34 @@ The report also preserves explicit refusal when:
 - the machine contract is not one qualifying non-MIG H100
 - the committed Parameter Golf CUDA capability report still carries trainer
   blockers
+
+## Live Visualization Mirror
+
+When the trainer receives remote-training metadata through:
+
+- `PSIONIC_REMOTE_TRAINING_PROVIDER`
+- `PSIONIC_REMOTE_TRAINING_PROFILE_ID`
+- `PSIONIC_REMOTE_TRAINING_LANE_ID`
+- `PSIONIC_REMOTE_TRAINING_REPO_REVISION`
+
+it now writes a provider-neutral live mirror beside the trainer report:
+
+- `training_visualization/parameter_golf_single_h100_remote_training_visualization_bundle_v1.json`
+- `training_visualization/remote_training_run_index_v1.json`
+
+That mirror updates on the same one-second cadence frozen in
+`docs/REMOTE_TRAINING_VISUALIZATION.md`.
+
+It preserves:
+
+- heartbeat truth about the active phase and micro-step position
+- retained loss, optimizer-math, and runtime series for every completed step
+- local GPU sampling when the host can run `nvidia-smi`
+- explicit terminal posture once the trainer report lands
+
+If the trainer report stays absent at finalization time, the materializer keeps
+an explicit partial-series fallback from the retained training log instead of
+inventing full-series truth.
 
 ## Current Honest Boundary
 

@@ -78,3 +78,25 @@ That means:
 The contract does not require raw tensor dumps or per-parameter state.
 
 It requires bounded metrics that stay truthful and cheap enough to retain.
+
+## Parameter Golf Single-H100
+
+The first live lane now lands directly from the Rust-owned single-H100 trainer.
+
+When the trainer runs with remote-training metadata in its environment, it
+writes and rewrites these app-facing artifacts under the report root:
+
+- `training_visualization/parameter_golf_single_h100_remote_training_visualization_bundle_v1.json`
+- `training_visualization/remote_training_run_index_v1.json`
+
+That lane now preserves:
+
+- one-second heartbeat updates while the trainer is active
+- retained per-step loss, optimizer-math, and runtime series from the trainer
+  report
+- local GPU samples from the training host when `nvidia-smi` is available
+- explicit partial-series fallback from the retained trainer log when the
+  trainer JSON never lands
+
+The Google and RunPod single-H100 finalizers now re-materialize the same typed
+bundle and run index at closeout instead of inventing provider-specific JSON.
