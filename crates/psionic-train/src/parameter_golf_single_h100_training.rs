@@ -11,8 +11,8 @@ use psionic_core::{
 };
 use psionic_data::{
     load_parameter_golf_validation_tokens_from_paths, materialize_parameter_golf_token_window,
-    parameter_golf_dataset_bundle_from_local_dir, DatasetIterationMode, DatasetKey,
-    parameter_golf_sentencepiece_byte_luts_from_tokenizer_path,
+    parameter_golf_dataset_bundle_from_local_dir,
+    parameter_golf_sentencepiece_byte_luts_from_tokenizer_path, DatasetIterationMode, DatasetKey,
     ParameterGolfDataError, ParameterGolfDatasetBundle, ParameterGolfSentencePieceByteLuts,
     ParameterGolfTokenStreamContract, ParameterGolfTokenStreamCursor,
     PARAMETER_GOLF_TRAIN_SPLIT_NAME,
@@ -881,9 +881,8 @@ pub fn build_parameter_golf_single_h100_validation_runtime_comparison_receipt(
         .saturating_mul(config.sequence_length)
         .saturating_add(1);
     let selected_validation_tokens = &validation_tokens[..selected_token_end];
-    let byte_luts = parameter_golf_sentencepiece_byte_luts_from_tokenizer_path(
-        &config.tokenizer_path,
-    )?;
+    let byte_luts =
+        parameter_golf_sentencepiece_byte_luts_from_tokenizer_path(&config.tokenizer_path)?;
     let model = ParameterGolfReferenceModel::baseline_fixture(Default::default())?;
     let machine_observation = inspect_local_single_h100_machine();
     let mut legacy_graph_cache = BTreeMap::new();
@@ -1114,9 +1113,8 @@ fn build_parameter_golf_single_h100_training_report_inner(
         )?;
     }
 
-    let byte_luts = parameter_golf_sentencepiece_byte_luts_from_tokenizer_path(
-        &config.tokenizer_path,
-    )?;
+    let byte_luts =
+        parameter_golf_sentencepiece_byte_luts_from_tokenizer_path(&config.tokenizer_path)?;
     let validation_tokens = load_parameter_golf_validation_tokens_from_paths(
         &bundle
             .validation_shards
@@ -1459,8 +1457,8 @@ fn build_parameter_golf_single_h100_training_report_inner(
             config.geometry.local_validation_batch_sequences(),
             &mut eval_graph_cache,
             "final_int8_zlib_roundtrip",
-        live_visualization_writer.as_mut(),
-    )?;
+            live_visualization_writer.as_mut(),
+        )?;
         let roundtrip_observed_ms = duration_ms(roundtrip_validation_started);
         emit_progress_line(format!(
             "final_int8_zlib_roundtrip val_loss:{:.4} val_bpb:{:.4} eval_time:{}ms compressed_model_bytes={} artifact_ref={} artifact_digest={}",
@@ -2202,6 +2200,15 @@ fn evaluate_validation_on_cuda(
     let mut persistent_parameter_value_count = 0_u64;
 
     for (batch_index, batch_plan) in batch_plans.iter().enumerate() {
+        emit_progress_line(format!(
+            "validation_batch_start stage={} batch={}/{} batch_sequences={} evaluated_tokens={} elapsed_ms={}",
+            stage_label,
+            batch_index + 1,
+            total_batches,
+            batch_plan.batch_sequences,
+            total_token_count,
+            duration_ms(validation_started),
+        ));
         let session = validation_session_for_batch(
             &mut session_cache,
             cuda_backend,
@@ -2347,6 +2354,15 @@ fn evaluate_validation_on_cuda_legacy(
         let batch_end = (batch_start + validation_batch_sequences).min(total_sequences);
         let raw_start = batch_start * sequence_length;
         let raw_end = batch_end * sequence_length + 1;
+        emit_progress_line(format!(
+            "validation_batch_start stage={} batch={}/{} batch_sequences={} evaluated_tokens={} elapsed_ms={}",
+            stage_label,
+            batch_index + 1,
+            total_batches,
+            batch_end.saturating_sub(batch_start),
+            total_token_count,
+            duration_ms(validation_started),
+        ));
         let local = &validation_tokens[raw_start..raw_end];
         let input_ids = local[..local.len() - 1]
             .chunks(sequence_length)
