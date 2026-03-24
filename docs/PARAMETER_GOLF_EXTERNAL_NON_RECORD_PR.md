@@ -1,7 +1,7 @@
 # Psionic Parameter Golf External Non-Record PR
 
 > Status: canonical `PGOLF-607` / `#251` historical external non-record PR
-> record, updated 2026-03-19 after
+> record, updated 2026-03-23 after
 > `https://github.com/openai/parameter-golf/pull/119` was closed on
 > 2026-03-19.
 
@@ -59,11 +59,14 @@ Current posture:
 
 - no maintainer answer exists
 - the PR that carried the question is closed
+- Psionic now owns a repo-local counted-runtime and zero-build-dependency
+  contract for the current shipped runtime payload, so the unanswered upstream
+  comment no longer blocks local claim language
 - Psionic no longer tracks a live maintainer-facing clarification lane inside
   this repo because outbound contributions now require explicit user direction
-- counted-runtime and build-dependency posture therefore remain explicitly
-  unresolved and locally blocked rather than “awaiting” a reply that Psionic is
-  not currently allowed to pursue
+- the unanswered upstream question therefore remains preserved as historical
+  evidence rather than “awaiting” a reply that Psionic is not currently allowed
+  to pursue
 
 ## Current Honest Boundary
 
@@ -75,10 +78,9 @@ It does not claim:
 - an active upstream review path
 - maintainer acceptance
 - record-track readiness
-- counted-runtime rule clarity
+- an external maintainer ruling on counted-runtime rules
 - real `8xH100` success
 
 Any future external PR or maintainer-facing accounting question now requires
 explicit user direction first. Until that happens, the repo should preserve the
-current ambiguity and blocked posture locally instead of pretending there is a
-live upstream path.
+historical unanswered comment without pretending there is a live upstream path.

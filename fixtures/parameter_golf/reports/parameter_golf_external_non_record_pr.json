@@ -20,7 +20,7 @@
   "entrypoint_dry_run_exit_code": 0,
   "counted_runtime_question_comment_url": "https://github.com/openai/parameter-golf/pull/119#issuecomment-4092766684",
   "counted_runtime_question_status": "historical_closed_no_answer",
-  "maintainer_feedback_summary": "No maintainer feedback existed before the PR was closed on 2026-03-19. Psionic preserves the historical question link, but outbound contributions now require explicit user direction, so counted-runtime posture remains unresolved and locally blocked rather than awaiting an active upstream reply.",
+  "maintainer_feedback_summary": "No maintainer feedback existed before the PR was closed on 2026-03-19. Psionic preserves the historical question link, but the repo now owns a local counted-runtime and zero-build-dependency contract for the shipped runtime payload, so the unanswered upstream comment no longer blocks local claim language.",
   "outbound_contribution_posture": "explicit_user_direction_required",
-  "claim_boundary": "This artifact records the first real external non-record PR as closed historical evidence only. It does not claim an active upstream path, record-track readiness, maintainer acceptance, or counted-runtime rule closure."
+  "claim_boundary": "This artifact records the first real external non-record PR as closed historical evidence only. It does not claim an active upstream path, record-track readiness, maintainer acceptance, an external maintainer ruling on counted-runtime rules, or real 8xH100 success."
 }

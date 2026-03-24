@@ -132,8 +132,9 @@ That means the package now owns both:
 - a real exported-folder single-H100 trainer entry surface for later remote
   evidence
 
-It still does **not** pretend that Psionic has already closed the record-track
-counted-runtime story.
+It now closes the current shipped counted-runtime and build-dependency story
+for the exported payload, but it still does **not** pretend that the lane is
+already record-ready.
 
 ## Artifact Accounting
 
@@ -155,6 +156,10 @@ For the first landed package:
 - extra wrapper bytes are `0` because no additional launcher layer is shipped
 - build-dependency bytes are `0` because the folder ships a prebuilt payload
   and requires no in-folder build tree
+- the shipped real-execution contract, input-package descriptor, runtime
+  manifest, `README.md`, `submission.json`, and preserved JSON receipts remain
+  configuration or evidence sidecars rather than counted code or
+  compressed-model bytes
 
 This is the intended honesty bar for the non-record lane: do not hide runtime
 bytes, and do not invent runtime bytes that are not actually shipped.
@@ -165,10 +170,9 @@ This issue closes the non-record packaging lane only.
 
 It does not claim:
 
-- record-track runtime closure
-- a defended counted-runtime story for an `8xH100` submission
-- a green record-track readiness category
+- `record_ready` posture
+- reproducible `8xH100` record execution
 
 The exported folder can now invoke the real single-H100 trainer surface, but
-record-track accounting and distributed `8xH100` evidence remain explicit
+distributed `8xH100` evidence and record-track promotion remain explicit
 follow-on work.

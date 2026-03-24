@@ -1,7 +1,8 @@
 # Psionic Parameter Golf Accounting And Claim Language
 
 > Status: canonical `PGOLF-002` / `#161` accounting and claim-language
-> contract, written 2026-03-18 after reviewing
+> contract, updated 2026-03-23 after refreshing the shipped runtime-byte
+> contract for the current exported submission payload and reviewing
 > `~/code/parameter-golf/README.md`,
 > `~/code/parameter-golf/PSIONIC_PARAMETER_GOLF_SPEC.md`, and
 > `docs/ROADMAP_PARAMETERGOLF.md`.
@@ -36,8 +37,9 @@ That is the honest posture on 2026-03-18 because:
 - the baseline single-device trainer is still only a bounded reference path
 - the `8xH100` distributed receipt lane is landed, but distributed-throughput
   closure is still not green
-- the counted-runtime story for a record-track Psionic-owned submission is
-  still not defensible
+- the shipped runtime-byte and build-dependency story is now explicit for the
+  current exported payload, but reproducible `8xH100` evidence is still not
+  landed
 
 ## Claim Vocabulary
 
@@ -100,6 +102,20 @@ is:
 - do not assume a system Rust toolchain is free
 - do not assume code outside the record folder is free
 
+The current exported non-record package now closes this question for the
+shipped payload:
+
+- counted runtime code is the root `train_gpt.py` launcher plus the shipped
+  binaries `runtime/parameter_golf_submission_runtime` and
+  `runtime/parameter_golf_single_h100_train`
+- counted wrapper bytes are `0`
+- required build-dependency bytes are `0` because the folder ships prebuilt
+  binaries and no in-folder Cargo tree
+- the real-execution contract, input-package descriptor, runtime manifest,
+  `README.md`, `submission.json`, and preserved JSON receipts are configuration
+  or evidence sidecars rather than counted code bytes or compressed-model
+  bytes
+
 ### 4. Offline and self-contained evaluation is mandatory
 
 The submission may not depend on:
@@ -112,7 +128,7 @@ The submission may not depend on:
 If an artifact is required during evaluation, Psionic must either ship it
 inside the counted submission surface or refuse the stronger claim.
 
-### 5. Record-track language stays blocked until the code-accounting story is explicit
+### 5. Record-track language stays blocked until the code-accounting story is explicit and the hardware evidence is real
 
 Psionic may only claim `record_ready` when it has a defensible answer for all
 of the following:
@@ -122,10 +138,15 @@ of the following:
 - which of those files count as compressed model bytes
 - how the shipped entrypoint executes without hidden external code
 - how the result stays self-contained under the public challenge rules
+- how the exported-folder execution reproduces on the declared real hardware lane
 
 Absent that answer, the strongest allowed language is either
 `non_record_submission`, `research`, or
 `record_candidate_blocked_on_accounting`, depending on the acceptance matrix.
+
+The current exported payload now has that defended answer for shipped runtime
+and build-dependency bytes. The remaining record-track blocker is reproducible
+`8xH100` execution, not hidden runtime accounting.
 
 ## Claim-To-Matrix Mapping
 

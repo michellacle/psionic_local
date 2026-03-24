@@ -152,7 +152,7 @@ impl ParameterGolfRecordTrackContractReport {
             required_surfaces,
             blockers,
             claim_boundary: String::from(
-                "record-track contract is now explicit, and the folder-local runtime entrypoint exists, but the current lane remains blocked on defended counted-runtime or build-dependency posture and reproducible 8xH100 challenge-speed execution",
+                "record-track contract is now explicit, the shipped runtime-byte contract is defended, and the current lane remains blocked on reproducible 8xH100 challenge-speed execution",
             ),
             report_digest: String::new(),
         };
@@ -355,9 +355,9 @@ pub fn build_parameter_golf_record_track_contract_report() -> ParameterGolfRecor
         },
         ParameterGolfRecordTrackRequiredSurface {
             surface_id: String::from("counted_runtime_story_for_record_track"),
-            status: ParameterGolfRecordTrackSurfaceStatus::Blocked,
+            status: ParameterGolfRecordTrackSurfaceStatus::Satisfied,
             detail: String::from(
-                "The repo now ships a real non-record runtime payload and counts its exported bytes, but record-track promotion still lacks a fully defended counted-runtime or build-dependency story for the stronger true training/eval payload.",
+                "The current shipped runtime-byte story is explicit and defended: the exported folder counts the top-level train_gpt.py launcher, the shipped replay and single-H100 trainer binaries, zero additional wrapper bytes, and zero in-folder build-dependency bytes, while preserving JSON contracts and receipts as data/config sidecars rather than counted code bytes.",
             ),
             evidence_refs: vec![
                 String::from("docs/PARAMETER_GOLF_ACCOUNTING.md"),
@@ -382,23 +382,11 @@ pub fn build_parameter_golf_record_track_contract_report() -> ParameterGolfRecor
             ],
         },
     ];
-    let blockers = vec![
-        ParameterGolfRecordTrackBlocker {
-            blocker_id: String::from("record_runtime_bytes_not_yet_defended"),
-            detail: String::from(
-                "Record-track promotion still lacks a defended counted-runtime and build-dependency story for the real execution payload.",
-            ),
-            blocking_surface_ids: vec![String::from("counted_runtime_story_for_record_track")],
-        },
-        ParameterGolfRecordTrackBlocker {
-            blocker_id: String::from("reproducible_8xh100_record_execution_not_yet_closed"),
-            detail: format!(
-                "{} {}",
-                distributed.boundary_note, record.boundary_note
-            ),
-            blocking_surface_ids: vec![String::from("reproducible_8xh100_record_execution")],
-        },
-    ];
+    let blockers = vec![ParameterGolfRecordTrackBlocker {
+        blocker_id: String::from("reproducible_8xh100_record_execution_not_yet_closed"),
+        detail: format!("{} {}", distributed.boundary_note, record.boundary_note),
+        blocking_surface_ids: vec![String::from("reproducible_8xh100_record_execution")],
+    }];
 
     ParameterGolfRecordTrackContractReport::new(
         acceptance.current_claim_posture,
@@ -516,12 +504,12 @@ mod tests {
             ParameterGolfRecordTrackDisposition::Blocked
         );
         assert_eq!(report.current_max_claim_posture, "non_record_submission");
-        assert!(report
-            .blockers
-            .iter()
-            .any(|blocker| blocker.blocker_id == "record_runtime_bytes_not_yet_defended"));
         assert!(report.required_surfaces.iter().any(|surface| {
             surface.surface_id == "record_runtime_entrypoint"
+                && surface.status == ParameterGolfRecordTrackSurfaceStatus::Satisfied
+        }));
+        assert!(report.required_surfaces.iter().any(|surface| {
+            surface.surface_id == "counted_runtime_story_for_record_track"
                 && surface.status == ParameterGolfRecordTrackSurfaceStatus::Satisfied
         }));
         assert!(report

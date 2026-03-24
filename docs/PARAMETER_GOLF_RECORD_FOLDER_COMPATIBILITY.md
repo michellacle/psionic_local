@@ -1,7 +1,7 @@
 # Psionic Parameter Golf Record-Folder Compatibility
 
 > Status: canonical `PGOLF-501` / `#184` challenge-repo folder-compatibility
-> contract, written 2026-03-18 after landing
+> contract, updated 2026-03-23 after refreshing
 > `crates/psionic-train/src/parameter_golf_record_folder_compatibility.rs`,
 > `fixtures/parameter_golf/reports/parameter_golf_record_folder_compatibility.json`,
 > and `scripts/check-parameter-golf-record-folder-compatibility.sh`.
@@ -85,8 +85,7 @@ This issue closes only the folder-compatibility question.
 It does not claim:
 
 - record-track runtime closure
-- a defended counted-runtime or build-dependency story for a stronger future
-  record-track payload
+- green record-track readiness
 - reproducible `8xH100` record-track execution from the exported folder itself
 
 So the strongest honest claim posture remains `non_record_submission`.

@@ -1,7 +1,7 @@
 # Psionic Parameter Golf Record-Track Contract
 
 > Status: canonical `PGOLF-403` / `#174` blocked record-track contract,
-> updated 2026-03-18 after landing the committed report builder in
+> updated 2026-03-23 after refreshing the committed report builder in
 > `crates/psionic-train/src/parameter_golf_record_track.rs`.
 
 This document records the current record-track posture for the Psionic
@@ -48,21 +48,22 @@ The current contract now keeps these satisfied surfaces explicit:
 
 ## Remaining Blockers
 
-The report keeps two blockers explicit today:
+The report now keeps one blocker explicit today:
 
-- the shipped `train_gpt.py` is now a real non-record launcher, but no
-  defended counted-runtime or build-dependency story exists yet for a true
-  record-track execution payload
 - reproducible challenge-speed `8xH100` execution is still not green
 
-So the contract is useful precisely because it does **not** let the repo
-pretend that packaging explicitness equals record readiness.
+The shipped runtime-byte and build-dependency story is now explicit for the
+current exported payload through the non-record accounting receipt and the
+coupled research or record-track reports. The contract remains useful because
+it still does **not** let the repo pretend that packaging explicitness equals
+real hardware closure.
 
 ## Current Honest Boundary
 
 The strongest honest claim posture remains `non_record_submission`.
 
-This issue does not turn `record-track-readiness` green.
+This issue retires the local counted-runtime blocker, but it does not turn
+`record-track-readiness` green.
 
 It turns the blocked state into canonical machine-readable truth so later work
 can retire named blockers instead of relitigating what the blockers are.

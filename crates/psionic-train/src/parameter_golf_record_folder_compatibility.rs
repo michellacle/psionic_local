@@ -165,7 +165,7 @@ impl ParameterGolfRecordFolderCompatibilityReport {
                 "scripts/check-parameter-golf-record-folder-compatibility.sh --parameter-golf-root ~/code/parameter-golf --submission-dir /tmp/records/track_non_record_16mb/<submission_id>",
             ),
             claim_boundary: String::from(
-                "This report closes challenge-repo folder compatibility only. It confirms that the current non-record folder carries a real folder-local train_gpt.py launcher plus a shipped Psionic runtime payload, but it does not promote the bounded local-reference replay path into a record-track runtime claim and it does not close counted-runtime or build-dependency posture for stronger future payloads.",
+                "This report closes challenge-repo folder compatibility only. It confirms that the current non-record folder carries a real folder-local train_gpt.py launcher plus shipped Psionic runtime payloads, but it does not by itself promote the bounded local-reference replay path into a record-track runtime claim or prove reproducible 8xH100 record-track execution from the exported folder.",
             ),
             report_digest: String::new(),
         };
