@@ -204,6 +204,92 @@ def parse_micro_step(lines: list[str]) -> dict | None:
     return None
 
 
+def parse_train_step_complete(lines: list[str]) -> dict | None:
+    pattern = re.compile(
+        r"train_step_complete step=(?P<step>\d+) "
+        r"mean_microbatch_loss=(?P<mean_microbatch_loss>[0-9.]+) "
+        r"lr_mult=(?P<lr_mult>[0-9.]+) "
+        r"muon_momentum=(?P<muon_momentum>[0-9.]+) "
+        r"host_materialization_ms=(?P<host_materialization_ms>\d+) "
+        r"optimizer_step_ms=(?P<optimizer_step_ms>\d+)"
+    )
+    for line in reversed(lines):
+        match = pattern.search(line)
+        if not match:
+            continue
+        groups = match.groupdict()
+        return {
+            "global_step": int(groups["step"]),
+            "mean_microbatch_loss": float(groups["mean_microbatch_loss"]),
+            "lr_mult": float(groups["lr_mult"]),
+            "muon_momentum": float(groups["muon_momentum"]),
+            "host_materialization_ms": int(groups["host_materialization_ms"]),
+            "optimizer_step_ms": int(groups["optimizer_step_ms"]),
+        }
+    return None
+
+
+def parse_step_summary(lines: list[str]) -> dict | None:
+    pattern = re.compile(
+        r"step:(?P<step>\d+)/(?P<max_steps>\d+) "
+        r"train_loss:(?P<train_loss>[0-9.]+) "
+        r"train_time:(?P<train_time_ms>\d+)ms "
+        r"step_avg:(?P<step_avg_ms>[0-9.]+)ms"
+    )
+    for line in reversed(lines):
+        match = pattern.search(line)
+        if not match:
+            continue
+        groups = match.groupdict()
+        return {
+            "global_step": int(groups["step"]),
+            "max_steps": int(groups["max_steps"]),
+            "train_loss": float(groups["train_loss"]),
+            "train_time_ms": int(groups["train_time_ms"]),
+            "step_avg_ms": float(groups["step_avg_ms"]),
+        }
+    return None
+
+
+def parse_final_validation_skip(lines: list[str]) -> dict | None:
+    pattern = re.compile(
+        r"final_validation_skipped mode=(?P<mode>[A-Za-z0-9_]+) reason=(?P<reason>.+)"
+    )
+    for line in reversed(lines):
+        match = pattern.search(line)
+        if not match:
+            continue
+        groups = match.groupdict()
+        return {
+            "mode": groups["mode"],
+            "reason": groups["reason"],
+        }
+    return None
+
+
+def parse_roundtrip_start(lines: list[str]) -> dict | None:
+    pattern = re.compile(
+        r"final_int8_zlib_roundtrip_start sequences=(?P<sequences>\d+) "
+        r"batch_sequences=(?P<batch_sequences>\d+) "
+        r"compressed_model_bytes=(?P<compressed_model_bytes>\d+) "
+        r"artifact_ref=(?P<artifact_ref>\S+) "
+        r"artifact_digest=(?P<artifact_digest>[0-9a-f]+)"
+    )
+    for line in reversed(lines):
+        match = pattern.search(line)
+        if not match:
+            continue
+        groups = match.groupdict()
+        return {
+            "sequences": int(groups["sequences"]),
+            "batch_sequences": int(groups["batch_sequences"]),
+            "compressed_model_bytes": int(groups["compressed_model_bytes"]),
+            "artifact_ref": groups["artifact_ref"],
+            "artifact_digest": groups["artifact_digest"],
+        }
+    return None
+
+
 def parse_process(pid: str) -> dict | None:
     if not pid:
         return None
@@ -239,6 +325,10 @@ training_log_lines: list[str] = []
 if training_log_path.is_file():
     training_log_lines = training_log_path.read_text(encoding="utf-8", errors="replace").splitlines()
 latest_micro_step = parse_micro_step(training_log_lines)
+train_step_complete = parse_train_step_complete(training_log_lines)
+step_summary = parse_step_summary(training_log_lines)
+final_validation_skip = parse_final_validation_skip(training_log_lines)
+roundtrip_start = parse_roundtrip_start(training_log_lines)
 trainer_process = parse_process(trainer_pid)
 
 report_summary = None
@@ -333,6 +423,10 @@ report = {
         "sha256": sha256(training_log_path),
         "line_count": len(training_log_lines),
         "latest_micro_step": latest_micro_step,
+        "train_step_complete": train_step_complete,
+        "step_summary": step_summary,
+        "final_validation_skip": final_validation_skip,
+        "roundtrip_start": roundtrip_start,
         "tail": training_log_lines[-20:],
     },
     "training_exit_code": int(training_exit_code) if training_exit_code else None,
