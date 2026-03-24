@@ -1,0 +1,39 @@
+{
+  "schema_version": "psionic.remote_training_run_index.v1",
+  "index_id": "remote-training-run-index-sample-v1",
+  "generated_at_ms": 1742846405000,
+  "entries": [
+    {
+      "provider": "google_cloud",
+      "profile_id": "google_a2_ultragpu_1g",
+      "lane_id": "psion.google_single_node.accelerated",
+      "run_id": "psion-google-summary-only-sample",
+      "repo_revision": "main@5e6f5f0f",
+      "result_classification": "completed_success",
+      "series_status": "unavailable",
+      "series_unavailable_reason": "no canonical optimizer-step loss or math series was retained for this completed Google lane",
+      "last_heartbeat_at_ms": 1742760920000,
+      "bundle_artifact_uri": "fixtures/training_visualization/psion_google_summary_only_remote_training_visualization_bundle_v1.json",
+      "bundle_digest": "fc789b0d3606acad92d7896abc43a96cfa046ad5effe51950faca2450af3d42f",
+      "summary_label": "Google single-node Psion summary-only sample",
+      "detail": "This entry proves the index can list a summary-only lane without pretending it has a loss curve."
+    },
+    {
+      "provider": "run_pod",
+      "profile_id": "runpod_h100_single_gpu",
+      "lane_id": "parameter_golf.runpod_single_h100",
+      "run_id": "parameter-golf-runpod-single-h100-live-sample",
+      "repo_revision": "main@5e6f5f0f",
+      "result_classification": "active",
+      "series_status": "available",
+      "series_unavailable_reason": null,
+      "last_heartbeat_at_ms": 1742846402000,
+      "bundle_artifact_uri": "fixtures/training_visualization/parameter_golf_live_remote_training_visualization_bundle_v1.json",
+      "bundle_digest": "492892d0779295b04fbf5f905a5fed0dcb4017ad61fb5b83632d9e9737021633",
+      "summary_label": "RunPod single-H100 PGOLF live sample",
+      "detail": "This entry proves the same index can list a full always-live lane with optimizer-step telemetry."
+    }
+  ],
+  "detail": "The run index keeps summary-only and full-series lanes in one provider-neutral discovery surface without forcing the app to walk provider roots.",
+  "index_digest": "eeb10a31f0a05ea4d5d9dad73ad5db420f852ffe494c5e43b36076d045002815"
+}

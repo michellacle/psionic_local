@@ -51,6 +51,13 @@ The train system assumes the execution substrate defined in
 `ARCHITECTURE.md` and does not redefine runtime, cluster, sandbox, or artifact
 transport behavior.
 
+The remote-training viewer contract now also has a canonical typed artifact
+family. Psionic owns the provider-neutral live bundle and run-index truth in
+`crates/psionic-train/src/remote_training_visualization.rs` plus the canonical
+fixtures under `fixtures/training_visualization/`. Autopilot consumes that
+truth through its own cache, projection, and pane code instead of moving
+renderer semantics into this repo.
+
 Apple-specific adapter work is no longer only later-family planning. The repo
 now owns a canonical spec-and-fixture baseline for it in:
 
@@ -79,6 +86,10 @@ and now also has:
 - `docs/ARCHITECTURE_EXPLAINER_CLUSTER_BRINGUP_RUNBOOK.md` is
   the canonical operator guide for the first truthful multi-device clustered
   attempt around the `Psionic architecture explainer` path.
+- `docs/REMOTE_TRAINING_VISUALIZATION.md` is the canonical app-facing remote
+  training telemetry contract for Google Cloud and RunPod lanes and freezes
+  that Psionic owns typed live bundle truth while Autopilot owns rendering and
+  pane behavior.
 - `docs/APPLE_ADAPTER_DATASET_SPEC.md`,
   `docs/APPLE_FMADAPTER_PACKAGE_SPEC.md`, and
   `docs/APPLE_ADAPTER_LINEAGE_SPEC.md` are the canonical

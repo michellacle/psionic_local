@@ -1,0 +1,80 @@
+# Remote Training Visualization
+
+This document freezes the first provider-neutral app-facing contract for remote
+training runs.
+
+The contract exists so Autopilot can render Google Cloud and RunPod runs from
+one typed artifact family without scraping provider-shaped logs in pane code.
+
+Psionic owns the machine-facing truth.
+
+Autopilot owns rendering, refresh loops, and pane behavior.
+
+## Canonical Artifacts
+
+- `crates/psionic-train/src/remote_training_visualization.rs` owns the typed
+  bundle and run-index contract.
+- `crates/psionic-train/examples/remote_training_visualization_fixtures.rs`
+  regenerates the canonical example fixtures.
+- `fixtures/training_visualization/psion_google_summary_only_remote_training_visualization_bundle_v1.json`
+  is the canonical summary-only example bundle.
+- `fixtures/training_visualization/parameter_golf_live_remote_training_visualization_bundle_v1.json`
+  is the canonical full always-live example bundle.
+- `fixtures/training_visualization/remote_training_run_index_v1.json` is the
+  canonical run-index example.
+
+The stable schema versions are:
+
+- `psionic.remote_training_visualization_bundle.v1`
+- `psionic.remote_training_run_index.v1`
+
+## What The Bundle Freezes
+
+The first bundle freezes one provider-neutral shape for:
+
+- provider, profile, lane, run, and repo revision identity
+- one explicit refresh contract with one-second active-run cadence semantics
+- one explicit `series_status` plus `series_unavailable_reason`
+- timeline rows for lifecycle boundaries
+- heartbeat rows that explain what the runtime is doing now
+- loss rows for the primary chartable training curve
+- bounded optimizer and model-math diagnostics
+- runtime pipeline timings
+- GPU telemetry
+- distributed telemetry when a run is multi-rank
+- typed event rows
+- provenance rows for the retained source artifacts
+
+The contract is explicit about missing data.
+
+If a lane only has summary truth and GPU samples, the bundle must say that
+directly instead of inventing a loss curve.
+
+## What The Run Index Freezes
+
+The first run index freezes one discovery surface that can enumerate:
+
+- summary-only lanes
+- full-series lanes
+- active runs
+- completed runs
+- refused runs
+- rehearsal-only runs
+
+That keeps the app out of provider-root walking and ad hoc manifest discovery.
+
+## Live Requirement
+
+The bundle is designed for a viewer that must stay visibly truthful every
+second during an active run.
+
+That means:
+
+- active runs must not use `post_run_only` emission
+- active runs must target `1000` ms or faster app refresh
+- heartbeat freshness and stale-state posture remain explicit
+- summary-only lanes stay honest about what they cannot yet show
+
+The contract does not require raw tensor dumps or per-parameter state.
+
+It requires bounded metrics that stay truthful and cheap enough to retain.
