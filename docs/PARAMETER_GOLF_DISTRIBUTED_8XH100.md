@@ -56,6 +56,14 @@ Psionic now encodes that exact posture explicitly instead of treating
   `ParameterGolfDistributedValidationShardObservation`, and the receipt now
   preserves a typed `validation_aggregation` section when rank-local shard
   facts are available
+- `psionic-train` now also ships the Rust-owned bring-up seam
+  `ParameterGolfDistributed8xH100BringupConfig`,
+  `build_parameter_golf_distributed_8xh100_bringup_report(...)`,
+  `write_parameter_golf_distributed_8xh100_bringup_report(...)`, and the CLI
+  binary `crates/psionic-train/src/bin/parameter_golf_distributed_8xh100_bringup.rs`
+  so the repo can emit one machine-readable `8xH100` admission report and
+  optional measured-receipt lift without going through the RunPod finalizer
+  path first
 - `psionic-eval` now exposes
   `ParameterGolfDistributedThroughputReceipt` plus the supporting topology,
   communication, timing, memory, threshold, and refusal types
@@ -150,6 +158,18 @@ bash scripts/parameter-golf-runpod-build-8xh100-receipt.sh \
   --run-root /workspace/parameter-golf-runpod-8xh100-20260324T000000Z
 ```
 
+You can also build one Rust-owned distributed bring-up report directly on the
+current machine, with or without one retained measurements JSON:
+
+```bash
+cargo run -p psionic-train --bin parameter_golf_distributed_8xh100_bringup -- \
+  --output /tmp/parameter_golf_distributed_8xh100_bringup.json
+
+cargo run -p psionic-train --bin parameter_golf_distributed_8xh100_bringup -- \
+  --measurements /tmp/parameter_golf_distributed_8xh100_measurements.json \
+  --output /tmp/parameter_golf_distributed_8xh100_bringup.json
+```
+
 The measurements builder expects:
 
 - `/workspace/.../execution.log`
@@ -201,6 +221,8 @@ What is now explicit:
 - the DDP or Muon communication posture
 - measured-or-refused timing receipts
 - measured-or-refused memory receipts
+- the Rust-owned local bring-up seam for exact `8xH100` admission and
+  optional measured-receipt lifting
 - the digest and blocker list for the current CUDA train-path coverage report
 
 What is still separate work:

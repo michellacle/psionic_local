@@ -9,8 +9,8 @@ use psionic_eval::{
     ParameterGolfDistributedMemoryReceipt, ParameterGolfDistributedThroughputReceipt,
     ParameterGolfDistributedTimingReceipt, ParameterGolfDistributedTopologyReceipt,
     ParameterGolfDistributedValidationAggregationReceipt,
-    ParameterGolfDistributedValidationShardReceipt,
-    PARAMETER_GOLF_CHALLENGE_REVIEW_BENCHMARK_REF, PARAMETER_GOLF_DISTRIBUTED_8XH100_BENCHMARK_REF,
+    ParameterGolfDistributedValidationShardReceipt, PARAMETER_GOLF_CHALLENGE_REVIEW_BENCHMARK_REF,
+    PARAMETER_GOLF_DISTRIBUTED_8XH100_BENCHMARK_REF,
     PARAMETER_GOLF_DISTRIBUTED_8XH100_CLAIM_BOUNDARY,
 };
 use psionic_ir::GraphError;
@@ -291,7 +291,7 @@ impl ParameterGolfRunPod8xH100Measurements {
         }
     }
 
-    fn into_config(self, fallback_run_id: &str) -> ParameterGolfDistributed8xH100Config {
+    pub(crate) fn into_config(self, fallback_run_id: &str) -> ParameterGolfDistributed8xH100Config {
         let mut config = ParameterGolfDistributed8xH100Config::challenge_defaults();
         config.run_id = self.run_id.unwrap_or_else(|| String::from(fallback_run_id));
         config.mesh_id = self
@@ -646,12 +646,11 @@ pub fn build_parameter_golf_runpod_8xh100_measurements_from_train_log(
                     message: format!("failed to parse train-step line `{line}`"),
                 }
             })?;
-            let train_time_ms =
-                extract_u64_after(line, "train_time:", "ms").ok_or_else(|| {
-                    ParameterGolfDistributedLaneError::InvalidMeasurements {
-                        message: format!("failed to parse train_time from `{line}`"),
-                    }
-                })?;
+            let train_time_ms = extract_u64_after(line, "train_time:", "ms").ok_or_else(|| {
+                ParameterGolfDistributedLaneError::InvalidMeasurements {
+                    message: format!("failed to parse train_time from `{line}`"),
+                }
+            })?;
             checkpoints.push((global_step, train_time_ms));
         } else if line.starts_with("step:") && line.contains(" val_loss:") {
             final_validation_observed_ms = extract_u64_after(line, "train_time:", "ms");
@@ -667,28 +666,27 @@ pub fn build_parameter_golf_runpod_8xh100_measurements_from_train_log(
             && line.contains(" byte_count=")
             && line.contains(" elapsed_ms=")
         {
-            let rank =
-                extract_u64_after(line, "rank=", " ").ok_or_else(|| {
+            let rank = extract_u64_after(line, "rank=", " ").ok_or_else(|| {
+                ParameterGolfDistributedLaneError::InvalidMeasurements {
+                    message: format!("failed to parse distributed validation rank from `{line}`"),
+                }
+            })? as usize;
+            let sequence_start =
+                extract_u64_after(line, "sequence_start=", " ").ok_or_else(|| {
                     ParameterGolfDistributedLaneError::InvalidMeasurements {
                         message: format!(
-                            "failed to parse distributed validation rank from `{line}`"
+                            "failed to parse distributed validation sequence_start from `{line}`"
                         ),
                     }
-                })? as usize;
-            let sequence_start = extract_u64_after(line, "sequence_start=", " ").ok_or_else(|| {
-                ParameterGolfDistributedLaneError::InvalidMeasurements {
-                    message: format!(
-                        "failed to parse distributed validation sequence_start from `{line}`"
-                    ),
-                }
-            })?;
-            let sequence_count = extract_u64_after(line, "sequence_count=", " ").ok_or_else(|| {
-                ParameterGolfDistributedLaneError::InvalidMeasurements {
-                    message: format!(
-                        "failed to parse distributed validation sequence_count from `{line}`"
-                    ),
-                }
-            })?;
+                })?;
+            let sequence_count =
+                extract_u64_after(line, "sequence_count=", " ").ok_or_else(|| {
+                    ParameterGolfDistributedLaneError::InvalidMeasurements {
+                        message: format!(
+                            "failed to parse distributed validation sequence_count from `{line}`"
+                        ),
+                    }
+                })?;
             let loss_sum = extract_f64_after(line, "loss_sum=", " ").ok_or_else(|| {
                 ParameterGolfDistributedLaneError::InvalidMeasurements {
                     message: format!(
@@ -717,16 +715,21 @@ pub fn build_parameter_golf_runpod_8xh100_measurements_from_train_log(
                     ),
                 }
             })?;
-            validation_shard_observations.push(ParameterGolfDistributedValidationShardObservation {
-                rank,
-                sequence_start,
-                sequence_count,
-                loss_sum,
-                token_count,
-                byte_count,
-                observed_ms,
-            });
-        } else if line.starts_with("final_") && line.contains("_roundtrip") && line.contains("eval_time:") {
+            validation_shard_observations.push(
+                ParameterGolfDistributedValidationShardObservation {
+                    rank,
+                    sequence_start,
+                    sequence_count,
+                    loss_sum,
+                    token_count,
+                    byte_count,
+                    observed_ms,
+                },
+            );
+        } else if line.starts_with("final_")
+            && line.contains("_roundtrip")
+            && line.contains("eval_time:")
+        {
             final_roundtrip_eval_ms = extract_u64_after(line, "eval_time:", "ms");
         }
     }
@@ -826,7 +829,9 @@ pub fn build_parameter_golf_runpod_8xh100_measurements_from_train_log(
         measurements.memory_observation = Some(ParameterGolfDistributedMemoryObservation {
             peak_device_bytes_per_worker: peak_device_mib.saturating_mul(1024 * 1024),
             peak_host_bytes_per_worker: 0,
-            source: memory_source.unwrap_or("execution log peak memory").to_string(),
+            source: memory_source
+                .unwrap_or("execution log peak memory")
+                .to_string(),
         });
     }
     Ok(measurements)
@@ -1381,12 +1386,17 @@ fn build_validation_shard_plan(
 
 fn build_validation_aggregation_receipt(
     config: &ParameterGolfDistributed8xH100Config,
-) -> Result<Option<ParameterGolfDistributedValidationAggregationReceipt>, ParameterGolfDistributedLaneError> {
+) -> Result<
+    Option<ParameterGolfDistributedValidationAggregationReceipt>,
+    ParameterGolfDistributedLaneError,
+> {
     if config.validation_shard_observations.is_empty() {
         return Ok(None);
     }
-    let shard_plan =
-        build_validation_shard_plan(config.validation_total_sequence_count, config.geometry.world_size)?;
+    let shard_plan = build_validation_shard_plan(
+        config.validation_total_sequence_count,
+        config.geometry.world_size,
+    )?;
     let local_batch_sequences = config.geometry.local_validation_batch_sequences() as u64;
     let mut aggregated_loss_sum = 0.0_f64;
     let mut aggregated_token_count = 0_u64;
@@ -1499,9 +1509,8 @@ mod tests {
         parse_parameter_golf_runpod_8xh100_inventory, ParameterGolfBatchGeometry,
         ParameterGolfDistributed8xH100Config, ParameterGolfDistributedLaneError,
         ParameterGolfDistributedMemoryObservation, ParameterGolfDistributedStepObservation,
-        ParameterGolfDistributedValidationShardObservation,
-        ParameterGolfRunPod8xH100Measurements, ParameterGolfTrainingHyperparameters,
-        PARAMETER_GOLF_DISTRIBUTED_8XH100_VERSION,
+        ParameterGolfDistributedValidationShardObservation, ParameterGolfRunPod8xH100Measurements,
+        ParameterGolfTrainingHyperparameters, PARAMETER_GOLF_DISTRIBUTED_8XH100_VERSION,
         PARAMETER_GOLF_RUNPOD_8XH100_MEASUREMENTS_VERSION,
     };
     use psionic_eval::{
@@ -2001,13 +2010,9 @@ final_int8_zlib_roundtrip val_loss:7.8000 val_bpb:1.2100 eval_time:1530ms\n";
 step:1/1 train_loss:8.2000 train_time:50ms step_avg:50.00ms\n\
 distributed_validation_rank_complete rank=0 sequence_start=0 sequence_count=8 loss_sum=12.0000 token_count=8192 byte_count=6144 elapsed_ms=31\n\
 distributed_validation_rank_complete rank=0 sequence_start=8 sequence_count=8 loss_sum=12.5000 token_count=8192 byte_count=6144 elapsed_ms=33\n";
-        let error = build_parameter_golf_runpod_8xh100_measurements_from_train_log(
-            log,
-            None,
-            None,
-            None,
-        )
-        .expect_err("duplicate distributed validation ranks should be rejected");
+        let error =
+            build_parameter_golf_runpod_8xh100_measurements_from_train_log(log, None, None, None)
+                .expect_err("duplicate distributed validation ranks should be rejected");
         assert!(matches!(
             error,
             ParameterGolfDistributedLaneError::InvalidMeasurements { .. }
