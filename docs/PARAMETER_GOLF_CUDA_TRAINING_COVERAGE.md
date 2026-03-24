@@ -151,8 +151,9 @@ the same bounded public lane before the next H100 rerun:
 - `rotary_embedding_backward` now runs through one bounded CUDA kernel instead
   of forcing a full host readback and replay path
 - a fresh local profiled decoder-backward run on the RTX 4080 now reports only
-  `scaled_dot_product_attention_{query,key,value}_backward` on the fallback
-  surface; `rotary_embedding_backward` is absent from the receipt
+  one replayed `scaled_dot_product_attention_query_backward` label on the
+  fallback surface after sibling query/key/value gradient reuse collapsed the
+  duplicate replays; `rotary_embedding_backward` is absent from the receipt
 - `scaled_dot_product_attention_{query,key,value}_backward` host replay now
   reuses per-position gradient-weight scratch instead of recomputing the same
   inner products twice

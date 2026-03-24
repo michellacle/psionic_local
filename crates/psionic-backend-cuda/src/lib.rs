@@ -107,6 +107,33 @@ enum ScaledDotProductAttentionBackwardTarget {
     Value,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+struct ScaledDotProductAttentionBackwardCacheKey {
+    query: TensorId,
+    key: TensorId,
+    value: TensorId,
+    grad_output: TensorId,
+    scale_bits: u32,
+    causal: bool,
+}
+
+#[derive(Clone)]
+struct ScaledDotProductAttentionBackwardCachedOutputs {
+    query: CudaBuffer,
+    key: CudaBuffer,
+    value: CudaBuffer,
+}
+
+impl ScaledDotProductAttentionBackwardCachedOutputs {
+    fn output(&self, target: ScaledDotProductAttentionBackwardTarget) -> CudaBuffer {
+        match target {
+            ScaledDotProductAttentionBackwardTarget::Query => self.query.clone(),
+            ScaledDotProductAttentionBackwardTarget::Key => self.key.clone(),
+            ScaledDotProductAttentionBackwardTarget::Value => self.value.clone(),
+        }
+    }
+}
+
 /// Returns the device scratch-buffer size for contiguous GGML `Q8_1` rows.
 pub fn ggml_q8_1_storage_bytes(rows: usize, cols: usize) -> Result<usize, RuntimeError> {
     if cols == 0 || cols % GGML_Q8_1_BLOCK_ELEMENTS != 0 {
@@ -3490,10 +3517,18 @@ impl AvailableCudaBackend {
         &self,
         step: &ExecutionStep,
         values: &BTreeMap<TensorId, CudaBuffer>,
+        attention_backward_cache: &mut BTreeMap<
+            ScaledDotProductAttentionBackwardCacheKey,
+            ScaledDotProductAttentionBackwardCachedOutputs,
+        >,
         scale: f32,
         causal: bool,
         target: ScaledDotProductAttentionBackwardTarget,
     ) -> Result<CudaBuffer, RuntimeError> {
+        let cache_key = scaled_dot_product_attention_backward_cache_key(step, scale, causal)?;
+        if let Some(cached) = attention_backward_cache.get(&cache_key) {
+            return Ok(cached.output(target));
+        }
         if !causal {
             return Err(RuntimeError::Backend(String::from(
                 "cuda scaled_dot_product_attention backward only supports the bounded causal self-attention lane",
@@ -3581,12 +3616,14 @@ impl AvailableCudaBackend {
             &grad_output_values,
             scale,
         )?;
-        let output_values = match target {
-            ScaledDotProductAttentionBackwardTarget::Query => gradients.query,
-            ScaledDotProductAttentionBackwardTarget::Key => gradients.key,
-            ScaledDotProductAttentionBackwardTarget::Value => gradients.value,
+        let cached = ScaledDotProductAttentionBackwardCachedOutputs {
+            query: self.buffer_from_tensor_data(query.spec(), &TensorData::F32(gradients.query))?,
+            key: self.buffer_from_tensor_data(key.spec(), &TensorData::F32(gradients.key))?,
+            value: self.buffer_from_tensor_data(value.spec(), &TensorData::F32(gradients.value))?,
         };
-        self.buffer_from_tensor_data(&step.spec, &TensorData::F32(output_values))
+        let output = cached.output(target);
+        attention_backward_cache.insert(cache_key, cached);
+        Ok(output)
     }
 
     fn execute(
@@ -3605,6 +3642,10 @@ impl AvailableCudaBackend {
         let mut host_fallback_profile = profile_path
             .as_ref()
             .map(|_| CudaHostFallbackExecutionProfile::default());
+        let mut attention_backward_cache: BTreeMap<
+            ScaledDotProductAttentionBackwardCacheKey,
+            ScaledDotProductAttentionBackwardCachedOutputs,
+        > = BTreeMap::new();
 
         for step in &plan.steps {
             match &step.op {
@@ -4031,54 +4072,81 @@ impl AvailableCudaBackend {
                         scale,
                         causal,
                     } => {
-                        let output = execute_profiled_host_fallback(
-                            &mut host_fallback_profile,
-                            step,
-                            || {
-                                self.execute_scaled_dot_product_attention_backward_step(
-                                    step,
-                                    &values,
-                                    scale.to_f32(),
-                                    *causal,
-                                    ScaledDotProductAttentionBackwardTarget::Query,
-                                )
-                            },
-                        )?;
+                        let scale = scale.to_f32();
+                        let cache_key =
+                            scaled_dot_product_attention_backward_cache_key(step, scale, *causal)?;
+                        let output = if let Some(cached) = attention_backward_cache.get(&cache_key)
+                        {
+                            cached.output(ScaledDotProductAttentionBackwardTarget::Query)
+                        } else {
+                            execute_profiled_host_fallback(
+                                &mut host_fallback_profile,
+                                step,
+                                || {
+                                    self.execute_scaled_dot_product_attention_backward_step(
+                                        step,
+                                        &values,
+                                        &mut attention_backward_cache,
+                                        scale,
+                                        *causal,
+                                        ScaledDotProductAttentionBackwardTarget::Query,
+                                    )
+                                },
+                            )?
+                        };
                         values.insert(step.output, output);
                     }
                     BackendExtensionOp::ScaledDotProductAttentionKeyBackward { scale, causal } => {
-                        let output = execute_profiled_host_fallback(
-                            &mut host_fallback_profile,
-                            step,
-                            || {
-                                self.execute_scaled_dot_product_attention_backward_step(
-                                    step,
-                                    &values,
-                                    scale.to_f32(),
-                                    *causal,
-                                    ScaledDotProductAttentionBackwardTarget::Key,
-                                )
-                            },
-                        )?;
+                        let scale = scale.to_f32();
+                        let cache_key =
+                            scaled_dot_product_attention_backward_cache_key(step, scale, *causal)?;
+                        let output = if let Some(cached) = attention_backward_cache.get(&cache_key)
+                        {
+                            cached.output(ScaledDotProductAttentionBackwardTarget::Key)
+                        } else {
+                            execute_profiled_host_fallback(
+                                &mut host_fallback_profile,
+                                step,
+                                || {
+                                    self.execute_scaled_dot_product_attention_backward_step(
+                                        step,
+                                        &values,
+                                        &mut attention_backward_cache,
+                                        scale,
+                                        *causal,
+                                        ScaledDotProductAttentionBackwardTarget::Key,
+                                    )
+                                },
+                            )?
+                        };
                         values.insert(step.output, output);
                     }
                     BackendExtensionOp::ScaledDotProductAttentionValueBackward {
                         scale,
                         causal,
                     } => {
-                        let output = execute_profiled_host_fallback(
-                            &mut host_fallback_profile,
-                            step,
-                            || {
-                                self.execute_scaled_dot_product_attention_backward_step(
-                                    step,
-                                    &values,
-                                    scale.to_f32(),
-                                    *causal,
-                                    ScaledDotProductAttentionBackwardTarget::Value,
-                                )
-                            },
-                        )?;
+                        let scale = scale.to_f32();
+                        let cache_key =
+                            scaled_dot_product_attention_backward_cache_key(step, scale, *causal)?;
+                        let output = if let Some(cached) = attention_backward_cache.get(&cache_key)
+                        {
+                            cached.output(ScaledDotProductAttentionBackwardTarget::Value)
+                        } else {
+                            execute_profiled_host_fallback(
+                                &mut host_fallback_profile,
+                                step,
+                                || {
+                                    self.execute_scaled_dot_product_attention_backward_step(
+                                        step,
+                                        &values,
+                                        &mut attention_backward_cache,
+                                        scale,
+                                        *causal,
+                                        ScaledDotProductAttentionBackwardTarget::Value,
+                                    )
+                                },
+                            )?
+                        };
                         values.insert(step.output, output);
                     }
                     _ => {
@@ -5596,6 +5664,27 @@ fn step_input<'a>(
     values
         .get(&input_id)
         .ok_or(RuntimeError::MissingInput(input_id))
+}
+
+fn scaled_dot_product_attention_backward_cache_key(
+    step: &ExecutionStep,
+    scale: f32,
+    causal: bool,
+) -> Result<ScaledDotProductAttentionBackwardCacheKey, RuntimeError> {
+    if step.inputs.len() != 4 {
+        return Err(RuntimeError::Backend(format!(
+            "cuda {} requires four inputs to build the backward cache key",
+            step.op.label()
+        )));
+    }
+    Ok(ScaledDotProductAttentionBackwardCacheKey {
+        query: step.inputs[0],
+        key: step.inputs[1],
+        value: step.inputs[2],
+        grad_output: step.inputs[3],
+        scale_bits: scale.to_bits(),
+        causal,
+    })
 }
 
 fn discovery_report_internal() -> Result<NvidiaBackendReport, RuntimeError> {
