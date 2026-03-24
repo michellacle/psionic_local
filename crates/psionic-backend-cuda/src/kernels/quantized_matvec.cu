@@ -1801,6 +1801,120 @@ __device__ __forceinline__ float rope_neox_component(
                               : -x0 * sin_theta + x1 * cos_theta;
 }
 
+template <typename T>
+__device__ __forceinline__ float load_attention_value(const T *values, int index);
+
+template <>
+__device__ __forceinline__ float load_attention_value<float>(const float *values, int index) {
+    return values[index];
+}
+
+template <>
+__device__ __forceinline__ float load_attention_value<__nv_bfloat16>(
+    const __nv_bfloat16 *values,
+    int index
+) {
+    return __bfloat162float(values[index]);
+}
+
+template <typename T>
+__device__ __forceinline__ void store_attention_value(T *values, int index, float value);
+
+template <>
+__device__ __forceinline__ void store_attention_value<float>(
+    float *values,
+    int index,
+    float value
+) {
+    values[index] = value;
+}
+
+template <>
+__device__ __forceinline__ void store_attention_value<__nv_bfloat16>(
+    __nv_bfloat16 *values,
+    int index,
+    float value
+) {
+    values[index] = __float2bfloat16(value);
+}
+
+template <typename QueryT, typename KeyT, typename ValueT, typename OutputT>
+__global__ void attention_causal_sequence_kernel(
+    const QueryT *query,
+    const KeyT *key,
+    const ValueT *value,
+    int batch_size,
+    int head_count,
+    int kv_head_count,
+    int sequence_length,
+    int head_dim,
+    OutputT *output
+) {
+    const int head_index = static_cast<int>(blockIdx.x);
+    const int position = static_cast<int>(blockIdx.y);
+    const int batch_index = static_cast<int>(blockIdx.z);
+    if (batch_index >= batch_size || head_index >= head_count || position >= sequence_length) {
+        return;
+    }
+
+    __shared__ float logits[kAttentionMaxPositions];
+    __shared__ float weights[kAttentionMaxPositions];
+    __shared__ float reduction_scratch[kAttentionBlockSize];
+
+    const int group_size = max(head_count / max(kv_head_count, 1), 1);
+    const int kv_head = min(head_index / group_size, kv_head_count - 1);
+    const float scale = rsqrtf(static_cast<float>(head_dim));
+    const int query_head_offset =
+        ((batch_index * head_count + head_index) * sequence_length + position) * head_dim;
+    const QueryT *query_head = query + query_head_offset;
+
+    for (int token_index = static_cast<int>(threadIdx.x); token_index <= position;
+         token_index += blockDim.x) {
+        const int key_head_offset =
+            ((batch_index * kv_head_count + kv_head) * sequence_length + token_index) * head_dim;
+        const KeyT *key_head = key + key_head_offset;
+        float dot = 0.0f;
+        for (int dim = 0; dim < head_dim; ++dim) {
+            dot += load_attention_value(query_head, dim) * load_attention_value(key_head, dim);
+        }
+        logits[token_index] = dot * scale;
+    }
+    __syncthreads();
+
+    float local_max = -INFINITY;
+    for (int index = static_cast<int>(threadIdx.x); index <= position; index += blockDim.x) {
+        local_max = fmaxf(local_max, logits[index]);
+    }
+    const float max_value = reduce_block_max(local_max, reduction_scratch);
+
+    float local_denom = 0.0f;
+    for (int index = static_cast<int>(threadIdx.x); index <= position; index += blockDim.x) {
+        const float weight = expf(logits[index] - max_value);
+        weights[index] = weight;
+        local_denom += weight;
+    }
+    const float denom = fmaxf(reduce_block_sum(local_denom, reduction_scratch), 1e-20f);
+    for (int index = static_cast<int>(threadIdx.x); index <= position; index += blockDim.x) {
+        weights[index] /= denom;
+    }
+    __syncthreads();
+
+    const int output_head_offset =
+        ((batch_index * head_count + head_index) * sequence_length + position) * head_dim;
+    OutputT *output_head = output + output_head_offset;
+    for (int dim = static_cast<int>(threadIdx.x); dim < head_dim; dim += blockDim.x) {
+        float sum = 0.0f;
+        for (int token_index = 0; token_index <= position; ++token_index) {
+            const int value_head_offset =
+                ((batch_index * kv_head_count + kv_head) * sequence_length + token_index) *
+                head_dim;
+            const ValueT *value_head = value + value_head_offset;
+            sum += load_attention_value(value_head, dim) * weights[token_index];
+        }
+        store_attention_value(output_head, dim, sum);
+    }
+}
+
 __global__ void attention_decode_kernel(
     const float *query,
     int query_offset,
@@ -5617,6 +5731,70 @@ extern "C" int psionic_cuda_attention_decode(
         static_cast<const float *>(attention_sinks),
         static_cast<float *>(output)
     );
+    return static_cast<int>(cudaGetLastError());
+}
+
+extern "C" int psionic_cuda_attention_causal_sequence_f32(
+    const void *query,
+    const void *key,
+    const void *value,
+    int batch_size,
+    int head_count,
+    int kv_head_count,
+    int sequence_length,
+    int head_dim,
+    void *output,
+    void *stream
+) {
+    const dim3 grid(
+        static_cast<unsigned int>(head_count),
+        static_cast<unsigned int>(sequence_length),
+        static_cast<unsigned int>(batch_size)
+    );
+    attention_causal_sequence_kernel<float, float, float, float>
+        <<<grid, kAttentionBlockSize, 0, static_cast<cudaStream_t>(stream)>>>(
+            static_cast<const float *>(query),
+            static_cast<const float *>(key),
+            static_cast<const float *>(value),
+            batch_size,
+            head_count,
+            kv_head_count,
+            sequence_length,
+            head_dim,
+            static_cast<float *>(output)
+        );
+    return static_cast<int>(cudaGetLastError());
+}
+
+extern "C" int psionic_cuda_attention_causal_sequence_bf16(
+    const void *query,
+    const void *key,
+    const void *value,
+    int batch_size,
+    int head_count,
+    int kv_head_count,
+    int sequence_length,
+    int head_dim,
+    void *output,
+    void *stream
+) {
+    const dim3 grid(
+        static_cast<unsigned int>(head_count),
+        static_cast<unsigned int>(sequence_length),
+        static_cast<unsigned int>(batch_size)
+    );
+    attention_causal_sequence_kernel<__nv_bfloat16, __nv_bfloat16, __nv_bfloat16, __nv_bfloat16>
+        <<<grid, kAttentionBlockSize, 0, static_cast<cudaStream_t>(stream)>>>(
+            static_cast<const __nv_bfloat16 *>(query),
+            static_cast<const __nv_bfloat16 *>(key),
+            static_cast<const __nv_bfloat16 *>(value),
+            batch_size,
+            head_count,
+            kv_head_count,
+            sequence_length,
+            head_dim,
+            static_cast<__nv_bfloat16 *>(output)
+        );
     return static_cast<int>(cudaGetLastError());
 }
 

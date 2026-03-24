@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "scope_window": "parameter_golf_validation_runtime_comparison_v1",
+  "run_id": "parameter-golf-validation-runtime-comparison",
+  "dataset_root": "/home/christopherdavid/code/parameter-golf/data/datasets/fineweb10B_sp1024",
+  "tokenizer_path": "/home/christopherdavid/code/parameter-golf/data/tokenizers/fineweb_1024_bpe.model",
+  "dataset_key": {
+    "dataset_ref": "dataset://parameter-golf/fineweb-sp1024",
+    "version": "2026.03.18"
+  },
+  "variant": "sp1024",
+  "tokenizer_digest": {
+    "family": "sentence_piece",
+    "tokenizer_digest": "4f5e8adb109c66b4886963bc75a7befd73bda36d27fd7102df8e9e66503b0e2a",
+    "vocab_size": 1024
+  },
+  "dataset_manifest_digest": "e83387a68b96075c410061b62f7c82bdc86449f8b6d9890bb6fd1a61210396d4",
+  "batch_sequences": 8,
+  "sequence_length": 1024,
+  "batch_limit": 2,
+  "observed_cuda_health": {
+    "status": "Ready",
+    "message": "cuda ready on 1 NVIDIA device(s)"
+  },
+  "observed_cuda_devices": [
+    {
+      "backend": "cuda",
+      "device": {
+        "kind": "Cuda",
+        "ordinal": 0,
+        "label": "cuda:0"
+      },
+      "device_name": "NVIDIA GeForce RTX 4080",
+      "supported_dtypes": [
+        "F32"
+      ],
+      "supported_quantization": [],
+      "memory_capacity_bytes": 17171480576,
+      "unified_memory": false,
+      "feature_flags": [
+        "cuda_architecture_surface",
+        "persistence_mode_disabled",
+        "addressing_mode_hmm"
+      ],
+      "nvidia_metadata": {
+        "topology": {
+          "architecture": "ada",
+          "compute_capability": "8.9",
+          "pci_bdf": "00000000:01:00.0",
+          "sm_count": null,
+          "vram_bytes": 17171480576,
+          "mig_profile": null
+        },
+        "risk": {
+          "level": "standard",
+          "display_attached": null,
+          "mig_partitioned": false,
+          "warnings": [
+            "persistence mode disabled; first request after idle may pay driver-load latency"
+          ]
+        },
+        "recovery": {
+          "supports_gpu_reset": true,
+          "expected_actions": [
+            "process_restart",
+            "gpu_reset",
+            "reboot_host"
+          ]
+        }
+      }
+    }
+  ],
+  "legacy": {
+    "mean_loss": 8.266654968261719,
+    "bits_per_byte": 195399.878696162,
+    "observed_ms": 6878,
+    "average_batch_ms": 3439.0
+  },
+  "device_resident": {
+    "mean_loss": 8.26682424545288,
+    "bits_per_byte": 195403.87992068945,
+    "observed_ms": 6507,
+    "average_batch_ms": 3253.5,
+    "runtime_receipt": {
+      "path": "device_resident_cuda_validation_v1",
+      "graph_surface": "parameter_golf_baseline_training_graph_v1",
+      "session_count": 1,
+      "total_batches": 2,
+      "persistent_parameter_buffer_count": 92,
+      "persistent_parameter_value_count": 17059912,
+      "resident_parameter_upload_us": 60423,
+      "per_batch_stable_parameter_buffer_allocations": 0,
+      "reusable_input_token_buffer": true,
+      "reusable_target_token_buffer": true,
+      "total_input_token_write_us": 70,
+      "total_target_token_write_us": 56,
+      "byte_accounting_mode": "precomputed_batch_target_bytes",
+      "total_byte_accounting_us": 22
+    }
+  },
+  "summary": "Compared the legacy host-rebind validation path against the device-resident validation path on the local CUDA node over 2 batch(es) of 8 sequence(s); average batch time moved from 3439.00ms to 3253.50ms.",
+  "receipt_digest": "8e61e800d373569196878326144aecb2cf8f2cec624f644b4f57826b57d3cde6"
+}

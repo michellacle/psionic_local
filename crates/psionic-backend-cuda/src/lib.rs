@@ -1439,6 +1439,64 @@ impl CudaSubmission {
         Ok(())
     }
 
+    /// Applies one bounded full-sequence causal grouped-query attention
+    /// forward pass on contiguous `f32` rank-4 tensors.
+    pub fn attention_causal_sequence_f32(
+        &mut self,
+        query: &CudaBuffer,
+        key: &CudaBuffer,
+        value: &CudaBuffer,
+        batch_size: usize,
+        head_count: usize,
+        kv_head_count: usize,
+        sequence_length: usize,
+        head_dim: usize,
+        output: &CudaBuffer,
+    ) -> Result<(), RuntimeError> {
+        self.platform.encode_attention_causal_sequence_f32(
+            &query.platform,
+            &key.platform,
+            &value.platform,
+            batch_size,
+            head_count,
+            kv_head_count,
+            sequence_length,
+            head_dim,
+            &output.platform,
+        )?;
+        self.encoded_operations += 1;
+        Ok(())
+    }
+
+    /// Applies one bounded full-sequence causal grouped-query attention
+    /// forward pass on contiguous `bf16` rank-4 tensors.
+    pub fn attention_causal_sequence_bf16(
+        &mut self,
+        query: &CudaBuffer,
+        key: &CudaBuffer,
+        value: &CudaBuffer,
+        batch_size: usize,
+        head_count: usize,
+        kv_head_count: usize,
+        sequence_length: usize,
+        head_dim: usize,
+        output: &CudaBuffer,
+    ) -> Result<(), RuntimeError> {
+        self.platform.encode_attention_causal_sequence_bf16(
+            &query.platform,
+            &key.platform,
+            &value.platform,
+            batch_size,
+            head_count,
+            kv_head_count,
+            sequence_length,
+            head_dim,
+            &output.platform,
+        )?;
+        self.encoded_operations += 1;
+        Ok(())
+    }
+
     /// Applies GPT-OSS NEOX-style RoPE, writes the current KV entry, and runs
     /// decode attention in one CUDA kernel.
     #[allow(clippy::too_many_arguments)]
@@ -3539,105 +3597,42 @@ impl AvailableCudaBackend {
         }
 
         let output = self.allocate(&step.spec)?;
-        let query_scratch = self.allocate(&TensorSpec::new(
-            Shape::new(vec![query_heads, head_dim]),
-            DType::F32,
-            step.spec.device().clone(),
-        ))?;
-        let kv_scratch_spec = TensorSpec::new(
-            Shape::new(vec![kv_heads, head_dim]),
-            DType::F32,
-            step.spec.device().clone(),
-        );
-        let key_scratch = self.allocate(&kv_scratch_spec)?;
-        let value_scratch = self.allocate(&kv_scratch_spec)?;
-        let token_output = self.allocate(&TensorSpec::new(
-            Shape::new(vec![query_heads, head_dim]),
-            DType::F32,
-            step.spec.device().clone(),
-        ))?;
-        let cache_width = kv_heads.checked_mul(head_dim).ok_or_else(|| {
-            RuntimeError::Backend(String::from(
-                "cuda scaled_dot_product_attention cache width overflow",
-            ))
-        })?;
-        let cache_spec = TensorSpec::new(
-            Shape::new(vec![sequence_length, cache_width]),
-            DType::F32,
-            step.spec.device().clone(),
-        );
-        let key_cache = self.allocate(&cache_spec)?;
-        let value_cache = self.allocate(&cache_spec)?;
-        let cache_row_bytes = byte_len_for_f32_elements(cache_width)?;
-
-        for batch_index in 0..batch_size {
-            for position in 0..sequence_length {
-                pack_rank4_token_to_head_major_scratch(
-                    submission,
+        match (
+            query.spec().dtype(),
+            key.spec().dtype(),
+            value.spec().dtype(),
+            step.spec.dtype(),
+        ) {
+            (DType::F32, DType::F32, DType::F32, DType::F32) => {
+                submission.attention_causal_sequence_f32(
                     query,
-                    batch_index,
-                    position,
-                    &query_scratch,
-                )?;
-                pack_rank4_token_to_head_major_scratch(
-                    submission,
                     key,
-                    batch_index,
-                    position,
-                    &key_scratch,
-                )?;
-                pack_rank4_token_to_head_major_scratch(
-                    submission,
                     value,
-                    batch_index,
-                    position,
-                    &value_scratch,
-                )?;
-                submission.attention_decode(
-                    &query_scratch,
-                    0,
-                    &key_scratch,
-                    0,
-                    &value_scratch,
-                    0,
-                    &key_cache,
-                    &value_cache,
-                    cache_width,
-                    0,
-                    position,
-                    0,
+                    batch_size,
                     query_heads,
                     kv_heads,
+                    sequence_length,
                     head_dim,
-                    None,
-                    &token_output,
-                )?;
-                scatter_head_major_scratch_to_rank4_token(
-                    submission,
-                    &token_output,
                     &output,
-                    batch_index,
-                    position,
                 )?;
-                let cache_row_offset = position.checked_mul(cache_row_bytes).ok_or_else(|| {
-                    RuntimeError::Backend(String::from(
-                        "cuda scaled_dot_product_attention cache row offset overflow",
-                    ))
-                })?;
-                submission.copy_buffer_region(
-                    &key_scratch,
-                    0,
-                    &key_cache,
-                    cache_row_offset,
-                    cache_row_bytes,
+            }
+            (DType::BF16, DType::BF16, DType::BF16, DType::BF16) => {
+                submission.attention_causal_sequence_bf16(
+                    query,
+                    key,
+                    value,
+                    batch_size,
+                    query_heads,
+                    kv_heads,
+                    sequence_length,
+                    head_dim,
+                    &output,
                 )?;
-                submission.copy_buffer_region(
-                    &value_scratch,
-                    0,
-                    &value_cache,
-                    cache_row_offset,
-                    cache_row_bytes,
-                )?;
+            }
+            (query_dtype, key_dtype, value_dtype, output_dtype) => {
+                return Err(RuntimeError::Backend(format!(
+                    "cuda scaled_dot_product_attention only supports contiguous F32 or BF16 query/key/value/output tensors on the bounded causal sequence lane, actual left={query_dtype:?} key={key_dtype:?} value={value_dtype:?} output={output_dtype:?}",
+                )));
             }
         }
         Ok(output)
@@ -6901,6 +6896,30 @@ mod platform {
             output: *mut c_void,
             stream: CudaStream,
         ) -> CudaError;
+        fn psionic_cuda_attention_causal_sequence_f32(
+            query: *const c_void,
+            key: *const c_void,
+            value: *const c_void,
+            batch_size: c_int,
+            head_count: c_int,
+            kv_head_count: c_int,
+            sequence_length: c_int,
+            head_dim: c_int,
+            output: *mut c_void,
+            stream: CudaStream,
+        ) -> CudaError;
+        fn psionic_cuda_attention_causal_sequence_bf16(
+            query: *const c_void,
+            key: *const c_void,
+            value: *const c_void,
+            batch_size: c_int,
+            head_count: c_int,
+            kv_head_count: c_int,
+            sequence_length: c_int,
+            head_dim: c_int,
+            output: *mut c_void,
+            stream: CudaStream,
+        ) -> CudaError;
         fn psionic_cuda_attention_decode_rope_cache(
             qkv: *const c_void,
             query_offset: c_int,
@@ -9729,6 +9748,116 @@ mod platform {
             )
         }
 
+        pub(super) fn encode_attention_causal_sequence_f32(
+            &mut self,
+            query: &PlatformBuffer,
+            key: &PlatformBuffer,
+            value: &PlatformBuffer,
+            batch_size: usize,
+            head_count: usize,
+            kv_head_count: usize,
+            sequence_length: usize,
+            head_dim: usize,
+            output: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            let batch_size = c_int::try_from(batch_size).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda causal attention batch size exceeds c_int",
+                ))
+            })?;
+            let head_count = c_int::try_from(head_count).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda causal attention head count exceeds c_int",
+                ))
+            })?;
+            let kv_head_count = c_int::try_from(kv_head_count).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda causal attention kv head count exceeds c_int",
+                ))
+            })?;
+            let sequence_length = c_int::try_from(sequence_length).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda causal attention sequence length exceeds c_int",
+                ))
+            })?;
+            let head_dim = c_int::try_from(head_dim).map_err(|_| {
+                RuntimeError::Backend(String::from("cuda causal attention head dim exceeds c_int"))
+            })?;
+            self.runtime.set_device()?;
+            self.runtime.check(
+                unsafe {
+                    psionic_cuda_attention_causal_sequence_f32(
+                        query.inner.device_ptr.cast(),
+                        key.inner.device_ptr.cast(),
+                        value.inner.device_ptr.cast(),
+                        batch_size,
+                        head_count,
+                        kv_head_count,
+                        sequence_length,
+                        head_dim,
+                        output.inner.device_ptr.cast(),
+                        self.stream,
+                    )
+                },
+                "psionic_cuda_attention_causal_sequence_f32",
+            )
+        }
+
+        pub(super) fn encode_attention_causal_sequence_bf16(
+            &mut self,
+            query: &PlatformBuffer,
+            key: &PlatformBuffer,
+            value: &PlatformBuffer,
+            batch_size: usize,
+            head_count: usize,
+            kv_head_count: usize,
+            sequence_length: usize,
+            head_dim: usize,
+            output: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            let batch_size = c_int::try_from(batch_size).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda causal attention batch size exceeds c_int",
+                ))
+            })?;
+            let head_count = c_int::try_from(head_count).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda causal attention head count exceeds c_int",
+                ))
+            })?;
+            let kv_head_count = c_int::try_from(kv_head_count).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda causal attention kv head count exceeds c_int",
+                ))
+            })?;
+            let sequence_length = c_int::try_from(sequence_length).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda causal attention sequence length exceeds c_int",
+                ))
+            })?;
+            let head_dim = c_int::try_from(head_dim).map_err(|_| {
+                RuntimeError::Backend(String::from("cuda causal attention head dim exceeds c_int"))
+            })?;
+            self.runtime.set_device()?;
+            self.runtime.check(
+                unsafe {
+                    psionic_cuda_attention_causal_sequence_bf16(
+                        query.inner.device_ptr.cast(),
+                        key.inner.device_ptr.cast(),
+                        value.inner.device_ptr.cast(),
+                        batch_size,
+                        head_count,
+                        kv_head_count,
+                        sequence_length,
+                        head_dim,
+                        output.inner.device_ptr.cast(),
+                        self.stream,
+                    )
+                },
+                "psionic_cuda_attention_causal_sequence_bf16",
+            )
+        }
+
         #[allow(clippy::too_many_arguments)]
         pub(super) fn encode_router_topk_softmax(
             &mut self,
@@ -11501,6 +11630,40 @@ mod platform {
             )))
         }
 
+        pub(super) fn encode_attention_causal_sequence_f32(
+            &mut self,
+            _query: &PlatformBuffer,
+            _key: &PlatformBuffer,
+            _value: &PlatformBuffer,
+            _batch_size: usize,
+            _head_count: usize,
+            _kv_head_count: usize,
+            _sequence_length: usize,
+            _head_dim: usize,
+            _output: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            Err(RuntimeError::Backend(String::from(
+                "cuda quantized text-generation kernels require Linux CUDA support",
+            )))
+        }
+
+        pub(super) fn encode_attention_causal_sequence_bf16(
+            &mut self,
+            _query: &PlatformBuffer,
+            _key: &PlatformBuffer,
+            _value: &PlatformBuffer,
+            _batch_size: usize,
+            _head_count: usize,
+            _kv_head_count: usize,
+            _sequence_length: usize,
+            _head_dim: usize,
+            _output: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            Err(RuntimeError::Backend(String::from(
+                "cuda quantized text-generation kernels require Linux CUDA support",
+            )))
+        }
+
         #[allow(clippy::too_many_arguments)]
         pub(super) fn encode_router_topk_softmax(
             &mut self,
@@ -12913,6 +13076,82 @@ mod tests {
             .logical_values()?;
 
         assert_close(&actual, &expected, 1e-4);
+        Ok(())
+    }
+
+    #[test]
+    fn cuda_backend_executes_bf16_scaled_dot_product_attention_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let mut backend = CudaBackend::new();
+        let Some(selected) = backend.selected_device().cloned() else {
+            assert_eq!(backend.health().status, HealthStatus::Offline);
+            return Ok(());
+        };
+
+        let batch_size = 1usize;
+        let query_heads = 4usize;
+        let kv_heads = 2usize;
+        let sequence_length = 4usize;
+        let head_dim = 8usize;
+        let scale = 1.0_f32 / (head_dim as f32).sqrt();
+        let query_shape = Shape::new(vec![batch_size, query_heads, sequence_length, head_dim]);
+        let key_shape = Shape::new(vec![batch_size, kv_heads, sequence_length, head_dim]);
+
+        let mut builder = GraphBuilder::new(selected.device.clone());
+        let query = builder.input("query", query_shape.clone(), DType::BF16);
+        let key = builder.input("key", key_shape.clone(), DType::BF16);
+        let value = builder.input("value", key_shape.clone(), DType::BF16);
+        let attended = builder.scaled_dot_product_attention(&query, &key, &value, scale, true)?;
+        let graph = builder.finish(vec![attended.clone()]);
+
+        let query_values = (0..batch_size * query_heads * sequence_length * head_dim)
+            .map(|index| (index as f32 - 24.0) * 0.03125)
+            .collect::<Vec<_>>();
+        let key_values = (0..batch_size * kv_heads * sequence_length * head_dim)
+            .map(|index| (index as f32 - 11.0) * -0.0275)
+            .collect::<Vec<_>>();
+        let value_values = (0..batch_size * kv_heads * sequence_length * head_dim)
+            .map(|index| (index as f32 + 7.0) * 0.01875)
+            .collect::<Vec<_>>();
+
+        let inputs = std::collections::BTreeMap::from([
+            (
+                query.id(),
+                backend.input_bf16_buffer(query_shape.clone(), query_values.clone())?,
+            ),
+            (
+                key.id(),
+                backend.input_bf16_buffer(key_shape.clone(), key_values.clone())?,
+            ),
+            (
+                value.id(),
+                backend.input_bf16_buffer(key_shape.clone(), value_values.clone())?,
+            ),
+        ]);
+        let result = backend.compile_and_execute(&graph, &inputs)?;
+        let expected = evaluate_graph(
+            &graph,
+            &std::collections::BTreeMap::from([
+                (query.id(), TensorData::BF16(query_values)),
+                (key.id(), TensorData::BF16(key_values)),
+                (value.id(), TensorData::BF16(value_values)),
+            ]),
+        )?;
+
+        let actual = result
+            .outputs
+            .get(&attended.id())
+            .ok_or("missing bf16 attention output")?
+            .read_bf16_to_f32()?;
+        assert_close(
+            &actual,
+            expected
+                .get(&attended.id())
+                .ok_or("missing expected bf16 attention output")?
+                .as_f32_slice()
+                .ok_or("expected bf16 attention output is not dense float")?,
+            2e-2,
+        );
         Ok(())
     }
 

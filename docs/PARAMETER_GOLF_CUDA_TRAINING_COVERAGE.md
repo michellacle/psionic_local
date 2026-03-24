@@ -49,8 +49,8 @@ residual-control tensors are already materialized to activation shape, so the
 explicit residual-mix blocker is also retired.
 
 The public CUDA backend now also executes one bounded dense `f32`
-non-interleaved RoPE plus causal grouped-query decoder block by packing the
-baseline self-attention token slices into the existing decode-kernel surface,
+non-interleaved RoPE plus causal grouped-query decoder block through a real
+full-sequence causal attention kernel for the admitted Parameter Golf shapes,
 so the old "no public decoder-block execution" gap is no longer the honest
 attention blocker.
 
@@ -178,6 +178,17 @@ the same bounded public lane before the next H100 rerun:
   broadcasts directly on-device:
   - rank-3 `[1, 1, model_dim] -> [batch, seq, model_dim]`
   - rank-4 `[1, num_heads, 1, 1] -> [batch, num_heads, seq, head_dim]`
+- bounded CUDA kernels now also execute the admitted PGOLF full-sequence
+  causal grouped-query attention forward lane directly on-device for both:
+  - contiguous `f32` rank-4 query, key, value, and output tensors
+  - contiguous `bf16` rank-4 query, key, value, and output tensors
+- the old host-orchestrated per-position `attention_decode(...)` loop is no
+  longer the forward runtime for the admitted Parameter Golf attention shapes
+- a fresh same-node bounded validation receipt on the RTX 4080 moved average
+  device-resident validation batch time from `7392.00 ms` in
+  `fixtures/parameter_golf/reports/parameter_golf_validation_runtime_comparison.json`
+  down to `3253.50 ms` in
+  `fixtures/parameter_golf/reports/parameter_golf_validation_runtime_comparison_sequence_attention.json`
 - bounded PGOLF residual `add`/`mul` execution now preserves the IR broadcast
   contract when exact CUDA input specs do not match:
   - exact dense `f32` peers still encode directly on-device
@@ -206,6 +217,9 @@ Today it keeps these truths separate:
   - bounded dense `f32` decoder reverse-mode graph semantics are real on the
     reference path for non-interleaved RoPE plus causal grouped-query
     attention
+  - one bounded full-sequence causal grouped-query CUDA attention forward path
+    is real on the public lane for admitted `f32` and `bf16` Parameter Golf
+    shapes
   - one bounded CUDA decoder backward kernel is real on the public lane for
     `rotary_embedding_backward`
   - one bounded host-orchestrated CUDA decoder backward path is still real on
