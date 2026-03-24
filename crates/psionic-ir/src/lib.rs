@@ -5585,6 +5585,14 @@ fn format_tensor_data(data: &TensorData) -> String {
                 .join(",");
             format!("f32:{bits}")
         }
+        TensorData::BF16(values) => {
+            let bits = values
+                .iter()
+                .map(|value| format!("{:08x}", value.to_bits()))
+                .collect::<Vec<_>>()
+                .join(",");
+            format!("bf16:{bits}")
+        }
         TensorData::I32(values) => {
             let bits = values
                 .iter()
@@ -5953,11 +5961,11 @@ fn validate_parameter_golf_token_embedding_lookup_spec(
             ),
         ));
     }
-    if token_embedding.dtype() != DType::F32 {
+    if token_embedding.dtype() != DType::F32 && token_embedding.dtype() != DType::BF16 {
         return Err(extension_error(
             label,
             format!(
-                "token_embedding dtype must be F32, actual {:?}",
+                "token_embedding dtype must be F32 or BF16, actual {:?}",
                 token_embedding.dtype()
             ),
         ));
@@ -6023,7 +6031,11 @@ fn validate_parameter_golf_token_embedding_lookup_backward_spec(
             ),
         ));
     }
-    Ok(inputs[1].clone())
+    Ok(TensorSpec::new(
+        inputs[1].shape().clone(),
+        DType::F32,
+        inputs[1].device().clone(),
+    ))
 }
 
 fn validate_parameter_golf_projection_loss_backward_spec(

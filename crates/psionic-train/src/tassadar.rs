@@ -938,7 +938,7 @@ fn current_group_weights(
         .data
         .clone()
     {
-        TensorData::F32(values) => Ok(values),
+        TensorData::F32(values) | TensorData::BF16(values) => Ok(values),
         TensorData::I32(_) => {
             panic!("group `{group_id}` used unsupported i32 tensor data")
         }

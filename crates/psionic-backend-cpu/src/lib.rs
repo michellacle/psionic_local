@@ -101,7 +101,9 @@ impl CpuBuffer {
     /// Builds a buffer from tensor data.
     pub fn from_tensor_data(spec: TensorSpec, data: &TensorData) -> Result<Self, RuntimeError> {
         match data {
-            TensorData::F32(values) => Self::from_f32(spec, values.clone()),
+            TensorData::F32(values) | TensorData::BF16(values) => {
+                Self::from_f32(spec, values.clone())
+            }
             TensorData::I32(_) => Err(RuntimeError::UnsupportedStep(String::from(
                 "cpu dense buffer materialization for I32 tensors",
             ))),

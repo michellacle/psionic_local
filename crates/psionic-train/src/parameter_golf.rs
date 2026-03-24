@@ -1,5 +1,6 @@
 use half::bf16;
 use psionic_backend_cuda::{CudaBackend, CudaCommandStatus, CudaCommandWait};
+use psionic_core::{DType, Shape};
 use psionic_models::ParameterGolfModelDescriptor;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -393,6 +394,32 @@ pub fn parameter_golf_optimizer_plan(
             .then_some(hyperparameters.grad_clip_norm),
         total_parameter_count: groups.iter().map(|group| group.parameter_count).sum(),
         groups,
+    })
+}
+
+/// Returns the lowered graph-input dtype for one Parameter Golf parameter on
+/// the mixed-precision baseline lane.
+pub fn parameter_golf_graph_parameter_dtype(
+    tensor_name: &str,
+    shape: &Shape,
+) -> Result<DType, ParameterGolfTrainError> {
+    if tensor_name == "tok_emb.weight" || tensor_name == "lm_head.weight" {
+        return Ok(DType::BF16);
+    }
+    if tensor_name == "skip_weights"
+        || (tensor_name.starts_with("blocks.")
+            && (shape.dims().len() < 2 || is_control_tensor_name(tensor_name)))
+    {
+        return Ok(DType::F32);
+    }
+    if tensor_name.starts_with("blocks.")
+        && shape.dims().len() == 2
+        && !is_control_tensor_name(tensor_name)
+    {
+        return Ok(DType::BF16);
+    }
+    Err(ParameterGolfTrainError::UnknownTensorClassification {
+        tensor_name: String::from(tensor_name),
     })
 }
 

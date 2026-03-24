@@ -13,6 +13,8 @@ use psionic_models::{
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
+use crate::parameter_golf_graph_parameter_dtype;
+
 /// How one Parameter Golf graph parameter receives gradients on the current
 /// Rust-owned baseline lane.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -29,6 +31,8 @@ pub struct ParameterGolfBaselineGraphParameterBinding {
     pub parameter_id: String,
     /// Logical tensor shape.
     pub shape: Shape,
+    /// Graph input dtype carrying the parameter value.
+    pub graph_input_dtype: DType,
     /// Graph input tensor carrying the parameter value.
     pub graph_input_tensor_id: TensorId,
     /// Honest gradient-source posture for the parameter.
@@ -122,6 +126,8 @@ pub enum ParameterGolfBaselineGraphError {
     #[error(transparent)]
     Config(#[from] ParameterGolfConfigError),
     #[error(transparent)]
+    Train(#[from] crate::ParameterGolfTrainError),
+    #[error(transparent)]
     Execution(#[from] ParameterGolfExecutionError),
     #[error(transparent)]
     Model(#[from] ParameterGolfModelError),
@@ -143,7 +149,9 @@ pub enum ParameterGolfBaselineGraphError {
     MissingGradient { parameter_id: String },
     #[error("parameter golf baseline graph is missing forward logits for tensor `{tensor_id}`")]
     MissingForwardLogits { tensor_id: TensorId },
-    #[error("parameter golf baseline graph expected dense f32 tensor data for {context}")]
+    #[error(
+        "parameter golf baseline graph expected dense floating-point tensor data for {context}"
+    )]
     NonDenseTensorData { context: String },
 }
 
@@ -282,10 +290,22 @@ fn bind_parameter_golf_graph_inputs(
             .ok_or_else(|| ParameterGolfBaselineGraphError::MissingWeightVector {
                 parameter_id: binding.parameter_id.clone(),
             })?;
-        inputs.insert(
-            binding.graph_input_tensor_id,
-            TensorData::F32(parameter.values.clone()),
-        );
+        let parameter_data = match binding.graph_input_dtype {
+            DType::F32 => TensorData::F32(parameter.values.clone()),
+            DType::BF16 => TensorData::BF16(parameter.values.clone()),
+            actual => {
+                return Err(ParameterGolfBaselineGraphError::Graph(
+                    GraphError::InvalidOperatorInputs {
+                        op: String::from("parameter_golf_baseline_graph_input_binding"),
+                        message: format!(
+                            "parameter golf baseline graph does not support graph input dtype {actual:?} for `{}`",
+                            binding.parameter_id
+                        ),
+                    },
+                ))
+            }
+        };
+        inputs.insert(binding.graph_input_tensor_id, parameter_data);
     }
     Ok(inputs)
 }
@@ -451,11 +471,17 @@ fn build_baseline_graph_state(
     let mut parameter_inputs = BTreeMap::new();
     let mut parameter_bindings = Vec::new();
     for tensor in &descriptor.weights.tensors {
-        let tensor_input =
-            builder.input(tensor.name.clone(), tensor.shape.clone(), DType::F32, true);
+        let graph_input_dtype = parameter_golf_graph_parameter_dtype(&tensor.name, &tensor.shape)?;
+        let tensor_input = builder.input(
+            tensor.name.clone(),
+            tensor.shape.clone(),
+            graph_input_dtype,
+            true,
+        );
         parameter_bindings.push(ParameterGolfBaselineGraphParameterBinding {
             parameter_id: tensor.name.clone(),
             shape: tensor.shape.clone(),
+            graph_input_dtype,
             graph_input_tensor_id: tensor_input.id(),
             gradient_source: ParameterGolfBaselineGradientSource::GraphOnly,
         });
@@ -1066,10 +1092,12 @@ fn dense_gradient_values(
     data: &TensorData,
     context: String,
 ) -> Result<Vec<f32>, ParameterGolfBaselineGraphError> {
-    let TensorData::F32(values) = data else {
-        return Err(ParameterGolfBaselineGraphError::NonDenseTensorData { context });
-    };
-    Ok(values.clone())
+    match data {
+        TensorData::F32(values) | TensorData::BF16(values) => Ok(values.clone()),
+        TensorData::I32(_) | TensorData::QuantizedBlocks(_) => {
+            Err(ParameterGolfBaselineGraphError::NonDenseTensorData { context })
+        }
+    }
 }
 
 #[cfg(test)]
@@ -1386,6 +1414,67 @@ mod tests {
                         .iter()
                         .flat_map(|row| row.iter().map(|token_id| *token_id as i32))
                         .collect::<Vec<_>>()
+        ));
+        Ok(())
+    }
+
+    #[test]
+    fn parameter_golf_baseline_training_graph_marks_train_visible_weight_inputs_as_bf16(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let fixture = load_baseline_fixture();
+        let model = baseline_model()?;
+        let graph = build_parameter_golf_baseline_training_graph(
+            Device::cpu(),
+            model.descriptor(),
+            fixture.input_ids.len(),
+            fixture.input_ids[0].len(),
+        )?;
+
+        assert_eq!(
+            graph
+                .parameter_binding("tok_emb.weight")
+                .ok_or("missing tok_emb binding")?
+                .graph_input_dtype,
+            DType::BF16
+        );
+        assert_eq!(
+            graph
+                .parameter_binding("blocks.0.attn.c_q.weight")
+                .ok_or("missing c_q binding")?
+                .graph_input_dtype,
+            DType::BF16
+        );
+        assert_eq!(
+            graph
+                .parameter_binding("blocks.0.attn_scale")
+                .ok_or("missing attn_scale binding")?
+                .graph_input_dtype,
+            DType::F32
+        );
+
+        let inputs = bind_parameter_golf_baseline_training_graph_inputs(
+            &graph,
+            &model,
+            fixture.input_ids.as_slice(),
+            fixture.target_ids.as_slice(),
+        )?;
+        assert!(matches!(
+            inputs.get(
+                &graph
+                    .parameter_binding("tok_emb.weight")
+                    .ok_or("missing tok_emb binding")?
+                    .graph_input_tensor_id
+            ),
+            Some(TensorData::BF16(_))
+        ));
+        assert!(matches!(
+            inputs.get(
+                &graph
+                    .parameter_binding("blocks.0.attn_scale")
+                    .ok_or("missing attn_scale binding")?
+                    .graph_input_tensor_id
+            ),
+            Some(TensorData::F32(_))
         ));
         Ok(())
     }

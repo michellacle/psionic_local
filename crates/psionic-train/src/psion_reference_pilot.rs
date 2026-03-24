@@ -2565,7 +2565,7 @@ fn scatter_accelerated_hidden_input_gradients(
 
 fn dense_values(data: &TensorData, context: &str) -> Result<Vec<f32>, PsionReferencePilotError> {
     match data {
-        TensorData::F32(values) => Ok(values.clone()),
+        TensorData::F32(values) | TensorData::BF16(values) => Ok(values.clone()),
         TensorData::I32(_) => Err(PsionReferencePilotError::Serialization {
             message: format!("{context} must be dense f32"),
         }),

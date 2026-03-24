@@ -244,7 +244,9 @@ impl QuantizedModule {
                         modes.push(quantized.mode);
                     }
                 }
-                TensorData::F32(_) | TensorData::I32(_) => preserved_dense_paths.push(path),
+                TensorData::F32(_) | TensorData::BF16(_) | TensorData::I32(_) => {
+                    preserved_dense_paths.push(path)
+                }
             }
         }
 
@@ -390,7 +392,7 @@ impl QuantizedModule {
                 (parameter.spec.clone(), parameter.data.clone())
             };
             let values = match data {
-                TensorData::F32(values) => values,
+                TensorData::F32(values) | TensorData::BF16(values) => values,
                 TensorData::I32(_) => {
                     return Err(QuantizationError::UnsupportedSourceTensor {
                         path: String::from(path),
@@ -772,8 +774,10 @@ fn quantize_parameter_payload(
     mode: QuantizationMode,
 ) -> Result<Option<TensorData>, QuantizationError> {
     match &parameter.data {
-        TensorData::F32(values) => {
-            if parameter.spec.dtype() != DType::F32 || parameter.spec.device() != &Device::cpu() {
+        TensorData::F32(values) | TensorData::BF16(values) => {
+            if parameter.spec.device() != &Device::cpu()
+                || (parameter.spec.dtype() != DType::F32 && parameter.spec.dtype() != DType::BF16)
+            {
                 return Err(QuantizationError::UnsupportedSourceTensor {
                     path: String::from(path),
                     dtype: parameter.spec.dtype(),
@@ -870,7 +874,7 @@ fn dequantize_tensor_data<'a>(
     data: &'a TensorData,
 ) -> Result<Cow<'a, [f32]>, QuantizationError> {
     match data {
-        TensorData::F32(values) => Ok(Cow::Borrowed(values.as_slice())),
+        TensorData::F32(values) | TensorData::BF16(values) => Ok(Cow::Borrowed(values.as_slice())),
         TensorData::I32(_) => Err(QuantizationError::UnsupportedSourceTensor {
             path: String::from(path),
             dtype: spec.dtype(),

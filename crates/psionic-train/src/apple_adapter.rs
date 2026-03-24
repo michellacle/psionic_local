@@ -2803,7 +2803,9 @@ fn draft_dense_values<'a>(
     group_id: &str,
 ) -> Result<&'a [f32], AppleAdapterDraftDistillationError> {
     match &group.parameter.data {
-        psionic_core::TensorData::F32(values) => Ok(values.as_slice()),
+        psionic_core::TensorData::F32(values) | psionic_core::TensorData::BF16(values) => {
+            Ok(values.as_slice())
+        }
         psionic_core::TensorData::I32(_) => {
             Err(AppleAdapterDraftDistillationError::NonDenseDraftGroup {
                 group_id: String::from(group_id),
@@ -3644,7 +3646,9 @@ fn dense_values<'a>(
     group_id: &str,
 ) -> Result<&'a [f32], AppleAdapterTrainingExecutionError> {
     match &group.parameter.data {
-        psionic_core::TensorData::F32(values) => Ok(values.as_slice()),
+        psionic_core::TensorData::F32(values) | psionic_core::TensorData::BF16(values) => {
+            Ok(values.as_slice())
+        }
         psionic_core::TensorData::I32(_) => {
             Err(AppleAdapterTrainingExecutionError::NonDenseGroup {
                 group_id: String::from(group_id),
@@ -4756,7 +4760,7 @@ mod tests {
         let non_zero_groups = snapshot
             .iter()
             .filter(|group| match &group.parameter.data {
-                psionic_core::TensorData::F32(values) => {
+                psionic_core::TensorData::F32(values) | psionic_core::TensorData::BF16(values) => {
                     values.iter().any(|value| value.abs() > 0.0)
                 }
                 psionic_core::TensorData::I32(_) => false,

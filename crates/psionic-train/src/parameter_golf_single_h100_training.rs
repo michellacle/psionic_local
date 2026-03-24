@@ -21,7 +21,9 @@ use psionic_models::{
     ParameterGolfModelError, ParameterGolfReferenceModel, PARAMETER_GOLF_BASELINE_MODEL_ID,
     PARAMETER_GOLF_BASELINE_REVISION,
 };
-use psionic_runtime::{DeliveredExecutionContext, DeviceDescriptor, RuntimeError, RuntimeHealth};
+use psionic_runtime::{
+    BufferHandle, DeliveredExecutionContext, DeviceDescriptor, RuntimeError, RuntimeHealth,
+};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use thiserror::Error;
@@ -1174,7 +1176,7 @@ fn precision_receipt_from_optimizer_plan(
     optimizer_plan: &ParameterGolfOptimizerPlan,
 ) -> ParameterGolfSingleH100PrecisionReceipt {
     ParameterGolfSingleH100PrecisionReceipt {
-        graph_parameter_upload_precision: TrainingPrecisionMode::Fp32,
+        graph_parameter_upload_precision: TrainingPrecisionMode::Bf16,
         graph_execution_precision: TrainingPrecisionMode::Fp32,
         retained_activation_precision: TrainingPrecisionMode::Fp32,
         group_receipts: optimizer_plan
@@ -1212,7 +1214,7 @@ fn precision_receipt_from_optimizer_plan(
             })
             .collect(),
         notes: vec![String::from(
-            "train-visible Parameter Golf weights now follow the upstream mixed-precision optimizer split, but the lowered single-H100 graph still uploads those train-visible values as dense f32 tensors until BF16 graph kernels land",
+            "train-visible Parameter Golf weights now upload through BF16 graph inputs on the token-embedding and linear hot path while scalar/control tensors and retained activations remain explicit F32 until wider BF16 execution kernels land",
         )],
     }
 }
@@ -1221,7 +1223,7 @@ fn precision_receipt_from_trainer_state(
     state: &ParameterGolfSingleH100TrainerState,
 ) -> ParameterGolfSingleH100PrecisionReceipt {
     ParameterGolfSingleH100PrecisionReceipt {
-        graph_parameter_upload_precision: TrainingPrecisionMode::Fp32,
+        graph_parameter_upload_precision: TrainingPrecisionMode::Bf16,
         graph_execution_precision: TrainingPrecisionMode::Fp32,
         retained_activation_precision: TrainingPrecisionMode::Fp32,
         group_receipts: state
@@ -1230,7 +1232,7 @@ fn precision_receipt_from_trainer_state(
             .map(|(parameter_id, state)| state.precision_receipt(parameter_id.clone()))
             .collect(),
         notes: vec![String::from(
-            "train-visible Parameter Golf weights now follow the upstream mixed-precision optimizer split, but the lowered single-H100 graph still uploads those train-visible values as dense f32 tensors until BF16 graph kernels land",
+            "train-visible Parameter Golf weights now upload through BF16 graph inputs on the token-embedding and linear hot path while scalar/control tensors and retained activations remain explicit F32 until wider BF16 execution kernels land",
         )],
     }
 }
@@ -1739,6 +1741,9 @@ fn execute_cuda_graph_outputs(
             TensorData::F32(values) => {
                 cuda_backend.input_buffer(spec.spec().shape().clone(), values.clone())?
             }
+            TensorData::BF16(values) => {
+                cuda_backend.input_bf16_buffer(spec.spec().shape().clone(), values.clone())?
+            }
             TensorData::I32(values) => {
                 cuda_backend.input_i32_buffer(spec.spec().shape().clone(), values.clone())?
             }
@@ -1755,13 +1760,22 @@ fn execute_cuda_graph_outputs(
         .outputs()
         .iter()
         .map(|tensor_id| {
-            let values = result
-                .outputs
-                .get(tensor_id)
-                .ok_or(ParameterGolfSingleH100TrainingError::MissingGraphOutput {
+            let output = result.outputs.get(tensor_id).ok_or(
+                ParameterGolfSingleH100TrainingError::MissingGraphOutput {
                     tensor_id: *tensor_id,
-                })?
-                .read_f32()?;
+                },
+            )?;
+            let values = match output.spec().dtype() {
+                psionic_core::DType::F32 => output.read_f32()?,
+                psionic_core::DType::BF16 => output.read_bf16_to_f32()?,
+                actual => {
+                    return Err(ParameterGolfSingleH100TrainingError::Serialization {
+                        message: format!(
+                            "unsupported graph output dtype {actual:?} for tensor {tensor_id}"
+                        ),
+                    })
+                }
+            };
             Ok((*tensor_id, values))
         })
         .collect()

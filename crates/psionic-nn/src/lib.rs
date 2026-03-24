@@ -1446,7 +1446,7 @@ fn validate_tensor_payload(
     data: &TensorData,
 ) -> Result<(), ModuleStateError> {
     match data {
-        TensorData::F32(values) => {
+        TensorData::F32(values) | TensorData::BF16(values) => {
             let expected_len = spec.storage_size();
             let actual_len = values.len();
             if actual_len != expected_len {
@@ -1629,6 +1629,12 @@ fn stable_tensor_data_digest(data: &TensorData) -> String {
     match data {
         TensorData::F32(values) => {
             hasher.update(b"f32");
+            for value in values {
+                hasher.update(value.to_bits().to_le_bytes());
+            }
+        }
+        TensorData::BF16(values) => {
+            hasher.update(b"bf16");
             for value in values {
                 hasher.update(value.to_bits().to_le_bytes());
             }

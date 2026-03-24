@@ -1,5 +1,6 @@
 #include <cuda_runtime.h>
 #include <cuda_fp16.h>
+#include <cuda_bf16.h>
 
 #include <cfloat>
 #include <stdint.h>
@@ -442,6 +443,18 @@ __global__ void cast_f32_to_f16_kernel(
         return;
     }
     output[index] = __float2half(input[index]);
+}
+
+__global__ void cast_f32_to_bf16_kernel(
+    const float *input,
+    int element_count,
+    __nv_bfloat16 *output
+) {
+    const int index = static_cast<int>(blockIdx.x) * blockDim.x + static_cast<int>(threadIdx.x);
+    if (index >= element_count) {
+        return;
+    }
+    output[index] = __float2bfloat16(input[index]);
 }
 
 __global__ void gather_f16_row_to_f32_kernel(
@@ -1139,6 +1152,31 @@ __global__ void parameter_golf_token_embedding_lookup_kernel(
     const int destination_offset = row * width;
     for (int column = threadIdx.x; column < width; column += blockDim.x) {
         output[destination_offset + column] = token_embedding[source_offset + column];
+    }
+}
+
+__global__ void parameter_golf_token_embedding_lookup_bf16_to_f32_kernel(
+    const int *token_ids,
+    const __nv_bfloat16 *token_embedding,
+    int row_count,
+    int vocab_size,
+    int width,
+    float *output
+) {
+    const int row = blockIdx.x;
+    if (row >= row_count) {
+        return;
+    }
+    const int token_id = token_ids[row];
+    if (token_id < 0 || token_id >= vocab_size) {
+        return;
+    }
+    const int source_offset = token_id * width;
+    const int destination_offset = row * width;
+    for (int column = threadIdx.x; column < width; column += blockDim.x) {
+        output[destination_offset + column] = __bfloat162float(
+            token_embedding[source_offset + column]
+        );
     }
 }
 
@@ -4297,6 +4335,21 @@ extern "C" int psionic_cuda_cast_f32_to_f16(
     return static_cast<int>(cudaGetLastError());
 }
 
+extern "C" int psionic_cuda_cast_f32_to_bf16(
+    const void *input,
+    int element_count,
+    void *output,
+    void *stream
+) {
+    const int blocks = (element_count + kBlockSize - 1) / kBlockSize;
+    cast_f32_to_bf16_kernel<<<blocks, kBlockSize, 0, static_cast<cudaStream_t>(stream)>>>(
+        static_cast<const float *>(input),
+        element_count,
+        static_cast<__nv_bfloat16 *>(output)
+    );
+    return static_cast<int>(cudaGetLastError());
+}
+
 extern "C" int psionic_cuda_gather_f16_row_to_f32(
     const void *input,
     int rows,
@@ -4532,6 +4585,34 @@ extern "C" int psionic_cuda_parameter_golf_token_embedding_lookup(
     >>>(
         static_cast<const int *>(token_ids),
         static_cast<const float *>(token_embedding),
+        row_count,
+        vocab_size,
+        width,
+        static_cast<float *>(output)
+    );
+    return static_cast<int>(cudaGetLastError());
+}
+
+extern "C" int psionic_cuda_parameter_golf_token_embedding_lookup_bf16_to_f32(
+    const void *token_ids,
+    const void *token_embedding,
+    int row_count,
+    int vocab_size,
+    int width,
+    void *output,
+    void *stream
+) {
+    if (row_count <= 0 || vocab_size <= 0 || width <= 0) {
+        return static_cast<int>(cudaErrorInvalidValue);
+    }
+    parameter_golf_token_embedding_lookup_bf16_to_f32_kernel<<<
+        row_count,
+        kBlockSize,
+        0,
+        static_cast<cudaStream_t>(stream)
+    >>>(
+        static_cast<const int *>(token_ids),
+        static_cast<const __nv_bfloat16 *>(token_embedding),
         row_count,
         vocab_size,
         width,

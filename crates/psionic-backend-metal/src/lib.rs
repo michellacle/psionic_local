@@ -2746,6 +2746,9 @@ impl AvailableMetalBackend {
                 buffer.write_f32(values.as_slice())?;
                 Ok(buffer)
             }
+            TensorData::BF16(_) => Err(RuntimeError::Backend(String::from(
+                "metal constant storage does not yet support dense bf16 payloads",
+            ))),
             TensorData::I32(_) => Err(RuntimeError::Backend(String::from(
                 "metal constant storage does not yet support dense i32 payloads",
             ))),
@@ -3719,6 +3722,12 @@ fn validate_supported_step(step: &ExecutionStep) -> Result<(), RuntimeError> {
                         step.output
                     )));
                 }
+            }
+            TensorData::BF16(_) => {
+                return Err(RuntimeError::Backend(format!(
+                    "metal constant {} does not support dense bf16 payloads",
+                    step.output
+                )));
             }
             TensorData::I32(_) => {
                 return Err(RuntimeError::Backend(format!(

@@ -2602,6 +2602,14 @@ fn constant_payload_digest(data: &TensorData) -> String {
             }
             format!("{:x}", hasher.finalize())
         }
+        TensorData::BF16(values) => {
+            let mut hasher = Sha256::new();
+            hasher.update(b"bf16");
+            for value in values {
+                hasher.update(value.to_bits().to_le_bytes());
+            }
+            format!("{:x}", hasher.finalize())
+        }
         TensorData::I32(values) => {
             let mut hasher = Sha256::new();
             hasher.update(b"i32");

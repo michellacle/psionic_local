@@ -1342,7 +1342,7 @@ fn dense_values<'a>(
     group_id: &str,
 ) -> Result<&'a [f32], TassadarArticleTransformerWeightProductionError> {
     match &group.parameter.data {
-        TensorData::F32(values) => Ok(values.as_slice()),
+        TensorData::F32(values) | TensorData::BF16(values) => Ok(values.as_slice()),
         TensorData::I32(_) => Err(
             TassadarArticleTransformerWeightProductionError::NonDenseGroup {
                 group_id: String::from(group_id),
@@ -1361,7 +1361,7 @@ fn dense_f32_values<'a>(
     context: &'static str,
 ) -> Result<&'a [f32], TassadarArticleTransformerWeightProductionError> {
     match data {
-        TensorData::F32(values) => Ok(values.as_slice()),
+        TensorData::F32(values) | TensorData::BF16(values) => Ok(values.as_slice()),
         TensorData::I32(_) => Err(
             TassadarArticleTransformerWeightProductionError::Serialization {
                 context,

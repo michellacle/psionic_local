@@ -2699,6 +2699,9 @@ impl TensorSpec {
 pub enum TensorData {
     /// 32-bit floating point tensor payload.
     F32(Vec<f32>),
+    /// Host-visible values rounded to BF16 and staged through a dense BF16
+    /// runtime payload when the surrounding tensor spec requests BF16.
+    BF16(Vec<f32>),
     /// 32-bit signed integer tensor payload.
     I32(Vec<i32>),
     /// Quantized GGML/GGUF block payload.
@@ -2738,6 +2741,7 @@ impl TensorData {
     pub fn len(&self) -> usize {
         match self {
             Self::F32(values) => values.len(),
+            Self::BF16(values) => values.len(),
             Self::I32(values) => values.len(),
             Self::QuantizedBlocks(data) => data.layout.element_count(),
         }
@@ -2753,7 +2757,7 @@ impl TensorData {
     #[must_use]
     pub fn as_f32_slice(&self) -> Option<&[f32]> {
         match self {
-            Self::F32(values) => Some(values.as_slice()),
+            Self::F32(values) | Self::BF16(values) => Some(values.as_slice()),
             Self::I32(_) => None,
             Self::QuantizedBlocks(_) => None,
         }
@@ -2763,7 +2767,7 @@ impl TensorData {
     #[must_use]
     pub fn as_i32_slice(&self) -> Option<&[i32]> {
         match self {
-            Self::F32(_) => None,
+            Self::F32(_) | Self::BF16(_) => None,
             Self::I32(values) => Some(values.as_slice()),
             Self::QuantizedBlocks(_) => None,
         }
@@ -2773,7 +2777,7 @@ impl TensorData {
     #[must_use]
     pub fn as_quantized_blocks(&self) -> Option<&QuantizedTensorData> {
         match self {
-            Self::F32(_) | Self::I32(_) => None,
+            Self::F32(_) | Self::BF16(_) | Self::I32(_) => None,
             Self::QuantizedBlocks(data) => Some(data),
         }
     }

@@ -98,6 +98,10 @@ The command is explicit about what it treats as trainer truth. It binds:
 - the upstream mixed-precision optimizer split at the trainer-state boundary:
   BF16 train-visible embeddings and matrix weights, FP32 control tensors, and
   FP32 master weights for the Adam-managed embedding/head groups
+- BF16 graph inputs for the train-visible token-embedding and linear weight
+  surface, with the CUDA path now widening BF16 embedding tables and casting
+  F32 activations to BF16 on-device before the existing BF16 matmul lane so
+  the hot-path weight residency is no longer dense `f32` end to end
 - the same single-device warmup-and-restore, repeated-step, periodic
   validation, train-log, and wallclock-stop control-loop shape the public
   `train_gpt.py` path uses
@@ -130,10 +134,10 @@ Today the single-H100 trainer doc does **not** claim:
 - `8xH100` distributed closure
 - leaderboard-speed runtime closure
 - record-track accounting closure
-- full BF16 graph-kernel closure yet; the current report now records the mixed
-  train-visible parameter split explicitly, but the lowered single-H100 graph
-  still uploads those train-visible values as dense `f32` tensors until the
-  BF16 graph-runtime slice lands
+- full BF16 activation-kernel closure yet; the current report now records BF16
+  graph uploads for the train-visible token-embedding and linear weight path,
+  but scalar/control tensors and retained activations remain explicit `f32`
+  until the wider BF16 graph-runtime slice lands
 - challenge-speed closure; the trainer now reports final contest metrics from
   the exported int8+zlib roundtrip artifact like `train_gpt.py`, but that does
   not by itself make the lane competitive yet

@@ -962,6 +962,29 @@ impl CudaSubmission {
         Ok(())
     }
 
+    /// Launches one dense row-major matrix multiply with `f32` activations,
+    /// `bf16` weights, and `f32` accumulate/output.
+    pub fn matmul_f32_bf16_to_f32(
+        &mut self,
+        left: &CudaBuffer,
+        right: &CudaBuffer,
+        output: &CudaBuffer,
+        rows: usize,
+        inner: usize,
+        cols: usize,
+    ) -> Result<(), RuntimeError> {
+        self.platform.encode_matmul_f32_bf16_to_f32(
+            &left.platform,
+            &right.platform,
+            &output.platform,
+            rows,
+            inner,
+            cols,
+        )?;
+        self.encoded_operations += 1;
+        Ok(())
+    }
+
     /// Casts contiguous `f32` values to contiguous `f16` values on CUDA.
     pub fn cast_f32_to_f16(
         &mut self,
@@ -971,6 +994,19 @@ impl CudaSubmission {
     ) -> Result<(), RuntimeError> {
         self.platform
             .encode_cast_f32_to_f16(&input.platform, &output.platform, element_count)?;
+        self.encoded_operations += 1;
+        Ok(())
+    }
+
+    /// Casts contiguous `f32` values to contiguous `bf16` values on CUDA.
+    pub fn cast_f32_to_bf16(
+        &mut self,
+        input: &CudaBuffer,
+        output: &CudaBuffer,
+        element_count: usize,
+    ) -> Result<(), RuntimeError> {
+        self.platform
+            .encode_cast_f32_to_bf16(&input.platform, &output.platform, element_count)?;
         self.encoded_operations += 1;
         Ok(())
     }
@@ -2140,6 +2176,25 @@ impl CudaBackend {
         Ok(buffer)
     }
 
+    /// Creates a dense `bf16` input buffer on the selected CUDA device.
+    pub fn input_bf16_buffer(
+        &mut self,
+        shape: Shape,
+        values: impl Into<Vec<f32>>,
+    ) -> Result<CudaBuffer, RuntimeError> {
+        let Some(device) = self
+            .selected_device()
+            .map(|descriptor| descriptor.device.clone())
+        else {
+            return Err(RuntimeError::Backend(String::from(
+                "cuda backend unavailable: no selected execution device",
+            )));
+        };
+        let mut buffer = self.allocate(&TensorSpec::new(shape, DType::BF16, device))?;
+        buffer.write_bf16_from_f32(values.into().as_slice())?;
+        Ok(buffer)
+    }
+
     /// Creates a dense `i32` input buffer on the selected CUDA device.
     pub fn input_i32_buffer(
         &mut self,
@@ -2817,10 +2872,11 @@ impl AvailableCudaBackend {
         let mut buffer = self.allocate(spec)?;
         match data {
             TensorData::F32(values) => buffer.write_f32(values)?,
+            TensorData::BF16(values) => buffer.write_bf16_from_f32(values)?,
             TensorData::I32(values) => buffer.write_i32(values)?,
             TensorData::QuantizedBlocks(_) => {
                 return Err(RuntimeError::Backend(String::from(
-                    "cuda constant storage must use dense f32 or i32 payloads",
+                    "cuda constant storage must use dense f32, bf16, or i32 payloads",
                 )))
             }
         }
@@ -2987,9 +3043,11 @@ impl AvailableCudaBackend {
                 "cuda parameter_golf_token_embedding_lookup requires I32 token ids",
             )));
         }
-        if token_embedding.spec().dtype() != DType::F32 {
+        if token_embedding.spec().dtype() != DType::F32
+            && token_embedding.spec().dtype() != DType::BF16
+        {
             return Err(RuntimeError::Backend(String::from(
-                "cuda parameter_golf_token_embedding_lookup requires F32 token embedding weights",
+                "cuda parameter_golf_token_embedding_lookup requires F32 or BF16 token embedding weights",
             )));
         }
         if token_id_dims.len() != 2 || token_embedding_dims.len() != 2 {
@@ -3001,16 +3059,31 @@ impl AvailableCudaBackend {
         let vocab_size = token_embedding_dims[0];
         let width = token_embedding_dims[1];
         let output = self.allocate(&step.spec)?;
-        submission
-            .platform
-            .encode_parameter_golf_token_embedding_lookup(
+        match token_embedding.spec().dtype() {
+            DType::F32 => submission.platform.encode_parameter_golf_token_embedding_lookup(
                 &token_ids.platform,
                 &token_embedding.platform,
                 row_count,
                 vocab_size,
                 width,
                 &output.platform,
-            )?;
+            )?,
+            DType::BF16 => submission
+                .platform
+                .encode_parameter_golf_token_embedding_lookup_bf16_to_f32(
+                    &token_ids.platform,
+                    &token_embedding.platform,
+                    row_count,
+                    vocab_size,
+                    width,
+                    &output.platform,
+                )?,
+            actual => {
+                return Err(RuntimeError::Backend(format!(
+                    "cuda parameter_golf_token_embedding_lookup does not support token embedding dtype {actual:?}",
+                )))
+            }
+        }
         submission.encoded_operations += 1;
         Ok(output)
     }
@@ -3680,14 +3753,63 @@ impl AvailableCudaBackend {
                         )));
                     }
                     let output = self.allocate(&step.spec)?;
-                    submission.platform.encode_matmul(
-                        &left.platform,
-                        &right.platform,
-                        &output.platform,
-                        left_dims[0],
-                        left_dims[1],
-                        right_dims[1],
-                    )?;
+                    match (left.spec().dtype(), right.spec().dtype(), step.spec.dtype()) {
+                        (DType::F32, DType::F32, DType::F32) => {
+                            submission.platform.encode_matmul(
+                                &left.platform,
+                                &right.platform,
+                                &output.platform,
+                                left_dims[0],
+                                left_dims[1],
+                                right_dims[1],
+                            )?;
+                        }
+                        (DType::F16, DType::F16, DType::F32) => {
+                            submission.platform.encode_matmul_f16_to_f32(
+                                &left.platform,
+                                &right.platform,
+                                &output.platform,
+                                left_dims[0],
+                                left_dims[1],
+                                right_dims[1],
+                            )?;
+                        }
+                        (DType::BF16, DType::BF16, DType::F32) => {
+                            submission.platform.encode_matmul_bf16_to_f32(
+                                &left.platform,
+                                &right.platform,
+                                &output.platform,
+                                left_dims[0],
+                                left_dims[1],
+                                right_dims[1],
+                            )?;
+                        }
+                        (DType::F32, DType::BF16, DType::F32) => {
+                            let left_bf16 = self.allocate(&TensorSpec::new(
+                                left.spec().shape().clone(),
+                                DType::BF16,
+                                left.spec().device().clone(),
+                            ))?;
+                            submission.cast_f32_to_bf16(
+                                left,
+                                &left_bf16,
+                                left.spec().element_count(),
+                            )?;
+                            submission.matmul_bf16_to_f32(
+                                &left_bf16,
+                                right,
+                                &output,
+                                left_dims[0],
+                                left_dims[1],
+                                right_dims[1],
+                            )?;
+                        }
+                        (left_dtype, right_dtype, output_dtype) => {
+                            return Err(RuntimeError::Backend(format!(
+                                "cuda matmul does not support dtype posture left={left_dtype:?} right={right_dtype:?} output={output_dtype:?}",
+                            )));
+                        }
+                    }
                     submission.encoded_operations += 1;
                     values.insert(step.output, output);
                 }
@@ -4183,6 +4305,14 @@ fn validate_supported_step(step: &ExecutionStep) -> Result<(), RuntimeError> {
             let expected_len = step.spec.storage_size();
             match data {
                 TensorData::F32(values) if step.spec.dtype() == DType::F32 => {
+                    if values.len() != expected_len {
+                        return Err(RuntimeError::Backend(format!(
+                            "cuda constant {} payload length mismatch",
+                            step.output
+                        )));
+                    }
+                }
+                TensorData::BF16(values) if step.spec.dtype() == DType::BF16 => {
                     if values.len() != expected_len {
                         return Err(RuntimeError::Backend(format!(
                             "cuda constant {} payload length mismatch",
@@ -5034,9 +5164,9 @@ fn ensure_supported_spec(spec: &TensorSpec) -> Result<(), RuntimeError> {
 }
 
 fn ensure_supported_input_spec(spec: &TensorSpec) -> Result<(), RuntimeError> {
-    if spec.dtype() != DType::F32 && spec.dtype() != DType::I32 {
+    if spec.dtype() != DType::F32 && spec.dtype() != DType::BF16 && spec.dtype() != DType::I32 {
         return Err(RuntimeError::Backend(format!(
-            "cuda dense input surface only supports F32/I32 tensors, actual {:?}",
+            "cuda dense input surface only supports F32/BF16/I32 tensors, actual {:?}",
             spec.dtype()
         )));
     }
@@ -5986,6 +6116,12 @@ mod platform {
             output: *mut c_void,
             stream: CudaStream,
         ) -> CudaError;
+        fn psionic_cuda_cast_f32_to_bf16(
+            input: *const c_void,
+            element_count: c_int,
+            output: *mut c_void,
+            stream: CudaStream,
+        ) -> CudaError;
         fn psionic_cuda_gather_f16_row_to_f32(
             input: *const c_void,
             rows: c_int,
@@ -6051,6 +6187,15 @@ mod platform {
             stream: CudaStream,
         ) -> CudaError;
         fn psionic_cuda_parameter_golf_token_embedding_lookup(
+            token_ids: *const c_void,
+            token_embedding: *const c_void,
+            row_count: c_int,
+            vocab_size: c_int,
+            width: c_int,
+            output: *mut c_void,
+            stream: CudaStream,
+        ) -> CudaError;
+        fn psionic_cuda_parameter_golf_token_embedding_lookup_bf16_to_f32(
             token_ids: *const c_void,
             token_embedding: *const c_void,
             row_count: c_int,
@@ -7106,6 +7251,64 @@ mod platform {
             )
         }
 
+        pub(super) fn encode_matmul_f32_bf16_to_f32(
+            &mut self,
+            left: &PlatformBuffer,
+            right: &PlatformBuffer,
+            output: &PlatformBuffer,
+            rows: usize,
+            inner: usize,
+            cols: usize,
+        ) -> Result<(), RuntimeError> {
+            if rows == 0 || inner == 0 || cols == 0 {
+                return Ok(());
+            }
+            let m = c_int::try_from(cols).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda mixed f32xbf16 matmul column count exceeds cublas limits",
+                ))
+            })?;
+            let n = c_int::try_from(rows).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda mixed f32xbf16 matmul row count exceeds cublas limits",
+                ))
+            })?;
+            let k = c_int::try_from(inner).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda mixed f32xbf16 matmul inner dimension exceeds cublas limits",
+                ))
+            })?;
+            let alpha = 1.0_f32;
+            let beta = 0.0_f32;
+            self.runtime.bind_stream(self.stream)?;
+            self.runtime.check_cublas(
+                unsafe {
+                    (self.runtime.cublas_gemm_ex)(
+                        self.runtime.cublas_handle,
+                        CUBLAS_OP_N,
+                        CUBLAS_OP_N,
+                        m,
+                        n,
+                        k,
+                        (&alpha as *const f32).cast(),
+                        right.inner.device_ptr,
+                        CUDA_R_16BF,
+                        m,
+                        left.inner.device_ptr,
+                        CUDA_R_32F,
+                        k,
+                        (&beta as *const f32).cast(),
+                        output.inner.device_ptr,
+                        CUDA_R_32F,
+                        m,
+                        CUBLAS_COMPUTE_32F,
+                        CUBLAS_GEMM_DEFAULT_TENSOR_OP,
+                    )
+                },
+                "cublasGemmEx",
+            )
+        }
+
         pub(super) fn encode_cast_f32_to_f16(
             &mut self,
             input: &PlatformBuffer,
@@ -7126,6 +7329,29 @@ mod platform {
                     )
                 },
                 "psionic_cuda_cast_f32_to_f16",
+            )
+        }
+
+        pub(super) fn encode_cast_f32_to_bf16(
+            &mut self,
+            input: &PlatformBuffer,
+            output: &PlatformBuffer,
+            element_count: usize,
+        ) -> Result<(), RuntimeError> {
+            let element_count = c_int::try_from(element_count).map_err(|_| {
+                RuntimeError::Backend(String::from("cuda f32->bf16 cast length exceeds c_int"))
+            })?;
+            self.runtime.set_device()?;
+            self.runtime.check(
+                unsafe {
+                    psionic_cuda_cast_f32_to_bf16(
+                        input.inner.device_ptr.cast(),
+                        element_count,
+                        output.inner.device_ptr.cast(),
+                        self.stream,
+                    )
+                },
+                "psionic_cuda_cast_f32_to_bf16",
             )
         }
 
@@ -7570,6 +7796,47 @@ mod platform {
                     )
                 },
                 "psionic_cuda_parameter_golf_token_embedding_lookup",
+            )
+        }
+
+        pub(super) fn encode_parameter_golf_token_embedding_lookup_bf16_to_f32(
+            &mut self,
+            token_ids: &PlatformBuffer,
+            token_embedding: &PlatformBuffer,
+            row_count: usize,
+            vocab_size: usize,
+            width: usize,
+            output: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            let row_count = c_int::try_from(row_count).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda parameter_golf_token_embedding_lookup row count exceeds c_int",
+                ))
+            })?;
+            let vocab_size = c_int::try_from(vocab_size).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda parameter_golf_token_embedding_lookup vocab size exceeds c_int",
+                ))
+            })?;
+            let width = c_int::try_from(width).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda parameter_golf_token_embedding_lookup width exceeds c_int",
+                ))
+            })?;
+            self.runtime.set_device()?;
+            self.runtime.check(
+                unsafe {
+                    psionic_cuda_parameter_golf_token_embedding_lookup_bf16_to_f32(
+                        token_ids.inner.device_ptr.cast(),
+                        token_embedding.inner.device_ptr.cast(),
+                        row_count,
+                        vocab_size,
+                        width,
+                        output.inner.device_ptr.cast(),
+                        self.stream,
+                    )
+                },
+                "psionic_cuda_parameter_golf_token_embedding_lookup_bf16_to_f32",
             )
         }
 
@@ -9790,6 +10057,20 @@ mod platform {
             )))
         }
 
+        pub(super) fn encode_matmul_f32_bf16_to_f32(
+            &mut self,
+            _left: &PlatformBuffer,
+            _right: &PlatformBuffer,
+            _output: &PlatformBuffer,
+            _rows: usize,
+            _inner: usize,
+            _cols: usize,
+        ) -> Result<(), RuntimeError> {
+            Err(RuntimeError::Backend(String::from(
+                "cuda runtime substrate currently requires Linux libcudart",
+            )))
+        }
+
         pub(super) fn encode_quantized_matvec(
             &mut self,
             _weights: &PlatformBuffer,
@@ -9846,6 +10127,17 @@ mod platform {
         }
 
         pub(super) fn encode_cast_f32_to_f16(
+            &mut self,
+            _input: &PlatformBuffer,
+            _output: &PlatformBuffer,
+            _element_count: usize,
+        ) -> Result<(), RuntimeError> {
+            Err(RuntimeError::Backend(String::from(
+                "cuda quantized text-generation kernels require Linux CUDA support",
+            )))
+        }
+
+        pub(super) fn encode_cast_f32_to_bf16(
             &mut self,
             _input: &PlatformBuffer,
             _output: &PlatformBuffer,
@@ -11805,6 +12097,9 @@ mod tests {
                 TensorData::F32(values) => {
                     backend.input_buffer(spec.shape().clone(), values.clone())?
                 }
+                TensorData::BF16(values) => {
+                    backend.input_bf16_buffer(spec.shape().clone(), values.clone())?
+                }
                 TensorData::I32(values) => {
                     backend.input_i32_buffer(spec.shape().clone(), values.clone())?
                 }
@@ -12049,6 +12344,31 @@ mod tests {
         let report = submission.commit(CudaCommandWait::Completed)?;
         assert_eq!(report.status, CudaCommandStatus::Completed);
         assert_close(&left.read_bf16_to_f32()?, &[1.0, 2.0], 1e-5);
+        assert_close(&right.read_bf16_to_f32()?, &[1.0, 2.0, 3.0, 4.0], 1e-5);
+        assert_close(&output.read_f32()?, &[7.0, 10.0], 1e-5);
+        Ok(())
+    }
+
+    #[test]
+    fn cuda_submission_executes_f32_bf16_matmul_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let mut backend = CudaBackend::new();
+        let Some(_) = backend.selected_device().cloned() else {
+            assert_eq!(backend.health().status, HealthStatus::Offline);
+            return Ok(());
+        };
+
+        let left = backend.input_buffer(Shape::new(vec![1, 2]), vec![1.0_f32, 2.0])?;
+        let right = backend.input_bf16_buffer(Shape::new(vec![2, 2]), vec![1.0, 2.0, 3.0, 4.0])?;
+        let left_bf16 = backend.bf16_buffer(2)?;
+        let output = backend.f32_buffer(2)?;
+
+        let mut submission = backend.begin_submission()?;
+        submission.cast_f32_to_bf16(&left, &left_bf16, 2)?;
+        submission.matmul_bf16_to_f32(&left_bf16, &right, &output, 1, 2, 2)?;
+        let report = submission.commit(CudaCommandWait::Completed)?;
+        assert_eq!(report.status, CudaCommandStatus::Completed);
+        assert_close(&left_bf16.read_bf16_to_f32()?, &[1.0, 2.0], 1e-5);
         assert_close(&right.read_bf16_to_f32()?, &[1.0, 2.0, 3.0, 4.0], 1e-5);
         assert_close(&output.read_f32()?, &[7.0, 10.0], 1e-5);
         Ok(())

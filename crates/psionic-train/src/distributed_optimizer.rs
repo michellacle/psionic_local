@@ -1326,7 +1326,7 @@ fn tensor_values(
     group_id: &str,
 ) -> Result<Vec<f32>, DistributedOptimizerError> {
     match &tensor.data {
-        TensorData::F32(values) => Ok(values.clone()),
+        TensorData::F32(values) | TensorData::BF16(values) => Ok(values.clone()),
         TensorData::I32(_) => Err(DistributedOptimizerError::TrainingCore(
             TrainingCoreError::UnsupportedTensorDType {
                 group_id: String::from(group_id),

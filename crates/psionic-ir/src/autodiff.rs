@@ -4926,7 +4926,7 @@ fn resolve_dense_input<'a>(
         .node(tensor_id)
         .ok_or(ReferenceEvaluationError::UnknownTensor { tensor_id })?
         .tensor();
-    if tensor.spec().dtype() != DType::F32 {
+    if tensor.spec().dtype() != DType::F32 && tensor.spec().dtype() != DType::BF16 {
         return Err(ReferenceEvaluationError::UnsupportedDType {
             tensor_id,
             op: String::from(op),

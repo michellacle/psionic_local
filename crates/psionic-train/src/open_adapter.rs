@@ -1083,7 +1083,9 @@ fn dense_values<'a>(
     group_id: &str,
 ) -> Result<&'a [f32], OpenAdapterTrainingExecutionError> {
     match &group.parameter.data {
-        psionic_core::TensorData::F32(values) => Ok(values.as_slice()),
+        psionic_core::TensorData::F32(values) | psionic_core::TensorData::BF16(values) => {
+            Ok(values.as_slice())
+        }
         psionic_core::TensorData::I32(_) => Err(OpenAdapterTrainingExecutionError::NonDenseGroup {
             group_id: group_id.to_string(),
         }),

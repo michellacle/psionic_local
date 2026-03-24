@@ -1087,7 +1087,7 @@ fn dense_values<'a>(
     group_id: &str,
 ) -> Result<&'a [f32], AttnResTinyTrainingError> {
     match &group.parameter.data {
-        TensorData::F32(values) => Ok(values.as_slice()),
+        TensorData::F32(values) | TensorData::BF16(values) => Ok(values.as_slice()),
         TensorData::I32(_) => Err(AttnResTinyTrainingError::NonDenseGroup {
             group_id: String::from(group_id),
         }),

@@ -4270,7 +4270,7 @@ fn scalar_from_evaluated(
 
 fn dense_constant_values(tensor: TensorId, data: &TensorData) -> Result<Vec<f32>, ArrayError> {
     match data {
-        TensorData::F32(values) => Ok(values.clone()),
+        TensorData::F32(values) | TensorData::BF16(values) => Ok(values.clone()),
         TensorData::I32(values) => Ok(values.iter().map(|value| *value as f32).collect()),
         TensorData::QuantizedBlocks(_) => Err(ArrayError::MaterializationRefusal {
             tensor,
