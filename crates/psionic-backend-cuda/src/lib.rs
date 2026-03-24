@@ -3033,12 +3033,6 @@ impl AvailableCudaBackend {
         step: &ExecutionStep,
         values: &[f32],
     ) -> Result<CudaBuffer, RuntimeError> {
-        if step.spec.dtype() != DType::F32 {
-            return Err(RuntimeError::UnsupportedStep(format!(
-                "{} host fallback currently supports only f32 tensors",
-                step.op.label()
-            )));
-        }
         let contiguous = TensorSpec::new(
             step.spec.shape().clone(),
             step.spec.dtype(),
@@ -3052,7 +3046,29 @@ impl AvailableCudaBackend {
                 values.len()
             )));
         }
-        self.buffer_from_tensor_data(&contiguous, &TensorData::F32(values.to_vec()))
+        let tensor_data = match step.spec.dtype() {
+            DType::F32 => TensorData::F32(values.to_vec()),
+            DType::BF16 => TensorData::BF16(values.to_vec()),
+            actual => {
+                return Err(RuntimeError::UnsupportedStep(format!(
+                    "{} host fallback currently supports only f32/bf16 tensors, actual {:?}",
+                    step.op.label(),
+                    actual
+                )))
+            }
+        };
+        self.buffer_from_tensor_data(&contiguous, &tensor_data)
+    }
+
+    fn read_float_buffer_to_f32(&self, buffer: &CudaBuffer) -> Result<Vec<f32>, RuntimeError> {
+        match buffer.spec().dtype() {
+            DType::F32 => buffer.read_f32(),
+            DType::BF16 => buffer.read_bf16_to_f32(),
+            actual => Err(RuntimeError::Backend(format!(
+                "cuda float readback requires F32 or BF16 buffer, actual {:?}",
+                actual
+            ))),
+        }
     }
 
     fn execute_rotary_embedding_step(
@@ -3786,8 +3802,9 @@ impl AvailableCudaBackend {
                         output
                     } else {
                         execute_profiled_host_fallback(&mut host_fallback_profile, step, || {
+                            let input_values = self.read_float_buffer_to_f32(input)?;
                             let values_out = permute_contiguous_values(
-                                &input.read_f32()?,
+                                &input_values,
                                 input.spec().shape().dims(),
                                 axes,
                             )?;
@@ -3800,8 +3817,9 @@ impl AvailableCudaBackend {
                     let output =
                         execute_profiled_host_fallback(&mut host_fallback_profile, step, || {
                             let input = step_input(step, &values, 0)?;
+                            let input_values = self.read_float_buffer_to_f32(input)?;
                             let values_out = slice_contiguous_values(
-                                &input.read_f32()?,
+                                &input_values,
                                 input.spec().shape().dims(),
                                 *axis,
                                 *start,
@@ -3815,8 +3833,9 @@ impl AvailableCudaBackend {
                     let output =
                         execute_profiled_host_fallback(&mut host_fallback_profile, step, || {
                             let input = step_input(step, &values, 0)?;
+                            let input_values = self.read_float_buffer_to_f32(input)?;
                             let values_out = select_contiguous_values(
-                                &input.read_f32()?,
+                                &input_values,
                                 input.spec().shape().dims(),
                                 *axis,
                                 *index,
@@ -3839,7 +3858,7 @@ impl AvailableCudaBackend {
                                 .collect::<Result<Vec<_>, _>>()?;
                             let value_slices = tensors
                                 .iter()
-                                .map(|buffer| buffer.read_f32())
+                                .map(|buffer| self.read_float_buffer_to_f32(buffer))
                                 .collect::<Result<Vec<_>, _>>()?;
                             let shape_slices = tensors
                                 .iter()
@@ -3862,8 +3881,9 @@ impl AvailableCudaBackend {
                     let output =
                         execute_profiled_host_fallback(&mut host_fallback_profile, step, || {
                             let input = step_input(step, &values, 0)?;
+                            let input_values = self.read_float_buffer_to_f32(input)?;
                             let values_out = expand_contiguous_values(
-                                &input.read_f32()?,
+                                &input_values,
                                 input.spec().shape().dims(),
                                 shape.dims(),
                             )?;
@@ -3877,8 +3897,9 @@ impl AvailableCudaBackend {
                         input.alias_with_spec(&step.spec)?
                     } else {
                         execute_profiled_host_fallback(&mut host_fallback_profile, step, || {
+                            let input_values = self.read_float_buffer_to_f32(input)?;
                             let values_out = cast_contiguous_values(
-                                &input.read_f32()?,
+                                &input_values,
                                 input.spec().dtype(),
                                 *dtype,
                             )?;
@@ -3923,8 +3944,9 @@ impl AvailableCudaBackend {
                                 &mut host_fallback_profile,
                                 step,
                                 || {
+                                    let input_values = self.read_float_buffer_to_f32(input)?;
                                     let values_out = reduce_sum_contiguous_values(
-                                        &input.read_f32()?,
+                                        &input_values,
                                         input.spec().shape().dims(),
                                         *axis,
                                     )?;
@@ -3934,8 +3956,9 @@ impl AvailableCudaBackend {
                         }
                     } else {
                         execute_profiled_host_fallback(&mut host_fallback_profile, step, || {
+                            let input_values = self.read_float_buffer_to_f32(input)?;
                             let values_out = reduce_sum_contiguous_values(
-                                &input.read_f32()?,
+                                &input_values,
                                 input.spec().shape().dims(),
                                 *axis,
                             )?;
@@ -11312,7 +11335,8 @@ mod tests {
     use psionic_backend_cpu::CpuBackend;
     use psionic_compiler::compile_graph;
     use psionic_core::{
-        BackendExtensionKind, DType, DeviceKind, QuantizationMode, Shape, TensorData, TensorSpec,
+        BackendExtensionKind, DType, Device, DeviceKind, QuantizationMode, Shape, TensorData,
+        TensorSpec,
     };
     use psionic_ir::{evaluate_graph, AutodiffContext, AutodiffGraphBuilder, GraphBuilder};
 
@@ -11322,9 +11346,8 @@ mod tests {
         recovery_profile, risk_profile, validate_supported_plan, CudaBackend, CudaCommandStatus,
         CudaCommandWait, HealthStatus, SUPPORTED_OPS,
     };
-    use psionic_core::Device;
     use psionic_runtime::{
-        Allocator, BackendDegradedPolicy, BackendSelectionState, DeviceDiscovery,
+        Allocator, BackendDegradedPolicy, BackendSelectionState, BufferHandle, DeviceDiscovery,
         NvidiaRecoveryAction, NvidiaRiskLevel, ServedProductBackendPolicy,
     };
 
@@ -11997,6 +12020,101 @@ mod tests {
                     .ok_or("missing expected reduce_sum output")?
                     .as_f32_slice()
                     .ok_or("expected reduce_sum output is not f32")?,
+                1e-5,
+            );
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn cuda_backend_executes_bf16_host_fallback_permute_graphs_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let mut backend = CudaBackend::new();
+        let Some(selected) = backend.selected_device().cloned() else {
+            assert_eq!(backend.health().status, HealthStatus::Offline);
+            return Ok(());
+        };
+
+        let input_shape = Shape::new(vec![2, 3]);
+        let input_values = vec![0.0_f32, 1.0, 2.0, 3.0, 4.0, 5.0];
+
+        let mut builder = GraphBuilder::new(selected.device.clone());
+        let input = builder.input("input", input_shape.clone(), DType::BF16);
+        let transposed = builder.permute(&input, vec![1, 0])?;
+        let graph = builder.finish(vec![transposed.clone()]);
+
+        let inputs = std::collections::BTreeMap::from([(
+            input.id(),
+            backend.input_bf16_buffer(input_shape, input_values.clone())?,
+        )]);
+        let result = backend.compile_and_execute(&graph, &inputs)?;
+        let expected = evaluate_graph(
+            &graph,
+            &std::collections::BTreeMap::from([(input.id(), TensorData::BF16(input_values))]),
+        )?;
+
+        let actual = result
+            .outputs
+            .get(&transposed.id())
+            .ok_or("missing transposed output")?
+            .read_bf16_to_f32()?;
+        assert_close(
+            &actual,
+            expected
+                .get(&transposed.id())
+                .ok_or("missing expected transposed output")?
+                .as_f32_slice()
+                .ok_or("expected transposed output is not dense float")?,
+            1e-5,
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn cuda_backend_executes_bf16_host_fallback_reduce_sum_graphs_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let mut backend = CudaBackend::new();
+        let Some(selected) = backend.selected_device().cloned() else {
+            assert_eq!(backend.health().status, HealthStatus::Offline);
+            return Ok(());
+        };
+
+        let input_shape = Shape::new(vec![2, 3]);
+        let input_values = vec![1.0_f32, 2.0, 3.0, 4.0, 5.0, 6.0];
+
+        let mut builder = GraphBuilder::new(selected.device.clone());
+        let input = builder.input("input", input_shape.clone(), DType::BF16);
+        let full = builder.reduce_sum(&input);
+        let axis1 = builder.reduce_sum_axis(&input, 1)?;
+        let graph = builder.finish(vec![full.clone(), axis1.clone()]);
+
+        let inputs = std::collections::BTreeMap::from([(
+            input.id(),
+            backend.input_bf16_buffer(input_shape, input_values.clone())?,
+        )]);
+        let result = backend.compile_and_execute(&graph, &inputs)?;
+        let expected = evaluate_graph(
+            &graph,
+            &std::collections::BTreeMap::from([(input.id(), TensorData::BF16(input_values))]),
+        )?;
+
+        for tensor in [&full, &axis1] {
+            let output = result
+                .outputs
+                .get(&tensor.id())
+                .ok_or("missing reduce_sum output")?;
+            let actual = match output.spec().dtype() {
+                DType::F32 => output.read_f32()?,
+                DType::BF16 => output.read_bf16_to_f32()?,
+                actual => return Err(format!("unexpected reduce_sum dtype {actual:?}").into()),
+            };
+            assert_close(
+                &actual,
+                expected
+                    .get(&tensor.id())
+                    .ok_or("missing expected reduce_sum output")?
+                    .as_f32_slice()
+                    .ok_or("expected reduce_sum output is not dense float")?,
                 1e-5,
             );
         }
