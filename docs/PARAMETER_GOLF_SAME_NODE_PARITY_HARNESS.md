@@ -22,6 +22,8 @@ the issue itself.
   `scripts/parameter-golf-runpod-run-train-gpt-reference.sh`
 - same-node parity build wrapper:
   `scripts/parameter-golf-build-same-node-parity.sh`
+- same-node parity chain wrapper:
+  `scripts/parameter-golf-runpod-run-same-node-parity-chain.sh`
 
 ## What Landed
 
@@ -101,6 +103,18 @@ bash scripts/parameter-golf-build-same-node-parity.sh \
   --output-dir <same-node-parity-artifacts-dir>
 ```
 
+Or use the repo-owned chain wrapper on the RunPod node to wait for the live
+Psionic run, fast-forward the repo checkout, run the upstream baseline, and
+then emit the same-node parity artifacts:
+
+```bash
+bash scripts/parameter-golf-runpod-run-same-node-parity-chain.sh \
+  --psionic-repo-root /workspace/psionic \
+  --upstream-repo-root /workspace/parameter-golf \
+  --run-root /workspace/issue454_single_h100_run_20260324T215106Z \
+  --trainer-pid 10414
+```
+
 ## Honest Boundary
 
 This harness surface does not claim:
@@ -115,5 +129,6 @@ It closes one narrower but important thing:
 - the repo now has one typed fail-closed comparison surface ready to consume a
   real Psionic single-H100 receipt plus a real normalized `train_gpt.py`
   receipt, and the repo now also ships explicit RunPod wrappers for producing
-  those inputs, so the later H100 run only needs evidence rather than fresh
+  those inputs, including one repo-owned chain wrapper for the live-node
+  follow-up, so the later H100 run only needs evidence rather than fresh
   schema, parser, or operator glue work
