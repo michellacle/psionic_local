@@ -2486,9 +2486,13 @@ impl CudaBackend {
             };
             return Err(RuntimeError::Backend(message));
         };
-        if spec.dtype() != DType::F32 && spec.dtype() != DType::F16 && spec.dtype() != DType::BF16 {
+        if spec.dtype() != DType::F32
+            && spec.dtype() != DType::F16
+            && spec.dtype() != DType::BF16
+            && spec.dtype() != DType::I32
+        {
             return Err(RuntimeError::Backend(format!(
-                "cuda dense surface only supports F32/F16/BF16 buffers, actual {:?}",
+                "cuda dense surface only supports F32/F16/BF16/I32 buffers, actual {:?}",
                 spec.dtype()
             )));
         }
@@ -3929,9 +3933,6 @@ impl AvailableCudaBackend {
                         return Err(RuntimeError::UnsupportedStep(step.op.label().to_string()));
                     }
                 },
-                _ => {
-                    return Err(RuntimeError::UnsupportedStep(step.op.label().to_string()));
-                }
             }
             release_dead_execution_values(&mut values, &mut retain_counts, step);
         }
@@ -4167,9 +4168,9 @@ fn validate_supported_plan(plan: &ExecutionPlan) -> Result<(), RuntimeError> {
 }
 
 fn validate_supported_step(step: &ExecutionStep) -> Result<(), RuntimeError> {
-    ensure_supported_spec(&step.spec)?;
     match &step.op {
         ExecutionOp::Input { .. } => {
+            ensure_supported_input_spec(&step.spec)?;
             if !step.inputs.is_empty() {
                 return Err(RuntimeError::Backend(format!(
                     "cuda input step {} unexpectedly has inputs",
@@ -4178,20 +4179,76 @@ fn validate_supported_step(step: &ExecutionStep) -> Result<(), RuntimeError> {
             }
         }
         ExecutionOp::Constant { data } => {
-            let Some(values) = data.as_f32_slice() else {
+            ensure_supported_input_spec(&step.spec)?;
+            let expected_len = step.spec.storage_size();
+            match data {
+                TensorData::F32(values) if step.spec.dtype() == DType::F32 => {
+                    if values.len() != expected_len {
+                        return Err(RuntimeError::Backend(format!(
+                            "cuda constant {} payload length mismatch",
+                            step.output
+                        )));
+                    }
+                }
+                TensorData::I32(values) if step.spec.dtype() == DType::I32 => {
+                    if values.len() != expected_len {
+                        return Err(RuntimeError::Backend(format!(
+                            "cuda constant {} payload length mismatch",
+                            step.output
+                        )));
+                    }
+                }
+                _ => {
+                    return Err(RuntimeError::Backend(format!(
+                        "cuda constant {} must use dense storage matching its dtype",
+                        step.output
+                    )));
+                }
+            }
+        }
+        ExecutionOp::Detach
+        | ExecutionOp::Reshape
+        | ExecutionOp::Permute { .. }
+        | ExecutionOp::Slice { .. }
+        | ExecutionOp::Select { .. }
+        | ExecutionOp::Expand { .. }
+        | ExecutionOp::ReduceSum { .. } => {
+            ensure_supported_spec(&step.spec)?;
+            if step.inputs.len() != 1 {
                 return Err(RuntimeError::Backend(format!(
-                    "cuda constant {} must use dense f32 storage",
-                    step.output
-                )));
-            };
-            if values.len() != step.spec.storage_size() {
-                return Err(RuntimeError::Backend(format!(
-                    "cuda constant {} payload length mismatch",
+                    "cuda {} step {} requires one input",
+                    step.op.label(),
                     step.output
                 )));
             }
         }
+        ExecutionOp::Concat { .. } => {
+            ensure_supported_spec(&step.spec)?;
+            if step.inputs.is_empty() {
+                return Err(RuntimeError::Backend(format!(
+                    "cuda concat step {} requires at least one input",
+                    step.output
+                )));
+            }
+        }
+        ExecutionOp::Cast { dtype } => {
+            ensure_supported_spec(&step.spec)?;
+            if step.inputs.len() != 1 {
+                return Err(RuntimeError::Backend(format!(
+                    "cuda cast step {} requires one input",
+                    step.output
+                )));
+            }
+            if *dtype != DType::F32 {
+                return Err(RuntimeError::UnsupportedStep(format!(
+                    "cast {:?}->{:?}",
+                    DType::F32,
+                    dtype
+                )));
+            }
+        }
         ExecutionOp::Add => {
+            ensure_supported_spec(&step.spec)?;
             if step.inputs.len() != 2 {
                 return Err(RuntimeError::Backend(format!(
                     "cuda add step {} requires two inputs",
@@ -4200,6 +4257,7 @@ fn validate_supported_step(step: &ExecutionStep) -> Result<(), RuntimeError> {
             }
         }
         ExecutionOp::Mul => {
+            ensure_supported_spec(&step.spec)?;
             if step.inputs.len() != 2 {
                 return Err(RuntimeError::Backend(format!(
                     "cuda mul step {} requires two inputs",
@@ -4208,6 +4266,7 @@ fn validate_supported_step(step: &ExecutionStep) -> Result<(), RuntimeError> {
             }
         }
         ExecutionOp::Matmul => {
+            ensure_supported_spec(&step.spec)?;
             if step.inputs.len() != 2 {
                 return Err(RuntimeError::Backend(format!(
                     "cuda matmul step {} requires two inputs",
@@ -4223,157 +4282,157 @@ fn validate_supported_step(step: &ExecutionStep) -> Result<(), RuntimeError> {
                 )));
             }
         }
-        ExecutionOp::BackendExtension { op } => match op {
-            BackendExtensionOp::ParameterGolfTokenEmbeddingLookup => {
-                if step.inputs.len() != 2 {
-                    return Err(RuntimeError::Backend(format!(
-                        "cuda parameter_golf_token_embedding_lookup step {} requires two inputs",
-                        step.output
-                    )));
+        ExecutionOp::BackendExtension { op } => {
+            ensure_supported_spec(&step.spec)?;
+            match op {
+                BackendExtensionOp::ParameterGolfTokenEmbeddingLookup => {
+                    if step.inputs.len() != 2 {
+                        return Err(RuntimeError::Backend(format!(
+                            "cuda parameter_golf_token_embedding_lookup step {} requires two inputs",
+                            step.output
+                        )));
+                    }
+                }
+                BackendExtensionOp::ParameterGolfTokenEmbeddingLookupBackward => {
+                    if step.inputs.len() != 3 {
+                        return Err(RuntimeError::Backend(format!(
+                            "cuda parameter_golf_token_embedding_lookup_backward step {} requires three inputs",
+                            step.output
+                        )));
+                    }
+                }
+                BackendExtensionOp::ReluSquared => {
+                    if step.inputs.len() != 1 {
+                        return Err(RuntimeError::Backend(format!(
+                            "cuda relu_squared step {} requires one input",
+                            step.output
+                        )));
+                    }
+                }
+                BackendExtensionOp::ReluSquaredBackward => {
+                    if step.inputs.len() != 2 {
+                        return Err(RuntimeError::Backend(format!(
+                            "cuda relu_squared_backward step {} requires two inputs",
+                            step.output
+                        )));
+                    }
+                }
+                BackendExtensionOp::Silu => {
+                    if step.inputs.len() != 1 {
+                        return Err(RuntimeError::Backend(format!(
+                            "cuda silu step {} requires one input",
+                            step.output
+                        )));
+                    }
+                }
+                BackendExtensionOp::SiluBackward => {
+                    if step.inputs.len() != 2 {
+                        return Err(RuntimeError::Backend(format!(
+                            "cuda silu_backward step {} requires two inputs",
+                            step.output
+                        )));
+                    }
+                }
+                BackendExtensionOp::ParameterGolfProjectionLoss { .. } => {
+                    if step.inputs.len() != 2 {
+                        return Err(RuntimeError::Backend(format!(
+                            "cuda parameter_golf_projection_loss step {} requires two inputs",
+                            step.output
+                        )));
+                    }
+                }
+                BackendExtensionOp::ParameterGolfProjectionLossBackward { .. } => {
+                    if step.inputs.len() != 3 {
+                        return Err(RuntimeError::Backend(format!(
+                            "cuda parameter_golf_projection_loss_backward step {} requires three inputs",
+                            step.output
+                        )));
+                    }
+                }
+                BackendExtensionOp::RmsNorm { .. } => {
+                    if step.inputs.len() != 2 {
+                        return Err(RuntimeError::Backend(format!(
+                            "cuda rms_norm step {} requires two inputs",
+                            step.output
+                        )));
+                    }
+                }
+                BackendExtensionOp::RmsNormInputBackward { .. } => {
+                    if step.inputs.len() != 3 {
+                        return Err(RuntimeError::Backend(format!(
+                            "cuda rms_norm_input_backward step {} requires three inputs",
+                            step.output
+                        )));
+                    }
+                }
+                BackendExtensionOp::RmsNormWeightBackward { .. } => {
+                    if step.inputs.len() != 2 {
+                        return Err(RuntimeError::Backend(format!(
+                            "cuda rms_norm_weight_backward step {} requires two inputs",
+                            step.output
+                        )));
+                    }
+                }
+                BackendExtensionOp::RotaryEmbedding { interleaved } => {
+                    if step.inputs.len() != 3 {
+                        return Err(RuntimeError::Backend(format!(
+                            "cuda rotary_embedding step {} requires three inputs",
+                            step.output
+                        )));
+                    }
+                    if *interleaved {
+                        return Err(RuntimeError::UnsupportedStep(String::from(
+                            "rotary_embedding_interleaved",
+                        )));
+                    }
+                }
+                BackendExtensionOp::RotaryEmbeddingBackward { interleaved } => {
+                    if step.inputs.len() != 3 {
+                        return Err(RuntimeError::Backend(format!(
+                            "cuda rotary_embedding_backward step {} requires three inputs",
+                            step.output
+                        )));
+                    }
+                    if *interleaved {
+                        return Err(RuntimeError::UnsupportedStep(String::from(
+                            "rotary_embedding_backward_interleaved",
+                        )));
+                    }
+                }
+                BackendExtensionOp::ScaledDotProductAttention { causal, .. } => {
+                    if step.inputs.len() != 3 {
+                        return Err(RuntimeError::Backend(format!(
+                            "cuda scaled_dot_product_attention step {} requires three inputs",
+                            step.output
+                        )));
+                    }
+                    if !causal {
+                        return Err(RuntimeError::UnsupportedStep(String::from(
+                            "scaled_dot_product_attention_non_causal",
+                        )));
+                    }
+                }
+                BackendExtensionOp::ScaledDotProductAttentionQueryBackward { causal, .. }
+                | BackendExtensionOp::ScaledDotProductAttentionKeyBackward { causal, .. }
+                | BackendExtensionOp::ScaledDotProductAttentionValueBackward { causal, .. } => {
+                    if step.inputs.len() != 4 {
+                        return Err(RuntimeError::Backend(format!(
+                            "cuda {} step {} requires four inputs",
+                            op.label(),
+                            step.output
+                        )));
+                    }
+                    if !causal {
+                        return Err(RuntimeError::UnsupportedStep(format!(
+                            "{}_non_causal",
+                            op.label()
+                        )));
+                    }
+                }
+                _ => {
+                    return Err(RuntimeError::UnsupportedStep(step.op.label().to_string()));
                 }
             }
-            BackendExtensionOp::ParameterGolfTokenEmbeddingLookupBackward => {
-                if step.inputs.len() != 3 {
-                    return Err(RuntimeError::Backend(format!(
-                        "cuda parameter_golf_token_embedding_lookup_backward step {} requires three inputs",
-                        step.output
-                    )));
-                }
-            }
-            BackendExtensionOp::ReluSquared => {
-                if step.inputs.len() != 1 {
-                    return Err(RuntimeError::Backend(format!(
-                        "cuda relu_squared step {} requires one input",
-                        step.output
-                    )));
-                }
-            }
-            BackendExtensionOp::ReluSquaredBackward => {
-                if step.inputs.len() != 2 {
-                    return Err(RuntimeError::Backend(format!(
-                        "cuda relu_squared_backward step {} requires two inputs",
-                        step.output
-                    )));
-                }
-            }
-            BackendExtensionOp::Silu => {
-                if step.inputs.len() != 1 {
-                    return Err(RuntimeError::Backend(format!(
-                        "cuda silu step {} requires one input",
-                        step.output
-                    )));
-                }
-            }
-            BackendExtensionOp::SiluBackward => {
-                if step.inputs.len() != 2 {
-                    return Err(RuntimeError::Backend(format!(
-                        "cuda silu_backward step {} requires two inputs",
-                        step.output
-                    )));
-                }
-            }
-            BackendExtensionOp::ParameterGolfProjectionLoss { .. } => {
-                if step.inputs.len() != 2 {
-                    return Err(RuntimeError::Backend(format!(
-                        "cuda parameter_golf_projection_loss step {} requires two inputs",
-                        step.output
-                    )));
-                }
-            }
-            BackendExtensionOp::ParameterGolfProjectionLossBackward { .. } => {
-                if step.inputs.len() != 3 {
-                    return Err(RuntimeError::Backend(format!(
-                        "cuda parameter_golf_projection_loss_backward step {} requires three inputs",
-                        step.output
-                    )));
-                }
-            }
-            BackendExtensionOp::RmsNorm { .. } => {
-                if step.inputs.len() != 2 {
-                    return Err(RuntimeError::Backend(format!(
-                        "cuda rms_norm step {} requires two inputs",
-                        step.output
-                    )));
-                }
-            }
-            BackendExtensionOp::RmsNormInputBackward { .. } => {
-                if step.inputs.len() != 3 {
-                    return Err(RuntimeError::Backend(format!(
-                        "cuda rms_norm_input_backward step {} requires three inputs",
-                        step.output
-                    )));
-                }
-            }
-            BackendExtensionOp::RmsNormWeightBackward { .. } => {
-                if step.inputs.len() != 2 {
-                    return Err(RuntimeError::Backend(format!(
-                        "cuda rms_norm_weight_backward step {} requires two inputs",
-                        step.output
-                    )));
-                }
-            }
-            BackendExtensionOp::RotaryEmbedding { interleaved } => {
-                if step.inputs.len() != 3 {
-                    return Err(RuntimeError::Backend(format!(
-                        "cuda rotary_embedding step {} requires three inputs",
-                        step.output
-                    )));
-                }
-                if *interleaved {
-                    return Err(RuntimeError::UnsupportedStep(String::from(
-                        "rotary_embedding_interleaved",
-                    )));
-                }
-            }
-            BackendExtensionOp::RotaryEmbeddingBackward { interleaved } => {
-                if step.inputs.len() != 3 {
-                    return Err(RuntimeError::Backend(format!(
-                        "cuda rotary_embedding_backward step {} requires three inputs",
-                        step.output
-                    )));
-                }
-                if *interleaved {
-                    return Err(RuntimeError::UnsupportedStep(String::from(
-                        "rotary_embedding_backward_interleaved",
-                    )));
-                }
-            }
-            BackendExtensionOp::ScaledDotProductAttention { causal, .. } => {
-                if step.inputs.len() != 3 {
-                    return Err(RuntimeError::Backend(format!(
-                        "cuda scaled_dot_product_attention step {} requires three inputs",
-                        step.output
-                    )));
-                }
-                if !causal {
-                    return Err(RuntimeError::UnsupportedStep(String::from(
-                        "scaled_dot_product_attention_non_causal",
-                    )));
-                }
-            }
-            BackendExtensionOp::ScaledDotProductAttentionQueryBackward { causal, .. }
-            | BackendExtensionOp::ScaledDotProductAttentionKeyBackward { causal, .. }
-            | BackendExtensionOp::ScaledDotProductAttentionValueBackward { causal, .. } => {
-                if step.inputs.len() != 4 {
-                    return Err(RuntimeError::Backend(format!(
-                        "cuda {} step {} requires four inputs",
-                        op.label(),
-                        step.output
-                    )));
-                }
-                if !causal {
-                    return Err(RuntimeError::UnsupportedStep(format!(
-                        "{}_non_causal",
-                        op.label()
-                    )));
-                }
-            }
-            _ => {
-                return Err(RuntimeError::UnsupportedStep(step.op.label().to_string()));
-            }
-        },
-        _ => {
-            return Err(RuntimeError::UnsupportedStep(step.op.label().to_string()));
         }
     }
     Ok(())
@@ -4799,6 +4858,27 @@ fn ensure_supported_spec(spec: &TensorSpec) -> Result<(), RuntimeError> {
     Ok(())
 }
 
+fn ensure_supported_input_spec(spec: &TensorSpec) -> Result<(), RuntimeError> {
+    if spec.dtype() != DType::F32 && spec.dtype() != DType::I32 {
+        return Err(RuntimeError::Backend(format!(
+            "cuda dense input surface only supports F32/I32 tensors, actual {:?}",
+            spec.dtype()
+        )));
+    }
+    if spec.device().kind() != DeviceKind::Cuda {
+        return Err(RuntimeError::Backend(format!(
+            "cuda dense surface requires CUDA tensor specs, actual device kind {}",
+            spec.device().kind()
+        )));
+    }
+    if !spec.layout().is_contiguous() || spec.layout().offset() != 0 {
+        return Err(RuntimeError::Backend(String::from(
+            "cuda dense surface requires contiguous zero-offset tensors",
+        )));
+    }
+    Ok(())
+}
+
 fn silu_forward_values(input: &[f32]) -> Vec<f32> {
     input
         .iter()
@@ -5014,12 +5094,33 @@ fn rotary_embedding_backward_host_values(
     let head_dim = grad_dims[3];
     let half_dim = head_dim / 2;
     let batched_tables = cos_dims.len() == 3;
-    let mut grad_input = grad_output.to_vec();
-    for batch_index in 0..batch_size {
-        for head_index in 0..head_count {
+    let head_span = sequence_length.checked_mul(head_dim).ok_or_else(|| {
+        RuntimeError::Backend(String::from(
+            "cuda rotary_embedding_backward head span overflow on bounded public lane",
+        ))
+    })?;
+    let total_heads = batch_size.checked_mul(head_count).ok_or_else(|| {
+        RuntimeError::Backend(String::from(
+            "cuda rotary_embedding_backward total head count overflow on bounded public lane",
+        ))
+    })?;
+    let mut grad_input = vec![0.0_f32; grad_output.len()];
+    grad_input
+        .par_chunks_mut(head_span)
+        .enumerate()
+        .try_for_each(|(chunk_index, grad_input_head)| {
+            if chunk_index >= total_heads {
+                return Ok(());
+            }
+            let batch_index = chunk_index / head_count;
+            let head_base = chunk_index.checked_mul(head_span).ok_or_else(|| {
+                RuntimeError::Backend(String::from(
+                    "cuda rotary_embedding_backward chunk offset overflow on bounded public lane",
+                ))
+            })?;
+            let grad_output_head = &grad_output[head_base..head_base + head_span];
             for position in 0..sequence_length {
-                let base =
-                    rank4_token_head_element_offset(grad_dims, batch_index, head_index, position)?;
+                let position_base = position * head_dim;
                 for pair in 0..half_dim {
                     let table_index = if batched_tables {
                         (batch_index * sequence_length + position) * half_dim + pair
@@ -5028,16 +5129,16 @@ fn rotary_embedding_backward_host_values(
                     };
                     let cosine = cos[table_index];
                     let sine = sin[table_index];
-                    let left_index = base + pair;
-                    let right_index = base + half_dim + pair;
-                    let grad_left = grad_output[left_index];
-                    let grad_right = grad_output[right_index];
-                    grad_input[left_index] = grad_left * cosine - grad_right * sine;
-                    grad_input[right_index] = grad_left * sine + grad_right * cosine;
+                    let left_index = position_base + pair;
+                    let right_index = position_base + half_dim + pair;
+                    let grad_left = grad_output_head[left_index];
+                    let grad_right = grad_output_head[right_index];
+                    grad_input_head[left_index] = grad_left * cosine - grad_right * sine;
+                    grad_input_head[right_index] = grad_left * sine + grad_right * cosine;
                 }
             }
-        }
-    }
+            Ok::<(), RuntimeError>(())
+        })?;
     Ok(grad_input)
 }
 
@@ -5047,11 +5148,10 @@ fn scaled_dot_product_attention_backward_host_values(
     key: &[f32],
     key_dims: &[usize],
     value: &[f32],
-    value_dims: &[usize],
+    _value_dims: &[usize],
     grad_output: &[f32],
     scale: f32,
 ) -> Result<ScaledDotProductAttentionBackwardHostValues, RuntimeError> {
-    let batch_size = query_dims[0];
     let query_heads = query_dims[1];
     let sequence_length = query_dims[2];
     let head_dim = query_dims[3];
@@ -5103,6 +5203,7 @@ fn scaled_dot_product_attention_backward_host_values(
                     &grad_output[query_batch_start..query_batch_start + query_batch_width];
                 let mut scores = vec![0.0_f32; sequence_length];
                 let mut weights = vec![0.0_f32; sequence_length];
+                let mut grad_weights = vec![0.0_f32; sequence_length];
 
                 for query_head in 0..query_heads {
                     let kv_head = query_head / group_size;
@@ -5110,14 +5211,16 @@ fn scaled_dot_product_attention_backward_host_values(
                     let kv_head_offset = kv_head * sequence_length * head_dim;
                     for query_position in 0..sequence_length {
                         let query_base = query_head_offset + query_position * head_dim;
+                        let query_row = &query_batch[query_base..query_base + head_dim];
+                        let grad_output_row =
+                            &grad_output_batch[query_base..query_base + head_dim];
                         let valid_scores = query_position + 1;
                         let mut max_score = f32::NEG_INFINITY;
                         for key_position in 0..valid_scores {
                             let key_base = kv_head_offset + key_position * head_dim;
                             let mut dot = 0.0_f32;
                             for feature in 0..head_dim {
-                                dot += query_batch[query_base + feature]
-                                    * key_batch[key_base + feature];
+                                dot += query_row[feature] * key_batch[key_base + feature];
                             }
                             let score = dot * scale;
                             scores[key_position] = score;
@@ -5138,30 +5241,27 @@ fn scaled_dot_product_attention_backward_host_values(
                             let value_base = kv_head_offset + key_position * head_dim;
                             let mut grad_weight = 0.0_f32;
                             for feature in 0..head_dim {
-                                grad_weight += grad_output_batch[query_base + feature]
-                                    * value_batch[value_base + feature];
+                                grad_weight +=
+                                    grad_output_row[feature] * value_batch[value_base + feature];
                             }
+                            grad_weights[key_position] = grad_weight;
                             weighted_grad_sum += weights[key_position] * grad_weight;
                         }
 
                         for key_position in 0..valid_scores {
                             let key_base = kv_head_offset + key_position * head_dim;
                             let value_base = kv_head_offset + key_position * head_dim;
-                            let mut grad_weight = 0.0_f32;
-                            for feature in 0..head_dim {
-                                grad_weight += grad_output_batch[query_base + feature]
-                                    * value_batch[value_base + feature];
-                            }
+                            let weight = weights[key_position];
                             let grad_score =
-                                weights[key_position] * (grad_weight - weighted_grad_sum);
+                                weight * (grad_weights[key_position] - weighted_grad_sum);
+                            let query_scale = grad_score * scale;
                             for feature in 0..head_dim {
                                 query_gradient_batch[query_base + feature] +=
-                                    grad_score * scale * key_batch[key_base + feature];
+                                    query_scale * key_batch[key_base + feature];
                                 key_gradient_batch[key_base + feature] +=
-                                    grad_score * scale * query_batch[query_base + feature];
+                                    query_scale * query_row[feature];
                                 value_gradient_batch[value_base + feature] +=
-                                    weights[key_position]
-                                        * grad_output_batch[query_base + feature];
+                                    weight * grad_output_row[feature];
                             }
                         }
                     }
@@ -10319,18 +10419,15 @@ mod tests {
     }
 
     #[test]
-    fn cuda_plan_validation_rejects_unsupported_ops() -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_plan_validation_accepts_host_fallback_view_ops(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let device = Device::new(DeviceKind::Cuda, 0, Some(String::from("cuda:0")));
         let mut builder = GraphBuilder::new(device);
         let input = builder.input("features", Shape::new(vec![1, 2]), DType::F32);
-        let unsupported = builder.reshape(&input, Shape::new(vec![2]))?;
-        let graph = builder.finish(vec![unsupported]);
+        let reshaped = builder.reshape(&input, Shape::new(vec![2]))?;
+        let graph = builder.finish(vec![reshaped]);
         let plan = compile_graph(&graph)?;
-        let error = validate_supported_plan(&plan).expect_err("reshape should be rejected");
-        assert_eq!(
-            error,
-            psionic_runtime::RuntimeError::UnsupportedStep(String::from("reshape"))
-        );
+        validate_supported_plan(&plan)?;
         Ok(())
     }
 
@@ -10677,11 +10774,11 @@ mod tests {
         let logits_shape = Shape::new(vec![1, 2, 4]);
         let target_shape = Shape::new(vec![1, 2]);
         let logits_values = vec![0.1_f32, -0.2, 0.3, 0.7, -0.4, 0.5, -0.1, 0.2];
-        let target_values = vec![3.0_f32, 1.0];
+        let target_values = vec![3_i32, 1];
 
         let mut builder = GraphBuilder::new(selected.device.clone());
         let logits = builder.input("logits", logits_shape.clone(), DType::F32);
-        let target_ids = builder.input("target_ids", target_shape.clone(), DType::F32);
+        let target_ids = builder.input("target_ids", target_shape.clone(), DType::I32);
         let loss = builder.parameter_golf_projection_loss(&logits, &target_ids, logit_softcap)?;
         let graph = builder.finish(vec![loss.clone()]);
 
@@ -10692,7 +10789,7 @@ mod tests {
             ),
             (
                 target_ids.id(),
-                backend.input_buffer(target_shape.clone(), target_values.clone())?,
+                backend.input_i32_buffer(target_shape.clone(), target_values.clone())?,
             ),
         ]);
         let result = backend.compile_and_execute(&graph, &inputs)?;
@@ -10705,7 +10802,7 @@ mod tests {
             &graph,
             &std::collections::BTreeMap::from([
                 (logits.id(), TensorData::F32(logits_values)),
-                (target_ids.id(), TensorData::F32(target_values)),
+                (target_ids.id(), TensorData::I32(target_values)),
             ]),
         )?;
         let expected_loss = expected
@@ -11460,7 +11557,7 @@ mod tests {
             AutodiffContext::training(),
         );
         let logits = builder.input("logits", logits_shape.clone(), DType::F32, true);
-        let target_ids = builder.input("target_ids", target_shape.clone(), DType::F32, false);
+        let target_ids = builder.input("target_ids", target_shape.clone(), DType::I32, false);
         let loss = builder.parameter_golf_projection_loss(&logits, &target_ids, logit_softcap)?;
         let graph = builder.finish(vec![loss.clone()]);
 
@@ -11479,10 +11576,10 @@ mod tests {
             )));
 
         let logits_values = vec![0.1_f32, -0.2, 0.3, 0.7, -0.4, 0.5, -0.1, 0.2];
-        let target_values = vec![3.0_f32, 1.0];
+        let target_values = vec![3_i32, 1];
         let primal_inputs = std::collections::BTreeMap::from([
             (logits.id(), TensorData::F32(logits_values.clone())),
-            (target_ids.id(), TensorData::F32(target_values.clone())),
+            (target_ids.id(), TensorData::I32(target_values.clone())),
         ]);
         let forward_values = evaluate_graph(graph.graph(), &primal_inputs)?;
         let expected = graph.backward_materialized(loss.id(), &primal_inputs)?;
@@ -11501,12 +11598,19 @@ mod tests {
                 .ok_or("missing backward graph input node")?
                 .tensor()
                 .spec()
-                .shape()
                 .clone();
-            backward_inputs.insert(
-                binding.gradient_graph_input,
-                backend.input_buffer(spec, value.as_f32_slice().ok_or("non-f32 forward value")?)?,
-            );
+            let buffer = match value {
+                TensorData::F32(values) => {
+                    backend.input_buffer(spec.shape().clone(), values.clone())?
+                }
+                TensorData::I32(values) => {
+                    backend.input_i32_buffer(spec.shape().clone(), values.clone())?
+                }
+                TensorData::QuantizedBlocks(_) => {
+                    return Err("unexpected quantized backward binding value".into())
+                }
+            };
+            backward_inputs.insert(binding.gradient_graph_input, buffer);
         }
         let seed_shape = backward_plan
             .gradient_graph

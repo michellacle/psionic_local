@@ -102,6 +102,9 @@ impl CpuBuffer {
     pub fn from_tensor_data(spec: TensorSpec, data: &TensorData) -> Result<Self, RuntimeError> {
         match data {
             TensorData::F32(values) => Self::from_f32(spec, values.clone()),
+            TensorData::I32(_) => Err(RuntimeError::UnsupportedStep(String::from(
+                "cpu dense buffer materialization for I32 tensors",
+            ))),
             TensorData::QuantizedBlocks(data) => {
                 Self::from_quantized_blocks(spec, data.mode, data.layout, data.bytes.clone())
             }
@@ -442,7 +445,9 @@ impl CpuBackend {
             BackendExtensionOp::QuantizedMatmul { rhs_mode } => {
                 self.quantized_matmul(step, values, *rhs_mode)
             }
-            BackendExtensionOp::ParameterGolfProjectionLoss { .. }
+            BackendExtensionOp::ParameterGolfTokenEmbeddingLookup
+            | BackendExtensionOp::ParameterGolfTokenEmbeddingLookupBackward
+            | BackendExtensionOp::ParameterGolfProjectionLoss { .. }
             | BackendExtensionOp::ParameterGolfProjectionLossBackward { .. } => {
                 Err(RuntimeError::UnsupportedStep(op.label().to_string()))
             }

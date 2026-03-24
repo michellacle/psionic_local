@@ -146,6 +146,25 @@ longer dominate at the same order of magnitude after the parallel layout path
 landed. The same receipts also keep `reshape` and `detach` retired from the
 measured fallback cost after the zero-copy alias path landed for those ops.
 
+A local 2026-03-24 follow-on validation slice on an RTX 4080 also tightened
+the same bounded public lane before the next H100 rerun:
+
+- `rotary_embedding_backward` host replay now parallelizes across independent
+  batch or head lanes instead of staying serialized
+- `scaled_dot_product_attention_{query,key,value}_backward` host replay now
+  reuses per-position gradient-weight scratch instead of recomputing the same
+  inner products twice
+- CUDA plan validation now admits the host-fallback or alias view family
+  (`reshape`, `detach`, `permute`, `slice`, `select`, `concat`, `expand`,
+  `reduce_sum`) that the runtime already executes on the bounded lane
+- the CUDA dense allocator now truly admits `I32` buffers, so the PGOLF token
+  id and target id path is real instead of only implied by helper names
+
+That 4080 slice is not an H100 benchmark receipt and does not close `#470` by
+itself, but it does mean the next H100 profile will measure the narrowed
+fallback family against the current runtime truth rather than against stale
+validator or integer-buffer failures.
+
 ## Current Honest Boundary
 
 The report is intentionally not a fake green badge.
