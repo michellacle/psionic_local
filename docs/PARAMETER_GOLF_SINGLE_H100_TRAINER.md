@@ -72,6 +72,20 @@ Supported explicit final-validation modes are:
 - `roundtrip_only`
 - `both`
 
+For bounded same-node validation-runtime comparisons, the repo also exposes:
+
+```bash
+cargo run -q -p psionic-train --bin parameter_golf_validation_runtime_receipt -- \
+  ~/code/parameter-golf/data/datasets/fineweb10B_sp1024 \
+  ~/code/parameter-golf/data/tokenizers/fineweb_1024_bpe.model \
+  /tmp/parameter_golf_validation_runtime_comparison.json \
+  8 \
+  2
+```
+
+That sidecar receipt is intentionally a local runtime comparison tool, not a
+contest metric surface.
+
 ## Data Setup
 
 This doc assumes the public challenge cache has already been downloaded into
@@ -125,6 +139,11 @@ The command is explicit about what it treats as trainer truth. It binds:
   Psionic path, with an explicit `final_validation_mode` telling the report and
   logs whether the last-step live-model validation, the exported int8+zlib
   roundtrip validation, or both were requested
+- a device-resident validation runner that keeps the stable parameter surface
+  resident on device across validation batches, reuses mutable token buffers,
+  and records a machine-readable validation runtime receipt with the resident
+  parameter buffer count, stable-buffer allocation posture, token-write cost,
+  and byte-accounting cost for each validation pass
 - preserved initial, periodic, and final validation receipts directly from the
   Psionic path, with the pre-export live-model validation retained separately
   whenever that posture is requested

@@ -5,23 +5,23 @@ use std::path::{Path, PathBuf};
 use std::time::Instant;
 
 use half::bf16;
-use psionic_backend_cuda::CudaBackend;
+use psionic_backend_cuda::{CudaBackend, CudaBuffer};
 use psionic_core::{
-    DType, PsionicRefusal, PsionicRefusalCode, PsionicRefusalScope, TensorData, TensorId,
+    DType, PsionicRefusal, PsionicRefusalCode, PsionicRefusalScope, Shape, TensorData, TensorId,
 };
 use psionic_data::{
-    DatasetIterationMode, DatasetKey, PARAMETER_GOLF_TRAIN_SPLIT_NAME, ParameterGolfDataError,
-    ParameterGolfDatasetBundle, ParameterGolfSentencePieceByteLuts,
-    ParameterGolfTokenStreamContract, ParameterGolfTokenStreamCursor,
     builtin_parameter_golf_sentencepiece_byte_luts,
     load_parameter_golf_validation_tokens_from_paths, materialize_parameter_golf_token_window,
-    parameter_golf_dataset_bundle_from_local_dir,
+    parameter_golf_dataset_bundle_from_local_dir, DatasetIterationMode, DatasetKey,
+    ParameterGolfDataError, ParameterGolfDatasetBundle, ParameterGolfSentencePieceByteLuts,
+    ParameterGolfTokenStreamContract, ParameterGolfTokenStreamCursor,
+    PARAMETER_GOLF_TRAIN_SPLIT_NAME,
 };
 use psionic_ir::AutodiffBackwardResult;
 use psionic_ir::{AutodiffError, GraphError};
 use psionic_models::{
-    PARAMETER_GOLF_BASELINE_MODEL_ID, PARAMETER_GOLF_BASELINE_REVISION, ParameterGolfModelError,
-    ParameterGolfReferenceModel,
+    ParameterGolfModelError, ParameterGolfReferenceModel, PARAMETER_GOLF_BASELINE_MODEL_ID,
+    PARAMETER_GOLF_BASELINE_REVISION,
 };
 use psionic_runtime::{
     BufferHandle, DeliveredExecutionContext, DeviceDescriptor, RuntimeError, RuntimeHealth,
@@ -31,14 +31,6 @@ use sha2::{Digest, Sha256};
 use thiserror::Error;
 
 use crate::{
-    PARAMETER_GOLF_SINGLE_H100_DATASET_REF, PARAMETER_GOLF_SINGLE_H100_DATASET_VERSION,
-    PARAMETER_GOLF_SINGLE_H100_VARIANT, ParameterGolfBaselineTrainingGraph,
-    ParameterGolfBatchGeometry, ParameterGolfBf16MasterWeightStepReceipt,
-    ParameterGolfOptimizerExecution, ParameterGolfOptimizerGroupKind, ParameterGolfOptimizerPlan,
-    ParameterGolfReferenceTrainingError, ParameterGolfSingleH100BringupError,
-    ParameterGolfSingleH100ChallengeThresholds, ParameterGolfSingleH100MachineObservation,
-    ParameterGolfTrainError, ParameterGolfTrainingHyperparameters, TrainingOptimizerConfig,
-    TrainingOptimizerState, TrainingPrecisionMode,
     apply_parameter_golf_cuda_bf16_master_weight_optimizer_step,
     apply_parameter_golf_cuda_muon_step, bind_parameter_golf_baseline_training_graph_inputs,
     build_parameter_golf_baseline_training_graph, build_tokenizer_digest,
@@ -46,6 +38,14 @@ use crate::{
     export_parameter_golf_int8_zlib_model_artifact, inspect_local_single_h100_machine,
     materialize_parameter_golf_baseline_training_gradients, parameter_golf_optimizer_plan,
     restore_parameter_golf_model_from_int8_zlib, training_batch_from_window_tokens,
+    ParameterGolfBaselineTrainingGraph, ParameterGolfBatchGeometry,
+    ParameterGolfBf16MasterWeightStepReceipt, ParameterGolfOptimizerExecution,
+    ParameterGolfOptimizerGroupKind, ParameterGolfOptimizerPlan,
+    ParameterGolfReferenceTrainingError, ParameterGolfSingleH100BringupError,
+    ParameterGolfSingleH100ChallengeThresholds, ParameterGolfSingleH100MachineObservation,
+    ParameterGolfTrainError, ParameterGolfTrainingHyperparameters, TrainingOptimizerConfig,
+    TrainingOptimizerState, TrainingPrecisionMode, PARAMETER_GOLF_SINGLE_H100_DATASET_REF,
+    PARAMETER_GOLF_SINGLE_H100_DATASET_VERSION, PARAMETER_GOLF_SINGLE_H100_VARIANT,
 };
 
 /// Config for the bounded Rust-owned single-H100 Parameter Golf trainer lane.
@@ -316,6 +316,26 @@ pub struct ParameterGolfSingleH100ValidationSummary {
     pub evaluated_byte_count: u64,
     pub mean_loss: f64,
     pub bits_per_byte: f64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub runtime_receipt: Option<ParameterGolfSingleH100ValidationRuntimeReceipt>,
+}
+
+/// Machine-readable runtime posture for one validation pass.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ParameterGolfSingleH100ValidationRuntimeReceipt {
+    pub path: String,
+    pub session_count: usize,
+    pub total_batches: usize,
+    pub persistent_parameter_buffer_count: usize,
+    pub persistent_parameter_value_count: u64,
+    pub resident_parameter_upload_us: u64,
+    pub per_batch_stable_parameter_buffer_allocations: u64,
+    pub reusable_input_token_buffer: bool,
+    pub reusable_target_token_buffer: bool,
+    pub total_input_token_write_us: u64,
+    pub total_target_token_write_us: u64,
+    pub byte_accounting_mode: String,
+    pub total_byte_accounting_us: u64,
 }
 
 /// One preserved validation observation from the widened single-H100 control loop.
@@ -440,9 +460,141 @@ impl ParameterGolfSingleH100TrainingReport {
     }
 }
 
+/// Config for a bounded same-node validation-runtime comparison.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ParameterGolfSingleH100ValidationRuntimeComparisonConfig {
+    pub run_id: String,
+    pub dataset_root: PathBuf,
+    pub tokenizer_path: PathBuf,
+    pub dataset_key: DatasetKey,
+    pub variant: String,
+    pub batch_sequences: usize,
+    pub sequence_length: usize,
+    pub batch_limit: usize,
+}
+
+impl ParameterGolfSingleH100ValidationRuntimeComparisonConfig {
+    #[must_use]
+    pub fn bounded_local_defaults(
+        dataset_root: impl Into<PathBuf>,
+        tokenizer_path: impl Into<PathBuf>,
+    ) -> Self {
+        Self {
+            run_id: String::from("parameter-golf-validation-runtime-comparison"),
+            dataset_root: dataset_root.into(),
+            tokenizer_path: tokenizer_path.into(),
+            dataset_key: DatasetKey::new(
+                PARAMETER_GOLF_SINGLE_H100_DATASET_REF,
+                PARAMETER_GOLF_SINGLE_H100_DATASET_VERSION,
+            ),
+            variant: String::from(PARAMETER_GOLF_SINGLE_H100_VARIANT),
+            batch_sequences: 8,
+            sequence_length: ParameterGolfBatchGeometry::challenge_single_device_defaults()
+                .train_sequence_length,
+            batch_limit: 2,
+        }
+    }
+
+    fn validate(&self) -> Result<(), ParameterGolfSingleH100TrainingError> {
+        if self.run_id.trim().is_empty() {
+            return Err(ParameterGolfSingleH100TrainingError::InvalidConfig {
+                message: String::from("run_id must be non-empty"),
+            });
+        }
+        if self.batch_sequences == 0 {
+            return Err(ParameterGolfSingleH100TrainingError::InvalidConfig {
+                message: String::from("batch_sequences must be positive"),
+            });
+        }
+        if self.sequence_length == 0 {
+            return Err(ParameterGolfSingleH100TrainingError::InvalidConfig {
+                message: String::from("sequence_length must be positive"),
+            });
+        }
+        if self.batch_limit == 0 {
+            return Err(ParameterGolfSingleH100TrainingError::InvalidConfig {
+                message: String::from("batch_limit must be positive"),
+            });
+        }
+        if !self.dataset_root.is_dir() {
+            return Err(ParameterGolfSingleH100TrainingError::MissingPath {
+                path: self.dataset_root.display().to_string(),
+                expected: String::from("dataset directory"),
+            });
+        }
+        if !self.tokenizer_path.is_file() {
+            return Err(ParameterGolfSingleH100TrainingError::MissingPath {
+                path: self.tokenizer_path.display().to_string(),
+                expected: String::from("tokenizer file"),
+            });
+        }
+        Ok(())
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ParameterGolfSingleH100ValidationRuntimeComparisonLaneReceipt {
+    pub mean_loss: f64,
+    pub bits_per_byte: f64,
+    pub observed_ms: u64,
+    pub average_batch_ms: f64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub runtime_receipt: Option<ParameterGolfSingleH100ValidationRuntimeReceipt>,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ParameterGolfSingleH100ValidationRuntimeComparisonReceipt {
+    pub schema_version: u32,
+    pub scope_window: String,
+    pub run_id: String,
+    pub dataset_root: PathBuf,
+    pub tokenizer_path: PathBuf,
+    pub dataset_key: DatasetKey,
+    pub variant: String,
+    pub tokenizer_digest: psionic_data::TokenizerDigest,
+    pub dataset_manifest_digest: String,
+    pub batch_sequences: usize,
+    pub sequence_length: usize,
+    pub batch_limit: usize,
+    pub observed_cuda_health: RuntimeHealth,
+    pub observed_cuda_devices: Vec<DeviceDescriptor>,
+    pub legacy: ParameterGolfSingleH100ValidationRuntimeComparisonLaneReceipt,
+    pub device_resident: ParameterGolfSingleH100ValidationRuntimeComparisonLaneReceipt,
+    pub summary: String,
+    pub receipt_digest: String,
+}
+
 #[derive(Clone, Debug)]
 struct ParameterGolfSingleH100TrainerState {
     parameter_states: BTreeMap<String, ParameterGolfParameterState>,
+}
+
+#[derive(Clone, Debug)]
+struct ParameterGolfValidationBatchPlan {
+    raw_start: usize,
+    raw_end: usize,
+    batch_sequences: usize,
+    token_count: u64,
+    byte_count: u64,
+}
+
+#[derive(Clone, Debug, Default)]
+struct ParameterGolfValidationBatchRuntime {
+    input_token_write_us: u64,
+    target_token_write_us: u64,
+}
+
+#[derive(Clone, Debug)]
+struct ParameterGolfCudaValidationSession {
+    graph: ParameterGolfBaselineTrainingGraph,
+    static_inputs: BTreeMap<TensorId, CudaBuffer>,
+    input_token_buffer: CudaBuffer,
+    target_token_buffer: CudaBuffer,
+    input_token_staging: Vec<i32>,
+    target_token_staging: Vec<i32>,
+    resident_parameter_upload_us: u64,
+    persistent_parameter_buffer_count: usize,
+    persistent_parameter_value_count: u64,
 }
 
 #[derive(Clone, Debug)]
@@ -639,6 +791,159 @@ pub fn write_parameter_golf_single_h100_training_report(
     })?;
     fs::write(output_path, encoded)?;
     Ok(report)
+}
+
+/// Writes one bounded same-node validation-runtime comparison receipt to disk.
+pub fn write_parameter_golf_single_h100_validation_runtime_comparison_receipt(
+    output_path: &Path,
+    config: &ParameterGolfSingleH100ValidationRuntimeComparisonConfig,
+) -> Result<
+    ParameterGolfSingleH100ValidationRuntimeComparisonReceipt,
+    ParameterGolfSingleH100TrainingError,
+> {
+    let receipt = build_parameter_golf_single_h100_validation_runtime_comparison_receipt(config)?;
+    if let Some(parent) = output_path.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    let encoded = serde_json::to_vec_pretty(&receipt).map_err(|error| {
+        ParameterGolfSingleH100TrainingError::Serialization {
+            message: error.to_string(),
+        }
+    })?;
+    fs::write(output_path, encoded)?;
+    Ok(receipt)
+}
+
+/// Builds one bounded same-node validation-runtime comparison receipt.
+pub fn build_parameter_golf_single_h100_validation_runtime_comparison_receipt(
+    config: &ParameterGolfSingleH100ValidationRuntimeComparisonConfig,
+) -> Result<
+    ParameterGolfSingleH100ValidationRuntimeComparisonReceipt,
+    ParameterGolfSingleH100TrainingError,
+> {
+    config.validate()?;
+    let tokenizer_bytes = fs::read(&config.tokenizer_path)?;
+    let tokenizer_digest = build_tokenizer_digest(tokenizer_bytes.as_slice());
+    let bundle = parameter_golf_dataset_bundle_from_local_dir(
+        config.dataset_key.clone(),
+        &config.dataset_root,
+        config.variant.clone(),
+        tokenizer_digest.clone(),
+        config.tokenizer_path.display().to_string(),
+        None,
+    )?;
+    let validation_tokens = load_parameter_golf_validation_tokens_from_paths(
+        &bundle
+            .validation_shards
+            .iter()
+            .map(|receipt| PathBuf::from(&receipt.path))
+            .collect::<Vec<_>>(),
+        config.sequence_length,
+    )?;
+    let total_sequences = (validation_tokens.len() - 1) / config.sequence_length;
+    let selected_sequences = total_sequences.min(
+        config
+            .batch_sequences
+            .saturating_mul(config.batch_limit.max(1)),
+    );
+    if selected_sequences == 0 {
+        return Err(ParameterGolfSingleH100TrainingError::InvalidConfig {
+            message: String::from(
+                "validation runtime comparison requires at least one complete validation sequence",
+            ),
+        });
+    }
+    let selected_token_end = selected_sequences
+        .saturating_mul(config.sequence_length)
+        .saturating_add(1);
+    let selected_validation_tokens = &validation_tokens[..selected_token_end];
+    let byte_luts = builtin_parameter_golf_sentencepiece_byte_luts()?;
+    let model = ParameterGolfReferenceModel::baseline_fixture(Default::default())?;
+    let machine_observation = inspect_local_single_h100_machine();
+    let mut legacy_graph_cache = BTreeMap::new();
+    let mut device_resident_graph_cache = BTreeMap::new();
+    let mut cuda_backend = CudaBackend::new();
+    let Some(selected_device) = cuda_backend.selected_device().cloned() else {
+        return Err(ParameterGolfSingleH100TrainingError::MissingSelectedH100);
+    };
+
+    let legacy_started = Instant::now();
+    let legacy_summary = evaluate_validation_on_cuda_legacy(
+        &mut cuda_backend,
+        &selected_device.device,
+        model.descriptor(),
+        &model,
+        selected_validation_tokens,
+        &byte_luts,
+        config.sequence_length,
+        config.batch_sequences,
+        &mut legacy_graph_cache,
+        "legacy_validation_runtime_comparison",
+    )?;
+    let legacy_observed_ms = duration_ms(legacy_started);
+
+    let device_resident_started = Instant::now();
+    let device_resident_summary = evaluate_validation_on_cuda(
+        &mut cuda_backend,
+        &selected_device.device,
+        model.descriptor(),
+        &model,
+        selected_validation_tokens,
+        &byte_luts,
+        config.sequence_length,
+        config.batch_sequences,
+        &mut device_resident_graph_cache,
+        "device_resident_validation_runtime_comparison",
+    )?;
+    let device_resident_observed_ms = duration_ms(device_resident_started);
+    let selected_batch_count = selected_sequences.div_ceil(config.batch_sequences.max(1));
+
+    let legacy = ParameterGolfSingleH100ValidationRuntimeComparisonLaneReceipt {
+        mean_loss: legacy_summary.mean_loss,
+        bits_per_byte: legacy_summary.bits_per_byte,
+        observed_ms: legacy_observed_ms,
+        average_batch_ms: legacy_observed_ms as f64 / selected_batch_count as f64,
+        runtime_receipt: legacy_summary.runtime_receipt,
+    };
+    let device_resident = ParameterGolfSingleH100ValidationRuntimeComparisonLaneReceipt {
+        mean_loss: device_resident_summary.mean_loss,
+        bits_per_byte: device_resident_summary.bits_per_byte,
+        observed_ms: device_resident_observed_ms,
+        average_batch_ms: device_resident_observed_ms as f64 / selected_batch_count as f64,
+        runtime_receipt: device_resident_summary.runtime_receipt,
+    };
+    let summary = format!(
+        "Compared the legacy host-rebind validation path against the device-resident validation path on the local CUDA node over {} batch(es) of {} sequence(s); average batch time moved from {:.2}ms to {:.2}ms.",
+        selected_batch_count,
+        config.batch_sequences,
+        legacy.average_batch_ms,
+        device_resident.average_batch_ms,
+    );
+    let mut receipt = ParameterGolfSingleH100ValidationRuntimeComparisonReceipt {
+        schema_version: 1,
+        scope_window: String::from("parameter_golf_validation_runtime_comparison_v1"),
+        run_id: config.run_id.clone(),
+        dataset_root: config.dataset_root.clone(),
+        tokenizer_path: config.tokenizer_path.clone(),
+        dataset_key: config.dataset_key.clone(),
+        variant: config.variant.clone(),
+        tokenizer_digest,
+        dataset_manifest_digest: bundle.manifest.stable_digest(),
+        batch_sequences: config.batch_sequences,
+        sequence_length: config.sequence_length,
+        batch_limit: config.batch_limit,
+        observed_cuda_health: machine_observation.observed_cuda_health,
+        observed_cuda_devices: machine_observation.observed_cuda_devices,
+        legacy,
+        device_resident,
+        summary,
+        receipt_digest: String::new(),
+    };
+    receipt.receipt_digest = stable_digest(
+        b"psionic_parameter_golf_validation_runtime_comparison_receipt|",
+        &receipt_without_digest(&receipt),
+    );
+    Ok(receipt)
 }
 
 /// Builds the bounded single-H100 training report.
@@ -1618,6 +1923,140 @@ fn evaluate_validation_on_cuda(
     let mut total_token_count = 0_u64;
     let mut total_byte_count = 0_u64;
     let validation_batch_sequences = batch_sequences.max(1);
+    let byte_accounting_started = Instant::now();
+    let batch_plans = build_validation_batch_plans(
+        validation_tokens,
+        byte_luts,
+        sequence_length,
+        validation_batch_sequences,
+    )?;
+    let total_byte_accounting_us = duration_us(byte_accounting_started);
+    let total_batches = batch_plans.len();
+    let validation_started = Instant::now();
+    let mut session_cache = BTreeMap::new();
+    let mut total_input_token_write_us = 0_u64;
+    let mut total_target_token_write_us = 0_u64;
+    let mut resident_parameter_upload_us = 0_u64;
+    let mut persistent_parameter_buffer_count = 0_usize;
+    let mut persistent_parameter_value_count = 0_u64;
+
+    for (batch_index, batch_plan) in batch_plans.iter().enumerate() {
+        let session = validation_session_for_batch(
+            &mut session_cache,
+            cuda_backend,
+            graph_cache,
+            device.clone(),
+            descriptor,
+            model,
+            batch_plan.batch_sequences,
+            sequence_length,
+        )?;
+        let (batch_loss, batch_runtime) = session.execute_batch(
+            cuda_backend,
+            &validation_tokens[batch_plan.raw_start..batch_plan.raw_end],
+        )?;
+        total_loss_sum += f64::from(batch_loss) * batch_plan.token_count as f64;
+        total_token_count = total_token_count.saturating_add(batch_plan.token_count);
+        total_byte_count = total_byte_count.saturating_add(batch_plan.byte_count);
+        total_input_token_write_us =
+            total_input_token_write_us.saturating_add(batch_runtime.input_token_write_us);
+        total_target_token_write_us =
+            total_target_token_write_us.saturating_add(batch_runtime.target_token_write_us);
+        if batch_index == 0 || (batch_index + 1) % 32 == 0 || batch_index + 1 == total_batches {
+            emit_progress_line(format!(
+                "validation_progress stage={} batch={}/{} sequences={} tokens={} elapsed_ms={}",
+                stage_label,
+                batch_index + 1,
+                total_batches,
+                batch_plan.raw_end.saturating_sub(1) / sequence_length,
+                total_token_count,
+                duration_ms(validation_started),
+            ));
+        }
+    }
+
+    for session in session_cache.values() {
+        resident_parameter_upload_us =
+            resident_parameter_upload_us.saturating_add(session.resident_parameter_upload_us);
+        persistent_parameter_buffer_count = persistent_parameter_buffer_count
+            .saturating_add(session.persistent_parameter_buffer_count);
+        persistent_parameter_value_count = persistent_parameter_value_count
+            .saturating_add(session.persistent_parameter_value_count);
+    }
+
+    let mean_loss = total_loss_sum / total_token_count.max(1) as f64;
+    let bits_per_byte = (mean_loss / std::f64::consts::LN_2)
+        * (total_token_count as f64 / total_byte_count.max(1) as f64);
+    let runtime_receipt = ParameterGolfSingleH100ValidationRuntimeReceipt {
+        path: String::from("device_resident_cuda_validation_v1"),
+        session_count: session_cache.len(),
+        total_batches,
+        persistent_parameter_buffer_count,
+        persistent_parameter_value_count,
+        resident_parameter_upload_us,
+        per_batch_stable_parameter_buffer_allocations: 0,
+        reusable_input_token_buffer: true,
+        reusable_target_token_buffer: true,
+        total_input_token_write_us,
+        total_target_token_write_us,
+        byte_accounting_mode: String::from("precomputed_batch_target_bytes"),
+        total_byte_accounting_us,
+    };
+    emit_progress_line(format!(
+        "validation_runtime_receipt stage={} path={} sessions={} stable_parameter_buffers={} stable_parameter_values={} resident_parameter_upload_us={} input_token_write_us={} target_token_write_us={} byte_accounting_us={}",
+        stage_label,
+        runtime_receipt.path,
+        runtime_receipt.session_count,
+        runtime_receipt.persistent_parameter_buffer_count,
+        runtime_receipt.persistent_parameter_value_count,
+        runtime_receipt.resident_parameter_upload_us,
+        runtime_receipt.total_input_token_write_us,
+        runtime_receipt.total_target_token_write_us,
+        runtime_receipt.total_byte_accounting_us,
+    ));
+    emit_progress_line(format!(
+        "validation_complete stage={} mean_loss={:.8} val_bpb={:.8} evaluated_tokens={} evaluated_bytes={} elapsed_ms={}",
+        stage_label,
+        mean_loss,
+        bits_per_byte,
+        total_token_count,
+        total_byte_count,
+        duration_ms(validation_started),
+    ));
+    Ok(ParameterGolfSingleH100ValidationSummary {
+        evaluated_sequence_count: total_sequences,
+        evaluated_token_count: total_token_count,
+        evaluated_byte_count: total_byte_count,
+        mean_loss,
+        bits_per_byte,
+        runtime_receipt: Some(runtime_receipt),
+    })
+}
+
+fn evaluate_validation_on_cuda_legacy(
+    cuda_backend: &mut CudaBackend,
+    device: &psionic_core::Device,
+    descriptor: &psionic_models::ParameterGolfModelDescriptor,
+    model: &ParameterGolfReferenceModel,
+    validation_tokens: &[u16],
+    byte_luts: &ParameterGolfSentencePieceByteLuts,
+    sequence_length: usize,
+    batch_sequences: usize,
+    graph_cache: &mut BTreeMap<usize, ParameterGolfBaselineTrainingGraph>,
+    stage_label: &str,
+) -> Result<ParameterGolfSingleH100ValidationSummary, ParameterGolfSingleH100TrainingError> {
+    if validation_tokens.len() <= sequence_length {
+        return Err(ParameterGolfSingleH100TrainingError::InvalidConfig {
+            message: String::from(
+                "validation split is too short for the requested sequence length",
+            ),
+        });
+    }
+    let total_sequences = (validation_tokens.len() - 1) / sequence_length;
+    let mut total_loss_sum = 0.0_f64;
+    let mut total_token_count = 0_u64;
+    let mut total_byte_count = 0_u64;
+    let validation_batch_sequences = batch_sequences.max(1);
     let total_batches = total_sequences.div_ceil(validation_batch_sequences);
     let validation_started = Instant::now();
 
@@ -1708,6 +2147,79 @@ fn evaluate_validation_on_cuda(
         evaluated_byte_count: total_byte_count,
         mean_loss,
         bits_per_byte,
+        runtime_receipt: None,
+    })
+}
+
+fn build_validation_batch_plans(
+    validation_tokens: &[u16],
+    byte_luts: &ParameterGolfSentencePieceByteLuts,
+    sequence_length: usize,
+    batch_sequences: usize,
+) -> Result<Vec<ParameterGolfValidationBatchPlan>, ParameterGolfSingleH100TrainingError> {
+    let total_sequences = (validation_tokens.len() - 1) / sequence_length;
+    let mut plans = Vec::new();
+    for batch_start in (0..total_sequences).step_by(batch_sequences.max(1)) {
+        let batch_end = (batch_start + batch_sequences.max(1)).min(total_sequences);
+        let raw_start = batch_start * sequence_length;
+        let raw_end = batch_end * sequence_length + 1;
+        let local = &validation_tokens[raw_start..raw_end];
+        let batch_token_count = ((batch_end - batch_start) * sequence_length) as u64;
+        let mut previous_tokens = Vec::with_capacity(batch_token_count as usize);
+        let mut target_tokens = Vec::with_capacity(batch_token_count as usize);
+        previous_tokens.extend(
+            local[..local.len() - 1]
+                .iter()
+                .map(|token| u32::from(*token)),
+        );
+        target_tokens.extend(local[1..].iter().map(|token| u32::from(*token)));
+        let byte_count =
+            byte_luts.count_target_bytes(previous_tokens.as_slice(), target_tokens.as_slice())?;
+        plans.push(ParameterGolfValidationBatchPlan {
+            raw_start,
+            raw_end,
+            batch_sequences: batch_end - batch_start,
+            token_count: batch_token_count,
+            byte_count,
+        });
+    }
+    Ok(plans)
+}
+
+fn validation_session_for_batch<'a>(
+    cache: &'a mut BTreeMap<usize, ParameterGolfCudaValidationSession>,
+    cuda_backend: &mut CudaBackend,
+    graph_cache: &mut BTreeMap<usize, ParameterGolfBaselineTrainingGraph>,
+    device: psionic_core::Device,
+    descriptor: &psionic_models::ParameterGolfModelDescriptor,
+    model: &ParameterGolfReferenceModel,
+    batch_sequences: usize,
+    sequence_length: usize,
+) -> Result<&'a mut ParameterGolfCudaValidationSession, ParameterGolfSingleH100TrainingError> {
+    if !cache.contains_key(&batch_sequences) {
+        let graph = training_graph_for_batch(
+            graph_cache,
+            device,
+            descriptor,
+            batch_sequences,
+            sequence_length,
+        )?
+        .clone();
+        let session = ParameterGolfCudaValidationSession::new(
+            cuda_backend,
+            graph,
+            model,
+            batch_sequences,
+            sequence_length,
+        )?;
+        cache.insert(batch_sequences, session);
+    }
+    cache.get_mut(&batch_sequences).ok_or_else(|| {
+        ParameterGolfSingleH100TrainingError::Serialization {
+            message: format!(
+                "missing cached validation session for batch_sequences={batch_sequences}"
+            ),
+        }
     })
 }
 
@@ -1732,6 +2244,139 @@ fn training_graph_for_batch<'a>(
         .ok_or_else(|| ParameterGolfSingleH100TrainingError::Serialization {
             message: format!("missing cached training graph for batch_size={batch_size}"),
         })
+}
+
+impl ParameterGolfCudaValidationSession {
+    fn new(
+        cuda_backend: &mut CudaBackend,
+        graph: ParameterGolfBaselineTrainingGraph,
+        model: &ParameterGolfReferenceModel,
+        batch_sequences: usize,
+        sequence_length: usize,
+    ) -> Result<Self, ParameterGolfSingleH100TrainingError> {
+        let config = &model.descriptor().config;
+        let parameter_vectors = model
+            .weights()
+            .parameter_vectors(config)
+            .into_iter()
+            .map(|parameter| (parameter.parameter_id.clone(), parameter))
+            .collect::<BTreeMap<_, _>>();
+        let token_element_count = batch_sequences.saturating_mul(sequence_length);
+        let token_shape = Shape::new(vec![batch_sequences, sequence_length]);
+        let parameter_upload_started = Instant::now();
+        let mut static_inputs = BTreeMap::new();
+        let mut persistent_parameter_buffer_count = 0_usize;
+        let mut persistent_parameter_value_count = 0_u64;
+        for binding in &graph.parameter_bindings {
+            let parameter = parameter_vectors
+                .get(&binding.parameter_id)
+                .ok_or_else(
+                    || crate::ParameterGolfBaselineGraphError::MissingWeightVector {
+                        parameter_id: binding.parameter_id.clone(),
+                    },
+                )?;
+            let buffer = match binding.graph_input_dtype {
+                DType::F32 => {
+                    cuda_backend.input_buffer(binding.shape.clone(), parameter.values.clone())?
+                }
+                DType::BF16 => cuda_backend
+                    .input_bf16_buffer(binding.shape.clone(), parameter.values.clone())?,
+                actual => {
+                    return Err(ParameterGolfSingleH100TrainingError::Serialization {
+                        message: format!(
+                            "validation session does not support graph input dtype {actual:?} for `{}`",
+                            binding.parameter_id
+                        ),
+                    });
+                }
+            };
+            persistent_parameter_buffer_count = persistent_parameter_buffer_count.saturating_add(1);
+            persistent_parameter_value_count = persistent_parameter_value_count
+                .saturating_add(buffer.spec().shape().element_count() as u64);
+            static_inputs.insert(binding.graph_input_tensor_id, buffer);
+        }
+        let resident_parameter_upload_us = duration_us(parameter_upload_started);
+        let input_token_buffer =
+            cuda_backend.input_i32_buffer(token_shape.clone(), vec![0_i32; token_element_count])?;
+        let target_token_buffer =
+            cuda_backend.input_i32_buffer(token_shape, vec![0_i32; token_element_count])?;
+        Ok(Self {
+            graph,
+            static_inputs,
+            input_token_buffer,
+            target_token_buffer,
+            input_token_staging: vec![0_i32; token_element_count],
+            target_token_staging: vec![0_i32; token_element_count],
+            resident_parameter_upload_us,
+            persistent_parameter_buffer_count,
+            persistent_parameter_value_count,
+        })
+    }
+
+    fn execute_batch(
+        &mut self,
+        cuda_backend: &mut CudaBackend,
+        validation_tokens: &[u16],
+    ) -> Result<(f32, ParameterGolfValidationBatchRuntime), ParameterGolfSingleH100TrainingError>
+    {
+        let expected_len = self.input_token_staging.len().saturating_add(1);
+        if validation_tokens.len() != expected_len {
+            return Err(ParameterGolfSingleH100TrainingError::InvalidConfig {
+                message: format!(
+                    "validation session expected {} tokens for one batch, observed {}",
+                    expected_len,
+                    validation_tokens.len()
+                ),
+            });
+        }
+
+        let input_write_started = Instant::now();
+        for (destination, source) in self
+            .input_token_staging
+            .iter_mut()
+            .zip(validation_tokens[..validation_tokens.len() - 1].iter())
+        {
+            *destination = i32::from(*source);
+        }
+        self.input_token_buffer
+            .write_i32(self.input_token_staging.as_slice())?;
+        let input_token_write_us = duration_us(input_write_started);
+
+        let target_write_started = Instant::now();
+        for (destination, source) in self
+            .target_token_staging
+            .iter_mut()
+            .zip(validation_tokens[1..].iter())
+        {
+            *destination = i32::from(*source);
+        }
+        self.target_token_buffer
+            .write_i32(self.target_token_staging.as_slice())?;
+        let target_token_write_us = duration_us(target_write_started);
+
+        let mut inputs = self.static_inputs.clone();
+        inputs.insert(
+            self.graph.input_token_ids_tensor_id,
+            self.input_token_buffer.clone(),
+        );
+        inputs.insert(
+            self.graph.target_ids_tensor_id,
+            self.target_token_buffer.clone(),
+        );
+        let outputs = execute_cuda_graph_outputs_from_buffers(
+            cuda_backend,
+            self.graph.graph.graph(),
+            &inputs,
+        )?;
+        let batch_loss = scalar_float_graph_output(&outputs, self.graph.loss_tensor_id)?;
+        Ok((
+            batch_loss,
+            ParameterGolfValidationBatchRuntime {
+                input_token_write_us,
+                target_token_write_us,
+            },
+        ))
+    }
 }
 
 fn retained_forward_graph(
@@ -1943,7 +2588,15 @@ fn execute_cuda_graph_outputs(
             };
         buffers.insert(*tensor_id, buffer);
     }
-    let result = cuda_backend.compile_and_execute(graph, &buffers)?;
+    execute_cuda_graph_outputs_from_buffers(cuda_backend, graph, &buffers)
+}
+
+fn execute_cuda_graph_outputs_from_buffers(
+    cuda_backend: &mut CudaBackend,
+    graph: &psionic_ir::Graph,
+    inputs: &BTreeMap<TensorId, CudaBuffer>,
+) -> Result<Vec<(TensorId, TensorData)>, ParameterGolfSingleH100TrainingError> {
+    let result = cuda_backend.compile_and_execute(graph, inputs)?;
     graph
         .outputs()
         .iter()
@@ -2051,8 +2704,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn backward_result_from_outputs_rekeys_gradient_outputs_to_primal_tensors()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn backward_result_from_outputs_rekeys_gradient_outputs_to_primal_tensors(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut builder =
             AutodiffGraphBuilder::with_context(Device::cpu(), AutodiffContext::training());
         let input = builder.input("x", Shape::new(vec![1, 1]), DType::F32, true);
@@ -2078,8 +2731,8 @@ mod tests {
     }
 
     #[test]
-    fn backward_result_from_outputs_preserves_bf16_gradient_dtype()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn backward_result_from_outputs_preserves_bf16_gradient_dtype(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut builder =
             AutodiffGraphBuilder::with_context(Device::cpu(), AutodiffContext::training());
         let input = builder.input("x", Shape::new(vec![1, 1]), DType::BF16, true);
@@ -2150,8 +2803,8 @@ mod tests {
     }
 
     #[test]
-    fn validation_mode_parser_accepts_all_supported_labels()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn validation_mode_parser_accepts_all_supported_labels(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         assert_eq!(
             ParameterGolfSingleH100ValidationMode::parse("live_only")?,
             ParameterGolfSingleH100ValidationMode::LiveOnly
@@ -2168,8 +2821,8 @@ mod tests {
     }
 
     #[test]
-    fn seed_parameter_states_matches_upstream_precision_split()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn seed_parameter_states_matches_upstream_precision_split(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let model = ParameterGolfReferenceModel::baseline_fixture(Default::default())?;
         let hyperparameters = ParameterGolfTrainingHyperparameters::baseline_defaults();
         let optimizer_plan = parameter_golf_optimizer_plan(model.descriptor(), &hyperparameters)?;
@@ -2240,6 +2893,10 @@ fn duration_ms(started: Instant) -> u64 {
     started.elapsed().as_millis() as u64
 }
 
+fn duration_us(started: Instant) -> u64 {
+    started.elapsed().as_micros() as u64
+}
+
 fn unix_time_ms() -> u64 {
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
@@ -2265,5 +2922,13 @@ fn report_without_digest(
 ) -> ParameterGolfSingleH100TrainingReport {
     let mut canonical = report.clone();
     canonical.report_digest.clear();
+    canonical
+}
+
+fn receipt_without_digest(
+    receipt: &ParameterGolfSingleH100ValidationRuntimeComparisonReceipt,
+) -> ParameterGolfSingleH100ValidationRuntimeComparisonReceipt {
+    let mut canonical = receipt.clone();
+    canonical.receipt_digest.clear();
     canonical
 }
