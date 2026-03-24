@@ -1611,6 +1611,90 @@ __global__ void rotary_embedding_backward_kernel(
     }
 }
 
+__global__ void permute_rank2_transpose_f32_kernel(
+    const float *input,
+    int rows,
+    int cols,
+    float *output
+) {
+    const int col = blockIdx.x * blockDim.x + threadIdx.x;
+    const int row = blockIdx.y * blockDim.y + threadIdx.y;
+    if (row >= rows || col >= cols) {
+        return;
+    }
+    output[col * rows + row] = input[row * cols + col];
+}
+
+__global__ void permute_rank4_swap_middle_axes_f32_kernel(
+    const float *input,
+    int dim0,
+    int dim1,
+    int dim2,
+    int dim3,
+    float *output
+) {
+    const int index = blockIdx.x * blockDim.x + threadIdx.x;
+    const int total = dim0 * dim1 * dim2 * dim3;
+    if (index >= total) {
+        return;
+    }
+    int remaining = index;
+    const int i3 = remaining % dim3;
+    remaining /= dim3;
+    const int i2 = remaining % dim2;
+    remaining /= dim2;
+    const int i1 = remaining % dim1;
+    const int i0 = remaining / dim1;
+    const int output_index = ((i0 * dim2 + i2) * dim1 + i1) * dim3 + i3;
+    output[output_index] = input[index];
+}
+
+__global__ void reduce_sum_rows_f32_kernel(
+    const float *input,
+    int row_count,
+    int column_count,
+    float *output
+) {
+    const int row = blockIdx.x;
+    if (row >= row_count) {
+        return;
+    }
+    float partial = 0.0f;
+    const int base = row * column_count;
+    for (int column = threadIdx.x; column < column_count; column += blockDim.x) {
+        partial += input[base + column];
+    }
+    __shared__ float scratch[kBlockSize];
+    scratch[threadIdx.x] = partial;
+    __syncthreads();
+    for (int offset = blockDim.x / 2; offset > 0; offset >>= 1) {
+        if (threadIdx.x < offset) {
+            scratch[threadIdx.x] += scratch[threadIdx.x + offset];
+        }
+        __syncthreads();
+    }
+    if (threadIdx.x == 0) {
+        output[row] = scratch[0];
+    }
+}
+
+__global__ void reduce_sum_axis0_f32_kernel(
+    const float *input,
+    int axis0_extent,
+    int row_width,
+    float *output
+) {
+    const int index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index >= row_width) {
+        return;
+    }
+    float sum = 0.0f;
+    for (int axis0_index = 0; axis0_index < axis0_extent; ++axis0_index) {
+        sum += input[axis0_index * row_width + index];
+    }
+    output[index] = sum;
+}
+
 __device__ __forceinline__ float rope_neox_component(
     const float *values,
     int dim,
@@ -4980,6 +5064,103 @@ extern "C" int psionic_cuda_rotary_embedding_backward(
         head_dim,
         batched_tables,
         static_cast<float *>(grad_input)
+    );
+    return static_cast<int>(cudaGetLastError());
+}
+
+extern "C" int psionic_cuda_permute_rank2_transpose_f32(
+    const void *input,
+    int rows,
+    int cols,
+    void *output,
+    void *stream
+) {
+    const dim3 block(16, 16, 1);
+    const dim3 grid(
+        static_cast<unsigned int>((cols + block.x - 1) / block.x),
+        static_cast<unsigned int>((rows + block.y - 1) / block.y),
+        1
+    );
+    permute_rank2_transpose_f32_kernel<<<
+        grid,
+        block,
+        0,
+        static_cast<cudaStream_t>(stream)
+    >>>(
+        static_cast<const float *>(input),
+        rows,
+        cols,
+        static_cast<float *>(output)
+    );
+    return static_cast<int>(cudaGetLastError());
+}
+
+extern "C" int psionic_cuda_permute_rank4_swap_middle_axes_f32(
+    const void *input,
+    int dim0,
+    int dim1,
+    int dim2,
+    int dim3,
+    void *output,
+    void *stream
+) {
+    const int total = dim0 * dim1 * dim2 * dim3;
+    const int blocks = (total + kBlockSize - 1) / kBlockSize;
+    permute_rank4_swap_middle_axes_f32_kernel<<<
+        blocks,
+        kBlockSize,
+        0,
+        static_cast<cudaStream_t>(stream)
+    >>>(
+        static_cast<const float *>(input),
+        dim0,
+        dim1,
+        dim2,
+        dim3,
+        static_cast<float *>(output)
+    );
+    return static_cast<int>(cudaGetLastError());
+}
+
+extern "C" int psionic_cuda_reduce_sum_rows_f32(
+    const void *input,
+    int row_count,
+    int column_count,
+    void *output,
+    void *stream
+) {
+    reduce_sum_rows_f32_kernel<<<
+        row_count,
+        kBlockSize,
+        0,
+        static_cast<cudaStream_t>(stream)
+    >>>(
+        static_cast<const float *>(input),
+        row_count,
+        column_count,
+        static_cast<float *>(output)
+    );
+    return static_cast<int>(cudaGetLastError());
+}
+
+extern "C" int psionic_cuda_reduce_sum_axis0_f32(
+    const void *input,
+    int axis0_extent,
+    int row_width,
+    void *output,
+    void *stream
+) {
+    const int blocks = (row_width + kBlockSize - 1) / kBlockSize;
+    reduce_sum_axis0_f32_kernel<<<
+        blocks,
+        kBlockSize,
+        0,
+        static_cast<cudaStream_t>(stream)
+    >>>(
+        static_cast<const float *>(input),
+        axis0_extent,
+        row_width,
+        static_cast<float *>(output)
     );
     return static_cast<int>(cudaGetLastError());
 }

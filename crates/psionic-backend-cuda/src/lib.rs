@@ -134,6 +134,18 @@ impl ScaledDotProductAttentionBackwardCachedOutputs {
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum ReduceSumCudaStrategy {
+    Rows {
+        row_count: usize,
+        column_count: usize,
+    },
+    Axis0 {
+        axis0_extent: usize,
+        row_width: usize,
+    },
+}
+
 /// Returns the device scratch-buffer size for contiguous GGML `Q8_1` rows.
 pub fn ggml_q8_1_storage_bytes(rows: usize, cols: usize) -> Result<usize, RuntimeError> {
     if cols == 0 || cols % GGML_Q8_1_BLOCK_ELEMENTS != 0 {
@@ -1307,6 +1319,83 @@ impl CudaSubmission {
             head_dim,
             batched_tables,
             &grad_input.platform,
+        )?;
+        self.encoded_operations += 1;
+        Ok(())
+    }
+
+    /// Permutes one rank-2 contiguous `f32` tensor through transpose on CUDA.
+    pub fn permute_rank2_transpose_f32(
+        &mut self,
+        input: &CudaBuffer,
+        output: &CudaBuffer,
+        rows: usize,
+        cols: usize,
+    ) -> Result<(), RuntimeError> {
+        self.platform.encode_permute_rank2_transpose_f32(
+            &input.platform,
+            rows,
+            cols,
+            &output.platform,
+        )?;
+        self.encoded_operations += 1;
+        Ok(())
+    }
+
+    /// Permutes one rank-4 contiguous `f32` tensor through the bounded
+    /// decoder `[0, 2, 1, 3]` layout swap on CUDA.
+    pub fn permute_rank4_swap_middle_axes_f32(
+        &mut self,
+        input: &CudaBuffer,
+        output: &CudaBuffer,
+        dim0: usize,
+        dim1: usize,
+        dim2: usize,
+        dim3: usize,
+    ) -> Result<(), RuntimeError> {
+        self.platform.encode_permute_rank4_swap_middle_axes_f32(
+            &input.platform,
+            dim0,
+            dim1,
+            dim2,
+            dim3,
+            &output.platform,
+        )?;
+        self.encoded_operations += 1;
+        Ok(())
+    }
+
+    /// Reduces each contiguous `f32` row across its last axis on CUDA.
+    pub fn reduce_sum_rows_f32(
+        &mut self,
+        input: &CudaBuffer,
+        output: &CudaBuffer,
+        row_count: usize,
+        column_count: usize,
+    ) -> Result<(), RuntimeError> {
+        self.platform.encode_reduce_sum_rows_f32(
+            &input.platform,
+            row_count,
+            column_count,
+            &output.platform,
+        )?;
+        self.encoded_operations += 1;
+        Ok(())
+    }
+
+    /// Reduces a contiguous `f32` tensor across axis `0` on CUDA.
+    pub fn reduce_sum_axis0_f32(
+        &mut self,
+        input: &CudaBuffer,
+        output: &CudaBuffer,
+        axis0_extent: usize,
+        row_width: usize,
+    ) -> Result<(), RuntimeError> {
+        self.platform.encode_reduce_sum_axis0_f32(
+            &input.platform,
+            axis0_extent,
+            row_width,
+            &output.platform,
         )?;
         self.encoded_operations += 1;
         Ok(())
@@ -3676,16 +3765,35 @@ impl AvailableCudaBackend {
                     values.insert(step.output, output);
                 }
                 ExecutionOp::Permute { axes } => {
-                    let output =
+                    let input = step_input(step, &values, 0)?;
+                    let output = if input.spec().dtype() == DType::F32
+                        && step.spec.dtype() == DType::F32
+                        && supports_cuda_rank2_transpose(input.spec().shape().dims(), axes)
+                    {
+                        let dims = input.spec().shape().dims();
+                        let output = self.allocate(&step.spec)?;
+                        submission.permute_rank2_transpose_f32(input, &output, dims[0], dims[1])?;
+                        output
+                    } else if input.spec().dtype() == DType::F32
+                        && step.spec.dtype() == DType::F32
+                        && supports_cuda_rank4_swap_middle_axes(input.spec().shape().dims(), axes)
+                    {
+                        let dims = input.spec().shape().dims();
+                        let output = self.allocate(&step.spec)?;
+                        submission.permute_rank4_swap_middle_axes_f32(
+                            input, &output, dims[0], dims[1], dims[2], dims[3],
+                        )?;
+                        output
+                    } else {
                         execute_profiled_host_fallback(&mut host_fallback_profile, step, || {
-                            let input = step_input(step, &values, 0)?;
                             let values_out = permute_contiguous_values(
                                 &input.read_f32()?,
                                 input.spec().shape().dims(),
                                 axes,
                             )?;
                             self.materialize_host_view_step(step, &values_out)
-                        })?;
+                        })?
+                    };
                     values.insert(step.output, output);
                 }
                 ExecutionOp::Slice { axis, start, end } => {
@@ -3780,16 +3888,60 @@ impl AvailableCudaBackend {
                     values.insert(step.output, output);
                 }
                 ExecutionOp::ReduceSum { axis } => {
-                    let output =
+                    let input = step_input(step, &values, 0)?;
+                    let output = if input.spec().dtype() == DType::F32
+                        && step.spec.dtype() == DType::F32
+                    {
+                        match reduce_sum_cuda_strategy(input.spec().shape().dims(), *axis) {
+                            Some(ReduceSumCudaStrategy::Rows {
+                                row_count,
+                                column_count,
+                            }) => {
+                                let output = self.allocate(&step.spec)?;
+                                submission.reduce_sum_rows_f32(
+                                    input,
+                                    &output,
+                                    row_count,
+                                    column_count,
+                                )?;
+                                output
+                            }
+                            Some(ReduceSumCudaStrategy::Axis0 {
+                                axis0_extent,
+                                row_width,
+                            }) => {
+                                let output = self.allocate(&step.spec)?;
+                                submission.reduce_sum_axis0_f32(
+                                    input,
+                                    &output,
+                                    axis0_extent,
+                                    row_width,
+                                )?;
+                                output
+                            }
+                            None => execute_profiled_host_fallback(
+                                &mut host_fallback_profile,
+                                step,
+                                || {
+                                    let values_out = reduce_sum_contiguous_values(
+                                        &input.read_f32()?,
+                                        input.spec().shape().dims(),
+                                        *axis,
+                                    )?;
+                                    self.materialize_host_view_step(step, &values_out)
+                                },
+                            )?,
+                        }
+                    } else {
                         execute_profiled_host_fallback(&mut host_fallback_profile, step, || {
-                            let input = step_input(step, &values, 0)?;
                             let values_out = reduce_sum_contiguous_values(
                                 &input.read_f32()?,
                                 input.spec().shape().dims(),
                                 *axis,
                             )?;
                             self.materialize_host_view_step(step, &values_out)
-                        })?;
+                        })?
+                    };
                     values.insert(step.output, output);
                 }
                 ExecutionOp::Add => {
@@ -5687,6 +5839,42 @@ fn scaled_dot_product_attention_backward_cache_key(
     })
 }
 
+fn supports_cuda_rank2_transpose(input_shape: &[usize], axes: &[usize]) -> bool {
+    input_shape.len() == 2 && axes == [1, 0]
+}
+
+fn supports_cuda_rank4_swap_middle_axes(input_shape: &[usize], axes: &[usize]) -> bool {
+    input_shape.len() == 4 && axes == [0, 2, 1, 3]
+}
+
+fn reduce_sum_cuda_strategy(
+    input_shape: &[usize],
+    axis: Option<usize>,
+) -> Option<ReduceSumCudaStrategy> {
+    if input_shape.is_empty() {
+        return None;
+    }
+    let total_elements = input_shape.iter().product::<usize>();
+    match axis {
+        None => Some(ReduceSumCudaStrategy::Rows {
+            row_count: 1,
+            column_count: total_elements,
+        }),
+        Some(axis_index) if axis_index == input_shape.len() - 1 => {
+            let column_count = *input_shape.last()?;
+            Some(ReduceSumCudaStrategy::Rows {
+                row_count: total_elements / column_count,
+                column_count,
+            })
+        }
+        Some(0) => Some(ReduceSumCudaStrategy::Axis0 {
+            axis0_extent: input_shape[0],
+            row_width: total_elements / input_shape[0],
+        }),
+        Some(_) => None,
+    }
+}
+
 fn discovery_report_internal() -> Result<NvidiaBackendReport, RuntimeError> {
     match query_inventory() {
         Ok(rows) => {
@@ -6396,6 +6584,36 @@ mod platform {
             head_dim: c_int,
             batched_tables: c_int,
             grad_input: *mut c_void,
+            stream: CudaStream,
+        ) -> CudaError;
+        fn psionic_cuda_permute_rank2_transpose_f32(
+            input: *const c_void,
+            rows: c_int,
+            cols: c_int,
+            output: *mut c_void,
+            stream: CudaStream,
+        ) -> CudaError;
+        fn psionic_cuda_permute_rank4_swap_middle_axes_f32(
+            input: *const c_void,
+            dim0: c_int,
+            dim1: c_int,
+            dim2: c_int,
+            dim3: c_int,
+            output: *mut c_void,
+            stream: CudaStream,
+        ) -> CudaError;
+        fn psionic_cuda_reduce_sum_rows_f32(
+            input: *const c_void,
+            row_count: c_int,
+            column_count: c_int,
+            output: *mut c_void,
+            stream: CudaStream,
+        ) -> CudaError;
+        fn psionic_cuda_reduce_sum_axis0_f32(
+            input: *const c_void,
+            axis0_extent: c_int,
+            row_width: c_int,
+            output: *mut c_void,
             stream: CudaStream,
         ) -> CudaError;
         fn psionic_cuda_attention_decode(
@@ -8364,6 +8582,134 @@ mod platform {
                     )
                 },
                 "psionic_cuda_rotary_embedding_backward",
+            )
+        }
+
+        pub(super) fn encode_permute_rank2_transpose_f32(
+            &mut self,
+            input: &PlatformBuffer,
+            rows: usize,
+            cols: usize,
+            output: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            let rows = c_int::try_from(rows).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda permute rank-2 transpose rows exceed c_int",
+                ))
+            })?;
+            let cols = c_int::try_from(cols).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda permute rank-2 transpose cols exceed c_int",
+                ))
+            })?;
+            self.runtime.set_device()?;
+            self.runtime.check(
+                unsafe {
+                    psionic_cuda_permute_rank2_transpose_f32(
+                        input.inner.device_ptr.cast(),
+                        rows,
+                        cols,
+                        output.inner.device_ptr.cast(),
+                        self.stream,
+                    )
+                },
+                "psionic_cuda_permute_rank2_transpose_f32",
+            )
+        }
+
+        pub(super) fn encode_permute_rank4_swap_middle_axes_f32(
+            &mut self,
+            input: &PlatformBuffer,
+            dim0: usize,
+            dim1: usize,
+            dim2: usize,
+            dim3: usize,
+            output: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            let dim0 = c_int::try_from(dim0).map_err(|_| {
+                RuntimeError::Backend(String::from("cuda permute rank-4 dim0 exceeds c_int"))
+            })?;
+            let dim1 = c_int::try_from(dim1).map_err(|_| {
+                RuntimeError::Backend(String::from("cuda permute rank-4 dim1 exceeds c_int"))
+            })?;
+            let dim2 = c_int::try_from(dim2).map_err(|_| {
+                RuntimeError::Backend(String::from("cuda permute rank-4 dim2 exceeds c_int"))
+            })?;
+            let dim3 = c_int::try_from(dim3).map_err(|_| {
+                RuntimeError::Backend(String::from("cuda permute rank-4 dim3 exceeds c_int"))
+            })?;
+            self.runtime.set_device()?;
+            self.runtime.check(
+                unsafe {
+                    psionic_cuda_permute_rank4_swap_middle_axes_f32(
+                        input.inner.device_ptr.cast(),
+                        dim0,
+                        dim1,
+                        dim2,
+                        dim3,
+                        output.inner.device_ptr.cast(),
+                        self.stream,
+                    )
+                },
+                "psionic_cuda_permute_rank4_swap_middle_axes_f32",
+            )
+        }
+
+        pub(super) fn encode_reduce_sum_rows_f32(
+            &mut self,
+            input: &PlatformBuffer,
+            row_count: usize,
+            column_count: usize,
+            output: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            let row_count = c_int::try_from(row_count).map_err(|_| {
+                RuntimeError::Backend(String::from("cuda reduce_sum row count exceeds c_int"))
+            })?;
+            let column_count = c_int::try_from(column_count).map_err(|_| {
+                RuntimeError::Backend(String::from("cuda reduce_sum column count exceeds c_int"))
+            })?;
+            self.runtime.set_device()?;
+            self.runtime.check(
+                unsafe {
+                    psionic_cuda_reduce_sum_rows_f32(
+                        input.inner.device_ptr.cast(),
+                        row_count,
+                        column_count,
+                        output.inner.device_ptr.cast(),
+                        self.stream,
+                    )
+                },
+                "psionic_cuda_reduce_sum_rows_f32",
+            )
+        }
+
+        pub(super) fn encode_reduce_sum_axis0_f32(
+            &mut self,
+            input: &PlatformBuffer,
+            axis0_extent: usize,
+            row_width: usize,
+            output: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            let axis0_extent = c_int::try_from(axis0_extent).map_err(|_| {
+                RuntimeError::Backend(String::from("cuda reduce_sum axis0 extent exceeds c_int"))
+            })?;
+            let row_width = c_int::try_from(row_width).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda reduce_sum axis0 row width exceeds c_int",
+                ))
+            })?;
+            self.runtime.set_device()?;
+            self.runtime.check(
+                unsafe {
+                    psionic_cuda_reduce_sum_axis0_f32(
+                        input.inner.device_ptr.cast(),
+                        axis0_extent,
+                        row_width,
+                        output.inner.device_ptr.cast(),
+                        self.stream,
+                    )
+                },
+                "psionic_cuda_reduce_sum_axis0_f32",
             )
         }
 
@@ -10504,6 +10850,56 @@ mod platform {
             )))
         }
 
+        pub(super) fn encode_permute_rank2_transpose_f32(
+            &mut self,
+            _input: &PlatformBuffer,
+            _rows: usize,
+            _cols: usize,
+            _output: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            Err(RuntimeError::Backend(String::from(
+                "cuda quantized text-generation kernels require Linux CUDA support",
+            )))
+        }
+
+        pub(super) fn encode_permute_rank4_swap_middle_axes_f32(
+            &mut self,
+            _input: &PlatformBuffer,
+            _dim0: usize,
+            _dim1: usize,
+            _dim2: usize,
+            _dim3: usize,
+            _output: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            Err(RuntimeError::Backend(String::from(
+                "cuda quantized text-generation kernels require Linux CUDA support",
+            )))
+        }
+
+        pub(super) fn encode_reduce_sum_rows_f32(
+            &mut self,
+            _input: &PlatformBuffer,
+            _row_count: usize,
+            _column_count: usize,
+            _output: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            Err(RuntimeError::Backend(String::from(
+                "cuda quantized text-generation kernels require Linux CUDA support",
+            )))
+        }
+
+        pub(super) fn encode_reduce_sum_axis0_f32(
+            &mut self,
+            _input: &PlatformBuffer,
+            _axis0_extent: usize,
+            _row_width: usize,
+            _output: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            Err(RuntimeError::Backend(String::from(
+                "cuda quantized text-generation kernels require Linux CUDA support",
+            )))
+        }
+
         #[allow(clippy::too_many_arguments)]
         pub(super) fn encode_attention_decode_rope_cache(
             &mut self,
@@ -11488,6 +11884,122 @@ mod tests {
             })
             .collect::<Vec<_>>();
         assert_close(&output.read_f32()?, &expected, 1e-5);
+        Ok(())
+    }
+
+    #[test]
+    fn cuda_backend_executes_bounded_permute_graphs_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let mut backend = CudaBackend::new();
+        let Some(selected) = backend.selected_device().cloned() else {
+            assert_eq!(backend.health().status, HealthStatus::Offline);
+            return Ok(());
+        };
+
+        let rank2_shape = Shape::new(vec![2, 3]);
+        let rank4_shape = Shape::new(vec![1, 2, 3, 2]);
+        let rank2_values = vec![0.0_f32, 1.0, 2.0, 3.0, 4.0, 5.0];
+        let rank4_values = (0..12).map(|value| value as f32).collect::<Vec<_>>();
+
+        let mut builder = GraphBuilder::new(selected.device.clone());
+        let rank2 = builder.input("rank2", rank2_shape.clone(), DType::F32);
+        let rank4 = builder.input("rank4", rank4_shape.clone(), DType::F32);
+        let transposed = builder.permute(&rank2, vec![1, 0])?;
+        let swapped = builder.permute(&rank4, vec![0, 2, 1, 3])?;
+        let graph = builder.finish(vec![transposed.clone(), swapped.clone()]);
+
+        let inputs = std::collections::BTreeMap::from([
+            (
+                rank2.id(),
+                backend.input_buffer(rank2_shape, rank2_values.clone())?,
+            ),
+            (
+                rank4.id(),
+                backend.input_buffer(rank4_shape, rank4_values.clone())?,
+            ),
+        ]);
+        let result = backend.compile_and_execute(&graph, &inputs)?;
+        let expected = evaluate_graph(
+            &graph,
+            &std::collections::BTreeMap::from([
+                (rank2.id(), TensorData::F32(rank2_values)),
+                (rank4.id(), TensorData::F32(rank4_values)),
+            ]),
+        )?;
+
+        assert_close(
+            &result
+                .outputs
+                .get(&transposed.id())
+                .ok_or("missing transposed output")?
+                .read_f32()?,
+            expected
+                .get(&transposed.id())
+                .ok_or("missing expected transposed output")?
+                .as_f32_slice()
+                .ok_or("expected transposed output is not f32")?,
+            1e-5,
+        );
+        assert_close(
+            &result
+                .outputs
+                .get(&swapped.id())
+                .ok_or("missing swapped output")?
+                .read_f32()?,
+            expected
+                .get(&swapped.id())
+                .ok_or("missing expected swapped output")?
+                .as_f32_slice()
+                .ok_or("expected swapped output is not f32")?,
+            1e-5,
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn cuda_backend_executes_bounded_reduce_sum_graphs_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let mut backend = CudaBackend::new();
+        let Some(selected) = backend.selected_device().cloned() else {
+            assert_eq!(backend.health().status, HealthStatus::Offline);
+            return Ok(());
+        };
+
+        let input_shape = Shape::new(vec![2, 3]);
+        let input_values = vec![1.0_f32, 2.0, 3.0, 4.0, 5.0, 6.0];
+
+        let mut builder = GraphBuilder::new(selected.device.clone());
+        let input = builder.input("input", input_shape.clone(), DType::F32);
+        let full = builder.reduce_sum(&input);
+        let axis0 = builder.reduce_sum_axis(&input, 0)?;
+        let axis1 = builder.reduce_sum_axis(&input, 1)?;
+        let graph = builder.finish(vec![full.clone(), axis0.clone(), axis1.clone()]);
+
+        let inputs = std::collections::BTreeMap::from([(
+            input.id(),
+            backend.input_buffer(input_shape, input_values.clone())?,
+        )]);
+        let result = backend.compile_and_execute(&graph, &inputs)?;
+        let expected = evaluate_graph(
+            &graph,
+            &std::collections::BTreeMap::from([(input.id(), TensorData::F32(input_values))]),
+        )?;
+
+        for tensor in [&full, &axis0, &axis1] {
+            assert_close(
+                &result
+                    .outputs
+                    .get(&tensor.id())
+                    .ok_or("missing reduce_sum output")?
+                    .read_f32()?,
+                expected
+                    .get(&tensor.id())
+                    .ok_or("missing expected reduce_sum output")?
+                    .as_f32_slice()
+                    .ok_or("expected reduce_sum output is not f32")?,
+                1e-5,
+            );
+        }
         Ok(())
     }
 

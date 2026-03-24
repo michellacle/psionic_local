@@ -635,6 +635,70 @@ int psionic_cuda_rotary_embedding_backward(
     return 1;
 }
 
+int psionic_cuda_permute_rank2_transpose_f32(
+    const void *input,
+    int rows,
+    int cols,
+    void *output,
+    void *stream
+) {
+    (void)input;
+    (void)rows;
+    (void)cols;
+    (void)output;
+    (void)stream;
+    return 1;
+}
+
+int psionic_cuda_permute_rank4_swap_middle_axes_f32(
+    const void *input,
+    int dim0,
+    int dim1,
+    int dim2,
+    int dim3,
+    void *output,
+    void *stream
+) {
+    (void)input;
+    (void)dim0;
+    (void)dim1;
+    (void)dim2;
+    (void)dim3;
+    (void)output;
+    (void)stream;
+    return 1;
+}
+
+int psionic_cuda_reduce_sum_rows_f32(
+    const void *input,
+    int row_count,
+    int column_count,
+    void *output,
+    void *stream
+) {
+    (void)input;
+    (void)row_count;
+    (void)column_count;
+    (void)output;
+    (void)stream;
+    return 1;
+}
+
+int psionic_cuda_reduce_sum_axis0_f32(
+    const void *input,
+    int axis0_extent,
+    int row_width,
+    void *output,
+    void *stream
+) {
+    (void)input;
+    (void)axis0_extent;
+    (void)row_width;
+    (void)output;
+    (void)stream;
+    return 1;
+}
+
 int psionic_cuda_attention_decode_rope_cache(
     const void *qkv,
     int query_offset,
