@@ -144,6 +144,11 @@ enum ReduceSumCudaStrategy {
         axis0_extent: usize,
         row_width: usize,
     },
+    Axis1Rank3 {
+        dim0: usize,
+        dim1: usize,
+        dim2: usize,
+    },
 }
 
 /// Returns the device scratch-buffer size for contiguous GGML `Q8_1` rows.
@@ -1395,6 +1400,26 @@ impl CudaSubmission {
             &input.platform,
             axis0_extent,
             row_width,
+            &output.platform,
+        )?;
+        self.encoded_operations += 1;
+        Ok(())
+    }
+
+    /// Reduces a contiguous rank-3 `f32` tensor across axis `1` on CUDA.
+    pub fn reduce_sum_axis1_rank3_f32(
+        &mut self,
+        input: &CudaBuffer,
+        output: &CudaBuffer,
+        dim0: usize,
+        dim1: usize,
+        dim2: usize,
+    ) -> Result<(), RuntimeError> {
+        self.platform.encode_reduce_sum_axis1_rank3_f32(
+            &input.platform,
+            dim0,
+            dim1,
+            dim2,
             &output.platform,
         )?;
         self.encoded_operations += 1;
@@ -4128,6 +4153,13 @@ impl AvailableCudaBackend {
                                 )?;
                                 output
                             }
+                            Some(ReduceSumCudaStrategy::Axis1Rank3 { dim0, dim1, dim2 }) => {
+                                let output = self.allocate(&step.spec)?;
+                                submission.reduce_sum_axis1_rank3_f32(
+                                    input, &output, dim0, dim1, dim2,
+                                )?;
+                                output
+                            }
                             None => execute_profiled_host_fallback(
                                 &mut host_fallback_profile,
                                 step,
@@ -6189,6 +6221,11 @@ fn reduce_sum_cuda_strategy(
             axis0_extent: input_shape[0],
             row_width: total_elements / input_shape[0],
         }),
+        Some(1) if input_shape.len() == 3 => Some(ReduceSumCudaStrategy::Axis1Rank3 {
+            dim0: input_shape[0],
+            dim1: input_shape[1],
+            dim2: input_shape[2],
+        }),
         Some(_) => None,
     }
 }
@@ -6931,6 +6968,14 @@ mod platform {
             input: *const c_void,
             axis0_extent: c_int,
             row_width: c_int,
+            output: *mut c_void,
+            stream: CudaStream,
+        ) -> CudaError;
+        fn psionic_cuda_reduce_sum_axis1_rank3_f32(
+            input: *const c_void,
+            dim0: c_int,
+            dim1: c_int,
+            dim2: c_int,
             output: *mut c_void,
             stream: CudaStream,
         ) -> CudaError;
@@ -9076,6 +9121,39 @@ mod platform {
                     )
                 },
                 "psionic_cuda_reduce_sum_axis0_f32",
+            )
+        }
+
+        pub(super) fn encode_reduce_sum_axis1_rank3_f32(
+            &mut self,
+            input: &PlatformBuffer,
+            dim0: usize,
+            dim1: usize,
+            dim2: usize,
+            output: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            let dim0 = c_int::try_from(dim0).map_err(|_| {
+                RuntimeError::Backend(String::from("cuda reduce_sum axis1 dim0 exceeds c_int"))
+            })?;
+            let dim1 = c_int::try_from(dim1).map_err(|_| {
+                RuntimeError::Backend(String::from("cuda reduce_sum axis1 dim1 exceeds c_int"))
+            })?;
+            let dim2 = c_int::try_from(dim2).map_err(|_| {
+                RuntimeError::Backend(String::from("cuda reduce_sum axis1 dim2 exceeds c_int"))
+            })?;
+            self.runtime.set_device()?;
+            self.runtime.check(
+                unsafe {
+                    psionic_cuda_reduce_sum_axis1_rank3_f32(
+                        input.inner.device_ptr.cast(),
+                        dim0,
+                        dim1,
+                        dim2,
+                        output.inner.device_ptr.cast(),
+                        self.stream,
+                    )
+                },
+                "psionic_cuda_reduce_sum_axis1_rank3_f32",
             )
         }
 
@@ -11514,6 +11592,19 @@ mod platform {
             )))
         }
 
+        pub(super) fn encode_reduce_sum_axis1_rank3_f32(
+            &mut self,
+            _input: &PlatformBuffer,
+            _dim0: usize,
+            _dim1: usize,
+            _dim2: usize,
+            _output: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            Err(RuntimeError::Backend(String::from(
+                "cuda quantized text-generation kernels require Linux CUDA support",
+            )))
+        }
+
         pub(super) fn encode_expand_rank3_f32(
             &mut self,
             _input: &PlatformBuffer,
@@ -12639,25 +12730,43 @@ mod tests {
 
         let input_shape = Shape::new(vec![2, 3]);
         let input_values = vec![1.0_f32, 2.0, 3.0, 4.0, 5.0, 6.0];
+        let rank3_shape = Shape::new(vec![2, 4, 3]);
+        let rank3_values = (1..=24).map(|value| value as f32).collect::<Vec<_>>();
 
         let mut builder = GraphBuilder::new(selected.device.clone());
         let input = builder.input("input", input_shape.clone(), DType::F32);
+        let rank3 = builder.input("rank3", rank3_shape.clone(), DType::F32);
         let full = builder.reduce_sum(&input);
         let axis0 = builder.reduce_sum_axis(&input, 0)?;
         let axis1 = builder.reduce_sum_axis(&input, 1)?;
-        let graph = builder.finish(vec![full.clone(), axis0.clone(), axis1.clone()]);
+        let rank3_axis1 = builder.reduce_sum_axis(&rank3, 1)?;
+        let graph = builder.finish(vec![
+            full.clone(),
+            axis0.clone(),
+            axis1.clone(),
+            rank3_axis1.clone(),
+        ]);
 
-        let inputs = std::collections::BTreeMap::from([(
-            input.id(),
-            backend.input_buffer(input_shape, input_values.clone())?,
-        )]);
+        let inputs = std::collections::BTreeMap::from([
+            (
+                input.id(),
+                backend.input_buffer(input_shape, input_values.clone())?,
+            ),
+            (
+                rank3.id(),
+                backend.input_buffer(rank3_shape, rank3_values.clone())?,
+            ),
+        ]);
         let result = backend.compile_and_execute(&graph, &inputs)?;
         let expected = evaluate_graph(
             &graph,
-            &std::collections::BTreeMap::from([(input.id(), TensorData::F32(input_values))]),
+            &std::collections::BTreeMap::from([
+                (input.id(), TensorData::F32(input_values)),
+                (rank3.id(), TensorData::F32(rank3_values)),
+            ]),
         )?;
 
-        for tensor in [&full, &axis0, &axis1] {
+        for tensor in [&full, &axis0, &axis1, &rank3_axis1] {
             assert_close(
                 &result
                     .outputs

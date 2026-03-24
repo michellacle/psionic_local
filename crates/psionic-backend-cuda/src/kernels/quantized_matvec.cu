@@ -1695,6 +1695,28 @@ __global__ void reduce_sum_axis0_f32_kernel(
     output[index] = sum;
 }
 
+__global__ void reduce_sum_axis1_rank3_f32_kernel(
+    const float *input,
+    int dim0,
+    int dim1,
+    int dim2,
+    float *output
+) {
+    const int index = blockIdx.x * blockDim.x + threadIdx.x;
+    const int total = dim0 * dim2;
+    if (index >= total) {
+        return;
+    }
+    const int i2 = index % dim2;
+    const int i0 = index / dim2;
+    const int base = i0 * dim1 * dim2 + i2;
+    float sum = 0.0f;
+    for (int i1 = 0; i1 < dim1; ++i1) {
+        sum += input[base + i1 * dim2];
+    }
+    output[index] = sum;
+}
+
 __global__ void expand_rank3_f32_kernel(
     const float *input,
     int input_dim0,
@@ -5335,6 +5357,34 @@ extern "C" int psionic_cuda_reduce_sum_axis0_f32(
         static_cast<const float *>(input),
         axis0_extent,
         row_width,
+        static_cast<float *>(output)
+    );
+    return static_cast<int>(cudaGetLastError());
+}
+
+extern "C" int psionic_cuda_reduce_sum_axis1_rank3_f32(
+    const void *input,
+    int dim0,
+    int dim1,
+    int dim2,
+    void *output,
+    void *stream
+) {
+    if (dim0 <= 0 || dim1 <= 0 || dim2 <= 0) {
+        return static_cast<int>(cudaErrorInvalidValue);
+    }
+    const int total = dim0 * dim2;
+    const int blocks = (total + kBlockSize - 1) / kBlockSize;
+    reduce_sum_axis1_rank3_f32_kernel<<<
+        blocks,
+        kBlockSize,
+        0,
+        static_cast<cudaStream_t>(stream)
+    >>>(
+        static_cast<const float *>(input),
+        dim0,
+        dim1,
+        dim2,
         static_cast<float *>(output)
     );
     return static_cast<int>(cudaGetLastError());

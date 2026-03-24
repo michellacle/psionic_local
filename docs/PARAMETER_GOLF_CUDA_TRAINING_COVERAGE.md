@@ -174,6 +174,7 @@ the same bounded public lane before the next H100 rerun:
   - full reduction
   - first-axis reduction
   - last-axis reduction
+  - rank-3 middle-axis reduction
 - bounded CUDA kernels now also execute the dominant PGOLF contiguous `expand`
   broadcasts directly on-device:
   - rank-3 `[1, 1, model_dim] -> [batch, seq, model_dim]`
@@ -204,6 +205,10 @@ the same bounded public lane before the next H100 rerun:
 - fresh local profiled permute and reduce-sum execution tests on the RTX 4080
   leave the fallback profile sink at `0` bytes, so those bounded shapes no
   longer touch the host-fallback surface at all
+- the CUDA host-fallback profile sink now emits
+  `psionic_cuda_host_fallback_profile_v2`, which preserves per-op totals plus
+  the concrete op-detail, output-shape, and output-dtype cases inside each
+  fallback family for later H100 reruns
 
 That 4080 slice is not an H100 benchmark receipt and does not close `#470` by
 itself, but it does mean the next H100 profile will measure the narrowed
