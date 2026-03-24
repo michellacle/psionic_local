@@ -1,8 +1,8 @@
 # Parameter Golf RunPod 8xH100 Runbook
 
 > Status: canonical bounded RunPod operator runbook for the Parameter Golf
-> `8xH100` lane, written on 2026-03-23 after the repo-owned launch profile,
-> operator preflight, manifest-only launcher, and finalizer contract landed.
+> `8xH100` lane, updated 2026-03-24 after the repo-owned launch profile,
+> operator preflight, SSH-capable launcher, and finalizer contract landed.
 
 This runbook defines the current honest RunPod posture for the Parameter Golf
 distributed `8xH100` lane.
@@ -20,7 +20,7 @@ record-track claim.
   `fixtures/parameter_golf/runpod/parameter_golf_runpod_8xh100_cost_guardrails_v1.json`
 - operator preflight wrapper:
   `scripts/parameter-golf-runpod-operator-preflight.sh`
-- manifest-only launcher:
+- SSH-capable launcher with manifest-only rehearsal mode:
   `scripts/parameter-golf-runpod-launch-8xh100.sh`
 - distributed-evidence finalizer:
   `scripts/parameter-golf-runpod-finalize-8xh100.sh`
@@ -59,7 +59,11 @@ The profile also keeps the operator assumptions explicit:
 
 ## Execution Posture
 
-The committed manifest is explicit about three separate operator phases:
+The committed launcher is explicit about four separate operator phases:
+
+- remote preflight:
+  prove SSH reachability, preserve the launch manifest in the remote run root,
+  verify the required command inventory, and snapshot `nvidia-smi`
 
 - pre-training:
   validate the workspace contract, bind the immutable PGOLF input descriptor,
@@ -72,6 +76,21 @@ The committed manifest is explicit about three separate operator phases:
   run root, capture `nvidia-smi` inventory and `nvidia-smi topo -m`, then seal
   the provider-neutral remote-training visualization bundle and run index under
   one machine-readable finalizer report
+
+The launcher now also preserves the remote operator surface itself under one
+machine-readable launch receipt plus per-phase logs:
+
+- `parameter_golf_runpod_8xh100_launch_manifest.json`
+- `parameter_golf_runpod_8xh100_launch_receipt.json`
+- `remote_preflight.log`
+- `pre_training.log`
+- `execution.log`
+- `finalizer.log`
+
+This means later real `8xH100` runs can retain not only the exported-folder
+evidence and finalizer outputs, but also the exact remote phase boundary,
+phase commands, and per-phase exit results from the launcher that drove the
+pod.
 
 When a real distributed receipt already exists in the run root, the finalizer
 now passes that exact receipt into the exported-folder evidence generator rather
@@ -106,8 +125,8 @@ That rehearsal verifies:
   are internally consistent
 - the preflight accepts the RunPod `8xH100` profile locally
 - the manifest-only launcher emits a launch manifest that preserves the public
-  `WORLD_SIZE=8` posture, the immutable input descriptor, and the finalizer
-  contract
+  `WORLD_SIZE=8` posture, the immutable input descriptor, the launch-receipt
+  paths, and the finalizer contract
 
 ## Honest Boundary
 
@@ -121,6 +140,7 @@ This runbook does not claim:
 It closes one narrower but important thing:
 
 - the repo now owns one explicit RunPod `8xH100` operator lane with a
-  committed profile, preflight, manifest-only launcher, finalizer contract,
-  and app-facing visualization bundle family that later real hardware runs can
-  reuse without redefining the operator surface from scratch
+  committed profile, preflight, SSH-capable launcher with manifest-only
+  rehearsal mode, launch receipt, finalizer contract, and app-facing
+  visualization bundle family that later real hardware runs can reuse without
+  redefining the operator surface from scratch

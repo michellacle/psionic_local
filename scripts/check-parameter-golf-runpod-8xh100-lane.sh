@@ -87,6 +87,10 @@ if topology.get("world_size") != 8:
 if topology.get("grad_accum_steps") != 1:
     fail("launch manifest lost grad_accum_steps=1")
 
+launcher = manifest.get("launcher") or {}
+if launcher.get("manifest_only") is not True:
+    fail("launch manifest lost manifest_only=true during rehearsal")
+
 commands = manifest.get("commands") or {}
 if "python3 train_gpt.py" not in (commands.get("execution_entrypoint_command") or ""):
     fail("launch manifest execution entrypoint no longer uses the exported folder surface")
@@ -96,6 +100,10 @@ if "parameter-golf-runpod-finalize-8xh100.sh" not in (commands.get("finalizer_co
 receipts = manifest.get("expected_receipt_paths") or []
 if not any("nvidia_smi_inventory.txt" in path for path in receipts):
     fail("launch manifest no longer preserves GPU inventory evidence")
+if not any("parameter_golf_runpod_8xh100_launch_manifest.json" in path for path in receipts):
+    fail("launch manifest no longer preserves the remote launch manifest")
+if not any("parameter_golf_runpod_8xh100_launch_receipt.json" in path for path in receipts):
+    fail("launch manifest no longer preserves the remote launch receipt")
 if not any("parameter_golf_distributed_8xh100_receipt.json" in path for path in receipts):
     fail("launch manifest no longer preserves the distributed challenge receipt mirror")
 if not any("psionic_parameter_golf_submission_run_evidence.json" in path for path in receipts):
@@ -119,6 +127,8 @@ report = {
     "execution_entrypoint_command": commands["execution_entrypoint_command"],
     "finalizer_command": commands["finalizer_command"],
     "manifest_only_launch_supported": manifest["manifest_only"],
+    "remote_launch_supported": True,
+    "stop_after_phase_options": ["remote_preflight", "pre_training", "execution", "finalize"],
 }
 report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
 print(json.dumps(report, indent=2))
