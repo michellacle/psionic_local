@@ -71,6 +71,10 @@ The committed manifest is explicit about three separate operator phases:
   the provider-neutral remote-training visualization bundle and run index under
   one machine-readable finalizer report
 
+When a real distributed receipt already exists in the run root, the finalizer
+now passes that exact receipt into the exported-folder evidence generator rather
+than regenerating a synthetic `MeasurementsMissing` refusal from posture alone.
+
 This is intentional. `#460` closes the RunPod lane definition and rehearsal,
 not the later real `8xH100` evidence bundle.
 

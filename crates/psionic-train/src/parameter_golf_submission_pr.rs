@@ -26,7 +26,7 @@ use psionic_eval::{
 use psionic_ir::GraphError;
 use psionic_models::{ParameterGolfModelError, ParameterGolfReferenceModel};
 use psionic_runtime::{
-    BackendSelection, ClusterCommunicationClass, ClusterExecutionCapabilityProfile,
+    BackendSelection, BackendSelectionState, ClusterCommunicationClass, ClusterExecutionCapabilityProfile,
     ClusterTransportClass, DeviceDescriptor, ExecutionTopologyPlan, NvidiaDeviceMetadata,
     NvidiaRecoveryAction, NvidiaRecoveryProfile, NvidiaRiskLevel, NvidiaRiskProfile,
     NvidiaTopologyInfo, ServedProductBackendPolicy, ServedProductFallbackTrigger,
@@ -569,6 +569,8 @@ pub enum ParameterGolfSubmissionPrError {
     MissingArtifact { path: String },
     #[error("unknown accounting component `{component_id}` in the current replay verifier")]
     UnknownAccountingComponent { component_id: String },
+    #[error("invalid distributed challenge receipt: {message}")]
+    InvalidDistributedChallengeReceipt { message: String },
     #[error("invalid parameter golf train.log: {message}")]
     InvalidTrainLog { message: String },
     #[error("command `{command}` failed with exit code {exit_code:?}: {stderr}")]
@@ -625,6 +627,21 @@ pub fn build_parameter_golf_submission_run_evidence_report(
     submission_dir: &Path,
     posture: &ParameterGolfSubmissionChallengeExecutionPosture,
 ) -> Result<ParameterGolfSubmissionRunEvidenceReport, ParameterGolfSubmissionPrError> {
+    build_parameter_golf_submission_run_evidence_report_with_distributed_receipt(
+        submission_dir,
+        posture,
+        None,
+    )
+}
+
+/// Builds the exported-submission evidence report for one submission folder,
+/// optionally binding one pre-measured distributed `8xH100` receipt into the
+/// challenge-facing evidence surface.
+pub fn build_parameter_golf_submission_run_evidence_report_with_distributed_receipt(
+    submission_dir: &Path,
+    posture: &ParameterGolfSubmissionChallengeExecutionPosture,
+    distributed_receipt_override: Option<&ParameterGolfDistributedThroughputReceipt>,
+) -> Result<ParameterGolfSubmissionRunEvidenceReport, ParameterGolfSubmissionPrError> {
     let loaded_before = load_submission_folder(submission_dir)?;
     let exit_code = execute_submission_entrypoint(submission_dir)?;
     let loaded = load_submission_folder(submission_dir)?;
@@ -636,11 +653,21 @@ pub fn build_parameter_golf_submission_run_evidence_report(
                 .clone(),
         }
     })?;
-    let distributed_receipt = build_exported_submission_distributed_receipt(&loaded, posture)?;
+    let distributed_receipt = build_exported_submission_distributed_receipt(
+        &loaded,
+        posture,
+        distributed_receipt_override,
+    )?;
     let claim_boundary = if posture.posture_id == "runpod_single_node_8xh100" {
-        String::from(
-            "This report binds the exact exported submission folder to one real folder-local entrypoint replay on challenge-matching RunPod 8xH100 inventory, the preserved bounded wallclock/memory/artifact receipts, and one explicit 8xH100 challenge receipt. The exported entrypoint replay still lacks distributed timing and memory measurements, so the challenge receipt remains a measurements-missing refusal rather than true 8xH100 training success.",
-        )
+        if distributed_receipt.disposition == ParameterGolfDistributedLaneDisposition::Measured {
+            String::from(
+                "This report binds the exact exported submission folder to one real folder-local entrypoint replay on challenge-matching RunPod 8xH100 inventory, the preserved bounded wallclock/memory/artifact receipts, and one measured 8xH100 distributed challenge receipt gathered from real execution evidence.",
+            )
+        } else {
+            String::from(
+                "This report binds the exact exported submission folder to one real folder-local entrypoint replay on challenge-matching RunPod 8xH100 inventory, the preserved bounded wallclock/memory/artifact receipts, and one explicit 8xH100 challenge receipt. The exported entrypoint replay still lacks distributed timing and memory measurements, so the challenge receipt remains a measurements-missing refusal rather than true 8xH100 training success.",
+            )
+        }
     } else {
         String::from(
             "This report binds the exact exported submission folder to one real folder-local entrypoint replay, the preserved bounded wallclock/memory/artifact receipts, and one measured-or-refused 8xH100 challenge receipt. The committed evidence is still a local review-host refusal rather than true 8xH100 success.",
@@ -1099,7 +1126,12 @@ pub fn write_parameter_golf_local_clone_dry_run_report(
 fn build_exported_submission_distributed_receipt(
     loaded: &LoadedParameterGolfSubmissionFolder,
     posture: &ParameterGolfSubmissionChallengeExecutionPosture,
+    distributed_receipt_override: Option<&ParameterGolfDistributedThroughputReceipt>,
 ) -> Result<ParameterGolfDistributedThroughputReceipt, ParameterGolfSubmissionPrError> {
+    if let Some(receipt) = distributed_receipt_override {
+        validate_distributed_receipt_matches_posture(receipt, posture)?;
+        return Ok(receipt.clone());
+    }
     let model = ParameterGolfReferenceModel::baseline_fixture(Default::default())?;
     let hyperparameters = crate::ParameterGolfTrainingHyperparameters::baseline_defaults();
     let thresholds = ParameterGolfDistributedChallengeThresholds::challenge_8xh100();
@@ -1235,6 +1267,48 @@ fn build_exported_submission_distributed_receipt(
         receipt_digest: String::new(),
     }
     .with_stable_digest())
+}
+
+fn validate_distributed_receipt_matches_posture(
+    receipt: &ParameterGolfDistributedThroughputReceipt,
+    posture: &ParameterGolfSubmissionChallengeExecutionPosture,
+) -> Result<(), ParameterGolfSubmissionPrError> {
+    if receipt.benchmark_ref != PARAMETER_GOLF_DISTRIBUTED_8XH100_BENCHMARK_REF {
+        return Err(ParameterGolfSubmissionPrError::InvalidDistributedChallengeReceipt {
+            message: format!(
+                "benchmark_ref `{}` does not match the canonical distributed lane `{}`",
+                receipt.benchmark_ref, PARAMETER_GOLF_DISTRIBUTED_8XH100_BENCHMARK_REF
+            ),
+        });
+    }
+    let posture_device_names = posture
+        .devices
+        .iter()
+        .map(|device| {
+            device
+                .device_name
+                .clone()
+                .unwrap_or_else(|| String::from("unknown"))
+        })
+        .collect::<Vec<_>>();
+    if receipt.topology.selected_device_names != posture_device_names {
+        return Err(ParameterGolfSubmissionPrError::InvalidDistributedChallengeReceipt {
+            message: format!(
+                "receipt selected_device_names {:?} do not match posture device names {:?}",
+                receipt.topology.selected_device_names, posture_device_names
+            ),
+        });
+    }
+    if receipt.topology.backend_selection.selection_state == BackendSelectionState::Refused
+        && receipt.disposition == ParameterGolfDistributedLaneDisposition::Measured
+    {
+        return Err(ParameterGolfSubmissionPrError::InvalidDistributedChallengeReceipt {
+            message: String::from(
+                "a measured distributed receipt must not carry a refused backend selection",
+            ),
+        });
+    }
+    Ok(())
 }
 
 fn load_submission_folder(
@@ -1793,9 +1867,17 @@ fn stable_digest<T: Serialize>(prefix: &[u8], value: &T) -> String {
 mod tests {
     use std::{error::Error, fs, path::PathBuf, process::Command};
 
+    use psionic_models::ParameterGolfReferenceModel;
+
+    use crate::{
+        benchmark_parameter_golf_distributed_8xh100, ParameterGolfDistributed8xH100Config,
+        ParameterGolfDistributedStepObservation, ParameterGolfTrainingHyperparameters,
+    };
+
     use super::{
         build_parameter_golf_record_folder_replay_verification_report,
         build_parameter_golf_submission_run_evidence_report,
+        build_parameter_golf_submission_run_evidence_report_with_distributed_receipt,
         parameter_golf_final_pr_bundle_report_path,
         parameter_golf_record_folder_replay_verification_report_path,
         parameter_golf_submission_run_evidence_report_path, read_repo_json, repo_root,
@@ -1814,6 +1896,27 @@ mod tests {
         PARAMETER_GOLF_RECORD_FOLDER_REPLAY_VERIFICATION_REPORT_REF,
         PARAMETER_GOLF_SUBMISSION_RUN_EVIDENCE_REPORT_REF,
     };
+
+    fn measured_runpod_distributed_receipt(
+        posture: &ParameterGolfSubmissionChallengeExecutionPosture,
+    ) -> Result<psionic_eval::ParameterGolfDistributedThroughputReceipt, Box<dyn Error>> {
+        let mut config = ParameterGolfDistributed8xH100Config::challenge_defaults();
+        config.run_id = String::from("parameter-golf-runpod-8xh100-measured-test");
+        config.step_observations = vec![
+            ParameterGolfDistributedStepObservation::new(1, 0, 35, 524_288),
+            ParameterGolfDistributedStepObservation::new(2, 35, 72, 524_288),
+        ];
+        config.validation_observed_ms = 180_000;
+        config.export_observed_ms = 15_000;
+        let model = ParameterGolfReferenceModel::baseline_fixture(Default::default())?;
+        Ok(benchmark_parameter_golf_distributed_8xh100(
+            model.descriptor(),
+            &ParameterGolfTrainingHyperparameters::baseline_defaults(),
+            posture.devices.as_slice(),
+            &posture.capability_profile,
+            &config,
+        )?)
+    }
 
     #[test]
     fn parameter_golf_submission_run_evidence_report_matches_committed_truth(
@@ -1864,6 +1967,29 @@ mod tests {
         assert!(generated
             .claim_boundary
             .contains("challenge-matching RunPod 8xH100 inventory"));
+        Ok(())
+    }
+
+    #[test]
+    fn runpod_8xh100_posture_accepts_one_measured_distributed_receipt(
+    ) -> Result<(), Box<dyn Error>> {
+        let temp_dir = tempfile::tempdir()?;
+        let submission_dir = write_canonical_submission_folder(temp_dir.path())?;
+        let posture = ParameterGolfSubmissionChallengeExecutionPosture::runpod_8xh100_defaults();
+        let distributed_receipt = measured_runpod_distributed_receipt(&posture)?;
+        let generated = build_parameter_golf_submission_run_evidence_report_with_distributed_receipt(
+            &submission_dir,
+            &posture,
+            Some(&distributed_receipt),
+        )?;
+        assert_eq!(
+            generated.distributed_challenge_receipt.disposition,
+            ParameterGolfDistributedLaneDisposition::Measured
+        );
+        assert!(generated.distributed_challenge_receipt.refusal.is_none());
+        assert!(generated
+            .claim_boundary
+            .contains("measured 8xH100 distributed challenge receipt"));
         Ok(())
     }
 

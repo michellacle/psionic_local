@@ -80,9 +80,15 @@ manifest_path="${submission_dir}/submission.json"
 run_evidence_path="${submission_dir}/psionic_parameter_golf_submission_run_evidence.json"
 
 if [[ ! -f "${run_evidence_path}" ]]; then
-  cargo run -q -p psionic-train --example parameter_golf_submission_run_evidence \
-    --manifest-path "${repo_root}/crates/psionic-train/Cargo.toml" \
+  run_evidence_cmd=(
+    cargo run -q -p psionic-train --example parameter_golf_submission_run_evidence
+    --manifest-path "${repo_root}/crates/psionic-train/Cargo.toml"
     -- "${submission_dir}" "${run_evidence_path}" --posture runpod_8xh100
+  )
+  if [[ -f "${distributed_receipt_path}" ]]; then
+    run_evidence_cmd+=(--distributed-receipt "${distributed_receipt_path}")
+  fi
+  "${run_evidence_cmd[@]}"
 fi
 
 python3 - "${run_evidence_path}" "${distributed_receipt_path}" <<'PY'

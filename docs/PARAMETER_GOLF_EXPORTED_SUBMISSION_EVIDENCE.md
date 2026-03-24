@@ -103,6 +103,17 @@ cargo run -p psionic-train --example parameter_golf_submission_run_evidence \
   --posture runpod_8xh100
 ```
 
+Bind the same exported folder to a real measured distributed receipt from the
+RunPod `8xH100` lane:
+
+```bash
+cargo run -p psionic-train --example parameter_golf_submission_run_evidence \
+  /tmp/records/track_non_record_16mb/<submission_id> \
+  /tmp/parameter_golf_submission_run_evidence.json \
+  --posture runpod_8xh100 \
+  --distributed-receipt /tmp/parameter_golf_distributed_8xh100_receipt.json
+```
+
 ## Current Honest Boundary
 
 These reports close exported-folder evidence and replay verification only.
@@ -118,5 +129,7 @@ The current committed challenge receipt is still a refusal on the local
 single-`RTX 4080` review host. The later RunPod `8xH100` posture now binds the
 same exported folder to challenge-matching inventory, but it still records a
 measurements-missing refusal until real distributed timing and memory evidence
-lands. That is intentional: the point of this layer is to make the folder-
-facing evidence and refusal posture explicit rather than implied.
+lands. When a real distributed receipt exists, the same report surface can now
+embed it directly instead of regenerating a synthetic refusal. That is
+intentional: the point of this layer is to make the folder-facing evidence and
+refusal posture explicit rather than implied.
