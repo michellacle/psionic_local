@@ -8,7 +8,8 @@
 This document records the current honest trainer posture for the Psionic
 Parameter Golf single-H100 lane.
 
-It is narrower than a Google lane, `8xH100`, or record-track claim.
+It is narrower than the real `8xH100` record lane, but it now follows the
+same public single-device control-loop shape as `train_gpt.py` by default.
 
 ## What Landed
 
@@ -23,19 +24,20 @@ It is narrower than a Google lane, `8xH100`, or record-track claim.
 
 That means the repo now owns one real Rust entrypoint for the public
 single-device baseline path rather than only the narrower bring-up seam and the
-bounded local-reference trainer.
+older bounded local-reference trainer.
 
 ## Command
 
 The binary defaults to the local `~/code/parameter-golf` clone paths from the
-public README:
+public README and now enters the widened challenge-style control loop when no
+explicit step cap is passed:
 
 ```bash
 cargo run -q -p psionic-train --bin parameter_golf_single_h100_train
 ```
 
 You can also pass the explicit cached-dataset and tokenizer paths, an output
-report path, and a bounded step count:
+report path, and an explicit bounded proof step count:
 
 ```bash
 cargo run -q -p psionic-train --bin parameter_golf_single_h100_train -- \
@@ -45,8 +47,20 @@ cargo run -q -p psionic-train --bin parameter_golf_single_h100_train -- \
   1
 ```
 
-The first proof path intentionally keeps `max_steps=1` while preserving the
-real challenge single-device geometry and final validation contract.
+Passing the final positional step count selects the old bounded proof posture:
+
+- `warmup_steps=0`
+- `validation_loss_every=0`
+- `train_log_every=1`
+- no wallclock stop cap
+
+Omitting that positional step count selects the widened baseline posture:
+
+- `max_steps=20_000`
+- `warmup_steps=20`
+- `validation_loss_every=1000`
+- `train_log_every=200`
+- `max_wallclock_seconds=600`
 
 ## Data Setup
 
@@ -76,12 +90,16 @@ The command is explicit about what it treats as trainer truth. It binds:
 - the public single-device batch geometry from
   `ParameterGolfBatchGeometry::challenge_single_device_defaults()`
 - the public baseline `9x512` model contract and optimizer-plan digest
-- one bounded optimizer-step run on CUDA when the machine and CUDA-capability
+- the same single-device warmup-and-restore, repeated-step, periodic
+  validation, train-log, and wallclock-stop control-loop shape the public
+  `train_gpt.py` path uses
+- one measured CUDA training run when the machine and CUDA-capability
   contracts are satisfied
-- final validation loss and `val_bpb` directly from the Psionic path
+- preserved initial, periodic, and final validation receipts directly from the
+  Psionic path
 - post-step int8-plus-zlib artifact bytes, artifact ref, and artifact digest
-- per-step and aggregate phase timings so later profiling work can reuse the
-  same trainer receipt
+- stop reason plus measured warmup, training, validation, and per-step timing
+  receipts so later same-node comparison work can reuse the same trainer report
 
 The report also preserves explicit refusal when:
 
@@ -93,7 +111,7 @@ The report also preserves explicit refusal when:
 
 ## Current Honest Boundary
 
-This command is still a bounded first single-H100 proof rather than a stronger
+This command is still a single-H100 baseline parity step rather than a stronger
 contest claim.
 
 Today the single-H100 trainer doc does **not** claim:
@@ -106,9 +124,11 @@ Today the single-H100 trainer doc does **not** claim:
 Instead, it gives the repo one narrower but important thing:
 
 - a real Rust-owned single-H100 baseline training command that binds the
-  challenge dataset, tokenizer, machine contract, final validation, and
-  compressed-model accounting surfaces into one machine-readable report
+  challenge dataset, tokenizer, machine contract, challenge-style control
+  loop, validation cadence, stop reason, and compressed-model accounting
+  surfaces into one machine-readable report
 
 The narrower machine-admission seam from
 `docs/PARAMETER_GOLF_SINGLE_H100_BRINGUP.md` remains useful, but it is no
-longer the only repo-owned single-H100 entrypoint.
+longer the only repo-owned single-H100 entrypoint, and the old one-step proof
+mode now exists only as an explicit CLI selection for bounded bring-up runs.

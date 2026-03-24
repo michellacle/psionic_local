@@ -12,33 +12,54 @@ fn main() {
 }
 
 fn run() -> Result<(), Box<dyn std::error::Error>> {
-    let dataset_root = env::args()
-        .nth(1)
+    let args = env::args().collect::<Vec<_>>();
+    let dataset_root = args
+        .get(1)
         .map(PathBuf::from)
         .unwrap_or_else(default_dataset_root);
-    let tokenizer_path = env::args()
-        .nth(2)
+    let tokenizer_path = args
+        .get(2)
         .map(PathBuf::from)
         .unwrap_or_else(default_tokenizer_path);
-    let output_path = env::args()
-        .nth(3)
+    let output_path = args
+        .get(3)
         .map(PathBuf::from)
         .unwrap_or_else(|| PathBuf::from("/tmp/parameter_golf_single_h100_training.json"));
-    let max_steps = env::args()
-        .nth(4)
+    let max_steps = args
+        .get(4)
+        .map(String::as_str)
         .map(|value| value.parse::<u64>())
-        .transpose()?
-        .unwrap_or(1);
-    let mut config =
-        ParameterGolfSingleH100TrainingConfig::challenge_defaults(dataset_root, tokenizer_path);
-    config.max_steps = max_steps;
+        .transpose()?;
+    let config = if let Some(max_steps) = max_steps {
+        ParameterGolfSingleH100TrainingConfig::bounded_proof_defaults(
+            dataset_root,
+            tokenizer_path,
+            max_steps,
+        )
+    } else {
+        ParameterGolfSingleH100TrainingConfig::challenge_defaults(dataset_root, tokenizer_path)
+    };
     let report = write_parameter_golf_single_h100_training_report(&output_path, &config)?;
     println!(
-        "wrote {} with disposition {:?} executed_steps={}",
+        "wrote {} with disposition {:?} executed_steps={} stop_reason={:?}",
         output_path.display(),
         report.disposition,
-        report.executed_steps
+        report.executed_steps,
+        report.stop_reason,
     );
+    println!(
+        "warmup_steps={} completed_warmup_steps={} measured_training_time_ms={} validation_checkpoints={}",
+        report.warmup_steps,
+        report.completed_warmup_steps,
+        report.observed_training_time_ms,
+        report.validation_checkpoints.len(),
+    );
+    if let Some(ref initial_validation) = report.initial_validation {
+        println!(
+            "initial_validation val_loss:{:.8} val_bpb:{:.8}",
+            initial_validation.mean_loss, initial_validation.bits_per_byte
+        );
+    }
     for step in &report.step_metrics {
         println!(
             "train_step step:{} train_loss:{:.8} lr_mult:{:.8} muon_momentum:{:.8} windows:{}",

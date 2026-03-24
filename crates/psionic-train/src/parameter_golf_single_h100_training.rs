@@ -57,17 +57,24 @@ pub struct ParameterGolfSingleH100TrainingConfig {
     pub geometry: ParameterGolfBatchGeometry,
     /// Public baseline optimization contract.
     pub hyperparameters: ParameterGolfTrainingHyperparameters,
-    /// Bounded optimizer-step cap for the first Rust-owned single-H100 proof.
+    /// Explicit optimizer-step cap for this run.
     pub max_steps: u64,
+    /// Warmup steps used to prime the runtime before measured training starts.
+    pub warmup_steps: u64,
+    /// Validation cadence in optimizer steps. Zero disables periodic validation.
+    pub validation_loss_every: u64,
+    /// Train-log cadence in optimizer steps. Zero disables train-step summaries.
+    pub train_log_every: u64,
 }
 
 impl ParameterGolfSingleH100TrainingConfig {
-    /// Returns the canonical bounded single-H100 training defaults.
+    /// Returns the canonical challenge-baseline single-H100 training defaults.
     #[must_use]
     pub fn challenge_defaults(
         dataset_root: impl Into<PathBuf>,
         tokenizer_path: impl Into<PathBuf>,
     ) -> Self {
+        let hyperparameters = ParameterGolfTrainingHyperparameters::baseline_defaults();
         Self {
             run_id: String::from("parameter-golf-single-h100-trainer"),
             dataset_root: dataset_root.into(),
@@ -78,9 +85,28 @@ impl ParameterGolfSingleH100TrainingConfig {
             ),
             variant: String::from(PARAMETER_GOLF_SINGLE_H100_VARIANT),
             geometry: ParameterGolfBatchGeometry::challenge_single_device_defaults(),
-            hyperparameters: ParameterGolfTrainingHyperparameters::baseline_defaults(),
-            max_steps: 1,
+            max_steps: hyperparameters.iterations,
+            warmup_steps: 20,
+            validation_loss_every: 1_000,
+            train_log_every: 200,
+            hyperparameters,
         }
+    }
+
+    /// Returns the old explicit bounded proof posture for one short bring-up run.
+    #[must_use]
+    pub fn bounded_proof_defaults(
+        dataset_root: impl Into<PathBuf>,
+        tokenizer_path: impl Into<PathBuf>,
+        max_steps: u64,
+    ) -> Self {
+        let mut config = Self::challenge_defaults(dataset_root, tokenizer_path);
+        config.max_steps = max_steps;
+        config.warmup_steps = 0;
+        config.validation_loss_every = 0;
+        config.train_log_every = 1;
+        config.hyperparameters.max_wallclock_seconds = None;
+        config
     }
 
     fn validate(&self) -> Result<(), ParameterGolfSingleH100TrainingError> {
@@ -97,6 +123,19 @@ impl ParameterGolfSingleH100TrainingConfig {
         if self.max_steps == 0 {
             return Err(ParameterGolfSingleH100TrainingError::InvalidConfig {
                 message: String::from("max_steps must be positive"),
+            });
+        }
+        if self.hyperparameters.iterations == 0 {
+            return Err(ParameterGolfSingleH100TrainingError::InvalidConfig {
+                message: String::from("hyperparameter iterations must be positive"),
+            });
+        }
+        if self.max_steps > self.hyperparameters.iterations {
+            return Err(ParameterGolfSingleH100TrainingError::InvalidConfig {
+                message: format!(
+                    "max_steps={} must not exceed hyperparameter iterations={}",
+                    self.max_steps, self.hyperparameters.iterations
+                ),
             });
         }
         if self.geometry != ParameterGolfBatchGeometry::challenge_single_device_defaults() {
@@ -206,6 +245,7 @@ pub struct ParameterGolfSingleH100TrainingStepMetrics {
     pub mean_microbatch_loss: f32,
     pub learning_rate_multiplier: f32,
     pub muon_momentum: f32,
+    pub observed_wallclock_ms: u64,
     pub phase_timings: ParameterGolfSingleH100PhaseTimings,
 }
 
@@ -217,6 +257,24 @@ pub struct ParameterGolfSingleH100ValidationSummary {
     pub evaluated_byte_count: u64,
     pub mean_loss: f64,
     pub bits_per_byte: f64,
+}
+
+/// One preserved validation observation from the widened single-H100 control loop.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ParameterGolfSingleH100ValidationCheckpoint {
+    pub stage_label: String,
+    pub trigger_step: u64,
+    pub observed_training_time_ms: u64,
+    pub observed_validation_ms: u64,
+    pub summary: ParameterGolfSingleH100ValidationSummary,
+}
+
+/// Explicit stop reason for a measured single-H100 run.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ParameterGolfSingleH100TrainingStopReason {
+    StepBudgetReached,
+    WallclockCapReached,
 }
 
 /// End-to-end machine-readable trainer report for the bounded single-H100 lane.
@@ -238,7 +296,12 @@ pub struct ParameterGolfSingleH100TrainingReport {
     pub geometry: ParameterGolfBatchGeometry,
     pub hyperparameters: ParameterGolfTrainingHyperparameters,
     pub max_steps: u64,
+    pub warmup_steps: u64,
+    pub completed_warmup_steps: u64,
+    pub validation_loss_every: u64,
+    pub train_log_every: u64,
     pub executed_steps: u64,
+    pub stop_reason: Option<ParameterGolfSingleH100TrainingStopReason>,
     pub delivered_execution: DeliveredExecutionContext,
     pub machine_thresholds: ParameterGolfSingleH100ChallengeThresholds,
     pub observed_cuda_health: RuntimeHealth,
@@ -252,8 +315,12 @@ pub struct ParameterGolfSingleH100TrainingReport {
     pub optimizer_plan_digest: String,
     pub cuda_training_capability_report_digest: String,
     pub challenge_kernel_blockers: Vec<String>,
+    pub validation_checkpoints: Vec<ParameterGolfSingleH100ValidationCheckpoint>,
     pub initial_validation: Option<ParameterGolfSingleH100ValidationSummary>,
     pub final_validation: Option<ParameterGolfSingleH100ValidationSummary>,
+    pub warmup_observed_ms: u64,
+    pub observed_training_time_ms: u64,
+    pub final_validation_observed_ms: Option<u64>,
     pub compressed_model_bytes: Option<u64>,
     pub compressed_model_artifact_ref: Option<String>,
     pub compressed_model_artifact_digest: Option<String>,
@@ -499,16 +566,21 @@ pub fn build_parameter_golf_single_h100_training_report(
         DeliveredExecutionContext::new("cuda", None, vec![selected_device.inventory_qualifiers()]);
 
     emit_progress_line(format!(
-        "single_h100_train_start run_id={} device={} max_steps={} grad_accum_steps={} local_train_sequences={} local_validation_sequences={}",
+        "single_h100_train_start run_id={} device={} max_steps={} iterations={} warmup_steps={} grad_accum_steps={} val_loss_every={} train_log_every={} local_train_sequences={} local_validation_sequences={} max_wallclock_seconds={}",
         config.run_id,
         selected_device
             .device_name
             .as_deref()
             .unwrap_or("unknown"),
         config.max_steps,
+        config.hyperparameters.iterations,
+        config.warmup_steps,
         config.geometry.grad_accum_steps,
+        config.validation_loss_every,
+        config.train_log_every,
         config.geometry.local_train_batch_sequences(),
         config.geometry.local_validation_batch_sequences(),
+        config.hyperparameters.max_wallclock_seconds.unwrap_or(0.0),
     ));
 
     let byte_luts = builtin_parameter_golf_sentencepiece_byte_luts()?;
@@ -521,11 +593,6 @@ pub fn build_parameter_golf_single_h100_training_report(
         config.geometry.train_sequence_length,
     )?;
     let mut train_graph_cache = BTreeMap::new();
-    emit_progress_line(format!(
-        "initial_validation_skipped reason=issue_454_first_h100_proof focuses on the real training critical path and final challenge metrics token_count={}",
-        validation_tokens.len(),
-    ));
-    let initial_validation = None;
 
     let mut trainer_state = seed_parameter_states(&initial_model, &optimizer_plan)?;
     let train_contract = ParameterGolfTokenStreamContract::new(
@@ -536,215 +603,197 @@ pub fn build_parameter_golf_single_h100_training_report(
     let mut cursor = ParameterGolfTokenStreamCursor::new(PARAMETER_GOLF_TRAIN_SPLIT_NAME);
     let mut current_model = initial_model.clone();
     let mut step_metrics = Vec::new();
+    let mut validation_checkpoints = Vec::new();
     let mut aggregate_phase_timings = ParameterGolfSingleH100PhaseTimings::default();
     let requested_train_tokens =
         config.geometry.local_train_batch_tokens().saturating_add(1) as u64;
 
-    for step_index in 0..config.max_steps {
-        emit_progress_line(format!(
-            "train_step_start step={}/{} grad_accum_steps={}",
-            step_index + 1,
-            config.max_steps,
-            config.geometry.grad_accum_steps,
-        ));
-        let mut accumulated_gradients = zero_gradients(&trainer_state);
-        let mut microbatch_loss_sum = 0.0_f32;
-        let mut window_ids = Vec::new();
-        let mut step_profile = ParameterGolfSingleH100PhaseTimings::default();
-        for micro_step in 0..config.geometry.grad_accum_steps {
-            let plan_started = Instant::now();
-            let window = train_contract
-                .plan_window(&bundle.manifest, &cursor, requested_train_tokens)?
-                .ok_or_else(|| ParameterGolfSingleH100TrainingError::InvalidConfig {
-                    message: String::from("could not plan the next training token window"),
-                })?;
-            step_profile.window_planning_ms = step_profile
-                .window_planning_ms
-                .saturating_add(duration_ms(plan_started));
-            cursor = window.end_cursor.clone();
-            window_ids.push(window.window_id.clone());
-
-            let tokens_started = Instant::now();
-            let tokens = materialize_parameter_golf_token_window(&bundle, &window)?;
-            step_profile.token_materialization_ms = step_profile
-                .token_materialization_ms
-                .saturating_add(duration_ms(tokens_started));
-            let (input_ids, target_ids) =
-                training_batch_from_window_tokens(tokens.as_slice(), &config.geometry)?;
-
-            let embed_started = Instant::now();
-            let embedded_inputs = crate::gather_parameter_golf_embedded_inputs(
-                current_model.weights(),
-                &current_model.descriptor().config,
-                input_ids.as_slice(),
-            )?;
-            step_profile.embedding_gather_ms = step_profile
-                .embedding_gather_ms
-                .saturating_add(duration_ms(embed_started));
-
-            let batch_size = input_ids.len();
-            let graph = training_graph_for_batch(
+    let mut warmup_observed_ms = 0_u64;
+    if config.warmup_steps > 0 {
+        let warmup_started = Instant::now();
+        let trainer_state_checkpoint = trainer_state.clone();
+        let cursor_checkpoint = cursor.clone();
+        let current_model_checkpoint = current_model.clone();
+        for warmup_step in 0..config.warmup_steps {
+            let learning_rate_multiplier = 1.0;
+            let muon_momentum = config.hyperparameters.muon_momentum_at_step(warmup_step);
+            execute_training_step(
+                &mut cuda_backend,
+                &selected_device.device,
+                &bundle,
+                &train_contract,
+                &mut cursor,
+                &initial_model,
+                &mut current_model,
+                &mut trainer_state,
                 &mut train_graph_cache,
-                selected_device.device.clone(),
-                current_model.descriptor(),
-                batch_size,
-                config.geometry.train_sequence_length,
+                &config.geometry,
+                requested_train_tokens,
+                warmup_step + 1,
+                config.warmup_steps,
+                config.hyperparameters.grad_clip_norm,
+                learning_rate_multiplier,
+                muon_momentum,
+                false,
             )?;
-            let inputs = bind_parameter_golf_baseline_training_graph_inputs(
-                graph,
-                &current_model,
-                &embedded_inputs,
-                target_ids.as_slice(),
-            )?;
-            let backward_plan = graph.graph.backward_plan(graph.loss_tensor_id)?;
-            let retained_graph = retained_forward_graph(graph, &backward_plan);
-
-            let forward_started = Instant::now();
-            let forward_outputs = execute_cuda_graph_outputs(
-                &mut cuda_backend,
-                &retained_graph,
-                input_pairs_from_tensors(&inputs)?.as_slice(),
-            )?;
-            step_profile.forward_loss_cuda_ms = step_profile
-                .forward_loss_cuda_ms
-                .saturating_add(duration_ms(forward_started));
-            step_profile.retained_binding_tensor_count = step_profile
-                .retained_binding_tensor_count
-                .saturating_add(backward_plan.primal_bindings.len() as u32);
-            step_profile.retained_binding_f32_count = step_profile
-                .retained_binding_f32_count
-                .saturating_add(count_output_elements(
-                    &retained_graph,
-                    &backward_plan.primal_bindings,
-                )?);
-
-            let loss = forward_outputs
-                .iter()
-                .find(|(tensor_id, _)| *tensor_id == graph.loss_tensor_id)
-                .and_then(|(_, values)| values.first().copied())
-                .ok_or(ParameterGolfSingleH100TrainingError::MissingGraphOutput {
-                    tensor_id: graph.loss_tensor_id,
-                })?;
-            microbatch_loss_sum += loss;
-
-            let backward_started = Instant::now();
-            let backward_outputs = execute_backward_plan(
-                &mut cuda_backend,
-                &backward_plan,
-                forward_outputs.as_slice(),
-            )?;
-            step_profile.backward_cuda_ms = step_profile
-                .backward_cuda_ms
-                .saturating_add(duration_ms(backward_started));
-            step_profile.gradient_tensor_count = step_profile
-                .gradient_tensor_count
-                .saturating_add(backward_plan.gradient_targets.len() as u32);
-            step_profile.gradient_f32_count = step_profile
-                .gradient_f32_count
-                .saturating_add(count_gradient_elements(&backward_plan)?);
-
-            let materialize_started = Instant::now();
-            let backward_result =
-                backward_result_from_outputs(&backward_plan, backward_outputs.as_slice());
-            let gradients = materialize_parameter_golf_baseline_training_gradients(
-                graph,
-                &backward_result,
-                &current_model.descriptor().config,
-                input_ids.as_slice(),
-            )?;
-            step_profile.host_gradient_materialization_ms = step_profile
-                .host_gradient_materialization_ms
-                .saturating_add(duration_ms(materialize_started));
-            accumulate_gradients(
-                accumulated_gradients.as_mut_slice(),
-                &trainer_state,
-                &gradients.parameter_gradients,
-                config.geometry.grad_accum_steps as f32,
-            )?;
-            emit_progress_line(format!(
-                "micro_step_complete step={}/{} micro_step={}/{} window_id={} train_loss={:.8} forward_ms={} backward_ms={} host_materialization_ms={} retained_binding_f32={} gradient_f32={}",
-                step_index + 1,
-                config.max_steps,
-                micro_step + 1,
-                config.geometry.grad_accum_steps,
-                window.window_id,
-                loss,
-                step_profile.forward_loss_cuda_ms,
-                step_profile.backward_cuda_ms,
-                step_profile.host_materialization_ms(),
-                step_profile.retained_binding_f32_count,
-                step_profile.gradient_f32_count,
-            ));
+            if config.warmup_steps <= 20
+                || (warmup_step + 1) % 10 == 0
+                || warmup_step + 1 == config.warmup_steps
+            {
+                emit_progress_line(format!(
+                    "warmup_step:{}/{}",
+                    warmup_step + 1,
+                    config.warmup_steps
+                ));
+            }
         }
-
-        clip_gradients(
-            accumulated_gradients.as_mut_slice(),
-            config.hyperparameters.grad_clip_norm,
-        );
-        let optimizer_started = Instant::now();
-        let learning_rate_multiplier = config.hyperparameters.learning_rate_multiplier(
-            step_index,
-            aggregate_phase_timings.forward_loss_cuda_ms as f32,
-        );
-        let muon_momentum = config.hyperparameters.muon_momentum_at_step(step_index);
-        apply_gradients_to_state(
-            &mut trainer_state,
-            accumulated_gradients.as_slice(),
-            learning_rate_multiplier,
-            muon_momentum,
-            step_index + 1,
-        )?;
-        current_model = materialize_current_model(&initial_model, &trainer_state)?;
-        step_profile.optimizer_step_ms = duration_ms(optimizer_started);
-        aggregate_phase_timings.accumulate(&step_profile);
-        step_metrics.push(ParameterGolfSingleH100TrainingStepMetrics {
-            global_step: step_index + 1,
-            train_window_ids: window_ids,
-            mean_microbatch_loss: microbatch_loss_sum / config.geometry.grad_accum_steps as f32,
-            learning_rate_multiplier,
-            muon_momentum,
-            phase_timings: step_profile,
-        });
-        let step = step_metrics.last().expect("step metrics should be present");
+        warmup_observed_ms = duration_ms(warmup_started);
+        trainer_state = trainer_state_checkpoint;
+        cursor = cursor_checkpoint;
+        current_model = current_model_checkpoint;
         emit_progress_line(format!(
-            "train_step_complete step={} mean_microbatch_loss={:.8} lr_mult={:.8} muon_momentum={:.8} host_materialization_ms={} optimizer_step_ms={}",
-            step.global_step,
-            step.mean_microbatch_loss,
-            step.learning_rate_multiplier,
-            step.muon_momentum,
-            step.phase_timings.host_materialization_ms(),
-            step.phase_timings.optimizer_step_ms,
+            "warmup_restore_complete steps={} elapsed_ms={}",
+            config.warmup_steps, warmup_observed_ms
         ));
     }
 
-    emit_progress_line(format!(
-        "final_validation_start sequences={} batch_sequences={}",
-        (validation_tokens.len() - 1) / config.geometry.train_sequence_length,
-        config.geometry.local_validation_batch_sequences(),
-    ));
-    let final_validation = Some(evaluate_validation_on_cuda(
-        &mut cuda_backend,
-        &selected_device.device,
-        current_model.descriptor(),
-        &current_model,
-        validation_tokens.as_slice(),
-        &byte_luts,
-        config.geometry.train_sequence_length,
-        config.geometry.local_validation_batch_sequences(),
-        &mut train_graph_cache,
-        "final_validation",
-    )?);
+    let max_wallclock_ms = config
+        .hyperparameters
+        .max_wallclock_seconds
+        .filter(|seconds| *seconds > 0.0)
+        .map(|seconds| (seconds * 1000.0) as u64);
+    let mut training_time_ms = 0_u64;
+    let mut step = 0_u64;
+    let mut stop_reason = None;
+    let mut initial_validation = None;
+    let mut final_validation = None;
+    let mut final_validation_observed_ms = None;
+
+    loop {
+        let last_step = step == config.max_steps || stop_reason.is_some();
+        let should_validate = last_step
+            || (config.validation_loss_every > 0 && step % config.validation_loss_every == 0);
+        if should_validate {
+            let stage_label = if last_step {
+                String::from("final_validation")
+            } else if step == 0 {
+                String::from("initial_validation")
+            } else {
+                format!("periodic_validation_step_{step}")
+            };
+            emit_progress_line(format!(
+                "{}_start sequences={} batch_sequences={}",
+                stage_label,
+                (validation_tokens.len() - 1) / config.geometry.train_sequence_length,
+                config.geometry.local_validation_batch_sequences(),
+            ));
+            let validation_started = Instant::now();
+            let validation_summary = evaluate_validation_on_cuda(
+                &mut cuda_backend,
+                &selected_device.device,
+                current_model.descriptor(),
+                &current_model,
+                validation_tokens.as_slice(),
+                &byte_luts,
+                config.geometry.train_sequence_length,
+                config.geometry.local_validation_batch_sequences(),
+                &mut train_graph_cache,
+                &stage_label,
+            )?;
+            let observed_validation_ms = duration_ms(validation_started);
+            if last_step {
+                final_validation_observed_ms = Some(observed_validation_ms);
+                final_validation = Some(validation_summary);
+            } else {
+                if step == 0 {
+                    initial_validation = Some(validation_summary.clone());
+                }
+                validation_checkpoints.push(ParameterGolfSingleH100ValidationCheckpoint {
+                    stage_label,
+                    trigger_step: step,
+                    observed_training_time_ms: training_time_ms,
+                    observed_validation_ms,
+                    summary: validation_summary,
+                });
+            }
+        }
+
+        if last_step {
+            if stop_reason == Some(ParameterGolfSingleH100TrainingStopReason::WallclockCapReached)
+                && step < config.max_steps
+            {
+                emit_progress_line(format!(
+                    "stopping_early: wallclock_cap train_time:{}ms step:{}/{}",
+                    training_time_ms, step, config.max_steps
+                ));
+            }
+            break;
+        }
+
+        let learning_rate_multiplier = config
+            .hyperparameters
+            .learning_rate_multiplier(step, training_time_ms as f32);
+        let muon_momentum = config.hyperparameters.muon_momentum_at_step(step);
+        let step_metrics_next = execute_training_step(
+            &mut cuda_backend,
+            &selected_device.device,
+            &bundle,
+            &train_contract,
+            &mut cursor,
+            &initial_model,
+            &mut current_model,
+            &mut trainer_state,
+            &mut train_graph_cache,
+            &config.geometry,
+            requested_train_tokens,
+            step + 1,
+            config.max_steps,
+            config.hyperparameters.grad_clip_norm,
+            learning_rate_multiplier,
+            muon_momentum,
+            true,
+        )?;
+        training_time_ms = training_time_ms.saturating_add(step_metrics_next.observed_wallclock_ms);
+        aggregate_phase_timings.accumulate(&step_metrics_next.phase_timings);
+        step_metrics.push(step_metrics_next);
+        step += 1;
+
+        let should_log_train = config.train_log_every > 0
+            && (step <= 10 || step % config.train_log_every == 0 || stop_reason.is_some());
+        if should_log_train {
+            let latest_step = step_metrics
+                .last()
+                .expect("step metrics should be present after a completed step");
+            emit_progress_line(format!(
+                "step:{}/{} train_loss:{:.4} train_time:{}ms step_avg:{:.2}ms",
+                step,
+                config.max_steps,
+                latest_step.mean_microbatch_loss,
+                training_time_ms,
+                training_time_ms as f64 / step.max(1) as f64,
+            ));
+        }
+
+        if stop_reason.is_none()
+            && max_wallclock_ms.is_some_and(|wallclock_ms| training_time_ms >= wallclock_ms)
+        {
+            stop_reason = Some(ParameterGolfSingleH100TrainingStopReason::WallclockCapReached);
+        }
+    }
+
     let compressed_model_artifact = export_parameter_golf_int8_zlib_model_artifact(
         &current_model,
         &config.run_id,
-        config.max_steps,
+        step,
     )?;
 
     let finished_at_ms = unix_time_ms();
     let observed_wallclock_ms = finished_at_ms.saturating_sub(started_at_ms);
+    let realized_stop_reason = stop_reason
+        .unwrap_or(ParameterGolfSingleH100TrainingStopReason::StepBudgetReached);
     let summary = format!(
-        "The bounded Rust-owned single-H100 trainer executed {} optimizer step(s) with challenge single-device geometry on CUDA, emitted final validation loss/bpb directly from the Psionic path, and retained explicit host-materialization timing around the backward replay seam.",
-        config.max_steps
+        "The Rust-owned single-H100 trainer executed {} optimizer step(s) with challenge single-device geometry on CUDA, used the widened train_gpt.py-style warmup, validation, and wallclock-stop control loop, and stopped via {:?}.",
+        step, realized_stop_reason
     );
 
     let mut report = ParameterGolfSingleH100TrainingReport {
@@ -764,7 +813,12 @@ pub fn build_parameter_golf_single_h100_training_report(
         geometry: config.geometry.clone(),
         hyperparameters: config.hyperparameters.clone(),
         max_steps: config.max_steps,
-        executed_steps: config.max_steps,
+        warmup_steps: config.warmup_steps,
+        completed_warmup_steps: config.warmup_steps,
+        validation_loss_every: config.validation_loss_every,
+        train_log_every: config.train_log_every,
+        executed_steps: step,
+        stop_reason: Some(realized_stop_reason),
         delivered_execution,
         machine_thresholds: machine_observation.thresholds.clone(),
         observed_cuda_health: machine_observation.observed_cuda_health.clone(),
@@ -778,8 +832,12 @@ pub fn build_parameter_golf_single_h100_training_report(
         optimizer_plan_digest,
         cuda_training_capability_report_digest: capability_report.report_digest.clone(),
         challenge_kernel_blockers: capability_report.challenge_kernel_blockers().to_vec(),
+        validation_checkpoints,
         initial_validation,
         final_validation,
+        warmup_observed_ms,
+        observed_training_time_ms: training_time_ms,
+        final_validation_observed_ms,
         compressed_model_bytes: Some(compressed_model_artifact.bytes.len() as u64),
         compressed_model_artifact_ref: Some(compressed_model_artifact.artifact_ref.clone()),
         compressed_model_artifact_digest: Some(compressed_model_artifact.artifact_digest.clone()),
@@ -836,7 +894,12 @@ fn refusal_report(
         geometry: config.geometry.clone(),
         hyperparameters: config.hyperparameters.clone(),
         max_steps: config.max_steps,
+        warmup_steps: config.warmup_steps,
+        completed_warmup_steps: 0,
+        validation_loss_every: config.validation_loss_every,
+        train_log_every: config.train_log_every,
         executed_steps: 0,
+        stop_reason: None,
         delivered_execution: DeliveredExecutionContext::new("cuda", None, Vec::new()),
         machine_thresholds: machine_observation.thresholds.clone(),
         observed_cuda_health: machine_observation.observed_cuda_health.clone(),
@@ -850,8 +913,12 @@ fn refusal_report(
         optimizer_plan_digest,
         cuda_training_capability_report_digest: capability_report_digest,
         challenge_kernel_blockers,
+        validation_checkpoints: Vec::new(),
         initial_validation: None,
         final_validation: None,
+        warmup_observed_ms: 0,
+        observed_training_time_ms: 0,
+        final_validation_observed_ms: None,
         compressed_model_bytes: None,
         compressed_model_artifact_ref: None,
         compressed_model_artifact_digest: None,
@@ -1008,6 +1075,196 @@ fn materialize_current_model(
         baseline.descriptor().config.clone(),
         weights,
     )?)
+}
+
+#[allow(clippy::too_many_arguments)]
+fn execute_training_step(
+    cuda_backend: &mut CudaBackend,
+    device: &psionic_core::Device,
+    bundle: &ParameterGolfDatasetBundle,
+    train_contract: &ParameterGolfTokenStreamContract,
+    cursor: &mut ParameterGolfTokenStreamCursor,
+    baseline_model: &ParameterGolfReferenceModel,
+    current_model: &mut ParameterGolfReferenceModel,
+    trainer_state: &mut ParameterGolfSingleH100TrainerState,
+    graph_cache: &mut BTreeMap<usize, ParameterGolfBaselineTrainingGraph>,
+    geometry: &ParameterGolfBatchGeometry,
+    requested_train_tokens: u64,
+    global_step: u64,
+    max_steps: u64,
+    grad_clip_norm: f32,
+    learning_rate_multiplier: f32,
+    muon_momentum: f32,
+    emit_micro_step_logs: bool,
+) -> Result<ParameterGolfSingleH100TrainingStepMetrics, ParameterGolfSingleH100TrainingError> {
+    let step_started = Instant::now();
+    if emit_micro_step_logs {
+        emit_progress_line(format!(
+            "train_step_start step={}/{} grad_accum_steps={}",
+            global_step, max_steps, geometry.grad_accum_steps,
+        ));
+    }
+
+    let mut accumulated_gradients = zero_gradients(trainer_state);
+    let mut microbatch_loss_sum = 0.0_f32;
+    let mut window_ids = Vec::new();
+    let mut step_profile = ParameterGolfSingleH100PhaseTimings::default();
+    for micro_step in 0..geometry.grad_accum_steps {
+        let plan_started = Instant::now();
+        let window = train_contract
+            .plan_window(&bundle.manifest, cursor, requested_train_tokens)?
+            .ok_or_else(|| ParameterGolfSingleH100TrainingError::InvalidConfig {
+                message: String::from("could not plan the next training token window"),
+            })?;
+        step_profile.window_planning_ms = step_profile
+            .window_planning_ms
+            .saturating_add(duration_ms(plan_started));
+        *cursor = window.end_cursor.clone();
+        window_ids.push(window.window_id.clone());
+
+        let tokens_started = Instant::now();
+        let tokens = materialize_parameter_golf_token_window(bundle, &window)?;
+        step_profile.token_materialization_ms = step_profile
+            .token_materialization_ms
+            .saturating_add(duration_ms(tokens_started));
+        let (input_ids, target_ids) = training_batch_from_window_tokens(tokens.as_slice(), geometry)?;
+
+        let embed_started = Instant::now();
+        let embedded_inputs = crate::gather_parameter_golf_embedded_inputs(
+            current_model.weights(),
+            &current_model.descriptor().config,
+            input_ids.as_slice(),
+        )?;
+        step_profile.embedding_gather_ms = step_profile
+            .embedding_gather_ms
+            .saturating_add(duration_ms(embed_started));
+
+        let batch_size = input_ids.len();
+        let graph = training_graph_for_batch(
+            graph_cache,
+            device.clone(),
+            current_model.descriptor(),
+            batch_size,
+            geometry.train_sequence_length,
+        )?;
+        let inputs = bind_parameter_golf_baseline_training_graph_inputs(
+            graph,
+            current_model,
+            &embedded_inputs,
+            target_ids.as_slice(),
+        )?;
+        let backward_plan = graph.graph.backward_plan(graph.loss_tensor_id)?;
+        let retained_graph = retained_forward_graph(graph, &backward_plan);
+
+        let forward_started = Instant::now();
+        let forward_outputs = execute_cuda_graph_outputs(
+            cuda_backend,
+            &retained_graph,
+            input_pairs_from_tensors(&inputs)?.as_slice(),
+        )?;
+        step_profile.forward_loss_cuda_ms = step_profile
+            .forward_loss_cuda_ms
+            .saturating_add(duration_ms(forward_started));
+        step_profile.retained_binding_tensor_count = step_profile
+            .retained_binding_tensor_count
+            .saturating_add(backward_plan.primal_bindings.len() as u32);
+        step_profile.retained_binding_f32_count = step_profile
+            .retained_binding_f32_count
+            .saturating_add(count_output_elements(&retained_graph, &backward_plan.primal_bindings)?);
+
+        let loss = forward_outputs
+            .iter()
+            .find(|(tensor_id, _)| *tensor_id == graph.loss_tensor_id)
+            .and_then(|(_, values)| values.first().copied())
+            .ok_or(ParameterGolfSingleH100TrainingError::MissingGraphOutput {
+                tensor_id: graph.loss_tensor_id,
+            })?;
+        microbatch_loss_sum += loss;
+
+        let backward_started = Instant::now();
+        let backward_outputs =
+            execute_backward_plan(cuda_backend, &backward_plan, forward_outputs.as_slice())?;
+        step_profile.backward_cuda_ms = step_profile
+            .backward_cuda_ms
+            .saturating_add(duration_ms(backward_started));
+        step_profile.gradient_tensor_count = step_profile
+            .gradient_tensor_count
+            .saturating_add(backward_plan.gradient_targets.len() as u32);
+        step_profile.gradient_f32_count = step_profile
+            .gradient_f32_count
+            .saturating_add(count_gradient_elements(&backward_plan)?);
+
+        let materialize_started = Instant::now();
+        let backward_result =
+            backward_result_from_outputs(&backward_plan, backward_outputs.as_slice());
+        let gradients = materialize_parameter_golf_baseline_training_gradients(
+            graph,
+            &backward_result,
+            &current_model.descriptor().config,
+            input_ids.as_slice(),
+        )?;
+        step_profile.host_gradient_materialization_ms = step_profile
+            .host_gradient_materialization_ms
+            .saturating_add(duration_ms(materialize_started));
+        accumulate_gradients(
+            accumulated_gradients.as_mut_slice(),
+            trainer_state,
+            &gradients.parameter_gradients,
+            geometry.grad_accum_steps as f32,
+        )?;
+        if emit_micro_step_logs {
+            emit_progress_line(format!(
+                "micro_step_complete step={}/{} micro_step={}/{} window_id={} train_loss={:.8} forward_ms={} backward_ms={} host_materialization_ms={} retained_binding_f32={} gradient_f32={}",
+                global_step,
+                max_steps,
+                micro_step + 1,
+                geometry.grad_accum_steps,
+                window.window_id,
+                loss,
+                step_profile.forward_loss_cuda_ms,
+                step_profile.backward_cuda_ms,
+                step_profile.host_materialization_ms(),
+                step_profile.retained_binding_f32_count,
+                step_profile.gradient_f32_count,
+            ));
+        }
+    }
+
+    clip_gradients(
+        accumulated_gradients.as_mut_slice(),
+        grad_clip_norm,
+    );
+    let optimizer_started = Instant::now();
+    apply_gradients_to_state(
+        trainer_state,
+        accumulated_gradients.as_slice(),
+        learning_rate_multiplier,
+        muon_momentum,
+        global_step,
+    )?;
+    *current_model = materialize_current_model(baseline_model, trainer_state)?;
+    step_profile.optimizer_step_ms = duration_ms(optimizer_started);
+    let step_metrics = ParameterGolfSingleH100TrainingStepMetrics {
+        global_step,
+        train_window_ids: window_ids,
+        mean_microbatch_loss: microbatch_loss_sum / geometry.grad_accum_steps as f32,
+        learning_rate_multiplier,
+        muon_momentum,
+        observed_wallclock_ms: duration_ms(step_started),
+        phase_timings: step_profile,
+    };
+    if emit_micro_step_logs {
+        emit_progress_line(format!(
+            "train_step_complete step={} mean_microbatch_loss={:.8} lr_mult={:.8} muon_momentum={:.8} host_materialization_ms={} optimizer_step_ms={}",
+            step_metrics.global_step,
+            step_metrics.mean_microbatch_loss,
+            step_metrics.learning_rate_multiplier,
+            step_metrics.muon_momentum,
+            step_metrics.phase_timings.host_materialization_ms(),
+            step_metrics.phase_timings.optimizer_step_ms,
+        ));
+    }
+    Ok(step_metrics)
 }
 
 fn evaluate_validation_on_cuda(
@@ -1371,6 +1628,35 @@ mod tests {
             Some(&[42.0_f32][..])
         );
         Ok(())
+    }
+
+    #[test]
+    fn challenge_defaults_use_widened_train_gpt_control_loop_defaults() {
+        let config = ParameterGolfSingleH100TrainingConfig::challenge_defaults(
+            "/tmp/dataset",
+            "/tmp/tokenizer.model",
+        );
+
+        assert_eq!(config.max_steps, config.hyperparameters.iterations);
+        assert_eq!(config.warmup_steps, 20);
+        assert_eq!(config.validation_loss_every, 1_000);
+        assert_eq!(config.train_log_every, 200);
+        assert_eq!(config.hyperparameters.max_wallclock_seconds, Some(600.0));
+    }
+
+    #[test]
+    fn bounded_proof_defaults_disable_widened_loop_features() {
+        let config = ParameterGolfSingleH100TrainingConfig::bounded_proof_defaults(
+            "/tmp/dataset",
+            "/tmp/tokenizer.model",
+            3,
+        );
+
+        assert_eq!(config.max_steps, 3);
+        assert_eq!(config.warmup_steps, 0);
+        assert_eq!(config.validation_loss_every, 0);
+        assert_eq!(config.train_log_every, 1);
+        assert_eq!(config.hyperparameters.max_wallclock_seconds, None);
     }
 }
 
