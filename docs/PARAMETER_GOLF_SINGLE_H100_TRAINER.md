@@ -104,8 +104,10 @@ The command is explicit about what it treats as trainer truth. It binds:
 - one measured CUDA training run when the machine and CUDA-capability
   contracts are satisfied
 - preserved initial, periodic, and final validation receipts directly from the
-  Psionic path
+  Psionic path, with the pre-export live-model validation retained separately
 - post-step int8-plus-zlib artifact bytes, artifact ref, and artifact digest
+- canonical final contest metrics from the exported int8-plus-zlib roundtrip
+  artifact, including the preserved roundtrip eval time
 - stop reason plus measured warmup, training, validation, and per-step timing
   receipts so later same-node comparison work can reuse the same trainer report
 
@@ -132,12 +134,16 @@ Today the single-H100 trainer doc does **not** claim:
   train-visible parameter split explicitly, but the lowered single-H100 graph
   still uploads those train-visible values as dense `f32` tensors until the
   BF16 graph-runtime slice lands
+- challenge-speed closure; the trainer now reports final contest metrics from
+  the exported int8+zlib roundtrip artifact like `train_gpt.py`, but that does
+  not by itself make the lane competitive yet
 
 Instead, it gives the repo one narrower but important thing:
 
 - a real Rust-owned single-H100 baseline training command that binds the
   challenge dataset, tokenizer, machine contract, challenge-style control
-  loop, validation cadence, stop reason, and compressed-model accounting
+  loop, validation cadence, stop reason, pre-export live-model validation,
+  canonical final int8+zlib roundtrip metrics, and compressed-model accounting
   surfaces into one machine-readable report
 
 The narrower machine-admission seam from

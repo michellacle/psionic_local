@@ -223,7 +223,9 @@ trainer_process = parse_process(trainer_pid)
 
 report_summary = None
 if training_report is not None:
+    pre_export_final_validation = training_report.get("pre_export_final_validation") or {}
     final_validation = training_report.get("final_validation") or {}
+    final_roundtrip_receipt = training_report.get("final_roundtrip_receipt") or {}
     report_summary = {
         "path": str(training_report_path),
         "exists": True,
@@ -231,8 +233,12 @@ if training_report is not None:
         "run_id": training_report.get("run_id"),
         "disposition": training_report.get("disposition"),
         "executed_steps": training_report.get("executed_steps"),
+        "pre_export_final_val_loss": pre_export_final_validation.get("mean_loss"),
+        "pre_export_final_val_bpb": pre_export_final_validation.get("bits_per_byte"),
         "final_val_loss": final_validation.get("mean_loss"),
         "final_val_bpb": final_validation.get("bits_per_byte"),
+        "final_roundtrip_eval_ms": final_roundtrip_receipt.get("observed_eval_ms"),
+        "final_roundtrip_metric_source": final_roundtrip_receipt.get("metric_source"),
         "compressed_model_bytes": training_report.get("compressed_model_bytes"),
         "compressed_model_artifact_ref": training_report.get("compressed_model_artifact_ref"),
         "compressed_model_artifact_digest": training_report.get("compressed_model_artifact_digest"),

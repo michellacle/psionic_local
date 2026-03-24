@@ -49,6 +49,12 @@ wallclock receipt to one committed reference measurement so the generated
 non-record evidence bundle stays deterministic across reruns. That stability is
 for replay and accounting review only; it is not a challenge-speed claim.
 
+The single-H100 trainer surface now mirrors the same final
+`int8+zlib`-roundtrip metric posture: the live pre-export validation may still
+be preserved for diagnosis, but the contest-facing final `val_loss` and
+`val_bpb` are bound to the exported compressed artifact plus its digest and
+roundtrip eval time.
+
 ## Replay Verification
 
 The replay verifier now checks the exported folder directly:

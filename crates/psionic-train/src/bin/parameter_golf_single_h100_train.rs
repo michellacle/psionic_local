@@ -1,7 +1,7 @@
 use std::{env, path::PathBuf};
 
 use psionic_train::{
-    ParameterGolfSingleH100TrainingConfig, write_parameter_golf_single_h100_training_report,
+    write_parameter_golf_single_h100_training_report, ParameterGolfSingleH100TrainingConfig,
 };
 
 fn main() {
@@ -60,6 +60,12 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             initial_validation.mean_loss, initial_validation.bits_per_byte
         );
     }
+    if let Some(ref pre_export_final_validation) = report.pre_export_final_validation {
+        println!(
+            "pre_export_final_validation val_loss:{:.8} val_bpb:{:.8}",
+            pre_export_final_validation.mean_loss, pre_export_final_validation.bits_per_byte
+        );
+    }
     for step in &report.step_metrics {
         println!(
             "train_step step:{} train_loss:{:.8} lr_mult:{:.8} muon_momentum:{:.8} windows:{}",
@@ -70,7 +76,18 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             step.train_window_ids.join(",")
         );
     }
-    if let Some(final_validation) = report.final_validation {
+    if let Some(ref roundtrip_receipt) = report.final_roundtrip_receipt {
+        println!(
+            "final_int8_zlib_roundtrip val_loss:{:.4} val_bpb:{:.4} eval_time:{}ms",
+            roundtrip_receipt.validation.mean_loss,
+            roundtrip_receipt.validation.bits_per_byte,
+            roundtrip_receipt.observed_eval_ms,
+        );
+        println!(
+            "final_int8_zlib_roundtrip_exact val_loss:{:.8} val_bpb:{:.8}",
+            roundtrip_receipt.validation.mean_loss, roundtrip_receipt.validation.bits_per_byte
+        );
+    } else if let Some(final_validation) = report.final_validation {
         println!(
             "final_validation val_loss:{:.8} val_bpb:{:.8}",
             final_validation.mean_loss, final_validation.bits_per_byte
