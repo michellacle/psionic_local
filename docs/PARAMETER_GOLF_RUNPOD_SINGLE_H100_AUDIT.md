@@ -7,13 +7,20 @@
 This document records the current audit surface for the first real RunPod
 single-H100 Parameter Golf baseline run.
 
-It is narrower than a completed audit report and narrower than closing the
-issue itself.
+The finalizer contract is still narrower than contest readiness, but it is no
+longer only a pre-closeout shell. The first real bounded RunPod audit now
+exists and is committed in this repo.
 
 ## Canonical Artifact
 
 - single-H100 audit finalizer:
   `scripts/parameter-golf-runpod-finalize-single-h100.sh`
+- first real retained audit:
+  `fixtures/parameter_golf/reports/parameter_golf_runpod_single_h100_first_real_audit.json`
+- first real retained trainer report:
+  `fixtures/parameter_golf/reports/parameter_golf_runpod_single_h100_first_real_training_report.json`
+- first real run outcome audit:
+  `docs/audits/2026-03-25-psionic-parameter-golf-runpod-single-h100-first-run-audit.md`
 
 ## What The Finalizer Preserves
 
@@ -67,14 +74,14 @@ report or log paths, an explicit trainer exit code, or a typed failure detail.
 
 This audit surface does not claim:
 
-- that the single-H100 run already succeeded
-- that final `val_loss`, `val_bpb`, or compressed-model bytes already exist
+- challenge-speed closure
 - `8xH100` readiness
 - record-track readiness
 
 It closes one narrower but important thing:
 
-- the repo now has one deterministic RunPod single-H100 audit finalizer that
-  can turn the live run root into one preserved evidence bundle, one preserved
-  app-facing visualization mirror, or one explicit partial-series failure cause
-  without inventing a provider-specific reporting path at closeout
+- the repo now has one deterministic RunPod single-H100 audit finalizer and one
+  committed real bounded success audit proving that the Rust single-H100 lane
+  can execute end to end on remote H100 hardware, preserve final metrics plus
+  compressed-model bytes, and seal the result into one machine-readable audit
+  bundle without inventing a provider-specific reporting path at closeout

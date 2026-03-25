@@ -1,0 +1,112 @@
+{
+  "schema_version": "parameter_golf.runpod_single_h100_audit.v1",
+  "runner": "scripts/parameter-golf-runpod-finalize-single-h100.sh",
+  "collected_at_utc": "2026-03-25T12:09:51Z",
+  "run_root": "/workspace/issue454_single_h100_run_20260324T215106Z",
+  "pod_identity": {
+    "pod_id": "2sul6l37mn5dwp",
+    "pod_host": "216.243.220.215",
+    "pod_port": 12708,
+    "ssh_user": "root",
+    "hostname": "f073d6941c85"
+  },
+  "trainer_process": null,
+  "accelerator_evidence": {
+    "inventory_path": "/workspace/issue454_single_h100_run_20260324T215106Z/nvidia_smi_inventory.txt",
+    "inventory_sha256": "42e296cc205ef1a4b5db51ddc8b47de04244238c9322ea6186787129101f9ca8",
+    "inventory_line_count": 1,
+    "topology_path": "/workspace/issue454_single_h100_run_20260324T215106Z/nvidia_smi_topology.txt",
+    "topology_sha256": "ceed9fe08545d45558312d04eab3010bfe76ac22ef247b73ba0c9d8de021d272"
+  },
+  "training_report": {
+    "path": "/workspace/issue454_single_h100_run_20260324T215106Z/parameter_golf_single_h100_training.json",
+    "exists": true,
+    "sha256": "6b4eed554dcfecf22688d202bffdcace9bb02e308d3562aa421d3dc0ce105993",
+    "run_id": "parameter-golf-single-h100-trainer",
+    "disposition": "training_executed",
+    "executed_steps": 1,
+    "pre_export_final_val_loss": null,
+    "pre_export_final_val_bpb": null,
+    "final_val_loss": 10.64899006955549,
+    "final_val_bpb": 6.306931747817168,
+    "final_roundtrip_eval_ms": 43306994,
+    "final_roundtrip_metric_source": "int8_zlib_roundtrip",
+    "compressed_model_bytes": 4732744,
+    "compressed_model_artifact_ref": "parameter-golf-single-h100-trainer/step-00001/final_model.int8.ptz",
+    "compressed_model_artifact_digest": "4657d793ae3e64796670b6768f433c48f788518725ba2854e913db205412b250",
+    "machine_contract_satisfied": true,
+    "challenge_kernel_blockers": [],
+    "observed_wallclock_ms": 44657278,
+    "report_digest": "f1aab6656b0c1a87c311cc833a9e316e64f2ef5a337d6a8419be1f408a8a5a61",
+    "claim_boundary": "bounded_single_h100_accelerated_trainer; challenge geometry and optimizer contract are real, but this report does not claim 8xH100, record-track, or challenge-speed closure",
+    "summary": "The Rust-owned single-H100 trainer executed 1 optimizer step(s) with challenge single-device geometry on CUDA, used the widened train_gpt.py-style warmup, validation, and wallclock-stop control loop, ran with final_validation_mode=roundtrip_only, reported canonical final contest metrics from the exported int8+zlib roundtrip artifact without also replaying the live-model final validation before stopping via StepBudgetReached."
+  },
+  "training_log": {
+    "path": "/workspace/issue454_single_h100_run_20260324T215106Z/parameter_golf_single_h100_train.log",
+    "exists": true,
+    "sha256": "440f4b496a4c3ba6e802ef9196ed767d8f895d9abb72784e7f28b43d1ccd7088",
+    "line_count": 57,
+    "latest_micro_step": {
+      "global_step": 1,
+      "max_steps": 1,
+      "micro_step": 8,
+      "grad_accum_steps": 8,
+      "train_loss": 8.29109859,
+      "forward_ms": 625710,
+      "backward_ms": 700639,
+      "host_materialization_ms": 3321
+    },
+    "train_step_complete": {
+      "global_step": 1,
+      "mean_microbatch_loss": 8.28843117,
+      "lr_mult": 1.0,
+      "muon_momentum": 0.85000002,
+      "host_materialization_ms": 3321,
+      "optimizer_step_ms": 7263
+    },
+    "step_summary": {
+      "global_step": 1,
+      "max_steps": 1,
+      "train_loss": 8.2884,
+      "train_time_ms": 1348854,
+      "step_avg_ms": 1348854.0
+    },
+    "final_validation_skip": {
+      "mode": "roundtrip_only",
+      "reason": "explicit_final_validation_mode"
+    },
+    "roundtrip_start": {
+      "sequences": 60568,
+      "batch_sequences": 64,
+      "compressed_model_bytes": 4732744,
+      "artifact_ref": "parameter-golf-single-h100-trainer/step-00001/final_model.int8.ptz",
+      "artifact_digest": "4657d793ae3e64796670b6768f433c48f788518725ba2854e913db205412b250"
+    },
+    "tail": [
+      "validation_progress stage=final_int8_zlib_roundtrip batch=736/947 sequences=47104 tokens=48234496 elapsed_ms=33824494",
+      "validation_progress stage=final_int8_zlib_roundtrip batch=768/947 sequences=49152 tokens=50331648 elapsed_ms=35352877",
+      "validation_progress stage=final_int8_zlib_roundtrip batch=800/947 sequences=51200 tokens=52428800 elapsed_ms=36799613",
+      "validation_progress stage=final_int8_zlib_roundtrip batch=832/947 sequences=53248 tokens=54525952 elapsed_ms=38216398",
+      "validation_progress stage=final_int8_zlib_roundtrip batch=864/947 sequences=55296 tokens=56623104 elapsed_ms=39641292",
+      "validation_progress stage=final_int8_zlib_roundtrip batch=896/947 sequences=57344 tokens=58720256 elapsed_ms=41065898",
+      "validation_progress stage=final_int8_zlib_roundtrip batch=928/947 sequences=59392 tokens=60817408 elapsed_ms=42487860",
+      "validation_progress stage=final_int8_zlib_roundtrip batch=947/947 sequences=60568 tokens=62021632 elapsed_ms=43306604",
+      "validation_runtime_receipt stage=final_int8_zlib_roundtrip path=device_resident_cuda_eval_graph_v1 graph_surface=parameter_golf_baseline_eval_graph_v1 sessions=2 stable_parameter_buffers=184 stable_parameter_values=34119824 resident_parameter_upload_us=60515 input_token_write_us=213141 target_token_write_us=257596 byte_accounting_us=383945",
+      "validation_complete stage=final_int8_zlib_roundtrip mean_loss=10.64899007 val_bpb=6.30693175 evaluated_tokens=62021632 evaluated_bytes=151080363 elapsed_ms=43306605",
+      "final_int8_zlib_roundtrip val_loss:10.6490 val_bpb:6.3069 eval_time:43306994ms compressed_model_bytes=4732744 artifact_ref=parameter-golf-single-h100-trainer/step-00001/final_model.int8.ptz artifact_digest=4657d793ae3e64796670b6768f433c48f788518725ba2854e913db205412b250",
+      "final_int8_zlib_roundtrip_exact val_loss:10.64899007 val_bpb:6.30693175",
+      "wrote /workspace/issue454_single_h100_run_20260324T215106Z/parameter_golf_single_h100_training.json with disposition TrainingExecuted executed_steps=1 stop_reason=Some(StepBudgetReached)",
+      "warmup_steps=0 completed_warmup_steps=0 measured_training_time_ms=1348854 validation_checkpoints=0 final_validation_mode=roundtrip_only",
+      "train_step step:1 train_loss:8.28843117 lr_mult:1.00000000 muon_momentum:0.85000002 windows:51f52234fa4fece449de61aebcc345e57f5bb69e36de4a0e55e04b5fe2c0691a,2fe7a94fb93fc25dafdcfdbbc23f530a702bc7ca2c461ef50430ca89ae0ad8a9,98f1a5e5d1bbfa1911d39e4871bec43b6e0f8a688a9776d182fb8ed6a3fa25d5,0eae0a2eb07c2bcb220c23b30c2aa1e3675d25541e06f475c0f968b674838be5,3a454a62f444541205f8718cac6222ddc64eb7ec33fea3e722a217775ed4cbc4,67b6f90d44dc77135d4ade3826c8c4b7bb3407a13e878ef74ea8edd3216da5e3,8eea25f216cf1dfc6063ac9d174d9fe12310e20cb5db83f78534d19c0571e62f,42845a4917f7d6f04439320a0c3f0c34ca83982ff80685ae3eea363b67381c13",
+      "final_int8_zlib_roundtrip val_loss:10.6490 val_bpb:6.3069 eval_time:43306994ms",
+      "final_int8_zlib_roundtrip_exact val_loss:10.64899007 val_bpb:6.30693175",
+      "compressed_model_bytes=4732744",
+      "compressed_model_artifact_ref=parameter-golf-single-h100-trainer/step-00001/final_model.int8.ptz",
+      "compressed_model_artifact_digest=4657d793ae3e64796670b6768f433c48f788518725ba2854e913db205412b250"
+    ]
+  },
+  "training_exit_code": null,
+  "audit_status": "succeeded",
+  "failure_detail": null,
+  "claim_boundary": "This audit preserves the exact RunPod single-H100 run root, pod identity, accelerator evidence, trainer report metrics when present, and the latest retained log progress or failure cause. It does not by itself promote the lane beyond the exact preserved single-H100 outcome."
+}

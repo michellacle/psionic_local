@@ -292,6 +292,11 @@ Instead, it gives the repo one narrower but important thing:
   loop, validation cadence, stop reason, pre-export live-model validation,
   canonical final int8+zlib roundtrip metrics, and compressed-model accounting
   surfaces into one machine-readable report
+- one real bounded RunPod H100 proof that the same Rust trainer can complete
+  remotely outside the local review host; see
+  `fixtures/parameter_golf/reports/parameter_golf_runpod_single_h100_first_real_audit.json`
+  and
+  `docs/audits/2026-03-25-psionic-parameter-golf-runpod-single-h100-first-run-audit.md`
 
 The narrower machine-admission seam from
 `docs/PARAMETER_GOLF_SINGLE_H100_BRINGUP.md` remains useful, but it is no

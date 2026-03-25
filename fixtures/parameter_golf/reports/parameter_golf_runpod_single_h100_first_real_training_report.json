@@ -1,0 +1,828 @@
+{
+  "schema_version": 2,
+  "scope_window": "parameter_golf_single_h100_training_v2",
+  "run_id": "parameter-golf-single-h100-trainer",
+  "dataset_root": "/workspace/parameter-golf/data/datasets/fineweb10B_sp1024",
+  "tokenizer_path": "/workspace/parameter-golf/data/tokenizers/fineweb_1024_bpe.model",
+  "dataset_key": {
+    "dataset_ref": "dataset://parameter-golf/fineweb-sp1024",
+    "version": "2026.03.18"
+  },
+  "variant": "sp1024",
+  "tokenizer_digest": {
+    "family": "sentence_piece",
+    "tokenizer_digest": "4f5e8adb109c66b4886963bc75a7befd73bda36d27fd7102df8e9e66503b0e2a",
+    "vocab_size": 1024
+  },
+  "dataset_manifest_digest": "30a69f97f378808c8c557bbaf1f275358d90ecfa41f2b56c787b9da3c86817d6",
+  "train_shard_count": 1,
+  "validation_shard_count": 1,
+  "train_token_count": 100000000,
+  "validation_token_count": 62021846,
+  "geometry": {
+    "world_size": 1,
+    "train_batch_tokens": 524288,
+    "validation_batch_tokens": 524288,
+    "train_sequence_length": 1024,
+    "grad_accum_steps": 8
+  },
+  "hyperparameters": {
+    "iterations": 20000,
+    "warmdown_iters": 1200,
+    "embed_lr": 0.6,
+    "head_lr": 0.008,
+    "tied_embed_lr": 0.05,
+    "matrix_lr": 0.04,
+    "scalar_lr": 0.04,
+    "muon_momentum": 0.95,
+    "muon_backend_steps": 5,
+    "muon_momentum_warmup_start": 0.85,
+    "muon_momentum_warmup_steps": 500,
+    "beta1": 0.9,
+    "beta2": 0.95,
+    "adam_eps": 1e-8,
+    "grad_clip_norm": 0.0
+  },
+  "max_steps": 1,
+  "warmup_steps": 0,
+  "completed_warmup_steps": 0,
+  "validation_loss_every": 0,
+  "train_log_every": 1,
+  "final_validation_mode": "roundtrip_only",
+  "executed_steps": 1,
+  "stop_reason": "step_budget_reached",
+  "delivered_execution": {
+    "runtime_backend": "cuda",
+    "selected_devices": [
+      {
+        "stable_device_id": "00000000:DB:00.0",
+        "topology_key": "00000000:DB:00.0",
+        "performance_class": "discrete_accelerator",
+        "memory_class": "dedicated_device",
+        "total_memory_bytes": 85520809984
+      }
+    ]
+  },
+  "machine_thresholds": {
+    "required_backend": "cuda",
+    "required_device_name": "H100",
+    "minimum_matching_device_count": 1,
+    "require_non_mig": true
+  },
+  "observed_cuda_health": {
+    "status": "Ready",
+    "message": "cuda ready on 1 NVIDIA device(s)"
+  },
+  "cuda_discovery_error": null,
+  "observed_cuda_devices": [
+    {
+      "backend": "cuda",
+      "device": {
+        "kind": "Cuda",
+        "ordinal": 0,
+        "label": "cuda:0"
+      },
+      "device_name": "NVIDIA H100 80GB HBM3",
+      "supported_dtypes": [
+        "F32"
+      ],
+      "supported_quantization": [],
+      "memory_capacity_bytes": 85520809984,
+      "unified_memory": false,
+      "feature_flags": [
+        "cuda_architecture_surface",
+        "persistence_mode_enabled",
+        "addressing_mode_hmm"
+      ],
+      "nvidia_metadata": {
+        "topology": {
+          "architecture": "hopper",
+          "compute_capability": "9.0",
+          "pci_bdf": "00000000:DB:00.0",
+          "sm_count": null,
+          "vram_bytes": 85520809984,
+          "mig_profile": null
+        },
+        "risk": {
+          "level": "standard",
+          "display_attached": null,
+          "mig_partitioned": false,
+          "warnings": []
+        },
+        "recovery": {
+          "supports_gpu_reset": true,
+          "expected_actions": [
+            "process_restart",
+            "gpu_reset",
+            "reboot_host"
+          ]
+        }
+      }
+    }
+  ],
+  "matching_h100_device_count": 1,
+  "machine_contract_satisfied": true,
+  "baseline_model_id": "parameter-golf-sp1024-9x512",
+  "baseline_model_revision": "public-2026-03-18",
+  "baseline_model_descriptor_digest": "af7583b983cd2016d1c4aa7b8e185557048539f3be50db26873247e4d2bc9981",
+  "optimizer_plan_digest": "554cecb74ff631024d7d20ae49b1e162bda4fd2e64d9aeef1dc2245bc7f741ef",
+  "precision_receipt": {
+    "graph_parameter_upload_precision": "bf16",
+    "graph_execution_precision": "fp32",
+    "retained_activation_precision": "fp32",
+    "group_receipts": [
+      {
+        "group_id": "blocks.0.attn.c_k.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.0.attn.c_q.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.0.attn.c_v.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.0.attn.proj.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.0.attn.q_gain",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.0.attn_scale",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.0.mlp.fc.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.0.mlp.proj.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.0.mlp_scale",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.0.resid_mix",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.1.attn.c_k.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.1.attn.c_q.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.1.attn.c_v.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.1.attn.proj.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.1.attn.q_gain",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.1.attn_scale",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.1.mlp.fc.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.1.mlp.proj.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.1.mlp_scale",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.1.resid_mix",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.2.attn.c_k.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.2.attn.c_q.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.2.attn.c_v.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.2.attn.proj.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.2.attn.q_gain",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.2.attn_scale",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.2.mlp.fc.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.2.mlp.proj.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.2.mlp_scale",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.2.resid_mix",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.3.attn.c_k.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.3.attn.c_q.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.3.attn.c_v.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.3.attn.proj.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.3.attn.q_gain",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.3.attn_scale",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.3.mlp.fc.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.3.mlp.proj.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.3.mlp_scale",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.3.resid_mix",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.4.attn.c_k.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.4.attn.c_q.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.4.attn.c_v.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.4.attn.proj.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.4.attn.q_gain",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.4.attn_scale",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.4.mlp.fc.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.4.mlp.proj.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.4.mlp_scale",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.4.resid_mix",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.5.attn.c_k.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.5.attn.c_q.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.5.attn.c_v.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.5.attn.proj.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.5.attn.q_gain",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.5.attn_scale",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.5.mlp.fc.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.5.mlp.proj.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.5.mlp_scale",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.5.resid_mix",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.6.attn.c_k.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.6.attn.c_q.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.6.attn.c_v.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.6.attn.proj.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.6.attn.q_gain",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.6.attn_scale",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.6.mlp.fc.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.6.mlp.proj.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.6.mlp_scale",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.6.resid_mix",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.7.attn.c_k.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.7.attn.c_q.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.7.attn.c_v.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.7.attn.proj.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.7.attn.q_gain",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.7.attn_scale",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.7.mlp.fc.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.7.mlp.proj.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.7.mlp_scale",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.7.resid_mix",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.8.attn.c_k.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.8.attn.c_q.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.8.attn.c_v.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.8.attn.proj.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.8.attn.q_gain",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.8.attn_scale",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.8.mlp.fc.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.8.mlp.proj.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.8.mlp_scale",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "blocks.8.resid_mix",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "skip_weights",
+        "parameter_precision": "fp32",
+        "gradient_precision": "fp32",
+        "optimizer_state_precision": "fp32"
+      },
+      {
+        "group_id": "tok_emb.weight",
+        "parameter_precision": "bf16",
+        "gradient_precision": "bf16",
+        "optimizer_state_precision": "fp32",
+        "master_weight_precision": "fp32"
+      }
+    ],
+    "notes": [
+      "train-visible Parameter Golf weights now upload through BF16 graph inputs on the token-embedding and linear hot path while scalar/control tensors and retained activations remain explicit F32 until wider BF16 execution kernels land"
+    ]
+  },
+  "cuda_training_capability_report_digest": "c47d04068512084c53437c56e9c1250ef48563fe5edec6aaa71a2798cbf5bddf",
+  "challenge_kernel_blockers": [],
+  "validation_checkpoints": [],
+  "initial_validation": null,
+  "pre_export_final_validation": null,
+  "final_validation": {
+    "evaluated_sequence_count": 60568,
+    "evaluated_token_count": 62021632,
+    "evaluated_byte_count": 151080363,
+    "mean_loss": 10.64899006955549,
+    "bits_per_byte": 6.306931747817168,
+    "runtime_receipt": {
+      "path": "device_resident_cuda_eval_graph_v1",
+      "graph_surface": "parameter_golf_baseline_eval_graph_v1",
+      "session_count": 2,
+      "total_batches": 947,
+      "persistent_parameter_buffer_count": 184,
+      "persistent_parameter_value_count": 34119824,
+      "resident_parameter_upload_us": 60515,
+      "per_batch_stable_parameter_buffer_allocations": 0,
+      "reusable_input_token_buffer": true,
+      "reusable_target_token_buffer": true,
+      "total_input_token_write_us": 213141,
+      "total_target_token_write_us": 257596,
+      "byte_accounting_mode": "precomputed_batch_target_bytes",
+      "total_byte_accounting_us": 383945
+    }
+  },
+  "warmup_observed_ms": 0,
+  "observed_training_time_ms": 1348854,
+  "pre_export_final_validation_observed_ms": null,
+  "final_validation_observed_ms": 43306994,
+  "final_roundtrip_receipt": {
+    "metric_source": "int8_zlib_roundtrip",
+    "validation": {
+      "evaluated_sequence_count": 60568,
+      "evaluated_token_count": 62021632,
+      "evaluated_byte_count": 151080363,
+      "mean_loss": 10.64899006955549,
+      "bits_per_byte": 6.306931747817168,
+      "runtime_receipt": {
+        "path": "device_resident_cuda_eval_graph_v1",
+        "graph_surface": "parameter_golf_baseline_eval_graph_v1",
+        "session_count": 2,
+        "total_batches": 947,
+        "persistent_parameter_buffer_count": 184,
+        "persistent_parameter_value_count": 34119824,
+        "resident_parameter_upload_us": 60515,
+        "per_batch_stable_parameter_buffer_allocations": 0,
+        "reusable_input_token_buffer": true,
+        "reusable_target_token_buffer": true,
+        "total_input_token_write_us": 213141,
+        "total_target_token_write_us": 257596,
+        "byte_accounting_mode": "precomputed_batch_target_bytes",
+        "total_byte_accounting_us": 383945
+      }
+    },
+    "observed_eval_ms": 43306994,
+    "compressed_model_bytes": 4732744,
+    "compressed_model_artifact_ref": "parameter-golf-single-h100-trainer/step-00001/final_model.int8.ptz",
+    "compressed_model_artifact_digest": "4657d793ae3e64796670b6768f433c48f788518725ba2854e913db205412b250"
+  },
+  "compressed_model_bytes": 4732744,
+  "compressed_model_artifact_ref": "parameter-golf-single-h100-trainer/step-00001/final_model.int8.ptz",
+  "compressed_model_artifact_digest": "4657d793ae3e64796670b6768f433c48f788518725ba2854e913db205412b250",
+  "step_metrics": [
+    {
+      "global_step": 1,
+      "train_window_ids": [
+        "51f52234fa4fece449de61aebcc345e57f5bb69e36de4a0e55e04b5fe2c0691a",
+        "2fe7a94fb93fc25dafdcfdbbc23f530a702bc7ca2c461ef50430ca89ae0ad8a9",
+        "98f1a5e5d1bbfa1911d39e4871bec43b6e0f8a688a9776d182fb8ed6a3fa25d5",
+        "0eae0a2eb07c2bcb220c23b30c2aa1e3675d25541e06f475c0f968b674838be5",
+        "3a454a62f444541205f8718cac6222ddc64eb7ec33fea3e722a217775ed4cbc4",
+        "67b6f90d44dc77135d4ade3826c8c4b7bb3407a13e878ef74ea8edd3216da5e3",
+        "8eea25f216cf1dfc6063ac9d174d9fe12310e20cb5db83f78534d19c0571e62f",
+        "42845a4917f7d6f04439320a0c3f0c34ca83982ff80685ae3eea363b67381c13"
+      ],
+      "mean_microbatch_loss": 8.288431,
+      "learning_rate_multiplier": 1.0,
+      "muon_momentum": 0.85,
+      "observed_wallclock_ms": 1348854,
+      "phase_timings": {
+        "window_planning_ms": 0,
+        "token_materialization_ms": 1042,
+        "embedding_gather_ms": 0,
+        "forward_loss_cuda_ms": 625710,
+        "retained_forward_readback_ms": 0,
+        "backward_cuda_ms": 700639,
+        "gradient_readback_ms": 0,
+        "host_gradient_materialization_ms": 3321,
+        "optimizer_step_ms": 7263,
+        "retained_binding_tensor_count": 2400,
+        "retained_binding_f32_count": 59600540576,
+        "gradient_tensor_count": 5456,
+        "gradient_f32_count": 116774126728
+      },
+      "effective_learning_rate": 0.05,
+      "gradient_norm_after_clip": 7.399244,
+      "parameter_norm_after_step": 154.05945,
+      "clip_applied": false,
+      "non_finite_gradient_count": 0,
+      "tokens_per_second": 48,
+      "samples_per_second_milli": 47
+    }
+  ],
+  "aggregate_phase_timings": {
+    "window_planning_ms": 0,
+    "token_materialization_ms": 1042,
+    "embedding_gather_ms": 0,
+    "forward_loss_cuda_ms": 625710,
+    "retained_forward_readback_ms": 0,
+    "backward_cuda_ms": 700639,
+    "gradient_readback_ms": 0,
+    "host_gradient_materialization_ms": 3321,
+    "optimizer_step_ms": 7263,
+    "retained_binding_tensor_count": 2400,
+    "retained_binding_f32_count": 59600540576,
+    "gradient_tensor_count": 5456,
+    "gradient_f32_count": 116774126728
+  },
+  "final_training_cursor": {
+    "split_name": "train",
+    "cycle": 0,
+    "next_shard_index": 0,
+    "next_token_offset_in_shard": 524296,
+    "emitted_tokens": 524296
+  },
+  "started_at_ms": 1774389068067,
+  "finished_at_ms": 1774433725345,
+  "observed_wallclock_ms": 44657278,
+  "disposition": "training_executed",
+  "refusal": null,
+  "claim_boundary": "bounded_single_h100_accelerated_trainer; challenge geometry and optimizer contract are real, but this report does not claim 8xH100, record-track, or challenge-speed closure",
+  "summary": "The Rust-owned single-H100 trainer executed 1 optimizer step(s) with challenge single-device geometry on CUDA, used the widened train_gpt.py-style warmup, validation, and wallclock-stop control loop, ran with final_validation_mode=roundtrip_only, reported canonical final contest metrics from the exported int8+zlib roundtrip artifact without also replaying the live-model final validation before stopping via StepBudgetReached.",
+  "report_digest": "f1aab6656b0c1a87c311cc833a9e316e64f2ef5a337d6a8419be1f408a8a5a61"
+}
