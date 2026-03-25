@@ -367,6 +367,8 @@ pub fn execute_parameter_golf_backed_dense_rank_runtime(
     run_id: &str,
     bringup_report_path: &Path,
     bringup_report: &ParameterGolfDistributed8xH100BringupReport,
+    validation_eval_mode: &crate::ParameterGolfValidationEvalMode,
+    validation_batch_sequences: u64,
     mut live_visualization_writer: Option<&mut ParameterGolfDistributedLiveVisualizationWriter>,
 ) -> Result<ParameterGolfBackedDenseRankRuntimeOutcome, DenseRankRuntimeError> {
     let bootstrap_receipt = execute_parameter_golf_distributed_8xh100_runtime_bootstrap(
@@ -392,6 +394,8 @@ pub fn execute_parameter_golf_backed_dense_rank_runtime(
         bringup_report,
         &bootstrap_receipt_path,
         &bootstrap_receipt,
+        validation_eval_mode,
+        validation_batch_sequences,
         live_visualization_writer.as_deref_mut(),
     )?;
     let train_step_receipt_path =

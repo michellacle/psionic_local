@@ -108,6 +108,12 @@ README posture:
 This selector is only valid when `validation_eval_mode=sliding_window:<stride>`
 uses the same stride value.
 
+The single-H100 trainer now also carries an explicit
+`validation_batch_sequences` contract that is independent from the train batch
+geometry. The default remains the train-geometry batch size for
+`non_overlapping`, but sliding-window evaluation now widens onto the explicit
+scoreboard batch surface instead of inheriting the train token cap implicitly.
+
 The legality boundary now matches the README contract explicitly:
 
 - each validation window is scored before any adaptation can see that chunk

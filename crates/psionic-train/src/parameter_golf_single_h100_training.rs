@@ -83,6 +83,9 @@ pub struct ParameterGolfSingleH100TrainingConfig {
     /// Explicit evaluation semantics for live and roundtrip validation.
     #[serde(default)]
     pub validation_eval_mode: ParameterGolfValidationEvalMode,
+    /// Explicit rank-local evaluation batch geometry, independent from train batching.
+    #[serde(default = "default_single_h100_validation_batch_sequences")]
+    pub validation_batch_sequences: usize,
     /// Optional legal score-first TTT overlay for the final validation passes.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub score_first_ttt: Option<ParameterGolfScoreFirstTttConfig>,
@@ -112,6 +115,10 @@ impl ParameterGolfSingleH100TrainingConfig {
             train_log_every: 200,
             final_validation_mode: ParameterGolfSingleH100ValidationMode::Both,
             validation_eval_mode: ParameterGolfValidationEvalMode::NonOverlapping,
+            validation_batch_sequences: parameter_golf_default_validation_batch_sequences(
+                &ParameterGolfBatchGeometry::challenge_single_device_defaults(),
+                &ParameterGolfValidationEvalMode::NonOverlapping,
+            ),
             score_first_ttt: None,
             hyperparameters,
         }
@@ -186,6 +193,11 @@ impl ParameterGolfSingleH100TrainingConfig {
         }
         self.validation_eval_mode
             .validate(self.geometry.train_sequence_length)?;
+        if self.validation_batch_sequences == 0 {
+            return Err(ParameterGolfSingleH100TrainingError::InvalidConfig {
+                message: String::from("validation_batch_sequences must be positive"),
+            });
+        }
         if let Some(score_first_ttt) = self.score_first_ttt.as_ref() {
             score_first_ttt.validate(self.geometry.train_sequence_length)?;
             match self.validation_eval_mode {
@@ -323,6 +335,30 @@ impl ParameterGolfValidationEvalMode {
             }
         }
     }
+}
+
+pub const PARAMETER_GOLF_SCOREBOARD_VALIDATION_BATCH_SEQUENCES: usize = 1024;
+
+#[must_use]
+pub fn parameter_golf_default_validation_batch_sequences(
+    geometry: &ParameterGolfBatchGeometry,
+    eval_mode: &ParameterGolfValidationEvalMode,
+) -> usize {
+    match eval_mode {
+        ParameterGolfValidationEvalMode::NonOverlapping => {
+            geometry.local_validation_batch_sequences()
+        }
+        ParameterGolfValidationEvalMode::SlidingWindow { .. } => {
+            PARAMETER_GOLF_SCOREBOARD_VALIDATION_BATCH_SEQUENCES
+        }
+    }
+}
+
+fn default_single_h100_validation_batch_sequences() -> usize {
+    parameter_golf_default_validation_batch_sequences(
+        &ParameterGolfBatchGeometry::challenge_single_device_defaults(),
+        &ParameterGolfValidationEvalMode::NonOverlapping,
+    )
 }
 
 /// Explicit legal score-first TTT configuration layered on top of
@@ -724,6 +760,8 @@ pub struct ParameterGolfSingleH100ValidationRuntimeReceipt {
     pub graph_surface: String,
     #[serde(default)]
     pub eval_mode: ParameterGolfValidationEvalMode,
+    #[serde(default = "default_single_h100_validation_batch_sequences")]
+    pub local_batch_sequences: usize,
     pub session_count: usize,
     pub total_batches: usize,
     #[serde(default)]
@@ -816,6 +854,8 @@ pub struct ParameterGolfSingleH100TrainingReport {
     pub final_validation_mode: ParameterGolfSingleH100ValidationMode,
     #[serde(default)]
     pub validation_eval_mode: ParameterGolfValidationEvalMode,
+    #[serde(default = "default_single_h100_validation_batch_sequences")]
+    pub validation_batch_sequences: usize,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub score_first_ttt: Option<ParameterGolfScoreFirstTttConfig>,
     pub executed_steps: u64,
@@ -1530,7 +1570,7 @@ fn build_parameter_golf_single_h100_training_report_inner(
     };
 
     emit_progress_line(format!(
-        "single_h100_train_start run_id={} device={} max_steps={} iterations={} warmup_steps={} grad_accum_steps={} val_loss_every={} train_log_every={} final_validation_mode={} validation_eval_mode={} local_train_sequences={} local_validation_sequences={} max_wallclock_seconds={}",
+        "single_h100_train_start run_id={} device={} max_steps={} iterations={} warmup_steps={} grad_accum_steps={} val_loss_every={} train_log_every={} final_validation_mode={} validation_eval_mode={} validation_batch_sequences={} local_train_sequences={} local_validation_sequences={} max_wallclock_seconds={}",
         config.run_id,
         selected_device.device_name.as_deref().unwrap_or("unknown"),
         config.max_steps,
@@ -1541,8 +1581,9 @@ fn build_parameter_golf_single_h100_training_report_inner(
         config.train_log_every,
         config.final_validation_mode.as_str(),
         config.validation_eval_mode.as_str(),
+        config.validation_batch_sequences,
         config.geometry.local_train_batch_sequences(),
-        config.geometry.local_validation_batch_sequences(),
+        config.validation_batch_sequences,
         config.hyperparameters.max_wallclock_seconds.unwrap_or(0.0),
     ));
     if let Some(writer) = live_visualization_writer.as_mut() {
@@ -1709,7 +1750,7 @@ fn build_parameter_golf_single_h100_training_report_inner(
                 "{}_start sequences={} batch_sequences={}",
                 stage_label,
                 (validation_tokens.len() - 1) / config.geometry.train_sequence_length,
-                config.geometry.local_validation_batch_sequences(),
+                config.validation_batch_sequences,
             ));
             if let Some(writer) = live_visualization_writer.as_mut() {
                 writer.record_phase(
@@ -1739,7 +1780,7 @@ fn build_parameter_golf_single_h100_training_report_inner(
                 validation_tokens.as_slice(),
                 &byte_luts,
                 config.geometry.train_sequence_length,
-                config.geometry.local_validation_batch_sequences(),
+                config.validation_batch_sequences,
                 &config.validation_eval_mode,
                 last_step
                     .then_some(config.score_first_ttt.as_ref())
@@ -1889,7 +1930,7 @@ fn build_parameter_golf_single_h100_training_report_inner(
         emit_progress_line(format!(
             "final_int8_zlib_roundtrip_start sequences={} batch_sequences={} compressed_model_bytes={} artifact_ref={} artifact_digest={}",
             (validation_tokens.len() - 1) / config.geometry.train_sequence_length,
-            config.geometry.local_validation_batch_sequences(),
+            config.validation_batch_sequences,
             compressed_model_artifact.bytes.len(),
             compressed_model_artifact.artifact_ref,
             compressed_model_artifact.artifact_digest,
@@ -1907,7 +1948,7 @@ fn build_parameter_golf_single_h100_training_report_inner(
             validation_tokens.as_slice(),
             &byte_luts,
             config.geometry.train_sequence_length,
-            config.geometry.local_validation_batch_sequences(),
+            config.validation_batch_sequences,
             &config.validation_eval_mode,
             config.score_first_ttt.as_ref(),
             &mut eval_graph_cache,
@@ -1995,10 +2036,11 @@ fn build_parameter_golf_single_h100_training_report_inner(
         }
     };
     let summary = format!(
-        "The Rust-owned single-H100 trainer executed {} optimizer step(s) with challenge single-device geometry on CUDA, used the widened train_gpt.py-style warmup, validation, and wallclock-stop control loop, ran with final_validation_mode={} and validation_eval_mode={}, {} before stopping via {:?}.",
+        "The Rust-owned single-H100 trainer executed {} optimizer step(s) with challenge single-device geometry on CUDA, used the widened train_gpt.py-style warmup, validation, and wallclock-stop control loop, ran with final_validation_mode={}, validation_eval_mode={}, and validation_batch_sequences={}, {} before stopping via {:?}.",
         step,
         config.final_validation_mode.as_str(),
         config.validation_eval_mode.as_str(),
+        config.validation_batch_sequences,
         final_metric_surface,
         realized_stop_reason
     );
@@ -2026,6 +2068,7 @@ fn build_parameter_golf_single_h100_training_report_inner(
         train_log_every: config.train_log_every,
         final_validation_mode: config.final_validation_mode,
         validation_eval_mode: config.validation_eval_mode.clone(),
+        validation_batch_sequences: config.validation_batch_sequences,
         score_first_ttt: config.score_first_ttt.clone(),
         executed_steps: step,
         stop_reason: Some(realized_stop_reason),
@@ -2115,6 +2158,7 @@ fn refusal_report(
         train_log_every: config.train_log_every,
         final_validation_mode: config.final_validation_mode,
         validation_eval_mode: config.validation_eval_mode.clone(),
+        validation_batch_sequences: config.validation_batch_sequences,
         score_first_ttt: config.score_first_ttt.clone(),
         executed_steps: 0,
         stop_reason: None,
@@ -3564,10 +3608,14 @@ fn evaluate_validation_batch_plans_on_cuda(
     let mean_loss = total_loss_sum / total_token_count.max(1) as f64;
     let bits_per_byte = (mean_loss / std::f64::consts::LN_2)
         * (total_token_count as f64 / total_byte_count.max(1) as f64);
+    let local_batch_sequences = batch_plans
+        .first()
+        .map_or(1, |batch_plan| batch_plan.batch_sequences.max(1));
     let runtime_receipt = ParameterGolfSingleH100ValidationRuntimeReceipt {
         path: String::from("device_resident_cuda_eval_graph_v1"),
         graph_surface: String::from("parameter_golf_baseline_eval_graph_v2"),
         eval_mode: eval_mode.clone(),
+        local_batch_sequences,
         session_count: session_cache.len(),
         total_batches,
         total_units,
@@ -3583,11 +3631,12 @@ fn evaluate_validation_batch_plans_on_cuda(
         total_byte_accounting_us,
     };
     emit_progress_line(format!(
-        "validation_runtime_receipt stage={} eval_mode={} path={} graph_surface={} sessions={} total_units={} stable_parameter_buffers={} stable_parameter_values={} resident_parameter_upload_us={} input_token_write_us={} target_token_write_us={} byte_accounting_us={}",
+        "validation_runtime_receipt stage={} eval_mode={} path={} graph_surface={} batch_sequences={} sessions={} total_units={} stable_parameter_buffers={} stable_parameter_values={} resident_parameter_upload_us={} input_token_write_us={} target_token_write_us={} byte_accounting_us={}",
         stage_label,
         eval_mode.as_str(),
         runtime_receipt.path,
         runtime_receipt.graph_surface,
+        runtime_receipt.local_batch_sequences,
         runtime_receipt.session_count,
         runtime_receipt.total_units,
         runtime_receipt.persistent_parameter_buffer_count,

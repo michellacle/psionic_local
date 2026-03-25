@@ -31,7 +31,8 @@ use crate::{
     evaluate_validation_window_starts_on_cuda, execute_parameter_golf_training_gradient_batch,
     export_parameter_golf_banked_full_precision_weights_bytes,
     export_parameter_golf_int8_zlib_model_artifact, inspect_local_distributed_8xh100_machine,
-    materialize_current_banked_weights, materialize_current_model, parameter_golf_optimizer_plan,
+    materialize_current_banked_weights, materialize_current_model,
+    parameter_golf_default_validation_batch_sequences, parameter_golf_optimizer_plan,
     parameter_golf_runpod_8xh100_capability_profile,
     parameter_golf_single_h100_training::{
         refresh_parameter_golf_cuda_training_sessions_from_state, ParameterGolfCudaTrainingSession,
@@ -97,7 +98,6 @@ const VALIDATION_BATCH_SEQUENCES_ENV_VAR: &str =
     "PSIONIC_PARAMETER_GOLF_VALIDATION_BATCH_SEQUENCES";
 
 const CHALLENGE_WORLD_SIZE: usize = 8;
-const SCOREBOARD_SLIDING_WINDOW_BATCH_SEQUENCES: usize = 1024;
 const WORKER_PROTOCOL_SCHEMA_VERSION: u32 = 1;
 const WORKER_COLLECTIVE_CONNECT_RETRY_LIMIT: usize = 200;
 const WORKER_COLLECTIVE_CONNECT_RETRY_DELAY_MS: u64 = 100;
@@ -321,6 +321,9 @@ pub struct ParameterGolfDistributed8xH100ValidationShardPlan {
     pub rank: usize,
     /// Validation evaluation mode used by this rank.
     pub eval_mode: ParameterGolfValidationEvalMode,
+    /// Expected local validation batch size in sequences or windows for this rank.
+    #[serde(default)]
+    pub local_batch_sequences: u64,
     /// Zero-based validation sequence offset covered by this rank's scored tokens.
     pub sequence_start: u64,
     /// Number of validation sequences covered by this rank's scored tokens.
@@ -1305,8 +1308,11 @@ impl ParameterGolfDistributed8xH100WorkerRuntime {
                 ),
             });
         }
-        let validation_batch_sequences =
-            distributed_validation_batch_sequences(&self.geometry, &shard.eval_mode);
+        let validation_batch_sequences = distributed_validation_batch_sequences(
+            shard.local_batch_sequences as usize,
+            &self.geometry,
+            &shard.eval_mode,
+        );
         let started = Instant::now();
         let validation_summary = match &shard.eval_mode {
             ParameterGolfValidationEvalMode::NonOverlapping => {
@@ -1713,19 +1719,16 @@ pub fn parameter_golf_distributed_8xh100_validation_rank_shards_dir(
 }
 
 fn distributed_validation_batch_sequences(
+    configured_batch_sequences: usize,
     geometry: &ParameterGolfBatchGeometry,
     eval_mode: &ParameterGolfValidationEvalMode,
 ) -> usize {
-    match eval_mode {
-        ParameterGolfValidationEvalMode::NonOverlapping => {
-            parse_validation_batch_sequences_override()
-                .unwrap_or_else(|| geometry.local_validation_batch_sequences())
-        }
-        ParameterGolfValidationEvalMode::SlidingWindow { .. } => {
-            parse_validation_batch_sequences_override()
-                .unwrap_or(SCOREBOARD_SLIDING_WINDOW_BATCH_SEQUENCES)
-        }
-    }
+    let configured_batch_sequences = if configured_batch_sequences == 0 {
+        parameter_golf_default_validation_batch_sequences(geometry, eval_mode)
+    } else {
+        configured_batch_sequences
+    };
+    parse_validation_batch_sequences_override().unwrap_or(configured_batch_sequences)
 }
 
 fn parse_validation_batch_sequences_override() -> Option<usize> {
@@ -2478,6 +2481,8 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
     bringup_report: &ParameterGolfDistributed8xH100BringupReport,
     bootstrap_receipt_path: &Path,
     bootstrap_receipt: &ParameterGolfDistributed8xH100RuntimeBootstrapReceipt,
+    validation_eval_mode: &ParameterGolfValidationEvalMode,
+    validation_batch_sequences: u64,
     mut live_visualization_writer: Option<&mut ParameterGolfDistributedLiveVisualizationWriter>,
 ) -> Result<
     ParameterGolfDistributed8xH100TrainStepReceipt,
@@ -2662,9 +2667,11 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
         .clone();
     let current_model_int8_zlib_artifact_size_bytes =
         exported_artifacts.current_model_int8_zlib_artifact_size_bytes;
-    let validation_eval_mode = ParameterGolfValidationEvalMode::SlidingWindow { stride: 64 };
-    let validation_batch_sequences =
-        distributed_validation_batch_sequences(&geometry, &validation_eval_mode) as u64;
+    let validation_batch_sequences = distributed_validation_batch_sequences(
+        validation_batch_sequences as usize,
+        &geometry,
+        validation_eval_mode,
+    ) as u64;
     let validation_tokens = load_parameter_golf_validation_tokens_from_paths(
         &bundle
             .validation_shards
@@ -2709,6 +2716,7 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
                 serde_json::to_string_pretty(&ParameterGolfDistributed8xH100ValidationShardPlan {
                     rank: shard.rank,
                     eval_mode: validation_eval_mode.clone(),
+                    local_batch_sequences: validation_batch_sequences,
                     sequence_start: shard.sequence_start,
                     sequence_count: shard.sequence_count,
                     evaluation_unit_start: shard.evaluation_unit_start,
@@ -2741,6 +2749,7 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
                 shard: ParameterGolfDistributed8xH100ValidationShardPlan {
                     rank: shard.rank,
                     eval_mode: validation_eval_mode.clone(),
+                    local_batch_sequences: validation_batch_sequences,
                     sequence_start: shard.sequence_start,
                     sequence_count: shard.sequence_count,
                     evaluation_unit_start: shard.evaluation_unit_start,
@@ -2859,7 +2868,7 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
     distributed_config.run_id = String::from(run_id);
     distributed_config.mesh_id = String::from("mesh.parameter_golf.runpod_8xh100");
     distributed_config.step_observations = step_observations.clone();
-    distributed_config.validation_eval_mode = validation_eval_mode;
+    distributed_config.validation_eval_mode = validation_eval_mode.clone();
     distributed_config.validation_batch_sequences = validation_batch_sequences;
     distributed_config.validation_observed_ms = validation_observed_ms;
     distributed_config.validation_total_sequence_count = validation_total_sequence_count;
@@ -3290,8 +3299,11 @@ pub fn execute_parameter_golf_distributed_8xh100_validation_child(
         .device_name
         .clone()
         .unwrap_or_else(|| String::from("unknown"));
-    let validation_batch_sequences =
-        distributed_validation_batch_sequences(&geometry, &shard.eval_mode);
+    let validation_batch_sequences = distributed_validation_batch_sequences(
+        shard.local_batch_sequences as usize,
+        &geometry,
+        &shard.eval_mode,
+    );
     let started = Instant::now();
     let mut graph_cache = BTreeMap::new();
     let validation_summary = if shard.evaluation_unit_count == 0 {
@@ -3635,9 +3647,12 @@ mod tests {
     use super::{
         distributed_validation_batch_sequences, load_gradient_artifact,
         prune_step_scope_for_next_step, write_gradient_artifact,
-        SCOREBOARD_SLIDING_WINDOW_BATCH_SEQUENCES, VALIDATION_BATCH_SEQUENCES_ENV_VAR,
+        VALIDATION_BATCH_SEQUENCES_ENV_VAR,
     };
-    use crate::{ParameterGolfBatchGeometry, ParameterGolfValidationEvalMode};
+    use crate::{
+        parameter_golf_default_validation_batch_sequences, ParameterGolfBatchGeometry,
+        ParameterGolfValidationEvalMode,
+    };
 
     #[test]
     fn distributed_train_step_gradient_artifact_roundtrips(
@@ -3660,6 +3675,10 @@ mod tests {
         assert_eq!(geometry.local_validation_batch_sequences(), 64);
         assert_eq!(
             distributed_validation_batch_sequences(
+                parameter_golf_default_validation_batch_sequences(
+                    &geometry,
+                    &ParameterGolfValidationEvalMode::NonOverlapping,
+                ),
                 &geometry,
                 &ParameterGolfValidationEvalMode::NonOverlapping
             ),
@@ -3672,10 +3691,30 @@ mod tests {
         let geometry = ParameterGolfBatchGeometry::challenge_distributed_8xh100_defaults();
         assert_eq!(
             distributed_validation_batch_sequences(
+                parameter_golf_default_validation_batch_sequences(
+                    &geometry,
+                    &ParameterGolfValidationEvalMode::SlidingWindow { stride: 64 },
+                ),
                 &geometry,
                 &ParameterGolfValidationEvalMode::SlidingWindow { stride: 64 }
             ),
-            SCOREBOARD_SLIDING_WINDOW_BATCH_SEQUENCES
+            parameter_golf_default_validation_batch_sequences(
+                &geometry,
+                &ParameterGolfValidationEvalMode::SlidingWindow { stride: 64 }
+            )
+        );
+    }
+
+    #[test]
+    fn distributed_validation_batch_sequences_respects_explicit_configured_geometry() {
+        let geometry = ParameterGolfBatchGeometry::challenge_distributed_8xh100_defaults();
+        assert_eq!(
+            distributed_validation_batch_sequences(
+                256,
+                &geometry,
+                &ParameterGolfValidationEvalMode::NonOverlapping
+            ),
+            256
         );
     }
 
@@ -3687,6 +3726,10 @@ mod tests {
         }
         assert_eq!(
             distributed_validation_batch_sequences(
+                parameter_golf_default_validation_batch_sequences(
+                    &geometry,
+                    &ParameterGolfValidationEvalMode::NonOverlapping,
+                ),
                 &geometry,
                 &ParameterGolfValidationEvalMode::NonOverlapping
             ),
@@ -3694,6 +3737,10 @@ mod tests {
         );
         assert_eq!(
             distributed_validation_batch_sequences(
+                parameter_golf_default_validation_batch_sequences(
+                    &geometry,
+                    &ParameterGolfValidationEvalMode::SlidingWindow { stride: 64 },
+                ),
                 &geometry,
                 &ParameterGolfValidationEvalMode::SlidingWindow { stride: 64 }
             ),

@@ -1,6 +1,7 @@
 use std::{env, path::PathBuf};
 
 use psionic_train::{
+    parameter_golf_default_validation_batch_sequences,
     write_parameter_golf_single_h100_training_report, ParameterGolfScoreFirstTttConfig,
     ParameterGolfSingleH100TrainingConfig, ParameterGolfSingleH100ValidationMode,
     ParameterGolfValidationEvalMode,
@@ -43,6 +44,10 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
     }
     if let Some(validation_eval_mode) = validation_eval_mode {
         config.validation_eval_mode = validation_eval_mode;
+        config.validation_batch_sequences = parameter_golf_default_validation_batch_sequences(
+            &config.geometry,
+            &config.validation_eval_mode,
+        );
     }
     if let Some(score_first_ttt) = score_first_ttt {
         config.score_first_ttt = Some(score_first_ttt);
@@ -56,13 +61,14 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         report.stop_reason,
     );
     println!(
-        "warmup_steps={} completed_warmup_steps={} measured_training_time_ms={} validation_checkpoints={} final_validation_mode={} validation_eval_mode={}",
+        "warmup_steps={} completed_warmup_steps={} measured_training_time_ms={} validation_checkpoints={} final_validation_mode={} validation_eval_mode={} validation_batch_sequences={}",
         report.warmup_steps,
         report.completed_warmup_steps,
         report.observed_training_time_ms,
         report.validation_checkpoints.len(),
         report.final_validation_mode.as_str(),
         report.validation_eval_mode.as_str(),
+        report.validation_batch_sequences,
     );
     if let Some(score_first_ttt) = report.score_first_ttt.as_ref() {
         println!(

@@ -29,6 +29,7 @@ pub const PARAMETER_GOLF_SUBMISSION_ARTIFACT_CAP_BYTES: u64 = 16_000_000;
 /// Explicit claim boundary for the first non-record submission package.
 pub const PARAMETER_GOLF_NON_RECORD_SUBMISSION_CLAIM_BOUNDARY: &str =
     "current honest non-record submission package only; the shipped train_gpt.py defaults to a bounded local-reference replay path, but the same exported folder now also ships a real single-H100 trainer payload plus the immutable PGOLF input-package descriptor and one Rust-owned distributed 8xH100 runtime lane for later remote execution, still without claiming record-track readiness";
+pub const PARAMETER_GOLF_NON_RECORD_RUNTIME_VALIDATION_BATCH_SEQUENCES: u64 = 256;
 
 const PARAMETER_GOLF_NON_RECORD_RECORDS_DIR: &str = "records/track_non_record_16mb";
 const PARAMETER_GOLF_RUNTIME_PAYLOAD_ARTIFACT_REF: &str =
@@ -655,6 +656,7 @@ pub fn build_parameter_golf_non_record_submission_bundle(
         sequence_length: runtime_config.geometry.train_sequence_length,
         validation_batch_tokens: runtime_config.geometry.local_validation_batch_tokens(),
         validation_eval_mode: crate::ParameterGolfValidationEvalMode::NonOverlapping,
+        validation_batch_sequences: PARAMETER_GOLF_NON_RECORD_RUNTIME_VALIDATION_BATCH_SEQUENCES,
         score_first_ttt: None,
         expected_val_loss: benchmark_bundle
             .challenge_score_report
@@ -1498,12 +1500,13 @@ mod tests {
         PARAMETER_GOLF_DISTRIBUTED_8XH100_BRINGUP_REPORT_ARTIFACT_REF,
         PARAMETER_GOLF_DISTRIBUTED_8XH100_EXECUTION_MODE,
         PARAMETER_GOLF_DISTRIBUTED_8XH100_RUNTIME_BOOTSTRAP_RECEIPT_ARTIFACT_REF,
+        PARAMETER_GOLF_NON_RECORD_RUNTIME_VALIDATION_BATCH_SEQUENCES,
         PARAMETER_GOLF_NON_RECORD_SUBMISSION_VERSION, PARAMETER_GOLF_NON_RECORD_TRACK_ID,
         PARAMETER_GOLF_REAL_RUNTIME_CONTRACT_ARTIFACT_REF,
         PARAMETER_GOLF_REAL_RUNTIME_PAYLOAD_ARTIFACT_REF,
-        PARAMETER_GOLF_RUNTIME_MANIFEST_ARTIFACT_REF,
         PARAMETER_GOLF_RUNTIME_INPUT_PACKAGE_DESCRIPTOR_ARTIFACT_REF,
-        PARAMETER_GOLF_RUNTIME_PAYLOAD_ARTIFACT_REF, PARAMETER_GOLF_RUNTIME_RECEIPT_ARTIFACT_REF,
+        PARAMETER_GOLF_RUNTIME_MANIFEST_ARTIFACT_REF, PARAMETER_GOLF_RUNTIME_PAYLOAD_ARTIFACT_REF,
+        PARAMETER_GOLF_RUNTIME_RECEIPT_ARTIFACT_REF,
     };
     use crate::{
         benchmark_parameter_golf_local_reference, ParameterGolfDistributed8xH100BringupReport,
@@ -1639,6 +1642,14 @@ mod tests {
                 "single_h100_train",
                 PARAMETER_GOLF_DISTRIBUTED_8XH100_EXECUTION_MODE
             ]
+        );
+        assert_eq!(
+            runtime_manifest.validation_eval_mode,
+            crate::ParameterGolfValidationEvalMode::NonOverlapping
+        );
+        assert_eq!(
+            runtime_manifest.validation_batch_sequences,
+            PARAMETER_GOLF_NON_RECORD_RUNTIME_VALIDATION_BATCH_SEQUENCES
         );
         assert!(runtime_manifest
             .runtime_posture

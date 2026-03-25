@@ -146,6 +146,11 @@ validated on the real RunPod `8xH100` Ubuntu image. The expected execution
 boundary on that pod is therefore the current throughput-proof surface inside
 the shipped runtime, not an earlier libc or entrypoint mismatch.
 
+The current bundle now also carries an explicit `validation_batch_sequences`
+value in `runtime/parameter_golf_submission_runtime.json`. The distributed lane
+must preserve that contract into validation shard plans and receipts instead of
+quietly re-deriving it from the train geometry on the pod.
+
 The launcher ships the committed runtime fixture at
 [`fixtures/parameter_golf/runtime/parameter_golf_submission_runtime.x86_64-unknown-linux-gnu`](/home/christopherdavid/code/psionic/fixtures/parameter_golf/runtime/parameter_golf_submission_runtime.x86_64-unknown-linux-gnu),
 not the current local source tree. Runtime source changes do not reach the pod

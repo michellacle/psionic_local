@@ -148,6 +148,7 @@ The shipped runtime now preserves, validates, and lifts:
 
 - `eval_mode`
 - `local_batch_sequences`
+- `validation_batch_sequences`
 - `evaluation_unit_start`
 - `evaluation_unit_count`
 - `scored_token_start`
@@ -159,10 +160,12 @@ For the scoreboard-grade lane, Psionic now uses sliding-window validation with:
 - one global ordered `window_starts` list derived from the full validation
   token stream
 - one contiguous partition of those evaluation windows across ranks
-- one explicit eval-batch geometry surface that is independent from the
-  training token cap
-- default `batch_sequences=1024` windows per rank-local forward batch for the
-  sliding-window score path, matching accepted public sliding-window record
+- one explicit eval-batch geometry surface that is independent from the train
+  batch geometry
+- one manifest-backed `validation_batch_sequences` value that the runtime now
+  preserves into shard plans and receipts instead of silently re-deriving later
+- default `batch_sequences=1024` windows per rank-local forward batch only for
+  the sliding-window score path, matching accepted public sliding-window record
   posture instead of the baseline non-overlapping token cap
 - optional override through
   `PSIONIC_PARAMETER_GOLF_VALIDATION_BATCH_SEQUENCES=<positive integer>` when
@@ -171,8 +174,9 @@ For the scoreboard-grade lane, Psionic now uses sliding-window validation with:
 
 This matters because the distributed receipt can now defend the real eval
 surface: which windows each rank evaluated, which scored-token interval each
-rank owned, and how the aggregated `loss_sum`, `token_count`, and `byte_count`
-were reduced back into one distributed validation result.
+rank owned, which explicit `validation_batch_sequences` contract was active,
+and how the aggregated `loss_sum`, `token_count`, and `byte_count` were reduced
+back into one distributed validation result.
 
 This is still score-only sliding-window parity. The legal score-first TTT path
 now exists on the single-H100 CUDA trainer, but the distributed `8xH100`

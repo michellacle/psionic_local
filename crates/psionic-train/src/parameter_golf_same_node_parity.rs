@@ -602,6 +602,7 @@ mod tests {
             train_log_every: 1,
             final_validation_mode: crate::ParameterGolfSingleH100ValidationMode::Both,
             validation_eval_mode: crate::ParameterGolfValidationEvalMode::NonOverlapping,
+            validation_batch_sequences: 64,
             score_first_ttt: None,
             executed_steps: 0,
             stop_reason: None,

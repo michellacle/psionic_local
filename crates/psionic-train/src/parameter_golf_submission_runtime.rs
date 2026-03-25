@@ -70,6 +70,9 @@ pub struct ParameterGolfSubmissionRuntimeManifest {
     /// Requested base validation-eval mode for the shipped runtime.
     #[serde(default)]
     pub validation_eval_mode: ParameterGolfValidationEvalMode,
+    /// Explicit validation batch geometry for the shipped runtime.
+    #[serde(default)]
+    pub validation_batch_sequences: u64,
     /// Optional legal score-first TTT overlay requested by the shipped runtime.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub score_first_ttt: Option<ParameterGolfScoreFirstTttConfig>,
@@ -548,6 +551,8 @@ fn execute_parameter_golf_submission_distributed_8xh100_bootstrap(
         &manifest.run_id,
         &output_path,
         &report,
+        &manifest.validation_eval_mode,
+        manifest.validation_batch_sequences,
         Some(&mut live_visualization_writer),
     )?;
     let bootstrap_receipt_path = PathBuf::from(&runtime.bootstrap_receipt_path);
@@ -794,6 +799,7 @@ mod tests {
             sequence_length: 1024,
             validation_batch_tokens: 16_384,
             validation_eval_mode: ParameterGolfValidationEvalMode::SlidingWindow { stride: 64 },
+            validation_batch_sequences: 1024,
             score_first_ttt: Some(ParameterGolfScoreFirstTttConfig::leaderboard_defaults()),
             expected_val_loss: 1.0,
             expected_val_bpb: 1.0,

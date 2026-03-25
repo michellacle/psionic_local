@@ -1532,6 +1532,7 @@ mod tests {
             train_log_every: 1,
             final_validation_mode: crate::ParameterGolfSingleH100ValidationMode::Both,
             validation_eval_mode: ParameterGolfValidationEvalMode::NonOverlapping,
+            validation_batch_sequences: 64,
             score_first_ttt: None,
             executed_steps: 2,
             stop_reason: Some(ParameterGolfSingleH100TrainingStopReason::StepBudgetReached),
