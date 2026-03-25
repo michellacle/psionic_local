@@ -71,8 +71,8 @@
   },
   "runtime_payload": {
     "relative_path": "runtime/parameter_golf_submission_runtime",
-    "size_bytes": 6222888,
-    "sha256_digest": "d816a729e0bf08fa011f882190e5b3e69a9c48f333e91bf446b2a32ac96c8b7f"
+    "size_bytes": 7066664,
+    "sha256_digest": "325b1bb8cd1298be53c111573c05c0b6a9d5a79878a599757301e10ccff76dae"
   },
   "runtime_manifest": {
     "relative_path": "runtime/parameter_golf_submission_runtime.json",
@@ -91,8 +91,8 @@
   },
   "accounting_receipt": {
     "relative_path": "parameter-golf-local-reference-run/benchmark/parameter_golf_submission_accounting.json",
-    "size_bytes": 2125,
-    "sha256_digest": "6d8db6f0745f919d2dae6ca9194b68a08eea2110db32ffb7bcccab2471d6aaaf"
+    "size_bytes": 2128,
+    "sha256_digest": "cb0dfc8e14f8998b2dab7b84f31fe207a0a29ae2943e98aeccde192a3f08b978"
   },
   "benchmark_receipt": {
     "relative_path": "parameter-golf-local-reference-run/benchmark/parameter_golf_challenge_benchmark_receipt.json",
@@ -382,5 +382,5 @@
     "receipt_digest": "5e019c3a263a0e3adf0f09d1050c59dfbf4e0ad7c8270af7e664aad7faded21b"
   },
   "claim_boundary": "This report binds the exact exported submission folder to one real folder-local entrypoint replay, the preserved bounded wallclock/memory/artifact receipts, and one measured-or-refused 8xH100 challenge receipt. The committed evidence is still a local review-host refusal rather than true 8xH100 success.",
-  "report_digest": "bbeddcc4ccfd5e97d13aa19910b2c0ec9278bbb0708f5532dff32ab10c3d6f4f"
+  "report_digest": "6714ea603ba135b01ec0776227a51cff1f16f07b0903c44c43422685439d644b"
 }

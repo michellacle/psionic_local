@@ -1889,6 +1889,19 @@ mod tests {
             measurements_path: measurements_path.display().to_string(),
             distributed_receipt_path: distributed_receipt_path.display().to_string(),
             train_step_receipt_path: train_step_receipt_path.display().to_string(),
+            step_scope_root_dir: run_root
+                .join("runtime_step_scopes")
+                .display()
+                .to_string(),
+            executed_step_count: 1,
+            observed_training_time_ms: 400,
+            step_observations: vec![ParameterGolfDistributedStepObservation::new(
+                1,
+                1_742_846_401_000,
+                1_742_846_401_400,
+                1_048_576,
+            )],
+            stop_reason: Some(String::from("iteration_cap_reached")),
             mean_train_loss: 4.12,
             train_tokens: 1_048_576,
             observed_step_ms: 400,
