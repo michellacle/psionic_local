@@ -944,6 +944,8 @@ fn stable_digest<T: Serialize>(prefix: &[u8], value: &T) -> String {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::BTreeSet;
+
     use super::{
         canonical_training_execution_evidence_bundle, TrainingExecutionDisposition,
         TrainingExecutionEvidenceBundleError, TrainingExecutionTopologyKind,

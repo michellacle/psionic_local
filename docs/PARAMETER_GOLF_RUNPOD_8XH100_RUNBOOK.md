@@ -120,16 +120,16 @@ validated on the real RunPod `8xH100` Ubuntu image. The expected execution
 boundary on that pod is therefore the explicit post-train-step refusal from
 the shipped runtime, not an earlier libc or entrypoint mismatch.
 
-It still does not ship the later distributed validation and final execution
-closure path. The RunPod launcher therefore requests the reserved distributed
-mode explicitly so the execution phase writes the machine-readable bring-up
-report, one aggregate runtime-bootstrap receipt, retained per-rank bootstrap
-receipts, retained per-rank bootstrap logs, one aggregate train-step receipt,
-retained per-rank train-step receipts, retained per-rank train-step logs,
-retained train-step windows, retained per-rank gradient artifacts, one
-measured distributed receipt, and then writes one completion receipt bound to
-the shipped final artifact identity instead of silently taking the
-local-reference replay path under `WORLD_SIZE=8`.
+It still does not ship the later persistent multi-step score path. The RunPod
+launcher therefore requests the reserved distributed mode explicitly so the
+execution phase writes the machine-readable bring-up report, one aggregate
+runtime-bootstrap receipt, retained per-rank bootstrap receipts, retained
+per-rank bootstrap logs, one aggregate train-step receipt, retained per-rank
+train-step receipts, retained per-rank train-step logs, retained train-step
+windows, retained per-rank gradient artifacts, retained runtime-owned
+post-step model artifacts, one measured distributed receipt, and then writes
+one completion receipt bound to the trained runtime-produced artifact instead
+of silently taking the local-reference replay path under `WORLD_SIZE=8`.
 
 The operator lane now also keeps the dataset/tokenizer env contract explicit.
 It does not assume the pod has the right values already exported. The

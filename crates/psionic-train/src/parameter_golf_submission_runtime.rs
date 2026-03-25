@@ -598,7 +598,7 @@ fn build_parameter_golf_distributed_8xh100_completion_receipt(
                 "distributed completion receipt requires one validation-backed distributed receipt",
             ),
         })?;
-    let final_model_artifact_path = root.join(&manifest.model_artifact_path);
+    let final_model_artifact_path = PathBuf::from(&train_step_receipt.current_model_int8_zlib_artifact_path);
     let final_model_artifact_bytes = fs::read(&final_model_artifact_path).map_err(|error| {
         ParameterGolfSubmissionRuntimeError::Read {
             path: final_model_artifact_path.display().to_string(),
@@ -632,7 +632,7 @@ fn build_parameter_golf_distributed_8xh100_completion_receipt(
         distributed_validation_bits_per_byte: validation.bits_per_byte,
         distributed_validation_observed_ms: validation.observed_ms,
         claim_boundary: String::from(
-            "This completion receipt proves the exported-folder distributed runtime finished the current 8xH100 execution contract with one measured distributed validation aggregation and bound that execution to the exact shipped final artifact identity already present in the folder. It does not by itself claim record-track promotion.",
+            "This completion receipt proves the exported-folder distributed runtime finished the current 8xH100 execution contract with one measured distributed validation aggregation and bound that execution to the exact trained post-step int8+zlib artifact produced by the live runtime. It does not by itself claim record-track promotion.",
         ),
         receipt_digest: String::new(),
     };

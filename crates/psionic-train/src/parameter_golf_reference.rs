@@ -2149,6 +2149,14 @@ pub fn export_parameter_golf_int8_zlib_model_artifact(
     export_int8_zlib_model_artifact(model, run_id, step)
 }
 
+/// Exports one Parameter Golf model into the canonical raw safetensors bytes
+/// surface used by checkpoint and distributed-runtime seams.
+pub fn export_parameter_golf_full_precision_model_bytes(
+    model: &ParameterGolfReferenceModel,
+) -> Result<Vec<u8>, ParameterGolfReferenceTrainingError> {
+    export_full_precision_model_bytes(model)
+}
+
 fn serialize_tensors(
     tensors: Vec<(String, SafeTensorsDType, Vec<usize>, Vec<u8>)>,
     metadata: Option<HashMap<String, String>>,

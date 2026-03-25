@@ -26,8 +26,10 @@ use crate::{
     apply_gradients_to_state, benchmark_parameter_golf_distributed_8xh100, build_tokenizer_digest,
     build_parameter_golf_validation_window_starts, build_validation_observation_plan,
     clip_gradients, evaluate_validation_on_cuda, evaluate_validation_window_starts_on_cuda,
-    execute_parameter_golf_training_gradient_batch, inspect_local_distributed_8xh100_machine,
+    execute_parameter_golf_training_gradient_batch, export_parameter_golf_full_precision_model_bytes,
+    export_parameter_golf_int8_zlib_model_artifact, inspect_local_distributed_8xh100_machine,
     materialize_current_model, parameter_golf_optimizer_plan,
+    restore_parameter_golf_model_from_safetensors,
     parameter_golf_runpod_8xh100_capability_profile, seed_parameter_states, zero_gradients,
     ParameterGolfBatchGeometry, ParameterGolfDistributedValidationShardObservation,
     ParameterGolfDistributed8xH100BringupReport,
@@ -52,6 +54,8 @@ const CHILD_WINDOW_PATH_ENV_VAR: &str =
     "PSIONIC_PARAMETER_GOLF_DISTRIBUTED_8XH100_TRAIN_STEP_WINDOW_PATH";
 const CHILD_GRADIENT_ARTIFACT_PATH_ENV_VAR: &str =
     "PSIONIC_PARAMETER_GOLF_DISTRIBUTED_8XH100_TRAIN_STEP_GRADIENT_ARTIFACT_PATH";
+const CHILD_MODEL_ARTIFACT_PATH_ENV_VAR: &str =
+    "PSIONIC_PARAMETER_GOLF_DISTRIBUTED_8XH100_TRAIN_STEP_MODEL_ARTIFACT_PATH";
 const VALIDATION_CHILD_ENV_VAR: &str =
     "PSIONIC_PARAMETER_GOLF_DISTRIBUTED_8XH100_VALIDATION_CHILD";
 const VALIDATION_CHILD_RANK_ENV_VAR: &str =
@@ -68,6 +72,8 @@ const VALIDATION_CHILD_SHARD_PATH_ENV_VAR: &str =
     "PSIONIC_PARAMETER_GOLF_DISTRIBUTED_8XH100_VALIDATION_SHARD_PATH";
 const VALIDATION_CHILD_GRADIENT_ARTIFACT_PATH_ENV_VAR: &str =
     "PSIONIC_PARAMETER_GOLF_DISTRIBUTED_8XH100_VALIDATION_GRADIENT_ARTIFACT_PATH";
+const VALIDATION_CHILD_MODEL_ARTIFACT_PATH_ENV_VAR: &str =
+    "PSIONIC_PARAMETER_GOLF_DISTRIBUTED_8XH100_VALIDATION_MODEL_ARTIFACT_PATH";
 
 const CHALLENGE_WORLD_SIZE: usize = 8;
 
@@ -120,6 +126,16 @@ pub struct ParameterGolfDistributed8xH100TrainStepReceipt {
     pub aggregated_gradient_artifact_path: String,
     /// Stable SHA-256 over the aggregated gradient artifact.
     pub aggregated_gradient_artifact_sha256: String,
+    /// Retained exact post-step full-precision model checkpoint path.
+    pub current_model_artifact_path: String,
+    /// Stable SHA-256 over the full-precision model checkpoint.
+    pub current_model_artifact_sha256: String,
+    /// Retained exact post-step int8+zlib model artifact path.
+    pub current_model_int8_zlib_artifact_path: String,
+    /// Stable SHA-256 over the post-step int8+zlib model artifact.
+    pub current_model_int8_zlib_artifact_sha256: String,
+    /// Size of the retained post-step int8+zlib model artifact.
+    pub current_model_int8_zlib_artifact_size_bytes: u64,
     /// Ordered child launch outcomes for distributed validation.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub validation_rank_launches: Vec<ParameterGolfDistributed8xH100ValidationRankLaunch>,
@@ -180,6 +196,12 @@ pub struct ParameterGolfDistributed8xH100TrainStepRankReceipt {
     pub gradient_artifact_path: String,
     /// Stable SHA-256 over the gradient artifact.
     pub gradient_artifact_sha256: String,
+    /// Exact full-precision model artifact used by this rank when one was provided.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub input_model_artifact_path: Option<String>,
+    /// Stable SHA-256 over the full-precision model artifact used by this rank when one was provided.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub input_model_artifact_sha256: Option<String>,
     /// Rank-local train loss for the executed microbatch.
     pub loss: f32,
     /// Rank-local phase timings.
@@ -276,6 +298,12 @@ pub struct ParameterGolfDistributed8xH100ValidationRankReceipt {
     pub aggregated_gradient_artifact_path: String,
     /// Stable SHA-256 over the aggregated gradient artifact.
     pub aggregated_gradient_artifact_sha256: String,
+    /// Exact post-step full-precision model artifact path when validation ran against one explicit checkpoint.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub current_model_artifact_path: Option<String>,
+    /// Stable SHA-256 over the explicit post-step full-precision model artifact when present.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub current_model_artifact_sha256: Option<String>,
     /// Validation evaluation mode used by this rank.
     pub eval_mode: ParameterGolfValidationEvalMode,
     /// Zero-based validation sequence offset covered by this rank's scored tokens.
@@ -407,6 +435,8 @@ pub enum ParameterGolfDistributed8xH100TrainStepError {
     Model(#[from] psionic_models::ParameterGolfModelError),
     #[error(transparent)]
     Train(#[from] crate::ParameterGolfTrainError),
+    #[error(transparent)]
+    ReferenceTraining(#[from] crate::ParameterGolfReferenceTrainingError),
 }
 
 /// Returns whether the current process is one internal distributed train-step child.
@@ -512,6 +542,19 @@ pub fn parameter_golf_distributed_8xh100_train_step_rank_gradients_dir(
     }
 }
 
+/// Derives the canonical runtime model-artifact directory beside the bring-up report.
+#[must_use]
+pub fn parameter_golf_distributed_8xh100_model_artifacts_dir(
+    root: &Path,
+    bringup_report_path: &str,
+) -> PathBuf {
+    let resolved = root.join(bringup_report_path);
+    match resolved.parent() {
+        Some(parent) => parent.join("runtime_model_artifacts"),
+        None => root.join("runtime_model_artifacts"),
+    }
+}
+
 /// Derives the canonical per-rank validation receipt directory beside the bring-up report.
 #[must_use]
 pub fn parameter_golf_distributed_8xh100_validation_rank_receipts_dir(
@@ -595,6 +638,8 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
         root,
         &bringup_report_relpath,
     );
+    let model_artifacts_dir =
+        parameter_golf_distributed_8xh100_model_artifacts_dir(root, &bringup_report_relpath);
     let validation_rank_receipts_dir = parameter_golf_distributed_8xh100_validation_rank_receipts_dir(
         root,
         &bringup_report_relpath,
@@ -608,6 +653,7 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
         &rank_logs_dir,
         &rank_windows_dir,
         &rank_gradients_dir,
+        &model_artifacts_dir,
         &validation_rank_receipts_dir,
         &validation_rank_logs_dir,
         &validation_rank_shards_dir,
@@ -847,7 +893,22 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
         muon_momentum,
         1,
     )?;
-    let _current_model = materialize_current_model(&initial_model, &trainer_state)?;
+    let current_model = materialize_current_model(&initial_model, &trainer_state)?;
+    let current_model_artifact_path = model_artifacts_dir.join("post_step_1.safetensors");
+    let current_model_artifact_sha256 = write_bytes_artifact(
+        &current_model_artifact_path,
+        &export_parameter_golf_full_precision_model_bytes(&current_model)?,
+    )?;
+    let current_model_int8_zlib_artifact =
+        export_parameter_golf_int8_zlib_model_artifact(&current_model, run_id, 1)?;
+    let current_model_int8_zlib_artifact_path =
+        model_artifacts_dir.join("post_step_1_final_model.int8.ptz");
+    let current_model_int8_zlib_artifact_sha256 = write_bytes_artifact(
+        &current_model_int8_zlib_artifact_path,
+        current_model_int8_zlib_artifact.bytes.as_slice(),
+    )?;
+    let current_model_int8_zlib_artifact_size_bytes =
+        current_model_int8_zlib_artifact.bytes.len() as u64;
     let optimizer_step_ms = duration_ms(optimizer_started);
     let observed_step_ms = duration_ms(step_started);
     let mean_train_loss = rank_launches
@@ -949,6 +1010,10 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
             .env(
                 VALIDATION_CHILD_GRADIENT_ARTIFACT_PATH_ENV_VAR,
                 &aggregated_gradient_artifact_path,
+            )
+            .env(
+                VALIDATION_CHILD_MODEL_ARTIFACT_PATH_ENV_VAR,
+                &current_model_artifact_path,
             )
             .env(
                 crate::PARAMETER_GOLF_SINGLE_H100_DATASET_ROOT_ENV_VAR,
@@ -1123,6 +1188,13 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
             .display()
             .to_string(),
         aggregated_gradient_artifact_sha256,
+        current_model_artifact_path: current_model_artifact_path.display().to_string(),
+        current_model_artifact_sha256,
+        current_model_int8_zlib_artifact_path: current_model_int8_zlib_artifact_path
+            .display()
+            .to_string(),
+        current_model_int8_zlib_artifact_sha256,
+        current_model_int8_zlib_artifact_size_bytes,
         validation_rank_launches,
         step_observation,
         validation_observed_ms,
@@ -1160,6 +1232,7 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step_child(
     let log_path = required_env(CHILD_LOG_PATH_ENV_VAR)?;
     let window_path = PathBuf::from(required_env(CHILD_WINDOW_PATH_ENV_VAR)?);
     let gradient_artifact_path = PathBuf::from(required_env(CHILD_GRADIENT_ARTIFACT_PATH_ENV_VAR)?);
+    let input_model_artifact_path = env::var_os(CHILD_MODEL_ARTIFACT_PATH_ENV_VAR).map(PathBuf::from);
     let cuda_visible_devices = env::var("CUDA_VISIBLE_DEVICES").unwrap_or_default();
     if world_size != CHALLENGE_WORLD_SIZE {
         return Err(ParameterGolfDistributed8xH100TrainStepError::Aggregate {
@@ -1207,7 +1280,22 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step_child(
         tokenizer_path.display().to_string(),
         None,
     )?;
-    let model = ParameterGolfReferenceModel::baseline_fixture(Default::default())?;
+    let baseline_model = ParameterGolfReferenceModel::baseline_fixture(Default::default())?;
+    let (model, input_model_artifact_sha256) = match input_model_artifact_path.as_ref() {
+        Some(path) => {
+            let bytes = fs::read(path).map_err(|error| {
+                ParameterGolfDistributed8xH100TrainStepError::Read {
+                    path: path.display().to_string(),
+                    error,
+                }
+            })?;
+            (
+                restore_parameter_golf_model_from_safetensors(&baseline_model, bytes.as_slice())?,
+                Some(sha256_hex(bytes.as_slice())),
+            )
+        }
+        None => (baseline_model, None),
+    };
     let geometry = ParameterGolfBatchGeometry::challenge_distributed_8xh100_defaults();
     let mut cuda_backend = CudaBackend::new();
     let selected_device = cuda_backend
@@ -1249,6 +1337,10 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step_child(
         window_id: gradient_batch.window_id,
         gradient_artifact_path: gradient_artifact_path.display().to_string(),
         gradient_artifact_sha256,
+        input_model_artifact_path: input_model_artifact_path
+            .as_ref()
+            .map(|path| path.display().to_string()),
+        input_model_artifact_sha256,
         loss: gradient_batch.loss,
         phase_timings: gradient_batch.phase_timings,
         observed_wallclock_ms,
@@ -1293,6 +1385,8 @@ pub fn execute_parameter_golf_distributed_8xh100_validation_child(
     let aggregated_gradient_artifact_path = PathBuf::from(required_env(
         VALIDATION_CHILD_GRADIENT_ARTIFACT_PATH_ENV_VAR,
     )?);
+    let current_model_artifact_path = env::var_os(VALIDATION_CHILD_MODEL_ARTIFACT_PATH_ENV_VAR)
+        .map(PathBuf::from);
     let cuda_visible_devices = env::var("CUDA_VISIBLE_DEVICES").unwrap_or_default();
     if world_size != CHALLENGE_WORLD_SIZE {
         return Err(ParameterGolfDistributed8xH100TrainStepError::Aggregate {
@@ -1341,11 +1435,6 @@ pub fn execute_parameter_golf_distributed_8xh100_validation_child(
         tokenizer_path.display().to_string(),
         None,
     )?;
-    let baseline_model = ParameterGolfReferenceModel::baseline_fixture(Default::default())?;
-    let hyperparameters = ParameterGolfTrainingHyperparameters::baseline_defaults();
-    let optimizer_plan =
-        parameter_golf_optimizer_plan(baseline_model.descriptor(), &hyperparameters)?;
-    let mut trainer_state = seed_parameter_states(&baseline_model, &optimizer_plan)?;
     let aggregated_gradients = load_gradient_artifact(&aggregated_gradient_artifact_path)?;
     let aggregated_gradient_artifact_sha256 = sha256_hex(
         &fs::read(&aggregated_gradient_artifact_path).map_err(|error| {
@@ -1355,16 +1444,40 @@ pub fn execute_parameter_golf_distributed_8xh100_validation_child(
             }
         })?,
     );
-    let learning_rate_multiplier = hyperparameters.learning_rate_multiplier(0, 0.0);
-    let muon_momentum = hyperparameters.muon_momentum_at_step(0);
-    apply_gradients_to_state(
-        &mut trainer_state,
-        &aggregated_gradients.into_iter().collect::<Vec<_>>(),
-        learning_rate_multiplier,
-        muon_momentum,
-        1,
-    )?;
-    let current_model = materialize_current_model(&baseline_model, &trainer_state)?;
+    let baseline_model = ParameterGolfReferenceModel::baseline_fixture(Default::default())?;
+    let (current_model, current_model_artifact_sha256) = match current_model_artifact_path.as_ref() {
+        Some(path) => {
+            let bytes = fs::read(path).map_err(|error| {
+                ParameterGolfDistributed8xH100TrainStepError::Read {
+                    path: path.display().to_string(),
+                    error,
+                }
+            })?;
+            (
+                restore_parameter_golf_model_from_safetensors(&baseline_model, bytes.as_slice())?,
+                Some(sha256_hex(bytes.as_slice())),
+            )
+        }
+        None => {
+            let hyperparameters = ParameterGolfTrainingHyperparameters::baseline_defaults();
+            let optimizer_plan =
+                parameter_golf_optimizer_plan(baseline_model.descriptor(), &hyperparameters)?;
+            let mut trainer_state = seed_parameter_states(&baseline_model, &optimizer_plan)?;
+            let learning_rate_multiplier = hyperparameters.learning_rate_multiplier(0, 0.0);
+            let muon_momentum = hyperparameters.muon_momentum_at_step(0);
+            apply_gradients_to_state(
+                &mut trainer_state,
+                &aggregated_gradients.into_iter().collect::<Vec<_>>(),
+                learning_rate_multiplier,
+                muon_momentum,
+                1,
+            )?;
+            (
+                materialize_current_model(&baseline_model, &trainer_state)?,
+                None,
+            )
+        }
+    };
     let geometry = ParameterGolfBatchGeometry::challenge_distributed_8xh100_defaults();
     let validation_tokens = load_parameter_golf_validation_tokens_from_paths(
         &bundle
@@ -1501,6 +1614,10 @@ pub fn execute_parameter_golf_distributed_8xh100_validation_child(
             .display()
             .to_string(),
         aggregated_gradient_artifact_sha256,
+        current_model_artifact_path: current_model_artifact_path
+            .as_ref()
+            .map(|path| path.display().to_string()),
+        current_model_artifact_sha256,
         eval_mode: shard.eval_mode,
         sequence_start: shard.sequence_start,
         sequence_count: shard.sequence_count,
@@ -1538,6 +1655,27 @@ pub fn execute_parameter_golf_distributed_8xh100_validation_child(
         error,
     })?;
     Ok(receipt)
+}
+
+fn write_bytes_artifact(
+    output_path: &Path,
+    bytes: &[u8],
+) -> Result<String, ParameterGolfDistributed8xH100TrainStepError> {
+    if let Some(parent) = output_path.parent() {
+        fs::create_dir_all(parent).map_err(
+            |error| ParameterGolfDistributed8xH100TrainStepError::Write {
+                path: parent.display().to_string(),
+                error,
+            },
+        )?;
+    }
+    fs::write(output_path, bytes).map_err(|error| {
+        ParameterGolfDistributed8xH100TrainStepError::Write {
+            path: output_path.display().to_string(),
+            error,
+        }
+    })?;
+    Ok(sha256_hex(bytes))
 }
 
 fn write_gradient_artifact(

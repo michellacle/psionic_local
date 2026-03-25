@@ -136,8 +136,9 @@ The same exported folder now also ships:
   invoke in `distributed_8xh100_train` mode to write the machine-readable
   bring-up report, one aggregate runtime-bootstrap receipt, one aggregate
   train-step receipt, retained per-rank train-step and validation receipts,
-  one measured distributed receipt, and one completion receipt bound to the
-  shipped final artifact identity
+  retained runtime-owned post-step model artifacts, one measured distributed
+  receipt, and one completion receipt bound to the trained runtime-produced
+  final artifact
 
 The exported folder no longer treats `distributed_8xh100_train` as a default
 refusal when the hardware lane succeeds. That mode now dispatches through the
