@@ -1137,7 +1137,7 @@ impl ParameterGolfParameterState {
         }
     }
 
-    fn shape(&self) -> &[usize] {
+    pub(crate) fn shape(&self) -> &[usize] {
         match self {
             Self::AdamBf16Master { shape, .. }
             | Self::AdamFp32 { shape, .. }
@@ -2505,6 +2505,142 @@ pub(crate) fn apply_gradients_to_state(
         )?;
     }
     Ok(())
+}
+
+pub(crate) fn parameter_golf_parameter_state_banked_muon_shape(
+    state: &ParameterGolfParameterState,
+) -> Option<(usize, usize, usize)> {
+    match state {
+        ParameterGolfParameterState::MuonBf16 { shape, .. } => match shape.as_slice() {
+            [bank_len, rows, cols] => Some((*bank_len, *rows, *cols)),
+            _ => None,
+        },
+        _ => None,
+    }
+}
+
+pub(crate) fn parameter_golf_parameter_state_values_slice(
+    state: &ParameterGolfParameterState,
+    value_offset: usize,
+    value_count: usize,
+) -> Result<Vec<f32>, ParameterGolfSingleH100TrainingError> {
+    let values = state.values();
+    let value_end = value_offset.saturating_add(value_count);
+    if value_end > values.len() {
+        return Err(ParameterGolfSingleH100TrainingError::Serialization {
+            message: format!(
+                "parameter state slice [{value_offset}..{value_end}) exceeded {} values",
+                values.len()
+            ),
+        });
+    }
+    Ok(values[value_offset..value_end].to_vec())
+}
+
+pub(crate) fn overwrite_parameter_golf_parameter_state_values(
+    state: &mut ParameterGolfParameterState,
+    values: &[f32],
+) -> Result<(), ParameterGolfSingleH100TrainingError> {
+    match state {
+        ParameterGolfParameterState::MuonBf16 {
+            values: state_values,
+            bf16_bits,
+            ..
+        } => {
+            if state_values.len() != values.len() {
+                return Err(ParameterGolfSingleH100TrainingError::Serialization {
+                    message: format!(
+                        "parameter state overwrite expected {} values but received {}",
+                        state_values.len(),
+                        values.len()
+                    ),
+                });
+            }
+            state_values.copy_from_slice(values);
+            round_values_to_bf16(state_values.as_mut_slice());
+            *bf16_bits = bf16_bits_from_f32_values(state_values.as_slice());
+            Ok(())
+        }
+        _ => Err(ParameterGolfSingleH100TrainingError::Serialization {
+            message: String::from(
+                "parameter state overwrite currently supports only Muon banked tensors",
+            ),
+        }),
+    }
+}
+
+pub(crate) fn apply_parameter_golf_muon_bank_shard_to_state(
+    state: &mut ParameterGolfParameterState,
+    owned_slice_start: usize,
+    owned_slice_count: usize,
+    gradients: &[f32],
+    learning_rate_multiplier: f32,
+    muon_momentum: f32,
+) -> Result<(), ParameterGolfSingleH100TrainingError> {
+    match state {
+        ParameterGolfParameterState::MuonBf16 {
+            shape,
+            values,
+            bf16_bits,
+            optimizer,
+            optimizer_state,
+        } => {
+            let [bank_len, rows, cols] = shape.as_slice() else {
+                return Err(ParameterGolfSingleH100TrainingError::Serialization {
+                    message: format!(
+                        "bank-shard Muon update requires one rank-3 bank shape, found {:?}",
+                        shape
+                    ),
+                });
+            };
+            let stride = rows.saturating_mul(*cols);
+            let owned_slice_end = owned_slice_start.saturating_add(owned_slice_count);
+            if owned_slice_end > *bank_len {
+                return Err(ParameterGolfSingleH100TrainingError::Serialization {
+                    message: format!(
+                        "bank-shard Muon update slice [{owned_slice_start}..{owned_slice_end}) exceeded bank length {}",
+                        bank_len
+                    ),
+                });
+            }
+            let expected_gradient_len = owned_slice_count.saturating_mul(stride);
+            if gradients.len() != expected_gradient_len {
+                return Err(ParameterGolfSingleH100TrainingError::Serialization {
+                    message: format!(
+                        "bank-shard Muon update expected {} gradient values but received {}",
+                        expected_gradient_len,
+                        gradients.len()
+                    ),
+                });
+            }
+            let value_offset = owned_slice_start.saturating_mul(stride);
+            let value_end = value_offset.saturating_add(expected_gradient_len);
+            let mut owned_optimizer_state = crate::ParameterGolfMuonState {
+                momentum_buffer: optimizer_state.momentum_buffer[value_offset..value_end].to_vec(),
+            };
+            let mut optimizer = optimizer.clone();
+            optimizer.learning_rate *= learning_rate_multiplier;
+            optimizer.momentum = muon_momentum;
+            apply_parameter_golf_cuda_muon_step(
+                &mut values[value_offset..value_end],
+                &[owned_slice_count, *rows, *cols],
+                gradients,
+                &optimizer,
+                &mut owned_optimizer_state,
+            )?;
+            optimizer_state.momentum_buffer[value_offset..value_end]
+                .copy_from_slice(owned_optimizer_state.momentum_buffer.as_slice());
+            round_values_to_bf16(&mut values[value_offset..value_end]);
+            bf16_bits[value_offset..value_end]
+                .copy_from_slice(&bf16_bits_from_f32_values(&values[value_offset..value_end]));
+            Ok(())
+        }
+        other => Err(ParameterGolfSingleH100TrainingError::Serialization {
+            message: format!(
+                "bank-shard Muon update requires one Muon banked parameter state, found {other:?}"
+            ),
+        }),
+    }
 }
 
 pub(crate) fn materialize_current_model(

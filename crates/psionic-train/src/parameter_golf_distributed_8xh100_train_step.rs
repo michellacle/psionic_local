@@ -35,10 +35,14 @@ use crate::{
     parameter_golf_default_validation_batch_sequences, parameter_golf_optimizer_plan,
     parameter_golf_runpod_8xh100_capability_profile,
     parameter_golf_single_h100_training::{
+        apply_parameter_golf_muon_bank_shard_to_state,
         apply_parameter_golf_score_first_ttt_gradients,
         build_parameter_golf_score_first_ttt_chunk_plans,
         execute_parameter_golf_training_gradient_batch_from_examples,
         materialize_parameter_golf_score_first_ttt_model,
+        overwrite_parameter_golf_parameter_state_values,
+        parameter_golf_parameter_state_banked_muon_shape,
+        parameter_golf_parameter_state_values_slice,
         parameter_golf_score_first_ttt_chunk_learning_rate,
         refresh_parameter_golf_cuda_training_sessions,
         refresh_parameter_golf_cuda_training_sessions_from_state,
@@ -285,6 +289,9 @@ pub struct ParameterGolfDistributed8xH100TrainStepRankReceipt {
     /// Number of non-finite gradient values seen before clipping.
     #[serde(default)]
     pub non_finite_gradient_count: u64,
+    /// Optional banked Parallel-Muon ownership and all-gather facts.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub parallel_muon_receipt: Option<ParameterGolfDistributed8xH100ParallelMuonReceipt>,
     /// Worker PID that owned this resident rank runtime.
     #[serde(default)]
     pub worker_pid: u32,
@@ -305,6 +312,40 @@ impl ParameterGolfDistributed8xH100TrainStepRankReceipt {
             &digestible,
         )
     }
+}
+
+/// One owned matrix-bank shard under the resident Parallel-Muon topology.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ParameterGolfDistributed8xH100ParallelMuonBankShardReceipt {
+    /// Stable bank parameter identifier.
+    pub parameter_id: String,
+    /// Total logical bank slice count.
+    pub bank_len: usize,
+    /// Rows per bank slice.
+    pub rows: usize,
+    /// Columns per bank slice.
+    pub cols: usize,
+    /// Zero-based owned bank-slice start.
+    pub owned_slice_start: usize,
+    /// Number of owned bank slices.
+    pub owned_slice_count: usize,
+    /// Flat value offset for the owned shard.
+    pub owned_value_offset: usize,
+    /// Flat value count for the owned shard.
+    pub owned_value_count: usize,
+}
+
+/// Explicit Parallel-Muon topology facts for one resident rank.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ParameterGolfDistributed8xH100ParallelMuonReceipt {
+    /// Concrete transport used by the resident worker mesh.
+    pub transport: String,
+    /// Ordered bank shards owned by this rank.
+    pub owned_bank_shards: Vec<ParameterGolfDistributed8xH100ParallelMuonBankShardReceipt>,
+    /// Wallclock spent applying the owned bank-shard Muon updates locally.
+    pub local_shard_update_ms: u64,
+    /// Wallclock spent all-gathering the updated bank values back across the mesh.
+    pub updated_value_all_gather_ms: u64,
 }
 
 /// Parent-observed outcome for one spawned train-step child process.
@@ -997,6 +1038,240 @@ fn unflatten_gradients_from_worker_mesh(
     Ok(gradients)
 }
 
+fn contiguous_shard_for_rank(total_items: usize, rank: usize, world_size: usize) -> (usize, usize) {
+    let base = total_items / world_size.max(1);
+    let remainder = total_items % world_size.max(1);
+    let owned_count = base + usize::from(rank < remainder);
+    let owned_start = rank
+        .saturating_mul(base)
+        .saturating_add(remainder.min(rank));
+    (owned_start, owned_count)
+}
+
+fn matrix_muon_bank_shards_for_rank(
+    trainer_state: &ParameterGolfSingleH100TrainerState,
+    rank: usize,
+) -> Vec<ParameterGolfDistributed8xH100ParallelMuonBankShardReceipt> {
+    trainer_state
+        .parameter_states
+        .iter()
+        .filter_map(|(parameter_id, state)| {
+            let (bank_len, rows, cols) = parameter_golf_parameter_state_banked_muon_shape(state)?;
+            let (owned_slice_start, owned_slice_count) =
+                contiguous_shard_for_rank(bank_len, rank, CHALLENGE_WORLD_SIZE);
+            Some(ParameterGolfDistributed8xH100ParallelMuonBankShardReceipt {
+                parameter_id: parameter_id.clone(),
+                bank_len,
+                rows,
+                cols,
+                owned_slice_start,
+                owned_slice_count,
+                owned_value_offset: owned_slice_start.saturating_mul(rows.saturating_mul(cols)),
+                owned_value_count: owned_slice_count.saturating_mul(rows.saturating_mul(cols)),
+            })
+        })
+        .collect()
+}
+
+fn apply_parallel_muon_owned_bank_updates(
+    trainer_state: &mut ParameterGolfSingleH100TrainerState,
+    averaged_gradients: &[(String, Vec<f32>)],
+    owned_bank_shards: &[ParameterGolfDistributed8xH100ParallelMuonBankShardReceipt],
+    learning_rate_multiplier: f32,
+    muon_momentum: f32,
+) -> Result<u64, ParameterGolfDistributed8xH100TrainStepError> {
+    let averaged_gradients = averaged_gradients
+        .iter()
+        .map(|(parameter_id, values)| (parameter_id.as_str(), values.as_slice()))
+        .collect::<BTreeMap<_, _>>();
+    let started = Instant::now();
+    for shard in owned_bank_shards {
+        if shard.owned_value_count == 0 {
+            continue;
+        }
+        let gradient_values = averaged_gradients.get(shard.parameter_id.as_str()).ok_or_else(|| {
+            ParameterGolfDistributed8xH100TrainStepError::Aggregate {
+                message: format!(
+                    "missing averaged bank gradient values for `{}` during parallel Muon shard update",
+                    shard.parameter_id
+                ),
+            }
+        })?;
+        let gradient_end = shard
+            .owned_value_offset
+            .saturating_add(shard.owned_value_count);
+        if gradient_end > gradient_values.len() {
+            return Err(ParameterGolfDistributed8xH100TrainStepError::Aggregate {
+                message: format!(
+                    "parallel Muon shard [{}..{}) exceeded averaged gradient length {} for `{}`",
+                    shard.owned_value_offset,
+                    gradient_end,
+                    gradient_values.len(),
+                    shard.parameter_id
+                ),
+            });
+        }
+        let parameter_state = trainer_state
+            .parameter_states
+            .get_mut(&shard.parameter_id)
+            .ok_or_else(|| ParameterGolfDistributed8xH100TrainStepError::Aggregate {
+                message: format!(
+                    "missing parameter state `{}` during parallel Muon shard update",
+                    shard.parameter_id
+                ),
+            })?;
+        apply_parameter_golf_muon_bank_shard_to_state(
+            parameter_state,
+            shard.owned_slice_start,
+            shard.owned_slice_count,
+            &gradient_values[shard.owned_value_offset..gradient_end],
+            learning_rate_multiplier,
+            muon_momentum,
+        )?;
+    }
+    Ok(duration_ms(started))
+}
+
+fn all_gather_parallel_muon_bank_values(
+    collective: &mut ParameterGolfDistributed8xH100WorkerCollective,
+    trainer_state: &mut ParameterGolfSingleH100TrainerState,
+    rank: usize,
+    step_index: u64,
+    owned_bank_shards: &[ParameterGolfDistributed8xH100ParallelMuonBankShardReceipt],
+) -> Result<u64, ParameterGolfDistributed8xH100TrainStepError> {
+    let started = Instant::now();
+    match collective {
+        ParameterGolfDistributed8xH100WorkerCollective::RankZero { peers } => {
+            for shard in owned_bank_shards {
+                let parameter_state = trainer_state
+                    .parameter_states
+                    .get(&shard.parameter_id)
+                    .ok_or_else(|| ParameterGolfDistributed8xH100TrainStepError::Aggregate {
+                        message: format!(
+                            "missing parameter state `{}` during parallel Muon all-gather",
+                            shard.parameter_id
+                        ),
+                    })?;
+                let mut full_values = parameter_golf_parameter_state_values_slice(
+                    parameter_state,
+                    0,
+                    parameter_state.values().len(),
+                )?;
+                for (peer_rank, stream) in peers.iter_mut() {
+                    let peer_shards = matrix_muon_bank_shards_for_rank(trainer_state, *peer_rank);
+                    let peer_shard = peer_shards
+                        .iter()
+                        .find(|candidate| candidate.parameter_id == shard.parameter_id)
+                        .ok_or_else(|| ParameterGolfDistributed8xH100TrainStepError::Aggregate {
+                            message: format!(
+                                "missing parallel Muon shard plan for peer rank {} parameter `{}`",
+                                peer_rank, shard.parameter_id
+                            ),
+                        })?;
+                    let (received_step_index, peer_values) =
+                        read_collective_gradient_payload(stream, rank)?;
+                    if received_step_index != step_index {
+                        return Err(ParameterGolfDistributed8xH100TrainStepError::WorkerProtocol {
+                            rank,
+                            message: format!(
+                                "peer rank {} sent parallel Muon bank values for step {} while rank 0 expected {}",
+                                peer_rank, received_step_index, step_index
+                            ),
+                        });
+                    }
+                    if peer_values.len() != peer_shard.owned_value_count {
+                        return Err(ParameterGolfDistributed8xH100TrainStepError::WorkerProtocol {
+                            rank,
+                            message: format!(
+                                "peer rank {} sent {} parallel Muon bank values for `{}` but rank 0 expected {}",
+                                peer_rank,
+                                peer_values.len(),
+                                shard.parameter_id,
+                                peer_shard.owned_value_count
+                            ),
+                        });
+                    }
+                    let peer_value_end = peer_shard
+                        .owned_value_offset
+                        .saturating_add(peer_shard.owned_value_count);
+                    full_values[peer_shard.owned_value_offset..peer_value_end]
+                        .copy_from_slice(peer_values.as_slice());
+                }
+                let parameter_state = trainer_state
+                    .parameter_states
+                    .get_mut(&shard.parameter_id)
+                    .ok_or_else(|| ParameterGolfDistributed8xH100TrainStepError::Aggregate {
+                        message: format!(
+                            "missing mutable parameter state `{}` during parallel Muon all-gather",
+                            shard.parameter_id
+                        ),
+                    })?;
+                overwrite_parameter_golf_parameter_state_values(
+                    parameter_state,
+                    full_values.as_slice(),
+                )?;
+                for stream in peers.values_mut() {
+                    write_collective_gradient_payload(
+                        stream,
+                        step_index,
+                        full_values.as_slice(),
+                        rank,
+                    )?;
+                }
+            }
+        }
+        ParameterGolfDistributed8xH100WorkerCollective::Peer { stream } => {
+            for shard in owned_bank_shards {
+                let parameter_state = trainer_state
+                    .parameter_states
+                    .get(&shard.parameter_id)
+                    .ok_or_else(|| ParameterGolfDistributed8xH100TrainStepError::Aggregate {
+                        message: format!(
+                            "missing parameter state `{}` during parallel Muon shard export",
+                            shard.parameter_id
+                        ),
+                    })?;
+                let owned_values = parameter_golf_parameter_state_values_slice(
+                    parameter_state,
+                    shard.owned_value_offset,
+                    shard.owned_value_count,
+                )?;
+                write_collective_gradient_payload(
+                    stream,
+                    step_index,
+                    owned_values.as_slice(),
+                    rank,
+                )?;
+                let (received_step_index, full_values) =
+                    read_collective_gradient_payload(stream, rank)?;
+                if received_step_index != step_index {
+                    return Err(ParameterGolfDistributed8xH100TrainStepError::WorkerProtocol {
+                        rank,
+                        message: format!(
+                            "rank {} received parallel Muon bank values for step {} while expecting {}",
+                            rank, received_step_index, step_index
+                        ),
+                    });
+                }
+                let parameter_state = trainer_state
+                    .parameter_states
+                    .get_mut(&shard.parameter_id)
+                    .ok_or_else(|| ParameterGolfDistributed8xH100TrainStepError::Aggregate {
+                        message: format!(
+                            "missing mutable parameter state `{}` during parallel Muon bank import",
+                            shard.parameter_id
+                        ),
+                    })?;
+                overwrite_parameter_golf_parameter_state_values(
+                    parameter_state,
+                    full_values.as_slice(),
+                )?;
+            }
+        }
+    }
+    Ok(duration_ms(started))
+}
+
 fn connect_worker_collective(
     rank: usize,
     collective_addr: &str,
@@ -1428,7 +1703,9 @@ impl ParameterGolfDistributed8xH100WorkerRuntime {
             selected_device_label: self.selected_device_label.clone(),
             log_path: self.log_path.clone(),
             worker_pid: std::process::id(),
-            collective_transport: String::from("rank0_loopback_tcp_mean_all_reduce_v1"),
+            collective_transport: String::from(
+                "rank0_loopback_tcp_mean_all_reduce_plus_parallel_muon_bank_all_gather_v1",
+            ),
         }
     }
 
@@ -1480,13 +1757,38 @@ impl ParameterGolfDistributed8xH100WorkerRuntime {
             averaged_gradients.as_mut_slice(),
             self.hyperparameters.grad_clip_norm,
         );
+        let owned_parallel_muon_bank_shards =
+            matrix_muon_bank_shards_for_rank(&self.trainer_state, self.rank);
         let optimizer_started = Instant::now();
+        let non_matrix_gradients = averaged_gradients
+            .iter()
+            .filter(|(parameter_id, _)| {
+                !owned_parallel_muon_bank_shards
+                    .iter()
+                    .any(|shard| shard.parameter_id == *parameter_id)
+            })
+            .cloned()
+            .collect::<Vec<_>>();
         apply_gradients_to_state(
             &mut self.trainer_state,
-            averaged_gradients.as_slice(),
+            non_matrix_gradients.as_slice(),
             learning_rate_multiplier,
             muon_momentum,
             step_index,
+        )?;
+        let parallel_muon_local_update_ms = apply_parallel_muon_owned_bank_updates(
+            &mut self.trainer_state,
+            averaged_gradients.as_slice(),
+            owned_parallel_muon_bank_shards.as_slice(),
+            learning_rate_multiplier,
+            muon_momentum,
+        )?;
+        let parallel_muon_all_gather_ms = all_gather_parallel_muon_bank_values(
+            &mut self.collective,
+            &mut self.trainer_state,
+            self.rank,
+            step_index,
+            owned_parallel_muon_bank_shards.as_slice(),
         )?;
         refresh_parameter_golf_cuda_training_sessions_from_state(
             &mut self.training_session_cache,
@@ -1512,7 +1814,9 @@ impl ParameterGolfDistributed8xH100WorkerRuntime {
                 self.rank
             ),
             gradient_artifact_sha256: averaged_gradient_sha256,
-            gradient_sync_transport: String::from("rank0_loopback_tcp_mean_all_reduce_v1"),
+            gradient_sync_transport: String::from(
+                "rank0_loopback_tcp_mean_all_reduce_plus_parallel_muon_bank_all_gather_v1",
+            ),
             input_model_artifact_path: None,
             input_model_artifact_sha256: None,
             loss: gradient_batch.loss,
@@ -1541,9 +1845,19 @@ impl ParameterGolfDistributed8xH100WorkerRuntime {
                 .unwrap_or_default(),
             clip_applied: clip_observation.clip_applied,
             non_finite_gradient_count: u64::from(clip_observation.non_finite_count),
+            parallel_muon_receipt: (!owned_parallel_muon_bank_shards.is_empty()).then_some(
+                ParameterGolfDistributed8xH100ParallelMuonReceipt {
+                    transport: String::from(
+                        "rank0_loopback_tcp_mean_all_reduce_plus_parallel_muon_bank_all_gather_v1",
+                    ),
+                    owned_bank_shards: owned_parallel_muon_bank_shards,
+                    local_shard_update_ms: parallel_muon_local_update_ms,
+                    updated_value_all_gather_ms: parallel_muon_all_gather_ms,
+                },
+            ),
             worker_pid: std::process::id(),
             claim_boundary: String::from(
-                "This receipt proves one resident distributed worker executed one rank-local gradient batch, participated in one in-memory loopback mean all-reduce, and applied the synchronized optimizer step without per-step gradient file export.",
+                "This receipt proves one resident distributed worker executed one rank-local gradient batch, participated in one in-memory loopback mean all-reduce, applied the synchronized non-matrix optimizer groups locally, applied one owned shard of the banked Muon groups locally, and all-gathered the updated bank values back across the resident mesh without per-step gradient file export.",
             ),
             receipt_digest: String::new(),
         }
@@ -2292,7 +2606,7 @@ fn spawn_parameter_golf_distributed_8xh100_persistent_worker_mesh(
     }
     workers.sort_by_key(|worker| worker.rank);
     emit_distributed_progress_line(format!(
-        "persistent_worker_mesh_ready run_id={} world_size={} transport=rank0_loopback_tcp_mean_all_reduce_v1",
+        "persistent_worker_mesh_ready run_id={} world_size={} transport=rank0_loopback_tcp_mean_all_reduce_plus_parallel_muon_bank_all_gather_v1",
         run_id,
         workers.len()
     ));
@@ -3901,6 +4215,7 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step_child(
         gradient_norm_after_clip: 0.0,
         clip_applied: false,
         non_finite_gradient_count: 0,
+        parallel_muon_receipt: None,
         worker_pid: std::process::id(),
         claim_boundary: String::from(
             "This child receipt proves one rank-local distributed train-step gradient batch executed on one explicit H100 binding and exported one compact gradient artifact for later mesh aggregation. It does not yet claim later distributed validation or final artifact closure.",
@@ -4509,16 +4824,21 @@ mod tests {
     use std::{collections::BTreeMap, env};
 
     use super::{
-        aggregate_score_first_ttt_validation_rank_observations,
+        aggregate_score_first_ttt_validation_rank_observations, contiguous_shard_for_rank,
         distributed_validation_batch_sequences, load_gradient_artifact,
-        prune_step_scope_for_next_step, score_first_ttt_chunk_window_starts_for_rank,
-        write_gradient_artifact, ParameterGolfDistributed8xH100ScoreFirstTttRankAccumulator,
+        matrix_muon_bank_shards_for_rank, prune_step_scope_for_next_step,
+        score_first_ttt_chunk_window_starts_for_rank, write_gradient_artifact,
+        ParameterGolfDistributed8xH100ScoreFirstTttRankAccumulator,
         VALIDATION_BATCH_SEQUENCES_ENV_VAR,
     };
     use crate::{
         build_parameter_golf_score_first_ttt_chunk_plans,
         build_parameter_golf_validation_window_starts, build_validation_observation_plan,
-        parameter_golf_default_validation_batch_sequences, ParameterGolfBatchGeometry,
+        parameter_golf_default_validation_batch_sequences,
+        parameter_golf_single_h100_training::{
+            ParameterGolfParameterState, ParameterGolfSingleH100TrainerState,
+        },
+        ParameterGolfBatchGeometry, ParameterGolfMuonConfig, ParameterGolfMuonState,
         ParameterGolfScoreFirstTttConfig, ParameterGolfValidationEvalMode,
     };
 
@@ -4535,6 +4855,75 @@ mod tests {
         let restored = load_gradient_artifact(&artifact_path)?;
         assert_eq!(restored, gradients);
         Ok(())
+    }
+
+    #[test]
+    fn contiguous_parallel_muon_shards_cover_the_bank_without_overlap() {
+        let shards = (0..8)
+            .map(|rank| contiguous_shard_for_rank(10, rank, 8))
+            .collect::<Vec<_>>();
+        assert_eq!(
+            shards,
+            vec![
+                (0, 2),
+                (2, 2),
+                (4, 1),
+                (5, 1),
+                (6, 1),
+                (7, 1),
+                (8, 1),
+                (9, 1)
+            ]
+        );
+    }
+
+    #[test]
+    fn matrix_muon_shard_planner_selects_only_rank3_banked_groups() {
+        let trainer_state = ParameterGolfSingleH100TrainerState {
+            parameter_states: BTreeMap::from([
+                (
+                    String::from("banked"),
+                    ParameterGolfParameterState::MuonBf16 {
+                        shape: vec![10, 2, 3],
+                        values: vec![0.0; 60],
+                        bf16_bits: vec![0; 60],
+                        optimizer: ParameterGolfMuonConfig::new(0.01, 0.95, 5),
+                        optimizer_state: ParameterGolfMuonState {
+                            momentum_buffer: vec![0.0; 60],
+                        },
+                    },
+                ),
+                (
+                    String::from("non_banked"),
+                    ParameterGolfParameterState::MuonBf16 {
+                        shape: vec![10],
+                        values: vec![0.0; 10],
+                        bf16_bits: vec![0; 10],
+                        optimizer: ParameterGolfMuonConfig::new(0.01, 0.95, 5),
+                        optimizer_state: ParameterGolfMuonState {
+                            momentum_buffer: vec![0.0; 10],
+                        },
+                    },
+                ),
+            ]),
+        };
+
+        let rank_zero_shards = matrix_muon_bank_shards_for_rank(&trainer_state, 0);
+        let rank_seven_shards = matrix_muon_bank_shards_for_rank(&trainer_state, 7);
+
+        assert_eq!(rank_zero_shards.len(), 1);
+        assert_eq!(rank_zero_shards[0].parameter_id, "banked");
+        assert_eq!(rank_zero_shards[0].owned_slice_start, 0);
+        assert_eq!(rank_zero_shards[0].owned_slice_count, 2);
+        assert_eq!(rank_zero_shards[0].owned_value_offset, 0);
+        assert_eq!(rank_zero_shards[0].owned_value_count, 12);
+
+        assert_eq!(rank_seven_shards.len(), 1);
+        assert_eq!(rank_seven_shards[0].parameter_id, "banked");
+        assert_eq!(rank_seven_shards[0].owned_slice_start, 9);
+        assert_eq!(rank_seven_shards[0].owned_slice_count, 1);
+        assert_eq!(rank_seven_shards[0].owned_value_offset, 54);
+        assert_eq!(rank_seven_shards[0].owned_value_count, 6);
     }
 
     #[test]

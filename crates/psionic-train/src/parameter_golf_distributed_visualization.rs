@@ -1848,6 +1848,7 @@ mod tests {
                     gradient_norm_after_clip: 1.25,
                     clip_applied: false,
                     non_finite_gradient_count: 0,
+                    parallel_muon_receipt: None,
                     worker_pid: 10_000 + rank as u32,
                     claim_boundary: String::from(PARAMETER_GOLF_DISTRIBUTED_8XH100_CLAIM_BOUNDARY),
                     receipt_digest: String::new(),
