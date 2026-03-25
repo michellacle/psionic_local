@@ -3200,7 +3200,7 @@ fn execute_backward_plan(
             .tensor()
             .spec()
             .clone();
-        let input_buffer = if values.spec().dtype() == input_dtype {
+        let input_buffer = if values.spec() == &input_spec {
             values.clone()
         } else {
             let host_values =
@@ -3724,6 +3724,50 @@ mod tests {
             ParameterGolfValidationEvalMode::parse("sliding_window:64")?,
             ParameterGolfValidationEvalMode::SlidingWindow { stride: 64 }
         );
+        Ok(())
+    }
+
+    #[test]
+    fn execute_backward_plan_rematerializes_layout_mismatched_cuda_primals(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let mut cuda_backend = CudaBackend::new();
+        let Some(selected_device) = cuda_backend.selected_device().cloned() else {
+            return Ok(());
+        };
+
+        let model = ParameterGolfReferenceModel::baseline_fixture(Default::default())?;
+        let batch_size = 1;
+        let sequence_length = 16;
+        let graph = build_parameter_golf_baseline_training_graph(
+            selected_device.device.clone(),
+            model.descriptor(),
+            batch_size,
+            sequence_length,
+        )?;
+        let input_ids = vec![vec![0_u32; sequence_length]];
+        let target_ids = vec![vec![1_u32; sequence_length]];
+        let inputs = bind_parameter_golf_baseline_training_graph_inputs(
+            &graph,
+            &model,
+            input_ids.as_slice(),
+            target_ids.as_slice(),
+        )?;
+        let backward_plan = graph.graph.backward_plan(graph.loss_tensor_id)?;
+        let retained_graph = retained_forward_graph(&graph, &backward_plan);
+        let forward_outputs =
+            execute_cuda_graph_output_buffers(&mut cuda_backend, &retained_graph, &inputs)?;
+        let backward_outputs =
+            execute_backward_plan(&mut cuda_backend, &backward_plan, &forward_outputs)?;
+        let backward_result =
+            backward_result_from_outputs(&backward_plan, backward_outputs.as_slice())?;
+        let gradients = materialize_parameter_golf_baseline_training_gradients(
+            &graph,
+            &backward_result,
+            &model.descriptor().config,
+            input_ids.as_slice(),
+        )?;
+
+        assert!(!gradients.parameter_gradients.is_empty());
         Ok(())
     }
 
