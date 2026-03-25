@@ -77,6 +77,25 @@ pub enum TrainingExecutionDisposition {
     Failed,
 }
 
+/// Shared validator disposition across execution classes.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TrainingExecutionValidatorDisposition {
+    Accepted,
+    Quarantined,
+    Rejected,
+    ReplayRequired,
+}
+
+/// Shared promotion outcome across execution classes.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TrainingExecutionPromotionOutcome {
+    PromotedRevision,
+    HeldNoPromotion,
+    RefusedPromotion,
+}
+
 /// Typed evidence reference for one launch, runtime, checkpoint, metric, visualization, or audit artifact.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TrainingExecutionEvidenceRef {
@@ -103,7 +122,7 @@ pub struct TrainingExecutionValidatorResult {
     /// Execution class this result applies to.
     pub execution_class: CrossProviderExecutionClass,
     /// Explicit result disposition.
-    pub disposition: TrainingExecutionDisposition,
+    pub disposition: TrainingExecutionValidatorDisposition,
     /// Measured versus refused posture.
     pub evidence_posture: TrainingExecutionEvidencePosture,
     /// Machine-legible detail.
@@ -145,7 +164,7 @@ pub struct TrainingExecutionFinalDisposition {
     /// Explicit final disposition.
     pub disposition: TrainingExecutionDisposition,
     /// Promotion posture for the run.
-    pub promotion_outcome: String,
+    pub promotion_outcome: TrainingExecutionPromotionOutcome,
     /// Machine-legible detail.
     pub detail: String,
 }
@@ -165,6 +184,8 @@ pub struct TrainingExecutionEvidenceBundle {
     pub run_id: String,
     /// Stable lane id.
     pub lane_id: String,
+    /// Shared validator and promotion contract id.
+    pub validator_promotion_contract_id: String,
     /// Execution segments carried by this bundle family.
     pub segment_evidence: Vec<TrainingExecutionSegmentEvidence>,
     /// Final artifact refs retained after bundle closure.
@@ -210,6 +231,14 @@ impl TrainingExecutionEvidenceBundle {
         if self.program_manifest_digest != manifest.program_manifest_digest {
             return Err(TrainingExecutionEvidenceBundleError::InvalidBundle {
                 detail: String::from("program_manifest_digest drifted from the root manifest"),
+            });
+        }
+        if self.validator_promotion_contract_id != "psionic.shared_validator_promotion_contract.v1"
+        {
+            return Err(TrainingExecutionEvidenceBundleError::InvalidBundle {
+                detail: String::from(
+                    "validator_promotion_contract_id drifted from the shared contract",
+                ),
             });
         }
         if self.segment_evidence.is_empty() {
@@ -340,9 +369,7 @@ impl TrainingExecutionEvidenceBundle {
         for artifact_ref in &self.after_action_refs {
             validate_artifact_ref(artifact_ref)?;
         }
-        if self.final_disposition.detail.trim().is_empty()
-            || self.final_disposition.promotion_outcome.trim().is_empty()
-        {
+        if self.final_disposition.detail.trim().is_empty() {
             return Err(TrainingExecutionEvidenceBundleError::InvalidBundle {
                 detail: String::from(
                     "final_disposition must keep promotion_outcome and detail explicit",
@@ -370,6 +397,9 @@ pub fn canonical_training_execution_evidence_bundle(
         program_manifest_digest: manifest.program_manifest_digest.clone(),
         run_id: String::from("psion-xprovider-evidence-sample-1"),
         lane_id: String::from("psion.cross_provider.pretrain.reference"),
+        validator_promotion_contract_id: String::from(
+            "psionic.shared_validator_promotion_contract.v1",
+        ),
         segment_evidence: vec![
             TrainingExecutionSegmentEvidence {
                 segment_id: String::from("google-single-node"),
@@ -423,7 +453,7 @@ pub fn canonical_training_execution_evidence_bundle(
                 validator_results: vec![TrainingExecutionValidatorResult {
                     validator_id: String::from("google-single-node-validator"),
                     execution_class: CrossProviderExecutionClass::DenseFullModelRank,
-                    disposition: TrainingExecutionDisposition::CompletedSuccess,
+                    disposition: TrainingExecutionValidatorDisposition::Accepted,
                     evidence_posture: TrainingExecutionEvidencePosture::Measured,
                     detail: String::from(
                         "Single-node Google execution preserved launch, runtime, checkpoint, metric, and visualization proof without degradation.",
@@ -498,7 +528,7 @@ pub fn canonical_training_execution_evidence_bundle(
                 validator_results: vec![TrainingExecutionValidatorResult {
                     validator_id: String::from("distributed-lane-validator"),
                     execution_class: CrossProviderExecutionClass::DenseFullModelRank,
-                    disposition: TrainingExecutionDisposition::DegradedSuccess,
+                    disposition: TrainingExecutionValidatorDisposition::Accepted,
                     evidence_posture: TrainingExecutionEvidencePosture::Derived,
                     detail: String::from(
                         "The distributed lane sealed checkpoint and visualization proof, but the missing live primary series keeps the outcome degraded instead of promoted.",
@@ -558,7 +588,7 @@ pub fn canonical_training_execution_evidence_bundle(
                 validator_results: vec![TrainingExecutionValidatorResult {
                     validator_id: String::from("swarm-validator"),
                     execution_class: CrossProviderExecutionClass::ValidatedContributorWindow,
-                    disposition: TrainingExecutionDisposition::Refused,
+                    disposition: TrainingExecutionValidatorDisposition::ReplayRequired,
                     evidence_posture: TrainingExecutionEvidencePosture::Refused,
                     detail: String::from(
                         "The first trusted-LAN attempt was refused before remote execution began, so the bundle keeps replay-required and no-promotion posture explicit.",
@@ -612,7 +642,7 @@ pub fn canonical_training_execution_evidence_bundle(
                 validator_results: vec![TrainingExecutionValidatorResult {
                     validator_id: String::from("google-validator-1"),
                     execution_class: CrossProviderExecutionClass::Validator,
-                    disposition: TrainingExecutionDisposition::CompletedSuccess,
+                    disposition: TrainingExecutionValidatorDisposition::Accepted,
                     evidence_posture: TrainingExecutionEvidencePosture::Measured,
                     detail: String::from(
                         "Validator-only proof stays measured and explicit even when the underlying run class is not dense execution.",
@@ -711,16 +741,16 @@ pub fn canonical_training_execution_evidence_bundle(
                     TrainingExecutionValidatorResult {
                         validator_id: String::from("hybrid-validator-google"),
                         execution_class: CrossProviderExecutionClass::Validator,
-                        disposition: TrainingExecutionDisposition::DegradedSuccess,
+                        disposition: TrainingExecutionValidatorDisposition::Quarantined,
                         evidence_posture: TrainingExecutionEvidencePosture::Measured,
                         detail: String::from(
-                            "The hybrid bundle preserves successful validator coverage but keeps missing always-live distributed telemetry explicit.",
+                            "The hybrid bundle preserves validator review but keeps the contributor-side promotion path quarantined until always-live distributed telemetry and replay closure are complete.",
                         ),
                     },
                     TrainingExecutionValidatorResult {
                         validator_id: String::from("hybrid-eval-worker"),
                         execution_class: CrossProviderExecutionClass::EvalWorker,
-                        disposition: TrainingExecutionDisposition::CompletedSuccess,
+                        disposition: TrainingExecutionValidatorDisposition::Accepted,
                         evidence_posture: TrainingExecutionEvidencePosture::Measured,
                         detail: String::from(
                             "Eval-worker proof is retained under the same bundle family instead of a sidecar eval-only proof JSON.",
@@ -758,7 +788,7 @@ pub fn canonical_training_execution_evidence_bundle(
         )?],
         final_disposition: TrainingExecutionFinalDisposition {
             disposition: TrainingExecutionDisposition::DegradedSuccess,
-            promotion_outcome: String::from("no_global_promotion_yet"),
+            promotion_outcome: TrainingExecutionPromotionOutcome::HeldNoPromotion,
             detail: String::from(
                 "The canonical bundle proves the shared schema can encode successful, degraded, and refused segments together. The current cross-provider program remains degraded overall because dense distributed live telemetry and full hybrid runtime closure are not finished.",
             ),
@@ -779,9 +809,11 @@ pub fn write_training_execution_evidence_bundle(
 ) -> Result<(), TrainingExecutionEvidenceBundleError> {
     let output_path = output_path.as_ref();
     if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).map_err(|error| TrainingExecutionEvidenceBundleError::CreateDir {
-            path: parent.display().to_string(),
-            error,
+        fs::create_dir_all(parent).map_err(|error| {
+            TrainingExecutionEvidenceBundleError::CreateDir {
+                path: parent.display().to_string(),
+                error,
+            }
         })?;
     }
     let bundle = canonical_training_execution_evidence_bundle()?;
@@ -800,7 +832,8 @@ fn validate_segment_topology(
     match segment.topology_kind {
         TrainingExecutionTopologyKind::SingleNode => {
             if segment.source_ids.len() != 1
-                || unique_classes != &BTreeSet::from([CrossProviderExecutionClass::DenseFullModelRank])
+                || unique_classes
+                    != &BTreeSet::from([CrossProviderExecutionClass::DenseFullModelRank])
             {
                 return Err(TrainingExecutionEvidenceBundleError::InvalidBundle {
                     detail: format!(
@@ -930,8 +963,8 @@ mod tests {
     }
 
     #[test]
-    fn canonical_bundle_rejects_missing_final_artifact_refs()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn canonical_bundle_rejects_missing_final_artifact_refs(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut bundle = canonical_training_execution_evidence_bundle()?;
         bundle.final_artifact_refs.clear();
         let manifest = crate::cross_provider_training_program_manifest()?;
@@ -947,8 +980,8 @@ mod tests {
     }
 
     #[test]
-    fn canonical_bundle_stays_degraded_until_all_segments_are_green()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn canonical_bundle_stays_degraded_until_all_segments_are_green(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let bundle = canonical_training_execution_evidence_bundle()?;
         assert_eq!(
             bundle.final_disposition.disposition,

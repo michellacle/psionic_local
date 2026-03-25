@@ -31,6 +31,8 @@ if fixture != generated:
 
 if fixture["schema_version"] != "psionic.training_execution_evidence_bundle.v1":
     fail("training execution evidence bundle check: schema version drifted")
+if fixture["validator_promotion_contract_id"] != "psionic.shared_validator_promotion_contract.v1":
+    fail("training execution evidence bundle check: shared validator contract binding drifted")
 
 topology_kinds = {segment["topology_kind"] for segment in fixture["segment_evidence"]}
 required_topologies = {
@@ -61,6 +63,14 @@ if not required_classes.issubset(execution_classes):
 dispositions = {segment["segment_disposition"] for segment in fixture["segment_evidence"]}
 if not {"completed_success", "degraded_success", "refused"}.issubset(dispositions):
     fail("training execution evidence bundle check: disposition coverage drifted")
+
+validator_dispositions = {
+    result["disposition"]
+    for segment in fixture["segment_evidence"]
+    for result in segment["validator_results"]
+}
+if not {"accepted", "quarantined", "replay_required"}.issubset(validator_dispositions):
+    fail("training execution evidence bundle check: validator disposition coverage drifted")
 
 summary = {
     "verdict": "verified",

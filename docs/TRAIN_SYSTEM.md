@@ -154,6 +154,18 @@ checkpoint family, and shared policy revision used by the hybrid dense program,
 and it freezes one promotion contract per contributor window so later accepted
 and no-promotion outcomes stay machine-legible under one program identity.
 
+The repo now also owns the first shared validator and promotion contract in
+`crates/psionic-train/src/validator_promotion_contract.rs`, the binary
+`shared_validator_promotion_contract`, the checker
+`scripts/check-shared-validator-promotion-contract.sh`, the focused reference
+doc `docs/SHARED_VALIDATOR_PROMOTION_CONTRACT_REFERENCE.md`, and the committed
+fixture `fixtures/training/shared_validator_promotion_contract_v1.json`. That
+surface freezes one shared vocabulary for `accepted`, `quarantined`,
+`rejected`, `replay_required`, `promoted_revision`, `held_no_promotion`, and
+`refused_promotion`, and the provider-neutral evidence bundle now carries that
+contract id directly instead of treating validator and promotion language as
+lane-local convention.
+
 The repo now also owns the first generic dense-rank runtime layer in
 `crates/psionic-train/src/dense_rank_runtime.rs`, the binary
 `dense_rank_runtime_reference_contract`, the checker

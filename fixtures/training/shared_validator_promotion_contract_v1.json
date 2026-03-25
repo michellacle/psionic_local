@@ -1,0 +1,83 @@
+{
+  "schema_version": "psionic.shared_validator_promotion_contract.v1",
+  "contract_id": "psionic.shared_validator_promotion_contract.v1",
+  "program_manifest_id": "psionic-cross-provider-pretraining-program-v1",
+  "program_manifest_digest": "5c7cd52ecf5345551e165eeb1e25440153bf64f38e69aaf1d33a13c7056ca479",
+  "contributor_program_lineage_digest": "7c5c23684ae1277cef8e892dfdc6824ca628a13b93820aabe902b74bc6e7a902",
+  "evidence_bundle_schema_version": "psionic.training_execution_evidence_bundle.v1",
+  "admitted_validator_dispositions": [
+    "accepted",
+    "quarantined",
+    "rejected",
+    "replay_required"
+  ],
+  "admitted_promotion_outcomes": [
+    "promoted_revision",
+    "held_no_promotion",
+    "refused_promotion"
+  ],
+  "execution_class_policies": [
+    {
+      "execution_class": "dense_full_model_rank",
+      "admitted_dispositions": [
+        "accepted",
+        "quarantined",
+        "rejected",
+        "replay_required"
+      ],
+      "quarantine_blocks_promotion": true,
+      "replay_required_blocks_promotion": true,
+      "detail": "Dense-rank execution may be accepted, quarantined, rejected, or replay-required. Quarantine or replay-required blocks promotion until the missing proof closes."
+    },
+    {
+      "execution_class": "validated_contributor_window",
+      "admitted_dispositions": [
+        "accepted",
+        "quarantined",
+        "rejected",
+        "replay_required"
+      ],
+      "quarantine_blocks_promotion": true,
+      "replay_required_blocks_promotion": true,
+      "detail": "Contributor windows use the same acceptance vocabulary as dense work and keep quarantine and replay-required as explicit no-promotion states."
+    },
+    {
+      "execution_class": "validator",
+      "admitted_dispositions": [
+        "accepted",
+        "quarantined",
+        "rejected",
+        "replay_required"
+      ],
+      "quarantine_blocks_promotion": true,
+      "replay_required_blocks_promotion": true,
+      "detail": "Validator-only work shares the same vocabulary so replay and quarantine never become provider-local language."
+    },
+    {
+      "execution_class": "checkpoint_writer",
+      "admitted_dispositions": [
+        "accepted",
+        "quarantined",
+        "rejected",
+        "replay_required"
+      ],
+      "quarantine_blocks_promotion": true,
+      "replay_required_blocks_promotion": true,
+      "detail": "Checkpoint-writer closure uses the same shared validator and promotion vocabulary."
+    },
+    {
+      "execution_class": "eval_worker",
+      "admitted_dispositions": [
+        "accepted",
+        "quarantined",
+        "rejected",
+        "replay_required"
+      ],
+      "quarantine_blocks_promotion": true,
+      "replay_required_blocks_promotion": true,
+      "detail": "Eval-worker proof uses the same shared validator and promotion vocabulary."
+    }
+  ],
+  "claim_boundary": "This contract closes one shared validator, replay, quarantine, rejection, acceptance, and promotion vocabulary across the current execution classes and the provider-neutral evidence bundle. It does not claim app-review workflow closure or weaken refusal posture for replay, provenance, or validator gaps.",
+  "contract_digest": "fce26138afb1719033aabd39e44e751efbc68c08e14a3c27a5bfdb4e8e70aa86"
+}

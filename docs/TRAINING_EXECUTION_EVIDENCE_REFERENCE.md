@@ -24,6 +24,11 @@ scripts/check-training-execution-evidence-bundle.sh
   validator-only, and hybrid runs
 - explicit launch, runtime, checkpoint, metric, visualization, validator, and
   after-action references
+- one shared validator and promotion contract id carried by the bundle
+- explicit validator dispositions of `accepted`, `quarantined`, `rejected`,
+  and `replay_required`
+- explicit promotion outcomes of `promoted_revision`, `held_no_promotion`, and
+  `refused_promotion`
 - explicit successful, degraded-success, refused, and failed dispositions
 - the generator binary `training_execution_evidence_bundle`
 - the checker `scripts/check-training-execution-evidence-bundle.sh`

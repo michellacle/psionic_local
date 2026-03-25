@@ -5,6 +5,7 @@
   "program_manifest_digest": "5c7cd52ecf5345551e165eeb1e25440153bf64f38e69aaf1d33a13c7056ca479",
   "run_id": "psion-xprovider-evidence-sample-1",
   "lane_id": "psion.cross_provider.pretrain.reference",
+  "validator_promotion_contract_id": "psionic.shared_validator_promotion_contract.v1",
   "segment_evidence": [
     {
       "segment_id": "google-single-node",
@@ -77,7 +78,7 @@
         {
           "validator_id": "google-single-node-validator",
           "execution_class": "dense_full_model_rank",
-          "disposition": "completed_success",
+          "disposition": "accepted",
           "evidence_posture": "measured",
           "detail": "Single-node Google execution preserved launch, runtime, checkpoint, metric, and visualization proof without degradation."
         }
@@ -165,7 +166,7 @@
         {
           "validator_id": "distributed-lane-validator",
           "execution_class": "dense_full_model_rank",
-          "disposition": "degraded_success",
+          "disposition": "accepted",
           "evidence_posture": "derived",
           "detail": "The distributed lane sealed checkpoint and visualization proof, but the missing live primary series keeps the outcome degraded instead of promoted."
         }
@@ -236,7 +237,7 @@
         {
           "validator_id": "swarm-validator",
           "execution_class": "validated_contributor_window",
-          "disposition": "refused",
+          "disposition": "replay_required",
           "evidence_posture": "refused",
           "detail": "The first trusted-LAN attempt was refused before remote execution began, so the bundle keeps replay-required and no-promotion posture explicit."
         }
@@ -307,7 +308,7 @@
         {
           "validator_id": "google-validator-1",
           "execution_class": "validator",
-          "disposition": "completed_success",
+          "disposition": "accepted",
           "evidence_posture": "measured",
           "detail": "Validator-only proof stays measured and explicit even when the underlying run class is not dense execution."
         }
@@ -416,14 +417,14 @@
         {
           "validator_id": "hybrid-validator-google",
           "execution_class": "validator",
-          "disposition": "degraded_success",
+          "disposition": "quarantined",
           "evidence_posture": "measured",
-          "detail": "The hybrid bundle preserves successful validator coverage but keeps missing always-live distributed telemetry explicit."
+          "detail": "The hybrid bundle preserves validator review but keeps the contributor-side promotion path quarantined until always-live distributed telemetry and replay closure are complete."
         },
         {
           "validator_id": "hybrid-eval-worker",
           "execution_class": "eval_worker",
-          "disposition": "completed_success",
+          "disposition": "accepted",
           "evidence_posture": "measured",
           "detail": "Eval-worker proof is retained under the same bundle family instead of a sidecar eval-only proof JSON."
         }
@@ -462,9 +463,9 @@
   ],
   "final_disposition": {
     "disposition": "degraded_success",
-    "promotion_outcome": "no_global_promotion_yet",
+    "promotion_outcome": "held_no_promotion",
     "detail": "The canonical bundle proves the shared schema can encode successful, degraded, and refused segments together. The current cross-provider program remains degraded overall because dense distributed live telemetry and full hybrid runtime closure are not finished."
   },
   "claim_boundary": "This bundle family proves one provider-neutral final evidence schema can represent single-node dense runs, dense distributed runs, contributor-window runs, validator-only runs, and hybrid runs without lane-specific proof JSON. It does not claim that every segment shown here has already been executed together in one real production run.",
-  "bundle_digest": "a6041ad537c2db960fcb5001eb219476ca47933780106eb6266290d76d1e34be"
+  "bundle_digest": "4e79457bafaa9f856897b040a46060396fc5e54c4abff0d276681d88d24e86e6"
 }
