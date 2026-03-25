@@ -91,13 +91,22 @@ tokenizer_relative_path="$(json_field '.tokenizer.local_relative_path')"
 expected_tokenizer_sha256="$(json_field '.tokenizer.sha256')"
 matched_fineweb_repo_id="$(json_field '.matched_fineweb.repo_id // empty')"
 matched_fineweb_remote_root_prefix="$(json_field '.matched_fineweb.remote_root_prefix // empty')"
+dataset_root="${target_root}/${dataset_relative_root}"
+tokenizer_path="${target_root}/${tokenizer_relative_path}"
+workspace_checkout_posture="cloned_git_checkout"
 
 mkdir -p "$(dirname "${target_root}")"
-if [[ ! -d "${target_root}/.git" ]]; then
+if [[ -d "${target_root}/.git" ]]; then
+  workspace_checkout_posture="existing_git_checkout"
+elif [[ -d "${target_root}" ]] && find "${target_root}" -mindepth 1 -print -quit >/dev/null 2>&1; then
+  workspace_checkout_posture="existing_non_git_target"
+else
   git clone "${git_clone_url}" "${target_root}"
 fi
-git -C "${target_root}" fetch --depth=1 origin "${git_revision}"
-git -C "${target_root}" checkout --detach "${git_revision}"
+if [[ -d "${target_root}/.git" ]]; then
+  git -C "${target_root}" fetch --depth=1 origin "${git_revision}"
+  git -C "${target_root}" checkout --detach "${git_revision}"
+fi
 
 if [[ ! -d "${target_root}/.venv" ]]; then
   python3 -m venv "${target_root}/.venv"
@@ -120,9 +129,6 @@ fi
   python data/cached_challenge_fineweb.py --variant "${variant}" --train-shards "${train_shards}"
 )
 
-dataset_root="${target_root}/${dataset_relative_root}"
-tokenizer_path="${target_root}/${tokenizer_relative_path}"
-
 if [[ ! -d "${dataset_root}" ]]; then
   echo "error: expected dataset root ${dataset_root} after cache materialization" >&2
   exit 1
@@ -138,17 +144,18 @@ if [[ "${actual_tokenizer_sha256}" != "${expected_tokenizer_sha256}" ]]; then
   exit 1
 fi
 
-python3 - "${target_root}" "${git_revision}" "${dataset_root}" "${tokenizer_path}" "${actual_tokenizer_sha256}" <<'PY'
+python3 - "${target_root}" "${git_revision}" "${dataset_root}" "${tokenizer_path}" "${actual_tokenizer_sha256}" "${workspace_checkout_posture}" <<'PY'
 import json
 import sys
 
-target_root, git_revision, dataset_root, tokenizer_path, tokenizer_sha256 = sys.argv[1:]
+target_root, git_revision, dataset_root, tokenizer_path, tokenizer_sha256, workspace_checkout_posture = sys.argv[1:]
 print(
     json.dumps(
         {
             "materialized": True,
             "target_root": target_root,
             "parameter_golf_git_revision": git_revision,
+            "workspace_checkout_posture": workspace_checkout_posture,
             "dataset_root": dataset_root,
             "tokenizer_path": tokenizer_path,
             "tokenizer_sha256": tokenizer_sha256,
