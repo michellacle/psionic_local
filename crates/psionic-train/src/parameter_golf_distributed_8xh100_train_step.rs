@@ -2725,8 +2725,8 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
             true,
         )?;
     }
-    let mut validation_rank_launches = Vec::with_capacity(CHALLENGE_WORLD_SIZE);
-    let mut completed_validation_rank_count = 0_usize;
+    let mut pending_validation_receipts =
+        Vec::with_capacity(validation_shard_plan.len());
     for shard in &validation_shard_plan {
         let shard_path = validation_rank_shards_dir.join(format!("rank_{}.json", shard.rank));
         fs::write(
@@ -2779,6 +2779,22 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
                 },
             },
         )?;
+        pending_validation_receipts.push((
+            shard.rank,
+            shard_path,
+            receipt_path,
+        ));
+    }
+    let mut validation_rank_launches = Vec::with_capacity(CHALLENGE_WORLD_SIZE);
+    let mut completed_validation_rank_count = 0_usize;
+    for (rank, shard_path, receipt_path) in pending_validation_receipts {
+        let worker = workers.get_mut(rank).ok_or_else(|| {
+            ParameterGolfDistributed8xH100TrainStepError::Aggregate {
+                message: format!(
+                    "persistent validation worker rank {rank} was missing from the mesh during receipt collection",
+                ),
+            }
+        })?;
         let receipt = match worker_response_from_reader(worker.rank, &mut worker.stdout)? {
             ParameterGolfDistributed8xH100WorkerResponse::ValidationComplete {
                 receipt, ..
@@ -2800,16 +2816,13 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
                 );
             }
         };
-        fs::write(
-            &receipt_path,
-            format!("{}\n", serde_json::to_string_pretty(&receipt)?),
-        )
-        .map_err(
-            |error| ParameterGolfDistributed8xH100TrainStepError::Write {
-                path: receipt_path.display().to_string(),
-                error,
-            },
-        )?;
+        fs::write(&receipt_path, format!("{}\n", serde_json::to_string_pretty(&receipt)?))
+            .map_err(
+                |error| ParameterGolfDistributed8xH100TrainStepError::Write {
+                    path: receipt_path.display().to_string(),
+                    error,
+                },
+            )?;
         validation_rank_launches.push(ParameterGolfDistributed8xH100ValidationRankLaunch {
             rank: worker.rank,
             local_rank: worker.local_rank,

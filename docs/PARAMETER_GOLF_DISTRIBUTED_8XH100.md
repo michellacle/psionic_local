@@ -92,7 +92,10 @@ Psionic now encodes that exact posture explicitly instead of treating
   can finish with a real runtime outcome when the measured distributed
   validation surface exists; the current validation path now reuses the same
   persistent rank workers instead of respawning a second validation-only child
-  fanout
+  fanout, and the coordinator now dispatches validation work to all resident
+  ranks before waiting on any one receipt so the retained validation wallclock
+  can reflect real parallel rank execution instead of accidental rank-serial
+  receipt collection
 - `psionic-models` now also ships the upstream-style banked PGOLF matrix
   surface under `ParameterGolfBankedWeights`, with the exact public bank tensor
   ids `qo_bank`, `kv_bank`, `mlp_up_bank`, and `mlp_down_bank`; the optimizer

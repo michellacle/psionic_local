@@ -1841,6 +1841,7 @@ mod tests {
                         gradient_tensor_count: 128,
                         gradient_f32_count: 4096,
                     },
+                    runtime_receipt: None,
                     observed_wallclock_ms: 100 + rank as u64,
                     gradient_sync_ms: 8,
                     optimizer_step_ms: 6,
