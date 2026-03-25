@@ -136,6 +136,14 @@ const fn parameter_golf_default_bigram_dim() -> usize {
     PARAMETER_GOLF_BASELINE_BIGRAM_DIM
 }
 
+const fn parameter_golf_default_ve_dim() -> usize {
+    128
+}
+
+fn parameter_golf_ve_layer_indices_are_empty(value: &[usize]) -> bool {
+    value.is_empty()
+}
+
 /// Configuration for one Parameter Golf decoder-family instance.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ParameterGolfConfig {
@@ -157,6 +165,12 @@ pub struct ParameterGolfConfig {
     /// Bigram embedding width before the optional projection.
     #[serde(default = "parameter_golf_default_bigram_dim")]
     pub bigram_dim: usize,
+    /// Shared value-embedding width before the optional projection to `kv_dim`.
+    #[serde(default = "parameter_golf_default_ve_dim")]
+    pub ve_dim: usize,
+    /// Zero-based layer indices that receive the shared late-layer value embedding.
+    #[serde(default, skip_serializing_if = "parameter_golf_ve_layer_indices_are_empty")]
+    pub ve_layer_indices: Vec<usize>,
     /// MLP activation family.
     #[serde(default)]
     pub mlp_activation: ParameterGolfMlpActivation,
@@ -196,6 +210,8 @@ impl ParameterGolfConfig {
             mlp_mult: PARAMETER_GOLF_BASELINE_MLP_MULT,
             bigram_vocab_size: PARAMETER_GOLF_BASELINE_BIGRAM_VOCAB_SIZE,
             bigram_dim: PARAMETER_GOLF_BASELINE_BIGRAM_DIM,
+            ve_dim: parameter_golf_default_ve_dim(),
+            ve_layer_indices: Vec::new(),
             mlp_activation: PARAMETER_GOLF_BASELINE_MLP_ACTIVATION,
             max_context: PARAMETER_GOLF_BASELINE_MAX_CONTEXT,
             tie_embeddings: PARAMETER_GOLF_BASELINE_TIE_EMBEDDINGS,
@@ -267,6 +283,26 @@ impl ParameterGolfConfig {
         }
         if self.bigram_vocab_size > 0 && self.bigram_dim == 0 {
             return Err(ParameterGolfConfigError::BigramDimMustBePositiveWhenEnabled);
+        }
+        if !self.ve_layer_indices.is_empty() && self.ve_dim == 0 {
+            return Err(ParameterGolfConfigError::VeDimMustBePositiveWhenEnabled);
+        }
+        for (position, layer_index) in self.ve_layer_indices.iter().copied().enumerate() {
+            if layer_index >= self.num_layers {
+                return Err(ParameterGolfConfigError::VeLayerIndexOutOfRange {
+                    layer_index,
+                    num_layers: self.num_layers,
+                });
+            }
+            if position > 0 {
+                let previous = self.ve_layer_indices[position - 1];
+                if layer_index <= previous {
+                    return Err(ParameterGolfConfigError::VeLayerIndicesMustBeStrictlyIncreasing {
+                        previous,
+                        current: layer_index,
+                    });
+                }
+            }
         }
         if self.xsa_last_n > self.num_layers {
             return Err(ParameterGolfConfigError::XsaLastNMustNotExceedNumLayers {
@@ -388,6 +424,14 @@ impl ParameterGolfConfig {
         self.layer_norm_scale.factor(layer_index)
     }
 
+    /// Returns the slot inside `ve_layer_indices` for one layer, when present.
+    #[must_use]
+    pub fn ve_layer_slot(&self, layer_index: usize) -> Option<usize> {
+        self.ve_layer_indices
+            .iter()
+            .position(|candidate| *candidate == layer_index)
+    }
+
     /// Returns whether the supplied zero-based layer index uses the XSA score path.
     #[must_use]
     pub fn xsa_applies_to_layer(&self, layer_index: usize) -> bool {
@@ -415,6 +459,18 @@ impl ParameterGolfConfig {
             0
         };
         let bigram_scale = usize::from(self.bigram_vocab_size > 0);
+        let ve_embedding = if self.ve_layer_indices.is_empty() {
+            0
+        } else {
+            checked_mul_usize(self.vocab_size, self.ve_dim, "ve_embedding")?
+        };
+        let ve_projection = if !self.ve_layer_indices.is_empty() && self.ve_dim != kv_dim {
+            checked_mul_usize(kv_dim, self.ve_dim, "ve_projection")?
+        } else {
+            0
+        };
+        let ve_scale = usize::from(!self.ve_layer_indices.is_empty());
+        let ve_layer_scales = self.ve_layer_indices.len();
         let q_proj = checked_mul_usize(self.model_dim, self.model_dim, "q_proj")?;
         let k_proj = checked_mul_usize(kv_dim, self.model_dim, "k_proj")?;
         let v_proj = checked_mul_usize(kv_dim, self.model_dim, "v_proj")?;
@@ -464,8 +520,16 @@ impl ParameterGolfConfig {
         )?;
         let total_parameters = checked_add_usize(
             checked_add_usize(
-                checked_add_usize(token_embedding, bigram_embedding, "total_parameters")?,
-                checked_add_usize(bigram_projection, bigram_scale, "total_parameters")?,
+                checked_add_usize(
+                    checked_add_usize(token_embedding, bigram_embedding, "total_parameters")?,
+                    checked_add_usize(bigram_projection, bigram_scale, "total_parameters")?,
+                    "total_parameters",
+                )?,
+                checked_add_usize(
+                    checked_add_usize(ve_embedding, ve_projection, "total_parameters")?,
+                    checked_add_usize(ve_scale, ve_layer_scales, "total_parameters")?,
+                    "total_parameters",
+                )?,
                 "total_parameters",
             )?,
             checked_add_usize(
@@ -480,6 +544,10 @@ impl ParameterGolfConfig {
             bigram_embedding,
             bigram_projection,
             bigram_scale,
+            ve_embedding,
+            ve_projection,
+            ve_scale,
+            ve_layer_scales,
             skip_weights,
             per_block_attention,
             per_block_feed_forward,
@@ -556,6 +624,25 @@ pub enum ParameterGolfConfigError {
     /// `bigram_dim` must be strictly positive when the feature is enabled.
     #[error("bigram_dim must be positive when bigram_vocab_size > 0")]
     BigramDimMustBePositiveWhenEnabled,
+    /// `ve_dim` must be strictly positive when VE is enabled.
+    #[error("ve_dim must be positive when ve_layer_indices is non-empty")]
+    VeDimMustBePositiveWhenEnabled,
+    /// VE layer indices must remain in bounds.
+    #[error("ve layer index {layer_index} must be less than num_layers ({num_layers})")]
+    VeLayerIndexOutOfRange {
+        /// Invalid VE layer index.
+        layer_index: usize,
+        /// Total layer count.
+        num_layers: usize,
+    },
+    /// VE layer indices must stay sorted and unique.
+    #[error("ve_layer_indices must be strictly increasing, got {previous} then {current}")]
+    VeLayerIndicesMustBeStrictlyIncreasing {
+        /// Previous layer index.
+        previous: usize,
+        /// Current layer index.
+        current: usize,
+    },
     /// `xsa_last_n` must stay within the layer count.
     #[error("xsa_last_n ({xsa_last_n}) must not exceed num_layers ({num_layers})")]
     XsaLastNMustNotExceedNumLayers {
@@ -616,6 +703,14 @@ pub struct ParameterGolfParameterFacts {
     pub bigram_projection: usize,
     /// Parameters in the optional bigram scalar scale.
     pub bigram_scale: usize,
+    /// Parameters in the optional shared VE embedding table.
+    pub ve_embedding: usize,
+    /// Parameters in the optional shared VE projection matrix.
+    pub ve_projection: usize,
+    /// Parameters in the optional shared VE scalar scale.
+    pub ve_scale: usize,
+    /// Parameters in the optional per-layer VE scales.
+    pub ve_layer_scales: usize,
     /// Parameters in the learned skip-weight table.
     pub skip_weights: usize,
     /// Per-block attention parameters, including q-gain.
@@ -1055,6 +1150,19 @@ pub struct ParameterGolfBigramHashWeights {
     pub scale: Vec<f32>,
 }
 
+/// Optional late-layer shared value-embedding tensors kept outside the block stack.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ParameterGolfValueEmbeddingWeights {
+    /// Shared embedding matrix in `[vocab_size, ve_dim]` order.
+    pub embedding: Vec<f32>,
+    /// Optional projection in `[kv_dim, ve_dim]` order.
+    pub proj: Option<ParameterGolfLinearWeights>,
+    /// Learned shared scalar multiplier.
+    pub scale: Vec<f32>,
+    /// Learned per-layer scalar multipliers aligned with `ve_layer_indices`.
+    pub layer_scales: Vec<f32>,
+}
+
 /// Full logical weight bundle for one Parameter Golf family instance.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ParameterGolfWeights {
@@ -1062,6 +1170,8 @@ pub struct ParameterGolfWeights {
     pub token_embedding: Vec<f32>,
     /// Optional hashed bigram feature tensors.
     pub bigram: Option<ParameterGolfBigramHashWeights>,
+    /// Optional shared late-layer value-embedding tensors.
+    pub value_embedding: Option<ParameterGolfValueEmbeddingWeights>,
     /// Learned skip-weight table in `[num_skip_weights, model_dim]` order.
     pub skip_weights: Vec<f32>,
     /// Ordered block weights.
@@ -1077,6 +1187,8 @@ pub struct ParameterGolfBankedWeights {
     pub token_embedding: Vec<f32>,
     /// Optional hashed bigram feature tensors that stay outside the matrix banks.
     pub bigram: Option<ParameterGolfBigramHashWeights>,
+    /// Optional shared late-layer value-embedding tensors that stay outside the matrix banks.
+    pub value_embedding: Option<ParameterGolfValueEmbeddingWeights>,
     /// Learned skip-weight table in `[num_skip_weights, model_dim]` order.
     pub skip_weights: Vec<f32>,
     /// Combined query/output bank in `[2 * num_layers, model_dim, model_dim]` order.
@@ -1186,6 +1298,26 @@ impl ParameterGolfWeights {
         } else {
             None
         };
+        let value_embedding = if config.ve_layer_indices.is_empty() {
+            None
+        } else {
+            Some(ParameterGolfValueEmbeddingWeights {
+                embedding: initializer.values_for(
+                    "ve_shared.embed.weight",
+                    config.vocab_size * config.ve_dim,
+                ),
+                proj: (config.ve_dim != kv_dim).then(|| {
+                    ParameterGolfLinearWeights::from_initializer(
+                        "ve_shared.proj.weight",
+                        kv_dim,
+                        config.ve_dim,
+                        initializer,
+                    )
+                }),
+                scale: vec![0.1],
+                layer_scales: vec![1.0; config.ve_layer_indices.len()],
+            })
+        };
         let lm_head = (!config.tie_embeddings).then(|| {
             ParameterGolfLinearWeights::from_initializer(
                 "lm_head.weight",
@@ -1198,6 +1330,7 @@ impl ParameterGolfWeights {
             token_embedding: initializer
                 .values_for("tok_emb.weight", config.vocab_size * config.model_dim),
             bigram,
+            value_embedding,
             skip_weights: initializer
                 .values_for("skip_weights", config.num_skip_weights() * config.model_dim),
             blocks,
@@ -1255,6 +1388,7 @@ impl ParameterGolfWeights {
         Ok(ParameterGolfBankedWeights {
             token_embedding: self.token_embedding.clone(),
             bigram: self.bigram.clone(),
+            value_embedding: self.value_embedding.clone(),
             skip_weights: self.skip_weights.clone(),
             qo_bank: ParameterGolfLinearBankWeights::from_linears(qo_slices.as_slice()),
             kv_bank: ParameterGolfLinearBankWeights::from_linears(kv_slices.as_slice()),
@@ -1309,6 +1443,40 @@ impl ParameterGolfWeights {
                 WeightTensorMetadata::new("bigram.scale", Shape::new(vec![1]), DType::F32),
                 bigram.scale.as_slice(),
             ));
+        }
+        if let Some(value_embedding) = &self.value_embedding {
+            entries.push((
+                WeightTensorMetadata::new(
+                    "ve_shared.embed.weight",
+                    Shape::new(vec![config.vocab_size, config.ve_dim]),
+                    DType::F32,
+                ),
+                value_embedding.embedding.as_slice(),
+            ));
+            if let Some(proj) = &value_embedding.proj {
+                entries.push((
+                    WeightTensorMetadata::new(
+                        "ve_shared.proj.weight",
+                        Shape::new(vec![proj.out_features, proj.in_features]),
+                        DType::F32,
+                    ),
+                    proj.weight.as_slice(),
+                ));
+            }
+            entries.push((
+                WeightTensorMetadata::new("ve_shared.scale", Shape::new(vec![1]), DType::F32),
+                value_embedding.scale.as_slice(),
+            ));
+            for (slot, layer_scale) in value_embedding.layer_scales.iter().enumerate() {
+                entries.push((
+                    WeightTensorMetadata::new(
+                        format!("ve_layer_scales.{slot}"),
+                        Shape::new(vec![1]),
+                        DType::F32,
+                    ),
+                    std::slice::from_ref(layer_scale),
+                ));
+            }
         }
         entries.push((
             WeightTensorMetadata::new(
@@ -1564,6 +1732,7 @@ impl ParameterGolfBankedWeights {
         let weights = ParameterGolfWeights {
             token_embedding: self.token_embedding.clone(),
             bigram: self.bigram.clone(),
+            value_embedding: self.value_embedding.clone(),
             skip_weights: self.skip_weights.clone(),
             blocks,
             lm_head: self.lm_head.clone(),
@@ -1659,6 +1828,40 @@ impl ParameterGolfBankedWeights {
                 WeightTensorMetadata::new("bigram.scale", Shape::new(vec![1]), DType::F32),
                 bigram.scale.as_slice(),
             ));
+        }
+        if let Some(value_embedding) = &self.value_embedding {
+            entries.push((
+                WeightTensorMetadata::new(
+                    "ve_shared.embed.weight",
+                    Shape::new(vec![config.vocab_size, config.ve_dim]),
+                    DType::F32,
+                ),
+                value_embedding.embedding.as_slice(),
+            ));
+            if let Some(proj) = &value_embedding.proj {
+                entries.push((
+                    WeightTensorMetadata::new(
+                        "ve_shared.proj.weight",
+                        Shape::new(vec![proj.out_features, proj.in_features]),
+                        DType::F32,
+                    ),
+                    proj.weight.as_slice(),
+                ));
+            }
+            entries.push((
+                WeightTensorMetadata::new("ve_shared.scale", Shape::new(vec![1]), DType::F32),
+                value_embedding.scale.as_slice(),
+            ));
+            for (slot, layer_scale) in value_embedding.layer_scales.iter().enumerate() {
+                entries.push((
+                    WeightTensorMetadata::new(
+                        format!("ve_layer_scales.{slot}"),
+                        Shape::new(vec![1]),
+                        DType::F32,
+                    ),
+                    std::slice::from_ref(layer_scale),
+                ));
+            }
         }
         entries.push((
             WeightTensorMetadata::new(
@@ -1785,6 +1988,18 @@ pub enum ParameterGolfModelError {
     /// The bigram projection is required when `bigram_dim != model_dim`.
     #[error("bigram projection is required when bigram_dim != model_dim")]
     MissingBigramProjection,
+    /// VE-disabled configs must not carry value-embedding tensors.
+    #[error("value embedding tensors must be absent when ve_layer_indices is empty")]
+    UnexpectedValueEmbedding,
+    /// VE-enabled configs require value-embedding tensors.
+    #[error("value embedding tensors are required when ve_layer_indices is non-empty")]
+    MissingValueEmbedding,
+    /// The VE projection must be absent when `ve_dim == kv_dim`.
+    #[error("value embedding projection must be absent when ve_dim == kv_dim")]
+    UnexpectedValueEmbeddingProjection,
+    /// The VE projection is required when `ve_dim != kv_dim`.
+    #[error("value embedding projection is required when ve_dim != kv_dim")]
+    MissingValueEmbeddingProjection,
     /// One bank carried the wrong number of slices.
     #[error("weight bank `{name}` has bank_len {actual}; expected {expected}")]
     BankLengthMismatch {
@@ -1982,16 +2197,34 @@ impl ParameterGolfReferenceModel {
             let bigram = bigram_forward(bigram, config, input_ids, batch_size, sequence_length)?;
             add_in_place(&mut x, &bigram);
         }
+        let value_embedding_base = if let Some(value_embedding) = &self.weights.value_embedding {
+            Some(value_embedding_forward(
+                value_embedding,
+                config,
+                input_ids,
+                batch_size,
+                sequence_length,
+            )?)
+        } else {
+            None
+        };
         x = rms_norm_last_dim(&x, PARAMETER_GOLF_DEFAULT_RMS_NORM_EPSILON);
         let x0 = x.clone();
         let mut skips = Vec::new();
         for layer_index in 0..config.num_encoder_layers() {
+            let layer_value_embedding = value_embedding_for_layer(
+                value_embedding_base.as_ref(),
+                self.weights.value_embedding.as_ref(),
+                config,
+                layer_index,
+            );
             x = block_forward(
                 &self.weights.blocks[layer_index],
                 &x,
                 &x0,
                 config,
                 layer_index,
+                layer_value_embedding.as_ref(),
                 attention_window_size,
             );
             skips.push(x.clone());
@@ -2004,12 +2237,20 @@ impl ParameterGolfReferenceModel {
                     skip_weight_row(&self.weights.skip_weights, config.model_dim, decoder_index),
                 );
             }
+            let layer_index = config.num_encoder_layers() + decoder_index;
+            let layer_value_embedding = value_embedding_for_layer(
+                value_embedding_base.as_ref(),
+                self.weights.value_embedding.as_ref(),
+                config,
+                layer_index,
+            );
             x = block_forward(
-                &self.weights.blocks[config.num_encoder_layers() + decoder_index],
+                &self.weights.blocks[layer_index],
                 &x,
                 &x0,
                 config,
-                config.num_encoder_layers() + decoder_index,
+                layer_index,
+                layer_value_embedding.as_ref(),
                 attention_window_size,
             );
         }
@@ -2157,12 +2398,42 @@ fn validate_weights(
         }
         validate_vector_length("bigram.scale", bigram.scale.as_slice(), 1)?;
     }
+    let kv_dim = config.kv_dim()?;
+    if config.ve_layer_indices.is_empty() {
+        if weights.value_embedding.is_some() {
+            return Err(ParameterGolfModelError::UnexpectedValueEmbedding);
+        }
+    } else {
+        let Some(value_embedding) = &weights.value_embedding else {
+            return Err(ParameterGolfModelError::MissingValueEmbedding);
+        };
+        validate_vector_length(
+            "ve_shared.embed.weight",
+            value_embedding.embedding.as_slice(),
+            config.vocab_size * config.ve_dim,
+        )?;
+        if config.ve_dim == kv_dim {
+            if value_embedding.proj.is_some() {
+                return Err(ParameterGolfModelError::UnexpectedValueEmbeddingProjection);
+            }
+        } else {
+            let Some(proj) = &value_embedding.proj else {
+                return Err(ParameterGolfModelError::MissingValueEmbeddingProjection);
+            };
+            validate_linear("ve_shared.proj.weight", proj, kv_dim, config.ve_dim)?;
+        }
+        validate_vector_length("ve_shared.scale", value_embedding.scale.as_slice(), 1)?;
+        validate_vector_length(
+            "ve_layer_scales",
+            value_embedding.layer_scales.as_slice(),
+            config.ve_layer_indices.len(),
+        )?;
+    }
     validate_vector_length(
         "skip_weights",
         weights.skip_weights.as_slice(),
         config.num_skip_weights() * config.model_dim,
     )?;
-    let kv_dim = config.kv_dim()?;
     let mlp_hidden_dim = config.mlp_hidden_dim()?;
     for (layer_index, block) in weights.blocks.iter().enumerate() {
         validate_linear(
@@ -2316,6 +2587,59 @@ fn apply_parameter_override(
         assign_parameter_values(&mut bigram.scale, parameter_id, values)?;
         return Ok(());
     }
+    if parameter_id == "ve_shared.embed.weight" {
+        let Some(value_embedding) = &mut bundle.value_embedding else {
+            return Err(ParameterGolfModelError::UnknownParameter {
+                parameter_id: String::from(parameter_id),
+            });
+        };
+        assign_parameter_values(&mut value_embedding.embedding, parameter_id, values)?;
+        return Ok(());
+    }
+    if parameter_id == "ve_shared.proj.weight" {
+        let Some(value_embedding) = &mut bundle.value_embedding else {
+            return Err(ParameterGolfModelError::UnknownParameter {
+                parameter_id: String::from(parameter_id),
+            });
+        };
+        let Some(proj) = &mut value_embedding.proj else {
+            return Err(ParameterGolfModelError::UnknownParameter {
+                parameter_id: String::from(parameter_id),
+            });
+        };
+        assign_parameter_values(&mut proj.weight, parameter_id, values)?;
+        return Ok(());
+    }
+    if parameter_id == "ve_shared.scale" {
+        let Some(value_embedding) = &mut bundle.value_embedding else {
+            return Err(ParameterGolfModelError::UnknownParameter {
+                parameter_id: String::from(parameter_id),
+            });
+        };
+        assign_parameter_values(&mut value_embedding.scale, parameter_id, values)?;
+        return Ok(());
+    }
+    if let Some(slot_text) = parameter_id.strip_prefix("ve_layer_scales.") {
+        let Some(value_embedding) = &mut bundle.value_embedding else {
+            return Err(ParameterGolfModelError::UnknownParameter {
+                parameter_id: String::from(parameter_id),
+            });
+        };
+        let Ok(slot) = slot_text.parse::<usize>() else {
+            return Err(ParameterGolfModelError::UnknownParameter {
+                parameter_id: String::from(parameter_id),
+            });
+        };
+        let Some(layer_scale) = value_embedding.layer_scales.get_mut(slot) else {
+            return Err(ParameterGolfModelError::UnknownParameter {
+                parameter_id: String::from(parameter_id),
+            });
+        };
+        let mut slot_buffer = vec![*layer_scale];
+        assign_parameter_values(&mut slot_buffer, parameter_id, values)?;
+        *layer_scale = slot_buffer[0];
+        return Ok(());
+    }
     if parameter_id == "skip_weights" {
         assign_parameter_values(&mut bundle.skip_weights, parameter_id, values)?;
         return Ok(());
@@ -2422,6 +2746,59 @@ fn apply_banked_parameter_override(
             });
         };
         assign_parameter_values(&mut bigram.scale, parameter_id, values)?;
+        return Ok(());
+    }
+    if parameter_id == "ve_shared.embed.weight" {
+        let Some(value_embedding) = &mut bundle.value_embedding else {
+            return Err(ParameterGolfModelError::UnknownParameter {
+                parameter_id: String::from(parameter_id),
+            });
+        };
+        assign_parameter_values(&mut value_embedding.embedding, parameter_id, values)?;
+        return Ok(());
+    }
+    if parameter_id == "ve_shared.proj.weight" {
+        let Some(value_embedding) = &mut bundle.value_embedding else {
+            return Err(ParameterGolfModelError::UnknownParameter {
+                parameter_id: String::from(parameter_id),
+            });
+        };
+        let Some(proj) = &mut value_embedding.proj else {
+            return Err(ParameterGolfModelError::UnknownParameter {
+                parameter_id: String::from(parameter_id),
+            });
+        };
+        assign_parameter_values(&mut proj.weight, parameter_id, values)?;
+        return Ok(());
+    }
+    if parameter_id == "ve_shared.scale" {
+        let Some(value_embedding) = &mut bundle.value_embedding else {
+            return Err(ParameterGolfModelError::UnknownParameter {
+                parameter_id: String::from(parameter_id),
+            });
+        };
+        assign_parameter_values(&mut value_embedding.scale, parameter_id, values)?;
+        return Ok(());
+    }
+    if let Some(slot_text) = parameter_id.strip_prefix("ve_layer_scales.") {
+        let Some(value_embedding) = &mut bundle.value_embedding else {
+            return Err(ParameterGolfModelError::UnknownParameter {
+                parameter_id: String::from(parameter_id),
+            });
+        };
+        let Ok(slot) = slot_text.parse::<usize>() else {
+            return Err(ParameterGolfModelError::UnknownParameter {
+                parameter_id: String::from(parameter_id),
+            });
+        };
+        let Some(layer_scale) = value_embedding.layer_scales.get_mut(slot) else {
+            return Err(ParameterGolfModelError::UnknownParameter {
+                parameter_id: String::from(parameter_id),
+            });
+        };
+        let mut slot_buffer = vec![*layer_scale];
+        assign_parameter_values(&mut slot_buffer, parameter_id, values)?;
+        *layer_scale = slot_buffer[0];
         return Ok(());
     }
     if parameter_id == "skip_weights" {
@@ -2590,6 +2967,52 @@ fn bigram_forward(
     Ok(output)
 }
 
+fn value_embedding_forward(
+    value_embedding: &ParameterGolfValueEmbeddingWeights,
+    config: &ParameterGolfConfig,
+    input_ids: &[Vec<u32>],
+    batch_size: usize,
+    sequence_length: usize,
+) -> Result<ParameterGolfTensor3, ParameterGolfExecutionError> {
+    let kv_dim = config
+        .kv_dim()
+        .expect("validated value-embedding config must produce kv_dim");
+    let mut output = embedding_forward(
+        value_embedding.embedding.as_slice(),
+        config.vocab_size,
+        config.ve_dim,
+        input_ids,
+        batch_size,
+        sequence_length,
+    );
+    if let Some(proj) = &value_embedding.proj {
+        output = linear_forward_with_weight(
+            &output,
+            proj.weight.as_slice(),
+            kv_dim,
+            config.ve_dim,
+        );
+    }
+    for value in &mut output.values {
+        *value *= value_embedding.scale[0];
+    }
+    Ok(output)
+}
+
+fn value_embedding_for_layer(
+    value_embedding_base: Option<&ParameterGolfTensor3>,
+    value_embedding: Option<&ParameterGolfValueEmbeddingWeights>,
+    config: &ParameterGolfConfig,
+    layer_index: usize,
+) -> Option<ParameterGolfTensor3> {
+    let base = value_embedding_base?;
+    let slot = config.ve_layer_slot(layer_index)?;
+    let value_embedding = value_embedding?;
+    let mut output = base.clone();
+    scale_tensor3_in_place(&mut output, value_embedding.layer_scales[slot]);
+    Some(output)
+}
+
 fn rms_norm_last_dim(input: &ParameterGolfTensor3, epsilon: f32) -> ParameterGolfTensor3 {
     let mut output = ParameterGolfTensor3::zeros(input.shape());
     let width = input.width();
@@ -2677,6 +3100,7 @@ fn block_forward(
     x0: &ParameterGolfTensor3,
     config: &ParameterGolfConfig,
     layer_index: usize,
+    value_embedding: Option<&ParameterGolfTensor3>,
     attention_window_size: Option<usize>,
 ) -> ParameterGolfTensor3 {
     let mixed = blend_with_source(x, x0, block.resid_mix.as_slice());
@@ -2691,6 +3115,7 @@ fn block_forward(
         &normed_for_attention,
         config,
         layer_index,
+        value_embedding,
         attention_window_size,
     );
     let mut x = mixed;
@@ -2765,6 +3190,7 @@ fn attention_forward(
     input: &ParameterGolfTensor3,
     config: &ParameterGolfConfig,
     layer_index: usize,
+    value_embedding: Option<&ParameterGolfTensor3>,
     attention_window_size: Option<usize>,
 ) -> ParameterGolfTensor3 {
     let batch_size = input.batch_size();
@@ -2773,7 +3199,10 @@ fn attention_forward(
     let kv_dim = config.num_kv_heads * head_dim;
     let q_proj = linear_forward(&attention.q_proj, input);
     let k_proj = linear_forward(&attention.k_proj, input);
-    let v_proj = linear_forward(&attention.v_proj, input);
+    let mut v_proj = linear_forward(&attention.v_proj, input);
+    if let Some(value_embedding) = value_embedding {
+        add_in_place(&mut v_proj, value_embedding);
+    }
 
     let mut q = vec![0.0_f32; batch_size * config.num_heads * sequence_length * head_dim];
     let mut k = vec![0.0_f32; batch_size * config.num_kv_heads * sequence_length * head_dim];
@@ -3373,6 +3802,10 @@ mod tests {
         assert_eq!(facts.bigram_embedding, 0);
         assert_eq!(facts.bigram_projection, 0);
         assert_eq!(facts.bigram_scale, 0);
+        assert_eq!(facts.ve_embedding, 0);
+        assert_eq!(facts.ve_projection, 0);
+        assert_eq!(facts.ve_scale, 0);
+        assert_eq!(facts.ve_layer_scales, 0);
         assert_eq!(facts.skip_weights, 2_048);
         assert_eq!(facts.per_block_attention, 786_440);
         assert_eq!(facts.per_block_feed_forward, 1_048_576);
@@ -3449,6 +3882,35 @@ mod tests {
     }
 
     #[test]
+    fn config_rejects_invalid_value_embedding_shape() {
+        let err = ParameterGolfConfig {
+            ve_dim: 0,
+            ve_layer_indices: vec![6],
+            ..ParameterGolfConfig::baseline_sp1024_9x512()
+        }
+        .validate()
+        .expect_err("zero-width value embedding should be refused");
+        assert!(matches!(
+            err,
+            ParameterGolfConfigError::VeDimMustBePositiveWhenEnabled
+        ));
+
+        let err = ParameterGolfConfig {
+            ve_layer_indices: vec![6, 6],
+            ..ParameterGolfConfig::baseline_sp1024_9x512()
+        }
+        .validate()
+        .expect_err("duplicate value-embedding layer slots should be refused");
+        assert!(matches!(
+            err,
+            ParameterGolfConfigError::VeLayerIndicesMustBeStrictlyIncreasing {
+                previous: 6,
+                current: 6,
+            }
+        ));
+    }
+
+    #[test]
     fn baseline_fixture_deserializes_without_explicit_optional_scorepath_fields() {
         let fixture = load_baseline_fixture();
         assert_eq!(fixture.config.bigram_vocab_size, 0);
@@ -3466,6 +3928,8 @@ mod tests {
             ParameterGolfLayerNormScale::None
         );
         assert_eq!(fixture.config.xsa_last_n, 0);
+        assert_eq!(fixture.config.ve_dim, 128);
+        assert!(fixture.config.ve_layer_indices.is_empty());
     }
 
     #[test]
@@ -3631,6 +4095,69 @@ mod tests {
         assert!(
             baseline_logits.max_abs_diff(&xsa_logits).unwrap_or_default() > 1e-4,
             "xsa should change reference logits"
+        );
+    }
+
+    #[test]
+    fn value_embeddings_change_reference_logits_when_weights_are_nonzero() {
+        let initializer = ParameterGolfDeterministicInitializer::default();
+        let input_ids = vec![vec![0_u32, 1, 2, 3]];
+        let baseline_config = ParameterGolfConfig::baseline_sp1024_9x512();
+        let baseline = ParameterGolfReferenceModel::new(
+            ModelDescriptor::new(
+                "parameter-golf-test-baseline",
+                PARAMETER_GOLF_MODEL_FAMILY,
+                "v1",
+            ),
+            baseline_config.clone(),
+            ParameterGolfWeights::from_initializer(&baseline_config, initializer)
+                .expect("baseline weights should build"),
+        )
+        .expect("baseline model should build");
+        let ve_config = ParameterGolfConfig {
+            ve_dim: 128,
+            ve_layer_indices: vec![6, 7, 8],
+            ..baseline_config
+        };
+        let mut ve_weights = ParameterGolfWeights::from_initializer(&ve_config, initializer)
+            .expect("value-embedding weights should build");
+        let value_embedding = ve_weights
+            .value_embedding
+            .as_mut()
+            .expect("value-embedding weights should exist");
+        for token_id in &input_ids[0] {
+            let row_offset = *token_id as usize * ve_config.ve_dim;
+            for feature in 0..ve_config.ve_dim {
+                value_embedding.embedding[row_offset + feature] = 0.01 * (feature as f32 + 1.0);
+            }
+        }
+        if let Some(proj) = &mut value_embedding.proj {
+            for value in &mut proj.weight {
+                *value = 0.001;
+            }
+        }
+        value_embedding.scale[0] = 0.2;
+        value_embedding.layer_scales = vec![0.5, 0.75, 1.0];
+        let ve_model = ParameterGolfReferenceModel::new(
+            ModelDescriptor::new(
+                "parameter-golf-test-value-embedding",
+                PARAMETER_GOLF_MODEL_FAMILY,
+                "v1",
+            ),
+            ve_config,
+            ve_weights,
+        )
+        .expect("value-embedding model should build");
+
+        let baseline_logits = baseline
+            .forward_logits(&input_ids)
+            .expect("baseline logits should materialize");
+        let ve_logits = ve_model
+            .forward_logits(&input_ids)
+            .expect("value-embedding logits should materialize");
+        assert!(
+            baseline_logits.max_abs_diff(&ve_logits).unwrap_or_default() > 1e-4,
+            "value embeddings should change reference logits"
         );
     }
 

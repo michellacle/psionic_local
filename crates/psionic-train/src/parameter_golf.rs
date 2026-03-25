@@ -293,7 +293,10 @@ pub fn parameter_golf_optimizer_plan(
     for tensor in &descriptor.weights.tensors {
         let name = tensor.name.as_str();
         let parameter_count = tensor.element_count();
-        if name == "tok_emb.weight" || name == "bigram.embed.weight" {
+        if name == "tok_emb.weight"
+            || name == "bigram.embed.weight"
+            || name == "ve_shared.embed.weight"
+        {
             token_names.push(String::from(name));
             token_parameter_count += parameter_count;
         } else if name == "lm_head.weight" {
@@ -303,13 +306,19 @@ pub fn parameter_golf_optimizer_plan(
             matrix_names.push(String::from(name));
             matrix_parameter_count += parameter_count;
         } else if name == "bigram.scale"
-            || name == "bigram.proj.weight"
+            || name == "ve_shared.scale"
             || name == "skip_weights"
+            || name.starts_with("ve_layer_scales.")
             || (name.starts_with("blocks.")
                 && (tensor.shape.dims().len() < 2 || is_control_tensor_name(name)))
         {
             scalar_names.push(String::from(name));
             scalar_parameter_count += parameter_count;
+        } else if (name == "bigram.proj.weight" || name == "ve_shared.proj.weight")
+            && tensor.shape.dims().len() == 2
+        {
+            matrix_names.push(String::from(name));
+            matrix_parameter_count += parameter_count;
         } else if name.starts_with("blocks.")
             && tensor.shape.dims().len() == 2
             && !is_control_tensor_name(name)
@@ -412,6 +421,7 @@ pub fn parameter_golf_graph_parameter_dtype(
 ) -> Result<DType, ParameterGolfTrainError> {
     if tensor_name == "tok_emb.weight"
         || tensor_name == "bigram.embed.weight"
+        || tensor_name == "ve_shared.embed.weight"
         || tensor_name == "lm_head.weight"
     {
         return Ok(DType::BF16);
@@ -420,13 +430,17 @@ pub fn parameter_golf_graph_parameter_dtype(
         return Ok(DType::BF16);
     }
     if tensor_name == "bigram.scale"
+        || tensor_name == "ve_shared.scale"
         || tensor_name == "skip_weights"
+        || tensor_name.starts_with("ve_layer_scales.")
         || (tensor_name.starts_with("blocks.")
             && (shape.dims().len() < 2 || is_control_tensor_name(tensor_name)))
     {
         return Ok(DType::F32);
     }
-    if tensor_name == "bigram.proj.weight" && shape.dims().len() == 2 {
+    if (tensor_name == "bigram.proj.weight" || tensor_name == "ve_shared.proj.weight")
+        && shape.dims().len() == 2
+    {
         return Ok(DType::BF16);
     }
     if tensor_name.starts_with("blocks.")
@@ -997,7 +1011,9 @@ mod tests {
     use std::{fs, path::Path};
 
     use psionic_backend_cuda::CudaBackend;
-    use psionic_models::ParameterGolfReferenceModel;
+    use psionic_models::{
+        ModelDescriptor, ParameterGolfConfig, ParameterGolfReferenceModel, ParameterGolfWeights,
+    };
     use psionic_runtime::{DeviceDiscovery, HealthStatus};
     use serde::Deserialize;
 
@@ -1187,6 +1203,82 @@ mod tests {
             parameter_golf_graph_parameter_dtype("kv_bank", &Shape::new(vec![18, 256, 512]))
                 .expect("kv bank should classify"),
             DType::BF16
+        );
+    }
+
+    #[test]
+    fn optimizer_plan_and_graph_dtypes_classify_value_embedding_tensors() {
+        let fixture = load_fixture();
+        let config = ParameterGolfConfig {
+            ve_dim: 128,
+            ve_layer_indices: vec![6, 7, 8],
+            ..ParameterGolfConfig::baseline_sp1024_9x512()
+        };
+        let model = ParameterGolfReferenceModel::new(
+            ModelDescriptor::new(
+                "parameter-golf-test-value-embedding",
+                "parameter_golf_decoder",
+                "v1",
+            ),
+            config.clone(),
+            ParameterGolfWeights::from_initializer(&config, Default::default())
+                .expect("value-embedding weights should build"),
+        )
+        .expect("value-embedding model should build");
+        let plan = parameter_golf_optimizer_plan(model.descriptor(), &fixture.hyperparameters)
+            .expect("optimizer plan should build");
+        let token_group = plan
+            .groups
+            .iter()
+            .find(|group| group.kind == ParameterGolfOptimizerGroupKind::TokenEmbeddingAdam)
+            .expect("token group should exist");
+        let matrix_group = plan
+            .groups
+            .iter()
+            .find(|group| group.kind == ParameterGolfOptimizerGroupKind::MatrixMuon)
+            .expect("matrix group should exist");
+        let scalar_group = plan
+            .groups
+            .iter()
+            .find(|group| group.kind == ParameterGolfOptimizerGroupKind::ScalarControlAdam)
+            .expect("scalar group should exist");
+        assert!(token_group
+            .tensor_names
+            .contains(&String::from("ve_shared.embed.weight")));
+        assert!(matrix_group
+            .tensor_names
+            .contains(&String::from("ve_shared.proj.weight")));
+        assert!(scalar_group
+            .tensor_names
+            .contains(&String::from("ve_shared.scale")));
+        assert!(scalar_group
+            .tensor_names
+            .contains(&String::from("ve_layer_scales.0")));
+        assert_eq!(
+            parameter_golf_graph_parameter_dtype(
+                "ve_shared.embed.weight",
+                &Shape::new(vec![config.vocab_size, config.ve_dim]),
+            )
+            .expect("value-embedding table should classify"),
+            DType::BF16
+        );
+        assert_eq!(
+            parameter_golf_graph_parameter_dtype(
+                "ve_shared.proj.weight",
+                &Shape::new(vec![config.kv_dim().expect("kv dim should compute"), config.ve_dim]),
+            )
+            .expect("value-embedding projection should classify"),
+            DType::BF16
+        );
+        assert_eq!(
+            parameter_golf_graph_parameter_dtype("ve_shared.scale", &Shape::new(vec![1]))
+                .expect("value-embedding scale should classify"),
+            DType::F32
+        );
+        assert_eq!(
+            parameter_golf_graph_parameter_dtype("ve_layer_scales.0", &Shape::new(vec![1]))
+                .expect("per-layer value-embedding scale should classify"),
+            DType::F32
         );
     }
 

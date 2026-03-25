@@ -304,7 +304,7 @@ that were not tracked when this audit was first written:
 The stale feature-surface issues for `LeakyReLU(0.5)^2` and `BigramHash` were
 closed once local review confirmed those paths were already landed in the repo.
 
-Since the initial audit pass, Psionic has landed the code-local halves of six of
+Since the initial audit pass, Psionic has landed the code-local halves of seven of
 those gaps:
 
 - `LeakyReLU(0.5)^2` now exists across the reference-model, graph, IR, CPU, and
@@ -319,11 +319,14 @@ those gaps:
   graph
 - GQA-aware XSA on the deepest `xsa_last_n` layers now exists in the shared
   PGOLF config surface, CPU reference model, and lowered baseline graph
+- VE-style late-layer value features now exist in the shared PGOLF config
+  surface, parameter accounting, CPU reference model, optimizer or graph
+  classification surface, and lowered baseline graph
 
 The remaining score-path issues stay open because the retained `H100` or
 `8xH100` receipts either do not exist yet or do not yet prove the stronger
-public posture on hardware. Within `#559`, VE-style late-layer features are
-still missing even after the Partial-RoPE, LN-scale, and XSA slices.
+public posture on hardware. Within `#559`, the remaining gap is hardware proof
+for the combined architecture pack, not another missing code-local feature.
 
 ## Bottom Line
 

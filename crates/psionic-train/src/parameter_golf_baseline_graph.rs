@@ -825,6 +825,51 @@ fn build_baseline_graph_state(
         let bigram_features = builder.mul(&bigram_features, &bigram_scale)?;
         embedded_input = builder.add(&embedded_input, &bigram_features)?;
     }
+    let value_embedding_base = if config.ve_layer_indices.is_empty() {
+        None
+    } else {
+        let value_embedding = parameter_inputs
+            .get("ve_shared.embed.weight")
+            .cloned()
+            .ok_or_else(|| ParameterGolfBaselineGraphError::MissingParameterBinding {
+                parameter_id: String::from("ve_shared.embed.weight"),
+            })?;
+        let value_embedding =
+            builder.parameter_golf_token_embedding_lookup(&input_token_ids, &value_embedding)?;
+        let value_embedding = if config.ve_dim == config.kv_dim()? {
+            value_embedding
+        } else {
+            let value_embedding_proj = parameter_inputs
+                .get("ve_shared.proj.weight")
+                .cloned()
+                .ok_or_else(|| ParameterGolfBaselineGraphError::MissingParameterBinding {
+                    parameter_id: String::from("ve_shared.proj.weight"),
+                })?;
+            linear_3d(
+                builder,
+                &value_embedding,
+                &value_embedding_proj,
+                batch_size,
+                sequence_length,
+                config.ve_dim,
+                config.kv_dim()?,
+                use_bf16_fast_path,
+            )?
+        };
+        let value_embedding_scale = parameter_inputs
+            .get("ve_shared.scale")
+            .cloned()
+            .ok_or_else(|| ParameterGolfBaselineGraphError::MissingParameterBinding {
+                parameter_id: String::from("ve_shared.scale"),
+            })?;
+        let value_embedding_scale =
+            builder.reshape(&value_embedding_scale, Shape::new(vec![1, 1, 1]))?;
+        let value_embedding_scale = builder.expand(
+            &value_embedding_scale,
+            Shape::new(vec![batch_size, sequence_length, config.kv_dim()?]),
+        )?;
+        Some(builder.mul(&value_embedding, &value_embedding_scale)?)
+    };
 
     let ones_model = builder.constant_f32(
         Shape::new(vec![config.model_dim]),
@@ -856,6 +901,7 @@ fn build_baseline_graph_state(
             batch_size,
             sequence_length,
             layer_index,
+            value_embedding_base.as_ref(),
             &ones_model,
             &ones_head,
             &rope_cos,
@@ -897,6 +943,7 @@ fn build_baseline_graph_state(
             batch_size,
             sequence_length,
             config.num_encoder_layers() + decoder_index,
+            value_embedding_base.as_ref(),
             &ones_model,
             &ones_head,
             &rope_cos,
@@ -932,6 +979,7 @@ fn block_forward_graph(
     batch_size: usize,
     sequence_length: usize,
     layer_index: usize,
+    value_embedding_base: Option<&AutodiffTensor>,
     ones_model: &AutodiffTensor,
     ones_head: &AutodiffTensor,
     rope_cos: &AutodiffTensor,
@@ -973,6 +1021,7 @@ fn block_forward_graph(
         batch_size,
         sequence_length,
         layer_index,
+        value_embedding_base,
         ones_head,
         rope_cos,
         rope_sin,
@@ -1038,6 +1087,7 @@ fn attention_forward_graph(
     batch_size: usize,
     sequence_length: usize,
     layer_index: usize,
+    value_embedding_base: Option<&AutodiffTensor>,
     ones_head: &AutodiffTensor,
     rope_cos: &AutodiffTensor,
     rope_sin: &AutodiffTensor,
@@ -1093,7 +1143,7 @@ fn attention_forward_graph(
         kv_dim,
         use_bf16_fast_path,
     )?;
-    let v_proj = linear_3d(
+    let mut v_proj = linear_3d(
         builder,
         input,
         &v_weight,
@@ -1103,6 +1153,18 @@ fn attention_forward_graph(
         kv_dim,
         use_bf16_fast_path,
     )?;
+    if let Some(value_embedding) = value_embedding_for_layer_graph(
+        builder,
+        parameters,
+        value_embedding_base,
+        config,
+        batch_size,
+        sequence_length,
+        layer_index,
+        kv_dim,
+    )? {
+        v_proj = builder.add(&v_proj, &value_embedding)?;
+    }
 
     let q = reshape_to_attention_heads(
         builder,
@@ -1226,6 +1288,36 @@ fn attention_forward_graph(
         config.model_dim,
         use_bf16_fast_path,
     )
+}
+
+fn value_embedding_for_layer_graph(
+    builder: &mut AutodiffGraphBuilder,
+    parameters: &BTreeMap<String, AutodiffTensor>,
+    value_embedding_base: Option<&AutodiffTensor>,
+    config: &ParameterGolfConfig,
+    batch_size: usize,
+    sequence_length: usize,
+    layer_index: usize,
+    kv_dim: usize,
+) -> Result<Option<AutodiffTensor>, ParameterGolfBaselineGraphError> {
+    let Some(value_embedding_base) = value_embedding_base else {
+        return Ok(None);
+    };
+    let Some(slot) = config.ve_layer_slot(layer_index) else {
+        return Ok(None);
+    };
+    let layer_scale = parameters
+        .get(format!("ve_layer_scales.{slot}").as_str())
+        .cloned()
+        .ok_or_else(|| ParameterGolfBaselineGraphError::MissingParameterBinding {
+            parameter_id: format!("ve_layer_scales.{slot}"),
+        })?;
+    let layer_scale = builder.reshape(&layer_scale, Shape::new(vec![1, 1, 1]))?;
+    let layer_scale = builder.expand(
+        &layer_scale,
+        Shape::new(vec![batch_size, sequence_length, kv_dim]),
+    )?;
+    Ok(Some(builder.mul(value_embedding_base, &layer_scale)?))
 }
 
 fn mlp_forward_graph(
@@ -1914,6 +2006,79 @@ mod tests {
         bigram.scale[0] = 0.2;
         let model = ParameterGolfReferenceModel::new(
             ModelDescriptor::new("parameter-golf-test-bigram", "parameter_golf_decoder", "v1"),
+            config.clone(),
+            weights,
+        )?;
+        let graph = build_parameter_golf_baseline_graph(
+            Device::cpu(),
+            model.descriptor(),
+            fixture.input_ids.len(),
+            fixture.input_ids[0].len(),
+        )?;
+        compile_graph(graph.graph.graph())?;
+
+        let inputs = bind_parameter_golf_baseline_graph_inputs(
+            &graph,
+            &model,
+            fixture.input_ids.as_slice(),
+        )?;
+        let values = evaluate_graph(graph.graph.graph(), &inputs)?;
+        let pre_softcap_logits = output_tensor3(
+            values
+                .get(&graph.pre_softcap_logits_tensor_id)
+                .ok_or("missing pre-softcap logits")?,
+            [1, 4, model.descriptor().config.vocab_size],
+            "pre_softcap_logits",
+        )?;
+        let seeded = parameter_golf_projection_seed(
+            &pre_softcap_logits,
+            fixture.target_ids.as_slice(),
+            model.descriptor().config.logit_softcap,
+        )?;
+        let reference = model.forward_logits(fixture.input_ids.as_slice())?;
+        let max_abs_diff = seeded.softcapped_logits.max_abs_diff(&reference)?;
+        assert!(
+            max_abs_diff < 5e-5,
+            "max logit drift {max_abs_diff} exceeded tolerance"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn parameter_golf_baseline_graph_matches_reference_logits_with_value_embeddings(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let fixture = load_baseline_fixture();
+        let config = ParameterGolfConfig {
+            ve_dim: 128,
+            ve_layer_indices: vec![6, 7, 8],
+            ..ParameterGolfConfig::baseline_sp1024_9x512()
+        };
+        let mut weights = ParameterGolfWeights::from_initializer(&config, fixture.initializer)?;
+        let value_embedding = weights
+            .value_embedding
+            .as_mut()
+            .expect("value-embedding weights should exist");
+        for row in &fixture.input_ids {
+            for token_id in row {
+                let row_offset = *token_id as usize * config.ve_dim;
+                for feature in 0..config.ve_dim {
+                    value_embedding.embedding[row_offset + feature] = 0.01 * (feature as f32 + 1.0);
+                }
+            }
+        }
+        if let Some(proj) = &mut value_embedding.proj {
+            for value in &mut proj.weight {
+                *value = 0.001;
+            }
+        }
+        value_embedding.scale[0] = 0.2;
+        value_embedding.layer_scales = vec![0.5, 0.75, 1.0];
+        let model = ParameterGolfReferenceModel::new(
+            ModelDescriptor::new(
+                "parameter-golf-test-value-embedding",
+                "parameter_golf_decoder",
+                "v1",
+            ),
             config.clone(),
             weights,
         )?;

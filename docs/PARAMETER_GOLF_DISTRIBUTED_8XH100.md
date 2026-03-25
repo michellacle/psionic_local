@@ -124,7 +124,13 @@ Psionic now encodes that exact posture explicitly instead of treating
   `layer_norm_scale=inverse_sqrt_layer_index_plus_one` for the public
   inverse-sqrt per-layer RMSNorm output scale, and `xsa_last_n` for
   GQA-aware XSA-style self-value orthogonalization on the deepest layers.
-  VE-style late-layer features are still not landed.
+  The same shared surface now also admits VE-style late-layer features through
+  `ve_dim` plus ordered `ve_layer_indices`, with one shared token-id value
+  embedding table, one optional projection into `kv_dim`, one shared scale,
+  and one per-layer scale applied before the late-layer value injection into
+  `v_proj`. The optimizer planner and lowered graph now classify and bind
+  `ve_shared.*` and `ve_layer_scales.*` explicitly instead of treating them as
+  unknown tensors.
 - `psionic-eval` now exposes
   `ParameterGolfDistributedThroughputReceipt` plus the supporting topology,
   communication, timing, memory, threshold, and refusal types

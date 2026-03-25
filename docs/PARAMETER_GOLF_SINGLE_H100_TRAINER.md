@@ -125,7 +125,7 @@ This first EMA slice is config-level and report-level. The CLI still follows
 the default raw-model export posture unless a caller constructs the config
 programmatically.
 
-That same shared PGOLF config surface now also admits three public
+That same shared PGOLF config surface now also admits four public
 architecture-pack selectors programmatically:
 
 - optional `rope_rotary_dim=<even positive integer <= head_dim>` for Partial
@@ -134,9 +134,13 @@ architecture-pack selectors programmatically:
   inverse-sqrt per-layer RMSNorm output scale
 - optional `xsa_last_n=<0..num_layers>` for XSA-style self-value
   orthogonalization on the deepest layers
+- optional `ve_dim=<positive integer>` plus ordered
+  `ve_layer_indices=<late-layer indices>` for VE-style shared value embeddings
+  with one optional projection into `kv_dim`, one shared scale, and one
+  per-layer scale before late-layer value injection
 
-The current CLI still keeps the baseline full-RoPE, no-extra-scale, and no-XSA
-posture unless a caller constructs that config explicitly.
+The current CLI still keeps the baseline full-RoPE, no-extra-scale, no-XSA,
+and no-VE posture unless a caller constructs that config explicitly.
 
 The legality boundary now matches the README contract explicitly:
 

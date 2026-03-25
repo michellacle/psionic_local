@@ -1739,6 +1739,8 @@ mod tests {
             rope_rotary_dim: None,
             layer_norm_scale: Default::default(),
             xsa_last_n: 0,
+            ve_dim: 128,
+            ve_layer_indices: Vec::new(),
             qk_gain_init: 1.5,
         };
         let weights = ParameterGolfWeights::from_initializer(
