@@ -1,0 +1,193 @@
+{
+  "schema_version": "swarm.first_trusted_lan_rehearsal_report.v1",
+  "scope_window": "first_swarm_trusted_lan_rehearsal_v1",
+  "run_family_id": "swarm.local.mlx_metal_plus_rtx4080.open_adapter.v1",
+  "topology_used": {
+    "topology_contract_digest": "144481e413d4892b375e7b5f2fd8d24b7d98094806506b0e00a34262a2a9aa07",
+    "cluster_namespace": "cluster.swarm.local.trusted_lan",
+    "coordinator_node_id": "swarm-mac-a",
+    "contributor_node_ids": [
+      "swarm-mac-a",
+      "swarm-linux-4080-a"
+    ]
+  },
+  "failure_drills_digest": "ad84b1d34b232ac2562a75b0afad1e60085f146bcbacbd9bf59780807ea2a08f",
+  "launch_manifest_digest": "5d48345357b5e3f4b94e6b207217a3b580401c65688f1651389c06b8b6436341",
+  "launch_receipt_digest": "61b045a632897e3ef047ce67f7823773f17cd88360ac991fc6231c8d355e512e",
+  "launch_status": "bundle_materialized",
+  "phases": [
+    {
+      "phase_id": "operator_bundle_materialization",
+      "label": "operator bundle materialization",
+      "evidence_posture": "measured",
+      "parallelization_posture": "serial",
+      "wallclock_ms": 38198,
+      "detail": "This measured phase comes from the exact trusted-LAN launcher and covers topology-contract generation, failure-drill generation, workflow freeze, and bring-up fixture capture in one local operator bundle.",
+      "phase_digest": "84a8db8c37250c8a105219e073be56079a8bc5f2cff155878d56e5a8d3340051"
+    },
+    {
+      "phase_id": "mac_bringup_validation",
+      "label": "mac coordinator bring-up validation",
+      "evidence_posture": "measured",
+      "parallelization_posture": "serial",
+      "wallclock_ms": 253,
+      "worker_timings": [
+        {
+          "node_id": "swarm-mac-a",
+          "role_id": "swarm.mac.mlx.coordinator_validator_contributor",
+          "backend_label": "open_adapter_backend.mlx.metal.gpt_oss_lm_head",
+          "evidence_posture": "measured",
+          "active_ms": 253,
+          "detail": "Measured from the retained Mac MLX bring-up report. This is a real same-node contributor/validator gate on the Mac host."
+        }
+      ],
+      "detail": "The retained Mac bring-up report digest `b7f20eca5c4aa228e927d62c9544ac0dcc8a31777d66395c5e26a19bfbd48db5` stays bound to the exact swarm topology and provides one measured MLX Metal preflight for the rehearsal.",
+      "phase_digest": "1b5b67e9c9e2c863113ae3575639230d755495ad49d496242ea2bb4ee4bd37d2"
+    },
+    {
+      "phase_id": "linux_bringup_validation",
+      "label": "linux contributor bring-up validation",
+      "evidence_posture": "measured",
+      "parallelization_posture": "serial",
+      "wallclock_ms": 1,
+      "worker_timings": [
+        {
+          "node_id": "swarm-linux-4080-a",
+          "role_id": "swarm.linux.cuda.rtx4080.contributor",
+          "backend_label": "open_adapter_backend.cuda.gpt_oss_lm_head",
+          "evidence_posture": "measured",
+          "active_ms": 1,
+          "detail": "Measured from the retained Linux RTX 4080 swarm bring-up report. This remains a retained inventory plus same-node harness measurement, not a live remote node session."
+        }
+      ],
+      "detail": "The retained Linux bring-up report digest `4a74e2ca035dc0cf802d0866b89e889ae384f18e8608dbd9b8c7954a6d036dd9` proves the same-node CUDA harness and explicit contract posture, but it is not yet a remote two-node measurement.",
+      "phase_digest": "6856541784e1feff56427c819de084a43d59dc6d2949048dfd3179067274d3d2"
+    },
+    {
+      "phase_id": "contributor_execution_projection",
+      "label": "contributor execution projection",
+      "evidence_posture": "simulated",
+      "parallelization_posture": "parallelizable",
+      "wallclock_ms": 6200,
+      "worker_timings": [
+        {
+          "node_id": "swarm-mac-a",
+          "role_id": "swarm.mac.mlx.coordinator_validator_contributor",
+          "backend_label": "open_adapter_backend.mlx.metal.gpt_oss_lm_head",
+          "evidence_posture": "simulated",
+          "active_ms": 4300,
+          "idle_ms": 1900,
+          "skew_ms": 1900,
+          "detail": "Projected from the current same-node MLX contributor gate. The Mac contributor finishes first and then waits on the slower Linux contributor in the current two-node plan."
+        },
+        {
+          "node_id": "swarm-linux-4080-a",
+          "role_id": "swarm.linux.cuda.rtx4080.contributor",
+          "backend_label": "open_adapter_backend.cuda.gpt_oss_lm_head",
+          "evidence_posture": "simulated",
+          "active_ms": 6200,
+          "idle_ms": 0,
+          "skew_ms": 1900,
+          "detail": "Projected from the current same-node CUDA contributor harness and the first trusted-LAN role split. This is the slower contributor in the rehearsal model."
+        }
+      ],
+      "detail": "This phase is simulated. The repo does not yet retain a live two-node contributor execution receipt for the exact lane, so the report keeps the backend split explicit instead of pretending the execution timing is already measured.",
+      "phase_digest": "cbf68cb79c01984be8f2116a11e8ec2f0aaa5e0bedbb706d30a6cca435d1864d"
+    },
+    {
+      "phase_id": "artifact_upload_projection",
+      "label": "artifact upload and staging projection",
+      "evidence_posture": "simulated",
+      "parallelization_posture": "mixed",
+      "wallclock_ms": 1700,
+      "worker_timings": [
+        {
+          "node_id": "swarm-mac-a",
+          "role_id": "swarm.mac.mlx.coordinator_validator_contributor",
+          "backend_label": "open_adapter_backend.mlx.metal.gpt_oss_lm_head",
+          "evidence_posture": "simulated",
+          "active_ms": 600,
+          "idle_ms": 1100,
+          "skew_ms": 1100,
+          "detail": "The Mac upload path can complete earlier, but the validator still waits for the slower Linux upload before it can score a comparable contribution set."
+        },
+        {
+          "node_id": "swarm-linux-4080-a",
+          "role_id": "swarm.linux.cuda.rtx4080.contributor",
+          "backend_label": "open_adapter_backend.cuda.gpt_oss_lm_head",
+          "evidence_posture": "simulated",
+          "active_ms": 1700,
+          "idle_ms": 0,
+          "skew_ms": 1100,
+          "detail": "The Linux upload path is projected as the slower staging path in the current rehearsal model and therefore dictates validator start time."
+        }
+      ],
+      "detail": "This phase is simulated from the exact workflow plan, expected upload digests, and current failure drills. The lane still lacks live two-node upload receipts for the trusted-LAN run.",
+      "phase_digest": "79069a80a61c2b194bf04d39516628d927ff33af8939e79bb942dec428ca309f"
+    },
+    {
+      "phase_id": "validator_aggregation_projection",
+      "label": "validator and aggregation projection",
+      "evidence_posture": "simulated",
+      "parallelization_posture": "serial",
+      "wallclock_ms": 1300,
+      "worker_timings": [
+        {
+          "node_id": "swarm-mac-a",
+          "role_id": "swarm.mac.mlx.coordinator_validator_contributor",
+          "backend_label": "open_adapter_backend.mlx.metal.gpt_oss_lm_head",
+          "evidence_posture": "simulated",
+          "active_ms": 1300,
+          "detail": "The first lane keeps validator and aggregation work on the Mac coordinator. That remains one serial coordinator phase in the rehearsal and one real blocker before a faster live lane exists."
+        }
+      ],
+      "detail": "Validator and aggregation timing remain simulated because the exact lane still lacks a live two-node contribution set to score and merge.",
+      "phase_digest": "24250acfce1bf08a800e659277dc93d3d07fe0cf296792c1359ecebdf3d8f6cc"
+    }
+  ],
+  "bottlenecks": [
+    {
+      "bottleneck_id": "first-swarm-trusted-lan-bottleneck:operator_bundle_materialization",
+      "phase_id": "operator_bundle_materialization",
+      "severity": "high",
+      "parallelization_posture": "serial",
+      "detail": "The measured local rehearsal still spends most of its wallclock in serial operator bundle materialization and cargo-driven contract generation.",
+      "remediation": "Keep this as an operator rehearsal cost only. Do not mistake it for live contributor runtime, and avoid calling the lane low-friction until the bundle path stops dominating iteration time.",
+      "bottleneck_digest": "fb67d76d210297061c66ba7c2f67c2b6cba98809aab7b25111291c83175516c2"
+    },
+    {
+      "bottleneck_id": "first-swarm-trusted-lan-bottleneck:contributor_execution_projection",
+      "phase_id": "contributor_execution_projection",
+      "severity": "medium",
+      "parallelization_posture": "parallelizable",
+      "detail": "The current backend-specific execution projection leaves the Mac contributor idle for 1900 ms while the Linux contributor finishes.",
+      "remediation": "Either reduce Linux-side work per window or accept that the first live attempt is a bottleneck-mapping exercise rather than a speedup claim.",
+      "bottleneck_digest": "ebc49e34ec8124c260ff644e5dfa97ad20df0ff080cf9d11aeb8025edd0431ef"
+    },
+    {
+      "bottleneck_id": "first-swarm-trusted-lan-bottleneck:validator_aggregation_projection",
+      "phase_id": "validator_aggregation_projection",
+      "severity": "high",
+      "parallelization_posture": "serial",
+      "detail": "Validator and aggregation work remain single-host coordinator phases on the Mac node.",
+      "remediation": "Do not claim parallel end-to-end training throughput until validator and aggregation timing are measured against a real two-node contribution set.",
+      "bottleneck_digest": "a8ce7ef3682e6d4c6a8abd30ed0616c332e00ad8d41d971073400e7d0bd20376"
+    }
+  ],
+  "remaining_serial_phase_ids": [
+    "operator_bundle_materialization",
+    "mac_bringup_validation",
+    "linux_bringup_validation",
+    "validator_aggregation_projection"
+  ],
+  "remaining_blockers": [
+    "The exact first swarm lane still lacks a live two-node contributor execution receipt across the trusted-LAN topology.",
+    "Upload, validator, and aggregation timings are still simulated because no live comparable contribution set has been retained yet.",
+    "The Linux node still depends on a retained RTX 4080 inventory report rather than a live remote machine probe owned by the trusted-LAN launcher.",
+    "No promotion or explicit no-promotion receipt exists yet for the exact two-node lane."
+  ],
+  "recommendation": "no_go",
+  "recommendation_reason": "Do not describe the first live attempt as ready yet. The exact trusted-LAN topology, launch bundle, and failure drills are now frozen, but the actual two-node contributor, upload, validator, and aggregation path is still not retained as live machine-legible evidence.",
+  "claim_boundary": "This report is a rehearsal-grade bottleneck report for the exact first swarm trusted-LAN lane. It combines measured local operator-bundle and bring-up timing with explicit simulated contributor, upload, validator, and aggregation timing. It is not a live two-node swarm evidence bundle.",
+  "report_digest": "9eb315845668b132f748468a6d4e51b582ff6bf6a0fd35f2b48865ab264f691d"
+}

@@ -593,6 +593,20 @@ clustered training.
 
 They need mixed-hardware train-specific follow-ons.
 
+One such follow-on now exists for the exact first local swarm lane:
+
+- `scripts/check-first-swarm-trusted-lan-rehearsal.sh`
+- `fixtures/swarm/reports/first_swarm_trusted_lan_rehearsal_v1.json`
+
+That rehearsal report is useful because it keeps the current state honest:
+
+- the exact trusted-LAN topology, launch bundle, and failure drills are real
+- the operator bundle and retained bring-up phases are measured
+- contributor execution, upload staging, validator timing, and aggregation
+  timing remain partly simulated
+- the current recommendation for a truthful live two-node attempt is `no_go`
+  until those live receipt gaps close
+
 ## Bottom Line
 
 `psionic` is already strong enough to support an honest clustered training push.

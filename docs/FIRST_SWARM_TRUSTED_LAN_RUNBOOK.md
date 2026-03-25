@@ -22,6 +22,8 @@ a general cluster rehearsal.
   `fixtures/swarm/first_swarm_trusted_lan_topology_contract_v1.json`
 - failure-drill bundle:
   `fixtures/swarm/reports/first_swarm_trusted_lan_failure_drills_v1.json`
+- rehearsal report:
+  `fixtures/swarm/reports/first_swarm_trusted_lan_rehearsal_v1.json`
 - first swarm workflow plan:
   `fixtures/swarm/first_swarm_live_workflow_plan_v1.json`
 - Mac bring-up report:
@@ -32,6 +34,8 @@ a general cluster rehearsal.
   `scripts/first-swarm-launch-trusted-lan.sh`
 - end-to-end checker:
   `scripts/check-first-swarm-trusted-lan.sh`
+- rehearsal checker:
+  `scripts/check-first-swarm-trusted-lan-rehearsal.sh`
 
 ## What This Runbook Does Not Claim
 
@@ -106,6 +110,27 @@ This writes:
 
 The launcher stops after local bundle materialization. It does not contact
 either host and it does not claim a live run.
+
+## Current Rehearsal Verdict
+
+The canonical rehearsal report now lives at:
+
+- `fixtures/swarm/reports/first_swarm_trusted_lan_rehearsal_v1.json`
+
+Regenerate and validate it with:
+
+```bash
+scripts/check-first-swarm-trusted-lan-rehearsal.sh
+```
+
+Current verdict:
+
+- recommendation: `no_go`
+- why:
+  the exact trusted-LAN topology, launch bundle, and failure drills are real,
+  but contributor execution, upload staging, validator timing, and aggregation
+  timing are still partly simulated and not yet backed by a live two-node
+  contribution receipt set
 
 ## Exact Per-Host Commands
 
@@ -182,5 +207,6 @@ Stop the attempt immediately if any of the following happens:
 
 This runbook proves that the first swarm lane now has one exact trusted-LAN
 topology contract, one exact bundle-materializing launcher, one exact per-host
-preflight path, and one exact failure-drill bundle. It does not by itself prove
-that a live two-node swarm run succeeded or promoted a local snapshot.
+preflight path, one exact failure-drill bundle, and one exact rehearsal-grade
+bottleneck report. It does not by itself prove that a live two-node swarm run
+succeeded or promoted a local snapshot.

@@ -119,6 +119,16 @@ heartbeat and stale-worker thresholds, per-host bring-up commands, and the
 required stale-worker, upload-disagreement, contributor-loss, and skew drills
 before the later rehearsal and live-run issues claim anything broader.
 
+The repo now also owns one rehearsal-grade bottleneck report for that lane in
+`crates/psionic-train/src/swarm_trusted_lan_rehearsal.rs`, the binary
+`first_swarm_trusted_lan_rehearsal_report`, the checker
+`scripts/check-first-swarm-trusted-lan-rehearsal.sh`, and the committed report
+`fixtures/swarm/reports/first_swarm_trusted_lan_rehearsal_v1.json`. That
+report measures the exact local operator-bundle and retained bring-up phases,
+keeps contributor/upload/validator/aggregation timing explicitly simulated
+where live receipts do not yet exist, produces a bottleneck map, and currently
+ends with a `no_go` recommendation for a truthful live two-node attempt.
+
 Apple-specific adapter work is no longer only later-family planning. The repo
 now owns a canonical spec-and-fixture baseline for it in:
 
