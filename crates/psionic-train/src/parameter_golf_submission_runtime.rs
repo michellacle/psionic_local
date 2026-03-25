@@ -10,10 +10,17 @@ use sha2::{Digest, Sha256};
 use thiserror::Error;
 
 use crate::{
+    execute_parameter_golf_distributed_8xh100_runtime_bootstrap,
+    execute_parameter_golf_distributed_8xh100_runtime_bootstrap_child,
+    parameter_golf_distributed_8xh100_runtime_bootstrap_child_enabled,
+    parameter_golf_distributed_8xh100_runtime_bootstrap_receipt_path,
     restore_parameter_golf_model_from_int8_zlib,
     write_parameter_golf_distributed_8xh100_bringup_report,
     ParameterGolfDistributed8xH100BringupConfig, ParameterGolfDistributed8xH100BringupError,
-    ParameterGolfDistributed8xH100BringupReport, ParameterGolfLocalReferenceFixture,
+    ParameterGolfDistributed8xH100BringupReport,
+    ParameterGolfDistributed8xH100RuntimeBootstrapError,
+    ParameterGolfDistributed8xH100RuntimeBootstrapRankReceipt,
+    ParameterGolfDistributed8xH100RuntimeBootstrapReceipt, ParameterGolfLocalReferenceFixture,
     ParameterGolfNonRecordSubmissionManifest, ParameterGolfSubmissionAccountingReceipt,
     ParameterGolfSubmissionRealExecutionContract, PARAMETER_GOLF_DISTRIBUTED_8XH100_EXECUTION_MODE,
     PARAMETER_GOLF_EXECUTION_MODE_ENV_VAR,
@@ -90,6 +97,18 @@ pub enum ParameterGolfSubmissionRuntimeOutcome {
     Distributed8xH100Bringup {
         report_path: String,
         report: ParameterGolfDistributed8xH100BringupReport,
+    },
+    /// Rust-owned distributed `8xH100` runtime bootstrap receipt above the bring-up gate.
+    Distributed8xH100Bootstrap {
+        report_path: String,
+        report: ParameterGolfDistributed8xH100BringupReport,
+        receipt_path: String,
+        receipt: ParameterGolfDistributed8xH100RuntimeBootstrapReceipt,
+    },
+    /// Internal child-rank bootstrap receipt used by the shipped runtime fanout.
+    Distributed8xH100BootstrapChild {
+        receipt_path: String,
+        receipt: ParameterGolfDistributed8xH100RuntimeBootstrapRankReceipt,
     },
 }
 
@@ -233,6 +252,8 @@ pub enum ParameterGolfSubmissionRuntimeError {
     Json(#[from] serde_json::Error),
     #[error(transparent)]
     DistributedBringup(#[from] ParameterGolfDistributed8xH100BringupError),
+    #[error(transparent)]
+    DistributedRuntimeBootstrap(#[from] ParameterGolfDistributed8xH100RuntimeBootstrapError),
 }
 
 /// Executes the shipped submission runtime manifest, writes the runtime receipt, and returns it.
@@ -280,7 +301,25 @@ pub fn execute_parameter_golf_submission_runtime_entrypoint(
             execute_parameter_golf_submission_runtime_manifest(root, manifest_path)?,
         )),
         PARAMETER_GOLF_DISTRIBUTED_8XH100_EXECUTION_MODE => {
-            execute_parameter_golf_submission_distributed_8xh100_bringup(root, &manifest)
+            if parameter_golf_distributed_8xh100_runtime_bootstrap_child_enabled() {
+                let receipt = execute_parameter_golf_submission_distributed_8xh100_bootstrap_child(
+                    &manifest,
+                )?;
+                return Ok(
+                    ParameterGolfSubmissionRuntimeOutcome::Distributed8xH100BootstrapChild {
+                        receipt_path: env::var(
+                            "PSIONIC_PARAMETER_GOLF_DISTRIBUTED_8XH100_BOOTSTRAP_RECEIPT_PATH",
+                        )
+                        .unwrap_or_default(),
+                        receipt,
+                    },
+                );
+            }
+            execute_parameter_golf_submission_distributed_8xh100_bootstrap(
+                root,
+                manifest_path,
+                &manifest,
+            )
         }
         other => Err(ParameterGolfSubmissionRuntimeError::ExecutionMode {
             message: format!("unsupported execution mode `{other}`"),
@@ -341,20 +380,51 @@ pub fn execute_parameter_golf_submission_runtime(
     Ok(receipt)
 }
 
-fn execute_parameter_golf_submission_distributed_8xh100_bringup(
+fn execute_parameter_golf_submission_distributed_8xh100_bootstrap(
     root: &Path,
+    manifest_path: &Path,
     manifest: &ParameterGolfSubmissionRuntimeManifest,
 ) -> Result<ParameterGolfSubmissionRuntimeOutcome, ParameterGolfSubmissionRuntimeError> {
     let output_path = root.join(&manifest.distributed_bringup_report_path);
     let config = ParameterGolfDistributed8xH100BringupConfig::challenge_defaults();
     let report =
         write_parameter_golf_distributed_8xh100_bringup_report(&output_path, &config, None)?;
+    if !report.ready_to_attempt() {
+        return Ok(
+            ParameterGolfSubmissionRuntimeOutcome::Distributed8xH100Bringup {
+                report_path: output_path.display().to_string(),
+                report,
+            },
+        );
+    }
+    let receipt = execute_parameter_golf_distributed_8xh100_runtime_bootstrap(
+        root,
+        manifest_path,
+        &manifest.run_id,
+        &output_path,
+        &report,
+    )?;
+    let receipt_path = parameter_golf_distributed_8xh100_runtime_bootstrap_receipt_path(
+        root,
+        &manifest.distributed_bringup_report_path,
+    );
     Ok(
-        ParameterGolfSubmissionRuntimeOutcome::Distributed8xH100Bringup {
+        ParameterGolfSubmissionRuntimeOutcome::Distributed8xH100Bootstrap {
             report_path: output_path.display().to_string(),
             report,
+            receipt_path: receipt_path.display().to_string(),
+            receipt,
         },
     )
+}
+
+fn execute_parameter_golf_submission_distributed_8xh100_bootstrap_child(
+    manifest: &ParameterGolfSubmissionRuntimeManifest,
+) -> Result<
+    ParameterGolfDistributed8xH100RuntimeBootstrapRankReceipt,
+    ParameterGolfSubmissionRuntimeError,
+> {
+    Ok(execute_parameter_golf_distributed_8xh100_runtime_bootstrap_child(&manifest.run_id)?)
 }
 
 fn metric_matches(actual: f64, expected: f64) -> bool {

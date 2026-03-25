@@ -56,7 +56,7 @@ Psionic now encodes that exact posture explicitly instead of treating
   `ParameterGolfDistributedValidationShardObservation`, and the receipt now
   preserves a typed `validation_aggregation` section when rank-local shard
   facts are available
-- `psionic-train` now also ships the Rust-owned bring-up seam
+- `psionic-train` now also ships the Rust-owned admission-plus-bootstrap seam
   `ParameterGolfDistributed8xH100BringupConfig`,
   `build_parameter_golf_distributed_8xh100_bringup_report(...)`,
   `write_parameter_golf_distributed_8xh100_bringup_report(...)`, and the CLI
@@ -64,6 +64,12 @@ Psionic now encodes that exact posture explicitly instead of treating
   so the repo can emit one machine-readable `8xH100` admission report and
   optional measured-receipt lift without going through the RunPod finalizer
   path first
+- `psionic-train` now also ships the runtime bootstrap contract
+  `ParameterGolfDistributed8xH100RuntimeBootstrapReceipt` plus retained
+  per-rank bootstrap receipts and logs under the exported-folder distributed
+  mode, so a real `8xH100` execution log can now cross from machine admission
+  into explicit rank fanout and one runtime-owned mesh/bootstrap contract
+  before the later train-step work begins
 - `psionic-eval` now exposes
   `ParameterGolfDistributedThroughputReceipt` plus the supporting topology,
   communication, timing, memory, threshold, and refusal types

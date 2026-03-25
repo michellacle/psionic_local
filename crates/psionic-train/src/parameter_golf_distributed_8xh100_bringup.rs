@@ -15,8 +15,8 @@ use thiserror::Error;
 use crate::{
     benchmark_parameter_golf_distributed_8xh100, device_capacity_matches_h100_threshold,
     parameter_golf_runpod_8xh100_capability_profile, ParameterGolfBatchGeometry,
-    ParameterGolfDistributedLaneError,
-    ParameterGolfRunPod8xH100Measurements, ParameterGolfTrainingHyperparameters,
+    ParameterGolfDistributedLaneError, ParameterGolfRunPod8xH100Measurements,
+    ParameterGolfTrainingHyperparameters,
 };
 
 /// Config for the Rust-owned distributed `8xH100` bring-up seam.
@@ -253,7 +253,7 @@ pub(crate) fn machine_observation_from_inventory(
     }
 }
 
-fn device_matches_distributed_h100(
+pub(crate) fn device_matches_distributed_h100(
     device: &DeviceDescriptor,
     thresholds: &ParameterGolfDistributedChallengeThresholds,
 ) -> bool {

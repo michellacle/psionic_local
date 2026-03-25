@@ -49,6 +49,12 @@ pub const PARAMETER_GOLF_REAL_RUNTIME_REPORT_ARTIFACT_REF: &str =
     "parameter-golf-single-h100-run/benchmark/parameter_golf_single_h100_training.json";
 pub const PARAMETER_GOLF_DISTRIBUTED_8XH100_BRINGUP_REPORT_ARTIFACT_REF: &str =
     "parameter-golf-distributed-8xh100-run/benchmark/parameter_golf_distributed_8xh100_bringup.json";
+pub const PARAMETER_GOLF_DISTRIBUTED_8XH100_RUNTIME_BOOTSTRAP_RECEIPT_ARTIFACT_REF: &str =
+    "parameter-golf-distributed-8xh100-run/benchmark/parameter_golf_distributed_8xh100_runtime_bootstrap.json";
+pub const PARAMETER_GOLF_DISTRIBUTED_8XH100_RUNTIME_BOOTSTRAP_RANK_RECEIPTS_DIR_ARTIFACT_REF: &str =
+    "parameter-golf-distributed-8xh100-run/benchmark/runtime_bootstrap_receipts";
+pub const PARAMETER_GOLF_DISTRIBUTED_8XH100_RUNTIME_BOOTSTRAP_RANK_LOGS_DIR_ARTIFACT_REF: &str =
+    "parameter-golf-distributed-8xh100-run/benchmark/runtime_bootstrap_logs";
 pub const PARAMETER_GOLF_ACCOUNTING_COMPONENT_ENTRYPOINT: &str = "entrypoint_code_bytes";
 pub const PARAMETER_GOLF_ACCOUNTING_COMPONENT_MODEL: &str = "compressed_model_bytes";
 pub const PARAMETER_GOLF_ACCOUNTING_COMPONENT_RUNTIME: &str = "shipped_runtime_code_bytes";
@@ -1332,9 +1338,12 @@ fn render_readme(
     );
     let _ = writeln!(
         readme,
-        "- Set `{}` to `{}` on the exported-folder `8xH100` lane to dispatch into the shipped Rust-owned distributed bring-up path. That mode now writes a machine-readable bring-up report and still refuses explicitly until the real distributed trainer payload lands.\n",
+        "- Set `{}` to `{}` on the exported-folder `8xH100` lane to dispatch into the shipped Rust-owned distributed bootstrap path. That mode now writes the machine-readable bring-up report, one aggregate runtime-bootstrap receipt at `{}`, retained per-rank bootstrap receipts under `{}`, and retained per-rank bootstrap logs under `{}` before still refusing explicitly until the real distributed train step lands.\n",
         PARAMETER_GOLF_EXECUTION_MODE_ENV_VAR,
-        PARAMETER_GOLF_DISTRIBUTED_8XH100_EXECUTION_MODE
+        PARAMETER_GOLF_DISTRIBUTED_8XH100_EXECUTION_MODE,
+        PARAMETER_GOLF_DISTRIBUTED_8XH100_RUNTIME_BOOTSTRAP_RECEIPT_ARTIFACT_REF,
+        PARAMETER_GOLF_DISTRIBUTED_8XH100_RUNTIME_BOOTSTRAP_RANK_RECEIPTS_DIR_ARTIFACT_REF,
+        PARAMETER_GOLF_DISTRIBUTED_8XH100_RUNTIME_BOOTSTRAP_RANK_LOGS_DIR_ARTIFACT_REF
     );
     let _ = writeln!(
         readme,
@@ -1433,7 +1442,12 @@ where
 #[cfg(test)]
 mod tests {
     use std::process::Command;
-    use std::{error::Error, fs};
+    use std::{
+        error::Error,
+        fs,
+        os::unix::fs::PermissionsExt,
+        path::{Path, PathBuf},
+    };
 
     use super::{
         build_parameter_golf_non_record_submission_bundle,
@@ -1443,6 +1457,7 @@ mod tests {
         PARAMETER_GOLF_ACCOUNTING_COMPONENT_RUNTIME, PARAMETER_GOLF_ACCOUNTING_COMPONENT_WRAPPER,
         PARAMETER_GOLF_DISTRIBUTED_8XH100_BRINGUP_REPORT_ARTIFACT_REF,
         PARAMETER_GOLF_DISTRIBUTED_8XH100_EXECUTION_MODE,
+        PARAMETER_GOLF_DISTRIBUTED_8XH100_RUNTIME_BOOTSTRAP_RECEIPT_ARTIFACT_REF,
         PARAMETER_GOLF_NON_RECORD_SUBMISSION_VERSION, PARAMETER_GOLF_NON_RECORD_TRACK_ID,
         PARAMETER_GOLF_REAL_RUNTIME_CONTRACT_ARTIFACT_REF,
         PARAMETER_GOLF_REAL_RUNTIME_PAYLOAD_ARTIFACT_REF,
@@ -1454,6 +1469,28 @@ mod tests {
         ParameterGolfLocalReferenceFixture, ParameterGolfNonRecordSubmissionConfig,
         ParameterGolfReferenceTrainingConfig,
     };
+
+    fn repo_root() -> PathBuf {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .and_then(Path::parent)
+            .map(Path::to_path_buf)
+            .expect("repo root should resolve from psionic-train crate dir")
+    }
+
+    fn install_current_runtime_wrapper(submission_root: &Path) -> Result<(), Box<dyn Error>> {
+        let runtime_path = submission_root.join(PARAMETER_GOLF_RUNTIME_PAYLOAD_ARTIFACT_REF);
+        let manifest_path = repo_root().join("crates/psionic-train/Cargo.toml");
+        let wrapper = format!(
+            "#!/usr/bin/env bash\nset -euo pipefail\nexec cargo run -q --manifest-path '{}' --bin parameter_golf_submission_runtime -- \"$@\"\n",
+            manifest_path.display()
+        );
+        fs::write(&runtime_path, wrapper)?;
+        let mut permissions = fs::metadata(&runtime_path)?.permissions();
+        permissions.set_mode(0o755);
+        fs::set_permissions(&runtime_path, permissions)?;
+        Ok(())
+    }
 
     #[test]
     fn parameter_golf_non_record_submission_bundle_is_machine_readable_and_writes_folder_contract(
@@ -1561,6 +1598,7 @@ mod tests {
 
         let temp_dir = tempfile::tempdir()?;
         write_parameter_golf_non_record_submission_bundle(&submission_bundle, temp_dir.path())?;
+        install_current_runtime_wrapper(temp_dir.path())?;
 
         let completed = Command::new("python3")
             .arg("train_gpt.py")
@@ -1595,6 +1633,7 @@ mod tests {
 
         let temp_dir = tempfile::tempdir()?;
         write_parameter_golf_non_record_submission_bundle(&submission_bundle, temp_dir.path())?;
+        install_current_runtime_wrapper(temp_dir.path())?;
 
         let completed = Command::new("python3")
             .arg("train_gpt.py")
@@ -1609,11 +1648,18 @@ mod tests {
             "distributed 8xH100 mode should refuse until the real distributed payload exists"
         );
         let stderr = String::from_utf8_lossy(&completed.stderr);
-        assert!(stderr.contains("does not ship a distributed 8xH100 trainer payload yet"));
+        assert!(
+            stderr.contains("the real distributed trainer payload still has not landed"),
+            "unexpected stderr=`{stderr}`",
+        );
         assert!(stderr.contains("wrote distributed bring-up report"));
         assert!(!temp_dir
             .path()
             .join(PARAMETER_GOLF_RUNTIME_RECEIPT_ARTIFACT_REF)
+            .exists());
+        assert!(!temp_dir
+            .path()
+            .join(PARAMETER_GOLF_DISTRIBUTED_8XH100_RUNTIME_BOOTSTRAP_RECEIPT_ARTIFACT_REF)
             .exists());
         let report_path = temp_dir
             .path()

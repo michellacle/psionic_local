@@ -132,16 +132,19 @@ The same exported folder now also ships:
 - one prebuilt single-H100 trainer payload that `train_gpt.py` can invoke in
   `single_h100_train` mode when the dataset and tokenizer environment contract
   is provided
-- one Rust-owned distributed `8xH100` bring-up path inside the shipped runtime
-  payload that `train_gpt.py` can invoke in `distributed_8xh100_train` mode to
-  write a machine-readable bring-up report before refusing
+- one Rust-owned distributed `8xH100` admission-plus-bootstrap path inside the
+  shipped runtime payload that `train_gpt.py` can invoke in
+  `distributed_8xh100_train` mode to write the machine-readable bring-up
+  report, one aggregate runtime-bootstrap receipt, retained per-rank bootstrap
+  receipts, and retained per-rank bootstrap logs before refusing
 
 The exported folder still does not ship a real distributed `8xH100` trainer
 payload. The reserved execution mode
 `PSIONIC_PARAMETER_GOLF_EXECUTION_MODE=distributed_8xh100_train` now dispatches
-through the shipped Rust runtime payload, writes a machine-readable distributed
-bring-up report, and then refuses explicitly instead of silently falling back
-to the bounded local-reference replay path.
+through the shipped Rust runtime payload, writes a machine-readable
+distributed bring-up report plus the runtime-bootstrap artifacts, and then
+refuses explicitly before train-step execution instead of silently falling
+back to the bounded local-reference replay path.
 
 That means the package now owns both:
 

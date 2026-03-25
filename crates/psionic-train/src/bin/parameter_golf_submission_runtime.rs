@@ -69,5 +69,69 @@ fn run() -> Result<(), ParameterGolfSubmissionRuntimeError> {
                 ),
             })
         }
+        ParameterGolfSubmissionRuntimeOutcome::Distributed8xH100Bootstrap {
+            report_path,
+            report,
+            receipt_path,
+            receipt,
+        } => {
+            eprintln!(
+                "psionic_parameter_golf_distributed_8xh100_bringup matching_h100_device_count={} machine_contract_satisfied={} report_path={}",
+                report.matching_h100_device_count, report.machine_contract_satisfied, report_path
+            );
+            eprintln!(
+                "psionic_parameter_golf_distributed_8xh100_runtime_bootstrap disposition={:?} successful_rank_count={} receipt_path={}",
+                receipt.disposition, receipt.successful_rank_count, receipt_path
+            );
+            if let Some(refusal) = receipt.refusal.as_ref() {
+                eprintln!(
+                    "runtime_bootstrap_refusal subject={:?} detail={}",
+                    refusal.subject, refusal.detail
+                );
+            }
+            Err(ParameterGolfSubmissionRuntimeError::ExecutionMode {
+                message: String::from(
+                    "the exported folder now ships a real multi-rank distributed 8xH100 runtime bootstrap path, but the later distributed train step still has not landed",
+                ),
+            })
+        }
+        ParameterGolfSubmissionRuntimeOutcome::Distributed8xH100BootstrapChild {
+            receipt_path,
+            receipt,
+        } => {
+            println!(
+                "distributed_8xh100_runtime_bootstrap_rank_ready rank={} local_rank={} world_size={} runtime_prerequisites_satisfied={} receipt_path={}",
+                receipt.rank,
+                receipt.local_rank,
+                receipt.world_size,
+                receipt.runtime_prerequisites_satisfied,
+                receipt_path
+            );
+            if let Some(group) = receipt.distributed_group.as_ref() {
+                println!(
+                    "distributed_8xh100_runtime_bootstrap_group group_id={} rank={} size={} backend={} communication_class={:?}",
+                    group.group_id,
+                    group.rank,
+                    group.size,
+                    group.effective_backend,
+                    group.communication_class
+                );
+            }
+            if !receipt.runtime_prerequisites_satisfied {
+                if let Some(refusal) = receipt.refusal.as_ref() {
+                    eprintln!(
+                        "runtime_bootstrap_refusal subject={:?} detail={}",
+                        refusal.subject, refusal.detail
+                    );
+                }
+                return Err(ParameterGolfSubmissionRuntimeError::ExecutionMode {
+                    message: format!(
+                        "distributed 8xH100 runtime bootstrap child rank {} refused runtime prerequisites",
+                        receipt.rank
+                    ),
+                });
+            }
+            Ok(())
+        }
     }
 }
