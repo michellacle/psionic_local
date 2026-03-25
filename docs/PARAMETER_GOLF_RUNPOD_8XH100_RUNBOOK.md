@@ -67,13 +67,18 @@ The committed launcher is explicit about four separate operator phases:
 
 - pre-training:
   validate the workspace contract, bind the immutable PGOLF input descriptor,
-  and stage the exported submission folder directly into the retained
+  materialize or verify the public FineWeb `sp1024` cache plus tokenizer
+  identity under one retained
+  `parameter_golf_input_materialization.json` report, then stage the exported
+  submission folder directly into the retained
   `records/track_non_record_16mb/<submission_id>` root that later execution
   and finalization consume, after first fast-forwarding the remote checkout to
   the requested Git ref
 - execution entrypoint:
   run the exported folder under the public `WORLD_SIZE=8` posture while
-  forcing the explicit exported-folder execution mode
+  reading the retained input-materialization report to export the exact
+  dataset-root and tokenizer-path env vars required by the shipped runtime,
+  while also forcing the explicit exported-folder execution mode
   `PSIONIC_PARAMETER_GOLF_EXECUTION_MODE=distributed_8xh100_train`
 - finalization:
   generate the exported-folder submission run evidence under the RunPod
@@ -89,6 +94,7 @@ machine-readable launch receipt plus per-phase logs:
 - `parameter_golf_runpod_8xh100_launch_receipt.json`
 - `remote_preflight.log`
 - `pre_training.log`
+- `parameter_golf_input_materialization.json`
 - `execution.log`
 - `finalizer.log`
 
@@ -120,6 +126,16 @@ retained train-step windows, retained per-rank gradient artifacts, one
 measured distributed receipt, and then writes one completion receipt bound to
 the shipped final artifact identity instead of silently taking the
 local-reference replay path under `WORLD_SIZE=8`.
+
+The operator lane now also keeps the dataset/tokenizer env contract explicit.
+It does not assume the pod has the right values already exported. The
+pre-training phase materializes or verifies the committed public cache through
+the repo-owned input contract, and the execution phase derives:
+
+- `PSIONIC_PARAMETER_GOLF_DATASET_ROOT`
+- `PSIONIC_PARAMETER_GOLF_TOKENIZER_PATH`
+
+from the retained materialization report before invoking `train_gpt.py`.
 
 The finalizer now also resolves the exported submission root explicitly. The
 canonical path is still the retained `records/track_non_record_16mb/<submission_id>`

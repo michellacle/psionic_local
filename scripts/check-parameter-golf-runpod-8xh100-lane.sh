@@ -94,12 +94,18 @@ if launcher.get("manifest_only") is not True:
 commands = manifest.get("commands") or {}
 if "$PGOLF_SUBMISSION_DIR" not in (commands.get("pre_training_command") or ""):
     fail("launch manifest pre_training no longer stages directly into the retained submission root")
+if "parameter-golf-materialize-public-cache.sh" not in (commands.get("pre_training_command") or ""):
+    fail("launch manifest pre_training no longer materializes or verifies the immutable PGOLF public cache")
 if "python3 train_gpt.py" not in (commands.get("execution_entrypoint_command") or ""):
     fail("launch manifest execution entrypoint no longer uses the exported folder surface")
 if "PSIONIC_PARAMETER_GOLF_EXECUTION_MODE=distributed_8xh100_train" not in (
     commands.get("execution_entrypoint_command") or ""
 ):
     fail("launch manifest execution entrypoint no longer requests explicit distributed 8xH100 mode")
+if "parameter-golf-read-input-materialization-env.sh" not in (
+    commands.get("execution_entrypoint_command") or ""
+):
+    fail("launch manifest execution entrypoint no longer binds dataset and tokenizer env vars from the retained input materialization report")
 if "parameter-golf-runpod-finalize-8xh100.sh" not in (commands.get("finalizer_command") or ""):
     fail("launch manifest finalizer contract drifted")
 
@@ -110,6 +116,8 @@ if not any("parameter_golf_runpod_8xh100_launch_manifest.json" in path for path 
     fail("launch manifest no longer preserves the remote launch manifest")
 if not any("parameter_golf_runpod_8xh100_launch_receipt.json" in path for path in receipts):
     fail("launch manifest no longer preserves the remote launch receipt")
+if not any("parameter_golf_input_materialization.json" in path for path in receipts):
+    fail("launch manifest no longer preserves the PGOLF input materialization report")
 if not any("parameter_golf_distributed_8xh100_receipt.json" in path for path in receipts):
     fail("launch manifest no longer preserves the distributed challenge receipt mirror")
 if not any("psionic_parameter_golf_submission_run_evidence.json" in path for path in receipts):
@@ -130,6 +138,7 @@ report = {
     "world_size": topology["world_size"],
     "grad_accum_steps": topology["grad_accum_steps"],
     "input_package_descriptor_uri": manifest["input_package"]["descriptor_uri"],
+    "pre_training_command": commands["pre_training_command"],
     "execution_entrypoint_command": commands["execution_entrypoint_command"],
     "finalizer_command": commands["finalizer_command"],
     "manifest_only_launch_supported": manifest["manifest_only"],

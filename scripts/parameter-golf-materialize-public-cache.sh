@@ -38,11 +38,6 @@ if [[ -z "${contract_path}" || -z "${target_root}" ]]; then
   exit 1
 fi
 
-if ! command -v jq >/dev/null 2>&1; then
-  echo "error: jq is required" >&2
-  exit 1
-fi
-
 compute_sha256() {
   local path="$1"
   if command -v sha256sum >/dev/null 2>&1; then
@@ -52,17 +47,50 @@ compute_sha256() {
   fi
 }
 
-git_clone_url="$(jq -r '.parameter_golf_repo.clone_url' "${contract_path}")"
-git_revision="$(jq -r '.parameter_golf_repo.git_revision' "${contract_path}")"
-variant="$(jq -r '.dataset.variant' "${contract_path}")"
-train_shards="$(jq -r '.dataset.train_shards' "${contract_path}")"
-dataset_relative_root="$(jq -r '.dataset.local_relative_root' "${contract_path}")"
-tokenizer_relative_path="$(jq -r '.tokenizer.local_relative_path' "${contract_path}")"
-expected_tokenizer_sha256="$(jq -r '.tokenizer.sha256' "${contract_path}")"
-matched_fineweb_repo_id="$(jq -r '.matched_fineweb.repo_id // empty' "${contract_path}")"
-matched_fineweb_remote_root_prefix="$(
-  jq -r '.matched_fineweb.remote_root_prefix // empty' "${contract_path}"
-)"
+json_field() {
+  local query="$1"
+  python3 - "${contract_path}" "${query}" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+contract_path = Path(sys.argv[1])
+query = sys.argv[2].strip()
+empty_ok = False
+if query.endswith("// empty"):
+    query = query[:-9].strip()
+    empty_ok = True
+if not query.startswith("."):
+    raise SystemExit(f"unsupported json query: {query}")
+parts = [part for part in query.split(".") if part]
+with contract_path.open("r", encoding="utf-8") as handle:
+    current = json.load(handle)
+for part in parts:
+    if isinstance(current, dict) and part in current:
+        current = current[part]
+    else:
+        if empty_ok:
+            print("")
+            raise SystemExit(0)
+        raise SystemExit(f"missing contract path: {query}")
+if current is None and empty_ok:
+    print("")
+elif isinstance(current, bool):
+    print("true" if current else "false")
+else:
+    print(current)
+PY
+}
+
+git_clone_url="$(json_field '.parameter_golf_repo.clone_url')"
+git_revision="$(json_field '.parameter_golf_repo.git_revision')"
+variant="$(json_field '.dataset.variant')"
+train_shards="$(json_field '.dataset.train_shards')"
+dataset_relative_root="$(json_field '.dataset.local_relative_root')"
+tokenizer_relative_path="$(json_field '.tokenizer.local_relative_path')"
+expected_tokenizer_sha256="$(json_field '.tokenizer.sha256')"
+matched_fineweb_repo_id="$(json_field '.matched_fineweb.repo_id // empty')"
+matched_fineweb_remote_root_prefix="$(json_field '.matched_fineweb.remote_root_prefix // empty')"
 
 mkdir -p "$(dirname "${target_root}")"
 if [[ ! -d "${target_root}/.git" ]]; then
@@ -110,17 +138,22 @@ if [[ "${actual_tokenizer_sha256}" != "${expected_tokenizer_sha256}" ]]; then
   exit 1
 fi
 
-jq -n \
-  --arg target_root "${target_root}" \
-  --arg git_revision "${git_revision}" \
-  --arg dataset_root "${dataset_root}" \
-  --arg tokenizer_path "${tokenizer_path}" \
-  --arg tokenizer_sha256 "${actual_tokenizer_sha256}" \
-  '{
-    materialized: true,
-    target_root: $target_root,
-    parameter_golf_git_revision: $git_revision,
-    dataset_root: $dataset_root,
-    tokenizer_path: $tokenizer_path,
-    tokenizer_sha256: $tokenizer_sha256
-  }'
+python3 - "${target_root}" "${git_revision}" "${dataset_root}" "${tokenizer_path}" "${actual_tokenizer_sha256}" <<'PY'
+import json
+import sys
+
+target_root, git_revision, dataset_root, tokenizer_path, tokenizer_sha256 = sys.argv[1:]
+print(
+    json.dumps(
+        {
+            "materialized": True,
+            "target_root": target_root,
+            "parameter_golf_git_revision": git_revision,
+            "dataset_root": dataset_root,
+            "tokenizer_path": tokenizer_path,
+            "tokenizer_sha256": tokenizer_sha256,
+        },
+        indent=2,
+    )
+)
+PY

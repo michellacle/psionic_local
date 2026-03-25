@@ -131,6 +131,7 @@ remote_preflight_log_path="${run_root}/remote_preflight.log"
 pre_training_log_path="${run_root}/pre_training.log"
 execution_log_path="${run_root}/execution.log"
 finalizer_log_path="${run_root}/finalizer.log"
+input_materialization_report_path="${run_root}/parameter_golf_input_materialization.json"
 
 manifest_json="$(
 jq -n \
@@ -159,6 +160,7 @@ jq -n \
   --arg pre_training_log_path "${pre_training_log_path}" \
   --arg execution_log_path "${execution_log_path}" \
   --arg finalizer_log_path "${finalizer_log_path}" \
+  --arg input_materialization_report_path "${input_materialization_report_path}" \
   --arg pod_shape "$(jq -r '.pod_shape' <<<"${profile_json}")" \
   --arg runtime_image_posture "$(jq -r '.runtime_image_posture' <<<"${profile_json}")" \
   --arg workspace_mount_posture "$(jq -r '.workspace_mount_posture' <<<"${profile_json}")" \
@@ -230,6 +232,7 @@ jq -n \
       launch_receipt_path: $launch_receipt_path,
       remote_preflight_log_path: $remote_preflight_log_path,
       pre_training_log_path: $pre_training_log_path,
+      input_materialization_report_path: $input_materialization_report_path,
       execution_log_path: $execution_log_path,
       finalizer_log_path: $finalizer_log_path
     },
@@ -345,6 +348,7 @@ export PGOLF_RUN_ROOT="${run_root}"
 export PGOLF_SUBMISSION_DIR="${submission_dir}"
 export PGOLF_LAUNCH_MANIFEST="${manifest_path}"
 export PGOLF_LAUNCH_RECEIPT="${run_root}/parameter_golf_runpod_8xh100_launch_receipt.json"
+export PGOLF_INPUT_MATERIALIZATION_REPORT_PATH="${run_root}/parameter_golf_input_materialization.json"
 
 printf 'phase_start phase=%s started_at_utc=%s\n' "${phase_id}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" | tee -a "${phase_log}"
 (
