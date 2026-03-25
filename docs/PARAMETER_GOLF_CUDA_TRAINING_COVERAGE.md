@@ -97,11 +97,13 @@ The public CUDA dense surface now also owns the first transpose-aware
 strided-batched cuBLAS matmul lane needed by the score-path attention rewrite:
 
 - bounded row-major `bf16 x bf16 -> f32` strided-batched GEMM with explicit
-  transpose control on the row-major logical matrices
+  transpose control on the row-major logical matrices plus explicit
+  left/right/output batch strides, so the score lane can walk real
+  `[batch, head, seq, dim]` and GQA-owned KV layouts without repacking them
 - bounded row-major `f32 x bf16 -> f32` batched GEMM helper with the same
-  transpose contract, currently encoded as repeated `cublasGemmEx` launches on
-  one CUDA stream because the mixed-type strided-batched cuBLAS posture was
-  not admitted on this lane
+  transpose and stride contract, currently encoded as `f32 -> bf16` staging
+  plus the real BF16 strided-batched lane because the mixed-type
+  strided-batched cuBLAS posture was not admitted on this lane
 
 That does not retire the attention hot-path blocker by itself. It removes one
 runtime-surface gap for the `#562` forward replacement work so the next score

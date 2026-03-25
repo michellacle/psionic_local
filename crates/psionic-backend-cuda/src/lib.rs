@@ -1073,17 +1073,70 @@ impl CudaSubmission {
         transpose_left: bool,
         transpose_right: bool,
     ) -> Result<(), RuntimeError> {
-        self.platform.encode_matmul_bf16_strided_batched_to_f32(
-            &left.platform,
-            &right.platform,
-            &output.platform,
+        let left_stride_elements = rows.checked_mul(inner).ok_or_else(|| {
+            RuntimeError::Backend(String::from(
+                "cuda bf16 strided batched matmul lhs stride overflow",
+            ))
+        })?;
+        let right_stride_elements = inner.checked_mul(cols).ok_or_else(|| {
+            RuntimeError::Backend(String::from(
+                "cuda bf16 strided batched matmul rhs stride overflow",
+            ))
+        })?;
+        let output_stride_elements = rows.checked_mul(cols).ok_or_else(|| {
+            RuntimeError::Backend(String::from(
+                "cuda bf16 strided batched matmul output stride overflow",
+            ))
+        })?;
+        self.matmul_bf16_strided_batched_to_f32_with_strides(
+            left,
+            right,
+            output,
             rows,
             inner,
             cols,
             batch_count,
+            left_stride_elements,
+            right_stride_elements,
+            output_stride_elements,
             transpose_left,
             transpose_right,
-        )?;
+        )
+    }
+
+    /// Launches one strided-batched dense row-major matrix multiply with
+    /// `bf16` inputs and `f32` accumulate/output, using explicit element
+    /// strides between adjacent batch entries.
+    pub fn matmul_bf16_strided_batched_to_f32_with_strides(
+        &mut self,
+        left: &CudaBuffer,
+        right: &CudaBuffer,
+        output: &CudaBuffer,
+        rows: usize,
+        inner: usize,
+        cols: usize,
+        batch_count: usize,
+        left_stride_elements: usize,
+        right_stride_elements: usize,
+        output_stride_elements: usize,
+        transpose_left: bool,
+        transpose_right: bool,
+    ) -> Result<(), RuntimeError> {
+        self.platform
+            .encode_matmul_bf16_strided_batched_to_f32_with_strides(
+                &left.platform,
+                &right.platform,
+                &output.platform,
+                rows,
+                inner,
+                cols,
+                batch_count,
+                left_stride_elements,
+                right_stride_elements,
+                output_stride_elements,
+                transpose_left,
+                transpose_right,
+            )?;
         self.encoded_operations += 1;
         Ok(())
     }
@@ -1103,45 +1156,103 @@ impl CudaSubmission {
         transpose_left: bool,
         transpose_right: bool,
     ) -> Result<(), RuntimeError> {
-        let left_elements = rows
-            .checked_mul(inner)
-            .and_then(|value| value.checked_mul(batch_count))
-            .ok_or_else(|| {
-                RuntimeError::Backend(String::from(
-                    "cuda mixed strided batched matmul lhs element count overflow",
-                ))
-            })?;
-        let right_elements = inner
-            .checked_mul(cols)
-            .and_then(|value| value.checked_mul(batch_count))
-            .ok_or_else(|| {
-                RuntimeError::Backend(String::from(
-                    "cuda mixed strided batched matmul rhs element count overflow",
-                ))
-            })?;
-        let output_elements = rows
-            .checked_mul(cols)
-            .and_then(|value| value.checked_mul(batch_count))
-            .ok_or_else(|| {
-                RuntimeError::Backend(String::from(
-                    "cuda mixed strided batched matmul output element count overflow",
-                ))
-            })?;
-        if left.spec.storage_size() != left_elements {
+        let left_stride_elements = rows.checked_mul(inner).ok_or_else(|| {
+            RuntimeError::Backend(String::from(
+                "cuda mixed strided batched matmul lhs stride overflow",
+            ))
+        })?;
+        let right_stride_elements = inner.checked_mul(cols).ok_or_else(|| {
+            RuntimeError::Backend(String::from(
+                "cuda mixed strided batched matmul rhs stride overflow",
+            ))
+        })?;
+        let output_stride_elements = rows.checked_mul(cols).ok_or_else(|| {
+            RuntimeError::Backend(String::from(
+                "cuda mixed strided batched matmul output stride overflow",
+            ))
+        })?;
+        self.matmul_f32_bf16_strided_batched_to_f32_with_strides(
+            left,
+            right,
+            output,
+            rows,
+            inner,
+            cols,
+            batch_count,
+            left_stride_elements,
+            right_stride_elements,
+            output_stride_elements,
+            transpose_left,
+            transpose_right,
+        )
+    }
+
+    /// Launches one strided-batched dense row-major matrix multiply with
+    /// `f32` activations, `bf16` weights, and `f32` accumulate/output, using
+    /// explicit element strides between adjacent batch entries.
+    pub fn matmul_f32_bf16_strided_batched_to_f32_with_strides(
+        &mut self,
+        left: &CudaBuffer,
+        right: &CudaBuffer,
+        output: &CudaBuffer,
+        rows: usize,
+        inner: usize,
+        cols: usize,
+        batch_count: usize,
+        left_stride_elements: usize,
+        right_stride_elements: usize,
+        output_stride_elements: usize,
+        transpose_left: bool,
+        transpose_right: bool,
+    ) -> Result<(), RuntimeError> {
+        let matrix_left_elements = rows.checked_mul(inner).ok_or_else(|| {
+            RuntimeError::Backend(String::from(
+                "cuda mixed strided batched matmul lhs matrix size overflow",
+            ))
+        })?;
+        let matrix_right_elements = inner.checked_mul(cols).ok_or_else(|| {
+            RuntimeError::Backend(String::from(
+                "cuda mixed strided batched matmul rhs matrix size overflow",
+            ))
+        })?;
+        let matrix_output_elements = rows.checked_mul(cols).ok_or_else(|| {
+            RuntimeError::Backend(String::from(
+                "cuda mixed strided batched matmul output matrix size overflow",
+            ))
+        })?;
+        let left_required = required_batched_elements(
+            matrix_left_elements,
+            batch_count,
+            left_stride_elements,
+            "lhs",
+        )?;
+        let right_required = required_batched_elements(
+            matrix_right_elements,
+            batch_count,
+            right_stride_elements,
+            "rhs",
+        )?;
+        let output_required = required_batched_elements(
+            matrix_output_elements,
+            batch_count,
+            output_stride_elements,
+            "output",
+        )?;
+        if left.spec.storage_size() < left_required {
             return Err(RuntimeError::Backend(format!(
-                "cuda mixed strided batched matmul lhs storage mismatch: expected {left_elements} elements, actual {}",
+                "cuda mixed strided batched matmul lhs storage too small: need {left_required} elements, actual {}",
                 left.spec.storage_size()
             )));
         }
-        if right.spec.storage_size() != right_elements {
+        if right.spec.storage_size() < right_required {
             return Err(RuntimeError::Backend(format!(
-                "cuda mixed strided batched matmul rhs storage mismatch: expected {right_elements} elements, actual {}",
+                "cuda mixed strided batched matmul rhs storage too small: need {right_required} elements, actual {}",
                 right.spec.storage_size()
             )));
         }
-        if output.spec.storage_size() != output_elements {
+        if output.spec.storage_size() < output_required {
             return Err(RuntimeError::Backend(format!(
-                "cuda mixed strided batched matmul output storage mismatch: expected {output_elements} elements, actual {}",
+                "cuda mixed strided batched matmul output storage too small: need {output_required} elements, actual {}",
                 output.spec.storage_size()
             )));
         }
@@ -1166,8 +1277,8 @@ impl CudaSubmission {
             host_visible: false,
             platform: self.platform.allocate(scratch_byte_len)?,
         };
-        self.cast_f32_to_bf16(left, &scratch, left_elements)?;
-        self.matmul_bf16_strided_batched_to_f32(
+        self.cast_f32_to_bf16(left, &scratch, left_required)?;
+        self.matmul_bf16_strided_batched_to_f32_with_strides(
             &scratch,
             right,
             output,
@@ -1175,6 +1286,9 @@ impl CudaSubmission {
             inner,
             cols,
             batch_count,
+            left_stride_elements,
+            right_stride_elements,
+            output_stride_elements,
             transpose_left,
             transpose_right,
         )?;
@@ -3422,6 +3536,27 @@ fn host_fallback_profile_path() -> Option<String> {
         .ok()
         .map(|value| value.trim().to_string())
         .filter(|value| !value.is_empty())
+}
+
+fn required_batched_elements(
+    matrix_elements: usize,
+    batch_count: usize,
+    stride_elements: usize,
+    label: &str,
+) -> Result<usize, RuntimeError> {
+    if batch_count == 0 {
+        return Ok(0);
+    }
+    let last_offset = stride_elements
+        .checked_mul(batch_count - 1)
+        .ok_or_else(|| {
+            RuntimeError::Backend(format!("cuda {label} batched matrix stride overflow"))
+        })?;
+    last_offset.checked_add(matrix_elements).ok_or_else(|| {
+        RuntimeError::Backend(format!(
+            "cuda {label} batched matrix required element count overflow"
+        ))
+    })
 }
 
 fn append_host_fallback_profile_report(
@@ -7413,23 +7548,6 @@ mod platform {
         }
     }
 
-    fn checked_cublas_stride(
-        rows: usize,
-        cols: usize,
-        label: &str,
-    ) -> Result<c_longlong, RuntimeError> {
-        let elements = rows.checked_mul(cols).ok_or_else(|| {
-            RuntimeError::Backend(format!(
-                "cuda {label} strided batched matmul element count overflow"
-            ))
-        })?;
-        c_longlong::try_from(elements).map_err(|_| {
-            RuntimeError::Backend(format!(
-                "cuda {label} strided batched matmul stride exceeds cublas limits"
-            ))
-        })
-    }
-
     type QuantizedMatvecKernel = unsafe extern "C" fn(
         *const c_void,
         c_int,
@@ -8932,7 +9050,7 @@ mod platform {
             )
         }
 
-        pub(super) fn encode_matmul_bf16_strided_batched_to_f32(
+        pub(super) fn encode_matmul_bf16_strided_batched_to_f32_with_strides(
             &mut self,
             left: &PlatformBuffer,
             right: &PlatformBuffer,
@@ -8941,6 +9059,9 @@ mod platform {
             inner: usize,
             cols: usize,
             batch_count: usize,
+            left_stride_elements: usize,
+            right_stride_elements: usize,
+            output_stride_elements: usize,
             transpose_left: bool,
             transpose_right: bool,
         ) -> Result<(), RuntimeError> {
@@ -8969,9 +9090,21 @@ mod platform {
             })?;
             let lda = if transpose_right { k } else { m };
             let ldb = if transpose_left { n } else { k };
-            let stride_a = checked_cublas_stride(inner, cols, "bf16 rhs")?;
-            let stride_b = checked_cublas_stride(rows, inner, "bf16 lhs")?;
-            let stride_c = checked_cublas_stride(rows, cols, "bf16 output")?;
+            let stride_a = c_longlong::try_from(right_stride_elements).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda bf16 strided batched matmul rhs stride exceeds cublas limits",
+                ))
+            })?;
+            let stride_b = c_longlong::try_from(left_stride_elements).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda bf16 strided batched matmul lhs stride exceeds cublas limits",
+                ))
+            })?;
+            let stride_c = c_longlong::try_from(output_stride_elements).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda bf16 strided batched matmul output stride exceeds cublas limits",
+                ))
+            })?;
             let alpha = 1.0_f32;
             let beta = 0.0_f32;
             self.runtime.bind_stream(self.stream)?;
@@ -12615,6 +12748,26 @@ mod platform {
             _inner: usize,
             _cols: usize,
             _batch_count: usize,
+            _transpose_left: bool,
+            _transpose_right: bool,
+        ) -> Result<(), RuntimeError> {
+            Err(RuntimeError::Backend(String::from(
+                "cuda runtime substrate currently requires Linux libcudart",
+            )))
+        }
+
+        pub(super) fn encode_matmul_bf16_strided_batched_to_f32_with_strides(
+            &mut self,
+            _left: &PlatformBuffer,
+            _right: &PlatformBuffer,
+            _output: &PlatformBuffer,
+            _rows: usize,
+            _inner: usize,
+            _cols: usize,
+            _batch_count: usize,
+            _left_stride_elements: usize,
+            _right_stride_elements: usize,
+            _output_stride_elements: usize,
             _transpose_left: bool,
             _transpose_right: bool,
         ) -> Result<(), RuntimeError> {
@@ -16409,6 +16562,68 @@ mod tests {
         assert_close(
             &output.read_f32()?,
             &[1.0, 2.0, 3.0, 4.0, 16.0, 17.0, 22.0, 23.0],
+            1e-5,
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn cuda_submission_executes_bf16_strided_batched_matmul_with_custom_batch_strides_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let mut backend = CudaBackend::new();
+        let Some(_) = backend.selected_device().cloned() else {
+            assert_eq!(backend.health().status, HealthStatus::Offline);
+            return Ok(());
+        };
+
+        let mut left = backend.bf16_buffer(10)?;
+        left.write_bf16_from_f32(&[1.0, 2.0, 3.0, 4.0, 99.0, 99.0, 5.0, 6.0, 7.0, 8.0])?;
+        let mut right = backend.bf16_buffer(9)?;
+        right.write_bf16_from_f32(&[1.0, 0.0, 0.0, 1.0, 88.0, 2.0, 1.0, 1.0, 2.0])?;
+        let output = backend.f32_buffer(10)?;
+
+        let mut submission = backend.begin_submission()?;
+        submission.fill_buffer(&output, 0)?;
+        submission.matmul_bf16_strided_batched_to_f32_with_strides(
+            &left, &right, &output, 2, 2, 2, 2, 6, 5, 6, false, false,
+        )?;
+        let report = submission.commit(CudaCommandWait::Completed)?;
+        assert_eq!(report.status, CudaCommandStatus::Completed);
+        assert_close(
+            &output.read_f32()?,
+            &[1.0, 2.0, 3.0, 4.0, 0.0, 0.0, 16.0, 17.0, 22.0, 23.0],
+            1e-5,
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn cuda_submission_executes_f32_bf16_strided_batched_matmul_with_custom_batch_strides_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let mut backend = CudaBackend::new();
+        let Some(_) = backend.selected_device().cloned() else {
+            assert_eq!(backend.health().status, HealthStatus::Offline);
+            return Ok(());
+        };
+
+        let left = backend.input_buffer(
+            Shape::new(vec![10]),
+            vec![1.0_f32, 2.0, 3.0, 4.0, 99.0, 99.0, 5.0, 6.0, 7.0, 8.0],
+        )?;
+        let mut right = backend.bf16_buffer(9)?;
+        right.write_bf16_from_f32(&[1.0, 0.0, 0.0, 1.0, 88.0, 2.0, 1.0, 1.0, 2.0])?;
+        let output = backend.f32_buffer(10)?;
+
+        let mut submission = backend.begin_submission()?;
+        submission.fill_buffer(&output, 0)?;
+        submission.matmul_f32_bf16_strided_batched_to_f32_with_strides(
+            &left, &right, &output, 2, 2, 2, 2, 6, 5, 6, false, false,
+        )?;
+        let report = submission.commit(CudaCommandWait::Completed)?;
+        assert_eq!(report.status, CudaCommandStatus::Completed);
+        assert_close(
+            &output.read_f32()?,
+            &[1.0, 2.0, 3.0, 4.0, 0.0, 0.0, 16.0, 17.0, 22.0, 23.0],
             1e-5,
         );
         Ok(())
