@@ -47,21 +47,21 @@ pub const PARAMETER_GOLF_RUNTIME_RECEIPT_ARTIFACT_REF: &str =
     "parameter-golf-local-reference-run/benchmark/parameter_golf_submission_runtime_receipt.json";
 pub const PARAMETER_GOLF_REAL_RUNTIME_REPORT_ARTIFACT_REF: &str =
     "parameter-golf-single-h100-run/benchmark/parameter_golf_single_h100_training.json";
+pub const PARAMETER_GOLF_DISTRIBUTED_8XH100_BRINGUP_REPORT_ARTIFACT_REF: &str =
+    "parameter-golf-distributed-8xh100-run/benchmark/parameter_golf_distributed_8xh100_bringup.json";
 pub const PARAMETER_GOLF_ACCOUNTING_COMPONENT_ENTRYPOINT: &str = "entrypoint_code_bytes";
 pub const PARAMETER_GOLF_ACCOUNTING_COMPONENT_MODEL: &str = "compressed_model_bytes";
 pub const PARAMETER_GOLF_ACCOUNTING_COMPONENT_RUNTIME: &str = "shipped_runtime_code_bytes";
 pub const PARAMETER_GOLF_ACCOUNTING_COMPONENT_WRAPPER: &str = "shipped_wrapper_code_bytes";
 pub const PARAMETER_GOLF_ACCOUNTING_COMPONENT_BUILD_DEPS: &str = "required_build_dependency_bytes";
-const PARAMETER_GOLF_EXECUTION_MODE_ENV_VAR: &str = "PSIONIC_PARAMETER_GOLF_EXECUTION_MODE";
-const PARAMETER_GOLF_SINGLE_H100_DATASET_ROOT_ENV_VAR: &str =
-    "PSIONIC_PARAMETER_GOLF_DATASET_ROOT";
+pub const PARAMETER_GOLF_EXECUTION_MODE_ENV_VAR: &str = "PSIONIC_PARAMETER_GOLF_EXECUTION_MODE";
+const PARAMETER_GOLF_SINGLE_H100_DATASET_ROOT_ENV_VAR: &str = "PSIONIC_PARAMETER_GOLF_DATASET_ROOT";
 const PARAMETER_GOLF_SINGLE_H100_TOKENIZER_PATH_ENV_VAR: &str =
     "PSIONIC_PARAMETER_GOLF_TOKENIZER_PATH";
 const PARAMETER_GOLF_SINGLE_H100_OUTPUT_REPORT_ENV_VAR: &str =
     "PSIONIC_PARAMETER_GOLF_OUTPUT_REPORT";
-const PARAMETER_GOLF_SINGLE_H100_MAX_STEPS_ENV_VAR: &str =
-    "PSIONIC_PARAMETER_GOLF_MAX_STEPS";
-const PARAMETER_GOLF_DISTRIBUTED_8XH100_EXECUTION_MODE: &str = "distributed_8xh100_train";
+const PARAMETER_GOLF_SINGLE_H100_MAX_STEPS_ENV_VAR: &str = "PSIONIC_PARAMETER_GOLF_MAX_STEPS";
+pub const PARAMETER_GOLF_DISTRIBUTED_8XH100_EXECUTION_MODE: &str = "distributed_8xh100_train";
 
 /// Machine-readable real execution contract shipped with the exported folder.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -557,6 +557,7 @@ pub fn build_parameter_golf_non_record_submission_bundle(
     validate_relative_path(PARAMETER_GOLF_RUNTIME_INPUT_PACKAGE_DESCRIPTOR_ARTIFACT_REF)?;
     validate_relative_path(PARAMETER_GOLF_RUNTIME_RECEIPT_ARTIFACT_REF)?;
     validate_relative_path(PARAMETER_GOLF_REAL_RUNTIME_REPORT_ARTIFACT_REF)?;
+    validate_relative_path(PARAMETER_GOLF_DISTRIBUTED_8XH100_BRINGUP_REPORT_ARTIFACT_REF)?;
 
     let runtime_payload_artifact = ParameterGolfTrainingArtifact::new(
         "parameter_golf_submission_runtime_payload",
@@ -612,6 +613,9 @@ pub fn build_parameter_golf_non_record_submission_bundle(
         fixture_path: String::from(PARAMETER_GOLF_RUNTIME_FIXTURE_ARTIFACT_REF),
         model_artifact_path: model_artifact.artifact_ref.clone(),
         runtime_receipt_path: String::from(PARAMETER_GOLF_RUNTIME_RECEIPT_ARTIFACT_REF),
+        distributed_bringup_report_path: String::from(
+            PARAMETER_GOLF_DISTRIBUTED_8XH100_BRINGUP_REPORT_ARTIFACT_REF,
+        ),
         sequence_length: runtime_config.geometry.train_sequence_length,
         validation_batch_tokens: runtime_config.geometry.local_validation_batch_tokens(),
         expected_val_loss: benchmark_bundle
@@ -758,12 +762,8 @@ pub fn build_parameter_golf_non_record_submission_bundle(
         runtime_payload_artifact_ref: runtime_payload_artifact.artifact_ref.clone(),
         runtime_payload_artifact_digest: runtime_payload_artifact.artifact_digest.clone(),
         real_runtime_payload_artifact_ref: real_runtime_payload_artifact.artifact_ref.clone(),
-        real_runtime_payload_artifact_digest: real_runtime_payload_artifact
-            .artifact_digest
-            .clone(),
-        real_execution_contract_artifact_ref: real_execution_contract_artifact
-            .artifact_ref
-            .clone(),
+        real_runtime_payload_artifact_digest: real_runtime_payload_artifact.artifact_digest.clone(),
+        real_execution_contract_artifact_ref: real_execution_contract_artifact.artifact_ref.clone(),
         real_execution_contract_artifact_digest: real_execution_contract_artifact
             .artifact_digest
             .clone(),
@@ -1063,12 +1063,8 @@ if EXECUTION_MODE == "single_h100_train":
     sys.exit(completed.returncode)
 
 if EXECUTION_MODE == "{distributed_8xh100_execution_mode}":
-    print(
-        "parameter golf submission runtime does not ship a distributed 8xH100 trainer payload yet; "
-        "the runpod_8xh100 lane must refuse until the real distributed runtime lands",
-        file=sys.stderr,
-    )
-    sys.exit(1)
+    completed = subprocess.run([str(RUNTIME_PAYLOAD), str(RUNTIME_MANIFEST)], cwd=ROOT, check=False)
+    sys.exit(completed.returncode)
 
 print(f"unsupported execution mode: {{EXECUTION_MODE}}", file=sys.stderr)
 sys.exit(1)
@@ -1336,7 +1332,7 @@ fn render_readme(
     );
     let _ = writeln!(
         readme,
-        "- Set `{}` to `{}` on the exported-folder `8xH100` lane only when the shipped folder grows a real distributed trainer payload; today that mode refuses explicitly instead of silently falling back to the bounded local-reference replay.\n",
+        "- Set `{}` to `{}` on the exported-folder `8xH100` lane to dispatch into the shipped Rust-owned distributed bring-up path. That mode now writes a machine-readable bring-up report and still refuses explicitly until the real distributed trainer payload lands.\n",
         PARAMETER_GOLF_EXECUTION_MODE_ENV_VAR,
         PARAMETER_GOLF_DISTRIBUTED_8XH100_EXECUTION_MODE
     );
@@ -1363,7 +1359,9 @@ fn parameter_golf_google_input_package_descriptor_fixture_path() -> PathBuf {
         .and_then(Path::parent)
         .map(Path::to_path_buf)
         .expect("repo root should resolve from psionic-train crate dir")
-        .join("fixtures/parameter_golf/google/parameter_golf_google_input_package_descriptor_v1.json")
+        .join(
+            "fixtures/parameter_golf/google/parameter_golf_google_input_package_descriptor_v1.json",
+        )
 }
 
 fn text_artifact(
@@ -1443,6 +1441,7 @@ mod tests {
         PARAMETER_GOLF_ACCOUNTING_COMPONENT_BUILD_DEPS,
         PARAMETER_GOLF_ACCOUNTING_COMPONENT_ENTRYPOINT, PARAMETER_GOLF_ACCOUNTING_COMPONENT_MODEL,
         PARAMETER_GOLF_ACCOUNTING_COMPONENT_RUNTIME, PARAMETER_GOLF_ACCOUNTING_COMPONENT_WRAPPER,
+        PARAMETER_GOLF_DISTRIBUTED_8XH100_BRINGUP_REPORT_ARTIFACT_REF,
         PARAMETER_GOLF_DISTRIBUTED_8XH100_EXECUTION_MODE,
         PARAMETER_GOLF_NON_RECORD_SUBMISSION_VERSION, PARAMETER_GOLF_NON_RECORD_TRACK_ID,
         PARAMETER_GOLF_REAL_RUNTIME_CONTRACT_ARTIFACT_REF,
@@ -1451,8 +1450,9 @@ mod tests {
         PARAMETER_GOLF_RUNTIME_PAYLOAD_ARTIFACT_REF, PARAMETER_GOLF_RUNTIME_RECEIPT_ARTIFACT_REF,
     };
     use crate::{
-        benchmark_parameter_golf_local_reference, ParameterGolfLocalReferenceFixture,
-        ParameterGolfNonRecordSubmissionConfig, ParameterGolfReferenceTrainingConfig,
+        benchmark_parameter_golf_local_reference, ParameterGolfDistributed8xH100BringupReport,
+        ParameterGolfLocalReferenceFixture, ParameterGolfNonRecordSubmissionConfig,
+        ParameterGolfReferenceTrainingConfig,
     };
 
     #[test]
@@ -1583,7 +1583,7 @@ mod tests {
     }
 
     #[test]
-    fn parameter_golf_non_record_submission_entrypoint_refuses_distributed_8xh100_mode(
+    fn parameter_golf_non_record_submission_entrypoint_writes_distributed_8xh100_bringup_report(
     ) -> Result<(), Box<dyn Error>> {
         let fixture = ParameterGolfLocalReferenceFixture::reference()?;
         let config = ParameterGolfReferenceTrainingConfig::local_reference();
@@ -1610,12 +1610,22 @@ mod tests {
         );
         let stderr = String::from_utf8_lossy(&completed.stderr);
         assert!(stderr.contains("does not ship a distributed 8xH100 trainer payload yet"));
-        assert!(
-            !temp_dir
-                .path()
-                .join(PARAMETER_GOLF_RUNTIME_RECEIPT_ARTIFACT_REF)
-                .exists()
+        assert!(stderr.contains("wrote distributed bring-up report"));
+        assert!(!temp_dir
+            .path()
+            .join(PARAMETER_GOLF_RUNTIME_RECEIPT_ARTIFACT_REF)
+            .exists());
+        let report_path = temp_dir
+            .path()
+            .join(PARAMETER_GOLF_DISTRIBUTED_8XH100_BRINGUP_REPORT_ARTIFACT_REF);
+        assert!(report_path.is_file());
+        let report: ParameterGolfDistributed8xH100BringupReport =
+            serde_json::from_slice(&fs::read(&report_path)?)?;
+        assert_eq!(
+            report.disposition,
+            crate::ParameterGolfDistributed8xH100BringupDisposition::RefusedMachineContract
         );
+        assert!(!report.machine_contract_satisfied);
         Ok(())
     }
 

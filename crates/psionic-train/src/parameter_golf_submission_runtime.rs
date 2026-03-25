@@ -1,5 +1,5 @@
 use std::{
-    fs,
+    env, fs,
     path::{Path, PathBuf},
 };
 
@@ -10,9 +10,13 @@ use sha2::{Digest, Sha256};
 use thiserror::Error;
 
 use crate::{
-    restore_parameter_golf_model_from_int8_zlib, ParameterGolfLocalReferenceFixture,
+    restore_parameter_golf_model_from_int8_zlib,
+    write_parameter_golf_distributed_8xh100_bringup_report,
+    ParameterGolfDistributed8xH100BringupConfig, ParameterGolfDistributed8xH100BringupError,
+    ParameterGolfDistributed8xH100BringupReport, ParameterGolfLocalReferenceFixture,
     ParameterGolfNonRecordSubmissionManifest, ParameterGolfSubmissionAccountingReceipt,
-    ParameterGolfSubmissionRealExecutionContract,
+    ParameterGolfSubmissionRealExecutionContract, PARAMETER_GOLF_DISTRIBUTED_8XH100_EXECUTION_MODE,
+    PARAMETER_GOLF_EXECUTION_MODE_ENV_VAR,
 };
 
 /// Machine-readable runtime manifest shipped with the submission folder.
@@ -40,6 +44,8 @@ pub struct ParameterGolfSubmissionRuntimeManifest {
     pub model_artifact_path: String,
     /// Runtime receipt path written by the payload.
     pub runtime_receipt_path: String,
+    /// Distributed bring-up report path written by the shipped payload in `distributed_8xh100_train` mode.
+    pub distributed_bringup_report_path: String,
     /// Sequence length used by the bounded local-reference eval replay.
     pub sequence_length: usize,
     /// Validation batch tokens used by the bounded local-reference eval replay.
@@ -73,6 +79,18 @@ impl ParameterGolfSubmissionRuntimeManifest {
             &digestible,
         )
     }
+}
+
+/// Runtime result emitted by the shipped submission payload.
+#[derive(Clone, Debug, PartialEq)]
+pub enum ParameterGolfSubmissionRuntimeOutcome {
+    /// Bounded local-reference restore-and-eval replay.
+    LocalReference(ParameterGolfSubmissionRuntimeReceipt),
+    /// Rust-owned distributed `8xH100` bring-up report.
+    Distributed8xH100Bringup {
+        report_path: String,
+        report: ParameterGolfDistributed8xH100BringupReport,
+    },
 }
 
 fn default_local_reference_execution_mode() -> String {
@@ -199,6 +217,8 @@ pub enum ParameterGolfSubmissionRuntimeError {
     Write { path: String, error: std::io::Error },
     #[error("parameter golf submission runtime consistency error: {message}")]
     Consistency { message: String },
+    #[error("parameter golf submission runtime execution-mode error: {message}")]
+    ExecutionMode { message: String },
     #[error(transparent)]
     ReferenceTraining(#[from] crate::ParameterGolfReferenceTrainingError),
     #[error(transparent)]
@@ -211,6 +231,8 @@ pub enum ParameterGolfSubmissionRuntimeError {
     Data(#[from] psionic_data::ParameterGolfDataError),
     #[error(transparent)]
     Json(#[from] serde_json::Error),
+    #[error(transparent)]
+    DistributedBringup(#[from] ParameterGolfDistributed8xH100BringupError),
 }
 
 /// Executes the shipped submission runtime manifest, writes the runtime receipt, and returns it.
@@ -240,6 +262,30 @@ pub fn execute_parameter_golf_submission_runtime_manifest(
         }
     })?;
     Ok(receipt)
+}
+
+/// Executes the shipped submission runtime entrypoint for the current execution mode.
+pub fn execute_parameter_golf_submission_runtime_entrypoint(
+    root: &Path,
+    manifest_path: &Path,
+) -> Result<ParameterGolfSubmissionRuntimeOutcome, ParameterGolfSubmissionRuntimeError> {
+    let manifest = read_json::<ParameterGolfSubmissionRuntimeManifest>(
+        manifest_path,
+        "parameter_golf_submission_runtime_manifest",
+    )?;
+    let execution_mode = env::var(PARAMETER_GOLF_EXECUTION_MODE_ENV_VAR)
+        .unwrap_or(manifest.default_execution_mode.clone());
+    match execution_mode.as_str() {
+        "local_reference_validation" => Ok(ParameterGolfSubmissionRuntimeOutcome::LocalReference(
+            execute_parameter_golf_submission_runtime_manifest(root, manifest_path)?,
+        )),
+        PARAMETER_GOLF_DISTRIBUTED_8XH100_EXECUTION_MODE => {
+            execute_parameter_golf_submission_distributed_8xh100_bringup(root, &manifest)
+        }
+        other => Err(ParameterGolfSubmissionRuntimeError::ExecutionMode {
+            message: format!("unsupported execution mode `{other}`"),
+        }),
+    }
 }
 
 /// Executes the actual shipped restore-and-eval path described by the runtime manifest.
@@ -293,6 +339,22 @@ pub fn execute_parameter_golf_submission_runtime(
         });
     }
     Ok(receipt)
+}
+
+fn execute_parameter_golf_submission_distributed_8xh100_bringup(
+    root: &Path,
+    manifest: &ParameterGolfSubmissionRuntimeManifest,
+) -> Result<ParameterGolfSubmissionRuntimeOutcome, ParameterGolfSubmissionRuntimeError> {
+    let output_path = root.join(&manifest.distributed_bringup_report_path);
+    let config = ParameterGolfDistributed8xH100BringupConfig::challenge_defaults();
+    let report =
+        write_parameter_golf_distributed_8xh100_bringup_report(&output_path, &config, None)?;
+    Ok(
+        ParameterGolfSubmissionRuntimeOutcome::Distributed8xH100Bringup {
+            report_path: output_path.display().to_string(),
+            report,
+        },
+    )
 }
 
 fn metric_matches(actual: f64, expected: f64) -> bool {

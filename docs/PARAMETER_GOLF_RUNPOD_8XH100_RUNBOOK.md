@@ -98,11 +98,18 @@ phase commands, and per-phase exit results from the launcher that drove the
 pod.
 
 This explicit execution-mode requirement is intentional. The current exported
-folder only ships the default bounded local-reference replay payload plus the
-real single-H100 trainer payload. It does not yet ship a real distributed
-`8xH100` trainer payload. The RunPod launcher therefore requests the reserved
-distributed mode explicitly so the execution phase fails closed instead of
-silently taking the local-reference replay path under `WORLD_SIZE=8`.
+folder ships:
+
+- the default bounded local-reference replay payload
+- the real single-H100 trainer payload
+- a Rust-owned distributed `8xH100` bring-up path inside the shipped runtime
+  payload
+
+It still does not ship the real distributed `8xH100` trainer payload. The
+RunPod launcher therefore requests the reserved distributed mode explicitly so
+the execution phase writes a machine-readable bring-up report and then fails
+closed instead of silently taking the local-reference replay path under
+`WORLD_SIZE=8`.
 
 The finalizer now also resolves the exported submission root explicitly. The
 canonical path is still the retained `records/track_non_record_16mb/<submission_id>`

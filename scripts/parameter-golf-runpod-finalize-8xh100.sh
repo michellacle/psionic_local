@@ -86,6 +86,7 @@ run_id="$(basename -- "${run_root}")"
 created_at_utc="$(timestamp_utc)"
 distributed_receipt_path="${run_root}/parameter_golf_distributed_8xh100_receipt.json"
 distributed_measurements_path="${run_root}/parameter_golf_distributed_8xh100_measurements.json"
+distributed_bringup_report_path="${submission_dir}/parameter-golf-distributed-8xh100-run/benchmark/parameter_golf_distributed_8xh100_bringup.json"
 visualization_bundle_path="${run_root}/training_visualization/parameter_golf_distributed_8xh100_remote_training_visualization_bundle_v1.json"
 visualization_run_index_path="${run_root}/training_visualization/remote_training_run_index_v1.json"
 repo_revision="$(git -C "${repo_root}" rev-parse HEAD 2>/dev/null || true)"
@@ -183,7 +184,7 @@ distributed_receipt_path.write_text(
 )
 PY
 
-python3 - "${run_root}" "${submission_dir}" "${output_path}" "${inventory_file}" "${topology_file}" "${entrypoint_path}" "${manifest_path}" "${run_evidence_path}" "${distributed_receipt_path}" "${distributed_measurements_path}" "${created_at_utc}" "${run_id}" "${profile_id}" "${trainer_lane_id}" "${launch_receipt_path}" "${execution_log_path}" "${execution_log_measurement_status}" <<'PY'
+python3 - "${run_root}" "${submission_dir}" "${output_path}" "${inventory_file}" "${topology_file}" "${entrypoint_path}" "${manifest_path}" "${run_evidence_path}" "${distributed_receipt_path}" "${distributed_measurements_path}" "${created_at_utc}" "${run_id}" "${profile_id}" "${trainer_lane_id}" "${launch_receipt_path}" "${execution_log_path}" "${execution_log_measurement_status}" "${distributed_bringup_report_path}" <<'PY'
 import json
 import sys
 from hashlib import sha256 as sha256_hash
@@ -206,6 +207,7 @@ trainer_lane_id = sys.argv[14]
 launch_receipt_path = Path(sys.argv[15])
 execution_log_path = Path(sys.argv[16])
 execution_log_measurement_status = sys.argv[17]
+distributed_bringup_report_path = Path(sys.argv[18])
 
 def sha256(path: Path) -> str | None:
     if not path.is_file():
@@ -256,6 +258,8 @@ report = {
       "distributed_receipt_sha256": sha256(distributed_receipt_path),
       "distributed_measurements_path": str(distributed_measurements_path) if distributed_measurements_path.exists() else None,
       "distributed_measurements_sha256": sha256(distributed_measurements_path),
+      "distributed_bringup_report_path": str(distributed_bringup_report_path) if distributed_bringup_report_path.exists() else None,
+      "distributed_bringup_report_sha256": sha256(distributed_bringup_report_path),
     },
     "claim_boundary": "This finalizer preserves the machine inventory, topology, exported-folder digests, and the RunPod 8xH100-bound submission run evidence surface. It does not by itself claim that the later real 8xH100 execution cleared the challenge bar."
 }
