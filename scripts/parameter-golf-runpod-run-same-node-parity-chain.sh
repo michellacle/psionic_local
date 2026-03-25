@@ -13,6 +13,7 @@ git_remote="origin"
 git_ref="main"
 git_ssh_key=""
 poll_seconds="60"
+cargo_target_dir=""
 
 usage() {
   cat <<'EOF' >&2
@@ -27,6 +28,7 @@ Options:
   --git-ref <ref>            Git ref to fast-forward before the upstream run. Default: main.
   --git-ssh-key <path>       Optional SSH key for the git fetch/pull step.
   --poll-seconds <n>         Poll interval while waiting for the trainer/report. Default: 60.
+  --cargo-target-dir <path>  Optional CARGO_TARGET_DIR scratch path for the parity build.
 EOF
 }
 
@@ -76,6 +78,10 @@ while [[ $# -gt 0 ]]; do
       poll_seconds="$2"
       shift 2
       ;;
+    --cargo-target-dir)
+      cargo_target_dir="$2"
+      shift 2
+      ;;
     --help|-h)
       usage
       exit 0
@@ -123,6 +129,11 @@ exec >>"${status_log}" 2>&1
 report_path="${run_root}/parameter_golf_single_h100_training.json"
 
 printf 'chain_start started_at_utc=%s run_root=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "${run_root}"
+
+if [[ -n "${cargo_target_dir}" ]]; then
+  export CARGO_TARGET_DIR="${cargo_target_dir}"
+  printf 'cargo_target_dir target=%s\n' "${CARGO_TARGET_DIR}"
+fi
 
 if [[ -n "${trainer_pid}" ]]; then
   while kill -0 "${trainer_pid}" 2>/dev/null; do

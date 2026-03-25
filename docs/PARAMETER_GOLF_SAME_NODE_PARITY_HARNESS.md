@@ -112,8 +112,14 @@ bash scripts/parameter-golf-runpod-run-same-node-parity-chain.sh \
   --psionic-repo-root /workspace/psionic \
   --upstream-repo-root /workspace/parameter-golf \
   --run-root /workspace/issue454_single_h100_run_20260324T215106Z \
-  --trainer-pid 10414
+  --trainer-pid 10414 \
+  --cargo-target-dir /tmp/psionic-target
 ```
+
+On shared or long-lived checkouts, prefer a scratch `CARGO_TARGET_DIR` for the
+follow-up parity build. The chain wrapper now exports that target dir before it
+invokes the Rust receipt builders, which avoids exhausting space under the repo
+checkout when the node has limited free capacity.
 
 ## Honest Boundary
 
