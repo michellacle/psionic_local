@@ -2054,6 +2054,44 @@ __global__ void attention_causal_row_softmax_in_place_f32_kernel(
     }
 }
 
+__global__ void attention_causal_row_softmax_backward_in_place_f32_kernel(
+    const float *probabilities,
+    float *grad_probabilities,
+    int row_count,
+    int sequence_length,
+    float post_scale
+) {
+    const int row_index = static_cast<int>(blockIdx.x);
+    if (row_index >= row_count) {
+        return;
+    }
+
+    __shared__ float reduction_scratch[kAttentionBlockSize];
+
+    const int position = row_index % sequence_length;
+    const float *probability_row =
+        probabilities + static_cast<size_t>(row_index) * static_cast<size_t>(sequence_length);
+    float *grad_row =
+        grad_probabilities + static_cast<size_t>(row_index) * static_cast<size_t>(sequence_length);
+
+    float local_dot = 0.0f;
+    for (int token_index = static_cast<int>(threadIdx.x); token_index <= position;
+         token_index += blockDim.x) {
+        local_dot += probability_row[token_index] * grad_row[token_index];
+    }
+    const float dot = reduce_block_sum(local_dot, reduction_scratch);
+
+    for (int token_index = static_cast<int>(threadIdx.x); token_index < sequence_length;
+         token_index += blockDim.x) {
+        if (token_index <= position) {
+            grad_row[token_index] =
+                post_scale * probability_row[token_index] * (grad_row[token_index] - dot);
+        } else {
+            grad_row[token_index] = 0.0f;
+        }
+    }
+}
+
 template <typename QueryT, typename KeyT, typename ValueT, typename GradOutputT>
 __global__ void attention_causal_sequence_backward_to_f32_kernel(
     const QueryT *query,
@@ -6701,6 +6739,32 @@ extern "C" int psionic_cuda_attention_causal_row_softmax_in_place_f32(
         row_count,
         sequence_length,
         scale
+    );
+    return static_cast<int>(cudaGetLastError());
+}
+
+extern "C" int psionic_cuda_attention_causal_row_softmax_backward_in_place_f32(
+    const void *probabilities,
+    void *grad_probabilities,
+    int row_count,
+    int sequence_length,
+    float post_scale,
+    void *stream
+) {
+    if (row_count <= 0 || sequence_length <= 0 || sequence_length > kAttentionMaxPositions) {
+        return static_cast<int>(cudaErrorInvalidValue);
+    }
+    attention_causal_row_softmax_backward_in_place_f32_kernel<<<
+        row_count,
+        kAttentionBlockSize,
+        0,
+        static_cast<cudaStream_t>(stream)
+    >>>(
+        static_cast<const float *>(probabilities),
+        static_cast<float *>(grad_probabilities),
+        row_count,
+        sequence_length,
+        post_scale
     );
     return static_cast<int>(cudaGetLastError());
 }

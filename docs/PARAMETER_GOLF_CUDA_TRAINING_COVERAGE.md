@@ -127,6 +127,18 @@ That retires the old naive full-sequence forward kernel from the admitted BF16
 score lane. The compatibility `f32` full-sequence attention lane still exists,
 but it is no longer the hot scoreboard path.
 
+Current `main` now also moves the admitted BF16 full-sequence PGOLF attention
+backward lane onto the same batched scorepath:
+
+- the BF16 backward lane now recomputes grouped-query `QK^T` through the
+  strided-batched cuBLAS surface, derives `P`, forms `dP = dO @ V^T`, applies
+  the row-wise softmax Jacobian through one explicit CUDA backward kernel, and
+  then computes `dQ`, `dK`, and `dV` through batched GEMMs
+- the old `attention_causal_sequence_backward_to_f32_kernel` and its
+  atomic-add K/V accumulation are no longer the admitted BF16 scoreboard lane
+- the compatibility `f32` backward lane still exists as a bounded fallback
+  surface while the score lane stays on the BF16 GEMM-backed path
+
 `psionic-train` now also owns one bounded public CUDA Muon step over the same
 matrix-shaped parameter groups used by the baseline optimizer split:
 

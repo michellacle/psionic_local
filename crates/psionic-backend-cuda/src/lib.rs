@@ -1893,6 +1893,28 @@ impl CudaSubmission {
         Ok(())
     }
 
+    /// Applies one in-place causal row-softmax backward over contiguous `f32`
+    /// probability and gradient matrices.
+    pub fn attention_causal_row_softmax_backward_in_place_f32(
+        &mut self,
+        probabilities: &CudaBuffer,
+        grad_probabilities: &CudaBuffer,
+        row_count: usize,
+        sequence_length: usize,
+        post_scale: f32,
+    ) -> Result<(), RuntimeError> {
+        self.platform
+            .encode_attention_causal_row_softmax_backward_in_place_f32(
+                &probabilities.platform,
+                &grad_probabilities.platform,
+                row_count,
+                sequence_length,
+                post_scale,
+            )?;
+        self.encoded_operations += 1;
+        Ok(())
+    }
+
     /// Applies one bounded full-sequence causal grouped-query attention
     /// backward pass on contiguous `f32` rank-4 tensors and writes all three
     /// gradient surfaces on device.
@@ -4538,6 +4560,166 @@ impl AvailableCudaBackend {
         Ok(())
     }
 
+    fn execute_scaled_dot_product_attention_bf16_gemm_backward(
+        &self,
+        submission: &mut CudaSubmission,
+        query: &CudaBuffer,
+        key: &CudaBuffer,
+        value: &CudaBuffer,
+        grad_output: &CudaBuffer,
+        batch_size: usize,
+        query_heads: usize,
+        kv_heads: usize,
+        sequence_length: usize,
+        head_dim: usize,
+        scale: f32,
+    ) -> Result<ScaledDotProductAttentionBackwardCachedOutputs, RuntimeError> {
+        let layout = scaled_dot_product_attention_forward_gemm_layout(
+            batch_size,
+            query_heads,
+            kv_heads,
+            sequence_length,
+            head_dim,
+        )?;
+        let score_spec = TensorSpec::new(
+            Shape::new(vec![layout.batch_count, layout.group_rows, sequence_length]),
+            DType::F32,
+            query.spec().device().clone(),
+        );
+        let scores = self.allocate(&score_spec)?;
+        let grad_scores = self.allocate(&score_spec)?;
+        let query_gradient = self.allocate(query.spec())?;
+        let key_gradient = self.allocate(key.spec())?;
+        let value_gradient = self.allocate(value.spec())?;
+        let query_gradient_f32 = self.allocate(&TensorSpec::from_layout(
+            query.spec().layout().clone(),
+            DType::F32,
+            query.spec().device().clone(),
+        ))?;
+        let key_gradient_f32 = self.allocate(&TensorSpec::from_layout(
+            key.spec().layout().clone(),
+            DType::F32,
+            key.spec().device().clone(),
+        ))?;
+        let value_gradient_f32 = self.allocate(&TensorSpec::from_layout(
+            value.spec().layout().clone(),
+            DType::F32,
+            value.spec().device().clone(),
+        ))?;
+
+        submission.matmul_bf16_strided_batched_to_f32_with_strides(
+            query,
+            key,
+            &scores,
+            layout.group_rows,
+            head_dim,
+            sequence_length,
+            layout.batch_count,
+            layout.query_stride_elements,
+            layout.kv_stride_elements,
+            layout.score_stride_elements,
+            false,
+            true,
+        )?;
+        submission.attention_causal_row_softmax_in_place_f32(
+            &scores,
+            layout.total_score_rows,
+            sequence_length,
+            scale,
+        )?;
+        submission.matmul_bf16_strided_batched_to_f32_with_strides(
+            grad_output,
+            value,
+            &grad_scores,
+            layout.group_rows,
+            head_dim,
+            sequence_length,
+            layout.batch_count,
+            layout.query_stride_elements,
+            layout.kv_stride_elements,
+            layout.score_stride_elements,
+            false,
+            true,
+        )?;
+        submission.attention_causal_row_softmax_backward_in_place_f32(
+            &scores,
+            &grad_scores,
+            layout.total_score_rows,
+            sequence_length,
+            scale,
+        )?;
+        submission.matmul_f32_bf16_strided_batched_to_f32_with_strides(
+            &grad_scores,
+            key,
+            &query_gradient_f32,
+            layout.group_rows,
+            sequence_length,
+            head_dim,
+            layout.batch_count,
+            layout.score_stride_elements,
+            layout.kv_stride_elements,
+            layout.output_stride_elements,
+            false,
+            false,
+        )?;
+        submission.matmul_f32_bf16_strided_batched_to_f32_with_strides(
+            &grad_scores,
+            query,
+            &key_gradient_f32,
+            sequence_length,
+            layout.group_rows,
+            head_dim,
+            layout.batch_count,
+            layout.score_stride_elements,
+            layout.query_stride_elements,
+            layout.kv_stride_elements,
+            true,
+            false,
+        )?;
+        submission.matmul_f32_bf16_strided_batched_to_f32_with_strides(
+            &scores,
+            grad_output,
+            &value_gradient_f32,
+            sequence_length,
+            layout.group_rows,
+            head_dim,
+            layout.batch_count,
+            layout.score_stride_elements,
+            layout.query_stride_elements,
+            layout.kv_stride_elements,
+            true,
+            false,
+        )?;
+        submission.cast_f32_to_bf16(
+            &query_gradient_f32,
+            &query_gradient,
+            query_gradient.spec().storage_size(),
+        )?;
+        submission.cast_f32_to_bf16(
+            &key_gradient_f32,
+            &key_gradient,
+            key_gradient.spec().storage_size(),
+        )?;
+        submission.cast_f32_to_bf16(
+            &value_gradient_f32,
+            &value_gradient,
+            value_gradient.spec().storage_size(),
+        )?;
+
+        Ok(ScaledDotProductAttentionBackwardCachedOutputs {
+            query: query_gradient,
+            key: key_gradient,
+            value: value_gradient,
+            _scratch: vec![
+                scores,
+                grad_scores,
+                query_gradient_f32,
+                key_gradient_f32,
+                value_gradient_f32,
+            ],
+        })
+    }
+
     fn execute_rotary_embedding_backward_step(
         &self,
         submission: &mut CudaSubmission,
@@ -4706,27 +4888,8 @@ impl AvailableCudaBackend {
             && value.spec().dtype() == DType::BF16
             && grad_output.spec().dtype() == DType::BF16
         {
-            let query_gradient = self.allocate(query.spec())?;
-            let key_gradient = self.allocate(key.spec())?;
-            let value_gradient = self.allocate(value.spec())?;
-            let query_gradient_f32 = self.allocate(&TensorSpec::from_layout(
-                query.spec().layout().clone(),
-                DType::F32,
-                query.spec().device().clone(),
-            ))?;
-            let key_gradient_f32 = self.allocate(&TensorSpec::from_layout(
-                key.spec().layout().clone(),
-                DType::F32,
-                key.spec().device().clone(),
-            ))?;
-            let value_gradient_f32 = self.allocate(&TensorSpec::from_layout(
-                value.spec().layout().clone(),
-                DType::F32,
-                value.spec().device().clone(),
-            ))?;
-            submission.fill_buffer(&key_gradient_f32, 0)?;
-            submission.fill_buffer(&value_gradient_f32, 0)?;
-            submission.attention_causal_sequence_backward_bf16_to_f32(
+            self.execute_scaled_dot_product_attention_bf16_gemm_backward(
+                submission,
                 query,
                 key,
                 value,
@@ -4736,31 +4899,8 @@ impl AvailableCudaBackend {
                 kv_heads,
                 sequence_length,
                 head_dim,
-                &query_gradient_f32,
-                &key_gradient_f32,
-                &value_gradient_f32,
-            )?;
-            submission.cast_f32_to_bf16(
-                &query_gradient_f32,
-                &query_gradient,
-                query_gradient.spec().storage_size(),
-            )?;
-            submission.cast_f32_to_bf16(
-                &key_gradient_f32,
-                &key_gradient,
-                key_gradient.spec().storage_size(),
-            )?;
-            submission.cast_f32_to_bf16(
-                &value_gradient_f32,
-                &value_gradient,
-                value_gradient.spec().storage_size(),
-            )?;
-            ScaledDotProductAttentionBackwardCachedOutputs {
-                query: query_gradient,
-                key: key_gradient,
-                value: value_gradient,
-                _scratch: vec![query_gradient_f32, key_gradient_f32, value_gradient_f32],
-            }
+                scale,
+            )?
         } else {
             let query_values = query.read_f32()?;
             let key_values = key.read_f32()?;
@@ -8188,6 +8328,14 @@ mod platform {
             row_count: c_int,
             sequence_length: c_int,
             scale: f32,
+            stream: CudaStream,
+        ) -> CudaError;
+        fn psionic_cuda_attention_causal_row_softmax_backward_in_place_f32(
+            probabilities: *const c_void,
+            grad_probabilities: *mut c_void,
+            row_count: c_int,
+            sequence_length: c_int,
+            post_scale: f32,
             stream: CudaStream,
         ) -> CudaError;
         fn psionic_cuda_attention_causal_sequence_backward_f32(
@@ -11666,6 +11814,40 @@ mod platform {
             )
         }
 
+        pub(super) fn encode_attention_causal_row_softmax_backward_in_place_f32(
+            &mut self,
+            probabilities: &PlatformBuffer,
+            grad_probabilities: &PlatformBuffer,
+            row_count: usize,
+            sequence_length: usize,
+            post_scale: f32,
+        ) -> Result<(), RuntimeError> {
+            let row_count = c_int::try_from(row_count).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda causal attention row-softmax backward row count exceeds c_int",
+                ))
+            })?;
+            let sequence_length = c_int::try_from(sequence_length).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda causal attention row-softmax backward sequence length exceeds c_int",
+                ))
+            })?;
+            self.runtime.set_device()?;
+            self.runtime.check(
+                unsafe {
+                    psionic_cuda_attention_causal_row_softmax_backward_in_place_f32(
+                        probabilities.inner.device_ptr.cast(),
+                        grad_probabilities.inner.device_ptr.cast(),
+                        row_count,
+                        sequence_length,
+                        post_scale,
+                        self.stream,
+                    )
+                },
+                "psionic_cuda_attention_causal_row_softmax_backward_in_place_f32",
+            )
+        }
+
         #[allow(clippy::too_many_arguments)]
         pub(super) fn encode_attention_causal_sequence_backward_f32(
             &mut self,
@@ -13743,6 +13925,19 @@ mod platform {
             _row_count: usize,
             _sequence_length: usize,
             _scale: f32,
+        ) -> Result<(), RuntimeError> {
+            Err(RuntimeError::Backend(String::from(
+                "cuda quantized text-generation kernels require Linux CUDA support",
+            )))
+        }
+
+        pub(super) fn encode_attention_causal_row_softmax_backward_in_place_f32(
+            &mut self,
+            _probabilities: &PlatformBuffer,
+            _grad_probabilities: &PlatformBuffer,
+            _row_count: usize,
+            _sequence_length: usize,
+            _post_scale: f32,
         ) -> Result<(), RuntimeError> {
             Err(RuntimeError::Backend(String::from(
                 "cuda quantized text-generation kernels require Linux CUDA support",
@@ -16910,6 +17105,65 @@ mod tests {
                 0.08714432,
                 0.23688284,
                 0.6439143,
+            ],
+            1e-5,
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn cuda_submission_executes_attention_causal_row_softmax_backward_in_place_when_available(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let mut backend = CudaBackend::new();
+        let Some(_) = backend.selected_device().cloned() else {
+            assert_eq!(backend.health().status, HealthStatus::Offline);
+            return Ok(());
+        };
+
+        let probabilities = backend.input_buffer(
+            Shape::new(vec![4, 4]),
+            vec![
+                1.0_f32, 0.0, 0.0, 0.0, 0.25, 0.75, 0.0, 0.0, 0.1, 0.2, 0.7, 0.0, 0.25, 0.25,
+                0.25, 0.25,
+            ],
+        )?;
+        let grad_probabilities = backend.input_buffer(
+            Shape::new(vec![4, 4]),
+            vec![
+                2.0_f32, 9.0, 9.0, 9.0, 2.0, -1.0, 9.0, 9.0, 3.0, -1.0, 2.0, 9.0, 4.0, 1.0,
+                -2.0, 3.0,
+            ],
+        )?;
+
+        let mut submission = backend.begin_submission()?;
+        submission.attention_causal_row_softmax_backward_in_place_f32(
+            &probabilities,
+            &grad_probabilities,
+            4,
+            4,
+            1.0,
+        )?;
+        let report = submission.commit(CudaCommandWait::Completed)?;
+        assert_eq!(report.status, CudaCommandStatus::Completed);
+        assert_close(
+            &grad_probabilities.read_f32()?,
+            &[
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.5625,
+                -0.5625,
+                0.0,
+                0.0,
+                0.15,
+                -0.5,
+                0.35,
+                0.0,
+                0.625,
+                -0.125,
+                -0.875,
+                0.375,
             ],
             1e-5,
         );
