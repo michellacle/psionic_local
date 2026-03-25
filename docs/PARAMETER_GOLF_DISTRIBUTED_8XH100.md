@@ -291,10 +291,14 @@ What is now explicit:
 
 - the exact public `8xH100` topology
 - the DDP or Muon communication posture
-- the exported-folder runtime can now cross from machine admission into one
-  real `WORLD_SIZE=8` train step with retained per-rank receipts, logs,
+- the exported-folder runtime can now cross from machine admission into a real
+  repeated `WORLD_SIZE=8` train loop with retained per-rank receipts, logs,
   windows, gradient artifacts, one aggregate train-step receipt, and one typed
   measured distributed receipt
+- the current proof coordinator now parallelizes per-rank gradient-artifact
+  loads before host aggregation, and the validation child no longer
+  deserializes the aggregate gradient artifact when the retained current-model
+  artifact is already present
 - measured-or-refused timing receipts
 - measured-or-refused memory receipts
 - the Rust-owned local bring-up seam for exact `8xH100` admission and

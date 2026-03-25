@@ -4,6 +4,7 @@ use std::{
     fs::OpenOptions,
     path::{Path, PathBuf},
     process::{Command, Stdio},
+    thread,
     time::Instant,
 };
 
@@ -867,12 +868,7 @@ fn execute_parameter_golf_distributed_8xh100_step(
 
     let sync_started = Instant::now();
     let mut accumulated_gradients = zero_gradients(trainer_state);
-    for launch in &rank_launches {
-        let rank_receipt = launch
-            .receipt
-            .as_ref()
-            .expect("rank receipt presence validated above");
-        let gradients = load_gradient_artifact(Path::new(&rank_receipt.gradient_artifact_path))?;
+    for (_rank, gradients) in load_rank_gradient_artifacts_parallel(&rank_launches)? {
         crate::accumulate_gradients(
             accumulated_gradients.as_mut_slice(),
             trainer_state,
@@ -1709,7 +1705,6 @@ pub fn execute_parameter_golf_distributed_8xh100_validation_child(
         tokenizer_path.display().to_string(),
         None,
     )?;
-    let aggregated_gradients = load_gradient_artifact(&aggregated_gradient_artifact_path)?;
     let aggregated_gradient_artifact_sha256 = sha256_hex(
         &fs::read(&aggregated_gradient_artifact_path).map_err(|error| {
             ParameterGolfDistributed8xH100TrainStepError::Read {
@@ -1734,6 +1729,7 @@ pub fn execute_parameter_golf_distributed_8xh100_validation_child(
             )
         }
         None => {
+            let aggregated_gradients = load_gradient_artifact(&aggregated_gradient_artifact_path)?;
             let hyperparameters = ParameterGolfTrainingHyperparameters::baseline_defaults();
             let optimizer_plan =
                 parameter_golf_optimizer_plan(baseline_model.descriptor(), &hyperparameters)?;
@@ -2066,6 +2062,49 @@ fn load_gradient_artifact(
         gradients.insert(String::from(name), values);
     }
     Ok(gradients)
+}
+
+fn load_rank_gradient_artifacts_parallel(
+    rank_launches: &[ParameterGolfDistributed8xH100TrainStepRankLaunch],
+) -> Result<Vec<(usize, BTreeMap<String, Vec<f32>>)>, ParameterGolfDistributed8xH100TrainStepError>
+{
+    let mut loaded = thread::scope(|scope| {
+        let mut handles = Vec::with_capacity(rank_launches.len());
+        for launch in rank_launches {
+            let rank = launch.rank;
+            let gradient_artifact_path = launch
+                .receipt
+                .as_ref()
+                .expect("rank receipt presence validated above")
+                .gradient_artifact_path
+                .clone();
+            handles.push(scope.spawn(move || {
+                load_gradient_artifact(Path::new(&gradient_artifact_path))
+                    .map(|gradients| (rank, gradients))
+            }));
+        }
+        let mut loaded = Vec::with_capacity(handles.len());
+        for handle in handles {
+            let result = handle.join().map_err(|payload| {
+                let message = if let Some(message) = payload.downcast_ref::<&'static str>() {
+                    (*message).to_string()
+                } else if let Some(message) = payload.downcast_ref::<String>() {
+                    message.clone()
+                } else {
+                    String::from("unknown panic payload")
+                };
+                ParameterGolfDistributed8xH100TrainStepError::Aggregate {
+                    message: format!(
+                        "parallel distributed gradient artifact load panicked: {message}"
+                    ),
+                }
+            })?;
+            loaded.push(result?);
+        }
+        Ok::<_, ParameterGolfDistributed8xH100TrainStepError>(loaded)
+    })?;
+    loaded.sort_by_key(|(rank, _)| *rank);
+    Ok(loaded)
 }
 
 fn parse_env_usize(
