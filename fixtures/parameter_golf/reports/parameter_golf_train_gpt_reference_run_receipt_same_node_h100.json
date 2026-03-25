@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "report_id": "parameter_golf.train_gpt_reference_run_receipt.v1",
+  "run_id": "train-gpt-reference",
+  "source_log_path": "/workspace/parameter_golf_train_gpt_reference_20260325T122145Z.log",
+  "source_log_digest": "e40c2d0228265365c3d5baa749eb69cc569e164d4d3899656853468984a8a5e4",
+  "device_name": "NVIDIA H100 80GB HBM3",
+  "dataset_manifest_digest": "30a69f97f378808c8c557bbaf1f275358d90ecfa41f2b56c787b9da3c86817d6",
+  "tokenizer_digest": "4f5e8adb109c66b4886963bc75a7befd73bda36d27fd7102df8e9e66503b0e2a",
+  "geometry": {
+    "world_size": 1,
+    "train_batch_tokens": 524288,
+    "validation_batch_tokens": 524288,
+    "train_sequence_length": 1024,
+    "grad_accum_steps": 8
+  },
+  "train_step_observed_ms": 474,
+  "final_validation_observed_ms": null,
+  "final_roundtrip_eval_ms": 10723,
+  "peak_memory_allocated_mib": 10303,
+  "peak_memory_reserved_mib": 10712,
+  "final_validation_loss": 2.2889,
+  "final_validation_bpb": 1.3556,
+  "final_roundtrip_val_loss": 2.29099059,
+  "final_roundtrip_val_bpb": 1.35685367,
+  "compressed_model_bytes": 13563833,
+  "claim_boundary": "This receipt normalizes one upstream train_gpt.py run into the same machine-readable parity surface used by Psionic. It does not by itself prove same-node H100 parity until the operator supplies matched hardware/input identity and the parity report binds both sides together.",
+  "report_digest": "f0569c9f62355470035d819c1e15eb90632ee4b0fc7e8bfabd5fb56e0b3f24b4"
+}

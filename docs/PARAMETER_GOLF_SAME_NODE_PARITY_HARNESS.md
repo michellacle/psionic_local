@@ -7,8 +7,9 @@
 This document records the current same-node parity harness surface for the
 single-H100 Parameter Golf lane.
 
-It is narrower than a completed H100 parity receipt and narrower than closing
-the issue itself.
+The harness is still narrower than parity success, but it is no longer only a
+pre-closeout shell. The first real same-node H100 receipt now exists and is
+committed in this repo.
 
 ## Canonical Surfaces
 
@@ -24,6 +25,12 @@ the issue itself.
   `scripts/parameter-golf-build-same-node-parity.sh`
 - same-node parity chain wrapper:
   `scripts/parameter-golf-runpod-run-same-node-parity-chain.sh`
+- first real normalized upstream H100 receipt:
+  `fixtures/parameter_golf/reports/parameter_golf_train_gpt_reference_run_receipt_same_node_h100.json`
+- first real same-node parity report:
+  `fixtures/parameter_golf/reports/parameter_golf_same_node_parity_report_h100.json`
+- first real same-node outcome audit:
+  `docs/audits/2026-03-25-psionic-parameter-golf-same-node-h100-parity-audit.md`
 
 ## What Landed
 
@@ -55,6 +62,15 @@ The parity report is fail-closed:
 
 That keeps the later H100 parity review honest instead of relying on ad hoc log
 reading.
+
+The first real same-node H100 report now also says something concrete:
+
+- Psionic is worse on train-step wallclock
+- Psionic is worse on final roundtrip wallclock
+- Psionic is divergent on final roundtrip `val_loss` and `val_bpb`
+- Psionic is better on compressed-model bytes
+- peak-memory comparison is still blocked because the current Psionic single-H100
+  report does not yet carry a matching peak-memory metric
 
 ## Commands
 
@@ -132,16 +148,14 @@ checkout when the node has limited free capacity.
 
 This harness surface does not claim:
 
-- that a same-node H100 parity receipt already exists
-- that the current repo is already faster than the upstream baseline
-- that missing metrics like peak memory or validation timing are already
-  populated on both sides
+- that Psionic matches or beats the upstream baseline
+- that the current Psionic single-H100 receipt already carries peak-memory
+  parity with the upstream log
+- submission readiness
 
 It closes one narrower but important thing:
 
-- the repo now has one typed fail-closed comparison surface ready to consume a
-  real Psionic single-H100 receipt plus a real normalized `train_gpt.py`
-  receipt, and the repo now also ships explicit RunPod wrappers for producing
-  those inputs, including one repo-owned chain wrapper for the live-node
-  follow-up, so the later H100 run only needs evidence rather than fresh
-  schema, parser, or operator glue work
+- the repo now has one committed real same-node H100 comparison surface that
+  later parity or readiness work can cite directly, and that receipt already
+  makes the current bad outcome explicit instead of leaving it to manual log
+  reading

@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "report_id": "parameter_golf.same_node_parity_report.v1",
+  "benchmark_ref": "benchmark://openagents/parameter_golf/same_node_single_h100",
+  "disposition": "blocked",
+  "psionic_run_id": "parameter-golf-single-h100-trainer",
+  "psionic_report_digest": "f1aab6656b0c1a87c311cc833a9e316e64f2ef5a337d6a8419be1f408a8a5a61",
+  "upstream_run_id": "train-gpt-reference",
+  "upstream_report_digest": "f0569c9f62355470035d819c1e15eb90632ee4b0fc7e8bfabd5fb56e0b3f24b4",
+  "device_names_match": true,
+  "dataset_manifest_matches": true,
+  "tokenizer_matches": true,
+  "geometry_matches": true,
+  "blockers": [
+    "required parity metric `peak_memory_allocated_mib` is missing on one side of the receipt pair"
+  ],
+  "comparisons": [
+    {
+      "metric_id": "train_step_wallclock_ms",
+      "better_direction": "lower_is_better",
+      "psionic_value": 1348854.0,
+      "upstream_value": 474.0,
+      "judgment": "worse",
+      "detail": "Psionic is higher on a lower-is-better metric"
+    },
+    {
+      "metric_id": "validation_wallclock_ms",
+      "better_direction": "lower_is_better",
+      "psionic_value": 43306994.0,
+      "upstream_value": 10723.0,
+      "judgment": "worse",
+      "detail": "Psionic is higher on a lower-is-better metric"
+    },
+    {
+      "metric_id": "peak_memory_allocated_mib",
+      "better_direction": "lower_is_better",
+      "psionic_value": null,
+      "upstream_value": 10303.0,
+      "judgment": "missing",
+      "detail": "one side is missing this metric"
+    },
+    {
+      "metric_id": "final_roundtrip_val_loss",
+      "better_direction": "equal_or_divergent",
+      "psionic_value": 10.64899006955549,
+      "upstream_value": 2.29099059,
+      "judgment": "divergent",
+      "detail": "values differ by more than tolerance 0.000001"
+    },
+    {
+      "metric_id": "final_roundtrip_val_bpb",
+      "better_direction": "equal_or_divergent",
+      "psionic_value": 6.306931747817168,
+      "upstream_value": 1.35685367,
+      "judgment": "divergent",
+      "detail": "values differ by more than tolerance 0.000001"
+    },
+    {
+      "metric_id": "compressed_model_bytes",
+      "better_direction": "lower_is_better",
+      "psionic_value": 4732744.0,
+      "upstream_value": 13563833.0,
+      "judgment": "better",
+      "detail": "Psionic is lower on a lower-is-better metric"
+    }
+  ],
+  "claim_boundary": "This report compares one Psionic single-H100 receipt against one normalized upstream train_gpt.py receipt on an intended same-node surface. It stays blocked until matched hardware/input identity and the required metrics are all present, and it stays explicit when Psionic is slower, larger, or numerically divergent.",
+  "report_digest": "bbe43218cecdbe00587d29ec00821fe13cfb8fe3d85b4a4c03d6d5dffba64f63"
+}
