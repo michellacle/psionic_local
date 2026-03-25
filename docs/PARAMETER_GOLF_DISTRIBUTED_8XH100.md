@@ -192,6 +192,11 @@ train-step code now admit:
 - banked graph bindings for `q/k/v/out/fc/proj`
 - trainer-state seeding and materialization from bank tensor ids
 - slice-wise Muon updates over rank-3 bank tensors
+- banked safetensors restore back into one explicit `ParameterGolfBankedWeights`
+  runtime surface for the distributed train-step child
+- direct graph-input binding and resident training-session refresh from that
+  explicit banked runtime surface instead of regenerating the bank tensors from
+  the split model on every train-step bind
 
 What is still missing is the scoreboard-grade proof:
 

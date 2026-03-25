@@ -30,8 +30,10 @@ use crate::{
     export_parameter_golf_banked_full_precision_weights_bytes,
     export_parameter_golf_int8_zlib_model_artifact, inspect_local_distributed_8xh100_machine,
     materialize_current_banked_weights, materialize_current_model, parameter_golf_optimizer_plan,
-    parameter_golf_runpod_8xh100_capability_profile, restore_parameter_golf_model_from_safetensors,
-    seed_parameter_states, zero_gradients, ParameterGolfBatchGeometry,
+    parameter_golf_runpod_8xh100_capability_profile,
+    restore_parameter_golf_banked_weights_from_safetensors,
+    restore_parameter_golf_model_from_safetensors, seed_parameter_states, zero_gradients,
+    ParameterGolfBatchGeometry,
     ParameterGolfDistributed8xH100BringupReport,
     ParameterGolfDistributed8xH100RuntimeBootstrapReceipt,
     ParameterGolfDistributedLiveVisualizationWriter, ParameterGolfDistributedStepObservation,
@@ -1633,7 +1635,8 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step_child(
         None,
     )?;
     let baseline_model = ParameterGolfReferenceModel::baseline_fixture(Default::default())?;
-    let (model, input_model_artifact_sha256) = match input_model_artifact_path.as_ref() {
+    let (model, explicit_banked_weights, input_model_artifact_sha256) =
+        match input_model_artifact_path.as_ref() {
         Some(path) => {
             let bytes = fs::read(path).map_err(|error| {
                 ParameterGolfDistributed8xH100TrainStepError::Read {
@@ -1643,10 +1646,14 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step_child(
             })?;
             (
                 restore_parameter_golf_model_from_safetensors(&baseline_model, bytes.as_slice())?,
+                restore_parameter_golf_banked_weights_from_safetensors(
+                    &baseline_model,
+                    bytes.as_slice(),
+                )?,
                 Some(sha256_hex(bytes.as_slice())),
             )
         }
-        None => (baseline_model, None),
+        None => (baseline_model, None, None),
     };
     let geometry = ParameterGolfBatchGeometry::challenge_distributed_8xh100_defaults();
     let mut cuda_backend = CudaBackend::new();
@@ -1669,6 +1676,7 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step_child(
         &selected_device.device,
         &bundle,
         &model,
+        explicit_banked_weights.as_ref(),
         &mut graph_cache,
         None,
         &geometry,

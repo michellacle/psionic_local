@@ -21,8 +21,9 @@ use psionic_data::{
 use psionic_ir::AutodiffBackwardResult;
 use psionic_ir::{AutodiffError, GraphError};
 use psionic_models::{
-    ParameterGolfExecutionError, ParameterGolfModelError, ParameterGolfReferenceModel,
-    PARAMETER_GOLF_BASELINE_MODEL_ID, PARAMETER_GOLF_BASELINE_REVISION,
+    ParameterGolfBankedWeights, ParameterGolfExecutionError, ParameterGolfModelError,
+    ParameterGolfReferenceModel, PARAMETER_GOLF_BASELINE_MODEL_ID,
+    PARAMETER_GOLF_BASELINE_REVISION,
 };
 use psionic_runtime::{
     BufferHandle, DeliveredExecutionContext, DeviceDescriptor, RuntimeError, RuntimeHealth,
@@ -33,20 +34,23 @@ use thiserror::Error;
 
 use crate::{
     apply_parameter_golf_cuda_bf16_master_weight_optimizer_step,
-    apply_parameter_golf_cuda_muon_step, bind_parameter_golf_baseline_training_graph_inputs,
+    apply_parameter_golf_cuda_muon_step,
+    bind_parameter_golf_baseline_training_graph_inputs,
+    bind_parameter_golf_baseline_training_graph_inputs_with_banked_weights,
     build_parameter_golf_baseline_eval_graph, build_parameter_golf_baseline_training_graph,
     build_tokenizer_digest, builtin_parameter_golf_cuda_training_capability_report,
     device_matches_single_h100, export_parameter_golf_int8_zlib_model_artifact,
     inspect_local_single_h100_machine, materialize_parameter_golf_baseline_training_gradients,
-    parameter_golf_optimizer_plan, restore_parameter_golf_model_from_int8_zlib,
-    training_batch_from_window_tokens, ParameterGolfBaselineEvalGraph,
-    ParameterGolfBaselineTrainingGraph, ParameterGolfBatchGeometry,
-    ParameterGolfBf16MasterWeightStepReceipt, ParameterGolfOptimizerExecution,
-    ParameterGolfOptimizerGroupKind, ParameterGolfOptimizerPlan,
-    ParameterGolfReferenceTrainingError, ParameterGolfSingleH100BringupError,
-    ParameterGolfSingleH100ChallengeThresholds, ParameterGolfSingleH100MachineObservation,
-    ParameterGolfTrainError, ParameterGolfTrainingHyperparameters, TrainingOptimizerConfig,
-    TrainingOptimizerState, TrainingPrecisionMode, PARAMETER_GOLF_SINGLE_H100_DATASET_REF,
+    parameter_golf_optimizer_plan, parameter_golf_parameter_values_for_bindings,
+    restore_parameter_golf_model_from_int8_zlib, training_batch_from_window_tokens,
+    ParameterGolfBaselineEvalGraph, ParameterGolfBaselineTrainingGraph,
+    ParameterGolfBatchGeometry, ParameterGolfBf16MasterWeightStepReceipt,
+    ParameterGolfOptimizerExecution, ParameterGolfOptimizerGroupKind,
+    ParameterGolfOptimizerPlan, ParameterGolfReferenceTrainingError,
+    ParameterGolfSingleH100BringupError, ParameterGolfSingleH100ChallengeThresholds,
+    ParameterGolfSingleH100MachineObservation, ParameterGolfTrainError,
+    ParameterGolfTrainingHyperparameters, TrainingOptimizerConfig, TrainingOptimizerState,
+    TrainingPrecisionMode, PARAMETER_GOLF_SINGLE_H100_DATASET_REF,
     PARAMETER_GOLF_SINGLE_H100_DATASET_VERSION, PARAMETER_GOLF_SINGLE_H100_VARIANT,
 };
 
@@ -2496,6 +2500,7 @@ fn execute_parameter_golf_training_gradient_batch_from_examples(
     cuda_backend: &mut CudaBackend,
     device: &psionic_core::Device,
     current_model: &ParameterGolfReferenceModel,
+    explicit_banked_weights: Option<&ParameterGolfBankedWeights>,
     graph_cache: &mut BTreeMap<usize, ParameterGolfBaselineTrainingGraph>,
     training_session_cache: Option<&mut BTreeMap<usize, ParameterGolfCudaTrainingSession>>,
     sequence_length: usize,
@@ -2520,6 +2525,7 @@ fn execute_parameter_golf_training_gradient_batch_from_examples(
                 graph_cache,
                 device.clone(),
                 current_model,
+                explicit_banked_weights,
                 batch_size,
                 sequence_length,
             )?;
@@ -2540,9 +2546,10 @@ fn execute_parameter_golf_training_gradient_batch_from_examples(
                 batch_size,
                 sequence_length,
             )?;
-            let inputs = bind_parameter_golf_baseline_training_graph_inputs(
+            let inputs = bind_parameter_golf_baseline_training_graph_inputs_with_banked_weights(
                 graph,
                 current_model,
+                explicit_banked_weights,
                 input_ids,
                 target_ids,
             )?;
@@ -2609,6 +2616,7 @@ pub(crate) fn execute_parameter_golf_training_gradient_batch(
     device: &psionic_core::Device,
     bundle: &ParameterGolfDatasetBundle,
     current_model: &ParameterGolfReferenceModel,
+    explicit_banked_weights: Option<&ParameterGolfBankedWeights>,
     graph_cache: &mut BTreeMap<usize, ParameterGolfBaselineTrainingGraph>,
     training_session_cache: Option<&mut BTreeMap<usize, ParameterGolfCudaTrainingSession>>,
     geometry: &ParameterGolfBatchGeometry,
@@ -2625,6 +2633,7 @@ pub(crate) fn execute_parameter_golf_training_gradient_batch(
             cuda_backend,
             device,
             current_model,
+            explicit_banked_weights,
             graph_cache,
             training_session_cache,
             geometry.train_sequence_length,
@@ -2666,6 +2675,7 @@ fn execute_training_step(
     live_visualization_writer: &mut Option<crate::ParameterGolfSingleH100LiveVisualizationWriter>,
 ) -> Result<ParameterGolfSingleH100TrainingStepMetrics, ParameterGolfSingleH100TrainingError> {
     let step_started = Instant::now();
+    let current_banked_weights = current_model.banked_weights()?;
     if emit_micro_step_logs {
         emit_progress_line(format!(
             "train_step_start step={}/{} grad_accum_steps={}",
@@ -2709,6 +2719,7 @@ fn execute_training_step(
             device,
             bundle,
             current_model,
+            Some(&current_banked_weights),
             graph_cache,
             Some(training_session_cache),
             geometry,
@@ -2793,7 +2804,12 @@ fn execute_training_step(
         global_step,
     )?;
     *current_model = materialize_current_model(baseline_model, trainer_state)?;
-    refresh_parameter_golf_cuda_training_sessions(training_session_cache, current_model)?;
+    let refreshed_banked_weights = current_model.banked_weights()?;
+    refresh_parameter_golf_cuda_training_sessions(
+        training_session_cache,
+        current_model,
+        Some(&refreshed_banked_weights),
+    )?;
     step_profile.optimizer_step_ms = duration_ms(optimizer_started);
     let observed_wallclock_ms = duration_ms(step_started);
     let runtime_receipt = (!training_session_cache.is_empty()).then_some(
@@ -3155,6 +3171,7 @@ fn evaluate_score_first_ttt_on_cuda(
                             cuda_backend,
                             device,
                             &current_model,
+                            Some(&current_model.banked_weights()?),
                             train_graph_cache,
                             Some(&mut training_session_cache),
                             sequence_length,
@@ -3182,6 +3199,7 @@ fn evaluate_score_first_ttt_on_cuda(
                     refresh_parameter_golf_cuda_training_sessions(
                         &mut training_session_cache,
                         &current_model,
+                        Some(&current_model.banked_weights()?),
                     )?;
                     total_adaptation_step_count = total_adaptation_step_count.saturating_add(1);
                     let mean_loss =
@@ -4003,6 +4021,7 @@ fn training_session_for_batch<'a>(
     graph_cache: &mut BTreeMap<usize, ParameterGolfBaselineTrainingGraph>,
     device: psionic_core::Device,
     model: &ParameterGolfReferenceModel,
+    explicit_banked_weights: Option<&ParameterGolfBankedWeights>,
     batch_sequences: usize,
     sequence_length: usize,
 ) -> Result<&'a mut ParameterGolfCudaTrainingSession, ParameterGolfSingleH100TrainingError> {
@@ -4014,6 +4033,7 @@ fn training_session_for_batch<'a>(
             cuda_backend,
             graph,
             model,
+            explicit_banked_weights,
             batch_sequences,
             sequence_length,
         )?;
@@ -4031,9 +4051,10 @@ fn training_session_for_batch<'a>(
 fn refresh_parameter_golf_cuda_training_sessions(
     cache: &mut BTreeMap<usize, ParameterGolfCudaTrainingSession>,
     model: &ParameterGolfReferenceModel,
+    explicit_banked_weights: Option<&ParameterGolfBankedWeights>,
 ) -> Result<(), ParameterGolfSingleH100TrainingError> {
     for session in cache.values_mut() {
-        session.refresh_parameters(model)?;
+        session.refresh_parameters(model, explicit_banked_weights)?;
     }
     Ok(())
 }
@@ -4225,14 +4246,15 @@ impl ParameterGolfCudaTrainingSession {
         cuda_backend: &mut CudaBackend,
         graph: ParameterGolfBaselineTrainingGraph,
         model: &ParameterGolfReferenceModel,
+        explicit_banked_weights: Option<&ParameterGolfBankedWeights>,
         batch_sequences: usize,
         sequence_length: usize,
     ) -> Result<Self, ParameterGolfSingleH100TrainingError> {
-        let parameter_vectors = model
-            .all_parameter_vectors()?
-            .into_iter()
-            .map(|parameter| (parameter.parameter_id.clone(), parameter))
-            .collect::<BTreeMap<_, _>>();
+        let parameter_vectors = parameter_golf_parameter_values_for_bindings(
+            graph.parameter_bindings.as_slice(),
+            model,
+            explicit_banked_weights,
+        )?;
         let token_element_count = batch_sequences.saturating_mul(sequence_length);
         let token_shape = Shape::new(vec![batch_sequences, sequence_length]);
         let parameter_upload_started = Instant::now();
@@ -4248,11 +4270,10 @@ impl ParameterGolfCudaTrainingSession {
                     },
                 )?;
             let buffer = match binding.graph_input_dtype {
-                DType::F32 => {
-                    cuda_backend.input_buffer(binding.shape.clone(), parameter.values.clone())?
+                DType::F32 => cuda_backend.input_buffer(binding.shape.clone(), parameter.clone())?,
+                DType::BF16 => {
+                    cuda_backend.input_bf16_buffer(binding.shape.clone(), parameter.clone())?
                 }
-                DType::BF16 => cuda_backend
-                    .input_bf16_buffer(binding.shape.clone(), parameter.values.clone())?,
                 actual => {
                     return Err(ParameterGolfSingleH100TrainingError::Serialization {
                         message: format!(
@@ -4293,12 +4314,13 @@ impl ParameterGolfCudaTrainingSession {
     fn refresh_parameters(
         &mut self,
         model: &ParameterGolfReferenceModel,
+        explicit_banked_weights: Option<&ParameterGolfBankedWeights>,
     ) -> Result<(), ParameterGolfSingleH100TrainingError> {
-        let parameter_vectors = model
-            .all_parameter_vectors()?
-            .into_iter()
-            .map(|parameter| (parameter.parameter_id.clone(), parameter))
-            .collect::<BTreeMap<_, _>>();
+        let parameter_vectors = parameter_golf_parameter_values_for_bindings(
+            self.graph.parameter_bindings.as_slice(),
+            model,
+            explicit_banked_weights,
+        )?;
         let refresh_started = Instant::now();
         for binding in &self.graph.parameter_bindings {
             let parameter = parameter_vectors
@@ -4315,8 +4337,8 @@ impl ParameterGolfCudaTrainingSession {
                     tensor_id: binding.graph_input_tensor_id,
                 })?;
             match binding.graph_input_dtype {
-                DType::F32 => buffer.write_f32(parameter.values.as_slice())?,
-                DType::BF16 => buffer.write_bf16_from_f32(parameter.values.as_slice())?,
+                DType::F32 => buffer.write_f32(parameter.as_slice())?,
+                DType::BF16 => buffer.write_bf16_from_f32(parameter.as_slice())?,
                 actual => {
                     return Err(ParameterGolfSingleH100TrainingError::Serialization {
                         message: format!(
@@ -5091,6 +5113,7 @@ mod tests {
             &mut cuda_backend,
             graph.clone(),
             &model,
+            Some(&model.banked_weights()?),
             batch_size,
             sequence_length,
         )?;
@@ -5136,7 +5159,7 @@ mod tests {
         assert!(resident_runtime.resident_parameter_upload_us > 0);
         assert_eq!(resident_runtime.parameter_refresh_us, 0);
 
-        resident_session.refresh_parameters(&model)?;
+        resident_session.refresh_parameters(&model, Some(&model.banked_weights()?))?;
         let (_, _, refreshed_runtime) = resident_session.execute_batch(
             &mut cuda_backend,
             input_ids.as_slice(),

@@ -1669,6 +1669,45 @@ pub fn restore_parameter_golf_model_from_safetensors(
     }
 }
 
+/// Restores the explicit upstream-style banked runtime-weight surface when the
+/// safetensors payload was exported in the banked score-path format.
+pub fn restore_parameter_golf_banked_weights_from_safetensors(
+    baseline_model: &ParameterGolfReferenceModel,
+    weights_bytes: &[u8],
+) -> Result<Option<ParameterGolfBankedWeights>, ParameterGolfReferenceTrainingError> {
+    let (_, metadata) = SafeTensors::read_metadata(weights_bytes).map_err(|error| {
+        ParameterGolfReferenceTrainingError::Serialization {
+            context: "parameter golf banked safetensors restore",
+            message: error.to_string(),
+        }
+    })?;
+    let safetensors = SafeTensors::deserialize(weights_bytes).map_err(|error| {
+        ParameterGolfReferenceTrainingError::Serialization {
+            context: "parameter golf banked safetensors restore",
+            message: error.to_string(),
+        }
+    })?;
+    let weight_surface = metadata
+        .metadata()
+        .as_ref()
+        .and_then(|metadata| metadata.get(PARAMETER_GOLF_WEIGHT_SURFACE_KEY))
+        .map(String::as_str)
+        .unwrap_or(PARAMETER_GOLF_SPLIT_WEIGHT_SURFACE);
+    match weight_surface {
+        PARAMETER_GOLF_SPLIT_WEIGHT_SURFACE => Ok(None),
+        PARAMETER_GOLF_BANKED_WEIGHT_SURFACE => Ok(Some(
+            restore_parameter_golf_banked_weights_from_banked_safetensors_impl(
+                baseline_model,
+                &safetensors,
+            )?,
+        )),
+        other => Err(ParameterGolfReferenceTrainingError::Serialization {
+            context: "parameter golf banked safetensors restore",
+            message: format!("unsupported parameter golf weight surface `{other}`"),
+        }),
+    }
+}
+
 fn restore_parameter_golf_model_from_split_safetensors(
     baseline_model: &ParameterGolfReferenceModel,
     safetensors: &SafeTensors<'_>,
@@ -1714,6 +1753,20 @@ fn restore_parameter_golf_model_from_banked_safetensors_impl(
     baseline_model: &ParameterGolfReferenceModel,
     safetensors: &SafeTensors<'_>,
 ) -> Result<ParameterGolfReferenceModel, ParameterGolfReferenceTrainingError> {
+    let weights =
+        restore_parameter_golf_banked_weights_from_banked_safetensors_impl(baseline_model, safetensors)?
+            .to_split(&baseline_model.descriptor().config)?;
+    Ok(ParameterGolfReferenceModel::new(
+        baseline_model.descriptor().model.clone(),
+        baseline_model.descriptor().config.clone(),
+        weights,
+    )?)
+}
+
+fn restore_parameter_golf_banked_weights_from_banked_safetensors_impl(
+    baseline_model: &ParameterGolfReferenceModel,
+    safetensors: &SafeTensors<'_>,
+) -> Result<ParameterGolfBankedWeights, ParameterGolfReferenceTrainingError> {
     let config = &baseline_model.descriptor().config;
     let banked_weights = baseline_model.banked_weights()?;
     let mut overrides = BTreeMap::new();
@@ -1740,14 +1793,7 @@ fn restore_parameter_golf_model_from_banked_safetensors_impl(
             )?,
         );
     }
-    let weights = banked_weights
-        .with_parameter_overrides(config, &overrides)?
-        .to_split(config)?;
-    Ok(ParameterGolfReferenceModel::new(
-        baseline_model.descriptor().model.clone(),
-        config.clone(),
-        weights,
-    )?)
+    Ok(banked_weights.with_parameter_overrides(config, &overrides)?)
 }
 
 /// Restores one int8+zlib model export back into the full-precision reference family.
@@ -2542,6 +2588,7 @@ mod tests {
         checkpoint_async_writeback_payload, read_parameter_golf_checkpoint_from_directory,
         export_parameter_golf_banked_full_precision_model_bytes,
         export_parameter_golf_full_precision_model_bytes,
+        restore_parameter_golf_banked_weights_from_safetensors,
         restore_parameter_golf_local_reference_checkpoint,
         restore_parameter_golf_model_from_int8_zlib, restore_parameter_golf_model_from_safetensors,
         train_parameter_golf_local_reference,
@@ -2820,6 +2867,18 @@ mod tests {
         let bytes = export_parameter_golf_banked_full_precision_model_bytes(&model)?;
         let restored = restore_parameter_golf_model_from_safetensors(&model, bytes.as_slice())?;
         assert_eq!(restored, model);
+        Ok(())
+    }
+
+    #[test]
+    fn parameter_golf_banked_full_precision_safetensors_roundtrip_restores_banked_weights(
+    ) -> Result<(), Box<dyn Error>> {
+        let model = ParameterGolfReferenceModel::baseline_fixture(Default::default())?;
+        let expected = model.banked_weights()?;
+        let bytes = export_parameter_golf_banked_full_precision_model_bytes(&model)?;
+        let restored =
+            restore_parameter_golf_banked_weights_from_safetensors(&model, bytes.as_slice())?;
+        assert_eq!(restored.as_ref(), Some(&expected));
         Ok(())
     }
 }

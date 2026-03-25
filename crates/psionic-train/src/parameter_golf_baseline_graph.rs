@@ -6,10 +6,11 @@ use psionic_ir::{
     GraphError, ReferenceEvaluationError,
 };
 use psionic_models::{
-    ParameterGolfConfig, ParameterGolfConfigError, ParameterGolfExecutionError,
-    ParameterGolfModelDescriptor, ParameterGolfModelError, ParameterGolfReferenceModel,
-    ParameterGolfTensor3, ParameterGolfTensorError, PARAMETER_GOLF_DEFAULT_RMS_NORM_EPSILON,
-    PARAMETER_GOLF_KV_BANK_NAME, PARAMETER_GOLF_MLP_DOWN_BANK_NAME,
+    ParameterGolfBankedWeights, ParameterGolfConfig, ParameterGolfConfigError,
+    ParameterGolfExecutionError, ParameterGolfModelDescriptor, ParameterGolfModelError,
+    ParameterGolfReferenceModel, ParameterGolfTensor3, ParameterGolfTensorError,
+    PARAMETER_GOLF_DEFAULT_RMS_NORM_EPSILON, PARAMETER_GOLF_KV_BANK_NAME,
+    PARAMETER_GOLF_MATRIX_BANK_NAMES, PARAMETER_GOLF_MLP_DOWN_BANK_NAME,
     PARAMETER_GOLF_MLP_UP_BANK_NAME, PARAMETER_GOLF_QO_BANK_NAME,
 };
 use serde::{Deserialize, Serialize};
@@ -302,10 +303,23 @@ pub fn bind_parameter_golf_baseline_graph_inputs(
     model: &ParameterGolfReferenceModel,
     input_ids: &[Vec<u32>],
 ) -> Result<BTreeMap<TensorId, TensorData>, ParameterGolfBaselineGraphError> {
+    bind_parameter_golf_baseline_graph_inputs_with_banked_weights(graph, model, None, input_ids)
+}
+
+/// Builds one token-id plus parameter input map for the lowered Parameter Golf
+/// baseline graph while reusing one explicit banked runtime surface when the
+/// caller already owns it.
+pub fn bind_parameter_golf_baseline_graph_inputs_with_banked_weights(
+    graph: &ParameterGolfBaselineGraph,
+    model: &ParameterGolfReferenceModel,
+    explicit_banked_weights: Option<&ParameterGolfBankedWeights>,
+    input_ids: &[Vec<u32>],
+) -> Result<BTreeMap<TensorId, TensorData>, ParameterGolfBaselineGraphError> {
     bind_parameter_golf_graph_inputs(
         graph.input_token_ids_tensor_id,
         graph.parameter_bindings.as_slice(),
         model,
+        explicit_banked_weights,
         input_ids,
     )
 }
@@ -318,11 +332,31 @@ pub fn bind_parameter_golf_baseline_training_graph_inputs(
     input_ids: &[Vec<u32>],
     target_ids: &[Vec<u32>],
 ) -> Result<BTreeMap<TensorId, TensorData>, ParameterGolfBaselineGraphError> {
+    bind_parameter_golf_baseline_training_graph_inputs_with_banked_weights(
+        graph,
+        model,
+        None,
+        input_ids,
+        target_ids,
+    )
+}
+
+/// Builds one token-id plus parameter input map for the lowered Parameter Golf
+/// baseline training graph while reusing one explicit banked runtime surface
+/// when the caller already owns it.
+pub fn bind_parameter_golf_baseline_training_graph_inputs_with_banked_weights(
+    graph: &ParameterGolfBaselineTrainingGraph,
+    model: &ParameterGolfReferenceModel,
+    explicit_banked_weights: Option<&ParameterGolfBankedWeights>,
+    input_ids: &[Vec<u32>],
+    target_ids: &[Vec<u32>],
+) -> Result<BTreeMap<TensorId, TensorData>, ParameterGolfBaselineGraphError> {
     bind_parameter_golf_loss_graph_inputs(
         graph.input_token_ids_tensor_id,
         graph.target_ids_tensor_id,
         graph.parameter_bindings.as_slice(),
         model,
+        explicit_banked_weights,
         input_ids,
         target_ids,
     )
@@ -336,11 +370,31 @@ pub fn bind_parameter_golf_baseline_eval_graph_inputs(
     input_ids: &[Vec<u32>],
     target_ids: &[Vec<u32>],
 ) -> Result<BTreeMap<TensorId, TensorData>, ParameterGolfBaselineGraphError> {
+    bind_parameter_golf_baseline_eval_graph_inputs_with_banked_weights(
+        graph,
+        model,
+        None,
+        input_ids,
+        target_ids,
+    )
+}
+
+/// Builds one token-id plus parameter input map for the lowered Parameter Golf
+/// baseline eval graph while reusing one explicit banked runtime surface when
+/// the caller already owns it.
+pub fn bind_parameter_golf_baseline_eval_graph_inputs_with_banked_weights(
+    graph: &ParameterGolfBaselineEvalGraph,
+    model: &ParameterGolfReferenceModel,
+    explicit_banked_weights: Option<&ParameterGolfBankedWeights>,
+    input_ids: &[Vec<u32>],
+    target_ids: &[Vec<u32>],
+) -> Result<BTreeMap<TensorId, TensorData>, ParameterGolfBaselineGraphError> {
     bind_parameter_golf_loss_graph_inputs(
         graph.input_token_ids_tensor_id,
         graph.target_ids_tensor_id,
         graph.parameter_bindings.as_slice(),
         model,
+        explicit_banked_weights,
         input_ids,
         target_ids,
     )
@@ -350,16 +404,14 @@ fn bind_parameter_golf_graph_inputs(
     input_token_ids_tensor_id: TensorId,
     parameter_bindings: &[ParameterGolfBaselineGraphParameterBinding],
     model: &ParameterGolfReferenceModel,
+    explicit_banked_weights: Option<&ParameterGolfBankedWeights>,
     input_ids: &[Vec<u32>],
 ) -> Result<BTreeMap<TensorId, TensorData>, ParameterGolfBaselineGraphError> {
     let config = &model.descriptor().config;
     validate_token_batch(input_ids, config.vocab_size)?;
 
-    let parameter_vectors = model
-        .all_parameter_vectors()?
-        .into_iter()
-        .map(|parameter| (parameter.parameter_id.clone(), parameter))
-        .collect::<BTreeMap<_, _>>();
+    let parameter_vectors =
+        parameter_golf_parameter_values_for_bindings(parameter_bindings, model, explicit_banked_weights)?;
     let mut inputs = BTreeMap::new();
     inputs.insert(
         input_token_ids_tensor_id,
@@ -377,8 +429,8 @@ fn bind_parameter_golf_graph_inputs(
                 parameter_id: binding.parameter_id.clone(),
             })?;
         let parameter_data = match binding.graph_input_dtype {
-            DType::F32 => TensorData::F32(parameter.values.clone()),
-            DType::BF16 => TensorData::BF16(parameter.values.clone()),
+            DType::F32 => TensorData::F32(parameter.clone()),
+            DType::BF16 => TensorData::BF16(parameter.clone()),
             actual => {
                 return Err(ParameterGolfBaselineGraphError::Graph(
                     GraphError::InvalidOperatorInputs {
@@ -401,6 +453,7 @@ fn bind_parameter_golf_loss_graph_inputs(
     target_ids_tensor_id: TensorId,
     parameter_bindings: &[ParameterGolfBaselineGraphParameterBinding],
     model: &ParameterGolfReferenceModel,
+    explicit_banked_weights: Option<&ParameterGolfBankedWeights>,
     input_ids: &[Vec<u32>],
     target_ids: &[Vec<u32>],
 ) -> Result<BTreeMap<TensorId, TensorData>, ParameterGolfBaselineGraphError> {
@@ -408,6 +461,7 @@ fn bind_parameter_golf_loss_graph_inputs(
         input_token_ids_tensor_id,
         parameter_bindings,
         model,
+        explicit_banked_weights,
         input_ids,
     )?;
     let (batch_size, sequence_length) =
@@ -424,6 +478,56 @@ fn bind_parameter_golf_loss_graph_inputs(
         ),
     );
     Ok(inputs)
+}
+
+pub(crate) fn parameter_golf_parameter_values_for_bindings(
+    parameter_bindings: &[ParameterGolfBaselineGraphParameterBinding],
+    model: &ParameterGolfReferenceModel,
+    explicit_banked_weights: Option<&ParameterGolfBankedWeights>,
+) -> Result<BTreeMap<String, Vec<f32>>, ParameterGolfBaselineGraphError> {
+    let config = &model.descriptor().config;
+    let split_parameter_vectors = model
+        .weights()
+        .parameter_vectors(config)
+        .into_iter()
+        .map(|parameter| (parameter.parameter_id, parameter.values))
+        .collect::<BTreeMap<_, _>>();
+    let needs_banked_runtime_surface = parameter_bindings
+        .iter()
+        .any(|binding| PARAMETER_GOLF_MATRIX_BANK_NAMES.contains(&binding.parameter_id.as_str()));
+    let owned_banked_weights = if explicit_banked_weights.is_none() && needs_banked_runtime_surface {
+        Some(model.banked_weights()?)
+    } else {
+        None
+    };
+    let banked_weights = explicit_banked_weights.or(owned_banked_weights.as_ref());
+    let banked_parameter_vectors = if let Some(banked_weights) = banked_weights {
+        banked_weights
+            .parameter_vectors(config)
+            .into_iter()
+            .map(|parameter| (parameter.parameter_id, parameter.values))
+            .collect::<BTreeMap<_, _>>()
+    } else {
+        BTreeMap::new()
+    };
+    let mut parameter_vectors = BTreeMap::new();
+    for binding in parameter_bindings {
+        let values = if PARAMETER_GOLF_MATRIX_BANK_NAMES.contains(&binding.parameter_id.as_str()) {
+            banked_parameter_vectors
+                .get(&binding.parameter_id)
+                .ok_or_else(|| ParameterGolfBaselineGraphError::MissingWeightVector {
+                    parameter_id: binding.parameter_id.clone(),
+                })?
+        } else {
+            split_parameter_vectors
+                .get(&binding.parameter_id)
+                .ok_or_else(|| ParameterGolfBaselineGraphError::MissingWeightVector {
+                    parameter_id: binding.parameter_id.clone(),
+                })?
+        };
+        parameter_vectors.insert(binding.parameter_id.clone(), values.clone());
+    }
+    Ok(parameter_vectors)
 }
 
 /// Applies the host-owned logit softcap and cross-entropy gradient seed for one
