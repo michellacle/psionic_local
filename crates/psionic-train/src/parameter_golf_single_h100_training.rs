@@ -6457,6 +6457,100 @@ mod tests {
     }
 
     #[test]
+    fn device_resident_banked_training_session_matches_reference_loss_and_gradients(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let mut cuda_backend = CudaBackend::new();
+        let Some(selected_device) = cuda_backend.selected_device().cloned() else {
+            return Ok(());
+        };
+
+        let model = ParameterGolfReferenceModel::baseline_fixture(Default::default())?;
+        let descriptor = model.banked_descriptor()?;
+        let batch_size = 1;
+        let sequence_length = 16;
+        let graph = build_parameter_golf_baseline_training_graph(
+            selected_device.device.clone(),
+            &descriptor,
+            batch_size,
+            sequence_length,
+        )?;
+        let input_ids = vec![vec![0_u32; sequence_length]];
+        let target_ids = vec![vec![1_u32; sequence_length]];
+        let reference_inputs = bind_parameter_golf_baseline_training_graph_inputs(
+            &graph,
+            &model,
+            input_ids.as_slice(),
+            target_ids.as_slice(),
+        )?;
+        let backward_plan = graph.graph.backward_plan(graph.loss_tensor_id)?;
+        let retained_graph = retained_forward_graph(&graph, &backward_plan);
+        let reference_forward = execute_cuda_graph_output_buffers(
+            &mut cuda_backend,
+            &retained_graph,
+            &reference_inputs,
+        )?;
+        let reference_loss =
+            scalar_float_cuda_buffer_output(&reference_forward, graph.loss_tensor_id)?;
+        let reference_backward_outputs =
+            execute_backward_plan(&mut cuda_backend, &backward_plan, &reference_forward)?;
+        let reference_backward =
+            backward_result_from_outputs(&backward_plan, reference_backward_outputs.as_slice())?;
+        let reference_gradients = materialize_parameter_golf_baseline_training_gradients(
+            &graph,
+            &reference_backward,
+            &descriptor.config,
+            input_ids.as_slice(),
+        )?;
+
+        let mut resident_session = ParameterGolfCudaTrainingSession::new(
+            &mut cuda_backend,
+            graph.clone(),
+            &model,
+            Some(&model.banked_weights()?),
+            batch_size,
+            sequence_length,
+        )?;
+        let (resident_loss, resident_backward_outputs, _) = resident_session.execute_batch(
+            &mut cuda_backend,
+            input_ids.as_slice(),
+            target_ids.as_slice(),
+        )?;
+        let resident_backward_result = backward_result_from_outputs(
+            &resident_session.backward_plan,
+            resident_backward_outputs.as_slice(),
+        )?;
+        let resident_gradients = materialize_parameter_golf_baseline_training_gradients(
+            &graph,
+            &resident_backward_result,
+            &descriptor.config,
+            input_ids.as_slice(),
+        )?;
+
+        assert!((reference_loss - resident_loss).abs() < 1.0e-5);
+        assert_eq!(
+            reference_gradients
+                .parameter_gradients
+                .keys()
+                .collect::<Vec<_>>(),
+            resident_gradients
+                .parameter_gradients
+                .keys()
+                .collect::<Vec<_>>()
+        );
+        for (parameter_id, reference_values) in &reference_gradients.parameter_gradients {
+            let resident_values = resident_gradients
+                .parameter_gradients
+                .get(parameter_id)
+                .ok_or("missing resident gradient parameter")?;
+            assert_eq!(reference_values.len(), resident_values.len());
+            for (reference, resident) in reference_values.iter().zip(resident_values.iter()) {
+                assert!((reference - resident).abs() < 1.0e-4);
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
     fn device_resident_validation_session_reuses_training_parameter_buffers_across_batch_sizes(
     ) -> Result<(), Box<dyn std::error::Error>> {
         let mut cuda_backend = CudaBackend::new();

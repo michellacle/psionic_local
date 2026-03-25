@@ -888,7 +888,7 @@ fn build_baseline_graph_state(
         config.effective_rope_rotary_dim()?,
         config.rope_base,
     )?;
-    let use_banked_matrix_execution = !parameter_requires_grad;
+    let use_banked_matrix_execution = true;
 
     let mut x = builder.rms_norm(
         &embedded_input,
@@ -2534,7 +2534,7 @@ mod tests {
     }
 
     #[test]
-    fn parameter_golf_banked_training_graph_matches_split_surface_loss(
+    fn parameter_golf_banked_training_graph_uses_direct_banked_linear_ops_and_matches_split_surface_loss(
     ) -> Result<(), Box<dyn std::error::Error>> {
         let fixture = load_baseline_fixture();
         let model = baseline_model()?;
@@ -2557,6 +2557,49 @@ mod tests {
         assert!(banked_graph
             .parameter_binding("blocks.0.attn.c_q.weight")
             .is_none());
+        let bank_tensor_ids = [
+            PARAMETER_GOLF_QO_BANK_NAME,
+            PARAMETER_GOLF_KV_BANK_NAME,
+            PARAMETER_GOLF_MLP_UP_BANK_NAME,
+            PARAMETER_GOLF_MLP_DOWN_BANK_NAME,
+        ]
+        .into_iter()
+        .map(|parameter_id| {
+            banked_graph
+                .parameter_binding(parameter_id)
+                .map(|binding| binding.graph_input_tensor_id)
+                .ok_or("missing bank binding")
+        })
+        .collect::<Result<std::collections::BTreeSet<_>, _>>()?;
+        let banked_linear_count = banked_graph
+            .graph
+            .graph()
+            .nodes()
+            .iter()
+            .filter(|node| {
+                matches!(
+                    node.op(),
+                    OpKind::BackendExtension {
+                        op: BackendExtensionOp::ParameterGolfBankedLinear { .. }
+                    }
+                )
+            })
+            .count();
+        let bank_slice_count = banked_graph
+            .graph
+            .graph()
+            .nodes()
+            .iter()
+            .filter(|node| {
+                matches!(node.op(), OpKind::Slice { .. } | OpKind::Select { .. })
+                    && node
+                        .inputs()
+                        .iter()
+                        .any(|tensor_id| bank_tensor_ids.contains(tensor_id))
+            })
+            .count();
+        assert!(banked_linear_count > 0);
+        assert_eq!(bank_slice_count, 0);
 
         let split_inputs = bind_parameter_golf_baseline_training_graph_inputs(
             &split_graph,

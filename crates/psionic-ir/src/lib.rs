@@ -3901,6 +3901,18 @@ const BUILTIN_OPERATOR_SCHEMAS: &[OperatorSchema] = &[
         OperatorMetaExecutionKind::BuiltinInference,
     ),
     OperatorSchema::new(
+        "parameter_golf_banked_linear_input_backward",
+        OperatorArity::Fixed(2),
+        OperatorImplementationKind::BackendKernel,
+        OperatorMetaExecutionKind::BuiltinInference,
+    ),
+    OperatorSchema::new(
+        "parameter_golf_banked_linear_weight_backward",
+        OperatorArity::Fixed(3),
+        OperatorImplementationKind::BackendKernel,
+        OperatorMetaExecutionKind::BuiltinInference,
+    ),
+    OperatorSchema::new(
         "parameter_golf_token_embedding_lookup_backward",
         OperatorArity::Fixed(3),
         OperatorImplementationKind::BackendKernel,
@@ -4561,6 +4573,20 @@ fn meta_execute_backend_extension(
                 *bank_index,
             )
         }
+        BackendExtensionOp::ParameterGolfBankedLinearInputBackward { bank_index } => {
+            validate_parameter_golf_banked_linear_input_backward_spec(
+                "parameter_golf_banked_linear_input_backward",
+                inputs,
+                *bank_index,
+            )
+        }
+        BackendExtensionOp::ParameterGolfBankedLinearWeightBackward { bank_index } => {
+            validate_parameter_golf_banked_linear_weight_backward_spec(
+                "parameter_golf_banked_linear_weight_backward",
+                inputs,
+                *bank_index,
+            )
+        }
         BackendExtensionOp::ParameterGolfTokenEmbeddingLookupBackward => {
             validate_parameter_golf_token_embedding_lookup_backward_spec(
                 "parameter_golf_token_embedding_lookup_backward",
@@ -5131,6 +5157,41 @@ impl GraphBuilder {
         Ok(self.register_backend_extension(op, vec![input.id(), matrix_bank.id()], spec))
     }
 
+    pub(crate) fn parameter_golf_banked_linear_input_backward(
+        &mut self,
+        grad_output: &Tensor,
+        matrix_bank: &Tensor,
+        bank_index: usize,
+    ) -> Result<Tensor, GraphError> {
+        let op = BackendExtensionOp::ParameterGolfBankedLinearInputBackward { bank_index };
+        let spec = self.meta_spec(
+            &ExecutionOp::BackendExtension { op: op.clone() },
+            &[grad_output, matrix_bank],
+            None,
+        )?;
+        Ok(self.register_backend_extension(op, vec![grad_output.id(), matrix_bank.id()], spec))
+    }
+
+    pub(crate) fn parameter_golf_banked_linear_weight_backward(
+        &mut self,
+        input: &Tensor,
+        matrix_bank: &Tensor,
+        grad_output: &Tensor,
+        bank_index: usize,
+    ) -> Result<Tensor, GraphError> {
+        let op = BackendExtensionOp::ParameterGolfBankedLinearWeightBackward { bank_index };
+        let spec = self.meta_spec(
+            &ExecutionOp::BackendExtension { op: op.clone() },
+            &[input, matrix_bank, grad_output],
+            None,
+        )?;
+        Ok(self.register_backend_extension(
+            op,
+            vec![input.id(), matrix_bank.id(), grad_output.id()],
+            spec,
+        ))
+    }
+
     pub(crate) fn parameter_golf_token_embedding_lookup_backward(
         &mut self,
         token_ids: &Tensor,
@@ -5697,7 +5758,9 @@ fn format_backend_extension_payload(op: &BackendExtensionOp) -> String {
         | BackendExtensionOp::ReluSquaredBackward
         | BackendExtensionOp::Silu
         | BackendExtensionOp::SiluBackward => String::new(),
-        BackendExtensionOp::ParameterGolfBankedLinear { bank_index } => {
+        BackendExtensionOp::ParameterGolfBankedLinear { bank_index }
+        | BackendExtensionOp::ParameterGolfBankedLinearInputBackward { bank_index }
+        | BackendExtensionOp::ParameterGolfBankedLinearWeightBackward { bank_index } => {
             format!("bank_index={bank_index}")
         }
         BackendExtensionOp::LeakyReluSquared { negative_slope }
@@ -6266,6 +6329,125 @@ fn validate_parameter_golf_banked_linear_spec(
         ]),
         DType::F32,
         input.device().clone(),
+    ))
+}
+
+fn validate_parameter_golf_banked_linear_input_backward_spec(
+    label: &str,
+    inputs: &[TensorSpec],
+    bank_index: usize,
+) -> Result<TensorSpec, GraphError> {
+    if inputs.len() != 2 {
+        return Err(extension_error(
+            label,
+            format!("expected 2 inputs, received {}", inputs.len()),
+        ));
+    }
+    let grad_output = &inputs[0];
+    let matrix_bank = &inputs[1];
+    if grad_output.dtype() != DType::F32 {
+        return Err(extension_error(
+            label,
+            format!(
+                "grad_output dtype must be F32, actual {:?}",
+                grad_output.dtype()
+            ),
+        ));
+    }
+    if matrix_bank.dtype() != DType::F32 && matrix_bank.dtype() != DType::BF16 {
+        return Err(extension_error(
+            label,
+            format!(
+                "matrix_bank dtype must be F32 or BF16 weights, actual {:?}",
+                matrix_bank.dtype()
+            ),
+        ));
+    }
+    if grad_output.device() != matrix_bank.device() {
+        return Err(extension_error(
+            label,
+            format!(
+                "grad_output device {} must match matrix_bank device {}",
+                grad_output.device(),
+                matrix_bank.device()
+            ),
+        ));
+    }
+    if grad_output.shape().dims().len() != 3 {
+        return Err(extension_error(
+            label,
+            format!(
+                "grad_output shape {} must be rank-3 [batch, seq, out_features]",
+                grad_output.shape()
+            ),
+        ));
+    }
+    if matrix_bank.shape().dims().len() != 3 {
+        return Err(extension_error(
+            label,
+            format!(
+                "matrix_bank shape {} must be rank-3 [bank_len, out_features, in_features]",
+                matrix_bank.shape()
+            ),
+        ));
+    }
+    if grad_output.shape().dims()[2] != matrix_bank.shape().dims()[1] {
+        return Err(extension_error(
+            label,
+            format!(
+                "grad_output out_features {} must match matrix_bank out_features {}",
+                grad_output.shape().dims()[2],
+                matrix_bank.shape().dims()[1],
+            ),
+        ));
+    }
+    if bank_index >= matrix_bank.shape().dims()[0] {
+        return Err(extension_error(
+            label,
+            format!(
+                "bank_index {bank_index} exceeds matrix_bank length {}",
+                matrix_bank.shape().dims()[0]
+            ),
+        ));
+    }
+    Ok(TensorSpec::new(
+        Shape::new(vec![
+            grad_output.shape().dims()[0],
+            grad_output.shape().dims()[1],
+            matrix_bank.shape().dims()[2],
+        ]),
+        DType::F32,
+        grad_output.device().clone(),
+    ))
+}
+
+fn validate_parameter_golf_banked_linear_weight_backward_spec(
+    label: &str,
+    inputs: &[TensorSpec],
+    bank_index: usize,
+) -> Result<TensorSpec, GraphError> {
+    if inputs.len() != 3 {
+        return Err(extension_error(
+            label,
+            format!("expected 3 inputs, received {}", inputs.len()),
+        ));
+    }
+    let forward_spec = validate_parameter_golf_banked_linear_spec(label, &inputs[..2], bank_index)?;
+    let grad_output = &inputs[2];
+    if grad_output != &forward_spec {
+        return Err(extension_error(
+            label,
+            format!(
+                "grad_output spec {} must match forward output spec {}",
+                format_spec(grad_output),
+                format_spec(&forward_spec)
+            ),
+        ));
+    }
+    Ok(TensorSpec::new(
+        inputs[1].shape().clone(),
+        DType::F32,
+        inputs[1].device().clone(),
     ))
 }
 

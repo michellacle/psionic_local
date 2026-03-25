@@ -79,6 +79,8 @@ pub const SUPPORTED_OPS: &[&str] = &[
     "silu_backward",
     "parameter_golf_token_embedding_lookup",
     "parameter_golf_banked_linear",
+    "parameter_golf_banked_linear_input_backward",
+    "parameter_golf_banked_linear_weight_backward",
     "parameter_golf_token_embedding_lookup_backward",
     "parameter_golf_projection_loss",
     "parameter_golf_projection_token_losses",
@@ -4291,6 +4293,226 @@ impl AvailableCudaBackend {
         Ok(output)
     }
 
+    fn execute_parameter_golf_banked_linear_input_backward_step(
+        &self,
+        submission: &mut CudaSubmission,
+        step: &ExecutionStep,
+        values: &BTreeMap<TensorId, CudaBuffer>,
+        bank_index: usize,
+    ) -> Result<CudaBuffer, RuntimeError> {
+        let grad_output = step_input(step, values, 0)?;
+        let matrix_bank = step_input(step, values, 1)?;
+        let grad_dims = grad_output.spec().shape().dims();
+        let bank_dims = matrix_bank.spec().shape().dims();
+        if grad_output.spec().dtype() != DType::F32
+            || (matrix_bank.spec().dtype() != DType::F32
+                && matrix_bank.spec().dtype() != DType::BF16)
+        {
+            return Err(RuntimeError::Backend(String::from(
+                "cuda parameter_golf_banked_linear_input_backward requires F32 grad_output and F32 or BF16 weights",
+            )));
+        }
+        if grad_dims.len() != 3 || bank_dims.len() != 3 {
+            return Err(RuntimeError::Backend(String::from(
+                "cuda parameter_golf_banked_linear_input_backward requires rank-3 grad_output [batch, seq, out_features] and rank-3 matrix_bank [bank_len, out_features, in_features]",
+            )));
+        }
+        if grad_dims[2] != bank_dims[1] {
+            return Err(RuntimeError::Backend(String::from(
+                "cuda parameter_golf_banked_linear_input_backward requires grad_output out_features to match matrix_bank out_features",
+            )));
+        }
+        if bank_index >= bank_dims[0] {
+            return Err(RuntimeError::Backend(format!(
+                "cuda parameter_golf_banked_linear_input_backward bank_index {bank_index} exceeds bank length {}",
+                bank_dims[0]
+            )));
+        }
+
+        let rows = grad_dims[0].saturating_mul(grad_dims[1]);
+        let out_features = grad_dims[2];
+        let in_features = bank_dims[2];
+        let grad_flat = grad_output.alias_with_spec(&TensorSpec::new(
+            Shape::new(vec![rows, out_features]),
+            DType::F32,
+            grad_output.spec().device().clone(),
+        ))?;
+        let output = self.allocate(&step.spec)?;
+        let output_flat = output.alias_with_spec(&TensorSpec::new(
+            Shape::new(vec![rows, in_features]),
+            DType::F32,
+            output.spec().device().clone(),
+        ))?;
+        let matrix_shape = Shape::new(vec![out_features, in_features]);
+        let matrix_spec = TensorSpec::new(
+            matrix_shape.clone(),
+            matrix_bank.spec().dtype(),
+            matrix_bank.spec().device().clone(),
+        );
+        let matrix = self.allocate(&matrix_spec)?;
+        let matrix_byte_len = matrix.byte_len();
+        let source_byte_offset = bank_index.checked_mul(matrix_byte_len).ok_or_else(|| {
+            RuntimeError::Backend(String::from(
+                "cuda parameter_golf_banked_linear_input_backward source offset overflow",
+            ))
+        })?;
+        submission.copy_buffer_region(
+            matrix_bank,
+            source_byte_offset,
+            &matrix,
+            0,
+            matrix_byte_len,
+        )?;
+
+        match matrix_bank.spec().dtype() {
+            DType::BF16 => submission.matmul_f32_bf16_strided_batched_to_f32_with_strides(
+                &grad_flat,
+                &matrix,
+                &output_flat,
+                rows,
+                out_features,
+                in_features,
+                1,
+                rows.saturating_mul(out_features),
+                out_features.saturating_mul(in_features),
+                rows.saturating_mul(in_features),
+                false,
+                false,
+            )?,
+            DType::F32 => submission.matmul(
+                &grad_flat,
+                &matrix,
+                &output_flat,
+                rows,
+                out_features,
+                in_features,
+            )?,
+            actual => {
+                return Err(RuntimeError::Backend(format!(
+                    "cuda parameter_golf_banked_linear_input_backward does not support matrix_bank dtype {actual:?}",
+                )));
+            }
+        }
+        Ok(output)
+    }
+
+    fn execute_parameter_golf_banked_linear_weight_backward_step(
+        &self,
+        submission: &mut CudaSubmission,
+        step: &ExecutionStep,
+        values: &BTreeMap<TensorId, CudaBuffer>,
+        bank_index: usize,
+    ) -> Result<CudaBuffer, RuntimeError> {
+        let input = step_input(step, values, 0)?;
+        let matrix_bank = step_input(step, values, 1)?;
+        let grad_output = step_input(step, values, 2)?;
+        let input_dims = input.spec().shape().dims();
+        let bank_dims = matrix_bank.spec().shape().dims();
+        let grad_dims = grad_output.spec().shape().dims();
+        if (input.spec().dtype() != DType::F32 && input.spec().dtype() != DType::BF16)
+            || grad_output.spec().dtype() != DType::F32
+            || (matrix_bank.spec().dtype() != DType::F32
+                && matrix_bank.spec().dtype() != DType::BF16)
+        {
+            return Err(RuntimeError::Backend(String::from(
+                "cuda parameter_golf_banked_linear_weight_backward requires F32 grad_output and F32 or BF16 activations and weights",
+            )));
+        }
+        if input_dims.len() != 3 || bank_dims.len() != 3 || grad_dims.len() != 3 {
+            return Err(RuntimeError::Backend(String::from(
+                "cuda parameter_golf_banked_linear_weight_backward requires rank-3 input [batch, seq, in_features], rank-3 matrix_bank [bank_len, out_features, in_features], and rank-3 grad_output [batch, seq, out_features]",
+            )));
+        }
+        if input_dims[0] != grad_dims[0] || input_dims[1] != grad_dims[1] {
+            return Err(RuntimeError::Backend(String::from(
+                "cuda parameter_golf_banked_linear_weight_backward requires input and grad_output batch/seq dimensions to match",
+            )));
+        }
+        if input_dims[2] != bank_dims[2] || grad_dims[2] != bank_dims[1] {
+            return Err(RuntimeError::Backend(String::from(
+                "cuda parameter_golf_banked_linear_weight_backward requires input and grad_output features to match matrix_bank",
+            )));
+        }
+        if bank_index >= bank_dims[0] {
+            return Err(RuntimeError::Backend(format!(
+                "cuda parameter_golf_banked_linear_weight_backward bank_index {bank_index} exceeds bank length {}",
+                bank_dims[0]
+            )));
+        }
+
+        let rows = input_dims[0].saturating_mul(input_dims[1]);
+        let in_features = input_dims[2];
+        let out_features = grad_dims[2];
+        let input_flat = input.alias_with_spec(&TensorSpec::new(
+            Shape::new(vec![rows, in_features]),
+            input.spec().dtype(),
+            input.spec().device().clone(),
+        ))?;
+        let grad_flat = grad_output.alias_with_spec(&TensorSpec::new(
+            Shape::new(vec![rows, out_features]),
+            DType::F32,
+            grad_output.spec().device().clone(),
+        ))?;
+        let grad_transposed = self.allocate(&TensorSpec::new(
+            Shape::new(vec![out_features, rows]),
+            DType::F32,
+            grad_output.spec().device().clone(),
+        ))?;
+        submission.permute_rank2_transpose_f32(&grad_flat, &grad_transposed, rows, out_features)?;
+        let gradient_slice = self.allocate(&TensorSpec::new(
+            Shape::new(vec![out_features, in_features]),
+            DType::F32,
+            grad_output.spec().device().clone(),
+        ))?;
+        match input.spec().dtype() {
+            DType::F32 => submission.matmul(
+                &grad_transposed,
+                &input_flat,
+                &gradient_slice,
+                out_features,
+                rows,
+                in_features,
+            )?,
+            DType::BF16 => submission.matmul_f32_bf16_strided_batched_to_f32_with_strides(
+                &grad_transposed,
+                &input_flat,
+                &gradient_slice,
+                out_features,
+                rows,
+                in_features,
+                1,
+                out_features.saturating_mul(rows),
+                rows.saturating_mul(in_features),
+                out_features.saturating_mul(in_features),
+                false,
+                false,
+            )?,
+            actual => {
+                return Err(RuntimeError::Backend(format!(
+                    "cuda parameter_golf_banked_linear_weight_backward does not support input dtype {actual:?}",
+                )));
+            }
+        }
+
+        let output = self.allocate(&step.spec)?;
+        submission.fill_buffer(&output, 0)?;
+        let destination_byte_offset = bank_index
+            .checked_mul(gradient_slice.byte_len())
+            .ok_or_else(|| {
+                RuntimeError::Backend(String::from(
+                    "cuda parameter_golf_banked_linear_weight_backward destination offset overflow",
+                ))
+            })?;
+        submission.copy_buffer_region(
+            &gradient_slice,
+            0,
+            &output,
+            destination_byte_offset,
+            gradient_slice.byte_len(),
+        )?;
+        Ok(output)
+    }
+
     fn execute_parameter_golf_token_embedding_lookup_backward_step(
         &self,
         submission: &mut CudaSubmission,
@@ -5568,6 +5790,26 @@ impl AvailableCudaBackend {
                         )?;
                         values.insert(step.output, output);
                     }
+                    BackendExtensionOp::ParameterGolfBankedLinearInputBackward { bank_index } => {
+                        let output = self
+                            .execute_parameter_golf_banked_linear_input_backward_step(
+                                &mut submission,
+                                step,
+                                &values,
+                                *bank_index,
+                            )?;
+                        values.insert(step.output, output);
+                    }
+                    BackendExtensionOp::ParameterGolfBankedLinearWeightBackward { bank_index } => {
+                        let output = self
+                            .execute_parameter_golf_banked_linear_weight_backward_step(
+                                &mut submission,
+                                step,
+                                &values,
+                                *bank_index,
+                            )?;
+                        values.insert(step.output, output);
+                    }
                     BackendExtensionOp::ParameterGolfTokenEmbeddingLookupBackward => {
                         let output = self
                             .execute_parameter_golf_token_embedding_lookup_backward_step(
@@ -6275,6 +6517,38 @@ fn validate_supported_step(step: &ExecutionStep) -> Result<(), RuntimeError> {
                 if step.spec.shape().dims().len() != 3 {
                     return Err(RuntimeError::Backend(format!(
                         "cuda parameter_golf_banked_linear step {} requires a rank-3 output, actual rank {}",
+                        step.output,
+                        step.spec.shape().dims().len()
+                    )));
+                }
+            }
+            BackendExtensionOp::ParameterGolfBankedLinearInputBackward { .. } => {
+                ensure_supported_f32_spec(&step.spec)?;
+                if step.inputs.len() != 2 {
+                    return Err(RuntimeError::Backend(format!(
+                        "cuda parameter_golf_banked_linear_input_backward step {} requires two inputs",
+                        step.output
+                    )));
+                }
+                if step.spec.shape().dims().len() != 3 {
+                    return Err(RuntimeError::Backend(format!(
+                        "cuda parameter_golf_banked_linear_input_backward step {} requires a rank-3 output, actual rank {}",
+                        step.output,
+                        step.spec.shape().dims().len()
+                    )));
+                }
+            }
+            BackendExtensionOp::ParameterGolfBankedLinearWeightBackward { .. } => {
+                ensure_supported_f32_spec(&step.spec)?;
+                if step.inputs.len() != 3 {
+                    return Err(RuntimeError::Backend(format!(
+                        "cuda parameter_golf_banked_linear_weight_backward step {} requires three inputs",
+                        step.output
+                    )));
+                }
+                if step.spec.shape().dims().len() != 3 {
+                    return Err(RuntimeError::Backend(format!(
+                        "cuda parameter_golf_banked_linear_weight_backward step {} requires a rank-3 output, actual rank {}",
                         step.output,
                         step.spec.shape().dims().len()
                     )));

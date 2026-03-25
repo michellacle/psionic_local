@@ -455,6 +455,8 @@ impl CpuBackend {
             }
             BackendExtensionOp::ParameterGolfTokenEmbeddingLookup
             | BackendExtensionOp::ParameterGolfBankedLinear { .. }
+            | BackendExtensionOp::ParameterGolfBankedLinearInputBackward { .. }
+            | BackendExtensionOp::ParameterGolfBankedLinearWeightBackward { .. }
             | BackendExtensionOp::ParameterGolfTokenEmbeddingLookupBackward
             | BackendExtensionOp::ParameterGolfProjectionLoss { .. }
             | BackendExtensionOp::ParameterGolfProjectionTokenLosses { .. }

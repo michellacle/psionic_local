@@ -110,6 +110,23 @@ runtime-surface gap for the `#562` forward replacement work so the next score
 lane can encode QK and AV batches without falling back to one-position-at-a-
 time kernels or one-GEMM-at-a-time host orchestration.
 
+Current `main` now also owns one direct banked PGOLF train-path seam above the
+same CUDA matmul surface:
+
+- the banked PGOLF matrix families (`qo_bank`, `kv_bank`, `mlp_up_bank`,
+  `mlp_down_bank`) no longer drop back to graph-level `slice` plus rank-2
+  `matmul` when the graph requires gradients
+- `psionic-ir` now lowers explicit banked input-gradient and bank-weight-
+  gradient ops for `parameter_golf_banked_linear`
+- the public CUDA backend executes those backward ops directly, so the banked
+  training graph can keep the same rank-3 bank tensor surface across forward,
+  backward, and resident training-session execution
+
+That retires the old "banked storage but split-matrix training execution"
+boundary from the admitted CUDA train lane. It does not prove score closure by
+itself. Fresh H100 or `8xH100` receipts are still required for the wallclock
+claim.
+
 Current `main` now also moves the admitted BF16 full-sequence PGOLF attention
 forward lane onto that batched scorepath:
 

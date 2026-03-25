@@ -146,7 +146,8 @@ pub const fn gradient_support_for_op(op: &OpKind) -> AutodiffGradientSupport {
         | OpKind::Expand { .. }
         | OpKind::ReduceSum { .. } => AutodiffGradientSupport::Implemented,
         OpKind::BackendExtension { op } => match op {
-            BackendExtensionOp::ParameterGolfTokenEmbeddingLookup
+            BackendExtensionOp::ParameterGolfBankedLinear { .. }
+            | BackendExtensionOp::ParameterGolfTokenEmbeddingLookup
             | BackendExtensionOp::ReluSquared
             | BackendExtensionOp::LeakyReluSquared { .. }
             | BackendExtensionOp::Silu
@@ -2351,11 +2352,68 @@ impl AutodiffGraph {
                     BackendExtensionOp::ParameterGolfBankedLinear { .. } => {
                         let input_id = node.inputs()[0];
                         let matrix_bank_id = node.inputs()[1];
-                        if self.requires_grad(input_id) || self.requires_grad(matrix_bank_id) {
-                            return Err(AutodiffError::UnsupportedGradientOp {
-                                tensor_id: node.tensor().id(),
-                                op: String::from("parameter_golf_banked_linear"),
-                            });
+                        if self.requires_grad(input_id) {
+                            let matrix_bank = primal_placeholder(
+                                &mut backward_builder,
+                                &mut primal_bindings,
+                                &self.graph,
+                                matrix_bank_id,
+                            )?;
+                            let contribution = backward_builder
+                                .parameter_golf_banked_linear_input_backward(
+                                    &current_gradient,
+                                    &matrix_bank,
+                                    match node.op() {
+                                        OpKind::BackendExtension {
+                                            op: BackendExtensionOp::ParameterGolfBankedLinear {
+                                                bank_index,
+                                            },
+                                        } => *bank_index,
+                                        _ => unreachable!(),
+                                    },
+                                )
+                                .map_err(map_graph_error)?;
+                            accumulate_gradient(
+                                &mut backward_builder,
+                                &mut gradients,
+                                input_id,
+                                contribution,
+                            )?;
+                        }
+                        if self.requires_grad(matrix_bank_id) {
+                            let input = primal_placeholder(
+                                &mut backward_builder,
+                                &mut primal_bindings,
+                                &self.graph,
+                                input_id,
+                            )?;
+                            let matrix_bank = primal_placeholder(
+                                &mut backward_builder,
+                                &mut primal_bindings,
+                                &self.graph,
+                                matrix_bank_id,
+                            )?;
+                            let contribution = backward_builder
+                                .parameter_golf_banked_linear_weight_backward(
+                                    &input,
+                                    &matrix_bank,
+                                    &current_gradient,
+                                    match node.op() {
+                                        OpKind::BackendExtension {
+                                            op: BackendExtensionOp::ParameterGolfBankedLinear {
+                                                bank_index,
+                                            },
+                                        } => *bank_index,
+                                        _ => unreachable!(),
+                                    },
+                                )
+                                .map_err(map_graph_error)?;
+                            accumulate_gradient(
+                                &mut backward_builder,
+                                &mut gradients,
+                                matrix_bank_id,
+                                contribution,
+                            )?;
                         }
                     }
                     BackendExtensionOp::ParameterGolfProjectionLoss { logit_softcap } => {
@@ -3938,22 +3996,6 @@ impl AutodiffGraphBuilder {
         Ok(self.wrap(tensor, requires_grad))
     }
 
-    pub(crate) fn parameter_golf_token_embedding_lookup_backward(
-        &mut self,
-        token_ids: &AutodiffTensor,
-        token_embedding: &AutodiffTensor,
-        grad_output: &AutodiffTensor,
-    ) -> Result<AutodiffTensor, GraphError> {
-        let tensor = self
-            .builder
-            .parameter_golf_token_embedding_lookup_backward(
-                token_ids.tensor(),
-                token_embedding.tensor(),
-                grad_output.tensor(),
-            )?;
-        Ok(self.wrap(tensor, false))
-    }
-
     /// Applies the bounded Parameter Golf tanh-softcap next-token mean loss.
     pub fn parameter_golf_projection_loss(
         &mut self,
@@ -4542,6 +4584,86 @@ fn evaluate_backend_extension_reference(
                     &input_shape,
                     matrix_bank,
                     &matrix_bank_shape,
+                    *bank_index,
+                )?,
+            ))
+        }
+        BackendExtensionOp::ParameterGolfBankedLinearInputBackward { bank_index } => {
+            let grad_output =
+                resolve_dense_input(graph, values, node.inputs()[0], node.op().label())?;
+            let matrix_bank =
+                resolve_dense_input(graph, values, node.inputs()[1], node.op().label())?;
+            let grad_output_shape = graph
+                .node(node.inputs()[0])
+                .ok_or(ReferenceEvaluationError::UnknownTensor {
+                    tensor_id: node.inputs()[0],
+                })?
+                .tensor()
+                .spec()
+                .shape()
+                .clone();
+            let matrix_bank_shape = graph
+                .node(node.inputs()[1])
+                .ok_or(ReferenceEvaluationError::UnknownTensor {
+                    tensor_id: node.inputs()[1],
+                })?
+                .tensor()
+                .spec()
+                .shape()
+                .clone();
+            Ok(TensorData::F32(
+                parameter_golf_banked_linear_input_backward_values(
+                    node.tensor().id(),
+                    grad_output,
+                    &grad_output_shape,
+                    matrix_bank,
+                    &matrix_bank_shape,
+                    *bank_index,
+                )?,
+            ))
+        }
+        BackendExtensionOp::ParameterGolfBankedLinearWeightBackward { bank_index } => {
+            let input = resolve_dense_input(graph, values, node.inputs()[0], node.op().label())?;
+            let matrix_bank =
+                resolve_dense_input(graph, values, node.inputs()[1], node.op().label())?;
+            let grad_output =
+                resolve_dense_input(graph, values, node.inputs()[2], node.op().label())?;
+            let input_shape = graph
+                .node(node.inputs()[0])
+                .ok_or(ReferenceEvaluationError::UnknownTensor {
+                    tensor_id: node.inputs()[0],
+                })?
+                .tensor()
+                .spec()
+                .shape()
+                .clone();
+            let matrix_bank_shape = graph
+                .node(node.inputs()[1])
+                .ok_or(ReferenceEvaluationError::UnknownTensor {
+                    tensor_id: node.inputs()[1],
+                })?
+                .tensor()
+                .spec()
+                .shape()
+                .clone();
+            let grad_output_shape = graph
+                .node(node.inputs()[2])
+                .ok_or(ReferenceEvaluationError::UnknownTensor {
+                    tensor_id: node.inputs()[2],
+                })?
+                .tensor()
+                .spec()
+                .shape()
+                .clone();
+            Ok(TensorData::F32(
+                parameter_golf_banked_linear_weight_backward_values(
+                    node.tensor().id(),
+                    input,
+                    &input_shape,
+                    matrix_bank,
+                    &matrix_bank_shape,
+                    grad_output,
+                    &grad_output_shape,
                     *bank_index,
                 )?,
             ))
@@ -5256,6 +5378,109 @@ fn parameter_golf_banked_linear_forward_values(
         &transposed,
         &Shape::new(vec![in_features, out_features]),
     ))
+}
+
+fn parameter_golf_banked_linear_input_backward_values(
+    tensor_id: TensorId,
+    grad_output: &[f32],
+    grad_output_shape: &Shape,
+    matrix_bank: &[f32],
+    matrix_bank_shape: &Shape,
+    bank_index: usize,
+) -> Result<Vec<f32>, ReferenceEvaluationError> {
+    if grad_output_shape.dims().len() != 3 || matrix_bank_shape.dims().len() != 3 {
+        return Err(ReferenceEvaluationError::UnsupportedOp {
+            tensor_id,
+            op: String::from("parameter_golf_banked_linear_input_backward_shape"),
+        });
+    }
+    let batch_size = grad_output_shape.dims()[0];
+    let sequence_length = grad_output_shape.dims()[1];
+    let out_features = grad_output_shape.dims()[2];
+    let bank_out_features = matrix_bank_shape.dims()[1];
+    let in_features = matrix_bank_shape.dims()[2];
+    if out_features != bank_out_features {
+        return Err(ReferenceEvaluationError::UnsupportedOp {
+            tensor_id,
+            op: String::from("parameter_golf_banked_linear_input_backward_feature_mismatch"),
+        });
+    }
+    let rows = batch_size.saturating_mul(sequence_length);
+    let matrix_elements = out_features.saturating_mul(in_features);
+    let bank_offset = bank_index.saturating_mul(matrix_elements);
+    let bank_end = bank_offset.saturating_add(matrix_elements);
+    let weight = &matrix_bank[bank_offset..bank_end];
+    Ok(matmul_values(
+        grad_output,
+        &Shape::new(vec![rows, out_features]),
+        weight,
+        &Shape::new(vec![out_features, in_features]),
+    ))
+}
+
+fn parameter_golf_banked_linear_weight_backward_values(
+    tensor_id: TensorId,
+    input: &[f32],
+    input_shape: &Shape,
+    matrix_bank: &[f32],
+    matrix_bank_shape: &Shape,
+    grad_output: &[f32],
+    grad_output_shape: &Shape,
+    bank_index: usize,
+) -> Result<Vec<f32>, ReferenceEvaluationError> {
+    if input_shape.dims().len() != 3
+        || matrix_bank_shape.dims().len() != 3
+        || grad_output_shape.dims().len() != 3
+    {
+        return Err(ReferenceEvaluationError::UnsupportedOp {
+            tensor_id,
+            op: String::from("parameter_golf_banked_linear_weight_backward_shape"),
+        });
+    }
+    let batch_size = input_shape.dims()[0];
+    let sequence_length = input_shape.dims()[1];
+    let in_features = input_shape.dims()[2];
+    let bank_len = matrix_bank_shape.dims()[0];
+    let out_features = matrix_bank_shape.dims()[1];
+    let bank_in_features = matrix_bank_shape.dims()[2];
+    if in_features != bank_in_features
+        || grad_output_shape.dims()[0] != batch_size
+        || grad_output_shape.dims()[1] != sequence_length
+        || grad_output_shape.dims()[2] != out_features
+    {
+        return Err(ReferenceEvaluationError::UnsupportedOp {
+            tensor_id,
+            op: String::from("parameter_golf_banked_linear_weight_backward_feature_mismatch"),
+        });
+    }
+    let rows = batch_size.saturating_mul(sequence_length);
+    if input.len() != rows.saturating_mul(in_features)
+        || grad_output.len() != rows.saturating_mul(out_features)
+        || matrix_bank.len()
+            != bank_len
+                .saturating_mul(out_features)
+                .saturating_mul(in_features)
+    {
+        return Err(ReferenceEvaluationError::UnsupportedOp {
+            tensor_id,
+            op: String::from("parameter_golf_banked_linear_weight_backward_payload"),
+        });
+    }
+    let mut output = vec![0.0_f32; matrix_bank.len()];
+    let bank_offset = bank_index
+        .saturating_mul(out_features)
+        .saturating_mul(in_features);
+    for out_index in 0..out_features {
+        for in_index in 0..in_features {
+            let mut sum = 0.0_f32;
+            for row in 0..rows {
+                sum += grad_output[(row * out_features) + out_index]
+                    * input[(row * in_features) + in_index];
+            }
+            output[bank_offset + (out_index * in_features) + in_index] = sum;
+        }
+    }
+    Ok(output)
 }
 
 fn permute_values(values: &[f32], input_shape: &Shape, axes: &[usize]) -> Vec<f32> {
@@ -6255,6 +6480,108 @@ mod tests {
 
         assert_eq!(dense_gradient(&result, x.id()), vec![5.0, 6.0, 5.0, 6.0]);
         assert_eq!(dense_gradient(&result, w.id()), vec![4.0, 6.0]);
+        Ok(())
+    }
+
+    #[test]
+    fn reverse_mode_autodiff_materializes_banked_linear_gradients_against_finite_difference(
+    ) -> Result<(), Box<dyn Error>> {
+        let mut builder =
+            AutodiffGraphBuilder::with_context(Device::cpu(), AutodiffContext::training());
+        let input = builder.input("x", Shape::new(vec![1, 2, 3]), DType::F32, true);
+        let matrix_bank = builder.input("bank", Shape::new(vec![2, 2, 3]), DType::F32, true);
+        let output = builder.parameter_golf_banked_linear(&input, &matrix_bank, 1)?;
+        let scale =
+            builder.constant_f32(Shape::new(vec![1, 2, 2]), vec![0.25, -0.5, 1.25, -0.75])?;
+        let scaled = builder.mul(&output, &scale)?;
+        let loss = builder.reduce_sum(&scaled);
+        let graph = builder.finish(vec![loss.clone()]);
+
+        let backward_plan = graph.backward_plan(loss.id())?;
+        assert!(backward_plan.gradient_for(input.id()).is_some());
+        assert!(backward_plan.gradient_for(matrix_bank.id()).is_some());
+        assert!(backward_plan
+            .gradient_graph
+            .nodes()
+            .iter()
+            .any(|node| matches!(
+                node.op(),
+                crate::OpKind::BackendExtension {
+                    op: psionic_core::BackendExtensionOp::ParameterGolfBankedLinearInputBackward { .. }
+                }
+            )));
+        assert!(backward_plan
+            .gradient_graph
+            .nodes()
+            .iter()
+            .any(|node| matches!(
+                node.op(),
+                crate::OpKind::BackendExtension {
+                    op: psionic_core::BackendExtensionOp::ParameterGolfBankedLinearWeightBackward { .. }
+                }
+            )));
+
+        let input_values = vec![0.1_f32, -0.2, 0.3, -0.4, 0.5, -0.6];
+        let bank_values = vec![
+            0.7_f32, -0.8, 0.9, -1.0, 1.1, -1.2, 0.2, -0.3, 0.4, -0.5, 0.6, -0.7,
+        ];
+        let inputs = BTreeMap::from([
+            (input.id(), TensorData::F32(input_values.clone())),
+            (matrix_bank.id(), TensorData::F32(bank_values.clone())),
+        ]);
+        let result = graph.backward_materialized(loss.id(), &inputs)?;
+        let analytical_input = dense_gradient(&result, input.id());
+        let analytical_bank = dense_gradient(&result, matrix_bank.id());
+
+        let delta = 1e-3_f32;
+        let mut finite_input = vec![0.0_f32; input_values.len()];
+        for index in 0..input_values.len() {
+            let mut plus = input_values.clone();
+            plus[index] += delta;
+            let mut minus = input_values.clone();
+            minus[index] -= delta;
+            finite_input[index] = (scalar_loss(
+                graph.graph(),
+                loss.id(),
+                BTreeMap::from([
+                    (input.id(), TensorData::F32(plus)),
+                    (matrix_bank.id(), TensorData::F32(bank_values.clone())),
+                ]),
+            )? - scalar_loss(
+                graph.graph(),
+                loss.id(),
+                BTreeMap::from([
+                    (input.id(), TensorData::F32(minus)),
+                    (matrix_bank.id(), TensorData::F32(bank_values.clone())),
+                ]),
+            )?) / (2.0 * delta);
+        }
+
+        let mut finite_bank = vec![0.0_f32; bank_values.len()];
+        for index in 0..bank_values.len() {
+            let mut plus = bank_values.clone();
+            plus[index] += delta;
+            let mut minus = bank_values.clone();
+            minus[index] -= delta;
+            finite_bank[index] = (scalar_loss(
+                graph.graph(),
+                loss.id(),
+                BTreeMap::from([
+                    (input.id(), TensorData::F32(input_values.clone())),
+                    (matrix_bank.id(), TensorData::F32(plus)),
+                ]),
+            )? - scalar_loss(
+                graph.graph(),
+                loss.id(),
+                BTreeMap::from([
+                    (input.id(), TensorData::F32(input_values.clone())),
+                    (matrix_bank.id(), TensorData::F32(minus)),
+                ]),
+            )?) / (2.0 * delta);
+        }
+
+        assert_close_slice(&analytical_input, &finite_input, 2e-3);
+        assert_close_slice(&analytical_bank, &finite_bank, 2e-3);
         Ok(())
     }
 

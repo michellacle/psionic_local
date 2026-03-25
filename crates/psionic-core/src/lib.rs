@@ -2012,6 +2012,16 @@ pub enum BackendExtensionOp {
         /// Zero-based matrix index inside the rank-3 bank tensor.
         bank_index: usize,
     },
+    /// Input-gradient rule for Parameter Golf banked linear.
+    ParameterGolfBankedLinearInputBackward {
+        /// Zero-based matrix index inside the rank-3 bank tensor.
+        bank_index: usize,
+    },
+    /// Weight-gradient rule for Parameter Golf banked linear.
+    ParameterGolfBankedLinearWeightBackward {
+        /// Zero-based matrix index inside the rank-3 bank tensor.
+        bank_index: usize,
+    },
     /// Weight-gradient rule for Parameter Golf token-id embedding lookup.
     ParameterGolfTokenEmbeddingLookupBackward,
     /// ReLU-squared pointwise activation.
@@ -2123,7 +2133,9 @@ impl BackendExtensionOp {
             | Self::ParameterGolfTokenEmbeddingLookupBackward => {
                 BackendExtensionKind::ParameterGolfTokenEmbeddingLookup
             }
-            Self::ParameterGolfBankedLinear { .. } => {
+            Self::ParameterGolfBankedLinear { .. }
+            | Self::ParameterGolfBankedLinearInputBackward { .. }
+            | Self::ParameterGolfBankedLinearWeightBackward { .. } => {
                 BackendExtensionKind::ParameterGolfBankedLinear
             }
             Self::ReluSquared | Self::ReluSquaredBackward => BackendExtensionKind::ReluSquared,
@@ -2161,6 +2173,12 @@ impl BackendExtensionOp {
         match self {
             Self::ParameterGolfTokenEmbeddingLookup => "parameter_golf_token_embedding_lookup",
             Self::ParameterGolfBankedLinear { .. } => "parameter_golf_banked_linear",
+            Self::ParameterGolfBankedLinearInputBackward { .. } => {
+                "parameter_golf_banked_linear_input_backward"
+            }
+            Self::ParameterGolfBankedLinearWeightBackward { .. } => {
+                "parameter_golf_banked_linear_weight_backward"
+            }
             Self::ParameterGolfTokenEmbeddingLookupBackward => {
                 "parameter_golf_token_embedding_lookup_backward"
             }
