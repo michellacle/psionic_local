@@ -20,6 +20,19 @@ That public top record also reports:
 
 Psionic is not close to that score path yet. The current gap is not only model quality. The current `8xH100` execution topology is too slow to produce a valid scoreboard-grade run.
 
+Update after the first `#545` implementation slice:
+
+- the shipped distributed runtime now owns a persistent `WORLD_SIZE=8` worker
+  mesh
+- the hot train path now uses in-memory loopback reduction instead of
+  per-rank gradient `safetensors`
+- the hot validation path now reuses those same resident workers
+
+That closes the runtime-design gap identified below. It does not yet prove
+scoreboard-grade wallclock. Fresh retained `8xH100` receipts are still required
+before Psionic can claim that this design materially improved public-lane
+throughput.
+
 ## Current Evidence
 
 ### 1. Operator and input binding are now real
@@ -97,7 +110,8 @@ That earlier evidence matters because it shows the validation path is also not j
 
 ### Gap A: spawn-per-step worker lifecycle
 
-The current distributed runtime launches fresh child processes per step and again per validation pass.
+At the time of the retained evidence above, the distributed runtime still
+launched fresh child processes per step and again per validation pass.
 
 That forces:
 
@@ -107,10 +121,13 @@ That forces:
 - repeated benchmark-root file IO in the hot path
 
 The scoreboard lane needs persistent rank workers, not repeated process fanout.
+That worker-mesh seam now exists in repo code, but it still needs live
+`8xH100` receipts.
 
 ### Gap B: file-artifact gradient synchronization
 
-The current runtime still synchronizes one step through per-rank gradient files plus one parent-side aggregation pass.
+At the time of the retained evidence above, the runtime still synchronized one
+step through per-rank gradient files plus one parent-side aggregation pass.
 
 That means the hot path still depends on:
 
@@ -120,6 +137,8 @@ That means the hot path still depends on:
 - only then moving to the next step
 
 This is not comparable to the upstream `torch.distributed` all-reduce posture.
+The repo now owns an in-memory loopback reduction seam for the persistent mesh,
+but that still needs measured proof and later device-collective replacement.
 
 ### Gap C: repeated training is now real, but still not close to score-path throughput
 
@@ -234,8 +253,12 @@ The open issue stack is now explicit about the two additional competitive-path g
 
 ## Bottom Line
 
-Psionic now has a real RunPod `8xH100` operator lane and a real repeated-step distributed proof path.
+Psionic now has a real RunPod `8xH100` operator lane, a real repeated-step
+distributed proof path, and an in-repo persistent-worker score-path seam.
 
-Psionic does not yet have a scoreboard-grade `8xH100` execution topology.
+Psionic still does not have a fresh retained `8xH100` receipt proving
+scoreboard-grade throughput.
 
-The next serious work is not another operator fix. It is replacing the proof topology with a persistent distributed trainer that can actually use the `600` second training budget efficiently.
+The next serious work is not another operator fix. It is proving that the new
+persistent runtime materially lowers training and validation wallclock on real
+hardware, then retiring the remaining collective and kernel bottlenecks.

@@ -73,20 +73,23 @@ Psionic now encodes that exact posture explicitly instead of treating
 - `psionic-train` now also ships the runtime-owned repeated train-loop seam
   behind `ParameterGolfDistributed8xH100TrainStepReceipt` and
   `ParameterGolfDistributed8xH100TrainStepRankReceipt`; the exported-folder
-  `distributed_8xh100_train` mode now retains step-scoped train artifacts
-  under `runtime_step_scopes/step_<n>/...`, emits wallclock-bounded step
-  progress lines during execution, and preserves ordered
-  `step_observations` plus the honest loop stop reason in the aggregate
-  train receipt instead of pretending the final retained step was the whole
-  run. Once a successor step starts, the previous input step is pruned down to
-  the retained `current_model.runtime_surface.safetensors` banked runtime
-  checkpoint so repeated runs do not exhaust local disk on RunPod while still
-  keeping the exact runtime-owned model handoff surface explicit.
+  `distributed_8xh100_train` mode now launches one persistent `WORLD_SIZE=8`
+  worker mesh, keeps model and optimizer state resident inside those workers,
+  performs rank-local gradient averaging over the in-memory
+  `rank0_loopback_tcp_mean_all_reduce_v1` transport instead of per-step
+  gradient `safetensors`, emits wallclock-bounded step progress lines during
+  execution, and preserves ordered `step_observations` plus the honest loop
+  stop reason in the aggregate train receipt instead of pretending the final
+  retained step was the whole run. The live score lane now exports only the
+  final runtime-owned model surfaces after the repeated loop instead of using
+  file-artifact gradient handoff in the hot path.
 - `psionic-train` now also ships retained per-rank distributed validation
   receipts plus one completion receipt bound to the trained runtime-produced
   int8+zlib artifact, so the exported-folder `distributed_8xh100_train` mode
   can finish with a real runtime outcome when the measured distributed
-  validation surface exists
+  validation surface exists; the current validation path now reuses the same
+  persistent rank workers instead of respawning a second validation-only child
+  fanout
 - `psionic-models` now also ships the upstream-style banked PGOLF matrix
   surface under `ParameterGolfBankedWeights`, with the exact public bank tensor
   ids `qo_bank`, `kv_bank`, `mlp_up_bank`, and `mlp_down_bank`; the optimizer
@@ -332,13 +335,11 @@ What is now explicit:
 - the exact public `8xH100` topology
 - the DDP or Muon communication posture
 - the exported-folder runtime can now cross from machine admission into a real
-  repeated `WORLD_SIZE=8` train loop with retained per-rank receipts, logs,
-  windows, gradient artifacts, one aggregate train-step receipt, and one typed
-  measured distributed receipt
-- the current proof coordinator now parallelizes per-rank gradient-artifact
-  loads before host aggregation, and the validation child no longer
-  deserializes the aggregate gradient artifact when the retained current-model
-  artifact is already present
+  repeated `WORLD_SIZE=8` persistent worker mesh with resident train state,
+  in-memory rank reduction, retained per-rank receipts and logs, one aggregate
+  train-step receipt, and one typed measured distributed receipt
+- the later distributed validation path now reuses those same persistent rank
+  workers and no longer requires a second spawn-per-pass runtime fanout
 - measured-or-refused timing receipts
 - measured-or-refused memory receipts
 - the Rust-owned local bring-up seam for exact `8xH100` admission and
@@ -347,7 +348,10 @@ What is now explicit:
 
 What is still separate work:
 
-- the later distributed validation path and final challenge-metric aggregation
+- proving on a real `8xH100` pod that the persistent worker mesh materially
+  lowers train-step and validation wallclock
+- replacing the current loopback proof transport with scoreboard-grade device
+  collectives for the public lane
 - retiring the explicit blocker list carried by the CUDA training coverage
   report
 - widening the public CUDA train path until the decoder-block, precision, and

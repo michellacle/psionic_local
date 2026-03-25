@@ -4048,7 +4048,7 @@ fn training_session_for_batch<'a>(
     })
 }
 
-fn refresh_parameter_golf_cuda_training_sessions(
+pub(crate) fn refresh_parameter_golf_cuda_training_sessions(
     cache: &mut BTreeMap<usize, ParameterGolfCudaTrainingSession>,
     model: &ParameterGolfReferenceModel,
     explicit_banked_weights: Option<&ParameterGolfBankedWeights>,

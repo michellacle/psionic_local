@@ -1,7 +1,9 @@
 use std::{env, path::PathBuf};
 
 use psionic_train::{
-    execute_parameter_golf_submission_runtime_entrypoint, ParameterGolfSubmissionRuntimeError,
+    execute_parameter_golf_distributed_8xh100_worker_child,
+    execute_parameter_golf_submission_runtime_entrypoint,
+    parameter_golf_distributed_8xh100_worker_child_enabled, ParameterGolfSubmissionRuntimeError,
     ParameterGolfSubmissionRuntimeOutcome,
 };
 
@@ -13,6 +15,10 @@ fn main() {
 }
 
 fn run() -> Result<(), ParameterGolfSubmissionRuntimeError> {
+    if parameter_golf_distributed_8xh100_worker_child_enabled() {
+        execute_parameter_golf_distributed_8xh100_worker_child()?;
+        return Ok(());
+    }
     let manifest_arg = env::args()
         .nth(1)
         .unwrap_or_else(|| String::from("runtime/parameter_golf_submission_runtime.json"));
