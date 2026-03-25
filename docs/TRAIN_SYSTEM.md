@@ -180,6 +180,14 @@ cluster-wide evidence bundle, uploads the evidence bundle and final manifest to
 the dedicated training bucket, and keeps typed result classes explicit instead
 of flattening every failure into generic launch or operator text.
 
+The repo now also owns the dedicated operator runbook for that lane in
+`docs/PSION_GOOGLE_TWO_NODE_SWARM_RUNBOOK.md` plus the runbook checker
+`scripts/check-psion-google-two-node-swarm-runbook.sh`. That surface freezes
+the exact preflight, launch, monitoring, impairment, finalizer, checker, and
+teardown commands and keeps the refusal boundary explicit that this lane is
+still one bounded configured-peer adapter-delta Google rehearsal rather than a
+broader cluster-training completion claim.
+
 The repo now also owns one rehearsal-grade bottleneck report for that lane in
 `crates/psionic-train/src/swarm_trusted_lan_rehearsal.rs`, the binary
 `first_swarm_trusted_lan_rehearsal_report`, the checker
