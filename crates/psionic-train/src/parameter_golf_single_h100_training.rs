@@ -724,6 +724,7 @@ pub struct ParameterGolfSingleH100ValidationRuntimeReceipt {
     pub eval_mode: ParameterGolfValidationEvalMode,
     pub session_count: usize,
     pub total_batches: usize,
+    #[serde(default)]
     pub total_units: usize,
     pub persistent_parameter_buffer_count: usize,
     pub persistent_parameter_value_count: u64,
@@ -5350,6 +5351,32 @@ mod tests {
             "tok_emb.weight",
             4
         ));
+    }
+
+    #[test]
+    fn validation_runtime_receipt_defaults_total_units_for_older_reports(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let receipt: ParameterGolfSingleH100ValidationRuntimeReceipt = serde_json::from_str(
+            r#"{
+                "path": "device_resident_cuda_eval_graph_v1",
+                "graph_surface": "parameter_golf_baseline_eval_graph_v1",
+                "session_count": 2,
+                "total_batches": 947,
+                "persistent_parameter_buffer_count": 184,
+                "persistent_parameter_value_count": 34119824,
+                "resident_parameter_upload_us": 60515,
+                "per_batch_stable_parameter_buffer_allocations": 0,
+                "reusable_input_token_buffer": true,
+                "reusable_target_token_buffer": true,
+                "total_input_token_write_us": 213141,
+                "total_target_token_write_us": 257596,
+                "byte_accounting_mode": "precomputed_batch_target_bytes",
+                "total_byte_accounting_us": 383945
+            }"#,
+        )?;
+        assert_eq!(receipt.total_units, 0);
+        assert_eq!(receipt.total_batches, 947);
+        Ok(())
     }
 }
 
