@@ -102,6 +102,12 @@ fn experimental_turboquant_kv_enabled() -> bool {
         .unwrap_or(false)
 }
 
+fn experimental_metal_turboquant_kv_enabled() -> bool {
+    env::var("PSIONIC_GPT_OSS_EXPERIMENTAL_METAL_TURBOQUANT_KV")
+        .map(|value| value == "1")
+        .unwrap_or(false)
+}
+
 const HYBRID_SELECTED4_LAYER_CACHE_SLOTS: usize = 5;
 const HYBRID_SELECTED4_LAYER_CACHE_REDUCED_SLOTS: usize = 4;
 const HYBRID_SELECTED4_LAYER_CACHE_EXPANDED_SLOTS: usize = 6;
@@ -267,6 +273,33 @@ fn turboquant_cuda_kv_cache_encoding_policy(
     max_context: usize,
     width: usize,
 ) -> KvCacheEncodingPolicy {
+    turboquant_kv_cache_encoding_policy(
+        model_family,
+        max_context,
+        width,
+        "experimental CUDA TurboQuant prototype backed by ggml_q8_1 device KV rows",
+    )
+}
+
+fn turboquant_metal_kv_cache_encoding_policy(
+    model_family: &str,
+    max_context: usize,
+    width: usize,
+) -> KvCacheEncodingPolicy {
+    turboquant_kv_cache_encoding_policy(
+        model_family,
+        max_context,
+        width,
+        "experimental Metal TurboQuant prototype backed by ggml_q8_1 device KV rows",
+    )
+}
+
+fn turboquant_kv_cache_encoding_policy(
+    model_family: &str,
+    max_context: usize,
+    width: usize,
+    detail: &str,
+) -> KvCacheEncodingPolicy {
     let device_bytes_per_token = ggml_q8_1_storage_bytes(1, width)
         .ok()
         .and_then(|row_bytes| row_bytes.checked_mul(2))
@@ -283,9 +316,7 @@ fn turboquant_cuda_kv_cache_encoding_policy(
         context_length_bound: Some(max_context),
         host_bytes_per_token: Some(cuda_kv_cache_host_bytes_per_token(width)),
         device_bytes_per_token,
-        detail: Some(String::from(
-            "experimental CUDA TurboQuant prototype backed by ggml_q8_1 device KV rows",
-        )),
+        detail: Some(detail.to_string()),
     }
 }
 
@@ -365,28 +396,106 @@ where
     )
 }
 
-/// Returns the TurboQuant KV-cache encoding policy when the current GPT-OSS CUDA
-/// geometry and environment publish it as supported.
+fn select_metal_kv_cache_encoding_for_geometry(
+    requested_turboquant: bool,
+    model_family: &str,
+    runtime_backend: &str,
+    max_context: usize,
+    width: usize,
+    head_dim: usize,
+) -> KvCacheEncodingAccounting {
+    let dense_policy =
+        super::default_kv_cache_encoding_policy(model_family, max_context, width, runtime_backend);
+    if !requested_turboquant {
+        return KvCacheEncodingAccounting::active(dense_policy);
+    }
+
+    let requested_policy =
+        turboquant_metal_kv_cache_encoding_policy(model_family, max_context, width);
+    let fallback = |reason: String| KvCacheEncodingAccounting {
+        requested: Some(requested_policy.clone()),
+        active: dense_policy.clone(),
+        downgraded: true,
+        refusal_reason: Some(reason),
+    };
+
+    if runtime_backend != GPT_OSS_METAL_BACKEND {
+        return fallback(format!(
+            "TurboQuant KV only runs on Metal GPT-OSS decode paths, active backend `{runtime_backend}`",
+        ));
+    }
+    if width == 0 || width % GGML_Q8_1_BLOCK_ELEMENTS != 0 {
+        return fallback(format!(
+            "TurboQuant KV requires cache width divisible by {}, actual {width}",
+            GGML_Q8_1_BLOCK_ELEMENTS,
+        ));
+    }
+    if head_dim == 0 || head_dim % GGML_Q8_1_BLOCK_ELEMENTS != 0 {
+        return fallback(format!(
+            "TurboQuant KV requires head dim divisible by {}, actual {head_dim}",
+            GGML_Q8_1_BLOCK_ELEMENTS,
+        ));
+    }
+    if requested_policy.device_bytes_per_token.is_none() {
+        return fallback(String::from(
+            "TurboQuant KV could not derive a block-aligned Metal device footprint",
+        ));
+    }
+
+    KvCacheEncodingAccounting::active(requested_policy.clone()).with_requested(requested_policy)
+}
+
+fn select_metal_generation_kv_cache_encoding<M>(
+    model: &M,
+    runtime_backend: &str,
+) -> KvCacheEncodingAccounting
+where
+    M: GenerationModelHandle,
+{
+    select_metal_kv_cache_encoding_for_geometry(
+        experimental_metal_turboquant_kv_enabled(),
+        model.descriptor().model.family.as_str(),
+        runtime_backend,
+        model.descriptor().config.max_context,
+        model.cache_width(),
+        model.descriptor().config.block.attention.head_dim,
+    )
+}
+
+/// Returns the TurboQuant KV-cache encoding policy when the current GPT-OSS
+/// runtime geometry and environment publish it as supported.
 #[must_use]
 pub fn supported_turboquant_decoder_kv_cache_encoding_policy(
     model: &DecoderModelDescriptor,
     runtime_backend: &str,
 ) -> Option<KvCacheEncodingPolicy> {
-    if !experimental_turboquant_kv_enabled() {
-        return None;
+    if runtime_backend.starts_with(GPT_OSS_CUDA_BACKEND) && experimental_turboquant_kv_enabled() {
+        let selection = select_cuda_kv_cache_encoding_for_geometry(
+            true,
+            model.model.family.as_str(),
+            runtime_backend,
+            model.config.max_context,
+            model.config.kv_width(),
+            model.config.block.attention.head_dim,
+        );
+        return match selection.encoding {
+            CudaKvCacheEncoding::TurboQuantQ81 => Some(selection.accounting.active),
+            CudaKvCacheEncoding::DenseF16 => None,
+        };
     }
-    let selection = select_cuda_kv_cache_encoding_for_geometry(
-        true,
-        model.model.family.as_str(),
-        runtime_backend,
-        model.config.max_context,
-        model.config.kv_width(),
-        model.config.block.attention.head_dim,
-    );
-    match selection.encoding {
-        CudaKvCacheEncoding::TurboQuantQ81 => Some(selection.accounting.active),
-        CudaKvCacheEncoding::DenseF16 => None,
+    if runtime_backend == GPT_OSS_METAL_BACKEND && experimental_metal_turboquant_kv_enabled() {
+        let selection = select_metal_kv_cache_encoding_for_geometry(
+            true,
+            model.model.family.as_str(),
+            runtime_backend,
+            model.config.max_context,
+            model.config.kv_width(),
+            model.config.block.attention.head_dim,
+        );
+        return (selection.active.family == KvCacheEncodingFamily::TurboQuant)
+            .then_some(selection.active);
     }
+    None
 }
 
 fn can_use_hybrid_cuda_hidden_residency_layer(layer: &GptOssCudaLayer, hidden_size: usize) -> bool {
@@ -2737,12 +2846,15 @@ fn run_metal_generation_request(
         let expected_kv_width = loaded_model.cache_width();
         let layer_count = loaded_model.inner.layer_count();
         let layer_kv_width = loaded_model.inner.layer_kv_width();
+        let kv_cache_encoding =
+            select_metal_generation_kv_cache_encoding(&loaded_model, GPT_OSS_METAL_BACKEND);
         let mut session_tokens = Vec::new();
         let compatibility = super::prefix_compatibility_for_request(&loaded_model, request);
         let metal_compatibility = metal_prefix_compatibility(
             &compatibility,
             layer_kv_width,
             loaded_model.descriptor().config.max_context,
+            &kv_cache_encoding.active,
         );
         let prefix_policy = default_prefix_cache_policy();
         let mut prefix_state = super::PrefixCacheState::None;
@@ -2909,6 +3021,7 @@ fn run_metal_generation_request(
                     layer_count,
                     layer_kv_width,
                     request.options.max_output_tokens.saturating_add(1),
+                    &kv_cache_encoding.active,
                 )?
             }
         } else {
@@ -2918,6 +3031,7 @@ fn run_metal_generation_request(
                 layer_count,
                 layer_kv_width,
                 request.options.max_output_tokens.saturating_add(1),
+                &kv_cache_encoding.active,
             )?
         };
         cache.bind_owner(super::request_kv_owner(
@@ -3261,10 +3375,6 @@ fn run_metal_generation_request(
             &previous_kv_state,
             host_kv_state.clone(),
         );
-        let kv_cache_encoding_policy = super::default_generation_kv_cache_encoding_policy(
-            &loaded_model,
-            GPT_OSS_METAL_BACKEND,
-        );
         let kv_residency = super::host_device_kv_residency(
             cache.policy(),
             host_kv_state,
@@ -3301,9 +3411,7 @@ fn run_metal_generation_request(
             inter_token_latency_ns,
             kv_cache: Some(kv_cache),
             kv_residency: kv_residency.clone(),
-            kv_cache_encoding: Some(KvCacheEncodingAccounting::active(
-                kv_cache_encoding_policy.clone(),
-            )),
+            kv_cache_encoding: Some(kv_cache_encoding.clone()),
             prefix_tokens_reused: Some(prefix_tokens_reused),
             gpt_oss_perf: gpt_oss_perf.filter(|perf| !perf.is_zero()),
         };
@@ -3336,7 +3444,7 @@ fn run_metal_generation_request(
             residency_policy,
             residency_snapshot,
             kv_cache_policy: Some(cache.policy().clone()),
-            kv_cache_encoding_policy: Some(kv_cache_encoding_policy),
+            kv_cache_encoding_policy: Some(kv_cache_encoding.active.clone()),
             kv_ownership: cache.ownership_since_with_current_state(
                 &request_kv_checkpoint,
                 metal_layer_cache_state(layer_caches.as_slice()),
@@ -3383,7 +3491,9 @@ fn metal_prefix_compatibility(
     compatibility: &super::SharedPrefixCompatibility,
     kv_width: usize,
     max_context_tokens: usize,
+    kv_cache_encoding_policy: &KvCacheEncodingPolicy,
 ) -> MetalSharedPrefixCompatibility {
+    let row_byte_len = metal_kv_row_byte_len_for_policy(kv_width, kv_cache_encoding_policy);
     MetalSharedPrefixCompatibility {
         served_artifact_digest: compatibility.served_artifact_digest.clone(),
         model_id: compatibility.model_id.clone(),
@@ -3394,7 +3504,8 @@ fn metal_prefix_compatibility(
         sampler_digest: compatibility.sampler_digest.clone(),
         backend_compatibility: compatibility.backend_compatibility.clone(),
         kv_width,
-        page_layout: KvCachePageLayout::new(max_context_tokens, 4, kv_width * 4 * 2),
+        page_layout: KvCachePageLayout::new(max_context_tokens, 4, row_byte_len * 2),
+        kv_cache_encoding_policy: kv_cache_encoding_policy.clone(),
     }
 }
 
@@ -3412,6 +3523,7 @@ fn build_metal_layer_caches_from_host_cache(
     layer_count: usize,
     layer_kv_width: usize,
     reserve_tokens: usize,
+    kv_cache_encoding_policy: &KvCacheEncodingPolicy,
 ) -> Result<Vec<MetalKvCacheMirror>, ReferenceTextGenerationError> {
     if cache.width() != layer_count.saturating_mul(layer_kv_width) {
         return Err(ReferenceTextGenerationError::UnsupportedCacheGeometry {
@@ -3446,6 +3558,7 @@ fn build_metal_layer_caches_from_host_cache(
                     keys.as_slice(),
                     values.as_slice(),
                     reserve_tokens,
+                    kv_cache_encoding_policy.clone(),
                 )
                 .map_err(ReferenceTextGenerationError::Runtime)
         })
@@ -3484,6 +3597,15 @@ fn build_host_cache_from_metal_layer_caches(
                 kv_width: layer_cache.width(),
             });
         }
+        if layer_index > 0
+            && layer_cache.kv_cache_encoding_policy() != layer_caches[0].kv_cache_encoding_policy()
+        {
+            return Err(ReferenceTextGenerationError::Runtime(
+                super::RuntimeError::Backend(String::from(
+                    "metal layer cache encoding mismatch while rebuilding host cache",
+                )),
+            ));
+        }
         if layer_cache.len() != token_count {
             return Err(ReferenceTextGenerationError::Runtime(
                 super::RuntimeError::Backend(format!(
@@ -3515,6 +3637,19 @@ fn metal_layer_cache_state(layer_caches: &[MetalKvCacheMirror]) -> psionic_runti
         .first()
         .map(MetalKvCacheMirror::state)
         .unwrap_or_default()
+}
+
+fn metal_kv_row_byte_len_for_policy(
+    width: usize,
+    kv_cache_encoding_policy: &KvCacheEncodingPolicy,
+) -> usize {
+    match kv_cache_encoding_policy.family {
+        KvCacheEncodingFamily::TurboQuant => ggml_q8_1_storage_bytes(1, width)
+            .unwrap_or(width.saturating_mul(std::mem::size_of::<f32>())),
+        KvCacheEncodingFamily::DenseF32 | KvCacheEncodingFamily::DenseF16Mirror => {
+            width.saturating_mul(std::mem::size_of::<f32>())
+        }
+    }
 }
 
 fn extend_unique_cache_observations(
@@ -14256,6 +14391,52 @@ mod tests {
             .as_deref()
             .unwrap_or_default()
             .contains("only runs on CUDA"));
+    }
+
+    #[test]
+    fn metal_kv_cache_encoding_selection_activates_turboquant_when_supported() {
+        let selection = super::select_metal_kv_cache_encoding_for_geometry(
+            true, "gpt-oss", "metal", 131_072, 4096, 128,
+        );
+
+        assert_eq!(selection.active.family, KvCacheEncodingFamily::TurboQuant);
+        assert!(!selection.downgraded);
+        assert_eq!(
+            selection.requested.as_ref().map(|policy| policy.family),
+            Some(KvCacheEncodingFamily::TurboQuant)
+        );
+    }
+
+    #[test]
+    fn metal_kv_cache_encoding_selection_downgrades_unsupported_geometry() {
+        let selection = super::select_metal_kv_cache_encoding_for_geometry(
+            true, "gpt-oss", "metal", 131_072, 4100, 96,
+        );
+
+        assert_eq!(
+            selection.active.family,
+            KvCacheEncodingFamily::DenseF16Mirror
+        );
+        assert!(selection.downgraded);
+        assert!(selection
+            .refusal_reason
+            .as_deref()
+            .unwrap_or_default()
+            .contains("cache width divisible by 32"));
+    }
+
+    #[test]
+    fn metal_kv_cache_encoding_selection_downgrades_non_metal_backend() {
+        let selection = super::select_metal_kv_cache_encoding_for_geometry(
+            true, "gpt-oss", "cpu", 131_072, 4096, 128,
+        );
+
+        assert!(selection.downgraded);
+        assert!(selection
+            .refusal_reason
+            .as_deref()
+            .unwrap_or_default()
+            .contains("only runs on Metal"));
     }
 
     #[test]

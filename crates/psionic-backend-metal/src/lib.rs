@@ -41,8 +41,8 @@ use psionic_runtime::{
     DeviceDiscovery, DeviceMemoryBudget, ExecutionBackend, ExecutionMetrics,
     ExecutionPlanCachePolicy, ExecutionPlanCacheReport, ExecutionPlanCacheState, ExecutionResult,
     HealthStatus, KernelCachePolicy, KernelCacheReport, KernelCacheState, KvCacheAccounting,
-    KvCachePageLayout, KvCacheState, PrefixCacheIdentity, PrefixCacheState, RuntimeError,
-    RuntimeHealth, ServedProductBackendPolicy,
+    KvCacheEncodingFamily, KvCacheEncodingPolicy, KvCachePageLayout, KvCacheState,
+    PrefixCacheIdentity, PrefixCacheState, RuntimeError, RuntimeHealth, ServedProductBackendPolicy,
 };
 
 /// Human-readable crate ownership summary.
@@ -69,6 +69,8 @@ const METAL_TEXT_GENERATION_POOL_MAX_CACHED_BYTES: u64 = 512 * 1024 * 1024;
 const METAL_TEXT_GENERATION_KERNEL_CACHE_MAX_ENTRIES: usize = 8;
 const METAL_TEXT_GENERATION_KERNEL_CACHE_MAX_CACHED_BYTES: u64 = 64 * 1024 * 1024;
 const METAL_TEXT_GENERATION_MIN_AVAILABLE_BYTES: u64 = 128 * 1024 * 1024;
+const GGML_Q8_1_BLOCK_ELEMENTS: usize = 32;
+const GGML_Q8_1_BLOCK_BYTES: usize = 36;
 
 /// Exact plan surface currently supported for the first accelerated
 /// `psionic.embeddings` milestone.
@@ -412,9 +414,11 @@ pub struct MetalKvCacheMirror {
     key_buffer: MetalBuffer,
     value_buffer: MetalBuffer,
     width: usize,
+    row_byte_len: usize,
     len: usize,
     capacity_tokens: usize,
     max_context_tokens: usize,
+    kv_cache_encoding_policy: KvCacheEncodingPolicy,
 }
 
 /// Compatibility tuple required for safe shared-prefix reuse on Metal.
@@ -440,6 +444,8 @@ pub struct MetalSharedPrefixCompatibility {
     pub kv_width: usize,
     /// Logical KV page layout required for reuse.
     pub page_layout: KvCachePageLayout,
+    /// Active KV-cache encoding policy required for reuse.
+    pub kv_cache_encoding_policy: KvCacheEncodingPolicy,
 }
 
 #[derive(Clone, Debug)]
@@ -1857,6 +1863,7 @@ impl MetalBackend {
         key_values: &[f32],
         value_values: &[f32],
         reserve_tokens: usize,
+        kv_cache_encoding_policy: KvCacheEncodingPolicy,
     ) -> Result<MetalKvCacheMirror, RuntimeError> {
         MetalKvCacheMirror::from_host_rows(
             self,
@@ -1866,6 +1873,7 @@ impl MetalBackend {
             key_values,
             value_values,
             reserve_tokens,
+            kv_cache_encoding_policy,
         )
     }
 
@@ -2209,6 +2217,7 @@ impl MetalKvCacheMirror {
         key_values: &[f32],
         value_values: &[f32],
         reserve_tokens: usize,
+        kv_cache_encoding_policy: KvCacheEncodingPolicy,
     ) -> Result<Self, RuntimeError> {
         if key_values.len() != tokens.saturating_mul(width) {
             return Err(RuntimeError::Backend(format!(
@@ -2226,25 +2235,26 @@ impl MetalKvCacheMirror {
         }
         let capacity_tokens =
             Self::capacity_for_request(tokens, reserve_tokens, max_context_tokens);
-        let mut key_buffer = backend.input_buffer(
-            Shape::new(vec![capacity_tokens.saturating_mul(width)]),
-            vec![0.0; capacity_tokens.saturating_mul(width)],
-        )?;
-        let mut value_buffer = backend.input_buffer(
-            Shape::new(vec![capacity_tokens.saturating_mul(width)]),
-            vec![0.0; capacity_tokens.saturating_mul(width)],
-        )?;
+        let row_byte_len = metal_kv_row_byte_len(width, &kv_cache_encoding_policy)?;
+        let mut key_buffer =
+            allocate_metal_kv_byte_buffer(backend, capacity_tokens.saturating_mul(row_byte_len))?;
+        let mut value_buffer =
+            allocate_metal_kv_byte_buffer(backend, capacity_tokens.saturating_mul(row_byte_len))?;
         if tokens > 0 {
-            key_buffer.write_bytes_at_offset(0, f32_slice_to_bytes(key_values).as_slice())?;
-            value_buffer.write_bytes_at_offset(0, f32_slice_to_bytes(value_values).as_slice())?;
+            let key_bytes = encode_metal_kv_rows(key_values, width, &kv_cache_encoding_policy)?;
+            let value_bytes = encode_metal_kv_rows(value_values, width, &kv_cache_encoding_policy)?;
+            key_buffer.write_bytes_at_offset(0, key_bytes.as_slice())?;
+            value_buffer.write_bytes_at_offset(0, value_bytes.as_slice())?;
         }
         Ok(Self {
             key_buffer,
             value_buffer,
             width,
+            row_byte_len,
             len: tokens,
             capacity_tokens,
             max_context_tokens,
+            kv_cache_encoding_policy,
         })
     }
 
@@ -2262,19 +2272,12 @@ impl MetalKvCacheMirror {
             .checked_next_power_of_two()
             .unwrap_or(required_tokens)
             .min(self.max_context_tokens.max(1));
-        let mut new_keys = backend.input_buffer(
-            Shape::new(vec![new_capacity.saturating_mul(self.width)]),
-            vec![0.0; new_capacity.saturating_mul(self.width)],
-        )?;
-        let mut new_values = backend.input_buffer(
-            Shape::new(vec![new_capacity.saturating_mul(self.width)]),
-            vec![0.0; new_capacity.saturating_mul(self.width)],
-        )?;
+        let mut new_keys =
+            allocate_metal_kv_byte_buffer(backend, new_capacity.saturating_mul(self.row_byte_len))?;
+        let mut new_values =
+            allocate_metal_kv_byte_buffer(backend, new_capacity.saturating_mul(self.row_byte_len))?;
         if self.len > 0 {
-            let byte_len = self
-                .len
-                .saturating_mul(self.width)
-                .saturating_mul(std::mem::size_of::<f32>());
+            let byte_len = self.len.saturating_mul(self.row_byte_len);
             new_keys.write_bytes_at_offset(
                 0,
                 self.key_buffer
@@ -2317,13 +2320,13 @@ impl MetalKvCacheMirror {
         }
         self.ensure_capacity(backend, self.len.saturating_add(1))?;
         let write_index = self.len;
-        let byte_offset = write_index
-            .saturating_mul(self.width)
-            .saturating_mul(std::mem::size_of::<f32>());
+        let byte_offset = write_index.saturating_mul(self.row_byte_len);
+        let key_bytes = encode_metal_kv_rows(key, self.width, &self.kv_cache_encoding_policy)?;
+        let value_bytes = encode_metal_kv_rows(value, self.width, &self.kv_cache_encoding_policy)?;
         self.key_buffer
-            .write_bytes_at_offset(byte_offset, f32_slice_to_bytes(key).as_slice())?;
+            .write_bytes_at_offset(byte_offset, key_bytes.as_slice())?;
         self.value_buffer
-            .write_bytes_at_offset(byte_offset, f32_slice_to_bytes(value).as_slice())?;
+            .write_bytes_at_offset(byte_offset, value_bytes.as_slice())?;
         self.len = self.len.saturating_add(1);
         Ok(write_index)
     }
@@ -2336,20 +2339,22 @@ impl MetalKvCacheMirror {
                 token_index, self.len
             )));
         }
-        let byte_offset = token_index
-            .saturating_mul(self.width)
-            .saturating_mul(std::mem::size_of::<f32>());
-        let byte_len = self.width.saturating_mul(std::mem::size_of::<f32>());
+        let byte_offset = token_index.saturating_mul(self.row_byte_len);
+        let byte_len = self.row_byte_len;
         Ok((
-            bytes_to_f32_vec(
+            decode_metal_kv_row(
                 self.key_buffer
                     .read_bytes_at_offset(byte_offset, byte_len)?
                     .as_slice(),
+                self.width,
+                &self.kv_cache_encoding_policy,
             )?,
-            bytes_to_f32_vec(
+            decode_metal_kv_row(
                 self.value_buffer
                     .read_bytes_at_offset(byte_offset, byte_len)?
                     .as_slice(),
+                self.width,
+                &self.kv_cache_encoding_policy,
             )?,
         ))
     }
@@ -2380,15 +2385,19 @@ impl MetalKvCacheMirror {
         self.width
     }
 
+    /// Returns the active KV-cache encoding policy for this mirror.
+    #[must_use]
+    pub fn kv_cache_encoding_policy(&self) -> &KvCacheEncodingPolicy {
+        &self.kv_cache_encoding_policy
+    }
+
     /// Returns the logical page layout for this cache.
     #[must_use]
     pub fn page_layout(&self) -> KvCachePageLayout {
         KvCachePageLayout::new(
             self.max_context_tokens,
             4,
-            self.width
-                .saturating_mul(std::mem::size_of::<f32>())
-                .saturating_mul(2),
+            self.row_byte_len.saturating_mul(2),
         )
     }
 
@@ -2396,6 +2405,80 @@ impl MetalKvCacheMirror {
     #[must_use]
     pub fn state(&self) -> KvCacheState {
         KvCacheState::paged(&self.page_layout(), self.len)
+    }
+}
+
+fn allocate_metal_kv_byte_buffer(
+    backend: &mut MetalBackend,
+    byte_len: usize,
+) -> Result<MetalBuffer, RuntimeError> {
+    let Some(device) = backend
+        .selected_device()
+        .map(|descriptor| descriptor.device.clone())
+    else {
+        return Err(RuntimeError::Backend(String::from(
+            "metal backend unavailable: no selected execution device",
+        )));
+    };
+    backend.allocate(&TensorSpec::new(
+        Shape::new(vec![byte_len]),
+        DType::I8,
+        device,
+    ))
+}
+
+fn metal_kv_row_byte_len(
+    width: usize,
+    kv_cache_encoding_policy: &KvCacheEncodingPolicy,
+) -> Result<usize, RuntimeError> {
+    match kv_cache_encoding_policy.family {
+        KvCacheEncodingFamily::TurboQuant => ggml_q8_1_storage_bytes(width),
+        KvCacheEncodingFamily::DenseF32 | KvCacheEncodingFamily::DenseF16Mirror => width
+            .checked_mul(std::mem::size_of::<f32>())
+            .ok_or_else(|| {
+                RuntimeError::Backend(String::from("metal kv row byte length overflow"))
+            }),
+    }
+}
+
+fn ggml_q8_1_storage_bytes(width: usize) -> Result<usize, RuntimeError> {
+    if width == 0 || width % GGML_Q8_1_BLOCK_ELEMENTS != 0 {
+        return Err(RuntimeError::Backend(format!(
+            "metal TurboQuant rows require width divisible by {}, actual {}",
+            GGML_Q8_1_BLOCK_ELEMENTS, width
+        )));
+    }
+    width
+        .checked_div(GGML_Q8_1_BLOCK_ELEMENTS)
+        .and_then(|blocks| blocks.checked_mul(GGML_Q8_1_BLOCK_BYTES))
+        .ok_or_else(|| {
+            RuntimeError::Backend(String::from("metal TurboQuant row byte length overflow"))
+        })
+}
+
+fn encode_metal_kv_rows(
+    values: &[f32],
+    width: usize,
+    kv_cache_encoding_policy: &KvCacheEncodingPolicy,
+) -> Result<Vec<u8>, RuntimeError> {
+    match kv_cache_encoding_policy.family {
+        KvCacheEncodingFamily::TurboQuant => f32_slice_to_q8_1_bytes(values, width),
+        KvCacheEncodingFamily::DenseF32 | KvCacheEncodingFamily::DenseF16Mirror => {
+            Ok(f32_slice_to_bytes(values))
+        }
+    }
+}
+
+fn decode_metal_kv_row(
+    bytes: &[u8],
+    width: usize,
+    kv_cache_encoding_policy: &KvCacheEncodingPolicy,
+) -> Result<Vec<f32>, RuntimeError> {
+    match kv_cache_encoding_policy.family {
+        KvCacheEncodingFamily::TurboQuant => q8_1_bytes_to_f32_vec(bytes, width),
+        KvCacheEncodingFamily::DenseF32 | KvCacheEncodingFamily::DenseF16Mirror => {
+            bytes_to_f32_vec(bytes)
+        }
     }
 }
 
@@ -4781,6 +4864,126 @@ fn bytes_to_f32_vec(bytes: &[u8]) -> Result<Vec<f32>, RuntimeError> {
     Ok(values)
 }
 
+fn f32_slice_to_q8_1_bytes(values: &[f32], width: usize) -> Result<Vec<u8>, RuntimeError> {
+    if width == 0 || values.len() % width != 0 {
+        return Err(RuntimeError::Backend(format!(
+            "metal q8_1 row encode requires a positive row width, got width={} values={}",
+            width,
+            values.len()
+        )));
+    }
+    let row_byte_len = ggml_q8_1_storage_bytes(width)?;
+    let mut bytes = Vec::with_capacity(values.len() / width * row_byte_len);
+    for row in values.chunks_exact(width) {
+        for block in row.chunks_exact(GGML_Q8_1_BLOCK_ELEMENTS) {
+            let mut max_abs = 0.0_f32;
+            let mut sum = 0.0_f32;
+            for &value in block {
+                max_abs = max_abs.max(value.abs());
+                sum += value;
+            }
+            let scale = if max_abs == 0.0 { 0.0 } else { max_abs / 127.0 };
+            bytes.extend_from_slice(&f32_to_f16_bits(scale).to_le_bytes());
+            bytes.extend_from_slice(&f32_to_f16_bits(sum).to_le_bytes());
+            for &value in block {
+                let quantized = if scale == 0.0 {
+                    0.0
+                } else {
+                    (value / scale).round().clamp(-127.0, 127.0)
+                };
+                bytes.push((quantized as i8) as u8);
+            }
+        }
+    }
+    Ok(bytes)
+}
+
+fn q8_1_bytes_to_f32_vec(bytes: &[u8], width: usize) -> Result<Vec<f32>, RuntimeError> {
+    let expected = ggml_q8_1_storage_bytes(width)?;
+    if bytes.len() != expected {
+        return Err(RuntimeError::Backend(format!(
+            "invalid q8_1 byte length {}, expected {}",
+            bytes.len(),
+            expected,
+        )));
+    }
+    let mut values = Vec::with_capacity(width);
+    for block in bytes.chunks_exact(GGML_Q8_1_BLOCK_BYTES) {
+        let scale = f16_bits_to_f32(u16::from_le_bytes([block[0], block[1]]));
+        for &quantized in &block[4..4 + GGML_Q8_1_BLOCK_ELEMENTS] {
+            values.push((quantized as i8) as f32 * scale);
+        }
+    }
+    Ok(values)
+}
+
+fn f32_to_f16_bits(value: f32) -> u16 {
+    let bits = value.to_bits();
+    let sign = ((bits >> 16) & 0x8000) as u16;
+    let exponent = ((bits >> 23) & 0xff) as i32;
+    let mantissa = bits & 0x007f_ffff;
+
+    if exponent == 0xff {
+        if mantissa == 0 {
+            return sign | 0x7c00;
+        }
+        return sign | 0x7c00 | ((mantissa >> 13) as u16) | 1;
+    }
+
+    let half_exponent = exponent - 127 + 15;
+    if half_exponent >= 0x1f {
+        return sign | 0x7c00;
+    }
+
+    if half_exponent <= 0 {
+        if half_exponent < -10 {
+            return sign;
+        }
+        let mantissa = mantissa | 0x0080_0000;
+        let shift = (14 - half_exponent) as u32;
+        let rounded = mantissa + (1 << (shift - 1));
+        return sign | ((rounded >> shift) as u16);
+    }
+
+    let rounded_mantissa = mantissa + 0x0000_1000;
+    if rounded_mantissa & 0x0080_0000 != 0 {
+        let adjusted_exponent = half_exponent + 1;
+        if adjusted_exponent >= 0x1f {
+            return sign | 0x7c00;
+        }
+        return sign | ((adjusted_exponent as u16) << 10);
+    }
+
+    sign | ((half_exponent as u16) << 10) | ((rounded_mantissa >> 13) as u16)
+}
+
+fn f16_bits_to_f32(bits: u16) -> f32 {
+    let sign = u32::from(bits & 0x8000) << 16;
+    let exponent = (bits >> 10) & 0x1f;
+    let mantissa = u32::from(bits & 0x03ff);
+
+    let f32_bits = if exponent == 0 {
+        if mantissa == 0 {
+            sign
+        } else {
+            let mut mantissa = mantissa;
+            let mut exponent = -14_i32;
+            while mantissa & 0x0400 == 0 {
+                mantissa <<= 1;
+                exponent -= 1;
+            }
+            mantissa &= 0x03ff;
+            sign | (((exponent + 127) as u32) << 23) | (mantissa << 13)
+        }
+    } else if exponent == 0x1f {
+        sign | 0x7f80_0000 | (mantissa << 13)
+    } else {
+        sign | (((i32::from(exponent) - 15 + 127) as u32) << 23) | (mantissa << 13)
+    };
+
+    f32::from_bits(f32_bits)
+}
+
 fn shared_prefix_len(left: &[u32], right: &[u32]) -> usize {
     left.iter()
         .zip(right.iter())
@@ -6637,16 +6840,18 @@ mod tests {
     use psionic_runtime::{
         Allocator, BackendDegradedPolicy, BackendParityPolicy, BackendSelectionState, BufferHandle,
         BufferResidency, BufferStorageKind, CacheAction, CacheKind, CompilePathTemperature,
-        DeviceDiscovery, HealthStatus, KvCacheAccounting, KvCachePageLayout, KvCacheState,
+        DeviceDiscovery, HealthStatus, KvCacheAccounting, KvCacheEncodingFamily,
+        KvCacheEncodingObjective, KvCacheEncodingPolicy, KvCachePageLayout, KvCacheState,
         PrefixCacheState, QuantizationExecution, QuantizationLoadPath, QuantizationSupport,
         RuntimeError, ServedProductBackendPolicy,
     };
 
     use super::{
-        classify_support, validate_quantized_storage, validate_supported_plan, DeviceSupportTier,
-        FamilySupport, MetalAttentionGraphReserve, MetalBackend, MetalGraphReserveKind,
-        MetalPromptResidencyMetrics, MetalSharedPrefixCompatibility, MetalSharedPrefixStore,
-        EMBEDDINGS_SUPPORTED_OPS, TEXT_GENERATION_SUPPORTED_OPS,
+        classify_support, ggml_q8_1_storage_bytes, validate_quantized_storage,
+        validate_supported_plan, DeviceSupportTier, FamilySupport, MetalAttentionGraphReserve,
+        MetalBackend, MetalGraphReserveKind, MetalPromptResidencyMetrics,
+        MetalSharedPrefixCompatibility, MetalSharedPrefixStore, EMBEDDINGS_SUPPORTED_OPS,
+        GGML_Q8_1_BLOCK_ELEMENTS, TEXT_GENERATION_SUPPORTED_OPS,
     };
 
     fn sample_repeated_mxfp4_rows(rows: usize) -> Vec<u8> {
@@ -6791,22 +6996,73 @@ mod tests {
     fn sample_prefix_compatibility(
         width: usize,
         max_context_tokens: usize,
+        kv_cache_encoding_policy: KvCacheEncodingPolicy,
     ) -> MetalSharedPrefixCompatibility {
+        let row_byte_len = match kv_cache_encoding_policy.family {
+            KvCacheEncodingFamily::TurboQuant => ggml_q8_1_storage_bytes(width)
+                .expect("sample TurboQuant policy requires block-aligned width"),
+            KvCacheEncodingFamily::DenseF32 | KvCacheEncodingFamily::DenseF16Mirror => {
+                width.saturating_mul(std::mem::size_of::<f32>())
+            }
+        };
         MetalSharedPrefixCompatibility {
             served_artifact_digest: String::from("metal-artifact"),
             model_id: String::from("gpt-oss"),
             model_revision: String::from("20b"),
             weight_bundle_digest: String::from("weights-digest"),
             tokenizer_family: String::from("cl100k"),
+            tenant_id: None,
+            sampler_digest: None,
             backend_compatibility: String::from("metal-apple"),
             kv_width: width,
             page_layout: KvCachePageLayout::new(
                 max_context_tokens,
                 4,
-                width
-                    .saturating_mul(std::mem::size_of::<f32>())
-                    .saturating_mul(2),
+                row_byte_len.saturating_mul(2),
             ),
+            kv_cache_encoding_policy,
+        }
+    }
+
+    fn sample_dense_kv_policy(width: usize, max_context_tokens: usize) -> KvCacheEncodingPolicy {
+        KvCacheEncodingPolicy::dense_f32(
+            width
+                .saturating_mul(2)
+                .saturating_mul(std::mem::size_of::<f32>())
+                .try_into()
+                .unwrap_or(u64::MAX),
+            "gpt-oss",
+            max_context_tokens,
+        )
+        .with_detail("test dense metal kv policy")
+    }
+
+    fn sample_turboquant_kv_policy(
+        width: usize,
+        max_context_tokens: usize,
+    ) -> KvCacheEncodingPolicy {
+        KvCacheEncodingPolicy {
+            family: KvCacheEncodingFamily::TurboQuant,
+            objective: Some(KvCacheEncodingObjective::MeanSquaredError),
+            bits_per_channel: Some(8),
+            block_shape: Some(GGML_Q8_1_BLOCK_ELEMENTS.to_string()),
+            outlier_policy: None,
+            projection_id: None,
+            codebook_id: Some(String::from("ggml_q8_1")),
+            model_family_bound: Some(String::from("gpt-oss")),
+            context_length_bound: Some(max_context_tokens),
+            host_bytes_per_token: Some(
+                width
+                    .saturating_mul(2)
+                    .saturating_mul(std::mem::size_of::<f32>())
+                    .try_into()
+                    .unwrap_or(u64::MAX),
+            ),
+            device_bytes_per_token: ggml_q8_1_storage_bytes(width)
+                .ok()
+                .and_then(|row_bytes| row_bytes.checked_mul(2))
+                .map(|bytes| bytes as u64),
+            detail: Some(String::from("test TurboQuant metal kv policy")),
         }
     }
 
@@ -7634,7 +7890,15 @@ mod tests {
             return Ok(());
         };
 
-        let mut cache = backend.kv_cache_mirror_from_host_rows(4, 8, 0, &[], &[], 4)?;
+        let mut cache = backend.kv_cache_mirror_from_host_rows(
+            4,
+            8,
+            0,
+            &[],
+            &[],
+            4,
+            sample_dense_kv_policy(4, 8),
+        )?;
         let cos = backend.input_buffer(Shape::new(vec![1, 2]), vec![1.0, 1.0])?;
         let sin = backend.input_buffer(Shape::new(vec![1, 2]), vec![0.0, 0.0])?;
         let query_shape = Shape::new(vec![1, 2, 1, 4]);
@@ -7794,7 +8058,15 @@ mod tests {
             flash_attention: backend.supports_flash_attention(),
         };
         let mut runtime = backend.reserve_attention_graph(reserve)?;
-        let mut cache = backend.kv_cache_mirror_from_host_rows(4, 8, 0, &[], &[], 4)?;
+        let mut cache = backend.kv_cache_mirror_from_host_rows(
+            4,
+            8,
+            0,
+            &[],
+            &[],
+            4,
+            sample_dense_kv_policy(4, 8),
+        )?;
         let cos = backend.input_buffer(Shape::new(vec![1, 2]), vec![1.0, 1.0])?;
         let sin = backend.input_buffer(Shape::new(vec![1, 2]), vec![0.0, 0.0])?;
         let query = backend.input_buffer(
@@ -8131,6 +8403,7 @@ mod tests {
             &[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0],
             &[10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0],
             2,
+            sample_dense_kv_policy(width, max_context_tokens),
         )?;
 
         assert_eq!(mirror.len(), 2);
@@ -8164,6 +8437,63 @@ mod tests {
 
     #[cfg(target_os = "macos")]
     #[test]
+    fn metal_kv_cache_mirror_roundtrips_turboquant_entries_on_supported_hardware(
+    ) -> Result<(), RuntimeError> {
+        let mut backend = MetalBackend::new();
+        let Some(_selected) = backend.selected_device().cloned() else {
+            assert_ne!(backend.health().status, HealthStatus::Ready);
+            return Ok(());
+        };
+
+        let width = 32;
+        let max_context_tokens = 64;
+        let policy = sample_turboquant_kv_policy(width, max_context_tokens);
+        let keys = (0..(width * 2))
+            .map(|index| (index as f32 - 16.0) / 4.0)
+            .collect::<Vec<_>>();
+        let values = (0..(width * 2))
+            .map(|index| (index as f32 - 8.0) / 3.0)
+            .collect::<Vec<_>>();
+        let mut mirror = backend.kv_cache_mirror_from_host_rows(
+            width,
+            max_context_tokens,
+            2,
+            keys.as_slice(),
+            values.as_slice(),
+            4,
+            policy.clone(),
+        )?;
+
+        assert_eq!(mirror.kv_cache_encoding_policy(), &policy);
+        assert_eq!(
+            mirror.page_layout(),
+            KvCachePageLayout::new(
+                max_context_tokens,
+                4,
+                ggml_q8_1_storage_bytes(width)?.saturating_mul(2),
+            )
+        );
+        let (second_key, second_value) = mirror.read_entry(1)?;
+        assert_close(second_key.as_slice(), &keys[width..], 0.1);
+        assert_close(second_value.as_slice(), &values[width..], 0.1);
+
+        let append_key = (0..width)
+            .map(|index| (index as f32 - 10.0) / 5.0)
+            .collect::<Vec<_>>();
+        let append_value = (0..width)
+            .map(|index| (index as f32 - 5.0) / 6.0)
+            .collect::<Vec<_>>();
+        let write_index =
+            mirror.append_entry(&mut backend, append_key.as_slice(), append_value.as_slice())?;
+        assert_eq!(write_index, 2);
+        let (stored_key, stored_value) = mirror.read_entry(write_index)?;
+        assert_close(stored_key.as_slice(), append_key.as_slice(), 0.1);
+        assert_close(stored_value.as_slice(), append_value.as_slice(), 0.1);
+        Ok(())
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
     fn metal_shared_prefix_store_reuses_device_resident_prefix_on_supported_hardware(
     ) -> Result<(), RuntimeError> {
         let mut backend = MetalBackend::new();
@@ -8174,7 +8504,11 @@ mod tests {
 
         let width = 4;
         let max_context_tokens = 8;
-        let compatibility = sample_prefix_compatibility(width, max_context_tokens);
+        let compatibility = sample_prefix_compatibility(
+            width,
+            max_context_tokens,
+            sample_dense_kv_policy(width, max_context_tokens),
+        );
         let cache = backend.kv_cache_mirror_from_host_rows(
             width,
             max_context_tokens,
@@ -8184,6 +8518,7 @@ mod tests {
                 10.0, 10.5, 11.0, 11.5, 12.0, 12.5, 13.0, 13.5, 14.0, 14.5, 15.0, 15.5,
             ],
             2,
+            sample_dense_kv_policy(width, max_context_tokens),
         )?;
 
         let mut store = MetalSharedPrefixStore::default();
@@ -8220,6 +8555,51 @@ mod tests {
 
     #[cfg(target_os = "macos")]
     #[test]
+    fn metal_shared_prefix_store_rejects_mismatched_kv_cache_encoding_policy_on_supported_hardware(
+    ) -> Result<(), RuntimeError> {
+        let mut backend = MetalBackend::new();
+        let Some(_selected) = backend.selected_device().cloned() else {
+            assert_ne!(backend.health().status, HealthStatus::Ready);
+            return Ok(());
+        };
+
+        let width = 32;
+        let max_context_tokens = 64;
+        let dense_policy = sample_dense_kv_policy(width, max_context_tokens);
+        let turboquant_policy = sample_turboquant_kv_policy(width, max_context_tokens);
+        let dense_compatibility =
+            sample_prefix_compatibility(width, max_context_tokens, dense_policy.clone());
+        let turboquant_compatibility =
+            sample_prefix_compatibility(width, max_context_tokens, turboquant_policy);
+        let keys = (0..(width * 3))
+            .map(|index| (index as f32 + 1.0) / 8.0)
+            .collect::<Vec<_>>();
+        let values = (0..(width * 3))
+            .map(|index| (index as f32 + 4.0) / 7.0)
+            .collect::<Vec<_>>();
+        let cache = backend.kv_cache_mirror_from_host_rows(
+            width,
+            max_context_tokens,
+            3,
+            keys.as_slice(),
+            values.as_slice(),
+            2,
+            dense_policy,
+        )?;
+
+        let mut store = MetalSharedPrefixStore::default();
+        store.record(dense_compatibility, &[1, 2, 3], &cache);
+
+        let lookup = store.lookup(&turboquant_compatibility, &[1, 2, 3, 4]);
+        assert_eq!(lookup.state, PrefixCacheState::None);
+        assert_eq!(lookup.reused_tokens, 0);
+        assert!(lookup.identity.is_none());
+        assert!(lookup.cache.is_none());
+        Ok(())
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
     fn metal_shared_prefix_store_rebuilds_stale_entries_on_supported_hardware(
     ) -> Result<(), RuntimeError> {
         let mut backend = MetalBackend::new();
@@ -8230,7 +8610,11 @@ mod tests {
 
         let width = 4;
         let max_context_tokens = 8;
-        let compatibility = sample_prefix_compatibility(width, max_context_tokens);
+        let compatibility = sample_prefix_compatibility(
+            width,
+            max_context_tokens,
+            sample_dense_kv_policy(width, max_context_tokens),
+        );
         let stale_cache = backend.kv_cache_mirror_from_host_rows(
             width,
             max_context_tokens,
@@ -8238,6 +8622,7 @@ mod tests {
             &[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0],
             &[10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0],
             2,
+            sample_dense_kv_policy(width, max_context_tokens),
         )?;
 
         let mut store = MetalSharedPrefixStore::default();
