@@ -13,8 +13,9 @@ use sha2::{Digest, Sha256};
 use thiserror::Error;
 
 use crate::{
-    benchmark_parameter_golf_distributed_8xh100, parameter_golf_runpod_8xh100_capability_profile,
-    ParameterGolfBatchGeometry, ParameterGolfDistributedLaneError,
+    benchmark_parameter_golf_distributed_8xh100, device_capacity_matches_h100_threshold,
+    parameter_golf_runpod_8xh100_capability_profile, ParameterGolfBatchGeometry,
+    ParameterGolfDistributedLaneError,
     ParameterGolfRunPod8xH100Measurements, ParameterGolfTrainingHyperparameters,
 };
 
@@ -271,9 +272,7 @@ fn device_matches_distributed_h100(
     };
     metadata.topology.mig_profile.is_none()
         && !metadata.risk.mig_partitioned
-        && device
-            .memory_capacity_bytes
-            .is_some_and(|bytes| bytes >= thresholds.max_peak_device_bytes_per_worker)
+        && device_capacity_matches_h100_threshold(device, thresholds)
 }
 
 fn observed_device_label(device: &DeviceDescriptor) -> String {
@@ -565,6 +564,16 @@ mod tests {
         let mut device = sample_h100_device(0);
         device.device_name = Some(String::from("NVIDIA RTX 4080"));
         assert!(!device_matches_distributed_h100(
+            &device,
+            &ParameterGolfDistributedChallengeThresholds::challenge_8xh100()
+        ));
+    }
+
+    #[test]
+    fn distributed_h100_matcher_accepts_real_runpod_inventory_delta() {
+        let mut device = sample_h100_device(0);
+        device.memory_capacity_bytes = Some(81_559 * 1024 * 1024);
+        assert!(device_matches_distributed_h100(
             &device,
             &ParameterGolfDistributedChallengeThresholds::challenge_8xh100()
         ));

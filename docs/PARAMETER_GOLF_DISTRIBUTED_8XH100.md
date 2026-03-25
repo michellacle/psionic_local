@@ -80,6 +80,8 @@ The distributed lane is admitted only when all of the following are true:
 - backend is `cuda`
 - the selected inventory contains exactly `8` devices
 - every selected device name matches `H100`
+- each device still satisfies the `80GB` class after allowing the normal
+  `nvidia-smi` inventory delta seen on real RunPod `H100 80GB HBM3` hosts
 - devices are not MIG-partitioned
 - the cluster capability profile advertises
   `tensor_collective_mesh`

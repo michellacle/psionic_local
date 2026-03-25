@@ -992,6 +992,18 @@ fn parse_inventory_quantity(
     )
 }
 
+pub(crate) const PARAMETER_GOLF_H100_DEVICE_CAPACITY_TOLERANCE_BYTES: u64 = 512 * 1024 * 1024;
+
+pub(crate) fn device_capacity_matches_h100_threshold(
+    device: &DeviceDescriptor,
+    thresholds: &ParameterGolfDistributedChallengeThresholds,
+) -> bool {
+    device.memory_capacity_bytes.is_some_and(|bytes| {
+        bytes.saturating_add(PARAMETER_GOLF_H100_DEVICE_CAPACITY_TOLERANCE_BYTES)
+            >= thresholds.max_peak_device_bytes_per_worker
+    })
+}
+
 fn device_matches_h100(
     device: &DeviceDescriptor,
     thresholds: &ParameterGolfDistributedChallengeThresholds,
@@ -1010,9 +1022,7 @@ fn device_matches_h100(
     name_matches
         && metadata.topology.mig_profile.is_none()
         && !metadata.risk.mig_partitioned
-        && device
-            .memory_capacity_bytes
-            .is_some_and(|bytes| bytes >= thresholds.max_peak_device_bytes_per_worker)
+        && device_capacity_matches_h100_threshold(device, thresholds)
 }
 
 fn build_communication_receipt(
@@ -1505,6 +1515,7 @@ mod tests {
         benchmark_parameter_golf_distributed_8xh100,
         benchmark_parameter_golf_runpod_8xh100_from_measurements,
         build_parameter_golf_runpod_8xh100_measurements_from_train_log,
+        device_capacity_matches_h100_threshold,
         parameter_golf_runpod_8xh100_capability_profile,
         parse_parameter_golf_runpod_8xh100_inventory, ParameterGolfBatchGeometry,
         ParameterGolfDistributed8xH100Config, ParameterGolfDistributedLaneError,
@@ -1884,6 +1895,16 @@ mod tests {
             Some("9.0")
         );
         Ok(())
+    }
+
+    #[test]
+    fn distributed_h100_capacity_matcher_accepts_real_runpod_inventory_delta() {
+        let mut device = sample_h100_device(0);
+        device.memory_capacity_bytes = Some(81_559 * 1024 * 1024);
+        assert!(device_capacity_matches_h100_threshold(
+            &device,
+            &psionic_eval::ParameterGolfDistributedChallengeThresholds::challenge_8xh100()
+        ));
     }
 
     #[test]
