@@ -69,9 +69,9 @@ mod tassadar_post_article_plugin_result_binding_schema_stability_and_composition
 mod tassadar_post_article_plugin_runtime_api_and_engine_abstraction;
 mod tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility;
 mod tassadar_post_article_starter_plugin_catalog_bundle;
+mod tassadar_post_article_starter_plugin_runtime;
 mod tassadar_post_article_starter_plugin_tool_bridge;
 mod tassadar_post_article_starter_plugin_workflow_controller;
-mod tassadar_post_article_starter_plugin_runtime;
 mod tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop;
 mod tassadar_precision_attention_runtime_audit;
 mod tassadar_preemptive_jobs;
@@ -117,7 +117,7 @@ use psionic_core::{
     ViewSemantics,
 };
 use psionic_ir::ExecutionPlan;
-use rand::{rngs::StdRng, Rng, SeedableRng};
+use rand::{Rng, SeedableRng, rngs::StdRng};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 pub use structured_output::*;
@@ -159,8 +159,8 @@ pub use tassadar_internal_module_library::*;
 pub use tassadar_linked_program_bundle::*;
 pub use tassadar_locality_envelope::*;
 pub use tassadar_locality_scratchpad::*;
-pub use tassadar_memory64_profile::*;
 pub use tassadar_memory_abi_v2::*;
+pub use tassadar_memory64_profile::*;
 pub use tassadar_minimal_universal_substrate_runtime_report::*;
 pub use tassadar_mixed_numeric_ladder::*;
 pub use tassadar_mixed_trajectory::*;
@@ -180,9 +180,9 @@ pub use tassadar_post_article_plugin_result_binding_schema_stability_and_composi
 pub use tassadar_post_article_plugin_runtime_api_and_engine_abstraction::*;
 pub use tassadar_post_article_plugin_world_mount_envelope_compiler_and_admissibility::*;
 pub use tassadar_post_article_starter_plugin_catalog_bundle::*;
+pub use tassadar_post_article_starter_plugin_runtime::*;
 pub use tassadar_post_article_starter_plugin_tool_bridge::*;
 pub use tassadar_post_article_starter_plugin_workflow_controller::*;
-pub use tassadar_post_article_starter_plugin_runtime::*;
 pub use tassadar_post_article_weighted_plugin_controller_trace_and_refusal_aware_model_loop::*;
 pub use tassadar_precision_attention_runtime_audit::*;
 pub use tassadar_preemptive_jobs::*;
@@ -7671,6 +7671,193 @@ pub struct KvCachePolicy {
     pub page_layout: KvCachePageLayout,
 }
 
+/// Stable cache-encoding family for served KV state.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum KvCacheEncodingFamily {
+    /// Dense host-resident KV rows without a compressed device mirror.
+    DenseF32,
+    /// Dense host rows plus an f16 device-resident mirror.
+    DenseF16Mirror,
+    /// TurboQuant-style approximate cache encoding.
+    #[serde(rename = "turboquant")]
+    TurboQuant,
+}
+
+impl KvCacheEncodingFamily {
+    /// Returns a stable machine-checkable label.
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::DenseF32 => "dense_f32",
+            Self::DenseF16Mirror => "dense_f16_mirror",
+            Self::TurboQuant => "turboquant",
+        }
+    }
+}
+
+/// Objective used when one approximate KV-cache encoding is active.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum KvCacheEncodingObjective {
+    /// No approximate objective applies.
+    None,
+    /// Preserve inner-product behavior for attention-sensitive paths.
+    ProductPreserving,
+    /// Minimize mean-squared reconstruction error.
+    MeanSquaredError,
+}
+
+impl KvCacheEncodingObjective {
+    /// Returns a stable machine-checkable label.
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::None => "none",
+            Self::ProductPreserving => "product_preserving",
+            Self::MeanSquaredError => "mean_squared_error",
+        }
+    }
+}
+
+/// Explicit cache-encoding policy exposed through capability and receipt surfaces.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct KvCacheEncodingPolicy {
+    /// Active cache-encoding family.
+    pub family: KvCacheEncodingFamily,
+    /// Optimization objective when the family is approximate.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub objective: Option<KvCacheEncodingObjective>,
+    /// Effective bits per channel when known.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bits_per_channel: Option<u16>,
+    /// Stable block or group shape label when known.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub block_shape: Option<String>,
+    /// Stable outlier-handling label when known.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub outlier_policy: Option<String>,
+    /// Stable projection or rotation identifier when known.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub projection_id: Option<String>,
+    /// Stable codebook or build identifier when known.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub codebook_id: Option<String>,
+    /// Optional model-family support bound.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub model_family_bound: Option<String>,
+    /// Optional maximum validated context length.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub context_length_bound: Option<usize>,
+    /// Host-side bytes-per-token geometry when present.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub host_bytes_per_token: Option<u64>,
+    /// Device-side bytes-per-token geometry when present.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub device_bytes_per_token: Option<u64>,
+    /// Optional plain-language detail.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub detail: Option<String>,
+}
+
+impl KvCacheEncodingPolicy {
+    /// Creates a dense host-only cache-encoding policy.
+    #[must_use]
+    pub fn dense_f32(
+        host_bytes_per_token: u64,
+        model_family_bound: impl Into<String>,
+        context_length_bound: usize,
+    ) -> Self {
+        Self {
+            family: KvCacheEncodingFamily::DenseF32,
+            objective: Some(KvCacheEncodingObjective::None),
+            bits_per_channel: Some(32),
+            block_shape: None,
+            outlier_policy: None,
+            projection_id: None,
+            codebook_id: None,
+            model_family_bound: Some(model_family_bound.into()),
+            context_length_bound: Some(context_length_bound),
+            host_bytes_per_token: Some(host_bytes_per_token),
+            device_bytes_per_token: None,
+            detail: None,
+        }
+    }
+
+    /// Creates a dense host-plus-f16-device-mirror cache-encoding policy.
+    #[must_use]
+    pub fn dense_f16_mirror(
+        host_bytes_per_token: u64,
+        device_bytes_per_token: u64,
+        model_family_bound: impl Into<String>,
+        context_length_bound: usize,
+    ) -> Self {
+        Self {
+            family: KvCacheEncodingFamily::DenseF16Mirror,
+            objective: Some(KvCacheEncodingObjective::None),
+            bits_per_channel: Some(16),
+            block_shape: None,
+            outlier_policy: None,
+            projection_id: None,
+            codebook_id: None,
+            model_family_bound: Some(model_family_bound.into()),
+            context_length_bound: Some(context_length_bound),
+            host_bytes_per_token: Some(host_bytes_per_token),
+            device_bytes_per_token: Some(device_bytes_per_token),
+            detail: None,
+        }
+    }
+
+    /// Attaches plain-language detail.
+    #[must_use]
+    pub fn with_detail(mut self, detail: impl Into<String>) -> Self {
+        self.detail = Some(detail.into());
+        self
+    }
+}
+
+/// Explicit request/result accounting for KV-cache encoding behavior.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct KvCacheEncodingAccounting {
+    /// Optional requested cache-encoding policy for the route.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub requested: Option<KvCacheEncodingPolicy>,
+    /// Effective cache-encoding policy used by the runtime.
+    pub active: KvCacheEncodingPolicy,
+    /// Whether the runtime downgraded from the requested policy.
+    pub downgraded: bool,
+    /// Optional refusal or downgrade detail.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub refusal_reason: Option<String>,
+}
+
+impl KvCacheEncodingAccounting {
+    /// Creates accounting for one active cache-encoding policy.
+    #[must_use]
+    pub fn active(active: KvCacheEncodingPolicy) -> Self {
+        Self {
+            requested: None,
+            active,
+            downgraded: false,
+            refusal_reason: None,
+        }
+    }
+
+    /// Attaches one requested cache-encoding policy.
+    #[must_use]
+    pub fn with_requested(mut self, requested: KvCacheEncodingPolicy) -> Self {
+        self.requested = Some(requested);
+        self
+    }
+
+    /// Attaches one downgrade or refusal detail.
+    #[must_use]
+    pub fn with_refusal_reason(mut self, refusal_reason: impl Into<String>) -> Self {
+        self.refusal_reason = Some(refusal_reason.into());
+        self
+    }
+}
+
 /// Snapshot of current paged-KV usage.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct KvCacheState {
@@ -9863,8 +10050,6 @@ mod tests {
     use serde_json::json;
 
     use super::{
-        apply_sampling_penalties, benchmark_dispatch_plan, benchmark_quantization_dispatch,
-        default_cache_invalidation_policy, plan_model_admission,
         AcceleratorDeliverabilityDifferenceCode, AcceleratorDeliverabilityStatus,
         AcceleratorExecutionRequirement, AdmissionRefusalReason, Allocator, AllocatorPoolPolicy,
         AllocatorPoolReport, AllocatorPoolState, AmdBackendReport, AmdDeviceMetadata,
@@ -9885,19 +10070,20 @@ mod tests {
         ClusterFallbackReason, ClusterFallbackStep, ClusterPolicyDigest, ClusterPolicyDigestKind,
         ClusterSelectedNode, ClusterServingSemantics, ClusterSettlementProvenanceInput,
         ClusterTransportClass, ClusterTrustPosture, ClusterWarmRoutePosture,
-        DeliveredExecutionContext, DeterminismContractError, DeterminismMode,
-        DeterministicAlgorithmPolicy, DeviceDescriptor, DeviceDiscovery, DeviceInventoryQualifiers,
-        DeviceMemoryBudget, DeviceMemoryClass, DevicePerformanceClass, ExecutionBackend,
-        ExecutionCapabilityProfile, ExecutionDeliveryProof, ExecutionMetrics, ExecutionPartition,
-        ExecutionPlanCachePolicy, ExecutionPlanCacheReport, ExecutionPlanCacheState,
-        ExecutionResult, ExecutionTopologyKind, ExecutionTopologyPlan,
+        DEFAULT_PENALTY_LOOKBACK, DeliveredExecutionContext, DeterminismContractError,
+        DeterminismMode, DeterministicAlgorithmPolicy, DeviceDescriptor, DeviceDiscovery,
+        DeviceInventoryQualifiers, DeviceMemoryBudget, DeviceMemoryClass, DevicePerformanceClass,
+        ExecutionBackend, ExecutionCapabilityProfile, ExecutionDeliveryProof, ExecutionMetrics,
+        ExecutionPartition, ExecutionPlanCachePolicy, ExecutionPlanCacheReport,
+        ExecutionPlanCacheState, ExecutionResult, ExecutionTopologyKind, ExecutionTopologyPlan,
         GenerationSchedulerFallbackCount, GenerationSchedulerFallbackReason,
         GenerationSchedulerMetrics, GenerationSchedulerPolicy, GeneratorScope, HealthStatus,
         KernelCachePolicy, KernelCacheReport, KernelCacheState, KvCacheAccounting,
-        KvCacheDeviceScope, KvCachePageLayout, KvCachePolicy, KvCacheSpillPolicy, KvCacheState,
-        KvResidencyAccounting, KvResidencyExternalLocator, KvResidencyMovement,
-        KvResidencyMovementKind, KvResidencyTier, KvResidencyTierState, LoadedModelMemoryState,
-        LoadedModelResidency, LoadedModelState, LocalRuntimeObservability,
+        KvCacheDeviceScope, KvCacheEncodingAccounting, KvCacheEncodingFamily,
+        KvCacheEncodingObjective, KvCacheEncodingPolicy, KvCachePageLayout, KvCachePolicy,
+        KvCacheSpillPolicy, KvCacheState, KvResidencyAccounting, KvResidencyExternalLocator,
+        KvResidencyMovement, KvResidencyMovementKind, KvResidencyTier, KvResidencyTierState,
+        LoadedModelMemoryState, LoadedModelResidency, LoadedModelState, LocalRuntimeObservability,
         LocalServingIsolationPolicy, MemoryBudget, MemoryResidencySnapshot, ModelAdmissionDecision,
         ModelArtifactBlobKind, ModelArtifactStorage, ModelArtifactStorageKind, ModelMemoryPlan,
         ModelResidencyPolicy, NvidiaBackendReport, NvidiaDeviceMetadata, NvidiaRecoveryAction,
@@ -9920,7 +10106,9 @@ mod tests {
         TrainingCheckpointAvailability, TrainingCheckpointReference, TrainingCollectiveContext,
         TrainingCollectiveKind, TrainingCollectiveQuantization, TrainingDeviceMeshAxis,
         TrainingDeviceMeshAxisKind, TrainingDeviceMeshContext, TrainingElasticMembershipContext,
-        TrainingRecoveryContext, TrainingRecoveryPosture, DEFAULT_PENALTY_LOOKBACK,
+        TrainingRecoveryContext, TrainingRecoveryPosture, apply_sampling_penalties,
+        benchmark_dispatch_plan, benchmark_quantization_dispatch,
+        default_cache_invalidation_policy, plan_model_admission,
     };
 
     #[derive(Clone, Debug, PartialEq, Eq)]
@@ -10087,8 +10275,8 @@ mod tests {
     }
 
     #[test]
-    fn backend_selection_helpers_capture_direct_and_fallback_truth(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn backend_selection_helpers_capture_direct_and_fallback_truth()
+    -> Result<(), Box<dyn std::error::Error>> {
         let direct = BackendSelection::from_backend(&MockRuntime, &["input", "matmul"])?;
         assert_eq!(direct.requested_backend, "mock");
         assert_eq!(direct.effective_backend, "mock");
@@ -10388,8 +10576,8 @@ mod tests {
     }
 
     #[test]
-    fn quantization_support_surfaces_storage_path_and_pending_execution_truth(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn quantization_support_surfaces_storage_path_and_pending_execution_truth()
+    -> Result<(), Box<dyn std::error::Error>> {
         let support = QuantizationSupport {
             mode: psionic_core::QuantizationMode::GgmlQ4_0,
             load_path: QuantizationLoadPath::BackendQuantized,
@@ -10483,8 +10671,8 @@ mod tests {
     }
 
     #[test]
-    fn runtime_model_storage_truth_distinguishes_paged_blobs_from_copies(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn runtime_model_storage_truth_distinguishes_paged_blobs_from_copies()
+    -> Result<(), Box<dyn std::error::Error>> {
         let copy = ModelArtifactStorage::in_memory_copy("weights.gguf", "abcd");
         let paged = ModelArtifactStorage::paged_local_blob(
             "weights.gguf",
@@ -10521,8 +10709,8 @@ mod tests {
     }
 
     #[test]
-    fn paged_tensor_storage_plan_serializes_byte_window_and_page_counts(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn paged_tensor_storage_plan_serializes_byte_window_and_page_counts()
+    -> Result<(), Box<dyn std::error::Error>> {
         let plan = PagedTensorStoragePlan {
             tensor_name: String::from("blk.0.attn_q.weight"),
             artifact_name: String::from("weights.gguf"),
@@ -10757,6 +10945,82 @@ mod tests {
     }
 
     #[test]
+    fn kv_cache_encoding_policy_and_accounting_serialize_stably()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let requested = KvCacheEncodingPolicy {
+            family: KvCacheEncodingFamily::TurboQuant,
+            objective: Some(KvCacheEncodingObjective::ProductPreserving),
+            bits_per_channel: Some(4),
+            block_shape: Some(String::from("32x4")),
+            outlier_policy: Some(String::from("promote_topk_32")),
+            projection_id: Some(String::from("turboquant-rotation-v1")),
+            codebook_id: Some(String::from("turboquant-codebook-v1")),
+            model_family_bound: Some(String::from("gpt-oss")),
+            context_length_bound: Some(131_072),
+            host_bytes_per_token: Some(40),
+            device_bytes_per_token: Some(20),
+            detail: Some(String::from("requested approximate cache encoding")),
+        };
+        let active = KvCacheEncodingPolicy::dense_f16_mirror(80, 40, "gpt-oss", 131_072)
+            .with_detail("active runtime falls back to dense host rows plus f16 device mirrors");
+        let mut accounting =
+            KvCacheEncodingAccounting::active(active.clone()).with_requested(requested.clone());
+        accounting.downgraded = true;
+        accounting = accounting
+            .with_refusal_reason("turboquant is not yet available on this runtime backend");
+
+        assert_eq!(
+            serde_json::to_value(&requested)?,
+            json!({
+                "family": "turboquant",
+                "objective": "product_preserving",
+                "bits_per_channel": 4,
+                "block_shape": "32x4",
+                "outlier_policy": "promote_topk_32",
+                "projection_id": "turboquant-rotation-v1",
+                "codebook_id": "turboquant-codebook-v1",
+                "model_family_bound": "gpt-oss",
+                "context_length_bound": 131072,
+                "host_bytes_per_token": 40,
+                "device_bytes_per_token": 20,
+                "detail": "requested approximate cache encoding"
+            })
+        );
+        assert_eq!(
+            serde_json::to_value(&accounting)?,
+            json!({
+                "requested": {
+                    "family": "turboquant",
+                    "objective": "product_preserving",
+                    "bits_per_channel": 4,
+                    "block_shape": "32x4",
+                    "outlier_policy": "promote_topk_32",
+                    "projection_id": "turboquant-rotation-v1",
+                    "codebook_id": "turboquant-codebook-v1",
+                    "model_family_bound": "gpt-oss",
+                    "context_length_bound": 131072,
+                    "host_bytes_per_token": 40,
+                    "device_bytes_per_token": 20,
+                    "detail": "requested approximate cache encoding"
+                },
+                "active": {
+                    "family": "dense_f16_mirror",
+                    "objective": "none",
+                    "bits_per_channel": 16,
+                    "model_family_bound": "gpt-oss",
+                    "context_length_bound": 131072,
+                    "host_bytes_per_token": 80,
+                    "device_bytes_per_token": 40,
+                    "detail": "active runtime falls back to dense host rows plus f16 device mirrors"
+                },
+                "downgraded": true,
+                "refusal_reason": "turboquant is not yet available on this runtime backend"
+            })
+        );
+        Ok(())
+    }
+
+    #[test]
     fn kv_residency_accounting_serializes_stably() -> Result<(), Box<dyn std::error::Error>> {
         let policy = KvCachePolicy {
             device_scope: KvCacheDeviceScope::CrossDeviceExplicit,
@@ -10974,8 +11238,8 @@ mod tests {
     }
 
     #[test]
-    fn sharded_model_manifest_validates_replicated_layer_and_tensor_topologies(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn sharded_model_manifest_validates_replicated_layer_and_tensor_topologies()
+    -> Result<(), Box<dyn std::error::Error>> {
         let served_artifact = ServedArtifactIdentity::new(
             "fixture-word-decoder-v0",
             "v0",
@@ -11226,8 +11490,8 @@ mod tests {
     }
 
     #[test]
-    fn sampling_policy_serializes_supported_generation_controls(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn sampling_policy_serializes_supported_generation_controls()
+    -> Result<(), Box<dyn std::error::Error>> {
         let policy = SamplingPolicy {
             strategy: SamplingStrategy::Sample,
             temperature: Some(0.7),
@@ -11304,8 +11568,8 @@ mod tests {
     }
 
     #[test]
-    fn runtime_determinism_contract_derives_stable_local_and_distributed_generators(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn runtime_determinism_contract_derives_stable_local_and_distributed_generators()
+    -> Result<(), Box<dyn std::error::Error>> {
         let contract = RuntimeDeterminismContract::strict(17);
 
         let local_a = contract.derive_local_device_generator("cuda:1")?;
@@ -11342,8 +11606,8 @@ mod tests {
     }
 
     #[test]
-    fn token_sampler_generator_state_restores_after_checkpoint(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn token_sampler_generator_state_restores_after_checkpoint()
+    -> Result<(), Box<dyn std::error::Error>> {
         let policy = SamplingPolicy {
             strategy: SamplingStrategy::Sample,
             temperature: Some(0.9),
@@ -11412,8 +11676,8 @@ mod tests {
     }
 
     #[test]
-    fn amd_backend_model_serializes_mode_topology_risk_and_recovery(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn amd_backend_model_serializes_mode_topology_risk_and_recovery()
+    -> Result<(), Box<dyn std::error::Error>> {
         let device = DeviceDescriptor {
             backend: String::from("amd_userspace"),
             device: Device::new(
@@ -11519,8 +11783,8 @@ mod tests {
     }
 
     #[test]
-    fn nvidia_backend_model_serializes_topology_risk_and_recovery(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn nvidia_backend_model_serializes_topology_risk_and_recovery()
+    -> Result<(), Box<dyn std::error::Error>> {
         let device = DeviceDescriptor {
             backend: String::from("cuda"),
             device: Device::new(
@@ -11762,8 +12026,8 @@ mod tests {
     }
 
     #[test]
-    fn backend_selection_can_publish_declared_cluster_capability_profile_truth(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn backend_selection_can_publish_declared_cluster_capability_profile_truth()
+    -> Result<(), Box<dyn std::error::Error>> {
         let capability_profile = ClusterExecutionCapabilityProfile::new("cuda")
             .with_supported_lanes(vec![
                 ClusterExecutionLane::RemoteWholeRequest,
@@ -11804,8 +12068,8 @@ mod tests {
     }
 
     #[test]
-    fn backend_selection_can_publish_cluster_compute_market_trust_assessment_truth(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn backend_selection_can_publish_cluster_compute_market_trust_assessment_truth()
+    -> Result<(), Box<dyn std::error::Error>> {
         let trust_assessment = ClusterComputeMarketTrustAssessment {
             posture: ClusterTrustPosture::TrustedLanSharedAdmission,
             discovery_posture: ClusterDiscoveryPosture::TrustedLanSeedPeers,
@@ -11851,8 +12115,8 @@ mod tests {
     }
 
     #[test]
-    fn delivered_execution_context_can_carry_cluster_evidence(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn delivered_execution_context_can_carry_cluster_evidence()
+    -> Result<(), Box<dyn std::error::Error>> {
         let device = sample_cuda_device().inventory_qualifiers();
         let capability_profile = ClusterExecutionCapabilityProfile::new("cuda")
             .with_supported_lanes(vec![
@@ -11928,11 +12192,13 @@ mod tests {
                 "command-authorization-policy",
             ),
         ])
-        .with_selected_nodes(vec![ClusterSelectedNode::new("worker-a", "cuda")
-            .with_role("worker")
-            .with_topology_digest("node-topology-digest")
-            .with_served_artifact_digest("served-artifact-digest")
-            .with_artifact_residency(ClusterArtifactResidencyDisposition::Resident)])
+        .with_selected_nodes(vec![
+            ClusterSelectedNode::new("worker-a", "cuda")
+                .with_role("worker")
+                .with_topology_digest("node-topology-digest")
+                .with_served_artifact_digest("served-artifact-digest")
+                .with_artifact_residency(ClusterArtifactResidencyDisposition::Resident),
+        ])
         .with_serving_semantics(
             ClusterServingSemantics::new(
                 ClusterExecutionLane::ReplicaRouted,
@@ -12000,10 +12266,11 @@ mod tests {
             encoded["cluster_execution"]["serving_semantics"]["warm_route_posture"],
             json!("route_pinned")
         );
-        assert!(encoded["cluster_execution"]["communication_eligibility"]
-            ["capability_profile_digest"]
-            .as_str()
-            .is_some());
+        assert!(
+            encoded["cluster_execution"]["communication_eligibility"]["capability_profile_digest"]
+                .as_str()
+                .is_some()
+        );
         assert_eq!(
             encoded["cluster_execution"]["command_provenance"][0]["fact_kind"],
             json!("scheduler_membership")
@@ -12021,8 +12288,8 @@ mod tests {
     }
 
     #[test]
-    fn delivered_execution_context_can_carry_training_recovery_context(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn delivered_execution_context_can_carry_training_recovery_context()
+    -> Result<(), Box<dyn std::error::Error>> {
         let training_recovery = TrainingRecoveryContext::new(
             TrainingRecoveryPosture::ElasticReconfiguration,
             TrainingCheckpointAvailability::Durable,
@@ -12072,8 +12339,7 @@ mod tests {
             json!("elastic_reconfiguration")
         );
         assert_eq!(
-            encoded["cluster_execution"]["training_recovery"]["latest_checkpoint"]
-                ["checkpoint_family"],
+            encoded["cluster_execution"]["training_recovery"]["latest_checkpoint"]["checkpoint_family"],
             json!("train.decoder")
         );
         assert_eq!(
@@ -12081,8 +12347,7 @@ mod tests {
             json!("worker-c")
         );
         assert_eq!(
-            encoded["cluster_execution"]["training_recovery"]["elastic_membership"]
-                ["membership_epoch"],
+            encoded["cluster_execution"]["training_recovery"]["elastic_membership"]["membership_epoch"],
             json!(4)
         );
         assert_eq!(
@@ -12100,8 +12365,8 @@ mod tests {
     }
 
     #[test]
-    fn delivered_execution_context_can_carry_training_collective_context(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn delivered_execution_context_can_carry_training_collective_context()
+    -> Result<(), Box<dyn std::error::Error>> {
         let membership = TrainingElasticMembershipContext::new(
             7,
             "cluster-state-digest",
@@ -12460,8 +12725,8 @@ mod tests {
     }
 
     #[test]
-    fn signed_cluster_evidence_bundle_round_trips_and_verifies(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn signed_cluster_evidence_bundle_round_trips_and_verifies()
+    -> Result<(), Box<dyn std::error::Error>> {
         let cluster_execution = ClusterExecutionContext::new(
             "cluster-alpha",
             "cluster-state-digest",
@@ -12489,10 +12754,12 @@ mod tests {
             "scheduler-membership-auth",
             "command-authorization-policy",
         )])
-        .with_selected_nodes(vec![ClusterSelectedNode::new("worker-a", "cuda")
-            .with_role("worker")
-            .with_served_artifact_digest("served-artifact-digest")
-            .with_artifact_residency(ClusterArtifactResidencyDisposition::Resident)]);
+        .with_selected_nodes(vec![
+            ClusterSelectedNode::new("worker-a", "cuda")
+                .with_role("worker")
+                .with_served_artifact_digest("served-artifact-digest")
+                .with_artifact_residency(ClusterArtifactResidencyDisposition::Resident),
+        ]);
         let settlement_linkage = SettlementLinkageInput {
             request_digest: String::from("request-digest"),
             product_id: String::from("text_generation"),
@@ -12592,8 +12859,8 @@ mod tests {
     }
 
     #[test]
-    fn delivered_execution_context_prefers_replicated_cluster_topology(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn delivered_execution_context_prefers_replicated_cluster_topology()
+    -> Result<(), Box<dyn std::error::Error>> {
         let first = sample_cuda_device().inventory_qualifiers();
         let mut second_device = sample_cuda_device();
         second_device.device = Device::new(DeviceKind::Cuda, 1, Some(String::from("cuda:1")));
@@ -12656,8 +12923,8 @@ mod tests {
     }
 
     #[test]
-    fn delivered_execution_context_surfaces_layer_sharded_handoffs(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn delivered_execution_context_surfaces_layer_sharded_handoffs()
+    -> Result<(), Box<dyn std::error::Error>> {
         let first = sample_cuda_device().inventory_qualifiers();
         let mut second_device = sample_cuda_device();
         second_device.device = Device::new(DeviceKind::Cuda, 1, Some(String::from("cuda:1")));
@@ -12759,8 +13026,8 @@ mod tests {
     }
 
     #[test]
-    fn delivered_execution_context_surfaces_tensor_sharded_collectives(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn delivered_execution_context_surfaces_tensor_sharded_collectives()
+    -> Result<(), Box<dyn std::error::Error>> {
         let first = sample_cuda_device().inventory_qualifiers();
         let mut second_device = sample_cuda_device();
         second_device.device = Device::new(DeviceKind::Cuda, 1, Some(String::from("cuda:1")));
@@ -13389,8 +13656,8 @@ mod tests {
     }
 
     #[test]
-    fn sandbox_execution_capability_profiles_are_machine_checkable(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn sandbox_execution_capability_profiles_are_machine_checkable()
+    -> Result<(), Box<dyn std::error::Error>> {
         let profile = SandboxExecutionCapabilityProfile::bounded_accelerated("cuda", 2);
         assert!(profile.accelerator_access.requires_accelerator());
         assert_eq!(

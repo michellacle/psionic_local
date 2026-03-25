@@ -99,15 +99,16 @@ use psionic_runtime::{
     ClusterExecutionContext, CompilePathEvidence, DeviceDiscovery, ExecutionCapabilityProfile,
     ExecutionDeliveryProof, GenerationSchedulerMetrics, GenerationSchedulerPolicy,
     GenerationSchedulerRequestReceipt, GenerationSchedulingClass, HealthStatus, KvCacheAccounting,
-    KvCacheDeviceScope, KvCacheOwnerBinding, KvCacheOwnerClass, KvCacheOwnershipAccounting,
-    KvCachePageLayout, KvCachePageSpan, KvCachePolicy, KvCacheSchedulerBinding, KvCacheSpillPolicy,
-    KvCacheState, KvResidencyAccounting, KvResidencyMovement, KvResidencyMovementKind,
-    KvResidencyRefusal, KvResidencyRefusalReason, KvResidencyTier, KvResidencyTierState,
-    LoadedModelMemoryState, LoadedModelResidency, LocalRuntimeDiagnostic, LocalRuntimeErrorCode,
-    LocalRuntimeObservability, LocalServingIsolationPolicy, MemoryResidencySnapshot,
-    ModelAdmissionRefusal, ModelMemoryPlan, ModelResidencyPolicy, PrefillDecodeCapability,
-    PrefillDecodeExecutionMode, PrefillDecodeHandoff, PrefixCacheControl, PrefixCacheIdentity,
-    PrefixCacheMode, PrefixCacheRefusalReason, PrefixCacheReusePolicy, PrefixCacheState,
+    KvCacheDeviceScope, KvCacheEncodingAccounting, KvCacheEncodingPolicy, KvCacheOwnerBinding,
+    KvCacheOwnerClass, KvCacheOwnershipAccounting, KvCachePageLayout, KvCachePageSpan,
+    KvCachePolicy, KvCacheSchedulerBinding, KvCacheSpillPolicy, KvCacheState,
+    KvResidencyAccounting, KvResidencyMovement, KvResidencyMovementKind, KvResidencyRefusal,
+    KvResidencyRefusalReason, KvResidencyTier, KvResidencyTierState, LoadedModelMemoryState,
+    LoadedModelResidency, LocalRuntimeDiagnostic, LocalRuntimeErrorCode, LocalRuntimeObservability,
+    LocalServingIsolationPolicy, MemoryResidencySnapshot, ModelAdmissionRefusal, ModelMemoryPlan,
+    ModelResidencyPolicy, PrefillDecodeCapability, PrefillDecodeExecutionMode,
+    PrefillDecodeHandoff, PrefixCacheControl, PrefixCacheIdentity, PrefixCacheMode,
+    PrefixCacheRefusalReason, PrefixCacheReusePolicy, PrefixCacheState,
     QuantizationDispatchDecision, QuantizationDispatchRequest, QuantizationDispatchWorkload,
     RuntimeError, RuntimeTransitionEvent, RuntimeTransitionKind, RuntimeTransitionLog,
     SamplingPolicy, SamplingStrategy, ServedArtifactIdentity, ShardedModelManifest,
@@ -180,10 +181,71 @@ pub fn default_kv_cache_policy(max_context: usize, width: usize) -> KvCachePolic
     }
 }
 
+/// Returns the default KV-cache encoding policy for one runtime backend.
+#[must_use]
+pub fn default_kv_cache_encoding_policy(
+    model_family: &str,
+    max_context: usize,
+    width: usize,
+    runtime_backend: &str,
+) -> KvCacheEncodingPolicy {
+    let host_bytes_per_token = width
+        .saturating_mul(2)
+        .saturating_mul(std::mem::size_of::<f32>())
+        .try_into()
+        .unwrap_or(u64::MAX);
+    let device_bytes_per_token = width
+        .saturating_mul(2)
+        .saturating_mul(std::mem::size_of::<u16>())
+        .try_into()
+        .unwrap_or(u64::MAX);
+    if runtime_backend.starts_with("cuda") || runtime_backend == "metal" {
+        return KvCacheEncodingPolicy::dense_f16_mirror(
+            host_bytes_per_token,
+            device_bytes_per_token,
+            model_family,
+            max_context,
+        )
+        .with_detail("host rows stay dense while active decode uses an f16 device mirror");
+    }
+    KvCacheEncodingPolicy::dense_f32(host_bytes_per_token, model_family, max_context)
+        .with_detail("host-resident dense rows remain the active KV representation")
+}
+
+/// Returns default KV-cache encoding accounting for one runtime backend.
+#[must_use]
+pub fn default_kv_cache_encoding_accounting(
+    model_family: &str,
+    max_context: usize,
+    width: usize,
+    runtime_backend: &str,
+) -> KvCacheEncodingAccounting {
+    KvCacheEncodingAccounting::active(default_kv_cache_encoding_policy(
+        model_family,
+        max_context,
+        width,
+        runtime_backend,
+    ))
+}
+
 /// Returns the default paged-KV policy for a decoder descriptor.
 #[must_use]
 pub fn default_decoder_kv_cache_policy(model: &DecoderModelDescriptor) -> KvCachePolicy {
     default_kv_cache_policy(model.config.max_context, model.config.kv_width())
+}
+
+/// Returns the default KV-cache encoding policy for a decoder descriptor.
+#[must_use]
+pub fn default_decoder_kv_cache_encoding_policy(
+    model: &DecoderModelDescriptor,
+    runtime_backend: &str,
+) -> KvCacheEncodingPolicy {
+    default_kv_cache_encoding_policy(
+        model.model.family.as_str(),
+        model.config.max_context,
+        model.config.kv_width(),
+        runtime_backend,
+    )
 }
 
 /// Returns the default paged-KV policy for a loaded generation model handle.
@@ -193,6 +255,23 @@ where
     M: GenerationModelHandle,
 {
     default_kv_cache_policy(model.descriptor().config.max_context, model.cache_width())
+}
+
+/// Returns the default KV-cache encoding policy for a generation model handle.
+#[must_use]
+pub fn default_generation_kv_cache_encoding_policy<M>(
+    model: &M,
+    runtime_backend: &str,
+) -> KvCacheEncodingPolicy
+where
+    M: GenerationModelHandle,
+{
+    default_kv_cache_encoding_policy(
+        model.descriptor().model.family.as_str(),
+        model.descriptor().config.max_context,
+        model.cache_width(),
+        runtime_backend,
+    )
 }
 
 /// Returns the default resident-memory plan for one decoder model.
@@ -1391,6 +1470,9 @@ pub struct GenerationMetrics {
     /// Explicit hierarchical KV residency accounting for the request, when available.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub kv_residency: Option<KvResidencyAccounting>,
+    /// Explicit KV-cache encoding accounting for the request, when available.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub kv_cache_encoding: Option<KvCacheEncodingAccounting>,
     /// Number of prompt-prefix tokens reused from the shared prefix cache.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prefix_tokens_reused: Option<usize>,
@@ -1758,6 +1840,9 @@ pub struct GenerationProvenance {
     /// Explicit paged-KV policy for the request path.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub kv_cache_policy: Option<KvCachePolicy>,
+    /// Explicit KV-cache encoding policy for the request path.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub kv_cache_encoding_policy: Option<KvCacheEncodingPolicy>,
     /// Explicit request- or session-owned paged-KV accounting for the realized path.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub kv_ownership: Option<KvCacheOwnershipAccounting>,
@@ -2003,6 +2088,7 @@ impl GenerationMetrics {
             inter_token_latency_ns: None,
             kv_cache: None,
             kv_residency: None,
+            kv_cache_encoding: None,
             prefix_tokens_reused: None,
             gpt_oss_perf: None,
         }
@@ -2021,6 +2107,7 @@ impl GenerationMetrics {
             && self.inter_token_latency_ns.is_none()
             && self.kv_cache.is_none()
             && self.kv_residency.is_none()
+            && self.kv_cache_encoding.is_none()
             && self.prefix_tokens_reused.is_none()
             && self.gpt_oss_perf.is_none()
     }
@@ -6039,6 +6126,10 @@ where
             .as_ref()
             .and_then(local_prefill_decode_handoff);
         let kv_residency = host_only_kv_residency(self.cache.policy(), self.cache.state());
+        let kv_cache_encoding_policy = default_generation_kv_cache_encoding_policy(
+            &self.loaded_model,
+            self.loaded_model.backend_compatibility(),
+        );
         let metrics = GenerationMetrics {
             total_duration_ns: Some(total_duration_ns),
             load_duration_ns: Some(match self.load_state {
@@ -6059,6 +6150,9 @@ where
                 self.cache.state(),
             )),
             kv_residency: kv_residency.clone(),
+            kv_cache_encoding: Some(KvCacheEncodingAccounting::active(
+                kv_cache_encoding_policy.clone(),
+            )),
             prefix_tokens_reused: Some(self.prefix_tokens_reused),
             gpt_oss_perf: self.gpt_oss_perf.filter(|perf| !perf.is_zero()),
         };
@@ -6079,6 +6173,7 @@ where
             residency_policy: self.residency_policy,
             residency_snapshot: self.residency_snapshot,
             kv_cache_policy: Some(self.cache.policy().clone()),
+            kv_cache_encoding_policy: Some(kv_cache_encoding_policy),
             kv_ownership,
             prefix_cache_control: Some(self.request.prefix_cache_control.clone()),
             prefix_cache_state: Some(self.prefix_state),
@@ -6957,6 +7052,10 @@ where
         );
         let prefill_decode_handoff = local_prefill_decode_handoff(&self.prefill_handoff_state);
         let kv_residency = host_only_kv_residency(self.cache.policy(), self.cache.state());
+        let kv_cache_encoding_policy = default_generation_kv_cache_encoding_policy(
+            &self.loaded_model,
+            self.loaded_model.backend_compatibility(),
+        );
         let metrics = GenerationMetrics {
             total_duration_ns: Some(total_duration_ns),
             load_duration_ns: Some(match self.load_state {
@@ -6975,6 +7074,9 @@ where
                 self.cache.state(),
             )),
             kv_residency: kv_residency.clone(),
+            kv_cache_encoding: Some(KvCacheEncodingAccounting::active(
+                kv_cache_encoding_policy.clone(),
+            )),
             prefix_tokens_reused: Some(self.prefix_tokens_reused),
             gpt_oss_perf: None,
         };
@@ -6990,6 +7092,7 @@ where
             residency_policy: self.residency_policy.clone(),
             residency_snapshot: self.residency_snapshot.clone(),
             kv_cache_policy: Some(self.cache.policy().clone()),
+            kv_cache_encoding_policy: Some(kv_cache_encoding_policy),
             kv_ownership: self.cache.ownership_since(&self.request_kv_checkpoint),
             prefix_cache_control: Some(self.request.prefix_cache_control.clone()),
             prefix_cache_state: Some(self.prefix_state),
@@ -7626,6 +7729,10 @@ where
         );
         let prefill_decode_handoff = local_prefill_decode_handoff(&prefill_handoff_state);
         let kv_residency = host_only_kv_residency(cache.policy(), cache.state());
+        let kv_cache_encoding_policy = default_generation_kv_cache_encoding_policy(
+            &loaded_model,
+            loaded_model.backend_compatibility(),
+        );
         let metrics = GenerationMetrics {
             total_duration_ns: Some(total_duration_ns),
             load_duration_ns: Some(match load_state {
@@ -7641,6 +7748,9 @@ where
             inter_token_latency_ns,
             kv_cache: Some(kv_cache),
             kv_residency: kv_residency.clone(),
+            kv_cache_encoding: Some(KvCacheEncodingAccounting::active(
+                kv_cache_encoding_policy.clone(),
+            )),
             prefix_tokens_reused: Some(prefix_tokens_reused),
             gpt_oss_perf: gpt_oss_perf.filter(|perf| !perf.is_zero()),
         };
@@ -7659,6 +7769,7 @@ where
             residency_policy,
             residency_snapshot,
             kv_cache_policy: Some(cache.policy().clone()),
+            kv_cache_encoding_policy: Some(kv_cache_encoding_policy),
             kv_ownership: cache.ownership_since(&request_kv_checkpoint),
             prefix_cache_control: Some(request.prefix_cache_control.clone()),
             prefix_cache_state: Some(prefix_state),

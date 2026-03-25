@@ -46,6 +46,27 @@ The bounded seeded surface now makes these seams explicit:
 The report also keeps unsupported paths machine-legible, including block-quant
 QAT and broader activation-dtype closure for runtime execution.
 
+## KV Cache Encoding Boundary
+
+Weight quantization semantics and KV-cache encoding semantics are separate
+surfaces.
+
+Psionic now publishes KV-cache encoding policy and request/result accounting on
+served text-generation capability and receipt contracts:
+
+- `kv_cache_encoding_policy` states the active cache representation the route
+  can actually serve.
+- `kv_cache_encoding` records the requested policy, the active policy, and any
+  downgrade or refusal reason.
+
+Current default posture is explicit:
+
+- CPU-backed decode publishes `dense_f32` host-resident KV rows.
+- CUDA and Metal paths publish `dense_f16_mirror` because active decode uses an
+  f16 device mirror even when host rows remain dense.
+- `turboquant` remains an unavailable policy until backend kernels,
+  benchmarking, and refusal-path coverage land.
+
 ## Why This Matters
 
 This report prevents two failure modes:

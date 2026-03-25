@@ -47,8 +47,9 @@ use psionic_core::Shape;
 use psionic_models::{GgufBlobArtifact, GptOssTokenizer, PagedTensorStorage};
 use psionic_runtime::{
     BackendRuntimeResources, CacheAction, CacheKind, CacheObservation, CompilePathEvidence,
-    CompilePathTemperature, DeviceDiscovery, GptOssDecodeGraph, HealthStatus, KvCachePageLayout,
-    KvCachePolicy, PrefixCacheIdentity, build_gpt_oss_decode_graph,
+    CompilePathTemperature, DeviceDiscovery, GptOssDecodeGraph, HealthStatus,
+    KvCacheEncodingAccounting, KvCachePageLayout, KvCachePolicy, PrefixCacheIdentity,
+    build_gpt_oss_decode_graph,
 };
 use sha2::{Digest, Sha256};
 
@@ -1884,6 +1885,8 @@ fn run_cuda_generation_request(
         let device_kv_state =
             psionic_runtime::KvCacheState::paged(cache.page_layout(), cuda_cache.len());
         let host_cache = final_cache.as_ref().unwrap_or(&cache);
+        let kv_cache_encoding_policy =
+            super::default_generation_kv_cache_encoding_policy(&loaded_model, GPT_OSS_CUDA_BACKEND);
         let kv_residency = super::host_device_kv_residency(
             host_cache.policy(),
             host_cache.state(),
@@ -1920,6 +1923,9 @@ fn run_cuda_generation_request(
             inter_token_latency_ns,
             kv_cache: Some(kv_cache),
             kv_residency: kv_residency.clone(),
+            kv_cache_encoding: Some(KvCacheEncodingAccounting::active(
+                kv_cache_encoding_policy.clone(),
+            )),
             prefix_tokens_reused: Some(prefix_tokens_reused),
             gpt_oss_perf: gpt_oss_perf.filter(|perf| !perf.is_zero()),
         };
@@ -1956,6 +1962,7 @@ fn run_cuda_generation_request(
             residency_policy,
             residency_snapshot,
             kv_cache_policy: Some(host_cache.policy().clone()),
+            kv_cache_encoding_policy: Some(kv_cache_encoding_policy),
             kv_ownership: final_cache
                 .as_ref()
                 .and_then(|value| {
@@ -2367,6 +2374,10 @@ fn run_cuda_hybrid_generation_request(
         let device_kv_state =
             psionic_runtime::KvCacheState::paged(cache.page_layout(), generated_cache_tokens);
         let host_cache = final_cache.as_ref().unwrap_or(&cache);
+        let kv_cache_encoding_policy = super::default_generation_kv_cache_encoding_policy(
+            &loaded_model,
+            GPT_OSS_CUDA_HYBRID_MOE_BACKEND,
+        );
         let kv_residency = super::host_device_kv_residency(
             host_cache.policy(),
             host_cache.state(),
@@ -2403,6 +2414,9 @@ fn run_cuda_hybrid_generation_request(
             inter_token_latency_ns,
             kv_cache: Some(kv_cache),
             kv_residency: kv_residency.clone(),
+            kv_cache_encoding: Some(KvCacheEncodingAccounting::active(
+                kv_cache_encoding_policy.clone(),
+            )),
             prefix_tokens_reused: Some(prefix_tokens_reused),
             gpt_oss_perf: gpt_oss_perf.filter(|perf| !perf.is_zero()),
         };
@@ -2436,6 +2450,7 @@ fn run_cuda_hybrid_generation_request(
             residency_policy,
             residency_snapshot,
             kv_cache_policy: Some(host_cache.policy().clone()),
+            kv_cache_encoding_policy: Some(kv_cache_encoding_policy),
             kv_ownership: final_cache
                 .as_ref()
                 .and_then(|value| {
@@ -3075,6 +3090,10 @@ fn run_metal_generation_request(
             &previous_kv_state,
             host_kv_state.clone(),
         );
+        let kv_cache_encoding_policy = super::default_generation_kv_cache_encoding_policy(
+            &loaded_model,
+            GPT_OSS_METAL_BACKEND,
+        );
         let kv_residency = super::host_device_kv_residency(
             cache.policy(),
             host_kv_state,
@@ -3111,6 +3130,9 @@ fn run_metal_generation_request(
             inter_token_latency_ns,
             kv_cache: Some(kv_cache),
             kv_residency: kv_residency.clone(),
+            kv_cache_encoding: Some(KvCacheEncodingAccounting::active(
+                kv_cache_encoding_policy.clone(),
+            )),
             prefix_tokens_reused: Some(prefix_tokens_reused),
             gpt_oss_perf: gpt_oss_perf.filter(|perf| !perf.is_zero()),
         };
@@ -3143,6 +3165,7 @@ fn run_metal_generation_request(
             residency_policy,
             residency_snapshot,
             kv_cache_policy: Some(cache.policy().clone()),
+            kv_cache_encoding_policy: Some(kv_cache_encoding_policy),
             kv_ownership: cache.ownership_since_with_current_state(
                 &request_kv_checkpoint,
                 metal_layer_cache_state(layer_caches.as_slice()),

@@ -246,11 +246,10 @@ use psionic_research::{
     TassadarPromotionPolicyStatus, TassadarWorkloadCapabilityFrontierSummaryReport,
 };
 use psionic_router::{
-    TassadarPlannerExecutorRouteCandidate, TassadarPlannerExecutorRouteDescriptor,
-    TASSADAR_PLANNER_EXECUTOR_ROUTE_PRODUCT_ID,
+    TASSADAR_PLANNER_EXECUTOR_ROUTE_PRODUCT_ID, TassadarPlannerExecutorRouteCandidate,
+    TassadarPlannerExecutorRouteDescriptor,
 };
 use psionic_runtime::{
-    validation_reference_for_served_product, validation_reference_for_text_generation_model,
     AcceleratorDeliverabilityReport, AcceleratorExecutionRequirement, ActivationFingerprintInput,
     ActivationFingerprintProofAdapter, ActivationFingerprintVectorSample, AmdDeviceMetadata,
     AmdRecoveryProfile, AmdRiskProfile, AmdRuntimeMode, AmdTopologyInfo, BackendProbeState,
@@ -261,29 +260,30 @@ use psionic_runtime::{
     DeliveredExecutionContext, DeviceInventoryQualifiers, ExecutionCapabilityProfile,
     ExecutionDeliveryProof, ExecutionProofAugmentationPosture, ExecutionProofBundle,
     ExecutionProofBundleKind, ExecutionProofBundleStatus, ExecutionProofRuntimeIdentity,
-    ExecutionTopologyPlan, HealthStatus, KvCacheAccounting, KvCachePolicy, KvResidencyAccounting,
-    LocalRuntimeDiagnostic, LocalRuntimeObservability, MemoryResidencySnapshot, ModelMemoryPlan,
-    ModelResidencyPolicy, NvidiaDeviceMetadata, NvidiaRecoveryProfile, NvidiaRiskProfile,
-    NvidiaTopologyInfo, PrefixCacheIdentity, PrefixCacheReusePolicy, PrefixCacheState,
+    ExecutionTopologyPlan, HealthStatus, KvCacheAccounting, KvCacheEncodingAccounting,
+    KvCacheEncodingPolicy, KvCachePolicy, KvResidencyAccounting, LocalRuntimeDiagnostic,
+    LocalRuntimeObservability, MemoryResidencySnapshot, ModelMemoryPlan, ModelResidencyPolicy,
+    NvidiaDeviceMetadata, NvidiaRecoveryProfile, NvidiaRiskProfile, NvidiaTopologyInfo,
+    PrefixCacheIdentity, PrefixCacheReusePolicy, PrefixCacheState,
     QuantizedActivationFingerprintAdapter, SandboxExecutionCapabilityProfile,
     SandboxExecutionEvidence, SandboxExecutionExitKind, SandboxExecutionRequestIdentity,
     ServedArtifactIdentity, SettlementLinkageInput, SignedClusterEvidenceBundle,
     TassadarExactnessRefusalReport, TassadarMismatchSummary, TassadarTraceArtifact,
-    TassadarTraceDiffReport, ValidationMatrixReference,
+    TassadarTraceDiffReport, ValidationMatrixReference, validation_reference_for_served_product,
+    validation_reference_for_text_generation_model,
 };
 use psionic_serve::{
+    AdapterServingBinding, DecoderModelDescriptor, EMBEDDINGS_PRODUCT_ID, EmbeddingModelDescriptor,
+    EmbeddingNormalization, EmbeddingRequest, EmbeddingResponse, GenerationInput,
+    GenerationLoadState, GenerationRequest, GenerationResponse, GenerationStreamStatus,
+    GenerationStreamTerminal, GenerationStreamingPolicy, ModelArtifactGovernance,
+    ModelArtifactProvenanceKind, PsionServedEvidenceBundle, PsionServedOutputClaimPosture,
+    QuantizationMode, SessionId, TEXT_GENERATION_PRODUCT_ID, TassadarExecutorCapabilityPublication,
+    TerminationReason, WeightArtifactMetadata, WeightBundleMetadata, WeightFormat, WeightSource,
     cache_invalidation_policy, cache_observations_for_embedding_model,
-    default_decoder_kv_cache_policy, default_embeddings_execution_profile,
-    default_prefix_cache_policy, served_artifact_identity_for_decoder_model,
-    served_artifact_identity_for_embedding_model, AdapterServingBinding, DecoderModelDescriptor,
-    EmbeddingModelDescriptor, EmbeddingNormalization, EmbeddingRequest, EmbeddingResponse,
-    GenerationInput, GenerationLoadState, GenerationRequest, GenerationResponse,
-    GenerationStreamStatus, GenerationStreamTerminal, GenerationStreamingPolicy,
-    ModelArtifactGovernance, ModelArtifactProvenanceKind, PsionServedEvidenceBundle,
-    PsionServedOutputClaimPosture, QuantizationMode, SessionId,
-    TassadarExecutorCapabilityPublication, TerminationReason, WeightArtifactMetadata,
-    WeightBundleMetadata, WeightFormat, WeightSource, EMBEDDINGS_PRODUCT_ID,
-    TEXT_GENERATION_PRODUCT_ID,
+    default_decoder_kv_cache_encoding_policy, default_decoder_kv_cache_policy,
+    default_embeddings_execution_profile, default_prefix_cache_policy,
+    served_artifact_identity_for_decoder_model, served_artifact_identity_for_embedding_model,
 };
 
 /// Human-readable crate ownership summary.
@@ -3237,6 +3237,9 @@ pub struct TextGenerationCapabilityEnvelope {
     /// Explicit paged-KV policy when the served path uses paged KV state.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub kv_cache_policy: Option<KvCachePolicy>,
+    /// Explicit KV-cache encoding policy when the served path uses KV state.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub kv_cache_encoding_policy: Option<KvCacheEncodingPolicy>,
     /// Explicit shared prompt-prefix reuse policy.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prefix_cache_policy: Option<PrefixCacheReusePolicy>,
@@ -3265,10 +3268,11 @@ impl TextGenerationCapabilityEnvelope {
             model.artifact_governance.as_ref(),
             &supply_policy,
         );
+        let runtime_backend = backend_selection.effective_backend.clone();
         Self {
             backend_family: String::from(BACKEND_FAMILY),
             product_id: String::from(TEXT_GENERATION_PRODUCT_ID),
-            runtime_backend: backend_selection.effective_backend.clone(),
+            runtime_backend: runtime_backend.clone(),
             validation: validation_reference_for_text_generation_model(
                 &backend_selection,
                 &model.model.family,
@@ -3296,6 +3300,8 @@ impl TextGenerationCapabilityEnvelope {
             streaming_policy: psionic_serve::default_generation_streaming_policy(),
             kv_cache_policy: (kv_cache_mode == KvCacheMode::Paged)
                 .then(|| default_decoder_kv_cache_policy(model)),
+            kv_cache_encoding_policy: (kv_cache_mode == KvCacheMode::Paged)
+                .then(|| default_decoder_kv_cache_encoding_policy(model, runtime_backend.as_str())),
             prefix_cache_policy: Some(default_prefix_cache_policy()),
             kv_cache_mode,
             execution_profile,
@@ -3451,9 +3457,15 @@ pub struct TextGenerationReceipt {
     /// Explicit paged-KV policy for the request path, when known.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub kv_cache_policy: Option<KvCachePolicy>,
+    /// Explicit KV-cache encoding policy for the request path, when known.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub kv_cache_encoding_policy: Option<KvCacheEncodingPolicy>,
     /// Explicit paged-KV accounting for the request, when known.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub kv_cache: Option<KvCacheAccounting>,
+    /// Explicit KV-cache encoding accounting for the request, when known.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub kv_cache_encoding: Option<KvCacheEncodingAccounting>,
     /// Explicit hierarchical KV residency accounting for the request, when known.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub kv_residency: Option<KvResidencyAccounting>,
@@ -3638,7 +3650,12 @@ impl TextGenerationReceipt {
                 .provenance
                 .as_ref()
                 .and_then(|value| value.kv_cache_policy.clone()),
+            kv_cache_encoding_policy: response
+                .provenance
+                .as_ref()
+                .and_then(|value| value.kv_cache_encoding_policy.clone()),
             kv_cache: response.metrics.kv_cache.clone(),
+            kv_cache_encoding: response.metrics.kv_cache_encoding.clone(),
             kv_residency: response.metrics.kv_residency.clone(),
             prefix_cache_state: response
                 .provenance
@@ -3775,7 +3792,9 @@ impl TextGenerationReceipt {
             eval_duration_ns: None,
             load_state: None,
             kv_cache_policy: None,
+            kv_cache_encoding_policy: None,
             kv_cache: None,
+            kv_cache_encoding: None,
             kv_residency: None,
             prefix_cache_state: None,
             prefix_cache_policy: None,
@@ -4207,17 +4226,18 @@ mod tests {
     };
     use psionic_models::{TassadarExecutorFixture, TassadarWorkloadClass};
     use psionic_research::{
+        TassadarPromotionChecklistGateKind, TassadarPromotionPolicyStatus,
         build_tassadar_decompilable_executor_artifacts_report,
         build_tassadar_kernel_module_scaling_summary_report,
         build_tassadar_promotion_policy_report,
         build_tassadar_workload_capability_frontier_summary_report,
-        TassadarPromotionChecklistGateKind, TassadarPromotionPolicyStatus,
     };
     use psionic_router::{
-        negotiate_tassadar_planner_executor_route, TassadarPlannerExecutorNegotiatedRouteState,
+        TassadarPlannerExecutorNegotiatedRouteState,
         TassadarPlannerExecutorRouteNegotiationOutcome,
         TassadarPlannerExecutorRouteNegotiationRequest, TassadarPlannerExecutorRouteRefusalReason,
         TassadarPlannerExecutorWasmImportPosture, TassadarPlannerExecutorWasmOpcodeFamily,
+        negotiate_tassadar_planner_executor_route,
     };
     use psionic_runtime::{
         AcceleratorDeliverabilityStatus, AcceleratorExecutionRequirement, AllocatorPoolPolicy,
@@ -4237,42 +4257,39 @@ mod tests {
         DeviceMemoryClass, DevicePerformanceClass, ExecutionCapabilityProfile,
         ExecutionDeliveryProof, ExecutionProofAugmentationPosture, ExecutionProofBundleKind,
         ExecutionTopologyKind, ExecutionTopologyPlan, HealthStatus, KernelCachePolicy,
-        KernelCacheReport, KernelCacheState, KvCacheAccounting, KvResidencyAccounting,
-        KvResidencyTier, KvResidencyTierState, LocalRuntimeDiagnostic, LocalRuntimeErrorCode,
-        LocalRuntimeObservability, LocalServingIsolationPolicy, MemoryResidencySnapshot,
-        ModelResidencyPolicy, NvidiaDeviceMetadata, NvidiaRecoveryAction, NvidiaRecoveryProfile,
-        NvidiaRiskLevel, NvidiaRiskProfile, NvidiaTopologyInfo, PrefixCacheIdentity,
-        PrefixCacheState, QuantizationExecution, QuantizationLoadPath, QuantizationSupport,
-        RuntimeTransitionEvent, RuntimeTransitionKind, SandboxExecutionCapabilityProfile,
-        SandboxExecutionEvidence, SandboxExecutionExit, SandboxExecutionExitKind,
-        SandboxExecutionRequestIdentity, SandboxExecutionResourceSummary,
-        ServedProductBackendPolicy, TassadarCpuReferenceRunner, TassadarExactnessPosture,
-        TassadarExactnessRefusalReport, TassadarTraceArtifact, ValidationCoverage,
+        KernelCacheReport, KernelCacheState, KvCacheAccounting, KvCacheEncodingAccounting,
+        KvCacheEncodingFamily, KvResidencyAccounting, KvResidencyTier, KvResidencyTierState,
+        LocalRuntimeDiagnostic, LocalRuntimeErrorCode, LocalRuntimeObservability,
+        LocalServingIsolationPolicy, MemoryResidencySnapshot, ModelResidencyPolicy,
+        NvidiaDeviceMetadata, NvidiaRecoveryAction, NvidiaRecoveryProfile, NvidiaRiskLevel,
+        NvidiaRiskProfile, NvidiaTopologyInfo, PrefixCacheIdentity, PrefixCacheState,
+        QuantizationExecution, QuantizationLoadPath, QuantizationSupport, RuntimeTransitionEvent,
+        RuntimeTransitionKind, SandboxExecutionCapabilityProfile, SandboxExecutionEvidence,
+        SandboxExecutionExit, SandboxExecutionExitKind, SandboxExecutionRequestIdentity,
+        SandboxExecutionResourceSummary, ServedProductBackendPolicy, TassadarCpuReferenceRunner,
+        TassadarExactnessPosture, TassadarExactnessRefusalReport, TassadarTraceArtifact,
+        ValidationCoverage,
     };
     use psionic_serve::{
+        AdapterArtifactFormat, AdapterArtifactIdentity, AdapterArtifactKind, AdapterResidencyMode,
+        AdapterServingBinding, AdapterTargetFamily, ByteProjectionEmbedder, EmbeddingMetrics,
+        EmbeddingNormalization, EmbeddingRequest, EmbeddingResponse, EmbeddingVector,
+        GenerationLoadState, GenerationMetrics, GenerationOptions, GenerationProvenance,
+        GenerationRequest, GenerationResponse, GenerationStreamStatus, GenerationStreamTerminal,
+        LocalTassadarExecutorService, LocalTassadarPlannerRouter, ModelArtifactGovernance,
+        ModelArtifactLicenseEntry, ModelArtifactLicenseFacts, ModelArtifactProvenance,
+        ModelArtifactProvenanceKind, PsionServedEvidenceBundle, PsionServedOutputClaimPosture,
+        ReferenceWordDecoder, SessionId, SmokeByteEmbedder, TerminationReason, TokenSequence,
+        WeightArtifactMetadata, WeightSource, default_decoder_kv_cache_encoding_policy,
         default_decoder_kv_cache_policy, default_decoder_memory_plan,
         default_generation_streaming_policy, default_prefix_cache_policy,
-        default_text_generation_execution_profile, AdapterArtifactFormat, AdapterArtifactIdentity,
-        AdapterArtifactKind, AdapterResidencyMode, AdapterServingBinding, AdapterTargetFamily,
-        ByteProjectionEmbedder, EmbeddingMetrics, EmbeddingNormalization, EmbeddingRequest,
-        EmbeddingResponse, EmbeddingVector, GenerationLoadState, GenerationMetrics,
-        GenerationOptions, GenerationProvenance, GenerationRequest, GenerationResponse,
-        GenerationStreamStatus, GenerationStreamTerminal, LocalTassadarExecutorService,
-        LocalTassadarPlannerRouter, ModelArtifactGovernance, ModelArtifactLicenseEntry,
-        ModelArtifactLicenseFacts, ModelArtifactProvenance, ModelArtifactProvenanceKind,
-        PsionServedEvidenceBundle, PsionServedOutputClaimPosture, ReferenceWordDecoder,
-        SessionId, SmokeByteEmbedder, TerminationReason, TokenSequence,
-        WeightArtifactMetadata, WeightSource,
+        default_text_generation_execution_profile,
     };
     use serde_json::json;
     use tempfile::tempdir;
 
     use super::{
-        cache_invalidation_policy, compute_market_supply_refusal_diagnostic,
-        default_compute_market_supply_policy, digest_embedding_request, digest_generation_request,
-        digest_sandbox_execution_request, evaluate_compute_market_supply,
-        served_artifact_identity_for_decoder_model, CapabilityEnvelope,
-        ComputeMarketSupplyViolationCode, ExecutionReceipt, KvCacheMode,
+        CapabilityEnvelope, ComputeMarketSupplyViolationCode, ExecutionReceipt, KvCacheMode,
         LocalRuntimeObservabilityEnvelope, ProviderReadiness, ReceiptStatus,
         SandboxExecutionCapabilityEnvelope, SandboxExecutionReceipt, TassadarCapabilityEnvelope,
         TassadarCapabilityEnvelopeError, TassadarDecompilationReceipt,
@@ -4280,7 +4297,10 @@ mod tests {
         TassadarPlannerRouteCapabilityEnvelope, TassadarPlannerRouteCapabilityEnvelopeError,
         TassadarPromotionPolicyReceipt, TassadarTraceArtifactReceipt, TassadarTraceDiffReceipt,
         TassadarWorkloadCapabilityFrontierReceipt, TextGenerationCapabilityEnvelope,
-        TextGenerationReceipt, WeightBundleEvidence,
+        TextGenerationReceipt, WeightBundleEvidence, cache_invalidation_policy,
+        compute_market_supply_refusal_diagnostic, default_compute_market_supply_policy,
+        digest_embedding_request, digest_generation_request, digest_sandbox_execution_request,
+        evaluate_compute_market_supply, served_artifact_identity_for_decoder_model,
     };
 
     #[test]
@@ -4879,8 +4899,8 @@ mod tests {
     }
 
     #[test]
-    fn sandbox_execution_receipt_can_surface_accelerator_deliverability(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn sandbox_execution_receipt_can_surface_accelerator_deliverability()
+    -> Result<(), Box<dyn std::error::Error>> {
         let request = SandboxExecutionRequestIdentity {
             request_id: String::from("sandbox-req-2"),
             sandbox_profile_digest: SandboxExecutionCapabilityProfile::bounded_accelerated(
@@ -5259,6 +5279,15 @@ mod tests {
                         "max_pages": 1
                     }
                 },
+                "kv_cache_encoding_policy": {
+                    "family": "dense_f32",
+                    "objective": "none",
+                    "bits_per_channel": 32,
+                    "model_family_bound": "fixture_decoder",
+                    "context_length_bound": 8,
+                    "host_bytes_per_token": 80,
+                    "detail": "host-resident dense rows remain the active KV representation"
+                },
                 "prefix_cache_policy": {
                     "shared_across_sessions": true,
                     "shared_across_users": false,
@@ -5292,8 +5321,8 @@ mod tests {
     }
 
     #[test]
-    fn metal_gpt_oss_text_generation_capability_reports_explicit_validation(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn metal_gpt_oss_text_generation_capability_reports_explicit_validation()
+    -> Result<(), Box<dyn std::error::Error>> {
         let model = sample_gpt_oss_decoder_descriptor();
         let envelope = TextGenerationCapabilityEnvelope::from_decoder_model(
             metal_backend_selection(),
@@ -5315,12 +5344,19 @@ mod tests {
         );
         assert_eq!(envelope.model_family, "gpt-oss");
         assert_eq!(envelope.runtime_backend, "metal");
+        assert_eq!(
+            envelope
+                .kv_cache_encoding_policy
+                .as_ref()
+                .map(|value| value.family),
+            Some(KvCacheEncodingFamily::DenseF16Mirror)
+        );
         Ok(())
     }
 
     #[test]
-    fn metal_gpt_oss_text_generation_fallback_capability_reports_explicit_refusal_validation(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn metal_gpt_oss_text_generation_fallback_capability_reports_explicit_refusal_validation()
+    -> Result<(), Box<dyn std::error::Error>> {
         let model = sample_gpt_oss_decoder_descriptor();
         let envelope = TextGenerationCapabilityEnvelope::from_decoder_model(
             metal_fallback_selection(),
@@ -5345,8 +5381,8 @@ mod tests {
     }
 
     #[test]
-    fn compute_market_supply_refuses_unlicensed_local_path_artifacts(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn compute_market_supply_refuses_unlicensed_local_path_artifacts()
+    -> Result<(), Box<dyn std::error::Error>> {
         let temp = tempdir()?;
         let path = temp.path().join("byte_projection.safetensors");
         ByteProjectionEmbedder::write_default_safetensors_artifact(&path)?;
@@ -5383,9 +5419,11 @@ mod tests {
         .expect("policy refusal diagnostic");
         assert_eq!(diagnostic.code, LocalRuntimeErrorCode::AdmissionRefused);
         assert_eq!(diagnostic.status, 403);
-        assert!(diagnostic
-            .message
-            .contains("compute-market supply policy refused artifact"));
+        assert!(
+            diagnostic
+                .message
+                .contains("compute-market supply policy refused artifact")
+        );
         Ok(())
     }
 
@@ -5422,8 +5460,8 @@ mod tests {
     }
 
     #[test]
-    fn capability_envelope_preserves_backend_runtime_resources(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn capability_envelope_preserves_backend_runtime_resources()
+    -> Result<(), Box<dyn std::error::Error>> {
         let model = sample_embedding_descriptor();
         let envelope = CapabilityEnvelope::from_embedding_model(
             cpu_backend_selection()
@@ -5446,8 +5484,7 @@ mod tests {
             json!("positive_execution")
         );
         assert_eq!(
-            encoded["backend_selection"]["runtime_resources"]["allocator_pool"]["policy"]
-                ["max_cached_bytes"],
+            encoded["backend_selection"]["runtime_resources"]["allocator_pool"]["policy"]["max_cached_bytes"],
             json!(8 * 1024 * 1024)
         );
         assert_eq!(
@@ -5455,8 +5492,7 @@ mod tests {
             json!(false)
         );
         assert_eq!(
-            encoded["backend_selection"]["runtime_resources"]["device_memory_budget"]
-                ["allocator_pool_budget_bytes"],
+            encoded["backend_selection"]["runtime_resources"]["device_memory_budget"]["allocator_pool_budget_bytes"],
             json!(8 * 1024 * 1024)
         );
         assert_eq!(
@@ -5488,8 +5524,8 @@ mod tests {
     }
 
     #[test]
-    fn capability_envelope_can_surface_cluster_execution_context(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn capability_envelope_can_surface_cluster_execution_context()
+    -> Result<(), Box<dyn std::error::Error>> {
         let model = sample_embedding_descriptor();
         let cluster_execution = sample_cluster_execution_context();
         let envelope = CapabilityEnvelope::from_embedding_model(
@@ -5516,10 +5552,11 @@ mod tests {
             encoded["cluster_execution"]["selected_nodes"][1]["artifact_residency"],
             json!("copy_required")
         );
-        assert!(encoded["cluster_execution"]["communication_eligibility"]
-            ["capability_profile_digest"]
-            .as_str()
-            .is_some());
+        assert!(
+            encoded["cluster_execution"]["communication_eligibility"]["capability_profile_digest"]
+                .as_str()
+                .is_some()
+        );
         assert_eq!(
             encoded["cluster_execution"]["fallback_history"][0]["reason"],
             json!("node_unavailable")
@@ -5533,8 +5570,8 @@ mod tests {
     }
 
     #[test]
-    fn capability_envelope_can_publish_declared_cluster_capability_profile_without_execution(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn capability_envelope_can_publish_declared_cluster_capability_profile_without_execution()
+    -> Result<(), Box<dyn std::error::Error>> {
         let model = sample_embedding_descriptor();
         let envelope = CapabilityEnvelope::from_embedding_model(
             cpu_backend_selection(),
@@ -5559,8 +5596,7 @@ mod tests {
             json!(["remote_whole_request"])
         );
         assert_eq!(
-            encoded["backend_selection"]["cluster_execution_capability_profile"]
-                ["supported_communication_classes"],
+            encoded["backend_selection"]["cluster_execution_capability_profile"]["supported_communication_classes"],
             json!(["remote_dispatch"])
         );
         assert_eq!(encoded.get("cluster_execution"), None);
@@ -5569,8 +5605,8 @@ mod tests {
     }
 
     #[test]
-    fn capability_envelope_can_publish_trusted_lan_cluster_trust_assessment_without_execution(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn capability_envelope_can_publish_trusted_lan_cluster_trust_assessment_without_execution()
+    -> Result<(), Box<dyn std::error::Error>> {
         let model = sample_embedding_descriptor();
         let trust_assessment = trusted_lan_cluster_trust_assessment();
         let envelope = CapabilityEnvelope::from_embedding_model(
@@ -5596,8 +5632,7 @@ mod tests {
             json!("refused")
         );
         assert_eq!(
-            encoded["backend_selection"]["cluster_compute_market_trust_assessment"]
-                ["refusal_reasons"],
+            encoded["backend_selection"]["cluster_compute_market_trust_assessment"]["refusal_reasons"],
             json!([
                 "trusted_lan_shared_admission_only",
                 "missing_authenticated_transport",
@@ -5611,8 +5646,8 @@ mod tests {
     }
 
     #[test]
-    fn capability_envelope_publishes_whole_request_cluster_profile_from_cluster_request(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn capability_envelope_publishes_whole_request_cluster_profile_from_cluster_request()
+    -> Result<(), Box<dyn std::error::Error>> {
         let model = sample_embedding_descriptor();
         let request = WholeRequestSchedulingRequest::new(sample_scheduler_node_id(), "cuda")
             .with_capability_profile(cuda_remote_dispatch_capability_profile());
@@ -5635,13 +5670,12 @@ mod tests {
             json!(["remote_whole_request"])
         );
         assert_eq!(
-            encoded["backend_selection"]["cluster_execution_capability_profile"]
-                ["supported_communication_classes"],
+            encoded["backend_selection"]["cluster_execution_capability_profile"]["supported_communication_classes"],
             json!(["remote_dispatch"])
         );
         assert_eq!(
-            encoded["backend_selection"]["cluster_execution_capability_profile"]
-                ["serving_semantics_capabilities"][0]["warm_route_posture"],
+            encoded["backend_selection"]["cluster_execution_capability_profile"]["serving_semantics_capabilities"]
+                [0]["warm_route_posture"],
             json!("ready_node_selection")
         );
         assert!(envelope.cluster_execution.is_none());
@@ -5649,8 +5683,8 @@ mod tests {
     }
 
     #[test]
-    fn text_generation_capability_envelope_can_publish_attested_cluster_trust_assessment(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn text_generation_capability_envelope_can_publish_attested_cluster_trust_assessment()
+    -> Result<(), Box<dyn std::error::Error>> {
         let model = sample_decoder_descriptor();
         let trust_assessment = attested_cluster_trust_assessment();
         let envelope = TextGenerationCapabilityEnvelope::from_decoder_model(
@@ -5680,8 +5714,7 @@ mod tests {
             json!("refused")
         );
         assert_eq!(
-            encoded["backend_selection"]["cluster_compute_market_trust_assessment"]
-                ["refusal_reasons"],
+            encoded["backend_selection"]["cluster_compute_market_trust_assessment"]["refusal_reasons"],
             json!(["missing_non_lan_discovery_posture"])
         );
         assert_eq!(
@@ -5697,8 +5730,8 @@ mod tests {
     }
 
     #[test]
-    fn text_generation_capability_envelope_publishes_replica_profile_from_cluster_request(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn text_generation_capability_envelope_publishes_replica_profile_from_cluster_request()
+    -> Result<(), Box<dyn std::error::Error>> {
         let model = sample_decoder_descriptor();
         let request = WholeRequestSchedulingRequest::new(sample_scheduler_node_id(), "cuda")
             .with_capability_profile(cuda_replica_routed_capability_profile());
@@ -5725,18 +5758,17 @@ mod tests {
             json!(["remote_whole_request", "replica_routed"])
         );
         assert_eq!(
-            encoded["backend_selection"]["cluster_execution_capability_profile"]
-                ["supported_communication_classes"],
+            encoded["backend_selection"]["cluster_execution_capability_profile"]["supported_communication_classes"],
             json!(["remote_dispatch", "replica_routing"])
         );
         assert_eq!(
-            encoded["backend_selection"]["cluster_execution_capability_profile"]
-                ["clustered_cache_capabilities"][0]["prefix_scope"],
+            encoded["backend_selection"]["cluster_execution_capability_profile"]["clustered_cache_capabilities"]
+                [0]["prefix_scope"],
             json!("replica_local")
         );
         assert_eq!(
-            encoded["backend_selection"]["cluster_execution_capability_profile"]
-                ["serving_semantics_capabilities"][0]["warm_route_posture"],
+            encoded["backend_selection"]["cluster_execution_capability_profile"]["serving_semantics_capabilities"]
+                [0]["warm_route_posture"],
             json!("route_pinned")
         );
         assert!(envelope.cluster_execution.is_none());
@@ -5744,8 +5776,8 @@ mod tests {
     }
 
     #[test]
-    fn text_generation_capability_envelope_publishes_layer_sharded_profile_from_cluster_request(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn text_generation_capability_envelope_publishes_layer_sharded_profile_from_cluster_request()
+    -> Result<(), Box<dyn std::error::Error>> {
         let model = sample_decoder_descriptor();
         let request =
             LayerShardedExecutionRequest::new(sample_scheduler_node_id(), "served-artifact", 80, 2);
@@ -5772,18 +5804,17 @@ mod tests {
             json!(["remote_whole_request", "layer_sharded"])
         );
         assert_eq!(
-            encoded["backend_selection"]["cluster_execution_capability_profile"]
-                ["supported_communication_classes"],
+            encoded["backend_selection"]["cluster_execution_capability_profile"]["supported_communication_classes"],
             json!(["remote_dispatch", "layer_shard_handoff"])
         );
         assert_eq!(
-            encoded["backend_selection"]["cluster_execution_capability_profile"]
-                ["clustered_cache_capabilities"][0]["kv_scope"],
+            encoded["backend_selection"]["cluster_execution_capability_profile"]["clustered_cache_capabilities"]
+                [0]["kv_scope"],
             json!("stage_local")
         );
         assert_eq!(
-            encoded["backend_selection"]["cluster_execution_capability_profile"]
-                ["serving_semantics_capabilities"][0]["warm_route_posture"],
+            encoded["backend_selection"]["cluster_execution_capability_profile"]["serving_semantics_capabilities"]
+                [0]["warm_route_posture"],
             json!("topology_pinned")
         );
         assert!(envelope.cluster_execution.is_none());
@@ -5791,8 +5822,8 @@ mod tests {
     }
 
     #[test]
-    fn text_generation_capability_envelope_publishes_pipeline_sharded_profile_from_cluster_request(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn text_generation_capability_envelope_publishes_pipeline_sharded_profile_from_cluster_request()
+    -> Result<(), Box<dyn std::error::Error>> {
         let model = sample_decoder_descriptor();
         let request = PipelineShardedExecutionRequest::new(
             sample_scheduler_node_id(),
@@ -5823,18 +5854,17 @@ mod tests {
             json!(["remote_whole_request", "pipeline_sharded"])
         );
         assert_eq!(
-            encoded["backend_selection"]["cluster_execution_capability_profile"]
-                ["supported_communication_classes"],
+            encoded["backend_selection"]["cluster_execution_capability_profile"]["supported_communication_classes"],
             json!(["remote_dispatch", "pipeline_stage_handoff"])
         );
         assert_eq!(
-            encoded["backend_selection"]["cluster_execution_capability_profile"]
-                ["clustered_cache_capabilities"][0]["invalidates_on_topology_change"],
+            encoded["backend_selection"]["cluster_execution_capability_profile"]["clustered_cache_capabilities"]
+                [0]["invalidates_on_topology_change"],
             json!(true)
         );
         assert_eq!(
-            encoded["backend_selection"]["cluster_execution_capability_profile"]
-                ["serving_semantics_capabilities"][0]["warm_route_posture"],
+            encoded["backend_selection"]["cluster_execution_capability_profile"]["serving_semantics_capabilities"]
+                [0]["warm_route_posture"],
             json!("topology_pinned")
         );
         assert!(envelope.cluster_execution.is_none());
@@ -5842,8 +5872,8 @@ mod tests {
     }
 
     #[test]
-    fn sandbox_capability_envelope_publishes_tensor_sharded_profile_from_cluster_request(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn sandbox_capability_envelope_publishes_tensor_sharded_profile_from_cluster_request()
+    -> Result<(), Box<dyn std::error::Error>> {
         let request = TensorShardedExecutionRequest::new(
             sample_scheduler_node_id(),
             "served-artifact",
@@ -5869,18 +5899,17 @@ mod tests {
             json!(["remote_whole_request", "tensor_sharded"])
         );
         assert_eq!(
-            encoded["backend_selection"]["cluster_execution_capability_profile"]
-                ["supported_communication_classes"],
+            encoded["backend_selection"]["cluster_execution_capability_profile"]["supported_communication_classes"],
             json!(["remote_dispatch", "tensor_collective_mesh"])
         );
         assert_eq!(
-            encoded["backend_selection"]["cluster_execution_capability_profile"]
-                ["clustered_cache_capabilities"][0]["prefix_scope"],
+            encoded["backend_selection"]["cluster_execution_capability_profile"]["clustered_cache_capabilities"]
+                [0]["prefix_scope"],
             json!("stage_local")
         );
         assert_eq!(
-            encoded["backend_selection"]["cluster_execution_capability_profile"]
-                ["serving_semantics_capabilities"][0]["warm_route_posture"],
+            encoded["backend_selection"]["cluster_execution_capability_profile"]["serving_semantics_capabilities"]
+                [0]["warm_route_posture"],
             json!("topology_pinned")
         );
         assert!(envelope.cluster_execution.is_none());
@@ -5888,8 +5917,8 @@ mod tests {
     }
 
     #[test]
-    fn capability_envelope_overrides_surface_for_replicated_cluster_execution(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn capability_envelope_overrides_surface_for_replicated_cluster_execution()
+    -> Result<(), Box<dyn std::error::Error>> {
         let model = sample_embedding_descriptor();
         let cluster_execution = sample_replicated_cluster_execution_context();
         let first = sample_cuda_device().inventory_qualifiers();
@@ -5960,8 +5989,8 @@ mod tests {
     }
 
     #[test]
-    fn capability_envelope_can_surface_multi_device_topology_truth(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn capability_envelope_can_surface_multi_device_topology_truth()
+    -> Result<(), Box<dyn std::error::Error>> {
         let model = sample_embedding_descriptor();
         let envelope = CapabilityEnvelope::from_embedding_model(
             cuda_multi_device_selection(),
@@ -5984,8 +6013,8 @@ mod tests {
     }
 
     #[test]
-    fn local_runtime_observability_envelope_serializes_stably(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn local_runtime_observability_envelope_serializes_stably()
+    -> Result<(), Box<dyn std::error::Error>> {
         let envelope = LocalRuntimeObservabilityEnvelope::new(LocalRuntimeObservability {
             isolation_policy: LocalServingIsolationPolicy::in_process_runtime(),
             cache_invalidation_policy: cache_invalidation_policy(),
@@ -6167,8 +6196,8 @@ mod tests {
     }
 
     #[test]
-    fn fallback_capability_reports_requested_metal_but_effective_cpu(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn fallback_capability_reports_requested_metal_but_effective_cpu()
+    -> Result<(), Box<dyn std::error::Error>> {
         let model = sample_embedding_descriptor();
         let envelope = CapabilityEnvelope::from_embedding_model(
             metal_fallback_selection(),
@@ -6210,8 +6239,8 @@ mod tests {
     }
 
     #[test]
-    fn amd_kfd_capability_reports_mode_topology_and_recovery(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn amd_kfd_capability_reports_mode_topology_and_recovery()
+    -> Result<(), Box<dyn std::error::Error>> {
         let envelope = CapabilityEnvelope::from_embedding_model(
             amd_kfd_selection(),
             &sample_embedding_descriptor(),
@@ -6245,8 +6274,8 @@ mod tests {
     }
 
     #[test]
-    fn amd_kfd_execution_capability_preserves_runtime_resources(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn amd_kfd_execution_capability_preserves_runtime_resources()
+    -> Result<(), Box<dyn std::error::Error>> {
         let envelope = CapabilityEnvelope::from_embedding_model(
             amd_kfd_execution_selection(),
             &sample_embedding_descriptor(),
@@ -6258,13 +6287,11 @@ mod tests {
 
         let encoded = serde_json::to_value(&envelope)?;
         assert_eq!(
-            encoded["backend_selection"]["runtime_resources"]["allocator_pool"]["policy"]
-                ["max_cached_buffers"],
+            encoded["backend_selection"]["runtime_resources"]["allocator_pool"]["policy"]["max_cached_buffers"],
             json!(64)
         );
         assert_eq!(
-            encoded["backend_selection"]["runtime_resources"]["device_memory_budget"]
-                ["allocator_pool_budget_bytes"],
+            encoded["backend_selection"]["runtime_resources"]["device_memory_budget"]["allocator_pool_budget_bytes"],
             json!(8 * 1024 * 1024u64)
         );
         assert_eq!(
@@ -6275,8 +6302,8 @@ mod tests {
     }
 
     #[test]
-    fn amd_userspace_capability_reports_disabled_risk_posture(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn amd_userspace_capability_reports_disabled_risk_posture()
+    -> Result<(), Box<dyn std::error::Error>> {
         let envelope = CapabilityEnvelope::from_embedding_model(
             amd_userspace_selection(),
             &sample_embedding_descriptor(),
@@ -6313,8 +6340,8 @@ mod tests {
     }
 
     #[test]
-    fn amd_userspace_execution_capability_preserves_runtime_resources(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn amd_userspace_execution_capability_preserves_runtime_resources()
+    -> Result<(), Box<dyn std::error::Error>> {
         let envelope = CapabilityEnvelope::from_embedding_model(
             amd_userspace_execution_selection(),
             &sample_embedding_descriptor(),
@@ -6338,8 +6365,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_capability_reports_topology_risk_and_recovery_without_amd_context(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_capability_reports_topology_risk_and_recovery_without_amd_context()
+    -> Result<(), Box<dyn std::error::Error>> {
         let envelope = CapabilityEnvelope::from_embedding_model(
             cuda_backend_selection(),
             &sample_embedding_descriptor(),
@@ -6390,8 +6417,8 @@ mod tests {
     }
 
     #[test]
-    fn degraded_cuda_capability_reports_same_backend_degraded_state(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn degraded_cuda_capability_reports_same_backend_degraded_state()
+    -> Result<(), Box<dyn std::error::Error>> {
         let envelope = CapabilityEnvelope::from_embedding_model(
             degraded_cuda_backend_selection(),
             &sample_embedding_descriptor(),
@@ -6423,8 +6450,8 @@ mod tests {
     }
 
     #[test]
-    fn cuda_fallback_capability_reports_requested_cuda_but_effective_cpu(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn cuda_fallback_capability_reports_requested_cuda_but_effective_cpu()
+    -> Result<(), Box<dyn std::error::Error>> {
         let envelope = CapabilityEnvelope::from_embedding_model(
             cuda_fallback_selection(),
             &sample_embedding_descriptor(),
@@ -6565,8 +6592,8 @@ mod tests {
     }
 
     #[test]
-    fn embedding_execution_receipt_emits_activation_fingerprint_artifact(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn embedding_execution_receipt_emits_activation_fingerprint_artifact()
+    -> Result<(), Box<dyn std::error::Error>> {
         let request = EmbeddingRequest::new(
             "embed-proof-1",
             sample_embedding_descriptor(),
@@ -6616,8 +6643,8 @@ mod tests {
     }
 
     #[test]
-    fn execution_receipt_can_export_signed_cluster_evidence_bundle(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn execution_receipt_can_export_signed_cluster_evidence_bundle()
+    -> Result<(), Box<dyn std::error::Error>> {
         let request = EmbeddingRequest::new(
             "embed-cluster-export-1",
             sample_embedding_descriptor(),
@@ -6687,8 +6714,8 @@ mod tests {
     }
 
     #[test]
-    fn text_generation_receipt_preserves_cluster_execution_from_provenance(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn text_generation_receipt_preserves_cluster_execution_from_provenance()
+    -> Result<(), Box<dyn std::error::Error>> {
         let request = GenerationRequest::new_text(
             "gen-cluster-1",
             sample_decoder_descriptor(),
@@ -6719,6 +6746,7 @@ mod tests {
                 inter_token_latency_ns: None,
                 kv_cache: None,
                 kv_residency: None,
+                kv_cache_encoding: None,
                 prefix_tokens_reused: Some(0),
                 gpt_oss_perf: None,
             },
@@ -6737,6 +6765,7 @@ mod tests {
                 residency_policy: Some(ModelResidencyPolicy::default()),
                 residency_snapshot: None,
                 kv_cache_policy: Some(default_decoder_kv_cache_policy(&request.model)),
+                kv_cache_encoding_policy: None,
                 prefix_cache_state: Some(PrefixCacheState::None),
                 prefix_cache_policy: Some(default_prefix_cache_policy()),
                 prefix_cache_identity: None,
@@ -6758,7 +6787,7 @@ mod tests {
                 prefix_cache_refusal_reason: None,
                 structured_output: None,
                 psion_served_evidence: None,
-            psion_served_output_claim_posture: None,
+                psion_served_output_claim_posture: None,
             },
         );
         let receipt = TextGenerationReceipt::succeeded_for_response(
@@ -6796,13 +6825,13 @@ mod tests {
             encoded["cluster_execution"]["degraded_reason"],
             json!("scheduler routed to the remaining healthy worker")
         );
-        assert!(encoded["cluster_execution"]["communication_eligibility"]
-            ["capability_profile_digest"]
-            .as_str()
-            .is_some());
+        assert!(
+            encoded["cluster_execution"]["communication_eligibility"]["capability_profile_digest"]
+                .as_str()
+                .is_some()
+        );
         assert_eq!(
-            encoded["settlement_linkage"]["cluster_provenance"]["command_provenance"][0]
-                ["fact_kind"],
+            encoded["settlement_linkage"]["cluster_provenance"]["command_provenance"][0]["fact_kind"],
             json!("scheduler_membership")
         );
         assert_eq!(
@@ -6829,8 +6858,8 @@ mod tests {
     }
 
     #[test]
-    fn text_generation_receipt_preserves_psion_served_evidence_bundle(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn text_generation_receipt_preserves_psion_served_evidence_bundle()
+    -> Result<(), Box<dyn std::error::Error>> {
         let request = GenerationRequest::new_text(
             "gen-psion-evidence-1",
             sample_decoder_descriptor(),
@@ -6863,6 +6892,7 @@ mod tests {
                 inter_token_latency_ns: None,
                 kv_cache: None,
                 kv_residency: None,
+                kv_cache_encoding: None,
                 prefix_tokens_reused: Some(0),
                 gpt_oss_perf: None,
             },
@@ -6881,6 +6911,7 @@ mod tests {
                 residency_policy: Some(ModelResidencyPolicy::default()),
                 residency_snapshot: None,
                 kv_cache_policy: Some(default_decoder_kv_cache_policy(&request.model)),
+                kv_cache_encoding_policy: None,
                 prefix_cache_state: Some(PrefixCacheState::None),
                 prefix_cache_policy: Some(default_prefix_cache_policy()),
                 prefix_cache_identity: None,
@@ -6931,8 +6962,8 @@ mod tests {
     }
 
     #[test]
-    fn text_generation_receipt_preserves_psion_served_output_claim_posture(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn text_generation_receipt_preserves_psion_served_output_claim_posture()
+    -> Result<(), Box<dyn std::error::Error>> {
         let request = GenerationRequest::new_text(
             "gen-psion-claim-1",
             sample_decoder_descriptor(),
@@ -6969,6 +7000,7 @@ mod tests {
                 inter_token_latency_ns: None,
                 kv_cache: None,
                 kv_residency: None,
+                kv_cache_encoding: None,
                 prefix_tokens_reused: Some(0),
                 gpt_oss_perf: None,
             },
@@ -6987,6 +7019,7 @@ mod tests {
                 residency_policy: Some(ModelResidencyPolicy::default()),
                 residency_snapshot: None,
                 kv_cache_policy: Some(default_decoder_kv_cache_policy(&request.model)),
+                kv_cache_encoding_policy: None,
                 prefix_cache_state: Some(PrefixCacheState::None),
                 prefix_cache_policy: Some(default_prefix_cache_policy()),
                 prefix_cache_identity: None,
@@ -7008,9 +7041,7 @@ mod tests {
                 prefix_cache_refusal_reason: None,
                 structured_output: None,
                 psion_served_evidence: Some(psion_served_evidence),
-                psion_served_output_claim_posture: Some(
-                    psion_served_output_claim_posture.clone(),
-                ),
+                psion_served_output_claim_posture: Some(psion_served_output_claim_posture.clone()),
             },
         );
         let receipt = TextGenerationReceipt::succeeded_for_response(
@@ -7039,8 +7070,8 @@ mod tests {
     }
 
     #[test]
-    fn text_generation_receipt_can_export_signed_cluster_evidence_bundle(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn text_generation_receipt_can_export_signed_cluster_evidence_bundle()
+    -> Result<(), Box<dyn std::error::Error>> {
         let request = GenerationRequest::new_text(
             "gen-cluster-export-1",
             sample_decoder_descriptor(),
@@ -7071,6 +7102,7 @@ mod tests {
                 inter_token_latency_ns: None,
                 kv_cache: None,
                 kv_residency: None,
+                kv_cache_encoding: None,
                 prefix_tokens_reused: Some(0),
                 gpt_oss_perf: None,
             },
@@ -7089,6 +7121,7 @@ mod tests {
                 residency_policy: Some(ModelResidencyPolicy::default()),
                 residency_snapshot: None,
                 kv_cache_policy: Some(default_decoder_kv_cache_policy(&request.model)),
+                kv_cache_encoding_policy: None,
                 prefix_cache_state: Some(PrefixCacheState::None),
                 prefix_cache_policy: Some(default_prefix_cache_policy()),
                 prefix_cache_identity: None,
@@ -7110,7 +7143,7 @@ mod tests {
                 prefix_cache_refusal_reason: None,
                 structured_output: None,
                 psion_served_evidence: None,
-            psion_served_output_claim_posture: None,
+                psion_served_output_claim_posture: None,
             },
         );
         let receipt = TextGenerationReceipt::succeeded_for_response(
@@ -7147,8 +7180,8 @@ mod tests {
     }
 
     #[test]
-    fn text_generation_receipt_uses_adapter_binding_for_settlement_linkage(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn text_generation_receipt_uses_adapter_binding_for_settlement_linkage()
+    -> Result<(), Box<dyn std::error::Error>> {
         let adapter_serving = sample_adapter_serving_binding();
         let request = GenerationRequest::new_text(
             "gen-adapter-receipt-1",
@@ -7182,6 +7215,7 @@ mod tests {
                 inter_token_latency_ns: None,
                 kv_cache: None,
                 kv_residency: None,
+                kv_cache_encoding: None,
                 prefix_tokens_reused: Some(0),
                 gpt_oss_perf: None,
             },
@@ -7197,6 +7231,7 @@ mod tests {
                 residency_policy: Some(ModelResidencyPolicy::default()),
                 residency_snapshot: None,
                 kv_cache_policy: Some(default_decoder_kv_cache_policy(&request.model)),
+                kv_cache_encoding_policy: None,
                 prefix_cache_state: Some(PrefixCacheState::None),
                 prefix_cache_policy: Some(default_prefix_cache_policy()),
                 prefix_cache_identity: None,
@@ -7218,7 +7253,7 @@ mod tests {
                 prefix_cache_refusal_reason: None,
                 structured_output: None,
                 psion_served_evidence: None,
-            psion_served_output_claim_posture: None,
+                psion_served_output_claim_posture: None,
             },
         );
         let receipt = TextGenerationReceipt::succeeded_for_response(
@@ -7253,8 +7288,8 @@ mod tests {
     }
 
     #[test]
-    fn text_generation_receipt_surfaces_replicated_cluster_execution_truth(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn text_generation_receipt_surfaces_replicated_cluster_execution_truth()
+    -> Result<(), Box<dyn std::error::Error>> {
         let request = GenerationRequest::new_text(
             "gen-cluster-replicated-1",
             sample_decoder_descriptor(),
@@ -7287,6 +7322,7 @@ mod tests {
                 inter_token_latency_ns: None,
                 kv_cache: None,
                 kv_residency: None,
+                kv_cache_encoding: None,
                 prefix_tokens_reused: Some(0),
                 gpt_oss_perf: None,
             },
@@ -7305,6 +7341,7 @@ mod tests {
                 residency_policy: Some(ModelResidencyPolicy::default()),
                 residency_snapshot: None,
                 kv_cache_policy: Some(default_decoder_kv_cache_policy(&request.model)),
+                kv_cache_encoding_policy: None,
                 prefix_cache_state: Some(PrefixCacheState::None),
                 prefix_cache_policy: Some(default_prefix_cache_policy()),
                 prefix_cache_identity: None,
@@ -7317,7 +7354,7 @@ mod tests {
                 prefix_cache_refusal_reason: None,
                 structured_output: None,
                 psion_served_evidence: None,
-            psion_served_output_claim_posture: None,
+                psion_served_output_claim_posture: None,
             },
         );
         let receipt = TextGenerationReceipt::succeeded_for_response(
@@ -7373,8 +7410,8 @@ mod tests {
     }
 
     #[test]
-    fn text_generation_receipt_surfaces_layer_sharded_cluster_execution_truth(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn text_generation_receipt_surfaces_layer_sharded_cluster_execution_truth()
+    -> Result<(), Box<dyn std::error::Error>> {
         let request = GenerationRequest::new_text(
             "gen-cluster-sharded-1",
             sample_decoder_descriptor(),
@@ -7407,6 +7444,7 @@ mod tests {
                 inter_token_latency_ns: None,
                 kv_cache: None,
                 kv_residency: None,
+                kv_cache_encoding: None,
                 prefix_tokens_reused: Some(0),
                 gpt_oss_perf: None,
             },
@@ -7425,6 +7463,7 @@ mod tests {
                 residency_policy: Some(ModelResidencyPolicy::default()),
                 residency_snapshot: None,
                 kv_cache_policy: Some(default_decoder_kv_cache_policy(&request.model)),
+                kv_cache_encoding_policy: None,
                 prefix_cache_state: Some(PrefixCacheState::None),
                 prefix_cache_policy: Some(default_prefix_cache_policy()),
                 prefix_cache_identity: None,
@@ -7437,7 +7476,7 @@ mod tests {
                 prefix_cache_refusal_reason: None,
                 structured_output: None,
                 psion_served_evidence: None,
-            psion_served_output_claim_posture: None,
+                psion_served_output_claim_posture: None,
             },
         );
         let receipt = TextGenerationReceipt::succeeded_for_response(
@@ -7500,8 +7539,8 @@ mod tests {
     }
 
     #[test]
-    fn text_generation_receipt_surfaces_pipeline_sharded_cluster_execution_truth(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn text_generation_receipt_surfaces_pipeline_sharded_cluster_execution_truth()
+    -> Result<(), Box<dyn std::error::Error>> {
         let request = GenerationRequest::new_text(
             "gen-cluster-pipeline-sharded-1",
             sample_decoder_descriptor(),
@@ -7534,6 +7573,7 @@ mod tests {
                 inter_token_latency_ns: None,
                 kv_cache: None,
                 kv_residency: None,
+                kv_cache_encoding: None,
                 prefix_tokens_reused: Some(0),
                 gpt_oss_perf: None,
             },
@@ -7552,6 +7592,7 @@ mod tests {
                 residency_policy: Some(ModelResidencyPolicy::default()),
                 residency_snapshot: None,
                 kv_cache_policy: Some(default_decoder_kv_cache_policy(&request.model)),
+                kv_cache_encoding_policy: None,
                 prefix_cache_state: Some(PrefixCacheState::None),
                 prefix_cache_policy: Some(default_prefix_cache_policy()),
                 prefix_cache_identity: None,
@@ -7564,7 +7605,7 @@ mod tests {
                 prefix_cache_refusal_reason: None,
                 structured_output: None,
                 psion_served_evidence: None,
-            psion_served_output_claim_posture: None,
+                psion_served_output_claim_posture: None,
             },
         );
         let receipt = TextGenerationReceipt::succeeded_for_response(
@@ -7624,8 +7665,8 @@ mod tests {
     }
 
     #[test]
-    fn text_generation_receipt_surfaces_tensor_sharded_cluster_execution_truth(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn text_generation_receipt_surfaces_tensor_sharded_cluster_execution_truth()
+    -> Result<(), Box<dyn std::error::Error>> {
         let request = GenerationRequest::new_text(
             "gen-cluster-tensor-sharded-1",
             sample_decoder_descriptor(),
@@ -7658,6 +7699,7 @@ mod tests {
                 inter_token_latency_ns: None,
                 kv_cache: None,
                 kv_residency: None,
+                kv_cache_encoding: None,
                 prefix_tokens_reused: Some(0),
                 gpt_oss_perf: None,
             },
@@ -7676,6 +7718,7 @@ mod tests {
                 residency_policy: Some(ModelResidencyPolicy::default()),
                 residency_snapshot: None,
                 kv_cache_policy: Some(default_decoder_kv_cache_policy(&request.model)),
+                kv_cache_encoding_policy: None,
                 prefix_cache_state: Some(PrefixCacheState::None),
                 prefix_cache_policy: Some(default_prefix_cache_policy()),
                 prefix_cache_identity: None,
@@ -7688,7 +7731,7 @@ mod tests {
                 prefix_cache_refusal_reason: None,
                 structured_output: None,
                 psion_served_evidence: None,
-            psion_served_output_claim_posture: None,
+                psion_served_output_claim_posture: None,
             },
         );
         let receipt = TextGenerationReceipt::succeeded_for_response(
@@ -7812,6 +7855,9 @@ mod tests {
                         },
                     )),
                 ),
+                kv_cache_encoding: Some(KvCacheEncodingAccounting::active(
+                    default_decoder_kv_cache_encoding_policy(&request.model, "cpu"),
+                )),
                 prefix_tokens_reused: Some(1),
                 gpt_oss_perf: None,
             },
@@ -7834,6 +7880,10 @@ mod tests {
                     resident_device_bytes: 0,
                 }),
                 kv_cache_policy: Some(default_decoder_kv_cache_policy(&request.model)),
+                kv_cache_encoding_policy: Some(default_decoder_kv_cache_encoding_policy(
+                    &request.model,
+                    "cpu",
+                )),
                 prefix_cache_state: Some(PrefixCacheState::Hit),
                 prefix_cache_policy: Some(default_prefix_cache_policy()),
                 prefix_cache_identity: Some(PrefixCacheIdentity {
@@ -7877,7 +7927,7 @@ mod tests {
                 prefix_cache_refusal_reason: None,
                 structured_output: None,
                 psion_served_evidence: None,
-            psion_served_output_claim_posture: None,
+                psion_served_output_claim_posture: None,
             },
         );
         let receipt = TextGenerationReceipt::succeeded_for_response(
@@ -7931,13 +7981,29 @@ mod tests {
             Some(default_decoder_kv_cache_policy(&request.model))
         );
         assert_eq!(
+            receipt.kv_cache_encoding_policy,
+            Some(default_decoder_kv_cache_encoding_policy(
+                &request.model,
+                "cpu"
+            ))
+        );
+        assert_eq!(
             receipt.kv_cache.as_ref().map(|value| value.current.pages),
             Some(1)
         );
-        assert!(receipt
-            .kv_residency
-            .as_ref()
-            .is_some_and(|value| value.has_tier(KvResidencyTier::Host)));
+        assert_eq!(
+            receipt
+                .kv_cache_encoding
+                .as_ref()
+                .map(|value| value.active.family),
+            Some(KvCacheEncodingFamily::DenseF32)
+        );
+        assert!(
+            receipt
+                .kv_residency
+                .as_ref()
+                .is_some_and(|value| value.has_tier(KvResidencyTier::Host))
+        );
         assert_eq!(receipt.prefix_cache_state, Some(PrefixCacheState::Hit));
         assert_eq!(
             receipt.prefix_cache_policy,
@@ -8016,8 +8082,8 @@ mod tests {
     }
 
     #[test]
-    fn metal_gpt_oss_text_generation_receipt_reports_explicit_validation(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn metal_gpt_oss_text_generation_receipt_reports_explicit_validation()
+    -> Result<(), Box<dyn std::error::Error>> {
         let request = GenerationRequest::new_text(
             "metal-gpt-oss-req",
             sample_gpt_oss_decoder_descriptor(),
@@ -8057,8 +8123,8 @@ mod tests {
     }
 
     #[test]
-    fn metal_gpt_oss_text_generation_failed_receipt_reports_explicit_refusal_validation(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn metal_gpt_oss_text_generation_failed_receipt_reports_explicit_refusal_validation()
+    -> Result<(), Box<dyn std::error::Error>> {
         let request = GenerationRequest::new_text(
             "metal-gpt-oss-req-fallback",
             sample_gpt_oss_decoder_descriptor(),
@@ -8133,6 +8199,7 @@ mod tests {
                 inter_token_latency_ns: None,
                 kv_cache: None,
                 kv_residency: None,
+                kv_cache_encoding: None,
                 prefix_tokens_reused: Some(0),
                 gpt_oss_perf: None,
             },
@@ -8155,6 +8222,7 @@ mod tests {
                     resident_device_bytes: 0,
                 }),
                 kv_cache_policy: Some(default_decoder_kv_cache_policy(&request.model)),
+                kv_cache_encoding_policy: None,
                 prefix_cache_state: Some(PrefixCacheState::None),
                 prefix_cache_policy: Some(default_prefix_cache_policy()),
                 prefix_cache_identity: None,
@@ -8167,7 +8235,7 @@ mod tests {
                 prefix_cache_refusal_reason: None,
                 structured_output: None,
                 psion_served_evidence: None,
-            psion_served_output_claim_posture: None,
+                psion_served_output_claim_posture: None,
             },
         );
         let terminal = GenerationStreamTerminal {
@@ -8538,15 +8606,17 @@ mod tests {
     }
 
     fn attested_cluster_trust_assessment() -> ClusterComputeMarketTrustAssessment {
-        ClusterTrustPolicy::attested_configured_peers(vec![ConfiguredClusterPeer::new(
-            NodeId::new("worker-a"),
-            std::net::SocketAddr::from(([127, 0, 0, 1], 31001)),
-            "peer-key-a",
-        )
-        .with_attestation_requirement(
-            NodeAttestationRequirement::new("issuer-a", "attestation-a")
-                .with_device_identity_digest("device-a"),
-        )])
+        ClusterTrustPolicy::attested_configured_peers(vec![
+            ConfiguredClusterPeer::new(
+                NodeId::new("worker-a"),
+                std::net::SocketAddr::from(([127, 0, 0, 1], 31001)),
+                "peer-key-a",
+            )
+            .with_attestation_requirement(
+                NodeAttestationRequirement::new("issuer-a", "attestation-a")
+                    .with_device_identity_digest("device-a"),
+            ),
+        ])
         .compute_market_trust_assessment()
     }
 
@@ -9128,15 +9198,17 @@ mod tests {
     fn sample_cluster_command_provenance(
         selected_node_ids: &[&str],
     ) -> Vec<ClusterCommandProvenanceEvidence> {
-        let mut provenance = vec![ClusterCommandProvenanceEvidence::new(
-            ClusterAdmissionFactKind::SchedulerMembership,
-            "scheduler-node",
-            ClusterCommandAuthorityScopeEvidence::SelfNode,
-            "scheduler-membership-command",
-            "scheduler-membership-auth",
-            "command-authorization-policy",
-        )
-        .with_target_node_id("scheduler-node")];
+        let mut provenance = vec![
+            ClusterCommandProvenanceEvidence::new(
+                ClusterAdmissionFactKind::SchedulerMembership,
+                "scheduler-node",
+                ClusterCommandAuthorityScopeEvidence::SelfNode,
+                "scheduler-membership-command",
+                "scheduler-membership-auth",
+                "command-authorization-policy",
+            )
+            .with_target_node_id("scheduler-node"),
+        ];
         for node_id in selected_node_ids {
             provenance.push(
                 ClusterCommandProvenanceEvidence::new(
@@ -9619,38 +9691,32 @@ mod tests {
             json!(TassadarExecutorFixture::ARTICLE_I32_COMPUTE_MODEL_ID)
         );
         assert_eq!(
-            encoded["publication"]["module_execution_capability"]["runtime_capability"]
-                ["supports_call_indirect"],
+            encoded["publication"]["module_execution_capability"]["runtime_capability"]["supports_call_indirect"],
             json!(true)
         );
         assert_eq!(
-            encoded["publication"]["module_execution_capability"]["runtime_capability"]
-                ["supports_active_element_segments"],
+            encoded["publication"]["module_execution_capability"]["runtime_capability"]["supports_active_element_segments"],
             json!(true)
         );
         assert_eq!(
-            encoded["publication"]["module_execution_capability"]["runtime_capability"]
-                ["supports_start_function_instantiation"],
+            encoded["publication"]["module_execution_capability"]["runtime_capability"]["supports_start_function_instantiation"],
             json!(true)
         );
         assert_eq!(
-            encoded["publication"]["module_execution_capability"]["runtime_capability"]
-                ["supports_linear_memory"],
+            encoded["publication"]["module_execution_capability"]["runtime_capability"]["supports_linear_memory"],
             json!(true)
         );
         assert_eq!(
-            encoded["publication"]["module_execution_capability"]["runtime_capability"]
-                ["supports_active_data_segments"],
+            encoded["publication"]["module_execution_capability"]["runtime_capability"]["supports_active_data_segments"],
             json!(true)
         );
         assert_eq!(
-            encoded["publication"]["module_execution_capability"]["runtime_capability"]
-                ["supports_memory_grow"],
+            encoded["publication"]["module_execution_capability"]["runtime_capability"]["supports_memory_grow"],
             json!(true)
         );
         assert_eq!(
-            encoded["publication"]["module_execution_capability"]["runtime_capability"]
-                ["host_import_boundary"]["unsupported_host_call_refusal"],
+            encoded["publication"]["module_execution_capability"]["runtime_capability"]["host_import_boundary"]
+                ["unsupported_host_call_refusal"],
             json!("unsupported_host_import")
         );
         assert_eq!(
@@ -9826,8 +9892,7 @@ mod tests {
             json!(false)
         );
         assert_eq!(
-            encoded["broad_internal_compute_profile_publication_receipt"]
-                ["public_profile_specific_route_ids"],
+            encoded["broad_internal_compute_profile_publication_receipt"]["public_profile_specific_route_ids"],
             json!([
                 "tassadar.internal_compute.deterministic_import_subset.v1",
                 "tassadar.internal_compute.runtime_support_subset.v1"
@@ -9868,8 +9933,7 @@ mod tests {
             ])
         );
         assert_eq!(
-            encoded["float_profile_acceptance_gate_receipt"]
-                ["default_served_profile_allowed_profile_ids"],
+            encoded["float_profile_acceptance_gate_receipt"]["default_served_profile_allowed_profile_ids"],
             json!([])
         );
         assert_eq!(
@@ -9909,8 +9973,7 @@ mod tests {
             json!(["tassadar.internal_compute.session_process.v1"])
         );
         assert_eq!(
-            encoded["session_process_profile_receipt"]
-                ["default_served_profile_allowed_profile_ids"],
+            encoded["session_process_profile_receipt"]["default_served_profile_allowed_profile_ids"],
             json!([])
         );
         assert_eq!(
@@ -9926,8 +9989,7 @@ mod tests {
             json!(["tassadar.internal_compute.async_lifecycle.v1"])
         );
         assert_eq!(
-            encoded["async_lifecycle_profile_receipt"]
-                ["default_served_profile_allowed_profile_ids"],
+            encoded["async_lifecycle_profile_receipt"]["default_served_profile_allowed_profile_ids"],
             json!([])
         );
         assert_eq!(
@@ -10073,12 +10135,16 @@ mod tests {
             receipt.workload_family_count,
             summary.frontier_report.frontier_rows.len() as u32
         );
-        assert!(receipt
-            .under_mapped_workload_family_ids
-            .contains(&String::from("micro_wasm_kernel")));
-        assert!(receipt
-            .refusal_first_workload_family_ids
-            .contains(&String::from("sudoku_class")));
+        assert!(
+            receipt
+                .under_mapped_workload_family_ids
+                .contains(&String::from("micro_wasm_kernel"))
+        );
+        assert!(
+            receipt
+                .refusal_first_workload_family_ids
+                .contains(&String::from("sudoku_class"))
+        );
     }
 
     #[test]
@@ -10089,12 +10155,16 @@ mod tests {
 
         assert_eq!(receipt.report_id, summary.report_id);
         assert_eq!(receipt.module_exact_import_complexity_threshold, Some(0));
-        assert!(receipt
-            .kernel_cost_degraded_family_ids
-            .contains(&String::from("backward_loop_kernel")));
-        assert!(receipt
-            .refusal_boundary_family_ids
-            .contains(&String::from("module_host_import_boundary")));
+        assert!(
+            receipt
+                .kernel_cost_degraded_family_ids
+                .contains(&String::from("backward_loop_kernel"))
+        );
+        assert!(
+            receipt
+                .refusal_boundary_family_ids
+                .contains(&String::from("module_host_import_boundary"))
+        );
     }
 
     #[test]
@@ -10157,8 +10227,8 @@ mod tests {
     }
 
     #[test]
-    fn tassadar_planner_route_capability_envelope_surfaces_typed_refusal_when_runtime_fallback_is_disallowed(
-    ) {
+    fn tassadar_planner_route_capability_envelope_surfaces_typed_refusal_when_runtime_fallback_is_disallowed()
+     {
         let router = LocalTassadarPlannerRouter::new().with_executor_service(
             LocalTassadarExecutorService::new()
                 .with_fixture(TassadarExecutorFixture::article_i32_compute_v1()),
@@ -10245,8 +10315,8 @@ mod tests {
     }
 
     #[test]
-    fn tassadar_planner_route_capability_envelope_rejects_missing_internal_compute_profile_claim_digest(
-    ) {
+    fn tassadar_planner_route_capability_envelope_rejects_missing_internal_compute_profile_claim_digest()
+     {
         let router = LocalTassadarPlannerRouter::new().with_executor_service(
             LocalTassadarExecutorService::new()
                 .with_fixture(TassadarExecutorFixture::article_i32_compute_v1()),
@@ -10302,8 +10372,8 @@ mod tests {
     }
 
     #[test]
-    fn tassadar_planner_route_capability_envelope_refuses_unsupported_import_posture_by_module_class(
-    ) {
+    fn tassadar_planner_route_capability_envelope_refuses_unsupported_import_posture_by_module_class()
+     {
         let router = LocalTassadarPlannerRouter::new().with_executor_service(
             LocalTassadarExecutorService::new()
                 .with_fixture(TassadarExecutorFixture::article_i32_compute_v1()),
@@ -10428,8 +10498,8 @@ mod tests {
     }
 
     #[test]
-    fn tassadar_decompilation_receipt_projects_research_artifact_summary(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn tassadar_decompilation_receipt_projects_research_artifact_summary()
+    -> Result<(), Box<dyn std::error::Error>> {
         let report = build_tassadar_decompilable_executor_artifacts_report()?;
         let summary = report
             .artifact_summaries
