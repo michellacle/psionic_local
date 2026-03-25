@@ -629,6 +629,7 @@ struct ParameterGolfDistributed8xH100WorkerRuntime {
     world_size: usize,
     log_path: String,
     bundle: psionic_data::ParameterGolfDatasetBundle,
+    validation_tokens: Vec<u16>,
     baseline_model: ParameterGolfReferenceModel,
     current_model: ParameterGolfReferenceModel,
     current_model_stale: bool,
@@ -1111,6 +1112,15 @@ impl ParameterGolfDistributed8xH100WorkerRuntime {
             parameter_golf_optimizer_plan(&baseline_model.banked_descriptor()?, &hyperparameters)?;
         let trainer_state = seed_parameter_states(&baseline_model, &optimizer_plan)?;
         let current_model = materialize_current_model(&baseline_model, &trainer_state)?;
+        let validation_tokens = load_parameter_golf_validation_tokens_from_paths(
+            &bundle
+                .validation_shards
+                .iter()
+                .map(|receipt| PathBuf::from(&receipt.path))
+                .collect::<Vec<_>>(),
+            ParameterGolfBatchGeometry::challenge_distributed_8xh100_defaults()
+                .train_sequence_length,
+        )?;
         let byte_luts =
             parameter_golf_sentencepiece_byte_luts_from_tokenizer_path(&tokenizer_path)?;
         let cuda_backend = CudaBackend::new();
@@ -1131,6 +1141,7 @@ impl ParameterGolfDistributed8xH100WorkerRuntime {
             world_size,
             log_path,
             bundle,
+            validation_tokens,
             baseline_model,
             current_model,
             current_model_stale: false,
@@ -1286,17 +1297,10 @@ impl ParameterGolfDistributed8xH100WorkerRuntime {
         ParameterGolfDistributed8xH100TrainStepError,
     > {
         self.ensure_current_model_materialized()?;
-        let validation_tokens = load_parameter_golf_validation_tokens_from_paths(
-            &self
-                .bundle
-                .validation_shards
-                .iter()
-                .map(|receipt| PathBuf::from(&receipt.path))
-                .collect::<Vec<_>>(),
-            self.geometry.train_sequence_length,
-        )?;
-        let total_sequence_count = (validation_tokens.len().saturating_sub(1)
-            / self.geometry.train_sequence_length) as u64;
+        let validation_tokens = self.validation_tokens.as_slice();
+        let total_sequence_count =
+            (validation_tokens.len().saturating_sub(1) / self.geometry.train_sequence_length)
+                as u64;
         let expected_shards = build_validation_observation_plan(
             total_sequence_count,
             self.geometry.train_sequence_length,
@@ -1369,7 +1373,7 @@ impl ParameterGolfDistributed8xH100WorkerRuntime {
                     &self.selected_device,
                     self.current_model.descriptor(),
                     &self.current_model,
-                    validation_tokens.as_slice(),
+                    validation_tokens,
                     &self.byte_luts,
                     self.geometry.train_sequence_length,
                     validation_batch_sequences,

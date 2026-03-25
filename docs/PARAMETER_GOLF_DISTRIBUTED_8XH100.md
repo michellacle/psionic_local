@@ -95,7 +95,9 @@ Psionic now encodes that exact posture explicitly instead of treating
   fanout, and the coordinator now dispatches validation work to all resident
   ranks before waiting on any one receipt so the retained validation wallclock
   can reflect real parallel rank execution instead of accidental rank-serial
-  receipt collection
+  receipt collection; the resident workers now also preload the fixed
+  validation token surface once at startup instead of reopening the full
+  validation shards inside every validation call
 - `psionic-models` now also ships the upstream-style banked PGOLF matrix
   surface under `ParameterGolfBankedWeights`, with the exact public bank tensor
   ids `qo_bank`, `kv_bank`, `mlp_up_bank`, and `mlp_down_bank`; the optimizer
