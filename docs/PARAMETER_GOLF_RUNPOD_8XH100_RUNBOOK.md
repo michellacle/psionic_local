@@ -25,6 +25,8 @@ record-track claim.
   `scripts/parameter-golf-runpod-operator-preflight.sh`
 - SSH-capable launcher with manifest-only rehearsal mode:
   `scripts/parameter-golf-runpod-launch-8xh100.sh`
+- current-bundle `/tmp` launcher for quota-blocked pods:
+  `scripts/parameter-golf-runpod-launch-current-bundle-8xh100.sh`
 - distributed-evidence finalizer:
   `scripts/parameter-golf-runpod-finalize-8xh100.sh`
 - distributed receipt builder from a real RunPod run root:
@@ -109,6 +111,23 @@ This means later real `8xH100` runs can retain not only the exported-folder
 evidence and finalizer outputs, but also the exact remote phase boundary,
 phase commands, and per-phase exit results from the launcher that drove the
 pod.
+
+When the persistent `/workspace` checkout is stale or blocked by RunPod quota
+edges, the repo also carries one narrower fallback launcher:
+
+```bash
+bash scripts/parameter-golf-runpod-launch-current-bundle-8xh100.sh \
+  --pod-host <host> \
+  --pod-port <port> \
+  --ssh-key <path>
+```
+
+That launcher builds the current exported submission bundle locally, uploads
+only the bundle plus the two input-materialization helper scripts and the
+committed input contract, stages the run under `/tmp/parameter-golf-runpod`,
+and then launches the distributed runtime there. It is the current honest
+fallback when a pod can still execute the runtime correctly but cannot keep a
+fresh `/workspace/psionic` checkout due workspace quota or stale payload drift.
 
 This explicit execution-mode requirement is intentional. The current exported
 folder ships:
