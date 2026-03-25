@@ -3933,23 +3933,44 @@ fn evaluate_score_first_ttt_on_cuda(
     let mut total_adaptation_step_count = 0_usize;
 
     for chunk_plan in chunk_plans {
-        let score_summary = evaluate_validation_window_starts_on_cuda(
-            cuda_backend,
-            device,
-            descriptor,
-            &current_model,
-            validation_tokens,
-            byte_luts,
-            sequence_length,
-            score_first_ttt.batch_sequences.max(1),
-            score_first_ttt.stride,
-            chunk_plan.window_starts.as_slice(),
-            eval_graph_cache,
-            stage_label,
-            live_visualization_writer
-                .as_mut()
-                .map(|writer| &mut **writer),
-        )?;
+        let score_summary = if training_session_cache.is_empty() {
+            evaluate_validation_window_starts_on_cuda(
+                cuda_backend,
+                device,
+                descriptor,
+                &current_model,
+                validation_tokens,
+                byte_luts,
+                sequence_length,
+                score_first_ttt.batch_sequences.max(1),
+                score_first_ttt.stride,
+                chunk_plan.window_starts.as_slice(),
+                eval_graph_cache,
+                stage_label,
+                live_visualization_writer
+                    .as_mut()
+                    .map(|writer| &mut **writer),
+            )?
+        } else {
+            evaluate_validation_window_starts_on_cuda_with_resident_training_parameters(
+                cuda_backend,
+                device,
+                descriptor,
+                &base_model,
+                &training_session_cache,
+                validation_tokens,
+                byte_luts,
+                sequence_length,
+                score_first_ttt.batch_sequences.max(1),
+                score_first_ttt.stride,
+                chunk_plan.window_starts.as_slice(),
+                eval_graph_cache,
+                stage_label,
+                live_visualization_writer
+                    .as_mut()
+                    .map(|writer| &mut **writer),
+            )?
+        };
         total_loss_sum += score_summary.mean_loss * score_summary.evaluated_token_count as f64;
         total_token_count = total_token_count.saturating_add(score_summary.evaluated_token_count);
         total_byte_count = total_byte_count.saturating_add(score_summary.evaluated_byte_count);
@@ -6799,6 +6820,83 @@ mod tests {
         assert_eq!(
             eager_runtime.persistent_parameter_buffer_count,
             resident_runtime.persistent_parameter_buffer_count
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn score_first_ttt_reuses_training_parameter_buffers_for_chunk_scoring_after_adaptation(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let mut cuda_backend = CudaBackend::new();
+        let Some(selected_device) = cuda_backend.selected_device().cloned() else {
+            return Ok(());
+        };
+
+        let model = ParameterGolfReferenceModel::baseline_fixture(Default::default())?;
+        let byte_luts = ParameterGolfSentencePieceByteLuts {
+            base_bytes_lut: vec![1; 8],
+            has_leading_space_lut: vec![false; 8],
+            is_boundary_token_lut: vec![false; 8],
+        };
+        let sequence_length = 16;
+        let validation_tokens = (0..97).map(|index| (index % 8) as u16).collect::<Vec<_>>();
+        let score_first_ttt = ParameterGolfScoreFirstTttConfig {
+            stride: 8,
+            chunk_tokens: 32,
+            epochs: 1,
+            freeze_blocks: 0,
+            learning_rate: 0.001,
+            momentum: 0.9,
+            batch_sequences: 1,
+            grad_clip_norm: 1.0,
+        };
+        let mut eval_graph_cache = BTreeMap::new();
+        let mut train_graph_cache = BTreeMap::new();
+        let summary = evaluate_score_first_ttt_on_cuda(
+            &mut cuda_backend,
+            &selected_device.device,
+            model.descriptor(),
+            &model,
+            validation_tokens.as_slice(),
+            &byte_luts,
+            sequence_length,
+            1,
+            &ParameterGolfValidationEvalMode::SlidingWindow {
+                stride: score_first_ttt.stride,
+            },
+            &score_first_ttt,
+            &mut eval_graph_cache,
+            &mut train_graph_cache,
+            "score_first_ttt_resident_eval_reuse",
+            None,
+        )?;
+        let receipt = summary
+            .score_first_ttt_receipt
+            .ok_or("missing score-first TTT receipt")?;
+        assert!(receipt.chunk_receipts.len() >= 2);
+        let first_runtime = receipt.chunk_receipts[0]
+            .score_summary
+            .runtime_receipt
+            .as_ref()
+            .ok_or("missing first chunk runtime receipt")?;
+        assert!(first_runtime.resident_parameter_upload_us > 0);
+        let later_runtimes = receipt
+            .chunk_receipts
+            .iter()
+            .skip(1)
+            .map(|chunk| {
+                chunk
+                    .score_summary
+                    .runtime_receipt
+                    .as_ref()
+                    .ok_or("missing later chunk runtime receipt")
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+        assert!(!later_runtimes.is_empty());
+        assert!(
+            later_runtimes
+                .iter()
+                .any(|runtime| runtime.resident_parameter_upload_us == 0)
         );
         Ok(())
     }

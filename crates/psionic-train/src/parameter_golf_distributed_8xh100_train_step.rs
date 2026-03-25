@@ -2332,7 +2332,7 @@ impl ParameterGolfDistributed8xH100WorkerRuntime {
                     runtime_receipt: None,
                     score_first_ttt_receipt: None,
                 }
-            } else {
+            } else if self.training_session_cache.is_empty() {
                 self.ensure_current_model_materialized()?;
                 let validation_tokens = self.validation_tokens.as_slice();
                 evaluate_validation_window_starts_on_cuda(
@@ -2340,6 +2340,24 @@ impl ParameterGolfDistributed8xH100WorkerRuntime {
                     &self.selected_device,
                     self.current_model.descriptor(),
                     &self.current_model,
+                    validation_tokens,
+                    &self.byte_luts,
+                    self.geometry.train_sequence_length,
+                    validation_batch_sequences,
+                    score_first_ttt.stride,
+                    shard.score_first_ttt_window_starts.as_slice(),
+                    &mut self.validation_graph_cache,
+                    &format!("distributed_validation_rank_{}_score_first_ttt", self.rank),
+                    None,
+                )?
+            } else {
+                let validation_tokens = self.validation_tokens.as_slice();
+                evaluate_validation_window_starts_on_cuda_with_resident_training_parameters(
+                    &mut self.cuda_backend,
+                    &self.selected_device,
+                    self.baseline_model.descriptor(),
+                    &self.baseline_model,
+                    &self.training_session_cache,
                     validation_tokens,
                     &self.byte_luts,
                     self.geometry.train_sequence_length,

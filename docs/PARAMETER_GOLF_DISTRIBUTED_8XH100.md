@@ -243,7 +243,10 @@ on the subset of windows owned by that rank, then runs the chunk-local
 adaptation step on every resident worker so the mesh stays synchronized without
 introducing a second optimizer surface. The resulting train-step receipt can
 now preserve one aggregated `score_first_ttt_receipt` beside the existing
-distributed validation observations.
+distributed validation observations. When the resident training-session cache
+already exists, that score-first chunk scoring path now reuses the refreshed
+resident parameter buffers instead of forcing a second eager eval-only
+parameter upload per chunk.
 
 What is still missing is retained real `8xH100` evidence for that path under
 the public wallclock bar. The code path exists. The scoreboard proof does not.

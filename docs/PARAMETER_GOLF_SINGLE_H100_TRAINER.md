@@ -287,7 +287,10 @@ The command is explicit about what it treats as trainer truth. It binds:
   loss surface on device, and records a machine-readable
   validation runtime receipt with the resident parameter buffer count,
   stable-buffer allocation posture, named eval graph surface, token-write
-  cost, byte-accounting cost, and explicit eval mode for each validation pass
+  cost, byte-accounting cost, and explicit eval mode for each validation pass;
+  when legal score-first TTT has already refreshed resident training sessions,
+  scored chunk evaluation now reuses those parameter buffers instead of forcing
+  a second eager eval-only parameter upload
 - a device-resident training runner that keeps the stable parameter surface
   resident on device across repeated train batches for each admitted batch
   shape, reuses mutable token and target buffers, refreshes the resident
