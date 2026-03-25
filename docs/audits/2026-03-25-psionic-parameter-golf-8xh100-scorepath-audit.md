@@ -12,6 +12,12 @@ The upstream Parameter Golf contract is explicit:
 
 The current public scoreboard in [`~/code/parameter-golf/records/track_10min_16mb/`](../../../parameter-golf/records/track_10min_16mb) is already below `1.13 val_bpb`, with the best local record surface at the time of this audit showing `1.119400` for `2026-03-23_LeakyReLU_LegalTTT_ParallelMuon`.
 
+That public top record also reports:
+
+- about `83.4 ms` per training step
+- about `7,185` steps inside the `600` second training budget
+- about `410` seconds for the legal score-first TTT overlay inside the separate eval budget
+
 Psionic is not close to that score path yet. The current gap is not only model quality. The current `8xH100` execution topology is too slow to produce a valid scoreboard-grade run.
 
 ## Current Evidence
@@ -32,43 +38,38 @@ What this run proves:
 
 This closes the old operator/input gap. That work now belongs in the closed issue `#544`.
 
-### 2. The current distributed proof topology is still one-step and still slow
+### 2. The current distributed proof topology is now multi-step, but it is still catastrophically slow
 
-Retained rank train-step receipts from the same proof root:
+Earlier retained proof root:
 
-- `.../benchmark/runtime_train_step_receipts/rank_0.json`
-- `.../benchmark/runtime_train_step_receipts/rank_1.json`
-- `.../benchmark/runtime_train_step_receipts/rank_2.json`
-- `.../benchmark/runtime_train_step_receipts/rank_3.json`
-- `.../benchmark/runtime_train_step_receipts/rank_4.json`
-- `.../benchmark/runtime_train_step_receipts/rank_5.json`
-- `.../benchmark/runtime_train_step_receipts/rank_6.json`
-- `.../benchmark/runtime_train_step_receipts/rank_7.json`
+- `/workspace/parameter-golf-runpod/parameter-golf-runpod-scoreproof-20260325T091348Z`
 
-Observed one-step rank-local wallclock:
+That older root retained one-step rank-local wallclock in the `217s..229s` range.
 
-- rank `0`: `229019 ms`
-- rank `1`: `217156 ms`
-- rank `2`: `220134 ms`
-- rank `3`: `220256 ms`
-- rank `4`: `227089 ms`
-- rank `5`: `220245 ms`
-- rank `6`: `226251 ms`
-- rank `7`: `222638 ms`
+Fresh current-bundle proof root:
 
-Observed rank-local phase timings are dominated by forward and backward:
+- `/tmp/parameter-golf-runpod/parameter-golf-runpod-scoreproof-20260325T121903Z`
 
-- forward: about `93s` to `99s`
-- backward: about `118s` to `128s`
-- token materialization: about `0.19s` to `0.25s`
-- host gradient materialization: about `0.42s` to `0.74s`
+Fresh retained rank-0 train-step receipts from that root:
+
+- `step_00001`: `observed_wallclock_ms=92839`
+- `step_00002`: `observed_wallclock_ms=89203`
+- `step_00003`: `observed_wallclock_ms=81437`
+
+Fresh retained rank-0 phase timings:
+
+- `step_00001`: `forward_loss_cuda_ms=58931`, `backward_cuda_ms=33053`
+- `step_00002`: `forward_loss_cuda_ms=58426`, `backward_cuda_ms=29797`
+- `step_00003`: `forward_loss_cuda_ms=50082`, `backward_cuda_ms=30082`
 
 The retained aggregated gradient artifact is:
 
 - `.../benchmark/runtime_train_step_gradients/aggregated_step_1.safetensors`
 - size: about `66 MB`
 
-This is still a one-step proof topology. It is not a real 600-second training run.
+This is real improvement relative to the earlier one-step proof root, and it proves the repeated loop is live through `step_00003`.
+
+It is still catastrophically slow relative to the public score path. The public top record reports `83.4 ms` per step. Psionic is still at `81.4 s` on the freshest retained rank-0 step. That is roughly three orders of magnitude away from the competitive runtime posture.
 
 ### 3. The current proof topology still uses expensive orchestration
 
@@ -120,17 +121,19 @@ That means the hot path still depends on:
 
 This is not comparable to the upstream `torch.distributed` all-reduce posture.
 
-### Gap C: no real `600` second repeated training loop
+### Gap C: repeated training is now real, but still not close to score-path throughput
 
-The current `8xH100` runtime still executes one explicit step and then heads toward validation.
+The current `8xH100` runtime now executes repeated steps under the wallclock-bounded source loop.
 
-That does not match the upstream loop in `train_gpt.py`, which:
+That closes the old one-step-only boundary. It does not close the score-path throughput boundary.
+
+The upstream loop in `train_gpt.py` still:
 
 - keeps model and optimizer state resident
 - advances steps until the wallclock cap is reached
 - then runs final roundtrip validation
 
-Without that repeated loop, Psionic does not own a valid scoreboard-grade training run.
+Without competitive step throughput, Psionic still does not own a valid scoreboard-grade training run.
 
 ### Gap D: final artifact semantics are still wrong for real training
 
@@ -176,7 +179,7 @@ Replace per-rank gradient artifact export in the hot path with a real distribute
 - no per-step gradient `safetensors` roundtrip in the score lane
 - no parent-side file reopen and host reduction in the score lane
 
-### Priority 3: real wallclock-capped repeated training loop
+### Priority 3: real wallclock-capped repeated training loop with competitive step throughput
 
 Once the persistent mesh exists, implement the actual public challenge loop:
 
@@ -215,16 +218,23 @@ Existing relevant issues:
 - `#510`: real distributed validation and aggregation
 - `#512`: exported-folder completion and receipt closure
 - `#541`: scoreboard-grade sliding-window evaluation
-- `#542`: legal score-first TTT
 - `#543`: real `600` second multi-step `8xH100` loop
+- `#545`: persistent distributed worker mesh
+- `#546`: scoreboard-grade full-sequence attention kernels
+- `#547`: retained activation and primal volume
+- `#549`: resident train-path model surface
+- `#550`: distributed legal score-first TTT
+- `#551`: parameter-banked PGOLF model surface
+- `#552`: Parallel Muon collectives
 
-A new issue is required for the missing structural gap:
+The open issue stack is now explicit about the two additional competitive-path gaps that were not tracked when this audit was first written:
 
-- persistent distributed worker mesh plus in-memory gradient synchronization replacing the current spawn-per-step proof topology
+- Parameter Banking in the model surface
+- Parallel Muon collectives in the distributed optimizer path
 
 ## Bottom Line
 
-Psionic now has a real RunPod `8xH100` operator lane and a real one-step distributed proof path.
+Psionic now has a real RunPod `8xH100` operator lane and a real repeated-step distributed proof path.
 
 Psionic does not yet have a scoreboard-grade `8xH100` execution topology.
 
