@@ -24,7 +24,7 @@
     "program_manifest_id": "psionic-cross-provider-pretraining-program-v1",
     "program_manifest_digest": "5c7cd52ecf5345551e165eeb1e25440153bf64f38e69aaf1d33a13c7056ca479",
     "source_id": "runpod_8xh100_dense_node",
-    "source_contract_digest": "f4b1b236dd490ad6e1cdfda9538e5f0139a84449d003047332da6599f8c67672",
+    "source_contract_digest": "0269a847d7a2285c85a35bbcf46495f460a35d0a45c78b61af1633b2c6759452",
     "requested_execution_class": "dense_full_model_rank",
     "run_id": "psion-xprovider-pretrain-runpod-dense-example",
     "environment": {
@@ -36,7 +36,7 @@
     "metrics_root": "runs/psion-xprovider-pretrain-runpod-dense-example/metrics",
     "visualization_root": "runs/psion-xprovider-pretrain-runpod-dense-example/training_visualization",
     "final_root": "runs/psion-xprovider-pretrain-runpod-dense-example/final",
-    "launch_input_digest": "f21a2d057ac46aa3c61ba5eabe0311cb0c68c64e1c859adab8a57b46b3545cb1"
+    "launch_input_digest": "f92cda7af8aba3f3cce703778971aeaf3f0797bfb5f9167ae136d730f8c878bd"
   },
   {
     "schema_version": "psionic.cross_provider_compute_source_contract.v1",
@@ -62,7 +62,7 @@
     "program_manifest_id": "psionic-cross-provider-pretraining-program-v1",
     "program_manifest_digest": "5c7cd52ecf5345551e165eeb1e25440153bf64f38e69aaf1d33a13c7056ca479",
     "source_id": "local_mlx_mac_workstation",
-    "source_contract_digest": "6eed4f0ba8022909bc3c6320da31341b3c6269e8cfc4b3d935143302fc732142",
+    "source_contract_digest": "af464a99d4089a063ef8811febffc05baecaa04a28d12f22a670feae00e91a9d",
     "requested_execution_class": "data_builder",
     "run_id": "psion-xprovider-pretrain-local-mac-data-example",
     "environment": {
@@ -74,6 +74,6 @@
     "metrics_root": "runs/psion-xprovider-pretrain-local-mac-data-example/metrics",
     "visualization_root": "runs/psion-xprovider-pretrain-local-mac-data-example/training_visualization",
     "final_root": "runs/psion-xprovider-pretrain-local-mac-data-example/final",
-    "launch_input_digest": "7c7cba541264a617a91b64bd4bdc5ae4916d8c0e430236ee9dfbc82a08788e12"
+    "launch_input_digest": "d4f0b19cdc92040d478351754a1778dced399f37a7180ffb9353418883d9b41a"
   }
 ]

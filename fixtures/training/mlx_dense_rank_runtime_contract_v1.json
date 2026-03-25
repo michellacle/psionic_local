@@ -1,0 +1,245 @@
+{
+  "schema_version": "psionic.mlx_dense_rank_runtime_contract.v1",
+  "runtime": {
+    "runtime_family_id": "psionic.dense_rank_runtime.mlx_metal.v1",
+    "consumer_lane_id": "psion.cross_provider_pretraining_dense_mlx_reference",
+    "checkpoint_family": "psion.cross_provider.pretrain.v1",
+    "dataset_family_id": "psion.curated_pretrain.dataset_family.v1",
+    "requested_backend": "mlx_metal",
+    "world_size": 1
+  },
+  "source_id": "local_mlx_mac_workstation",
+  "source_contract_digest": "af464a99d4089a063ef8811febffc05baecaa04a28d12f22a670feae00e91a9d",
+  "bringup_report_path": "fixtures/swarm/reports/swarm_mac_mlx_bringup_v1.json",
+  "bringup_report_digest": "b7f20eca5c4aa228e927d62c9544ac0dcc8a31777d66395c5e26a19bfbd48db5",
+  "dense_rank_reference_digest": "d7c4fe2ab61dfa7da6bebfd44f0622e7365a19e23c9770ece03dfc85cde428d0",
+  "execution_receipt": {
+    "schema_version": 1,
+    "runtime": {
+      "runtime_family_id": "psionic.dense_rank_runtime.mlx_metal.v1",
+      "consumer_lane_id": "psion.cross_provider_pretraining_dense_mlx_reference",
+      "checkpoint_family": "psion.cross_provider.pretrain.v1",
+      "dataset_family_id": "psion.curated_pretrain.dataset_family.v1",
+      "requested_backend": "mlx_metal",
+      "world_size": 1
+    },
+    "run_id": "psion-xprovider-pretrain-mlx-dense-20260325",
+    "bootstrap": {
+      "schema_version": 1,
+      "runtime": {
+        "runtime_family_id": "psionic.dense_rank_runtime.mlx_metal.v1",
+        "consumer_lane_id": "psion.cross_provider_pretraining_dense_mlx_reference",
+        "checkpoint_family": "psion.cross_provider.pretrain.v1",
+        "dataset_family_id": "psion.curated_pretrain.dataset_family.v1",
+        "requested_backend": "mlx_metal",
+        "world_size": 1
+      },
+      "run_id": "psion-xprovider-pretrain-mlx-dense-20260325",
+      "bringup_report_path": "fixtures/swarm/reports/swarm_mac_mlx_bringup_v1.json",
+      "bringup_report_digest": "b7f20eca5c4aa228e927d62c9544ac0dcc8a31777d66395c5e26a19bfbd48db5",
+      "runtime_payload_path": "${PSION_RUN_ROOT}/runtime/mlx_dense_rank_runtime_payload_v1.json",
+      "runtime_manifest_path": "${PSION_RUN_ROOT}/runtime/mlx_dense_rank_runtime_manifest_v1.json",
+      "successful_rank_count": 1,
+      "disposition": "bootstrapped",
+      "receipt_digest": "9370b09fcca2781ab7eabd45388cc1485295dc38fff23883f4118803328760ba"
+    },
+    "train_step": {
+      "schema_version": 1,
+      "runtime": {
+        "runtime_family_id": "psionic.dense_rank_runtime.mlx_metal.v1",
+        "consumer_lane_id": "psion.cross_provider_pretraining_dense_mlx_reference",
+        "checkpoint_family": "psion.cross_provider.pretrain.v1",
+        "dataset_family_id": "psion.curated_pretrain.dataset_family.v1",
+        "requested_backend": "mlx_metal",
+        "world_size": 1
+      },
+      "run_id": "psion-xprovider-pretrain-mlx-dense-20260325",
+      "runtime_bootstrap_receipt_path": "${PSION_RUN_ROOT}/receipts/mlx_dense_rank_runtime_bootstrap_receipt_v1.json",
+      "runtime_bootstrap_receipt_digest": "9370b09fcca2781ab7eabd45388cc1485295dc38fff23883f4118803328760ba",
+      "measurements_path": "${PSION_METRICS_ROOT}/mlx_dense_rank_metrics_v1.jsonl",
+      "distributed_receipt_path": "${PSION_RUN_ROOT}/receipts/mlx_dense_rank_single_rank_collective_receipt_v1.json",
+      "train_step_receipt_path": "${PSION_RUN_ROOT}/receipts/mlx_dense_rank_train_step_receipt_v1.json",
+      "mean_train_loss": 5.364421e-7,
+      "train_tokens": 2048,
+      "observed_step_ms": 412,
+      "gradient_sync_ms": 0,
+      "optimizer_step_ms": 96,
+      "validation_hook": {
+        "hook_id": "dense_rank_runtime.validation.post_train_eval",
+        "posture": "same_rank_validation_ready",
+        "detail": "The bounded MLX dense-rank runtime now carries the generic validation hook contract and can emit same-rank validation receipts without falling back to contributor-only semantics."
+      },
+      "checkpoint_hook": {
+        "hook_id": "dense_rank_runtime.checkpoint.materialization",
+        "posture": "single_rank_checkpoint_materialized",
+        "detail": "The bounded MLX dense-rank runtime now emits one durable single-rank checkpoint manifest and pointer instead of leaving checkpoint truth outside the dense-rank receipt family."
+      },
+      "receipt_digest": "f45646d40b71eb03900b54d6ded7a9b9e03cc0b2a32f8da1044156268b403211"
+    },
+    "claim_boundary": "This execution receipt proves one bounded MLX-backed Metal host can now emit the same dense-rank bootstrap and train-step receipt family as the generic CUDA runtime, but only for a single-rank f32 reference path. It does not claim cross-host collectives, same-job mixed-backend dense execution, or sharded optimizer exchange.",
+    "receipt_digest": "18992256f722acee1baebfd8e85323e50d40e9dffdbd55ae000da5edb91fa2b1"
+  },
+  "checkpoint_manifest": {
+    "scope": {
+      "kind": "run",
+      "scope_id": "psion-xprovider-pretrain-mlx-dense-20260325"
+    },
+    "checkpoint_family": "psion.cross_provider.pretrain.v1",
+    "checkpoint": {
+      "checkpoint_family": "psion.cross_provider.pretrain.v1",
+      "stream_id": "stream://mlx-dense-rank/64",
+      "manifest_digest": "manifest-digest-mlx-dense-rank-64",
+      "object_digest": "object-digest-mlx-dense-rank-64",
+      "writer_node_id": "local-mac-rank-0",
+      "membership_epoch": 1,
+      "cluster_state_digest": "cluster-state-digest-mlx-dense-rank-64",
+      "topology_digest": "topology-digest-mlx-dense-rank-64",
+      "started_at_ms": 1742899200000,
+      "checkpoint_ref": "checkpoint://mlx-dense-rank/64",
+      "step": 64,
+      "durable_at_ms": 1742899200412
+    },
+    "shards": [
+      {
+        "shard_id": "mlx-rank-0-parameter-and-optimizer",
+        "manifest": {
+          "stream_id": "stream-mlx-dense-rank-64",
+          "manifest_digest": "29d9ace776d29953ddf6a7c381e2ff520004072a5038dbb32e05a7cdd6ef5074",
+          "subject": "checkpoint",
+          "object_digest": "55d32abb5de7e7e8ba1a151366b0c1085b4966d5f3dc4cc8bcd7ba5b7d862805",
+          "total_bytes": 51,
+          "chunk_count": 4,
+          "chunk_bytes": 16,
+          "encoding": "safetensors",
+          "checkpoint_binding": {
+            "checkpoint_family": "psion.cross_provider.pretrain.v1",
+            "checkpoint_ref": "checkpoint://mlx-dense-rank/64",
+            "step": 64
+          }
+        },
+        "writer_node_id": "local-mac-rank-0"
+      }
+    ],
+    "durability": "durable",
+    "created_at_ms": 1742899200412,
+    "manifest_digest": "4e7888e1d7bc0f76bf8b775711623500124abb292304f8e5e2608e90c971d14b"
+  },
+  "checkpoint_pointer": {
+    "scope": {
+      "kind": "run",
+      "scope_id": "psion-xprovider-pretrain-mlx-dense-20260325"
+    },
+    "checkpoint_family": "psion.cross_provider.pretrain.v1",
+    "checkpoint": {
+      "checkpoint_family": "psion.cross_provider.pretrain.v1",
+      "stream_id": "stream://mlx-dense-rank/64",
+      "manifest_digest": "manifest-digest-mlx-dense-rank-64",
+      "object_digest": "object-digest-mlx-dense-rank-64",
+      "writer_node_id": "local-mac-rank-0",
+      "membership_epoch": 1,
+      "cluster_state_digest": "cluster-state-digest-mlx-dense-rank-64",
+      "topology_digest": "topology-digest-mlx-dense-rank-64",
+      "started_at_ms": 1742899200000,
+      "checkpoint_ref": "checkpoint://mlx-dense-rank/64",
+      "step": 64,
+      "durable_at_ms": 1742899200412
+    },
+    "manifest_digest": "4e7888e1d7bc0f76bf8b775711623500124abb292304f8e5e2608e90c971d14b",
+    "updated_at_ms": 1742899200420,
+    "pointer_digest": "52ac08131c1aef0a455e238d7d18fe7ad97a9ad31f7e722d91210c747daad553"
+  },
+  "metric_events": [
+    {
+      "run_id": "psion-xprovider-pretrain-mlx-dense-20260325",
+      "phase": "train",
+      "step": 64,
+      "metric_id": "train.mean_loss",
+      "value": {
+        "kind": "f32",
+        "value": 5.364421e-7
+      },
+      "detail": "Bounded single-rank MLX dense train-step loss on the Metal logical device."
+    },
+    {
+      "run_id": "psion-xprovider-pretrain-mlx-dense-20260325",
+      "phase": "train",
+      "step": 64,
+      "metric_id": "train.tokens",
+      "value": {
+        "kind": "u64",
+        "value": 2048
+      },
+      "detail": "Canonical token count carried by the bounded MLX dense train-step receipt."
+    },
+    {
+      "run_id": "psion-xprovider-pretrain-mlx-dense-20260325",
+      "phase": "validation",
+      "step": 64,
+      "metric_id": "validation.mean_loss",
+      "value": {
+        "kind": "f32",
+        "value": 5.793575e-7
+      },
+      "detail": "Same-rank validation remains explicit and close to the bounded train-step loss."
+    },
+    {
+      "run_id": "psion-xprovider-pretrain-mlx-dense-20260325",
+      "phase": "checkpoint",
+      "step": 64,
+      "metric_id": "checkpoint.bytes",
+      "value": {
+        "kind": "u64",
+        "value": 262144
+      },
+      "detail": "Single-rank MLX checkpoint bytes retained by the bounded checkpoint manifest."
+    },
+    {
+      "run_id": "psion-xprovider-pretrain-mlx-dense-20260325",
+      "phase": "summary",
+      "step": 64,
+      "metric_id": "summary.rank_count",
+      "value": {
+        "kind": "u64",
+        "value": 1
+      },
+      "detail": "The bounded MLX dense path stays single-rank in this issue."
+    }
+  ],
+  "evidence_hook": {
+    "bundle_schema_version": "psionic.training_execution_evidence_bundle.v1",
+    "topology_kind": "single_node",
+    "execution_class": "dense_full_model_rank",
+    "required_artifact_roles": [
+      "launch_contract",
+      "dense_runtime_receipt",
+      "checkpoint_manifest",
+      "metric_log",
+      "acceptance_audit"
+    ],
+    "detail": "The MLX dense-rank runtime now projects into the shared final evidence bundle as one single-node dense segment instead of only a contributor-window artifact family."
+  },
+  "unsupported_surfaces": [
+    {
+      "surface_id": "mlx_dense_rank.bf16_mixed_precision",
+      "surface_kind": "bf16_mixed_precision",
+      "refusal_detail": "The bounded MLX dense-rank runtime remains f32-only and keeps BF16 mixed precision fail-closed instead of silently changing math to match CUDA defaults."
+    },
+    {
+      "surface_id": "mlx_dense_rank.cross_host_collectives",
+      "surface_kind": "cross_host_collectives",
+      "refusal_detail": "The bounded MLX dense-rank runtime is single-rank only in this issue and refuses cross-host collective claims until the later cross-backend mesh contract lands."
+    },
+    {
+      "surface_id": "mlx_dense_rank.sharded_optimizer_state_exchange",
+      "surface_kind": "sharded_optimizer_state_exchange",
+      "refusal_detail": "The bounded MLX dense-rank runtime emits checkpoint and optimizer hooks, but it still refuses sharded optimizer exchange until the mixed-backend checkpoint contract lands."
+    },
+    {
+      "surface_id": "mlx_dense_rank.mixed_backend_dense_mesh",
+      "surface_kind": "mixed_backend_dense_mesh",
+      "refusal_detail": "The bounded MLX dense-rank runtime closes one truthful dense rank on Metal. It does not yet close one same-job CUDA-plus-MLX dense mesh by itself."
+    }
+  ],
+  "claim_boundary": "This contract closes one truthful MLX-backed dense rank on Metal with generic dense-rank receipts, metric events, checkpoint manifest semantics, and final-evidence projection. It still stays single-rank, f32-only, and fail-closed for cross-host collectives, mixed-backend dense meshes, and sharded optimizer exchange.",
+  "contract_digest": "1cbe677626130ce352a1575e1e3f49761f6c6bf9114ff8d350b1f3a7458efa93"
+}

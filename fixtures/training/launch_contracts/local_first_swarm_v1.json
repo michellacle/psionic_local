@@ -9,7 +9,7 @@
     "source_class": "trusted_lan_cluster",
     "provider": "local_operator_managed",
     "backend_family": "mlx_metal",
-    "source_contract_digest": "6eed4f0ba8022909bc3c6320da31341b3c6269e8cfc4b3d935143302fc732142",
+    "source_contract_digest": "af464a99d4089a063ef8811febffc05baecaa04a28d12f22a670feae00e91a9d",
     "detail": "This launch contract binds the first local trusted-LAN swarm to the canonical local Apple contributor source while keeping the wider cluster posture explicit."
   },
   "requested_execution_class": "validated_contributor_window",
@@ -233,5 +233,5 @@
     }
   ],
   "claim_boundary": "This launch contract proves the first local trusted-LAN swarm can be projected from the same provider-neutral runtime envelope as the Google and RunPod lanes. It does not claim dense-rank closure, public swarm discovery, or same-job mixed-backend dense training.",
-  "launch_contract_digest": "2806a79839fb4a628101341343af52cbea4f702f8652567b453118a81d0f141a"
+  "launch_contract_digest": "9666f45f866edaabf156f7af900387a7e8aede985a072a5728e0d443ebf7d8b5"
 }

@@ -448,7 +448,7 @@
       "program_manifest_id": "psionic-cross-provider-pretraining-program-v1",
       "program_manifest_digest": "5c7cd52ecf5345551e165eeb1e25440153bf64f38e69aaf1d33a13c7056ca479",
       "launch_contract_id": "psionic-runpod-8xh100-launch-contract-v1",
-      "launch_contract_digest": "f1f62e7ef9fc1b7c61ba828139b17d91199927cd3f60503345bdb13352c91a63",
+      "launch_contract_digest": "5e36e4dd23f9da6d1e5044d25d812bddd2c83add786e6470c8fcd24f5cce5002",
       "source_id": "runpod_8xh100_dense_node",
       "admitted_source_contract_id": "runpod_8xh100_dense_node",
       "requested_execution_class": "dense_full_model_rank",
@@ -664,14 +664,14 @@
         "runpod_finalizer"
       ],
       "claim_boundary": "This binding keeps `psionic-runpod-8xh100-launch-contract-v1` on one shared runtime contract above the provider adapter. It does not widen the lane beyond its current execution-class and evidence boundary.",
-      "binding_digest": "c5728b0bc8d12e8c68741e7daf6db75cf6cf947380899bb7f07e4a05826389d3"
+      "binding_digest": "8cf60ecb952379a0f6daa61370efef18fe0d4f69f909d1a61f44bfd1a99a4a67"
     },
     {
       "binding_id": "psionic-cross-provider-pretraining-program-v1.psionic-local-first-swarm-launch-contract-v1.binding",
       "program_manifest_id": "psionic-cross-provider-pretraining-program-v1",
       "program_manifest_digest": "5c7cd52ecf5345551e165eeb1e25440153bf64f38e69aaf1d33a13c7056ca479",
       "launch_contract_id": "psionic-local-first-swarm-launch-contract-v1",
-      "launch_contract_digest": "2806a79839fb4a628101341343af52cbea4f702f8652567b453118a81d0f141a",
+      "launch_contract_digest": "9666f45f866edaabf156f7af900387a7e8aede985a072a5728e0d443ebf7d8b5",
       "source_id": "local_mlx_mac_workstation",
       "admitted_source_contract_id": "local_mlx_mac_workstation",
       "requested_execution_class": "validated_contributor_window",
@@ -862,9 +862,9 @@
         "local_swarm_closeout"
       ],
       "claim_boundary": "This binding keeps `psionic-local-first-swarm-launch-contract-v1` on one shared runtime contract above the provider adapter. It does not widen the lane beyond its current execution-class and evidence boundary.",
-      "binding_digest": "e7d64ff07fc810a6cf310cc203ca3f606a18f98291919b532f9b54a30ec21cbf"
+      "binding_digest": "6d84e60f4fdddc9f28e6e6d09ba53bd686539a57ce9fba2f3ccff9d850566f17"
     }
   ],
   "claim_boundary": "This binder closes one provider-neutral mapping from the cross-provider training-program manifest plus admitted compute sources into concrete launch contracts, runtime env, startup plans, finalizer plans, and provider hooks for the current Google, RunPod, and local lanes. It does not claim dense runtime parity, provider API automation beyond the retained adapter hooks, or same-job mixed-backend dense training.",
-  "contract_digest": "35f92de6cbe0be5d22fc64daa0826595abaca209a04cbd2f682149815f4d6595"
+  "contract_digest": "6fe98ce65254eabfad5fd6337ba8ee9d8fba07dbad51d3e9343bbb7221906a71"
 }

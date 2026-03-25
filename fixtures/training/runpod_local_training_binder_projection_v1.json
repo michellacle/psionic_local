@@ -2,7 +2,7 @@
   "schema_version": "psionic.runpod_local_training_binder_projection.v1",
   "program_manifest_id": "psionic-cross-provider-pretraining-program-v1",
   "program_manifest_digest": "5c7cd52ecf5345551e165eeb1e25440153bf64f38e69aaf1d33a13c7056ca479",
-  "runtime_binder_contract_digest": "ff2e025536321ad7483fcb43a57a1898c3cf90bbdad98ffc684cdc12ac62e518",
+  "runtime_binder_contract_digest": "6fe98ce65254eabfad5fd6337ba8ee9d8fba07dbad51d3e9343bbb7221906a71",
   "lane_projections": [
     {
       "lane_projection_id": "runpod_8xh100_parameter_golf",
@@ -34,7 +34,7 @@
       "lane_projection_id": "local_trusted_lan_first_swarm",
       "lane_kind": "local_trusted_lan_swarm",
       "runtime_binding_id": "psionic-cross-provider-pretraining-program-v1.psionic-local-first-swarm-launch-contract-v1.binding",
-      "runtime_binding_digest": "e7d64ff07fc810a6cf310cc203ca3f606a18f98291919b532f9b54a30ec21cbf",
+      "runtime_binding_digest": "6d84e60f4fdddc9f28e6e6d09ba53bd686539a57ce9fba2f3ccff9d850566f17",
       "launch_contract_id": "psionic-local-first-swarm-launch-contract-v1",
       "runbook_path": "docs/FIRST_SWARM_TRUSTED_LAN_RUNBOOK.md",
       "retained_authority_paths": [
@@ -59,9 +59,9 @@
         "fixtures/swarm/reports/first_swarm_trusted_lan_closeout_v1.json"
       ],
       "claim_boundary": "The first local trusted-LAN lane still keeps its bounded mixed-hardware swarm posture, but launch, runtime env, artifact roots, and closeout expectations now come from the shared binder instead of lane-local training truth.",
-      "projection_digest": "7005b70e1ec9c2b677e7fbd3c4a1d2379f81e7182485b402cb142089761a9f49"
+      "projection_digest": "e5fa221b5b3506b67b7c1d4f45d5c5167a1ab0437a3a0335eb70dedead579194"
     }
   ],
   "claim_boundary": "This projection closes the current RunPod and local trusted-LAN lanes as consumers of the shared cross-provider runtime binder. It does not widen the RunPod 8xH100 lane to a finished dense runtime and it does not widen the local swarm lane to a successful same-job mixed-backend dense trainer.",
-  "contract_digest": "60860b078da0d39b70934e3aff8fbdb917df02dfb664ad8f5acc6ad95b627e15"
+  "contract_digest": "f17f19cd054e900b13d9c41ca74ccf789c9c0c32ca92b05efe661037c57bbb93"
 }

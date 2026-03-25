@@ -69,7 +69,7 @@
   "authority_artifacts": [
     {
       "path": "fixtures/parameter_golf/runpod/parameter_golf_runpod_8xh100_launch_profiles_v1.json",
-      "sha256": "a1a7b116b8fbab29c1192bd47dfb9c5337f1518dc88baa10eafea9e072edaa3f",
+      "sha256": "0bbbd2fcc7eb01098fd8f6c52fd97b23d735d72fbbf69cbce43e578ab8f378cd",
       "detail": "RunPod launch profile that retains the exact 8xH100 pod shape and runtime envelope."
     },
     {
@@ -84,5 +84,5 @@
     }
   ],
   "claim_boundary": "This source contract proves one 8xH100 RunPod pod can be admitted as a dense CUDA source through the shared training-facing machine contract. It does not claim cross-host RunPod cluster closure, mixed-backend dense participation, or provider-neutral finalization by itself.",
-  "contract_digest": "f4b1b236dd490ad6e1cdfda9538e5f0139a84449d003047332da6599f8c67672"
+  "contract_digest": "0269a847d7a2285c85a35bbcf46495f460a35d0a45c78b61af1633b2c6759452"
 }

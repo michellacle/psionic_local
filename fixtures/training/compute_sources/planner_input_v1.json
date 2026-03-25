@@ -11,7 +11,7 @@
     },
     {
       "source_id": "runpod_8xh100_dense_node",
-      "source_contract_digest": "f4b1b236dd490ad6e1cdfda9538e5f0139a84449d003047332da6599f8c67672",
+      "source_contract_digest": "0269a847d7a2285c85a35bbcf46495f460a35d0a45c78b61af1633b2c6759452",
       "requested_execution_class": "dense_full_model_rank",
       "expected_disposition": "admitted"
     },
@@ -23,22 +23,16 @@
     },
     {
       "source_id": "local_mlx_mac_workstation",
-      "source_contract_digest": "6eed4f0ba8022909bc3c6320da31341b3c6269e8cfc4b3d935143302fc732142",
+      "source_contract_digest": "af464a99d4089a063ef8811febffc05baecaa04a28d12f22a670feae00e91a9d",
       "requested_execution_class": "data_builder",
       "expected_disposition": "admitted"
     },
     {
       "source_id": "local_mlx_mac_workstation",
-      "source_contract_digest": "6eed4f0ba8022909bc3c6320da31341b3c6269e8cfc4b3d935143302fc732142",
+      "source_contract_digest": "af464a99d4089a063ef8811febffc05baecaa04a28d12f22a670feae00e91a9d",
       "requested_execution_class": "dense_full_model_rank",
-      "expected_disposition": "refused",
-      "expected_refusal": {
-        "source_id": "local_mlx_mac_workstation",
-        "requested_execution_class": "dense_full_model_rank",
-        "refusal_kind": "source_execution_class_not_admitted",
-        "detail": "source `local_mlx_mac_workstation` does not yet admit `DenseFullModelRank` under backend `MlxMetal` and the current claim boundary refuses widening beyond its retained lane evidence"
-      }
+      "expected_disposition": "admitted"
     }
   ],
-  "planner_input_digest": "2f1a9e86b52ca693e271b758ab16e2384d88361178f4089f0f3151c1472db5d2"
+  "planner_input_digest": "a996c25fc0a2a02a934491662d2ff55ed7a123870f3fb6e0689af7ccb632b82e"
 }

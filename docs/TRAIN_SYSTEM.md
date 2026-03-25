@@ -297,6 +297,19 @@ budget trainer host-owned, but it emits backend-tagged execution provenance,
 artifact identity, explicit unsupported-precision refusal, and the shared first
 swarm contributor receipt for the Mac swarm contributor lane.
 
+The repo now also owns the first bounded MLX dense-rank runtime contract in
+`crates/psionic-train/src/mlx_dense_rank_runtime.rs`, the binary
+`mlx_dense_rank_runtime_contract`, the checker
+`scripts/check-mlx-dense-rank-runtime-contract.sh`, the focused reference doc
+`docs/MLX_DENSE_RANK_RUNTIME_REFERENCE.md`, and the committed fixture
+`fixtures/training/mlx_dense_rank_runtime_contract_v1.json`. That surface lifts
+the local Apple lane out of contributor-only status: one single-rank MLX Metal
+dense runtime now emits the same generic dense-rank bootstrap and train-step
+receipt family as the CUDA reference runtime, plus one retained single-rank
+checkpoint manifest and pointer, one retained local metric-event set, and one
+explicit final-evidence projection. It still refuses cross-host collectives,
+same-job mixed-backend dense meshes, and sharded optimizer exchange.
+
 The Linux node now also has a dedicated RTX 4080 bring-up seam in
 `crates/psionic-train/src/swarm_cuda_bringup.rs`, the binary
 `swarm_linux_cuda_bringup`, the verification runner

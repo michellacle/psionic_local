@@ -1179,7 +1179,7 @@ fn local_mlx_mac_compute_source_contract(
             precision_posture: report.machine_thresholds.precision_policy.clone(),
             admits_mixed_backend_dense: false,
             detail: String::from(
-                "The local Apple source currently closes bounded MLX contributor and validator-adjacent work, not dense same-job mixed-backend training.",
+                "The local Apple source now closes one bounded single-rank MLX dense runtime plus validator-adjacent work, but not same-job mixed-backend dense training.",
             ),
         },
         network: CrossProviderComputeSourceNetworkPosture {
@@ -1213,6 +1213,7 @@ fn local_mlx_mac_compute_source_contract(
             ),
         },
         admitted_execution_classes: vec![
+            CrossProviderExecutionClass::DenseFullModelRank,
             CrossProviderExecutionClass::ValidatedContributorWindow,
             CrossProviderExecutionClass::Validator,
             CrossProviderExecutionClass::EvalWorker,
@@ -1224,17 +1225,12 @@ fn local_mlx_mac_compute_source_contract(
             "Local Mac MLX bring-up report that retains the machine thresholds, Metal probe, and bounded overfit gate.",
         )?],
         claim_boundary: String::from(
-            "This source contract proves one local Apple Silicon workstation can be compared and admitted through the shared training-facing machine contract. It does not claim dense-rank MLX runtime closure, mixed-backend same-job training, or shared checkpoint authority by itself.",
+            "This source contract proves one local Apple Silicon workstation can be compared and admitted through the shared training-facing machine contract, including one bounded single-rank MLX dense runtime. It does not claim mixed-backend same-job training or shared checkpoint authority by itself.",
         ),
         contract_digest: String::new(),
     };
-    source.refusal_examples = unsupported_execution_refusals(
-        &source,
-        &[
-            CrossProviderExecutionClass::DenseFullModelRank,
-            CrossProviderExecutionClass::CheckpointWriter,
-        ],
-    );
+    source.refusal_examples =
+        unsupported_execution_refusals(&source, &[CrossProviderExecutionClass::CheckpointWriter]);
     source.contract_digest = source.stable_digest();
     Ok(source)
 }

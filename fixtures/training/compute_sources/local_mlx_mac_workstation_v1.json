@@ -23,7 +23,7 @@
     "runtime_backend_label": "open_adapter_backend.mlx.metal.gpt_oss_lm_head",
     "precision_posture": "f32_reference",
     "admits_mixed_backend_dense": false,
-    "detail": "The local Apple source currently closes bounded MLX contributor and validator-adjacent work, not dense same-job mixed-backend training."
+    "detail": "The local Apple source now closes one bounded single-rank MLX dense runtime plus validator-adjacent work, but not same-job mixed-backend dense training."
   },
   "network": {
     "trust_tier": "local_operator_managed",
@@ -45,18 +45,13 @@
     "detail": "The retained Apple source does not publish a provider-metered price surface."
   },
   "admitted_execution_classes": [
+    "dense_full_model_rank",
     "validated_contributor_window",
     "validator",
     "eval_worker",
     "data_builder"
   ],
   "refusal_examples": [
-    {
-      "source_id": "local_mlx_mac_workstation",
-      "requested_execution_class": "dense_full_model_rank",
-      "refusal_kind": "source_execution_class_not_admitted",
-      "detail": "source `local_mlx_mac_workstation` does not yet admit `DenseFullModelRank` under backend `MlxMetal` and the current claim boundary refuses widening beyond its retained lane evidence"
-    },
     {
       "source_id": "local_mlx_mac_workstation",
       "requested_execution_class": "checkpoint_writer",
@@ -71,6 +66,6 @@
       "detail": "Local Mac MLX bring-up report that retains the machine thresholds, Metal probe, and bounded overfit gate."
     }
   ],
-  "claim_boundary": "This source contract proves one local Apple Silicon workstation can be compared and admitted through the shared training-facing machine contract. It does not claim dense-rank MLX runtime closure, mixed-backend same-job training, or shared checkpoint authority by itself.",
-  "contract_digest": "6eed4f0ba8022909bc3c6320da31341b3c6269e8cfc4b3d935143302fc732142"
+  "claim_boundary": "This source contract proves one local Apple Silicon workstation can be compared and admitted through the shared training-facing machine contract, including one bounded single-rank MLX dense runtime. It does not claim mixed-backend same-job training or shared checkpoint authority by itself.",
+  "contract_digest": "af464a99d4089a063ef8811febffc05baecaa04a28d12f22a670feae00e91a9d"
 }

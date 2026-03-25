@@ -76,8 +76,8 @@ the first shared binding layer above provider-specific details:
 
 - `planner_input_v1.json`
   One provider-neutral planner input that uses the same contract family to
-  admit a Google node, a RunPod pod, a local RTX host, and a local Mac, while
-  also retaining one refused `dense_full_model_rank` request for the Mac.
+  admit a Google node, a RunPod pod, a local RTX host, and a local Mac, now
+  including one bounded `dense_full_model_rank` request for the Mac.
 - `launch_inputs_v1.json`
   One provider-neutral launch-input family that projects the root program
   manifest plus one admitted source into run id, environment package key,
@@ -92,9 +92,10 @@ being split between Google-only, RunPod-only, and local-only artifacts.
 This issue intentionally does not claim:
 
 - shared provider-neutral launch scripts
-- dense-rank runtime closure
 - remote artifact backend closure
 - mixed-backend dense admission
 - public or adversarial swarm admission
 
-This issue closes the machine-contract layer first.
+This issue closes the machine-contract layer first. The local Apple source now
+admits one bounded single-rank dense runtime, but same-job mixed-backend dense
+training still remains out of scope here.

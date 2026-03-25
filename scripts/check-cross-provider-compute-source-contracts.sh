@@ -62,16 +62,18 @@ if runpod["admitted_execution_classes"] != [
     fail("compute-source contract check: runpod admitted execution classes drifted")
 if "validated_contributor_window" not in local_rtx["admitted_execution_classes"]:
     fail("compute-source contract check: local RTX source lost validated contributor admission")
+if "dense_full_model_rank" not in local_mac["admitted_execution_classes"]:
+    fail("compute-source contract check: local Mac source lost dense-rank admission")
 if "validator" not in local_mac["admitted_execution_classes"]:
     fail("compute-source contract check: local Mac source lost validator admission")
 
-refused = [
+admitted = [
     candidate for candidate in planner["candidates"]
     if candidate["source_id"] == "local_mlx_mac_workstation"
     and candidate["requested_execution_class"] == "dense_full_model_rank"
 ]
-if len(refused) != 1 or refused[0]["expected_disposition"] != "refused":
-    fail("compute-source contract check: planner refusal case drifted")
+if len(admitted) != 1 or admitted[0]["expected_disposition"] != "admitted":
+    fail("compute-source contract check: planner dense-rank admission case drifted")
 
 if len(launch_inputs) != 4:
     fail("compute-source contract check: launch input count drifted")

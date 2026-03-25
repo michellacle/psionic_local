@@ -2,7 +2,7 @@
   "schema_version": "psionic.google_training_binder_projection.v1",
   "program_manifest_id": "psionic-cross-provider-pretraining-program-v1",
   "program_manifest_digest": "5c7cd52ecf5345551e165eeb1e25440153bf64f38e69aaf1d33a13c7056ca479",
-  "runtime_binder_contract_digest": "ff2e025536321ad7483fcb43a57a1898c3cf90bbdad98ffc684cdc12ac62e518",
+  "runtime_binder_contract_digest": "6fe98ce65254eabfad5fd6337ba8ee9d8fba07dbad51d3e9343bbb7221906a71",
   "lane_projections": [
     {
       "lane_projection_id": "google_single_node_accelerated",
@@ -61,5 +61,5 @@
     }
   ],
   "claim_boundary": "This projection closes the Google single-node and Google swarm lanes as consumers of the shared cross-provider runtime binder. It does not widen the Google swarm claim to dense full-model training and it does not replace the current Google operator scripts with generic provider automation.",
-  "contract_digest": "cbb8c7cb9b76bf3b95d65c6e0855286d33440d952cf935e2dde6412f44c4455b"
+  "contract_digest": "83f8b1912ad6b3744280b661c240086571afe2c2dbf51702436af82aedd40c39"
 }

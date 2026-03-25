@@ -9,7 +9,7 @@
     "source_class": "runpod",
     "provider": "run_pod",
     "backend_family": "cuda",
-    "source_contract_digest": "f4b1b236dd490ad6e1cdfda9538e5f0139a84449d003047332da6599f8c67672",
+    "source_contract_digest": "0269a847d7a2285c85a35bbcf46495f460a35d0a45c78b61af1633b2c6759452",
     "detail": "This launch contract binds directly to the canonical RunPod 8xH100 compute-source contract from XTRAIN-2."
   },
   "requested_execution_class": "dense_full_model_rank",
@@ -274,5 +274,5 @@
     }
   ],
   "claim_boundary": "This launch contract proves the RunPod 8xH100 lane can be projected from the same provider-neutral runtime envelope as the Google and local lanes. It does not claim cross-host RunPod cluster closure or dense mixed-backend training.",
-  "launch_contract_digest": "f1f62e7ef9fc1b7c61ba828139b17d91199927cd3f60503345bdb13352c91a63"
+  "launch_contract_digest": "5e36e4dd23f9da6d1e5044d25d812bddd2c83add786e6470c8fcd24f5cce5002"
 }

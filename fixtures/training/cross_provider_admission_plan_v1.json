@@ -2,7 +2,7 @@
   "schema_version": "psionic.cross_provider_admission_planner.v1",
   "program_manifest_id": "psionic-cross-provider-pretraining-program-v1",
   "program_manifest_digest": "5c7cd52ecf5345551e165eeb1e25440153bf64f38e69aaf1d33a13c7056ca479",
-  "runtime_binder_contract_digest": "ff2e025536321ad7483fcb43a57a1898c3cf90bbdad98ffc684cdc12ac62e518",
+  "runtime_binder_contract_digest": "6fe98ce65254eabfad5fd6337ba8ee9d8fba07dbad51d3e9343bbb7221906a71",
   "role_targets": [
     {
       "requested_execution_class": "dense_full_model_rank",
@@ -54,17 +54,17 @@
     {
       "source_id": "local_mlx_mac_workstation",
       "requested_execution_class": "dense_full_model_rank",
-      "admitted": false,
+      "admitted": true,
       "selected": false,
-      "trust_score": 0,
-      "network_score": 0,
-      "storage_score": 0,
-      "cost_score": 0,
-      "backend_score": 0,
-      "binder_alignment_score": 0,
-      "total_score": 0,
-      "refusal_kind": "source_execution_class_not_admitted",
-      "detail": "The source contract does not admit this execution class under its current backend and claim boundary."
+      "placement_rank": 2,
+      "trust_score": 18,
+      "network_score": 24,
+      "storage_score": 8,
+      "cost_score": 8,
+      "backend_score": 6,
+      "binder_alignment_score": 12,
+      "total_score": 76,
+      "detail": "Planner admitted source `local_mlx_mac_workstation` for `DenseFullModelRank` using trust=18, network=24, storage=8, cost=8, backend=6, binder=12."
     },
     {
       "source_id": "local_rtx4080_workstation",
@@ -398,5 +398,5 @@
     }
   ],
   "claim_boundary": "This planner closes one deterministic cross-provider role-placement policy across the current Google, RunPod, and local sources using cost, network, trust-tier, storage, backend, and binder alignment facts. It does not yet claim public-swarm discovery, automatic provider acquisition, or same-job mixed-backend dense placement.",
-  "plan_digest": "b1dee80398b538648478188ac12dcecf68d3c08edf28a592dd5681bd159f0b12"
+  "plan_digest": "822d0b52a4010d6a733719e7d5aa0658df3d52c8947286a4de18b0b1752220c8"
 }
