@@ -1175,6 +1175,33 @@ fn attention_forward_graph(
         1.0_f32 / (head_dim as f32).sqrt(),
         true,
     )?;
+    let attended = if config.xsa_applies_to_layer(layer_index) {
+        let attended = if use_bf16_attention_fast_path {
+            builder.cast(&attended, DType::F32)?
+        } else {
+            attended
+        };
+        let value_for_xsa = if use_bf16_attention_fast_path {
+            builder.cast(&v, DType::F32)?
+        } else {
+            v.clone()
+        };
+        apply_xsa_graph(
+            builder,
+            &attended,
+            &value_for_xsa,
+            ones_head,
+            batch_size,
+            sequence_length,
+            config.num_heads,
+            config.num_kv_heads,
+            head_dim,
+        )?
+    } else if use_bf16_attention_fast_path {
+        builder.cast(&attended, DType::F32)?
+    } else {
+        attended
+    };
     let merged = builder.permute(&attended, vec![0, 2, 1, 3])?;
     let merged = builder.reshape(
         &merged,
@@ -1339,6 +1366,85 @@ fn apply_layer_norm_scale_graph(
         &scale,
         Shape::new(vec![batch_size, sequence_length, feature_count]),
     )?;
+    Ok(builder.mul(input, &scale)?)
+}
+
+fn apply_xsa_graph(
+    builder: &mut AutodiffGraphBuilder,
+    attended: &AutodiffTensor,
+    value_heads: &AutodiffTensor,
+    ones_head: &AutodiffTensor,
+    batch_size: usize,
+    sequence_length: usize,
+    num_heads: usize,
+    num_kv_heads: usize,
+    head_dim: usize,
+) -> Result<AutodiffTensor, ParameterGolfBaselineGraphError> {
+    let group_size = num_heads / num_kv_heads;
+    let grouped = builder.reshape(
+        attended,
+        Shape::new(vec![batch_size, num_kv_heads, group_size, sequence_length, head_dim]),
+    )?;
+    let normalized_value = builder.rms_norm(
+        value_heads,
+        ones_head,
+        PARAMETER_GOLF_DEFAULT_RMS_NORM_EPSILON,
+    )?;
+    let normalized_value = scale_tensor4_graph(
+        builder,
+        &normalized_value,
+        batch_size,
+        num_kv_heads,
+        sequence_length,
+        head_dim,
+        1.0_f32 / (head_dim as f32).sqrt(),
+    )?;
+    let normalized_value = builder.reshape(
+        &normalized_value,
+        Shape::new(vec![batch_size, num_kv_heads, 1, sequence_length, head_dim]),
+    )?;
+    let normalized_value = builder.expand(
+        &normalized_value,
+        Shape::new(vec![batch_size, num_kv_heads, group_size, sequence_length, head_dim]),
+    )?;
+    let aligned = builder.mul(&grouped, &normalized_value)?;
+    let aligned = builder.reduce_sum_axis(&aligned, 4)?;
+    let aligned = builder.reshape(
+        &aligned,
+        Shape::new(vec![batch_size, num_kv_heads, group_size, sequence_length, 1]),
+    )?;
+    let aligned = builder.expand(
+        &aligned,
+        Shape::new(vec![batch_size, num_kv_heads, group_size, sequence_length, head_dim]),
+    )?;
+    let projection = builder.mul(&aligned, &normalized_value)?;
+    let negative_one = builder.constant_f32(Shape::new(vec![1, 1, 1, 1, 1]), vec![-1.0])?;
+    let negative_one = builder.expand(
+        &negative_one,
+        Shape::new(vec![batch_size, num_kv_heads, group_size, sequence_length, head_dim]),
+    )?;
+    let negative_projection = builder.mul(&projection, &negative_one)?;
+    let orthogonalized = builder.add(&grouped, &negative_projection)?;
+    Ok(builder.reshape(
+        &orthogonalized,
+        Shape::new(vec![batch_size, num_heads, sequence_length, head_dim]),
+    )?)
+}
+
+fn scale_tensor4_graph(
+    builder: &mut AutodiffGraphBuilder,
+    input: &AutodiffTensor,
+    dim0: usize,
+    dim1: usize,
+    dim2: usize,
+    dim3: usize,
+    scale: f32,
+) -> Result<AutodiffTensor, ParameterGolfBaselineGraphError> {
+    if scale == 1.0 {
+        return Ok(input.clone());
+    }
+    let scale = builder.constant_f32(Shape::new(vec![1, 1, 1, 1]), vec![scale])?;
+    let scale = builder.expand(&scale, Shape::new(vec![dim0, dim1, dim2, dim3]))?;
     Ok(builder.mul(input, &scale)?)
 }
 
@@ -1810,6 +1916,54 @@ mod tests {
             ModelDescriptor::new("parameter-golf-test-bigram", "parameter_golf_decoder", "v1"),
             config.clone(),
             weights,
+        )?;
+        let graph = build_parameter_golf_baseline_graph(
+            Device::cpu(),
+            model.descriptor(),
+            fixture.input_ids.len(),
+            fixture.input_ids[0].len(),
+        )?;
+        compile_graph(graph.graph.graph())?;
+
+        let inputs = bind_parameter_golf_baseline_graph_inputs(
+            &graph,
+            &model,
+            fixture.input_ids.as_slice(),
+        )?;
+        let values = evaluate_graph(graph.graph.graph(), &inputs)?;
+        let pre_softcap_logits = output_tensor3(
+            values
+                .get(&graph.pre_softcap_logits_tensor_id)
+                .ok_or("missing pre-softcap logits")?,
+            [1, 4, model.descriptor().config.vocab_size],
+            "pre_softcap_logits",
+        )?;
+        let seeded = parameter_golf_projection_seed(
+            &pre_softcap_logits,
+            fixture.target_ids.as_slice(),
+            model.descriptor().config.logit_softcap,
+        )?;
+        let reference = model.forward_logits(fixture.input_ids.as_slice())?;
+        let max_abs_diff = seeded.softcapped_logits.max_abs_diff(&reference)?;
+        assert!(
+            max_abs_diff < 5e-5,
+            "max logit drift {max_abs_diff} exceeded tolerance"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn parameter_golf_baseline_graph_matches_reference_logits_with_xsa(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let fixture = load_baseline_fixture();
+        let config = ParameterGolfConfig {
+            xsa_last_n: 2,
+            ..ParameterGolfConfig::baseline_sp1024_9x512()
+        };
+        let model = ParameterGolfReferenceModel::new(
+            ModelDescriptor::new("parameter-golf-test-xsa", "parameter_golf_decoder", "v1"),
+            config.clone(),
+            ParameterGolfWeights::from_initializer(&config, fixture.initializer)?,
         )?;
         let graph = build_parameter_golf_baseline_graph(
             Device::cpu(),

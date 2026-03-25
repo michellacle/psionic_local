@@ -108,6 +108,10 @@ fn parameter_golf_layer_norm_scale_is_none(scale: &ParameterGolfLayerNormScale) 
     matches!(scale, ParameterGolfLayerNormScale::None)
 }
 
+const fn parameter_golf_xsa_last_n_is_zero(value: &usize) -> bool {
+    *value == 0
+}
+
 impl ParameterGolfMlpActivation {
     /// Competitive public score-path posture from the current top local record surface.
     #[must_use]
@@ -172,6 +176,9 @@ pub struct ParameterGolfConfig {
     /// Optional layerwise scaling on block-local RMSNorm outputs.
     #[serde(default, skip_serializing_if = "parameter_golf_layer_norm_scale_is_none")]
     pub layer_norm_scale: ParameterGolfLayerNormScale,
+    /// Apply XSA-style self-value orthogonalization on the deepest `xsa_last_n` layers.
+    #[serde(default, skip_serializing_if = "parameter_golf_xsa_last_n_is_zero")]
+    pub xsa_last_n: usize,
     /// Initial learned q-gain value.
     pub qk_gain_init: f32,
 }
@@ -197,6 +204,7 @@ impl ParameterGolfConfig {
             rope_base: PARAMETER_GOLF_BASELINE_ROPE_BASE,
             rope_rotary_dim: None,
             layer_norm_scale: ParameterGolfLayerNormScale::None,
+            xsa_last_n: 0,
             qk_gain_init: PARAMETER_GOLF_BASELINE_QK_GAIN_INIT,
         }
     }
@@ -259,6 +267,12 @@ impl ParameterGolfConfig {
         }
         if self.bigram_vocab_size > 0 && self.bigram_dim == 0 {
             return Err(ParameterGolfConfigError::BigramDimMustBePositiveWhenEnabled);
+        }
+        if self.xsa_last_n > self.num_layers {
+            return Err(ParameterGolfConfigError::XsaLastNMustNotExceedNumLayers {
+                xsa_last_n: self.xsa_last_n,
+                num_layers: self.num_layers,
+            });
         }
         if let ParameterGolfMlpActivation::LeakyReluSquared { negative_slope } = self.mlp_activation
         {
@@ -372,6 +386,12 @@ impl ParameterGolfConfig {
     #[must_use]
     pub fn layer_norm_scale_factor(&self, layer_index: usize) -> f32 {
         self.layer_norm_scale.factor(layer_index)
+    }
+
+    /// Returns whether the supplied zero-based layer index uses the XSA score path.
+    #[must_use]
+    pub fn xsa_applies_to_layer(&self, layer_index: usize) -> bool {
+        self.xsa_last_n > 0 && layer_index >= self.num_layers.saturating_sub(self.xsa_last_n)
     }
 
     /// Returns challenge-specific parameter accounting facts for the family.
@@ -536,6 +556,14 @@ pub enum ParameterGolfConfigError {
     /// `bigram_dim` must be strictly positive when the feature is enabled.
     #[error("bigram_dim must be positive when bigram_vocab_size > 0")]
     BigramDimMustBePositiveWhenEnabled,
+    /// `xsa_last_n` must stay within the layer count.
+    #[error("xsa_last_n ({xsa_last_n}) must not exceed num_layers ({num_layers})")]
+    XsaLastNMustNotExceedNumLayers {
+        /// Invalid XSA layer count.
+        xsa_last_n: usize,
+        /// Total layer count.
+        num_layers: usize,
+    },
     /// The leaky-ReLU negative slope must be finite and non-negative.
     #[error("mlp_activation negative_slope must be finite and non-negative, got {value}")]
     MlpActivationNegativeSlopeMustBeFinite {
@@ -2662,6 +2690,7 @@ fn block_forward(
         &block.attention,
         &normed_for_attention,
         config,
+        layer_index,
         attention_window_size,
     );
     let mut x = mixed;
@@ -2735,6 +2764,7 @@ fn attention_forward(
     attention: &ParameterGolfAttentionWeights,
     input: &ParameterGolfTensor3,
     config: &ParameterGolfConfig,
+    layer_index: usize,
     attention_window_size: Option<usize>,
 ) -> ParameterGolfTensor3 {
     let batch_size = input.batch_size();
@@ -2939,6 +2969,19 @@ fn attention_forward(
         }
     }
 
+    if config.xsa_applies_to_layer(layer_index) {
+        apply_xsa_to_attended_in_place(
+            attended.as_mut_slice(),
+            v.as_slice(),
+            batch_size,
+            config.num_heads,
+            config.num_kv_heads,
+            sequence_length,
+            head_dim,
+            PARAMETER_GOLF_DEFAULT_RMS_NORM_EPSILON,
+        );
+    }
+
     let mut merged = ParameterGolfTensor3::zeros([batch_size, sequence_length, config.model_dim]);
     for batch in 0..batch_size {
         for position in 0..sequence_length {
@@ -2965,6 +3008,82 @@ fn attention_forward(
     }
     debug_assert_eq!(kv_dim, attention.k_proj.out_features);
     linear_forward(&attention.out_proj, &merged)
+}
+
+fn apply_xsa_to_attended_in_place(
+    attended: &mut [f32],
+    value_heads: &[f32],
+    batch_size: usize,
+    num_heads: usize,
+    num_kv_heads: usize,
+    sequence_length: usize,
+    head_dim: usize,
+    epsilon: f32,
+) {
+    let group_size = num_heads / num_kv_heads;
+    let mut normalized = vec![0.0_f32; head_dim];
+    for batch in 0..batch_size {
+        for kv_head in 0..num_kv_heads {
+            for position in 0..sequence_length {
+                let mut sum_square = 0.0_f32;
+                for feature in 0..head_dim {
+                    let value = value_heads[tensor4_index(
+                        batch_size,
+                        num_kv_heads,
+                        sequence_length,
+                        head_dim,
+                        batch,
+                        kv_head,
+                        position,
+                        feature,
+                    )];
+                    sum_square += value * value;
+                }
+                let inv_norm = (sum_square + head_dim as f32 * epsilon).sqrt().recip();
+                for feature in 0..head_dim {
+                    normalized[feature] = value_heads[tensor4_index(
+                        batch_size,
+                        num_kv_heads,
+                        sequence_length,
+                        head_dim,
+                        batch,
+                        kv_head,
+                        position,
+                        feature,
+                    )] * inv_norm;
+                }
+                for group_head in 0..group_size {
+                    let head = kv_head * group_size + group_head;
+                    let mut dot = 0.0_f32;
+                    for (feature, normalized_value) in normalized.iter().enumerate() {
+                        dot += attended[tensor4_index(
+                            batch_size,
+                            num_heads,
+                            sequence_length,
+                            head_dim,
+                            batch,
+                            head,
+                            position,
+                            feature,
+                        )] * *normalized_value;
+                    }
+                    for (feature, normalized_value) in normalized.iter().enumerate() {
+                        let index = tensor4_index(
+                            batch_size,
+                            num_heads,
+                            sequence_length,
+                            head_dim,
+                            batch,
+                            head,
+                            position,
+                            feature,
+                        );
+                        attended[index] -= dot * *normalized_value;
+                    }
+                }
+            }
+        }
+    }
 }
 
 fn tensor4_index(
@@ -3346,6 +3465,7 @@ mod tests {
             fixture.config.layer_norm_scale,
             ParameterGolfLayerNormScale::None
         );
+        assert_eq!(fixture.config.xsa_last_n, 0);
     }
 
     #[test]
@@ -3398,6 +3518,24 @@ mod tests {
         };
         assert_eq!(config.layer_norm_scale_factor(0), 1.0);
         assert!((config.layer_norm_scale_factor(3) - 0.5).abs() < 1e-6);
+    }
+
+    #[test]
+    fn config_rejects_xsa_last_n_larger_than_layer_count() {
+        let config = ParameterGolfConfig {
+            xsa_last_n: 10,
+            ..ParameterGolfConfig::baseline_sp1024_9x512()
+        };
+        let err = config
+            .validate()
+            .expect_err("xsa_last_n past num_layers should be refused");
+        assert!(matches!(
+            err,
+            ParameterGolfConfigError::XsaLastNMustNotExceedNumLayers {
+                xsa_last_n: 10,
+                num_layers: 9,
+            }
+        ));
     }
 
     #[test]
@@ -3466,6 +3604,33 @@ mod tests {
         assert!(
             baseline_logits.max_abs_diff(&scorepath_logits).unwrap_or_default() > 1e-4,
             "partial rope plus layerwise LN scaling should change reference logits"
+        );
+    }
+
+    #[test]
+    fn xsa_changes_reference_logits() {
+        let input_ids = vec![vec![0_u32, 1, 2, 3]];
+        let baseline = ParameterGolfReferenceModel::baseline_fixture(Default::default())
+            .expect("baseline fixture should build");
+        let xsa_config = ParameterGolfConfig {
+            xsa_last_n: 2,
+            ..baseline.descriptor().config.clone()
+        };
+        let xsa = ParameterGolfReferenceModel::new(
+            baseline.descriptor().model.clone(),
+            xsa_config,
+            baseline.weights().clone(),
+        )
+        .expect("xsa variant should build");
+        let baseline_logits = baseline
+            .forward_logits(input_ids.as_slice())
+            .expect("baseline logits should execute");
+        let xsa_logits = xsa
+            .forward_logits(input_ids.as_slice())
+            .expect("xsa logits should execute");
+        assert!(
+            baseline_logits.max_abs_diff(&xsa_logits).unwrap_or_default() > 1e-4,
+            "xsa should change reference logits"
         );
     }
 

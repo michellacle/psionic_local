@@ -286,25 +286,25 @@ Existing relevant issues:
 - `#550`: distributed legal score-first TTT
 - `#551`: parameter-banked PGOLF model surface
 - `#552`: Parallel Muon collectives
-- `#556`: `LeakyReLU(0.5)^2` MLP activation support
-- `#557`: `BigramHash`-style context features
 - `#558`: real banked PGOLF execution instead of banked storage plus split-matrix execution
 - `#559`: public XSA, Partial-RoPE, LN-scale, and VE architecture pack
 - `#560`: EMA and SWA weight averaging
 - `#561`: competitive final-artifact quantization and compression path
 
-The open issue stack is now explicit about eight additional competitive-path gaps that were not tracked when this audit was first written:
+The open issue stack is now explicit about six still-open competitive-path gaps
+that were not tracked when this audit was first written:
 
 - Parameter Banking in the model surface
 - Parallel Muon collectives in the distributed optimizer path
-- `LeakyReLU(0.5)^2` in the PGOLF MLP activation surface
-- `BigramHash`-style local context features
 - banked PGOLF execution instead of slicing rank-3 banks back into the old split-matrix path
 - the public PR `#414` architecture pack: XSA, Partial-RoPE, LN-scale, and VE
 - EMA and SWA weight averaging on the score lane
 - competitive final-artifact quantization and compression beyond the current naive roundtrip path
 
-Since the initial audit pass, Psionic has landed the code-local halves of five of
+The stale feature-surface issues for `LeakyReLU(0.5)^2` and `BigramHash` were
+closed once local review confirmed those paths were already landed in the repo.
+
+Since the initial audit pass, Psionic has landed the code-local halves of six of
 those gaps:
 
 - `LeakyReLU(0.5)^2` now exists across the reference-model, graph, IR, CPU, and
@@ -317,10 +317,13 @@ those gaps:
 - Partial RoPE plus inverse-sqrt per-layer RMSNorm output scaling now exist in
   the shared PGOLF config surface, CPU reference model, and lowered baseline
   graph
+- GQA-aware XSA on the deepest `xsa_last_n` layers now exists in the shared
+  PGOLF config surface, CPU reference model, and lowered baseline graph
 
-Those five issue slices remain open because the retained `H100` or `8xH100`
-score-path receipts either do not exist yet or do not yet prove the stronger
-public posture on hardware.
+The remaining score-path issues stay open because the retained `H100` or
+`8xH100` receipts either do not exist yet or do not yet prove the stronger
+public posture on hardware. Within `#559`, VE-style late-layer features are
+still missing even after the Partial-RoPE, LN-scale, and XSA slices.
 
 ## Bottom Line
 

@@ -118,12 +118,13 @@ Psionic now encodes that exact posture explicitly instead of treating
   of forcing the runtime to stay on the fully split per-layer matrix surface,
   and the baseline graph plus trainer state now execute that banked runtime
   descriptor directly instead of treating it as metadata only
-- `psionic-models` plus the lowered PGOLF baseline graph now also admit the
-  first architecture-pack slice under the shared config surface:
-  `rope_rotary_dim` for Partial RoPE and
+- `psionic-models` plus the lowered PGOLF baseline graph now also admit two
+  architecture-pack slices under the shared config surface:
+  `rope_rotary_dim` for Partial RoPE,
   `layer_norm_scale=inverse_sqrt_layer_index_plus_one` for the public
-  inverse-sqrt per-layer RMSNorm output scale. XSA and VE-style late-layer
-  features are still not landed.
+  inverse-sqrt per-layer RMSNorm output scale, and `xsa_last_n` for
+  GQA-aware XSA-style self-value orthogonalization on the deepest layers.
+  VE-style late-layer features are still not landed.
 - `psionic-eval` now exposes
   `ParameterGolfDistributedThroughputReceipt` plus the supporting topology,
   communication, timing, memory, threshold, and refusal types
