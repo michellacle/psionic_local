@@ -14,10 +14,12 @@ use crate::{
     execute_parameter_golf_distributed_8xh100_runtime_bootstrap_child,
     execute_parameter_golf_distributed_8xh100_train_step,
     execute_parameter_golf_distributed_8xh100_train_step_child,
+    execute_parameter_golf_distributed_8xh100_validation_child,
     parameter_golf_distributed_8xh100_runtime_bootstrap_child_enabled,
     parameter_golf_distributed_8xh100_runtime_bootstrap_receipt_path,
     parameter_golf_distributed_8xh100_train_step_child_enabled,
     parameter_golf_distributed_8xh100_train_step_receipt_path,
+    parameter_golf_distributed_8xh100_validation_child_enabled,
     restore_parameter_golf_model_from_int8_zlib,
     write_parameter_golf_distributed_8xh100_bringup_report,
     ParameterGolfDistributed8xH100BringupConfig, ParameterGolfDistributed8xH100BringupError,
@@ -30,6 +32,7 @@ use crate::{
     PARAMETER_GOLF_EXECUTION_MODE_ENV_VAR, ParameterGolfDistributed8xH100TrainStepError,
     ParameterGolfDistributed8xH100TrainStepRankReceipt,
     ParameterGolfDistributed8xH100TrainStepReceipt,
+    ParameterGolfDistributed8xH100ValidationRankReceipt,
 };
 
 /// Machine-readable runtime manifest shipped with the submission folder.
@@ -120,6 +123,11 @@ pub enum ParameterGolfSubmissionRuntimeOutcome {
         train_step_receipt_path: String,
         train_step_receipt: ParameterGolfDistributed8xH100TrainStepReceipt,
     },
+    /// Rust-owned distributed `8xH100` completion receipt above validation-backed execution.
+    Distributed8xH100Completed {
+        receipt_path: String,
+        receipt: ParameterGolfDistributed8xH100CompletionReceipt,
+    },
     /// Internal child-rank bootstrap receipt used by the shipped runtime fanout.
     Distributed8xH100BootstrapChild {
         receipt_path: String,
@@ -130,10 +138,53 @@ pub enum ParameterGolfSubmissionRuntimeOutcome {
         receipt_path: String,
         receipt: ParameterGolfDistributed8xH100TrainStepRankReceipt,
     },
+    /// Internal child-rank validation receipt used by the shipped runtime fanout.
+    Distributed8xH100ValidationChild {
+        receipt_path: String,
+        receipt: ParameterGolfDistributed8xH100ValidationRankReceipt,
+    },
 }
 
 fn default_local_reference_execution_mode() -> String {
     String::from("local_reference_validation")
+}
+
+/// Completion receipt emitted when the shipped distributed runtime finishes the
+/// current exported-folder execution contract without the old refusal posture.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ParameterGolfDistributed8xH100CompletionReceipt {
+    pub schema_version: u32,
+    pub run_id: String,
+    pub bringup_report_path: String,
+    pub bringup_report_digest: String,
+    pub runtime_bootstrap_receipt_path: String,
+    pub runtime_bootstrap_receipt_digest: String,
+    pub train_step_receipt_path: String,
+    pub train_step_receipt_digest: String,
+    pub distributed_receipt_path: String,
+    pub distributed_receipt_digest: String,
+    pub final_model_artifact_path: String,
+    pub final_model_artifact_digest: String,
+    pub final_model_artifact_size_bytes: u64,
+    pub submission_manifest_path: String,
+    pub submission_manifest_digest: String,
+    pub distributed_validation_mean_loss: f64,
+    pub distributed_validation_bits_per_byte: f64,
+    pub distributed_validation_observed_ms: u64,
+    pub claim_boundary: String,
+    pub receipt_digest: String,
+}
+
+impl ParameterGolfDistributed8xH100CompletionReceipt {
+    #[must_use]
+    pub fn stable_digest(&self) -> String {
+        let mut digestible = self.clone();
+        digestible.receipt_digest.clear();
+        stable_digest(
+            b"psionic_parameter_golf_distributed_8xh100_completion_receipt|",
+            &digestible,
+        )
+    }
 }
 
 /// Runtime receipt emitted by the shipped submission payload.
@@ -323,6 +374,21 @@ pub fn execute_parameter_golf_submission_runtime_entrypoint(
             execute_parameter_golf_submission_runtime_manifest(root, manifest_path)?,
         )),
         PARAMETER_GOLF_DISTRIBUTED_8XH100_EXECUTION_MODE => {
+            if parameter_golf_distributed_8xh100_validation_child_enabled() {
+                let receipt =
+                    execute_parameter_golf_submission_distributed_8xh100_validation_child(
+                        &manifest,
+                    )?;
+                return Ok(
+                    ParameterGolfSubmissionRuntimeOutcome::Distributed8xH100ValidationChild {
+                        receipt_path: env::var(
+                            "PSIONIC_PARAMETER_GOLF_DISTRIBUTED_8XH100_VALIDATION_RECEIPT_PATH",
+                        )
+                        .unwrap_or_default(),
+                        receipt,
+                    },
+                );
+            }
             if parameter_golf_distributed_8xh100_train_step_child_enabled() {
                 let receipt =
                     execute_parameter_golf_submission_distributed_8xh100_train_step_child(
@@ -459,16 +525,136 @@ fn execute_parameter_golf_submission_distributed_8xh100_bootstrap(
             root,
             &manifest.distributed_bringup_report_path,
         );
-    Ok(
-        ParameterGolfSubmissionRuntimeOutcome::Distributed8xH100TrainStep {
-            report_path: output_path.display().to_string(),
-            report,
-            bootstrap_receipt_path: bootstrap_receipt_path.display().to_string(),
-            bootstrap_receipt: receipt,
-            train_step_receipt_path: train_step_receipt_path.display().to_string(),
-            train_step_receipt,
-        },
+    if train_step_receipt
+        .distributed_receipt
+        .validation_aggregation
+        .is_none()
+    {
+        return Ok(
+            ParameterGolfSubmissionRuntimeOutcome::Distributed8xH100TrainStep {
+                report_path: output_path.display().to_string(),
+                report,
+                bootstrap_receipt_path: bootstrap_receipt_path.display().to_string(),
+                bootstrap_receipt: receipt,
+                train_step_receipt_path: train_step_receipt_path.display().to_string(),
+                train_step_receipt,
+            },
+        );
+    }
+    let completion_receipt_path =
+        parameter_golf_distributed_8xh100_completion_receipt_path(
+            root,
+            &manifest.distributed_bringup_report_path,
+        );
+    let completion_receipt = build_parameter_golf_distributed_8xh100_completion_receipt(
+        root,
+        manifest,
+        &output_path,
+        &report,
+        &bootstrap_receipt_path,
+        &receipt,
+        &train_step_receipt_path,
+        &train_step_receipt,
+    )?;
+    if let Some(parent) = completion_receipt_path.parent() {
+        fs::create_dir_all(parent).map_err(|error| {
+            ParameterGolfSubmissionRuntimeError::CreateDir {
+                path: parent.display().to_string(),
+                error,
+            }
+        })?;
+    }
+    fs::write(
+        &completion_receipt_path,
+        format!("{}\n", serde_json::to_string_pretty(&completion_receipt)?),
     )
+    .map_err(|error| ParameterGolfSubmissionRuntimeError::Write {
+        path: completion_receipt_path.display().to_string(),
+        error,
+    })?;
+    Ok(ParameterGolfSubmissionRuntimeOutcome::Distributed8xH100Completed {
+        receipt_path: completion_receipt_path.display().to_string(),
+        receipt: completion_receipt,
+    })
+}
+
+fn parameter_golf_distributed_8xh100_completion_receipt_path(
+    root: &Path,
+    bringup_report_path: &str,
+) -> PathBuf {
+    let resolved = root.join(bringup_report_path);
+    match resolved.parent() {
+        Some(parent) => parent.join("parameter_golf_distributed_8xh100_completion.json"),
+        None => root.join("parameter_golf_distributed_8xh100_completion.json"),
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn build_parameter_golf_distributed_8xh100_completion_receipt(
+    root: &Path,
+    manifest: &ParameterGolfSubmissionRuntimeManifest,
+    bringup_report_path: &Path,
+    bringup_report: &ParameterGolfDistributed8xH100BringupReport,
+    bootstrap_receipt_path: &Path,
+    bootstrap_receipt: &ParameterGolfDistributed8xH100RuntimeBootstrapReceipt,
+    train_step_receipt_path: &Path,
+    train_step_receipt: &ParameterGolfDistributed8xH100TrainStepReceipt,
+) -> Result<ParameterGolfDistributed8xH100CompletionReceipt, ParameterGolfSubmissionRuntimeError> {
+    let validation = train_step_receipt
+        .distributed_receipt
+        .validation_aggregation
+        .as_ref()
+        .ok_or_else(|| ParameterGolfSubmissionRuntimeError::Consistency {
+            message: String::from(
+                "distributed completion receipt requires one validation-backed distributed receipt",
+            ),
+        })?;
+    let final_model_artifact_path = root.join(&manifest.model_artifact_path);
+    let final_model_artifact_bytes = fs::read(&final_model_artifact_path).map_err(|error| {
+        ParameterGolfSubmissionRuntimeError::Read {
+            path: final_model_artifact_path.display().to_string(),
+            error,
+        }
+    })?;
+    let submission_manifest_path = root.join(&manifest.submission_manifest_path);
+    let submission_manifest_bytes = fs::read(&submission_manifest_path).map_err(|error| {
+        ParameterGolfSubmissionRuntimeError::Read {
+            path: submission_manifest_path.display().to_string(),
+            error,
+        }
+    })?;
+    let mut receipt = ParameterGolfDistributed8xH100CompletionReceipt {
+        schema_version: 1,
+        run_id: manifest.run_id.clone(),
+        bringup_report_path: bringup_report_path.display().to_string(),
+        bringup_report_digest: bringup_report.report_digest.clone(),
+        runtime_bootstrap_receipt_path: bootstrap_receipt_path.display().to_string(),
+        runtime_bootstrap_receipt_digest: bootstrap_receipt.receipt_digest.clone(),
+        train_step_receipt_path: train_step_receipt_path.display().to_string(),
+        train_step_receipt_digest: train_step_receipt.receipt_digest.clone(),
+        distributed_receipt_path: train_step_receipt.distributed_receipt_path.clone(),
+        distributed_receipt_digest: train_step_receipt.distributed_receipt.receipt_digest.clone(),
+        final_model_artifact_path: final_model_artifact_path.display().to_string(),
+        final_model_artifact_digest: sha256_bytes(final_model_artifact_bytes.as_slice()),
+        final_model_artifact_size_bytes: final_model_artifact_bytes.len() as u64,
+        submission_manifest_path: submission_manifest_path.display().to_string(),
+        submission_manifest_digest: sha256_bytes(submission_manifest_bytes.as_slice()),
+        distributed_validation_mean_loss: validation.mean_loss,
+        distributed_validation_bits_per_byte: validation.bits_per_byte,
+        distributed_validation_observed_ms: validation.observed_ms,
+        claim_boundary: String::from(
+            "This completion receipt proves the exported-folder distributed runtime finished the current 8xH100 execution contract with one measured distributed validation aggregation and bound that execution to the exact shipped final artifact identity already present in the folder. It does not by itself claim record-track promotion.",
+        ),
+        receipt_digest: String::new(),
+    };
+    receipt.receipt_digest = receipt.stable_digest();
+    Ok(receipt)
+}
+
+fn sha256_bytes(bytes: &[u8]) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(bytes);
+    hex::encode(hasher.finalize())
 }
 
 fn execute_parameter_golf_submission_distributed_8xh100_bootstrap_child(
@@ -487,6 +673,17 @@ fn execute_parameter_golf_submission_distributed_8xh100_train_step_child(
     ParameterGolfSubmissionRuntimeError,
 > {
     Ok(execute_parameter_golf_distributed_8xh100_train_step_child(
+        &manifest.run_id,
+    )?)
+}
+
+fn execute_parameter_golf_submission_distributed_8xh100_validation_child(
+    manifest: &ParameterGolfSubmissionRuntimeManifest,
+) -> Result<
+    ParameterGolfDistributed8xH100ValidationRankReceipt,
+    ParameterGolfSubmissionRuntimeError,
+> {
+    Ok(execute_parameter_golf_distributed_8xh100_validation_child(
         &manifest.run_id,
     )?)
 }

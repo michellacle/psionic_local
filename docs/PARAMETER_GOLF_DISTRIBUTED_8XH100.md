@@ -76,6 +76,11 @@ Psionic now encodes that exact posture explicitly instead of treating
   train-step windows, retained per-rank train-step gradient artifacts, and one
   measured distributed receipt lift from that step, so the exported-folder
   `distributed_8xh100_train` mode no longer stops at bring-up only
+- `psionic-train` now also ships retained per-rank distributed validation
+  receipts plus one completion receipt bound to the shipped final artifact
+  identity, so the exported-folder `distributed_8xh100_train` mode can finish
+  with a real runtime outcome when the measured distributed validation surface
+  exists
 - `psionic-eval` now exposes
   `ParameterGolfDistributedThroughputReceipt` plus the supporting topology,
   communication, timing, memory, threshold, and refusal types

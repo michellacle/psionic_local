@@ -1362,13 +1362,13 @@ fn build_timing_receipt(
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-struct ValidationShardPlan {
-    rank: usize,
-    sequence_start: u64,
-    sequence_count: u64,
+pub(crate) struct ValidationShardPlan {
+    pub(crate) rank: usize,
+    pub(crate) sequence_start: u64,
+    pub(crate) sequence_count: u64,
 }
 
-fn build_validation_shard_plan(
+pub(crate) fn build_validation_shard_plan(
     total_sequence_count: u64,
     world_size: usize,
 ) -> Result<Vec<ValidationShardPlan>, ParameterGolfDistributedLaneError> {

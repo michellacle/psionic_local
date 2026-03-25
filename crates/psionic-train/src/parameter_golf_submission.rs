@@ -1349,7 +1349,7 @@ fn render_readme(
     );
     let _ = writeln!(
         readme,
-        "- Set `{}` to `{}` on the exported-folder `8xH100` lane to dispatch into the shipped Rust-owned distributed runtime path. That mode now writes the machine-readable bring-up report, one aggregate runtime-bootstrap receipt at `{}`, retained per-rank bootstrap receipts under `{}`, retained per-rank bootstrap logs under `{}`, one aggregate train-step receipt at `{}`, retained per-rank train-step receipts under `{}`, retained per-rank train-step logs under `{}`, retained train-step window plans under `{}`, retained per-rank gradient artifacts under `{}`, and one measured distributed receipt at `parameter-golf-distributed-8xh100-run/benchmark/parameter_golf_distributed_8xh100_receipt.json` before still refusing explicitly until distributed validation and final execution closure land.\n",
+        "- Set `{}` to `{}` on the exported-folder `8xH100` lane to dispatch into the shipped Rust-owned distributed runtime path. That mode now writes the machine-readable bring-up report, one aggregate runtime-bootstrap receipt at `{}`, retained per-rank bootstrap receipts under `{}`, retained per-rank bootstrap logs under `{}`, one aggregate train-step receipt at `{}`, retained per-rank train-step receipts under `{}`, retained per-rank train-step logs under `{}`, retained train-step window plans under `{}`, retained per-rank gradient artifacts under `{}`, retained per-rank validation receipts and logs beside the same benchmark root, one measured distributed receipt at `parameter-golf-distributed-8xh100-run/benchmark/parameter_golf_distributed_8xh100_receipt.json`, and one completion receipt bound to the shipped final artifact identity when the distributed validation-backed lane succeeds.\n",
         PARAMETER_GOLF_EXECUTION_MODE_ENV_VAR,
         PARAMETER_GOLF_DISTRIBUTED_8XH100_EXECUTION_MODE,
         PARAMETER_GOLF_DISTRIBUTED_8XH100_RUNTIME_BOOTSTRAP_RECEIPT_ARTIFACT_REF,
@@ -1637,7 +1637,7 @@ mod tests {
     }
 
     #[test]
-    fn parameter_golf_non_record_submission_entrypoint_writes_distributed_8xh100_bringup_report(
+    fn parameter_golf_non_record_submission_entrypoint_refuses_distributed_8xh100_machine_contract(
     ) -> Result<(), Box<dyn Error>> {
         let fixture = ParameterGolfLocalReferenceFixture::reference()?;
         let config = ParameterGolfReferenceTrainingConfig::local_reference();
@@ -1661,11 +1661,11 @@ mod tests {
             .output()?;
         assert!(
             !completed.status.success(),
-            "distributed 8xH100 mode should refuse until the real distributed payload exists"
+            "distributed 8xH100 mode should refuse when the local machine contract cannot satisfy the lane"
         );
         let stderr = String::from_utf8_lossy(&completed.stderr);
         assert!(
-            stderr.contains("the real distributed trainer payload still has not landed"),
+            stderr.contains("refused the distributed 8xH100 machine contract before runtime bootstrap"),
             "unexpected stderr=`{stderr}`",
         );
         assert!(stderr.contains("wrote distributed bring-up report"));

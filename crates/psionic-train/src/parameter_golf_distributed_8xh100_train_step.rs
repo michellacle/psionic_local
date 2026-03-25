@@ -9,9 +9,11 @@ use std::{
 
 use psionic_backend_cuda::CudaBackend;
 use psionic_data::{
-    parameter_golf_dataset_bundle_from_local_dir, DatasetIterationMode, DatasetKey,
-    ParameterGolfTokenStreamContract, ParameterGolfTokenStreamCursor, ParameterGolfTokenStreamWindow,
-    PARAMETER_GOLF_TRAIN_SPLIT_NAME,
+    load_parameter_golf_validation_tokens_from_paths,
+    parameter_golf_dataset_bundle_from_local_dir,
+    parameter_golf_sentencepiece_byte_luts_from_tokenizer_path, DatasetIterationMode,
+    DatasetKey, ParameterGolfTokenStreamContract, ParameterGolfTokenStreamCursor,
+    ParameterGolfTokenStreamWindow, PARAMETER_GOLF_TRAIN_SPLIT_NAME,
 };
 use psionic_eval::ParameterGolfDistributedThroughputReceipt;
 use psionic_models::ParameterGolfReferenceModel;
@@ -22,10 +24,11 @@ use thiserror::Error;
 
 use crate::{
     apply_gradients_to_state, benchmark_parameter_golf_distributed_8xh100, build_tokenizer_digest,
-    clip_gradients, execute_parameter_golf_training_gradient_batch,
-    inspect_local_distributed_8xh100_machine, materialize_current_model,
-    parameter_golf_optimizer_plan, parameter_golf_runpod_8xh100_capability_profile,
-    seed_parameter_states, zero_gradients, ParameterGolfBatchGeometry,
+    build_validation_shard_plan, clip_gradients, evaluate_validation_on_cuda,
+    execute_parameter_golf_training_gradient_batch, inspect_local_distributed_8xh100_machine,
+    materialize_current_model, parameter_golf_optimizer_plan,
+    parameter_golf_runpod_8xh100_capability_profile, seed_parameter_states, zero_gradients,
+    ParameterGolfBatchGeometry, ParameterGolfDistributedValidationShardObservation,
     ParameterGolfDistributed8xH100BringupReport,
     ParameterGolfDistributed8xH100RuntimeBootstrapReceipt,
     ParameterGolfDistributedStepObservation, ParameterGolfRunPod8xH100Measurements,
@@ -47,6 +50,22 @@ const CHILD_WINDOW_PATH_ENV_VAR: &str =
     "PSIONIC_PARAMETER_GOLF_DISTRIBUTED_8XH100_TRAIN_STEP_WINDOW_PATH";
 const CHILD_GRADIENT_ARTIFACT_PATH_ENV_VAR: &str =
     "PSIONIC_PARAMETER_GOLF_DISTRIBUTED_8XH100_TRAIN_STEP_GRADIENT_ARTIFACT_PATH";
+const VALIDATION_CHILD_ENV_VAR: &str =
+    "PSIONIC_PARAMETER_GOLF_DISTRIBUTED_8XH100_VALIDATION_CHILD";
+const VALIDATION_CHILD_RANK_ENV_VAR: &str =
+    "PSIONIC_PARAMETER_GOLF_DISTRIBUTED_8XH100_VALIDATION_RANK";
+const VALIDATION_CHILD_LOCAL_RANK_ENV_VAR: &str =
+    "PSIONIC_PARAMETER_GOLF_DISTRIBUTED_8XH100_VALIDATION_LOCAL_RANK";
+const VALIDATION_CHILD_WORLD_SIZE_ENV_VAR: &str =
+    "PSIONIC_PARAMETER_GOLF_DISTRIBUTED_8XH100_VALIDATION_WORLD_SIZE";
+const VALIDATION_CHILD_RECEIPT_PATH_ENV_VAR: &str =
+    "PSIONIC_PARAMETER_GOLF_DISTRIBUTED_8XH100_VALIDATION_RECEIPT_PATH";
+const VALIDATION_CHILD_LOG_PATH_ENV_VAR: &str =
+    "PSIONIC_PARAMETER_GOLF_DISTRIBUTED_8XH100_VALIDATION_LOG_PATH";
+const VALIDATION_CHILD_SHARD_PATH_ENV_VAR: &str =
+    "PSIONIC_PARAMETER_GOLF_DISTRIBUTED_8XH100_VALIDATION_SHARD_PATH";
+const VALIDATION_CHILD_GRADIENT_ARTIFACT_PATH_ENV_VAR: &str =
+    "PSIONIC_PARAMETER_GOLF_DISTRIBUTED_8XH100_VALIDATION_GRADIENT_ARTIFACT_PATH";
 
 const CHALLENGE_WORLD_SIZE: usize = 8;
 
@@ -95,8 +114,22 @@ pub struct ParameterGolfDistributed8xH100TrainStepReceipt {
     pub non_finite_gradient_count: u64,
     /// Ordered child launch outcomes.
     pub rank_launches: Vec<ParameterGolfDistributed8xH100TrainStepRankLaunch>,
+    /// Retained aggregated gradient artifact path used to reconstruct the post-step model.
+    pub aggregated_gradient_artifact_path: String,
+    /// Stable SHA-256 over the aggregated gradient artifact.
+    pub aggregated_gradient_artifact_sha256: String,
+    /// Ordered child launch outcomes for distributed validation.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub validation_rank_launches: Vec<ParameterGolfDistributed8xH100ValidationRankLaunch>,
     /// One measured step observation lifted into the distributed receipt lane.
     pub step_observation: ParameterGolfDistributedStepObservation,
+    /// Honest distributed validation wallclock as the slowest participating rank.
+    pub validation_observed_ms: u64,
+    /// Total validation sequence count covered by the distributed shard plan.
+    pub validation_total_sequence_count: u64,
+    /// Ordered rank-local validation shard observations.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub validation_shard_observations: Vec<ParameterGolfDistributedValidationShardObservation>,
     /// Typed distributed receipt derived from the measured step.
     pub distributed_receipt: ParameterGolfDistributedThroughputReceipt,
     /// Honest claim boundary for the train-step receipt.
@@ -195,6 +228,100 @@ pub struct ParameterGolfDistributed8xH100TrainStepRankLaunch {
     pub receipt: Option<ParameterGolfDistributed8xH100TrainStepRankReceipt>,
 }
 
+/// Retained validation-shard plan for one rank.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ParameterGolfDistributed8xH100ValidationShardPlan {
+    /// Zero-based rank identifier.
+    pub rank: usize,
+    /// Zero-based validation sequence offset.
+    pub sequence_start: u64,
+    /// Number of validation sequences assigned to the rank.
+    pub sequence_count: u64,
+}
+
+/// Per-rank runtime validation receipt emitted by one child.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ParameterGolfDistributed8xH100ValidationRankReceipt {
+    /// Stable schema version.
+    pub schema_version: u32,
+    /// Stable run identifier.
+    pub run_id: String,
+    /// Rank owned by this child.
+    pub rank: usize,
+    /// Local rank on the current pod.
+    pub local_rank: usize,
+    /// Declared world size.
+    pub world_size: usize,
+    /// Exact `CUDA_VISIBLE_DEVICES` contract observed by this rank.
+    pub cuda_visible_devices: String,
+    /// Selected CUDA device label.
+    pub selected_device_label: String,
+    /// Retained rank-local log path.
+    pub log_path: String,
+    /// Retained shard-plan path.
+    pub shard_path: String,
+    /// Retained aggregated gradient artifact path.
+    pub aggregated_gradient_artifact_path: String,
+    /// Stable SHA-256 over the aggregated gradient artifact.
+    pub aggregated_gradient_artifact_sha256: String,
+    /// Zero-based validation sequence offset evaluated by this rank.
+    pub sequence_start: u64,
+    /// Number of validation sequences evaluated by this rank.
+    pub sequence_count: u64,
+    /// Rank-local summed loss over the shard.
+    pub loss_sum: f64,
+    /// Rank-local evaluated token count.
+    pub token_count: u64,
+    /// Rank-local evaluated byte count.
+    pub byte_count: u64,
+    /// Rank-local mean loss over the shard.
+    pub mean_loss: f64,
+    /// Rank-local bits-per-byte over the shard.
+    pub bits_per_byte: f64,
+    /// Rank-local wallclock for the executed validation shard.
+    pub observed_wallclock_ms: u64,
+    /// Honest claim boundary for the child receipt.
+    pub claim_boundary: String,
+    /// Stable digest over the child receipt payload.
+    pub receipt_digest: String,
+}
+
+impl ParameterGolfDistributed8xH100ValidationRankReceipt {
+    /// Returns a stable digest over the child validation receipt payload.
+    #[must_use]
+    pub fn stable_digest(&self) -> String {
+        let mut digestible = self.clone();
+        digestible.receipt_digest.clear();
+        stable_digest(
+            b"psionic_parameter_golf_distributed_8xh100_validation_rank_receipt|",
+            &digestible,
+        )
+    }
+}
+
+/// Parent-observed outcome for one spawned validation child process.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ParameterGolfDistributed8xH100ValidationRankLaunch {
+    /// Rank that was launched.
+    pub rank: usize,
+    /// Local rank that was launched.
+    pub local_rank: usize,
+    /// Exact `CUDA_VISIBLE_DEVICES` assignment used for the child.
+    pub cuda_visible_devices: String,
+    /// Retained child shard-plan path.
+    pub shard_path: String,
+    /// Retained child receipt path.
+    pub receipt_path: String,
+    /// Retained child log path.
+    pub log_path: String,
+    /// Child exit code when one was available.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub exit_code: Option<i32>,
+    /// Machine-readable child receipt when one was preserved.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub receipt: Option<ParameterGolfDistributed8xH100ValidationRankReceipt>,
+}
+
 /// Failure while executing the distributed `8xH100` train-step seam.
 #[derive(Debug, Error)]
 pub enum ParameterGolfDistributed8xH100TrainStepError {
@@ -225,6 +352,23 @@ pub enum ParameterGolfDistributed8xH100TrainStepError {
     },
     #[error("parameter golf distributed 8xH100 train-step child rank {rank} failed before writing one explicit receipt")]
     ChildMissingReceipt { rank: usize },
+    #[error(
+        "parameter golf distributed 8xH100 validation child spawn failed for rank {rank}: {error}"
+    )]
+    ValidationChildSpawn { rank: usize, error: std::io::Error },
+    #[error(
+        "parameter golf distributed 8xH100 validation child wait failed for rank {rank}: {error}"
+    )]
+    ValidationChildWait { rank: usize, error: std::io::Error },
+    #[error(
+        "parameter golf distributed 8xH100 validation child receipt decode failed at `{path}`: {error}"
+    )]
+    ValidationChildDecode {
+        path: String,
+        error: serde_json::Error,
+    },
+    #[error("parameter golf distributed 8xH100 validation child rank {rank} failed before writing one explicit receipt")]
+    ValidationChildMissingReceipt { rank: usize },
     #[error("parameter golf distributed 8xH100 train-step aggregate failed: {message}")]
     Aggregate { message: String },
     #[error(transparent)]
@@ -245,6 +389,12 @@ pub enum ParameterGolfDistributed8xH100TrainStepError {
 #[must_use]
 pub fn parameter_golf_distributed_8xh100_train_step_child_enabled() -> bool {
     env::var_os(CHILD_ENV_VAR).is_some()
+}
+
+/// Returns whether the current process is one internal distributed validation child.
+#[must_use]
+pub fn parameter_golf_distributed_8xh100_validation_child_enabled() -> bool {
+    env::var_os(VALIDATION_CHILD_ENV_VAR).is_some()
 }
 
 /// Derives the canonical aggregate train-step receipt path beside the bring-up report.
@@ -338,6 +488,45 @@ pub fn parameter_golf_distributed_8xh100_train_step_rank_gradients_dir(
     }
 }
 
+/// Derives the canonical per-rank validation receipt directory beside the bring-up report.
+#[must_use]
+pub fn parameter_golf_distributed_8xh100_validation_rank_receipts_dir(
+    root: &Path,
+    bringup_report_path: &str,
+) -> PathBuf {
+    let resolved = root.join(bringup_report_path);
+    match resolved.parent() {
+        Some(parent) => parent.join("runtime_validation_receipts"),
+        None => root.join("runtime_validation_receipts"),
+    }
+}
+
+/// Derives the canonical per-rank validation log directory beside the bring-up report.
+#[must_use]
+pub fn parameter_golf_distributed_8xh100_validation_rank_logs_dir(
+    root: &Path,
+    bringup_report_path: &str,
+) -> PathBuf {
+    let resolved = root.join(bringup_report_path);
+    match resolved.parent() {
+        Some(parent) => parent.join("runtime_validation_logs"),
+        None => root.join("runtime_validation_logs"),
+    }
+}
+
+/// Derives the canonical per-rank validation shard-plan directory beside the bring-up report.
+#[must_use]
+pub fn parameter_golf_distributed_8xh100_validation_rank_shards_dir(
+    root: &Path,
+    bringup_report_path: &str,
+) -> PathBuf {
+    let resolved = root.join(bringup_report_path);
+    match resolved.parent() {
+        Some(parent) => parent.join("runtime_validation_shards"),
+        None => root.join("runtime_validation_shards"),
+    }
+}
+
 /// Executes one real multi-rank train step from the shipped runtime payload.
 #[allow(clippy::too_many_arguments)]
 pub fn execute_parameter_golf_distributed_8xh100_train_step(
@@ -382,11 +571,22 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
         root,
         &bringup_report_relpath,
     );
+    let validation_rank_receipts_dir = parameter_golf_distributed_8xh100_validation_rank_receipts_dir(
+        root,
+        &bringup_report_relpath,
+    );
+    let validation_rank_logs_dir =
+        parameter_golf_distributed_8xh100_validation_rank_logs_dir(root, &bringup_report_relpath);
+    let validation_rank_shards_dir =
+        parameter_golf_distributed_8xh100_validation_rank_shards_dir(root, &bringup_report_relpath);
     for directory in [
         &rank_receipts_dir,
         &rank_logs_dir,
         &rank_windows_dir,
         &rank_gradients_dir,
+        &validation_rank_receipts_dir,
+        &validation_rank_logs_dir,
+        &validation_rank_shards_dir,
     ] {
         fs::create_dir_all(directory).map_err(
             |error| ParameterGolfDistributed8xH100TrainStepError::Write {
@@ -605,6 +805,14 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
 
     let clip_observation =
         clip_gradients(accumulated_gradients.as_mut_slice(), hyperparameters.grad_clip_norm);
+    let aggregated_gradient_artifact_path = rank_gradients_dir.join("aggregated_step_1.safetensors");
+    let aggregated_gradient_artifact_sha256 = write_gradient_artifact(
+        &aggregated_gradient_artifact_path,
+        &accumulated_gradients
+            .iter()
+            .map(|(parameter_id, values)| (parameter_id.clone(), values.clone()))
+            .collect::<BTreeMap<_, _>>(),
+    )?;
     let optimizer_started = Instant::now();
     let learning_rate_multiplier = hyperparameters.learning_rate_multiplier(0, 0.0);
     let muon_momentum = hyperparameters.muon_momentum_at_step(0);
@@ -632,11 +840,182 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
     let train_tokens = geometry.train_batch_tokens as u64;
     let step_observation =
         ParameterGolfDistributedStepObservation::new(1, 0, observed_step_ms, train_tokens);
+    let validation_tokens = load_parameter_golf_validation_tokens_from_paths(
+        &bundle
+            .validation_shards
+            .iter()
+            .map(|receipt| PathBuf::from(&receipt.path))
+            .collect::<Vec<_>>(),
+        geometry.train_sequence_length,
+    )?;
+    let validation_total_sequence_count =
+        ((validation_tokens.len().saturating_sub(1)) / geometry.train_sequence_length) as u64;
+    let validation_shard_plan =
+        build_validation_shard_plan(validation_total_sequence_count, CHALLENGE_WORLD_SIZE)?;
+    let mut validation_children = Vec::with_capacity(CHALLENGE_WORLD_SIZE);
+    for shard in &validation_shard_plan {
+        let shard_path = validation_rank_shards_dir.join(format!("rank_{}.json", shard.rank));
+        fs::write(
+            &shard_path,
+            format!(
+                "{}\n",
+                serde_json::to_string_pretty(&ParameterGolfDistributed8xH100ValidationShardPlan {
+                    rank: shard.rank,
+                    sequence_start: shard.sequence_start,
+                    sequence_count: shard.sequence_count,
+                })?
+            ),
+        )
+        .map_err(|error| ParameterGolfDistributed8xH100TrainStepError::Write {
+            path: shard_path.display().to_string(),
+            error,
+        })?;
+        let receipt_path = validation_rank_receipts_dir.join(format!("rank_{}.json", shard.rank));
+        let log_path = validation_rank_logs_dir.join(format!("rank_{}.log", shard.rank));
+        let stdout = OpenOptions::new()
+            .create(true)
+            .truncate(true)
+            .write(true)
+            .open(&log_path)
+            .map_err(
+                |error| ParameterGolfDistributed8xH100TrainStepError::Write {
+                    path: log_path.display().to_string(),
+                    error,
+                },
+            )?;
+        let stderr = stdout.try_clone().map_err(|error| {
+            ParameterGolfDistributed8xH100TrainStepError::Write {
+                path: log_path.display().to_string(),
+                error,
+            }
+        })?;
+        let child = Command::new(&current_exe)
+            .arg(&manifest_path)
+            .current_dir(root)
+            .env(
+                crate::PARAMETER_GOLF_EXECUTION_MODE_ENV_VAR,
+                crate::PARAMETER_GOLF_DISTRIBUTED_8XH100_EXECUTION_MODE,
+            )
+            .env(VALIDATION_CHILD_ENV_VAR, "1")
+            .env(VALIDATION_CHILD_RANK_ENV_VAR, shard.rank.to_string())
+            .env(VALIDATION_CHILD_LOCAL_RANK_ENV_VAR, shard.rank.to_string())
+            .env(
+                VALIDATION_CHILD_WORLD_SIZE_ENV_VAR,
+                CHALLENGE_WORLD_SIZE.to_string(),
+            )
+            .env(VALIDATION_CHILD_RECEIPT_PATH_ENV_VAR, &receipt_path)
+            .env(VALIDATION_CHILD_LOG_PATH_ENV_VAR, &log_path)
+            .env(VALIDATION_CHILD_SHARD_PATH_ENV_VAR, &shard_path)
+            .env(
+                VALIDATION_CHILD_GRADIENT_ARTIFACT_PATH_ENV_VAR,
+                &aggregated_gradient_artifact_path,
+            )
+            .env(
+                crate::PARAMETER_GOLF_SINGLE_H100_DATASET_ROOT_ENV_VAR,
+                &dataset_root,
+            )
+            .env(
+                crate::PARAMETER_GOLF_SINGLE_H100_TOKENIZER_PATH_ENV_VAR,
+                &tokenizer_path,
+            )
+            .env("CUDA_VISIBLE_DEVICES", shard.rank.to_string())
+            .env("WORLD_SIZE", CHALLENGE_WORLD_SIZE.to_string())
+            .env("PSIONIC_DISTRIBUTED_RANK", shard.rank.to_string())
+            .env("PSIONIC_DISTRIBUTED_LOCAL_RANK", shard.rank.to_string())
+            .env("PSIONIC_DISTRIBUTED_WORLD_SIZE", CHALLENGE_WORLD_SIZE.to_string())
+            .stdout(Stdio::from(stdout))
+            .stderr(Stdio::from(stderr))
+            .spawn()
+            .map_err(
+                |error| ParameterGolfDistributed8xH100TrainStepError::ValidationChildSpawn {
+                    rank: shard.rank,
+                    error,
+                },
+            )?;
+        validation_children.push((shard.rank, shard_path, receipt_path, log_path, child));
+    }
+    let mut validation_rank_launches = Vec::with_capacity(CHALLENGE_WORLD_SIZE);
+    for (rank, shard_path, receipt_path, log_path, mut child) in validation_children {
+        let status = child.wait().map_err(|error| {
+            ParameterGolfDistributed8xH100TrainStepError::ValidationChildWait { rank, error }
+        })?;
+        let receipt = if receipt_path.is_file() {
+            let bytes = fs::read(&receipt_path).map_err(|error| {
+                ParameterGolfDistributed8xH100TrainStepError::Read {
+                    path: receipt_path.display().to_string(),
+                    error,
+                }
+            })?;
+            Some(
+                serde_json::from_slice::<ParameterGolfDistributed8xH100ValidationRankReceipt>(
+                    &bytes,
+                )
+                .map_err(
+                    |error| ParameterGolfDistributed8xH100TrainStepError::ValidationChildDecode {
+                        path: receipt_path.display().to_string(),
+                        error,
+                    },
+                )?,
+            )
+        } else {
+            None
+        };
+        validation_rank_launches.push(ParameterGolfDistributed8xH100ValidationRankLaunch {
+            rank,
+            local_rank: rank,
+            cuda_visible_devices: rank.to_string(),
+            shard_path: shard_path.display().to_string(),
+            receipt_path: receipt_path.display().to_string(),
+            log_path: log_path.display().to_string(),
+            exit_code: status.code(),
+            receipt,
+        });
+    }
+    for launch in &validation_rank_launches {
+        if launch.exit_code != Some(0) {
+            return Err(ParameterGolfDistributed8xH100TrainStepError::Aggregate {
+                message: format!(
+                    "distributed validation child rank {} exited with {:?}; see {}",
+                    launch.rank, launch.exit_code, launch.log_path
+                ),
+            });
+        }
+        if launch.receipt.is_none() {
+            return Err(
+                ParameterGolfDistributed8xH100TrainStepError::ValidationChildMissingReceipt {
+                    rank: launch.rank,
+                },
+            );
+        }
+    }
+    let mut validation_shard_observations =
+        Vec::with_capacity(validation_rank_launches.len());
+    let mut validation_observed_ms = 0_u64;
+    for launch in &validation_rank_launches {
+        let receipt = launch
+            .receipt
+            .as_ref()
+            .expect("validation receipt presence validated above");
+        validation_observed_ms = validation_observed_ms.max(receipt.observed_wallclock_ms);
+        validation_shard_observations.push(ParameterGolfDistributedValidationShardObservation {
+            rank: receipt.rank,
+            sequence_start: receipt.sequence_start,
+            sequence_count: receipt.sequence_count,
+            loss_sum: receipt.loss_sum,
+            token_count: receipt.token_count,
+            byte_count: receipt.byte_count,
+            observed_ms: receipt.observed_wallclock_ms,
+        });
+    }
+    validation_shard_observations.sort_by_key(|observation| observation.rank);
 
     let mut measurements = ParameterGolfRunPod8xH100Measurements::challenge_defaults();
     measurements.run_id = Some(String::from(run_id));
     measurements.mesh_id = Some(String::from("mesh.parameter_golf.runpod_8xh100"));
     measurements.step_observations = vec![step_observation.clone()];
+    measurements.validation_observed_ms = validation_observed_ms;
+    measurements.validation_total_sequence_count = validation_total_sequence_count;
+    measurements.validation_shard_observations = validation_shard_observations.clone();
     fs::write(
         &measurements_path,
         format!("{}\n", serde_json::to_string_pretty(&measurements)?),
@@ -651,6 +1030,9 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
     distributed_config.run_id = String::from(run_id);
     distributed_config.mesh_id = String::from("mesh.parameter_golf.runpod_8xh100");
     distributed_config.step_observations = vec![step_observation.clone()];
+    distributed_config.validation_observed_ms = validation_observed_ms;
+    distributed_config.validation_total_sequence_count = validation_total_sequence_count;
+    distributed_config.validation_shard_observations = validation_shard_observations.clone();
     let distributed_receipt = benchmark_parameter_golf_distributed_8xh100(
         initial_model.descriptor(),
         &hyperparameters,
@@ -689,10 +1071,18 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
         clip_applied: clip_observation.clip_applied,
         non_finite_gradient_count: u64::from(clip_observation.non_finite_count),
         rank_launches,
+        aggregated_gradient_artifact_path: aggregated_gradient_artifact_path
+            .display()
+            .to_string(),
+        aggregated_gradient_artifact_sha256,
+        validation_rank_launches,
         step_observation,
+        validation_observed_ms,
+        validation_total_sequence_count,
+        validation_shard_observations,
         distributed_receipt,
         claim_boundary: String::from(
-            "This receipt proves the exported-folder distributed runtime executed one real 8-rank Parameter Golf train step on explicit per-rank H100 bindings and emitted measured step observations into the typed distributed receipt lane. It does not yet claim distributed validation, final artifact closure, or full record-track completion.",
+            "This receipt proves the exported-folder distributed runtime executed one real 8-rank Parameter Golf train step, reconstructed the post-step model on all ranks, and emitted one real distributed validation aggregation into the typed distributed receipt lane. It does not yet claim final artifact closure or full record-track completion.",
         ),
         receipt_digest: String::new(),
     };
@@ -816,6 +1206,204 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step_child(
         observed_wallclock_ms,
         claim_boundary: String::from(
             "This child receipt proves one rank-local distributed train-step gradient batch executed on one explicit H100 binding and exported one compact gradient artifact for later mesh aggregation. It does not yet claim later distributed validation or final artifact closure.",
+        ),
+        receipt_digest: String::new(),
+    };
+    receipt.receipt_digest = receipt.stable_digest();
+    if let Some(parent) = receipt_path.parent() {
+        fs::create_dir_all(parent).map_err(
+            |error| ParameterGolfDistributed8xH100TrainStepError::Write {
+                path: parent.display().to_string(),
+                error,
+            },
+        )?;
+    }
+    fs::write(
+        &receipt_path,
+        format!("{}\n", serde_json::to_string_pretty(&receipt)?),
+    )
+    .map_err(|error| ParameterGolfDistributed8xH100TrainStepError::Write {
+        path: receipt_path.display().to_string(),
+        error,
+    })?;
+    Ok(receipt)
+}
+
+/// Executes one distributed validation child rank inside the shipped runtime.
+pub fn execute_parameter_golf_distributed_8xh100_validation_child(
+    run_id: &str,
+) -> Result<
+    ParameterGolfDistributed8xH100ValidationRankReceipt,
+    ParameterGolfDistributed8xH100TrainStepError,
+> {
+    let rank = parse_env_usize(VALIDATION_CHILD_RANK_ENV_VAR)?;
+    let local_rank = parse_env_usize(VALIDATION_CHILD_LOCAL_RANK_ENV_VAR)?;
+    let world_size = parse_env_usize(VALIDATION_CHILD_WORLD_SIZE_ENV_VAR)?;
+    let receipt_path = PathBuf::from(required_env(VALIDATION_CHILD_RECEIPT_PATH_ENV_VAR)?);
+    let log_path = required_env(VALIDATION_CHILD_LOG_PATH_ENV_VAR)?;
+    let shard_path = PathBuf::from(required_env(VALIDATION_CHILD_SHARD_PATH_ENV_VAR)?);
+    let aggregated_gradient_artifact_path = PathBuf::from(required_env(
+        VALIDATION_CHILD_GRADIENT_ARTIFACT_PATH_ENV_VAR,
+    )?);
+    let cuda_visible_devices = env::var("CUDA_VISIBLE_DEVICES").unwrap_or_default();
+    if world_size != CHALLENGE_WORLD_SIZE {
+        return Err(ParameterGolfDistributed8xH100TrainStepError::Aggregate {
+            message: format!(
+                "distributed validation child requires world_size={} but observed {}",
+                CHALLENGE_WORLD_SIZE, world_size
+            ),
+        });
+    }
+    if local_rank != rank {
+        return Err(ParameterGolfDistributed8xH100TrainStepError::Aggregate {
+            message: format!(
+                "distributed validation child requires local_rank == rank on the single pod, found rank={rank} local_rank={local_rank}"
+            ),
+        });
+    }
+    let dataset_root = PathBuf::from(required_env(
+        crate::PARAMETER_GOLF_SINGLE_H100_DATASET_ROOT_ENV_VAR,
+    )?);
+    let tokenizer_path = PathBuf::from(required_env(
+        crate::PARAMETER_GOLF_SINGLE_H100_TOKENIZER_PATH_ENV_VAR,
+    )?);
+    let shard_bytes = fs::read(&shard_path).map_err(|error| {
+        ParameterGolfDistributed8xH100TrainStepError::Read {
+            path: shard_path.display().to_string(),
+            error,
+        }
+    })?;
+    let shard: ParameterGolfDistributed8xH100ValidationShardPlan =
+        serde_json::from_slice(&shard_bytes)?;
+    let tokenizer_bytes = fs::read(&tokenizer_path).map_err(|error| {
+        ParameterGolfDistributed8xH100TrainStepError::Read {
+            path: tokenizer_path.display().to_string(),
+            error,
+        }
+    })?;
+    let tokenizer_digest = build_tokenizer_digest(tokenizer_bytes.as_slice());
+    let bundle = parameter_golf_dataset_bundle_from_local_dir(
+        DatasetKey::new(
+            crate::PARAMETER_GOLF_SINGLE_H100_DATASET_REF,
+            crate::PARAMETER_GOLF_SINGLE_H100_DATASET_VERSION,
+        ),
+        &dataset_root,
+        String::from(PARAMETER_GOLF_SINGLE_H100_VARIANT),
+        tokenizer_digest,
+        tokenizer_path.display().to_string(),
+        None,
+    )?;
+    let baseline_model = ParameterGolfReferenceModel::baseline_fixture(Default::default())?;
+    let hyperparameters = ParameterGolfTrainingHyperparameters::baseline_defaults();
+    let optimizer_plan =
+        parameter_golf_optimizer_plan(baseline_model.descriptor(), &hyperparameters)?;
+    let mut trainer_state = seed_parameter_states(&baseline_model, &optimizer_plan)?;
+    let aggregated_gradients = load_gradient_artifact(&aggregated_gradient_artifact_path)?;
+    let aggregated_gradient_artifact_sha256 = sha256_hex(
+        &fs::read(&aggregated_gradient_artifact_path).map_err(|error| {
+            ParameterGolfDistributed8xH100TrainStepError::Read {
+                path: aggregated_gradient_artifact_path.display().to_string(),
+                error,
+            }
+        })?,
+    );
+    let learning_rate_multiplier = hyperparameters.learning_rate_multiplier(0, 0.0);
+    let muon_momentum = hyperparameters.muon_momentum_at_step(0);
+    apply_gradients_to_state(
+        &mut trainer_state,
+        &aggregated_gradients.into_iter().collect::<Vec<_>>(),
+        learning_rate_multiplier,
+        muon_momentum,
+        1,
+    )?;
+    let current_model = materialize_current_model(&baseline_model, &trainer_state)?;
+    let geometry = ParameterGolfBatchGeometry::challenge_distributed_8xh100_defaults();
+    let validation_tokens = load_parameter_golf_validation_tokens_from_paths(
+        &bundle
+            .validation_shards
+            .iter()
+            .map(|receipt| PathBuf::from(&receipt.path))
+            .collect::<Vec<_>>(),
+        geometry.train_sequence_length,
+    )?;
+    let total_sequence_count =
+        (validation_tokens.len().saturating_sub(1) / geometry.train_sequence_length) as u64;
+    if shard.sequence_start.saturating_add(shard.sequence_count) > total_sequence_count {
+        return Err(ParameterGolfDistributed8xH100TrainStepError::Aggregate {
+            message: format!(
+                "validation shard for rank {} exceeded total sequence count {} (start={} count={})",
+                shard.rank, total_sequence_count, shard.sequence_start, shard.sequence_count
+            ),
+        });
+    }
+    let byte_luts = parameter_golf_sentencepiece_byte_luts_from_tokenizer_path(&tokenizer_path)?;
+    let mut cuda_backend = CudaBackend::new();
+    let selected_device = cuda_backend
+        .selected_device()
+        .cloned()
+        .ok_or_else(|| ParameterGolfDistributed8xH100TrainStepError::Aggregate {
+            message: format!(
+                "distributed validation child rank {rank} could not select one CUDA device"
+            ),
+        })?;
+    let selected_device_label = selected_device
+        .device_name
+        .clone()
+        .unwrap_or_else(|| String::from("unknown"));
+    let raw_start = shard.sequence_start as usize * geometry.train_sequence_length;
+    let raw_end = raw_start + shard.sequence_count as usize * geometry.train_sequence_length + 1;
+    let started = Instant::now();
+    let mut graph_cache = BTreeMap::new();
+    let validation_summary = if shard.sequence_count == 0 {
+        crate::ParameterGolfSingleH100ValidationSummary {
+            evaluated_sequence_count: 0,
+            evaluated_token_count: 0,
+            evaluated_byte_count: 0,
+            mean_loss: 0.0,
+            bits_per_byte: 0.0,
+            runtime_receipt: None,
+        }
+    } else {
+        evaluate_validation_on_cuda(
+            &mut cuda_backend,
+            &selected_device.device,
+            current_model.descriptor(),
+            &current_model,
+            &validation_tokens[raw_start..raw_end],
+            &byte_luts,
+            geometry.train_sequence_length,
+            geometry.local_validation_batch_sequences(),
+            &mut graph_cache,
+            &format!("distributed_validation_rank_{rank}"),
+            None,
+        )?
+    };
+    let observed_wallclock_ms = duration_ms(started);
+    let loss_sum = validation_summary.mean_loss * validation_summary.evaluated_token_count as f64;
+    let mut receipt = ParameterGolfDistributed8xH100ValidationRankReceipt {
+        schema_version: 1,
+        run_id: String::from(run_id),
+        rank,
+        local_rank,
+        world_size,
+        cuda_visible_devices,
+        selected_device_label,
+        log_path,
+        shard_path: shard_path.display().to_string(),
+        aggregated_gradient_artifact_path: aggregated_gradient_artifact_path
+            .display()
+            .to_string(),
+        aggregated_gradient_artifact_sha256,
+        sequence_start: shard.sequence_start,
+        sequence_count: shard.sequence_count,
+        loss_sum,
+        token_count: validation_summary.evaluated_token_count,
+        byte_count: validation_summary.evaluated_byte_count,
+        mean_loss: validation_summary.mean_loss,
+        bits_per_byte: validation_summary.bits_per_byte,
+        observed_wallclock_ms,
+        claim_boundary: String::from(
+            "This child receipt proves one rank-local distributed validation shard executed against the reconstructed post-step Parameter Golf model on one explicit H100 binding. It does not yet claim final artifact closure or full record-track completion.",
         ),
         receipt_digest: String::new(),
     };

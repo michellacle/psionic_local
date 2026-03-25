@@ -2239,7 +2239,7 @@ fn execute_training_step(
     Ok(step_metrics)
 }
 
-fn evaluate_validation_on_cuda(
+pub(crate) fn evaluate_validation_on_cuda(
     cuda_backend: &mut CudaBackend,
     device: &psionic_core::Device,
     descriptor: &psionic_models::ParameterGolfModelDescriptor,

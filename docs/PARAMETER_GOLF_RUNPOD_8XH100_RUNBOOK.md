@@ -117,8 +117,8 @@ report, one aggregate runtime-bootstrap receipt, retained per-rank bootstrap
 receipts, retained per-rank bootstrap logs, one aggregate train-step receipt,
 retained per-rank train-step receipts, retained per-rank train-step logs,
 retained train-step windows, retained per-rank gradient artifacts, one
-measured distributed receipt, and then fails closed before distributed
-validation or final challenge closure instead of silently taking the
+measured distributed receipt, and then writes one completion receipt bound to
+the shipped final artifact identity instead of silently taking the
 local-reference replay path under `WORLD_SIZE=8`.
 
 The finalizer now also resolves the exported submission root explicitly. The

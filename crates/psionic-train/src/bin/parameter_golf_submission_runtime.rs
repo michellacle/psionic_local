@@ -49,7 +49,7 @@ fn run() -> Result<(), ParameterGolfSubmissionRuntimeError> {
             report,
         } => {
             eprintln!(
-                "parameter golf submission runtime does not ship a distributed 8xH100 trainer payload yet; wrote distributed bring-up report to {} with disposition {:?}",
+                "parameter golf submission runtime refused the distributed 8xH100 machine contract before runtime bootstrap; wrote distributed bring-up report to {} with disposition {:?}",
                 report_path,
                 report.disposition
             );
@@ -65,7 +65,7 @@ fn run() -> Result<(), ParameterGolfSubmissionRuntimeError> {
             }
             Err(ParameterGolfSubmissionRuntimeError::ExecutionMode {
                 message: String::from(
-                    "the exported folder now ships a Rust-owned distributed 8xH100 bring-up path, but the real distributed trainer payload still has not landed",
+                    "the exported folder refused the distributed 8xH100 machine contract before runtime bootstrap",
                 ),
             })
         }
@@ -126,11 +126,54 @@ fn run() -> Result<(), ParameterGolfSubmissionRuntimeError> {
                 train_step_receipt.gradient_sync_ms,
                 train_step_receipt.optimizer_step_ms,
             );
+            for observation in &train_step_receipt.validation_shard_observations {
+                println!(
+                    "distributed_validation_rank_complete rank={} sequence_start={} sequence_count={} loss_sum={:.8} token_count={} byte_count={} elapsed_ms={}",
+                    observation.rank,
+                    observation.sequence_start,
+                    observation.sequence_count,
+                    observation.loss_sum,
+                    observation.token_count,
+                    observation.byte_count,
+                    observation.observed_ms,
+                );
+            }
+            if let Some(validation) = train_step_receipt
+                .distributed_receipt
+                .validation_aggregation
+                .as_ref()
+            {
+                println!(
+                    "final_validation_distributed_complete val_loss:{:.8} val_bpb:{:.8} eval_time:{}ms",
+                    validation.mean_loss,
+                    validation.bits_per_byte,
+                    validation.observed_ms,
+                );
+            }
             Err(ParameterGolfSubmissionRuntimeError::ExecutionMode {
                 message: String::from(
-                    "the exported folder now ships one real distributed 8xH100 train step and a measured distributed receipt, but the later distributed validation and final execution-closure path still have not landed",
+                    "the exported folder now ships one real distributed 8xH100 train step, but the later distributed validation and final execution-closure path still have not landed",
                 ),
             })
+        }
+        ParameterGolfSubmissionRuntimeOutcome::Distributed8xH100Completed {
+            receipt_path,
+            receipt,
+        } => {
+            println!(
+                "psionic_parameter_golf_distributed_8xh100_completed receipt_path={} distributed_receipt_path={} final_model_artifact_path={} final_model_artifact_digest={}",
+                receipt_path,
+                receipt.distributed_receipt_path,
+                receipt.final_model_artifact_path,
+                receipt.final_model_artifact_digest,
+            );
+            println!(
+                "final_validation_distributed_complete val_loss:{:.8} val_bpb:{:.8} eval_time:{}ms",
+                receipt.distributed_validation_mean_loss,
+                receipt.distributed_validation_bits_per_byte,
+                receipt.distributed_validation_observed_ms,
+            );
+            Ok(())
         }
         ParameterGolfSubmissionRuntimeOutcome::Distributed8xH100BootstrapChild {
             receipt_path,
@@ -184,6 +227,23 @@ fn run() -> Result<(), ParameterGolfSubmissionRuntimeError> {
                 receipt.observed_wallclock_ms,
                 receipt_path,
                 receipt.gradient_artifact_path,
+            );
+            Ok(())
+        }
+        ParameterGolfSubmissionRuntimeOutcome::Distributed8xH100ValidationChild {
+            receipt_path,
+            receipt,
+        } => {
+            println!(
+                "distributed_validation_rank_complete rank={} sequence_start={} sequence_count={} loss_sum={:.8} token_count={} byte_count={} elapsed_ms={} receipt_path={}",
+                receipt.rank,
+                receipt.sequence_start,
+                receipt.sequence_count,
+                receipt.loss_sum,
+                receipt.token_count,
+                receipt.byte_count,
+                receipt.observed_wallclock_ms,
+                receipt_path,
             );
             Ok(())
         }
