@@ -24,6 +24,8 @@ submit this?” decision.
 
 - `crates/psionic-train/examples/parameter_golf_record_candidate_campaign_report.rs`
 - `crates/psionic-train/examples/parameter_golf_final_readiness_audit.rs`
+- `scripts/parameter-golf-build-record-candidate-campaign.sh`
+- `scripts/parameter-golf-build-final-readiness-audit.sh`
 
 These surfaces are intentionally narrower than a green contest claim. They do
 not replace the real hardware evidence. They keep the later campaign and final
@@ -64,6 +66,24 @@ cargo run -p psionic-train --example parameter_golf_record_candidate_campaign_re
   /tmp/run_evidence_2.json /tmp/promotion_receipt_2.json
 ```
 
+For operator use, the repo now also ships a wrapper:
+
+```bash
+bash scripts/parameter-golf-build-record-candidate-campaign.sh \
+  --campaign-id campaign.parameter_golf.record_candidate.v1 \
+  --frozen-config /tmp/frozen_candidate.json \
+  --output /tmp/parameter_golf_record_candidate_campaign.json \
+  --run-evidence /tmp/run_evidence_1.json --promotion-receipt /tmp/promotion_receipt_1.json \
+  --run-evidence /tmp/run_evidence_2.json --promotion-receipt /tmp/promotion_receipt_2.json
+```
+
+The wrapper defers to the ambient Cargo environment. On space-constrained hosts,
+set `CARGO_TARGET_DIR` to a scratch volume before invoking it:
+
+```bash
+export CARGO_TARGET_DIR=/tmp/psionic-target
+```
+
 ## Final Readiness Audit
 
 The final readiness audit composes:
@@ -95,6 +115,18 @@ cargo run -p psionic-train --example parameter_golf_final_readiness_audit -- \
   fixtures/parameter_golf/reports/parameter_golf_local_clone_dry_run.json \
   /tmp/parameter_golf_final_readiness_audit.json
 ```
+
+For operator use, the repo now also ships a wrapper with the committed PR-bundle
+and local-clone dry-run reports as defaults:
+
+```bash
+bash scripts/parameter-golf-build-final-readiness-audit.sh \
+  --campaign-report /tmp/parameter_golf_record_candidate_campaign.json \
+  --output /tmp/parameter_golf_final_readiness_audit.json
+```
+
+The same `CARGO_TARGET_DIR` override applies here when the shared checkout does
+not have enough free space for `cargo run` artifacts.
 
 This is the intended boundary. Psionic now has one typed final decision
 surface, but the surface only turns green when the upstream evidence is
