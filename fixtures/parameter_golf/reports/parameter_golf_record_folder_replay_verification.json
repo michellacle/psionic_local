@@ -25,18 +25,18 @@
   "submission_manifest_wallclock_seconds": 25.779,
   "benchmark_training_wallclock_seconds": 25.779,
   "submission_manifest_bytes": {
-    "total_bytes": 7267658,
-    "code_bytes": 7188700,
+    "total_bytes": 9708882,
+    "code_bytes": 9629924,
     "model_bytes": 78958
   },
   "accounting_receipt_bytes": {
-    "total_bytes": 7267658,
-    "code_bytes": 7188700,
+    "total_bytes": 9708882,
+    "code_bytes": 9629924,
     "model_bytes": 78958
   },
   "actual_shipped_bytes": {
-    "total_bytes": 7267658,
-    "code_bytes": 7188700,
+    "total_bytes": 9708882,
+    "code_bytes": 9629924,
     "model_bytes": 78958
   },
   "accounting_component_verifications": [
@@ -56,8 +56,8 @@
     },
     {
       "component_id": "shipped_runtime_code_bytes",
-      "declared_size_bytes": 7186448,
-      "actual_size_bytes": 7186448,
+      "declared_size_bytes": 9627672,
+      "actual_size_bytes": 9627672,
       "matches_actual_size": true,
       "detail": "the package ships two prebuilt Psionic runtime payloads: one lightweight local-reference replay binary for the default challenge-clone dry run, plus the real single-H100 trainer binary used by the exported-folder remote execution path"
     },
@@ -84,5 +84,5 @@
   "matches_benchmark_artifact_bytes": true,
   "verdict": "verified",
   "claim_boundary": "This verifier confirms only the current exported-folder replay path: offline entrypoint execution, final int8+zlib metrics, bounded wallclock facts, and counted-byte facts. It does not by itself turn the bounded non-record replay into a record-track claim.",
-  "report_digest": "b2a0c9d9407eece716a96a3c5673455c344988b85caaa7642e7f5d5a8946c220"
+  "report_digest": "931aac86d22d85dd153d308ef5e4343f408f5852e0e42691a62fb481a639d786"
 }

@@ -28,8 +28,8 @@
     {
       "relative_path": "runtime/parameter_golf_submission_runtime",
       "role": "runtime_payload",
-      "artifact_digest": "690e8316ee861c1d7c7d4ad22b2963ebf21fc71a07d1656a8d48e81831488911",
-      "size_bytes": 3650592,
+      "artifact_digest": "77b72ec20f15a42f004163adace0eac43ad7b30397b4adbad3b8695bf145aca5",
+      "size_bytes": 6091816,
       "counts_toward_artifact_cap": true,
       "detail": "default exported-folder executable payload for bounded local-reference replay"
     },
@@ -73,5 +73,5 @@
     "fixtures/parameter_golf/reports/parameter_golf_submission_run_evidence.json"
   ],
   "claim_boundary": "This report answers only the exported record-surface question. It makes the current train_gpt.py-versus-shipped-runtime difference explicit for maintainer review, but it does not by itself prove record-track acceptance or close the 8xH100 execution lane.",
-  "report_digest": "cd96111f1e10b905df18d4849b352d9be64f51677a651fba87ce547dbceeb6ac"
+  "report_digest": "d0235e7647d6f732df34532bed7fd90196bdabd7fdd28f6f9e2d819be0b04fae"
 }
