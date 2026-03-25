@@ -33,6 +33,22 @@ scoreboard-grade wallclock. Fresh retained `8xH100` receipts are still required
 before Psionic can claim that this design materially improved public-lane
 throughput.
 
+Update after the first live `/tmp` relaunch attempt:
+
+- the current-bundle launcher was still shipping the stale committed runtime
+  fixture digest
+  `325b1bb8cd1298be53c111573c05c0b6a9d5a79878a599757301e10ccff76dae`
+- that stale payload still emitted per-rank gradient artifacts and `~84s`
+  first-step wallclock
+- the runtime source changes on `main` were therefore not the code that
+  reached hardware
+- the refreshed pod-built fixture digest is now
+  `e258447ff87703e92d982ec84b290132d3df5a9e95feeed7264f0779a283f8ef`
+
+This does not remove the throughput gap. It removes one false signal source.
+Until the committed shipped runtime payload is refreshed, pod-side scoreproofs
+do not measure current repo runtime code.
+
 ## Current Evidence
 
 ### 1. Operator and input binding are now real
@@ -170,6 +186,21 @@ Even after sliding-window scoring landed, the distributed validation path still 
 
 That is not viable for the `600` second eval budget if it remains the final design.
 
+### Gap F: shipped runtime payload freshness is a separate correctness boundary
+
+The operator lane packages the committed runtime fixture binary, not the local
+source tree.
+
+That means:
+
+- runtime code changes can land on `main`
+- local tests can pass against source
+- but the pod can still run an older shipped runtime binary
+
+This is a correctness problem, not just operator inconvenience. It can make a
+live `8xH100` proof look like a runtime-regression result when the pod never
+executed the new runtime in the first place.
+
 ## What This Means
 
 Two conclusions are now defensible:
@@ -217,6 +248,16 @@ The distributed runtime must export the real trained final artifact from the liv
 - final distributed validation metrics
 
 to one honest completion receipt.
+
+### Priority 5: shipped runtime freshness checks
+
+The score lane needs an explicit freshness contract between runtime source and
+the committed shipped runtime fixture:
+
+- rebuild the shipped runtime fixture whenever runtime behavior changes
+- bind the fixture digest into the launch receipt
+- fail fast when the launched bundle digest does not match the expected
+  current shipped digest for the scoreproof
 
 ### Priority 5: scoreboard-grade validation and later TTT
 

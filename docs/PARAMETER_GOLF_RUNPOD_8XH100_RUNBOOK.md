@@ -137,24 +137,39 @@ folder ships:
 
 - the default bounded local-reference replay payload
 - the real single-H100 trainer payload
-- a Rust-owned distributed `8xH100` admission, bootstrap, and one-step
-  train path inside the shipped runtime payload
+- a Rust-owned distributed `8xH100` admission, bootstrap, persistent-worker
+  train path, and persistent-worker validation path inside the shipped runtime
+  payload
 
 The committed Linux replay payload is now the stripped portable binary that was
 validated on the real RunPod `8xH100` Ubuntu image. The expected execution
-boundary on that pod is therefore the explicit post-train-step refusal from
+boundary on that pod is therefore the current throughput-proof surface inside
 the shipped runtime, not an earlier libc or entrypoint mismatch.
 
-It still does not ship the later persistent multi-step score path. The RunPod
+The launcher ships the committed runtime fixture at
+[`fixtures/parameter_golf/runtime/parameter_golf_submission_runtime.x86_64-unknown-linux-gnu`](/home/christopherdavid/code/psionic/fixtures/parameter_golf/runtime/parameter_golf_submission_runtime.x86_64-unknown-linux-gnu),
+not the current local source tree. Runtime source changes do not reach the pod
+until that fixture is rebuilt and recommitted. A stale fixture will silently
+replay an older distributed topology even when `main` already contains newer
+runtime code.
+
+It still does not ship a proven scoreboard-grade `8xH100` runtime. The RunPod
 launcher therefore requests the reserved distributed mode explicitly so the
 execution phase writes the machine-readable bring-up report, one aggregate
 runtime-bootstrap receipt, retained per-rank bootstrap receipts, retained
 per-rank bootstrap logs, one aggregate train-step receipt, retained per-rank
 train-step receipts, retained per-rank train-step logs, retained train-step
-windows, retained per-rank gradient artifacts, retained runtime-owned
-post-step model artifacts, one measured distributed receipt, and then writes
-one completion receipt bound to the trained runtime-produced artifact instead
-of silently taking the local-reference replay path under `WORLD_SIZE=8`.
+windows, retained runtime-owned post-step model artifacts, one measured
+distributed receipt, and then writes one completion receipt bound to the
+trained runtime-produced artifact instead of silently taking the
+local-reference replay path under `WORLD_SIZE=8`.
+
+The first `/tmp` scoreproof after `#545` exposed this exact failure mode. The
+bundle shipped runtime digest `325b1bb8cd1298be53c111573c05c0b6a9d5a79878a599757301e10ccff76dae`,
+which still produced per-rank gradient artifact files and `~84s` first-step
+wallclock. After rebuilding the fixture on the real RunPod image, the shipped
+runtime digest changed to
+`e258447ff87703e92d982ec84b290132d3df5a9e95feeed7264f0779a283f8ef`.
 
 The operator lane now also keeps the dataset/tokenizer env contract explicit.
 It does not assume the pod has the right values already exported. The
