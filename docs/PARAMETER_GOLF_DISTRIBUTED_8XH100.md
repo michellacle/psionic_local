@@ -144,7 +144,9 @@ For the scoreboard-grade lane, Psionic now uses sliding-window validation with:
 - one global ordered `window_starts` list derived from the full validation
   token stream
 - one contiguous partition of those evaluation windows across ranks
-- `batch_sequences=1024` windows per rank-local forward batch
+- `batch_sequences=64` windows per rank-local forward batch, matching the
+  public `VAL_BATCH_SIZE=524288` token cap at `WORLD_SIZE=8` and
+  `train_seq_len=1024`
 - scored-token ranges that match the upstream score-only suffix contract
 
 This matters because the distributed receipt can now defend the real eval

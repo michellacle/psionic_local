@@ -594,6 +594,13 @@ pub fn parameter_golf_distributed_8xh100_validation_rank_shards_dir(
     }
 }
 
+fn distributed_validation_batch_sequences(
+    geometry: &ParameterGolfBatchGeometry,
+    _eval_mode: &ParameterGolfValidationEvalMode,
+) -> usize {
+    geometry.local_validation_batch_sequences()
+}
+
 /// Executes one real multi-rank train step from the shipped runtime payload.
 #[allow(clippy::too_many_arguments)]
 pub fn execute_parameter_golf_distributed_8xh100_train_step(
@@ -926,12 +933,8 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
     let step_observation =
         ParameterGolfDistributedStepObservation::new(1, 0, observed_step_ms, train_tokens);
     let validation_eval_mode = ParameterGolfValidationEvalMode::SlidingWindow { stride: 64 };
-    let validation_batch_sequences = match validation_eval_mode {
-        ParameterGolfValidationEvalMode::NonOverlapping => {
-            geometry.local_validation_batch_sequences() as u64
-        }
-        ParameterGolfValidationEvalMode::SlidingWindow { .. } => 1024,
-    };
+    let validation_batch_sequences =
+        distributed_validation_batch_sequences(&geometry, &validation_eval_mode) as u64;
     let validation_tokens = load_parameter_golf_validation_tokens_from_paths(
         &bundle
             .validation_shards
@@ -1532,12 +1535,8 @@ pub fn execute_parameter_golf_distributed_8xh100_validation_child(
         .device_name
         .clone()
         .unwrap_or_else(|| String::from("unknown"));
-    let validation_batch_sequences = match shard.eval_mode {
-        ParameterGolfValidationEvalMode::NonOverlapping => {
-            geometry.local_validation_batch_sequences()
-        }
-        ParameterGolfValidationEvalMode::SlidingWindow { .. } => 1024,
-    };
+    let validation_batch_sequences =
+        distributed_validation_batch_sequences(&geometry, &shard.eval_mode);
     let started = Instant::now();
     let mut graph_cache = BTreeMap::new();
     let validation_summary = if shard.evaluation_unit_count == 0 {
@@ -1829,7 +1828,10 @@ fn duration_ms(started: Instant) -> u64 {
 mod tests {
     use std::collections::BTreeMap;
 
-    use super::{load_gradient_artifact, write_gradient_artifact};
+    use super::{
+        distributed_validation_batch_sequences, load_gradient_artifact, write_gradient_artifact,
+    };
+    use crate::{ParameterGolfBatchGeometry, ParameterGolfValidationEvalMode};
 
     #[test]
     fn distributed_train_step_gradient_artifact_roundtrips() -> Result<(), Box<dyn std::error::Error>>
@@ -1844,5 +1846,25 @@ mod tests {
         let restored = load_gradient_artifact(&artifact_path)?;
         assert_eq!(restored, gradients);
         Ok(())
+    }
+
+    #[test]
+    fn distributed_sliding_window_validation_uses_public_token_cap_geometry() {
+        let geometry = ParameterGolfBatchGeometry::challenge_distributed_8xh100_defaults();
+        assert_eq!(geometry.local_validation_batch_sequences(), 64);
+        assert_eq!(
+            distributed_validation_batch_sequences(
+                &geometry,
+                &ParameterGolfValidationEvalMode::NonOverlapping
+            ),
+            64
+        );
+        assert_eq!(
+            distributed_validation_batch_sequences(
+                &geometry,
+                &ParameterGolfValidationEvalMode::SlidingWindow { stride: 64 }
+            ),
+            64
+        );
     }
 }
