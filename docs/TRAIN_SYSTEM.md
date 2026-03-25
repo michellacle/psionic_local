@@ -178,6 +178,17 @@ shared run id can carry dense ranks, validated contributor windows, validators,
 checkpoint writers, eval workers, and data builders at the same time without
 splitting provider-local side jobs into hidden program identities.
 
+The repo now also owns the first dense-rank recovery contract in
+`crates/psionic-train/src/dense_rank_recovery_contract.rs`, the binary
+`dense_rank_recovery_contract`, the checker
+`scripts/check-dense-rank-recovery-contract.sh`, the focused reference doc
+`docs/DENSE_RANK_RECOVERY_REFERENCE.md`, and the committed fixture
+`fixtures/training/dense_rank_recovery_contract_v1.json`. That surface closes
+the current admitted dense recovery stories against real substrate truth:
+checkpoint shard restore assignments, checkpoint artifact placement and restore
+authority, replay-order continuity for same-rank replacement, and an explicit
+shrink-world refusal instead of a hidden best-effort fallback.
+
 The repo now also owns the first generic dense-rank runtime layer in
 `crates/psionic-train/src/dense_rank_runtime.rs`, the binary
 `dense_rank_runtime_reference_contract`, the checker

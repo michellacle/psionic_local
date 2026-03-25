@@ -1,0 +1,131 @@
+{
+  "schema_version": "psionic.dense_rank_recovery_contract.v1",
+  "program_manifest_id": "psionic-cross-provider-pretraining-program-v1",
+  "program_manifest_digest": "5c7cd52ecf5345551e165eeb1e25440153bf64f38e69aaf1d33a13c7056ca479",
+  "distributed_checkpoint_contract_digest": "53386fdd8fc1f9b157df000ea869260905589469468feaf2cb596b6ba8053810",
+  "remote_artifact_backend_contract_digest": "b32eb8e494bbd043e998bed4d50fa939d47184605ee5ecf7f051205eb6c4be12",
+  "topology_revisable_data_feed_report_digest": "c5a5f99ad63c036d79faa000cd898c2453102a10fa51593300bc2e9537a816b0",
+  "scenarios": [
+    {
+      "scenario_id": "dense_rank.preemption.rank3.resume_in_place",
+      "failure_kind": "preemption",
+      "dense_rank": 3,
+      "departing_source_id": "runpod_8xh100_dense_node",
+      "departing_node_id": "runpod-h100-rank3",
+      "departing_provider_id": "runpod",
+      "recovery_mode": "resume_from_last_stable_checkpoint",
+      "checkpoint_restore_assignment_id": "restore-rank-3",
+      "checkpoint_manifest_digest": "802aa997400ce2259031a375c1cd38c472ede21accee09809c2befe93eeb494f",
+      "parameter_shard_id": "parameter-shard-3",
+      "optimizer_shard_id": "optimizer-shard-3",
+      "load_order": [
+        "parameter-shard-3",
+        "optimizer-shard-3"
+      ],
+      "restore_authority_backend_id": "google_train_bucket_backend",
+      "mirror_backend_ids": [
+        "runpod_workspace_backend"
+      ],
+      "data_ordering": {
+        "continuity_kind": "checkpoint_resume_no_topology_change",
+        "detail": "Preemption keeps the dense-rank topology unchanged, so replay ordering stays on the already accepted global shard order and resumes from the last stable checkpoint without a topology revision."
+      },
+      "operator_action": "rehydrate_rank_in_place",
+      "finalizer_action": "publish_recovery_receipt_only",
+      "disposition": "recovered",
+      "detail": "Current scope admits preemption recovery by rehydrating the same dense rank in place from the last durable checkpoint under the checkpoint bucket authority."
+    },
+    {
+      "scenario_id": "dense_rank.node_loss.rank1.same_provider_replace",
+      "failure_kind": "node_loss",
+      "dense_rank": 1,
+      "departing_source_id": "runpod_8xh100_dense_node",
+      "departing_node_id": "runpod-h100-rank1",
+      "departing_provider_id": "runpod",
+      "replacement_source_id": "runpod_8xh100_dense_node_spare",
+      "replacement_node_id": "runpod-h100-rank1b",
+      "replacement_provider_id": "runpod",
+      "recovery_mode": "resume_from_last_stable_checkpoint",
+      "checkpoint_restore_assignment_id": "restore-rank-1",
+      "checkpoint_manifest_digest": "802aa997400ce2259031a375c1cd38c472ede21accee09809c2befe93eeb494f",
+      "parameter_shard_id": "parameter-shard-1",
+      "optimizer_shard_id": "optimizer-shard-1",
+      "load_order": [
+        "parameter-shard-1",
+        "optimizer-shard-1"
+      ],
+      "restore_authority_backend_id": "google_train_bucket_backend",
+      "mirror_backend_ids": [
+        "runpod_workspace_backend"
+      ],
+      "data_ordering": {
+        "continuity_kind": "replace_rank_replay_continuation",
+        "topology_case_id": "dense_rank.node_loss.replace_rank1",
+        "baseline_global_order_digest": "d26252d593443f937725f4c3f4604c24761eb5ae03b10ee3ef498cb042bc723e",
+        "revised_global_order_digest": "d26252d593443f937725f4c3f4604c24761eb5ae03b10ee3ef498cb042bc723e",
+        "replay_continuity_digest": "2739e83e5d97b8a588cf5c6ac31045b63e098067cecf5f736d28a9df13c3d366",
+        "detail": "Same-provider node loss uses the admitted replace-rank data-feed path so rank 1 keeps the same shard ordering while the replacement node inherits the departed rank's replay plan."
+      },
+      "operator_action": "admit_replacement_at_same_rank",
+      "finalizer_action": "publish_recovery_receipt_and_topology_revision",
+      "disposition": "recovered",
+      "detail": "Current scope admits same-provider node-loss recovery by replacing the departed dense rank at the same world size and rehydrating the replacement from the durable checkpoint shards."
+    },
+    {
+      "scenario_id": "dense_rank.provider_loss.rank2.cross_provider_replace",
+      "failure_kind": "provider_loss",
+      "dense_rank": 2,
+      "departing_source_id": "runpod_8xh100_dense_node",
+      "departing_node_id": "runpod-h100-rank2",
+      "departing_provider_id": "runpod",
+      "replacement_source_id": "google_a3_dense_recovery_spare",
+      "replacement_node_id": "google-h100-rank2",
+      "replacement_provider_id": "google",
+      "recovery_mode": "resume_from_last_stable_checkpoint",
+      "checkpoint_restore_assignment_id": "restore-rank-2",
+      "checkpoint_manifest_digest": "802aa997400ce2259031a375c1cd38c472ede21accee09809c2befe93eeb494f",
+      "parameter_shard_id": "parameter-shard-2",
+      "optimizer_shard_id": "optimizer-shard-2",
+      "load_order": [
+        "parameter-shard-2",
+        "optimizer-shard-2"
+      ],
+      "restore_authority_backend_id": "google_train_bucket_backend",
+      "mirror_backend_ids": [
+        "runpod_workspace_backend"
+      ],
+      "data_ordering": {
+        "continuity_kind": "replace_rank_replay_continuation",
+        "topology_case_id": "dense_rank.provider_loss.replace_rank2",
+        "baseline_global_order_digest": "d26252d593443f937725f4c3f4604c24761eb5ae03b10ee3ef498cb042bc723e",
+        "revised_global_order_digest": "d26252d593443f937725f4c3f4604c24761eb5ae03b10ee3ef498cb042bc723e",
+        "replay_continuity_digest": "e112b9d3f1015a84712657484e8354b28285286c7a493b8cae3b6995781e9c54",
+        "detail": "Cross-provider provider loss uses the admitted replace-rank data-feed path so the replacement provider inherits the departed rank's replay order at the same world size."
+      },
+      "operator_action": "admit_replacement_at_same_rank",
+      "finalizer_action": "publish_recovery_receipt_and_topology_revision",
+      "disposition": "recovered",
+      "detail": "Current scope admits provider-loss recovery only when one replacement rank is admitted on another provider at the same world size and restores from the shared checkpoint authority backend."
+    },
+    {
+      "scenario_id": "dense_rank.provider_loss.rank3.shrink_world_refused",
+      "failure_kind": "provider_loss",
+      "dense_rank": 3,
+      "departing_source_id": "runpod_8xh100_dense_node",
+      "departing_node_id": "runpod-h100-rank3",
+      "departing_provider_id": "runpod",
+      "data_ordering": {
+        "continuity_kind": "refused_world_change",
+        "topology_case_id": "dense_rank.shrink_world.refused",
+        "refusal": "topology-revisable data feed requires requested_world_size 4 for current revision action, found 3",
+        "detail": "Current scope still refuses shrink-world recovery because the dense data-feed contract only admits fixed-world replace-rank revisions."
+      },
+      "operator_action": "hold_run_and_page_operator",
+      "finalizer_action": "publish_refusal_and_hold_run",
+      "disposition": "refused",
+      "detail": "Provider loss without a replacement rank stays refused. The run must hold with an explicit refusal receipt instead of silently shrinking the dense world size."
+    }
+  ],
+  "claim_boundary": "This contract closes admitted dense-rank recovery receipts for preemption, same-provider node loss, and cross-provider provider loss under one checkpoint and replay-ordering contract. It still refuses shrink-world recovery, public-internet swarm repair, and mixed-backend dense recovery.",
+  "contract_digest": "1084d44b21e975950ba6b27b25eb6fe421237461258dc56f4c153454111ea7b4"
+}
