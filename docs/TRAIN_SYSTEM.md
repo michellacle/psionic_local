@@ -108,6 +108,19 @@ validation-hook contract, checkpoint-hook contract, and generic execution
 receipt semantics. PGOLF remains one consumer lane, but it no longer owns the
 only dense distributed runtime receipt model in the repo.
 
+The repo now also owns the first hybrid pretraining planner in
+`crates/psionic-train/src/hybrid_pretraining_planner.rs`, the binary
+`hybrid_pretraining_plan`, the checker
+`scripts/check-hybrid-pretraining-plan.sh`, the focused reference doc
+`docs/HYBRID_PRETRAINING_PLANNER_REFERENCE.md`, and the committed fixture
+`fixtures/training/hybrid_pretraining_plan_v1.json`. That surface freezes one
+machine-legible planning layer above the current dense and contributor
+substrates: explicit dense-rank assignments, validated contributor windows,
+validators, eval workers, checkpoint writers, and shared lineage slots under
+one dataset family and one checkpoint family. It keeps work classes explicit
+instead of flattening contributor windows into dense ranks or inventing
+provider-specific planner vocabularies.
+
 The first local mixed-hardware swarm lane now also has a canonical machine-
 legible contract in `crates/psionic-train/src/swarm_open_adapter.rs` plus the
 committed fixture `fixtures/swarm/first_swarm_run_contract_v1.json`. That

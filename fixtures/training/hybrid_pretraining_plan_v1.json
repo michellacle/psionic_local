@@ -1,0 +1,312 @@
+{
+  "schema_version": "psionic.hybrid_pretraining_plan.v1",
+  "program_manifest_id": "psionic-cross-provider-pretraining-program-v1",
+  "program_manifest_digest": "5c7cd52ecf5345551e165eeb1e25440153bf64f38e69aaf1d33a13c7056ca479",
+  "dataset_family_id": "psion.curated_pretrain.dataset_family.v1",
+  "checkpoint_family": "psion.cross_provider.pretrain.v1",
+  "dense_rank_assignments": [
+    {
+      "assignment_id": "dense-rank-0",
+      "dense_rank": 0,
+      "source_id": "runpod_8xh100_dense_node",
+      "topology_revision_id": "xtrain-hybrid-topology-1",
+      "data_feed_report_digest": "c5a5f99ad63c036d79faa000cd898c2453102a10fa51593300bc2e9537a816b0",
+      "lineage_slot_id": "lineage.dense_rank.0"
+    },
+    {
+      "assignment_id": "dense-rank-1",
+      "dense_rank": 1,
+      "source_id": "runpod_8xh100_dense_node",
+      "topology_revision_id": "xtrain-hybrid-topology-1",
+      "data_feed_report_digest": "c5a5f99ad63c036d79faa000cd898c2453102a10fa51593300bc2e9537a816b0",
+      "lineage_slot_id": "lineage.dense_rank.1"
+    },
+    {
+      "assignment_id": "dense-rank-2",
+      "dense_rank": 2,
+      "source_id": "runpod_8xh100_dense_node",
+      "topology_revision_id": "xtrain-hybrid-topology-1",
+      "data_feed_report_digest": "c5a5f99ad63c036d79faa000cd898c2453102a10fa51593300bc2e9537a816b0",
+      "lineage_slot_id": "lineage.dense_rank.2"
+    },
+    {
+      "assignment_id": "dense-rank-3",
+      "dense_rank": 3,
+      "source_id": "runpod_8xh100_dense_node",
+      "topology_revision_id": "xtrain-hybrid-topology-1",
+      "data_feed_report_digest": "c5a5f99ad63c036d79faa000cd898c2453102a10fa51593300bc2e9537a816b0",
+      "lineage_slot_id": "lineage.dense_rank.3"
+    },
+    {
+      "assignment_id": "dense-rank-4",
+      "dense_rank": 4,
+      "source_id": "runpod_8xh100_dense_node",
+      "topology_revision_id": "xtrain-hybrid-topology-1",
+      "data_feed_report_digest": "c5a5f99ad63c036d79faa000cd898c2453102a10fa51593300bc2e9537a816b0",
+      "lineage_slot_id": "lineage.dense_rank.4"
+    },
+    {
+      "assignment_id": "dense-rank-5",
+      "dense_rank": 5,
+      "source_id": "runpod_8xh100_dense_node",
+      "topology_revision_id": "xtrain-hybrid-topology-1",
+      "data_feed_report_digest": "c5a5f99ad63c036d79faa000cd898c2453102a10fa51593300bc2e9537a816b0",
+      "lineage_slot_id": "lineage.dense_rank.5"
+    },
+    {
+      "assignment_id": "dense-rank-6",
+      "dense_rank": 6,
+      "source_id": "runpod_8xh100_dense_node",
+      "topology_revision_id": "xtrain-hybrid-topology-1",
+      "data_feed_report_digest": "c5a5f99ad63c036d79faa000cd898c2453102a10fa51593300bc2e9537a816b0",
+      "lineage_slot_id": "lineage.dense_rank.6"
+    },
+    {
+      "assignment_id": "dense-rank-7",
+      "dense_rank": 7,
+      "source_id": "runpod_8xh100_dense_node",
+      "topology_revision_id": "xtrain-hybrid-topology-1",
+      "data_feed_report_digest": "c5a5f99ad63c036d79faa000cd898c2453102a10fa51593300bc2e9537a816b0",
+      "lineage_slot_id": "lineage.dense_rank.7"
+    }
+  ],
+  "contributor_window_assignments": [
+    {
+      "window_id": "contributor-window-mac-1",
+      "source_id": "local_mlx_mac_workstation",
+      "dataset_slice": {
+        "dataset_id": "psion.curated_pretrain.dataset_family.v1",
+        "split_name": "train",
+        "slice_id": "contributor-slice-mac-0",
+        "slice_digest": "2a0aa2b4fe781bd213b95712249f9d939b702ce715b91674a0613f6d36dbf306"
+      },
+      "lineage_slot_id": "lineage.contributor_window.mac.1"
+    },
+    {
+      "window_id": "contributor-window-rtx4080-1",
+      "source_id": "local_rtx4080_workstation",
+      "dataset_slice": {
+        "dataset_id": "psion.curated_pretrain.dataset_family.v1",
+        "split_name": "train",
+        "slice_id": "contributor-slice-rtx4080-1",
+        "slice_digest": "a2e7a91527d1be5cc11859dfd4e50b2d2e879445ea2a605a09b9dadc4d7588ea"
+      },
+      "lineage_slot_id": "lineage.contributor_window.rtx4080.1"
+    },
+    {
+      "window_id": "contributor-window-google-1",
+      "source_id": "google_l4_validator_node",
+      "dataset_slice": {
+        "dataset_id": "psion.curated_pretrain.dataset_family.v1",
+        "split_name": "train",
+        "slice_id": "contributor-slice-google-2",
+        "slice_digest": "3760c7c1aa51331677d2e1bbaf3007e0ef9c955ef3629bf412fd360da315eaa6"
+      },
+      "lineage_slot_id": "lineage.contributor_window.google.1"
+    }
+  ],
+  "validator_assignments": [
+    {
+      "assignment_id": "validator-google-1",
+      "source_id": "google_l4_validator_node",
+      "lineage_slot_id": "lineage.validator.google.1",
+      "validates_execution_classes": [
+        "validated_contributor_window",
+        "dense_full_model_rank"
+      ]
+    },
+    {
+      "assignment_id": "validator-mac-1",
+      "source_id": "local_mlx_mac_workstation",
+      "lineage_slot_id": "lineage.validator.mac.1",
+      "validates_execution_classes": [
+        "validated_contributor_window"
+      ]
+    }
+  ],
+  "eval_assignments": [
+    {
+      "assignment_id": "eval-google-1",
+      "source_id": "google_l4_validator_node",
+      "lineage_slot_id": "lineage.eval.google.1",
+      "eval_target": "dense_pretrain_holdout"
+    },
+    {
+      "assignment_id": "eval-rtx4080-1",
+      "source_id": "local_rtx4080_workstation",
+      "lineage_slot_id": "lineage.eval.rtx4080.1",
+      "eval_target": "contributor_replay_probe"
+    }
+  ],
+  "checkpoint_writer_assignments": [
+    {
+      "assignment_id": "checkpoint-writer-runpod-1",
+      "source_id": "runpod_8xh100_dense_node",
+      "lineage_slot_id": "lineage.checkpoint_writer.runpod.1",
+      "checkpoint_family": "psion.cross_provider.pretrain.v1"
+    },
+    {
+      "assignment_id": "checkpoint-writer-google-1",
+      "source_id": "google_l4_validator_node",
+      "lineage_slot_id": "lineage.checkpoint_writer.google.1",
+      "checkpoint_family": "psion.cross_provider.pretrain.v1"
+    }
+  ],
+  "lineage_bindings": [
+    {
+      "lineage_slot_id": "lineage.dense_rank.0",
+      "execution_class": "dense_full_model_rank",
+      "source_id": "runpod_8xh100_dense_node",
+      "dataset_family_id": "psion.curated_pretrain.dataset_family.v1",
+      "checkpoint_family": "psion.cross_provider.pretrain.v1",
+      "artifact_family": "dense_full_model_update",
+      "evidence_trace_key": "59869934d0169278b6ceb9278be7d9a406d02583b16d20840af39426ae619144"
+    },
+    {
+      "lineage_slot_id": "lineage.dense_rank.1",
+      "execution_class": "dense_full_model_rank",
+      "source_id": "runpod_8xh100_dense_node",
+      "dataset_family_id": "psion.curated_pretrain.dataset_family.v1",
+      "checkpoint_family": "psion.cross_provider.pretrain.v1",
+      "artifact_family": "dense_full_model_update",
+      "evidence_trace_key": "f71f614da35b59afae714abfdd563adc115e3ea46e191abcf630a8911a10e6dc"
+    },
+    {
+      "lineage_slot_id": "lineage.dense_rank.2",
+      "execution_class": "dense_full_model_rank",
+      "source_id": "runpod_8xh100_dense_node",
+      "dataset_family_id": "psion.curated_pretrain.dataset_family.v1",
+      "checkpoint_family": "psion.cross_provider.pretrain.v1",
+      "artifact_family": "dense_full_model_update",
+      "evidence_trace_key": "4b8e97776568f10dee575c7094fbebe81eb0b3ab89bc15330d907aa6df6f7a63"
+    },
+    {
+      "lineage_slot_id": "lineage.dense_rank.3",
+      "execution_class": "dense_full_model_rank",
+      "source_id": "runpod_8xh100_dense_node",
+      "dataset_family_id": "psion.curated_pretrain.dataset_family.v1",
+      "checkpoint_family": "psion.cross_provider.pretrain.v1",
+      "artifact_family": "dense_full_model_update",
+      "evidence_trace_key": "8e8c2edffce9d89c3cb9e9515ba9640db4818a7babd4eec50a3a732b2569f159"
+    },
+    {
+      "lineage_slot_id": "lineage.dense_rank.4",
+      "execution_class": "dense_full_model_rank",
+      "source_id": "runpod_8xh100_dense_node",
+      "dataset_family_id": "psion.curated_pretrain.dataset_family.v1",
+      "checkpoint_family": "psion.cross_provider.pretrain.v1",
+      "artifact_family": "dense_full_model_update",
+      "evidence_trace_key": "fcd1278f8ab19ab09ff707401a34fb9bbbd67ff3ce356009f2bd2ca2beb42805"
+    },
+    {
+      "lineage_slot_id": "lineage.dense_rank.5",
+      "execution_class": "dense_full_model_rank",
+      "source_id": "runpod_8xh100_dense_node",
+      "dataset_family_id": "psion.curated_pretrain.dataset_family.v1",
+      "checkpoint_family": "psion.cross_provider.pretrain.v1",
+      "artifact_family": "dense_full_model_update",
+      "evidence_trace_key": "2d5b4d8bbee7897c01daa68c986675c5c8c30c1687d1affb740107c29fb5fbbe"
+    },
+    {
+      "lineage_slot_id": "lineage.dense_rank.6",
+      "execution_class": "dense_full_model_rank",
+      "source_id": "runpod_8xh100_dense_node",
+      "dataset_family_id": "psion.curated_pretrain.dataset_family.v1",
+      "checkpoint_family": "psion.cross_provider.pretrain.v1",
+      "artifact_family": "dense_full_model_update",
+      "evidence_trace_key": "02c592cb20e202636a2109732dc780488d8162c20425e02b9ecece954865f447"
+    },
+    {
+      "lineage_slot_id": "lineage.dense_rank.7",
+      "execution_class": "dense_full_model_rank",
+      "source_id": "runpod_8xh100_dense_node",
+      "dataset_family_id": "psion.curated_pretrain.dataset_family.v1",
+      "checkpoint_family": "psion.cross_provider.pretrain.v1",
+      "artifact_family": "dense_full_model_update",
+      "evidence_trace_key": "c787cf5a59849d0455f45570eeec130caadbdd96c01bd8a4980a4ead1a6b9a5a"
+    },
+    {
+      "lineage_slot_id": "lineage.contributor_window.mac.1",
+      "execution_class": "validated_contributor_window",
+      "source_id": "local_mlx_mac_workstation",
+      "dataset_family_id": "psion.curated_pretrain.dataset_family.v1",
+      "checkpoint_family": "psion.cross_provider.pretrain.v1",
+      "artifact_family": "validated_contributor_delta",
+      "evidence_trace_key": "f14619ded8fd076fc76c3b1f1e4c136c4ba4b663df7b2fadaf1ae2698b222bdd"
+    },
+    {
+      "lineage_slot_id": "lineage.contributor_window.rtx4080.1",
+      "execution_class": "validated_contributor_window",
+      "source_id": "local_rtx4080_workstation",
+      "dataset_family_id": "psion.curated_pretrain.dataset_family.v1",
+      "checkpoint_family": "psion.cross_provider.pretrain.v1",
+      "artifact_family": "validated_contributor_delta",
+      "evidence_trace_key": "cc3f3d4875976a21e86c0988b42c6b89d7850855ed73b70a0a83e060e5233db3"
+    },
+    {
+      "lineage_slot_id": "lineage.contributor_window.google.1",
+      "execution_class": "validated_contributor_window",
+      "source_id": "google_l4_validator_node",
+      "dataset_family_id": "psion.curated_pretrain.dataset_family.v1",
+      "checkpoint_family": "psion.cross_provider.pretrain.v1",
+      "artifact_family": "validated_contributor_delta",
+      "evidence_trace_key": "efa93ec7d0cf191c83fb1c94d4388bc3f4202c5130e240a21bb8439f8ac25b6a"
+    },
+    {
+      "lineage_slot_id": "lineage.validator.google.1",
+      "execution_class": "validator",
+      "source_id": "google_l4_validator_node",
+      "dataset_family_id": "psion.curated_pretrain.dataset_family.v1",
+      "checkpoint_family": "psion.cross_provider.pretrain.v1",
+      "artifact_family": "validator_verdict",
+      "evidence_trace_key": "1e8561f0e6adb42f9fbb0ef9c89ef5d301e9ba4ad923a0f46cf55e967c81a339"
+    },
+    {
+      "lineage_slot_id": "lineage.validator.mac.1",
+      "execution_class": "validator",
+      "source_id": "local_mlx_mac_workstation",
+      "dataset_family_id": "psion.curated_pretrain.dataset_family.v1",
+      "checkpoint_family": "psion.cross_provider.pretrain.v1",
+      "artifact_family": "validator_verdict",
+      "evidence_trace_key": "41ca6f03a8bcd2b20c2fd9a49fba019bfd7fd1773b739e421b124f067c185940"
+    },
+    {
+      "lineage_slot_id": "lineage.eval.google.1",
+      "execution_class": "eval_worker",
+      "source_id": "google_l4_validator_node",
+      "dataset_family_id": "psion.curated_pretrain.dataset_family.v1",
+      "checkpoint_family": "psion.cross_provider.pretrain.v1",
+      "artifact_family": "eval_metrics",
+      "evidence_trace_key": "cf7628bc955ea8bc48815d840ffca41932e16a42e2e5baa07be9b24e316343d7"
+    },
+    {
+      "lineage_slot_id": "lineage.eval.rtx4080.1",
+      "execution_class": "eval_worker",
+      "source_id": "local_rtx4080_workstation",
+      "dataset_family_id": "psion.curated_pretrain.dataset_family.v1",
+      "checkpoint_family": "psion.cross_provider.pretrain.v1",
+      "artifact_family": "eval_metrics",
+      "evidence_trace_key": "9bff1885c998c6e5ca0a31950f4f6b66ab9a1d7e266c488e7a2e8825d129b9d6"
+    },
+    {
+      "lineage_slot_id": "lineage.checkpoint_writer.runpod.1",
+      "execution_class": "checkpoint_writer",
+      "source_id": "runpod_8xh100_dense_node",
+      "dataset_family_id": "psion.curated_pretrain.dataset_family.v1",
+      "checkpoint_family": "psion.cross_provider.pretrain.v1",
+      "artifact_family": "checkpoint_manifest",
+      "evidence_trace_key": "eb4ecce6d01622131384bb0d59af02363b933bc5fb85bb7f924d2d50906f738c"
+    },
+    {
+      "lineage_slot_id": "lineage.checkpoint_writer.google.1",
+      "execution_class": "checkpoint_writer",
+      "source_id": "google_l4_validator_node",
+      "dataset_family_id": "psion.curated_pretrain.dataset_family.v1",
+      "checkpoint_family": "psion.cross_provider.pretrain.v1",
+      "artifact_family": "checkpoint_manifest",
+      "evidence_trace_key": "7bb059d769a4c1ba7b7e615c913c0b86272ffce6e1ed2858596ff8227be9d85b"
+    }
+  ],
+  "claim_boundary": "This hybrid plan proves one provider-neutral pretraining program can emit dense-rank work, validated contributor windows, validator work, eval work, and checkpoint-writer work under one shared dataset family and checkpoint family. It does not claim same-job mixed-backend dense training or provider launch closure by itself.",
+  "plan_digest": "8bbfa61f760849029563b53a2ed7ae0a52b260be793d0aa52d577d7adb2670a8"
+}
