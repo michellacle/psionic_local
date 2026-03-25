@@ -160,6 +160,16 @@ pair, and one bounded adapter-cluster runtime that uses the existing generic
 worker-protocol, validation, and aggregation substrate instead of inventing a
 second Google-only control plane.
 
+The repo now also owns explicit Google swarm impairment policy and host-side
+transport shaping for that lane in
+`fixtures/psion/google/psion_google_two_node_swarm_impairment_policy_v1.json`
+and `scripts/psion-google-two-node-swarm-impair.sh`. That surface freezes the
+admitted clean, mild-WAN, asymmetric-degraded, and temporary-partition drills,
+keeps shaping scoped to the reserved cluster ports instead of the whole host,
+and emits one machine-legible impairment receipt with the active profile,
+affected ports, host identity, role-specific parameters, and observed `tc`
+verification output.
+
 The repo now also owns one rehearsal-grade bottleneck report for that lane in
 `crates/psionic-train/src/swarm_trusted_lan_rehearsal.rs`, the binary
 `first_swarm_trusted_lan_rehearsal_report`, the checker

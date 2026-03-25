@@ -1,0 +1,137 @@
+{
+  "schema_version": "psion.google_two_node_swarm_impairment_policy.v1",
+  "policy_id": "openagentsgemini-psion-google-two-node-swarm-impairment-v1",
+  "contract_digest": "b279e935039f6a7a26cc34f1c189c4d804f6cc33491cb0ae47976dbf62e88ef8",
+  "project_id": "openagentsgemini",
+  "cluster_namespace": "cluster.psion.google.configured_peer_swarm",
+  "cluster_ports": [
+    34100,
+    34101
+  ],
+  "interface_selection": {
+    "strategy": "default_route_device",
+    "allow_explicit_override": true
+  },
+  "qdisc_handles": {
+    "root": "1:",
+    "target_flowid": "1:3",
+    "netem": "30:"
+  },
+  "profiles": [
+    {
+      "profile_id": "clean_baseline",
+      "mode": "clear",
+      "detail": "No impairment. This proves the configured-peer adapter lane when the private Google network is healthy.",
+      "validation_targets": [
+        "configured_peer_launch",
+        "cluster_membership",
+        "validator_window_seal"
+      ],
+      "role_parameters": {
+        "coordinator": {
+          "delay_ms": 0,
+          "jitter_ms": 0,
+          "loss_percent": 0.0,
+          "duplicate_percent": 0.0,
+          "reorder_percent": 0.0,
+          "rate_mbit": 0
+        },
+        "contributor": {
+          "delay_ms": 0,
+          "jitter_ms": 0,
+          "loss_percent": 0.0,
+          "duplicate_percent": 0.0,
+          "reorder_percent": 0.0,
+          "rate_mbit": 0
+        }
+      }
+    },
+    {
+      "profile_id": "mild_wan",
+      "mode": "netem",
+      "detail": "Symmetric latency, small jitter, and very small loss to prove the bounded adapter window on a healthy but non-LAN path.",
+      "validation_targets": [
+        "configured_peer_launch",
+        "dial_health",
+        "validator_window_seal"
+      ],
+      "role_parameters": {
+        "coordinator": {
+          "delay_ms": 45,
+          "jitter_ms": 10,
+          "loss_percent": 0.2,
+          "duplicate_percent": 0.0,
+          "reorder_percent": 0.0,
+          "rate_mbit": 600
+        },
+        "contributor": {
+          "delay_ms": 45,
+          "jitter_ms": 10,
+          "loss_percent": 0.2,
+          "duplicate_percent": 0.0,
+          "reorder_percent": 0.0,
+          "rate_mbit": 600
+        }
+      }
+    },
+    {
+      "profile_id": "asymmetric_degraded",
+      "mode": "netem",
+      "detail": "Deliberately asymmetric delay, jitter, loss, and bandwidth ceilings so the coordinator and contributor do not see equivalent transport quality.",
+      "validation_targets": [
+        "dial_health",
+        "stale_worker_handling",
+        "validator_refusal_posture",
+        "lease_freshness"
+      ],
+      "role_parameters": {
+        "coordinator": {
+          "delay_ms": 120,
+          "jitter_ms": 35,
+          "loss_percent": 1.0,
+          "duplicate_percent": 0.1,
+          "reorder_percent": 2.0,
+          "rate_mbit": 180
+        },
+        "contributor": {
+          "delay_ms": 65,
+          "jitter_ms": 20,
+          "loss_percent": 0.4,
+          "duplicate_percent": 0.0,
+          "reorder_percent": 0.5,
+          "rate_mbit": 420
+        }
+      }
+    },
+    {
+      "profile_id": "temporary_partition",
+      "mode": "netem",
+      "detail": "Temporary blackhole on the cluster ports only. The operator applies this briefly and then clears it to prove unreachable-peer diagnostics and replay-safe recovery.",
+      "validation_targets": [
+        "unreachable_peer_diagnostics",
+        "late_join_recovery",
+        "lease_freshness",
+        "replay_safe_rejoin"
+      ],
+      "role_parameters": {
+        "coordinator": {
+          "delay_ms": 0,
+          "jitter_ms": 0,
+          "loss_percent": 100.0,
+          "duplicate_percent": 0.0,
+          "reorder_percent": 0.0,
+          "rate_mbit": 0
+        },
+        "contributor": {
+          "delay_ms": 0,
+          "jitter_ms": 0,
+          "loss_percent": 100.0,
+          "duplicate_percent": 0.0,
+          "reorder_percent": 0.0,
+          "rate_mbit": 0
+        }
+      }
+    }
+  ],
+  "claim_boundary": "This policy freezes explicit cluster-port impairment for the bounded Google two-node configured-peer swarm lane inside one operator-managed Google environment. It does not claim cross-region behavior, public internet discovery, or production network readiness."
+}
