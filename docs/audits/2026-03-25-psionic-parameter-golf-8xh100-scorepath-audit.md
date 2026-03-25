@@ -286,11 +286,15 @@ Existing relevant issues:
 - `#550`: distributed legal score-first TTT
 - `#551`: parameter-banked PGOLF model surface
 - `#552`: Parallel Muon collectives
+- `#556`: `LeakyReLU(0.5)^2` MLP activation support
+- `#557`: `BigramHash`-style context features
 
-The open issue stack is now explicit about the two additional competitive-path gaps that were not tracked when this audit was first written:
+The open issue stack is now explicit about four additional competitive-path gaps that were not tracked when this audit was first written:
 
 - Parameter Banking in the model surface
 - Parallel Muon collectives in the distributed optimizer path
+- `LeakyReLU(0.5)^2` in the PGOLF MLP activation surface
+- `BigramHash`-style local context features
 
 ## Bottom Line
 

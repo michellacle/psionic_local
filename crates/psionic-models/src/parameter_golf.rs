@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use psionic_core::{DType, QuantizationMode, Shape};
+use psionic_core::{DType, QuantizationMode, Shape, StableF32};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use thiserror::Error;
@@ -39,6 +39,9 @@ pub const PARAMETER_GOLF_BASELINE_LOGIT_SOFTCAP: f32 = 30.0;
 pub const PARAMETER_GOLF_BASELINE_ROPE_BASE: f32 = 10_000.0;
 /// The current public baseline q-gain init.
 pub const PARAMETER_GOLF_BASELINE_QK_GAIN_INIT: f32 = 1.5;
+/// The current public baseline MLP activation.
+pub const PARAMETER_GOLF_BASELINE_MLP_ACTIVATION: ParameterGolfMlpActivation =
+    ParameterGolfMlpActivation::ReluSquared;
 /// Stable Parameter Banking tensor id for the combined query/output bank.
 pub const PARAMETER_GOLF_QO_BANK_NAME: &str = "qo_bank";
 /// Stable Parameter Banking tensor id for the combined key/value bank.
@@ -57,6 +60,35 @@ pub const PARAMETER_GOLF_MATRIX_BANK_NAMES: &[&str] = &[
 /// The effective epsilon used when the public PyTorch path leaves RMSNorm epsilon unset.
 pub const PARAMETER_GOLF_DEFAULT_RMS_NORM_EPSILON: f32 = f32::EPSILON;
 
+/// MLP activation posture for one Parameter Golf decoder-family instance.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum ParameterGolfMlpActivation {
+    /// Standard ReLU-squared activation.
+    ReluSquared,
+    /// Leaky-ReLU with one fixed negative slope followed by squaring.
+    LeakyReluSquared {
+        /// Negative slope applied to values below zero before squaring.
+        negative_slope: StableF32,
+    },
+}
+
+impl ParameterGolfMlpActivation {
+    /// Competitive public score-path posture from the current top local record surface.
+    #[must_use]
+    pub const fn leaky_relu_squared_point_five() -> Self {
+        Self::LeakyReluSquared {
+            negative_slope: StableF32::from_f32(0.5),
+        }
+    }
+}
+
+impl Default for ParameterGolfMlpActivation {
+    fn default() -> Self {
+        PARAMETER_GOLF_BASELINE_MLP_ACTIVATION
+    }
+}
+
 /// Configuration for one Parameter Golf decoder-family instance.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ParameterGolfConfig {
@@ -72,6 +104,9 @@ pub struct ParameterGolfConfig {
     pub num_kv_heads: usize,
     /// MLP expansion multiplier.
     pub mlp_mult: usize,
+    /// MLP activation family.
+    #[serde(default)]
+    pub mlp_activation: ParameterGolfMlpActivation,
     /// Maximum context length.
     pub max_context: usize,
     /// Whether token embeddings are tied to the LM head.
@@ -97,6 +132,7 @@ impl ParameterGolfConfig {
             num_heads: PARAMETER_GOLF_BASELINE_NUM_HEADS,
             num_kv_heads: PARAMETER_GOLF_BASELINE_NUM_KV_HEADS,
             mlp_mult: PARAMETER_GOLF_BASELINE_MLP_MULT,
+            mlp_activation: PARAMETER_GOLF_BASELINE_MLP_ACTIVATION,
             max_context: PARAMETER_GOLF_BASELINE_MAX_CONTEXT,
             tie_embeddings: PARAMETER_GOLF_BASELINE_TIE_EMBEDDINGS,
             tied_embed_init_std: PARAMETER_GOLF_BASELINE_TIED_EMBED_INIT_STD,
@@ -145,6 +181,16 @@ impl ParameterGolfConfig {
         }
         if self.mlp_mult == 0 {
             return Err(ParameterGolfConfigError::MlpMultMustBePositive);
+        }
+        if let ParameterGolfMlpActivation::LeakyReluSquared { negative_slope } =
+            self.mlp_activation
+        {
+            let negative_slope = negative_slope.to_f32();
+            if !negative_slope.is_finite() || negative_slope < 0.0 {
+                return Err(ParameterGolfConfigError::MlpActivationNegativeSlopeMustBeFinite {
+                    value: negative_slope,
+                });
+            }
         }
         if self.max_context == 0 {
             return Err(ParameterGolfConfigError::MaxContextMustBePositive);
@@ -334,6 +380,12 @@ pub enum ParameterGolfConfigError {
     /// `mlp_mult` must be strictly positive.
     #[error("mlp_mult must be positive")]
     MlpMultMustBePositive,
+    /// The leaky-ReLU negative slope must be finite and non-negative.
+    #[error("mlp_activation negative_slope must be finite and non-negative, got {value}")]
+    MlpActivationNegativeSlopeMustBeFinite {
+        /// Invalid negative slope.
+        value: f32,
+    },
     /// `max_context` must be strictly positive.
     #[error("max_context must be positive")]
     MaxContextMustBePositive,
@@ -2210,7 +2262,7 @@ fn block_forward(
     let mut x = mixed;
     add_scaled_in_place(&mut x, &attention, block.attn_scale.as_slice());
     let normed_for_mlp = rms_norm_last_dim(&x, PARAMETER_GOLF_DEFAULT_RMS_NORM_EPSILON);
-    let mlp = mlp_forward(&block.mlp, &normed_for_mlp);
+    let mlp = mlp_forward(&block.mlp, &normed_for_mlp, config);
     add_scaled_in_place(&mut x, &mlp, block.mlp_scale.as_slice());
     x
 }
@@ -2254,11 +2306,21 @@ fn linear_forward_with_weight(
 fn mlp_forward(
     mlp: &ParameterGolfMlpWeights,
     input: &ParameterGolfTensor3,
+    config: &ParameterGolfConfig,
 ) -> ParameterGolfTensor3 {
     let mut hidden = linear_forward(&mlp.fc, input);
     for value in &mut hidden.values {
-        *value = value.max(0.0);
-        *value *= *value;
+        let activated = match config.mlp_activation {
+            ParameterGolfMlpActivation::ReluSquared => value.max(0.0),
+            ParameterGolfMlpActivation::LeakyReluSquared { negative_slope } => {
+                if *value >= 0.0 {
+                    *value
+                } else {
+                    *value * negative_slope.to_f32()
+                }
+            }
+        };
+        *value = activated * activated;
     }
     linear_forward(&mlp.proj, &hidden)
 }
@@ -2796,6 +2858,64 @@ mod tests {
             err,
             ParameterGolfConfigError::LogitSoftcapMustBePositive { .. }
         ));
+    }
+
+    #[test]
+    fn config_rejects_negative_leaky_relu_squared_slope() {
+        let err = ParameterGolfConfig {
+            mlp_activation: ParameterGolfMlpActivation::LeakyReluSquared {
+                negative_slope: StableF32::from_f32(-0.25),
+            },
+            ..ParameterGolfConfig::baseline_sp1024_9x512()
+        }
+        .validate()
+        .expect_err("negative leaky slope should be refused");
+        assert!(matches!(
+            err,
+            ParameterGolfConfigError::MlpActivationNegativeSlopeMustBeFinite { .. }
+        ));
+    }
+
+    #[test]
+    fn baseline_fixture_deserializes_without_explicit_mlp_activation() {
+        let fixture = load_baseline_fixture();
+        assert_eq!(
+            fixture.config.mlp_activation,
+            ParameterGolfMlpActivation::ReluSquared
+        );
+    }
+
+    #[test]
+    fn leaky_relu_squared_point_five_changes_reference_logits() {
+        let initializer = ParameterGolfDeterministicInitializer::default();
+        let input_ids = vec![vec![0_u32, 1, 2, 3]];
+        let baseline_config = ParameterGolfConfig::baseline_sp1024_9x512();
+        let baseline = ParameterGolfReferenceModel::new(
+            ModelDescriptor::new("parameter-golf-test-baseline", PARAMETER_GOLF_MODEL_FAMILY, "v1"),
+            baseline_config.clone(),
+            ParameterGolfWeights::from_initializer(&baseline_config, initializer)
+                .expect("baseline weights should build"),
+        )
+        .expect("baseline model should build");
+        let leaky_config = ParameterGolfConfig {
+            mlp_activation: ParameterGolfMlpActivation::leaky_relu_squared_point_five(),
+            ..baseline_config
+        };
+        let leaky = ParameterGolfReferenceModel::new(
+            ModelDescriptor::new("parameter-golf-test-leaky", PARAMETER_GOLF_MODEL_FAMILY, "v1"),
+            leaky_config.clone(),
+            ParameterGolfWeights::from_initializer(&leaky_config, initializer)
+                .expect("leaky weights should build"),
+        )
+        .expect("leaky model should build");
+
+        let baseline_logits = baseline
+            .forward_logits(&input_ids)
+            .expect("baseline logits should materialize");
+        let leaky_logits = leaky
+            .forward_logits(&input_ids)
+            .expect("leaky logits should materialize");
+        assert_ne!(baseline_logits.values, leaky_logits.values);
     }
 
     #[test]

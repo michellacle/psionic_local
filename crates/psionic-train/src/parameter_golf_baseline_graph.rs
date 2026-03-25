@@ -7,11 +7,12 @@ use psionic_ir::{
 };
 use psionic_models::{
     ParameterGolfBankedWeights, ParameterGolfConfig, ParameterGolfConfigError,
-    ParameterGolfExecutionError, ParameterGolfModelDescriptor, ParameterGolfModelError,
-    ParameterGolfReferenceModel, ParameterGolfTensor3, ParameterGolfTensorError,
-    PARAMETER_GOLF_DEFAULT_RMS_NORM_EPSILON, PARAMETER_GOLF_KV_BANK_NAME,
-    PARAMETER_GOLF_MATRIX_BANK_NAMES, PARAMETER_GOLF_MLP_DOWN_BANK_NAME,
-    PARAMETER_GOLF_MLP_UP_BANK_NAME, PARAMETER_GOLF_QO_BANK_NAME,
+    ParameterGolfExecutionError, ParameterGolfMlpActivation, ParameterGolfModelDescriptor,
+    ParameterGolfModelError, ParameterGolfReferenceModel, ParameterGolfTensor3,
+    ParameterGolfTensorError, PARAMETER_GOLF_DEFAULT_RMS_NORM_EPSILON,
+    PARAMETER_GOLF_KV_BANK_NAME, PARAMETER_GOLF_MATRIX_BANK_NAMES,
+    PARAMETER_GOLF_MLP_DOWN_BANK_NAME, PARAMETER_GOLF_MLP_UP_BANK_NAME,
+    PARAMETER_GOLF_QO_BANK_NAME,
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -1119,7 +1120,12 @@ fn mlp_forward_graph(
         hidden_dim,
         use_bf16_fast_path,
     )?;
-    let activated = builder.relu_squared(&hidden)?;
+    let activated = match config.mlp_activation {
+        ParameterGolfMlpActivation::ReluSquared => builder.relu_squared(&hidden)?,
+        ParameterGolfMlpActivation::LeakyReluSquared { negative_slope } => {
+            builder.leaky_relu_squared(&hidden, negative_slope.to_f32())?
+        }
+    };
     let proj_weight = parameter_tensor_or_matrix_bank_slice_graph(
         builder,
         parameters,
@@ -1472,7 +1478,9 @@ mod tests {
     use serde::Deserialize;
 
     use super::*;
-    use psionic_models::{ModelDescriptor, ParameterGolfDeterministicInitializer};
+    use psionic_models::{
+        ModelDescriptor, ParameterGolfDeterministicInitializer, ParameterGolfWeights,
+    };
 
     #[derive(Deserialize)]
     struct BaselineFixture {
@@ -1536,6 +1544,54 @@ mod tests {
     ) -> Result<(), Box<dyn std::error::Error>> {
         let fixture = load_baseline_fixture();
         let model = baseline_model()?;
+        let graph = build_parameter_golf_baseline_graph(
+            Device::cpu(),
+            model.descriptor(),
+            fixture.input_ids.len(),
+            fixture.input_ids[0].len(),
+        )?;
+        compile_graph(graph.graph.graph())?;
+
+        let inputs = bind_parameter_golf_baseline_graph_inputs(
+            &graph,
+            &model,
+            fixture.input_ids.as_slice(),
+        )?;
+        let values = evaluate_graph(graph.graph.graph(), &inputs)?;
+        let pre_softcap_logits = output_tensor3(
+            values
+                .get(&graph.pre_softcap_logits_tensor_id)
+                .ok_or("missing pre-softcap logits")?,
+            [1, 4, model.descriptor().config.vocab_size],
+            "pre_softcap_logits",
+        )?;
+        let seeded = parameter_golf_projection_seed(
+            &pre_softcap_logits,
+            fixture.target_ids.as_slice(),
+            model.descriptor().config.logit_softcap,
+        )?;
+        let reference = model.forward_logits(fixture.input_ids.as_slice())?;
+        let max_abs_diff = seeded.softcapped_logits.max_abs_diff(&reference)?;
+        assert!(
+            max_abs_diff < 5e-5,
+            "max logit drift {max_abs_diff} exceeded tolerance"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn parameter_golf_baseline_graph_matches_reference_logits_with_leaky_relu_squared(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let fixture = load_baseline_fixture();
+        let config = ParameterGolfConfig {
+            mlp_activation: ParameterGolfMlpActivation::leaky_relu_squared_point_five(),
+            ..ParameterGolfConfig::baseline_sp1024_9x512()
+        };
+        let model = ParameterGolfReferenceModel::new(
+            ModelDescriptor::new("parameter-golf-test-leaky", "parameter_golf_decoder", "v1"),
+            config.clone(),
+            ParameterGolfWeights::from_initializer(&config, fixture.initializer)?,
+        )?;
         let graph = build_parameter_golf_baseline_graph(
             Device::cpu(),
             model.descriptor(),

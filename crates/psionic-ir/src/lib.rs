@@ -24,8 +24,8 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use psionic_core::{
     BackendExtensionOp, DType, Device, LazyOp, PsionicRefusal, PsionicRefusalCode,
-    PsionicRefusalScope, QuantizationMode, QuantizedTensorData, Shape, Tensor, TensorData,
-    TensorId, TensorSpec,
+    PsionicRefusalScope, QuantizationMode, QuantizedTensorData, Shape, StableF32, Tensor,
+    TensorData, TensorId, TensorSpec,
 };
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -3865,6 +3865,18 @@ const BUILTIN_OPERATOR_SCHEMAS: &[OperatorSchema] = &[
         OperatorMetaExecutionKind::BuiltinInference,
     ),
     OperatorSchema::new(
+        "leaky_relu_squared",
+        OperatorArity::Fixed(1),
+        OperatorImplementationKind::BackendKernel,
+        OperatorMetaExecutionKind::BuiltinInference,
+    ),
+    OperatorSchema::new(
+        "leaky_relu_squared_backward",
+        OperatorArity::Fixed(2),
+        OperatorImplementationKind::BackendKernel,
+        OperatorMetaExecutionKind::BuiltinInference,
+    ),
+    OperatorSchema::new(
         "silu",
         OperatorArity::Fixed(1),
         OperatorImplementationKind::BackendKernel,
@@ -4454,6 +4466,44 @@ fn meta_execute_backend_extension(
                 input.device().clone(),
             ))
         }
+        BackendExtensionOp::LeakyReluSquared { .. } => {
+            if inputs.len() != 1 {
+                return Err(extension_error(
+                    "leaky_relu_squared",
+                    format!("expected 1 input, received {}", inputs.len()),
+                ));
+            }
+            Ok(TensorSpec::new(
+                inputs[0].shape().clone(),
+                inputs[0].dtype(),
+                inputs[0].device().clone(),
+            ))
+        }
+        BackendExtensionOp::LeakyReluSquaredBackward { .. } => {
+            if inputs.len() != 2 {
+                return Err(extension_error(
+                    "leaky_relu_squared_backward",
+                    format!("expected 2 inputs, received {}", inputs.len()),
+                ));
+            }
+            let input = &inputs[0];
+            let grad_output = &inputs[1];
+            if input != grad_output {
+                return Err(extension_error(
+                    "leaky_relu_squared_backward",
+                    format!(
+                        "input spec {} must match grad_output spec {}",
+                        format_spec(input),
+                        format_spec(grad_output)
+                    ),
+                ));
+            }
+            Ok(TensorSpec::new(
+                input.shape().clone(),
+                input.dtype(),
+                input.device().clone(),
+            ))
+        }
         BackendExtensionOp::Silu => {
             if inputs.len() != 1 {
                 return Err(extension_error(
@@ -4968,6 +5018,40 @@ impl GraphBuilder {
         grad_output: &Tensor,
     ) -> Result<Tensor, GraphError> {
         let op = BackendExtensionOp::ReluSquaredBackward;
+        let spec = self.meta_spec(
+            &ExecutionOp::BackendExtension { op: op.clone() },
+            &[input, grad_output],
+            None,
+        )?;
+        Ok(self.register_backend_extension(op, vec![input.id(), grad_output.id()], spec))
+    }
+
+    /// Applies leaky-ReLU-squared pointwise activation.
+    pub fn leaky_relu_squared(
+        &mut self,
+        input: &Tensor,
+        negative_slope: f32,
+    ) -> Result<Tensor, GraphError> {
+        let op = BackendExtensionOp::LeakyReluSquared {
+            negative_slope: StableF32::from_f32(negative_slope),
+        };
+        let spec = self.meta_spec(
+            &ExecutionOp::BackendExtension { op: op.clone() },
+            &[input],
+            None,
+        )?;
+        Ok(self.register_backend_extension(op, vec![input.id()], spec))
+    }
+
+    pub(crate) fn leaky_relu_squared_backward(
+        &mut self,
+        input: &Tensor,
+        grad_output: &Tensor,
+        negative_slope: f32,
+    ) -> Result<Tensor, GraphError> {
+        let op = BackendExtensionOp::LeakyReluSquaredBackward {
+            negative_slope: StableF32::from_f32(negative_slope),
+        };
         let spec = self.meta_spec(
             &ExecutionOp::BackendExtension { op: op.clone() },
             &[input, grad_output],
@@ -5583,6 +5667,10 @@ fn format_backend_extension_payload(op: &BackendExtensionOp) -> String {
         | BackendExtensionOp::ReluSquaredBackward
         | BackendExtensionOp::Silu
         | BackendExtensionOp::SiluBackward => String::new(),
+        BackendExtensionOp::LeakyReluSquared { negative_slope }
+        | BackendExtensionOp::LeakyReluSquaredBackward { negative_slope } => {
+            format!("negative_slope_bits={:08x}", negative_slope.0)
+        }
         BackendExtensionOp::ParameterGolfProjectionLoss { logit_softcap }
         | BackendExtensionOp::ParameterGolfProjectionTokenLosses { logit_softcap }
         | BackendExtensionOp::ParameterGolfProjectionLossBackward { logit_softcap } => {

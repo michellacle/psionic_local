@@ -1954,6 +1954,8 @@ pub enum BackendExtensionKind {
     ParameterGolfTokenEmbeddingLookup,
     /// ReLU-squared pointwise activation.
     ReluSquared,
+    /// Leaky-ReLU-squared pointwise activation.
+    LeakyReluSquared,
     /// SiLU pointwise activation.
     Silu,
     /// Parameter Golf tanh-softcap next-token loss over `[batch, seq, vocab]`
@@ -1981,6 +1983,7 @@ impl BackendExtensionKind {
         match self {
             Self::ParameterGolfTokenEmbeddingLookup => "parameter_golf_token_embedding_lookup",
             Self::ReluSquared => "relu_squared",
+            Self::LeakyReluSquared => "leaky_relu_squared",
             Self::Silu => "silu",
             Self::ParameterGolfProjectionLoss => "parameter_golf_projection_loss",
             Self::ParameterGolfProjectionTokenLosses => {
@@ -2007,6 +2010,16 @@ pub enum BackendExtensionOp {
     ReluSquared,
     /// Input-gradient rule for ReLU-squared pointwise activation.
     ReluSquaredBackward,
+    /// Leaky-ReLU-squared pointwise activation.
+    LeakyReluSquared {
+        /// Negative slope applied to values below zero before squaring.
+        negative_slope: StableF32,
+    },
+    /// Input-gradient rule for Leaky-ReLU-squared pointwise activation.
+    LeakyReluSquaredBackward {
+        /// Negative slope applied to values below zero before squaring.
+        negative_slope: StableF32,
+    },
     /// SiLU pointwise activation.
     Silu,
     /// Input-gradient rule for SiLU pointwise activation.
@@ -2103,6 +2116,9 @@ impl BackendExtensionOp {
                 BackendExtensionKind::ParameterGolfTokenEmbeddingLookup
             }
             Self::ReluSquared | Self::ReluSquaredBackward => BackendExtensionKind::ReluSquared,
+            Self::LeakyReluSquared { .. } | Self::LeakyReluSquaredBackward { .. } => {
+                BackendExtensionKind::LeakyReluSquared
+            }
             Self::Silu | Self::SiluBackward => BackendExtensionKind::Silu,
             Self::ParameterGolfProjectionLoss { .. }
             | Self::ParameterGolfProjectionLossBackward { .. } => {
@@ -2138,6 +2154,8 @@ impl BackendExtensionOp {
             }
             Self::ReluSquared => "relu_squared",
             Self::ReluSquaredBackward => "relu_squared_backward",
+            Self::LeakyReluSquared { .. } => "leaky_relu_squared",
+            Self::LeakyReluSquaredBackward { .. } => "leaky_relu_squared_backward",
             Self::Silu => "silu",
             Self::SiluBackward => "silu_backward",
             Self::ParameterGolfProjectionLoss { .. } => "parameter_golf_projection_loss",

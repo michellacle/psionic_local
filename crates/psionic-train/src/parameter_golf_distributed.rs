@@ -1739,6 +1739,7 @@ mod tests {
             num_heads: 2,
             num_kv_heads: 1,
             mlp_mult: 2,
+            mlp_activation: Default::default(),
             max_context: 16,
             tie_embeddings: true,
             tied_embed_init_std: 0.005,

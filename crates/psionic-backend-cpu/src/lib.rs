@@ -416,6 +416,12 @@ impl CpuBackend {
         match op {
             BackendExtensionOp::ReluSquared => self.relu_squared(step, values),
             BackendExtensionOp::ReluSquaredBackward => self.relu_squared_backward(step, values),
+            BackendExtensionOp::LeakyReluSquared { negative_slope } => {
+                self.leaky_relu_squared(step, values, negative_slope.to_f32())
+            }
+            BackendExtensionOp::LeakyReluSquaredBackward { negative_slope } => {
+                self.leaky_relu_squared_backward(step, values, negative_slope.to_f32())
+            }
             BackendExtensionOp::Silu => self.silu(step, values),
             BackendExtensionOp::SiluBackward => self.silu_backward(step, values),
             BackendExtensionOp::RmsNorm { epsilon } => {
@@ -616,6 +622,57 @@ impl CpuBackend {
                 } else {
                     0.0
                 }
+            })
+            .collect::<Vec<_>>();
+        CpuBuffer::from_f32(step.spec.clone(), output)
+    }
+
+    fn leaky_relu_squared(
+        &self,
+        step: &ExecutionStep,
+        values: &BTreeMap<TensorId, CpuBuffer>,
+        negative_slope: f32,
+    ) -> Result<CpuBuffer, RuntimeError> {
+        let input = self.input(step, values, 0)?.logical_values()?;
+        let output = input
+            .iter()
+            .map(|value| {
+                let activated = if *value >= 0.0 {
+                    *value
+                } else {
+                    value * negative_slope
+                };
+                activated * activated
+            })
+            .collect::<Vec<_>>();
+        CpuBuffer::from_f32(step.spec.clone(), output)
+    }
+
+    fn leaky_relu_squared_backward(
+        &self,
+        step: &ExecutionStep,
+        values: &BTreeMap<TensorId, CpuBuffer>,
+        negative_slope: f32,
+    ) -> Result<CpuBuffer, RuntimeError> {
+        let input = self.input(step, values, 0)?.logical_values()?;
+        let grad_output = self.input(step, values, 1)?.logical_values()?;
+        if input.len() != grad_output.len() {
+            return Err(RuntimeError::Backend(format!(
+                "cpu leaky_relu_squared_backward requires matching input and grad_output lengths, actual {} and {}",
+                input.len(),
+                grad_output.len()
+            )));
+        }
+        let output = input
+            .iter()
+            .zip(grad_output.iter())
+            .map(|(value, grad)| {
+                let derivative = if *value >= 0.0 {
+                    2.0 * value
+                } else {
+                    2.0 * negative_slope * negative_slope * value
+                };
+                grad * derivative
             })
             .collect::<Vec<_>>();
         CpuBuffer::from_f32(step.spec.clone(), output)
@@ -1603,6 +1660,7 @@ impl DeviceDiscovery for CpuBackend {
     fn extension_support(&self) -> Vec<BackendExtensionSupport> {
         vec![
             BackendExtensionSupport::reference(BackendExtensionKind::ReluSquared),
+            BackendExtensionSupport::reference(BackendExtensionKind::LeakyReluSquared),
             BackendExtensionSupport::reference(BackendExtensionKind::Silu),
             BackendExtensionSupport::reference(BackendExtensionKind::RmsNorm),
             BackendExtensionSupport::reference(BackendExtensionKind::LayerNorm),
@@ -1908,6 +1966,7 @@ mod tests {
                 .collect::<Vec<_>>(),
             vec![
                 BackendExtensionKind::ReluSquared,
+                BackendExtensionKind::LeakyReluSquared,
                 BackendExtensionKind::Silu,
                 BackendExtensionKind::RmsNorm,
                 BackendExtensionKind::LayerNorm,
@@ -2302,6 +2361,34 @@ mod tests {
         let values = output_buffer.logical_values()?;
         assert_eq!(values.len(), 8);
         assert!(values.iter().all(|value| value.is_finite()));
+        Ok(())
+    }
+
+    #[test]
+    fn cpu_backend_executes_leaky_relu_squared_reference_op() -> Result<(), RuntimeError> {
+        let mut builder = GraphBuilder::new(Device::cpu());
+        let input = builder.input("input", Shape::new(vec![4]), DType::F32);
+        let output = builder
+            .leaky_relu_squared(&input, 0.5)
+            .map_err(|error| RuntimeError::Backend(error.to_string()))?;
+        let graph = builder.finish(vec![output.clone()]);
+
+        let mut backend = CpuBackend::new();
+        let mut inputs = BTreeMap::new();
+        inputs.insert(
+            input.id(),
+            backend.input_buffer(Shape::new(vec![4]), vec![-2.0_f32, -0.5, 0.75, 3.0])?,
+        );
+
+        let result = backend.compile_and_execute(&graph, &inputs)?;
+        let output = result
+            .outputs
+            .get(&output.id())
+            .ok_or_else(|| RuntimeError::Backend(String::from("leaky relu squared output")))?;
+        assert_eq!(
+            output.as_f32_slice(),
+            Some(&[1.0_f32, 0.0625, 0.5625, 9.0][..])
+        );
         Ok(())
     }
 
