@@ -16,6 +16,8 @@ record-track claim.
   `fixtures/parameter_golf/runpod/parameter_golf_runpod_8xh100_launch_profiles_v1.json`
 - operator preflight policy:
   `fixtures/parameter_golf/runpod/parameter_golf_runpod_8xh100_operator_preflight_policy_v1.json`
+- shared binder projection:
+  `fixtures/training/runpod_local_training_binder_projection_v1.json`
 - cost and runtime guardrail:
   `fixtures/parameter_golf/runpod/parameter_golf_runpod_8xh100_cost_guardrails_v1.json`
 - operator preflight wrapper:
@@ -32,6 +34,8 @@ record-track claim.
   `scripts/check-parameter-golf-runpod-8xh100-lane.sh`
 - committed local rehearsal report:
   `fixtures/parameter_golf/reports/parameter_golf_runpod_8xh100_operator_rehearsal.json`
+- shared binder reference:
+  `docs/RUNPOD_LOCAL_TRAINING_BINDER_REFERENCE.md`
 
 ## Profile Contract
 

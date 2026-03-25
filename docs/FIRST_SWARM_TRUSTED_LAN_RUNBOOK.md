@@ -20,6 +20,8 @@ a general cluster rehearsal.
 
 - topology contract:
   `fixtures/swarm/first_swarm_trusted_lan_topology_contract_v1.json`
+- shared binder projection:
+  `fixtures/training/runpod_local_training_binder_projection_v1.json`
 - failure-drill bundle:
   `fixtures/swarm/reports/first_swarm_trusted_lan_failure_drills_v1.json`
 - rehearsal report:
@@ -46,6 +48,8 @@ a general cluster rehearsal.
   `scripts/check-first-swarm-trusted-lan-evidence-bundle.sh`
 - closeout checker:
   `scripts/check-first-swarm-trusted-lan-closeout.sh`
+- shared binder reference:
+  `docs/RUNPOD_LOCAL_TRAINING_BINDER_REFERENCE.md`
 
 ## What This Runbook Does Not Claim
 

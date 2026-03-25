@@ -119,6 +119,19 @@ truthful while moving their runtime semantics, retained evidence surfaces, and
 finalizer expectations onto the shared binder instead of Google-only training
 truth.
 
+The current RunPod and local trusted-LAN lanes now also consume that binder
+explicitly through
+`crates/psionic-train/src/runpod_local_training_binder_projection.rs`, the
+binary `runpod_local_training_binder_projection`, the checker
+`scripts/check-runpod-local-training-binder-projection.sh`, the focused
+reference doc `docs/RUNPOD_LOCAL_TRAINING_BINDER_REFERENCE.md`, and the
+committed fixture
+`fixtures/training/runpod_local_training_binder_projection_v1.json`. That
+projection keeps the current RunPod `8xH100` and first trusted-LAN swarm
+operator surfaces bounded and truthful while moving their launch, runtime env,
+artifact-root, and final evidence semantics onto the same shared binder used by
+the Google lanes.
+
 The repo now also owns the first generic dense-rank runtime layer in
 `crates/psionic-train/src/dense_rank_runtime.rs`, the binary
 `dense_rank_runtime_reference_contract`, the checker

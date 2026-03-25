@@ -1,0 +1,67 @@
+{
+  "schema_version": "psionic.runpod_local_training_binder_projection.v1",
+  "program_manifest_id": "psionic-cross-provider-pretraining-program-v1",
+  "program_manifest_digest": "5c7cd52ecf5345551e165eeb1e25440153bf64f38e69aaf1d33a13c7056ca479",
+  "runtime_binder_contract_digest": "ff2e025536321ad7483fcb43a57a1898c3cf90bbdad98ffc684cdc12ac62e518",
+  "lane_projections": [
+    {
+      "lane_projection_id": "runpod_8xh100_parameter_golf",
+      "lane_kind": "run_pod_distributed_eight_h100",
+      "runtime_binding_id": "psionic-cross-provider-pretraining-program-v1.psionic-runpod-8xh100-launch-contract-v1.binding",
+      "runtime_binding_digest": "8cf60ecb952379a0f6daa61370efef18fe0d4f69f909d1a61f44bfd1a99a4a67",
+      "launch_contract_id": "psionic-runpod-8xh100-launch-contract-v1",
+      "runbook_path": "docs/PARAMETER_GOLF_RUNPOD_8XH100_RUNBOOK.md",
+      "retained_authority_paths": [
+        "fixtures/parameter_golf/runpod/parameter_golf_runpod_8xh100_launch_profiles_v1.json",
+        "fixtures/parameter_golf/runpod/parameter_golf_runpod_8xh100_operator_preflight_policy_v1.json",
+        "fixtures/parameter_golf/runpod/parameter_golf_runpod_8xh100_cost_guardrails_v1.json"
+      ],
+      "launch_script_path": "scripts/parameter-golf-runpod-launch-8xh100.sh",
+      "startup_script_path": null,
+      "finalizer_script_path": "scripts/parameter-golf-runpod-finalize-8xh100.sh",
+      "retained_checker_paths": [
+        "scripts/check-parameter-golf-runpod-8xh100-lane.sh"
+      ],
+      "retained_evidence_paths": [
+        "parameter_golf_runpod_8xh100_launch_manifest.json",
+        "parameter_golf_runpod_8xh100_launch_receipt.json",
+        "training_visualization/parameter_golf_distributed_8xh100_remote_training_visualization_bundle_v1.json"
+      ],
+      "claim_boundary": "The RunPod 8xH100 lane still keeps its bounded operator and finalizer posture, but the launch, runtime env, artifact roots, and final evidence expectations now come from the shared binder instead of a RunPod-only training API.",
+      "projection_digest": "4db67bd54a5e426cfc596c8fe9d991c9494366b23fdc22bcf918888db3feecb8"
+    },
+    {
+      "lane_projection_id": "local_trusted_lan_first_swarm",
+      "lane_kind": "local_trusted_lan_swarm",
+      "runtime_binding_id": "psionic-cross-provider-pretraining-program-v1.psionic-local-first-swarm-launch-contract-v1.binding",
+      "runtime_binding_digest": "e7d64ff07fc810a6cf310cc203ca3f606a18f98291919b532f9b54a30ec21cbf",
+      "launch_contract_id": "psionic-local-first-swarm-launch-contract-v1",
+      "runbook_path": "docs/FIRST_SWARM_TRUSTED_LAN_RUNBOOK.md",
+      "retained_authority_paths": [
+        "fixtures/swarm/first_swarm_trusted_lan_topology_contract_v1.json",
+        "fixtures/swarm/reports/first_swarm_trusted_lan_failure_drills_v1.json",
+        "fixtures/swarm/first_swarm_live_workflow_plan_v1.json",
+        "fixtures/swarm/reports/swarm_mac_mlx_bringup_v1.json",
+        "fixtures/swarm/reports/swarm_linux_rtx4080_bringup_v1.json"
+      ],
+      "launch_script_path": "scripts/first-swarm-launch-trusted-lan.sh",
+      "startup_script_path": null,
+      "finalizer_script_path": "cargo run -q -p psionic-train --bin first_swarm_trusted_lan_closeout_report",
+      "retained_checker_paths": [
+        "scripts/check-first-swarm-trusted-lan.sh",
+        "scripts/check-first-swarm-trusted-lan-rehearsal.sh",
+        "scripts/check-first-swarm-trusted-lan-evidence-bundle.sh",
+        "scripts/check-first-swarm-trusted-lan-closeout.sh"
+      ],
+      "retained_evidence_paths": [
+        "fixtures/swarm/reports/first_swarm_trusted_lan_rehearsal_v1.json",
+        "fixtures/swarm/reports/first_swarm_trusted_lan_evidence_bundle_v1.json",
+        "fixtures/swarm/reports/first_swarm_trusted_lan_closeout_v1.json"
+      ],
+      "claim_boundary": "The first local trusted-LAN lane still keeps its bounded mixed-hardware swarm posture, but launch, runtime env, artifact roots, and closeout expectations now come from the shared binder instead of lane-local training truth.",
+      "projection_digest": "7005b70e1ec9c2b677e7fbd3c4a1d2379f81e7182485b402cb142089761a9f49"
+    }
+  ],
+  "claim_boundary": "This projection closes the current RunPod and local trusted-LAN lanes as consumers of the shared cross-provider runtime binder. It does not widen the RunPod 8xH100 lane to a finished dense runtime and it does not widen the local swarm lane to a successful same-job mixed-backend dense trainer.",
+  "contract_digest": "60860b078da0d39b70934e3aff8fbdb917df02dfb664ad8f5acc6ad95b627e15"
+}
