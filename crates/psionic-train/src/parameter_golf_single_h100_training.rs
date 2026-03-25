@@ -2615,7 +2615,7 @@ fn execute_parameter_golf_training_gradient_batch_from_examples(
                 input_ids,
                 target_ids,
             )?;
-            let backward_plan = graph.graph.backward_plan(graph.loss_tensor_id)?;
+            let backward_plan = parameter_only_backward_plan(graph)?;
             let retained_graph = retained_forward_graph(graph, &backward_plan);
             let forward_started = Instant::now();
             let forward_outputs =
@@ -4370,7 +4370,7 @@ impl ParameterGolfCudaTrainingSession {
             cuda_backend.input_i32_buffer(token_shape.clone(), vec![0_i32; token_element_count])?;
         let target_token_buffer =
             cuda_backend.input_i32_buffer(token_shape, vec![0_i32; token_element_count])?;
-        let backward_plan = graph.graph.backward_plan(graph.loss_tensor_id)?;
+        let backward_plan = parameter_only_backward_plan(&graph)?;
         let retained_graph = retained_forward_graph(&graph, &backward_plan);
         Ok(Self {
             graph,
@@ -4591,6 +4591,45 @@ fn retained_forward_graph(
             .map(|binding| binding.primal_tensor),
     );
     graph.graph.graph().with_outputs(unique_tensor_ids(outputs))
+}
+
+fn parameter_only_backward_plan(
+    graph: &ParameterGolfBaselineTrainingGraph,
+) -> Result<psionic_ir::AutodiffBackwardPlan, ParameterGolfSingleH100TrainingError> {
+    let backward_plan = graph.graph.backward_plan(graph.loss_tensor_id)?;
+    let parameter_targets = graph
+        .parameter_bindings
+        .iter()
+        .map(|binding| binding.graph_input_tensor_id)
+        .collect::<std::collections::BTreeSet<_>>();
+    Ok(filter_backward_plan_to_primal_targets(
+        &backward_plan,
+        &parameter_targets,
+    ))
+}
+
+fn filter_backward_plan_to_primal_targets(
+    backward_plan: &psionic_ir::AutodiffBackwardPlan,
+    allowed_primal_tensors: &std::collections::BTreeSet<TensorId>,
+) -> psionic_ir::AutodiffBackwardPlan {
+    let gradient_targets = backward_plan
+        .gradient_targets
+        .iter()
+        .filter(|target| allowed_primal_tensors.contains(&target.primal_tensor))
+        .cloned()
+        .collect::<Vec<_>>();
+    let gradient_outputs = gradient_targets
+        .iter()
+        .map(|target| target.gradient_tensor)
+        .collect::<Vec<_>>();
+    psionic_ir::AutodiffBackwardPlan {
+        gradient_graph: backward_plan
+            .gradient_graph
+            .with_outputs(unique_tensor_ids(gradient_outputs)),
+        primal_bindings: backward_plan.primal_bindings.clone(),
+        seed_input: backward_plan.seed_input,
+        gradient_targets,
+    }
 }
 
 fn execute_backward_plan(
@@ -5187,6 +5226,40 @@ mod tests {
         )?;
 
         assert!(!gradients.parameter_gradients.is_empty());
+        Ok(())
+    }
+
+    #[test]
+    fn parameter_only_backward_plan_filters_non_parameter_targets(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let model = ParameterGolfReferenceModel::baseline_fixture(Default::default())?;
+        let graph = build_parameter_golf_baseline_training_graph(
+            psionic_core::Device::cpu(),
+            model.descriptor(),
+            1,
+            16,
+        )?;
+        let full_plan = graph.graph.backward_plan(graph.loss_tensor_id)?;
+        let filtered_plan = parameter_only_backward_plan(&graph)?;
+        let parameter_targets = graph
+            .parameter_bindings
+            .iter()
+            .map(|binding| binding.graph_input_tensor_id)
+            .collect::<std::collections::BTreeSet<_>>();
+
+        assert!(full_plan.gradient_targets.len() > filtered_plan.gradient_targets.len());
+        assert_eq!(
+            filtered_plan.gradient_targets.len(),
+            graph.parameter_bindings.len()
+        );
+        assert!(filtered_plan
+            .gradient_targets
+            .iter()
+            .all(|target| parameter_targets.contains(&target.primal_tensor)));
+        assert_eq!(
+            filtered_plan.gradient_graph.outputs().len(),
+            filtered_plan.gradient_targets.len()
+        );
         Ok(())
     }
 
