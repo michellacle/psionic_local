@@ -18,7 +18,8 @@ use thiserror::Error;
 
 use crate::{
     device_matches_distributed_h100, inspect_local_distributed_8xh100_machine,
-    ParameterGolfDistributed8xH100BringupReport,
+    ParameterGolfDistributed8xH100BringupReport, ParameterGolfDistributedLiveVisualizationWriter,
+    ParameterGolfDistributedVisualizationError,
     PARAMETER_GOLF_DISTRIBUTED_8XH100_RUNTIME_BOOTSTRAP_RANK_LOGS_DIR_ARTIFACT_REF,
     PARAMETER_GOLF_DISTRIBUTED_8XH100_RUNTIME_BOOTSTRAP_RANK_RECEIPTS_DIR_ARTIFACT_REF,
     PARAMETER_GOLF_DISTRIBUTED_8XH100_RUNTIME_BOOTSTRAP_RECEIPT_ARTIFACT_REF,
@@ -262,6 +263,8 @@ pub enum ParameterGolfDistributed8xH100RuntimeBootstrapError {
         error: serde_json::Error,
     },
     #[error(transparent)]
+    Visualization(#[from] ParameterGolfDistributedVisualizationError),
+    #[error(transparent)]
     Json(#[from] serde_json::Error),
 }
 
@@ -320,6 +323,7 @@ pub fn execute_parameter_golf_distributed_8xh100_runtime_bootstrap(
     run_id: &str,
     bringup_report_path: &Path,
     bringup_report: &ParameterGolfDistributed8xH100BringupReport,
+    mut live_visualization_writer: Option<&mut ParameterGolfDistributedLiveVisualizationWriter>,
 ) -> Result<
     ParameterGolfDistributed8xH100RuntimeBootstrapReceipt,
     ParameterGolfDistributed8xH100RuntimeBootstrapError,
@@ -379,6 +383,24 @@ pub fn execute_parameter_golf_distributed_8xh100_runtime_bootstrap(
     let manifest_path = manifest_path
         .canonicalize()
         .unwrap_or_else(|_| manifest_path.to_path_buf());
+
+    if let Some(writer) = live_visualization_writer.as_deref_mut() {
+        writer.record_phase(
+            "training",
+            Some(String::from("runtime_bootstrap")),
+            format!(
+                "Launching {} distributed bootstrap ranks for the RunPod 8xH100 lane.",
+                CHALLENGE_WORLD_SIZE
+            ),
+            vec![
+                String::from("runtime_bootstrap"),
+                String::from("rank_fanout"),
+                String::from("distributed_runtime"),
+            ],
+            Some(1),
+            true,
+        )?;
+    }
 
     let mut children = Vec::new();
     for rank in 0..CHALLENGE_WORLD_SIZE {
@@ -445,6 +467,7 @@ pub fn execute_parameter_golf_distributed_8xh100_runtime_bootstrap(
     }
 
     let mut rank_launches = Vec::with_capacity(CHALLENGE_WORLD_SIZE);
+    let mut completed_launch_count = 0_usize;
     for (rank, log_path, receipt_path, mut child) in children {
         let status = child.wait().map_err(|error| {
             ParameterGolfDistributed8xH100RuntimeBootstrapError::ChildWait { rank, error }
@@ -477,6 +500,24 @@ pub fn execute_parameter_golf_distributed_8xh100_runtime_bootstrap(
             exit_code: status.code(),
             receipt,
         });
+        completed_launch_count = completed_launch_count.saturating_add(1);
+        if let Some(writer) = live_visualization_writer.as_deref_mut() {
+            writer.record_phase(
+                "training",
+                Some(String::from("runtime_bootstrap")),
+                format!(
+                    "Distributed bootstrap ranks completed: {completed_launch_count}/{}.",
+                    CHALLENGE_WORLD_SIZE
+                ),
+                vec![
+                    String::from("runtime_bootstrap"),
+                    String::from("rank_wait"),
+                    String::from("distributed_runtime"),
+                ],
+                Some(1),
+                false,
+            )?;
+        }
     }
 
     let successful_rank_count = rank_launches
@@ -579,6 +620,20 @@ pub fn execute_parameter_golf_distributed_8xh100_runtime_bootstrap(
             error,
         },
     )?;
+    if let Some(writer) = live_visualization_writer.as_deref_mut() {
+        writer.record_event(
+            if disposition == ParameterGolfDistributed8xH100RuntimeBootstrapDisposition::Bootstrapped {
+                crate::RemoteTrainingEventSeverity::Info
+            } else {
+                crate::RemoteTrainingEventSeverity::Warning
+            },
+            "runtime_bootstrap_result",
+            format!(
+                "Distributed bootstrap finished with disposition {:?} and successful_rank_count={}.",
+                disposition, successful_rank_count
+            ),
+        )?;
+    }
     Ok(receipt)
 }
 
@@ -778,9 +833,7 @@ fn apply_cuda_visibility_contract(
     let raw_discovered_device_count = observed_cuda_devices.len();
     let observed_cuda_devices = observed_cuda_devices
         .into_iter()
-        .filter(|device| {
-            visible_ordinals.contains(&usize::from(device.device.ordinal()))
-        })
+        .filter(|device| visible_ordinals.contains(&usize::from(device.device.ordinal())))
         .collect::<Vec<_>>();
     let observed_cuda_health = if observed_cuda_health.status == HealthStatus::Offline {
         observed_cuda_health
@@ -1039,6 +1092,8 @@ mod tests {
         assert_eq!(devices.len(), 1);
         assert_eq!(devices[0].device.ordinal(), 3);
         assert_eq!(health.status, HealthStatus::Ready);
-        assert!(health.message.contains("retained 1 device(s) from 8 discovered device(s)"));
+        assert!(health
+            .message
+            .contains("retained 1 device(s) from 8 discovered device(s)"));
     }
 }

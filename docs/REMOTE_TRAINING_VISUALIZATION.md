@@ -23,7 +23,7 @@ Autopilot owns rendering, refresh loops, and pane behavior.
 - `fixtures/training_visualization/parameter_golf_live_remote_training_visualization_bundle_v1.json`
   is the canonical full always-live example bundle.
 - `fixtures/training_visualization/parameter_golf_distributed_8xh100_remote_training_visualization_bundle_v1.json`
-  is the canonical RunPod distributed post-run example bundle.
+  is the canonical RunPod distributed always-live example bundle.
 - `fixtures/training_visualization/remote_training_run_index_v1.json` is the
   canonical run-index example.
 
@@ -136,24 +136,45 @@ historical lanes may lack chartable series.
 
 ## RunPod Parameter Golf Distributed 8xH100
 
-The RunPod `8xH100` Parameter Golf lane now seals the same provider-neutral
-bundle family under the run root when the operator finalizer closes.
+The RunPod `8xH100` Parameter Golf lane now writes the same provider-neutral
+bundle family under the run root while the Rust-owned distributed runtime is
+active.
 
 The retained paths are:
 
 - `training_visualization/parameter_golf_distributed_8xh100_remote_training_visualization_bundle_v1.json`
 - `training_visualization/remote_training_run_index_v1.json`
+- `training_visualization/snapshots/*.json`
 - `training_visualization/snapshots/finalized_bundle.json`
 
-The current lane is still explicit about its boundary:
+The current lane now retains:
 
-- the finalizer mirrors the retained `distributed_challenge_receipt` into the
-  run root when one is only embedded inside the submission evidence report
-- the bundle preserves GPU inventory, topology capture, exported-folder
-  provenance, and any retained distributed receipt facts
-- the bundle stays `post_run_only` today because this lane still lacks a
-  coordinator-owned one-second live writer
-- `series_status` remains `unavailable` until the lane retains a real loss
-  curve or equivalent primary training series
+- one-second heartbeats while the runtime is active, even during bootstrap or
+  between explicit phase transitions
+- explicit phase transitions for runtime bootstrap, train step, validation, and
+  runtime completion
+- retained train-loss, bounded math, runtime timing, distributed-skew, and
+  checkpoint-reference samples as soon as the first aggregate train-step receipt
+  lands
+- local GPU samples when `nvidia-smi` is available on the coordinator host
+- bring-up, runtime-manifest, train-step, distributed-receipt, current-model,
+  inventory, topology, and finalizer provenance in the same bundle family
+
+The finalizer still matters:
+
+- it seals the existing live bundle instead of inventing a separate provider
+  artifact family
+- it mirrors the retained `distributed_challenge_receipt` into the run root
+  when one is only embedded inside the submission evidence report
+- it appends inventory, topology, exported-folder, and finalizer-owned
+  provenance before writing `snapshots/finalized_bundle.json`
+
+Historical or synthetic closeout-only runs stay explicit:
+
+- if the finalizer runs on an older run root with no retained live bundle, the
+  finalizer still emits the canonical bundle family with `post_run_only`
+  emission
+- if the runtime never retained a first train-step receipt, `series_status`
+  stays `partial` while active and degrades to `unavailable` at closeout
 - refusal posture stays explicit when the retained receipt is still a
   measurements-missing or inventory-mismatch refusal

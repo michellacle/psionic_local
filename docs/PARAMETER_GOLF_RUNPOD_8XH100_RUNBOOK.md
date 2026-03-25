@@ -1,8 +1,9 @@
 # Parameter Golf RunPod 8xH100 Runbook
 
 > Status: canonical bounded RunPod operator runbook for the Parameter Golf
-> `8xH100` lane, updated 2026-03-24 after the repo-owned launch profile,
-> operator preflight, SSH-capable launcher, and finalizer contract landed.
+> `8xH100` lane, updated 2026-03-25 after the repo-owned launch profile,
+> operator preflight, SSH-capable launcher, live visualization writer, and
+> finalizer contract landed.
 
 This runbook defines the current honest RunPod posture for the Parameter Golf
 distributed `8xH100` lane.
@@ -83,7 +84,9 @@ The committed launcher is explicit about four separate operator phases:
   reading the retained input-materialization report to export the exact
   dataset-root and tokenizer-path env vars required by the shipped runtime,
   while also forcing the explicit exported-folder execution mode
-  `PSIONIC_PARAMETER_GOLF_EXECUTION_MODE=distributed_8xh100_train`
+  `PSIONIC_PARAMETER_GOLF_EXECUTION_MODE=distributed_8xh100_train`, and while
+  emitting the provider-neutral remote-training bundle, run index, and
+  append-only snapshots under `training_visualization/`
 - finalization:
   generate the exported-folder submission run evidence under the RunPod
   `8xH100` posture, mirror the retained distributed challenge receipt into the
@@ -147,6 +150,19 @@ folder, but the finalizer will fail closed only after checking both the
 requested path and the retained `${run_root}/exported_submission` root for
 `submission.json`. This keeps the operator surface explicit while surviving the
 older pre-fix layout during rehearsal.
+
+The runtime-owned visualization mirror now stays explicit in the retained run
+root:
+
+- `training_visualization/parameter_golf_distributed_8xh100_remote_training_visualization_bundle_v1.json`
+- `training_visualization/remote_training_run_index_v1.json`
+- `training_visualization/snapshots/heartbeat_*.json`
+
+The runtime writes those artifacts before distributed bootstrap begins, keeps
+them fresh at least once per second while active, and force-flushes them across
+bootstrap, train-step, validation, and completion transitions. The finalizer
+then seals the same bundle family and writes
+`training_visualization/snapshots/finalized_bundle.json`.
 
 When a real distributed receipt already exists in the run root, the finalizer
 now passes that exact receipt into the exported-folder evidence generator rather

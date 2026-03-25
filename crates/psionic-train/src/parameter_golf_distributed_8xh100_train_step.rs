@@ -9,10 +9,9 @@ use std::{
 
 use psionic_backend_cuda::CudaBackend;
 use psionic_data::{
-    load_parameter_golf_validation_tokens_from_paths,
-    parameter_golf_dataset_bundle_from_local_dir,
-    parameter_golf_sentencepiece_byte_luts_from_tokenizer_path, DatasetIterationMode,
-    DatasetKey, ParameterGolfTokenStreamContract, ParameterGolfTokenStreamCursor,
+    load_parameter_golf_validation_tokens_from_paths, parameter_golf_dataset_bundle_from_local_dir,
+    parameter_golf_sentencepiece_byte_luts_from_tokenizer_path, DatasetIterationMode, DatasetKey,
+    ParameterGolfTokenStreamContract, ParameterGolfTokenStreamCursor,
     ParameterGolfTokenStreamWindow, PARAMETER_GOLF_TRAIN_SPLIT_NAME,
 };
 use psionic_eval::ParameterGolfDistributedThroughputReceipt;
@@ -23,21 +22,22 @@ use sha2::{Digest, Sha256};
 use thiserror::Error;
 
 use crate::{
-    apply_gradients_to_state, benchmark_parameter_golf_distributed_8xh100, build_tokenizer_digest,
-    build_parameter_golf_validation_window_starts, build_validation_observation_plan,
-    clip_gradients, evaluate_validation_on_cuda, evaluate_validation_window_starts_on_cuda,
-    execute_parameter_golf_training_gradient_batch, export_parameter_golf_full_precision_model_bytes,
+    apply_gradients_to_state, benchmark_parameter_golf_distributed_8xh100,
+    build_parameter_golf_validation_window_starts, build_tokenizer_digest,
+    build_validation_observation_plan, clip_gradients, evaluate_validation_on_cuda,
+    evaluate_validation_window_starts_on_cuda, execute_parameter_golf_training_gradient_batch,
+    export_parameter_golf_full_precision_model_bytes,
     export_parameter_golf_int8_zlib_model_artifact, inspect_local_distributed_8xh100_machine,
     materialize_current_model, parameter_golf_optimizer_plan,
-    restore_parameter_golf_model_from_safetensors,
-    parameter_golf_runpod_8xh100_capability_profile, seed_parameter_states, zero_gradients,
-    ParameterGolfBatchGeometry, ParameterGolfDistributedValidationShardObservation,
+    parameter_golf_runpod_8xh100_capability_profile, restore_parameter_golf_model_from_safetensors,
+    seed_parameter_states, zero_gradients, ParameterGolfBatchGeometry,
     ParameterGolfDistributed8xH100BringupReport,
     ParameterGolfDistributed8xH100RuntimeBootstrapReceipt,
-    ParameterGolfDistributedStepObservation, ParameterGolfRunPod8xH100Measurements,
-    ParameterGolfSingleH100PhaseTimings, ParameterGolfSingleH100TrainingError,
-    ParameterGolfValidationEvalMode,
-    ParameterGolfTrainingHyperparameters, PARAMETER_GOLF_SINGLE_H100_VARIANT,
+    ParameterGolfDistributedLiveVisualizationWriter, ParameterGolfDistributedStepObservation,
+    ParameterGolfDistributedValidationShardObservation, ParameterGolfDistributedVisualizationError,
+    ParameterGolfRunPod8xH100Measurements, ParameterGolfSingleH100PhaseTimings,
+    ParameterGolfSingleH100TrainingError, ParameterGolfTrainingHyperparameters,
+    ParameterGolfValidationEvalMode, PARAMETER_GOLF_SINGLE_H100_VARIANT,
 };
 
 const CHILD_ENV_VAR: &str = "PSIONIC_PARAMETER_GOLF_DISTRIBUTED_8XH100_TRAIN_STEP_CHILD";
@@ -56,8 +56,7 @@ const CHILD_GRADIENT_ARTIFACT_PATH_ENV_VAR: &str =
     "PSIONIC_PARAMETER_GOLF_DISTRIBUTED_8XH100_TRAIN_STEP_GRADIENT_ARTIFACT_PATH";
 const CHILD_MODEL_ARTIFACT_PATH_ENV_VAR: &str =
     "PSIONIC_PARAMETER_GOLF_DISTRIBUTED_8XH100_TRAIN_STEP_MODEL_ARTIFACT_PATH";
-const VALIDATION_CHILD_ENV_VAR: &str =
-    "PSIONIC_PARAMETER_GOLF_DISTRIBUTED_8XH100_VALIDATION_CHILD";
+const VALIDATION_CHILD_ENV_VAR: &str = "PSIONIC_PARAMETER_GOLF_DISTRIBUTED_8XH100_VALIDATION_CHILD";
 const VALIDATION_CHILD_RANK_ENV_VAR: &str =
     "PSIONIC_PARAMETER_GOLF_DISTRIBUTED_8XH100_VALIDATION_RANK";
 const VALIDATION_CHILD_LOCAL_RANK_ENV_VAR: &str =
@@ -386,9 +385,7 @@ pub enum ParameterGolfDistributed8xH100TrainStepError {
     Write { path: String, error: std::io::Error },
     #[error("parameter golf distributed 8xH100 train-step missing environment variable `{key}`")]
     MissingEnv { key: &'static str },
-    #[error(
-        "parameter golf distributed 8xH100 train-step invalid environment `{key}`=`{value}`"
-    )]
+    #[error("parameter golf distributed 8xH100 train-step invalid environment `{key}`=`{value}`")]
     InvalidEnv { key: &'static str, value: String },
     #[error(
         "parameter golf distributed 8xH100 train-step child spawn failed for rank {rank}: {error}"
@@ -426,6 +423,8 @@ pub enum ParameterGolfDistributed8xH100TrainStepError {
     ValidationChildMissingReceipt { rank: usize },
     #[error("parameter golf distributed 8xH100 train-step aggregate failed: {message}")]
     Aggregate { message: String },
+    #[error(transparent)]
+    Visualization(#[from] ParameterGolfDistributedVisualizationError),
     #[error(transparent)]
     Json(#[from] serde_json::Error),
     #[error(transparent)]
@@ -630,8 +629,11 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
     bringup_report: &ParameterGolfDistributed8xH100BringupReport,
     bootstrap_receipt_path: &Path,
     bootstrap_receipt: &ParameterGolfDistributed8xH100RuntimeBootstrapReceipt,
-) -> Result<ParameterGolfDistributed8xH100TrainStepReceipt, ParameterGolfDistributed8xH100TrainStepError>
-{
+    mut live_visualization_writer: Option<&mut ParameterGolfDistributedLiveVisualizationWriter>,
+) -> Result<
+    ParameterGolfDistributed8xH100TrainStepReceipt,
+    ParameterGolfDistributed8xH100TrainStepError,
+> {
     if bootstrap_receipt.successful_rank_count != CHALLENGE_WORLD_SIZE {
         return Err(ParameterGolfDistributed8xH100TrainStepError::Aggregate {
             message: format!(
@@ -658,18 +660,21 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
     );
     let rank_logs_dir =
         parameter_golf_distributed_8xh100_train_step_rank_logs_dir(root, &bringup_report_relpath);
-    let rank_windows_dir =
-        parameter_golf_distributed_8xh100_train_step_rank_windows_dir(root, &bringup_report_relpath);
+    let rank_windows_dir = parameter_golf_distributed_8xh100_train_step_rank_windows_dir(
+        root,
+        &bringup_report_relpath,
+    );
     let rank_gradients_dir = parameter_golf_distributed_8xh100_train_step_rank_gradients_dir(
         root,
         &bringup_report_relpath,
     );
     let model_artifacts_dir =
         parameter_golf_distributed_8xh100_model_artifacts_dir(root, &bringup_report_relpath);
-    let validation_rank_receipts_dir = parameter_golf_distributed_8xh100_validation_rank_receipts_dir(
-        root,
-        &bringup_report_relpath,
-    );
+    let validation_rank_receipts_dir =
+        parameter_golf_distributed_8xh100_validation_rank_receipts_dir(
+            root,
+            &bringup_report_relpath,
+        );
     let validation_rank_logs_dir =
         parameter_golf_distributed_8xh100_validation_rank_logs_dir(root, &bringup_report_relpath);
     let validation_rank_shards_dir =
@@ -684,20 +689,20 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
         &validation_rank_logs_dir,
         &validation_rank_shards_dir,
     ] {
-        fs::create_dir_all(directory).map_err(
-            |error| ParameterGolfDistributed8xH100TrainStepError::Write {
+        fs::create_dir_all(directory).map_err(|error| {
+            ParameterGolfDistributed8xH100TrainStepError::Write {
                 path: directory.display().to_string(),
                 error,
-            },
-        )?;
+            }
+        })?;
     }
     if let Some(parent) = train_step_receipt_path.parent() {
-        fs::create_dir_all(parent).map_err(
-            |error| ParameterGolfDistributed8xH100TrainStepError::Write {
+        fs::create_dir_all(parent).map_err(|error| {
+            ParameterGolfDistributed8xH100TrainStepError::Write {
                 path: parent.display().to_string(),
                 error,
-            },
-        )?;
+            }
+        })?;
     }
 
     let dataset_root = PathBuf::from(required_env(
@@ -727,7 +732,8 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
     )?;
     let initial_model = ParameterGolfReferenceModel::baseline_fixture(Default::default())?;
     let hyperparameters = ParameterGolfTrainingHyperparameters::baseline_defaults();
-    let optimizer_plan = parameter_golf_optimizer_plan(initial_model.descriptor(), &hyperparameters)?;
+    let optimizer_plan =
+        parameter_golf_optimizer_plan(initial_model.descriptor(), &hyperparameters)?;
     let mut trainer_state = seed_parameter_states(&initial_model, &optimizer_plan)?;
     let mut cursor = ParameterGolfTokenStreamCursor::new(PARAMETER_GOLF_TRAIN_SPLIT_NAME);
     let train_contract = ParameterGolfTokenStreamContract::new(
@@ -750,22 +756,41 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
             &window_path,
             format!("{}\n", serde_json::to_string_pretty(&window)?),
         )
-        .map_err(|error| ParameterGolfDistributed8xH100TrainStepError::Write {
-            path: window_path.display().to_string(),
-            error,
-        })?;
+        .map_err(
+            |error| ParameterGolfDistributed8xH100TrainStepError::Write {
+                path: window_path.display().to_string(),
+                error,
+            },
+        )?;
     }
 
-    let current_exe = env::current_exe().map_err(|error| {
-        ParameterGolfDistributed8xH100TrainStepError::Read {
+    let current_exe =
+        env::current_exe().map_err(|error| ParameterGolfDistributed8xH100TrainStepError::Read {
             path: String::from("current_exe"),
             error,
-        }
-    })?;
+        })?;
     let runtime_payload_path = current_exe.display().to_string();
     let manifest_path = manifest_path
         .canonicalize()
         .unwrap_or_else(|_| manifest_path.to_path_buf());
+
+    if let Some(writer) = live_visualization_writer.as_deref_mut() {
+        writer.record_phase(
+            "training",
+            Some(String::from("distributed_train_step")),
+            format!(
+                "Launching {} distributed train-step ranks for optimizer step 1.",
+                CHALLENGE_WORLD_SIZE
+            ),
+            vec![
+                String::from("distributed_train_step"),
+                String::from("rank_fanout"),
+                String::from("cuda_execution"),
+            ],
+            Some(1),
+            true,
+        )?;
+    }
 
     let step_started = Instant::now();
     let mut children = Vec::new();
@@ -805,7 +830,10 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
             .env(CHILD_RECEIPT_PATH_ENV_VAR, &receipt_path)
             .env(CHILD_LOG_PATH_ENV_VAR, &log_path)
             .env(CHILD_WINDOW_PATH_ENV_VAR, &window_path)
-            .env(CHILD_GRADIENT_ARTIFACT_PATH_ENV_VAR, &gradient_artifact_path)
+            .env(
+                CHILD_GRADIENT_ARTIFACT_PATH_ENV_VAR,
+                &gradient_artifact_path,
+            )
             .env(
                 crate::PARAMETER_GOLF_SINGLE_H100_DATASET_ROOT_ENV_VAR,
                 &dataset_root,
@@ -818,18 +846,28 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
             .env("WORLD_SIZE", CHALLENGE_WORLD_SIZE.to_string())
             .env("PSIONIC_DISTRIBUTED_RANK", rank.to_string())
             .env("PSIONIC_DISTRIBUTED_LOCAL_RANK", rank.to_string())
-            .env("PSIONIC_DISTRIBUTED_WORLD_SIZE", CHALLENGE_WORLD_SIZE.to_string())
+            .env(
+                "PSIONIC_DISTRIBUTED_WORLD_SIZE",
+                CHALLENGE_WORLD_SIZE.to_string(),
+            )
             .stdout(Stdio::from(stdout))
             .stderr(Stdio::from(stderr))
             .spawn()
-            .map_err(|error| ParameterGolfDistributed8xH100TrainStepError::ChildSpawn {
-                rank,
-                error,
-            })?;
-        children.push((rank, window_path, gradient_artifact_path, receipt_path, log_path, child));
+            .map_err(
+                |error| ParameterGolfDistributed8xH100TrainStepError::ChildSpawn { rank, error },
+            )?;
+        children.push((
+            rank,
+            window_path,
+            gradient_artifact_path,
+            receipt_path,
+            log_path,
+            child,
+        ));
     }
 
     let mut rank_launches = Vec::with_capacity(CHALLENGE_WORLD_SIZE);
+    let mut completed_train_rank_count = 0_usize;
     for (rank, window_path, gradient_artifact_path, receipt_path, log_path, mut child) in children {
         let status = child.wait().map_err(|error| {
             ParameterGolfDistributed8xH100TrainStepError::ChildWait { rank, error }
@@ -845,9 +883,11 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
                 serde_json::from_slice::<ParameterGolfDistributed8xH100TrainStepRankReceipt>(
                     &bytes,
                 )
-                .map_err(|error| ParameterGolfDistributed8xH100TrainStepError::ChildDecode {
-                    path: receipt_path.display().to_string(),
-                    error,
+                .map_err(|error| {
+                    ParameterGolfDistributed8xH100TrainStepError::ChildDecode {
+                        path: receipt_path.display().to_string(),
+                        error,
+                    }
                 })?,
             )
         } else {
@@ -864,6 +904,24 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
             exit_code: status.code(),
             receipt,
         });
+        completed_train_rank_count = completed_train_rank_count.saturating_add(1);
+        if let Some(writer) = live_visualization_writer.as_deref_mut() {
+            writer.record_phase(
+                "training",
+                Some(String::from("distributed_train_step")),
+                format!(
+                    "Distributed train-step ranks completed: {completed_train_rank_count}/{}.",
+                    CHALLENGE_WORLD_SIZE
+                ),
+                vec![
+                    String::from("distributed_train_step"),
+                    String::from("rank_wait"),
+                    String::from("cuda_execution"),
+                ],
+                Some(1),
+                false,
+            )?;
+        }
     }
 
     for launch in &rank_launches {
@@ -876,9 +934,11 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
             });
         }
         if launch.receipt.is_none() {
-            return Err(ParameterGolfDistributed8xH100TrainStepError::ChildMissingReceipt {
-                rank: launch.rank,
-            });
+            return Err(
+                ParameterGolfDistributed8xH100TrainStepError::ChildMissingReceipt {
+                    rank: launch.rank,
+                },
+            );
         }
     }
 
@@ -899,9 +959,12 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
     }
     let gradient_sync_ms = duration_ms(sync_started);
 
-    let clip_observation =
-        clip_gradients(accumulated_gradients.as_mut_slice(), hyperparameters.grad_clip_norm);
-    let aggregated_gradient_artifact_path = rank_gradients_dir.join("aggregated_step_1.safetensors");
+    let clip_observation = clip_gradients(
+        accumulated_gradients.as_mut_slice(),
+        hyperparameters.grad_clip_norm,
+    );
+    let aggregated_gradient_artifact_path =
+        rank_gradients_dir.join("aggregated_step_1.safetensors");
     let aggregated_gradient_artifact_sha256 = write_gradient_artifact(
         &aggregated_gradient_artifact_path,
         &accumulated_gradients
@@ -971,6 +1034,23 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
         CHALLENGE_WORLD_SIZE,
     )?;
     let mut validation_children = Vec::with_capacity(CHALLENGE_WORLD_SIZE);
+    if let Some(writer) = live_visualization_writer.as_deref_mut() {
+        writer.record_phase(
+            "evaluation",
+            Some(String::from("distributed_validation")),
+            format!(
+                "Launching {} distributed validation ranks for optimizer step 1.",
+                CHALLENGE_WORLD_SIZE
+            ),
+            vec![
+                String::from("distributed_validation"),
+                String::from("rank_fanout"),
+                String::from("cuda_evaluation"),
+            ],
+            Some(1),
+            true,
+        )?;
+    }
     for shard in &validation_shard_plan {
         let shard_path = validation_rank_shards_dir.join(format!("rank_{}.json", shard.rank));
         fs::write(
@@ -989,10 +1069,12 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
                 })?
             ),
         )
-        .map_err(|error| ParameterGolfDistributed8xH100TrainStepError::Write {
-            path: shard_path.display().to_string(),
-            error,
-        })?;
+        .map_err(
+            |error| ParameterGolfDistributed8xH100TrainStepError::Write {
+                path: shard_path.display().to_string(),
+                error,
+            },
+        )?;
         let receipt_path = validation_rank_receipts_dir.join(format!("rank_{}.json", shard.rank));
         let log_path = validation_rank_logs_dir.join(format!("rank_{}.log", shard.rank));
         let stdout = OpenOptions::new()
@@ -1049,19 +1131,23 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
             .env("WORLD_SIZE", CHALLENGE_WORLD_SIZE.to_string())
             .env("PSIONIC_DISTRIBUTED_RANK", shard.rank.to_string())
             .env("PSIONIC_DISTRIBUTED_LOCAL_RANK", shard.rank.to_string())
-            .env("PSIONIC_DISTRIBUTED_WORLD_SIZE", CHALLENGE_WORLD_SIZE.to_string())
+            .env(
+                "PSIONIC_DISTRIBUTED_WORLD_SIZE",
+                CHALLENGE_WORLD_SIZE.to_string(),
+            )
             .stdout(Stdio::from(stdout))
             .stderr(Stdio::from(stderr))
             .spawn()
-            .map_err(
-                |error| ParameterGolfDistributed8xH100TrainStepError::ValidationChildSpawn {
+            .map_err(|error| {
+                ParameterGolfDistributed8xH100TrainStepError::ValidationChildSpawn {
                     rank: shard.rank,
                     error,
-                },
-            )?;
+                }
+            })?;
         validation_children.push((shard.rank, shard_path, receipt_path, log_path, child));
     }
     let mut validation_rank_launches = Vec::with_capacity(CHALLENGE_WORLD_SIZE);
+    let mut completed_validation_rank_count = 0_usize;
     for (rank, shard_path, receipt_path, log_path, mut child) in validation_children {
         let status = child.wait().map_err(|error| {
             ParameterGolfDistributed8xH100TrainStepError::ValidationChildWait { rank, error }
@@ -1077,12 +1163,12 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
                 serde_json::from_slice::<ParameterGolfDistributed8xH100ValidationRankReceipt>(
                     &bytes,
                 )
-                .map_err(
-                    |error| ParameterGolfDistributed8xH100TrainStepError::ValidationChildDecode {
+                .map_err(|error| {
+                    ParameterGolfDistributed8xH100TrainStepError::ValidationChildDecode {
                         path: receipt_path.display().to_string(),
                         error,
-                    },
-                )?,
+                    }
+                })?,
             )
         } else {
             None
@@ -1097,6 +1183,24 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
             exit_code: status.code(),
             receipt,
         });
+        completed_validation_rank_count = completed_validation_rank_count.saturating_add(1);
+        if let Some(writer) = live_visualization_writer.as_deref_mut() {
+            writer.record_phase(
+                "evaluation",
+                Some(String::from("distributed_validation")),
+                format!(
+                    "Distributed validation ranks completed: {completed_validation_rank_count}/{}.",
+                    CHALLENGE_WORLD_SIZE
+                ),
+                vec![
+                    String::from("distributed_validation"),
+                    String::from("rank_wait"),
+                    String::from("cuda_evaluation"),
+                ],
+                Some(1),
+                false,
+            )?;
+        }
     }
     for launch in &validation_rank_launches {
         if launch.exit_code != Some(0) {
@@ -1115,8 +1219,7 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
             );
         }
     }
-    let mut validation_shard_observations =
-        Vec::with_capacity(validation_rank_launches.len());
+    let mut validation_shard_observations = Vec::with_capacity(validation_rank_launches.len());
     let mut validation_observed_ms = 0_u64;
     for launch in &validation_rank_launches {
         let receipt = launch
@@ -1153,10 +1256,12 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
         &measurements_path,
         format!("{}\n", serde_json::to_string_pretty(&measurements)?),
     )
-    .map_err(|error| ParameterGolfDistributed8xH100TrainStepError::Write {
-        path: measurements_path.display().to_string(),
-        error,
-    })?;
+    .map_err(
+        |error| ParameterGolfDistributed8xH100TrainStepError::Write {
+            path: measurements_path.display().to_string(),
+            error,
+        },
+    )?;
 
     let machine = inspect_local_distributed_8xh100_machine();
     let mut distributed_config = crate::ParameterGolfDistributed8xH100Config::challenge_defaults();
@@ -1179,10 +1284,12 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
         &distributed_receipt_path,
         format!("{}\n", serde_json::to_string_pretty(&distributed_receipt)?),
     )
-    .map_err(|error| ParameterGolfDistributed8xH100TrainStepError::Write {
-        path: distributed_receipt_path.display().to_string(),
-        error,
-    })?;
+    .map_err(
+        |error| ParameterGolfDistributed8xH100TrainStepError::Write {
+            path: distributed_receipt_path.display().to_string(),
+            error,
+        },
+    )?;
 
     let mut receipt = ParameterGolfDistributed8xH100TrainStepReceipt {
         schema_version: 1,
@@ -1233,10 +1340,15 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
         &train_step_receipt_path,
         format!("{}\n", serde_json::to_string_pretty(&receipt)?),
     )
-    .map_err(|error| ParameterGolfDistributed8xH100TrainStepError::Write {
-        path: train_step_receipt_path.display().to_string(),
-        error,
-    })?;
+    .map_err(
+        |error| ParameterGolfDistributed8xH100TrainStepError::Write {
+            path: train_step_receipt_path.display().to_string(),
+            error,
+        },
+    )?;
+    if let Some(writer) = live_visualization_writer.as_deref_mut() {
+        writer.record_train_step_receipt(&receipt)?;
+    }
     Ok(receipt)
 }
 
@@ -1254,7 +1366,8 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step_child(
     let log_path = required_env(CHILD_LOG_PATH_ENV_VAR)?;
     let window_path = PathBuf::from(required_env(CHILD_WINDOW_PATH_ENV_VAR)?);
     let gradient_artifact_path = PathBuf::from(required_env(CHILD_GRADIENT_ARTIFACT_PATH_ENV_VAR)?);
-    let input_model_artifact_path = env::var_os(CHILD_MODEL_ARTIFACT_PATH_ENV_VAR).map(PathBuf::from);
+    let input_model_artifact_path =
+        env::var_os(CHILD_MODEL_ARTIFACT_PATH_ENV_VAR).map(PathBuf::from);
     let cuda_visible_devices = env::var("CUDA_VISIBLE_DEVICES").unwrap_or_default();
     if world_size != CHALLENGE_WORLD_SIZE {
         return Err(ParameterGolfDistributed8xH100TrainStepError::Aggregate {
@@ -1320,12 +1433,13 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step_child(
     };
     let geometry = ParameterGolfBatchGeometry::challenge_distributed_8xh100_defaults();
     let mut cuda_backend = CudaBackend::new();
-    let selected_device = cuda_backend
-        .selected_device()
-        .cloned()
-        .ok_or_else(|| ParameterGolfDistributed8xH100TrainStepError::Aggregate {
-            message: format!("distributed train-step child rank {rank} could not select one CUDA device"),
-        })?;
+    let selected_device = cuda_backend.selected_device().cloned().ok_or_else(|| {
+        ParameterGolfDistributed8xH100TrainStepError::Aggregate {
+            message: format!(
+                "distributed train-step child rank {rank} could not select one CUDA device"
+            ),
+        }
+    })?;
     let selected_device_label = selected_device
         .device_name
         .clone()
@@ -1373,21 +1487,23 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step_child(
     };
     receipt.receipt_digest = receipt.stable_digest();
     if let Some(parent) = receipt_path.parent() {
-        fs::create_dir_all(parent).map_err(
-            |error| ParameterGolfDistributed8xH100TrainStepError::Write {
+        fs::create_dir_all(parent).map_err(|error| {
+            ParameterGolfDistributed8xH100TrainStepError::Write {
                 path: parent.display().to_string(),
                 error,
-            },
-        )?;
+            }
+        })?;
     }
     fs::write(
         &receipt_path,
         format!("{}\n", serde_json::to_string_pretty(&receipt)?),
     )
-    .map_err(|error| ParameterGolfDistributed8xH100TrainStepError::Write {
-        path: receipt_path.display().to_string(),
-        error,
-    })?;
+    .map_err(
+        |error| ParameterGolfDistributed8xH100TrainStepError::Write {
+            path: receipt_path.display().to_string(),
+            error,
+        },
+    )?;
     Ok(receipt)
 }
 
@@ -1407,8 +1523,8 @@ pub fn execute_parameter_golf_distributed_8xh100_validation_child(
     let aggregated_gradient_artifact_path = PathBuf::from(required_env(
         VALIDATION_CHILD_GRADIENT_ARTIFACT_PATH_ENV_VAR,
     )?);
-    let current_model_artifact_path = env::var_os(VALIDATION_CHILD_MODEL_ARTIFACT_PATH_ENV_VAR)
-        .map(PathBuf::from);
+    let current_model_artifact_path =
+        env::var_os(VALIDATION_CHILD_MODEL_ARTIFACT_PATH_ENV_VAR).map(PathBuf::from);
     let cuda_visible_devices = env::var("CUDA_VISIBLE_DEVICES").unwrap_or_default();
     if world_size != CHALLENGE_WORLD_SIZE {
         return Err(ParameterGolfDistributed8xH100TrainStepError::Aggregate {
@@ -1467,7 +1583,8 @@ pub fn execute_parameter_golf_distributed_8xh100_validation_child(
         })?,
     );
     let baseline_model = ParameterGolfReferenceModel::baseline_fixture(Default::default())?;
-    let (current_model, current_model_artifact_sha256) = match current_model_artifact_path.as_ref() {
+    let (current_model, current_model_artifact_sha256) = match current_model_artifact_path.as_ref()
+    {
         Some(path) => {
             let bytes = fs::read(path).map_err(|error| {
                 ParameterGolfDistributed8xH100TrainStepError::Read {
@@ -1517,7 +1634,9 @@ pub fn execute_parameter_golf_distributed_8xh100_validation_child(
         &shard.eval_mode,
         CHALLENGE_WORLD_SIZE,
     )?;
-    let Some(expected_shard) = expected_shards.iter().find(|candidate| candidate.rank == shard.rank)
+    let Some(expected_shard) = expected_shards
+        .iter()
+        .find(|candidate| candidate.rank == shard.rank)
     else {
         return Err(ParameterGolfDistributed8xH100TrainStepError::Aggregate {
             message: format!(
@@ -1542,14 +1661,13 @@ pub fn execute_parameter_golf_distributed_8xh100_validation_child(
     }
     let byte_luts = parameter_golf_sentencepiece_byte_luts_from_tokenizer_path(&tokenizer_path)?;
     let mut cuda_backend = CudaBackend::new();
-    let selected_device = cuda_backend
-        .selected_device()
-        .cloned()
-        .ok_or_else(|| ParameterGolfDistributed8xH100TrainStepError::Aggregate {
+    let selected_device = cuda_backend.selected_device().cloned().ok_or_else(|| {
+        ParameterGolfDistributed8xH100TrainStepError::Aggregate {
             message: format!(
                 "distributed validation child rank {rank} could not select one CUDA device"
             ),
-        })?;
+        }
+    })?;
     let selected_device_label = selected_device
         .device_name
         .clone()
@@ -1657,21 +1775,23 @@ pub fn execute_parameter_golf_distributed_8xh100_validation_child(
     };
     receipt.receipt_digest = receipt.stable_digest();
     if let Some(parent) = receipt_path.parent() {
-        fs::create_dir_all(parent).map_err(
-            |error| ParameterGolfDistributed8xH100TrainStepError::Write {
+        fs::create_dir_all(parent).map_err(|error| {
+            ParameterGolfDistributed8xH100TrainStepError::Write {
                 path: parent.display().to_string(),
                 error,
-            },
-        )?;
+            }
+        })?;
     }
     fs::write(
         &receipt_path,
         format!("{}\n", serde_json::to_string_pretty(&receipt)?),
     )
-    .map_err(|error| ParameterGolfDistributed8xH100TrainStepError::Write {
-        path: receipt_path.display().to_string(),
-        error,
-    })?;
+    .map_err(
+        |error| ParameterGolfDistributed8xH100TrainStepError::Write {
+            path: receipt_path.display().to_string(),
+            error,
+        },
+    )?;
     Ok(receipt)
 }
 
@@ -1680,12 +1800,12 @@ fn write_bytes_artifact(
     bytes: &[u8],
 ) -> Result<String, ParameterGolfDistributed8xH100TrainStepError> {
     if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).map_err(
-            |error| ParameterGolfDistributed8xH100TrainStepError::Write {
+        fs::create_dir_all(parent).map_err(|error| {
+            ParameterGolfDistributed8xH100TrainStepError::Write {
                 path: parent.display().to_string(),
                 error,
-            },
-        )?;
+            }
+        })?;
     }
     fs::write(output_path, bytes).map_err(|error| {
         ParameterGolfDistributed8xH100TrainStepError::Write {
@@ -1701,12 +1821,12 @@ fn write_gradient_artifact(
     gradients: &BTreeMap<String, Vec<f32>>,
 ) -> Result<String, ParameterGolfDistributed8xH100TrainStepError> {
     if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).map_err(
-            |error| ParameterGolfDistributed8xH100TrainStepError::Write {
+        fs::create_dir_all(parent).map_err(|error| {
+            ParameterGolfDistributed8xH100TrainStepError::Write {
                 path: parent.display().to_string(),
                 error,
-            },
-        )?;
+            }
+        })?;
     }
     let mut tensors = Vec::with_capacity(gradients.len());
     for (parameter_id, values) in gradients {
@@ -1733,12 +1853,16 @@ fn write_gradient_artifact(
         views.push((name.clone(), view));
     }
     let bytes = serialize(
-        views.iter().map(|(name, view)| (name.as_str(), view.clone())),
+        views
+            .iter()
+            .map(|(name, view)| (name.as_str(), view.clone())),
         None,
     )
-    .map_err(|error| ParameterGolfDistributed8xH100TrainStepError::Aggregate {
-        message: format!("failed to serialize distributed gradient artifact: {error}"),
-    })?;
+    .map_err(
+        |error| ParameterGolfDistributed8xH100TrainStepError::Aggregate {
+            message: format!("failed to serialize distributed gradient artifact: {error}"),
+        },
+    )?;
     fs::write(output_path, &bytes).map_err(|error| {
         ParameterGolfDistributed8xH100TrainStepError::Write {
             path: output_path.display().to_string(),
@@ -1751,21 +1875,19 @@ fn write_gradient_artifact(
 fn load_gradient_artifact(
     path: &Path,
 ) -> Result<BTreeMap<String, Vec<f32>>, ParameterGolfDistributed8xH100TrainStepError> {
-    let bytes = fs::read(path).map_err(|error| {
-        ParameterGolfDistributed8xH100TrainStepError::Read {
+    let bytes =
+        fs::read(path).map_err(|error| ParameterGolfDistributed8xH100TrainStepError::Read {
             path: path.display().to_string(),
             error,
+        })?;
+    let safetensors = SafeTensors::deserialize(bytes.as_slice()).map_err(|error| {
+        ParameterGolfDistributed8xH100TrainStepError::Aggregate {
+            message: format!(
+                "failed to decode distributed gradient artifact `{}`: {error}",
+                path.display()
+            ),
         }
     })?;
-    let safetensors =
-        SafeTensors::deserialize(bytes.as_slice()).map_err(|error| {
-            ParameterGolfDistributed8xH100TrainStepError::Aggregate {
-                message: format!(
-                    "failed to decode distributed gradient artifact `{}`: {error}",
-                    path.display()
-                ),
-            }
-        })?;
     let mut gradients = BTreeMap::new();
     for name in safetensors.names() {
         let tensor = safetensors.tensor(name).map_err(|error| {
@@ -1854,8 +1976,8 @@ mod tests {
     use crate::{ParameterGolfBatchGeometry, ParameterGolfValidationEvalMode};
 
     #[test]
-    fn distributed_train_step_gradient_artifact_roundtrips() -> Result<(), Box<dyn std::error::Error>>
-    {
+    fn distributed_train_step_gradient_artifact_roundtrips(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let temp_dir = tempfile::tempdir()?;
         let artifact_path = temp_dir.path().join("rank_0.safetensors");
         let gradients = BTreeMap::from([

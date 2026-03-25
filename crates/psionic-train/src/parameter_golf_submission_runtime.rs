@@ -26,11 +26,13 @@ use crate::{
     ParameterGolfDistributed8xH100RuntimeBootstrapReceipt,
     ParameterGolfDistributed8xH100TrainStepError,
     ParameterGolfDistributed8xH100TrainStepRankReceipt,
-    ParameterGolfDistributed8xH100TrainStepReceipt, ParameterGolfLocalReferenceFixture,
-    ParameterGolfNonRecordSubmissionManifest, ParameterGolfSubmissionAccountingReceipt,
-    ParameterGolfSubmissionRealExecutionContract, PARAMETER_GOLF_DISTRIBUTED_8XH100_EXECUTION_MODE,
-    PARAMETER_GOLF_EXECUTION_MODE_ENV_VAR,
+    ParameterGolfDistributed8xH100TrainStepReceipt,
     ParameterGolfDistributed8xH100ValidationRankReceipt,
+    ParameterGolfDistributedLiveVisualizationWriter, ParameterGolfDistributedVisualizationError,
+    ParameterGolfDistributedVisualizationMetadata, ParameterGolfLocalReferenceFixture,
+    ParameterGolfNonRecordSubmissionManifest, ParameterGolfSubmissionAccountingReceipt,
+    ParameterGolfSubmissionRealExecutionContract, RemoteTrainingResultClassification,
+    PARAMETER_GOLF_DISTRIBUTED_8XH100_EXECUTION_MODE, PARAMETER_GOLF_EXECUTION_MODE_ENV_VAR,
 };
 
 /// Machine-readable runtime manifest shipped with the submission folder.
@@ -329,6 +331,8 @@ pub enum ParameterGolfSubmissionRuntimeError {
     DistributedTrainStep(#[from] ParameterGolfDistributed8xH100TrainStepError),
     #[error(transparent)]
     DenseRankRuntime(#[from] DenseRankRuntimeError),
+    #[error(transparent)]
+    Visualization(#[from] ParameterGolfDistributedVisualizationError),
 }
 
 /// Executes the shipped submission runtime manifest, writes the runtime receipt, and returns it.
@@ -502,12 +506,22 @@ fn execute_parameter_golf_submission_distributed_8xh100_bootstrap(
             },
         );
     }
+    let mut live_visualization_writer = ParameterGolfDistributedLiveVisualizationWriter::start(
+        ParameterGolfDistributedVisualizationMetadata::new_for_runpod_runtime(
+            root,
+            &output_path,
+            manifest_path,
+        ),
+        &manifest.run_id,
+        "The RunPod 8xH100 distributed runtime started and is emitting one-second live visualization snapshots.",
+    )?;
     let runtime = execute_parameter_golf_backed_dense_rank_runtime(
         root,
         manifest_path,
         &manifest.run_id,
         &output_path,
         &report,
+        Some(&mut live_visualization_writer),
     )?;
     let bootstrap_receipt_path = PathBuf::from(&runtime.bootstrap_receipt_path);
     let train_step_receipt_path = PathBuf::from(&runtime.train_step_receipt_path);
@@ -517,6 +531,10 @@ fn execute_parameter_golf_submission_distributed_8xh100_bootstrap(
         .validation_aggregation
         .is_none()
     {
+        live_visualization_writer.finish(
+            RemoteTrainingResultClassification::CompletedFailure,
+            "The RunPod 8xH100 runtime stopped after the retained train-step proof without one final validation-backed distributed completion receipt.",
+        )?;
         return Ok(
             ParameterGolfSubmissionRuntimeOutcome::Distributed8xH100TrainStep {
                 report_path: output_path.display().to_string(),
@@ -530,11 +548,10 @@ fn execute_parameter_golf_submission_distributed_8xh100_bootstrap(
             },
         );
     }
-    let completion_receipt_path =
-        parameter_golf_distributed_8xh100_completion_receipt_path(
-            root,
-            &manifest.distributed_bringup_report_path,
-        );
+    let completion_receipt_path = parameter_golf_distributed_8xh100_completion_receipt_path(
+        root,
+        &manifest.distributed_bringup_report_path,
+    );
     let completion_receipt = build_parameter_golf_distributed_8xh100_completion_receipt(
         root,
         manifest,
@@ -561,10 +578,16 @@ fn execute_parameter_golf_submission_distributed_8xh100_bootstrap(
         path: completion_receipt_path.display().to_string(),
         error,
     })?;
-    Ok(ParameterGolfSubmissionRuntimeOutcome::Distributed8xH100Completed {
-        receipt_path: completion_receipt_path.display().to_string(),
-        receipt: completion_receipt,
-    })
+    live_visualization_writer.finish(
+        RemoteTrainingResultClassification::CompletedSuccess,
+        "The RunPod 8xH100 runtime sealed its validation-backed distributed completion receipt and retained the provider-neutral live training series.",
+    )?;
+    Ok(
+        ParameterGolfSubmissionRuntimeOutcome::Distributed8xH100Completed {
+            receipt_path: completion_receipt_path.display().to_string(),
+            receipt: completion_receipt,
+        },
+    )
 }
 
 fn parameter_golf_distributed_8xh100_completion_receipt_path(
@@ -598,7 +621,8 @@ fn build_parameter_golf_distributed_8xh100_completion_receipt(
                 "distributed completion receipt requires one validation-backed distributed receipt",
             ),
         })?;
-    let final_model_artifact_path = PathBuf::from(&train_step_receipt.current_model_int8_zlib_artifact_path);
+    let final_model_artifact_path =
+        PathBuf::from(&train_step_receipt.current_model_int8_zlib_artifact_path);
     let final_model_artifact_bytes = fs::read(&final_model_artifact_path).map_err(|error| {
         ParameterGolfSubmissionRuntimeError::Read {
             path: final_model_artifact_path.display().to_string(),
@@ -666,10 +690,8 @@ fn execute_parameter_golf_submission_distributed_8xh100_train_step_child(
 
 fn execute_parameter_golf_submission_distributed_8xh100_validation_child(
     manifest: &ParameterGolfSubmissionRuntimeManifest,
-) -> Result<
-    ParameterGolfDistributed8xH100ValidationRankReceipt,
-    ParameterGolfSubmissionRuntimeError,
-> {
+) -> Result<ParameterGolfDistributed8xH100ValidationRankReceipt, ParameterGolfSubmissionRuntimeError>
+{
     Ok(execute_parameter_golf_distributed_8xh100_validation_child(
         &manifest.run_id,
     )?)

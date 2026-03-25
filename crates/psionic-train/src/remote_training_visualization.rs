@@ -1851,10 +1851,10 @@ pub fn sample_google_live_visualization_bundle(
     })
 }
 
-/// Returns a canonical RunPod distributed `8xH100` sample bundle that stays
-/// explicit about missing live loss-series truth while preserving retained
-/// topology, GPU, and provenance evidence.
-pub fn sample_parameter_golf_distributed_unavailable_visualization_bundle(
+/// Returns a canonical RunPod distributed `8xH100` sample bundle that proves
+/// the lane can stay visibly live every second while it retains distributed
+/// step, validation, GPU, and provenance truth.
+pub fn sample_parameter_golf_distributed_live_visualization_bundle(
 ) -> Result<RemoteTrainingVisualizationBundle, RemoteTrainingVisualizationError> {
     record_remote_training_visualization_bundle(RemoteTrainingVisualizationBundle {
         schema_version: String::new(),
@@ -1863,102 +1863,177 @@ pub fn sample_parameter_golf_distributed_unavailable_visualization_bundle(
         profile_id: String::from("runpod_8xh100_parameter_golf"),
         lane_id: String::from("parameter_golf_distributed_8xh100"),
         run_id: String::from("parameter-golf-runpod-8xh100-sample"),
-        repo_revision: String::from("main@36c4ffde"),
-        result_classification: RemoteTrainingResultClassification::Refused,
+        repo_revision: String::from("main@5e6f5f0f"),
+        result_classification: RemoteTrainingResultClassification::Active,
         refresh_contract: RemoteTrainingRefreshContract {
             target_ui_update_interval_ms: REMOTE_TRAINING_TARGET_UI_UPDATE_INTERVAL_MS,
-            emission_mode: RemoteTrainingEmissionMode::PostRunOnly,
-            last_heartbeat_at_ms: Some(1_742_846_510_000),
-            heartbeat_seq: 1,
+            emission_mode: RemoteTrainingEmissionMode::AppendOnlySnapshots,
+            last_heartbeat_at_ms: Some(1_742_846_512_000),
+            heartbeat_seq: 3,
         },
-        series_status: RemoteTrainingSeriesStatus::Unavailable,
-        series_unavailable_reason: Some(String::from(
-            "the RunPod 8xH100 lane retained topology, GPU, and provenance evidence, but it still did not retain a coordinator-owned loss curve or one-second distributed runtime stream",
-        )),
+        series_status: RemoteTrainingSeriesStatus::Available,
+        series_unavailable_reason: None,
         timeline: vec![
             RemoteTrainingTimelineEntry {
                 observed_at_ms: 1_742_846_509_000,
                 phase: String::from("training"),
-                subphase: Some(String::from("distributed_runpod_8xh100")),
+                subphase: Some(String::from("runtime_bootstrap")),
                 detail: String::from(
-                    "The RunPod 8xH100 lane retained its exported-folder challenge evidence and operator-owned inventory capture.",
+                    "The RunPod 8xH100 runtime started and created its provider-neutral live visualization mirror.",
                 ),
             },
             RemoteTrainingTimelineEntry {
-                observed_at_ms: 1_742_846_510_000,
-                phase: String::from("complete"),
-                subphase: Some(String::from("finalizer_sealed")),
+                observed_at_ms: 1_742_846_510_500,
+                phase: String::from("training"),
+                subphase: Some(String::from("distributed_train_step")),
                 detail: String::from(
-                    "The RunPod 8xH100 finalizer sealed the provider-neutral visualization bundle and run index.",
+                    "The distributed runtime advanced from bootstrap into the first optimizer step.",
+                ),
+            },
+            RemoteTrainingTimelineEntry {
+                observed_at_ms: 1_742_846_512_000,
+                phase: String::from("evaluation"),
+                subphase: Some(String::from("distributed_validation")),
+                detail: String::from(
+                    "The distributed runtime retained the first measured train-step sample and is now sharding sliding-window validation across all eight ranks.",
                 ),
             },
         ],
         summary: RemoteTrainingVisualizationSummary {
-            total_steps_completed: 0,
-            latest_global_step: None,
-            latest_train_loss: None,
+            total_steps_completed: 1,
+            latest_global_step: Some(1),
+            latest_train_loss: Some(8.288431),
             latest_ema_loss: None,
-            latest_validation_loss: None,
-            latest_tokens_per_second: None,
+            latest_validation_loss: Some(4.971701),
+            latest_tokens_per_second: Some(618_475),
             latest_samples_per_second_milli: None,
             accumulated_cost_microusd: None,
-            latest_checkpoint_ref: None,
+            latest_checkpoint_ref: Some(String::from(
+                "parameter-golf-distributed-8xh100-run/benchmark/runtime_model_artifacts/post_step_1_final_model.int8.ptz",
+            )),
             detail: String::from(
-                "The current RunPod 8xH100 lane can surface retained topology, GPU, and refusal provenance now, while remaining explicit that no coordinator-owned live loss or distributed runtime series was retained.",
+                "The RunPod 8xH100 lane is emitting one-second heartbeats while retaining distributed step, validation, GPU, and provenance telemetry in one provider-neutral bundle.",
             ),
         },
-        heartbeat_series: vec![RemoteTrainingHeartbeatSample {
-            observed_at_ms: 1_742_846_510_000,
-            phase: String::from("complete"),
-            subphase: Some(String::from("finalizer_sealed")),
-            step_in_progress: None,
-            microbatch_in_progress: None,
-            active_subsystems: vec![
-                String::from("finalizer"),
-                String::from("topology_capture"),
-                String::from("visualization_seal"),
-            ],
-            stale_after_ms: 2_500,
+        heartbeat_series: vec![
+            RemoteTrainingHeartbeatSample {
+                observed_at_ms: 1_742_846_510_000,
+                phase: String::from("training"),
+                subphase: Some(String::from("runtime_bootstrap")),
+                step_in_progress: Some(1),
+                microbatch_in_progress: None,
+                active_subsystems: vec![
+                    String::from("runtime_bootstrap"),
+                    String::from("rank_fanout"),
+                    String::from("distributed_runtime"),
+                ],
+                stale_after_ms: 2_500,
+            },
+            RemoteTrainingHeartbeatSample {
+                observed_at_ms: 1_742_846_511_000,
+                phase: String::from("training"),
+                subphase: Some(String::from("distributed_train_step")),
+                step_in_progress: Some(1),
+                microbatch_in_progress: None,
+                active_subsystems: vec![
+                    String::from("distributed_train_step"),
+                    String::from("rank_wait"),
+                    String::from("cuda_execution"),
+                ],
+                stale_after_ms: 2_500,
+            },
+            RemoteTrainingHeartbeatSample {
+                observed_at_ms: 1_742_846_512_000,
+                phase: String::from("evaluation"),
+                subphase: Some(String::from("distributed_validation")),
+                step_in_progress: Some(1),
+                microbatch_in_progress: None,
+                active_subsystems: vec![
+                    String::from("distributed_validation"),
+                    String::from("rank_wait"),
+                    String::from("cuda_evaluation"),
+                ],
+                stale_after_ms: 2_500,
+            },
+        ],
+        loss_series: vec![RemoteTrainingLossSample {
+            global_step: Some(1),
+            elapsed_ms: 2_000,
+            train_loss: Some(8.288431),
+            ema_loss: None,
+            validation_loss: Some(4.971701),
         }],
-        loss_series: Vec::new(),
-        math_series: Vec::new(),
-        runtime_series: Vec::new(),
+        math_series: vec![RemoteTrainingMathSample {
+            observed_at_ms: 1_742_846_511_750,
+            global_step: Some(1),
+            learning_rate: None,
+            gradient_norm: Some(1.8821),
+            parameter_norm: None,
+            update_norm: None,
+            clip_fraction: None,
+            clip_event_count: Some(1),
+            loss_scale: None,
+            non_finite_count: 0,
+            model_specific_diagnostics: BTreeMap::from([
+                (String::from("gradient_sync_ms"), 3_612.0),
+                (String::from("optimizer_step_ms"), 923.0),
+                (String::from("validation_sequence_count"), 121_152.0),
+            ]),
+        }],
+        runtime_series: vec![RemoteTrainingRuntimeSample {
+            observed_at_ms: 1_742_846_511_750,
+            data_wait_ms: None,
+            forward_ms: Some(98_659),
+            backward_ms: Some(128_153),
+            optimizer_ms: Some(923),
+            checkpoint_ms: None,
+            evaluation_ms: Some(1472161),
+            tokens_per_second: Some(618_475),
+            samples_per_second_milli: None,
+        }],
         gpu_series: (0_u32..8)
             .map(|device_index| RemoteTrainingGpuSample {
-                observed_at_ms: 1_742_846_509_500 + u64::from(device_index) * 25,
+                observed_at_ms: 1_742_846_511_500 + u64::from(device_index) * 25,
                 device_id: format!("cuda:{device_index}"),
                 device_label: String::from("NVIDIA H100 80GB HBM3"),
-                utilization_bps: 6_800 + device_index * 40,
-                memory_used_bytes: (10 + u64::from(device_index)) * 1024 * 1024 * 1024,
+                utilization_bps: 7_600 + device_index * 20,
+                memory_used_bytes: (13 + u64::from(device_index)) * 1024 * 1024 * 1024,
                 memory_total_bytes: 80 * 1024 * 1024 * 1024,
-                temperature_celsius: None,
-                power_watts: None,
+                temperature_celsius: Some(66 + device_index as u16),
+                power_watts: Some(286 + device_index as u16),
             })
             .collect(),
-        distributed_series: Vec::new(),
+        distributed_series: vec![RemoteTrainingDistributedSample {
+            observed_at_ms: 1_742_846_511_750,
+            participating_rank_count: 8,
+            rank_skew_ms: Some(11_742),
+            slowest_rank_ms: Some(229_019),
+            collective_ms: Some(3_612),
+            stalled_rank_count: 0,
+        }],
         event_series: vec![
             RemoteTrainingEventSample {
-                observed_at_ms: 1_742_846_510_000,
-                severity: RemoteTrainingEventSeverity::Warning,
-                event_kind: String::from("series_unavailable"),
-                detail: String::from(
-                    "The lane preserved the operator finalizer and challenge-refusal evidence, but no live loss or rank-skew stream was retained.",
-                ),
-            },
-            RemoteTrainingEventSample {
-                observed_at_ms: 1_742_846_510_000,
-                severity: RemoteTrainingEventSeverity::Error,
-                event_kind: String::from("distributed_lane_refused"),
-                detail: String::from(
-                    "The retained distributed challenge receipt is still a measurements-missing or inventory-mismatch refusal rather than a true live 8xH100 runtime receipt.",
-                ),
-            },
-            RemoteTrainingEventSample {
-                observed_at_ms: 1_742_846_510_000,
+                observed_at_ms: 1_742_846_509_000,
                 severity: RemoteTrainingEventSeverity::Info,
-                event_kind: String::from("finalizer_report_sealed"),
+                event_kind: String::from("runtime_started"),
                 detail: String::from(
-                    "The RunPod 8xH100 finalizer sealed the provider-neutral bundle and run index.",
+                    "The RunPod distributed runtime created its provider-neutral live visualization bundle.",
+                ),
+            },
+            RemoteTrainingEventSample {
+                observed_at_ms: 1_742_846_511_750,
+                severity: RemoteTrainingEventSeverity::Info,
+                event_kind: String::from("train_step_recorded"),
+                detail: String::from(
+                    "The lane retained its first measured train-step sample and distributed validation aggregation.",
+                ),
+            },
+            RemoteTrainingEventSample {
+                observed_at_ms: 1_742_846_512_000,
+                severity: RemoteTrainingEventSeverity::Info,
+                event_kind: String::from("distributed_validation_active"),
+                detail: String::from(
+                    "Sliding-window validation is active across all eight ranks and the bundle is staying fresh every second.",
                 ),
             },
         ],
@@ -1979,18 +2054,20 @@ pub fn sample_parameter_golf_distributed_unavailable_visualization_bundle(
                 ),
             },
             RemoteTrainingSourceArtifact {
-                artifact_role: String::from("finalizer_report"),
+                artifact_role: String::from("bringup_report"),
                 artifact_uri: String::from(
-                    "parameter_golf_runpod_8xh100_finalizer_report.json",
+                    "exported_submission/records/track_non_record_16mb/2026-03-18_psionic_local_reference_runtime_replay_v2/parameter-golf-distributed-8xh100-run/benchmark/parameter_golf_distributed_8xh100_bringup.json",
                 ),
                 artifact_digest: Some(String::from(
-                    "6c1f7eccc7808ae0bfd1c7c8ea91ad8ccbc5b8895865170ca3c493ba9f6b3e5d",
+                    "43dfca6d9bf092fb9cc8bd44fd719be8d2f19691f3ba790902b3d73fdb070f74",
                 )),
-                source_kind: RemoteTrainingArtifactSourceKind::FinalizerOwned,
+                source_kind: RemoteTrainingArtifactSourceKind::RuntimeOwned,
                 authoritative: true,
-                source_receipt_ids: vec![String::from("parameter_golf.runpod_8xh100_finalizer.v1")],
+                source_receipt_ids: vec![String::from(
+                    "parameter_golf_distributed_8xh100_bringup_report",
+                )],
                 detail: String::from(
-                    "The finalizer report remains authoritative for exported-folder, topology, and visualization provenance.",
+                    "The bring-up report remains authoritative for exact machine admission on the distributed lane.",
                 ),
             },
             RemoteTrainingSourceArtifact {
@@ -2017,6 +2094,53 @@ pub fn sample_parameter_golf_distributed_unavailable_visualization_bundle(
                 source_receipt_ids: Vec::new(),
                 detail: String::from(
                     "The `nvidia-smi topo -m` capture remains authoritative for the retained fabric topology snapshot.",
+                ),
+            },
+            RemoteTrainingSourceArtifact {
+                artifact_role: String::from("runtime_manifest"),
+                artifact_uri: String::from("runtime/runtime_manifest.json"),
+                artifact_digest: Some(String::from(
+                    "54b0f4e53df5f3923d2256ca1a92cdd78d06f9a92a07b0bc037d698f2790ad5f",
+                )),
+                source_kind: RemoteTrainingArtifactSourceKind::RuntimeOwned,
+                authoritative: true,
+                source_receipt_ids: vec![String::from("parameter_golf_submission_runtime_manifest")],
+                detail: String::from(
+                    "The shipped runtime manifest remains authoritative for the exported-folder runtime contract.",
+                ),
+            },
+            RemoteTrainingSourceArtifact {
+                artifact_role: String::from("train_step_receipt"),
+                artifact_uri: String::from(
+                    "exported_submission/records/track_non_record_16mb/2026-03-18_psionic_local_reference_runtime_replay_v2/parameter-golf-distributed-8xh100-run/benchmark/parameter_golf_distributed_8xh100_train_step.json",
+                ),
+                artifact_digest: Some(String::from(
+                    "365d50fb99f74154d17f5fb5148cb85e353e03b13e6007ab7ecfd46c77d220de",
+                )),
+                source_kind: RemoteTrainingArtifactSourceKind::RuntimeOwned,
+                authoritative: true,
+                source_receipt_ids: vec![String::from(
+                    "parameter_golf_distributed_8xh100_train_step_receipt",
+                )],
+                detail: String::from(
+                    "The train-step receipt remains authoritative for the retained distributed step, validation, and artifact lineage.",
+                ),
+            },
+            RemoteTrainingSourceArtifact {
+                artifact_role: String::from("current_model_artifact"),
+                artifact_uri: String::from(
+                    "exported_submission/records/track_non_record_16mb/2026-03-18_psionic_local_reference_runtime_replay_v2/parameter-golf-distributed-8xh100-run/benchmark/runtime_model_artifacts/post_step_1_final_model.int8.ptz",
+                ),
+                artifact_digest: Some(String::from(
+                    "4657d793ae3e64796670b6768f433c48f788518725ba2854e913db205412b250",
+                )),
+                source_kind: RemoteTrainingArtifactSourceKind::RuntimeOwned,
+                authoritative: true,
+                source_receipt_ids: vec![String::from(
+                    "parameter_golf_distributed_8xh100_train_step_receipt",
+                )],
+                detail: String::from(
+                    "The retained post-step int8+zlib artifact remains authoritative for the current distributed runtime output.",
                 ),
             },
             RemoteTrainingSourceArtifact {
@@ -2054,14 +2178,21 @@ pub fn sample_parameter_golf_distributed_unavailable_visualization_bundle(
     })
 }
 
+/// Backward-compatible alias for earlier code paths that still refer to the
+/// distributed lane as unavailable-only. The canonical fixture is now the live
+/// sample above.
+pub fn sample_parameter_golf_distributed_unavailable_visualization_bundle(
+) -> Result<RemoteTrainingVisualizationBundle, RemoteTrainingVisualizationError> {
+    sample_parameter_golf_distributed_live_visualization_bundle()
+}
+
 /// Returns a canonical run index that enumerates both a full-series lane and a
 /// summary-only lane with the same top-level shape.
 pub fn sample_remote_training_run_index(
 ) -> Result<RemoteTrainingRunIndex, RemoteTrainingVisualizationError> {
     let google = sample_google_summary_only_visualization_bundle()?;
     let parameter_golf = sample_parameter_golf_live_visualization_bundle()?;
-    let parameter_golf_distributed =
-        sample_parameter_golf_distributed_unavailable_visualization_bundle()?;
+    let parameter_golf_distributed = sample_parameter_golf_distributed_live_visualization_bundle()?;
     build_remote_training_run_index(RemoteTrainingRunIndex {
         schema_version: String::new(),
         index_id: String::from("remote-training-run-index-sample-v1"),
@@ -2123,14 +2254,14 @@ pub fn sample_remote_training_run_index(
                     "fixtures/training_visualization/parameter_golf_distributed_8xh100_remote_training_visualization_bundle_v1.json",
                 )),
                 bundle_digest: Some(parameter_golf_distributed.bundle_digest.clone()),
-                summary_label: String::from("RunPod 8xH100 PGOLF distributed post-run sample"),
+                summary_label: String::from("RunPod 8xH100 PGOLF distributed live sample"),
                 detail: String::from(
-                    "This entry proves the same index can list a post-run distributed lane that preserves topology and refusal provenance without inventing a live loss curve.",
+                    "This entry proves the same index can list an always-live distributed lane that retains heartbeats, distributed step telemetry, and provenance in one provider-neutral bundle.",
                 ),
             },
         ],
         detail: String::from(
-            "The run index keeps summary-only, always-live, and post-run distributed lanes in one provider-neutral discovery surface without forcing the app to walk provider roots.",
+            "The run index keeps summary-only, always-live single-node, and always-live distributed lanes in one provider-neutral discovery surface without forcing the app to walk provider roots.",
         ),
         index_digest: String::new(),
     })

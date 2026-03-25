@@ -17,6 +17,7 @@ use crate::{
     ParameterGolfDistributed8xH100RuntimeBootstrapDisposition,
     ParameterGolfDistributed8xH100RuntimeBootstrapReceipt,
     ParameterGolfDistributed8xH100TrainStepReceipt,
+    ParameterGolfDistributedLiveVisualizationWriter,
 };
 
 /// Stable schema version for the generic dense-rank runtime reference contract.
@@ -366,6 +367,7 @@ pub fn execute_parameter_golf_backed_dense_rank_runtime(
     run_id: &str,
     bringup_report_path: &Path,
     bringup_report: &ParameterGolfDistributed8xH100BringupReport,
+    mut live_visualization_writer: Option<&mut ParameterGolfDistributedLiveVisualizationWriter>,
 ) -> Result<ParameterGolfBackedDenseRankRuntimeOutcome, DenseRankRuntimeError> {
     let bootstrap_receipt = execute_parameter_golf_distributed_8xh100_runtime_bootstrap(
         root,
@@ -373,6 +375,7 @@ pub fn execute_parameter_golf_backed_dense_rank_runtime(
         run_id,
         bringup_report_path,
         bringup_report,
+        live_visualization_writer.as_deref_mut(),
     )?;
     let bringup_relpath = bringup_report_path
         .strip_prefix(root)
@@ -389,6 +392,7 @@ pub fn execute_parameter_golf_backed_dense_rank_runtime(
         bringup_report,
         &bootstrap_receipt_path,
         &bootstrap_receipt,
+        live_visualization_writer.as_deref_mut(),
     )?;
     let train_step_receipt_path =
         parameter_golf_distributed_8xh100_train_step_receipt_path(root, &bringup_relpath);

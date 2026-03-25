@@ -507,7 +507,7 @@ pub fn canonical_training_execution_evidence_bundle(
                     "fixtures/training_visualization/parameter_golf_distributed_8xh100_remote_training_visualization_bundle_v1.json",
                     TrainingExecutionEvidencePosture::Derived,
                     true,
-                    "The retained RunPod bundle is still post-run-only and keeps the missing live loss curve explicit.",
+                    "The retained RunPod bundle now preserves the always-live distributed mirror and still keeps any missing primary series explicit.",
                 )?],
                 visualization_refs: vec![
                     repo_artifact_ref(
@@ -515,7 +515,7 @@ pub fn canonical_training_execution_evidence_bundle(
                         "fixtures/training_visualization/parameter_golf_distributed_8xh100_remote_training_visualization_bundle_v1.json",
                         TrainingExecutionEvidencePosture::Derived,
                         true,
-                        "The provider-neutral visualization bundle is preserved even when the lane remains post-run-only.",
+                        "The provider-neutral visualization bundle is preserved through the same always-live mirror and finalizer seal path.",
                     )?,
                     repo_artifact_ref(
                         "run_index",
@@ -531,7 +531,7 @@ pub fn canonical_training_execution_evidence_bundle(
                     disposition: TrainingExecutionValidatorDisposition::Accepted,
                     evidence_posture: TrainingExecutionEvidencePosture::Derived,
                     detail: String::from(
-                        "The distributed lane sealed checkpoint and visualization proof, but the missing live primary series keeps the outcome degraded instead of promoted.",
+                        "The distributed lane sealed checkpoint and visualization proof, but any missing promoted primary series still keeps the outcome degraded instead of promoted.",
                     ),
                 }],
                 segment_disposition: TrainingExecutionDisposition::DegradedSuccess,
@@ -734,7 +734,7 @@ pub fn canonical_training_execution_evidence_bundle(
                         "fixtures/training_visualization/parameter_golf_distributed_8xh100_remote_training_visualization_bundle_v1.json",
                         TrainingExecutionEvidencePosture::Derived,
                         false,
-                        "Hybrid proof can also cite post-run-only distributed visualization state while keeping the degraded posture explicit.",
+                        "Hybrid proof can also cite the sealed always-live distributed visualization state while keeping the degraded posture explicit.",
                     )?,
                 ],
                 validator_results: vec![
