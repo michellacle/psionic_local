@@ -12,11 +12,11 @@
   "baseline_entrypoint_artifact_digest": "9f52fcca32581e8ab38493636cb6f5fa4046ff8ad56683961fc4f41385d1fcd3",
   "baseline_model_artifact_digest": "efe272503950104f1557f5c73cad69ce717e60d9b75f05e48d17ffbeb6940af1",
   "baseline_accounting_receipt_digest": "c98b2390a3ca2eaf26933cadc8939e2139c16894d671f4db22ad8f7948ba933a",
-  "baseline_submission_run_evidence_report_digest": "96edb872a361babb298bbb5914cde3dc584dba3d00ecb1d5ea7712f0db784557",
-  "baseline_export_surface_contract_report_digest": "d0235e7647d6f732df34532bed7fd90196bdabd7fdd28f6f9e2d819be0b04fae",
-  "baseline_record_folder_replay_verification_report_digest": "b649d7b0528d17a6b811a33ff813fa23e607dd04fc19a8b06b2c61a23cab029c",
-  "baseline_final_pr_bundle_report_digest": "29dd2678035966dc5bade10cc90bee072e35bd7381f2dca58e1244c32fe8412f",
-  "baseline_local_clone_dry_run_report_digest": "2d6c66e07f65fafb90bcefe06c64717528c9418aa6c7218b4863ba1515a5a18e",
+  "baseline_submission_run_evidence_report_digest": "bbeddcc4ccfd5e97d13aa19910b2c0ec9278bbb0708f5532dff32ab10c3d6f4f",
+  "baseline_export_surface_contract_report_digest": "2deac8385c4e2ae88cc2317570cbcd33747b239b674d36d7c8632ff81743ef9d",
+  "baseline_record_folder_replay_verification_report_digest": "e3844c6ce8219d4cb3b8dadd8b37a271c4aa164fec72210dd9549e1228e78985",
+  "baseline_final_pr_bundle_report_digest": "0dfd41ebb44ab68a325c4835c0ced09fa2e2af26e3145409a7f514d51c7b61db",
+  "baseline_local_clone_dry_run_report_digest": "f97c2bed323b94369e42401ca0692593b16e3c63248b285952039d82c13b22a0",
   "required_counted_component_ids": [
     "entrypoint_code_bytes",
     "compressed_model_bytes",
@@ -127,5 +127,5 @@
     }
   ],
   "claim_boundary": "record-track contract is now explicit, the shipped runtime-byte contract is defended, and the current lane remains blocked on reproducible 8xH100 challenge-speed execution",
-  "report_digest": "24fc0145aadfabe786c70a75b0382340a8c89db06bdc139257bda22031d38285"
+  "report_digest": "a865268348e32fc17fd55ac9fcc302aad3f53ac064e60a9c3662cbf93eeaa69a"
 }
