@@ -41,7 +41,8 @@ cargo run -q -p psionic-train --bin parameter_golf_single_h100_train
 
 You can also pass the explicit cached-dataset and tokenizer paths, an output
 report path, an explicit bounded proof step count, an optional explicit
-final-validation mode, and an optional explicit validation eval mode:
+final-validation mode, an optional explicit validation eval mode, and an
+optional trailing legal score-first TTT selector:
 
 ```bash
 cargo run -q -p psionic-train --bin parameter_golf_single_h100_train -- \
@@ -50,7 +51,8 @@ cargo run -q -p psionic-train --bin parameter_golf_single_h100_train -- \
   /tmp/parameter_golf_single_h100_training.json \
   1 \
   roundtrip_only \
-  sliding_window:64
+  sliding_window:64 \
+  score_first_ttt
 ```
 
 Passing the final positional step count selects the old bounded proof posture:
@@ -84,6 +86,46 @@ Supported explicit validation eval modes are:
 Today the widened trainer CLI accepts sliding-window eval on the single-H100
 lane so the final live or roundtrip validation pass can score only the suffix
 of each full-context window instead of only non-overlapping chunks.
+
+Supported legal score-first TTT selectors are:
+
+- `score_first_ttt`
+- `legal_score_first_ttt`
+- `score_first_ttt:stride=<n>,chunk_tokens=<n>,epochs=<n>,freeze_blocks=<n>,learning_rate=<f>,momentum=<f>,batch_sequences=<n>,grad_clip_norm=<f>`
+
+The default `score_first_ttt` label expands to the current public leaderboard
+README posture:
+
+- `stride=64`
+- `chunk_tokens=32768`
+- `epochs=3`
+- `freeze_blocks=0`
+- `learning_rate=0.002`
+- `momentum=0.9`
+- `batch_sequences=32`
+- `grad_clip_norm=1.0`
+
+This selector is only valid when `validation_eval_mode=sliding_window:<stride>`
+uses the same stride value.
+
+The legality boundary now matches the README contract explicitly:
+
+- each validation window is scored before any adaptation can see that chunk
+- window ownership is assigned by the first scored token, not by the full
+  context prefix
+- chunk adaptation happens only after the score phase for that chunk completes
+- the final chunk is scored but never trained
+- adaptation mutates a cloned validation model and does not change the trained
+  live-model weights or the exported `int8+zlib` artifact
+
+The final validation summary now carries a machine-readable
+`score_first_ttt_receipt` with:
+
+- the resolved TTT config
+- planned chunk boundaries
+- scored window counts per chunk
+- per-step adaptation receipts with learning-rate, clip, and token-count facts
+- final aggregated validation metrics
 
 For bounded same-node validation-runtime comparisons, the repo also exposes:
 
@@ -230,6 +272,10 @@ Today the single-H100 trainer doc does **not** claim:
 - distributed sliding-window eval closure yet; the single-H100 lane now
   accepts explicit sliding-window eval, but the distributed `8xH100` runtime
   still needs the same scoreboard-grade semantics wired end to end
+- exported-folder score-first TTT closure; the single-H100 CUDA trainer can now
+  execute the legal score-first TTT path, but the shipped bounded
+  local-reference exported-folder runtime still refuses that request with a
+  typed unsupported-validation error instead of pretending it ran it
 - record-track accounting closure
 - full BF16 activation-kernel closure yet; the current report now records BF16
   graph uploads for the train-visible token-embedding and linear weight path,

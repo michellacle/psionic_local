@@ -1,9 +1,9 @@
 use std::{env, path::PathBuf};
 
 use psionic_train::{
+    write_parameter_golf_single_h100_training_report, ParameterGolfScoreFirstTttConfig,
     ParameterGolfSingleH100TrainingConfig, ParameterGolfSingleH100ValidationMode,
     ParameterGolfValidationEvalMode,
-    write_parameter_golf_single_h100_training_report,
 };
 
 fn main() {
@@ -27,7 +27,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         .get(3)
         .map(PathBuf::from)
         .unwrap_or_else(|| PathBuf::from("/tmp/parameter_golf_single_h100_training.json"));
-    let (max_steps, final_validation_mode, validation_eval_mode) =
+    let (max_steps, final_validation_mode, validation_eval_mode, score_first_ttt) =
         parse_optional_max_steps_and_validation_mode(&args[4..])?;
     let mut config = if let Some(max_steps) = max_steps {
         ParameterGolfSingleH100TrainingConfig::bounded_proof_defaults(
@@ -43,6 +43,9 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
     }
     if let Some(validation_eval_mode) = validation_eval_mode {
         config.validation_eval_mode = validation_eval_mode;
+    }
+    if let Some(score_first_ttt) = score_first_ttt {
+        config.score_first_ttt = Some(score_first_ttt);
     }
     let report = write_parameter_golf_single_h100_training_report(&output_path, &config)?;
     println!(
@@ -61,6 +64,17 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         report.final_validation_mode.as_str(),
         report.validation_eval_mode.as_str(),
     );
+    if let Some(score_first_ttt) = report.score_first_ttt.as_ref() {
+        println!(
+            "score_first_ttt={} stride={} chunk_tokens={} epochs={} freeze_blocks={} batch_sequences={}",
+            score_first_ttt.label(),
+            score_first_ttt.stride,
+            score_first_ttt.chunk_tokens,
+            score_first_ttt.epochs,
+            score_first_ttt.freeze_blocks,
+            score_first_ttt.batch_sequences,
+        );
+    }
     if let Some(ref initial_validation) = report.initial_validation {
         println!(
             "initial_validation val_loss:{:.8} val_bpb:{:.8}",
@@ -139,12 +153,12 @@ fn parse_optional_max_steps_and_validation_mode(
         Option<u64>,
         Option<ParameterGolfSingleH100ValidationMode>,
         Option<ParameterGolfValidationEvalMode>,
+        Option<ParameterGolfScoreFirstTttConfig>,
     ),
     Box<dyn std::error::Error>,
->
-{
+> {
     let Some(first) = args.first().map(String::as_str) else {
-        return Ok((None, None, None));
+        return Ok((None, None, None, None));
     };
     if let Ok(max_steps) = first.parse::<u64>() {
         let validation_mode = args
@@ -158,12 +172,32 @@ fn parse_optional_max_steps_and_validation_mode(
                 .map(String::as_str)
                 .map(ParameterGolfValidationEvalMode::parse)
                 .transpose()?;
-            return Ok((Some(max_steps), validation_mode, validation_eval_mode));
+            let score_first_ttt = args
+                .get(3)
+                .map(String::as_str)
+                .map(ParameterGolfScoreFirstTttConfig::parse)
+                .transpose()?;
+            return Ok((
+                Some(max_steps),
+                validation_mode,
+                validation_eval_mode,
+                score_first_ttt,
+            ));
         }
         let validation_eval_mode = ParameterGolfValidationEvalMode::parse(
             args.get(1).map(String::as_str).unwrap_or_default(),
         )?;
-        return Ok((Some(max_steps), None, Some(validation_eval_mode)));
+        let score_first_ttt = args
+            .get(2)
+            .map(String::as_str)
+            .map(ParameterGolfScoreFirstTttConfig::parse)
+            .transpose()?;
+        return Ok((
+            Some(max_steps),
+            None,
+            Some(validation_eval_mode),
+            score_first_ttt,
+        ));
     }
     if let Ok(validation_mode) = ParameterGolfSingleH100ValidationMode::parse(first) {
         let validation_eval_mode = args
@@ -171,8 +205,23 @@ fn parse_optional_max_steps_and_validation_mode(
             .map(String::as_str)
             .map(ParameterGolfValidationEvalMode::parse)
             .transpose()?;
-        return Ok((None, Some(validation_mode), validation_eval_mode));
+        let score_first_ttt = args
+            .get(2)
+            .map(String::as_str)
+            .map(ParameterGolfScoreFirstTttConfig::parse)
+            .transpose()?;
+        return Ok((
+            None,
+            Some(validation_mode),
+            validation_eval_mode,
+            score_first_ttt,
+        ));
     }
     let validation_eval_mode = ParameterGolfValidationEvalMode::parse(first)?;
-    Ok((None, None, Some(validation_eval_mode)))
+    let score_first_ttt = args
+        .get(1)
+        .map(String::as_str)
+        .map(ParameterGolfScoreFirstTttConfig::parse)
+        .transpose()?;
+    Ok((None, None, Some(validation_eval_mode), score_first_ttt))
 }

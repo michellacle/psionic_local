@@ -21,8 +21,8 @@ use psionic_data::{
 use psionic_ir::AutodiffBackwardResult;
 use psionic_ir::{AutodiffError, GraphError};
 use psionic_models::{
-    ParameterGolfModelError, ParameterGolfReferenceModel, PARAMETER_GOLF_BASELINE_MODEL_ID,
-    PARAMETER_GOLF_BASELINE_REVISION,
+    ParameterGolfExecutionError, ParameterGolfModelError, ParameterGolfReferenceModel,
+    PARAMETER_GOLF_BASELINE_MODEL_ID, PARAMETER_GOLF_BASELINE_REVISION,
 };
 use psionic_runtime::{
     BufferHandle, DeliveredExecutionContext, DeviceDescriptor, RuntimeError, RuntimeHealth,
@@ -81,6 +81,9 @@ pub struct ParameterGolfSingleH100TrainingConfig {
     /// Explicit evaluation semantics for live and roundtrip validation.
     #[serde(default)]
     pub validation_eval_mode: ParameterGolfValidationEvalMode,
+    /// Optional legal score-first TTT overlay for the final validation passes.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub score_first_ttt: Option<ParameterGolfScoreFirstTttConfig>,
 }
 
 impl ParameterGolfSingleH100TrainingConfig {
@@ -107,6 +110,7 @@ impl ParameterGolfSingleH100TrainingConfig {
             train_log_every: 200,
             final_validation_mode: ParameterGolfSingleH100ValidationMode::Both,
             validation_eval_mode: ParameterGolfValidationEvalMode::NonOverlapping,
+            score_first_ttt: None,
             hyperparameters,
         }
     }
@@ -125,6 +129,7 @@ impl ParameterGolfSingleH100TrainingConfig {
         config.train_log_every = 1;
         config.final_validation_mode = ParameterGolfSingleH100ValidationMode::RoundtripOnly;
         config.validation_eval_mode = ParameterGolfValidationEvalMode::NonOverlapping;
+        config.score_first_ttt = None;
         config.hyperparameters.max_wallclock_seconds = None;
         config
     }
@@ -179,6 +184,28 @@ impl ParameterGolfSingleH100TrainingConfig {
         }
         self.validation_eval_mode
             .validate(self.geometry.train_sequence_length)?;
+        if let Some(score_first_ttt) = self.score_first_ttt.as_ref() {
+            score_first_ttt.validate(self.geometry.train_sequence_length)?;
+            match self.validation_eval_mode {
+                ParameterGolfValidationEvalMode::SlidingWindow { stride }
+                    if stride == score_first_ttt.stride => {}
+                ParameterGolfValidationEvalMode::SlidingWindow { stride } => {
+                    return Err(ParameterGolfSingleH100TrainingError::InvalidConfig {
+                        message: format!(
+                            "score-first TTT requires validation_eval_mode=sliding_window:{} but observed sliding_window:{}",
+                            score_first_ttt.stride, stride
+                        ),
+                    });
+                }
+                ParameterGolfValidationEvalMode::NonOverlapping => {
+                    return Err(ParameterGolfSingleH100TrainingError::InvalidConfig {
+                        message: String::from(
+                            "score-first TTT requires sliding-window validation semantics",
+                        ),
+                    });
+                }
+            }
+        }
         Ok(())
     }
 }
@@ -294,6 +321,257 @@ impl ParameterGolfValidationEvalMode {
             }
         }
     }
+}
+
+/// Explicit legal score-first TTT configuration layered on top of
+/// sliding-window validation.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ParameterGolfScoreFirstTttConfig {
+    /// Sliding-window stride used during the score phase.
+    pub stride: usize,
+    /// Contiguous validation tokens assigned to one TTT chunk.
+    pub chunk_tokens: usize,
+    /// Number of adaptation epochs per scored chunk.
+    pub epochs: usize,
+    /// Number of leading transformer blocks frozen during adaptation.
+    pub freeze_blocks: usize,
+    /// Scalar SGD learning rate.
+    pub learning_rate: f32,
+    /// SGD momentum.
+    pub momentum: f32,
+    /// Number of training sequences per adaptation batch.
+    pub batch_sequences: usize,
+    /// Global grad clip norm applied before each adaptation step.
+    pub grad_clip_norm: f32,
+}
+
+impl ParameterGolfScoreFirstTttConfig {
+    /// Returns the current leaderboard-facing legal score-first TTT defaults.
+    #[must_use]
+    pub fn leaderboard_defaults() -> Self {
+        Self {
+            stride: 64,
+            chunk_tokens: 32_768,
+            epochs: 3,
+            freeze_blocks: 0,
+            learning_rate: 0.002,
+            momentum: 0.9,
+            batch_sequences: 32,
+            grad_clip_norm: 1.0,
+        }
+    }
+
+    /// Parses one CLI-visible score-first TTT label.
+    pub fn parse(value: &str) -> Result<Self, ParameterGolfSingleH100TrainingError> {
+        if value == "score_first_ttt" || value == "legal_score_first_ttt" {
+            return Ok(Self::leaderboard_defaults());
+        }
+        let payload = value
+            .strip_prefix("score_first_ttt:")
+            .or_else(|| value.strip_prefix("legal_score_first_ttt:"))
+            .ok_or_else(|| ParameterGolfSingleH100TrainingError::InvalidConfig {
+                message: format!(
+                    "unsupported score-first TTT label `{value}`, expected score_first_ttt or score_first_ttt:key=value,..."
+                ),
+            })?;
+        let mut config = Self::leaderboard_defaults();
+        for entry in payload.split(',').filter(|entry| !entry.trim().is_empty()) {
+            let (key, raw_value) = entry.split_once('=').ok_or_else(|| {
+                ParameterGolfSingleH100TrainingError::InvalidConfig {
+                    message: format!("invalid score-first TTT entry `{entry}`, expected key=value"),
+                }
+            })?;
+            match key.trim() {
+                "stride" => {
+                    config.stride = raw_value.parse::<usize>().map_err(|error| {
+                        ParameterGolfSingleH100TrainingError::InvalidConfig {
+                            message: format!(
+                                "invalid score-first TTT stride `{raw_value}`: {error}"
+                            ),
+                        }
+                    })?;
+                }
+                "chunk_tokens" => {
+                    config.chunk_tokens = raw_value.parse::<usize>().map_err(|error| {
+                        ParameterGolfSingleH100TrainingError::InvalidConfig {
+                            message: format!(
+                                "invalid score-first TTT chunk_tokens `{raw_value}`: {error}"
+                            ),
+                        }
+                    })?;
+                }
+                "epochs" => {
+                    config.epochs = raw_value.parse::<usize>().map_err(|error| {
+                        ParameterGolfSingleH100TrainingError::InvalidConfig {
+                            message: format!(
+                                "invalid score-first TTT epochs `{raw_value}`: {error}"
+                            ),
+                        }
+                    })?;
+                }
+                "freeze_blocks" => {
+                    config.freeze_blocks = raw_value.parse::<usize>().map_err(|error| {
+                        ParameterGolfSingleH100TrainingError::InvalidConfig {
+                            message: format!(
+                                "invalid score-first TTT freeze_blocks `{raw_value}`: {error}"
+                            ),
+                        }
+                    })?;
+                }
+                "learning_rate" | "lr" => {
+                    config.learning_rate = raw_value.parse::<f32>().map_err(|error| {
+                        ParameterGolfSingleH100TrainingError::InvalidConfig {
+                            message: format!(
+                                "invalid score-first TTT learning_rate `{raw_value}`: {error}"
+                            ),
+                        }
+                    })?;
+                }
+                "momentum" => {
+                    config.momentum = raw_value.parse::<f32>().map_err(|error| {
+                        ParameterGolfSingleH100TrainingError::InvalidConfig {
+                            message: format!(
+                                "invalid score-first TTT momentum `{raw_value}`: {error}"
+                            ),
+                        }
+                    })?;
+                }
+                "batch_sequences" => {
+                    config.batch_sequences = raw_value.parse::<usize>().map_err(|error| {
+                        ParameterGolfSingleH100TrainingError::InvalidConfig {
+                            message: format!(
+                                "invalid score-first TTT batch_sequences `{raw_value}`: {error}"
+                            ),
+                        }
+                    })?;
+                }
+                "grad_clip_norm" => {
+                    config.grad_clip_norm = raw_value.parse::<f32>().map_err(|error| {
+                        ParameterGolfSingleH100TrainingError::InvalidConfig {
+                            message: format!(
+                                "invalid score-first TTT grad_clip_norm `{raw_value}`: {error}"
+                            ),
+                        }
+                    })?;
+                }
+                other => {
+                    return Err(ParameterGolfSingleH100TrainingError::InvalidConfig {
+                        message: format!("unsupported score-first TTT key `{other}` in `{value}`"),
+                    });
+                }
+            }
+        }
+        Ok(config)
+    }
+
+    #[must_use]
+    pub const fn label(&self) -> &'static str {
+        "legal_score_first_ttt"
+    }
+
+    fn validate(&self, sequence_length: usize) -> Result<(), ParameterGolfSingleH100TrainingError> {
+        if self.stride == 0 || self.stride > sequence_length {
+            return Err(ParameterGolfSingleH100TrainingError::InvalidConfig {
+                message: format!(
+                    "score-first TTT stride must be in 1..={sequence_length}, observed {}",
+                    self.stride
+                ),
+            });
+        }
+        if self.chunk_tokens == 0 {
+            return Err(ParameterGolfSingleH100TrainingError::InvalidConfig {
+                message: String::from("score-first TTT chunk_tokens must be positive"),
+            });
+        }
+        if self.batch_sequences == 0 {
+            return Err(ParameterGolfSingleH100TrainingError::InvalidConfig {
+                message: String::from("score-first TTT batch_sequences must be positive"),
+            });
+        }
+        if !self.learning_rate.is_finite() || self.learning_rate <= 0.0 {
+            return Err(ParameterGolfSingleH100TrainingError::InvalidConfig {
+                message: format!(
+                    "score-first TTT learning_rate must be finite and positive, observed {}",
+                    self.learning_rate
+                ),
+            });
+        }
+        if !self.momentum.is_finite() || !(0.0..=1.0).contains(&self.momentum) {
+            return Err(ParameterGolfSingleH100TrainingError::InvalidConfig {
+                message: format!(
+                    "score-first TTT momentum must be finite and within 0..=1, observed {}",
+                    self.momentum
+                ),
+            });
+        }
+        if !self.grad_clip_norm.is_finite() || self.grad_clip_norm <= 0.0 {
+            return Err(ParameterGolfSingleH100TrainingError::InvalidConfig {
+                message: format!(
+                    "score-first TTT grad_clip_norm must be finite and positive, observed {}",
+                    self.grad_clip_norm
+                ),
+            });
+        }
+        Ok(())
+    }
+}
+
+/// One planned score-first TTT chunk.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ParameterGolfScoreFirstTttChunkPlan {
+    pub chunk_index: usize,
+    pub chunk_start_token: usize,
+    pub chunk_end_token: usize,
+    pub first_window_start: Option<usize>,
+    pub last_window_start: Option<usize>,
+    pub score_window_count: usize,
+}
+
+/// One adaptation step executed inside one score-first TTT chunk.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ParameterGolfScoreFirstTttAdaptationStepReceipt {
+    pub epoch_index: usize,
+    pub batch_index: usize,
+    pub train_sequence_start: usize,
+    pub train_sequence_count: usize,
+    pub train_token_count: u64,
+    pub mean_loss: f32,
+    pub learning_rate: f32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub gradient_norm_after_clip: Option<f32>,
+    #[serde(default)]
+    pub clip_applied: bool,
+    #[serde(default)]
+    pub non_finite_gradient_count: u32,
+    pub observed_ms: u64,
+}
+
+/// One executed score-first TTT chunk receipt.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ParameterGolfScoreFirstTttChunkReceipt {
+    pub plan: ParameterGolfScoreFirstTttChunkPlan,
+    pub score_summary: ParameterGolfSingleH100ValidationSummary,
+    pub adaptation_applied: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub adaptation_learning_rate: Option<f32>,
+    #[serde(default)]
+    pub adaptation_sequence_count: usize,
+    #[serde(default)]
+    pub adaptation_token_count: u64,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub adaptation_steps: Vec<ParameterGolfScoreFirstTttAdaptationStepReceipt>,
+}
+
+/// Machine-readable receipt for one legal score-first TTT validation pass.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ParameterGolfScoreFirstTttReceipt {
+    pub path: String,
+    pub config: ParameterGolfScoreFirstTttConfig,
+    pub total_chunks: usize,
+    pub total_score_window_count: usize,
+    pub total_adaptation_step_count: usize,
+    pub last_chunk_training_skipped: bool,
+    pub chunk_receipts: Vec<ParameterGolfScoreFirstTttChunkReceipt>,
 }
 
 /// Machine-readable phase timings for one challenge-step aggregate.
@@ -433,6 +711,8 @@ pub struct ParameterGolfSingleH100ValidationSummary {
     pub bits_per_byte: f64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub runtime_receipt: Option<ParameterGolfSingleH100ValidationRuntimeReceipt>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub score_first_ttt_receipt: Option<ParameterGolfScoreFirstTttReceipt>,
 }
 
 /// Machine-readable runtime posture for one validation pass.
@@ -471,6 +751,8 @@ pub struct ParameterGolfSingleH100ValidationCheckpoint {
 pub struct ParameterGolfSingleH100RoundtripReceipt {
     pub metric_source: String,
     pub validation: ParameterGolfSingleH100ValidationSummary,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pre_ttt_validation: Option<ParameterGolfSingleH100ValidationSummary>,
     pub observed_eval_ms: u64,
     pub compressed_model_bytes: u64,
     pub compressed_model_artifact_ref: String,
@@ -531,6 +813,8 @@ pub struct ParameterGolfSingleH100TrainingReport {
     pub final_validation_mode: ParameterGolfSingleH100ValidationMode,
     #[serde(default)]
     pub validation_eval_mode: ParameterGolfValidationEvalMode,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub score_first_ttt: Option<ParameterGolfScoreFirstTttConfig>,
     pub executed_steps: u64,
     pub stop_reason: Option<ParameterGolfSingleH100TrainingStopReason>,
     pub delivered_execution: DeliveredExecutionContext,
@@ -711,6 +995,18 @@ struct ParameterGolfValidationBatchPlan {
 struct ParameterGolfValidationBatchRuntime {
     input_token_write_us: u64,
     target_token_write_us: u64,
+}
+
+#[derive(Clone, Debug)]
+struct ParameterGolfScoreFirstTttChunkExecutionPlan {
+    receipt_plan: ParameterGolfScoreFirstTttChunkPlan,
+    window_starts: Vec<usize>,
+}
+
+#[derive(Clone, Debug)]
+struct ParameterGolfScoreFirstTttParameterState {
+    values: Vec<f32>,
+    momentum_buffer: Vec<f32>,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -913,6 +1209,8 @@ pub enum ParameterGolfSingleH100TrainingError {
     Data(#[from] ParameterGolfDataError),
     #[error(transparent)]
     Model(#[from] ParameterGolfModelError),
+    #[error(transparent)]
+    Execution(#[from] ParameterGolfExecutionError),
     #[error(transparent)]
     Graph(#[from] GraphError),
     #[error(transparent)]
@@ -1429,7 +1727,7 @@ fn build_parameter_golf_single_h100_training_report_inner(
                 );
             }
             let validation_started = Instant::now();
-            let validation_summary = evaluate_validation_on_cuda(
+            let validation_summary = evaluate_validation_with_optional_score_first_ttt_on_cuda(
                 &mut cuda_backend,
                 &selected_device.device,
                 current_model.descriptor(),
@@ -1439,7 +1737,11 @@ fn build_parameter_golf_single_h100_training_report_inner(
                 config.geometry.train_sequence_length,
                 config.geometry.local_validation_batch_sequences(),
                 &config.validation_eval_mode,
+                last_step
+                    .then_some(config.score_first_ttt.as_ref())
+                    .flatten(),
                 &mut eval_graph_cache,
+                &mut train_graph_cache,
                 &stage_label,
                 live_visualization_writer.as_mut(),
             )?;
@@ -1593,7 +1895,7 @@ fn build_parameter_golf_single_h100_training_report_inner(
             compressed_model_artifact.bytes.as_slice(),
         )?;
         let roundtrip_validation_started = Instant::now();
-        let roundtrip_validation = evaluate_validation_on_cuda(
+        let roundtrip_validation = evaluate_validation_with_optional_score_first_ttt_on_cuda(
             &mut cuda_backend,
             &selected_device.device,
             roundtrip_model.descriptor(),
@@ -1603,7 +1905,9 @@ fn build_parameter_golf_single_h100_training_report_inner(
             config.geometry.train_sequence_length,
             config.geometry.local_validation_batch_sequences(),
             &config.validation_eval_mode,
+            config.score_first_ttt.as_ref(),
             &mut eval_graph_cache,
+            &mut train_graph_cache,
             "final_int8_zlib_roundtrip",
             live_visualization_writer.as_mut(),
         )?;
@@ -1626,6 +1930,7 @@ fn build_parameter_golf_single_h100_training_report_inner(
         final_roundtrip_receipt = Some(ParameterGolfSingleH100RoundtripReceipt {
             metric_source: String::from("int8_zlib_roundtrip"),
             validation: roundtrip_validation,
+            pre_ttt_validation: None,
             observed_eval_ms: roundtrip_observed_ms,
             compressed_model_bytes: compressed_model_artifact.bytes.len() as u64,
             compressed_model_artifact_ref: compressed_model_artifact.artifact_ref.clone(),
@@ -1717,6 +2022,7 @@ fn build_parameter_golf_single_h100_training_report_inner(
         train_log_every: config.train_log_every,
         final_validation_mode: config.final_validation_mode,
         validation_eval_mode: config.validation_eval_mode.clone(),
+        score_first_ttt: config.score_first_ttt.clone(),
         executed_steps: step,
         stop_reason: Some(realized_stop_reason),
         delivered_execution,
@@ -1805,6 +2111,7 @@ fn refusal_report(
         train_log_every: config.train_log_every,
         final_validation_mode: config.final_validation_mode,
         validation_eval_mode: config.validation_eval_mode.clone(),
+        score_first_ttt: config.score_first_ttt.clone(),
         executed_steps: 0,
         stop_reason: None,
         delivered_execution: DeliveredExecutionContext::new("cuda", None, Vec::new()),
@@ -2148,24 +2455,26 @@ pub(crate) fn materialize_current_model(
 }
 
 #[allow(clippy::too_many_arguments)]
-pub(crate) fn execute_parameter_golf_training_gradient_batch(
+fn execute_parameter_golf_training_gradient_batch_from_examples(
     cuda_backend: &mut CudaBackend,
     device: &psionic_core::Device,
-    bundle: &ParameterGolfDatasetBundle,
     current_model: &ParameterGolfReferenceModel,
     graph_cache: &mut BTreeMap<usize, ParameterGolfBaselineTrainingGraph>,
     training_session_cache: Option<&mut BTreeMap<usize, ParameterGolfCudaTrainingSession>>,
-    geometry: &ParameterGolfBatchGeometry,
-    window: &ParameterGolfTokenStreamWindow,
-) -> Result<ParameterGolfTrainingGradientBatchResult, ParameterGolfSingleH100TrainingError> {
-    let mut phase_timings = ParameterGolfSingleH100PhaseTimings::default();
-
-    let tokens_started = Instant::now();
-    let tokens = materialize_parameter_golf_token_window(bundle, window)?;
-    phase_timings.token_materialization_ms = duration_ms(tokens_started);
-    let (input_ids, target_ids) = training_batch_from_window_tokens(tokens.as_slice(), geometry)?;
-
+    sequence_length: usize,
+    input_ids: &[Vec<u32>],
+    target_ids: &[Vec<u32>],
+) -> Result<
+    (
+        f32,
+        BTreeMap<String, Vec<f32>>,
+        ParameterGolfSingleH100PhaseTimings,
+        Option<ParameterGolfTrainingBatchRuntime>,
+    ),
+    ParameterGolfSingleH100TrainingError,
+> {
     let batch_size = input_ids.len();
+    let mut phase_timings = ParameterGolfSingleH100PhaseTimings::default();
     let (graph, backward_plan, loss, backward_outputs, runtime) =
         if let Some(training_session_cache) = training_session_cache {
             let session = training_session_for_batch(
@@ -2176,10 +2485,10 @@ pub(crate) fn execute_parameter_golf_training_gradient_batch(
                 current_model.descriptor(),
                 current_model,
                 batch_size,
-                geometry.train_sequence_length,
+                sequence_length,
             )?;
             let (loss, backward_outputs, runtime) =
-                session.execute_batch(cuda_backend, input_ids.as_slice(), target_ids.as_slice())?;
+                session.execute_batch(cuda_backend, input_ids, target_ids)?;
             (
                 session.graph.clone(),
                 session.backward_plan.clone(),
@@ -2193,13 +2502,13 @@ pub(crate) fn execute_parameter_golf_training_gradient_batch(
                 device.clone(),
                 current_model.descriptor(),
                 batch_size,
-                geometry.train_sequence_length,
+                sequence_length,
             )?;
             let inputs = bind_parameter_golf_baseline_training_graph_inputs(
                 graph,
                 current_model,
-                input_ids.as_slice(),
-                target_ids.as_slice(),
+                input_ids,
+                target_ids,
             )?;
             let backward_plan = graph.graph.backward_plan(graph.loss_tensor_id)?;
             let retained_graph = retained_forward_graph(graph, &backward_plan);
@@ -2251,15 +2560,48 @@ pub(crate) fn execute_parameter_golf_training_gradient_batch(
         &graph,
         &backward_result,
         &current_model.descriptor().config,
-        input_ids.as_slice(),
+        input_ids,
     )?;
     phase_timings.host_gradient_materialization_ms = duration_ms(materialize_started);
+
+    Ok((loss, gradients.parameter_gradients, phase_timings, runtime))
+}
+
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn execute_parameter_golf_training_gradient_batch(
+    cuda_backend: &mut CudaBackend,
+    device: &psionic_core::Device,
+    bundle: &ParameterGolfDatasetBundle,
+    current_model: &ParameterGolfReferenceModel,
+    graph_cache: &mut BTreeMap<usize, ParameterGolfBaselineTrainingGraph>,
+    training_session_cache: Option<&mut BTreeMap<usize, ParameterGolfCudaTrainingSession>>,
+    geometry: &ParameterGolfBatchGeometry,
+    window: &ParameterGolfTokenStreamWindow,
+) -> Result<ParameterGolfTrainingGradientBatchResult, ParameterGolfSingleH100TrainingError> {
+    let mut phase_timings = ParameterGolfSingleH100PhaseTimings::default();
+
+    let tokens_started = Instant::now();
+    let tokens = materialize_parameter_golf_token_window(bundle, window)?;
+    phase_timings.token_materialization_ms = duration_ms(tokens_started);
+    let (input_ids, target_ids) = training_batch_from_window_tokens(tokens.as_slice(), geometry)?;
+    let (loss, gradients, batch_phase_timings, runtime) =
+        execute_parameter_golf_training_gradient_batch_from_examples(
+            cuda_backend,
+            device,
+            current_model,
+            graph_cache,
+            training_session_cache,
+            geometry.train_sequence_length,
+            input_ids.as_slice(),
+            target_ids.as_slice(),
+        )?;
+    phase_timings.accumulate(&batch_phase_timings);
 
     Ok(ParameterGolfTrainingGradientBatchResult {
         window_id: window.window_id.clone(),
         loss,
         phase_timings,
-        parameter_gradients: gradients.parameter_gradients,
+        parameter_gradients: gradients,
         runtime,
     })
 }
@@ -2591,6 +2933,483 @@ pub(crate) fn evaluate_validation_window_starts_on_cuda(
 }
 
 #[allow(clippy::too_many_arguments)]
+fn evaluate_validation_with_optional_score_first_ttt_on_cuda(
+    cuda_backend: &mut CudaBackend,
+    device: &psionic_core::Device,
+    descriptor: &psionic_models::ParameterGolfModelDescriptor,
+    model: &ParameterGolfReferenceModel,
+    validation_tokens: &[u16],
+    byte_luts: &ParameterGolfSentencePieceByteLuts,
+    sequence_length: usize,
+    batch_sequences: usize,
+    eval_mode: &ParameterGolfValidationEvalMode,
+    score_first_ttt: Option<&ParameterGolfScoreFirstTttConfig>,
+    eval_graph_cache: &mut BTreeMap<usize, ParameterGolfBaselineEvalGraph>,
+    train_graph_cache: &mut BTreeMap<usize, ParameterGolfBaselineTrainingGraph>,
+    stage_label: &str,
+    live_visualization_writer: Option<&mut crate::ParameterGolfSingleH100LiveVisualizationWriter>,
+) -> Result<ParameterGolfSingleH100ValidationSummary, ParameterGolfSingleH100TrainingError> {
+    match score_first_ttt {
+        Some(score_first_ttt) => evaluate_score_first_ttt_on_cuda(
+            cuda_backend,
+            device,
+            descriptor,
+            model,
+            validation_tokens,
+            byte_luts,
+            sequence_length,
+            batch_sequences,
+            eval_mode,
+            score_first_ttt,
+            eval_graph_cache,
+            train_graph_cache,
+            stage_label,
+            live_visualization_writer,
+        ),
+        None => evaluate_validation_on_cuda(
+            cuda_backend,
+            device,
+            descriptor,
+            model,
+            validation_tokens,
+            byte_luts,
+            sequence_length,
+            batch_sequences,
+            eval_mode,
+            eval_graph_cache,
+            stage_label,
+            live_visualization_writer,
+        ),
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn evaluate_score_first_ttt_on_cuda(
+    cuda_backend: &mut CudaBackend,
+    device: &psionic_core::Device,
+    descriptor: &psionic_models::ParameterGolfModelDescriptor,
+    model: &ParameterGolfReferenceModel,
+    validation_tokens: &[u16],
+    byte_luts: &ParameterGolfSentencePieceByteLuts,
+    sequence_length: usize,
+    _batch_sequences: usize,
+    eval_mode: &ParameterGolfValidationEvalMode,
+    score_first_ttt: &ParameterGolfScoreFirstTttConfig,
+    eval_graph_cache: &mut BTreeMap<usize, ParameterGolfBaselineEvalGraph>,
+    train_graph_cache: &mut BTreeMap<usize, ParameterGolfBaselineTrainingGraph>,
+    stage_label: &str,
+    live_visualization_writer: Option<&mut crate::ParameterGolfSingleH100LiveVisualizationWriter>,
+) -> Result<ParameterGolfSingleH100ValidationSummary, ParameterGolfSingleH100TrainingError> {
+    let stride = match eval_mode {
+        ParameterGolfValidationEvalMode::SlidingWindow { stride } => *stride,
+        ParameterGolfValidationEvalMode::NonOverlapping => {
+            return Err(ParameterGolfSingleH100TrainingError::InvalidConfig {
+                message: String::from(
+                    "legal score-first TTT requires sliding-window validation semantics",
+                ),
+            });
+        }
+    };
+    if stride != score_first_ttt.stride {
+        return Err(ParameterGolfSingleH100TrainingError::InvalidConfig {
+            message: format!(
+                "legal score-first TTT stride {} did not match validation_eval_mode stride {}",
+                score_first_ttt.stride, stride
+            ),
+        });
+    }
+    if validation_tokens.len() <= sequence_length {
+        return Err(ParameterGolfSingleH100TrainingError::InvalidConfig {
+            message: String::from(
+                "validation split is too short for the requested sequence length",
+            ),
+        });
+    }
+
+    let chunk_plans = build_parameter_golf_score_first_ttt_chunk_plans(
+        validation_tokens.len().saturating_sub(1),
+        sequence_length,
+        score_first_ttt,
+    );
+    let total_chunks = chunk_plans.len();
+    let total_score_window_count = chunk_plans
+        .iter()
+        .map(|plan| plan.receipt_plan.score_window_count)
+        .sum::<usize>();
+    emit_progress_line(format!(
+        "validation_score_first_ttt_start stage={} stride={} chunk_tokens={} chunks={} score_windows={} epochs={} freeze_blocks={} batch_sequences={}",
+        stage_label,
+        score_first_ttt.stride,
+        score_first_ttt.chunk_tokens,
+        chunk_plans.len(),
+        total_score_window_count,
+        score_first_ttt.epochs,
+        score_first_ttt.freeze_blocks,
+        score_first_ttt.batch_sequences,
+    ));
+
+    let base_model = model.clone();
+    let mut current_model = model.clone();
+    let mut trainable_states =
+        seed_parameter_golf_score_first_ttt_states(&base_model, score_first_ttt.freeze_blocks);
+    let mut training_session_cache = BTreeMap::new();
+    let mut live_visualization_writer = live_visualization_writer;
+    let mut total_loss_sum = 0.0_f64;
+    let mut total_token_count = 0_u64;
+    let mut total_byte_count = 0_u64;
+    let mut chunk_receipts = Vec::with_capacity(chunk_plans.len());
+    let mut total_adaptation_step_count = 0_usize;
+
+    for chunk_plan in chunk_plans {
+        let score_summary = evaluate_validation_window_starts_on_cuda(
+            cuda_backend,
+            device,
+            descriptor,
+            &current_model,
+            validation_tokens,
+            byte_luts,
+            sequence_length,
+            score_first_ttt.batch_sequences.max(1),
+            score_first_ttt.stride,
+            chunk_plan.window_starts.as_slice(),
+            eval_graph_cache,
+            stage_label,
+            live_visualization_writer
+                .as_mut()
+                .map(|writer| &mut **writer),
+        )?;
+        total_loss_sum += score_summary.mean_loss * score_summary.evaluated_token_count as f64;
+        total_token_count = total_token_count.saturating_add(score_summary.evaluated_token_count);
+        total_byte_count = total_byte_count.saturating_add(score_summary.evaluated_byte_count);
+
+        let is_last_chunk = chunk_plan.receipt_plan.chunk_index + 1 == total_chunks.max(1);
+        let mut adaptation_steps = Vec::new();
+        let chunk_start = chunk_plan.receipt_plan.chunk_start_token;
+        let chunk_end = chunk_plan.receipt_plan.chunk_end_token;
+        let chunk_sequence_count = chunk_end.saturating_sub(chunk_start) / sequence_length;
+        let chunk_learning_rate = score_first_ttt.learning_rate
+            * 0.5
+            * (1.0
+                + (std::f32::consts::PI * chunk_plan.receipt_plan.chunk_index as f32
+                    / total_chunks.saturating_sub(1).max(1) as f32)
+                    .cos());
+        if !is_last_chunk && score_first_ttt.epochs > 0 && chunk_sequence_count > 0 {
+            for epoch_index in 0..score_first_ttt.epochs {
+                for (batch_index, batch_sequence_start) in (0..chunk_sequence_count)
+                    .step_by(score_first_ttt.batch_sequences)
+                    .enumerate()
+                {
+                    let batch_sequence_end = (batch_sequence_start
+                        + score_first_ttt.batch_sequences)
+                        .min(chunk_sequence_count);
+                    let token_start =
+                        chunk_start + batch_sequence_start.saturating_mul(sequence_length);
+                    let token_end =
+                        chunk_start + batch_sequence_end.saturating_mul(sequence_length) + 1;
+                    if token_end > validation_tokens.len() {
+                        continue;
+                    }
+                    let (input_ids, target_ids) = training_batch_from_flat_tokens(
+                        &validation_tokens[token_start..token_end],
+                        sequence_length,
+                    )?;
+                    let step_started = Instant::now();
+                    let (_loss, gradients, _, _) =
+                        execute_parameter_golf_training_gradient_batch_from_examples(
+                            cuda_backend,
+                            device,
+                            &current_model,
+                            train_graph_cache,
+                            Some(&mut training_session_cache),
+                            sequence_length,
+                            input_ids.as_slice(),
+                            target_ids.as_slice(),
+                        )?;
+                    let mut trainable_gradients = gradients
+                        .into_iter()
+                        .filter(|(parameter_id, _)| trainable_states.contains_key(parameter_id))
+                        .collect::<Vec<_>>();
+                    let clip_observation = clip_gradients(
+                        trainable_gradients.as_mut_slice(),
+                        score_first_ttt.grad_clip_norm,
+                    );
+                    apply_parameter_golf_score_first_ttt_gradients(
+                        &mut trainable_states,
+                        trainable_gradients.as_slice(),
+                        chunk_learning_rate,
+                        score_first_ttt.momentum,
+                    )?;
+                    current_model = materialize_parameter_golf_score_first_ttt_model(
+                        &base_model,
+                        &trainable_states,
+                    )?;
+                    refresh_parameter_golf_cuda_training_sessions(
+                        &mut training_session_cache,
+                        &current_model,
+                    )?;
+                    total_adaptation_step_count = total_adaptation_step_count.saturating_add(1);
+                    let mean_loss =
+                        current_model.loss(input_ids.as_slice(), target_ids.as_slice())?;
+                    adaptation_steps.push(ParameterGolfScoreFirstTttAdaptationStepReceipt {
+                        epoch_index,
+                        batch_index,
+                        train_sequence_start: batch_sequence_start,
+                        train_sequence_count: batch_sequence_end
+                            .saturating_sub(batch_sequence_start),
+                        train_token_count: ((batch_sequence_end
+                            .saturating_sub(batch_sequence_start))
+                        .saturating_mul(sequence_length))
+                            as u64,
+                        mean_loss,
+                        learning_rate: chunk_learning_rate,
+                        gradient_norm_after_clip: clip_observation.gradient_norm_after_clip,
+                        clip_applied: clip_observation.clip_applied,
+                        non_finite_gradient_count: clip_observation.non_finite_count,
+                        observed_ms: duration_ms(step_started),
+                    });
+                }
+            }
+        }
+
+        if let Some(writer) = live_visualization_writer.as_mut() {
+            writer.record_phase(
+                "training",
+                Some(String::from("validation")),
+                format!(
+                    "Score-first TTT chunk {} of {} completed for stage `{stage_label}`.",
+                    chunk_plan.receipt_plan.chunk_index + 1,
+                    total_chunks.max(1)
+                ),
+                vec![String::from("validation"), String::from("optimizer")],
+                None,
+                None,
+                false,
+            )?;
+        }
+
+        chunk_receipts.push(ParameterGolfScoreFirstTttChunkReceipt {
+            plan: chunk_plan.receipt_plan,
+            score_summary,
+            adaptation_applied: !adaptation_steps.is_empty(),
+            adaptation_learning_rate: (!adaptation_steps.is_empty()).then_some(chunk_learning_rate),
+            adaptation_sequence_count: chunk_sequence_count,
+            adaptation_token_count: chunk_sequence_count.saturating_mul(sequence_length) as u64,
+            adaptation_steps,
+        });
+    }
+
+    let mean_loss = total_loss_sum / total_token_count.max(1) as f64;
+    let bits_per_byte = (mean_loss / std::f64::consts::LN_2)
+        * (total_token_count as f64 / total_byte_count.max(1) as f64);
+    emit_progress_line(format!(
+        "validation_score_first_ttt_complete stage={} mean_loss={:.8} val_bpb={:.8} score_windows={} adaptation_steps={} evaluated_tokens={} evaluated_bytes={}",
+        stage_label,
+        mean_loss,
+        bits_per_byte,
+        total_score_window_count,
+        total_adaptation_step_count,
+        total_token_count,
+        total_byte_count,
+    ));
+    Ok(ParameterGolfSingleH100ValidationSummary {
+        eval_mode: eval_mode.clone(),
+        evaluated_sequence_count: total_score_window_count,
+        evaluated_token_count: total_token_count,
+        evaluated_byte_count: total_byte_count,
+        mean_loss,
+        bits_per_byte,
+        runtime_receipt: None,
+        score_first_ttt_receipt: Some(ParameterGolfScoreFirstTttReceipt {
+            path: String::from("device_resident_cuda_score_first_ttt_eval_v1"),
+            config: score_first_ttt.clone(),
+            total_chunks,
+            total_score_window_count,
+            total_adaptation_step_count,
+            last_chunk_training_skipped: true,
+            chunk_receipts,
+        }),
+    })
+}
+
+fn build_parameter_golf_score_first_ttt_chunk_plans(
+    total_tokens: usize,
+    sequence_length: usize,
+    score_first_ttt: &ParameterGolfScoreFirstTttConfig,
+) -> Vec<ParameterGolfScoreFirstTttChunkExecutionPlan> {
+    let num_chunks = total_tokens.div_ceil(score_first_ttt.chunk_tokens.max(1));
+    let mut chunk_windows = vec![Vec::new(); num_chunks];
+    for window_start in (0..total_tokens).step_by(score_first_ttt.stride.max(1)) {
+        let valid_length = total_tokens
+            .saturating_sub(window_start)
+            .min(sequence_length);
+        if valid_length < score_first_ttt.stride && window_start != 0 {
+            continue;
+        }
+        let score_start = if window_start == 0 {
+            0
+        } else {
+            valid_length.saturating_sub(score_first_ttt.stride)
+        };
+        let scored_start = window_start.saturating_add(score_start);
+        let chunk_index =
+            (scored_start / score_first_ttt.chunk_tokens.max(1)).min(num_chunks.saturating_sub(1));
+        chunk_windows[chunk_index].push(window_start);
+    }
+    chunk_windows
+        .into_iter()
+        .enumerate()
+        .map(|(chunk_index, window_starts)| {
+            let chunk_start_token = chunk_index.saturating_mul(score_first_ttt.chunk_tokens);
+            let chunk_end_token =
+                ((chunk_index + 1).saturating_mul(score_first_ttt.chunk_tokens)).min(total_tokens);
+            ParameterGolfScoreFirstTttChunkExecutionPlan {
+                receipt_plan: ParameterGolfScoreFirstTttChunkPlan {
+                    chunk_index,
+                    chunk_start_token,
+                    chunk_end_token,
+                    first_window_start: window_starts.first().copied(),
+                    last_window_start: window_starts.last().copied(),
+                    score_window_count: window_starts.len(),
+                },
+                window_starts,
+            }
+        })
+        .collect()
+}
+
+fn seed_parameter_golf_score_first_ttt_states(
+    model: &ParameterGolfReferenceModel,
+    freeze_blocks: usize,
+) -> BTreeMap<String, ParameterGolfScoreFirstTttParameterState> {
+    model
+        .weights()
+        .parameter_vectors(&model.descriptor().config)
+        .into_iter()
+        .filter(|vector| {
+            !parameter_golf_score_first_ttt_parameter_is_frozen(
+                vector.parameter_id.as_str(),
+                freeze_blocks,
+            )
+        })
+        .map(|vector| {
+            (
+                vector.parameter_id.clone(),
+                ParameterGolfScoreFirstTttParameterState {
+                    momentum_buffer: vec![0.0; vector.values.len()],
+                    values: vector.values,
+                },
+            )
+        })
+        .collect()
+}
+
+fn parameter_golf_score_first_ttt_parameter_is_frozen(
+    parameter_id: &str,
+    freeze_blocks: usize,
+) -> bool {
+    (0..freeze_blocks)
+        .any(|block_index| parameter_id.starts_with(&format!("blocks.{block_index}.")))
+}
+
+fn materialize_parameter_golf_score_first_ttt_model(
+    baseline_model: &ParameterGolfReferenceModel,
+    trainable_states: &BTreeMap<String, ParameterGolfScoreFirstTttParameterState>,
+) -> Result<ParameterGolfReferenceModel, ParameterGolfSingleH100TrainingError> {
+    let overrides = trainable_states
+        .iter()
+        .map(|(parameter_id, state)| (parameter_id.clone(), state.values.clone()))
+        .collect::<BTreeMap<_, _>>();
+    let weights = baseline_model
+        .weights()
+        .with_parameter_overrides(&baseline_model.descriptor().config, &overrides)?;
+    Ok(ParameterGolfReferenceModel::new(
+        baseline_model.descriptor().model.clone(),
+        baseline_model.descriptor().config.clone(),
+        weights,
+    )?)
+}
+
+fn apply_parameter_golf_score_first_ttt_gradients(
+    trainable_states: &mut BTreeMap<String, ParameterGolfScoreFirstTttParameterState>,
+    gradients: &[(String, Vec<f32>)],
+    learning_rate: f32,
+    momentum: f32,
+) -> Result<(), ParameterGolfSingleH100TrainingError> {
+    for (parameter_id, gradient_values) in gradients {
+        let state = trainable_states.get_mut(parameter_id).ok_or_else(|| {
+            ParameterGolfSingleH100TrainingError::MissingParameterState {
+                parameter_id: parameter_id.clone(),
+            }
+        })?;
+        if state.values.len() != gradient_values.len()
+            || state.momentum_buffer.len() != gradient_values.len()
+        {
+            return Err(ParameterGolfSingleH100TrainingError::Serialization {
+                message: format!(
+                    "score-first TTT parameter `{parameter_id}` expected {} gradient values but observed {}",
+                    state.values.len(),
+                    gradient_values.len(),
+                ),
+            });
+        }
+        for ((value, momentum_buffer), gradient) in state
+            .values
+            .iter_mut()
+            .zip(state.momentum_buffer.iter_mut())
+            .zip(gradient_values.iter())
+        {
+            *momentum_buffer = (*momentum_buffer * momentum) + *gradient;
+            *value -= learning_rate * *momentum_buffer;
+        }
+    }
+    Ok(())
+}
+
+fn training_batch_from_flat_tokens(
+    tokens: &[u16],
+    sequence_length: usize,
+) -> Result<(Vec<Vec<u32>>, Vec<Vec<u32>>), ParameterGolfSingleH100TrainingError> {
+    if tokens.len() <= sequence_length {
+        return Err(ParameterGolfSingleH100TrainingError::InvalidConfig {
+            message: format!(
+                "score-first TTT adaptation requires at least {} tokens, found {}",
+                sequence_length + 1,
+                tokens.len()
+            ),
+        });
+    }
+    let token_count = tokens.len().saturating_sub(1);
+    if token_count % sequence_length != 0 {
+        return Err(ParameterGolfSingleH100TrainingError::InvalidConfig {
+            message: format!(
+                "score-first TTT adaptation token count {} must divide sequence_length {}",
+                token_count, sequence_length
+            ),
+        });
+    }
+    let batch_sequences = token_count / sequence_length;
+    let mut input_ids = Vec::with_capacity(batch_sequences);
+    let mut target_ids = Vec::with_capacity(batch_sequences);
+    for sequence_index in 0..batch_sequences {
+        let start = sequence_index * sequence_length;
+        let end = start + sequence_length;
+        input_ids.push(
+            tokens[start..end]
+                .iter()
+                .map(|&token_id| u32::from(token_id))
+                .collect(),
+        );
+        target_ids.push(
+            tokens[start + 1..end + 1]
+                .iter()
+                .map(|&token_id| u32::from(token_id))
+                .collect(),
+        );
+    }
+    Ok((input_ids, target_ids))
+}
+
+#[allow(clippy::too_many_arguments)]
 fn evaluate_validation_batch_plans_on_cuda(
     cuda_backend: &mut CudaBackend,
     device: &psionic_core::Device,
@@ -2746,6 +3565,7 @@ fn evaluate_validation_batch_plans_on_cuda(
         mean_loss,
         bits_per_byte,
         runtime_receipt: Some(runtime_receipt),
+        score_first_ttt_receipt: None,
     })
 }
 
@@ -2892,6 +3712,7 @@ fn evaluate_validation_on_cuda_legacy(
         mean_loss,
         bits_per_byte,
         runtime_receipt: None,
+        score_first_ttt_receipt: None,
     })
 }
 
@@ -4464,6 +5285,71 @@ mod tests {
             ));
         }
         Ok(())
+    }
+
+    #[test]
+    fn score_first_ttt_config_parser_accepts_default_and_key_value_labels(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let defaults = ParameterGolfScoreFirstTttConfig::parse("score_first_ttt")?;
+        assert_eq!(
+            defaults,
+            ParameterGolfScoreFirstTttConfig::leaderboard_defaults()
+        );
+
+        let parsed = ParameterGolfScoreFirstTttConfig::parse(
+            "score_first_ttt:stride=32,chunk_tokens=2048,epochs=2,freeze_blocks=1,learning_rate=0.003,momentum=0.8,batch_sequences=16,grad_clip_norm=0.5",
+        )?;
+        assert_eq!(parsed.stride, 32);
+        assert_eq!(parsed.chunk_tokens, 2_048);
+        assert_eq!(parsed.epochs, 2);
+        assert_eq!(parsed.freeze_blocks, 1);
+        assert!((parsed.learning_rate - 0.003).abs() < f32::EPSILON);
+        assert!((parsed.momentum - 0.8).abs() < f32::EPSILON);
+        assert_eq!(parsed.batch_sequences, 16);
+        assert!((parsed.grad_clip_norm - 0.5).abs() < f32::EPSILON);
+        Ok(())
+    }
+
+    #[test]
+    fn score_first_ttt_chunk_plans_assign_windows_by_first_scored_token() {
+        let config = ParameterGolfScoreFirstTttConfig {
+            stride: 4,
+            chunk_tokens: 8,
+            epochs: 1,
+            freeze_blocks: 0,
+            learning_rate: 0.001,
+            momentum: 0.9,
+            batch_sequences: 2,
+            grad_clip_norm: 1.0,
+        };
+        let plans = build_parameter_golf_score_first_ttt_chunk_plans(20, 8, &config);
+        assert_eq!(plans.len(), 3);
+        assert_eq!(plans[0].receipt_plan.chunk_start_token, 0);
+        assert_eq!(plans[0].window_starts, vec![0]);
+        assert_eq!(plans[1].receipt_plan.chunk_start_token, 8);
+        assert_eq!(plans[1].window_starts, vec![4, 8]);
+        assert_eq!(plans[2].receipt_plan.chunk_start_token, 16);
+        assert_eq!(plans[2].window_starts, vec![12, 16]);
+    }
+
+    #[test]
+    fn score_first_ttt_freeze_policy_only_freezes_requested_block_prefixes() {
+        assert!(parameter_golf_score_first_ttt_parameter_is_frozen(
+            "blocks.0.attn.c_q.weight",
+            1
+        ));
+        assert!(parameter_golf_score_first_ttt_parameter_is_frozen(
+            "blocks.1.mlp.fc.weight",
+            2
+        ));
+        assert!(!parameter_golf_score_first_ttt_parameter_is_frozen(
+            "blocks.2.attn.c_q.weight",
+            2
+        ));
+        assert!(!parameter_golf_score_first_ttt_parameter_is_frozen(
+            "tok_emb.weight",
+            4
+        ));
     }
 }
 

@@ -1821,6 +1821,7 @@ pub fn execute_parameter_golf_distributed_8xh100_validation_child(
             mean_loss: 0.0,
             bits_per_byte: 0.0,
             runtime_receipt: None,
+            score_first_ttt_receipt: None,
         }
     } else {
         match &shard.eval_mode {

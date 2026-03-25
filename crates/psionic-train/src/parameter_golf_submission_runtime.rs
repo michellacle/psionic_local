@@ -30,8 +30,9 @@ use crate::{
     ParameterGolfDistributed8xH100ValidationRankReceipt,
     ParameterGolfDistributedLiveVisualizationWriter, ParameterGolfDistributedVisualizationError,
     ParameterGolfDistributedVisualizationMetadata, ParameterGolfLocalReferenceFixture,
-    ParameterGolfNonRecordSubmissionManifest, ParameterGolfSubmissionAccountingReceipt,
-    ParameterGolfSubmissionRealExecutionContract, RemoteTrainingResultClassification,
+    ParameterGolfNonRecordSubmissionManifest, ParameterGolfScoreFirstTttConfig,
+    ParameterGolfSubmissionAccountingReceipt, ParameterGolfSubmissionRealExecutionContract,
+    ParameterGolfValidationEvalMode, RemoteTrainingResultClassification,
     PARAMETER_GOLF_DISTRIBUTED_8XH100_EXECUTION_MODE, PARAMETER_GOLF_EXECUTION_MODE_ENV_VAR,
 };
 
@@ -66,6 +67,12 @@ pub struct ParameterGolfSubmissionRuntimeManifest {
     pub sequence_length: usize,
     /// Validation batch tokens used by the bounded local-reference eval replay.
     pub validation_batch_tokens: usize,
+    /// Requested base validation-eval mode for the shipped runtime.
+    #[serde(default)]
+    pub validation_eval_mode: ParameterGolfValidationEvalMode,
+    /// Optional legal score-first TTT overlay requested by the shipped runtime.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub score_first_ttt: Option<ParameterGolfScoreFirstTttConfig>,
     /// Expected final roundtrip validation loss from `submission.json`.
     pub expected_val_loss: f64,
     /// Expected final roundtrip validation bits-per-byte from `submission.json`.
@@ -311,6 +318,14 @@ pub enum ParameterGolfSubmissionRuntimeError {
     Consistency { message: String },
     #[error("parameter golf submission runtime execution-mode error: {message}")]
     ExecutionMode { message: String },
+    #[error(
+        "parameter golf submission runtime does not support validation_eval_mode={validation_eval_mode} score_first_ttt={score_first_ttt:?} on posture `{runtime_posture}`"
+    )]
+    UnsupportedValidationMode {
+        runtime_posture: String,
+        validation_eval_mode: String,
+        score_first_ttt: Option<String>,
+    },
     #[error(transparent)]
     ReferenceTraining(#[from] crate::ParameterGolfReferenceTrainingError),
     #[error(transparent)]
@@ -441,6 +456,18 @@ pub fn execute_parameter_golf_submission_runtime(
     root: &Path,
     manifest: &ParameterGolfSubmissionRuntimeManifest,
 ) -> Result<ParameterGolfSubmissionRuntimeReceipt, ParameterGolfSubmissionRuntimeError> {
+    if manifest.score_first_ttt.is_some() {
+        return Err(
+            ParameterGolfSubmissionRuntimeError::UnsupportedValidationMode {
+                runtime_posture: manifest.runtime_posture.clone(),
+                validation_eval_mode: manifest.validation_eval_mode.as_str().to_string(),
+                score_first_ttt: manifest
+                    .score_first_ttt
+                    .as_ref()
+                    .map(|config| config.label().to_string()),
+            },
+        );
+    }
     let submission_manifest = read_json::<ParameterGolfNonRecordSubmissionManifest>(
         root.join(&manifest.submission_manifest_path),
         "parameter_golf_submission_manifest",
@@ -739,4 +766,57 @@ pub fn parameter_golf_submission_runtime_payload_fixture_path() -> PathBuf {
         .map(Path::to_path_buf)
         .expect("repo root should resolve from psionic-train crate dir")
         .join("fixtures/parameter_golf/runtime/parameter_golf_submission_runtime.x86_64-unknown-linux-gnu")
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::Path;
+
+    use super::*;
+
+    #[test]
+    fn local_reference_runtime_refuses_score_first_ttt_requests() {
+        let manifest = ParameterGolfSubmissionRuntimeManifest {
+            schema_version: 1,
+            package_version: String::from("test"),
+            run_id: String::from("test-run"),
+            benchmark_ref: String::from("pgolf:test"),
+            entrypoint_path: String::from("train_gpt.py"),
+            runtime_payload_path: String::from("runtime/parameter_golf_submission_runtime"),
+            submission_manifest_path: String::from("submission.json"),
+            accounting_receipt_path: String::from("parameter_golf_submission_accounting.json"),
+            fixture_path: String::from("runtime/parameter_golf_local_reference_fixture.json"),
+            model_artifact_path: String::from("submission_model.bin.zlib"),
+            runtime_receipt_path: String::from("parameter_golf_submission_runtime_receipt.json"),
+            distributed_bringup_report_path: String::from(
+                "parameter_golf_distributed_8xh100_bringup_report.json",
+            ),
+            sequence_length: 1024,
+            validation_batch_tokens: 16_384,
+            validation_eval_mode: ParameterGolfValidationEvalMode::SlidingWindow { stride: 64 },
+            score_first_ttt: Some(ParameterGolfScoreFirstTttConfig::leaderboard_defaults()),
+            expected_val_loss: 1.0,
+            expected_val_bpb: 1.0,
+            default_execution_mode: default_local_reference_execution_mode(),
+            real_execution_contracts: Vec::new(),
+            runtime_posture: String::from("bounded_local_reference"),
+            claim_boundary: String::from("bounded_local_reference_replay_only"),
+            manifest_digest: String::new(),
+        };
+
+        let error = execute_parameter_golf_submission_runtime(Path::new("."), &manifest)
+            .expect_err("score-first TTT should refuse on the bounded local-reference runtime");
+        match error {
+            ParameterGolfSubmissionRuntimeError::UnsupportedValidationMode {
+                runtime_posture,
+                validation_eval_mode,
+                score_first_ttt,
+            } => {
+                assert_eq!(runtime_posture, "bounded_local_reference");
+                assert_eq!(validation_eval_mode, "sliding_window");
+                assert_eq!(score_first_ttt.as_deref(), Some("legal_score_first_ttt"));
+            }
+            other => panic!("unexpected error: {other}"),
+        }
+    }
 }

@@ -635,6 +635,8 @@ pub fn build_parameter_golf_non_record_submission_bundle(
         ),
         sequence_length: runtime_config.geometry.train_sequence_length,
         validation_batch_tokens: runtime_config.geometry.local_validation_batch_tokens(),
+        validation_eval_mode: crate::ParameterGolfValidationEvalMode::NonOverlapping,
+        score_first_ttt: None,
         expected_val_loss: benchmark_bundle
             .challenge_score_report
             .int8_zlib_roundtrip_validation
@@ -1665,7 +1667,9 @@ mod tests {
         );
         let stderr = String::from_utf8_lossy(&completed.stderr);
         assert!(
-            stderr.contains("refused the distributed 8xH100 machine contract before runtime bootstrap"),
+            stderr.contains(
+                "refused the distributed 8xH100 machine contract before runtime bootstrap"
+            ),
             "unexpected stderr=`{stderr}`",
         );
         assert!(stderr.contains("wrote distributed bring-up report"));

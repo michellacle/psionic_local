@@ -118,6 +118,16 @@ The default shipped runtime payload then:
   receipt
 - writes `parameter_golf_submission_runtime_receipt.json` inside the folder
 
+The shipped runtime manifest now also records the requested
+`validation_eval_mode` and any optional `score_first_ttt` overlay. That keeps
+the folder-level validation contract explicit when later operator lanes ask for
+scoreboard-grade evaluation semantics.
+
+Today the default bounded local-reference runtime still only supports the
+bounded replay posture. If the shipped manifest requests legal score-first TTT,
+the runtime now refuses with a typed `UnsupportedValidationMode` error instead
+of pretending the replay path executed the same evaluation contract.
+
 The committed Linux replay payload is currently the stripped portable binary
 validated on the real RunPod `8xH100` Ubuntu image. This keeps the exported
 folder on one known-correct glibc baseline while the release-profile replay

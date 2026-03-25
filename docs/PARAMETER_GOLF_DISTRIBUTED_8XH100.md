@@ -161,6 +161,11 @@ surface: which windows each rank evaluated, which scored-token interval each
 rank owned, and how the aggregated `loss_sum`, `token_count`, and `byte_count`
 were reduced back into one distributed validation result.
 
+This is still score-only sliding-window parity. The legal score-first TTT path
+now exists on the single-H100 CUDA trainer, but the distributed `8xH100`
+runtime does not yet claim chunk-local adaptation, adaptation-step receipts, or
+README-grade score-first TTT equivalence.
+
 ## Timing And Memory Receipts
 
 The lane now preserves:

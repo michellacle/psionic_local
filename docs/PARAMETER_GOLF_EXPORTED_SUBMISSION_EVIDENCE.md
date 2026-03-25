@@ -41,6 +41,13 @@ current replay verifier still exercises only the default bounded local-
 reference mode; later remote evidence binds those extra shipped bytes to the
 same exported-folder surface rather than introducing a second package shape.
 
+The shipped runtime manifest now also freezes the requested
+`validation_eval_mode` and any optional `score_first_ttt` overlay. That keeps
+the validation posture explicit on the folder surface even when the default
+runtime cannot execute it. Today the bounded local-reference runtime refuses
+score-first TTT with a typed `UnsupportedValidationMode` error instead of
+silently falling back to non-overlapping replay semantics.
+
 That closes the earlier gap where these facts existed only on the internal
 benchmark path instead of on the exported folder surface itself.
 
@@ -124,6 +131,8 @@ They do not claim:
 - that the current committed evidence is a true `8xH100` success
 - that the remaining CUDA baseline blockers are retired
 - that the current non-record folder is record-ready
+- that the default exported-folder replay runtime can execute legal
+  score-first TTT today
 
 The current committed challenge receipt is still a refusal on the local
 single-`RTX 4080` review host. The later RunPod `8xH100` posture now binds the

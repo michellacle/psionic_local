@@ -602,6 +602,7 @@ mod tests {
             train_log_every: 1,
             final_validation_mode: crate::ParameterGolfSingleH100ValidationMode::Both,
             validation_eval_mode: crate::ParameterGolfValidationEvalMode::NonOverlapping,
+            score_first_ttt: None,
             executed_steps: 0,
             stop_reason: None,
             delivered_execution: DeliveredExecutionContext::new("cuda", None, Vec::new()),
@@ -671,8 +672,8 @@ mod tests {
     }
 
     #[test]
-    fn train_gpt_reference_receipt_parses_expected_metrics()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn train_gpt_reference_receipt_parses_expected_metrics(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let temp_dir = tempfile::tempdir()?;
         let log_path = temp_dir.path().join("train_gpt.log");
         fs::write(
@@ -741,11 +742,9 @@ mod tests {
             report.disposition,
             ParameterGolfSameNodeParityDisposition::Blocked
         );
-        assert!(
-            report
-                .blockers
-                .iter()
-                .any(|blocker| blocker.contains("single-H100 machine contract"))
-        );
+        assert!(report
+            .blockers
+            .iter()
+            .any(|blocker| blocker.contains("single-H100 machine contract")));
     }
 }
