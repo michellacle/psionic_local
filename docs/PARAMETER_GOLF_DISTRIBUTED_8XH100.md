@@ -75,17 +75,18 @@ Psionic now encodes that exact posture explicitly instead of treating
   `ParameterGolfDistributed8xH100TrainStepRankReceipt`; the exported-folder
   `distributed_8xh100_train` mode now launches one persistent `WORLD_SIZE=8`
   worker mesh, keeps model and optimizer state resident inside those workers,
-  performs rank-local gradient averaging over the in-memory
-  `rank0_loopback_tcp_mean_all_reduce_plus_parallel_muon_bank_all_gather_v1`
+  performs rank-local synchronization over the in-memory
+  `rank0_loopback_tcp_non_muon_mean_all_reduce_plus_parallel_muon_reduce_scatter_all_gather_v1`
   transport instead of per-step gradient `safetensors`, emits
   wallclock-bounded step progress lines during execution, and preserves
   ordered `step_observations` plus the honest loop stop reason in the
   aggregate train receipt instead of pretending the final retained step was
-  the whole run. The current resident Muon path is now `implemented_early`:
-  ranks still mean-all-reduce the full flattened gradient vector, but the
-  rank-3 banked Muon groups now update by owned bank-slice shard locally and
-  then all-gather the updated bank values back across the resident mesh. That
-  ownership surface is now explicit in `parallel_muon_receipt` instead of
+  the whole run. The resident score lane now splits optimizer families
+  explicitly: non-banked optimizer groups still mean-all-reduce, while the
+  rank-3 banked Muon groups now reduce-scatter by owned bank-slice shard
+  through rank 0, update locally on the owning rank, and then all-gather the
+  updated bank values back across the resident mesh. That ownership and
+  reduce-scatter surface is now explicit in `parallel_muon_receipt` instead of
   being hidden behind one generic communication label. The live score lane now
   exports only the final runtime-owned model surfaces after the repeated loop
   instead of using file-artifact gradient handoff in the hot path. The
@@ -176,17 +177,18 @@ The landed topology is:
 - one data-parallel mesh axis `dp` with extent `8`
 - loopback or single-pod transport posture with tensor-collective mesh support
 
-The landed communication receipt now preserves four concrete stages:
+The landed communication receipt now preserves five concrete stages:
 
-- `ddp_gradient_all_reduce`
+- `non_muon_gradient_all_reduce`
+- `parallel_muon_gradient_reduce_scatter`
 - `parallel_muon_bank_shard_update`
 - `parallel_muon_bank_value_all_gather`
 - `validation_metric_all_reduce`
 
 These stages describe the current landed Psionic topology directly. The Muon
 path is no longer represented as one extra full all-reduce because the
-resident runtime now applies owned bank shards locally and then all-gathers
-the updated bank values.
+resident runtime now reduce-scatters the owned bank-shard gradients, applies
+those shards locally, and then all-gathers the updated bank values.
 
 ## Current Validation Contract
 

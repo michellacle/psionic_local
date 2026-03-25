@@ -50,7 +50,8 @@ use crate::{
         refresh_parameter_golf_cuda_training_sessions,
         refresh_parameter_golf_cuda_training_sessions_from_state,
         seed_parameter_golf_score_first_ttt_states, training_batch_from_flat_tokens,
-        ParameterGolfCudaTrainingSession, ParameterGolfScoreFirstTttAdaptationStepReceipt,
+        ParameterGolfCudaTrainingSession, ParameterGolfParameterState,
+        ParameterGolfScoreFirstTttAdaptationStepReceipt,
         ParameterGolfScoreFirstTttChunkExecutionPlan, ParameterGolfScoreFirstTttChunkPlan,
         ParameterGolfScoreFirstTttChunkReceipt, ParameterGolfScoreFirstTttConfig,
         ParameterGolfScoreFirstTttParameterState, ParameterGolfScoreFirstTttReceipt,
@@ -118,6 +119,8 @@ const VALIDATION_BATCH_SEQUENCES_ENV_VAR: &str =
 
 const CHALLENGE_WORLD_SIZE: usize = 8;
 const WORKER_PROTOCOL_SCHEMA_VERSION: u32 = 1;
+const WORKER_COLLECTIVE_TRANSPORT: &str =
+    "rank0_loopback_tcp_non_muon_mean_all_reduce_plus_parallel_muon_reduce_scatter_all_gather_v1";
 const WORKER_COLLECTIVE_CONNECT_RETRY_LIMIT: usize = 200;
 const WORKER_COLLECTIVE_CONNECT_RETRY_DELAY_MS: u64 = 100;
 
@@ -345,10 +348,29 @@ pub struct ParameterGolfDistributed8xH100ParallelMuonReceipt {
     pub transport: String,
     /// Ordered bank shards owned by this rank.
     pub owned_bank_shards: Vec<ParameterGolfDistributed8xH100ParallelMuonBankShardReceipt>,
+    /// Wallclock spent reduce-scattering the averaged owned bank-shard gradients.
+    #[serde(default)]
+    pub gradient_reduce_scatter_ms: u64,
     /// Wallclock spent applying the owned bank-shard Muon updates locally.
     pub local_shard_update_ms: u64,
     /// Wallclock spent all-gathering the updated bank values back across the mesh.
     pub updated_value_all_gather_ms: u64,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+struct WorkerMeshGradientSyncOutcome {
+    gradient_artifact_sha256: String,
+    gradient_norm_after_clip: f32,
+    clip_applied: bool,
+    non_finite_gradient_count: u32,
+    clip_scale: f32,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+struct ParallelMuonGradientSyncResult {
+    owned_averaged_shard_gradients: BTreeMap<String, Vec<f32>>,
+    reduce_scatter_ms: u64,
+    sync_outcome: WorkerMeshGradientSyncOutcome,
 }
 
 /// Parent-observed outcome for one spawned train-step child process.
@@ -978,29 +1000,153 @@ fn read_collective_gradient_payload(
     Ok((step_index, values))
 }
 
-fn flatten_gradients_for_worker_mesh(
+fn write_collective_string_payload(
+    stream: &mut TcpStream,
+    value: &str,
+    rank: usize,
+    detail: &str,
+) -> Result<(), ParameterGolfDistributed8xH100TrainStepError> {
+    let bytes = value.as_bytes();
+    write_u64(stream, bytes.len() as u64, rank, detail)?;
+    stream.write_all(bytes).map_err(|error| {
+        ParameterGolfDistributed8xH100TrainStepError::WorkerProtocol {
+            rank,
+            message: format!("failed to write {detail} bytes: {error}"),
+        }
+    })?;
+    Ok(())
+}
+
+fn read_collective_string_payload(
+    stream: &mut TcpStream,
+    rank: usize,
+    detail: &str,
+) -> Result<String, ParameterGolfDistributed8xH100TrainStepError> {
+    let byte_len = read_u64(stream, rank, detail)? as usize;
+    let mut bytes = vec![0_u8; byte_len];
+    stream.read_exact(bytes.as_mut_slice()).map_err(|error| {
+        ParameterGolfDistributed8xH100TrainStepError::WorkerProtocol {
+            rank,
+            message: format!("failed to read {detail} bytes: {error}"),
+        }
+    })?;
+    String::from_utf8(bytes).map_err(|error| {
+        ParameterGolfDistributed8xH100TrainStepError::WorkerProtocol {
+            rank,
+            message: format!("failed to decode {detail} string: {error}"),
+        }
+    })
+}
+
+fn write_worker_mesh_gradient_sync_outcome(
+    stream: &mut TcpStream,
+    step_index: u64,
+    outcome: &WorkerMeshGradientSyncOutcome,
+    rank: usize,
+) -> Result<(), ParameterGolfDistributed8xH100TrainStepError> {
+    write_u64(
+        stream,
+        step_index,
+        rank,
+        "collective gradient-sync step_index",
+    )?;
+    write_u64(
+        stream,
+        u64::from(outcome.clip_applied),
+        rank,
+        "collective gradient-sync clip-applied flag",
+    )?;
+    write_u64(
+        stream,
+        outcome.non_finite_gradient_count as u64,
+        rank,
+        "collective gradient-sync non-finite count",
+    )?;
+    write_u64(
+        stream,
+        outcome.clip_scale.to_bits() as u64,
+        rank,
+        "collective gradient-sync clip scale bits",
+    )?;
+    write_u64(
+        stream,
+        outcome.gradient_norm_after_clip.to_bits() as u64,
+        rank,
+        "collective gradient-sync post-clip norm bits",
+    )?;
+    write_collective_string_payload(
+        stream,
+        outcome.gradient_artifact_sha256.as_str(),
+        rank,
+        "collective gradient-sync digest length",
+    )?;
+    stream.flush().map_err(|error| {
+        ParameterGolfDistributed8xH100TrainStepError::WorkerProtocol {
+            rank,
+            message: format!("failed to flush collective gradient-sync outcome: {error}"),
+        }
+    })?;
+    Ok(())
+}
+
+fn read_worker_mesh_gradient_sync_outcome(
+    stream: &mut TcpStream,
+    step_index: u64,
+    rank: usize,
+) -> Result<WorkerMeshGradientSyncOutcome, ParameterGolfDistributed8xH100TrainStepError> {
+    let received_step_index = read_u64(stream, rank, "collective gradient-sync step_index")?;
+    if received_step_index != step_index {
+        return Err(ParameterGolfDistributed8xH100TrainStepError::WorkerProtocol {
+            rank,
+            message: format!(
+                "rank {rank} received collective gradient-sync outcome for step {received_step_index} while expecting {step_index}"
+            ),
+        });
+    }
+    let clip_applied = read_u64(stream, rank, "collective gradient-sync clip-applied flag")? != 0;
+    let non_finite_gradient_count =
+        read_u64(stream, rank, "collective gradient-sync non-finite count")? as u32;
+    let clip_scale =
+        f32::from_bits(read_u64(stream, rank, "collective gradient-sync clip scale bits")? as u32);
+    let gradient_norm_after_clip =
+        f32::from_bits(
+            read_u64(stream, rank, "collective gradient-sync post-clip norm bits")? as u32,
+        );
+    let gradient_artifact_sha256 =
+        read_collective_string_payload(stream, rank, "collective gradient-sync digest length")?;
+    Ok(WorkerMeshGradientSyncOutcome {
+        gradient_artifact_sha256,
+        gradient_norm_after_clip,
+        clip_applied,
+        non_finite_gradient_count,
+        clip_scale,
+    })
+}
+
+fn is_parallel_muon_parameter_state(state: &ParameterGolfParameterState) -> bool {
+    parameter_golf_parameter_state_banked_muon_shape(state).is_some()
+}
+
+fn flatten_non_parallel_muon_gradients_for_worker_mesh(
     trainer_state: &ParameterGolfSingleH100TrainerState,
     gradients: &BTreeMap<String, Vec<f32>>,
 ) -> Result<Vec<f32>, ParameterGolfDistributed8xH100TrainStepError> {
-    let mut flattened = Vec::with_capacity(
-        trainer_state
-            .parameter_states
-            .values()
-            .map(|state| state.values().len())
-            .sum(),
-    );
+    let mut flattened = Vec::new();
     for (parameter_id, state) in &trainer_state.parameter_states {
+        if is_parallel_muon_parameter_state(state) {
+            continue;
+        }
         let gradient = gradients.get(parameter_id).ok_or_else(|| {
             ParameterGolfDistributed8xH100TrainStepError::Aggregate {
                 message: format!(
-                    "missing flattened gradient values for parameter `{parameter_id}`"
+                    "missing non-parallel-muon gradient values for parameter `{parameter_id}`"
                 ),
             }
         })?;
         if gradient.len() != state.values().len() {
             return Err(ParameterGolfDistributed8xH100TrainStepError::Aggregate {
                 message: format!(
-                    "flattened gradient length mismatch for `{parameter_id}`: expected {}, found {}",
+                    "non-parallel-muon gradient length mismatch for `{parameter_id}`: expected {}, found {}",
                     state.values().len(),
                     gradient.len()
                 ),
@@ -1011,26 +1157,30 @@ fn flatten_gradients_for_worker_mesh(
     Ok(flattened)
 }
 
-fn unflatten_gradients_from_worker_mesh(
+fn unflatten_non_parallel_muon_gradients_from_worker_mesh(
     trainer_state: &ParameterGolfSingleH100TrainerState,
     flattened: &[f32],
 ) -> Result<Vec<(String, Vec<f32>)>, ParameterGolfDistributed8xH100TrainStepError> {
     let expected_len: usize = trainer_state
         .parameter_states
         .values()
+        .filter(|state| !is_parallel_muon_parameter_state(state))
         .map(|state| state.values().len())
         .sum();
     if flattened.len() != expected_len {
         return Err(ParameterGolfDistributed8xH100TrainStepError::Aggregate {
             message: format!(
-                "flattened worker-mesh gradient length mismatch: expected {expected_len}, found {}",
+                "non-parallel-muon worker-mesh gradient length mismatch: expected {expected_len}, found {}",
                 flattened.len()
             ),
         });
     }
     let mut cursor = 0_usize;
-    let mut gradients = Vec::with_capacity(trainer_state.parameter_states.len());
+    let mut gradients = Vec::new();
     for (parameter_id, state) in &trainer_state.parameter_states {
+        if is_parallel_muon_parameter_state(state) {
+            continue;
+        }
         let len = state.values().len();
         gradients.push((
             parameter_id.clone(),
@@ -1078,39 +1228,32 @@ fn matrix_muon_bank_shards_for_rank(
 
 fn apply_parallel_muon_owned_bank_updates(
     trainer_state: &mut ParameterGolfSingleH100TrainerState,
-    averaged_gradients: &[(String, Vec<f32>)],
+    owned_averaged_shard_gradients: &BTreeMap<String, Vec<f32>>,
     owned_bank_shards: &[ParameterGolfDistributed8xH100ParallelMuonBankShardReceipt],
     learning_rate_multiplier: f32,
     muon_momentum: f32,
 ) -> Result<u64, ParameterGolfDistributed8xH100TrainStepError> {
-    let averaged_gradients = averaged_gradients
-        .iter()
-        .map(|(parameter_id, values)| (parameter_id.as_str(), values.as_slice()))
-        .collect::<BTreeMap<_, _>>();
     let started = Instant::now();
     for shard in owned_bank_shards {
         if shard.owned_value_count == 0 {
             continue;
         }
-        let gradient_values = averaged_gradients.get(shard.parameter_id.as_str()).ok_or_else(|| {
-            ParameterGolfDistributed8xH100TrainStepError::Aggregate {
-                message: format!(
-                    "missing averaged bank gradient values for `{}` during parallel Muon shard update",
-                    shard.parameter_id
-                ),
-            }
-        })?;
-        let gradient_end = shard
-            .owned_value_offset
-            .saturating_add(shard.owned_value_count);
-        if gradient_end > gradient_values.len() {
+        let gradient_values =
+            owned_averaged_shard_gradients
+                .get(&shard.parameter_id)
+                .ok_or_else(|| ParameterGolfDistributed8xH100TrainStepError::Aggregate {
+                    message: format!(
+                        "missing averaged owned bank-shard gradient values for `{}` during parallel Muon shard update",
+                        shard.parameter_id
+                    ),
+                })?;
+        if gradient_values.len() != shard.owned_value_count {
             return Err(ParameterGolfDistributed8xH100TrainStepError::Aggregate {
                 message: format!(
-                    "parallel Muon shard [{}..{}) exceeded averaged gradient length {} for `{}`",
-                    shard.owned_value_offset,
-                    gradient_end,
+                    "parallel Muon shard for `{}` expected {} averaged values but found {}",
+                    shard.parameter_id,
+                    shard.owned_value_count,
                     gradient_values.len(),
-                    shard.parameter_id
                 ),
             });
         }
@@ -1127,12 +1270,106 @@ fn apply_parallel_muon_owned_bank_updates(
             parameter_state,
             shard.owned_slice_start,
             shard.owned_slice_count,
-            &gradient_values[shard.owned_value_offset..gradient_end],
+            gradient_values.as_slice(),
             learning_rate_multiplier,
             muon_momentum,
         )?;
     }
     Ok(duration_ms(started))
+}
+
+fn parallel_muon_gradient_values_for_shard<'a>(
+    gradients: &BTreeMap<&'a str, &'a [f32]>,
+    shard: &ParameterGolfDistributed8xH100ParallelMuonBankShardReceipt,
+) -> Result<Vec<f32>, ParameterGolfDistributed8xH100TrainStepError> {
+    let gradient_values = gradients.get(shard.parameter_id.as_str()).ok_or_else(|| {
+        ParameterGolfDistributed8xH100TrainStepError::Aggregate {
+            message: format!(
+                "missing local parallel Muon gradient values for `{}`",
+                shard.parameter_id
+            ),
+        }
+    })?;
+    let gradient_end = shard
+        .owned_value_offset
+        .saturating_add(shard.owned_value_count);
+    if gradient_end > gradient_values.len() {
+        return Err(ParameterGolfDistributed8xH100TrainStepError::Aggregate {
+            message: format!(
+                "parallel Muon gradient shard [{}..{}) exceeded local gradient length {} for `{}`",
+                shard.owned_value_offset,
+                gradient_end,
+                gradient_values.len(),
+                shard.parameter_id
+            ),
+        });
+    }
+    Ok(gradient_values[shard.owned_value_offset..gradient_end].to_vec())
+}
+
+fn worker_mesh_gradient_sync_outcome_from_surfaces(
+    averaged_non_matrix_flattened: &[f32],
+    averaged_parallel_muon_shards: &[(
+        usize,
+        ParameterGolfDistributed8xH100ParallelMuonBankShardReceipt,
+        Vec<f32>,
+    )],
+    max_norm: f32,
+) -> WorkerMeshGradientSyncOutcome {
+    let mut hasher = Sha256::new();
+    hasher.update(b"psionic_parameter_golf_distributed_8xh100_worker_mesh_gradient_surface_v2|");
+    hasher.update((averaged_non_matrix_flattened.len() as u64).to_le_bytes());
+    hasher.update(f32_values_to_bytes(averaged_non_matrix_flattened));
+
+    let mut norm_sum = 0.0_f32;
+    let mut finite_norm_sum = 0.0_f64;
+    let mut non_finite_gradient_count = 0_u32;
+    let mut saw_value = false;
+    let mut absorb_values = |values: &[f32]| {
+        for value in values {
+            saw_value = true;
+            norm_sum += value * value;
+            if value.is_finite() {
+                let value = f64::from(*value);
+                finite_norm_sum += value * value;
+            } else {
+                non_finite_gradient_count = non_finite_gradient_count.saturating_add(1);
+            }
+        }
+    };
+    absorb_values(averaged_non_matrix_flattened);
+
+    for (owner_rank, shard, values) in averaged_parallel_muon_shards.iter() {
+        hasher.update((*owner_rank as u64).to_le_bytes());
+        hasher.update((shard.parameter_id.len() as u64).to_le_bytes());
+        hasher.update(shard.parameter_id.as_bytes());
+        hasher.update((shard.owned_slice_start as u64).to_le_bytes());
+        hasher.update((shard.owned_slice_count as u64).to_le_bytes());
+        hasher.update((shard.owned_value_offset as u64).to_le_bytes());
+        hasher.update((shard.owned_value_count as u64).to_le_bytes());
+        hasher.update(f32_values_to_bytes(values.as_slice()));
+        absorb_values(values.as_slice());
+    }
+
+    let norm = norm_sum.sqrt();
+    let clip_applied =
+        max_norm.is_finite() && max_norm > 0.0 && norm > max_norm && norm > f32::EPSILON;
+    let clip_scale = if clip_applied { max_norm / norm } else { 1.0 };
+    let gradient_norm_after_clip = if non_finite_gradient_count > 0 || !saw_value {
+        0.0
+    } else if clip_applied {
+        max_norm
+    } else {
+        finite_norm_sum.sqrt() as f32
+    };
+
+    WorkerMeshGradientSyncOutcome {
+        gradient_artifact_sha256: format!("{:x}", hasher.finalize()),
+        gradient_norm_after_clip,
+        clip_applied,
+        non_finite_gradient_count,
+        clip_scale,
+    }
 }
 
 fn all_gather_parallel_muon_bank_values(
@@ -1390,6 +1627,166 @@ fn all_reduce_mean_flat_gradients(
                 );
             }
             Ok(reduced)
+        }
+    }
+}
+
+fn reduce_scatter_parallel_muon_bank_gradients(
+    collective: &mut ParameterGolfDistributed8xH100WorkerCollective,
+    trainer_state: &ParameterGolfSingleH100TrainerState,
+    rank: usize,
+    step_index: u64,
+    local_gradients: &BTreeMap<String, Vec<f32>>,
+    averaged_non_matrix_flattened: &[f32],
+    max_norm: f32,
+) -> Result<ParallelMuonGradientSyncResult, ParameterGolfDistributed8xH100TrainStepError> {
+    let local_gradients = local_gradients
+        .iter()
+        .map(|(parameter_id, values)| (parameter_id.as_str(), values.as_slice()))
+        .collect::<BTreeMap<_, _>>();
+    let reduce_scatter_started = Instant::now();
+    match collective {
+        ParameterGolfDistributed8xH100WorkerCollective::RankZero { peers } => {
+            let mut owned_averaged_shard_gradients = BTreeMap::new();
+            let mut averaged_parallel_muon_shards = Vec::new();
+            for owner_rank in 0..CHALLENGE_WORLD_SIZE {
+                let owner_shards = matrix_muon_bank_shards_for_rank(trainer_state, owner_rank);
+                for shard in owner_shards {
+                    if shard.owned_value_count == 0 {
+                        continue;
+                    }
+                    let mut reduced =
+                        parallel_muon_gradient_values_for_shard(&local_gradients, &shard)?;
+                    for (peer_rank, stream) in peers.iter_mut() {
+                        let (peer_step_index, peer_values) =
+                            read_collective_gradient_payload(stream, rank)?;
+                        if peer_step_index != step_index {
+                            return Err(
+                                ParameterGolfDistributed8xH100TrainStepError::WorkerProtocol {
+                                    rank,
+                                    message: format!(
+                                        "peer rank {} sent parallel Muon shard step {} while rank 0 expected {} for `{}`",
+                                        peer_rank, peer_step_index, step_index, shard.parameter_id
+                                    ),
+                                },
+                            );
+                        }
+                        if peer_values.len() != shard.owned_value_count {
+                            return Err(
+                                ParameterGolfDistributed8xH100TrainStepError::WorkerProtocol {
+                                    rank,
+                                    message: format!(
+                                        "peer rank {} sent {} parallel Muon shard values for `{}` but rank 0 expected {}",
+                                        peer_rank,
+                                        peer_values.len(),
+                                        shard.parameter_id,
+                                        shard.owned_value_count
+                                    ),
+                                },
+                            );
+                        }
+                        for (reduced_value, peer_value) in
+                            reduced.iter_mut().zip(peer_values.iter())
+                        {
+                            *reduced_value += *peer_value;
+                        }
+                    }
+                    for value in &mut reduced {
+                        *value /= CHALLENGE_WORLD_SIZE as f32;
+                    }
+                    if owner_rank == rank {
+                        owned_averaged_shard_gradients
+                            .insert(shard.parameter_id.clone(), reduced.clone());
+                    } else {
+                        let owner_stream = peers.get_mut(&owner_rank).ok_or_else(|| {
+                            ParameterGolfDistributed8xH100TrainStepError::WorkerProtocol {
+                                rank,
+                                message: format!(
+                                    "rank 0 missing peer stream for parallel Muon owner rank {}",
+                                    owner_rank
+                                ),
+                            }
+                        })?;
+                        write_collective_gradient_payload(
+                            owner_stream,
+                            step_index,
+                            reduced.as_slice(),
+                            rank,
+                        )?;
+                    }
+                    averaged_parallel_muon_shards.push((owner_rank, shard, reduced));
+                }
+            }
+            let reduce_scatter_ms = duration_ms(reduce_scatter_started);
+            let sync_outcome = worker_mesh_gradient_sync_outcome_from_surfaces(
+                averaged_non_matrix_flattened,
+                averaged_parallel_muon_shards.as_slice(),
+                max_norm,
+            );
+            for stream in peers.values_mut() {
+                write_worker_mesh_gradient_sync_outcome(stream, step_index, &sync_outcome, rank)?;
+            }
+            Ok(ParallelMuonGradientSyncResult {
+                owned_averaged_shard_gradients,
+                reduce_scatter_ms,
+                sync_outcome,
+            })
+        }
+        ParameterGolfDistributed8xH100WorkerCollective::Peer { stream } => {
+            let mut owned_averaged_shard_gradients = BTreeMap::new();
+            for owner_rank in 0..CHALLENGE_WORLD_SIZE {
+                let owner_shards = matrix_muon_bank_shards_for_rank(trainer_state, owner_rank);
+                for shard in owner_shards {
+                    if shard.owned_value_count == 0 {
+                        continue;
+                    }
+                    let local_values =
+                        parallel_muon_gradient_values_for_shard(&local_gradients, &shard)?;
+                    write_collective_gradient_payload(
+                        stream,
+                        step_index,
+                        local_values.as_slice(),
+                        rank,
+                    )?;
+                    if owner_rank == rank {
+                        let (received_step_index, reduced) =
+                            read_collective_gradient_payload(stream, rank)?;
+                        if received_step_index != step_index {
+                            return Err(
+                                ParameterGolfDistributed8xH100TrainStepError::WorkerProtocol {
+                                    rank,
+                                    message: format!(
+                                        "rank {} received parallel Muon shard step {} while expecting {} for `{}`",
+                                        rank, received_step_index, step_index, shard.parameter_id
+                                    ),
+                                },
+                            );
+                        }
+                        if reduced.len() != shard.owned_value_count {
+                            return Err(
+                                ParameterGolfDistributed8xH100TrainStepError::WorkerProtocol {
+                                    rank,
+                                    message: format!(
+                                        "rank {} received {} averaged parallel Muon shard values for `{}` but expected {}",
+                                        rank,
+                                        reduced.len(),
+                                        shard.parameter_id,
+                                        shard.owned_value_count
+                                    ),
+                                },
+                            );
+                        }
+                        owned_averaged_shard_gradients.insert(shard.parameter_id.clone(), reduced);
+                    }
+                }
+            }
+            let reduce_scatter_ms = duration_ms(reduce_scatter_started);
+            let sync_outcome = read_worker_mesh_gradient_sync_outcome(stream, step_index, rank)?;
+            Ok(ParallelMuonGradientSyncResult {
+                owned_averaged_shard_gradients,
+                reduce_scatter_ms,
+                sync_outcome,
+            })
         }
     }
 }
@@ -1706,9 +2103,7 @@ impl ParameterGolfDistributed8xH100WorkerRuntime {
             selected_device_label: self.selected_device_label.clone(),
             log_path: self.log_path.clone(),
             worker_pid: std::process::id(),
-            collective_transport: String::from(
-                "rank0_loopback_tcp_mean_all_reduce_plus_parallel_muon_bank_all_gather_v1",
-            ),
+            collective_transport: String::from(WORKER_COLLECTIVE_TRANSPORT),
         }
     }
 
@@ -1740,48 +2135,61 @@ impl ParameterGolfDistributed8xH100WorkerRuntime {
             &self.geometry,
             window,
         )?;
-        let flattened = flatten_gradients_for_worker_mesh(
+        let flattened_non_matrix = flatten_non_parallel_muon_gradients_for_worker_mesh(
             &self.trainer_state,
             &gradient_batch.parameter_gradients,
         )?;
+        let owned_parallel_muon_bank_shards =
+            matrix_muon_bank_shards_for_rank(&self.trainer_state, self.rank);
         let gradient_sync_started = Instant::now();
-        let averaged_flattened = all_reduce_mean_flat_gradients(
+        let averaged_non_matrix_flattened = all_reduce_mean_flat_gradients(
             &mut self.collective,
             self.rank,
             step_index,
-            flattened.as_slice(),
+            flattened_non_matrix.as_slice(),
         )?;
-        let gradient_sync_ms = duration_ms(gradient_sync_started);
-        let mut averaged_gradients = unflatten_gradients_from_worker_mesh(
+        let mut averaged_non_matrix_gradients =
+            unflatten_non_parallel_muon_gradients_from_worker_mesh(
+                &self.trainer_state,
+                averaged_non_matrix_flattened.as_slice(),
+            )?;
+        let parallel_muon_gradient_sync = reduce_scatter_parallel_muon_bank_gradients(
+            &mut self.collective,
             &self.trainer_state,
-            averaged_flattened.as_slice(),
-        )?;
-        let clip_observation = clip_gradients(
-            averaged_gradients.as_mut_slice(),
+            self.rank,
+            step_index,
+            &gradient_batch.parameter_gradients,
+            averaged_non_matrix_flattened.as_slice(),
             self.hyperparameters.grad_clip_norm,
         );
-        let owned_parallel_muon_bank_shards =
-            matrix_muon_bank_shards_for_rank(&self.trainer_state, self.rank);
+        let gradient_sync_ms = duration_ms(gradient_sync_started);
+        let mut parallel_muon_gradient_sync = parallel_muon_gradient_sync?;
+        if parallel_muon_gradient_sync.sync_outcome.clip_scale != 1.0 {
+            for (_, values) in &mut averaged_non_matrix_gradients {
+                for value in values {
+                    *value *= parallel_muon_gradient_sync.sync_outcome.clip_scale;
+                }
+            }
+            for values in parallel_muon_gradient_sync
+                .owned_averaged_shard_gradients
+                .values_mut()
+            {
+                for value in values {
+                    *value *= parallel_muon_gradient_sync.sync_outcome.clip_scale;
+                }
+            }
+        }
         let optimizer_started = Instant::now();
-        let non_matrix_gradients = averaged_gradients
-            .iter()
-            .filter(|(parameter_id, _)| {
-                !owned_parallel_muon_bank_shards
-                    .iter()
-                    .any(|shard| shard.parameter_id == *parameter_id)
-            })
-            .cloned()
-            .collect::<Vec<_>>();
         apply_gradients_to_state(
             &mut self.trainer_state,
-            non_matrix_gradients.as_slice(),
+            averaged_non_matrix_gradients.as_slice(),
             learning_rate_multiplier,
             muon_momentum,
             step_index,
         )?;
         let parallel_muon_local_update_ms = apply_parallel_muon_owned_bank_updates(
             &mut self.trainer_state,
-            averaged_gradients.as_slice(),
+            &parallel_muon_gradient_sync.owned_averaged_shard_gradients,
             owned_parallel_muon_bank_shards.as_slice(),
             learning_rate_multiplier,
             muon_momentum,
@@ -1799,8 +2207,6 @@ impl ParameterGolfDistributed8xH100WorkerRuntime {
         )?;
         self.current_model_stale = true;
         let optimizer_step_ms = duration_ms(optimizer_started);
-        let averaged_gradient_sha256 =
-            sha256_hex(&f32_values_to_bytes(averaged_flattened.as_slice()));
         Ok(ParameterGolfDistributed8xH100TrainStepRankReceipt {
             schema_version: 1,
             run_id: self.run_id.clone(),
@@ -1816,10 +2222,11 @@ impl ParameterGolfDistributed8xH100WorkerRuntime {
                 "in_memory://mesh.parameter_golf.runpod_8xh100/rank_{}/step_{step_index}/averaged_gradient",
                 self.rank
             ),
-            gradient_artifact_sha256: averaged_gradient_sha256,
-            gradient_sync_transport: String::from(
-                "rank0_loopback_tcp_mean_all_reduce_plus_parallel_muon_bank_all_gather_v1",
-            ),
+            gradient_artifact_sha256: parallel_muon_gradient_sync
+                .sync_outcome
+                .gradient_artifact_sha256
+                .clone(),
+            gradient_sync_transport: String::from(WORKER_COLLECTIVE_TRANSPORT),
             input_model_artifact_path: None,
             input_model_artifact_sha256: None,
             loss: gradient_batch.loss,
@@ -1843,24 +2250,28 @@ impl ParameterGolfDistributed8xH100WorkerRuntime {
             observed_wallclock_ms: duration_ms(step_started),
             gradient_sync_ms,
             optimizer_step_ms,
-            gradient_norm_after_clip: clip_observation
-                .gradient_norm_after_clip
-                .unwrap_or_default(),
-            clip_applied: clip_observation.clip_applied,
-            non_finite_gradient_count: u64::from(clip_observation.non_finite_count),
+            gradient_norm_after_clip: parallel_muon_gradient_sync
+                .sync_outcome
+                .gradient_norm_after_clip,
+            clip_applied: parallel_muon_gradient_sync.sync_outcome.clip_applied,
+            non_finite_gradient_count: u64::from(
+                parallel_muon_gradient_sync
+                    .sync_outcome
+                    .non_finite_gradient_count,
+            ),
             parallel_muon_receipt: (!owned_parallel_muon_bank_shards.is_empty()).then_some(
                 ParameterGolfDistributed8xH100ParallelMuonReceipt {
-                    transport: String::from(
-                        "rank0_loopback_tcp_mean_all_reduce_plus_parallel_muon_bank_all_gather_v1",
-                    ),
+                    transport: String::from(WORKER_COLLECTIVE_TRANSPORT),
                     owned_bank_shards: owned_parallel_muon_bank_shards,
+                    gradient_reduce_scatter_ms: parallel_muon_gradient_sync
+                        .reduce_scatter_ms,
                     local_shard_update_ms: parallel_muon_local_update_ms,
                     updated_value_all_gather_ms: parallel_muon_all_gather_ms,
                 },
             ),
             worker_pid: std::process::id(),
             claim_boundary: String::from(
-                "This receipt proves one resident distributed worker executed one rank-local gradient batch, participated in one in-memory loopback mean all-reduce, applied the synchronized non-matrix optimizer groups locally, applied one owned shard of the banked Muon groups locally, and all-gathered the updated bank values back across the resident mesh without per-step gradient file export.",
+                "This receipt proves one resident distributed worker executed one rank-local gradient batch, mean-all-reduced the synchronized non-Muon gradients over the loopback worker mesh, reduce-scattered the owned banked-Muon gradient shards through rank 0, applied the synchronized local optimizer groups, applied the owned Parallel-Muon bank shards locally, and all-gathered the updated bank values back across the resident mesh without per-step gradient file export.",
             ),
             receipt_digest: String::new(),
         }
@@ -2656,9 +3067,10 @@ fn spawn_parameter_golf_distributed_8xh100_persistent_worker_mesh(
     }
     workers.sort_by_key(|worker| worker.rank);
     emit_distributed_progress_line(format!(
-        "persistent_worker_mesh_ready run_id={} world_size={} transport=rank0_loopback_tcp_mean_all_reduce_plus_parallel_muon_bank_all_gather_v1",
+        "persistent_worker_mesh_ready run_id={} world_size={} transport={}",
         run_id,
-        workers.len()
+        workers.len(),
+        WORKER_COLLECTIVE_TRANSPORT,
     ));
     Ok(workers)
 }
@@ -4882,16 +5294,20 @@ mod tests {
 
     use super::{
         aggregate_score_first_ttt_validation_rank_observations, contiguous_shard_for_rank,
-        distributed_validation_batch_sequences, load_gradient_artifact,
+        distributed_validation_batch_sequences,
+        flatten_non_parallel_muon_gradients_for_worker_mesh, load_gradient_artifact,
         matrix_muon_bank_shards_for_rank, prune_step_scope_for_next_step,
-        score_first_ttt_chunk_window_starts_for_rank, write_gradient_artifact,
+        score_first_ttt_chunk_window_starts_for_rank,
+        unflatten_non_parallel_muon_gradients_from_worker_mesh,
+        worker_mesh_gradient_sync_outcome_from_surfaces, write_gradient_artifact,
+        ParameterGolfDistributed8xH100ParallelMuonBankShardReceipt,
         ParameterGolfDistributed8xH100ScoreFirstTttRankAccumulator,
         VALIDATION_BATCH_SEQUENCES_ENV_VAR,
     };
     use crate::{
         build_parameter_golf_score_first_ttt_chunk_plans,
         build_parameter_golf_validation_window_starts, build_validation_observation_plan,
-        parameter_golf_default_validation_batch_sequences,
+        clip_gradients, parameter_golf_default_validation_batch_sequences,
         parameter_golf_single_h100_training::{
             ParameterGolfParameterState, ParameterGolfSingleH100TrainerState,
         },
@@ -4981,6 +5397,151 @@ mod tests {
         assert_eq!(rank_seven_shards[0].owned_slice_count, 1);
         assert_eq!(rank_seven_shards[0].owned_value_offset, 54);
         assert_eq!(rank_seven_shards[0].owned_value_count, 6);
+    }
+
+    #[test]
+    fn non_parallel_muon_gradient_roundtrip_excludes_rank3_banked_groups(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let trainer_state = ParameterGolfSingleH100TrainerState {
+            parameter_states: BTreeMap::from([
+                (
+                    String::from("banked"),
+                    ParameterGolfParameterState::MuonBf16 {
+                        shape: vec![3, 2, 2],
+                        values: vec![0.0; 12],
+                        bf16_bits: vec![0; 12],
+                        optimizer: ParameterGolfMuonConfig::new(0.01, 0.95, 5),
+                        optimizer_state: ParameterGolfMuonState {
+                            momentum_buffer: vec![0.0; 12],
+                        },
+                    },
+                ),
+                (
+                    String::from("non_banked"),
+                    ParameterGolfParameterState::MuonBf16 {
+                        shape: vec![4],
+                        values: vec![0.0; 4],
+                        bf16_bits: vec![0; 4],
+                        optimizer: ParameterGolfMuonConfig::new(0.01, 0.95, 5),
+                        optimizer_state: ParameterGolfMuonState {
+                            momentum_buffer: vec![0.0; 4],
+                        },
+                    },
+                ),
+            ]),
+        };
+        let gradients = BTreeMap::from([
+            (
+                String::from("banked"),
+                (0..12).map(|value| value as f32).collect(),
+            ),
+            (String::from("non_banked"), vec![10.0_f32, 11.0, 12.0, 13.0]),
+        ]);
+
+        let flattened =
+            flatten_non_parallel_muon_gradients_for_worker_mesh(&trainer_state, &gradients)?;
+        assert_eq!(flattened, vec![10.0_f32, 11.0, 12.0, 13.0]);
+
+        let roundtrip =
+            unflatten_non_parallel_muon_gradients_from_worker_mesh(&trainer_state, &flattened)?;
+        assert_eq!(
+            roundtrip,
+            vec![(String::from("non_banked"), vec![10.0_f32, 11.0, 12.0, 13.0])]
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn worker_mesh_gradient_sync_outcome_matches_full_surface_clip_and_digest() {
+        let averaged_non_matrix_flattened = vec![3.0_f32, 4.0];
+        let averaged_parallel_muon_shards = vec![
+            (
+                0,
+                ParameterGolfDistributed8xH100ParallelMuonBankShardReceipt {
+                    parameter_id: String::from("banked"),
+                    bank_len: 2,
+                    rows: 1,
+                    cols: 2,
+                    owned_slice_start: 0,
+                    owned_slice_count: 1,
+                    owned_value_offset: 0,
+                    owned_value_count: 2,
+                },
+                vec![6.0_f32, 8.0],
+            ),
+            (
+                1,
+                ParameterGolfDistributed8xH100ParallelMuonBankShardReceipt {
+                    parameter_id: String::from("banked"),
+                    bank_len: 2,
+                    rows: 1,
+                    cols: 2,
+                    owned_slice_start: 1,
+                    owned_slice_count: 1,
+                    owned_value_offset: 2,
+                    owned_value_count: 2,
+                },
+                vec![1.0_f32, 2.0],
+            ),
+        ];
+
+        let outcome = worker_mesh_gradient_sync_outcome_from_surfaces(
+            averaged_non_matrix_flattened.as_slice(),
+            averaged_parallel_muon_shards.as_slice(),
+            5.0,
+        );
+        let repeated_outcome = worker_mesh_gradient_sync_outcome_from_surfaces(
+            averaged_non_matrix_flattened.as_slice(),
+            averaged_parallel_muon_shards.as_slice(),
+            5.0,
+        );
+
+        assert!(outcome.clip_applied);
+        let expected_pre_clip_norm = (3.0_f32 * 3.0
+            + 4.0_f32 * 4.0
+            + 6.0_f32 * 6.0
+            + 8.0_f32 * 8.0
+            + 1.0_f32 * 1.0
+            + 2.0_f32 * 2.0)
+            .sqrt();
+        assert!((outcome.clip_scale - (5.0 / expected_pre_clip_norm)).abs() < 1e-6);
+
+        let mut full_gradients = vec![
+            (
+                String::from("non_banked"),
+                averaged_non_matrix_flattened.clone(),
+            ),
+            (String::from("banked"), vec![6.0_f32, 8.0, 1.0, 2.0]),
+        ];
+        let clip_observation = clip_gradients(&mut full_gradients, 5.0);
+        assert_eq!(
+            outcome.non_finite_gradient_count,
+            clip_observation.non_finite_count
+        );
+        assert!(
+            (outcome.gradient_norm_after_clip
+                - clip_observation
+                    .gradient_norm_after_clip
+                    .unwrap_or_default())
+            .abs()
+                < 1e-6
+        );
+        assert_eq!(
+            outcome.gradient_artifact_sha256,
+            repeated_outcome.gradient_artifact_sha256
+        );
+
+        let mut changed_shards = averaged_parallel_muon_shards.clone();
+        changed_shards[1].2[1] += 0.5;
+        let changed_outcome = worker_mesh_gradient_sync_outcome_from_surfaces(
+            averaged_non_matrix_flattened.as_slice(),
+            changed_shards.as_slice(),
+            5.0,
+        );
+        assert_ne!(
+            outcome.gradient_artifact_sha256,
+            changed_outcome.gradient_artifact_sha256
+        );
     }
 
     #[test]
