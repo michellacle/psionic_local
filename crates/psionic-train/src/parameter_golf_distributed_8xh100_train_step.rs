@@ -2458,6 +2458,10 @@ fn prune_step_scope_for_next_step(
         return Ok(());
     }
     let retained_model_path = step_dir.join("current_model.runtime_surface.safetensors");
+    if !retained_model_path.exists() {
+        remove_path_recursively(step_dir)?;
+        return Ok(());
+    }
     for entry in fs::read_dir(step_dir).map_err(|error| {
         ParameterGolfDistributed8xH100TrainStepError::Read {
             path: step_dir.display().to_string(),
@@ -3330,7 +3334,7 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
     let mut executed_step_count = 0_u64;
     let mut observed_training_time_ms = 0_u64;
     let mut step_observations = Vec::new();
-    let mut final_step_execution = None;
+    let mut final_step_execution: Option<ParameterGolfDistributed8xH100StepExecution> = None;
     let mut workers = spawn_parameter_golf_distributed_8xh100_persistent_worker_mesh(
         root,
         &manifest_path,
@@ -3368,6 +3372,13 @@ pub fn execute_parameter_golf_distributed_8xh100_train_step(
             observed_training_time_ms,
             observed_training_time_ms as f64 / executed_step_count.max(1) as f64,
         ));
+        if let Some(previous_step_execution) = final_step_execution.as_ref() {
+            let previous_step_dir = step_scope_dir(
+                &step_scope_root_dir,
+                previous_step_execution.step_observation.global_step,
+            );
+            prune_step_scope_for_next_step(&previous_step_dir)?;
+        }
         final_step_execution = Some(step_execution);
         if max_wallclock_ms.is_some_and(|wallclock_ms| observed_training_time_ms >= wallclock_ms) {
             emit_distributed_progress_line(format!(
@@ -5140,6 +5151,25 @@ mod tests {
             retained,
             vec![String::from("current_model.runtime_surface.safetensors")]
         );
+        Ok(())
+    }
+
+    #[test]
+    fn distributed_step_scope_prune_removes_worker_mesh_step_dir_without_model(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let temp_dir = tempfile::tempdir()?;
+        let step_dir = temp_dir.path().join("step_00002");
+        std::fs::create_dir_all(step_dir.join("runtime_train_step_receipts"))?;
+        std::fs::write(
+            step_dir
+                .join("runtime_train_step_receipts")
+                .join("rank_0.json"),
+            b"receipt",
+        )?;
+
+        prune_step_scope_for_next_step(&step_dir)?;
+
+        assert!(!step_dir.exists());
         Ok(())
     }
 }

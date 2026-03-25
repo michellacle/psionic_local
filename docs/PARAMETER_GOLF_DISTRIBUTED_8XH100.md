@@ -89,6 +89,9 @@ Psionic now encodes that exact posture explicitly instead of treating
   being hidden behind one generic communication label. The live score lane now
   exports only the final runtime-owned model surfaces after the repeated loop
   instead of using file-artifact gradient handoff in the hot path. The
+  repeated worker-mesh loop now also prunes superseded step-scope directories
+  once the next step succeeds, so the resident scoreproof lane stops
+  accumulating dead per-step receipt directories indefinitely. The
   resident train-session refresh path now also reuses prepacked host `bf16`
   staging for BF16-visible parameter banks instead of repacking those large
   tensors on every optimizer step. The shared CUDA train path now also narrows
