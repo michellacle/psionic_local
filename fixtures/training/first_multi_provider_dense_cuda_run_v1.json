@@ -1,0 +1,95 @@
+{
+  "schema_version": "psionic.first_multi_provider_dense_cuda_run.v1",
+  "run_id": "psion-xprovider-pretrain-multi-provider-cuda-20260325",
+  "program_manifest_id": "psionic-cross-provider-pretraining-program-v1",
+  "program_manifest_digest": "5c7cd52ecf5345551e165eeb1e25440153bf64f38e69aaf1d33a13c7056ca479",
+  "whole_program_run_graph_digest": "d323bce8c1b324e9d4ab12e50f17678624d48272ae3aaaa913bb8ad61be751be",
+  "dense_recovery_contract_digest": "1084d44b21e975950ba6b27b25eb6fe421237461258dc56f4c153454111ea7b4",
+  "dense_topology_revision_contract_digest": "6fcd1c8872e888d34159ed10fe85b5d7a48c80fba478d2ec71a4d75ca7907cb6",
+  "provider_neutral_execution_bundle_id": "psionic-cross-provider-training-execution-evidence-v1",
+  "provider_neutral_execution_bundle_digest": "4e79457bafaa9f856897b040a46060396fc5e54c4abff0d276681d88d24e86e6",
+  "phases": [
+    {
+      "phase_id": "bootstrap-runpod-8xh100",
+      "topology_revision_id": "psion-xprovider-pretrain-topology-r1",
+      "world_size": 8,
+      "active_provider_ids": [
+        "runpod"
+      ],
+      "controlling_contract_id": "d323bce8c1b324e9d4ab12e50f17678624d48272ae3aaaa913bb8ad61be751be",
+      "checkpoint_manifest_digest": "802aa997400ce2259031a375c1cd38c472ede21accee09809c2befe93eeb494f",
+      "detail": "The run bootstrapped as the existing 8-rank RunPod dense CUDA mesh under the shared whole-program run graph."
+    },
+    {
+      "phase_id": "barrier-grow-to-10",
+      "topology_revision_id": "psion-xprovider-pretrain-topology-r3",
+      "world_size": 10,
+      "active_provider_ids": [
+        "google",
+        "runpod"
+      ],
+      "controlling_contract_id": "6fcd1c8872e888d34159ed10fe85b5d7a48c80fba478d2ec71a4d75ca7907cb6",
+      "checkpoint_manifest_digest": "802aa997400ce2259031a375c1cd38c472ede21accee09809c2befe93eeb494f",
+      "detail": "The run paused at a checkpoint barrier, grew from 8 to 10 dense ranks, and admitted two Google CUDA ranks through the grow-world checkpoint-barrier topology revision."
+    },
+    {
+      "phase_id": "provider-loss-rank2-recovery",
+      "topology_revision_id": "psion-xprovider-pretrain-topology-r2",
+      "world_size": 10,
+      "active_provider_ids": [
+        "google",
+        "runpod"
+      ],
+      "controlling_contract_id": "1084d44b21e975950ba6b27b25eb6fe421237461258dc56f4c153454111ea7b4",
+      "checkpoint_manifest_digest": "802aa997400ce2259031a375c1cd38c472ede21accee09809c2befe93eeb494f",
+      "detail": "One RunPod dense rank was replaced by a Google spare through the admitted provider-loss replace-rank recovery path without dropping world size."
+    },
+    {
+      "phase_id": "mixed-provider-steady-state",
+      "topology_revision_id": "psion-xprovider-pretrain-topology-r2",
+      "world_size": 10,
+      "active_provider_ids": [
+        "google",
+        "runpod"
+      ],
+      "controlling_contract_id": "4e79457bafaa9f856897b040a46060396fc5e54c4abff0d276681d88d24e86e6",
+      "checkpoint_manifest_digest": "802aa997400ce2259031a375c1cd38c472ede21accee09809c2befe93eeb494f",
+      "detail": "The run completed a bounded steady-state mixed-provider CUDA phase after grow-world admission and one provider-loss repair event."
+    }
+  ],
+  "recovery_events": [
+    {
+      "event_id": "recover-rank2-provider-loss",
+      "dense_recovery_scenario_id": "dense_rank.provider_loss.rank2.cross_provider_replace",
+      "topology_revision_scenario_id": "dense_topology.replace_rank.rank2_cross_provider",
+      "recovered_rank": 2,
+      "detail": "Rank 2 moved from the departed RunPod provider slot onto a Google spare under the admitted replace-rank recovery and topology-revision contracts."
+    }
+  ],
+  "retained_artifacts": [
+    {
+      "artifact_role": "provider_neutral_execution_evidence_bundle",
+      "artifact_path": "fixtures/training/provider_neutral_training_execution_evidence_bundle_v1.json",
+      "detail": "Provider-neutral execution evidence still anchors the shared launch, runtime, checkpoint, metric, and validator proof surface."
+    },
+    {
+      "artifact_role": "dense_rank_recovery_contract",
+      "artifact_path": "fixtures/training/dense_rank_recovery_contract_v1.json",
+      "detail": "Dense recovery receipts prove the admitted provider-loss repair path used by the run."
+    },
+    {
+      "artifact_role": "dense_topology_revision_contract",
+      "artifact_path": "fixtures/training/dense_topology_revision_contract_v1.json",
+      "detail": "Controlled topology revision receipts prove the grow-world and replace-rank transitions used by the run."
+    },
+    {
+      "artifact_role": "after_action_audit",
+      "artifact_path": "docs/audits/2026-03-25-first-multi-provider-dense-cuda-run-audit.md",
+      "detail": "The after-action audit states the exact proof surface and exact claim boundary for the first bounded multi-provider dense CUDA run."
+    }
+  ],
+  "after_action_audit_path": "docs/audits/2026-03-25-first-multi-provider-dense-cuda-run-audit.md",
+  "final_disposition": "bounded_success",
+  "claim_boundary": "This retained proof run closes one bounded multi-provider dense CUDA program that spans Google and RunPod under the shared contracts. It does not claim mixed-backend training, public swarm compute, or generic production hardening.",
+  "bundle_digest": "79d37a0616f80d5af40a9832aceb57de1eb27448be456d2891ee7e8ec0a0e45a"
+}

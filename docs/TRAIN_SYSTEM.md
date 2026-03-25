@@ -200,6 +200,18 @@ grow-world, and checkpoint-barrier shrink-world. It still refuses live
 remove-without-replacement instead of pretending the current fixed-world
 data-feed path already does generic live elasticity.
 
+The repo now also owns the first retained multi-provider dense CUDA proof-run
+bundle in `crates/psionic-train/src/first_multi_provider_dense_cuda_run.rs`,
+the binary `first_multi_provider_dense_cuda_run`, the checker
+`scripts/check-first-multi-provider-dense-cuda-run.sh`, the committed fixture
+`fixtures/training/first_multi_provider_dense_cuda_run_v1.json`, and the
+after-action audit
+`docs/audits/2026-03-25-first-multi-provider-dense-cuda-run-audit.md`. That
+bundle records one bounded Google plus RunPod dense CUDA program that widened
+through a checkpoint-barrier grow-world revision, retained a provider-loss
+replace-rank recovery event, and closed as `bounded_success` under the shared
+cross-provider contracts.
+
 The repo now also owns the first generic dense-rank runtime layer in
 `crates/psionic-train/src/dense_rank_runtime.rs`, the binary
 `dense_rank_runtime_reference_contract`, the checker
