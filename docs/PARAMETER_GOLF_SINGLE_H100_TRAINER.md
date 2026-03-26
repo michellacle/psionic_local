@@ -387,6 +387,11 @@ Today the single-H100 trainer doc does **not** claim:
 - challenge-speed closure; the trainer now reports final contest metrics from
   the exported quantized roundtrip artifact like `train_gpt.py`, but that does
   not by itself make the lane competitive yet
+- fresh exact-shape current-`main` same-node closure; the first current-`main`
+  rerun after `14fc612b` on a real RunPod `NVIDIA H100 80GB HBM3` node reaches
+  `train_step_start step=1/1` and then fails with `cudaMalloc failed: out of
+  memory` before it can emit a new trainer receipt; see
+  `docs/audits/2026-03-26-psionic-parameter-golf-single-h100-current-main-oom-audit.md`
 
 Instead, it gives the repo one narrower but important thing:
 
