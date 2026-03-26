@@ -1,0 +1,357 @@
+{
+  "schema_version": "psionic.signed_node_identity_contract_set.v1",
+  "contract_id": "psionic.signed_node_identity_contract_set.v1",
+  "network_id": "psionic.decentralized_training.testnet.v1",
+  "governance_revision_id": "psionic.decentralized_training_governance.v1",
+  "program_manifest_id": "psionic-cross-provider-pretraining-program-v1",
+  "program_manifest_digest": "5c7cd52ecf5345551e165eeb1e25440153bf64f38e69aaf1d33a13c7056ca479",
+  "environment_ref": "psion.pretrain.reference_runtime",
+  "environment_version": "v1",
+  "decentralized_network_contract_digest": "37205ba6736d97b64f7156dde917b02d4bd4eeaa5bcfcfd96544c3bcdf338bda",
+  "revocation_authority": {
+    "policy_id": "psionic.decentralized_training_identity_revocation.v1",
+    "revocation_feed_template": "runs/${RUN_ID}/decentralized/revocations/network_epoch_${NETWORK_EPOCH}.json",
+    "grace_epochs_before_enforcement": 2,
+    "detail": "The first signed-node identity surface keeps revocation posture explicit through an epoch-scoped revocation feed with a two-epoch grace window. It does not claim automatic slashing or hardware-backed remote attestation yet."
+  },
+  "identities": [
+    {
+      "node_identity_id": "google_l4_validator_node.identity",
+      "node_id": "psionic-google-validator-001",
+      "source_id": "google_l4_validator_node",
+      "source_contract_digest": "505b459944dc9d645a603add2c6608fb01defac97830b537c3a42da32a76256f",
+      "wallet": {
+        "wallet_kind": "ethereum_secp256k1",
+        "wallet_address": "0xfb1f4984de7d0e1192862ea0174f0ff8a0a40da2",
+        "settlement_namespace": "psionic.decentralized_training.settlement.v1",
+        "operator_namespace": "psionic.decentralized_testnet.google_l4_validator_node",
+        "detail": "The first signed identity retains one operator wallet namespace for `google_l4_validator_node` so settlement and reward accounting can bind to a machine-legible address before on-chain publication exists."
+      },
+      "software_attestation": {
+        "release_id": "psionic.decentralized_training_identity_release.v1",
+        "environment_ref": "psion.pretrain.reference_runtime",
+        "environment_version": "v1",
+        "build_digest": "317aba5a710073c242742ea1c5728234ed168f98ef2b0428801d1e28ec0fe3a1",
+        "authority_artifact_paths": [
+          "fixtures/psion/google/psion_google_two_node_swarm_contract_v1.json",
+          "fixtures/psion/google/psion_google_two_node_swarm_launch_profiles_v1.json",
+          "fixtures/psion/google/psion_google_two_node_swarm_network_posture_v1.json",
+          "fixtures/psion/google/psion_google_two_node_swarm_identity_profile_v1.json"
+        ],
+        "detail": "The first public identity layer freezes one deterministic software build digest for `google_l4_validator_node` above the canonical environment key and the retained source authority artifacts."
+      },
+      "capability_projection": {
+        "accelerator_inventory_digest": "c814630e8b90dd5197a4a07d3f7003a81e023ca19583d0e30cf780f49ea25d22",
+        "backend_posture_digest": "616a2ee46de545450922f0dd0dae7739354b8dbd00c1a1c4728d8b0d450ea3bb",
+        "network_posture_digest": "b40c98a9b481da63cf2f9ad713e5f6e924d4d4c760060af8db66e58972847d62",
+        "storage_posture_digest": "ebb43970904b93d77c5585a28fc34a563772b8a3fcf8368b972e6e599d5bd0dd",
+        "detail": "The capability projection freezes accelerator, backend, network, and storage truth for `google_l4_validator_node` without widening beyond the source contract already admitted by the program manifest."
+      },
+      "benchmark_evidence": [
+        {
+          "benchmark_id": "google_swarm_contract_benchmark",
+          "authority_artifact_path": "fixtures/psion/google/psion_google_two_node_swarm_contract_v1.json",
+          "authority_artifact_sha256": "d85311bfbdd9328e095d62f64b7fc8a821167271e5d93ed2028b8fe98185f235",
+          "admitted_execution_classes": [
+            "validated_contributor_window",
+            "validator",
+            "checkpoint_writer"
+          ],
+          "detail": "Google coordinator evidence ties the admitted validator, contributor-window, and checkpoint-writer posture back to the retained two-node swarm contract."
+        },
+        {
+          "benchmark_id": "google_identity_profile_benchmark",
+          "authority_artifact_path": "fixtures/psion/google/psion_google_two_node_swarm_identity_profile_v1.json",
+          "authority_artifact_sha256": "ee1f75ebe4cda79d3b7a6ebea0d6bb4d8f1ac8a19418ddc377e8b58821dea42a",
+          "admitted_execution_classes": [
+            "validated_contributor_window",
+            "validator",
+            "data_builder"
+          ],
+          "detail": "Identity-profile evidence freezes operator role tags and the admitted aggregator-side data-builder seam for the same Google node."
+        }
+      ],
+      "admitted_role_classes": [
+        "public_miner",
+        "public_validator",
+        "checkpoint_authority",
+        "aggregator",
+        "relay"
+      ],
+      "admitted_execution_classes": [
+        "validated_contributor_window",
+        "validator",
+        "checkpoint_writer",
+        "eval_worker",
+        "data_builder"
+      ],
+      "revocation_status": "active",
+      "capability_signature": {
+        "signature_scheme": "ed25519_detached",
+        "signer_key_id": "psionic.testnet.identity_signer.google_l4_validator_node",
+        "public_key_hex": "5b578fd3b11ebc721bd6a47f5345dbbb92a6be9f562960938cac5bf8e34ba965",
+        "payload_digest": "74dd0da48e99a7ed7da9afaf85dcdc77270787eba3a19e78517998969a3fb501",
+        "signature_hex": "8583979681f4fc9580f9dfab8dad895fc2959be4583765daf937defeb29acedbd16f979fad93c7b07b89ed88782b265af14c5838c07c12bff2811e390802e50a",
+        "signed_at_unix_ms": 1711111123000,
+        "detail": "The canonical signed identity uses one deterministic ed25519 testnet signer for `google_l4_validator_node` so admission, validator scoring, and fraud review all point at the same stable payload."
+      },
+      "refusal_examples": [
+        {
+          "requested_execution_class": "dense_full_model_rank",
+          "refusal_kind": "execution_class_not_admitted",
+          "detail": "The Google L4 validator node does not admit dense_full_model_rank in the current source contract, so the signed identity refuses dense-rank claims explicitly instead of letting public admission prose widen the node."
+        }
+      ],
+      "detail": "Google private-cloud coordinator node retained as the strongest multi-role public testnet participant: validator, checkpoint authority, contributor-window miner, aggregator, and relay support.",
+      "record_digest": "bd1857dcadccd738546857405103d0a95b27aa6bc8347199fc879b8dabb90fca"
+    },
+    {
+      "node_identity_id": "runpod_8xh100_dense_node.identity",
+      "node_id": "psionic-runpod-dense-001",
+      "source_id": "runpod_8xh100_dense_node",
+      "source_contract_digest": "0269a847d7a2285c85a35bbcf46495f460a35d0a45c78b61af1633b2c6759452",
+      "wallet": {
+        "wallet_kind": "ethereum_secp256k1",
+        "wallet_address": "0xd5f66e6fb5884d41143c0b1fc3168328b2d28bbe",
+        "settlement_namespace": "psionic.decentralized_training.settlement.v1",
+        "operator_namespace": "psionic.decentralized_testnet.runpod_8xh100_dense_node",
+        "detail": "The first signed identity retains one operator wallet namespace for `runpod_8xh100_dense_node` so settlement and reward accounting can bind to a machine-legible address before on-chain publication exists."
+      },
+      "software_attestation": {
+        "release_id": "psionic.decentralized_training_identity_release.v1",
+        "environment_ref": "psion.pretrain.reference_runtime",
+        "environment_version": "v1",
+        "build_digest": "3b4bf86ccedd18dd1c0e1e5371366b49ed9bdd058fcad2a91463799f83ce04f9",
+        "authority_artifact_paths": [
+          "fixtures/parameter_golf/runpod/parameter_golf_runpod_8xh100_launch_profiles_v1.json",
+          "fixtures/parameter_golf/runpod/parameter_golf_runpod_8xh100_cost_guardrails_v1.json",
+          "fixtures/parameter_golf/runpod/parameter_golf_runpod_8xh100_operator_preflight_policy_v1.json"
+        ],
+        "detail": "The first public identity layer freezes one deterministic software build digest for `runpod_8xh100_dense_node` above the canonical environment key and the retained source authority artifacts."
+      },
+      "capability_projection": {
+        "accelerator_inventory_digest": "f1d62e26522b665e97b09d54371418280f927c0303db523ffba97134c804316c",
+        "backend_posture_digest": "ea6564aa0ac7803e19ff820f8860702990094991dfce7f083f9487c2eff7f9b7",
+        "network_posture_digest": "08bca3e0cbdea60de01a42808cb3daaeee506018ef0d12d864cc24e1631a9a71",
+        "storage_posture_digest": "bbe3c316bb513e71890872bd28c096357d3d461a40ac6d061085635201c80b4d",
+        "detail": "The capability projection freezes accelerator, backend, network, and storage truth for `runpod_8xh100_dense_node` without widening beyond the source contract already admitted by the program manifest."
+      },
+      "benchmark_evidence": [
+        {
+          "benchmark_id": "runpod_launch_profile_benchmark",
+          "authority_artifact_path": "fixtures/parameter_golf/runpod/parameter_golf_runpod_8xh100_launch_profiles_v1.json",
+          "authority_artifact_sha256": "0bbbd2fcc7eb01098fd8f6c52fd97b23d735d72fbbf69cbce43e578ab8f378cd",
+          "admitted_execution_classes": [
+            "dense_full_model_rank",
+            "checkpoint_writer"
+          ],
+          "detail": "RunPod launch-profile evidence proves the exact eight-H100 dense-rank lane and the attached checkpoint-writer posture retained in the current source contract."
+        },
+        {
+          "benchmark_id": "runpod_operator_preflight_benchmark",
+          "authority_artifact_path": "fixtures/parameter_golf/runpod/parameter_golf_runpod_8xh100_operator_preflight_policy_v1.json",
+          "authority_artifact_sha256": "979d1e33147864fcd443d72817c61f6c9ae9e99ed82964285ae2f6ae94dc0eed",
+          "admitted_execution_classes": [
+            "dense_full_model_rank",
+            "eval_worker",
+            "data_builder"
+          ],
+          "detail": "RunPod preflight evidence keeps dense-rank readiness, eval-worker posture, and artifact-building support tied to the retained operator preflight policy."
+        }
+      ],
+      "admitted_role_classes": [
+        "checkpoint_authority",
+        "aggregator"
+      ],
+      "admitted_execution_classes": [
+        "dense_full_model_rank",
+        "checkpoint_writer",
+        "eval_worker",
+        "data_builder"
+      ],
+      "revocation_status": "active",
+      "capability_signature": {
+        "signature_scheme": "ed25519_detached",
+        "signer_key_id": "psionic.testnet.identity_signer.runpod_8xh100_dense_node",
+        "public_key_hex": "3497ac015bd84b996c849ec1ca2491ef3d1aa8ed6efe67208e71619be0f8e481",
+        "payload_digest": "aa43b4fae4574200758721547d99698a52c48b24e5c880b7cf7de8e455921351",
+        "signature_hex": "2017222b87ece9f7acb9fe09f0d16f0a3db37378b7a34762ba2a89ce3b056fc4fcf0b238f827520e9aef394dfd1efea55de8fd05e673ca46636941af3a8e4504",
+        "signed_at_unix_ms": 1711111123000,
+        "detail": "The canonical signed identity uses one deterministic ed25519 testnet signer for `runpod_8xh100_dense_node` so admission, validator scoring, and fraud review all point at the same stable payload."
+      },
+      "refusal_examples": [
+        {
+          "requested_role_class": "public_miner",
+          "refusal_kind": "role_class_not_admitted",
+          "detail": "The current decentralized network binds public_miner to validated_contributor_window rather than dense_full_model_rank, so the RunPod dense node refuses public_miner identity claims honestly in this issue."
+        },
+        {
+          "requested_execution_class": "validator",
+          "refusal_kind": "execution_class_not_admitted",
+          "detail": "The RunPod eight-H100 dense node does not admit validator execution in the current source contract, so validator identity claims stay fail-closed here."
+        }
+      ],
+      "detail": "RunPod dense node retained as dense compute and public checkpoint sidecar capacity, but not yet as a public contributor-window miner under the current network role binding.",
+      "record_digest": "c416e20989d36eadce153ad09a861b3845aa653cf41bbe346b6c7b71da103f5a"
+    },
+    {
+      "node_identity_id": "local_rtx4080_workstation.identity",
+      "node_id": "psionic-local-rtx4080-001",
+      "source_id": "local_rtx4080_workstation",
+      "source_contract_digest": "b756ae9e4d35c58a1f5269f64af997f1bf7ea903923eea12dce4c0c01105d52b",
+      "wallet": {
+        "wallet_kind": "ethereum_secp256k1",
+        "wallet_address": "0x5d104d7003d55bc2a3bd40d0af9b36a9c978e83d",
+        "settlement_namespace": "psionic.decentralized_training.settlement.v1",
+        "operator_namespace": "psionic.decentralized_testnet.local_rtx4080_workstation",
+        "detail": "The first signed identity retains one operator wallet namespace for `local_rtx4080_workstation` so settlement and reward accounting can bind to a machine-legible address before on-chain publication exists."
+      },
+      "software_attestation": {
+        "release_id": "psionic.decentralized_training_identity_release.v1",
+        "environment_ref": "psion.pretrain.reference_runtime",
+        "environment_version": "v1",
+        "build_digest": "962ed64a5e5f6334c3e6a3850f0666e1af502a49ac2ddd3261812622b773158b",
+        "authority_artifact_paths": [
+          "fixtures/swarm/reports/swarm_linux_rtx4080_bringup_v1.json"
+        ],
+        "detail": "The first public identity layer freezes one deterministic software build digest for `local_rtx4080_workstation` above the canonical environment key and the retained source authority artifacts."
+      },
+      "capability_projection": {
+        "accelerator_inventory_digest": "b3494b7238f91631fc18699fa3dbfd7ac89f2cdfc0d0bf5bd1e666c6329bd962",
+        "backend_posture_digest": "f27b7fd292fe8c738224ee517bd50270d4010a7e4e7d9b5a37de572e260325a7",
+        "network_posture_digest": "6d64aa5a62e1708d4f0d3c58e063fa47f123e57f3a472d5995234860dfa29420",
+        "storage_posture_digest": "1f7ab5d33a657f59423d2db748b8ac812b4b4f5efe7ff1a44f42fa8e00a7ff61",
+        "detail": "The capability projection freezes accelerator, backend, network, and storage truth for `local_rtx4080_workstation` without widening beyond the source contract already admitted by the program manifest."
+      },
+      "benchmark_evidence": [
+        {
+          "benchmark_id": "local_rtx4080_bringup_benchmark",
+          "authority_artifact_path": "fixtures/swarm/reports/swarm_linux_rtx4080_bringup_v1.json",
+          "authority_artifact_sha256": "6c1ab4bc82d8d0c96f9a0754ae7a80a59f1e385bd21f9732d2147b1d09e770b7",
+          "admitted_execution_classes": [
+            "validated_contributor_window",
+            "eval_worker",
+            "data_builder"
+          ],
+          "detail": "RTX 4080 bring-up evidence keeps contributor-window, eval-worker, and data-builder capability claims tied to the retained trusted-LAN workstation report."
+        }
+      ],
+      "admitted_role_classes": [
+        "public_miner",
+        "aggregator"
+      ],
+      "admitted_execution_classes": [
+        "validated_contributor_window",
+        "eval_worker",
+        "data_builder"
+      ],
+      "revocation_status": "active",
+      "capability_signature": {
+        "signature_scheme": "ed25519_detached",
+        "signer_key_id": "psionic.testnet.identity_signer.local_rtx4080_workstation",
+        "public_key_hex": "87491c94f327aa35b0d9275eabc433c9ab4463cf7b4e3085a16bf189e89b2c6a",
+        "payload_digest": "8ae0c8d68f6911b98f644ad6350f9caf1cee92d407eb8ce98ccfca6059b7fe65",
+        "signature_hex": "ff6383f3cf3dbb8b8b2d49df2d10043f50da14b1c53e61cf4dff1340bfca222e06c696256ece1dc67d95b837b9ac4215fc8e68ec2a05e2453fa24439efb8dc09",
+        "signed_at_unix_ms": 1711111123000,
+        "detail": "The canonical signed identity uses one deterministic ed25519 testnet signer for `local_rtx4080_workstation` so admission, validator scoring, and fraud review all point at the same stable payload."
+      },
+      "refusal_examples": [
+        {
+          "requested_role_class": "public_validator",
+          "refusal_kind": "role_class_not_admitted",
+          "detail": "The local RTX 4080 workstation does not admit validator execution in the current source contract, so public_validator admission remains explicitly refused."
+        },
+        {
+          "requested_execution_class": "checkpoint_writer",
+          "refusal_kind": "execution_class_not_admitted",
+          "detail": "The local RTX 4080 workstation does not currently carry checkpoint_writer in the source contract, so checkpoint-authority identity claims remain blocked here."
+        }
+      ],
+      "detail": "Local Linux RTX 4080 workstation retained as a contributor-window public miner and aggregator-side support node under operator-managed admission.",
+      "record_digest": "5f95d924050cce8b63d634d8f9847352d714268d4624dbdb46efb7a7a29b7384"
+    },
+    {
+      "node_identity_id": "local_mlx_mac_workstation.identity",
+      "node_id": "psionic-local-mlx-001",
+      "source_id": "local_mlx_mac_workstation",
+      "source_contract_digest": "af464a99d4089a063ef8811febffc05baecaa04a28d12f22a670feae00e91a9d",
+      "wallet": {
+        "wallet_kind": "ethereum_secp256k1",
+        "wallet_address": "0xb00819e591ba0e891863d933108e234e296e7029",
+        "settlement_namespace": "psionic.decentralized_training.settlement.v1",
+        "operator_namespace": "psionic.decentralized_testnet.local_mlx_mac_workstation",
+        "detail": "The first signed identity retains one operator wallet namespace for `local_mlx_mac_workstation` so settlement and reward accounting can bind to a machine-legible address before on-chain publication exists."
+      },
+      "software_attestation": {
+        "release_id": "psionic.decentralized_training_identity_release.v1",
+        "environment_ref": "psion.pretrain.reference_runtime",
+        "environment_version": "v1",
+        "build_digest": "a644c72bcfb70e226c075d3f193b9de38ec71ec63762414e7f1e62b0561a6539",
+        "authority_artifact_paths": [
+          "fixtures/swarm/reports/swarm_mac_mlx_bringup_v1.json"
+        ],
+        "detail": "The first public identity layer freezes one deterministic software build digest for `local_mlx_mac_workstation` above the canonical environment key and the retained source authority artifacts."
+      },
+      "capability_projection": {
+        "accelerator_inventory_digest": "b2ac6530166fc75a1bdedb3cb19c0d94569165864f24b90a4d76a81d9cdc4c16",
+        "backend_posture_digest": "aca798d6059e3cc14e534971d54f1d355c4680cf8e3f5ed81846323aed37b9bc",
+        "network_posture_digest": "f4c04f65c5cdc7f62e90e4af960987e371a9f601962e5dadb689d56082e4e2c8",
+        "storage_posture_digest": "e10ef88a2aa79386cde26cfb84289d9c999a6ebfef0d560fbb4ba69718a836c7",
+        "detail": "The capability projection freezes accelerator, backend, network, and storage truth for `local_mlx_mac_workstation` without widening beyond the source contract already admitted by the program manifest."
+      },
+      "benchmark_evidence": [
+        {
+          "benchmark_id": "local_mlx_bringup_benchmark",
+          "authority_artifact_path": "fixtures/swarm/reports/swarm_mac_mlx_bringup_v1.json",
+          "authority_artifact_sha256": "9d21f4ad23e56c02a5b7e1c220f5fe412a9df389c38041be8600f490747a00a8",
+          "admitted_execution_classes": [
+            "dense_full_model_rank",
+            "validated_contributor_window",
+            "validator",
+            "data_builder"
+          ],
+          "detail": "MLX bring-up evidence keeps the Apple workstation's dense-rank, contributor-window, validator, and data-builder claims bound to the retained bring-up report on the committed host family."
+        }
+      ],
+      "admitted_role_classes": [
+        "public_miner",
+        "public_validator",
+        "aggregator"
+      ],
+      "admitted_execution_classes": [
+        "dense_full_model_rank",
+        "validated_contributor_window",
+        "validator",
+        "eval_worker",
+        "data_builder"
+      ],
+      "revocation_status": "active",
+      "capability_signature": {
+        "signature_scheme": "ed25519_detached",
+        "signer_key_id": "psionic.testnet.identity_signer.local_mlx_mac_workstation",
+        "public_key_hex": "8837b0993aec8bb4a13d0e801afd2423ba90fa66c7f2cf01e86bab6c62b8944f",
+        "payload_digest": "c221e07c50faf3ac5a8e7402b28868cfb89a720d659bd235f2a3722421997970",
+        "signature_hex": "a8f1469cd8749e7d8718c219a56db49111efda34958d2d3b16cbd8f58b4c4e80544019b3951b267ed87c9cb1c1f5e694f480b370c4d8458fe63445b1606c2d0e",
+        "signed_at_unix_ms": 1711111123000,
+        "detail": "The canonical signed identity uses one deterministic ed25519 testnet signer for `local_mlx_mac_workstation` so admission, validator scoring, and fraud review all point at the same stable payload."
+      },
+      "refusal_examples": [
+        {
+          "requested_role_class": "checkpoint_authority",
+          "refusal_kind": "role_class_not_admitted",
+          "detail": "The Apple MLX workstation does not admit checkpoint_writer in the current source contract, so checkpoint_authority stays explicitly refused even though the node can validate and aggregate."
+        }
+      ],
+      "detail": "Local Apple Silicon workstation retained as a mixed-role testnet node for contributor-window mining, validation, and aggregation, while dense-rank capability remains outside the current public role map.",
+      "record_digest": "24d6e60d4f97efeea24c60152867dd0a92553e5369b7b572873259c2eefe4fd5"
+    }
+  ],
+  "authority_paths": {
+    "fixture_path": "fixtures/training/signed_node_identity_contract_set_v1.json",
+    "check_script_path": "scripts/check-signed-node-identity-contract-set.sh",
+    "reference_doc_path": "docs/SIGNED_NODE_IDENTITY_CONTRACT_REFERENCE.md",
+    "train_system_doc_path": "docs/TRAIN_SYSTEM.md"
+  },
+  "claim_boundary": "This contract set closes one signed public-node identity layer above the canonical compute-source contracts and the decentralized network contract. It binds wallet, software build digest, capability digests, benchmark evidence, admitted roles, admitted execution classes, typed refusals, and revocation posture into one machine-legible surface. It does not claim hardware-backed attestation, on-chain wallet verification, permissionless registration, or automatic slashing.",
+  "contract_digest": "e2423cfcb3e960bbf5790da0f0723f87bacc58003e1ad173d73b9ec63c41ffcc"
+}

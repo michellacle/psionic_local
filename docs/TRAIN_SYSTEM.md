@@ -195,6 +195,22 @@ checkpoint-authority quorum policy, and one retained public role set covering
 of pretending the current run graph already ships a dedicated public relay
 execution class.
 
+The repo now also owns the first signed public-node identity contract set in
+`crates/psionic-train/src/signed_node_identity_contract.rs`, the binary
+`signed_node_identity_contract_set`, the checker
+`scripts/check-signed-node-identity-contract-set.sh`, the focused reference doc
+`docs/SIGNED_NODE_IDENTITY_CONTRACT_REFERENCE.md`, and the committed fixture
+`fixtures/training/signed_node_identity_contract_set_v1.json`. That surface
+binds each current canonical compute source to one signed node identity record:
+wallet namespace, deterministic software build digest, capability projection
+digests over accelerator or backend or network or storage posture, retained
+benchmark evidence, admitted public roles, admitted execution classes, typed
+refusal examples, and an explicit revocation-feed policy. It keeps the current
+role gap honest: RunPod still does not claim `public_miner` because the current
+network binds that role to `validated_contributor_window` rather than
+`dense_full_model_rank`, and dense-rank capability remains outside the current
+public role map until later decentralized runtime issues land.
+
 The repo now also owns the first dense-rank recovery contract in
 `crates/psionic-train/src/dense_rank_recovery_contract.rs`, the binary
 `dense_rank_recovery_contract`, the checker
