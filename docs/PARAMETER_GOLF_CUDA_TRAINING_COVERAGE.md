@@ -1,9 +1,8 @@
 # Psionic Parameter Golf CUDA Training Coverage
 
 > Status: canonical `PGOLF-303` / `#171` CUDA-training coverage record,
-> updated 2026-03-19 after landing the machine-readable Parameter Golf CUDA
-> coverage report in
-> `crates/psionic-train/src/parameter_golf_cuda_coverage.rs`.
+> updated 2026-03-26 after landing the same-node H100 banked-attribution
+> receipts and tightening the measured wallclock boundary language.
 
 This document records the current honest CUDA training posture for the
 Parameter Golf lane.
@@ -202,9 +201,9 @@ That retires the explicit "no public CUDA Muon path" blocker while preserving
 the boundary that the current step is still host-orchestrated around CUDA
 matmuls.
 
-That means the canonical CUDA train-path blocker list is now empty on the same
-benchmark seam that already carries topology, communication, wallclock, and
-memory facts.
+That retires the family-level CUDA runtime blockers on the admitted PGOLF train
+lane. It does not retire the measured same-node or distributed score-lane
+wallclock blockers.
 
 ## Covered Requirement Families
 
@@ -217,13 +216,34 @@ The report now keeps the following families explicit:
 - Muon optimizer support on CUDA
 - post-train int8 plus zlib export or roundtrip support
 
-The current canonical blocker set is empty.
+The current canonical family-level blocker set is empty.
 
-That statement is about family-level runtime coverage, not contest-speed
-closure.
+That statement is about runtime-surface admission only. It does not mean the
+live score-path blocker set is empty.
+
+Current measured wallclock blockers remain open and are retained in separate
+receipts and issues:
+
+- same-node exact public-shape H100:
+  `matrix_execution_mode=direct_banked` reached `train_runtime_receipt` in
+  `478.511s` in
+  `docs/audits/2026-03-26-psionic-parameter-golf-single-h100-banked-vs-split-audit.md`,
+  and the later bank-offset experiment regressed to `504.978s` in
+  `docs/audits/2026-03-26-psionic-parameter-golf-single-h100-banked-offset-regression-audit.md`;
+  `#546` remains open because the admitted CUDA forward path is still the
+  dominant catastrophic wallclock source on the exact public shapes
+- real `8xH100` score lane:
+  the retained distributed proof still showed step-2 rank-0 timings of about
+  `53.3 s` forward, `123.6 s` backward, `7.4 s` gradient sync, and `0.9 s`
+  host gradient materialization; `#541`, `#545`, `#550`, and `#552` remain
+  open because the public under-10-minute train or validation budgets are
+  still unmet on the live distributed lane
+
+## Historical Narrowing That Retired The Old Family Blockers
 
 Fresh H100 fallback profiling on 2026-03-23 still found substantial
-host-executed cost on the real single-H100 trainer path, recorded in:
+host-executed cost on the real single-H100 trainer path at that earlier stage,
+recorded in:
 
 - `fixtures/parameter_golf/reports/parameter_golf_single_h100_host_fallback_profile_forward_before_after.jsonl`
 - `fixtures/parameter_golf/reports/parameter_golf_single_h100_host_fallback_profile_full_microstep_pre_layout_parallelization.jsonl`
@@ -236,9 +256,12 @@ reduced:
 - `expand` from `85344 ms` to `10244 ms`
 - `permute` from `72716 ms` to `10423 ms`
 
-The fresh narrowed blocker list is now:
+At that point the remaining family-level blocker was backward replay:
 
-- backward replay: `scaled_dot_product_attention_{query,key,value}_backward`
+- `scaled_dot_product_attention_{query,key,value}_backward`
+
+That family-level gap is now retired by the GEMM-backed BF16 attention
+backward lane described above.
 
 Forward `expand` and `permute` still exist on the fallback surface, but they no
 longer dominate at the same order of magnitude after the parallel layout path
