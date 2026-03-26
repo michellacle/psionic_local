@@ -2,11 +2,15 @@
 
 This audit records the first fresh current-`main` same-node H100 rerun after
 the retained-surface and CUDA scorepath slices that landed through `14fc612b`.
+It is now historical context. The later submission-scoped CUDA attention
+scratch-reuse fix let the exact public-shape same-node H100 train step complete
+again; see
+`docs/audits/2026-03-26-psionic-parameter-golf-single-h100-scratch-reuse-step-proof.md`.
 
 ## Conclusion
 
-Current `main` is still blocked from fresh single-H100 proof receipts on the
-exact public PGOLF train shape.
+At the time of this rerun, current `main` was still blocked from fresh
+single-H100 proof receipts on the exact public PGOLF train shape.
 
 The release binary builds and launches on a real RunPod `NVIDIA H100 80GB HBM3`
 node. It then reaches:
@@ -18,9 +22,9 @@ and then fails with:
 
 - `cudaMalloc failed: out of memory`
 
-That means Psionic still does not have a fresh current-`main` same-node H100
-receipt for the exact public train shape. The scorepath issues that depend on a
-new same-node H100 comparison cannot close honestly from this rerun.
+That meant Psionic still did not have a fresh current-`main` same-node H100
+receipt for the exact public train shape. The later scratch-reuse fix removed
+this blocker.
 
 ## Run Identity
 
@@ -59,7 +63,7 @@ cudaMalloc failed: out of memory
 No completed `parameter_golf_single_h100_training.json` receipt was emitted for
 either fresh current-`main` run root.
 
-## What This Blocks
+## Historical Impact
 
 This exact-shape same-node rerun does not close:
 
@@ -69,20 +73,19 @@ This exact-shape same-node rerun does not close:
 - `#562`
 - `#563`
 
-Those issues still require fresh same-node H100 or `8xH100` receipts. Current
-`main` now blocks that proof on single-H100 because the public-shape trainer
-cannot finish the first train step on an `80GB` H100.
+At this point in time, those issues still required fresh same-node H100 or
+`8xH100` receipts because the public-shape trainer could not finish the first
+train step on an `80GB` H100.
 
 ## What This Means
 
-The repo now has two separate same-node H100 truths:
+The repo now had two separate same-node H100 truths:
 
 - the older committed same-node parity report proves the comparison harness
   exists
 - this fresh current-`main` rerun proves the latest scorepath branch still does
   not fit the exact public single-H100 train shape
 
-The next honest same-node action is not another issue-close attempt. It is a
-memory-surface fix that lets current `main` complete one exact-shape H100 train
-step again, after which the scorepath issues can be rerun against retained
-hardware receipts.
+The next honest same-node action was a memory-surface fix that let current
+`main` complete one exact-shape H100 train step again. That later fix is
+captured in the follow-on scratch-reuse audit linked above.

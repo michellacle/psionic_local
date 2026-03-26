@@ -790,14 +790,61 @@ impl BufferHandle for CudaBuffer {
 }
 
 /// CUDA stream submission that keeps fill/copy operations explicit.
+#[derive(Clone)]
+struct CudaSubmissionScratchBuffer {
+    label: &'static str,
+    buffer: CudaBuffer,
+}
+
 pub struct CudaSubmission {
     encoded_operations: usize,
     capturing: bool,
     retained_buffers: Vec<CudaBuffer>,
+    scratch_buffers: Vec<CudaSubmissionScratchBuffer>,
     platform: platform::PlatformSubmission,
 }
 
 impl CudaSubmission {
+    fn allocate_scratch_buffer(
+        &mut self,
+        label: &'static str,
+        spec: &TensorSpec,
+    ) -> Result<CudaBuffer, RuntimeError> {
+        if let Some(buffer) = self
+            .scratch_buffers
+            .iter()
+            .find(|entry| entry.label == label && entry.buffer.spec() == spec)
+            .map(|entry| entry.buffer.clone())
+        {
+            return Ok(buffer);
+        }
+
+        let byte_len = spec
+            .storage_size()
+            .checked_mul(size_of_dtype(spec.dtype()))
+            .ok_or_else(|| {
+                RuntimeError::Backend(format!(
+                    "cuda submission scratch allocation overflow for {label}"
+                ))
+            })?;
+        let buffer = CudaBuffer {
+            spec: spec.clone(),
+            byte_len,
+            memory_space: CudaMemorySpace::Device,
+            host_visible: false,
+            platform: self.platform.allocate(byte_len)?,
+        };
+        // One CUDA submission runs on one stream, so later ops can reuse a
+        // scratch allocation after the earlier op on that stream has consumed
+        // it.
+        self.retained_buffers.push(buffer.clone());
+        self.scratch_buffers.push(CudaSubmissionScratchBuffer {
+            label,
+            buffer: buffer.clone(),
+        });
+        Ok(buffer)
+    }
+
     /// Fills a buffer with a constant byte value using an async CUDA memset.
     pub fn fill_buffer(&mut self, buffer: &CudaBuffer, value: u8) -> Result<(), RuntimeError> {
         self.platform
@@ -1338,21 +1385,10 @@ impl CudaSubmission {
             DType::BF16,
             left.spec.device().clone(),
         );
-        let scratch_byte_len = scratch_spec
-            .storage_size()
-            .checked_mul(size_of_dtype(scratch_spec.dtype()))
-            .ok_or_else(|| {
-                RuntimeError::Backend(String::from(
-                    "cuda mixed strided batched matmul scratch allocation overflow",
-                ))
-            })?;
-        let scratch = CudaBuffer {
-            spec: scratch_spec,
-            byte_len: scratch_byte_len,
-            memory_space: CudaMemorySpace::Device,
-            host_visible: false,
-            platform: self.platform.allocate(scratch_byte_len)?,
-        };
+        let scratch = self.allocate_scratch_buffer(
+            "mixed_f32_bf16_strided_batched_matmul_lhs_cast",
+            &scratch_spec,
+        )?;
         self.cast_f32_to_bf16(left, &scratch, left_required)?;
         self.matmul_bf16_strided_batched_to_f32_with_strides(
             &scratch,
@@ -1368,7 +1404,6 @@ impl CudaSubmission {
             transpose_left,
             transpose_right,
         )?;
-        self.retained_buffers.push(scratch);
         Ok(())
     }
 
@@ -3475,6 +3510,7 @@ impl CudaBackend {
             encoded_operations: 0,
             capturing: false,
             retained_buffers: Vec::new(),
+            scratch_buffers: Vec::new(),
             platform: backend.platform.begin_submission()?,
         })
     }
@@ -3488,6 +3524,7 @@ impl CudaBackend {
             encoded_operations: 0,
             capturing: true,
             retained_buffers: Vec::new(),
+            scratch_buffers: Vec::new(),
             platform: backend.platform.begin_capture_submission()?,
         })
     }
@@ -4906,13 +4943,17 @@ impl AvailableCudaBackend {
             DType::F32,
             query.spec().device().clone(),
         );
-        let scores = self.allocate(&score_spec)?;
+        let scores = submission
+            .allocate_scratch_buffer("scaled_dot_product_attention_gemm_scores", &score_spec)?;
         let output_f32_spec = TensorSpec::from_layout(
             output.spec().layout().clone(),
             DType::F32,
             output.spec().device().clone(),
         );
-        let output_f32 = self.allocate(&output_f32_spec)?;
+        let output_f32 = submission.allocate_scratch_buffer(
+            "scaled_dot_product_attention_gemm_output_f32",
+            &output_f32_spec,
+        )?;
         submission.matmul_bf16_strided_batched_to_f32_with_strides(
             query,
             key,
@@ -4938,8 +4979,6 @@ impl AvailableCudaBackend {
             &output_f32,
         )?;
         submission.cast_f32_to_bf16(&output_f32, output, output.spec().storage_size())?;
-        submission.retained_buffers.push(scores);
-        submission.retained_buffers.push(output_f32);
         Ok(())
     }
 
@@ -4969,26 +5008,42 @@ impl AvailableCudaBackend {
             DType::F32,
             query.spec().device().clone(),
         );
-        let scores = self.allocate(&score_spec)?;
-        let grad_scores = self.allocate(&score_spec)?;
+        let scores = submission
+            .allocate_scratch_buffer("scaled_dot_product_attention_gemm_scores", &score_spec)?;
+        let grad_scores = submission.allocate_scratch_buffer(
+            "scaled_dot_product_attention_gemm_grad_scores",
+            &score_spec,
+        )?;
         let query_gradient = self.allocate(query.spec())?;
         let key_gradient = self.allocate(key.spec())?;
         let value_gradient = self.allocate(value.spec())?;
-        let query_gradient_f32 = self.allocate(&TensorSpec::from_layout(
+        let query_gradient_f32_spec = TensorSpec::from_layout(
             query.spec().layout().clone(),
             DType::F32,
             query.spec().device().clone(),
-        ))?;
-        let key_gradient_f32 = self.allocate(&TensorSpec::from_layout(
+        );
+        let query_gradient_f32 = submission.allocate_scratch_buffer(
+            "scaled_dot_product_attention_gemm_query_gradient_f32",
+            &query_gradient_f32_spec,
+        )?;
+        let key_gradient_f32_spec = TensorSpec::from_layout(
             key.spec().layout().clone(),
             DType::F32,
             key.spec().device().clone(),
-        ))?;
-        let value_gradient_f32 = self.allocate(&TensorSpec::from_layout(
+        );
+        let key_gradient_f32 = submission.allocate_scratch_buffer(
+            "scaled_dot_product_attention_gemm_key_gradient_f32",
+            &key_gradient_f32_spec,
+        )?;
+        let value_gradient_f32_spec = TensorSpec::from_layout(
             value.spec().layout().clone(),
             DType::F32,
             value.spec().device().clone(),
-        ))?;
+        );
+        let value_gradient_f32 = submission.allocate_scratch_buffer(
+            "scaled_dot_product_attention_gemm_value_gradient_f32",
+            &value_gradient_f32_spec,
+        )?;
 
         submission.matmul_bf16_strided_batched_to_f32_with_strides(
             query,
@@ -5093,13 +5148,7 @@ impl AvailableCudaBackend {
             query: query_gradient,
             key: key_gradient,
             value: value_gradient,
-            _scratch: vec![
-                scores,
-                grad_scores,
-                query_gradient_f32,
-                key_gradient_f32,
-                value_gradient_f32,
-            ],
+            _scratch: Vec::new(),
         })
     }
 
@@ -5322,6 +5371,7 @@ impl AvailableCudaBackend {
             encoded_operations: 0,
             capturing: false,
             retained_buffers: Vec::new(),
+            scratch_buffers: Vec::new(),
             platform: self.platform.begin_submission()?,
         };
         let mut values = BTreeMap::new();
@@ -16722,7 +16772,7 @@ mod tests {
             .gradient_graph
             .nodes()
             .iter()
-                .any(|node| matches!(
+            .any(|node| matches!(
                 node.op(),
                 psionic_ir::OpKind::BackendExtension {
                     op: psionic_core::BackendExtensionOp::ReluSquaredBackwardFromOutput

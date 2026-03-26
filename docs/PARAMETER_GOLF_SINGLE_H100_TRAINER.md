@@ -387,10 +387,16 @@ Today the single-H100 trainer doc does **not** claim:
 - challenge-speed closure; the trainer now reports final contest metrics from
   the exported quantized roundtrip artifact like `train_gpt.py`, but that does
   not by itself make the lane competitive yet
-- fresh exact-shape current-`main` same-node closure; the first current-`main`
-  rerun after `14fc612b` on a real RunPod `NVIDIA H100 80GB HBM3` node reaches
-  `train_step_start step=1/1` and then fails with `cudaMalloc failed: out of
-  memory` before it can emit a new trainer receipt; see
+- fresh exact-shape current-`main` same-node train-step proof; after the
+  submission-scoped CUDA attention scratch-reuse fix, current `main` again
+  completes one exact public-shape H100 train step on a real RunPod
+  `NVIDIA H100 80GB HBM3` node; see
+  `docs/audits/2026-03-26-psionic-parameter-golf-single-h100-scratch-reuse-step-proof.md`
+- fast same-node validation closure; the fresh same-node H100 proof now clears
+  the old OOM blocker, but both the live validation sweep and the
+  `roundtrip_only` int8-zlib validation sweep are still far too large to serve
+  as a quick exact-shape proof surface on one H100
+- the pre-fix failure remains retained as historical context in
   `docs/audits/2026-03-26-psionic-parameter-golf-single-h100-current-main-oom-audit.md`
 
 Instead, it gives the repo one narrower but important thing:

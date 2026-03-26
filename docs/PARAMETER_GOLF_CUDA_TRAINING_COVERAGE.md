@@ -159,6 +159,12 @@ backward lane onto the same batched scorepath:
   atomic-add K/V accumulation are no longer the admitted BF16 scoreboard lane
 - the compatibility `f32` backward lane still exists as a bounded fallback
   surface while the score lane stays on the BF16 GEMM-backed path
+- one CUDA submission-scoped scratch cache now reuses the large BF16 attention
+  score, output, gradient, and staged mixed-matmul scratch buffers across
+  attention ops on the same stream instead of retaining a fresh multi-gigabyte
+  scratch allocation per layer until commit; this is the memory-surface fix
+  that let the exact public-shape same-node H100 train step fit again on
+  current `main`
 
 `psionic-train` now also owns one bounded public CUDA Muon step over the same
 matrix-shaped parameter groups used by the baseline optimizer split:
