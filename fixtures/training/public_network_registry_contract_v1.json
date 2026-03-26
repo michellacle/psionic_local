@@ -1,0 +1,433 @@
+{
+  "schema_version": "psionic.public_network_registry_contract.v1",
+  "contract_id": "psionic.public_network_registry_contract.v1",
+  "network_id": "psionic.decentralized_training.testnet.v1",
+  "governance_revision_id": "psionic.decentralized_training_governance.v1",
+  "current_epoch_id": "network_epoch_00000123",
+  "program_manifest_id": "psionic-cross-provider-pretraining-program-v1",
+  "program_manifest_digest": "5c7cd52ecf5345551e165eeb1e25440153bf64f38e69aaf1d33a13c7056ca479",
+  "decentralized_network_contract_digest": "37205ba6736d97b64f7156dde917b02d4bd4eeaa5bcfcfd96544c3bcdf338bda",
+  "signed_node_identity_contract_digest": "e2423cfcb3e960bbf5790da0f0723f87bacc58003e1ad173d73b9ec63c41ffcc",
+  "compatibility_policy": {
+    "required_release_id": "psionic.decentralized_training_identity_release.v1",
+    "required_environment_ref": "psion.pretrain.reference_runtime",
+    "required_environment_version": "v1",
+    "required_program_manifest_id": "psionic-cross-provider-pretraining-program-v1",
+    "required_program_manifest_digest": "5c7cd52ecf5345551e165eeb1e25440153bf64f38e69aaf1d33a13c7056ca479",
+    "require_active_revocation_status": true,
+    "detail": "Registry admission and discovery stay bound to the current signed-node release id, the current program manifest digest, the canonical environment key, and active-only revocation posture. Nodes that drift outside that policy remain visible only as typed refusals."
+  },
+  "registry_records": [
+    {
+      "registry_record_id": "google_l4_validator_node.registry",
+      "node_identity_id": "google_l4_validator_node.identity",
+      "node_id": "psionic-google-validator-001",
+      "source_id": "google_l4_validator_node",
+      "role_classes": [
+        "public_miner",
+        "public_validator",
+        "checkpoint_authority",
+        "aggregator",
+        "relay"
+      ],
+      "execution_classes": [
+        "validated_contributor_window",
+        "validator",
+        "checkpoint_writer",
+        "eval_worker",
+        "data_builder"
+      ],
+      "trust_tier": "private_cloud_operator_managed",
+      "availability_status": "online",
+      "relay_posture": "advertised",
+      "current_epoch_id": "network_epoch_00000123",
+      "compatibility": {
+        "release_id": "psionic.decentralized_training_identity_release.v1",
+        "build_digest": "317aba5a710073c242742ea1c5728234ed168f98ef2b0428801d1e28ec0fe3a1",
+        "environment_ref": "psion.pretrain.reference_runtime",
+        "environment_version": "v1",
+        "program_manifest_id": "psionic-cross-provider-pretraining-program-v1",
+        "program_manifest_digest": "5c7cd52ecf5345551e165eeb1e25440153bf64f38e69aaf1d33a13c7056ca479",
+        "revocation_status": "active",
+        "identity_record_digest": "bd1857dcadccd738546857405103d0a95b27aa6bc8347199fc879b8dabb90fca",
+        "detail": "Registry compatibility for `google_l4_validator_node` binds release id, build digest, environment key, revocation posture, and identity record digest into one discovery-time compatibility object."
+      },
+      "endpoints": [
+        {
+          "endpoint_id": "google_training_control",
+          "endpoint_kind": "training_control",
+          "uri": "tls://google-l4-validator.psionic.testnet:443",
+          "advertised_role_classes": [
+            "public_miner",
+            "public_validator",
+            "checkpoint_authority",
+            "aggregator"
+          ],
+          "detail": "Google primary training control endpoint for miner, validator, checkpoint, and aggregation traffic on the permissioned testnet."
+        },
+        {
+          "endpoint_id": "google_relay_ingress",
+          "endpoint_kind": "relay_ingress",
+          "uri": "tls://google-l4-validator.psionic.testnet:8443",
+          "advertised_role_classes": [
+            "relay"
+          ],
+          "detail": "Google relay ingress endpoint for overlay and NAT-bypass support while relay is still a network-only support role."
+        },
+        {
+          "endpoint_id": "google_checkpoint_mirror",
+          "endpoint_kind": "checkpoint_mirror",
+          "uri": "s3://psionic-testnet-google-validator/checkpoints",
+          "advertised_role_classes": [
+            "checkpoint_authority"
+          ],
+          "detail": "Google checkpoint mirror endpoint for promoted public-network state and recovery-side fetches."
+        }
+      ],
+      "detail": "Google remains the strongest multi-role registry record, carrying current miner, validator, checkpoint-authority, aggregator, and relay admissions together on the permissioned testnet.",
+      "record_digest": "436d8e4175991b26f062cf7713c438dd3ca74ce082d5add3d8f38fa5948b7315"
+    },
+    {
+      "registry_record_id": "runpod_8xh100_dense_node.registry",
+      "node_identity_id": "runpod_8xh100_dense_node.identity",
+      "node_id": "psionic-runpod-dense-001",
+      "source_id": "runpod_8xh100_dense_node",
+      "role_classes": [
+        "checkpoint_authority",
+        "aggregator"
+      ],
+      "execution_classes": [
+        "dense_full_model_rank",
+        "checkpoint_writer",
+        "eval_worker",
+        "data_builder"
+      ],
+      "trust_tier": "rented_provider_operator_managed",
+      "availability_status": "online",
+      "relay_posture": "not_advertised",
+      "current_epoch_id": "network_epoch_00000123",
+      "compatibility": {
+        "release_id": "psionic.decentralized_training_identity_release.v1",
+        "build_digest": "3b4bf86ccedd18dd1c0e1e5371366b49ed9bdd058fcad2a91463799f83ce04f9",
+        "environment_ref": "psion.pretrain.reference_runtime",
+        "environment_version": "v1",
+        "program_manifest_id": "psionic-cross-provider-pretraining-program-v1",
+        "program_manifest_digest": "5c7cd52ecf5345551e165eeb1e25440153bf64f38e69aaf1d33a13c7056ca479",
+        "revocation_status": "active",
+        "identity_record_digest": "c416e20989d36eadce153ad09a861b3845aa653cf41bbe346b6c7b71da103f5a",
+        "detail": "Registry compatibility for `runpod_8xh100_dense_node` binds release id, build digest, environment key, revocation posture, and identity record digest into one discovery-time compatibility object."
+      },
+      "endpoints": [
+        {
+          "endpoint_id": "runpod_training_control",
+          "endpoint_kind": "training_control",
+          "uri": "tls://runpod-dense.psionic.testnet:443",
+          "advertised_role_classes": [
+            "checkpoint_authority",
+            "aggregator"
+          ],
+          "detail": "RunPod training control endpoint for dense-side checkpoint and aggregation support under the permissioned registry."
+        },
+        {
+          "endpoint_id": "runpod_checkpoint_mirror",
+          "endpoint_kind": "checkpoint_mirror",
+          "uri": "oci://runpod-dense.psionic.testnet/checkpoints",
+          "advertised_role_classes": [
+            "checkpoint_authority"
+          ],
+          "detail": "RunPod checkpoint mirror endpoint that makes public checkpoint-authority participation explicit without implying contributor-window miner admission."
+        }
+      ],
+      "detail": "RunPod remains visible in registry and matchmaking for checkpoint and aggregation support, while the current public miner role remains explicitly unavailable on this dense-rank node.",
+      "record_digest": "fab0f0a0b57d3c5bb51f43951689aabdecf98606edb719444806460d08b9b8bf"
+    },
+    {
+      "registry_record_id": "local_rtx4080_workstation.registry",
+      "node_identity_id": "local_rtx4080_workstation.identity",
+      "node_id": "psionic-local-rtx4080-001",
+      "source_id": "local_rtx4080_workstation",
+      "role_classes": [
+        "public_miner",
+        "aggregator"
+      ],
+      "execution_classes": [
+        "validated_contributor_window",
+        "eval_worker",
+        "data_builder"
+      ],
+      "trust_tier": "local_operator_managed",
+      "availability_status": "online",
+      "relay_posture": "not_advertised",
+      "current_epoch_id": "network_epoch_00000123",
+      "compatibility": {
+        "release_id": "psionic.decentralized_training_identity_release.v1",
+        "build_digest": "962ed64a5e5f6334c3e6a3850f0666e1af502a49ac2ddd3261812622b773158b",
+        "environment_ref": "psion.pretrain.reference_runtime",
+        "environment_version": "v1",
+        "program_manifest_id": "psionic-cross-provider-pretraining-program-v1",
+        "program_manifest_digest": "5c7cd52ecf5345551e165eeb1e25440153bf64f38e69aaf1d33a13c7056ca479",
+        "revocation_status": "active",
+        "identity_record_digest": "5f95d924050cce8b63d634d8f9847352d714268d4624dbdb46efb7a7a29b7384",
+        "detail": "Registry compatibility for `local_rtx4080_workstation` binds release id, build digest, environment key, revocation posture, and identity record digest into one discovery-time compatibility object."
+      },
+      "endpoints": [
+        {
+          "endpoint_id": "local_rtx_training_control",
+          "endpoint_kind": "training_control",
+          "uri": "tailscale://local-rtx4080.psionic.testnet:8443",
+          "advertised_role_classes": [
+            "public_miner",
+            "aggregator"
+          ],
+          "detail": "Trusted-LAN or Tailnet training control endpoint for the local RTX 4080 contributor-window miner and aggregator role set."
+        }
+      ],
+      "detail": "The local RTX 4080 node is registry-visible for contributor-window miner and aggregator selection, but still refuses validator or checkpoint-authority roles.",
+      "record_digest": "c0625a20bc81f97485e0f833eb1c3fcf50912a2413b582460484ad9e3fb3a389"
+    },
+    {
+      "registry_record_id": "local_mlx_mac_workstation.registry",
+      "node_identity_id": "local_mlx_mac_workstation.identity",
+      "node_id": "psionic-local-mlx-001",
+      "source_id": "local_mlx_mac_workstation",
+      "role_classes": [
+        "public_miner",
+        "public_validator",
+        "aggregator"
+      ],
+      "execution_classes": [
+        "dense_full_model_rank",
+        "validated_contributor_window",
+        "validator",
+        "eval_worker",
+        "data_builder"
+      ],
+      "trust_tier": "local_operator_managed",
+      "availability_status": "online",
+      "relay_posture": "not_advertised",
+      "current_epoch_id": "network_epoch_00000123",
+      "compatibility": {
+        "release_id": "psionic.decentralized_training_identity_release.v1",
+        "build_digest": "a644c72bcfb70e226c075d3f193b9de38ec71ec63762414e7f1e62b0561a6539",
+        "environment_ref": "psion.pretrain.reference_runtime",
+        "environment_version": "v1",
+        "program_manifest_id": "psionic-cross-provider-pretraining-program-v1",
+        "program_manifest_digest": "5c7cd52ecf5345551e165eeb1e25440153bf64f38e69aaf1d33a13c7056ca479",
+        "revocation_status": "active",
+        "identity_record_digest": "24d6e60d4f97efeea24c60152867dd0a92553e5369b7b572873259c2eefe4fd5",
+        "detail": "Registry compatibility for `local_mlx_mac_workstation` binds release id, build digest, environment key, revocation posture, and identity record digest into one discovery-time compatibility object."
+      },
+      "endpoints": [
+        {
+          "endpoint_id": "local_mlx_training_control",
+          "endpoint_kind": "training_control",
+          "uri": "tailscale://local-mlx.psionic.testnet:8443",
+          "advertised_role_classes": [
+            "public_miner",
+            "public_validator",
+            "aggregator"
+          ],
+          "detail": "Tailnet training control endpoint for the Apple MLX node as a miner, validator, and aggregation-capable registry participant."
+        }
+      ],
+      "detail": "The Apple MLX node stays registry-visible for miner and validator selection while checkpoint authority remains explicitly unavailable.",
+      "record_digest": "4e37112a0a6a5947c989fe94fafcb8489139ee6434a4c33790f42860f1b96c8f"
+    }
+  ],
+  "discovery_examples": [
+    {
+      "query_id": "discover_public_miner_nodes",
+      "current_epoch_id": "network_epoch_00000123",
+      "filter": {
+        "requested_role_class": "public_miner",
+        "admitted_trust_tiers": [
+          "private_cloud_operator_managed",
+          "local_operator_managed"
+        ],
+        "require_online": true,
+        "require_relay_advertisement": false,
+        "detail": "Discover contributor-window-capable public miner nodes for the current epoch while excluding dense-rank-only or validator-only participants.",
+        "requested_execution_class": "validated_contributor_window"
+      },
+      "matched_registry_record_ids": [
+        "google_l4_validator_node.registry",
+        "local_rtx4080_workstation.registry",
+        "local_mlx_mac_workstation.registry"
+      ],
+      "refusals": [
+        {
+          "registry_record_id": "runpod_8xh100_dense_node.registry",
+          "refusal_kind": "role_class_not_admitted",
+          "detail": "Registry record `runpod_8xh100_dense_node.registry` does not admit role `public_miner`."
+        }
+      ],
+      "detail": "Registry discovery for the current public_miner role resolves the Google validator node plus the two local contributor-window nodes, and it explicitly refuses RunPod because the role and execution binding do not match yet."
+    },
+    {
+      "query_id": "discover_public_validator_nodes",
+      "current_epoch_id": "network_epoch_00000123",
+      "filter": {
+        "requested_role_class": "public_validator",
+        "admitted_trust_tiers": [
+          "private_cloud_operator_managed",
+          "local_operator_managed"
+        ],
+        "require_online": true,
+        "require_relay_advertisement": false,
+        "detail": "Discover validator-capable nodes for the current epoch with role, execution-class, and compatibility policy checks kept explicit.",
+        "requested_execution_class": "validator"
+      },
+      "matched_registry_record_ids": [
+        "google_l4_validator_node.registry",
+        "local_mlx_mac_workstation.registry"
+      ],
+      "refusals": [
+        {
+          "registry_record_id": "runpod_8xh100_dense_node.registry",
+          "refusal_kind": "role_class_not_admitted",
+          "detail": "Registry record `runpod_8xh100_dense_node.registry` does not admit role `public_validator`."
+        },
+        {
+          "registry_record_id": "local_rtx4080_workstation.registry",
+          "refusal_kind": "role_class_not_admitted",
+          "detail": "Registry record `local_rtx4080_workstation.registry` does not admit role `public_validator`."
+        }
+      ],
+      "detail": "Registry discovery for the current validator quorum resolves the Google and Apple MLX nodes and refuses the remaining nodes through typed role or execution-class mismatch."
+    },
+    {
+      "query_id": "discover_checkpoint_authority_nodes",
+      "current_epoch_id": "network_epoch_00000123",
+      "filter": {
+        "requested_role_class": "checkpoint_authority",
+        "admitted_trust_tiers": [
+          "private_cloud_operator_managed",
+          "rented_provider_operator_managed"
+        ],
+        "require_online": true,
+        "require_relay_advertisement": false,
+        "detail": "Discover checkpoint-authority nodes that can publish promoted checkpoint state for the current public epoch.",
+        "requested_execution_class": "checkpoint_writer"
+      },
+      "matched_registry_record_ids": [
+        "google_l4_validator_node.registry",
+        "runpod_8xh100_dense_node.registry"
+      ],
+      "refusals": [
+        {
+          "registry_record_id": "local_rtx4080_workstation.registry",
+          "refusal_kind": "role_class_not_admitted",
+          "detail": "Registry record `local_rtx4080_workstation.registry` does not admit role `checkpoint_authority`."
+        },
+        {
+          "registry_record_id": "local_mlx_mac_workstation.registry",
+          "refusal_kind": "role_class_not_admitted",
+          "detail": "Registry record `local_mlx_mac_workstation.registry` does not admit role `checkpoint_authority`."
+        }
+      ],
+      "detail": "Registry discovery for checkpoint authority resolves the Google and RunPod nodes only, which matches the current role and execution-class bindings frozen by the network contract and signed identities."
+    },
+    {
+      "query_id": "discover_relay_nodes",
+      "current_epoch_id": "network_epoch_00000123",
+      "filter": {
+        "requested_role_class": "relay",
+        "admitted_trust_tiers": [
+          "private_cloud_operator_managed",
+          "rented_provider_operator_managed",
+          "local_operator_managed"
+        ],
+        "require_online": true,
+        "require_relay_advertisement": true,
+        "detail": "Discover relay-advertising support nodes for the current public epoch without pretending every participant is a relay."
+      },
+      "matched_registry_record_ids": [
+        "google_l4_validator_node.registry"
+      ],
+      "refusals": [
+        {
+          "registry_record_id": "runpod_8xh100_dense_node.registry",
+          "refusal_kind": "role_class_not_admitted",
+          "detail": "Registry record `runpod_8xh100_dense_node.registry` does not admit role `relay`."
+        },
+        {
+          "registry_record_id": "local_rtx4080_workstation.registry",
+          "refusal_kind": "role_class_not_admitted",
+          "detail": "Registry record `local_rtx4080_workstation.registry` does not admit role `relay`."
+        },
+        {
+          "registry_record_id": "local_mlx_mac_workstation.registry",
+          "refusal_kind": "role_class_not_admitted",
+          "detail": "Registry record `local_mlx_mac_workstation.registry` does not admit role `relay`."
+        }
+      ],
+      "detail": "Registry discovery for relay support resolves the Google node only, which keeps relay posture explicit instead of burying it in endpoint prose or private host notes."
+    }
+  ],
+  "matchmaking_offers": [
+    {
+      "offer_id": "public_miner_window_offer_v1",
+      "session_kind": "contributor_window",
+      "source_query_id": "discover_public_miner_nodes",
+      "selected_registry_record_ids": [
+        "google_l4_validator_node.registry",
+        "local_rtx4080_workstation.registry"
+      ],
+      "standby_registry_record_ids": [
+        "local_mlx_mac_workstation.registry"
+      ],
+      "relay_registry_record_ids": [
+        "google_l4_validator_node.registry"
+      ],
+      "checkpoint_authority_registry_record_ids": [
+        "google_l4_validator_node.registry",
+        "runpod_8xh100_dense_node.registry"
+      ],
+      "detail": "The first contributor-window matchmaking offer picks Google plus the RTX 4080 node as the active miner pair, retains the Apple MLX node as standby, routes through the single current relay-capable node, and still points checkpoint promotion at the canonical Google plus RunPod authority set."
+    },
+    {
+      "offer_id": "validator_quorum_offer_v1",
+      "session_kind": "validator_quorum",
+      "source_query_id": "discover_public_validator_nodes",
+      "selected_registry_record_ids": [
+        "google_l4_validator_node.registry",
+        "local_mlx_mac_workstation.registry"
+      ],
+      "standby_registry_record_ids": [],
+      "relay_registry_record_ids": [
+        "google_l4_validator_node.registry"
+      ],
+      "checkpoint_authority_registry_record_ids": [
+        "google_l4_validator_node.registry",
+        "runpod_8xh100_dense_node.registry"
+      ],
+      "detail": "The first validator matchmaking offer closes the current two-validator quorum directly against registry truth: Google plus Apple MLX as validators, Google as relay, and Google plus RunPod as checkpoint-authority support."
+    },
+    {
+      "offer_id": "checkpoint_promotion_offer_v1",
+      "session_kind": "checkpoint_promotion",
+      "source_query_id": "discover_checkpoint_authority_nodes",
+      "selected_registry_record_ids": [
+        "google_l4_validator_node.registry",
+        "runpod_8xh100_dense_node.registry"
+      ],
+      "standby_registry_record_ids": [],
+      "relay_registry_record_ids": [
+        "google_l4_validator_node.registry"
+      ],
+      "checkpoint_authority_registry_record_ids": [
+        "google_l4_validator_node.registry",
+        "runpod_8xh100_dense_node.registry"
+      ],
+      "detail": "The first checkpoint-promotion offer keeps the authority pair explicit: Google plus RunPod are discoverable and selectable as checkpoint authorities, with Google also advertising the current relay ingress path."
+    }
+  ],
+  "authority_paths": {
+    "fixture_path": "fixtures/training/public_network_registry_contract_v1.json",
+    "check_script_path": "scripts/check-public-network-registry-contract.sh",
+    "reference_doc_path": "docs/PUBLIC_NETWORK_REGISTRY_REFERENCE.md",
+    "train_system_doc_path": "docs/TRAIN_SYSTEM.md"
+  },
+  "claim_boundary": "This contract closes one permissioned-testnet registry, discovery, and matchmaking surface above the signed node identity layer. It proves that nodes, roles, execution classes, trust tiers, relay posture, compatibility policy, and selected session offers can be discovered from one machine-legible contract instead of operator-only host lists. It does not claim permissionless gossip, public internet admission, or live elastic runtime yet.",
+  "contract_digest": "ebb5ca08893fe16f1a72c67f2fd99aefe44a95af7670bb31e875b2d77b88b7f4"
+}

@@ -211,6 +211,23 @@ network binds that role to `validated_contributor_window` rather than
 `dense_full_model_rank`, and dense-rank capability remains outside the current
 public role map until later decentralized runtime issues land.
 
+The repo now also owns the first public-network registry, discovery, and
+matchmaking contract in
+`crates/psionic-train/src/public_network_registry_contract.rs`, the binary
+`public_network_registry_contract`, the checker
+`scripts/check-public-network-registry-contract.sh`, the focused reference doc
+`docs/PUBLIC_NETWORK_REGISTRY_REFERENCE.md`, and the committed fixture
+`fixtures/training/public_network_registry_contract_v1.json`. That surface
+binds the signed node identity set into one permissioned-testnet registry:
+registry record per node, current epoch id, compatibility policy over release
+id plus environment plus manifest digest plus revocation posture, endpoint and
+relay posture per node, typed discovery filters and refusal reasons, and typed
+matchmaking offers for contributor-window miners, validator quorum, and
+checkpoint promotion. It keeps current network shape explicit instead of hidden
+in host lists: Google is the only current relay match, Google plus Apple MLX
+close the current validator quorum, and Google plus RunPod remain the current
+checkpoint-authority pair.
+
 The repo now also owns the first dense-rank recovery contract in
 `crates/psionic-train/src/dense_rank_recovery_contract.rs`, the binary
 `dense_rank_recovery_contract`, the checker
