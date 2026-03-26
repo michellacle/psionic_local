@@ -31,6 +31,9 @@ pub fn gguf_decoder_family_tensor_parallel_contract(
     let family_label = match family {
         GgufDecoderFamily::Llama => "llama",
         GgufDecoderFamily::Qwen => "qwen",
+        GgufDecoderFamily::Qwen35 => {
+            return Err(DecoderFamilyShardingContractError::UnsupportedFamily { family });
+        }
         GgufDecoderFamily::Mistral => "mistral",
         GgufDecoderFamily::GptOss => {
             return Err(DecoderFamilyShardingContractError::UnsupportedFamily { family });

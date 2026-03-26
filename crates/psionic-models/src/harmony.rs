@@ -9,8 +9,8 @@ use openai_harmony::chat::{
     ToolNamespaceConfig as HarmonyToolNamespaceConfig,
 };
 use openai_harmony::{
-    HarmonyEncodingName, ParseOptions as HarmonyParseOptions,
-    StreamableParser as HarmonyStreamableParser, load_harmony_encoding,
+    load_harmony_encoding, HarmonyEncodingName, ParseOptions as HarmonyParseOptions,
+    StreamableParser as HarmonyStreamableParser,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -272,7 +272,10 @@ impl GptOssHarmonyParsedOutput {
 pub fn reasoning_parser_for_decoder_family(family: GgufDecoderFamily) -> Option<ReasoningParser> {
     match family {
         GgufDecoderFamily::GptOss => Some(ReasoningParser::GptOssHarmony),
-        GgufDecoderFamily::Llama | GgufDecoderFamily::Qwen | GgufDecoderFamily::Mistral => None,
+        GgufDecoderFamily::Llama
+        | GgufDecoderFamily::Qwen
+        | GgufDecoderFamily::Qwen35
+        | GgufDecoderFamily::Mistral => None,
     }
 }
 
@@ -1360,14 +1363,14 @@ mod tests {
     use std::path::PathBuf;
 
     use super::{
-        GPT_4O_BPE_PATTERN, GptOssHarmonyRenderContext, GptOssTokenizer, LLAMA_TOKEN_TYPE_CONTROL,
-        PromptChannelConfig, PromptMessage, PromptMessageRole, PromptReasoningEffort,
-        PromptRenderOptions, gguf_token_to_raw_bytes, gpt_unicode_to_byte_map,
-        render_gpt_oss_harmony_prompt,
+        gguf_token_to_raw_bytes, gpt_unicode_to_byte_map, render_gpt_oss_harmony_prompt,
+        GptOssHarmonyRenderContext, GptOssTokenizer, PromptChannelConfig, PromptMessage,
+        PromptMessageRole, PromptReasoningEffort, PromptRenderOptions, GPT_4O_BPE_PATTERN,
+        LLAMA_TOKEN_TYPE_CONTROL,
     };
     use crate::{
-        GgufContent, GgufTokenizerMetadata, GgufTokenizerModel, GgufTokenizerPretokenizer,
-        GgufTokenizerVocabulary, TokenId, TokenizerBoundary, golden_tokenizer_fixture,
+        golden_tokenizer_fixture, GgufContent, GgufTokenizerMetadata, GgufTokenizerModel,
+        GgufTokenizerPretokenizer, GgufTokenizerVocabulary, TokenId, TokenizerBoundary,
     };
 
     fn real_gpt_oss_gguf_path() -> Option<PathBuf> {
@@ -1437,8 +1440,8 @@ mod tests {
     }
 
     #[test]
-    fn gpt_oss_real_gguf_prompt_token_count_matches_tracked_local_oracle()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn gpt_oss_real_gguf_prompt_token_count_matches_tracked_local_oracle(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let Some(path) = real_gpt_oss_gguf_path() else {
             return Ok(());
         };
@@ -1473,8 +1476,8 @@ mod tests {
     }
 
     #[test]
-    fn gpt_oss_real_short_contract_prompt_tokens_match_local_llama_cpp_oracle()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn gpt_oss_real_short_contract_prompt_tokens_match_local_llama_cpp_oracle(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let Some(path) = real_gpt_oss_gguf_path() else {
             return Ok(());
         };

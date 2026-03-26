@@ -495,7 +495,8 @@ const PHI3_VARIANTS: [GoldenPromptTemplateVariant; 1] = [GoldenPromptTemplateVar
     ollama_stop_source: Some("/home/christopherdavid/code/ollama/template/phi-3.json"),
     template_digest: "268b6082ceb7176dc6ed80557a2f7837f9f0339592fbee677d405a553af15f88",
     raw_template: Some(PHI3_TEMPLATE),
-    template_excerpt: "{{ bos_token }}{% for message in messages %}{% if (message['role'] == 'user') %}...",
+    template_excerpt:
+        "{{ bos_token }}{% for message in messages %}{% if (message['role'] == 'user') %}...",
     stop_sequences: &["<|end|>", "<|system|>", "<|user|>", "<|assistant|>"],
     render_cases: &PHI3_RENDER_CASES,
     notes: "Small redistributable prompt family with real BOS insertion and Ollama stop defaults.",
@@ -861,6 +862,7 @@ fn pretokenizer_fixture_label(pretokenizer: &GgufTokenizerPretokenizer) -> Cow<'
         GgufTokenizerPretokenizer::Default => Cow::Borrowed("default"),
         GgufTokenizerPretokenizer::Llama => Cow::Borrowed("llama"),
         GgufTokenizerPretokenizer::Qwen2 => Cow::Borrowed("qwen2"),
+        GgufTokenizerPretokenizer::Qwen35 => Cow::Borrowed("qwen35"),
         GgufTokenizerPretokenizer::Refact => Cow::Borrowed("refact"),
         GgufTokenizerPretokenizer::Tekken => Cow::Borrowed("tekken"),
         GgufTokenizerPretokenizer::Custom(value) => Cow::Owned(value.clone()),
