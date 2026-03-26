@@ -1,5 +1,13 @@
 # 2026-03-26 Psionic Parameter Golf Single-H100 Zero-Copy Bank-Slice Blocker Audit
 
+Superseded by
+`docs/audits/2026-03-26-psionic-parameter-golf-single-h100-zero-copy-bank-slice-pty-proof.md`.
+
+The earlier non-PTY redirected-file proof path did not surface a usable
+receipt, but a later PTY-backed rerun on the same code path did emit a valid
+same-node H100 train-step receipt. Keep this note only as the historical record
+for the broken proof-capture path.
+
 This audit records the first fresh exact public-shape same-node H100 rerun
 after `df70fcea` landed the zero-copy direct-banked CUDA bank-slice path in
 `crates/psionic-backend-cuda/src/lib.rs`.
