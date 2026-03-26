@@ -100,11 +100,14 @@ Psionic now encodes that exact posture explicitly instead of treating
   surface to the parameter-only backward-live subset, binds graph-input
   primals back into backward directly from the original input buffers, no
   longer counts those input-bound parameter tensors as retained forward
-  outputs, and now binds the default PGOLF `relu_squared` backward rule
-  against the activation output instead of the pre-activation hidden tensor.
-  The direct banked `q/k/v/out/fc/proj` CUDA lane now also casts banked-linear
-  activations down to BF16 before the resident banked matmul surface instead
-  of keeping those train-visible matrix inputs wide `f32` by default.
+  outputs, rematerializes `cast` / `reshape` / `permute` / `expand` primals on
+  CUDA from the retained non-view parents instead of exporting those views as
+  forward outputs, and now binds the default PGOLF `relu_squared` backward
+  rule against the activation output instead of the pre-activation hidden
+  tensor. The direct banked `q/k/v/out/fc/proj` CUDA lane now also casts
+  banked-linear activations down to BF16 before the resident banked matmul
+  surface instead of keeping those train-visible matrix inputs wide `f32` by
+  default.
 - `psionic-train` now also ships retained per-rank distributed validation
   receipts plus one completion receipt bound to the trained runtime-produced
   int8+zlib artifact, so the exported-folder `distributed_8xh100_train` mode

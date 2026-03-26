@@ -260,11 +260,13 @@ The command is explicit about what it treats as trainer truth. It binds:
   train path, so the trainer now only materializes parameter-input gradients
   back to host, only keeps backward-live primal bindings, and now sources
   graph-input primals straight from the original input buffers instead of
-  retaining that input-bound parameter surface as extra forward outputs; the
-  default PGOLF `relu_squared` MLP path now also binds backward against the
-  activation output instead of retaining the pre-activation hidden tensor,
-  while the direct banked matrix lane now keeps those matmul-input activations
-  on the BF16 graph surface on CUDA
+  retaining that input-bound parameter surface as extra forward outputs;
+  `cast` / `reshape` / `permute` / `expand` primals are now rematerialized on
+  CUDA from the retained non-view parents instead of being exported from the
+  forward graph as retained outputs; the default PGOLF `relu_squared` MLP path
+  now also binds backward against the activation output instead of retaining
+  the pre-activation hidden tensor, while the direct banked matrix lane now
+  keeps those matmul-input activations on the BF16 graph surface on CUDA
 - slice-wise Muon updates over that banked matrix surface, so rank-3 bank
   tensors are now treated as stacks of equal-shaped matrices rather than
   forcing the optimizer path back to the split surface before every update

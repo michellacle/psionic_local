@@ -7,8 +7,8 @@ use std::time::Instant;
 use half::bf16;
 use psionic_backend_cuda::{CudaBackend, CudaBuffer};
 use psionic_core::{
-    DType, PsionicRefusal, PsionicRefusalCode, PsionicRefusalScope, Shape, TensorData, TensorId,
-    TensorSpec,
+    DType, PsionicRefusal, PsionicRefusalCode, PsionicRefusalScope, Shape, Tensor, TensorData,
+    TensorId, TensorSpec,
 };
 use psionic_data::{
     load_parameter_golf_validation_tokens_from_paths, materialize_parameter_golf_token_window,
@@ -19,7 +19,7 @@ use psionic_data::{
     ParameterGolfTokenStreamWindow, PARAMETER_GOLF_TRAIN_SPLIT_NAME,
 };
 use psionic_ir::AutodiffBackwardResult;
-use psionic_ir::{AutodiffError, GraphError};
+use psionic_ir::{AutodiffError, Graph, GraphBuilder, GraphError, OpKind};
 use psionic_models::{
     ParameterGolfBankedWeights, ParameterGolfExecutionError, ParameterGolfModelError,
     ParameterGolfReferenceModel, PARAMETER_GOLF_BASELINE_MODEL_ID,
@@ -3244,6 +3244,7 @@ pub(crate) fn execute_parameter_golf_training_gradient_batch_from_examples(
             let backward_started = Instant::now();
             let backward_outputs = execute_backward_plan(
                 cuda_backend,
+                graph.graph.graph(),
                 &backward_plan,
                 &input_buffers,
                 &forward_outputs,
@@ -5434,8 +5435,13 @@ impl ParameterGolfCudaTrainingSession {
         let forward_loss_cuda_ms = duration_ms(forward_started);
         let loss = scalar_float_cuda_buffer_output(&forward_outputs, self.graph.loss_tensor_id)?;
         let backward_started = Instant::now();
-        let backward_outputs =
-            execute_backward_plan(cuda_backend, &self.backward_plan, &inputs, &forward_outputs)?;
+        let backward_outputs = execute_backward_plan(
+            cuda_backend,
+            self.graph.graph.graph(),
+            &self.backward_plan,
+            &inputs,
+            &forward_outputs,
+        )?;
         let backward_cuda_ms = duration_ms(backward_started);
         Ok((
             loss,
@@ -5471,15 +5477,51 @@ fn retained_forward_tensor_ids(
     graph: &ParameterGolfBaselineTrainingGraph,
     backward_plan: &psionic_ir::AutodiffBackwardPlan,
 ) -> Vec<TensorId> {
-    backward_plan
-        .primal_bindings
-        .iter()
-        .filter_map(|binding| {
-            let node = graph.graph.graph().node(binding.primal_tensor)?;
-            (!matches!(node.op(), psionic_ir::OpKind::Input { .. }))
-                .then_some(binding.primal_tensor)
-        })
-        .collect()
+    let mut retained = std::collections::BTreeSet::new();
+    let mut visited = std::collections::BTreeSet::new();
+    for binding in &backward_plan.primal_bindings {
+        collect_retained_forward_tensor_ids(
+            graph.graph.graph(),
+            binding.primal_tensor,
+            &mut visited,
+            &mut retained,
+        );
+    }
+    retained.into_iter().collect()
+}
+
+fn collect_retained_forward_tensor_ids(
+    graph: &psionic_ir::Graph,
+    tensor_id: TensorId,
+    visited: &mut std::collections::BTreeSet<TensorId>,
+    retained: &mut std::collections::BTreeSet<TensorId>,
+) {
+    if !visited.insert(tensor_id) {
+        return;
+    }
+    let Some(node) = graph.node(tensor_id) else {
+        return;
+    };
+    if matches!(node.op(), psionic_ir::OpKind::Input { .. }) {
+        return;
+    }
+    if is_forward_primal_rematerializable(node.op()) {
+        for input in node.inputs() {
+            collect_retained_forward_tensor_ids(graph, *input, visited, retained);
+        }
+        return;
+    }
+    retained.insert(tensor_id);
+}
+
+fn is_forward_primal_rematerializable(op: &psionic_ir::OpKind) -> bool {
+    matches!(
+        op,
+        psionic_ir::OpKind::Reshape
+            | psionic_ir::OpKind::Permute { .. }
+            | psionic_ir::OpKind::Expand { .. }
+            | psionic_ir::OpKind::Cast { .. }
+    )
 }
 
 fn parameter_only_backward_plan(
@@ -5545,18 +5587,32 @@ fn live_tensor_ids_for_outputs(graph: &psionic_ir::Graph) -> std::collections::B
 
 fn execute_backward_plan(
     cuda_backend: &mut CudaBackend,
+    forward_graph: &psionic_ir::Graph,
     backward_plan: &psionic_ir::AutodiffBackwardPlan,
     forward_inputs: &BTreeMap<TensorId, CudaBuffer>,
     forward_outputs: &BTreeMap<TensorId, CudaBuffer>,
 ) -> Result<Vec<(TensorId, TensorData)>, ParameterGolfSingleH100TrainingError> {
+    let mut available_values = forward_inputs.clone();
+    available_values.extend(
+        forward_outputs
+            .iter()
+            .map(|(tensor_id, buffer)| (*tensor_id, buffer.clone())),
+    );
     let mut inputs = Vec::new();
     for binding in &backward_plan.primal_bindings {
-        let values = forward_outputs
-            .get(&binding.primal_tensor)
-            .or_else(|| forward_inputs.get(&binding.primal_tensor))
-            .ok_or(ParameterGolfSingleH100TrainingError::MissingGraphOutput {
-                tensor_id: binding.primal_tensor,
-            })?;
+        let values = match available_values.get(&binding.primal_tensor) {
+            Some(values) => values.clone(),
+            None => {
+                let rematerialized = rematerialize_forward_primal_cuda_buffer(
+                    cuda_backend,
+                    forward_graph,
+                    binding.primal_tensor,
+                    &available_values,
+                )?;
+                available_values.insert(binding.primal_tensor, rematerialized.clone());
+                rematerialized
+            }
+        };
         let input_dtype = backward_plan
             .gradient_graph
             .node(binding.gradient_graph_input)
@@ -5576,10 +5632,10 @@ fn execute_backward_plan(
             .spec()
             .clone();
         let input_buffer = if values.spec() == &input_spec {
-            values.clone()
+            values
         } else {
             let host_values =
-                materialize_cuda_buffer_for_dtype(values, input_dtype, binding.primal_tensor)?;
+                materialize_cuda_buffer_for_dtype(&values, input_dtype, binding.primal_tensor)?;
             cuda_input_buffer_from_tensor_data(
                 cuda_backend,
                 &input_spec,
@@ -5619,6 +5675,158 @@ fn execute_backward_plan(
         &backward_plan.gradient_graph,
         &inputs.into_iter().collect(),
     )
+}
+
+struct ForwardPrimalRematerializationGraph {
+    graph: Graph,
+    output_tensor_id: TensorId,
+    base_inputs: BTreeMap<TensorId, TensorId>,
+}
+
+fn rematerialize_forward_primal_cuda_buffer(
+    cuda_backend: &mut CudaBackend,
+    forward_graph: &psionic_ir::Graph,
+    tensor_id: TensorId,
+    available_values: &BTreeMap<TensorId, CudaBuffer>,
+) -> Result<CudaBuffer, ParameterGolfSingleH100TrainingError> {
+    let rematerialization =
+        build_forward_primal_rematerialization_graph(forward_graph, tensor_id, available_values)?;
+    let input_buffers = rematerialization
+        .base_inputs
+        .iter()
+        .map(
+            |(original_tensor_id, rematerialized_input_id)| -> Result<
+                (TensorId, CudaBuffer),
+                ParameterGolfSingleH100TrainingError,
+            > {
+                let buffer = available_values.get(original_tensor_id).ok_or(
+                    ParameterGolfSingleH100TrainingError::MissingGraphOutput {
+                        tensor_id: *original_tensor_id,
+                    },
+                )?;
+                Ok((*rematerialized_input_id, buffer.clone()))
+            },
+        )
+        .collect::<Result<BTreeMap<_, _>, _>>()?;
+    let outputs = execute_cuda_graph_output_buffers_from_buffers(
+        cuda_backend,
+        &rematerialization.graph,
+        &input_buffers,
+    )?;
+    outputs
+        .get(&rematerialization.output_tensor_id)
+        .cloned()
+        .ok_or(ParameterGolfSingleH100TrainingError::MissingGraphOutput {
+            tensor_id: rematerialization.output_tensor_id,
+        })
+}
+
+fn build_forward_primal_rematerialization_graph(
+    forward_graph: &psionic_ir::Graph,
+    tensor_id: TensorId,
+    available_values: &BTreeMap<TensorId, CudaBuffer>,
+) -> Result<ForwardPrimalRematerializationGraph, ParameterGolfSingleH100TrainingError> {
+    let target_node = forward_graph
+        .node(tensor_id)
+        .ok_or(ParameterGolfSingleH100TrainingError::MissingGraphTensor { tensor_id })?;
+    let mut builder = GraphBuilder::new(target_node.tensor().spec().device().clone());
+    let mut base_inputs = BTreeMap::new();
+    let mut cloned_tensors = BTreeMap::new();
+    let output = clone_forward_primal_rematerialization_tensor(
+        &mut builder,
+        forward_graph,
+        tensor_id,
+        available_values,
+        &mut base_inputs,
+        &mut cloned_tensors,
+    )?;
+    let output_tensor_id = output.id();
+    Ok(ForwardPrimalRematerializationGraph {
+        graph: builder.finish(vec![output]),
+        output_tensor_id,
+        base_inputs,
+    })
+}
+
+fn clone_forward_primal_rematerialization_tensor(
+    builder: &mut GraphBuilder,
+    forward_graph: &psionic_ir::Graph,
+    tensor_id: TensorId,
+    available_values: &BTreeMap<TensorId, CudaBuffer>,
+    base_inputs: &mut BTreeMap<TensorId, TensorId>,
+    cloned_tensors: &mut BTreeMap<TensorId, Tensor>,
+) -> Result<Tensor, ParameterGolfSingleH100TrainingError> {
+    if let Some(cloned) = cloned_tensors.get(&tensor_id) {
+        return Ok(cloned.clone());
+    }
+    let node = forward_graph
+        .node(tensor_id)
+        .ok_or(ParameterGolfSingleH100TrainingError::MissingGraphTensor { tensor_id })?;
+    let cloned = if available_values.contains_key(&tensor_id) {
+        let rematerialized_input = builder.input(
+            "rematerialized_forward_primal",
+            node.tensor().spec().shape().clone(),
+            node.tensor().spec().dtype(),
+        );
+        base_inputs.insert(tensor_id, rematerialized_input.id());
+        rematerialized_input
+    } else {
+        match node.op() {
+            OpKind::Reshape => {
+                let input = clone_forward_primal_rematerialization_tensor(
+                    builder,
+                    forward_graph,
+                    node.inputs()[0],
+                    available_values,
+                    base_inputs,
+                    cloned_tensors,
+                )?;
+                builder.reshape(&input, node.tensor().spec().shape().clone())?
+            }
+            OpKind::Permute { axes } => {
+                let input = clone_forward_primal_rematerialization_tensor(
+                    builder,
+                    forward_graph,
+                    node.inputs()[0],
+                    available_values,
+                    base_inputs,
+                    cloned_tensors,
+                )?;
+                builder.permute(&input, axes.clone())?
+            }
+            OpKind::Expand { shape } => {
+                let input = clone_forward_primal_rematerialization_tensor(
+                    builder,
+                    forward_graph,
+                    node.inputs()[0],
+                    available_values,
+                    base_inputs,
+                    cloned_tensors,
+                )?;
+                builder.expand(&input, shape.clone())?
+            }
+            OpKind::Cast { dtype } => {
+                let input = clone_forward_primal_rematerialization_tensor(
+                    builder,
+                    forward_graph,
+                    node.inputs()[0],
+                    available_values,
+                    base_inputs,
+                    cloned_tensors,
+                )?;
+                builder.cast(&input, *dtype)?
+            }
+            actual => {
+                return Err(ParameterGolfSingleH100TrainingError::InvalidConfig {
+                    message: format!(
+                        "cannot rematerialize non-view forward primal tensor {tensor_id} through op {actual:?}"
+                    ),
+                });
+            }
+        }
+    };
+    cloned_tensors.insert(tensor_id, cloned.clone());
+    Ok(cloned)
 }
 
 fn floating_tensor_data_for_dtype(
@@ -6333,6 +6541,7 @@ mod tests {
         )?;
         let backward_outputs = execute_backward_plan(
             &mut cuda_backend,
+            graph.graph.graph(),
             &backward_plan,
             &input_buffers,
             &forward_outputs,
@@ -6395,6 +6604,63 @@ mod tests {
                 .graph()
                 .node(*tensor_id)
                 .is_some_and(|node| !matches!(node.op(), psionic_ir::OpKind::Input { .. }))
+        }));
+        Ok(())
+    }
+
+    #[test]
+    fn retained_forward_tensor_ids_skip_rematerializable_view_and_cast_primals(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let model = ParameterGolfReferenceModel::baseline_fixture(Default::default())?;
+        let graph = build_parameter_golf_baseline_training_graph(
+            psionic_core::Device::cpu(),
+            model.descriptor(),
+            1,
+            16,
+        )?;
+        let filtered_plan = parameter_only_backward_plan(&graph)?;
+        let naive_retained_tensor_ids = filtered_plan
+            .primal_bindings
+            .iter()
+            .filter_map(|binding| {
+                graph
+                    .graph
+                    .graph()
+                    .node(binding.primal_tensor)
+                    .and_then(|node| {
+                        (!matches!(node.op(), psionic_ir::OpKind::Input { .. }))
+                            .then_some(binding.primal_tensor)
+                    })
+            })
+            .collect::<std::collections::BTreeSet<_>>();
+        let rematerializable_primal_tensor_ids = filtered_plan
+            .primal_bindings
+            .iter()
+            .filter_map(|binding| {
+                graph
+                    .graph
+                    .graph()
+                    .node(binding.primal_tensor)
+                    .and_then(|node| {
+                        is_forward_primal_rematerializable(node.op())
+                            .then_some(binding.primal_tensor)
+                    })
+            })
+            .collect::<std::collections::BTreeSet<_>>();
+        let retained_tensor_ids = retained_forward_tensor_ids(&graph, &filtered_plan)
+            .into_iter()
+            .collect::<std::collections::BTreeSet<_>>();
+
+        assert!(!rematerializable_primal_tensor_ids.is_empty());
+        assert!(retained_tensor_ids.len() < naive_retained_tensor_ids.len());
+        assert!(rematerializable_primal_tensor_ids
+            .iter()
+            .all(|tensor_id| !retained_tensor_ids.contains(tensor_id)));
+        assert!(retained_tensor_ids.iter().all(|tensor_id| {
+            graph.graph.graph().node(*tensor_id).is_some_and(|node| {
+                !matches!(node.op(), psionic_ir::OpKind::Input { .. })
+                    && !is_forward_primal_rematerializable(node.op())
+            })
         }));
         Ok(())
     }
@@ -6484,6 +6750,7 @@ mod tests {
             scalar_float_cuda_buffer_output(&legacy_forward_outputs, graph.loss_tensor_id)?;
         let legacy_backward_outputs = execute_backward_plan(
             &mut cuda_backend,
+            graph.graph.graph(),
             &backward_plan,
             &legacy_input_buffers,
             &legacy_forward_outputs,
@@ -6609,6 +6876,7 @@ mod tests {
             scalar_float_cuda_buffer_output(&reference_forward, graph.loss_tensor_id)?;
         let reference_backward_outputs = execute_backward_plan(
             &mut cuda_backend,
+            graph.graph.graph(),
             &backward_plan,
             &reference_input_buffers,
             &reference_forward,
@@ -6893,11 +7161,9 @@ mod tests {
             })
             .collect::<Result<Vec<_>, _>>()?;
         assert!(!later_runtimes.is_empty());
-        assert!(
-            later_runtimes
-                .iter()
-                .any(|runtime| runtime.resident_parameter_upload_us == 0)
-        );
+        assert!(later_runtimes
+            .iter()
+            .any(|runtime| runtime.resident_parameter_upload_us == 0));
         Ok(())
     }
 
