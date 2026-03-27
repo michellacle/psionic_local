@@ -32,6 +32,14 @@ a general cluster rehearsal.
   `fixtures/swarm/reports/first_swarm_trusted_lan_closeout_v1.json`
 - after-action audit:
   `docs/audits/2026-03-24-first-swarm-closeout-after-action-audit.md`
+- retained real-run bundle:
+  `fixtures/swarm/runs/first-swarm-live-20260327-real-2/first_swarm_real_run_bundle.json`
+- retained coordinator runtime report:
+  `fixtures/swarm/runs/first-swarm-live-20260327-real-2/coordinator_runtime_report.json`
+- retained contributor runtime report:
+  `fixtures/swarm/runs/first-swarm-live-20260327-real-2/contributor_runtime_report.json`
+- retained real-run after-action audit:
+  `docs/audits/2026-03-27-first-swarm-trusted-lan-real-run-audit.md`
 - first swarm workflow plan:
   `fixtures/swarm/first_swarm_live_workflow_plan_v1.json`
 - Mac bring-up report:
@@ -48,6 +56,10 @@ a general cluster rehearsal.
   `scripts/check-first-swarm-trusted-lan-evidence-bundle.sh`
 - closeout checker:
   `scripts/check-first-swarm-trusted-lan-closeout.sh`
+- real-run operator:
+  `scripts/run-first-swarm-trusted-lan-live.sh`
+- real-run bundle checker:
+  `scripts/check-first-swarm-trusted-lan-real-run.sh`
 - shared binder reference:
   `docs/RUNPOD_LOCAL_TRAINING_BINDER_REFERENCE.md`
 
@@ -167,6 +179,34 @@ Current live-attempt outcome:
   gate, but refuses to fabricate contributor execution, validator, aggregation,
   or publication receipts that do not exist yet
 
+That bundle remains historically useful, but it is no longer the newest
+truthful retained outcome for the lane.
+
+## Current Retained Real Run
+
+The canonical retained real run now lives at:
+
+- `fixtures/swarm/runs/first-swarm-live-20260327-real-2/first_swarm_real_run_bundle.json`
+
+Validate it with:
+
+```bash
+scripts/check-first-swarm-trusted-lan-real-run.sh \
+  --bundle fixtures/swarm/runs/first-swarm-live-20260327-real-2/first_swarm_real_run_bundle.json
+```
+
+Current retained real-run outcome:
+
+- result classification: `bounded_success`
+- merge: `merged`
+- publish: `refused`
+- promotion: `held`
+- why:
+  the live run earned two accepted contributor submissions, two replay-checked
+  contributions, one shared validator summary, and one aggregated bounded
+  result across the Mac MLX coordinator and Linux RTX 4080 contributor, but it
+  still stopped short of a promoted published snapshot
+
 ## Current Closeout Outcome
 
 The canonical first swarm closeout report now lives at:
@@ -194,6 +234,11 @@ Current closeout verdict:
 The matching after-action audit now lives at:
 
 - `docs/audits/2026-03-24-first-swarm-closeout-after-action-audit.md`
+
+Treat that closeout as the historical pre-success refusal record. The current
+completion record for `SWARM-0` is the retained real run plus:
+
+- `docs/audits/2026-03-27-first-swarm-trusted-lan-real-run-audit.md`
 
 ## Exact Per-Host Commands
 
@@ -230,6 +275,14 @@ cargo run -q -p psionic-train --bin first_swarm_trusted_lan_topology_contract --
 
 cargo run -q -p psionic-train --bin first_swarm_trusted_lan_failure_drills -- \
   /tmp/first-swarm-local-bundle/reports/first_swarm_trusted_lan_failure_drills_v1.json
+```
+
+Live retained run:
+
+```bash
+cd ~/code/psionic
+scripts/run-first-swarm-trusted-lan-live.sh \
+  --run-id first-swarm-live-$(date -u +%Y%m%dT%H%M%SZ)
 ```
 
 ## Required Failure Drills
