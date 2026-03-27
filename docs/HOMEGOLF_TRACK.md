@@ -44,6 +44,7 @@ Checker:
 
 - `scripts/check-parameter-golf-homegolf-track-contract.sh`
 - `scripts/check-parameter-golf-homegolf-dense-baseline-surface.sh`
+- `scripts/check-parameter-golf-homegolf-dense-bundle-proof.sh`
 
 ## Current Baseline Surfaces
 
@@ -83,6 +84,33 @@ What this freezes:
   outputs
 - the honest claim boundary that this is the first HOMEGOLF dense baseline
   surface, not yet a mixed-device 10-minute HOMEGOLF score
+
+## Train-To-Infer Closure
+
+HOMEGOLF now also has one retained train-to-infer closure proof for the exact
+`9x512` family:
+
+- retained proof report:
+  `fixtures/parameter_golf/reports/parameter_golf_homegolf_dense_bundle_proof.json`
+- proof runner:
+  `crates/psionic-serve/examples/parameter_golf_homegolf_dense_bundle_proof.rs`
+- checker:
+  `scripts/check-parameter-golf-homegolf-dense-bundle-proof.sh`
+
+What this proves:
+
+- Psionic can emit a real promoted runtime bundle from an exact-family
+  HOMEGOLF-compatible bounded run
+- that bundle loads directly for inference
+- that same bundle loads through `psionic-serve`
+- direct and served generation agree on the retained proof prompt
+
+What it does not prove:
+
+- that the retained single-H100 dense source report already shipped committed
+  model bytes
+- that the public FineWeb/SP1024 scorepath now closes locally
+- that mixed-device `10` minute HOMEGOLF execution is already solved
 
 ## Comparison Policy
 
