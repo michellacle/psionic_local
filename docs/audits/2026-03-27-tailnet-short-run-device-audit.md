@@ -192,6 +192,36 @@ the next sensible step is not a bigger audit. It is one more benchmark or
 runtime iteration aimed specifically at why the current CUDA path is slower on
 this widened adapter benchmark.
 
+## Admitted Matrix Runner
+
+The admitted-device matrix runner now lives at:
+
+- `scripts/run-open-adapter-tailnet-matrix.sh`
+
+Canonical retained admitted-device matrix artifacts now live at:
+
+- `fixtures/apple_adapter/runs/tailrun_admitted_device_matrix_20260327b/matrix_report.json`
+- `fixtures/apple_adapter/runs/tailrun_admitted_device_matrix_20260327b/m5_mlx/report.json`
+- `fixtures/apple_adapter/runs/tailrun_admitted_device_matrix_20260327b/archlinux_cuda/report.json`
+
+The exact retained command was:
+
+```bash
+scripts/run-open-adapter-tailnet-matrix.sh \
+  --run-id tailrun-admitted-device-matrix-20260327b \
+  --bundle-dir fixtures/apple_adapter/runs/tailrun_admitted_device_matrix_20260327b \
+  --target-seconds 600
+```
+
+Retained admitted-matrix result:
+
+- local M5 MLX: `162.5306 steps/s`
+- remote RTX 4080 CUDA on `archlinux`: `82.4025 steps/s`
+- local-over-remote gain: `97.24%`
+
+That retained matrix run uses the admitted device set only and intentionally
+does not block on the M2.
+
 ## Honest Boundary
 
 This audit does **not** claim:
