@@ -1769,6 +1769,36 @@ impl CudaSubmission {
         Ok(())
     }
 
+    /// Applies SiLU to one source region, multiplies it elementwise by a
+    /// second source region, and quantizes the result into GGML `Q8_1`.
+    pub fn silu_mul_q8_1(
+        &mut self,
+        activation_input: &CudaBuffer,
+        activation_offset: usize,
+        rhs: &CudaBuffer,
+        rhs_offset: usize,
+        element_count: usize,
+        output_q8_1: &CudaBuffer,
+    ) -> Result<(), RuntimeError> {
+        let required_bytes = ggml_q8_1_storage_bytes(1, element_count)?;
+        if output_q8_1.byte_len() < required_bytes {
+            return Err(RuntimeError::Backend(format!(
+                "cuda q8_1 activation buffer too small: need {required_bytes} bytes for 1x{element_count}, have {}",
+                output_q8_1.byte_len()
+            )));
+        }
+        self.platform.encode_silu_mul_q8_1(
+            &activation_input.platform,
+            activation_offset,
+            &rhs.platform,
+            rhs_offset,
+            element_count,
+            &output_q8_1.platform,
+        )?;
+        self.encoded_operations += 1;
+        Ok(())
+    }
+
     /// Applies sigmoid to one source region and multiplies it elementwise by a
     /// second source region.
     pub fn sigmoid_mul_f32(
@@ -1787,6 +1817,36 @@ impl CudaSubmission {
             gate_offset,
             element_count,
             &output.platform,
+        )?;
+        self.encoded_operations += 1;
+        Ok(())
+    }
+
+    /// Applies sigmoid to one source region, multiplies it elementwise by a
+    /// second source region, and quantizes the result into GGML `Q8_1`.
+    pub fn sigmoid_mul_q8_1(
+        &mut self,
+        values: &CudaBuffer,
+        values_offset: usize,
+        gate: &CudaBuffer,
+        gate_offset: usize,
+        element_count: usize,
+        output_q8_1: &CudaBuffer,
+    ) -> Result<(), RuntimeError> {
+        let required_bytes = ggml_q8_1_storage_bytes(1, element_count)?;
+        if output_q8_1.byte_len() < required_bytes {
+            return Err(RuntimeError::Backend(format!(
+                "cuda q8_1 activation buffer too small: need {required_bytes} bytes for 1x{element_count}, have {}",
+                output_q8_1.byte_len()
+            )));
+        }
+        self.platform.encode_sigmoid_mul_q8_1(
+            &values.platform,
+            values_offset,
+            &gate.platform,
+            gate_offset,
+            element_count,
+            &output_q8_1.platform,
         )?;
         self.encoded_operations += 1;
         Ok(())
@@ -9025,6 +9085,15 @@ mod platform {
             output: *mut c_void,
             stream: CudaStream,
         ) -> CudaError;
+        fn psionic_cuda_silu_mul_q8_1(
+            activation_input: *const c_void,
+            activation_offset: c_int,
+            rhs: *const c_void,
+            rhs_offset: c_int,
+            element_count: c_int,
+            output_q8_1: *mut c_void,
+            stream: CudaStream,
+        ) -> CudaError;
         fn psionic_cuda_sigmoid_mul_f32(
             values: *const c_void,
             values_offset: c_int,
@@ -9032,6 +9101,15 @@ mod platform {
             gate_offset: c_int,
             element_count: c_int,
             output: *mut c_void,
+            stream: CudaStream,
+        ) -> CudaError;
+        fn psionic_cuda_sigmoid_mul_q8_1(
+            values: *const c_void,
+            values_offset: c_int,
+            gate: *const c_void,
+            gate_offset: c_int,
+            element_count: c_int,
+            output_q8_1: *mut c_void,
             stream: CudaStream,
         ) -> CudaError;
         fn psionic_cuda_split_interleaved_query_gate_f32(
@@ -11515,6 +11593,52 @@ mod platform {
             )
         }
 
+        pub(super) fn encode_silu_mul_q8_1(
+            &mut self,
+            activation_input: &PlatformBuffer,
+            activation_offset: usize,
+            rhs: &PlatformBuffer,
+            rhs_offset: usize,
+            element_count: usize,
+            output_q8_1: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            if !quantized_kernels_compiled() {
+                return Err(RuntimeError::Backend(String::from(
+                    "cuda quantized text-generation kernels are not available in this build",
+                )));
+            }
+            let activation_offset = c_int::try_from(activation_offset).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda silu_mul_q8_1 activation offset exceeds c_int",
+                ))
+            })?;
+            let rhs_offset = c_int::try_from(rhs_offset).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda silu_mul_q8_1 rhs offset exceeds c_int",
+                ))
+            })?;
+            let element_count = c_int::try_from(element_count).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda silu_mul_q8_1 element count exceeds c_int",
+                ))
+            })?;
+            self.runtime.set_device()?;
+            self.runtime.check(
+                unsafe {
+                    psionic_cuda_silu_mul_q8_1(
+                        activation_input.inner.device_ptr.cast(),
+                        activation_offset,
+                        rhs.inner.device_ptr.cast(),
+                        rhs_offset,
+                        element_count,
+                        output_q8_1.inner.device_ptr.cast(),
+                        self.stream,
+                    )
+                },
+                "psionic_cuda_silu_mul_q8_1",
+            )
+        }
+
         pub(super) fn encode_sigmoid_mul_f32(
             &mut self,
             values: &PlatformBuffer,
@@ -11547,6 +11671,52 @@ mod platform {
                     )
                 },
                 "psionic_cuda_sigmoid_mul_f32",
+            )
+        }
+
+        pub(super) fn encode_sigmoid_mul_q8_1(
+            &mut self,
+            values: &PlatformBuffer,
+            values_offset: usize,
+            gate: &PlatformBuffer,
+            gate_offset: usize,
+            element_count: usize,
+            output_q8_1: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            if !quantized_kernels_compiled() {
+                return Err(RuntimeError::Backend(String::from(
+                    "cuda quantized text-generation kernels are not available in this build",
+                )));
+            }
+            let values_offset = c_int::try_from(values_offset).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda sigmoid_mul_q8_1 values offset exceeds c_int",
+                ))
+            })?;
+            let gate_offset = c_int::try_from(gate_offset).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda sigmoid_mul_q8_1 gate offset exceeds c_int",
+                ))
+            })?;
+            let element_count = c_int::try_from(element_count).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda sigmoid_mul_q8_1 element count exceeds c_int",
+                ))
+            })?;
+            self.runtime.set_device()?;
+            self.runtime.check(
+                unsafe {
+                    psionic_cuda_sigmoid_mul_q8_1(
+                        values.inner.device_ptr.cast(),
+                        values_offset,
+                        gate.inner.device_ptr.cast(),
+                        gate_offset,
+                        element_count,
+                        output_q8_1.inner.device_ptr.cast(),
+                        self.stream,
+                    )
+                },
+                "psionic_cuda_sigmoid_mul_q8_1",
             )
         }
 
@@ -14971,6 +15141,20 @@ mod platform {
             )))
         }
 
+        pub(super) fn encode_silu_mul_q8_1(
+            &mut self,
+            _activation_input: &PlatformBuffer,
+            _activation_offset: usize,
+            _rhs: &PlatformBuffer,
+            _rhs_offset: usize,
+            _element_count: usize,
+            _output_q8_1: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            Err(RuntimeError::Backend(String::from(
+                "cuda quantized text-generation kernels require Linux CUDA support",
+            )))
+        }
+
         pub(super) fn encode_sigmoid_mul_f32(
             &mut self,
             _values: &PlatformBuffer,
@@ -14979,6 +15163,20 @@ mod platform {
             _gate_offset: usize,
             _element_count: usize,
             _output: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            Err(RuntimeError::Backend(String::from(
+                "cuda quantized text-generation kernels require Linux CUDA support",
+            )))
+        }
+
+        pub(super) fn encode_sigmoid_mul_q8_1(
+            &mut self,
+            _values: &PlatformBuffer,
+            _values_offset: usize,
+            _gate: &PlatformBuffer,
+            _gate_offset: usize,
+            _element_count: usize,
+            _output_q8_1: &PlatformBuffer,
         ) -> Result<(), RuntimeError> {
             Err(RuntimeError::Backend(String::from(
                 "cuda quantized text-generation kernels require Linux CUDA support",
@@ -20674,6 +20872,117 @@ mod tests {
         let report = submission.commit(CudaCommandWait::Completed)?;
         assert_eq!(report.encoded_operations, 2);
         assert_close(&output.read_f32()?, &expected, 1e-4);
+        Ok(())
+    }
+
+    #[test]
+    fn cuda_submission_silu_mul_q8_1_matches_separate_kernels() -> Result<(), Box<dyn std::error::Error>>
+    {
+        let mut backend = CudaBackend::new();
+        let Some(_selected) = backend.selected_device().cloned() else {
+            assert_eq!(backend.health().status, HealthStatus::Offline);
+            return Ok(());
+        };
+        if !backend.quantized_kernels_available() {
+            return Ok(());
+        }
+
+        let activation = sample_q8_1_exact_vector_64();
+        let rhs = activation
+            .iter()
+            .enumerate()
+            .map(|(index, value)| if index & 1 == 0 { *value * 0.25 } else { -*value * 0.125 })
+            .collect::<Vec<_>>();
+        let activation_buffer =
+            backend.input_buffer(Shape::new(vec![activation.len()]), activation.clone())?;
+        let rhs_buffer = backend.input_buffer(Shape::new(vec![rhs.len()]), rhs.clone())?;
+        let separate_output = backend.f32_buffer(activation.len())?;
+        let separate_q8_1 =
+            backend.byte_buffer(&vec![0_u8; crate::ggml_q8_1_storage_bytes(1, activation.len())?])?;
+        let fused_q8_1 =
+            backend.byte_buffer(&vec![0_u8; crate::ggml_q8_1_storage_bytes(1, activation.len())?])?;
+
+        let mut separate = backend.begin_submission()?;
+        separate.silu_mul_f32(
+            &activation_buffer,
+            0,
+            &rhs_buffer,
+            0,
+            activation.len(),
+            &separate_output,
+        )?;
+        separate.quantize_f32_to_q8_1(&separate_output, 1, activation.len(), &separate_q8_1)?;
+        let separate_report = separate.commit(CudaCommandWait::Completed)?;
+        assert_eq!(separate_report.encoded_operations, 2);
+
+        let mut fused = backend.begin_submission()?;
+        fused.silu_mul_q8_1(
+            &activation_buffer,
+            0,
+            &rhs_buffer,
+            0,
+            activation.len(),
+            &fused_q8_1,
+        )?;
+        let fused_report = fused.commit(CudaCommandWait::Completed)?;
+        assert_eq!(fused_report.encoded_operations, 1);
+
+        assert_eq!(fused_q8_1.read_bytes()?, separate_q8_1.read_bytes()?);
+        Ok(())
+    }
+
+    #[test]
+    fn cuda_submission_sigmoid_mul_q8_1_matches_separate_kernels()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let mut backend = CudaBackend::new();
+        let Some(_selected) = backend.selected_device().cloned() else {
+            assert_eq!(backend.health().status, HealthStatus::Offline);
+            return Ok(());
+        };
+        if !backend.quantized_kernels_available() {
+            return Ok(());
+        }
+
+        let values = sample_q8_1_exact_vector_64();
+        let gate = values
+            .iter()
+            .enumerate()
+            .map(|(index, value)| if index % 3 == 0 { *value * 0.5 } else { -*value * 0.25 })
+            .collect::<Vec<_>>();
+        let values_buffer = backend.input_buffer(Shape::new(vec![values.len()]), values.clone())?;
+        let gate_buffer = backend.input_buffer(Shape::new(vec![gate.len()]), gate.clone())?;
+        let separate_output = backend.f32_buffer(values.len())?;
+        let separate_q8_1 =
+            backend.byte_buffer(&vec![0_u8; crate::ggml_q8_1_storage_bytes(1, values.len())?])?;
+        let fused_q8_1 =
+            backend.byte_buffer(&vec![0_u8; crate::ggml_q8_1_storage_bytes(1, values.len())?])?;
+
+        let mut separate = backend.begin_submission()?;
+        separate.sigmoid_mul_f32(
+            &values_buffer,
+            0,
+            &gate_buffer,
+            0,
+            values.len(),
+            &separate_output,
+        )?;
+        separate.quantize_f32_to_q8_1(&separate_output, 1, values.len(), &separate_q8_1)?;
+        let separate_report = separate.commit(CudaCommandWait::Completed)?;
+        assert_eq!(separate_report.encoded_operations, 2);
+
+        let mut fused = backend.begin_submission()?;
+        fused.sigmoid_mul_q8_1(
+            &values_buffer,
+            0,
+            &gate_buffer,
+            0,
+            values.len(),
+            &fused_q8_1,
+        )?;
+        let fused_report = fused.commit(CudaCommandWait::Completed)?;
+        assert_eq!(fused_report.encoded_operations, 1);
+
+        assert_eq!(fused_q8_1.read_bytes()?, separate_q8_1.read_bytes()?);
         Ok(())
     }
 

@@ -688,6 +688,25 @@ int psionic_cuda_silu_mul_f32(
     return 1;
 }
 
+int psionic_cuda_silu_mul_q8_1(
+    const void *activation_input,
+    int activation_offset,
+    const void *rhs,
+    int rhs_offset,
+    int element_count,
+    void *output_q8_1,
+    void *stream
+) {
+    (void)activation_input;
+    (void)activation_offset;
+    (void)rhs;
+    (void)rhs_offset;
+    (void)element_count;
+    (void)output_q8_1;
+    (void)stream;
+    return 1;
+}
+
 int psionic_cuda_sigmoid_mul_f32(
     const void *values,
     int values_offset,
@@ -703,6 +722,25 @@ int psionic_cuda_sigmoid_mul_f32(
     (void)gate_offset;
     (void)element_count;
     (void)output;
+    (void)stream;
+    return 1;
+}
+
+int psionic_cuda_sigmoid_mul_q8_1(
+    const void *values,
+    int values_offset,
+    const void *gate,
+    int gate_offset,
+    int element_count,
+    void *output_q8_1,
+    void *stream
+) {
+    (void)values;
+    (void)values_offset;
+    (void)gate;
+    (void)gate_offset;
+    (void)element_count;
+    (void)output_q8_1;
     (void)stream;
     return 1;
 }

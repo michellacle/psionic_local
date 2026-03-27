@@ -1022,6 +1022,50 @@ __global__ void silu_mul_f32_kernel(
     }
 }
 
+__global__ void silu_mul_q8_1_kernel(
+    const float *activation_input,
+    int activation_offset,
+    const float *rhs,
+    int rhs_offset,
+    int element_count,
+    Q81Block *output
+) {
+    const int warp_index = static_cast<int>(threadIdx.x) / kWarpSize;
+    const int lane = static_cast<int>(threadIdx.x) & (kWarpSize - 1);
+    const int blocks_per_cta = kBlockSize / kWarpSize;
+    const int output_block_index = static_cast<int>(blockIdx.x) * blocks_per_cta + warp_index;
+    const int block_count = element_count / kQ81ElementsPerBlock;
+    if (output_block_index >= block_count) {
+        return;
+    }
+
+    const int input_index = output_block_index * kQ81ElementsPerBlock + lane;
+    const float value = silu_single(activation_input[activation_offset + input_index]) *
+        rhs[rhs_offset + input_index];
+
+    float amax = fabsf(value);
+    float sum = value;
+    for (int offset = 16; offset > 0; offset >>= 1) {
+        amax = fmaxf(amax, __shfl_xor_sync(0xffffffffu, amax, offset, 32));
+        sum += __shfl_xor_sync(0xffffffffu, sum, offset, 32);
+    }
+
+    const float scale = amax == 0.0f ? 0.0f : amax / 127.0f;
+    const float quantized = scale == 0.0f ? 0.0f : value / scale;
+    const float clamped = fminf(fmaxf(roundf(quantized), -127.0f), 127.0f);
+
+    Q81Block *row_output = output + output_block_index;
+    row_output->bytes[4 + lane] = static_cast<uint8_t>(static_cast<int8_t>(clamped));
+    if (lane == 0) {
+        const uint16_t scale_bits = __half_as_ushort(__float2half_rn(scale));
+        const uint16_t sum_bits = __half_as_ushort(__float2half_rn(sum));
+        row_output->bytes[0] = static_cast<uint8_t>(scale_bits & 0xffu);
+        row_output->bytes[1] = static_cast<uint8_t>((scale_bits >> 8) & 0xffu);
+        row_output->bytes[2] = static_cast<uint8_t>(sum_bits & 0xffu);
+        row_output->bytes[3] = static_cast<uint8_t>((sum_bits >> 8) & 0xffu);
+    }
+}
+
 __global__ void sigmoid_mul_f32_kernel(
     const float *values,
     int values_offset,
@@ -1034,6 +1078,50 @@ __global__ void sigmoid_mul_f32_kernel(
     if (index < element_count) {
         output[index] = values[values_offset + index] *
             sigmoid_single(gate[gate_offset + index]);
+    }
+}
+
+__global__ void sigmoid_mul_q8_1_kernel(
+    const float *values,
+    int values_offset,
+    const float *gate,
+    int gate_offset,
+    int element_count,
+    Q81Block *output
+) {
+    const int warp_index = static_cast<int>(threadIdx.x) / kWarpSize;
+    const int lane = static_cast<int>(threadIdx.x) & (kWarpSize - 1);
+    const int blocks_per_cta = kBlockSize / kWarpSize;
+    const int output_block_index = static_cast<int>(blockIdx.x) * blocks_per_cta + warp_index;
+    const int block_count = element_count / kQ81ElementsPerBlock;
+    if (output_block_index >= block_count) {
+        return;
+    }
+
+    const int input_index = output_block_index * kQ81ElementsPerBlock + lane;
+    const float value = values[values_offset + input_index] *
+        sigmoid_single(gate[gate_offset + input_index]);
+
+    float amax = fabsf(value);
+    float sum = value;
+    for (int offset = 16; offset > 0; offset >>= 1) {
+        amax = fmaxf(amax, __shfl_xor_sync(0xffffffffu, amax, offset, 32));
+        sum += __shfl_xor_sync(0xffffffffu, sum, offset, 32);
+    }
+
+    const float scale = amax == 0.0f ? 0.0f : amax / 127.0f;
+    const float quantized = scale == 0.0f ? 0.0f : value / scale;
+    const float clamped = fminf(fmaxf(roundf(quantized), -127.0f), 127.0f);
+
+    Q81Block *row_output = output + output_block_index;
+    row_output->bytes[4 + lane] = static_cast<uint8_t>(static_cast<int8_t>(clamped));
+    if (lane == 0) {
+        const uint16_t scale_bits = __half_as_ushort(__float2half_rn(scale));
+        const uint16_t sum_bits = __half_as_ushort(__float2half_rn(sum));
+        row_output->bytes[0] = static_cast<uint8_t>(scale_bits & 0xffu);
+        row_output->bytes[1] = static_cast<uint8_t>((scale_bits >> 8) & 0xffu);
+        row_output->bytes[2] = static_cast<uint8_t>(sum_bits & 0xffu);
+        row_output->bytes[3] = static_cast<uint8_t>((sum_bits >> 8) & 0xffu);
     }
 }
 
@@ -6146,6 +6234,34 @@ extern "C" int psionic_cuda_silu_mul_f32(
     return static_cast<int>(cudaGetLastError());
 }
 
+extern "C" int psionic_cuda_silu_mul_q8_1(
+    const void *activation_input,
+    int activation_offset,
+    const void *rhs,
+    int rhs_offset,
+    int element_count,
+    void *output_q8_1,
+    void *stream
+) {
+    const int block_count = element_count / kQ81ElementsPerBlock;
+    const int blocks_per_cta = kBlockSize / kWarpSize;
+    const int blocks = (block_count + blocks_per_cta - 1) / blocks_per_cta;
+    silu_mul_q8_1_kernel<<<
+        blocks,
+        kBlockSize,
+        0,
+        static_cast<cudaStream_t>(stream)
+    >>>(
+        static_cast<const float *>(activation_input),
+        activation_offset,
+        static_cast<const float *>(rhs),
+        rhs_offset,
+        element_count,
+        static_cast<Q81Block *>(output_q8_1)
+    );
+    return static_cast<int>(cudaGetLastError());
+}
+
 extern "C" int psionic_cuda_sigmoid_mul_f32(
     const void *values,
     int values_offset,
@@ -6163,6 +6279,34 @@ extern "C" int psionic_cuda_sigmoid_mul_f32(
         gate_offset,
         element_count,
         static_cast<float *>(output)
+    );
+    return static_cast<int>(cudaGetLastError());
+}
+
+extern "C" int psionic_cuda_sigmoid_mul_q8_1(
+    const void *values,
+    int values_offset,
+    const void *gate,
+    int gate_offset,
+    int element_count,
+    void *output_q8_1,
+    void *stream
+) {
+    const int block_count = element_count / kQ81ElementsPerBlock;
+    const int blocks_per_cta = kBlockSize / kWarpSize;
+    const int blocks = (block_count + blocks_per_cta - 1) / blocks_per_cta;
+    sigmoid_mul_q8_1_kernel<<<
+        blocks,
+        kBlockSize,
+        0,
+        static_cast<cudaStream_t>(stream)
+    >>>(
+        static_cast<const float *>(values),
+        values_offset,
+        static_cast<const float *>(gate),
+        gate_offset,
+        element_count,
+        static_cast<Q81Block *>(output_q8_1)
     );
     return static_cast<int>(cudaGetLastError());
 }

@@ -1736,17 +1736,11 @@ impl Qwen35Layer {
                 &plan.gated_delta_buffer,
             )?;
         }
-        submission.sigmoid_mul_f32(
+        submission.sigmoid_mul_q8_1(
             &plan.gated_delta_buffer,
             0,
             &plan.gate_buffer,
             0,
-            query_width,
-            &plan.gated_delta_buffer,
-        )?;
-        submission.quantize_f32_to_q8_1(
-            &plan.gated_delta_buffer,
-            1,
             query_width,
             &plan.activated_q8_1_buffer,
         )?;
@@ -1791,17 +1785,11 @@ impl Qwen35Layer {
                 )),
             ));
         }
-        submission.silu_mul_f32(
+        submission.silu_mul_q8_1(
             &plan.matvec_output_buffer,
             0,
             &plan.matvec_output_buffer,
             gate_rows,
-            gate_rows,
-            &plan.hybrid_gated_buffer,
-        )?;
-        submission.quantize_f32_to_q8_1(
-            &plan.hybrid_gated_buffer,
-            1,
             gate_rows,
             &plan.activated_q8_1_buffer,
         )?;
@@ -1967,17 +1955,11 @@ impl Qwen35Layer {
             v_size,
             epsilon,
         )?;
-        submission.silu_mul_f32(
+        submission.silu_mul_q8_1(
             &plan.matvec_output_buffer,
             z_offset,
             &plan.hybrid_norm_buffer,
             0,
-            v_size,
-            &plan.hybrid_gated_buffer,
-        )?;
-        submission.quantize_f32_to_q8_1(
-            &plan.hybrid_gated_buffer,
-            1,
             v_size,
             &plan.activated_q8_1_buffer,
         )?;
@@ -2022,17 +2004,11 @@ impl Qwen35Layer {
                 )),
             ));
         }
-        submission.silu_mul_f32(
+        submission.silu_mul_q8_1(
             &plan.matvec_output_buffer,
             0,
             &plan.matvec_output_buffer,
             gate_rows,
-            gate_rows,
-            &plan.hybrid_gated_buffer,
-        )?;
-        submission.quantize_f32_to_q8_1(
-            &plan.hybrid_gated_buffer,
-            1,
             gate_rows,
             &plan.activated_q8_1_buffer,
         )?;
@@ -2428,17 +2404,11 @@ impl Qwen35Layer {
                     )),
                 ));
             }
-            tail.silu_mul_f32(
+            tail.silu_mul_q8_1(
                 &plan.matvec_output_buffer,
                 0,
                 &plan.matvec_output_buffer,
                 gate_rows,
-                gate_rows,
-                &plan.hybrid_gated_buffer,
-            )?;
-            tail.quantize_f32_to_q8_1(
-                &plan.hybrid_gated_buffer,
-                1,
                 gate_rows,
                 &plan.activated_q8_1_buffer,
             )?;
@@ -2536,17 +2506,11 @@ impl Qwen35Layer {
             None,
             &plan.gated_delta_buffer,
         )?;
-        submission.sigmoid_mul_f32(
+        submission.sigmoid_mul_q8_1(
             &plan.gated_delta_buffer,
             0,
             &plan.gate_buffer,
             0,
-            query_width,
-            &plan.gated_delta_buffer,
-        )?;
-        submission.quantize_f32_to_q8_1(
-            &plan.gated_delta_buffer,
-            1,
             query_width,
             &plan.activated_q8_1_buffer,
         )?;
@@ -2591,17 +2555,11 @@ impl Qwen35Layer {
                 )),
             ));
         }
-        submission.silu_mul_f32(
+        submission.silu_mul_q8_1(
             &plan.matvec_output_buffer,
             0,
             &plan.matvec_output_buffer,
             gate_rows,
-            gate_rows,
-            &plan.hybrid_gated_buffer,
-        )?;
-        submission.quantize_f32_to_q8_1(
-            &plan.hybrid_gated_buffer,
-            1,
             gate_rows,
             &plan.activated_q8_1_buffer,
         )?;
@@ -2774,17 +2732,11 @@ impl Qwen35Layer {
             v_size,
             epsilon,
         )?;
-        submission.silu_mul_f32(
+        submission.silu_mul_q8_1(
             &plan.matvec_output_buffer,
             z_offset,
             &plan.hybrid_norm_buffer,
             0,
-            v_size,
-            &plan.hybrid_gated_buffer,
-        )?;
-        submission.quantize_f32_to_q8_1(
-            &plan.hybrid_gated_buffer,
-            1,
             v_size,
             &plan.activated_q8_1_buffer,
         )?;
@@ -2829,17 +2781,11 @@ impl Qwen35Layer {
                 )),
             ));
         }
-        submission.silu_mul_f32(
+        submission.silu_mul_q8_1(
             &plan.matvec_output_buffer,
             0,
             &plan.matvec_output_buffer,
             gate_rows,
-            gate_rows,
-            &plan.hybrid_gated_buffer,
-        )?;
-        submission.quantize_f32_to_q8_1(
-            &plan.hybrid_gated_buffer,
-            1,
             gate_rows,
             &plan.activated_q8_1_buffer,
         )?;
@@ -3254,7 +3200,6 @@ struct Qwen35CudaStepPlan {
     conv_buffer: CudaBuffer,
     gated_delta_buffer: CudaBuffer,
     hybrid_norm_buffer: CudaBuffer,
-    hybrid_gated_buffer: CudaBuffer,
     projected_buffer: CudaBuffer,
     activated_q8_1_buffer: CudaBuffer,
     decay_buffer: CudaBuffer,
@@ -3328,9 +3273,6 @@ impl Qwen35CudaStepPlan {
                 .f32_buffer(max_output_rows)
                 .map_err(ReferenceTextGenerationError::Runtime)?,
             hybrid_norm_buffer: backend
-                .f32_buffer(max_output_rows)
-                .map_err(ReferenceTextGenerationError::Runtime)?,
-            hybrid_gated_buffer: backend
                 .f32_buffer(max_output_rows)
                 .map_err(ReferenceTextGenerationError::Runtime)?,
             projected_buffer: backend

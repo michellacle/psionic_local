@@ -129,7 +129,14 @@ and value pack path:
 - Psionic native CUDA qwen35 decode throughput: about `494.19 tok/s`
 - local Ollama `qwen3.5:0.8b` decode throughput: about `326.14 tok/s`
 
-This improvement now comes from four architectural changes inside the native
+Measured again on the same host and prompt after fusing the qwen35 dense and
+hybrid SiLU activation tails directly into GGML `Q8_1` scratch and then doing
+the same for the full-attention sigmoid gating tail:
+
+- Psionic native CUDA qwen35 decode throughput: about `498.94 tok/s`
+- local Ollama `qwen3.5:0.8b` decode throughput: about `329.34 tok/s`
+
+This improvement now comes from six architectural changes inside the native
 Psionic runtime:
 
 - qwen35 derives hybrid-layer SSM `decay` and `beta` on CUDA and normalizes
@@ -142,6 +149,10 @@ Psionic runtime:
   query RMSNorm into one CUDA kernel before the attention decode kernel
 - full-attention decode now also fuses per-head key RMSNorm with value packing
   into the packed qkv buffer before the attention decode kernel
+- qwen35 dense FFN and hybrid SSM-out tails now fuse SiLU activation with
+  direct GGML `Q8_1` quantization before the down and output projections
+- full-attention decode now also fuses sigmoid gating with direct GGML `Q8_1`
+  quantization before the output projection matvec
 
 This pilot therefore proves native CUDA execution correctness, honest
 publication, and a wider throughput win over the local Ollama baseline on this
@@ -161,8 +172,8 @@ runtime:
 
 - token embedding gather still enters the decode path through a less
   device-native route than it should
-- the full-attention path still burns an extra query split kernel before the
-  attention decode kernel
+- the full-attention path still enters the attention kernel through a separate
+  q/gate normalization pass instead of a more integrated decode kernel
 - the lane still refuses KV-session reuse, prefix caching, and adapter serving
 - the lane has not yet proven a wider batch, longer context, or concurrent
   throughput lead over Ollama-class runtimes
