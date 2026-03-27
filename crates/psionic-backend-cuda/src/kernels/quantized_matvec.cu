@@ -94,6 +94,10 @@ __device__ __forceinline__ float sigmoid_single(float value) {
     return 1.0f / (1.0f + expf(-value));
 }
 
+__device__ __forceinline__ float softplus_single(float value) {
+    return value > 20.0f ? value : log1pf(expf(value));
+}
+
 __device__ __forceinline__ float silu_single(float value) {
     return value * sigmoid_single(value);
 }
@@ -1080,6 +1084,26 @@ __global__ void depthwise_causal_conv1d_step_f32_kernel(
     if (state_tokens > 0) {
         channel_state[state_tokens - 1] = input[channel];
     }
+}
+
+__global__ void qwen35_ssm_decay_beta_f32_kernel(
+    const float *input,
+    int alpha_offset,
+    int beta_offset,
+    const float *ssm_a,
+    const float *ssm_dt,
+    int element_count,
+    float *decay_output,
+    float *beta_output
+) {
+    const int index = static_cast<int>(blockIdx.x) * blockDim.x + threadIdx.x;
+    if (index >= element_count) {
+        return;
+    }
+    const float alpha = input[alpha_offset + index];
+    const float beta = input[beta_offset + index];
+    decay_output[index] = expf(softplus_single(alpha + ssm_dt[index]) * ssm_a[index]);
+    beta_output[index] = sigmoid_single(beta);
 }
 
 __global__ void gated_delta_step_f32_kernel(
@@ -6053,6 +6077,31 @@ extern "C" int psionic_cuda_depthwise_causal_conv1d_step_f32(
         channels,
         kernel_size,
         static_cast<float *>(output)
+    );
+    return static_cast<int>(cudaGetLastError());
+}
+
+extern "C" int psionic_cuda_qwen35_ssm_decay_beta_f32(
+    const void *input,
+    int alpha_offset,
+    int beta_offset,
+    const void *ssm_a,
+    const void *ssm_dt,
+    int element_count,
+    void *decay_output,
+    void *beta_output,
+    void *stream
+) {
+    const int blocks = (element_count + kBlockSize - 1) / kBlockSize;
+    qwen35_ssm_decay_beta_f32_kernel<<<blocks, kBlockSize, 0, static_cast<cudaStream_t>(stream)>>>(
+        static_cast<const float *>(input),
+        alpha_offset,
+        beta_offset,
+        static_cast<const float *>(ssm_a),
+        static_cast<const float *>(ssm_dt),
+        element_count,
+        static_cast<float *>(decay_output),
+        static_cast<float *>(beta_output)
     );
     return static_cast<int>(cudaGetLastError());
 }

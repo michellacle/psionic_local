@@ -1634,7 +1634,7 @@ impl Qwen35Layer {
         model: &CudaQwen35Model,
         state: &mut Qwen35HybridState,
         kernel_count: &mut usize,
-        bytes_moved: &mut u64,
+        _bytes_moved: &mut u64,
     ) -> Result<(), ReferenceTextGenerationError> {
         let Qwen35LayerKind::Hybrid(hybrid) = &self.kind else {
             return Err(ReferenceTextGenerationError::Runtime(
@@ -1710,42 +1710,16 @@ impl Qwen35Layer {
             qkv_rows,
             &plan.conv_buffer,
         )?;
-        let report = submission.commit(psionic_backend_cuda::CudaCommandWait::Completed)?;
-        *kernel_count = kernel_count.saturating_add(report.encoded_operations);
-
-        plan.decay_host = plan
-            .matvec_output_buffer
-            .read_f32_at_offset(alpha_offset, alpha_rows)
-            .map_err(ReferenceTextGenerationError::Runtime)?;
-        plan.beta_host = plan
-            .matvec_output_buffer
-            .read_f32_at_offset(beta_offset, beta_rows)
-            .map_err(ReferenceTextGenerationError::Runtime)?;
-        for (index, decay) in plan.decay_host.iter_mut().enumerate() {
-            *decay = (softplus(*decay + hybrid.ssm_dt[index]) * hybrid.ssm_a[index]).exp();
-        }
-        for beta in &mut plan.beta_host {
-            *beta = sigmoid(*beta);
-        }
-        plan.decay_buffer
-            .write_f32_at_offset(0, plan.decay_host.as_slice())
-            .map_err(ReferenceTextGenerationError::Runtime)?;
-        plan.beta_buffer
-            .write_f32_at_offset(0, plan.beta_host.as_slice())
-            .map_err(ReferenceTextGenerationError::Runtime)?;
-        *bytes_moved = bytes_moved.saturating_add(
-            alpha_rows
-                .saturating_add(beta_rows)
-                .saturating_add(plan.decay_host.len())
-                .saturating_add(plan.beta_host.len())
-                .saturating_mul(std::mem::size_of::<f32>())
-                .try_into()
-                .unwrap_or(u64::MAX),
-        );
-
-        let mut submission = backend
-            .begin_submission()
-            .map_err(ReferenceTextGenerationError::Runtime)?;
+        submission.qwen35_ssm_decay_beta_f32(
+            &plan.matvec_output_buffer,
+            alpha_offset,
+            beta_offset,
+            &hybrid.ssm_a_device,
+            &hybrid.ssm_dt_device,
+            alpha_rows,
+            &plan.decay_buffer,
+            &plan.beta_buffer,
+        )?;
         submission.copy_buffer_region(&plan.conv_buffer, 0, &plan.q_buffer, 0, q_bytes)?;
         submission.copy_buffer_region(&plan.conv_buffer, q_bytes, &plan.k_buffer, 0, k_bytes)?;
         submission.rms_norm(
@@ -1901,7 +1875,9 @@ struct Qwen35HybridLayer {
     ssm_conv1d: DenseMatrix,
     ssm_conv1d_device: CudaBuffer,
     ssm_a: Vec<f32>,
+    ssm_a_device: CudaBuffer,
     ssm_dt: Vec<f32>,
+    ssm_dt_device: CudaBuffer,
     ssm_norm: Vec<f32>,
     ssm_norm_device: CudaBuffer,
     q_scale_device: CudaBuffer,
@@ -1957,7 +1933,9 @@ impl Qwen35HybridLayer {
                 "qwen35_ssm_conv1d",
             )?,
             ssm_conv1d,
+            ssm_a_device: upload_f32_buffer(backend, ssm_a.as_slice(), "qwen35_ssm_a")?,
             ssm_a,
+            ssm_dt_device: upload_f32_buffer(backend, ssm_dt.as_slice(), "qwen35_ssm_dt")?,
             ssm_dt,
             ssm_norm_device: upload_f32_buffer(backend, ssm_norm.as_slice(), "qwen35_ssm_norm")?,
             q_scale_device: upload_f32_buffer(
@@ -2009,6 +1987,8 @@ impl Qwen35HybridLayer {
         let aux_bytes = self
             .ssm_conv1d
             .host_residency_bytes()
+            .saturating_add(vec_f32_bytes(self.ssm_a.as_slice()))
+            .saturating_add(vec_f32_bytes(self.ssm_dt.as_slice()))
             .saturating_add(vec_f32_bytes(self.ssm_norm.as_slice()))
             .saturating_add(self.state_size.saturating_mul(std::mem::size_of::<f32>()))
             .saturating_add(self.state_size.saturating_mul(std::mem::size_of::<f32>()));
@@ -2276,8 +2256,6 @@ struct Qwen35CudaStepPlan {
     decay_buffer: CudaBuffer,
     beta_buffer: CudaBuffer,
     ones_buffer: CudaBuffer,
-    decay_host: Vec<f32>,
-    beta_host: Vec<f32>,
     logits_buffer: CudaBuffer,
     next_token_host_buffer: CudaHostBuffer,
     next_token_buffer: CudaBuffer,
@@ -2356,8 +2334,6 @@ impl Qwen35CudaStepPlan {
                 .f32_buffer(max_output_rows)
                 .map_err(ReferenceTextGenerationError::Runtime)?,
             ones_buffer,
-            decay_host: Vec::new(),
-            beta_host: Vec::new(),
             logits_buffer: backend
                 .f32_buffer(vocab_size)
                 .map_err(ReferenceTextGenerationError::Runtime)?,

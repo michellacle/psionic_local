@@ -655,6 +655,29 @@ int psionic_cuda_depthwise_causal_conv1d_step_f32(
     return 1;
 }
 
+int psionic_cuda_qwen35_ssm_decay_beta_f32(
+    const void *input,
+    int alpha_offset,
+    int beta_offset,
+    const void *ssm_a,
+    const void *ssm_dt,
+    int element_count,
+    void *decay_output,
+    void *beta_output,
+    void *stream
+) {
+    (void)input;
+    (void)alpha_offset;
+    (void)beta_offset;
+    (void)ssm_a;
+    (void)ssm_dt;
+    (void)element_count;
+    (void)decay_output;
+    (void)beta_output;
+    (void)stream;
+    return 1;
+}
+
 int psionic_cuda_gated_delta_step_f32(
     const void *qkv,
     int query_offset,

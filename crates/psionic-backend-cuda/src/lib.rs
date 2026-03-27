@@ -1791,6 +1791,33 @@ impl CudaSubmission {
         Ok(())
     }
 
+    /// Derives qwen35 SSM decay and beta vectors from projected alpha/beta
+    /// logits and static SSM parameters.
+    pub fn qwen35_ssm_decay_beta_f32(
+        &mut self,
+        input: &CudaBuffer,
+        alpha_offset: usize,
+        beta_offset: usize,
+        ssm_a: &CudaBuffer,
+        ssm_dt: &CudaBuffer,
+        element_count: usize,
+        decay_output: &CudaBuffer,
+        beta_output: &CudaBuffer,
+    ) -> Result<(), RuntimeError> {
+        self.platform.encode_qwen35_ssm_decay_beta_f32(
+            &input.platform,
+            alpha_offset,
+            beta_offset,
+            &ssm_a.platform,
+            &ssm_dt.platform,
+            element_count,
+            &decay_output.platform,
+            &beta_output.platform,
+        )?;
+        self.encoded_operations += 1;
+        Ok(())
+    }
+
     /// Executes one qwen35-style recurrent gated-delta decode step.
     #[allow(clippy::too_many_arguments)]
     pub fn gated_delta_step_f32(
@@ -8864,6 +8891,17 @@ mod platform {
             output: *mut c_void,
             stream: CudaStream,
         ) -> CudaError;
+        fn psionic_cuda_qwen35_ssm_decay_beta_f32(
+            input: *const c_void,
+            alpha_offset: c_int,
+            beta_offset: c_int,
+            ssm_a: *const c_void,
+            ssm_dt: *const c_void,
+            element_count: c_int,
+            decay_output: *mut c_void,
+            beta_output: *mut c_void,
+            stream: CudaStream,
+        ) -> CudaError;
         fn psionic_cuda_gated_delta_step_f32(
             qkv: *const c_void,
             query_offset: c_int,
@@ -11344,6 +11382,51 @@ mod platform {
                     )
                 },
                 "psionic_cuda_depthwise_causal_conv1d_step_f32",
+            )
+        }
+
+        pub(super) fn encode_qwen35_ssm_decay_beta_f32(
+            &mut self,
+            input: &PlatformBuffer,
+            alpha_offset: usize,
+            beta_offset: usize,
+            ssm_a: &PlatformBuffer,
+            ssm_dt: &PlatformBuffer,
+            element_count: usize,
+            decay_output: &PlatformBuffer,
+            beta_output: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            let alpha_offset = c_int::try_from(alpha_offset).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda qwen35 ssm alpha offset exceeds c_int",
+                ))
+            })?;
+            let beta_offset = c_int::try_from(beta_offset).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda qwen35 ssm beta offset exceeds c_int",
+                ))
+            })?;
+            let element_count = c_int::try_from(element_count).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda qwen35 ssm element count exceeds c_int",
+                ))
+            })?;
+            self.runtime.set_device()?;
+            self.runtime.check(
+                unsafe {
+                    psionic_cuda_qwen35_ssm_decay_beta_f32(
+                        input.inner.device_ptr.cast(),
+                        alpha_offset,
+                        beta_offset,
+                        ssm_a.inner.device_ptr.cast(),
+                        ssm_dt.inner.device_ptr.cast(),
+                        element_count,
+                        decay_output.inner.device_ptr.cast(),
+                        beta_output.inner.device_ptr.cast(),
+                        self.stream,
+                    )
+                },
+                "psionic_cuda_qwen35_ssm_decay_beta_f32",
             )
         }
 
@@ -14575,6 +14658,22 @@ mod platform {
             _channels: usize,
             _kernel_size: usize,
             _output: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            Err(RuntimeError::Backend(String::from(
+                "cuda quantized text-generation kernels require Linux CUDA support",
+            )))
+        }
+
+        pub(super) fn encode_qwen35_ssm_decay_beta_f32(
+            &mut self,
+            _input: &PlatformBuffer,
+            _alpha_offset: usize,
+            _beta_offset: usize,
+            _ssm_a: &PlatformBuffer,
+            _ssm_dt: &PlatformBuffer,
+            _element_count: usize,
+            _decay_output: &PlatformBuffer,
+            _beta_output: &PlatformBuffer,
         ) -> Result<(), RuntimeError> {
             Err(RuntimeError::Backend(String::from(
                 "cuda quantized text-generation kernels require Linux CUDA support",
@@ -19512,6 +19611,68 @@ mod tests {
             &selected_weights_separate.read_f32()?,
             1e-6,
         );
+        Ok(())
+    }
+
+    #[test]
+    fn cuda_submission_qwen35_ssm_decay_beta_matches_host_formula(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let mut backend = CudaBackend::new();
+        let Some(_selected) = backend.selected_device().cloned() else {
+            assert_eq!(backend.health().status, HealthStatus::Offline);
+            return Ok(());
+        };
+
+        let input = vec![
+            0.25_f32, -0.5, 1.0, 0.75, -1.25, 0.5, -0.2, 0.35, -0.8, 0.9, 0.6, -0.4,
+        ];
+        let alpha_offset = 2usize;
+        let beta_offset = 7usize;
+        let element_count = 4usize;
+        let ssm_a = vec![-0.8_f32, -0.55, -0.35, -0.15];
+        let ssm_dt = vec![0.1_f32, -0.2, 0.05, 0.3];
+
+        let input_buffer = backend.input_buffer(Shape::new(vec![input.len()]), input.clone())?;
+        let ssm_a_buffer = backend.input_buffer(Shape::new(vec![ssm_a.len()]), ssm_a.clone())?;
+        let ssm_dt_buffer =
+            backend.input_buffer(Shape::new(vec![ssm_dt.len()]), ssm_dt.clone())?;
+        let decay_output = backend.f32_buffer(element_count)?;
+        let beta_output = backend.f32_buffer(element_count)?;
+
+        let mut submission = backend.begin_submission()?;
+        submission.qwen35_ssm_decay_beta_f32(
+            &input_buffer,
+            alpha_offset,
+            beta_offset,
+            &ssm_a_buffer,
+            &ssm_dt_buffer,
+            element_count,
+            &decay_output,
+            &beta_output,
+        )?;
+        let report = submission.commit(CudaCommandWait::Completed)?;
+        assert_eq!(report.encoded_operations, 1);
+
+        let expected_decay = (0..element_count)
+            .map(|index| {
+                let shifted = input[alpha_offset + index] + ssm_dt[index];
+                let softplus = if shifted > 20.0 {
+                    shifted
+                } else {
+                    (1.0 + shifted.exp()).ln()
+                };
+                (softplus * ssm_a[index]).exp()
+            })
+            .collect::<Vec<_>>();
+        let expected_beta = (0..element_count)
+            .map(|index| {
+                let value = input[beta_offset + index];
+                1.0 / (1.0 + (-value).exp())
+            })
+            .collect::<Vec<_>>();
+
+        assert_close(&decay_output.read_f32()?, &expected_decay, 1e-6);
+        assert_close(&beta_output.read_f32()?, &expected_beta, 1e-6);
         Ok(())
     }
 

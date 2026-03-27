@@ -113,29 +113,37 @@ The pilot is intentionally bounded:
 
 ## Current Throughput
 
-Measured on this host on March 26, 2026 with the downloaded
+Measured on this host on March 27, 2026 with the downloaded
 `qwen3.5:0.8b-q8_0.gguf`, the same one-sentence prompt, and a `128` token cap:
 
-- Psionic native CUDA qwen35 decode throughput: about `366.06 tok/s`
-- local Ollama `qwen3.5:0.8b` decode throughput: about `326.37 tok/s`
+- Psionic native CUDA qwen35 decode throughput: about `403.21 tok/s`
+- local Ollama `qwen3.5:0.8b` decode throughput: about `323.65 tok/s`
+
+This improvement came from one architectural change inside the native Psionic
+runtime: hybrid qwen35 layers now derive SSM `decay` and `beta` on CUDA and
+keep the whole hybrid decode step inside one submission instead of syncing
+alpha and beta through the CPU each token.
 
 This pilot therefore proves native CUDA execution correctness, honest
-publication, and a first throughput win over the local Ollama baseline on this
+publication, and a wider throughput win over the local Ollama baseline on this
 host.
 
-The same March 26, 2026 benchmark also shows the current boundary clearly:
+The same March 27, 2026 benchmark also shows the current boundary clearly:
 
-- Psionic greedy prompt replay for this prompt now spends about `50-52 ms` on
-  the `22` prompt tokens after adding a no-output prefix path
+- Psionic greedy prompt replay for this prompt now spends about `44-48 ms` on
+  the `22` prompt tokens
 - local Ollama still leads on end-to-end prompt-plus-decode throughput on the
-  same prompt at about `532.58 tok/s`
+  same prompt
 
 ## Current Bottlenecks
 
-The remaining optimization headroom is inside Psionic's native qwen35 runtime:
+The remaining optimization headroom is still inside Psionic's native qwen35
+runtime:
 
 - token embedding gather still enters the decode path through a less
-  device-native route than Ollama
+  device-native route than it should
+- the full-attention path still burns extra split, copy, and normalization
+  kernels before the attention decode kernel
 - the runtime still executes more synchronized CUDA submissions than it should
 - the lane still refuses KV-session reuse, prefix caching, and adapter serving
 - the lane has not yet proven a wider batch, longer context, or concurrent
