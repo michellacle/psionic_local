@@ -334,6 +334,18 @@ checkpoints, and provisional score artifacts, plus one explicit
 digest-mismatch refusal. It proves public artifact transport can fail closed on
 corruption instead of quietly trusting whichever path returned bytes first.
 
+The repo now also owns the first public miner protocol contract in
+`crates/psionic-train/src/public_miner_protocol_contract.rs`, the binary
+`public_miner_protocol_contract`, the checker
+`scripts/check-public-miner-protocol-contract.sh`, the focused reference doc
+`docs/PUBLIC_MINER_PROTOCOL_REFERENCE.md`, and the committed fixture
+`fixtures/training/public_miner_protocol_contract_v1.json`. That surface turns
+the public miner lane into a typed execution protocol: one execution-class
+binding, one bounded retry policy, active miner sessions, local-step receipts,
+delta publication receipts, checkpoint-sync receipts, and one explicit stale
+standby refusal. It proves public miner behavior no longer lives only in
+runbooks or implied runtime sequencing.
+
 The repo now also owns the first dense-rank recovery contract in
 `crates/psionic-train/src/dense_rank_recovery_contract.rs`, the binary
 `dense_rank_recovery_contract`, the checker

@@ -1,0 +1,136 @@
+{
+  "schema_version": "psionic.public_miner_protocol_contract.v1",
+  "contract_id": "psionic.public_miner_protocol_contract.v1",
+  "public_network_registry_contract_digest": "ebb5ca08893fe16f1a72c67f2fd99aefe44a95af7670bb31e875b2d77b88b7f4",
+  "public_work_assignment_contract_digest": "c3432d6ae531283e0da93ccb1ced6729ab4fc5d6014bb5be8e091e2f7184e601",
+  "public_dataset_authority_contract_digest": "cf87c412eecde92e38d382fc2ec2fae3c6bb17a1b4b9963e91e0f67ed77ffd60",
+  "live_checkpoint_catchup_contract_digest": "3589f9e87675511227b73ec95e226ab99354f09cba35cc9c0d72c1608d9a10d8",
+  "quantized_outer_sync_contract_digest": "1b67541b4b4c9b316a8ba78625c4e745c9c3da0f447eacf8585b9e2cafbd5fc2",
+  "content_addressed_artifact_exchange_contract_digest": "1d2153ccb088b9bac59de0e9a0f7534251b42799590bd97e7a5604c3b22f45ef",
+  "execution_class_binding": {
+    "execution_class_id": "psionic.execution_class.public_miner.v1",
+    "admitted_role_class": "public_miner",
+    "legacy_assignment_execution_class": "validated_contributor_window",
+    "detail": "The public miner protocol is now first-class under its own execution-class id while still binding back to the current validated contributor assignment vocabulary until the root manifest widens."
+  },
+  "retry_policy": {
+    "max_assignment_intake_attempts": 2,
+    "max_delta_upload_attempts": 3,
+    "max_checkpoint_sync_attempts": 2,
+    "window_close_refusal_kind": "assignment_window_closed",
+    "checkpoint_sync_refusal_kind": "checkpoint_sync_lag_exceeded",
+    "detail": "Public miners may retry bounded intake, upload, and checkpoint-sync operations, but the protocol still fails closed on closed windows or stale checkpoint recovery."
+  },
+  "sessions": [
+    {
+      "session_id": "session.public_miner.google.window1231",
+      "miner_registry_record_id": "google_l4_validator_node.registry",
+      "assignment_id": "assignment.public_miner.window1231.google",
+      "assignment_receipt_id": "receipt.assignment.public_miner.window1231.google",
+      "dataset_receipt_id": "anti_replay.assignment.public_miner.window1231.google",
+      "checkpoint_reference_id": "advertisement.checkpoint_authority.google.mirror",
+      "checkpoint_artifact_id": "artifact.checkpoint.step2048.live",
+      "delta_artifact_id": "artifact.delta.google.int8.round2056",
+      "quantized_exchange_receipt_id": "exchange.public_miner.google_to_runpod.int8.1",
+      "planned_local_steps": 64,
+      "actual_local_steps": 64,
+      "delta_upload_retry_count": 1,
+      "final_phase": "window_finalized",
+      "detail": "Google completes the canonical public miner flow for the current active window: assignment intake, local train steps, delta publication, checkpoint synchronization, and window finalization."
+    },
+    {
+      "session_id": "session.public_miner.local_mlx.window1231",
+      "miner_registry_record_id": "local_mlx_mac_workstation.registry",
+      "assignment_id": "assignment.public_miner.window1231.local_mlx",
+      "assignment_receipt_id": "receipt.assignment.public_miner.window1231.local_mlx",
+      "dataset_receipt_id": "anti_replay.assignment.public_miner.window1231.local_mlx",
+      "checkpoint_reference_id": "catchup.public_miner.local_mlx.after_deathrattle",
+      "checkpoint_artifact_id": "artifact.checkpoint.step2048.live",
+      "delta_artifact_id": "artifact.delta.local_mlx.nf4.round2056",
+      "quantized_exchange_receipt_id": "exchange.public_miner.local_mlx_to_runpod.nf4.1",
+      "planned_local_steps": 64,
+      "actual_local_steps": 64,
+      "delta_upload_retry_count": 1,
+      "final_phase": "window_finalized",
+      "detail": "Apple MLX completes the same public miner flow after live checkpoint catch-up, proving the protocol supports rejoin plus normal delta publication in one typed path."
+    }
+  ],
+  "local_step_receipts": [
+    {
+      "receipt_id": "local_steps.public_miner.google.window1231",
+      "session_id": "session.public_miner.google.window1231",
+      "step_start": 2048,
+      "step_end": 2112,
+      "consumed_page_id": "dataset.page.train.0009_0012",
+      "produced_delta_artifact_id": "artifact.delta.google.int8.round2056",
+      "detail": "Google consumes its assigned page slice and closes exactly sixty-four local steps before publishing the quantized delta artifact."
+    },
+    {
+      "receipt_id": "local_steps.public_miner.local_mlx.window1231",
+      "session_id": "session.public_miner.local_mlx.window1231",
+      "step_start": 2048,
+      "step_end": 2112,
+      "consumed_page_id": "dataset.page.train.0013_0016",
+      "produced_delta_artifact_id": "artifact.delta.local_mlx.nf4.round2056",
+      "detail": "Apple MLX consumes its assigned page slice and closes exactly sixty-four local steps before publishing the NF4 residual artifact."
+    }
+  ],
+  "delta_upload_receipts": [
+    {
+      "receipt_id": "delta_upload.public_miner.google.window1231",
+      "session_id": "session.public_miner.google.window1231",
+      "delta_artifact_id": "artifact.delta.google.int8.round2056",
+      "selected_backend_id": "backend.peer.google.seed",
+      "quantized_exchange_receipt_id": "exchange.public_miner.google_to_runpod.int8.1",
+      "completed_before_window_close": true,
+      "detail": "Google publishes its quantized delta through the peer seed and closes upload before the window boundary."
+    },
+    {
+      "receipt_id": "delta_upload.public_miner.local_mlx.window1231",
+      "session_id": "session.public_miner.local_mlx.window1231",
+      "delta_artifact_id": "artifact.delta.local_mlx.nf4.round2056",
+      "selected_backend_id": "backend.peer.local_mlx.seed",
+      "quantized_exchange_receipt_id": "exchange.public_miner.local_mlx_to_runpod.nf4.1",
+      "completed_before_window_close": true,
+      "detail": "Apple MLX publishes its NF4 residual artifact through the overlay-backed peer seed before the window closes."
+    }
+  ],
+  "checkpoint_sync_receipts": [
+    {
+      "receipt_id": "checkpoint_sync.public_miner.google.window1231",
+      "session_id": "session.public_miner.google.window1231",
+      "checkpoint_artifact_id": "artifact.checkpoint.step2048.live",
+      "checkpoint_reference_id": "advertisement.checkpoint_authority.google.mirror",
+      "step_lag_after_sync": 0,
+      "completed": true,
+      "detail": "Google confirms checkpoint synchronization against the mirrored checkpoint-authority advertisement before finalizing the window."
+    },
+    {
+      "receipt_id": "checkpoint_sync.public_miner.local_mlx.window1231",
+      "session_id": "session.public_miner.local_mlx.window1231",
+      "checkpoint_artifact_id": "artifact.checkpoint.step2048.live",
+      "checkpoint_reference_id": "catchup.public_miner.local_mlx.after_deathrattle",
+      "step_lag_after_sync": 0,
+      "completed": true,
+      "detail": "Apple MLX finalizes the window only after the admitted live catch-up receipt proves checkpoint synchronization closed successfully."
+    }
+  ],
+  "refusals": [
+    {
+      "refusal_id": "refusal.public_miner.local_rtx4080.checkpoint_lag",
+      "miner_registry_record_id": "local_rtx4080_workstation.registry",
+      "refusal_kind": "checkpoint_sync_lag_exceeded",
+      "checkpoint_reference_id": "catchup.public_miner.local_rtx4080.partial_state_refused",
+      "final_phase": "refused",
+      "detail": "The stale RTX 4080 standby miner never enters assignment intake for the active public window because checkpoint synchronization was already refused on lag and optimizer-state incompleteness."
+    }
+  ],
+  "authority_paths": {
+    "fixture_path": "fixtures/training/public_miner_protocol_contract_v1.json",
+    "check_script_path": "scripts/check-public-miner-protocol-contract.sh",
+    "reference_doc_path": "docs/PUBLIC_MINER_PROTOCOL_REFERENCE.md",
+    "train_system_doc_path": "docs/TRAIN_SYSTEM.md"
+  },
+  "claim_boundary": "This contract freezes the first public miner execution protocol: execution-class binding, retry posture, assignment intake, local-step receipts, delta publication, checkpoint synchronization, and one stale-standby refusal. It does not yet claim validator verdict truth, checkpoint-promotion consensus, or reward accounting.",
+  "contract_digest": "cd5d4fe71a5cd7ceaa43389127266ea38847a33631f8b7071eb44e77650fad65"
+}
