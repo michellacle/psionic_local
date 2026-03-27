@@ -61,11 +61,12 @@ than just run tensor math.
   q8.0 MMVQ launch from four warps per row down to two, and then broadcasting
   the q8.0 and q8.1 block scales once per four-lane MMVQ subgroup instead of
   rereading them on every lane, and then grouping the q8.0 output-head MMVQ
-  argmax path into two-row blocks before the global argmax CAS, the local
-  `qwen3.5:0.8b` benchmark on this host measured about `535 tok/s` decode on
-  Psionic versus
-  about `329 tok/s` decode on local Ollama for the same one-sentence prompt
-  and `128` token cap.
+  argmax path into two-row blocks before the global argmax CAS, and then
+  specializing the fully active dense q8.0 MMVQ decode path to use a fixed
+  four-lane subgroup shuffle mask instead of recomputing `__activemask()` on
+  every subgroup, the local `qwen3.5:0.8b` benchmark on this host measured
+  about `523 tok/s` decode on Psionic versus about `329 tok/s` decode on local
+  Ollama for the same one-sentence prompt and `128` token cap.
 - The qwen35 lane is now ahead on decode throughput for this host and prompt,
   but it is still not architecture-closed. Greedy prompt replay is materially
   faster than the earlier pilot, but the remaining headroom is still in the

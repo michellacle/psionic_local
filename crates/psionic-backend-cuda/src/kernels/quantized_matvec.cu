@@ -525,7 +525,8 @@ __global__ void gather_f16_row_to_f32_kernel(
     output[index] = __half2float(input[static_cast<size_t>(row_index) * static_cast<size_t>(cols) + index]);
 }
 
-struct Q80Q81Dot {
+template <bool UseActiveMask>
+struct Q80Q81DotImpl {
     __device__ __forceinline__ float operator()(
         const uint8_t *row_weights,
         int block_index,
@@ -566,8 +567,9 @@ struct Q80Q81Dot {
         float input_scale = 0.0f;
         const int subgroup_lane = static_cast<int>(threadIdx.x) & 3;
         const int subgroup_base_lane = static_cast<int>(threadIdx.x) & ~3;
-        const unsigned int subgroup_mask =
-            __activemask() & (0x0fu << static_cast<unsigned int>(subgroup_base_lane));
+        const unsigned int subgroup_mask = UseActiveMask
+            ? (__activemask() & (0x0fu << static_cast<unsigned int>(subgroup_base_lane)))
+            : (0x0fu << static_cast<unsigned int>(subgroup_base_lane));
         if (subgroup_lane == 0) {
             weight_scale = half_to_float(load_u16_le(weight_block->bytes));
             input_scale = half_to_float(load_u16_le(input_block->bytes));
@@ -577,6 +579,9 @@ struct Q80Q81Dot {
         return weight_scale * input_scale * static_cast<float>(sum);
     }
 };
+
+using Q80Q81Dot = Q80Q81DotImpl<true>;
+using Q80Q81DotFixedMask = Q80Q81DotImpl<false>;
 
 struct Mxfp4Q81Dot {
     __device__ __forceinline__ float operator()(
@@ -5951,7 +5956,7 @@ extern "C" int psionic_cuda_q8_0_matvec_q8_1(
     constexpr int warps_per_row = 2;
     const dim3 block_dims(kWarpSize, rows_per_block * warps_per_row, 1);
     quantized_matvec_q8_1_grouped_mmvq_kernel<
-        Q80Q81Dot,
+        Q80Q81DotFixedMask,
         kQ80Q81MmvqVdr,
         kQ80Qi,
         rows_per_block,
@@ -5968,7 +5973,7 @@ extern "C" int psionic_cuda_q8_0_matvec_q8_1(
         static_cast<const Q81Block *>(input_q8_1),
         static_cast<const float *>(bias),
         static_cast<float *>(output),
-        Q80Q81Dot{}
+        Q80Q81DotFixedMask{}
     );
     return static_cast<int>(cudaGetLastError());
 }
