@@ -2,8 +2,8 @@ use std::{fs, path::Path};
 
 use psionic_eval::PARAMETER_GOLF_CHALLENGE_REVIEW_BENCHMARK_REF;
 use psionic_models::{
-    PARAMETER_GOLF_BASELINE_MODEL_ID, PARAMETER_GOLF_BASELINE_REVISION,
-    PARAMETER_GOLF_PROMOTED_CHALLENGE_PROFILE_ID, ParameterGolfPromotedProfileContract,
+    ParameterGolfPromotedProfileContract, PARAMETER_GOLF_BASELINE_MODEL_ID,
+    PARAMETER_GOLF_BASELINE_REVISION, PARAMETER_GOLF_PROMOTED_CHALLENGE_PROFILE_ID,
 };
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -138,8 +138,8 @@ pub enum ParameterGolfHomegolfTrackContractError {
 
 /// Builds the canonical HOMEGOLF benchmark-track contract report.
 #[must_use]
-pub fn build_parameter_golf_homegolf_track_contract_report()
--> ParameterGolfHomegolfTrackContractReport {
+pub fn build_parameter_golf_homegolf_track_contract_report(
+) -> ParameterGolfHomegolfTrackContractReport {
     let strict_profile = ParameterGolfPromotedProfileContract::strict_pgolf_challenge_v0();
     let required_surfaces = vec![
         ParameterGolfHomegolfRequiredSurface {
@@ -205,6 +205,24 @@ pub fn build_parameter_golf_homegolf_track_contract_report()
             ],
         },
         ParameterGolfHomegolfRequiredSurface {
+            surface_id: String::from("score_relevant_dense_runtime"),
+            status: ParameterGolfHomegolfSurfaceStatus::Satisfied,
+            detail: String::from(
+                "HOMEGOLF now has one canonical score-relevant dense runtime report proving that the retained mixed-device dense lane carries resident state, challenge-scale token volume, explicit phase timing, and enough projected 600-second throughput to move beyond symbolic proof updates.",
+            ),
+            evidence_refs: vec![
+                String::from(
+                    "fixtures/parameter_golf/reports/parameter_golf_homegolf_score_relevant_runtime.json",
+                ),
+                String::from(
+                    "crates/psionic-train/src/parameter_golf_homegolf_score_runtime.rs",
+                ),
+                String::from(
+                    "docs/audits/2026-03-27-homegolf-score-relevant-runtime-audit.md",
+                ),
+            ],
+        },
+        ParameterGolfHomegolfRequiredSurface {
             surface_id: String::from("public_comparison_report"),
             status: ParameterGolfHomegolfSurfaceStatus::Satisfied,
             detail: String::from(
@@ -266,11 +284,14 @@ pub fn build_parameter_golf_homegolf_track_contract_report()
             surface_id: String::from("mixed_device_dense_home_cluster_execution"),
             status: ParameterGolfHomegolfSurfaceStatus::Blocked,
             detail: String::from(
-                "The upgraded HOMEGOLF surface now has real MLX-plus-H100 dense execution truth, but admitted home-cluster dense closure on the local Apple-plus-home-RTX device set remains the next implementation step.",
+                "The upgraded HOMEGOLF runtime now has real score-relevant MLX-plus-H100 dense execution truth, but admitted home-cluster dense closure on the local Apple-plus-home-RTX device set remains the next implementation step.",
             ),
             evidence_refs: vec![
                 String::from(
                     "fixtures/parameter_golf/reports/parameter_golf_homegolf_clustered_run_surface.json",
+                ),
+                String::from(
+                    "fixtures/parameter_golf/reports/parameter_golf_homegolf_score_relevant_runtime.json",
                 ),
                 String::from("crates/psionic-train/src/first_same_job_mixed_backend_dense_run.rs"),
                 String::from("docs/audits/2026-03-27-tailnet-short-run-device-audit.md"),
@@ -397,9 +418,9 @@ mod tests {
     use std::path::PathBuf;
 
     use super::{
-        PARAMETER_GOLF_HOMEGOLF_TRACK_CONTRACT_REPORT_REF, ParameterGolfHomegolfSurfaceStatus,
         build_parameter_golf_homegolf_track_contract_report,
-        write_parameter_golf_homegolf_track_contract_report,
+        write_parameter_golf_homegolf_track_contract_report, ParameterGolfHomegolfSurfaceStatus,
+        PARAMETER_GOLF_HOMEGOLF_TRACK_CONTRACT_REPORT_REF,
     };
 
     #[test]
@@ -410,63 +431,49 @@ mod tests {
         assert!(report.exact_fineweb_sp1024_identity_required);
         assert!(report.exact_contest_bpb_accounting_required);
         assert!(report.inferable_bundle_required);
-        assert!(
-            report
-                .required_surfaces
-                .iter()
-                .any(|surface| surface.surface_id == "dense_trainer_entrypoint"
-                    && surface.status == ParameterGolfHomegolfSurfaceStatus::Satisfied)
-        );
-        assert!(
-            report
-                .required_surfaces
-                .iter()
-                .any(
-                    |surface| surface.surface_id == "clustered_homegolf_score_surface"
-                        && surface.status == ParameterGolfHomegolfSurfaceStatus::Satisfied
-                )
-        );
-        assert!(
-            report
-                .required_surfaces
-                .iter()
-                .any(
-                    |surface| surface.surface_id == "mixed_hardware_manifest_surface"
-                        && surface.status == ParameterGolfHomegolfSurfaceStatus::Satisfied
-                )
-        );
-        assert!(
-            report
-                .required_surfaces
-                .iter()
-                .any(|surface| surface.surface_id == "public_comparison_report"
-                    && surface.status == ParameterGolfHomegolfSurfaceStatus::Satisfied)
-        );
-        assert!(
-            report
-                .required_surfaces
-                .iter()
-                .any(|surface| surface.surface_id == "artifact_accounting_report"
-                    && surface.status == ParameterGolfHomegolfSurfaceStatus::Satisfied)
-        );
-        assert!(
-            report
-                .required_surfaces
-                .iter()
-                .any(
-                    |surface| surface.surface_id == "strict_challenge_runnable_lane"
-                        && surface.status == ParameterGolfHomegolfSurfaceStatus::Satisfied
-                )
-        );
-        assert!(
-            report
-                .required_surfaces
-                .iter()
-                .any(
-                    |surface| surface.surface_id == "mixed_device_dense_home_cluster_execution"
-                        && surface.status == ParameterGolfHomegolfSurfaceStatus::Blocked
-                )
-        );
+        assert!(report
+            .required_surfaces
+            .iter()
+            .any(|surface| surface.surface_id == "dense_trainer_entrypoint"
+                && surface.status == ParameterGolfHomegolfSurfaceStatus::Satisfied));
+        assert!(report
+            .required_surfaces
+            .iter()
+            .any(
+                |surface| surface.surface_id == "clustered_homegolf_score_surface"
+                    && surface.status == ParameterGolfHomegolfSurfaceStatus::Satisfied
+            ));
+        assert!(report
+            .required_surfaces
+            .iter()
+            .any(
+                |surface| surface.surface_id == "mixed_hardware_manifest_surface"
+                    && surface.status == ParameterGolfHomegolfSurfaceStatus::Satisfied
+            ));
+        assert!(report
+            .required_surfaces
+            .iter()
+            .any(|surface| surface.surface_id == "public_comparison_report"
+                && surface.status == ParameterGolfHomegolfSurfaceStatus::Satisfied));
+        assert!(report
+            .required_surfaces
+            .iter()
+            .any(|surface| surface.surface_id == "artifact_accounting_report"
+                && surface.status == ParameterGolfHomegolfSurfaceStatus::Satisfied));
+        assert!(report
+            .required_surfaces
+            .iter()
+            .any(
+                |surface| surface.surface_id == "strict_challenge_runnable_lane"
+                    && surface.status == ParameterGolfHomegolfSurfaceStatus::Satisfied
+            ));
+        assert!(report
+            .required_surfaces
+            .iter()
+            .any(
+                |surface| surface.surface_id == "mixed_device_dense_home_cluster_execution"
+                    && surface.status == ParameterGolfHomegolfSurfaceStatus::Blocked
+            ));
     }
 
     #[test]

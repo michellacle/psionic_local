@@ -10,6 +10,12 @@ surface. The canonical runnable lane is now the strict preflight surface at:
 - `crates/psionic-train/src/bin/parameter_golf_homegolf_strict_challenge_lane.rs`
 - `fixtures/parameter_golf/reports/parameter_golf_homegolf_strict_challenge_lane.json`
 
+Historical note after `HOMEGOLF-10`: this rerun is also no longer the canonical
+dense runtime surface. The canonical score-relevant runtime is now:
+
+- `fixtures/parameter_golf/reports/parameter_golf_homegolf_score_relevant_runtime.json`
+- `docs/audits/2026-03-27-homegolf-score-relevant-runtime-audit.md`
+
 ## What Ran
 
 Command:
@@ -233,6 +239,12 @@ Necessary fix:
   artifact policy
 
 ### Gap 2: HOMEGOLF is training on a tiny bounded proof, not contest volume
+
+This gap remains true for the bounded bundle-proof lane described in this audit.
+It is no longer the best current statement of the overall HOMEGOLF runtime,
+because the canonical dense runtime now has its own retained score-relevant
+surface. The remaining open gap is narrower: the admitted home cluster still
+does not yet produce the scored bundle directly under that dense runtime.
 
 The fresh rerun trained with:
 

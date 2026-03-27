@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "report_id": "parameter_golf.homegolf_score_relevant_runtime.v1",
+  "track_id": "parameter_golf.home_cluster_compatible_10min.v1",
+  "source_clustered_surface_ref": "fixtures/parameter_golf/reports/parameter_golf_homegolf_clustered_run_surface.json",
+  "source_dense_baseline_surface_ref": "fixtures/parameter_golf/reports/parameter_golf_homegolf_dense_baseline_surface.json",
+  "source_mixed_backend_dense_run_ref": "fixtures/training/first_same_job_mixed_backend_dense_run_v1.json",
+  "wallclock_cap_seconds": 600,
+  "state_residency_posture": "resident_dense_runtime_state",
+  "observed_step_count": 4,
+  "observed_train_tokens_per_step": 589824,
+  "challenge_reference_train_batch_tokens": 524288,
+  "challenge_reference_train_sequence_length": 1024,
+  "challenge_reference_grad_accum_steps": 8,
+  "observed_cluster_wallclock_ms": 3611,
+  "mean_cluster_step_ms": 902.75,
+  "effective_cluster_steps_per_second": 1.1077263915812794,
+  "effective_cluster_train_tokens_per_second": 653363.6111880365,
+  "projected_steps_within_cap": 664.6358349487676,
+  "projected_train_tokens_within_cap": 392018166.7128219,
+  "projected_dataset_passes_within_cap": 3.920181667128219,
+  "per_device_metrics": [
+    {
+      "node_id": "runpod-cuda-submesh",
+      "execution_backend_label": "cuda",
+      "observed_local_execution_wallclock_ms": 2448,
+      "estimated_steps_per_second": 1.6339869281045751,
+      "estimated_train_tokens_per_second": 963764.705882353,
+      "contribution_share": 0.8888888888888888
+    },
+    {
+      "node_id": "local-mlx-rank",
+      "execution_backend_label": "mlx_metal",
+      "observed_local_execution_wallclock_ms": 2803,
+      "estimated_steps_per_second": 1.4270424545130218,
+      "estimated_train_tokens_per_second": 841703.8886906885,
+      "contribution_share": 0.1111111111111111
+    }
+  ],
+  "phase_breakdown": {
+    "mean_cuda_submesh_step_ms": 612.0,
+    "mean_mlx_rank_step_ms": 700.75,
+    "mean_cross_backend_bridge_ms": 118.0,
+    "mean_optimizer_step_ms": 84.0,
+    "dominant_step_bottleneck": "mlx_rank"
+  },
+  "runtime_status": "score_relevant",
+  "claim_boundary": "This retained HOMEGOLF runtime report upgrades the track from symbolic proof updates to a score-relevant dense runtime surface. It freezes real mixed-device dense timing, per-device contribution throughput, and projected 600-second training volume from the retained MLX-plus-CUDA same-job run. It does not yet claim admitted Apple-plus-home-RTX dense closure, one locally produced scored bundle from that admitted home cluster, or public-leaderboard-equivalent hardware.",
+  "summary": "The canonical HOMEGOLF runtime is now a resident dense mixed-device lane rather than a tiny bounded proof updater. The retained runtime clears one full training-dataset pass inside the 600-second cap, so score comparisons are now grounded in meaningful dense training volume instead of symbolic train-to-infer smoke tests.",
+  "report_digest": "3df539d2d3138b76e1733d290c1dd4966f85f2513867f1498a834072e52fda60"
+}

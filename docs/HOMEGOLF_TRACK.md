@@ -192,6 +192,44 @@ What it does not prove:
   receipts and the final scored export bytes in one artifact family
 - official public-leaderboard equivalence
 
+## Canonical Score-Relevant Dense Runtime
+
+HOMEGOLF now also has one canonical score-relevant dense runtime surface:
+
+- retained runtime report:
+  `fixtures/parameter_golf/reports/parameter_golf_homegolf_score_relevant_runtime.json`
+- generator:
+  `crates/psionic-train/src/parameter_golf_homegolf_score_runtime.rs`
+- entrypoint:
+  `crates/psionic-train/src/bin/parameter_golf_homegolf_score_relevant_runtime.rs`
+- audit:
+  `docs/audits/2026-03-27-homegolf-score-relevant-runtime-audit.md`
+- checker:
+  `scripts/check-parameter-golf-homegolf-score-relevant-runtime.sh`
+
+What this proves:
+
+- the canonical HOMEGOLF dense runtime is no longer a symbolic bounded proof
+  updater
+- the retained mixed-device dense lane keeps resident state across real dense
+  steps
+- the runtime now publishes:
+  - cluster steps per second
+  - cluster train tokens per second
+  - per-device dense throughput
+  - average phase timing for CUDA work, MLX work, bridge time, and optimizer
+    time
+  - projected `600s` training volume
+- the retained runtime clears more than one full training-dataset pass inside
+  the `600s` cap, so quality comparisons are now grounded in real dense
+  training volume instead of symbolic proof traffic
+
+What it does not prove:
+
+- admitted Apple-plus-home-RTX dense closure
+- one locally produced scored bundle from that admitted home cluster
+- public-leaderboard-equivalent hardware or score
+
 ## Public Comparison Report
 
 HOMEGOLF now also has one frozen public comparison surface:
@@ -220,8 +258,9 @@ Current boundary:
 
 - the public references are frozen from the reviewed Parameter Golf repo
   snapshot
-- the HOMEGOLF side now compares using the live dense mixed-device surface and
-  its retained exact dense challenge export bytes
+- the HOMEGOLF side now compares using the live dense mixed-device surface, the
+  canonical score-relevant runtime report, and the retained exact dense
+  challenge export bytes
 - the result is materially stronger than the older open-adapter composition,
   but still not near the public leaderboard on score
 
