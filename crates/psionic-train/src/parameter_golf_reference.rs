@@ -4676,8 +4676,8 @@ mod tests {
         ParameterGolfReferenceTrainingError, ParameterGolfReferenceTrainingRunner,
     };
     use psionic_models::{
-        ParameterGolfPromotedProfileKind, ParameterGolfPromotedRuntimeBundle,
-        ParameterGolfReferenceModel, TokenizerBoundary,
+        ParameterGolfPromotedGenerationTermination, ParameterGolfPromotedProfileKind,
+        ParameterGolfPromotedRuntimeBundle, ParameterGolfReferenceModel, TokenizerBoundary,
     };
 
     #[derive(Clone, Default)]
@@ -5092,6 +5092,44 @@ mod tests {
         );
         assert_eq!(encoded_ids, vec![1, 2, 3, 4, 5, 6, 7, 8]);
         assert_eq!(bundle.tokenizer().decode(encoded.as_slice()), "abcd efg h");
+        Ok(())
+    }
+
+    #[test]
+    fn promoted_parameter_golf_runtime_bundle_generates_greedy_and_seeded_sample_outputs(
+    ) -> Result<(), Box<dyn Error>> {
+        let fixture = ParameterGolfLocalReferenceFixture::reference()?;
+        let config = ParameterGolfReferenceTrainingConfig::promoted_general_small_decoder();
+        let run = run_parameter_golf_promoted_reference_run(&fixture, &config)?;
+        let output_dir = tempdir()?;
+        write_parameter_golf_promoted_reference_run(&run, output_dir.path())?;
+        let bundle = ParameterGolfPromotedRuntimeBundle::load_dir(output_dir.path())?;
+
+        let mut greedy_options = bundle.default_greedy_generation_options();
+        greedy_options.max_new_tokens = 4;
+        let greedy = bundle.generate_text("abcd", &greedy_options)?;
+        assert_eq!(
+            greedy.termination,
+            ParameterGolfPromotedGenerationTermination::MaxNewTokens
+        );
+        assert_eq!(
+            greedy.text,
+            "<reserved_0952><reserved_1005><reserved_0951><reserved_0900>"
+        );
+
+        let mut sample_options = bundle.default_seeded_sampling_options(42);
+        sample_options.max_new_tokens = 4;
+        let sample_left = bundle.generate_text("abcd", &sample_options)?;
+        let sample_right = bundle.generate_text("abcd", &sample_options)?;
+        assert_eq!(sample_left, sample_right);
+        assert_eq!(
+            sample_left.termination,
+            ParameterGolfPromotedGenerationTermination::MaxNewTokens
+        );
+        assert_eq!(
+            sample_left.text,
+            "<reserved_0952><reserved_0422><reserved_0711><reserved_0491>"
+        );
         Ok(())
     }
 

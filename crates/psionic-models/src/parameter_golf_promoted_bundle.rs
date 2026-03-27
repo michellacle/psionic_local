@@ -5,6 +5,7 @@ use std::{
 };
 
 use half::f16;
+use psionic_runtime::{SamplingPolicy, SamplingStrategy, TokenSampler};
 use safetensors::{Dtype as SafeTensorsDType, SafeTensors};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -12,9 +13,10 @@ use thiserror::Error;
 
 use crate::{
     ModelDescriptor, ParameterGolfBankedWeights, ParameterGolfDeterministicInitializer,
-    ParameterGolfModelDescriptor, ParameterGolfModelError, ParameterGolfPromotedProfileContract,
-    ParameterGolfPromotedProfileKind, ParameterGolfReferenceModel, ParameterGolfWeights, TokenId,
-    TokenSequence, TokenVocabulary, TokenizerBoundary,
+    ParameterGolfExecutionError, ParameterGolfModelDescriptor, ParameterGolfModelError,
+    ParameterGolfPromotedProfileContract, ParameterGolfPromotedProfileKind,
+    ParameterGolfReferenceModel, ParameterGolfWeights, TokenId, TokenSequence, TokenVocabulary,
+    TokenizerBoundary,
 };
 
 /// Stable schema version for the promoted PGOLF tokenizer asset.
@@ -926,6 +928,251 @@ impl ParameterGolfPromotedRuntimeBundle {
     pub fn model(&self) -> &ParameterGolfReferenceModel {
         &self.model
     }
+
+    /// Returns greedy generation defaults for this promoted bundle.
+    #[must_use]
+    pub fn default_greedy_generation_options(&self) -> ParameterGolfPromotedGenerationOptions {
+        ParameterGolfPromotedGenerationOptions {
+            max_new_tokens: self.generation_config.default_max_new_tokens,
+            stop_on_eos: self.generation_config.stop_on_eos,
+            sampling_policy: SamplingPolicy {
+                strategy: SamplingStrategy::Greedy,
+                temperature: None,
+                top_k: None,
+                top_p: None,
+                repeat_penalty: None,
+                presence_penalty: None,
+                frequency_penalty: None,
+                seed: None,
+            },
+        }
+    }
+
+    /// Returns seeded sampling defaults for this promoted bundle.
+    #[must_use]
+    pub fn default_seeded_sampling_options(
+        &self,
+        seed: u64,
+    ) -> ParameterGolfPromotedGenerationOptions {
+        let temperature = if self.generation_config.default_temperature <= 1e-6 {
+            0.8
+        } else {
+            self.generation_config.default_temperature
+        };
+        ParameterGolfPromotedGenerationOptions {
+            max_new_tokens: self.generation_config.default_max_new_tokens,
+            stop_on_eos: self.generation_config.stop_on_eos,
+            sampling_policy: SamplingPolicy {
+                strategy: SamplingStrategy::Sample,
+                temperature: Some(temperature),
+                top_k: self.generation_config.default_top_k,
+                top_p: None,
+                repeat_penalty: None,
+                presence_penalty: None,
+                frequency_penalty: None,
+                seed: Some(seed),
+            },
+        }
+    }
+
+    /// Generates text locally from one plain-text prompt through the emitted
+    /// tokenizer asset and restored promoted PGOLF runtime model.
+    pub fn generate_text(
+        &self,
+        prompt: &str,
+        options: &ParameterGolfPromotedGenerationOptions,
+    ) -> Result<ParameterGolfPromotedGenerationOutput, ParameterGolfPromotedGenerationError> {
+        let prompt_tokens = self.tokenizer.encode_with_defaults(prompt);
+        self.generate_tokens(prompt_tokens, options)
+    }
+
+    /// Generates text locally from one pre-tokenized prompt.
+    pub fn generate_tokens(
+        &self,
+        prompt_tokens: TokenSequence,
+        options: &ParameterGolfPromotedGenerationOptions,
+    ) -> Result<ParameterGolfPromotedGenerationOutput, ParameterGolfPromotedGenerationError> {
+        options.validate()?;
+        if prompt_tokens.is_empty() {
+            return Err(ParameterGolfPromotedGenerationError::EmptyPrompt);
+        }
+        let max_context = self.generation_config.max_context;
+        if prompt_tokens.len() > max_context {
+            return Err(ParameterGolfPromotedGenerationError::PromptTooLong {
+                prompt_tokens: prompt_tokens.len(),
+                max_context,
+            });
+        }
+
+        let mut history = prompt_tokens
+            .as_slice()
+            .iter()
+            .map(|token| token.as_u32())
+            .collect::<Vec<_>>();
+        let mut generated_tokens = Vec::new();
+        let mut sampler = TokenSampler::new(&options.sampling_policy);
+        let termination = loop {
+            if generated_tokens.len() >= options.max_new_tokens {
+                break ParameterGolfPromotedGenerationTermination::MaxNewTokens;
+            }
+            if history.len() >= max_context {
+                break ParameterGolfPromotedGenerationTermination::ContextLimit;
+            }
+            let logits = self.model.forward_logits(&[history.clone()])?;
+            let width = logits.width();
+            let sequence_length = logits.sequence_length();
+            let last_row_start = sequence_length
+                .checked_sub(1)
+                .ok_or(ParameterGolfPromotedGenerationError::MissingLogits)?
+                .saturating_mul(width);
+            let last_logits = logits
+                .values()
+                .get(last_row_start..last_row_start.saturating_add(width))
+                .ok_or(ParameterGolfPromotedGenerationError::MissingLogits)?;
+            let next_token = sampler
+                .select_next_token(last_logits, history.as_slice())
+                .ok_or(ParameterGolfPromotedGenerationError::MissingLogits)?;
+            let next_token = TokenId(next_token);
+            history.push(next_token.as_u32());
+            generated_tokens.push(next_token);
+            if options.stop_on_eos && self.tokenizer.is_end_of_sequence(next_token) {
+                break ParameterGolfPromotedGenerationTermination::EndOfSequence;
+            }
+        };
+
+        let all_tokens = prompt_tokens
+            .as_slice()
+            .iter()
+            .copied()
+            .chain(generated_tokens.iter().copied())
+            .collect::<Vec<_>>();
+        let generated_sequence = TokenSequence::new(generated_tokens);
+        Ok(ParameterGolfPromotedGenerationOutput {
+            prompt_tokens,
+            generated_tokens: generated_sequence.clone(),
+            all_tokens: TokenSequence::new(all_tokens),
+            text: self.tokenizer.decode(generated_sequence.as_slice()),
+            termination,
+        })
+    }
+}
+
+/// Local decode options for one promoted PGOLF runtime generation call.
+#[derive(Clone, Debug, PartialEq)]
+pub struct ParameterGolfPromotedGenerationOptions {
+    /// Maximum number of new tokens to emit.
+    pub max_new_tokens: usize,
+    /// Whether generation should stop when one emitted EOS token appears.
+    pub stop_on_eos: bool,
+    /// Runtime token-sampling policy.
+    pub sampling_policy: SamplingPolicy,
+}
+
+impl ParameterGolfPromotedGenerationOptions {
+    /// Creates greedy generation options with the requested budget.
+    #[must_use]
+    pub fn greedy(max_new_tokens: usize) -> Self {
+        Self {
+            max_new_tokens,
+            stop_on_eos: true,
+            sampling_policy: SamplingPolicy {
+                strategy: SamplingStrategy::Greedy,
+                temperature: None,
+                top_k: None,
+                top_p: None,
+                repeat_penalty: None,
+                presence_penalty: None,
+                frequency_penalty: None,
+                seed: None,
+            },
+        }
+    }
+
+    /// Creates seeded sampling options with the requested budget.
+    #[must_use]
+    pub fn sample(max_new_tokens: usize, seed: u64) -> Self {
+        Self {
+            max_new_tokens,
+            stop_on_eos: true,
+            sampling_policy: SamplingPolicy {
+                strategy: SamplingStrategy::Sample,
+                temperature: None,
+                top_k: None,
+                top_p: None,
+                repeat_penalty: None,
+                presence_penalty: None,
+                frequency_penalty: None,
+                seed: Some(seed),
+            },
+        }
+    }
+
+    /// Overrides the runtime sampling policy.
+    #[must_use]
+    pub fn with_sampling_policy(mut self, sampling_policy: SamplingPolicy) -> Self {
+        self.sampling_policy = sampling_policy;
+        self
+    }
+
+    /// Overrides EOS stopping behavior.
+    #[must_use]
+    pub fn with_stop_on_eos(mut self, stop_on_eos: bool) -> Self {
+        self.stop_on_eos = stop_on_eos;
+        self
+    }
+
+    fn validate(&self) -> Result<(), ParameterGolfPromotedGenerationError> {
+        if self.max_new_tokens == 0 {
+            return Err(ParameterGolfPromotedGenerationError::InvalidMaxNewTokens);
+        }
+        Ok(())
+    }
+}
+
+/// Local termination reason for one promoted PGOLF generation call.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ParameterGolfPromotedGenerationTermination {
+    /// Generation stopped because the requested output budget was exhausted.
+    MaxNewTokens,
+    /// Generation stopped because one emitted token matched the tokenizer EOS set.
+    EndOfSequence,
+    /// Generation stopped because the runtime context budget was exhausted.
+    ContextLimit,
+}
+
+/// Public generation output for one promoted PGOLF runtime inference call.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ParameterGolfPromotedGenerationOutput {
+    /// Prompt tokenization fed into the runtime model.
+    pub prompt_tokens: TokenSequence,
+    /// Newly generated tokens.
+    pub generated_tokens: TokenSequence,
+    /// Prompt plus generated tokens in one contiguous sequence.
+    pub all_tokens: TokenSequence,
+    /// Decoded generated text only.
+    pub text: String,
+    /// Why generation terminated.
+    pub termination: ParameterGolfPromotedGenerationTermination,
+}
+
+/// Local generation failure for the promoted PGOLF runtime path.
+#[derive(Debug, Error)]
+pub enum ParameterGolfPromotedGenerationError {
+    #[error("promoted PGOLF generation requires a non-empty prompt")]
+    EmptyPrompt,
+    #[error("promoted PGOLF generation max_new_tokens must be positive")]
+    InvalidMaxNewTokens,
+    #[error(
+        "promoted PGOLF prompt carried {prompt_tokens} tokens but max_context is {max_context}"
+    )]
+    PromptTooLong {
+        prompt_tokens: usize,
+        max_context: usize,
+    },
+    #[error("promoted PGOLF generation could not recover one next-token logit row")]
+    MissingLogits,
+    #[error(transparent)]
+    Model(#[from] ParameterGolfExecutionError),
 }
 
 fn require_nonempty(value: &str, field: &str) -> Result<(), ParameterGolfPromotedBundleError> {
