@@ -31,6 +31,10 @@ const TOKENIZER_ARTIFACT_BUNDLE_FIXTURE_PATH: &str =
     "../../../fixtures/psion/tokenizer/psion_tokenizer_artifact_bundle_v1.json";
 const TOKENIZED_CORPUS_FIXTURE_PATH: &str =
     "../../../fixtures/psion/tokenized/psion_tokenized_corpus_manifest_v1.json";
+const TOKENIZER_ARTIFACT_BUNDLE_FIXTURE_JSON: &str =
+    include_str!("../../../fixtures/psion/tokenizer/psion_tokenizer_artifact_bundle_v1.json");
+const TOKENIZED_CORPUS_FIXTURE_JSON: &str =
+    include_str!("../../../fixtures/psion/tokenized/psion_tokenized_corpus_manifest_v1.json");
 
 #[derive(Debug, Error)]
 pub enum PublicDatasetAuthorityContractError {
@@ -616,7 +620,7 @@ fn anti_replay_receipt(
 
 fn canonical_psion_tokenizer_artifact_bundle(
 ) -> Result<PsionTokenizerArtifactBundle, PublicDatasetAuthorityContractError> {
-    serde_json::from_str(include_str!(TOKENIZER_ARTIFACT_BUNDLE_FIXTURE_PATH)).map_err(|error| {
+    serde_json::from_str(TOKENIZER_ARTIFACT_BUNDLE_FIXTURE_JSON).map_err(|error| {
         PublicDatasetAuthorityContractError::FixtureDeserialize {
             fixture: TOKENIZER_ARTIFACT_BUNDLE_FIXTURE_PATH,
             error,
@@ -626,7 +630,7 @@ fn canonical_psion_tokenizer_artifact_bundle(
 
 fn canonical_psion_tokenized_corpus_manifest(
 ) -> Result<PsionTokenizedCorpusManifest, PublicDatasetAuthorityContractError> {
-    serde_json::from_str(include_str!(TOKENIZED_CORPUS_FIXTURE_PATH)).map_err(|error| {
+    serde_json::from_str(TOKENIZED_CORPUS_FIXTURE_JSON).map_err(|error| {
         PublicDatasetAuthorityContractError::FixtureDeserialize {
             fixture: TOKENIZED_CORPUS_FIXTURE_PATH,
             error,

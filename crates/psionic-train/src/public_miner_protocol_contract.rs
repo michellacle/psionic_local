@@ -14,7 +14,7 @@ use crate::{
     canonical_public_network_registry_contract, canonical_public_work_assignment_contract,
     canonical_quantized_outer_sync_contract, ContentAddressedArtifactExchangeContractError,
     ContentAddressedArtifactKind, ContentAddressedExchangeBackendKind, CrossProviderExecutionClass,
-    DecentralizedNetworkRoleClass, LiveCheckpointCatchupContractError,
+    CatchupDisposition, DecentralizedNetworkRoleClass, LiveCheckpointCatchupContractError,
     PublicDataReceiptDisposition, PublicDatasetAuthorityContractError,
     PublicNetworkRegistryContractError, PublicWorkAssignmentContractError,
     PublicWorkAssignmentKind, QuantizedOuterSyncContractError,

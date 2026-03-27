@@ -13626,6 +13626,12 @@ mod platform {
     }
 
     impl PlatformSubmission {
+        pub(super) fn allocate(&self, _byte_len: usize) -> Result<PlatformBuffer, RuntimeError> {
+            Err(RuntimeError::Backend(String::from(
+                "cuda runtime substrate currently requires Linux libcudart",
+            )))
+        }
+
         pub(super) fn fill_buffer(
             &mut self,
             _buffer: &PlatformBuffer,

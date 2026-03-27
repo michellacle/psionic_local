@@ -151,6 +151,14 @@ impl LiveCheckpointCatchupContract {
         let mesh = canonical_elastic_device_mesh_contract()?;
         let registry = canonical_public_network_registry_contract()?;
         let wan = canonical_wan_overlay_route_contract()?;
+        let checkpoint_step = checkpoint_contract
+            .checkpoint_manifest
+            .checkpoint
+            .step
+            .or(checkpoint_contract.checkpoint_pointer.checkpoint.step)
+            .ok_or_else(|| LiveCheckpointCatchupContractError::InvalidContract {
+                detail: String::from("distributed checkpoint contract lost its admitted step"),
+            })?;
 
         let record_ids = registry
             .registry_records
@@ -334,9 +342,7 @@ impl LiveCheckpointCatchupContract {
                     }
                 }
             }
-            if advertisement.advertised_step
-                != checkpoint_contract.checkpoint_manifest.checkpoint.step
-            {
+            if advertisement.advertised_step != checkpoint_step {
                 return Err(LiveCheckpointCatchupContractError::InvalidContract {
                     detail: format!(
                         "advertisement `{}` drifted from the admitted checkpoint step",
@@ -533,6 +539,14 @@ pub fn canonical_live_checkpoint_catchup_contract(
     let dense_recovery = canonical_dense_rank_recovery_contract()?;
     let mesh = canonical_elastic_device_mesh_contract()?;
     let wan = canonical_wan_overlay_route_contract()?;
+    let checkpoint_step = checkpoint_contract
+        .checkpoint_manifest
+        .checkpoint
+        .step
+        .or(checkpoint_contract.checkpoint_pointer.checkpoint.step)
+        .ok_or_else(|| LiveCheckpointCatchupContractError::InvalidContract {
+            detail: String::from("distributed checkpoint contract lost its admitted step"),
+        })?;
 
     let advertisements = vec![
         advertisement(
@@ -542,7 +556,7 @@ pub fn canonical_live_checkpoint_catchup_contract(
             CatchupAdvertisementKind::CheckpointAuthorityMirror,
             &checkpoint_contract.checkpoint_manifest.manifest_digest,
             &checkpoint_contract.checkpoint_pointer.pointer_digest,
-            checkpoint_contract.checkpoint_manifest.checkpoint.step,
+            checkpoint_step,
             &["resume_window.live_join_2048", "resume_window.partial_state_refused_2048"],
             true,
             true,
@@ -555,7 +569,7 @@ pub fn canonical_live_checkpoint_catchup_contract(
             CatchupAdvertisementKind::CheckpointAuthorityMirror,
             &checkpoint_contract.checkpoint_manifest.manifest_digest,
             &checkpoint_contract.checkpoint_pointer.pointer_digest,
-            checkpoint_contract.checkpoint_manifest.checkpoint.step,
+            checkpoint_step,
             &["resume_window.live_join_2048"],
             true,
             true,
@@ -568,7 +582,7 @@ pub fn canonical_live_checkpoint_catchup_contract(
             CatchupAdvertisementKind::ActivePeerSidecar,
             &checkpoint_contract.checkpoint_manifest.manifest_digest,
             &checkpoint_contract.checkpoint_pointer.pointer_digest,
-            checkpoint_contract.checkpoint_manifest.checkpoint.step,
+            checkpoint_step,
             &["resume_window.partial_state_refused_2048"],
             true,
             false,
@@ -617,7 +631,7 @@ pub fn canonical_live_checkpoint_catchup_contract(
             selected_route_id: String::from("route.checkpoint_authority.local_mlx_runpod.overlay"),
             restore_assignment_id: String::from("restore-rank-2"),
             resume_window_id: String::from("resume_window.live_join_2048"),
-            target_checkpoint_step: checkpoint_contract.checkpoint_manifest.checkpoint.step,
+            target_checkpoint_step: checkpoint_step,
             joining_step_lag: 0,
             served_parameter_bytes: 134_217_728,
             served_optimizer_bytes: 268_435_456,
@@ -636,7 +650,7 @@ pub fn canonical_live_checkpoint_catchup_contract(
             selected_route_id: String::from("route.public_miner.local_rtx4080_local_mlx.overlay_failover"),
             restore_assignment_id: String::from("restore-rank-3"),
             resume_window_id: String::from("resume_window.partial_state_refused_2048"),
-            target_checkpoint_step: checkpoint_contract.checkpoint_manifest.checkpoint.step,
+            target_checkpoint_step: checkpoint_step,
             joining_step_lag: 24,
             served_parameter_bytes: 67_108_864,
             served_optimizer_bytes: 0,
