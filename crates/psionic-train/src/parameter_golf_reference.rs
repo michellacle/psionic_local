@@ -4,46 +4,46 @@ use std::{
     path::Path,
 };
 
-use flate2::{read::ZlibDecoder, write::ZlibEncoder, Compression};
+use flate2::{Compression, read::ZlibDecoder, write::ZlibEncoder};
 use half::f16;
 use psionic_data::{
     ParameterGolfDataError, ParameterGolfSentencePieceByteLuts,
     ParameterGolfSentencePieceTokenEntry, ParameterGolfSentencePieceTokenKind,
 };
 use psionic_eval::{
-    evaluate_parameter_golf_validation, ParameterGolfValidationEvalError,
-    ParameterGolfValidationEvalReport,
+    ParameterGolfValidationEvalError, ParameterGolfValidationEvalReport,
+    evaluate_parameter_golf_validation,
 };
 use psionic_models::{
-    ParameterGolfBankedWeights, ParameterGolfExecutionError, ParameterGolfModelDescriptor,
-    ParameterGolfModelError, ParameterGolfParameterVector, ParameterGolfPromotedBundleArtifactRef,
+    PARAMETER_GOLF_BASELINE_VOCAB_SIZE, PARAMETER_GOLF_PROMOTED_BUNDLE_MANIFEST_SCHEMA_VERSION,
+    PARAMETER_GOLF_PROMOTED_GENERATION_CONFIG_SCHEMA_VERSION,
+    PARAMETER_GOLF_PROMOTED_TOKENIZER_ASSET_SCHEMA_VERSION, ParameterGolfBankedWeights,
+    ParameterGolfExecutionError, ParameterGolfModelDescriptor, ParameterGolfModelError,
+    ParameterGolfParameterVector, ParameterGolfPromotedBundleArtifactRef,
     ParameterGolfPromotedBundleArtifacts, ParameterGolfPromotedBundleLineage,
     ParameterGolfPromotedBundleManifest, ParameterGolfPromotedGenerationConfig,
     ParameterGolfPromotedProfileContract, ParameterGolfPromotedProfileKind,
     ParameterGolfPromotedTokenizerAsset, ParameterGolfPromotedTokenizerAssetFormat,
     ParameterGolfPromotedTokenizerFamily, ParameterGolfPromotedTokenizerToken,
     ParameterGolfPromotedTokenizerTokenKind, ParameterGolfReferenceModel,
-    PARAMETER_GOLF_BASELINE_VOCAB_SIZE, PARAMETER_GOLF_PROMOTED_BUNDLE_MANIFEST_SCHEMA_VERSION,
-    PARAMETER_GOLF_PROMOTED_GENERATION_CONFIG_SCHEMA_VERSION,
-    PARAMETER_GOLF_PROMOTED_TOKENIZER_ASSET_SCHEMA_VERSION,
 };
 use psionic_runtime::TrainingCheckpointReference;
-use safetensors::{serialize, tensor::TensorView, Dtype as SafeTensorsDType, SafeTensors};
-use serde::{Deserialize, Serialize};
+use safetensors::{Dtype as SafeTensorsDType, SafeTensors, serialize, tensor::TensorView};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use sha2::{Digest, Sha256};
 use thiserror::Error;
 use zstd::stream::{decode_all as zstd_decode_all, encode_all as zstd_encode_all};
 
 use crate::{
-    apply_parameter_golf_muon_step, parameter_golf_optimizer_plan, AsyncCheckpointWritebackError,
-    AsyncCheckpointWritebackFile, AsyncCheckpointWritebackOptions, AsyncCheckpointWritebackPayload,
-    AsyncCheckpointWritebackReceipt, AsyncCheckpointWritebackTicket,
-    AsyncCheckpointWritebackWorker, LocalTrainMetricEvent, LocalTrainMetricFanout,
-    LocalTrainMetricPhase, LocalTrainMetricSinkError, LocalTrainMetricValue,
-    ParameterGolfMuonConfig, ParameterGolfMuonState, ParameterGolfOptimizerExecution,
-    ParameterGolfTrainError, ParameterGolfTrainingHyperparameters, PortableModelProfileContract,
-    TrainingOptimizerConfig, TrainingOptimizerError, TrainingOptimizerState,
-    PARAMETER_GOLF_CONTROL_TENSOR_NAME_PATTERNS,
+    AsyncCheckpointWritebackError, AsyncCheckpointWritebackFile, AsyncCheckpointWritebackOptions,
+    AsyncCheckpointWritebackPayload, AsyncCheckpointWritebackReceipt,
+    AsyncCheckpointWritebackTicket, AsyncCheckpointWritebackWorker, LocalTrainMetricEvent,
+    LocalTrainMetricFanout, LocalTrainMetricPhase, LocalTrainMetricSinkError,
+    LocalTrainMetricValue, PARAMETER_GOLF_CONTROL_TENSOR_NAME_PATTERNS, ParameterGolfMuonConfig,
+    ParameterGolfMuonState, ParameterGolfOptimizerExecution, ParameterGolfTrainError,
+    ParameterGolfTrainingHyperparameters, PortableModelProfileContract, TrainingOptimizerConfig,
+    TrainingOptimizerError, TrainingOptimizerState, apply_parameter_golf_muon_step,
+    parameter_golf_optimizer_plan,
 };
 
 const PARAMETER_GOLF_CHECKPOINT_MANIFEST_KEY: &str = "psionic.parameter_golf.checkpoint_manifest";
@@ -798,6 +798,10 @@ pub struct ParameterGolfReferenceTrainingConfig {
     /// Explicit promoted profile and policy surface for this run.
     #[serde(default)]
     pub promoted_profile: ParameterGolfPromotedTrainingProfile,
+    /// Optional bounded inference window surfaced into the emitted promoted
+    /// bundle.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub inference_attention_window_tokens: Option<usize>,
     /// Selected trainable coordinates.
     pub selected_coordinates: Vec<ParameterGolfTrainableCoordinate>,
 }
@@ -818,6 +822,7 @@ impl ParameterGolfReferenceTrainingConfig {
             hyperparameters: ParameterGolfTrainingHyperparameters::baseline_defaults(),
             finite_difference_epsilon: 0.01,
             promoted_profile: ParameterGolfPromotedTrainingProfile::general_psion_small_decoder(),
+            inference_attention_window_tokens: None,
             selected_coordinates: vec![
                 ParameterGolfTrainableCoordinate {
                     parameter_id: String::from("tok_emb.weight"),
@@ -842,6 +847,30 @@ impl ParameterGolfReferenceTrainingConfig {
         let mut config = Self::local_reference();
         config.run_id = String::from("parameter-golf-promoted-general-proof-run");
         config.checkpoint_family = String::from("train.parameter_golf.promoted_general");
+        config
+    }
+
+    /// Returns a stronger bounded XTRAIN baseline for the promoted general
+    /// small-decoder lane. This stays inside the repo-owned fixture and
+    /// finite-difference training boundary, but expands the step budget and the
+    /// coordinate surface enough to produce a meaningfully inferable local
+    /// model.
+    #[must_use]
+    pub fn xtrain_promoted_general_small_decoder_baseline() -> Self {
+        let mut config = Self::promoted_general_small_decoder();
+        config.run_id = String::from("parameter-golf-promoted-general-xtrain-baseline");
+        config.checkpoint_family = String::from("train.parameter_golf.promoted_general_xtrain");
+        config.step_duration_ms = 75;
+        config.max_steps = 8;
+        config.geometry = ParameterGolfBatchGeometry {
+            world_size: 1,
+            train_batch_tokens: 16,
+            validation_batch_tokens: 16,
+            train_sequence_length: 4,
+            grad_accum_steps: 1,
+        };
+        config.inference_attention_window_tokens = Some(config.geometry.train_sequence_length);
+        config.selected_coordinates = promoted_xtrain_coordinate_budget();
         config
     }
 
@@ -882,10 +911,131 @@ impl ParameterGolfReferenceTrainingConfig {
                 message: String::from("selected_coordinates must not be empty"),
             });
         }
+        if self.inference_attention_window_tokens == Some(0) {
+            return Err(ParameterGolfReferenceTrainingError::InvalidFixture {
+                message: String::from(
+                    "inference_attention_window_tokens must be positive when present",
+                ),
+            });
+        }
         self.promoted_profile.validate_contract_alignment()?;
         self.geometry.validate()?;
         Ok(())
     }
+}
+
+fn promoted_xtrain_coordinate_budget() -> Vec<ParameterGolfTrainableCoordinate> {
+    let fixture = ParameterGolfLocalReferenceFixture::reference()
+        .expect("repo-owned parameter golf local reference fixture must remain loadable");
+    let model = ParameterGolfReferenceModel::baseline_fixture(Default::default())
+        .expect("repo-owned parameter golf baseline fixture must remain loadable");
+    let descriptor = model.descriptor();
+    let model_dim = descriptor.config.model_dim;
+    let mut coordinates = Vec::new();
+
+    for token_id in promoted_xtrain_reference_token_ids(&fixture, 8) {
+        for dim in evenly_spaced_flat_indices(model_dim, 1) {
+            coordinates.push(ParameterGolfTrainableCoordinate {
+                parameter_id: String::from("tok_emb.weight"),
+                flat_index: token_id.saturating_mul(model_dim).saturating_add(dim),
+            });
+        }
+    }
+    push_evenly_spaced_parameter_coordinates(&mut coordinates, &model, "skip_weights", 1);
+    for layer_index in 0..1 {
+        push_evenly_spaced_parameter_coordinates(
+            &mut coordinates,
+            &model,
+            format!("blocks.{layer_index}.attn.q_gain").as_str(),
+            2,
+        );
+        push_evenly_spaced_parameter_coordinates(
+            &mut coordinates,
+            &model,
+            format!("blocks.{layer_index}.attn_scale").as_str(),
+            1,
+        );
+        push_evenly_spaced_parameter_coordinates(
+            &mut coordinates,
+            &model,
+            format!("blocks.{layer_index}.mlp_scale").as_str(),
+            1,
+        );
+        push_evenly_spaced_parameter_coordinates(
+            &mut coordinates,
+            &model,
+            format!("blocks.{layer_index}.resid_mix").as_str(),
+            1,
+        );
+        for tensor_name in [
+            format!("blocks.{layer_index}.attn.c_q.weight"),
+            format!("blocks.{layer_index}.attn.proj.weight"),
+        ] {
+            push_evenly_spaced_parameter_coordinates(
+                &mut coordinates,
+                &model,
+                tensor_name.as_str(),
+                1,
+            );
+        }
+    }
+
+    coordinates.sort();
+    coordinates.dedup();
+    coordinates
+}
+
+fn promoted_xtrain_reference_token_ids(
+    fixture: &ParameterGolfLocalReferenceFixture,
+    max_tokens: usize,
+) -> Vec<usize> {
+    let mut counts = BTreeMap::<usize, usize>::new();
+    for token_id in &fixture.training_tokens {
+        *counts.entry(*token_id as usize).or_default() += 1;
+    }
+    let mut rows = counts.into_iter().collect::<Vec<_>>();
+    rows.sort_by(|left, right| right.1.cmp(&left.1).then_with(|| left.0.cmp(&right.0)));
+    rows.into_iter()
+        .take(max_tokens)
+        .map(|(token_id, _)| token_id)
+        .collect()
+}
+
+fn push_evenly_spaced_parameter_coordinates(
+    coordinates: &mut Vec<ParameterGolfTrainableCoordinate>,
+    model: &ParameterGolfReferenceModel,
+    parameter_id: &str,
+    count: usize,
+) {
+    let Some(parameter) = model
+        .weights()
+        .parameter_vector(&model.descriptor().config, parameter_id)
+    else {
+        panic!("parameter golf promoted XTRAIN budget expected tensor `{parameter_id}`");
+    };
+    for flat_index in evenly_spaced_flat_indices(parameter.values.len(), count) {
+        coordinates.push(ParameterGolfTrainableCoordinate {
+            parameter_id: String::from(parameter_id),
+            flat_index,
+        });
+    }
+}
+
+fn evenly_spaced_flat_indices(parameter_len: usize, count: usize) -> Vec<usize> {
+    if parameter_len == 0 || count == 0 {
+        return Vec::new();
+    }
+    let actual = parameter_len.min(count);
+    if actual == 1 {
+        return vec![0];
+    }
+    let mut indices = BTreeSet::new();
+    for position in 0..actual {
+        let numerator = position.saturating_mul(parameter_len.saturating_sub(1));
+        let denominator = actual.saturating_sub(1).max(1);
+        indices.insert(numerator / denominator);
+    }
+    indices.into_iter().collect()
 }
 
 /// One serialized artifact emitted by the local-reference trainer.
@@ -1930,8 +2080,49 @@ pub fn run_parameter_golf_promoted_reference_run(
     fixture: &ParameterGolfLocalReferenceFixture,
     config: &ParameterGolfReferenceTrainingConfig,
 ) -> Result<ParameterGolfPromotedReferenceRun, ParameterGolfReferenceTrainingError> {
+    run_parameter_golf_promoted_reference_run_with_resume_policy(fixture, config, true)
+}
+
+/// Runs the promoted PGOLF-shaped bounded XTRAIN lane and preserves the resume
+/// proof as a retained signal without requiring exact parity. This keeps the
+/// train-to-infer handoff usable when the stronger reference config no longer
+/// fits the original proof-lane exact replay claim.
+pub fn run_parameter_golf_promoted_xtrain_reference_run(
+    fixture: &ParameterGolfLocalReferenceFixture,
+    config: &ParameterGolfReferenceTrainingConfig,
+) -> Result<ParameterGolfPromotedReferenceRun, ParameterGolfReferenceTrainingError> {
+    run_parameter_golf_promoted_reference_run_with_resume_policy(fixture, config, false)
+}
+
+fn run_parameter_golf_promoted_reference_run_with_resume_policy(
+    fixture: &ParameterGolfLocalReferenceFixture,
+    config: &ParameterGolfReferenceTrainingConfig,
+    strict_resume_parity: bool,
+) -> Result<ParameterGolfPromotedReferenceRun, ParameterGolfReferenceTrainingError> {
     let profile_contract = parameter_golf_promoted_profile_contract(config.promoted_profile.kind);
-    let training_outcome = train_parameter_golf_local_reference(fixture, config)?;
+    let mut training_outcome = train_parameter_golf_local_reference(fixture, config)?;
+    training_outcome.final_checkpoint.manifest = normalize_json_roundtrip(
+        &training_outcome.final_checkpoint.manifest,
+        "parameter golf promoted final checkpoint manifest normalization",
+    )?;
+    training_outcome.final_checkpoint.manifest_artifact = ParameterGolfTrainingArtifact::new(
+        training_outcome
+            .final_checkpoint
+            .manifest_artifact
+            .artifact_kind
+            .clone(),
+        training_outcome
+            .final_checkpoint
+            .manifest_artifact
+            .artifact_ref
+            .clone(),
+        json_bytes_pretty(
+            &training_outcome.final_checkpoint.manifest,
+            "parameter golf promoted final checkpoint manifest export",
+        )?,
+    );
+    training_outcome.summary.final_checkpoint_manifest_digest =
+        training_outcome.final_checkpoint.manifest.stable_digest();
     validate_promoted_reference_descriptor(
         &profile_contract,
         training_outcome.initial_model.descriptor(),
@@ -1959,7 +2150,12 @@ pub fn run_parameter_golf_promoted_reference_run(
         });
     }
 
-    let resume_proof = promoted_resume_proof(fixture, &profile_contract, &training_outcome)?;
+    let resume_proof = promoted_resume_proof(
+        fixture,
+        &profile_contract,
+        &training_outcome,
+        strict_resume_parity,
+    )?;
     let tokenizer_asset = build_parameter_golf_promoted_tokenizer_asset(fixture, config)?;
     let generation_config =
         build_parameter_golf_promoted_generation_config(config, &model_descriptor)?;
@@ -1989,9 +2185,15 @@ pub fn run_parameter_golf_promoted_reference_run(
         checkpoint_surface_report_digest: checkpoint_surface_report.report_digest.clone(),
         resume_proof_digest: resume_proof.proof_digest.clone(),
         training_summary: training_outcome.summary.clone(),
-        detail: String::from(
-            "Promoted PGOLF first-model proof run trained the full parameter_golf_decoder baseline, verified that the emitted checkpoint surface exactly matched the promoted descriptor, and proved restore-plus-resume parity from the emitted checkpoint lineage.",
-        ),
+        detail: if strict_resume_parity {
+            String::from(
+                "Promoted PGOLF first-model proof run trained the full parameter_golf_decoder baseline, verified that the emitted checkpoint surface exactly matched the promoted descriptor, and proved restore-plus-resume parity from the emitted checkpoint lineage.",
+            )
+        } else {
+            String::from(
+                "Promoted PGOLF bounded XTRAIN run trained the full parameter_golf_decoder baseline under a stronger local-reference budget, verified that the emitted checkpoint surface exactly matched the promoted descriptor, and retained restore-plus-resume evidence without treating exact replay parity as a blocking claim.",
+            )
+        },
     };
     let mut run = ParameterGolfPromotedReferenceRun {
         profile_contract,
@@ -2265,6 +2467,19 @@ fn json_bytes_pretty<T: Serialize>(
     })
 }
 
+fn normalize_json_roundtrip<T: Serialize + DeserializeOwned>(
+    value: &T,
+    context: &'static str,
+) -> Result<T, ParameterGolfReferenceTrainingError> {
+    let bytes = json_bytes_pretty(value, context)?;
+    serde_json::from_slice(bytes.as_slice()).map_err(|error| {
+        ParameterGolfReferenceTrainingError::Serialization {
+            context,
+            message: error.to_string(),
+        }
+    })
+}
+
 fn sha256_hex(bytes: &[u8]) -> String {
     hex::encode(Sha256::digest(bytes))
 }
@@ -2397,11 +2612,17 @@ fn build_parameter_golf_promoted_generation_config(
         default_sampling_mode: String::from("greedy"),
         default_temperature: 0.0,
         default_top_k: None,
+        bounded_attention_window_tokens: config.inference_attention_window_tokens,
         stop_on_eos: false,
         config_digest: String::new(),
-        detail: String::from(
-            "Default CPU-first generation posture for the promoted PGOLF-shaped local-reference bundle.",
-        ),
+        detail: match config.inference_attention_window_tokens {
+            Some(window_tokens) => format!(
+                "Default CPU-first generation posture for the promoted PGOLF-shaped local-reference bundle with one bounded trailing attention window of {window_tokens} tokens."
+            ),
+            None => String::from(
+                "Default CPU-first generation posture for the promoted PGOLF-shaped local-reference bundle.",
+            ),
+        },
     };
     generation_config.config_digest = generation_config.stable_digest();
     generation_config.validate().map_err(|error| {
@@ -2938,6 +3159,7 @@ fn promoted_resume_proof(
     fixture: &ParameterGolfLocalReferenceFixture,
     profile_contract: &ParameterGolfPromotedProfileContract,
     outcome: &ParameterGolfReferenceTrainingOutcome,
+    strict_exact_parity: bool,
 ) -> Result<ParameterGolfPromotedResumeProof, ParameterGolfReferenceTrainingError> {
     let mut restored =
         restore_parameter_golf_local_reference_checkpoint(fixture, &outcome.initial_checkpoint)?;
@@ -2950,7 +3172,7 @@ fn promoted_resume_proof(
     let exact_final_parity = resumed_outcome.trained_model == outcome.trained_model
         && resumed_outcome.final_validation_eval == outcome.final_validation_eval
         && resumed_final_manifest_digest == continuous_final_manifest_digest;
-    if !exact_final_parity {
+    if strict_exact_parity && !exact_final_parity {
         return Err(ParameterGolfReferenceTrainingError::Serialization {
             context: "parameter golf promoted resume proof",
             message: String::from(
@@ -2976,9 +3198,15 @@ fn promoted_resume_proof(
         resumed_final_manifest_digest,
         replayed_steps,
         exact_final_parity,
-        detail: String::from(
-            "Restoring the emitted promoted checkpoint and replaying the remaining bounded steps produced the same final checkpoint and validation state as the continuous source run.",
-        ),
+        detail: if exact_final_parity {
+            String::from(
+                "Restoring the emitted promoted checkpoint and replaying the remaining bounded steps produced the same final checkpoint and validation state as the continuous source run.",
+            )
+        } else {
+            String::from(
+                "Restoring the emitted promoted checkpoint and replaying the bounded steps did not reproduce exact final parity. The stronger bounded XTRAIN lane retains that divergence as evidence and does not upgrade it into a replay-parity claim.",
+            )
+        },
         proof_digest: String::new(),
     };
     proof.proof_digest = proof.stable_digest();
@@ -3210,6 +3438,7 @@ pub fn restore_parameter_golf_local_reference_checkpoint(
         hyperparameters: manifest.hyperparameters.clone(),
         finite_difference_epsilon: manifest.finite_difference_epsilon,
         promoted_profile: manifest.promoted_profile.clone(),
+        inference_attention_window_tokens: None,
         selected_coordinates: manifest
             .trainable_tensors
             .iter()
@@ -4651,14 +4880,17 @@ mod tests {
     use tempfile::tempdir;
 
     use crate::{
-        async_checkpoint_writeback::write_checkpoint_payload_sync_with_options,
         AsyncCheckpointWritebackOptions, AsyncCheckpointWritebackWorker, LocalTrainMetricCollector,
         LocalTrainMetricFanout, LocalTrainMetricJsonlSink, LocalTrainMetricProgressSink,
         LocalTrainMetricStructuredLogSink, LocalTrainMetricValue,
+        async_checkpoint_writeback::write_checkpoint_payload_sync_with_options,
     };
 
     use super::{
-        check_parameter_golf_promoted_bundle, checkpoint_async_writeback_payload,
+        ParameterGolfFinalArtifactConfig, ParameterGolfLocalReferenceFixture,
+        ParameterGolfReferenceTrainingConfig, ParameterGolfReferenceTrainingError,
+        ParameterGolfReferenceTrainingRunner, check_parameter_golf_promoted_bundle,
+        checkpoint_async_writeback_payload,
         export_parameter_golf_banked_full_precision_model_bytes,
         export_parameter_golf_full_precision_model_bytes,
         export_parameter_golf_quantized_model_artifact, promoted_checkpoint_surface_report,
@@ -4671,9 +4903,7 @@ mod tests {
         train_parameter_golf_local_reference,
         train_parameter_golf_local_reference_with_async_checkpoint_writeback,
         train_parameter_golf_local_reference_with_metric_sink,
-        write_parameter_golf_promoted_reference_run, ParameterGolfFinalArtifactConfig,
-        ParameterGolfLocalReferenceFixture, ParameterGolfReferenceTrainingConfig,
-        ParameterGolfReferenceTrainingError, ParameterGolfReferenceTrainingRunner,
+        write_parameter_golf_promoted_reference_run,
     };
     use psionic_models::{
         ParameterGolfPromotedGenerationTermination, ParameterGolfPromotedProfileKind,
@@ -4710,8 +4940,8 @@ mod tests {
     }
 
     #[test]
-    fn parameter_golf_local_reference_runner_restores_and_matches_continuous_run(
-    ) -> Result<(), Box<dyn Error>> {
+    fn parameter_golf_local_reference_runner_restores_and_matches_continuous_run()
+    -> Result<(), Box<dyn Error>> {
         let fixture = ParameterGolfLocalReferenceFixture::reference()?;
         let config = ParameterGolfReferenceTrainingConfig::local_reference();
 
@@ -4815,8 +5045,8 @@ mod tests {
     }
 
     #[test]
-    fn parameter_golf_local_reference_async_checkpoint_writeback_restores_sync_equivalently(
-    ) -> Result<(), Box<dyn Error>> {
+    fn parameter_golf_local_reference_async_checkpoint_writeback_restores_sync_equivalently()
+    -> Result<(), Box<dyn Error>> {
         let fixture = ParameterGolfLocalReferenceFixture::reference()?;
         let config = ParameterGolfReferenceTrainingConfig::local_reference();
         let sync_outcome = train_parameter_golf_local_reference(&fixture, &config)?;
@@ -4890,8 +5120,8 @@ mod tests {
     }
 
     #[test]
-    fn parameter_golf_local_reference_async_checkpoint_handoff_beats_sync_stall(
-    ) -> Result<(), Box<dyn Error>> {
+    fn parameter_golf_local_reference_async_checkpoint_handoff_beats_sync_stall()
+    -> Result<(), Box<dyn Error>> {
         let fixture = ParameterGolfLocalReferenceFixture::reference()?;
         let config = ParameterGolfReferenceTrainingConfig::local_reference();
         let runner = ParameterGolfReferenceTrainingRunner::new(&fixture, &config)?;
@@ -4927,8 +5157,8 @@ mod tests {
     }
 
     #[test]
-    fn parameter_golf_local_reference_metric_sink_fanout_stays_local_and_deterministic(
-    ) -> Result<(), Box<dyn Error>> {
+    fn parameter_golf_local_reference_metric_sink_fanout_stays_local_and_deterministic()
+    -> Result<(), Box<dyn Error>> {
         let fixture = ParameterGolfLocalReferenceFixture::reference()?;
         let config = ParameterGolfReferenceTrainingConfig::local_reference();
         let baseline_outcome = train_parameter_golf_local_reference(&fixture, &config)?;
@@ -4954,18 +5184,20 @@ mod tests {
         assert_eq!(sink_outcome, baseline_outcome);
         assert_eq!(collected, jsonl_lines);
         assert_eq!(collected.len(), (config.max_steps as usize) * 3);
-        assert!(collected
-            .iter()
-            .any(|event| event.metric_id == "mean_microbatch_loss"
-                && matches!(event.value, LocalTrainMetricValue::F32(_))));
+        assert!(
+            collected
+                .iter()
+                .any(|event| event.metric_id == "mean_microbatch_loss"
+                    && matches!(event.value, LocalTrainMetricValue::F32(_)))
+        );
         assert!(progress.contents().contains("mean_microbatch_loss"));
         assert!(structured.contents().starts_with("metric_event {"));
         Ok(())
     }
 
     #[test]
-    fn promoted_parameter_golf_reference_run_proves_full_checkpoint_surface_and_resume(
-    ) -> Result<(), Box<dyn Error>> {
+    fn promoted_parameter_golf_reference_run_proves_full_checkpoint_surface_and_resume()
+    -> Result<(), Box<dyn Error>> {
         let fixture = ParameterGolfLocalReferenceFixture::reference()?;
         let config = ParameterGolfReferenceTrainingConfig::promoted_general_small_decoder();
         let run = run_parameter_golf_promoted_reference_run(&fixture, &config)?;
@@ -5012,28 +5244,68 @@ mod tests {
 
         let output_dir = tempdir()?;
         write_parameter_golf_promoted_reference_run(&run, output_dir.path())?;
-        assert!(output_dir
-            .path()
-            .join("parameter_golf_promoted_summary.json")
-            .exists());
-        assert!(output_dir
-            .path()
-            .join("parameter_golf_final_checkpoint.safetensors")
-            .exists());
-        assert!(output_dir
-            .path()
-            .join("parameter_golf_promoted_resume_proof.json")
-            .exists());
+        assert!(
+            output_dir
+                .path()
+                .join("parameter_golf_promoted_summary.json")
+                .exists()
+        );
+        assert!(
+            output_dir
+                .path()
+                .join("parameter_golf_final_checkpoint.safetensors")
+                .exists()
+        );
+        assert!(
+            output_dir
+                .path()
+                .join("parameter_golf_promoted_resume_proof.json")
+                .exists()
+        );
         assert!(output_dir.path().join("descriptor.json").exists());
         assert!(output_dir.path().join("model.safetensors").exists());
         assert!(output_dir.path().join("tokenizer.json").exists());
         assert!(output_dir.path().join("generation_config.json").exists());
-        assert!(output_dir
-            .path()
-            .join("parameter_golf_promoted_bundle_manifest.json")
-            .exists());
+        assert!(
+            output_dir
+                .path()
+                .join("parameter_golf_promoted_bundle_manifest.json")
+                .exists()
+        );
         let checked_manifest = check_parameter_golf_promoted_bundle(output_dir.path())?;
         assert_eq!(checked_manifest, run.bundle_manifest);
+        Ok(())
+    }
+
+    #[test]
+    fn xtrain_promoted_parameter_golf_config_expands_the_inferable_budget()
+    -> Result<(), Box<dyn Error>> {
+        let fixture = ParameterGolfLocalReferenceFixture::reference()?;
+        let proof = ParameterGolfReferenceTrainingConfig::promoted_general_small_decoder();
+        let xtrain =
+            ParameterGolfReferenceTrainingConfig::xtrain_promoted_general_small_decoder_baseline();
+
+        xtrain.validate()?;
+        xtrain
+            .promoted_profile
+            .validate_local_reference_lane(&fixture)?;
+        assert_eq!(xtrain.promoted_profile, proof.promoted_profile);
+        assert!(xtrain.max_steps > proof.max_steps);
+        assert!(xtrain.geometry.grad_accum_steps < proof.geometry.grad_accum_steps);
+        assert!(xtrain.selected_coordinates.len() > proof.selected_coordinates.len());
+        assert!(
+            xtrain
+                .selected_coordinates
+                .iter()
+                .any(|coordinate| coordinate.parameter_id == "tok_emb.weight"
+                    && coordinate.flat_index >= 512)
+        );
+        assert!(
+            xtrain
+                .selected_coordinates
+                .iter()
+                .any(|coordinate| coordinate.parameter_id == "blocks.0.attn.q_gain")
+        );
         Ok(())
     }
 
@@ -5061,8 +5333,8 @@ mod tests {
     }
 
     #[test]
-    fn promoted_parameter_golf_runtime_bundle_loads_publicly_and_restores_trained_model(
-    ) -> Result<(), Box<dyn Error>> {
+    fn promoted_parameter_golf_runtime_bundle_loads_publicly_and_restores_trained_model()
+    -> Result<(), Box<dyn Error>> {
         let fixture = ParameterGolfLocalReferenceFixture::reference()?;
         let config = ParameterGolfReferenceTrainingConfig::promoted_general_small_decoder();
         let run = run_parameter_golf_promoted_reference_run(&fixture, &config)?;
@@ -5096,8 +5368,8 @@ mod tests {
     }
 
     #[test]
-    fn promoted_parameter_golf_runtime_bundle_generates_greedy_and_seeded_sample_outputs(
-    ) -> Result<(), Box<dyn Error>> {
+    fn promoted_parameter_golf_runtime_bundle_generates_greedy_and_seeded_sample_outputs()
+    -> Result<(), Box<dyn Error>> {
         let fixture = ParameterGolfLocalReferenceFixture::reference()?;
         let config = ParameterGolfReferenceTrainingConfig::promoted_general_small_decoder();
         let run = run_parameter_golf_promoted_reference_run(&fixture, &config)?;
@@ -5152,8 +5424,8 @@ mod tests {
     }
 
     #[test]
-    fn parameter_golf_split_full_precision_safetensors_roundtrip_restores_model(
-    ) -> Result<(), Box<dyn Error>> {
+    fn parameter_golf_split_full_precision_safetensors_roundtrip_restores_model()
+    -> Result<(), Box<dyn Error>> {
         let model = ParameterGolfReferenceModel::baseline_fixture(Default::default())?;
         let bytes = export_parameter_golf_full_precision_model_bytes(&model)?;
         let restored = restore_parameter_golf_model_from_safetensors(&model, bytes.as_slice())?;
@@ -5162,8 +5434,8 @@ mod tests {
     }
 
     #[test]
-    fn parameter_golf_banked_full_precision_safetensors_roundtrip_restores_model(
-    ) -> Result<(), Box<dyn Error>> {
+    fn parameter_golf_banked_full_precision_safetensors_roundtrip_restores_model()
+    -> Result<(), Box<dyn Error>> {
         let model = ParameterGolfReferenceModel::baseline_fixture(Default::default())?;
         let bytes = export_parameter_golf_banked_full_precision_model_bytes(&model)?;
         let restored = restore_parameter_golf_model_from_safetensors(&model, bytes.as_slice())?;
@@ -5172,8 +5444,8 @@ mod tests {
     }
 
     #[test]
-    fn parameter_golf_banked_full_precision_safetensors_roundtrip_restores_banked_weights(
-    ) -> Result<(), Box<dyn Error>> {
+    fn parameter_golf_banked_full_precision_safetensors_roundtrip_restores_banked_weights()
+    -> Result<(), Box<dyn Error>> {
         let model = ParameterGolfReferenceModel::baseline_fixture(Default::default())?;
         let expected = model.banked_weights()?;
         let bytes = export_parameter_golf_banked_full_precision_model_bytes(&model)?;

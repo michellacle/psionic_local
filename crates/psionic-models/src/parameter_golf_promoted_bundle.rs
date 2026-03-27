@@ -263,6 +263,9 @@ pub struct ParameterGolfPromotedGenerationConfig {
     /// Optional top-k cap for seeded sampling.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub default_top_k: Option<usize>,
+    /// Optional bounded trailing attention window admitted by the bundle.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bounded_attention_window_tokens: Option<usize>,
     /// Whether the runtime should stop on EOS when one is configured.
     pub stop_on_eos: bool,
     /// Stable digest over the config payload.
@@ -327,6 +330,17 @@ impl ParameterGolfPromotedGenerationConfig {
                 return Err(ParameterGolfPromotedBundleError::InvalidValue {
                     field: String::from("generation_config.default_top_k"),
                     detail: String::from("default_top_k must be positive when present"),
+                });
+            }
+        }
+        if let Some(window_tokens) = self.bounded_attention_window_tokens {
+            if window_tokens == 0 || window_tokens > self.max_context {
+                return Err(ParameterGolfPromotedBundleError::InvalidValue {
+                    field: String::from("generation_config.bounded_attention_window_tokens"),
+                    detail: format!(
+                        "bounded_attention_window_tokens must be in 1..={} when present",
+                        self.max_context
+                    ),
                 });
             }
         }
@@ -547,9 +561,7 @@ impl ParameterGolfPromotedBundleManifest {
 pub enum ParameterGolfPromotedBundleError {
     #[error("promoted PGOLF bundle field `{field}` is missing")]
     MissingField { field: String },
-    #[error(
-        "promoted PGOLF bundle field `{field}` expected schema `{expected}`, found `{actual}`"
-    )]
+    #[error("promoted PGOLF bundle field `{field}` expected schema `{expected}`, found `{actual}`")]
     SchemaVersionMismatch {
         field: String,
         expected: String,
@@ -1009,6 +1021,7 @@ impl ParameterGolfPromotedRuntimeBundle {
             .iter()
             .map(|token| token.as_u32())
             .collect::<Vec<_>>();
+        let mut bounded_history = Vec::new();
         let mut generated_tokens = Vec::new();
         let mut sampler = TokenSampler::new(&options.sampling_policy);
         let termination = loop {
@@ -1018,7 +1031,19 @@ impl ParameterGolfPromotedRuntimeBundle {
             if history.len() >= max_context {
                 break ParameterGolfPromotedGenerationTermination::ContextLimit;
             }
-            let logits = self.model.forward_logits(&[history.clone()])?;
+            let logits = if let Some(window_tokens) =
+                self.generation_config.bounded_attention_window_tokens
+            {
+                let start = history.len().saturating_sub(window_tokens);
+                bounded_history.clear();
+                bounded_history.extend_from_slice(&history[start..]);
+                self.model.forward_logits_with_attention_window(
+                    std::slice::from_ref(&bounded_history),
+                    bounded_history.len(),
+                )?
+            } else {
+                self.model.forward_logits(std::slice::from_ref(&history))?
+            };
             let width = logits.width();
             let sequence_length = logits.sequence_length();
             let last_row_start = sequence_length

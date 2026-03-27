@@ -5824,6 +5824,7 @@ struct PromotedParameterGolfGenerationStream<'a> {
     session_tokens: Vec<TokenId>,
     prompt_tokens: TokenSequence,
     history: Vec<u32>,
+    bounded_history: Vec<u32>,
     generated_tokens: Vec<TokenId>,
     first_token_emitted_at: Option<Instant>,
     last_token_emitted_at: Option<Instant>,
@@ -6005,6 +6006,7 @@ impl<'a> PromotedParameterGolfGenerationStream<'a> {
             session_tokens,
             prompt_tokens,
             history,
+            bounded_history: Vec::new(),
             generated_tokens: Vec::new(),
             first_token_emitted_at: None,
             last_token_emitted_at: None,
@@ -6263,12 +6265,31 @@ impl<'a> PromotedParameterGolfGenerationStream<'a> {
                 )));
             }
 
-            let logits = self
+            let logits = if let Some(window_tokens) = self
                 .loaded_model
                 .runtime_bundle()
-                .model()
-                .forward_logits(&[self.history.clone()])
-                .map_err(ParameterGolfPromotedGenerationError::from)?;
+                .generation_config()
+                .bounded_attention_window_tokens
+            {
+                let start = self.history.len().saturating_sub(window_tokens);
+                self.bounded_history.clear();
+                self.bounded_history
+                    .extend_from_slice(&self.history[start..]);
+                self.loaded_model
+                    .runtime_bundle()
+                    .model()
+                    .forward_logits_with_attention_window(
+                        std::slice::from_ref(&self.bounded_history),
+                        self.bounded_history.len(),
+                    )
+                    .map_err(ParameterGolfPromotedGenerationError::from)?
+            } else {
+                self.loaded_model
+                    .runtime_bundle()
+                    .model()
+                    .forward_logits(std::slice::from_ref(&self.history))
+                    .map_err(ParameterGolfPromotedGenerationError::from)?
+            };
             let width = logits.width();
             let sequence_length = logits.sequence_length();
             let last_row_start = sequence_length
