@@ -7,6 +7,7 @@ repo_root="$(cd -- "${script_dir}/.." && pwd)"
 run_id=""
 root_dir=""
 target_seconds="600"
+batch_size="16"
 remote_host="archlinux"
 matrix_root=""
 quality_root=""
@@ -29,6 +30,7 @@ Options:
   --run-id <id>                         Stable daily run identifier.
   --root-dir <path>                     Daily artifact root. Default: fixtures/apple_adapter/daily/<run_id>
   --target-seconds <seconds>            Shared matrix wallclock. Default: 600
+  --batch-size <size>                   PGOLF-ish training and eval batch size. Default: 16
   --remote-host <host>                  Remote admitted CUDA host. Default: archlinux
   --matrix-root <path>                  Matrix artifact root. Default: <root-dir>/matrix
   --quality-root <path>                 Quality artifact root. Default: <root-dir>/quality
@@ -57,6 +59,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --target-seconds)
       target_seconds="$2"
+      shift 2
+      ;;
+    --batch-size)
+      batch_size="$2"
       shift 2
       ;;
     --remote-host)
@@ -146,6 +152,7 @@ if [[ "${skip_matrix}" != "1" ]]; then
     --run-id "${run_id}" \
     --bundle-dir "${matrix_root}" \
     --target-seconds "${target_seconds}" \
+    --batch-size "${batch_size}" \
     --remote-host "${remote_host}"
 fi
 
@@ -159,7 +166,8 @@ if [[ "${skip_quality}" != "1" ]]; then
       --m5-bundle "${matrix_root}/m5_mlx/portable_bundle.safetensors" \
       --cuda-report "${matrix_root}/archlinux_cuda/report.json" \
       --cuda-bundle "${matrix_root}/archlinux_cuda/portable_bundle.safetensors" \
-      --admitted-home-summary "${admitted_home_summary}"
+      --admitted-home-summary "${admitted_home_summary}" \
+      --batch-size "${batch_size}"
   )
 fi
 
@@ -192,6 +200,7 @@ jq -n \
   --arg run_id "${run_id}" \
   --arg created_at_utc "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
   --arg target_seconds "${target_seconds}" \
+  --arg batch_size "${batch_size}" \
   --arg matrix_report "${matrix_report}" \
   --arg quality_report "${quality_report}" \
   --arg near_equivalent_report "${near_equivalent_report}" \
@@ -268,6 +277,7 @@ jq -n \
       run_id: $run_id,
       created_at_utc: $created_at_utc,
       target_wallclock_seconds: ($target_seconds | tonumber),
+      tuned_batch_size: ($batch_size | tonumber),
       admitted_daily_operator_ordering: [
         "Run the local M5 MLX same-node lane first.",
         "Run the remote archlinux RTX 4080 CUDA lane in the same matrix second.",
@@ -276,8 +286,8 @@ jq -n \
         "Treat the M2 as opportunistic only and do not block the daily loop on it."
       ],
       command_contract: {
-        matrix: "scripts/run-open-adapter-tailnet-matrix.sh --run-id <run_id> --bundle-dir <matrix_root> --target-seconds 600 --remote-host archlinux",
-        quality: "cargo run -q -p psionic-train --bin open_adapter_pgolfish_quality_compare -- --output-root <quality_root> --m5-report <matrix_root>/m5_mlx/report.json --m5-bundle <matrix_root>/m5_mlx/portable_bundle.safetensors --cuda-report <matrix_root>/archlinux_cuda/report.json --cuda-bundle <matrix_root>/archlinux_cuda/portable_bundle.safetensors --admitted-home-summary fixtures/swarm/runs/tailrun-home-admitted-20260327e/tailrun_admitted_home_run_summary.json",
+        matrix: "scripts/run-open-adapter-tailnet-matrix.sh --run-id <run_id> --bundle-dir <matrix_root> --target-seconds 600 --batch-size <size> --remote-host archlinux",
+        quality: "cargo run -q -p psionic-train --bin open_adapter_pgolfish_quality_compare -- --output-root <quality_root> --m5-report <matrix_root>/m5_mlx/report.json --m5-bundle <matrix_root>/m5_mlx/portable_bundle.safetensors --cuda-report <matrix_root>/archlinux_cuda/report.json --cuda-bundle <matrix_root>/archlinux_cuda/portable_bundle.safetensors --admitted-home-summary fixtures/swarm/runs/tailrun-home-admitted-20260327e/tailrun_admitted_home_run_summary.json --batch-size <size>",
         near_equivalent: "cargo run -q -p psionic-serve --example tailrun_open_adapter_near_equivalent_operator -- --source-report <matrix_root>/m5_mlx/report.json --source-bundle <matrix_root>/m5_mlx/portable_bundle.safetensors --output-root <near_equivalent_root>"
       },
       current_paths: {

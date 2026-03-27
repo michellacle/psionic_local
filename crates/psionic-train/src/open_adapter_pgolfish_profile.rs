@@ -54,10 +54,26 @@ pub fn open_adapter_pgolfish_config(
     checkpoint_family: String,
     max_steps: u64,
 ) -> Result<OpenAdapterExecutionConfig, OpenAdapterTrainingExecutionError> {
+    open_adapter_pgolfish_config_with_batch_size(
+        backend_label,
+        run_id,
+        checkpoint_family,
+        max_steps,
+        OPEN_ADAPTER_PGOLFISH_BATCH_SIZE,
+    )
+}
+
+pub fn open_adapter_pgolfish_config_with_batch_size(
+    backend_label: &str,
+    run_id: String,
+    checkpoint_family: String,
+    max_steps: u64,
+    batch_size: usize,
+) -> Result<OpenAdapterExecutionConfig, OpenAdapterTrainingExecutionError> {
     let mut config =
         first_swarm_open_adapter_training_config(run_id, checkpoint_family, backend_label);
     config.budget = TrainingLoopBudget::new(max_steps, 1, 1)?;
-    config.batch_size = OPEN_ADAPTER_PGOLFISH_BATCH_SIZE;
+    config.batch_size = batch_size;
     config.model.hidden_size = OPEN_ADAPTER_PGOLFISH_HIDDEN_SIZE;
     config.model.vocab_size = OPEN_ADAPTER_PGOLFISH_VOCAB_SIZE;
     config.model.target.lora_rank = OPEN_ADAPTER_PGOLFISH_LORA_RANK;

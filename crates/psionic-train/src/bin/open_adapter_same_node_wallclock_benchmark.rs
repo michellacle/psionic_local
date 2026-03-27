@@ -5,11 +5,12 @@ use std::{
 };
 
 use psionic_train::{
-    first_swarm_open_adapter_sft_request, open_adapter_pgolfish_config,
+    first_swarm_open_adapter_sft_request, open_adapter_pgolfish_config_with_batch_size,
     open_adapter_pgolfish_samples, run_open_adapter_sft_export, OpenAdapterExecutionConfig,
     OpenAdapterPgolfishSampleSplit, OpenAdapterSftRunOutcome, OpenAdapterTrainingExecutionBackend,
     PortableModelBundle, PortableTokenizerAssetFormat, PortableTokenizerBinding,
     OPEN_ADAPTER_CUDA_BACKEND_LABEL, OPEN_ADAPTER_MLX_METAL_BACKEND_LABEL,
+    OPEN_ADAPTER_PGOLFISH_BATCH_SIZE,
 };
 use serde::Serialize;
 
@@ -74,6 +75,7 @@ struct Args {
     output_root: PathBuf,
     target_seconds: u64,
     calibration_steps: u64,
+    batch_size: usize,
 }
 
 fn main() {
@@ -99,6 +101,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             short_backend_label(args.backend_label.as_str())
         ),
         args.calibration_steps,
+        args.batch_size,
     )?;
     let calibration_samples = benchmark_samples(sample_prefix(args.backend_label.as_str()))?;
     let calibration_backend =
@@ -120,6 +123,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             short_backend_label(args.backend_label.as_str())
         ),
         u64::MAX / 4,
+        args.batch_size,
     )?;
     let retained_samples = benchmark_samples(sample_prefix(args.backend_label.as_str()))?;
     let retained_backend =
@@ -223,6 +227,7 @@ fn parse_args() -> Result<Args, Box<dyn std::error::Error>> {
     let mut output_root = PathBuf::from("/tmp/psionic_open_adapter_same_node_wallclock_benchmark");
     let mut target_seconds = DEFAULT_TARGET_SECONDS;
     let mut calibration_steps = DEFAULT_CALIBRATION_STEPS;
+    let mut batch_size = OPEN_ADAPTER_PGOLFISH_BATCH_SIZE;
 
     let mut args = env::args().skip(1);
     while let Some(arg) = args.next() {
@@ -246,9 +251,15 @@ fn parse_args() -> Result<Args, Box<dyn std::error::Error>> {
                     .ok_or("missing value after --calibration-steps")?
                     .parse()?;
             }
+            "--batch-size" => {
+                batch_size = args
+                    .next()
+                    .ok_or("missing value after --batch-size")?
+                    .parse()?;
+            }
             "--help" | "-h" => {
                 println!(
-                    "Usage: open_adapter_same_node_wallclock_benchmark [--backend-label <label>] [--output-root <path>] [--target-seconds <seconds>] [--calibration-steps <steps>]"
+                    "Usage: open_adapter_same_node_wallclock_benchmark [--backend-label <label>] [--output-root <path>] [--target-seconds <seconds>] [--calibration-steps <steps>] [--batch-size <size>]"
                 );
                 std::process::exit(0);
             }
@@ -270,6 +281,7 @@ fn parse_args() -> Result<Args, Box<dyn std::error::Error>> {
         output_root,
         target_seconds,
         calibration_steps,
+        batch_size,
     })
 }
 
@@ -278,12 +290,14 @@ fn benchmark_config(
     run_id: String,
     checkpoint_family: String,
     max_steps: u64,
+    batch_size: usize,
 ) -> Result<OpenAdapterExecutionConfig, Box<dyn std::error::Error>> {
-    Ok(open_adapter_pgolfish_config(
+    Ok(open_adapter_pgolfish_config_with_batch_size(
         backend_label,
         run_id,
         checkpoint_family,
         max_steps,
+        batch_size,
     )?)
 }
 

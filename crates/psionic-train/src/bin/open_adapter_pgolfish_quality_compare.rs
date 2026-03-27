@@ -4,10 +4,11 @@ use std::{
 };
 
 use psionic_train::{
-    open_adapter_pgolfish_config, open_adapter_pgolfish_samples, FixedBudgetTrainingRun,
-    OpenAdapterExecutionConfig, OpenAdapterPgolfishSampleSplit,
+    open_adapter_pgolfish_config_with_batch_size, open_adapter_pgolfish_samples,
+    FixedBudgetTrainingRun, OpenAdapterExecutionConfig, OpenAdapterPgolfishSampleSplit,
     OpenAdapterTrainingExecutionBackend, PortableModelBundle, TrainingLoopBudget,
     OPEN_ADAPTER_CUDA_BACKEND_LABEL, OPEN_ADAPTER_MLX_METAL_BACKEND_LABEL,
+    OPEN_ADAPTER_PGOLFISH_BATCH_SIZE,
 };
 use serde::{Deserialize, Serialize};
 
@@ -33,6 +34,7 @@ struct Args {
     cuda_report_path: PathBuf,
     cuda_bundle_path: PathBuf,
     admitted_home_summary_path: PathBuf,
+    batch_size: usize,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -187,7 +189,11 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
     let evaluated_artifacts = same_node_artifacts
         .iter()
         .map(|artifact| {
-            evaluate_same_node_artifact(artifact, args.evaluator_backend_label.as_str())
+            evaluate_same_node_artifact(
+                artifact,
+                args.evaluator_backend_label.as_str(),
+                args.batch_size,
+            )
         })
         .collect::<Result<Vec<_>, _>>()?;
     let admitted_home_run_context =
@@ -228,7 +234,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             hidden_size: psionic_train::OPEN_ADAPTER_PGOLFISH_HIDDEN_SIZE,
             vocab_size: psionic_train::OPEN_ADAPTER_PGOLFISH_VOCAB_SIZE,
             lora_rank: psionic_train::OPEN_ADAPTER_PGOLFISH_LORA_RANK,
-            batch_size: psionic_train::OPEN_ADAPTER_PGOLFISH_BATCH_SIZE,
+            batch_size: args.batch_size,
             heldout_sample_count: psionic_train::OPEN_ADAPTER_PGOLFISH_HOLDOUT_SAMPLE_COUNT,
             heldout_split: String::from(OpenAdapterPgolfishSampleSplit::Holdout.label()),
             mostly_under_pgolf_constraints: vec![
@@ -269,6 +275,7 @@ fn parse_args() -> Result<Args, Box<dyn std::error::Error>> {
     let mut cuda_report_path = PathBuf::from(CUDA_REPORT_PATH);
     let mut cuda_bundle_path = PathBuf::from(CUDA_BUNDLE_PATH);
     let mut admitted_home_summary_path = PathBuf::from(ADMITTED_HOME_SUMMARY_PATH);
+    let mut batch_size = OPEN_ADAPTER_PGOLFISH_BATCH_SIZE;
 
     let mut args = env::args().skip(1);
     while let Some(arg) = args.next() {
@@ -304,9 +311,15 @@ fn parse_args() -> Result<Args, Box<dyn std::error::Error>> {
                         .ok_or("missing value after --admitted-home-summary")?,
                 );
             }
+            "--batch-size" => {
+                batch_size = args
+                    .next()
+                    .ok_or("missing value after --batch-size")?
+                    .parse()?;
+            }
             "--help" | "-h" => {
                 println!(
-                    "Usage: open_adapter_pgolfish_quality_compare [--output-root <path>] [--evaluator-backend-label <label>] [--m5-report <path>] [--m5-bundle <path>] [--cuda-report <path>] [--cuda-bundle <path>] [--admitted-home-summary <path>]"
+                    "Usage: open_adapter_pgolfish_quality_compare [--output-root <path>] [--evaluator-backend-label <label>] [--m5-report <path>] [--m5-bundle <path>] [--cuda-report <path>] [--cuda-bundle <path>] [--admitted-home-summary <path>] [--batch-size <size>]"
                 );
                 std::process::exit(0);
             }
@@ -322,6 +335,7 @@ fn parse_args() -> Result<Args, Box<dyn std::error::Error>> {
         cuda_report_path,
         cuda_bundle_path,
         admitted_home_summary_path,
+        batch_size,
     })
 }
 
@@ -336,6 +350,7 @@ struct ArtifactInput {
 fn evaluate_same_node_artifact(
     artifact: &ArtifactInput,
     evaluator_backend_label: &str,
+    batch_size: usize,
 ) -> Result<EvaluatedArtifactReport, Box<dyn std::error::Error>> {
     let benchmark_report: BenchmarkReport =
         serde_json::from_slice(&fs::read(artifact.report_path.as_path())?)?;
@@ -347,6 +362,7 @@ fn evaluate_same_node_artifact(
             artifact.artifact_id.as_str(),
             evaluator_backend_label,
             training_groups,
+            batch_size,
         )?;
 
     Ok(EvaluatedArtifactReport {
@@ -372,8 +388,9 @@ fn evaluate_bundle_on_heldout_profile(
     artifact_id: &str,
     evaluator_backend_label: &str,
     training_groups: Vec<psionic_train::TrainingParameterGroupState>,
+    batch_size: usize,
 ) -> Result<(f64, usize, usize), Box<dyn std::error::Error>> {
-    let config: OpenAdapterExecutionConfig = open_adapter_pgolfish_config(
+    let config: OpenAdapterExecutionConfig = open_adapter_pgolfish_config_with_batch_size(
         evaluator_backend_label,
         format!("{artifact_id}-heldout-eval"),
         format!(
@@ -381,6 +398,7 @@ fn evaluate_bundle_on_heldout_profile(
             artifact_id
         ),
         1,
+        batch_size,
     )?;
     let holdout_samples =
         open_adapter_pgolfish_samples("pgolfish-heldout", OpenAdapterPgolfishSampleSplit::Holdout)?;

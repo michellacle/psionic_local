@@ -7,6 +7,7 @@ repo_root="$(cd -- "${script_dir}/.." && pwd)"
 run_id=""
 bundle_dir=""
 target_seconds="600"
+batch_size="16"
 git_ref=""
 remote_host="archlinux"
 remote_worktree_dir="/tmp/psionic-tailrun-matrix"
@@ -22,6 +23,7 @@ Options:
   --run-id <id>                 Stable run identifier.
   --bundle-dir <path>           Local artifact root.
   --target-seconds <seconds>    Shared benchmark wallclock. Default: 600
+  --batch-size <size>           PGOLF-ish training batch size. Default: 16
   --git-ref <ref>               Git ref used for the remote worktree. Default: local HEAD
   --remote-host <host>          Remote admitted host. Default: archlinux
   --remote-worktree-dir <path>  Remote clean worktree. Default: /tmp/psionic-tailrun-matrix
@@ -40,6 +42,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --target-seconds)
       target_seconds="$2"
+      shift 2
+      ;;
+    --batch-size)
+      batch_size="$2"
       shift 2
       ;;
     --git-ref)
@@ -108,7 +114,7 @@ git -C "${repo_root}" archive "${git_ref}" | ssh "${remote_host}" "
 "
 
 echo "Starting remote admitted-device benchmark on ${remote_host}"
-ssh "${remote_host}" "bash -ic 'export CARGO_HOME=${remote_cargo_home}; export CARGO_TARGET_DIR=${remote_target_root}/${run_id}; cd ${remote_worktree_dir} && cargo build -q -p psionic-train --bin open_adapter_same_node_wallclock_benchmark && \${CARGO_TARGET_DIR}/debug/open_adapter_same_node_wallclock_benchmark --backend-label open_adapter_backend.cuda.gpt_oss_lm_head --output-root ${remote_output_root} --target-seconds ${target_seconds}'" \
+ssh "${remote_host}" "bash -ic 'export CARGO_HOME=${remote_cargo_home}; export CARGO_TARGET_DIR=${remote_target_root}/${run_id}; cd ${remote_worktree_dir} && cargo build -q -p psionic-train --bin open_adapter_same_node_wallclock_benchmark && \${CARGO_TARGET_DIR}/debug/open_adapter_same_node_wallclock_benchmark --backend-label open_adapter_backend.cuda.gpt_oss_lm_head --output-root ${remote_output_root} --target-seconds ${target_seconds} --batch-size ${batch_size}'" \
   >"${remote_log_path}" 2>&1 &
 remote_pid=$!
 
@@ -126,7 +132,8 @@ echo "Running local admitted-device benchmark"
   target/debug/open_adapter_same_node_wallclock_benchmark \
     --backend-label open_adapter_backend.mlx.metal.gpt_oss_lm_head \
     --output-root "${local_dir}" \
-    --target-seconds "${target_seconds}"
+    --target-seconds "${target_seconds}" \
+    --batch-size "${batch_size}"
 ) >"${local_log_path}" 2>&1
 
 wait "${remote_pid}"
@@ -141,6 +148,7 @@ jq -n \
   --arg git_ref "${git_ref}" \
   --arg remote_host "${remote_host}" \
   --argjson target_seconds "${target_seconds}" \
+  --argjson batch_size "${batch_size}" \
   --slurpfile local_report "${local_dir}/report.json" \
   --slurpfile remote_report "${remote_dir}/report.json" \
   '
@@ -151,6 +159,7 @@ jq -n \
     run_id: $run_id,
     git_ref: $git_ref,
     target_wallclock_seconds: $target_seconds,
+    batch_size: $batch_size,
     admitted_device_set: [
       {
         host: $local_report[0].host,
