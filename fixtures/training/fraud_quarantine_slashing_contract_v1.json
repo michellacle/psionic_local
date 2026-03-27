@@ -1,0 +1,100 @@
+{
+  "schema_version": "psionic.fraud_quarantine_slashing_contract.v1",
+  "contract_id": "psionic.fraud_quarantine_slashing_contract.v1",
+  "signed_node_identity_contract_set_digest": "e2423cfcb3e960bbf5790da0f0723f87bacc58003e1ad173d73b9ec63c41ffcc",
+  "public_dataset_authority_contract_digest": "cf87c412eecde92e38d382fc2ec2fae3c6bb17a1b4b9963e91e0f67ed77ffd60",
+  "validator_challenge_scoring_contract_digest": "99ad085b9a12258380dc4fb948c51c0cd86644a91afd6f5137d8a76a13830b25",
+  "multi_validator_consensus_contract_digest": "ce2a463d0703a5cf5dc3d30efc9b9f8981c17e60bfa8a0d9b2f716912af0470f",
+  "fraud_signals": [
+    {
+      "signal_id": "signal.sybil.local_rtx4080.wallet_watch",
+      "node_identity_id": "local_rtx4080_workstation.identity",
+      "evidence_reference_id": "wallet_watch:0x5d104d7003d55bc2a3bd40d0af9b36a9c978e83d",
+      "signal_kind": "sybil_wallet_reuse",
+      "severity_bps": 6500,
+      "detail": "The network freezes one sybil-watch signal keyed by the RTX 4080 wallet address so future duplicate-wallet or duplicate-capability admissions fail closed instead of being resolved ad hoc."
+    },
+    {
+      "signal_id": "signal.replay.local_rtx4080.window1230",
+      "node_identity_id": "local_rtx4080_workstation.identity",
+      "evidence_reference_id": "anti_replay.assignment.public_miner.window1230.google.duplicate",
+      "signal_kind": "dataset_replay_abuse",
+      "severity_bps": 9300,
+      "detail": "The RTX 4080 node triggers one explicit replay-abuse signal because the public dataset authority recorded a duplicate assignment receipt for the same miner window."
+    },
+    {
+      "signal_id": "signal.disagreement.local_mlx.window1231",
+      "node_identity_id": "local_mlx_mac_workstation.identity",
+      "evidence_reference_id": "disagreement.checkpoint.step2048.round2056",
+      "signal_kind": "validator_disagreement_watch",
+      "severity_bps": 2200,
+      "detail": "The Apple MLX validator receives one low-severity disagreement watch because the current checkpoint remained held-no-promotion under split validator votes."
+    },
+    {
+      "signal_id": "signal.software.runpod.release_watch",
+      "node_identity_id": "runpod_8xh100_dense_node.identity",
+      "evidence_reference_id": "runpod_8xh100_dense_node.identity",
+      "signal_kind": "stale_software_digest",
+      "severity_bps": 1400,
+      "detail": "RunPod checkpoint authority receives one stale-software watch example to freeze the retained evidence shape for build-digest drift without claiming that the current node is already malicious."
+    }
+  ],
+  "quarantine_decisions": [
+    {
+      "decision_id": "quarantine.public_miner.local_rtx4080.window1232",
+      "node_identity_id": "local_rtx4080_workstation.identity",
+      "signal_ids": [
+        "signal.sybil.local_rtx4080.wallet_watch",
+        "signal.replay.local_rtx4080.window1230"
+      ],
+      "quarantine_class": "contribution_blocked",
+      "starts_epoch_id": "window1232",
+      "ends_after_epoch_id": "window1234",
+      "detail": "Psionic blocks the RTX 4080 miner from new public work for two follow-on windows because duplicate-work evidence and wallet-watch risk together exceed the miner admission ceiling."
+    },
+    {
+      "decision_id": "quarantine.public_validator.local_mlx.observe",
+      "node_identity_id": "local_mlx_mac_workstation.identity",
+      "signal_ids": [
+        "signal.disagreement.local_mlx.window1231"
+      ],
+      "quarantine_class": "observation_only",
+      "starts_epoch_id": "window1232",
+      "ends_after_epoch_id": "window1233",
+      "detail": "Validator disagreement alone does not trigger a ban, but Psionic still records one observation-only quarantine so future repeated disagreements accumulate machine-legible incident history."
+    }
+  ],
+  "slashing_decisions": [
+    {
+      "decision_id": "slash.public_miner.local_rtx4080.window1232",
+      "node_identity_id": "local_rtx4080_workstation.identity",
+      "supporting_signal_ids": [
+        "signal.sybil.local_rtx4080.wallet_watch",
+        "signal.replay.local_rtx4080.window1230"
+      ],
+      "linked_quarantine_decision_id": "quarantine.public_miner.local_rtx4080.window1232",
+      "penalty_bps": 1500,
+      "settlement_hold_epochs": 3,
+      "detail": "The first canonical slashing decision withholds fifteen percent of the RTX 4080 miner's provisional reward share for three epochs because replay-abuse evidence already crossed the admitted fraud threshold."
+    }
+  ],
+  "appeal_windows": [
+    {
+      "appeal_id": "appeal.public_miner.local_rtx4080.window1232",
+      "node_identity_id": "local_rtx4080_workstation.identity",
+      "challenged_action_id": "slash.public_miner.local_rtx4080.window1232",
+      "status": "denied",
+      "opens_epoch_id": "window1232",
+      "closes_epoch_id": "window1235",
+      "detail": "The first canonical appeal window is retained and denied because the duplicate dataset receipt remains canonical evidence rather than an operator-side dispute."
+    }
+  ],
+  "authority_paths": {
+    "fixture_path": "fixtures/training/fraud_quarantine_slashing_contract_v1.json",
+    "check_script_path": "scripts/check-fraud-quarantine-slashing-contract.sh",
+    "reference_doc_path": "docs/FRAUD_QUARANTINE_SLASHING_REFERENCE.md",
+    "train_system_doc_path": "docs/TRAIN_SYSTEM.md"
+  },
+  "claim_boundary": "This contract freezes the first decentralized fraud-defense surface: sybil-watch signals, duplicate-work evidence, observation versus blocking quarantines, one slashing decision, and one explicit appeal window. It does not yet claim automatic fraud-proof generation or fully open permissionless admission.",
+  "contract_digest": "a700e0a8d16213fb91848ffa3eabff857c88fafdf73098420d2ba26a530f1dda"
+}

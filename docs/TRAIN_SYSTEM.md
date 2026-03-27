@@ -368,6 +368,41 @@ weighted validator votes, held-no-promotion decisions, and disagreement
 receipts. It proves checkpoint promotion no longer reduces to one validator or
 one maintainer making an informal call.
 
+The repo now also owns the first fraud, quarantine, and slashing contract in
+`crates/psionic-train/src/fraud_quarantine_slashing_contract.rs`, the binary
+`fraud_quarantine_slashing_contract`, the checker
+`scripts/check-fraud-quarantine-slashing-contract.sh`, the focused reference
+doc `docs/FRAUD_QUARANTINE_SLASHING_REFERENCE.md`, and the committed fixture
+`fixtures/training/fraud_quarantine_slashing_contract_v1.json`. That surface
+turns adversarial discipline into typed public truth: sybil-watch signals,
+duplicate-work evidence, observation versus blocked quarantines, one slashing
+decision, and one explicit appeal window. It proves the decentralized network
+can now fail closed on known miner fraud modes without retreating to an
+implicit maintainer allowlist.
+
+The repo now also owns the first public contribution and reward ledger contract
+in `crates/psionic-train/src/reward_ledger_contract.rs`, the binary
+`reward_ledger_contract`, the checker
+`scripts/check-reward-ledger-contract.sh`, the focused reference doc
+`docs/REWARD_LEDGER_REFERENCE.md`, and the committed fixture
+`fixtures/training/reward_ledger_contract_v1.json`. That surface turns public
+scoring and penalties into one tamper-evident accounting period: retained
+miner, validator, and checkpoint-authority work entries, retained penalty
+entries, and payout-ready net allocations. It proves the network can now say
+who earned what and who was penalized under one shared accounting surface.
+
+The repo now also owns the first settlement publication contract in
+`crates/psionic-train/src/settlement_publication_contract.rs`, the binary
+`settlement_publication_contract`, the checker
+`scripts/check-settlement-publication-contract.sh`, the focused reference doc
+`docs/SETTLEMENT_PUBLICATION_REFERENCE.md`, and the committed fixture
+`fixtures/training/settlement_publication_contract_v1.json`. That surface turns
+closed-window accounting into publishable outcome truth: validator-weight
+publication, one signed-ledger settlement record, payout exports bound to
+wallet identities, and one explicit chain-adapter refusal. It proves Psionic
+now has a truthful settlement surface before public dashboards or open
+operator-facing packages land.
+
 The repo now also owns the first dense-rank recovery contract in
 `crates/psionic-train/src/dense_rank_recovery_contract.rs`, the binary
 `dense_rank_recovery_contract`, the checker

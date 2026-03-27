@@ -1,0 +1,84 @@
+{
+  "schema_version": "psionic.settlement_publication_contract.v1",
+  "contract_id": "psionic.settlement_publication_contract.v1",
+  "decentralized_network_contract_digest": "37205ba6736d97b64f7156dde917b02d4bd4eeaa5bcfcfd96544c3bcdf338bda",
+  "signed_node_identity_contract_set_digest": "e2423cfcb3e960bbf5790da0f0723f87bacc58003e1ad173d73b9ec63c41ffcc",
+  "reward_ledger_contract_digest": "42d7dc87c9dc416023ee2a96f838946533fb366780ec7449a1f9feed8002f103",
+  "validator_challenge_scoring_contract_digest": "99ad085b9a12258380dc4fb948c51c0cd86644a91afd6f5137d8a76a13830b25",
+  "validator_weight_publications": [
+    {
+      "publication_id": "validator_weight.google.window1231",
+      "validator_registry_record_id": "google_l4_validator_node.registry",
+      "score_receipt_id": "score.public_validator.google.local_mlx.window1231",
+      "published_weight_bps": 5000,
+      "detail": "Google publishes half of the current validator weight surface because the first public network still retains a two-validator quorum."
+    },
+    {
+      "publication_id": "validator_weight.local_mlx.window1231",
+      "validator_registry_record_id": "local_mlx_mac_workstation.registry",
+      "score_receipt_id": "score.public_validator.local_mlx.google.window1231",
+      "published_weight_bps": 5000,
+      "detail": "Apple MLX publishes the remaining half of the validator weight surface under the same two-validator quorum."
+    }
+  ],
+  "settlement_records": [
+    {
+      "record_id": "settlement.window1231.signed",
+      "backend_kind": "signed_ledger_bundle",
+      "accounting_period_id": "ledger.window1231",
+      "published_epoch_id": "window1232",
+      "published_ledger_path": "artifacts/settlement/window1231/signed-ledger-bundle.json",
+      "included_allocation_ids": [
+        "allocation.local_mlx.window1231",
+        "allocation.google.window1231",
+        "allocation.runpod.window1231"
+      ],
+      "detail": "The first settlement record publishes the positive public-network allocations through the signed-ledger backend already frozen by the decentralized network contract."
+    }
+  ],
+  "payout_exports": [
+    {
+      "export_id": "payout.local_mlx.window1231",
+      "settlement_record_id": "settlement.window1231.signed",
+      "node_identity_id": "local_mlx_mac_workstation.identity",
+      "destination_address": "0xb00819e591ba0e891863d933108e234e296e7029",
+      "payout_weight_bps": 7100,
+      "payout_microunits": 710000,
+      "detail": "Apple MLX receives the largest payout export because it carried both the accepted miner contribution and one validator share."
+    },
+    {
+      "export_id": "payout.google.window1231",
+      "settlement_record_id": "settlement.window1231.signed",
+      "node_identity_id": "google_l4_validator_node.identity",
+      "destination_address": "0xfb1f4984de7d0e1192862ea0174f0ff8a0a40da2",
+      "payout_weight_bps": 2400,
+      "payout_microunits": 240000,
+      "detail": "Google receives the second-largest payout export for validator and checkpoint-authority work."
+    },
+    {
+      "export_id": "payout.runpod.window1231",
+      "settlement_record_id": "settlement.window1231.signed",
+      "node_identity_id": "runpod_8xh100_dense_node.identity",
+      "destination_address": "0xd5f66e6fb5884d41143c0b1fc3168328b2d28bbe",
+      "payout_weight_bps": 500,
+      "payout_microunits": 50000,
+      "detail": "RunPod receives the remaining positive payout export for mirrored checkpoint-authority work."
+    }
+  ],
+  "refusals": [
+    {
+      "refusal_id": "refusal.settlement.chain.window1231",
+      "backend_kind": "chain_attestation_adapter",
+      "refusal_kind": "chain_adapter_disabled",
+      "detail": "The first settlement surface refuses chain publication by default because the signed-ledger backend is canonical today and optional chain adapters remain disabled until later operator rollout."
+    }
+  ],
+  "authority_paths": {
+    "fixture_path": "fixtures/training/settlement_publication_contract_v1.json",
+    "check_script_path": "scripts/check-settlement-publication-contract.sh",
+    "reference_doc_path": "docs/SETTLEMENT_PUBLICATION_REFERENCE.md",
+    "train_system_doc_path": "docs/TRAIN_SYSTEM.md"
+  },
+  "claim_boundary": "This contract freezes the first settlement publication surface: validator weight publication, a signed-ledger settlement record, payout-ready exports, and one explicit chain-adapter refusal. It does not yet claim public explorer packaging or open-operator onboarding.",
+  "contract_digest": "ca13e653115f6001022f0573d7d8f09da1b8f778fe811301c9c712f26072ed65"
+}
