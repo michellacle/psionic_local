@@ -16,7 +16,8 @@ use psionic_eval::{
 };
 use psionic_models::{
     ParameterGolfBankedWeights, ParameterGolfExecutionError, ParameterGolfModelError,
-    ParameterGolfParameterVector, ParameterGolfReferenceModel,
+    ParameterGolfParameterVector, ParameterGolfPromotedProfileContract,
+    ParameterGolfPromotedProfileKind, ParameterGolfReferenceModel,
 };
 use psionic_runtime::TrainingCheckpointReference;
 use safetensors::{serialize, tensor::TensorView, Dtype as SafeTensorsDType, SafeTensors};
@@ -32,8 +33,9 @@ use crate::{
     AsyncCheckpointWritebackWorker, LocalTrainMetricEvent, LocalTrainMetricFanout,
     LocalTrainMetricPhase, LocalTrainMetricSinkError, LocalTrainMetricValue,
     ParameterGolfMuonConfig, ParameterGolfMuonState, ParameterGolfOptimizerExecution,
-    ParameterGolfTrainError, ParameterGolfTrainingHyperparameters, TrainingOptimizerConfig,
-    TrainingOptimizerError, TrainingOptimizerState, PARAMETER_GOLF_CONTROL_TENSOR_NAME_PATTERNS,
+    ParameterGolfTrainError, ParameterGolfTrainingHyperparameters, PortableModelProfileContract,
+    TrainingOptimizerConfig, TrainingOptimizerError, TrainingOptimizerState,
+    PARAMETER_GOLF_CONTROL_TENSOR_NAME_PATTERNS,
 };
 
 const PARAMETER_GOLF_CHECKPOINT_MANIFEST_KEY: &str = "psionic.parameter_golf.checkpoint_manifest";
@@ -49,6 +51,133 @@ const PARAMETER_GOLF_INT8_CLIP_Q: f32 = 0.999_998_4;
 const PARAMETER_GOLF_INT6_GPTQ_LITE_CLIP_CANDIDATES: &[f32] =
     &[0.999, 0.9995, 0.9999, 0.99999, 1.0];
 const PARAMETER_GOLF_COMPETITIVE_ZSTD_LEVEL: i32 = 22;
+
+/// Returns the frozen promoted-family profile contract for one PGOLF-shaped
+/// small-decoder profile.
+#[must_use]
+pub fn parameter_golf_promoted_profile_contract(
+    kind: ParameterGolfPromotedProfileKind,
+) -> ParameterGolfPromotedProfileContract {
+    match kind {
+        ParameterGolfPromotedProfileKind::GeneralPsionSmallDecoder => {
+            ParameterGolfPromotedProfileContract::general_psion_small_decoder_v0()
+        }
+        ParameterGolfPromotedProfileKind::StrictPgolfChallenge => {
+            ParameterGolfPromotedProfileContract::strict_pgolf_challenge_v0()
+        }
+    }
+}
+
+/// Returns the portable-bundle profile contract for the promoted general Psion
+/// small-decoder profile.
+#[must_use]
+pub fn parameter_golf_general_psion_small_decoder_profile_contract() -> PortableModelProfileContract
+{
+    portable_parameter_golf_profile_contract(parameter_golf_promoted_profile_contract(
+        ParameterGolfPromotedProfileKind::GeneralPsionSmallDecoder,
+    ))
+}
+
+/// Returns the portable-bundle profile contract for the strict PGOLF challenge
+/// overlay.
+#[must_use]
+pub fn parameter_golf_strict_challenge_profile_contract() -> PortableModelProfileContract {
+    portable_parameter_golf_profile_contract(parameter_golf_promoted_profile_contract(
+        ParameterGolfPromotedProfileKind::StrictPgolfChallenge,
+    ))
+}
+
+fn portable_parameter_golf_profile_contract(
+    contract: ParameterGolfPromotedProfileContract,
+) -> PortableModelProfileContract {
+    let mut shared_capabilities = BTreeMap::new();
+    shared_capabilities.insert(
+        String::from("tied_embeddings"),
+        contract.shared_capabilities.tied_embeddings,
+    );
+    shared_capabilities.insert(
+        String::from("grouped_query_attention"),
+        contract.shared_capabilities.grouped_query_attention,
+    );
+    shared_capabilities.insert(String::from("rope"), contract.shared_capabilities.rope);
+    shared_capabilities.insert(
+        String::from("partial_rope"),
+        contract.shared_capabilities.partial_rope,
+    );
+    shared_capabilities.insert(
+        String::from("skip_weights"),
+        contract.shared_capabilities.skip_weights,
+    );
+    shared_capabilities.insert(
+        String::from("optional_bigram_hash"),
+        contract.shared_capabilities.optional_bigram_hash,
+    );
+    shared_capabilities.insert(
+        String::from("optional_value_embeddings"),
+        contract.shared_capabilities.optional_value_embeddings,
+    );
+    shared_capabilities.insert(
+        String::from("optional_xsa"),
+        contract.shared_capabilities.optional_xsa,
+    );
+    shared_capabilities.insert(
+        String::from("relu_squared"),
+        contract.shared_capabilities.relu_squared,
+    );
+    shared_capabilities.insert(
+        String::from("leaky_relu_squared_point_five"),
+        contract.shared_capabilities.leaky_relu_squared_point_five,
+    );
+    shared_capabilities.insert(
+        String::from("parameter_banking"),
+        contract.shared_capabilities.parameter_banking,
+    );
+    shared_capabilities.insert(
+        String::from("quantized_export"),
+        contract.shared_capabilities.quantized_export,
+    );
+
+    let mut overlay_requirements = BTreeMap::new();
+    overlay_requirements.insert(
+        String::from("exact_sp1024_tokenizer"),
+        contract.challenge_overlay.exact_sp1024_tokenizer,
+    );
+    overlay_requirements.insert(
+        String::from("exact_fineweb_challenge_data"),
+        contract.challenge_overlay.exact_fineweb_challenge_data,
+    );
+    overlay_requirements.insert(
+        String::from("exact_16_mib_compressed_artifact_cap"),
+        contract
+            .challenge_overlay
+            .exact_16_mib_compressed_artifact_cap,
+    );
+    overlay_requirements.insert(
+        String::from("score_first_ttt"),
+        contract.challenge_overlay.score_first_ttt,
+    );
+    overlay_requirements.insert(
+        String::from("contest_bpb_accounting"),
+        contract.challenge_overlay.contest_bpb_accounting,
+    );
+
+    PortableModelProfileContract {
+        profile_id: contract.profile_id,
+        family_id: contract.family_id,
+        baseline_model_id: contract.baseline_model_id,
+        baseline_revision: contract.baseline_revision,
+        profile_kind: match contract.kind {
+            ParameterGolfPromotedProfileKind::GeneralPsionSmallDecoder => {
+                String::from("general_psion_small_decoder")
+            }
+            ParameterGolfPromotedProfileKind::StrictPgolfChallenge => {
+                String::from("strict_pgolf_challenge")
+            }
+        },
+        shared_capabilities,
+        overlay_requirements,
+    }
+}
 
 /// Explicit final-artifact quantization posture for the PGOLF score lane.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -1904,9 +2033,11 @@ fn restore_parameter_golf_model_from_banked_safetensors_impl(
     baseline_model: &ParameterGolfReferenceModel,
     safetensors: &SafeTensors<'_>,
 ) -> Result<ParameterGolfReferenceModel, ParameterGolfReferenceTrainingError> {
-    let weights =
-        restore_parameter_golf_banked_weights_from_banked_safetensors_impl(baseline_model, safetensors)?
-            .to_split(&baseline_model.descriptor().config)?;
+    let weights = restore_parameter_golf_banked_weights_from_banked_safetensors_impl(
+        baseline_model,
+        safetensors,
+    )?
+    .to_split(&baseline_model.descriptor().config)?;
     Ok(ParameterGolfReferenceModel::new(
         baseline_model.descriptor().model.clone(),
         baseline_model.descriptor().config.clone(),
@@ -1989,7 +2120,11 @@ pub fn restore_parameter_golf_model_from_quantized_artifact(
                 })?;
                 match artifact_config.quantization {
                     ParameterGolfFinalArtifactQuantizationFormat::Int8CleanPerRow => {
-                        validate_tensor_shape(parameter_id, quantized.shape(), parameter.shape.dims())?;
+                        validate_tensor_shape(
+                            parameter_id,
+                            quantized.shape(),
+                            parameter.shape.dims(),
+                        )?;
                         dequantize_int8_tensor(
                             parameter_id,
                             parameter.shape.dims(),
@@ -2000,7 +2135,11 @@ pub fn restore_parameter_golf_model_from_quantized_artifact(
                         )?
                     }
                     ParameterGolfFinalArtifactQuantizationFormat::Int6GptqLitePerRow => {
-                        validate_tensor_shape(parameter_id, quantized.shape(), parameter.shape.dims())?;
+                        validate_tensor_shape(
+                            parameter_id,
+                            quantized.shape(),
+                            parameter.shape.dims(),
+                        )?;
                         dequantize_int6_tensor(
                             parameter_id,
                             parameter.shape.dims(),
@@ -2585,18 +2724,23 @@ fn decode_quantized_artifact_bytes(
     let mut zlib_decoder = ZlibDecoder::new(artifact_bytes);
     let mut zlib_bytes = Vec::new();
     match zlib_decoder.read_to_end(&mut zlib_bytes) {
-        Ok(_) => Ok((ParameterGolfFinalArtifactCompressionFormat::Zlib, zlib_bytes)),
+        Ok(_) => Ok((
+            ParameterGolfFinalArtifactCompressionFormat::Zlib,
+            zlib_bytes,
+        )),
         Err(zlib_error) => {
-            let zstd_bytes =
-                zstd_decode_all(artifact_bytes).map_err(|zstd_error| {
-                    ParameterGolfReferenceTrainingError::Serialization {
-                        context: "parameter golf quantized artifact decode",
-                        message: format!(
-                            "failed zlib decode: {zlib_error}; failed zstd decode: {zstd_error}"
-                        ),
-                    }
-                })?;
-            Ok((ParameterGolfFinalArtifactCompressionFormat::Zstd, zstd_bytes))
+            let zstd_bytes = zstd_decode_all(artifact_bytes).map_err(|zstd_error| {
+                ParameterGolfReferenceTrainingError::Serialization {
+                    context: "parameter golf quantized artifact decode",
+                    message: format!(
+                        "failed zlib decode: {zlib_error}; failed zstd decode: {zstd_error}"
+                    ),
+                }
+            })?;
+            Ok((
+                ParameterGolfFinalArtifactCompressionFormat::Zstd,
+                zstd_bytes,
+            ))
         }
     }
 }
@@ -2610,9 +2754,11 @@ fn read_safetensors_metadata(
             message: String::from("missing safetensors header length prefix"),
         });
     }
-    let header_len =
-        u64::from_le_bytes(raw_bytes[..8].try_into().expect("slice length already checked"))
-            as usize;
+    let header_len = u64::from_le_bytes(
+        raw_bytes[..8]
+            .try_into()
+            .expect("slice length already checked"),
+    ) as usize;
     if raw_bytes.len() < 8 + header_len {
         return Err(ParameterGolfReferenceTrainingError::Serialization {
             context: "parameter golf safetensors metadata",
@@ -3031,18 +3177,19 @@ mod tests {
     };
 
     use super::{
-        checkpoint_async_writeback_payload, read_parameter_golf_checkpoint_from_directory,
+        checkpoint_async_writeback_payload,
         export_parameter_golf_banked_full_precision_model_bytes,
         export_parameter_golf_full_precision_model_bytes,
         export_parameter_golf_quantized_model_artifact,
+        read_parameter_golf_checkpoint_from_directory,
         restore_parameter_golf_banked_weights_from_safetensors,
         restore_parameter_golf_local_reference_checkpoint,
         restore_parameter_golf_model_from_int8_zlib,
         restore_parameter_golf_model_from_quantized_artifact,
         restore_parameter_golf_model_from_safetensors, train_parameter_golf_local_reference,
         train_parameter_golf_local_reference_with_async_checkpoint_writeback,
-        train_parameter_golf_local_reference_with_metric_sink, ParameterGolfLocalReferenceFixture,
-        ParameterGolfFinalArtifactConfig, ParameterGolfReferenceTrainingConfig,
+        train_parameter_golf_local_reference_with_metric_sink, ParameterGolfFinalArtifactConfig,
+        ParameterGolfLocalReferenceFixture, ParameterGolfReferenceTrainingConfig,
         ParameterGolfReferenceTrainingRunner,
     };
     use psionic_models::ParameterGolfReferenceModel;

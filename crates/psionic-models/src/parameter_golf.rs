@@ -11,6 +11,11 @@ use crate::{
 
 /// Stable family label for the Parameter Golf decoder lane.
 pub const PARAMETER_GOLF_MODEL_FAMILY: &str = "parameter_golf_decoder";
+/// Stable promoted profile id for the first general Psion-owned small decoder
+/// built on the PGOLF core family.
+pub const PARAMETER_GOLF_PROMOTED_GENERAL_PROFILE_ID: &str = "psion_small_decoder_pgolf_core_v0";
+/// Stable promoted profile id for the strict challenge-bound PGOLF overlay.
+pub const PARAMETER_GOLF_PROMOTED_CHALLENGE_PROFILE_ID: &str = "parameter_golf_challenge_sp1024_v0";
 /// Stable fixture model id for the public `9x512` baseline shape.
 pub const PARAMETER_GOLF_BASELINE_MODEL_ID: &str = "parameter-golf-sp1024-9x512";
 /// Stable fixture revision for the current public baseline as of 2026-03-18.
@@ -63,6 +68,180 @@ pub const PARAMETER_GOLF_MATRIX_BANK_NAMES: &[&str] = &[
 ];
 /// The effective epsilon used when the public PyTorch path leaves RMSNorm epsilon unset.
 pub const PARAMETER_GOLF_DEFAULT_RMS_NORM_EPSILON: f32 = f32::EPSILON;
+
+/// Frozen promoted profile kind for the PGOLF-shaped compact-decoder family.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ParameterGolfPromotedProfileKind {
+    /// General Psion-owned small decoder profile. Challenge-only requirements are
+    /// intentionally absent.
+    GeneralPsionSmallDecoder,
+    /// Strict challenge overlay preserving the public PGOLF tokenizer, data,
+    /// evaluation, and artifact rules.
+    StrictPgolfChallenge,
+}
+
+impl ParameterGolfPromotedProfileKind {
+    /// Returns the stable profile id for this promoted profile kind.
+    #[must_use]
+    pub const fn profile_id(self) -> &'static str {
+        match self {
+            Self::GeneralPsionSmallDecoder => PARAMETER_GOLF_PROMOTED_GENERAL_PROFILE_ID,
+            Self::StrictPgolfChallenge => PARAMETER_GOLF_PROMOTED_CHALLENGE_PROFILE_ID,
+        }
+    }
+}
+
+/// Machine-readable shared capability contract for the promoted PGOLF-shaped
+/// decoder family.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ParameterGolfSharedCapabilityContract {
+    /// Tied token embedding and LM-head support is part of the shared family.
+    pub tied_embeddings: bool,
+    /// Grouped-query attention with explicit KV-head count is part of the family.
+    pub grouped_query_attention: bool,
+    /// RoPE is part of the family contract.
+    pub rope: bool,
+    /// Partial RoPE is allowed in the shared family.
+    pub partial_rope: bool,
+    /// Learned skip or U-Net-like skip weights are part of the family.
+    pub skip_weights: bool,
+    /// BigramHash-style local context augmentation is an admitted optional feature.
+    pub optional_bigram_hash: bool,
+    /// Late-layer shared value embeddings are an admitted optional feature.
+    pub optional_value_embeddings: bool,
+    /// XSA on deep layers is an admitted optional feature.
+    pub optional_xsa: bool,
+    /// ReLU-squared remains a valid activation posture.
+    pub relu_squared: bool,
+    /// LeakyReLU(0.5)^2 is an admitted activation posture.
+    pub leaky_relu_squared_point_five: bool,
+    /// Parameter-banked weight surfaces are part of the admitted family.
+    pub parameter_banking: bool,
+    /// Quantized small-model export is part of the admitted family.
+    pub quantized_export: bool,
+}
+
+impl ParameterGolfSharedCapabilityContract {
+    /// Returns the frozen shared capability contract for the promoted family.
+    #[must_use]
+    pub const fn promoted_defaults() -> Self {
+        Self {
+            tied_embeddings: true,
+            grouped_query_attention: true,
+            rope: true,
+            partial_rope: true,
+            skip_weights: true,
+            optional_bigram_hash: true,
+            optional_value_embeddings: true,
+            optional_xsa: true,
+            relu_squared: true,
+            leaky_relu_squared_point_five: true,
+            parameter_banking: true,
+            quantized_export: true,
+        }
+    }
+}
+
+/// Machine-readable challenge-only overlay contract for one promoted profile.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ParameterGolfChallengeOverlayContract {
+    /// Exact public SP1024 tokenizer is required.
+    pub exact_sp1024_tokenizer: bool,
+    /// Exact public FineWeb challenge data lane is required.
+    pub exact_fineweb_challenge_data: bool,
+    /// Exact compressed artifact cap is required.
+    pub exact_16_mib_compressed_artifact_cap: bool,
+    /// Legal score-first TTT is part of the overlay.
+    pub score_first_ttt: bool,
+    /// Tokenizer-agnostic BPB accounting is part of the overlay.
+    pub contest_bpb_accounting: bool,
+}
+
+impl ParameterGolfChallengeOverlayContract {
+    /// Returns the general Psion small-decoder overlay: none of the contest-only
+    /// rules are required.
+    #[must_use]
+    pub const fn general_psion_small_decoder() -> Self {
+        Self {
+            exact_sp1024_tokenizer: false,
+            exact_fineweb_challenge_data: false,
+            exact_16_mib_compressed_artifact_cap: false,
+            score_first_ttt: false,
+            contest_bpb_accounting: false,
+        }
+    }
+
+    /// Returns the strict PGOLF challenge overlay.
+    #[must_use]
+    pub const fn strict_pgolf_challenge() -> Self {
+        Self {
+            exact_sp1024_tokenizer: true,
+            exact_fineweb_challenge_data: true,
+            exact_16_mib_compressed_artifact_cap: true,
+            score_first_ttt: true,
+            contest_bpb_accounting: true,
+        }
+    }
+}
+
+/// Frozen promoted family contract for the first serious PGOLF-shaped small
+/// decoder family inside Psionic.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ParameterGolfPromotedProfileContract {
+    /// Stable promoted profile id.
+    pub profile_id: String,
+    /// General profile versus strict challenge overlay.
+    pub kind: ParameterGolfPromotedProfileKind,
+    /// Stable shared family id.
+    pub family_id: String,
+    /// Stable baseline model id for the first shipping shape.
+    pub baseline_model_id: String,
+    /// Stable baseline revision for the profile contract.
+    pub baseline_revision: String,
+    /// Frozen baseline config for the first shipping shape.
+    pub baseline_config: ParameterGolfConfig,
+    /// Shared capability contract preserved across both profiles.
+    pub shared_capabilities: ParameterGolfSharedCapabilityContract,
+    /// Challenge-only overlay contract.
+    pub challenge_overlay: ParameterGolfChallengeOverlayContract,
+}
+
+impl ParameterGolfPromotedProfileContract {
+    /// Returns the promoted general Psion small-decoder profile.
+    #[must_use]
+    pub fn general_psion_small_decoder_v0() -> Self {
+        Self {
+            profile_id: String::from(
+                ParameterGolfPromotedProfileKind::GeneralPsionSmallDecoder.profile_id(),
+            ),
+            kind: ParameterGolfPromotedProfileKind::GeneralPsionSmallDecoder,
+            family_id: String::from(PARAMETER_GOLF_MODEL_FAMILY),
+            baseline_model_id: String::from(PARAMETER_GOLF_BASELINE_MODEL_ID),
+            baseline_revision: String::from(PARAMETER_GOLF_BASELINE_REVISION),
+            baseline_config: ParameterGolfConfig::baseline_sp1024_9x512(),
+            shared_capabilities: ParameterGolfSharedCapabilityContract::promoted_defaults(),
+            challenge_overlay: ParameterGolfChallengeOverlayContract::general_psion_small_decoder(),
+        }
+    }
+
+    /// Returns the strict challenge-bound PGOLF overlay profile.
+    #[must_use]
+    pub fn strict_pgolf_challenge_v0() -> Self {
+        Self {
+            profile_id: String::from(
+                ParameterGolfPromotedProfileKind::StrictPgolfChallenge.profile_id(),
+            ),
+            kind: ParameterGolfPromotedProfileKind::StrictPgolfChallenge,
+            family_id: String::from(PARAMETER_GOLF_MODEL_FAMILY),
+            baseline_model_id: String::from(PARAMETER_GOLF_BASELINE_MODEL_ID),
+            baseline_revision: String::from(PARAMETER_GOLF_BASELINE_REVISION),
+            baseline_config: ParameterGolfConfig::baseline_sp1024_9x512(),
+            shared_capabilities: ParameterGolfSharedCapabilityContract::promoted_defaults(),
+            challenge_overlay: ParameterGolfChallengeOverlayContract::strict_pgolf_challenge(),
+        }
+    }
+}
 
 /// MLP activation posture for one Parameter Golf decoder-family instance.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -169,7 +348,10 @@ pub struct ParameterGolfConfig {
     #[serde(default = "parameter_golf_default_ve_dim")]
     pub ve_dim: usize,
     /// Zero-based layer indices that receive the shared late-layer value embedding.
-    #[serde(default, skip_serializing_if = "parameter_golf_ve_layer_indices_are_empty")]
+    #[serde(
+        default,
+        skip_serializing_if = "parameter_golf_ve_layer_indices_are_empty"
+    )]
     pub ve_layer_indices: Vec<usize>,
     /// MLP activation family.
     #[serde(default)]
@@ -188,7 +370,10 @@ pub struct ParameterGolfConfig {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub rope_rotary_dim: Option<usize>,
     /// Optional layerwise scaling on block-local RMSNorm outputs.
-    #[serde(default, skip_serializing_if = "parameter_golf_layer_norm_scale_is_none")]
+    #[serde(
+        default,
+        skip_serializing_if = "parameter_golf_layer_norm_scale_is_none"
+    )]
     pub layer_norm_scale: ParameterGolfLayerNormScale,
     /// Apply XSA-style self-value orthogonalization on the deepest `xsa_last_n` layers.
     #[serde(default, skip_serializing_if = "parameter_golf_xsa_last_n_is_zero")]
@@ -267,10 +452,12 @@ impl ParameterGolfConfig {
             return Err(ParameterGolfConfigError::RopeRotaryDimMustBePositive);
         }
         if rope_rotary_dim > head_dim {
-            return Err(ParameterGolfConfigError::RopeRotaryDimMustNotExceedHeadDim {
-                rope_rotary_dim,
-                head_dim,
-            });
+            return Err(
+                ParameterGolfConfigError::RopeRotaryDimMustNotExceedHeadDim {
+                    rope_rotary_dim,
+                    head_dim,
+                },
+            );
         }
         if !rope_rotary_dim.is_multiple_of(2) {
             return Err(ParameterGolfConfigError::RopeRotaryDimMustBeEven { rope_rotary_dim });
@@ -297,10 +484,12 @@ impl ParameterGolfConfig {
             if position > 0 {
                 let previous = self.ve_layer_indices[position - 1];
                 if layer_index <= previous {
-                    return Err(ParameterGolfConfigError::VeLayerIndicesMustBeStrictlyIncreasing {
-                        previous,
-                        current: layer_index,
-                    });
+                    return Err(
+                        ParameterGolfConfigError::VeLayerIndicesMustBeStrictlyIncreasing {
+                            previous,
+                            current: layer_index,
+                        },
+                    );
                 }
             }
         }
@@ -1302,10 +1491,8 @@ impl ParameterGolfWeights {
             None
         } else {
             Some(ParameterGolfValueEmbeddingWeights {
-                embedding: initializer.values_for(
-                    "ve_shared.embed.weight",
-                    config.vocab_size * config.ve_dim,
-                ),
+                embedding: initializer
+                    .values_for("ve_shared.embed.weight", config.vocab_size * config.ve_dim),
                 proj: (config.ve_dim != kv_dim).then(|| {
                     ParameterGolfLinearWeights::from_initializer(
                         "ve_shared.proj.weight",
@@ -2179,7 +2366,7 @@ impl ParameterGolfReferenceModel {
             Some(0) => {
                 return Err(ParameterGolfExecutionError::InvalidAttentionWindowSize {
                     attention_window_size: 0,
-                })
+                });
             }
             Some(attention_window_size) => Some(attention_window_size.min(sequence_length)),
             None => None,
@@ -2986,12 +3173,7 @@ fn value_embedding_forward(
         sequence_length,
     );
     if let Some(proj) = &value_embedding.proj {
-        output = linear_forward_with_weight(
-            &output,
-            proj.weight.as_slice(),
-            kv_dim,
-            config.ve_dim,
-        );
+        output = linear_forward_with_weight(&output, proj.weight.as_slice(), kv_dim, config.ve_dim);
     }
     for value in &mut output.values {
         *value *= value_embedding.scale[0];
@@ -3121,7 +3303,10 @@ fn block_forward(
     let mut x = mixed;
     add_scaled_in_place(&mut x, &attention, block.attn_scale.as_slice());
     let mut normed_for_mlp = rms_norm_last_dim(&x, PARAMETER_GOLF_DEFAULT_RMS_NORM_EPSILON);
-    scale_tensor3_in_place(&mut normed_for_mlp, config.layer_norm_scale_factor(layer_index));
+    scale_tensor3_in_place(
+        &mut normed_for_mlp,
+        config.layer_norm_scale_factor(layer_index),
+    );
     let mlp = mlp_forward(&block.mlp, &normed_for_mlp, config);
     add_scaled_in_place(&mut x, &mlp, block.mlp_scale.as_slice());
     x
@@ -3970,7 +4155,9 @@ mod tests {
             .expect_err("odd rope rotary dim should be refused");
         assert!(matches!(
             err,
-            ParameterGolfConfigError::RopeRotaryDimMustBeEven { rope_rotary_dim: 15 }
+            ParameterGolfConfigError::RopeRotaryDimMustBeEven {
+                rope_rotary_dim: 15
+            }
         ));
     }
 
@@ -4066,7 +4253,10 @@ mod tests {
             .forward_logits(input_ids.as_slice())
             .expect("scorepath logits should execute");
         assert!(
-            baseline_logits.max_abs_diff(&scorepath_logits).unwrap_or_default() > 1e-4,
+            baseline_logits
+                .max_abs_diff(&scorepath_logits)
+                .unwrap_or_default()
+                > 1e-4,
             "partial rope plus layerwise LN scaling should change reference logits"
         );
     }
@@ -4093,7 +4283,10 @@ mod tests {
             .forward_logits(input_ids.as_slice())
             .expect("xsa logits should execute");
         assert!(
-            baseline_logits.max_abs_diff(&xsa_logits).unwrap_or_default() > 1e-4,
+            baseline_logits
+                .max_abs_diff(&xsa_logits)
+                .unwrap_or_default()
+                > 1e-4,
             "xsa should change reference logits"
         );
     }
@@ -4411,5 +4604,41 @@ mod tests {
                 attention_window_size: 0
             }
         ));
+    }
+
+    #[test]
+    fn promoted_profile_contracts_keep_shared_family_and_split_challenge_overlay() {
+        let general = ParameterGolfPromotedProfileContract::general_psion_small_decoder_v0();
+        let challenge = ParameterGolfPromotedProfileContract::strict_pgolf_challenge_v0();
+
+        assert_eq!(general.family_id, PARAMETER_GOLF_MODEL_FAMILY);
+        assert_eq!(challenge.family_id, PARAMETER_GOLF_MODEL_FAMILY);
+        assert_eq!(general.baseline_model_id, PARAMETER_GOLF_BASELINE_MODEL_ID);
+        assert_eq!(
+            challenge.baseline_model_id,
+            PARAMETER_GOLF_BASELINE_MODEL_ID
+        );
+        assert_eq!(general.baseline_config, challenge.baseline_config);
+        assert_eq!(general.shared_capabilities, challenge.shared_capabilities);
+
+        assert!(!general.challenge_overlay.exact_sp1024_tokenizer);
+        assert!(!general.challenge_overlay.exact_fineweb_challenge_data);
+        assert!(
+            !general
+                .challenge_overlay
+                .exact_16_mib_compressed_artifact_cap
+        );
+        assert!(!general.challenge_overlay.score_first_ttt);
+        assert!(!general.challenge_overlay.contest_bpb_accounting);
+
+        assert!(challenge.challenge_overlay.exact_sp1024_tokenizer);
+        assert!(challenge.challenge_overlay.exact_fineweb_challenge_data);
+        assert!(
+            challenge
+                .challenge_overlay
+                .exact_16_mib_compressed_artifact_cap
+        );
+        assert!(challenge.challenge_overlay.score_first_ttt);
+        assert!(challenge.challenge_overlay.contest_bpb_accounting);
     }
 }

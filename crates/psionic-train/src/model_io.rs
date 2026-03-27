@@ -405,6 +405,28 @@ pub struct PortableTokenizerBinding {
     pub unknown_token_id: Option<u32>,
 }
 
+/// Machine-readable promoted model profile contract carried by one portable
+/// bundle.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PortableModelProfileContract {
+    /// Stable promoted profile id.
+    pub profile_id: String,
+    /// Stable shared family id.
+    pub family_id: String,
+    /// Stable baseline model id for the promoted family.
+    pub baseline_model_id: String,
+    /// Stable baseline revision for the promoted family.
+    pub baseline_revision: String,
+    /// Stable profile kind label such as `general_psion_small_decoder`.
+    pub profile_kind: String,
+    /// Shared capabilities admitted across all profiles for the family.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub shared_capabilities: BTreeMap<String, bool>,
+    /// Challenge-only overlay requirements for this profile.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub overlay_requirements: BTreeMap<String, bool>,
+}
+
 impl PortableTokenizerBinding {
     /// Creates a tokenizer binding from an existing canonical tokenizer digest.
     #[must_use]
@@ -1438,6 +1460,7 @@ impl PortableModelBundleImportPlan {
         Ok(PortableModelBundle {
             state_dict,
             tokenizer: self.manifest.tokenizer.clone(),
+            profile_contract: self.manifest.profile_contract.clone(),
             chat_template_digest: self.manifest.chat_template_digest.clone(),
             preferred_serving_formats: self.manifest.preferred_serving_formats.clone(),
         })
@@ -1451,6 +1474,9 @@ pub struct PortableModelBundleManifest {
     pub state_dict: PortableModelStateDictManifest,
     /// Bound tokenizer portability contract.
     pub tokenizer: PortableTokenizerBinding,
+    /// Optional promoted-family profile contract.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub profile_contract: Option<PortableModelProfileContract>,
     /// Optional chat-template digest.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub chat_template_digest: Option<String>,
@@ -1465,6 +1491,9 @@ pub struct PortableModelBundle {
     pub state_dict: PortableModelStateDict,
     /// Bound tokenizer contract.
     pub tokenizer: PortableTokenizerBinding,
+    /// Optional promoted-family profile contract.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub profile_contract: Option<PortableModelProfileContract>,
     /// Optional chat-template digest.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub chat_template_digest: Option<String>,
@@ -1492,6 +1521,7 @@ impl PortableModelBundle {
                 groups,
             )?,
             tokenizer,
+            profile_contract: None,
             chat_template_digest,
             preferred_serving_formats: vec![
                 ModelArtifactFormat::Safetensors,
@@ -1506,9 +1536,17 @@ impl PortableModelBundle {
         PortableModelBundleManifest {
             state_dict: self.state_dict.manifest(),
             tokenizer: self.tokenizer.clone(),
+            profile_contract: self.profile_contract.clone(),
             chat_template_digest: self.chat_template_digest.clone(),
             preferred_serving_formats: self.preferred_serving_formats.clone(),
         }
+    }
+
+    /// Attaches one promoted-family profile contract to the bundle.
+    #[must_use]
+    pub fn with_profile_contract(mut self, profile_contract: PortableModelProfileContract) -> Self {
+        self.profile_contract = Some(profile_contract);
+        self
     }
 
     /// Reconstructs training-core groups from the bundle.
@@ -1612,6 +1650,7 @@ impl PortableModelBundle {
         Ok(Self {
             state_dict: self.state_dict.select_and_remap(request)?,
             tokenizer: self.tokenizer.clone(),
+            profile_contract: self.profile_contract.clone(),
             chat_template_digest: self.chat_template_digest.clone(),
             preferred_serving_formats: self.preferred_serving_formats.clone(),
         })
@@ -1664,6 +1703,7 @@ impl PortableModelBundle {
         Self {
             state_dict,
             tokenizer: artifact.tokenizer,
+            profile_contract: artifact.profile_contract,
             chat_template_digest: artifact.chat_template_digest,
             preferred_serving_formats: artifact.preferred_serving_formats,
         }
@@ -1840,6 +1880,7 @@ impl PortableModelBundle {
         let plan_manifest = PortableModelBundleManifest {
             state_dict: state_dict_manifest,
             tokenizer: manifest.tokenizer,
+            profile_contract: manifest.profile_contract,
             chat_template_digest: manifest.chat_template_digest,
             preferred_serving_formats: manifest.preferred_serving_formats,
         };
@@ -1941,6 +1982,7 @@ impl PortableModelBundle {
         let bundle = Self {
             state_dict,
             tokenizer,
+            profile_contract: None,
             chat_template_digest,
             preferred_serving_formats: vec![
                 ModelArtifactFormat::Gguf,
@@ -2696,7 +2738,8 @@ mod tests {
             groups.as_slice(),
             sample_tokenizer_binding(),
             Some(String::from("chat-template-digest")),
-        )?;
+        )?
+        .with_profile_contract(sample_profile_contract());
 
         let traversal = bundle.state_dict.traversal_records();
         assert_eq!(traversal.len(), 5);
@@ -2724,6 +2767,7 @@ mod tests {
         );
         assert_eq!(imported.to_training_groups()?, groups);
         assert_eq!(imported.tokenizer, bundle.tokenizer);
+        assert_eq!(imported.profile_contract, bundle.profile_contract);
         Ok(())
     }
 
@@ -2739,7 +2783,8 @@ mod tests {
             groups.as_slice(),
             sample_tokenizer_binding(),
             Some(String::from("chat-template-digest")),
-        )?;
+        )?
+        .with_profile_contract(sample_profile_contract());
 
         let (bytes, receipt) = bundle.export_safetensors()?;
         assert_eq!(receipt.format, ModelArtifactFormat::Safetensors);
@@ -2751,6 +2796,7 @@ mod tests {
         );
         assert_eq!(imported.to_training_groups()?, groups);
         assert_eq!(imported.tokenizer, bundle.tokenizer);
+        assert_eq!(imported.profile_contract, bundle.profile_contract);
         assert_eq!(imported.chat_template_digest, bundle.chat_template_digest);
         Ok(())
     }
@@ -3066,6 +3112,7 @@ mod tests {
         let bundle = PortableModelBundle {
             state_dict,
             tokenizer: sample_tokenizer_binding(),
+            profile_contract: None,
             chat_template_digest: None,
             preferred_serving_formats: vec![ModelArtifactFormat::TorchStateDictJson],
         };
@@ -3238,6 +3285,7 @@ mod tests {
             PortableModelBundle {
                 state_dict: unmerged,
                 tokenizer: base.tokenizer.clone(),
+                profile_contract: base.profile_contract.clone(),
                 chat_template_digest: base.chat_template_digest.clone(),
                 preferred_serving_formats: base.preferred_serving_formats.clone(),
             }
@@ -3355,6 +3403,26 @@ mod tests {
             "2026-03-14",
         )
         .with_special_tokens(Some(1), vec![2], Some(0), Some(3), true, false)
+    }
+
+    fn sample_profile_contract() -> PortableModelProfileContract {
+        let mut shared_capabilities = BTreeMap::new();
+        shared_capabilities.insert(String::from("grouped_query_attention"), true);
+        shared_capabilities.insert(String::from("partial_rope"), true);
+
+        let mut overlay_requirements = BTreeMap::new();
+        overlay_requirements.insert(String::from("exact_sp1024_tokenizer"), false);
+        overlay_requirements.insert(String::from("score_first_ttt"), false);
+
+        PortableModelProfileContract {
+            profile_id: String::from("psion_small_decoder_pgolf_core_v0"),
+            family_id: String::from("parameter_golf_decoder"),
+            baseline_model_id: String::from("parameter-golf-sp1024-9x512"),
+            baseline_revision: String::from("public-2026-03-18"),
+            profile_kind: String::from("general_psion_small_decoder"),
+            shared_capabilities,
+            overlay_requirements,
+        }
     }
 
     fn sample_gguf_metadata() -> Vec<(String, GgufMetadataValue)> {

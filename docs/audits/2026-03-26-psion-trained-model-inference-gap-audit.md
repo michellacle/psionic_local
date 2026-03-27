@@ -519,6 +519,13 @@ That gives Psionic the strongest combined outcome:
 - a family that is materially easier to extend into clustered training than the
   current toy pilot
 
+The frozen contract surface for that recommendation now lives in:
+
+- `docs/PARAMETER_GOLF_PROMOTED_FAMILY_CONTRACT.md`
+- `crates/psionic-models/src/parameter_golf.rs`
+- `crates/psionic-train/src/model_io.rs`
+- `crates/psionic-train/src/parameter_golf_reference.rs`
+
 ## Two Honest Targets
 
 There are two different projects that could both be described as "make Psion
