@@ -5964,12 +5964,25 @@ impl<'a> PromotedParameterGolfGenerationStream<'a> {
             }
         }
         let request_kv_checkpoint = cache.checkpoint_with_state(previous_kv_state.clone());
-        let history = session_tokens
-            .iter()
-            .copied()
-            .chain(prompt_tokens.as_slice().iter().copied())
-            .map(TokenId::as_u32)
-            .collect::<Vec<_>>();
+        let total_history_capacity = session_tokens
+            .len()
+            .saturating_add(prompt_tokens.len())
+            .saturating_add(request.options.max_output_tokens)
+            .min(
+                loaded_model
+                    .runtime_bundle()
+                    .generation_config()
+                    .max_context,
+            );
+        let mut history = Vec::with_capacity(total_history_capacity);
+        history.extend(session_tokens.iter().copied().map(TokenId::as_u32));
+        history.extend(
+            prompt_tokens
+                .as_slice()
+                .iter()
+                .copied()
+                .map(TokenId::as_u32),
+        );
         if history.is_empty() {
             let _ = models.finish_request(model_id.as_str(), current_time_millis());
             return Err(ReferenceTextGenerationError::EmptyPrompt);
@@ -5984,6 +5997,16 @@ impl<'a> PromotedParameterGolfGenerationStream<'a> {
                 return Err(error);
             }
         };
+        let bounded_history_capacity = loaded_model
+            .runtime_bundle()
+            .generation_config()
+            .bounded_attention_window_tokens
+            .unwrap_or(
+                loaded_model
+                    .runtime_bundle()
+                    .generation_config()
+                    .max_context,
+            );
         Ok(Self {
             models,
             sessions,
@@ -6006,8 +6029,8 @@ impl<'a> PromotedParameterGolfGenerationStream<'a> {
             session_tokens,
             prompt_tokens,
             history,
-            bounded_history: Vec::new(),
-            generated_tokens: Vec::new(),
+            bounded_history: Vec::with_capacity(bounded_history_capacity),
+            generated_tokens: Vec::with_capacity(request.options.max_output_tokens),
             first_token_emitted_at: None,
             last_token_emitted_at: None,
             emitted_token_count: 0,

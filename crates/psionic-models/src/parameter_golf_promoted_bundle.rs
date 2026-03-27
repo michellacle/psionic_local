@@ -1016,13 +1016,19 @@ impl ParameterGolfPromotedRuntimeBundle {
             });
         }
 
-        let mut history = prompt_tokens
-            .as_slice()
-            .iter()
-            .map(|token| token.as_u32())
-            .collect::<Vec<_>>();
-        let mut bounded_history = Vec::new();
-        let mut generated_tokens = Vec::new();
+        let total_history_capacity = prompt_tokens
+            .len()
+            .saturating_add(options.max_new_tokens)
+            .min(max_context);
+        let mut history = Vec::with_capacity(total_history_capacity);
+        history.extend(prompt_tokens.as_slice().iter().map(|token| token.as_u32()));
+        let bounded_history_capacity = self
+            .generation_config
+            .bounded_attention_window_tokens
+            .unwrap_or(max_context)
+            .min(max_context);
+        let mut bounded_history = Vec::with_capacity(bounded_history_capacity);
+        let mut generated_tokens = Vec::with_capacity(options.max_new_tokens);
         let mut sampler = TokenSampler::new(&options.sampling_policy);
         let termination = loop {
             if generated_tokens.len() >= options.max_new_tokens {

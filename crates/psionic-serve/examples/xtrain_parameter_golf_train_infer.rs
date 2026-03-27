@@ -320,12 +320,18 @@ fn decode_variant(
     max_new_tokens: usize,
     variant: DecodeVariant,
 ) -> Result<Vec<u32>, Box<dyn std::error::Error>> {
-    let mut history = prompt_tokens
-        .as_slice()
-        .iter()
-        .map(|token| token.as_u32())
-        .collect::<Vec<_>>();
-    let mut bounded_history = Vec::new();
+    let total_history_capacity = prompt_tokens
+        .len()
+        .saturating_add(max_new_tokens)
+        .min(bundle.generation_config().max_context);
+    let mut history = Vec::with_capacity(total_history_capacity);
+    history.extend(prompt_tokens.as_slice().iter().map(|token| token.as_u32()));
+    let mut bounded_history = Vec::with_capacity(
+        bundle
+            .generation_config()
+            .bounded_attention_window_tokens
+            .unwrap_or(bundle.generation_config().max_context),
+    );
     let mut generated = Vec::with_capacity(max_new_tokens);
     let mut sampler =
         TokenSampler::new(&bundle.default_greedy_generation_options().sampling_policy);
