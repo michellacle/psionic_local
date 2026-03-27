@@ -1,0 +1,128 @@
+{
+  "schema_version": "psionic.live_checkpoint_catchup_contract.v1",
+  "contract_id": "psionic.live_checkpoint_catchup_contract.v1",
+  "current_epoch_id": "network_epoch_00000123",
+  "checkpoint_manifest_digest": "802aa997400ce2259031a375c1cd38c472ede21accee09809c2befe93eeb494f",
+  "checkpoint_pointer_digest": "65fe61fcbc7d2fa054b316aea46fb9216678b72a98653a51c4ac0e8987e77e1b",
+  "distributed_checkpoint_contract_digest": "53386fdd8fc1f9b157df000ea869260905589469468feaf2cb596b6ba8053810",
+  "dense_rank_recovery_contract_digest": "1084d44b21e975950ba6b27b25eb6fe421237461258dc56f4c153454111ea7b4",
+  "elastic_device_mesh_contract_digest": "c28470e11457d28464a6e5ae42543996b7048ec13e228b64e6394e233d1965fc",
+  "wan_overlay_route_contract_digest": "3f8ac57a330f37acfed56c582353643cd09072f6b1792472917165db979922e4",
+  "advertisements": [
+    {
+      "advertisement_id": "advertisement.checkpoint_authority.runpod.primary",
+      "serving_registry_record_id": "runpod_8xh100_dense_node.registry",
+      "serving_role_class": "checkpoint_authority",
+      "advertisement_kind": "checkpoint_authority_mirror",
+      "checkpoint_manifest_digest": "802aa997400ce2259031a375c1cd38c472ede21accee09809c2befe93eeb494f",
+      "checkpoint_pointer_digest": "65fe61fcbc7d2fa054b316aea46fb9216678b72a98653a51c4ac0e8987e77e1b",
+      "advertised_step": 2048,
+      "available_resume_window_ids": [
+        "resume_window.live_join_2048",
+        "resume_window.partial_state_refused_2048"
+      ],
+      "serves_parameter_state": true,
+      "serves_optimizer_state": true,
+      "detail": "RunPod remains the primary full-state live catch-up source because the distributed checkpoint restore plan already assigns it as the canonical restore authority."
+    },
+    {
+      "advertisement_id": "advertisement.checkpoint_authority.google.mirror",
+      "serving_registry_record_id": "google_l4_validator_node.registry",
+      "serving_role_class": "checkpoint_authority",
+      "advertisement_kind": "checkpoint_authority_mirror",
+      "checkpoint_manifest_digest": "802aa997400ce2259031a375c1cd38c472ede21accee09809c2befe93eeb494f",
+      "checkpoint_pointer_digest": "65fe61fcbc7d2fa054b316aea46fb9216678b72a98653a51c4ac0e8987e77e1b",
+      "advertised_step": 2048,
+      "available_resume_window_ids": [
+        "resume_window.live_join_2048"
+      ],
+      "serves_parameter_state": true,
+      "serves_optimizer_state": true,
+      "detail": "Google mirrors the same admitted checkpoint so a second checkpoint-authority source remains explicit."
+    },
+    {
+      "advertisement_id": "advertisement.active_peer.local_mlx.sidecar",
+      "serving_registry_record_id": "local_mlx_mac_workstation.registry",
+      "serving_role_class": "public_miner",
+      "advertisement_kind": "active_peer_sidecar",
+      "checkpoint_manifest_digest": "802aa997400ce2259031a375c1cd38c472ede21accee09809c2befe93eeb494f",
+      "checkpoint_pointer_digest": "65fe61fcbc7d2fa054b316aea46fb9216678b72a98653a51c4ac0e8987e77e1b",
+      "advertised_step": 2048,
+      "available_resume_window_ids": [
+        "resume_window.partial_state_refused_2048"
+      ],
+      "serves_parameter_state": true,
+      "serves_optimizer_state": false,
+      "detail": "The promoted Apple MLX public miner exposes a sidecar checkpoint lane for faster handoff, but it intentionally does not claim optimizer-state completeness."
+    }
+  ],
+  "resume_windows": [
+    {
+      "window_id": "resume_window.live_join_2048",
+      "start_step": 1984,
+      "end_step": 2080,
+      "minimum_fresh_step": 2016,
+      "maximum_step_lag": 32,
+      "checkpoint_authority_registry_record_ids": [
+        "google_l4_validator_node.registry",
+        "runpod_8xh100_dense_node.registry"
+      ],
+      "detail": "The main live-join window admits replacement nodes that are at most 32 steps behind the admitted checkpoint and can fetch full optimizer plus parameter state from checkpoint authorities."
+    },
+    {
+      "window_id": "resume_window.partial_state_refused_2048",
+      "start_step": 2016,
+      "end_step": 2080,
+      "minimum_fresh_step": 2040,
+      "maximum_step_lag": 16,
+      "checkpoint_authority_registry_record_ids": [
+        "google_l4_validator_node.registry",
+        "runpod_8xh100_dense_node.registry"
+      ],
+      "detail": "The tighter sidecar window exists only to prove that stale or optimizer-incomplete peer-sidecar resume attempts are refused instead of being treated as equivalent to checkpoint-authority recovery."
+    }
+  ],
+  "catchup_receipts": [
+    {
+      "receipt_id": "catchup.public_miner.local_mlx.after_deathrattle",
+      "joining_registry_record_id": "local_mlx_mac_workstation.registry",
+      "joining_role_class": "public_miner",
+      "trigger_mesh_revision_id": "promote_public_miner_standby_after_deathrattle_v1",
+      "selected_advertisement_id": "advertisement.checkpoint_authority.runpod.primary",
+      "selected_route_id": "route.checkpoint_authority.local_mlx_runpod.overlay",
+      "restore_assignment_id": "restore-rank-2",
+      "resume_window_id": "resume_window.live_join_2048",
+      "target_checkpoint_step": 2048,
+      "joining_step_lag": 0,
+      "served_parameter_bytes": 134217728,
+      "served_optimizer_bytes": 268435456,
+      "disposition": "completed",
+      "detail": "The promoted Apple MLX miner rejoins the admitted public-miner window through a real live catch-up flow: RunPod serves the canonical checkpoint over the overlay path and satisfies the canonical restore assignment."
+    },
+    {
+      "receipt_id": "catchup.public_miner.local_rtx4080.partial_state_refused",
+      "joining_registry_record_id": "local_rtx4080_workstation.registry",
+      "joining_role_class": "public_miner",
+      "trigger_mesh_revision_id": "promote_public_miner_standby_after_deathrattle_v1",
+      "selected_advertisement_id": "advertisement.active_peer.local_mlx.sidecar",
+      "selected_route_id": "route.public_miner.local_rtx4080_local_mlx.overlay_failover",
+      "restore_assignment_id": "restore-rank-3",
+      "resume_window_id": "resume_window.partial_state_refused_2048",
+      "target_checkpoint_step": 2048,
+      "joining_step_lag": 24,
+      "served_parameter_bytes": 67108864,
+      "served_optimizer_bytes": 0,
+      "disposition": "refused",
+      "refusal": "active-peer sidecar could not satisfy optimizer-state completeness inside the 16-step freshness window",
+      "detail": "The old RTX 4080 miner does not get to claim live resume parity with checkpoint-authority recovery: the MLX sidecar can stream parameter state over the overlay route, but the attempt is refused because the joiner is too stale and optimizer state is incomplete."
+    }
+  ],
+  "authority_paths": {
+    "fixture_path": "fixtures/training/live_checkpoint_catchup_contract_v1.json",
+    "check_script_path": "scripts/check-live-checkpoint-catchup-contract.sh",
+    "reference_doc_path": "docs/LIVE_CHECKPOINT_CATCHUP_REFERENCE.md",
+    "train_system_doc_path": "docs/TRAIN_SYSTEM.md"
+  },
+  "claim_boundary": "This contract freezes the first truthful live catch-up layer above the WAN route contract: checkpoint advertisements, resume windows, one successful replacement catch-up, and one explicit stale or optimizer-incomplete refusal. It does not yet claim WAN-efficient outer sync or public internet soak closure.",
+  "contract_digest": "3589f9e87675511227b73ec95e226ab99354f09cba35cc9c0d72c1608d9a10d8"
+}

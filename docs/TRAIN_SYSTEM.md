@@ -257,6 +257,20 @@ miner path to an overlay tunnel after packet-loss overflow, while still
 refusing to pretend catch-up, outer sync, or public internet soak closure
 already exist.
 
+The repo now also owns the first live checkpoint catch-up contract in
+`crates/psionic-train/src/live_checkpoint_catchup_contract.rs`, the binary
+`live_checkpoint_catchup_contract`, the checker
+`scripts/check-live-checkpoint-catchup-contract.sh`, the focused reference doc
+`docs/LIVE_CHECKPOINT_CATCHUP_REFERENCE.md`, and the committed fixture
+`fixtures/training/live_checkpoint_catchup_contract_v1.json`. That surface
+turns the distributed checkpoint plus WAN route truth into a real join-time
+recovery layer: admitted checkpoint advertisements, explicit freshness windows,
+one completed replacement catch-up, and one refused stale or optimizer-thin
+sidecar attempt. It proves Apple MLX can rejoin the public-miner window
+through RunPod over the overlay path while keeping one critical honesty
+boundary explicit: active-peer sidecars are not equivalent to full
+checkpoint-authority recovery.
+
 The repo now also owns the first dense-rank recovery contract in
 `crates/psionic-train/src/dense_rank_recovery_contract.rs`, the binary
 `dense_rank_recovery_contract`, the checker
