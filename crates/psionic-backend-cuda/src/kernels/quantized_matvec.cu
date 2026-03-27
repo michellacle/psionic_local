@@ -1088,6 +1088,43 @@ __global__ void split_interleaved_query_gate_rms_norm_f32_kernel(
     }
 }
 
+__global__ void pack_qwen35_key_value_rms_norm_f32_kernel(
+    const float *input,
+    int key_offset,
+    int value_offset,
+    int kv_head_count,
+    int head_dim,
+    const float *weight,
+    float epsilon,
+    float *output,
+    int output_key_offset,
+    int output_value_offset
+) {
+    const int kv_head_index = static_cast<int>(blockIdx.x);
+    if (kv_head_index >= kv_head_count) {
+        return;
+    }
+    const int input_key_base = key_offset + kv_head_index * head_dim;
+    const int input_value_base = value_offset + kv_head_index * head_dim;
+    const int output_key_base = output_key_offset + kv_head_index * head_dim;
+    const int output_value_base = output_value_offset + kv_head_index * head_dim;
+    __shared__ float scratch[kBlockSize];
+
+    float mean_square_partial = 0.0f;
+    for (int dim_index = threadIdx.x; dim_index < head_dim; dim_index += blockDim.x) {
+        const float key_value = input[input_key_base + dim_index];
+        mean_square_partial += key_value * key_value;
+    }
+    const float mean_square_sum = reduce_block_sum(mean_square_partial, scratch);
+    const float inv_rms = rsqrtf(mean_square_sum / static_cast<float>(head_dim) + epsilon);
+
+    for (int dim_index = threadIdx.x; dim_index < head_dim; dim_index += blockDim.x) {
+        output[output_key_base + dim_index] =
+            input[input_key_base + dim_index] * weight[dim_index] * inv_rms;
+        output[output_value_base + dim_index] = input[input_value_base + dim_index];
+    }
+}
+
 __global__ void depthwise_causal_conv1d_step_f32_kernel(
     const float *input,
     float *state,
@@ -6168,6 +6205,34 @@ extern "C" int psionic_cuda_split_interleaved_query_gate_rms_norm_f32(
         epsilon,
         static_cast<float *>(query_output),
         static_cast<float *>(gate_output)
+    );
+    return static_cast<int>(cudaGetLastError());
+}
+
+extern "C" int psionic_cuda_pack_qwen35_key_value_rms_norm_f32(
+    const void *input,
+    int key_offset,
+    int value_offset,
+    int kv_head_count,
+    int head_dim,
+    const void *weight,
+    float epsilon,
+    void *output,
+    int output_key_offset,
+    int output_value_offset,
+    void *stream
+) {
+    pack_qwen35_key_value_rms_norm_f32_kernel<<<kv_head_count, kBlockSize, 0, static_cast<cudaStream_t>(stream)>>>(
+        static_cast<const float *>(input),
+        key_offset,
+        value_offset,
+        kv_head_count,
+        head_dim,
+        static_cast<const float *>(weight),
+        epsilon,
+        static_cast<float *>(output),
+        output_key_offset,
+        output_value_offset
     );
     return static_cast<int>(cudaGetLastError());
 }

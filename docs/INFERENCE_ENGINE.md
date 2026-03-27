@@ -48,9 +48,10 @@ than just run tensor math.
   derivation onto CUDA, normalizing q/k regions directly into the packed
   decode buffers, replaying greedy argmax decode through a captured CUDA
   graph, and fusing the qwen35 full-attention query/gate split with per-head
-  query RMSNorm, the local `qwen3.5:0.8b` benchmark on this host measured
-  about `492 tok/s` decode on Psionic versus about `326 tok/s` decode on local
-  Ollama for the same one-sentence prompt and `128` token cap.
+  query RMSNorm, and then fusing per-head key RMSNorm with value packing, the
+  local `qwen3.5:0.8b` benchmark on this host measured about `494 tok/s`
+  decode on Psionic versus about `326 tok/s` decode on local Ollama for the
+  same one-sentence prompt and `128` token cap.
 - The qwen35 lane is now ahead on decode throughput for this host and prompt,
   but it is still not architecture-closed. Greedy prompt replay is materially
   faster than the earlier pilot, but the remaining headroom is still in token

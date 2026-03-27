@@ -156,6 +156,33 @@ int psionic_cuda_split_interleaved_query_gate_rms_norm_f32(
     return 1;
 }
 
+int psionic_cuda_pack_qwen35_key_value_rms_norm_f32(
+    const void *input,
+    int key_offset,
+    int value_offset,
+    int kv_head_count,
+    int head_dim,
+    const void *weight,
+    float epsilon,
+    void *output,
+    int output_key_offset,
+    int output_value_offset,
+    void *stream
+) {
+    (void)input;
+    (void)key_offset;
+    (void)value_offset;
+    (void)kv_head_count;
+    (void)head_dim;
+    (void)weight;
+    (void)epsilon;
+    (void)output;
+    (void)output_key_offset;
+    (void)output_value_offset;
+    (void)stream;
+    return 1;
+}
+
 int psionic_cuda_mxfp4_matvec_q8_1_argmax(
     const void *weights,
     int rows,

@@ -1645,11 +1645,6 @@ impl Qwen35Layer {
             .map_err(ReferenceTextGenerationError::Runtime)?;
         let (freq_scale, ext_factor, corr_dims, theta_scale) =
             qwen35_rope_runtime_parameters(rotary_dim, &model.family_metadata);
-        let query_bytes = query_width.saturating_mul(std::mem::size_of::<f32>());
-        let kv_bytes = full_attention
-            .kv_width
-            .saturating_mul(std::mem::size_of::<f32>());
-
         if let Some(token) = initial_token {
             *bytes_moved = bytes_moved.saturating_add(
                 model.encode_token_embedding_lookup(submission, plan, token, position)?,
@@ -1681,23 +1676,17 @@ impl Qwen35Layer {
             &plan.qkv_norm_buffer,
             &plan.gate_buffer,
         )?;
-        submission.rms_norm_region(
+        submission.pack_qwen35_key_value_rms_norm_f32(
             &plan.matvec_output_buffer,
             query_gate_rows,
+            query_gate_rows.saturating_add(key_rows),
+            kv_head_count,
+            head_dim,
             &full_attention.key_norm_device,
+            epsilon,
             &plan.qkv_norm_buffer,
             query_width,
-            full_attention.kv_width,
-            epsilon,
-        )?;
-        submission.copy_buffer_region(
-            &plan.matvec_output_buffer,
-            query_gate_rows
-                .saturating_add(key_rows)
-                .saturating_mul(std::mem::size_of::<f32>()),
-            &plan.qkv_norm_buffer,
-            query_bytes.saturating_add(kv_bytes),
-            kv_bytes,
+            query_width.saturating_add(full_attention.kv_width),
         )?;
         if use_graph_attention {
             submission.attention_decode_rope_cache_f16_kv_graph(
@@ -2512,23 +2501,17 @@ impl Qwen35Layer {
             &plan.qkv_norm_buffer,
             &plan.gate_buffer,
         )?;
-        submission.rms_norm_region(
+        submission.pack_qwen35_key_value_rms_norm_f32(
             &plan.matvec_output_buffer,
             query_gate_rows,
+            query_gate_rows.saturating_add(key_rows),
+            kv_head_count,
+            head_dim,
             &full_attention.key_norm_device,
+            epsilon,
             &plan.qkv_norm_buffer,
             query_width,
-            full_attention.kv_width,
-            epsilon,
-        )?;
-        submission.copy_buffer_region(
-            &plan.matvec_output_buffer,
-            query_gate_rows
-                .saturating_add(key_rows)
-                .saturating_mul(std::mem::size_of::<f32>()),
-            &plan.qkv_norm_buffer,
-            query_bytes.saturating_add(kv_bytes),
-            kv_bytes,
+            query_width.saturating_add(full_attention.kv_width),
         )?;
         submission.attention_decode_rope_cache_f16_kv(
             &plan.qkv_norm_buffer,

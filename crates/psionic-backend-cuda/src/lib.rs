@@ -1854,6 +1854,52 @@ impl CudaSubmission {
         Ok(())
     }
 
+    /// RMS-normalizes qwen35 full-attention keys per KV head and copies values
+    /// into the packed qkv output buffer in one kernel.
+    #[allow(clippy::too_many_arguments)]
+    pub fn pack_qwen35_key_value_rms_norm_f32(
+        &mut self,
+        input: &CudaBuffer,
+        key_offset: usize,
+        value_offset: usize,
+        kv_head_count: usize,
+        head_dim: usize,
+        weight: &CudaBuffer,
+        epsilon: f32,
+        output: &CudaBuffer,
+        output_key_offset: usize,
+        output_value_offset: usize,
+    ) -> Result<(), RuntimeError> {
+        let kv_width = kv_head_count.saturating_mul(head_dim);
+        if weight.spec().storage_size() != head_dim {
+            return Err(RuntimeError::Backend(format!(
+                "cuda qwen35 fused key/value pack rms norm requires per-head weight width {head_dim}, have {}",
+                weight.spec().storage_size(),
+            )));
+        }
+        if input.spec().storage_size() < value_offset.saturating_add(kv_width)
+            || output.spec().storage_size() < output_value_offset.saturating_add(kv_width)
+        {
+            return Err(RuntimeError::Backend(String::from(
+                "cuda qwen35 fused key/value pack rms norm requires buffers large enough for the requested layout",
+            )));
+        }
+        self.platform.encode_pack_qwen35_key_value_rms_norm_f32(
+            &input.platform,
+            key_offset,
+            value_offset,
+            kv_head_count,
+            head_dim,
+            &weight.platform,
+            epsilon,
+            &output.platform,
+            output_key_offset,
+            output_value_offset,
+        )?;
+        self.encoded_operations += 1;
+        Ok(())
+    }
+
     /// Executes one qwen35-style depthwise causal conv1d decode step.
     pub fn depthwise_causal_conv1d_step_f32(
         &mut self,
@@ -8756,6 +8802,19 @@ mod platform {
         *mut c_void,
         CudaStream,
     ) -> CudaError;
+    type PackQwen35KeyValueRmsNormF32Kernel = unsafe extern "C" fn(
+        *const c_void,
+        c_int,
+        c_int,
+        c_int,
+        c_int,
+        *const c_void,
+        f32,
+        *mut c_void,
+        c_int,
+        c_int,
+        CudaStream,
+    ) -> CudaError;
 
     unsafe extern "C" {
         fn psionic_cuda_quantized_kernels_compiled() -> c_int;
@@ -8991,6 +9050,19 @@ mod platform {
             epsilon: f32,
             query_output: *mut c_void,
             gate_output: *mut c_void,
+            stream: CudaStream,
+        ) -> CudaError;
+        fn psionic_cuda_pack_qwen35_key_value_rms_norm_f32(
+            input: *const c_void,
+            key_offset: c_int,
+            value_offset: c_int,
+            kv_head_count: c_int,
+            head_dim: c_int,
+            weight: *const c_void,
+            epsilon: f32,
+            output: *mut c_void,
+            output_key_offset: c_int,
+            output_value_offset: c_int,
             stream: CudaStream,
         ) -> CudaError;
         fn psionic_cuda_depthwise_causal_conv1d_step_f32(
@@ -11548,6 +11620,72 @@ mod platform {
                     )
                 },
                 "psionic_cuda_split_interleaved_query_gate_rms_norm_f32",
+            )
+        }
+
+        #[allow(clippy::too_many_arguments)]
+        pub(super) fn encode_pack_qwen35_key_value_rms_norm_f32(
+            &mut self,
+            input: &PlatformBuffer,
+            key_offset: usize,
+            value_offset: usize,
+            kv_head_count: usize,
+            head_dim: usize,
+            weight: &PlatformBuffer,
+            epsilon: f32,
+            output: &PlatformBuffer,
+            output_key_offset: usize,
+            output_value_offset: usize,
+        ) -> Result<(), RuntimeError> {
+            let key_offset = c_int::try_from(key_offset).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda qwen35 fused key/value pack key offset exceeds c_int",
+                ))
+            })?;
+            let value_offset = c_int::try_from(value_offset).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda qwen35 fused key/value pack value offset exceeds c_int",
+                ))
+            })?;
+            let kv_head_count = c_int::try_from(kv_head_count).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda qwen35 fused key/value pack kv head count exceeds c_int",
+                ))
+            })?;
+            let head_dim = c_int::try_from(head_dim).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda qwen35 fused key/value pack head dim exceeds c_int",
+                ))
+            })?;
+            let output_key_offset = c_int::try_from(output_key_offset).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda qwen35 fused key/value pack output key offset exceeds c_int",
+                ))
+            })?;
+            let output_value_offset = c_int::try_from(output_value_offset).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda qwen35 fused key/value pack output value offset exceeds c_int",
+                ))
+            })?;
+            self.runtime.set_device()?;
+            self.runtime.check(
+                unsafe {
+                    (psionic_cuda_pack_qwen35_key_value_rms_norm_f32
+                        as PackQwen35KeyValueRmsNormF32Kernel)(
+                        input.inner.device_ptr.cast(),
+                        key_offset,
+                        value_offset,
+                        kv_head_count,
+                        head_dim,
+                        weight.inner.device_ptr.cast(),
+                        epsilon,
+                        output.inner.device_ptr.cast(),
+                        output_key_offset,
+                        output_value_offset,
+                        self.stream,
+                    )
+                },
+                "psionic_cuda_pack_qwen35_key_value_rms_norm_f32",
             )
         }
 
@@ -14869,6 +15007,25 @@ mod platform {
             _epsilon: f32,
             _query_output: &PlatformBuffer,
             _gate_output: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            Err(RuntimeError::Backend(String::from(
+                "cuda quantized text-generation kernels require Linux CUDA support",
+            )))
+        }
+
+        #[allow(clippy::too_many_arguments)]
+        pub(super) fn encode_pack_qwen35_key_value_rms_norm_f32(
+            &mut self,
+            _input: &PlatformBuffer,
+            _key_offset: usize,
+            _value_offset: usize,
+            _kv_head_count: usize,
+            _head_dim: usize,
+            _weight: &PlatformBuffer,
+            _epsilon: f32,
+            _output: &PlatformBuffer,
+            _output_key_offset: usize,
+            _output_value_offset: usize,
         ) -> Result<(), RuntimeError> {
             Err(RuntimeError::Backend(String::from(
                 "cuda quantized text-generation kernels require Linux CUDA support",
@@ -20048,6 +20205,82 @@ mod tests {
             1e-6,
         );
         assert_close(&fused_gate.read_f32()?, &split_gate.read_f32()?, 1e-6);
+        Ok(())
+    }
+
+    #[test]
+    fn cuda_submission_pack_qwen35_key_value_rms_norm_matches_separate_kernels()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let mut backend = CudaBackend::new();
+        let Some(_selected) = backend.selected_device().cloned() else {
+            assert_eq!(backend.health().status, HealthStatus::Offline);
+            return Ok(());
+        };
+
+        let kv_head_count = 2usize;
+        let head_dim = 8usize;
+        let kv_width = kv_head_count * head_dim;
+        let key_offset = 5usize;
+        let value_offset = key_offset + kv_width;
+        let output_key_offset = 7usize;
+        let output_value_offset = output_key_offset + kv_width;
+        let input = (0..(value_offset + kv_width))
+            .map(|index| ((index as f32 % 19.0) - 9.0) * 0.09375)
+            .collect::<Vec<_>>();
+        let weight = (0..head_dim)
+            .map(|index| 0.75_f32 + (index as f32 % 5.0) * 0.125)
+            .collect::<Vec<_>>();
+        let epsilon = 1.0e-5_f32;
+
+        let input_buffer = backend.input_buffer(Shape::new(vec![input.len()]), input)?;
+        let weight_buffer = backend.input_buffer(Shape::new(vec![weight.len()]), weight)?;
+        let output_len = output_value_offset + kv_width;
+        let mut separate_output = backend.f32_buffer(output_len)?;
+        separate_output.write_f32(&vec![17.0_f32; output_len])?;
+        let mut fused_output = backend.f32_buffer(output_len)?;
+        fused_output.write_f32(&vec![17.0_f32; output_len])?;
+
+        let mut separate = backend.begin_submission()?;
+        separate.rms_norm_region(
+            &input_buffer,
+            key_offset,
+            &weight_buffer,
+            &separate_output,
+            output_key_offset,
+            kv_width,
+            epsilon,
+        )?;
+        separate.copy_buffer_region(
+            &input_buffer,
+            value_offset.saturating_mul(std::mem::size_of::<f32>()),
+            &separate_output,
+            output_value_offset.saturating_mul(std::mem::size_of::<f32>()),
+            kv_width.saturating_mul(std::mem::size_of::<f32>()),
+        )?;
+        let separate_report = separate.commit(CudaCommandWait::Completed)?;
+        assert_eq!(separate_report.encoded_operations, 2);
+
+        let mut fused = backend.begin_submission()?;
+        fused.pack_qwen35_key_value_rms_norm_f32(
+            &input_buffer,
+            key_offset,
+            value_offset,
+            kv_head_count,
+            head_dim,
+            &weight_buffer,
+            epsilon,
+            &fused_output,
+            output_key_offset,
+            output_value_offset,
+        )?;
+        let fused_report = fused.commit(CudaCommandWait::Completed)?;
+        assert_eq!(fused_report.encoded_operations, 1);
+
+        assert_close(
+            &fused_output.read_f32()?,
+            &separate_output.read_f32()?,
+            1e-6,
+        );
         Ok(())
     }
 
