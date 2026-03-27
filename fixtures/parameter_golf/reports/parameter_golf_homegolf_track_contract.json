@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "report_id": "parameter_golf.homegolf_track_contract.v1",
+  "track_id": "parameter_golf.home_cluster_compatible_10min.v1",
+  "benchmark_ref": "benchmark://openagents/psionic/parameter_golf/challenge_review",
+  "strict_profile_id": "parameter_golf_challenge_sp1024_v0",
+  "baseline_model_id": "parameter-golf-sp1024-9x512",
+  "baseline_revision": "public-2026-03-18",
+  "artifact_cap_bytes": 16000000,
+  "wallclock_cap_seconds": 600,
+  "exact_fineweb_sp1024_identity_required": true,
+  "exact_contest_bpb_accounting_required": true,
+  "inferable_bundle_required": true,
+  "canonical_dense_trainer_entrypoint": "crates/psionic-train/src/bin/parameter_golf_single_h100_train.rs",
+  "canonical_bundle_handoff_surface": "crates/psionic-models/src/parameter_golf_promoted_bundle.rs",
+  "hardware_manifest_contract": {
+    "contract_id": "parameter_golf.homegolf.hardware_manifest.v1",
+    "admitted_hardware_classes": [
+      {
+        "hardware_class_id": "local_apple_silicon_metal",
+        "required": true,
+        "detail": "Primary local Apple Silicon workstation class used for HOMEGOLF development and short retained runs."
+      },
+      {
+        "hardware_class_id": "home_consumer_cuda_node",
+        "required": true,
+        "detail": "Consumer NVIDIA node on the home network used for mixed-device and comparative HOMEGOLF runs."
+      },
+      {
+        "hardware_class_id": "secondary_apple_silicon_peer",
+        "required": false,
+        "detail": "Secondary Apple Silicon peer admitted when it is awake and reachable for the retained wallclock window."
+      },
+      {
+        "hardware_class_id": "optional_h100_node",
+        "required": false,
+        "detail": "Future H100 capacity may join the same HOMEGOLF track without changing score semantics."
+      }
+    ],
+    "exact_public_hardware_equivalence_required": false,
+    "detail": "HOMEGOLF preserves the public scorepath contract while explicitly refusing to claim that a mixed home cluster is hardware-equivalent to the public 8xH100 leaderboard posture."
+  },
+  "comparison_policy": {
+    "admitted_classes": [
+      "public_baseline_comparable",
+      "not_public_leaderboard_equivalent"
+    ],
+    "leaderboard_equivalence_rule": "A HOMEGOLF result may be compared against the public baseline and current leaderboard by val_bpb, wallclock cap, and artifact bytes, but it must not be called public-leaderboard equivalent unless it is rerun under the official 8xH100 posture.",
+    "detail": "This keeps public-score comparison honest while still letting the custom home-cluster track measure real progress against the contest."
+  },
+  "required_surfaces": [
+    {
+      "surface_id": "exact_dense_baseline_geometry",
+      "status": "satisfied",
+      "detail": "The HOMEGOLF track keeps the public 9x512 SP1024 baseline geometry instead of a PGOLF-ish approximation.",
+      "evidence_refs": [
+        "crates/psionic-models/src/parameter_golf.rs",
+        "docs/PARAMETER_GOLF_PROMOTED_FAMILY_CONTRACT.md"
+      ]
+    },
+    {
+      "surface_id": "strict_scorepath_contract",
+      "status": "satisfied",
+      "detail": "The HOMEGOLF strict posture preserves FineWeb/SP1024 identity, tokenizer-agnostic BPB accounting, the 10-minute cap, and contest-style artifact accounting even though the hardware mix is custom.",
+      "evidence_refs": [
+        "crates/psionic-models/src/parameter_golf.rs",
+        "docs/PARAMETER_GOLF_NON_RECORD_SUBMISSION.md"
+      ]
+    },
+    {
+      "surface_id": "dense_trainer_entrypoint",
+      "status": "satisfied",
+      "detail": "The exact dense baseline already has a Rust-owned trainer entrypoint in psionic-train.",
+      "evidence_refs": [
+        "crates/psionic-train/src/bin/parameter_golf_single_h100_train.rs",
+        "crates/psionic-train/src/parameter_golf_single_h100_training.rs",
+        "fixtures/parameter_golf/reports/parameter_golf_runpod_single_h100_first_real_training_report.json"
+      ]
+    },
+    {
+      "surface_id": "train_to_infer_bundle_handoff",
+      "status": "satisfied",
+      "detail": "Psionic already has a canonical promoted PGOLF runtime bundle surface for train-to-infer and serve closure.",
+      "evidence_refs": [
+        "crates/psionic-train/src/parameter_golf_reference.rs",
+        "crates/psionic-models/src/parameter_golf_promoted_bundle.rs",
+        "crates/psionic-serve/src/lib.rs"
+      ]
+    },
+    {
+      "surface_id": "mixed_device_dense_home_cluster_execution",
+      "status": "blocked",
+      "detail": "The exact dense PGOLF baseline is still H100-only in its live trainer surface; admitted mixed-device home-cluster dense execution remains the next implementation step.",
+      "evidence_refs": [
+        "crates/psionic-train/src/first_same_job_mixed_backend_dense_run.rs",
+        "docs/audits/2026-03-27-tailnet-short-run-device-audit.md"
+      ]
+    }
+  ],
+  "claim_boundary": "HOMEGOLF freezes the public baseline geometry, strict scorepath semantics, and custom-hardware comparison law for a mixed home cluster. It does not yet claim that the dense baseline executes on the full admitted home-device set; the current exact dense trainer remains the existing H100-backed surface with later HOMEGOLF issues required to extend it.",
+  "report_digest": "a8e58d02ee764feab17c85236c838b205b94cbb954e6a71cb2146adc0155afcf"
+}
