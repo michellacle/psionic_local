@@ -562,9 +562,19 @@ struct Q80Q81Dot {
             sum = dp4a_i8(packed_weights[index], packed_input[index], sum);
         }
 
-        return half_to_float(load_u16_le(weight_block->bytes)) *
-            half_to_float(load_u16_le(input_block->bytes)) *
-            static_cast<float>(sum);
+        float weight_scale = 0.0f;
+        float input_scale = 0.0f;
+        const int subgroup_lane = static_cast<int>(threadIdx.x) & 3;
+        const int subgroup_base_lane = static_cast<int>(threadIdx.x) & ~3;
+        const unsigned int subgroup_mask =
+            __activemask() & (0x0fu << static_cast<unsigned int>(subgroup_base_lane));
+        if (subgroup_lane == 0) {
+            weight_scale = half_to_float(load_u16_le(weight_block->bytes));
+            input_scale = half_to_float(load_u16_le(input_block->bytes));
+        }
+        weight_scale = __shfl_sync(subgroup_mask, weight_scale, subgroup_base_lane, kWarpSize);
+        input_scale = __shfl_sync(subgroup_mask, input_scale, subgroup_base_lane, kWarpSize);
+        return weight_scale * input_scale * static_cast<float>(sum);
     }
 };
 

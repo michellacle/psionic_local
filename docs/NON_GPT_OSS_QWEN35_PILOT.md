@@ -177,7 +177,14 @@ matvec launch from four warps per row down to two:
 - Psionic native CUDA qwen35 decode throughput: about `524.61 tok/s`
 - local Ollama `qwen3.5:0.8b` decode throughput: about `329.34 tok/s`
 
-The current bounded lane now depends on eleven architectural changes inside the
+Measured again on the same host and prompt after broadcasting q8.0 and q8.1
+block scales once per four-lane MMVQ subgroup instead of rereading them on
+every lane:
+
+- Psionic native CUDA qwen35 decode throughput: about `533.45 tok/s`
+- local Ollama `qwen3.5:0.8b` decode throughput: about `328.73 tok/s`
+
+The current bounded lane now depends on twelve architectural changes inside the
 native
 Psionic runtime:
 
@@ -207,6 +214,9 @@ Psionic runtime:
 - dense GGML `Q8_0` to `Q8_1` matvec on the qwen35 CUDA lane now routes
   through a dedicated two-warp-per-row MMVQ launch shape instead of the older
   shared-input launcher or the earlier four-warp MMVQ launch
+- that same q8.0 MMVQ dot path now loads the q8.0 and q8.1 block scales once
+  per four-lane subgroup and broadcasts them across the subgroup instead of
+  rereading the same scale pair on every participating lane
 
 This pilot therefore proves native CUDA execution correctness, honest
 publication, and a wider throughput win over the local Ollama baseline on this
