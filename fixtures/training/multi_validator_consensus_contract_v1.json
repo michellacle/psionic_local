@@ -1,0 +1,69 @@
+{
+  "schema_version": "psionic.multi_validator_consensus_contract.v1",
+  "contract_id": "psionic.multi_validator_consensus_contract.v1",
+  "decentralized_network_contract_digest": "37205ba6736d97b64f7156dde917b02d4bd4eeaa5bcfcfd96544c3bcdf338bda",
+  "validator_challenge_scoring_contract_digest": "99ad085b9a12258380dc4fb948c51c0cd86644a91afd6f5137d8a76a13830b25",
+  "shared_validator_promotion_contract_digest": "fce26138afb1719033aabd39e44e751efbc68c08e14a3c27a5bfdb4e8e70aa86",
+  "content_addressed_artifact_exchange_contract_digest": "1d2153ccb088b9bac59de0e9a0f7534251b42799590bd97e7a5604c3b22f45ef",
+  "consensus_policy": {
+    "minimum_validator_quorum": 2,
+    "require_unanimous_acceptance_for_promotion": true,
+    "replay_required_blocks_promotion": true,
+    "disagreement_holds_promotion": true,
+    "detail": "Checkpoint promotion requires the network quorum declared by the decentralized network contract plus unanimous acceptance from that quorum; replay-required or disagreement holds the candidate rather than promoting it."
+  },
+  "votes": [
+    {
+      "vote_id": "vote.public_validator.google.local_mlx.window1231",
+      "validator_registry_record_id": "google_l4_validator_node.registry",
+      "score_receipt_id": "score.public_validator.google.local_mlx.window1231",
+      "challenged_miner_session_id": "session.public_miner.local_mlx.window1231",
+      "disposition": "accepted",
+      "weight_bps": 5000,
+      "detail": "Google contributes one accepted validator vote for the current checkpoint candidate after replaying the Apple MLX miner session."
+    },
+    {
+      "vote_id": "vote.public_validator.local_mlx.google.window1231",
+      "validator_registry_record_id": "local_mlx_mac_workstation.registry",
+      "score_receipt_id": "score.public_validator.local_mlx.google.window1231",
+      "challenged_miner_session_id": "session.public_miner.google.window1231",
+      "disposition": "replay_required",
+      "weight_bps": 5000,
+      "detail": "Apple MLX contributes one replay-required vote for the same checkpoint candidate after seeing excessive replay error on the Google miner session."
+    }
+  ],
+  "promotion_decisions": [
+    {
+      "decision_id": "decision.checkpoint.step2048.round2056",
+      "candidate_kind": "checkpoint_artifact",
+      "candidate_reference_id": "artifact.checkpoint.step2048.live",
+      "vote_ids": [
+        "vote.public_validator.google.local_mlx.window1231",
+        "vote.public_validator.local_mlx.google.window1231"
+      ],
+      "accepted_vote_count": 1,
+      "replay_required_vote_count": 1,
+      "outcome": "held_no_promotion",
+      "detail": "The current checkpoint candidate is held rather than promoted because the network reached quorum but not unanimous acceptance: one validator accepted while the other still requires replay."
+    }
+  ],
+  "disagreement_receipts": [
+    {
+      "receipt_id": "disagreement.checkpoint.step2048.round2056",
+      "decision_id": "decision.checkpoint.step2048.round2056",
+      "disagreeing_validator_registry_record_ids": [
+        "google_l4_validator_node.registry",
+        "local_mlx_mac_workstation.registry"
+      ],
+      "detail": "The two active validators disagree on whether the current checkpoint candidate is ready, so the network records one explicit held-no-promotion disagreement receipt instead of forcing silent human arbitration."
+    }
+  ],
+  "authority_paths": {
+    "fixture_path": "fixtures/training/multi_validator_consensus_contract_v1.json",
+    "check_script_path": "scripts/check-multi-validator-consensus-contract.sh",
+    "reference_doc_path": "docs/MULTI_VALIDATOR_CONSENSUS_REFERENCE.md",
+    "train_system_doc_path": "docs/TRAIN_SYSTEM.md"
+  },
+  "claim_boundary": "This contract freezes the first multi-validator checkpoint-promotion surface: quorum policy, weighted validator votes, held-no-promotion decisions, and explicit disagreement receipts. It does not yet claim fraud penalties, slashing, or reward accounting.",
+  "contract_digest": "ce2a463d0703a5cf5dc3d30efc9b9f8981c17e60bfa8a0d9b2f716912af0470f"
+}

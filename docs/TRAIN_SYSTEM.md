@@ -357,6 +357,17 @@ thresholds, validator receipts, and one stale-checkpoint refusal. It proves the
 network can explain why a contribution was accepted or replay-required without
 falling back to validator-local prose.
 
+The repo now also owns the first multi-validator consensus contract in
+`crates/psionic-train/src/multi_validator_consensus_contract.rs`, the binary
+`multi_validator_consensus_contract`, the checker
+`scripts/check-multi-validator-consensus-contract.sh`, the focused reference
+doc `docs/MULTI_VALIDATOR_CONSENSUS_REFERENCE.md`, and the committed fixture
+`fixtures/training/multi_validator_consensus_contract_v1.json`. That surface
+turns checkpoint authority into explicit network governance: quorum policy,
+weighted validator votes, held-no-promotion decisions, and disagreement
+receipts. It proves checkpoint promotion no longer reduces to one validator or
+one maintainer making an informal call.
+
 The repo now also owns the first dense-rank recovery contract in
 `crates/psionic-train/src/dense_rank_recovery_contract.rs`, the binary
 `dense_rank_recovery_contract`, the checker
