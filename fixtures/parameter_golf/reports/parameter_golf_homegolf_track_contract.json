@@ -118,6 +118,16 @@
       ]
     },
     {
+      "surface_id": "mixed_hardware_manifest_surface",
+      "status": "satisfied",
+      "detail": "HOMEGOLF now also has one explicit retained mixed-hardware manifest example showing that optional H100 capacity can join the same track without changing score semantics, wallclock policy, artifact accounting, or public-comparison language.",
+      "evidence_refs": [
+        "fixtures/parameter_golf/reports/parameter_golf_homegolf_mixed_hardware_manifest.json",
+        "crates/psionic-train/src/parameter_golf_homegolf_manifest.rs",
+        "docs/audits/2026-03-27-homegolf-mixed-hardware-manifest-audit.md"
+      ]
+    },
+    {
       "surface_id": "mixed_device_dense_home_cluster_execution",
       "status": "blocked",
       "detail": "The exact dense PGOLF baseline is still H100-only in its live trainer surface; the new clustered score surface composes retained home-device contribution truth with the exact-family score proof, but admitted mixed-device live dense execution remains the next implementation step.",
@@ -128,6 +138,6 @@
       ]
     }
   ],
-  "claim_boundary": "HOMEGOLF freezes the public baseline geometry, strict scorepath semantics, and custom-hardware comparison law for a mixed home cluster. It now also has one explicit clustered score surface that binds real admitted-device home-Tailnet work to one exact-family HOMEGOLF bundle proof, but it still does not claim that the dense baseline already executes live on the full admitted home-device set; the current exact dense trainer remains the existing H100-backed surface with later HOMEGOLF issues required to extend it.",
-  "report_digest": "e02691a5cce2591fbed3a36bb1decd4863a5dc5b81d84a7c00034d26430afa7e"
+  "claim_boundary": "HOMEGOLF freezes the public baseline geometry, strict scorepath semantics, and custom-hardware comparison law for a mixed home cluster. It now also has one explicit clustered score surface that binds real admitted-device home-Tailnet work to one exact-family HOMEGOLF bundle proof and one explicit mixed-hardware manifest example that keeps future H100 capacity inside the same track law, but it still does not claim that the dense baseline already executes live on the full admitted home-device set; the current exact dense trainer remains the existing H100-backed surface with later HOMEGOLF issues required to extend it.",
+  "report_digest": "c74149c87c056855e37b784797b3578a5e04650086652c1711526d9bcdad9499"
 }

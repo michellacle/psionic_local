@@ -205,6 +205,37 @@ Current truth:
 - that over-cap posture is now frozen in one machine-readable report instead of
   being left as an implied later concern
 
+## Mixed Hardware Manifest Example
+
+HOMEGOLF now also has one explicit retained mixed-hardware manifest surface:
+
+- retained manifest:
+  `fixtures/parameter_golf/reports/parameter_golf_homegolf_mixed_hardware_manifest.json`
+- generator:
+  `crates/psionic-train/src/parameter_golf_homegolf_manifest.rs`
+- entrypoint:
+  `crates/psionic-train/src/bin/parameter_golf_homegolf_mixed_hardware_manifest.rs`
+- checker:
+  `scripts/check-parameter-golf-homegolf-mixed-hardware-manifest.sh`
+
+What it keeps explicit:
+
+- the current admitted Apple Silicon and consumer CUDA nodes
+- the secondary Apple Silicon peer as an optional offline member
+- one optional future H100 slot
+- unchanged `600s` wallclock semantics
+- unchanged `16,000,000`-byte artifact accounting semantics
+- unchanged comparison language:
+  - `public-baseline comparable`
+  - `not public-leaderboard equivalent`
+
+Current truth:
+
+- HOMEGOLF now has one committed mixed-manifest example that includes a future
+  H100 slot
+- the H100 slot is admitted without creating a second benchmark philosophy
+- this does not claim that a retained H100-backed HOMEGOLF run already exists
+
 ## Comparison Policy
 
 Allowed wording:

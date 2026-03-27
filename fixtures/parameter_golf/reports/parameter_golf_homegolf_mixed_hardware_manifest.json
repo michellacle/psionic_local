@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "report_id": "parameter_golf.homegolf_mixed_hardware_manifest.v1",
+  "track_id": "parameter_golf.home_cluster_compatible_10min.v1",
+  "mixed_manifest_id": "home_tailnet_plus_optional_h100.v1",
+  "source_track_contract_ref": "fixtures/parameter_golf/reports/parameter_golf_homegolf_track_contract.json",
+  "artifact_cap_bytes": 16000000,
+  "wallclock_cap_seconds": 600,
+  "exact_public_hardware_equivalence_required": false,
+  "admitted_comparison_classes": [
+    "public_baseline_comparable",
+    "not_public_leaderboard_equivalent"
+  ],
+  "leaderboard_equivalence_rule": "A HOMEGOLF result may be compared against the public baseline and current leaderboard by val_bpb, wallclock cap, and artifact bytes, but it must not be called public-leaderboard equivalent unless it is rerun under the official 8xH100 posture.",
+  "manifest_entries": [
+    {
+      "member_id": "local-m5-primary",
+      "hardware_class_id": "local_apple_silicon_metal",
+      "required_for_track": true,
+      "presence": "present_measured",
+      "execution_backend_label": "mlx",
+      "role_detail": "primary retained short-run coordinator/worker",
+      "detail": "This is the currently admitted local Apple Silicon workstation used for HOMEGOLF short runs and retained proofs."
+    },
+    {
+      "member_id": "home-rtx4080-node",
+      "hardware_class_id": "home_consumer_cuda_node",
+      "required_for_track": true,
+      "presence": "present_measured",
+      "execution_backend_label": "cuda",
+      "role_detail": "consumer CUDA contributor",
+      "detail": "This is the currently admitted home consumer NVIDIA node that participates in mixed-device HOMEGOLF retained runs."
+    },
+    {
+      "member_id": "macbook-m2-peer",
+      "hardware_class_id": "secondary_apple_silicon_peer",
+      "required_for_track": false,
+      "presence": "optional_offline",
+      "execution_backend_label": "mlx",
+      "role_detail": "secondary Apple Silicon peer when reachable",
+      "detail": "The secondary Apple Silicon device stays in the manifest even when it is asleep or unreachable during a retained 10-minute window."
+    },
+    {
+      "member_id": "future-h100-slot-01",
+      "hardware_class_id": "optional_h100_node",
+      "required_for_track": false,
+      "presence": "optional_future",
+      "execution_backend_label": "cuda",
+      "role_detail": "future dense-trainer accelerator slot",
+      "detail": "One future H100 node may join this same HOMEGOLF track later without changing score semantics, wallclock policy, artifact accounting, or comparison law."
+    }
+  ],
+  "optional_h100_admitted": true,
+  "score_semantics_preserved": true,
+  "comparison_policy_preserved": true,
+  "claim_boundary": "This retained manifest proves that HOMEGOLF already admits optional H100 capacity under the same track law. It does not claim that an H100 has already participated in a retained HOMEGOLF run, only that future H100 nodes can join without creating a different benchmark philosophy or score-comparison standard.",
+  "summary": "HOMEGOLF now has one explicit mixed-hardware manifest example covering the current home Tailnet devices plus one optional future H100 slot, while keeping the same public-baseline comparison law and the same non-equivalence rule versus the official 8xH100 leaderboard posture.",
+  "report_digest": "de0fdcfb89d61e2a8b5687759237edd183be856178b00a794966ab729f388ed1"
+}

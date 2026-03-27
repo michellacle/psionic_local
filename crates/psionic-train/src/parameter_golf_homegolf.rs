@@ -246,6 +246,24 @@ pub fn build_parameter_golf_homegolf_track_contract_report(
             ],
         },
         ParameterGolfHomegolfRequiredSurface {
+            surface_id: String::from("mixed_hardware_manifest_surface"),
+            status: ParameterGolfHomegolfSurfaceStatus::Satisfied,
+            detail: String::from(
+                "HOMEGOLF now also has one explicit retained mixed-hardware manifest example showing that optional H100 capacity can join the same track without changing score semantics, wallclock policy, artifact accounting, or public-comparison language.",
+            ),
+            evidence_refs: vec![
+                String::from(
+                    "fixtures/parameter_golf/reports/parameter_golf_homegolf_mixed_hardware_manifest.json",
+                ),
+                String::from(
+                    "crates/psionic-train/src/parameter_golf_homegolf_manifest.rs",
+                ),
+                String::from(
+                    "docs/audits/2026-03-27-homegolf-mixed-hardware-manifest-audit.md",
+                ),
+            ],
+        },
+        ParameterGolfHomegolfRequiredSurface {
             surface_id: String::from("mixed_device_dense_home_cluster_execution"),
             status: ParameterGolfHomegolfSurfaceStatus::Blocked,
             detail: String::from(
@@ -335,7 +353,7 @@ pub fn build_parameter_golf_homegolf_track_contract_report(
         comparison_policy,
         required_surfaces,
         claim_boundary: format!(
-            "HOMEGOLF freezes the public baseline geometry, strict scorepath semantics, and custom-hardware comparison law for a mixed home cluster. It now also has one explicit clustered score surface that binds real admitted-device home-Tailnet work to one exact-family HOMEGOLF bundle proof, but it still does not claim that the dense baseline already executes live on the full admitted home-device set; the current exact dense trainer remains the existing H100-backed surface with later HOMEGOLF issues required to extend it."
+            "HOMEGOLF freezes the public baseline geometry, strict scorepath semantics, and custom-hardware comparison law for a mixed home cluster. It now also has one explicit clustered score surface that binds real admitted-device home-Tailnet work to one exact-family HOMEGOLF bundle proof and one explicit mixed-hardware manifest example that keeps future H100 capacity inside the same track law, but it still does not claim that the dense baseline already executes live on the full admitted home-device set; the current exact dense trainer remains the existing H100-backed surface with later HOMEGOLF issues required to extend it."
         ),
         report_digest: String::new(),
     };
@@ -401,6 +419,11 @@ mod tests {
             .required_surfaces
             .iter()
             .any(|surface| surface.surface_id == "clustered_homegolf_score_surface"
+                && surface.status == ParameterGolfHomegolfSurfaceStatus::Satisfied));
+        assert!(report
+            .required_surfaces
+            .iter()
+            .any(|surface| surface.surface_id == "mixed_hardware_manifest_surface"
                 && surface.status == ParameterGolfHomegolfSurfaceStatus::Satisfied));
         assert!(report
             .required_surfaces
