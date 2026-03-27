@@ -55,6 +55,15 @@ The repo can now truthfully say:
 - the current counted code and scored model bytes are preserved separately
 - the total counted bytes and cap delta are machine-readable
 - the current byte-budget outcome is explicit and within the contest cap
+- the retained under-cap dense export stays inside the same exact-family bundle
+  path already used by the HOMEGOLF train-to-infer proof
+- that means the under-cap export remains compatible with both:
+  - direct exact-family runtime loading
+  - `psionic-serve`
+
+Relevant retained closure surface:
+
+- `fixtures/parameter_golf/reports/parameter_golf_homegolf_dense_bundle_proof.json`
 
 ## What This Does Not Prove
 

@@ -327,6 +327,9 @@ What this keeps explicit:
 - total counted bytes
 - exact delta versus the `16,000,000`-byte cap
 - explicit pass/refusal status
+- the under-cap dense export remains bound to the same exact-family train-to-
+  infer proof surface already used for direct runtime and `psionic-serve`
+  closure
 
 Current truth:
 
@@ -338,6 +341,11 @@ Current truth:
   - `scored_model_artifact_bytes=4732744`
   - `total_counted_bytes=11921444`
   - `cap_delta_bytes=-4078556`
+- the retained under-cap export stays compatible with:
+  - direct exact-family inference
+  - `psionic-serve`
+  - the retained exact dense bundle proof:
+    `fixtures/parameter_golf/reports/parameter_golf_homegolf_dense_bundle_proof.json`
 
 ## Mixed Hardware Manifest Example
 
