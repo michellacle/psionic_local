@@ -316,6 +316,209 @@ reusing:
 The missing work is mainly the train-to-infer closure for Psion-owned trained
 artifacts.
 
+## PGOLF Review: Should The First Real Psion Language Model Match PGOLF
+
+After reviewing both the local Psionic PGOLF lane and the upstream
+`competition/repos/parameter-golf` codebase, the answer is:
+
+- yes, the first real inferable Psion language-model family should be much
+  closer to the PGOLF decoder family than to the current toy reference pilot
+- no, Psionic should not blindly hard-bind its first general language-model
+  family to every contest-specific PGOLF rule
+
+The right move is to make the first serious inferable Psion decoder either:
+
+- the existing `parameter_golf_decoder` family promoted into a real train to
+  infer lane, or
+- a very thin sibling family that keeps the same core decoder math and export
+  shape while allowing non-competition tokenizer, data, and artifact policies
+
+### What Upstream PGOLF Actually Freezes
+
+The upstream `parameter-golf` repo is not merely "a small language model."
+It is a tightly constrained contest lane.
+
+From the upstream code and record READMEs:
+
+- the public baseline is a tiny decoder with `vocab_size=1024`,
+  `num_layers=9`, `model_dim=512`, `num_heads=8`, `num_kv_heads=4`,
+  `mlp_mult=2`, tied embeddings, `max_context=1024`, RoPE, and tanh logit
+  softcap
+- the training script uses a U-Net-like split with encoder and decoder halves
+  plus learned skip weights
+- the best records then layer on cheap but high-leverage tricks:
+  `BigramHash`, 3x MLP, `LeakyReLU(0.5)^2`, partial RoPE, XSA on deep layers,
+  VE late-layer shared value embeddings, EMA, tight SWA, GPTQ-lite style
+  export, Parameter Banking, Parallel Muon, and legal score-first TTT
+- the contest also freezes external constraints that are not model-family
+  fundamentals: a specific tokenizer and dataset lane, a strict compressed
+  artifact budget, and score measured by tokenizer-agnostic bits per byte
+
+So the useful lesson from upstream is not "copy the leaderboard whole."
+The useful lesson is that PGOLF has converged on one compact decoder skeleton
+plus one stack of optimizations that actually move quality under tight compute
+and artifact limits.
+
+### What Psionic Already Has In Its Own PGOLF Lane
+
+The local Psionic PGOLF implementation already mirrors much more of that real
+decoder family than the current Psion reference pilot does.
+
+Concrete evidence:
+
+- `crates/psionic-models/src/parameter_golf.rs` already freezes the same public
+  baseline shape through `ParameterGolfConfig::baseline_sp1024_9x512()`
+- the same config surface already admits several record-level knobs:
+  `bigram_vocab_size`, `ve_layer_indices`, `rope_rotary_dim`,
+  `xsa_last_n`, layer-norm scaling, and `LeakyReLU(0.5)^2`
+- the local PGOLF family already has explicit Parameter Banking tensor
+  surfaces, parameter accounting, and reference-model logic
+- `crates/psionic-train/src/parameter_golf_reference.rs` already freezes
+  challenge geometry and final-artifact postures for both single-device and
+  `8xH100` lanes
+- `crates/psionic-train/src/parameter_golf_single_h100_training.rs` already has
+  challenge-default training config, tokenizer and dataset validation, score
+  first TTT, EMA, SWA, and final-artifact export settings
+- `crates/psionic-train/src/parameter_golf_distributed_8xh100_*` already gives
+  Psionic a serious distributed execution seed for this family
+
+By contrast, the current `PsionCompactDecoderReferencePilotModel` is still only
+the bounded smoke-test object described earlier in this audit:
+
+- token embeddings
+- position embeddings
+- LM-head bias
+- one private `next_token_logits(...)` path
+
+That toy pilot is useful as a training proof. It is not the right foundation
+for the first serious trainable and inferable Psion language-model family.
+
+### Is It Appropriate For The First Real Psion LM To Match PGOLF
+
+Yes, with one important boundary.
+
+It is appropriate for the first real inferable Psion LM to match PGOLF at the
+level of decoder structure and optimization posture, because that gives Psionic
+three concrete advantages immediately:
+
+- the first real small-model lane would be built on a decoder family that is
+  already richer, more explicit, and more realistic than the current toy pilot
+- the same family could plausibly double as a PGOLF submission lane when run
+  under the strict challenge tokenizer, data, hyperparameter, and artifact
+  rules
+- the same family can absorb upstream ideas that have already proved useful
+  under constrained training budgets, then be scaled with more compute through
+  Psionic's distributed and clustered training lanes
+
+So if the question is:
+
+- should the first real Psion LM look like the current toy reference pilot
+
+the answer is no.
+
+If the question is:
+
+- should the first real Psion LM look like the existing PGOLF decoder family
+  or a thin superset of it
+
+the answer is yes.
+
+### What Should Be Shared Versus What Should Stay Contest-Specific
+
+The right split is:
+
+- share the compact decoder math and the optimization hooks
+- keep the strict competition policy as an overlay, not as the universal Psion
+  contract
+
+The shared family should include:
+
+- decoder-only language-model structure
+- tied embeddings by default
+- grouped-query attention with explicit KV-head count
+- RoPE, including optional partial-RoPE posture
+- learned skip/U-Net structure
+- tanh logit softcap
+- one small first shape in the current `9` to `11` layer `512d` range
+- optional `BigramHash`
+- optional VE late-layer value embeddings
+- optional XSA on deep layers
+- configurable `relu^2` versus `LeakyReLU(0.5)^2`
+- parameter-banking-aware weight surfaces
+- export surfaces that can support clean quantized small-model artifacts
+
+The contest-specific overlay should remain optional:
+
+- the exact `SP1024` tokenizer
+- the exact FineWeb contest dataset lane
+- the exact `16MB` compressed artifact constraint
+- score-first TTT as a leaderboard-facing eval overlay
+- contest BPB accounting and score reporting
+
+This distinction matters because several PGOLF ideas are generally useful model
+or runtime improvements, while others only make sense in the challenge lane.
+
+For example:
+
+- `BigramHash`, partial RoPE, VE, XSA, and parameter banking are general model
+  or runtime ideas worth carrying into Psionic's own decoder family
+- legal score-first TTT is a useful optional evaluation overlay, but it should
+  not define the baseline operator story for all Psion models
+- the strict challenge tokenizer and artifact cap should remain one admitted
+  profile, not the default identity of all future Psion language models
+
+### What This Means For Clustering And More Compute
+
+The user goal behind this review is sound:
+
+- start with one compact decoder family that can be trained honestly now
+- reuse proven PGOLF optimization ideas to make that family stronger
+- then extend the same family with more compute and clustered execution
+
+That is more coherent than trying to grow the current toy reference pilot into
+a serious clustered language-model lane.
+
+Psionic already has local evidence that the PGOLF family is the better seed:
+
+- there is already a single-H100 lane
+- there is already an `8xH100` distributed lane
+- there are already banked weight surfaces and bank-aware execution paths
+- there are already audits arguing that the first swarm run should copy the
+  PGOLF discipline, not the literal PGOLF workload
+
+So the best scaling story is:
+
+- keep one small decoder family close to PGOLF
+- make it fully inferable first
+- use the same family as the seed for clustered scaling
+- carry forward the generalizable optimization ideas
+- keep the competition-only scoring and artifact rules as a profile, not a
+  prison
+
+### Recommendation
+
+Psionic should not make the current toy reference pilot the first "real" served
+language model.
+
+Instead:
+
+- keep the current `PsionCompactDecoderReferencePilotModel` as a bounded smoke
+  test for training, restore, and resume
+- promote `parameter_golf_decoder` or a near-identical sibling into the first
+  serious inferable Psion decoder family
+- define one general Psion profile and one strict PGOLF profile over the same
+  core family where possible
+- treat upstream PGOLF innovations as a practical optimization backlog for the
+  shared family
+
+That gives Psionic the strongest combined outcome:
+
+- a first real model family that is small enough to close quickly
+- a family that can potentially double as a PGOLF submission lane
+- a family with real optimization ideas already visible upstream
+- a family that is materially easier to extend into clustered training than the
+  current toy pilot
+
 ## Two Honest Targets
 
 There are two different projects that could both be described as "make Psion
@@ -374,6 +577,8 @@ Define one promoted bundle produced by training that contains:
 Acceptance:
 
 - one checker validates that the bundle is complete and self-consistent
+- the bundle is frozen around one serious decoder family, not the current toy
+  pilot by accident
 
 ### PINF-2: Make The Trained Artifact Match The Declared Model Family
 
@@ -383,6 +588,10 @@ Choose one honest route:
   the descriptor tensor layout
 - or define a distinct `PsionReferencePilotDescriptor` family whose declared
   layout exactly matches the current toy pilot checkpoint
+- or, preferably, promote `parameter_golf_decoder` or one thin sibling family
+  as the first real inferable Psion decoder so the first honest serveable model
+  shares structure with the lane Psionic already uses for compact serious
+  training work
 
 Acceptance:
 
@@ -564,4 +773,8 @@ So the correct statement today is:
 
 - Psionic can restore and reuse the bounded Psion checkpoint internally
 - Psionic cannot yet honestly inference the models it currently trains
+- the right first real inferable family is probably not the current toy pilot
+  at all, but a PGOLF-shaped compact decoder family that can share one core
+  structure across local inference, challenge submission, and later clustered
+  scaling
 - the gap is now concrete and implementable, not ambiguous
