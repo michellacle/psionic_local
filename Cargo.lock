@@ -4400,6 +4400,7 @@ name = "psionic-models"
 version = "0.1.1"
 dependencies = [
  "fancy-regex 0.16.2",
+ "half",
  "hex",
  "openai-harmony",
  "psionic-catalog",

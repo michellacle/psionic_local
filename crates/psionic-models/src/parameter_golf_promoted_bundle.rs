@@ -1,6 +1,21 @@
+use std::{
+    collections::BTreeMap,
+    fs,
+    path::{Path, PathBuf},
+};
+
+use half::f16;
+use safetensors::{Dtype as SafeTensorsDType, SafeTensors};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use thiserror::Error;
+
+use crate::{
+    ModelDescriptor, ParameterGolfBankedWeights, ParameterGolfDeterministicInitializer,
+    ParameterGolfModelDescriptor, ParameterGolfModelError, ParameterGolfPromotedProfileContract,
+    ParameterGolfPromotedProfileKind, ParameterGolfReferenceModel, ParameterGolfWeights, TokenId,
+    TokenSequence, TokenVocabulary, TokenizerBoundary,
+};
 
 /// Stable schema version for the promoted PGOLF tokenizer asset.
 pub const PARAMETER_GOLF_PROMOTED_TOKENIZER_ASSET_SCHEMA_VERSION: &str =
@@ -11,6 +26,13 @@ pub const PARAMETER_GOLF_PROMOTED_GENERATION_CONFIG_SCHEMA_VERSION: &str =
 /// Stable schema version for the promoted PGOLF bundle manifest.
 pub const PARAMETER_GOLF_PROMOTED_BUNDLE_MANIFEST_SCHEMA_VERSION: &str =
     "psionic.parameter_golf_promoted_bundle_manifest.v1";
+/// Canonical manifest filename for one promoted PGOLF runtime bundle.
+pub const PARAMETER_GOLF_PROMOTED_BUNDLE_MANIFEST_FILENAME: &str =
+    "parameter_golf_promoted_bundle_manifest.json";
+
+const PARAMETER_GOLF_WEIGHT_SURFACE_KEY: &str = "psionic.parameter_golf.weight_surface";
+const PARAMETER_GOLF_SPLIT_WEIGHT_SURFACE: &str = "split_f32_v1";
+const PARAMETER_GOLF_BANKED_WEIGHT_SURFACE: &str = "banked_f32_v1";
 
 /// Runtime-loadable tokenizer asset format admitted by the promoted PGOLF bundle.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -531,7 +553,9 @@ pub enum ParameterGolfPromotedBundleError {
         expected: String,
         actual: String,
     },
-    #[error("promoted PGOLF bundle digest mismatch for `{field}`: expected `{expected}`, found `{actual}`")]
+    #[error(
+        "promoted PGOLF bundle digest mismatch for `{field}`: expected `{expected}`, found `{actual}`"
+    )]
     DigestMismatch {
         field: String,
         expected: String,
@@ -539,6 +563,369 @@ pub enum ParameterGolfPromotedBundleError {
     },
     #[error("promoted PGOLF bundle field `{field}` is invalid: {detail}")]
     InvalidValue { field: String, detail: String },
+}
+
+/// Public runtime load failure for the promoted PGOLF bundle surface.
+#[derive(Debug, Error)]
+pub enum ParameterGolfPromotedRuntimeLoadError {
+    #[error("failed to read promoted PGOLF bundle artifact `{path}`: {source}")]
+    Io {
+        path: PathBuf,
+        #[source]
+        source: std::io::Error,
+    },
+    #[error("failed to parse promoted PGOLF bundle artifact `{path}` as {context}: {source}")]
+    Json {
+        path: PathBuf,
+        context: &'static str,
+        #[source]
+        source: serde_json::Error,
+    },
+    #[error(transparent)]
+    Bundle(#[from] ParameterGolfPromotedBundleError),
+    #[error(transparent)]
+    Model(#[from] ParameterGolfModelError),
+    #[error("invalid promoted PGOLF runtime bundle: {detail}")]
+    InvalidBundle { detail: String },
+    #[error(
+        "promoted PGOLF runtime bundle field `{field}` mismatched: expected `{expected}`, found `{actual}`"
+    )]
+    FieldMismatch {
+        field: String,
+        expected: String,
+        actual: String,
+    },
+    #[error("promoted PGOLF runtime safetensors load failed for `{context}`: {message}")]
+    SafeTensors {
+        context: &'static str,
+        message: String,
+    },
+    #[error("promoted PGOLF runtime tensor `{parameter_id}` was missing from the model artifact")]
+    MissingArtifactTensor { parameter_id: String },
+    #[error(
+        "promoted PGOLF runtime tensor `{parameter_id}` had shape {actual:?}; expected {expected:?}"
+    )]
+    ArtifactTensorShape {
+        parameter_id: String,
+        actual: Vec<usize>,
+        expected: Vec<usize>,
+    },
+    #[error("promoted PGOLF runtime tensor decode failed for `{parameter_id}`: {detail}")]
+    TensorDecode {
+        parameter_id: String,
+        detail: String,
+    },
+}
+
+/// Public runtime tokenizer bound to one promoted PGOLF bundle asset.
+#[derive(Clone, Debug)]
+pub struct ParameterGolfPromotedRuntimeTokenizer {
+    asset: ParameterGolfPromotedTokenizerAsset,
+    vocabulary: TokenVocabulary,
+    lookup: BTreeMap<String, TokenId>,
+    eos_token_ids: Vec<TokenId>,
+}
+
+impl ParameterGolfPromotedRuntimeTokenizer {
+    /// Builds the runtime tokenizer directly from one emitted tokenizer asset.
+    pub fn from_asset(
+        asset: ParameterGolfPromotedTokenizerAsset,
+    ) -> Result<Self, ParameterGolfPromotedRuntimeLoadError> {
+        asset.validate()?;
+        if asset.family != ParameterGolfPromotedTokenizerFamily::SentencePiece {
+            return Err(ParameterGolfPromotedRuntimeLoadError::InvalidBundle {
+                detail: format!("unsupported promoted tokenizer family `{:?}`", asset.family),
+            });
+        }
+        if asset.asset_format
+            != ParameterGolfPromotedTokenizerAssetFormat::SentencePiecePieceTableJson
+        {
+            return Err(ParameterGolfPromotedRuntimeLoadError::InvalidBundle {
+                detail: format!(
+                    "unsupported promoted tokenizer asset format `{:?}`",
+                    asset.asset_format
+                ),
+            });
+        }
+
+        let mut lookup = BTreeMap::new();
+        for piece in &asset.pieces {
+            if let Some(previous) = lookup.insert(piece.piece.clone(), TokenId(piece.token_id)) {
+                return Err(ParameterGolfPromotedRuntimeLoadError::InvalidBundle {
+                    detail: format!(
+                        "duplicate tokenizer piece `{}` mapped to ids {} and {}",
+                        piece.piece,
+                        previous.as_u32(),
+                        piece.token_id
+                    ),
+                });
+            }
+        }
+
+        let fallback = asset.unknown_token_id.unwrap_or(0);
+        let vocabulary = TokenVocabulary::new(
+            asset
+                .pieces
+                .iter()
+                .map(|piece| piece.piece.clone())
+                .collect(),
+            TokenId(asset.pad_token_id.unwrap_or(fallback)),
+            TokenId(asset.bos_token_id.unwrap_or(fallback)),
+            TokenId(asset.eos_token_ids.first().copied().unwrap_or(fallback)),
+            TokenId(fallback),
+        );
+        let eos_token_ids = asset
+            .eos_token_ids
+            .iter()
+            .copied()
+            .map(TokenId)
+            .collect::<Vec<_>>();
+        Ok(Self {
+            asset,
+            vocabulary,
+            lookup,
+            eos_token_ids,
+        })
+    }
+
+    /// Returns the emitted tokenizer asset.
+    #[must_use]
+    pub fn asset(&self) -> &ParameterGolfPromotedTokenizerAsset {
+        &self.asset
+    }
+
+    /// Encodes text with explicit BOS/EOS injection.
+    #[must_use]
+    pub fn encode_with_special_tokens(
+        &self,
+        text: &str,
+        add_bos: bool,
+        add_eos: bool,
+    ) -> TokenSequence {
+        let mut tokens = Vec::new();
+        if add_bos {
+            if let Some(token_id) = self.asset.bos_token_id {
+                tokens.push(TokenId(token_id));
+            }
+        }
+        for word in text.split_whitespace() {
+            self.encode_word(word, &mut tokens);
+        }
+        if add_eos {
+            if let Some(token_id) = self.asset.eos_token_ids.first().copied() {
+                tokens.push(TokenId(token_id));
+            }
+        }
+        TokenSequence::new(tokens)
+    }
+
+    /// Encodes text using the tokenizer defaults emitted by the training bundle.
+    #[must_use]
+    pub fn encode_with_defaults(&self, text: &str) -> TokenSequence {
+        self.encode_with_special_tokens(text, self.asset.add_bos, self.asset.add_eos)
+    }
+
+    /// Returns whether one token is admitted as EOS by the emitted asset.
+    #[must_use]
+    pub fn is_end_of_sequence(&self, token: TokenId) -> bool {
+        self.eos_token_ids.contains(&token)
+    }
+
+    fn encode_word(&self, word: &str, output: &mut Vec<TokenId>) {
+        if word.is_empty() {
+            return;
+        }
+        let mut remaining = word;
+        let mut first_piece = true;
+        while !remaining.is_empty() {
+            let mut matched = None;
+            for end in remaining
+                .char_indices()
+                .map(|(index, _)| index)
+                .chain(std::iter::once(remaining.len()))
+                .rev()
+            {
+                if end == 0 {
+                    continue;
+                }
+                let candidate = &remaining[..end];
+                if first_piece {
+                    let boundary_candidate = format!("▁{candidate}");
+                    if let Some(token_id) = self.lookup.get(boundary_candidate.as_str()) {
+                        matched = Some((end, *token_id));
+                        break;
+                    }
+                }
+                if let Some(token_id) = self.lookup.get(candidate) {
+                    matched = Some((end, *token_id));
+                    break;
+                }
+            }
+            match matched {
+                Some((matched_len, token_id)) => {
+                    output.push(token_id);
+                    remaining = &remaining[matched_len..];
+                    first_piece = false;
+                }
+                None => {
+                    output.push(self.vocabulary.unknown_id());
+                    break;
+                }
+            }
+        }
+    }
+}
+
+impl TokenizerBoundary for ParameterGolfPromotedRuntimeTokenizer {
+    fn encode(&self, text: &str) -> TokenSequence {
+        self.encode_with_special_tokens(text, false, false)
+    }
+
+    fn decode(&self, tokens: &[TokenId]) -> String {
+        let mut output = String::new();
+        for token in tokens {
+            if is_runtime_special_token(&self.asset, self.eos_token_ids.as_slice(), *token) {
+                continue;
+            }
+            let Some(piece) = self.vocabulary.token(*token) else {
+                continue;
+            };
+            if let Some(boundary_stripped) = piece.strip_prefix('▁') {
+                if !output.is_empty() {
+                    output.push(' ');
+                }
+                output.push_str(boundary_stripped);
+                continue;
+            }
+            output.push_str(piece);
+        }
+        output
+    }
+
+    fn vocabulary(&self) -> &TokenVocabulary {
+        &self.vocabulary
+    }
+}
+
+/// Public runtime bundle containing the emitted promoted PGOLF artifacts.
+#[derive(Clone, Debug)]
+pub struct ParameterGolfPromotedRuntimeBundle {
+    bundle_root: PathBuf,
+    manifest: ParameterGolfPromotedBundleManifest,
+    profile_contract: ParameterGolfPromotedProfileContract,
+    descriptor: ParameterGolfModelDescriptor,
+    tokenizer: ParameterGolfPromotedRuntimeTokenizer,
+    generation_config: ParameterGolfPromotedGenerationConfig,
+    model: ParameterGolfReferenceModel,
+}
+
+impl ParameterGolfPromotedRuntimeBundle {
+    /// Loads one promoted PGOLF runtime bundle from a directory.
+    pub fn load_dir(path: impl AsRef<Path>) -> Result<Self, ParameterGolfPromotedRuntimeLoadError> {
+        let bundle_root = path.as_ref().to_path_buf();
+        let manifest_path = bundle_root.join(PARAMETER_GOLF_PROMOTED_BUNDLE_MANIFEST_FILENAME);
+        let manifest: ParameterGolfPromotedBundleManifest =
+            read_json_file(manifest_path.as_path(), "promoted bundle manifest")?;
+        manifest.validate()?;
+
+        let profile_contract: ParameterGolfPromotedProfileContract = read_json_artifact(
+            bundle_root.as_path(),
+            &manifest.artifacts.profile_contract,
+            "promoted profile contract",
+        )?;
+        let descriptor: ParameterGolfModelDescriptor = read_json_artifact(
+            bundle_root.as_path(),
+            &manifest.artifacts.descriptor,
+            "promoted model descriptor",
+        )?;
+        let tokenizer_asset: ParameterGolfPromotedTokenizerAsset = read_json_artifact(
+            bundle_root.as_path(),
+            &manifest.artifacts.tokenizer_asset,
+            "promoted tokenizer asset",
+        )?;
+        let generation_config: ParameterGolfPromotedGenerationConfig = read_json_artifact(
+            bundle_root.as_path(),
+            &manifest.artifacts.generation_config,
+            "promoted generation config",
+        )?;
+        generation_config.validate()?;
+
+        let model_bytes = read_bytes_artifact(
+            bundle_root.as_path(),
+            &manifest.artifacts.model,
+            "promoted model weights",
+        )?;
+        let tokenizer = ParameterGolfPromotedRuntimeTokenizer::from_asset(tokenizer_asset)?;
+
+        validate_loaded_bundle_relationships(
+            &manifest,
+            &profile_contract,
+            &descriptor,
+            tokenizer.asset(),
+            &generation_config,
+        )?;
+
+        let model = restore_parameter_golf_model_from_safetensors(&descriptor, &model_bytes)?;
+        if model.descriptor().stable_digest() != descriptor.stable_digest() {
+            return Err(ParameterGolfPromotedRuntimeLoadError::FieldMismatch {
+                field: String::from("descriptor.digest"),
+                expected: descriptor.stable_digest(),
+                actual: model.descriptor().stable_digest(),
+            });
+        }
+
+        Ok(Self {
+            bundle_root,
+            manifest,
+            profile_contract,
+            descriptor,
+            tokenizer,
+            generation_config,
+            model,
+        })
+    }
+
+    /// Returns the bundle root directory.
+    #[must_use]
+    pub fn bundle_root(&self) -> &Path {
+        self.bundle_root.as_path()
+    }
+
+    /// Returns the canonical promoted bundle manifest.
+    #[must_use]
+    pub fn manifest(&self) -> &ParameterGolfPromotedBundleManifest {
+        &self.manifest
+    }
+
+    /// Returns the promoted profile contract.
+    #[must_use]
+    pub fn profile_contract(&self) -> &ParameterGolfPromotedProfileContract {
+        &self.profile_contract
+    }
+
+    /// Returns the model descriptor bound to the runtime bundle.
+    #[must_use]
+    pub fn descriptor(&self) -> &ParameterGolfModelDescriptor {
+        &self.descriptor
+    }
+
+    /// Returns the runtime tokenizer bound to the bundle.
+    #[must_use]
+    pub fn tokenizer(&self) -> &ParameterGolfPromotedRuntimeTokenizer {
+        &self.tokenizer
+    }
+
+    /// Returns the default generation config emitted by training.
+    #[must_use]
+    pub fn generation_config(&self) -> &ParameterGolfPromotedGenerationConfig {
+        &self.generation_config
+    }
+
+    /// Returns the restored runtime model object.
+    #[must_use]
+    pub fn model(&self) -> &ParameterGolfReferenceModel {
+        &self.model
+    }
 }
 
 fn require_nonempty(value: &str, field: &str) -> Result<(), ParameterGolfPromotedBundleError> {
@@ -582,4 +969,404 @@ fn stable_digest<T: Serialize>(prefix: &[u8], value: &T) -> String {
     hasher.update(prefix);
     hasher.update(serde_json::to_vec(value).expect("promoted PGOLF bundle value should serialize"));
     hex::encode(hasher.finalize())
+}
+
+fn read_json_file<T: for<'de> Deserialize<'de>>(
+    path: &Path,
+    context: &'static str,
+) -> Result<T, ParameterGolfPromotedRuntimeLoadError> {
+    let bytes = fs::read(path).map_err(|source| ParameterGolfPromotedRuntimeLoadError::Io {
+        path: path.to_path_buf(),
+        source,
+    })?;
+    serde_json::from_slice(bytes.as_slice()).map_err(|source| {
+        ParameterGolfPromotedRuntimeLoadError::Json {
+            path: path.to_path_buf(),
+            context,
+            source,
+        }
+    })
+}
+
+fn read_json_artifact<T: for<'de> Deserialize<'de>>(
+    bundle_root: &Path,
+    artifact: &ParameterGolfPromotedBundleArtifactRef,
+    context: &'static str,
+) -> Result<T, ParameterGolfPromotedRuntimeLoadError> {
+    let path = bundle_root.join(artifact.relative_path.as_str());
+    let bytes =
+        fs::read(path.as_path()).map_err(|source| ParameterGolfPromotedRuntimeLoadError::Io {
+            path: path.clone(),
+            source,
+        })?;
+    validate_artifact_sha(path.as_path(), bytes.as_slice(), artifact.sha256.as_str())?;
+    serde_json::from_slice(bytes.as_slice()).map_err(|source| {
+        ParameterGolfPromotedRuntimeLoadError::Json {
+            path,
+            context,
+            source,
+        }
+    })
+}
+
+fn read_bytes_artifact(
+    bundle_root: &Path,
+    artifact: &ParameterGolfPromotedBundleArtifactRef,
+    _context: &'static str,
+) -> Result<Vec<u8>, ParameterGolfPromotedRuntimeLoadError> {
+    let path = bundle_root.join(artifact.relative_path.as_str());
+    let bytes =
+        fs::read(path.as_path()).map_err(|source| ParameterGolfPromotedRuntimeLoadError::Io {
+            path: path.clone(),
+            source,
+        })?;
+    validate_artifact_sha(path.as_path(), bytes.as_slice(), artifact.sha256.as_str())?;
+    Ok(bytes)
+}
+
+fn validate_artifact_sha(
+    path: &Path,
+    bytes: &[u8],
+    expected_sha256: &str,
+) -> Result<(), ParameterGolfPromotedRuntimeLoadError> {
+    let actual = sha256_hex(bytes);
+    if actual != expected_sha256 {
+        return Err(ParameterGolfPromotedRuntimeLoadError::FieldMismatch {
+            field: format!("artifact.sha256:{}", path.display()),
+            expected: String::from(expected_sha256),
+            actual,
+        });
+    }
+    Ok(())
+}
+
+fn validate_loaded_bundle_relationships(
+    manifest: &ParameterGolfPromotedBundleManifest,
+    profile_contract: &ParameterGolfPromotedProfileContract,
+    descriptor: &ParameterGolfModelDescriptor,
+    tokenizer_asset: &ParameterGolfPromotedTokenizerAsset,
+    generation_config: &ParameterGolfPromotedGenerationConfig,
+) -> Result<(), ParameterGolfPromotedRuntimeLoadError> {
+    if manifest.profile_id != manifest.lineage.profile_id {
+        return Err(ParameterGolfPromotedRuntimeLoadError::FieldMismatch {
+            field: String::from("manifest.profile_id"),
+            expected: manifest.lineage.profile_id.clone(),
+            actual: manifest.profile_id.clone(),
+        });
+    }
+    if manifest.profile_kind != manifest.lineage.profile_kind {
+        return Err(ParameterGolfPromotedRuntimeLoadError::FieldMismatch {
+            field: String::from("manifest.profile_kind"),
+            expected: manifest.lineage.profile_kind.clone(),
+            actual: manifest.profile_kind.clone(),
+        });
+    }
+    if descriptor.model.family != manifest.model_family {
+        return Err(ParameterGolfPromotedRuntimeLoadError::FieldMismatch {
+            field: String::from("descriptor.model.family"),
+            expected: manifest.model_family.clone(),
+            actual: descriptor.model.family.clone(),
+        });
+    }
+    if descriptor.model.model_id != manifest.model_id {
+        return Err(ParameterGolfPromotedRuntimeLoadError::FieldMismatch {
+            field: String::from("descriptor.model.model_id"),
+            expected: manifest.model_id.clone(),
+            actual: descriptor.model.model_id.clone(),
+        });
+    }
+    if descriptor.model.revision != manifest.model_revision {
+        return Err(ParameterGolfPromotedRuntimeLoadError::FieldMismatch {
+            field: String::from("descriptor.model.revision"),
+            expected: manifest.model_revision.clone(),
+            actual: descriptor.model.revision.clone(),
+        });
+    }
+    if descriptor.stable_digest() != manifest.lineage.descriptor_digest {
+        return Err(ParameterGolfPromotedRuntimeLoadError::FieldMismatch {
+            field: String::from("descriptor.digest"),
+            expected: manifest.lineage.descriptor_digest.clone(),
+            actual: descriptor.stable_digest(),
+        });
+    }
+    if profile_contract.profile_id != manifest.profile_id {
+        return Err(ParameterGolfPromotedRuntimeLoadError::FieldMismatch {
+            field: String::from("profile_contract.profile_id"),
+            expected: manifest.profile_id.clone(),
+            actual: profile_contract.profile_id.clone(),
+        });
+    }
+    if profile_contract.family_id != manifest.family_id {
+        return Err(ParameterGolfPromotedRuntimeLoadError::FieldMismatch {
+            field: String::from("profile_contract.family_id"),
+            expected: manifest.family_id.clone(),
+            actual: profile_contract.family_id.clone(),
+        });
+    }
+    let expected_profile_kind = promoted_profile_kind_label(profile_contract.kind);
+    if manifest.profile_kind != expected_profile_kind {
+        return Err(ParameterGolfPromotedRuntimeLoadError::FieldMismatch {
+            field: String::from("manifest.profile_kind"),
+            expected: expected_profile_kind,
+            actual: manifest.profile_kind.clone(),
+        });
+    }
+    if tokenizer_asset.profile_id != manifest.profile_id {
+        return Err(ParameterGolfPromotedRuntimeLoadError::FieldMismatch {
+            field: String::from("tokenizer_asset.profile_id"),
+            expected: manifest.profile_id.clone(),
+            actual: tokenizer_asset.profile_id.clone(),
+        });
+    }
+    if generation_config.profile_id != manifest.profile_id {
+        return Err(ParameterGolfPromotedRuntimeLoadError::FieldMismatch {
+            field: String::from("generation_config.profile_id"),
+            expected: manifest.profile_id.clone(),
+            actual: generation_config.profile_id.clone(),
+        });
+    }
+    if descriptor.config != profile_contract.baseline_config {
+        return Err(ParameterGolfPromotedRuntimeLoadError::InvalidBundle {
+            detail: String::from(
+                "descriptor.config drifted from the promoted profile baseline contract",
+            ),
+        });
+    }
+    Ok(())
+}
+
+fn promoted_profile_kind_label(kind: ParameterGolfPromotedProfileKind) -> String {
+    match kind {
+        ParameterGolfPromotedProfileKind::GeneralPsionSmallDecoder => {
+            String::from("general_psion_small_decoder")
+        }
+        ParameterGolfPromotedProfileKind::StrictPgolfChallenge => {
+            String::from("strict_pgolf_challenge")
+        }
+    }
+}
+
+fn restore_parameter_golf_model_from_safetensors(
+    descriptor: &ParameterGolfModelDescriptor,
+    weights_bytes: &[u8],
+) -> Result<ParameterGolfReferenceModel, ParameterGolfPromotedRuntimeLoadError> {
+    let baseline_model = ParameterGolfReferenceModel::new(
+        ModelDescriptor::new(
+            descriptor.model.model_id.clone(),
+            descriptor.model.family.clone(),
+            descriptor.model.revision.clone(),
+        ),
+        descriptor.config.clone(),
+        ParameterGolfWeights::from_initializer(
+            &descriptor.config,
+            ParameterGolfDeterministicInitializer::default(),
+        )?,
+    )?;
+    let (_, metadata) = SafeTensors::read_metadata(weights_bytes).map_err(|error| {
+        ParameterGolfPromotedRuntimeLoadError::SafeTensors {
+            context: "parameter golf promoted runtime metadata",
+            message: error.to_string(),
+        }
+    })?;
+    let safetensors = SafeTensors::deserialize(weights_bytes).map_err(|error| {
+        ParameterGolfPromotedRuntimeLoadError::SafeTensors {
+            context: "parameter golf promoted runtime deserialize",
+            message: error.to_string(),
+        }
+    })?;
+    let weight_surface = metadata
+        .metadata()
+        .as_ref()
+        .and_then(|metadata| metadata.get(PARAMETER_GOLF_WEIGHT_SURFACE_KEY))
+        .map(String::as_str)
+        .unwrap_or(PARAMETER_GOLF_SPLIT_WEIGHT_SURFACE);
+    match weight_surface {
+        PARAMETER_GOLF_SPLIT_WEIGHT_SURFACE => {
+            restore_parameter_golf_model_from_split_safetensors(&baseline_model, &safetensors)
+        }
+        PARAMETER_GOLF_BANKED_WEIGHT_SURFACE => {
+            restore_parameter_golf_model_from_banked_safetensors(&baseline_model, &safetensors)
+        }
+        other => Err(ParameterGolfPromotedRuntimeLoadError::InvalidBundle {
+            detail: format!("unsupported parameter golf weight surface `{other}`"),
+        }),
+    }
+}
+
+fn restore_parameter_golf_model_from_split_safetensors(
+    baseline_model: &ParameterGolfReferenceModel,
+    safetensors: &SafeTensors<'_>,
+) -> Result<ParameterGolfReferenceModel, ParameterGolfPromotedRuntimeLoadError> {
+    let mut overrides = BTreeMap::new();
+    for parameter in baseline_model
+        .weights()
+        .parameter_vectors(&baseline_model.descriptor().config)
+    {
+        let tensor = safetensors
+            .tensor(parameter.parameter_id.as_str())
+            .map_err(
+                |_| ParameterGolfPromotedRuntimeLoadError::MissingArtifactTensor {
+                    parameter_id: parameter.parameter_id.clone(),
+                },
+            )?;
+        validate_tensor_shape(
+            parameter.parameter_id.as_str(),
+            tensor.shape(),
+            parameter.shape.dims(),
+        )?;
+        overrides.insert(
+            parameter.parameter_id.clone(),
+            decode_float_tensor(
+                parameter.parameter_id.as_str(),
+                tensor.dtype(),
+                tensor.data(),
+                tensor.shape(),
+            )?,
+        );
+    }
+    let weights = baseline_model
+        .weights()
+        .with_parameter_overrides(&baseline_model.descriptor().config, &overrides)?;
+    Ok(ParameterGolfReferenceModel::new(
+        baseline_model.descriptor().model.clone(),
+        baseline_model.descriptor().config.clone(),
+        weights,
+    )?)
+}
+
+fn restore_parameter_golf_model_from_banked_safetensors(
+    baseline_model: &ParameterGolfReferenceModel,
+    safetensors: &SafeTensors<'_>,
+) -> Result<ParameterGolfReferenceModel, ParameterGolfPromotedRuntimeLoadError> {
+    let weights =
+        restore_parameter_golf_banked_weights_from_banked_safetensors(baseline_model, safetensors)?
+            .to_split(&baseline_model.descriptor().config)?;
+    Ok(ParameterGolfReferenceModel::new(
+        baseline_model.descriptor().model.clone(),
+        baseline_model.descriptor().config.clone(),
+        weights,
+    )?)
+}
+
+fn restore_parameter_golf_banked_weights_from_banked_safetensors(
+    baseline_model: &ParameterGolfReferenceModel,
+    safetensors: &SafeTensors<'_>,
+) -> Result<ParameterGolfBankedWeights, ParameterGolfPromotedRuntimeLoadError> {
+    let config = &baseline_model.descriptor().config;
+    let banked_weights = baseline_model.banked_weights()?;
+    let mut overrides = BTreeMap::new();
+    for parameter in banked_weights.parameter_vectors(config) {
+        let tensor = safetensors
+            .tensor(parameter.parameter_id.as_str())
+            .map_err(
+                |_| ParameterGolfPromotedRuntimeLoadError::MissingArtifactTensor {
+                    parameter_id: parameter.parameter_id.clone(),
+                },
+            )?;
+        validate_tensor_shape(
+            parameter.parameter_id.as_str(),
+            tensor.shape(),
+            parameter.shape.dims(),
+        )?;
+        overrides.insert(
+            parameter.parameter_id.clone(),
+            decode_float_tensor(
+                parameter.parameter_id.as_str(),
+                tensor.dtype(),
+                tensor.data(),
+                tensor.shape(),
+            )?,
+        );
+    }
+    Ok(banked_weights.with_parameter_overrides(config, &overrides)?)
+}
+
+fn validate_tensor_shape(
+    parameter_id: &str,
+    actual: &[usize],
+    expected: &[usize],
+) -> Result<(), ParameterGolfPromotedRuntimeLoadError> {
+    if actual != expected {
+        return Err(ParameterGolfPromotedRuntimeLoadError::ArtifactTensorShape {
+            parameter_id: String::from(parameter_id),
+            actual: actual.to_vec(),
+            expected: expected.to_vec(),
+        });
+    }
+    Ok(())
+}
+
+fn decode_float_tensor(
+    parameter_id: &str,
+    dtype: SafeTensorsDType,
+    bytes: &[u8],
+    shape: &[usize],
+) -> Result<Vec<f32>, ParameterGolfPromotedRuntimeLoadError> {
+    let expected_len = shape.iter().product::<usize>();
+    match dtype {
+        SafeTensorsDType::F32 => decode_f32_bytes(parameter_id, bytes, expected_len),
+        SafeTensorsDType::F16 => decode_f16_bytes(parameter_id, bytes, expected_len),
+        other => Err(ParameterGolfPromotedRuntimeLoadError::TensorDecode {
+            parameter_id: String::from(parameter_id),
+            detail: format!("unsupported dtype `{other}`"),
+        }),
+    }
+}
+
+fn decode_f32_bytes(
+    parameter_id: &str,
+    bytes: &[u8],
+    expected_len: usize,
+) -> Result<Vec<f32>, ParameterGolfPromotedRuntimeLoadError> {
+    if bytes.len() != expected_len.saturating_mul(4) {
+        return Err(ParameterGolfPromotedRuntimeLoadError::TensorDecode {
+            parameter_id: String::from(parameter_id),
+            detail: format!(
+                "tensor had {} bytes; expected {}",
+                bytes.len(),
+                expected_len.saturating_mul(4)
+            ),
+        });
+    }
+    Ok(bytes
+        .chunks_exact(4)
+        .map(|chunk| f32::from_le_bytes([chunk[0], chunk[1], chunk[2], chunk[3]]))
+        .collect())
+}
+
+fn decode_f16_bytes(
+    parameter_id: &str,
+    bytes: &[u8],
+    expected_len: usize,
+) -> Result<Vec<f32>, ParameterGolfPromotedRuntimeLoadError> {
+    if bytes.len() != expected_len.saturating_mul(2) {
+        return Err(ParameterGolfPromotedRuntimeLoadError::TensorDecode {
+            parameter_id: String::from(parameter_id),
+            detail: format!(
+                "tensor had {} bytes; expected {}",
+                bytes.len(),
+                expected_len.saturating_mul(2)
+            ),
+        });
+    }
+    Ok(bytes
+        .chunks_exact(2)
+        .map(|chunk| f16::from_le_bytes([chunk[0], chunk[1]]).to_f32())
+        .collect())
+}
+
+fn sha256_hex(bytes: &[u8]) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(bytes);
+    hex::encode(hasher.finalize())
+}
+
+fn is_runtime_special_token(
+    asset: &ParameterGolfPromotedTokenizerAsset,
+    eos_token_ids: &[TokenId],
+    token: TokenId,
+) -> bool {
+    Some(token.as_u32()) == asset.pad_token_id
+        || Some(token.as_u32()) == asset.bos_token_id
+        || eos_token_ids.contains(&token)
 }

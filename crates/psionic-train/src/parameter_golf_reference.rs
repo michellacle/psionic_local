@@ -718,13 +718,15 @@ impl ParameterGolfPromotedTrainingProfile {
     ) -> Result<(), ParameterGolfReferenceTrainingError> {
         self.validate_contract_alignment()?;
         if fixture.tokenizer_vocab_size != PARAMETER_GOLF_BASELINE_VOCAB_SIZE {
-            return Err(ParameterGolfReferenceTrainingError::PromotedProfileRefusal {
-                profile_id: self.profile_id.clone(),
-                detail: format!(
-                    "local-reference fixture vocab size {} drifted from promoted baseline vocab size {}",
-                    fixture.tokenizer_vocab_size, PARAMETER_GOLF_BASELINE_VOCAB_SIZE
-                ),
-            });
+            return Err(
+                ParameterGolfReferenceTrainingError::PromotedProfileRefusal {
+                    profile_id: self.profile_id.clone(),
+                    detail: format!(
+                        "local-reference fixture vocab size {} drifted from promoted baseline vocab size {}",
+                        fixture.tokenizer_vocab_size, PARAMETER_GOLF_BASELINE_VOCAB_SIZE
+                    ),
+                },
+            );
         }
         let mut missing = Vec::new();
         if self.tokenizer_identity
@@ -1970,8 +1972,16 @@ pub fn run_parameter_golf_promoted_reference_run(
         descriptor_digest: model_descriptor.stable_digest(),
         training_dataset_digest: fixture.training_digest(),
         validation_dataset_digest: fixture.validation_digest(),
-        initial_checkpoint_ref: training_outcome.initial_checkpoint.manifest.checkpoint_ref.clone(),
-        final_checkpoint_ref: training_outcome.final_checkpoint.manifest.checkpoint_ref.clone(),
+        initial_checkpoint_ref: training_outcome
+            .initial_checkpoint
+            .manifest
+            .checkpoint_ref
+            .clone(),
+        final_checkpoint_ref: training_outcome
+            .final_checkpoint
+            .manifest
+            .checkpoint_ref
+            .clone(),
         final_checkpoint_manifest_digest: training_outcome
             .final_checkpoint
             .manifest
@@ -4665,7 +4675,10 @@ mod tests {
         ParameterGolfLocalReferenceFixture, ParameterGolfReferenceTrainingConfig,
         ParameterGolfReferenceTrainingError, ParameterGolfReferenceTrainingRunner,
     };
-    use psionic_models::{ParameterGolfPromotedProfileKind, ParameterGolfReferenceModel};
+    use psionic_models::{
+        ParameterGolfPromotedProfileKind, ParameterGolfPromotedRuntimeBundle,
+        ParameterGolfReferenceModel, TokenizerBoundary,
+    };
 
     #[derive(Clone, Default)]
     struct SharedWriter(Arc<Mutex<Vec<u8>>>);
@@ -5044,6 +5057,41 @@ mod tests {
             }
             other => panic!("expected promoted profile refusal, got {other:?}"),
         }
+        Ok(())
+    }
+
+    #[test]
+    fn promoted_parameter_golf_runtime_bundle_loads_publicly_and_restores_trained_model(
+    ) -> Result<(), Box<dyn Error>> {
+        let fixture = ParameterGolfLocalReferenceFixture::reference()?;
+        let config = ParameterGolfReferenceTrainingConfig::promoted_general_small_decoder();
+        let run = run_parameter_golf_promoted_reference_run(&fixture, &config)?;
+        let output_dir = tempdir()?;
+        write_parameter_golf_promoted_reference_run(&run, output_dir.path())?;
+
+        let bundle = ParameterGolfPromotedRuntimeBundle::load_dir(output_dir.path())?;
+        let encoded = bundle.tokenizer().encode_with_defaults("abcd efg h");
+        let encoded_ids = encoded
+            .as_slice()
+            .iter()
+            .map(|token| token.as_u32())
+            .collect::<Vec<_>>();
+
+        assert_eq!(
+            bundle.manifest().profile_id,
+            config.promoted_profile.profile_id
+        );
+        assert_eq!(
+            bundle.generation_config().profile_id,
+            config.promoted_profile.profile_id
+        );
+        assert_eq!(bundle.model(), &run.training_outcome.trained_model);
+        assert_eq!(
+            bundle.descriptor().stable_digest(),
+            run.model_descriptor.stable_digest()
+        );
+        assert_eq!(encoded_ids, vec![1, 2, 3, 4, 5, 6, 7, 8]);
+        assert_eq!(bundle.tokenizer().decode(encoded.as_slice()), "abcd efg h");
         Ok(())
     }
 
