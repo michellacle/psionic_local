@@ -94,6 +94,8 @@ HOMEGOLF now also has one retained train-to-infer closure proof for the exact
   `fixtures/parameter_golf/reports/parameter_golf_homegolf_dense_bundle_proof.json`
 - proof runner:
   `crates/psionic-serve/examples/parameter_golf_homegolf_dense_bundle_proof.rs`
+- latest rerun audit:
+  `docs/audits/2026-03-27-homegolf-fresh-rerun-results-audit.md`
 - checker:
   `scripts/check-parameter-golf-homegolf-dense-bundle-proof.sh`
 
