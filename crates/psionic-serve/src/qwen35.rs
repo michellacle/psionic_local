@@ -1020,6 +1020,178 @@ impl CudaQwen35Model {
             kernel_count = kernel_count.saturating_add(1);
         }
 
+        if output_mode == CudaStepOutputMode::NoOutput && self.token_embedding_f16.is_none() {
+            let decode_params = [
+                i32::try_from(position).map_err(|_| {
+                    ReferenceTextGenerationError::Runtime(crate::RuntimeError::Backend(format!(
+                        "qwen35 past-token count {position} exceeds i32 decode parameter limits",
+                    )))
+                })?,
+                i32::try_from(position).map_err(|_| {
+                    ReferenceTextGenerationError::Runtime(crate::RuntimeError::Backend(format!(
+                        "qwen35 decode position {position} exceeds i32 decode parameter limits",
+                    )))
+                })?,
+                i32::try_from(token.as_u32()).map_err(|_| {
+                    ReferenceTextGenerationError::Runtime(crate::RuntimeError::Backend(format!(
+                        "qwen35 token {} exceeds i32 decode parameter limits",
+                        token.as_u32(),
+                    )))
+                })?,
+            ];
+            plan.decode_params_host_buffer
+                .write_i32(&decode_params)
+                .map_err(ReferenceTextGenerationError::Runtime)?;
+            let decode_params_bytes = (decode_params.len() * std::mem::size_of::<i32>())
+                .try_into()
+                .unwrap_or(u64::MAX);
+            bytes_moved = bytes_moved.saturating_add(decode_params_bytes);
+            let no_output_graph_cache_identity = qwen35_decode_graph_cache_identity(state);
+            let mut reused_graph_exec = false;
+            let report = if plan.no_output_graph_cache_identity.as_ref()
+                == Some(&no_output_graph_cache_identity)
+            {
+                if let Some(graph_exec) = plan.no_output_graph_exec.as_ref() {
+                    reused_graph_exec = true;
+                    graph_exec
+                        .launch(psionic_backend_cuda::CudaCommandWait::Completed)
+                        .map_err(ReferenceTextGenerationError::Runtime)?
+                } else {
+                    let mut submission = backend
+                        .begin_captured_submission()
+                        .map_err(ReferenceTextGenerationError::Runtime)?;
+                    submission
+                        .copy_host_to_device(
+                            &plan.decode_params_host_buffer,
+                            &plan.decode_params_buffer,
+                        )
+                        .map_err(ReferenceTextGenerationError::Runtime)?;
+                    for (layer, layer_state) in self.layers.iter().zip(state.layers.iter_mut()) {
+                        match (&layer.kind, layer_state) {
+                            (
+                                Qwen35LayerKind::Hybrid(_),
+                                Qwen35LayerState::Hybrid(hybrid_state),
+                            ) => {
+                                layer.encode_hybrid_device_submission(
+                                    backend,
+                                    &mut submission,
+                                    plan,
+                                    self,
+                                    hybrid_state,
+                                    position,
+                                    None,
+                                    &mut bytes_moved,
+                                )?;
+                            }
+                            (
+                                Qwen35LayerKind::FullAttention(full_attention),
+                                Qwen35LayerState::FullAttention(full_attention_state),
+                            ) => {
+                                layer.encode_full_attention_device_submission(
+                                    backend,
+                                    &mut submission,
+                                    plan,
+                                    self,
+                                    full_attention,
+                                    full_attention_state,
+                                    position,
+                                    None,
+                                    true,
+                                    &mut bytes_moved,
+                                )?;
+                            }
+                            _ => {
+                                return Err(ReferenceTextGenerationError::Runtime(
+                                    crate::RuntimeError::Backend(String::from(
+                                        "qwen35 layer state kind mismatch",
+                                    )),
+                                ));
+                            }
+                        }
+                    }
+                    let (report, graph_exec) = submission
+                        .commit_captured(psionic_backend_cuda::CudaCommandWait::Completed)
+                        .map_err(ReferenceTextGenerationError::Runtime)?;
+                    plan.no_output_graph_exec = Some(graph_exec);
+                    plan.no_output_graph_cache_identity = Some(no_output_graph_cache_identity);
+                    report
+                }
+            } else {
+                plan.no_output_graph_exec = None;
+                plan.no_output_graph_cache_identity = None;
+                let mut submission = backend
+                    .begin_captured_submission()
+                    .map_err(ReferenceTextGenerationError::Runtime)?;
+                submission
+                    .copy_host_to_device(
+                        &plan.decode_params_host_buffer,
+                        &plan.decode_params_buffer,
+                    )
+                    .map_err(ReferenceTextGenerationError::Runtime)?;
+                for (layer, layer_state) in self.layers.iter().zip(state.layers.iter_mut()) {
+                    match (&layer.kind, layer_state) {
+                        (Qwen35LayerKind::Hybrid(_), Qwen35LayerState::Hybrid(hybrid_state)) => {
+                            layer.encode_hybrid_device_submission(
+                                backend,
+                                &mut submission,
+                                plan,
+                                self,
+                                hybrid_state,
+                                position,
+                                None,
+                                &mut bytes_moved,
+                            )?;
+                        }
+                        (
+                            Qwen35LayerKind::FullAttention(full_attention),
+                            Qwen35LayerState::FullAttention(full_attention_state),
+                        ) => {
+                            layer.encode_full_attention_device_submission(
+                                backend,
+                                &mut submission,
+                                plan,
+                                self,
+                                full_attention,
+                                full_attention_state,
+                                position,
+                                None,
+                                true,
+                                &mut bytes_moved,
+                            )?;
+                        }
+                        _ => {
+                            return Err(ReferenceTextGenerationError::Runtime(
+                                crate::RuntimeError::Backend(String::from(
+                                    "qwen35 layer state kind mismatch",
+                                )),
+                            ));
+                        }
+                    }
+                }
+                let (report, graph_exec) = submission
+                    .commit_captured(psionic_backend_cuda::CudaCommandWait::Completed)
+                    .map_err(ReferenceTextGenerationError::Runtime)?;
+                plan.no_output_graph_exec = Some(graph_exec);
+                plan.no_output_graph_cache_identity = Some(no_output_graph_cache_identity);
+                report
+            };
+            kernel_count = kernel_count.saturating_add(report.encoded_operations);
+            if reused_graph_exec {
+                for layer_state in &mut state.layers {
+                    if let Qwen35LayerState::FullAttention(full_attention) = layer_state {
+                        full_attention.len = full_attention.len.saturating_add(1);
+                    }
+                }
+            }
+            state.position = state.position.saturating_add(1);
+            return Ok(Qwen35ForwardStep {
+                logits: Vec::new(),
+                selected_token: None,
+                kernel_count,
+                bytes_moved,
+            });
+        }
+
         if output_mode == CudaStepOutputMode::ArgmaxOnly
             && self.token_embedding_f16.is_none()
             && can_use_q8_1_mmvq(self.output.host.mode)
@@ -3210,6 +3382,8 @@ struct Qwen35CudaStepPlan {
     next_token_buffer: CudaBuffer,
     argmax_state_host_buffer: CudaHostBuffer,
     argmax_state_buffer: CudaBuffer,
+    no_output_graph_exec: Option<CudaGraphExec>,
+    no_output_graph_cache_identity: Option<Vec<(usize, usize)>>,
     decode_graph_exec: Option<CudaGraphExec>,
     decode_graph_cache_identity: Option<Vec<(usize, usize)>>,
 }
@@ -3303,6 +3477,8 @@ impl Qwen35CudaStepPlan {
             argmax_state_buffer: backend
                 .byte_buffer(&vec![0_u8; std::mem::size_of::<u64>()])
                 .map_err(ReferenceTextGenerationError::Runtime)?,
+            no_output_graph_exec: None,
+            no_output_graph_cache_identity: None,
             decode_graph_exec: None,
             decode_graph_cache_identity: None,
         })

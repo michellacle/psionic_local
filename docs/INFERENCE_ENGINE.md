@@ -51,14 +51,16 @@ than just run tensor math.
   query RMSNorm, fusing per-head key RMSNorm with value packing, fusing the
   qwen35 dense and hybrid SiLU activation tails directly into GGML `Q8_1`
   scratch, and then fusing the full-attention sigmoid gating tail directly
-  into GGML `Q8_1` scratch, the local `qwen3.5:0.8b` benchmark on this host
-  measured about `499 tok/s` decode on Psionic versus about `329 tok/s`
-  decode on local Ollama for the same one-sentence prompt and `128` token
-  cap.
+  into GGML `Q8_1` scratch, and then replaying qwen35 prompt-prefix `NoOutput`
+  submissions through a second captured CUDA graph, the local `qwen3.5:0.8b`
+  benchmark on this host measured about `507 tok/s` decode on Psionic versus
+  about `329 tok/s` decode on local Ollama for the same one-sentence prompt
+  and `128` token cap.
 - The qwen35 lane is now ahead on decode throughput for this host and prompt,
   but it is still not architecture-closed. Greedy prompt replay is materially
-  faster than the earlier pilot, but the remaining headroom is still in token
-  embedding, prompt replay, and a more integrated full-attention decode path.
+  faster than the earlier pilot, but the remaining headroom is still in the
+  host-seeded hidden copy, output-head launch overhead, and a more integrated
+  full-attention decode path.
 
 ## Embeddings Requirements
 

@@ -136,7 +136,13 @@ the same for the full-attention sigmoid gating tail:
 - Psionic native CUDA qwen35 decode throughput: about `498.94 tok/s`
 - local Ollama `qwen3.5:0.8b` decode throughput: about `329.34 tok/s`
 
-This improvement now comes from six architectural changes inside the native
+Measured again on the same host and prompt after replaying qwen35 prompt-prefix
+`NoOutput` submissions through a second captured CUDA graph:
+
+- Psionic native CUDA qwen35 decode throughput: about `507.29 tok/s`
+- local Ollama `qwen3.5:0.8b` decode throughput: about `329.34 tok/s`
+
+This improvement now comes from seven architectural changes inside the native
 Psionic runtime:
 
 - qwen35 derives hybrid-layer SSM `decay` and `beta` on CUDA and normalizes
@@ -153,6 +159,8 @@ Psionic runtime:
   direct GGML `Q8_1` quantization before the down and output projections
 - full-attention decode now also fuses sigmoid gating with direct GGML `Q8_1`
   quantization before the output projection matvec
+- qwen35 prompt-prefix replay now reuses a dedicated captured CUDA graph for
+  `NoOutput` prompt tokens instead of launching each submission separately
 
 This pilot therefore proves native CUDA execution correctness, honest
 publication, and a wider throughput win over the local Ollama baseline on this
@@ -160,7 +168,7 @@ host.
 
 The same March 27, 2026 benchmark also shows the current boundary clearly:
 
-- Psionic greedy prompt replay for this prompt now spends about `41-43 ms` on
+- Psionic greedy prompt replay for this prompt now spends about `35-38 ms` on
   the `22` prompt tokens
 - local Ollama still leads on end-to-end prompt-plus-decode throughput on the
   same prompt
@@ -174,6 +182,8 @@ runtime:
   device-native route than it should
 - the full-attention path still enters the attention kernel through a separate
   q/gate normalization pass instead of a more integrated decode kernel
+- the host-seeded hidden vector still reaches the device outside the captured
+  qwen35 prompt and decode graphs
 - the lane still refuses KV-session reuse, prefix caching, and adapter serving
 - the lane has not yet proven a wider batch, longer context, or concurrent
   throughput lead over Ollama-class runtimes
