@@ -90,6 +90,14 @@ __device__ __forceinline__ float swiglu_oai_single(
     return out_glu * (1.0f + up);
 }
 
+__device__ __forceinline__ float sigmoid_single(float value) {
+    return 1.0f / (1.0f + expf(-value));
+}
+
+__device__ __forceinline__ float silu_single(float value) {
+    return value * sigmoid_single(value);
+}
+
 struct Q80Block {
     uint8_t bytes[kQ80BlockBytes];
 };
@@ -992,6 +1000,117 @@ __global__ void mul_f32_kernel(
     const int index = static_cast<int>(blockIdx.x) * blockDim.x + threadIdx.x;
     if (index < element_count) {
         output[index] = left[index] * right[index];
+    }
+}
+
+__global__ void silu_mul_f32_kernel(
+    const float *activation_input,
+    int activation_offset,
+    const float *rhs,
+    int rhs_offset,
+    int element_count,
+    float *output
+) {
+    const int index = static_cast<int>(blockIdx.x) * blockDim.x + threadIdx.x;
+    if (index < element_count) {
+        output[index] = silu_single(activation_input[activation_offset + index]) *
+            rhs[rhs_offset + index];
+    }
+}
+
+__global__ void sigmoid_mul_f32_kernel(
+    const float *values,
+    int values_offset,
+    const float *gate,
+    int gate_offset,
+    int element_count,
+    float *output
+) {
+    const int index = static_cast<int>(blockIdx.x) * blockDim.x + threadIdx.x;
+    if (index < element_count) {
+        output[index] = values[values_offset + index] *
+            sigmoid_single(gate[gate_offset + index]);
+    }
+}
+
+__global__ void depthwise_causal_conv1d_step_f32_kernel(
+    const float *input,
+    float *state,
+    const float *weights,
+    int channels,
+    int kernel_size,
+    float *output
+) {
+    const int channel = static_cast<int>(blockIdx.x) * blockDim.x + threadIdx.x;
+    if (channel >= channels) {
+        return;
+    }
+    const int state_tokens = kernel_size - 1;
+    const float *channel_weights = weights + channel * kernel_size;
+    float *channel_state = state + channel * state_tokens;
+
+    float sum = input[channel] * channel_weights[state_tokens];
+    for (int token = 0; token < state_tokens; ++token) {
+        sum += channel_state[token] * channel_weights[token];
+    }
+    output[channel] = sum;
+
+    for (int token = 0; token + 1 < state_tokens; ++token) {
+        channel_state[token] = channel_state[token + 1];
+    }
+    if (state_tokens > 0) {
+        channel_state[state_tokens - 1] = input[channel];
+    }
+}
+
+__global__ void gated_delta_step_f32_kernel(
+    const float *qkv,
+    int query_offset,
+    int key_offset,
+    int value_offset,
+    const float *decay,
+    const float *beta,
+    float *state,
+    int key_head_count,
+    int value_head_count,
+    int key_dim,
+    int value_dim,
+    float *output
+) {
+    const int lane = static_cast<int>(threadIdx.x);
+    const int value_dim_index = static_cast<int>(blockIdx.y);
+    const int value_head_index = static_cast<int>(blockIdx.z);
+    if (value_dim_index >= value_dim || value_head_index >= value_head_count) {
+        return;
+    }
+    const int repeat_factor = value_head_count / key_head_count;
+    const int key_head_index = repeat_factor > 0 ? value_head_index / repeat_factor : 0;
+    const float *query = qkv + query_offset + key_head_index * key_dim;
+    const float *key = qkv + key_offset + key_head_index * key_dim;
+    const float *value = qkv + value_offset + value_head_index * value_dim;
+    float *state_row = state + (value_head_index * value_dim + value_dim_index) * key_dim;
+    const float decay_value = decay[value_head_index];
+    float kv_mem = 0.0f;
+    for (int key_index = lane; key_index < key_dim; key_index += kWarpSize) {
+        state_row[key_index] *= decay_value;
+        kv_mem += state_row[key_index] * key[key_index];
+    }
+    for (int offset = kWarpSize / 2; offset > 0; offset >>= 1) {
+        kv_mem += __shfl_down_sync(0xffffffffu, kv_mem, offset);
+    }
+    kv_mem = __shfl_sync(0xffffffffu, kv_mem, 0);
+
+    const float delta = (value[value_dim_index] - kv_mem) * beta[value_head_index];
+    float sum = 0.0f;
+    for (int key_index = lane; key_index < key_dim; key_index += kWarpSize) {
+        state_row[key_index] += key[key_index] * delta;
+        sum += state_row[key_index] * query[key_index];
+    }
+    for (int offset = kWarpSize / 2; offset > 0; offset >>= 1) {
+        sum += __shfl_down_sync(0xffffffffu, sum, offset);
+    }
+    if (lane == 0) {
+        output[value_head_index * value_dim + value_dim_index] = sum;
     }
 }
 
@@ -5831,6 +5950,103 @@ extern "C" int psionic_cuda_mul_f32(
         static_cast<const float *>(left),
         static_cast<const float *>(right),
         element_count,
+        static_cast<float *>(output)
+    );
+    return static_cast<int>(cudaGetLastError());
+}
+
+extern "C" int psionic_cuda_silu_mul_f32(
+    const void *activation_input,
+    int activation_offset,
+    const void *rhs,
+    int rhs_offset,
+    int element_count,
+    void *output,
+    void *stream
+) {
+    const int blocks = (element_count + kBlockSize - 1) / kBlockSize;
+    silu_mul_f32_kernel<<<blocks, kBlockSize, 0, static_cast<cudaStream_t>(stream)>>>(
+        static_cast<const float *>(activation_input),
+        activation_offset,
+        static_cast<const float *>(rhs),
+        rhs_offset,
+        element_count,
+        static_cast<float *>(output)
+    );
+    return static_cast<int>(cudaGetLastError());
+}
+
+extern "C" int psionic_cuda_sigmoid_mul_f32(
+    const void *values,
+    int values_offset,
+    const void *gate,
+    int gate_offset,
+    int element_count,
+    void *output,
+    void *stream
+) {
+    const int blocks = (element_count + kBlockSize - 1) / kBlockSize;
+    sigmoid_mul_f32_kernel<<<blocks, kBlockSize, 0, static_cast<cudaStream_t>(stream)>>>(
+        static_cast<const float *>(values),
+        values_offset,
+        static_cast<const float *>(gate),
+        gate_offset,
+        element_count,
+        static_cast<float *>(output)
+    );
+    return static_cast<int>(cudaGetLastError());
+}
+
+extern "C" int psionic_cuda_depthwise_causal_conv1d_step_f32(
+    const void *input,
+    void *state,
+    const void *weights,
+    int channels,
+    int kernel_size,
+    void *output,
+    void *stream
+) {
+    const int blocks = (channels + kBlockSize - 1) / kBlockSize;
+    depthwise_causal_conv1d_step_f32_kernel<<<blocks, kBlockSize, 0, static_cast<cudaStream_t>(stream)>>>(
+        static_cast<const float *>(input),
+        static_cast<float *>(state),
+        static_cast<const float *>(weights),
+        channels,
+        kernel_size,
+        static_cast<float *>(output)
+    );
+    return static_cast<int>(cudaGetLastError());
+}
+
+extern "C" int psionic_cuda_gated_delta_step_f32(
+    const void *qkv,
+    int query_offset,
+    int key_offset,
+    int value_offset,
+    const void *decay,
+    const void *beta,
+    void *state,
+    int key_head_count,
+    int value_head_count,
+    int key_dim,
+    int value_dim,
+    void *output,
+    void *stream
+) {
+    dim3 block(kWarpSize, 1, 1);
+    dim3 grid(1, value_dim, value_head_count);
+    gated_delta_step_f32_kernel<<<grid, block, 0, static_cast<cudaStream_t>(stream)>>>(
+        static_cast<const float *>(qkv),
+        query_offset,
+        key_offset,
+        value_offset,
+        static_cast<const float *>(decay),
+        static_cast<const float *>(beta),
+        static_cast<float *>(state),
+        key_head_count,
+        value_head_count,
+        key_dim,
+        value_dim,
         static_cast<float *>(output)
     );
     return static_cast<int>(cudaGetLastError());

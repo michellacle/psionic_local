@@ -581,6 +581,94 @@ int psionic_cuda_mul_f32(
     return 1;
 }
 
+int psionic_cuda_silu_mul_f32(
+    const void *activation_input,
+    int activation_offset,
+    const void *rhs,
+    int rhs_offset,
+    int element_count,
+    void *output,
+    void *stream
+) {
+    (void)activation_input;
+    (void)activation_offset;
+    (void)rhs;
+    (void)rhs_offset;
+    (void)element_count;
+    (void)output;
+    (void)stream;
+    return 1;
+}
+
+int psionic_cuda_sigmoid_mul_f32(
+    const void *values,
+    int values_offset,
+    const void *gate,
+    int gate_offset,
+    int element_count,
+    void *output,
+    void *stream
+) {
+    (void)values;
+    (void)values_offset;
+    (void)gate;
+    (void)gate_offset;
+    (void)element_count;
+    (void)output;
+    (void)stream;
+    return 1;
+}
+
+int psionic_cuda_depthwise_causal_conv1d_step_f32(
+    const void *input,
+    void *state,
+    const void *weights,
+    int channels,
+    int kernel_size,
+    void *output,
+    void *stream
+) {
+    (void)input;
+    (void)state;
+    (void)weights;
+    (void)channels;
+    (void)kernel_size;
+    (void)output;
+    (void)stream;
+    return 1;
+}
+
+int psionic_cuda_gated_delta_step_f32(
+    const void *qkv,
+    int query_offset,
+    int key_offset,
+    int value_offset,
+    const void *decay,
+    const void *beta,
+    void *state,
+    int key_head_count,
+    int value_head_count,
+    int key_dim,
+    int value_dim,
+    void *output,
+    void *stream
+) {
+    (void)qkv;
+    (void)query_offset;
+    (void)key_offset;
+    (void)value_offset;
+    (void)decay;
+    (void)beta;
+    (void)state;
+    (void)key_head_count;
+    (void)value_head_count;
+    (void)key_dim;
+    (void)value_dim;
+    (void)output;
+    (void)stream;
+    return 1;
+}
+
 int psionic_cuda_rope_neox_in_place(
     void *values,
     int element_offset,

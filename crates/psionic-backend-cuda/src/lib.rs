@@ -1520,11 +1520,11 @@ impl CudaSubmission {
                 "cuda rms_norm requires a non-empty weight tensor",
             )));
         }
-        if input.spec().storage_size() != element_count
-            || output.spec().storage_size() != element_count
+        if input.spec().storage_size() < element_count
+            || output.spec().storage_size() < element_count
         {
             return Err(RuntimeError::Backend(String::from(
-                "cuda rms_norm requires matching input and output sizes",
+                "cuda rms_norm requires input and output buffers large enough for element_count",
             )));
         }
         if element_count % feature_count != 0 {
@@ -1697,6 +1697,109 @@ impl CudaSubmission {
             element_offset,
             &rhs.platform,
             element_count,
+        )?;
+        self.encoded_operations += 1;
+        Ok(())
+    }
+
+    /// Applies SiLU to one source region and multiplies it elementwise by a
+    /// second source region.
+    pub fn silu_mul_f32(
+        &mut self,
+        activation_input: &CudaBuffer,
+        activation_offset: usize,
+        rhs: &CudaBuffer,
+        rhs_offset: usize,
+        element_count: usize,
+        output: &CudaBuffer,
+    ) -> Result<(), RuntimeError> {
+        self.platform.encode_silu_mul_f32(
+            &activation_input.platform,
+            activation_offset,
+            &rhs.platform,
+            rhs_offset,
+            element_count,
+            &output.platform,
+        )?;
+        self.encoded_operations += 1;
+        Ok(())
+    }
+
+    /// Applies sigmoid to one source region and multiplies it elementwise by a
+    /// second source region.
+    pub fn sigmoid_mul_f32(
+        &mut self,
+        values: &CudaBuffer,
+        values_offset: usize,
+        gate: &CudaBuffer,
+        gate_offset: usize,
+        element_count: usize,
+        output: &CudaBuffer,
+    ) -> Result<(), RuntimeError> {
+        self.platform.encode_sigmoid_mul_f32(
+            &values.platform,
+            values_offset,
+            &gate.platform,
+            gate_offset,
+            element_count,
+            &output.platform,
+        )?;
+        self.encoded_operations += 1;
+        Ok(())
+    }
+
+    /// Executes one qwen35-style depthwise causal conv1d decode step.
+    pub fn depthwise_causal_conv1d_step_f32(
+        &mut self,
+        input: &CudaBuffer,
+        state: &CudaBuffer,
+        weights: &CudaBuffer,
+        channels: usize,
+        kernel_size: usize,
+        output: &CudaBuffer,
+    ) -> Result<(), RuntimeError> {
+        self.platform.encode_depthwise_causal_conv1d_step_f32(
+            &input.platform,
+            &state.platform,
+            &weights.platform,
+            channels,
+            kernel_size,
+            &output.platform,
+        )?;
+        self.encoded_operations += 1;
+        Ok(())
+    }
+
+    /// Executes one qwen35-style recurrent gated-delta decode step.
+    #[allow(clippy::too_many_arguments)]
+    pub fn gated_delta_step_f32(
+        &mut self,
+        qkv: &CudaBuffer,
+        query_offset: usize,
+        key_offset: usize,
+        value_offset: usize,
+        decay: &CudaBuffer,
+        beta: &CudaBuffer,
+        state: &CudaBuffer,
+        key_head_count: usize,
+        value_head_count: usize,
+        key_dim: usize,
+        value_dim: usize,
+        output: &CudaBuffer,
+    ) -> Result<(), RuntimeError> {
+        self.platform.encode_gated_delta_step_f32(
+            &qkv.platform,
+            query_offset,
+            key_offset,
+            value_offset,
+            &decay.platform,
+            &beta.platform,
+            &state.platform,
+            key_head_count,
+            value_head_count,
+            key_dim,
+            value_dim,
+            &output.platform,
         )?;
         self.encoded_operations += 1;
         Ok(())
@@ -6012,9 +6115,9 @@ impl AvailableCudaBackend {
                             )));
                         }
                         let element_count = step.spec.storage_size();
-                        if input.spec().storage_size() != element_count {
+                        if input.spec().storage_size() < element_count {
                             return Err(RuntimeError::Backend(String::from(
-                                "cuda rms_norm requires matching input and output sizes",
+                                "cuda rms_norm requires an input buffer large enough for the output size",
                             )));
                         }
                         if element_count % feature_count != 0 {
@@ -8705,6 +8808,48 @@ mod platform {
             output: *mut c_void,
             stream: CudaStream,
         ) -> CudaError;
+        fn psionic_cuda_silu_mul_f32(
+            activation_input: *const c_void,
+            activation_offset: c_int,
+            rhs: *const c_void,
+            rhs_offset: c_int,
+            element_count: c_int,
+            output: *mut c_void,
+            stream: CudaStream,
+        ) -> CudaError;
+        fn psionic_cuda_sigmoid_mul_f32(
+            values: *const c_void,
+            values_offset: c_int,
+            gate: *const c_void,
+            gate_offset: c_int,
+            element_count: c_int,
+            output: *mut c_void,
+            stream: CudaStream,
+        ) -> CudaError;
+        fn psionic_cuda_depthwise_causal_conv1d_step_f32(
+            input: *const c_void,
+            state: *mut c_void,
+            weights: *const c_void,
+            channels: c_int,
+            kernel_size: c_int,
+            output: *mut c_void,
+            stream: CudaStream,
+        ) -> CudaError;
+        fn psionic_cuda_gated_delta_step_f32(
+            qkv: *const c_void,
+            query_offset: c_int,
+            key_offset: c_int,
+            value_offset: c_int,
+            decay: *const c_void,
+            beta: *const c_void,
+            state: *mut c_void,
+            key_head_count: c_int,
+            value_head_count: c_int,
+            key_dim: c_int,
+            value_dim: c_int,
+            output: *mut c_void,
+            stream: CudaStream,
+        ) -> CudaError;
         fn psionic_cuda_rms_norm_q8_1(
             input: *const c_void,
             weight: *const c_void,
@@ -11030,6 +11175,188 @@ mod platform {
                     )
                 },
                 "psionic_cuda_add_f32_offset_in_place",
+            )
+        }
+
+        pub(super) fn encode_silu_mul_f32(
+            &mut self,
+            activation_input: &PlatformBuffer,
+            activation_offset: usize,
+            rhs: &PlatformBuffer,
+            rhs_offset: usize,
+            element_count: usize,
+            output: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            let activation_offset = c_int::try_from(activation_offset).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda silu_mul activation offset exceeds c_int",
+                ))
+            })?;
+            let rhs_offset = c_int::try_from(rhs_offset).map_err(|_| {
+                RuntimeError::Backend(String::from("cuda silu_mul rhs offset exceeds c_int"))
+            })?;
+            let element_count = c_int::try_from(element_count).map_err(|_| {
+                RuntimeError::Backend(String::from("cuda silu_mul element count exceeds c_int"))
+            })?;
+            self.runtime.set_device()?;
+            self.runtime.check(
+                unsafe {
+                    psionic_cuda_silu_mul_f32(
+                        activation_input.inner.device_ptr.cast(),
+                        activation_offset,
+                        rhs.inner.device_ptr.cast(),
+                        rhs_offset,
+                        element_count,
+                        output.inner.device_ptr.cast(),
+                        self.stream,
+                    )
+                },
+                "psionic_cuda_silu_mul_f32",
+            )
+        }
+
+        pub(super) fn encode_sigmoid_mul_f32(
+            &mut self,
+            values: &PlatformBuffer,
+            values_offset: usize,
+            gate: &PlatformBuffer,
+            gate_offset: usize,
+            element_count: usize,
+            output: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            let values_offset = c_int::try_from(values_offset).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda sigmoid_mul values offset exceeds c_int",
+                ))
+            })?;
+            let gate_offset = c_int::try_from(gate_offset).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda sigmoid_mul gate offset exceeds c_int",
+                ))
+            })?;
+            let element_count = c_int::try_from(element_count).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda sigmoid_mul element count exceeds c_int",
+                ))
+            })?;
+            self.runtime.set_device()?;
+            self.runtime.check(
+                unsafe {
+                    psionic_cuda_sigmoid_mul_f32(
+                        values.inner.device_ptr.cast(),
+                        values_offset,
+                        gate.inner.device_ptr.cast(),
+                        gate_offset,
+                        element_count,
+                        output.inner.device_ptr.cast(),
+                        self.stream,
+                    )
+                },
+                "psionic_cuda_sigmoid_mul_f32",
+            )
+        }
+
+        pub(super) fn encode_depthwise_causal_conv1d_step_f32(
+            &mut self,
+            input: &PlatformBuffer,
+            state: &PlatformBuffer,
+            weights: &PlatformBuffer,
+            channels: usize,
+            kernel_size: usize,
+            output: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            let channels = c_int::try_from(channels).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda depthwise conv channels exceed c_int",
+                ))
+            })?;
+            let kernel_size = c_int::try_from(kernel_size).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda depthwise conv kernel size exceeds c_int",
+                ))
+            })?;
+            self.runtime.set_device()?;
+            self.runtime.check(
+                unsafe {
+                    psionic_cuda_depthwise_causal_conv1d_step_f32(
+                        input.inner.device_ptr.cast(),
+                        state.inner.device_ptr.cast(),
+                        weights.inner.device_ptr.cast(),
+                        channels,
+                        kernel_size,
+                        output.inner.device_ptr.cast(),
+                        self.stream,
+                    )
+                },
+                "psionic_cuda_depthwise_causal_conv1d_step_f32",
+            )
+        }
+
+        #[allow(clippy::too_many_arguments)]
+        pub(super) fn encode_gated_delta_step_f32(
+            &mut self,
+            qkv: &PlatformBuffer,
+            query_offset: usize,
+            key_offset: usize,
+            value_offset: usize,
+            decay: &PlatformBuffer,
+            beta: &PlatformBuffer,
+            state: &PlatformBuffer,
+            key_head_count: usize,
+            value_head_count: usize,
+            key_dim: usize,
+            value_dim: usize,
+            output: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            let query_offset = c_int::try_from(query_offset).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda gated_delta query offset exceeds c_int",
+                ))
+            })?;
+            let key_offset = c_int::try_from(key_offset).map_err(|_| {
+                RuntimeError::Backend(String::from("cuda gated_delta key offset exceeds c_int"))
+            })?;
+            let value_offset = c_int::try_from(value_offset).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda gated_delta value offset exceeds c_int",
+                ))
+            })?;
+            let key_head_count = c_int::try_from(key_head_count).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda gated_delta key head count exceeds c_int",
+                ))
+            })?;
+            let value_head_count = c_int::try_from(value_head_count).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda gated_delta value head count exceeds c_int",
+                ))
+            })?;
+            let key_dim = c_int::try_from(key_dim).map_err(|_| {
+                RuntimeError::Backend(String::from("cuda gated_delta key dim exceeds c_int"))
+            })?;
+            let value_dim = c_int::try_from(value_dim).map_err(|_| {
+                RuntimeError::Backend(String::from("cuda gated_delta value dim exceeds c_int"))
+            })?;
+            self.runtime.set_device()?;
+            self.runtime.check(
+                unsafe {
+                    psionic_cuda_gated_delta_step_f32(
+                        qkv.inner.device_ptr.cast(),
+                        query_offset,
+                        key_offset,
+                        value_offset,
+                        decay.inner.device_ptr.cast(),
+                        beta.inner.device_ptr.cast(),
+                        state.inner.device_ptr.cast(),
+                        key_head_count,
+                        value_head_count,
+                        key_dim,
+                        value_dim,
+                        output.inner.device_ptr.cast(),
+                        self.stream,
+                    )
+                },
+                "psionic_cuda_gated_delta_step_f32",
             )
         }
 
@@ -14142,6 +14469,69 @@ mod platform {
             _element_offset: usize,
             _rhs: &PlatformBuffer,
             _element_count: usize,
+        ) -> Result<(), RuntimeError> {
+            Err(RuntimeError::Backend(String::from(
+                "cuda quantized text-generation kernels require Linux CUDA support",
+            )))
+        }
+
+        pub(super) fn encode_silu_mul_f32(
+            &mut self,
+            _activation_input: &PlatformBuffer,
+            _activation_offset: usize,
+            _rhs: &PlatformBuffer,
+            _rhs_offset: usize,
+            _element_count: usize,
+            _output: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            Err(RuntimeError::Backend(String::from(
+                "cuda quantized text-generation kernels require Linux CUDA support",
+            )))
+        }
+
+        pub(super) fn encode_sigmoid_mul_f32(
+            &mut self,
+            _values: &PlatformBuffer,
+            _values_offset: usize,
+            _gate: &PlatformBuffer,
+            _gate_offset: usize,
+            _element_count: usize,
+            _output: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            Err(RuntimeError::Backend(String::from(
+                "cuda quantized text-generation kernels require Linux CUDA support",
+            )))
+        }
+
+        pub(super) fn encode_depthwise_causal_conv1d_step_f32(
+            &mut self,
+            _input: &PlatformBuffer,
+            _state: &PlatformBuffer,
+            _weights: &PlatformBuffer,
+            _channels: usize,
+            _kernel_size: usize,
+            _output: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            Err(RuntimeError::Backend(String::from(
+                "cuda quantized text-generation kernels require Linux CUDA support",
+            )))
+        }
+
+        #[allow(clippy::too_many_arguments)]
+        pub(super) fn encode_gated_delta_step_f32(
+            &mut self,
+            _qkv: &PlatformBuffer,
+            _query_offset: usize,
+            _key_offset: usize,
+            _value_offset: usize,
+            _decay: &PlatformBuffer,
+            _beta: &PlatformBuffer,
+            _state: &PlatformBuffer,
+            _key_head_count: usize,
+            _value_head_count: usize,
+            _key_dim: usize,
+            _value_dim: usize,
+            _output: &PlatformBuffer,
         ) -> Result<(), RuntimeError> {
             Err(RuntimeError::Backend(String::from(
                 "cuda quantized text-generation kernels require Linux CUDA support",
