@@ -1475,34 +1475,23 @@ impl Qwen35Layer {
             &plan.q_buffer,
             &plan.gate_buffer,
         )?;
-        submission.copy_buffer_region(
-            &plan.matvec_output_buffer,
-            query_gate_rows.saturating_mul(std::mem::size_of::<f32>()),
-            &plan.k_buffer,
+        submission.rms_norm_region(
+            &plan.q_buffer,
             0,
-            kv_bytes,
-        )?;
-        submission.rms_norm(
-            &plan.q_buffer,
             &full_attention.query_norm_device,
-            &plan.q_buffer,
+            &plan.qkv_norm_buffer,
+            0,
             query_width,
             epsilon,
         )?;
-        submission.rms_norm(
-            &plan.k_buffer,
+        submission.rms_norm_region(
+            &plan.matvec_output_buffer,
+            query_gate_rows,
             &full_attention.key_norm_device,
-            &plan.k_buffer,
+            &plan.qkv_norm_buffer,
+            query_width,
             full_attention.kv_width,
             epsilon,
-        )?;
-        submission.copy_buffer_region(&plan.q_buffer, 0, &plan.qkv_norm_buffer, 0, query_bytes)?;
-        submission.copy_buffer_region(
-            &plan.k_buffer,
-            0,
-            &plan.qkv_norm_buffer,
-            query_bytes,
-            kv_bytes,
         )?;
         submission.copy_buffer_region(
             &plan.matvec_output_buffer,
@@ -1670,8 +1659,6 @@ impl Qwen35Layer {
         let z_offset = qkv_rows;
         let alpha_offset = z_offset.saturating_add(z_rows);
         let beta_offset = alpha_offset.saturating_add(alpha_rows);
-        let q_bytes = q_size.saturating_mul(std::mem::size_of::<f32>());
-        let k_bytes = k_size.saturating_mul(std::mem::size_of::<f32>());
         let v_bytes = v_size.saturating_mul(std::mem::size_of::<f32>());
 
         let mut submission = backend
@@ -1720,29 +1707,23 @@ impl Qwen35Layer {
             &plan.decay_buffer,
             &plan.beta_buffer,
         )?;
-        submission.copy_buffer_region(&plan.conv_buffer, 0, &plan.q_buffer, 0, q_bytes)?;
-        submission.copy_buffer_region(&plan.conv_buffer, q_bytes, &plan.k_buffer, 0, k_bytes)?;
-        submission.rms_norm(
-            &plan.q_buffer,
+        submission.rms_norm_region(
+            &plan.conv_buffer,
+            0,
             &hybrid.q_scale_device,
-            &plan.q_buffer,
+            &plan.qkv_norm_buffer,
+            0,
             q_size,
             1e-6,
         )?;
-        submission.rms_norm(
-            &plan.k_buffer,
+        submission.rms_norm_region(
+            &plan.conv_buffer,
+            q_size,
             &hybrid.k_scale_device,
-            &plan.k_buffer,
+            &plan.qkv_norm_buffer,
+            q_size,
             k_size,
             1e-6,
-        )?;
-        submission.copy_buffer_region(&plan.q_buffer, 0, &plan.qkv_norm_buffer, 0, q_bytes)?;
-        submission.copy_buffer_region(
-            &plan.k_buffer,
-            0,
-            &plan.qkv_norm_buffer,
-            q_bytes,
-            k_bytes,
         )?;
         submission.copy_buffer_region(
             &plan.conv_buffer,

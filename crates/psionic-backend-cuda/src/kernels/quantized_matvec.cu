@@ -1180,6 +1180,33 @@ __global__ void rms_norm_kernel(
     }
 }
 
+__global__ void rms_norm_region_kernel(
+    const float *input,
+    int input_offset,
+    const float *weight,
+    int feature_count,
+    float epsilon,
+    float *output,
+    int output_offset
+) {
+    const int row = static_cast<int>(blockIdx.x);
+    const int row_offset = row * feature_count;
+    const int input_base = input_offset + row_offset;
+    const int output_base = output_offset + row_offset;
+    __shared__ float scratch[kBlockSize];
+
+    float mean_square_partial = 0.0f;
+    for (int feature = threadIdx.x; feature < feature_count; feature += blockDim.x) {
+        const float value = input[input_base + feature];
+        mean_square_partial += value * value;
+    }
+    const float mean_square_sum = reduce_block_sum(mean_square_partial, scratch);
+    const float inv_rms = rsqrtf(mean_square_sum / static_cast<float>(feature_count) + epsilon);
+    for (int feature = threadIdx.x; feature < feature_count; feature += blockDim.x) {
+        output[output_base + feature] = input[input_base + feature] * weight[feature] * inv_rms;
+    }
+}
+
 __global__ void rms_norm_input_backward_kernel(
     const float *input,
     const float *weight,
@@ -5580,6 +5607,37 @@ extern "C" int psionic_cuda_rms_norm(
         feature_count,
         epsilon,
         static_cast<float *>(output)
+    );
+    return static_cast<int>(cudaGetLastError());
+}
+
+extern "C" int psionic_cuda_rms_norm_region(
+    const void *input,
+    int input_offset,
+    const void *weight,
+    int element_count,
+    int feature_count,
+    float epsilon,
+    void *output,
+    int output_offset,
+    void *stream
+) {
+    if (feature_count <= 0 || element_count <= 0 || element_count % feature_count != 0) {
+        return static_cast<int>(cudaErrorInvalidValue);
+    }
+    rms_norm_region_kernel<<<
+        element_count / feature_count,
+        kBlockSize,
+        0,
+        static_cast<cudaStream_t>(stream)
+    >>>(
+        static_cast<const float *>(input),
+        input_offset,
+        static_cast<const float *>(weight),
+        feature_count,
+        epsilon,
+        static_cast<float *>(output),
+        output_offset
     );
     return static_cast<int>(cudaGetLastError());
 }

@@ -116,13 +116,13 @@ The pilot is intentionally bounded:
 Measured on this host on March 27, 2026 with the downloaded
 `qwen3.5:0.8b-q8_0.gguf`, the same one-sentence prompt, and a `128` token cap:
 
-- Psionic native CUDA qwen35 decode throughput: about `403.21 tok/s`
+- Psionic native CUDA qwen35 decode throughput: about `433.36 tok/s`
 - local Ollama `qwen3.5:0.8b` decode throughput: about `323.65 tok/s`
 
 This improvement came from one architectural change inside the native Psionic
-runtime: hybrid qwen35 layers now derive SSM `decay` and `beta` on CUDA and
-keep the whole hybrid decode step inside one submission instead of syncing
-alpha and beta through the CPU each token.
+runtime: qwen35 now derives hybrid-layer SSM `decay` and `beta` on CUDA and it
+normalizes q/k regions directly into the packed attention and gated-delta input
+buffers instead of copying q and k through extra scratch regions first.
 
 This pilot therefore proves native CUDA execution correctness, honest
 publication, and a wider throughput win over the local Ollama baseline on this
@@ -142,8 +142,8 @@ runtime:
 
 - token embedding gather still enters the decode path through a less
   device-native route than it should
-- the full-attention path still burns extra split, copy, and normalization
-  kernels before the attention decode kernel
+- the full-attention path still burns an extra query split kernel before the
+  attention decode kernel
 - the runtime still executes more synchronized CUDA submissions than it should
 - the lane still refuses KV-session reuse, prefix caching, and adapter serving
 - the lane has not yet proven a wider batch, longer context, or concurrent

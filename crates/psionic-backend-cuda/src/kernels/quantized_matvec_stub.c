@@ -385,6 +385,29 @@ int psionic_cuda_rms_norm(
     return 1;
 }
 
+int psionic_cuda_rms_norm_region(
+    const void *input,
+    int input_offset,
+    const void *weight,
+    int element_count,
+    int feature_count,
+    float epsilon,
+    void *output,
+    int output_offset,
+    void *stream
+) {
+    (void)input;
+    (void)input_offset;
+    (void)weight;
+    (void)element_count;
+    (void)feature_count;
+    (void)epsilon;
+    (void)output;
+    (void)output_offset;
+    (void)stream;
+    return 1;
+}
+
 int psionic_cuda_parameter_golf_projection_loss(
     const void *logits,
     const void *target_ids,

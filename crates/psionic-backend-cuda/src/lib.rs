@@ -1544,6 +1544,50 @@ impl CudaSubmission {
         Ok(())
     }
 
+    /// Launches one RMSNorm kernel on a source region and writes into a
+    /// destination region.
+    pub fn rms_norm_region(
+        &mut self,
+        input: &CudaBuffer,
+        input_offset: usize,
+        weight: &CudaBuffer,
+        output: &CudaBuffer,
+        output_offset: usize,
+        element_count: usize,
+        epsilon: f32,
+    ) -> Result<(), RuntimeError> {
+        let feature_count = weight.spec().storage_size();
+        if feature_count == 0 {
+            return Err(RuntimeError::Backend(String::from(
+                "cuda rms_norm_region requires a non-empty weight tensor",
+            )));
+        }
+        if input.spec().storage_size() < input_offset.saturating_add(element_count)
+            || output.spec().storage_size() < output_offset.saturating_add(element_count)
+        {
+            return Err(RuntimeError::Backend(String::from(
+                "cuda rms_norm_region requires input and output buffers large enough for the requested region",
+            )));
+        }
+        if element_count % feature_count != 0 {
+            return Err(RuntimeError::Backend(String::from(
+                "cuda rms_norm_region requires region size to be a multiple of the weight size",
+            )));
+        }
+        self.platform.encode_rms_norm_region(
+            &input.platform,
+            input_offset,
+            &weight.platform,
+            &output.platform,
+            output_offset,
+            element_count,
+            feature_count,
+            epsilon,
+        )?;
+        self.encoded_operations += 1;
+        Ok(())
+    }
+
     /// Applies RMSNorm and quantizes the normalized output into GGML `Q8_1`.
     pub fn rms_norm_q8_1(
         &mut self,
@@ -8794,6 +8838,17 @@ mod platform {
             output: *mut c_void,
             stream: CudaStream,
         ) -> CudaError;
+        fn psionic_cuda_rms_norm_region(
+            input: *const c_void,
+            input_offset: c_int,
+            weight: *const c_void,
+            element_count: c_int,
+            feature_count: c_int,
+            epsilon: f32,
+            output: *mut c_void,
+            output_offset: c_int,
+            stream: CudaStream,
+        ) -> CudaError;
         fn psionic_cuda_parameter_golf_token_embedding_lookup(
             token_ids: *const c_void,
             token_embedding: *const c_void,
@@ -10734,6 +10789,56 @@ mod platform {
                     )
                 },
                 "psionic_cuda_rms_norm",
+            )
+        }
+
+        pub(super) fn encode_rms_norm_region(
+            &mut self,
+            input: &PlatformBuffer,
+            input_offset: usize,
+            weight: &PlatformBuffer,
+            output: &PlatformBuffer,
+            output_offset: usize,
+            element_count: usize,
+            feature_count: usize,
+            epsilon: f32,
+        ) -> Result<(), RuntimeError> {
+            let input_offset = c_int::try_from(input_offset).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda rms_norm_region input offset exceeds c_int",
+                ))
+            })?;
+            let output_offset = c_int::try_from(output_offset).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda rms_norm_region output offset exceeds c_int",
+                ))
+            })?;
+            let element_count = c_int::try_from(element_count).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda rms_norm_region element count exceeds c_int",
+                ))
+            })?;
+            let feature_count = c_int::try_from(feature_count).map_err(|_| {
+                RuntimeError::Backend(String::from(
+                    "cuda rms_norm_region feature count exceeds c_int",
+                ))
+            })?;
+            self.runtime.set_device()?;
+            self.runtime.check(
+                unsafe {
+                    psionic_cuda_rms_norm_region(
+                        input.inner.device_ptr.cast(),
+                        input_offset,
+                        weight.inner.device_ptr.cast(),
+                        element_count,
+                        feature_count,
+                        epsilon,
+                        output.inner.device_ptr.cast(),
+                        output_offset,
+                        self.stream,
+                    )
+                },
+                "psionic_cuda_rms_norm_region",
             )
         }
 
@@ -14404,6 +14509,22 @@ mod platform {
             _input: &PlatformBuffer,
             _weight: &PlatformBuffer,
             _output: &PlatformBuffer,
+            _element_count: usize,
+            _feature_count: usize,
+            _epsilon: f32,
+        ) -> Result<(), RuntimeError> {
+            Err(RuntimeError::Backend(String::from(
+                "cuda quantized text-generation kernels require Linux CUDA support",
+            )))
+        }
+
+        pub(super) fn encode_rms_norm_region(
+            &mut self,
+            _input: &PlatformBuffer,
+            _input_offset: usize,
+            _weight: &PlatformBuffer,
+            _output: &PlatformBuffer,
+            _output_offset: usize,
             _element_count: usize,
             _feature_count: usize,
             _epsilon: f32,
@@ -19673,6 +19794,63 @@ mod tests {
 
         assert_close(&decay_output.read_f32()?, &expected_decay, 1e-6);
         assert_close(&beta_output.read_f32()?, &expected_beta, 1e-6);
+        Ok(())
+    }
+
+    #[test]
+    fn cuda_submission_rms_norm_region_matches_host_formula(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let mut backend = CudaBackend::new();
+        let Some(_selected) = backend.selected_device().cloned() else {
+            assert_eq!(backend.health().status, HealthStatus::Offline);
+            return Ok(());
+        };
+
+        let input = vec![
+            -0.4_f32, 0.2, 1.0, -2.0, 0.5, 1.5, -0.25, 0.75, -1.25, 0.6, 0.8, -0.9,
+        ];
+        let weight = vec![0.9_f32, 1.1, 1.3, 0.7];
+        let input_offset = 2usize;
+        let output_offset = 3usize;
+        let element_count = 8usize;
+        let epsilon = 1.0e-5_f32;
+        let initial_output = vec![
+            9.0_f32, 9.0, 9.0, 9.0, 9.0, 9.0, 9.0, 9.0, 9.0, 9.0, 9.0, 9.0, 9.0, 9.0,
+        ];
+
+        let input_buffer = backend.input_buffer(Shape::new(vec![input.len()]), input.clone())?;
+        let weight_buffer = backend.input_buffer(Shape::new(vec![weight.len()]), weight.clone())?;
+        let mut output_buffer = backend.f32_buffer(initial_output.len())?;
+        output_buffer.write_f32(initial_output.as_slice())?;
+
+        let mut submission = backend.begin_submission()?;
+        submission.rms_norm_region(
+            &input_buffer,
+            input_offset,
+            &weight_buffer,
+            &output_buffer,
+            output_offset,
+            element_count,
+            epsilon,
+        )?;
+        let report = submission.commit(CudaCommandWait::Completed)?;
+        assert_eq!(report.encoded_operations, 1);
+
+        let mut expected = initial_output;
+        for (row_index, row) in input[input_offset..input_offset + element_count]
+            .chunks_exact(weight.len())
+            .enumerate()
+        {
+            let mean_square = row.iter().map(|value| value * value).sum::<f32>() / row.len() as f32;
+            let inv_rms = (mean_square + epsilon).sqrt().recip();
+            let output_row_offset = output_offset + row_index * weight.len();
+            for (feature_index, value) in row.iter().copied().enumerate() {
+                expected[output_row_offset + feature_index] =
+                    value * weight[feature_index] * inv_rms;
+            }
+        }
+
+        assert_close(&output_buffer.read_f32()?, &expected, 1e-6);
         Ok(())
     }
 
