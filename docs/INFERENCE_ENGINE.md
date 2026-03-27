@@ -60,8 +60,10 @@ than just run tensor math.
   from the shared-input launcher onto the MMVQ kernel, and then retuning that
   q8.0 MMVQ launch from four warps per row down to two, and then broadcasting
   the q8.0 and q8.1 block scales once per four-lane MMVQ subgroup instead of
-  rereading them on every lane, the local `qwen3.5:0.8b` benchmark on this
-  host measured about `533 tok/s` decode on Psionic versus
+  rereading them on every lane, and then grouping the q8.0 output-head MMVQ
+  argmax path into two-row blocks before the global argmax CAS, the local
+  `qwen3.5:0.8b` benchmark on this host measured about `535 tok/s` decode on
+  Psionic versus
   about `329 tok/s` decode on local Ollama for the same one-sentence prompt
   and `128` token cap.
 - The qwen35 lane is now ahead on decode throughput for this host and prompt,

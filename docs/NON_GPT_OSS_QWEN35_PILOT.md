@@ -184,7 +184,13 @@ every lane:
 - Psionic native CUDA qwen35 decode throughput: about `533.45 tok/s`
 - local Ollama `qwen3.5:0.8b` decode throughput: about `328.73 tok/s`
 
-The current bounded lane now depends on twelve architectural changes inside the
+Measured again on the same host and prompt after grouping the q8.0 MMVQ
+output-head argmax path into two-row blocks before the global argmax CAS:
+
+- Psionic native CUDA qwen35 decode throughput: about `535.18 tok/s`
+- local Ollama `qwen3.5:0.8b` decode throughput: about `328.73 tok/s`
+
+The current bounded lane now depends on thirteen architectural changes inside the
 native
 Psionic runtime:
 
@@ -217,6 +223,9 @@ Psionic runtime:
 - that same q8.0 MMVQ dot path now loads the q8.0 and q8.1 block scales once
   per four-lane subgroup and broadcasts them across the subgroup instead of
   rereading the same scale pair on every participating lane
+- the q8.0 output-head MMVQ argmax path now reduces two rows inside each CUDA
+  block before it updates the global argmax state, instead of doing one global
+  CAS update per row block
 
 This pilot therefore proves native CUDA execution correctness, honest
 publication, and a wider throughput win over the local Ollama baseline on this

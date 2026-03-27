@@ -717,6 +717,94 @@ __global__ void quantized_matvec_q8_1_grouped_mmvq_kernel(
     }
 }
 
+__device__ __forceinline__ unsigned long long pack_argmax_pair(float value, int index);
+__device__ __forceinline__ void unpack_argmax_pair(
+    unsigned long long packed,
+    float & value,
+    int & index
+);
+__device__ __forceinline__ void atomic_update_argmax_pair(
+    unsigned long long *state,
+    float value,
+    int index
+);
+
+template <typename DotFn, int Vdr, int Qi, int RowsPerBlock, int WarpsPerRow>
+__launch_bounds__(RowsPerBlock * WarpsPerRow * kWarpSize, 1)
+__global__ void quantized_matvec_q8_1_grouped_mmvq_argmax_kernel(
+    const uint8_t *weights,
+    int row_stride,
+    int rows,
+    int block_count,
+    const Q81Block *input,
+    const float *bias,
+    unsigned long long *argmax_state,
+    DotFn dot_fn
+) {
+    const int warp_index = static_cast<int>(threadIdx.y);
+    const int row_in_block = warp_index / WarpsPerRow;
+    const int warp_in_row = warp_index % WarpsPerRow;
+    const int row = static_cast<int>(blockIdx.x) * RowsPerBlock + row_in_block;
+    const bool valid_row = row < rows;
+
+    constexpr int blocks_per_iter = Vdr * WarpsPerRow * kWarpSize / Qi;
+    const int tid = kWarpSize * warp_in_row + static_cast<int>(threadIdx.x);
+    const uint8_t *row_weights = valid_row
+        ? weights + static_cast<size_t>(row) * static_cast<size_t>(row_stride)
+        : weights;
+
+    float sum = 0.0f;
+    if (valid_row) {
+        for (int block_index = tid / (Qi / Vdr); block_index < block_count; block_index += blocks_per_iter) {
+            const int quant_index = Vdr * (tid % (Qi / Vdr));
+            sum += dot_fn(row_weights, input, block_index, block_index, quant_index);
+        }
+    }
+
+    __shared__ float partials[RowsPerBlock][WarpsPerRow - 1 > 0 ? WarpsPerRow - 1 : 1][kWarpSize];
+    if (warp_in_row > 0) {
+        partials[row_in_block][warp_in_row - 1][threadIdx.x] = sum;
+    }
+    __shared__ float row_values[RowsPerBlock];
+    __shared__ int row_indices[RowsPerBlock];
+    __syncthreads();
+
+    if (warp_in_row == 0) {
+#pragma unroll
+        for (int other_warp = 0; other_warp < WarpsPerRow - 1; ++other_warp) {
+            sum += partials[row_in_block][other_warp][threadIdx.x];
+        }
+
+        sum = warp_reduce_sum(sum);
+        if (threadIdx.x == 0) {
+            row_values[row_in_block] = valid_row
+                ? sum + (bias != nullptr ? bias[row] : 0.0f)
+                : -FLT_MAX;
+            row_indices[row_in_block] = valid_row ? row : -1;
+        }
+    }
+    __syncthreads();
+
+    if (threadIdx.y == 0 && threadIdx.x == 0) {
+        float best_value = -FLT_MAX;
+        int best_index = -1;
+#pragma unroll
+        for (int row_index = 0; row_index < RowsPerBlock; ++row_index) {
+            const float candidate_value = row_values[row_index];
+            const int candidate_index = row_indices[row_index];
+            if (candidate_index >= 0 &&
+                (candidate_value > best_value ||
+                 (candidate_value == best_value && candidate_index < best_index))) {
+                best_value = candidate_value;
+                best_index = candidate_index;
+            }
+        }
+        if (best_index >= 0) {
+            atomic_update_argmax_pair(argmax_state, best_value, best_index);
+        }
+    }
+}
+
 __device__ __forceinline__ unsigned long long pack_argmax_pair(float value, int index) {
     return (static_cast<unsigned long long>(static_cast<uint32_t>(index)) << 32) |
         static_cast<unsigned long long>(__float_as_uint(value));
@@ -992,6 +1080,38 @@ static void launch_quantized_matvec_q8_1_argmax_mmvq(
     const dim3 grid_dims(rows, 1, 1);
     const dim3 block_dims(kWarpSize, kMmvqWarps, 1);
     quantized_matvec_q8_1_mmvq_argmax_kernel<DotFn, Vdr, Qi><<<grid_dims, block_dims, 0, stream>>>(
+        weights,
+        row_stride,
+        rows,
+        block_count,
+        input_q8_1,
+        bias,
+        argmax_state,
+        dot_fn
+    );
+}
+
+template <typename DotFn, int Vdr, int Qi, int RowsPerBlock, int WarpsPerRow>
+static void launch_quantized_matvec_q8_1_grouped_argmax_mmvq(
+    const uint8_t *weights,
+    int rows,
+    int cols,
+    int row_stride,
+    const Q81Block *input_q8_1,
+    const float *bias,
+    unsigned long long *argmax_state,
+    cudaStream_t stream,
+    DotFn dot_fn
+) {
+    const int block_count = cols / kQ81ElementsPerBlock;
+    const dim3 grid_dims((rows + RowsPerBlock - 1) / RowsPerBlock, 1, 1);
+    const dim3 block_dims(kWarpSize, RowsPerBlock * WarpsPerRow, 1);
+    quantized_matvec_q8_1_grouped_mmvq_argmax_kernel<
+        DotFn,
+        Vdr,
+        Qi,
+        RowsPerBlock,
+        WarpsPerRow><<<grid_dims, block_dims, 0, stream>>>(
         weights,
         row_stride,
         rows,
@@ -5893,7 +6013,14 @@ extern "C" int psionic_cuda_q8_0_matvec_q8_1_argmax(
     void *output,
     void *stream
 ) {
-    launch_quantized_matvec_q8_1_argmax_mmvq<Q80Q81Dot, kQ80Q81MmvqVdr, kQ80Qi>(
+    constexpr int rows_per_block = 2;
+    constexpr int warps_per_row = 2;
+    launch_quantized_matvec_q8_1_grouped_argmax_mmvq<
+        Q80Q81Dot,
+        kQ80Q81MmvqVdr,
+        kQ80Qi,
+        rows_per_block,
+        warps_per_row>(
         static_cast<const uint8_t *>(weights),
         rows,
         cols,
