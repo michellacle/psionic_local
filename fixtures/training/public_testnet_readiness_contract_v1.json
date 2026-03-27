@@ -1,0 +1,170 @@
+{
+  "schema_version": "psionic.public_testnet_readiness_contract.v1",
+  "contract_id": "psionic.public_testnet_readiness_contract.v1",
+  "fraud_quarantine_slashing_contract_digest": "a700e0a8d16213fb91848ffa3eabff857c88fafdf73098420d2ba26a530f1dda",
+  "operator_bootstrap_package_contract_digest": "5d0f0ecf67d414dc39cf5324a70684fa43e5291639e5c2536fff75ae376de5ce",
+  "public_run_explorer_contract_digest": "6ef8e0ebf8a3475fb5ff8514dc44ca158419cb9db6c563b0b28163745c656828",
+  "candidates": [
+    {
+      "candidate_id": "candidate.public_miner.google",
+      "role_class": "public_miner",
+      "package_id": "package.public_miner.bootstrap.v1",
+      "node_identity_id": "google_l4_validator_node.identity",
+      "admission_endpoint": "https://registry.psionic.testnet/google/miner",
+      "requested_tier": "reward_eligible",
+      "detail": "Google remains one curator-controlled reward-eligible miner candidate for the first staged public testnet."
+    },
+    {
+      "candidate_id": "candidate.public_validator.local_mlx",
+      "role_class": "public_validator",
+      "package_id": "package.public_validator.bootstrap.v1",
+      "node_identity_id": "local_mlx_mac_workstation.identity",
+      "admission_endpoint": "https://registry.psionic.testnet/local-mlx/validator",
+      "requested_tier": "reward_eligible",
+      "detail": "Apple MLX remains one curator-controlled reward-eligible validator candidate for the first staged public testnet."
+    },
+    {
+      "candidate_id": "candidate.public_miner.community_rtx4090_east",
+      "role_class": "public_miner",
+      "package_id": "package.public_miner.bootstrap.v1",
+      "admission_endpoint": "https://registry.psionic.testnet/community/rtx4090-east",
+      "requested_tier": "canary",
+      "detail": "One outside miner candidate is admitted only to canary scope until public fraud drills and explorer visibility stay stable."
+    },
+    {
+      "candidate_id": "candidate.public_validator.community_h100_central",
+      "role_class": "public_validator",
+      "package_id": "package.public_validator.bootstrap.v1",
+      "admission_endpoint": "https://registry.psionic.testnet/community/h100-central",
+      "requested_tier": "canary",
+      "detail": "One outside validator candidate is admitted only to canary scope until replay and explorer paths stay stable under third-party participation."
+    },
+    {
+      "candidate_id": "candidate.public_miner.local_rtx4080",
+      "role_class": "public_miner",
+      "package_id": "package.public_miner.bootstrap.v1",
+      "node_identity_id": "local_rtx4080_workstation.identity",
+      "admission_endpoint": "https://registry.psionic.testnet/local-rtx4080/miner",
+      "requested_tier": "reward_eligible",
+      "detail": "The slashed RTX 4080 miner remains a blocked example candidate so the staged testnet has a retained negative-path admission record."
+    }
+  ],
+  "compliance_receipts": [
+    {
+      "receipt_id": "compliance.google.registration",
+      "candidate_id": "candidate.public_miner.google",
+      "check_kind": "registration_flow",
+      "reference_id": "preflight.public_miner.google.benchmark",
+      "passed": true,
+      "detail": "Google passed the registration flow and benchmark preflight."
+    },
+    {
+      "receipt_id": "compliance.google.dry_run",
+      "candidate_id": "candidate.public_miner.google",
+      "check_kind": "dry_run_participation",
+      "reference_id": "preflight.public_miner.google.dry_run",
+      "passed": true,
+      "detail": "Google passed the miner dry-run participation gate."
+    },
+    {
+      "receipt_id": "compliance.local_mlx.registration",
+      "candidate_id": "candidate.public_validator.local_mlx",
+      "check_kind": "registration_flow",
+      "reference_id": "preflight.public_validator.local_mlx.registration",
+      "passed": true,
+      "detail": "Apple MLX passed the validator registration gate."
+    },
+    {
+      "receipt_id": "compliance.local_mlx.benchmark",
+      "candidate_id": "candidate.public_validator.local_mlx",
+      "check_kind": "benchmark_preflight",
+      "reference_id": "preflight.public_validator.google.replay",
+      "passed": true,
+      "detail": "Apple MLX passed the replay-fixture validator benchmark gate."
+    },
+    {
+      "receipt_id": "compliance.community_rtx4090.visibility",
+      "candidate_id": "candidate.public_miner.community_rtx4090_east",
+      "check_kind": "explorer_visibility",
+      "reference_id": "pane.node_status",
+      "passed": true,
+      "detail": "The community RTX 4090 miner is admitted only once explorer visibility is live."
+    },
+    {
+      "receipt_id": "compliance.community_h100.visibility",
+      "candidate_id": "candidate.public_validator.community_h100_central",
+      "check_kind": "explorer_visibility",
+      "reference_id": "pane.scoreboard",
+      "passed": true,
+      "detail": "The community H100 validator is admitted only once explorer score visibility is live."
+    },
+    {
+      "receipt_id": "compliance.local_rtx4080.fraud_drill",
+      "candidate_id": "candidate.public_miner.local_rtx4080",
+      "check_kind": "fraud_drill",
+      "reference_id": "quarantine.public_miner.local_rtx4080.window1232",
+      "passed": false,
+      "detail": "The RTX 4080 miner fails the fraud drill because the canonical quarantine remains active."
+    },
+    {
+      "receipt_id": "compliance.local_rtx4080.slash_gate",
+      "candidate_id": "candidate.public_miner.local_rtx4080",
+      "check_kind": "fraud_drill",
+      "reference_id": "slash.public_miner.local_rtx4080.window1232",
+      "passed": false,
+      "detail": "The RTX 4080 miner also fails the slashing gate because the canonical penalty remains active."
+    }
+  ],
+  "graduation_decisions": [
+    {
+      "decision_id": "decision.google.reward_eligible",
+      "candidate_id": "candidate.public_miner.google",
+      "disposition": "reward_eligible",
+      "granted_tier": "reward_eligible",
+      "blocking_reference_ids": [],
+      "detail": "Google graduates to reward-eligible participation because it passed the miner package, dry-run, and visibility gates."
+    },
+    {
+      "decision_id": "decision.local_mlx.reward_eligible",
+      "candidate_id": "candidate.public_validator.local_mlx",
+      "disposition": "reward_eligible",
+      "granted_tier": "reward_eligible",
+      "blocking_reference_ids": [],
+      "detail": "Apple MLX graduates to reward-eligible participation because it passed the validator package, replay, and visibility gates."
+    },
+    {
+      "decision_id": "decision.community_rtx4090.canary",
+      "candidate_id": "candidate.public_miner.community_rtx4090_east",
+      "disposition": "canary_only",
+      "granted_tier": "canary",
+      "blocking_reference_ids": [],
+      "detail": "The outside RTX 4090 miner is admitted only to canary scope until open public runs prove stable under third-party participation."
+    },
+    {
+      "decision_id": "decision.community_h100.canary",
+      "candidate_id": "candidate.public_validator.community_h100_central",
+      "disposition": "canary_only",
+      "granted_tier": "canary",
+      "blocking_reference_ids": [],
+      "detail": "The outside H100 validator is admitted only to canary scope until third-party replay and explorer publication remain stable."
+    },
+    {
+      "decision_id": "decision.local_rtx4080.blocked",
+      "candidate_id": "candidate.public_miner.local_rtx4080",
+      "disposition": "blocked",
+      "blocking_reference_ids": [
+        "quarantine.public_miner.local_rtx4080.window1232",
+        "slash.public_miner.local_rtx4080.window1232"
+      ],
+      "detail": "The RTX 4080 miner remains blocked because both the quarantine and the slashing decision are still active in canonical fraud policy."
+    }
+  ],
+  "authority_paths": {
+    "fixture_path": "fixtures/training/public_testnet_readiness_contract_v1.json",
+    "check_script_path": "scripts/check-public-testnet-readiness-contract.sh",
+    "reference_doc_path": "docs/PUBLIC_TESTNET_READINESS_REFERENCE.md",
+    "train_system_doc_path": "docs/TRAIN_SYSTEM.md"
+  },
+  "claim_boundary": "This contract freezes the first staged public-testnet gate: candidates, compliance receipts, reward-eligible versus canary decisions, and explicit blocked admission on fraud policy. It does not yet claim curated or open public training runs.",
+  "contract_digest": "bf39625ba7482a9698c8c873be7c41c39c763d6a85d4c9956e421fa83d41c041"
+}

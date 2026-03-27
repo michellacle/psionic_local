@@ -1,0 +1,90 @@
+{
+  "schema_version": "psionic.operator_bootstrap_package_contract.v1",
+  "contract_id": "psionic.operator_bootstrap_package_contract.v1",
+  "signed_node_identity_contract_set_digest": "e2423cfcb3e960bbf5790da0f0723f87bacc58003e1ad173d73b9ec63c41ffcc",
+  "public_network_registry_contract_digest": "ebb5ca08893fe16f1a72c67f2fd99aefe44a95af7670bb31e875b2d77b88b7f4",
+  "public_miner_protocol_contract_digest": "cd5d4fe71a5cd7ceaa43389127266ea38847a33631f8b7071eb44e77650fad65",
+  "validator_challenge_scoring_contract_digest": "99ad085b9a12258380dc4fb948c51c0cd86644a91afd6f5137d8a76a13830b25",
+  "packages": [
+    {
+      "package_id": "package.public_miner.bootstrap.v1",
+      "role_class": "public_miner",
+      "release_id": "psionic.public_miner.bootstrap.release.v1",
+      "container_image": "ghcr.io/openagentsinc/psionic/public-miner:v1",
+      "bootstrap_manifest_path": "operators/public-miner/bootstrap-manifest-v1.json",
+      "sample_env_path": "operators/public-miner/example.env",
+      "registration_command": "psionicctl public-miner register --manifest operators/public-miner/bootstrap-manifest-v1.json",
+      "dry_run_command": "psionicctl public-miner dry-run --window window1231",
+      "detail": "The first miner package freezes one reproducible image, one bootstrap manifest, one example env file, and one dry-run registration flow for public miners."
+    },
+    {
+      "package_id": "package.public_validator.bootstrap.v1",
+      "role_class": "public_validator",
+      "release_id": "psionic.public_validator.bootstrap.release.v1",
+      "container_image": "ghcr.io/openagentsinc/psionic/public-validator:v1",
+      "bootstrap_manifest_path": "operators/public-validator/bootstrap-manifest-v1.json",
+      "sample_env_path": "operators/public-validator/example.env",
+      "registration_command": "psionicctl public-validator register --manifest operators/public-validator/bootstrap-manifest-v1.json",
+      "dry_run_command": "psionicctl public-validator dry-run --score-fixture score.public_validator.google.local_mlx.window1231",
+      "detail": "The first validator package freezes one reproducible image, one bootstrap manifest, one example env file, and one dry-run replay flow for public validators."
+    }
+  ],
+  "preflight_checks": [
+    {
+      "check_id": "preflight.public_miner.google.benchmark",
+      "package_id": "package.public_miner.bootstrap.v1",
+      "check_kind": "benchmark_receipt",
+      "reference_id": "google_l4_validator_node.registry",
+      "detail": "The miner package retains one benchmark preflight example from the Google public node to keep capability verification machine-legible."
+    },
+    {
+      "check_id": "preflight.public_miner.google.dry_run",
+      "package_id": "package.public_miner.bootstrap.v1",
+      "check_kind": "dry_run_handshake",
+      "reference_id": "session.public_miner.google.window1231",
+      "detail": "The miner package retains one dry-run handshake against the canonical Google public-miner session."
+    },
+    {
+      "check_id": "preflight.public_validator.local_mlx.registration",
+      "package_id": "package.public_validator.bootstrap.v1",
+      "check_kind": "registration_flow",
+      "reference_id": "local_mlx_mac_workstation.registry",
+      "detail": "The validator package retains one canonical registration flow against the Apple MLX validator node."
+    },
+    {
+      "check_id": "preflight.public_validator.google.replay",
+      "package_id": "package.public_validator.bootstrap.v1",
+      "check_kind": "score_replay_fixture",
+      "reference_id": "score.public_validator.google.local_mlx.window1231",
+      "detail": "The validator package retains one replay-fixture preflight against the accepted Google validator score receipt."
+    }
+  ],
+  "bootstrap_kits": [
+    {
+      "kit_id": "kit.public_miner.bootstrap.v1",
+      "role_class": "public_miner",
+      "package_id": "package.public_miner.bootstrap.v1",
+      "example_registry_record_id": "google_l4_validator_node.registry",
+      "example_protocol_reference_id": "session.public_miner.google.window1231",
+      "operator_doc_path": "docs/OPERATOR_BOOTSTRAP_PACKAGE_REFERENCE.md",
+      "detail": "The first miner kit packages the image, env manifest, and dry-run handshake needed to join the permissioned public-miner testnet path."
+    },
+    {
+      "kit_id": "kit.public_validator.bootstrap.v1",
+      "role_class": "public_validator",
+      "package_id": "package.public_validator.bootstrap.v1",
+      "example_registry_record_id": "local_mlx_mac_workstation.registry",
+      "example_protocol_reference_id": "score.public_validator.google.local_mlx.window1231",
+      "operator_doc_path": "docs/OPERATOR_BOOTSTRAP_PACKAGE_REFERENCE.md",
+      "detail": "The first validator kit packages the image, env manifest, and replay fixture needed to join the permissioned public-validator testnet path."
+    }
+  ],
+  "authority_paths": {
+    "fixture_path": "fixtures/training/operator_bootstrap_package_contract_v1.json",
+    "check_script_path": "scripts/check-operator-bootstrap-package-contract.sh",
+    "reference_doc_path": "docs/OPERATOR_BOOTSTRAP_PACKAGE_REFERENCE.md",
+    "train_system_doc_path": "docs/TRAIN_SYSTEM.md"
+  },
+  "claim_boundary": "This contract freezes the first public miner and validator operator packages: reproducible images, env manifests, registration commands, dry-run commands, and preflight checks. It does not yet claim the public explorer or graduated public testnet gates.",
+  "contract_digest": "5d0f0ecf67d414dc39cf5324a70684fa43e5291639e5c2536fff75ae376de5ce"
+}

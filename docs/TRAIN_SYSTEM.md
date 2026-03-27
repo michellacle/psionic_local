@@ -403,6 +403,41 @@ wallet identities, and one explicit chain-adapter refusal. It proves Psionic
 now has a truthful settlement surface before public dashboards or open
 operator-facing packages land.
 
+The repo now also owns the first public operator bootstrap package contract in
+`crates/psionic-train/src/operator_bootstrap_package_contract.rs`, the binary
+`operator_bootstrap_package_contract`, the checker
+`scripts/check-operator-bootstrap-package-contract.sh`, the focused reference
+doc `docs/OPERATOR_BOOTSTRAP_PACKAGE_REFERENCE.md`, and the committed fixture
+`fixtures/training/operator_bootstrap_package_contract_v1.json`. That surface
+turns public miner and validator onboarding into typed package truth:
+reproducible images, env manifests, registration commands, dry-run commands,
+and role-specific preflight checks. It proves the first public operator path no
+longer depends on source-level patching or private setup lore.
+
+The repo now also owns the first public run explorer contract in
+`crates/psionic-train/src/public_run_explorer_contract.rs`, the binary
+`public_run_explorer_contract`, the checker
+`scripts/check-public-run-explorer-contract.sh`, the focused reference doc
+`docs/PUBLIC_RUN_EXPLORER_REFERENCE.md`, and the committed fixture
+`fixtures/training/public_run_explorer_contract_v1.json`. That surface turns
+network health and scoring visibility into typed public truth: explorer panes,
+one current network snapshot, score rows reconciled against the reward ledger,
+and explicit stale-data policy. It proves Psionic now has a public-facing
+status surface above raw logs and private maintainer dashboards.
+
+The repo now also owns the first staged public-testnet readiness contract in
+`crates/psionic-train/src/public_testnet_readiness_contract.rs`, the binary
+`public_testnet_readiness_contract`, the checker
+`scripts/check-public-testnet-readiness-contract.sh`, the focused reference doc
+`docs/PUBLIC_TESTNET_READINESS_REFERENCE.md`, and the committed fixture
+`fixtures/training/public_testnet_readiness_contract_v1.json`. That surface
+turns public participation rollout into typed gate truth: candidate records,
+compliance receipts, reward-eligible versus canary decisions, and explicit
+blocked admission tied to fraud policy. It proves Psionic can now graduate or
+refuse public participants through one machine-legible staged onboarding path
+instead of treating first contact with the internet as the only validation
+mechanism.
+
 The repo now also owns the first dense-rank recovery contract in
 `crates/psionic-train/src/dense_rank_recovery_contract.rs`, the binary
 `dense_rank_recovery_contract`, the checker

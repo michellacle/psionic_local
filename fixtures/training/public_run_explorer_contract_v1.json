@@ -1,0 +1,164 @@
+{
+  "schema_version": "psionic.public_run_explorer_contract.v1",
+  "contract_id": "psionic.public_run_explorer_contract.v1",
+  "public_network_registry_contract_digest": "ebb5ca08893fe16f1a72c67f2fd99aefe44a95af7670bb31e875b2d77b88b7f4",
+  "multi_validator_consensus_contract_digest": "ce2a463d0703a5cf5dc3d30efc9b9f8981c17e60bfa8a0d9b2f716912af0470f",
+  "reward_ledger_contract_digest": "42d7dc87c9dc416023ee2a96f838946533fb366780ec7449a1f9feed8002f103",
+  "settlement_publication_contract_digest": "ca13e653115f6001022f0573d7d8f09da1b8f778fe811301c9c712f26072ed65",
+  "panes": [
+    {
+      "pane_id": "pane.network_epoch",
+      "pane_kind": "network_epoch",
+      "backing_reference_ids": [
+        "google_l4_validator_node.registry",
+        "local_mlx_mac_workstation.registry"
+      ],
+      "refresh_interval_seconds": 15,
+      "detail": "The epoch pane shows the current public window against the two most important online public nodes."
+    },
+    {
+      "pane_id": "pane.node_status",
+      "pane_kind": "node_status",
+      "backing_reference_ids": [
+        "google_l4_validator_node.registry",
+        "runpod_8xh100_dense_node.registry",
+        "local_rtx4080_workstation.registry",
+        "local_mlx_mac_workstation.registry"
+      ],
+      "refresh_interval_seconds": 20,
+      "detail": "The node-status pane publishes the current online public-network registry state for all currently admitted nodes."
+    },
+    {
+      "pane_id": "pane.scoreboard",
+      "pane_kind": "scoreboard",
+      "backing_reference_ids": [
+        "score.public_validator.google.local_mlx.window1231",
+        "score.public_validator.local_mlx.google.window1231"
+      ],
+      "refresh_interval_seconds": 20,
+      "detail": "The scoreboard pane publishes accepted and replay-required validator score receipts for the current public window."
+    },
+    {
+      "pane_id": "pane.promotion",
+      "pane_kind": "promotion_timeline",
+      "backing_reference_ids": [
+        "decision.checkpoint.step2048.round2056"
+      ],
+      "refresh_interval_seconds": 30,
+      "detail": "The promotion pane publishes the held-no-promotion checkpoint decision and its current disagreement status."
+    },
+    {
+      "pane_id": "pane.reward_ledger",
+      "pane_kind": "reward_ledger",
+      "backing_reference_ids": [
+        "ledger.window1231"
+      ],
+      "refresh_interval_seconds": 30,
+      "detail": "The reward-ledger pane publishes the current accounting-period closeout and payout weights."
+    },
+    {
+      "pane_id": "pane.settlement_feed",
+      "pane_kind": "settlement_feed",
+      "backing_reference_ids": [
+        "settlement.window1231.signed"
+      ],
+      "refresh_interval_seconds": 45,
+      "detail": "The settlement pane publishes the signed-ledger settlement record once the accounting period closes."
+    }
+  ],
+  "snapshot": {
+    "snapshot_id": "snapshot.public_run.window1231",
+    "current_epoch_id": "window1231",
+    "online_node_count": 4,
+    "validator_node_count": 2,
+    "held_promotion_count": 1,
+    "published_settlement_count": 1,
+    "detail": "The first explorer snapshot freezes one current public-network view: four online nodes, two validator-capable nodes, one held checkpoint decision, and one published signed-ledger settlement."
+  },
+  "score_rows": [
+    {
+      "row_id": "row.local_mlx.window1231",
+      "node_identity_id": "local_mlx_mac_workstation.identity",
+      "accepted_score_receipt_ids": [
+        "score.public_validator.google.local_mlx.window1231"
+      ],
+      "replay_required_score_receipt_ids": [
+        "score.public_validator.local_mlx.google.window1231"
+      ],
+      "net_reward_microunits": 710000,
+      "detail": "Apple MLX shows up on the explorer both as the accepted miner and as the second validator in the current public window."
+    },
+    {
+      "row_id": "row.google.window1231",
+      "node_identity_id": "google_l4_validator_node.identity",
+      "accepted_score_receipt_ids": [
+        "score.public_validator.google.local_mlx.window1231"
+      ],
+      "replay_required_score_receipt_ids": [],
+      "net_reward_microunits": 240000,
+      "detail": "Google shows up as the validator that admitted the accepted miner contribution and as a checkpoint authority."
+    },
+    {
+      "row_id": "row.runpod.window1231",
+      "node_identity_id": "runpod_8xh100_dense_node.identity",
+      "accepted_score_receipt_ids": [],
+      "replay_required_score_receipt_ids": [],
+      "net_reward_microunits": 50000,
+      "detail": "RunPod stays visible on the explorer through checkpoint-authority accounting even without validator score receipts."
+    },
+    {
+      "row_id": "row.local_rtx4080.window1231",
+      "node_identity_id": "local_rtx4080_workstation.identity",
+      "accepted_score_receipt_ids": [],
+      "replay_required_score_receipt_ids": [],
+      "net_reward_microunits": -150000,
+      "detail": "The slashed RTX 4080 node remains visible with a negative balance instead of being silently erased from the public ledger view."
+    }
+  ],
+  "stale_data_policies": [
+    {
+      "pane_id": "pane.network_epoch",
+      "stale_after_seconds": 90,
+      "fallback_message": "stale_data",
+      "detail": "Each explorer pane must surface explicit stale-data state instead of silently presenting old network information as current truth."
+    },
+    {
+      "pane_id": "pane.node_status",
+      "stale_after_seconds": 90,
+      "fallback_message": "stale_data",
+      "detail": "Each explorer pane must surface explicit stale-data state instead of silently presenting old network information as current truth."
+    },
+    {
+      "pane_id": "pane.scoreboard",
+      "stale_after_seconds": 90,
+      "fallback_message": "stale_data",
+      "detail": "Each explorer pane must surface explicit stale-data state instead of silently presenting old network information as current truth."
+    },
+    {
+      "pane_id": "pane.promotion",
+      "stale_after_seconds": 90,
+      "fallback_message": "stale_data",
+      "detail": "Each explorer pane must surface explicit stale-data state instead of silently presenting old network information as current truth."
+    },
+    {
+      "pane_id": "pane.reward_ledger",
+      "stale_after_seconds": 90,
+      "fallback_message": "stale_data",
+      "detail": "Each explorer pane must surface explicit stale-data state instead of silently presenting old network information as current truth."
+    },
+    {
+      "pane_id": "pane.settlement_feed",
+      "stale_after_seconds": 90,
+      "fallback_message": "stale_data",
+      "detail": "Each explorer pane must surface explicit stale-data state instead of silently presenting old network information as current truth."
+    }
+  ],
+  "authority_paths": {
+    "fixture_path": "fixtures/training/public_run_explorer_contract_v1.json",
+    "check_script_path": "scripts/check-public-run-explorer-contract.sh",
+    "reference_doc_path": "docs/PUBLIC_RUN_EXPLORER_REFERENCE.md",
+    "train_system_doc_path": "docs/TRAIN_SYSTEM.md"
+  },
+  "claim_boundary": "This contract freezes the first public run explorer surface: panes, one network snapshot, score rows, and stale-data policy. It does not yet claim staged public testnet graduation or public participation windows.",
+  "contract_digest": "6ef8e0ebf8a3475fb5ff8514dc44ca158419cb9db6c563b0b28163745c656828"
+}
