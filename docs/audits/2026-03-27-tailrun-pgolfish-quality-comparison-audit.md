@@ -132,7 +132,18 @@ So the honest current boundary is:
 - same-node rows: directly bundle-evaluated on the shared held-out profile
 - admitted mixed-device row: retained training-summary context only
 
-That exact gap is what `TAILRUN-6` is meant to close.
+`TAILRUN-6` now closes part of that gap for one retained same-node M5 artifact:
+
+- `docs/audits/2026-03-27-tailrun-open-adapter-near-equivalent-infer-serve-audit.md`
+
+That bridge proves one bounded home-device artifact can make it through a
+documented near-equivalent infer/serve path. The remaining gap is narrower:
+
+- the admitted mixed-device run is still not in the same held-out inferable
+  bundle table yet
+- the short-run lane still does not have automatic promotion
+- the daily operator loop still needs to freeze the scoreboard and best-known
+  run sequence
 
 ## Operational Takeaway
 

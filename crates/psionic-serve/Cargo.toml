@@ -48,6 +48,7 @@ rand = { workspace = true }
 reqwest = { workspace = true, features = ["blocking"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
+safetensors = { workspace = true }
 sha2 = { workspace = true }
 tempfile = "3"
 thiserror = { workspace = true }

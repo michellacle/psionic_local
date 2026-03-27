@@ -257,8 +257,11 @@ So the honest current state is:
 
 - throughput comparison is real and retained
 - same-node held-out quality is currently tied
-- the admitted mixed-device run is still summary-backed quality only until the
-  next promotion/export issue lands
+- one same-node M5 artifact now has a retained near-equivalent infer/serve
+  bridge:
+  `docs/audits/2026-03-27-tailrun-open-adapter-near-equivalent-infer-serve-audit.md`
+- the admitted mixed-device run is still summary-backed quality only until that
+  same promotion/export bridge exists for the shared run artifact
 - `fixtures/apple_adapter/runs/tailrun_admitted_device_matrix_20260327b/archlinux_cuda/report.json`
 
 The exact retained command was:
@@ -322,6 +325,8 @@ It does claim:
 - the retained M5 and RTX 4080 ten-minute runs are real and comparable
 - the retained CUDA follow-up run improved the remote RTX 4080 lane by `49.14%`
   without changing the benchmark family
+- one retained same-node M5 artifact can now be exercised through a documented
+  near-equivalent direct-infer plus served-infer bridge
 - the current admitted operator set is the M5 plus the RTX 4080 host
 - the M2 now has a working SSH bootstrap path, but it is still excluded from
   the daily admitted set because availability is not stable enough yet
