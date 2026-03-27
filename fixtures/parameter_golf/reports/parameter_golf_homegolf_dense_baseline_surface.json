@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "report_id": "parameter_golf.homegolf_dense_baseline_surface.v1",
+  "track_id": "parameter_golf.home_cluster_compatible_10min.v1",
+  "strict_profile_id": "parameter_golf_challenge_sp1024_v0",
+  "source_training_report_ref": "fixtures/parameter_golf/reports/parameter_golf_runpod_single_h100_first_real_training_report.json",
+  "source_training_report_digest": "f1aab6656b0c1a87c311cc833a9e316e64f2ef5a337d6a8419be1f408a8a5a61",
+  "trainer_entrypoint": "crates/psionic-train/src/bin/parameter_golf_single_h100_train.rs",
+  "trainer_implementation": "crates/psionic-train/src/parameter_golf_single_h100_training.rs",
+  "baseline_model_id": "parameter-golf-sp1024-9x512",
+  "baseline_revision": "public-2026-03-18",
+  "baseline_config": {
+    "vocab_size": 1024,
+    "num_layers": 9,
+    "model_dim": 512,
+    "num_heads": 8,
+    "num_kv_heads": 4,
+    "mlp_mult": 2,
+    "bigram_vocab_size": 0,
+    "bigram_dim": 128,
+    "ve_dim": 128,
+    "mlp_activation": {
+      "kind": "relu_squared"
+    },
+    "max_context": 1024,
+    "tie_embeddings": true,
+    "tied_embed_init_std": 0.005,
+    "logit_softcap": 30.0,
+    "rope_base": 10000.0,
+    "qk_gain_init": 1.5
+  },
+  "batch_geometry": {
+    "world_size": 1,
+    "train_batch_tokens": 524288,
+    "validation_batch_tokens": 524288,
+    "train_sequence_length": 1024,
+    "grad_accum_steps": 8
+  },
+  "max_steps": 1,
+  "executed_steps": 1,
+  "stop_reason": "step_budget_reached",
+  "train_token_count": 100000000,
+  "observed_wallclock_ms": 44657278,
+  "compressed_model_bytes": 4732744,
+  "compressed_model_artifact_ref": "parameter-golf-single-h100-trainer/step-00001/final_model.int8.ptz",
+  "compressed_model_artifact_digest": "4657d793ae3e64796670b6768f433c48f788518725ba2854e913db205412b250",
+  "final_metric": {
+    "metric_source": "int8_zlib_roundtrip",
+    "val_loss": 10.64899006955549,
+    "val_bpb": 6.306931747817168,
+    "evaluated_token_count": 62021632,
+    "evaluated_byte_count": 151080363
+  },
+  "claim_boundary": "This freezes the first honest HOMEGOLF dense baseline surface: Psionic already executes the exact dense 9x512 SP1024 trainer and emits real validation, wallclock, token-count, and artifact-size outputs. It does not yet claim a 10-minute mixed-device home-cluster score or public-leaderboard-equivalent hardware.",
+  "summary": "The exact dense PGOLF naive baseline already exists as a real Psionic trainer surface. This HOMEGOLF report binds that retained single-device dense run into the home-cluster track as the first honest baseline surface to improve from.",
+  "report_digest": "30f431ea461cb65fada885dd3aa638697ea6b900675a5a808a2eef0527b4d2b5"
+}

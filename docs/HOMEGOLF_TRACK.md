@@ -43,6 +43,7 @@ Generator:
 Checker:
 
 - `scripts/check-parameter-golf-homegolf-track-contract.sh`
+- `scripts/check-parameter-golf-homegolf-dense-baseline-surface.sh`
 
 ## Current Baseline Surfaces
 
@@ -59,6 +60,29 @@ inventing a second Parameter Golf stack:
   `docs/PARAMETER_GOLF_PROMOTED_FAMILY_CONTRACT.md`
 - contest-style artifact accounting:
   `docs/PARAMETER_GOLF_NON_RECORD_SUBMISSION.md`
+
+## First Honest Dense Baseline Surface
+
+HOMEGOLF now has one canonical retained dense-baseline surface proving that the
+exact public naive-baseline trainer already runs inside Psionic:
+
+- source dense run:
+  `fixtures/parameter_golf/reports/parameter_golf_runpod_single_h100_first_real_training_report.json`
+- HOMEGOLF baseline surface report:
+  `fixtures/parameter_golf/reports/parameter_golf_homegolf_dense_baseline_surface.json`
+- HOMEGOLF baseline surface generator:
+  `crates/psionic-train/src/parameter_golf_homegolf_dense_baseline.rs`
+- HOMEGOLF baseline surface entrypoint:
+  `crates/psionic-train/src/bin/parameter_golf_homegolf_dense_baseline_surface.rs`
+
+What this freezes:
+
+- the exact `SP1024` `9x512` config, not an approximation
+- one completed dense single-device Psionic run
+- real retained `val_loss`, `val_bpb`, train-token, wallclock, and artifact-byte
+  outputs
+- the honest claim boundary that this is the first HOMEGOLF dense baseline
+  surface, not yet a mixed-device 10-minute HOMEGOLF score
 
 ## Comparison Policy
 
@@ -99,7 +123,9 @@ HOMEGOLF is frozen as a contract now, but one important surface is still
 blocked:
 
 - the exact dense PGOLF baseline is still H100-only in its live trainer
-  execution surface
+  execution surface for retained runs
+- the first honest dense baseline surface is real now, but it is not yet a
+  clustered `10` minute HOMEGOLF score
 
 So HOMEGOLF is ready to guide implementation, but it does not yet claim that
 the dense strict-baseline run can already execute across the full admitted home
