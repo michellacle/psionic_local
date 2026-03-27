@@ -546,6 +546,16 @@ fn run_coordinator(
         },
     )?;
 
+    plan.protocol.record_heartbeat(
+        plan.local_identity.clone(),
+        Some(plan.local_claim.claim_id.as_str()),
+        Some(AdapterContributionProgress {
+            completed_steps: local_run.contribution.executed_steps as u32,
+            processed_samples: local_run.contribution.execution_summary.sample_count,
+        }),
+        now_ms(),
+    )?;
+
     let local_upload = upload_locator_for_assignment(
         &plan.local_assignment,
         local_run.payload.as_slice(),
@@ -995,8 +1005,8 @@ fn build_coordinator_plan(
     let mut protocol = AdapterWorkerProtocolState::from_window_record(
         &window_record,
         AdapterWorkerProtocolPolicy {
-            heartbeat_timeout_ms: 60_000,
-            claim_ttl_ms: 300_000,
+            heartbeat_timeout_ms: 1_800_000,
+            claim_ttl_ms: 1_800_000,
         },
     );
     protocol.activate_window()?;
