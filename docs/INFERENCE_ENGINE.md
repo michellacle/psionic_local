@@ -45,14 +45,15 @@ than just run tensor math.
 - The first `qwen35` lane must still fail closed for system-message image and
   video parts to stay aligned with the real template semantics.
 - On March 27, 2026, after moving qwen35 hybrid-layer SSM `decay` and `beta`
-  derivation onto CUDA and normalizing q/k regions directly into the packed
-  decode buffers, the local `qwen3.5:0.8b` benchmark on this host measured
-  about `433 tok/s` decode on Psionic versus about `324 tok/s` decode on local
+  derivation onto CUDA, normalizing q/k regions directly into the packed
+  decode buffers, and replaying greedy argmax decode through a captured CUDA
+  graph, the local `qwen3.5:0.8b` benchmark on this host measured about
+  `487 tok/s` decode on Psionic versus about `326 tok/s` decode on local
   Ollama for the same one-sentence prompt and `128` token cap.
 - The qwen35 lane is now ahead on decode throughput for this host and prompt,
-  but it is still not architecture-closed. Greedy prompt replay is faster than
-  the earlier pilot, but the remaining headroom is still in token embedding,
-  q/k preparation, and the rest of the prompt path.
+  but it is still not architecture-closed. Greedy prompt replay is materially
+  faster than the earlier pilot, but the remaining headroom is still in token
+  embedding and the rest of the prompt path.
 
 ## Embeddings Requirements
 

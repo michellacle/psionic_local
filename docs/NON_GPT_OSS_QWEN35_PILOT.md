@@ -116,13 +116,18 @@ The pilot is intentionally bounded:
 Measured on this host on March 27, 2026 with the downloaded
 `qwen3.5:0.8b-q8_0.gguf`, the same one-sentence prompt, and a `128` token cap:
 
-- Psionic native CUDA qwen35 decode throughput: about `433.36 tok/s`
-- local Ollama `qwen3.5:0.8b` decode throughput: about `323.65 tok/s`
+- Psionic native CUDA qwen35 decode throughput: about `486.78 tok/s`
+- local Ollama `qwen3.5:0.8b` decode throughput: about `326.14 tok/s`
 
-This improvement came from one architectural change inside the native Psionic
-runtime: qwen35 now derives hybrid-layer SSM `decay` and `beta` on CUDA and it
-normalizes q/k regions directly into the packed attention and gated-delta input
-buffers instead of copying q and k through extra scratch regions first.
+This improvement now comes from two architectural changes inside the native
+Psionic runtime:
+
+- qwen35 derives hybrid-layer SSM `decay` and `beta` on CUDA and normalizes
+  q/k regions directly into the packed attention and gated-delta input buffers
+  instead of copying q and k through extra scratch regions first
+- greedy argmax decode now replays the fused qwen35 CUDA submission through a
+  captured CUDA graph, and the slower token-embedding mirror experiment is no
+  longer on the default path
 
 This pilot therefore proves native CUDA execution correctness, honest
 publication, and a wider throughput win over the local Ollama baseline on this
@@ -130,7 +135,7 @@ host.
 
 The same March 27, 2026 benchmark also shows the current boundary clearly:
 
-- Psionic greedy prompt replay for this prompt now spends about `44-48 ms` on
+- Psionic greedy prompt replay for this prompt now spends about `41-43 ms` on
   the `22` prompt tokens
 - local Ollama still leads on end-to-end prompt-plus-decode throughput on the
   same prompt
@@ -144,7 +149,6 @@ runtime:
   device-native route than it should
 - the full-attention path still burns an extra query split kernel before the
   attention decode kernel
-- the runtime still executes more synchronized CUDA submissions than it should
 - the lane still refuses KV-session reuse, prefix caching, and adapter serving
 - the lane has not yet proven a wider batch, longer context, or concurrent
   throughput lead over Ollama-class runtimes
