@@ -107,6 +107,12 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         let raw = validation_batch_sequences.to_string_lossy();
         config.validation_batch_sequences = raw.parse::<usize>()?;
     }
+    if let Some(max_challenge_steps) =
+        env::var_os("PSIONIC_PARAMETER_GOLF_HOMEGOLF_MAX_CHALLENGE_STEPS")
+    {
+        let raw = max_challenge_steps.to_string_lossy();
+        config.max_steps = raw.parse::<u64>()?;
+    }
     if truthy_env("PSIONIC_PARAMETER_GOLF_DISABLE_SCORE_FIRST_TTT") {
         config.score_first_ttt = None;
     }

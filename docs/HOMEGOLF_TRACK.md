@@ -715,6 +715,38 @@ Current truth:
 - the attached closeout path now remains repo-owned end to end
 - no new completed local or public PGOLF score has landed from this run yet
 
+One more live truth became explicit during `20260328b`:
+
+- step `1` did complete honestly on the local `600s` contract
+- retained live facts:
+  - `train_step_complete step=1 mean_microbatch_loss=8.29199219`
+  - `optimizer_step_ms=3803`
+- but step `2` immediately diverged:
+  - `micro_step=1/64 train_loss=13.90855503`
+  - `micro_step=2/64 train_loss=13.96454716`
+  - `micro_step=3/64 train_loss=13.86529732`
+  - `micro_step=4/64 train_loss=14.02747917`
+
+That means the current local `g64` baseline is not blocked on fitting the first
+step anymore.
+
+It is blocked on keeping quality once the second optimizer step begins.
+
+The operator path now exposes one explicit response:
+
+- `PSIONIC_PARAMETER_GOLF_HOMEGOLF_MAX_CHALLENGE_STEPS=<n>`
+- `scripts/run-parameter-golf-homegolf-local-cuda.sh --challenge-max-steps <n>`
+
+Unlike the old positional `--max-steps`, this challenge-step cap preserves:
+
+- `challenge_homegolf_local_cuda_defaults`
+- `warmup_steps=0`
+- `max_wallclock_seconds=600`
+- the normal honest local HOMEGOLF score semantics
+
+So the local loop can now stop at one stable optimizer step without dropping
+into the bounded proof lane.
+
 ## Current Honest Boundary
 
 HOMEGOLF is frozen as a contract now, but one important surface is still

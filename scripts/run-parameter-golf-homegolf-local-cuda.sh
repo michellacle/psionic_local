@@ -12,6 +12,7 @@ tmpdir="${HOME}/scratch/tmp"
 cargo_target_dir="${repo_root}/target"
 binary_path=""
 max_steps=""
+challenge_max_steps=""
 final_validation_mode="roundtrip_only"
 validation_eval_mode="non_overlapping"
 background="0"
@@ -38,6 +39,7 @@ Options:
   --cargo-target-dir <path>             Cargo target dir when running through cargo.
   --binary-path <path>                  Use an existing trainer binary instead of cargo.
   --max-steps <n>                       Optional bounded max-steps override.
+  --challenge-max-steps <n>             Honest challenge max-steps cap that preserves the local 600s contract.
   --final-validation-mode <mode>        Final validation mode. Default: roundtrip_only
   --validation-eval-mode <mode>         Validation eval mode. Default: non_overlapping
   --trainer-arg <arg>                   Extra trailing trainer arg. Repeatable.
@@ -86,6 +88,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --max-steps)
       max_steps="$2"
+      shift 2
+      ;;
+    --challenge-max-steps)
+      challenge_max_steps="$2"
       shift 2
       ;;
     --final-validation-mode)
@@ -154,6 +160,11 @@ fi
 
 if [[ -z "${output_root}" ]]; then
   output_root="${HOME}/scratch/psionic_homegolf_runs/${run_id}"
+fi
+
+if [[ -n "${max_steps}" ]] && [[ -n "${challenge_max_steps}" ]]; then
+  echo "error: --max-steps and --challenge-max-steps are mutually exclusive" >&2
+  exit 1
 fi
 
 if [[ "${attach_prompt_closeout}" == "1" ]] && [[ "${background}" != "1" ]]; then
@@ -245,6 +256,9 @@ printf 'VALIDATION_EVAL_MODE=%q\n' "${validation_eval_mode}" >> "${launch_env_pa
 if [[ -n "${max_steps}" ]]; then
   printf 'MAX_STEPS=%q\n' "${max_steps}" >> "${launch_env_path}"
 fi
+if [[ -n "${challenge_max_steps}" ]]; then
+  printf 'CHALLENGE_MAX_STEPS=%q\n' "${challenge_max_steps}" >> "${launch_env_path}"
+fi
 if [[ -n "${binary_path}" ]]; then
   printf 'BINARY_PATH=%q\n' "${binary_path}" >> "${launch_env_path}"
 fi
@@ -263,8 +277,14 @@ fi
 
 run_trainer() {
   cd "${repo_root}"
-  TMPDIR="${tmpdir}" \
-  CARGO_TARGET_DIR="${cargo_target_dir}" \
+  run_env=(
+    "TMPDIR=${tmpdir}"
+    "CARGO_TARGET_DIR=${cargo_target_dir}"
+  )
+  if [[ -n "${challenge_max_steps}" ]]; then
+    run_env+=("PSIONIC_PARAMETER_GOLF_HOMEGOLF_MAX_CHALLENGE_STEPS=${challenge_max_steps}")
+  fi
+  env "${run_env[@]}" \
     "${trainer_command[@]}"
 }
 
