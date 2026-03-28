@@ -886,6 +886,38 @@ This is still an honest local HOMEGOLF score attempt:
 - it stays on clean `main`
 - it keeps the same repo-owned closeout path
 
+## Repo-Owned Queue Runner
+
+The ad hoc remote scratch queue for `20260328e` is now replaced by one
+committed repo-owned operator script:
+
+- script:
+  `scripts/queue-parameter-golf-homegolf-local-cuda.sh`
+
+What it does:
+
+- waits on an existing HOMEGOLF output root's `train.pid`
+- polls until the active trainer exits
+- then launches the normal repo-owned local CUDA runner
+- defaults to `--sync-main` before the queued launch
+
+The active queued follow-on is now staged through that script on `archlinux`:
+
+- queue pid:
+  `775656`
+- queue log:
+  `/home/christopherdavid/scratch/psionic_homegolf_runs/queue_homegolf_20260328e_repo.log`
+- retained log head:
+  - `queue_wait_root=/home/christopherdavid/scratch/psionic_homegolf_runs/homegolf-baseline-g64-stepcap1-clip1-600s-20260328d`
+  - `queue_wait_pid=768560`
+  - `queue_waiting timestamp=2026-03-28T06:25:29-05:00 pid=768560`
+
+This improves the operator path because the next run no longer depends on a
+one-off scratch shell file outside the repo.
+
+It now depends on committed repo code that future operators and agents can
+reuse directly.
+
 ## Current Honest Boundary
 
 HOMEGOLF is frozen as a contract now, but one important surface is still
