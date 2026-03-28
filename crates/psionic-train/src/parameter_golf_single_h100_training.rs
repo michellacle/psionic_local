@@ -101,6 +101,9 @@ fn default_single_h100_model_config() -> ParameterGolfConfig {
     ParameterGolfSingleH100ModelVariant::default().model_config()
 }
 
+const HOMEGOLF_LOCAL_CUDA_GRAD_ACCUM_STEPS: usize = 32;
+const HOMEGOLF_LOCAL_CUDA_VALIDATION_BATCH_SEQUENCES: usize = 64;
+
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ParameterGolfSingleDeviceMachineProfile {
@@ -317,7 +320,7 @@ impl ParameterGolfSingleH100TrainingConfig {
         tokenizer_path: impl Into<PathBuf>,
     ) -> Self {
         let mut config = Self::challenge_defaults(dataset_root, tokenizer_path);
-        config.machine_profile = ParameterGolfSingleDeviceMachineProfile::HomegolfLocalCuda;
+        config.apply_homegolf_local_cuda_profile();
         config
     }
 
@@ -328,8 +331,14 @@ impl ParameterGolfSingleH100TrainingConfig {
     ) -> Self {
         let mut config =
             Self::challenge_competitive_homegolf_v1_defaults(dataset_root, tokenizer_path);
-        config.machine_profile = ParameterGolfSingleDeviceMachineProfile::HomegolfLocalCuda;
+        config.apply_homegolf_local_cuda_profile();
         config
+    }
+
+    pub fn apply_homegolf_local_cuda_profile(&mut self) {
+        self.machine_profile = ParameterGolfSingleDeviceMachineProfile::HomegolfLocalCuda;
+        self.geometry.grad_accum_steps = HOMEGOLF_LOCAL_CUDA_GRAD_ACCUM_STEPS;
+        self.validation_batch_sequences = HOMEGOLF_LOCAL_CUDA_VALIDATION_BATCH_SEQUENCES;
     }
 
     pub fn apply_model_variant(&mut self, model_variant: ParameterGolfSingleH100ModelVariant) {
@@ -366,12 +375,32 @@ impl ParameterGolfSingleH100TrainingConfig {
                 ),
             });
         }
-        if self.geometry != ParameterGolfBatchGeometry::challenge_single_device_defaults() {
-            return Err(ParameterGolfSingleH100TrainingError::InvalidConfig {
-                message: String::from(
-                    "single-H100 training requires challenge_single_device_defaults geometry",
-                ),
-            });
+        let expected_geometry = ParameterGolfBatchGeometry::challenge_single_device_defaults();
+        match self.machine_profile {
+            ParameterGolfSingleDeviceMachineProfile::SingleH100 => {
+                if self.geometry != expected_geometry {
+                    return Err(ParameterGolfSingleH100TrainingError::InvalidConfig {
+                        message: String::from(
+                            "single-H100 training requires challenge_single_device_defaults geometry",
+                        ),
+                    });
+                }
+            }
+            ParameterGolfSingleDeviceMachineProfile::HomegolfLocalCuda => {
+                if self.geometry.world_size != expected_geometry.world_size
+                    || self.geometry.train_batch_tokens != expected_geometry.train_batch_tokens
+                    || self.geometry.validation_batch_tokens
+                        != expected_geometry.validation_batch_tokens
+                    || self.geometry.train_sequence_length
+                        != expected_geometry.train_sequence_length
+                {
+                    return Err(ParameterGolfSingleH100TrainingError::InvalidConfig {
+                        message: String::from(
+                            "homegolf_local_cuda training must preserve the challenge world_size, total train_batch_tokens, total validation_batch_tokens, and sequence_length while only changing the local grad_accum_steps fit profile",
+                        ),
+                    });
+                }
+            }
         }
         self.model_config.validate().map_err(|error| {
             ParameterGolfSingleH100TrainingError::InvalidConfig {

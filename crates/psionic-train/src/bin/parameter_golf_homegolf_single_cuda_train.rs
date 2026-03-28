@@ -3,9 +3,9 @@ use std::{env, path::PathBuf};
 use psionic_train::{
     parameter_golf_default_validation_batch_sequences,
     write_parameter_golf_single_h100_training_report, ParameterGolfMatrixExecutionMode,
-    ParameterGolfScoreFirstTttConfig, ParameterGolfSingleDeviceMachineProfile,
-    ParameterGolfSingleH100ModelVariant, ParameterGolfSingleH100TrainingConfig,
-    ParameterGolfSingleH100ValidationMode, ParameterGolfValidationEvalMode,
+    ParameterGolfScoreFirstTttConfig, ParameterGolfSingleH100ModelVariant,
+    ParameterGolfSingleH100TrainingConfig, ParameterGolfSingleH100ValidationMode,
+    ParameterGolfValidationEvalMode,
 };
 
 fn main() {
@@ -46,7 +46,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
                 max_steps,
             );
             config.apply_model_variant(model_variant);
-            config.machine_profile = ParameterGolfSingleDeviceMachineProfile::HomegolfLocalCuda;
+            config.apply_homegolf_local_cuda_profile();
             config
         }
         (Some(max_steps), None) => {
@@ -55,7 +55,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
                 tokenizer_path,
                 max_steps,
             );
-            config.machine_profile = ParameterGolfSingleDeviceMachineProfile::HomegolfLocalCuda;
+            config.apply_homegolf_local_cuda_profile();
             config
         }
         (None, Some(ParameterGolfSingleH100ModelVariant::CompetitiveHomegolfV1)) => {
@@ -87,6 +87,17 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         let raw = matrix_execution_mode.to_string_lossy();
         config.matrix_execution_mode = ParameterGolfMatrixExecutionMode::parse(raw.as_ref())
             .map_err(|message| std::io::Error::new(std::io::ErrorKind::InvalidInput, message))?;
+    }
+    if let Some(grad_accum_steps) = env::var_os("PSIONIC_PARAMETER_GOLF_HOMEGOLF_GRAD_ACCUM_STEPS")
+    {
+        let raw = grad_accum_steps.to_string_lossy();
+        config.geometry.grad_accum_steps = raw.parse::<usize>()?;
+    }
+    if let Some(validation_batch_sequences) =
+        env::var_os("PSIONIC_PARAMETER_GOLF_HOMEGOLF_VALIDATION_BATCH_SEQUENCES")
+    {
+        let raw = validation_batch_sequences.to_string_lossy();
+        config.validation_batch_sequences = raw.parse::<usize>()?;
     }
     let report = write_parameter_golf_single_h100_training_report(&output_path, &config)?;
     println!(
