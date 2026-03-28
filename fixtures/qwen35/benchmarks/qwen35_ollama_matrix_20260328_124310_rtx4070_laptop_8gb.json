@@ -1,0 +1,195 @@
+{
+  "abi_version": "psionic.qwen35.ollama_matrix.v1",
+  "run_id": "qwen35_full_benchmark_20260328_124310",
+  "run_date": "2026-03-28",
+  "source": {
+    "log_path": "/tmp/qwen35_full_benchmark_20260328_124310.log",
+    "parsed_csv_path": "/tmp/qwen35_full_benchmark_20260328_124310.parsed.csv"
+  },
+  "environment": {
+    "git_head_before_fix": "f91c8844f55312dca5e0c14dd06bd5d11bac89d3",
+    "kernel": "Linux 6.17.0-19-generic x86_64 GNU/Linux",
+    "gpu": {
+      "name": "NVIDIA GeForce RTX 4070 Laptop GPU",
+      "vram_mib": 8188,
+      "driver_version": "580.126.09",
+      "cuda_runtime_version": "13.0",
+      "nvcc_major_minor": "12.0",
+      "current_power_limit_w": 55,
+      "max_power_limit_w": 90
+    }
+  },
+  "matrix": {
+    "repeats_per_row": 1,
+    "rows": [
+      {
+        "contract": "greedy",
+        "backend": "psionic",
+        "model": "qwen3.5:0.8b",
+        "output_tokens": 14,
+        "mean_decode_tok_s": 223.75
+      },
+      {
+        "contract": "greedy",
+        "backend": "ollama",
+        "model": "qwen3.5:0.8b",
+        "output_tokens": 31,
+        "mean_decode_tok_s": 167.28
+      },
+      {
+        "contract": "sampled_topk40",
+        "backend": "psionic",
+        "model": "qwen3.5:0.8b",
+        "output_tokens": 128,
+        "mean_decode_tok_s": 150.66
+      },
+      {
+        "contract": "sampled_topk40",
+        "backend": "ollama",
+        "model": "qwen3.5:0.8b",
+        "output_tokens": 128,
+        "mean_decode_tok_s": 154.00
+      },
+      {
+        "contract": "sampled_topk100",
+        "backend": "psionic",
+        "model": "qwen3.5:0.8b",
+        "output_tokens": 30,
+        "mean_decode_tok_s": 201.41
+      },
+      {
+        "contract": "sampled_topk100",
+        "backend": "ollama",
+        "model": "qwen3.5:0.8b",
+        "output_tokens": 34,
+        "mean_decode_tok_s": 147.59
+      },
+      {
+        "contract": "greedy",
+        "backend": "psionic",
+        "model": "qwen3.5:2b",
+        "output_tokens": 17,
+        "mean_decode_tok_s": 103.44
+      },
+      {
+        "contract": "greedy",
+        "backend": "ollama",
+        "model": "qwen3.5:2b",
+        "output_tokens": 41,
+        "mean_decode_tok_s": 88.10
+      },
+      {
+        "contract": "sampled_topk40",
+        "backend": "psionic",
+        "model": "qwen3.5:2b",
+        "output_tokens": 128,
+        "mean_decode_tok_s": 81.61
+      },
+      {
+        "contract": "sampled_topk40",
+        "backend": "ollama",
+        "model": "qwen3.5:2b",
+        "output_tokens": 128,
+        "mean_decode_tok_s": 85.99
+      },
+      {
+        "contract": "sampled_topk100",
+        "backend": "psionic",
+        "model": "qwen3.5:2b",
+        "output_tokens": 42,
+        "mean_decode_tok_s": 96.94
+      },
+      {
+        "contract": "sampled_topk100",
+        "backend": "ollama",
+        "model": "qwen3.5:2b",
+        "output_tokens": 44,
+        "mean_decode_tok_s": 87.72
+      },
+      {
+        "contract": "greedy",
+        "backend": "psionic",
+        "model": "qwen3.5:4b",
+        "output_tokens": 128,
+        "mean_decode_tok_s": 57.09
+      },
+      {
+        "contract": "greedy",
+        "backend": "ollama",
+        "model": "qwen3.5:4b",
+        "output_tokens": 60,
+        "mean_decode_tok_s": 59.37
+      },
+      {
+        "contract": "sampled_topk40",
+        "backend": "psionic",
+        "model": "qwen3.5:4b",
+        "output_tokens": 128,
+        "mean_decode_tok_s": 53.62
+      },
+      {
+        "contract": "sampled_topk40",
+        "backend": "ollama",
+        "model": "qwen3.5:4b",
+        "output_tokens": 128,
+        "mean_decode_tok_s": 58.83
+      },
+      {
+        "contract": "sampled_topk100",
+        "backend": "psionic",
+        "model": "qwen3.5:4b",
+        "output_tokens": 128,
+        "mean_decode_tok_s": 57.56
+      },
+      {
+        "contract": "sampled_topk100",
+        "backend": "ollama",
+        "model": "qwen3.5:4b",
+        "output_tokens": 47,
+        "mean_decode_tok_s": 59.87
+      },
+      {
+        "contract": "greedy",
+        "backend": "psionic",
+        "model": "qwen3.5:9b",
+        "output_tokens": 23,
+        "mean_decode_tok_s": 33.55
+      },
+      {
+        "contract": "greedy",
+        "backend": "ollama",
+        "model": "qwen3.5:9b",
+        "output_tokens": 43,
+        "mean_decode_tok_s": 24.51
+      },
+      {
+        "contract": "sampled_topk40",
+        "backend": "psionic",
+        "model": "qwen3.5:9b",
+        "output_tokens": 11,
+        "mean_decode_tok_s": 31.86
+      },
+      {
+        "contract": "sampled_topk40",
+        "backend": "ollama",
+        "model": "qwen3.5:9b",
+        "output_tokens": 128,
+        "mean_decode_tok_s": 23.88
+      },
+      {
+        "contract": "sampled_topk100",
+        "backend": "psionic",
+        "model": "qwen3.5:9b",
+        "output_tokens": 23,
+        "mean_decode_tok_s": 33.14
+      },
+      {
+        "contract": "sampled_topk100",
+        "backend": "ollama",
+        "model": "qwen3.5:9b",
+        "output_tokens": 37,
+        "mean_decode_tok_s": 24.59
+      }
+    ]
+  }
+}

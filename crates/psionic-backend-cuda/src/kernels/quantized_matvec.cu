@@ -1,8 +1,19 @@
 #include <cuda_runtime.h>
 #include <cuda_fp16.h>
 #include <cuda_bf16.h>
+#if defined(__has_include)
+#if __has_include(<cccl/cub/block/block_radix_sort.cuh>) && \
+    __has_include(<cccl/cub/device/device_radix_sort.cuh>)
 #include <cccl/cub/block/block_radix_sort.cuh>
 #include <cccl/cub/device/device_radix_sort.cuh>
+#else
+#include <cub/block/block_radix_sort.cuh>
+#include <cub/device/device_radix_sort.cuh>
+#endif
+#else
+#include <cub/block/block_radix_sort.cuh>
+#include <cub/device/device_radix_sort.cuh>
+#endif
 
 #include <cfloat>
 #include <stdint.h>
