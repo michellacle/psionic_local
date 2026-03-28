@@ -359,10 +359,10 @@ impl CudaGgufQwen35TextGenerationService {
         let mut kernel_count = 0usize;
         let mut bytes_moved = 0u64;
         let mut last_logits = Vec::new();
-        let mut pending_greedy_token = prefix_lookup
+        let mut pending_selected_token = prefix_lookup
             .entry
             .as_ref()
-            .and_then(|entry| entry.pending_greedy_token);
+            .and_then(|entry| entry.pending_selected_token);
         let mut last_candidates = prefix_lookup
             .entry
             .as_ref()
@@ -403,7 +403,7 @@ impl CudaGgufQwen35TextGenerationService {
                     &request.options,
                     &[],
                 )?;
-                pending_greedy_token = step.selected_token;
+                pending_selected_token = step.selected_token;
                 last_logits = step.logits;
                 last_candidates = step.candidates;
                 kernel_count = kernel_count.saturating_add(step.kernel_count);
@@ -440,21 +440,16 @@ impl CudaGgufQwen35TextGenerationService {
         {
             prefix_tokens_reused = prompt_tokens.len();
         }
-
-        if crate::prefix_recording_allowed(request) && !prompt_tokens.is_empty() {
-            let recorded_identity = self.shared_prefixes.record(
-                compatibility,
-                &prompt_tokens,
-                output_mode,
-                &state,
-                last_logits.as_slice(),
-                pending_greedy_token,
-                last_candidates.as_ref(),
-            );
-            if prefix_state != PrefixCacheState::Hit || prefix_identity.is_none() {
-                prefix_identity = Some(recorded_identity);
-            }
-        }
+        let mut recordable_prefix = (crate::prefix_recording_allowed(request)
+            && !prompt_tokens.is_empty())
+        .then(|| {
+            (
+                state.clone(),
+                last_logits.clone(),
+                pending_selected_token,
+                last_candidates.clone(),
+            )
+        });
 
         let prompt_eval_duration_ns = prompt_eval_start
             .elapsed()
@@ -485,18 +480,11 @@ impl CudaGgufQwen35TextGenerationService {
                 );
             }
 
-            let next_token = if matches!(output_mode, CudaStepOutputMode::ArgmaxOnly) {
-                let step = if let Some(selected) = pending_greedy_token.take() {
-                    Qwen35ForwardStep {
-                        selected_token: Some(selected),
-                        logits: Vec::new(),
-                        candidates: None,
-                        kernel_count: 0,
-                        bytes_moved: 0,
-                        output_metrics: None,
-                    }
-                } else {
-                    self.model.forward_token(
+            let next_token = if generated_tokens.is_empty() {
+                if let Some(selected) = pending_selected_token.take() {
+                    selected
+                } else if matches!(output_mode, CudaStepOutputMode::ArgmaxOnly) {
+                    let step = self.model.forward_token(
                         &mut self.backend,
                         &mut self.step_plan,
                         &mut state,
@@ -506,8 +494,237 @@ impl CudaGgufQwen35TextGenerationService {
                         CudaStepOutputMode::ArgmaxOnly,
                         &request.options,
                         generated_tokens.as_slice(),
-                    )?
-                };
+                    )?;
+                    kernel_count = kernel_count.saturating_add(step.kernel_count);
+                    bytes_moved = bytes_moved.saturating_add(step.bytes_moved);
+                    accumulate_qwen35_decode_output_metrics(
+                        &mut decode_output_metrics,
+                        step.output_metrics.as_ref(),
+                    );
+                    let selected_token = step.selected_token.ok_or_else(|| {
+                        ReferenceTextGenerationError::Runtime(crate::RuntimeError::Backend(
+                            String::from("qwen35 argmax decode did not return a selected token"),
+                        ))
+                    })?;
+                    if request.options.structured_output.is_some() {
+                        let structured_candidate_selection = sampler
+                            .select_greedy_structured_token_from_candidates(
+                                &self.model.tokenizer,
+                                &[selected_token.as_u32()],
+                                &[0.0_f32],
+                                generated_tokens.as_slice(),
+                            )?;
+                        match structured_candidate_selection {
+                            Some(crate::GenerationSelection::Token(token)) => token,
+                            Some(crate::GenerationSelection::Terminate) => {
+                                break (
+                                    TerminationReason::EndOfSequence,
+                                    Some(GenerationTerminationDetail::end_of_sequence_token()),
+                                );
+                            }
+                            None => {
+                                let allowed_token_ids = sampler
+                                    .structured_output_allowed_token_ids_for_generated_tokens(
+                                        &self.model.tokenizer,
+                                        generated_tokens.as_slice(),
+                                    )?;
+                                if allowed_token_ids.is_empty() {
+                                    return Err(
+                                        ReferenceTextGenerationError::StructuredOutputExhausted,
+                                    );
+                                }
+                                let (allowed_logits, stats) = self
+                                    .step_plan
+                                    .gather_sparse_logits_from_current_output(
+                                        &mut self.backend,
+                                        allowed_token_ids.as_slice(),
+                                        self.model.descriptor.config.vocab_size,
+                                    )
+                                    .map_err(ReferenceTextGenerationError::Runtime)?;
+                                let sparse_kernel_launches = stats.kernel_launches;
+                                let sparse_readback_bytes = stats.device_to_host_bytes;
+                                let sparse_bytes_moved = cuda_stats_bytes(stats);
+                                kernel_count = kernel_count.saturating_add(sparse_kernel_launches);
+                                bytes_moved = bytes_moved.saturating_add(sparse_bytes_moved);
+                                accumulate_qwen35_decode_output_metrics(
+                                    &mut decode_output_metrics,
+                                    Some(&qwen35_decode_output_metrics(
+                                        Qwen35CudaDecodeOutputMode::SparseLogits {
+                                            token_count: allowed_token_ids.len(),
+                                        },
+                                        sparse_readback_bytes,
+                                        false,
+                                    )),
+                                );
+                                match sampler.select_next_token_from_exact_candidates(
+                                    allowed_token_ids.as_slice(),
+                                    allowed_logits.as_slice(),
+                                    self.model.descriptor.config.vocab_size,
+                                )? {
+                                    crate::GenerationSelection::Token(token) => token,
+                                    crate::GenerationSelection::Terminate => {
+                                        break (
+                                            TerminationReason::EndOfSequence,
+                                            Some(
+                                                GenerationTerminationDetail::end_of_sequence_token(),
+                                            ),
+                                        );
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        selected_token
+                    }
+                } else if let CudaStepOutputMode::TopKCandidates(top_k) = output_mode {
+                    {
+                        if !generated_tokens.is_empty() {
+                            let step = self.model.forward_token(
+                                &mut self.backend,
+                                &mut self.step_plan,
+                                &mut state,
+                                *generated_tokens
+                                    .last()
+                                    .expect("generated token should exist"),
+                                CudaStepOutputMode::TopKCandidates(top_k),
+                                &request.options,
+                                generated_tokens.as_slice(),
+                            )?;
+                            last_candidates = step.candidates;
+                            kernel_count = kernel_count.saturating_add(step.kernel_count);
+                            bytes_moved = bytes_moved.saturating_add(step.bytes_moved);
+                            accumulate_qwen35_decode_output_metrics(
+                                &mut decode_output_metrics,
+                                step.output_metrics.as_ref(),
+                            );
+                        }
+                        let candidates = last_candidates.as_ref().ok_or_else(|| {
+                            ReferenceTextGenerationError::Runtime(crate::RuntimeError::Backend(
+                                String::from(
+                                    "qwen35 bounded candidate decode did not return candidates",
+                                ),
+                            ))
+                        })?;
+                        let structured_candidate_selection =
+                            if request.options.structured_output.is_some()
+                                && (matches!(
+                                    request.options.decode_strategy,
+                                    crate::DecodeStrategy::Greedy
+                                ) || request.options.sampling_policy().effective_temperature()
+                                    <= 1e-6
+                                    || request.options.sampling_policy().effective_top_k()
+                                        == Some(1))
+                            {
+                                sampler.select_greedy_structured_token_from_candidates(
+                                    &self.model.tokenizer,
+                                    candidates.indices(),
+                                    candidates.values(),
+                                    generated_tokens.as_slice(),
+                                )?
+                            } else {
+                                None
+                            };
+                        match structured_candidate_selection {
+                            Some(crate::GenerationSelection::Token(token)) => token,
+                            Some(crate::GenerationSelection::Terminate) => {
+                                break (
+                                    TerminationReason::EndOfSequence,
+                                    Some(GenerationTerminationDetail::end_of_sequence_token()),
+                                );
+                            }
+                            None if request.options.structured_output.is_some() => {
+                                let allowed_token_ids = sampler
+                                    .structured_output_allowed_token_ids_for_generated_tokens(
+                                        &self.model.tokenizer,
+                                        generated_tokens.as_slice(),
+                                    )?;
+                                if allowed_token_ids.is_empty() {
+                                    return Err(
+                                        ReferenceTextGenerationError::StructuredOutputExhausted,
+                                    );
+                                }
+                                let (allowed_logits, stats) = self
+                                    .step_plan
+                                    .gather_sparse_logits_from_current_output(
+                                        &mut self.backend,
+                                        allowed_token_ids.as_slice(),
+                                        self.model.descriptor.config.vocab_size,
+                                    )
+                                    .map_err(ReferenceTextGenerationError::Runtime)?;
+                                let sparse_kernel_launches = stats.kernel_launches;
+                                let sparse_readback_bytes = stats.device_to_host_bytes;
+                                let sparse_bytes_moved = cuda_stats_bytes(stats);
+                                kernel_count = kernel_count.saturating_add(sparse_kernel_launches);
+                                bytes_moved = bytes_moved.saturating_add(sparse_bytes_moved);
+                                accumulate_qwen35_decode_output_metrics(
+                                    &mut decode_output_metrics,
+                                    Some(&qwen35_decode_output_metrics(
+                                        Qwen35CudaDecodeOutputMode::SparseLogits {
+                                            token_count: allowed_token_ids.len(),
+                                        },
+                                        sparse_readback_bytes,
+                                        false,
+                                    )),
+                                );
+                                match sampler.select_next_token_from_exact_candidates(
+                                    allowed_token_ids.as_slice(),
+                                    allowed_logits.as_slice(),
+                                    self.model.descriptor.config.vocab_size,
+                                )? {
+                                    crate::GenerationSelection::Token(token) => token,
+                                    crate::GenerationSelection::Terminate => {
+                                        break (
+                                            TerminationReason::EndOfSequence,
+                                            Some(
+                                                GenerationTerminationDetail::end_of_sequence_token(),
+                                            ),
+                                        );
+                                    }
+                                }
+                            }
+                            None => match sampler.select_next_token_from_presorted_candidates(
+                                candidates.indices(),
+                                candidates.values(),
+                                self.model.descriptor.config.vocab_size,
+                            )? {
+                                crate::GenerationSelection::Token(token) => token,
+                                crate::GenerationSelection::Terminate => {
+                                    break (
+                                        TerminationReason::EndOfSequence,
+                                        Some(GenerationTerminationDetail::end_of_sequence_token()),
+                                    );
+                                }
+                            },
+                        }
+                    }
+                } else {
+                    match sampler.select_next_token(
+                        &self.model.tokenizer,
+                        &last_logits,
+                        &crate::InMemoryKvCache::new(1, 1),
+                        generated_tokens.as_slice(),
+                    )? {
+                        crate::GenerationSelection::Token(token) => token,
+                        crate::GenerationSelection::Terminate => {
+                            break (
+                                TerminationReason::EndOfSequence,
+                                Some(GenerationTerminationDetail::end_of_sequence_token()),
+                            );
+                        }
+                    }
+                }
+            } else if matches!(output_mode, CudaStepOutputMode::ArgmaxOnly) {
+                let step = self.model.forward_token(
+                    &mut self.backend,
+                    &mut self.step_plan,
+                    &mut state,
+                    *generated_tokens
+                        .last()
+                        .expect("generated token should exist"),
+                    CudaStepOutputMode::ArgmaxOnly,
+                    &request.options,
+                    generated_tokens.as_slice(),
+                )?;
                 kernel_count = kernel_count.saturating_add(step.kernel_count);
                 bytes_moved = bytes_moved.saturating_add(step.bytes_moved);
                 accumulate_qwen35_decode_output_metrics(
@@ -769,6 +986,30 @@ impl CudaGgufQwen35TextGenerationService {
             }
         };
 
+        if let Some((
+            record_state,
+            record_last_logits,
+            mut record_pending_selected_token,
+            record_last_candidates,
+        )) = recordable_prefix.take()
+        {
+            if record_pending_selected_token.is_none() {
+                record_pending_selected_token = generated_tokens.first().copied();
+            }
+            let recorded_identity = self.shared_prefixes.record(
+                compatibility,
+                &prompt_tokens,
+                output_mode,
+                &record_state,
+                record_last_logits.as_slice(),
+                record_pending_selected_token,
+                record_last_candidates.as_ref(),
+            );
+            if prefix_state != PrefixCacheState::Hit || prefix_identity.is_none() {
+                prefix_identity = Some(recorded_identity);
+            }
+        }
+
         let generated = TokenSequence::new(generated_tokens);
         let text = self.model.tokenizer.decode(generated.as_slice());
         let metrics = GenerationMetrics {
@@ -880,7 +1121,7 @@ struct Qwen35SharedPrefixEntry {
     output_mode: CudaStepOutputMode,
     state: Qwen35State,
     last_logits: Vec<f32>,
-    pending_greedy_token: Option<TokenId>,
+    pending_selected_token: Option<TokenId>,
     last_candidates: Option<Qwen35CudaTopKCandidates>,
 }
 
@@ -1023,7 +1264,7 @@ impl Qwen35SharedPrefixStore {
         output_mode: CudaStepOutputMode,
         state: &Qwen35State,
         last_logits: &[f32],
-        pending_greedy_token: Option<TokenId>,
+        pending_selected_token: Option<TokenId>,
         last_candidates: Option<&Qwen35CudaTopKCandidates>,
     ) -> PrefixCacheIdentity {
         let identity = crate::prefix_identity(&compatibility, prompt_tokens.as_slice());
@@ -1034,7 +1275,7 @@ impl Qwen35SharedPrefixStore {
         }) {
             existing.state = state.clone();
             existing.last_logits = last_logits.to_vec();
-            existing.pending_greedy_token = pending_greedy_token;
+            existing.pending_selected_token = pending_selected_token;
             existing.last_candidates = last_candidates.cloned();
         } else {
             self.entries.push(Qwen35SharedPrefixEntry {
@@ -1043,7 +1284,7 @@ impl Qwen35SharedPrefixStore {
                 output_mode,
                 state: state.clone(),
                 last_logits: last_logits.to_vec(),
-                pending_greedy_token,
+                pending_selected_token,
                 last_candidates: last_candidates.cloned(),
             });
         }
