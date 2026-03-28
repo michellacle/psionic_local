@@ -258,6 +258,10 @@ pub fn builtin_reproducibility_semantics_report() -> ReproducibilitySemanticsRep
         top_k: Some(2),
         top_p: Some(0.95),
         min_p: None,
+        typical_p: None,
+        mirostat: None,
+        mirostat_tau: None,
+        mirostat_eta: None,
         repeat_penalty: None,
         repeat_last_n: None,
         presence_penalty: None,
@@ -1124,8 +1128,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn replay_truth_receipt_is_machine_legible_and_verifiable(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn replay_truth_receipt_is_machine_legible_and_verifiable()
+    -> Result<(), Box<dyn std::error::Error>> {
         let package = sample_environment_package();
         let batch = sample_trainer_batch(&package.key)?;
         let seed_discipline = TrainingReplaySeedDiscipline::new(41, 77, 99);
@@ -1186,8 +1190,8 @@ mod tests {
     }
 
     #[test]
-    fn replay_truth_verification_detects_seed_tool_and_order_drift(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn replay_truth_verification_detects_seed_tool_and_order_drift()
+    -> Result<(), Box<dyn std::error::Error>> {
         let package = sample_environment_package();
         let batch = sample_trainer_batch(&package.key)?;
         let baseline_seed_discipline = TrainingReplaySeedDiscipline::new(41, 77, 99);
@@ -1237,27 +1241,32 @@ mod tests {
             verification.disposition,
             ReplayVerificationDisposition::Drifted
         );
-        assert!(verification
-            .signals
-            .iter()
-            .any(|signal| signal.kind == ReplayVerificationSignalKind::TrainerSeed));
-        assert!(verification
-            .signals
-            .iter()
-            .any(|signal| signal.kind == ReplayVerificationSignalKind::ToolVersion));
+        assert!(
+            verification
+                .signals
+                .iter()
+                .any(|signal| signal.kind == ReplayVerificationSignalKind::TrainerSeed)
+        );
+        assert!(
+            verification
+                .signals
+                .iter()
+                .any(|signal| signal.kind == ReplayVerificationSignalKind::ToolVersion)
+        );
         assert!(verification.signals.iter().any(|signal| {
             signal.kind == ReplayVerificationSignalKind::EvalSampleOrderingDigest
         }));
-        assert!(verification
-            .signals
-            .iter()
-            .any(|signal| { signal.kind == ReplayVerificationSignalKind::SampleSelectionDigest }));
+        assert!(
+            verification.signals.iter().any(|signal| {
+                signal.kind == ReplayVerificationSignalKind::SampleSelectionDigest
+            })
+        );
         Ok(())
     }
 
     #[test]
-    fn reproducible_eval_posture_requires_deterministic_scheduler(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn reproducible_eval_posture_requires_deterministic_scheduler()
+    -> Result<(), Box<dyn std::error::Error>> {
         let package = sample_environment_package();
         let error = ReproducibleEvalPosture::from_eval_contract(
             &sample_eval_contract(&package.key),
@@ -1283,10 +1292,12 @@ mod tests {
         let report = builtin_reproducibility_semantics_report();
         assert_eq!(report.schema_version, 1);
         assert_eq!(report.current_scope_window, "psionic_reproducibility_v1");
-        assert!(report
-            .stable_signature_lines()
-            .iter()
-            .any(|line| line.starts_with("report_digest=")));
+        assert!(
+            report
+                .stable_signature_lines()
+                .iter()
+                .any(|line| line.starts_with("report_digest="))
+        );
 
         let trainer_case = report
             .cases

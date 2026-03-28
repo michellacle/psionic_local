@@ -5147,6 +5147,23 @@ pub enum GeneratorScope {
     },
 }
 
+/// Replayable sampler-local state carried alongside one generator when the
+/// decode algorithm itself maintains token-to-token state.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum SamplerReplayState {
+    /// Mirostat v1 replay state.
+    MirostatV1 {
+        /// Current `mu` value encoded as raw `f32` bits.
+        mu_bits: u32,
+    },
+    /// Mirostat v2 replay state.
+    MirostatV2 {
+        /// Current `mu` value encoded as raw `f32` bits.
+        mu_bits: u32,
+    },
+}
+
 /// Replayable generator state for runtime-owned randomness.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct GeneratorState {
@@ -5158,6 +5175,9 @@ pub struct GeneratorState {
     pub draws: u64,
     /// Derivation scope for the generator.
     pub scope: GeneratorScope,
+    /// Replayable state for sampler-local algorithms such as mirostat.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sampler_state: Option<SamplerReplayState>,
 }
 
 impl GeneratorState {
@@ -5169,6 +5189,7 @@ impl GeneratorState {
             seed,
             draws: 0,
             scope: GeneratorScope::Root,
+            sampler_state: None,
         }
     }
 
@@ -5180,6 +5201,7 @@ impl GeneratorState {
             seed: stable_child_generator_seed(self.seed, &scope),
             draws: 0,
             scope,
+            sampler_state: None,
         }
     }
 
@@ -5372,6 +5394,18 @@ pub struct SamplingPolicy {
     /// Minimum relative probability threshold applied after bounded sampling filters.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub min_p: Option<f32>,
+    /// Typical-p threshold applied after top-k truncation.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub typical_p: Option<f32>,
+    /// Mirostat mode. `1` selects mirostat v1, `2` selects mirostat v2.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mirostat: Option<u8>,
+    /// Mirostat target surprise.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mirostat_tau: Option<f32>,
+    /// Mirostat learning rate.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mirostat_eta: Option<f32>,
     /// Repeat penalty applied to previously seen tokens.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub repeat_penalty: Option<f32>,
@@ -5418,6 +5452,38 @@ impl SamplingPolicy {
         }
     }
 
+    /// Returns the effective typical-p threshold.
+    #[must_use]
+    pub fn effective_typical_p(&self) -> Option<f32> {
+        match self.typical_p {
+            Some(typical_p) if typical_p.is_finite() && typical_p > 0.0 && typical_p < 1.0 => {
+                Some(typical_p)
+            }
+            _ => None,
+        }
+    }
+
+    /// Returns the effective mirostat mode when enabled.
+    #[must_use]
+    pub fn effective_mirostat(&self) -> Option<u8> {
+        match self.mirostat {
+            Some(MIROSTAT_MODE_V1) | Some(MIROSTAT_MODE_V2) => self.mirostat,
+            _ => None,
+        }
+    }
+
+    /// Returns the effective mirostat target surprise.
+    #[must_use]
+    pub fn effective_mirostat_tau(&self) -> f32 {
+        self.mirostat_tau.unwrap_or(DEFAULT_MIROSTAT_TAU).max(0.0)
+    }
+
+    /// Returns the effective mirostat learning rate.
+    #[must_use]
+    pub fn effective_mirostat_eta(&self) -> f32 {
+        self.mirostat_eta.unwrap_or(DEFAULT_MIROSTAT_ETA).max(0.0)
+    }
+
     /// Returns the effective repeat penalty after applying runtime defaults.
     #[must_use]
     pub fn effective_repeat_penalty(&self) -> f32 {
@@ -5456,6 +5522,7 @@ pub struct TokenSampler {
     policy: SamplingPolicy,
     generator_state: Option<GeneratorState>,
     rng: StdRng,
+    mirostat_state: Option<MirostatState>,
 }
 
 impl TokenSampler {
@@ -5463,6 +5530,12 @@ impl TokenSampler {
     #[must_use]
     pub fn new(policy: &SamplingPolicy) -> Self {
         let generator_state = policy.seed.map(GeneratorState::root);
+        let mirostat_state = restored_mirostat_state(
+            policy,
+            generator_state
+                .as_ref()
+                .and_then(|state| state.sampler_state),
+        );
         let rng = generator_state
             .as_ref()
             .map_or_else(StdRng::from_os_rng, GeneratorState::restored_rng);
@@ -5470,6 +5543,7 @@ impl TokenSampler {
             policy: policy.clone(),
             generator_state,
             rng,
+            mirostat_state,
         }
     }
 
@@ -5480,6 +5554,12 @@ impl TokenSampler {
     ) -> Result<Self, DeterminismContractError> {
         contract.validate()?;
         let generator_state = contract.generator.clone();
+        let mirostat_state = restored_mirostat_state(
+            policy,
+            generator_state
+                .as_ref()
+                .and_then(|state| state.sampler_state),
+        );
         let rng = generator_state
             .as_ref()
             .map_or_else(StdRng::from_os_rng, GeneratorState::restored_rng);
@@ -5487,6 +5567,7 @@ impl TokenSampler {
             policy: policy.clone(),
             generator_state,
             rng,
+            mirostat_state,
         })
     }
 
@@ -5499,7 +5580,10 @@ impl TokenSampler {
     /// Returns the replayable generator state when the sampler is seeded.
     #[must_use]
     pub fn generator_state(&self) -> Option<GeneratorState> {
-        self.generator_state.clone()
+        self.generator_state.clone().map(|mut state| {
+            state.sampler_state = self.mirostat_state.map(MirostatState::replay_state);
+            state
+        })
     }
 
     /// Selects the next token from logits and prior token history.
@@ -5509,12 +5593,15 @@ impl TokenSampler {
         if !adjusted_logits.iter().any(|value| value.is_finite()) {
             return None;
         }
-        if self.policy.strategy == SamplingStrategy::Greedy
-            || self.policy.effective_temperature() <= 1e-6
-        {
+        if sampling_is_argmax_only(&self.policy) {
             return select_argmax_token(&adjusted_logits);
         }
-        let token = sample_token_index(&mut self.rng, &adjusted_logits, &self.policy);
+        let token = sample_token_index(
+            &mut self.rng,
+            &adjusted_logits,
+            &self.policy,
+            &mut self.mirostat_state,
+        );
         if token.is_some() {
             if let Some(generator_state) = self.generator_state.as_mut() {
                 generator_state.draws = generator_state.draws.saturating_add(1);
@@ -5540,12 +5627,15 @@ impl TokenSampler {
         if !adjusted_logits.iter().any(|value| value.is_finite()) {
             return None;
         }
-        if self.policy.strategy == SamplingStrategy::Greedy
-            || self.policy.effective_temperature() <= 1e-6
-        {
+        if sampling_is_argmax_only(&self.policy) {
             return select_argmax_token(&adjusted_logits);
         }
-        let token = sample_token_index(&mut self.rng, &adjusted_logits, &self.policy);
+        let token = sample_token_index(
+            &mut self.rng,
+            &adjusted_logits,
+            &self.policy,
+            &mut self.mirostat_state,
+        );
         if token.is_some() {
             if let Some(generator_state) = self.generator_state.as_mut() {
                 generator_state.draws = generator_state.draws.saturating_add(1);
@@ -5587,12 +5677,15 @@ impl TokenSampler {
         if !adjusted_logits.iter().any(|value| value.is_finite()) {
             return None;
         }
-        if self.policy.strategy == SamplingStrategy::Greedy
-            || self.policy.effective_temperature() <= 1e-6
-        {
+        if sampling_is_argmax_only(&self.policy) {
             return select_argmax_token(&adjusted_logits);
         }
-        let token = sample_token_index(&mut self.rng, &adjusted_logits, &self.policy);
+        let token = sample_token_index(
+            &mut self.rng,
+            &adjusted_logits,
+            &self.policy,
+            &mut self.mirostat_state,
+        );
         if token.is_some() {
             if let Some(generator_state) = self.generator_state.as_mut() {
                 generator_state.draws = generator_state.draws.saturating_add(1);
@@ -5607,6 +5700,7 @@ impl TokenSampler {
         &mut self,
         candidate_ids: &[u32],
         candidate_logits: &[f32],
+        full_vocab_size: usize,
     ) -> Option<u32> {
         if candidate_ids.len() != candidate_logits.len() {
             return None;
@@ -5616,48 +5710,33 @@ impl TokenSampler {
             .copied()
             .zip(candidate_logits.iter().copied())
             .filter(|(_, value)| value.is_finite())
-            .map(|(id, value)| SampleToken { id, value })
+            .map(|(id, logit)| SampleToken {
+                id,
+                logit,
+                probability: 0.0,
+            })
             .collect::<Vec<_>>();
         if tokens.is_empty() {
             return None;
         }
-        if self.policy.strategy == SamplingStrategy::Greedy
-            || self.policy.effective_temperature() <= 1e-6
-        {
+        if sampling_is_argmax_only(&self.policy) {
             return tokens
                 .iter()
                 .max_by(|left, right| {
-                    left.value
-                        .total_cmp(&right.value)
+                    left.logit
+                        .total_cmp(&right.logit)
                         .then_with(|| right.id.cmp(&left.id))
                 })
                 .map(|token| token.id);
         }
-
-        temperature_scale(&mut tokens, self.policy.effective_temperature());
-        let total = softmax(&mut tokens);
-        if !total.is_finite() || total <= 0.0 {
-            return None;
-        }
-        top_p(&mut tokens, self.policy.effective_top_p());
-        min_p(&mut tokens, self.policy.effective_min_p());
-
-        let distribution_total = tokens.iter().map(|token| token.value).sum::<f32>();
-        if !distribution_total.is_finite() || distribution_total <= 0.0 {
-            return None;
-        }
-
-        let mut target = self.rng.random::<f32>() * distribution_total;
-        for token in &tokens {
-            target -= token.value;
-            if target <= 0.0 {
-                if let Some(generator_state) = self.generator_state.as_mut() {
-                    generator_state.draws = generator_state.draws.saturating_add(1);
-                }
-                return Some(token.id);
-            }
-        }
-        let selected = tokens.last().map(|token| token.id);
+        let full_vocab_size = full_vocab_size.max(tokens.len());
+        let selected = sample_token_from_tokens(
+            &mut self.rng,
+            &mut tokens,
+            &self.policy,
+            &mut self.mirostat_state,
+            full_vocab_size,
+        );
         if selected.is_some() {
             if let Some(generator_state) = self.generator_state.as_mut() {
                 generator_state.draws = generator_state.draws.saturating_add(1);
@@ -5666,6 +5745,12 @@ impl TokenSampler {
         selected
     }
 }
+
+const MIROSTAT_MODE_V1: u8 = 1;
+const MIROSTAT_MODE_V2: u8 = 2;
+const DEFAULT_MIROSTAT_TAU: f32 = 5.0;
+const DEFAULT_MIROSTAT_ETA: f32 = 0.1;
+const MIROSTAT_V1_ESTIMATION_TOKENS: usize = 100;
 
 fn stable_child_generator_seed(seed: u64, scope: &GeneratorScope) -> u64 {
     let mut hasher = Sha256::new();
@@ -5699,7 +5784,50 @@ fn stable_child_generator_seed(seed: u64, scope: &GeneratorScope) -> u64 {
 #[derive(Clone, Copy, Debug, PartialEq)]
 struct SampleToken {
     id: u32,
-    value: f32,
+    logit: f32,
+    probability: f32,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum MirostatState {
+    V1 { mu: f32 },
+    V2 { mu: f32 },
+}
+
+impl MirostatState {
+    fn replay_state(self) -> SamplerReplayState {
+        match self {
+            Self::V1 { mu } => SamplerReplayState::MirostatV1 {
+                mu_bits: mu.to_bits(),
+            },
+            Self::V2 { mu } => SamplerReplayState::MirostatV2 {
+                mu_bits: mu.to_bits(),
+            },
+        }
+    }
+}
+
+fn restored_mirostat_state(
+    policy: &SamplingPolicy,
+    replay_state: Option<SamplerReplayState>,
+) -> Option<MirostatState> {
+    let mode = policy.effective_mirostat()?;
+    let default_mu = 2.0 * policy.effective_mirostat_tau();
+    match (mode, replay_state) {
+        (MIROSTAT_MODE_V1, Some(SamplerReplayState::MirostatV1 { mu_bits })) => {
+            Some(MirostatState::V1 {
+                mu: f32::from_bits(mu_bits),
+            })
+        }
+        (MIROSTAT_MODE_V2, Some(SamplerReplayState::MirostatV2 { mu_bits })) => {
+            Some(MirostatState::V2 {
+                mu: f32::from_bits(mu_bits),
+            })
+        }
+        (MIROSTAT_MODE_V1, _) => Some(MirostatState::V1 { mu: default_mu }),
+        (MIROSTAT_MODE_V2, _) => Some(MirostatState::V2 { mu: default_mu }),
+        _ => None,
+    }
 }
 
 /// Applies repeat, presence, and frequency penalties using the runtime policy lookback window.
@@ -5789,46 +5917,27 @@ fn token_counts(
     counts
 }
 
-fn sample_token_index(rng: &mut StdRng, logits: &[f32], policy: &SamplingPolicy) -> Option<u32> {
-    let temperature = policy.effective_temperature();
-    if temperature <= 1e-6 {
-        return select_argmax_token(logits);
-    }
-
+fn sample_token_index(
+    rng: &mut StdRng,
+    logits: &[f32],
+    policy: &SamplingPolicy,
+    mirostat_state: &mut Option<MirostatState>,
+) -> Option<u32> {
     let mut tokens = logits
         .iter()
         .enumerate()
-        .map(|(index, value)| SampleToken {
+        .filter(|(_, value)| value.is_finite())
+        .map(|(index, logit)| SampleToken {
             id: index as u32,
-            value: *value,
+            logit: *logit,
+            probability: 0.0,
         })
         .collect::<Vec<_>>();
-    top_k(&mut tokens, policy.effective_top_k());
-    temperature_scale(&mut tokens, temperature);
-    let total = softmax(&mut tokens);
-    if !total.is_finite() || total <= 0.0 {
-        return None;
-    }
-    top_p(&mut tokens, policy.effective_top_p());
-    min_p(&mut tokens, policy.effective_min_p());
-
-    let distribution_total = tokens.iter().map(|token| token.value).sum::<f32>();
-    if !distribution_total.is_finite() || distribution_total <= 0.0 {
-        return None;
-    }
-
-    let mut target = rng.random::<f32>() * distribution_total;
-    for token in &tokens {
-        target -= token.value;
-        if target <= 0.0 {
-            return Some(token.id);
-        }
-    }
-    tokens.last().map(|token| token.id)
+    sample_token_from_tokens(rng, &mut tokens, policy, mirostat_state, logits.len())
 }
 
 fn top_k(tokens: &mut Vec<SampleToken>, top_k: Option<usize>) {
-    tokens.sort_by(|left, right| right.value.total_cmp(&left.value));
+    tokens.sort_by(|left, right| right.logit.total_cmp(&left.logit));
     let Some(top_k) = top_k else {
         return;
     };
@@ -5838,30 +5947,44 @@ fn top_k(tokens: &mut Vec<SampleToken>, top_k: Option<usize>) {
 }
 
 fn temperature_scale(tokens: &mut [SampleToken], temperature: f32) {
-    let temperature = temperature.max(1e-7);
+    if temperature <= 0.0 {
+        let Some((selected_index, _)) = tokens
+            .iter()
+            .enumerate()
+            .max_by(|(_, left), (_, right)| left.logit.total_cmp(&right.logit))
+        else {
+            return;
+        };
+        for (index, token) in tokens.iter_mut().enumerate() {
+            if index != selected_index {
+                token.logit = f32::NEG_INFINITY;
+            }
+        }
+        return;
+    }
     for token in tokens {
-        token.value /= temperature;
+        token.logit /= temperature;
     }
 }
 
 fn softmax(tokens: &mut [SampleToken]) -> f32 {
     let Some(max_logit) = tokens
         .iter()
-        .map(|token| token.value)
+        .map(|token| token.logit)
         .max_by(f32::total_cmp)
     else {
         return 0.0;
     };
     let mut sum = 0.0;
     for token in tokens.iter_mut() {
-        token.value = (token.value - max_logit).exp();
-        sum += token.value;
+        token.probability = (token.logit - max_logit).exp();
+        sum += token.probability;
     }
     if !sum.is_finite() || sum <= 0.0 {
         return sum;
     }
     for token in tokens.iter_mut() {
-        token.value /= sum;
+        token.probability /= sum;
     }
     sum
 }
@@ -5873,11 +5996,15 @@ fn top_p(tokens: &mut Vec<SampleToken>, top_p: Option<f32>) {
     if top_p <= 0.0 || top_p >= 1.0 {
         return;
     }
+    if !softmax(tokens).is_finite() {
+        return;
+    }
+    tokens.sort_by(|left, right| right.probability.total_cmp(&left.probability));
 
     let mut cumulative = 0.0;
     let mut keep = tokens.len();
     for (index, token) in tokens.iter().enumerate() {
-        cumulative += token.value;
+        cumulative += token.probability;
         if cumulative >= top_p {
             keep = index + 1;
             break;
@@ -5896,20 +6023,253 @@ fn min_p(tokens: &mut Vec<SampleToken>, min_p: Option<f32>) {
     let Some(max_token) = tokens
         .iter()
         .copied()
-        .filter(|token| token.value.is_finite())
-        .max_by(|left, right| left.value.total_cmp(&right.value))
+        .filter(|token| token.logit.is_finite())
+        .max_by(|left, right| left.logit.total_cmp(&right.logit))
     else {
         return;
     };
-    let max_probability = max_token.value;
-    if max_probability <= 0.0 {
+    if !max_token.logit.is_finite() {
         return;
     }
-    let threshold = max_probability * min_p;
-    tokens.retain(|token| token.value.is_finite() && token.value >= threshold);
+    let threshold = max_token.logit + min_p.ln();
+    tokens.retain(|token| token.logit.is_finite() && token.logit >= threshold);
     if tokens.is_empty() {
         tokens.push(max_token);
     }
+}
+
+fn typical_p(tokens: &mut Vec<SampleToken>, typical_p: Option<f32>) {
+    let Some(typical_p) = typical_p else {
+        return;
+    };
+    if typical_p <= 0.0 || typical_p >= 1.0 || tokens.is_empty() {
+        return;
+    }
+    if !softmax(tokens).is_finite() {
+        return;
+    }
+
+    let entropy = tokens
+        .iter()
+        .filter(|token| token.probability > 0.0)
+        .map(|token| -token.probability * token.probability.ln())
+        .sum::<f32>();
+    let mut indices = (0..tokens.len()).collect::<Vec<_>>();
+    indices.sort_by(|left, right| {
+        let left_score = (-tokens[*left].probability.ln() - entropy).abs();
+        let right_score = (-tokens[*right].probability.ln() - entropy).abs();
+        left_score.total_cmp(&right_score)
+    });
+
+    let mut cumulative = 0.0;
+    let mut keep = indices.len();
+    for (rank, index) in indices.iter().copied().enumerate() {
+        cumulative += tokens[index].probability;
+        if cumulative > typical_p {
+            keep = rank + 1;
+            break;
+        }
+    }
+
+    let selected = indices
+        .into_iter()
+        .take(keep.max(1))
+        .map(|index| tokens[index])
+        .collect::<Vec<_>>();
+    *tokens = selected;
+}
+
+fn sampling_is_argmax_only(policy: &SamplingPolicy) -> bool {
+    policy.strategy == SamplingStrategy::Greedy
+        || (policy.effective_temperature() <= 1e-6 && policy.effective_mirostat().is_none())
+}
+
+fn sample_token_from_tokens(
+    rng: &mut StdRng,
+    tokens: &mut Vec<SampleToken>,
+    policy: &SamplingPolicy,
+    mirostat_state: &mut Option<MirostatState>,
+    vocab_size: usize,
+) -> Option<u32> {
+    if tokens.is_empty() {
+        return None;
+    }
+    if let Some(mode) = policy.effective_mirostat() {
+        return sample_token_mirostat(rng, tokens, policy, mirostat_state, vocab_size, mode);
+    }
+
+    top_k(tokens, policy.effective_top_k());
+    typical_p(tokens, policy.effective_typical_p());
+    top_p(tokens, policy.effective_top_p());
+    min_p(tokens, policy.effective_min_p());
+
+    if tokens.is_empty() {
+        return None;
+    }
+    if policy.effective_temperature() <= 1e-6 {
+        return tokens
+            .iter()
+            .max_by(|left, right| left.logit.total_cmp(&right.logit))
+            .map(|token| token.id);
+    }
+
+    temperature_scale(tokens, policy.effective_temperature());
+    let total = softmax(tokens);
+    if !total.is_finite() || total <= 0.0 {
+        return None;
+    }
+    sample_from_distribution(rng, tokens)
+}
+
+fn sample_token_mirostat(
+    rng: &mut StdRng,
+    tokens: &mut Vec<SampleToken>,
+    policy: &SamplingPolicy,
+    mirostat_state: &mut Option<MirostatState>,
+    vocab_size: usize,
+    mode: u8,
+) -> Option<u32> {
+    if tokens.is_empty() {
+        return None;
+    }
+
+    temperature_scale(tokens, policy.effective_temperature());
+    let total = softmax(tokens);
+    if !total.is_finite() || total <= 0.0 {
+        return None;
+    }
+    tokens.sort_by(|left, right| right.probability.total_cmp(&left.probability));
+
+    match mode {
+        MIROSTAT_MODE_V1 => {
+            let MirostatState::V1 { mu } =
+                mirostat_state.get_or_insert_with(|| MirostatState::V1 {
+                    mu: 2.0 * policy.effective_mirostat_tau(),
+                })
+            else {
+                *mirostat_state = Some(MirostatState::V1 {
+                    mu: 2.0 * policy.effective_mirostat_tau(),
+                });
+                return sample_token_mirostat(
+                    rng,
+                    tokens,
+                    policy,
+                    mirostat_state,
+                    vocab_size,
+                    mode,
+                );
+            };
+            let mut sum_ti_bi = 0.0_f32;
+            let mut sum_ti_sq = 0.0_f32;
+            let estimation_limit = tokens
+                .len()
+                .saturating_sub(1)
+                .min(MIROSTAT_V1_ESTIMATION_TOKENS.saturating_sub(1));
+            for index in 0..estimation_limit {
+                let left = tokens[index].probability;
+                let right = tokens[index + 1].probability;
+                if left <= 0.0 || right <= 0.0 {
+                    continue;
+                }
+                let t_i = (((index + 2) as f32) / ((index + 1) as f32)).ln();
+                let b_i = (left / right).ln();
+                sum_ti_bi += t_i * b_i;
+                sum_ti_sq += t_i * t_i;
+            }
+            if !sum_ti_sq.is_finite() || sum_ti_sq <= 0.0 {
+                return sample_from_distribution(rng, tokens);
+            }
+            let s_hat = sum_ti_bi / sum_ti_sq;
+            if !s_hat.is_finite() || s_hat.abs() <= f32::EPSILON {
+                return sample_from_distribution(rng, tokens);
+            }
+            let epsilon_hat = s_hat - 1.0;
+            let denominator = 1.0 - (vocab_size.max(1) as f32).powf(-epsilon_hat);
+            if !denominator.is_finite() || denominator.abs() <= f32::EPSILON {
+                return sample_from_distribution(rng, tokens);
+            }
+            let k = ((epsilon_hat * 2.0_f32.powf(*mu)) / denominator).powf(1.0 / s_hat);
+            let k = if k.is_finite() {
+                k.max(1.0) as usize
+            } else {
+                1
+            };
+            top_k(tokens, Some(k));
+            let total = softmax(tokens);
+            if !total.is_finite() || total <= 0.0 {
+                return None;
+            }
+            let selected = sample_from_distribution(rng, tokens)?;
+            let probability = tokens
+                .iter()
+                .find(|token| token.id == selected)
+                .map(|token| token.probability)
+                .unwrap_or(0.0);
+            if probability > 0.0 {
+                let observed_surprise = -probability.log2();
+                *mu -= policy.effective_mirostat_eta()
+                    * (observed_surprise - policy.effective_mirostat_tau());
+            }
+            Some(selected)
+        }
+        MIROSTAT_MODE_V2 => {
+            let MirostatState::V2 { mu } =
+                mirostat_state.get_or_insert_with(|| MirostatState::V2 {
+                    mu: 2.0 * policy.effective_mirostat_tau(),
+                })
+            else {
+                *mirostat_state = Some(MirostatState::V2 {
+                    mu: 2.0 * policy.effective_mirostat_tau(),
+                });
+                return sample_token_mirostat(
+                    rng,
+                    tokens,
+                    policy,
+                    mirostat_state,
+                    vocab_size,
+                    mode,
+                );
+            };
+            let keep = tokens
+                .iter()
+                .position(|token| -token.probability.log2() > *mu)
+                .unwrap_or(tokens.len());
+            tokens.truncate(keep.max(1));
+            let total = softmax(tokens);
+            if !total.is_finite() || total <= 0.0 {
+                return None;
+            }
+            let selected = sample_from_distribution(rng, tokens)?;
+            let probability = tokens
+                .iter()
+                .find(|token| token.id == selected)
+                .map(|token| token.probability)
+                .unwrap_or(0.0);
+            if probability > 0.0 {
+                let observed_surprise = -probability.log2();
+                *mu -= policy.effective_mirostat_eta()
+                    * (observed_surprise - policy.effective_mirostat_tau());
+            }
+            Some(selected)
+        }
+        _ => None,
+    }
+}
+
+fn sample_from_distribution(rng: &mut StdRng, tokens: &[SampleToken]) -> Option<u32> {
+    let distribution_total = tokens.iter().map(|token| token.probability).sum::<f32>();
+    if !distribution_total.is_finite() || distribution_total <= 0.0 {
+        return None;
+    }
+
+    let mut target = rng.random::<f32>() * distribution_total;
+    for token in tokens {
+        target -= token.probability;
+        if target <= 0.0 {
+            return Some(token.id);
+        }
+    }
+    tokens.last().map(|token| token.id)
 }
 
 /// Lifecycle state for a model that is resident in a local runtime.
@@ -11735,6 +12095,10 @@ mod tests {
             top_k: Some(32),
             top_p: Some(0.85),
             min_p: Some(0.05),
+            typical_p: None,
+            mirostat: None,
+            mirostat_tau: None,
+            mirostat_eta: None,
             repeat_penalty: Some(1.2),
             repeat_last_n: Some(48),
             presence_penalty: Some(0.4),
@@ -11764,6 +12128,10 @@ mod tests {
             top_k: Some(3),
             top_p: Some(0.95),
             min_p: None,
+            typical_p: None,
+            mirostat: None,
+            mirostat_tau: None,
+            mirostat_eta: None,
             repeat_penalty: None,
             repeat_last_n: None,
             presence_penalty: None,
@@ -11857,6 +12225,10 @@ mod tests {
             top_k: Some(3),
             top_p: Some(0.95),
             min_p: None,
+            typical_p: None,
+            mirostat: None,
+            mirostat_tau: None,
+            mirostat_eta: None,
             repeat_penalty: None,
             repeat_last_n: None,
             presence_penalty: None,
@@ -11906,6 +12278,10 @@ mod tests {
             top_k: None,
             top_p: None,
             min_p: None,
+            typical_p: None,
+            mirostat: None,
+            mirostat_tau: None,
+            mirostat_eta: None,
             repeat_penalty: Some(1.0),
             repeat_last_n: None,
             presence_penalty: Some(0.0),
@@ -11930,6 +12306,10 @@ mod tests {
             top_k: None,
             top_p: None,
             min_p: None,
+            typical_p: None,
+            mirostat: None,
+            mirostat_tau: None,
+            mirostat_eta: None,
             repeat_penalty: Some(1.0),
             repeat_last_n: Some(1),
             presence_penalty: Some(0.0),
@@ -11952,6 +12332,10 @@ mod tests {
             top_k: None,
             top_p: None,
             min_p: Some(0.95),
+            typical_p: None,
+            mirostat: None,
+            mirostat_tau: None,
+            mirostat_eta: None,
             repeat_penalty: None,
             repeat_last_n: None,
             presence_penalty: None,
@@ -11973,6 +12357,101 @@ mod tests {
     }
 
     #[test]
+    fn token_sampler_typical_p_masks_atypical_tokens() {
+        let policy = SamplingPolicy {
+            strategy: SamplingStrategy::Sample,
+            temperature: Some(1.0),
+            top_k: None,
+            top_p: None,
+            min_p: None,
+            typical_p: Some(0.5),
+            mirostat: None,
+            mirostat_tau: None,
+            mirostat_eta: None,
+            repeat_penalty: None,
+            repeat_last_n: None,
+            presence_penalty: None,
+            frequency_penalty: None,
+            seed: Some(19),
+        };
+        let logits = vec![3.0, 2.9, 0.0];
+        let mut sampler = TokenSampler::new(&policy);
+
+        let draws = (0..8)
+            .map(|_| {
+                sampler
+                    .select_next_token(&logits, &[])
+                    .expect("typical_p should keep locally typical candidates")
+            })
+            .collect::<Vec<_>>();
+
+        assert!(draws.iter().all(|&token| token == 0 || token == 1));
+        assert!(draws.iter().any(|&token| token == 0));
+        assert!(draws.iter().any(|&token| token == 1));
+    }
+
+    #[test]
+    fn mirostat_sampler_generator_state_restores_after_checkpoint()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let logits = vec![3.0, 2.9, 2.8, 2.7];
+        let history = Vec::new();
+        for mirostat in [1_u8, 2_u8] {
+            let policy = SamplingPolicy {
+                strategy: SamplingStrategy::Sample,
+                temperature: Some(0.8),
+                top_k: None,
+                top_p: None,
+                min_p: None,
+                typical_p: None,
+                mirostat: Some(mirostat),
+                mirostat_tau: Some(5.0),
+                mirostat_eta: Some(0.1),
+                repeat_penalty: None,
+                repeat_last_n: None,
+                presence_penalty: None,
+                frequency_penalty: None,
+                seed: None,
+            };
+            let contract = RuntimeDeterminismContract::strict(42);
+            let mut sampler = TokenSampler::from_determinism_contract(&policy, &contract)?;
+
+            for _ in 0..3 {
+                assert!(sampler.select_next_token(&logits, &history).is_some());
+            }
+            let checkpoint_contract = RuntimeDeterminismContract {
+                generator: sampler.generator_state(),
+                ..contract.clone()
+            };
+            let checkpoint = TrainingCheckpointReference::new(
+                "train.decoder",
+                "checkpoint-stream",
+                "manifest-1",
+                "object-1",
+                "node-a",
+                7,
+                "cluster-state-1",
+                "topology-1",
+                1000,
+            )
+            .with_checkpoint_ref("step-7")
+            .with_step(7)
+            .with_durable_at_ms(1010);
+            let snapshot = checkpoint_contract.checkpoint_state(checkpoint)?;
+            let restored = snapshot.restore();
+            let mut resumed = TokenSampler::from_determinism_contract(&policy, &restored)?;
+
+            let original_next = (0..4)
+                .map(|_| sampler.select_next_token(&logits, &history))
+                .collect::<Vec<_>>();
+            let restored_next = (0..4)
+                .map(|_| resumed.select_next_token(&logits, &history))
+                .collect::<Vec<_>>();
+            assert_eq!(original_next, restored_next);
+        }
+        Ok(())
+    }
+
+    #[test]
     fn token_sampler_can_refuse_disallowed_ids() {
         let policy = SamplingPolicy {
             strategy: SamplingStrategy::Greedy,
@@ -11980,6 +12459,10 @@ mod tests {
             top_k: None,
             top_p: None,
             min_p: None,
+            typical_p: None,
+            mirostat: None,
+            mirostat_tau: None,
+            mirostat_eta: None,
             repeat_penalty: None,
             repeat_last_n: None,
             presence_penalty: None,
@@ -12004,6 +12487,10 @@ mod tests {
             top_k: None,
             top_p: None,
             min_p: None,
+            typical_p: None,
+            mirostat: None,
+            mirostat_tau: None,
+            mirostat_eta: None,
             repeat_penalty: None,
             repeat_last_n: None,
             presence_penalty: None,

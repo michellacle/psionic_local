@@ -2059,6 +2059,14 @@ struct ChatCompletionRequest {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     min_p: Option<f32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    typical_p: Option<f32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    mirostat: Option<u8>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    mirostat_tau: Option<f32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    mirostat_eta: Option<f32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     repeat_penalty: Option<f32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     repeat_last_n: Option<i32>,
@@ -2099,6 +2107,10 @@ impl Default for ChatCompletionRequest {
             top_k: None,
             top_p: None,
             min_p: None,
+            typical_p: None,
+            mirostat: None,
+            mirostat_tau: None,
+            mirostat_eta: None,
             repeat_penalty: None,
             repeat_last_n: None,
             presence_penalty: None,
@@ -2329,6 +2341,14 @@ struct ResponsesRequest {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     min_p: Option<f32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    typical_p: Option<f32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    mirostat: Option<u8>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    mirostat_tau: Option<f32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    mirostat_eta: Option<f32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     repeat_penalty: Option<f32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     repeat_last_n: Option<i32>,
@@ -2371,6 +2391,10 @@ impl Default for ResponsesRequest {
             top_k: None,
             top_p: None,
             min_p: None,
+            typical_p: None,
+            mirostat: None,
+            mirostat_tau: None,
+            mirostat_eta: None,
             repeat_penalty: None,
             repeat_last_n: None,
             presence_penalty: None,
@@ -4998,6 +5022,8 @@ fn generation_options_from_chat_request_for_family(
         request.top_k,
         request.top_p,
         request.min_p,
+        request.typical_p,
+        request.mirostat,
     ) {
         GenerationOptions::sample(max_output_tokens)
     } else {
@@ -5008,6 +5034,8 @@ fn generation_options_from_chat_request_for_family(
         request.top_k,
         request.top_p,
         request.min_p,
+        request.typical_p,
+        request.mirostat,
     ) {
         DecodeStrategy::Sample
     } else {
@@ -5019,6 +5047,10 @@ fn generation_options_from_chat_request_for_family(
         request.top_k,
         request.top_p,
         request.min_p,
+        request.typical_p,
+        request.mirostat,
+        request.mirostat_tau,
+        request.mirostat_eta,
         request.repeat_penalty,
         request.repeat_last_n,
         request.presence_penalty,
@@ -5050,6 +5082,8 @@ fn generation_options_from_responses_request(
         request.top_k,
         request.top_p,
         request.min_p,
+        request.typical_p,
+        request.mirostat,
     ) {
         GenerationOptions::sample(max_output_tokens)
     } else {
@@ -5060,6 +5094,8 @@ fn generation_options_from_responses_request(
         request.top_k,
         request.top_p,
         request.min_p,
+        request.typical_p,
+        request.mirostat,
     ) {
         DecodeStrategy::Sample
     } else {
@@ -5071,6 +5107,10 @@ fn generation_options_from_responses_request(
         request.top_k,
         request.top_p,
         request.min_p,
+        request.typical_p,
+        request.mirostat,
+        request.mirostat_tau,
+        request.mirostat_eta,
         request.repeat_penalty,
         request.repeat_last_n,
         request.presence_penalty,
@@ -5096,11 +5136,15 @@ fn request_uses_sample_decode(
     top_k: Option<usize>,
     top_p: Option<f32>,
     min_p: Option<f32>,
+    typical_p: Option<f32>,
+    mirostat: Option<u8>,
 ) -> bool {
     temperature.is_some_and(|value| value > f32::EPSILON)
         || top_k.is_some_and(|value| value > 1)
         || top_p.is_some_and(|value| value.is_finite() && value > 0.0 && value < 1.0)
         || min_p.is_some_and(|value| value.is_finite() && value > 0.0 && value <= 1.0)
+        || typical_p.is_some_and(|value| value.is_finite() && value > 0.0 && value < 1.0)
+        || mirostat.is_some_and(|value| matches!(value, 1 | 2))
 }
 
 fn apply_sampling_controls(
@@ -5109,6 +5153,10 @@ fn apply_sampling_controls(
     top_k: Option<usize>,
     top_p: Option<f32>,
     min_p: Option<f32>,
+    typical_p: Option<f32>,
+    mirostat: Option<u8>,
+    mirostat_tau: Option<f32>,
+    mirostat_eta: Option<f32>,
     repeat_penalty: Option<f32>,
     repeat_last_n: Option<i32>,
     presence_penalty: Option<f32>,
@@ -5119,6 +5167,10 @@ fn apply_sampling_controls(
     options.top_k = top_k;
     options.top_p = top_p;
     options.min_p = min_p;
+    options.typical_p = typical_p;
+    options.mirostat = mirostat;
+    options.mirostat_tau = mirostat_tau;
+    options.mirostat_eta = mirostat_eta;
     options.repeat_penalty = repeat_penalty;
     options.repeat_last_n = repeat_last_n;
     options.presence_penalty = presence_penalty;
@@ -5641,10 +5693,14 @@ mod tests {
             &ChatCompletionRequest {
                 model: Some(String::from("tiny-qwen35")),
                 messages: vec![ChatCompletionMessage::text("user", "sample")],
-                temperature: None,
+                temperature: Some(0.7),
                 top_k: Some(23),
                 top_p: Some(0.85),
                 min_p: Some(0.1),
+                typical_p: Some(0.72),
+                mirostat: Some(1),
+                mirostat_tau: Some(5.5),
+                mirostat_eta: Some(0.15),
                 repeat_penalty: Some(1.15),
                 repeat_last_n: Some(32),
                 presence_penalty: Some(0.25),
@@ -5668,10 +5724,14 @@ mod tests {
 
         assert_eq!(options.decode_strategy, DecodeStrategy::Sample);
         assert_eq!(options.max_output_tokens, 17);
-        assert_eq!(options.temperature, None);
+        assert_eq!(options.temperature, Some(0.7));
         assert_eq!(options.top_k, Some(23));
         assert_eq!(options.top_p, Some(0.85));
         assert_eq!(options.min_p, Some(0.1));
+        assert_eq!(options.typical_p, Some(0.72));
+        assert_eq!(options.mirostat, Some(1));
+        assert_eq!(options.mirostat_tau, Some(5.5));
+        assert_eq!(options.mirostat_eta, Some(0.15));
         assert_eq!(options.repeat_penalty, Some(1.15));
         assert_eq!(options.repeat_last_n, Some(32));
         assert_eq!(options.presence_penalty, Some(0.25));
@@ -5692,6 +5752,10 @@ mod tests {
                 top_k: Some(19),
                 top_p: Some(0.92),
                 min_p: Some(0.05),
+                typical_p: Some(0.61),
+                mirostat: Some(2),
+                mirostat_tau: Some(6.0),
+                mirostat_eta: Some(0.12),
                 repeat_penalty: Some(1.2),
                 repeat_last_n: Some(-1),
                 presence_penalty: Some(0.2),
@@ -5719,6 +5783,10 @@ mod tests {
         assert_eq!(options.top_k, Some(19));
         assert_eq!(options.top_p, Some(0.92));
         assert_eq!(options.min_p, Some(0.05));
+        assert_eq!(options.typical_p, Some(0.61));
+        assert_eq!(options.mirostat, Some(2));
+        assert_eq!(options.mirostat_tau, Some(6.0));
+        assert_eq!(options.mirostat_eta, Some(0.12));
         assert_eq!(options.repeat_penalty, Some(1.2));
         assert_eq!(options.repeat_last_n, Some(-1));
         assert_eq!(options.presence_penalty, Some(0.2));
@@ -6505,6 +6573,10 @@ mod tests {
                 top_k: Some(23),
                 top_p: Some(0.85),
                 min_p: Some(0.1),
+                typical_p: Some(0.72),
+                mirostat: Some(1),
+                mirostat_tau: Some(5.5),
+                mirostat_eta: Some(0.15),
                 repeat_penalty: Some(1.15),
                 repeat_last_n: Some(32),
                 presence_penalty: Some(0.25),
@@ -6520,6 +6592,7 @@ mod tests {
                 psionic_structured_output: None,
                 psionic_reasoning: None,
                 psionic_prefix_cache: None,
+                ..Default::default()
             },
         ))?;
         let payload = runtime.block_on(response_json(response))?;
@@ -6543,6 +6616,19 @@ mod tests {
                     .get("min_p")
                     .and_then(serde_json::Value::as_f64)
                     .is_some_and(|value| (value - 0.1).abs() < 1e-6)
+                && body
+                    .get("typical_p")
+                    .and_then(serde_json::Value::as_f64)
+                    .is_some_and(|value| (value - 0.72).abs() < 1e-6)
+                && body.get("mirostat") == Some(&serde_json::json!(1))
+                && body
+                    .get("mirostat_tau")
+                    .and_then(serde_json::Value::as_f64)
+                    .is_some_and(|value| (value - 5.5).abs() < 1e-6)
+                && body
+                    .get("mirostat_eta")
+                    .and_then(serde_json::Value::as_f64)
+                    .is_some_and(|value| (value - 0.15).abs() < 1e-6)
                 && body
                     .get("repeat_penalty")
                     .and_then(serde_json::Value::as_f64)

@@ -1261,6 +1261,18 @@ pub struct GenerationOptions {
     /// Minimum relative probability threshold applied after bounded sampling filters.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub min_p: Option<f32>,
+    /// Typical-p threshold applied after top-k truncation.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub typical_p: Option<f32>,
+    /// Mirostat mode. `1` selects mirostat v1, `2` selects mirostat v2.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mirostat: Option<u8>,
+    /// Mirostat target surprise.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mirostat_tau: Option<f32>,
+    /// Mirostat learning rate.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mirostat_eta: Option<f32>,
     /// Repeat penalty applied to previously seen tokens.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub repeat_penalty: Option<f32>,
@@ -1297,6 +1309,10 @@ impl GenerationOptions {
             top_k: None,
             top_p: None,
             min_p: None,
+            typical_p: None,
+            mirostat: None,
+            mirostat_tau: None,
+            mirostat_eta: None,
             repeat_penalty: None,
             repeat_last_n: None,
             presence_penalty: None,
@@ -1326,6 +1342,10 @@ impl GenerationOptions {
             top_k: self.top_k,
             top_p: self.top_p,
             min_p: self.min_p,
+            typical_p: self.typical_p,
+            mirostat: self.mirostat,
+            mirostat_tau: self.mirostat_tau,
+            mirostat_eta: self.mirostat_eta,
             repeat_penalty: self.repeat_penalty,
             repeat_last_n: self.repeat_last_n,
             presence_penalty: self.presence_penalty,
@@ -4033,6 +4053,10 @@ fn prefix_cache_sampler_digest(
     for value in [
         sampling_policy.temperature.map(f32::to_bits),
         sampling_policy.top_p.map(f32::to_bits),
+        sampling_policy.min_p.map(f32::to_bits),
+        sampling_policy.typical_p.map(f32::to_bits),
+        sampling_policy.mirostat_tau.map(f32::to_bits),
+        sampling_policy.mirostat_eta.map(f32::to_bits),
         sampling_policy.repeat_penalty.map(f32::to_bits),
         sampling_policy.presence_penalty.map(f32::to_bits),
         sampling_policy.frequency_penalty.map(f32::to_bits),
@@ -4047,6 +4071,7 @@ fn prefix_cache_sampler_digest(
             .unwrap_or(u64::MAX)
             .to_le_bytes(),
     );
+    hasher.update(u64::from(sampling_policy.mirostat.unwrap_or_default()).to_le_bytes());
     hasher.update(sampling_policy.seed.unwrap_or_default().to_le_bytes());
     Some(hex::encode(hasher.finalize()))
 }
@@ -6962,6 +6987,7 @@ impl GenerationSampler {
         &mut self,
         candidate_ids: &[u32],
         candidate_logits: &[f32],
+        full_vocab_size: usize,
     ) -> Result<GenerationSelection, ReferenceTextGenerationError> {
         if self.structured_output.is_some() {
             return Err(ReferenceTextGenerationError::Runtime(
@@ -6971,7 +6997,7 @@ impl GenerationSampler {
             ));
         }
         self.sampler
-            .select_next_token_from_candidates(candidate_ids, candidate_logits)
+            .select_next_token_from_candidates(candidate_ids, candidate_logits, full_vocab_size)
             .map(TokenId)
             .map_or(
                 Err(ReferenceTextGenerationError::MissingOutput("next_token")),
@@ -10943,6 +10969,10 @@ mod tests {
             top_k: Some(32),
             top_p: Some(0.85),
             min_p: Some(0.05),
+            typical_p: None,
+            mirostat: None,
+            mirostat_tau: None,
+            mirostat_eta: None,
             repeat_penalty: Some(1.2),
             repeat_last_n: Some(48),
             presence_penalty: Some(0.4),
@@ -12287,6 +12317,10 @@ mod tests {
             top_k: Some(3),
             top_p: Some(0.95),
             min_p: None,
+            typical_p: None,
+            mirostat: None,
+            mirostat_tau: None,
+            mirostat_eta: None,
             repeat_penalty: None,
             repeat_last_n: None,
             presence_penalty: None,
@@ -12337,6 +12371,10 @@ mod tests {
             top_k: Some(3),
             top_p: Some(0.9),
             min_p: Some(0.05),
+            typical_p: None,
+            mirostat: None,
+            mirostat_tau: None,
+            mirostat_eta: None,
             repeat_penalty: None,
             repeat_last_n: None,
             presence_penalty: None,
@@ -12370,6 +12408,7 @@ mod tests {
                     .select_next_token_from_candidates(
                         candidate_ids.as_slice(),
                         candidate_logits.as_slice(),
+                        logits.len(),
                     )
                     .expect("bounded sample")
                 {
@@ -12392,6 +12431,10 @@ mod tests {
             top_k: None,
             top_p: None,
             min_p: None,
+            typical_p: None,
+            mirostat: None,
+            mirostat_tau: None,
+            mirostat_eta: None,
             repeat_penalty: Some(2.0),
             repeat_last_n: Some(2),
             presence_penalty: Some(0.5),
@@ -12426,6 +12469,10 @@ mod tests {
             top_k: Some(3),
             top_p: Some(0.95),
             min_p: None,
+            typical_p: None,
+            mirostat: None,
+            mirostat_tau: None,
+            mirostat_eta: None,
             repeat_penalty: Some(1.1),
             repeat_last_n: None,
             presence_penalty: Some(0.2),

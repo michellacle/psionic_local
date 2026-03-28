@@ -59,6 +59,10 @@ struct BenchConfig {
     top_k: Option<usize>,
     top_p: Option<f32>,
     min_p: Option<f32>,
+    typical_p: Option<f32>,
+    mirostat: Option<u8>,
+    mirostat_tau: Option<f32>,
+    mirostat_eta: Option<f32>,
     repeat_penalty: Option<f32>,
     repeat_last_n: Option<i32>,
     presence_penalty: Option<f32>,
@@ -81,6 +85,10 @@ impl Default for BenchConfig {
             top_k: None,
             top_p: None,
             min_p: None,
+            typical_p: None,
+            mirostat: None,
+            mirostat_tau: None,
+            mirostat_eta: None,
             repeat_penalty: None,
             repeat_last_n: None,
             presence_penalty: None,
@@ -172,6 +180,30 @@ impl BenchConfig {
                     config.min_p = Some(parse_arg(
                         &next_arg(&raw_args, &mut index, "--min-p")?,
                         "--min-p",
+                    )?);
+                }
+                "--typical-p" => {
+                    config.typical_p = Some(parse_arg(
+                        &next_arg(&raw_args, &mut index, "--typical-p")?,
+                        "--typical-p",
+                    )?);
+                }
+                "--mirostat" => {
+                    config.mirostat = Some(parse_arg(
+                        &next_arg(&raw_args, &mut index, "--mirostat")?,
+                        "--mirostat",
+                    )?);
+                }
+                "--mirostat-tau" => {
+                    config.mirostat_tau = Some(parse_arg(
+                        &next_arg(&raw_args, &mut index, "--mirostat-tau")?,
+                        "--mirostat-tau",
+                    )?);
+                }
+                "--mirostat-eta" => {
+                    config.mirostat_eta = Some(parse_arg(
+                        &next_arg(&raw_args, &mut index, "--mirostat-eta")?,
+                        "--mirostat-eta",
                     )?);
                 }
                 "--repeat-penalty" => {
@@ -277,6 +309,25 @@ impl BenchConfig {
 
     fn effective_min_p(&self) -> Option<f32> {
         self.min_p.filter(|min_p| min_p.is_finite() && *min_p > 0.0)
+    }
+
+    fn effective_typical_p(&self) -> Option<f32> {
+        self.typical_p
+            .filter(|typical_p| typical_p.is_finite() && *typical_p > 0.0 && *typical_p < 1.0)
+    }
+
+    fn effective_mirostat(&self) -> Option<u8> {
+        self.mirostat.filter(|value| matches!(value, 1 | 2))
+    }
+
+    fn effective_mirostat_tau(&self) -> Option<f32> {
+        self.effective_mirostat()
+            .map(|_| self.mirostat_tau.unwrap_or(5.0).max(0.0))
+    }
+
+    fn effective_mirostat_eta(&self) -> Option<f32> {
+        self.effective_mirostat()
+            .map(|_| self.mirostat_eta.unwrap_or(0.1).max(0.0))
     }
 
     fn effective_repeat_penalty(&self) -> Option<f32> {
@@ -454,6 +505,10 @@ fn build_generation_options(
     options.top_k = config.effective_top_k();
     options.top_p = config.effective_top_p();
     options.min_p = config.effective_min_p();
+    options.typical_p = config.effective_typical_p();
+    options.mirostat = config.effective_mirostat();
+    options.mirostat_tau = config.effective_mirostat_tau();
+    options.mirostat_eta = config.effective_mirostat_eta();
     options.repeat_penalty = config.effective_repeat_penalty();
     options.repeat_last_n = config.effective_repeat_last_n();
     options.presence_penalty = config.effective_presence_penalty();
@@ -552,7 +607,7 @@ fn nanos_to_seconds(duration_ns: u64) -> f64 {
 
 fn usage() -> String {
     String::from(
-        "usage:\n  cargo run -p psionic-serve --example qwen35_cuda_bench -- <model.gguf> [prompt] [max_output_tokens] [repeats]\n  cargo run -p psionic-serve --example qwen35_cuda_bench -- --backend psionic --model-path <model.gguf> [--decode greedy|sample] [--temperature 0.8] [--top-k 40] [--top-p 0.9] [--min-p 0.05] [--repeat-penalty 1.0] [--repeat-last-n 64] [--presence-penalty 0.0] [--frequency-penalty 0.0] [--seed 42] [--prompt <text>] [--max-output-tokens 128] [--repeats 3]\n  cargo run -p psionic-serve --example qwen35_cuda_bench -- --backend ollama --model-path <model.gguf> --ollama-model qwen3.5:0.8b [--ollama-base-url http://127.0.0.1:11434] [--decode greedy|sample] [--temperature 0.8] [--top-k 40] [--top-p 0.9] [--min-p 0.05] [--repeat-penalty 1.0] [--repeat-last-n 64] [--presence-penalty 0.0] [--frequency-penalty 0.0] [--seed 42] [--prompt <text>] [--max-output-tokens 128] [--repeats 3]",
+        "usage:\n  cargo run -p psionic-serve --example qwen35_cuda_bench -- <model.gguf> [prompt] [max_output_tokens] [repeats]\n  cargo run -p psionic-serve --example qwen35_cuda_bench -- --backend psionic --model-path <model.gguf> [--decode greedy|sample] [--temperature 0.8] [--top-k 40] [--top-p 0.9] [--min-p 0.05] [--typical-p 0.5] [--mirostat 1|2] [--mirostat-tau 5.0] [--mirostat-eta 0.1] [--repeat-penalty 1.0] [--repeat-last-n 64] [--presence-penalty 0.0] [--frequency-penalty 0.0] [--seed 42] [--prompt <text>] [--max-output-tokens 128] [--repeats 3]\n  cargo run -p psionic-serve --example qwen35_cuda_bench -- --backend ollama --model-path <model.gguf> --ollama-model qwen3.5:0.8b [--ollama-base-url http://127.0.0.1:11434] [--decode greedy|sample] [--temperature 0.8] [--top-k 40] [--top-p 0.9] [--min-p 0.05] [--typical-p 0.5] [--mirostat 1|2] [--mirostat-tau 5.0] [--mirostat-eta 0.1] [--repeat-penalty 1.0] [--repeat-last-n 64] [--presence-penalty 0.0] [--frequency-penalty 0.0] [--seed 42] [--prompt <text>] [--max-output-tokens 128] [--repeats 3]",
     )
 }
 
@@ -599,6 +654,18 @@ fn ollama_generate(
     }
     if let Some(min_p) = config.effective_min_p() {
         options["min_p"] = serde_json::json!(min_p);
+    }
+    if let Some(typical_p) = config.effective_typical_p() {
+        options["typical_p"] = serde_json::json!(typical_p);
+    }
+    if let Some(mirostat) = config.effective_mirostat() {
+        options["mirostat"] = serde_json::json!(mirostat);
+    }
+    if let Some(mirostat_tau) = config.effective_mirostat_tau() {
+        options["mirostat_tau"] = serde_json::json!(mirostat_tau);
+    }
+    if let Some(mirostat_eta) = config.effective_mirostat_eta() {
+        options["mirostat_eta"] = serde_json::json!(mirostat_eta);
     }
     if let Some(repeat_penalty) = config.effective_repeat_penalty() {
         options["repeat_penalty"] = serde_json::json!(repeat_penalty);

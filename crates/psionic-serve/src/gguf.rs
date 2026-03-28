@@ -1268,6 +1268,18 @@ impl Qwen35LlamaCppProxyState {
         if let Some(min_p) = options.min_p {
             body["min_p"] = serde_json::json!(min_p);
         }
+        if let Some(typical_p) = options.typical_p {
+            body["typical_p"] = serde_json::json!(typical_p);
+        }
+        if let Some(mirostat) = options.mirostat {
+            body["mirostat"] = serde_json::json!(mirostat);
+        }
+        if let Some(mirostat_tau) = options.mirostat_tau {
+            body["mirostat_tau"] = serde_json::json!(mirostat_tau);
+        }
+        if let Some(mirostat_eta) = options.mirostat_eta {
+            body["mirostat_eta"] = serde_json::json!(mirostat_eta);
+        }
         if let Some(repeat_penalty) = options.repeat_penalty {
             body["repeat_penalty"] = serde_json::json!(repeat_penalty);
         }

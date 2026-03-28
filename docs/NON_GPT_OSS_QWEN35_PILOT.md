@@ -291,8 +291,9 @@ masking, or unsupported sampling shapes still fall back to explicit dense
 raw-logit readback.
 
 The local sampler surface now also honors `min_p` and request-level
-`repeat_last_n` in addition to `temperature`, `top_k`, `top_p`,
-`repeat_penalty`, `presence_penalty`, `frequency_penalty`, and `seed`.
+`repeat_last_n` in addition to `temperature`, `top_k`, `top_p`, `min_p`,
+`typical_p`, `repeat_penalty`, `presence_penalty`, `frequency_penalty`,
+`seed`, `mirostat`, `mirostat_tau`, and `mirostat_eta`.
 The generic OpenAI-compatible qwen35 server surface now forwards the same
 controls on both `/v1/chat/completions` and `/v1/responses`, and the proxy
 test harness verifies that those fields reach the qwen35 backend request body.
@@ -305,6 +306,23 @@ test harness verifies that those fields reach the qwen35 backend request body.
 `min_p` remains compatible with the bounded qwen35 sampled lane because
 Psionic applies it after exact top-k candidate selection on both the dense and
 bounded sampling paths.
+
+`typical_p` remains compatible with the same bounded lane for the same reason.
+Measured again on March 28, 2026 on the same host, prompt, and token cap with
+`typical_p = 0.5` added to the sampled contract:
+
+- `qwen3.5:0.8b`: Psionic about `497.49 tok/s`, Ollama about `330.93 tok/s`
+- `qwen3.5:2b`: Psionic about `244.68 tok/s`, Ollama about `202.43 tok/s`
+- `qwen3.5:4b`: Psionic about `173.66 tok/s`, Ollama about `140.00 tok/s`
+- `qwen3.5:9b`: Psionic about `105.31 tok/s`, Ollama about `93.51 tok/s`
+
+`mirostat` is now implemented on the local sampler, benchmark harness, and
+generic qwen35 request surface too, but it is not yet a throughput claim.
+The current qwen35 CUDA lane keeps `mirostat` exact by falling back to
+explicit dense `raw_logits` readback. On March 28, 2026, a `qwen3.5:0.8b`
+smoke rerun with `mirostat = 1`, `mirostat_tau = 5.0`, `mirostat_eta = 0.1`,
+and a `64` token cap measured about `59.42 tok/s` on Psionic versus about
+`327.77 tok/s` on local Ollama.
 
 The same March 27, 2026 benchmark also shows the current boundary clearly:
 

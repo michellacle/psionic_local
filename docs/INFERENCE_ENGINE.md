@@ -46,12 +46,14 @@ than just run tensor math.
   - effective `top_k` available and `<= 128`
   - repeat, presence, and frequency penalties inactive
   - structured-output masking inactive
-- The runtime sampling surface now also honors `min_p` and request-level
+- The runtime sampling surface now also honors `min_p`, `typical_p`,
+  `mirostat`, `mirostat_tau`, `mirostat_eta`, and request-level
   `repeat_last_n` in addition to the existing sampled controls.
 - The generic OpenAI-compatible qwen35 request surface now forwards
-  `top_k`, `top_p`, `min_p`, `repeat_penalty`, `repeat_last_n`,
-  `presence_penalty`, `frequency_penalty`, and `seed` on both
-  `/v1/chat/completions` and `/v1/responses`.
+  `top_k`, `top_p`, `min_p`, `typical_p`, `mirostat`, `mirostat_tau`,
+  `mirostat_eta`, `repeat_penalty`, `repeat_last_n`, `presence_penalty`,
+  `frequency_penalty`, and `seed` on both `/v1/chat/completions` and
+  `/v1/responses`.
 - `repeat_last_n` follows the Ollama-compatible local sampler contract:
   - default `64`
   - `0` disables the penalty lookback window
@@ -59,6 +61,11 @@ than just run tensor math.
 - `min_p` remains compatible with the bounded qwen35 CUDA sampled lane because
   Psionic applies it after exact top-k candidate selection on both the dense
   and bounded sampling paths.
+- `typical_p` remains compatible with the bounded qwen35 CUDA sampled lane for
+  the same reason.
+- `mirostat` is now supported on the qwen35 runtime surface too, but it is
+  still exact-via-fallback rather than fast-path. The current lane routes it
+  through explicit `raw_logits` readback instead of the bounded candidate lane.
 - Outside that envelope the qwen35 lane still falls back to explicit
   `raw_logits` readback instead of silently narrowing behavior.
 - The first `qwen35` lane must fail closed for structured outputs and tool
@@ -97,13 +104,24 @@ than just run tensor math.
 - On March 28, 2026, after adding a native one-row CUDA top-k candidate output
   path and routing qwen35 sampled decode through `TopKCandidates { top_k }`
   instead of unconditional dense-vocab readback, and after refreshing the
-  local sampler surface to honor `min_p` and request-level `repeat_last_n`,
+  local sampler surface to honor `min_p`, `typical_p`, `mirostat`,
+  `mirostat_tau`, `mirostat_eta`, and request-level `repeat_last_n`,
   the same host measured native qwen35 sampled decode ahead of local Ollama on
   all four rows under the explicit sampled contract in
-  `docs/QWEN35_OLLAMA_COMPARISON.md`: about `498 tok/s` versus `329 tok/s` on
-  `qwen3.5:0.8b`, about `244 tok/s` versus `201 tok/s` on `qwen3.5:2b`, about
+  `docs/QWEN35_OLLAMA_COMPARISON.md`: about `496 tok/s` versus `329 tok/s` on
+  `qwen3.5:0.8b`, about `244 tok/s` versus `203 tok/s` on `qwen3.5:2b`, about
   `173 tok/s` versus `140 tok/s` on `qwen3.5:4b`, and about `105 tok/s`
-  versus `93 tok/s` on `qwen3.5:9b`.
+  versus `93 tok/s` on `qwen3.5:9b`. The same host also measured the bounded
+  `typical_p = 0.5` contract ahead on all four rows: about `497 tok/s`
+  versus `331 tok/s` on `0.8b`, about `245 tok/s` versus `202 tok/s` on `2b`,
+  about `174 tok/s` versus `140 tok/s` on `4b`, and about `105 tok/s`
+  versus `94 tok/s` on `9b`.
+- The same March 28, 2026 refresh also established the current `mirostat`
+  boundary. Exact `mirostat` v1 is now wired through the sampler and request
+  surface, but on `qwen3.5:0.8b` it still measures only about `59 tok/s`
+  versus about `328 tok/s` on local Ollama because the current qwen35 CUDA
+  lane routes `mirostat` through `raw_logits` readback instead of the bounded
+  candidate path.
 - The 4B row only became correct and faster after fixing the fused decode
   output head for mixed `Q4_K` and `Q6_K` weights. Greedy `ArgmaxOnly` decode
   now routes `Q6_K` output weights through `Q8_1` projection plus `argmax_f32`
