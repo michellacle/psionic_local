@@ -7561,6 +7561,91 @@ mod tests {
     }
 
     #[test]
+    fn generic_server_native_qwen35_tool_prompt_prefix_cache_is_machine_checkable()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let backend = psionic_backend_cuda::CudaBackend::new();
+        if !backend.quantized_kernels_available() {
+            return Ok(());
+        }
+
+        let temp = tempfile::tempdir()?;
+        let qwen35_path = temp.path().join("tiny-qwen35-required-tool-prefix-cache.gguf");
+        write_test_gguf(
+            &qwen35_path,
+            qwen35_native_full_attention_decoder_metadata_with_tokens(
+                "tiny native qwen35 required tool prefix cache",
+                vec![
+                    "<|bos|>",
+                    "<|eos|>",
+                    "<|im_start|>",
+                    "<|im_end|>",
+                    "<think>",
+                    "</think>",
+                    "hello",
+                    "{\"kind\":\"tool_calls\",\"tool_calls\":[{\"name\":\"get_weather\",\"arguments\":{\"latitude\":48.8566,\"longitude\":2.3522}}]}",
+                    "world",
+                ],
+            )
+            .as_slice(),
+            qwen35_native_full_attention_decoder_tensors_with_vocab(9).as_slice(),
+        )?;
+
+        let mut config = OpenAiCompatConfig::new(&qwen35_path);
+        config.backend = OpenAiCompatBackend::Cuda;
+        let server = OpenAiCompatServer::from_config(&config)?;
+        let runtime = tokio::runtime::Runtime::new()?;
+        let tenant = String::from("hermes-tool-loop");
+        let build_request = || ChatCompletionRequest {
+            model: Some(String::from("tiny-qwen35-required-tool-prefix-cache")),
+            messages: vec![ChatCompletionMessage::text("user", "hello")],
+            temperature: Some(0.0),
+            max_tokens: Some(1),
+            stop: None,
+            stream: false,
+            tools: vec![weather_tool_definition()],
+            tool_choice: Some(ToolChoiceRequest::Mode(String::from("required"))),
+            parallel_tool_calls: Some(false),
+            response_format: None,
+            psionic_grammar: None,
+            psionic_structured_output: None,
+            psionic_reasoning: None,
+            psionic_prefix_cache: Some(PrefixCacheControl {
+                mode: PrefixCacheMode::Auto,
+                tenant_id: Some(tenant.clone()),
+            }),
+            ..Default::default()
+        };
+
+        let seeded = runtime.block_on(handle_generic_chat_completions(
+            std::sync::Arc::clone(&server.state),
+            build_request(),
+        ))?;
+        assert_eq!(
+            header_value(seeded.headers(), "x-psionic-prefix-cache-state"),
+            Some(String::from("none"))
+        );
+        assert_eq!(
+            header_value(seeded.headers(), "x-psionic-prefix-cache-reused-tokens"),
+            Some(String::from("0"))
+        );
+
+        let cached = runtime.block_on(handle_generic_chat_completions(
+            std::sync::Arc::clone(&server.state),
+            build_request(),
+        ))?;
+        assert_eq!(
+            header_value(cached.headers(), "x-psionic-prefix-cache-state"),
+            Some(String::from("hit"))
+        );
+        assert!(
+            header_value(cached.headers(), "x-psionic-prefix-cache-reused-tokens")
+                .is_some_and(|value| value != "0"),
+            "cached qwen35 tool request should reuse prompt tokens"
+        );
+        Ok(())
+    }
+
+    #[test]
     fn generic_server_native_qwen35_named_tool_choice_surfaces_tool_call()
     -> Result<(), Box<dyn std::error::Error>> {
         let backend = psionic_backend_cuda::CudaBackend::new();

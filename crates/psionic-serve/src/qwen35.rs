@@ -13,8 +13,9 @@ use psionic_models::{
     ModelLoadError, PagedTensorStorage, TokenId, TokenSequence, TokenizerBoundary,
 };
 use psionic_runtime::{
-    BackendHealthTracker, DeviceDiscovery, LoadedModelResidency, LocalRuntimeObservability,
-    SamplingPolicy,
+    BackendHealthTracker, CacheInvalidationTrigger, DeviceDiscovery, LoadedModelResidency,
+    LocalRuntimeObservability, PrefixCacheIdentity, PrefixCacheMode,
+    PrefixCacheRefusalReason, PrefixCacheState, SamplingPolicy,
 };
 use sha2::{Digest, Sha256};
 
@@ -34,6 +35,7 @@ pub struct CudaGgufQwen35TextGenerationService {
     backend_selection: psionic_runtime::BackendSelection,
     model: Arc<CudaQwen35Model>,
     step_plan: Qwen35CudaStepPlan,
+    shared_prefixes: Qwen35SharedPrefixStore,
     backend_health: BackendHealthTracker,
     residency: LoadedModelResidency,
     memory_plan: psionic_runtime::ModelMemoryPlan,
@@ -71,6 +73,7 @@ impl CudaGgufQwen35TextGenerationService {
             backend_selection,
             model,
             step_plan,
+            shared_prefixes: Qwen35SharedPrefixStore::default(),
             backend_health,
             residency,
         })
@@ -90,10 +93,8 @@ impl CudaGgufQwen35TextGenerationService {
             unsupported_features: vec![
                 String::from("multimodal_inputs"),
                 String::from("video_inputs"),
-                String::from("tool_calling"),
                 String::from("adapter_serving"),
                 String::from("session_reuse"),
-                String::from("prefix_cache"),
             ],
             quantization_modes: self.model.descriptor.weights.quantization_modes.clone(),
             adapter_runtime: crate::DecoderAdapterRuntimeSupport {
@@ -330,63 +331,90 @@ impl CudaGgufQwen35TextGenerationService {
             ),
         )?;
 
+        let output_mode = qwen35_cuda_output_mode(&request.options);
+        let prefix_policy = crate::default_prefix_cache_policy();
+        let compatibility = qwen35_prefix_compatibility_for_request(&self.model.descriptor, request);
+        let prefix_lookup = self.shared_prefixes.controlled_lookup(
+            &compatibility,
+            &prompt_tokens,
+            output_mode,
+            request,
+        );
+        let prefix_state = prefix_lookup.state;
+        let prefix_cache_refusal_reason = prefix_lookup.refusal_reason;
+        let prefix_cache_invalidation_trigger = prefix_lookup.invalidation_trigger;
+        let mut prefix_tokens_reused = prefix_lookup.reused_tokens;
+        let mut prefix_identity = prefix_lookup.identity;
         let cache_capacity_tokens = qwen35_cache_capacity_tokens(
             prompt_tokens.len(),
             request.options.max_output_tokens,
             self.model.descriptor.config.max_context,
         );
-        let mut state = self
-            .model
-            .initial_state(&mut self.backend, cache_capacity_tokens)?;
+        let mut state = if let Some(entry) = prefix_lookup.entry.as_ref() {
+            entry.state.clone()
+        } else {
+            self.model
+                .initial_state(&mut self.backend, cache_capacity_tokens)?
+        };
         let mut kernel_count = 0usize;
         let mut bytes_moved = 0u64;
-        let output_mode = qwen35_cuda_output_mode(&request.options);
         let mut last_logits = Vec::new();
-        let mut pending_greedy_token = None;
-        let mut last_candidates = None;
+        let mut pending_greedy_token = prefix_lookup
+            .entry
+            .as_ref()
+            .and_then(|entry| entry.pending_greedy_token);
+        let mut last_candidates = prefix_lookup
+            .entry
+            .as_ref()
+            .and_then(|entry| entry.last_candidates.clone());
+        if let Some(entry) = prefix_lookup.entry.as_ref() {
+            last_logits = entry.last_logits.clone();
+        }
         let mut decode_output_metrics = Qwen35CudaDecodeOutputMetrics::default();
 
+        let prompt_suffix = &prompt_tokens.as_slice()[prefix_tokens_reused..];
         if matches!(
             output_mode,
             CudaStepOutputMode::ArgmaxOnly | CudaStepOutputMode::TopKCandidates(_)
         ) {
-            let (last_prompt_token, prompt_prefix) = prompt_tokens
-                .as_slice()
-                .split_last()
-                .expect("validated non-empty prompt token list");
-            for token in prompt_prefix {
+            if !prompt_suffix.is_empty() {
+                let (last_prompt_token, prompt_prefix) = prompt_suffix
+                    .split_last()
+                    .expect("validated non-empty prompt suffix");
+                for token in prompt_prefix {
+                    let step = self.model.forward_token(
+                        &mut self.backend,
+                        &mut self.step_plan,
+                        &mut state,
+                        *token,
+                        CudaStepOutputMode::NoOutput,
+                        &request.options,
+                        &[],
+                    )?;
+                    kernel_count = kernel_count.saturating_add(step.kernel_count);
+                    bytes_moved = bytes_moved.saturating_add(step.bytes_moved);
+                }
                 let step = self.model.forward_token(
                     &mut self.backend,
                     &mut self.step_plan,
                     &mut state,
-                    *token,
-                    CudaStepOutputMode::NoOutput,
+                    *last_prompt_token,
+                    output_mode,
                     &request.options,
                     &[],
                 )?;
+                pending_greedy_token = step.selected_token;
+                last_logits = step.logits;
+                last_candidates = step.candidates;
                 kernel_count = kernel_count.saturating_add(step.kernel_count);
                 bytes_moved = bytes_moved.saturating_add(step.bytes_moved);
+                accumulate_qwen35_decode_output_metrics(
+                    &mut decode_output_metrics,
+                    step.output_metrics.as_ref(),
+                );
             }
-            let step = self.model.forward_token(
-                &mut self.backend,
-                &mut self.step_plan,
-                &mut state,
-                *last_prompt_token,
-                output_mode,
-                &request.options,
-                &[],
-            )?;
-            pending_greedy_token = step.selected_token;
-            last_logits = step.logits;
-            last_candidates = step.candidates;
-            kernel_count = kernel_count.saturating_add(step.kernel_count);
-            bytes_moved = bytes_moved.saturating_add(step.bytes_moved);
-            accumulate_qwen35_decode_output_metrics(
-                &mut decode_output_metrics,
-                step.output_metrics.as_ref(),
-            );
-        } else {
-            for token in prompt_tokens.as_slice() {
+        } else if !prompt_suffix.is_empty() {
+            for token in prompt_suffix {
                 let step = self.model.forward_token(
                     &mut self.backend,
                     &mut self.step_plan,
@@ -403,6 +431,28 @@ impl CudaGgufQwen35TextGenerationService {
                     &mut decode_output_metrics,
                     step.output_metrics.as_ref(),
                 );
+            }
+        }
+
+        if crate::prefix_recording_allowed(request)
+            && prompt_suffix.is_empty()
+            && prefix_state == PrefixCacheState::Hit
+        {
+            prefix_tokens_reused = prompt_tokens.len();
+        }
+
+        if crate::prefix_recording_allowed(request) && !prompt_tokens.is_empty() {
+            let recorded_identity = self.shared_prefixes.record(
+                compatibility,
+                &prompt_tokens,
+                output_mode,
+                &state,
+                last_logits.as_slice(),
+                pending_greedy_token,
+                last_candidates.as_ref(),
+            );
+            if prefix_state != PrefixCacheState::Hit || prefix_identity.is_none() {
+                prefix_identity = Some(recorded_identity);
             }
         }
 
@@ -745,7 +795,7 @@ impl CudaGgufQwen35TextGenerationService {
             kv_cache: None,
             kv_residency: None,
             kv_cache_encoding: None,
-            prefix_tokens_reused: Some(0),
+            prefix_tokens_reused: Some(prefix_tokens_reused),
             termination_detail,
             qwen35_cuda_decode: (!decode_output_metrics.is_zero()).then_some(decode_output_metrics),
             gpt_oss_perf: None,
@@ -769,10 +819,10 @@ impl CudaGgufQwen35TextGenerationService {
             kv_cache_encoding_policy: None,
             kv_ownership: None,
             prefix_cache_control: Some(request.prefix_cache_control.clone()),
-            prefix_cache_state: None,
-            prefix_cache_refusal_reason: None,
-            prefix_cache_policy: None,
-            prefix_cache_identity: None,
+            prefix_cache_state: Some(prefix_state),
+            prefix_cache_refusal_reason,
+            prefix_cache_policy: Some(prefix_policy),
+            prefix_cache_identity: prefix_identity,
             compile_path: None,
             delivery_proof: Some(psionic_runtime::ExecutionDeliveryProof {
                 execution_plan_digest: self.model.plan_digest.clone(),
@@ -784,7 +834,16 @@ impl CudaGgufQwen35TextGenerationService {
                 prefill_decode_handoff: None,
                 kv_residency: None,
             }),
-            cache_observations: Vec::new(),
+            cache_observations: crate::generation_cache_observations(
+                &self.model.descriptor,
+                None,
+                crate::GenerationLoadState::Warm,
+                None,
+                false,
+                &psionic_runtime::KvCacheState::default(),
+                prefix_state,
+                prefix_cache_invalidation_trigger,
+            ),
             scheduler: None,
             structured_output: structured_output_report,
             psion_served_evidence: None,
@@ -806,6 +865,220 @@ impl CudaGgufQwen35TextGenerationService {
         } else {
             response
         })
+    }
+}
+
+#[derive(Clone, Debug, Default)]
+struct Qwen35SharedPrefixStore {
+    entries: Vec<Qwen35SharedPrefixEntry>,
+}
+
+#[derive(Clone, Debug)]
+struct Qwen35SharedPrefixEntry {
+    compatibility: crate::SharedPrefixCompatibility,
+    prompt_tokens: TokenSequence,
+    output_mode: CudaStepOutputMode,
+    state: Qwen35State,
+    last_logits: Vec<f32>,
+    pending_greedy_token: Option<TokenId>,
+    last_candidates: Option<Qwen35CudaTopKCandidates>,
+}
+
+#[derive(Clone, Debug)]
+struct Qwen35PrefixLookupResult {
+    state: PrefixCacheState,
+    reused_tokens: usize,
+    identity: Option<PrefixCacheIdentity>,
+    entry: Option<Qwen35SharedPrefixEntry>,
+    refusal_reason: Option<PrefixCacheRefusalReason>,
+    invalidation_trigger: Option<CacheInvalidationTrigger>,
+}
+
+impl Qwen35SharedPrefixStore {
+    fn empty_lookup(state: PrefixCacheState) -> Qwen35PrefixLookupResult {
+        Qwen35PrefixLookupResult {
+            state,
+            reused_tokens: 0,
+            identity: None,
+            entry: None,
+            refusal_reason: None,
+            invalidation_trigger: None,
+        }
+    }
+
+    fn boundary_refusal_reason(
+        &self,
+        compatibility: &crate::SharedPrefixCompatibility,
+        prompt_tokens: &TokenSequence,
+    ) -> Option<PrefixCacheRefusalReason> {
+        let mut saw_sampler_boundary = false;
+        for entry in &self.entries {
+            if !entry.compatibility.storage_identity_matches(compatibility)
+                || crate::shared_prefix_len(entry.prompt_tokens.as_slice(), prompt_tokens.as_slice())
+                    == 0
+            {
+                continue;
+            }
+            if entry.compatibility.tenant_id != compatibility.tenant_id {
+                return Some(PrefixCacheRefusalReason::TenantBoundary);
+            }
+            if entry.compatibility.sampler_digest != compatibility.sampler_digest {
+                saw_sampler_boundary = true;
+            }
+        }
+        saw_sampler_boundary.then_some(PrefixCacheRefusalReason::SamplerBoundary)
+    }
+
+    fn invalidate(
+        &mut self,
+        compatibility: &crate::SharedPrefixCompatibility,
+        prompt_tokens: &TokenSequence,
+    ) -> bool {
+        let retained = self.entries.len();
+        self.entries.retain(|entry| {
+            !(entry.compatibility.storage_identity_matches(compatibility)
+                && crate::shared_prefix_len(entry.prompt_tokens.as_slice(), prompt_tokens.as_slice())
+                    > 0)
+        });
+        self.entries.len() != retained
+    }
+
+    fn lookup(
+        &self,
+        compatibility: &crate::SharedPrefixCompatibility,
+        prompt_tokens: &TokenSequence,
+        output_mode: CudaStepOutputMode,
+    ) -> Qwen35PrefixLookupResult {
+        let mut best: Option<&Qwen35SharedPrefixEntry> = None;
+        for entry in &self.entries {
+            if &entry.compatibility != compatibility || entry.output_mode != output_mode {
+                continue;
+            }
+            if !prompt_tokens
+                .as_slice()
+                .starts_with(entry.prompt_tokens.as_slice())
+            {
+                continue;
+            }
+            match best {
+                Some(current) if current.prompt_tokens.len() >= entry.prompt_tokens.len() => {}
+                _ => best = Some(entry),
+            }
+        }
+        if let Some(entry) = best {
+            return Qwen35PrefixLookupResult {
+                state: PrefixCacheState::Hit,
+                reused_tokens: entry.prompt_tokens.len(),
+                identity: Some(crate::prefix_identity(
+                    compatibility,
+                    entry.prompt_tokens.as_slice(),
+                )),
+                entry: Some(entry.clone()),
+                refusal_reason: None,
+                invalidation_trigger: None,
+            };
+        }
+        if !self.entries.is_empty()
+            && let Some(refusal_reason) = self.boundary_refusal_reason(compatibility, prompt_tokens)
+        {
+            let mut result = Self::empty_lookup(PrefixCacheState::Bypassed);
+            result.refusal_reason = Some(refusal_reason);
+            return result;
+        }
+        Self::empty_lookup(if self.entries.is_empty() {
+            PrefixCacheState::None
+        } else {
+            PrefixCacheState::Miss
+        })
+    }
+
+    fn controlled_lookup(
+        &mut self,
+        compatibility: &crate::SharedPrefixCompatibility,
+        prompt_tokens: &TokenSequence,
+        output_mode: CudaStepOutputMode,
+        request: &GenerationRequest,
+    ) -> Qwen35PrefixLookupResult {
+        match request.prefix_cache_control.mode {
+            PrefixCacheMode::Auto => self.lookup(compatibility, prompt_tokens, output_mode),
+            PrefixCacheMode::Bypass => {
+                let mut result = Self::empty_lookup(PrefixCacheState::Bypassed);
+                result.refusal_reason = Some(PrefixCacheRefusalReason::RequestOptOut);
+                result
+            }
+            PrefixCacheMode::Invalidate => {
+                let _ = self.invalidate(compatibility, prompt_tokens);
+                let mut result = Self::empty_lookup(PrefixCacheState::Rebuilt);
+                result.refusal_reason = Some(PrefixCacheRefusalReason::ForcedInvalidation);
+                result.invalidation_trigger = Some(CacheInvalidationTrigger::ExplicitReset);
+                result
+            }
+        }
+    }
+
+    fn record(
+        &mut self,
+        compatibility: crate::SharedPrefixCompatibility,
+        prompt_tokens: &TokenSequence,
+        output_mode: CudaStepOutputMode,
+        state: &Qwen35State,
+        last_logits: &[f32],
+        pending_greedy_token: Option<TokenId>,
+        last_candidates: Option<&Qwen35CudaTopKCandidates>,
+    ) -> PrefixCacheIdentity {
+        let identity = crate::prefix_identity(&compatibility, prompt_tokens.as_slice());
+        if let Some(existing) = self.entries.iter_mut().find(|entry| {
+            entry.compatibility == compatibility
+                && entry.output_mode == output_mode
+                && entry.prompt_tokens.as_slice() == prompt_tokens.as_slice()
+        }) {
+            existing.state = state.clone();
+            existing.last_logits = last_logits.to_vec();
+            existing.pending_greedy_token = pending_greedy_token;
+            existing.last_candidates = last_candidates.cloned();
+        } else {
+            self.entries.push(Qwen35SharedPrefixEntry {
+                compatibility,
+                prompt_tokens: prompt_tokens.clone(),
+                output_mode,
+                state: state.clone(),
+                last_logits: last_logits.to_vec(),
+                pending_greedy_token,
+                last_candidates: last_candidates.cloned(),
+            });
+        }
+        identity
+    }
+}
+
+fn qwen35_prefix_compatibility_for_request(
+    descriptor: &DecoderModelDescriptor,
+    request: &GenerationRequest,
+) -> crate::SharedPrefixCompatibility {
+    let served_artifact =
+        crate::served_artifact_identity_for_decoder_backend(descriptor, "cuda", &[]);
+    let policy = crate::default_prefix_cache_policy();
+    crate::SharedPrefixCompatibility {
+        served_artifact_digest: served_artifact.served_artifact_digest,
+        model_id: descriptor.model.model_id.clone(),
+        model_revision: descriptor.model.revision.clone(),
+        weight_bundle_digest: descriptor.weights.digest.clone(),
+        tokenizer_family: descriptor.tokenizer_family.clone(),
+        tokenizer_digest: descriptor
+            .artifact_identity
+            .as_ref()
+            .and_then(|value| value.tokenizer_digest.clone()),
+        chat_template_digest: descriptor
+            .artifact_identity
+            .as_ref()
+            .and_then(|value| value.chat_template_digest.clone()),
+        generation_defaults_digest: descriptor
+            .artifact_identity
+            .as_ref()
+            .map(|value| value.generation_defaults_digest.clone()),
+        backend_compatibility: String::from("cuda"),
+        tenant_id: crate::prefix_cache_tenant_id(request, &policy),
+        sampler_digest: crate::prefix_cache_sampler_digest(request, &policy),
     }
 }
 
