@@ -8,6 +8,9 @@
   },
   "environment": {
     "git_head_before_fix": "f91c8844f55312dca5e0c14dd06bd5d11bac89d3",
+    "psionic_git_head_benchmark": "f91c8844f55312dca5e0c14dd06bd5d11bac89d3",
+    "psionic_git_head_include_fallback_fix": "6fe574147b182b4d828b888c68791d82191b7e09",
+    "ollama_version": "0.17.7",
     "kernel": "Linux 6.17.0-19-generic x86_64 GNU/Linux",
     "gpu": {
       "name": "NVIDIA GeForce RTX 4070 Laptop GPU",

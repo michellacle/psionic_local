@@ -5,6 +5,9 @@ This one-page summary is generated from:
 - `fixtures/qwen35/benchmarks/qwen35_ollama_matrix_20260328_124310_rtx4070_laptop_8gb.json`
 - run id: `qwen35_full_benchmark_20260328_124310`
 - host: `NVIDIA GeForce RTX 4070 Laptop GPU` (8 GB), current power limit `55W` (max `90W`)
+- Psionic benchmark checkout commit: `f91c8844f55312dca5e0c14dd06bd5d11bac89d3`
+- Psionic compatibility-fix commit used after this run: `6fe574147b182b4d828b888c68791d82191b7e09`
+- Ollama version: `0.17.7`
 
 ## Executive Summary
 
@@ -28,6 +31,20 @@ This one-page summary is generated from:
 | `sampled_topk100` | `qwen3.5:2b` | 96.94 | 87.72 | 1.11x | 42/44 | ahead; token-count mismatch |
 | `sampled_topk100` | `qwen3.5:4b` | 57.56 | 59.87 | 0.96x | 128/47 | behind; token-count mismatch |
 | `sampled_topk100` | `qwen3.5:9b` | 33.14 | 24.59 | 1.35x | 23/37 | ahead; token-count mismatch |
+
+## Code Changes and Why
+
+- `crates/psionic-backend-cuda/src/kernels/quantized_matvec.cu`:
+  added a compile-time include fallback for CUB headers.
+- Why: local CUDA header layouts differ across hosts (`cccl/cub/...` vs
+  `cub/...`). After reverting earlier agent edits, this fallback was required
+  to restore successful CUDA builds without forcing one include layout.
+- Effect: no benchmark algorithm change was introduced by this patch; it is a
+  portability/compile-compatibility fix so the benchmark runner can execute on
+  this machine.
+- Benchmark artifact added: `fixtures/qwen35/benchmarks/qwen35_ollama_matrix_20260328_124310_rtx4070_laptop_8gb.json`.
+- Report and graph bundle added:
+  `fixtures/qwen35/benchmarks/reports/qwen35_ollama_20260328_rtx4070_8gb/`.
 
 ## Graphs
 
