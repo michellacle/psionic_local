@@ -8,6 +8,7 @@ runner_path="${script_dir}/run-parameter-golf-homegolf-local-cuda.sh"
 wait_for_run_root=""
 poll_seconds="60"
 sync_main="1"
+wait_for_pid_file="0"
 runner_args=()
 
 usage() {
@@ -17,6 +18,7 @@ Usage: scripts/queue-parameter-golf-homegolf-local-cuda.sh [queue-options] -- [r
 Queue options:
   --wait-for-run-root <path>            Existing HOMEGOLF output root whose trainer pid gates launch.
   --poll-seconds <n>                    Poll interval while waiting. Default: 60
+  --wait-for-pid-file                   Wait until <run-root>/train.pid exists before waiting on its process.
   --skip-sync-main                      Do not add --sync-main when launching the runner.
   --help|-h                             Show this help text.
 
@@ -47,6 +49,10 @@ while [[ $# -gt 0 ]]; do
     --poll-seconds)
       poll_seconds="$2"
       shift 2
+      ;;
+    --wait-for-pid-file)
+      wait_for_pid_file="1"
+      shift
       ;;
     --skip-sync-main)
       sync_main="0"
@@ -88,6 +94,14 @@ train_pid_path="${wait_for_run_root}/train.pid"
 
 echo "queue_wait_root=${wait_for_run_root}"
 echo "queue_poll_seconds=${poll_seconds}"
+echo "queue_wait_for_pid_file=${wait_for_pid_file}"
+
+if [[ "${wait_for_pid_file}" == "1" ]]; then
+  while [[ ! -f "${train_pid_path}" ]]; do
+    echo "queue_waiting_for_pid_file timestamp=$(date -Is) path=${train_pid_path}"
+    sleep "${poll_seconds}"
+  done
+fi
 
 if [[ -f "${train_pid_path}" ]]; then
   train_pid="$(cat "${train_pid_path}")"
