@@ -1,0 +1,232 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+repo_root="$(cd -- "${script_dir}/.." && pwd)"
+
+run_id=""
+output_root=""
+dataset_root="${HOME}/code/parameter-golf/data/datasets/fineweb10B_sp1024"
+tokenizer_path="${HOME}/code/parameter-golf/data/tokenizers/fineweb_1024_bpe.model"
+tmpdir="${HOME}/scratch/tmp"
+cargo_target_dir="${repo_root}/target"
+binary_path=""
+max_steps=""
+final_validation_mode="roundtrip_only"
+validation_eval_mode="non_overlapping"
+background="0"
+sync_main="0"
+allow_dirty="0"
+trainer_args=()
+
+usage() {
+  cat <<'EOF' >&2
+Usage: scripts/run-parameter-golf-homegolf-local-cuda.sh [options]
+
+Options:
+  --run-id <id>                         Stable run identifier.
+  --output-root <path>                  Output root. Default: ~/scratch/psionic_homegolf_runs/<run_id>
+  --dataset-root <path>                 FineWeb dataset root.
+  --tokenizer-path <path>               Tokenizer path.
+  --tmpdir <path>                       Scratch TMPDIR for rustc and trainer temp files.
+  --cargo-target-dir <path>             Cargo target dir when running through cargo.
+  --binary-path <path>                  Use an existing trainer binary instead of cargo.
+  --max-steps <n>                       Optional bounded max-steps override.
+  --final-validation-mode <mode>        Final validation mode. Default: roundtrip_only
+  --validation-eval-mode <mode>         Validation eval mode. Default: non_overlapping
+  --trainer-arg <arg>                   Extra trailing trainer arg. Repeatable.
+  --background                          Launch in background and write a pid file.
+  --sync-main                           Run git pull --ff-only before launch.
+  --allow-dirty                         Skip the clean-worktree refusal.
+  --help|-h                             Show this help text.
+EOF
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --run-id)
+      run_id="$2"
+      shift 2
+      ;;
+    --output-root)
+      output_root="$2"
+      shift 2
+      ;;
+    --dataset-root)
+      dataset_root="$2"
+      shift 2
+      ;;
+    --tokenizer-path)
+      tokenizer_path="$2"
+      shift 2
+      ;;
+    --tmpdir)
+      tmpdir="$2"
+      shift 2
+      ;;
+    --cargo-target-dir)
+      cargo_target_dir="$2"
+      shift 2
+      ;;
+    --binary-path)
+      binary_path="$2"
+      shift 2
+      ;;
+    --max-steps)
+      max_steps="$2"
+      shift 2
+      ;;
+    --final-validation-mode)
+      final_validation_mode="$2"
+      shift 2
+      ;;
+    --validation-eval-mode)
+      validation_eval_mode="$2"
+      shift 2
+      ;;
+    --trainer-arg)
+      trainer_args+=("$2")
+      shift 2
+      ;;
+    --background)
+      background="1"
+      shift
+      ;;
+    --sync-main)
+      sync_main="1"
+      shift
+      ;;
+    --allow-dirty)
+      allow_dirty="1"
+      shift
+      ;;
+    --help|-h)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "error: unknown argument $1" >&2
+      usage
+      exit 1
+      ;;
+  esac
+done
+
+if [[ -z "${run_id}" ]]; then
+  run_id="homegolf-local-cuda-$(date -u +%Y%m%dT%H%M%SZ)"
+fi
+
+if [[ -z "${output_root}" ]]; then
+  output_root="${HOME}/scratch/psionic_homegolf_runs/${run_id}"
+fi
+
+mkdir -p "${output_root}" "${tmpdir}"
+
+status_branch="$(git -C "${repo_root}" status --short --branch)"
+current_branch="$(git -C "${repo_root}" rev-parse --abbrev-ref HEAD)"
+if [[ "${current_branch}" != "main" ]]; then
+  echo "error: HOMEGOLF local CUDA runner requires branch main, found ${current_branch}" >&2
+  exit 1
+fi
+if [[ "${allow_dirty}" != "1" ]] && [[ -n "$(git -C "${repo_root}" status --porcelain)" ]]; then
+  echo "error: HOMEGOLF local CUDA runner requires a clean worktree" >&2
+  echo "${status_branch}" >&2
+  exit 1
+fi
+
+if [[ "${sync_main}" == "1" ]]; then
+  git -C "${repo_root}" pull --ff-only
+  status_branch="$(git -C "${repo_root}" status --short --branch)"
+fi
+
+if [[ ! -d "${dataset_root}" ]]; then
+  echo "error: dataset root ${dataset_root} does not exist" >&2
+  exit 1
+fi
+if [[ ! -f "${tokenizer_path}" ]]; then
+  echo "error: tokenizer path ${tokenizer_path} does not exist" >&2
+  exit 1
+fi
+
+report_path="${output_root}/training_report.json"
+log_path="${output_root}/train.log"
+pid_path="${output_root}/train.pid"
+launch_env_path="${output_root}/launch.env"
+
+trainer_command=()
+executor_label="cargo"
+if [[ -n "${binary_path}" ]]; then
+  if [[ ! -x "${binary_path}" ]]; then
+    echo "error: binary path ${binary_path} is not executable" >&2
+    exit 1
+  fi
+  executor_label="binary"
+  trainer_command=("${binary_path}")
+else
+  trainer_command=(
+    cargo
+    run
+    -q
+    -p
+    psionic-train
+    --bin
+    parameter_golf_homegolf_single_cuda_train
+    --
+  )
+fi
+
+trainer_command+=("${dataset_root}" "${tokenizer_path}" "${report_path}")
+if [[ -n "${max_steps}" ]]; then
+  trainer_command+=("${max_steps}")
+fi
+trainer_command+=("${final_validation_mode}" "${validation_eval_mode}")
+if [[ ${#trainer_args[@]} -gt 0 ]]; then
+  trainer_command+=("${trainer_args[@]}")
+fi
+
+printf 'RUN_ID=%q\n' "${run_id}" > "${launch_env_path}"
+printf 'REPO_ROOT=%q\n' "${repo_root}" >> "${launch_env_path}"
+printf 'STATUS_BRANCH=%q\n' "${status_branch}" >> "${launch_env_path}"
+printf 'TMPDIR=%q\n' "${tmpdir}" >> "${launch_env_path}"
+printf 'CARGO_TARGET_DIR=%q\n' "${cargo_target_dir}" >> "${launch_env_path}"
+printf 'OUTPUT_ROOT=%q\n' "${output_root}" >> "${launch_env_path}"
+printf 'REPORT_PATH=%q\n' "${report_path}" >> "${launch_env_path}"
+printf 'LOG_PATH=%q\n' "${log_path}" >> "${launch_env_path}"
+printf 'EXECUTOR=%q\n' "${executor_label}" >> "${launch_env_path}"
+printf 'DATASET_ROOT=%q\n' "${dataset_root}" >> "${launch_env_path}"
+printf 'TOKENIZER_PATH=%q\n' "${tokenizer_path}" >> "${launch_env_path}"
+printf 'FINAL_VALIDATION_MODE=%q\n' "${final_validation_mode}" >> "${launch_env_path}"
+printf 'VALIDATION_EVAL_MODE=%q\n' "${validation_eval_mode}" >> "${launch_env_path}"
+if [[ -n "${max_steps}" ]]; then
+  printf 'MAX_STEPS=%q\n' "${max_steps}" >> "${launch_env_path}"
+fi
+if [[ -n "${binary_path}" ]]; then
+  printf 'BINARY_PATH=%q\n' "${binary_path}" >> "${launch_env_path}"
+fi
+
+run_trainer() {
+  cd "${repo_root}"
+  TMPDIR="${tmpdir}" \
+  CARGO_TARGET_DIR="${cargo_target_dir}" \
+    "${trainer_command[@]}"
+}
+
+if [[ "${background}" == "1" ]]; then
+  run_trainer >"${log_path}" 2>&1 &
+  trainer_pid=$!
+  printf '%s\n' "${trainer_pid}" > "${pid_path}"
+  echo "run_id=${run_id}"
+  echo "executor=${executor_label}"
+  echo "status=launched_background"
+  echo "repo_root=${repo_root}"
+  echo "output_root=${output_root}"
+  echo "report_path=${report_path}"
+  echo "log_path=${log_path}"
+  echo "pid_path=${pid_path}"
+  echo "tmpdir=${tmpdir}"
+  echo "cargo_target_dir=${cargo_target_dir}"
+  echo "pid=${trainer_pid}"
+  exit 0
+fi
+
+run_trainer 2>&1 | tee "${log_path}"

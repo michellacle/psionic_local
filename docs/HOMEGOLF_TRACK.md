@@ -185,6 +185,16 @@ What is true now:
   - `PSIONIC_PARAMETER_GOLF_DISABLE_SCORE_FIRST_TTT=1`
   - `PSIONIC_PARAMETER_GOLF_FINAL_MODEL_SURFACE=raw|ema|swa`
   - `PSIONIC_PARAMETER_GOLF_SWA_EVERY_STEPS=<n>`
+- the local HOMEGOLF CUDA lane now also has one repo-owned scratch-first
+  operator wrapper:
+  - `scripts/run-parameter-golf-homegolf-local-cuda.sh`
+- that wrapper refuses dirty non-`main` launches by default, can fast-forward
+  clean `main`, writes reports and logs under
+  `~/scratch/psionic_homegolf_runs/<run_id>`, and keeps `TMPDIR` off `/tmp`
+- that matters because the latest live `archlinux` rerun attempts exposed
+  quota-sensitive failures on the older ad-hoc `/tmp` posture even though the
+  reachable local CUDA lane itself is still valid for bounded and long-closeout
+  work
 - that matters because the retained competitive defaults still enable
   leaderboard-style score-first TTT and `final_model_surface=swa` with the
   default `every_steps=50`, which can waste or under-sample the local `600`
