@@ -107,6 +107,8 @@ than just run tensor math.
   - request-level `parallel_tool_calls`
   - ordered machine-readable `message.tool_calls`
   - streamed `delta.tool_calls` with ordered per-call indexes
+  - `/v1/responses` prompt-replay state continuation across assistant tool
+    turns and replayed `role = tool` results
   - JSON-schema-subset argument validation
   - proxy `qwen35` still fails closed for tool calling
 - The first `qwen35` lane must still fail closed for system-message image and

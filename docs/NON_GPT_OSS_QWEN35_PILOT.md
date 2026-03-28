@@ -25,7 +25,13 @@ Psionic currently supports this row through a bounded native `qwen35` CUDA lane:
 - image and video inputs are accepted through prompt projection onto the real
   `qwen35` marker surface
 - the row publishes truthful prompt-projection posture for multimodal inputs
-- the row still refuses tools
+- bounded native tool calling is now supported on the generic
+  OpenAI-compatible surface:
+  - `/v1/chat/completions` with `none`, `auto`, `required`, named tool choice,
+    ordered `tool_calls`, request-level `parallel_tool_calls`, and streamed
+    `delta.tool_calls`
+  - `/v1/responses` with prompt-replay response state across assistant tool
+    turns and replayed `role = tool` result messages
 - structured outputs are supported on the native lane through a bounded
   `top_k_candidates:128` path for greedy no-penalty requests, with exact sparse
   allowed-logit gather on candidate misses
@@ -83,6 +89,8 @@ The runner executes two evidence layers:
    - generic-server publication and request execution
    - `/v1/chat/completions` image and video projection through real Qwen markers
    - `/v1/responses` image projection through the same prompt surface
+   - dedicated `/v1/responses` tool-loop replay coverage through
+     `scripts/release/check-psionic-qwen35-responses-tool-loop-pilot.sh`
    - system-message media refusal that matches the real template rules
 
 ## Pass Criteria
@@ -107,6 +115,10 @@ The pilot is green only if all of the following remain true:
   `/v1/responses`
 - the generic server still accepts image and video request parts through prompt
   projection on `/v1/chat/completions` and `/v1/responses`
+- the dedicated qwen35 responses tool-loop pilot still proves:
+  - a stored qwen35 tool-call turn on `/v1/responses`
+  - replay of a `role = tool` message without flattening away the tool name
+  - a final assistant continuation after the replayed tool result
 - the generic server still refuses system-message image and video parts to stay
   aligned with the real template semantics
 
@@ -121,6 +133,9 @@ The pilot is intentionally bounded:
   `/v1/chat/completions` with `none`, `auto`, `required`, and named tool
   choice, ordered `tool_calls`, request-level `parallel_tool_calls`, and
   streamed `delta.tool_calls`
+- it now claims bounded prompt-replay qwen35 tool-loop continuation on
+  `/v1/responses`; the dedicated pilot is recorded in
+  `docs/QWEN35_RESPONSES_TOOL_LOOP_PILOT.md`
 - it does not claim full structured-output acceleration; the bounded native
   lane is still limited to greedy no-penalty requests and the wider surface can
   still fall back to explicit dense `raw_logits`

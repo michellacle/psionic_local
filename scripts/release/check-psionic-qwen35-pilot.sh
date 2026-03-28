@@ -15,4 +15,5 @@ fi
 export PSIONIC_QWEN35_PILOT_GGUF_PATH="$model_path"
 
 cargo test -p psionic-models qwen35 -- --test-threads=1
-cargo test -p psionic-serve qwen35 -- --test-threads=1
+cargo test -p psionic-serve --lib qwen35 -- --test-threads=1
+scripts/release/check-psionic-qwen35-responses-tool-loop-pilot.sh

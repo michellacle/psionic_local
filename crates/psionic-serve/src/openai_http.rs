@@ -5730,7 +5730,8 @@ mod tests {
         generic_embeddings, generic_health, generic_list_models, gpt_oss_local_serving_truth,
         handle_generic_chat_completions, handle_generic_responses,
         insert_local_serving_truth_headers, prompt_request_cache_key, render_prompt_for_model,
-        resolve_execution_summary, resolve_generic_model, responses_output_items,
+        resolve_execution_summary, resolve_generic_model, resolve_generic_model_for_endpoint,
+        response_input_to_prompt_messages_with_options, responses_output_items,
         surfaced_reasoning_response, tool_loop_tool_call_from_resolved, tool_result_prompt_message,
     };
     use crate::{
@@ -5752,10 +5753,10 @@ mod tests {
         parse_gpt_oss_harmony_text, render_gpt_oss_harmony_prompt,
     };
     use psionic_router::{
-        ResponseStateRetentionPolicy, ResponseStateStore, ToolExecutionRequest, ToolGateway,
-        ToolHistoryVisibility, ToolLoopController, ToolLoopError, ToolLoopModelRunner,
-        ToolLoopModelTurn, ToolLoopRequest, ToolLoopToolExecutor, ToolLoopToolResult,
-        ToolProviderDescriptor, ToolResultVisibility,
+        ResponseStateRecord, ResponseStateRetentionPolicy, ResponseStateStore,
+        ToolExecutionRequest, ToolGateway, ToolHistoryVisibility, ToolLoopController,
+        ToolLoopError, ToolLoopModelRunner, ToolLoopModelTurn, ToolLoopRequest,
+        ToolLoopToolExecutor, ToolLoopToolResult, ToolProviderDescriptor, ToolResultVisibility,
     };
     use psionic_runtime::{
         BatchExecutionPosture, PrefixCacheControl, PrefixCacheMode, QueueDiscipline,
@@ -7794,6 +7795,383 @@ mod tests {
         }));
 
         let _ = shutdown_tx.send(());
+        Ok(())
+    }
+
+    #[test]
+    fn generic_responses_qwen35_tool_result_messages_preserve_role_and_name_through_prompt_conversion()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let backend = psionic_backend_cuda::CudaBackend::new();
+        if !backend.quantized_kernels_available() {
+            return Ok(());
+        }
+
+        let temp = tempfile::tempdir()?;
+        let qwen35_path = temp.path().join("tiny-qwen35-response-prompt-replay.gguf");
+        write_test_gguf(
+            &qwen35_path,
+            qwen35_native_full_attention_decoder_metadata_with_tokens(
+                "tiny native qwen35 response prompt replay",
+                vec![
+                    "<|bos|>",
+                    "<|eos|>",
+                    "<|im_start|>",
+                    "<|im_end|>",
+                    "<think>",
+                    "</think>",
+                    "hello",
+                    "{\"kind\":\"tool_calls\",\"tool_calls\":[{\"name\":\"get_weather\",\"arguments\":{\"latitude\":48.8566,\"longitude\":2.3522}}]}",
+                    "Tomorrow will also be sunny.",
+                    "{\"forecast\":\"sunny\",\"tomorrow\":\"sunny\"}",
+                    "what about tomorrow?",
+                ],
+            )
+            .as_slice(),
+            qwen35_native_full_attention_decoder_tensors_with_vocab(11).as_slice(),
+        )?;
+
+        let mut config = OpenAiCompatConfig::new(&qwen35_path);
+        config.backend = OpenAiCompatBackend::Cuda;
+        let server = OpenAiCompatServer::from_config(&config)?;
+        let route = resolve_generic_model_for_endpoint(
+            server.state.as_ref(),
+            Some("tiny-qwen35-response-prompt-replay"),
+            RoutingEndpoint::Responses,
+            RoutingRequest::new(RoutingEndpoint::Responses).require_response_state(),
+        )?;
+        let model = route
+            .loaded_model
+            .decoder()
+            .expect("response route should resolve a decoder");
+        let prompt = response_input_to_prompt_messages_with_options(
+            &ResponsesRequest {
+                model: Some(String::from("tiny-qwen35-response-prompt-replay")),
+                instructions: None,
+                conversation: None,
+                input: ResponsesInput::Messages(vec![
+                    ChatCompletionMessage::text(
+                        "assistant",
+                        "{\"kind\":\"tool_calls\",\"tool_calls\":[{\"name\":\"get_weather\",\"arguments\":{\"latitude\":48.8566,\"longitude\":2.3522}}]}",
+                    ),
+                    ChatCompletionMessage::named_text(
+                        "tool",
+                        "{\"forecast\":\"sunny\",\"tomorrow\":\"sunny\"}",
+                        "get_weather",
+                    ),
+                    ChatCompletionMessage::text("user", "what about tomorrow?"),
+                ]),
+                temperature: Some(0.0),
+                max_output_tokens: Some(1),
+                stop: None,
+                stream: false,
+                tools: Vec::new(),
+                tool_choice: None,
+                previous_response_id: None,
+                psionic_structured_output: None,
+                psionic_reasoning: None,
+                psionic_response_state: None,
+                psionic_prefix_cache: None,
+                ..Default::default()
+            },
+            model,
+            false,
+            false,
+        )?;
+        assert_eq!(prompt.len(), 3);
+        assert_eq!(prompt[0].role, PromptMessageRole::Assistant);
+        assert_eq!(
+            prompt[0].content,
+            "{\"kind\":\"tool_calls\",\"tool_calls\":[{\"name\":\"get_weather\",\"arguments\":{\"latitude\":48.8566,\"longitude\":2.3522}}]}"
+        );
+        assert_eq!(prompt[1].role, PromptMessageRole::Tool);
+        assert_eq!(prompt[1].author_name.as_deref(), Some("get_weather"));
+        assert_eq!(
+            prompt[1].content,
+            "{\"forecast\":\"sunny\",\"tomorrow\":\"sunny\"}"
+        );
+        assert_eq!(prompt[2].role, PromptMessageRole::User);
+        assert_eq!(prompt[2].content, "what about tomorrow?");
+        Ok(())
+    }
+
+    #[test]
+    fn generic_responses_native_qwen35_tool_turn_stores_replayable_response_state()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let backend = psionic_backend_cuda::CudaBackend::new();
+        if !backend.quantized_kernels_available() {
+            return Ok(());
+        }
+
+        let tool_call_json = "{\"kind\":\"tool_calls\",\"tool_calls\":[{\"name\":\"get_weather\",\"arguments\":{\"latitude\":48.8566,\"longitude\":2.3522}}]}";
+        let temp = tempfile::tempdir()?;
+        let qwen35_path = temp.path().join("tiny-qwen35-response-tool-turn.gguf");
+        write_test_gguf(
+            &qwen35_path,
+            qwen35_native_full_attention_decoder_metadata_with_tokens(
+                "tiny native qwen35 response tool turn",
+                vec![
+                    "<|bos|>",
+                    "<|eos|>",
+                    "<|im_start|>",
+                    "<|im_end|>",
+                    "<think>",
+                    "</think>",
+                    "hello",
+                    tool_call_json,
+                    "Tomorrow will also be sunny.",
+                ],
+            )
+            .as_slice(),
+            qwen35_native_full_attention_decoder_tensors_with_vocab(9).as_slice(),
+        )?;
+
+        let mut config = OpenAiCompatConfig::new(&qwen35_path);
+        config.backend = OpenAiCompatBackend::Cuda;
+        let server = OpenAiCompatServer::from_config(&config)?;
+        let runtime = tokio::runtime::Runtime::new()?;
+
+        let response = runtime.block_on(handle_generic_responses(
+            std::sync::Arc::clone(&server.state),
+            ResponsesRequest {
+                model: Some(String::from("tiny-qwen35-response-tool-turn")),
+                instructions: None,
+                conversation: None,
+                input: ResponsesInput::Text(String::from("hello")),
+                temperature: Some(0.0),
+                max_output_tokens: Some(1),
+                stop: None,
+                stream: false,
+                tools: vec![weather_tool_definition()],
+                tool_choice: Some(ToolChoiceRequest::Mode(String::from("required"))),
+                parallel_tool_calls: Some(false),
+                previous_response_id: None,
+                psionic_structured_output: None,
+                psionic_reasoning: None,
+                psionic_response_state: None,
+                psionic_prefix_cache: None,
+                ..Default::default()
+            },
+        ))?;
+        let payload = runtime.block_on(response_json(response))?;
+        assert_eq!(payload["output_text"], serde_json::json!(""));
+        assert_eq!(
+            payload["psionic_tool_calls"][0]["name"],
+            serde_json::json!("get_weather")
+        );
+        assert_eq!(
+            payload["psionic_response_state"]["stored"],
+            serde_json::json!(true)
+        );
+        let response_id = payload["id"]
+            .as_str()
+            .expect("stored qwen response id should be present")
+            .to_string();
+        let stored_context = server
+            .state
+            .response_state
+            .lock()
+            .expect("response-state store should be readable")
+            .load_context(Some(response_id.as_str()), None)?;
+        assert_eq!(
+            stored_context.model_key.as_deref(),
+            Some(server.state.default_model_key.as_str())
+        );
+        assert_eq!(stored_context.prompt_history.len(), 2);
+        assert_eq!(
+            stored_context.prompt_history[0].role,
+            PromptMessageRole::User
+        );
+        assert_eq!(stored_context.prompt_history[0].content, "hello");
+        assert_eq!(
+            stored_context.prompt_history[1].role,
+            PromptMessageRole::Assistant
+        );
+        assert_eq!(stored_context.prompt_history[1].content, tool_call_json);
+        Ok(())
+    }
+
+    #[test]
+    fn generic_responses_native_qwen35_tool_result_replay_reaches_final_assistant_answer()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let backend = psionic_backend_cuda::CudaBackend::new();
+        if !backend.quantized_kernels_available() {
+            return Ok(());
+        }
+
+        let tool_call_json = "{\"kind\":\"tool_calls\",\"tool_calls\":[{\"name\":\"get_weather\",\"arguments\":{\"latitude\":48.8566,\"longitude\":2.3522}}]}";
+        let tool_result_json = "{\"forecast\":\"sunny\",\"tomorrow\":\"sunny\"}";
+        let final_answer = "Tomorrow will also be sunny.";
+
+        let temp = tempfile::tempdir()?;
+        let qwen35_tool_path = temp.path().join("tiny-qwen35-response-tool-source.gguf");
+        write_test_gguf(
+            &qwen35_tool_path,
+            qwen35_native_full_attention_decoder_metadata_with_tokens(
+                "tiny native qwen35 response tool source",
+                vec![
+                    "<|bos|>",
+                    "<|eos|>",
+                    "<|im_start|>",
+                    "<|im_end|>",
+                    "<think>",
+                    "</think>",
+                    "hello",
+                    tool_call_json,
+                    final_answer,
+                ],
+            )
+            .as_slice(),
+            qwen35_native_full_attention_decoder_tensors_with_vocab(9).as_slice(),
+        )?;
+
+        let mut tool_config = OpenAiCompatConfig::new(&qwen35_tool_path);
+        tool_config.backend = OpenAiCompatBackend::Cuda;
+        let tool_server = OpenAiCompatServer::from_config(&tool_config)?;
+        let runtime = tokio::runtime::Runtime::new()?;
+
+        let first_response = runtime.block_on(handle_generic_responses(
+            std::sync::Arc::clone(&tool_server.state),
+            ResponsesRequest {
+                model: Some(String::from("tiny-qwen35-response-tool-source")),
+                instructions: None,
+                conversation: None,
+                input: ResponsesInput::Text(String::from("hello")),
+                temperature: Some(0.0),
+                max_output_tokens: Some(1),
+                stop: None,
+                stream: false,
+                tools: vec![weather_tool_definition()],
+                tool_choice: Some(ToolChoiceRequest::Mode(String::from("required"))),
+                parallel_tool_calls: Some(false),
+                previous_response_id: None,
+                psionic_structured_output: None,
+                psionic_reasoning: None,
+                psionic_response_state: None,
+                psionic_prefix_cache: None,
+                ..Default::default()
+            },
+        ))?;
+        let first_payload = runtime.block_on(response_json(first_response))?;
+        let first_response_id = first_payload["id"]
+            .as_str()
+            .expect("tool-turn qwen response id should be present")
+            .to_string();
+        let first_context = tool_server
+            .state
+            .response_state
+            .lock()
+            .expect("source response-state store should be readable")
+            .load_context(Some(first_response_id.as_str()), None)?;
+
+        let qwen35_final_path = temp.path().join("tiny-qwen35-response-final-answer.gguf");
+        write_test_gguf(
+            &qwen35_final_path,
+            qwen35_native_full_attention_decoder_metadata_with_tokens(
+                "tiny native qwen35 response final answer",
+                vec![
+                    "<|bos|>",
+                    "<|eos|>",
+                    "<|im_start|>",
+                    "<|im_end|>",
+                    "<think>",
+                    "</think>",
+                    "hello",
+                    final_answer,
+                    tool_result_json,
+                    "what about tomorrow?",
+                ],
+            )
+            .as_slice(),
+            qwen35_native_full_attention_decoder_tensors_with_vocab(10).as_slice(),
+        )?;
+
+        let mut final_config = OpenAiCompatConfig::new(&qwen35_final_path);
+        final_config.backend = OpenAiCompatBackend::Cuda;
+        let final_server = OpenAiCompatServer::from_config(&final_config)?;
+        let seeded_conversation_id = String::from("conv-qwen35-tool-loop");
+        let seeded_response_id = String::from("resp-qwen35-tool-loop-seeded");
+        let mut seeded_prompt_history = first_context.prompt_history.clone();
+        seeded_prompt_history.push(tool_result_prompt_message("get_weather", tool_result_json));
+        final_server
+            .state
+            .response_state
+            .lock()
+            .expect("final response-state store should be writable")
+            .record_response(ResponseStateRecord {
+                response_id: seeded_response_id.clone(),
+                model_key: final_server.state.default_model_key.clone(),
+                worker_id: String::from(super::OPENAI_COMPAT_WORKER_ID),
+                conversation_id: Some(seeded_conversation_id.clone()),
+                prompt_history: seeded_prompt_history,
+            })?;
+
+        let continued_response = runtime.block_on(handle_generic_responses(
+            std::sync::Arc::clone(&final_server.state),
+            ResponsesRequest {
+                model: None,
+                instructions: None,
+                conversation: Some(seeded_conversation_id.clone()),
+                input: ResponsesInput::Text(String::from("what about tomorrow?")),
+                temperature: Some(0.0),
+                max_output_tokens: Some(1),
+                stop: None,
+                stream: false,
+                tools: Vec::new(),
+                tool_choice: None,
+                previous_response_id: None,
+                psionic_structured_output: None,
+                psionic_reasoning: None,
+                psionic_response_state: None,
+                psionic_prefix_cache: None,
+                ..Default::default()
+            },
+        ))?;
+        let continued_payload = runtime.block_on(response_json(continued_response))?;
+        assert_eq!(
+            continued_payload["output_text"],
+            serde_json::json!(final_answer)
+        );
+        assert_eq!(
+            continued_payload["previous_response_id"],
+            serde_json::json!(seeded_response_id)
+        );
+        assert_eq!(
+            continued_payload["conversation"]["id"],
+            serde_json::json!(seeded_conversation_id)
+        );
+        assert_eq!(
+            continued_payload["conversation"]["revision"],
+            serde_json::json!(2)
+        );
+        assert!(
+            continued_payload["psionic_response_state"]["replayed_prompt_messages"]
+                .as_u64()
+                .is_some_and(|count| count >= 3)
+        );
+
+        let continued_response_id = continued_payload["id"]
+            .as_str()
+            .expect("continued qwen response id should be present")
+            .to_string();
+        let continued_context = final_server
+            .state
+            .response_state
+            .lock()
+            .expect("continued response-state store should be readable")
+            .load_context(Some(continued_response_id.as_str()), None)?;
+        assert!(continued_context.prompt_history.iter().any(|message| {
+            message.role == PromptMessageRole::Tool
+                && message.author_name.as_deref() == Some("get_weather")
+                && message.content == tool_result_json
+        }));
+        assert_eq!(
+            continued_context
+                .prompt_history
+                .last()
+                .expect("continued history should end with an assistant turn")
+                .content,
+            final_answer
+        );
         Ok(())
     }
 
