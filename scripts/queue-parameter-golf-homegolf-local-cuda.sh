@@ -31,8 +31,10 @@ Example:
     --challenge-max-steps 2 \
     --grad-clip-norm 1.0 \
     --learning-rate-scale 0.75 \
+    --final-validation-mode artifact_only \
     --background \
-    --attach-prompt-closeout
+    --attach-prompt-closeout \
+    --attach-detached-score-closeout
 EOF
 }
 

@@ -633,6 +633,7 @@ pub enum ParameterGolfSingleH100TrainingDisposition {
 pub enum ParameterGolfSingleH100ValidationMode {
     LiveOnly,
     RoundtripOnly,
+    ArtifactOnly,
     #[default]
     Both,
 }
@@ -643,10 +644,11 @@ impl ParameterGolfSingleH100ValidationMode {
         match value {
             "live_only" => Ok(Self::LiveOnly),
             "roundtrip_only" => Ok(Self::RoundtripOnly),
+            "artifact_only" => Ok(Self::ArtifactOnly),
             "both" => Ok(Self::Both),
             actual => Err(ParameterGolfSingleH100TrainingError::InvalidConfig {
                 message: format!(
-                    "unsupported final validation mode `{actual}`, expected one of live_only, roundtrip_only, or both"
+                    "unsupported final validation mode `{actual}`, expected one of live_only, roundtrip_only, artifact_only, or both"
                 ),
             }),
         }
@@ -658,6 +660,7 @@ impl ParameterGolfSingleH100ValidationMode {
         match self {
             Self::LiveOnly => "live_only",
             Self::RoundtripOnly => "roundtrip_only",
+            Self::ArtifactOnly => "artifact_only",
             Self::Both => "both",
         }
     }
@@ -2954,6 +2957,9 @@ fn build_parameter_golf_single_h100_training_report_inner(
         }
         ParameterGolfSingleH100ValidationMode::RoundtripOnly => {
             "reported canonical final contest metrics from the exported quantized roundtrip artifact without also replaying the live-model final validation"
+        }
+        ParameterGolfSingleH100ValidationMode::ArtifactOnly => {
+            "persisted the exported quantized artifact without running final live-model or quantized roundtrip validation, so detached score closeout must produce the final score receipt separately"
         }
         ParameterGolfSingleH100ValidationMode::Both => {
             "preserved the pre-export live-model validation separately and reported canonical final contest metrics from the exported quantized roundtrip artifact"
@@ -7488,6 +7494,10 @@ mod tests {
         assert_eq!(
             ParameterGolfSingleH100ValidationMode::parse("both")?,
             ParameterGolfSingleH100ValidationMode::Both
+        );
+        assert_eq!(
+            ParameterGolfSingleH100ValidationMode::parse("artifact_only")?,
+            ParameterGolfSingleH100ValidationMode::ArtifactOnly
         );
         Ok(())
     }

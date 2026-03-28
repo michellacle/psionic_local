@@ -21,11 +21,15 @@ background="0"
 sync_main="0"
 allow_dirty="0"
 attach_prompt_closeout="0"
+attach_detached_score_closeout="0"
 closeout_prompt="the meaning of life is"
 closeout_max_new_tokens="32"
 closeout_poll_seconds="30"
 closeout_timeout_seconds="0"
 closeout_binary_path=""
+score_poll_seconds="30"
+score_timeout_seconds="0"
+score_binary_path=""
 trainer_args=()
 
 usage() {
@@ -49,11 +53,15 @@ Options:
   --trainer-arg <arg>                   Extra trailing trainer arg. Repeatable.
   --background                          Launch in background and write a pid file.
   --attach-prompt-closeout              Launch the prompt closeout watcher beside the trainer.
+  --attach-detached-score-closeout      Launch the detached artifact score watcher beside the trainer.
   --closeout-prompt <text>              Prompt used by the closeout watcher.
   --closeout-max-new-tokens <n>         Max generated tokens for closeout. Default: 32
   --closeout-poll-seconds <n>           Poll interval for closeout watcher. Default: 30
   --closeout-timeout-seconds <n>        Optional closeout timeout. Default: 0
   --closeout-binary-path <path>         Optional prompt binary for closeout watcher.
+  --score-poll-seconds <n>              Poll interval for detached score watcher. Default: 30
+  --score-timeout-seconds <n>           Optional detached score timeout. Default: 0
+  --score-binary-path <path>            Optional detached score binary for the score watcher.
   --sync-main                           Run git pull --ff-only before launch.
   --allow-dirty                         Skip the clean-worktree refusal.
   --help|-h                             Show this help text.
@@ -126,6 +134,10 @@ while [[ $# -gt 0 ]]; do
       attach_prompt_closeout="1"
       shift
       ;;
+    --attach-detached-score-closeout)
+      attach_detached_score_closeout="1"
+      shift
+      ;;
     --closeout-prompt)
       closeout_prompt="$2"
       shift 2
@@ -144,6 +156,18 @@ while [[ $# -gt 0 ]]; do
       ;;
     --closeout-binary-path)
       closeout_binary_path="$2"
+      shift 2
+      ;;
+    --score-poll-seconds)
+      score_poll_seconds="$2"
+      shift 2
+      ;;
+    --score-timeout-seconds)
+      score_timeout_seconds="$2"
+      shift 2
+      ;;
+    --score-binary-path)
+      score_binary_path="$2"
       shift 2
       ;;
     --sync-main)
@@ -183,6 +207,10 @@ if [[ "${attach_prompt_closeout}" == "1" ]] && [[ "${background}" != "1" ]]; the
   echo "error: --attach-prompt-closeout requires --background" >&2
   exit 1
 fi
+if [[ "${attach_detached_score_closeout}" == "1" ]] && [[ "${background}" != "1" ]]; then
+  echo "error: --attach-detached-score-closeout requires --background" >&2
+  exit 1
+fi
 
 mkdir -p "${output_root}" "${tmpdir}"
 
@@ -220,6 +248,10 @@ prompt_report_path="${output_root}/prompt_report.json"
 closeout_summary_path="${output_root}/closeout_summary.json"
 prompt_log_path="${output_root}/prompt_closeout.log"
 prompt_pid_path="${output_root}/prompt_closeout.pid"
+score_report_path="${output_root}/artifact_score_report.json"
+score_summary_path="${output_root}/artifact_score_summary.json"
+score_log_path="${output_root}/artifact_score_closeout.log"
+score_pid_path="${output_root}/artifact_score_closeout.pid"
 
 trainer_command=()
 executor_label="cargo"
@@ -292,6 +324,16 @@ if [[ "${attach_prompt_closeout}" == "1" ]]; then
     printf 'CLOSEOUT_BINARY_PATH=%q\n' "${closeout_binary_path}" >> "${launch_env_path}"
   fi
 fi
+if [[ "${attach_detached_score_closeout}" == "1" ]]; then
+  printf 'SCORE_REPORT_PATH=%q\n' "${score_report_path}" >> "${launch_env_path}"
+  printf 'SCORE_SUMMARY_PATH=%q\n' "${score_summary_path}" >> "${launch_env_path}"
+  printf 'SCORE_LOG_PATH=%q\n' "${score_log_path}" >> "${launch_env_path}"
+  printf 'SCORE_POLL_SECONDS=%q\n' "${score_poll_seconds}" >> "${launch_env_path}"
+  printf 'SCORE_TIMEOUT_SECONDS=%q\n' "${score_timeout_seconds}" >> "${launch_env_path}"
+  if [[ -n "${score_binary_path}" ]]; then
+    printf 'SCORE_BINARY_PATH=%q\n' "${score_binary_path}" >> "${launch_env_path}"
+  fi
+fi
 
 run_trainer() {
   cd "${repo_root}"
@@ -353,6 +395,39 @@ if [[ "${background}" == "1" ]]; then
     printf 'PROMPT_WATCHER_PID=%q\n' "${prompt_pid}" >> "${launch_env_path}"
     printf 'PROMPT_PID_PATH=%q\n' "${prompt_pid_path}" >> "${launch_env_path}"
   fi
+  if [[ "${attach_detached_score_closeout}" == "1" ]]; then
+    score_closeout_command=(
+      "${repo_root}/scripts/wait-parameter-golf-homegolf-artifact-score.sh"
+      --report
+      "${report_path}"
+      --poll-seconds
+      "${score_poll_seconds}"
+      --timeout-seconds
+      "${score_timeout_seconds}"
+      --output
+      "${score_report_path}"
+      --summary
+      "${score_summary_path}"
+      --tmpdir
+      "${tmpdir}"
+      --cargo-target-dir
+      "${cargo_target_dir}"
+    )
+    if [[ -n "${score_binary_path}" ]]; then
+      score_closeout_command+=(
+        --binary-path
+        "${score_binary_path}"
+      )
+    fi
+    (
+      cd "${repo_root}"
+      "${score_closeout_command[@]}"
+    ) >"${score_log_path}" 2>&1 &
+    score_pid=$!
+    printf '%s\n' "${score_pid}" > "${score_pid_path}"
+    printf 'SCORE_WATCHER_PID=%q\n' "${score_pid}" >> "${launch_env_path}"
+    printf 'SCORE_PID_PATH=%q\n' "${score_pid_path}" >> "${launch_env_path}"
+  fi
   echo "run_id=${run_id}"
   echo "executor=${executor_label}"
   echo "status=launched_background"
@@ -370,6 +445,13 @@ if [[ "${background}" == "1" ]]; then
     echo "prompt_log_path=${prompt_log_path}"
     echo "prompt_pid_path=${prompt_pid_path}"
     echo "prompt_pid=${prompt_pid}"
+  fi
+  if [[ "${attach_detached_score_closeout}" == "1" ]]; then
+    echo "score_report_path=${score_report_path}"
+    echo "score_summary_path=${score_summary_path}"
+    echo "score_log_path=${score_log_path}"
+    echo "score_pid_path=${score_pid_path}"
+    echo "score_pid=${score_pid}"
   fi
   exit 0
 fi
