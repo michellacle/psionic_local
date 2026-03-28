@@ -318,7 +318,10 @@ def main() -> int:
         toolset="psionic_hermes_qwen35_parallel_turn",
         schema={
             "name": "get_paris_weather",
-            "description": "Get the weather for Paris.",
+            "description": (
+                "Get the weather for Paris only. Use this exactly once when the turn "
+                "requires Paris. Never use this tool for Tokyo."
+            ),
             "parameters": {"type": "object", "properties": {}, "additionalProperties": False},
         },
         handler=lambda args, **kwargs: json.dumps({"city": "Paris", "condition": "sunny"}),
@@ -329,7 +332,10 @@ def main() -> int:
         toolset="psionic_hermes_qwen35_parallel_turn",
         schema={
             "name": "get_tokyo_weather",
-            "description": "Get the weather for Tokyo.",
+            "description": (
+                "Get the weather for Tokyo only. Use this exactly once when the turn "
+                "requires Tokyo. Never use this tool for Paris."
+            ),
             "parameters": {"type": "object", "properties": {}, "additionalProperties": False},
         },
         handler=lambda args, **kwargs: json.dumps({"city": "Tokyo", "condition": "rainy"}),
@@ -344,8 +350,10 @@ def main() -> int:
         case_id="parallel_tool_turn",
         user_prompt="Use both weather tools now, then summarize both cities in one answer.",
         system_message=(
-            "You are Hermes. When the user asks for both weather tools, emit one tool-call turn "
-            "that includes both tool calls before answering."
+            "You are Hermes. For this turn, emit exactly one assistant tool-call turn whose "
+            "`tool_calls` array contains exactly two tool calls in this order: first "
+            "`get_paris_weather`, then `get_tokyo_weather`. Do not answer first. Do not "
+            "omit either tool. Do not repeat one tool instead of the other."
         ),
         enabled_toolsets=["psionic_hermes_qwen35_parallel_turn"],
         tool_policy=required_then_auto,
