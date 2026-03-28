@@ -2851,6 +2851,9 @@ fn tool_prompt_message(contract: &ToolCallingContract) -> PromptMessage {
         && let Some(example) = parallel_tool_call_example(contract)
     {
         lines.push(example);
+        lines.push(String::from(
+            "When the user explicitly asks for multiple declared tools in the same turn, include each requested tool exactly once in one `tool_calls` array before any answer. Do not omit a requested tool, split the calls across turns, or repeat one tool instead of another.",
+        ));
     }
     lines.push(String::from("Declared tools:"));
     for tool in contract.tools.values() {
@@ -5805,7 +5808,8 @@ mod tests {
         PsionicResponseStateRequest, ResolvedReasoningRequest, ResolvedToolCall,
         ResponseContinuationMode, ResponsesInput, ResponsesRequest, RoutingEndpoint,
         RoutingRequest, StopSequences, ToolChoiceRequest, ToolDefinitionEnvelope,
-        ToolDefinitionRequest, apply_tool_contract_to_prompt_messages,
+        ToolCallingContract, ToolChoiceMode, ToolDefinitionRequest,
+        apply_tool_contract_to_prompt_messages,
         assistant_prompt_message_for_tool_loop, chat_messages_to_prompt_messages,
         chat_messages_to_prompt_messages_for_family, chat_messages_to_prompt_messages_generic,
         completion_choice, ensure_harmony_stop_sequences, generation_options_from_chat_request,
@@ -5815,7 +5819,7 @@ mod tests {
         insert_local_serving_truth_headers, prompt_request_cache_key, render_prompt_for_model,
         resolve_execution_summary, resolve_generic_model, resolve_generic_model_for_endpoint,
         response_input_to_prompt_messages_with_options, responses_output_items,
-        surfaced_reasoning_response, tool_contract_from_chat_request,
+        surfaced_reasoning_response, tool_contract_from_chat_request, tool_prompt_message,
         tool_loop_tool_call_from_resolved, tool_result_prompt_message,
     };
     use crate::{
@@ -5847,6 +5851,7 @@ mod tests {
         BatchExecutionPosture, PrefixCacheControl, PrefixCacheMode, QueueDiscipline,
         StructuredGrammarSyntax, StructuredOutputRequest, StructuredTaggedVariant,
     };
+    use std::collections::BTreeMap;
 
     #[test]
     fn chat_messages_map_to_prompt_messages() {
@@ -11201,6 +11206,34 @@ mod tests {
                 })),
             },
         }
+    }
+
+    #[test]
+    fn parallel_tool_prompt_forbids_partial_or_duplicate_batches() {
+        let mut tools = BTreeMap::new();
+        tools.insert(
+            String::from("get_weather"),
+            weather_tool_definition().function,
+        );
+        tools.insert(String::from("get_time"), time_tool_definition().function);
+        let prompt = tool_prompt_message(&ToolCallingContract {
+            tools,
+            mode: ToolChoiceMode::Required,
+            named_tool: None,
+            parallel_tool_calls: true,
+        });
+        assert_eq!(prompt.role, PromptMessageRole::Developer);
+        assert!(
+            prompt
+                .content
+                .contains("include each requested tool exactly once")
+        );
+        assert!(prompt.content.contains("Do not omit a requested tool"));
+        assert!(
+            prompt
+                .content
+                .contains("repeat one tool instead of another")
+        );
     }
 
     fn dense_qwen_metadata(name: &str) -> Vec<(String, GgufMetadataValue)> {
