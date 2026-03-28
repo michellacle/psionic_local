@@ -483,6 +483,10 @@ pub trait TokenizerBoundary {
     /// Decodes token IDs into text.
     fn decode(&self, tokens: &[TokenId]) -> String;
 
+    /// Appends one decoded token to an existing text buffer using the tokenizer's
+    /// native boundary semantics.
+    fn append_decoded_token(&self, text: &mut String, token: TokenId);
+
     /// Returns the stable vocabulary metadata.
     fn vocabulary(&self) -> &TokenVocabulary;
 }
@@ -598,6 +602,19 @@ impl TokenizerBoundary for FixtureWordTokenizer {
             .map(String::from)
             .collect::<Vec<_>>()
             .join(" ")
+    }
+
+    fn append_decoded_token(&self, text: &mut String, token: TokenId) {
+        let Some(piece) = self.vocabulary.token(token) else {
+            return;
+        };
+        if matches!(piece, "<pad>" | "<bos>" | "<eos>") {
+            return;
+        }
+        if !text.is_empty() {
+            text.push(' ');
+        }
+        text.push_str(piece);
     }
 
     fn vocabulary(&self) -> &TokenVocabulary {
@@ -5277,9 +5294,7 @@ fn build_gguf_decoder_tensor_layout(
                 let ssm_alpha =
                     required_tensor_info(content, &format!("{prefix}.ssm_alpha.weight"))?;
                 let (ssm_alpha_rows, ssm_alpha_columns) = tensor_matrix_shape(ssm_alpha)?;
-                if ssm_alpha_rows != ssm_time_step_rank
-                    || ssm_alpha_columns != config.hidden_size
-                {
+                if ssm_alpha_rows != ssm_time_step_rank || ssm_alpha_columns != config.hidden_size {
                     return Err(artifact_format_error(
                         "gguf",
                         format!(
@@ -7343,7 +7358,9 @@ fn qwen35_kv_head_count(
             return Ok(kv_head_count);
         }
     }
-    for layer_index in 0..read_required_gguf_usize(metadata, format!("{architecture}.block_count").as_str())? {
+    for layer_index in
+        0..read_required_gguf_usize(metadata, format!("{architecture}.block_count").as_str())?
+    {
         let tensor_name = format!("blk.{layer_index}.attn_k.weight");
         if let Some(key_weight) = content.tensor_info(&tensor_name) {
             let (key_rows, _) = tensor_matrix_shape(key_weight)?;
@@ -7956,16 +7973,12 @@ fn decode_q6_k_blocks(
             let scale_chunk = &scales[chunk_index * 8..(chunk_index + 1) * 8];
             for l in 0..32 {
                 let is = l / 16;
-                let q1 =
-                    (((ql_chunk[l] & 0x0f) | (((qh_chunk[l] >> 0) & 0x03) << 4)) as i8) - 32;
-                let q2 = (((ql_chunk[l + 32] & 0x0f) | (((qh_chunk[l] >> 2) & 0x03) << 4))
-                    as i8)
-                    - 32;
-                let q3 =
-                    (((ql_chunk[l] >> 4) | (((qh_chunk[l] >> 4) & 0x03) << 4)) as i8) - 32;
-                let q4 = (((ql_chunk[l + 32] >> 4) | (((qh_chunk[l] >> 6) & 0x03) << 4))
-                    as i8)
-                    - 32;
+                let q1 = (((ql_chunk[l] & 0x0f) | (((qh_chunk[l] >> 0) & 0x03) << 4)) as i8) - 32;
+                let q2 =
+                    (((ql_chunk[l + 32] & 0x0f) | (((qh_chunk[l] >> 2) & 0x03) << 4)) as i8) - 32;
+                let q3 = (((ql_chunk[l] >> 4) | (((qh_chunk[l] >> 4) & 0x03) << 4)) as i8) - 32;
+                let q4 =
+                    (((ql_chunk[l + 32] >> 4) | (((qh_chunk[l] >> 6) & 0x03) << 4)) as i8) - 32;
                 output.push(scale * f32::from(scale_chunk[is] as i8) * f32::from(q1));
                 output.push(scale * f32::from(scale_chunk[is + 2] as i8) * f32::from(q2));
                 output.push(scale * f32::from(scale_chunk[is + 4] as i8) * f32::from(q3));

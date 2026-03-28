@@ -340,6 +340,7 @@ impl CudaGgufQwen35TextGenerationService {
         let mut kernel_count = 0usize;
         let mut bytes_moved = 0u64;
         let output_mode = qwen35_cuda_output_mode(&request.options);
+        let mut structured_prompt_replay: Option<(Qwen35State, TokenId)> = None;
         let mut last_logits = Vec::new();
         let mut pending_greedy_token = None;
         let mut last_candidates = None;
@@ -366,6 +367,11 @@ impl CudaGgufQwen35TextGenerationService {
                 kernel_count = kernel_count.saturating_add(step.kernel_count);
                 bytes_moved = bytes_moved.saturating_add(step.bytes_moved);
             }
+            if request.options.structured_output.is_some()
+                && matches!(output_mode, CudaStepOutputMode::TopKCandidates(_))
+            {
+                structured_prompt_replay = Some((state.clone(), *last_prompt_token));
+            }
             let step = self.model.forward_token(
                 &mut self.backend,
                 &mut self.step_plan,
@@ -376,6 +382,7 @@ impl CudaGgufQwen35TextGenerationService {
                 &[],
             )?;
             pending_greedy_token = step.selected_token;
+            last_logits = step.logits;
             last_candidates = step.candidates;
             kernel_count = kernel_count.saturating_add(step.kernel_count);
             bytes_moved = bytes_moved.saturating_add(step.bytes_moved);
@@ -462,39 +469,137 @@ impl CudaGgufQwen35TextGenerationService {
                     ))
                 })?
             } else if let CudaStepOutputMode::TopKCandidates(top_k) = output_mode {
-                if !generated_tokens.is_empty() {
-                    let step = self.model.forward_token(
-                        &mut self.backend,
-                        &mut self.step_plan,
-                        &mut state,
-                        *generated_tokens
-                            .last()
-                            .expect("generated token should exist"),
-                        CudaStepOutputMode::TopKCandidates(top_k),
-                        &request.options,
-                        generated_tokens.as_slice(),
-                    )?;
-                    last_candidates = step.candidates;
-                    kernel_count = kernel_count.saturating_add(step.kernel_count);
-                    bytes_moved = bytes_moved.saturating_add(step.bytes_moved);
-                    accumulate_qwen35_decode_output_metrics(
-                        &mut decode_output_metrics,
-                        step.output_metrics.as_ref(),
-                    );
-                }
-                let candidates = last_candidates.as_ref().ok_or_else(|| {
-                    ReferenceTextGenerationError::Runtime(crate::RuntimeError::Backend(
-                        String::from("qwen35 bounded candidate decode did not return candidates"),
-                    ))
-                })?;
-                match sampler.select_next_token_from_candidates(
-                    candidates.indices.as_slice(),
-                    candidates.values.as_slice(),
-                    self.model.descriptor.config.vocab_size,
-                )? {
-                    crate::GenerationSelection::Token(token) => token,
-                    crate::GenerationSelection::Terminate => {
-                        break TerminationReason::EndOfSequence;
+                {
+                    let mut structured_decode_replay: Option<(Qwen35State, TokenId)> = None;
+                    if !generated_tokens.is_empty() {
+                        if request.options.structured_output.is_some() {
+                            structured_decode_replay = Some((
+                                state.clone(),
+                                *generated_tokens
+                                    .last()
+                                    .expect("generated token should exist"),
+                            ));
+                        }
+                        let step = self.model.forward_token(
+                            &mut self.backend,
+                            &mut self.step_plan,
+                            &mut state,
+                            *generated_tokens
+                                .last()
+                                .expect("generated token should exist"),
+                            CudaStepOutputMode::TopKCandidates(top_k),
+                            &request.options,
+                            generated_tokens.as_slice(),
+                        )?;
+                        last_candidates = step.candidates;
+                        kernel_count = kernel_count.saturating_add(step.kernel_count);
+                        bytes_moved = bytes_moved.saturating_add(step.bytes_moved);
+                        accumulate_qwen35_decode_output_metrics(
+                            &mut decode_output_metrics,
+                            step.output_metrics.as_ref(),
+                        );
+                    }
+                    let candidates = last_candidates.as_ref().ok_or_else(|| {
+                        ReferenceTextGenerationError::Runtime(crate::RuntimeError::Backend(
+                            String::from(
+                                "qwen35 bounded candidate decode did not return candidates",
+                            ),
+                        ))
+                    })?;
+                    let structured_candidate_selection =
+                        if request.options.structured_output.is_some()
+                            && (matches!(
+                                request.options.decode_strategy,
+                                crate::DecodeStrategy::Greedy
+                            ) || request.options.sampling_policy().effective_temperature()
+                                <= 1e-6
+                                || request.options.sampling_policy().effective_top_k() == Some(1))
+                        {
+                            sampler.select_greedy_structured_token_from_candidates(
+                                &self.model.tokenizer,
+                                candidates.indices.as_slice(),
+                                candidates.values.as_slice(),
+                                generated_tokens.as_slice(),
+                            )?
+                        } else {
+                            None
+                        };
+                    match structured_candidate_selection {
+                        Some(crate::GenerationSelection::Token(token)) => token,
+                        Some(crate::GenerationSelection::Terminate) => {
+                            break TerminationReason::EndOfSequence;
+                        }
+                        None if request.options.structured_output.is_some() => {
+                            let step = if generated_tokens.is_empty() {
+                                let (mut replay_state, replay_token) =
+                                    structured_prompt_replay.clone().ok_or_else(|| {
+                                        ReferenceTextGenerationError::Runtime(
+                                            crate::RuntimeError::Backend(String::from(
+                                                "qwen35 structured prompt replay state is missing",
+                                            )),
+                                        )
+                                    })?;
+                                self.model.forward_token(
+                                    &mut self.backend,
+                                    &mut self.step_plan,
+                                    &mut replay_state,
+                                    replay_token,
+                                    CudaStepOutputMode::FullLogits,
+                                    &request.options,
+                                    &[],
+                                )?
+                            } else {
+                                let (mut replay_state, replay_token) =
+                                    structured_decode_replay.clone().ok_or_else(|| {
+                                        ReferenceTextGenerationError::Runtime(
+                                            crate::RuntimeError::Backend(String::from(
+                                                "qwen35 structured decode replay state is missing",
+                                            )),
+                                        )
+                                    })?;
+                                self.model.forward_token(
+                                    &mut self.backend,
+                                    &mut self.step_plan,
+                                    &mut replay_state,
+                                    replay_token,
+                                    CudaStepOutputMode::FullLogits,
+                                    &request.options,
+                                    generated_tokens.as_slice(),
+                                )?
+                            };
+                            last_logits = step.logits;
+                            kernel_count = kernel_count.saturating_add(step.kernel_count);
+                            bytes_moved = bytes_moved.saturating_add(step.bytes_moved);
+                            accumulate_qwen35_decode_output_metrics(
+                                &mut decode_output_metrics,
+                                step.output_metrics.as_ref(),
+                            );
+                            let history = generated_tokens
+                                .iter()
+                                .map(|token| token.as_u32())
+                                .collect::<Vec<_>>();
+                            match sampler.select_next_token_from_history(
+                                &self.model.tokenizer,
+                                &last_logits,
+                                history.as_slice(),
+                                generated_tokens.as_slice(),
+                            )? {
+                                crate::GenerationSelection::Token(token) => token,
+                                crate::GenerationSelection::Terminate => {
+                                    break TerminationReason::EndOfSequence;
+                                }
+                            }
+                        }
+                        None => match sampler.select_next_token_from_candidates(
+                            candidates.indices.as_slice(),
+                            candidates.values.as_slice(),
+                            self.model.descriptor.config.vocab_size,
+                        )? {
+                            crate::GenerationSelection::Token(token) => token,
+                            crate::GenerationSelection::Terminate => {
+                                break TerminationReason::EndOfSequence;
+                            }
+                        },
                     }
                 }
             } else {
@@ -651,6 +756,15 @@ fn qwen35_fast_greedy_path_enabled() -> bool {
 fn qwen35_cuda_output_mode(options: &GenerationOptions) -> CudaStepOutputMode {
     let policy = options.sampling_policy();
     let mirostat = policy.effective_mirostat();
+    if options.structured_output.is_some()
+        && !qwen35_sampling_penalties_active(options)
+        && mirostat.is_none()
+        && (matches!(options.decode_strategy, crate::DecodeStrategy::Greedy)
+            || policy.effective_temperature() <= 1e-6
+            || policy.effective_top_k() == Some(1))
+    {
+        return CudaStepOutputMode::TopKCandidates(QWEN35_CUDA_MAX_TOP_K);
+    }
     if options.structured_output.is_none()
         && qwen35_fast_greedy_path_enabled()
         && !qwen35_sampling_penalties_active(options)
@@ -6642,14 +6756,10 @@ impl Qwen35CudaStepPlan {
                 ))
             })?;
         }
-        self.penalty_token_ids_buffer.write_i32_at_offset(
-            0,
-            &self.penalty_token_ids_scratch[..active_token_count],
-        )?;
-        self.penalty_token_counts_buffer.write_i32_at_offset(
-            0,
-            &self.penalty_token_counts_scratch[..active_token_count],
-        )?;
+        self.penalty_token_ids_buffer
+            .write_i32_at_offset(0, &self.penalty_token_ids_scratch[..active_token_count])?;
+        self.penalty_token_counts_buffer
+            .write_i32_at_offset(0, &self.penalty_token_counts_scratch[..active_token_count])?;
         submission.apply_sampling_penalties_f32_sparse(
             &self.logits_buffer,
             vocab_size,

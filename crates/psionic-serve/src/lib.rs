@@ -6823,12 +6823,23 @@ pub type MetalProductTextGenerationService = MetalModelTextGenerationService;
 struct GenerationSampler {
     sampler: TokenSampler,
     structured_output: Option<StructuredOutputMatcher>,
+    structured_output_token_cache: Option<StructuredOutputTokenAppendCache>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum GenerationSelection {
     Token(TokenId),
     Terminate,
+}
+
+#[derive(Clone, Debug)]
+struct StructuredOutputTokenAppendCache {
+    empty_prefix_suffixes: Vec<String>,
+    nonempty_prefix_suffixes: Vec<String>,
+    empty_prefix_leading_chars: Vec<Option<char>>,
+    nonempty_prefix_leading_chars: Vec<Option<char>>,
+    unique_empty_prefix_leading_chars: Vec<char>,
+    unique_nonempty_prefix_leading_chars: Vec<char>,
 }
 
 impl GenerationSampler {
@@ -6840,6 +6851,7 @@ impl GenerationSampler {
                 .clone()
                 .map(StructuredOutputMatcher::compile)
                 .transpose()?,
+            structured_output_token_cache: None,
         })
     }
 
@@ -6856,6 +6868,167 @@ impl GenerationSampler {
             .map(|entry| entry.token.as_u32())
             .collect::<Vec<_>>();
         self.select_next_token_from_history(tokenizer, logits, &history, generated_tokens)
+    }
+
+    fn structured_output_token_cache(
+        &mut self,
+        tokenizer: &dyn TokenizerBoundary,
+    ) -> &StructuredOutputTokenAppendCache {
+        self.structured_output_token_cache.get_or_insert_with(|| {
+            let vocab_size = tokenizer.vocabulary().len();
+            let mut empty_prefix_suffixes = Vec::with_capacity(vocab_size);
+            let mut nonempty_prefix_suffixes = Vec::with_capacity(vocab_size);
+            let mut empty_prefix_leading_chars = Vec::with_capacity(vocab_size);
+            let mut nonempty_prefix_leading_chars = Vec::with_capacity(vocab_size);
+            let mut unique_empty_prefix_leading_chars = BTreeMap::new();
+            let mut unique_nonempty_prefix_leading_chars = BTreeMap::new();
+            for token_index in 0..vocab_size {
+                let token = TokenId(token_index as u32);
+
+                let mut empty_suffix = String::new();
+                tokenizer.append_decoded_token(&mut empty_suffix, token);
+                if let Some(leading_char) = empty_suffix.chars().next() {
+                    unique_empty_prefix_leading_chars.insert(leading_char, ());
+                }
+                empty_prefix_leading_chars.push(empty_suffix.chars().next());
+                empty_prefix_suffixes.push(empty_suffix);
+
+                let mut nonempty = String::from("\u{0}");
+                tokenizer.append_decoded_token(&mut nonempty, token);
+                let nonempty_suffix = nonempty.split_off(1);
+                if let Some(leading_char) = nonempty_suffix.chars().next() {
+                    unique_nonempty_prefix_leading_chars.insert(leading_char, ());
+                }
+                nonempty_prefix_leading_chars.push(nonempty_suffix.chars().next());
+                nonempty_prefix_suffixes.push(nonempty_suffix);
+            }
+
+            StructuredOutputTokenAppendCache {
+                empty_prefix_suffixes,
+                nonempty_prefix_suffixes,
+                empty_prefix_leading_chars,
+                nonempty_prefix_leading_chars,
+                unique_empty_prefix_leading_chars: unique_empty_prefix_leading_chars
+                    .into_keys()
+                    .collect(),
+                unique_nonempty_prefix_leading_chars: unique_nonempty_prefix_leading_chars
+                    .into_keys()
+                    .collect(),
+            }
+        })
+    }
+
+    fn structured_output_allowed_token_ids(
+        &mut self,
+        tokenizer: &dyn TokenizerBoundary,
+        logits: &[f32],
+        current_text: &str,
+        _current_text_allowed: bool,
+        matcher: &StructuredOutputMatcher,
+        allowed_token_ids: Option<&[u32]>,
+        disallowed_token_ids: &[u32],
+    ) -> Vec<u32> {
+        let token_cache = self.structured_output_token_cache(tokenizer);
+        let mut allowed_leading_chars = BTreeMap::new();
+        let mut candidate_text = current_text.to_string();
+        let unique_leading_chars = if current_text.is_empty() {
+            token_cache.unique_empty_prefix_leading_chars.as_slice()
+        } else {
+            token_cache.unique_nonempty_prefix_leading_chars.as_slice()
+        };
+        for &leading_char in unique_leading_chars {
+            let restore_len = candidate_text.len();
+            candidate_text.push(leading_char);
+            if matcher.classify(candidate_text.as_str()).is_allowed() {
+                allowed_leading_chars.insert(leading_char, ());
+            }
+            candidate_text.truncate(restore_len);
+        }
+        let suffixes = if current_text.is_empty() {
+            token_cache.empty_prefix_suffixes.as_slice()
+        } else {
+            token_cache.nonempty_prefix_suffixes.as_slice()
+        };
+        let leading_chars = if current_text.is_empty() {
+            token_cache.empty_prefix_leading_chars.as_slice()
+        } else {
+            token_cache.nonempty_prefix_leading_chars.as_slice()
+        };
+        let mut allowed = Vec::new();
+        match allowed_token_ids {
+            Some(candidate_ids) => {
+                for &token_id in candidate_ids {
+                    let index = token_id as usize;
+                    if disallowed_token_ids.contains(&token_id)
+                        || logits.get(index).is_none_or(|value| !value.is_finite())
+                    {
+                        continue;
+                    }
+                    let Some(leading_char) = leading_chars.get(index).copied().flatten() else {
+                        continue;
+                    };
+                    if !allowed_leading_chars.contains_key(&leading_char) {
+                        continue;
+                    }
+                    let restore_len = candidate_text.len();
+                    candidate_text.push_str(&suffixes[index]);
+                    if matcher.classify(candidate_text.as_str()).is_allowed() {
+                        allowed.push(token_id);
+                    }
+                    candidate_text.truncate(restore_len);
+                }
+            }
+            None => {
+                for (index, logit) in logits.iter().enumerate() {
+                    if !logit.is_finite() {
+                        continue;
+                    }
+                    let token_id = index as u32;
+                    if disallowed_token_ids.contains(&token_id) {
+                        continue;
+                    }
+                    let Some(leading_char) = leading_chars.get(index).copied().flatten() else {
+                        continue;
+                    };
+                    if !allowed_leading_chars.contains_key(&leading_char) {
+                        continue;
+                    }
+                    let restore_len = candidate_text.len();
+                    candidate_text.push_str(&suffixes[index]);
+                    if matcher.classify(candidate_text.as_str()).is_allowed() {
+                        allowed.push(token_id);
+                    }
+                    candidate_text.truncate(restore_len);
+                }
+            }
+        }
+        allowed
+    }
+
+    fn structured_output_allows_token(
+        &mut self,
+        tokenizer: &dyn TokenizerBoundary,
+        current_text: &str,
+        _current_text_allowed: bool,
+        matcher: &StructuredOutputMatcher,
+        token_id: u32,
+    ) -> bool {
+        let token_cache = self.structured_output_token_cache(tokenizer);
+        let index = token_id as usize;
+        let suffixes = if current_text.is_empty() {
+            token_cache.empty_prefix_suffixes.as_slice()
+        } else {
+            token_cache.nonempty_prefix_suffixes.as_slice()
+        };
+        let Some(suffix) = suffixes.get(index) else {
+            return false;
+        };
+        if suffix.is_empty() {
+            return false;
+        }
+        let mut candidate_text = current_text.to_string();
+        candidate_text.push_str(suffix);
+        matcher.classify(candidate_text.as_str()).is_allowed()
     }
 
     fn select_next_token_from_history(
@@ -6882,7 +7055,7 @@ impl GenerationSampler {
         generated_tokens: &[TokenId],
         disallowed_token_ids: &[u32],
     ) -> Result<GenerationSelection, ReferenceTextGenerationError> {
-        let Some(matcher) = self.structured_output.as_ref() else {
+        let Some(matcher) = self.structured_output.clone() else {
             return self
                 .sampler
                 .select_next_token_with_disallowed(logits, history, disallowed_token_ids)
@@ -6901,30 +7074,39 @@ impl GenerationSampler {
         {
             return Ok(GenerationSelection::Terminate);
         }
-
-        let mut masked_logits = logits.to_vec();
-        for &token_id in disallowed_token_ids {
-            if let Some(logit) = masked_logits.get_mut(token_id as usize) {
-                *logit = f32::NEG_INFINITY;
-            }
+        if (self.sampler.policy().strategy == SamplingStrategy::Greedy
+            || self.sampler.policy().effective_temperature() <= 1e-6)
+            && let Some(candidate) = self.sampler.select_next_token_with_disallowed(
+                logits,
+                history,
+                disallowed_token_ids,
+            )
+            && self.structured_output_allows_token(
+                tokenizer,
+                current_text.as_str(),
+                current_match.is_allowed(),
+                &matcher,
+                candidate,
+            )
+        {
+            return Ok(GenerationSelection::Token(TokenId(candidate)));
         }
-        for _ in 0..masked_logits.len() {
-            let Some(candidate) = self.sampler.select_next_token(&masked_logits, history) else {
-                return Err(ReferenceTextGenerationError::StructuredOutputExhausted);
-            };
-            let mut candidate_tokens = generated_tokens.to_vec();
-            candidate_tokens.push(TokenId(candidate));
-            let candidate_text = tokenizer.decode(candidate_tokens.as_slice());
-            let matched = matcher.classify(candidate_text.as_str());
-            if matched.is_allowed() {
-                return Ok(GenerationSelection::Token(TokenId(candidate)));
-            }
-            let index = candidate as usize;
-            if let Some(logit) = masked_logits.get_mut(index) {
-                *logit = f32::NEG_INFINITY;
-            }
-        }
-        Err(ReferenceTextGenerationError::StructuredOutputExhausted)
+        let allowed_token_ids = self.structured_output_allowed_token_ids(
+            tokenizer,
+            logits,
+            current_text.as_str(),
+            current_match.is_allowed(),
+            &matcher,
+            None,
+            disallowed_token_ids,
+        );
+        self.sampler
+            .select_next_token_with_allowed(logits, history, allowed_token_ids.as_slice())
+            .map(TokenId)
+            .map_or(
+                Err(ReferenceTextGenerationError::StructuredOutputExhausted),
+                |token| Ok(GenerationSelection::Token(token)),
+            )
     }
 
     fn select_next_token_from_history_with_allowed(
@@ -6935,7 +7117,7 @@ impl GenerationSampler {
         generated_tokens: &[TokenId],
         allowed_token_ids: &[u32],
     ) -> Result<GenerationSelection, ReferenceTextGenerationError> {
-        let Some(matcher) = self.structured_output.as_ref() else {
+        let Some(matcher) = self.structured_output.clone() else {
             return self
                 .sampler
                 .select_next_token_with_allowed(logits, history, allowed_token_ids)
@@ -6954,33 +7136,37 @@ impl GenerationSampler {
         {
             return Ok(GenerationSelection::Terminate);
         }
-
-        let mut masked_logits = vec![f32::NEG_INFINITY; logits.len()];
-        for &token_id in allowed_token_ids {
-            if let Some(logit) = logits.get(token_id as usize) {
-                masked_logits[token_id as usize] = *logit;
-            }
+        if (self.sampler.policy().strategy == SamplingStrategy::Greedy
+            || self.sampler.policy().effective_temperature() <= 1e-6)
+            && let Some(candidate) =
+                self.sampler
+                    .select_next_token_with_allowed(logits, history, allowed_token_ids)
+            && self.structured_output_allows_token(
+                tokenizer,
+                current_text.as_str(),
+                current_match.is_allowed(),
+                &matcher,
+                candidate,
+            )
+        {
+            return Ok(GenerationSelection::Token(TokenId(candidate)));
         }
-        for _ in 0..allowed_token_ids.len().max(1) {
-            let Some(candidate) = self.sampler.select_next_token_with_allowed(
-                &masked_logits,
-                history,
-                allowed_token_ids,
-            ) else {
-                return Err(ReferenceTextGenerationError::StructuredOutputExhausted);
-            };
-            let mut candidate_tokens = generated_tokens.to_vec();
-            candidate_tokens.push(TokenId(candidate));
-            let candidate_text = tokenizer.decode(candidate_tokens.as_slice());
-            let matched = matcher.classify(candidate_text.as_str());
-            if matched.is_allowed() {
-                return Ok(GenerationSelection::Token(TokenId(candidate)));
-            }
-            if let Some(logit) = masked_logits.get_mut(candidate as usize) {
-                *logit = f32::NEG_INFINITY;
-            }
-        }
-        Err(ReferenceTextGenerationError::StructuredOutputExhausted)
+        let allowed_token_ids = self.structured_output_allowed_token_ids(
+            tokenizer,
+            logits,
+            current_text.as_str(),
+            current_match.is_allowed(),
+            &matcher,
+            Some(allowed_token_ids),
+            &[],
+        );
+        self.sampler
+            .select_next_token_with_allowed(logits, history, allowed_token_ids.as_slice())
+            .map(TokenId)
+            .map_or(
+                Err(ReferenceTextGenerationError::StructuredOutputExhausted),
+                |token| Ok(GenerationSelection::Token(token)),
+            )
     }
 
     fn select_next_token_from_candidates(
@@ -7003,6 +7189,55 @@ impl GenerationSampler {
                 Err(ReferenceTextGenerationError::MissingOutput("next_token")),
                 |token| Ok(GenerationSelection::Token(token)),
             )
+    }
+
+    fn select_greedy_structured_token_from_candidates(
+        &mut self,
+        tokenizer: &dyn TokenizerBoundary,
+        candidate_ids: &[u32],
+        candidate_logits: &[f32],
+        generated_tokens: &[TokenId],
+    ) -> Result<Option<GenerationSelection>, ReferenceTextGenerationError> {
+        let Some(matcher) = self.structured_output.clone() else {
+            return self
+                .select_next_token_from_candidates(
+                    candidate_ids,
+                    candidate_logits,
+                    candidate_ids.len(),
+                )
+                .map(Some);
+        };
+        let current_text = tokenizer.decode(generated_tokens);
+        let current_match = matcher.classify(current_text.as_str());
+        if matcher.prefers_completion_termination()
+            && matches!(current_match.status, StructuredOutputMatchStatus::Complete)
+            && !current_match.can_continue
+        {
+            return Ok(Some(GenerationSelection::Terminate));
+        }
+        let mut ranked = candidate_ids
+            .iter()
+            .copied()
+            .zip(candidate_logits.iter().copied())
+            .filter(|(_, logit)| logit.is_finite())
+            .collect::<Vec<_>>();
+        ranked.sort_by(|(left_id, left_logit), (right_id, right_logit)| {
+            right_logit
+                .total_cmp(left_logit)
+                .then_with(|| left_id.cmp(right_id))
+        });
+        for (token_id, _) in ranked {
+            if self.structured_output_allows_token(
+                tokenizer,
+                current_text.as_str(),
+                current_match.is_allowed(),
+                &matcher,
+                token_id,
+            ) {
+                return Ok(Some(GenerationSelection::Token(TokenId(token_id))));
+            }
+        }
+        Ok(None)
     }
 
     fn structured_output_report(&self) -> Option<StructuredOutputExecutionReport> {
@@ -12422,8 +12657,8 @@ mod tests {
     }
 
     #[test]
-    fn bounded_candidate_sampling_matches_dense_sampling_with_penalties_when_candidate_set_is_exact(
-    ) {
+    fn bounded_candidate_sampling_matches_dense_sampling_with_penalties_when_candidate_set_is_exact()
+     {
         let options = GenerationOptions {
             max_output_tokens: 4,
             context_overflow_policy: ContextOverflowPolicy::Refuse,
@@ -12467,10 +12702,7 @@ mod tests {
             .iter()
             .map(|(index, _)| u32::try_from(*index).expect("candidate id fits in u32"))
             .collect::<Vec<_>>();
-        let candidate_logits = ranked
-            .iter()
-            .map(|(_, logit)| *logit)
-            .collect::<Vec<_>>();
+        let candidate_logits = ranked.iter().map(|(_, logit)| *logit).collect::<Vec<_>>();
 
         let tokenizer = FixtureWordTokenizer::new();
         let mut dense = super::GenerationSampler::new(&options).expect("dense sampler");

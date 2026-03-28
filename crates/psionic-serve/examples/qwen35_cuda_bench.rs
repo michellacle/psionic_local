@@ -1,5 +1,5 @@
 use std::{
-    env,
+    env, fs,
     path::{Path, PathBuf},
     process::ExitCode,
 };
@@ -7,13 +7,14 @@ use std::{
 use psionic_models::{
     GgufDecoderAdapterLoader, PromptMessage, PromptMessageRole, PromptRenderOptions,
 };
-use psionic_runtime::DEFAULT_PENALTY_LOOKBACK;
+use psionic_runtime::{DEFAULT_PENALTY_LOOKBACK, StructuredOutputRequest, StructuredOutputValue};
 use psionic_serve::{
     CudaGgufQwen35TextGenerationService, GenerationOptions, GenerationRequest,
     Qwen35CudaDecodeOutputMetrics, TextGenerationExecutor,
 };
 use reqwest::blocking::Client;
 use serde::Deserialize;
+use serde_json::Value;
 
 fn main() -> ExitCode {
     match run() {
@@ -68,6 +69,13 @@ struct BenchConfig {
     presence_penalty: Option<f32>,
     frequency_penalty: Option<f32>,
     seed: Option<u64>,
+    structured_output: Option<BenchStructuredOutput>,
+}
+
+#[derive(Clone, Debug)]
+enum BenchStructuredOutput {
+    JsonObject,
+    JsonSchema { name: Option<String>, schema: Value },
 }
 
 impl Default for BenchConfig {
@@ -94,6 +102,7 @@ impl Default for BenchConfig {
             presence_penalty: None,
             frequency_penalty: None,
             seed: None,
+            structured_output: None,
         }
     }
 }
@@ -102,6 +111,9 @@ impl BenchConfig {
     fn parse(args: impl Iterator<Item = String>) -> Result<Self, String> {
         let mut config = Self::default();
         let raw_args = args.collect::<Vec<_>>();
+        let mut json_object = false;
+        let mut json_schema_file: Option<PathBuf> = None;
+        let mut json_schema_name: Option<String> = None;
         if raw_args.is_empty() {
             return Err(usage());
         }
@@ -236,6 +248,19 @@ impl BenchConfig {
                         "--seed",
                     )?);
                 }
+                "--json-object" => {
+                    json_object = true;
+                }
+                "--json-schema-file" => {
+                    json_schema_file = Some(PathBuf::from(next_arg(
+                        &raw_args,
+                        &mut index,
+                        "--json-schema-file",
+                    )?));
+                }
+                "--json-schema-name" => {
+                    json_schema_name = Some(next_arg(&raw_args, &mut index, "--json-schema-name")?);
+                }
                 "--greedy" => {
                     config.decode_mode = BenchDecodeMode::Greedy;
                 }
@@ -251,6 +276,8 @@ impl BenchConfig {
             }
             index += 1;
         }
+        config.structured_output =
+            parse_structured_output(json_object, json_schema_file, json_schema_name)?;
         config.validate()?;
         Ok(config)
     }
@@ -367,6 +394,14 @@ impl BenchConfig {
             BenchDecodeMode::Sample => Some(self.seed.unwrap_or(42)),
         }
     }
+
+    fn ollama_format_payload(&self) -> Option<Value> {
+        match self.structured_output.as_ref() {
+            Some(BenchStructuredOutput::JsonObject) => Some(Value::String(String::from("json"))),
+            Some(BenchStructuredOutput::JsonSchema { schema, .. }) => Some(schema.clone()),
+            None => None,
+        }
+    }
 }
 
 fn run_psionic_benchmark(config: &BenchConfig) -> Result<(), String> {
@@ -413,8 +448,12 @@ fn run_psionic_benchmark(config: &BenchConfig) -> Result<(), String> {
         decode_tok_s_total += decode_tok_s;
         let output_metrics =
             format_qwen35_output_metrics(response.metrics.qwen35_cuda_decode.as_ref());
+        let structured_output = format_structured_output_report(
+            response.provenance.as_ref(),
+            response.output.structured.as_ref(),
+        );
         println!(
-            "backend=psionic run={} decode_mode={} prompt_tokens={} output_tokens={} prompt_s={:.6} decode_s={:.6} total_s={:.6} decode_tok_s={:.2} {} output={}",
+            "backend=psionic run={} decode_mode={} prompt_tokens={} output_tokens={} prompt_s={:.6} decode_s={:.6} total_s={:.6} decode_tok_s={:.2} {} {} output={}",
             run_index + 1,
             bench_decode_mode_label(config.decode_mode),
             response.metrics.prompt_eval_count.unwrap_or(0),
@@ -424,6 +463,7 @@ fn run_psionic_benchmark(config: &BenchConfig) -> Result<(), String> {
             nanos_to_seconds(total_ns),
             decode_tok_s,
             output_metrics,
+            structured_output,
             response.output.text.replace('\n', "\\n"),
         );
     }
@@ -514,6 +554,16 @@ fn build_generation_options(
     options.presence_penalty = config.effective_presence_penalty();
     options.frequency_penalty = config.effective_frequency_penalty();
     options.seed = config.effective_seed();
+    options.structured_output = match config.structured_output.as_ref() {
+        Some(BenchStructuredOutput::JsonObject) => Some(StructuredOutputRequest::JsonObject),
+        Some(BenchStructuredOutput::JsonSchema { name, schema }) => {
+            Some(StructuredOutputRequest::JsonSchema {
+                name: name.clone(),
+                schema: schema.clone(),
+            })
+        }
+        None => None,
+    };
     options
 }
 
@@ -563,6 +613,31 @@ fn format_qwen35_output_metrics(metrics: Option<&Qwen35CudaDecodeOutputMetrics>)
     )
 }
 
+fn format_structured_output_report(
+    provenance: Option<&psionic_serve::GenerationProvenance>,
+    structured_value: Option<&StructuredOutputValue>,
+) -> String {
+    let Some(report) = provenance.and_then(|provenance| provenance.structured_output.as_ref())
+    else {
+        return String::from(
+            "structured_output_mode=none structured_output_parser=none structured_output_kind=none structured_output_value=none",
+        );
+    };
+    let value = match structured_value {
+        Some(value) => {
+            serde_json::to_string(value).unwrap_or_else(|_| String::from("\"<unserializable>\""))
+        }
+        None => String::from("none"),
+    };
+    format!(
+        "structured_output_mode={} structured_output_parser={} structured_output_kind={} structured_output_value={}",
+        report.mode.label(),
+        report.parser.label(),
+        report.kind.label(),
+        value
+    )
+}
+
 fn bench_decode_mode_label(mode: BenchDecodeMode) -> &'static str {
     match mode {
         BenchDecodeMode::Greedy => "greedy",
@@ -582,6 +657,55 @@ fn next_arg(args: &[String], index: &mut usize, flag: &str) -> Result<String, St
         .ok_or_else(|| format!("missing value for `{flag}`"))?;
     *index = value_index;
     Ok(value)
+}
+
+fn parse_structured_output(
+    json_object: bool,
+    json_schema_file: Option<PathBuf>,
+    json_schema_name: Option<String>,
+) -> Result<Option<BenchStructuredOutput>, String> {
+    let selected_modes = usize::from(json_object) + usize::from(json_schema_file.is_some());
+    if selected_modes > 1 {
+        return Err(String::from(
+            "structured output accepts at most one of `--json-object` or `--json-schema-file`",
+        ));
+    }
+    match json_schema_file {
+        Some(path) => {
+            let raw = fs::read_to_string(&path).map_err(|error| {
+                format!(
+                    "failed to read JSON schema file `{}`: {error}",
+                    path.display()
+                )
+            })?;
+            let schema = serde_json::from_str::<Value>(&raw).map_err(|error| {
+                format!(
+                    "failed to parse JSON schema file `{}`: {error}",
+                    path.display()
+                )
+            })?;
+            Ok(Some(BenchStructuredOutput::JsonSchema {
+                name: json_schema_name,
+                schema,
+            }))
+        }
+        None if json_object => {
+            if json_schema_name.is_some() {
+                return Err(String::from(
+                    "`--json-schema-name` requires `--json-schema-file`",
+                ));
+            }
+            Ok(Some(BenchStructuredOutput::JsonObject))
+        }
+        None => {
+            if json_schema_name.is_some() {
+                return Err(String::from(
+                    "`--json-schema-name` requires `--json-schema-file`",
+                ));
+            }
+            Ok(None)
+        }
+    }
 }
 
 fn parse_arg<T>(value: &str, name: &str) -> Result<T, String>
@@ -607,7 +731,7 @@ fn nanos_to_seconds(duration_ns: u64) -> f64 {
 
 fn usage() -> String {
     String::from(
-        "usage:\n  cargo run -p psionic-serve --example qwen35_cuda_bench -- <model.gguf> [prompt] [max_output_tokens] [repeats]\n  cargo run -p psionic-serve --example qwen35_cuda_bench -- --backend psionic --model-path <model.gguf> [--decode greedy|sample] [--temperature 0.8] [--top-k 40] [--top-p 0.9] [--min-p 0.05] [--typical-p 0.5] [--mirostat 1|2] [--mirostat-tau 5.0] [--mirostat-eta 0.1] [--repeat-penalty 1.0] [--repeat-last-n 64] [--presence-penalty 0.0] [--frequency-penalty 0.0] [--seed 42] [--prompt <text>] [--max-output-tokens 128] [--repeats 3]\n  cargo run -p psionic-serve --example qwen35_cuda_bench -- --backend ollama --model-path <model.gguf> --ollama-model qwen3.5:0.8b [--ollama-base-url http://127.0.0.1:11434] [--decode greedy|sample] [--temperature 0.8] [--top-k 40] [--top-p 0.9] [--min-p 0.05] [--typical-p 0.5] [--mirostat 1|2] [--mirostat-tau 5.0] [--mirostat-eta 0.1] [--repeat-penalty 1.0] [--repeat-last-n 64] [--presence-penalty 0.0] [--frequency-penalty 0.0] [--seed 42] [--prompt <text>] [--max-output-tokens 128] [--repeats 3]",
+        "usage:\n  cargo run -p psionic-serve --example qwen35_cuda_bench -- <model.gguf> [prompt] [max_output_tokens] [repeats]\n  cargo run -p psionic-serve --example qwen35_cuda_bench -- --backend psionic --model-path <model.gguf> [--decode greedy|sample] [--temperature 0.8] [--top-k 40] [--top-p 0.9] [--min-p 0.05] [--typical-p 0.5] [--mirostat 1|2] [--mirostat-tau 5.0] [--mirostat-eta 0.1] [--repeat-penalty 1.0] [--repeat-last-n 64] [--presence-penalty 0.0] [--frequency-penalty 0.0] [--seed 42] [--json-object | --json-schema-file schema.json [--json-schema-name summary]] [--prompt <text>] [--max-output-tokens 128] [--repeats 3]\n  cargo run -p psionic-serve --example qwen35_cuda_bench -- --backend ollama --model-path <model.gguf> --ollama-model qwen3.5:0.8b [--ollama-base-url http://127.0.0.1:11434] [--decode greedy|sample] [--temperature 0.8] [--top-k 40] [--top-p 0.9] [--min-p 0.05] [--typical-p 0.5] [--mirostat 1|2] [--mirostat-tau 5.0] [--mirostat-eta 0.1] [--repeat-penalty 1.0] [--repeat-last-n 64] [--presence-penalty 0.0] [--frequency-penalty 0.0] [--seed 42] [--json-object | --json-schema-file schema.json [--json-schema-name summary]] [--prompt <text>] [--max-output-tokens 128] [--repeats 3]",
     )
 }
 
@@ -685,7 +809,7 @@ fn ollama_generate(
     if !rendered.stop_sequences.is_empty() {
         options["stop"] = serde_json::json!(rendered.stop_sequences);
     }
-    let payload = serde_json::json!({
+    let mut payload = serde_json::json!({
         "model": model,
         "prompt": rendered.text,
         "raw": true,
@@ -693,6 +817,9 @@ fn ollama_generate(
         "think": false,
         "options": options,
     });
+    if let Some(format) = config.ollama_format_payload() {
+        payload["format"] = format;
+    }
     let url = format!("{}/api/generate", base_url.trim_end_matches('/'));
     let response = client
         .post(&url)

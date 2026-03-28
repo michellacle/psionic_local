@@ -28,6 +28,8 @@ Psionic currently supports this row through a bounded native `qwen35` CUDA lane:
 - the row still refuses tools
 - structured outputs are supported on the native lane through explicit
   `raw_logits` fallback rather than the bounded candidate fast path
+- structured-output candidate misses now replay from a cloned pre-step qwen35
+  state instead of double-advancing the live decode state
 - session reuse, adapter serving, and prefix caching are still refused on this
   early lane
 
@@ -350,6 +352,9 @@ The local sampler surface now also honors `min_p` and request-level
 The generic OpenAI-compatible qwen35 server surface now forwards the same
 controls on both `/v1/chat/completions` and `/v1/responses`, and the proxy
 test harness verifies that those fields reach the qwen35 backend request body.
+The local `qwen35_cuda_bench` harness now also reproduces native-versus-Ollama
+JSON object and JSON schema requests through `--json-object` and
+`--json-schema-file`.
 `repeat_last_n` follows the Ollama-compatible local contract:
 
 - default `64`
@@ -371,6 +376,13 @@ this checkout, because the local Ollama `qwen3.5` runner routes through
 `runner/ollamarunner` and does not wire them through the same active sampler
 path. The apples-to-apples local parity matrix therefore stays limited to the
 controls wired by `sample.NewSampler(temperature, topK, topP, minP, seed, grammar)`.
+
+Structured-output throughput is also outside the canonical beat-Ollama matrix.
+The current honest local summary-schema spot check on `qwen3.5:0.8b` returns a
+valid native Psionic payload at about `64 tok/s` versus local Ollama at about
+`333 tok/s`, but the two runtimes can choose different valid schema outputs and
+the early qwen35 schema prefix still falls outside the bounded top-k candidate
+set.
 
 The same March 27, 2026 benchmark also shows the current boundary clearly:
 

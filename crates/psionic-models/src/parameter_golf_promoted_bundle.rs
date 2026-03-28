@@ -863,6 +863,23 @@ impl TokenizerBoundary for ParameterGolfPromotedRuntimeTokenizer {
         output
     }
 
+    fn append_decoded_token(&self, text: &mut String, token: TokenId) {
+        if is_runtime_special_token(&self.asset, self.eos_token_ids.as_slice(), token) {
+            return;
+        }
+        let Some(piece) = self.vocabulary.token(token) else {
+            return;
+        };
+        if let Some(boundary_stripped) = piece.strip_prefix('▁') {
+            if !text.is_empty() {
+                text.push(' ');
+            }
+            text.push_str(boundary_stripped);
+            return;
+        }
+        text.push_str(piece);
+    }
+
     fn vocabulary(&self) -> &TokenVocabulary {
         &self.vocabulary
     }

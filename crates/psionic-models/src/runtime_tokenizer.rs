@@ -125,6 +125,20 @@ impl TokenizerBoundary for GgufRuntimeTokenizer {
         }
     }
 
+    fn append_decoded_token(&self, text: &mut String, token: TokenId) {
+        match &self.inner {
+            GgufRuntimeTokenizerKind::SentencePiece(tokenizer) => {
+                tokenizer.append_decoded_token(text, token)
+            }
+            GgufRuntimeTokenizerKind::Gpt2Bpe(tokenizer) => {
+                tokenizer.append_decoded_token(text, token)
+            }
+            GgufRuntimeTokenizerKind::BertWordPiece(tokenizer) => {
+                tokenizer.append_decoded_token(text, token)
+            }
+        }
+    }
+
     fn vocabulary(&self) -> &TokenVocabulary {
         match &self.inner {
             GgufRuntimeTokenizerKind::SentencePiece(tokenizer) => tokenizer.vocabulary(),
@@ -215,6 +229,19 @@ impl TokenizerBoundary for SentencePieceRuntimeTokenizer {
             pieces.push(piece.trim_start_matches('▁').to_string());
         }
         pieces.join(" ")
+    }
+
+    fn append_decoded_token(&self, text: &mut String, token: TokenId) {
+        if is_runtime_special_token(&self.vocabulary, self.eos_token_ids.as_slice(), token) {
+            return;
+        }
+        let Some(piece) = self.vocabulary.token(token) else {
+            return;
+        };
+        if !text.is_empty() {
+            text.push(' ');
+        }
+        text.push_str(piece.trim_start_matches('▁'));
     }
 
     fn vocabulary(&self) -> &TokenVocabulary {
@@ -329,6 +356,23 @@ impl TokenizerBoundary for WordPieceRuntimeTokenizer {
         out
     }
 
+    fn append_decoded_token(&self, text: &mut String, token: TokenId) {
+        if is_runtime_special_token(&self.vocabulary, self.eos_token_ids.as_slice(), token) {
+            return;
+        }
+        let Some(piece) = self.vocabulary.token(token) else {
+            return;
+        };
+        if let Some(piece) = piece.strip_prefix("##") {
+            text.push_str(piece);
+        } else {
+            if !text.is_empty() {
+                text.push(' ');
+            }
+            text.push_str(piece);
+        }
+    }
+
     fn vocabulary(&self) -> &TokenVocabulary {
         &self.vocabulary
     }
@@ -409,6 +453,13 @@ impl TokenizerBoundary for ByteLevelBpeRuntimeTokenizer {
                 .collect::<Vec<_>>()
                 .join("")
         })
+    }
+
+    fn append_decoded_token(&self, text: &mut String, token: TokenId) {
+        if is_runtime_special_token(&self.vocabulary, self.eos_token_ids.as_slice(), token) {
+            return;
+        }
+        text.push_str(self.decode(&[token]).as_str());
     }
 
     fn vocabulary(&self) -> &TokenVocabulary {

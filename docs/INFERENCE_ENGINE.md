@@ -75,6 +75,18 @@ than just run tensor math.
 - Native qwen35 structured outputs are now supported through the same explicit
   `raw_logits` fallback path. The bounded `TopKCandidates` fast lane still
   requires structured-output masking to stay inactive.
+- The native structured-output path now uses tokenizer-native incremental token
+  append caches and replay-safe fallback, so qwen35 candidate misses no longer
+  double-advance the decode state before falling back to explicit `raw_logits`.
+- The local `qwen35_cuda_bench` harness now reproduces native-versus-Ollama
+  JSON object and JSON schema requests too through `--json-object` and
+  `--json-schema-file`.
+- Structured-output throughput is still not part of the canonical
+  Psionic-versus-Ollama matrix. On March 28, 2026, the local `qwen3.5:0.8b`
+  summary-schema spot check returned a valid native Psionic payload at about
+  `64 tok/s` versus local Ollama at about `333 tok/s`, but the two runtimes
+  took different valid schema paths and the early qwen35 schema prefix still
+  misses the bounded top-k candidate set.
 - The first `qwen35` lane must still fail closed for tool calling.
 - The first `qwen35` lane must still fail closed for system-message image and
   video parts to stay aligned with the real template semantics.

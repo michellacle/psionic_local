@@ -1995,6 +1995,14 @@ impl TokenizerBoundary for TassadarTraceTokenizer {
             .join(" ")
     }
 
+    fn append_decoded_token(&self, text: &mut String, token: TokenId) {
+        let piece = self.vocabulary.token(token).unwrap_or(UNKNOWN_TOKEN);
+        if !text.is_empty() {
+            text.push(' ');
+        }
+        text.push_str(piece);
+    }
+
     fn vocabulary(&self) -> &TokenVocabulary {
         &self.vocabulary
     }
@@ -2025,9 +2033,8 @@ struct ParsedWavefrontStep {
 mod tests {
     use crate::TokenizerBoundary;
     use psionic_runtime::{
-        tassadar_article_class_corpus, tassadar_hungarian_10x10_corpus,
+        TassadarCpuReferenceRunner, tassadar_article_class_corpus, tassadar_hungarian_10x10_corpus,
         tassadar_hungarian_v0_corpus, tassadar_sudoku_9x9_corpus, tassadar_sudoku_v0_corpus,
-        TassadarCpuReferenceRunner,
     };
 
     use super::{
@@ -2035,8 +2042,8 @@ mod tests {
     };
 
     #[test]
-    fn tokenizer_roundtrips_symbolic_tokens_for_sudoku_v0_reference_case(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn tokenizer_roundtrips_symbolic_tokens_for_sudoku_v0_reference_case()
+    -> Result<(), Box<dyn std::error::Error>> {
         let tokenizer = TassadarTraceTokenizer::new();
         let case = tassadar_sudoku_v0_corpus()
             .into_iter()
@@ -2057,8 +2064,8 @@ mod tests {
     }
 
     #[test]
-    fn tokenizer_roundtrips_typed_article_trace_domain_for_article_class_case(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn tokenizer_roundtrips_typed_article_trace_domain_for_article_class_case()
+    -> Result<(), Box<dyn std::error::Error>> {
         let tokenizer = TassadarTraceTokenizer::new();
         let case = tassadar_article_class_corpus()
             .into_iter()
@@ -2088,8 +2095,8 @@ mod tests {
     }
 
     #[test]
-    fn tokenizer_can_recompose_prompt_and_target_sequence_without_drift(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn tokenizer_can_recompose_prompt_and_target_sequence_without_drift()
+    -> Result<(), Box<dyn std::error::Error>> {
         let tokenizer = TassadarTraceTokenizer::new();
         let case = tassadar_sudoku_v0_corpus()
             .into_iter()
@@ -2109,8 +2116,8 @@ mod tests {
     }
 
     #[test]
-    fn tokenizer_retokenizes_symbolic_text_across_whitespace_variants(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn tokenizer_retokenizes_symbolic_text_across_whitespace_variants()
+    -> Result<(), Box<dyn std::error::Error>> {
         let tokenizer = TassadarTraceTokenizer::new();
         let case = tassadar_article_class_corpus()
             .into_iter()
@@ -2143,8 +2150,8 @@ mod tests {
     }
 
     #[test]
-    fn tokenizer_can_compose_prompt_and_target_from_symbolic_text(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn tokenizer_can_compose_prompt_and_target_from_symbolic_text()
+    -> Result<(), Box<dyn std::error::Error>> {
         let tokenizer = TassadarTraceTokenizer::new();
         let case = tassadar_article_class_corpus()
             .into_iter()
@@ -2173,8 +2180,8 @@ mod tests {
     }
 
     #[test]
-    fn tokenizer_derives_structural_supervision_coverage_for_reference_trace(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn tokenizer_derives_structural_supervision_coverage_for_reference_trace()
+    -> Result<(), Box<dyn std::error::Error>> {
         let tokenizer = TassadarTraceTokenizer::new();
         let case = tassadar_sudoku_v0_corpus()
             .into_iter()
@@ -2203,8 +2210,8 @@ mod tests {
     }
 
     #[test]
-    fn tokenizer_derives_workload_specific_supervision_for_hungarian_trace(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn tokenizer_derives_workload_specific_supervision_for_hungarian_trace()
+    -> Result<(), Box<dyn std::error::Error>> {
         let tokenizer = TassadarTraceTokenizer::new();
         let case = tassadar_hungarian_v0_corpus()
             .into_iter()
@@ -2228,8 +2235,8 @@ mod tests {
     }
 
     #[test]
-    fn tokenizer_roundtrips_sudoku_wavefront_outputs_exactly(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn tokenizer_roundtrips_sudoku_wavefront_outputs_exactly()
+    -> Result<(), Box<dyn std::error::Error>> {
         let tokenizer = TassadarTraceTokenizer::new();
         let case = tassadar_sudoku_9x9_corpus()
             .into_iter()
@@ -2258,8 +2265,8 @@ mod tests {
     }
 
     #[test]
-    fn tokenizer_roundtrips_hungarian_assignment_frontier_outputs_exactly(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn tokenizer_roundtrips_hungarian_assignment_frontier_outputs_exactly()
+    -> Result<(), Box<dyn std::error::Error>> {
         let tokenizer = TassadarTraceTokenizer::new();
         let case = tassadar_hungarian_10x10_corpus()
             .into_iter()

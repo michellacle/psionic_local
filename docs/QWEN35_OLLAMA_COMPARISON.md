@@ -208,6 +208,15 @@ Psionic-only measured means:
   the explicit dense `raw_logits` fallback path. They are a parity feature,
   not part of the bounded-candidate throughput matrix. The qwen35 proxy lane
   still refuses them.
+- The local `qwen35_cuda_bench` harness now reproduces native-versus-Ollama
+  JSON object and JSON schema requests too through `--json-object` and
+  `--json-schema-file`, and the native qwen35 fallback path is now replay-safe
+  instead of double-advancing the decode state on candidate misses.
+- Structured-output throughput is still outside the canonical matrix. The local
+  `qwen3.5:0.8b` summary-schema spot check on March 28, 2026 measured native
+  Psionic at about `64 tok/s` versus local Ollama at about `333 tok/s`, but the
+  two runtimes took different valid schema paths and the early schema prefix
+  still fell outside the bounded top-k candidate set on Psionic.
 - `mirostat` therefore remains a Psionic-side capability note, not a canonical
   beat-Ollama throughput claim.
 - Requests outside that envelope still fall back to explicit raw-logit readback
