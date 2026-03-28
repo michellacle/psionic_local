@@ -351,7 +351,7 @@ impl CudaGgufQwen35TextGenerationService {
             self.model.descriptor.config.max_context,
         );
         let mut state = if let Some(entry) = prefix_lookup.entry.as_ref() {
-            entry.state.clone()
+            entry.state.deep_clone(&mut self.backend)?
         } else {
             self.model
                 .initial_state(&mut self.backend, cache_capacity_tokens)?
@@ -442,14 +442,15 @@ impl CudaGgufQwen35TextGenerationService {
         }
         let mut recordable_prefix = (crate::prefix_recording_allowed(request)
             && !prompt_tokens.is_empty())
-        .then(|| {
-            (
-                state.clone(),
+        .then(|| -> Result<_, ReferenceTextGenerationError> {
+            Ok((
+                state.deep_clone(&mut self.backend)?,
                 last_logits.clone(),
                 pending_selected_token,
                 last_candidates.clone(),
-            )
-        });
+            ))
+        })
+        .transpose()?;
 
         let prompt_eval_duration_ns = prompt_eval_start
             .elapsed()
@@ -997,6 +998,7 @@ impl CudaGgufQwen35TextGenerationService {
                 record_pending_selected_token = generated_tokens.first().copied();
             }
             let recorded_identity = self.shared_prefixes.record(
+                &mut self.backend,
                 compatibility,
                 &prompt_tokens,
                 output_mode,
@@ -1259,6 +1261,7 @@ impl Qwen35SharedPrefixStore {
 
     fn record(
         &mut self,
+        backend: &mut CudaBackend,
         compatibility: crate::SharedPrefixCompatibility,
         prompt_tokens: &TokenSequence,
         output_mode: CudaStepOutputMode,
@@ -1268,12 +1271,15 @@ impl Qwen35SharedPrefixStore {
         last_candidates: Option<&Qwen35CudaTopKCandidates>,
     ) -> PrefixCacheIdentity {
         let identity = crate::prefix_identity(&compatibility, prompt_tokens.as_slice());
+        let stored_state = state
+            .deep_clone(backend)
+            .expect("qwen35 prefix cache state clone should succeed");
         if let Some(existing) = self.entries.iter_mut().find(|entry| {
             entry.compatibility == compatibility
                 && entry.output_mode == output_mode
                 && entry.prompt_tokens.as_slice() == prompt_tokens.as_slice()
         }) {
-            existing.state = state.clone();
+            existing.state = stored_state;
             existing.last_logits = last_logits.to_vec();
             existing.pending_selected_token = pending_selected_token;
             existing.last_candidates = last_candidates.cloned();
@@ -1282,7 +1288,7 @@ impl Qwen35SharedPrefixStore {
                 compatibility,
                 prompt_tokens: prompt_tokens.clone(),
                 output_mode,
-                state: state.clone(),
+                state: stored_state,
                 last_logits: last_logits.to_vec(),
                 pending_selected_token,
                 last_candidates: last_candidates.cloned(),
@@ -1321,6 +1327,27 @@ fn qwen35_prefix_compatibility_for_request(
         tenant_id: crate::prefix_cache_tenant_id(request, &policy),
         sampler_digest: crate::prefix_cache_sampler_digest(request, &policy),
     }
+}
+
+fn deep_clone_cuda_buffer(
+    backend: &mut CudaBackend,
+    source: &CudaBuffer,
+) -> Result<CudaBuffer, ReferenceTextGenerationError> {
+    let clone = backend
+        .byte_buffer(&vec![0_u8; source.byte_len()])
+        .map_err(ReferenceTextGenerationError::Runtime)?;
+    if source.byte_len() > 0 {
+        let mut submission = backend
+            .begin_submission()
+            .map_err(ReferenceTextGenerationError::Runtime)?;
+        submission
+            .copy_buffer_region(source, 0, &clone, 0, source.byte_len())
+            .map_err(ReferenceTextGenerationError::Runtime)?;
+        submission
+            .commit(psionic_backend_cuda::CudaCommandWait::Completed)
+            .map_err(ReferenceTextGenerationError::Runtime)?;
+    }
+    Ok(clone)
 }
 
 const QWEN35_CUDA_MAX_TOP_K: usize = 128;
@@ -7258,6 +7285,50 @@ struct Qwen35State {
 enum Qwen35LayerState {
     Hybrid(Qwen35HybridState),
     FullAttention(Qwen35FullAttentionState),
+}
+
+impl Qwen35State {
+    fn deep_clone(&self, backend: &mut CudaBackend) -> Result<Self, ReferenceTextGenerationError> {
+        Ok(Self {
+            position: self.position,
+            layers: self
+                .layers
+                .iter()
+                .map(|layer| layer.deep_clone(backend))
+                .collect::<Result<Vec<_>, _>>()?,
+        })
+    }
+}
+
+impl Qwen35LayerState {
+    fn deep_clone(&self, backend: &mut CudaBackend) -> Result<Self, ReferenceTextGenerationError> {
+        match self {
+            Self::Hybrid(state) => Ok(Self::Hybrid(state.deep_clone(backend)?)),
+            Self::FullAttention(state) => Ok(Self::FullAttention(state.deep_clone(backend)?)),
+        }
+    }
+}
+
+impl Qwen35HybridState {
+    fn deep_clone(&self, backend: &mut CudaBackend) -> Result<Self, ReferenceTextGenerationError> {
+        Ok(Self {
+            conv_state: deep_clone_cuda_buffer(backend, &self.conv_state)?,
+            delta_state: deep_clone_cuda_buffer(backend, &self.delta_state)?,
+        })
+    }
+}
+
+impl Qwen35FullAttentionState {
+    fn deep_clone(&self, backend: &mut CudaBackend) -> Result<Self, ReferenceTextGenerationError> {
+        Ok(Self {
+            key_cache: deep_clone_cuda_buffer(backend, &self.key_cache)?,
+            value_cache: deep_clone_cuda_buffer(backend, &self.value_cache)?,
+            width: self.width,
+            element_bytes: self.element_bytes,
+            len: self.len,
+            capacity_tokens: self.capacity_tokens,
+        })
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
