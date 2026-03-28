@@ -1003,6 +1003,71 @@ That is acceptable and honest. The point of this change is not that detached
 scoring is suddenly cheap. The point is that detached scoring is no longer on
 the critical path for the next GPU training run.
 
+## Chained LR Sweep Queue
+
+The next integration gap after detached closeout was queue depth.
+
+Before this pass, the repo-owned queue runner could only wait on an already
+existing `train.pid`.
+
+That meant agents could queue one follow-on behind the active run, but they
+could not stage a longer honest sweep behind future run roots that did not
+exist yet.
+
+The queue runner now has one explicit future-run waiting mode:
+
+- `scripts/queue-parameter-golf-homegolf-local-cuda.sh --wait-for-pid-file`
+
+When enabled, the queue runner:
+
+- waits for `<run-root>/train.pid` to appear
+- then waits for that process to exit
+- then launches the next queued repo-owned HOMEGOLF run
+
+That improvement landed at `psionic` commit `12f60f5b`.
+
+At `2026-03-28 06:42:19 CDT`, the staged remote chain on `archlinux` was:
+
+- current active inline-validation run:
+  `homegolf-baseline-g64-stepcap1-clip1-600s-20260328d`
+- first artifact-only queued run:
+  `homegolf-baseline-g64-stepcap2-clip1-lr075-artifactonly-600s-20260328f`
+- second queued run:
+  `homegolf-baseline-g64-stepcap2-clip1-lr050-artifactonly-600s-20260328g`
+- third queued run:
+  `homegolf-baseline-g64-stepcap2-clip1-lr035-artifactonly-600s-20260328h`
+
+Retained remote queue receipts:
+
+- `20260328f` queue pid:
+  `778424`
+- `20260328g` queue pid:
+  `780303`
+- `20260328h` queue pid:
+  `780408`
+
+Retained queue logs:
+
+- `/home/christopherdavid/scratch/psionic_homegolf_runs/queue_homegolf_20260328f_repo.log`
+- `/home/christopherdavid/scratch/psionic_homegolf_runs/queue_homegolf_20260328g_repo.log`
+- `/home/christopherdavid/scratch/psionic_homegolf_runs/queue_homegolf_20260328h_repo.log`
+
+Retained waiting evidence:
+
+- `20260328g`:
+  `queue_waiting_for_pid_file timestamp=2026-03-28T06:42:19-05:00 path=/home/christopherdavid/scratch/psionic_homegolf_runs/homegolf-baseline-g64-stepcap2-clip1-lr075-artifactonly-600s-20260328f/train.pid`
+- `20260328h`:
+  `queue_waiting_for_pid_file timestamp=2026-03-28T06:42:19-05:00 path=/home/christopherdavid/scratch/psionic_homegolf_runs/homegolf-baseline-g64-stepcap2-clip1-lr050-artifactonly-600s-20260328g/train.pid`
+
+This is an actual loop improvement over the prior single-follow-on posture:
+
+- the system no longer depends on a human or agent to requeue every next local
+  LR attempt
+- the next several honest `600s` candidate runs are already staged on clean
+  `main`
+- detached scoring remains attached to each queued run, so the GPU chain does
+  not wait behind inline full validation after `20260328f`
+
 ## Current Honest Boundary
 
 HOMEGOLF is frozen as a contract now, but one important surface is still
@@ -1024,6 +1089,8 @@ One more current truth is explicit after `20260328d`:
 - the next queued local honest run can now stop at artifact export and hand the
   final score closeout to a detached watcher instead of holding the GPU behind
   inline full validation
+- the next two LR variants after that are also already staged through the
+  repo-owned future-run queue and will launch automatically
 - the retained actual public PGOLF score is still `6.306931747817168`
 - the active local clipped run is still closing its full roundtrip validation,
   so it does not yet have a completed new score receipt
