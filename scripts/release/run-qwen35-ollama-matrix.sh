@@ -50,6 +50,64 @@ ensure_idle_gpu() {
   fi
 }
 
+wait_for_idle_gpu() {
+  if [[ "${PSIONIC_QWEN35_MATRIX_ALLOW_BUSY_GPU:-0}" == "1" ]]; then
+    return
+  fi
+  require_command nvidia-smi
+  local timeout_seconds="${PSIONIC_QWEN35_MATRIX_IDLE_TIMEOUT_SECONDS:-30}"
+  local waited=0
+  while true; do
+    local active_compute_processes
+    active_compute_processes="$(
+      nvidia-smi --query-compute-apps=pid,process_name,used_gpu_memory --format=csv,noheader,nounits 2>/dev/null \
+        | sed '/^[[:space:]]*$/d' \
+        || true
+    )"
+    if [[ -z "$active_compute_processes" ]]; then
+      return
+    fi
+    if (( waited >= timeout_seconds )); then
+      echo "gpu did not become idle within ${timeout_seconds}s" >&2
+      echo "resident compute processes:" >&2
+      echo "$active_compute_processes" >&2
+      exit 1
+    fi
+    if (( waited == 0 )); then
+      echo "waiting for gpu to become idle before next qwen35 benchmark row" >&2
+    fi
+    sleep 1
+    waited=$((waited + 1))
+  done
+}
+
+stop_loaded_ollama_models() {
+  if [[ "${PSIONIC_QWEN35_MATRIX_STOP_OLLAMA_AFTER_ROW:-1}" != "1" ]]; then
+    return
+  fi
+  if ! command -v ollama >/dev/null 2>&1; then
+    return
+  fi
+  local loaded_models
+  loaded_models="$(
+    ollama ps 2>/dev/null \
+      | awk 'NR > 1 && $1 != "" { print $1 }' \
+      || true
+  )"
+  if [[ -z "$loaded_models" ]]; then
+    return
+  fi
+  while IFS= read -r model; do
+    [[ -n "$model" ]] || continue
+    ollama stop "$model" >/dev/null 2>&1 || true
+  done <<< "$loaded_models"
+}
+
+prepare_for_row() {
+  stop_loaded_ollama_models
+  wait_for_idle_gpu
+}
+
 extract_number_field() {
   local field="$1"
   local path="$2"
@@ -306,6 +364,7 @@ for contract in "${contracts[@]}"; do
     psionic_rel="${psionic_report#$repo_root/}"
     ollama_rel="${ollama_report#$repo_root/}"
 
+    prepare_for_row
     cargo run --release -p psionic-serve --example qwen35_cuda_bench -- \
       --backend psionic \
       --model-path "$model_path" \
@@ -314,6 +373,7 @@ for contract in "${contracts[@]}"; do
       --json-out "$psionic_report" \
       "${contract_args[@]}"
 
+    prepare_for_row
     cargo run --release -p psionic-serve --example qwen35_cuda_bench -- \
       --backend ollama \
       --model-path "$model_path" \
@@ -323,6 +383,8 @@ for contract in "${contracts[@]}"; do
       --repeats "$repeats" \
       --json-out "$ollama_report" \
       "${contract_args[@]}"
+    stop_loaded_ollama_models
+    wait_for_idle_gpu
 
     psionic_mean="$(extract_number_field mean_decode_tok_s "$psionic_report")"
     ollama_mean="$(extract_number_field mean_decode_tok_s "$ollama_report")"
