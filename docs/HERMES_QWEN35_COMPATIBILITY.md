@@ -92,6 +92,9 @@ The first same-host backend benchmark now lives in
 The later bounded fast-path-versus-fallback proof now lives in
 `docs/HERMES_QWEN35_FAST_PATH.md`.
 
+The later repeated-loop prefix-cache proof now lives in
+`docs/HERMES_QWEN35_REUSE_BENCHMARK.md`.
+
 ## What The Proof Actually Shows
 
 The retained reports prove the following source-level compatibility work is now
@@ -138,4 +141,6 @@ audit posture implied:
   the local `2b` row
 - the repo now also has one retained exact-pushed qwen35 fast-path proof for
   required tool turns, direct auto turns, and tool-result continuation
+- the repo now also has one retained repeated-loop reuse receipt showing warm
+  wallclock improvement on required tool turns and tool-result continuation
 - this is still not enough to claim full Hermes compatibility yet

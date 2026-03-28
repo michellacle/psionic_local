@@ -1,0 +1,1861 @@
+{
+  "report_kind": "psionic_hermes_qwen35_reuse_benchmark",
+  "created_at_utc": "2026-03-28T23:00:08.180824+00:00",
+  "host": "archlinux",
+  "base_url": "http://127.0.0.1:8097/v1",
+  "model": "qwen3.5-2b-q8_0-registry.gguf",
+  "model_path": "/home/christopherdavid/models/qwen3.5/qwen3.5-2b-q8_0-registry.gguf",
+  "psionic_root": "/home/christopherdavid/scratch/psionic-hermes-reuse-a800435c",
+  "psionic_revision": "a800435c4542336d011e36a0154d111228fdc5dd",
+  "iterations_per_row": 3,
+  "workload_shape": {
+    "api_mode": "chat_completions",
+    "provider_shape": "direct Hermes-equivalent custom-provider loop",
+    "turns_per_loop": [
+      "required_tool_turn",
+      "tool_result_continuation"
+    ],
+    "control_row": "psionic_prefix_cache=bypass",
+    "improved_row": "psionic_prefix_cache=auto"
+  },
+  "rows": [
+    {
+      "row_id": "bypass",
+      "pass": true,
+      "required_tool_turn": {
+        "iterations": [
+          {
+            "request_label": "required_tool_turn_loop_0",
+            "http_status": 200,
+            "error": null,
+            "wallclock_s": 0.6158500259916764,
+            "psionic_headers": {
+              "x-psionic-backend": "cuda",
+              "x-psionic-execution-mode": "native",
+              "x-psionic-execution-engine": "psionic",
+              "x-psionic-residency-mode": "cuda_accelerated",
+              "x-psionic-fallback-policy": "refuse",
+              "x-psionic-performance-class": "nvidia_native",
+              "x-psionic-prefix-cache-state": "bypassed",
+              "x-psionic-prefix-cache-refusal": "request_opt_out",
+              "x-psionic-prefix-cache-reused-tokens": "0",
+              "x-psionic-ttft-ns": "84904243",
+              "x-psionic-itl-ns": "4098037"
+            },
+            "prefix_cache_state": "bypassed",
+            "prefix_cache_refusal": "request_opt_out",
+            "prefix_tokens_reused": 0,
+            "ttft_ms": 84.904243,
+            "decode_metrics": {
+              "present": true,
+              "output_modes": [
+                "top_k_candidates:128"
+              ],
+              "readback_bytes": 12288,
+              "raw_logits_materialized": false
+            },
+            "tool_call_names": [
+              "get_weather"
+            ],
+            "assistant_text": "",
+            "finish_reason": "tool_calls",
+            "payload": {
+              "id": "psionic-chatcmpl-1",
+              "object": "chat.completion",
+              "created": 1774738802,
+              "model": "qwen3.5-2b-q8_0-registry.gguf",
+              "choices": [
+                {
+                  "index": 0,
+                  "message": {
+                    "role": "assistant",
+                    "tool_calls": [
+                      {
+                        "id": "psionic-chatcmpl-1-tool-0",
+                        "type": "function",
+                        "function": {
+                          "name": "get_weather",
+                          "arguments": "{\"city\":\"Paris\"}"
+                        }
+                      }
+                    ]
+                  },
+                  "finish_reason": "tool_calls"
+                }
+              ],
+              "usage": {
+                "prompt_tokens": 135,
+                "completion_tokens": 23,
+                "total_tokens": 158
+              },
+              "psionic_metrics": {
+                "total_duration_ns": 610278799,
+                "load_duration_ns": 499781929,
+                "prompt_eval_count": 135,
+                "prompt_eval_duration_ns": 422762457,
+                "context_window": {
+                  "budget": {
+                    "max_context_tokens": 262144,
+                    "existing_context_tokens": 0,
+                    "reserved_output_tokens": 128,
+                    "available_prompt_tokens": 262016
+                  },
+                  "input_prompt_tokens": 135,
+                  "retained_prompt_tokens": 135,
+                  "truncated_prompt_tokens": 0,
+                  "preserved_prefix_tokens": 0
+                },
+                "eval_count": 23,
+                "eval_duration_ns": 179162499,
+                "time_to_first_token_ns": 84904243,
+                "inter_token_latency_ns": 4098037,
+                "prefix_tokens_reused": 0,
+                "termination_detail": {
+                  "cause": "end_of_sequence_token"
+                },
+                "qwen35_cuda_decode": {
+                  "step_count": 24,
+                  "output_modes": [
+                    {
+                      "kind": "top_k_candidates",
+                      "top_k": 128
+                    }
+                  ],
+                  "readback_bytes": 12288,
+                  "raw_logits_materialized": false
+                }
+              },
+              "psionic_output_text": "{\"kind\":\"tool_calls\",\"tool_calls\":[{\"name\":\"get_weather\",\"arguments\":{\"city\":\"Paris\"}}]}",
+              "psionic_output_tokens": [
+                90,
+                1,
+                14868,
+                763,
+                1,
+                13766,
+                44116,
+                2129,
+                13766,
+                44116,
+                64331,
+                591,
+                3147,
+                447,
+                67017,
+                2129,
+                15889,
+                21624,
+                8656,
+                3147,
+                57590,
+                29958,
+                13587
+              ],
+              "psionic_structured_output": {
+                "kind": "tagged_structure",
+                "support_level": "fallback",
+                "mode": "fallback_tagged_structure",
+                "parser": "tagged_json_schema",
+                "schema_name": "psionic_tool_call"
+              },
+              "psionic_structured_value": {
+                "kind": "tagged_structure",
+                "discriminator": "kind",
+                "tag": "tool_calls",
+                "value": {
+                  "kind": "tool_calls",
+                  "tool_calls": [
+                    {
+                      "name": "get_weather",
+                      "arguments": {
+                        "city": "Paris"
+                      }
+                    }
+                  ]
+                }
+              },
+              "psionic_tool_calls": [
+                {
+                  "id": "psionic-chatcmpl-1-tool-0",
+                  "name": "get_weather",
+                  "arguments": {
+                    "city": "Paris"
+                  },
+                  "raw_arguments": "{\"city\":\"Paris\"}"
+                }
+              ]
+            }
+          },
+          {
+            "request_label": "required_tool_turn_loop_1",
+            "http_status": 200,
+            "error": null,
+            "wallclock_s": 0.6033514449954964,
+            "psionic_headers": {
+              "x-psionic-backend": "cuda",
+              "x-psionic-execution-mode": "native",
+              "x-psionic-execution-engine": "psionic",
+              "x-psionic-residency-mode": "cuda_accelerated",
+              "x-psionic-fallback-policy": "refuse",
+              "x-psionic-performance-class": "nvidia_native",
+              "x-psionic-prefix-cache-state": "bypassed",
+              "x-psionic-prefix-cache-refusal": "request_opt_out",
+              "x-psionic-prefix-cache-reused-tokens": "0",
+              "x-psionic-ttft-ns": "86615389",
+              "x-psionic-itl-ns": "4096573"
+            },
+            "prefix_cache_state": "bypassed",
+            "prefix_cache_refusal": "request_opt_out",
+            "prefix_tokens_reused": 0,
+            "ttft_ms": 86.615389,
+            "decode_metrics": {
+              "present": true,
+              "output_modes": [
+                "top_k_candidates:128"
+              ],
+              "readback_bytes": 12288,
+              "raw_logits_materialized": false
+            },
+            "tool_call_names": [
+              "get_weather"
+            ],
+            "assistant_text": "",
+            "finish_reason": "tool_calls",
+            "payload": {
+              "id": "psionic-chatcmpl-3",
+              "object": "chat.completion",
+              "created": 1774738803,
+              "model": "qwen3.5-2b-q8_0-registry.gguf",
+              "choices": [
+                {
+                  "index": 0,
+                  "message": {
+                    "role": "assistant",
+                    "tool_calls": [
+                      {
+                        "id": "psionic-chatcmpl-3-tool-0",
+                        "type": "function",
+                        "function": {
+                          "name": "get_weather",
+                          "arguments": "{\"city\":\"Paris\"}"
+                        }
+                      }
+                    ]
+                  },
+                  "finish_reason": "tool_calls"
+                }
+              ],
+              "usage": {
+                "prompt_tokens": 135,
+                "completion_tokens": 23,
+                "total_tokens": 158
+              },
+              "psionic_metrics": {
+                "total_duration_ns": 602122612,
+                "load_duration_ns": 499781929,
+                "prompt_eval_count": 135,
+                "prompt_eval_duration_ns": 412987411,
+                "context_window": {
+                  "budget": {
+                    "max_context_tokens": 262144,
+                    "existing_context_tokens": 0,
+                    "reserved_output_tokens": 128,
+                    "available_prompt_tokens": 262016
+                  },
+                  "input_prompt_tokens": 135,
+                  "retained_prompt_tokens": 135,
+                  "truncated_prompt_tokens": 0,
+                  "preserved_prefix_tokens": 0
+                },
+                "eval_count": 23,
+                "eval_duration_ns": 180842518,
+                "time_to_first_token_ns": 86615389,
+                "inter_token_latency_ns": 4096573,
+                "prefix_tokens_reused": 0,
+                "termination_detail": {
+                  "cause": "end_of_sequence_token"
+                },
+                "qwen35_cuda_decode": {
+                  "step_count": 24,
+                  "output_modes": [
+                    {
+                      "kind": "top_k_candidates",
+                      "top_k": 128
+                    }
+                  ],
+                  "readback_bytes": 12288,
+                  "raw_logits_materialized": false
+                }
+              },
+              "psionic_output_text": "{\"kind\":\"tool_calls\",\"tool_calls\":[{\"name\":\"get_weather\",\"arguments\":{\"city\":\"Paris\"}}]}",
+              "psionic_output_tokens": [
+                90,
+                1,
+                14868,
+                763,
+                1,
+                13766,
+                44116,
+                2129,
+                13766,
+                44116,
+                64331,
+                591,
+                3147,
+                447,
+                67017,
+                2129,
+                15889,
+                21624,
+                8656,
+                3147,
+                57590,
+                29958,
+                13587
+              ],
+              "psionic_structured_output": {
+                "kind": "tagged_structure",
+                "support_level": "fallback",
+                "mode": "fallback_tagged_structure",
+                "parser": "tagged_json_schema",
+                "schema_name": "psionic_tool_call"
+              },
+              "psionic_structured_value": {
+                "kind": "tagged_structure",
+                "discriminator": "kind",
+                "tag": "tool_calls",
+                "value": {
+                  "kind": "tool_calls",
+                  "tool_calls": [
+                    {
+                      "name": "get_weather",
+                      "arguments": {
+                        "city": "Paris"
+                      }
+                    }
+                  ]
+                }
+              },
+              "psionic_tool_calls": [
+                {
+                  "id": "psionic-chatcmpl-3-tool-0",
+                  "name": "get_weather",
+                  "arguments": {
+                    "city": "Paris"
+                  },
+                  "raw_arguments": "{\"city\":\"Paris\"}"
+                }
+              ]
+            }
+          },
+          {
+            "request_label": "required_tool_turn_loop_2",
+            "http_status": 200,
+            "error": null,
+            "wallclock_s": 0.6011746400035918,
+            "psionic_headers": {
+              "x-psionic-backend": "cuda",
+              "x-psionic-execution-mode": "native",
+              "x-psionic-execution-engine": "psionic",
+              "x-psionic-residency-mode": "cuda_accelerated",
+              "x-psionic-fallback-policy": "refuse",
+              "x-psionic-performance-class": "nvidia_native",
+              "x-psionic-prefix-cache-state": "bypassed",
+              "x-psionic-prefix-cache-refusal": "request_opt_out",
+              "x-psionic-prefix-cache-reused-tokens": "0",
+              "x-psionic-ttft-ns": "84504213",
+              "x-psionic-itl-ns": "4097380"
+            },
+            "prefix_cache_state": "bypassed",
+            "prefix_cache_refusal": "request_opt_out",
+            "prefix_tokens_reused": 0,
+            "ttft_ms": 84.504213,
+            "decode_metrics": {
+              "present": true,
+              "output_modes": [
+                "top_k_candidates:128"
+              ],
+              "readback_bytes": 12288,
+              "raw_logits_materialized": false
+            },
+            "tool_call_names": [
+              "get_weather"
+            ],
+            "assistant_text": "",
+            "finish_reason": "tool_calls",
+            "payload": {
+              "id": "psionic-chatcmpl-5",
+              "object": "chat.completion",
+              "created": 1774738805,
+              "model": "qwen3.5-2b-q8_0-registry.gguf",
+              "choices": [
+                {
+                  "index": 0,
+                  "message": {
+                    "role": "assistant",
+                    "tool_calls": [
+                      {
+                        "id": "psionic-chatcmpl-5-tool-0",
+                        "type": "function",
+                        "function": {
+                          "name": "get_weather",
+                          "arguments": "{\"city\":\"Paris\"}"
+                        }
+                      }
+                    ]
+                  },
+                  "finish_reason": "tool_calls"
+                }
+              ],
+              "usage": {
+                "prompt_tokens": 135,
+                "completion_tokens": 23,
+                "total_tokens": 158
+              },
+              "psionic_metrics": {
+                "total_duration_ns": 600014472,
+                "load_duration_ns": 499781929,
+                "prompt_eval_count": 135,
+                "prompt_eval_duration_ns": 412955339,
+                "context_window": {
+                  "budget": {
+                    "max_context_tokens": 262144,
+                    "existing_context_tokens": 0,
+                    "reserved_output_tokens": 128,
+                    "available_prompt_tokens": 262016
+                  },
+                  "input_prompt_tokens": 135,
+                  "retained_prompt_tokens": 135,
+                  "truncated_prompt_tokens": 0,
+                  "preserved_prefix_tokens": 0
+                },
+                "eval_count": 23,
+                "eval_duration_ns": 178745884,
+                "time_to_first_token_ns": 84504213,
+                "inter_token_latency_ns": 4097380,
+                "prefix_tokens_reused": 0,
+                "termination_detail": {
+                  "cause": "end_of_sequence_token"
+                },
+                "qwen35_cuda_decode": {
+                  "step_count": 24,
+                  "output_modes": [
+                    {
+                      "kind": "top_k_candidates",
+                      "top_k": 128
+                    }
+                  ],
+                  "readback_bytes": 12288,
+                  "raw_logits_materialized": false
+                }
+              },
+              "psionic_output_text": "{\"kind\":\"tool_calls\",\"tool_calls\":[{\"name\":\"get_weather\",\"arguments\":{\"city\":\"Paris\"}}]}",
+              "psionic_output_tokens": [
+                90,
+                1,
+                14868,
+                763,
+                1,
+                13766,
+                44116,
+                2129,
+                13766,
+                44116,
+                64331,
+                591,
+                3147,
+                447,
+                67017,
+                2129,
+                15889,
+                21624,
+                8656,
+                3147,
+                57590,
+                29958,
+                13587
+              ],
+              "psionic_structured_output": {
+                "kind": "tagged_structure",
+                "support_level": "fallback",
+                "mode": "fallback_tagged_structure",
+                "parser": "tagged_json_schema",
+                "schema_name": "psionic_tool_call"
+              },
+              "psionic_structured_value": {
+                "kind": "tagged_structure",
+                "discriminator": "kind",
+                "tag": "tool_calls",
+                "value": {
+                  "kind": "tool_calls",
+                  "tool_calls": [
+                    {
+                      "name": "get_weather",
+                      "arguments": {
+                        "city": "Paris"
+                      }
+                    }
+                  ]
+                }
+              },
+              "psionic_tool_calls": [
+                {
+                  "id": "psionic-chatcmpl-5-tool-0",
+                  "name": "get_weather",
+                  "arguments": {
+                    "city": "Paris"
+                  },
+                  "raw_arguments": "{\"city\":\"Paris\"}"
+                }
+              ]
+            }
+          }
+        ],
+        "aggregate": {
+          "iteration_count": 3,
+          "mean_wallclock_s_all": 0.6067920369969215,
+          "mean_wallclock_s_warm": 0.6022630424995441,
+          "mean_ttft_ms_all": 85.34128166666666,
+          "mean_ttft_ms_warm": 85.559801,
+          "mean_prefix_tokens_reused_all": 0.0,
+          "mean_prefix_tokens_reused_warm": 0.0
+        }
+      },
+      "tool_result_continuation": {
+        "iterations": [
+          {
+            "request_label": "tool_result_continuation_loop_0",
+            "http_status": 200,
+            "error": null,
+            "wallclock_s": 0.8544611459947191,
+            "psionic_headers": {
+              "x-psionic-backend": "cuda",
+              "x-psionic-execution-mode": "native",
+              "x-psionic-execution-engine": "psionic",
+              "x-psionic-residency-mode": "cuda_accelerated",
+              "x-psionic-fallback-policy": "refuse",
+              "x-psionic-performance-class": "nvidia_native",
+              "x-psionic-prefix-cache-state": "bypassed",
+              "x-psionic-prefix-cache-refusal": "request_opt_out",
+              "x-psionic-prefix-cache-reused-tokens": "0",
+              "x-psionic-ttft-ns": "86355052",
+              "x-psionic-itl-ns": "4196646"
+            },
+            "prefix_cache_state": "bypassed",
+            "prefix_cache_refusal": "request_opt_out",
+            "prefix_tokens_reused": 0,
+            "ttft_ms": 86.355052,
+            "decode_metrics": {
+              "present": true,
+              "output_modes": [
+                "top_k_candidates:128"
+              ],
+              "readback_bytes": 12288,
+              "raw_logits_materialized": false
+            },
+            "tool_call_names": [],
+            "assistant_text": "The weather in Paris is sunny with a temperature of 18\u00b0C.",
+            "finish_reason": "stop",
+            "payload": {
+              "id": "psionic-chatcmpl-2",
+              "object": "chat.completion",
+              "created": 1774738802,
+              "model": "qwen3.5-2b-q8_0-registry.gguf",
+              "choices": [
+                {
+                  "index": 0,
+                  "message": {
+                    "role": "assistant",
+                    "content": "The weather in Paris is sunny with a temperature of 18\u00b0C."
+                  },
+                  "finish_reason": "stop"
+                }
+              ],
+              "usage": {
+                "prompt_tokens": 215,
+                "completion_tokens": 23,
+                "total_tokens": 238
+              },
+              "psionic_metrics": {
+                "total_duration_ns": 853020509,
+                "load_duration_ns": 499781929,
+                "prompt_eval_count": 215,
+                "prompt_eval_duration_ns": 661722207,
+                "context_window": {
+                  "budget": {
+                    "max_context_tokens": 262144,
+                    "existing_context_tokens": 0,
+                    "reserved_output_tokens": 128,
+                    "available_prompt_tokens": 262016
+                  },
+                  "input_prompt_tokens": 215,
+                  "retained_prompt_tokens": 215,
+                  "truncated_prompt_tokens": 0,
+                  "preserved_prefix_tokens": 0
+                },
+                "eval_count": 23,
+                "eval_duration_ns": 182887930,
+                "time_to_first_token_ns": 86355052,
+                "inter_token_latency_ns": 4196646,
+                "prefix_tokens_reused": 0,
+                "termination_detail": {
+                  "cause": "end_of_sequence_token"
+                },
+                "qwen35_cuda_decode": {
+                  "step_count": 24,
+                  "output_modes": [
+                    {
+                      "kind": "top_k_candidates",
+                      "top_k": 128
+                    }
+                  ],
+                  "readback_bytes": 12288,
+                  "raw_logits_materialized": false
+                }
+              },
+              "psionic_output_text": "{\"kind\":\"message\",\"content\":\"The weather in Paris is sunny with a temperature of 18\u00b0C.\"}",
+              "psionic_output_tokens": [
+                4754,
+                14868,
+                3147,
+                1927,
+                2129,
+                1733,
+                3147,
+                760,
+                8831,
+                303,
+                11751,
+                369,
+                38383,
+                440,
+                264,
+                9039,
+                314,
+                220,
+                16,
+                23,
+                29922,
+                1149,
+                92
+              ],
+              "psionic_structured_output": {
+                "kind": "tagged_structure",
+                "support_level": "fallback",
+                "mode": "fallback_tagged_structure",
+                "parser": "tagged_json_schema",
+                "schema_name": "psionic_tool_call"
+              },
+              "psionic_structured_value": {
+                "kind": "tagged_structure",
+                "discriminator": "kind",
+                "tag": "message",
+                "value": {
+                  "kind": "message",
+                  "content": "The weather in Paris is sunny with a temperature of 18\u00b0C."
+                }
+              }
+            }
+          },
+          {
+            "request_label": "tool_result_continuation_loop_1",
+            "http_status": 200,
+            "error": null,
+            "wallclock_s": 0.85247993998928,
+            "psionic_headers": {
+              "x-psionic-backend": "cuda",
+              "x-psionic-execution-mode": "native",
+              "x-psionic-execution-engine": "psionic",
+              "x-psionic-residency-mode": "cuda_accelerated",
+              "x-psionic-fallback-policy": "refuse",
+              "x-psionic-performance-class": "nvidia_native",
+              "x-psionic-prefix-cache-state": "bypassed",
+              "x-psionic-prefix-cache-refusal": "request_opt_out",
+              "x-psionic-prefix-cache-reused-tokens": "0",
+              "x-psionic-ttft-ns": "84627836",
+              "x-psionic-itl-ns": "4195793"
+            },
+            "prefix_cache_state": "bypassed",
+            "prefix_cache_refusal": "request_opt_out",
+            "prefix_tokens_reused": 0,
+            "ttft_ms": 84.627836,
+            "decode_metrics": {
+              "present": true,
+              "output_modes": [
+                "top_k_candidates:128"
+              ],
+              "readback_bytes": 12288,
+              "raw_logits_materialized": false
+            },
+            "tool_call_names": [],
+            "assistant_text": "The weather in Paris is sunny with a temperature of 18\u00b0C.",
+            "finish_reason": "stop",
+            "payload": {
+              "id": "psionic-chatcmpl-4",
+              "object": "chat.completion",
+              "created": 1774738804,
+              "model": "qwen3.5-2b-q8_0-registry.gguf",
+              "choices": [
+                {
+                  "index": 0,
+                  "message": {
+                    "role": "assistant",
+                    "content": "The weather in Paris is sunny with a temperature of 18\u00b0C."
+                  },
+                  "finish_reason": "stop"
+                }
+              ],
+              "usage": {
+                "prompt_tokens": 215,
+                "completion_tokens": 23,
+                "total_tokens": 238
+              },
+              "psionic_metrics": {
+                "total_duration_ns": 851311259,
+                "load_duration_ns": 499781929,
+                "prompt_eval_count": 215,
+                "prompt_eval_duration_ns": 661735846,
+                "context_window": {
+                  "budget": {
+                    "max_context_tokens": 262144,
+                    "existing_context_tokens": 0,
+                    "reserved_output_tokens": 128,
+                    "available_prompt_tokens": 262016
+                  },
+                  "input_prompt_tokens": 215,
+                  "retained_prompt_tokens": 215,
+                  "truncated_prompt_tokens": 0,
+                  "preserved_prefix_tokens": 0
+                },
+                "eval_count": 23,
+                "eval_duration_ns": 181136765,
+                "time_to_first_token_ns": 84627836,
+                "inter_token_latency_ns": 4195793,
+                "prefix_tokens_reused": 0,
+                "termination_detail": {
+                  "cause": "end_of_sequence_token"
+                },
+                "qwen35_cuda_decode": {
+                  "step_count": 24,
+                  "output_modes": [
+                    {
+                      "kind": "top_k_candidates",
+                      "top_k": 128
+                    }
+                  ],
+                  "readback_bytes": 12288,
+                  "raw_logits_materialized": false
+                }
+              },
+              "psionic_output_text": "{\"kind\":\"message\",\"content\":\"The weather in Paris is sunny with a temperature of 18\u00b0C.\"}",
+              "psionic_output_tokens": [
+                4754,
+                14868,
+                3147,
+                1927,
+                2129,
+                1733,
+                3147,
+                760,
+                8831,
+                303,
+                11751,
+                369,
+                38383,
+                440,
+                264,
+                9039,
+                314,
+                220,
+                16,
+                23,
+                29922,
+                1149,
+                92
+              ],
+              "psionic_structured_output": {
+                "kind": "tagged_structure",
+                "support_level": "fallback",
+                "mode": "fallback_tagged_structure",
+                "parser": "tagged_json_schema",
+                "schema_name": "psionic_tool_call"
+              },
+              "psionic_structured_value": {
+                "kind": "tagged_structure",
+                "discriminator": "kind",
+                "tag": "message",
+                "value": {
+                  "kind": "message",
+                  "content": "The weather in Paris is sunny with a temperature of 18\u00b0C."
+                }
+              }
+            }
+          },
+          {
+            "request_label": "tool_result_continuation_loop_2",
+            "http_status": 200,
+            "error": null,
+            "wallclock_s": 0.8527408960217144,
+            "psionic_headers": {
+              "x-psionic-backend": "cuda",
+              "x-psionic-execution-mode": "native",
+              "x-psionic-execution-engine": "psionic",
+              "x-psionic-residency-mode": "cuda_accelerated",
+              "x-psionic-fallback-policy": "refuse",
+              "x-psionic-performance-class": "nvidia_native",
+              "x-psionic-prefix-cache-state": "bypassed",
+              "x-psionic-prefix-cache-refusal": "request_opt_out",
+              "x-psionic-prefix-cache-reused-tokens": "0",
+              "x-psionic-ttft-ns": "84821226",
+              "x-psionic-itl-ns": "4195031"
+            },
+            "prefix_cache_state": "bypassed",
+            "prefix_cache_refusal": "request_opt_out",
+            "prefix_tokens_reused": 0,
+            "ttft_ms": 84.821226,
+            "decode_metrics": {
+              "present": true,
+              "output_modes": [
+                "top_k_candidates:128"
+              ],
+              "readback_bytes": 12288,
+              "raw_logits_materialized": false
+            },
+            "tool_call_names": [],
+            "assistant_text": "The weather in Paris is sunny with a temperature of 18\u00b0C.",
+            "finish_reason": "stop",
+            "payload": {
+              "id": "psionic-chatcmpl-6",
+              "object": "chat.completion",
+              "created": 1774738805,
+              "model": "qwen3.5-2b-q8_0-registry.gguf",
+              "choices": [
+                {
+                  "index": 0,
+                  "message": {
+                    "role": "assistant",
+                    "content": "The weather in Paris is sunny with a temperature of 18\u00b0C."
+                  },
+                  "finish_reason": "stop"
+                }
+              ],
+              "usage": {
+                "prompt_tokens": 215,
+                "completion_tokens": 23,
+                "total_tokens": 238
+              },
+              "psionic_metrics": {
+                "total_duration_ns": 851380714,
+                "load_duration_ns": 499781929,
+                "prompt_eval_count": 215,
+                "prompt_eval_duration_ns": 661624527,
+                "context_window": {
+                  "budget": {
+                    "max_context_tokens": 262144,
+                    "existing_context_tokens": 0,
+                    "reserved_output_tokens": 128,
+                    "available_prompt_tokens": 262016
+                  },
+                  "input_prompt_tokens": 215,
+                  "retained_prompt_tokens": 215,
+                  "truncated_prompt_tokens": 0,
+                  "preserved_prefix_tokens": 0
+                },
+                "eval_count": 23,
+                "eval_duration_ns": 181310779,
+                "time_to_first_token_ns": 84821226,
+                "inter_token_latency_ns": 4195031,
+                "prefix_tokens_reused": 0,
+                "termination_detail": {
+                  "cause": "end_of_sequence_token"
+                },
+                "qwen35_cuda_decode": {
+                  "step_count": 24,
+                  "output_modes": [
+                    {
+                      "kind": "top_k_candidates",
+                      "top_k": 128
+                    }
+                  ],
+                  "readback_bytes": 12288,
+                  "raw_logits_materialized": false
+                }
+              },
+              "psionic_output_text": "{\"kind\":\"message\",\"content\":\"The weather in Paris is sunny with a temperature of 18\u00b0C.\"}",
+              "psionic_output_tokens": [
+                4754,
+                14868,
+                3147,
+                1927,
+                2129,
+                1733,
+                3147,
+                760,
+                8831,
+                303,
+                11751,
+                369,
+                38383,
+                440,
+                264,
+                9039,
+                314,
+                220,
+                16,
+                23,
+                29922,
+                1149,
+                92
+              ],
+              "psionic_structured_output": {
+                "kind": "tagged_structure",
+                "support_level": "fallback",
+                "mode": "fallback_tagged_structure",
+                "parser": "tagged_json_schema",
+                "schema_name": "psionic_tool_call"
+              },
+              "psionic_structured_value": {
+                "kind": "tagged_structure",
+                "discriminator": "kind",
+                "tag": "message",
+                "value": {
+                  "kind": "message",
+                  "content": "The weather in Paris is sunny with a temperature of 18\u00b0C."
+                }
+              }
+            }
+          }
+        ],
+        "aggregate": {
+          "iteration_count": 3,
+          "mean_wallclock_s_all": 0.8532273273352379,
+          "mean_wallclock_s_warm": 0.8526104180054972,
+          "mean_ttft_ms_all": 85.268038,
+          "mean_ttft_ms_warm": 84.724531,
+          "mean_prefix_tokens_reused_all": 0.0,
+          "mean_prefix_tokens_reused_warm": 0.0
+        }
+      }
+    },
+    {
+      "row_id": "auto",
+      "pass": true,
+      "required_tool_turn": {
+        "iterations": [
+          {
+            "request_label": "required_tool_turn_loop_0",
+            "http_status": 200,
+            "error": null,
+            "wallclock_s": 0.6081810350005981,
+            "psionic_headers": {
+              "x-psionic-backend": "cuda",
+              "x-psionic-execution-mode": "native",
+              "x-psionic-execution-engine": "psionic",
+              "x-psionic-residency-mode": "cuda_accelerated",
+              "x-psionic-fallback-policy": "refuse",
+              "x-psionic-performance-class": "nvidia_native",
+              "x-psionic-prefix-cache-state": "none",
+              "x-psionic-prefix-cache-reused-tokens": "0",
+              "x-psionic-ttft-ns": "84452695",
+              "x-psionic-itl-ns": "4101839"
+            },
+            "prefix_cache_state": "none",
+            "prefix_cache_refusal": null,
+            "prefix_tokens_reused": 0,
+            "ttft_ms": 84.452695,
+            "decode_metrics": {
+              "present": true,
+              "output_modes": [
+                "top_k_candidates:128"
+              ],
+              "readback_bytes": 12288,
+              "raw_logits_materialized": false
+            },
+            "tool_call_names": [
+              "get_weather"
+            ],
+            "assistant_text": "",
+            "finish_reason": "tool_calls",
+            "payload": {
+              "id": "psionic-chatcmpl-7",
+              "object": "chat.completion",
+              "created": 1774738806,
+              "model": "qwen3.5-2b-q8_0-registry.gguf",
+              "choices": [
+                {
+                  "index": 0,
+                  "message": {
+                    "role": "assistant",
+                    "tool_calls": [
+                      {
+                        "id": "psionic-chatcmpl-7-tool-0",
+                        "type": "function",
+                        "function": {
+                          "name": "get_weather",
+                          "arguments": "{\"city\":\"Paris\"}"
+                        }
+                      }
+                    ]
+                  },
+                  "finish_reason": "tool_calls"
+                }
+              ],
+              "usage": {
+                "prompt_tokens": 135,
+                "completion_tokens": 23,
+                "total_tokens": 158
+              },
+              "psionic_metrics": {
+                "total_duration_ns": 607019875,
+                "load_duration_ns": 499781929,
+                "prompt_eval_count": 135,
+                "prompt_eval_duration_ns": 416210695,
+                "context_window": {
+                  "budget": {
+                    "max_context_tokens": 262144,
+                    "existing_context_tokens": 0,
+                    "reserved_output_tokens": 128,
+                    "available_prompt_tokens": 262016
+                  },
+                  "input_prompt_tokens": 135,
+                  "retained_prompt_tokens": 135,
+                  "truncated_prompt_tokens": 0,
+                  "preserved_prefix_tokens": 0
+                },
+                "eval_count": 23,
+                "eval_duration_ns": 182521035,
+                "time_to_first_token_ns": 84452695,
+                "inter_token_latency_ns": 4101839,
+                "prefix_tokens_reused": 0,
+                "termination_detail": {
+                  "cause": "end_of_sequence_token"
+                },
+                "qwen35_cuda_decode": {
+                  "step_count": 24,
+                  "output_modes": [
+                    {
+                      "kind": "top_k_candidates",
+                      "top_k": 128
+                    }
+                  ],
+                  "readback_bytes": 12288,
+                  "raw_logits_materialized": false
+                }
+              },
+              "psionic_output_text": "{\"kind\":\"tool_calls\",\"tool_calls\":[{\"name\":\"get_weather\",\"arguments\":{\"city\":\"Paris\"}}]}",
+              "psionic_output_tokens": [
+                90,
+                1,
+                14868,
+                763,
+                1,
+                13766,
+                44116,
+                2129,
+                13766,
+                44116,
+                64331,
+                591,
+                3147,
+                447,
+                67017,
+                2129,
+                15889,
+                21624,
+                8656,
+                3147,
+                57590,
+                29958,
+                13587
+              ],
+              "psionic_structured_output": {
+                "kind": "tagged_structure",
+                "support_level": "fallback",
+                "mode": "fallback_tagged_structure",
+                "parser": "tagged_json_schema",
+                "schema_name": "psionic_tool_call"
+              },
+              "psionic_structured_value": {
+                "kind": "tagged_structure",
+                "discriminator": "kind",
+                "tag": "tool_calls",
+                "value": {
+                  "kind": "tool_calls",
+                  "tool_calls": [
+                    {
+                      "name": "get_weather",
+                      "arguments": {
+                        "city": "Paris"
+                      }
+                    }
+                  ]
+                }
+              },
+              "psionic_tool_calls": [
+                {
+                  "id": "psionic-chatcmpl-7-tool-0",
+                  "name": "get_weather",
+                  "arguments": {
+                    "city": "Paris"
+                  },
+                  "raw_arguments": "{\"city\":\"Paris\"}"
+                }
+              ]
+            }
+          },
+          {
+            "request_label": "required_tool_turn_loop_1",
+            "http_status": 200,
+            "error": null,
+            "wallclock_s": 0.19989520200761035,
+            "psionic_headers": {
+              "x-psionic-backend": "cuda",
+              "x-psionic-execution-mode": "native",
+              "x-psionic-execution-engine": "psionic",
+              "x-psionic-residency-mode": "cuda_accelerated",
+              "x-psionic-fallback-policy": "refuse",
+              "x-psionic-performance-class": "nvidia_native",
+              "x-psionic-prefix-cache-state": "hit",
+              "x-psionic-prefix-cache-reused-tokens": "135",
+              "x-psionic-ttft-ns": "515",
+              "x-psionic-itl-ns": "7995500"
+            },
+            "prefix_cache_state": "hit",
+            "prefix_cache_refusal": null,
+            "prefix_tokens_reused": 135,
+            "ttft_ms": 0.000515,
+            "decode_metrics": {
+              "present": true,
+              "output_modes": [
+                "top_k_candidates:128"
+              ],
+              "readback_bytes": 11776,
+              "raw_logits_materialized": false
+            },
+            "tool_call_names": [
+              "get_weather"
+            ],
+            "assistant_text": "",
+            "finish_reason": "tool_calls",
+            "payload": {
+              "id": "psionic-chatcmpl-9",
+              "object": "chat.completion",
+              "created": 1774738807,
+              "model": "qwen3.5-2b-q8_0-registry.gguf",
+              "choices": [
+                {
+                  "index": 0,
+                  "message": {
+                    "role": "assistant",
+                    "tool_calls": [
+                      {
+                        "id": "psionic-chatcmpl-9-tool-0",
+                        "type": "function",
+                        "function": {
+                          "name": "get_weather",
+                          "arguments": "{\"city\":\"Paris\"}"
+                        }
+                      }
+                    ]
+                  },
+                  "finish_reason": "tool_calls"
+                }
+              ],
+              "usage": {
+                "prompt_tokens": 135,
+                "completion_tokens": 23,
+                "total_tokens": 158
+              },
+              "psionic_metrics": {
+                "total_duration_ns": 198756669,
+                "load_duration_ns": 499781929,
+                "prompt_eval_count": 135,
+                "prompt_eval_duration_ns": 6264886,
+                "context_window": {
+                  "budget": {
+                    "max_context_tokens": 262144,
+                    "existing_context_tokens": 0,
+                    "reserved_output_tokens": 128,
+                    "available_prompt_tokens": 262016
+                  },
+                  "input_prompt_tokens": 135,
+                  "retained_prompt_tokens": 135,
+                  "truncated_prompt_tokens": 0,
+                  "preserved_prefix_tokens": 0
+                },
+                "eval_count": 23,
+                "eval_duration_ns": 183734641,
+                "time_to_first_token_ns": 515,
+                "inter_token_latency_ns": 7995500,
+                "prefix_tokens_reused": 135,
+                "termination_detail": {
+                  "cause": "end_of_sequence_token"
+                },
+                "qwen35_cuda_decode": {
+                  "step_count": 23,
+                  "output_modes": [
+                    {
+                      "kind": "top_k_candidates",
+                      "top_k": 128
+                    }
+                  ],
+                  "readback_bytes": 11776,
+                  "raw_logits_materialized": false
+                }
+              },
+              "psionic_output_text": "{\"kind\":\"tool_calls\",\"tool_calls\":[{\"name\":\"get_weather\",\"arguments\":{\"city\":\"Paris\"}}]}",
+              "psionic_output_tokens": [
+                90,
+                1,
+                14868,
+                763,
+                1,
+                13766,
+                44116,
+                2129,
+                13766,
+                44116,
+                64331,
+                591,
+                3147,
+                447,
+                67017,
+                2129,
+                15889,
+                21624,
+                8656,
+                3147,
+                57590,
+                29958,
+                13587
+              ],
+              "psionic_structured_output": {
+                "kind": "tagged_structure",
+                "support_level": "fallback",
+                "mode": "fallback_tagged_structure",
+                "parser": "tagged_json_schema",
+                "schema_name": "psionic_tool_call"
+              },
+              "psionic_structured_value": {
+                "kind": "tagged_structure",
+                "discriminator": "kind",
+                "tag": "tool_calls",
+                "value": {
+                  "kind": "tool_calls",
+                  "tool_calls": [
+                    {
+                      "name": "get_weather",
+                      "arguments": {
+                        "city": "Paris"
+                      }
+                    }
+                  ]
+                }
+              },
+              "psionic_tool_calls": [
+                {
+                  "id": "psionic-chatcmpl-9-tool-0",
+                  "name": "get_weather",
+                  "arguments": {
+                    "city": "Paris"
+                  },
+                  "raw_arguments": "{\"city\":\"Paris\"}"
+                }
+              ]
+            }
+          },
+          {
+            "request_label": "required_tool_turn_loop_2",
+            "http_status": 200,
+            "error": null,
+            "wallclock_s": 0.19926870398921892,
+            "psionic_headers": {
+              "x-psionic-backend": "cuda",
+              "x-psionic-execution-mode": "native",
+              "x-psionic-execution-engine": "psionic",
+              "x-psionic-residency-mode": "cuda_accelerated",
+              "x-psionic-fallback-policy": "refuse",
+              "x-psionic-performance-class": "nvidia_native",
+              "x-psionic-prefix-cache-state": "hit",
+              "x-psionic-prefix-cache-reused-tokens": "135",
+              "x-psionic-ttft-ns": "423",
+              "x-psionic-itl-ns": "7978300"
+            },
+            "prefix_cache_state": "hit",
+            "prefix_cache_refusal": null,
+            "prefix_tokens_reused": 135,
+            "ttft_ms": 0.000423,
+            "decode_metrics": {
+              "present": true,
+              "output_modes": [
+                "top_k_candidates:128"
+              ],
+              "readback_bytes": 11776,
+              "raw_logits_materialized": false
+            },
+            "tool_call_names": [
+              "get_weather"
+            ],
+            "assistant_text": "",
+            "finish_reason": "tool_calls",
+            "payload": {
+              "id": "psionic-chatcmpl-11",
+              "object": "chat.completion",
+              "created": 1774738807,
+              "model": "qwen3.5-2b-q8_0-registry.gguf",
+              "choices": [
+                {
+                  "index": 0,
+                  "message": {
+                    "role": "assistant",
+                    "tool_calls": [
+                      {
+                        "id": "psionic-chatcmpl-11-tool-0",
+                        "type": "function",
+                        "function": {
+                          "name": "get_weather",
+                          "arguments": "{\"city\":\"Paris\"}"
+                        }
+                      }
+                    ]
+                  },
+                  "finish_reason": "tool_calls"
+                }
+              ],
+              "usage": {
+                "prompt_tokens": 135,
+                "completion_tokens": 23,
+                "total_tokens": 158
+              },
+              "psionic_metrics": {
+                "total_duration_ns": 198133393,
+                "load_duration_ns": 499781929,
+                "prompt_eval_count": 135,
+                "prompt_eval_duration_ns": 5956758,
+                "context_window": {
+                  "budget": {
+                    "max_context_tokens": 262144,
+                    "existing_context_tokens": 0,
+                    "reserved_output_tokens": 128,
+                    "available_prompt_tokens": 262016
+                  },
+                  "input_prompt_tokens": 135,
+                  "retained_prompt_tokens": 135,
+                  "truncated_prompt_tokens": 0,
+                  "preserved_prefix_tokens": 0
+                },
+                "eval_count": 23,
+                "eval_duration_ns": 183346817,
+                "time_to_first_token_ns": 423,
+                "inter_token_latency_ns": 7978300,
+                "prefix_tokens_reused": 135,
+                "termination_detail": {
+                  "cause": "end_of_sequence_token"
+                },
+                "qwen35_cuda_decode": {
+                  "step_count": 23,
+                  "output_modes": [
+                    {
+                      "kind": "top_k_candidates",
+                      "top_k": 128
+                    }
+                  ],
+                  "readback_bytes": 11776,
+                  "raw_logits_materialized": false
+                }
+              },
+              "psionic_output_text": "{\"kind\":\"tool_calls\",\"tool_calls\":[{\"name\":\"get_weather\",\"arguments\":{\"city\":\"Paris\"}}]}",
+              "psionic_output_tokens": [
+                90,
+                1,
+                14868,
+                763,
+                1,
+                13766,
+                44116,
+                2129,
+                13766,
+                44116,
+                64331,
+                591,
+                3147,
+                447,
+                67017,
+                2129,
+                15889,
+                21624,
+                8656,
+                3147,
+                57590,
+                29958,
+                13587
+              ],
+              "psionic_structured_output": {
+                "kind": "tagged_structure",
+                "support_level": "fallback",
+                "mode": "fallback_tagged_structure",
+                "parser": "tagged_json_schema",
+                "schema_name": "psionic_tool_call"
+              },
+              "psionic_structured_value": {
+                "kind": "tagged_structure",
+                "discriminator": "kind",
+                "tag": "tool_calls",
+                "value": {
+                  "kind": "tool_calls",
+                  "tool_calls": [
+                    {
+                      "name": "get_weather",
+                      "arguments": {
+                        "city": "Paris"
+                      }
+                    }
+                  ]
+                }
+              },
+              "psionic_tool_calls": [
+                {
+                  "id": "psionic-chatcmpl-11-tool-0",
+                  "name": "get_weather",
+                  "arguments": {
+                    "city": "Paris"
+                  },
+                  "raw_arguments": "{\"city\":\"Paris\"}"
+                }
+              ]
+            }
+          }
+        ],
+        "aggregate": {
+          "iteration_count": 3,
+          "mean_wallclock_s_all": 0.3357816469991424,
+          "mean_wallclock_s_warm": 0.19958195299841464,
+          "mean_ttft_ms_all": 28.151211000000004,
+          "mean_ttft_ms_warm": 0.000469,
+          "mean_prefix_tokens_reused_all": 90.0,
+          "mean_prefix_tokens_reused_warm": 135.0
+        }
+      },
+      "tool_result_continuation": {
+        "iterations": [
+          {
+            "request_label": "tool_result_continuation_loop_0",
+            "http_status": 200,
+            "error": null,
+            "wallclock_s": 0.8607728449860588,
+            "psionic_headers": {
+              "x-psionic-backend": "cuda",
+              "x-psionic-execution-mode": "native",
+              "x-psionic-execution-engine": "psionic",
+              "x-psionic-residency-mode": "cuda_accelerated",
+              "x-psionic-fallback-policy": "refuse",
+              "x-psionic-performance-class": "nvidia_native",
+              "x-psionic-prefix-cache-state": "miss",
+              "x-psionic-prefix-cache-reused-tokens": "0",
+              "x-psionic-ttft-ns": "84620232",
+              "x-psionic-itl-ns": "4197632"
+            },
+            "prefix_cache_state": "miss",
+            "prefix_cache_refusal": null,
+            "prefix_tokens_reused": 0,
+            "ttft_ms": 84.620232,
+            "decode_metrics": {
+              "present": true,
+              "output_modes": [
+                "top_k_candidates:128"
+              ],
+              "readback_bytes": 12288,
+              "raw_logits_materialized": false
+            },
+            "tool_call_names": [],
+            "assistant_text": "The weather in Paris is sunny with a temperature of 18\u00b0C.",
+            "finish_reason": "stop",
+            "payload": {
+              "id": "psionic-chatcmpl-8",
+              "object": "chat.completion",
+              "created": 1774738807,
+              "model": "qwen3.5-2b-q8_0-registry.gguf",
+              "choices": [
+                {
+                  "index": 0,
+                  "message": {
+                    "role": "assistant",
+                    "content": "The weather in Paris is sunny with a temperature of 18\u00b0C."
+                  },
+                  "finish_reason": "stop"
+                }
+              ],
+              "usage": {
+                "prompt_tokens": 215,
+                "completion_tokens": 23,
+                "total_tokens": 238
+              },
+              "psionic_metrics": {
+                "total_duration_ns": 859657448,
+                "load_duration_ns": 499781929,
+                "prompt_eval_count": 215,
+                "prompt_eval_duration_ns": 666038077,
+                "context_window": {
+                  "budget": {
+                    "max_context_tokens": 262144,
+                    "existing_context_tokens": 0,
+                    "reserved_output_tokens": 128,
+                    "available_prompt_tokens": 262016
+                  },
+                  "input_prompt_tokens": 215,
+                  "retained_prompt_tokens": 215,
+                  "truncated_prompt_tokens": 0,
+                  "preserved_prefix_tokens": 0
+                },
+                "eval_count": 23,
+                "eval_duration_ns": 185023735,
+                "time_to_first_token_ns": 84620232,
+                "inter_token_latency_ns": 4197632,
+                "prefix_tokens_reused": 0,
+                "termination_detail": {
+                  "cause": "end_of_sequence_token"
+                },
+                "qwen35_cuda_decode": {
+                  "step_count": 24,
+                  "output_modes": [
+                    {
+                      "kind": "top_k_candidates",
+                      "top_k": 128
+                    }
+                  ],
+                  "readback_bytes": 12288,
+                  "raw_logits_materialized": false
+                }
+              },
+              "psionic_output_text": "{\"kind\":\"message\",\"content\":\"The weather in Paris is sunny with a temperature of 18\u00b0C.\"}",
+              "psionic_output_tokens": [
+                4754,
+                14868,
+                3147,
+                1927,
+                2129,
+                1733,
+                3147,
+                760,
+                8831,
+                303,
+                11751,
+                369,
+                38383,
+                440,
+                264,
+                9039,
+                314,
+                220,
+                16,
+                23,
+                29922,
+                1149,
+                92
+              ],
+              "psionic_structured_output": {
+                "kind": "tagged_structure",
+                "support_level": "fallback",
+                "mode": "fallback_tagged_structure",
+                "parser": "tagged_json_schema",
+                "schema_name": "psionic_tool_call"
+              },
+              "psionic_structured_value": {
+                "kind": "tagged_structure",
+                "discriminator": "kind",
+                "tag": "message",
+                "value": {
+                  "kind": "message",
+                  "content": "The weather in Paris is sunny with a temperature of 18\u00b0C."
+                }
+              }
+            }
+          },
+          {
+            "request_label": "tool_result_continuation_loop_1",
+            "http_status": 200,
+            "error": null,
+            "wallclock_s": 0.20176476400229149,
+            "psionic_headers": {
+              "x-psionic-backend": "cuda",
+              "x-psionic-execution-mode": "native",
+              "x-psionic-execution-engine": "psionic",
+              "x-psionic-residency-mode": "cuda_accelerated",
+              "x-psionic-fallback-policy": "refuse",
+              "x-psionic-performance-class": "nvidia_native",
+              "x-psionic-prefix-cache-state": "hit",
+              "x-psionic-prefix-cache-reused-tokens": "215",
+              "x-psionic-ttft-ns": "435",
+              "x-psionic-itl-ns": "8071114"
+            },
+            "prefix_cache_state": "hit",
+            "prefix_cache_refusal": null,
+            "prefix_tokens_reused": 215,
+            "ttft_ms": 0.000435,
+            "decode_metrics": {
+              "present": true,
+              "output_modes": [
+                "top_k_candidates:128"
+              ],
+              "readback_bytes": 11776,
+              "raw_logits_materialized": false
+            },
+            "tool_call_names": [],
+            "assistant_text": "The weather in Paris is sunny with a temperature of 18\u00b0C.",
+            "finish_reason": "stop",
+            "payload": {
+              "id": "psionic-chatcmpl-10",
+              "object": "chat.completion",
+              "created": 1774738807,
+              "model": "qwen3.5-2b-q8_0-registry.gguf",
+              "choices": [
+                {
+                  "index": 0,
+                  "message": {
+                    "role": "assistant",
+                    "content": "The weather in Paris is sunny with a temperature of 18\u00b0C."
+                  },
+                  "finish_reason": "stop"
+                }
+              ],
+              "usage": {
+                "prompt_tokens": 215,
+                "completion_tokens": 23,
+                "total_tokens": 238
+              },
+              "psionic_metrics": {
+                "total_duration_ns": 200399929,
+                "load_duration_ns": 499781929,
+                "prompt_eval_count": 215,
+                "prompt_eval_duration_ns": 6058870,
+                "context_window": {
+                  "budget": {
+                    "max_context_tokens": 262144,
+                    "existing_context_tokens": 0,
+                    "reserved_output_tokens": 128,
+                    "available_prompt_tokens": 262016
+                  },
+                  "input_prompt_tokens": 215,
+                  "retained_prompt_tokens": 215,
+                  "truncated_prompt_tokens": 0,
+                  "preserved_prefix_tokens": 0
+                },
+                "eval_count": 23,
+                "eval_duration_ns": 185491851,
+                "time_to_first_token_ns": 435,
+                "inter_token_latency_ns": 8071114,
+                "prefix_tokens_reused": 215,
+                "termination_detail": {
+                  "cause": "end_of_sequence_token"
+                },
+                "qwen35_cuda_decode": {
+                  "step_count": 23,
+                  "output_modes": [
+                    {
+                      "kind": "top_k_candidates",
+                      "top_k": 128
+                    }
+                  ],
+                  "readback_bytes": 11776,
+                  "raw_logits_materialized": false
+                }
+              },
+              "psionic_output_text": "{\"kind\":\"message\",\"content\":\"The weather in Paris is sunny with a temperature of 18\u00b0C.\"}",
+              "psionic_output_tokens": [
+                4754,
+                14868,
+                3147,
+                1927,
+                2129,
+                1733,
+                3147,
+                760,
+                8831,
+                303,
+                11751,
+                369,
+                38383,
+                440,
+                264,
+                9039,
+                314,
+                220,
+                16,
+                23,
+                29922,
+                1149,
+                92
+              ],
+              "psionic_structured_output": {
+                "kind": "tagged_structure",
+                "support_level": "fallback",
+                "mode": "fallback_tagged_structure",
+                "parser": "tagged_json_schema",
+                "schema_name": "psionic_tool_call"
+              },
+              "psionic_structured_value": {
+                "kind": "tagged_structure",
+                "discriminator": "kind",
+                "tag": "message",
+                "value": {
+                  "kind": "message",
+                  "content": "The weather in Paris is sunny with a temperature of 18\u00b0C."
+                }
+              }
+            }
+          },
+          {
+            "request_label": "tool_result_continuation_loop_2",
+            "http_status": 200,
+            "error": null,
+            "wallclock_s": 0.20177740301005542,
+            "psionic_headers": {
+              "x-psionic-backend": "cuda",
+              "x-psionic-execution-mode": "native",
+              "x-psionic-execution-engine": "psionic",
+              "x-psionic-residency-mode": "cuda_accelerated",
+              "x-psionic-fallback-policy": "refuse",
+              "x-psionic-performance-class": "nvidia_native",
+              "x-psionic-prefix-cache-state": "hit",
+              "x-psionic-prefix-cache-reused-tokens": "215",
+              "x-psionic-ttft-ns": "503",
+              "x-psionic-itl-ns": "8091841"
+            },
+            "prefix_cache_state": "hit",
+            "prefix_cache_refusal": null,
+            "prefix_tokens_reused": 215,
+            "ttft_ms": 0.000503,
+            "decode_metrics": {
+              "present": true,
+              "output_modes": [
+                "top_k_candidates:128"
+              ],
+              "readback_bytes": 11776,
+              "raw_logits_materialized": false
+            },
+            "tool_call_names": [],
+            "assistant_text": "The weather in Paris is sunny with a temperature of 18\u00b0C.",
+            "finish_reason": "stop",
+            "payload": {
+              "id": "psionic-chatcmpl-12",
+              "object": "chat.completion",
+              "created": 1774738808,
+              "model": "qwen3.5-2b-q8_0-registry.gguf",
+              "choices": [
+                {
+                  "index": 0,
+                  "message": {
+                    "role": "assistant",
+                    "content": "The weather in Paris is sunny with a temperature of 18\u00b0C."
+                  },
+                  "finish_reason": "stop"
+                }
+              ],
+              "usage": {
+                "prompt_tokens": 215,
+                "completion_tokens": 23,
+                "total_tokens": 238
+              },
+              "psionic_metrics": {
+                "total_duration_ns": 200655592,
+                "load_duration_ns": 499781929,
+                "prompt_eval_count": 215,
+                "prompt_eval_duration_ns": 5965430,
+                "context_window": {
+                  "budget": {
+                    "max_context_tokens": 262144,
+                    "existing_context_tokens": 0,
+                    "reserved_output_tokens": 128,
+                    "available_prompt_tokens": 262016
+                  },
+                  "input_prompt_tokens": 215,
+                  "retained_prompt_tokens": 215,
+                  "truncated_prompt_tokens": 0,
+                  "preserved_prefix_tokens": 0
+                },
+                "eval_count": 23,
+                "eval_duration_ns": 185926254,
+                "time_to_first_token_ns": 503,
+                "inter_token_latency_ns": 8091841,
+                "prefix_tokens_reused": 215,
+                "termination_detail": {
+                  "cause": "end_of_sequence_token"
+                },
+                "qwen35_cuda_decode": {
+                  "step_count": 23,
+                  "output_modes": [
+                    {
+                      "kind": "top_k_candidates",
+                      "top_k": 128
+                    }
+                  ],
+                  "readback_bytes": 11776,
+                  "raw_logits_materialized": false
+                }
+              },
+              "psionic_output_text": "{\"kind\":\"message\",\"content\":\"The weather in Paris is sunny with a temperature of 18\u00b0C.\"}",
+              "psionic_output_tokens": [
+                4754,
+                14868,
+                3147,
+                1927,
+                2129,
+                1733,
+                3147,
+                760,
+                8831,
+                303,
+                11751,
+                369,
+                38383,
+                440,
+                264,
+                9039,
+                314,
+                220,
+                16,
+                23,
+                29922,
+                1149,
+                92
+              ],
+              "psionic_structured_output": {
+                "kind": "tagged_structure",
+                "support_level": "fallback",
+                "mode": "fallback_tagged_structure",
+                "parser": "tagged_json_schema",
+                "schema_name": "psionic_tool_call"
+              },
+              "psionic_structured_value": {
+                "kind": "tagged_structure",
+                "discriminator": "kind",
+                "tag": "message",
+                "value": {
+                  "kind": "message",
+                  "content": "The weather in Paris is sunny with a temperature of 18\u00b0C."
+                }
+              }
+            }
+          }
+        ],
+        "aggregate": {
+          "iteration_count": 3,
+          "mean_wallclock_s_all": 0.4214383373328019,
+          "mean_wallclock_s_warm": 0.20177108350617345,
+          "mean_ttft_ms_all": 28.20705666666667,
+          "mean_ttft_ms_warm": 0.000469,
+          "mean_prefix_tokens_reused_all": 143.33333333333334,
+          "mean_prefix_tokens_reused_warm": 215.0
+        }
+      }
+    }
+  ],
+  "comparison": {
+    "required_tool_turn_warm_wallclock_improvement_pct": 66.86133152549108,
+    "tool_result_continuation_warm_wallclock_improvement_pct": 76.33490287648907,
+    "required_tool_turn_warm_ttft_improvement_pct": 99.9994518453824,
+    "tool_result_continuation_warm_ttft_improvement_pct": 99.99944644131462
+  },
+  "overall_pass": true,
+  "improvement_status": "improved"
+}

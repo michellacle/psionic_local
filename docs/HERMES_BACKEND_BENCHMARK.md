@@ -218,6 +218,9 @@ comparison until one of these becomes true:
 
 ## Relation To Other Hermes Issues
 
+The repeated same-backend warm-path reuse proof now lives in
+`docs/HERMES_QWEN35_REUSE_BENCHMARK.md`.
+
 - direct compatibility proof remains in `docs/HERMES_QWEN35_COMPATIBILITY.md`
 - fast-path-versus-fallback runtime truth now lives in
   `docs/HERMES_QWEN35_FAST_PATH.md`
