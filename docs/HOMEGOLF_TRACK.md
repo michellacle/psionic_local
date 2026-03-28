@@ -747,6 +747,93 @@ Unlike the old positional `--max-steps`, this challenge-step cap preserves:
 So the local loop can now stop at one stable optimizer step without dropping
 into the bounded proof lane.
 
+## Honest Grad-Clip Closeout Unlock
+
+The next retained local iteration answered the immediate question from the
+challenge-step-cap pass:
+
+- was the capped honest `600s` lane still blocked on NaN artifact export after
+  the one good optimizer step?
+
+The answer is no.
+
+The local HOMEGOLF lane now has one repo-owned stability override:
+
+- env:
+  `PSIONIC_PARAMETER_GOLF_HOMEGOLF_GRAD_CLIP_NORM=<f32>`
+- runner flag:
+  `scripts/run-parameter-golf-homegolf-local-cuda.sh --grad-clip-norm <f32>`
+
+That override landed in:
+
+- `crates/psionic-train/src/bin/parameter_golf_homegolf_single_cuda_train.rs`
+- `scripts/run-parameter-golf-homegolf-local-cuda.sh`
+
+The retained clipped honest run is:
+
+- host: `archlinux`
+- repo revision at launch: `68e46b82`
+- run id: `homegolf-baseline-g64-stepcap1-clip1-600s-20260328d`
+- output root:
+  `/home/christopherdavid/scratch/psionic_homegolf_runs/homegolf-baseline-g64-stepcap1-clip1-600s-20260328d`
+
+Retained honest step facts from that live log:
+
+- `machine_profile=homegolf_local_cuda`
+- `max_steps=1`
+- `warmup_steps=0`
+- `grad_accum_steps=64`
+- `max_wallclock_seconds=600`
+- `train_step_complete step=1 mean_microbatch_loss=8.29197598`
+- `optimizer_step_ms=3927`
+- `step:1/1 train_loss:8.2920 train_time:274570ms`
+
+Compared with the prior honest capped run:
+
+- step time improved from `304562ms` to `274570ms`
+- that is about `9.8%` faster
+- mean microbatch loss stayed effectively flat while slightly better:
+  `8.29201698 -> 8.29197598`
+
+The more important fix is closeout integrity:
+
+- `20260328c` panicked during artifact export with `min = NaN, max = NaN`
+- `20260328d` reached:
+  - `final_artifact_export_complete`
+  - `final_artifact_persist_complete`
+- retained artifact:
+  `/home/christopherdavid/scratch/psionic_homegolf_runs/homegolf-baseline-g64-stepcap1-clip1-600s-20260328d/training_report.final_model.st`
+
+So the clipped honest lane is no longer blocked on post-step non-finite export.
+
+It is now blocked on the next honest surface:
+
+- the full `int8_zlib_roundtrip` validation sweep
+
+Retained live progress from that same run:
+
+- `validation_batch_start stage=int8_zlib_roundtrip ... batch=10/947`
+- `evaluated_tokens=589824`
+- `elapsed_ms=225066`
+
+Inference from those retained first batches:
+
+- the local full roundtrip closeout is still multi-hour on the `RTX 4080`
+- the blocker moved from artifact creation failure to slow honest score
+  completion
+
+The clipped artifact now also has fresh actual-text proof on the exact retained
+model file, using the artifact-only prompt path:
+
+- local prompt report:
+  `/tmp/psionic_homegolf_prompt_20260328d/prompt_report.json`
+- prompt:
+  `the meaning of life is`
+- generated text:
+  `do do hased do do do do do do do do do do do do do has has hased hased hasedededededededed`
+- compressed model bytes:
+  `4132303`
+
 ## Current Honest Boundary
 
 HOMEGOLF is frozen as a contract now, but one important surface is still
@@ -760,3 +847,11 @@ blocked:
 So HOMEGOLF is ready to guide implementation, but it does not yet claim that
 the dense strict-baseline run can already execute across the full admitted home
 cluster.
+
+One more current truth is explicit after `20260328d`:
+
+- the local honest capped lane can now complete one optimizer step, export the
+  retained artifact, and generate actual text from that artifact
+- the retained actual public PGOLF score is still `6.306931747817168`
+- the active local clipped run is still closing its full roundtrip validation,
+  so it does not yet have a completed new score receipt
