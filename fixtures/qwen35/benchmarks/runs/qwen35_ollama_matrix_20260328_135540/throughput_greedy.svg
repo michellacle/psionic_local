@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="450" viewBox="0 0 980 450">
+<style>
+text { font-family: "DejaVu Sans", Arial, sans-serif; fill: #1f2937; }
+.title { font-size: 20px; font-weight: 700; }
+.axis { font-size: 12px; }
+.tick { font-size: 11px; }
+.val { font-size: 11px; font-weight: 600; }
+</style>
+<rect x="0" y="0" width="100%" height="100%" fill="#ffffff"/>
+<text class="title" x="90" y="34">Qwen3.5 throughput: greedy</text>
+<text class="axis" x="90" y="53">Decode throughput (tok/s), higher is better</text>
+<line x1="90" y1="60.00" x2="940" y2="60.00" stroke="#e5e7eb" stroke-width="1"/>
+<text class="tick" x="82" y="64.00" text-anchor="end">260</text>
+<line x1="90" y1="116.00" x2="940" y2="116.00" stroke="#e5e7eb" stroke-width="1"/>
+<text class="tick" x="82" y="120.00" text-anchor="end">208</text>
+<line x1="90" y1="172.00" x2="940" y2="172.00" stroke="#e5e7eb" stroke-width="1"/>
+<text class="tick" x="82" y="176.00" text-anchor="end">156</text>
+<line x1="90" y1="228.00" x2="940" y2="228.00" stroke="#e5e7eb" stroke-width="1"/>
+<text class="tick" x="82" y="232.00" text-anchor="end">104</text>
+<line x1="90" y1="284.00" x2="940" y2="284.00" stroke="#e5e7eb" stroke-width="1"/>
+<text class="tick" x="82" y="288.00" text-anchor="end">52</text>
+<line x1="90" y1="340.00" x2="940" y2="340.00" stroke="#e5e7eb" stroke-width="1"/>
+<text class="tick" x="82" y="344.00" text-anchor="end">0</text>
+<line x1="90" y1="60" x2="90" y2="340" stroke="#111827" stroke-width="1.5"/>
+<line x1="90" y1="340" x2="940" y2="340" stroke="#111827" stroke-width="1.5"/>
+<rect x="132.50" y="98.32" width="51.00" height="241.68" fill="#1f77b4"/>
+<rect x="200.50" y="162.26" width="51.00" height="177.74" fill="#ff7f0e"/>
+<text class="val" x="158.00" y="92.32" text-anchor="middle">224.41</text>
+<text class="val" x="226.00" y="156.26" text-anchor="middle">165.05</text>
+<text class="axis" x="187.75" y="364" text-anchor="middle">0.8b</text>
+<text class="tick" x="187.75" y="380" text-anchor="middle">P:23.4 O:27.2</text>
+<rect x="345.00" y="229.36" width="51.00" height="110.64" fill="#1f77b4"/>
+<rect x="413.00" y="244.52" width="51.00" height="95.48" fill="#ff7f0e"/>
+<text class="val" x="370.50" y="223.36" text-anchor="middle">102.73</text>
+<text class="val" x="438.50" y="238.52" text-anchor="middle">88.66</text>
+<text class="axis" x="400.25" y="364" text-anchor="middle">2b *</text>
+<text class="tick" x="400.25" y="380" text-anchor="middle">P:29.6 O:41.6</text>
+<rect x="557.50" y="278.42" width="51.00" height="61.58" fill="#1f77b4"/>
+<rect x="625.50" y="274.90" width="51.00" height="65.10" fill="#ff7f0e"/>
+<text class="val" x="583.00" y="272.42" text-anchor="middle">57.18</text>
+<text class="val" x="651.00" y="268.90" text-anchor="middle">60.45</text>
+<text class="axis" x="612.75" y="364" text-anchor="middle">4b *</text>
+<text class="tick" x="612.75" y="380" text-anchor="middle">P:50.4 O:38.6</text>
+<rect x="770.00" y="304.27" width="51.00" height="35.73" fill="#1f77b4"/>
+<rect x="838.00" y="313.11" width="51.00" height="26.89" fill="#ff7f0e"/>
+<text class="val" x="795.50" y="298.27" text-anchor="middle">33.18</text>
+<text class="val" x="863.50" y="307.11" text-anchor="middle">24.97</text>
+<text class="axis" x="825.25" y="364" text-anchor="middle">9b *</text>
+<text class="tick" x="825.25" y="380" text-anchor="middle">P:26.0 O:37.6</text>
+<rect x="730" y="68" width="14" height="14" fill="#1f77b4"/>
+<text class="axis" x="750" y="80">Psionic</text>
+<rect x="825" y="68" width="14" height="14" fill="#ff7f0e"/>
+<text class="axis" x="845" y="80">Ollama</text>
+<text class="tick" x="90" y="432">* non-comparable row by token-delta policy</text>
+</svg>

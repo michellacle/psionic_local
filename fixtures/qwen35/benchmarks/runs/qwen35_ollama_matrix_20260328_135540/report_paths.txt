@@ -1,0 +1,2 @@
+/home/michel/code/psionic_local/fixtures/qwen35/benchmarks/runs/qwen35_ollama_matrix_20260328_135540/qwen35_ollama_matrix_qwen35_ollama_matrix_20260328_135540.json
+/home/michel/code/psionic_local/fixtures/qwen35/benchmarks/runs/qwen35_ollama_matrix_20260328_135540/one_page_summary.md

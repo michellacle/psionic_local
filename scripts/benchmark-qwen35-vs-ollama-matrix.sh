@@ -8,7 +8,7 @@ Usage:
   scripts/benchmark-qwen35-vs-ollama-matrix.sh [--output-dir DIR] [--repeats N] [--ollama-base-url URL] [--models CSV]
 
 Defaults:
-  output-dir:       /tmp/qwen35_ollama_matrix_<timestamp>
+  output-dir:       fixtures/qwen35/benchmarks/runs/qwen35_ollama_matrix_<timestamp>
   repeats:          5
   ollama-base-url:  http://127.0.0.1:11434
   models:           qwen3.5:0.8b,qwen3.5:2b,qwen3.5:4b,qwen3.5:9b
@@ -26,7 +26,7 @@ REPO_ROOT=$(cd -- "$SCRIPT_DIR/.." && pwd)
 cd "$REPO_ROOT"
 
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-OUTPUT_DIR="/tmp/qwen35_ollama_matrix_${TIMESTAMP}"
+OUTPUT_DIR="$REPO_ROOT/fixtures/qwen35/benchmarks/runs/qwen35_ollama_matrix_${TIMESTAMP}"
 REPEATS=5
 OLLAMA_BASE_URL="http://127.0.0.1:11434"
 MODELS_CSV="qwen3.5:0.8b,qwen3.5:2b,qwen3.5:4b,qwen3.5:9b"
