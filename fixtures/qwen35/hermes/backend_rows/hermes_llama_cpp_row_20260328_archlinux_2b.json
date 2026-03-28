@@ -1,0 +1,131 @@
+{
+  "report_kind": "psionic_hermes_backend_benchmark_row",
+  "created_at_utc": "2026-03-28T22:00:33.286660+00:00",
+  "backend_label": "llama_cpp",
+  "base_url": "http://127.0.0.1:8098/v1",
+  "model": "qwen3.5-2b-q8_0-registry.gguf",
+  "model_path": "/home/christopherdavid/models/qwen3.5/qwen3.5-2b-q8_0-registry.gguf",
+  "psionic_root": "/home/christopherdavid/scratch/psionic-hermes-benchmark-477ca822",
+  "psionic_revision": "477ca8226589a5b1760ed93c47b87041f08172ab",
+  "hermes_root": "/home/christopherdavid/scratch/hermes-agent-proof2",
+  "hermes_revision": "e295a2215acd55f2ee930fc7a4cd2df1c5464234",
+  "python_executable": "/home/christopherdavid/scratch/hermes-min/.venv/bin/python",
+  "python_version": "3.14.3 (main, Feb 13 2026, 15:31:44) [GCC 15.2.1 20260209]",
+  "host": "archlinux",
+  "cases": [
+    {
+      "case_id": "required_tool_turn",
+      "stage": "tool_loop",
+      "pass": false,
+      "summary": "backend unavailable: llama.cpp server failed readiness check on 127.0.0.1:8098",
+      "wallclock_s": null,
+      "first_delta_s": null,
+      "completion_tok_s": null,
+      "usage": {
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0
+      },
+      "usage_reports": [],
+      "stream_calls": 0,
+      "request_summaries": [],
+      "api_calls": 0,
+      "completed": false,
+      "failed": true,
+      "final_response": "",
+      "messages": [],
+      "details": {
+        "backend_status": "startup_failure",
+        "failure_detail": "llama.cpp server failed readiness check on 127.0.0.1:8098"
+      }
+    },
+    {
+      "case_id": "auto_plain_text_turn",
+      "stage": "provider_sanity",
+      "pass": false,
+      "summary": "backend unavailable: llama.cpp server failed readiness check on 127.0.0.1:8098",
+      "wallclock_s": null,
+      "first_delta_s": null,
+      "completion_tok_s": null,
+      "usage": {
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0
+      },
+      "usage_reports": [],
+      "stream_calls": 0,
+      "request_summaries": [],
+      "api_calls": 0,
+      "completed": false,
+      "failed": true,
+      "final_response": "",
+      "messages": [],
+      "details": {
+        "backend_status": "startup_failure",
+        "failure_detail": "llama.cpp server failed readiness check on 127.0.0.1:8098"
+      }
+    },
+    {
+      "case_id": "multi_turn_tool_loop",
+      "stage": "tool_loop",
+      "pass": false,
+      "summary": "backend unavailable: llama.cpp server failed readiness check on 127.0.0.1:8098",
+      "wallclock_s": null,
+      "first_delta_s": null,
+      "completion_tok_s": null,
+      "usage": {
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0
+      },
+      "usage_reports": [],
+      "stream_calls": 0,
+      "request_summaries": [],
+      "api_calls": 0,
+      "completed": false,
+      "failed": true,
+      "final_response": "",
+      "messages": [],
+      "details": {
+        "backend_status": "startup_failure",
+        "failure_detail": "llama.cpp server failed readiness check on 127.0.0.1:8098"
+      }
+    },
+    {
+      "case_id": "streamed_tool_turn",
+      "stage": "tool_loop",
+      "pass": false,
+      "summary": "backend unavailable: llama.cpp server failed readiness check on 127.0.0.1:8098",
+      "wallclock_s": null,
+      "first_delta_s": null,
+      "completion_tok_s": null,
+      "usage": {
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0
+      },
+      "usage_reports": [],
+      "stream_calls": 0,
+      "request_summaries": [],
+      "api_calls": 0,
+      "completed": false,
+      "failed": true,
+      "final_response": "",
+      "messages": [],
+      "details": {
+        "backend_status": "startup_failure",
+        "failure_detail": "llama.cpp server failed readiness check on 127.0.0.1:8098"
+      }
+    }
+  ],
+  "overall_pass": false,
+  "passing_case_count": 0,
+  "total_case_count": 4,
+  "mean_case_wallclock_s": null,
+  "mean_completion_tok_s": null,
+  "row_status": "startup_failure",
+  "failure_detail": "llama.cpp server failed readiness check on 127.0.0.1:8098",
+  "server_binary": "/home/christopherdavid/code/llama.cpp/build/bin/llama-server",
+  "log_path": "/home/christopherdavid/scratch/psionic-hermes-benchmark-477ca822/target/hermes/hermes_llamacpp_benchmark_server.log",
+  "log_excerpt": "llama_model_loader: - kv  44:                tokenizer.ggml.eos_token_id u32              = 248046\nllama_model_loader: - kv  45:                      tokenizer.ggml.merges arr[str,247587]  = [\"\u0120 \u0120\", \"\u0120\u0120 \u0120\u0120\", \"i n\", \"\u0120 t\",...\nllama_model_loader: - kv  46:                       tokenizer.ggml.model str              = gpt2\nllama_model_loader: - kv  47:            tokenizer.ggml.padding_token_id u32              = 248044\nllama_model_loader: - kv  48:                         tokenizer.ggml.pre str              = qwen35\nllama_model_loader: - kv  49:                      tokenizer.ggml.scores arr[f32,248320]  = [0.000000, 1.000000, 2.000000, 3.0000...\nllama_model_loader: - kv  50:                  tokenizer.ggml.token_type arr[i32,248320]  = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...\nllama_model_loader: - kv  51:                      tokenizer.ggml.tokens arr[str,248320]  = [\"!\", \"\\\"\", \"#\", \"$\", \"%\", \"&\", \"'\", ...\nllama_model_loader: - type  f32:  385 tensors\nllama_model_loader: - type  f16:  148 tensors\nllama_model_loader: - type q8_0:  195 tensors\nprint_info: file format = GGUF V3 (latest)\nprint_info: file type   = Q8_0\nprint_info: file size   = 2.54 GiB (9.60 BPW) \nllama_model_load: error loading model: error loading model architecture: unknown model architecture: 'qwen35'\nllama_model_load_from_file_impl: failed to load model\ncommon_init_from_params: failed to load model '/home/christopherdavid/models/qwen3.5/qwen3.5-2b-q8_0-registry.gguf'\nsrv    load_model: failed to load model, '/home/christopherdavid/models/qwen3.5/qwen3.5-2b-q8_0-registry.gguf'\nsrv    operator(): operator(): cleaning up before exit...\nmain: exiting due to model loading error"
+}
