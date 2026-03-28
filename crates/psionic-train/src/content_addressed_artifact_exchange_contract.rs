@@ -1057,7 +1057,6 @@ mod tests {
     use super::{
         canonical_content_addressed_artifact_exchange_contract,
         ContentAddressedArtifactExchangeContractError, ContentAddressedFetchDisposition,
-        ContentAddressedFetchRefusalKind,
     };
 
     #[test]

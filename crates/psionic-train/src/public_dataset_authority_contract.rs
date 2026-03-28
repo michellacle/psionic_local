@@ -158,11 +158,6 @@ impl PublicDatasetAuthorityContract {
             .iter()
             .map(|page| (page.page_id.as_str(), page))
             .collect::<BTreeMap<_, _>>();
-        let proof_by_page_id = self
-            .page_proofs
-            .iter()
-            .map(|proof| (proof.page_id.as_str(), proof))
-            .collect::<BTreeMap<_, _>>();
         let assignment_by_id = public_work
             .assignments
             .iter()

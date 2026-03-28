@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+#[cfg(test)]
 use std::path::PathBuf;
 
 use psionic_environments::EnvironmentPackageKey;
@@ -6,12 +7,13 @@ use psionic_eval::EvalArtifact;
 use psionic_runtime::{
     RuntimeDispatchPlan, RuntimeDispatchPolicy, RuntimeWorkClass, RuntimeWorkItem,
 };
+use psionic_sandbox::{ProviderSandboxExecutionReceipt, ProviderSandboxJobRequest};
+#[cfg(test)]
 use psionic_sandbox::{
     ProviderSandboxArtifactDigest, ProviderSandboxDeliveryEvidence, ProviderSandboxEntrypointType,
-    ProviderSandboxEnvironmentVar, ProviderSandboxExecutionClass, ProviderSandboxExecutionReceipt,
-    ProviderSandboxExecutionState, ProviderSandboxJobRequest, ProviderSandboxResourceRequest,
-    ProviderSandboxResourceUsageSummary, ProviderSandboxStateTransition,
-    ProviderSandboxTerminationReason,
+    ProviderSandboxEnvironmentVar, ProviderSandboxExecutionClass, ProviderSandboxExecutionState,
+    ProviderSandboxResourceRequest, ProviderSandboxResourceUsageSummary,
+    ProviderSandboxStateTransition, ProviderSandboxTerminationReason,
 };
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
