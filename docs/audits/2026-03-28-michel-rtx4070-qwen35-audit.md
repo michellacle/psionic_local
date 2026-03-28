@@ -17,6 +17,14 @@ audit still explains why Michel's originally published laptop artifact was not
 definitive and why constrained-host reruns should happen only on that later
 change or newer.
 
+Later the same day, current `main` also zero-initialized the per-request
+`qwen3.5:4b` hybrid SSM state and published a fresh full clean-host matrix at
+`fixtures/qwen35/benchmarks/qwen35_ollama_matrix_20260328_190650_archlinux-.json`.
+That rerun keeps Psionic ahead of local Ollama on all `12` raw `tok/s` rows,
+upgrades greedy `qwen3.5:2b` to a `strong` exact-match row, and keeps all
+four clean `sampled_topk40` rows ahead while still classifying them as
+`weak_length_matched_only`.
+
 Tracked issue:
 
 - `#650` Follow up Michel's RTX 4070 qwen35 run: benchmark-quality closure and
@@ -79,6 +87,10 @@ The current repo-local comparison document still records:
 
 Those results are tied to a different host envelope and a stricter published
 benchmark contract than Michel's laptop artifact.
+
+The current canonical clean-host record is the later March 28 full rerun at
+`fixtures/qwen35/benchmarks/qwen35_ollama_matrix_20260328_190650_archlinux-.json`,
+not only the intermediate `top_k = 40` or targeted `4b` checkpoints.
 
 This audit therefore treats Michel's run as a constrained-host follow-on, not
 as a correction to `#606`, `#631`, or `#632`.

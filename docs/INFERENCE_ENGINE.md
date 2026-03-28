@@ -153,12 +153,16 @@ than just run tensor math.
   length-matched sampled rows.
 - The fresh clean-host March 28, 2026 rerun on the same RTX 4080 changes the
   canonical interpretation:
-  - raw greedy `tok/s` is higher on Psionic across all four models, but every
-    greedy row is still `mismatched`
+  - raw greedy `tok/s` is higher on Psionic across all four models, and
+    `qwen3.5:2b` is now a `strong` exact-match row with matching EOS
+    termination across all repeats
+  - greedy `qwen3.5:0.8b`, `qwen3.5:4b`, and `qwen3.5:9b` still remain
+    `mismatched`
   - clean sampled `top_k = 40` rows stay on the bounded candidate lane, remain
     length-matched, and now beat Ollama on all four models even though token
     divergence still starts within the first few generated tokens
-  - sampled `top_k = 100` rows remain `mismatched`
+  - sampled `top_k = 100` rows remain `mismatched`, but Psionic now still
+    leads Ollama on all four of those rows on the clean host
 - Later on March 28, 2026, zeroing the per-request hybrid SSM state on request
   init removed the old `qwen3.5:4b` cap-hit corruption on both greedy and
   `top_k = 100` sampled reruns while preserving the lead over Ollama on that
@@ -183,11 +187,12 @@ than just run tensor math.
   before measuring Psionic, because Ollama keeps prior model weights live in
   VRAM.
 - The qwen35 lane is materially faster than the earlier pilot on this host,
-  but the current canonical matrix is still mixed rather than "ahead
-  everywhere": greedy raw `tok/s` is higher but mismatched, clean sampled
-  `top_k = 40` rows are now ahead on all four models, and the remaining
-  headroom is still in greedy parity and the broader exact-match divergence
-  work.
+  and the current canonical matrix is now "ahead everywhere" on raw `tok/s`
+  while still mixed on parity quality: greedy raw `tok/s` is higher on all
+  four models with one `strong` exact-match row, clean sampled `top_k = 40`
+  rows are ahead on all four models but only `weak_length_matched_only`, and
+  the remaining headroom is still in greedy parity and the broader exact-match
+  divergence work.
 - The multi-row local comparison matrix for `0.8b`, `2b`, `4b`, and `9b` lives
   in `docs/QWEN35_OLLAMA_COMPARISON.md`.
 
