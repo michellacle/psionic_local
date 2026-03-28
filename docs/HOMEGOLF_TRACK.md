@@ -1160,3 +1160,72 @@ One more current truth is explicit after `20260328d`:
 - the active local clipped run is still closing its full roundtrip validation,
   so it does not yet have a completed new score receipt
 - XTRAIN is unchanged in this iteration
+
+## Explicit Grad-Accum Queue Correction
+
+At `2026-03-28 07:36:00 CDT`, the live detached-score control run
+`homegolf-baseline-g64-stepcap2-clip1-lr075-artifactonly-600s-20260328f`
+proved one important correction:
+
+- its retained `launch.env` included `GRAD_CLIP_NORM=1.0`,
+  `LEARNING_RATE_SCALE=0.75`, and `FINAL_VALIDATION_MODE=artifact_only`
+- its retained `launch.env` did not include `GRAD_ACCUM_STEPS`
+- its live trainer log still reported `grad_accum_steps=32`
+
+That meant the repo-owned local HOMEGOLF runner had never exposed the
+already-supported trainer override
+`PSIONIC_PARAMETER_GOLF_HOMEGOLF_GRAD_ACCUM_STEPS`.
+
+That gap is now fixed at commit `a5f10015`:
+
+- `scripts/run-parameter-golf-homegolf-local-cuda.sh` now accepts
+  `--grad-accum-steps <n>`
+- the runner records `GRAD_ACCUM_STEPS` in `launch.env`
+- the runner exports
+  `PSIONIC_PARAMETER_GOLF_HOMEGOLF_GRAD_ACCUM_STEPS=<n>`
+- the queue script example now shows an explicit `--grad-accum-steps 64`
+
+One more honest correction also landed during the restage:
+
+- the previously documented queued `20260328g`, `20260328h`, and `20260328i`
+  waiters were no longer alive on `archlinux`
+- so they were not a real current queue anymore
+
+The first actually live explicit-`g64` repo-owned queue is now:
+
+- `20260328j`
+  - run id:
+    `homegolf-baseline-g64-stepcap2-clip1-lr075-artifactonly-600s-20260328j`
+  - queue pid: `786146`
+  - queue log:
+    `/home/christopherdavid/scratch/psionic_homegolf_runs/queue_homegolf_20260328j_repo.log`
+  - waits for active trainer pid `784939`
+- `20260328k`
+  - run id:
+    `homegolf-baseline-g64-stepcap2-clip1-lr050-artifactonly-600s-20260328k`
+  - queue pid: `786219`
+  - queue log:
+    `/home/christopherdavid/scratch/psionic_homegolf_runs/queue_homegolf_20260328k_repo.log`
+  - waits for `20260328j/train.pid`
+- `20260328l`
+  - run id:
+    `homegolf-baseline-g64-stepcap2-clip1-lr035-artifactonly-600s-20260328l`
+  - queue pid: `786291`
+  - queue log:
+    `/home/christopherdavid/scratch/psionic_homegolf_runs/queue_homegolf_20260328l_repo.log`
+  - waits for `20260328k/train.pid`
+- `20260328m`
+  - run id:
+    `homegolf-baseline-g64-stepcap2-clip1-lr050-ema997-artifactonly-600s-20260328m`
+  - queue pid: `786363`
+  - queue log:
+    `/home/christopherdavid/scratch/psionic_homegolf_runs/queue_homegolf_20260328m_repo.log`
+  - waits for `20260328l/train.pid`
+
+So the honest current local posture is:
+
+- live `20260328f` control run at `lr=0.75`, `grad_clip_norm=1.0`,
+  detached-score closeout, implicit `grad_accum_steps=32`
+- live explicit `g64` sweep queued as `20260328j`, `20260328k`, `20260328l`,
+  and `20260328m`
+- no new completed score receipt yet
