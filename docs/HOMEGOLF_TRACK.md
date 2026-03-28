@@ -133,6 +133,8 @@ strong.
   `docs/audits/2026-03-28-homegolf-local-honest-loop-and-artifact-prompt-audit.md`
 - latest competitive override audit:
   `docs/audits/2026-03-28-homegolf-local-competitive-override-lane-audit.md`
+- latest competitive BigramHash fix audit:
+  `docs/audits/2026-03-28-homegolf-competitive-bigram-input-fix-audit.md`
 
 What is true now:
 
@@ -173,6 +175,10 @@ What is true now:
   leaderboard-style score-first TTT and `final_model_surface=swa` with the
   default `every_steps=50`, which can waste or under-sample the local `600`
   second loop on `RTX 4080`
+- the local competitive device-resident CUDA lane now also binds the optional
+  BigramHash graph input correctly during both validation and training, so
+  `competitive_homegolf_v1` no longer dies immediately with
+  `missing input tensor t1` on the first validation batch
 
 What is not true:
 

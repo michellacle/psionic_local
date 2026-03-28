@@ -1635,10 +1635,13 @@ pub(crate) struct ParameterGolfTrainingBatchRuntime {
 #[derive(Clone, Debug)]
 struct ParameterGolfCudaValidationSession {
     graph: ParameterGolfBaselineEvalGraph,
+    model_config: ParameterGolfConfig,
     static_inputs: BTreeMap<TensorId, CudaBuffer>,
     input_token_buffer: CudaBuffer,
+    bigram_token_buffer: Option<CudaBuffer>,
     target_token_buffer: CudaBuffer,
     input_token_staging: Vec<i32>,
+    bigram_token_staging: Option<Vec<i32>>,
     target_token_staging: Vec<i32>,
     resident_parameter_upload_us: u64,
     persistent_parameter_buffer_count: usize,
@@ -1648,12 +1651,15 @@ struct ParameterGolfCudaValidationSession {
 #[derive(Clone, Debug)]
 pub(crate) struct ParameterGolfCudaTrainingSession {
     graph: ParameterGolfBaselineTrainingGraph,
+    model_config: ParameterGolfConfig,
     backward_plan: psionic_ir::AutodiffBackwardPlan,
     retained_graph: psionic_ir::Graph,
     static_inputs: BTreeMap<TensorId, CudaBuffer>,
     input_token_buffer: CudaBuffer,
+    bigram_token_buffer: Option<CudaBuffer>,
     target_token_buffer: CudaBuffer,
     input_token_staging: Vec<i32>,
+    bigram_token_staging: Option<Vec<i32>>,
     target_token_staging: Vec<i32>,
     resident_parameter_upload_us_pending: Option<u64>,
     parameter_refresh_us_pending: Option<u64>,
@@ -5541,6 +5547,88 @@ fn validation_session_for_batch<'a>(
     })
 }
 
+fn optional_bigram_token_input(
+    model_config: &ParameterGolfConfig,
+    bigram_token_ids_tensor_id: Option<TensorId>,
+    bigram_token_buffer: Option<&mut CudaBuffer>,
+    bigram_token_staging: Option<&mut Vec<i32>>,
+    input_tokens: &[i32],
+    batch_sequences: usize,
+    sequence_length: usize,
+) -> Result<Option<(TensorId, CudaBuffer)>, ParameterGolfSingleH100TrainingError> {
+    let Some(bigram_token_ids_tensor_id) = bigram_token_ids_tensor_id else {
+        return Ok(None);
+    };
+    let Some(bigram_token_buffer) = bigram_token_buffer else {
+        return Err(ParameterGolfSingleH100TrainingError::Serialization {
+            message: String::from(
+                "bigram graph input was requested without one allocated bigram token buffer",
+            ),
+        });
+    };
+    let Some(bigram_token_staging) = bigram_token_staging else {
+        return Err(ParameterGolfSingleH100TrainingError::Serialization {
+            message: String::from(
+                "bigram graph input was requested without one allocated bigram token staging buffer",
+            ),
+        });
+    };
+    if input_tokens.len() != batch_sequences.saturating_mul(sequence_length) {
+        return Err(ParameterGolfSingleH100TrainingError::InvalidConfig {
+            message: format!(
+                "bigram token materialization expected {} flattened input tokens but observed {}",
+                batch_sequences.saturating_mul(sequence_length),
+                input_tokens.len(),
+            ),
+        });
+    }
+    if bigram_token_staging.len() != input_tokens.len() {
+        return Err(ParameterGolfSingleH100TrainingError::InvalidConfig {
+            message: format!(
+                "bigram token staging expected {} values but observed {}",
+                input_tokens.len(),
+                bigram_token_staging.len(),
+            ),
+        });
+    }
+    let mut input_rows = Vec::with_capacity(batch_sequences);
+    for row in input_tokens.chunks(sequence_length) {
+        input_rows.push(
+            row.iter()
+                .map(|token_id| {
+                    u32::try_from(*token_id).map_err(|_| {
+                        ParameterGolfSingleH100TrainingError::Serialization {
+                            message: format!(
+                                "bigram token materialization observed one negative token id {}",
+                                token_id
+                            ),
+                        }
+                    })
+                })
+                .collect::<Result<Vec<_>, _>>()?,
+        );
+    }
+    let bigram_rows = model_config
+        .bigram_hash_batch(input_rows.as_slice())?
+        .ok_or_else(|| ParameterGolfSingleH100TrainingError::Serialization {
+            message: String::from(
+                "bigram graph input was requested but the model config has bigram hashing disabled",
+            ),
+        })?;
+    for (destination, token_id) in bigram_token_staging.iter_mut().zip(
+        bigram_rows
+            .iter()
+            .flat_map(|row| row.iter().map(|token_id| *token_id as i32)),
+    ) {
+        *destination = token_id;
+    }
+    bigram_token_buffer.write_i32(bigram_token_staging.as_slice())?;
+    Ok(Some((
+        bigram_token_ids_tensor_id,
+        bigram_token_buffer.clone(),
+    )))
+}
+
 fn resident_validation_parameter_source_session(
     resident_training_sessions: Option<&BTreeMap<usize, ParameterGolfCudaTrainingSession>>,
 ) -> Option<&ParameterGolfCudaTrainingSession> {
@@ -5668,6 +5756,7 @@ impl ParameterGolfCudaValidationSession {
         batch_sequences: usize,
         sequence_length: usize,
     ) -> Result<Self, ParameterGolfSingleH100TrainingError> {
+        let has_bigram_input = graph.bigram_token_ids_tensor_id.is_some();
         let parameter_vectors = model
             .all_parameter_vectors()?
             .into_iter()
@@ -5710,14 +5799,25 @@ impl ParameterGolfCudaValidationSession {
         let resident_parameter_upload_us = duration_us(parameter_upload_started);
         let input_token_buffer =
             cuda_backend.input_i32_buffer(token_shape.clone(), vec![0_i32; token_element_count])?;
+        let bigram_token_buffer = if has_bigram_input {
+            Some(
+                cuda_backend
+                    .input_i32_buffer(token_shape.clone(), vec![0_i32; token_element_count])?,
+            )
+        } else {
+            None
+        };
         let target_token_buffer =
-            cuda_backend.input_i32_buffer(token_shape, vec![0_i32; token_element_count])?;
+            cuda_backend.input_i32_buffer(token_shape.clone(), vec![0_i32; token_element_count])?;
         Ok(Self {
             graph,
+            model_config: model.descriptor().config.clone(),
             static_inputs,
             input_token_buffer,
+            bigram_token_buffer,
             target_token_buffer,
             input_token_staging: vec![0_i32; token_element_count],
+            bigram_token_staging: has_bigram_input.then(|| vec![0_i32; token_element_count]),
             target_token_staging: vec![0_i32; token_element_count],
             resident_parameter_upload_us,
             persistent_parameter_buffer_count,
@@ -5732,6 +5832,16 @@ impl ParameterGolfCudaValidationSession {
         batch_sequences: usize,
         sequence_length: usize,
     ) -> Result<Self, ParameterGolfSingleH100TrainingError> {
+        if graph.bigram_token_ids_tensor_id.is_some()
+            != training_session.graph.bigram_token_ids_tensor_id.is_some()
+        {
+            return Err(ParameterGolfSingleH100TrainingError::Serialization {
+                message: String::from(
+                    "resident validation session expected training and eval graphs to agree on the optional bigram input posture",
+                ),
+            });
+        }
+        let has_bigram_input = graph.bigram_token_ids_tensor_id.is_some();
         let token_element_count = batch_sequences.saturating_mul(sequence_length);
         let token_shape = Shape::new(vec![batch_sequences, sequence_length]);
         let mut static_inputs = BTreeMap::new();
@@ -5775,14 +5885,25 @@ impl ParameterGolfCudaValidationSession {
         }
         let input_token_buffer =
             cuda_backend.input_i32_buffer(token_shape.clone(), vec![0_i32; token_element_count])?;
+        let bigram_token_buffer = if has_bigram_input {
+            Some(
+                cuda_backend
+                    .input_i32_buffer(token_shape.clone(), vec![0_i32; token_element_count])?,
+            )
+        } else {
+            None
+        };
         let target_token_buffer =
             cuda_backend.input_i32_buffer(token_shape, vec![0_i32; token_element_count])?;
         Ok(Self {
             graph,
+            model_config: training_session.model_config.clone(),
             static_inputs,
             input_token_buffer,
+            bigram_token_buffer,
             target_token_buffer,
             input_token_staging: vec![0_i32; token_element_count],
+            bigram_token_staging: has_bigram_input.then(|| vec![0_i32; token_element_count]),
             target_token_staging: vec![0_i32; token_element_count],
             resident_parameter_upload_us: 0,
             persistent_parameter_buffer_count,
@@ -5841,6 +5962,17 @@ impl ParameterGolfCudaValidationSession {
             self.graph.input_token_ids_tensor_id,
             self.input_token_buffer.clone(),
         );
+        if let Some((bigram_tensor_id, bigram_buffer)) = optional_bigram_token_input(
+            &self.model_config,
+            self.graph.bigram_token_ids_tensor_id,
+            self.bigram_token_buffer.as_mut(),
+            self.bigram_token_staging.as_mut(),
+            batch_plan.input_tokens.as_slice(),
+            batch_plan.batch_sequences,
+            self.input_token_staging.len() / batch_plan.batch_sequences.max(1),
+        )? {
+            inputs.insert(bigram_tensor_id, bigram_buffer);
+        }
         inputs.insert(
             self.graph.target_ids_tensor_id,
             self.target_token_buffer.clone(),
@@ -5868,6 +6000,7 @@ impl ParameterGolfCudaTrainingSession {
         batch_sequences: usize,
         sequence_length: usize,
     ) -> Result<Self, ParameterGolfSingleH100TrainingError> {
+        let has_bigram_input = graph.bigram_token_ids_tensor_id.is_some();
         let parameter_vectors = parameter_golf_parameter_values_for_bindings(
             graph.parameter_bindings.as_slice(),
             model,
@@ -5912,17 +6045,27 @@ impl ParameterGolfCudaTrainingSession {
         let input_token_buffer =
             cuda_backend.input_i32_buffer(token_shape.clone(), vec![0_i32; token_element_count])?;
         let target_token_buffer =
-            cuda_backend.input_i32_buffer(token_shape, vec![0_i32; token_element_count])?;
+            cuda_backend.input_i32_buffer(token_shape.clone(), vec![0_i32; token_element_count])?;
         let backward_plan = parameter_only_backward_plan(&graph)?;
         let retained_graph = retained_forward_graph(&graph, &backward_plan);
         Ok(Self {
             graph,
+            model_config: model.descriptor().config.clone(),
             backward_plan,
             retained_graph,
             static_inputs,
             input_token_buffer,
+            bigram_token_buffer: if has_bigram_input {
+                Some(
+                    cuda_backend
+                        .input_i32_buffer(token_shape.clone(), vec![0_i32; token_element_count])?,
+                )
+            } else {
+                None
+            },
             target_token_buffer,
             input_token_staging: vec![0_i32; token_element_count],
+            bigram_token_staging: has_bigram_input.then(|| vec![0_i32; token_element_count]),
             target_token_staging: vec![0_i32; token_element_count],
             resident_parameter_upload_us_pending: Some(resident_parameter_upload_us),
             parameter_refresh_us_pending: None,
@@ -6085,6 +6228,17 @@ impl ParameterGolfCudaTrainingSession {
             self.graph.input_token_ids_tensor_id,
             self.input_token_buffer.clone(),
         );
+        if let Some((bigram_tensor_id, bigram_buffer)) = optional_bigram_token_input(
+            &self.model_config,
+            self.graph.bigram_token_ids_tensor_id,
+            self.bigram_token_buffer.as_mut(),
+            self.bigram_token_staging.as_mut(),
+            flattened_input_ids.as_slice(),
+            batch_sequences,
+            sequence_length,
+        )? {
+            inputs.insert(bigram_tensor_id, bigram_buffer);
+        }
         inputs.insert(
             self.graph.target_ids_tensor_id,
             self.target_token_buffer.clone(),
@@ -6836,9 +6990,24 @@ pub(crate) fn clip_gradients(
 mod tests {
     use psionic_core::{DType, Device, Shape};
     use psionic_ir::{AutodiffContext, AutodiffGraphBuilder};
-    use psionic_models::ParameterGolfReferenceModel;
+    use psionic_models::{ModelDescriptor, ParameterGolfReferenceModel};
 
     use super::*;
+
+    fn competitive_homegolf_v1_fixture_model(
+    ) -> Result<ParameterGolfReferenceModel, Box<dyn std::error::Error>> {
+        let config = ParameterGolfConfig::competitive_homegolf_v1();
+        let weights = ParameterGolfWeights::from_initializer(&config, Default::default())?;
+        Ok(ParameterGolfReferenceModel::new(
+            ModelDescriptor::new(
+                "parameter-golf-competitive-homegolf-v1-fixture",
+                "parameter_golf",
+                "fixture",
+            ),
+            config,
+            weights,
+        )?)
+    }
 
     #[test]
     fn backward_result_from_outputs_rekeys_gradient_outputs_to_primal_tensors(
@@ -7753,6 +7922,93 @@ mod tests {
             eager_runtime.persistent_parameter_buffer_count,
             resident_runtime.persistent_parameter_buffer_count
         );
+        Ok(())
+    }
+
+    #[test]
+    fn competitive_homegolf_validation_session_binds_bigram_input_tensor(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let mut cuda_backend = CudaBackend::new();
+        let Some(selected_device) = cuda_backend.selected_device().cloned() else {
+            return Ok(());
+        };
+
+        let model = competitive_homegolf_v1_fixture_model()?;
+        let descriptor = model.banked_descriptor()?;
+        let sequence_length = 16;
+        let validation_graph = build_parameter_golf_baseline_eval_graph(
+            selected_device.device.clone(),
+            &descriptor,
+            2,
+            sequence_length,
+        )?;
+        assert!(validation_graph.bigram_token_ids_tensor_id.is_some());
+        let mut validation_session = ParameterGolfCudaValidationSession::new(
+            &mut cuda_backend,
+            validation_graph,
+            &model,
+            2,
+            sequence_length,
+        )?;
+        let byte_luts = ParameterGolfSentencePieceByteLuts {
+            base_bytes_lut: vec![1; model.descriptor().config.vocab_size],
+            has_leading_space_lut: vec![false; model.descriptor().config.vocab_size],
+            is_boundary_token_lut: vec![false; model.descriptor().config.vocab_size],
+        };
+        let validation_tokens = (0..33).map(|index| (index % 16) as u16).collect::<Vec<_>>();
+        let batch_plan = build_non_overlapping_validation_batch_plans(
+            validation_tokens.as_slice(),
+            &byte_luts,
+            sequence_length,
+            2,
+        )?
+        .into_iter()
+        .next()
+        .ok_or("missing validation batch plan")?;
+
+        let (batch_token_losses, _) =
+            validation_session.execute_batch(&mut cuda_backend, &batch_plan)?;
+        assert_eq!(batch_token_losses.len(), 2 * sequence_length);
+        Ok(())
+    }
+
+    #[test]
+    fn competitive_homegolf_training_session_binds_bigram_input_tensor(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let mut cuda_backend = CudaBackend::new();
+        let Some(selected_device) = cuda_backend.selected_device().cloned() else {
+            return Ok(());
+        };
+
+        let model = competitive_homegolf_v1_fixture_model()?;
+        let descriptor = model.banked_descriptor()?;
+        let banked_weights = model.banked_weights()?;
+        let sequence_length = 16;
+        let training_graph = build_parameter_golf_baseline_training_graph(
+            selected_device.device.clone(),
+            &descriptor,
+            1,
+            sequence_length,
+        )?;
+        assert!(training_graph.bigram_token_ids_tensor_id.is_some());
+        let mut training_session = ParameterGolfCudaTrainingSession::new(
+            &mut cuda_backend,
+            training_graph,
+            &model,
+            Some(&banked_weights),
+            1,
+            sequence_length,
+        )?;
+        let input_ids = vec![(0..sequence_length)
+            .map(|index| (index % 16) as u32)
+            .collect::<Vec<_>>()];
+        let target_ids = vec![(1..=sequence_length)
+            .map(|index| (index % 16) as u32)
+            .collect::<Vec<_>>()];
+
+        let (_loss, gradients, _) =
+            training_session.execute_batch(&mut cuda_backend, &input_ids, &target_ids)?;
+        assert!(!gradients.is_empty());
         Ok(())
     }
 
