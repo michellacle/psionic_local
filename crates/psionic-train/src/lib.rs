@@ -224,6 +224,7 @@ mod validator_challenge_scoring_contract;
 mod validator_promotion_contract;
 mod wan_overlay_route_contract;
 mod worker_protocol;
+mod xtrain_explorer_artifacts;
 
 pub use adapter_aggregation::*;
 pub use adapter_artifact_storage::*;
@@ -429,6 +430,7 @@ pub use validator_challenge_scoring_contract::*;
 pub use validator_promotion_contract::*;
 pub use wan_overlay_route_contract::*;
 pub use worker_protocol::*;
+pub use xtrain_explorer_artifacts::*;
 
 /// Human-readable crate ownership summary.
 pub const CRATE_ROLE: &str = "training core, orchestrator, rollout artifacts, scheduling/accounting, reliability, benchmark acceptance, artifact lifecycle, checkpoint, recovery, and elastic membership substrate";

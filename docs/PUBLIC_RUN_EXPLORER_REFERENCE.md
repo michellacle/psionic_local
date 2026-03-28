@@ -22,6 +22,13 @@ This issue closes the first truthful answer to:
 - how score rows reconcile against the reward ledger
 - how stale-data state is surfaced instead of silently serving old information
 
+That surface is now the explorer-foundation contract beneath the dedicated
+decentralized `XTRAIN Explorer` artifact family documented in
+`docs/XTRAIN_EXPLORER_REFERENCE.md`. The public run explorer contract keeps the
+pane and stale-policy layer stable; the XTRAIN explorer artifacts add the
+participant graph, active-window, checkpoint, and settlement state needed for
+the new ML-training explorer pane.
+
 ## Contract Shape
 
 The canonical contract freezes:

@@ -128,6 +128,14 @@ can tell the difference between:
 - bounded XTRAIN train-to-infer truth
 - non-score Psion training truth
 
+Decentralized `XTRAIN` explorer state is intentionally not added to this
+run-centric index family.
+
+That surface now lives in the separate explorer-oriented family documented in
+`docs/XTRAIN_EXPLORER_REFERENCE.md`, where participant graph, active window,
+checkpoint, and settlement posture can remain truthful without pretending they
+are the same thing as one bounded score lane.
+
 ## Live Requirement
 
 The bundle is designed for a viewer that must stay visibly truthful every

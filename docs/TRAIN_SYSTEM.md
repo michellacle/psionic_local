@@ -436,6 +436,20 @@ one current network snapshot, score rows reconciled against the reward ledger,
 and explicit stale-data policy. It proves Psionic now has a public-facing
 status surface above raw logs and private maintainer dashboards.
 
+The repo now also owns the first decentralized `XTRAIN` explorer artifact
+family in `crates/psionic-train/src/xtrain_explorer_artifacts.rs`, the binary
+`xtrain_explorer_artifacts`, the checker
+`scripts/check-xtrain-explorer-artifacts.sh`, the focused reference doc
+`docs/XTRAIN_EXPLORER_REFERENCE.md`, and the committed fixtures
+`fixtures/training/xtrain_explorer_snapshot_v1.json` plus
+`fixtures/training/xtrain_explorer_index_v1.json`. That surface turns the
+public-explorer foundation into pane-ready decentralized ML truth: participant
+graph state, one retained active window, one held checkpoint promotion, signed
+settlement posture, explorer event rows, and one explicit sibling link back to
+the bounded `XTRAIN -> PGOLF` run-centric visualization bundle. It proves
+Psionic can drive the first honest `XTRAIN Explorer` pane without collapsing
+decentralized network state into the bounded training-run dashboard family.
+
 The repo now also owns the first staged public-testnet readiness contract in
 `crates/psionic-train/src/public_testnet_readiness_contract.rs`, the binary
 `public_testnet_readiness_contract`, the checker
