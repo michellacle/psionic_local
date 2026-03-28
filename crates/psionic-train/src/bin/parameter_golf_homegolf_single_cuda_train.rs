@@ -2,10 +2,10 @@ use std::{env, path::PathBuf};
 
 use psionic_train::{
     parameter_golf_default_validation_batch_sequences,
-    write_parameter_golf_single_h100_training_report, ParameterGolfMatrixExecutionMode,
-    ParameterGolfScoreFirstTttConfig, ParameterGolfSingleH100ModelVariant,
-    ParameterGolfSingleH100TrainingConfig, ParameterGolfSingleH100ValidationMode,
-    ParameterGolfValidationEvalMode,
+    write_parameter_golf_single_h100_training_report, ParameterGolfFinalModelSurface,
+    ParameterGolfMatrixExecutionMode, ParameterGolfScoreFirstTttConfig,
+    ParameterGolfSingleH100ModelVariant, ParameterGolfSingleH100TrainingConfig,
+    ParameterGolfSingleH100ValidationMode, ParameterGolfValidationEvalMode,
 };
 
 fn main() {
@@ -107,6 +107,20 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         let raw = validation_batch_sequences.to_string_lossy();
         config.validation_batch_sequences = raw.parse::<usize>()?;
     }
+    if truthy_env("PSIONIC_PARAMETER_GOLF_DISABLE_SCORE_FIRST_TTT") {
+        config.score_first_ttt = None;
+    }
+    if let Some(final_model_surface) = env::var_os("PSIONIC_PARAMETER_GOLF_FINAL_MODEL_SURFACE") {
+        let raw = final_model_surface.to_string_lossy();
+        config.final_model_surface = ParameterGolfFinalModelSurface::parse(raw.as_ref())
+            .map_err(|message| std::io::Error::new(std::io::ErrorKind::InvalidInput, message))?;
+    }
+    if let Some(swa_every_steps) = env::var_os("PSIONIC_PARAMETER_GOLF_SWA_EVERY_STEPS") {
+        let raw = swa_every_steps.to_string_lossy();
+        let every_steps = raw.parse::<u64>()?;
+        let swa = config.swa.get_or_insert_with(Default::default);
+        swa.every_steps = every_steps;
+    }
     let report = write_parameter_golf_single_h100_training_report(&output_path, &config)?;
     println!(
         "wrote {} with disposition {:?} executed_steps={} stop_reason={:?} machine_profile={}",
@@ -115,6 +129,30 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         report.executed_steps,
         report.stop_reason,
         report.machine_profile.as_str(),
+    );
+    let ema_summary = report
+        .ema
+        .as_ref()
+        .map(|ema| format!("decay={}", ema.decay))
+        .unwrap_or_else(|| String::from("disabled"));
+    let swa_summary = report
+        .swa
+        .as_ref()
+        .map(|swa| {
+            format!(
+                "source_surface={} every_steps={} max_learning_rate_multiplier={:.4}",
+                swa.source_surface.as_str(),
+                swa.every_steps,
+                swa.max_learning_rate_multiplier,
+            )
+        })
+        .unwrap_or_else(|| String::from("disabled"));
+    println!(
+        "model_variant={} final_model_surface={} ema={} swa={}",
+        report.model_variant.as_str(),
+        report.final_model_surface.as_str(),
+        ema_summary,
+        swa_summary,
     );
     println!(
         "warmup_steps={} completed_warmup_steps={} measured_training_time_ms={} validation_checkpoints={} final_validation_mode={} validation_eval_mode={} validation_batch_sequences={} matrix_execution_mode={}",
@@ -199,6 +237,15 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         );
     }
     Ok(())
+}
+
+fn truthy_env(name: &str) -> bool {
+    env::var_os(name).is_some_and(|value| {
+        matches!(
+            value.to_string_lossy().to_ascii_lowercase().as_str(),
+            "1" | "true" | "yes" | "on"
+        )
+    })
 }
 
 fn default_dataset_root() -> PathBuf {

@@ -510,6 +510,19 @@ impl ParameterGolfFinalModelSurface {
             Self::Swa => "swa",
         }
     }
+
+    pub fn parse(value: &str) -> Result<Self, ParameterGolfSingleH100TrainingError> {
+        match value {
+            "raw" => Ok(Self::Raw),
+            "ema" => Ok(Self::Ema),
+            "swa" => Ok(Self::Swa),
+            actual => Err(ParameterGolfSingleH100TrainingError::InvalidConfig {
+                message: format!(
+                    "unsupported final model surface `{actual}`, expected one of raw, ema, or swa"
+                ),
+            }),
+        }
+    }
 }
 
 /// Explicit EMA posture for the PGOLF final exported model surface.
@@ -8198,6 +8211,22 @@ mod tests {
             ParameterGolfSingleH100ModelVariant::parse("competitive_homegolf_v1")
                 .expect("competitive label should parse"),
             ParameterGolfSingleH100ModelVariant::CompetitiveHomegolfV1
+        );
+    }
+
+    #[test]
+    fn final_model_surface_parse_accepts_supported_labels() {
+        assert_eq!(
+            ParameterGolfFinalModelSurface::parse("raw").expect("raw should parse"),
+            ParameterGolfFinalModelSurface::Raw
+        );
+        assert_eq!(
+            ParameterGolfFinalModelSurface::parse("ema").expect("ema should parse"),
+            ParameterGolfFinalModelSurface::Ema
+        );
+        assert_eq!(
+            ParameterGolfFinalModelSurface::parse("swa").expect("swa should parse"),
+            ParameterGolfFinalModelSurface::Swa
         );
     }
 }

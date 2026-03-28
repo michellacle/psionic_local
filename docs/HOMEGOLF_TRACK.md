@@ -1,6 +1,6 @@
 # HOMEGOLF Track
 
-> Status: canonical HOMEGOLF benchmark-track contract, updated 2026-03-27
+> Status: canonical HOMEGOLF benchmark-track contract, updated 2026-03-28
 > after landing `HOMEGOLF-0`.
 
 This document freezes the first honest Psionic answer to:
@@ -131,6 +131,8 @@ strong.
   `docs/audits/2026-03-28-homegolf-local-cuda-strict-score-iteration-audit.md`
 - latest follow-on integration audit:
   `docs/audits/2026-03-28-homegolf-local-honest-loop-and-artifact-prompt-audit.md`
+- latest competitive override audit:
+  `docs/audits/2026-03-28-homegolf-local-competitive-override-lane-audit.md`
 
 What is true now:
 
@@ -161,6 +163,16 @@ What is true now:
   - prompt `the meaning of life is`
   - generated text begins:
     `iiildKild loc loc loc ...`
+- the local competitive entrypoint is now tunable without source edits for
+  honest `4080` iteration:
+  - `PSIONIC_PARAMETER_GOLF_MODEL_VARIANT=competitive_homegolf_v1`
+  - `PSIONIC_PARAMETER_GOLF_DISABLE_SCORE_FIRST_TTT=1`
+  - `PSIONIC_PARAMETER_GOLF_FINAL_MODEL_SURFACE=raw|ema|swa`
+  - `PSIONIC_PARAMETER_GOLF_SWA_EVERY_STEPS=<n>`
+- that matters because the retained competitive defaults still enable
+  leaderboard-style score-first TTT and `final_model_surface=swa` with the
+  default `every_steps=50`, which can waste or under-sample the local `600`
+  second loop on `RTX 4080`
 
 What is not true:
 
@@ -368,6 +380,8 @@ What it does not prove:
   Psionic trainer
 - that the admitted home-cluster dense runtime has already been retuned around
   this competitive variant
+- that the current local competitive overrides already yielded one retained
+  improved full-validation PGOLF report
 - the HOMEGOLF side now compares using the live dense mixed-device surface, the
   canonical score-relevant runtime report, and the retained exact dense
   challenge export bytes
