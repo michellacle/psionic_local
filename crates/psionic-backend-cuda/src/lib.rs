@@ -20093,6 +20093,63 @@ mod tests {
     }
 
     #[test]
+    fn cuda_submission_executes_top_k_for_wide_one_row_when_available()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let mut backend = CudaBackend::new();
+        let Some(_selected) = backend.selected_device().cloned() else {
+            assert_eq!(backend.health().status, HealthStatus::Offline);
+            return Ok(());
+        };
+        if !backend.quantized_kernels_available() {
+            return Ok(());
+        }
+
+        let values = (0..257)
+            .map(|index| {
+                let bucket = ((index * 73) % 257) as f32;
+                bucket - ((index % 11) as f32 * 0.01)
+            })
+            .collect::<Vec<_>>();
+        let input = backend.input_buffer(Shape::new(vec![values.len()]), values.clone())?;
+        let top_k = 100usize;
+        let selected_indices = backend.i32_buffer(top_k)?;
+        let selected_values = backend.f32_buffer(top_k)?;
+        let mut submission = backend.begin_submission()?;
+        submission.top_k_f32(&input, 1, values.len(), top_k, &selected_indices, &selected_values)?;
+        let report = submission.commit(CudaCommandWait::Completed)?;
+        assert_eq!(report.encoded_operations, 1);
+
+        let mut expected = values
+            .iter()
+            .copied()
+            .enumerate()
+            .collect::<Vec<_>>();
+        expected.sort_by(|(left_index, left_value), (right_index, right_value)| {
+            right_value
+                .total_cmp(left_value)
+                .then_with(|| left_index.cmp(right_index))
+        });
+        expected.truncate(top_k);
+
+        let selected_indices = selected_indices
+            .read_bytes()?
+            .chunks_exact(std::mem::size_of::<i32>())
+            .map(|chunk| i32::from_ne_bytes(chunk.try_into().expect("top_k i32 bytes")))
+            .collect::<Vec<_>>();
+        let expected_indices = expected
+            .iter()
+            .map(|(index, _)| i32::try_from(*index).expect("expected index fits in i32"))
+            .collect::<Vec<_>>();
+        assert_eq!(selected_indices, expected_indices);
+        let expected_values = expected
+            .iter()
+            .map(|(_, value)| *value)
+            .collect::<Vec<_>>();
+        assert_close(&selected_values.read_f32()?, &expected_values, 1e-6);
+        Ok(())
+    }
+
+    #[test]
     fn cuda_submission_executes_one_row_radix_sort_top_k_when_available()
     -> Result<(), Box<dyn std::error::Error>> {
         let mut backend = CudaBackend::new();

@@ -13,7 +13,6 @@ Published benchmark checkpoints:
 
 - greedy matrix checkpoint: `c5bc0ba2`
 - sampled matrix checkpoint: `March 27, 2026 rerun after sampler-surface refresh`
-- sampled plus `typical_p` parity refresh: `March 28, 2026`
 
 Shared benchmark rules:
 
@@ -26,6 +25,9 @@ Shared benchmark rules:
 - decode throughput is reported as mean `tok/s`
 - benchmark one runtime at a time for `9b` on this 16 GB RTX 4080 because
   Ollama keeps model weights resident in VRAM
+- the local Ollama `qwen3.5` path on this checkout routes through
+  `runner/ollamarunner` and its active sampler surface is the one built by
+  `sample.NewSampler(temperature, topK, topP, minP, seed, grammar)`
 
 ## Greedy Contract
 
@@ -83,47 +85,9 @@ Psionic output-mode evidence on this contract:
 | Model | Artifact path | Artifact digest | Psionic decode tok/s | Ollama decode tok/s | Status | Notes |
 | --- | --- | --- | ---: | ---: | --- | --- |
 | `qwen3.5:0.8b` | `/home/christopherdavid/models/qwen3.5/qwen3.5-0.8b-q8_0.gguf` | `afb707b6b8fac6e475acc42bc8380fc0b8d2e0e4190be5a969fbf62fcc897db5` | `496.28` | `329.38` | `implemented_early`, ahead | Native CUDA sampled decode still stays on the bounded `top_k_candidates` lane instead of dense vocab-logit readback |
-| `qwen3.5:2b` | `/home/christopherdavid/models/qwen3.5/qwen3.5-2b-q8_0-registry.gguf` | `b709d81508a078a686961de6ca07a953b895d9b286c46e17f00fb267f4f2d297` | `243.81` | `202.58` | `implemented_early`, ahead | Fresh March 28 rerun after adding `typical_p` and `mirostat` request-surface parity |
+| `qwen3.5:2b` | `/home/christopherdavid/models/qwen3.5/qwen3.5-2b-q8_0-registry.gguf` | `b709d81508a078a686961de6ca07a953b895d9b286c46e17f00fb267f4f2d297` | `243.81` | `202.58` | `implemented_early`, ahead | Fresh March 28 rerun after the sampled request-surface refresh |
 | `qwen3.5:4b` | `/home/christopherdavid/models/qwen3.5/qwen3.5-4b-q8_0-registry.gguf` | `81fb60c7daa80fc1123380b98970b320ae233409f0f71a72ed7b9b0d62f40490` | `173.44` | `139.90` | `implemented_early`, ahead | Mixed `Q4_K` and `Q6_K` row stays ahead on the same bounded sampled lane |
 | `qwen3.5:9b` | `/home/christopherdavid/models/qwen3.5/qwen3.5-9b-q4_k_m-registry.gguf` | `dec52a44569a2a25341c4e4d3fee25846eed4f6f0b936278e3a3c900bb99d37c` | `105.25` | `92.90` | `implemented_early`, ahead | The row still needs the same operational rule as greedy benchmarking: unload Ollama before the Psionic measurement |
-
-## Typical Contract
-
-Prompt:
-
-```text
-Respond with plain text only. Write 20 numbered one-sentence reasons why GPU decode throughput matters for local inference. Start at 1 and keep going until all 20 are written.
-```
-
-Token cap:
-
-- `128`
-
-Typical sampled settings:
-
-- `temperature = 0.8`
-- `top_k = 40`
-- `top_p = 0.9`
-- `typical_p = 0.5`
-- `repeat_penalty = 1.0`
-- `presence_penalty = 0.0`
-- `frequency_penalty = 0.0`
-- `seed = 42`
-- `think = false` on Ollama
-
-Psionic output-mode evidence on this contract:
-
-- `qwen35_output_modes=[top_k_candidates:40]`
-- `qwen35_raw_logits=false`
-
-## Typical Matrix
-
-| Model | Artifact path | Artifact digest | Psionic decode tok/s | Ollama decode tok/s | Status | Notes |
-| --- | --- | --- | ---: | ---: | --- | --- |
-| `qwen3.5:0.8b` | `/home/christopherdavid/models/qwen3.5/qwen3.5-0.8b-q8_0.gguf` | `afb707b6b8fac6e475acc42bc8380fc0b8d2e0e4190be5a969fbf62fcc897db5` | `497.49` | `330.93` | `implemented_early`, ahead | `typical_p` stays on the bounded candidate lane instead of forcing raw-logit readback |
-| `qwen3.5:2b` | `/home/christopherdavid/models/qwen3.5/qwen3.5-2b-q8_0-registry.gguf` | `b709d81508a078a686961de6ca07a953b895d9b286c46e17f00fb267f4f2d297` | `244.68` | `202.43` | `implemented_early`, ahead | The same bounded `top_k_candidates:40` lane stays ahead after adding `typical_p` filtering |
-| `qwen3.5:4b` | `/home/christopherdavid/models/qwen3.5/qwen3.5-4b-q8_0-registry.gguf` | `81fb60c7daa80fc1123380b98970b320ae233409f0f71a72ed7b9b0d62f40490` | `173.66` | `140.00` | `implemented_early`, ahead | Mixed `Q4_K` and `Q6_K` row also stays ahead on the `typical_p` contract |
-| `qwen3.5:9b` | `/home/christopherdavid/models/qwen3.5/qwen3.5-9b-q4_k_m-registry.gguf` | `dec52a44569a2a25341c4e4d3fee25846eed4f6f0b936278e3a3c900bb99d37c` | `105.31` | `93.51` | `implemented_early`, ahead | The `9b` row stays ahead on `typical_p` under the same serialized-residency rule |
 
 ## Current Notes
 
@@ -141,8 +105,7 @@ Psionic output-mode evidence on this contract:
   `typical_p`, `repeat_penalty`, `presence_penalty`, `frequency_penalty`,
   `seed`, `mirostat`, `mirostat_tau`, and `mirostat_eta`.
 - The generic OpenAI-compatible qwen35 server surface now forwards those same
-  controls on `/v1/chat/completions` and `/v1/responses`, so the benchmark
-  contract does not require a separate sidecar request shape.
+  controls on `/v1/chat/completions` and `/v1/responses`.
 - `repeat_last_n` follows the Ollama-compatible control contract in the local
   sampler and benchmark harness:
   - default `64`
@@ -151,15 +114,13 @@ Psionic output-mode evidence on this contract:
 - `min_p` remains compatible with the bounded qwen35 CUDA sampled lane because
   Psionic applies it after exact top-k candidate selection on both the dense
   and bounded sampling paths.
-- `typical_p` remains compatible with the bounded qwen35 CUDA sampled lane for
-  the same reason: it is applied after exact top-k candidate selection on both
-  the dense and bounded paths.
-- `mirostat` is now supported on the runtime sampler, determinism checkpoints,
-  the benchmark harness, and the OpenAI-compatible request surface, but the
-  current qwen35 CUDA lane keeps it exact by falling back to explicit
-  `raw_logits` readback. It is therefore outside the current beat-Ollama
-  performance claim. The March 28, 2026 `0.8b` smoke rerun measured about
-  `59.42 tok/s` on Psionic versus about `327.77 tok/s` on local Ollama.
+- `typical_p`, penalty controls, `repeat_last_n`, and `mirostat` are supported
+  on the Psionic runtime and request surfaces, but they are not part of the
+  canonical Psionic-versus-Ollama matrix on this checkout because the local
+  Ollama `qwen3.5` runner does not wire those controls through the same active
+  sampler path.
+- `mirostat` therefore remains a Psionic-side capability note, not a canonical
+  beat-Ollama throughput claim.
 - Requests outside that envelope still fall back to explicit raw-logit readback
   instead of silently narrowing behavior.
 - The 4B row only became correct and faster after fixing the fused

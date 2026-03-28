@@ -27,7 +27,7 @@ constexpr int kAttentionMaxPositions = 1024;
 constexpr int kMoeMaxExperts = 128;
 constexpr int kMoeMaxSelected = 32;
 constexpr int kLogitsMaxSelected = 128;
-constexpr int kLogitsFastSharedTopK = 40;
+constexpr int kLogitsFastSharedTopK = kLogitsMaxSelected;
 
 __device__ __forceinline__ float half_to_float(uint16_t bits) {
     const uint32_t sign = static_cast<uint32_t>(bits & 0x8000u) << 16;
@@ -1458,31 +1458,6 @@ __device__ __forceinline__ bool top_k_candidate_better(
             (current_index < 0 || candidate_index < current_index));
 }
 
-__device__ __forceinline__ void insert_top_k_candidate(
-    float value,
-    int index,
-    float *top_values,
-    int *top_indices,
-    int top_k
-) {
-    int insert_at = top_k;
-    for (int slot = 0; slot < top_k; ++slot) {
-        if (top_k_candidate_better(value, index, top_values[slot], top_indices[slot])) {
-            insert_at = slot;
-            break;
-        }
-    }
-    if (insert_at >= top_k) {
-        return;
-    }
-    for (int slot = top_k - 1; slot > insert_at; --slot) {
-        top_values[slot] = top_values[slot - 1];
-        top_indices[slot] = top_indices[slot - 1];
-    }
-    top_values[insert_at] = value;
-    top_indices[insert_at] = index;
-}
-
 __global__ void top_k_f32_kernel(
     const float *input,
     int32_t *selected_indices,
@@ -1509,6 +1484,8 @@ __global__ void top_k_f32_kernel(
         __shared__ typename TopKBlockRadixSort::TempStorage sort_storage;
         __shared__ float tile_top_values[kLogitsFastSharedTopK];
         __shared__ int tile_top_indices[kLogitsFastSharedTopK];
+        __shared__ float merged_top_values[kLogitsMaxSelected];
+        __shared__ int merged_top_indices[kLogitsMaxSelected];
         if (threadIdx.x == 0) {
             for (int slot = 0; slot < top_k; ++slot) {
                 row_top_values[slot] = -INFINITY;
@@ -1548,18 +1525,40 @@ __global__ void top_k_f32_kernel(
             __syncthreads();
 
             if (threadIdx.x == 0) {
-                for (int slot = 0; slot < top_k; ++slot) {
-                    const int index = tile_top_indices[slot];
-                    if (index >= column_count) {
-                        break;
+                int row_slot = 0;
+                int tile_slot = 0;
+                for (int merged_slot = 0; merged_slot < top_k; ++merged_slot) {
+                    float row_value = -INFINITY;
+                    int row_index = -1;
+                    if (row_slot < top_k) {
+                        row_value = row_top_values[row_slot];
+                        row_index = row_top_indices[row_slot];
                     }
-                    insert_top_k_candidate(
-                        tile_top_values[slot],
-                        index,
-                        row_top_values,
-                        row_top_indices,
-                        top_k
-                    );
+
+                    float tile_value = -INFINITY;
+                    int tile_index = -1;
+                    if (tile_slot < top_k) {
+                        const int candidate_index = tile_top_indices[tile_slot];
+                        if (candidate_index >= 0 && candidate_index < column_count) {
+                            tile_value = tile_top_values[tile_slot];
+                            tile_index = candidate_index;
+                        }
+                    }
+
+                    if (top_k_candidate_better(tile_value, tile_index, row_value, row_index)) {
+                        merged_top_values[merged_slot] = tile_value;
+                        merged_top_indices[merged_slot] = tile_index;
+                        ++tile_slot;
+                    } else {
+                        merged_top_values[merged_slot] = row_value;
+                        merged_top_indices[merged_slot] = row_index;
+                        ++row_slot;
+                    }
+                }
+
+                for (int slot = 0; slot < top_k; ++slot) {
+                    row_top_values[slot] = merged_top_values[slot];
+                    row_top_indices[slot] = merged_top_indices[slot];
                 }
             }
             __syncthreads();

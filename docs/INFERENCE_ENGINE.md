@@ -63,6 +63,10 @@ than just run tensor math.
   and bounded sampling paths.
 - `typical_p` remains compatible with the bounded qwen35 CUDA sampled lane for
   the same reason.
+- The local Ollama `qwen3.5` runner on this checkout does not expose the full
+  Psionic sampler surface through the same active path. Its live
+  apples-to-apples sampler contract is the one built by
+  `sample.NewSampler(temperature, topK, topP, minP, seed, grammar)`.
 - `mirostat` is now supported on the qwen35 runtime surface too, but it is
   still exact-via-fallback rather than fast-path. The current lane routes it
   through explicit `raw_logits` readback instead of the bounded candidate lane.
@@ -111,17 +115,13 @@ than just run tensor math.
   `docs/QWEN35_OLLAMA_COMPARISON.md`: about `496 tok/s` versus `329 tok/s` on
   `qwen3.5:0.8b`, about `244 tok/s` versus `203 tok/s` on `qwen3.5:2b`, about
   `173 tok/s` versus `140 tok/s` on `qwen3.5:4b`, and about `105 tok/s`
-  versus `93 tok/s` on `qwen3.5:9b`. The same host also measured the bounded
-  `typical_p = 0.5` contract ahead on all four rows: about `497 tok/s`
-  versus `331 tok/s` on `0.8b`, about `245 tok/s` versus `202 tok/s` on `2b`,
-  about `174 tok/s` versus `140 tok/s` on `4b`, and about `105 tok/s`
-  versus `94 tok/s` on `9b`.
-- The same March 28, 2026 refresh also established the current `mirostat`
-  boundary. Exact `mirostat` v1 is now wired through the sampler and request
-  surface, but on `qwen3.5:0.8b` it still measures only about `59 tok/s`
-  versus about `328 tok/s` on local Ollama because the current qwen35 CUDA
-  lane routes `mirostat` through `raw_logits` readback instead of the bounded
-  candidate path.
+  versus `93 tok/s` on `qwen3.5:9b`.
+- The same March 28, 2026 refresh widened the Psionic-side sampler and request
+  surface to include `typical_p`, `mirostat`, `mirostat_tau`,
+  `mirostat_eta`, and request-level `repeat_last_n`, but those controls are
+  not part of the canonical Psionic-versus-Ollama matrix on this checkout
+  because the local `ollamarunner` qwen3.5 path does not wire them through the
+  same active sampler path.
 - The 4B row only became correct and faster after fixing the fused decode
   output head for mixed `Q4_K` and `Q6_K` weights. Greedy `ArgmaxOnly` decode
   now routes `Q6_K` output weights through `Q8_1` projection plus `argmax_f32`

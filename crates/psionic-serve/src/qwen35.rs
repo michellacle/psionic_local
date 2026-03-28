@@ -6371,11 +6371,6 @@ struct Qwen35CudaStepPlan {
     logits_host_buffer: CudaHostBuffer,
     top_k_indices_buffer: CudaBuffer,
     top_k_values_buffer: CudaBuffer,
-    top_k_radix_input_indices_buffer: CudaBuffer,
-    top_k_radix_sorted_values_buffer: CudaBuffer,
-    top_k_radix_sorted_indices_buffer: CudaBuffer,
-    top_k_radix_temp_storage_buffer: CudaBuffer,
-    top_k_radix_temp_storage_bytes: usize,
     next_token_host_buffer: CudaHostBuffer,
     next_token_buffer: CudaBuffer,
     argmax_state_host_buffer: CudaHostBuffer,
@@ -6404,23 +6399,6 @@ impl Qwen35CudaStepPlan {
             .map_err(ReferenceTextGenerationError::Runtime)?;
         let activated_q8_1_bytes = ggml_q8_1_storage_bytes(1, max_output_rows)
             .map_err(ReferenceTextGenerationError::Runtime)?;
-        let top_k_radix_temp_storage_bytes = backend
-            .top_k_f32_one_row_radix_sort_temp_storage_bytes(vocab_size)
-            .map_err(ReferenceTextGenerationError::Runtime)?;
-        let top_k_radix_input_indices = (0..vocab_size)
-            .map(|index| {
-                i32::try_from(index).map_err(|_| {
-                    ReferenceTextGenerationError::Runtime(crate::RuntimeError::Backend(format!(
-                        "qwen35 cuda vocab size {vocab_size} exceeds i32 radix-sort limits",
-                    )))
-                })
-            })
-            .collect::<Result<Vec<_>, _>>()?;
-        let mut top_k_radix_input_indices_bytes =
-            Vec::with_capacity(vocab_size.saturating_mul(std::mem::size_of::<i32>()));
-        for index in &top_k_radix_input_indices {
-            top_k_radix_input_indices_bytes.extend_from_slice(&index.to_ne_bytes());
-        }
         Ok(Self {
             matvec_input_buffer: backend
                 .f32_buffer(max_input_columns)
@@ -6491,19 +6469,6 @@ impl Qwen35CudaStepPlan {
             top_k_values_buffer: backend
                 .f32_buffer(QWEN35_CUDA_MAX_TOP_K)
                 .map_err(ReferenceTextGenerationError::Runtime)?,
-            top_k_radix_input_indices_buffer: backend
-                .byte_buffer(top_k_radix_input_indices_bytes.as_slice())
-                .map_err(ReferenceTextGenerationError::Runtime)?,
-            top_k_radix_sorted_values_buffer: backend
-                .f32_buffer(vocab_size)
-                .map_err(ReferenceTextGenerationError::Runtime)?,
-            top_k_radix_sorted_indices_buffer: backend
-                .i32_buffer(vocab_size)
-                .map_err(ReferenceTextGenerationError::Runtime)?,
-            top_k_radix_temp_storage_buffer: backend
-                .byte_buffer(&vec![0_u8; top_k_radix_temp_storage_bytes])
-                .map_err(ReferenceTextGenerationError::Runtime)?,
-            top_k_radix_temp_storage_bytes,
             next_token_host_buffer: backend
                 .host_buffer(std::mem::size_of::<i32>())
                 .map_err(ReferenceTextGenerationError::Runtime)?,
@@ -6539,15 +6504,11 @@ impl Qwen35CudaStepPlan {
         logit_count: usize,
         top_k: usize,
     ) -> Result<(), crate::RuntimeError> {
-        submission.top_k_f32_one_row_radix_sort(
+        submission.top_k_f32(
             &self.logits_buffer,
+            1,
             logit_count,
             top_k,
-            &self.top_k_radix_input_indices_buffer,
-            &self.top_k_radix_sorted_values_buffer,
-            &self.top_k_radix_sorted_indices_buffer,
-            &self.top_k_radix_temp_storage_buffer,
-            self.top_k_radix_temp_storage_bytes,
             &self.top_k_indices_buffer,
             &self.top_k_values_buffer,
         )
