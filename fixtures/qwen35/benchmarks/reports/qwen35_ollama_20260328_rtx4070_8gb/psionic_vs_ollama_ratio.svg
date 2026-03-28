@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1050" height="560" viewBox="0 0 1050 560">
+<style>
+text { font-family: "DejaVu Sans", Arial, sans-serif; fill: #1f2937; }
+.title { font-size: 20px; font-weight: 700; }
+.axis { font-size: 12px; }
+.tick { font-size: 11px; }
+.val { font-size: 11px; font-weight: 600; }
+</style>
+<rect x="0" y="0" width="100%" height="100%" fill="#ffffff"/>
+<text class="title" x="230" y="32">Psionic / Ollama decode throughput ratio</text>
+<text class="axis" x="230" y="49">1.00 means parity, above 1.00 means Psionic is faster</text>
+<line x1="230.00" y1="60" x2="230.00" y2="530" stroke="#d1d5db" stroke-width="1"/>
+<text class="tick" x="230.00" y="546" text-anchor="middle">0.00</text>
+<line x1="386.00" y1="60" x2="386.00" y2="530" stroke="#d1d5db" stroke-width="1"/>
+<text class="tick" x="386.00" y="546" text-anchor="middle">0.30</text>
+<line x1="542.00" y1="60" x2="542.00" y2="530" stroke="#d1d5db" stroke-width="1"/>
+<text class="tick" x="542.00" y="546" text-anchor="middle">0.60</text>
+<line x1="698.00" y1="60" x2="698.00" y2="530" stroke="#d1d5db" stroke-width="1"/>
+<text class="tick" x="698.00" y="546" text-anchor="middle">0.90</text>
+<line x1="854.00" y1="60" x2="854.00" y2="530" stroke="#d1d5db" stroke-width="1"/>
+<text class="tick" x="854.00" y="546" text-anchor="middle">1.20</text>
+<line x1="1010.00" y1="60" x2="1010.00" y2="530" stroke="#d1d5db" stroke-width="1"/>
+<text class="tick" x="1010.00" y="546" text-anchor="middle">1.51</text>
+<rect x="230" y="66.85" width="692.90" height="25.46" fill="#059669"/>
+<text class="axis" x="222" y="85.18" text-anchor="end">greedy · 0.8b</text>
+<text class="val" x="928.90" y="85.18">1.34x *P:14 O:31</text>
+<rect x="230" y="106.02" width="608.23" height="25.46" fill="#059669"/>
+<text class="axis" x="222" y="124.35" text-anchor="end">greedy · 2b</text>
+<text class="val" x="844.23" y="124.35">1.17x *P:17 O:41</text>
+<rect x="230" y="145.19" width="498.13" height="25.46" fill="#dc2626"/>
+<text class="axis" x="222" y="163.52" text-anchor="end">greedy · 4b</text>
+<text class="val" x="734.13" y="163.52">0.96x *P:128 O:60</text>
+<rect x="230" y="184.35" width="709.09" height="25.46" fill="#059669"/>
+<text class="axis" x="222" y="202.68" text-anchor="end">greedy · 9b</text>
+<text class="val" x="945.09" y="202.68">1.37x *P:23 O:43</text>
+<rect x="230" y="223.52" width="506.79" height="25.46" fill="#dc2626"/>
+<text class="axis" x="222" y="241.85" text-anchor="end">sampled_topk40 · 0.8b</text>
+<text class="val" x="742.79" y="241.85">0.98x</text>
+<rect x="230" y="262.69" width="491.64" height="25.46" fill="#dc2626"/>
+<text class="axis" x="222" y="281.02" text-anchor="end">sampled_topk40 · 2b</text>
+<text class="val" x="727.64" y="281.02">0.95x</text>
+<rect x="230" y="301.85" width="472.15" height="25.46" fill="#dc2626"/>
+<text class="axis" x="222" y="320.18" text-anchor="end">sampled_topk40 · 4b</text>
+<text class="val" x="708.15" y="320.18">0.91x</text>
+<rect x="230" y="341.02" width="691.14" height="25.46" fill="#059669"/>
+<text class="axis" x="222" y="359.35" text-anchor="end">sampled_topk40 · 9b</text>
+<text class="val" x="927.14" y="359.35">1.33x *P:11 O:128</text>
+<rect x="230" y="380.19" width="706.93" height="25.46" fill="#059669"/>
+<text class="axis" x="222" y="398.52" text-anchor="end">sampled_topk100 · 0.8b</text>
+<text class="val" x="942.93" y="398.52">1.36x *P:30 O:34</text>
+<rect x="230" y="419.35" width="572.48" height="25.46" fill="#059669"/>
+<text class="axis" x="222" y="437.68" text-anchor="end">sampled_topk100 · 2b</text>
+<text class="val" x="808.48" y="437.68">1.11x *P:42 O:44</text>
+<rect x="230" y="458.52" width="498.04" height="25.46" fill="#dc2626"/>
+<text class="axis" x="222" y="476.85" text-anchor="end">sampled_topk100 · 4b</text>
+<text class="val" x="734.04" y="476.85">0.96x *P:128 O:47</text>
+<rect x="230" y="497.69" width="698.15" height="25.46" fill="#059669"/>
+<text class="axis" x="222" y="516.02" text-anchor="end">sampled_topk100 · 9b</text>
+<text class="val" x="934.15" y="516.02">1.35x *P:23 O:37</text>
+<text class="tick" x="230" y="552">* output-token mismatch in that row</text>
+</svg>

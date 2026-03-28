@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="440" viewBox="0 0 980 440">
+<style>
+text { font-family: "DejaVu Sans", Arial, sans-serif; fill: #1f2937; }
+.title { font-size: 20px; font-weight: 700; }
+.axis { font-size: 12px; }
+.tick { font-size: 11px; }
+.val { font-size: 11px; font-weight: 600; }
+</style>
+<rect x="0" y="0" width="100%" height="100%" fill="#ffffff"/>
+<text class="title" x="90" y="32">Qwen3.5 throughput: sampled_topk40</text>
+<text class="axis" x="90" y="49">Decode throughput (tok/s), higher is better</text>
+<line x1="90" y1="55.00" x2="940" y2="55.00" stroke="#e5e7eb" stroke-width="1"/>
+<text class="tick" x="82" y="59.00" text-anchor="end">190</text>
+<line x1="90" y1="111.00" x2="940" y2="111.00" stroke="#e5e7eb" stroke-width="1"/>
+<text class="tick" x="82" y="115.00" text-anchor="end">152</text>
+<line x1="90" y1="167.00" x2="940" y2="167.00" stroke="#e5e7eb" stroke-width="1"/>
+<text class="tick" x="82" y="171.00" text-anchor="end">114</text>
+<line x1="90" y1="223.00" x2="940" y2="223.00" stroke="#e5e7eb" stroke-width="1"/>
+<text class="tick" x="82" y="227.00" text-anchor="end">76</text>
+<line x1="90" y1="279.00" x2="940" y2="279.00" stroke="#e5e7eb" stroke-width="1"/>
+<text class="tick" x="82" y="283.00" text-anchor="end">38</text>
+<line x1="90" y1="335.00" x2="940" y2="335.00" stroke="#e5e7eb" stroke-width="1"/>
+<text class="tick" x="82" y="339.00" text-anchor="end">0</text>
+<line x1="90" y1="55" x2="90" y2="335" stroke="#111827" stroke-width="1.5"/>
+<line x1="90" y1="335" x2="940" y2="335" stroke="#111827" stroke-width="1.5"/>
+<rect x="132.50" y="112.97" width="55.25" height="222.03" fill="#1f77b4"/>
+<rect x="204.75" y="108.05" width="55.25" height="226.95" fill="#ff7f0e"/>
+<text class="val" x="160.12" y="106.97" text-anchor="middle">150.66</text>
+<text class="val" x="232.38" y="102.05" text-anchor="middle">154.00</text>
+<text class="axis" x="187.75" y="359" text-anchor="middle">0.8b</text>
+<text class="tick" x="187.75" y="375" text-anchor="middle">P:128 O:128</text>
+<rect x="345.00" y="214.73" width="55.25" height="120.27" fill="#1f77b4"/>
+<rect x="417.25" y="208.28" width="55.25" height="126.72" fill="#ff7f0e"/>
+<text class="val" x="372.62" y="208.73" text-anchor="middle">81.61</text>
+<text class="val" x="444.88" y="202.28" text-anchor="middle">85.99</text>
+<text class="axis" x="400.25" y="359" text-anchor="middle">2b</text>
+<text class="tick" x="400.25" y="375" text-anchor="middle">P:128 O:128</text>
+<rect x="557.50" y="255.98" width="55.25" height="79.02" fill="#1f77b4"/>
+<rect x="629.75" y="248.30" width="55.25" height="86.70" fill="#ff7f0e"/>
+<text class="val" x="585.12" y="249.98" text-anchor="middle">53.62</text>
+<text class="val" x="657.38" y="242.30" text-anchor="middle">58.83</text>
+<text class="axis" x="612.75" y="359" text-anchor="middle">4b</text>
+<text class="tick" x="612.75" y="375" text-anchor="middle">P:128 O:128</text>
+<rect x="770.00" y="288.05" width="55.25" height="46.95" fill="#1f77b4"/>
+<rect x="842.25" y="299.81" width="55.25" height="35.19" fill="#ff7f0e"/>
+<text class="val" x="797.62" y="282.05" text-anchor="middle">31.86</text>
+<text class="val" x="869.88" y="293.81" text-anchor="middle">23.88</text>
+<text class="axis" x="825.25" y="359" text-anchor="middle">9b *</text>
+<text class="tick" x="825.25" y="375" text-anchor="middle">P:11 O:128</text>
+<rect x="730" y="63" width="14" height="14" fill="#1f77b4"/>
+<text class="axis" x="750" y="75">Psionic</text>
+<rect x="825" y="63" width="14" height="14" fill="#ff7f0e"/>
+<text class="axis" x="845" y="75">Ollama</text>
+<text class="tick" x="90" y="422">* output-token mismatch between backends in this row</text>
+</svg>
