@@ -1624,7 +1624,7 @@ impl CudaSubmission {
             &selected_indices.platform,
             &selected_values.platform,
         )?;
-        self.encoded_operations += 3;
+        self.encoded_operations += 2;
         Ok(())
     }
 
@@ -20561,7 +20561,7 @@ mod tests {
             &selected_values,
         )?;
         let report = submission.commit(CudaCommandWait::Completed)?;
-        assert_eq!(report.encoded_operations, 3);
+        assert_eq!(report.encoded_operations, 2);
 
         let mut expected = values.iter().copied().enumerate().collect::<Vec<_>>();
         expected.sort_by(|(left_index, left_value), (right_index, right_value)| {
