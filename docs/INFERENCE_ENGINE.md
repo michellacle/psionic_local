@@ -79,21 +79,25 @@ than just run tensor math.
   - structured requests outside that envelope still fall back to explicit
     `raw_logits` readback instead of silently narrowing behavior
 - The native structured-output path now uses tokenizer-native incremental token
-  append caches and replay-safe sparse fallback, so qwen35 candidate misses no
-  longer double-advance the decode state or require dense vocab replay on the
-  bounded structured lane.
+  append caches with per-leading-char token-id buckets and replay-safe sparse
+  fallback, so qwen35 candidate misses no longer double-advance the decode
+  state, linearly rescan the full vocabulary on sparse schema misses, or
+  require dense vocab replay on the bounded structured lane.
 - The local `qwen35_cuda_bench` harness now reproduces native-versus-Ollama
   JSON object and JSON schema requests too through `--json-object` and
   `--json-schema-file`.
 - Structured-output throughput is still not part of the canonical
-  Psionic-versus-Ollama matrix. On March 28, 2026, a fresh local
-  `qwen3.5:0.8b` summary-schema spot check returned a valid native Psionic
-  payload at about `74 tok/s` versus local Ollama at about `319 tok/s`, with
-  Psionic publishing
+  Psionic-versus-Ollama matrix. On March 28, 2026, after adding leading-char
+  token-id buckets to the structured-output append cache and rebuilding from a
+  clean isolated target, a fresh local `qwen3.5:0.8b` summary-schema spot
+  check measured native Psionic at about `76 tok/s` on the first bounded
+  sparse-gather run and about `159 tok/s` mean across a warmed three-repeat
+  pass, versus local Ollama at about `331 tok/s`. Psionic published
   `qwen35_output_modes=[top_k_candidates:128,sparse_logits:2,sparse_logits:3,sparse_logits:10]`,
-  `qwen35_readback_bytes=5700`, and `qwen35_raw_logits=false`. The two runtimes
-  still took different valid schema paths, so this remains a bounded parity
-  note rather than a canonical throughput row.
+  `qwen35_readback_bytes=5700`, and `qwen35_raw_logits=false` on the sparse
+  run. The later warmed repeats stayed on `qwen35_output_modes=[top_k_candidates:128]`
+  and hit the token cap without materializing `structured_output_value`, so
+  this remains a bounded parity note rather than a canonical throughput row.
 - The first `qwen35` lane must still fail closed for tool calling.
 - The first `qwen35` lane must still fail closed for system-message image and
   video parts to stay aligned with the real template semantics.

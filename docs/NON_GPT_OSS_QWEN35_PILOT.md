@@ -33,6 +33,9 @@ Psionic currently supports this row through a bounded native `qwen35` CUDA lane:
   explicit `raw_logits`
 - structured-output candidate misses no longer replay from a cloned pre-step
   qwen35 state or double-advance the live decode state
+- structured-output append caches now bucket token ids by leading char so
+  sparse schema recovery does not linearly rescan the whole vocabulary on
+  candidate misses
 - session reuse, adapter serving, and prefix caching are still refused on this
   early lane
 
@@ -382,13 +385,16 @@ path. The apples-to-apples local parity matrix therefore stays limited to the
 controls wired by `sample.NewSampler(temperature, topK, topP, minP, seed, grammar)`.
 
 Structured-output throughput is also outside the canonical beat-Ollama matrix.
-The current honest local summary-schema spot check on `qwen3.5:0.8b` returns a
-valid native Psionic payload at about `74 tok/s` versus local Ollama at about
-`319 tok/s`, with Psionic publishing
+After the leading-char token-cache bucketing pass and a clean isolated rebuild
+on March 28, 2026, the local `qwen3.5:0.8b` summary-schema spot check measured
+native Psionic at about `76 tok/s` on the first bounded sparse-gather run and
+about `159 tok/s` mean across a warmed three-repeat pass, versus local Ollama
+at about `331 tok/s`. Psionic published
 `qwen35_output_modes=[top_k_candidates:128,sparse_logits:2,sparse_logits:3,sparse_logits:10]`,
-`qwen35_readback_bytes=5700`, and `qwen35_raw_logits=false`. The two runtimes
-can still choose different valid schema outputs, so this remains a bounded
-parity note instead of a canonical throughput row.
+`qwen35_readback_bytes=5700`, and `qwen35_raw_logits=false` on the sparse run.
+The later warmed repeats stayed on `qwen35_output_modes=[top_k_candidates:128]`
+and hit the token cap without materializing `structured_output_value`, so this
+remains a bounded parity note instead of a canonical throughput row.
 
 The same March 27, 2026 benchmark also shows the current boundary clearly:
 

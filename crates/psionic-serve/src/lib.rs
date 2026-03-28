@@ -6840,6 +6840,8 @@ struct StructuredOutputTokenAppendCache {
     nonempty_prefix_suffixes: Vec<String>,
     empty_prefix_leading_chars: Vec<Option<char>>,
     nonempty_prefix_leading_chars: Vec<Option<char>>,
+    empty_prefix_token_ids_by_leading_char: BTreeMap<char, Vec<u32>>,
+    nonempty_prefix_token_ids_by_leading_char: BTreeMap<char, Vec<u32>>,
     unique_empty_prefix_leading_chars: Vec<char>,
     unique_nonempty_prefix_leading_chars: Vec<char>,
 }
@@ -6882,6 +6884,8 @@ impl GenerationSampler {
             let mut nonempty_prefix_suffixes = Vec::with_capacity(vocab_size);
             let mut empty_prefix_leading_chars = Vec::with_capacity(vocab_size);
             let mut nonempty_prefix_leading_chars = Vec::with_capacity(vocab_size);
+            let mut empty_prefix_token_ids_by_leading_char = BTreeMap::new();
+            let mut nonempty_prefix_token_ids_by_leading_char = BTreeMap::new();
             let mut unique_empty_prefix_leading_chars = BTreeMap::new();
             let mut unique_nonempty_prefix_leading_chars = BTreeMap::new();
             for token_index in 0..vocab_size {
@@ -6890,6 +6894,10 @@ impl GenerationSampler {
                 let mut empty_suffix = String::new();
                 tokenizer.append_decoded_token(&mut empty_suffix, token);
                 if let Some(leading_char) = empty_suffix.chars().next() {
+                    empty_prefix_token_ids_by_leading_char
+                        .entry(leading_char)
+                        .or_insert_with(Vec::new)
+                        .push(token_index as u32);
                     unique_empty_prefix_leading_chars.insert(leading_char, ());
                 }
                 empty_prefix_leading_chars.push(empty_suffix.chars().next());
@@ -6899,6 +6907,10 @@ impl GenerationSampler {
                 tokenizer.append_decoded_token(&mut nonempty, token);
                 let nonempty_suffix = nonempty.split_off(1);
                 if let Some(leading_char) = nonempty_suffix.chars().next() {
+                    nonempty_prefix_token_ids_by_leading_char
+                        .entry(leading_char)
+                        .or_insert_with(Vec::new)
+                        .push(token_index as u32);
                     unique_nonempty_prefix_leading_chars.insert(leading_char, ());
                 }
                 nonempty_prefix_leading_chars.push(nonempty_suffix.chars().next());
@@ -6910,6 +6922,8 @@ impl GenerationSampler {
                 nonempty_prefix_suffixes,
                 empty_prefix_leading_chars,
                 nonempty_prefix_leading_chars,
+                empty_prefix_token_ids_by_leading_char,
+                nonempty_prefix_token_ids_by_leading_char,
                 unique_empty_prefix_leading_chars: unique_empty_prefix_leading_chars
                     .into_keys()
                     .collect(),
@@ -6956,6 +6970,11 @@ impl GenerationSampler {
         } else {
             token_cache.nonempty_prefix_leading_chars.as_slice()
         };
+        let token_ids_by_leading_char = if current_text.is_empty() {
+            &token_cache.empty_prefix_token_ids_by_leading_char
+        } else {
+            &token_cache.nonempty_prefix_token_ids_by_leading_char
+        };
         let mut allowed = Vec::new();
         match allowed_token_ids {
             Some(candidate_ids) => {
@@ -6983,28 +7002,33 @@ impl GenerationSampler {
                 }
             }
             None => {
-                for index in 0..suffixes.len() {
-                    if logits.is_some_and(|logits| {
-                        logits.get(index).is_none_or(|value| !value.is_finite())
-                    }) {
-                        continue;
-                    }
-                    let token_id = index as u32;
-                    if disallowed_token_ids.contains(&token_id) {
-                        continue;
-                    }
-                    let Some(leading_char) = leading_chars.get(index).copied().flatten() else {
+                for &leading_char in allowed_leading_chars.keys() {
+                    let Some(candidate_ids) = token_ids_by_leading_char.get(&leading_char) else {
                         continue;
                     };
-                    if !allowed_leading_chars.contains_key(&leading_char) {
-                        continue;
+                    for &token_id in candidate_ids {
+                        let index = token_id as usize;
+                        if logits.is_some_and(|logits| {
+                            logits.get(index).is_none_or(|value| !value.is_finite())
+                        }) || disallowed_token_ids.contains(&token_id)
+                        {
+                            continue;
+                        }
+                        let Some(candidate_leading_char) =
+                            leading_chars.get(index).copied().flatten()
+                        else {
+                            continue;
+                        };
+                        if candidate_leading_char != leading_char {
+                            continue;
+                        }
+                        let restore_len = candidate_text.len();
+                        candidate_text.push_str(&suffixes[index]);
+                        if matcher.classify(candidate_text.as_str()).is_allowed() {
+                            allowed.push(token_id);
+                        }
+                        candidate_text.truncate(restore_len);
                     }
-                    let restore_len = candidate_text.len();
-                    candidate_text.push_str(&suffixes[index]);
-                    if matcher.classify(candidate_text.as_str()).is_allowed() {
-                        allowed.push(token_id);
-                    }
-                    candidate_text.truncate(restore_len);
                 }
             }
         }
