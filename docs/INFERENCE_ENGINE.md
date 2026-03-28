@@ -99,7 +99,14 @@ than just run tensor math.
   run. The later warmed repeats stayed on `qwen35_output_modes=[top_k_candidates:128]`
   and hit the token cap without materializing `structured_output_value`, so
   this remains a bounded parity note rather than a canonical throughput row.
-- The first `qwen35` lane must still fail closed for tool calling.
+- Native `qwen35` tool calling is now supported on the generic
+  OpenAI-compatible server surface through the bounded tagged-JSON-schema tool
+  contract:
+  - `/v1/chat/completions`
+  - modes `none`, `auto`, `required`, and named tool choice
+  - machine-readable `message.tool_calls`
+  - JSON-schema-subset argument validation
+  - proxy `qwen35` still fails closed for tool calling
 - The first `qwen35` lane must still fail closed for system-message image and
   video parts to stay aligned with the real template semantics.
 - On March 27, 2026, after moving qwen35 hybrid-layer SSM `decay` and `beta`

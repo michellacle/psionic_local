@@ -935,8 +935,10 @@ impl OpenAiCompatLoadedModel {
     }
 
     fn supports_tool_calling(&self) -> bool {
-        self.decoder()
-            .is_some_and(|model| !matches!(model.family, GgufDecoderFamily::Qwen35))
+        self.decoder().is_some_and(|model| {
+            !matches!(model.family, GgufDecoderFamily::Qwen35)
+                || self.execution_engine_label() == "psionic"
+        })
     }
 
     fn supports_response_state(&self) -> bool {
@@ -972,7 +974,10 @@ impl OpenAiCompatLoadedModel {
 
     fn tool_calling_capability(&self) -> ToolCallingCapability {
         match self.decoder() {
-            Some(model) if matches!(model.family, GgufDecoderFamily::Qwen35) => {
+            Some(model)
+                if matches!(model.family, GgufDecoderFamily::Qwen35)
+                    && self.execution_engine_label() != "psionic" =>
+            {
                 ToolCallingCapability {
                     support_level: ToolCallingSupportLevel::Unsupported,
                     supported_modes: vec!["none"],
@@ -6857,6 +6862,20 @@ mod tests {
                 "tagged_json_schema",
             ])
         );
+        assert_eq!(
+            health.0.tool_calling.as_ref().map(|capability| (
+                capability.support_level.label(),
+                capability.supported_modes.clone(),
+                capability.parser,
+                capability.argument_validation,
+            )),
+            Some((
+                "fallback",
+                vec!["none", "auto", "required", "named"],
+                "tagged_json_schema",
+                "json_schema_subset",
+            ))
+        );
         assert!(
             health
                 .0
@@ -6888,6 +6907,17 @@ mod tests {
                 "json_object",
                 "tagged_json_schema",
             ])
+        );
+        assert!(
+            model
+                .psionic_tool_calling
+                .as_ref()
+                .is_some_and(|capability| {
+                    capability.support_level.label() == "fallback"
+                        && capability.supported_modes == vec!["none", "auto", "required", "named"]
+                        && capability.parser == "tagged_json_schema"
+                        && capability.argument_validation == "json_schema_subset"
+                })
         );
         assert!(
             model
@@ -6958,6 +6988,280 @@ mod tests {
                 "kind": "grammar",
                 "value": "world"
             })
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn generic_server_native_qwen35_tool_choice_auto_can_return_message_envelope()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let backend = psionic_backend_cuda::CudaBackend::new();
+        if !backend.quantized_kernels_available() {
+            return Ok(());
+        }
+
+        let temp = tempfile::tempdir()?;
+        let qwen35_path = temp.path().join("tiny-qwen35-auto-tool.gguf");
+        write_test_gguf(
+            &qwen35_path,
+            qwen35_native_full_attention_decoder_metadata_with_tokens(
+                "tiny native qwen35 auto tool",
+                vec![
+                    "<|bos|>",
+                    "<|eos|>",
+                    "<|im_start|>",
+                    "<|im_end|>",
+                    "<think>",
+                    "</think>",
+                    "hello",
+                    "{\"kind\":\"message\",\"content\":\"world\"}",
+                    "world",
+                ],
+            )
+            .as_slice(),
+            qwen35_native_full_attention_decoder_tensors_with_vocab(9).as_slice(),
+        )?;
+
+        let mut config = OpenAiCompatConfig::new(&qwen35_path);
+        config.backend = OpenAiCompatBackend::Cuda;
+        let server = OpenAiCompatServer::from_config(&config)?;
+        let runtime = tokio::runtime::Runtime::new()?;
+
+        let response = runtime.block_on(handle_generic_chat_completions(
+            std::sync::Arc::clone(&server.state),
+            ChatCompletionRequest {
+                model: Some(String::from("tiny-qwen35-auto-tool")),
+                messages: vec![ChatCompletionMessage::text("user", "hello")],
+                temperature: Some(0.0),
+                max_tokens: Some(1),
+                stop: None,
+                stream: false,
+                tools: vec![weather_tool_definition()],
+                tool_choice: Some(ToolChoiceRequest::Mode(String::from("auto"))),
+                response_format: None,
+                psionic_grammar: None,
+                psionic_structured_output: None,
+                psionic_reasoning: None,
+                psionic_prefix_cache: None,
+                ..Default::default()
+            },
+        ))?;
+        let payload = runtime.block_on(response_json(response))?;
+        assert_eq!(
+            payload["choices"][0]["message"]["content"],
+            serde_json::json!("world")
+        );
+        assert!(payload["choices"][0]["message"]["tool_calls"].is_null());
+        assert!(payload["psionic_tool_calls"].is_null());
+        Ok(())
+    }
+
+    #[test]
+    fn generic_server_native_qwen35_required_tool_call_is_machine_checkable()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let backend = psionic_backend_cuda::CudaBackend::new();
+        if !backend.quantized_kernels_available() {
+            return Ok(());
+        }
+
+        let temp = tempfile::tempdir()?;
+        let qwen35_path = temp.path().join("tiny-qwen35-required-tool.gguf");
+        write_test_gguf(
+            &qwen35_path,
+            qwen35_native_full_attention_decoder_metadata_with_tokens(
+                "tiny native qwen35 required tool",
+                vec![
+                    "<|bos|>",
+                    "<|eos|>",
+                    "<|im_start|>",
+                    "<|im_end|>",
+                    "<think>",
+                    "</think>",
+                    "hello",
+                    "{\"kind\":\"tool:get_weather\",\"latitude\":48.8566,\"longitude\":2.3522}",
+                    "world",
+                ],
+            )
+            .as_slice(),
+            qwen35_native_full_attention_decoder_tensors_with_vocab(9).as_slice(),
+        )?;
+
+        let mut config = OpenAiCompatConfig::new(&qwen35_path);
+        config.backend = OpenAiCompatBackend::Cuda;
+        let server = OpenAiCompatServer::from_config(&config)?;
+        let runtime = tokio::runtime::Runtime::new()?;
+
+        let response = runtime.block_on(handle_generic_chat_completions(
+            std::sync::Arc::clone(&server.state),
+            ChatCompletionRequest {
+                model: Some(String::from("tiny-qwen35-required-tool")),
+                messages: vec![ChatCompletionMessage::text("user", "hello")],
+                temperature: Some(0.0),
+                max_tokens: Some(1),
+                stop: None,
+                stream: false,
+                tools: vec![weather_tool_definition()],
+                tool_choice: Some(ToolChoiceRequest::Mode(String::from("required"))),
+                response_format: None,
+                psionic_grammar: None,
+                psionic_structured_output: None,
+                psionic_reasoning: None,
+                psionic_prefix_cache: None,
+                ..Default::default()
+            },
+        ))?;
+        let payload = runtime.block_on(response_json(response))?;
+        assert_eq!(
+            payload["choices"][0]["finish_reason"],
+            serde_json::json!("tool_calls")
+        );
+        assert_eq!(
+            payload["choices"][0]["message"]["tool_calls"][0]["function"]["name"],
+            serde_json::json!("get_weather")
+        );
+        assert_eq!(
+            payload["psionic_tool_calls"][0]["arguments"],
+            serde_json::json!({
+                "latitude": 48.8566,
+                "longitude": 2.3522
+            })
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn generic_server_native_qwen35_named_tool_choice_surfaces_tool_call()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let backend = psionic_backend_cuda::CudaBackend::new();
+        if !backend.quantized_kernels_available() {
+            return Ok(());
+        }
+
+        let temp = tempfile::tempdir()?;
+        let qwen35_path = temp.path().join("tiny-qwen35-named-tool.gguf");
+        write_test_gguf(
+            &qwen35_path,
+            qwen35_native_full_attention_decoder_metadata_with_tokens(
+                "tiny native qwen35 named tool",
+                vec![
+                    "<|bos|>",
+                    "<|eos|>",
+                    "<|im_start|>",
+                    "<|im_end|>",
+                    "<think>",
+                    "</think>",
+                    "hello",
+                    "{\"kind\":\"tool:get_weather\",\"latitude\":48.8566,\"longitude\":2.3522}",
+                    "world",
+                ],
+            )
+            .as_slice(),
+            qwen35_native_full_attention_decoder_tensors_with_vocab(9).as_slice(),
+        )?;
+
+        let mut config = OpenAiCompatConfig::new(&qwen35_path);
+        config.backend = OpenAiCompatBackend::Cuda;
+        let server = OpenAiCompatServer::from_config(&config)?;
+        let runtime = tokio::runtime::Runtime::new()?;
+
+        let response = runtime.block_on(handle_generic_chat_completions(
+            std::sync::Arc::clone(&server.state),
+            ChatCompletionRequest {
+                model: Some(String::from("tiny-qwen35-named-tool")),
+                messages: vec![ChatCompletionMessage::text("user", "hello")],
+                temperature: Some(0.0),
+                max_tokens: Some(1),
+                stop: None,
+                stream: false,
+                tools: vec![weather_tool_definition()],
+                tool_choice: Some(ToolChoiceRequest::Named(NamedToolChoiceRequest {
+                    kind: String::from("function"),
+                    function: NamedToolChoiceFunction {
+                        name: String::from("get_weather"),
+                    },
+                })),
+                response_format: None,
+                psionic_grammar: None,
+                psionic_structured_output: None,
+                psionic_reasoning: None,
+                psionic_prefix_cache: None,
+                ..Default::default()
+            },
+        ))?;
+        let payload = runtime.block_on(response_json(response))?;
+        assert_eq!(
+            payload["choices"][0]["message"]["tool_calls"][0]["function"]["name"],
+            serde_json::json!("get_weather")
+        );
+        assert_eq!(
+            payload["psionic_tool_calls"][0]["name"],
+            serde_json::json!("get_weather")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn generic_server_native_qwen35_tool_call_validation_refuses_invalid_arguments()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let backend = psionic_backend_cuda::CudaBackend::new();
+        if !backend.quantized_kernels_available() {
+            return Ok(());
+        }
+
+        let temp = tempfile::tempdir()?;
+        let qwen35_path = temp.path().join("tiny-qwen35-invalid-tool.gguf");
+        write_test_gguf(
+            &qwen35_path,
+            qwen35_native_full_attention_decoder_metadata_with_tokens(
+                "tiny native qwen35 invalid tool",
+                vec![
+                    "<|bos|>",
+                    "<|eos|>",
+                    "<|im_start|>",
+                    "<|im_end|>",
+                    "<think>",
+                    "</think>",
+                    "hello",
+                    "{\"kind\":\"tool:get_weather\",\"latitude\":\"oops\",\"longitude\":2.3522}",
+                    "world",
+                ],
+            )
+            .as_slice(),
+            qwen35_native_full_attention_decoder_tensors_with_vocab(9).as_slice(),
+        )?;
+
+        let mut config = OpenAiCompatConfig::new(&qwen35_path);
+        config.backend = OpenAiCompatBackend::Cuda;
+        let server = OpenAiCompatServer::from_config(&config)?;
+        let runtime = tokio::runtime::Runtime::new()?;
+
+        let error = runtime
+            .block_on(handle_generic_chat_completions(
+                std::sync::Arc::clone(&server.state),
+                ChatCompletionRequest {
+                    model: Some(String::from("tiny-qwen35-invalid-tool")),
+                    messages: vec![ChatCompletionMessage::text("user", "hello")],
+                    temperature: Some(0.0),
+                    max_tokens: Some(1),
+                    stop: None,
+                    stream: false,
+                    tools: vec![weather_tool_definition()],
+                    tool_choice: Some(ToolChoiceRequest::Mode(String::from("required"))),
+                    response_format: None,
+                    psionic_grammar: None,
+                    psionic_structured_output: None,
+                    psionic_reasoning: None,
+                    psionic_prefix_cache: None,
+                    ..Default::default()
+                },
+            ))
+            .expect_err("native qwen35 invalid tool arguments should be refused");
+        let payload = runtime.block_on(response_json(error.into_response()))?;
+        assert!(
+            payload["error"]["message"]
+                .as_str()
+                .unwrap_or_default()
+                .contains("did not satisfy the declared schema")
         );
         Ok(())
     }
@@ -9546,6 +9850,27 @@ mod tests {
     fn qwen35_native_full_attention_decoder_metadata(
         name: &str,
     ) -> Vec<(String, GgufMetadataValue)> {
+        qwen35_native_full_attention_decoder_metadata_with_tokens(
+            name,
+            vec![
+                "<|bos|>",
+                "<|eos|>",
+                "<|im_start|>",
+                "<|im_end|>",
+                "<think>",
+                "</think>",
+                "hello",
+                "world",
+                "proxy",
+                "qwen35",
+            ],
+        )
+    }
+
+    fn qwen35_native_full_attention_decoder_metadata_with_tokens(
+        name: &str,
+        tokens: Vec<&str>,
+    ) -> Vec<(String, GgufMetadataValue)> {
         let mut metadata = vec![
             (
                 String::from("general.architecture"),
@@ -9628,7 +9953,7 @@ mod tests {
                 GgufMetadataValue::String(qwen35_chat_template().to_string()),
             ),
         ];
-        metadata.extend(qwen35_tokenizer_metadata_entries());
+        metadata.extend(qwen35_tokenizer_metadata_entries_with_tokens(tokens));
         metadata
     }
 
@@ -9785,6 +10110,23 @@ mod tests {
     }
 
     fn qwen35_tokenizer_metadata_entries() -> Vec<(String, GgufMetadataValue)> {
+        qwen35_tokenizer_metadata_entries_with_tokens(vec![
+            "<|bos|>",
+            "<|eos|>",
+            "<|im_start|>",
+            "<|im_end|>",
+            "<think>",
+            "</think>",
+            "hello",
+            "world",
+            "proxy",
+            "qwen35",
+        ])
+    }
+
+    fn qwen35_tokenizer_metadata_entries_with_tokens(
+        tokens: Vec<&str>,
+    ) -> Vec<(String, GgufMetadataValue)> {
         vec![
             (
                 String::from("tokenizer.ggml.model"),
@@ -9796,18 +10138,12 @@ mod tests {
             ),
             (
                 String::from("tokenizer.ggml.tokens"),
-                GgufMetadataValue::Array(vec![
-                    GgufMetadataValue::String(String::from("<|bos|>")),
-                    GgufMetadataValue::String(String::from("<|eos|>")),
-                    GgufMetadataValue::String(String::from("<|im_start|>")),
-                    GgufMetadataValue::String(String::from("<|im_end|>")),
-                    GgufMetadataValue::String(String::from("<think>")),
-                    GgufMetadataValue::String(String::from("</think>")),
-                    GgufMetadataValue::String(String::from("hello")),
-                    GgufMetadataValue::String(String::from("world")),
-                    GgufMetadataValue::String(String::from("proxy")),
-                    GgufMetadataValue::String(String::from("qwen35")),
-                ]),
+                GgufMetadataValue::Array(
+                    tokens
+                        .into_iter()
+                        .map(|token| GgufMetadataValue::String(String::from(token)))
+                        .collect(),
+                ),
             ),
             (
                 String::from("tokenizer.ggml.merges"),
@@ -9972,10 +10308,16 @@ mod tests {
     }
 
     fn qwen35_native_full_attention_decoder_tensors() -> Vec<TestGgufTensor> {
+        qwen35_native_full_attention_decoder_tensors_with_vocab(10)
+    }
+
+    fn qwen35_native_full_attention_decoder_tensors_with_vocab(
+        vocab_size: usize,
+    ) -> Vec<TestGgufTensor> {
         vec![
-            dense_f32_tensor("token_embd.weight", vec![10, 32]),
+            dense_f32_tensor("token_embd.weight", vec![vocab_size, 32]),
             dense_f32_tensor("output_norm.weight", vec![32]),
-            quantized_q8_0_tensor("output.weight", vec![10, 32]),
+            quantized_q8_0_tensor("output.weight", vec![vocab_size, 32]),
             dense_f32_tensor("blk.0.attn_norm.weight", vec![32]),
             quantized_q8_0_tensor("blk.0.ffn_gate.weight", vec![32, 32]),
             quantized_q8_0_tensor("blk.0.ffn_up.weight", vec![32, 32]),

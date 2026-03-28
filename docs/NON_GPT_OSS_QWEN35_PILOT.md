@@ -117,7 +117,9 @@ The pilot is intentionally bounded:
 - it is still an early native Psionic CUDA execution slice
 - it does not claim native multimodal inference
 - it does not claim a native image or video encoder
-- it does not claim tool calling
+- it now claims bounded generic-server tool calling on native Psionic CUDA for
+  `/v1/chat/completions` with `none`, `auto`, `required`, and named tool
+  choice
 - it does not claim full structured-output acceleration; the bounded native
   lane is still limited to greedy no-penalty requests and the wider surface can
   still fall back to explicit dense `raw_logits`
