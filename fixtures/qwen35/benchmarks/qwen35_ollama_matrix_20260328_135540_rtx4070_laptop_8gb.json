@@ -1,11 +1,11 @@
 {
   "abi_version": "psionic.qwen35.ollama_matrix.v2",
-  "run_id": "qwen35_ollama_matrix_20260328_135540",
+  "run_id": "20260328_135540_rtx4070_laptop_8gb",
   "run_date": "2026-03-28",
   "source": {
-    "jsonl_path": "/home/michel/code/psionic_local/fixtures/qwen35/benchmarks/runs/qwen35_ollama_matrix_20260328_135540/runs.jsonl",
-    "raw_log_path": "/home/michel/code/psionic_local/fixtures/qwen35/benchmarks/runs/qwen35_ollama_matrix_20260328_135540/raw.log",
-    "telemetry_csv_path": "/home/michel/code/psionic_local/fixtures/qwen35/benchmarks/runs/qwen35_ollama_matrix_20260328_135540/telemetry.csv"
+    "jsonl_path": "/tmp/qwen35_matrix_full_20260328_135540/runs.jsonl",
+    "raw_log_path": null,
+    "telemetry_csv_path": null
   },
   "environment": {
     "git_commit": "9686fab0fc38a31856bf81677ba2f80a3ece65d2",
@@ -16,41 +16,7 @@
       "current_power_limit_w": null,
       "max_power_limit_w": 90.0
     },
-    "telemetry": {
-      "samples": 362,
-      "power_draw_w": {
-        "mean": 33.92552486187846,
-        "max": 55.83
-      },
-      "temperature_c": {
-        "mean": 66.04972375690608,
-        "max": 74.0
-      },
-      "utilization_gpu_pct": {
-        "mean": 51.52209944751381,
-        "max": 100.0
-      },
-      "utilization_mem_pct": {
-        "mean": 37.79558011049724,
-        "max": 100.0
-      },
-      "clocks_sm_mhz": {
-        "mean": 1665.0414364640883,
-        "max": 2400.0
-      },
-      "clocks_mem_mhz": {
-        "mean": 6808.809392265193,
-        "max": 8001.0
-      },
-      "memory_used_mib": {
-        "mean": 2879.07182320442,
-        "max": 6218.0
-      },
-      "memory_total_mib": {
-        "mean": 8188.0,
-        "max": 8188.0
-      }
-    }
+    "telemetry": null
   },
   "comparability_policy": {
     "token_delta_abs_threshold": 16,

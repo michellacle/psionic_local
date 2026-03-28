@@ -1,19 +1,12 @@
-# Qwen3.5 Psionic vs Ollama Benchmark Summary (2026-03-28)
+# Qwen3.5 Psionic vs Ollama Benchmark Summary (March 28, 2026)
 
-This report is generated automatically from the benchmark JSONL evidence.
+This one-page summary is generated from:
 
-## Run Metadata
-
-- run id: `qwen35_ollama_matrix_20260328_135540`
-- artifact: `qwen35_ollama_matrix_qwen35_ollama_matrix_20260328_135540.json`
-- jsonl source: `/home/michel/code/psionic_local/fixtures/qwen35/benchmarks/runs/qwen35_ollama_matrix_20260328_135540/runs.jsonl`
-- raw log: `/home/michel/code/psionic_local/fixtures/qwen35/benchmarks/runs/qwen35_ollama_matrix_20260328_135540/raw.log`
-- telemetry csv: `/home/michel/code/psionic_local/fixtures/qwen35/benchmarks/runs/qwen35_ollama_matrix_20260328_135540/telemetry.csv`
-- psionic commit: `9686fab0fc38a31856bf81677ba2f80a3ece65d2`
-- ollama version: `0.17.7`
-- gpu: `NVIDIA GeForce RTX 4070 Laptop GPU`
-- gpu vram mib: `8188`
-- gpu max power limit w: `90.0`
+- `fixtures/qwen35/benchmarks/qwen35_ollama_matrix_20260328_135540_rtx4070_laptop_8gb.json`
+- run id: `20260328_135540_rtx4070_laptop_8gb`
+- host: `NVIDIA GeForce RTX 4070 Laptop GPU` (8 GB), max power limit `90W`
+- Psionic benchmark checkout commit: `9686fab0fc38a31856bf81677ba2f80a3ece65d2`
+- Ollama version: `0.17.7`
 
 ## Executive Summary
 
@@ -42,6 +35,14 @@ This report is generated automatically from the benchmark JSONL evidence.
 | `sampled_topk100` | `qwen3.5:0.8b` | token delta 11.40 (33.53%) exceeds thresholds | 22.6 | 34.0 |
 | `sampled_topk100` | `qwen3.5:2b` | token delta 15.20 (34.55%) exceeds thresholds | 28.8 | 44.0 |
 | `sampled_topk100` | `qwen3.5:9b` | token delta 13.40 (36.22%) exceeds thresholds | 23.6 | 37.0 |
+
+## Code Changes and Why
+
+- No new CUDA inference-kernel changes were introduced for this rerun.
+- This rerun used the matrix evidence pipeline from commit
+  `9686fab0fc38a31856bf81677ba2f80a3ece65d2` so every row captures per-repeat
+  JSONL evidence, output-token counts, and comparability classification.
+- This changes the reporting shape, not the decode algorithm.
 
 ## Graphs
 
