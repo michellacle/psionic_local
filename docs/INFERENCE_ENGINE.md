@@ -46,6 +46,15 @@ than just run tensor math.
   - effective `top_k` available and `<= 128`
   - repeat, presence, and frequency penalties inactive
   - structured-output masking inactive
+- The runtime sampling surface now also honors `min_p` and request-level
+  `repeat_last_n` in addition to the existing sampled controls.
+- `repeat_last_n` follows the Ollama-compatible local sampler contract:
+  - default `64`
+  - `0` disables the penalty lookback window
+  - `-1` expands the penalty window to the full available history
+- `min_p` remains compatible with the bounded qwen35 CUDA sampled lane because
+  Psionic applies it after exact top-k candidate selection on both the dense
+  and bounded sampling paths.
 - Outside that envelope the qwen35 lane still falls back to explicit
   `raw_logits` readback instead of silently narrowing behavior.
 - The first `qwen35` lane must fail closed for structured outputs and tool
@@ -83,12 +92,14 @@ than just run tensor math.
   local Ollama.
 - On March 28, 2026, after adding a native one-row CUDA top-k candidate output
   path and routing qwen35 sampled decode through `TopKCandidates { top_k }`
-  instead of unconditional dense-vocab readback, the same host measured native
-  qwen35 sampled decode ahead of local Ollama on all four rows under the
-  explicit sampled contract in `docs/QWEN35_OLLAMA_COMPARISON.md`:
-  about `499 tok/s` versus `331 tok/s` on `qwen3.5:0.8b`, about `244 tok/s`
-  versus `202 tok/s` on `qwen3.5:2b`, about `172 tok/s` versus `140 tok/s` on
-  `qwen3.5:4b`, and about `106 tok/s` versus `93 tok/s` on `qwen3.5:9b`.
+  instead of unconditional dense-vocab readback, and after refreshing the
+  local sampler surface to honor `min_p` and request-level `repeat_last_n`,
+  the same host measured native qwen35 sampled decode ahead of local Ollama on
+  all four rows under the explicit sampled contract in
+  `docs/QWEN35_OLLAMA_COMPARISON.md`: about `498 tok/s` versus `329 tok/s` on
+  `qwen3.5:0.8b`, about `244 tok/s` versus `201 tok/s` on `qwen3.5:2b`, about
+  `173 tok/s` versus `140 tok/s` on `qwen3.5:4b`, and about `105 tok/s`
+  versus `93 tok/s` on `qwen3.5:9b`.
 - The 4B row only became correct and faster after fixing the fused decode
   output head for mixed `Q4_K` and `Q6_K` weights. Greedy `ArgmaxOnly` decode
   now routes `Q6_K` output weights through `Q8_1` projection plus `argmax_f32`

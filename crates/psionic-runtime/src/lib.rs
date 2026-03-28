@@ -5369,9 +5369,16 @@ pub struct SamplingPolicy {
     /// Top-p / nucleus sampling threshold.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub top_p: Option<f32>,
+    /// Minimum relative probability threshold applied after bounded sampling filters.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub min_p: Option<f32>,
     /// Repeat penalty applied to previously seen tokens.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub repeat_penalty: Option<f32>,
+    /// Explicit request-level penalty lookback. `0` disables the penalty window
+    /// and `-1` expands it to the full available history.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub repeat_last_n: Option<i32>,
     /// Presence penalty applied once to previously seen tokens.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub presence_penalty: Option<f32>,
@@ -5402,10 +5409,32 @@ impl SamplingPolicy {
         self.top_p.or(Some(0.9))
     }
 
+    /// Returns the effective minimum relative probability threshold.
+    #[must_use]
+    pub fn effective_min_p(&self) -> Option<f32> {
+        match self.min_p {
+            Some(min_p) if min_p.is_finite() && min_p > 0.0 && min_p <= 1.0 => Some(min_p),
+            _ => None,
+        }
+    }
+
     /// Returns the effective repeat penalty after applying runtime defaults.
     #[must_use]
     pub fn effective_repeat_penalty(&self) -> f32 {
         self.repeat_penalty.unwrap_or(1.0)
+    }
+
+    /// Returns the effective penalty-history lookback after applying runtime defaults.
+    #[must_use]
+    pub fn effective_repeat_last_n(&self, history_len: usize) -> Option<usize> {
+        match self
+            .repeat_last_n
+            .unwrap_or(DEFAULT_PENALTY_LOOKBACK as i32)
+        {
+            i32::MIN..=-1 => Some(history_len),
+            0 => None,
+            value => Some(value as usize),
+        }
     }
 
     /// Returns the effective presence penalty after applying runtime defaults.
@@ -5611,6 +5640,7 @@ impl TokenSampler {
             return None;
         }
         top_p(&mut tokens, self.policy.effective_top_p());
+        min_p(&mut tokens, self.policy.effective_min_p());
 
         let distribution_total = tokens.iter().map(|token| token.value).sum::<f32>();
         if !distribution_total.is_finite() || distribution_total <= 0.0 {
@@ -5672,7 +5702,7 @@ struct SampleToken {
     value: f32,
 }
 
-/// Applies repeat, presence, and frequency penalties using the bounded runtime history window.
+/// Applies repeat, presence, and frequency penalties using the runtime policy lookback window.
 pub fn apply_sampling_penalties(logits: &mut [f32], history: &[u32], policy: &SamplingPolicy) {
     let repeat_penalty = policy.effective_repeat_penalty();
     let presence_penalty = policy.effective_presence_penalty();
@@ -5684,7 +5714,11 @@ pub fn apply_sampling_penalties(logits: &mut [f32], history: &[u32], policy: &Sa
         return;
     }
 
-    for (token, count) in token_counts(history, logits.len()) {
+    for (token, count) in token_counts(
+        history,
+        logits.len(),
+        policy.effective_repeat_last_n(history.len()),
+    ) {
         let Some(logit) = logits.get_mut(token as usize) else {
             continue;
         };
@@ -5736,8 +5770,15 @@ fn select_argmax_token_from_allowed(logits: &[f32], allowed_token_ids: &[u32]) -
         .map(|(token_id, _)| token_id)
 }
 
-fn token_counts(history: &[u32], vocab_size: usize) -> BTreeMap<u32, usize> {
-    let start = history.len().saturating_sub(DEFAULT_PENALTY_LOOKBACK);
+fn token_counts(
+    history: &[u32],
+    vocab_size: usize,
+    lookback: Option<usize>,
+) -> BTreeMap<u32, usize> {
+    let start = match lookback {
+        Some(lookback) => history.len().saturating_sub(lookback),
+        None => history.len(),
+    };
     let mut counts = BTreeMap::new();
     for &token in &history[start..] {
         if token as usize >= vocab_size {
@@ -5769,6 +5810,7 @@ fn sample_token_index(rng: &mut StdRng, logits: &[f32], policy: &SamplingPolicy)
         return None;
     }
     top_p(&mut tokens, policy.effective_top_p());
+    min_p(&mut tokens, policy.effective_min_p());
 
     let distribution_total = tokens.iter().map(|token| token.value).sum::<f32>();
     if !distribution_total.is_finite() || distribution_total <= 0.0 {
@@ -5842,6 +5884,32 @@ fn top_p(tokens: &mut Vec<SampleToken>, top_p: Option<f32>) {
         }
     }
     tokens.truncate(keep.max(1));
+}
+
+fn min_p(tokens: &mut Vec<SampleToken>, min_p: Option<f32>) {
+    let Some(min_p) = min_p else {
+        return;
+    };
+    if min_p <= 0.0 || min_p > 1.0 {
+        return;
+    }
+    let Some(max_token) = tokens
+        .iter()
+        .copied()
+        .filter(|token| token.value.is_finite())
+        .max_by(|left, right| left.value.total_cmp(&right.value))
+    else {
+        return;
+    };
+    let max_probability = max_token.value;
+    if max_probability <= 0.0 {
+        return;
+    }
+    let threshold = max_probability * min_p;
+    tokens.retain(|token| token.value.is_finite() && token.value >= threshold);
+    if tokens.is_empty() {
+        tokens.push(max_token);
+    }
 }
 
 /// Lifecycle state for a model that is resident in a local runtime.
@@ -11666,7 +11734,9 @@ mod tests {
             temperature: Some(0.7),
             top_k: Some(32),
             top_p: Some(0.85),
+            min_p: Some(0.05),
             repeat_penalty: Some(1.2),
+            repeat_last_n: Some(48),
             presence_penalty: Some(0.4),
             frequency_penalty: Some(0.3),
             seed: Some(17),
@@ -11677,7 +11747,9 @@ mod tests {
         assert!((encoded["temperature"].as_f64().unwrap_or_default() - 0.7).abs() < 1e-6);
         assert_eq!(encoded["top_k"], 32);
         assert!((encoded["top_p"].as_f64().unwrap_or_default() - 0.85).abs() < 1e-6);
+        assert!((encoded["min_p"].as_f64().unwrap_or_default() - 0.05).abs() < 1e-6);
         assert!((encoded["repeat_penalty"].as_f64().unwrap_or_default() - 1.2).abs() < 1e-6);
+        assert_eq!(encoded["repeat_last_n"], 48);
         assert!((encoded["presence_penalty"].as_f64().unwrap_or_default() - 0.4).abs() < 1e-6);
         assert!((encoded["frequency_penalty"].as_f64().unwrap_or_default() - 0.3).abs() < 1e-6);
         assert_eq!(encoded["seed"], 17);
@@ -11691,7 +11763,9 @@ mod tests {
             temperature: Some(0.9),
             top_k: Some(3),
             top_p: Some(0.95),
+            min_p: None,
             repeat_penalty: None,
+            repeat_last_n: None,
             presence_penalty: None,
             frequency_penalty: None,
             seed: Some(42),
@@ -11782,7 +11856,9 @@ mod tests {
             temperature: Some(0.9),
             top_k: Some(3),
             top_p: Some(0.95),
+            min_p: None,
             repeat_penalty: None,
+            repeat_last_n: None,
             presence_penalty: None,
             frequency_penalty: None,
             seed: None,
@@ -11829,7 +11905,9 @@ mod tests {
             temperature: None,
             top_k: None,
             top_p: None,
+            min_p: None,
             repeat_penalty: Some(1.0),
+            repeat_last_n: None,
             presence_penalty: Some(0.0),
             frequency_penalty: Some(1.0),
             seed: None,
@@ -11845,13 +11923,65 @@ mod tests {
     }
 
     #[test]
+    fn sampling_penalties_honor_repeat_last_n_override() {
+        let policy = SamplingPolicy {
+            strategy: SamplingStrategy::Greedy,
+            temperature: None,
+            top_k: None,
+            top_p: None,
+            min_p: None,
+            repeat_penalty: Some(1.0),
+            repeat_last_n: Some(1),
+            presence_penalty: Some(0.0),
+            frequency_penalty: Some(1.0),
+            seed: None,
+        };
+        let mut logits = vec![4.0, 4.0];
+        let history = vec![1_u32, 1, 0];
+
+        apply_sampling_penalties(&mut logits, &history, &policy);
+
+        assert_eq!(logits, vec![3.0, 4.0]);
+    }
+
+    #[test]
+    fn token_sampler_min_p_masks_low_probability_tokens() {
+        let policy = SamplingPolicy {
+            strategy: SamplingStrategy::Sample,
+            temperature: Some(1.0),
+            top_k: None,
+            top_p: None,
+            min_p: Some(0.95),
+            repeat_penalty: None,
+            repeat_last_n: None,
+            presence_penalty: None,
+            frequency_penalty: None,
+            seed: Some(11),
+        };
+        let logits = vec![3.0, 1.0];
+        let mut sampler = TokenSampler::new(&policy);
+
+        let draws = (0..8)
+            .map(|_| {
+                sampler
+                    .select_next_token(&logits, &[])
+                    .expect("min_p should leave one candidate")
+            })
+            .collect::<Vec<_>>();
+
+        assert!(draws.iter().all(|&token| token == 0));
+    }
+
+    #[test]
     fn token_sampler_can_refuse_disallowed_ids() {
         let policy = SamplingPolicy {
             strategy: SamplingStrategy::Greedy,
             temperature: None,
             top_k: None,
             top_p: None,
+            min_p: None,
             repeat_penalty: None,
+            repeat_last_n: None,
             presence_penalty: None,
             frequency_penalty: None,
             seed: None,
@@ -11873,7 +12003,9 @@ mod tests {
             temperature: None,
             top_k: None,
             top_p: None,
+            min_p: None,
             repeat_penalty: None,
+            repeat_last_n: None,
             presence_penalty: None,
             frequency_penalty: None,
             seed: None,

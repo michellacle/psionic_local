@@ -1265,8 +1265,14 @@ impl Qwen35LlamaCppProxyState {
         if let Some(top_p) = options.top_p {
             body["top_p"] = serde_json::json!(top_p);
         }
+        if let Some(min_p) = options.min_p {
+            body["min_p"] = serde_json::json!(min_p);
+        }
         if let Some(repeat_penalty) = options.repeat_penalty {
             body["repeat_penalty"] = serde_json::json!(repeat_penalty);
+        }
+        if let Some(repeat_last_n) = options.repeat_last_n {
+            body["repeat_last_n"] = serde_json::json!(repeat_last_n);
         }
         if let Some(presence_penalty) = options.presence_penalty {
             body["presence_penalty"] = serde_json::json!(presence_penalty);

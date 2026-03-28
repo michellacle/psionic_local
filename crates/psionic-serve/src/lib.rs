@@ -1258,9 +1258,16 @@ pub struct GenerationOptions {
     /// Top-p / nucleus sampling threshold.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub top_p: Option<f32>,
+    /// Minimum relative probability threshold applied after bounded sampling filters.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub min_p: Option<f32>,
     /// Repeat penalty applied to previously seen tokens.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub repeat_penalty: Option<f32>,
+    /// Explicit request-level penalty lookback. `0` disables the penalty window
+    /// and `-1` expands it to the full available history.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub repeat_last_n: Option<i32>,
     /// Presence penalty applied once to previously seen tokens.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub presence_penalty: Option<f32>,
@@ -1289,7 +1296,9 @@ impl GenerationOptions {
             temperature: None,
             top_k: None,
             top_p: None,
+            min_p: None,
             repeat_penalty: None,
+            repeat_last_n: None,
             presence_penalty: None,
             frequency_penalty: None,
             seed: None,
@@ -1316,7 +1325,9 @@ impl GenerationOptions {
             temperature: self.temperature,
             top_k: self.top_k,
             top_p: self.top_p,
+            min_p: self.min_p,
             repeat_penalty: self.repeat_penalty,
+            repeat_last_n: self.repeat_last_n,
             presence_penalty: self.presence_penalty,
             frequency_penalty: self.frequency_penalty,
             seed: self.seed,
@@ -6372,18 +6383,16 @@ impl<'a> PromotedParameterGolfGenerationStream<'a> {
                 .values()
                 .get(last_row_start..last_row_start.saturating_add(width))
                 .ok_or(ParameterGolfPromotedGenerationError::MissingLogits)?;
-            let next_token = match self
-                .sampler
-                .select_next_token_from_history_with_allowed(
-                    self.loaded_model.runtime_bundle().tokenizer(),
-                    last_logits,
-                    self.history.as_slice(),
-                    self.generated_tokens.as_slice(),
-                    self.loaded_model
-                        .runtime_bundle()
-                        .tokenizer()
-                        .generation_allowed_token_ids(),
-                )? {
+            let next_token = match self.sampler.select_next_token_from_history_with_allowed(
+                self.loaded_model.runtime_bundle().tokenizer(),
+                last_logits,
+                self.history.as_slice(),
+                self.generated_tokens.as_slice(),
+                self.loaded_model
+                    .runtime_bundle()
+                    .tokenizer()
+                    .generation_allowed_token_ids(),
+            )? {
                 GenerationSelection::Token(token) => token,
                 GenerationSelection::Terminate => {
                     return Ok(Some(self.emit_terminal_or_chunk(
@@ -6928,10 +6937,11 @@ impl GenerationSampler {
             }
         }
         for _ in 0..allowed_token_ids.len().max(1) {
-            let Some(candidate) = self
-                .sampler
-                .select_next_token_with_allowed(&masked_logits, history, allowed_token_ids)
-            else {
+            let Some(candidate) = self.sampler.select_next_token_with_allowed(
+                &masked_logits,
+                history,
+                allowed_token_ids,
+            ) else {
                 return Err(ReferenceTextGenerationError::StructuredOutputExhausted);
             };
             let mut candidate_tokens = generated_tokens.to_vec();
@@ -6954,11 +6964,11 @@ impl GenerationSampler {
         candidate_logits: &[f32],
     ) -> Result<GenerationSelection, ReferenceTextGenerationError> {
         if self.structured_output.is_some() {
-            return Err(ReferenceTextGenerationError::Runtime(RuntimeError::UnsupportedStep(
-                String::from(
+            return Err(ReferenceTextGenerationError::Runtime(
+                RuntimeError::UnsupportedStep(String::from(
                     "bounded candidate sampling is unavailable while structured-output masking is active",
-                ),
-            )));
+                )),
+            ));
         }
         self.sampler
             .select_next_token_from_candidates(candidate_ids, candidate_logits)
@@ -10932,7 +10942,9 @@ mod tests {
             temperature: Some(0.7),
             top_k: Some(32),
             top_p: Some(0.85),
+            min_p: Some(0.05),
             repeat_penalty: Some(1.2),
+            repeat_last_n: Some(48),
             presence_penalty: Some(0.4),
             frequency_penalty: Some(0.3),
             seed: Some(17),
@@ -10949,7 +10961,9 @@ mod tests {
         );
         assert_eq!(encoded["top_k"], 32);
         assert!((encoded["top_p"].as_f64().expect("top_p") - 0.85).abs() < 1e-6);
+        assert!((encoded["min_p"].as_f64().expect("min_p") - 0.05).abs() < 1e-6);
         assert!((encoded["repeat_penalty"].as_f64().expect("repeat_penalty") - 1.2).abs() < 1e-6);
+        assert_eq!(encoded["repeat_last_n"], 48);
         assert!(
             (encoded["presence_penalty"]
                 .as_f64()
@@ -12272,7 +12286,9 @@ mod tests {
             temperature: Some(0.9),
             top_k: Some(3),
             top_p: Some(0.95),
+            min_p: None,
             repeat_penalty: None,
+            repeat_last_n: None,
             presence_penalty: None,
             frequency_penalty: None,
             seed: Some(42),
@@ -12320,7 +12336,9 @@ mod tests {
             temperature: Some(0.8),
             top_k: Some(3),
             top_p: Some(0.9),
+            min_p: Some(0.05),
             repeat_penalty: None,
+            repeat_last_n: None,
             presence_penalty: None,
             frequency_penalty: None,
             seed: Some(17),
@@ -12373,7 +12391,9 @@ mod tests {
             temperature: None,
             top_k: None,
             top_p: None,
+            min_p: None,
             repeat_penalty: Some(2.0),
+            repeat_last_n: Some(2),
             presence_penalty: Some(0.5),
             frequency_penalty: Some(0.5),
             seed: None,
@@ -12405,7 +12425,9 @@ mod tests {
             temperature: Some(0.9),
             top_k: Some(3),
             top_p: Some(0.95),
+            min_p: None,
             repeat_penalty: Some(1.1),
+            repeat_last_n: None,
             presence_penalty: Some(0.2),
             frequency_penalty: Some(0.1),
             seed: Some(42),
