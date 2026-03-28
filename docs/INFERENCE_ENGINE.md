@@ -40,6 +40,14 @@ than just run tensor math.
 - The first `qwen35` lane supports image and video request projection on
   `/v1/chat/completions` and `/v1/responses` without claiming a native image or
   video encoder.
+- The first `qwen35` lane now supports bounded sampled decode on native CUDA
+  when the request stays inside the exact candidate-only envelope:
+  - sampled decode or non-zero effective temperature
+  - effective `top_k` available and `<= 128`
+  - repeat, presence, and frequency penalties inactive
+  - structured-output masking inactive
+- Outside that envelope the qwen35 lane still falls back to explicit
+  `raw_logits` readback instead of silently narrowing behavior.
 - The first `qwen35` lane must fail closed for structured outputs and tool
   calling.
 - The first `qwen35` lane must still fail closed for system-message image and
@@ -73,6 +81,14 @@ than just run tensor math.
   `qwen3.5:4b` artifact versus about `142 tok/s` on local Ollama, and about
   `103 tok/s` on the local `qwen3.5:9b` artifact versus about `95 tok/s` on
   local Ollama.
+- On March 28, 2026, after adding a native one-row CUDA top-k candidate output
+  path and routing qwen35 sampled decode through `TopKCandidates { top_k }`
+  instead of unconditional dense-vocab readback, the same host measured native
+  qwen35 sampled decode ahead of local Ollama on all four rows under the
+  explicit sampled contract in `docs/QWEN35_OLLAMA_COMPARISON.md`:
+  about `499 tok/s` versus `331 tok/s` on `qwen3.5:0.8b`, about `244 tok/s`
+  versus `202 tok/s` on `qwen3.5:2b`, about `172 tok/s` versus `140 tok/s` on
+  `qwen3.5:4b`, and about `106 tok/s` versus `93 tok/s` on `qwen3.5:9b`.
 - The 4B row only became correct and faster after fixing the fused decode
   output head for mixed `Q4_K` and `Q6_K` weights. Greedy `ArgmaxOnly` decode
   now routes `Q6_K` output weights through `Q8_1` projection plus `argmax_f32`

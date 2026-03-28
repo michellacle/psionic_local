@@ -5571,6 +5571,70 @@ impl TokenSampler {
         }
         token
     }
+
+    /// Selects the next token from one preselected candidate set whose logits
+    /// already reflect the effective top-k truncation.
+    pub fn select_next_token_from_candidates(
+        &mut self,
+        candidate_ids: &[u32],
+        candidate_logits: &[f32],
+    ) -> Option<u32> {
+        if candidate_ids.len() != candidate_logits.len() {
+            return None;
+        }
+        let mut tokens = candidate_ids
+            .iter()
+            .copied()
+            .zip(candidate_logits.iter().copied())
+            .filter(|(_, value)| value.is_finite())
+            .map(|(id, value)| SampleToken { id, value })
+            .collect::<Vec<_>>();
+        if tokens.is_empty() {
+            return None;
+        }
+        if self.policy.strategy == SamplingStrategy::Greedy
+            || self.policy.effective_temperature() <= 1e-6
+        {
+            return tokens
+                .iter()
+                .max_by(|left, right| {
+                    left.value
+                        .total_cmp(&right.value)
+                        .then_with(|| right.id.cmp(&left.id))
+                })
+                .map(|token| token.id);
+        }
+
+        temperature_scale(&mut tokens, self.policy.effective_temperature());
+        let total = softmax(&mut tokens);
+        if !total.is_finite() || total <= 0.0 {
+            return None;
+        }
+        top_p(&mut tokens, self.policy.effective_top_p());
+
+        let distribution_total = tokens.iter().map(|token| token.value).sum::<f32>();
+        if !distribution_total.is_finite() || distribution_total <= 0.0 {
+            return None;
+        }
+
+        let mut target = self.rng.random::<f32>() * distribution_total;
+        for token in &tokens {
+            target -= token.value;
+            if target <= 0.0 {
+                if let Some(generator_state) = self.generator_state.as_mut() {
+                    generator_state.draws = generator_state.draws.saturating_add(1);
+                }
+                return Some(token.id);
+            }
+        }
+        let selected = tokens.last().map(|token| token.id);
+        if selected.is_some() {
+            if let Some(generator_state) = self.generator_state.as_mut() {
+                generator_state.draws = generator_state.draws.saturating_add(1);
+            }
+        }
+        selected
+    }
 }
 
 fn stable_child_generator_seed(seed: u64, scope: &GeneratorScope) -> u64 {

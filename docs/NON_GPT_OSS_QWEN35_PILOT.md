@@ -257,6 +257,38 @@ The 9B row needed one extra benchmark constraint on this 16 GB GPU host:
 Ollama must be unloaded before the native Psionic measurement, because Ollama
 keeps model weights resident in VRAM after the reference run.
 
+The same native qwen35 CUDA lane now also beats local Ollama on the explicit
+sampled benchmark contract from `docs/QWEN35_OLLAMA_COMPARISON.md`:
+
+- prompt:
+  `Respond with plain text only. Write 20 numbered one-sentence reasons why GPU decode throughput matters for local inference. Start at 1 and keep going until all 20 are written.`
+- token cap: `128`
+- sampled settings:
+  - `temperature = 0.8`
+  - `top_k = 40`
+  - `top_p = 0.9`
+  - `repeat_penalty = 1.0`
+  - `presence_penalty = 0.0`
+  - `frequency_penalty = 0.0`
+  - `seed = 42`
+  - `think = false` on Ollama
+- Psionic output-mode evidence on every sampled row:
+  - `qwen35_output_modes=[top_k_candidates:40]`
+  - `qwen35_raw_logits=false`
+
+Measured on the same host with `3` repeats per backend:
+
+- `qwen3.5:0.8b`: Psionic about `499.43 tok/s`, Ollama about `330.83 tok/s`
+- `qwen3.5:2b`: Psionic about `244.42 tok/s`, Ollama about `202.41 tok/s`
+- `qwen3.5:4b`: Psionic about `172.46 tok/s`, Ollama about `139.79 tok/s`
+- `qwen3.5:9b`: Psionic about `105.65 tok/s`, Ollama about `93.08 tok/s`
+
+The sampled lane stays bounded and honest. qwen35 only uses the fast
+`TopKCandidates { top_k }` output path when the request remains exact for a
+candidate-only decode surface. Requests with penalties, structured-output
+masking, or unsupported sampling shapes still fall back to explicit dense
+raw-logit readback.
+
 The same March 27, 2026 benchmark also shows the current boundary clearly:
 
 - Psionic greedy prompt replay for this prompt now spends about `35-38 ms` on

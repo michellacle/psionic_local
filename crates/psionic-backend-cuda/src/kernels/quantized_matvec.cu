@@ -1,6 +1,8 @@
 #include <cuda_runtime.h>
 #include <cuda_fp16.h>
 #include <cuda_bf16.h>
+#include <cccl/cub/block/block_radix_sort.cuh>
+#include <cccl/cub/device/device_radix_sort.cuh>
 
 #include <cfloat>
 #include <stdint.h>
@@ -8,6 +10,9 @@
 namespace {
 
 constexpr int kBlockSize = 256;
+constexpr int kLogitsTopKBlockSize = 128;
+constexpr int kLogitsTopKItemsPerThread = 8;
+constexpr int kLogitsTopKTileSize = kLogitsTopKBlockSize * kLogitsTopKItemsPerThread;
 constexpr int kAttentionBlockSize = 256;
 constexpr int kMatvecBlockSize = 128;
 constexpr int kWarpSize = 32;
@@ -21,6 +26,8 @@ constexpr int kQ6KBlockBytes = 210;
 constexpr int kAttentionMaxPositions = 1024;
 constexpr int kMoeMaxExperts = 128;
 constexpr int kMoeMaxSelected = 32;
+constexpr int kLogitsMaxSelected = 128;
+constexpr int kLogitsFastSharedTopK = 40;
 
 __device__ __forceinline__ float half_to_float(uint16_t bits) {
     const uint32_t sign = static_cast<uint32_t>(bits & 0x8000u) << 16;
@@ -1437,6 +1444,228 @@ __global__ void argmax_f32_kernel(
     if (warp_id == 0 && lane_id == 0) {
         output[row] = max_index;
     }
+}
+
+__device__ __forceinline__ bool top_k_candidate_better(
+    float candidate_value,
+    int candidate_index,
+    float current_value,
+    int current_index
+) {
+    return candidate_value > current_value ||
+        (candidate_value == current_value &&
+            candidate_index >= 0 &&
+            (current_index < 0 || candidate_index < current_index));
+}
+
+__device__ __forceinline__ void insert_top_k_candidate(
+    float value,
+    int index,
+    float *top_values,
+    int *top_indices,
+    int top_k
+) {
+    int insert_at = top_k;
+    for (int slot = 0; slot < top_k; ++slot) {
+        if (top_k_candidate_better(value, index, top_values[slot], top_indices[slot])) {
+            insert_at = slot;
+            break;
+        }
+    }
+    if (insert_at >= top_k) {
+        return;
+    }
+    for (int slot = top_k - 1; slot > insert_at; --slot) {
+        top_values[slot] = top_values[slot - 1];
+        top_indices[slot] = top_indices[slot - 1];
+    }
+    top_values[insert_at] = value;
+    top_indices[insert_at] = index;
+}
+
+__global__ void top_k_f32_kernel(
+    const float *input,
+    int32_t *selected_indices,
+    float *selected_values,
+    int row_count,
+    int column_count,
+    int top_k
+) {
+    const int row = static_cast<int>(blockIdx.x);
+    if (row >= row_count) {
+        return;
+    }
+
+    top_k = min(top_k, min(column_count, kLogitsMaxSelected));
+    const float *row_input = input + static_cast<size_t>(row) * static_cast<size_t>(column_count);
+    __shared__ float shared_values[kMaxWarpsPerBlock];
+    __shared__ int shared_indices[kMaxWarpsPerBlock];
+    __shared__ float row_top_values[kLogitsMaxSelected];
+    __shared__ int row_top_indices[kLogitsMaxSelected];
+
+    if (top_k <= kLogitsFastSharedTopK) {
+        using TopKBlockRadixSort =
+            cub::BlockRadixSort<float, kLogitsTopKBlockSize, kLogitsTopKItemsPerThread, int>;
+        __shared__ typename TopKBlockRadixSort::TempStorage sort_storage;
+        __shared__ float tile_top_values[kLogitsFastSharedTopK];
+        __shared__ int tile_top_indices[kLogitsFastSharedTopK];
+        if (threadIdx.x == 0) {
+            for (int slot = 0; slot < top_k; ++slot) {
+                row_top_values[slot] = -INFINITY;
+                row_top_indices[slot] = -1;
+            }
+        }
+        __syncthreads();
+
+        for (int tile_base = 0; tile_base < column_count; tile_base += kLogitsTopKTileSize) {
+            float thread_keys[kLogitsTopKItemsPerThread];
+            int thread_values[kLogitsTopKItemsPerThread];
+#pragma unroll
+            for (int item = 0; item < kLogitsTopKItemsPerThread; ++item) {
+                const int column =
+                    tile_base + static_cast<int>(threadIdx.x) * kLogitsTopKItemsPerThread + item;
+                if (column < column_count) {
+                    thread_keys[item] = row_input[column];
+                    thread_values[item] = column;
+                } else {
+                    thread_keys[item] = -INFINITY;
+                    thread_values[item] = column_count;
+                }
+            }
+
+            TopKBlockRadixSort(sort_storage).SortDescending(thread_keys, thread_values);
+            __syncthreads();
+
+#pragma unroll
+            for (int item = 0; item < kLogitsTopKItemsPerThread; ++item) {
+                const int rank =
+                    static_cast<int>(threadIdx.x) * kLogitsTopKItemsPerThread + item;
+                if (rank < top_k) {
+                    tile_top_values[rank] = thread_keys[item];
+                    tile_top_indices[rank] = thread_values[item];
+                }
+            }
+            __syncthreads();
+
+            if (threadIdx.x == 0) {
+                for (int slot = 0; slot < top_k; ++slot) {
+                    const int index = tile_top_indices[slot];
+                    if (index >= column_count) {
+                        break;
+                    }
+                    insert_top_k_candidate(
+                        tile_top_values[slot],
+                        index,
+                        row_top_values,
+                        row_top_indices,
+                        top_k
+                    );
+                }
+            }
+            __syncthreads();
+        }
+
+        const size_t row_offset = static_cast<size_t>(row) * static_cast<size_t>(top_k);
+        for (int slot = static_cast<int>(threadIdx.x); slot < top_k; slot += blockDim.x) {
+            selected_indices[row_offset + static_cast<size_t>(slot)] = row_top_indices[slot];
+            selected_values[row_offset + static_cast<size_t>(slot)] = row_top_values[slot];
+        }
+        return;
+    }
+
+    const int lane_id = static_cast<int>(threadIdx.x) % kWarpSize;
+    const int warp_id = static_cast<int>(threadIdx.x) / kWarpSize;
+    const int warp_count = blockDim.x / kWarpSize;
+
+    for (int slot = 0; slot < top_k; ++slot) {
+        float max_value = -FLT_MAX;
+        int max_index = -1;
+
+        for (int column = static_cast<int>(threadIdx.x); column < column_count; column += blockDim.x) {
+            bool already_selected = false;
+#pragma unroll 4
+            for (int previous = 0; previous < slot; ++previous) {
+                if (column == row_top_indices[previous]) {
+                    already_selected = true;
+                    break;
+                }
+            }
+            if (already_selected) {
+                continue;
+            }
+
+            const float value = row_input[column];
+            if (top_k_candidate_better(value, column, max_value, max_index)) {
+                max_value = value;
+                max_index = column;
+            }
+        }
+
+#pragma unroll
+        for (int offset = kWarpSize / 2; offset > 0; offset >>= 1) {
+            const float candidate_value =
+                __shfl_xor_sync(0xffffffffu, max_value, offset, kWarpSize);
+            const int candidate_index =
+                __shfl_xor_sync(0xffffffffu, max_index, offset, kWarpSize);
+            if (top_k_candidate_better(candidate_value, candidate_index, max_value, max_index)) {
+                max_value = candidate_value;
+                max_index = candidate_index;
+            }
+        }
+
+        if (lane_id == 0) {
+            shared_values[warp_id] = max_value;
+            shared_indices[warp_id] = max_index;
+        }
+        __syncthreads();
+
+        if (warp_id == 0) {
+            if (lane_id < warp_count) {
+                max_value = shared_values[lane_id];
+                max_index = shared_indices[lane_id];
+            } else {
+                max_value = -FLT_MAX;
+                max_index = -1;
+            }
+#pragma unroll
+            for (int offset = kWarpSize / 2; offset > 0; offset >>= 1) {
+                const float candidate_value =
+                    __shfl_xor_sync(0xffffffffu, max_value, offset, kWarpSize);
+                const int candidate_index =
+                    __shfl_xor_sync(0xffffffffu, max_index, offset, kWarpSize);
+                if (top_k_candidate_better(candidate_value, candidate_index, max_value, max_index)) {
+                    max_value = candidate_value;
+                    max_index = candidate_index;
+                }
+            }
+            if (lane_id == 0) {
+                row_top_values[slot] = max_value;
+                row_top_indices[slot] = max_index;
+            }
+        }
+        __syncthreads();
+    }
+
+    const size_t row_offset = static_cast<size_t>(row) * static_cast<size_t>(top_k);
+    for (int slot = static_cast<int>(threadIdx.x); slot < top_k; slot += blockDim.x) {
+        selected_indices[row_offset + static_cast<size_t>(slot)] = row_top_indices[slot];
+        selected_values[row_offset + static_cast<size_t>(slot)] = row_top_values[slot];
+    }
+}
+
+__global__ void copy_top_k_pairs_kernel(
+    const int32_t *sorted_indices,
+    const float *sorted_values,
+    int top_k,
+    int32_t *selected_indices,
+    float *selected_values
+) {
+    const int index = static_cast<int>(blockIdx.x) * blockDim.x + static_cast<int>(threadIdx.x);
+    if (index >= top_k) {
+        return;
+    }
+    selected_indices[index] = sorted_indices[index];
+    selected_values[index] = sorted_values[index];
 }
 
 __global__ void add_f32_offset_in_place_kernel(
@@ -6907,6 +7136,98 @@ extern "C" int psionic_cuda_argmax_f32(
         static_cast<int32_t *>(output),
         rows,
         cols
+    );
+    return static_cast<int>(cudaGetLastError());
+}
+
+extern "C" int psionic_cuda_top_k_f32(
+    const void *input,
+    int rows,
+    int cols,
+    int top_k,
+    void *selected_indices,
+    void *selected_values,
+    void *stream
+) {
+    top_k = min(top_k, min(cols, kLogitsMaxSelected));
+    if (top_k <= 0) {
+        return 0;
+    }
+    top_k_f32_kernel<<<rows, kLogitsTopKBlockSize, 0, static_cast<cudaStream_t>(stream)>>>(
+        static_cast<const float *>(input),
+        static_cast<int32_t *>(selected_indices),
+        static_cast<float *>(selected_values),
+        rows,
+        cols,
+        top_k
+    );
+    return static_cast<int>(cudaGetLastError());
+}
+
+extern "C" int psionic_cuda_top_k_f32_one_row_radix_sort_temp_storage_bytes(
+    int cols,
+    size_t *temp_storage_bytes
+) {
+    if (cols <= 0 || temp_storage_bytes == nullptr) {
+        return static_cast<int>(cudaErrorInvalidValue);
+    }
+    *temp_storage_bytes = 0;
+    return static_cast<int>(cub::DeviceRadixSort::SortPairsDescending(
+        nullptr,
+        *temp_storage_bytes,
+        static_cast<const float *>(nullptr),
+        static_cast<float *>(nullptr),
+        static_cast<const int32_t *>(nullptr),
+        static_cast<int32_t *>(nullptr),
+        cols,
+        0,
+        sizeof(float) * 8,
+        nullptr
+    ));
+}
+
+extern "C" int psionic_cuda_top_k_f32_one_row_radix_sort(
+    const void *input,
+    int cols,
+    int top_k,
+    const void *input_indices,
+    void *sorted_values,
+    void *sorted_indices,
+    void *temp_storage,
+    size_t temp_storage_bytes,
+    void *selected_indices,
+    void *selected_values,
+    void *stream
+) {
+    if (input == nullptr || input_indices == nullptr || sorted_values == nullptr ||
+        sorted_indices == nullptr || temp_storage == nullptr || selected_indices == nullptr ||
+        selected_values == nullptr || cols <= 0 || top_k <= 0) {
+        return static_cast<int>(cudaErrorInvalidValue);
+    }
+    top_k = min(top_k, cols);
+    cudaError_t status = cub::DeviceRadixSort::SortPairsDescending(
+        temp_storage,
+        temp_storage_bytes,
+        static_cast<const float *>(input),
+        static_cast<float *>(sorted_values),
+        static_cast<const int32_t *>(input_indices),
+        static_cast<int32_t *>(sorted_indices),
+        cols,
+        0,
+        sizeof(float) * 8,
+        static_cast<cudaStream_t>(stream)
+    );
+    if (status != cudaSuccess) {
+        return static_cast<int>(status);
+    }
+    const int block = top_k > kBlockSize ? kBlockSize : top_k;
+    const int grid = (top_k + block - 1) / block;
+    copy_top_k_pairs_kernel<<<grid, block, 0, static_cast<cudaStream_t>(stream)>>>(
+        static_cast<const int32_t *>(sorted_indices),
+        static_cast<const float *>(sorted_values),
+        top_k,
+        static_cast<int32_t *>(selected_indices),
+        static_cast<float *>(selected_values)
     );
     return static_cast<int>(cudaGetLastError());
 }

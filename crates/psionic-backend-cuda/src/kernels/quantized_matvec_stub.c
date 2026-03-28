@@ -449,6 +449,61 @@ int psionic_cuda_argmax_f32(
     return 1;
 }
 
+int psionic_cuda_top_k_f32(
+    const void *input,
+    int rows,
+    int cols,
+    int top_k,
+    void *selected_indices,
+    void *selected_values,
+    void *stream
+) {
+    (void)input;
+    (void)rows;
+    (void)cols;
+    (void)top_k;
+    (void)selected_indices;
+    (void)selected_values;
+    (void)stream;
+    return 1;
+}
+
+int psionic_cuda_top_k_f32_one_row_radix_sort_temp_storage_bytes(
+    int cols,
+    unsigned long *temp_storage_bytes
+) {
+    (void)cols;
+    (void)temp_storage_bytes;
+    return 1;
+}
+
+int psionic_cuda_top_k_f32_one_row_radix_sort(
+    const void *input,
+    int cols,
+    int top_k,
+    const void *input_indices,
+    void *sorted_values,
+    void *sorted_indices,
+    void *temp_storage,
+    unsigned long temp_storage_bytes,
+    void *selected_indices,
+    void *selected_values,
+    void *stream
+) {
+    (void)input;
+    (void)cols;
+    (void)top_k;
+    (void)input_indices;
+    (void)sorted_values;
+    (void)sorted_indices;
+    (void)temp_storage;
+    (void)temp_storage_bytes;
+    (void)selected_indices;
+    (void)selected_values;
+    (void)stream;
+    return 1;
+}
+
 int psionic_cuda_rms_norm(
     const void *input,
     const void *weight,

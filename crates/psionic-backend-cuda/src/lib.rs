@@ -369,6 +369,19 @@ pub struct CudaQuantizedMatvecResult {
     pub stats: CudaQuantizedMatvecStats,
 }
 
+/// Flattened top-k selection result returned by the CUDA backend.
+#[derive(Clone, Debug, PartialEq)]
+pub struct CudaTopKResult {
+    /// Number of rows processed from the source logits buffer.
+    pub row_count: usize,
+    /// Number of selected elements per row.
+    pub top_k: usize,
+    /// Row-major selected indices.
+    pub indices: Vec<u32>,
+    /// Row-major selected values aligned with `indices`.
+    pub values: Vec<f32>,
+}
+
 /// CUDA-backed tensor buffer.
 #[derive(Clone)]
 pub struct CudaBuffer {
@@ -1500,6 +1513,58 @@ impl CudaSubmission {
             row_count,
             column_count,
             &output.platform,
+        )?;
+        self.encoded_operations += 1;
+        Ok(())
+    }
+
+    /// Selects the bounded top-k values from each contiguous `f32` row on CUDA.
+    pub fn top_k_f32(
+        &mut self,
+        input: &CudaBuffer,
+        row_count: usize,
+        column_count: usize,
+        top_k: usize,
+        selected_indices: &CudaBuffer,
+        selected_values: &CudaBuffer,
+    ) -> Result<(), RuntimeError> {
+        self.platform.encode_top_k_f32(
+            &input.platform,
+            row_count,
+            column_count,
+            top_k,
+            &selected_indices.platform,
+            &selected_values.platform,
+        )?;
+        self.encoded_operations += 1;
+        Ok(())
+    }
+
+    /// Selects the bounded top-k values from one contiguous `f32` row using device radix sort.
+    pub fn top_k_f32_one_row_radix_sort(
+        &mut self,
+        input: &CudaBuffer,
+        column_count: usize,
+        top_k: usize,
+        input_indices: &CudaBuffer,
+        sorted_values: &CudaBuffer,
+        sorted_indices: &CudaBuffer,
+        temp_storage: &CudaBuffer,
+        temp_storage_bytes: usize,
+        selected_indices: &CudaBuffer,
+        selected_values: &CudaBuffer,
+    ) -> Result<(), RuntimeError> {
+        self.platform.encode_top_k_f32_one_row_radix_sort(
+            &input.platform,
+            column_count,
+            top_k,
+            &input_indices.platform,
+            &sorted_values.platform,
+            &sorted_indices.platform,
+            &temp_storage.platform,
+            temp_storage_bytes,
+            &selected_indices.platform,
+            &selected_values.platform,
         )?;
         self.encoded_operations += 1;
         Ok(())
@@ -3658,6 +3723,19 @@ impl CudaBackend {
             byte_len,
             platform: backend.platform.allocate_host(byte_len)?,
         })
+    }
+
+    /// Returns the temporary device-storage requirement for one-row radix-sort top-k selection.
+    pub fn top_k_f32_one_row_radix_sort_temp_storage_bytes(
+        &self,
+        column_count: usize,
+    ) -> Result<usize, RuntimeError> {
+        let Some(backend) = self.selected_backend() else {
+            return Err(RuntimeError::Backend(self.health().message));
+        };
+        backend
+            .platform
+            .top_k_f32_one_row_radix_sort_temp_storage_bytes(column_count)
     }
 
     /// Returns whether the Psionic-owned CUDA quantized text-generation kernels are built.
@@ -9149,6 +9227,32 @@ mod platform {
             output: *mut c_void,
             stream: CudaStream,
         ) -> CudaError;
+        fn psionic_cuda_top_k_f32(
+            input: *const c_void,
+            rows: c_int,
+            cols: c_int,
+            top_k: c_int,
+            selected_indices: *mut c_void,
+            selected_values: *mut c_void,
+            stream: CudaStream,
+        ) -> CudaError;
+        fn psionic_cuda_top_k_f32_one_row_radix_sort_temp_storage_bytes(
+            cols: c_int,
+            temp_storage_bytes: *mut usize,
+        ) -> CudaError;
+        fn psionic_cuda_top_k_f32_one_row_radix_sort(
+            input: *const c_void,
+            cols: c_int,
+            top_k: c_int,
+            input_indices: *const c_void,
+            sorted_values: *mut c_void,
+            sorted_indices: *mut c_void,
+            temp_storage: *mut c_void,
+            temp_storage_bytes: usize,
+            selected_indices: *mut c_void,
+            selected_values: *mut c_void,
+            stream: CudaStream,
+        ) -> CudaError;
         fn psionic_cuda_rms_norm(
             input: *const c_void,
             weight: *const c_void,
@@ -10061,6 +10165,27 @@ mod platform {
                 owned_stream: false,
                 capturing: true,
             })
+        }
+
+        pub(super) fn top_k_f32_one_row_radix_sort_temp_storage_bytes(
+            &self,
+            column_count: usize,
+        ) -> Result<usize, RuntimeError> {
+            let cols = c_int::try_from(column_count).map_err(|_| {
+                RuntimeError::Backend(String::from("cuda top_k cols exceed c_int"))
+            })?;
+            self.runtime.set_device()?;
+            let mut temp_storage_bytes = 0usize;
+            self.runtime.check(
+                unsafe {
+                    psionic_cuda_top_k_f32_one_row_radix_sort_temp_storage_bytes(
+                        cols,
+                        &mut temp_storage_bytes,
+                    )
+                },
+                "psionic_cuda_top_k_f32_one_row_radix_sort_temp_storage_bytes",
+            )?;
+            Ok(temp_storage_bytes)
         }
     }
 
@@ -11150,6 +11275,81 @@ mod platform {
                     )
                 },
                 "psionic_cuda_argmax_f32",
+            )
+        }
+
+        pub(super) fn encode_top_k_f32(
+            &mut self,
+            input: &PlatformBuffer,
+            rows: usize,
+            cols: usize,
+            top_k: usize,
+            selected_indices: &PlatformBuffer,
+            selected_values: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            let rows = c_int::try_from(rows).map_err(|_| {
+                RuntimeError::Backend(String::from("cuda top_k rows exceed c_int"))
+            })?;
+            let cols = c_int::try_from(cols).map_err(|_| {
+                RuntimeError::Backend(String::from("cuda top_k cols exceed c_int"))
+            })?;
+            let top_k = c_int::try_from(top_k).map_err(|_| {
+                RuntimeError::Backend(String::from("cuda top_k selection width exceeds c_int"))
+            })?;
+            self.runtime.set_device()?;
+            self.runtime.check(
+                unsafe {
+                    psionic_cuda_top_k_f32(
+                        input.inner.device_ptr.cast(),
+                        rows,
+                        cols,
+                        top_k,
+                        selected_indices.inner.device_ptr.cast(),
+                        selected_values.inner.device_ptr.cast(),
+                        self.stream,
+                    )
+                },
+                "psionic_cuda_top_k_f32",
+            )
+        }
+
+        pub(super) fn encode_top_k_f32_one_row_radix_sort(
+            &mut self,
+            input: &PlatformBuffer,
+            cols: usize,
+            top_k: usize,
+            input_indices: &PlatformBuffer,
+            sorted_values: &PlatformBuffer,
+            sorted_indices: &PlatformBuffer,
+            temp_storage: &PlatformBuffer,
+            temp_storage_bytes: usize,
+            selected_indices: &PlatformBuffer,
+            selected_values: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            let cols = c_int::try_from(cols).map_err(|_| {
+                RuntimeError::Backend(String::from("cuda top_k cols exceed c_int"))
+            })?;
+            let top_k = c_int::try_from(top_k).map_err(|_| {
+                RuntimeError::Backend(String::from("cuda top_k selection width exceeds c_int"))
+            })?;
+            self.runtime.set_device()?;
+            self.runtime.check(
+                unsafe {
+                    psionic_cuda_top_k_f32_one_row_radix_sort(
+                        input.inner.device_ptr.cast(),
+                        cols,
+                        top_k,
+                        input_indices.inner.device_ptr.cast(),
+                        sorted_values.inner.device_ptr.cast(),
+                        sorted_indices.inner.device_ptr.cast(),
+                        temp_storage.inner.device_ptr.cast(),
+                        temp_storage_bytes,
+                        selected_indices.inner.device_ptr.cast(),
+                        selected_values.inner.device_ptr.cast(),
+                        self.stream,
+                    )
+                },
+                "psionic_cuda_top_k_f32_one_row_radix_sort",
             )
         }
 
@@ -14836,6 +15036,15 @@ mod platform {
                 "cuda runtime substrate currently requires Linux libcudart",
             )))
         }
+
+        pub(super) fn top_k_f32_one_row_radix_sort_temp_storage_bytes(
+            &self,
+            _column_count: usize,
+        ) -> Result<usize, RuntimeError> {
+            Err(RuntimeError::Backend(String::from(
+                "cuda quantized text-generation kernels require Linux CUDA support",
+            )))
+        }
     }
 
     pub(super) fn quantized_kernels_compiled() -> bool {
@@ -15207,6 +15416,38 @@ mod platform {
             _rows: usize,
             _cols: usize,
             _output: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            Err(RuntimeError::Backend(String::from(
+                "cuda quantized text-generation kernels require Linux CUDA support",
+            )))
+        }
+
+        pub(super) fn encode_top_k_f32(
+            &mut self,
+            _input: &PlatformBuffer,
+            _rows: usize,
+            _cols: usize,
+            _top_k: usize,
+            _selected_indices: &PlatformBuffer,
+            _selected_values: &PlatformBuffer,
+        ) -> Result<(), RuntimeError> {
+            Err(RuntimeError::Backend(String::from(
+                "cuda quantized text-generation kernels require Linux CUDA support",
+            )))
+        }
+
+        pub(super) fn encode_top_k_f32_one_row_radix_sort(
+            &mut self,
+            _input: &PlatformBuffer,
+            _cols: usize,
+            _top_k: usize,
+            _input_indices: &PlatformBuffer,
+            _sorted_values: &PlatformBuffer,
+            _sorted_indices: &PlatformBuffer,
+            _temp_storage: &PlatformBuffer,
+            _temp_storage_bytes: usize,
+            _selected_indices: &PlatformBuffer,
+            _selected_values: &PlatformBuffer,
         ) -> Result<(), RuntimeError> {
             Err(RuntimeError::Backend(String::from(
                 "cuda quantized text-generation kernels require Linux CUDA support",
@@ -19784,6 +20025,118 @@ mod tests {
         let bytes = output.read_bytes()?;
         let argmax = i32::from_ne_bytes(bytes[..4].try_into().expect("argmax bytes"));
         assert_eq!(argmax, 1733);
+        Ok(())
+    }
+
+    #[test]
+    fn cuda_submission_executes_top_k_for_one_row_when_available()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let mut backend = CudaBackend::new();
+        let Some(_selected) = backend.selected_device().cloned() else {
+            assert_eq!(backend.health().status, HealthStatus::Offline);
+            return Ok(());
+        };
+        if !backend.quantized_kernels_available() {
+            return Ok(());
+        }
+
+        let input = backend.input_buffer(
+            Shape::new(vec![6]),
+            vec![1.0_f32, -2.0, 4.25, 3.0, 9.5, 4.25],
+        )?;
+        let selected_indices = backend.i32_buffer(3)?;
+        let selected_values = backend.f32_buffer(3)?;
+        let mut submission = backend.begin_submission()?;
+        submission.top_k_f32(&input, 1, 6, 3, &selected_indices, &selected_values)?;
+        let report = submission.commit(CudaCommandWait::Completed)?;
+        assert_eq!(report.encoded_operations, 1);
+        let selected_indices = selected_indices
+            .read_bytes()?
+            .chunks_exact(std::mem::size_of::<i32>())
+            .map(|chunk| i32::from_ne_bytes(chunk.try_into().expect("top_k i32 bytes")))
+            .collect::<Vec<_>>();
+        assert_eq!(selected_indices, vec![4, 2, 5]);
+        assert_close(&selected_values.read_f32()?, &[9.5, 4.25, 4.25], 1e-6);
+        Ok(())
+    }
+
+    #[test]
+    fn cuda_submission_executes_top_k_for_multiple_rows_when_available()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let mut backend = CudaBackend::new();
+        let Some(_selected) = backend.selected_device().cloned() else {
+            assert_eq!(backend.health().status, HealthStatus::Offline);
+            return Ok(());
+        };
+        if !backend.quantized_kernels_available() {
+            return Ok(());
+        }
+
+        let input = backend.input_buffer(
+            Shape::new(vec![2, 5]),
+            vec![0.5_f32, 7.0, -1.0, 7.0, 3.0, 4.0, 2.0, 9.0, 8.0, 8.0],
+        )?;
+        let selected_indices = backend.i32_buffer(4)?;
+        let selected_values = backend.f32_buffer(4)?;
+        let mut submission = backend.begin_submission()?;
+        submission.top_k_f32(&input, 2, 5, 2, &selected_indices, &selected_values)?;
+        let report = submission.commit(CudaCommandWait::Completed)?;
+        assert_eq!(report.encoded_operations, 1);
+        let selected_indices = selected_indices
+            .read_bytes()?
+            .chunks_exact(std::mem::size_of::<i32>())
+            .map(|chunk| i32::from_ne_bytes(chunk.try_into().expect("top_k i32 bytes")))
+            .collect::<Vec<_>>();
+        assert_eq!(selected_indices, vec![1, 3, 2, 3]);
+        assert_close(&selected_values.read_f32()?, &[7.0, 7.0, 9.0, 8.0], 1e-6);
+        Ok(())
+    }
+
+    #[test]
+    fn cuda_submission_executes_one_row_radix_sort_top_k_when_available()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let mut backend = CudaBackend::new();
+        let Some(_selected) = backend.selected_device().cloned() else {
+            assert_eq!(backend.health().status, HealthStatus::Offline);
+            return Ok(());
+        };
+        if !backend.quantized_kernels_available() {
+            return Ok(());
+        }
+
+        let input = backend.input_buffer(
+            Shape::new(vec![6]),
+            vec![1.0_f32, -2.0, 4.25, 3.0, 9.5, 4.25],
+        )?;
+        let input_indices = backend.byte_buffer(&i32_slice_to_bytes(&[0, 1, 2, 3, 4, 5]))?;
+        let sorted_values = backend.f32_buffer(6)?;
+        let sorted_indices = backend.i32_buffer(6)?;
+        let temp_storage_bytes = backend.top_k_f32_one_row_radix_sort_temp_storage_bytes(6)?;
+        let temp_storage = backend.byte_buffer(&vec![0_u8; temp_storage_bytes])?;
+        let selected_indices = backend.i32_buffer(3)?;
+        let selected_values = backend.f32_buffer(3)?;
+        let mut submission = backend.begin_submission()?;
+        submission.top_k_f32_one_row_radix_sort(
+            &input,
+            6,
+            3,
+            &input_indices,
+            &sorted_values,
+            &sorted_indices,
+            &temp_storage,
+            temp_storage_bytes,
+            &selected_indices,
+            &selected_values,
+        )?;
+        let report = submission.commit(CudaCommandWait::Completed)?;
+        assert_eq!(report.encoded_operations, 1);
+        let selected_indices = selected_indices
+            .read_bytes()?
+            .chunks_exact(std::mem::size_of::<i32>())
+            .map(|chunk| i32::from_ne_bytes(chunk.try_into().expect("top_k i32 bytes")))
+            .collect::<Vec<_>>();
+        assert_eq!(selected_indices, vec![4, 2, 5]);
+        assert_close(&selected_values.read_f32()?, &[9.5, 4.25, 4.25], 1e-6);
         Ok(())
     }
 

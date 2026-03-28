@@ -1501,6 +1501,9 @@ pub struct GenerationMetrics {
     /// Number of prompt-prefix tokens reused from the shared prefix cache.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prefix_tokens_reused: Option<usize>,
+    /// Native qwen35 CUDA decode-output evidence for the realized request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub qwen35_cuda_decode: Option<Qwen35CudaDecodeOutputMetrics>,
     /// Psionic-owned GPT-OSS performance counters for the realized decode path.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub gpt_oss_perf: Option<GptOssPerformanceMetrics>,
@@ -1744,6 +1747,50 @@ pub struct GptOssMetalDecodeLogitsMetrics {
 }
 
 impl GptOssMetalDecodeLogitsMetrics {
+    fn accumulate(&mut self, other: &Self) {
+        self.step_count = self.step_count.saturating_add(other.step_count);
+        self.readback_bytes = self.readback_bytes.saturating_add(other.readback_bytes);
+        self.raw_logits_materialized |= other.raw_logits_materialized;
+        self.output_modes.extend(other.output_modes.iter().cloned());
+        self.output_modes.sort();
+        self.output_modes.dedup();
+    }
+
+    fn is_zero(&self) -> bool {
+        self.step_count == 0
+            && self.output_modes.is_empty()
+            && self.readback_bytes == 0
+            && !self.raw_logits_materialized
+    }
+}
+
+/// CUDA decode-output mode used by qwen35 request steps.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum Qwen35CudaDecodeOutputMode {
+    /// The step returned only the greedy token id.
+    ArgmaxOnly,
+    /// The step returned a bounded top-k candidate set.
+    TopKCandidates { top_k: usize },
+    /// The step materialized the dense raw logits vector.
+    RawLogits,
+}
+
+/// Request-level decode-output evidence for native qwen35 CUDA requests.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct Qwen35CudaDecodeOutputMetrics {
+    /// Number of output-producing steps that recorded decode-output evidence.
+    pub step_count: usize,
+    /// Unique output modes observed across those steps.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub output_modes: Vec<Qwen35CudaDecodeOutputMode>,
+    /// Total bytes read back to the host for decode-output selection.
+    pub readback_bytes: u64,
+    /// Whether any step materialized dense raw logits on the host.
+    pub raw_logits_materialized: bool,
+}
+
+impl Qwen35CudaDecodeOutputMetrics {
     fn accumulate(&mut self, other: &Self) {
         self.step_count = self.step_count.saturating_add(other.step_count);
         self.readback_bytes = self.readback_bytes.saturating_add(other.readback_bytes);
@@ -2116,6 +2163,7 @@ impl GenerationMetrics {
             kv_cache_encoding: None,
             prefix_tokens_reused: None,
             gpt_oss_perf: None,
+            qwen35_cuda_decode: None,
         }
     }
 
@@ -6098,6 +6146,7 @@ impl<'a> PromotedParameterGolfGenerationStream<'a> {
                 kv_cache_encoding_policy.clone(),
             )),
             prefix_tokens_reused: Some(0),
+            qwen35_cuda_decode: None,
             gpt_oss_perf: None,
         };
         let provenance = GenerationProvenance {
@@ -6899,6 +6948,27 @@ impl GenerationSampler {
         Err(ReferenceTextGenerationError::StructuredOutputExhausted)
     }
 
+    fn select_next_token_from_candidates(
+        &mut self,
+        candidate_ids: &[u32],
+        candidate_logits: &[f32],
+    ) -> Result<GenerationSelection, ReferenceTextGenerationError> {
+        if self.structured_output.is_some() {
+            return Err(ReferenceTextGenerationError::Runtime(RuntimeError::UnsupportedStep(
+                String::from(
+                    "bounded candidate sampling is unavailable while structured-output masking is active",
+                ),
+            )));
+        }
+        self.sampler
+            .select_next_token_from_candidates(candidate_ids, candidate_logits)
+            .map(TokenId)
+            .map_or(
+                Err(ReferenceTextGenerationError::MissingOutput("next_token")),
+                |token| Ok(GenerationSelection::Token(token)),
+            )
+    }
+
     fn structured_output_report(&self) -> Option<StructuredOutputExecutionReport> {
         self.structured_output
             .as_ref()
@@ -7419,6 +7489,7 @@ where
                 kv_cache_encoding_policy.clone(),
             )),
             prefix_tokens_reused: Some(self.prefix_tokens_reused),
+            qwen35_cuda_decode: None,
             gpt_oss_perf: self.gpt_oss_perf.filter(|perf| !perf.is_zero()),
         };
         let kv_ownership = self.cache.ownership_since(&self.request_kv_checkpoint);
@@ -8343,6 +8414,7 @@ where
                 kv_cache_encoding_policy.clone(),
             )),
             prefix_tokens_reused: Some(self.prefix_tokens_reused),
+            qwen35_cuda_decode: None,
             gpt_oss_perf: None,
         };
         let provenance = GenerationProvenance {
@@ -9017,6 +9089,7 @@ where
                 kv_cache_encoding_policy.clone(),
             )),
             prefix_tokens_reused: Some(prefix_tokens_reused),
+            qwen35_cuda_decode: None,
             gpt_oss_perf: gpt_oss_perf.filter(|perf| !perf.is_zero()),
         };
         let delivery_plan_digest = execution_plan_digest
@@ -12236,6 +12309,59 @@ mod tests {
             .collect::<Vec<_>>();
 
         assert_eq!(left_draws, right_draws);
+    }
+
+    #[test]
+    fn bounded_candidate_sampling_matches_dense_sampling_when_candidate_set_is_exact() {
+        let options = GenerationOptions {
+            max_output_tokens: 4,
+            context_overflow_policy: ContextOverflowPolicy::Refuse,
+            decode_strategy: super::DecodeStrategy::Sample,
+            temperature: Some(0.8),
+            top_k: Some(3),
+            top_p: Some(0.9),
+            repeat_penalty: None,
+            presence_penalty: None,
+            frequency_penalty: None,
+            seed: Some(17),
+            stop_sequences: Vec::new(),
+            structured_output: None,
+        };
+        let cache = super::InMemoryKvCache::new(8, 1);
+        let logits = vec![3.0, 2.9, 2.8, -1.0, -2.0];
+        let candidate_ids = vec![0_u32, 1, 2];
+        let candidate_logits = vec![3.0_f32, 2.9, 2.8];
+        let tokenizer = FixtureWordTokenizer::new();
+        let mut dense = super::GenerationSampler::new(&options).expect("dense sampler");
+        let mut bounded = super::GenerationSampler::new(&options).expect("bounded sampler");
+
+        let dense_draws = (0..8)
+            .map(|_| {
+                match dense
+                    .select_next_token(&tokenizer, &logits, &cache, &[])
+                    .expect("dense sample")
+                {
+                    super::GenerationSelection::Token(token) => token,
+                    super::GenerationSelection::Terminate => panic!("unexpected terminate"),
+                }
+            })
+            .collect::<Vec<_>>();
+        let bounded_draws = (0..8)
+            .map(|_| {
+                match bounded
+                    .select_next_token_from_candidates(
+                        candidate_ids.as_slice(),
+                        candidate_logits.as_slice(),
+                    )
+                    .expect("bounded sample")
+                {
+                    super::GenerationSelection::Token(token) => token,
+                    super::GenerationSelection::Terminate => panic!("unexpected terminate"),
+                }
+            })
+            .collect::<Vec<_>>();
+
+        assert_eq!(dense_draws, bounded_draws);
     }
 
     #[test]

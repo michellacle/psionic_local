@@ -1,6 +1,6 @@
 use std::{
     env,
-    path::PathBuf,
+    path::{Path, PathBuf},
     process::ExitCode,
 };
 
@@ -9,8 +9,10 @@ use psionic_models::{
 };
 use psionic_serve::{
     CudaGgufQwen35TextGenerationService, GenerationOptions, GenerationRequest,
-    TextGenerationExecutor,
+    Qwen35CudaDecodeOutputMetrics, TextGenerationExecutor,
 };
+use reqwest::blocking::Client;
+use serde::Deserialize;
 
 fn main() -> ExitCode {
     match run() {
@@ -23,73 +25,281 @@ fn main() -> ExitCode {
 }
 
 fn run() -> Result<(), String> {
-    let mut args = env::args().skip(1);
-    let Some(model_path) = args.next().map(PathBuf::from) else {
-        return Err(usage());
-    };
-    let prompt = args
-        .next()
-        .unwrap_or_else(|| String::from("Explain what Psionic is in one sentence."));
-    let max_output_tokens = args
-        .next()
-        .map(|value| {
-            value
-                .parse::<usize>()
-                .map_err(|error| format!("invalid max_output_tokens `{value}`: {error}"))
-        })
-        .transpose()?
-        .unwrap_or(256);
-    let repeats = args
-        .next()
-        .map(|value| {
-            value
-                .parse::<usize>()
-                .map_err(|error| format!("invalid repeats `{value}`: {error}"))
-        })
-        .transpose()?
-        .unwrap_or(3)
-        .max(1);
+    let config = BenchConfig::parse(env::args().skip(1))?;
+    match config.backend {
+        BenchBackend::Psionic => run_psionic_benchmark(&config),
+        BenchBackend::Ollama => run_ollama_benchmark(&config),
+    }
+}
 
-    let adapter = GgufDecoderAdapterLoader
-        .load_path(&model_path)
-        .map_err(|error| format!("failed to load GGUF metadata: {error}"))?;
-    let renderer = adapter.prompt_renderer();
-    let rendered = renderer
-        .render_with_options(
-            None,
-            &[PromptMessage::new(PromptMessageRole::User, prompt.clone())],
-            true,
-            &PromptRenderOptions::default(),
-        )
-        .map_err(|error| format!("failed to render qwen35 prompt: {error}"))?;
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum BenchBackend {
+    Psionic,
+    Ollama,
+}
 
-    let mut service = CudaGgufQwen35TextGenerationService::from_gguf_path(&model_path)
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum BenchDecodeMode {
+    Greedy,
+    Sample,
+}
+
+#[derive(Clone, Debug)]
+struct BenchConfig {
+    backend: BenchBackend,
+    model_path: PathBuf,
+    ollama_model: Option<String>,
+    ollama_base_url: String,
+    prompt: String,
+    max_output_tokens: usize,
+    repeats: usize,
+    decode_mode: BenchDecodeMode,
+    temperature: Option<f32>,
+    top_k: Option<usize>,
+    top_p: Option<f32>,
+    repeat_penalty: Option<f32>,
+    presence_penalty: Option<f32>,
+    frequency_penalty: Option<f32>,
+    seed: Option<u64>,
+}
+
+impl Default for BenchConfig {
+    fn default() -> Self {
+        Self {
+            backend: BenchBackend::Psionic,
+            model_path: PathBuf::new(),
+            ollama_model: None,
+            ollama_base_url: String::from("http://127.0.0.1:11434"),
+            prompt: String::from("Explain what Psionic is in one sentence."),
+            max_output_tokens: 256,
+            repeats: 3,
+            decode_mode: BenchDecodeMode::Greedy,
+            temperature: None,
+            top_k: None,
+            top_p: None,
+            repeat_penalty: None,
+            presence_penalty: None,
+            frequency_penalty: None,
+            seed: None,
+        }
+    }
+}
+
+impl BenchConfig {
+    fn parse(args: impl Iterator<Item = String>) -> Result<Self, String> {
+        let mut config = Self::default();
+        let raw_args = args.collect::<Vec<_>>();
+        if raw_args.is_empty() {
+            return Err(usage());
+        }
+        if !raw_args[0].starts_with("--") {
+            return Self::parse_legacy(raw_args);
+        }
+        let mut index = 0;
+        while index < raw_args.len() {
+            let argument = &raw_args[index];
+            match argument.as_str() {
+                "--backend" => {
+                    config.backend = match next_arg(&raw_args, &mut index, "--backend")?.as_str() {
+                        "psionic" => BenchBackend::Psionic,
+                        "ollama" => BenchBackend::Ollama,
+                        value => {
+                            return Err(format!(
+                                "invalid --backend `{value}`; expected `psionic` or `ollama`"
+                            ));
+                        }
+                    };
+                }
+                "--model-path" => {
+                    config.model_path = PathBuf::from(next_arg(&raw_args, &mut index, "--model-path")?);
+                }
+                "--ollama-model" => {
+                    config.ollama_model = Some(next_arg(&raw_args, &mut index, "--ollama-model")?);
+                }
+                "--ollama-base-url" => {
+                    config.ollama_base_url = next_arg(&raw_args, &mut index, "--ollama-base-url")?;
+                }
+                "--prompt" => {
+                    config.prompt = next_arg(&raw_args, &mut index, "--prompt")?;
+                }
+                "--max-output-tokens" => {
+                    config.max_output_tokens =
+                        parse_arg(&next_arg(&raw_args, &mut index, "--max-output-tokens")?, "--max-output-tokens")?;
+                }
+                "--repeats" => {
+                    config.repeats =
+                        parse_arg(&next_arg(&raw_args, &mut index, "--repeats")?, "--repeats")?;
+                }
+                "--decode" => {
+                    config.decode_mode = match next_arg(&raw_args, &mut index, "--decode")?.as_str() {
+                        "greedy" => BenchDecodeMode::Greedy,
+                        "sample" => BenchDecodeMode::Sample,
+                        value => {
+                            return Err(format!(
+                                "invalid --decode `{value}`; expected `greedy` or `sample`"
+                            ));
+                        }
+                    };
+                }
+                "--temperature" => {
+                    config.temperature =
+                        Some(parse_arg(&next_arg(&raw_args, &mut index, "--temperature")?, "--temperature")?);
+                }
+                "--top-k" => {
+                    config.top_k =
+                        Some(parse_arg(&next_arg(&raw_args, &mut index, "--top-k")?, "--top-k")?);
+                }
+                "--top-p" => {
+                    config.top_p =
+                        Some(parse_arg(&next_arg(&raw_args, &mut index, "--top-p")?, "--top-p")?);
+                }
+                "--repeat-penalty" => {
+                    config.repeat_penalty = Some(parse_arg(
+                        &next_arg(&raw_args, &mut index, "--repeat-penalty")?,
+                        "--repeat-penalty",
+                    )?);
+                }
+                "--presence-penalty" => {
+                    config.presence_penalty = Some(parse_arg(
+                        &next_arg(&raw_args, &mut index, "--presence-penalty")?,
+                        "--presence-penalty",
+                    )?);
+                }
+                "--frequency-penalty" => {
+                    config.frequency_penalty = Some(parse_arg(
+                        &next_arg(&raw_args, &mut index, "--frequency-penalty")?,
+                        "--frequency-penalty",
+                    )?);
+                }
+                "--seed" => {
+                    config.seed =
+                        Some(parse_arg(&next_arg(&raw_args, &mut index, "--seed")?, "--seed")?);
+                }
+                "--greedy" => {
+                    config.decode_mode = BenchDecodeMode::Greedy;
+                }
+                "--sample" => {
+                    config.decode_mode = BenchDecodeMode::Sample;
+                }
+                "--help" | "-h" => {
+                    return Err(usage());
+                }
+                value => {
+                    return Err(format!("unknown argument `{value}`\n\n{}", usage()));
+                }
+            }
+            index += 1;
+        }
+        config.validate()?;
+        Ok(config)
+    }
+
+    fn parse_legacy(args: Vec<String>) -> Result<Self, String> {
+        let mut config = Self::default();
+        config.model_path = PathBuf::from(args.first().cloned().ok_or_else(usage)?);
+        if let Some(prompt) = args.get(1) {
+            config.prompt = prompt.clone();
+        }
+        if let Some(max_output_tokens) = args.get(2) {
+            config.max_output_tokens = parse_arg(max_output_tokens, "max_output_tokens")?;
+        }
+        if let Some(repeats) = args.get(3) {
+            config.repeats = parse_arg(repeats, "repeats")?;
+        }
+        config.validate()?;
+        Ok(config)
+    }
+
+    fn validate(&self) -> Result<(), String> {
+        if self.model_path.as_os_str().is_empty() {
+            return Err(format!("missing --model-path\n\n{}", usage()));
+        }
+        if self.repeats == 0 {
+            return Err(String::from("--repeats must be at least 1"));
+        }
+        if matches!(self.backend, BenchBackend::Ollama) && self.ollama_model.is_none() {
+            return Err(String::from(
+                "missing --ollama-model for `--backend ollama`",
+            ));
+        }
+        Ok(())
+    }
+
+    fn effective_temperature(&self) -> Option<f32> {
+        match self.decode_mode {
+            BenchDecodeMode::Greedy => self.temperature,
+            BenchDecodeMode::Sample => Some(self.temperature.unwrap_or(0.8)),
+        }
+    }
+
+    fn effective_top_k(&self) -> Option<usize> {
+        match self.decode_mode {
+            BenchDecodeMode::Greedy => self.top_k,
+            BenchDecodeMode::Sample => Some(self.top_k.unwrap_or(40)),
+        }
+    }
+
+    fn effective_top_p(&self) -> Option<f32> {
+        match self.decode_mode {
+            BenchDecodeMode::Greedy => self.top_p,
+            BenchDecodeMode::Sample => Some(self.top_p.unwrap_or(0.9)),
+        }
+    }
+
+    fn effective_repeat_penalty(&self) -> Option<f32> {
+        match self.decode_mode {
+            BenchDecodeMode::Greedy => self.repeat_penalty,
+            BenchDecodeMode::Sample => Some(self.repeat_penalty.unwrap_or(1.0)),
+        }
+    }
+
+    fn effective_presence_penalty(&self) -> Option<f32> {
+        match self.decode_mode {
+            BenchDecodeMode::Greedy => self.presence_penalty,
+            BenchDecodeMode::Sample => Some(self.presence_penalty.unwrap_or(0.0)),
+        }
+    }
+
+    fn effective_frequency_penalty(&self) -> Option<f32> {
+        match self.decode_mode {
+            BenchDecodeMode::Greedy => self.frequency_penalty,
+            BenchDecodeMode::Sample => Some(self.frequency_penalty.unwrap_or(0.0)),
+        }
+    }
+
+    fn effective_seed(&self) -> Option<u64> {
+        match self.decode_mode {
+            BenchDecodeMode::Greedy => self.seed,
+            BenchDecodeMode::Sample => Some(self.seed.unwrap_or(42)),
+        }
+    }
+}
+
+fn run_psionic_benchmark(config: &BenchConfig) -> Result<(), String> {
+    let rendered = render_prompt(&config.model_path, &config.prompt)?;
+    let mut service = CudaGgufQwen35TextGenerationService::from_gguf_path(&config.model_path)
         .map_err(|error| format!("failed to load qwen35 cuda service: {error}"))?;
     let descriptor = service.model_descriptor().clone();
 
-    let mut warmup_options = GenerationOptions::greedy(16);
-    warmup_options.stop_sequences = rendered.stop_sequences.clone();
     let warmup = GenerationRequest::new_text(
-        "warmup",
+        String::from("warmup"),
         descriptor.clone(),
         None,
         rendered.text.clone(),
-        warmup_options,
+        build_generation_options(config, min_warmup_tokens(config.max_output_tokens), &rendered.stop_sequences),
     );
     let _ = service
         .generate(&warmup)
         .map_err(|error| format!("warmup generation failed: {error}"))?;
 
     let mut decode_tok_s_total = 0.0_f64;
-    for run_index in 0..repeats {
-        let mut options = GenerationOptions::greedy(max_output_tokens);
-        options.stop_sequences = rendered.stop_sequences.clone();
+    for run_index in 0..config.repeats {
         let request = GenerationRequest::new_text(
             format!("bench-{run_index}"),
             descriptor.clone(),
             None,
             rendered.text.clone(),
-            options,
+            build_generation_options(config, config.max_output_tokens, &rendered.stop_sequences),
         );
         let response = service
             .generate(&request)
@@ -100,24 +310,175 @@ fn run() -> Result<(), String> {
         let total_ns = response.metrics.total_duration_ns.unwrap_or(0);
         let decode_tok_s = tokens_per_second(output_tokens, decode_ns);
         decode_tok_s_total += decode_tok_s;
+        let output_metrics = format_qwen35_output_metrics(response.metrics.qwen35_cuda_decode.as_ref());
         println!(
-            "run={} prompt_tokens={} output_tokens={} prompt_s={:.6} decode_s={:.6} total_s={:.6} decode_tok_s={:.2} output={}",
+            "backend=psionic run={} decode_mode={} prompt_tokens={} output_tokens={} prompt_s={:.6} decode_s={:.6} total_s={:.6} decode_tok_s={:.2} {} output={}",
             run_index + 1,
+            bench_decode_mode_label(config.decode_mode),
             response.metrics.prompt_eval_count.unwrap_or(0),
             output_tokens,
             nanos_to_seconds(prompt_ns),
             nanos_to_seconds(decode_ns),
             nanos_to_seconds(total_ns),
             decode_tok_s,
+            output_metrics,
             response.output.text.replace('\n', "\\n"),
         );
     }
 
     println!(
-        "mean_decode_tok_s={:.2}",
-        decode_tok_s_total / repeats as f64
+        "backend=psionic mean_decode_tok_s={:.2}",
+        decode_tok_s_total / config.repeats as f64
     );
     Ok(())
+}
+
+fn run_ollama_benchmark(config: &BenchConfig) -> Result<(), String> {
+    let rendered = render_prompt(&config.model_path, &config.prompt)?;
+    let client = Client::builder()
+        .build()
+        .map_err(|error| format!("failed to build Ollama HTTP client: {error}"))?;
+    let ollama_model = config
+        .ollama_model
+        .as_ref()
+        .ok_or_else(|| String::from("missing Ollama model alias"))?;
+
+    let _ = ollama_generate(
+        &client,
+        &config.ollama_base_url,
+        ollama_model,
+        &rendered,
+        config,
+        min_warmup_tokens(config.max_output_tokens),
+    )?;
+
+    let mut decode_tok_s_total = 0.0_f64;
+    for run_index in 0..config.repeats {
+        let response = ollama_generate(
+            &client,
+            &config.ollama_base_url,
+            ollama_model,
+            &rendered,
+            config,
+            config.max_output_tokens,
+        )?;
+        let output_tokens = response.eval_count.unwrap_or(0);
+        let decode_ns = response.eval_duration.unwrap_or(0);
+        let prompt_ns = response.prompt_eval_duration.unwrap_or(0);
+        let total_ns = response.total_duration.unwrap_or(0);
+        let decode_tok_s = tokens_per_second(output_tokens, decode_ns);
+        decode_tok_s_total += decode_tok_s;
+        println!(
+            "backend=ollama run={} decode_mode={} prompt_tokens={} output_tokens={} prompt_s={:.6} decode_s={:.6} total_s={:.6} decode_tok_s={:.2} output={}",
+            run_index + 1,
+            bench_decode_mode_label(config.decode_mode),
+            response.prompt_eval_count.unwrap_or(0),
+            output_tokens,
+            nanos_to_seconds(prompt_ns),
+            nanos_to_seconds(decode_ns),
+            nanos_to_seconds(total_ns),
+            decode_tok_s,
+            response.response.replace('\n', "\\n"),
+        );
+    }
+
+    println!(
+        "backend=ollama mean_decode_tok_s={:.2}",
+        decode_tok_s_total / config.repeats as f64
+    );
+    Ok(())
+}
+
+fn build_generation_options(
+    config: &BenchConfig,
+    max_output_tokens: usize,
+    stop_sequences: &[String],
+) -> GenerationOptions {
+    let mut options = match config.decode_mode {
+        BenchDecodeMode::Greedy => GenerationOptions::greedy(max_output_tokens),
+        BenchDecodeMode::Sample => GenerationOptions::sample(max_output_tokens),
+    };
+    options.stop_sequences = stop_sequences.to_vec();
+    options.temperature = config.effective_temperature();
+    options.top_k = config.effective_top_k();
+    options.top_p = config.effective_top_p();
+    options.repeat_penalty = config.effective_repeat_penalty();
+    options.presence_penalty = config.effective_presence_penalty();
+    options.frequency_penalty = config.effective_frequency_penalty();
+    options.seed = config.effective_seed();
+    options
+}
+
+fn render_prompt(model_path: &Path, prompt: &str) -> Result<RenderedPrompt, String> {
+    let adapter = GgufDecoderAdapterLoader
+        .load_path(model_path)
+        .map_err(|error| format!("failed to load GGUF metadata: {error}"))?;
+    let renderer = adapter.prompt_renderer();
+    let rendered = renderer
+        .render_with_options(
+            None,
+            &[PromptMessage::new(PromptMessageRole::User, prompt.to_string())],
+            true,
+            &PromptRenderOptions::default(),
+        )
+        .map_err(|error| format!("failed to render qwen35 prompt: {error}"))?;
+    Ok(RenderedPrompt {
+        text: rendered.text,
+        stop_sequences: rendered.stop_sequences,
+    })
+}
+
+fn format_qwen35_output_metrics(metrics: Option<&Qwen35CudaDecodeOutputMetrics>) -> String {
+    let Some(metrics) = metrics else {
+        return String::from("qwen35_output_modes=[] qwen35_readback_bytes=0 qwen35_raw_logits=false");
+    };
+    let output_modes = metrics
+        .output_modes
+        .iter()
+        .map(|mode| match mode {
+            psionic_serve::Qwen35CudaDecodeOutputMode::ArgmaxOnly => String::from("argmax_only"),
+            psionic_serve::Qwen35CudaDecodeOutputMode::TopKCandidates { top_k } => {
+                format!("top_k_candidates:{top_k}")
+            }
+            psionic_serve::Qwen35CudaDecodeOutputMode::RawLogits => String::from("raw_logits"),
+        })
+        .collect::<Vec<_>>()
+        .join(",");
+    format!(
+        "qwen35_output_modes=[{}] qwen35_readback_bytes={} qwen35_raw_logits={}",
+        output_modes, metrics.readback_bytes, metrics.raw_logits_materialized
+    )
+}
+
+fn bench_decode_mode_label(mode: BenchDecodeMode) -> &'static str {
+    match mode {
+        BenchDecodeMode::Greedy => "greedy",
+        BenchDecodeMode::Sample => "sample",
+    }
+}
+
+fn min_warmup_tokens(max_output_tokens: usize) -> usize {
+    max_output_tokens.min(16).max(1)
+}
+
+fn next_arg(args: &[String], index: &mut usize, flag: &str) -> Result<String, String> {
+    let value_index = index.saturating_add(1);
+    let value = args
+        .get(value_index)
+        .cloned()
+        .ok_or_else(|| format!("missing value for `{flag}`"))?;
+    *index = value_index;
+    Ok(value)
+}
+
+fn parse_arg<T>(value: &str, name: &str) -> Result<T, String>
+where
+    T: std::str::FromStr,
+    T::Err: std::fmt::Display,
+{
+    value
+        .parse::<T>()
+        .map_err(|error| format!("invalid {name} `{value}`: {error}"))
 }
 
 fn tokens_per_second(tokens: usize, duration_ns: u64) -> f64 {
@@ -133,6 +494,88 @@ fn nanos_to_seconds(duration_ns: u64) -> f64 {
 
 fn usage() -> String {
     String::from(
-        "usage: cargo run -p psionic-serve --example qwen35_cuda_bench -- <model.gguf> [prompt] [max_output_tokens] [repeats]",
+        "usage:\n  cargo run -p psionic-serve --example qwen35_cuda_bench -- <model.gguf> [prompt] [max_output_tokens] [repeats]\n  cargo run -p psionic-serve --example qwen35_cuda_bench -- --backend psionic --model-path <model.gguf> [--decode greedy|sample] [--temperature 0.8] [--top-k 40] [--top-p 0.9] [--repeat-penalty 1.0] [--presence-penalty 0.0] [--frequency-penalty 0.0] [--seed 42] [--prompt <text>] [--max-output-tokens 128] [--repeats 3]\n  cargo run -p psionic-serve --example qwen35_cuda_bench -- --backend ollama --model-path <model.gguf> --ollama-model qwen3.5:0.8b [--ollama-base-url http://127.0.0.1:11434] [--decode greedy|sample] [--temperature 0.8] [--top-k 40] [--top-p 0.9] [--repeat-penalty 1.0] [--presence-penalty 0.0] [--frequency-penalty 0.0] [--seed 42] [--prompt <text>] [--max-output-tokens 128] [--repeats 3]",
     )
+}
+
+#[derive(Clone, Debug)]
+struct RenderedPrompt {
+    text: String,
+    stop_sequences: Vec<String>,
+}
+
+#[derive(Deserialize)]
+struct OllamaGenerateResponse {
+    response: String,
+    #[serde(default)]
+    total_duration: Option<u64>,
+    #[serde(default)]
+    prompt_eval_count: Option<usize>,
+    #[serde(default)]
+    prompt_eval_duration: Option<u64>,
+    #[serde(default)]
+    eval_count: Option<usize>,
+    #[serde(default)]
+    eval_duration: Option<u64>,
+}
+
+fn ollama_generate(
+    client: &Client,
+    base_url: &str,
+    model: &str,
+    rendered: &RenderedPrompt,
+    config: &BenchConfig,
+    max_output_tokens: usize,
+) -> Result<OllamaGenerateResponse, String> {
+    let mut options = serde_json::json!({
+        "num_predict": max_output_tokens,
+    });
+    if let Some(temperature) = config.effective_temperature() {
+        options["temperature"] = serde_json::json!(temperature);
+    }
+    if let Some(top_k) = config.effective_top_k() {
+        options["top_k"] = serde_json::json!(top_k);
+    }
+    if let Some(top_p) = config.effective_top_p() {
+        options["top_p"] = serde_json::json!(top_p);
+    }
+    if let Some(repeat_penalty) = config.effective_repeat_penalty() {
+        options["repeat_penalty"] = serde_json::json!(repeat_penalty);
+    }
+    if let Some(presence_penalty) = config.effective_presence_penalty() {
+        options["presence_penalty"] = serde_json::json!(presence_penalty);
+    }
+    if let Some(frequency_penalty) = config.effective_frequency_penalty() {
+        options["frequency_penalty"] = serde_json::json!(frequency_penalty);
+    }
+    if let Some(seed) = config.effective_seed() {
+        options["seed"] = serde_json::json!(seed);
+    }
+    if !rendered.stop_sequences.is_empty() {
+        options["stop"] = serde_json::json!(rendered.stop_sequences);
+    }
+    let payload = serde_json::json!({
+        "model": model,
+        "prompt": rendered.text,
+        "raw": true,
+        "stream": false,
+        "think": false,
+        "options": options,
+    });
+    let url = format!("{}/api/generate", base_url.trim_end_matches('/'));
+    let response = client
+        .post(&url)
+        .json(&payload)
+        .send()
+        .map_err(|error| format!("failed to call Ollama generate endpoint: {error}"))?;
+    if !response.status().is_success() {
+        let status = response.status();
+        let body = response
+            .text()
+            .unwrap_or_else(|_| String::from("<unreadable response body>"));
+        return Err(format!("Ollama generate request failed with {status}: {body}"));
+    }
+    response
+        .json::<OllamaGenerateResponse>()
+        .map_err(|error| format!("failed to decode Ollama generate response: {error}"))
 }

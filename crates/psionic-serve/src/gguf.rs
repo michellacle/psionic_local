@@ -2193,6 +2193,7 @@ fn build_qwen35_proxy_generation_response(
         kv_cache_encoding: None,
         prefix_tokens_reused: None,
         gpt_oss_perf: None,
+        qwen35_cuda_decode: None,
     };
     let provenance = crate::GenerationProvenance {
         served_artifact: crate::served_artifact_identity_for_decoder_backend(
