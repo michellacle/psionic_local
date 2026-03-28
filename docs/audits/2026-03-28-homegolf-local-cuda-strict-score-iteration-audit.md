@@ -1,24 +1,29 @@
-# HOMEGOLF Local-CUDA Strict Score Iteration Audit
+# HOMEGOLF Local-CUDA Score Claim Correction Audit
 
 Date: 2026-03-28
 
 ## Summary
 
-This audit records the first local `RTX 4080` HOMEGOLF strict-score iteration
-that reached a finite exact-score result on the real FineWeb `SP1024` lane.
+This audit corrects the earlier local `RTX 4080` HOMEGOLF "strict score"
+language.
 
-It also records two correctness fixes that were required before the local-CUDA
-fit search was trustworthy:
+Follow-up review on 2026-03-28 established that the observed local
+`6.80014851` BPB receipts were bounded local proxy evidence, not an actual
+PGOLF score.
 
-- the HOMEGOLF runner no longer overwrites the local-CUDA validation-batch fit
-  profile when `sliding_window:64` is selected
-- the single-device trainer now reuses the shared batch-geometry validator, so
-  non-divisor `grad_accum_steps` values are refused instead of silently
-  shrinking the real train-token budget
+Two facts forced that correction:
 
-## Code Changes
+- the public `parameter-golf` README still defines official scoring as
+  evaluation on the full FineWeb validation split
+- the current single-device trainer really does load that full validation split
+  on the live local-CUDA lane
 
-Files changed:
+The earlier code fixes from this iteration remain valid and useful, but the
+score claim boundary needed to be tightened.
+
+## Code Changes That Still Stand
+
+Files changed in this iteration:
 
 - `crates/psionic-train/src/bin/parameter_golf_homegolf_single_cuda_train.rs`
 - `crates/psionic-train/src/parameter_golf_reference.rs`
@@ -27,12 +32,13 @@ Files changed:
 Behavioral effect:
 
 - `validation_eval_mode=sliding_window:64` now preserves the already-selected
-  local-CUDA validation batch unless the previous value was still just the old
+  local-CUDA validation batch unless the previous value was still only the old
   default
 - HOMEGOLF local-CUDA fit trials now reject invalid profiles like
-  `grad_accum_steps=24` instead of running a token-dropped approximation
-
-## Validation
+  `grad_accum_steps=24`
+- the trainer now persists the exported `.final_model.st` earlier and emits
+  explicit closeout markers around artifact export, digesting, JSON encoding,
+  and report finish
 
 Build validation that passed:
 
@@ -40,48 +46,37 @@ Build validation that passed:
 cargo check -q -p psionic-train --bin parameter_golf_homegolf_single_cuda_train
 ```
 
-Targeted test attempt:
+The targeted local test attempt on this Mac is still blocked by an unrelated
+existing arm64/macOS linker failure in the broader `psionic-train` test binary.
 
-```bash
-cargo test -q -p psionic-train homegolf_local_cuda_rejects_non_sequence_exact_grad_accum -- --nocapture
-```
+## Public Scoring Contract Re-Check
 
-Current result on this Mac:
+The public challenge README now matters more than the earlier local log
+interpretation.
 
-- blocked by an unrelated existing arm64/macOS linker failure in the broader
-  `psionic-train` test binary
+Verified in the local `parameter-golf` clone:
 
-That linker issue did not block the real remote HOMEGOLF runs below.
+- `README.md` says validation "always runs on the full fineweb_val_* split"
+- official challenge rhetoric still binds scores to FineWeb validation
+  compression, not one bounded local validation slice
 
-## Remote Fit Search
+That means any local receipt derived from a smaller retained validation slice is
+only a bounded proxy unless it is explicitly surfaced as such.
+
+## Remote Reruns On `archlinux`
 
 Machine used:
 
 - `archlinux`
 - `NVIDIA GeForce RTX 4080`
-- exact dataset root:
+- dataset:
   `~/code/parameter-golf/data/datasets/fineweb10B_sp1024`
-- exact tokenizer path:
+- tokenizer:
   `~/code/parameter-golf/data/tokenizers/fineweb_1024_bpe.model`
 
-Observed initial blocker:
+### 1. Default Local HOMEGOLF Entry Point Is Not `10` Minute Honest
 
-- unrelated `ollama.service` runners temporarily occupied about `11.7 GiB`
-  before the clean-card fit search
-
-Observed divisor-safe fit results after the card cleared:
-
-- `grad_accum_steps=16`
-  - exact lane still OOM
-- `grad_accum_steps=32`
-  - live-only train step admitted
-  - strict scored run still OOMed partway through training
-- `grad_accum_steps=64`
-  - strict scored run admitted one full optimizer step and the strict scorer
-
-## First Finite Strict Score
-
-Command:
+Command shape:
 
 ```bash
 PSIONIC_PARAMETER_GOLF_HOMEGOLF_GRAD_ACCUM_STEPS=64 \
@@ -89,68 +84,132 @@ PSIONIC_PARAMETER_GOLF_HOMEGOLF_VALIDATION_BATCH_SEQUENCES=8 \
 cargo run -q -p psionic-train --bin parameter_golf_homegolf_single_cuda_train -- \
   ~/code/parameter-golf/data/datasets/fineweb10B_sp1024 \
   ~/code/parameter-golf/data/tokenizers/fineweb_1024_bpe.model \
-  /tmp/psionic_homegolf_runs/homegolf_exact_fitprobe_g64_v8_ttt4_report.json \
-  1 both sliding_window:64 legal_score_first_ttt:batch_sequences=4
+  /tmp/psionic_homegolf_runs/homegolf_strict_rerun_20260328_report.json \
+  both \
+  sliding_window:64 \
+  legal_score_first_ttt:batch_sequences=4
 ```
 
-Observed strict result from the live trainer logs:
+Observed truth:
 
+- the trainer started with `warmup_steps=20`
+- after almost `12` minutes of process lifetime it was still only at
+  `warmup_step:1/20`
+
+That local default posture is not an honest `10` minute HOMEGOLF run on the
+`4080`.
+
+### 2. One-Step Local Fit Posture Is Real
+
+Command shape:
+
+```bash
+PSIONIC_PARAMETER_GOLF_HOMEGOLF_GRAD_ACCUM_STEPS=64 \
+PSIONIC_PARAMETER_GOLF_HOMEGOLF_VALIDATION_BATCH_SEQUENCES=8 \
+cargo run -q -p psionic-train --bin parameter_golf_homegolf_single_cuda_train -- \
+  ~/code/parameter-golf/data/datasets/fineweb10B_sp1024 \
+  ~/code/parameter-golf/data/tokenizers/fineweb_1024_bpe.model \
+  /tmp/psionic_homegolf_runs/homegolf_strict_1step_nottt_20260328_report.json \
+  1 \
+  both \
+  sliding_window:64
+```
+
+Observed train-step truth from the live logs:
+
+- `max_steps=1`
+- `warmup_steps=0`
 - `grad_accum_steps=64`
 - `validation_batch_sequences=8`
-- `score_first_ttt.batch_sequences=4`
-- `mean_microbatch_loss=8.29200554`
-- `train_time_ms=321606`
-- `final_validation_mean_loss=11.74549673`
-- `final_validation_bits_per_byte=6.80014851`
-- `final_validation_elapsed_ms=187517`
+- `mean_microbatch_loss=8.29200745`
+- `train_time_ms=311252`
 
-Observed combined train-plus-score wallclock before export/closeout:
+That is a real bounded one-step local-CUDA fit result and it is better than the
+earlier observed local train-step runtime of `321606 ms`.
 
-- `321606 + 187517 = 509123 ms`
+### 3. The Full Local Sliding-Window Scorer Is Not The Earlier `32k` Slice
 
-That is inside the `600000 ms` HOMEGOLF wallclock cap.
+Observed after that same one-step run:
 
-## Improvement Over The Previous HOMEGOLF Runnable Truth
+- `final_validation_start sequences=60568 batch_sequences=8`
+- `validation_batch_start ... batch=1/121136 ...`
 
-The previously retained exact-family HOMEGOLF proof lane reported:
+So the current live trainer really is planning the full sliding-window
+validation surface.
 
-- `final_validation_bits_per_byte=9.93265382277841`
+That is incompatible with the earlier `evaluated_tokens=32768` local receipt
+that had been treated as a local "strict score."
 
-The new strict local-CUDA observed score reached:
+### 4. The Default Legal TTT Overlay Is Also Not Local `10` Minute Honest
 
-- `final_validation_bits_per_byte=6.80014851`
+Observed on the 2026-03-28 rerun with
+`legal_score_first_ttt:batch_sequences=4`:
 
-Observed improvement:
+- `chunk_tokens=32768`
+- `epochs=3`
+- `score_windows=969088`
 
-- `3.13250531277841` BPB better than the old bounded exact-family proof lane
+That overlay is far too large for the current local `4080` HOMEGOLF lane to be
+called a `10` minute qualifying score path.
 
-## Honest Boundary
+## What The Earlier `6.80014851` Receipt Really Means
 
-This iteration is materially stronger than the old strict-lane refusal and the
-older bounded proof lane.
+The earlier 2026-03-28 local receipt still has value, but only as bounded local
+fit evidence:
 
-It is still not fully closed.
+- it proved the local runner no longer immediately refused or OOMed
+- it proved a `g64 / v8` one-step posture was materially closer to workable
+- it helped expose the post-score closeout blind spot that led to the new
+  artifact/report progress markers
+
+It does **not** currently support the stronger claim that a real local PGOLF
+score was already retained on the home `4080`.
+
+## Actual Full-Validation Score Truth Currently Retained
+
+The real retained full-validation score still present in-repo is:
+
+- `fixtures/parameter_golf/reports/parameter_golf_runpod_single_h100_first_real_training_report.json`
+
+That report preserves:
+
+- `evaluated_sequence_count=60568`
+- `evaluated_token_count=62021632`
+- `evaluated_byte_count=151080363`
+- `final_validation_bits_per_byte=6.306931747817168`
+- `compressed_model_bytes=4732744`
+
+That is a real full-validation single-H100 result.
+
+It is still not a public `8xH100` leaderboard-equivalent run, but it is the
+current honest "actual PGOLF score" truth retained in this repo.
+
+## Current Honest Boundary
 
 What is true now:
 
-- the exact local-CUDA strict scorer can reach a finite BPB on the home `4080`
-- one divisor-safe strict score path is now inside the `10` minute envelope
-  before export/closeout
-- the runner and trainer no longer hide two fit-profile correctness bugs
+- the local HOMEGOLF runner/trainer fit search is less misleading than before
+- one bounded local one-step train posture is real on the `4080`
+- the code now preserves the local fit profile correctly, rejects invalid
+  batch geometry, and emits earlier closeout telemetry
+- the repo still retains one real full-validation single-H100 score:
+  `6.306931747817168`
 
-What is still not true:
+What is not true:
 
-- the exact local-CUDA strict run did not finish writing its final retained
-  report/artifact pair within this iteration window
-- exact prompt-generation proof on that scored local-CUDA artifact is therefore
-  still pending
-- this is still not a public-leaderboard-equivalent result
+- the home `4080` local lane does not currently have a retained official PGOLF
+  score from the full FineWeb validation split
+- the earlier local `6.80014851` receipt should not be treated as an actual
+  PGOLF score
+- the current local `legal_score_first_ttt` shorthand is not a viable
+  `10` minute HOMEGOLF score path
 
 ## Next Moves
 
-1. Make the post-score export/closeout path emit the retained report/artifact
-   promptly after the finite strict score is already known.
-2. Run `parameter_golf_homegolf_prompt` directly on that retained scored
-   artifact to prove real text generation on the exact local-CUDA strict lane.
-3. Keep the current `g64 / v8 / ttt4` posture as the baseline until one
-   smaller, faster, still-finite strict profile beats it honestly.
+1. Add an explicit bounded local-proxy validation contract to the HOMEGOLF
+   local lane and stop calling that posture a PGOLF score.
+2. Keep actual score work anchored to the real full-validation runtime lanes:
+   retained single-H100 and future `8xH100` distributed runs.
+3. Only claim new PGOLF score improvements after the retained artifact/report
+   pair covers the full validation split and the language model proof is bound
+   to that same retained artifact.

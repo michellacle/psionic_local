@@ -121,34 +121,55 @@ What it does not prove:
 - that the live dense strict HOMEGOLF run has already been retained
 - that the mixed-device home cluster already produces the scored bundle
 
-## Current Local-CUDA Strict Score Finding
+## Current Local-CUDA Score Boundary
 
-HOMEGOLF now also has one observed local-CUDA strict score iteration on the
-current home `RTX 4080` lane:
+HOMEGOLF's current home `RTX 4080` lane is still useful, but the 2026-03-28
+follow-up review showed that the earlier "local strict score" language was too
+strong.
 
-- latest audit:
+- latest correction audit:
   `docs/audits/2026-03-28-homegolf-local-cuda-strict-score-iteration-audit.md`
 
-What this observed run changed:
+What is true now:
 
-- the exact strict HOMEGOLF scorer no longer only refuses or OOMs on the local
-  `16GB` consumer CUDA lane
-- one divisor-safe local fit profile now reaches a finite strict score with:
+- the runner and trainer fixes from that audit still stand:
+  - `sliding_window:64` no longer silently overwrites the local-CUDA
+    validation-batch fit profile
+  - invalid local fit trials like `grad_accum_steps=24` are now refused by the
+    shared batch-geometry validator instead of silently dropping train tokens
+- one bounded local one-step fit posture is real on the `4080`:
+  - `max_steps=1`
+  - `warmup_steps=0`
   - `grad_accum_steps=64`
   - `validation_batch_sequences=8`
-  - `sliding_window:64`
-  - `legal_score_first_ttt:batch_sequences=4`
-- the observed one-step strict result reached:
-  - `train_time_ms=321606`
-  - `final_validation_elapsed_ms=187517`
-  - `final_validation_mean_loss=11.74549673`
-  - `final_validation_bits_per_byte=6.80014851`
+- that bounded local one-step rerun reached:
+  - `train_time_ms=311252`
+  - `mean_microbatch_loss=8.29200745`
 
-What this does not yet prove:
+What is not true:
 
-- one fully retained report/artifact pair from that exact local-CUDA strict run
-- exact prompt-generation proof on the scored local-CUDA artifact itself
-- one public-leaderboard-equivalent result
+- the observed `6.80014851` BPB from the earlier 2026-03-28 local receipts is
+  not an actual PGOLF score
+- the public `parameter-golf` README still requires scoring on the full
+  FineWeb validation split, and the current single-device trainer loads that
+  full split
+- the default local HOMEGOLF entrypoint (`warmup_steps=20`) is not `10` minute
+  honest on the `4080`
+- the leaderboard-default `legal_score_first_ttt` overlay expands to
+  `chunk_tokens=32768` and `epochs=3`, which is also not `10` minute honest on
+  that local lane
+- no new retained local full-validation report/artifact pair was produced on
+  the `4080` during this iteration loop
+
+Current real full-score truth retained in-repo is still:
+
+- `fixtures/parameter_golf/reports/parameter_golf_runpod_single_h100_first_real_training_report.json`
+  - `final_validation_bits_per_byte=6.306931747817168`
+  - `evaluated_token_count=62021632`
+  - `compressed_model_bytes=4732744`
+
+That retained score is still a real full-validation single-H100 result, not a
+public `8xH100` leaderboard-equivalent run.
 
 ## Train-To-Infer Closure
 
