@@ -834,6 +834,58 @@ model file, using the artifact-only prompt path:
 - compressed model bytes:
   `4132303`
 
+## Queued LR-Scale Follow-On
+
+After the grad-clip pass, the next missing operator surface was learning-rate
+control.
+
+The local HOMEGOLF lane now also exposes one repo-owned uniform LR scale:
+
+- env:
+  `PSIONIC_PARAMETER_GOLF_HOMEGOLF_LR_SCALE=<f32>`
+- runner flag:
+  `scripts/run-parameter-golf-homegolf-local-cuda.sh --learning-rate-scale <f32>`
+
+That surface landed in:
+
+- `crates/psionic-train/src/bin/parameter_golf_homegolf_single_cuda_train.rs`
+- `scripts/run-parameter-golf-homegolf-local-cuda.sh`
+
+Current retained reason for adding it:
+
+- unclipped `20260328b` diverged immediately at step `2`
+- clipped `20260328d` fixed export and artifact promptability
+- the next honest quality question is whether a lower LR can keep two local
+  optimizer steps stable inside the same `600s` contract
+
+The queued next run is already staged on `archlinux` and will start
+automatically when the current `20260328d` full-validation pass releases the
+GPU:
+
+- queued run id:
+  `homegolf-baseline-g64-stepcap2-clip1-lr075-600s-20260328e`
+- queue script:
+  `/home/christopherdavid/scratch/psionic_homegolf_runs/queue_homegolf_20260328e.sh`
+- queue log:
+  `/home/christopherdavid/scratch/psionic_homegolf_runs/queue_homegolf_20260328e.log`
+- queue pid:
+  `773908`
+
+Queued run posture:
+
+- `grad_accum_steps=64`
+- `challenge_max_steps=2`
+- `grad_clip_norm=1.0`
+- `learning_rate_scale=0.75`
+- `final_validation_mode=roundtrip_only`
+- `validation_eval_mode=non_overlapping`
+
+This is still an honest local HOMEGOLF score attempt:
+
+- it preserves `max_wallclock_seconds=600`
+- it stays on clean `main`
+- it keeps the same repo-owned closeout path
+
 ## Current Honest Boundary
 
 HOMEGOLF is frozen as a contract now, but one important surface is still
