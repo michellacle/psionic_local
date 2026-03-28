@@ -370,7 +370,11 @@ Tailnet daily runner:
 - entrypoint:
   `scripts/run-tailrun-daily-loop.sh`
 - latest repo-local audit:
-  `docs/audits/2026-03-28-homegolf-tailrun-daily-loop-operator-fix-audit.md`
+  `docs/audits/2026-03-28-first-swarm-exact-mean-delta-merged-bundle-audit.md`
+- latest retained mixed-device run:
+  `tailrun-home-admitted-20260328k`
+- retained mixed-device merged portable bundle:
+  `fixtures/swarm/runs/tailrun-home-admitted-20260328k/retained_artifacts/merged_portable_bundle.safetensors`
 - latest retained run:
   `tailrun-daily-20260328e`
 
@@ -383,6 +387,18 @@ What this proves:
   - same-node fixed-budget training on both admitted devices
   - PGOLF-ish held-out quality comparison on the produced bundles
   - near-equivalent direct-versus-served inference closeout
+- the admitted mixed-device Tailnet runtime no longer stops at summary-only
+  contribution truth
+- that runtime now retains:
+  - the real local contributor adapter payload
+  - the real remote contributor adapter payload
+  - one exact mean-delta merged adapter artifact
+  - one inferable merged portable bundle
+- the retained mixed-device merged artifact closes the canonical first-swarm
+  profile at:
+  - mean loss: `1.788139627478813e-07`
+  - bits per token: `2.579740172980722e-07`
+  - deterministic probe top token: `2`
 - the latest retained daily scoreboard is:
   - overall verdict: `throughput_improved`
   - M5 throughput verdict: `meaningful_improvement`
@@ -393,8 +409,8 @@ What this proves:
 What it does not prove:
 
 - exact HOMEGOLF or exact Parameter Golf score closure
-- one mixed-device promoted runtime bundle emitted directly from the admitted
-  home cluster
+- one mixed-device promoted served runtime bundle emitted directly from the
+  admitted home cluster
 - public-leaderboard-equivalent hardware or score
 
 ## Public Comparison Report

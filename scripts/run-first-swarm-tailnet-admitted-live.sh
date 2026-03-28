@@ -247,7 +247,7 @@ wait "${contributor_ssh_pid}"
 trap - EXIT
 
 echo "Copying back remote contributor report"
-scp "${remote_host}:${remote_contributor_report_path}" "${contributor_report_path}" >/dev/null
+ssh "${remote_host}" "cat ${remote_contributor_report_path}" > "${contributor_report_path}"
 
 python3 - <<'PY' \
   "${operator_manifest_path}" "${coordinator_report_path}" "${contributor_report_path}" \

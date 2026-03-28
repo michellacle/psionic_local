@@ -1,0 +1,28 @@
+{
+  "schema_version": "swarm.first_trusted_lan_merged_artifact_report.v1",
+  "run_id": "tailrun-home-admitted-20260328k",
+  "aggregation_policy_id": "aggregation.open_adapter.mean_delta",
+  "merge_strategy": "exact_mean_delta_rank_stacking",
+  "contributor_weight_bps": {
+    "swarm-linux-4080-a": 5000,
+    "swarm-mac-a": 5000
+  },
+  "local_contributor_receipt_digest": "33134218130ac038b4d8aac4ff5ea582ba596105be45d0bdc4d3f0b86872f3eb",
+  "remote_contributor_receipt_digest": "865ef2f86a2b50a6790996a07f53a345068eea2514cc7907c47bdece2c4c6305",
+  "local_adapter_artifact_digest": "a6a9c4ae4428e79c394548a2a4dca7e8856e537e69889431aefe3a4baa8e3276",
+  "remote_adapter_artifact_digest": "2755e73e2219e805419b03ad146eab0d0b88942a54d2cc40f0122d230ba8b0f8",
+  "merged_adapter_artifact_digest": "5aaaf6ed43a4c373dfe44a31dfc4d80301e9770a8d1c964768f3857fae794cc5",
+  "merged_adapter_identity_digest": "4e8439fff5e4ac6b9fbe2aec5f21a8583fa3b588e6be67a26d488af47fde0553",
+  "merged_portable_bundle_artifact_digest": "67ae6a55a8c0b271467cfc06552baa4f5ed496b227afd7dbce34be5c2e076e99",
+  "merged_portable_bundle_state_dict_digest": "b452249b53bb2b9e0625f78294bbbd10825d88706e1bc42b8a6a0eacc438c62c",
+  "merged_lora_rank": 4,
+  "merged_lora_alpha": 4.0,
+  "evaluation_backend_label": "open_adapter_backend.mlx.metal.gpt_oss_lm_head",
+  "canonical_profile_mean_loss": 1.788139627478813e-7,
+  "canonical_profile_bits_per_token": 2.579740172980722e-7,
+  "canonical_profile_batch_count": 2,
+  "canonical_profile_sample_count": 4,
+  "deterministic_probe_top_token_id": 2,
+  "claim_boundary": "This report records one exact mean-delta merged open-adapter artifact derived from the two admitted trusted-LAN contributor payloads. It proves that the retained mixed-device run now emits an inferable merged adapter and portable bundle, but it does not claim exact HOMEGOLF or public Parameter Golf score parity.",
+  "report_digest": "d0319243daa8d1917875db437175f4992d53a56449e2a9ebd75357555b0e1d7b"
+}

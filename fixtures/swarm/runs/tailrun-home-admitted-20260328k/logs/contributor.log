@@ -1,0 +1,158 @@
+bash: cannot set terminal process group (3924): Inappropriate ioctl for device
+bash: no job control in this shell
+warning: unused import: `KernelCacheState`
+  --> crates/psionic-backend-metal/src/lib.rs:43:57
+   |
+43 |     HealthStatus, KernelCachePolicy, KernelCacheReport, KernelCacheState, KvCacheAccounting,
+   |                                                         ^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` on by default
+
+warning: methods `encode_quantized_matvec`, `encode_grouped_quantized_matvec`, and `encode_expert_matvec_f32_ids` are never used
+    --> crates/psionic-backend-metal/src/lib.rs:6608:23
+     |
+6575 |     impl PlatformSubmission {
+     |     ----------------------- methods in this implementation
+...
+6608 |         pub(super) fn encode_quantized_matvec(
+     |                       ^^^^^^^^^^^^^^^^^^^^^^^
+...
+6624 |         pub(super) fn encode_grouped_quantized_matvec(
+     |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+6640 |         pub(super) fn encode_expert_matvec_f32_ids(
+     |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: `#[warn(dead_code)]` on by default
+
+warning: fields `current_model_artifact_path` and `current_model_artifact_sha256` are never read
+    --> crates/psionic-train/src/parameter_golf_distributed_8xh100_train_step.rs:3214:5
+     |
+3202 | struct ParameterGolfDistributed8xH100StepExecution {
+     |        ------------------------------------------- fields in this struct
+...
+3214 |     current_model_artifact_path: PathBuf,
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+3215 |     current_model_artifact_sha256: String,
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: `#[warn(dead_code)]` on by default
+
+warning: function `execute_parameter_golf_distributed_8xh100_step` is never used
+    --> crates/psionic-train/src/parameter_golf_distributed_8xh100_train_step.rs:3221:4
+     |
+3221 | fn execute_parameter_golf_distributed_8xh100_step(
+     |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `load_rank_gradient_artifacts_parallel` is never used
+    --> crates/psionic-train/src/parameter_golf_distributed_8xh100_train_step.rs:5240:4
+     |
+5240 | fn load_rank_gradient_artifacts_parallel(
+     |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: field `shape` is never read
+    --> crates/psionic-train/src/parameter_golf_single_h100_training.rs:1690:9
+     |
+1689 |     AdamBf16Master {
+     |     -------------- field in this variant
+1690 |         shape: Vec<usize>,
+     |         ^^^^^
+     |
+     = note: `ParameterGolfParameterState` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: field `shape` is never read
+    --> crates/psionic-train/src/parameter_golf_single_h100_training.rs:1699:9
+     |
+1698 |     AdamFp32 {
+     |     -------- field in this variant
+1699 |         shape: Vec<usize>,
+     |         ^^^^^
+     |
+     = note: `ParameterGolfParameterState` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: method `shape` is never used
+    --> crates/psionic-train/src/parameter_golf_single_h100_training.rs:1724:19
+     |
+1713 | impl ParameterGolfParameterState {
+     | -------------------------------- method in this implementation
+...
+1724 |     pub(crate) fn shape(&self) -> &[usize] {
+     |                   ^^^^^
+
+warning: function `flatten_parameter_golf_optimizer_group_values` is never used
+    --> crates/psionic-train/src/parameter_golf_single_h100_training.rs:3342:15
+     |
+3342 | pub(crate) fn flatten_parameter_golf_optimizer_group_values(
+     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `flatten_parameter_golf_optimizer_group_buffers` is never used
+    --> crates/psionic-train/src/parameter_golf_single_h100_training.rs:3374:15
+     |
+3374 | pub(crate) fn flatten_parameter_golf_optimizer_group_buffers(
+     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `evaluate_validation_with_optional_score_first_ttt_on_cuda` is never used
+    --> crates/psionic-train/src/parameter_golf_single_h100_training.rs:4541:15
+     |
+4541 | pub(crate) fn evaluate_validation_with_optional_score_first_ttt_on_cuda(
+     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `gradient_clip_observation` is never used
+   --> crates/psionic-train/src/parameter_golf_single_h100_visualization.rs:573:15
+    |
+573 | pub(crate) fn gradient_clip_observation(
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: field `run_bundle` is never read
+   --> crates/psionic-train/src/parameter_golf_submission_pr.rs:595:5
+    |
+588 | struct LoadedParameterGolfSubmissionFolder {
+    |        ----------------------------------- field in this struct
+...
+595 |     run_bundle: ParameterGolfChallengeRunBundle,
+    |     ^^^^^^^^^^
+
+warning: function `reference_descriptor` is never used
+   --> crates/psionic-train/src/psion_plugin_conditioned_compact_decoder.rs:569:4
+    |
+569 | fn reference_descriptor(
+    |    ^^^^^^^^^^^^^^^^^^^^
+
+warning: fields `logits_tensor_id`, `weight_gradient_tensor_id`, and `hidden_gradient_tensor_id` are never read
+   --> crates/psionic-train/src/psion_reference_pilot.rs:459:5
+    |
+455 | struct PsionAcceleratedGradientProgram {
+    |        ------------------------------- fields in this struct
+...
+459 |     logits_tensor_id: TensorId,
+    |     ^^^^^^^^^^^^^^^^
+...
+463 |     weight_gradient_tensor_id: TensorId,
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+467 |     hidden_gradient_tensor_id: TensorId,
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `PsionAcceleratedGradientProgram` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: method `mean_loss` is never used
+    --> crates/psionic-train/src/psion_reference_pilot.rs:2257:8
+     |
+2038 | impl PsionCompactDecoderReferencePilotModel {
+     | ------------------------------------------- method in this implementation
+...
+2257 |     fn mean_loss(&self, examples: &[PsionReferenceTrainingExample]) -> f32 {
+     |        ^^^^^^^^^
+
+warning: field `cluster_namespace` is never read
+   --> crates/psionic-train/src/swarm_first_live_runtime.rs:234:5
+    |
+230 | struct RetainedFirstSwarmTopologyContract {
+    |        ---------------------------------- field in this struct
+...
+234 |     cluster_namespace: String,
+    |     ^^^^^^^^^^^^^^^^^
+    |
+    = note: `RetainedFirstSwarmTopologyContract` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+wrote first swarm trusted-LAN runtime report for contributor node `swarm-linux-4080-a` with digest 6ea6d11a125487435a7a1e08ab9e15605c94768ee0ec86d17478b48f21a27fe2
