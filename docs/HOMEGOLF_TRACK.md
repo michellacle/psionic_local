@@ -657,6 +657,64 @@ That means:
 - same artifact accounting
 - richer declared hardware manifest
 
+## Current-Main Local Honest Relaunch
+
+After the first current-main local score launch, one important correction became
+explicit:
+
+- `homegolf-baseline-g64-2step-roundtrip-20260328a` was a bounded probe, not
+  the honest local `600s` score loop
+- the reason is simple:
+  - that launch passed `--max-steps 2`
+  - the trainer then surfaced `max_wallclock_seconds=0`
+- that bounded run is still useful for short-step timing and loss-shape checks
+- it is not an honest retained local score receipt
+
+The corrected current-main local score run is now:
+
+- host: `archlinux`
+- repo revision at launch: `60c97bf0`
+- run id: `homegolf-baseline-g64-roundtrip-600s-20260328b`
+- output root:
+  `/home/christopherdavid/scratch/psionic_homegolf_runs/homegolf-baseline-g64-roundtrip-600s-20260328b`
+- attached watcher outputs:
+  - `prompt_report.json`
+  - `closeout_summary.json`
+  - `prompt_closeout.log`
+
+Observed live contract from the retained log:
+
+- `machine_profile=homegolf_local_cuda`
+- `warmup_steps=0`
+- `grad_accum_steps=64`
+- `final_validation_mode=roundtrip_only`
+- `validation_eval_mode=non_overlapping`
+- `max_wallclock_seconds=600`
+- `train_step_start step=1/20000`
+
+Observed early training movement from that same live log:
+
+- `micro_step=1/64 train_loss=8.35887241`
+- `micro_step=2/64 train_loss=8.34251022`
+- `micro_step=3/64 train_loss=8.30022907`
+- `micro_step=4/64 train_loss=8.27811050`
+- `micro_step=9/64 train_loss=8.33421516`
+
+The operator path is tighter now too:
+
+- `scripts/run-parameter-golf-homegolf-local-cuda.sh` can now attach the prompt
+  closeout watcher directly with `--attach-prompt-closeout`
+- `scripts/wait-parameter-golf-homegolf-prompt-closeout.sh` now accepts
+  `--tmpdir` and `--cargo-target-dir`
+- that keeps both the trainer and the prompt closeout off brittle `/tmp`
+  surfaces without a hand-built remote shell
+
+Current truth:
+
+- the live honest current-main local score loop is `20260328b`, not `20260328a`
+- the attached closeout path now remains repo-owned end to end
+- no new completed local or public PGOLF score has landed from this run yet
+
 ## Current Honest Boundary
 
 HOMEGOLF is frozen as a contract now, but one important surface is still

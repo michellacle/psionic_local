@@ -17,6 +17,12 @@ validation_eval_mode="non_overlapping"
 background="0"
 sync_main="0"
 allow_dirty="0"
+attach_prompt_closeout="0"
+closeout_prompt="the meaning of life is"
+closeout_max_new_tokens="32"
+closeout_poll_seconds="30"
+closeout_timeout_seconds="0"
+closeout_binary_path=""
 trainer_args=()
 
 usage() {
@@ -36,6 +42,12 @@ Options:
   --validation-eval-mode <mode>         Validation eval mode. Default: non_overlapping
   --trainer-arg <arg>                   Extra trailing trainer arg. Repeatable.
   --background                          Launch in background and write a pid file.
+  --attach-prompt-closeout              Launch the prompt closeout watcher beside the trainer.
+  --closeout-prompt <text>              Prompt used by the closeout watcher.
+  --closeout-max-new-tokens <n>         Max generated tokens for closeout. Default: 32
+  --closeout-poll-seconds <n>           Poll interval for closeout watcher. Default: 30
+  --closeout-timeout-seconds <n>        Optional closeout timeout. Default: 0
+  --closeout-binary-path <path>         Optional prompt binary for closeout watcher.
   --sync-main                           Run git pull --ff-only before launch.
   --allow-dirty                         Skip the clean-worktree refusal.
   --help|-h                             Show this help text.
@@ -92,6 +104,30 @@ while [[ $# -gt 0 ]]; do
       background="1"
       shift
       ;;
+    --attach-prompt-closeout)
+      attach_prompt_closeout="1"
+      shift
+      ;;
+    --closeout-prompt)
+      closeout_prompt="$2"
+      shift 2
+      ;;
+    --closeout-max-new-tokens)
+      closeout_max_new_tokens="$2"
+      shift 2
+      ;;
+    --closeout-poll-seconds)
+      closeout_poll_seconds="$2"
+      shift 2
+      ;;
+    --closeout-timeout-seconds)
+      closeout_timeout_seconds="$2"
+      shift 2
+      ;;
+    --closeout-binary-path)
+      closeout_binary_path="$2"
+      shift 2
+      ;;
     --sync-main)
       sync_main="1"
       shift
@@ -118,6 +154,11 @@ fi
 
 if [[ -z "${output_root}" ]]; then
   output_root="${HOME}/scratch/psionic_homegolf_runs/${run_id}"
+fi
+
+if [[ "${attach_prompt_closeout}" == "1" ]] && [[ "${background}" != "1" ]]; then
+  echo "error: --attach-prompt-closeout requires --background" >&2
+  exit 1
 fi
 
 mkdir -p "${output_root}" "${tmpdir}"
@@ -152,6 +193,10 @@ report_path="${output_root}/training_report.json"
 log_path="${output_root}/train.log"
 pid_path="${output_root}/train.pid"
 launch_env_path="${output_root}/launch.env"
+prompt_report_path="${output_root}/prompt_report.json"
+closeout_summary_path="${output_root}/closeout_summary.json"
+prompt_log_path="${output_root}/prompt_closeout.log"
+prompt_pid_path="${output_root}/prompt_closeout.pid"
 
 trainer_command=()
 executor_label="cargo"
@@ -203,6 +248,18 @@ fi
 if [[ -n "${binary_path}" ]]; then
   printf 'BINARY_PATH=%q\n' "${binary_path}" >> "${launch_env_path}"
 fi
+if [[ "${attach_prompt_closeout}" == "1" ]]; then
+  printf 'PROMPT_REPORT_PATH=%q\n' "${prompt_report_path}" >> "${launch_env_path}"
+  printf 'CLOSEOUT_SUMMARY_PATH=%q\n' "${closeout_summary_path}" >> "${launch_env_path}"
+  printf 'PROMPT_LOG_PATH=%q\n' "${prompt_log_path}" >> "${launch_env_path}"
+  printf 'CLOSEOUT_PROMPT=%q\n' "${closeout_prompt}" >> "${launch_env_path}"
+  printf 'CLOSEOUT_MAX_NEW_TOKENS=%q\n' "${closeout_max_new_tokens}" >> "${launch_env_path}"
+  printf 'CLOSEOUT_POLL_SECONDS=%q\n' "${closeout_poll_seconds}" >> "${launch_env_path}"
+  printf 'CLOSEOUT_TIMEOUT_SECONDS=%q\n' "${closeout_timeout_seconds}" >> "${launch_env_path}"
+  if [[ -n "${closeout_binary_path}" ]]; then
+    printf 'CLOSEOUT_BINARY_PATH=%q\n' "${closeout_binary_path}" >> "${launch_env_path}"
+  fi
+fi
 
 run_trainer() {
   cd "${repo_root}"
@@ -215,6 +272,43 @@ if [[ "${background}" == "1" ]]; then
   run_trainer >"${log_path}" 2>&1 &
   trainer_pid=$!
   printf '%s\n' "${trainer_pid}" > "${pid_path}"
+  if [[ "${attach_prompt_closeout}" == "1" ]]; then
+    closeout_command=(
+      "${repo_root}/scripts/wait-parameter-golf-homegolf-prompt-closeout.sh"
+      --report
+      "${report_path}"
+      --prompt
+      "${closeout_prompt}"
+      --max-new-tokens
+      "${closeout_max_new_tokens}"
+      --poll-seconds
+      "${closeout_poll_seconds}"
+      --timeout-seconds
+      "${closeout_timeout_seconds}"
+      --output
+      "${prompt_report_path}"
+      --summary
+      "${closeout_summary_path}"
+      --tmpdir
+      "${tmpdir}"
+      --cargo-target-dir
+      "${cargo_target_dir}"
+    )
+    if [[ -n "${closeout_binary_path}" ]]; then
+      closeout_command+=(
+        --binary-path
+        "${closeout_binary_path}"
+      )
+    fi
+    (
+      cd "${repo_root}"
+      "${closeout_command[@]}"
+    ) >"${prompt_log_path}" 2>&1 &
+    prompt_pid=$!
+    printf '%s\n' "${prompt_pid}" > "${prompt_pid_path}"
+    printf 'PROMPT_WATCHER_PID=%q\n' "${prompt_pid}" >> "${launch_env_path}"
+    printf 'PROMPT_PID_PATH=%q\n' "${prompt_pid_path}" >> "${launch_env_path}"
+  fi
   echo "run_id=${run_id}"
   echo "executor=${executor_label}"
   echo "status=launched_background"
@@ -226,6 +320,13 @@ if [[ "${background}" == "1" ]]; then
   echo "tmpdir=${tmpdir}"
   echo "cargo_target_dir=${cargo_target_dir}"
   echo "pid=${trainer_pid}"
+  if [[ "${attach_prompt_closeout}" == "1" ]]; then
+    echo "prompt_report_path=${prompt_report_path}"
+    echo "closeout_summary_path=${closeout_summary_path}"
+    echo "prompt_log_path=${prompt_log_path}"
+    echo "prompt_pid_path=${prompt_pid_path}"
+    echo "prompt_pid=${prompt_pid}"
+  fi
   exit 0
 fi
 

@@ -12,6 +12,8 @@ timeout_seconds="0"
 output_path=""
 summary_path=""
 binary_path=""
+tmpdir=""
+cargo_target_dir=""
 
 usage() {
   cat <<'EOF' >&2
@@ -26,6 +28,8 @@ Options:
   --output <path>                      Prompt report output path.
   --summary <path>                     Combined summary output path.
   --binary-path <path>                 Optional prompt binary path.
+  --tmpdir <path>                      Optional TMPDIR for prompt closeout.
+  --cargo-target-dir <path>            Optional cargo target dir for prompt closeout.
   --help|-h                            Show this help text.
 EOF
 }
@@ -62,6 +66,14 @@ while [[ $# -gt 0 ]]; do
       ;;
     --binary-path)
       binary_path="$2"
+      shift 2
+      ;;
+    --tmpdir)
+      tmpdir="$2"
+      shift 2
+      ;;
+    --cargo-target-dir)
+      cargo_target_dir="$2"
       shift 2
       ;;
     --help|-h)
@@ -138,7 +150,14 @@ else
 fi
 
 cd "${repo_root}"
-"${prompt_command[@]}" \
+prompt_env=()
+if [[ -n "${tmpdir}" ]]; then
+  prompt_env+=("TMPDIR=${tmpdir}")
+fi
+if [[ -n "${cargo_target_dir}" ]]; then
+  prompt_env+=("CARGO_TARGET_DIR=${cargo_target_dir}")
+fi
+env "${prompt_env[@]}" "${prompt_command[@]}" \
   "${report_path}" \
   "${prompt}" \
   "${max_new_tokens}" \
