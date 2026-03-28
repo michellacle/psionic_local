@@ -90,7 +90,6 @@ impl CudaGgufQwen35TextGenerationService {
                 String::from("multimodal_inputs"),
                 String::from("video_inputs"),
                 String::from("tool_calling"),
-                String::from("structured_output_fallback"),
                 String::from("adapter_serving"),
                 String::from("session_reuse"),
                 String::from("prefix_cache"),
@@ -251,14 +250,6 @@ impl TextGenerationExecutor for CudaGgufQwen35TextGenerationService {
                 ),
             });
         }
-        if request.options.structured_output.is_some() {
-            return Err(ReferenceTextGenerationError::Runtime(
-                crate::RuntimeError::UnsupportedStep(String::from(
-                    "structured-output fallback is not implemented on the native qwen35 cuda runtime",
-                )),
-            ));
-        }
-
         let generation_start = Instant::now();
         self.residency.begin_request(current_time_millis());
         let result = self.generate_inner(request);
@@ -631,6 +622,7 @@ impl CudaGgufQwen35TextGenerationService {
             psion_served_evidence: None,
             psion_served_output_claim_posture: None,
         };
+        let structured_output_value = sampler.structured_output_value(text.as_str())?;
         let response = GenerationResponse::new(
             request,
             None,
@@ -641,7 +633,11 @@ impl CudaGgufQwen35TextGenerationService {
             generated_text_terminated.unwrap_or(termination),
         )
         .with_metrics_and_provenance(metrics, provenance);
-        Ok(response)
+        Ok(if let Some(value) = structured_output_value {
+            response.with_structured_output_value(value)
+        } else {
+            response
+        })
     }
 }
 

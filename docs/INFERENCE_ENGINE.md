@@ -72,8 +72,10 @@ than just run tensor math.
   through explicit `raw_logits` readback instead of the bounded candidate lane.
 - Outside that envelope the qwen35 lane still falls back to explicit
   `raw_logits` readback instead of silently narrowing behavior.
-- The first `qwen35` lane must fail closed for structured outputs and tool
-  calling.
+- Native qwen35 structured outputs are now supported through the same explicit
+  `raw_logits` fallback path. The bounded `TopKCandidates` fast lane still
+  requires structured-output masking to stay inactive.
+- The first `qwen35` lane must still fail closed for tool calling.
 - The first `qwen35` lane must still fail closed for system-message image and
   video parts to stay aligned with the real template semantics.
 - On March 27, 2026, after moving qwen35 hybrid-layer SSM `decay` and `beta`

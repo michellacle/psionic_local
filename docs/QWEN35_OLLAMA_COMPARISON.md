@@ -204,6 +204,10 @@ Psionic-only measured means:
   they are not part of the canonical Psionic-versus-Ollama matrix on this
   checkout because the local Ollama `qwen3.5` runner does not wire those
   controls through the same active sampler path.
+- Native qwen35 structured outputs are also supported now, but only through
+  the explicit dense `raw_logits` fallback path. They are a parity feature,
+  not part of the bounded-candidate throughput matrix. The qwen35 proxy lane
+  still refuses them.
 - `mirostat` therefore remains a Psionic-side capability note, not a canonical
   beat-Ollama throughput claim.
 - Requests outside that envelope still fall back to explicit raw-logit readback

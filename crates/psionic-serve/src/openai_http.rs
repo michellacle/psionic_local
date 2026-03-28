@@ -928,8 +928,10 @@ impl OpenAiCompatLoadedModel {
     }
 
     fn supports_structured_outputs(&self) -> bool {
-        self.decoder()
-            .is_some_and(|model| !matches!(model.family, GgufDecoderFamily::Qwen35))
+        self.decoder().is_some_and(|model| {
+            !matches!(model.family, GgufDecoderFamily::Qwen35)
+                || self.execution_engine_label() == "psionic"
+        })
     }
 
     fn supports_tool_calling(&self) -> bool {
@@ -953,7 +955,10 @@ impl OpenAiCompatLoadedModel {
 
     fn structured_output_capabilities(&self) -> Vec<StructuredOutputCapability> {
         match self.decoder() {
-            Some(model) if matches!(model.family, GgufDecoderFamily::Qwen35) => {
+            Some(model)
+                if matches!(model.family, GgufDecoderFamily::Qwen35)
+                    && self.execution_engine_label() != "psionic" =>
+            {
                 unsupported_structured_output_capabilities(
                     qwen35_structured_output_unavailable_detail(self.execution_engine_label()),
                 )
@@ -5538,7 +5543,7 @@ mod tests {
     };
     use crate::{
         DecodeStrategy, GenerationMetrics, GenerationOutput, GenerationRequest, GenerationResponse,
-        GenerationUsage, TerminationReason,
+        GenerationUsage, OpenAiCompatBackend, TerminationReason,
     };
     use axum::{
         Json,
@@ -6813,6 +6818,147 @@ mod tests {
         );
 
         let _ = shutdown_tx.send(());
+        Ok(())
+    }
+
+    #[test]
+    fn generic_server_native_qwen35_grammar_fallback_is_machine_checkable()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let backend = psionic_backend_cuda::CudaBackend::new();
+        if !backend.quantized_kernels_available() {
+            return Ok(());
+        }
+
+        let temp = tempfile::tempdir()?;
+        let qwen35_path = temp.path().join("tiny-qwen35.gguf");
+        write_test_gguf(
+            &qwen35_path,
+            qwen35_native_full_attention_decoder_metadata("tiny native qwen35").as_slice(),
+            qwen35_native_full_attention_decoder_tensors().as_slice(),
+        )?;
+
+        let mut config = OpenAiCompatConfig::new(&qwen35_path);
+        config.backend = OpenAiCompatBackend::Cuda;
+        let server = OpenAiCompatServer::from_config(&config)?;
+        let runtime = tokio::runtime::Runtime::new()?;
+
+        let health = runtime.block_on(generic_health(State(std::sync::Arc::clone(&server.state))));
+        assert_eq!(health.0.backend, "cuda");
+        assert_eq!(health.0.execution_mode, "native");
+        assert_eq!(health.0.execution_engine, "psionic");
+        assert_eq!(
+            health.0.structured_output_fallbacks,
+            Some(vec![
+                "choice_set",
+                "regex_subset",
+                "gbnf_subset",
+                "json_schema_subset",
+                "json_object",
+                "tagged_json_schema",
+            ])
+        );
+        assert!(
+            health
+                .0
+                .structured_output_capabilities
+                .as_ref()
+                .is_some_and(|capabilities| {
+                    capabilities
+                        .iter()
+                        .all(|capability| capability.support_level.label() != "unsupported")
+                })
+        );
+
+        let models = runtime.block_on(generic_list_models(State(std::sync::Arc::clone(
+            &server.state,
+        ))));
+        let model = models
+            .0
+            .data
+            .iter()
+            .find(|model| model.id == "tiny-qwen35.gguf")
+            .expect("native qwen35 model should be listed");
+        assert_eq!(
+            model.psionic_structured_outputs,
+            Some(vec![
+                "choice_set",
+                "regex_subset",
+                "gbnf_subset",
+                "json_schema_subset",
+                "json_object",
+                "tagged_json_schema",
+            ])
+        );
+        assert!(
+            model
+                .psionic_structured_output_capabilities
+                .as_ref()
+                .is_some_and(|capabilities| {
+                    capabilities
+                        .iter()
+                        .all(|capability| capability.support_level.label() != "unsupported")
+                })
+        );
+
+        let response = runtime.block_on(handle_generic_chat_completions(
+            std::sync::Arc::clone(&server.state),
+            ChatCompletionRequest {
+                model: Some(String::from("tiny-qwen35")),
+                messages: vec![ChatCompletionMessage::text("user", "hello")],
+                temperature: Some(0.0),
+                max_tokens: Some(1),
+                stop: None,
+                stream: false,
+                tools: Vec::new(),
+                tool_choice: None,
+                response_format: None,
+                psionic_grammar: Some(PsionicGrammarRequest {
+                    grammar: String::from("root ::= \"world\"\n"),
+                    syntax: Some(StructuredGrammarSyntax::Gbnf),
+                }),
+                psionic_structured_output: None,
+                psionic_reasoning: None,
+                psionic_prefix_cache: None,
+                ..Default::default()
+            },
+        ))?;
+        assert_eq!(
+            header_value(response.headers(), "x-psionic-execution-mode"),
+            Some(String::from("native"))
+        );
+        assert_eq!(
+            header_value(response.headers(), "x-psionic-execution-engine"),
+            Some(String::from("psionic"))
+        );
+        assert_eq!(
+            header_value(response.headers(), "x-psionic-structured-output-mode"),
+            Some(String::from("fallback_grammar"))
+        );
+        assert_eq!(
+            header_value(response.headers(), "x-psionic-structured-output-parser"),
+            Some(String::from("gbnf_subset"))
+        );
+        let payload = runtime.block_on(response_json(response))?;
+        assert_eq!(payload["choices"][0]["message"]["content"], "world");
+        assert_eq!(
+            payload["psionic_structured_output"]["mode"],
+            serde_json::json!("fallback_grammar")
+        );
+        assert_eq!(
+            payload["psionic_structured_output"]["kind"],
+            serde_json::json!("grammar")
+        );
+        assert_eq!(
+            payload["psionic_structured_output"]["parser"],
+            serde_json::json!("gbnf_subset")
+        );
+        assert_eq!(
+            payload["psionic_structured_value"],
+            serde_json::json!({
+                "kind": "grammar",
+                "value": "world"
+            })
+        );
         Ok(())
     }
 
@@ -9397,6 +9543,95 @@ mod tests {
         metadata
     }
 
+    fn qwen35_native_full_attention_decoder_metadata(
+        name: &str,
+    ) -> Vec<(String, GgufMetadataValue)> {
+        let mut metadata = vec![
+            (
+                String::from("general.architecture"),
+                GgufMetadataValue::String(String::from("qwen35")),
+            ),
+            (
+                String::from("general.name"),
+                GgufMetadataValue::String(name.to_string()),
+            ),
+            (
+                String::from("qwen35.context_length"),
+                GgufMetadataValue::U32(256),
+            ),
+            (
+                String::from("qwen35.embedding_length"),
+                GgufMetadataValue::U32(32),
+            ),
+            (
+                String::from("qwen35.feed_forward_length"),
+                GgufMetadataValue::U32(32),
+            ),
+            (
+                String::from("qwen35.block_count"),
+                GgufMetadataValue::U32(1),
+            ),
+            (
+                String::from("qwen35.attention.head_count"),
+                GgufMetadataValue::U32(4),
+            ),
+            (
+                String::from("qwen35.attention.head_count_kv"),
+                GgufMetadataValue::Array(vec![GgufMetadataValue::U32(2)]),
+            ),
+            (
+                String::from("qwen35.attention.key_length"),
+                GgufMetadataValue::U32(8),
+            ),
+            (
+                String::from("qwen35.attention.value_length"),
+                GgufMetadataValue::U32(8),
+            ),
+            (
+                String::from("qwen35.attention.layer_norm_rms_epsilon"),
+                GgufMetadataValue::F32(1e-6),
+            ),
+            (
+                String::from("qwen35.rope.dimension_count"),
+                GgufMetadataValue::U32(8),
+            ),
+            (
+                String::from("qwen35.rope.freq_base"),
+                GgufMetadataValue::F32(10_000_000.0),
+            ),
+            (
+                String::from("qwen35.full_attention_interval"),
+                GgufMetadataValue::U32(1),
+            ),
+            (
+                String::from("qwen35.ssm.conv_kernel"),
+                GgufMetadataValue::U32(4),
+            ),
+            (
+                String::from("qwen35.ssm.group_count"),
+                GgufMetadataValue::U32(2),
+            ),
+            (
+                String::from("qwen35.ssm.inner_size"),
+                GgufMetadataValue::U32(32),
+            ),
+            (
+                String::from("qwen35.ssm.state_size"),
+                GgufMetadataValue::U32(8),
+            ),
+            (
+                String::from("qwen35.ssm.time_step_rank"),
+                GgufMetadataValue::U32(2),
+            ),
+            (
+                String::from("tokenizer.chat_template"),
+                GgufMetadataValue::String(qwen35_chat_template().to_string()),
+            ),
+        ];
+        metadata.extend(qwen35_tokenizer_metadata_entries());
+        metadata
+    }
+
     fn set_context_length(
         metadata: &mut [(String, GgufMetadataValue)],
         architecture: &str,
@@ -9734,6 +9969,25 @@ mod tests {
         }
 
         tensors
+    }
+
+    fn qwen35_native_full_attention_decoder_tensors() -> Vec<TestGgufTensor> {
+        vec![
+            dense_f32_tensor("token_embd.weight", vec![10, 32]),
+            dense_f32_tensor("output_norm.weight", vec![32]),
+            quantized_q8_0_tensor("output.weight", vec![10, 32]),
+            dense_f32_tensor("blk.0.attn_norm.weight", vec![32]),
+            quantized_q8_0_tensor("blk.0.ffn_gate.weight", vec![32, 32]),
+            quantized_q8_0_tensor("blk.0.ffn_up.weight", vec![32, 32]),
+            quantized_q8_0_tensor("blk.0.ffn_down.weight", vec![32, 32]),
+            dense_f32_tensor("blk.0.post_attention_norm.weight", vec![32]),
+            quantized_q8_0_tensor("blk.0.attn_q.weight", vec![64, 32]),
+            quantized_q8_0_tensor("blk.0.attn_k.weight", vec![16, 32]),
+            quantized_q8_0_tensor("blk.0.attn_v.weight", vec![16, 32]),
+            quantized_q8_0_tensor("blk.0.attn_output.weight", vec![32, 32]),
+            dense_f32_tensor("blk.0.attn_q_norm.weight", vec![8]),
+            dense_f32_tensor("blk.0.attn_k_norm.weight", vec![8]),
+        ]
     }
 
     fn token_embedding_values(vocab_size: usize, hello_token_index: usize) -> Vec<f32> {

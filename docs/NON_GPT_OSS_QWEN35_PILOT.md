@@ -25,7 +25,9 @@ Psionic currently supports this row through a bounded native `qwen35` CUDA lane:
 - image and video inputs are accepted through prompt projection onto the real
   `qwen35` marker surface
 - the row publishes truthful prompt-projection posture for multimodal inputs
-- the row still refuses tools and structured outputs
+- the row still refuses tools
+- structured outputs are supported on the native lane through explicit
+  `raw_logits` fallback rather than the bounded candidate fast path
 - session reuse, adapter serving, and prefix caching are still refused on this
   early lane
 
@@ -108,7 +110,8 @@ The pilot is intentionally bounded:
 - it does not claim native multimodal inference
 - it does not claim a native image or video encoder
 - it does not claim tool calling
-- it does not claim structured-output fallback
+- it does not claim structured-output acceleration; native structured outputs
+  stay on the explicit dense `raw_logits` fallback path
 - it does not claim adapter serving
 
 ## Current Throughput
