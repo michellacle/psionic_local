@@ -6888,7 +6888,7 @@ impl Qwen35CudaStepPlan {
         logit_count: usize,
         top_k: usize,
     ) -> Result<(), crate::RuntimeError> {
-        if top_k > QWEN35_CUDA_PARTITIONED_TOP_K_THRESHOLD {
+        if top_k >= QWEN35_CUDA_PARTITIONED_TOP_K_THRESHOLD {
             return submission.top_k_f32_one_row_partitioned(
                 &self.logits_buffer,
                 logit_count,

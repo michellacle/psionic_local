@@ -5523,6 +5523,7 @@ pub struct TokenSampler {
     generator_state: Option<GeneratorState>,
     rng: StdRng,
     mirostat_state: Option<MirostatState>,
+    candidate_tokens: Vec<SampleToken>,
 }
 
 impl TokenSampler {
@@ -5544,6 +5545,7 @@ impl TokenSampler {
             generator_state,
             rng,
             mirostat_state,
+            candidate_tokens: Vec::new(),
         }
     }
 
@@ -5568,6 +5570,7 @@ impl TokenSampler {
             generator_state,
             rng,
             mirostat_state,
+            candidate_tokens: Vec::new(),
         })
     }
 
@@ -5705,22 +5708,24 @@ impl TokenSampler {
         if candidate_ids.len() != candidate_logits.len() {
             return None;
         }
-        let mut tokens = candidate_ids
-            .iter()
-            .copied()
-            .zip(candidate_logits.iter().copied())
-            .filter(|(_, value)| value.is_finite())
-            .map(|(id, logit)| SampleToken {
+        self.candidate_tokens.clear();
+        self.candidate_tokens.reserve(candidate_ids.len());
+        for (&id, &logit) in candidate_ids.iter().zip(candidate_logits.iter()) {
+            if !logit.is_finite() {
+                continue;
+            }
+            self.candidate_tokens.push(SampleToken {
                 id,
                 logit,
                 probability: 0.0,
-            })
-            .collect::<Vec<_>>();
-        if tokens.is_empty() {
+            });
+        }
+        if self.candidate_tokens.is_empty() {
             return None;
         }
         if sampling_is_argmax_only(&self.policy) {
-            return tokens
+            return self
+                .candidate_tokens
                 .iter()
                 .max_by(|left, right| {
                     left.logit
@@ -5729,13 +5734,18 @@ impl TokenSampler {
                 })
                 .map(|token| token.id);
         }
-        let full_vocab_size = full_vocab_size.max(tokens.len());
+        let full_vocab_size = full_vocab_size.max(self.candidate_tokens.len());
+        let top_k_already_applied = matches!(
+            self.policy.effective_top_k(),
+            Some(top_k) if top_k > 0 && self.candidate_tokens.len() <= top_k
+        );
         let selected = sample_token_from_tokens(
             &mut self.rng,
-            &mut tokens,
+            &mut self.candidate_tokens,
             &self.policy,
             &mut self.mirostat_state,
             full_vocab_size,
+            top_k_already_applied,
         );
         if selected.is_some() {
             if let Some(generator_state) = self.generator_state.as_mut() {
@@ -5933,7 +5943,7 @@ fn sample_token_index(
             probability: 0.0,
         })
         .collect::<Vec<_>>();
-    sample_token_from_tokens(rng, &mut tokens, policy, mirostat_state, logits.len())
+    sample_token_from_tokens(rng, &mut tokens, policy, mirostat_state, logits.len(), false)
 }
 
 fn top_k(tokens: &mut Vec<SampleToken>, top_k: Option<usize>) {
@@ -6090,6 +6100,7 @@ fn sample_token_from_tokens(
     policy: &SamplingPolicy,
     mirostat_state: &mut Option<MirostatState>,
     vocab_size: usize,
+    top_k_already_applied: bool,
 ) -> Option<u32> {
     if tokens.is_empty() {
         return None;
@@ -6098,7 +6109,9 @@ fn sample_token_from_tokens(
         return sample_token_mirostat(rng, tokens, policy, mirostat_state, vocab_size, mode);
     }
 
-    top_k(tokens, policy.effective_top_k());
+    if !top_k_already_applied {
+        top_k(tokens, policy.effective_top_k());
+    }
     typical_p(tokens, policy.effective_typical_p());
     top_p(tokens, policy.effective_top_p());
     min_p(tokens, policy.effective_min_p());

@@ -163,6 +163,11 @@ Default to:
   the same change as the code or doc update that requires them.
 - If generated artifacts are not part of the task, do not leave them behind as
   worktree dirt.
+- Before any CUDA benchmark or other GPU throughput run, verify the target GPU
+  is idle with `nvidia-smi --query-compute-apps=pid,process_name,used_gpu_memory
+  --format=csv,noheader,nounits`.
+- Do not benchmark on a GPU with resident compute processes unless the user
+  explicitly instructs you to override that rule.
 
 ## Push Gate
 

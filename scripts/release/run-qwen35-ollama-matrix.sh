@@ -30,6 +30,26 @@ require_command() {
   fi
 }
 
+ensure_idle_gpu() {
+  if [[ "${PSIONIC_QWEN35_MATRIX_ALLOW_BUSY_GPU:-0}" == "1" ]]; then
+    return
+  fi
+  require_command nvidia-smi
+  local active_compute_processes
+  active_compute_processes="$(
+    nvidia-smi --query-compute-apps=pid,process_name,used_gpu_memory --format=csv,noheader,nounits 2>/dev/null \
+      | sed '/^[[:space:]]*$/d' \
+      || true
+  )"
+  if [[ -n "$active_compute_processes" ]]; then
+    echo "refusing to run qwen35 benchmark matrix on a busy GPU" >&2
+    echo "resident compute processes:" >&2
+    echo "$active_compute_processes" >&2
+    echo "set PSIONIC_QWEN35_MATRIX_ALLOW_BUSY_GPU=1 to override explicitly" >&2
+    exit 1
+  fi
+}
+
 extract_number_field() {
   local field="$1"
   local path="$2"
@@ -128,6 +148,7 @@ require_model_path() {
 
 export CARGO_INCREMENTAL="${CARGO_INCREMENTAL:-0}"
 require_command jq
+ensure_idle_gpu
 
 host_label="${PSIONIC_QWEN35_MATRIX_HOST_LABEL:-$(hostname -s | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9._-' '-')}"
 repeats="${PSIONIC_QWEN35_MATRIX_REPEATS:-3}"
