@@ -137,6 +137,8 @@ strong.
   `docs/audits/2026-03-28-homegolf-competitive-bigram-input-fix-audit.md`
 - latest step-zero validation fix audit:
   `docs/audits/2026-03-28-homegolf-initial-validation-step-zero-fix-audit.md`
+- latest wallclock projection refusal audit:
+  `docs/audits/2026-03-28-homegolf-local-wallclock-projection-refusal-audit.md`
 
 What is true now:
 
@@ -186,6 +188,22 @@ What is true now:
   optimizer work instead of an accidental full validation sweep
 - periodic live validation now begins only after real training progress, while
   final raw-surface validation semantics remain unchanged
+- the local competitive exact lane now fails fast when the declared `600`
+  second wallclock is impossible on the current `4080` posture
+- the latest retained competitive refusal on `archlinux` proved that directly:
+  - posture:
+    `competitive_homegolf_v1 + grad_accum_steps=64 + ema + roundtrip_only + non_overlapping + no-TTT`
+  - observed first micro-step:
+    `observed_step_wallclock_ms=29584`
+  - projected exact full step:
+    `projected_full_step_wallclock_ms=1893376`
+  - remaining training wallclock:
+    `600000`
+  - retained report:
+    `/tmp/psionic_homegolf_runs/homegolf_competitive_nottt_ema_projection_refusal_8dad683d_20260328.json`
+- that matters because the exact local loop no longer burns tens of minutes on
+  an already-impossible first optimizer step just to rediscover that the lane
+  is not `10`-minute honest on this hardware
 
 What is not true:
 
@@ -201,6 +219,9 @@ What is not true:
   `4080`; one observed `non_overlapping` validation pass scheduled `947` full
   batches, needed about `58979 ms` for batch `1/947`, and was started by the
   old pre-fix `step=0` validation behavior
+- the current exact competitive training path is also not practical on the
+  `4080`; the latest live refusal projected step `1` to about `1893` seconds
+  after just `1/64` micro-steps
 - no new retained local full-validation report/artifact pair was produced on
   the `4080` during this iteration loop
 
