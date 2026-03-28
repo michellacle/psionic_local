@@ -1,12 +1,12 @@
 {
   "report_kind": "psionic_hermes_qwen35_reuse_benchmark",
-  "created_at_utc": "2026-03-28T23:00:08.180824+00:00",
+  "created_at_utc": "2026-03-28T23:06:14.318042+00:00",
   "host": "archlinux",
   "base_url": "http://127.0.0.1:8097/v1",
   "model": "qwen3.5-2b-q8_0-registry.gguf",
   "model_path": "/home/christopherdavid/models/qwen3.5/qwen3.5-2b-q8_0-registry.gguf",
-  "psionic_root": "/home/christopherdavid/scratch/psionic-hermes-reuse-a800435c",
-  "psionic_revision": "a800435c4542336d011e36a0154d111228fdc5dd",
+  "psionic_root": "/home/christopherdavid/scratch/psionic-hermes-reuse-0a1cdd3b",
+  "psionic_revision": "0a1cdd3b41bcdfd3a13802e83798a2419903be2e",
   "iterations_per_row": 3,
   "workload_shape": {
     "api_mode": "chat_completions",
@@ -28,7 +28,7 @@
             "request_label": "required_tool_turn_loop_0",
             "http_status": 200,
             "error": null,
-            "wallclock_s": 0.6158500259916764,
+            "wallclock_s": 0.6044752709858585,
             "psionic_headers": {
               "x-psionic-backend": "cuda",
               "x-psionic-execution-mode": "native",
@@ -39,13 +39,13 @@
               "x-psionic-prefix-cache-state": "bypassed",
               "x-psionic-prefix-cache-refusal": "request_opt_out",
               "x-psionic-prefix-cache-reused-tokens": "0",
-              "x-psionic-ttft-ns": "84904243",
-              "x-psionic-itl-ns": "4098037"
+              "x-psionic-ttft-ns": "85789530",
+              "x-psionic-itl-ns": "4020158"
             },
             "prefix_cache_state": "bypassed",
             "prefix_cache_refusal": "request_opt_out",
             "prefix_tokens_reused": 0,
-            "ttft_ms": 84.904243,
+            "ttft_ms": 85.78953,
             "decode_metrics": {
               "present": true,
               "output_modes": [
@@ -62,7 +62,7 @@
             "payload": {
               "id": "psionic-chatcmpl-1",
               "object": "chat.completion",
-              "created": 1774738802,
+              "created": 1774739168,
               "model": "qwen3.5-2b-q8_0-registry.gguf",
               "choices": [
                 {
@@ -89,10 +89,10 @@
                 "total_tokens": 158
               },
               "psionic_metrics": {
-                "total_duration_ns": 610278799,
-                "load_duration_ns": 499781929,
+                "total_duration_ns": 598793077,
+                "load_duration_ns": 502137311,
                 "prompt_eval_count": 135,
-                "prompt_eval_duration_ns": 422762457,
+                "prompt_eval_duration_ns": 412149269,
                 "context_window": {
                   "budget": {
                     "max_context_tokens": 262144,
@@ -106,9 +106,9 @@
                   "preserved_prefix_tokens": 0
                 },
                 "eval_count": 23,
-                "eval_duration_ns": 179162499,
-                "time_to_first_token_ns": 84904243,
-                "inter_token_latency_ns": 4098037,
+                "eval_duration_ns": 178258567,
+                "time_to_first_token_ns": 85789530,
+                "inter_token_latency_ns": 4020158,
                 "prefix_tokens_reused": 0,
                 "termination_detail": {
                   "cause": "end_of_sequence_token"
@@ -190,7 +190,7 @@
             "request_label": "required_tool_turn_loop_1",
             "http_status": 200,
             "error": null,
-            "wallclock_s": 0.6033514449954964,
+            "wallclock_s": 0.5922743309929501,
             "psionic_headers": {
               "x-psionic-backend": "cuda",
               "x-psionic-execution-mode": "native",
@@ -201,13 +201,13 @@
               "x-psionic-prefix-cache-state": "bypassed",
               "x-psionic-prefix-cache-refusal": "request_opt_out",
               "x-psionic-prefix-cache-reused-tokens": "0",
-              "x-psionic-ttft-ns": "86615389",
-              "x-psionic-itl-ns": "4096573"
+              "x-psionic-ttft-ns": "86060646",
+              "x-psionic-itl-ns": "4022106"
             },
             "prefix_cache_state": "bypassed",
             "prefix_cache_refusal": "request_opt_out",
             "prefix_tokens_reused": 0,
-            "ttft_ms": 86.615389,
+            "ttft_ms": 86.060646,
             "decode_metrics": {
               "present": true,
               "output_modes": [
@@ -224,7 +224,7 @@
             "payload": {
               "id": "psionic-chatcmpl-3",
               "object": "chat.completion",
-              "created": 1774738803,
+              "created": 1774739169,
               "model": "qwen3.5-2b-q8_0-registry.gguf",
               "choices": [
                 {
@@ -251,10 +251,10 @@
                 "total_tokens": 158
               },
               "psionic_metrics": {
-                "total_duration_ns": 602122612,
-                "load_duration_ns": 499781929,
+                "total_duration_ns": 590848016,
+                "load_duration_ns": 502137311,
                 "prompt_eval_count": 135,
-                "prompt_eval_duration_ns": 412987411,
+                "prompt_eval_duration_ns": 402694448,
                 "context_window": {
                   "budget": {
                     "max_context_tokens": 262144,
@@ -268,9 +268,9 @@
                   "preserved_prefix_tokens": 0
                 },
                 "eval_count": 23,
-                "eval_duration_ns": 180842518,
-                "time_to_first_token_ns": 86615389,
-                "inter_token_latency_ns": 4096573,
+                "eval_duration_ns": 178574992,
+                "time_to_first_token_ns": 86060646,
+                "inter_token_latency_ns": 4022106,
                 "prefix_tokens_reused": 0,
                 "termination_detail": {
                   "cause": "end_of_sequence_token"
@@ -352,7 +352,7 @@
             "request_label": "required_tool_turn_loop_2",
             "http_status": 200,
             "error": null,
-            "wallclock_s": 0.6011746400035918,
+            "wallclock_s": 0.5905204120208509,
             "psionic_headers": {
               "x-psionic-backend": "cuda",
               "x-psionic-execution-mode": "native",
@@ -363,13 +363,13 @@
               "x-psionic-prefix-cache-state": "bypassed",
               "x-psionic-prefix-cache-refusal": "request_opt_out",
               "x-psionic-prefix-cache-reused-tokens": "0",
-              "x-psionic-ttft-ns": "84504213",
-              "x-psionic-itl-ns": "4097380"
+              "x-psionic-ttft-ns": "85176339",
+              "x-psionic-itl-ns": "4023507"
             },
             "prefix_cache_state": "bypassed",
             "prefix_cache_refusal": "request_opt_out",
             "prefix_tokens_reused": 0,
-            "ttft_ms": 84.504213,
+            "ttft_ms": 85.176339,
             "decode_metrics": {
               "present": true,
               "output_modes": [
@@ -386,7 +386,7 @@
             "payload": {
               "id": "psionic-chatcmpl-5",
               "object": "chat.completion",
-              "created": 1774738805,
+              "created": 1774739171,
               "model": "qwen3.5-2b-q8_0-registry.gguf",
               "choices": [
                 {
@@ -413,10 +413,10 @@
                 "total_tokens": 158
               },
               "psionic_metrics": {
-                "total_duration_ns": 600014472,
-                "load_duration_ns": 499781929,
+                "total_duration_ns": 588999682,
+                "load_duration_ns": 502137311,
                 "prompt_eval_count": 135,
-                "prompt_eval_duration_ns": 412955339,
+                "prompt_eval_duration_ns": 402858337,
                 "context_window": {
                   "budget": {
                     "max_context_tokens": 262144,
@@ -430,9 +430,9 @@
                   "preserved_prefix_tokens": 0
                 },
                 "eval_count": 23,
-                "eval_duration_ns": 178745884,
-                "time_to_first_token_ns": 84504213,
-                "inter_token_latency_ns": 4097380,
+                "eval_duration_ns": 177725157,
+                "time_to_first_token_ns": 85176339,
+                "inter_token_latency_ns": 4023507,
                 "prefix_tokens_reused": 0,
                 "termination_detail": {
                   "cause": "end_of_sequence_token"
@@ -513,10 +513,10 @@
         ],
         "aggregate": {
           "iteration_count": 3,
-          "mean_wallclock_s_all": 0.6067920369969215,
-          "mean_wallclock_s_warm": 0.6022630424995441,
-          "mean_ttft_ms_all": 85.34128166666666,
-          "mean_ttft_ms_warm": 85.559801,
+          "mean_wallclock_s_all": 0.5957566713332199,
+          "mean_wallclock_s_warm": 0.5913973715069005,
+          "mean_ttft_ms_all": 85.675505,
+          "mean_ttft_ms_warm": 85.6184925,
           "mean_prefix_tokens_reused_all": 0.0,
           "mean_prefix_tokens_reused_warm": 0.0
         }
@@ -527,7 +527,7 @@
             "request_label": "tool_result_continuation_loop_0",
             "http_status": 200,
             "error": null,
-            "wallclock_s": 0.8544611459947191,
+            "wallclock_s": 0.8357778890058398,
             "psionic_headers": {
               "x-psionic-backend": "cuda",
               "x-psionic-execution-mode": "native",
@@ -538,13 +538,13 @@
               "x-psionic-prefix-cache-state": "bypassed",
               "x-psionic-prefix-cache-refusal": "request_opt_out",
               "x-psionic-prefix-cache-reused-tokens": "0",
-              "x-psionic-ttft-ns": "86355052",
-              "x-psionic-itl-ns": "4196646"
+              "x-psionic-ttft-ns": "85750687",
+              "x-psionic-itl-ns": "4118460"
             },
             "prefix_cache_state": "bypassed",
             "prefix_cache_refusal": "request_opt_out",
             "prefix_tokens_reused": 0,
-            "ttft_ms": 86.355052,
+            "ttft_ms": 85.750687,
             "decode_metrics": {
               "present": true,
               "output_modes": [
@@ -559,7 +559,7 @@
             "payload": {
               "id": "psionic-chatcmpl-2",
               "object": "chat.completion",
-              "created": 1774738802,
+              "created": 1774739169,
               "model": "qwen3.5-2b-q8_0-registry.gguf",
               "choices": [
                 {
@@ -577,10 +577,10 @@
                 "total_tokens": 238
               },
               "psionic_metrics": {
-                "total_duration_ns": 853020509,
-                "load_duration_ns": 499781929,
+                "total_duration_ns": 834247375,
+                "load_duration_ns": 502137311,
                 "prompt_eval_count": 215,
-                "prompt_eval_duration_ns": 661722207,
+                "prompt_eval_duration_ns": 645328611,
                 "context_window": {
                   "budget": {
                     "max_context_tokens": 262144,
@@ -594,9 +594,9 @@
                   "preserved_prefix_tokens": 0
                 },
                 "eval_count": 23,
-                "eval_duration_ns": 182887930,
-                "time_to_first_token_ns": 86355052,
-                "inter_token_latency_ns": 4196646,
+                "eval_duration_ns": 180480908,
+                "time_to_first_token_ns": 85750687,
+                "inter_token_latency_ns": 4118460,
                 "prefix_tokens_reused": 0,
                 "termination_detail": {
                   "cause": "end_of_sequence_token"
@@ -661,7 +661,7 @@
             "request_label": "tool_result_continuation_loop_1",
             "http_status": 200,
             "error": null,
-            "wallclock_s": 0.85247993998928,
+            "wallclock_s": 0.834997828991618,
             "psionic_headers": {
               "x-psionic-backend": "cuda",
               "x-psionic-execution-mode": "native",
@@ -672,13 +672,13 @@
               "x-psionic-prefix-cache-state": "bypassed",
               "x-psionic-prefix-cache-refusal": "request_opt_out",
               "x-psionic-prefix-cache-reused-tokens": "0",
-              "x-psionic-ttft-ns": "84627836",
-              "x-psionic-itl-ns": "4195793"
+              "x-psionic-ttft-ns": "84686460",
+              "x-psionic-itl-ns": "4120884"
             },
             "prefix_cache_state": "bypassed",
             "prefix_cache_refusal": "request_opt_out",
             "prefix_tokens_reused": 0,
-            "ttft_ms": 84.627836,
+            "ttft_ms": 84.68646,
             "decode_metrics": {
               "present": true,
               "output_modes": [
@@ -693,7 +693,7 @@
             "payload": {
               "id": "psionic-chatcmpl-4",
               "object": "chat.completion",
-              "created": 1774738804,
+              "created": 1774739170,
               "model": "qwen3.5-2b-q8_0-registry.gguf",
               "choices": [
                 {
@@ -711,10 +711,10 @@
                 "total_tokens": 238
               },
               "psionic_metrics": {
-                "total_duration_ns": 851311259,
-                "load_duration_ns": 499781929,
+                "total_duration_ns": 833736115,
+                "load_duration_ns": 502137311,
                 "prompt_eval_count": 215,
-                "prompt_eval_duration_ns": 661735846,
+                "prompt_eval_duration_ns": 645819491,
                 "context_window": {
                   "budget": {
                     "max_context_tokens": 262144,
@@ -728,9 +728,9 @@
                   "preserved_prefix_tokens": 0
                 },
                 "eval_count": 23,
-                "eval_duration_ns": 181136765,
-                "time_to_first_token_ns": 84627836,
-                "inter_token_latency_ns": 4195793,
+                "eval_duration_ns": 179476937,
+                "time_to_first_token_ns": 84686460,
+                "inter_token_latency_ns": 4120884,
                 "prefix_tokens_reused": 0,
                 "termination_detail": {
                   "cause": "end_of_sequence_token"
@@ -795,7 +795,7 @@
             "request_label": "tool_result_continuation_loop_2",
             "http_status": 200,
             "error": null,
-            "wallclock_s": 0.8527408960217144,
+            "wallclock_s": 0.8386908700049389,
             "psionic_headers": {
               "x-psionic-backend": "cuda",
               "x-psionic-execution-mode": "native",
@@ -806,13 +806,13 @@
               "x-psionic-prefix-cache-state": "bypassed",
               "x-psionic-prefix-cache-refusal": "request_opt_out",
               "x-psionic-prefix-cache-reused-tokens": "0",
-              "x-psionic-ttft-ns": "84821226",
-              "x-psionic-itl-ns": "4195031"
+              "x-psionic-ttft-ns": "88508255",
+              "x-psionic-itl-ns": "4121233"
             },
             "prefix_cache_state": "bypassed",
             "prefix_cache_refusal": "request_opt_out",
             "prefix_tokens_reused": 0,
-            "ttft_ms": 84.821226,
+            "ttft_ms": 88.508255,
             "decode_metrics": {
               "present": true,
               "output_modes": [
@@ -827,7 +827,7 @@
             "payload": {
               "id": "psionic-chatcmpl-6",
               "object": "chat.completion",
-              "created": 1774738805,
+              "created": 1774739172,
               "model": "qwen3.5-2b-q8_0-registry.gguf",
               "choices": [
                 {
@@ -845,10 +845,10 @@
                 "total_tokens": 238
               },
               "psionic_metrics": {
-                "total_duration_ns": 851380714,
-                "load_duration_ns": 499781929,
+                "total_duration_ns": 837476747,
+                "load_duration_ns": 502137311,
                 "prompt_eval_count": 215,
-                "prompt_eval_duration_ns": 661624527,
+                "prompt_eval_duration_ns": 645687429,
                 "context_window": {
                   "budget": {
                     "max_context_tokens": 262144,
@@ -862,9 +862,9 @@
                   "preserved_prefix_tokens": 0
                 },
                 "eval_count": 23,
-                "eval_duration_ns": 181310779,
-                "time_to_first_token_ns": 84821226,
-                "inter_token_latency_ns": 4195031,
+                "eval_duration_ns": 183304370,
+                "time_to_first_token_ns": 88508255,
+                "inter_token_latency_ns": 4121233,
                 "prefix_tokens_reused": 0,
                 "termination_detail": {
                   "cause": "end_of_sequence_token"
@@ -928,10 +928,10 @@
         ],
         "aggregate": {
           "iteration_count": 3,
-          "mean_wallclock_s_all": 0.8532273273352379,
-          "mean_wallclock_s_warm": 0.8526104180054972,
-          "mean_ttft_ms_all": 85.268038,
-          "mean_ttft_ms_warm": 84.724531,
+          "mean_wallclock_s_all": 0.8364888626674656,
+          "mean_wallclock_s_warm": 0.8368443494982785,
+          "mean_ttft_ms_all": 86.315134,
+          "mean_ttft_ms_warm": 86.5973575,
           "mean_prefix_tokens_reused_all": 0.0,
           "mean_prefix_tokens_reused_warm": 0.0
         }
@@ -946,7 +946,7 @@
             "request_label": "required_tool_turn_loop_0",
             "http_status": 200,
             "error": null,
-            "wallclock_s": 0.6081810350005981,
+            "wallclock_s": 0.5993258180096745,
             "psionic_headers": {
               "x-psionic-backend": "cuda",
               "x-psionic-execution-mode": "native",
@@ -956,13 +956,13 @@
               "x-psionic-performance-class": "nvidia_native",
               "x-psionic-prefix-cache-state": "none",
               "x-psionic-prefix-cache-reused-tokens": "0",
-              "x-psionic-ttft-ns": "84452695",
-              "x-psionic-itl-ns": "4101839"
+              "x-psionic-ttft-ns": "87282452",
+              "x-psionic-itl-ns": "4024965"
             },
             "prefix_cache_state": "none",
             "prefix_cache_refusal": null,
             "prefix_tokens_reused": 0,
-            "ttft_ms": 84.452695,
+            "ttft_ms": 87.282452,
             "decode_metrics": {
               "present": true,
               "output_modes": [
@@ -979,7 +979,7 @@
             "payload": {
               "id": "psionic-chatcmpl-7",
               "object": "chat.completion",
-              "created": 1774738806,
+              "created": 1774739172,
               "model": "qwen3.5-2b-q8_0-registry.gguf",
               "choices": [
                 {
@@ -1006,10 +1006,10 @@
                 "total_tokens": 158
               },
               "psionic_metrics": {
-                "total_duration_ns": 607019875,
-                "load_duration_ns": 499781929,
+                "total_duration_ns": 598064680,
+                "load_duration_ns": 502137311,
                 "prompt_eval_count": 135,
-                "prompt_eval_duration_ns": 416210695,
+                "prompt_eval_duration_ns": 406139003,
                 "context_window": {
                   "budget": {
                     "max_context_tokens": 262144,
@@ -1023,9 +1023,9 @@
                   "preserved_prefix_tokens": 0
                 },
                 "eval_count": 23,
-                "eval_duration_ns": 182521035,
-                "time_to_first_token_ns": 84452695,
-                "inter_token_latency_ns": 4101839,
+                "eval_duration_ns": 183576538,
+                "time_to_first_token_ns": 87282452,
+                "inter_token_latency_ns": 4024965,
                 "prefix_tokens_reused": 0,
                 "termination_detail": {
                   "cause": "end_of_sequence_token"
@@ -1107,7 +1107,7 @@
             "request_label": "required_tool_turn_loop_1",
             "http_status": 200,
             "error": null,
-            "wallclock_s": 0.19989520200761035,
+            "wallclock_s": 0.2001871209940873,
             "psionic_headers": {
               "x-psionic-backend": "cuda",
               "x-psionic-execution-mode": "native",
@@ -1117,13 +1117,13 @@
               "x-psionic-performance-class": "nvidia_native",
               "x-psionic-prefix-cache-state": "hit",
               "x-psionic-prefix-cache-reused-tokens": "135",
-              "x-psionic-ttft-ns": "515",
-              "x-psionic-itl-ns": "7995500"
+              "x-psionic-ttft-ns": "323",
+              "x-psionic-itl-ns": "7950066"
             },
             "prefix_cache_state": "hit",
             "prefix_cache_refusal": null,
             "prefix_tokens_reused": 135,
-            "ttft_ms": 0.000515,
+            "ttft_ms": 0.000323,
             "decode_metrics": {
               "present": true,
               "output_modes": [
@@ -1140,7 +1140,7 @@
             "payload": {
               "id": "psionic-chatcmpl-9",
               "object": "chat.completion",
-              "created": 1774738807,
+              "created": 1774739173,
               "model": "qwen3.5-2b-q8_0-registry.gguf",
               "choices": [
                 {
@@ -1167,10 +1167,10 @@
                 "total_tokens": 158
               },
               "psionic_metrics": {
-                "total_duration_ns": 198756669,
-                "load_duration_ns": 499781929,
+                "total_duration_ns": 198941290,
+                "load_duration_ns": 502137311,
                 "prompt_eval_count": 135,
-                "prompt_eval_duration_ns": 6264886,
+                "prompt_eval_duration_ns": 6198506,
                 "context_window": {
                   "budget": {
                     "max_context_tokens": 262144,
@@ -1184,9 +1184,9 @@
                   "preserved_prefix_tokens": 0
                 },
                 "eval_count": 23,
-                "eval_duration_ns": 183734641,
-                "time_to_first_token_ns": 515,
-                "inter_token_latency_ns": 7995500,
+                "eval_duration_ns": 182685660,
+                "time_to_first_token_ns": 323,
+                "inter_token_latency_ns": 7950066,
                 "prefix_tokens_reused": 135,
                 "termination_detail": {
                   "cause": "end_of_sequence_token"
@@ -1268,7 +1268,7 @@
             "request_label": "required_tool_turn_loop_2",
             "http_status": 200,
             "error": null,
-            "wallclock_s": 0.19926870398921892,
+            "wallclock_s": 0.19960634197923355,
             "psionic_headers": {
               "x-psionic-backend": "cuda",
               "x-psionic-execution-mode": "native",
@@ -1278,13 +1278,13 @@
               "x-psionic-performance-class": "nvidia_native",
               "x-psionic-prefix-cache-state": "hit",
               "x-psionic-prefix-cache-reused-tokens": "135",
-              "x-psionic-ttft-ns": "423",
-              "x-psionic-itl-ns": "7978300"
+              "x-psionic-ttft-ns": "354",
+              "x-psionic-itl-ns": "7931144"
             },
             "prefix_cache_state": "hit",
             "prefix_cache_refusal": null,
             "prefix_tokens_reused": 135,
-            "ttft_ms": 0.000423,
+            "ttft_ms": 0.000354,
             "decode_metrics": {
               "present": true,
               "output_modes": [
@@ -1301,7 +1301,7 @@
             "payload": {
               "id": "psionic-chatcmpl-11",
               "object": "chat.completion",
-              "created": 1774738807,
+              "created": 1774739174,
               "model": "qwen3.5-2b-q8_0-registry.gguf",
               "choices": [
                 {
@@ -1328,10 +1328,10 @@
                 "total_tokens": 158
               },
               "psionic_metrics": {
-                "total_duration_ns": 198133393,
-                "load_duration_ns": 499781929,
+                "total_duration_ns": 198362289,
+                "load_duration_ns": 502137311,
                 "prompt_eval_count": 135,
-                "prompt_eval_duration_ns": 5956758,
+                "prompt_eval_duration_ns": 6061431,
                 "context_window": {
                   "budget": {
                     "max_context_tokens": 262144,
@@ -1345,9 +1345,9 @@
                   "preserved_prefix_tokens": 0
                 },
                 "eval_count": 23,
-                "eval_duration_ns": 183346817,
-                "time_to_first_token_ns": 423,
-                "inter_token_latency_ns": 7978300,
+                "eval_duration_ns": 182241483,
+                "time_to_first_token_ns": 354,
+                "inter_token_latency_ns": 7931144,
                 "prefix_tokens_reused": 135,
                 "termination_detail": {
                   "cause": "end_of_sequence_token"
@@ -1428,10 +1428,10 @@
         ],
         "aggregate": {
           "iteration_count": 3,
-          "mean_wallclock_s_all": 0.3357816469991424,
-          "mean_wallclock_s_warm": 0.19958195299841464,
-          "mean_ttft_ms_all": 28.151211000000004,
-          "mean_ttft_ms_warm": 0.000469,
+          "mean_wallclock_s_all": 0.33303976032766514,
+          "mean_wallclock_s_warm": 0.19989673148666043,
+          "mean_ttft_ms_all": 29.094376333333333,
+          "mean_ttft_ms_warm": 0.0003385,
           "mean_prefix_tokens_reused_all": 90.0,
           "mean_prefix_tokens_reused_warm": 135.0
         }
@@ -1442,7 +1442,7 @@
             "request_label": "tool_result_continuation_loop_0",
             "http_status": 200,
             "error": null,
-            "wallclock_s": 0.8607728449860588,
+            "wallclock_s": 0.8448790560069028,
             "psionic_headers": {
               "x-psionic-backend": "cuda",
               "x-psionic-execution-mode": "native",
@@ -1452,13 +1452,13 @@
               "x-psionic-performance-class": "nvidia_native",
               "x-psionic-prefix-cache-state": "miss",
               "x-psionic-prefix-cache-reused-tokens": "0",
-              "x-psionic-ttft-ns": "84620232",
-              "x-psionic-itl-ns": "4197632"
+              "x-psionic-ttft-ns": "85057819",
+              "x-psionic-itl-ns": "4123423"
             },
             "prefix_cache_state": "miss",
             "prefix_cache_refusal": null,
             "prefix_tokens_reused": 0,
-            "ttft_ms": 84.620232,
+            "ttft_ms": 85.057819,
             "decode_metrics": {
               "present": true,
               "output_modes": [
@@ -1473,7 +1473,7 @@
             "payload": {
               "id": "psionic-chatcmpl-8",
               "object": "chat.completion",
-              "created": 1774738807,
+              "created": 1774739173,
               "model": "qwen3.5-2b-q8_0-registry.gguf",
               "choices": [
                 {
@@ -1491,10 +1491,10 @@
                 "total_tokens": 238
               },
               "psionic_metrics": {
-                "total_duration_ns": 859657448,
-                "load_duration_ns": 499781929,
+                "total_duration_ns": 843731464,
+                "load_duration_ns": 502137311,
                 "prompt_eval_count": 215,
-                "prompt_eval_duration_ns": 666038077,
+                "prompt_eval_duration_ns": 650537700,
                 "context_window": {
                   "budget": {
                     "max_context_tokens": 262144,
@@ -1508,9 +1508,9 @@
                   "preserved_prefix_tokens": 0
                 },
                 "eval_count": 23,
-                "eval_duration_ns": 185023735,
-                "time_to_first_token_ns": 84620232,
-                "inter_token_latency_ns": 4197632,
+                "eval_duration_ns": 183667620,
+                "time_to_first_token_ns": 85057819,
+                "inter_token_latency_ns": 4123423,
                 "prefix_tokens_reused": 0,
                 "termination_detail": {
                   "cause": "end_of_sequence_token"
@@ -1575,7 +1575,7 @@
             "request_label": "tool_result_continuation_loop_1",
             "http_status": 200,
             "error": null,
-            "wallclock_s": 0.20176476400229149,
+            "wallclock_s": 0.20232051200582646,
             "psionic_headers": {
               "x-psionic-backend": "cuda",
               "x-psionic-execution-mode": "native",
@@ -1585,13 +1585,13 @@
               "x-psionic-performance-class": "nvidia_native",
               "x-psionic-prefix-cache-state": "hit",
               "x-psionic-prefix-cache-reused-tokens": "215",
-              "x-psionic-ttft-ns": "435",
-              "x-psionic-itl-ns": "8071114"
+              "x-psionic-ttft-ns": "395",
+              "x-psionic-itl-ns": "8048215"
             },
             "prefix_cache_state": "hit",
             "prefix_cache_refusal": null,
             "prefix_tokens_reused": 215,
-            "ttft_ms": 0.000435,
+            "ttft_ms": 0.000395,
             "decode_metrics": {
               "present": true,
               "output_modes": [
@@ -1606,7 +1606,7 @@
             "payload": {
               "id": "psionic-chatcmpl-10",
               "object": "chat.completion",
-              "created": 1774738807,
+              "created": 1774739173,
               "model": "qwen3.5-2b-q8_0-registry.gguf",
               "choices": [
                 {
@@ -1624,10 +1624,10 @@
                 "total_tokens": 238
               },
               "psionic_metrics": {
-                "total_duration_ns": 200399929,
-                "load_duration_ns": 499781929,
+                "total_duration_ns": 201114176,
+                "load_duration_ns": 502137311,
                 "prompt_eval_count": 215,
-                "prompt_eval_duration_ns": 6058870,
+                "prompt_eval_duration_ns": 6131744,
                 "context_window": {
                   "budget": {
                     "max_context_tokens": 262144,
@@ -1641,9 +1641,9 @@
                   "preserved_prefix_tokens": 0
                 },
                 "eval_count": 23,
-                "eval_duration_ns": 185491851,
-                "time_to_first_token_ns": 435,
-                "inter_token_latency_ns": 8071114,
+                "eval_duration_ns": 184921979,
+                "time_to_first_token_ns": 395,
+                "inter_token_latency_ns": 8048215,
                 "prefix_tokens_reused": 215,
                 "termination_detail": {
                   "cause": "end_of_sequence_token"
@@ -1708,7 +1708,7 @@
             "request_label": "tool_result_continuation_loop_2",
             "http_status": 200,
             "error": null,
-            "wallclock_s": 0.20177740301005542,
+            "wallclock_s": 0.20268664800096303,
             "psionic_headers": {
               "x-psionic-backend": "cuda",
               "x-psionic-execution-mode": "native",
@@ -1718,13 +1718,13 @@
               "x-psionic-performance-class": "nvidia_native",
               "x-psionic-prefix-cache-state": "hit",
               "x-psionic-prefix-cache-reused-tokens": "215",
-              "x-psionic-ttft-ns": "503",
-              "x-psionic-itl-ns": "8091841"
+              "x-psionic-ttft-ns": "464",
+              "x-psionic-itl-ns": "8060428"
             },
             "prefix_cache_state": "hit",
             "prefix_cache_refusal": null,
             "prefix_tokens_reused": 215,
-            "ttft_ms": 0.000503,
+            "ttft_ms": 0.000464,
             "decode_metrics": {
               "present": true,
               "output_modes": [
@@ -1739,7 +1739,7 @@
             "payload": {
               "id": "psionic-chatcmpl-12",
               "object": "chat.completion",
-              "created": 1774738808,
+              "created": 1774739174,
               "model": "qwen3.5-2b-q8_0-registry.gguf",
               "choices": [
                 {
@@ -1757,10 +1757,10 @@
                 "total_tokens": 238
               },
               "psionic_metrics": {
-                "total_duration_ns": 200655592,
-                "load_duration_ns": 499781929,
+                "total_duration_ns": 201470714,
+                "load_duration_ns": 502137311,
                 "prompt_eval_count": 215,
-                "prompt_eval_duration_ns": 5965430,
+                "prompt_eval_duration_ns": 6188621,
                 "context_window": {
                   "budget": {
                     "max_context_tokens": 262144,
@@ -1774,9 +1774,9 @@
                   "preserved_prefix_tokens": 0
                 },
                 "eval_count": 23,
-                "eval_duration_ns": 185926254,
-                "time_to_first_token_ns": 503,
-                "inter_token_latency_ns": 8091841,
+                "eval_duration_ns": 185204397,
+                "time_to_first_token_ns": 464,
+                "inter_token_latency_ns": 8060428,
                 "prefix_tokens_reused": 215,
                 "termination_detail": {
                   "cause": "end_of_sequence_token"
@@ -1840,10 +1840,10 @@
         ],
         "aggregate": {
           "iteration_count": 3,
-          "mean_wallclock_s_all": 0.4214383373328019,
-          "mean_wallclock_s_warm": 0.20177108350617345,
-          "mean_ttft_ms_all": 28.20705666666667,
-          "mean_ttft_ms_warm": 0.000469,
+          "mean_wallclock_s_all": 0.4166287386712308,
+          "mean_wallclock_s_warm": 0.20250358000339475,
+          "mean_ttft_ms_all": 28.352892666666666,
+          "mean_ttft_ms_warm": 0.0004295,
           "mean_prefix_tokens_reused_all": 143.33333333333334,
           "mean_prefix_tokens_reused_warm": 215.0
         }
@@ -1851,10 +1851,10 @@
     }
   ],
   "comparison": {
-    "required_tool_turn_warm_wallclock_improvement_pct": 66.86133152549108,
-    "tool_result_continuation_warm_wallclock_improvement_pct": 76.33490287648907,
-    "required_tool_turn_warm_ttft_improvement_pct": 99.9994518453824,
-    "tool_result_continuation_warm_ttft_improvement_pct": 99.99944644131462
+    "required_tool_turn_warm_wallclock_improvement_pct": 66.19925263155689,
+    "tool_result_continuation_warm_wallclock_improvement_pct": 75.80152388854586,
+    "required_tool_turn_warm_ttft_improvement_pct": 99.9996046414856,
+    "tool_result_continuation_warm_ttft_improvement_pct": 99.99950402643638
   },
   "overall_pass": true,
   "improvement_status": "improved"

@@ -19,7 +19,7 @@ It uses the two repeated turn shapes that matter for Hermes-style tool loops:
 ## Exact Revision
 
 - Psionic revision:
-  `a800435c4542336d011e36a0154d111228fdc5dd`
+  `0a1cdd3b41bcdfd3a13802e83798a2419903be2e`
 - Host:
   `archlinux`
 - Model:
@@ -40,12 +40,12 @@ ephemeral benchmark roots.
 Exact retained command:
 
 ```bash
-TMPDIR=/home/christopherdavid/scratch/tmp/hermes-reuse-a800435c \
-CARGO_TARGET_DIR=/home/christopherdavid/scratch/psionic-hermes-reuse-a800435c/target \
-PSIONIC_HERMES_SERVER_BIN=/home/christopherdavid/scratch/psionic-hermes-reuse-a800435c/target/debug/psionic-openai-server \
-PSIONIC_HERMES_PSIONIC_REVISION=a800435c4542336d011e36a0154d111228fdc5dd \
+TMPDIR=/home/christopherdavid/scratch/tmp/hermes-reuse-0a1cdd3b \
+CARGO_TARGET_DIR=/home/christopherdavid/scratch/psionic-hermes-reuse-0a1cdd3b/target \
+PSIONIC_HERMES_SERVER_BIN=/home/christopherdavid/scratch/psionic-hermes-reuse-0a1cdd3b/target/debug/psionic-openai-server \
+PSIONIC_HERMES_PSIONIC_REVISION=0a1cdd3b41bcdfd3a13802e83798a2419903be2e \
 PSIONIC_HERMES_QWEN35_MODEL_PATH=/home/christopherdavid/models/qwen3.5/qwen3.5-2b-q8_0-registry.gguf \
-PSIONIC_HERMES_REUSE_REPORT_PATH=/home/christopherdavid/scratch/psionic-hermes-reuse-a800435c/fixtures/qwen35/hermes/hermes_qwen35_reuse_benchmark_20260328_archlinux_2b.json \
+PSIONIC_HERMES_REUSE_REPORT_PATH=/home/christopherdavid/scratch/psionic-hermes-reuse-0a1cdd3b/fixtures/qwen35/hermes/hermes_qwen35_reuse_benchmark_20260328_archlinux_2b.json \
 scripts/release/check-psionic-hermes-qwen35-reuse-benchmark.sh
 ```
 
@@ -64,20 +64,20 @@ Warm-path deltas:
 
 | Case | Bypass warm wallclock | Auto warm wallclock | Improvement |
 | --- | --- | --- | --- |
-| `required_tool_turn` | `0.602263s` | `0.199582s` | `66.8613%` |
-| `tool_result_continuation` | `0.852610s` | `0.201771s` | `76.3349%` |
+| `required_tool_turn` | `0.591397s` | `0.199897s` | `66.1993%` |
+| `tool_result_continuation` | `0.836844s` | `0.202504s` | `75.8015%` |
 
 Warm-path reuse:
 
 | Case | Warm prefix tokens reused | Warm TTFT |
 | --- | --- | --- |
-| `required_tool_turn` | `135` | `0.000474ms` |
-| `tool_result_continuation` | `215` | `0.000469ms` |
+| `required_tool_turn` | `135` | `0.000339ms` |
+| `tool_result_continuation` | `215` | `0.000430ms` |
 
 The important behavioral point is that the repeated exact-hit continuation now
 stays on the assistant-message path across all retained iterations. The earlier
 regression where a later exact-hit continuation collapsed back into a tool call
-is gone on the retained `a800435c` row.
+is gone on the retained `0a1cdd3b` row.
 
 ## What Changed
 
