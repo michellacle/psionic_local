@@ -86,9 +86,9 @@ What this freezes:
 - the honest claim boundary that this is the first HOMEGOLF dense baseline
   surface, not yet a mixed-device 10-minute HOMEGOLF score
 
-## Strict Challenge Runnable Lane
+## Strict Challenge Preflight Lane
 
-HOMEGOLF now has one canonical strict runnable lane surface:
+HOMEGOLF now has one canonical strict preflight lane surface:
 
 - retained lane report:
   `fixtures/parameter_golf/reports/parameter_golf_homegolf_strict_challenge_lane.json`
@@ -97,13 +97,13 @@ HOMEGOLF now has one canonical strict runnable lane surface:
 - lane entrypoint:
   `crates/psionic-train/src/bin/parameter_golf_homegolf_strict_challenge_lane.rs`
 - latest audit:
-  `docs/audits/2026-03-28-homegolf-strict-challenge-path-identity-audit.md`
+  `docs/audits/2026-03-28-homegolf-strict-preflight-semantics-and-local-entrypoint-audit.md`
 - checker:
   `scripts/check-parameter-golf-homegolf-strict-challenge-lane.sh`
 
 What this proves:
 
-- the canonical runnable HOMEGOLF lane now binds the strict PGOLF challenge
+- the canonical strict HOMEGOLF preflight now binds the strict PGOLF challenge
   overlay instead of the old general local-reference profile
 - the emitted lane surface keeps:
   - exact challenge tokenizer identity
@@ -113,14 +113,21 @@ What this proves:
   - contest bits-per-byte accounting
   - exact `16,000,000`-byte artifact-cap law
 - fake temp paths with the right final basename no longer produce
-  `ready_to_execute`; the strict lane now requires the real expected
+  `preflight_satisfied`; the strict lane now requires the real expected
   `~/code/parameter-golf/...` path identity
+- when exact inputs are present, the strict lane now reports
+  `preflight_satisfied` instead of `ready_to_execute`, because runtime
+  viability still belongs to the actual HOMEGOLF trainer path
+- the retained strict command template now targets
+  `parameter_golf_homegolf_single_cuda_train` instead of
+  `parameter_golf_single_h100_train`
 - missing challenge inputs now produce an explicit typed refusal instead of a
   silent local-reference fallback
 
 What it does not prove:
 
 - that the exact challenge inputs are already present on every machine
+- that the current host can already satisfy the `600` second runtime contract
 - that the live dense strict HOMEGOLF run has already been retained
 - that the mixed-device home cluster already produces the scored bundle
 

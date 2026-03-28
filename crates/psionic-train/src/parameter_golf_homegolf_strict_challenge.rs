@@ -20,7 +20,7 @@ pub const PARAMETER_GOLF_HOMEGOLF_STRICT_CHALLENGE_LANE_FIXTURE_PATH: &str =
 pub const PARAMETER_GOLF_HOMEGOLF_STRICT_CHALLENGE_LANE_CHECKER: &str =
     "scripts/check-parameter-golf-homegolf-strict-challenge-lane.sh";
 pub const PARAMETER_GOLF_HOMEGOLF_STRICT_CHALLENGE_LANE_AUDIT: &str =
-    "docs/audits/2026-03-27-homegolf-strict-challenge-lane-audit.md";
+    "docs/audits/2026-03-28-homegolf-strict-preflight-semantics-and-local-entrypoint-audit.md";
 
 const PARAMETER_GOLF_HOMEGOLF_TRACK_CONTRACT_REF: &str =
     "fixtures/parameter_golf/reports/parameter_golf_homegolf_track_contract.json";
@@ -45,7 +45,7 @@ pub enum ParameterGolfHomegolfStrictChallengeLaneError {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ParameterGolfHomegolfStrictChallengeLaneDisposition {
-    ReadyToExecute,
+    PreflightSatisfied,
     RefusedMissingChallengeInputs,
 }
 
@@ -79,6 +79,7 @@ pub struct ParameterGolfHomegolfStrictChallengeLaneReport {
     pub strict_profile: ParameterGolfPromotedTrainingProfile,
     pub canonical_lane_entrypoint: String,
     pub canonical_dense_trainer_entrypoint: String,
+    pub canonical_homegolf_local_cuda_trainer_entrypoint: String,
     pub required_final_validation_mode: ParameterGolfSingleH100ValidationMode,
     pub required_validation_eval_mode: ParameterGolfValidationEvalMode,
     pub required_validation_batch_sequences: usize,
@@ -189,12 +190,12 @@ impl ParameterGolfHomegolfStrictChallengeLaneReport {
             );
         }
         match self.disposition {
-            ParameterGolfHomegolfStrictChallengeLaneDisposition::ReadyToExecute => {
+            ParameterGolfHomegolfStrictChallengeLaneDisposition::PreflightSatisfied => {
                 if self.refusal.is_some() {
                     return Err(
                         ParameterGolfHomegolfStrictChallengeLaneError::InvalidReport {
                             detail: String::from(
-                                "ready_to_execute disposition must not carry a refusal",
+                                "preflight_satisfied disposition must not carry a refusal",
                             ),
                         },
                     );
@@ -207,7 +208,7 @@ impl ParameterGolfHomegolfStrictChallengeLaneReport {
                     return Err(
                         ParameterGolfHomegolfStrictChallengeLaneError::InvalidReport {
                             detail: String::from(
-                                "ready_to_execute requires exact-named dataset and tokenizer inputs",
+                                "preflight_satisfied requires exact-named dataset and tokenizer inputs",
                             ),
                         },
                     );
@@ -259,7 +260,7 @@ pub fn build_parameter_golf_homegolf_strict_challenge_lane_report(
     let disposition = if refusal.is_some() {
         ParameterGolfHomegolfStrictChallengeLaneDisposition::RefusedMissingChallengeInputs
     } else {
-        ParameterGolfHomegolfStrictChallengeLaneDisposition::ReadyToExecute
+        ParameterGolfHomegolfStrictChallengeLaneDisposition::PreflightSatisfied
     };
 
     let mut report = ParameterGolfHomegolfStrictChallengeLaneReport {
@@ -274,6 +275,9 @@ pub fn build_parameter_golf_homegolf_strict_challenge_lane_report(
         canonical_dense_trainer_entrypoint: track_contract
             .canonical_dense_trainer_entrypoint
             .clone(),
+        canonical_homegolf_local_cuda_trainer_entrypoint: String::from(
+            "crates/psionic-train/src/bin/parameter_golf_homegolf_single_cuda_train.rs",
+        ),
         required_final_validation_mode: ParameterGolfSingleH100ValidationMode::Both,
         required_validation_eval_mode: validation_eval_mode.clone(),
         required_validation_batch_sequences: parameter_golf_default_validation_batch_sequences(
@@ -283,16 +287,16 @@ pub fn build_parameter_golf_homegolf_strict_challenge_lane_report(
         required_score_first_ttt: score_first_ttt,
         exact_compressed_artifact_cap_bytes: track_contract.artifact_cap_bytes,
         dense_training_command_template: format!(
-            "cargo run -q -p psionic-train --bin parameter_golf_single_h100_train -- <dataset_root> <tokenizer_path> {TRAINING_REPORT_PLACEHOLDER} both sliding_window:64 legal_score_first_ttt"
+            "cargo run -q -p psionic-train --bin parameter_golf_homegolf_single_cuda_train -- <dataset_root> <tokenizer_path> {TRAINING_REPORT_PLACEHOLDER} both sliding_window:64 legal_score_first_ttt"
         ),
         challenge_inputs,
         disposition,
         refusal,
         claim_boundary: String::from(
-            "This is the canonical strict HOMEGOLF challenge lane surface. It freezes the exact strict profile, exact challenge-input requirements, sliding-window:64 evaluation posture, legal score-first TTT overlay, and exact 16,000,000-byte artifact-cap law. It is a runnable preflight lane, not yet the retained live dense score run itself.",
+            "This is the canonical strict HOMEGOLF challenge lane surface. It freezes the exact strict profile, exact challenge-input requirements, sliding-window:64 evaluation posture, legal score-first TTT overlay, and exact 16,000,000-byte artifact-cap law. It proves strict preflight only and now points operators at the actual local HOMEGOLF exact trainer entrypoint. It does not claim the current host can already satisfy the 600-second runtime contract.",
         ),
         summary: String::from(
-            "HOMEGOLF now has one canonical strict challenge lane command that either binds the real contest overlay or refuses explicitly when the exact FineWeb/SP1024 inputs are absent, instead of silently falling back to the old local-reference proof profile.",
+            "HOMEGOLF now has one canonical strict challenge preflight surface that either satisfies the exact contest-input contract or refuses explicitly when the exact FineWeb/SP1024 inputs are absent. The retained command template now targets the local HOMEGOLF exact trainer path instead of the public single-H100 entrypoint.",
         ),
         report_digest: String::new(),
     };
@@ -498,7 +502,7 @@ mod tests {
         .expect("build");
         assert_eq!(
             report.disposition,
-            ParameterGolfHomegolfStrictChallengeLaneDisposition::ReadyToExecute
+            ParameterGolfHomegolfStrictChallengeLaneDisposition::PreflightSatisfied
         );
         assert_eq!(
             report.challenge_inputs.dataset_root_status,

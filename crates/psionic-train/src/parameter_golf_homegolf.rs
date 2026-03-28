@@ -254,7 +254,7 @@ pub fn build_parameter_golf_homegolf_track_contract_report(
             surface_id: String::from("strict_challenge_runnable_lane"),
             status: ParameterGolfHomegolfSurfaceStatus::Satisfied,
             detail: String::from(
-                "HOMEGOLF now has one canonical strict challenge runnable lane surface that binds the exact contest overlay and refuses explicitly when the exact FineWeb/SP1024 inputs are not supplied, instead of silently falling back to the old local-reference bundle proof.",
+                "HOMEGOLF now has one canonical strict challenge preflight surface that binds the exact contest overlay, refuses explicitly when the exact FineWeb/SP1024 inputs are not supplied, and points operators at the actual local HOMEGOLF exact trainer entrypoint instead of the public single-H100 path.",
             ),
             evidence_refs: vec![
                 String::from(
@@ -263,7 +263,9 @@ pub fn build_parameter_golf_homegolf_track_contract_report(
                 String::from(
                     "crates/psionic-train/src/parameter_golf_homegolf_strict_challenge.rs",
                 ),
-                String::from("docs/audits/2026-03-27-homegolf-strict-challenge-lane-audit.md"),
+                String::from(
+                    "docs/audits/2026-03-28-homegolf-strict-preflight-semantics-and-local-entrypoint-audit.md",
+                ),
             ],
         },
         ParameterGolfHomegolfRequiredSurface {
@@ -389,7 +391,7 @@ pub fn build_parameter_golf_homegolf_track_contract_report(
         comparison_policy,
         required_surfaces,
         claim_boundary: format!(
-            "HOMEGOLF freezes the public baseline geometry, strict scorepath semantics, and custom-hardware comparison law for a mixed cluster. It now has one canonical strict challenge runnable lane, one retained live dense mixed-device surface built from real MLX-plus-CUDA dense execution truth plus the exact dense challenge export bytes, and one explicit mixed-hardware manifest example that keeps future H100 capacity inside the same track law. It still does not claim admitted home-RTX dense closure or official 8xH100 leaderboard equivalence."
+            "HOMEGOLF freezes the public baseline geometry, strict scorepath semantics, and custom-hardware comparison law for a mixed cluster. It now has one canonical strict challenge preflight lane, one retained live dense mixed-device surface built from real MLX-plus-CUDA dense execution truth plus the exact dense challenge export bytes, and one explicit mixed-hardware manifest example that keeps future H100 capacity inside the same track law. It still does not claim admitted home-RTX dense closure or official 8xH100 leaderboard equivalence."
         ),
         report_digest: String::new(),
     };
