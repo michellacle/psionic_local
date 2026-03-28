@@ -30,6 +30,17 @@ Shared benchmark rules:
   `runner/ollamarunner` and its active sampler surface is the one built by
   `sample.NewSampler(temperature, topK, topP, minP, seed, grammar)`
 
+Benchmark evidence workflow:
+
+- Use `scripts/benchmark-qwen35-vs-ollama-matrix.sh` for full matrix reruns on
+  host-constrained CUDA machines.
+- The harness emits per-run JSONL evidence with timing, token counts, output
+  mode evidence (`qwen35_output_modes`, `qwen35_readback_bytes`,
+  `qwen35_raw_logits`), and termination/finish reason fields.
+- Use `scripts/report-qwen35-vs-ollama.py` to generate the v2 matrix artifact
+  and one-page report that splits comparable rows from non-comparable
+  token-divergent rows.
+
 ## Greedy Contract
 
 Prompt:

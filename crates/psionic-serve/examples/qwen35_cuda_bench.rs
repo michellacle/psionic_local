@@ -1,20 +1,22 @@
 use std::{
-    env, fs,
+    env,
+    fs::{self, OpenOptions},
+    io::Write,
     path::{Path, PathBuf},
-    process::ExitCode,
+    process::{Command, ExitCode},
 };
 
 use psionic_models::{
     GgufDecoderAdapterLoader, PromptMessage, PromptMessageRole, PromptRenderOptions,
 };
-use psionic_runtime::{DEFAULT_PENALTY_LOOKBACK, StructuredOutputRequest, StructuredOutputValue};
+use psionic_runtime::{StructuredOutputRequest, StructuredOutputValue, DEFAULT_PENALTY_LOOKBACK};
 use psionic_serve::{
     CudaGgufQwen35TextGenerationService, GenerationOptions, GenerationRequest,
     Qwen35CudaDecodeOutputMetrics, TextGenerationExecutor,
 };
 use reqwest::blocking::Client;
-use serde::Deserialize;
-use serde_json::Value;
+use serde::{Deserialize, Serialize};
+use serde_json::{Map, Value};
 
 fn main() -> ExitCode {
     match run() {
@@ -70,6 +72,9 @@ struct BenchConfig {
     frequency_penalty: Option<f32>,
     seed: Option<u64>,
     structured_output: Option<BenchStructuredOutput>,
+    jsonl_out: Option<PathBuf>,
+    row_label: Option<String>,
+    model_alias: Option<String>,
 }
 
 #[derive(Clone, Debug)]
@@ -103,6 +108,9 @@ impl Default for BenchConfig {
             frequency_penalty: None,
             seed: None,
             structured_output: None,
+            jsonl_out: None,
+            row_label: None,
+            model_alias: None,
         }
     }
 }
@@ -261,6 +269,19 @@ impl BenchConfig {
                 "--json-schema-name" => {
                     json_schema_name = Some(next_arg(&raw_args, &mut index, "--json-schema-name")?);
                 }
+                "--jsonl-out" => {
+                    config.jsonl_out = Some(PathBuf::from(next_arg(
+                        &raw_args,
+                        &mut index,
+                        "--jsonl-out",
+                    )?));
+                }
+                "--row-label" => {
+                    config.row_label = Some(next_arg(&raw_args, &mut index, "--row-label")?);
+                }
+                "--model-alias" => {
+                    config.model_alias = Some(next_arg(&raw_args, &mut index, "--model-alias")?);
+                }
                 "--greedy" => {
                     config.decode_mode = BenchDecodeMode::Greedy;
                 }
@@ -406,6 +427,7 @@ impl BenchConfig {
 
 fn run_psionic_benchmark(config: &BenchConfig) -> Result<(), String> {
     let rendered = render_prompt(&config.model_path, &config.prompt)?;
+    let jsonl_base = build_jsonl_base(config, &rendered);
     let mut service = CudaGgufQwen35TextGenerationService::from_gguf_path(&config.model_path)
         .map_err(|error| format!("failed to load qwen35 cuda service: {error}"))?;
     let descriptor = service.model_descriptor().clone();
@@ -425,7 +447,7 @@ fn run_psionic_benchmark(config: &BenchConfig) -> Result<(), String> {
         .generate(&warmup)
         .map_err(|error| format!("warmup generation failed: {error}"))?;
 
-    let mut decode_tok_s_total = 0.0_f64;
+    let mut decode_tok_s_values = Vec::with_capacity(config.repeats);
     for run_index in 0..config.repeats {
         let request = GenerationRequest::new_text(
             format!("bench-{run_index}"),
@@ -445,15 +467,17 @@ fn run_psionic_benchmark(config: &BenchConfig) -> Result<(), String> {
         let prompt_ns = response.metrics.prompt_eval_duration_ns.unwrap_or(0);
         let total_ns = response.metrics.total_duration_ns.unwrap_or(0);
         let decode_tok_s = tokens_per_second(output_tokens, decode_ns);
-        decode_tok_s_total += decode_tok_s;
-        let output_metrics =
-            format_qwen35_output_metrics(response.metrics.qwen35_cuda_decode.as_ref());
+        decode_tok_s_values.push(decode_tok_s);
+        let output_metrics_struct =
+            qwen35_output_metrics_report(response.metrics.qwen35_cuda_decode.as_ref());
+        let output_metrics = format_qwen35_output_metrics(&output_metrics_struct);
         let structured_output = format_structured_output_report(
             response.provenance.as_ref(),
             response.output.structured.as_ref(),
         );
+        let termination_reason = termination_reason_label(response.termination);
         println!(
-            "backend=psionic run={} decode_mode={} prompt_tokens={} output_tokens={} prompt_s={:.6} decode_s={:.6} total_s={:.6} decode_tok_s={:.2} {} {} output={}",
+            "backend=psionic run={} decode_mode={} prompt_tokens={} output_tokens={} prompt_s={:.6} decode_s={:.6} total_s={:.6} decode_tok_s={:.2} termination_reason={} {} {} output={}",
             run_index + 1,
             bench_decode_mode_label(config.decode_mode),
             response.metrics.prompt_eval_count.unwrap_or(0),
@@ -462,21 +486,105 @@ fn run_psionic_benchmark(config: &BenchConfig) -> Result<(), String> {
             nanos_to_seconds(decode_ns),
             nanos_to_seconds(total_ns),
             decode_tok_s,
+            termination_reason,
             output_metrics,
             structured_output,
             response.output.text.replace('\n', "\\n"),
         );
+
+        let mut record = jsonl_base.clone();
+        let map = record
+            .as_object_mut()
+            .ok_or_else(|| String::from("invalid jsonl base record"))?;
+        map.insert(
+            String::from("record_type"),
+            Value::String(String::from("run")),
+        );
+        map.insert(String::from("run"), Value::Number((run_index + 1).into()));
+        map.insert(
+            String::from("prompt_tokens"),
+            Value::Number(response.metrics.prompt_eval_count.unwrap_or(0).into()),
+        );
+        map.insert(
+            String::from("output_tokens"),
+            Value::Number(output_tokens.into()),
+        );
+        map.insert(
+            String::from("prompt_s"),
+            serde_json::json!(nanos_to_seconds(prompt_ns)),
+        );
+        map.insert(
+            String::from("decode_s"),
+            serde_json::json!(nanos_to_seconds(decode_ns)),
+        );
+        map.insert(
+            String::from("total_s"),
+            serde_json::json!(nanos_to_seconds(total_ns)),
+        );
+        map.insert(
+            String::from("decode_tok_s"),
+            serde_json::json!(decode_tok_s),
+        );
+        map.insert(
+            String::from("termination_reason"),
+            Value::String(String::from(termination_reason)),
+        );
+        map.insert(
+            String::from("qwen35_output_modes"),
+            serde_json::json!(output_metrics_struct.output_modes),
+        );
+        map.insert(
+            String::from("qwen35_readback_bytes"),
+            serde_json::json!(output_metrics_struct.readback_bytes),
+        );
+        map.insert(
+            String::from("qwen35_raw_logits"),
+            serde_json::json!(output_metrics_struct.raw_logits_materialized),
+        );
+        append_jsonl_record(config.jsonl_out.as_ref(), &record)?;
     }
 
-    println!(
-        "backend=psionic mean_decode_tok_s={:.2}",
-        decode_tok_s_total / config.repeats as f64
+    let mean_decode_tok_s = mean(&decode_tok_s_values);
+    println!("backend=psionic mean_decode_tok_s={:.2}", mean_decode_tok_s);
+    let mut summary = jsonl_base.clone();
+    let map = summary
+        .as_object_mut()
+        .ok_or_else(|| String::from("invalid jsonl base record"))?;
+    map.insert(
+        String::from("record_type"),
+        Value::String(String::from("summary")),
     );
+    map.insert(
+        String::from("repeats"),
+        Value::Number(config.repeats.into()),
+    );
+    map.insert(
+        String::from("mean_decode_tok_s"),
+        serde_json::json!(mean_decode_tok_s),
+    );
+    map.insert(
+        String::from("stddev_decode_tok_s"),
+        serde_json::json!(stddev(&decode_tok_s_values)),
+    );
+    map.insert(
+        String::from("min_decode_tok_s"),
+        serde_json::json!(decode_tok_s_values
+            .iter()
+            .fold(f64::INFINITY, |acc, v| acc.min(*v))),
+    );
+    map.insert(
+        String::from("max_decode_tok_s"),
+        serde_json::json!(decode_tok_s_values
+            .iter()
+            .fold(f64::NEG_INFINITY, |acc, v| acc.max(*v))),
+    );
+    append_jsonl_record(config.jsonl_out.as_ref(), &summary)?;
     Ok(())
 }
 
 fn run_ollama_benchmark(config: &BenchConfig) -> Result<(), String> {
     let rendered = render_prompt(&config.model_path, &config.prompt)?;
+    let jsonl_base = build_jsonl_base(config, &rendered);
     let client = Client::builder()
         .build()
         .map_err(|error| format!("failed to build Ollama HTTP client: {error}"))?;
@@ -494,7 +602,7 @@ fn run_ollama_benchmark(config: &BenchConfig) -> Result<(), String> {
         min_warmup_tokens(config.max_output_tokens),
     )?;
 
-    let mut decode_tok_s_total = 0.0_f64;
+    let mut decode_tok_s_values = Vec::with_capacity(config.repeats);
     for run_index in 0..config.repeats {
         let response = ollama_generate(
             &client,
@@ -509,9 +617,10 @@ fn run_ollama_benchmark(config: &BenchConfig) -> Result<(), String> {
         let prompt_ns = response.prompt_eval_duration.unwrap_or(0);
         let total_ns = response.total_duration.unwrap_or(0);
         let decode_tok_s = tokens_per_second(output_tokens, decode_ns);
-        decode_tok_s_total += decode_tok_s;
+        decode_tok_s_values.push(decode_tok_s);
+        let finish_reason = response.done_reason.as_deref().unwrap_or("none");
         println!(
-            "backend=ollama run={} decode_mode={} prompt_tokens={} output_tokens={} prompt_s={:.6} decode_s={:.6} total_s={:.6} decode_tok_s={:.2} output={}",
+            "backend=ollama run={} decode_mode={} prompt_tokens={} output_tokens={} prompt_s={:.6} decode_s={:.6} total_s={:.6} decode_tok_s={:.2} finish_reason={} output={}",
             run_index + 1,
             bench_decode_mode_label(config.decode_mode),
             response.prompt_eval_count.unwrap_or(0),
@@ -520,14 +629,91 @@ fn run_ollama_benchmark(config: &BenchConfig) -> Result<(), String> {
             nanos_to_seconds(decode_ns),
             nanos_to_seconds(total_ns),
             decode_tok_s,
+            finish_reason,
             response.response.replace('\n', "\\n"),
         );
+        let mut record = jsonl_base.clone();
+        let map = record
+            .as_object_mut()
+            .ok_or_else(|| String::from("invalid jsonl base record"))?;
+        map.insert(
+            String::from("record_type"),
+            Value::String(String::from("run")),
+        );
+        map.insert(String::from("run"), Value::Number((run_index + 1).into()));
+        map.insert(
+            String::from("prompt_tokens"),
+            Value::Number(response.prompt_eval_count.unwrap_or(0).into()),
+        );
+        map.insert(
+            String::from("output_tokens"),
+            Value::Number(output_tokens.into()),
+        );
+        map.insert(
+            String::from("prompt_s"),
+            serde_json::json!(nanos_to_seconds(prompt_ns)),
+        );
+        map.insert(
+            String::from("decode_s"),
+            serde_json::json!(nanos_to_seconds(decode_ns)),
+        );
+        map.insert(
+            String::from("total_s"),
+            serde_json::json!(nanos_to_seconds(total_ns)),
+        );
+        map.insert(
+            String::from("decode_tok_s"),
+            serde_json::json!(decode_tok_s),
+        );
+        map.insert(
+            String::from("finish_reason"),
+            response
+                .done_reason
+                .as_ref()
+                .map_or(Value::Null, |value| Value::String(value.clone())),
+        );
+        map.insert(
+            String::from("ollama_done"),
+            response.done.map_or(Value::Null, Value::Bool),
+        );
+        append_jsonl_record(config.jsonl_out.as_ref(), &record)?;
     }
 
-    println!(
-        "backend=ollama mean_decode_tok_s={:.2}",
-        decode_tok_s_total / config.repeats as f64
+    let mean_decode_tok_s = mean(&decode_tok_s_values);
+    println!("backend=ollama mean_decode_tok_s={:.2}", mean_decode_tok_s);
+    let mut summary = jsonl_base.clone();
+    let map = summary
+        .as_object_mut()
+        .ok_or_else(|| String::from("invalid jsonl base record"))?;
+    map.insert(
+        String::from("record_type"),
+        Value::String(String::from("summary")),
     );
+    map.insert(
+        String::from("repeats"),
+        Value::Number(config.repeats.into()),
+    );
+    map.insert(
+        String::from("mean_decode_tok_s"),
+        serde_json::json!(mean_decode_tok_s),
+    );
+    map.insert(
+        String::from("stddev_decode_tok_s"),
+        serde_json::json!(stddev(&decode_tok_s_values)),
+    );
+    map.insert(
+        String::from("min_decode_tok_s"),
+        serde_json::json!(decode_tok_s_values
+            .iter()
+            .fold(f64::INFINITY, |acc, v| acc.min(*v))),
+    );
+    map.insert(
+        String::from("max_decode_tok_s"),
+        serde_json::json!(decode_tok_s_values
+            .iter()
+            .fold(f64::NEG_INFINITY, |acc, v| acc.max(*v))),
+    );
+    append_jsonl_record(config.jsonl_out.as_ref(), &summary)?;
     Ok(())
 }
 
@@ -589,11 +775,22 @@ fn render_prompt(model_path: &Path, prompt: &str) -> Result<RenderedPrompt, Stri
     })
 }
 
-fn format_qwen35_output_metrics(metrics: Option<&Qwen35CudaDecodeOutputMetrics>) -> String {
+#[derive(Clone, Debug, Serialize)]
+struct Qwen35OutputMetricsReport {
+    output_modes: Vec<String>,
+    readback_bytes: u64,
+    raw_logits_materialized: bool,
+}
+
+fn qwen35_output_metrics_report(
+    metrics: Option<&Qwen35CudaDecodeOutputMetrics>,
+) -> Qwen35OutputMetricsReport {
     let Some(metrics) = metrics else {
-        return String::from(
-            "qwen35_output_modes=[] qwen35_readback_bytes=0 qwen35_raw_logits=false",
-        );
+        return Qwen35OutputMetricsReport {
+            output_modes: Vec::new(),
+            readback_bytes: 0,
+            raw_logits_materialized: false,
+        };
     };
     let output_modes = metrics
         .output_modes
@@ -608,8 +805,16 @@ fn format_qwen35_output_metrics(metrics: Option<&Qwen35CudaDecodeOutputMetrics>)
             }
             psionic_serve::Qwen35CudaDecodeOutputMode::RawLogits => String::from("raw_logits"),
         })
-        .collect::<Vec<_>>()
-        .join(",");
+        .collect::<Vec<_>>();
+    Qwen35OutputMetricsReport {
+        output_modes,
+        readback_bytes: metrics.readback_bytes,
+        raw_logits_materialized: metrics.raw_logits_materialized,
+    }
+}
+
+fn format_qwen35_output_metrics(metrics: &Qwen35OutputMetricsReport) -> String {
+    let output_modes = metrics.output_modes.join(",");
     format!(
         "qwen35_output_modes=[{}] qwen35_readback_bytes={} qwen35_raw_logits={}",
         output_modes, metrics.readback_bytes, metrics.raw_logits_materialized
@@ -734,7 +939,7 @@ fn nanos_to_seconds(duration_ns: u64) -> f64 {
 
 fn usage() -> String {
     String::from(
-        "usage:\n  cargo run -p psionic-serve --example qwen35_cuda_bench -- <model.gguf> [prompt] [max_output_tokens] [repeats]\n  cargo run -p psionic-serve --example qwen35_cuda_bench -- --backend psionic --model-path <model.gguf> [--decode greedy|sample] [--temperature 0.8] [--top-k 40] [--top-p 0.9] [--min-p 0.05] [--typical-p 0.5] [--mirostat 1|2] [--mirostat-tau 5.0] [--mirostat-eta 0.1] [--repeat-penalty 1.0] [--repeat-last-n 64] [--presence-penalty 0.0] [--frequency-penalty 0.0] [--seed 42] [--json-object | --json-schema-file schema.json [--json-schema-name summary]] [--prompt <text>] [--max-output-tokens 128] [--repeats 3]\n  cargo run -p psionic-serve --example qwen35_cuda_bench -- --backend ollama --model-path <model.gguf> --ollama-model qwen3.5:0.8b [--ollama-base-url http://127.0.0.1:11434] [--decode greedy|sample] [--temperature 0.8] [--top-k 40] [--top-p 0.9] [--min-p 0.05] [--typical-p 0.5] [--mirostat 1|2] [--mirostat-tau 5.0] [--mirostat-eta 0.1] [--repeat-penalty 1.0] [--repeat-last-n 64] [--presence-penalty 0.0] [--frequency-penalty 0.0] [--seed 42] [--json-object | --json-schema-file schema.json [--json-schema-name summary]] [--prompt <text>] [--max-output-tokens 128] [--repeats 3]",
+        "usage:\n  cargo run -p psionic-serve --example qwen35_cuda_bench -- <model.gguf> [prompt] [max_output_tokens] [repeats]\n  cargo run -p psionic-serve --example qwen35_cuda_bench -- --backend psionic --model-path <model.gguf> [--model-alias qwen3.5:0.8b] [--row-label sampled_topk40] [--decode greedy|sample] [--temperature 0.8] [--top-k 40] [--top-p 0.9] [--min-p 0.05] [--typical-p 0.5] [--mirostat 1|2] [--mirostat-tau 5.0] [--mirostat-eta 0.1] [--repeat-penalty 1.0] [--repeat-last-n 64] [--presence-penalty 0.0] [--frequency-penalty 0.0] [--seed 42] [--json-object | --json-schema-file schema.json [--json-schema-name summary]] [--jsonl-out run.jsonl] [--prompt <text>] [--max-output-tokens 128] [--repeats 3]\n  cargo run -p psionic-serve --example qwen35_cuda_bench -- --backend ollama --model-path <model.gguf> --ollama-model qwen3.5:0.8b [--model-alias qwen3.5:0.8b] [--row-label sampled_topk40] [--ollama-base-url http://127.0.0.1:11434] [--decode greedy|sample] [--temperature 0.8] [--top-k 40] [--top-p 0.9] [--min-p 0.05] [--typical-p 0.5] [--mirostat 1|2] [--mirostat-tau 5.0] [--mirostat-eta 0.1] [--repeat-penalty 1.0] [--repeat-last-n 64] [--presence-penalty 0.0] [--frequency-penalty 0.0] [--seed 42] [--json-object | --json-schema-file schema.json [--json-schema-name summary]] [--jsonl-out run.jsonl] [--prompt <text>] [--max-output-tokens 128] [--repeats 3]",
     )
 }
 
@@ -747,6 +952,10 @@ struct RenderedPrompt {
 #[derive(Deserialize)]
 struct OllamaGenerateResponse {
     response: String,
+    #[serde(default)]
+    done: Option<bool>,
+    #[serde(default)]
+    done_reason: Option<String>,
     #[serde(default)]
     total_duration: Option<u64>,
     #[serde(default)]
@@ -841,4 +1050,150 @@ fn ollama_generate(
     response
         .json::<OllamaGenerateResponse>()
         .map_err(|error| format!("failed to decode Ollama generate response: {error}"))
+}
+
+fn build_jsonl_base(config: &BenchConfig, rendered: &RenderedPrompt) -> Value {
+    let mut base = Map::new();
+    base.insert(
+        String::from("schema_version"),
+        Value::String(String::from("qwen35_bench_run_v2")),
+    );
+    base.insert(
+        String::from("backend"),
+        Value::String(match config.backend {
+            BenchBackend::Psionic => String::from("psionic"),
+            BenchBackend::Ollama => String::from("ollama"),
+        }),
+    );
+    base.insert(
+        String::from("decode_mode"),
+        Value::String(String::from(bench_decode_mode_label(config.decode_mode))),
+    );
+    base.insert(
+        String::from("model_path"),
+        Value::String(config.model_path.display().to_string()),
+    );
+    base.insert(
+        String::from("model_alias"),
+        config
+            .model_alias
+            .as_ref()
+            .map_or(Value::Null, |value| Value::String(value.clone())),
+    );
+    base.insert(
+        String::from("row_label"),
+        config
+            .row_label
+            .as_ref()
+            .map_or(Value::Null, |value| Value::String(value.clone())),
+    );
+    base.insert(
+        String::from("ollama_model"),
+        config
+            .ollama_model
+            .as_ref()
+            .map_or(Value::Null, |value| Value::String(value.clone())),
+    );
+    base.insert(
+        String::from("git_commit"),
+        detect_git_commit().map_or(Value::Null, Value::String),
+    );
+    base.insert(
+        String::from("request_contract"),
+        serde_json::json!({
+            "prompt": config.prompt,
+            "stop_sequences": rendered.stop_sequences,
+            "max_output_tokens": config.max_output_tokens,
+            "decode_mode": bench_decode_mode_label(config.decode_mode),
+            "temperature": config.effective_temperature(),
+            "top_k": config.effective_top_k(),
+            "top_p": config.effective_top_p(),
+            "min_p": config.effective_min_p(),
+            "typical_p": config.effective_typical_p(),
+            "mirostat": config.effective_mirostat(),
+            "mirostat_tau": config.effective_mirostat_tau(),
+            "mirostat_eta": config.effective_mirostat_eta(),
+            "repeat_penalty": config.effective_repeat_penalty(),
+            "repeat_last_n": config.effective_repeat_last_n(),
+            "presence_penalty": config.effective_presence_penalty(),
+            "frequency_penalty": config.effective_frequency_penalty(),
+            "seed": config.effective_seed(),
+            "structured_output": match config.structured_output.as_ref() {
+                Some(BenchStructuredOutput::JsonObject) => Value::String(String::from("json_object")),
+                Some(BenchStructuredOutput::JsonSchema { name, schema }) => serde_json::json!({
+                    "type": "json_schema",
+                    "name": name,
+                    "schema": schema
+                }),
+                None => Value::Null,
+            }
+        }),
+    );
+    Value::Object(base)
+}
+
+fn append_jsonl_record(path: Option<&PathBuf>, record: &Value) -> Result<(), String> {
+    let Some(path) = path else {
+        return Ok(());
+    };
+    let line = serde_json::to_string(record)
+        .map_err(|error| format!("failed to serialize jsonl benchmark record: {error}"))?;
+    let mut file = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(path)
+        .map_err(|error| format!("failed to open jsonl output `{}`: {error}", path.display()))?;
+    writeln!(file, "{line}")
+        .map_err(|error| format!("failed to write jsonl output `{}`: {error}", path.display()))
+}
+
+fn detect_git_commit() -> Option<String> {
+    let output = Command::new("git")
+        .args(["rev-parse", "HEAD"])
+        .output()
+        .ok()?;
+    if !output.status.success() {
+        return None;
+    }
+    let value = String::from_utf8(output.stdout).ok()?;
+    let trimmed = value.trim();
+    if trimmed.is_empty() {
+        None
+    } else {
+        Some(String::from(trimmed))
+    }
+}
+
+fn termination_reason_label(reason: psionic_serve::TerminationReason) -> &'static str {
+    match reason {
+        psionic_serve::TerminationReason::EndOfSequence => "end_of_sequence",
+        psionic_serve::TerminationReason::MaxOutputTokens => "max_output_tokens",
+        psionic_serve::TerminationReason::ContextLimit => "context_limit",
+        psionic_serve::TerminationReason::Cancelled => "cancelled",
+        psionic_serve::TerminationReason::Disconnected => "disconnected",
+        psionic_serve::TerminationReason::Error => "error",
+    }
+}
+
+fn mean(values: &[f64]) -> f64 {
+    if values.is_empty() {
+        return 0.0;
+    }
+    values.iter().sum::<f64>() / values.len() as f64
+}
+
+fn stddev(values: &[f64]) -> f64 {
+    if values.len() < 2 {
+        return 0.0;
+    }
+    let avg = mean(values);
+    let variance = values
+        .iter()
+        .map(|value| {
+            let delta = *value - avg;
+            delta * delta
+        })
+        .sum::<f64>()
+        / values.len() as f64;
+    variance.sqrt()
 }

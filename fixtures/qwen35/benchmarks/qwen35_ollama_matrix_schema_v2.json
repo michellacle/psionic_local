@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "abi_version": {
+      "const": "psionic.qwen35.ollama_matrix.v2"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "run_date": {
+      "type": "string"
+    },
+    "source": {
+      "type": "object"
+    },
+    "environment": {
+      "type": "object"
+    },
+    "comparability_policy": {
+      "type": "object"
+    },
+    "matrix": {
+      "type": "object",
+      "properties": {
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "comparable_row_count": {
+          "type": "integer"
+        },
+        "non_comparable_row_count": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "rows",
+        "comparable_row_count",
+        "non_comparable_row_count"
+      ]
+    }
+  },
+  "required": [
+    "abi_version",
+    "run_id",
+    "run_date",
+    "matrix"
+  ]
+}
