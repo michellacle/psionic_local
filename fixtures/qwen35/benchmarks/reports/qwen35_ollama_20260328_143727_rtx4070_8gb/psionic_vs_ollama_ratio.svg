@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1060" height="580" viewBox="0 0 1060 580">
+<style>
+text { font-family: "DejaVu Sans", Arial, sans-serif; fill: #1f2937; }
+.title { font-size: 20px; font-weight: 700; }
+.axis { font-size: 12px; }
+.tick { font-size: 11px; }
+.val { font-size: 11px; font-weight: 600; }
+</style>
+<rect x="0" y="0" width="100%" height="100%" fill="#ffffff"/>
+<text class="title" x="240" y="32">Psionic / Ollama decode throughput ratio</text>
+<text class="axis" x="240" y="49">1.00 means parity, above 1.00 means Psionic is faster</text>
+<line x1="240.00" y1="60" x2="240.00" y2="550" stroke="#d1d5db" stroke-width="1"/>
+<text class="tick" x="240.00" y="566" text-anchor="middle">0.00</text>
+<line x1="396.00" y1="60" x2="396.00" y2="550" stroke="#d1d5db" stroke-width="1"/>
+<text class="tick" x="396.00" y="566" text-anchor="middle">0.31</text>
+<line x1="552.00" y1="60" x2="552.00" y2="550" stroke="#d1d5db" stroke-width="1"/>
+<text class="tick" x="552.00" y="566" text-anchor="middle">0.62</text>
+<line x1="708.00" y1="60" x2="708.00" y2="550" stroke="#d1d5db" stroke-width="1"/>
+<text class="tick" x="708.00" y="566" text-anchor="middle">0.93</text>
+<line x1="864.00" y1="60" x2="864.00" y2="550" stroke="#d1d5db" stroke-width="1"/>
+<text class="tick" x="864.00" y="566" text-anchor="middle">1.24</text>
+<line x1="1020.00" y1="60" x2="1020.00" y2="550" stroke="#d1d5db" stroke-width="1"/>
+<text class="tick" x="1020.00" y="566" text-anchor="middle">1.56</text>
+<rect x="240" y="67.76" width="696.43" height="25.32" fill="#9ca3af"/>
+<text class="axis" x="232" y="85.99" text-anchor="end">greedy · 0.8b</text>
+<text class="val" x="942.43" y="85.99">1.39x *P:23.4 O:37.0</text>
+<rect x="240" y="108.59" width="576.52" height="25.32" fill="#059669"/>
+<text class="axis" x="232" y="126.82" text-anchor="end">greedy · 2b</text>
+<text class="val" x="822.52" y="126.82">1.15x *P:29.6 O:36.4</text>
+<rect x="240" y="149.43" width="477.24" height="25.32" fill="#dc2626"/>
+<text class="axis" x="232" y="167.65" text-anchor="end">greedy · 4b</text>
+<text class="val" x="723.24" y="167.65">0.95x *P:50.4 O:43.2</text>
+<rect x="240" y="190.26" width="690.81" height="25.32" fill="#9ca3af"/>
+<text class="axis" x="232" y="208.49" text-anchor="end">greedy · 9b</text>
+<text class="val" x="936.81" y="208.49">1.38x *P:26.0 O:45.2</text>
+<rect x="240" y="231.09" width="465.86" height="25.32" fill="#dc2626"/>
+<text class="axis" x="232" y="249.32" text-anchor="end">sampled_topk40 · 0.8b</text>
+<text class="val" x="711.86" y="249.32">0.93x</text>
+<rect x="240" y="271.93" width="471.33" height="25.32" fill="#dc2626"/>
+<text class="axis" x="232" y="290.15" text-anchor="end">sampled_topk40 · 2b</text>
+<text class="val" x="717.33" y="290.15">0.94x</text>
+<rect x="240" y="312.76" width="454.38" height="25.32" fill="#dc2626"/>
+<text class="axis" x="232" y="330.99" text-anchor="end">sampled_topk40 · 4b</text>
+<text class="val" x="700.38" y="330.99">0.91x</text>
+<rect x="240" y="353.59" width="678.95" height="25.32" fill="#9ca3af"/>
+<text class="axis" x="232" y="371.82" text-anchor="end">sampled_topk40 · 9b</text>
+<text class="val" x="924.95" y="371.82">1.35x *P:104.6 O:128.0</text>
+<rect x="240" y="394.43" width="610.20" height="25.32" fill="#9ca3af"/>
+<text class="axis" x="232" y="412.65" text-anchor="end">sampled_topk100 · 0.8b</text>
+<text class="val" x="856.20" y="412.65">1.22x *P:22.6 O:34.0</text>
+<rect x="240" y="435.26" width="546.78" height="25.32" fill="#9ca3af"/>
+<text class="axis" x="232" y="453.49" text-anchor="end">sampled_topk100 · 2b</text>
+<text class="val" x="792.78" y="453.49">1.09x *P:28.8 O:44.0</text>
+<rect x="240" y="476.09" width="476.44" height="25.32" fill="#dc2626"/>
+<text class="axis" x="232" y="494.32" text-anchor="end">sampled_topk100 · 4b</text>
+<text class="val" x="722.44" y="494.32">0.95x *P:48.4 O:47.0</text>
+<rect x="240" y="516.93" width="679.69" height="25.32" fill="#9ca3af"/>
+<text class="axis" x="232" y="535.15" text-anchor="end">sampled_topk100 · 9b</text>
+<text class="val" x="925.69" y="535.15">1.36x *P:23.6 O:37.0</text>
+<text class="tick" x="240" y="572">gray bars are non-comparable rows</text>
+</svg>
