@@ -85,7 +85,14 @@ than just run tensor math.
   require dense vocab replay on the bounded structured lane.
 - The local `qwen35_cuda_bench` harness now reproduces native-versus-Ollama
   JSON object and JSON schema requests too through `--json-object` and
-  `--json-schema-file`.
+  `--json-schema-file`, and it now writes machine-readable per-run evidence
+  through `--json-out`.
+- The repo-owned sequential collector for the canonical qwen35 versus Ollama
+  matrix now lives at `scripts/release/run-qwen35-ollama-matrix.sh`. It writes
+  a combined manifest plus row reports that preserve output-token arrays,
+  prompt/decode timing, qwen35 output modes, readback bytes, raw-logit
+  materialization, host power-limit metadata, Psionic commit, and Ollama
+  version.
 - Structured-output throughput is still not part of the canonical
   Psionic-versus-Ollama matrix. On March 28, 2026, after adding leading-char
   token-id buckets to the structured-output append cache, removing per-rule

@@ -365,8 +365,9 @@ If instead those rows fell back to `raw_logits`, the next target is simpler:
 ## Immediate Next Steps From This Audit
 
 1. Keep `#650` as the catchall closure issue for the external laptop run.
-2. Extend the qwen35 matrix writer so it preserves the full per-run evidence the
-   harness already emits.
+2. Use the repo-owned qwen35 evidence path now landed in this repo:
+   - `cargo run --release -p psionic-serve --example qwen35_cuda_bench -- ... --json-out report.json`
+   - `scripts/release/run-qwen35-ollama-matrix.sh`
 3. Rerun the external laptop contract with repeated rows and preserved output
    modes.
 4. Split any surviving classified bottlenecks into bounded follow-on issues:
@@ -375,6 +376,39 @@ If instead those rows fell back to `raw_logits`, the next target is simpler:
    - clean sampled `top_k = 40` constrained-host performance
    - constrained-host operational benchmark posture if power or residency is
      the limiting factor
+
+## Repo-Owned Closure Landed
+
+The benchmark-quality gap identified in this audit is now closed at the
+artifact layer inside Psionic itself.
+
+The repo now has:
+
+- machine-readable per-run qwen35 benchmark reports through
+  `qwen35_cuda_bench --json-out`
+- a sequential qwen35-versus-Ollama matrix collector at
+  `scripts/release/run-qwen35-ollama-matrix.sh`
+- a matrix manifest that embeds both backend reports together with:
+  - output-token arrays
+  - prompt, decode, and total timings
+  - `qwen35_output_modes`
+  - `qwen35_readback_bytes`
+  - `qwen35_raw_logits`
+  - host GPU memory and power-limit metadata
+  - Psionic commit and Ollama version
+- a repo-owned markdown summary that marks output-token comparability row by row
+
+This closes the evidence-preservation gap.
+
+It does not close the constrained-host performance question itself.
+
+Michel-class reruns still need to answer:
+
+- whether the clean sampled `top_k = 40` rows stay on bounded candidates
+- whether output-token mismatches on the weak rows are EOS, stop, greedy, or
+  sampled divergence
+- whether any surviving sampled loss on the laptop host is runtime, host sync,
+  or power-envelope limited
 
 ## Honest Boundary After This Audit
 

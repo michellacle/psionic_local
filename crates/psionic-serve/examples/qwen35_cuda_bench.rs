@@ -7,13 +7,13 @@ use std::{
 use psionic_models::{
     GgufDecoderAdapterLoader, PromptMessage, PromptMessageRole, PromptRenderOptions,
 };
-use psionic_runtime::{DEFAULT_PENALTY_LOOKBACK, StructuredOutputRequest, StructuredOutputValue};
+use psionic_runtime::{StructuredOutputRequest, StructuredOutputValue, DEFAULT_PENALTY_LOOKBACK};
 use psionic_serve::{
     CudaGgufQwen35TextGenerationService, GenerationOptions, GenerationRequest,
     Qwen35CudaDecodeOutputMetrics, TextGenerationExecutor,
 };
 use reqwest::blocking::Client;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 fn main() -> ExitCode {
@@ -52,6 +52,7 @@ struct BenchConfig {
     model_path: PathBuf,
     ollama_model: Option<String>,
     ollama_base_url: String,
+    json_out: Option<PathBuf>,
     prompt: String,
     max_output_tokens: usize,
     repeats: usize,
@@ -78,6 +79,85 @@ enum BenchStructuredOutput {
     JsonSchema { name: Option<String>, schema: Value },
 }
 
+#[derive(Clone, Debug, Serialize)]
+struct BenchReport {
+    schema_version: u32,
+    report_kind: String,
+    generated_at_unix_s: u64,
+    backend: String,
+    model_path: String,
+    ollama_model: Option<String>,
+    ollama_base_url: Option<String>,
+    prompt: String,
+    rendered_prompt: String,
+    stop_sequences: Vec<String>,
+    decode_mode: String,
+    max_output_tokens: usize,
+    repeats: usize,
+    temperature: Option<f32>,
+    top_k: Option<usize>,
+    top_p: Option<f32>,
+    min_p: Option<f32>,
+    typical_p: Option<f32>,
+    mirostat: Option<u8>,
+    mirostat_tau: Option<f32>,
+    mirostat_eta: Option<f32>,
+    repeat_penalty: Option<f32>,
+    repeat_last_n: Option<i32>,
+    presence_penalty: Option<f32>,
+    frequency_penalty: Option<f32>,
+    seed: Option<u64>,
+    structured_output: BenchStructuredOutputConfigReport,
+    runs: Vec<BenchRunReport>,
+    mean_output_tokens: f64,
+    mean_prompt_s: f64,
+    mean_decode_s: f64,
+    mean_total_s: f64,
+    mean_decode_tok_s: f64,
+}
+
+#[derive(Clone, Debug, Serialize)]
+struct BenchRunReport {
+    run_index: usize,
+    decode_mode: String,
+    prompt_tokens: usize,
+    output_tokens: usize,
+    prompt_s: f64,
+    decode_s: f64,
+    total_s: f64,
+    decode_tok_s: f64,
+    qwen35_output_modes: Vec<String>,
+    qwen35_readback_bytes: u64,
+    qwen35_raw_logits: bool,
+    structured_output_mode: String,
+    structured_output_parser: String,
+    structured_output_kind: String,
+    structured_output_value: Option<Value>,
+    output_text: String,
+}
+
+#[derive(Clone, Debug, Serialize)]
+struct BenchStructuredOutputConfigReport {
+    mode: String,
+    schema_name: Option<String>,
+    schema: Option<Value>,
+}
+
+#[derive(Clone, Debug, Serialize)]
+struct BenchStructuredOutputRuntimeReport {
+    mode: String,
+    parser: String,
+    kind: String,
+    value: Option<Value>,
+}
+
+#[derive(Clone, Debug, Serialize)]
+struct BenchQwen35OutputMetricsReport {
+    output_modes: Vec<String>,
+    readback_bytes: u64,
+    raw_logits: bool,
+}
+
 impl Default for BenchConfig {
     fn default() -> Self {
         Self {
@@ -85,6 +165,7 @@ impl Default for BenchConfig {
             model_path: PathBuf::new(),
             ollama_model: None,
             ollama_base_url: String::from("http://127.0.0.1:11434"),
+            json_out: None,
             prompt: String::from("Explain what Psionic is in one sentence."),
             max_output_tokens: 256,
             repeats: 3,
@@ -144,6 +225,13 @@ impl BenchConfig {
                 }
                 "--ollama-base-url" => {
                     config.ollama_base_url = next_arg(&raw_args, &mut index, "--ollama-base-url")?;
+                }
+                "--json-out" => {
+                    config.json_out = Some(PathBuf::from(next_arg(
+                        &raw_args,
+                        &mut index,
+                        "--json-out",
+                    )?));
                 }
                 "--prompt" => {
                     config.prompt = next_arg(&raw_args, &mut index, "--prompt")?;
@@ -425,7 +513,7 @@ fn run_psionic_benchmark(config: &BenchConfig) -> Result<(), String> {
         .generate(&warmup)
         .map_err(|error| format!("warmup generation failed: {error}"))?;
 
-    let mut decode_tok_s_total = 0.0_f64;
+    let mut runs = Vec::with_capacity(config.repeats);
     for run_index in 0..config.repeats {
         let request = GenerationRequest::new_text(
             format!("bench-{run_index}"),
@@ -445,33 +533,56 @@ fn run_psionic_benchmark(config: &BenchConfig) -> Result<(), String> {
         let prompt_ns = response.metrics.prompt_eval_duration_ns.unwrap_or(0);
         let total_ns = response.metrics.total_duration_ns.unwrap_or(0);
         let decode_tok_s = tokens_per_second(output_tokens, decode_ns);
-        decode_tok_s_total += decode_tok_s;
         let output_metrics =
-            format_qwen35_output_metrics(response.metrics.qwen35_cuda_decode.as_ref());
-        let structured_output = format_structured_output_report(
+            qwen35_output_metrics_report(response.metrics.qwen35_cuda_decode.as_ref());
+        let structured_output = structured_output_runtime_report(
             response.provenance.as_ref(),
             response.output.structured.as_ref(),
         );
+        let prompt_s = nanos_to_seconds(prompt_ns);
+        let decode_s = nanos_to_seconds(decode_ns);
+        let total_s = nanos_to_seconds(total_ns);
+        let output_text = response.output.text.replace('\n', "\\n");
+        runs.push(BenchRunReport {
+            run_index: run_index + 1,
+            decode_mode: String::from(bench_decode_mode_label(config.decode_mode)),
+            prompt_tokens: response.metrics.prompt_eval_count.unwrap_or(0),
+            output_tokens,
+            prompt_s,
+            decode_s,
+            total_s,
+            decode_tok_s,
+            qwen35_output_modes: output_metrics.output_modes.clone(),
+            qwen35_readback_bytes: output_metrics.readback_bytes,
+            qwen35_raw_logits: output_metrics.raw_logits,
+            structured_output_mode: structured_output.mode.clone(),
+            structured_output_parser: structured_output.parser.clone(),
+            structured_output_kind: structured_output.kind.clone(),
+            structured_output_value: structured_output.value.clone(),
+            output_text: output_text.clone(),
+        });
         println!(
             "backend=psionic run={} decode_mode={} prompt_tokens={} output_tokens={} prompt_s={:.6} decode_s={:.6} total_s={:.6} decode_tok_s={:.2} {} {} output={}",
             run_index + 1,
             bench_decode_mode_label(config.decode_mode),
             response.metrics.prompt_eval_count.unwrap_or(0),
             output_tokens,
-            nanos_to_seconds(prompt_ns),
-            nanos_to_seconds(decode_ns),
-            nanos_to_seconds(total_ns),
+            prompt_s,
+            decode_s,
+            total_s,
             decode_tok_s,
-            output_metrics,
-            structured_output,
-            response.output.text.replace('\n', "\\n"),
+            format_qwen35_output_metrics(&output_metrics),
+            format_structured_output_report(&structured_output),
+            output_text,
         );
     }
 
+    let report = build_bench_report(config, &rendered, runs);
     println!(
         "backend=psionic mean_decode_tok_s={:.2}",
-        decode_tok_s_total / config.repeats as f64
+        report.mean_decode_tok_s
     );
+    write_json_output(&report, config.json_out.as_ref())?;
     Ok(())
 }
 
@@ -494,7 +605,7 @@ fn run_ollama_benchmark(config: &BenchConfig) -> Result<(), String> {
         min_warmup_tokens(config.max_output_tokens),
     )?;
 
-    let mut decode_tok_s_total = 0.0_f64;
+    let mut runs = Vec::with_capacity(config.repeats);
     for run_index in 0..config.repeats {
         let response = ollama_generate(
             &client,
@@ -509,25 +620,48 @@ fn run_ollama_benchmark(config: &BenchConfig) -> Result<(), String> {
         let prompt_ns = response.prompt_eval_duration.unwrap_or(0);
         let total_ns = response.total_duration.unwrap_or(0);
         let decode_tok_s = tokens_per_second(output_tokens, decode_ns);
-        decode_tok_s_total += decode_tok_s;
+        let prompt_s = nanos_to_seconds(prompt_ns);
+        let decode_s = nanos_to_seconds(decode_ns);
+        let total_s = nanos_to_seconds(total_ns);
+        let output_text = response.response.replace('\n', "\\n");
+        runs.push(BenchRunReport {
+            run_index: run_index + 1,
+            decode_mode: String::from(bench_decode_mode_label(config.decode_mode)),
+            prompt_tokens: response.prompt_eval_count.unwrap_or(0),
+            output_tokens,
+            prompt_s,
+            decode_s,
+            total_s,
+            decode_tok_s,
+            qwen35_output_modes: Vec::new(),
+            qwen35_readback_bytes: 0,
+            qwen35_raw_logits: false,
+            structured_output_mode: String::from("none"),
+            structured_output_parser: String::from("none"),
+            structured_output_kind: String::from("none"),
+            structured_output_value: None,
+            output_text: output_text.clone(),
+        });
         println!(
             "backend=ollama run={} decode_mode={} prompt_tokens={} output_tokens={} prompt_s={:.6} decode_s={:.6} total_s={:.6} decode_tok_s={:.2} output={}",
             run_index + 1,
             bench_decode_mode_label(config.decode_mode),
             response.prompt_eval_count.unwrap_or(0),
             output_tokens,
-            nanos_to_seconds(prompt_ns),
-            nanos_to_seconds(decode_ns),
-            nanos_to_seconds(total_ns),
+            prompt_s,
+            decode_s,
+            total_s,
             decode_tok_s,
-            response.response.replace('\n', "\\n"),
+            output_text,
         );
     }
 
+    let report = build_bench_report(config, &rendered, runs);
     println!(
         "backend=ollama mean_decode_tok_s={:.2}",
-        decode_tok_s_total / config.repeats as f64
+        report.mean_decode_tok_s
     );
+    write_json_output(&report, config.json_out.as_ref())?;
     Ok(())
 }
 
@@ -589,11 +723,15 @@ fn render_prompt(model_path: &Path, prompt: &str) -> Result<RenderedPrompt, Stri
     })
 }
 
-fn format_qwen35_output_metrics(metrics: Option<&Qwen35CudaDecodeOutputMetrics>) -> String {
+fn qwen35_output_metrics_report(
+    metrics: Option<&Qwen35CudaDecodeOutputMetrics>,
+) -> BenchQwen35OutputMetricsReport {
     let Some(metrics) = metrics else {
-        return String::from(
-            "qwen35_output_modes=[] qwen35_readback_bytes=0 qwen35_raw_logits=false",
-        );
+        return BenchQwen35OutputMetricsReport {
+            output_modes: Vec::new(),
+            readback_bytes: 0,
+            raw_logits: false,
+        };
     };
     let output_modes = metrics
         .output_modes
@@ -608,35 +746,55 @@ fn format_qwen35_output_metrics(metrics: Option<&Qwen35CudaDecodeOutputMetrics>)
             }
             psionic_serve::Qwen35CudaDecodeOutputMode::RawLogits => String::from("raw_logits"),
         })
-        .collect::<Vec<_>>()
-        .join(",");
+        .collect::<Vec<_>>();
+    BenchQwen35OutputMetricsReport {
+        output_modes,
+        readback_bytes: metrics.readback_bytes,
+        raw_logits: metrics.raw_logits_materialized,
+    }
+}
+
+fn format_qwen35_output_metrics(report: &BenchQwen35OutputMetricsReport) -> String {
     format!(
         "qwen35_output_modes=[{}] qwen35_readback_bytes={} qwen35_raw_logits={}",
-        output_modes, metrics.readback_bytes, metrics.raw_logits_materialized
+        report.output_modes.join(","),
+        report.readback_bytes,
+        report.raw_logits
     )
 }
 
-fn format_structured_output_report(
+fn structured_output_runtime_report(
     provenance: Option<&psionic_serve::GenerationProvenance>,
     structured_value: Option<&StructuredOutputValue>,
-) -> String {
+) -> BenchStructuredOutputRuntimeReport {
     let Some(report) = provenance.and_then(|provenance| provenance.structured_output.as_ref())
     else {
-        return String::from(
-            "structured_output_mode=none structured_output_parser=none structured_output_kind=none structured_output_value=none",
-        );
+        return BenchStructuredOutputRuntimeReport {
+            mode: String::from("none"),
+            parser: String::from("none"),
+            kind: String::from("none"),
+            value: None,
+        };
     };
-    let value = match structured_value {
-        Some(value) => {
-            serde_json::to_string(value).unwrap_or_else(|_| String::from("\"<unserializable>\""))
-        }
-        None => String::from("none"),
-    };
+    BenchStructuredOutputRuntimeReport {
+        mode: String::from(report.mode.label()),
+        parser: String::from(report.parser.label()),
+        kind: String::from(report.kind.label()),
+        value: structured_value.and_then(|value| serde_json::to_value(value).ok()),
+    }
+}
+
+fn format_structured_output_report(report: &BenchStructuredOutputRuntimeReport) -> String {
+    let value = report
+        .value
+        .as_ref()
+        .and_then(|value| serde_json::to_string(value).ok())
+        .unwrap_or_else(|| String::from("none"));
     format!(
         "structured_output_mode={} structured_output_parser={} structured_output_kind={} structured_output_value={}",
-        report.mode.label(),
-        report.parser.label(),
-        report.kind.label(),
+        report.mode,
+        report.parser,
+        report.kind,
         value
     )
 }
@@ -732,9 +890,106 @@ fn nanos_to_seconds(duration_ns: u64) -> f64 {
     duration_ns as f64 / 1_000_000_000.0
 }
 
+fn current_unix_timestamp_seconds() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|duration| duration.as_secs())
+        .unwrap_or(0)
+}
+
+fn build_bench_report(
+    config: &BenchConfig,
+    rendered: &RenderedPrompt,
+    runs: Vec<BenchRunReport>,
+) -> BenchReport {
+    let repeats = runs.len().max(1) as f64;
+    let mean_output_tokens = runs.iter().map(|run| run.output_tokens as f64).sum::<f64>() / repeats;
+    let mean_prompt_s = runs.iter().map(|run| run.prompt_s).sum::<f64>() / repeats;
+    let mean_decode_s = runs.iter().map(|run| run.decode_s).sum::<f64>() / repeats;
+    let mean_total_s = runs.iter().map(|run| run.total_s).sum::<f64>() / repeats;
+    let mean_decode_tok_s = runs.iter().map(|run| run.decode_tok_s).sum::<f64>() / repeats;
+    BenchReport {
+        schema_version: 1,
+        report_kind: String::from("qwen35_cuda_bench"),
+        generated_at_unix_s: current_unix_timestamp_seconds(),
+        backend: String::from(bench_backend_label(config.backend)),
+        model_path: config.model_path.display().to_string(),
+        ollama_model: config.ollama_model.clone(),
+        ollama_base_url: matches!(config.backend, BenchBackend::Ollama)
+            .then(|| config.ollama_base_url.clone()),
+        prompt: config.prompt.clone(),
+        rendered_prompt: rendered.text.clone(),
+        stop_sequences: rendered.stop_sequences.clone(),
+        decode_mode: String::from(bench_decode_mode_label(config.decode_mode)),
+        max_output_tokens: config.max_output_tokens,
+        repeats: runs.len(),
+        temperature: config.effective_temperature(),
+        top_k: config.effective_top_k(),
+        top_p: config.effective_top_p(),
+        min_p: config.effective_min_p(),
+        typical_p: config.effective_typical_p(),
+        mirostat: config.effective_mirostat(),
+        mirostat_tau: config.effective_mirostat_tau(),
+        mirostat_eta: config.effective_mirostat_eta(),
+        repeat_penalty: config.effective_repeat_penalty(),
+        repeat_last_n: config.effective_repeat_last_n(),
+        presence_penalty: config.effective_presence_penalty(),
+        frequency_penalty: config.effective_frequency_penalty(),
+        seed: config.effective_seed(),
+        structured_output: structured_output_config_report(config.structured_output.as_ref()),
+        runs,
+        mean_output_tokens,
+        mean_prompt_s,
+        mean_decode_s,
+        mean_total_s,
+        mean_decode_tok_s,
+    }
+}
+
+fn structured_output_config_report(
+    structured_output: Option<&BenchStructuredOutput>,
+) -> BenchStructuredOutputConfigReport {
+    match structured_output {
+        Some(BenchStructuredOutput::JsonObject) => BenchStructuredOutputConfigReport {
+            mode: String::from("json_object"),
+            schema_name: None,
+            schema: None,
+        },
+        Some(BenchStructuredOutput::JsonSchema { name, schema }) => {
+            BenchStructuredOutputConfigReport {
+                mode: String::from("json_schema"),
+                schema_name: name.clone(),
+                schema: Some(schema.clone()),
+            }
+        }
+        None => BenchStructuredOutputConfigReport {
+            mode: String::from("none"),
+            schema_name: None,
+            schema: None,
+        },
+    }
+}
+
+fn bench_backend_label(backend: BenchBackend) -> &'static str {
+    match backend {
+        BenchBackend::Psionic => "psionic",
+        BenchBackend::Ollama => "ollama",
+    }
+}
+
+fn write_json_output<T: Serialize>(value: &T, output: Option<&PathBuf>) -> Result<(), String> {
+    let json = serde_json::to_string_pretty(value)
+        .map_err(|error| format!("failed to serialize JSON report: {error}"))?;
+    match output {
+        Some(path) => fs::write(path, format!("{json}\n"))
+            .map_err(|error| format!("failed to write JSON report `{}`: {error}", path.display())),
+        None => Ok(()),
+    }
+}
+
 fn usage() -> String {
     String::from(
-        "usage:\n  cargo run -p psionic-serve --example qwen35_cuda_bench -- <model.gguf> [prompt] [max_output_tokens] [repeats]\n  cargo run -p psionic-serve --example qwen35_cuda_bench -- --backend psionic --model-path <model.gguf> [--decode greedy|sample] [--temperature 0.8] [--top-k 40] [--top-p 0.9] [--min-p 0.05] [--typical-p 0.5] [--mirostat 1|2] [--mirostat-tau 5.0] [--mirostat-eta 0.1] [--repeat-penalty 1.0] [--repeat-last-n 64] [--presence-penalty 0.0] [--frequency-penalty 0.0] [--seed 42] [--json-object | --json-schema-file schema.json [--json-schema-name summary]] [--prompt <text>] [--max-output-tokens 128] [--repeats 3]\n  cargo run -p psionic-serve --example qwen35_cuda_bench -- --backend ollama --model-path <model.gguf> --ollama-model qwen3.5:0.8b [--ollama-base-url http://127.0.0.1:11434] [--decode greedy|sample] [--temperature 0.8] [--top-k 40] [--top-p 0.9] [--min-p 0.05] [--typical-p 0.5] [--mirostat 1|2] [--mirostat-tau 5.0] [--mirostat-eta 0.1] [--repeat-penalty 1.0] [--repeat-last-n 64] [--presence-penalty 0.0] [--frequency-penalty 0.0] [--seed 42] [--json-object | --json-schema-file schema.json [--json-schema-name summary]] [--prompt <text>] [--max-output-tokens 128] [--repeats 3]",
+        "usage:\n  cargo run -p psionic-serve --example qwen35_cuda_bench -- <model.gguf> [prompt] [max_output_tokens] [repeats]\n  cargo run -p psionic-serve --example qwen35_cuda_bench -- --backend psionic --model-path <model.gguf> [--decode greedy|sample] [--temperature 0.8] [--top-k 40] [--top-p 0.9] [--min-p 0.05] [--typical-p 0.5] [--mirostat 1|2] [--mirostat-tau 5.0] [--mirostat-eta 0.1] [--repeat-penalty 1.0] [--repeat-last-n 64] [--presence-penalty 0.0] [--frequency-penalty 0.0] [--seed 42] [--json-object | --json-schema-file schema.json [--json-schema-name summary]] [--json-out report.json] [--prompt <text>] [--max-output-tokens 128] [--repeats 3]\n  cargo run -p psionic-serve --example qwen35_cuda_bench -- --backend ollama --model-path <model.gguf> --ollama-model qwen3.5:0.8b [--ollama-base-url http://127.0.0.1:11434] [--decode greedy|sample] [--temperature 0.8] [--top-k 40] [--top-p 0.9] [--min-p 0.05] [--typical-p 0.5] [--mirostat 1|2] [--mirostat-tau 5.0] [--mirostat-eta 0.1] [--repeat-penalty 1.0] [--repeat-last-n 64] [--presence-penalty 0.0] [--frequency-penalty 0.0] [--seed 42] [--json-object | --json-schema-file schema.json [--json-schema-name summary]] [--json-out report.json] [--prompt <text>] [--max-output-tokens 128] [--repeats 3]",
     )
 }
 

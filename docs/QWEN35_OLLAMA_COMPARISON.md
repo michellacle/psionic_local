@@ -30,6 +30,37 @@ Shared benchmark rules:
   `runner/ollamarunner` and its active sampler surface is the one built by
   `sample.NewSampler(temperature, topK, topP, minP, seed, grammar)`
 
+## Machine-Readable Evidence Contract
+
+Michel's laptop run exposed a gap in the repo-owned evidence path, not in the
+human-readable comparison doc alone.
+
+The canonical repo-owned rerun path is now:
+
+- per-row benchmark reports from
+  `cargo run --release -p psionic-serve --example qwen35_cuda_bench -- ... --json-out report.json`
+- sequential multi-row collection from
+  `scripts/release/run-qwen35-ollama-matrix.sh`
+
+Those artifacts preserve the per-run fields that matter for honest comparison:
+
+- `prompt_tokens`
+- `output_tokens`
+- `prompt_s`
+- `decode_s`
+- `total_s`
+- `decode_tok_s`
+- `qwen35_output_modes`
+- `qwen35_readback_bytes`
+- `qwen35_raw_logits`
+- rendered prompt and stop sequences
+- effective sampled contract values
+- host label, GPU memory, power-limit metadata, Psionic commit, and Ollama
+  version at the matrix level
+
+Constrained-host follow-up reruns should use that path instead of publishing a
+reduced matrix that keeps only token count and mean throughput.
+
 ## Greedy Contract
 
 Prompt:
@@ -215,8 +246,11 @@ Psionic-only measured means:
   when there is no candidate shortlist.
 - The local `qwen35_cuda_bench` harness now reproduces native-versus-Ollama
   JSON object and JSON schema requests too through `--json-object` and
-  `--json-schema-file`, and the native qwen35 structured path is now replay-safe
-  and can stay off dense raw-logit replay on the bounded greedy schema lane.
+  `--json-schema-file`. It also writes machine-readable per-run reports through
+  `--json-out`, and the repo-owned matrix collector now lives at
+  `scripts/release/run-qwen35-ollama-matrix.sh`. The native qwen35 structured
+  path is now replay-safe and can stay off dense raw-logit replay on the
+  bounded greedy schema lane.
 - Structured-output throughput is still outside the canonical matrix. After the
   leading-char token-cache bucketing pass, the matcher memo-path allocation
   cut, and a clean isolated rebuild on March 28, 2026, the local
