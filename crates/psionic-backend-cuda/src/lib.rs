@@ -817,6 +817,18 @@ impl CudaHostBuffer {
         self.platform.read_bytes(self.byte_len)
     }
 
+    /// Reads a byte prefix from the pinned host buffer into `output`.
+    pub fn read_bytes_prefix_into(&self, output: &mut [u8]) -> Result<(), RuntimeError> {
+        if output.len() > self.byte_len {
+            return Err(RuntimeError::Backend(format!(
+                "cuda host buffer prefix read exceeds allocation: requested {} bytes, allocation {}",
+                output.len(),
+                self.byte_len
+            )));
+        }
+        self.platform.read_bytes_prefix_into(output)
+    }
+
     /// Writes contiguous `f32` values into the pinned host buffer.
     pub fn write_f32(&mut self, values: &[f32]) -> Result<(), RuntimeError> {
         if values.len().saturating_mul(size_of_dtype(DType::F32)) != self.byte_len {
@@ -10484,6 +10496,27 @@ mod platform {
             }
             Ok(bytes)
         }
+
+        pub(super) fn read_bytes_prefix_into(&self, output: &mut [u8]) -> Result<(), RuntimeError> {
+            if output.len() > self.inner.byte_len {
+                return Err(RuntimeError::Backend(format!(
+                    "cuda host buffer prefix read length exceeds allocation: requested {}, allocation {}",
+                    output.len(),
+                    self.inner.byte_len
+                )));
+            }
+            if output.is_empty() {
+                return Ok(());
+            }
+            unsafe {
+                std::ptr::copy_nonoverlapping(
+                    self.inner.host_ptr.cast::<u8>(),
+                    output.as_mut_ptr(),
+                    output.len(),
+                );
+            }
+            Ok(())
+        }
     }
 
     impl PlatformSubmission {
@@ -15357,6 +15390,12 @@ mod platform {
         }
 
         pub(super) fn read_bytes(&self, _byte_len: usize) -> Result<Vec<u8>, RuntimeError> {
+            Err(RuntimeError::Backend(String::from(
+                "cuda runtime substrate currently requires Linux libcudart",
+            )))
+        }
+
+        pub(super) fn read_bytes_prefix_into(&self, _output: &mut [u8]) -> Result<(), RuntimeError> {
             Err(RuntimeError::Backend(String::from(
                 "cuda runtime substrate currently requires Linux libcudart",
             )))

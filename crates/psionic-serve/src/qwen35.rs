@@ -3,7 +3,7 @@ use std::{collections::BTreeMap, path::Path, sync::Arc, time::Instant};
 use psionic_backend_cpu::{decode_quantized_row_into, quantized_row_byte_len};
 use psionic_backend_cuda::{
     CudaBackend, CudaBuffer, CudaGraphExec, CudaHostBuffer, CudaQuantizedMatvecStats,
-    CudaSubmission, CudaTopKResult, ggml_q8_1_storage_bytes,
+    CudaSubmission, ggml_q8_1_storage_bytes,
 };
 use psionic_catalog::{BlobIntegrityPolicy, LocalBlobOpenOptions};
 use psionic_core::QuantizationMode;
@@ -577,8 +577,8 @@ impl CudaGgufQwen35TextGenerationService {
                         {
                             sampler.select_greedy_structured_token_from_candidates(
                                 &self.model.tokenizer,
-                                candidates.indices.as_slice(),
-                                candidates.values.as_slice(),
+                                candidates.indices(),
+                                candidates.values(),
                                 generated_tokens.as_slice(),
                             )?
                         } else {
@@ -641,8 +641,8 @@ impl CudaGgufQwen35TextGenerationService {
                             }
                         }
                         None => match sampler.select_next_token_from_presorted_candidates(
-                            candidates.indices.as_slice(),
-                            candidates.values.as_slice(),
+                            candidates.indices(),
+                            candidates.values(),
                             self.model.descriptor.config.vocab_size,
                         )? {
                             crate::GenerationSelection::Token(token) => token,
@@ -814,6 +814,38 @@ const QWEN35_CUDA_PARTITIONED_TOP_K_THRESHOLD: usize = 40;
 const QWEN35_CUDA_PARTITIONED_TOP_K_BLOCKS_SMALL: usize = 24;
 const QWEN35_CUDA_PARTITIONED_TOP_K_BLOCKS_LARGE: usize = 40;
 const QWEN35_CUDA_PARTITIONED_TOP_K_BLOCKS_LARGE_THRESHOLD: usize = 96;
+
+#[derive(Clone, Debug)]
+struct Qwen35CudaTopKCandidates {
+    top_k: usize,
+    indices: [u32; QWEN35_CUDA_MAX_TOP_K],
+    values: [f32; QWEN35_CUDA_MAX_TOP_K],
+}
+
+impl Qwen35CudaTopKCandidates {
+    fn zeroed(top_k: usize) -> Result<Self, crate::RuntimeError> {
+        if top_k == 0 || top_k > QWEN35_CUDA_MAX_TOP_K {
+            return Err(crate::RuntimeError::Backend(format!(
+                "qwen35 cuda top-k width must be in 1..={}, actual {}",
+                QWEN35_CUDA_MAX_TOP_K, top_k
+            )));
+        }
+        Ok(Self {
+            top_k,
+            indices: [0_u32; QWEN35_CUDA_MAX_TOP_K],
+            values: [0.0_f32; QWEN35_CUDA_MAX_TOP_K],
+        })
+    }
+
+    fn indices(&self) -> &[u32] {
+        &self.indices[..self.top_k]
+    }
+
+    fn values(&self) -> &[f32] {
+        &self.values[..self.top_k]
+    }
+}
+
 fn qwen35_fast_greedy_path_enabled() -> bool {
     std::env::var_os("PSIONIC_QWEN35_DISABLE_FAST_GREEDY").is_none()
 }
@@ -983,18 +1015,60 @@ fn cuda_argmax_token_from_packed_host_buffer(
     cuda_argmax_token_id((packed >> 32) as i32)
 }
 
-fn cuda_top_k_result_from_host_buffers(
+fn cuda_top_k_candidates_from_indices(
+    indices: &[u32],
+) -> Result<Qwen35CudaTopKCandidates, crate::RuntimeError> {
+    let mut candidates = Qwen35CudaTopKCandidates::zeroed(indices.len())?;
+    candidates.indices[..indices.len()].copy_from_slice(indices);
+    Ok(candidates)
+}
+
+fn cuda_top_k_candidates_from_index_host_buffer(
+    indices_host_buffer: &CudaHostBuffer,
+    top_k: usize,
+) -> Result<Qwen35CudaTopKCandidates, crate::RuntimeError> {
+    let expected_indices_bytes = top_k.saturating_mul(std::mem::size_of::<i32>());
+    if indices_host_buffer.byte_len() < expected_indices_bytes {
+        return Err(crate::RuntimeError::Backend(format!(
+            "qwen35 cuda top-k index host buffer is too small: need {} bytes, have {}",
+            expected_indices_bytes,
+            indices_host_buffer.byte_len()
+        )));
+    }
+    let mut index_bytes = [0_u8; QWEN35_CUDA_MAX_TOP_K * std::mem::size_of::<i32>()];
+    indices_host_buffer
+        .read_bytes_prefix_into(&mut index_bytes[..expected_indices_bytes])
+        .map_err(|error| {
+            crate::RuntimeError::Backend(format!(
+                "failed to read qwen35 cuda top-k index host buffer: {error}",
+            ))
+        })?;
+    let mut candidates = Qwen35CudaTopKCandidates::zeroed(top_k)?;
+    for (slot, chunk) in candidates.indices[..top_k]
+        .iter_mut()
+        .zip(index_bytes[..expected_indices_bytes].chunks_exact(std::mem::size_of::<i32>()))
+    {
+        let index = i32::from_ne_bytes(chunk.try_into().map_err(|_| {
+            crate::RuntimeError::Backend(String::from(
+                "qwen35 cuda top-k returned invalid index bytes",
+            ))
+        })?);
+        *slot = u32::try_from(index).map_err(|_| {
+            crate::RuntimeError::Backend(format!(
+                "qwen35 cuda top-k returned a negative token index {index}",
+            ))
+        })?;
+    }
+    Ok(candidates)
+}
+
+fn cuda_top_k_candidates_from_host_buffers(
     indices_host_buffer: &CudaHostBuffer,
     values_host_buffer: &CudaHostBuffer,
-    row_count: usize,
     top_k: usize,
-) -> Result<CudaTopKResult, crate::RuntimeError> {
-    let expected_indices_bytes = row_count
-        .saturating_mul(top_k)
-        .saturating_mul(std::mem::size_of::<i32>());
-    let expected_values_bytes = row_count
-        .saturating_mul(top_k)
-        .saturating_mul(std::mem::size_of::<f32>());
+) -> Result<Qwen35CudaTopKCandidates, crate::RuntimeError> {
+    let expected_indices_bytes = top_k.saturating_mul(std::mem::size_of::<i32>());
+    let expected_values_bytes = top_k.saturating_mul(std::mem::size_of::<f32>());
     if indices_host_buffer.byte_len() < expected_indices_bytes
         || values_host_buffer.byte_len() < expected_values_bytes
     {
@@ -1007,83 +1081,52 @@ fn cuda_top_k_result_from_host_buffers(
         )));
     }
 
-    let index_bytes = indices_host_buffer.read_bytes().map_err(|error| {
-        crate::RuntimeError::Backend(format!(
-            "failed to read qwen35 cuda top-k index host buffer: {error}",
-        ))
-    })?;
-    let value_bytes = values_host_buffer.read_bytes().map_err(|error| {
-        crate::RuntimeError::Backend(format!(
-            "failed to read qwen35 cuda top-k value host buffer: {error}",
-        ))
-    })?;
+    let mut index_bytes = [0_u8; QWEN35_CUDA_MAX_TOP_K * std::mem::size_of::<i32>()];
+    indices_host_buffer
+        .read_bytes_prefix_into(&mut index_bytes[..expected_indices_bytes])
+        .map_err(|error| {
+            crate::RuntimeError::Backend(format!(
+                "failed to read qwen35 cuda top-k index host buffer: {error}",
+            ))
+        })?;
+    let mut value_bytes = [0_u8; QWEN35_CUDA_MAX_TOP_K * std::mem::size_of::<f32>()];
+    values_host_buffer
+        .read_bytes_prefix_into(&mut value_bytes[..expected_values_bytes])
+        .map_err(|error| {
+            crate::RuntimeError::Backend(format!(
+                "failed to read qwen35 cuda top-k value host buffer: {error}",
+            ))
+        })?;
 
-    let mut indices = Vec::with_capacity(row_count.saturating_mul(top_k));
-    for chunk in index_bytes[..expected_indices_bytes].chunks_exact(std::mem::size_of::<i32>()) {
+    let mut candidates = Qwen35CudaTopKCandidates::zeroed(top_k)?;
+    for (slot, chunk) in candidates.indices[..top_k]
+        .iter_mut()
+        .zip(index_bytes[..expected_indices_bytes].chunks_exact(std::mem::size_of::<i32>()))
+    {
         let index = i32::from_ne_bytes(chunk.try_into().map_err(|_| {
             crate::RuntimeError::Backend(String::from(
                 "qwen35 cuda top-k returned invalid index bytes",
             ))
         })?);
-        indices.push(u32::try_from(index).map_err(|_| {
+        *slot = u32::try_from(index).map_err(|_| {
             crate::RuntimeError::Backend(format!(
                 "qwen35 cuda top-k returned a negative token index {index}",
             ))
-        })?);
+        })?;
     }
 
-    let mut values = Vec::with_capacity(row_count.saturating_mul(top_k));
-    for chunk in value_bytes[..expected_values_bytes].chunks_exact(std::mem::size_of::<f32>()) {
-        values.push(f32::from_ne_bytes(chunk.try_into().map_err(|_| {
+    for (slot, chunk) in candidates.values[..top_k]
+        .iter_mut()
+        .zip(value_bytes[..expected_values_bytes].chunks_exact(std::mem::size_of::<f32>()))
+    {
+        *slot = f32::from_ne_bytes(chunk.try_into().map_err(|_| {
             crate::RuntimeError::Backend(String::from(
                 "qwen35 cuda top-k returned invalid value bytes",
             ))
-        })?));
-    }
-
-    Ok(CudaTopKResult {
-        row_count,
-        top_k,
-        indices,
-        values,
-    })
-}
-
-fn cuda_top_k_indices_from_host_buffer(
-    indices_host_buffer: &CudaHostBuffer,
-    row_count: usize,
-    top_k: usize,
-) -> Result<Vec<u32>, crate::RuntimeError> {
-    let expected_indices_bytes = row_count
-        .saturating_mul(top_k)
-        .saturating_mul(std::mem::size_of::<i32>());
-    if indices_host_buffer.byte_len() < expected_indices_bytes {
-        return Err(crate::RuntimeError::Backend(format!(
-            "qwen35 cuda top-k index host buffer is too small: need {} bytes, have {}",
-            expected_indices_bytes,
-            indices_host_buffer.byte_len()
-        )));
-    }
-
-    let index_bytes = indices_host_buffer.read_bytes().map_err(|error| {
-        crate::RuntimeError::Backend(format!(
-            "failed to read qwen35 cuda top-k index host buffer: {error}",
-        ))
-    })?;
-    let mut indices = Vec::with_capacity(row_count.saturating_mul(top_k));
-    for chunk in index_bytes[..expected_indices_bytes].chunks_exact(std::mem::size_of::<i32>()) {
-        let index = i32::from_ne_bytes(chunk.try_into().map_err(|_| {
-            crate::RuntimeError::Backend(String::from(
-                "qwen35 cuda top-k returned invalid index bytes",
-            ))
-        })?);
-        indices.push(u32::try_from(index).map_err(|_| {
-            crate::RuntimeError::Backend(format!(
-                "qwen35 cuda top-k returned a negative token index {index}",
-            ))
         })?);
     }
-    Ok(indices)
+
+    Ok(candidates)
 }
 
 fn cuda_f32_vec_from_host_buffer(
@@ -1539,12 +1582,8 @@ impl CudaQwen35Model {
                         )
                         .map_err(ReferenceTextGenerationError::Runtime)?;
                     (
-                        CudaTopKResult {
-                            row_count: 1,
-                            top_k,
-                            values: vec![0.0_f32; indices.len()],
-                            indices,
-                        },
+                        cuda_top_k_candidates_from_indices(indices.as_slice())
+                            .map_err(ReferenceTextGenerationError::Runtime)?,
                         stats,
                     )
                 } else {
@@ -2483,23 +2522,15 @@ impl CudaQwen35Model {
                 }
                 state.position = state.position.saturating_add(1);
                 let candidates = if request_options.structured_output.is_some() {
-                    let indices = cuda_top_k_indices_from_host_buffer(
+                    cuda_top_k_candidates_from_index_host_buffer(
                         &plan.top_k_indices_host_buffer,
-                        1,
                         top_k,
                     )
-                    .map_err(ReferenceTextGenerationError::Runtime)?;
-                    CudaTopKResult {
-                        row_count: 1,
-                        top_k,
-                        values: vec![0.0_f32; indices.len()],
-                        indices,
-                    }
+                        .map_err(ReferenceTextGenerationError::Runtime)?
                 } else {
-                    cuda_top_k_result_from_host_buffers(
+                    cuda_top_k_candidates_from_host_buffers(
                         &plan.top_k_indices_host_buffer,
                         &plan.top_k_values_host_buffer,
-                        1,
                         top_k,
                     )
                     .map_err(ReferenceTextGenerationError::Runtime)?
@@ -3030,12 +3061,8 @@ impl CudaQwen35Model {
                                 )
                                 .map_err(ReferenceTextGenerationError::Runtime)?;
                             (
-                                CudaTopKResult {
-                                    row_count: 1,
-                                    top_k,
-                                    values: vec![0.0_f32; indices.len()],
-                                    indices,
-                                },
+                                cuda_top_k_candidates_from_indices(indices.as_slice())
+                                    .map_err(ReferenceTextGenerationError::Runtime)?,
                                 stats,
                             )
                         } else {
@@ -3425,10 +3452,9 @@ impl CudaQwen35Model {
         };
         let candidates = match output_mode {
             CudaStepOutputMode::TopKCandidates(top_k) => Some(
-                cuda_top_k_result_from_host_buffers(
+                cuda_top_k_candidates_from_host_buffers(
                     &plan.top_k_indices_host_buffer,
                     &plan.top_k_values_host_buffer,
-                    1,
                     top_k,
                 )
                 .map_err(ReferenceTextGenerationError::Runtime)?,
@@ -6724,7 +6750,7 @@ enum CudaStepOutputMode {
 struct Qwen35ForwardStep {
     logits: Vec<f32>,
     selected_token: Option<TokenId>,
-    candidates: Option<CudaTopKResult>,
+    candidates: Option<Qwen35CudaTopKCandidates>,
     kernel_count: usize,
     bytes_moved: u64,
     output_metrics: Option<Qwen35CudaDecodeOutputMetrics>,
@@ -7298,7 +7324,7 @@ impl Qwen35CudaStepPlan {
         top_k: usize,
         history: &[TokenId],
         policy: &SamplingPolicy,
-    ) -> Result<(CudaTopKResult, CudaQuantizedMatvecStats), crate::RuntimeError> {
+    ) -> Result<(Qwen35CudaTopKCandidates, CudaQuantizedMatvecStats), crate::RuntimeError> {
         if top_k == 0 || top_k > QWEN35_CUDA_MAX_TOP_K {
             return Err(crate::RuntimeError::Backend(format!(
                 "qwen35 cuda top-k width must be in 1..={}, actual {}",
@@ -7355,10 +7381,9 @@ impl Qwen35CudaStepPlan {
         submission
             .copy_device_to_host(&self.top_k_values_buffer, &self.top_k_values_host_buffer)?;
         let report = submission.commit(psionic_backend_cuda::CudaCommandWait::Completed)?;
-        let result = cuda_top_k_result_from_host_buffers(
+        let result = cuda_top_k_candidates_from_host_buffers(
             &self.top_k_indices_host_buffer,
             &self.top_k_values_host_buffer,
-            1,
             top_k,
         )?;
         Ok((
@@ -7445,8 +7470,12 @@ impl Qwen35CudaStepPlan {
         submission
             .copy_device_to_host(&self.top_k_indices_buffer, &self.top_k_indices_host_buffer)?;
         let report = submission.commit(psionic_backend_cuda::CudaCommandWait::Completed)?;
-        let indices =
-            cuda_top_k_indices_from_host_buffer(&self.top_k_indices_host_buffer, 1, top_k)?;
+        let indices = cuda_top_k_candidates_from_index_host_buffer(
+            &self.top_k_indices_host_buffer,
+            top_k,
+        )?
+        .indices()
+        .to_vec();
         Ok((
             indices,
             CudaQuantizedMatvecStats {
