@@ -64,6 +64,10 @@ posture, public-equivalence, score-law, and cap semantics needed for
 `HOMEGOLF` and bounded `XTRAIN`. The `HOMEGOLF` lane now also emits
 score-closeout, retained score-delta, and promotion-gate posture through the
 same `v2` artifact family instead of leaving that state in sidecar reports.
+The bounded `XTRAIN -> PGOLF` lane now also emits one retained quick-eval
+source report plus one shared `v2` run bundle with explicit bounded-train-to-
+infer proof posture, closed-out local-reference BPB, and a held non-public
+promotion gate.
 
 The repo now also owns a canonical provider-neutral training-program manifest in
 `crates/psionic-train/src/cross_provider_training_program_manifest.rs`, the

@@ -50,6 +50,9 @@ stage-level observability receipts:
   migration window.
 - `fixtures/training_visualization/parameter_golf_homegolf_remote_training_visualization_bundle_v2.json`
   is the canonical HOMEGOLF score-closeout example in the shared `v2` family.
+- `fixtures/training_visualization/parameter_golf_xtrain_remote_training_visualization_bundle_v2.json`
+  is the canonical bounded XTRAIN train-to-infer example in the shared `v2`
+  family.
 
 ## What The Receipt Freezes
 

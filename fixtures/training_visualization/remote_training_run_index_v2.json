@@ -149,8 +149,53 @@
       "bundle_artifact_uri": "fixtures/training_visualization/parameter_golf_homegolf_remote_training_visualization_bundle_v2.json",
       "bundle_digest": "18dc0f1d7bd939aecbe4a175d109ef3fbe3b662d8c0f2c0338dd8cc9b7237463",
       "semantic_summary": "HOMEGOLF mixed-device score closeout now appears in the shared track-aware training run index with retained score deltas and held promotion posture."
+    },
+    {
+      "provider": "local_hybrid",
+      "profile_id": "psion_small_decoder_pgolf_core_v0",
+      "lane_id": "parameter_golf.promoted_general_xtrain_quick_eval",
+      "run_id": "parameter-golf-promoted-general-xtrain-baseline",
+      "repo_revision": "fixtures@parameter_golf_xtrain_quick_eval_report.v1",
+      "track_semantics": {
+        "track_family": "xtrain",
+        "track_id": "parameter_golf.promoted_general_xtrain.quick_eval_window1.v1",
+        "execution_class": "bounded_train_to_infer",
+        "comparability_class": "same_track_comparable",
+        "proof_posture": "bounded_train_to_infer",
+        "public_equivalence_class": "not_public_equivalent",
+        "score_law_ref": "docs/PARAMETER_GOLF_XTRAIN_TRACK.md",
+        "semantic_summary": "Bounded XTRAIN records a local-reference train-to-infer score lane for the promoted PGOLF family. It is comparable only inside the same XTRAIN track and does not claim public or HOMEGOLF-equivalent score posture."
+      },
+      "primary_score": {
+        "score_metric_id": "parameter_golf.validation_bits_per_byte",
+        "score_direction": "lower_is_better",
+        "score_unit": "bits_per_byte",
+        "score_value": 4.202998425869111,
+        "score_value_observed_at_ms": 1774607104000,
+        "score_summary": "The retained bounded XTRAIN quick-eval lane closes one local-reference validation BPB for the promoted PGOLF family under the current one-token attention-window posture."
+      },
+      "score_surface": {
+        "score_closeout_posture": "score_closed_out",
+        "promotion_gate_posture": "held",
+        "delta_rows": [
+          {
+            "reference_id": "promoted_proof_baseline",
+            "score_metric_id": "parameter_golf.validation_bits_per_byte",
+            "reference_score_value": 9.93265382277841,
+            "delta_value": -5.7296553969092985,
+            "delta_summary": "The bounded XTRAIN lane improves BPB versus the promoted proof baseline, but the result remains non-public and does not yet upgrade into HOMEGOLF-critical score posture."
+          }
+        ],
+        "semantic_summary": "Bounded XTRAIN closes a private local-reference score, preserves its delta versus the proof baseline, and keeps promotion held because the lane is not public-equivalent and does not yet prove HOMEGOLF score relevance."
+      },
+      "result_classification": "completed_success",
+      "series_status": "partial",
+      "series_unavailable_reason": "The retained bounded XTRAIN lane closes score and runtime parity but does not yet publish one append-only live step series in the shared visualization family.",
+      "bundle_artifact_uri": "fixtures/training_visualization/parameter_golf_xtrain_remote_training_visualization_bundle_v2.json",
+      "bundle_digest": "9e1acb8a3d533310d1dd1e2dcbad010549c8069034837796b26a85458cd02920",
+      "semantic_summary": "Bounded XTRAIN now appears in the shared track-aware run index with explicit proof posture, retained BPB, and a held non-public promotion gate."
     }
   ],
-  "detail": "The v2 run index keeps the shipped v1 discovery substrate readable while adding explicit track family, execution class, proof posture, comparability, score-law, and HOMEGOLF score-surface semantics.",
-  "index_digest": "df64932a78c1f225e840d06790bb5d64564413b1c50dfeb6d39b1afafbf4a080"
+  "detail": "The v2 run index keeps the shipped v1 discovery substrate readable while adding explicit track family, execution class, proof posture, comparability, score-law, HOMEGOLF score-surface semantics, and bounded XTRAIN train-to-infer posture.",
+  "index_digest": "8f4abdd8f6536e9d7110d97c00a306ee7f31a654bb1816d68d169b121b875f9c"
 }

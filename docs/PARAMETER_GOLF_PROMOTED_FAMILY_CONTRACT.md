@@ -150,6 +150,11 @@ For train-to-infer work, this promoted PGOLF path is now the primary first-model
 target. The older `PsionCompactDecoderReferencePilotModel` remains the bounded
 smoke-test lane for receipt and pipeline closure only.
 
+The bounded XTRAIN score lane now freezes its own score-law and comparability
+boundary at `docs/PARAMETER_GOLF_XTRAIN_TRACK.md` so app-facing viewers do not
+mistake the local-reference quick-eval BPB for a public or HOMEGOLF-equivalent
+score.
+
 ## Scope Boundary
 
 The promoted-family lane still does not itself:

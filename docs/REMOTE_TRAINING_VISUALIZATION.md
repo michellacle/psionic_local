@@ -39,8 +39,13 @@ Autopilot owns rendering, refresh loops, and pane behavior.
   is the canonical distributed PGOLF `v2` example bundle.
 - `fixtures/training_visualization/parameter_golf_homegolf_remote_training_visualization_bundle_v2.json`
   is the canonical HOMEGOLF score-closeout `v2` example bundle.
+- `fixtures/parameter_golf/reports/parameter_golf_xtrain_quick_eval_report.json`
+  is the canonical retained bounded XTRAIN score source report.
+- `fixtures/training_visualization/parameter_golf_xtrain_remote_training_visualization_bundle_v2.json`
+  is the canonical bounded XTRAIN train-to-infer `v2` example bundle.
 - `fixtures/training_visualization/remote_training_run_index_v2.json` is the
-  canonical track-aware run-index example and now includes the HOMEGOLF lane.
+  canonical track-aware run-index example and now includes the HOMEGOLF and
+  bounded XTRAIN lanes.
 
 The stable schema versions are:
 
@@ -162,7 +167,9 @@ Examples:
   surface held promotion posture plus retained public-comparison deltas through
   the shared `score_surface`
 - a bounded XTRAIN lane can stay explicit about its proof posture instead of
-  being mistaken for a public-leaderboard-equivalent contest run
+  being mistaken for a public-leaderboard-equivalent contest run, and it can
+  keep promotion held while still surfacing one closed-out local-reference BPB
+  plus direct-versus-served runtime parity
 
 ## Parameter Golf Single-H100
 

@@ -1,7 +1,9 @@
 use std::{error::Error, fs, path::PathBuf};
 
 use psionic_train::{
-    build_parameter_golf_homegolf_visualization_bundle_v2, sample_google_live_visualization_bundle,
+    build_parameter_golf_homegolf_visualization_bundle_v2,
+    build_parameter_golf_xtrain_quick_eval_report,
+    build_parameter_golf_xtrain_visualization_bundle_v2, sample_google_live_visualization_bundle,
     sample_google_live_visualization_bundle_v2, sample_google_summary_only_visualization_bundle,
     sample_google_summary_only_visualization_bundle_v2,
     sample_parameter_golf_distributed_live_visualization_bundle,
@@ -14,7 +16,9 @@ use psionic_train::{
 fn main() -> Result<(), Box<dyn Error>> {
     let root = workspace_root()?;
     let fixtures_dir = root.join("fixtures/training_visualization");
+    let parameter_golf_reports_dir = root.join("fixtures/parameter_golf/reports");
     fs::create_dir_all(&fixtures_dir)?;
+    fs::create_dir_all(&parameter_golf_reports_dir)?;
 
     let google_summary_only = sample_google_summary_only_visualization_bundle()?;
     let google_live = sample_google_live_visualization_bundle()?;
@@ -27,6 +31,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let parameter_golf_distributed_v2 =
         sample_parameter_golf_distributed_live_visualization_bundle_v2()?;
     let parameter_golf_homegolf_v2 = build_parameter_golf_homegolf_visualization_bundle_v2()?;
+    let parameter_golf_xtrain_report = build_parameter_golf_xtrain_quick_eval_report()?;
+    let parameter_golf_xtrain_v2 = build_parameter_golf_xtrain_visualization_bundle_v2()?;
     let run_index_v2 = sample_remote_training_run_index_v2()?;
 
     fs::write(
@@ -84,6 +90,20 @@ fn main() -> Result<(), Box<dyn Error>> {
         format!(
             "{}\n",
             serde_json::to_string_pretty(&parameter_golf_homegolf_v2)?
+        ),
+    )?;
+    fs::write(
+        parameter_golf_reports_dir.join("parameter_golf_xtrain_quick_eval_report.json"),
+        format!(
+            "{}\n",
+            serde_json::to_string_pretty(&parameter_golf_xtrain_report)?
+        ),
+    )?;
+    fs::write(
+        fixtures_dir.join("parameter_golf_xtrain_remote_training_visualization_bundle_v2.json"),
+        format!(
+            "{}\n",
+            serde_json::to_string_pretty(&parameter_golf_xtrain_v2)?
         ),
     )?;
     fs::write(

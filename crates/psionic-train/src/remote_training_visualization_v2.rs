@@ -5,7 +5,9 @@ use sha2::{Digest, Sha256};
 
 use crate::{
     build_parameter_golf_homegolf_run_index_entry_v2,
-    build_parameter_golf_homegolf_visualization_bundle_v2, sample_google_live_visualization_bundle,
+    build_parameter_golf_homegolf_visualization_bundle_v2,
+    build_parameter_golf_xtrain_run_index_entry_v2,
+    build_parameter_golf_xtrain_visualization_bundle_v2, sample_google_live_visualization_bundle,
     sample_google_summary_only_visualization_bundle,
     sample_parameter_golf_distributed_live_visualization_bundle,
     sample_parameter_golf_live_visualization_bundle, RemoteTrainingDistributedSample,
@@ -818,6 +820,8 @@ pub fn sample_remote_training_run_index_v2(
     let distributed_v2 = sample_parameter_golf_distributed_live_visualization_bundle_v2()?;
     let homegolf_v2 = build_parameter_golf_homegolf_visualization_bundle_v2()
         .map_err(map_homegolf_visualization_error)?;
+    let xtrain_v2 = build_parameter_golf_xtrain_visualization_bundle_v2()
+        .map_err(map_xtrain_visualization_error)?;
 
     build_remote_training_run_index_v2(RemoteTrainingRunIndexV2 {
         schema_version: String::new(),
@@ -914,9 +918,11 @@ pub fn sample_remote_training_run_index_v2(
             )?,
             build_parameter_golf_homegolf_run_index_entry_v2(&homegolf_v2)
                 .map_err(map_homegolf_visualization_error)?,
+            build_parameter_golf_xtrain_run_index_entry_v2(&xtrain_v2)
+                .map_err(map_xtrain_visualization_error)?,
         ],
         detail: String::from(
-            "The v2 run index keeps the shipped v1 discovery substrate readable while adding explicit track family, execution class, proof posture, comparability, score-law, and HOMEGOLF score-surface semantics.",
+            "The v2 run index keeps the shipped v1 discovery substrate readable while adding explicit track family, execution class, proof posture, comparability, score-law, HOMEGOLF score-surface semantics, and bounded XTRAIN train-to-infer posture.",
         ),
         index_digest: String::new(),
     })
@@ -933,6 +939,15 @@ fn map_homegolf_visualization_error(
 ) -> RemoteTrainingVisualizationError {
     RemoteTrainingVisualizationError::InvalidValue {
         field: String::from("remote_training_run_index_v2.homegolf_entry"),
+        detail: error.to_string(),
+    }
+}
+
+fn map_xtrain_visualization_error(
+    error: crate::ParameterGolfXtrainVisualizationError,
+) -> RemoteTrainingVisualizationError {
+    RemoteTrainingVisualizationError::InvalidValue {
+        field: String::from("remote_training_run_index_v2.xtrain_entry"),
         detail: error.to_string(),
     }
 }
