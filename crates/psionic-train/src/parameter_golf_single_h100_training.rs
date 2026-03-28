@@ -672,6 +672,22 @@ impl ParameterGolfSingleH100ValidationMode {
     }
 }
 
+#[must_use]
+fn should_run_live_validation_checkpoint(
+    step: u64,
+    last_step: bool,
+    validation_loss_every: u64,
+    final_validation_mode: ParameterGolfSingleH100ValidationMode,
+    final_model_surface: ParameterGolfFinalModelSurface,
+) -> bool {
+    if last_step {
+        final_validation_mode.runs_live_validation()
+            && final_model_surface == ParameterGolfFinalModelSurface::Raw
+    } else {
+        validation_loss_every > 0 && step > 0 && step % validation_loss_every == 0
+    }
+}
+
 /// Explicit evaluation semantics for Parameter Golf validation.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "mode", rename_all = "snake_case")]
@@ -2379,12 +2395,13 @@ fn build_parameter_golf_single_h100_training_report_inner(
 
     loop {
         let last_step = step == config.max_steps || stop_reason.is_some();
-        let should_validate = if last_step {
-            config.final_validation_mode.runs_live_validation()
-                && config.final_model_surface == ParameterGolfFinalModelSurface::Raw
-        } else {
-            config.validation_loss_every > 0 && step % config.validation_loss_every == 0
-        };
+        let should_validate = should_run_live_validation_checkpoint(
+            step,
+            last_step,
+            config.validation_loss_every,
+            config.final_validation_mode,
+            config.final_model_surface,
+        );
         if should_validate {
             let stage_label = if last_step {
                 String::from("final_validation")
@@ -7126,6 +7143,45 @@ mod tests {
             ParameterGolfFinalArtifactConfig::default()
         );
         assert_eq!(config.hyperparameters.max_wallclock_seconds, None);
+    }
+
+    #[test]
+    fn live_validation_checkpoints_skip_step_zero_but_keep_later_and_final_validation() {
+        assert!(!should_run_live_validation_checkpoint(
+            0,
+            false,
+            1_000,
+            ParameterGolfSingleH100ValidationMode::Both,
+            ParameterGolfFinalModelSurface::Raw,
+        ));
+        assert!(!should_run_live_validation_checkpoint(
+            999,
+            false,
+            1_000,
+            ParameterGolfSingleH100ValidationMode::Both,
+            ParameterGolfFinalModelSurface::Raw,
+        ));
+        assert!(should_run_live_validation_checkpoint(
+            1_000,
+            false,
+            1_000,
+            ParameterGolfSingleH100ValidationMode::Both,
+            ParameterGolfFinalModelSurface::Raw,
+        ));
+        assert!(should_run_live_validation_checkpoint(
+            0,
+            true,
+            1_000,
+            ParameterGolfSingleH100ValidationMode::Both,
+            ParameterGolfFinalModelSurface::Raw,
+        ));
+        assert!(!should_run_live_validation_checkpoint(
+            1_000,
+            true,
+            1_000,
+            ParameterGolfSingleH100ValidationMode::Both,
+            ParameterGolfFinalModelSurface::Ema,
+        ));
     }
 
     #[test]

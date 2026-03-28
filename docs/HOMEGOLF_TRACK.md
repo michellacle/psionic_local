@@ -135,6 +135,8 @@ strong.
   `docs/audits/2026-03-28-homegolf-local-competitive-override-lane-audit.md`
 - latest competitive BigramHash fix audit:
   `docs/audits/2026-03-28-homegolf-competitive-bigram-input-fix-audit.md`
+- latest step-zero validation fix audit:
+  `docs/audits/2026-03-28-homegolf-initial-validation-step-zero-fix-audit.md`
 
 What is true now:
 
@@ -179,6 +181,11 @@ What is true now:
   BigramHash graph input correctly during both validation and training, so
   `competitive_homegolf_v1` no longer dies immediately with
   `missing input tensor t1` on the first validation batch
+- the local HOMEGOLF control loop no longer fires a full live validation pass
+  at `step=0`, so the `600` second training budget now starts with real
+  optimizer work instead of an accidental full validation sweep
+- periodic live validation now begins only after real training progress, while
+  final raw-surface validation semantics remain unchanged
 
 What is not true:
 
@@ -192,7 +199,8 @@ What is not true:
   that local lane
 - the current full local roundtrip score path is still not practical on the
   `4080`; one observed `non_overlapping` validation pass scheduled `947` full
-  batches and needed `25086 ms` for batch `1/947`
+  batches, needed about `58979 ms` for batch `1/947`, and was started by the
+  old pre-fix `step=0` validation behavior
 - no new retained local full-validation report/artifact pair was produced on
   the `4080` during this iteration loop
 
