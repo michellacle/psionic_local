@@ -14,6 +14,7 @@ binary_path=""
 max_steps=""
 challenge_max_steps=""
 grad_clip_norm=""
+learning_rate_scale=""
 final_validation_mode="roundtrip_only"
 validation_eval_mode="non_overlapping"
 background="0"
@@ -42,6 +43,7 @@ Options:
   --max-steps <n>                       Optional bounded max-steps override.
   --challenge-max-steps <n>             Honest challenge max-steps cap that preserves the local 600s contract.
   --grad-clip-norm <f32>                Optional training grad-clip norm override for the HOMEGOLF lane.
+  --learning-rate-scale <f32>           Optional uniform learning-rate scale across HOMEGOLF optimizer groups.
   --final-validation-mode <mode>        Final validation mode. Default: roundtrip_only
   --validation-eval-mode <mode>         Validation eval mode. Default: non_overlapping
   --trainer-arg <arg>                   Extra trailing trainer arg. Repeatable.
@@ -98,6 +100,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --grad-clip-norm)
       grad_clip_norm="$2"
+      shift 2
+      ;;
+    --learning-rate-scale)
+      learning_rate_scale="$2"
       shift 2
       ;;
     --final-validation-mode)
@@ -268,6 +274,9 @@ fi
 if [[ -n "${grad_clip_norm}" ]]; then
   printf 'GRAD_CLIP_NORM=%q\n' "${grad_clip_norm}" >> "${launch_env_path}"
 fi
+if [[ -n "${learning_rate_scale}" ]]; then
+  printf 'LEARNING_RATE_SCALE=%q\n' "${learning_rate_scale}" >> "${launch_env_path}"
+fi
 if [[ -n "${binary_path}" ]]; then
   printf 'BINARY_PATH=%q\n' "${binary_path}" >> "${launch_env_path}"
 fi
@@ -295,6 +304,9 @@ run_trainer() {
   fi
   if [[ -n "${grad_clip_norm}" ]]; then
     run_env+=("PSIONIC_PARAMETER_GOLF_HOMEGOLF_GRAD_CLIP_NORM=${grad_clip_norm}")
+  fi
+  if [[ -n "${learning_rate_scale}" ]]; then
+    run_env+=("PSIONIC_PARAMETER_GOLF_HOMEGOLF_LR_SCALE=${learning_rate_scale}")
   fi
   env "${run_env[@]}" \
     "${trainer_command[@]}"

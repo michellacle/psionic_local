@@ -119,6 +119,17 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         let raw = grad_clip_norm.to_string_lossy();
         config.hyperparameters.grad_clip_norm = raw.parse::<f32>()?;
     }
+    if let Some(learning_rate_scale) =
+        env::var_os("PSIONIC_PARAMETER_GOLF_HOMEGOLF_LR_SCALE")
+    {
+        let raw = learning_rate_scale.to_string_lossy();
+        let scale = raw.parse::<f32>()?;
+        config.hyperparameters.embed_lr *= scale;
+        config.hyperparameters.head_lr *= scale;
+        config.hyperparameters.tied_embed_lr *= scale;
+        config.hyperparameters.matrix_lr *= scale;
+        config.hyperparameters.scalar_lr *= scale;
+    }
     if truthy_env("PSIONIC_PARAMETER_GOLF_DISABLE_SCORE_FIRST_TTT") {
         config.score_first_ttt = None;
     }
