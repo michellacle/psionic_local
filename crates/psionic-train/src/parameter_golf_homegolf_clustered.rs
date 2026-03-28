@@ -168,28 +168,36 @@ impl ParameterGolfHomegolfClusteredRunSurfaceReport {
 
     pub fn validate(&self) -> Result<(), ParameterGolfHomegolfClusteredRunSurfaceError> {
         if self.schema_version != 1 {
-            return Err(ParameterGolfHomegolfClusteredRunSurfaceError::InvalidSurface {
-                detail: format!("schema_version must stay 1 but was {}", self.schema_version),
-            });
+            return Err(
+                ParameterGolfHomegolfClusteredRunSurfaceError::InvalidSurface {
+                    detail: format!("schema_version must stay 1 but was {}", self.schema_version),
+                },
+            );
         }
         if self.track_id != HOMEGOLF_TRACK_ID {
-            return Err(ParameterGolfHomegolfClusteredRunSurfaceError::InvalidSurface {
-                detail: String::from("track_id drifted"),
-            });
+            return Err(
+                ParameterGolfHomegolfClusteredRunSurfaceError::InvalidSurface {
+                    detail: String::from("track_id drifted"),
+                },
+            );
         }
         if self.wallclock_cap_seconds != 600 {
-            return Err(ParameterGolfHomegolfClusteredRunSurfaceError::InvalidSurface {
-                detail: String::from("wallclock_cap_seconds must stay 600"),
-            });
+            return Err(
+                ParameterGolfHomegolfClusteredRunSurfaceError::InvalidSurface {
+                    detail: String::from("wallclock_cap_seconds must stay 600"),
+                },
+            );
         }
         if self.observed_cluster_wallclock_ms == 0
             || self.observed_cluster_wallclock_ms > self.wallclock_cap_seconds * 1_000
         {
-            return Err(ParameterGolfHomegolfClusteredRunSurfaceError::InvalidSurface {
-                detail: String::from(
-                    "observed_cluster_wallclock_ms must stay positive and within the 600s cap",
-                ),
-            });
+            return Err(
+                ParameterGolfHomegolfClusteredRunSurfaceError::InvalidSurface {
+                    detail: String::from(
+                        "observed_cluster_wallclock_ms must stay positive and within the 600s cap",
+                    ),
+                },
+            );
         }
         if self.admitted_device_set
             != vec![
@@ -214,41 +222,53 @@ impl ParameterGolfHomegolfClusteredRunSurfaceReport {
             || self.publish_disposition != "held"
             || self.promotion_disposition != "held"
         {
-            return Err(ParameterGolfHomegolfClusteredRunSurfaceError::InvalidSurface {
-                detail: String::from("merge, publish, and promotion dispositions drifted"),
-            });
+            return Err(
+                ParameterGolfHomegolfClusteredRunSurfaceError::InvalidSurface {
+                    detail: String::from("merge, publish, and promotion dispositions drifted"),
+                },
+            );
         }
         if self.model_artifact_bytes == 0
             || self.final_validation_bits_per_byte <= 0.0
             || self.final_validation_mean_loss <= 0.0
         {
-            return Err(ParameterGolfHomegolfClusteredRunSurfaceError::InvalidSurface {
-                detail: String::from(
-                    "model_artifact_bytes and final validation metrics must stay positive",
-                ),
-            });
+            return Err(
+                ParameterGolfHomegolfClusteredRunSurfaceError::InvalidSurface {
+                    detail: String::from(
+                        "model_artifact_bytes and final validation metrics must stay positive",
+                    ),
+                },
+            );
         }
         if self.surface_status
             != ParameterGolfHomegolfClusteredRunSurfaceStatus::LiveDenseMixedDeviceSurface
         {
-            return Err(ParameterGolfHomegolfClusteredRunSurfaceError::InvalidSurface {
-                detail: String::from("surface_status drifted"),
-            });
+            return Err(
+                ParameterGolfHomegolfClusteredRunSurfaceError::InvalidSurface {
+                    detail: String::from("surface_status drifted"),
+                },
+            );
         }
         if self.report_digest != self.stable_digest() {
-            return Err(ParameterGolfHomegolfClusteredRunSurfaceError::InvalidSurface {
-                detail: String::from("report_digest drifted"),
-            });
+            return Err(
+                ParameterGolfHomegolfClusteredRunSurfaceError::InvalidSurface {
+                    detail: String::from("report_digest drifted"),
+                },
+            );
         }
         Ok(())
     }
 }
 
-pub fn build_parameter_golf_homegolf_clustered_run_surface_report(
-) -> Result<ParameterGolfHomegolfClusteredRunSurfaceReport, ParameterGolfHomegolfClusteredRunSurfaceError>
-{
+pub fn build_parameter_golf_homegolf_clustered_run_surface_report() -> Result<
+    ParameterGolfHomegolfClusteredRunSurfaceReport,
+    ParameterGolfHomegolfClusteredRunSurfaceError,
+> {
     let mixed_backend_run: MixedBackendDenseRunSource = serde_json::from_slice(
-        &fs::read(resolve_repo_path(FIRST_SAME_JOB_MIXED_BACKEND_DENSE_RUN_REF)).map_err(
+        &fs::read(resolve_repo_path(
+            FIRST_SAME_JOB_MIXED_BACKEND_DENSE_RUN_REF,
+        ))
+        .map_err(
             |error| ParameterGolfHomegolfClusteredRunSurfaceError::Read {
                 path: String::from(FIRST_SAME_JOB_MIXED_BACKEND_DENSE_RUN_REF),
                 error,
@@ -256,7 +276,10 @@ pub fn build_parameter_golf_homegolf_clustered_run_surface_report(
         )?,
     )?;
     let dense_score_report: DenseScoreReportSource = serde_json::from_slice(
-        &fs::read(resolve_repo_path(PARAMETER_GOLF_SINGLE_H100_TRAINING_REPORT_REF)).map_err(
+        &fs::read(resolve_repo_path(
+            PARAMETER_GOLF_SINGLE_H100_TRAINING_REPORT_REF,
+        ))
+        .map_err(
             |error| ParameterGolfHomegolfClusteredRunSurfaceError::Read {
                 path: String::from(PARAMETER_GOLF_SINGLE_H100_TRAINING_REPORT_REF),
                 error,
@@ -266,9 +289,11 @@ pub fn build_parameter_golf_homegolf_clustered_run_surface_report(
 
     let step_count = mixed_backend_run.step_metrics.len() as u64;
     if step_count == 0 {
-        return Err(ParameterGolfHomegolfClusteredRunSurfaceError::InvalidSurface {
-            detail: String::from("mixed-backend dense run retained zero steps"),
-        });
+        return Err(
+            ParameterGolfHomegolfClusteredRunSurfaceError::InvalidSurface {
+                detail: String::from("mixed-backend dense run retained zero steps"),
+            },
+        );
     }
     let total_train_tokens = mixed_backend_run
         .step_metrics
@@ -289,14 +314,18 @@ pub fn build_parameter_golf_homegolf_clustered_run_surface_report(
     let final_mean_loss = mixed_backend_run
         .step_metrics
         .last()
-        .ok_or_else(|| ParameterGolfHomegolfClusteredRunSurfaceError::InvalidSurface {
-            detail: String::from("mixed-backend dense run missing final step"),
-        })?
+        .ok_or_else(
+            || ParameterGolfHomegolfClusteredRunSurfaceError::InvalidSurface {
+                detail: String::from("mixed-backend dense run missing final step"),
+            },
+        )?
         .mean_train_loss
         .parse::<f64>()
-        .map_err(|error| ParameterGolfHomegolfClusteredRunSurfaceError::InvalidSurface {
-            detail: format!("failed to parse final mean_train_loss: {error}"),
-        })?;
+        .map_err(
+            |error| ParameterGolfHomegolfClusteredRunSurfaceError::InvalidSurface {
+                detail: format!("failed to parse final mean_train_loss: {error}"),
+            },
+        )?;
 
     let source_digest_by_source_id = mixed_backend_run
         .source_bindings
@@ -362,33 +391,40 @@ pub fn build_parameter_golf_homegolf_clustered_run_surface_report(
         })
         .collect::<Result<Vec<_>, _>>()?;
 
-    let final_validation = dense_score_report
-        .final_roundtrip_receipt
-        .as_ref()
-        .map(|receipt| receipt.validation.clone())
-        .or_else(|| dense_score_report.final_validation.clone())
-        .ok_or_else(|| ParameterGolfHomegolfClusteredRunSurfaceError::InvalidSurface {
+    let final_validation =
+        dense_score_report
+            .final_roundtrip_receipt
+            .as_ref()
+            .map(|receipt| receipt.validation.clone())
+            .or_else(|| dense_score_report.final_validation.clone())
+            .ok_or_else(|| {
+                ParameterGolfHomegolfClusteredRunSurfaceError::InvalidSurface {
             detail: String::from(
                 "dense score report is missing both final_roundtrip_receipt and final_validation",
             ),
-        })?;
+        }
+            })?;
     let scored_model_artifact_ref = dense_score_report
         .compressed_model_artifact_ref
         .clone()
-        .ok_or_else(|| ParameterGolfHomegolfClusteredRunSurfaceError::InvalidSurface {
-            detail: String::from("dense score report missing compressed_model_artifact_ref"),
-        })?;
+        .ok_or_else(
+            || ParameterGolfHomegolfClusteredRunSurfaceError::InvalidSurface {
+                detail: String::from("dense score report missing compressed_model_artifact_ref"),
+            },
+        )?;
     let scored_model_artifact_digest = dense_score_report
         .compressed_model_artifact_digest
         .clone()
-        .ok_or_else(|| ParameterGolfHomegolfClusteredRunSurfaceError::InvalidSurface {
-            detail: String::from("dense score report missing compressed_model_artifact_digest"),
-        })?;
-    let model_artifact_bytes = dense_score_report
-        .compressed_model_bytes
-        .ok_or_else(|| ParameterGolfHomegolfClusteredRunSurfaceError::InvalidSurface {
+        .ok_or_else(
+            || ParameterGolfHomegolfClusteredRunSurfaceError::InvalidSurface {
+                detail: String::from("dense score report missing compressed_model_artifact_digest"),
+            },
+        )?;
+    let model_artifact_bytes = dense_score_report.compressed_model_bytes.ok_or_else(|| {
+        ParameterGolfHomegolfClusteredRunSurfaceError::InvalidSurface {
             detail: String::from("dense score report missing compressed_model_bytes"),
-        })?;
+        }
+    })?;
 
     let mut report = ParameterGolfHomegolfClusteredRunSurfaceReport {
         schema_version: 1,
@@ -420,10 +456,10 @@ pub fn build_parameter_golf_homegolf_clustered_run_surface_report(
         model_artifact_bytes,
         surface_status: ParameterGolfHomegolfClusteredRunSurfaceStatus::LiveDenseMixedDeviceSurface,
         claim_boundary: String::from(
-            "This retained HOMEGOLF surface replaces the older open-adapter-plus-bounded-bundle surrogate with dense retained sources only: one real same-job MLX-plus-CUDA dense runtime proof and one real exact dense challenge export carrying the scored compressed model artifact and contest-style final roundtrip metric. It is materially stronger than the earlier composed surrogate, but it still does not claim admitted home RTX dense closure or a single retained run id that already binds both the mixed-device dense runtime receipts and the final scored export bytes in one artifact family.",
+            "This retained HOMEGOLF surface replaces the older open-adapter-plus-bounded-bundle surrogate with dense retained sources only: one real same-job MLX-plus-CUDA dense runtime proof and one real exact dense challenge export carrying the scored compressed model artifact and contest-style final roundtrip metric. The retained mixed-device runtime source here is still the local MLX rank plus the optional-H100 CUDA submesh, not the currently reachable Apple-plus-home-RTX cluster. It is materially stronger than the earlier composed surrogate, but it still does not claim admitted home-RTX dense closure or a single retained run id that already binds both the mixed-device dense runtime receipts and the final scored export bytes in one artifact family.",
         ),
         summary: String::from(
-            "The canonical HOMEGOLF surface now binds real mixed-device dense execution truth to the exact dense challenge export surface instead of the older open-adapter composition. The retained report freezes mixed-device dense contribution receipts, dense wallclock, descriptor and tokenizer digests, scored compressed-model bytes, and final contest-style validation metrics in one HOMEGOLF machine-readable surface.",
+            "The current retained H100-backed HOMEGOLF surface now binds real mixed-device dense execution truth to the exact dense challenge export surface instead of the older open-adapter composition. The retained report freezes mixed-device dense contribution receipts, dense wallclock, descriptor and tokenizer digests, scored compressed-model bytes, and final contest-style validation metrics in one HOMEGOLF machine-readable surface.",
         ),
         report_digest: String::new(),
     };
@@ -434,8 +470,10 @@ pub fn build_parameter_golf_homegolf_clustered_run_surface_report(
 
 pub fn write_parameter_golf_homegolf_clustered_run_surface_report(
     output_path: &Path,
-) -> Result<ParameterGolfHomegolfClusteredRunSurfaceReport, ParameterGolfHomegolfClusteredRunSurfaceError>
-{
+) -> Result<
+    ParameterGolfHomegolfClusteredRunSurfaceReport,
+    ParameterGolfHomegolfClusteredRunSurfaceError,
+> {
     let report = build_parameter_golf_homegolf_clustered_run_surface_report()?;
     if let Some(parent) = output_path.parent() {
         fs::create_dir_all(parent).map_err(|error| {
@@ -458,9 +496,7 @@ pub fn write_parameter_golf_homegolf_clustered_run_surface_report(
 fn stable_digest<T: Serialize>(prefix: &[u8], value: &T) -> String {
     let mut hasher = Sha256::new();
     hasher.update(prefix);
-    hasher.update(
-        serde_json::to_vec(value).expect("clustered HOMEGOLF surface should serialize"),
-    );
+    hasher.update(serde_json::to_vec(value).expect("clustered HOMEGOLF surface should serialize"));
     format!("{:x}", hasher.finalize())
 }
 

@@ -333,7 +333,7 @@ fn run_until_target_wallclock(
     let started = Instant::now();
     let mut completed_steps = 0_u64;
     let mut initial_mean_loss = None;
-    let mut final_mean_loss = 0.0_f32;
+    let mut final_mean_loss = None;
     let batch_count = backend.batches().len().max(1);
 
     loop {
@@ -350,7 +350,7 @@ fn run_until_target_wallclock(
         if initial_mean_loss.is_none() {
             initial_mean_loss = Some(gradient_record.mean_loss);
         }
-        final_mean_loss = gradient_record.mean_loss;
+        final_mean_loss = Some(gradient_record.mean_loss);
         run.apply_step(step_input)?;
         completed_steps = completed_steps.saturating_add(1);
 
@@ -388,7 +388,7 @@ fn run_until_target_wallclock(
         observed_wallclock_ms: started.elapsed().as_millis().max(1) as u64,
         completed_steps,
         initial_mean_loss: initial_mean_loss.unwrap_or_default(),
-        final_mean_loss,
+        final_mean_loss: final_mean_loss.unwrap_or_default(),
         final_state_dict_digest: bundle_receipt.state_dict_digest,
         bundle_artifact_path: bundle_artifact_path.display().to_string(),
     })

@@ -101,23 +101,29 @@ impl ParameterGolfHomegolfArtifactAccountingReport {
 
     pub fn validate(&self) -> Result<(), ParameterGolfHomegolfArtifactAccountingError> {
         if self.schema_version != 1 {
-            return Err(ParameterGolfHomegolfArtifactAccountingError::InvalidReport {
-                detail: format!("schema_version must stay 1 but was {}", self.schema_version),
-            });
+            return Err(
+                ParameterGolfHomegolfArtifactAccountingError::InvalidReport {
+                    detail: format!("schema_version must stay 1 but was {}", self.schema_version),
+                },
+            );
         }
         if self.artifact_cap_bytes != HOMEGOLF_ARTIFACT_CAP_BYTES {
-            return Err(ParameterGolfHomegolfArtifactAccountingError::InvalidReport {
-                detail: String::from("artifact_cap_bytes drifted"),
-            });
+            return Err(
+                ParameterGolfHomegolfArtifactAccountingError::InvalidReport {
+                    detail: String::from("artifact_cap_bytes drifted"),
+                },
+            );
         }
         if self.total_counted_bytes
             != self
                 .counted_code_bytes
                 .saturating_add(self.scored_model_artifact_bytes)
         {
-            return Err(ParameterGolfHomegolfArtifactAccountingError::InvalidReport {
-                detail: String::from("total_counted_bytes no longer matches code+model bytes"),
-            });
+            return Err(
+                ParameterGolfHomegolfArtifactAccountingError::InvalidReport {
+                    detail: String::from("total_counted_bytes no longer matches code+model bytes"),
+                },
+            );
         }
         let expected_status = if self.total_counted_bytes <= self.artifact_cap_bytes {
             ParameterGolfHomegolfArtifactBudgetStatus::WithinArtifactCap
@@ -125,29 +131,35 @@ impl ParameterGolfHomegolfArtifactAccountingReport {
             ParameterGolfHomegolfArtifactBudgetStatus::RefusedExceedsArtifactCap
         };
         if self.budget_status != expected_status {
-            return Err(ParameterGolfHomegolfArtifactAccountingError::InvalidReport {
-                detail: String::from("budget_status drifted from the counted byte totals"),
-            });
+            return Err(
+                ParameterGolfHomegolfArtifactAccountingError::InvalidReport {
+                    detail: String::from("budget_status drifted from the counted byte totals"),
+                },
+            );
         }
-        if self.cap_delta_bytes
-            != self.total_counted_bytes as i64 - self.artifact_cap_bytes as i64
+        if self.cap_delta_bytes != self.total_counted_bytes as i64 - self.artifact_cap_bytes as i64
         {
-            return Err(ParameterGolfHomegolfArtifactAccountingError::InvalidReport {
-                detail: String::from("cap_delta_bytes drifted"),
-            });
+            return Err(
+                ParameterGolfHomegolfArtifactAccountingError::InvalidReport {
+                    detail: String::from("cap_delta_bytes drifted"),
+                },
+            );
         }
         if self.report_digest != self.stable_digest() {
-            return Err(ParameterGolfHomegolfArtifactAccountingError::InvalidReport {
-                detail: String::from("report_digest drifted"),
-            });
+            return Err(
+                ParameterGolfHomegolfArtifactAccountingError::InvalidReport {
+                    detail: String::from("report_digest drifted"),
+                },
+            );
         }
         Ok(())
     }
 }
 
-pub fn build_parameter_golf_homegolf_artifact_accounting_report(
-) -> Result<ParameterGolfHomegolfArtifactAccountingReport, ParameterGolfHomegolfArtifactAccountingError>
-{
+pub fn build_parameter_golf_homegolf_artifact_accounting_report() -> Result<
+    ParameterGolfHomegolfArtifactAccountingReport,
+    ParameterGolfHomegolfArtifactAccountingError,
+> {
     let clustered_surface: HomegolfClusteredRunSurfaceSource = serde_json::from_slice(
         &fs::read(resolve_repo_path(HOMEGOLF_CLUSTERED_RUN_SURFACE_REF)).map_err(|error| {
             ParameterGolfHomegolfArtifactAccountingError::Read {
@@ -157,21 +169,31 @@ pub fn build_parameter_golf_homegolf_artifact_accounting_report(
         })?,
     )?;
     let research_harness: ParameterGolfResearchHarnessReport = serde_json::from_slice(
-        &fs::read(resolve_repo_path(PARAMETER_GOLF_RESEARCH_HARNESS_REPORT_REF)).map_err(
-            |error| ParameterGolfHomegolfArtifactAccountingError::Read {
-                path: String::from(PARAMETER_GOLF_RESEARCH_HARNESS_REPORT_REF),
-                error,
-            },
-        )?,
+        &fs::read(resolve_repo_path(
+            PARAMETER_GOLF_RESEARCH_HARNESS_REPORT_REF,
+        ))
+        .map_err(|error| ParameterGolfHomegolfArtifactAccountingError::Read {
+            path: String::from(PARAMETER_GOLF_RESEARCH_HARNESS_REPORT_REF),
+            error,
+        })?,
     )?;
     let counted_code_bytes = research_harness
         .variants
         .iter()
         .find(|variant| variant.variant_id == "baseline_control")
-        .and_then(|variant| variant.measured_metrics.as_ref().map(|metrics| metrics.bytes_code))
-        .ok_or_else(|| ParameterGolfHomegolfArtifactAccountingError::InvalidReport {
-            detail: String::from("baseline_control bytes_code was missing from research harness report"),
-        })?;
+        .and_then(|variant| {
+            variant
+                .measured_metrics
+                .as_ref()
+                .map(|metrics| metrics.bytes_code)
+        })
+        .ok_or_else(
+            || ParameterGolfHomegolfArtifactAccountingError::InvalidReport {
+                detail: String::from(
+                    "baseline_control bytes_code was missing from research harness report",
+                ),
+            },
+        )?;
 
     let scored_model_artifact_bytes = clustered_surface.model_artifact_bytes;
     let total_counted_bytes = counted_code_bytes.saturating_add(scored_model_artifact_bytes);
@@ -198,10 +220,10 @@ pub fn build_parameter_golf_homegolf_artifact_accounting_report(
         cap_delta_bytes,
         budget_status,
         claim_boundary: String::from(
-            "This accounting report is now bound to the upgraded live dense mixed-device HOMEGOLF surface and the exact dense challenge export bytes rather than the older bounded promoted-bundle surrogate. The counted code bytes still come from Psionic's shipped record-compatible runtime posture, but the scored model bytes now come from the retained int8+zlib dense export that actually fits inside the contest-style cap.",
+            "This accounting report is now bound to the retained H100-backed live dense mixed-device HOMEGOLF surface and the exact dense challenge export bytes rather than the older bounded promoted-bundle surrogate. The counted code bytes still come from Psionic's shipped record-compatible runtime posture, but the scored model bytes now come from the retained int8+zlib dense export that actually fits inside the contest-style cap.",
         ),
         summary: String::from(
-            "HOMEGOLF now emits one explicit counted-byte report bound to the live dense mixed-device surface. The current counted-code posture plus the retained compressed dense export stay inside the 16,000,000-byte contest cap.",
+            "HOMEGOLF now emits one explicit counted-byte report bound to the retained H100-backed live dense mixed-device surface. The current counted-code posture plus the retained compressed dense export stay inside the 16,000,000-byte contest cap.",
         ),
         report_digest: String::new(),
     };
@@ -212,8 +234,10 @@ pub fn build_parameter_golf_homegolf_artifact_accounting_report(
 
 pub fn write_parameter_golf_homegolf_artifact_accounting_report(
     output_path: &Path,
-) -> Result<ParameterGolfHomegolfArtifactAccountingReport, ParameterGolfHomegolfArtifactAccountingError>
-{
+) -> Result<
+    ParameterGolfHomegolfArtifactAccountingReport,
+    ParameterGolfHomegolfArtifactAccountingError,
+> {
     let report = build_parameter_golf_homegolf_artifact_accounting_report()?;
     if let Some(parent) = output_path.parent() {
         fs::create_dir_all(parent).map_err(|error| {
@@ -243,9 +267,7 @@ fn resolve_repo_path(relpath: &str) -> PathBuf {
 fn stable_digest<T: Serialize>(prefix: &[u8], value: &T) -> String {
     let mut hasher = Sha256::new();
     hasher.update(prefix);
-    hasher.update(
-        serde_json::to_vec(value).expect("HOMEGOLF accounting report should serialize"),
-    );
+    hasher.update(serde_json::to_vec(value).expect("HOMEGOLF accounting report should serialize"));
     format!("{:x}", hasher.finalize())
 }
 

@@ -11,9 +11,11 @@ batch_size="8"
 git_ref=""
 remote_host="archlinux"
 remote_worktree_dir="/tmp/psionic-tailrun-matrix"
-remote_output_root=""
+remote_output_parent="~/code/psionic/target/tailrun-runs"
 remote_cargo_home="/tmp/psionic-tailrun-cargo-home"
-remote_target_root="/tmp/psionic-tailrun-target"
+remote_target_root="~/code/psionic/target"
+remote_tmp_root="~/code/psionic/target/tmp"
+remote_target_dir="~/code/psionic/target/tailrun-matrix-shared"
 
 usage() {
   cat <<'EOF' >&2
@@ -84,7 +86,7 @@ if [[ -z "${git_ref}" ]]; then
   git_ref="$(git -C "${repo_root}" rev-parse HEAD)"
 fi
 
-remote_output_root="/tmp/${run_id}-${remote_host}"
+remote_output_root="${remote_output_parent}/${run_id}-${remote_host}"
 mkdir -p "${bundle_dir}"
 bundle_dir="$(cd "${bundle_dir}" && pwd)"
 
@@ -99,12 +101,22 @@ remote_log_path="${log_dir}/remote.log"
 local_log_path="${log_dir}/local.log"
 
 echo "Preparing remote worktree ${remote_worktree_dir} on ${remote_host}"
-git -C "${repo_root}" archive "${git_ref}" | ssh "${remote_host}" "
+git -C "${repo_root}" archive "${git_ref}" -- \
+  Cargo.toml \
+  Cargo.lock \
+  crates \
+  fixtures/apple_adapter \
+  fixtures/attnres \
+  fixtures/parameter_golf \
+  fixtures/psion \
+  fixtures/swarm \
+  fixtures/tassadar/sources \
+  fixtures/training | ssh "${remote_host}" "
   set -euo pipefail
   rm -rf ${remote_worktree_dir}
   mkdir -p ${remote_worktree_dir}
   tar -xf - -C ${remote_worktree_dir}
-  mkdir -p ${remote_cargo_home} ${remote_target_root}
+  mkdir -p ${remote_cargo_home} ${remote_target_root} ${remote_tmp_root} ${remote_output_parent}
   if [[ -d ~/.cargo/registry ]]; then
     ln -sfn ~/.cargo/registry ${remote_cargo_home}/registry
   fi
@@ -114,7 +126,7 @@ git -C "${repo_root}" archive "${git_ref}" | ssh "${remote_host}" "
 "
 
 echo "Starting remote admitted-device benchmark on ${remote_host}"
-ssh "${remote_host}" "bash -ic 'export CARGO_HOME=${remote_cargo_home}; export CARGO_TARGET_DIR=${remote_target_root}/${run_id}; cd ${remote_worktree_dir} && cargo build -q -p psionic-train --bin open_adapter_same_node_wallclock_benchmark && \${CARGO_TARGET_DIR}/debug/open_adapter_same_node_wallclock_benchmark --backend-label open_adapter_backend.cuda.gpt_oss_lm_head --output-root ${remote_output_root} --target-seconds ${target_seconds} --batch-size ${batch_size}'" \
+ssh "${remote_host}" "bash -ic 'export CARGO_HOME=${remote_cargo_home}; export CARGO_TARGET_DIR=${remote_target_dir}; export TMPDIR=${remote_tmp_root}; cd ${remote_worktree_dir} && cargo build -q -p psionic-train --bin open_adapter_same_node_wallclock_benchmark && \${CARGO_TARGET_DIR}/debug/open_adapter_same_node_wallclock_benchmark --backend-label open_adapter_backend.cuda.gpt_oss_lm_head --output-root ${remote_output_root} --target-seconds ${target_seconds} --batch-size ${batch_size}'" \
   >"${remote_log_path}" 2>&1 &
 remote_pid=$!
 
@@ -141,6 +153,7 @@ trap - EXIT
 
 scp "${remote_host}:${remote_output_root}/report.json" "${remote_dir}/report.json" >/dev/null
 scp "${remote_host}:${remote_output_root}/portable_bundle.safetensors" "${remote_dir}/portable_bundle.safetensors" >/dev/null
+ssh "${remote_host}" "rm -rf ${remote_worktree_dir} ${remote_output_root}" >/dev/null
 
 jq -n \
   --arg schema_version "psionic.open_adapter_tailnet_admitted_device_matrix.v1" \

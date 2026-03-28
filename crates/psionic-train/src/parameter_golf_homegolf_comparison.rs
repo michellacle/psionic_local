@@ -215,10 +215,10 @@ pub fn build_parameter_golf_homegolf_public_comparison_report(
         delta_vs_public_naive_baseline,
         delta_vs_current_public_leaderboard_best,
         claim_boundary: String::from(
-            "This report makes HOMEGOLF publicly comparable, not public-leaderboard equivalent. The public reference values are frozen from the current Parameter Golf repo snapshot reviewed on 2026-03-27, while the HOMEGOLF side now uses the retained live dense mixed-device surface and its exact dense challenge export bytes rather than the older open-adapter composed surrogate. The current lane is still far from leaderboard quality, and the mixed-device runtime still does not imply official 8xH100 hardware equivalence.",
+            "This report makes HOMEGOLF publicly comparable, not public-leaderboard equivalent. The public reference values are frozen from the current Parameter Golf repo snapshot reviewed on 2026-03-27, while the HOMEGOLF side now uses the retained H100-backed live dense mixed-device surface and its exact dense challenge export bytes rather than the older open-adapter composed surrogate. The current lane is still far from leaderboard quality, and the mixed-device runtime still does not imply official 8xH100 hardware equivalence or current Apple-plus-home-RTX score closure.",
         ),
         summary: String::from(
-            "HOMEGOLF now emits one deterministic comparison report against the public naive baseline and the current public best leaderboard row from the upgraded live dense mixed-device surface. It keeps exact deltas in val_bpb, scored artifact bytes, and wallclock-cap posture while explicitly refusing leaderboard-equivalent language for the custom-hardware track.",
+            "HOMEGOLF now emits one deterministic comparison report against the public naive baseline and the current public best leaderboard row from the retained H100-backed live dense mixed-device surface. It keeps exact deltas in val_bpb, scored artifact bytes, and wallclock-cap posture while explicitly refusing leaderboard-equivalent language for the custom-hardware track.",
         ),
         report_digest: String::new(),
     };
@@ -260,9 +260,7 @@ fn resolve_repo_path(relpath: &str) -> PathBuf {
 fn stable_digest<T: Serialize>(prefix: &[u8], value: &T) -> String {
     let mut hasher = Sha256::new();
     hasher.update(prefix);
-    hasher.update(
-        serde_json::to_vec(value).expect("HOMEGOLF public comparison should serialize"),
-    );
+    hasher.update(serde_json::to_vec(value).expect("HOMEGOLF public comparison should serialize"));
     format!("{:x}", hasher.finalize())
 }
 
@@ -273,7 +271,8 @@ mod tests {
     use super::{
         build_parameter_golf_homegolf_public_comparison_report,
         write_parameter_golf_homegolf_public_comparison_report,
-        ParameterGolfHomegolfComparisonClass, PARAMETER_GOLF_HOMEGOLF_PUBLIC_COMPARISON_FIXTURE_PATH,
+        ParameterGolfHomegolfComparisonClass,
+        PARAMETER_GOLF_HOMEGOLF_PUBLIC_COMPARISON_FIXTURE_PATH,
     };
 
     #[test]
@@ -289,10 +288,12 @@ mod tests {
             ]
         );
         assert!(report.delta_vs_public_naive_baseline.delta_val_bpb > 0.0);
-        assert!(report
-            .delta_vs_current_public_leaderboard_best
-            .delta_val_bpb
-            > 0.0);
+        assert!(
+            report
+                .delta_vs_current_public_leaderboard_best
+                .delta_val_bpb
+                > 0.0
+        );
     }
 
     #[test]

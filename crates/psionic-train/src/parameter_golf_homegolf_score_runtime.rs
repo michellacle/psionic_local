@@ -295,10 +295,10 @@ pub fn build_parameter_golf_homegolf_score_runtime_report(
         phase_breakdown,
         runtime_status: ParameterGolfHomegolfScoreRuntimeStatus::ScoreRelevant,
         claim_boundary: String::from(
-            "This retained HOMEGOLF runtime report upgrades the track from symbolic proof updates to a score-relevant dense runtime surface. It freezes real mixed-device dense timing, per-device contribution throughput, and projected 600-second training volume from the retained MLX-plus-CUDA same-job run. It does not yet claim admitted Apple-plus-home-RTX dense closure, one locally produced scored bundle from that admitted home cluster, or public-leaderboard-equivalent hardware.",
+            "This retained HOMEGOLF runtime report upgrades the track from symbolic proof updates to a score-relevant dense runtime surface. It freezes real mixed-device dense timing, per-device contribution throughput, and projected 600-second training volume from the retained MLX-plus-CUDA same-job run. That retained dense runtime source is still the local MLX rank plus the optional-H100 CUDA submesh, not the currently reachable Apple-plus-home-RTX cluster. It does not yet claim admitted Apple-plus-home-RTX dense closure, one locally produced scored bundle from that admitted home cluster, or public-leaderboard-equivalent hardware.",
         ),
         summary: String::from(
-            "The canonical HOMEGOLF runtime is now a resident dense mixed-device lane rather than a tiny bounded proof updater. The retained runtime clears one full training-dataset pass inside the 600-second cap, so score comparisons are now grounded in meaningful dense training volume instead of symbolic train-to-infer smoke tests.",
+            "The canonical retained HOMEGOLF runtime surface is now a resident dense mixed-device lane rather than a tiny bounded proof updater. The retained runtime clears one full training-dataset pass inside the 600-second cap, so score comparisons are now grounded in meaningful dense training volume instead of symbolic train-to-infer smoke tests.",
         ),
         report_digest: String::new(),
     };

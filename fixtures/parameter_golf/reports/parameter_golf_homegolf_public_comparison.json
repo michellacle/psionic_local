@@ -37,7 +37,7 @@
     "delta_artifact_bytes": -11257262,
     "delta_wallclock_cap_seconds": 0
   },
-  "claim_boundary": "This report makes HOMEGOLF publicly comparable, not public-leaderboard equivalent. The public reference values are frozen from the current Parameter Golf repo snapshot reviewed on 2026-03-27, while the HOMEGOLF side now uses the retained live dense mixed-device surface and its exact dense challenge export bytes rather than the older open-adapter composed surrogate. The current lane is still far from leaderboard quality, and the mixed-device runtime still does not imply official 8xH100 hardware equivalence.",
-  "summary": "HOMEGOLF now emits one deterministic comparison report against the public naive baseline and the current public best leaderboard row from the upgraded live dense mixed-device surface. It keeps exact deltas in val_bpb, scored artifact bytes, and wallclock-cap posture while explicitly refusing leaderboard-equivalent language for the custom-hardware track.",
-  "report_digest": "e287820dde281015d7870e03929f59f5818cea0cbff9af8b48dc64229d47dafb"
+  "claim_boundary": "This report makes HOMEGOLF publicly comparable, not public-leaderboard equivalent. The public reference values are frozen from the current Parameter Golf repo snapshot reviewed on 2026-03-27, while the HOMEGOLF side now uses the retained H100-backed live dense mixed-device surface and its exact dense challenge export bytes rather than the older open-adapter composed surrogate. The current lane is still far from leaderboard quality, and the mixed-device runtime still does not imply official 8xH100 hardware equivalence or current Apple-plus-home-RTX score closure.",
+  "summary": "HOMEGOLF now emits one deterministic comparison report against the public naive baseline and the current public best leaderboard row from the retained H100-backed live dense mixed-device surface. It keeps exact deltas in val_bpb, scored artifact bytes, and wallclock-cap posture while explicitly refusing leaderboard-equivalent language for the custom-hardware track.",
+  "report_digest": "7b0fe7e6a0e0b793ec9d9f1193634a0992e3eca21965e53b1f8ffc89b32207e2"
 }

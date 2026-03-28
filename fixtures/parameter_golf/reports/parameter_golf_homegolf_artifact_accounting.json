@@ -13,7 +13,7 @@
   "artifact_cap_bytes": 16000000,
   "cap_delta_bytes": -4078556,
   "budget_status": "within_artifact_cap",
-  "claim_boundary": "This accounting report is now bound to the upgraded live dense mixed-device HOMEGOLF surface and the exact dense challenge export bytes rather than the older bounded promoted-bundle surrogate. The counted code bytes still come from Psionic's shipped record-compatible runtime posture, but the scored model bytes now come from the retained int8+zlib dense export that actually fits inside the contest-style cap.",
-  "summary": "HOMEGOLF now emits one explicit counted-byte report bound to the live dense mixed-device surface. The current counted-code posture plus the retained compressed dense export stay inside the 16,000,000-byte contest cap.",
-  "report_digest": "d16db3d75c9bd73a8a050c437b59cd71a394c75aa4add2f0ddc5432e09874bf0"
+  "claim_boundary": "This accounting report is now bound to the retained H100-backed live dense mixed-device HOMEGOLF surface and the exact dense challenge export bytes rather than the older bounded promoted-bundle surrogate. The counted code bytes still come from Psionic's shipped record-compatible runtime posture, but the scored model bytes now come from the retained int8+zlib dense export that actually fits inside the contest-style cap.",
+  "summary": "HOMEGOLF now emits one explicit counted-byte report bound to the retained H100-backed live dense mixed-device surface. The current counted-code posture plus the retained compressed dense export stay inside the 16,000,000-byte contest cap.",
+  "report_digest": "2dd84b08feff6f19200d480b1a9c52c62510457fb16119b994843bb8f7a1cd75"
 }

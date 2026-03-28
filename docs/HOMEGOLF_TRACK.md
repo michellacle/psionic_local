@@ -280,7 +280,7 @@ strict challenge runnable lane is the canonical HOMEGOLF command surface.
 
 ## Live Dense HOMEGOLF Surface
 
-HOMEGOLF now also has a first upgraded live dense mixed-device score surface:
+HOMEGOLF now also has a first upgraded retained H100-backed live dense mixed-device score surface:
 
 - retained clustered surface report:
   `fixtures/parameter_golf/reports/parameter_golf_homegolf_clustered_run_surface.json`
@@ -308,17 +308,23 @@ What this proves:
   - `observed_cluster_wallclock_ms=3611`
   - `final_validation_bits_per_byte=6.306931747817168`
   - `model_artifact_bytes=4732744`
+- the retained mixed-device source here is still:
+  - one local Apple Silicon MLX rank
+  - one optional-H100 CUDA submesh
+  - not the currently reachable Apple-plus-home-RTX cluster
 
 What it does not prove:
 
 - admitted home-RTX dense closure on the local home cluster
+- that the currently reachable Apple-plus-home-RTX cluster already produced
+  this retained scored surface
 - one single retained run id that already binds the mixed-device dense runtime
   receipts and the final scored export bytes in one artifact family
 - official public-leaderboard equivalence
 
 ## Canonical Score-Relevant Dense Runtime
 
-HOMEGOLF now also has one canonical score-relevant dense runtime surface:
+HOMEGOLF now also has one canonical retained H100-backed score-relevant dense runtime surface:
 
 - retained runtime report:
   `fixtures/parameter_golf/reports/parameter_golf_homegolf_score_relevant_runtime.json`
@@ -351,7 +357,44 @@ What this proves:
 What it does not prove:
 
 - admitted Apple-plus-home-RTX dense closure
+- that this retained runtime is already the current Apple-plus-home-RTX home
+  cluster lane
 - one locally produced scored bundle from that admitted home cluster
+- public-leaderboard-equivalent hardware or score
+
+## Reachable Home-Cluster Daily Loop
+
+The currently reachable consumer home-cluster iteration loop is the admitted
+Tailnet daily runner:
+
+- entrypoint:
+  `scripts/run-tailrun-daily-loop.sh`
+- latest repo-local audit:
+  `docs/audits/2026-03-28-homegolf-tailrun-daily-loop-operator-fix-audit.md`
+- latest retained run:
+  `tailrun-daily-20260328e`
+
+What this proves:
+
+- Psionic now has one end-to-end retained admitted-device daily loop over:
+  - local M5 MLX
+  - remote `archlinux` RTX 4080 CUDA
+- that loop now completes:
+  - same-node fixed-budget training on both admitted devices
+  - PGOLF-ish held-out quality comparison on the produced bundles
+  - near-equivalent direct-versus-served inference closeout
+- the latest retained daily scoreboard is:
+  - overall verdict: `throughput_improved`
+  - M5 throughput verdict: `meaningful_improvement`
+  - RTX 4080 throughput verdict: `meaningful_improvement`
+  - held-out quality verdict: `noise_band`
+  - near-equivalent bridge verdict: `passed`
+
+What it does not prove:
+
+- exact HOMEGOLF or exact Parameter Golf score closure
+- one mixed-device promoted runtime bundle emitted directly from the admitted
+  home cluster
 - public-leaderboard-equivalent hardware or score
 
 ## Public Comparison Report
@@ -427,9 +470,9 @@ What it does not prove:
   this competitive variant
 - that the current local competitive overrides already yielded one retained
   improved full-validation PGOLF report
-- the HOMEGOLF side now compares using the live dense mixed-device surface, the
-  canonical score-relevant runtime report, and the retained exact dense
-  challenge export bytes
+- the HOMEGOLF side now compares using the retained H100-backed live dense
+  mixed-device surface, the canonical score-relevant runtime report, and the
+  retained exact dense challenge export bytes
 - the result is materially stronger than the older open-adapter composition,
   but still not near the public leaderboard on score
 
