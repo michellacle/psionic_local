@@ -1,0 +1,184 @@
+{
+  "schema_version": "psionic.compiled_agent.external_submission_staging_ledger.v1",
+  "ledger_id": "compiled_agent.external_submission_staging_ledger.v1",
+  "row_id": "compiled_agent.qwen35_9b_q4km.archlinux.consumer_gpu.v1",
+  "evidence_class": "learned_lane",
+  "contributor_contract_version": "psionic.compiled_agent.external_benchmark_kit.v1",
+  "promoted_artifact_contract_digest": "5f4ed2e440803e71b54fc1a97da9c96d7c8b5bc152187a4a5a916af6805994fa",
+  "total_submission_count": 4,
+  "accepted_submission_count": 3,
+  "rejected_submission_count": 1,
+  "review_required_submission_count": 3,
+  "replay_candidate_submission_count": 1,
+  "submissions": [
+    {
+      "submission_id": "submission.compiled_agent.external_benchmark.alpha.v1",
+      "submission_kind": "benchmark_run",
+      "contributor_id": "contrib.external.alpha",
+      "source_machine_id": "external.alpha.archlinux.rtx4080",
+      "machine_class": "consumer_gpu",
+      "environment_class": "external_bounded_beta",
+      "contract_version": "psionic.compiled_agent.external_benchmark_kit.v1",
+      "payload_ref": "fixtures/compiled_agent/external/compiled_agent_external_benchmark_run_v1.json",
+      "payload_schema_version": "psionic.compiled_agent.external_benchmark_run.v1",
+      "payload_digest": "0d26ba6d9805902e8d0284883d1c5b79ef3299cfa14d7f8b247d40bca7af6283",
+      "evidence_class": "learned_lane",
+      "validation_checks": {
+        "schema_conformant": true,
+        "digest_integrity": true,
+        "contract_version_match": true,
+        "benchmark_consistency": true,
+        "environment_metadata_present": true,
+        "contributor_identity_linked": true,
+        "shadow_scored": false
+      },
+      "validator_status": "passed",
+      "quarantine_status": "held",
+      "review_state": "review_required",
+      "quarantined_learning_receipt_ids": [
+        "receipt.compiled_agent.learning.compiled_agent_external_benchmark_run_v1.json#external.negated_wallet",
+        "receipt.compiled_agent.learning.compiled_agent_external_benchmark_run_v1.json#external.provider_blocked",
+        "receipt.compiled_agent.learning.compiled_agent_external_benchmark_run_v1.json#external.provider_ready",
+        "receipt.compiled_agent.learning.compiled_agent_external_benchmark_run_v1.json#external.unsupported_gpu_poem",
+        "receipt.compiled_agent.learning.compiled_agent_external_benchmark_run_v1.json#external.wallet_balance",
+        "receipt.compiled_agent.learning.compiled_agent_external_benchmark_run_v1.json#external.wallet_variant"
+      ],
+      "replay_candidate_receipt_ids": [
+        "receipt.compiled_agent.learning.compiled_agent_external_benchmark_run_v1.json#external.provider_blocked",
+        "receipt.compiled_agent.learning.compiled_agent_external_benchmark_run_v1.json#external.provider_ready",
+        "receipt.compiled_agent.learning.compiled_agent_external_benchmark_run_v1.json#external.unsupported_gpu_poem",
+        "receipt.compiled_agent.learning.compiled_agent_external_benchmark_run_v1.json#external.wallet_balance",
+        "receipt.compiled_agent.learning.compiled_agent_external_benchmark_run_v1.json#external.wallet_variant"
+      ],
+      "proposed_replay_sample_ids": [],
+      "review_required_receipt_ids": [
+        "receipt.compiled_agent.learning.compiled_agent_external_benchmark_run_v1.json#external.negated_wallet"
+      ],
+      "shadow_assessment_ids": [
+        "assessment.compiled_agent.external_benchmark.negated_wallet.route.v1",
+        "assessment.compiled_agent.external_benchmark.negated_wallet.grounded_answer.v1"
+      ],
+      "failure_classes": [
+        "negated_route_false_positive"
+      ],
+      "detail": "The canonical external benchmark submission passed schema, digest, and contract checks, but one held-out negated-wallet row remains review-required. Accepted rows can enter replay-candidate state without letting the review-required row become authority."
+    },
+    {
+      "submission_id": "submission.compiled_agent.external_benchmark_invalid.alpha.v1",
+      "submission_kind": "benchmark_run",
+      "contributor_id": "contrib.external.alpha",
+      "source_machine_id": "",
+      "machine_class": "consumer_gpu",
+      "environment_class": "external_bounded_beta",
+      "contract_version": "psionic.compiled_agent.external_benchmark_kit.v1",
+      "payload_ref": "virtual://compiled_agent_external_benchmark_run_invalid.v1",
+      "payload_schema_version": "psionic.compiled_agent.external_benchmark_run.v1",
+      "payload_digest": "0d26ba6d9805902e8d0284883d1c5b79ef3299cfa14d7f8b247d40bca7af6283",
+      "evidence_class": "learned_lane",
+      "validation_checks": {
+        "schema_conformant": true,
+        "digest_integrity": false,
+        "contract_version_match": false,
+        "benchmark_consistency": false,
+        "environment_metadata_present": false,
+        "contributor_identity_linked": true,
+        "shadow_scored": false
+      },
+      "validator_status": "failed",
+      "quarantine_status": "rejected",
+      "review_state": "rejected",
+      "quarantined_learning_receipt_ids": [],
+      "replay_candidate_receipt_ids": [],
+      "proposed_replay_sample_ids": [],
+      "review_required_receipt_ids": [],
+      "shadow_assessment_ids": [],
+      "failure_classes": [
+        "contract_digest_mismatch",
+        "missing_environment_metadata"
+      ],
+      "detail": "This retained invalid submission proves the intake path rejects tampered contract linkage and missing machine metadata before any replay or training admission."
+    },
+    {
+      "submission_id": "submission.compiled_agent.external_runtime_disagreement.alpha.v1",
+      "submission_kind": "runtime_receipt",
+      "contributor_id": "contrib.external.alpha",
+      "source_machine_id": "external.alpha.archlinux.rtx4080",
+      "machine_class": "consumer_gpu",
+      "environment_class": "external_bounded_beta",
+      "contract_version": "psionic.compiled_agent.external_benchmark_kit.v1",
+      "payload_ref": "fixtures/compiled_agent/external/compiled_agent_external_runtime_receipt_submission_v1.json",
+      "payload_schema_version": "psionic.compiled_agent.external_runtime_receipt_submission.v1",
+      "payload_digest": "49f94d8d641a0a093f3b627cefc111b8dcfdee42a87054221caa21ce821a00e8",
+      "evidence_class": "learned_lane",
+      "validation_checks": {
+        "schema_conformant": true,
+        "digest_integrity": true,
+        "contract_version_match": true,
+        "benchmark_consistency": true,
+        "environment_metadata_present": true,
+        "contributor_identity_linked": true,
+        "shadow_scored": true
+      },
+      "validator_status": "passed",
+      "quarantine_status": "shadow_scored",
+      "review_state": "review_required",
+      "quarantined_learning_receipt_ids": [
+        "receipt.compiled_agent.learning.compiled_agent_external_runtime_receipt_submission_v1"
+      ],
+      "replay_candidate_receipt_ids": [],
+      "proposed_replay_sample_ids": [],
+      "review_required_receipt_ids": [
+        "receipt.compiled_agent.learning.compiled_agent_external_runtime_receipt_submission_v1"
+      ],
+      "shadow_assessment_ids": [
+        "assessment.compiled_agent.external_runtime.route.v1",
+        "assessment.compiled_agent.external_runtime.grounded_answer.v1"
+      ],
+      "failure_classes": [
+        "grounded_answer_mismatch",
+        "route_mismatch",
+        "tool_argument_mismatch",
+        "unexpected_tool_exposure",
+        "unsafe_final_outcome"
+      ],
+      "detail": "The external runtime disagreement receipt passed intake validation, was retained in quarantine, and was immediately shadow-scored against the promoted-versus-candidate route and grounded modules before any replay admission."
+    },
+    {
+      "submission_id": "proposal.compiled_agent.external_replay.alpha.v1",
+      "submission_kind": "replay_proposal",
+      "contributor_id": "contrib.external.alpha",
+      "source_machine_id": "external.alpha.archlinux.rtx4080",
+      "machine_class": "consumer_gpu",
+      "environment_class": "external_bounded_beta",
+      "contract_version": "psionic.compiled_agent.external_benchmark_kit.v1",
+      "payload_ref": "fixtures/compiled_agent/external/compiled_agent_external_replay_proposal_v1.json",
+      "payload_schema_version": "psionic.compiled_agent.external_replay_proposal.v1",
+      "payload_digest": "2e6536b56fe832e59d6d90fc6ade5d467e8d3c6297ca36b0d2917dda7e05370a",
+      "evidence_class": "learned_lane",
+      "validation_checks": {
+        "schema_conformant": true,
+        "digest_integrity": true,
+        "contract_version_match": true,
+        "benchmark_consistency": true,
+        "environment_metadata_present": true,
+        "contributor_identity_linked": true,
+        "shadow_scored": false
+      },
+      "validator_status": "passed",
+      "quarantine_status": "held",
+      "review_state": "review_required",
+      "quarantined_learning_receipt_ids": [],
+      "replay_candidate_receipt_ids": [],
+      "proposed_replay_sample_ids": [
+        "sample.grounded_answer.receipt.compiled_agent.learning.compiled_agent_external_runtime_receipt_submission_v1",
+        "sample.route.receipt.compiled_agent.learning.compiled_agent_external_runtime_receipt_submission_v1"
+      ],
+      "review_required_receipt_ids": [],
+      "shadow_assessment_ids": [],
+      "failure_classes": [],
+      "detail": "The external replay proposal passed schema, digest, and lineage checks, but it stays review-required until the quarantined runtime disagreement row is explicitly accepted into the replay set."
+    }
+  ],
+  "summary": "External intake staging ledger retained 4 submissions on the admitted compiled-agent family: 3 accepted into quarantine, 1 rejected before quarantine, and 3 still marked review-required while preserving 5 replay-candidate receipt ids.",
+  "ledger_digest": "8c4830e4f9280c6d1650d50337a1769f6b197515236d1bce69cd5e5f57ad4388"
+}

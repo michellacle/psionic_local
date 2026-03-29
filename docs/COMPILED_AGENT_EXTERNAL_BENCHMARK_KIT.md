@@ -122,3 +122,6 @@ It does not yet prove:
 - quarantine and acceptance logic
 - external worker-role execution
 - contributor-facing product surfaces
+
+Those next boundaries are now handled by the retained external intake and
+quarantine path in `docs/COMPILED_AGENT_EXTERNAL_INTAKE.md`.

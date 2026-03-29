@@ -1,0 +1,89 @@
+{
+  "schema_version": "psionic.compiled_agent.external_replay_proposal.v1",
+  "proposal_id": "proposal.compiled_agent.external_replay.alpha.v1",
+  "contributor": {
+    "contributor_id": "contrib.external.alpha",
+    "display_name": "External Contributor Alpha",
+    "source_machine_id": "external.alpha.archlinux.rtx4080",
+    "machine_class": "consumer_gpu",
+    "environment_class": "external_bounded_beta",
+    "declared_capabilities": [
+      "compiled_agent_benchmark",
+      "runtime_receipt_collection"
+    ],
+    "contract_version_accepted": "psionic.compiled_agent.external_benchmark_kit.v1",
+    "attested_at_epoch_ms": 1774800000000
+  },
+  "contract_digest": "dbfad2b850ad1ff71e6528be9e4a3b0f6f38cc273df7c6f79f75c5b45e02ccb8",
+  "evidence_class": "learned_lane",
+  "source_receipt_id": "receipt.compiled_agent.learning.compiled_agent_external_runtime_receipt_submission_v1",
+  "source_ledger_digest": "83d6eaaddecae232ec774636d29ac33be5fa7679d8ee41a75c954280ca3eea80",
+  "proposed_samples": [
+    {
+      "sample_id": "sample.route.receipt.compiled_agent.learning.compiled_agent_external_runtime_receipt_submission_v1",
+      "module": "route",
+      "source_receipt_id": "receipt.compiled_agent.learning.compiled_agent_external_runtime_receipt_submission_v1",
+      "evidence_class": "learned_lane",
+      "correction_kind": "failure_correction",
+      "tags": [
+        "external",
+        "runtime",
+        "shadow_compare",
+        "negated",
+        "quarantine_training_candidate"
+      ],
+      "failure_classes": [
+        "grounded_answer_mismatch",
+        "route_mismatch",
+        "tool_argument_mismatch",
+        "unexpected_tool_exposure",
+        "unsafe_final_outcome"
+      ],
+      "input": {
+        "user_request": "What is not my wallet balance?"
+      },
+      "expected_output": {
+        "route": "unsupported"
+      },
+      "observed_output": {
+        "route": "wallet_status"
+      }
+    },
+    {
+      "sample_id": "sample.grounded_answer.receipt.compiled_agent.learning.compiled_agent_external_runtime_receipt_submission_v1",
+      "module": "grounded_answer",
+      "source_receipt_id": "receipt.compiled_agent.learning.compiled_agent_external_runtime_receipt_submission_v1",
+      "evidence_class": "learned_lane",
+      "correction_kind": "failure_correction",
+      "tags": [
+        "external",
+        "runtime",
+        "shadow_compare",
+        "negated",
+        "quarantine_training_candidate"
+      ],
+      "failure_classes": [
+        "grounded_answer_mismatch",
+        "route_mismatch",
+        "tool_argument_mismatch",
+        "unexpected_tool_exposure",
+        "unsafe_final_outcome"
+      ],
+      "input": {
+        "user_request": "What is not my wallet balance?",
+        "route": "unsupported",
+        "tool_results": []
+      },
+      "expected_output": {
+        "kind": "unsupported_refusal",
+        "response": "I can currently answer only provider readiness and wallet balance questions."
+      },
+      "observed_output": {
+        "kind": "grounded_answer",
+        "response": "Wallet balance is 1200 sats, with 240 sats of recent earnings."
+      }
+    }
+  ],
+  "detail": "External replay proposal derived from one quarantined runtime disagreement receipt. The proposal is structurally valid but still requires governed review before any replay admission.",
+  "payload_digest": "2e6536b56fe832e59d6d90fc6ade5d467e8d3c6297ca36b0d2917dda7e05370a"
+}

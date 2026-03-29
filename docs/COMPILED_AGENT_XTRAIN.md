@@ -66,6 +66,10 @@ learned compiled-agent slice actually proved.
 - `fixtures/compiled_agent/compiled_agent_stronger_candidate_family_report_v1.json`
 - `fixtures/compiled_agent/external/compiled_agent_external_benchmark_kit_v1.json`
 - `fixtures/compiled_agent/external/compiled_agent_external_benchmark_run_v1.json`
+- `fixtures/compiled_agent/external/compiled_agent_external_runtime_receipt_submission_v1.json`
+- `fixtures/compiled_agent/external/compiled_agent_external_replay_proposal_v1.json`
+- `fixtures/compiled_agent/external/compiled_agent_external_submission_staging_ledger_v1.json`
+- `fixtures/compiled_agent/external/compiled_agent_external_quarantine_report_v1.json`
 - `fixtures/compiled_agent/compiled_agent_xtrain_cycle_receipt_v1.json`
 - `fixtures/compiled_agent/compiled_agent_promoted_artifact_contract_v1.json`
 - `fixtures/compiled_agent/compiled_agent_confidence_policy_v1.json`
@@ -112,6 +116,9 @@ learned compiled-agent slice actually proved.
 - the first outside-compatible benchmark pack now emits external contributor
   receipts in the same bounded ledger shape, with one retained review-required
   negated-wallet row to keep the current route weakness visible
+- external benchmark runs, runtime disagreement receipts, and replay proposals
+  can now enter a retained staging ledger and quarantine report without
+  weakening the evidence-versus-authority boundary
 - stronger bounded candidate families can now be evaluated against the same
   route and grounded-answer contracts without changing the runtime interface
 - the retained stronger-family report now keeps the incumbent NB candidates on

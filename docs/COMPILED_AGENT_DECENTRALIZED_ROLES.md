@@ -66,6 +66,8 @@ contract shape:
 
 - `fixtures/compiled_agent/external/compiled_agent_external_benchmark_kit_v1.json`
 - `fixtures/compiled_agent/external/compiled_agent_external_benchmark_run_v1.json`
+- `fixtures/compiled_agent/external/compiled_agent_external_submission_staging_ledger_v1.json`
+- `fixtures/compiled_agent/external/compiled_agent_external_quarantine_report_v1.json`
 
 ## What Each Role Does
 
