@@ -1,12 +1,12 @@
 {
   "report_kind": "psionic_hermes_qwen35_compatibility",
-  "created_at_utc": "2026-03-29T00:27:58.160898+00:00",
+  "created_at_utc": "2026-03-29T00:54:31.463556+00:00",
   "backend_label": "ollama",
   "base_url": "http://127.0.0.1:11434/v1",
   "model": "qwen3.5:9b",
   "model_path": "qwen3.5:9b",
-  "psionic_root": "/home/christopherdavid/scratch/psionic-hermes-663",
-  "psionic_revision": "e1a27665c63f4b7a085795415699ab7f168c4d2d",
+  "psionic_root": "/home/christopherdavid/scratch/psionic-hermes-parity-f4788f38",
+  "psionic_revision": "f4788f38cc04febf5d9e9eb526694de048ceabc2",
   "hermes_root": "/home/christopherdavid/scratch/hermes-agent-proof2",
   "hermes_revision": "e295a2215acd55f2ee930fc7a4cd2df1c5464234",
   "python_executable": "/home/christopherdavid/scratch/hermes-min/.venv/bin/python",
@@ -15,7 +15,7 @@
   "cases": [
     {
       "case_id": "parallel_tool_turn",
-      "pass": false,
+      "pass": true,
       "summary": "parallel tool turn emitted both tool calls in one assistant response",
       "stream_calls": 2,
       "request_summaries": [
@@ -28,7 +28,7 @@
           ]
         },
         {
-          "tool_choice": "required",
+          "tool_choice": "auto",
           "parallel_tool_calls": true,
           "tool_names": [
             "get_paris_weather",
@@ -39,23 +39,70 @@
       "api_calls": 2,
       "completed": false,
       "failed": false,
-      "final_response": "",
+      "final_response": "Paris is currently sunny, while Tokyo is experiencing rainy conditions.",
       "messages": [
         {
           "role": "user",
           "content": "Use both weather tools now, then summarize both cities in one answer."
+        },
+        {
+          "role": "assistant",
+          "content": "",
+          "reasoning": "The user wants me to use both weather tools (get_paris_weather and get_tokyo_weather) and then summarize both cities' weather in one answer. I need to make exactly two tool calls in the specified order: first Paris, then Tokyo.",
+          "finish_reason": "tool_calls",
+          "tool_calls": [
+            {
+              "id": "call_z9aw8lhk",
+              "call_id": "call_z9aw8lhk",
+              "response_item_id": "fc_z9aw8lhk",
+              "type": "function",
+              "function": {
+                "name": "get_paris_weather",
+                "arguments": "{}"
+              }
+            },
+            {
+              "id": "call_uomzhcrh",
+              "call_id": "call_uomzhcrh",
+              "response_item_id": "fc_uomzhcrh",
+              "type": "function",
+              "function": {
+                "name": "get_tokyo_weather",
+                "arguments": "{}"
+              }
+            }
+          ]
+        },
+        {
+          "role": "tool",
+          "content": "{\"city\": \"Paris\", \"condition\": \"sunny\"}",
+          "tool_call_id": "call_z9aw8lhk"
+        },
+        {
+          "role": "tool",
+          "content": "{\"city\": \"Tokyo\", \"condition\": \"rainy\"}",
+          "tool_call_id": "call_uomzhcrh"
+        },
+        {
+          "role": "assistant",
+          "content": "Paris is currently sunny, while Tokyo is experiencing rainy conditions.",
+          "reasoning": "The user asked me to use both weather tools and then summarize both cities in one answer. I've successfully called both tools:\n\n1. Paris: sunny\n2. Tokyo: rainy\n\nNow I need to provide a single summary that includes both cities' weather conditions.",
+          "finish_reason": "stop"
         }
       ],
       "details": {
-        "assistant_tool_names": []
+        "assistant_tool_names": [
+          "get_paris_weather",
+          "get_tokyo_weather"
+        ]
       }
     }
   ],
-  "overall_pass": false,
-  "passing_case_count": 0,
+  "overall_pass": true,
+  "passing_case_count": 1,
   "total_case_count": 1,
   "matrix_backend_label": "ollama",
   "matrix_model_label": "9b",
   "matrix_model_ref": "qwen3.5:9b",
-  "probe_exit_status": 1
+  "probe_exit_status": 0
 }

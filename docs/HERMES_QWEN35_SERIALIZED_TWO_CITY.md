@@ -6,10 +6,10 @@
 This document records the retained serialized two-city Hermes compatibility
 proof for native Psionic `qwen35`.
 
-This lane exists because the strict direct-compatibility matrix is still red on
-same-turn parallel tool batching. That is a real boundary, but it is not the
-same thing as proving Hermes cannot complete a practical two-tool workflow on
-one consumer GPU. This checker isolates the overlooked local path:
+This lane was added while the strict direct-compatibility matrix was still red
+on same-turn parallel tool batching. That strict row is now separately green,
+but this serialized checker still matters because it isolates a practical local
+two-tool workflow on one consumer GPU:
 
 - `parallel_tool_calls = false`
 - two city tools with disjoint schemas and handlers
@@ -97,10 +97,9 @@ This row passes only if:
 
 ## Why This Matters
 
-The retained direct-compatibility matrix still matters. Same-turn parallel tool
-calling is still red and still blocks full strict parity. But local
-consumer-GPU work should not collapse into a single binary claim that Hermes
-either clears every strict row or is unusable.
+The retained direct-compatibility matrix still matters. That strict same-turn
+parallel row is now green, but local consumer-GPU work still should not
+collapse into a single binary claim about one batched tool shape.
 
 This serialized row answers a narrower and more operational question:
 

@@ -1,12 +1,12 @@
 {
   "report_kind": "psionic_hermes_qwen35_compatibility",
-  "created_at_utc": "2026-03-29T00:28:41.961410+00:00",
+  "created_at_utc": "2026-03-29T00:53:40.733432+00:00",
   "backend_label": "ollama",
   "base_url": "http://127.0.0.1:11434/v1",
   "model": "qwen3.5:2b",
   "model_path": "qwen3.5:2b",
-  "psionic_root": "/home/christopherdavid/scratch/psionic-hermes-663",
-  "psionic_revision": "e1a27665c63f4b7a085795415699ab7f168c4d2d",
+  "psionic_root": "/home/christopherdavid/scratch/psionic-hermes-parity-f4788f38",
+  "psionic_revision": "f4788f38cc04febf5d9e9eb526694de048ceabc2",
   "hermes_root": "/home/christopherdavid/scratch/hermes-agent-proof2",
   "hermes_revision": "e295a2215acd55f2ee930fc7a4cd2df1c5464234",
   "python_executable": "/home/christopherdavid/scratch/hermes-min/.venv/bin/python",
@@ -48,13 +48,13 @@
         {
           "role": "assistant",
           "content": "",
-          "reasoning": "The user wants me to use both the Paris weather and Tokyo weather tools, then provide a summary of both cities. I need to make exactly two tool calls in order: first get_paris_weather, then get_tokyo_weather.\n\nLet me make these tool calls now.",
+          "reasoning": "The user wants me to use both weather tools (get_paris_weather and get_tokyo_weather) and then summarize both cities in one answer. I need to make exactly two tool calls in the specified order: first get_paris_weather, then get_tokyo_weather.\n\nLet me make these tool calls now.",
           "finish_reason": "tool_calls",
           "tool_calls": [
             {
-              "id": "call_q3qtpdo5",
-              "call_id": "call_q3qtpdo5",
-              "response_item_id": "fc_q3qtpdo5",
+              "id": "call_nssmhnly",
+              "call_id": "call_nssmhnly",
+              "response_item_id": "fc_nssmhnly",
               "type": "function",
               "function": {
                 "name": "get_paris_weather",
@@ -62,9 +62,9 @@
               }
             },
             {
-              "id": "call_4j1bmn8q",
-              "call_id": "call_4j1bmn8q",
-              "response_item_id": "fc_4j1bmn8q",
+              "id": "call_kof25hu3",
+              "call_id": "call_kof25hu3",
+              "response_item_id": "fc_kof25hu3",
               "type": "function",
               "function": {
                 "name": "get_tokyo_weather",
@@ -76,12 +76,12 @@
         {
           "role": "tool",
           "content": "{\"city\": \"Paris\", \"condition\": \"sunny\"}",
-          "tool_call_id": "call_q3qtpdo5"
+          "tool_call_id": "call_nssmhnly"
         },
         {
           "role": "tool",
           "content": "{\"city\": \"Tokyo\", \"condition\": \"rainy\"}",
-          "tool_call_id": "call_4j1bmn8q"
+          "tool_call_id": "call_kof25hu3"
         },
         {
           "role": "assistant",

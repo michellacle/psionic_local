@@ -1,35 +1,27 @@
 # Hermes Qwen3.5 Compatibility
 
-> Status: `implemented_early` on 2026-03-28 for retained Hermes-on-Psionic
-> `chat.completions` compatibility evidence.
+> Status: `retained_consumer_gpu_full_compatibility` on 2026-03-29 for a full
+> repo-owned Hermes `chat.completions` proof on native Psionic `qwen35`.
 
-This document records the retained Hermes compatibility proof for native
-Psionic `qwen35` on the OpenAI-compatible `/v1/chat/completions` surface.
+This document records the canonical retained Hermes compatibility proof for
+native Psionic `qwen35` on one consumer GPU.
 
-The proof is honest about the current boundary:
+The current honest boundary is:
 
-- Hermes-on-Psionic is real for `5/6` retained cases on the exact pushed
-  revisions below.
-- The only remaining failed case is same-turn parallel tool calling.
-- The older retained request summaries do prove Hermes sent both declared
-  tools, so the red row was never a missing request-surface transport path.
-- But the later cross-backend attribution matrix now shows the red row is not
-  honestly reducible to "local qwen35 model behavior" on every backend:
-  Ollama `2b` and `4b` pass the exact strict parallel row on the same host
-  while native Psionic `2b` and `4b` still fail it.
-- The later local-tailnet follow-up reruns on pushed `b2277ed5` and
-  `9f67d65b` stayed at the same `5/6` boundary on the retained `2b` and `9b`
-  rows even after tightening both the backend parallel-tool prompt contract and
-  the repo-owned compatibility probe.
+- native Psionic now closes the full Hermes acceptance matrix `6/6` on the
+  local `archlinux` `RTX 4080` lane
+- the previously red same-turn `parallel_tool_turn` case is now green in the
+  full checker on `2b`
+- the same strict parallel row is also green in the separate attribution
+  matrix on `2b`, `4b`, and `9b` against both Psionic and Ollama on the same
+  host
+- the older `5/6` retained reports remain useful historical evidence, but they
+  are no longer the canonical current boundary
 
-## Retained Revisions
+## Canonical Retained Revisions
 
-- Baseline retained proof revision:
-  `ef5e2cdca840db6b2fc0c871649e6cb4b2af6d30`
-- Backend prompt-tightening follow-up:
-  `b2277ed5a16b640285574b6e450d9c772c898c9b`
-- Latest local-tailnet checker-tightening follow-up:
-  `9f67d65babb940a5e7878c518532b5068b424486`
+- Psionic revision:
+  `f4788f38cc04febf5d9e9eb526694de048ceabc2`
 - Hermes revision:
   `e295a2215acd55f2ee930fc7a4cd2df1c5464234`
 - Host:
@@ -43,173 +35,97 @@ Run the retained checker from the repo root:
 scripts/release/check-psionic-hermes-qwen35-compatibility.sh
 ```
 
-The retained proof used the exact pushed Psionic revisions above and the Hermes
-checkout above, with explicit overrides for the remote binary, model path,
-report path, and scratch `TMPDIR`.
-
-Latest exact 2B follow-up command:
+Exact retained command:
 
 ```bash
-TMPDIR=/home/christopherdavid/scratch/tmp/hermes-check-9f67d65b \
+TMPDIR=/home/christopherdavid/scratch/tmp/hermes-check-final \
+PSIONIC_HERMES_SKIP_BUILD=1 \
 PSIONIC_HERMES_ROOT=/home/christopherdavid/scratch/hermes-agent-proof2 \
 PSIONIC_HERMES_PYTHON=/home/christopherdavid/scratch/hermes-min/.venv/bin/python \
 PSIONIC_HERMES_SERVER_BIN=/home/christopherdavid/.cache/psionic-hermes-target/debug/psionic-openai-server \
 PSIONIC_HERMES_QWEN35_MODEL_PATH=/home/christopherdavid/models/qwen3.5/qwen3.5-2b-q8_0-registry.gguf \
-PSIONIC_HERMES_REPORT_PATH=/home/christopherdavid/scratch/psionic-hermes-compat-9f67d65b/fixtures/qwen35/hermes/hermes_qwen35_psionic_compatibility_report_20260328_archlinux_2b_9f67d65b.json \
-PSIONIC_HERMES_SERVER_LOG_PATH=/home/christopherdavid/scratch/logs/hermes_qwen35_psionic_compatibility_20260328_archlinux_2b_9f67d65b.log \
+PSIONIC_HERMES_REPORT_PATH=/home/christopherdavid/scratch/psionic-hermes-final/fixtures/qwen35/hermes/hermes_qwen35_psionic_compatibility_report_20260329_archlinux_2b_f4788f38.json \
+PSIONIC_HERMES_SERVER_LOG_PATH=/home/christopherdavid/scratch/logs/hermes_qwen35_psionic_compatibility_20260329_archlinux_2b_f4788f38.log \
 scripts/release/check-psionic-hermes-qwen35-compatibility.sh
 ```
 
-Latest exact 9B follow-up command:
+## Canonical Retained Reports
 
-```bash
-TMPDIR=/home/christopherdavid/scratch/tmp/hermes-check-9f67d65b-9b \
-PSIONIC_HERMES_ROOT=/home/christopherdavid/scratch/hermes-agent-proof2 \
-PSIONIC_HERMES_PYTHON=/home/christopherdavid/scratch/hermes-min/.venv/bin/python \
-PSIONIC_HERMES_SERVER_BIN=/home/christopherdavid/.cache/psionic-hermes-target/debug/psionic-openai-server \
-PSIONIC_HERMES_QWEN35_MODEL_PATH=/home/christopherdavid/models/qwen3.5/qwen3.5-9b-q4_k_m-registry.gguf \
-PSIONIC_HERMES_REPORT_PATH=/home/christopherdavid/scratch/psionic-hermes-compat-9f67d65b/fixtures/qwen35/hermes/hermes_qwen35_psionic_compatibility_report_20260328_archlinux_9b_9f67d65b.json \
-PSIONIC_HERMES_SERVER_LOG_PATH=/home/christopherdavid/scratch/logs/hermes_qwen35_psionic_compatibility_20260328_archlinux_9b_9f67d65b.log \
-scripts/release/check-psionic-hermes-qwen35-compatibility.sh
-```
+- full compatibility proof:
+  `fixtures/qwen35/hermes/hermes_qwen35_psionic_compatibility_report_20260329_archlinux_2b_f4788f38.json`
+- strict same-turn parallel matrix:
+  `fixtures/qwen35/hermes/hermes_qwen35_parallel_tool_attribution_matrix_20260329_archlinux.json`
 
-## Retained Reports
+Historical reports kept for comparison:
 
 - `fixtures/qwen35/hermes/hermes_qwen35_psionic_compatibility_report_20260328_archlinux_2b.json`
 - `fixtures/qwen35/hermes/hermes_qwen35_psionic_compatibility_report_20260328_archlinux_2b_b2277ed5.json`
 - `fixtures/qwen35/hermes/hermes_qwen35_psionic_compatibility_report_20260328_archlinux_2b_9f67d65b.json`
 - `fixtures/qwen35/hermes/hermes_qwen35_psionic_compatibility_report_20260328_archlinux_9b.json`
 - `fixtures/qwen35/hermes/hermes_qwen35_psionic_compatibility_report_20260328_archlinux_9b_9f67d65b.json`
-- `fixtures/qwen35/hermes/hermes_qwen35_parallel_tool_attribution_matrix_20260329_archlinux.json`
 
-## Retained Matrix
+## Acceptance Matrix
 
-| Revision | Model | Pass Count | Overall | Failed Case |
-| --- | --- | --- | --- | --- |
-| `ef5e2cdc` | `qwen3.5-2b-q8_0-registry.gguf` | `5/6` | `false` | `parallel_tool_turn` |
-| `ef5e2cdc` | `qwen3.5-9b-q4_k_m-registry.gguf` | `5/6` | `false` | `parallel_tool_turn` |
-| `b2277ed5` | `qwen3.5-2b-q8_0-registry.gguf` | `5/6` | `false` | `parallel_tool_turn` |
-| `9f67d65b` | `qwen3.5-2b-q8_0-registry.gguf` | `5/6` | `false` | `parallel_tool_turn` |
-| `9f67d65b` | `qwen3.5-9b-q4_k_m-registry.gguf` | `5/6` | `false` | `parallel_tool_turn` |
+Canonical retained `2b` result on pushed `f4788f38`:
 
-Every retained row above passes:
+| Case | Result | Retained Summary |
+| --- | --- | --- |
+| `required_tool_turn` | `pass` | one required weather tool call emitted |
+| `auto_plain_text_turn` | `pass` | plain text answer, no tool call |
+| `multi_turn_tool_loop` | `pass` | tool replay reached final answer |
+| `parallel_tool_turn` | `pass` | same-turn assistant response emitted both tools |
+| `invalid_argument_truthful_refusal` | `pass` | truthful unsupported-city refusal |
+| `streamed_tool_turn` | `pass` | streamed tool-call turn preserved |
 
-- `required_tool_turn`
-- `auto_plain_text_turn`
-- `multi_turn_tool_loop`
-- `invalid_argument_truthful_refusal`
-- `streamed_tool_turn`
+Overall:
 
-Every retained row above fails:
+- `overall_pass = true`
+- `passing_case_count = 6`
+- `total_case_count = 6`
 
-- `parallel_tool_turn`
+## What Changed
 
-One experimental local `4b` rerun on the older `972661d4` worktree was worse
-than the canonical retained rows: it fell to `4/6` because the same parallel
-row still failed and the streamed row ended in connection failure. That run is
-useful as a local operator signal, but it is not the canonical retained proof
-path.
+The old red row was not resolved by pretending the local model family had
+changed. The fix was in the native Psionic tool contract:
 
-The first same-host backend benchmark now lives in
-`docs/HERMES_BACKEND_BENCHMARK.md`.
+1. required/named tool turns now prefer a plain JSON-schema tool-call batch
+   instead of relying on the older tagged wrapper shape
+2. the required parallel contract now carries a real
+   `minimum_required_tool_calls` floor
+3. that floor is derived from backticked declared tool names in the request
+   messages when `tool_choice = required` and `parallel_tool_calls = true`
+4. the prompt contract now tells the model to emit at least that many tools on
+   the required same-turn batch
 
-The later bounded fast-path-versus-fallback proof now lives in
-`docs/HERMES_QWEN35_FAST_PATH.md`.
+That is why the canonical retained full checker now clears the formerly red
+parallel row instead of stopping at `5/6`.
 
-The later repeated-loop prefix-cache proof now lives in
-`docs/HERMES_QWEN35_REUSE_BENCHMARK.md`.
+## Relation To Other Hermes Docs
 
-The serialized two-city consumer-GPU follow-up now lives in
-`docs/HERMES_QWEN35_SERIALIZED_TWO_CITY.md`.
-
-The strict same-turn parallel attribution matrix now lives in
-`docs/HERMES_QWEN35_PARALLEL_ATTRIBUTION.md`.
-
-## What The Proof Actually Shows
-
-The retained reports prove the following source-level compatibility work is now
-real on the native Psionic qwen35 lane:
-
-- leading `system` plus `developer` messages are normalized into one qwen35
-  instruction prelude instead of being dropped or reordered
-- assistant tool-call turns can be replayed back into qwen35 as the raw tool
-  envelope the model expects
-- `role = tool` result turns can be replayed without losing `tool_call_id`
-  linkage, including name recovery from prior assistant tool calls
-- Hermes can use the normal OpenAI-compatible `chat.completions` path against
-  Psionic rather than a custom side channel
-- streamed tool-call deltas and the request-level `parallel_tool_calls` field
-  are admitted on the Psionic surface
-
-## Remaining Blocker
-
-The current remaining blocker is not missing request-surface plumbing.
-
-In every retained failing row, the request summaries show Hermes sent both tool
-definitions on the parallel turn:
-
-- `get_paris_weather`
-- `get_tokyo_weather`
-
-But the assistant still emitted only one tool call:
-
-- `get_paris_weather`
-
-The latest local follow-up on `9f67d65b` tightened the probe further:
-
-- the parallel-case system message now explicitly requires exactly two tool
-  calls in order
-- each tool description now states that it is valid only for its own city and
-  must not be substituted for the other
-
-Even with those stricter instructions:
-
-- local `2b` still emitted `get_paris_weather`, then repeated
-  `get_paris_weather` on the second iteration
-- local `9b` still emitted only `get_paris_weather`
-
-That still means Psionic is exposing multiple tools, `parallel_tool_calls`,
-tool replay, and tool-result ingestion on the request surface.
-
-But the newer cross-backend matrix changes the attribution:
-
-- native Psionic `2b` and `4b` still emit only `get_paris_weather`
-- Ollama `2b` and `4b` emit both `get_paris_weather` and
-  `get_tokyo_weather` on the same strict row
-- `9b` still fails on both backends, but not with the same symptom
-
-So the remaining blocker is now best described as:
-
-- a native Psionic lane-specific failure on the reachable `2b` and `4b` rows
-- plus a separate mixed/shared `9b` boundary
+- strict same-turn parity receipts now live in
+  `docs/HERMES_QWEN35_PARALLEL_ATTRIBUTION.md`
+- same-host benchmark truth still lives in
+  `docs/HERMES_BACKEND_BENCHMARK.md`
+- serialized two-city proof still lives in
+  `docs/HERMES_QWEN35_SERIALIZED_TWO_CITY.md`
+- fast-path versus fallback runtime truth still lives in
+  `docs/HERMES_QWEN35_FAST_PATH.md`
+- repeated-loop warm-path truth still lives in
+  `docs/HERMES_QWEN35_REUSE_BENCHMARK.md`
 
 ## Honest Bottom Line
 
-Psionic is now materially closer to real Hermes readiness than the earlier
-audit posture implied:
+It is now honest to say the repo retains a direct Hermes-on-Psionic
+compatibility proof on one consumer GPU through the normal custom-provider
+`chat.completions` path.
 
-- source and retained receipts now prove `5/6` Hermes compatibility on exact
-  pushed Psionic for local qwen35 rows
-- the remaining blocker is sharply bounded to same-turn parallel tool calling
-- the repo now also has a separate retained serialized two-city proof on one
-  consumer GPU, which shows the practical Hermes lane is broader than the
-  still-red strict same-turn parallel case
-- that serialized one-consumer-GPU proof is retained on pushed `e1a27665` for
-  the local `2b` row and closes with the exact final output
-  `Paris is sunny at 18C. Tokyo is rainy at 12C.`
-- the repo now also has one retained Psionic-versus-Ollama Hermes benchmark on
-  the local `2b` row
-- the repo now also has one retained strict same-turn parallel attribution
-  matrix showing that Ollama `2b` and `4b` pass the exact red row while the
-  native Psionic lane still fails it
-- the repo now also has one retained exact-pushed qwen35 fast-path proof for
-  required tool turns, direct auto turns, and tool-result continuation
-- the repo now also has one retained repeated-loop reuse receipt showing warm
-  wallclock improvement on required tool turns and tool-result continuation
-- local-tailnet qwen35 improvement work for this exact blocker is not honestly
-  exhausted anymore, because the new attribution matrix says the `2b` and `4b`
-  red rows are now native Psionic lane-gap evidence rather than a universal
-  model-family limit
-- this is still not enough to claim full Hermes compatibility yet, so the
-  direct-compatibility umbrella issue stays honestly open until a stronger row
-  or a native Psionic fix clears the last case
+It is still not honest to say every Hermes question is solved:
+
+- Ollama still wins wallclock on the older easy same-host benchmark rows
+- `llama.cpp` is still not a runnable apples-to-apples comparator for this
+  `qwen35` artifact contract on the current host
+- raw-versus-registry artifact attribution on the local Ollama-managed `2b`
+  blob is still permission-blocked
+
+But the old direct compatibility blocker is no longer open. The retained
+consumer-GPU Psionic lane is now green on the full Hermes acceptance matrix.

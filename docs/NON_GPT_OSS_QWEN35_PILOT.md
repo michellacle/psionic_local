@@ -25,13 +25,16 @@ The first same-host Hermes backend benchmark now lives in
 
 Current honest status:
 
-- exact pushed Psionic revision `ef5e2cdca840db6b2fc0c871649e6cb4b2af6d30`
-  reaches `5/6` retained Hermes compatibility cases on both local qwen35 `2b`
-  and `9b`
-- the only remaining failed case is `parallel_tool_turn`
-- the retained reports show Hermes sent both tool definitions on the failing
-  turn, so the remaining blocker is current model behavior on same-turn
-  parallel tool use, not missing request-surface plumbing in Psionic
+- exact pushed Psionic revision `f4788f38cc04febf5d9e9eb526694de048ceabc2`
+  now reaches `6/6` retained Hermes compatibility cases on the canonical local
+  qwen35 `2b` proof lane
+- the previously red `parallel_tool_turn` case is now green in the full
+  compatibility checker
+- the separate strict same-turn parallel attribution matrix is also green on
+  local `2b`, `4b`, and `9b` rows against both Psionic and Ollama on the same
+  `archlinux` `RTX 4080` host
+- the remaining Hermes work is now benchmark/comparator follow-on work, not a
+  direct compatibility blocker on the consumer-GPU Psionic lane
 
 ## Current Lane
 
