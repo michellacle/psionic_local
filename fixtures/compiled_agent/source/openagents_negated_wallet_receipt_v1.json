@@ -1,0 +1,252 @@
+{
+  "schema_version": 1,
+  "captured_at_epoch_ms": 1774760262264,
+  "state": {
+    "provider_ready": true,
+    "provider_blockers": [],
+    "wallet_balance_sats": 1200,
+    "recent_earnings_sats": 240
+  },
+  "run": {
+    "public_response": {
+      "kind": "grounded_answer",
+      "response": "Wallet balance is 1200 sats, with 240 sats of recent earnings."
+    },
+    "internal_trace": {
+      "primary_phases": [
+        {
+          "phase": "intent_route",
+          "manifest": {
+            "module_name": "intent_route",
+            "signature_name": "intent_route",
+            "implementation_family": "rule_v1",
+            "implementation_label": "promoted",
+            "version": "2026-03-28",
+            "promotion_state": "promoted",
+            "confidence_floor": 0.8
+          },
+          "authority": "promoted",
+          "candidate_label": null,
+          "input": {
+            "user_request": "Do not tell me the wallet balance; write a poem about GPUs."
+          },
+          "output": {
+            "route": "wallet_status",
+            "rationale": "prompt asked about wallet state"
+          },
+          "confidence": 0.94,
+          "trace": {
+            "tokens": [
+              "do",
+              "not",
+              "tell",
+              "me",
+              "the",
+              "wallet",
+              "balance",
+              "write",
+              "a",
+              "poem",
+              "about",
+              "gpus"
+            ],
+            "implementation_label": "promoted"
+          }
+        },
+        {
+          "phase": "tool_policy",
+          "manifest": {
+            "module_name": "tool_policy",
+            "signature_name": "tool_policy",
+            "implementation_family": "rule_v1",
+            "implementation_label": "promoted",
+            "version": "2026-03-28",
+            "promotion_state": "promoted",
+            "confidence_floor": 0.8
+          },
+          "authority": "promoted",
+          "candidate_label": null,
+          "input": {
+            "user_request": "Do not tell me the wallet balance; write a poem about GPUs.",
+            "route": "wallet_status",
+            "available_tools": [
+              {
+                "name": "provider_status",
+                "description": "Read provider readiness and blocker state."
+              },
+              {
+                "name": "wallet_status",
+                "description": "Read wallet balance and recent earnings."
+              }
+            ]
+          },
+          "output": {
+            "selected_tools": [
+              {
+                "name": "wallet_status",
+                "description": "Read wallet balance and recent earnings."
+              }
+            ],
+            "rationale": "narrow slice exposes only the tool family required by the route"
+          },
+          "confidence": 0.92,
+          "trace": {
+            "route": "wallet_status",
+            "implementation_label": "promoted"
+          }
+        },
+        {
+          "phase": "tool_arguments",
+          "manifest": {
+            "module_name": "tool_arguments",
+            "signature_name": "tool_arguments",
+            "implementation_family": "rule_v1",
+            "implementation_label": "promoted",
+            "version": "2026-03-28",
+            "promotion_state": "promoted",
+            "confidence_floor": 0.8
+          },
+          "authority": "promoted",
+          "candidate_label": null,
+          "input": {
+            "user_request": "Do not tell me the wallet balance; write a poem about GPUs.",
+            "route": "wallet_status",
+            "selected_tools": [
+              {
+                "name": "wallet_status",
+                "description": "Read wallet balance and recent earnings."
+              }
+            ]
+          },
+          "output": {
+            "calls": [
+              {
+                "tool_name": "wallet_status",
+                "arguments": {}
+              }
+            ]
+          },
+          "confidence": 0.96,
+          "trace": {
+            "route": "wallet_status",
+            "tool_count": 1,
+            "implementation_label": "promoted"
+          }
+        },
+        {
+          "phase": "grounded_answer",
+          "manifest": {
+            "module_name": "grounded_answer",
+            "signature_name": "grounded_answer",
+            "implementation_family": "rule_v1",
+            "implementation_label": "promoted",
+            "version": "2026-03-28",
+            "promotion_state": "promoted",
+            "confidence_floor": 0.82
+          },
+          "authority": "promoted",
+          "candidate_label": null,
+          "input": {
+            "user_request": "Do not tell me the wallet balance; write a poem about GPUs.",
+            "route": "wallet_status",
+            "tool_results": [
+              {
+                "tool_name": "wallet_status",
+                "payload": {
+                  "balance_sats": 1200,
+                  "recent_earnings_sats": 240
+                }
+              }
+            ]
+          },
+          "output": {
+            "answer": "Wallet balance is 1200 sats, with 240 sats of recent earnings.",
+            "grounded_tool_names": [
+              "wallet_status"
+            ]
+          },
+          "confidence": 0.94,
+          "trace": {
+            "balance_sats": 1200,
+            "recent_earnings_sats": 240,
+            "implementation_label": "promoted"
+          }
+        },
+        {
+          "phase": "verify",
+          "manifest": {
+            "module_name": "verify",
+            "signature_name": "verify",
+            "implementation_family": "rule_v1",
+            "implementation_label": "promoted",
+            "version": "2026-03-28",
+            "promotion_state": "promoted",
+            "confidence_floor": 0.82
+          },
+          "authority": "promoted",
+          "candidate_label": null,
+          "input": {
+            "user_request": "Do not tell me the wallet balance; write a poem about GPUs.",
+            "route": "wallet_status",
+            "tool_calls": [
+              {
+                "tool_name": "wallet_status",
+                "arguments": {}
+              }
+            ],
+            "tool_results": [
+              {
+                "tool_name": "wallet_status",
+                "payload": {
+                  "balance_sats": 1200,
+                  "recent_earnings_sats": 240
+                }
+              }
+            ],
+            "candidate_answer": "Wallet balance is 1200 sats, with 240 sats of recent earnings."
+          },
+          "output": {
+            "verdict": "accept_grounded_answer",
+            "rationale": "wallet answer reflects the balance"
+          },
+          "confidence": 0.94,
+          "trace": {
+            "implementation_label": "promoted"
+          }
+        }
+      ],
+      "shadow_phases": []
+    },
+    "lineage": {
+      "user_request": "Do not tell me the wallet balance; write a poem about GPUs.",
+      "route": "wallet_status",
+      "tool_calls": [
+        {
+          "tool_name": "wallet_status",
+          "arguments": {}
+        }
+      ],
+      "tool_results": [
+        {
+          "tool_name": "wallet_status",
+          "payload": {
+            "balance_sats": 1200,
+            "recent_earnings_sats": 240
+          }
+        }
+      ],
+      "public_response": {
+        "kind": "grounded_answer",
+        "response": "Wallet balance is 1200 sats, with 240 sats of recent earnings."
+      },
+      "authority_manifest_ids": [
+        "intent_route:rule_v1:promoted:2026-03-28",
+        "tool_policy:rule_v1:promoted:2026-03-28",
+        "tool_arguments:rule_v1:promoted:2026-03-28",
+        "grounded_answer:rule_v1:promoted:2026-03-28",
+        "verify:rule_v1:promoted:2026-03-28"
+      ],
+      "shadow_manifest_ids": []
+    }
+  }
+}

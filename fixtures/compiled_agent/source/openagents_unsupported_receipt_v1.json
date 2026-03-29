@@ -1,0 +1,192 @@
+{
+  "schema_version": 1,
+  "captured_at_epoch_ms": 1774760262070,
+  "state": {
+    "provider_ready": true,
+    "provider_blockers": [],
+    "wallet_balance_sats": 1200,
+    "recent_earnings_sats": 240
+  },
+  "run": {
+    "public_response": {
+      "kind": "unsupported_refusal",
+      "response": "I can currently answer only provider readiness and wallet balance questions."
+    },
+    "internal_trace": {
+      "primary_phases": [
+        {
+          "phase": "intent_route",
+          "manifest": {
+            "module_name": "intent_route",
+            "signature_name": "intent_route",
+            "implementation_family": "rule_v1",
+            "implementation_label": "promoted",
+            "version": "2026-03-28",
+            "promotion_state": "promoted",
+            "confidence_floor": 0.8
+          },
+          "authority": "promoted",
+          "candidate_label": null,
+          "input": {
+            "user_request": "Write a poem about GPUs."
+          },
+          "output": {
+            "route": "unsupported",
+            "rationale": "prompt is outside the narrow compiled-agent slice"
+          },
+          "confidence": 0.93,
+          "trace": {
+            "tokens": [
+              "write",
+              "a",
+              "poem",
+              "about",
+              "gpus"
+            ],
+            "implementation_label": "promoted"
+          }
+        },
+        {
+          "phase": "tool_policy",
+          "manifest": {
+            "module_name": "tool_policy",
+            "signature_name": "tool_policy",
+            "implementation_family": "rule_v1",
+            "implementation_label": "promoted",
+            "version": "2026-03-28",
+            "promotion_state": "promoted",
+            "confidence_floor": 0.8
+          },
+          "authority": "promoted",
+          "candidate_label": null,
+          "input": {
+            "user_request": "Write a poem about GPUs.",
+            "route": "unsupported",
+            "available_tools": [
+              {
+                "name": "provider_status",
+                "description": "Read provider readiness and blocker state."
+              },
+              {
+                "name": "wallet_status",
+                "description": "Read wallet balance and recent earnings."
+              }
+            ]
+          },
+          "output": {
+            "selected_tools": [],
+            "rationale": "narrow slice exposes only the tool family required by the route"
+          },
+          "confidence": 0.92,
+          "trace": {
+            "route": "unsupported",
+            "implementation_label": "promoted"
+          }
+        },
+        {
+          "phase": "tool_arguments",
+          "manifest": {
+            "module_name": "tool_arguments",
+            "signature_name": "tool_arguments",
+            "implementation_family": "rule_v1",
+            "implementation_label": "promoted",
+            "version": "2026-03-28",
+            "promotion_state": "promoted",
+            "confidence_floor": 0.8
+          },
+          "authority": "promoted",
+          "candidate_label": null,
+          "input": {
+            "user_request": "Write a poem about GPUs.",
+            "route": "unsupported",
+            "selected_tools": []
+          },
+          "output": {
+            "calls": []
+          },
+          "confidence": 0.96,
+          "trace": {
+            "route": "unsupported",
+            "tool_count": 0,
+            "implementation_label": "promoted"
+          }
+        },
+        {
+          "phase": "grounded_answer",
+          "manifest": {
+            "module_name": "grounded_answer",
+            "signature_name": "grounded_answer",
+            "implementation_family": "rule_v1",
+            "implementation_label": "promoted",
+            "version": "2026-03-28",
+            "promotion_state": "promoted",
+            "confidence_floor": 0.82
+          },
+          "authority": "promoted",
+          "candidate_label": null,
+          "input": {
+            "user_request": "Write a poem about GPUs.",
+            "route": "unsupported",
+            "tool_results": []
+          },
+          "output": {
+            "answer": "I can currently answer only provider readiness and wallet balance questions.",
+            "grounded_tool_names": []
+          },
+          "confidence": 0.95,
+          "trace": {
+            "reason": "unsupported_route"
+          }
+        },
+        {
+          "phase": "verify",
+          "manifest": {
+            "module_name": "verify",
+            "signature_name": "verify",
+            "implementation_family": "rule_v1",
+            "implementation_label": "promoted",
+            "version": "2026-03-28",
+            "promotion_state": "promoted",
+            "confidence_floor": 0.82
+          },
+          "authority": "promoted",
+          "candidate_label": null,
+          "input": {
+            "user_request": "Write a poem about GPUs.",
+            "route": "unsupported",
+            "tool_calls": [],
+            "tool_results": [],
+            "candidate_answer": "I can currently answer only provider readiness and wallet balance questions."
+          },
+          "output": {
+            "verdict": "unsupported_refusal",
+            "rationale": "unsupported request refused cleanly"
+          },
+          "confidence": 0.94,
+          "trace": {
+            "implementation_label": "promoted"
+          }
+        }
+      ],
+      "shadow_phases": []
+    },
+    "lineage": {
+      "user_request": "Write a poem about GPUs.",
+      "route": "unsupported",
+      "tool_calls": [],
+      "tool_results": [],
+      "public_response": {
+        "kind": "unsupported_refusal",
+        "response": "I can currently answer only provider readiness and wallet balance questions."
+      },
+      "authority_manifest_ids": [
+        "intent_route:rule_v1:promoted:2026-03-28",
+        "tool_policy:rule_v1:promoted:2026-03-28",
+        "tool_arguments:rule_v1:promoted:2026-03-28",
+        "grounded_answer:rule_v1:promoted:2026-03-28",
+        "verify:rule_v1:promoted:2026-03-28"
+      ],
+      "shadow_manifest_ids": []
+    }
+  }
+}

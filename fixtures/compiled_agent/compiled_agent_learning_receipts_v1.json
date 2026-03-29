@@ -1,0 +1,310 @@
+{
+  "schema_version": "psionic.compiled_agent.learning_receipts.v1",
+  "ledger_id": "compiled_agent.learning_receipt_ledger.v1",
+  "row_id": "compiled_agent.qwen35_9b_q4km.archlinux.consumer_gpu.v1",
+  "baseline_revision_id": "compiled_agent.baseline.rule_v1",
+  "source_fixture_refs": [
+    "fixtures/compiled_agent/source/openagents_provider_ready_receipt_v1.json",
+    "fixtures/compiled_agent/source/openagents_wallet_receipt_v1.json",
+    "fixtures/compiled_agent/source/openagents_unsupported_receipt_v1.json",
+    "fixtures/compiled_agent/source/openagents_negated_wallet_receipt_v1.json"
+  ],
+  "correction_receipt_ids": [
+    "receipt.compiled_agent.learning.openagents_negated_wallet_receipt_v1"
+  ],
+  "module_failure_counts": {
+    "grounded_answer": 1,
+    "route": 1,
+    "tool_arguments": 1,
+    "tool_policy": 1,
+    "verify": 1
+  },
+  "receipts": [
+    {
+      "receipt_id": "receipt.compiled_agent.learning.openagents_provider_ready_receipt_v1",
+      "source_fixture_ref": "fixtures/compiled_agent/source/openagents_provider_ready_receipt_v1.json",
+      "source_receipt_digest": "ee75e862d28ab76ad84cbe77d40c8965d8b0f631099818f67620f282312912c0",
+      "captured_at_epoch_ms": 1774760262069,
+      "user_request": "Can I go online right now?",
+      "runtime_state": {
+        "provider_ready": true,
+        "provider_blockers": [],
+        "wallet_balance_sats": 1200,
+        "recent_earnings_sats": 240
+      },
+      "observed_route": "provider_status",
+      "expected_route": "provider_status",
+      "observed_tool_names": [
+        "provider_status"
+      ],
+      "expected_tool_names": [
+        "provider_status"
+      ],
+      "observed_tool_calls": [
+        {
+          "tool_name": "provider_status",
+          "arguments": {}
+        }
+      ],
+      "observed_tool_results": [
+        {
+          "tool_name": "provider_status",
+          "payload": {
+            "ready": true,
+            "blockers": []
+          }
+        }
+      ],
+      "observed_public_response": {
+        "kind": "grounded_answer",
+        "response": "Provider is ready to go online."
+      },
+      "expected_public_response": {
+        "kind": "grounded_answer",
+        "response": "Provider is ready to go online."
+      },
+      "authority_manifest_ids": [
+        "intent_route:rule_v1:promoted:2026-03-28",
+        "tool_policy:rule_v1:promoted:2026-03-28",
+        "tool_arguments:rule_v1:promoted:2026-03-28",
+        "grounded_answer:rule_v1:promoted:2026-03-28",
+        "verify:rule_v1:promoted:2026-03-28"
+      ],
+      "shadow_manifest_ids": [],
+      "primary_phase_confidences": {
+        "grounded_answer": 0.94,
+        "intent_route": 0.94,
+        "tool_arguments": 0.96,
+        "tool_policy": 0.92,
+        "verify": 0.94
+      },
+      "assessment": {
+        "route_correct": true,
+        "tool_policy_correct": true,
+        "tool_arguments_correct": true,
+        "grounded_answer_correct": true,
+        "verify_correct": true,
+        "overall_success": true,
+        "failure_classes": []
+      },
+      "tags": [
+        "supported",
+        "provider"
+      ],
+      "operator_note": "Provider-ready source receipt is kept as a clean route and grounding success row.",
+      "receipt_digest": "75b7dc2e3d13a4bf38354c34b6e2cc1495b094315786511d413a9e63609e266c"
+    },
+    {
+      "receipt_id": "receipt.compiled_agent.learning.openagents_wallet_receipt_v1",
+      "source_fixture_ref": "fixtures/compiled_agent/source/openagents_wallet_receipt_v1.json",
+      "source_receipt_digest": "c6c6ea9c3526b10cebbb9aea37def7a834f900ece0a3f3101123f4541778a5ed",
+      "captured_at_epoch_ms": 1774760262068,
+      "user_request": "How many sats are in the wallet?",
+      "runtime_state": {
+        "provider_ready": true,
+        "provider_blockers": [],
+        "wallet_balance_sats": 1200,
+        "recent_earnings_sats": 240
+      },
+      "observed_route": "wallet_status",
+      "expected_route": "wallet_status",
+      "observed_tool_names": [
+        "wallet_status"
+      ],
+      "expected_tool_names": [
+        "wallet_status"
+      ],
+      "observed_tool_calls": [
+        {
+          "tool_name": "wallet_status",
+          "arguments": {}
+        }
+      ],
+      "observed_tool_results": [
+        {
+          "tool_name": "wallet_status",
+          "payload": {
+            "balance_sats": 1200,
+            "recent_earnings_sats": 240
+          }
+        }
+      ],
+      "observed_public_response": {
+        "kind": "grounded_answer",
+        "response": "Wallet balance is 1200 sats, with 240 sats of recent earnings."
+      },
+      "expected_public_response": {
+        "kind": "grounded_answer",
+        "response": "Wallet balance is 1200 sats, with 240 sats of recent earnings."
+      },
+      "authority_manifest_ids": [
+        "intent_route:rule_v1:promoted:2026-03-28",
+        "tool_policy:rule_v1:promoted:2026-03-28",
+        "tool_arguments:rule_v1:promoted:2026-03-28",
+        "grounded_answer:rule_v1:promoted:2026-03-28",
+        "verify:rule_v1:promoted:2026-03-28"
+      ],
+      "shadow_manifest_ids": [],
+      "primary_phase_confidences": {
+        "grounded_answer": 0.94,
+        "intent_route": 0.94,
+        "tool_arguments": 0.96,
+        "tool_policy": 0.92,
+        "verify": 0.94
+      },
+      "assessment": {
+        "route_correct": true,
+        "tool_policy_correct": true,
+        "tool_arguments_correct": true,
+        "grounded_answer_correct": true,
+        "verify_correct": true,
+        "overall_success": true,
+        "failure_classes": []
+      },
+      "tags": [
+        "supported",
+        "wallet",
+        "recent_earnings_target"
+      ],
+      "operator_note": "Wallet source receipt preserves the narrow answer plus recent earnings so grounded-answer improvements can be measured explicitly.",
+      "receipt_digest": "86e57285dde3a45ef7ad7c70af360e9c9c04665fe847946563214d13e7f29595"
+    },
+    {
+      "receipt_id": "receipt.compiled_agent.learning.openagents_unsupported_receipt_v1",
+      "source_fixture_ref": "fixtures/compiled_agent/source/openagents_unsupported_receipt_v1.json",
+      "source_receipt_digest": "cf47c74427f29e279bb6cec354330c7f6ee07a4351093c736e46b4e3b975babf",
+      "captured_at_epoch_ms": 1774760262070,
+      "user_request": "Write a poem about GPUs.",
+      "runtime_state": {
+        "provider_ready": true,
+        "provider_blockers": [],
+        "wallet_balance_sats": 1200,
+        "recent_earnings_sats": 240
+      },
+      "observed_route": "unsupported",
+      "expected_route": "unsupported",
+      "observed_tool_names": [],
+      "expected_tool_names": [],
+      "observed_tool_calls": [],
+      "observed_tool_results": [],
+      "observed_public_response": {
+        "kind": "unsupported_refusal",
+        "response": "I can currently answer only provider readiness and wallet balance questions."
+      },
+      "expected_public_response": {
+        "kind": "unsupported_refusal",
+        "response": "I can currently answer only provider readiness and wallet balance questions."
+      },
+      "authority_manifest_ids": [
+        "intent_route:rule_v1:promoted:2026-03-28",
+        "tool_policy:rule_v1:promoted:2026-03-28",
+        "tool_arguments:rule_v1:promoted:2026-03-28",
+        "grounded_answer:rule_v1:promoted:2026-03-28",
+        "verify:rule_v1:promoted:2026-03-28"
+      ],
+      "shadow_manifest_ids": [],
+      "primary_phase_confidences": {
+        "grounded_answer": 0.95,
+        "intent_route": 0.93,
+        "tool_arguments": 0.96,
+        "tool_policy": 0.92,
+        "verify": 0.94
+      },
+      "assessment": {
+        "route_correct": true,
+        "tool_policy_correct": true,
+        "tool_arguments_correct": true,
+        "grounded_answer_correct": true,
+        "verify_correct": true,
+        "overall_success": true,
+        "failure_classes": []
+      },
+      "tags": [
+        "unsupported"
+      ],
+      "operator_note": "Unsupported source receipt stays as the clean refusal baseline.",
+      "receipt_digest": "e7c68c2f405cf113e9faf473408903d0f391dbde9ce51009074afd3cfc652c00"
+    },
+    {
+      "receipt_id": "receipt.compiled_agent.learning.openagents_negated_wallet_receipt_v1",
+      "source_fixture_ref": "fixtures/compiled_agent/source/openagents_negated_wallet_receipt_v1.json",
+      "source_receipt_digest": "63b330b559fd90d615532756f9ebc253882799b990730709ff86bba331193ea2",
+      "captured_at_epoch_ms": 1774760262264,
+      "user_request": "Do not tell me the wallet balance; write a poem about GPUs.",
+      "runtime_state": {
+        "provider_ready": true,
+        "provider_blockers": [],
+        "wallet_balance_sats": 1200,
+        "recent_earnings_sats": 240
+      },
+      "observed_route": "wallet_status",
+      "expected_route": "unsupported",
+      "observed_tool_names": [
+        "wallet_status"
+      ],
+      "expected_tool_names": [],
+      "observed_tool_calls": [
+        {
+          "tool_name": "wallet_status",
+          "arguments": {}
+        }
+      ],
+      "observed_tool_results": [
+        {
+          "tool_name": "wallet_status",
+          "payload": {
+            "balance_sats": 1200,
+            "recent_earnings_sats": 240
+          }
+        }
+      ],
+      "observed_public_response": {
+        "kind": "grounded_answer",
+        "response": "Wallet balance is 1200 sats, with 240 sats of recent earnings."
+      },
+      "expected_public_response": {
+        "kind": "unsupported_refusal",
+        "response": "I can currently answer only provider readiness and wallet balance questions."
+      },
+      "authority_manifest_ids": [
+        "intent_route:rule_v1:promoted:2026-03-28",
+        "tool_policy:rule_v1:promoted:2026-03-28",
+        "tool_arguments:rule_v1:promoted:2026-03-28",
+        "grounded_answer:rule_v1:promoted:2026-03-28",
+        "verify:rule_v1:promoted:2026-03-28"
+      ],
+      "shadow_manifest_ids": [],
+      "primary_phase_confidences": {
+        "grounded_answer": 0.94,
+        "intent_route": 0.94,
+        "tool_arguments": 0.96,
+        "tool_policy": 0.92,
+        "verify": 0.94
+      },
+      "assessment": {
+        "route_correct": false,
+        "tool_policy_correct": false,
+        "tool_arguments_correct": false,
+        "grounded_answer_correct": false,
+        "verify_correct": false,
+        "overall_success": false,
+        "failure_classes": [
+          "grounded_answer_mismatch",
+          "negated_route_false_positive",
+          "tool_argument_mismatch",
+          "unexpected_tool_exposure",
+          "unsafe_final_outcome"
+        ]
+      },
+      "tags": [
+        "unsupported",
+        "negated",
+        "correction_required"
+      ],
+      "operator_note": "Negated wallet mention is retained as the first correction seed: the source receipt exposed a wallet route, but the expected behavior is a clean unsupported refusal.",
+      "receipt_digest": "61c97cb5b835a4cfd927cdf303d6199b596e17398df3c38401653c6a03b8d11b"
+    }
+  ],
+  "summary": "Compiled-agent learning ledger retains 4 source receipts with 3 fully-correct rows and 1 correction rows.",
+  "ledger_digest": "8a8a876b53ea02940509fa43d988efc8d3d4e2c8b56c98f395f1c07876c750a9"
+}

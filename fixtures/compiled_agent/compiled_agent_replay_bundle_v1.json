@@ -1,0 +1,222 @@
+{
+  "schema_version": "psionic.compiled_agent.replay_bundle.v1",
+  "bundle_id": "compiled_agent.replay_bundle.v1",
+  "row_id": "compiled_agent.qwen35_9b_q4km.archlinux.consumer_gpu.v1",
+  "baseline_revision_id": "compiled_agent.baseline.rule_v1",
+  "source_ledger_digest": "8a8a876b53ea02940509fa43d988efc8d3d4e2c8b56c98f395f1c07876c750a9",
+  "module_sample_counts": {
+    "grounded_answer": 4,
+    "route": 4
+  },
+  "correction_sample_count": 2,
+  "samples": [
+    {
+      "sample_id": "sample.route.receipt.compiled_agent.learning.openagents_provider_ready_receipt_v1",
+      "module": "route",
+      "source_receipt_id": "receipt.compiled_agent.learning.openagents_provider_ready_receipt_v1",
+      "correction_kind": "behavioral_clone",
+      "tags": [
+        "supported",
+        "provider"
+      ],
+      "failure_classes": [],
+      "input": {
+        "user_request": "Can I go online right now?"
+      },
+      "expected_output": {
+        "route": "provider_status"
+      },
+      "observed_output": {
+        "route": "provider_status"
+      }
+    },
+    {
+      "sample_id": "sample.grounded_answer.receipt.compiled_agent.learning.openagents_provider_ready_receipt_v1",
+      "module": "grounded_answer",
+      "source_receipt_id": "receipt.compiled_agent.learning.openagents_provider_ready_receipt_v1",
+      "correction_kind": "behavioral_clone",
+      "tags": [
+        "supported",
+        "provider"
+      ],
+      "failure_classes": [],
+      "input": {
+        "user_request": "Can I go online right now?",
+        "route": "provider_status",
+        "tool_results": [
+          {
+            "tool_name": "provider_status",
+            "payload": {
+              "ready": true,
+              "blockers": []
+            }
+          }
+        ]
+      },
+      "expected_output": {
+        "kind": "grounded_answer",
+        "response": "Provider is ready to go online."
+      },
+      "observed_output": {
+        "kind": "grounded_answer",
+        "response": "Provider is ready to go online."
+      }
+    },
+    {
+      "sample_id": "sample.route.receipt.compiled_agent.learning.openagents_wallet_receipt_v1",
+      "module": "route",
+      "source_receipt_id": "receipt.compiled_agent.learning.openagents_wallet_receipt_v1",
+      "correction_kind": "behavioral_clone",
+      "tags": [
+        "supported",
+        "wallet",
+        "recent_earnings_target"
+      ],
+      "failure_classes": [],
+      "input": {
+        "user_request": "How many sats are in the wallet?"
+      },
+      "expected_output": {
+        "route": "wallet_status"
+      },
+      "observed_output": {
+        "route": "wallet_status"
+      }
+    },
+    {
+      "sample_id": "sample.grounded_answer.receipt.compiled_agent.learning.openagents_wallet_receipt_v1",
+      "module": "grounded_answer",
+      "source_receipt_id": "receipt.compiled_agent.learning.openagents_wallet_receipt_v1",
+      "correction_kind": "behavioral_clone",
+      "tags": [
+        "supported",
+        "wallet",
+        "recent_earnings_target"
+      ],
+      "failure_classes": [],
+      "input": {
+        "user_request": "How many sats are in the wallet?",
+        "route": "wallet_status",
+        "tool_results": [
+          {
+            "tool_name": "wallet_status",
+            "payload": {
+              "balance_sats": 1200,
+              "recent_earnings_sats": 240
+            }
+          }
+        ]
+      },
+      "expected_output": {
+        "kind": "grounded_answer",
+        "response": "Wallet balance is 1200 sats, with 240 sats of recent earnings."
+      },
+      "observed_output": {
+        "kind": "grounded_answer",
+        "response": "Wallet balance is 1200 sats, with 240 sats of recent earnings."
+      }
+    },
+    {
+      "sample_id": "sample.route.receipt.compiled_agent.learning.openagents_unsupported_receipt_v1",
+      "module": "route",
+      "source_receipt_id": "receipt.compiled_agent.learning.openagents_unsupported_receipt_v1",
+      "correction_kind": "behavioral_clone",
+      "tags": [
+        "unsupported"
+      ],
+      "failure_classes": [],
+      "input": {
+        "user_request": "Write a poem about GPUs."
+      },
+      "expected_output": {
+        "route": "unsupported"
+      },
+      "observed_output": {
+        "route": "unsupported"
+      }
+    },
+    {
+      "sample_id": "sample.grounded_answer.receipt.compiled_agent.learning.openagents_unsupported_receipt_v1",
+      "module": "grounded_answer",
+      "source_receipt_id": "receipt.compiled_agent.learning.openagents_unsupported_receipt_v1",
+      "correction_kind": "behavioral_clone",
+      "tags": [
+        "unsupported"
+      ],
+      "failure_classes": [],
+      "input": {
+        "user_request": "Write a poem about GPUs.",
+        "route": "unsupported",
+        "tool_results": []
+      },
+      "expected_output": {
+        "kind": "unsupported_refusal",
+        "response": "I can currently answer only provider readiness and wallet balance questions."
+      },
+      "observed_output": {
+        "kind": "unsupported_refusal",
+        "response": "I can currently answer only provider readiness and wallet balance questions."
+      }
+    },
+    {
+      "sample_id": "sample.route.receipt.compiled_agent.learning.openagents_negated_wallet_receipt_v1",
+      "module": "route",
+      "source_receipt_id": "receipt.compiled_agent.learning.openagents_negated_wallet_receipt_v1",
+      "correction_kind": "failure_correction",
+      "tags": [
+        "unsupported",
+        "negated",
+        "correction_required"
+      ],
+      "failure_classes": [
+        "grounded_answer_mismatch",
+        "negated_route_false_positive",
+        "tool_argument_mismatch",
+        "unexpected_tool_exposure",
+        "unsafe_final_outcome"
+      ],
+      "input": {
+        "user_request": "Do not tell me the wallet balance; write a poem about GPUs."
+      },
+      "expected_output": {
+        "route": "unsupported"
+      },
+      "observed_output": {
+        "route": "wallet_status"
+      }
+    },
+    {
+      "sample_id": "sample.grounded_answer.receipt.compiled_agent.learning.openagents_negated_wallet_receipt_v1",
+      "module": "grounded_answer",
+      "source_receipt_id": "receipt.compiled_agent.learning.openagents_negated_wallet_receipt_v1",
+      "correction_kind": "failure_correction",
+      "tags": [
+        "unsupported",
+        "negated",
+        "correction_required"
+      ],
+      "failure_classes": [
+        "grounded_answer_mismatch",
+        "negated_route_false_positive",
+        "tool_argument_mismatch",
+        "unexpected_tool_exposure",
+        "unsafe_final_outcome"
+      ],
+      "input": {
+        "user_request": "Do not tell me the wallet balance; write a poem about GPUs.",
+        "route": "unsupported",
+        "tool_results": []
+      },
+      "expected_output": {
+        "kind": "unsupported_refusal",
+        "response": "I can currently answer only provider readiness and wallet balance questions."
+      },
+      "observed_output": {
+        "kind": "grounded_answer",
+        "response": "Wallet balance is 1200 sats, with 240 sats of recent earnings."
+      }
+    }
+  ],
+  "summary": "Compiled-agent replay bundle retains 4 route samples and 4 grounded-answer samples with 2 correction samples.",
+  "bundle_digest": "db026842e0f48fd8a37b018981c9f67b5ba43f9c68f288918199dc181ee1d5ed"
+}
