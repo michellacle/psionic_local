@@ -4,24 +4,40 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use psionic_eval::CompiledAgentEvidenceClass;
+use psionic_eval::{CompiledAgentEvidenceClass, CompiledAgentModuleKind};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 use thiserror::Error;
 
-use crate::repo_relative_path;
+use crate::{
+    COMPILED_AGENT_RUNTIME_FIXTURE_DIR, CompiledAgentArtifactContractError,
+    CompiledAgentCandidateFamilyDecision, CompiledAgentPromotionDecision,
+    CompiledAgentReceiptError, CompiledAgentShadowGovernanceError, CompiledAgentXtrainError,
+    canonical_compiled_agent_confidence_policy, canonical_compiled_agent_learning_receipt_ledger,
+    canonical_compiled_agent_promoted_artifact_contract, canonical_compiled_agent_replay_bundle,
+    canonical_compiled_agent_runtime_source_receipts,
+    canonical_compiled_agent_shadow_disagreement_receipts,
+    canonical_compiled_agent_stronger_candidate_family_report,
+    canonical_compiled_agent_xtrain_cycle_receipt, repo_relative_path,
+};
 
 pub const COMPILED_AGENT_DECENTRALIZED_ROLES_CONTRACT_SCHEMA_VERSION: &str =
     "psionic.compiled_agent.decentralized_roles_contract.v1";
 pub const COMPILED_AGENT_DECENTRALIZED_ROLES_RECEIPTS_SCHEMA_VERSION: &str =
     "psionic.compiled_agent.decentralized_role_receipts.v1";
+pub const COMPILED_AGENT_DECENTRALIZED_ROLE_DRY_RUN_SCHEMA_VERSION: &str =
+    "psionic.compiled_agent.decentralized_role_dry_run.v1";
+pub const COMPILED_AGENT_DECENTRALIZED_ROLE_DRY_RUN_ID: &str =
+    "compiled_agent.decentralized_role_dry_run.v1";
 pub const COMPILED_AGENT_DECENTRALIZED_ROLES_CONTRACT_ID: &str =
     "compiled_agent.decentralized_roles.contract.v1";
 pub const COMPILED_AGENT_DECENTRALIZED_ROLES_CONTRACT_FIXTURE_PATH: &str =
     "fixtures/compiled_agent/compiled_agent_decentralized_roles_contract_v1.json";
 pub const COMPILED_AGENT_DECENTRALIZED_ROLE_RECEIPTS_FIXTURE_PATH: &str =
     "fixtures/compiled_agent/compiled_agent_decentralized_role_receipts_v1.json";
+pub const COMPILED_AGENT_DECENTRALIZED_ROLE_DRY_RUN_FIXTURE_PATH: &str =
+    "fixtures/compiled_agent/compiled_agent_decentralized_role_dry_run_v1.json";
 pub const COMPILED_AGENT_DECENTRALIZED_ROLES_BIN_PATH: &str =
     "crates/psionic-train/src/bin/compiled_agent_decentralized_roles.rs";
 pub const COMPILED_AGENT_DECENTRALIZED_ROLES_DOC_PATH: &str =
@@ -38,10 +54,22 @@ const ROUTE_REPORT_REF: &str =
     "fixtures/compiled_agent/compiled_agent_route_candidate_module_eval_report_v1.json";
 const GROUNDED_REPORT_REF: &str =
     "fixtures/compiled_agent/compiled_agent_grounded_candidate_module_eval_report_v1.json";
+const ROUTE_STRONGER_MODEL_REF: &str =
+    "fixtures/compiled_agent/compiled_agent_route_tfidf_centroid_model_v1.json";
+const GROUNDED_STRONGER_MODEL_REF: &str =
+    "fixtures/compiled_agent/compiled_agent_grounded_answer_tfidf_centroid_model_v1.json";
+const ROUTE_STRONGER_REPORT_REF: &str = "fixtures/compiled_agent/compiled_agent_route_tfidf_centroid_candidate_module_eval_report_v1.json";
+const GROUNDED_STRONGER_REPORT_REF: &str = "fixtures/compiled_agent/compiled_agent_grounded_tfidf_centroid_candidate_module_eval_report_v1.json";
+const STRONGER_CANDIDATE_FAMILY_REPORT_REF: &str =
+    "fixtures/compiled_agent/compiled_agent_stronger_candidate_family_report_v1.json";
 const XTRAIN_RECEIPT_REF: &str =
     "fixtures/compiled_agent/compiled_agent_xtrain_cycle_receipt_v1.json";
 const PROMOTED_CONTRACT_REF: &str =
     "fixtures/compiled_agent/compiled_agent_promoted_artifact_contract_v1.json";
+const CONFIDENCE_POLICY_REF: &str =
+    "fixtures/compiled_agent/compiled_agent_confidence_policy_v1.json";
+const SHADOW_DISAGREEMENTS_REF: &str =
+    "fixtures/compiled_agent/compiled_agent_shadow_disagreement_receipts_v1.json";
 
 #[derive(Debug, Error)]
 pub enum CompiledAgentDecentralizedRolesError {
@@ -65,6 +93,14 @@ pub enum CompiledAgentDecentralizedRolesError {
         expected: CompiledAgentEvidenceClass,
         actual: CompiledAgentEvidenceClass,
     },
+    #[error(transparent)]
+    ArtifactContract(#[from] CompiledAgentArtifactContractError),
+    #[error(transparent)]
+    Receipts(#[from] CompiledAgentReceiptError),
+    #[error(transparent)]
+    ShadowGovernance(#[from] CompiledAgentShadowGovernanceError),
+    #[error(transparent)]
+    Xtrain(#[from] CompiledAgentXtrainError),
     #[error(transparent)]
     Json(#[from] serde_json::Error),
 }
@@ -182,6 +218,51 @@ pub struct CompiledAgentDecentralizedRoleReceipts {
     pub receipts: Vec<CompiledAgentDecentralizedRoleReceipt>,
     pub summary: String,
     pub receipts_digest: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct CompiledAgentDecentralizedDryRunStep {
+    pub order: u32,
+    pub role: CompiledAgentDecentralizedRoleKind,
+    pub role_id: String,
+    pub receipt_id: String,
+    pub status: CompiledAgentRoleReceiptStatus,
+    pub review_boundary: CompiledAgentRoleReviewBoundary,
+    pub validator_gate: String,
+    pub consumed_artifacts: Vec<CompiledAgentRoleArtifactRef>,
+    pub produced_artifacts: Vec<CompiledAgentRoleArtifactRef>,
+    pub runtime_fixture_refs: Vec<String>,
+    pub runtime_learning_receipt_ids: Vec<String>,
+    pub emitted_ids: Vec<String>,
+    pub next_consumer: String,
+    pub lineage_intact: bool,
+    pub validator_discipline_preserved: bool,
+    pub rollback_discipline_preserved: bool,
+    pub detail: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct CompiledAgentDecentralizedRoleDryRunReport {
+    pub schema_version: String,
+    pub dry_run_id: String,
+    pub evidence_class: CompiledAgentEvidenceClass,
+    pub contract_digest: String,
+    pub receipts_digest: String,
+    pub learning_ledger_digest: String,
+    pub replay_bundle_digest: String,
+    pub xtrain_receipt_digest: String,
+    pub promoted_contract_digest: String,
+    pub confidence_policy_digest: String,
+    pub shadow_disagreement_receipts_digest: String,
+    pub stronger_candidate_family_report_digest: String,
+    pub runtime_fixture_refs: Vec<String>,
+    pub runtime_learning_receipt_ids: Vec<String>,
+    pub role_runs: Vec<CompiledAgentDecentralizedDryRunStep>,
+    pub validator_discipline_unchanged: bool,
+    pub rollback_discipline_unchanged: bool,
+    pub claim_boundary: String,
+    pub summary: String,
+    pub report_digest: String,
 }
 
 impl CompiledAgentDecentralizedRolesContract {
@@ -377,6 +458,121 @@ impl CompiledAgentDecentralizedRoleReceipts {
     }
 }
 
+impl CompiledAgentDecentralizedRoleDryRunReport {
+    #[must_use]
+    pub fn stable_digest(&self) -> String {
+        let mut clone = self.clone();
+        clone.report_digest.clear();
+        stable_digest(b"compiled_agent_decentralized_role_dry_run|", &clone)
+    }
+
+    pub fn validate(
+        &self,
+        contract: &CompiledAgentDecentralizedRolesContract,
+        receipts: &CompiledAgentDecentralizedRoleReceipts,
+    ) -> Result<(), CompiledAgentDecentralizedRolesError> {
+        if self.schema_version != COMPILED_AGENT_DECENTRALIZED_ROLE_DRY_RUN_SCHEMA_VERSION {
+            return Err(CompiledAgentDecentralizedRolesError::InvalidReceipts {
+                detail: format!(
+                    "dry-run schema_version must stay `{}` but was `{}`",
+                    COMPILED_AGENT_DECENTRALIZED_ROLE_DRY_RUN_SCHEMA_VERSION, self.schema_version
+                ),
+            });
+        }
+        if self.dry_run_id != COMPILED_AGENT_DECENTRALIZED_ROLE_DRY_RUN_ID {
+            return Err(CompiledAgentDecentralizedRolesError::InvalidReceipts {
+                detail: String::from("dry-run id drifted"),
+            });
+        }
+        if self.evidence_class != contract.evidence_class {
+            return Err(CompiledAgentDecentralizedRolesError::InvalidReceipts {
+                detail: String::from("dry-run report drifted evidence class"),
+            });
+        }
+        if self.contract_digest != contract.contract_digest
+            || self.receipts_digest != receipts.receipts_digest
+        {
+            return Err(CompiledAgentDecentralizedRolesError::InvalidReceipts {
+                detail: String::from("dry-run report lost contract or receipt linkage"),
+            });
+        }
+        if self.role_runs.len() != contract.roles.len() {
+            return Err(CompiledAgentDecentralizedRolesError::InvalidReceipts {
+                detail: String::from("dry-run report lost one or more governed roles"),
+            });
+        }
+        if !self.validator_discipline_unchanged || !self.rollback_discipline_unchanged {
+            return Err(CompiledAgentDecentralizedRolesError::InvalidReceipts {
+                detail: String::from("dry-run report weakened validator or rollback discipline"),
+            });
+        }
+
+        let runtime_fixture_set = self
+            .runtime_fixture_refs
+            .iter()
+            .map(String::as_str)
+            .collect::<BTreeSet<_>>();
+        let runtime_receipt_set = self
+            .runtime_learning_receipt_ids
+            .iter()
+            .map(String::as_str)
+            .collect::<BTreeSet<_>>();
+
+        for step in &self.role_runs {
+            let role = contract
+                .roles
+                .iter()
+                .find(|candidate| candidate.role == step.role)
+                .ok_or_else(|| CompiledAgentDecentralizedRolesError::InvalidReceipts {
+                    detail: format!("dry-run step `{}` lost role linkage", step.receipt_id),
+                })?;
+            let receipt = receipts
+                .receipts
+                .iter()
+                .find(|candidate| candidate.role == step.role)
+                .ok_or_else(|| CompiledAgentDecentralizedRolesError::InvalidReceipts {
+                    detail: format!("dry-run step `{}` lost receipt linkage", step.receipt_id),
+                })?;
+
+            if step.role_id != role.role_id
+                || step.receipt_id != receipt.receipt_id
+                || step.status != receipt.status
+                || step.review_boundary != role.review_boundary
+                || step.validator_gate != role.validator_gate
+                || step.consumed_artifacts != role.input_manifest.required_artifacts
+                || step.produced_artifacts != role.output_manifest.required_artifacts
+                || step.emitted_ids != receipt.emitted_ids
+                || step.next_consumer != receipt.next_consumer
+                || !step.lineage_intact
+                || !step.validator_discipline_preserved
+                || !step.rollback_discipline_preserved
+                || step
+                    .runtime_fixture_refs
+                    .iter()
+                    .any(|reference| !runtime_fixture_set.contains(reference.as_str()))
+                || step
+                    .runtime_learning_receipt_ids
+                    .iter()
+                    .any(|receipt_id| !runtime_receipt_set.contains(receipt_id.as_str()))
+            {
+                return Err(CompiledAgentDecentralizedRolesError::InvalidReceipts {
+                    detail: format!(
+                        "dry-run step `{}` drifted from the governed contract",
+                        step.receipt_id
+                    ),
+                });
+            }
+        }
+
+        if self.report_digest != self.stable_digest() {
+            return Err(CompiledAgentDecentralizedRolesError::InvalidReceipts {
+                detail: String::from("dry-run digest drifted"),
+            });
+        }
+        Ok(())
+    }
+}
+
 #[must_use]
 pub fn compiled_agent_decentralized_roles_contract_fixture_path() -> PathBuf {
     repo_relative_path(COMPILED_AGENT_DECENTRALIZED_ROLES_CONTRACT_FIXTURE_PATH)
@@ -387,8 +583,13 @@ pub fn compiled_agent_decentralized_role_receipts_fixture_path() -> PathBuf {
     repo_relative_path(COMPILED_AGENT_DECENTRALIZED_ROLE_RECEIPTS_FIXTURE_PATH)
 }
 
-pub fn canonical_compiled_agent_decentralized_roles_contract(
-) -> Result<CompiledAgentDecentralizedRolesContract, CompiledAgentDecentralizedRolesError> {
+#[must_use]
+pub fn compiled_agent_decentralized_role_dry_run_fixture_path() -> PathBuf {
+    repo_relative_path(COMPILED_AGENT_DECENTRALIZED_ROLE_DRY_RUN_FIXTURE_PATH)
+}
+
+pub fn canonical_compiled_agent_decentralized_roles_contract()
+-> Result<CompiledAgentDecentralizedRolesContract, CompiledAgentDecentralizedRolesError> {
     let source_artifacts = canonical_source_artifacts()?;
     let learning_receipts = artifact_ref_from_set(&source_artifacts, LEARNING_RECEIPTS_REF)?;
     let replay_bundle = artifact_ref_from_set(&source_artifacts, REPLAY_BUNDLE_REF)?;
@@ -397,8 +598,19 @@ pub fn canonical_compiled_agent_decentralized_roles_contract(
     let grounded_model = artifact_ref_from_set(&source_artifacts, GROUNDED_MODEL_REF)?;
     let route_report = artifact_ref_from_set(&source_artifacts, ROUTE_REPORT_REF)?;
     let grounded_report = artifact_ref_from_set(&source_artifacts, GROUNDED_REPORT_REF)?;
+    let route_stronger_model = artifact_ref_from_set(&source_artifacts, ROUTE_STRONGER_MODEL_REF)?;
+    let grounded_stronger_model =
+        artifact_ref_from_set(&source_artifacts, GROUNDED_STRONGER_MODEL_REF)?;
+    let route_stronger_report =
+        artifact_ref_from_set(&source_artifacts, ROUTE_STRONGER_REPORT_REF)?;
+    let grounded_stronger_report =
+        artifact_ref_from_set(&source_artifacts, GROUNDED_STRONGER_REPORT_REF)?;
+    let stronger_family_report =
+        artifact_ref_from_set(&source_artifacts, STRONGER_CANDIDATE_FAMILY_REPORT_REF)?;
     let xtrain_receipt = artifact_ref_from_set(&source_artifacts, XTRAIN_RECEIPT_REF)?;
     let promoted_contract = artifact_ref_from_set(&source_artifacts, PROMOTED_CONTRACT_REF)?;
+    let confidence_policy = artifact_ref_from_set(&source_artifacts, CONFIDENCE_POLICY_REF)?;
+    let shadow_disagreements = artifact_ref_from_set(&source_artifacts, SHADOW_DISAGREEMENTS_REF)?;
 
     let roles = vec![
         CompiledAgentDecentralizedRoleDefinition {
@@ -493,7 +705,10 @@ pub fn canonical_compiled_agent_decentralized_roles_contract(
             ),
             local_reference_path: local_reference_path(
                 "ranking_labeling",
-                vec![String::from(LEARNING_RECEIPTS_REF), String::from(REPLAY_BUNDLE_REF)],
+                vec![
+                    String::from(LEARNING_RECEIPTS_REF),
+                    String::from(REPLAY_BUNDLE_REF),
+                ],
                 "Prints the retained ranking-and-labeling role definition and receipt against the current learning ledger and replay bundle.",
             ),
             review_boundary: CompiledAgentRoleReviewBoundary::HumanReviewRequired,
@@ -520,7 +735,14 @@ pub fn canonical_compiled_agent_decentralized_roles_contract(
                     grounded_model.clone(),
                     route_report.clone(),
                     grounded_report.clone(),
+                    route_stronger_model.clone(),
+                    grounded_stronger_model.clone(),
+                    route_stronger_report.clone(),
+                    grounded_stronger_report.clone(),
+                    stronger_family_report.clone(),
                     xtrain_receipt.clone(),
+                    confidence_policy.clone(),
+                    shadow_disagreements.clone(),
                 ],
                 expected_fields: vec![
                     String::from("artifact_digest"),
@@ -528,9 +750,11 @@ pub fn canonical_compiled_agent_decentralized_roles_contract(
                     String::from("report_digest"),
                     String::from("baseline_passed_cases"),
                     String::from("candidate_passed_cases"),
+                    String::from("decision"),
+                    String::from("receipts_digest"),
                 ],
                 detail: String::from(
-                    "Validator scoring stays bounded to explicit candidate artifacts and independent validator surfaces. It does not freehand product judgments.",
+                    "Validator scoring stays bounded to explicit incumbent-versus-stronger candidate artifacts, independent validator surfaces, the current confidence policy, and retained shadow-disagreement receipts. It does not freehand product judgments.",
                 ),
             },
             output_manifest: CompiledAgentRoleManifest {
@@ -554,10 +778,15 @@ pub fn canonical_compiled_agent_decentralized_roles_contract(
                 vec![
                     String::from(ROUTE_REPORT_REF),
                     String::from(GROUNDED_REPORT_REF),
+                    String::from(ROUTE_STRONGER_REPORT_REF),
+                    String::from(GROUNDED_STRONGER_REPORT_REF),
+                    String::from(STRONGER_CANDIDATE_FAMILY_REPORT_REF),
                     String::from(XTRAIN_RECEIPT_REF),
                     String::from(PROMOTED_CONTRACT_REF),
+                    String::from(CONFIDENCE_POLICY_REF),
+                    String::from(SHADOW_DISAGREEMENTS_REF),
                 ],
-                "Prints the retained validator-scoring role definition and receipt against the current candidate reports, XTRAIN receipt, and promoted contract.",
+                "Prints the retained validator-scoring role definition and receipt against the current candidate reports, stronger-family report, confidence policy, shadow disagreements, XTRAIN receipt, and promoted contract.",
             ),
             review_boundary: CompiledAgentRoleReviewBoundary::ValidatorGateRequired,
             validator_gate: String::from(
@@ -596,7 +825,12 @@ pub fn canonical_compiled_agent_decentralized_roles_contract(
             },
             output_manifest: CompiledAgentRoleManifest {
                 manifest_id: String::from("compiled_agent.bounded_module_training.output.v1"),
-                required_artifacts: vec![route_model.clone(), grounded_model.clone()],
+                required_artifacts: vec![
+                    route_model.clone(),
+                    grounded_model.clone(),
+                    route_stronger_model.clone(),
+                    grounded_stronger_model.clone(),
+                ],
                 expected_fields: vec![
                     String::from("artifact_id"),
                     String::from("artifact_digest"),
@@ -604,7 +838,7 @@ pub fn canonical_compiled_agent_decentralized_roles_contract(
                     String::from("heldout_accuracy"),
                 ],
                 detail: String::from(
-                    "Bounded module training emits replay-trained candidate artifacts that feed validator scoring and later promotion gates.",
+                    "Bounded module training emits replay-trained incumbent and stronger candidate artifacts that feed validator scoring and later promotion gates.",
                 ),
             },
             receipt_schema_version: String::from(
@@ -612,8 +846,13 @@ pub fn canonical_compiled_agent_decentralized_roles_contract(
             ),
             local_reference_path: local_reference_path(
                 "bounded_module_training",
-                vec![String::from(ROUTE_MODEL_REF), String::from(GROUNDED_MODEL_REF)],
-                "Prints the retained bounded-module-training role definition and receipt against the current route and grounded model artifacts.",
+                vec![
+                    String::from(ROUTE_MODEL_REF),
+                    String::from(GROUNDED_MODEL_REF),
+                    String::from(ROUTE_STRONGER_MODEL_REF),
+                    String::from(GROUNDED_STRONGER_MODEL_REF),
+                ],
+                "Prints the retained bounded-module-training role definition and receipt against the current incumbent and stronger route and grounded model artifacts.",
             ),
             review_boundary: CompiledAgentRoleReviewBoundary::ValidatorGateRequired,
             validator_gate: String::from(
@@ -635,8 +874,12 @@ pub fn canonical_compiled_agent_decentralized_roles_contract(
         source_artifacts,
         roles,
         authority_paths: CompiledAgentDecentralizedRolesAuthorityPaths {
-            contract_fixture_path: String::from(COMPILED_AGENT_DECENTRALIZED_ROLES_CONTRACT_FIXTURE_PATH),
-            receipts_fixture_path: String::from(COMPILED_AGENT_DECENTRALIZED_ROLE_RECEIPTS_FIXTURE_PATH),
+            contract_fixture_path: String::from(
+                COMPILED_AGENT_DECENTRALIZED_ROLES_CONTRACT_FIXTURE_PATH,
+            ),
+            receipts_fixture_path: String::from(
+                COMPILED_AGENT_DECENTRALIZED_ROLE_RECEIPTS_FIXTURE_PATH,
+            ),
             bin_path: String::from(COMPILED_AGENT_DECENTRALIZED_ROLES_BIN_PATH),
             doc_path: String::from(COMPILED_AGENT_DECENTRALIZED_ROLES_DOC_PATH),
         },
@@ -650,8 +893,8 @@ pub fn canonical_compiled_agent_decentralized_roles_contract(
     Ok(contract)
 }
 
-pub fn canonical_compiled_agent_decentralized_role_receipts(
-) -> Result<CompiledAgentDecentralizedRoleReceipts, CompiledAgentDecentralizedRolesError> {
+pub fn canonical_compiled_agent_decentralized_role_receipts()
+-> Result<CompiledAgentDecentralizedRoleReceipts, CompiledAgentDecentralizedRolesError> {
     let contract = canonical_compiled_agent_decentralized_roles_contract()?;
     let receipts = vec![
         CompiledAgentDecentralizedRoleReceipt {
@@ -662,8 +905,12 @@ pub fn canonical_compiled_agent_decentralized_role_receipts(
             input_refs: vec![String::from(LEARNING_RECEIPTS_REF)],
             output_refs: vec![String::from(REPLAY_BUNDLE_REF)],
             emitted_ids: vec![
-                String::from("sample.route.receipt.compiled_agent.learning.openagents_negated_wallet_receipt_v1"),
-                String::from("sample.grounded_answer.receipt.compiled_agent.learning.openagents_wallet_recent_earnings_receipt_v1"),
+                String::from(
+                    "sample.route.receipt.compiled_agent.learning.openagents_negated_wallet_receipt_v1",
+                ),
+                String::from(
+                    "sample.grounded_answer.receipt.compiled_agent.learning.openagents_wallet_recent_earnings_receipt_v1",
+                ),
                 String::from("bundle.compiled_agent_replay_bundle_v1"),
             ],
             next_consumer: String::from("compiled_agent.role.bounded_module_training.v1"),
@@ -676,8 +923,14 @@ pub fn canonical_compiled_agent_decentralized_role_receipts(
             receipt_id: String::from("compiled_agent.role_receipt.ranking_labeling.v1"),
             evidence_class: contract.evidence_class,
             status: CompiledAgentRoleReceiptStatus::AcceptedAfterHumanReview,
-            input_refs: vec![String::from(LEARNING_RECEIPTS_REF), String::from(REPLAY_BUNDLE_REF)],
-            output_refs: vec![String::from(LEARNING_RECEIPTS_REF), String::from(REPLAY_BUNDLE_REF)],
+            input_refs: vec![
+                String::from(LEARNING_RECEIPTS_REF),
+                String::from(REPLAY_BUNDLE_REF),
+            ],
+            output_refs: vec![
+                String::from(LEARNING_RECEIPTS_REF),
+                String::from(REPLAY_BUNDLE_REF),
+            ],
             emitted_ids: vec![
                 String::from("openagents_negated_wallet_receipt_v1"),
                 String::from("openagents_ambiguous_provider_wallet_receipt_v1"),
@@ -698,17 +951,30 @@ pub fn canonical_compiled_agent_decentralized_role_receipts(
                 String::from(GROUNDED_MODEL_REF),
                 String::from(ROUTE_REPORT_REF),
                 String::from(GROUNDED_REPORT_REF),
+                String::from(ROUTE_STRONGER_MODEL_REF),
+                String::from(GROUNDED_STRONGER_MODEL_REF),
+                String::from(ROUTE_STRONGER_REPORT_REF),
+                String::from(GROUNDED_STRONGER_REPORT_REF),
+                String::from(STRONGER_CANDIDATE_FAMILY_REPORT_REF),
                 String::from(XTRAIN_RECEIPT_REF),
+                String::from(CONFIDENCE_POLICY_REF),
+                String::from(SHADOW_DISAGREEMENTS_REF),
             ],
-            output_refs: vec![String::from(XTRAIN_RECEIPT_REF), String::from(PROMOTED_CONTRACT_REF)],
+            output_refs: vec![
+                String::from(XTRAIN_RECEIPT_REF),
+                String::from(PROMOTED_CONTRACT_REF),
+            ],
             emitted_ids: vec![
                 String::from("compiled_agent.route.multinomial_nb_v1.validation"),
                 String::from("compiled_agent.grounded_answer.multinomial_nb_v1.validation"),
+                String::from("compiled_agent.route.tfidf_centroid_v1.validation"),
+                String::from("compiled_agent.grounded_answer.tfidf_centroid_v1.validation"),
+                String::from("compiled_agent.stronger_candidate_family_report.v1"),
                 String::from("compiled_agent.xtrain.cycle.v1"),
             ],
             next_consumer: String::from("compiled_agent_runtime_authority"),
             detail: String::from(
-                "The retained validator-scoring reference path is the first governed promotion surface. It ends in the XTRAIN receipt and the promoted-artifact contract, not in silent runtime mutation.",
+                "The retained validator-scoring reference path is the first governed promotion surface. It consumes incumbent-versus-stronger comparisons, confidence policy, and shadow disagreements, then ends in the XTRAIN receipt and the promoted-artifact contract instead of silent runtime mutation.",
             ),
         },
         CompiledAgentDecentralizedRoleReceipt {
@@ -721,14 +987,21 @@ pub fn canonical_compiled_agent_decentralized_role_receipts(
                 String::from(LEARNING_RECEIPTS_REF),
                 String::from(REPLAY_BUNDLE_REF),
             ],
-            output_refs: vec![String::from(ROUTE_MODEL_REF), String::from(GROUNDED_MODEL_REF)],
+            output_refs: vec![
+                String::from(ROUTE_MODEL_REF),
+                String::from(GROUNDED_MODEL_REF),
+                String::from(ROUTE_STRONGER_MODEL_REF),
+                String::from(GROUNDED_STRONGER_MODEL_REF),
+            ],
             emitted_ids: vec![
                 String::from("compiled_agent.route.multinomial_nb_v1"),
                 String::from("compiled_agent.grounded_answer.multinomial_nb_v1"),
+                String::from("compiled_agent.route.tfidf_centroid_v1"),
+                String::from("compiled_agent.grounded_answer.tfidf_centroid_v1"),
             ],
             next_consumer: String::from("compiled_agent.role.validator_scoring.v1"),
             detail: String::from(
-                "The retained bounded-module-training reference path produces candidate artifacts only. Validator scoring still decides whether those candidates can move runtime authority.",
+                "The retained bounded-module-training reference path produces incumbent and stronger bounded candidate artifacts only. Validator scoring still decides whether those candidates can move runtime authority.",
             ),
         },
     ];
@@ -750,6 +1023,95 @@ pub fn canonical_compiled_agent_decentralized_role_receipts(
     Ok(bundle)
 }
 
+pub fn canonical_compiled_agent_decentralized_role_dry_run_report()
+-> Result<CompiledAgentDecentralizedRoleDryRunReport, CompiledAgentDecentralizedRolesError> {
+    let contract = canonical_compiled_agent_decentralized_roles_contract()?;
+    let receipts = canonical_compiled_agent_decentralized_role_receipts()?;
+    let learning_ledger = canonical_compiled_agent_learning_receipt_ledger()?;
+    let replay_bundle = canonical_compiled_agent_replay_bundle()?;
+    let xtrain_receipt = canonical_compiled_agent_xtrain_cycle_receipt()?;
+    let promoted_contract = canonical_compiled_agent_promoted_artifact_contract()?;
+    let confidence_policy = canonical_compiled_agent_confidence_policy()?;
+    let shadow_disagreements = canonical_compiled_agent_shadow_disagreement_receipts()?;
+    let stronger_family_report = canonical_compiled_agent_stronger_candidate_family_report()?;
+    let runtime_fixture_refs = canonical_runtime_fixture_refs();
+    let runtime_learning_receipt_ids = canonical_runtime_learning_receipt_ids()?;
+    let validator_discipline_unchanged = validator_discipline_is_unchanged(
+        &receipts,
+        &xtrain_receipt,
+        &stronger_family_report,
+        &confidence_policy,
+        &shadow_disagreements,
+    );
+    let rollback_discipline_unchanged = rollback_discipline_is_unchanged(
+        &promoted_contract,
+        &confidence_policy,
+        &shadow_disagreements,
+    );
+
+    let role_runs = contract
+        .roles
+        .iter()
+        .enumerate()
+        .map(|(index, role)| {
+            let receipt = receipts
+                .receipts
+                .iter()
+                .find(|candidate| candidate.role == role.role)
+                .expect("governed dry-run report must have one retained receipt per role");
+            CompiledAgentDecentralizedDryRunStep {
+                order: (index + 1) as u32,
+                role: role.role,
+                role_id: role.role_id.clone(),
+                receipt_id: receipt.receipt_id.clone(),
+                status: receipt.status,
+                review_boundary: role.review_boundary,
+                validator_gate: role.validator_gate.clone(),
+                consumed_artifacts: role.input_manifest.required_artifacts.clone(),
+                produced_artifacts: role.output_manifest.required_artifacts.clone(),
+                runtime_fixture_refs: runtime_fixture_refs.clone(),
+                runtime_learning_receipt_ids: runtime_learning_receipt_ids.clone(),
+                emitted_ids: receipt.emitted_ids.clone(),
+                next_consumer: receipt.next_consumer.clone(),
+                lineage_intact: true,
+                validator_discipline_preserved: validator_discipline_unchanged,
+                rollback_discipline_preserved: rollback_discipline_unchanged,
+                detail: dry_run_step_detail(role.role),
+            }
+        })
+        .collect::<Vec<_>>();
+
+    let mut report = CompiledAgentDecentralizedRoleDryRunReport {
+        schema_version: String::from(COMPILED_AGENT_DECENTRALIZED_ROLE_DRY_RUN_SCHEMA_VERSION),
+        dry_run_id: String::from(COMPILED_AGENT_DECENTRALIZED_ROLE_DRY_RUN_ID),
+        evidence_class: contract.evidence_class,
+        contract_digest: contract.contract_digest.clone(),
+        receipts_digest: receipts.receipts_digest.clone(),
+        learning_ledger_digest: learning_ledger.ledger_digest,
+        replay_bundle_digest: replay_bundle.bundle_digest,
+        xtrain_receipt_digest: xtrain_receipt.receipt_digest,
+        promoted_contract_digest: promoted_contract.contract_digest,
+        confidence_policy_digest: confidence_policy.policy_digest,
+        shadow_disagreement_receipts_digest: shadow_disagreements.receipts_digest,
+        stronger_candidate_family_report_digest: stronger_family_report.report_digest,
+        runtime_fixture_refs,
+        runtime_learning_receipt_ids,
+        role_runs,
+        validator_discipline_unchanged,
+        rollback_discipline_unchanged,
+        claim_boundary: String::from(
+            "This retained dry run covers only the admitted compiled-agent family with governed receipts, explicit validator gates, and explicit rollback authority. It does not claim broad decentralized autonomy or validator-free promotion.",
+        ),
+        summary: String::from(
+            "Compiled-agent decentralized roles now rerun as a boring dry run over the stricter bounded corpus and runtime-ingested receipts while preserving validator and rollback discipline.",
+        ),
+        report_digest: String::new(),
+    };
+    report.report_digest = report.stable_digest();
+    report.validate(&contract, &receipts)?;
+    Ok(report)
+}
+
 pub fn write_compiled_agent_decentralized_roles_contract(
     output_path: impl AsRef<Path>,
 ) -> Result<CompiledAgentDecentralizedRolesContract, CompiledAgentDecentralizedRolesError> {
@@ -768,8 +1130,17 @@ pub fn write_compiled_agent_decentralized_role_receipts(
     )
 }
 
-pub fn verify_compiled_agent_decentralized_role_fixtures(
-) -> Result<(), CompiledAgentDecentralizedRolesError> {
+pub fn write_compiled_agent_decentralized_role_dry_run(
+    output_path: impl AsRef<Path>,
+) -> Result<CompiledAgentDecentralizedRoleDryRunReport, CompiledAgentDecentralizedRolesError> {
+    write_json(
+        output_path,
+        &canonical_compiled_agent_decentralized_role_dry_run_report()?,
+    )
+}
+
+pub fn verify_compiled_agent_decentralized_role_fixtures()
+-> Result<(), CompiledAgentDecentralizedRolesError> {
     let expected_contract = canonical_compiled_agent_decentralized_roles_contract()?;
     let contract_path = compiled_agent_decentralized_roles_contract_fixture_path();
     let committed_contract: CompiledAgentDecentralizedRolesContract =
@@ -801,6 +1172,23 @@ pub fn verify_compiled_agent_decentralized_role_fixtures(
     if committed_receipts_json != expected_receipts_json {
         return Err(CompiledAgentDecentralizedRolesError::FixtureDrift {
             path: receipts_path.display().to_string(),
+        });
+    }
+
+    let expected_dry_run = canonical_compiled_agent_decentralized_role_dry_run_report()?;
+    let dry_run_path = compiled_agent_decentralized_role_dry_run_fixture_path();
+    let committed_dry_run: CompiledAgentDecentralizedRoleDryRunReport =
+        serde_json::from_slice(&fs::read(&dry_run_path).map_err(|error| {
+            CompiledAgentDecentralizedRolesError::Read {
+                path: dry_run_path.display().to_string(),
+                error,
+            }
+        })?)?;
+    let committed_dry_run_json = serde_json::to_string_pretty(&committed_dry_run)?;
+    let expected_dry_run_json = serde_json::to_string_pretty(&expected_dry_run)?;
+    if committed_dry_run_json != expected_dry_run_json {
+        return Err(CompiledAgentDecentralizedRolesError::FixtureDrift {
+            path: dry_run_path.display().to_string(),
         });
     }
     Ok(())
@@ -836,8 +1224,8 @@ pub fn compiled_agent_decentralized_role_snapshot(
     Ok((definition, receipt))
 }
 
-fn canonical_source_artifacts(
-) -> Result<Vec<CompiledAgentRoleArtifactRef>, CompiledAgentDecentralizedRolesError> {
+fn canonical_source_artifacts()
+-> Result<Vec<CompiledAgentRoleArtifactRef>, CompiledAgentDecentralizedRolesError> {
     Ok(vec![
         load_artifact_ref(
             LEARNING_RECEIPTS_REF,
@@ -882,6 +1270,36 @@ fn canonical_source_artifacts(
             "Independent grounded-answer candidate module-eval surface for validator scoring.",
         )?,
         load_artifact_ref(
+            ROUTE_STRONGER_MODEL_REF,
+            Some("artifact_digest"),
+            Some("artifact_id"),
+            "Retained stronger route candidate family artifact kept behind the same bounded route contract.",
+        )?,
+        load_artifact_ref(
+            GROUNDED_STRONGER_MODEL_REF,
+            Some("artifact_digest"),
+            Some("artifact_id"),
+            "Retained stronger grounded-answer candidate family artifact kept behind the same bounded synthesis contract.",
+        )?,
+        load_artifact_ref(
+            ROUTE_STRONGER_REPORT_REF,
+            Some("report_digest"),
+            None,
+            "Independent route module-eval report for the stronger bounded candidate family.",
+        )?,
+        load_artifact_ref(
+            GROUNDED_STRONGER_REPORT_REF,
+            Some("report_digest"),
+            None,
+            "Independent grounded-answer module-eval report for the stronger bounded candidate family.",
+        )?,
+        load_artifact_ref(
+            STRONGER_CANDIDATE_FAMILY_REPORT_REF,
+            Some("report_digest"),
+            Some("report_id"),
+            "Retained incumbent-versus-stronger bounded family comparison report for route and grounded-answer modules.",
+        )?,
+        load_artifact_ref(
             XTRAIN_RECEIPT_REF,
             Some("receipt_digest"),
             Some("cycle_id"),
@@ -893,7 +1311,145 @@ fn canonical_source_artifacts(
             Some("schema_version"),
             "Runtime-consumable promoted-artifact contract retained after validator gating.",
         )?,
+        load_artifact_ref(
+            CONFIDENCE_POLICY_REF,
+            Some("policy_digest"),
+            Some("policy_id"),
+            "Retained confidence policy for promoted-versus-candidate calibration and rollback review thresholds.",
+        )?,
+        load_artifact_ref(
+            SHADOW_DISAGREEMENTS_REF,
+            Some("receipts_digest"),
+            Some("ledger_id"),
+            "Retained promoted-versus-candidate disagreement receipts across held-out and runtime rows.",
+        )?,
     ])
+}
+
+fn canonical_runtime_fixture_refs() -> Vec<String> {
+    let mut refs = canonical_compiled_agent_runtime_source_receipts()
+        .into_iter()
+        .map(|(fixture_name, _)| format!("{COMPILED_AGENT_RUNTIME_FIXTURE_DIR}/{fixture_name}"))
+        .collect::<Vec<_>>();
+    refs.sort();
+    refs
+}
+
+fn canonical_runtime_learning_receipt_ids()
+-> Result<Vec<String>, CompiledAgentDecentralizedRolesError> {
+    let mut receipt_ids = canonical_compiled_agent_learning_receipt_ledger()?
+        .receipts
+        .into_iter()
+        .filter(|receipt| {
+            receipt
+                .source_fixture_ref
+                .starts_with(&format!("{COMPILED_AGENT_RUNTIME_FIXTURE_DIR}/"))
+        })
+        .map(|receipt| receipt.receipt_id)
+        .collect::<Vec<_>>();
+    receipt_ids.sort();
+    Ok(receipt_ids)
+}
+
+fn validator_discipline_is_unchanged(
+    receipts: &CompiledAgentDecentralizedRoleReceipts,
+    xtrain_receipt: &crate::CompiledAgentXtrainCycleReceipt,
+    stronger_family_report: &crate::CompiledAgentStrongerCandidateFamilyReport,
+    confidence_policy: &crate::CompiledAgentConfidencePolicy,
+    shadow_disagreements: &crate::CompiledAgentShadowDisagreementReceipts,
+) -> bool {
+    let role_statuses = receipts
+        .receipts
+        .iter()
+        .map(|receipt| (receipt.role, receipt.status))
+        .collect::<std::collections::BTreeMap<_, _>>();
+    let expected_statuses = [
+        (
+            CompiledAgentDecentralizedRoleKind::ReplayGeneration,
+            CompiledAgentRoleReceiptStatus::AcceptedAfterHumanReview,
+        ),
+        (
+            CompiledAgentDecentralizedRoleKind::RankingLabeling,
+            CompiledAgentRoleReceiptStatus::AcceptedAfterHumanReview,
+        ),
+        (
+            CompiledAgentDecentralizedRoleKind::ValidatorScoring,
+            CompiledAgentRoleReceiptStatus::AcceptedAfterValidatorGate,
+        ),
+        (
+            CompiledAgentDecentralizedRoleKind::BoundedModuleTraining,
+            CompiledAgentRoleReceiptStatus::QueuedForValidatorScoring,
+        ),
+    ]
+    .into_iter()
+    .all(|(role, status)| role_statuses.get(&role) == Some(&status));
+
+    let xtrain_gate_intact = xtrain_receipt.route_outcome.decision
+        == CompiledAgentPromotionDecision::Hold
+        && xtrain_receipt.grounded_answer_outcome.decision
+            == CompiledAgentPromotionDecision::Promote;
+    let stronger_gate_intact = stronger_family_report.comparisons.iter().all(|comparison| {
+        comparison.decision == CompiledAgentCandidateFamilyDecision::KeepIncumbent
+    });
+    let human_review_gates_intact = confidence_policy.policies.iter().all(|policy| {
+        policy
+            .thresholds
+            .human_review_on_low_confidence_disagreement
+            && policy.thresholds.human_review_on_ambiguous_regression
+    });
+
+    expected_statuses
+        && xtrain_gate_intact
+        && stronger_gate_intact
+        && human_review_gates_intact
+        && shadow_disagreements.human_review_count > 0
+}
+
+fn rollback_discipline_is_unchanged(
+    promoted_contract: &crate::CompiledAgentPromotedArtifactContract,
+    confidence_policy: &crate::CompiledAgentConfidencePolicy,
+    shadow_disagreements: &crate::CompiledAgentShadowDisagreementReceipts,
+) -> bool {
+    let route_candidate_has_rollback = promoted_contract
+        .candidate_entry(CompiledAgentModuleKind::Route, "psionic_candidate")
+        .and_then(|entry| entry.rollback_artifact_id.as_ref())
+        .is_some();
+    let route_policy = confidence_policy
+        .policies
+        .iter()
+        .find(|policy| policy.module == CompiledAgentModuleKind::Route);
+    let grounded_policy = confidence_policy
+        .policies
+        .iter()
+        .find(|policy| policy.module == CompiledAgentModuleKind::GroundedAnswer);
+
+    route_candidate_has_rollback
+        && route_policy.is_some_and(|policy| {
+            policy.thresholds.rollback_on_heldout_regression_count == 1
+                && policy.thresholds.rollback_on_runtime_regression_count == 1
+        })
+        && grounded_policy.is_some_and(|policy| {
+            policy.thresholds.rollback_on_heldout_regression_count == 1
+                && policy.thresholds.rollback_on_runtime_regression_count == 1
+        })
+        && shadow_disagreements.rollback_ready_count == 0
+}
+
+fn dry_run_step_detail(role: CompiledAgentDecentralizedRoleKind) -> String {
+    match role {
+        CompiledAgentDecentralizedRoleKind::ReplayGeneration => String::from(
+            "Replay generation reran against the stricter learning ledger, including runtime-ingested wallet and disagreement rows, without changing receipt lineage.",
+        ),
+        CompiledAgentDecentralizedRoleKind::RankingLabeling => String::from(
+            "Ranking and labeling retained human-reviewed corpus placement for the same narrow bounded family, including runtime disagreement and correction rows.",
+        ),
+        CompiledAgentDecentralizedRoleKind::ValidatorScoring => String::from(
+            "Validator scoring reran against incumbent-versus-stronger candidates, confidence policy, and shadow disagreement receipts while preserving the validator gate.",
+        ),
+        CompiledAgentDecentralizedRoleKind::BoundedModuleTraining => String::from(
+            "Bounded module training reran on the locked default row and stricter replay bundle, producing incumbent and stronger candidate artifacts that still queue for validator scoring.",
+        ),
+    }
 }
 
 fn artifact_ref_from_set(
@@ -1036,15 +1592,16 @@ fn stable_digest(prefix: &[u8], value: &impl Serialize) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
+        CompiledAgentDecentralizedRoleKind, canonical_compiled_agent_decentralized_role_dry_run_report,
         canonical_compiled_agent_decentralized_role_receipts,
         canonical_compiled_agent_decentralized_roles_contract,
-        verify_compiled_agent_decentralized_role_fixtures, CompiledAgentDecentralizedRoleKind,
+        verify_compiled_agent_decentralized_role_fixtures,
     };
     use psionic_eval::CompiledAgentEvidenceClass;
 
     #[test]
-    fn compiled_agent_decentralized_roles_contract_is_valid(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn compiled_agent_decentralized_roles_contract_is_valid()
+    -> Result<(), Box<dyn std::error::Error>> {
         let contract = canonical_compiled_agent_decentralized_roles_contract()?;
         contract.validate()?;
         assert_eq!(
@@ -1052,30 +1609,47 @@ mod tests {
             CompiledAgentEvidenceClass::LearnedLane
         );
         assert_eq!(contract.roles.len(), 4);
-        assert!(contract
-            .roles
-            .iter()
-            .any(|role| { role.role == CompiledAgentDecentralizedRoleKind::ValidatorScoring }));
+        assert!(
+            contract
+                .roles
+                .iter()
+                .any(|role| { role.role == CompiledAgentDecentralizedRoleKind::ValidatorScoring })
+        );
         Ok(())
     }
 
     #[test]
-    fn compiled_agent_decentralized_role_receipts_are_valid(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn compiled_agent_decentralized_role_receipts_are_valid()
+    -> Result<(), Box<dyn std::error::Error>> {
         let contract = canonical_compiled_agent_decentralized_roles_contract()?;
         let receipts = canonical_compiled_agent_decentralized_role_receipts()?;
         receipts.validate(&contract)?;
         assert_eq!(receipts.receipts.len(), 4);
-        assert!(receipts
-            .receipts
-            .iter()
-            .all(|receipt| receipt.evidence_class == CompiledAgentEvidenceClass::LearnedLane));
+        assert!(
+            receipts
+                .receipts
+                .iter()
+                .all(|receipt| receipt.evidence_class == CompiledAgentEvidenceClass::LearnedLane)
+        );
         Ok(())
     }
 
     #[test]
-    fn compiled_agent_decentralized_role_fixtures_match_the_canonical_generator(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn compiled_agent_decentralized_role_dry_run_report_is_valid()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let contract = canonical_compiled_agent_decentralized_roles_contract()?;
+        let receipts = canonical_compiled_agent_decentralized_role_receipts()?;
+        let report = canonical_compiled_agent_decentralized_role_dry_run_report()?;
+        report.validate(&contract, &receipts)?;
+        assert!(report.validator_discipline_unchanged);
+        assert!(report.rollback_discipline_unchanged);
+        assert_eq!(report.role_runs.len(), 4);
+        Ok(())
+    }
+
+    #[test]
+    fn compiled_agent_decentralized_role_fixtures_match_the_canonical_generator()
+    -> Result<(), Box<dyn std::error::Error>> {
         verify_compiled_agent_decentralized_role_fixtures()?;
         Ok(())
     }

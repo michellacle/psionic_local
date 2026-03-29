@@ -1,6 +1,6 @@
 {
   "schema_version": "psionic.compiled_agent.decentralized_role_receipts.v1",
-  "contract_digest": "cb8b46454720f10aff15287e95a31479a786eceefe334fc6a3b8436bda9c1e76",
+  "contract_digest": "303bf8445d4afbae4a329b2cb9d3b9be8619f77aa1113d9b96fb0b62b2ef81fc",
   "receipts": [
     {
       "role": "replay_generation",
@@ -52,7 +52,14 @@
         "fixtures/compiled_agent/compiled_agent_grounded_answer_model_v1.json",
         "fixtures/compiled_agent/compiled_agent_route_candidate_module_eval_report_v1.json",
         "fixtures/compiled_agent/compiled_agent_grounded_candidate_module_eval_report_v1.json",
-        "fixtures/compiled_agent/compiled_agent_xtrain_cycle_receipt_v1.json"
+        "fixtures/compiled_agent/compiled_agent_route_tfidf_centroid_model_v1.json",
+        "fixtures/compiled_agent/compiled_agent_grounded_answer_tfidf_centroid_model_v1.json",
+        "fixtures/compiled_agent/compiled_agent_route_tfidf_centroid_candidate_module_eval_report_v1.json",
+        "fixtures/compiled_agent/compiled_agent_grounded_tfidf_centroid_candidate_module_eval_report_v1.json",
+        "fixtures/compiled_agent/compiled_agent_stronger_candidate_family_report_v1.json",
+        "fixtures/compiled_agent/compiled_agent_xtrain_cycle_receipt_v1.json",
+        "fixtures/compiled_agent/compiled_agent_confidence_policy_v1.json",
+        "fixtures/compiled_agent/compiled_agent_shadow_disagreement_receipts_v1.json"
       ],
       "output_refs": [
         "fixtures/compiled_agent/compiled_agent_xtrain_cycle_receipt_v1.json",
@@ -61,10 +68,13 @@
       "emitted_ids": [
         "compiled_agent.route.multinomial_nb_v1.validation",
         "compiled_agent.grounded_answer.multinomial_nb_v1.validation",
+        "compiled_agent.route.tfidf_centroid_v1.validation",
+        "compiled_agent.grounded_answer.tfidf_centroid_v1.validation",
+        "compiled_agent.stronger_candidate_family_report.v1",
         "compiled_agent.xtrain.cycle.v1"
       ],
       "next_consumer": "compiled_agent_runtime_authority",
-      "detail": "The retained validator-scoring reference path is the first governed promotion surface. It ends in the XTRAIN receipt and the promoted-artifact contract, not in silent runtime mutation."
+      "detail": "The retained validator-scoring reference path is the first governed promotion surface. It consumes incumbent-versus-stronger comparisons, confidence policy, and shadow disagreements, then ends in the XTRAIN receipt and the promoted-artifact contract instead of silent runtime mutation."
     },
     {
       "role": "bounded_module_training",
@@ -78,16 +88,20 @@
       ],
       "output_refs": [
         "fixtures/compiled_agent/compiled_agent_route_model_v1.json",
-        "fixtures/compiled_agent/compiled_agent_grounded_answer_model_v1.json"
+        "fixtures/compiled_agent/compiled_agent_grounded_answer_model_v1.json",
+        "fixtures/compiled_agent/compiled_agent_route_tfidf_centroid_model_v1.json",
+        "fixtures/compiled_agent/compiled_agent_grounded_answer_tfidf_centroid_model_v1.json"
       ],
       "emitted_ids": [
         "compiled_agent.route.multinomial_nb_v1",
-        "compiled_agent.grounded_answer.multinomial_nb_v1"
+        "compiled_agent.grounded_answer.multinomial_nb_v1",
+        "compiled_agent.route.tfidf_centroid_v1",
+        "compiled_agent.grounded_answer.tfidf_centroid_v1"
       ],
       "next_consumer": "compiled_agent.role.validator_scoring.v1",
-      "detail": "The retained bounded-module-training reference path produces candidate artifacts only. Validator scoring still decides whether those candidates can move runtime authority."
+      "detail": "The retained bounded-module-training reference path produces incumbent and stronger bounded candidate artifacts only. Validator scoring still decides whether those candidates can move runtime authority."
     }
   ],
-  "summary": "Compiled-agent decentralized role receipts retain 4 governed pre-network roles tied back to contract cb8b46454720f10aff15287e95a31479a786eceefe334fc6a3b8436bda9c1e76.",
-  "receipts_digest": "7e03dda7597ccba68585c9ffba1756da9a0ac2fc13566dd9412bad9966868f2a"
+  "summary": "Compiled-agent decentralized role receipts retain 4 governed pre-network roles tied back to contract 303bf8445d4afbae4a329b2cb9d3b9be8619f77aa1113d9b96fb0b62b2ef81fc.",
+  "receipts_digest": "a9bcc9c0f4042c5d690b3ee99ff51bb20d6a29372dc592ba0465d7fecc634dc7"
 }

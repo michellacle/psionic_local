@@ -1,0 +1,392 @@
+{
+  "schema_version": "psionic.compiled_agent.decentralized_role_dry_run.v1",
+  "dry_run_id": "compiled_agent.decentralized_role_dry_run.v1",
+  "evidence_class": "learned_lane",
+  "contract_digest": "303bf8445d4afbae4a329b2cb9d3b9be8619f77aa1113d9b96fb0b62b2ef81fc",
+  "receipts_digest": "a9bcc9c0f4042c5d690b3ee99ff51bb20d6a29372dc592ba0465d7fecc634dc7",
+  "learning_ledger_digest": "48ebcfa41ae8f52a80745eb803be332e04596d63a293b965df260382fde07f83",
+  "replay_bundle_digest": "da0e79fdfdea3b751fd90e84178b219693d5e3a348c675ebad8d4eeda25c600a",
+  "xtrain_receipt_digest": "5bcaf4f72761ba90693bed44e926cf7c1e5ca418b0d58bc43dfc7e33076042e6",
+  "promoted_contract_digest": "5f4ed2e440803e71b54fc1a97da9c96d7c8b5bc152187a4a5a916af6805994fa",
+  "confidence_policy_digest": "4a1e25a25f6bcc1e314e516fdadd0411181582844df9c31b68597b4558ce15b8",
+  "shadow_disagreement_receipts_digest": "7636190e5a1901e909874a670f4d71191b9cacf85214d6675042819dc2454cad",
+  "stronger_candidate_family_report_digest": "19a09dba96ba7e152dea9c2604ce3e106fe98942d1d3064f481ca69aee30aec4",
+  "runtime_fixture_refs": [
+    "fixtures/compiled_agent/runtime/openagents_runtime_shadow_compare_receipt_v1.json",
+    "fixtures/compiled_agent/runtime/openagents_runtime_wallet_recent_earnings_receipt_v1.json"
+  ],
+  "runtime_learning_receipt_ids": [
+    "receipt.compiled_agent.learning.openagents_runtime_shadow_compare_receipt_v1",
+    "receipt.compiled_agent.learning.openagents_runtime_wallet_recent_earnings_receipt_v1"
+  ],
+  "role_runs": [
+    {
+      "order": 1,
+      "role": "replay_generation",
+      "role_id": "compiled_agent.role.replay_generation.v1",
+      "receipt_id": "compiled_agent.role_receipt.replay_generation.v1",
+      "status": "accepted_after_human_review",
+      "review_boundary": "human_review_required",
+      "validator_gate": "Replay bundle digest and sample lineage must stay aligned with the retained learning ledger before rows can enter training.",
+      "consumed_artifacts": [
+        {
+          "artifact_ref": "fixtures/compiled_agent/compiled_agent_learning_receipts_v1.json",
+          "schema_version": "psionic.compiled_agent.learning_receipts.v1",
+          "evidence_class": "learned_lane",
+          "digest_field": "ledger_digest",
+          "artifact_digest": "48ebcfa41ae8f52a80745eb803be332e04596d63a293b965df260382fde07f83",
+          "detail": "Canonical compiled-agent learning ledger retained from normalized runtime receipts."
+        }
+      ],
+      "produced_artifacts": [
+        {
+          "artifact_ref": "fixtures/compiled_agent/compiled_agent_replay_bundle_v1.json",
+          "schema_version": "psionic.compiled_agent.replay_bundle.v1",
+          "evidence_class": "learned_lane",
+          "digest_field": "bundle_digest",
+          "artifact_digest": "da0e79fdfdea3b751fd90e84178b219693d5e3a348c675ebad8d4eeda25c600a",
+          "detail": "Canonical replay bundle emitted from the retained compiled-agent learning ledger."
+        }
+      ],
+      "runtime_fixture_refs": [
+        "fixtures/compiled_agent/runtime/openagents_runtime_shadow_compare_receipt_v1.json",
+        "fixtures/compiled_agent/runtime/openagents_runtime_wallet_recent_earnings_receipt_v1.json"
+      ],
+      "runtime_learning_receipt_ids": [
+        "receipt.compiled_agent.learning.openagents_runtime_shadow_compare_receipt_v1",
+        "receipt.compiled_agent.learning.openagents_runtime_wallet_recent_earnings_receipt_v1"
+      ],
+      "emitted_ids": [
+        "sample.route.receipt.compiled_agent.learning.openagents_negated_wallet_receipt_v1",
+        "sample.grounded_answer.receipt.compiled_agent.learning.openagents_wallet_recent_earnings_receipt_v1",
+        "bundle.compiled_agent_replay_bundle_v1"
+      ],
+      "next_consumer": "compiled_agent.role.bounded_module_training.v1",
+      "lineage_intact": true,
+      "validator_discipline_preserved": true,
+      "rollback_discipline_preserved": true,
+      "detail": "Replay generation reran against the stricter learning ledger, including runtime-ingested wallet and disagreement rows, without changing receipt lineage."
+    },
+    {
+      "order": 2,
+      "role": "ranking_labeling",
+      "role_id": "compiled_agent.role.ranking_labeling.v1",
+      "receipt_id": "compiled_agent.role_receipt.ranking_labeling.v1",
+      "status": "accepted_after_human_review",
+      "review_boundary": "human_review_required",
+      "validator_gate": "Human acceptance still decides whether a label becomes training data, held-out truth, or a rejected proposal.",
+      "consumed_artifacts": [
+        {
+          "artifact_ref": "fixtures/compiled_agent/compiled_agent_learning_receipts_v1.json",
+          "schema_version": "psionic.compiled_agent.learning_receipts.v1",
+          "evidence_class": "learned_lane",
+          "digest_field": "ledger_digest",
+          "artifact_digest": "48ebcfa41ae8f52a80745eb803be332e04596d63a293b965df260382fde07f83",
+          "detail": "Canonical compiled-agent learning ledger retained from normalized runtime receipts."
+        },
+        {
+          "artifact_ref": "fixtures/compiled_agent/compiled_agent_replay_bundle_v1.json",
+          "schema_version": "psionic.compiled_agent.replay_bundle.v1",
+          "evidence_class": "learned_lane",
+          "digest_field": "bundle_digest",
+          "artifact_digest": "da0e79fdfdea3b751fd90e84178b219693d5e3a348c675ebad8d4eeda25c600a",
+          "detail": "Canonical replay bundle emitted from the retained compiled-agent learning ledger."
+        }
+      ],
+      "produced_artifacts": [
+        {
+          "artifact_ref": "fixtures/compiled_agent/compiled_agent_learning_receipts_v1.json",
+          "schema_version": "psionic.compiled_agent.learning_receipts.v1",
+          "evidence_class": "learned_lane",
+          "digest_field": "ledger_digest",
+          "artifact_digest": "48ebcfa41ae8f52a80745eb803be332e04596d63a293b965df260382fde07f83",
+          "detail": "Canonical compiled-agent learning ledger retained from normalized runtime receipts."
+        },
+        {
+          "artifact_ref": "fixtures/compiled_agent/compiled_agent_replay_bundle_v1.json",
+          "schema_version": "psionic.compiled_agent.replay_bundle.v1",
+          "evidence_class": "learned_lane",
+          "digest_field": "bundle_digest",
+          "artifact_digest": "da0e79fdfdea3b751fd90e84178b219693d5e3a348c675ebad8d4eeda25c600a",
+          "detail": "Canonical replay bundle emitted from the retained compiled-agent learning ledger."
+        }
+      ],
+      "runtime_fixture_refs": [
+        "fixtures/compiled_agent/runtime/openagents_runtime_shadow_compare_receipt_v1.json",
+        "fixtures/compiled_agent/runtime/openagents_runtime_wallet_recent_earnings_receipt_v1.json"
+      ],
+      "runtime_learning_receipt_ids": [
+        "receipt.compiled_agent.learning.openagents_runtime_shadow_compare_receipt_v1",
+        "receipt.compiled_agent.learning.openagents_runtime_wallet_recent_earnings_receipt_v1"
+      ],
+      "emitted_ids": [
+        "openagents_negated_wallet_receipt_v1",
+        "openagents_ambiguous_provider_wallet_receipt_v1",
+        "openagents_wallet_earnings_phrase_heldout_receipt_v1"
+      ],
+      "next_consumer": "compiled_agent.role.replay_generation.v1",
+      "lineage_intact": true,
+      "validator_discipline_preserved": true,
+      "rollback_discipline_preserved": true,
+      "detail": "Ranking and labeling retained human-reviewed corpus placement for the same narrow bounded family, including runtime disagreement and correction rows."
+    },
+    {
+      "order": 3,
+      "role": "validator_scoring",
+      "role_id": "compiled_agent.role.validator_scoring.v1",
+      "receipt_id": "compiled_agent.role_receipt.validator_scoring.v1",
+      "status": "accepted_after_validator_gate",
+      "review_boundary": "validator_gate_required",
+      "validator_gate": "Independent module eval plus held-out replay scoring must stay non-regressing before promotion can move runtime authority.",
+      "consumed_artifacts": [
+        {
+          "artifact_ref": "fixtures/compiled_agent/compiled_agent_route_model_v1.json",
+          "schema_version": "psionic.compiled_agent.route_model.v1",
+          "digest_field": "artifact_digest",
+          "artifact_digest": "0ef312a77e31e683ddd40225acc69be01ed74c428d8049bad8c9c8550c568d1f",
+          "identity_field": "artifact_id",
+          "identity_value": "compiled_agent.route.multinomial_nb_v1",
+          "detail": "Retained replay-trained route artifact consumed by validator scoring and runtime authority."
+        },
+        {
+          "artifact_ref": "fixtures/compiled_agent/compiled_agent_grounded_answer_model_v1.json",
+          "schema_version": "psionic.compiled_agent.grounded_answer_model.v1",
+          "digest_field": "artifact_digest",
+          "artifact_digest": "1bcac89576e47ae4a1174a00077db3a389213ed2998bbafb5b76b199ea92839f",
+          "identity_field": "artifact_id",
+          "identity_value": "compiled_agent.grounded_answer.multinomial_nb_v1",
+          "detail": "Retained replay-trained grounded-answer artifact consumed by validator scoring and runtime authority."
+        },
+        {
+          "artifact_ref": "fixtures/compiled_agent/compiled_agent_route_candidate_module_eval_report_v1.json",
+          "schema_version": "1",
+          "evidence_class": "learned_lane",
+          "digest_field": "report_digest",
+          "artifact_digest": "e60b77e1cb3a47792a73960aed45e74a4350842d80fad55bcd542cdec523c1a3",
+          "detail": "Independent route candidate module-eval surface for validator scoring."
+        },
+        {
+          "artifact_ref": "fixtures/compiled_agent/compiled_agent_grounded_candidate_module_eval_report_v1.json",
+          "schema_version": "1",
+          "evidence_class": "learned_lane",
+          "digest_field": "report_digest",
+          "artifact_digest": "b12981f51622426542de3cd578f456725d4e46de8877688277af9a2becd0483c",
+          "detail": "Independent grounded-answer candidate module-eval surface for validator scoring."
+        },
+        {
+          "artifact_ref": "fixtures/compiled_agent/compiled_agent_route_tfidf_centroid_model_v1.json",
+          "schema_version": "psionic.compiled_agent.route_model.v1",
+          "digest_field": "artifact_digest",
+          "artifact_digest": "bfacfe8d8cc8a5c8d77fd14fd9cd38018c02b63fcc29e3c74527bacce831e93f",
+          "identity_field": "artifact_id",
+          "identity_value": "compiled_agent.route.tfidf_centroid_v1",
+          "detail": "Retained stronger route candidate family artifact kept behind the same bounded route contract."
+        },
+        {
+          "artifact_ref": "fixtures/compiled_agent/compiled_agent_grounded_answer_tfidf_centroid_model_v1.json",
+          "schema_version": "psionic.compiled_agent.grounded_answer_model.v1",
+          "digest_field": "artifact_digest",
+          "artifact_digest": "8d9269dbba68b6a329c8896163d8b00d1b386b7caf1f4fbc2b79ae9e7d2e1524",
+          "identity_field": "artifact_id",
+          "identity_value": "compiled_agent.grounded_answer.tfidf_centroid_v1",
+          "detail": "Retained stronger grounded-answer candidate family artifact kept behind the same bounded synthesis contract."
+        },
+        {
+          "artifact_ref": "fixtures/compiled_agent/compiled_agent_route_tfidf_centroid_candidate_module_eval_report_v1.json",
+          "schema_version": "1",
+          "evidence_class": "learned_lane",
+          "digest_field": "report_digest",
+          "artifact_digest": "06219a2add51d7b12e711a9e8b4861edbe757e73faa2c12934ab882ae6148113",
+          "detail": "Independent route module-eval report for the stronger bounded candidate family."
+        },
+        {
+          "artifact_ref": "fixtures/compiled_agent/compiled_agent_grounded_tfidf_centroid_candidate_module_eval_report_v1.json",
+          "schema_version": "1",
+          "evidence_class": "learned_lane",
+          "digest_field": "report_digest",
+          "artifact_digest": "1e8322be498ca55228cc96d316ec46a260ec44088615c0385a91e2877023d99b",
+          "detail": "Independent grounded-answer module-eval report for the stronger bounded candidate family."
+        },
+        {
+          "artifact_ref": "fixtures/compiled_agent/compiled_agent_stronger_candidate_family_report_v1.json",
+          "schema_version": "psionic.compiled_agent.stronger_candidate_family_report.v1",
+          "evidence_class": "learned_lane",
+          "digest_field": "report_digest",
+          "artifact_digest": "19a09dba96ba7e152dea9c2604ce3e106fe98942d1d3064f481ca69aee30aec4",
+          "identity_field": "report_id",
+          "identity_value": "compiled_agent.stronger_candidate_family_report.v1",
+          "detail": "Retained incumbent-versus-stronger bounded family comparison report for route and grounded-answer modules."
+        },
+        {
+          "artifact_ref": "fixtures/compiled_agent/compiled_agent_xtrain_cycle_receipt_v1.json",
+          "schema_version": "psionic.compiled_agent.xtrain_cycle.v1",
+          "evidence_class": "learned_lane",
+          "digest_field": "receipt_digest",
+          "artifact_digest": "5bcaf4f72761ba90693bed44e926cf7c1e5ca418b0d58bc43dfc7e33076042e6",
+          "identity_field": "cycle_id",
+          "identity_value": "compiled_agent.xtrain.cycle.v1",
+          "detail": "Canonical bounded XTRAIN cycle receipt for the current route and grounded candidates."
+        },
+        {
+          "artifact_ref": "fixtures/compiled_agent/compiled_agent_confidence_policy_v1.json",
+          "schema_version": "psionic.compiled_agent.confidence_policy.v1",
+          "evidence_class": "learned_lane",
+          "digest_field": "policy_digest",
+          "artifact_digest": "4a1e25a25f6bcc1e314e516fdadd0411181582844df9c31b68597b4558ce15b8",
+          "identity_field": "policy_id",
+          "identity_value": "compiled_agent.confidence_policy.v1",
+          "detail": "Retained confidence policy for promoted-versus-candidate calibration and rollback review thresholds."
+        },
+        {
+          "artifact_ref": "fixtures/compiled_agent/compiled_agent_shadow_disagreement_receipts_v1.json",
+          "schema_version": "psionic.compiled_agent.shadow_disagreement_receipts.v1",
+          "evidence_class": "learned_lane",
+          "digest_field": "receipts_digest",
+          "artifact_digest": "7636190e5a1901e909874a670f4d71191b9cacf85214d6675042819dc2454cad",
+          "identity_field": "ledger_id",
+          "identity_value": "compiled_agent.learning_receipt_ledger.v1",
+          "detail": "Retained promoted-versus-candidate disagreement receipts across held-out and runtime rows."
+        }
+      ],
+      "produced_artifacts": [
+        {
+          "artifact_ref": "fixtures/compiled_agent/compiled_agent_xtrain_cycle_receipt_v1.json",
+          "schema_version": "psionic.compiled_agent.xtrain_cycle.v1",
+          "evidence_class": "learned_lane",
+          "digest_field": "receipt_digest",
+          "artifact_digest": "5bcaf4f72761ba90693bed44e926cf7c1e5ca418b0d58bc43dfc7e33076042e6",
+          "identity_field": "cycle_id",
+          "identity_value": "compiled_agent.xtrain.cycle.v1",
+          "detail": "Canonical bounded XTRAIN cycle receipt for the current route and grounded candidates."
+        },
+        {
+          "artifact_ref": "fixtures/compiled_agent/compiled_agent_promoted_artifact_contract_v1.json",
+          "schema_version": "psionic.compiled_agent.promoted_artifact_contract.v1",
+          "evidence_class": "learned_lane",
+          "digest_field": "contract_digest",
+          "artifact_digest": "5f4ed2e440803e71b54fc1a97da9c96d7c8b5bc152187a4a5a916af6805994fa",
+          "identity_field": "schema_version",
+          "identity_value": "psionic.compiled_agent.promoted_artifact_contract.v1",
+          "detail": "Runtime-consumable promoted-artifact contract retained after validator gating."
+        }
+      ],
+      "runtime_fixture_refs": [
+        "fixtures/compiled_agent/runtime/openagents_runtime_shadow_compare_receipt_v1.json",
+        "fixtures/compiled_agent/runtime/openagents_runtime_wallet_recent_earnings_receipt_v1.json"
+      ],
+      "runtime_learning_receipt_ids": [
+        "receipt.compiled_agent.learning.openagents_runtime_shadow_compare_receipt_v1",
+        "receipt.compiled_agent.learning.openagents_runtime_wallet_recent_earnings_receipt_v1"
+      ],
+      "emitted_ids": [
+        "compiled_agent.route.multinomial_nb_v1.validation",
+        "compiled_agent.grounded_answer.multinomial_nb_v1.validation",
+        "compiled_agent.route.tfidf_centroid_v1.validation",
+        "compiled_agent.grounded_answer.tfidf_centroid_v1.validation",
+        "compiled_agent.stronger_candidate_family_report.v1",
+        "compiled_agent.xtrain.cycle.v1"
+      ],
+      "next_consumer": "compiled_agent_runtime_authority",
+      "lineage_intact": true,
+      "validator_discipline_preserved": true,
+      "rollback_discipline_preserved": true,
+      "detail": "Validator scoring reran against incumbent-versus-stronger candidates, confidence policy, and shadow disagreement receipts while preserving the validator gate."
+    },
+    {
+      "order": 4,
+      "role": "bounded_module_training",
+      "role_id": "compiled_agent.role.bounded_module_training.v1",
+      "receipt_id": "compiled_agent.role_receipt.bounded_module_training.v1",
+      "status": "queued_for_validator_scoring",
+      "review_boundary": "validator_gate_required",
+      "validator_gate": "Candidate artifacts remain queued for validator scoring until replay, held-out, and independent-module gates are rechecked.",
+      "consumed_artifacts": [
+        {
+          "artifact_ref": "fixtures/compiled_agent/compiled_agent_default_row_v1.json",
+          "schema_version": "psionic.compiled_agent_default_row.v1",
+          "identity_field": "row_id",
+          "identity_value": "compiled_agent.qwen35_9b_q4km.archlinux.consumer_gpu.v1",
+          "detail": "Locked default learned row for the first compiled-agent target lane."
+        },
+        {
+          "artifact_ref": "fixtures/compiled_agent/compiled_agent_learning_receipts_v1.json",
+          "schema_version": "psionic.compiled_agent.learning_receipts.v1",
+          "evidence_class": "learned_lane",
+          "digest_field": "ledger_digest",
+          "artifact_digest": "48ebcfa41ae8f52a80745eb803be332e04596d63a293b965df260382fde07f83",
+          "detail": "Canonical compiled-agent learning ledger retained from normalized runtime receipts."
+        },
+        {
+          "artifact_ref": "fixtures/compiled_agent/compiled_agent_replay_bundle_v1.json",
+          "schema_version": "psionic.compiled_agent.replay_bundle.v1",
+          "evidence_class": "learned_lane",
+          "digest_field": "bundle_digest",
+          "artifact_digest": "da0e79fdfdea3b751fd90e84178b219693d5e3a348c675ebad8d4eeda25c600a",
+          "detail": "Canonical replay bundle emitted from the retained compiled-agent learning ledger."
+        }
+      ],
+      "produced_artifacts": [
+        {
+          "artifact_ref": "fixtures/compiled_agent/compiled_agent_route_model_v1.json",
+          "schema_version": "psionic.compiled_agent.route_model.v1",
+          "digest_field": "artifact_digest",
+          "artifact_digest": "0ef312a77e31e683ddd40225acc69be01ed74c428d8049bad8c9c8550c568d1f",
+          "identity_field": "artifact_id",
+          "identity_value": "compiled_agent.route.multinomial_nb_v1",
+          "detail": "Retained replay-trained route artifact consumed by validator scoring and runtime authority."
+        },
+        {
+          "artifact_ref": "fixtures/compiled_agent/compiled_agent_grounded_answer_model_v1.json",
+          "schema_version": "psionic.compiled_agent.grounded_answer_model.v1",
+          "digest_field": "artifact_digest",
+          "artifact_digest": "1bcac89576e47ae4a1174a00077db3a389213ed2998bbafb5b76b199ea92839f",
+          "identity_field": "artifact_id",
+          "identity_value": "compiled_agent.grounded_answer.multinomial_nb_v1",
+          "detail": "Retained replay-trained grounded-answer artifact consumed by validator scoring and runtime authority."
+        },
+        {
+          "artifact_ref": "fixtures/compiled_agent/compiled_agent_route_tfidf_centroid_model_v1.json",
+          "schema_version": "psionic.compiled_agent.route_model.v1",
+          "digest_field": "artifact_digest",
+          "artifact_digest": "bfacfe8d8cc8a5c8d77fd14fd9cd38018c02b63fcc29e3c74527bacce831e93f",
+          "identity_field": "artifact_id",
+          "identity_value": "compiled_agent.route.tfidf_centroid_v1",
+          "detail": "Retained stronger route candidate family artifact kept behind the same bounded route contract."
+        },
+        {
+          "artifact_ref": "fixtures/compiled_agent/compiled_agent_grounded_answer_tfidf_centroid_model_v1.json",
+          "schema_version": "psionic.compiled_agent.grounded_answer_model.v1",
+          "digest_field": "artifact_digest",
+          "artifact_digest": "8d9269dbba68b6a329c8896163d8b00d1b386b7caf1f4fbc2b79ae9e7d2e1524",
+          "identity_field": "artifact_id",
+          "identity_value": "compiled_agent.grounded_answer.tfidf_centroid_v1",
+          "detail": "Retained stronger grounded-answer candidate family artifact kept behind the same bounded synthesis contract."
+        }
+      ],
+      "runtime_fixture_refs": [
+        "fixtures/compiled_agent/runtime/openagents_runtime_shadow_compare_receipt_v1.json",
+        "fixtures/compiled_agent/runtime/openagents_runtime_wallet_recent_earnings_receipt_v1.json"
+      ],
+      "runtime_learning_receipt_ids": [
+        "receipt.compiled_agent.learning.openagents_runtime_shadow_compare_receipt_v1",
+        "receipt.compiled_agent.learning.openagents_runtime_wallet_recent_earnings_receipt_v1"
+      ],
+      "emitted_ids": [
+        "compiled_agent.route.multinomial_nb_v1",
+        "compiled_agent.grounded_answer.multinomial_nb_v1",
+        "compiled_agent.route.tfidf_centroid_v1",
+        "compiled_agent.grounded_answer.tfidf_centroid_v1"
+      ],
+      "next_consumer": "compiled_agent.role.validator_scoring.v1",
+      "lineage_intact": true,
+      "validator_discipline_preserved": true,
+      "rollback_discipline_preserved": true,
+      "detail": "Bounded module training reran on the locked default row and stricter replay bundle, producing incumbent and stronger candidate artifacts that still queue for validator scoring."
+    }
+  ],
+  "validator_discipline_unchanged": true,
+  "rollback_discipline_unchanged": true,
+  "claim_boundary": "This retained dry run covers only the admitted compiled-agent family with governed receipts, explicit validator gates, and explicit rollback authority. It does not claim broad decentralized autonomy or validator-free promotion.",
+  "summary": "Compiled-agent decentralized roles now rerun as a boring dry run over the stricter bounded corpus and runtime-ingested receipts while preserving validator and rollback discipline.",
+  "report_digest": "1895a9d50c00d49261e8e00ccf3cdbca4fa38b098407b29aca8ea5ed3810192a"
+}

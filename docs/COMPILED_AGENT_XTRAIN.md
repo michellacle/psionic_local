@@ -70,6 +70,7 @@ learned compiled-agent slice actually proved.
 - `fixtures/compiled_agent/compiled_agent_shadow_disagreement_receipts_v1.json`
 - `fixtures/compiled_agent/compiled_agent_decentralized_roles_contract_v1.json`
 - `fixtures/compiled_agent/compiled_agent_decentralized_role_receipts_v1.json`
+- `fixtures/compiled_agent/compiled_agent_decentralized_role_dry_run_v1.json`
 
 ## Current Truth
 
@@ -103,6 +104,9 @@ learned compiled-agent slice actually proved.
   runtime-consumable artifact contract instead of only being implied by docs
 - the first pre-network decentralized improvement roles are typed retained
   contracts and receipts rather than roadmap-only nouns
+- those same decentralized roles now rerun as a retained boring dry run over
+  the stricter bounded corpus and runtime-ingested receipts without weakening
+  validator or rollback discipline
 - stronger bounded candidate families can now be evaluated against the same
   route and grounded-answer contracts without changing the runtime interface
 - the retained stronger-family report now keeps the incumbent NB candidates on
@@ -136,9 +140,11 @@ learned compiled-agent slice actually proved.
 - shadow disagreement receipts digest:
   `7636190e5a1901e909874a670f4d71191b9cacf85214d6675042819dc2454cad`
 - decentralized roles contract digest:
-  `cb8b46454720f10aff15287e95a31479a786eceefe334fc6a3b8436bda9c1e76`
+  `303bf8445d4afbae4a329b2cb9d3b9be8619f77aa1113d9b96fb0b62b2ef81fc`
 - decentralized role receipts digest:
-  `7e03dda7597ccba68585c9ffba1756da9a0ac2fc13566dd9412bad9966868f2a`
+  `a9bcc9c0f4042c5d690b3ee99ff51bb20d6a29372dc592ba0465d7fecc634dc7`
+- decentralized role dry-run digest:
+  `1895a9d50c00d49261e8e00ccf3cdbca4fa38b098407b29aca8ea5ed3810192a`
 
 ## Scope Boundary
 

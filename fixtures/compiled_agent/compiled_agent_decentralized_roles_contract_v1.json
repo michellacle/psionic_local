@@ -61,6 +61,50 @@
       "detail": "Independent grounded-answer candidate module-eval surface for validator scoring."
     },
     {
+      "artifact_ref": "fixtures/compiled_agent/compiled_agent_route_tfidf_centroid_model_v1.json",
+      "schema_version": "psionic.compiled_agent.route_model.v1",
+      "digest_field": "artifact_digest",
+      "artifact_digest": "bfacfe8d8cc8a5c8d77fd14fd9cd38018c02b63fcc29e3c74527bacce831e93f",
+      "identity_field": "artifact_id",
+      "identity_value": "compiled_agent.route.tfidf_centroid_v1",
+      "detail": "Retained stronger route candidate family artifact kept behind the same bounded route contract."
+    },
+    {
+      "artifact_ref": "fixtures/compiled_agent/compiled_agent_grounded_answer_tfidf_centroid_model_v1.json",
+      "schema_version": "psionic.compiled_agent.grounded_answer_model.v1",
+      "digest_field": "artifact_digest",
+      "artifact_digest": "8d9269dbba68b6a329c8896163d8b00d1b386b7caf1f4fbc2b79ae9e7d2e1524",
+      "identity_field": "artifact_id",
+      "identity_value": "compiled_agent.grounded_answer.tfidf_centroid_v1",
+      "detail": "Retained stronger grounded-answer candidate family artifact kept behind the same bounded synthesis contract."
+    },
+    {
+      "artifact_ref": "fixtures/compiled_agent/compiled_agent_route_tfidf_centroid_candidate_module_eval_report_v1.json",
+      "schema_version": "1",
+      "evidence_class": "learned_lane",
+      "digest_field": "report_digest",
+      "artifact_digest": "06219a2add51d7b12e711a9e8b4861edbe757e73faa2c12934ab882ae6148113",
+      "detail": "Independent route module-eval report for the stronger bounded candidate family."
+    },
+    {
+      "artifact_ref": "fixtures/compiled_agent/compiled_agent_grounded_tfidf_centroid_candidate_module_eval_report_v1.json",
+      "schema_version": "1",
+      "evidence_class": "learned_lane",
+      "digest_field": "report_digest",
+      "artifact_digest": "1e8322be498ca55228cc96d316ec46a260ec44088615c0385a91e2877023d99b",
+      "detail": "Independent grounded-answer module-eval report for the stronger bounded candidate family."
+    },
+    {
+      "artifact_ref": "fixtures/compiled_agent/compiled_agent_stronger_candidate_family_report_v1.json",
+      "schema_version": "psionic.compiled_agent.stronger_candidate_family_report.v1",
+      "evidence_class": "learned_lane",
+      "digest_field": "report_digest",
+      "artifact_digest": "19a09dba96ba7e152dea9c2604ce3e106fe98942d1d3064f481ca69aee30aec4",
+      "identity_field": "report_id",
+      "identity_value": "compiled_agent.stronger_candidate_family_report.v1",
+      "detail": "Retained incumbent-versus-stronger bounded family comparison report for route and grounded-answer modules."
+    },
+    {
       "artifact_ref": "fixtures/compiled_agent/compiled_agent_xtrain_cycle_receipt_v1.json",
       "schema_version": "psionic.compiled_agent.xtrain_cycle.v1",
       "evidence_class": "learned_lane",
@@ -79,6 +123,26 @@
       "identity_field": "schema_version",
       "identity_value": "psionic.compiled_agent.promoted_artifact_contract.v1",
       "detail": "Runtime-consumable promoted-artifact contract retained after validator gating."
+    },
+    {
+      "artifact_ref": "fixtures/compiled_agent/compiled_agent_confidence_policy_v1.json",
+      "schema_version": "psionic.compiled_agent.confidence_policy.v1",
+      "evidence_class": "learned_lane",
+      "digest_field": "policy_digest",
+      "artifact_digest": "4a1e25a25f6bcc1e314e516fdadd0411181582844df9c31b68597b4558ce15b8",
+      "identity_field": "policy_id",
+      "identity_value": "compiled_agent.confidence_policy.v1",
+      "detail": "Retained confidence policy for promoted-versus-candidate calibration and rollback review thresholds."
+    },
+    {
+      "artifact_ref": "fixtures/compiled_agent/compiled_agent_shadow_disagreement_receipts_v1.json",
+      "schema_version": "psionic.compiled_agent.shadow_disagreement_receipts.v1",
+      "evidence_class": "learned_lane",
+      "digest_field": "receipts_digest",
+      "artifact_digest": "7636190e5a1901e909874a670f4d71191b9cacf85214d6675042819dc2454cad",
+      "identity_field": "ledger_id",
+      "identity_value": "compiled_agent.learning_receipt_ledger.v1",
+      "detail": "Retained promoted-versus-candidate disagreement receipts across held-out and runtime rows."
     }
   ],
   "roles": [
@@ -263,6 +327,50 @@
             "detail": "Independent grounded-answer candidate module-eval surface for validator scoring."
           },
           {
+            "artifact_ref": "fixtures/compiled_agent/compiled_agent_route_tfidf_centroid_model_v1.json",
+            "schema_version": "psionic.compiled_agent.route_model.v1",
+            "digest_field": "artifact_digest",
+            "artifact_digest": "bfacfe8d8cc8a5c8d77fd14fd9cd38018c02b63fcc29e3c74527bacce831e93f",
+            "identity_field": "artifact_id",
+            "identity_value": "compiled_agent.route.tfidf_centroid_v1",
+            "detail": "Retained stronger route candidate family artifact kept behind the same bounded route contract."
+          },
+          {
+            "artifact_ref": "fixtures/compiled_agent/compiled_agent_grounded_answer_tfidf_centroid_model_v1.json",
+            "schema_version": "psionic.compiled_agent.grounded_answer_model.v1",
+            "digest_field": "artifact_digest",
+            "artifact_digest": "8d9269dbba68b6a329c8896163d8b00d1b386b7caf1f4fbc2b79ae9e7d2e1524",
+            "identity_field": "artifact_id",
+            "identity_value": "compiled_agent.grounded_answer.tfidf_centroid_v1",
+            "detail": "Retained stronger grounded-answer candidate family artifact kept behind the same bounded synthesis contract."
+          },
+          {
+            "artifact_ref": "fixtures/compiled_agent/compiled_agent_route_tfidf_centroid_candidate_module_eval_report_v1.json",
+            "schema_version": "1",
+            "evidence_class": "learned_lane",
+            "digest_field": "report_digest",
+            "artifact_digest": "06219a2add51d7b12e711a9e8b4861edbe757e73faa2c12934ab882ae6148113",
+            "detail": "Independent route module-eval report for the stronger bounded candidate family."
+          },
+          {
+            "artifact_ref": "fixtures/compiled_agent/compiled_agent_grounded_tfidf_centroid_candidate_module_eval_report_v1.json",
+            "schema_version": "1",
+            "evidence_class": "learned_lane",
+            "digest_field": "report_digest",
+            "artifact_digest": "1e8322be498ca55228cc96d316ec46a260ec44088615c0385a91e2877023d99b",
+            "detail": "Independent grounded-answer module-eval report for the stronger bounded candidate family."
+          },
+          {
+            "artifact_ref": "fixtures/compiled_agent/compiled_agent_stronger_candidate_family_report_v1.json",
+            "schema_version": "psionic.compiled_agent.stronger_candidate_family_report.v1",
+            "evidence_class": "learned_lane",
+            "digest_field": "report_digest",
+            "artifact_digest": "19a09dba96ba7e152dea9c2604ce3e106fe98942d1d3064f481ca69aee30aec4",
+            "identity_field": "report_id",
+            "identity_value": "compiled_agent.stronger_candidate_family_report.v1",
+            "detail": "Retained incumbent-versus-stronger bounded family comparison report for route and grounded-answer modules."
+          },
+          {
             "artifact_ref": "fixtures/compiled_agent/compiled_agent_xtrain_cycle_receipt_v1.json",
             "schema_version": "psionic.compiled_agent.xtrain_cycle.v1",
             "evidence_class": "learned_lane",
@@ -271,6 +379,26 @@
             "identity_field": "cycle_id",
             "identity_value": "compiled_agent.xtrain.cycle.v1",
             "detail": "Canonical bounded XTRAIN cycle receipt for the current route and grounded candidates."
+          },
+          {
+            "artifact_ref": "fixtures/compiled_agent/compiled_agent_confidence_policy_v1.json",
+            "schema_version": "psionic.compiled_agent.confidence_policy.v1",
+            "evidence_class": "learned_lane",
+            "digest_field": "policy_digest",
+            "artifact_digest": "4a1e25a25f6bcc1e314e516fdadd0411181582844df9c31b68597b4558ce15b8",
+            "identity_field": "policy_id",
+            "identity_value": "compiled_agent.confidence_policy.v1",
+            "detail": "Retained confidence policy for promoted-versus-candidate calibration and rollback review thresholds."
+          },
+          {
+            "artifact_ref": "fixtures/compiled_agent/compiled_agent_shadow_disagreement_receipts_v1.json",
+            "schema_version": "psionic.compiled_agent.shadow_disagreement_receipts.v1",
+            "evidence_class": "learned_lane",
+            "digest_field": "receipts_digest",
+            "artifact_digest": "7636190e5a1901e909874a670f4d71191b9cacf85214d6675042819dc2454cad",
+            "identity_field": "ledger_id",
+            "identity_value": "compiled_agent.learning_receipt_ledger.v1",
+            "detail": "Retained promoted-versus-candidate disagreement receipts across held-out and runtime rows."
           }
         ],
         "expected_fields": [
@@ -278,9 +406,11 @@
           "candidate_revision_id",
           "report_digest",
           "baseline_passed_cases",
-          "candidate_passed_cases"
+          "candidate_passed_cases",
+          "decision",
+          "receipts_digest"
         ],
-        "detail": "Validator scoring stays bounded to explicit candidate artifacts and independent validator surfaces. It does not freehand product judgments."
+        "detail": "Validator scoring stays bounded to explicit incumbent-versus-stronger candidate artifacts, independent validator surfaces, the current confidence policy, and retained shadow-disagreement receipts. It does not freehand product judgments."
       },
       "output_manifest": {
         "manifest_id": "compiled_agent.validator_scoring.output.v1",
@@ -322,10 +452,15 @@
         "retained_output_refs": [
           "fixtures/compiled_agent/compiled_agent_route_candidate_module_eval_report_v1.json",
           "fixtures/compiled_agent/compiled_agent_grounded_candidate_module_eval_report_v1.json",
+          "fixtures/compiled_agent/compiled_agent_route_tfidf_centroid_candidate_module_eval_report_v1.json",
+          "fixtures/compiled_agent/compiled_agent_grounded_tfidf_centroid_candidate_module_eval_report_v1.json",
+          "fixtures/compiled_agent/compiled_agent_stronger_candidate_family_report_v1.json",
           "fixtures/compiled_agent/compiled_agent_xtrain_cycle_receipt_v1.json",
-          "fixtures/compiled_agent/compiled_agent_promoted_artifact_contract_v1.json"
+          "fixtures/compiled_agent/compiled_agent_promoted_artifact_contract_v1.json",
+          "fixtures/compiled_agent/compiled_agent_confidence_policy_v1.json",
+          "fixtures/compiled_agent/compiled_agent_shadow_disagreement_receipts_v1.json"
         ],
-        "detail": "Prints the retained validator-scoring role definition and receipt against the current candidate reports, XTRAIN receipt, and promoted contract."
+        "detail": "Prints the retained validator-scoring role definition and receipt against the current candidate reports, stronger-family report, confidence policy, shadow disagreements, XTRAIN receipt, and promoted contract."
       },
       "review_boundary": "validator_gate_required",
       "validator_gate": "Independent module eval plus held-out replay scoring must stay non-regressing before promotion can move runtime authority.",
@@ -392,6 +527,24 @@
             "identity_field": "artifact_id",
             "identity_value": "compiled_agent.grounded_answer.multinomial_nb_v1",
             "detail": "Retained replay-trained grounded-answer artifact consumed by validator scoring and runtime authority."
+          },
+          {
+            "artifact_ref": "fixtures/compiled_agent/compiled_agent_route_tfidf_centroid_model_v1.json",
+            "schema_version": "psionic.compiled_agent.route_model.v1",
+            "digest_field": "artifact_digest",
+            "artifact_digest": "bfacfe8d8cc8a5c8d77fd14fd9cd38018c02b63fcc29e3c74527bacce831e93f",
+            "identity_field": "artifact_id",
+            "identity_value": "compiled_agent.route.tfidf_centroid_v1",
+            "detail": "Retained stronger route candidate family artifact kept behind the same bounded route contract."
+          },
+          {
+            "artifact_ref": "fixtures/compiled_agent/compiled_agent_grounded_answer_tfidf_centroid_model_v1.json",
+            "schema_version": "psionic.compiled_agent.grounded_answer_model.v1",
+            "digest_field": "artifact_digest",
+            "artifact_digest": "8d9269dbba68b6a329c8896163d8b00d1b386b7caf1f4fbc2b79ae9e7d2e1524",
+            "identity_field": "artifact_id",
+            "identity_value": "compiled_agent.grounded_answer.tfidf_centroid_v1",
+            "detail": "Retained stronger grounded-answer candidate family artifact kept behind the same bounded synthesis contract."
           }
         ],
         "expected_fields": [
@@ -400,7 +553,7 @@
           "training_accuracy",
           "heldout_accuracy"
         ],
-        "detail": "Bounded module training emits replay-trained candidate artifacts that feed validator scoring and later promotion gates."
+        "detail": "Bounded module training emits replay-trained incumbent and stronger candidate artifacts that feed validator scoring and later promotion gates."
       },
       "receipt_schema_version": "psionic.compiled_agent.decentralized_role_receipts.v1",
       "local_reference_path": {
@@ -409,9 +562,11 @@
         "role_selector": "bounded_module_training",
         "retained_output_refs": [
           "fixtures/compiled_agent/compiled_agent_route_model_v1.json",
-          "fixtures/compiled_agent/compiled_agent_grounded_answer_model_v1.json"
+          "fixtures/compiled_agent/compiled_agent_grounded_answer_model_v1.json",
+          "fixtures/compiled_agent/compiled_agent_route_tfidf_centroid_model_v1.json",
+          "fixtures/compiled_agent/compiled_agent_grounded_answer_tfidf_centroid_model_v1.json"
         ],
-        "detail": "Prints the retained bounded-module-training role definition and receipt against the current route and grounded model artifacts."
+        "detail": "Prints the retained bounded-module-training role definition and receipt against the current incumbent and stronger route and grounded model artifacts."
       },
       "review_boundary": "validator_gate_required",
       "validator_gate": "Candidate artifacts remain queued for validator scoring until replay, held-out, and independent-module gates are rechecked.",
@@ -426,5 +581,5 @@
     "doc_path": "docs/COMPILED_AGENT_DECENTRALIZED_ROLES.md"
   },
   "claim_boundary": "These are pre-network governed compiled-agent improvement roles only. They operate on retained receipts, replay bundles, validator reports, and bounded candidate artifacts. They do not claim broad autonomous worker behavior, public incentives, or validator-free promotion.",
-  "contract_digest": "cb8b46454720f10aff15287e95a31479a786eceefe334fc6a3b8436bda9c1e76"
+  "contract_digest": "303bf8445d4afbae4a329b2cb9d3b9be8619f77aa1113d9b96fb0b62b2ef81fc"
 }
