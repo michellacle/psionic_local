@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+use crate::CompiledAgentRouteModelArtifact;
+
 pub const COMPILED_AGENT_DEFAULT_ROW_SCHEMA_VERSION: &str = "psionic.compiled_agent_default_row.v1";
 pub const COMPILED_AGENT_DEFAULT_ROW_FIXTURE_PATH: &str =
     "fixtures/compiled_agent/compiled_agent_default_row_v1.json";
@@ -12,7 +14,7 @@ pub const COMPILED_AGENT_DEFAULT_ROW_PROBE_BIN_PATH: &str =
     "crates/psionic-train/src/bin/compiled_agent_default_row_probe.rs";
 pub const COMPILED_AGENT_DEFAULT_ROW_LIVE_REPORT_PATH: &str = "fixtures/compiled_agent/compiled_agent_default_row_live_report_20260328_archlinux_qwen35_9b.json";
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum CompiledAgentRoute {
     ProviderStatus,
@@ -65,11 +67,13 @@ impl Default for CompiledAgentRuntimeState {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct CompiledAgentModuleRevisionSet {
     pub revision_id: String,
     pub provider_route_keywords: Vec<String>,
     pub wallet_route_keywords: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub route_model_artifact: Option<CompiledAgentRouteModelArtifact>,
     pub negation_keywords: Vec<String>,
     pub unsupported_route_keywords: Vec<String>,
     pub include_provider_blockers: bool,
@@ -159,6 +163,7 @@ pub fn compiled_agent_baseline_revision_set() -> CompiledAgentModuleRevisionSet 
             String::from("balance"),
             String::from("sats"),
         ],
+        route_model_artifact: None,
         negation_keywords: Vec::new(),
         unsupported_route_keywords: Vec::new(),
         include_provider_blockers: false,
@@ -204,8 +209,8 @@ pub fn canonical_compiled_agent_default_row_contract() -> CompiledAgentDefaultLe
 #[cfg(test)]
 mod tests {
     use super::{
-        COMPILED_AGENT_DEFAULT_ROW_SCHEMA_VERSION, canonical_compiled_agent_default_row_contract,
-        compiled_agent_baseline_revision_set, compiled_agent_supported_tools,
+        canonical_compiled_agent_default_row_contract, compiled_agent_baseline_revision_set,
+        compiled_agent_supported_tools, COMPILED_AGENT_DEFAULT_ROW_SCHEMA_VERSION,
     };
 
     #[test]
@@ -226,6 +231,7 @@ mod tests {
     #[test]
     fn compiled_agent_baseline_revision_set_is_narrow() {
         let baseline = compiled_agent_baseline_revision_set();
+        assert!(baseline.route_model_artifact.is_none());
         assert!(baseline.negation_keywords.is_empty());
         assert!(baseline.unsupported_route_keywords.is_empty());
         assert!(!baseline.include_provider_blockers);

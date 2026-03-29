@@ -17,7 +17,7 @@ This first cycle stays deliberately narrow:
 
 Route candidate:
 
-- `compiled_agent.route.rule_v2.negation_guard`
+- `compiled_agent.route.multinomial_nb_v1`
 
 Grounded-answer candidate:
 
@@ -30,16 +30,28 @@ Grounded-answer candidate:
 
 ## Canonical Fixtures
 
+- `fixtures/compiled_agent/compiled_agent_route_model_v1.json`
 - `fixtures/compiled_agent/compiled_agent_route_candidate_module_eval_report_v1.json`
 - `fixtures/compiled_agent/compiled_agent_grounded_candidate_module_eval_report_v1.json`
 - `fixtures/compiled_agent/compiled_agent_xtrain_cycle_receipt_v1.json`
 
 ## Current Truth
 
+- route candidate is now a replay-trained route model artifact, not a hand-authored keyword guard
 - route candidate clears the retained negated-route false-positive case
 - grounded-answer candidate keeps the module eval surface non-regressing
 - grounded-answer candidate improves replay fidelity on the wallet answer by
   including recent earnings from the receipt-backed facts
+
+## Scope Boundary
+
+This makes the training loop more real, but it does not silently claim runtime
+promotion in `openagents`.
+
+- `psionic` now trains and retains a route-model artifact from the replay bundle
+- validator-gated XTRAIN evaluates that artifact as the route candidate
+- runtime adoption into the compiled-agent authority lane remains a separate
+  promotion step
 
 ## Entry Point
 

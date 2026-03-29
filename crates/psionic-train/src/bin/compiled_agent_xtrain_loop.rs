@@ -1,12 +1,15 @@
 use psionic_train::{
     compiled_agent_grounded_candidate_report_fixture_path,
     compiled_agent_route_candidate_report_fixture_path,
+    compiled_agent_route_model_artifact_fixture_path,
     compiled_agent_xtrain_cycle_receipt_fixture_path,
     write_compiled_agent_grounded_candidate_report, write_compiled_agent_route_candidate_report,
-    write_compiled_agent_xtrain_cycle_receipt,
+    write_compiled_agent_route_model_artifact, write_compiled_agent_xtrain_cycle_receipt,
 };
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let route_model_path = compiled_agent_route_model_artifact_fixture_path();
+    let route_model = write_compiled_agent_route_model_artifact(&route_model_path)?;
     let route_path = compiled_agent_route_candidate_report_fixture_path();
     let route_report = write_compiled_agent_route_candidate_report(&route_path)?;
     let grounded_path = compiled_agent_grounded_candidate_report_fixture_path();
@@ -14,6 +17,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cycle_path = compiled_agent_xtrain_cycle_receipt_fixture_path();
     let cycle = write_compiled_agent_xtrain_cycle_receipt(&cycle_path)?;
 
+    println!(
+        "wrote route model artifact={} digest={}",
+        route_model_path.display(),
+        route_model.artifact_digest
+    );
     println!(
         "wrote route candidate module eval report={} digest={}",
         route_path.display(),

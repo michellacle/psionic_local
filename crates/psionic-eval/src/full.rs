@@ -18,6 +18,8 @@ mod attnres_training;
 mod compiled_agent_eval;
 #[path = "compiled_agent_module_eval.rs"]
 mod compiled_agent_module_eval;
+#[path = "compiled_agent_route_model.rs"]
+mod compiled_agent_route_model;
 #[path = "parameter_golf_benchmark.rs"]
 mod parameter_golf_benchmark;
 #[path = "parameter_golf_distributed.rs"]
@@ -426,6 +428,7 @@ pub use attnres::*;
 pub use attnres_training::*;
 pub use compiled_agent_eval::*;
 pub use compiled_agent_module_eval::*;
+pub use compiled_agent_route_model::*;
 pub use parameter_golf_benchmark::*;
 pub use parameter_golf_distributed::*;
 pub use parameter_golf_promotion::*;

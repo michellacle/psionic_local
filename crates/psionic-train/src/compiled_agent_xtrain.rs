@@ -4,10 +4,11 @@ use std::{
 };
 
 use psionic_eval::{
-    CompiledAgentModuleEvalReport, CompiledAgentModuleKind, CompiledAgentModuleRevisionSet,
-    CompiledAgentPublicOutcomeKind, CompiledAgentRoute, CompiledAgentToolResult,
     build_compiled_agent_module_eval_report, compiled_agent_baseline_revision_set,
     evaluate_compiled_agent_grounded_answer, evaluate_compiled_agent_route,
+    train_compiled_agent_route_model, CompiledAgentModuleEvalReport, CompiledAgentModuleKind,
+    CompiledAgentModuleRevisionSet, CompiledAgentPublicOutcomeKind, CompiledAgentRoute,
+    CompiledAgentRouteModelArtifact, CompiledAgentRouteTrainingSample, CompiledAgentToolResult,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -15,10 +16,12 @@ use sha2::{Digest, Sha256};
 use thiserror::Error;
 
 use crate::{
-    CompiledAgentReceiptError, CompiledAgentReplayBundle, canonical_compiled_agent_replay_bundle,
-    repo_relative_path,
+    canonical_compiled_agent_replay_bundle, repo_relative_path, CompiledAgentReceiptError,
+    CompiledAgentReplayBundle,
 };
 
+pub const COMPILED_AGENT_ROUTE_MODEL_ARTIFACT_FIXTURE_PATH: &str =
+    "fixtures/compiled_agent/compiled_agent_route_model_v1.json";
 pub const COMPILED_AGENT_ROUTE_CANDIDATE_REPORT_FIXTURE_PATH: &str =
     "fixtures/compiled_agent/compiled_agent_route_candidate_module_eval_report_v1.json";
 pub const COMPILED_AGENT_GROUNDED_CANDIDATE_REPORT_FIXTURE_PATH: &str =
@@ -63,6 +66,10 @@ pub struct CompiledAgentCandidateDelta {
     pub base_revision_id: String,
     pub candidate_revision_id: String,
     pub replay_bundle_digest: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub candidate_artifact_ref: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub candidate_artifact_digest: Option<String>,
     pub targeted_failure_classes: Vec<String>,
     pub delta_summary: String,
 }
@@ -103,6 +110,11 @@ pub struct CompiledAgentXtrainCycleReceipt {
 }
 
 #[must_use]
+pub fn compiled_agent_route_model_artifact_fixture_path() -> PathBuf {
+    repo_relative_path(COMPILED_AGENT_ROUTE_MODEL_ARTIFACT_FIXTURE_PATH)
+}
+
+#[must_use]
 pub fn compiled_agent_route_candidate_report_fixture_path() -> PathBuf {
     repo_relative_path(COMPILED_AGENT_ROUTE_CANDIDATE_REPORT_FIXTURE_PATH)
 }
@@ -117,21 +129,47 @@ pub fn compiled_agent_xtrain_cycle_receipt_fixture_path() -> PathBuf {
     repo_relative_path(COMPILED_AGENT_XTRAIN_CYCLE_RECEIPT_FIXTURE_PATH)
 }
 
-#[must_use]
-pub fn compiled_agent_route_candidate_revision() -> CompiledAgentModuleRevisionSet {
+pub fn canonical_compiled_agent_route_model_artifact(
+) -> Result<CompiledAgentRouteModelArtifact, CompiledAgentXtrainError> {
+    let replay_bundle = canonical_compiled_agent_replay_bundle()?;
+    let route_samples = replay_bundle
+        .samples
+        .iter()
+        .filter(|sample| sample.module == CompiledAgentModuleKind::Route)
+        .map(|sample| {
+            Ok(CompiledAgentRouteTrainingSample {
+                sample_id: sample.sample_id.clone(),
+                user_request: sample
+                    .input
+                    .get("user_request")
+                    .and_then(Value::as_str)
+                    .ok_or_else(|| CompiledAgentXtrainError::MissingRoutePrompt {
+                        sample_id: sample.sample_id.clone(),
+                    })?
+                    .to_string(),
+                expected_route: parse_route(
+                    sample.expected_output.get("route"),
+                    sample.sample_id.as_str(),
+                )?,
+                tags: sample.tags.clone(),
+            })
+        })
+        .collect::<Result<Vec<_>, CompiledAgentXtrainError>>()?;
+    Ok(train_compiled_agent_route_model(
+        "compiled_agent.route.multinomial_nb_v1",
+        "compiled_agent.qwen35_9b_q4km.archlinux.consumer_gpu.v1",
+        replay_bundle.bundle_digest,
+        &route_samples,
+    ))
+}
+
+pub fn compiled_agent_route_candidate_revision(
+) -> Result<CompiledAgentModuleRevisionSet, CompiledAgentXtrainError> {
     let mut candidate = compiled_agent_baseline_revision_set();
-    candidate.revision_id = String::from("compiled_agent.route.rule_v2.negation_guard");
-    candidate.negation_keywords = vec![
-        String::from("not"),
-        String::from("dont"),
-        String::from("don't"),
-    ];
-    candidate.unsupported_route_keywords = vec![
-        String::from("poem"),
-        String::from("gpu"),
-        String::from("gpus"),
-    ];
-    candidate
+    let route_model_artifact = canonical_compiled_agent_route_model_artifact()?;
+    candidate.revision_id = route_model_artifact.artifact_id.clone();
+    candidate.route_model_artifact = Some(route_model_artifact);
+    Ok(candidate)
 }
 
 #[must_use]
@@ -142,9 +180,11 @@ pub fn compiled_agent_grounded_candidate_revision() -> CompiledAgentModuleRevisi
     candidate
 }
 
-#[must_use]
-pub fn canonical_compiled_agent_route_candidate_report() -> CompiledAgentModuleEvalReport {
-    build_compiled_agent_module_eval_report(&compiled_agent_route_candidate_revision())
+pub fn canonical_compiled_agent_route_candidate_report(
+) -> Result<CompiledAgentModuleEvalReport, CompiledAgentXtrainError> {
+    Ok(build_compiled_agent_module_eval_report(
+        &compiled_agent_route_candidate_revision()?,
+    ))
 }
 
 #[must_use]
@@ -152,12 +192,12 @@ pub fn canonical_compiled_agent_grounded_candidate_report() -> CompiledAgentModu
     build_compiled_agent_module_eval_report(&compiled_agent_grounded_candidate_revision())
 }
 
-pub fn canonical_compiled_agent_xtrain_cycle_receipt()
--> Result<CompiledAgentXtrainCycleReceipt, CompiledAgentXtrainError> {
+pub fn canonical_compiled_agent_xtrain_cycle_receipt(
+) -> Result<CompiledAgentXtrainCycleReceipt, CompiledAgentXtrainError> {
     let baseline = compiled_agent_baseline_revision_set();
     let replay_bundle = canonical_compiled_agent_replay_bundle()?;
     let baseline_report = build_compiled_agent_module_eval_report(&baseline);
-    let route_candidate = compiled_agent_route_candidate_revision();
+    let route_candidate = compiled_agent_route_candidate_revision()?;
     let route_candidate_report = build_compiled_agent_module_eval_report(&route_candidate);
     let grounded_candidate = compiled_agent_grounded_candidate_revision();
     let grounded_candidate_report = build_compiled_agent_module_eval_report(&grounded_candidate);
@@ -203,8 +243,29 @@ pub fn write_compiled_agent_route_candidate_report(
 ) -> Result<CompiledAgentModuleEvalReport, CompiledAgentXtrainError> {
     write_report(
         output_path,
-        &canonical_compiled_agent_route_candidate_report(),
+        &canonical_compiled_agent_route_candidate_report()?,
     )
+}
+
+pub fn write_compiled_agent_route_model_artifact(
+    output_path: impl AsRef<Path>,
+) -> Result<CompiledAgentRouteModelArtifact, CompiledAgentXtrainError> {
+    let output_path = output_path.as_ref();
+    if let Some(parent) = output_path.parent() {
+        fs::create_dir_all(parent).map_err(|error| CompiledAgentXtrainError::CreateDir {
+            path: parent.display().to_string(),
+            error,
+        })?;
+    }
+    let artifact = canonical_compiled_agent_route_model_artifact()?;
+    let json = serde_json::to_string_pretty(&artifact)?;
+    fs::write(output_path, format!("{json}\n")).map_err(|error| {
+        CompiledAgentXtrainError::Write {
+            path: output_path.display().to_string(),
+            error,
+        }
+    })?;
+    Ok(artifact)
 }
 
 pub fn write_compiled_agent_grounded_candidate_report(
@@ -238,7 +299,27 @@ pub fn write_compiled_agent_xtrain_cycle_receipt(
 }
 
 pub fn verify_compiled_agent_xtrain_fixtures() -> Result<(), CompiledAgentXtrainError> {
-    let expected_route = canonical_compiled_agent_route_candidate_report();
+    let expected_route_model = canonical_compiled_agent_route_model_artifact()?;
+    let committed_route_model: CompiledAgentRouteModelArtifact = serde_json::from_slice(
+        &fs::read(compiled_agent_route_model_artifact_fixture_path()).map_err(|error| {
+            CompiledAgentXtrainError::Read {
+                path: compiled_agent_route_model_artifact_fixture_path()
+                    .display()
+                    .to_string(),
+                error,
+            }
+        })?,
+    )?;
+    if committed_route_model != expected_route_model {
+        return Err(CompiledAgentXtrainError::Read {
+            path: compiled_agent_route_model_artifact_fixture_path()
+                .display()
+                .to_string(),
+            error: std::io::Error::other("route model artifact drift"),
+        });
+    }
+
+    let expected_route = canonical_compiled_agent_route_candidate_report()?;
     let committed_route: CompiledAgentModuleEvalReport = serde_json::from_slice(
         &fs::read(compiled_agent_route_candidate_report_fixture_path()).map_err(|error| {
             CompiledAgentXtrainError::Read {
@@ -325,12 +406,13 @@ fn build_route_outcome(
     };
     let reason = match decision {
         CompiledAgentPromotionDecision::Promote => String::from(
-            "Candidate fixes the retained negated-route false positive with no module-eval or replay regressions.",
+            "Trained route candidate fixes the retained negated-route false positive with no module-eval or replay regressions.",
         ),
         CompiledAgentPromotionDecision::Hold => String::from(
             "Candidate did not clear the route validator gate cleanly enough to promote.",
         ),
     };
+    let route_model_artifact = candidate_revision.route_model_artifact.as_ref();
     Ok(CompiledAgentXtrainModuleOutcome {
         module: CompiledAgentModuleKind::Route,
         decision,
@@ -340,9 +422,14 @@ fn build_route_outcome(
             base_revision_id: baseline_revision.revision_id.clone(),
             candidate_revision_id: candidate_revision.revision_id.clone(),
             replay_bundle_digest: replay_bundle.bundle_digest.clone(),
+            candidate_artifact_ref: route_model_artifact.map(|_| {
+                String::from(COMPILED_AGENT_ROUTE_MODEL_ARTIFACT_FIXTURE_PATH)
+            }),
+            candidate_artifact_digest: route_model_artifact
+                .map(|artifact| artifact.artifact_digest.clone()),
             targeted_failure_classes: vec![String::from("negated_route_false_positive")],
             delta_summary: String::from(
-                "Adds a bounded negation plus unsupported-context guard so `do not ... wallet balance ... poem` no longer routes to the wallet lane.",
+                "Trains a multinomial Naive Bayes route model from replay-backed route samples so the negated wallet correction becomes a learned unsupported classification instead of a hand-authored keyword patch.",
             ),
         },
         validation,
@@ -389,6 +476,8 @@ fn build_grounded_answer_outcome(
             base_revision_id: baseline_revision.revision_id.clone(),
             candidate_revision_id: candidate_revision.revision_id.clone(),
             replay_bundle_digest: replay_bundle.bundle_digest.clone(),
+            candidate_artifact_ref: None,
+            candidate_artifact_digest: None,
             targeted_failure_classes: vec![String::from("grounded_answer_mismatch")],
             delta_summary: String::from(
                 "Extends the bounded wallet grounding template to include recent earnings when that fact is present in the receipt-backed tool result.",

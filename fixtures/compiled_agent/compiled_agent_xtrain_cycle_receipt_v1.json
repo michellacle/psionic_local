@@ -7,16 +7,18 @@
   "route_outcome": {
     "module": "route",
     "decision": "promote",
-    "reason": "Candidate fixes the retained negated-route false positive with no module-eval or replay regressions.",
+    "reason": "Trained route candidate fixes the retained negated-route false positive with no module-eval or replay regressions.",
     "delta": {
       "module": "route",
       "base_revision_id": "compiled_agent.baseline.rule_v1",
-      "candidate_revision_id": "compiled_agent.route.rule_v2.negation_guard",
+      "candidate_revision_id": "compiled_agent.route.multinomial_nb_v1",
       "replay_bundle_digest": "db026842e0f48fd8a37b018981c9f67b5ba43f9c68f288918199dc181ee1d5ed",
+      "candidate_artifact_ref": "fixtures/compiled_agent/compiled_agent_route_model_v1.json",
+      "candidate_artifact_digest": "5e6b51ca8914cf5a9a6d1467e8dbd3d3c5124b7aaf086f2dff638b209fb572b1",
       "targeted_failure_classes": [
         "negated_route_false_positive"
       ],
-      "delta_summary": "Adds a bounded negation plus unsupported-context guard so `do not ... wallet balance ... poem` no longer routes to the wallet lane."
+      "delta_summary": "Trains a multinomial Naive Bayes route model from replay-backed route samples so the negated wallet correction becomes a learned unsupported classification instead of a hand-authored keyword patch."
     },
     "validation": {
       "module": "route",
@@ -63,5 +65,5 @@
     }
   },
   "summary": "Compiled-agent XTRAIN cycle retained route decision=Promote and grounded_answer decision=Promote on replay bundle db026842e0f48fd8a37b018981c9f67b5ba43f9c68f288918199dc181ee1d5ed.",
-  "receipt_digest": "648967fd87ed8be5e86730c6863059afd626be3c3c0379801859c838fc0345de"
+  "receipt_digest": "3035f015476259c3a6404c216f39cab2ccb5626b0db5d56a68fc1b4fb53537c0"
 }

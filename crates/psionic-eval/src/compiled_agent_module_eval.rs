@@ -7,12 +7,13 @@ use std::{
 #[cfg(test)]
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 
 use crate::{
+    compiled_agent_baseline_revision_set, compiled_agent_supported_tools,
     CompiledAgentModuleRevisionSet, CompiledAgentRoute, CompiledAgentToolCall,
-    CompiledAgentToolResult, compiled_agent_baseline_revision_set, compiled_agent_supported_tools,
+    CompiledAgentToolResult,
 };
 
 const REPORT_SCHEMA_VERSION: u16 = 1;
@@ -697,6 +698,9 @@ pub fn evaluate_compiled_agent_route(
     prompt: &str,
     revision: &CompiledAgentModuleRevisionSet,
 ) -> CompiledAgentRoute {
+    if let Some(route_model_artifact) = revision.route_model_artifact.as_ref() {
+        return crate::predict_compiled_agent_route(route_model_artifact, prompt).route;
+    }
     let tokens = normalized_tokens(prompt);
     let asks_provider = contains_any(&tokens, &revision.provider_route_keywords);
     let asks_wallet = contains_any(&tokens, &revision.wallet_route_keywords);
@@ -971,8 +975,8 @@ fn stable_digest<T: Serialize>(prefix: &[u8], value: &T) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        CompiledAgentModuleKind, canonical_compiled_agent_module_eval_report,
-        compiled_agent_module_eval_report_path, load_compiled_agent_module_eval_report,
+        canonical_compiled_agent_module_eval_report, compiled_agent_module_eval_report_path,
+        load_compiled_agent_module_eval_report, CompiledAgentModuleKind,
     };
 
     #[test]
