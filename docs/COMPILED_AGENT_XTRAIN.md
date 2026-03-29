@@ -38,6 +38,8 @@ Grounded-answer candidate:
 - `fixtures/compiled_agent/compiled_agent_grounded_candidate_module_eval_report_v1.json`
 - `fixtures/compiled_agent/compiled_agent_xtrain_cycle_receipt_v1.json`
 - `fixtures/compiled_agent/compiled_agent_promoted_artifact_contract_v1.json`
+- `fixtures/compiled_agent/compiled_agent_decentralized_roles_contract_v1.json`
+- `fixtures/compiled_agent/compiled_agent_decentralized_role_receipts_v1.json`
 
 ## Current Truth
 
@@ -54,6 +56,8 @@ Grounded-answer candidate:
   artifact fixture instead of rebuilding a numerically drifted copy
 - promoted and candidate module authority is now exported through a retained
   runtime-consumable artifact contract instead of only being implied by docs
+- the first pre-network decentralized improvement roles are now typed retained
+  contracts and receipts rather than roadmap-only nouns
 
 ## Latest Retained Outcome
 

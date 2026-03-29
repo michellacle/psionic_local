@@ -38,6 +38,7 @@ mod attnres;
 mod benchmarking;
 mod checkpoint_recovery;
 mod compiled_agent_artifact_contract;
+mod compiled_agent_decentralized_roles;
 mod compiled_agent_learning;
 mod compiled_agent_receipts;
 mod compiled_agent_xtrain;
@@ -248,6 +249,7 @@ pub use attnres::*;
 pub use benchmarking::*;
 pub use checkpoint_recovery::*;
 pub use compiled_agent_artifact_contract::*;
+pub use compiled_agent_decentralized_roles::*;
 pub use compiled_agent_learning::*;
 pub use compiled_agent_receipts::*;
 pub use compiled_agent_xtrain::*;
@@ -1316,8 +1318,8 @@ mod tests {
     }
 
     #[test]
-    fn observe_membership_advances_epoch_only_when_truth_changes()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn observe_membership_advances_epoch_only_when_truth_changes(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let stable = cluster_state(&[
             ("worker-a", ClusterMembershipStatus::Ready),
             ("worker-b", ClusterMembershipStatus::Ready),
@@ -1347,8 +1349,8 @@ mod tests {
     }
 
     #[test]
-    fn live_recovery_plan_exposes_recovery_and_late_join_semantics()
-    -> Result<(), Box<dyn std::error::Error>> {
+    fn live_recovery_plan_exposes_recovery_and_late_join_semantics(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let state = cluster_state(&[
             ("worker-a", ClusterMembershipStatus::Ready),
             ("worker-b", ClusterMembershipStatus::Ready),
@@ -1391,18 +1393,15 @@ mod tests {
             plan.recovery_context.late_joiner_node_ids,
             vec![String::from("worker-c")]
         );
-        assert!(
-            plan.actions
-                .contains(&TrainingRecoveryAction::ResumeFromDurableCheckpoint)
-        );
-        assert!(
-            plan.actions
-                .contains(&TrainingRecoveryAction::StageCheckpointForLateJoiners)
-        );
-        assert!(
-            plan.actions
-                .contains(&TrainingRecoveryAction::RebalanceWorldSize)
-        );
+        assert!(plan
+            .actions
+            .contains(&TrainingRecoveryAction::ResumeFromDurableCheckpoint));
+        assert!(plan
+            .actions
+            .contains(&TrainingRecoveryAction::StageCheckpointForLateJoiners));
+        assert!(plan
+            .actions
+            .contains(&TrainingRecoveryAction::RebalanceWorldSize));
         assert_eq!(plan.checkpoint_streams.len(), 1);
         assert!(!plan.plan_digest.is_empty());
         Ok(())

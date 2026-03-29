@@ -1,0 +1,89 @@
+{
+  "schema_version": "psionic.compiled_agent.decentralized_role_receipts.v1",
+  "contract_digest": "6c6c24c47170e925cae77ee6079ffcb96a45c682c01b392a6c9a7b4071a3f4c0",
+  "receipts": [
+    {
+      "role": "replay_generation",
+      "receipt_id": "compiled_agent.role_receipt.replay_generation.v1",
+      "status": "accepted_after_human_review",
+      "input_refs": [
+        "fixtures/compiled_agent/compiled_agent_learning_receipts_v1.json"
+      ],
+      "output_refs": [
+        "fixtures/compiled_agent/compiled_agent_replay_bundle_v1.json"
+      ],
+      "emitted_ids": [
+        "sample.route.receipt.compiled_agent.learning.openagents_negated_wallet_receipt_v1",
+        "sample.grounded_answer.receipt.compiled_agent.learning.openagents_wallet_recent_earnings_receipt_v1",
+        "bundle.compiled_agent_replay_bundle_v1"
+      ],
+      "next_consumer": "compiled_agent.role.bounded_module_training.v1",
+      "detail": "The retained replay-generation reference path starts from the governed learning ledger and emits replay rows that already feed the current route and grounded training jobs."
+    },
+    {
+      "role": "ranking_labeling",
+      "receipt_id": "compiled_agent.role_receipt.ranking_labeling.v1",
+      "status": "accepted_after_human_review",
+      "input_refs": [
+        "fixtures/compiled_agent/compiled_agent_learning_receipts_v1.json",
+        "fixtures/compiled_agent/compiled_agent_replay_bundle_v1.json"
+      ],
+      "output_refs": [
+        "fixtures/compiled_agent/compiled_agent_learning_receipts_v1.json",
+        "fixtures/compiled_agent/compiled_agent_replay_bundle_v1.json"
+      ],
+      "emitted_ids": [
+        "openagents_negated_wallet_receipt_v1",
+        "openagents_ambiguous_provider_wallet_receipt_v1",
+        "openagents_wallet_earnings_phrase_heldout_receipt_v1"
+      ],
+      "next_consumer": "compiled_agent.role.replay_generation.v1",
+      "detail": "The retained ranking-and-labeling reference path keeps corpus placement and acceptance decisions explicitly human-reviewed before they enter replay or held-out truth."
+    },
+    {
+      "role": "validator_scoring",
+      "receipt_id": "compiled_agent.role_receipt.validator_scoring.v1",
+      "status": "accepted_after_validator_gate",
+      "input_refs": [
+        "fixtures/compiled_agent/compiled_agent_route_model_v1.json",
+        "fixtures/compiled_agent/compiled_agent_grounded_answer_model_v1.json",
+        "fixtures/compiled_agent/compiled_agent_route_candidate_module_eval_report_v1.json",
+        "fixtures/compiled_agent/compiled_agent_grounded_candidate_module_eval_report_v1.json",
+        "fixtures/compiled_agent/compiled_agent_xtrain_cycle_receipt_v1.json"
+      ],
+      "output_refs": [
+        "fixtures/compiled_agent/compiled_agent_xtrain_cycle_receipt_v1.json",
+        "fixtures/compiled_agent/compiled_agent_promoted_artifact_contract_v1.json"
+      ],
+      "emitted_ids": [
+        "compiled_agent.route.multinomial_nb_v1.validation",
+        "compiled_agent.grounded_answer.multinomial_nb_v1.validation",
+        "compiled_agent.xtrain.cycle.v1"
+      ],
+      "next_consumer": "compiled_agent_runtime_authority",
+      "detail": "The retained validator-scoring reference path is the first governed promotion surface. It ends in the XTRAIN receipt and the promoted-artifact contract, not in silent runtime mutation."
+    },
+    {
+      "role": "bounded_module_training",
+      "receipt_id": "compiled_agent.role_receipt.bounded_module_training.v1",
+      "status": "queued_for_validator_scoring",
+      "input_refs": [
+        "fixtures/compiled_agent/compiled_agent_default_row_v1.json",
+        "fixtures/compiled_agent/compiled_agent_learning_receipts_v1.json",
+        "fixtures/compiled_agent/compiled_agent_replay_bundle_v1.json"
+      ],
+      "output_refs": [
+        "fixtures/compiled_agent/compiled_agent_route_model_v1.json",
+        "fixtures/compiled_agent/compiled_agent_grounded_answer_model_v1.json"
+      ],
+      "emitted_ids": [
+        "compiled_agent.route.multinomial_nb_v1",
+        "compiled_agent.grounded_answer.multinomial_nb_v1"
+      ],
+      "next_consumer": "compiled_agent.role.validator_scoring.v1",
+      "detail": "The retained bounded-module-training reference path produces candidate artifacts only. Validator scoring still decides whether those candidates can move runtime authority."
+    }
+  ],
+  "summary": "Compiled-agent decentralized role receipts retain 4 governed pre-network roles tied back to contract 6c6c24c47170e925cae77ee6079ffcb96a45c682c01b392a6c9a7b4071a3f4c0.",
+  "receipts_digest": "30ece0cf4e6b0b6e2b8e7b7254180abb49988de6e95dc964b385fa311bf10b55"
+}

@@ -1,0 +1,410 @@
+{
+  "schema_version": "psionic.compiled_agent.decentralized_roles_contract.v1",
+  "contract_id": "compiled_agent.decentralized_roles.contract.v1",
+  "source_artifacts": [
+    {
+      "artifact_ref": "fixtures/compiled_agent/compiled_agent_learning_receipts_v1.json",
+      "schema_version": "psionic.compiled_agent.learning_receipts.v1",
+      "digest_field": "ledger_digest",
+      "artifact_digest": "d6d9066e1cfef58d199aa5ea3e97a7e211623366779d2250d47fe2c0a7eacad3",
+      "detail": "Canonical compiled-agent learning ledger retained from normalized runtime receipts."
+    },
+    {
+      "artifact_ref": "fixtures/compiled_agent/compiled_agent_replay_bundle_v1.json",
+      "schema_version": "psionic.compiled_agent.replay_bundle.v1",
+      "digest_field": "bundle_digest",
+      "artifact_digest": "ba512235bf016ff3c30283b8b6052bfc13cbc9c07fa8f4d5a3a6d0b60174e8c9",
+      "detail": "Canonical replay bundle emitted from the retained compiled-agent learning ledger."
+    },
+    {
+      "artifact_ref": "fixtures/compiled_agent/compiled_agent_default_row_v1.json",
+      "schema_version": "psionic.compiled_agent_default_row.v1",
+      "identity_field": "row_id",
+      "identity_value": "compiled_agent.qwen35_9b_q4km.archlinux.consumer_gpu.v1",
+      "detail": "Locked default learned row for the first compiled-agent target lane."
+    },
+    {
+      "artifact_ref": "fixtures/compiled_agent/compiled_agent_route_model_v1.json",
+      "schema_version": "psionic.compiled_agent.route_model.v1",
+      "digest_field": "artifact_digest",
+      "artifact_digest": "445fb8f77ca203d81476c935165b0c95f31ea4f6a85285872e6e0692268f5e22",
+      "identity_field": "artifact_id",
+      "identity_value": "compiled_agent.route.multinomial_nb_v1",
+      "detail": "Retained replay-trained route artifact consumed by validator scoring and runtime authority."
+    },
+    {
+      "artifact_ref": "fixtures/compiled_agent/compiled_agent_grounded_answer_model_v1.json",
+      "schema_version": "psionic.compiled_agent.grounded_answer_model.v1",
+      "digest_field": "artifact_digest",
+      "artifact_digest": "250dfa2deff1b02216195a3c40a4ff7865cf3b45e2f339d8c1f9679b47a0388b",
+      "identity_field": "artifact_id",
+      "identity_value": "compiled_agent.grounded_answer.multinomial_nb_v1",
+      "detail": "Retained replay-trained grounded-answer artifact consumed by validator scoring and runtime authority."
+    },
+    {
+      "artifact_ref": "fixtures/compiled_agent/compiled_agent_route_candidate_module_eval_report_v1.json",
+      "schema_version": "1",
+      "digest_field": "report_digest",
+      "artifact_digest": "6c65df7603094c4b420897129f400d29abc61e02f722b3667cd793ba4a8e24ac",
+      "detail": "Independent route candidate module-eval surface for validator scoring."
+    },
+    {
+      "artifact_ref": "fixtures/compiled_agent/compiled_agent_grounded_candidate_module_eval_report_v1.json",
+      "schema_version": "1",
+      "digest_field": "report_digest",
+      "artifact_digest": "1d58b51b4549d5609711c8f9e045cd7a404c4b3d47001245176c323a03f6d7b1",
+      "detail": "Independent grounded-answer candidate module-eval surface for validator scoring."
+    },
+    {
+      "artifact_ref": "fixtures/compiled_agent/compiled_agent_xtrain_cycle_receipt_v1.json",
+      "schema_version": "psionic.compiled_agent.xtrain_cycle.v1",
+      "digest_field": "receipt_digest",
+      "artifact_digest": "86ccff25b4322285d41fcd4f45710cc6a9c19137ec9ad968c09496ef9c13fbaa",
+      "identity_field": "cycle_id",
+      "identity_value": "compiled_agent.xtrain.cycle.v1",
+      "detail": "Canonical bounded XTRAIN cycle receipt for the current route and grounded candidates."
+    },
+    {
+      "artifact_ref": "fixtures/compiled_agent/compiled_agent_promoted_artifact_contract_v1.json",
+      "schema_version": "psionic.compiled_agent.promoted_artifact_contract.v1",
+      "digest_field": "contract_digest",
+      "artifact_digest": "2fc2ce379ff944d169cce10630d80606d5a6885657e88532d450fd45be38db28",
+      "identity_field": "schema_version",
+      "identity_value": "psionic.compiled_agent.promoted_artifact_contract.v1",
+      "detail": "Runtime-consumable promoted-artifact contract retained after validator gating."
+    }
+  ],
+  "roles": [
+    {
+      "role": "replay_generation",
+      "role_id": "compiled_agent.role.replay_generation.v1",
+      "purpose": "Normalize accepted compiled-agent learning receipts into bounded replay samples for route and grounded-answer training.",
+      "input_manifest": {
+        "manifest_id": "compiled_agent.replay_generation.input.v1",
+        "required_artifacts": [
+          {
+            "artifact_ref": "fixtures/compiled_agent/compiled_agent_learning_receipts_v1.json",
+            "schema_version": "psionic.compiled_agent.learning_receipts.v1",
+            "digest_field": "ledger_digest",
+            "artifact_digest": "d6d9066e1cfef58d199aa5ea3e97a7e211623366779d2250d47fe2c0a7eacad3",
+            "detail": "Canonical compiled-agent learning ledger retained from normalized runtime receipts."
+          }
+        ],
+        "expected_fields": [
+          "receipt_id",
+          "expected_route",
+          "expected_public_response",
+          "failure_classes",
+          "corpus_split"
+        ],
+        "detail": "Replay generation starts from governed learning receipts only. It does not scrape arbitrary logs or create unlabeled rows outside the compiled-agent receipt schema."
+      },
+      "output_manifest": {
+        "manifest_id": "compiled_agent.replay_generation.output.v1",
+        "required_artifacts": [
+          {
+            "artifact_ref": "fixtures/compiled_agent/compiled_agent_replay_bundle_v1.json",
+            "schema_version": "psionic.compiled_agent.replay_bundle.v1",
+            "digest_field": "bundle_digest",
+            "artifact_digest": "ba512235bf016ff3c30283b8b6052bfc13cbc9c07fa8f4d5a3a6d0b60174e8c9",
+            "detail": "Canonical replay bundle emitted from the retained compiled-agent learning ledger."
+          }
+        ],
+        "expected_fields": [
+          "sample_id",
+          "module",
+          "input",
+          "expected_output",
+          "tags",
+          "bundle_digest"
+        ],
+        "detail": "Replay generation emits replay rows that can feed bounded route and grounded-answer training directly."
+      },
+      "receipt_schema_version": "psionic.compiled_agent.decentralized_role_receipts.v1",
+      "local_reference_path": {
+        "command": "cargo run -q -p psionic-train --bin compiled_agent_decentralized_roles -- --role replay_generation",
+        "bin_path": "crates/psionic-train/src/bin/compiled_agent_decentralized_roles.rs",
+        "role_selector": "replay_generation",
+        "retained_output_refs": [
+          "fixtures/compiled_agent/compiled_agent_replay_bundle_v1.json"
+        ],
+        "detail": "Writes the canonical compiled-agent replay bundle from the retained learning ledger."
+      },
+      "review_boundary": "human_review_required",
+      "validator_gate": "Replay bundle digest and sample lineage must stay aligned with the retained learning ledger before rows can enter training.",
+      "claim_boundary": "This role proposes replay rows only. It does not promote candidates or bypass the receipt review path.",
+      "detail": "This is the first decentralized role because replay generation is the narrowest way to turn usage into governed training material."
+    },
+    {
+      "role": "ranking_labeling",
+      "role_id": "compiled_agent.role.ranking_labeling.v1",
+      "purpose": "Curate receipt-backed route and grounded-answer labels before they are admitted into replay or held-out validator sets.",
+      "input_manifest": {
+        "manifest_id": "compiled_agent.ranking_labeling.input.v1",
+        "required_artifacts": [
+          {
+            "artifact_ref": "fixtures/compiled_agent/compiled_agent_learning_receipts_v1.json",
+            "schema_version": "psionic.compiled_agent.learning_receipts.v1",
+            "digest_field": "ledger_digest",
+            "artifact_digest": "d6d9066e1cfef58d199aa5ea3e97a7e211623366779d2250d47fe2c0a7eacad3",
+            "detail": "Canonical compiled-agent learning ledger retained from normalized runtime receipts."
+          },
+          {
+            "artifact_ref": "fixtures/compiled_agent/compiled_agent_replay_bundle_v1.json",
+            "schema_version": "psionic.compiled_agent.replay_bundle.v1",
+            "digest_field": "bundle_digest",
+            "artifact_digest": "ba512235bf016ff3c30283b8b6052bfc13cbc9c07fa8f4d5a3a6d0b60174e8c9",
+            "detail": "Canonical replay bundle emitted from the retained compiled-agent learning ledger."
+          }
+        ],
+        "expected_fields": [
+          "receipt_id",
+          "operator_note",
+          "failure_classes",
+          "sample_id",
+          "tags"
+        ],
+        "detail": "Ranking and labeling only touches retained receipts and replay rows that already exist inside the narrow compiled-agent scope."
+      },
+      "output_manifest": {
+        "manifest_id": "compiled_agent.ranking_labeling.output.v1",
+        "required_artifacts": [
+          {
+            "artifact_ref": "fixtures/compiled_agent/compiled_agent_learning_receipts_v1.json",
+            "schema_version": "psionic.compiled_agent.learning_receipts.v1",
+            "digest_field": "ledger_digest",
+            "artifact_digest": "d6d9066e1cfef58d199aa5ea3e97a7e211623366779d2250d47fe2c0a7eacad3",
+            "detail": "Canonical compiled-agent learning ledger retained from normalized runtime receipts."
+          },
+          {
+            "artifact_ref": "fixtures/compiled_agent/compiled_agent_replay_bundle_v1.json",
+            "schema_version": "psionic.compiled_agent.replay_bundle.v1",
+            "digest_field": "bundle_digest",
+            "artifact_digest": "ba512235bf016ff3c30283b8b6052bfc13cbc9c07fa8f4d5a3a6d0b60174e8c9",
+            "detail": "Canonical replay bundle emitted from the retained compiled-agent learning ledger."
+          }
+        ],
+        "expected_fields": [
+          "accepted_label",
+          "corpus_split",
+          "review_decision",
+          "curation_note"
+        ],
+        "detail": "Ranking and labeling emits curated receipt decisions that feed later replay generation and held-out scoring without claiming autonomous labeling authority."
+      },
+      "receipt_schema_version": "psionic.compiled_agent.decentralized_role_receipts.v1",
+      "local_reference_path": {
+        "command": "cargo run -q -p psionic-train --bin compiled_agent_decentralized_roles -- --role ranking_labeling",
+        "bin_path": "crates/psionic-train/src/bin/compiled_agent_decentralized_roles.rs",
+        "role_selector": "ranking_labeling",
+        "retained_output_refs": [
+          "fixtures/compiled_agent/compiled_agent_learning_receipts_v1.json",
+          "fixtures/compiled_agent/compiled_agent_replay_bundle_v1.json"
+        ],
+        "detail": "Prints the retained ranking-and-labeling role definition and receipt against the current learning ledger and replay bundle."
+      },
+      "review_boundary": "human_review_required",
+      "validator_gate": "Human acceptance still decides whether a label becomes training data, held-out truth, or a rejected proposal.",
+      "claim_boundary": "This role curates narrow labels and corpus placement only. It does not autonomously widen tasks or invent new reward surfaces.",
+      "detail": "This role keeps the first decentralized human-in-the-loop curation surface explicit instead of hiding it in ad hoc notebook work."
+    },
+    {
+      "role": "validator_scoring",
+      "role_id": "compiled_agent.role.validator_scoring.v1",
+      "purpose": "Score bounded candidate modules against replay, held-out rows, and independent module eval surfaces before promotion.",
+      "input_manifest": {
+        "manifest_id": "compiled_agent.validator_scoring.input.v1",
+        "required_artifacts": [
+          {
+            "artifact_ref": "fixtures/compiled_agent/compiled_agent_route_model_v1.json",
+            "schema_version": "psionic.compiled_agent.route_model.v1",
+            "digest_field": "artifact_digest",
+            "artifact_digest": "445fb8f77ca203d81476c935165b0c95f31ea4f6a85285872e6e0692268f5e22",
+            "identity_field": "artifact_id",
+            "identity_value": "compiled_agent.route.multinomial_nb_v1",
+            "detail": "Retained replay-trained route artifact consumed by validator scoring and runtime authority."
+          },
+          {
+            "artifact_ref": "fixtures/compiled_agent/compiled_agent_grounded_answer_model_v1.json",
+            "schema_version": "psionic.compiled_agent.grounded_answer_model.v1",
+            "digest_field": "artifact_digest",
+            "artifact_digest": "250dfa2deff1b02216195a3c40a4ff7865cf3b45e2f339d8c1f9679b47a0388b",
+            "identity_field": "artifact_id",
+            "identity_value": "compiled_agent.grounded_answer.multinomial_nb_v1",
+            "detail": "Retained replay-trained grounded-answer artifact consumed by validator scoring and runtime authority."
+          },
+          {
+            "artifact_ref": "fixtures/compiled_agent/compiled_agent_route_candidate_module_eval_report_v1.json",
+            "schema_version": "1",
+            "digest_field": "report_digest",
+            "artifact_digest": "6c65df7603094c4b420897129f400d29abc61e02f722b3667cd793ba4a8e24ac",
+            "detail": "Independent route candidate module-eval surface for validator scoring."
+          },
+          {
+            "artifact_ref": "fixtures/compiled_agent/compiled_agent_grounded_candidate_module_eval_report_v1.json",
+            "schema_version": "1",
+            "digest_field": "report_digest",
+            "artifact_digest": "1d58b51b4549d5609711c8f9e045cd7a404c4b3d47001245176c323a03f6d7b1",
+            "detail": "Independent grounded-answer candidate module-eval surface for validator scoring."
+          },
+          {
+            "artifact_ref": "fixtures/compiled_agent/compiled_agent_xtrain_cycle_receipt_v1.json",
+            "schema_version": "psionic.compiled_agent.xtrain_cycle.v1",
+            "digest_field": "receipt_digest",
+            "artifact_digest": "86ccff25b4322285d41fcd4f45710cc6a9c19137ec9ad968c09496ef9c13fbaa",
+            "identity_field": "cycle_id",
+            "identity_value": "compiled_agent.xtrain.cycle.v1",
+            "detail": "Canonical bounded XTRAIN cycle receipt for the current route and grounded candidates."
+          }
+        ],
+        "expected_fields": [
+          "artifact_digest",
+          "candidate_revision_id",
+          "report_digest",
+          "baseline_passed_cases",
+          "candidate_passed_cases"
+        ],
+        "detail": "Validator scoring stays bounded to explicit candidate artifacts and independent validator surfaces. It does not freehand product judgments."
+      },
+      "output_manifest": {
+        "manifest_id": "compiled_agent.validator_scoring.output.v1",
+        "required_artifacts": [
+          {
+            "artifact_ref": "fixtures/compiled_agent/compiled_agent_xtrain_cycle_receipt_v1.json",
+            "schema_version": "psionic.compiled_agent.xtrain_cycle.v1",
+            "digest_field": "receipt_digest",
+            "artifact_digest": "86ccff25b4322285d41fcd4f45710cc6a9c19137ec9ad968c09496ef9c13fbaa",
+            "identity_field": "cycle_id",
+            "identity_value": "compiled_agent.xtrain.cycle.v1",
+            "detail": "Canonical bounded XTRAIN cycle receipt for the current route and grounded candidates."
+          },
+          {
+            "artifact_ref": "fixtures/compiled_agent/compiled_agent_promoted_artifact_contract_v1.json",
+            "schema_version": "psionic.compiled_agent.promoted_artifact_contract.v1",
+            "digest_field": "contract_digest",
+            "artifact_digest": "2fc2ce379ff944d169cce10630d80606d5a6885657e88532d450fd45be38db28",
+            "identity_field": "schema_version",
+            "identity_value": "psionic.compiled_agent.promoted_artifact_contract.v1",
+            "detail": "Runtime-consumable promoted-artifact contract retained after validator gating."
+          }
+        ],
+        "expected_fields": [
+          "decision",
+          "improvement_case_ids",
+          "heldout_match_count",
+          "contract_digest"
+        ],
+        "detail": "Validator scoring emits bounded promote-or-hold outcomes and the runtime-consumable promoted-artifact contract."
+      },
+      "receipt_schema_version": "psionic.compiled_agent.decentralized_role_receipts.v1",
+      "local_reference_path": {
+        "command": "cargo run -q -p psionic-train --bin compiled_agent_decentralized_roles -- --role validator_scoring",
+        "bin_path": "crates/psionic-train/src/bin/compiled_agent_decentralized_roles.rs",
+        "role_selector": "validator_scoring",
+        "retained_output_refs": [
+          "fixtures/compiled_agent/compiled_agent_route_candidate_module_eval_report_v1.json",
+          "fixtures/compiled_agent/compiled_agent_grounded_candidate_module_eval_report_v1.json",
+          "fixtures/compiled_agent/compiled_agent_xtrain_cycle_receipt_v1.json",
+          "fixtures/compiled_agent/compiled_agent_promoted_artifact_contract_v1.json"
+        ],
+        "detail": "Prints the retained validator-scoring role definition and receipt against the current candidate reports, XTRAIN receipt, and promoted contract."
+      },
+      "review_boundary": "validator_gate_required",
+      "validator_gate": "Independent module eval plus held-out replay scoring must stay non-regressing before promotion can move runtime authority.",
+      "claim_boundary": "This role scores bounded candidates only. It does not skip rollback authority or widen into open-ended swarm promotion.",
+      "detail": "This role is the first place decentralized work can influence promotion, but only through explicit validator-scored receipts."
+    },
+    {
+      "role": "bounded_module_training",
+      "role_id": "compiled_agent.role.bounded_module_training.v1",
+      "purpose": "Train narrow compiled-agent candidate modules from curated replay on the locked default learned row.",
+      "input_manifest": {
+        "manifest_id": "compiled_agent.bounded_module_training.input.v1",
+        "required_artifacts": [
+          {
+            "artifact_ref": "fixtures/compiled_agent/compiled_agent_default_row_v1.json",
+            "schema_version": "psionic.compiled_agent_default_row.v1",
+            "identity_field": "row_id",
+            "identity_value": "compiled_agent.qwen35_9b_q4km.archlinux.consumer_gpu.v1",
+            "detail": "Locked default learned row for the first compiled-agent target lane."
+          },
+          {
+            "artifact_ref": "fixtures/compiled_agent/compiled_agent_learning_receipts_v1.json",
+            "schema_version": "psionic.compiled_agent.learning_receipts.v1",
+            "digest_field": "ledger_digest",
+            "artifact_digest": "d6d9066e1cfef58d199aa5ea3e97a7e211623366779d2250d47fe2c0a7eacad3",
+            "detail": "Canonical compiled-agent learning ledger retained from normalized runtime receipts."
+          },
+          {
+            "artifact_ref": "fixtures/compiled_agent/compiled_agent_replay_bundle_v1.json",
+            "schema_version": "psionic.compiled_agent.replay_bundle.v1",
+            "digest_field": "bundle_digest",
+            "artifact_digest": "ba512235bf016ff3c30283b8b6052bfc13cbc9c07fa8f4d5a3a6d0b60174e8c9",
+            "detail": "Canonical replay bundle emitted from the retained compiled-agent learning ledger."
+          }
+        ],
+        "expected_fields": [
+          "row_id",
+          "replay_bundle_digest",
+          "sample_id",
+          "module",
+          "expected_output"
+        ],
+        "detail": "Bounded module training is locked to the current default learned row and the retained replay bundle. It does not claim arbitrary base-model mutation."
+      },
+      "output_manifest": {
+        "manifest_id": "compiled_agent.bounded_module_training.output.v1",
+        "required_artifacts": [
+          {
+            "artifact_ref": "fixtures/compiled_agent/compiled_agent_route_model_v1.json",
+            "schema_version": "psionic.compiled_agent.route_model.v1",
+            "digest_field": "artifact_digest",
+            "artifact_digest": "445fb8f77ca203d81476c935165b0c95f31ea4f6a85285872e6e0692268f5e22",
+            "identity_field": "artifact_id",
+            "identity_value": "compiled_agent.route.multinomial_nb_v1",
+            "detail": "Retained replay-trained route artifact consumed by validator scoring and runtime authority."
+          },
+          {
+            "artifact_ref": "fixtures/compiled_agent/compiled_agent_grounded_answer_model_v1.json",
+            "schema_version": "psionic.compiled_agent.grounded_answer_model.v1",
+            "digest_field": "artifact_digest",
+            "artifact_digest": "250dfa2deff1b02216195a3c40a4ff7865cf3b45e2f339d8c1f9679b47a0388b",
+            "identity_field": "artifact_id",
+            "identity_value": "compiled_agent.grounded_answer.multinomial_nb_v1",
+            "detail": "Retained replay-trained grounded-answer artifact consumed by validator scoring and runtime authority."
+          }
+        ],
+        "expected_fields": [
+          "artifact_id",
+          "artifact_digest",
+          "training_accuracy",
+          "heldout_accuracy"
+        ],
+        "detail": "Bounded module training emits replay-trained candidate artifacts that feed validator scoring and later promotion gates."
+      },
+      "receipt_schema_version": "psionic.compiled_agent.decentralized_role_receipts.v1",
+      "local_reference_path": {
+        "command": "cargo run -q -p psionic-train --bin compiled_agent_decentralized_roles -- --role bounded_module_training",
+        "bin_path": "crates/psionic-train/src/bin/compiled_agent_decentralized_roles.rs",
+        "role_selector": "bounded_module_training",
+        "retained_output_refs": [
+          "fixtures/compiled_agent/compiled_agent_route_model_v1.json",
+          "fixtures/compiled_agent/compiled_agent_grounded_answer_model_v1.json"
+        ],
+        "detail": "Prints the retained bounded-module-training role definition and receipt against the current route and grounded model artifacts."
+      },
+      "review_boundary": "validator_gate_required",
+      "validator_gate": "Candidate artifacts remain queued for validator scoring until replay, held-out, and independent-module gates are rechecked.",
+      "claim_boundary": "This role trains narrow module artifacts only. It does not rewrite the full runtime or bypass promotion review.",
+      "detail": "This role is the first bounded decentralized training surface because it maps cleanly onto the current route and grounded modules."
+    }
+  ],
+  "authority_paths": {
+    "contract_fixture_path": "fixtures/compiled_agent/compiled_agent_decentralized_roles_contract_v1.json",
+    "receipts_fixture_path": "fixtures/compiled_agent/compiled_agent_decentralized_role_receipts_v1.json",
+    "bin_path": "crates/psionic-train/src/bin/compiled_agent_decentralized_roles.rs",
+    "doc_path": "docs/COMPILED_AGENT_DECENTRALIZED_ROLES.md"
+  },
+  "claim_boundary": "These are pre-network governed compiled-agent improvement roles only. They operate on retained receipts, replay bundles, validator reports, and bounded candidate artifacts. They do not claim broad autonomous worker behavior, public incentives, or validator-free promotion.",
+  "contract_digest": "6c6c24c47170e925cae77ee6079ffcb96a45c682c01b392a6c9a7b4071a3f4c0"
+}
