@@ -186,6 +186,15 @@ than just run tensor math.
   `110.68 tok/s` against Ollama `337.91`, `206.37`, `144.43`, `96.55 tok/s`
   while keeping the same bounded-candidate output mode and row-strength
   classifications.
+- Later the same day, changing the partitioned one-row top-k block shape from
+  `128 threads x 16 items` to `256 threads x 8 items` produced the next full
+  sampled rerun on the idle RTX 4080 host at
+  `fixtures/qwen35/benchmarks/qwen35_ollama_matrix_20260329_011606_archlinux-.json`.
+  That rerun kept clean `sampled_topk40` effectively flat at `518.74`,
+  `256.25`, `181.13`, `110.75 tok/s` while raising `sampled_topk100` to
+  `513.06`, `253.55`, `179.74`, `109.98 tok/s` against Ollama `322.06`,
+  `205.61`, `144.73`, `97.59 tok/s`, with the same bounded-candidate output
+  mode and row-strength classifications.
 - The fresh clean-host March 28, 2026 rerun on the same RTX 4080 changes the
   canonical interpretation:
   - raw greedy `tok/s` is higher on Psionic across all four models, and

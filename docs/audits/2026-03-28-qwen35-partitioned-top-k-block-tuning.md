@@ -666,6 +666,76 @@ What this means:
   - `qwen35_output_modes=[top_k_candidates:40]`
   - `qwen35_raw_logits=false`
 
+## Later Follow-On: `256 x 8` Block Shape Kept Clean `top_k = 40` Flat And Lifted `top_k = 100`
+
+The next partitioned-lane pass tested a different tradeoff inside the same
+tile width:
+
+- old shape: `128 threads x 16 items`
+- new shape: `256 threads x 8 items`
+- tile width stays `2048` logits per block pass in both cases
+
+The direct idle-host gates were enough to keep this candidate alive:
+
+- clean `sampled_topk40` direct pilots improved slightly on `2b`, `4b`, and
+  `9b`
+- clean `sampled_topk100` direct pilots stayed flat-to-up across the same
+  host
+- there was no obvious bounded-candidate regression or fallback to
+  `raw_logits`
+
+The landed code change was:
+
+- commit `856e2176` `Adjust qwen35 top-k partitioned block shape`
+
+The exact-commit full sampled rerun on the idle RTX 4080 host was:
+
+- `fixtures/qwen35/benchmarks/qwen35_ollama_matrix_20260329_011606_archlinux-.json`
+- `fixtures/qwen35/benchmarks/reports/qwen35_ollama_matrix_20260329_011606_archlinux-/one_page_summary.md`
+
+Scope:
+
+- models `qwen3.5:0.8b`, `qwen3.5:2b`, `qwen3.5:4b`, `qwen3.5:9b`
+- contracts `sampled_topk40` and `sampled_topk100`
+- `repeats = 3`
+- idle RTX 4080 host with the row-by-row isolation runner
+
+### `sampled_topk40` deltas vs `20260329_004540`
+
+| Model | Prior Psionic | New Psionic | Delta | Ollama |
+| --- | ---: | ---: | ---: | ---: |
+| `qwen3.5:0.8b` | `519.35` | `518.74` | `-0.12%` | `338.97` |
+| `qwen3.5:2b` | `256.03` | `256.25` | `+0.09%` | `206.22` |
+| `qwen3.5:4b` | `180.99` | `181.13` | `+0.08%` | `144.45` |
+| `qwen3.5:9b` | `110.68` | `110.75` | `+0.06%` | `96.60` |
+
+Interpretation:
+
+- this keeps the clean `top_k = 40` contract effectively flat overall
+- `0.8b` gives back a negligible amount, while the larger models move up
+  slightly
+- the row-strength classifications stay unchanged
+- bounded-candidate output stays intact:
+  - `qwen35_output_modes=[top_k_candidates:40]`
+  - `qwen35_raw_logits=false`
+
+### `sampled_topk100` deltas vs `20260328_210428`
+
+| Model | Prior Psionic | New Psionic | Delta | Ollama |
+| --- | ---: | ---: | ---: | ---: |
+| `qwen3.5:0.8b` | `501.50` | `513.06` | `+2.31%` | `322.06` |
+| `qwen3.5:2b` | `250.76` | `253.55` | `+1.11%` | `205.61` |
+| `qwen3.5:4b` | `178.31` | `179.74` | `+0.80%` | `144.73` |
+| `qwen3.5:9b` | `109.42` | `109.98` | `+0.51%` | `97.59` |
+
+Interpretation:
+
+- the newer block shape is worth keeping because it lifts the wider sampled
+  lane on all four models
+- the earlier top-k tile-width and small-lane block-count gains still hold
+- the new shape did not weaken the clean `top_k = 40` evidence enough to
+  outweigh the wider-lane gain
+
 ## Updated Next Steps
 
 - keep using the row-by-row isolation runner so future qwen35 tuning passes
@@ -676,10 +746,11 @@ What this means:
   noise-level deltas
 - stop spending time on non-partitioned `top_k = 40` crossover tuning on this
   host; that path is decisively slower
-- stop spending time on partitioned micro-cleanups that only reduce kernel
-  count without changing end-to-end memory traffic or synchronization
+- stop spending time on partitioned launch-shape nudges that only reshuffle
+  the same `2048`-logit tile width by tiny amounts unless a later host shows a
+  clearly different optimum
 - focus the next optimization pass inside the partitioned bounded-candidate
   lane where it can plausibly reduce actual sampled-step cost further:
-  larger wide-lane `top_k = 100` tuning, more kernel-shape exploration inside
-  the partitioned scan itself, or broader step fusion around the
-  bounded-candidate output path
+  larger structural changes inside the partitioned scan itself, better
+  bounded-candidate output handling around the wider lane, or broader step
+  fusion around the bounded-candidate output path
