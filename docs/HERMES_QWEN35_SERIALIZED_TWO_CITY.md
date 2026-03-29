@@ -43,6 +43,23 @@ scripts/release/check-psionic-hermes-qwen35-serialized-two-city.sh
 
 - `fixtures/qwen35/hermes/hermes_qwen35_serialized_two_city_report_20260328_archlinux_2b.json`
 
+## Retained Revisions
+
+- Psionic revision:
+  `e1a27665c63f4b7a085795415699ab7f168c4d2d`
+- Hermes revision:
+  `e295a2215acd55f2ee930fc7a4cd2df1c5464234`
+- Host:
+  `archlinux`
+
+## Current Retained Result
+
+- `overall_pass = true`
+- tool-call sequence:
+  `get_paris_weather`, `get_tokyo_weather`
+- exact final controller output:
+  `Paris is sunny at 18C. Tokyo is rainy at 12C.`
+
 ## Fixed Contract
 
 The retained row keeps the following fixed:
@@ -75,7 +92,8 @@ This row passes only if:
 - Hermes calls `get_paris_weather` exactly once
 - Hermes later calls `get_tokyo_weather` exactly once
 - both tool result turns are present and mapped back to the correct tool names
-- the final assistant answer mentions both Paris and Tokyo
+- the final no-tool synthesis output is exactly
+  `Paris is sunny at 18C. Tokyo is rainy at 12C.`
 
 ## Why This Matters
 

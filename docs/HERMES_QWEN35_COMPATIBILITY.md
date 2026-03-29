@@ -176,6 +176,9 @@ audit posture implied:
 - the repo now also has a separate retained serialized two-city proof on one
   consumer GPU, which shows the practical Hermes lane is broader than the
   still-red strict same-turn parallel case
+- that serialized one-consumer-GPU proof is retained on pushed `e1a27665` for
+  the local `2b` row and closes with the exact final output
+  `Paris is sunny at 18C. Tokyo is rainy at 12C.`
 - the repo now also has one retained Psionic-versus-Ollama Hermes benchmark on
   the local `2b` row
 - the repo now also has one retained exact-pushed qwen35 fast-path proof for
