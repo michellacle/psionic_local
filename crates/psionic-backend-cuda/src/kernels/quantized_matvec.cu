@@ -10,8 +10,8 @@
 namespace {
 
 constexpr int kBlockSize = 256;
-constexpr int kLogitsTopKBlockSize = 128;
-constexpr int kLogitsTopKItemsPerThread = 16;
+constexpr int kLogitsTopKBlockSize = 256;
+constexpr int kLogitsTopKItemsPerThread = 8;
 constexpr int kLogitsTopKTileSize = kLogitsTopKBlockSize * kLogitsTopKItemsPerThread;
 constexpr int kAttentionBlockSize = 256;
 constexpr int kMatvecBlockSize = 128;
