@@ -115,6 +115,9 @@ The later bounded fast-path-versus-fallback proof now lives in
 The later repeated-loop prefix-cache proof now lives in
 `docs/HERMES_QWEN35_REUSE_BENCHMARK.md`.
 
+The serialized two-city consumer-GPU follow-up now lives in
+`docs/HERMES_QWEN35_SERIALIZED_TWO_CITY.md`.
+
 ## What The Proof Actually Shows
 
 The retained reports prove the following source-level compatibility work is now
@@ -170,6 +173,9 @@ audit posture implied:
 - source and retained receipts now prove `5/6` Hermes compatibility on exact
   pushed Psionic for local qwen35 rows
 - the remaining blocker is sharply bounded to same-turn parallel tool calling
+- the repo now also has a separate retained serialized two-city proof on one
+  consumer GPU, which shows the practical Hermes lane is broader than the
+  still-red strict same-turn parallel case
 - the repo now also has one retained Psionic-versus-Ollama Hermes benchmark on
   the local `2b` row
 - the repo now also has one retained exact-pushed qwen35 fast-path proof for
