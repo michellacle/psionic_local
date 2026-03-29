@@ -8,21 +8,27 @@ This document records the retained same-host Hermes backend benchmark for local
 `qwen35`, keeping Hermes fixed and swapping only the OpenAI-compatible backend
 endpoint and backend-specific model identifier.
 
-The repo now retains two benchmark receipts:
+The repo now retains three benchmark receipts:
 
 - the first Psionic-vs-Ollama benchmark at
   `473c0ad5bd5219cbcb7f76495d8166933242b872`
 - the optional three-way follow-on at
   `477ca8226589a5b1760ed93c47b87041f08172ab`
+- the serialized two-city extension at
+  `20260329_archlinux_2b_serialized`
 
 The later receipt is the canonical answer for the optional `llama.cpp`
 comparator issue because it preserves the same benchmark contract and records
 the third lane honestly even when that lane is unavailable on the current host.
 
+The latest serialized receipt is the canonical answer for the consumer-GPU
+two-city Hermes path because it adds the overlooked serialized workflow and
+retains the Psionic-vs-Ollama split honestly.
+
 ## Exact Revisions
 
 - Psionic revision:
-  `477ca8226589a5b1760ed93c47b87041f08172ab`
+  `e1a27665c63f4b7a085795415699ab7f168c4d2d`
 - Hermes revision:
   `e295a2215acd55f2ee930fc7a4cd2df1c5464234`
 - Host:
@@ -69,6 +75,23 @@ PSIONIC_HERMES_BENCHMARK_RAW_DIR=/home/christopherdavid/scratch/psionic-hermes-b
 scripts/release/run-hermes-backend-benchmark.sh
 ```
 
+The exact retained serialized rerun used:
+
+```bash
+TMPDIR=/home/christopherdavid/scratch/tmp/hermes-bench-serialized \
+PSIONIC_HERMES_SKIP_BUILD=1 \
+PSIONIC_HERMES_ROOT=/home/christopherdavid/scratch/hermes-agent-proof2 \
+PSIONIC_HERMES_PYTHON=/home/christopherdavid/scratch/hermes-min/.venv/bin/python \
+PSIONIC_HERMES_SERVER_BIN=/home/christopherdavid/.cache/psionic-hermes-target/debug/psionic-openai-server \
+PSIONIC_HERMES_PSIONIC_MODEL_PATH=/home/christopherdavid/models/qwen3.5/qwen3.5-2b-q8_0-registry.gguf \
+PSIONIC_HERMES_OLLAMA_MODEL=qwen3.5:2b \
+PSIONIC_HERMES_REQUEST_TIMEOUT_SECONDS=60 \
+PSIONIC_HERMES_BENCHMARK_REPORT_PATH=/home/christopherdavid/scratch/psionic-hermes-664/fixtures/qwen35/hermes/hermes_psionic_vs_ollama_benchmark_20260329_archlinux_2b_serialized.json \
+PSIONIC_HERMES_BENCHMARK_RAW_DIR=/home/christopherdavid/scratch/psionic-hermes-664/fixtures/qwen35/hermes/backend_rows \
+PSIONIC_HERMES_SERVER_LOG_PATH=/home/christopherdavid/scratch/logs/hermes_backend_benchmark_20260329_archlinux_2b_serialized.log \
+scripts/release/run-hermes-backend-benchmark.sh
+```
+
 ## Fixed Contract
 
 This benchmark keeps the following fixed:
@@ -97,26 +120,75 @@ What changed between rows:
   `fixtures/qwen35/hermes/hermes_psionic_vs_ollama_benchmark_20260328_archlinux_2b.json`
 - three-way aggregate:
   `fixtures/qwen35/hermes/hermes_psionic_vs_ollama_vs_llamacpp_benchmark_20260328_archlinux_2b.json`
+- serialized two-way aggregate:
+  `fixtures/qwen35/hermes/hermes_psionic_vs_ollama_benchmark_20260329_archlinux_2b_serialized.json`
 - three-way Psionic row:
   `fixtures/qwen35/hermes/backend_rows/hermes_psionic_row_20260328_archlinux_2b_llamacpp_comparator.json`
 - three-way Ollama row:
   `fixtures/qwen35/hermes/backend_rows/hermes_ollama_row_20260328_archlinux_2b_llamacpp_comparator.json`
+- serialized Psionic row:
+  `fixtures/qwen35/hermes/backend_rows/hermes_psionic_row_20260329_archlinux_2b_serialized.json`
+- serialized Ollama row:
+  `fixtures/qwen35/hermes/backend_rows/hermes_ollama_row_20260329_archlinux_2b_serialized.json`
 - three-way `llama.cpp` row:
   `fixtures/qwen35/hermes/backend_rows/hermes_llama_cpp_row_20260328_archlinux_2b.json`
 
 ## Cases
 
-The retained benchmark uses four Hermes cases:
+The retained benchmark now uses five Hermes cases:
 
 - `auto_plain_text_turn`
 - `required_tool_turn`
 - `multi_turn_tool_loop`
 - `streamed_tool_turn`
+- `serialized_two_city_tool_loop`
 
-Psionic and Ollama both passed all four retained cases on the exact
-`477ca822` rerun.
+Psionic and Ollama both passed the original four retained cases on the exact
+`477ca822` rerun. The later serialized receipt extends that same-host contract
+with the overlooked consumer-GPU two-city lane.
 
-## Current Same-Host Result
+## Serialized Two-City Extension
+
+The serialized receipt adds the consumer-GPU workflow that matters for Hermes
+operability on one local GPU:
+
+- Hermes must call `get_paris_weather`
+- then Hermes must call `get_tokyo_weather`
+- then the harness asks the same backend for the exact final sentence
+- the direct summary closeout is bounded with
+  `PSIONIC_HERMES_REQUEST_TIMEOUT_SECONDS=60`
+
+This bound matters because the earlier benchmark extension could hang forever on
+the Ollama side and fail to emit any aggregate report. The repo-owned probe now
+records that timeout as a retained failure detail instead of stalling the whole
+benchmark.
+
+Serialized result on `archlinux` `RTX 4080`:
+
+| Case | Psionic | Ollama | Honest Result |
+| --- | ---: | ---: | --- |
+| `serialized_two_city_tool_loop` | `pass`, `5.0134s` | `fail`, `63.2206s` | Psionic completes the full serialized path; Ollama completes the tool loop but times out in the bounded direct summary phase |
+
+Per-row serialized summary:
+
+- Psionic:
+  - `overall_pass = true`
+  - `passing_case_count = 5/5`
+  - `mean_case_wallclock_s = 2.9890`
+  - serialized direct-summary `completion_tok_s = 39.4327`
+- Ollama:
+  - `overall_pass = false`
+  - `passing_case_count = 4/5`
+  - `mean_case_wallclock_s = 13.9439`
+  - serialized failure detail:
+    `summary_phase.error_type = TimeoutError`
+    `summary_phase.error_message = timed out`
+    after `60.0631s`
+
+That retained difference is the point of the issue: keeping Hermes fixed and
+swapping only the backend now makes the serialized consumer-GPU gap explicit.
+
+## Four-Case Baseline Result
 
 | Case | Psionic wallclock s | Ollama wallclock s | llama.cpp | Faster |
 | --- | ---: | ---: | --- | --- |
@@ -125,7 +197,7 @@ Psionic and Ollama both passed all four retained cases on the exact
 | `multi_turn_tool_loop` | `3.1403` | `1.7067` | `startup_failure` | `ollama` |
 | `streamed_tool_turn` | `2.9973` | `1.7697` | `startup_failure` | `ollama` |
 
-Per-row summary:
+Per-row baseline summary:
 
 - Psionic:
   - `overall_pass = true`
@@ -142,7 +214,7 @@ Per-row summary:
   - `row_status = startup_failure`
   - `failure_detail = llama.cpp server failed readiness check on 127.0.0.1:8098`
 
-Availability probe on this same host:
+Baseline availability probe on this same host:
 
 - Psionic readiness probe:
   `0.8806s`
@@ -199,6 +271,18 @@ for this `qwen3.5` lane. It shows:
 That is enough to close the optional comparator issue honestly. The repo no
 longer has a silent third-lane gap or a benchmark wrapper that aborts as soon
 as the comparator cannot start.
+
+The newer serialized receipt adds a second important conclusion:
+
+- Psionic is still slower than Ollama on the four older easy same-host Hermes
+  cases
+- but Psionic currently wins the harder consumer-GPU serialized two-city lane
+  because it completes the bounded direct-summary closeout while Ollama times
+  out there
+
+So the current backend truth is not "Ollama simply wins everything locally."
+The retained consumer-GPU serialized path now shows a real task where Psionic
+has the better backend behavior under the same Hermes controller.
 
 ## Current Gaps
 
