@@ -23,6 +23,11 @@ Grounded-answer candidate:
 
 - `compiled_agent.grounded_answer.multinomial_nb_v1`
 
+Stronger bounded families under comparison:
+
+- `compiled_agent.route.tfidf_centroid_v1`
+- `compiled_agent.grounded_answer.tfidf_centroid_v1`
+
 ## Validator Inputs
 
 - independent module eval surface from `crates/psionic-eval/src/compiled_agent_module_eval.rs`
@@ -54,6 +59,11 @@ learned compiled-agent slice actually proved.
 - `fixtures/compiled_agent/compiled_agent_grounded_answer_model_v1.json`
 - `fixtures/compiled_agent/compiled_agent_route_candidate_module_eval_report_v1.json`
 - `fixtures/compiled_agent/compiled_agent_grounded_candidate_module_eval_report_v1.json`
+- `fixtures/compiled_agent/compiled_agent_route_tfidf_centroid_model_v1.json`
+- `fixtures/compiled_agent/compiled_agent_grounded_answer_tfidf_centroid_model_v1.json`
+- `fixtures/compiled_agent/compiled_agent_route_tfidf_centroid_candidate_module_eval_report_v1.json`
+- `fixtures/compiled_agent/compiled_agent_grounded_tfidf_centroid_candidate_module_eval_report_v1.json`
+- `fixtures/compiled_agent/compiled_agent_stronger_candidate_family_report_v1.json`
 - `fixtures/compiled_agent/compiled_agent_xtrain_cycle_receipt_v1.json`
 - `fixtures/compiled_agent/compiled_agent_promoted_artifact_contract_v1.json`
 - `fixtures/compiled_agent/compiled_agent_confidence_policy_v1.json`
@@ -93,6 +103,11 @@ learned compiled-agent slice actually proved.
   runtime-consumable artifact contract instead of only being implied by docs
 - the first pre-network decentralized improvement roles are typed retained
   contracts and receipts rather than roadmap-only nouns
+- stronger bounded candidate families can now be evaluated against the same
+  route and grounded-answer contracts without changing the runtime interface
+- the retained stronger-family report now keeps the incumbent NB candidates on
+  both modules because the TF-IDF centroid family only tied the widened eval,
+  replay, and held-out surfaces
 
 ## Latest Retained Outcome
 
@@ -106,6 +121,12 @@ learned compiled-agent slice actually proved.
   `0ef312a77e31e683ddd40225acc69be01ed74c428d8049bad8c9c8550c568d1f`
 - grounded-answer model digest:
   `1bcac89576e47ae4a1174a00077db3a389213ed2998bbafb5b76b199ea92839f`
+- stronger route model digest:
+  `bfacfe8d8cc8a5c8d77fd14fd9cd38018c02b63fcc29e3c74527bacce831e93f`
+- stronger grounded-answer model digest:
+  `8d9269dbba68b6a329c8896163d8b00d1b386b7caf1f4fbc2b79ae9e7d2e1524`
+- stronger candidate family report digest:
+  `19a09dba96ba7e152dea9c2604ce3e106fe98942d1d3064f481ca69aee30aec4`
 - XTRAIN cycle receipt digest:
   `5bcaf4f72761ba90693bed44e926cf7c1e5ca418b0d58bc43dfc7e33076042e6`
 - promoted-artifact contract digest:

@@ -45,6 +45,13 @@ pub struct CompiledAgentGroundedAnswerModelArtifact {
     pub class_feature_log_probs:
         BTreeMap<CompiledAgentGroundedAnswerProgram, BTreeMap<String, f64>>,
     pub class_default_feature_log_probs: BTreeMap<CompiledAgentGroundedAnswerProgram, f64>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub feature_idf_weights: BTreeMap<String, f64>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub program_centroid_weights:
+        BTreeMap<CompiledAgentGroundedAnswerProgram, BTreeMap<String, f64>>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub program_bias_scores: BTreeMap<CompiledAgentGroundedAnswerProgram, f64>,
     pub program_templates: BTreeMap<CompiledAgentGroundedAnswerProgram, String>,
     pub missing_facts_template: String,
     pub conflicting_facts_template: String,
@@ -188,6 +195,9 @@ pub fn train_compiled_agent_grounded_answer_model(
         class_priors_log,
         class_feature_log_probs,
         class_default_feature_log_probs,
+        feature_idf_weights: BTreeMap::new(),
+        program_centroid_weights: BTreeMap::new(),
+        program_bias_scores: BTreeMap::new(),
         program_templates,
         missing_facts_template: String::from("Grounded facts were unavailable."),
         conflicting_facts_template: String::from("Grounded facts were conflicting."),
@@ -200,6 +210,139 @@ pub fn train_compiled_agent_grounded_answer_model(
         heldout_accuracy: 0.0,
         detail: String::from(
             "Trained grounded-answer model over explicit fact signatures only. The model predicts a narrow grounded-answer program from supplied tool facts and falls back on missing or conflicting facts instead of inventing unsupported synthesis.",
+        ),
+        artifact_digest: String::new(),
+    };
+    artifact.training_accuracy = grounded_training_accuracy(&artifact, samples);
+    artifact.heldout_accuracy = grounded_training_accuracy(&artifact, heldout_samples);
+    normalize_grounded_answer_model_artifact(artifact)
+}
+
+#[must_use]
+pub fn train_compiled_agent_grounded_answer_tfidf_centroid_model(
+    artifact_id: impl Into<String>,
+    row_id: impl Into<String>,
+    replay_bundle_digest: impl Into<String>,
+    samples: &[CompiledAgentGroundedAnswerTrainingSample],
+    heldout_samples: &[CompiledAgentGroundedAnswerTrainingSample],
+) -> CompiledAgentGroundedAnswerModelArtifact {
+    let artifact_id = artifact_id.into();
+    let row_id = row_id.into();
+    let replay_bundle_digest = replay_bundle_digest.into();
+
+    let mut vocabulary = BTreeSet::new();
+    let mut document_frequency = BTreeMap::<String, u32>::new();
+    let mut class_counts = BTreeMap::<CompiledAgentGroundedAnswerProgram, u32>::new();
+    let mut centroid_accumulators =
+        BTreeMap::<CompiledAgentGroundedAnswerProgram, BTreeMap<String, f64>>::new();
+    let mut template_votes =
+        BTreeMap::<CompiledAgentGroundedAnswerProgram, BTreeMap<String, u32>>::new();
+
+    let training_feature_counts = samples
+        .iter()
+        .map(|sample| {
+            let program = program_for_training_sample(sample);
+            *class_counts.entry(program).or_default() += 1;
+            let counts = feature_count_map(
+                &grounded_features(sample.route, &sample.tool_results).unwrap_or_default(),
+            );
+            let unique_features = counts.keys().cloned().collect::<BTreeSet<_>>();
+            for feature in unique_features {
+                *document_frequency.entry(feature.clone()).or_default() += 1;
+                vocabulary.insert(feature);
+            }
+            let template = canonicalize_template(
+                sample.route,
+                &sample.tool_results,
+                sample.expected_response.as_str(),
+            );
+            *template_votes
+                .entry(program)
+                .or_default()
+                .entry(template)
+                .or_default() += 1;
+            (program, counts)
+        })
+        .collect::<Vec<_>>();
+
+    let sample_count = samples.len().max(1) as f64;
+    let feature_idf_weights = vocabulary
+        .iter()
+        .map(|feature| {
+            let document_count = f64::from(*document_frequency.get(feature).unwrap_or(&0));
+            (
+                feature.clone(),
+                ((1.0 + sample_count) / (1.0 + document_count)).ln() + 1.0,
+            )
+        })
+        .collect::<BTreeMap<_, _>>();
+
+    for (program, feature_counts) in &training_feature_counts {
+        let normalized = normalized_tfidf_vector(feature_counts, &feature_idf_weights);
+        let centroid = centroid_accumulators.entry(*program).or_default();
+        for (feature, weight) in normalized {
+            *centroid.entry(feature).or_default() += weight;
+        }
+    }
+
+    let mut class_priors_log = BTreeMap::new();
+    let mut program_centroid_weights = BTreeMap::new();
+    let mut program_bias_scores = BTreeMap::new();
+    let mut program_templates = BTreeMap::new();
+    for program in class_counts.keys().copied().collect::<Vec<_>>() {
+        let class_count = f64::from(*class_counts.get(&program).unwrap_or(&0)).max(1.0);
+        class_priors_log.insert(program, (class_count / sample_count).ln());
+        program_bias_scores.insert(program, (class_count / sample_count).ln() * 0.1);
+
+        let mut centroid = centroid_accumulators.remove(&program).unwrap_or_default();
+        for value in centroid.values_mut() {
+            *value /= class_count;
+        }
+        program_centroid_weights.insert(program, normalize_weight_vector(centroid));
+
+        let learned_template = template_votes
+            .get(&program)
+            .and_then(|votes| {
+                votes.iter().max_by(|left, right| {
+                    left.1
+                        .cmp(right.1)
+                        .then_with(|| left.0.cmp(right.0).reverse())
+                })
+            })
+            .map(|(template, _)| template.clone())
+            .unwrap_or_else(|| default_template(program));
+        program_templates.insert(program, learned_template);
+    }
+
+    let mut artifact = CompiledAgentGroundedAnswerModelArtifact {
+        schema_version: String::from(COMPILED_AGENT_GROUNDED_ANSWER_MODEL_SCHEMA_VERSION),
+        artifact_id,
+        row_id,
+        model_family: String::from("tfidf_centroid"),
+        feature_profile: String::from("normalized_tfidf_route_plus_fact_signature"),
+        replay_bundle_digest,
+        training_sample_count: samples.len() as u32,
+        heldout_sample_count: heldout_samples.len() as u32,
+        vocabulary_size: vocabulary.len() as u32,
+        smoothing_alpha: 0.0,
+        class_priors_log,
+        class_feature_log_probs: BTreeMap::new(),
+        class_default_feature_log_probs: BTreeMap::new(),
+        feature_idf_weights,
+        program_centroid_weights,
+        program_bias_scores,
+        program_templates,
+        missing_facts_template: String::from("Grounded facts were unavailable."),
+        conflicting_facts_template: String::from("Grounded facts were conflicting."),
+        source_sample_ids: samples.iter().map(|sample| sample.sample_id.clone()).collect(),
+        heldout_sample_ids: heldout_samples
+            .iter()
+            .map(|sample| sample.sample_id.clone())
+            .collect(),
+        training_accuracy: 0.0,
+        heldout_accuracy: 0.0,
+        detail: String::from(
+            "Trained a length-normalized TF-IDF centroid grounded-answer model over the same strict fact-signature inputs. This tests a stronger bounded candidate family without widening the grounded-answer contract.",
         ),
         artifact_digest: String::new(),
     };
@@ -243,31 +386,11 @@ pub fn predict_compiled_agent_grounded_answer(
     };
 
     let features = grounded_features(route, tool_results).unwrap_or_default();
-    let mut feature_counts = BTreeMap::<String, u32>::new();
-    for feature in &features {
-        *feature_counts.entry(feature.clone()).or_default() += 1;
-    }
-
-    let mut program_scores = BTreeMap::new();
-    for program in artifact.class_priors_log.keys().copied() {
-        let mut score = *artifact
-            .class_priors_log
-            .get(&program)
-            .unwrap_or(&f64::NEG_INFINITY);
-        let default_log_prob = *artifact
-            .class_default_feature_log_probs
-            .get(&program)
-            .unwrap_or(&f64::NEG_INFINITY);
-        let class_feature_log_probs = artifact.class_feature_log_probs.get(&program);
-        for (feature, count) in &feature_counts {
-            let log_prob = class_feature_log_probs
-                .and_then(|weights| weights.get(feature))
-                .copied()
-                .unwrap_or(default_log_prob);
-            score += f64::from(*count) * log_prob;
-        }
-        program_scores.insert(program, score);
-    }
+    let feature_counts = feature_count_map(&features);
+    let program_scores = match artifact.model_family.as_str() {
+        "tfidf_centroid" => grounded_tfidf_scores(artifact, &feature_counts),
+        _ => grounded_multinomial_scores(artifact, &feature_counts),
+    };
 
     let mut ranked = program_scores.iter().collect::<Vec<_>>();
     ranked.sort_by(|left, right| right.1.total_cmp(left.1));
@@ -396,6 +519,92 @@ fn grounded_training_accuracy(
         })
         .count();
     correct as f32 / samples.len() as f32
+}
+
+fn feature_count_map(features: &[String]) -> BTreeMap<String, u32> {
+    let mut feature_counts = BTreeMap::<String, u32>::new();
+    for feature in features {
+        *feature_counts.entry(feature.clone()).or_default() += 1;
+    }
+    feature_counts
+}
+
+fn grounded_multinomial_scores(
+    artifact: &CompiledAgentGroundedAnswerModelArtifact,
+    feature_counts: &BTreeMap<String, u32>,
+) -> BTreeMap<CompiledAgentGroundedAnswerProgram, f64> {
+    let mut program_scores = BTreeMap::new();
+    for program in artifact.class_priors_log.keys().copied() {
+        let mut score = *artifact
+            .class_priors_log
+            .get(&program)
+            .unwrap_or(&f64::NEG_INFINITY);
+        let default_log_prob = *artifact
+            .class_default_feature_log_probs
+            .get(&program)
+            .unwrap_or(&f64::NEG_INFINITY);
+        let class_feature_log_probs = artifact.class_feature_log_probs.get(&program);
+        for (feature, count) in feature_counts {
+            let log_prob = class_feature_log_probs
+                .and_then(|weights| weights.get(feature))
+                .copied()
+                .unwrap_or(default_log_prob);
+            score += f64::from(*count) * log_prob;
+        }
+        program_scores.insert(program, score);
+    }
+    program_scores
+}
+
+fn grounded_tfidf_scores(
+    artifact: &CompiledAgentGroundedAnswerModelArtifact,
+    feature_counts: &BTreeMap<String, u32>,
+) -> BTreeMap<CompiledAgentGroundedAnswerProgram, f64> {
+    let normalized = normalized_tfidf_vector(feature_counts, &artifact.feature_idf_weights);
+    let mut program_scores = BTreeMap::new();
+    for program in artifact.class_priors_log.keys().copied() {
+        let centroid = artifact.program_centroid_weights.get(&program);
+        let similarity = normalized.iter().fold(0.0, |score, (feature, weight)| {
+            score
+                + weight
+                    * centroid
+                        .and_then(|weights| weights.get(feature))
+                        .copied()
+                        .unwrap_or_default()
+        });
+        let bias = artifact
+            .program_bias_scores
+            .get(&program)
+            .copied()
+            .unwrap_or_default();
+        program_scores.insert(program, similarity + bias);
+    }
+    program_scores
+}
+
+fn normalized_tfidf_vector(
+    feature_counts: &BTreeMap<String, u32>,
+    idf_weights: &BTreeMap<String, f64>,
+) -> BTreeMap<String, f64> {
+    let mut weighted = BTreeMap::new();
+    for (feature, count) in feature_counts {
+        let idf = idf_weights.get(feature).copied().unwrap_or(1.0);
+        weighted.insert(feature.clone(), f64::from(*count) * idf);
+    }
+    normalize_weight_vector(weighted)
+}
+
+fn normalize_weight_vector(weights: BTreeMap<String, f64>) -> BTreeMap<String, f64> {
+    let norm = weights
+        .values()
+        .map(|value| value * value)
+        .sum::<f64>()
+        .sqrt()
+        .max(f64::EPSILON);
+    weights
+        .into_iter()
+        .map(|(feature, value)| (feature, value / norm))
+        .collect()
 }
 
 fn grounded_features(
@@ -598,8 +807,10 @@ fn normalize_grounded_answer_model_artifact(
     let mut normalized: CompiledAgentGroundedAnswerModelArtifact =
         serde_json::from_slice(&bytes).unwrap_or(artifact);
     normalized.artifact_digest = String::new();
-    normalized.artifact_digest =
-        stable_digest(b"compiled_agent_grounded_answer_model_artifact|", &normalized);
+    normalized.artifact_digest = stable_digest(
+        b"compiled_agent_grounded_answer_model_artifact|",
+        &normalized,
+    );
     normalized
 }
 
@@ -609,6 +820,7 @@ mod tests {
 
     use super::{
         predict_compiled_agent_grounded_answer, train_compiled_agent_grounded_answer_model,
+        train_compiled_agent_grounded_answer_tfidf_centroid_model,
         CompiledAgentGroundedAnswerTrainingSample,
     };
     use crate::{CompiledAgentPublicOutcomeKind, CompiledAgentRoute, CompiledAgentToolResult};
@@ -744,5 +956,39 @@ mod tests {
             CompiledAgentPublicOutcomeKind::ConfidenceFallback
         );
         assert!(prediction.response.contains("conflicting"));
+    }
+
+    #[test]
+    fn compiled_agent_tfidf_grounded_model_retains_supported_wallet_answer() {
+        let samples = vec![sample(
+            "wallet_recent_earnings",
+            CompiledAgentRoute::WalletStatus,
+            vec![CompiledAgentToolResult {
+                tool_name: String::from("wallet_status"),
+                payload: json!({"balance_sats": 1200, "recent_earnings_sats": 240}),
+            }],
+            CompiledAgentPublicOutcomeKind::GroundedAnswer,
+            "Wallet balance is 1200 sats, with 240 sats of recent earnings.",
+        )];
+        let artifact = train_compiled_agent_grounded_answer_tfidf_centroid_model(
+            "compiled_agent.grounded_answer.tfidf_centroid_v1",
+            "compiled_agent.test_row.v1",
+            "bundle",
+            &samples,
+            &[],
+        );
+        let prediction = predict_compiled_agent_grounded_answer(
+            &artifact,
+            CompiledAgentRoute::WalletStatus,
+            &[CompiledAgentToolResult {
+                tool_name: String::from("wallet_status"),
+                payload: json!({"balance_sats": 1200, "recent_earnings_sats": 240}),
+            }],
+        );
+        assert_eq!(artifact.model_family, "tfidf_centroid");
+        assert_eq!(
+            prediction.response,
+            "Wallet balance is 1200 sats, with 240 sats of recent earnings."
+        );
     }
 }

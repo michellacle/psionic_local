@@ -1,6 +1,6 @@
 # Compiled Agent Grounded-Answer Model
 
-> Status: first replay-trained grounded-answer model, updated 2026-03-29.
+> Status: promoted replay-trained grounded-answer model, updated 2026-03-29.
 
 ## What This Is
 
@@ -28,12 +28,12 @@ and the supplied tool facts only.
 
 ## Current Retained Metrics
 
-- training rows: `12`
-- held-out rows: `6`
+- training rows: `19`
+- held-out rows: `13`
 - training accuracy: `1.0`
-- held-out accuracy: `1.0`
+- held-out accuracy: `0.84615386`
 - artifact digest:
-  `250dfa2deff1b02216195a3c40a4ff7865cf3b45e2f339d8c1f9679b47a0388b`
+  `1bcac89576e47ae4a1174a00077db3a389213ed2998bbafb5b76b199ea92839f`
 
 ## Why This Matters
 
@@ -58,6 +58,17 @@ The independent module eval now includes:
 
 The current grounded candidate report passes all `6/6` grounded-answer eval
 rows.
+
+## Current Validator State
+
+- independent grounded-answer eval: `6/6`
+- replay matches: `19/19`
+- held-out matches: `11/13`
+- decision in the retained XTRAIN cycle: `promote`
+
+The grounded-answer model now clears the missing-facts and conflicting-facts
+fallback rows while improving both replay and held-out grounded fidelity over
+the bounded rule baseline.
 
 ## Entry Point
 

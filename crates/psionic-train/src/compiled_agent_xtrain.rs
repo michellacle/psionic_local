@@ -6,12 +6,13 @@ use std::{
 use psionic_eval::{
     build_compiled_agent_module_eval_report, compiled_agent_baseline_revision_set,
     evaluate_compiled_agent_grounded_answer, evaluate_compiled_agent_route,
-    train_compiled_agent_grounded_answer_model, train_compiled_agent_route_model,
-    CompiledAgentEvidenceClass, CompiledAgentGroundedAnswerModelArtifact,
-    CompiledAgentGroundedAnswerTrainingSample, CompiledAgentModuleEvalReport,
-    CompiledAgentModuleKind, CompiledAgentModuleRevisionSet, CompiledAgentPublicOutcomeKind,
-    CompiledAgentRoute, CompiledAgentRouteModelArtifact, CompiledAgentRouteTrainingSample,
-    CompiledAgentToolResult,
+    train_compiled_agent_grounded_answer_model,
+    train_compiled_agent_grounded_answer_tfidf_centroid_model, train_compiled_agent_route_model,
+    train_compiled_agent_route_tfidf_centroid_model, CompiledAgentEvidenceClass,
+    CompiledAgentGroundedAnswerModelArtifact, CompiledAgentGroundedAnswerTrainingSample,
+    CompiledAgentModuleEvalReport, CompiledAgentModuleKind, CompiledAgentModuleRevisionSet,
+    CompiledAgentPublicOutcomeKind, CompiledAgentRoute, CompiledAgentRouteModelArtifact,
+    CompiledAgentRouteTrainingSample, CompiledAgentToolResult,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -32,6 +33,16 @@ pub const COMPILED_AGENT_ROUTE_CANDIDATE_REPORT_FIXTURE_PATH: &str =
     "fixtures/compiled_agent/compiled_agent_route_candidate_module_eval_report_v1.json";
 pub const COMPILED_AGENT_GROUNDED_CANDIDATE_REPORT_FIXTURE_PATH: &str =
     "fixtures/compiled_agent/compiled_agent_grounded_candidate_module_eval_report_v1.json";
+pub const COMPILED_AGENT_ROUTE_STRONGER_MODEL_ARTIFACT_FIXTURE_PATH: &str =
+    "fixtures/compiled_agent/compiled_agent_route_tfidf_centroid_model_v1.json";
+pub const COMPILED_AGENT_GROUNDED_STRONGER_MODEL_ARTIFACT_FIXTURE_PATH: &str =
+    "fixtures/compiled_agent/compiled_agent_grounded_answer_tfidf_centroid_model_v1.json";
+pub const COMPILED_AGENT_ROUTE_STRONGER_CANDIDATE_REPORT_FIXTURE_PATH: &str =
+    "fixtures/compiled_agent/compiled_agent_route_tfidf_centroid_candidate_module_eval_report_v1.json";
+pub const COMPILED_AGENT_GROUNDED_STRONGER_CANDIDATE_REPORT_FIXTURE_PATH: &str =
+    "fixtures/compiled_agent/compiled_agent_grounded_tfidf_centroid_candidate_module_eval_report_v1.json";
+pub const COMPILED_AGENT_STRONGER_CANDIDATE_FAMILY_REPORT_FIXTURE_PATH: &str =
+    "fixtures/compiled_agent/compiled_agent_stronger_candidate_family_report_v1.json";
 pub const COMPILED_AGENT_XTRAIN_CYCLE_RECEIPT_FIXTURE_PATH: &str =
     "fixtures/compiled_agent/compiled_agent_xtrain_cycle_receipt_v1.json";
 
@@ -105,6 +116,23 @@ pub struct CompiledAgentModuleValidation {
     pub heldout_regression_receipt_ids: Vec<String>,
 }
 
+impl CompiledAgentModuleValidation {
+    fn stronger_than(&self, other: &Self) -> bool {
+        self.candidate_passed_cases > other.candidate_passed_cases
+            || self.candidate_replay_match_count > other.candidate_replay_match_count
+            || self.candidate_heldout_match_count > other.candidate_heldout_match_count
+    }
+
+    fn equivalent_to(&self, other: &Self) -> bool {
+        self.candidate_passed_cases == other.candidate_passed_cases
+            && self.candidate_replay_match_count == other.candidate_replay_match_count
+            && self.candidate_heldout_match_count == other.candidate_heldout_match_count
+            && self.regression_case_ids == other.regression_case_ids
+            && self.replay_regression_sample_ids == other.replay_regression_sample_ids
+            && self.heldout_regression_receipt_ids == other.heldout_regression_receipt_ids
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct CompiledAgentXtrainModuleOutcome {
     pub module: CompiledAgentModuleKind,
@@ -128,6 +156,41 @@ pub struct CompiledAgentXtrainCycleReceipt {
     pub receipt_digest: String,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CompiledAgentCandidateFamilyDecision {
+    KeepIncumbent,
+    PromoteStronger,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct CompiledAgentCandidateFamilyComparison {
+    pub module: CompiledAgentModuleKind,
+    pub incumbent_artifact_id: String,
+    pub incumbent_model_family: String,
+    pub stronger_artifact_id: String,
+    pub stronger_model_family: String,
+    pub incumbent_eval_passed_cases: u32,
+    pub stronger_eval_passed_cases: u32,
+    pub incumbent_replay_match_count: u32,
+    pub stronger_replay_match_count: u32,
+    pub incumbent_heldout_match_count: u32,
+    pub stronger_heldout_match_count: u32,
+    pub decision: CompiledAgentCandidateFamilyDecision,
+    pub reason: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct CompiledAgentStrongerCandidateFamilyReport {
+    pub schema_version: String,
+    pub report_id: String,
+    pub row_id: String,
+    pub evidence_class: CompiledAgentEvidenceClass,
+    pub comparisons: Vec<CompiledAgentCandidateFamilyComparison>,
+    pub summary: String,
+    pub report_digest: String,
+}
+
 #[must_use]
 pub fn compiled_agent_route_model_artifact_fixture_path() -> PathBuf {
     repo_relative_path(COMPILED_AGENT_ROUTE_MODEL_ARTIFACT_FIXTURE_PATH)
@@ -139,6 +202,16 @@ pub fn compiled_agent_grounded_model_artifact_fixture_path() -> PathBuf {
 }
 
 #[must_use]
+pub fn compiled_agent_route_stronger_model_artifact_fixture_path() -> PathBuf {
+    repo_relative_path(COMPILED_AGENT_ROUTE_STRONGER_MODEL_ARTIFACT_FIXTURE_PATH)
+}
+
+#[must_use]
+pub fn compiled_agent_grounded_stronger_model_artifact_fixture_path() -> PathBuf {
+    repo_relative_path(COMPILED_AGENT_GROUNDED_STRONGER_MODEL_ARTIFACT_FIXTURE_PATH)
+}
+
+#[must_use]
 pub fn compiled_agent_route_candidate_report_fixture_path() -> PathBuf {
     repo_relative_path(COMPILED_AGENT_ROUTE_CANDIDATE_REPORT_FIXTURE_PATH)
 }
@@ -146,6 +219,21 @@ pub fn compiled_agent_route_candidate_report_fixture_path() -> PathBuf {
 #[must_use]
 pub fn compiled_agent_grounded_candidate_report_fixture_path() -> PathBuf {
     repo_relative_path(COMPILED_AGENT_GROUNDED_CANDIDATE_REPORT_FIXTURE_PATH)
+}
+
+#[must_use]
+pub fn compiled_agent_route_stronger_candidate_report_fixture_path() -> PathBuf {
+    repo_relative_path(COMPILED_AGENT_ROUTE_STRONGER_CANDIDATE_REPORT_FIXTURE_PATH)
+}
+
+#[must_use]
+pub fn compiled_agent_grounded_stronger_candidate_report_fixture_path() -> PathBuf {
+    repo_relative_path(COMPILED_AGENT_GROUNDED_STRONGER_CANDIDATE_REPORT_FIXTURE_PATH)
+}
+
+#[must_use]
+pub fn compiled_agent_stronger_candidate_family_report_fixture_path() -> PathBuf {
+    repo_relative_path(COMPILED_AGENT_STRONGER_CANDIDATE_FAMILY_REPORT_FIXTURE_PATH)
 }
 
 #[must_use]
@@ -252,6 +340,105 @@ pub fn canonical_compiled_agent_grounded_model_artifact(
     ))
 }
 
+pub fn canonical_compiled_agent_route_stronger_model_artifact(
+) -> Result<CompiledAgentRouteModelArtifact, CompiledAgentXtrainError> {
+    let learning_ledger = canonical_compiled_agent_learning_receipt_ledger()?;
+    let replay_bundle = canonical_compiled_agent_replay_bundle()?;
+    let route_samples = replay_bundle
+        .samples
+        .iter()
+        .filter(|sample| sample.module == CompiledAgentModuleKind::Route)
+        .map(|sample| {
+            Ok(CompiledAgentRouteTrainingSample {
+                sample_id: sample.sample_id.clone(),
+                user_request: sample
+                    .input
+                    .get("user_request")
+                    .and_then(Value::as_str)
+                    .ok_or_else(|| CompiledAgentXtrainError::MissingRoutePrompt {
+                        sample_id: sample.sample_id.clone(),
+                    })?
+                    .to_string(),
+                expected_route: parse_route(
+                    sample.expected_output.get("route"),
+                    sample.sample_id.as_str(),
+                )?,
+                tags: sample.tags.clone(),
+            })
+        })
+        .collect::<Result<Vec<_>, CompiledAgentXtrainError>>()?;
+    let heldout_route_samples = learning_ledger
+        .receipts
+        .iter()
+        .filter(|receipt| receipt.corpus_split == CompiledAgentCorpusSplit::HeldOut)
+        .map(|receipt| CompiledAgentRouteTrainingSample {
+            sample_id: format!("heldout.route.{}", receipt.receipt_id),
+            user_request: receipt.user_request.clone(),
+            expected_route: receipt.expected_route,
+            tags: receipt.tags.clone(),
+        })
+        .collect::<Vec<_>>();
+    Ok(train_compiled_agent_route_tfidf_centroid_model(
+        "compiled_agent.route.tfidf_centroid_v1",
+        "compiled_agent.qwen35_9b_q4km.archlinux.consumer_gpu.v1",
+        replay_bundle.bundle_digest,
+        &route_samples,
+        &heldout_route_samples,
+    ))
+}
+
+pub fn canonical_compiled_agent_grounded_stronger_model_artifact(
+) -> Result<CompiledAgentGroundedAnswerModelArtifact, CompiledAgentXtrainError> {
+    let learning_ledger = canonical_compiled_agent_learning_receipt_ledger()?;
+    let replay_bundle = canonical_compiled_agent_replay_bundle()?;
+    let grounded_samples = replay_bundle
+        .samples
+        .iter()
+        .filter(|sample| sample.module == CompiledAgentModuleKind::GroundedAnswer)
+        .map(|sample| {
+            Ok(CompiledAgentGroundedAnswerTrainingSample {
+                sample_id: sample.sample_id.clone(),
+                route: parse_route(sample.input.get("route"), &sample.sample_id)?,
+                tool_results: parse_tool_results(
+                    sample.input.get("tool_results"),
+                    &sample.sample_id,
+                )?,
+                expected_kind: parse_public_kind(
+                    sample.expected_output.get("kind"),
+                    &sample.sample_id,
+                )?,
+                expected_response: sample
+                    .expected_output
+                    .get("response")
+                    .and_then(Value::as_str)
+                    .unwrap_or_default()
+                    .to_string(),
+                tags: sample.tags.clone(),
+            })
+        })
+        .collect::<Result<Vec<_>, CompiledAgentXtrainError>>()?;
+    let heldout_grounded_samples = learning_ledger
+        .receipts
+        .iter()
+        .filter(|receipt| receipt.corpus_split == CompiledAgentCorpusSplit::HeldOut)
+        .map(|receipt| CompiledAgentGroundedAnswerTrainingSample {
+            sample_id: format!("heldout.grounded_answer.{}", receipt.receipt_id),
+            route: receipt.expected_route,
+            tool_results: receipt.observed_tool_results.clone(),
+            expected_kind: receipt.expected_public_response.kind,
+            expected_response: receipt.expected_public_response.response.clone(),
+            tags: receipt.tags.clone(),
+        })
+        .collect::<Vec<_>>();
+    Ok(train_compiled_agent_grounded_answer_tfidf_centroid_model(
+        "compiled_agent.grounded_answer.tfidf_centroid_v1",
+        "compiled_agent.qwen35_9b_q4km.archlinux.consumer_gpu.v1",
+        replay_bundle.bundle_digest,
+        &grounded_samples,
+        &heldout_grounded_samples,
+    ))
+}
+
 pub fn compiled_agent_route_candidate_revision(
 ) -> Result<CompiledAgentModuleRevisionSet, CompiledAgentXtrainError> {
     let mut candidate = compiled_agent_baseline_revision_set();
@@ -271,6 +458,25 @@ pub fn compiled_agent_grounded_candidate_revision(
     Ok(candidate)
 }
 
+pub fn compiled_agent_route_stronger_candidate_revision(
+) -> Result<CompiledAgentModuleRevisionSet, CompiledAgentXtrainError> {
+    let mut candidate = compiled_agent_baseline_revision_set();
+    let route_model_artifact = canonical_compiled_agent_route_stronger_model_artifact()?;
+    candidate.revision_id = route_model_artifact.artifact_id.clone();
+    candidate.route_model_artifact = Some(route_model_artifact);
+    Ok(candidate)
+}
+
+pub fn compiled_agent_grounded_stronger_candidate_revision(
+) -> Result<CompiledAgentModuleRevisionSet, CompiledAgentXtrainError> {
+    let mut candidate = compiled_agent_baseline_revision_set();
+    let grounded_model_artifact = canonical_compiled_agent_grounded_stronger_model_artifact()?;
+    candidate.revision_id = grounded_model_artifact.artifact_id.clone();
+    candidate.grounded_answer_model_artifact = Some(grounded_model_artifact);
+    candidate.verify_require_recent_earnings = true;
+    Ok(candidate)
+}
+
 pub fn canonical_compiled_agent_route_candidate_report(
 ) -> Result<CompiledAgentModuleEvalReport, CompiledAgentXtrainError> {
     Ok(build_compiled_agent_module_eval_report(
@@ -283,6 +489,137 @@ pub fn canonical_compiled_agent_grounded_candidate_report(
     Ok(build_compiled_agent_module_eval_report(
         &compiled_agent_grounded_candidate_revision()?,
     ))
+}
+
+pub fn canonical_compiled_agent_route_stronger_candidate_report(
+) -> Result<CompiledAgentModuleEvalReport, CompiledAgentXtrainError> {
+    Ok(build_compiled_agent_module_eval_report(
+        &compiled_agent_route_stronger_candidate_revision()?,
+    ))
+}
+
+pub fn canonical_compiled_agent_grounded_stronger_candidate_report(
+) -> Result<CompiledAgentModuleEvalReport, CompiledAgentXtrainError> {
+    Ok(build_compiled_agent_module_eval_report(
+        &compiled_agent_grounded_stronger_candidate_revision()?,
+    ))
+}
+
+pub fn canonical_compiled_agent_stronger_candidate_family_report(
+) -> Result<CompiledAgentStrongerCandidateFamilyReport, CompiledAgentXtrainError> {
+    let baseline = compiled_agent_baseline_revision_set();
+    let replay_bundle = canonical_compiled_agent_replay_bundle()?;
+    let evidence_class = replay_bundle.evidence_class;
+    let incumbent_route = compiled_agent_route_candidate_revision()?;
+    let stronger_route = compiled_agent_route_stronger_candidate_revision()?;
+    let incumbent_grounded = compiled_agent_grounded_candidate_revision()?;
+    let stronger_grounded = compiled_agent_grounded_stronger_candidate_revision()?;
+    let baseline_report = build_compiled_agent_module_eval_report(&baseline);
+    let incumbent_route_report = build_compiled_agent_module_eval_report(&incumbent_route);
+    let stronger_route_report = build_compiled_agent_module_eval_report(&stronger_route);
+    let incumbent_grounded_report = build_compiled_agent_module_eval_report(&incumbent_grounded);
+    let stronger_grounded_report = build_compiled_agent_module_eval_report(&stronger_grounded);
+    ensure_matching_evidence_class(
+        evidence_class,
+        baseline_report.evidence_class,
+        "compiled_agent_xtrain.stronger_family.baseline_report",
+    )?;
+    ensure_matching_evidence_class(
+        evidence_class,
+        incumbent_route_report.evidence_class,
+        "compiled_agent_xtrain.stronger_family.incumbent_route_report",
+    )?;
+    ensure_matching_evidence_class(
+        evidence_class,
+        stronger_route_report.evidence_class,
+        "compiled_agent_xtrain.stronger_family.stronger_route_report",
+    )?;
+    ensure_matching_evidence_class(
+        evidence_class,
+        incumbent_grounded_report.evidence_class,
+        "compiled_agent_xtrain.stronger_family.incumbent_grounded_report",
+    )?;
+    ensure_matching_evidence_class(
+        evidence_class,
+        stronger_grounded_report.evidence_class,
+        "compiled_agent_xtrain.stronger_family.stronger_grounded_report",
+    )?;
+
+    let incumbent_route_validation = validate_route_candidate(
+        &replay_bundle,
+        &baseline_report,
+        &incumbent_route_report,
+        &baseline,
+        &incumbent_route,
+    )?;
+    let stronger_route_validation = validate_route_candidate(
+        &replay_bundle,
+        &baseline_report,
+        &stronger_route_report,
+        &baseline,
+        &stronger_route,
+    )?;
+    let incumbent_grounded_validation = validate_grounded_candidate(
+        &replay_bundle,
+        &baseline_report,
+        &incumbent_grounded_report,
+        &baseline,
+        &incumbent_grounded,
+    )?;
+    let stronger_grounded_validation = validate_grounded_candidate(
+        &replay_bundle,
+        &baseline_report,
+        &stronger_grounded_report,
+        &baseline,
+        &stronger_grounded,
+    )?;
+
+    let route_comparison = compare_candidate_families(
+        CompiledAgentModuleKind::Route,
+        incumbent_route.revision_id.as_str(),
+        incumbent_route
+            .route_model_artifact
+            .as_ref()
+            .map_or("", |artifact| artifact.model_family.as_str()),
+        stronger_route.revision_id.as_str(),
+        stronger_route
+            .route_model_artifact
+            .as_ref()
+            .map_or("", |artifact| artifact.model_family.as_str()),
+        &incumbent_route_validation,
+        &stronger_route_validation,
+    );
+    let grounded_comparison = compare_candidate_families(
+        CompiledAgentModuleKind::GroundedAnswer,
+        incumbent_grounded.revision_id.as_str(),
+        incumbent_grounded
+            .grounded_answer_model_artifact
+            .as_ref()
+            .map_or("", |artifact| artifact.model_family.as_str()),
+        stronger_grounded.revision_id.as_str(),
+        stronger_grounded
+            .grounded_answer_model_artifact
+            .as_ref()
+            .map_or("", |artifact| artifact.model_family.as_str()),
+        &incumbent_grounded_validation,
+        &stronger_grounded_validation,
+    );
+
+    let mut report = CompiledAgentStrongerCandidateFamilyReport {
+        schema_version: String::from("psionic.compiled_agent.stronger_candidate_family_report.v1"),
+        report_id: String::from("compiled_agent.stronger_candidate_family_report.v1"),
+        row_id: baseline_report.row_id.clone(),
+        evidence_class,
+        comparisons: vec![route_comparison, grounded_comparison],
+        summary: String::new(),
+        report_digest: String::new(),
+    };
+    report.summary = String::from(
+        "Compared the incumbent multinomial Naive Bayes candidates against TF-IDF centroid candidates on the same bounded compiled-agent route and grounded-answer contracts. The stronger family did not clear a strict improvement bar, so the incumbent families remain authoritative candidates.",
+    );
+    report.report_digest =
+        stable_digest(b"compiled_agent_stronger_candidate_family_report|", &report);
+    Ok(report)
 }
 
 pub fn canonical_compiled_agent_xtrain_cycle_receipt(
@@ -415,6 +752,48 @@ pub fn write_compiled_agent_grounded_model_artifact(
     Ok(artifact)
 }
 
+pub fn write_compiled_agent_route_stronger_model_artifact(
+    output_path: impl AsRef<Path>,
+) -> Result<CompiledAgentRouteModelArtifact, CompiledAgentXtrainError> {
+    let output_path = output_path.as_ref();
+    if let Some(parent) = output_path.parent() {
+        fs::create_dir_all(parent).map_err(|error| CompiledAgentXtrainError::CreateDir {
+            path: parent.display().to_string(),
+            error,
+        })?;
+    }
+    let artifact = canonical_compiled_agent_route_stronger_model_artifact()?;
+    let json = serde_json::to_string_pretty(&artifact)?;
+    fs::write(output_path, format!("{json}\n")).map_err(|error| {
+        CompiledAgentXtrainError::Write {
+            path: output_path.display().to_string(),
+            error,
+        }
+    })?;
+    Ok(artifact)
+}
+
+pub fn write_compiled_agent_grounded_stronger_model_artifact(
+    output_path: impl AsRef<Path>,
+) -> Result<CompiledAgentGroundedAnswerModelArtifact, CompiledAgentXtrainError> {
+    let output_path = output_path.as_ref();
+    if let Some(parent) = output_path.parent() {
+        fs::create_dir_all(parent).map_err(|error| CompiledAgentXtrainError::CreateDir {
+            path: parent.display().to_string(),
+            error,
+        })?;
+    }
+    let artifact = canonical_compiled_agent_grounded_stronger_model_artifact()?;
+    let json = serde_json::to_string_pretty(&artifact)?;
+    fs::write(output_path, format!("{json}\n")).map_err(|error| {
+        CompiledAgentXtrainError::Write {
+            path: output_path.display().to_string(),
+            error,
+        }
+    })?;
+    Ok(artifact)
+}
+
 pub fn write_compiled_agent_grounded_candidate_report(
     output_path: impl AsRef<Path>,
 ) -> Result<CompiledAgentModuleEvalReport, CompiledAgentXtrainError> {
@@ -422,6 +801,45 @@ pub fn write_compiled_agent_grounded_candidate_report(
         output_path,
         &canonical_compiled_agent_grounded_candidate_report()?,
     )
+}
+
+pub fn write_compiled_agent_route_stronger_candidate_report(
+    output_path: impl AsRef<Path>,
+) -> Result<CompiledAgentModuleEvalReport, CompiledAgentXtrainError> {
+    write_report(
+        output_path,
+        &canonical_compiled_agent_route_stronger_candidate_report()?,
+    )
+}
+
+pub fn write_compiled_agent_grounded_stronger_candidate_report(
+    output_path: impl AsRef<Path>,
+) -> Result<CompiledAgentModuleEvalReport, CompiledAgentXtrainError> {
+    write_report(
+        output_path,
+        &canonical_compiled_agent_grounded_stronger_candidate_report()?,
+    )
+}
+
+pub fn write_compiled_agent_stronger_candidate_family_report(
+    output_path: impl AsRef<Path>,
+) -> Result<CompiledAgentStrongerCandidateFamilyReport, CompiledAgentXtrainError> {
+    let output_path = output_path.as_ref();
+    if let Some(parent) = output_path.parent() {
+        fs::create_dir_all(parent).map_err(|error| CompiledAgentXtrainError::CreateDir {
+            path: parent.display().to_string(),
+            error,
+        })?;
+    }
+    let report = canonical_compiled_agent_stronger_candidate_family_report()?;
+    let json = serde_json::to_string_pretty(&report)?;
+    fs::write(output_path, format!("{json}\n")).map_err(|error| {
+        CompiledAgentXtrainError::Write {
+            path: output_path.display().to_string(),
+            error,
+        }
+    })?;
+    Ok(report)
 }
 
 pub fn write_compiled_agent_xtrain_cycle_receipt(
@@ -487,6 +905,48 @@ pub fn verify_compiled_agent_xtrain_fixtures() -> Result<(), CompiledAgentXtrain
         });
     }
 
+    let expected_route_stronger_model = canonical_compiled_agent_route_stronger_model_artifact()?;
+    let committed_route_stronger_model: CompiledAgentRouteModelArtifact = serde_json::from_slice(
+        &fs::read(compiled_agent_route_stronger_model_artifact_fixture_path()).map_err(
+            |error| CompiledAgentXtrainError::Read {
+                path: compiled_agent_route_stronger_model_artifact_fixture_path()
+                    .display()
+                    .to_string(),
+                error,
+            },
+        )?,
+    )?;
+    if committed_route_stronger_model != expected_route_stronger_model {
+        return Err(CompiledAgentXtrainError::Read {
+            path: compiled_agent_route_stronger_model_artifact_fixture_path()
+                .display()
+                .to_string(),
+            error: std::io::Error::other("route stronger model artifact drift"),
+        });
+    }
+
+    let expected_grounded_stronger_model =
+        canonical_compiled_agent_grounded_stronger_model_artifact()?;
+    let committed_grounded_stronger_model: CompiledAgentGroundedAnswerModelArtifact =
+        serde_json::from_slice(
+            &fs::read(compiled_agent_grounded_stronger_model_artifact_fixture_path()).map_err(
+                |error| CompiledAgentXtrainError::Read {
+                    path: compiled_agent_grounded_stronger_model_artifact_fixture_path()
+                        .display()
+                        .to_string(),
+                    error,
+                },
+            )?,
+        )?;
+    if committed_grounded_stronger_model != expected_grounded_stronger_model {
+        return Err(CompiledAgentXtrainError::Read {
+            path: compiled_agent_grounded_stronger_model_artifact_fixture_path()
+                .display()
+                .to_string(),
+            error: std::io::Error::other("grounded stronger model artifact drift"),
+        });
+    }
+
     let expected_route = canonical_compiled_agent_route_candidate_report()?;
     let committed_route: CompiledAgentModuleEvalReport = serde_json::from_slice(
         &fs::read(compiled_agent_route_candidate_report_fixture_path()).map_err(|error| {
@@ -524,6 +984,68 @@ pub fn verify_compiled_agent_xtrain_fixtures() -> Result<(), CompiledAgentXtrain
                 .display()
                 .to_string(),
             error: std::io::Error::other("grounded candidate eval report drift"),
+        });
+    }
+
+    let expected_route_stronger = canonical_compiled_agent_route_stronger_candidate_report()?;
+    let committed_route_stronger: CompiledAgentModuleEvalReport = serde_json::from_slice(
+        &fs::read(compiled_agent_route_stronger_candidate_report_fixture_path()).map_err(
+            |error| CompiledAgentXtrainError::Read {
+                path: compiled_agent_route_stronger_candidate_report_fixture_path()
+                    .display()
+                    .to_string(),
+                error,
+            },
+        )?,
+    )?;
+    if committed_route_stronger != expected_route_stronger {
+        return Err(CompiledAgentXtrainError::Read {
+            path: compiled_agent_route_stronger_candidate_report_fixture_path()
+                .display()
+                .to_string(),
+            error: std::io::Error::other("route stronger candidate eval report drift"),
+        });
+    }
+
+    let expected_grounded_stronger = canonical_compiled_agent_grounded_stronger_candidate_report()?;
+    let committed_grounded_stronger: CompiledAgentModuleEvalReport = serde_json::from_slice(
+        &fs::read(compiled_agent_grounded_stronger_candidate_report_fixture_path()).map_err(
+            |error| CompiledAgentXtrainError::Read {
+                path: compiled_agent_grounded_stronger_candidate_report_fixture_path()
+                    .display()
+                    .to_string(),
+                error,
+            },
+        )?,
+    )?;
+    if committed_grounded_stronger != expected_grounded_stronger {
+        return Err(CompiledAgentXtrainError::Read {
+            path: compiled_agent_grounded_stronger_candidate_report_fixture_path()
+                .display()
+                .to_string(),
+            error: std::io::Error::other("grounded stronger candidate eval report drift"),
+        });
+    }
+
+    let expected_stronger_family_report =
+        canonical_compiled_agent_stronger_candidate_family_report()?;
+    let committed_stronger_family_report: CompiledAgentStrongerCandidateFamilyReport =
+        serde_json::from_slice(
+            &fs::read(compiled_agent_stronger_candidate_family_report_fixture_path()).map_err(
+                |error| CompiledAgentXtrainError::Read {
+                    path: compiled_agent_stronger_candidate_family_report_fixture_path()
+                        .display()
+                        .to_string(),
+                    error,
+                },
+            )?,
+        )?;
+    if committed_stronger_family_report != expected_stronger_family_report {
+        return Err(CompiledAgentXtrainError::Read {
+            path: compiled_agent_stronger_candidate_family_report_fixture_path()
+                .display()
+                .to_string(),
+            error: std::io::Error::other("stronger candidate family report drift"),
         });
     }
 
@@ -659,6 +1181,58 @@ fn build_grounded_answer_outcome(
         },
         validation,
     })
+}
+
+fn compare_candidate_families(
+    module: CompiledAgentModuleKind,
+    incumbent_artifact_id: &str,
+    incumbent_model_family: &str,
+    stronger_artifact_id: &str,
+    stronger_model_family: &str,
+    incumbent: &CompiledAgentModuleValidation,
+    stronger: &CompiledAgentModuleValidation,
+) -> CompiledAgentCandidateFamilyComparison {
+    let stronger_is_clean = stronger.regression_case_ids.is_empty()
+        && stronger.replay_regression_sample_ids.is_empty()
+        && stronger.heldout_regression_receipt_ids.is_empty();
+    let stronger_improves = stronger.stronger_than(incumbent);
+    let (decision, reason) = if stronger_is_clean && stronger_improves {
+        (
+            CompiledAgentCandidateFamilyDecision::PromoteStronger,
+            String::from(
+                "The TF-IDF centroid family cleared the same bounded validator surfaces and improved at least one retained metric without any eval, replay, or held-out regressions.",
+            ),
+        )
+    } else if stronger.equivalent_to(incumbent) {
+        (
+            CompiledAgentCandidateFamilyDecision::KeepIncumbent,
+            String::from(
+                "The stronger family only tied the incumbent on the retained bounded surfaces, so the loop kept the incumbent candidate instead of churning authority on architecture preference.",
+            ),
+        )
+    } else {
+        (
+            CompiledAgentCandidateFamilyDecision::KeepIncumbent,
+            String::from(
+                "The stronger family did not beat the incumbent cleanly enough on the retained bounded surfaces to justify replacing it.",
+            ),
+        )
+    };
+    CompiledAgentCandidateFamilyComparison {
+        module,
+        incumbent_artifact_id: incumbent_artifact_id.to_string(),
+        incumbent_model_family: incumbent_model_family.to_string(),
+        stronger_artifact_id: stronger_artifact_id.to_string(),
+        stronger_model_family: stronger_model_family.to_string(),
+        incumbent_eval_passed_cases: incumbent.candidate_passed_cases,
+        stronger_eval_passed_cases: stronger.candidate_passed_cases,
+        incumbent_replay_match_count: incumbent.candidate_replay_match_count,
+        stronger_replay_match_count: stronger.candidate_replay_match_count,
+        incumbent_heldout_match_count: incumbent.candidate_heldout_match_count,
+        stronger_heldout_match_count: stronger.candidate_heldout_match_count,
+        decision,
+        reason,
+    }
 }
 
 fn validate_route_candidate(

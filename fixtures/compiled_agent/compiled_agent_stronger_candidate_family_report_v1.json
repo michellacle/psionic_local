@@ -1,0 +1,40 @@
+{
+  "schema_version": "psionic.compiled_agent.stronger_candidate_family_report.v1",
+  "report_id": "compiled_agent.stronger_candidate_family_report.v1",
+  "row_id": "compiled_agent.qwen35_9b_q4km.archlinux.consumer_gpu.v1",
+  "evidence_class": "learned_lane",
+  "comparisons": [
+    {
+      "module": "route",
+      "incumbent_artifact_id": "compiled_agent.route.multinomial_nb_v1",
+      "incumbent_model_family": "multinomial_naive_bayes",
+      "stronger_artifact_id": "compiled_agent.route.tfidf_centroid_v1",
+      "stronger_model_family": "tfidf_centroid",
+      "incumbent_eval_passed_cases": 4,
+      "stronger_eval_passed_cases": 4,
+      "incumbent_replay_match_count": 19,
+      "stronger_replay_match_count": 19,
+      "incumbent_heldout_match_count": 8,
+      "stronger_heldout_match_count": 8,
+      "decision": "keep_incumbent",
+      "reason": "The stronger family did not beat the incumbent cleanly enough on the retained bounded surfaces to justify replacing it."
+    },
+    {
+      "module": "grounded_answer",
+      "incumbent_artifact_id": "compiled_agent.grounded_answer.multinomial_nb_v1",
+      "incumbent_model_family": "multinomial_naive_bayes",
+      "stronger_artifact_id": "compiled_agent.grounded_answer.tfidf_centroid_v1",
+      "stronger_model_family": "tfidf_centroid",
+      "incumbent_eval_passed_cases": 6,
+      "stronger_eval_passed_cases": 6,
+      "incumbent_replay_match_count": 19,
+      "stronger_replay_match_count": 19,
+      "incumbent_heldout_match_count": 11,
+      "stronger_heldout_match_count": 11,
+      "decision": "keep_incumbent",
+      "reason": "The stronger family only tied the incumbent on the retained bounded surfaces, so the loop kept the incumbent candidate instead of churning authority on architecture preference."
+    }
+  ],
+  "summary": "Compared the incumbent multinomial Naive Bayes candidates against TF-IDF centroid candidates on the same bounded compiled-agent route and grounded-answer contracts. The stronger family did not clear a strict improvement bar, so the incumbent families remain authoritative candidates.",
+  "report_digest": "19a09dba96ba7e152dea9c2604ce3e106fe98942d1d3064f481ca69aee30aec4"
+}
