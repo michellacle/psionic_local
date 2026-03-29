@@ -39,10 +39,19 @@ That means the current native Psionic Hermes lane can do all of the following:
 - truthful refusal after an invalid tool result
 - streamed tool-call turn
 
+For the strict same-turn two-tool case, the acceptance bar is now stronger than
+"the model called both tools." The retained proof requires Hermes to:
+
+- emit both tool calls in the same assistant turn
+- receive both tool results back through Psionic
+- produce a final grounded answer that actually uses those results
+
 The currently proven practical user path is the tool-backed lane. In live
 validation on 2026-03-29:
 
 - the repo-owned compatibility checker reran green at `6/6`
+- the same-turn two-tool row only passed because the final answer grounded on
+  the tool results as `Paris is sunny at 18C. Tokyo is rainy at 12C.`
 - live Hermes tool-backed conversations against Psionic worked
 - one ad hoc no-tool `9b` text-summary run hit a local fallback `400`
   (`unsupported JSON schema feature for local fallback: object schemas with

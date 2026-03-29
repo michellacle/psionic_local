@@ -53,6 +53,8 @@ scripts/release/check-psionic-hermes-qwen35-compatibility.sh
 
 - full compatibility proof:
   `fixtures/qwen35/hermes/hermes_qwen35_psionic_compatibility_report_20260329_archlinux_2b_f4788f38.json`
+- grounded rerun of the full checker with the stricter parallel-row acceptance:
+  `fixtures/qwen35/hermes/hermes_qwen35_psionic_compatibility_report_20260329_archlinux_2b_grounded.json`
 - strict same-turn parallel matrix:
   `fixtures/qwen35/hermes/hermes_qwen35_parallel_tool_attribution_matrix_20260329_archlinux.json`
 
@@ -73,7 +75,7 @@ Canonical retained `2b` result on pushed `f4788f38`:
 | `required_tool_turn` | `pass` | one required weather tool call emitted |
 | `auto_plain_text_turn` | `pass` | plain text answer, no tool call |
 | `multi_turn_tool_loop` | `pass` | tool replay reached final answer |
-| `parallel_tool_turn` | `pass` | same-turn assistant response emitted both tools |
+| `parallel_tool_turn` | `pass` | same-turn assistant response emitted both tools and grounded the final answer in their results |
 | `invalid_argument_truthful_refusal` | `pass` | truthful unsupported-city refusal |
 | `streamed_tool_turn` | `pass` | streamed tool-call turn preserved |
 
@@ -99,6 +101,12 @@ changed. The fix was in the native Psionic tool contract:
 
 That is why the canonical retained full checker now clears the formerly red
 parallel row instead of stopping at `5/6`.
+
+One additional correction matters here: the parallel row is no longer counted
+green merely because the first assistant turn emitted both tools. The current
+retained checker requires the final assistant message to land as the grounded
+summary `Paris is sunny at 18C. Tokyo is rainy at 12C.` after those two tool
+results are replayed.
 
 ## Relation To Other Hermes Docs
 

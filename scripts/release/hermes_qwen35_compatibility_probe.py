@@ -182,6 +182,10 @@ def main() -> int:
         saw_tool = any(message.get("role") == "tool" for message in api_messages)
         return ("auto" if saw_tool else "required"), True
 
+    def required_then_none(api_messages):
+        saw_tool = any(message.get("role") == "tool" for message in api_messages)
+        return ("none" if saw_tool else "required"), True
+
     reports: list[dict] = []
 
     if case_enabled("required_tool_turn"):
@@ -339,7 +343,9 @@ def main() -> int:
                 ),
                 "parameters": {"type": "object", "properties": {}, "additionalProperties": False},
             },
-            handler=lambda args, **kwargs: json.dumps({"city": "Paris", "condition": "sunny"}),
+            handler=lambda args, **kwargs: json.dumps(
+                {"city": "Paris", "condition": "sunny", "temperature_c": 18}
+            ),
             check_fn=lambda: True,
         )
         registry.register(
@@ -353,7 +359,9 @@ def main() -> int:
                 ),
                 "parameters": {"type": "object", "properties": {}, "additionalProperties": False},
             },
-            handler=lambda args, **kwargs: json.dumps({"city": "Tokyo", "condition": "rainy"}),
+            handler=lambda args, **kwargs: json.dumps(
+                {"city": "Tokyo", "condition": "rainy", "temperature_c": 12}
+            ),
             check_fn=lambda: True,
         )
         create_custom_toolset(
@@ -368,26 +376,55 @@ def main() -> int:
                 "You are Hermes. For this turn, emit exactly one assistant tool-call turn whose "
                 "`tool_calls` array contains exactly two tool calls in this order: first "
                 "`get_paris_weather`, then `get_tokyo_weather`. Do not answer first. Do not "
-                "omit either tool. Do not repeat one tool instead of the other."
+                "omit either tool. Do not repeat one tool instead of the other. After the tool "
+                "results are replayed, your next assistant message must be exactly: Paris is "
+                "sunny at 18C. Tokyo is rainy at 12C. Do not add anything else."
             ),
             enabled_toolsets=["psionic_hermes_qwen35_parallel_turn"],
-            tool_policy=required_then_auto,
+            tool_policy=required_then_none,
             max_iterations=2,
             model=args.model,
             base_url=args.base_url,
             AIAgent=AIAgent,
         )
-        tool_turn = first_assistant_tool_turn(case["result"].get("messages", []))
+        messages = case["result"].get("messages", [])
+        tool_turn = first_assistant_tool_turn(messages)
         tool_names = [
             tool_call.get("function", {}).get("name")
             for tool_call in (tool_turn or {}).get("tool_calls", [])
         ]
+        final_text = final_assistant_text(messages)
+        saw_paris_tool_result = any(
+            message.get("role") == "tool"
+            and "\"city\": \"Paris\"" in str(message.get("content", ""))
+            and "\"temperature_c\": 18" in str(message.get("content", ""))
+            for message in messages
+        )
+        saw_tokyo_tool_result = any(
+            message.get("role") == "tool"
+            and "\"city\": \"Tokyo\"" in str(message.get("content", ""))
+            and "\"temperature_c\": 12" in str(message.get("content", ""))
+            for message in messages
+        )
+        grounded_parallel_summary = (
+            final_text.strip() == "Paris is sunny at 18C. Tokyo is rainy at 12C."
+        )
         reports.append(
             report_case_result(
                 case,
-                passed=tool_names == ["get_paris_weather", "get_tokyo_weather"],
-                summary="parallel tool turn emitted both tool calls in one assistant response",
-                details={"assistant_tool_names": tool_names},
+                passed=(
+                    tool_names == ["get_paris_weather", "get_tokyo_weather"]
+                    and saw_paris_tool_result
+                    and saw_tokyo_tool_result
+                    and grounded_parallel_summary
+                ),
+                summary="parallel tool turn emitted both tool calls and grounded the final answer in tool results",
+                details={
+                    "assistant_tool_names": tool_names,
+                    "final_text": final_text,
+                    "saw_paris_tool_result": saw_paris_tool_result,
+                    "saw_tokyo_tool_result": saw_tokyo_tool_result,
+                },
             )
         )
 
