@@ -4645,6 +4645,7 @@ dependencies = [
  "psionic-sandbox",
  "psionic-transformer",
  "rayon",
+ "reqwest",
  "safetensors",
  "serde",
  "serde_json",
