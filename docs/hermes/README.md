@@ -39,6 +39,19 @@ That means the current native Psionic Hermes lane can do all of the following:
 - truthful refusal after an invalid tool result
 - streamed tool-call turn
 
+The currently proven practical user path is the tool-backed lane. In live
+validation on 2026-03-29:
+
+- the repo-owned compatibility checker reran green at `6/6`
+- live Hermes tool-backed conversations against Psionic worked
+- one ad hoc no-tool `9b` text-summary run hit a local fallback `400`
+  (`unsupported JSON schema feature for local fallback: object schemas with
+  more than 5 properties are not supported by the local fallback`)
+
+So if you want the reliable path today, use Hermes against Psionic for the
+tool-backed `chat.completions` lane first, not as a claim that every open-ended
+Hermes formatting path is already polished.
+
 Canonical retained proof:
 
 - `docs/HERMES_QWEN35_COMPATIBILITY.md`
@@ -154,8 +167,8 @@ So the right mental model is:
 - Psionic is now a working Hermes backend
 - Hermes remains the agent/controller layer
 - the integration is real and rerunnable
-- the current remaining work is mostly benchmark and packaging polish, not
-  tool-loop correctness
+- the current remaining work is mostly benchmark, packaging, and output-polish
+  work, not tool-loop correctness
 
 ## Best Next Docs
 
