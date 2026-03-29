@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from __future__ import annotations
 import argparse
 import json
 import os
@@ -23,6 +24,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--model-path", default="")
     parser.add_argument("--psionic-revision", default="")
     parser.add_argument("--max-iterations", type=int, default=5)
+    parser.add_argument(
+        "--only-case",
+        action="append",
+        default=[],
+        help="Restrict the run to one or more named case_ids.",
+    )
     return parser.parse_args()
 
 
@@ -160,6 +167,10 @@ def main() -> int:
         ["git", "rev-parse", "HEAD"], psionic_root
     )
     hermes_revision = run_git(["git", "rev-parse", "HEAD"], hermes_root)
+    selected_cases = set(args.only_case)
+
+    def case_enabled(case_id: str) -> bool:
+        return not selected_cases or case_id in selected_cases
 
     def required_only(_api_messages):
         return "required", True
@@ -173,322 +184,331 @@ def main() -> int:
 
     reports: list[dict] = []
 
-    registry.register(
-        name="get_weather_required",
-        toolset="psionic_hermes_qwen35_required_tool_turn",
-        schema={
-            "name": "get_weather_required",
-            "description": "Get the current Paris weather.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "city": {"type": "string", "enum": ["Paris"]},
+    if case_enabled("required_tool_turn"):
+        registry.register(
+            name="get_weather_required",
+            toolset="psionic_hermes_qwen35_required_tool_turn",
+            schema={
+                "name": "get_weather_required",
+                "description": "Get the current Paris weather.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "city": {"type": "string", "enum": ["Paris"]},
+                    },
+                    "required": ["city"],
+                    "additionalProperties": False,
                 },
-                "required": ["city"],
-                "additionalProperties": False,
             },
-        },
-        handler=lambda args, **kwargs: json.dumps(
-            {"city": args.get("city"), "condition": "sunny"}
-        ),
-        check_fn=lambda: True,
-    )
-    create_custom_toolset(
-        "psionic_hermes_qwen35_required_tool_turn",
-        "Required tool turn probe",
-        tools=["get_weather_required"],
-    )
-    case = run_case(
-        case_id="required_tool_turn",
-        user_prompt="Use the weather tool for Paris.",
-        system_message="You are Hermes. Use tools when needed.",
-        enabled_toolsets=["psionic_hermes_qwen35_required_tool_turn"],
-        tool_policy=required_then_auto,
-        max_iterations=2,
-        model=args.model,
-        base_url=args.base_url,
-        AIAgent=AIAgent,
-    )
-    tool_turn = first_assistant_tool_turn(case["result"].get("messages", []))
-    tool_names = [
-        tool_call.get("function", {}).get("name")
-        for tool_call in (tool_turn or {}).get("tool_calls", [])
-    ]
-    reports.append(
-        report_case_result(
-            case,
-            passed=tool_names == ["get_weather_required"],
-            summary="required tool turn emitted one weather tool call",
-            details={"assistant_tool_names": tool_names},
-        )
-    )
-
-    registry.register(
-        name="get_weather_auto",
-        toolset="psionic_hermes_qwen35_auto_text_turn",
-        schema={
-            "name": "get_weather_auto",
-            "description": "Get weather information if explicitly requested.",
-            "parameters": {
-                "type": "object",
-                "properties": {"city": {"type": "string"}},
-                "required": ["city"],
-                "additionalProperties": False,
-            },
-        },
-        handler=lambda args, **kwargs: json.dumps({"city": args.get("city"), "unused": True}),
-        check_fn=lambda: True,
-    )
-    create_custom_toolset(
-        "psionic_hermes_qwen35_auto_text_turn",
-        "Auto text turn probe",
-        tools=["get_weather_auto"],
-    )
-    case = run_case(
-        case_id="auto_plain_text_turn",
-        user_prompt="Say hello in one short sentence. Do not use tools.",
-        system_message="You are Hermes. If the user asks for a greeting, answer directly and do not call tools.",
-        enabled_toolsets=["psionic_hermes_qwen35_auto_text_turn"],
-        tool_policy=auto_only,
-        max_iterations=args.max_iterations,
-        model=args.model,
-        base_url=args.base_url,
-        AIAgent=AIAgent,
-    )
-    messages = case["result"].get("messages", [])
-    tool_turn = first_assistant_tool_turn(messages)
-    final_text = final_assistant_text(messages)
-    reports.append(
-        report_case_result(
-            case,
-            passed=tool_turn is None and bool(final_text),
-            summary="auto mode answered with plain text and no tool call",
-            details={"final_text": final_text},
-        )
-    )
-
-    registry.register(
-        name="get_weather_loop",
-        toolset="psionic_hermes_qwen35_tool_loop",
-        schema={
-            "name": "get_weather_loop",
-            "description": "Get the current weather for Paris.",
-            "parameters": {
-                "type": "object",
-                "properties": {"city": {"type": "string", "enum": ["Paris"]}},
-                "required": ["city"],
-                "additionalProperties": False,
-            },
-        },
-        handler=lambda args, **kwargs: json.dumps(
-            {"city": args.get("city"), "condition": "sunny", "temperature_c": 22}
-        ),
-        check_fn=lambda: True,
-    )
-    create_custom_toolset(
-        "psionic_hermes_qwen35_tool_loop",
-        "Tool loop probe",
-        tools=["get_weather_loop"],
-    )
-    case = run_case(
-        case_id="multi_turn_tool_loop",
-        user_prompt="Use the weather tool for Paris and then summarize the result.",
-        system_message="You are Hermes. Use tools when needed and summarize tool results plainly.",
-        enabled_toolsets=["psionic_hermes_qwen35_tool_loop"],
-        tool_policy=required_then_auto,
-        max_iterations=args.max_iterations,
-        model=args.model,
-        base_url=args.base_url,
-        AIAgent=AIAgent,
-    )
-    messages = case["result"].get("messages", [])
-    final_text = final_assistant_text(messages)
-    saw_tool_result = any(message.get("role") == "tool" for message in messages)
-    reports.append(
-        report_case_result(
-            case,
-            passed=saw_tool_result and "paris" in lower_text(final_text),
-            summary="multi-turn tool loop replay reached a final answer",
-            details={"final_text": final_text, "saw_tool_result": saw_tool_result},
-        )
-    )
-
-    registry.register(
-        name="get_paris_weather",
-        toolset="psionic_hermes_qwen35_parallel_turn",
-        schema={
-            "name": "get_paris_weather",
-            "description": (
-                "Get the weather for Paris only. Use this exactly once when the turn "
-                "requires Paris. Never use this tool for Tokyo."
+            handler=lambda args, **kwargs: json.dumps(
+                {"city": args.get("city"), "condition": "sunny"}
             ),
-            "parameters": {"type": "object", "properties": {}, "additionalProperties": False},
-        },
-        handler=lambda args, **kwargs: json.dumps({"city": "Paris", "condition": "sunny"}),
-        check_fn=lambda: True,
-    )
-    registry.register(
-        name="get_tokyo_weather",
-        toolset="psionic_hermes_qwen35_parallel_turn",
-        schema={
-            "name": "get_tokyo_weather",
-            "description": (
-                "Get the weather for Tokyo only. Use this exactly once when the turn "
-                "requires Tokyo. Never use this tool for Paris."
-            ),
-            "parameters": {"type": "object", "properties": {}, "additionalProperties": False},
-        },
-        handler=lambda args, **kwargs: json.dumps({"city": "Tokyo", "condition": "rainy"}),
-        check_fn=lambda: True,
-    )
-    create_custom_toolset(
-        "psionic_hermes_qwen35_parallel_turn",
-        "Parallel turn probe",
-        tools=["get_paris_weather", "get_tokyo_weather"],
-    )
-    case = run_case(
-        case_id="parallel_tool_turn",
-        user_prompt="Use both weather tools now, then summarize both cities in one answer.",
-        system_message=(
-            "You are Hermes. For this turn, emit exactly one assistant tool-call turn whose "
-            "`tool_calls` array contains exactly two tool calls in this order: first "
-            "`get_paris_weather`, then `get_tokyo_weather`. Do not answer first. Do not "
-            "omit either tool. Do not repeat one tool instead of the other."
-        ),
-        enabled_toolsets=["psionic_hermes_qwen35_parallel_turn"],
-        tool_policy=required_then_auto,
-        max_iterations=2,
-        model=args.model,
-        base_url=args.base_url,
-        AIAgent=AIAgent,
-    )
-    tool_turn = first_assistant_tool_turn(case["result"].get("messages", []))
-    tool_names = [
-        tool_call.get("function", {}).get("name")
-        for tool_call in (tool_turn or {}).get("tool_calls", [])
-    ]
-    reports.append(
-        report_case_result(
-            case,
-            passed=tool_names == ["get_paris_weather", "get_tokyo_weather"],
-            summary="parallel tool turn emitted both tool calls in one assistant response",
-            details={"assistant_tool_names": tool_names},
+            check_fn=lambda: True,
         )
-    )
-
-    registry.register(
-        name="lookup_atlantis_weather",
-        toolset="psionic_hermes_qwen35_invalid_arguments",
-        schema={
-            "name": "lookup_atlantis_weather",
-            "description": "Attempt to look up the weather for Atlantis.",
-            "parameters": {
-                "type": "object",
-                "properties": {"city": {"type": "string", "enum": ["Atlantis"]}},
-                "required": ["city"],
-                "additionalProperties": False,
-            },
-        },
-        handler=lambda args, **kwargs: json.dumps(
-            {
-                "error": f"unsupported city {args.get('city')}",
-                "supported_cities": ["Paris"],
-                "refusal": "Atlantis is unsupported. Do not claim a weather result.",
-            }
-        ),
-        check_fn=lambda: True,
-    )
-    create_custom_toolset(
-        "psionic_hermes_qwen35_invalid_arguments",
-        "Invalid argument probe",
-        tools=["lookup_atlantis_weather"],
-    )
-    case = run_case(
-        case_id="invalid_argument_truthful_refusal",
-        user_prompt="Use the Atlantis weather tool and then explain truthfully what happened.",
-        system_message=(
-            "You are Hermes. If the Atlantis weather tool returns an error, your next assistant "
-            "message must be exactly: Atlantis is unsupported. I do not have a weather result."
-        ),
-        enabled_toolsets=["psionic_hermes_qwen35_invalid_arguments"],
-        tool_policy=required_then_auto,
-        max_iterations=3,
-        model=args.model,
-        base_url=args.base_url,
-        AIAgent=AIAgent,
-    )
-    messages = case["result"].get("messages", [])
-    final_text = final_assistant_text(messages)
-    lowered = lower_text(final_text)
-    truthful_refusal = "atlantis" in lowered and any(
-        token in lowered
-        for token in [
-            "unsupported",
-            "error",
-            "not supported",
-            "cannot",
-            "can't",
-            "do not have access",
-            "do not have a weather result",
+        create_custom_toolset(
+            "psionic_hermes_qwen35_required_tool_turn",
+            "Required tool turn probe",
+            tools=["get_weather_required"],
+        )
+        case = run_case(
+            case_id="required_tool_turn",
+            user_prompt="Use the weather tool for Paris.",
+            system_message="You are Hermes. Use tools when needed.",
+            enabled_toolsets=["psionic_hermes_qwen35_required_tool_turn"],
+            tool_policy=required_then_auto,
+            max_iterations=2,
+            model=args.model,
+            base_url=args.base_url,
+            AIAgent=AIAgent,
+        )
+        tool_turn = first_assistant_tool_turn(case["result"].get("messages", []))
+        tool_names = [
+            tool_call.get("function", {}).get("name")
+            for tool_call in (tool_turn or {}).get("tool_calls", [])
         ]
-    )
-    reports.append(
-        report_case_result(
-            case,
-            passed=truthful_refusal,
-            summary="invalid-argument case surfaced a truthful failure",
-            details={"final_text": final_text},
+        reports.append(
+            report_case_result(
+                case,
+                passed=tool_names == ["get_weather_required"],
+                summary="required tool turn emitted one weather tool call",
+                details={"assistant_tool_names": tool_names},
+            )
         )
-    )
 
-    registry.register(
-        name="get_weather_stream",
-        toolset="psionic_hermes_qwen35_streamed_turn",
-        schema={
-            "name": "get_weather_stream",
-            "description": "Get the current weather for Paris.",
-            "parameters": {
-                "type": "object",
-                "properties": {"city": {"type": "string", "enum": ["Paris"]}},
-                "required": ["city"],
-                "additionalProperties": False,
+    if case_enabled("auto_plain_text_turn"):
+        registry.register(
+            name="get_weather_auto",
+            toolset="psionic_hermes_qwen35_auto_text_turn",
+            schema={
+                "name": "get_weather_auto",
+                "description": "Get weather information if explicitly requested.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {"city": {"type": "string"}},
+                    "required": ["city"],
+                    "additionalProperties": False,
+                },
             },
-        },
-        handler=lambda args, **kwargs: json.dumps(
-            {"city": args.get("city"), "condition": "sunny"}
-        ),
-        check_fn=lambda: True,
-    )
-    create_custom_toolset(
-        "psionic_hermes_qwen35_streamed_turn",
-        "Streamed tool probe",
-        tools=["get_weather_stream"],
-    )
-    case = run_case(
-        case_id="streamed_tool_turn",
-        user_prompt="Use the weather tool for Paris.",
-        system_message="You are Hermes. Use tools when needed.",
-        enabled_toolsets=["psionic_hermes_qwen35_streamed_turn"],
-        tool_policy=required_then_auto,
-        max_iterations=2,
-        model=args.model,
-        base_url=args.base_url,
-        AIAgent=AIAgent,
-    )
-    tool_turn = first_assistant_tool_turn(case["result"].get("messages", []))
-    reports.append(
-        report_case_result(
-            case,
-            passed=case["stream_calls"] >= 1 and tool_turn is not None,
-            summary="streaming chat loop preserved a tool-call turn",
-            details={
-                "assistant_tool_names": [
-                    tool_call.get("function", {}).get("name")
-                    for tool_call in (tool_turn or {}).get("tool_calls", [])
-                ]
-            },
+            handler=lambda args, **kwargs: json.dumps({"city": args.get("city"), "unused": True}),
+            check_fn=lambda: True,
         )
-    )
+        create_custom_toolset(
+            "psionic_hermes_qwen35_auto_text_turn",
+            "Auto text turn probe",
+            tools=["get_weather_auto"],
+        )
+        case = run_case(
+            case_id="auto_plain_text_turn",
+            user_prompt="Say hello in one short sentence. Do not use tools.",
+            system_message="You are Hermes. If the user asks for a greeting, answer directly and do not call tools.",
+            enabled_toolsets=["psionic_hermes_qwen35_auto_text_turn"],
+            tool_policy=auto_only,
+            max_iterations=args.max_iterations,
+            model=args.model,
+            base_url=args.base_url,
+            AIAgent=AIAgent,
+        )
+        messages = case["result"].get("messages", [])
+        tool_turn = first_assistant_tool_turn(messages)
+        final_text = final_assistant_text(messages)
+        reports.append(
+            report_case_result(
+                case,
+                passed=tool_turn is None and bool(final_text),
+                summary="auto mode answered with plain text and no tool call",
+                details={"final_text": final_text},
+            )
+        )
+
+    if case_enabled("multi_turn_tool_loop"):
+        registry.register(
+            name="get_weather_loop",
+            toolset="psionic_hermes_qwen35_tool_loop",
+            schema={
+                "name": "get_weather_loop",
+                "description": "Get the current weather for Paris.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {"city": {"type": "string", "enum": ["Paris"]}},
+                    "required": ["city"],
+                    "additionalProperties": False,
+                },
+            },
+            handler=lambda args, **kwargs: json.dumps(
+                {"city": args.get("city"), "condition": "sunny", "temperature_c": 22}
+            ),
+            check_fn=lambda: True,
+        )
+        create_custom_toolset(
+            "psionic_hermes_qwen35_tool_loop",
+            "Tool loop probe",
+            tools=["get_weather_loop"],
+        )
+        case = run_case(
+            case_id="multi_turn_tool_loop",
+            user_prompt="Use the weather tool for Paris and then summarize the result.",
+            system_message="You are Hermes. Use tools when needed and summarize tool results plainly.",
+            enabled_toolsets=["psionic_hermes_qwen35_tool_loop"],
+            tool_policy=required_then_auto,
+            max_iterations=args.max_iterations,
+            model=args.model,
+            base_url=args.base_url,
+            AIAgent=AIAgent,
+        )
+        messages = case["result"].get("messages", [])
+        final_text = final_assistant_text(messages)
+        saw_tool_result = any(message.get("role") == "tool" for message in messages)
+        reports.append(
+            report_case_result(
+                case,
+                passed=saw_tool_result and "paris" in lower_text(final_text),
+                summary="multi-turn tool loop replay reached a final answer",
+                details={"final_text": final_text, "saw_tool_result": saw_tool_result},
+            )
+        )
+
+    if case_enabled("parallel_tool_turn"):
+        registry.register(
+            name="get_paris_weather",
+            toolset="psionic_hermes_qwen35_parallel_turn",
+            schema={
+                "name": "get_paris_weather",
+                "description": (
+                    "Get the weather for Paris only. Use this exactly once when the turn "
+                    "requires Paris. Never use this tool for Tokyo."
+                ),
+                "parameters": {"type": "object", "properties": {}, "additionalProperties": False},
+            },
+            handler=lambda args, **kwargs: json.dumps({"city": "Paris", "condition": "sunny"}),
+            check_fn=lambda: True,
+        )
+        registry.register(
+            name="get_tokyo_weather",
+            toolset="psionic_hermes_qwen35_parallel_turn",
+            schema={
+                "name": "get_tokyo_weather",
+                "description": (
+                    "Get the weather for Tokyo only. Use this exactly once when the turn "
+                    "requires Tokyo. Never use this tool for Paris."
+                ),
+                "parameters": {"type": "object", "properties": {}, "additionalProperties": False},
+            },
+            handler=lambda args, **kwargs: json.dumps({"city": "Tokyo", "condition": "rainy"}),
+            check_fn=lambda: True,
+        )
+        create_custom_toolset(
+            "psionic_hermes_qwen35_parallel_turn",
+            "Parallel turn probe",
+            tools=["get_paris_weather", "get_tokyo_weather"],
+        )
+        case = run_case(
+            case_id="parallel_tool_turn",
+            user_prompt="Use both weather tools now, then summarize both cities in one answer.",
+            system_message=(
+                "You are Hermes. For this turn, emit exactly one assistant tool-call turn whose "
+                "`tool_calls` array contains exactly two tool calls in this order: first "
+                "`get_paris_weather`, then `get_tokyo_weather`. Do not answer first. Do not "
+                "omit either tool. Do not repeat one tool instead of the other."
+            ),
+            enabled_toolsets=["psionic_hermes_qwen35_parallel_turn"],
+            tool_policy=required_then_auto,
+            max_iterations=2,
+            model=args.model,
+            base_url=args.base_url,
+            AIAgent=AIAgent,
+        )
+        tool_turn = first_assistant_tool_turn(case["result"].get("messages", []))
+        tool_names = [
+            tool_call.get("function", {}).get("name")
+            for tool_call in (tool_turn or {}).get("tool_calls", [])
+        ]
+        reports.append(
+            report_case_result(
+                case,
+                passed=tool_names == ["get_paris_weather", "get_tokyo_weather"],
+                summary="parallel tool turn emitted both tool calls in one assistant response",
+                details={"assistant_tool_names": tool_names},
+            )
+        )
+
+    if case_enabled("invalid_argument_truthful_refusal"):
+        registry.register(
+            name="lookup_atlantis_weather",
+            toolset="psionic_hermes_qwen35_invalid_arguments",
+            schema={
+                "name": "lookup_atlantis_weather",
+                "description": "Attempt to look up the weather for Atlantis.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {"city": {"type": "string", "enum": ["Atlantis"]}},
+                    "required": ["city"],
+                    "additionalProperties": False,
+                },
+            },
+            handler=lambda args, **kwargs: json.dumps(
+                {
+                    "error": f"unsupported city {args.get('city')}",
+                    "supported_cities": ["Paris"],
+                    "refusal": "Atlantis is unsupported. Do not claim a weather result.",
+                }
+            ),
+            check_fn=lambda: True,
+        )
+        create_custom_toolset(
+            "psionic_hermes_qwen35_invalid_arguments",
+            "Invalid argument probe",
+            tools=["lookup_atlantis_weather"],
+        )
+        case = run_case(
+            case_id="invalid_argument_truthful_refusal",
+            user_prompt="Use the Atlantis weather tool and then explain truthfully what happened.",
+            system_message=(
+                "You are Hermes. If the Atlantis weather tool returns an error, your next assistant "
+                "message must be exactly: Atlantis is unsupported. I do not have a weather result."
+            ),
+            enabled_toolsets=["psionic_hermes_qwen35_invalid_arguments"],
+            tool_policy=required_then_auto,
+            max_iterations=3,
+            model=args.model,
+            base_url=args.base_url,
+            AIAgent=AIAgent,
+        )
+        messages = case["result"].get("messages", [])
+        final_text = final_assistant_text(messages)
+        lowered = lower_text(final_text)
+        truthful_refusal = "atlantis" in lowered and any(
+            token in lowered
+            for token in [
+                "unsupported",
+                "error",
+                "not supported",
+                "cannot",
+                "can't",
+                "do not have access",
+                "do not have a weather result",
+            ]
+        )
+        reports.append(
+            report_case_result(
+                case,
+                passed=truthful_refusal,
+                summary="invalid-argument case surfaced a truthful failure",
+                details={"final_text": final_text},
+            )
+        )
+
+    if case_enabled("streamed_tool_turn"):
+        registry.register(
+            name="get_weather_stream",
+            toolset="psionic_hermes_qwen35_streamed_turn",
+            schema={
+                "name": "get_weather_stream",
+                "description": "Get the current weather for Paris.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {"city": {"type": "string", "enum": ["Paris"]}},
+                    "required": ["city"],
+                    "additionalProperties": False,
+                },
+            },
+            handler=lambda args, **kwargs: json.dumps(
+                {"city": args.get("city"), "condition": "sunny"}
+            ),
+            check_fn=lambda: True,
+        )
+        create_custom_toolset(
+            "psionic_hermes_qwen35_streamed_turn",
+            "Streamed tool probe",
+            tools=["get_weather_stream"],
+        )
+        case = run_case(
+            case_id="streamed_tool_turn",
+            user_prompt="Use the weather tool for Paris.",
+            system_message="You are Hermes. Use tools when needed.",
+            enabled_toolsets=["psionic_hermes_qwen35_streamed_turn"],
+            tool_policy=required_then_auto,
+            max_iterations=2,
+            model=args.model,
+            base_url=args.base_url,
+            AIAgent=AIAgent,
+        )
+        tool_turn = first_assistant_tool_turn(case["result"].get("messages", []))
+        reports.append(
+            report_case_result(
+                case,
+                passed=case["stream_calls"] >= 1 and tool_turn is not None,
+                summary="streaming chat loop preserved a tool-call turn",
+                details={
+                    "assistant_tool_names": [
+                        tool_call.get("function", {}).get("name")
+                        for tool_call in (tool_turn or {}).get("tool_calls", [])
+                    ]
+                },
+            )
+        )
+
+    if selected_cases and not reports:
+        raise SystemExit(f"no requested cases were executed: {sorted(selected_cases)}")
 
     overall_pass = all(case["pass"] for case in reports)
     output = {

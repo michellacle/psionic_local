@@ -1,0 +1,92 @@
+{
+  "report_kind": "psionic_hermes_qwen35_compatibility",
+  "created_at_utc": "2026-03-29T00:28:52.049938+00:00",
+  "backend_label": "psionic",
+  "base_url": "http://127.0.0.1:8106/v1",
+  "model": "qwen3.5-4b-q8_0-registry.gguf",
+  "model_path": "/home/christopherdavid/models/qwen3.5/qwen3.5-4b-q8_0-registry.gguf",
+  "psionic_root": "/home/christopherdavid/scratch/psionic-hermes-663",
+  "psionic_revision": "e1a27665c63f4b7a085795415699ab7f168c4d2d",
+  "hermes_root": "/home/christopherdavid/scratch/hermes-agent-proof2",
+  "hermes_revision": "e295a2215acd55f2ee930fc7a4cd2df1c5464234",
+  "python_executable": "/home/christopherdavid/scratch/hermes-min/.venv/bin/python",
+  "python_version": "3.14.3 (main, Feb 13 2026, 15:31:44) [GCC 15.2.1 20260209]",
+  "host": "archlinux",
+  "cases": [
+    {
+      "case_id": "parallel_tool_turn",
+      "pass": false,
+      "summary": "parallel tool turn emitted both tool calls in one assistant response",
+      "stream_calls": 2,
+      "request_summaries": [
+        {
+          "tool_choice": "required",
+          "parallel_tool_calls": true,
+          "tool_names": [
+            "get_paris_weather",
+            "get_tokyo_weather"
+          ]
+        },
+        {
+          "tool_choice": "auto",
+          "parallel_tool_calls": true,
+          "tool_names": [
+            "get_paris_weather",
+            "get_tokyo_weather"
+          ]
+        }
+      ],
+      "api_calls": 2,
+      "completed": false,
+      "failed": false,
+      "final_response": "The weather in Paris is currently sunny with a temperature of 20\u00b0C and a 20% chance of rain.",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Use both weather tools now, then summarize both cities in one answer."
+        },
+        {
+          "role": "assistant",
+          "content": "",
+          "reasoning": null,
+          "finish_reason": "tool_calls",
+          "tool_calls": [
+            {
+              "id": "psionic-chatcmpl-1-tool-0",
+              "call_id": "psionic-chatcmpl-1-tool-0",
+              "response_item_id": "fc_psionic-chatcmpl-1-tool-0",
+              "type": "function",
+              "function": {
+                "name": "get_paris_weather",
+                "arguments": "{}"
+              }
+            }
+          ]
+        },
+        {
+          "role": "tool",
+          "content": "{\"city\": \"Paris\", \"condition\": \"sunny\"}",
+          "tool_call_id": "psionic-chatcmpl-1-tool-0"
+        },
+        {
+          "role": "assistant",
+          "content": "The weather in Paris is currently sunny with a temperature of 20\u00b0C and a 20% chance of rain.",
+          "reasoning": null,
+          "finish_reason": "stop"
+        }
+      ],
+      "details": {
+        "assistant_tool_names": [
+          "get_paris_weather"
+        ]
+      }
+    }
+  ],
+  "overall_pass": false,
+  "passing_case_count": 0,
+  "total_case_count": 1,
+  "matrix_backend_label": "psionic",
+  "matrix_model_label": "4b",
+  "matrix_model_ref": "/home/christopherdavid/models/qwen3.5/qwen3.5-4b-q8_0-registry.gguf",
+  "probe_exit_status": 1
+}

@@ -1,0 +1,108 @@
+{
+  "report_kind": "psionic_hermes_qwen35_compatibility",
+  "created_at_utc": "2026-03-29T00:28:59.026637+00:00",
+  "backend_label": "ollama",
+  "base_url": "http://127.0.0.1:11434/v1",
+  "model": "qwen3.5:4b",
+  "model_path": "qwen3.5:4b",
+  "psionic_root": "/home/christopherdavid/scratch/psionic-hermes-663",
+  "psionic_revision": "e1a27665c63f4b7a085795415699ab7f168c4d2d",
+  "hermes_root": "/home/christopherdavid/scratch/hermes-agent-proof2",
+  "hermes_revision": "e295a2215acd55f2ee930fc7a4cd2df1c5464234",
+  "python_executable": "/home/christopherdavid/scratch/hermes-min/.venv/bin/python",
+  "python_version": "3.14.3 (main, Feb 13 2026, 15:31:44) [GCC 15.2.1 20260209]",
+  "host": "archlinux",
+  "cases": [
+    {
+      "case_id": "parallel_tool_turn",
+      "pass": true,
+      "summary": "parallel tool turn emitted both tool calls in one assistant response",
+      "stream_calls": 2,
+      "request_summaries": [
+        {
+          "tool_choice": "required",
+          "parallel_tool_calls": true,
+          "tool_names": [
+            "get_paris_weather",
+            "get_tokyo_weather"
+          ]
+        },
+        {
+          "tool_choice": "auto",
+          "parallel_tool_calls": true,
+          "tool_names": [
+            "get_paris_weather",
+            "get_tokyo_weather"
+          ]
+        }
+      ],
+      "api_calls": 2,
+      "completed": false,
+      "failed": false,
+      "final_response": "**Weather Summary:**\n\n| City | Condition |\n|------|-----------|\n| **Paris** | Sunny \u2600\ufe0f |\n| **Tokyo** | Rainy \ud83c\udf27\ufe0f |\n\nParis is currently enjoying sunny weather, while Tokyo is experiencing rainy conditions. If you're planning outdoor activities, Paris would be more suitable today, whereas Tokyo might require rain gear or indoor plans.",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Use both weather tools now, then summarize both cities in one answer."
+        },
+        {
+          "role": "assistant",
+          "content": "",
+          "reasoning": "The user wants me to use both weather tools - get_paris_weather and get_tokyo_weather - and then summarize both cities in one answer. They specifically asked for exactly two tool calls in this order: first Paris, then Tokyo.\n\nI need to emit exactly one assistant tool-call turn with exactly two tool calls in the specified order.",
+          "finish_reason": "tool_calls",
+          "tool_calls": [
+            {
+              "id": "call_d0h7kw31",
+              "call_id": "call_d0h7kw31",
+              "response_item_id": "fc_d0h7kw31",
+              "type": "function",
+              "function": {
+                "name": "get_paris_weather",
+                "arguments": "{}"
+              }
+            },
+            {
+              "id": "call_j224mvw9",
+              "call_id": "call_j224mvw9",
+              "response_item_id": "fc_j224mvw9",
+              "type": "function",
+              "function": {
+                "name": "get_tokyo_weather",
+                "arguments": "{}"
+              }
+            }
+          ]
+        },
+        {
+          "role": "tool",
+          "content": "{\"city\": \"Paris\", \"condition\": \"sunny\"}",
+          "tool_call_id": "call_d0h7kw31"
+        },
+        {
+          "role": "tool",
+          "content": "{\"city\": \"Tokyo\", \"condition\": \"rainy\"}",
+          "tool_call_id": "call_j224mvw9"
+        },
+        {
+          "role": "assistant",
+          "content": "**Weather Summary:**\n\n| City | Condition |\n|------|-----------|\n| **Paris** | Sunny \u2600\ufe0f |\n| **Tokyo** | Rainy \ud83c\udf27\ufe0f |\n\nParis is currently enjoying sunny weather, while Tokyo is experiencing rainy conditions. If you're planning outdoor activities, Paris would be more suitable today, whereas Tokyo might require rain gear or indoor plans.",
+          "reasoning": "The user asked me to use both weather tools and then summarize both cities in one answer. I've received the results from both tools:\n\n- Paris: sunny\n- Tokyo: rainy\n\nNow I need to provide a summary of both cities' weather conditions in one response.",
+          "finish_reason": "stop"
+        }
+      ],
+      "details": {
+        "assistant_tool_names": [
+          "get_paris_weather",
+          "get_tokyo_weather"
+        ]
+      }
+    }
+  ],
+  "overall_pass": true,
+  "passing_case_count": 1,
+  "total_case_count": 1,
+  "matrix_backend_label": "ollama",
+  "matrix_model_label": "4b",
+  "matrix_model_ref": "qwen3.5:4b",
+  "probe_exit_status": 0
+}

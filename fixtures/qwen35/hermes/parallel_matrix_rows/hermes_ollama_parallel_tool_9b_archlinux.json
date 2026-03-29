@@ -1,0 +1,61 @@
+{
+  "report_kind": "psionic_hermes_qwen35_compatibility",
+  "created_at_utc": "2026-03-29T00:27:58.160898+00:00",
+  "backend_label": "ollama",
+  "base_url": "http://127.0.0.1:11434/v1",
+  "model": "qwen3.5:9b",
+  "model_path": "qwen3.5:9b",
+  "psionic_root": "/home/christopherdavid/scratch/psionic-hermes-663",
+  "psionic_revision": "e1a27665c63f4b7a085795415699ab7f168c4d2d",
+  "hermes_root": "/home/christopherdavid/scratch/hermes-agent-proof2",
+  "hermes_revision": "e295a2215acd55f2ee930fc7a4cd2df1c5464234",
+  "python_executable": "/home/christopherdavid/scratch/hermes-min/.venv/bin/python",
+  "python_version": "3.14.3 (main, Feb 13 2026, 15:31:44) [GCC 15.2.1 20260209]",
+  "host": "archlinux",
+  "cases": [
+    {
+      "case_id": "parallel_tool_turn",
+      "pass": false,
+      "summary": "parallel tool turn emitted both tool calls in one assistant response",
+      "stream_calls": 2,
+      "request_summaries": [
+        {
+          "tool_choice": "required",
+          "parallel_tool_calls": true,
+          "tool_names": [
+            "get_paris_weather",
+            "get_tokyo_weather"
+          ]
+        },
+        {
+          "tool_choice": "required",
+          "parallel_tool_calls": true,
+          "tool_names": [
+            "get_paris_weather",
+            "get_tokyo_weather"
+          ]
+        }
+      ],
+      "api_calls": 2,
+      "completed": false,
+      "failed": false,
+      "final_response": "",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Use both weather tools now, then summarize both cities in one answer."
+        }
+      ],
+      "details": {
+        "assistant_tool_names": []
+      }
+    }
+  ],
+  "overall_pass": false,
+  "passing_case_count": 0,
+  "total_case_count": 1,
+  "matrix_backend_label": "ollama",
+  "matrix_model_label": "9b",
+  "matrix_model_ref": "qwen3.5:9b",
+  "probe_exit_status": 1
+}

@@ -1,0 +1,440 @@
+{
+  "report_kind": "psionic_hermes_qwen35_parallel_tool_attribution_matrix",
+  "created_at_utc": "2026-03-29T00:35:54.211921+00:00",
+  "host": "archlinux",
+  "psionic_revision": "e1a27665c63f4b7a085795415699ab7f168c4d2d",
+  "hermes_revision": "e295a2215acd55f2ee930fc7a4cd2df1c5464234",
+  "fixed_contract": {
+    "case_id": "parallel_tool_turn",
+    "task": "emit exactly one assistant tool-call turn containing get_paris_weather then get_tokyo_weather in one same-turn tool_calls array",
+    "temperature": 0,
+    "seed": 0,
+    "tool_policy": "required_then_auto",
+    "benchmark_boundary": "Hermes fixed; backend and artifact/model swap only"
+  },
+  "rows": [
+    {
+      "row_path": "fixtures/qwen35/hermes/parallel_matrix_rows/hermes_psionic_parallel_tool_2b_archlinux.json",
+      "backend_label": "psionic",
+      "model_label": "2b",
+      "model_ref": "/home/christopherdavid/models/qwen3.5/qwen3.5-2b-q8_0-registry.gguf",
+      "probe_exit_status": 1,
+      "overall_pass": false,
+      "case_present": true,
+      "parallel_tool_turn_pass": false,
+      "assistant_tool_names": [
+        "get_paris_weather"
+      ],
+      "request_summaries": [
+        {
+          "tool_choice": "required",
+          "parallel_tool_calls": true,
+          "tool_names": [
+            "get_paris_weather",
+            "get_tokyo_weather"
+          ]
+        },
+        {
+          "tool_choice": "auto",
+          "parallel_tool_calls": true,
+          "tool_names": [
+            "get_paris_weather",
+            "get_tokyo_weather"
+          ]
+        }
+      ],
+      "failure_detail": null,
+      "row_status": null,
+      "case_summary": "parallel tool turn emitted both tool calls in one assistant response"
+    },
+    {
+      "row_path": "fixtures/qwen35/hermes/parallel_matrix_rows/hermes_ollama_parallel_tool_2b_archlinux.json",
+      "backend_label": "ollama",
+      "model_label": "2b",
+      "model_ref": "qwen3.5:2b",
+      "probe_exit_status": 0,
+      "overall_pass": true,
+      "case_present": true,
+      "parallel_tool_turn_pass": true,
+      "assistant_tool_names": [
+        "get_paris_weather",
+        "get_tokyo_weather"
+      ],
+      "request_summaries": [
+        {
+          "tool_choice": "required",
+          "parallel_tool_calls": true,
+          "tool_names": [
+            "get_paris_weather",
+            "get_tokyo_weather"
+          ]
+        },
+        {
+          "tool_choice": "auto",
+          "parallel_tool_calls": true,
+          "tool_names": [
+            "get_paris_weather",
+            "get_tokyo_weather"
+          ]
+        }
+      ],
+      "failure_detail": null,
+      "row_status": null,
+      "case_summary": "parallel tool turn emitted both tool calls in one assistant response"
+    },
+    {
+      "row_path": "fixtures/qwen35/hermes/parallel_matrix_rows/hermes_psionic_parallel_tool_4b_archlinux.json",
+      "backend_label": "psionic",
+      "model_label": "4b",
+      "model_ref": "/home/christopherdavid/models/qwen3.5/qwen3.5-4b-q8_0-registry.gguf",
+      "probe_exit_status": 1,
+      "overall_pass": false,
+      "case_present": true,
+      "parallel_tool_turn_pass": false,
+      "assistant_tool_names": [
+        "get_paris_weather"
+      ],
+      "request_summaries": [
+        {
+          "tool_choice": "required",
+          "parallel_tool_calls": true,
+          "tool_names": [
+            "get_paris_weather",
+            "get_tokyo_weather"
+          ]
+        },
+        {
+          "tool_choice": "auto",
+          "parallel_tool_calls": true,
+          "tool_names": [
+            "get_paris_weather",
+            "get_tokyo_weather"
+          ]
+        }
+      ],
+      "failure_detail": null,
+      "row_status": null,
+      "case_summary": "parallel tool turn emitted both tool calls in one assistant response"
+    },
+    {
+      "row_path": "fixtures/qwen35/hermes/parallel_matrix_rows/hermes_ollama_parallel_tool_4b_archlinux.json",
+      "backend_label": "ollama",
+      "model_label": "4b",
+      "model_ref": "qwen3.5:4b",
+      "probe_exit_status": 0,
+      "overall_pass": true,
+      "case_present": true,
+      "parallel_tool_turn_pass": true,
+      "assistant_tool_names": [
+        "get_paris_weather",
+        "get_tokyo_weather"
+      ],
+      "request_summaries": [
+        {
+          "tool_choice": "required",
+          "parallel_tool_calls": true,
+          "tool_names": [
+            "get_paris_weather",
+            "get_tokyo_weather"
+          ]
+        },
+        {
+          "tool_choice": "auto",
+          "parallel_tool_calls": true,
+          "tool_names": [
+            "get_paris_weather",
+            "get_tokyo_weather"
+          ]
+        }
+      ],
+      "failure_detail": null,
+      "row_status": null,
+      "case_summary": "parallel tool turn emitted both tool calls in one assistant response"
+    },
+    {
+      "row_path": "fixtures/qwen35/hermes/parallel_matrix_rows/hermes_psionic_parallel_tool_9b_archlinux.json",
+      "backend_label": "psionic",
+      "model_label": "9b",
+      "model_ref": "/home/christopherdavid/models/qwen3.5/qwen3.5-9b-q4_k_m-registry.gguf",
+      "probe_exit_status": 1,
+      "overall_pass": false,
+      "case_present": true,
+      "parallel_tool_turn_pass": false,
+      "assistant_tool_names": [
+        "get_paris_weather"
+      ],
+      "request_summaries": [
+        {
+          "tool_choice": "required",
+          "parallel_tool_calls": true,
+          "tool_names": [
+            "get_paris_weather",
+            "get_tokyo_weather"
+          ]
+        },
+        {
+          "tool_choice": "auto",
+          "parallel_tool_calls": true,
+          "tool_names": [
+            "get_paris_weather",
+            "get_tokyo_weather"
+          ]
+        }
+      ],
+      "failure_detail": null,
+      "row_status": null,
+      "case_summary": "parallel tool turn emitted both tool calls in one assistant response"
+    },
+    {
+      "row_path": "fixtures/qwen35/hermes/parallel_matrix_rows/hermes_ollama_parallel_tool_9b_archlinux.json",
+      "backend_label": "ollama",
+      "model_label": "9b",
+      "model_ref": "qwen3.5:9b",
+      "probe_exit_status": 1,
+      "overall_pass": false,
+      "case_present": true,
+      "parallel_tool_turn_pass": false,
+      "assistant_tool_names": [],
+      "request_summaries": [
+        {
+          "tool_choice": "required",
+          "parallel_tool_calls": true,
+          "tool_names": [
+            "get_paris_weather",
+            "get_tokyo_weather"
+          ]
+        },
+        {
+          "tool_choice": "required",
+          "parallel_tool_calls": true,
+          "tool_names": [
+            "get_paris_weather",
+            "get_tokyo_weather"
+          ]
+        }
+      ],
+      "failure_detail": null,
+      "row_status": null,
+      "case_summary": "parallel tool turn emitted both tool calls in one assistant response"
+    }
+  ],
+  "per_model_verdicts": [
+    {
+      "model_label": "2b",
+      "verdict": "ollama_only_pass",
+      "psionic": {
+        "row_path": "fixtures/qwen35/hermes/parallel_matrix_rows/hermes_psionic_parallel_tool_2b_archlinux.json",
+        "backend_label": "psionic",
+        "model_label": "2b",
+        "model_ref": "/home/christopherdavid/models/qwen3.5/qwen3.5-2b-q8_0-registry.gguf",
+        "probe_exit_status": 1,
+        "overall_pass": false,
+        "case_present": true,
+        "parallel_tool_turn_pass": false,
+        "assistant_tool_names": [
+          "get_paris_weather"
+        ],
+        "request_summaries": [
+          {
+            "tool_choice": "required",
+            "parallel_tool_calls": true,
+            "tool_names": [
+              "get_paris_weather",
+              "get_tokyo_weather"
+            ]
+          },
+          {
+            "tool_choice": "auto",
+            "parallel_tool_calls": true,
+            "tool_names": [
+              "get_paris_weather",
+              "get_tokyo_weather"
+            ]
+          }
+        ],
+        "failure_detail": null,
+        "row_status": null,
+        "case_summary": "parallel tool turn emitted both tool calls in one assistant response"
+      },
+      "ollama": {
+        "row_path": "fixtures/qwen35/hermes/parallel_matrix_rows/hermes_ollama_parallel_tool_2b_archlinux.json",
+        "backend_label": "ollama",
+        "model_label": "2b",
+        "model_ref": "qwen3.5:2b",
+        "probe_exit_status": 0,
+        "overall_pass": true,
+        "case_present": true,
+        "parallel_tool_turn_pass": true,
+        "assistant_tool_names": [
+          "get_paris_weather",
+          "get_tokyo_weather"
+        ],
+        "request_summaries": [
+          {
+            "tool_choice": "required",
+            "parallel_tool_calls": true,
+            "tool_names": [
+              "get_paris_weather",
+              "get_tokyo_weather"
+            ]
+          },
+          {
+            "tool_choice": "auto",
+            "parallel_tool_calls": true,
+            "tool_names": [
+              "get_paris_weather",
+              "get_tokyo_weather"
+            ]
+          }
+        ],
+        "failure_detail": null,
+        "row_status": null,
+        "case_summary": "parallel tool turn emitted both tool calls in one assistant response"
+      }
+    },
+    {
+      "model_label": "4b",
+      "verdict": "ollama_only_pass",
+      "psionic": {
+        "row_path": "fixtures/qwen35/hermes/parallel_matrix_rows/hermes_psionic_parallel_tool_4b_archlinux.json",
+        "backend_label": "psionic",
+        "model_label": "4b",
+        "model_ref": "/home/christopherdavid/models/qwen3.5/qwen3.5-4b-q8_0-registry.gguf",
+        "probe_exit_status": 1,
+        "overall_pass": false,
+        "case_present": true,
+        "parallel_tool_turn_pass": false,
+        "assistant_tool_names": [
+          "get_paris_weather"
+        ],
+        "request_summaries": [
+          {
+            "tool_choice": "required",
+            "parallel_tool_calls": true,
+            "tool_names": [
+              "get_paris_weather",
+              "get_tokyo_weather"
+            ]
+          },
+          {
+            "tool_choice": "auto",
+            "parallel_tool_calls": true,
+            "tool_names": [
+              "get_paris_weather",
+              "get_tokyo_weather"
+            ]
+          }
+        ],
+        "failure_detail": null,
+        "row_status": null,
+        "case_summary": "parallel tool turn emitted both tool calls in one assistant response"
+      },
+      "ollama": {
+        "row_path": "fixtures/qwen35/hermes/parallel_matrix_rows/hermes_ollama_parallel_tool_4b_archlinux.json",
+        "backend_label": "ollama",
+        "model_label": "4b",
+        "model_ref": "qwen3.5:4b",
+        "probe_exit_status": 0,
+        "overall_pass": true,
+        "case_present": true,
+        "parallel_tool_turn_pass": true,
+        "assistant_tool_names": [
+          "get_paris_weather",
+          "get_tokyo_weather"
+        ],
+        "request_summaries": [
+          {
+            "tool_choice": "required",
+            "parallel_tool_calls": true,
+            "tool_names": [
+              "get_paris_weather",
+              "get_tokyo_weather"
+            ]
+          },
+          {
+            "tool_choice": "auto",
+            "parallel_tool_calls": true,
+            "tool_names": [
+              "get_paris_weather",
+              "get_tokyo_weather"
+            ]
+          }
+        ],
+        "failure_detail": null,
+        "row_status": null,
+        "case_summary": "parallel tool turn emitted both tool calls in one assistant response"
+      }
+    },
+    {
+      "model_label": "9b",
+      "verdict": "failure_reproduced_with_different_tool_sequence",
+      "psionic": {
+        "row_path": "fixtures/qwen35/hermes/parallel_matrix_rows/hermes_psionic_parallel_tool_9b_archlinux.json",
+        "backend_label": "psionic",
+        "model_label": "9b",
+        "model_ref": "/home/christopherdavid/models/qwen3.5/qwen3.5-9b-q4_k_m-registry.gguf",
+        "probe_exit_status": 1,
+        "overall_pass": false,
+        "case_present": true,
+        "parallel_tool_turn_pass": false,
+        "assistant_tool_names": [
+          "get_paris_weather"
+        ],
+        "request_summaries": [
+          {
+            "tool_choice": "required",
+            "parallel_tool_calls": true,
+            "tool_names": [
+              "get_paris_weather",
+              "get_tokyo_weather"
+            ]
+          },
+          {
+            "tool_choice": "auto",
+            "parallel_tool_calls": true,
+            "tool_names": [
+              "get_paris_weather",
+              "get_tokyo_weather"
+            ]
+          }
+        ],
+        "failure_detail": null,
+        "row_status": null,
+        "case_summary": "parallel tool turn emitted both tool calls in one assistant response"
+      },
+      "ollama": {
+        "row_path": "fixtures/qwen35/hermes/parallel_matrix_rows/hermes_ollama_parallel_tool_9b_archlinux.json",
+        "backend_label": "ollama",
+        "model_label": "9b",
+        "model_ref": "qwen3.5:9b",
+        "probe_exit_status": 1,
+        "overall_pass": false,
+        "case_present": true,
+        "parallel_tool_turn_pass": false,
+        "assistant_tool_names": [],
+        "request_summaries": [
+          {
+            "tool_choice": "required",
+            "parallel_tool_calls": true,
+            "tool_names": [
+              "get_paris_weather",
+              "get_tokyo_weather"
+            ]
+          },
+          {
+            "tool_choice": "required",
+            "parallel_tool_calls": true,
+            "tool_names": [
+              "get_paris_weather",
+              "get_tokyo_weather"
+            ]
+          }
+        ],
+        "failure_detail": null,
+        "row_status": null,
+        "case_summary": "parallel tool turn emitted both tool calls in one assistant response"
+      }
+    }
+  ],
+  "overall_attribution": "native_psionic_lane_specific_failure_present"
+}

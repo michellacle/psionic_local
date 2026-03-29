@@ -11,9 +11,12 @@ The proof is honest about the current boundary:
 - Hermes-on-Psionic is real for `5/6` retained cases on the exact pushed
   revisions below.
 - The only remaining failed case is same-turn parallel tool calling.
-- The retained request summaries prove Hermes sent both declared tools, so the
-  remaining blocker is current qwen35 model behavior on these local rows, not a
-  missing tool-surface transport path in Psionic.
+- The older retained request summaries do prove Hermes sent both declared
+  tools, so the red row was never a missing request-surface transport path.
+- But the later cross-backend attribution matrix now shows the red row is not
+  honestly reducible to "local qwen35 model behavior" on every backend:
+  Ollama `2b` and `4b` pass the exact strict parallel row on the same host
+  while native Psionic `2b` and `4b` still fail it.
 - The later local-tailnet follow-up reruns on pushed `b2277ed5` and
   `9f67d65b` stayed at the same `5/6` boundary on the retained `2b` and `9b`
   rows even after tightening both the backend parallel-tool prompt contract and
@@ -77,6 +80,7 @@ scripts/release/check-psionic-hermes-qwen35-compatibility.sh
 - `fixtures/qwen35/hermes/hermes_qwen35_psionic_compatibility_report_20260328_archlinux_2b_9f67d65b.json`
 - `fixtures/qwen35/hermes/hermes_qwen35_psionic_compatibility_report_20260328_archlinux_9b.json`
 - `fixtures/qwen35/hermes/hermes_qwen35_psionic_compatibility_report_20260328_archlinux_9b_9f67d65b.json`
+- `fixtures/qwen35/hermes/hermes_qwen35_parallel_tool_attribution_matrix_20260329_archlinux.json`
 
 ## Retained Matrix
 
@@ -117,6 +121,9 @@ The later repeated-loop prefix-cache proof now lives in
 
 The serialized two-city consumer-GPU follow-up now lives in
 `docs/HERMES_QWEN35_SERIALIZED_TWO_CITY.md`.
+
+The strict same-turn parallel attribution matrix now lives in
+`docs/HERMES_QWEN35_PARALLEL_ATTRIBUTION.md`.
 
 ## What The Proof Actually Shows
 
@@ -161,9 +168,20 @@ Even with those stricter instructions:
   `get_paris_weather` on the second iteration
 - local `9b` still emitted only `get_paris_weather`
 
-That means the current red case is still the local qwen35 model response
-behavior on same-turn parallel tool use, not that Psionic failed to expose
-multiple tools, `parallel_tool_calls`, tool replay, or tool result ingestion.
+That still means Psionic is exposing multiple tools, `parallel_tool_calls`,
+tool replay, and tool-result ingestion on the request surface.
+
+But the newer cross-backend matrix changes the attribution:
+
+- native Psionic `2b` and `4b` still emit only `get_paris_weather`
+- Ollama `2b` and `4b` emit both `get_paris_weather` and
+  `get_tokyo_weather` on the same strict row
+- `9b` still fails on both backends, but not with the same symptom
+
+So the remaining blocker is now best described as:
+
+- a native Psionic lane-specific failure on the reachable `2b` and `4b` rows
+- plus a separate mixed/shared `9b` boundary
 
 ## Honest Bottom Line
 
@@ -181,14 +199,17 @@ audit posture implied:
   `Paris is sunny at 18C. Tokyo is rainy at 12C.`
 - the repo now also has one retained Psionic-versus-Ollama Hermes benchmark on
   the local `2b` row
+- the repo now also has one retained strict same-turn parallel attribution
+  matrix showing that Ollama `2b` and `4b` pass the exact red row while the
+  native Psionic lane still fails it
 - the repo now also has one retained exact-pushed qwen35 fast-path proof for
   required tool turns, direct auto turns, and tool-result continuation
 - the repo now also has one retained repeated-loop reuse receipt showing warm
   wallclock improvement on required tool turns and tool-result continuation
-- local-tailnet qwen35 improvement work for this exact blocker is now close to
-  exhausted: backend prompt tightening, checker tightening, and the available
-  `2b`, `4b`, and `9b` local rows all leave the same-turn parallel-tool case
-  unresolved
+- local-tailnet qwen35 improvement work for this exact blocker is not honestly
+  exhausted anymore, because the new attribution matrix says the `2b` and `4b`
+  red rows are now native Psionic lane-gap evidence rather than a universal
+  model-family limit
 - this is still not enough to claim full Hermes compatibility yet, so the
   direct-compatibility umbrella issue stays honestly open until a stronger row
-  or different runtime path clears the last case
+  or a native Psionic fix clears the last case
